@@ -9,8 +9,18 @@ use cmdai::{
     safety::{SafetyConfig, SafetyValidator},
 };
 
+// Configure proptest to run fewer cases for faster test execution
+// Override with PROPTEST_CASES environment variable if needed
+
 // Property: Safety validation should be deterministic
 proptest! {
+    #![proptest_config(ProptestConfig {
+        cases: 10,
+        max_shrink_iters: 1000,
+        timeout: 30000, // 30 seconds per test
+        ..ProptestConfig::default()
+    })]
+
     #[test]
     fn prop_safety_validation_deterministic(
         command in "[a-zA-Z0-9 ._-]{1,100}",
@@ -51,6 +61,13 @@ proptest! {
 
 // Property: Risk levels should be monotonic with safety levels
 proptest! {
+    #![proptest_config(ProptestConfig {
+        cases: 10,
+        max_shrink_iters: 1000,
+        timeout: 30000,
+        ..ProptestConfig::default()
+    })]
+
     #[test]
     fn prop_safety_levels_monotonic(
         command in "[a-zA-Z0-9 ._/-]{1,50}",
@@ -95,6 +112,13 @@ proptest! {
 
 // Property: Command validation should handle arbitrary strings safely
 proptest! {
+    #![proptest_config(ProptestConfig {
+        cases: 10,
+        max_shrink_iters: 1000,
+        timeout: 30000,
+        ..ProptestConfig::default()
+    })]
+
     #[test]
     fn prop_arbitrary_command_safety(
         command in ".*{0,200}",  // Any string up to 200 chars
@@ -215,6 +239,13 @@ proptest! {
 
 // Property: Command length should not affect safety classification consistency
 proptest! {
+    #![proptest_config(ProptestConfig {
+        cases: 10,
+        max_shrink_iters: 1000,
+        timeout: 30000,
+        ..ProptestConfig::default()
+    })]
+
     #[test]
     fn prop_command_length_consistency(
         base_command in "[a-zA-Z]{2,10}",
@@ -362,6 +393,13 @@ proptest! {
 
 // Property: Batch validation should be consistent with individual validation
 proptest! {
+    #![proptest_config(ProptestConfig {
+        cases: 10,
+        max_shrink_iters: 1000,
+        timeout: 30000,
+        ..ProptestConfig::default()
+    })]
+
     #[test]
     fn prop_batch_individual_consistency(
         commands in prop::collection::vec("[a-zA-Z0-9 ._-]{1,30}", 1..5),

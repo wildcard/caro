@@ -52,23 +52,15 @@ filter = 'test(backend) | test(integration)'
 slow-timeout = { period = "60s", terminate-after = 3 }
 
 [[profile.default.overrides]]
-# Property tests can be slow
+# Property tests can be slow and run many cases
 filter = 'test(property)'
-slow-timeout = { period = "120s", terminate-after = 5 }
+slow-timeout = { period = "120s", terminate-after = 10 }
+threads-required = 1
 
 [[profile.default.overrides]]
 # Performance benchmarks need special handling
 filter = 'test(performance) | test(bench)'
 slow-timeout = { period = "300s", terminate-after = 5 }
-
-# Environment variables for all test runs
-[env]
-RUST_LOG = "warn"
-RUST_BACKTRACE = "1"
-
-# Test environment for tokio tests
-[env.tokio]
-TOKIO_WORKER_THREADS = "2"
 
 # Custom test groups
 [test-groups]

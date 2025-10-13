@@ -15,8 +15,10 @@ use cmdai::{
 struct IntegrationTestCase {
     name: &'static str,
     prompt: &'static str,
+    #[allow(dead_code)]
     expected_safe: bool,
     shell: ShellType,
+    #[allow(dead_code)]
     safety_level: SafetyLevel,
 }
 
