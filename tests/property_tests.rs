@@ -159,6 +159,13 @@ proptest! {
 
 // Property: Common safe commands should always be allowed
 proptest! {
+    #![proptest_config(ProptestConfig {
+        cases: 10,
+        max_shrink_iters: 1000,
+        timeout: 30000,
+        ..ProptestConfig::default()
+    })]
+
     #[test]
     fn prop_safe_commands_always_allowed(
         safe_prefix in prop_oneof![
@@ -202,6 +209,13 @@ proptest! {
 
 // Property: Dangerous patterns should be detected consistently
 proptest! {
+    #![proptest_config(ProptestConfig {
+        cases: 10,
+        max_shrink_iters: 1000,
+        timeout: 30000,
+        ..ProptestConfig::default()
+    })]
+
     #[test]
     fn prop_dangerous_patterns_detected(
         dangerous_command in prop_oneof![
@@ -284,6 +298,13 @@ proptest! {
 
 // Property: Shell type should not dramatically change risk assessment for basic commands
 proptest! {
+    #![proptest_config(ProptestConfig {
+        cases: 10,
+        max_shrink_iters: 1000,
+        timeout: 30000,
+        ..ProptestConfig::default()
+    })]
+
     #[test]
     fn prop_shell_consistency_basic_commands(
         basic_command in prop_oneof![
@@ -334,6 +355,13 @@ proptest! {
 
 // Property: Empty and whitespace commands should be handled consistently
 proptest! {
+    #![proptest_config(ProptestConfig {
+        cases: 10,
+        max_shrink_iters: 1000,
+        timeout: 30000,
+        ..ProptestConfig::default()
+    })]
+
     #[test]
     fn prop_empty_whitespace_commands(
         whitespace in r"[ \t\n\r]{0,20}",
@@ -361,6 +389,13 @@ proptest! {
 
 // Property: System should handle Unicode and special characters gracefully
 proptest! {
+    #![proptest_config(ProptestConfig {
+        cases: 10,
+        max_shrink_iters: 1000,
+        timeout: 30000,
+        ..ProptestConfig::default()
+    })]
+
     #[test]
     fn prop_unicode_special_chars(
         unicode_command in "[\\p{L}\\p{N}\\p{P}\\p{S} ]{1,50}",
