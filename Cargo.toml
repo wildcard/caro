@@ -22,6 +22,7 @@ tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "sync"
 # Serialization and configuration
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+serde_yaml = "0.9"
 toml = "0.8"
 config = "0.13"
 
@@ -39,6 +40,7 @@ tracing-appender = "0.2"
 dialoguer = "0.11"
 colored = "2"
 indicatif = "0.17"
+atty = "0.2"
 
 # Cross-platform support
 directories = "5"

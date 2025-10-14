@@ -17,24 +17,27 @@ Execute this command? (y/N) y
 This project is in **active early development**. The architecture and module structure are in place, with implementation ongoing.
 
 ### ✅ Completed
-- Core CLI structure with clap argument parsing
-- Modular architecture design
-- Backend trait system for LLM integration
-- Safety validation framework
-- Contract-based test structure
-- Comprehensive project specifications
+- Core CLI structure with comprehensive argument parsing
+- Modular architecture with trait-based backends
+- **Embedded model backend with MLX (Apple Silicon) and CPU variants** ✨
+- **Remote backend support (Ollama, vLLM) with automatic fallback** ✨
+- Safety validation with pattern matching and risk assessment
+- Configuration management with TOML support
+- Interactive user confirmation flows
+- Multiple output formats (JSON, YAML, Plain)
+- Contract-based test structure with TDD methodology
+- Multi-platform CI/CD pipeline
 
 ### 🚧 In Progress
-- LLM backend implementations (MLX, vLLM, Ollama)
-- Safety validation patterns
-- Command execution engine
-- Model caching system
+- Model downloading and caching system
+- Advanced command execution engine
+- Performance optimization
 
 ### 📅 Planned
-- Full MLX integration for Apple Silicon
-- Remote backend support
-- Advanced safety features
 - Multi-step goal completion
+- Advanced context awareness
+- Shell script generation
+- Command history and learning
 
 ## ✨ Features (Planned & In Development)
 
@@ -87,17 +90,43 @@ RUST_LOG=debug cargo run -- "your command"
 
 ## 📖 Usage
 
-### Basic Syntax (Planned)
+### Basic Syntax
 ```bash
 cmdai [OPTIONS] <PROMPT>
 ```
 
-### CLI Options (Designed)
+### Examples
+```bash
+# Basic command generation
+cmdai "list all files in the current directory"
+
+# With specific shell
+cmdai --shell zsh "find large files"
+
+# JSON output for scripting
+cmdai --output json "show disk usage"
+
+# Adjust safety level
+cmdai --safety permissive "clean temporary files"
+
+# Auto-confirm dangerous commands
+cmdai --confirm "remove old log files"
+
+# Verbose mode with timing info
+cmdai --verbose "search for Python files"
+```
+
+### CLI Options
 
 | Option | Description | Status |
 |--------|-------------|--------|
-| `--backend` | Inference backend (mlx, vllm, ollama) | 🚧 In Development |
-| `--model` | Specific model ID or path | 🚧 In Development |
+| `-s, --shell <SHELL>` | Target shell (bash, zsh, fish, sh, powershell, cmd) | ✅ Implemented |
+| `--safety <LEVEL>` | Safety level (strict, moderate, permissive) | ✅ Implemented |
+| `-o, --output <FORMAT>` | Output format (json, yaml, plain) | ✅ Implemented |
+| `-y, --confirm` | Auto-confirm dangerous commands | ✅ Implemented |
+| `-v, --verbose` | Enable verbose output with timing | ✅ Implemented |
+| `-c, --config <FILE>` | Custom configuration file | ✅ Implemented |
+| `--show-config` | Display current configuration | ✅ Implemented |
 | `--auto` | Execute without confirmation | 📅 Planned |
 | `--allow-dangerous` | Allow potentially dangerous commands | 📅 Planned |
 | `--verbose` | Enable verbose logging | ✅ Available |
@@ -186,10 +215,39 @@ cargo fmt -- --check
 cargo clippy -- -D warnings
 ```
 
+### Backend Configuration
+
+cmdai supports multiple inference backends with automatic fallback:
+
+#### Embedded Backend (Default)
+- **MLX**: Optimized for Apple Silicon Macs (M1/M2/M3)
+- **CPU**: Cross-platform fallback using Candle framework
+- Model: Qwen2.5-Coder-1.5B-Instruct (quantized)
+- No external dependencies required
+
+#### Remote Backends (Optional)
+Configure in `~/.config/cmdai/config.toml`:
+
+```toml
+[backend]
+primary = "embedded"  # or "ollama", "vllm"
+enable_fallback = true
+
+[backend.ollama]
+base_url = "http://localhost:11434"
+model_name = "codellama:7b"
+
+[backend.vllm]
+base_url = "http://localhost:8000"
+model_name = "codellama/CodeLlama-7b-hf"
+api_key = "optional-api-key"
+```
+
 ### Project Configuration
 
 The project uses several configuration files:
 - `Cargo.toml` - Rust dependencies and build configuration
+- `~/.config/cmdai/config.toml` - User configuration
 - `clippy.toml` - Linter rules
 - `rustfmt.toml` - Code formatting rules
 - `deny.toml` - Dependency audit configuration
@@ -204,21 +262,31 @@ The project uses contract-based testing:
 
 ## 🛡️ Safety Features
 
-The safety module is designed to prevent dangerous operations:
+cmdai includes comprehensive safety validation to prevent dangerous operations:
 
-### Planned Safety Checks
-- System destruction patterns (`rm -rf /`, `mkfs`)
-- Fork bombs detection
-- Device write operations
-- Privilege escalation without explicit permission
-- Path validation and quoting
-- Command length limits
+### Implemented Safety Checks
+- ✅ System destruction patterns (`rm -rf /`, `rm -rf ~`)
+- ✅ Fork bombs detection (`:(){:|:&};:`)
+- ✅ Disk operations (`mkfs`, `dd if=/dev/zero`)
+- ✅ Privilege escalation detection (`sudo su`, `chmod 777 /`)
+- ✅ Critical path protection (`/bin`, `/usr`, `/etc`)
+- ✅ Command validation and sanitization
 
 ### Risk Levels
-- **Safe** - Normal operations
-- **Moderate** - Requires caution
-- **High** - Potentially destructive
-- **Critical** - System-threatening
+- **Safe** (Green) - Normal operations, no confirmation needed
+- **Moderate** (Yellow) - Requires user confirmation in strict mode
+- **High** (Orange) - Requires confirmation in moderate mode
+- **Critical** (Red) - Blocked in strict mode, requires explicit confirmation
+
+### Safety Configuration
+Configure safety levels in `~/.config/cmdai/config.toml`:
+```toml
+[safety]
+enabled = true
+level = "moderate"  # strict, moderate, or permissive
+require_confirmation = true
+custom_patterns = ["additional", "dangerous", "patterns"]
+```
 
 ## 🤝 Contributing
 

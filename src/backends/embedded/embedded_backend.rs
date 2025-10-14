@@ -305,7 +305,7 @@ mod tests {
         let prompt = backend.create_system_prompt(&request);
 
         assert!(prompt.contains("list files"));
-        assert!(prompt.contains("Bash"));
+        assert!(prompt.contains("bash"));
         assert!(prompt.contains("JSON"));
         assert!(prompt.contains("cmd"));
     }
