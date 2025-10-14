@@ -142,7 +142,7 @@ impl std::fmt::Display for GeneratedCommand {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[serde(rename_all = "lowercase")]
 pub enum RiskLevel {
     Safe,
@@ -229,6 +229,8 @@ impl std::fmt::Display for SafetyLevel {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum BackendType {
+    /// Automatic backend selection based on availability and preferences
+    Auto,
     /// Mock backend for testing
     Mock,
     /// Embedded model backend (Qwen with MLX/CPU)
@@ -237,8 +239,8 @@ pub enum BackendType {
     Ollama,
     /// vLLM HTTP API backend
     VLlm,
-    /// Apple Silicon MLX backend (legacy)
-    Mlx,
+    /// Apple Silicon MLX backend
+    MLX,
 }
 
 impl std::str::FromStr for BackendType {
@@ -246,11 +248,12 @@ impl std::str::FromStr for BackendType {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
+            "auto" => Ok(Self::Auto),
             "mock" => Ok(Self::Mock),
             "embedded" => Ok(Self::Embedded),
             "ollama" => Ok(Self::Ollama),
             "vllm" => Ok(Self::VLlm),
-            "mlx" => Ok(Self::Mlx),
+            "mlx" => Ok(Self::MLX),
             _ => Err(format!("Unknown backend type: {}", s)),
         }
     }
@@ -259,11 +262,12 @@ impl std::str::FromStr for BackendType {
 impl std::fmt::Display for BackendType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::Auto => write!(f, "auto"),
             Self::Mock => write!(f, "mock"),
             Self::Embedded => write!(f, "embedded"),
             Self::Ollama => write!(f, "ollama"),
             Self::VLlm => write!(f, "vllm"),
-            Self::Mlx => write!(f, "mlx"),
+            Self::MLX => write!(f, "mlx"),
         }
     }
 }

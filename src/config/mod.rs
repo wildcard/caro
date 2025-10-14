@@ -8,7 +8,8 @@ use std::path::{Path, PathBuf};
 mod schema;
 mod interactive;
 
-pub use schema::SchemaValidator;
+pub use schema::{ConfigurationState, ValidationRules, PrivacyLevel, VerbosityLevel, 
+                   BackendConfig, RetentionPolicy, ConfigValidationError, ConfigSerializationError};
 pub use interactive::{run_interactive_config, ConfigResult, InteractiveConfigUI};
 
 // Re-export models types for convenience
@@ -60,7 +61,7 @@ impl ConfigManager {
 
         Ok(Self {
             config_path,
-            schema: ConfigSchema::default(),
+            schema: ConfigSchema::new(),
         })
     }
 
@@ -75,7 +76,7 @@ impl ConfigManager {
 
         Ok(Self {
             config_path,
-            schema: ConfigSchema::default(),
+            schema: ConfigSchema::new(),
         })
     }
 

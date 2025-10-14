@@ -80,6 +80,7 @@ futures-util = "0.3"
 async-stream = "0.3"
 pin-project-lite = "0.2"
 parking_lot = "0.12"
+tokio-util = "0.7"
 
 # Optional MLX support for Apple Silicon (behind feature flag)
 cxx = { version = "1.0", optional = true }

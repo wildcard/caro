@@ -32,6 +32,7 @@ pub mod history;
 pub mod logging;
 pub mod model_loader;
 pub mod models;
+pub mod performance;
 pub mod safety;
 pub mod streaming;
 
@@ -60,6 +61,12 @@ pub use safety::advanced::{
 pub use streaming::{
     StreamingGenerator, StreamingConfig, StreamChunk, StreamingStats,
     CancellationToken, StreamingError, StreamingCommandGenerator, StreamingWrapper,
+};
+
+// Performance monitoring types
+pub use performance::{
+    PerformanceMonitor, BackendMetrics, PerformanceSnapshot, RealTimeStats, RingBuffer,
+    SelectionStrategy, HealthStatus, MetricsCollector,
 };
 
 // Re-export backend types
