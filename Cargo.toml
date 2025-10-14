@@ -56,6 +56,12 @@ url = "2.5"
 # Date/time handling
 chrono = { version = "0.4", features = ["serde"] }
 
+# SQLite database for command history
+rusqlite = { version = "0.29", features = ["bundled", "chrono", "serde_json"] }
+r2d2 = "0.8"
+r2d2_sqlite = "0.22"
+uuid = { version = "1.0", features = ["v4"] }
+
 # Regex for safety validation
 regex = "1"
 once_cell = "1.19"
