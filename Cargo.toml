@@ -38,6 +38,8 @@ tracing-appender = "0.2"
 
 # User interface and interaction
 dialoguer = "0.11"
+crossterm = "0.27"
+console = "0.15"
 colored = "2"
 indicatif = "0.17"
 atty = "0.2"
@@ -74,7 +76,10 @@ async-trait = "0.1"
 
 # Streaming support
 futures = "0.3"
+futures-util = "0.3"
 async-stream = "0.3"
+pin-project-lite = "0.2"
+parking_lot = "0.12"
 
 # Optional MLX support for Apple Silicon (behind feature flag)
 cxx = { version = "1.0", optional = true }

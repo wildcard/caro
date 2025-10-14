@@ -13,5 +13,5 @@ pub use models::{
     CommandHistoryEntry, HistoryDatabase, HistoryQueryFilter, HistorySearchResult,
     ExecutionMetadata, SafetyMetadata,
 };
-pub use manager::HistoryManager;
-pub use search::HistorySearch;
+pub use manager::{HistoryManager, PaginatedHistory, RetentionPolicy};
+pub use search::{SearchQuery, SearchFilters, SearchResult, DateRange};

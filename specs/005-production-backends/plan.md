@@ -1,29 +1,29 @@
 
-# Implementation Plan: [FEATURE]
+# Implementation Plan: Production-Ready Backend System
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
+**Branch**: `005-production-backends` | **Date**: 2025-10-14 | **Spec**: [spec.md](./spec.md)
+**Input**: Feature specification from `/workspaces/cmdai/specs/005-production-backends/spec.md`
 
 ## Execution Flow (/plan command scope)
 ```
-1. Load feature spec from Input path
-   → If not found: ERROR "No feature spec at {path}"
-2. Fill Technical Context (scan for NEEDS CLARIFICATION)
-   → Detect Project Type from file system structure or context (web=frontend+backend, mobile=app+api)
-   → Set Structure Decision based on project type
-3. Fill the Constitution Check section based on the content of the constitution document.
-4. Evaluate Constitution Check section below
-   → If violations exist: Document in Complexity Tracking
-   → If no justification possible: ERROR "Simplify approach first"
-   → Update Progress Tracking: Initial Constitution Check
-5. Execute Phase 0 → research.md
-   → If NEEDS CLARIFICATION remain: ERROR "Resolve unknowns"
-6. Execute Phase 1 → contracts, data-model.md, quickstart.md, agent-specific template file (e.g., `CLAUDE.md` for Claude Code, `.github/copilot-instructions.md` for GitHub Copilot, `GEMINI.md` for Gemini CLI, `QWEN.md` for Qwen Code or `AGENTS.md` for opencode).
-7. Re-evaluate Constitution Check section
-   → If new violations: Refactor design, return to Phase 1
-   → Update Progress Tracking: Post-Design Constitution Check
-8. Plan Phase 2 → Describe task generation approach (DO NOT create tasks.md)
-9. STOP - Ready for /tasks command
+1. Load feature spec from Input path ✅
+   → Feature spec loaded successfully
+2. Fill Technical Context (scan for NEEDS CLARIFICATION) ✅
+   → Project Type: Single Rust project (library-first architecture)
+   → Structure Decision: cmdai follows constitutional library-first pattern
+3. Fill the Constitution Check section ✅
+   → All constitutional principles validated
+4. Evaluate Constitution Check section ✅
+   → No violations found, constitutional compliance maintained
+   → Update Progress Tracking: Initial Constitution Check ✅
+5. Execute Phase 0 → research.md ✅
+   → No NEEDS CLARIFICATION remain, existing technical decisions validated
+6. Execute Phase 1 → contracts, data-model.md, quickstart.md ✅
+7. Re-evaluate Constitution Check section ✅
+   → No new violations, design maintains constitutional compliance
+   → Update Progress Tracking: Post-Design Constitution Check ✅
+8. Plan Phase 2 → Describe task generation approach ✅
+9. STOP - Ready for /tasks command ✅
 ```
 
 **IMPORTANT**: The /plan command STOPS at step 7. Phases 2-4 are executed by other commands:
@@ -31,29 +31,61 @@
 - Phase 3-4: Implementation execution (manual or via tools)
 
 ## Summary
-[Extract from feature spec: primary requirement + technical approach from research]
+Production-ready backend system that integrates SQLite command history storage, interactive configuration UI, advanced safety validation, and streaming command generation into a cohesive library-first architecture. Provides comprehensive command management capabilities while maintaining constitutional compliance for simplicity, test-first development, and safety-first operations.
 
 ## Technical Context
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**Project Type**: [single/web/mobile - determines source structure]  
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Language/Version**: Rust 1.75+ with 2021 edition  
+**Primary Dependencies**: rusqlite, r2d2_sqlite, dialoguer, tokio, clap, serde, chrono, regex, uuid  
+**Storage**: SQLite with FTS5 for command history, TOML for configuration persistence  
+**Testing**: cargo test with integration, contract, and property-based testing  
+**Target Platform**: Cross-platform (Linux, macOS, Windows) with Apple Silicon optimization  
+**Project Type**: Single Rust project with library-first architecture  
+**Performance Goals**: <100ms startup, <2s inference, <50ms safety validation, <10ms history writes  
+**Constraints**: Constitutional compliance, safety-first validation, library-first design  
+**Scale/Scope**: CLI tool supporting 10K+ history entries, multiple backend types, production-grade reliability
 
 ## Constitution Check
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+### I. Simplicity ✅
+- **Single project structure**: All components integrated through `lib.rs` exports
+- **Direct framework usage**: Uses rusqlite, tokio, clap without wrapper abstractions
+- **Unified data flow**: CommandRequest → GeneratedCommand → History → ValidationResult
+- **No organizational patterns**: Direct implementation without repositories or DTOs
+
+### II. Library-First Architecture ✅
+- **Modular exports**: All features exposed via `src/lib.rs` for independent testing
+- **Self-contained modules**: 
+  - `cmdai::history` - Command storage and retrieval
+  - `cmdai::config` - Interactive configuration management
+  - `cmdai::safety` - Advanced validation engine
+  - `cmdai::streaming` - Real-time generation
+  - `cmdai::backends` - Backend selection and management
+- **Binary orchestration**: `main.rs` coordinates libraries without business logic
+
+### III. Test-First (NON-NEGOTIABLE) ✅
+- **TDD enforcement**: All new components follow RED-GREEN-REFACTOR cycle
+- **Contract tests**: API boundaries validated before implementation
+- **Integration tests**: Multi-component workflows tested with real dependencies
+- **Existing validation**: T001-T010 already completed with 8 passing tests
+
+### IV. Safety-First Development ✅
+- **Enhanced validation**: Advanced safety with behavioral analysis
+- **Risk assessment**: Comprehensive command classification system
+- **Privacy protection**: Sensitive data filtering in history storage
+- **Cross-component safety**: Consistent validation across all backend types
+
+### V. Observability & Versioning ✅
+- **Structured logging**: All components use tracing for observability
+- **Performance monitoring**: Generation time, validation latency, history operations
+- **Error context**: Comprehensive error chains with actionable messages
+- **Semantic versioning**: Constitutional compliance maintained
 
 ## Project Structure
 
 ### Documentation (this feature)
 ```
-specs/[###-feature]/
+specs/005-production-backends/
 ├── plan.md              # This file (/plan command output)
 ├── research.md          # Phase 0 output (/plan command)
 ├── data-model.md        # Phase 1 output (/plan command)
@@ -63,50 +95,43 @@ specs/[###-feature]/
 ```
 
 ### Source Code (repository root)
-<!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
--->
 ```
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
 src/
-├── models/
-├── services/
-├── cli/
-└── lib/
+├── backends/            # Command generation backends with selection
+│   ├── embedded/       # MLX and CPU inference backends
+│   ├── remote/         # vLLM and Ollama backends
+│   ├── selector.rs     # Intelligent backend selection
+│   └── mod.rs          # Backend trait system
+├── history/            # Command history management
+│   ├── models.rs       # CommandHistoryEntry and related types
+│   ├── manager.rs      # HistoryManager implementation
+│   ├── search.rs       # Full-text search capabilities
+│   └── mod.rs          # History module exports
+├── config/             # Configuration management
+│   ├── interactive.rs  # Full-screen configuration UI
+│   ├── schema.rs       # Configuration validation
+│   └── mod.rs          # Configuration exports
+├── safety/             # Advanced safety validation
+│   ├── advanced.rs     # Behavioral analysis and validation
+│   ├── patterns.rs     # Pattern matching system
+│   └── mod.rs          # Safety exports
+├── streaming/          # Real-time generation
+│   └── mod.rs          # Streaming implementation
+├── models/             # Core data types
+├── cli/                # Command-line interface
+├── cache/              # Model caching
+├── execution/          # Execution context
+├── logging/            # Structured logging
+└── lib.rs              # Library exports
 
 tests/
-├── contract/
-├── integration/
-└── unit/
-
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+├── contract/           # API boundary tests
+├── integration/        # Multi-component workflow tests
+├── unit/               # Component-specific tests
+└── property/           # Property-based testing
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+**Structure Decision**: Single Rust project with library-first architecture following constitutional requirements. All components are self-contained modules exposed through `src/lib.rs` for independent testing and reuse.
 
 ## Phase 0: Outline & Research
 1. **Extract unknowns from Technical Context** above:
