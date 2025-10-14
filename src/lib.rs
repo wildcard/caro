@@ -32,6 +32,7 @@ pub mod logging;
 pub mod model_loader;
 pub mod models;
 pub mod safety;
+pub mod streaming;
 
 // Re-export commonly used types for convenience
 pub use models::{
@@ -45,7 +46,20 @@ pub use cache::{CacheError, CacheManager, CacheStats, IntegrityReport};
 pub use config::{ConfigError, ConfigManager};
 pub use execution::{ExecutionError, PlatformDetector, ShellDetector};
 pub use logging::{LogConfig, LogConfigBuilder, LogError, LogFormat, LogOutput, Logger, Redaction};
-pub use model_loader::ModelLoader;
+pub use model_loader::{ModelLoader, ModelInfo};
+
+// Advanced safety validation types
+pub use safety::advanced::{
+    AdvancedSafetyConfig, AdvancedSafetyValidator, AdvancedValidationResult,
+    BehavioralPattern, ThreatLevel, UserFeedback, ValidationContext,
+    UserPrivileges, SystemMetrics, ExecutionStats,
+};
+
+// Streaming command generation types
+pub use streaming::{
+    StreamingGenerator, StreamingConfig, StreamChunk, StreamingStats,
+    CancellationToken, StreamingError, StreamingCommandGenerator, StreamingWrapper,
+};
 
 // Re-export backend types
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
@@ -55,4 +69,5 @@ pub use backends::embedded::{
 };
 #[cfg(feature = "remote-backends")]
 pub use backends::remote::{OllamaBackend, VllmBackend};
+pub use backends::selector::{BackendSelector, BackendSelectorConfig, SmartBackend};
 pub use backends::{BackendInfo as BackendInfoTrait, CommandGenerator, GeneratorError};

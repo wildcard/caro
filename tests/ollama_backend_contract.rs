@@ -77,7 +77,7 @@ async fn test_fallback_to_embedded_on_connection_failure() {
 
     // Create Ollama backend with unreachable URL
     let ollama = OllamaBackend::new(
-        Url::parse("http://localhost:99999").unwrap(), // Invalid port
+        Url::parse("http://localhost:65534").unwrap(), // Unreachable port
         "codellama:7b".to_string(),
     )
     .unwrap()
@@ -143,7 +143,7 @@ async fn test_retry_before_fallback() {
 #[tokio::test]
 async fn test_optional_backend_status_non_blocking() {
     let ollama = OllamaBackend::new(
-        Url::parse("http://localhost:99999").unwrap(),
+        Url::parse("http://localhost:65534").unwrap(),
         "codellama:7b".to_string(),
     )
     .unwrap();

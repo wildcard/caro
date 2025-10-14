@@ -70,6 +70,18 @@ pub struct VllmBackend {
     embedded_fallback: Option<Arc<dyn CommandGenerator>>,
 }
 
+impl std::fmt::Debug for VllmBackend {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("VllmBackend")
+            .field("base_url", &self.base_url)
+            .field("model_name", &self.model_name)
+            .field("client", &"<HTTP Client>")
+            .field("api_key", &self.api_key.as_ref().map(|_| "<REDACTED>"))
+            .field("embedded_fallback", &self.embedded_fallback.as_ref().map(|_| "<Backend>"))
+            .finish()
+    }
+}
+
 impl VllmBackend {
     /// Create a new vLLM backend
     pub fn new(base_url: Url, model_name: String) -> Result<Self, GeneratorError> {

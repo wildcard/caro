@@ -10,13 +10,24 @@ use cmdai::models::{CommandRequest, SafetyLevel, ShellType};
 use url::Url;
 
 // Placeholder struct - will be replaced with actual VllmBackend implementation
-#[derive(Debug)]
 struct VllmBackend {
     url: Url,
     model: String,
     api_key: Option<String>,
     temperature: f32,
     top_p: f32,
+}
+
+impl std::fmt::Debug for VllmBackend {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("VllmBackend")
+            .field("url", &self.url)
+            .field("model", &self.model)
+            .field("api_key", &self.api_key.as_ref().map(|_| "<REDACTED>"))
+            .field("temperature", &self.temperature)
+            .field("top_p", &self.top_p)
+            .finish()
+    }
 }
 
 impl VllmBackend {

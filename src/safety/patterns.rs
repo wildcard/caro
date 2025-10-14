@@ -71,7 +71,7 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
         },
         // HIGH: Privilege escalation
         DangerPattern {
-            pattern: r"sudo\s+su\s*$".to_string(),
+            pattern: r"sudo\s+su(\s+-.*|$)".to_string(),
             risk_level: RiskLevel::High,
             description: "Switch to root user without specific command".to_string(),
             shell_specific: None,

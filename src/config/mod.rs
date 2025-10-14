@@ -6,7 +6,10 @@ use crate::models::ConfigSchema;
 use std::path::{Path, PathBuf};
 
 mod schema;
+mod interactive;
+
 pub use schema::SchemaValidator;
+pub use interactive::{run_interactive_config, ConfigResult, InteractiveConfigUI};
 
 // Re-export models types for convenience
 pub use crate::models::{UserConfiguration, UserConfigurationBuilder};

@@ -1,6 +1,6 @@
 use clap::Parser;
 use cmdai::cli::{CliApp, CliError, IntoCliArgs};
-use cmdai::config::ConfigManager;
+use cmdai::config::{ConfigManager, run_interactive_config};
 use std::process;
 
 /// cmdai - Convert natural language to shell commands using local LLMs
@@ -51,6 +51,10 @@ struct Cli {
     /// Show configuration information
     #[arg(long, help = "Show current configuration and exit")]
     show_config: bool,
+
+    /// Launch interactive configuration UI
+    #[arg(long, help = "Launch interactive configuration interface")]
+    configure: bool,
 }
 
 impl IntoCliArgs for Cli {
@@ -114,6 +118,19 @@ async fn main() {
         }
     }
 
+    // Handle --configure
+    if cli.configure {
+        match run_interactive_configuration(&cli).await {
+            Ok(()) => {
+                process::exit(0);
+            }
+            Err(e) => {
+                eprintln!("Error in configuration: {}", e);
+                process::exit(1);
+            }
+        }
+    }
+
     // Handle missing prompt
     if cli.prompt.is_none() {
         eprintln!("Error: No prompt provided");
@@ -124,6 +141,10 @@ async fn main() {
         eprintln!("  cmdai \"list all files\"");
         eprintln!("  cmdai --shell zsh \"find large files\"");
         eprintln!("  cmdai --safety strict \"delete temporary files\"");
+        eprintln!();
+        eprintln!("Configuration:");
+        eprintln!("  cmdai --configure          # Launch interactive configuration");
+        eprintln!("  cmdai --show-config         # Show current configuration");
         eprintln!();
         eprintln!("Run 'cmdai --help' for more information.");
         process::exit(1);
@@ -304,4 +325,61 @@ async fn show_configuration(cli: &Cli) -> Result<String, CliError> {
     }
 
     Ok(output)
+}
+
+async fn run_interactive_configuration(cli: &Cli) -> Result<(), CliError> {
+    use colored::Colorize;
+
+    // Create config manager
+    let config_manager = if let Some(config_file) = &cli.config_file {
+        ConfigManager::with_config_path(config_file.into()).map_err(|e| {
+            CliError::ConfigurationError {
+                message: format!("Failed to create config manager: {}", e),
+            }
+        })?
+    } else {
+        ConfigManager::new().map_err(|e| CliError::ConfigurationError {
+            message: format!("Failed to create config manager: {}", e),
+        })?
+    };
+
+    // Load current configuration
+    let current_config = config_manager
+        .load()
+        .map_err(|e| CliError::ConfigurationError {
+            message: format!("Failed to load configuration: {}", e),
+        })?;
+
+    // Run interactive configuration
+    let result = run_interactive_config(current_config).map_err(|e| CliError::Internal {
+        message: format!("Interactive configuration failed: {}", e),
+    })?;
+
+    if result.cancelled {
+        println!("{}", "Configuration cancelled.".yellow());
+        return Ok(());
+    }
+
+    if result.changes_made {
+        // Save the updated configuration
+        config_manager
+            .save(&result.config)
+            .map_err(|e| CliError::ConfigurationError {
+                message: format!("Failed to save configuration: {}", e),
+            })?;
+
+        println!("{}", "✅ Configuration saved successfully!".green().bold());
+        println!(
+            "{}",
+            format!(
+                "Configuration written to: {}",
+                config_manager.config_path().display()
+            )
+            .dimmed()
+        );
+    } else {
+        println!("{}", "No changes made to configuration.".dimmed());
+    }
+
+    Ok(())
 }

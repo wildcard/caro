@@ -27,6 +27,7 @@
 //! ```
 
 mod patterns;
+pub mod advanced;
 
 use serde::{Deserialize, Serialize};
 

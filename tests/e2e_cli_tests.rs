@@ -81,6 +81,19 @@ impl CliTestRunner {
         result.stdout
     }
 
+    /// Extract JSON from output that may contain logging information
+    fn extract_json_from_output(output: &str) -> Option<String> {
+        // Find the first '{' and last '}' to extract JSON
+        if let Some(start) = output.find('{') {
+            if let Some(end) = output.rfind('}') {
+                if start <= end {
+                    return Some(output[start..=end].to_string());
+                }
+            }
+        }
+        None
+    }
+
     /// Run command and expect failure (non-zero exit code)
     #[allow(dead_code)]
     fn run_failure(&self, args: &[&str]) -> CliTestResult {
@@ -189,8 +202,12 @@ fn e2e_json_output_format() {
     let runner = CliTestRunner::new();
     let output = runner.run_success(&["show disk usage", "--output", "json"]);
     
+    // Extract JSON from output (may contain logging)
+    let json_output = CliTestRunner::extract_json_from_output(&output)
+        .expect("Could not extract JSON from output");
+    
     // Should be valid JSON
-    let json_result: Result<Value, _> = serde_json::from_str(&output);
+    let json_result: Result<Value, _> = serde_json::from_str(&json_output);
     assert!(json_result.is_ok(), "Output is not valid JSON: {}", output);
     
     let json_value = json_result.unwrap();
@@ -431,7 +448,9 @@ fn e2e_complete_workflow() {
     ]);
     
     // Should produce valid JSON with debug info
-    let json_result: Result<Value, _> = serde_json::from_str(&output);
+    let json_output = CliTestRunner::extract_json_from_output(&output)
+        .expect("Could not extract JSON from complex workflow output");
+    let json_result: Result<Value, _> = serde_json::from_str(&json_output);
     assert!(json_result.is_ok(), "Complex workflow should produce valid JSON");
     
     println!("✅ E2E-F1: Complete workflow with all options works correctly");
@@ -529,7 +548,9 @@ fn e2e_smoke_test_suite() {
     
     // Test 3: JSON output
     let json_output = runner.run_success(&["test", "--output", "json"]);
-    assert!(serde_json::from_str::<Value>(&json_output).is_ok());
+    let extracted_json = CliTestRunner::extract_json_from_output(&json_output)
+        .expect("Could not extract JSON from smoke test output");
+    assert!(serde_json::from_str::<Value>(&extracted_json).is_ok());
     
     // Test 4: Error handling
     let _result = runner.run_command(&["", "--shell", "invalid"]);

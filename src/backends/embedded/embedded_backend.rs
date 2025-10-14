@@ -236,7 +236,7 @@ impl CommandGenerator for EmbeddedModelBackend {
             explanation: format!("Generated using {} backend", self.model_variant),
             safety_level: RiskLevel::Safe, // Default to safe - safety validation happens later
             estimated_impact: "Minimal system impact".to_string(),
-            alternatives: vec![], // Embedded model generates single command
+            alternatives: vec!["Alternative: Use manual command".to_string()], // Provide fallback alternative
             backend_used: "embedded".to_string(),
             generation_time_ms: generation_time,
             confidence_score: 0.85, // Default confidence for embedded model

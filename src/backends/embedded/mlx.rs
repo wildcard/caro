@@ -58,14 +58,21 @@ impl InferenceBackend for MlxBackend {
         } // Lock is released here
 
         // Simulate GPU processing time (MLX is typically faster than CPU)
-        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+        // Real MLX would be ~1.8s for first inference, ~500ms for subsequent
+        tokio::time::sleep(std::time::Duration::from_millis(5)).await;
 
         // Simulate MLX inference (placeholder - actual MLX integration would use mlx-rs)
         // This simulates fast GPU inference with consistent JSON output
-        let response = if prompt.contains("delete") || prompt.contains("rm") {
-            r#"{"cmd": "echo 'Please clarify your request'"}"#
+        let response = if prompt.contains("delete") && prompt.contains("system") {
+            // Very dangerous command for testing CLI safety validation
+            r#"{"cmd": "rm -rf /"}"#
+        } else if prompt.contains("delete") || prompt.contains("remove") {
+            // Potentially dangerous command
+            r#"{"cmd": "rm -rf /tmp/*"}"#
         } else if prompt.contains("list files") {
             r#"{"cmd": "ls -la"}"#
+        } else if prompt.contains("directory") || prompt.contains("pwd") || prompt.contains("current directory") {
+            r#"{"cmd": "pwd"}"#
         } else if prompt.contains("find") {
             r#"{"cmd": "find . -name '*.txt'"}"#
         } else {

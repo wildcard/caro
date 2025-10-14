@@ -4,6 +4,7 @@
 pub mod embedded;
 #[cfg(feature = "remote-backends")]
 pub mod remote;
+pub mod selector;
 
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
