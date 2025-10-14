@@ -34,6 +34,7 @@ pub mod model_loader;
 pub mod models;
 pub mod performance;
 pub mod safety;
+pub mod semantic;
 pub mod streaming;
 
 // Re-export commonly used types for convenience
@@ -67,6 +68,12 @@ pub use streaming::{
 pub use performance::{
     PerformanceMonitor, BackendMetrics, PerformanceSnapshot, RealTimeStats, RingBuffer,
     SelectionStrategy, HealthStatus, MetricsCollector,
+};
+
+// Semantic search and embedding types
+pub use semantic::cache::{
+    LocalEmbeddingCache, EmbeddingMetadata, CacheCleanupPolicy, CacheEntry,
+    CacheStatistics, EmbeddingCacheError,
 };
 
 // Re-export backend types

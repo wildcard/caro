@@ -7,11 +7,15 @@
 
 pub mod models;
 pub mod manager;
+pub mod migrations;
 pub mod search;
 
 pub use models::{
     CommandHistoryEntry, HistoryDatabase, HistoryQueryFilter, HistorySearchResult,
     ExecutionMetadata, SafetyMetadata,
 };
-pub use manager::{HistoryManager, PaginatedHistory, RetentionPolicy};
+pub use manager::{HistoryManager, PaginatedHistory, RetentionPolicy, RetentionStats};
+pub use migrations::{
+    MigrationManager, Migration, DatabaseFeature, MigrationResult, DatabaseState,
+};
 pub use search::{SearchQuery, SearchFilters, SearchResult, DateRange};

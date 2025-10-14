@@ -7,10 +7,14 @@ use std::path::{Path, PathBuf};
 
 mod schema;
 mod interactive;
+mod interactive_new;
 
 pub use schema::{ConfigurationState, ValidationRules, PrivacyLevel, VerbosityLevel, 
                    BackendConfig, RetentionPolicy, ConfigValidationError, ConfigSerializationError};
-pub use interactive::{run_interactive_config, ConfigResult, InteractiveConfigUI};
+// Use the new interactive module that works with ConfigurationState
+pub use interactive_new::{run_interactive_config as run_interactive_configuration, ConfigResult as ConfigurationResult};
+// Keep the old one for backward compatibility temporarily
+pub use interactive::{ConfigResult, InteractiveConfigUI};
 
 // Re-export models types for convenience
 pub use crate::models::{UserConfiguration, UserConfigurationBuilder};

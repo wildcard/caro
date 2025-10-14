@@ -11,10 +11,6 @@ use anyhow::Result;
 use directories::ProjectDirs;
 
 pub mod cache;
-pub mod embedding;
-pub mod similarity;
-pub mod query;
-pub mod search;
 
 /// Initialize semantic search infrastructure with cache directories
 pub struct SemanticInit;
