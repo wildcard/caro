@@ -193,7 +193,7 @@ impl HistoryManager {
                     &entry.timestamp.to_rfc3339(),
                     entry.execution_metadata.as_ref().map(|m| serde_json::to_string(m).unwrap()),
                     entry.safety_metadata.as_ref().map(|m| serde_json::to_string(m).unwrap()),
-                    entry.tags.as_ref().map(|t| serde_json::to_string(t).unwrap()),
+                    Some(serde_json::to_string(&entry.tags).unwrap()),
                     entry.embedding_vector.as_ref().map(|v| {
                         v.iter().flat_map(|f| f.to_le_bytes()).collect::<Vec<u8>>()
                     }),
@@ -250,7 +250,11 @@ impl HistoryManager {
                             safety_metadata: row.get::<_, Option<String>>(8)?
                                 .and_then(|s| serde_json::from_str(&s).ok()),
                             tags: row.get::<_, Option<String>>(9)?
-                                .and_then(|s| serde_json::from_str(&s).ok()),
+                                .and_then(|s| serde_json::from_str(&s).ok())
+                                .unwrap_or_default(),
+                            session_id: None,
+                            hostname: None,
+                            username: None,
                             embedding_vector: row.get::<_, Option<Vec<u8>>>(10)?
                                 .map(|bytes| {
                                     bytes.chunks(4)
@@ -307,7 +311,11 @@ impl HistoryManager {
                         safety_metadata: row.get::<_, Option<String>>(8)?
                             .and_then(|s| serde_json::from_str(&s).ok()),
                         tags: row.get::<_, Option<String>>(9)?
-                            .and_then(|s| serde_json::from_str(&s).ok()),
+                            .and_then(|s| serde_json::from_str(&s).ok())
+                            .unwrap_or_default(),
+                        session_id: None,
+                        hostname: None,
+                        username: None,
                         embedding_vector: None,
                         relevance_score: None,
                     };
@@ -397,7 +405,11 @@ impl HistoryManager {
                         safety_metadata: row.get::<_, Option<String>>(8)?
                             .and_then(|s| serde_json::from_str(&s).ok()),
                         tags: row.get::<_, Option<String>>(9)?
-                            .and_then(|s| serde_json::from_str(&s).ok()),
+                            .and_then(|s| serde_json::from_str(&s).ok())
+                            .unwrap_or_default(),
+                        session_id: None,
+                        hostname: None,
+                        username: None,
                         embedding_vector: None,
                         relevance_score: None,
                     })
@@ -553,7 +565,11 @@ impl HistoryManager {
                         safety_metadata: row.get::<_, Option<String>>(8)?
                             .and_then(|s| serde_json::from_str(&s).ok()),
                         tags: row.get::<_, Option<String>>(9)?
-                            .and_then(|s| serde_json::from_str(&s).ok()),
+                            .and_then(|s| serde_json::from_str(&s).ok())
+                            .unwrap_or_default(),
+                        session_id: None,
+                        hostname: None,
+                        username: None,
                         embedding_vector: None,
                         relevance_score: None,
                     })
