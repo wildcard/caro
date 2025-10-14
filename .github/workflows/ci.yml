@@ -59,6 +59,15 @@ jobs:
     - name: Run tests (all features)
       if: matrix.os == 'ubuntu-latest'
       run: cargo test --all-features --verbose
+    
+    - name: Run E2E tests (smoke test)
+      run: cargo test e2e_smoke_test_suite --verbose
+    
+    - name: Run E2E tests (critical functionality)
+      run: |
+        cargo test e2e_help_output --verbose
+        cargo test e2e_json_output_format --verbose
+        cargo test e2e_basic_command_generation --verbose
 
   security:
     name: Security Audit
