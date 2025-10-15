@@ -3,9 +3,10 @@
 //! Provides a full-screen terminal interface for managing cmdai configuration,
 //! inspired by Atuin's advanced search interface with modern UX patterns.
 
-use crate::models::{LogLevel, SafetyLevel, ShellType, UserConfiguration};
+use super::schema::{ConfigurationState, BackendConfig, RetentionPolicy, PrivacyLevel, VerbosityLevel};
+use crate::models::{BackendType, RiskLevel, SafetyLevel};
 use colored::Colorize;
-use dialoguer::{theme::ColorfulTheme, Confirm, Editor, Select};
+use dialoguer::{theme::ColorfulTheme, Confirm, Editor, Input, MultiSelect, Select};
 use std::collections::HashMap;
 use std::fmt;
 use std::io::{self, Write};
@@ -27,17 +28,19 @@ pub enum InteractiveConfigError {
 /// Interactive configuration manager with full-screen UI
 pub struct InteractiveConfigUI {
     theme: ColorfulTheme,
-    current_config: UserConfiguration,
+    current_config: ConfigurationState,
+    original_config: ConfigurationState,
     changes_made: bool,
 }
 
 /// Configuration section for organized UI navigation
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ConfigSection {
-    General,
+    Backends,
+    History,
     Safety,
-    Logging,
-    Cache,
+    UserInterface,
+    Privacy,
     Advanced,
     Review,
     Exit,
@@ -46,10 +49,11 @@ pub enum ConfigSection {
 impl fmt::Display for ConfigSection {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::General => write!(f, "🌟 General Settings"),
+            Self::Backends => write!(f, "🚀 Backend Configuration"),
+            Self::History => write!(f, "📚 Command History"),
             Self::Safety => write!(f, "🛡️  Safety & Validation"),
-            Self::Logging => write!(f, "📋 Logging & Debugging"),
-            Self::Cache => write!(f, "💾 Cache Management"),
+            Self::UserInterface => write!(f, "🎨 User Interface"),
+            Self::Privacy => write!(f, "🔒 Privacy Settings"),
             Self::Advanced => write!(f, "⚙️  Advanced Options"),
             Self::Review => write!(f, "👀 Review Configuration"),
             Self::Exit => write!(f, "🚪 Save & Exit"),
@@ -60,7 +64,7 @@ impl fmt::Display for ConfigSection {
 /// Result of interactive configuration session
 #[derive(Debug, Clone)]
 pub struct ConfigResult {
-    pub config: UserConfiguration,
+    pub config: ConfigurationState,
     pub changes_made: bool,
     pub cancelled: bool,
 }

@@ -28,6 +28,7 @@
 
 mod patterns;
 pub mod advanced;
+pub mod detector;
 
 use serde::{Deserialize, Serialize};
 
