@@ -93,10 +93,7 @@ fn test_history_query_filter_creation() {
         .with_command_pattern("git")
         .with_shell_type(ShellType::Bash)
         .with_working_directory("/workspace")
-        .with_time_range(
-            Utc::now() - chrono::Duration::days(7),
-            Utc::now(),
-        )
+        .with_time_range(Utc::now() - chrono::Duration::days(7), Utc::now())
         .with_risk_level_max(RiskLevel::Moderate)
         .with_limit(50);
 
@@ -159,7 +156,7 @@ fn test_command_history_entry_privacy_filtering() {
     assert!(entry.command.contains("aws s3 cp"));
 }
 
-#[test] 
+#[test]
 fn test_command_history_entry_search_relevance() {
     let entry = CommandHistoryEntry::new(
         "docker build -t myapp .",

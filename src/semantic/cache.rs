@@ -104,11 +104,12 @@ impl LocalEmbeddingCache {
         cleanup_policy: CacheCleanupPolicy,
     ) -> Result<Self, EmbeddingCacheError> {
         // Ensure cache directory exists
-        std::fs::create_dir_all(&cache_directory)
-            .map_err(|e| EmbeddingCacheError::DirectoryCreationFailed {
+        std::fs::create_dir_all(&cache_directory).map_err(|e| {
+            EmbeddingCacheError::DirectoryCreationFailed {
                 path: cache_directory.clone(),
                 error: e.to_string(),
-            })?;
+            }
+        })?;
 
         // Initialize metadata
         let metadata = EmbeddingMetadata {
@@ -165,14 +166,18 @@ impl LocalEmbeddingCache {
 
         // Store in memory cache
         {
-            let mut cache = self.embeddings.write()
+            let mut cache = self
+                .embeddings
+                .write()
                 .map_err(|_| EmbeddingCacheError::LockAcquisitionFailed)?;
             cache.insert(content_hash.clone(), entry.clone());
         }
 
         // Update metadata
         {
-            let mut metadata = self.metadata.write()
+            let mut metadata = self
+                .metadata
+                .write()
                 .map_err(|_| EmbeddingCacheError::LockAcquisitionFailed)?;
             metadata.total_entries += 1;
             metadata.total_size_bytes += entry.size_bytes as u64;
@@ -192,20 +197,27 @@ impl LocalEmbeddingCache {
     }
 
     /// Retrieve an embedding from the cache
-    pub async fn get_embedding(&self, content: &str) -> Result<Option<Vec<f32>>, EmbeddingCacheError> {
+    pub async fn get_embedding(
+        &self,
+        content: &str,
+    ) -> Result<Option<Vec<f32>>, EmbeddingCacheError> {
         let content_hash = self.generate_content_hash(content);
 
         // Update lookup statistics
         {
-            let mut metadata = self.metadata.write()
+            let mut metadata = self
+                .metadata
+                .write()
                 .map_err(|_| EmbeddingCacheError::LockAcquisitionFailed)?;
             metadata.total_lookups += 1;
         }
 
         let embedding = {
-            let mut cache = self.embeddings.write()
+            let mut cache = self
+                .embeddings
+                .write()
                 .map_err(|_| EmbeddingCacheError::LockAcquisitionFailed)?;
-            
+
             if let Some(entry) = cache.get_mut(&content_hash) {
                 // Update access statistics
                 entry.access_count += 1;
@@ -213,7 +225,9 @@ impl LocalEmbeddingCache {
 
                 // Update hit statistics
                 {
-                    let mut metadata = self.metadata.write()
+                    let mut metadata = self
+                        .metadata
+                        .write()
                         .map_err(|_| EmbeddingCacheError::LockAcquisitionFailed)?;
                     metadata.total_hits += 1;
                     metadata.hit_rate = metadata.total_hits as f64 / metadata.total_lookups as f64;
@@ -238,16 +252,22 @@ impl LocalEmbeddingCache {
     /// Check if an embedding exists in the cache
     pub async fn contains(&self, content: &str) -> Result<bool, EmbeddingCacheError> {
         let content_hash = self.generate_content_hash(content);
-        let cache = self.embeddings.read()
+        let cache = self
+            .embeddings
+            .read()
             .map_err(|_| EmbeddingCacheError::LockAcquisitionFailed)?;
         Ok(cache.contains_key(&content_hash))
     }
 
     /// Get cache statistics
     pub async fn get_statistics(&self) -> Result<CacheStatistics, EmbeddingCacheError> {
-        let cache = self.embeddings.read()
+        let cache = self
+            .embeddings
+            .read()
             .map_err(|_| EmbeddingCacheError::LockAcquisitionFailed)?;
-        let metadata = self.metadata.read()
+        let metadata = self
+            .metadata
+            .read()
             .map_err(|_| EmbeddingCacheError::LockAcquisitionFailed)?;
 
         let now = Utc::now();
@@ -292,26 +312,30 @@ impl LocalEmbeddingCache {
         let now = Utc::now();
 
         let entries_to_remove: Vec<String> = {
-            let cache = self.embeddings.read()
+            let cache = self
+                .embeddings
+                .read()
                 .map_err(|_| EmbeddingCacheError::LockAcquisitionFailed)?;
 
-            cache.iter()
+            cache
+                .iter()
                 .filter_map(|(hash, entry)| {
                     let age_days = (now - entry.created_at).num_days() as u32;
-                    
+
                     // Remove if too old
                     if age_days > self.cleanup_policy.max_age_days {
                         return Some(hash.clone());
                     }
-                    
+
                     // Remove if infrequently accessed (unless preserving frequent)
-                    if !self.cleanup_policy.preserve_frequent 
-                        || entry.access_count < self.cleanup_policy.min_access_count as u64 {
+                    if !self.cleanup_policy.preserve_frequent
+                        || entry.access_count < self.cleanup_policy.min_access_count as u64
+                    {
                         if age_days > 7 && entry.access_count == 0 {
                             return Some(hash.clone());
                         }
                     }
-                    
+
                     None
                 })
                 .collect()
@@ -321,7 +345,7 @@ impl LocalEmbeddingCache {
         for hash in entries_to_remove {
             if let Some(_entry) = self.remove_entry(&hash).await? {
                 removed_count += 1;
-                
+
                 // Remove from disk
                 let entry_path = self.cache_directory.join(format!("{}.json", hash));
                 if entry_path.exists() {
@@ -333,16 +357,15 @@ impl LocalEmbeddingCache {
 
         // Update cleanup timestamp
         {
-            let mut metadata = self.metadata.write()
+            let mut metadata = self
+                .metadata
+                .write()
                 .map_err(|_| EmbeddingCacheError::LockAcquisitionFailed)?;
             metadata.last_cleanup = Some(now);
         }
 
         if removed_count > 0 {
-            info!(
-                removed_entries = removed_count,
-                "Cache cleanup completed"
-            );
+            info!(removed_entries = removed_count, "Cache cleanup completed");
         }
 
         Ok(removed_count)
@@ -351,13 +374,17 @@ impl LocalEmbeddingCache {
     /// Clear all cache entries
     pub async fn clear(&self) -> Result<(), EmbeddingCacheError> {
         {
-            let mut cache = self.embeddings.write()
+            let mut cache = self
+                .embeddings
+                .write()
                 .map_err(|_| EmbeddingCacheError::LockAcquisitionFailed)?;
             cache.clear();
         }
 
         {
-            let mut metadata = self.metadata.write()
+            let mut metadata = self
+                .metadata
+                .write()
                 .map_err(|_| EmbeddingCacheError::LockAcquisitionFailed)?;
             metadata.total_entries = 0;
             metadata.total_size_bytes = 0;
@@ -369,9 +396,10 @@ impl LocalEmbeddingCache {
         // Remove all files from cache directory
         if self.cache_directory.exists() {
             for entry in std::fs::read_dir(&self.cache_directory)
-                .map_err(|e| EmbeddingCacheError::DiskOperationFailed(e.to_string()))? {
-                let entry = entry
-                    .map_err(|e| EmbeddingCacheError::DiskOperationFailed(e.to_string()))?;
+                .map_err(|e| EmbeddingCacheError::DiskOperationFailed(e.to_string()))?
+            {
+                let entry =
+                    entry.map_err(|e| EmbeddingCacheError::DiskOperationFailed(e.to_string()))?;
                 if entry.path().extension().map_or(false, |ext| ext == "json") {
                     std::fs::remove_file(entry.path())
                         .map_err(|e| EmbeddingCacheError::DiskOperationFailed(e.to_string()))?;
@@ -390,7 +418,10 @@ impl LocalEmbeddingCache {
 
     /// Get total cache size in bytes
     pub fn get_total_size(&self) -> u64 {
-        self.metadata.read().map(|m| m.total_size_bytes).unwrap_or(0)
+        self.metadata
+            .read()
+            .map(|m| m.total_size_bytes)
+            .unwrap_or(0)
     }
 
     /// Generate SHA-256 hash of content for cache key
@@ -410,16 +441,19 @@ impl LocalEmbeddingCache {
         let mut total_size = 0u64;
 
         for entry in std::fs::read_dir(&self.cache_directory)
-            .map_err(|e| EmbeddingCacheError::DiskOperationFailed(e.to_string()))? {
-            let entry = entry
-                .map_err(|e| EmbeddingCacheError::DiskOperationFailed(e.to_string()))?;
-            
+            .map_err(|e| EmbeddingCacheError::DiskOperationFailed(e.to_string()))?
+        {
+            let entry =
+                entry.map_err(|e| EmbeddingCacheError::DiskOperationFailed(e.to_string()))?;
+
             if entry.path().extension().map_or(false, |ext| ext == "json") {
                 if let Ok(cache_entry) = self.load_entry_from_file(&entry.path()) {
                     let hash = cache_entry.content_hash.clone();
                     total_size += cache_entry.size_bytes as u64;
-                    
-                    let mut cache = self.embeddings.write()
+
+                    let mut cache = self
+                        .embeddings
+                        .write()
                         .map_err(|_| EmbeddingCacheError::LockAcquisitionFailed)?;
                     cache.insert(hash, cache_entry);
                     loaded_count += 1;
@@ -429,7 +463,9 @@ impl LocalEmbeddingCache {
 
         // Update metadata
         {
-            let mut metadata = self.metadata.write()
+            let mut metadata = self
+                .metadata
+                .write()
                 .map_err(|_| EmbeddingCacheError::LockAcquisitionFailed)?;
             metadata.total_entries = loaded_count;
             metadata.total_size_bytes = total_size;
@@ -450,18 +486,21 @@ impl LocalEmbeddingCache {
     fn load_entry_from_file(&self, path: &Path) -> Result<CacheEntry, EmbeddingCacheError> {
         let content = std::fs::read_to_string(path)
             .map_err(|e| EmbeddingCacheError::DiskOperationFailed(e.to_string()))?;
-        
+
         serde_json::from_str(&content)
             .map_err(|e| EmbeddingCacheError::SerializationFailed(e.to_string()))
     }
 
     /// Persist a cache entry to disk
     async fn persist_entry(&self, entry: &CacheEntry) -> Result<(), EmbeddingCacheError> {
-        let file_path = self.cache_directory.join(format!("{}.json", entry.content_hash));
+        let file_path = self
+            .cache_directory
+            .join(format!("{}.json", entry.content_hash));
         let json_content = serde_json::to_string_pretty(entry)
             .map_err(|e| EmbeddingCacheError::SerializationFailed(e.to_string()))?;
 
-        tokio::fs::write(&file_path, json_content).await
+        tokio::fs::write(&file_path, json_content)
+            .await
             .map_err(|e| EmbeddingCacheError::DiskOperationFailed(e.to_string()))?;
 
         Ok(())
@@ -470,16 +509,22 @@ impl LocalEmbeddingCache {
     /// Remove an entry from cache
     async fn remove_entry(&self, hash: &str) -> Result<Option<CacheEntry>, EmbeddingCacheError> {
         let entry = {
-            let mut cache = self.embeddings.write()
+            let mut cache = self
+                .embeddings
+                .write()
                 .map_err(|_| EmbeddingCacheError::LockAcquisitionFailed)?;
             cache.remove(hash)
         };
 
         if let Some(ref entry) = entry {
-            let mut metadata = self.metadata.write()
+            let mut metadata = self
+                .metadata
+                .write()
                 .map_err(|_| EmbeddingCacheError::LockAcquisitionFailed)?;
             metadata.total_entries = metadata.total_entries.saturating_sub(1);
-            metadata.total_size_bytes = metadata.total_size_bytes.saturating_sub(entry.size_bytes as u64);
+            metadata.total_size_bytes = metadata
+                .total_size_bytes
+                .saturating_sub(entry.size_bytes as u64);
         }
 
         Ok(entry)
@@ -546,13 +591,16 @@ mod tests {
         let policy = CacheCleanupPolicy::default();
 
         let cache = LocalEmbeddingCache::new(cache_dir, policy).unwrap();
-        
+
         let content = "list all files";
         let embedding = vec![0.1, 0.2, 0.3, 0.4];
-        
-        let hash = cache.store_embedding(content, embedding.clone()).await.unwrap();
+
+        let hash = cache
+            .store_embedding(content, embedding.clone())
+            .await
+            .unwrap();
         assert!(!hash.is_empty());
-        
+
         let retrieved = cache.get_embedding(content).await.unwrap();
         assert_eq!(retrieved, Some(embedding));
     }
@@ -564,11 +612,17 @@ mod tests {
         let policy = CacheCleanupPolicy::default();
 
         let cache = LocalEmbeddingCache::new(cache_dir, policy).unwrap();
-        
+
         // Store some embeddings
-        cache.store_embedding("test1", vec![0.1, 0.2]).await.unwrap();
-        cache.store_embedding("test2", vec![0.3, 0.4]).await.unwrap();
-        
+        cache
+            .store_embedding("test1", vec![0.1, 0.2])
+            .await
+            .unwrap();
+        cache
+            .store_embedding("test2", vec![0.3, 0.4])
+            .await
+            .unwrap();
+
         let stats = cache.get_statistics().await.unwrap();
         assert_eq!(stats.entry_count, 2);
         assert!(stats.total_size_bytes > 0);
@@ -583,11 +637,11 @@ mod tests {
         policy.preserve_frequent = false; // Don't preserve frequent items
 
         let cache = LocalEmbeddingCache::new(cache_dir, policy).unwrap();
-        
+
         // Store an embedding
         cache.store_embedding("test", vec![0.1, 0.2]).await.unwrap();
         assert_eq!(cache.get_entry_count(), 1);
-        
+
         // Simulate time passing by manually updating the entry's creation time
         {
             let mut cache_map = cache.embeddings.write().unwrap();
@@ -595,7 +649,7 @@ mod tests {
                 entry.created_at = Utc::now() - chrono::Duration::days(1);
             }
         }
-        
+
         // Cleanup should remove the entry
         let removed = cache.cleanup().await.unwrap();
         assert_eq!(removed, 1);
@@ -611,7 +665,10 @@ mod tests {
         // Create cache and store embedding
         {
             let cache = LocalEmbeddingCache::new(cache_dir.clone(), policy.clone()).unwrap();
-            cache.store_embedding("persistent_test", vec![0.5, 0.6]).await.unwrap();
+            cache
+                .store_embedding("persistent_test", vec![0.5, 0.6])
+                .await
+                .unwrap();
         }
 
         // Create new cache instance - should load from disk

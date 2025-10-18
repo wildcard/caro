@@ -163,53 +163,60 @@ impl CliApp {
         #[cfg(not(test))]
         {
             use crate::backends::embedded::EmbeddedModelBackend;
-            use crate::backends::selector::{SmartBackend, BackendSelectorConfig};
+            use crate::backends::selector::{BackendSelectorConfig, SmartBackend};
             use std::sync::Arc;
 
             // Create smart backend with optimized configuration
             let mut selector_config = BackendSelectorConfig::default();
             selector_config.health_check_timeout_ms = 1000; // Faster health checks for CLI
             selector_config.enable_adaptive_learning = true;
-            
-            let smart_backend = SmartBackend::new(
-                crate::backends::selector::BackendSelector::new(selector_config)
-            );
+
+            let smart_backend = SmartBackend::new(crate::backends::selector::BackendSelector::new(
+                selector_config,
+            ));
 
             // Add embedded backend as primary (always available)
-            let embedded_backend = EmbeddedModelBackend::new()
-                .map_err(|e| CliError::ConfigurationError {
+            let embedded_backend =
+                EmbeddedModelBackend::new().map_err(|e| CliError::ConfigurationError {
                     message: format!("Failed to create embedded backend: {}", e),
                 })?;
-            
-            smart_backend.add_backend(
-                Arc::new(embedded_backend),
-                "embedded-cpu".to_string(),
-                10, // Lower priority number = higher priority
-            ).await.map_err(|e| CliError::ConfigurationError {
-                message: format!("Failed to add embedded backend: {}", e),
-            })?;
+
+            smart_backend
+                .add_backend(
+                    Arc::new(embedded_backend),
+                    "embedded-cpu".to_string(),
+                    10, // Lower priority number = higher priority
+                )
+                .await
+                .map_err(|e| CliError::ConfigurationError {
+                    message: format!("Failed to add embedded backend: {}", e),
+                })?;
 
             // Add MLX backend if on Apple Silicon
             #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
             {
                 use crate::backends::embedded::{MlxBackend, ModelVariant};
                 use crate::ModelLoader;
-                
+
                 if ModelVariant::detect() == ModelVariant::MLX {
-                    let model_loader = ModelLoader::new().map_err(|e| CliError::ConfigurationError {
-                        message: format!("Failed to create model loader: {}", e),
-                    })?;
-                    
+                    let model_loader =
+                        ModelLoader::new().map_err(|e| CliError::ConfigurationError {
+                            message: format!("Failed to create model loader: {}", e),
+                        })?;
+
                     if let Ok(model_path) = model_loader.get_embedded_model_path() {
                         if let Ok(mlx_backend) = MlxBackend::new(model_path) {
-                            smart_backend.add_backend(
-                                Arc::new(mlx_backend),
-                                "embedded-mlx".to_string(),
-                                5, // Higher priority than CPU
-                            ).await.map_err(|e| CliError::ConfigurationError {
-                                message: format!("Failed to add MLX backend: {}", e),
-                            })?;
-                            
+                            smart_backend
+                                .add_backend(
+                                    Arc::new(mlx_backend),
+                                    "embedded-mlx".to_string(),
+                                    5, // Higher priority than CPU
+                                )
+                                .await
+                                .map_err(|e| CliError::ConfigurationError {
+                                    message: format!("Failed to add MLX backend: {}", e),
+                                })?;
+
                             tracing::info!("Added MLX backend for Apple Silicon");
                         }
                     }
@@ -229,16 +236,19 @@ impl CliApp {
                 {
                     let model = std::env::var("CMDAI_OLLAMA_MODEL")
                         .unwrap_or_else(|_| "qwen2.5-coder:1.5b".to_string());
-                    
+
                     if let Ok(ollama_backend) = OllamaBackend::new(ollama_url, model) {
-                        smart_backend.add_backend(
-                            Arc::new(ollama_backend),
-                            "ollama".to_string(),
-                            2, // High priority for local servers
-                        ).await.map_err(|e| CliError::ConfigurationError {
-                            message: format!("Failed to add Ollama backend: {}", e),
-                        })?;
-                        
+                        smart_backend
+                            .add_backend(
+                                Arc::new(ollama_backend),
+                                "ollama".to_string(),
+                                2, // High priority for local servers
+                            )
+                            .await
+                            .map_err(|e| CliError::ConfigurationError {
+                                message: format!("Failed to add Ollama backend: {}", e),
+                            })?;
+
                         tracing::info!("Added Ollama backend");
                     }
                 }
@@ -248,21 +258,24 @@ impl CliApp {
                     if let Ok(url) = Url::parse(&vllm_url) {
                         let model = std::env::var("CMDAI_VLLM_MODEL")
                             .unwrap_or_else(|_| "Qwen/Qwen2.5-Coder-1.5B-Instruct".to_string());
-                        
+
                         if let Ok(mut vllm_backend) = VllmBackend::new(url, model) {
                             // Add API key if provided
                             if let Ok(api_key) = std::env::var("CMDAI_VLLM_API_KEY") {
                                 vllm_backend = vllm_backend.with_api_key(api_key);
                             }
-                            
-                            smart_backend.add_backend(
-                                Arc::new(vllm_backend),
-                                "vllm".to_string(),
-                                3, // Lower priority for remote APIs
-                            ).await.map_err(|e| CliError::ConfigurationError {
-                                message: format!("Failed to add vLLM backend: {}", e),
-                            })?;
-                            
+
+                            smart_backend
+                                .add_backend(
+                                    Arc::new(vllm_backend),
+                                    "vllm".to_string(),
+                                    3, // Lower priority for remote APIs
+                                )
+                                .await
+                                .map_err(|e| CliError::ConfigurationError {
+                                    message: format!("Failed to add vLLM backend: {}", e),
+                                })?;
+
                             tracing::info!("Added vLLM backend");
                         }
                     }

@@ -145,7 +145,9 @@ impl std::fmt::Display for GeneratedCommand {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[serde(rename_all = "lowercase")]
 pub enum RiskLevel {
+    Low,
     Safe,
+    Medium,
     Moderate,
     High,
     Critical,
@@ -155,7 +157,10 @@ impl RiskLevel {
     /// Check if this risk level requires user confirmation at the given safety level
     pub fn requires_confirmation(&self, safety_level: SafetyLevel) -> bool {
         match safety_level {
-            SafetyLevel::Strict => matches!(self, Self::Moderate | Self::High | Self::Critical),
+            SafetyLevel::Strict => matches!(
+                self,
+                Self::Medium | Self::Moderate | Self::High | Self::Critical
+            ),
             SafetyLevel::Moderate => matches!(self, Self::High | Self::Critical),
             SafetyLevel::Permissive => matches!(self, Self::Critical),
         }
@@ -175,7 +180,9 @@ impl std::fmt::Display for RiskLevel {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use colored::Colorize;
         match self {
+            Self::Low => write!(f, "{}", "Low".green()),
             Self::Safe => write!(f, "{}", "Safe".green()),
+            Self::Medium => write!(f, "{}", "Medium".yellow()),
             Self::Moderate => write!(f, "{}", "Moderate".yellow()),
             Self::High => write!(f, "{}", "High".bright_red()),
             Self::Critical => write!(f, "{}", "Critical".red().bold()),
@@ -183,15 +190,38 @@ impl std::fmt::Display for RiskLevel {
     }
 }
 
+impl std::str::FromStr for RiskLevel {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "low" => Ok(RiskLevel::Low),
+            "safe" => Ok(RiskLevel::Safe),
+            "medium" => Ok(RiskLevel::Medium),
+            "moderate" => Ok(RiskLevel::Moderate),
+            "high" => Ok(RiskLevel::High),
+            "critical" => Ok(RiskLevel::Critical),
+            _ => Err(format!(
+                "Invalid risk level '{}'. Valid options: low, safe, medium, moderate, high, critical",
+                s
+            )),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum SafetyLevel {
+    /// Minimal safety checks - use with extreme caution
+    Minimal,
     /// Blocks High and Critical commands, confirms Moderate
     Strict,
     /// Blocks Critical commands, confirms High
     Moderate,
     /// Warns about all dangerous commands but allows with confirmation
     Permissive,
+    /// Interactive mode - prompts for all potentially dangerous commands
+    Interactive,
 }
 
 impl std::str::FromStr for SafetyLevel {
@@ -199,11 +229,13 @@ impl std::str::FromStr for SafetyLevel {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
+            "minimal" => Ok(SafetyLevel::Minimal),
             "strict" => Ok(SafetyLevel::Strict),
             "moderate" => Ok(SafetyLevel::Moderate),
             "permissive" => Ok(SafetyLevel::Permissive),
+            "interactive" => Ok(SafetyLevel::Interactive),
             _ => Err(format!(
-                "Invalid safety level '{}'. Valid values: strict, moderate, permissive",
+                "Invalid safety level '{}'. Valid values: minimal, strict, moderate, permissive, interactive",
                 s
             )),
         }
@@ -219,14 +251,34 @@ impl Default for SafetyLevel {
 impl std::fmt::Display for SafetyLevel {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::Minimal => write!(f, "minimal"),
             Self::Strict => write!(f, "strict"),
             Self::Moderate => write!(f, "moderate"),
             Self::Permissive => write!(f, "permissive"),
+            Self::Interactive => write!(f, "interactive"),
         }
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+/// Safety assessment result for a command
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct SafetyAssessment {
+    pub risk_level: RiskLevel,
+    pub detected_patterns: Vec<String>,
+    pub requires_confirmation: bool,
+    pub safety_message: Option<String>,
+}
+
+/// Metadata about command generation
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommandMetadata {
+    pub generation_timestamp: chrono::DateTime<chrono::Utc>,
+    pub backend_used: String,
+    pub inference_time_ms: u64,
+    pub model_name: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(rename_all = "lowercase")]
 pub enum BackendType {
     /// Automatic backend selection based on availability and preferences
@@ -455,10 +507,12 @@ impl std::fmt::Display for Platform {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(rename_all = "lowercase")]
 pub enum LogLevel {
+    Trace,
     Debug,
     Info,
     Warn,
     Error,
+    Silent,
 }
 
 impl LogLevel {
@@ -478,12 +532,14 @@ impl std::str::FromStr for LogLevel {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
+            "trace" => Ok(LogLevel::Trace),
             "debug" => Ok(LogLevel::Debug),
             "info" => Ok(LogLevel::Info),
             "warn" | "warning" => Ok(LogLevel::Warn),
             "error" | "err" => Ok(LogLevel::Error),
+            "silent" => Ok(LogLevel::Silent),
             _ => Err(format!(
-                "Invalid log level '{}'. Valid options: debug, info, warn, error",
+                "Invalid log level '{}'. Valid options: trace, debug, info, warn, error, silent",
                 s
             )),
         }
@@ -493,10 +549,12 @@ impl std::str::FromStr for LogLevel {
 impl std::fmt::Display for LogLevel {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            LogLevel::Trace => write!(f, "TRACE"),
             LogLevel::Debug => write!(f, "DEBUG"),
             LogLevel::Info => write!(f, "INFO"),
             LogLevel::Warn => write!(f, "WARN"),
             LogLevel::Error => write!(f, "ERROR"),
+            LogLevel::Silent => write!(f, "SILENT"),
         }
     }
 }

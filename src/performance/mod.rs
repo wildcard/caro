@@ -7,6 +7,6 @@
 pub mod monitor;
 
 pub use monitor::{
-    PerformanceMonitor, BackendMetrics, PerformanceSnapshot, RealTimeStats, RingBuffer,
-    SelectionStrategy, HealthStatus, MetricsCollector,
+    BackendMetrics, HealthStatus, MetricsCollector, PerformanceMonitor, PerformanceSnapshot,
+    RealTimeStats, RingBuffer, SelectionStrategy,
 };

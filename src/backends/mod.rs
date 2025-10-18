@@ -2,6 +2,7 @@
 // These are placeholder stubs - tests should fail until proper implementation
 
 pub mod embedded;
+pub mod performance;
 #[cfg(feature = "remote-backends")]
 pub mod remote;
 pub mod selector;

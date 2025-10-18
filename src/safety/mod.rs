@@ -26,9 +26,9 @@
 //! # }
 //! ```
 
-mod patterns;
 pub mod advanced;
 pub mod detector;
+mod patterns;
 
 use serde::{Deserialize, Serialize};
 

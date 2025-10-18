@@ -71,7 +71,10 @@ impl InferenceBackend for MlxBackend {
             r#"{"cmd": "rm -rf /tmp/*"}"#
         } else if prompt.contains("list files") {
             r#"{"cmd": "ls -la"}"#
-        } else if prompt.contains("directory") || prompt.contains("pwd") || prompt.contains("current directory") {
+        } else if prompt.contains("directory")
+            || prompt.contains("pwd")
+            || prompt.contains("current directory")
+        {
             r#"{"cmd": "pwd"}"#
         } else if prompt.contains("find") {
             r#"{"cmd": "find . -name '*.txt'"}"#

@@ -32,7 +32,7 @@
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let config = StreamingConfig::default();
 //! let generator = StreamingGenerator::new(config).await?;
-//! 
+//!
 //! let request = CommandRequest::new("find large files", ShellType::Bash);
 //! let mut stream = generator.generate_streaming(&request).await?;
 //!
@@ -185,7 +185,9 @@ pub struct CancellationToken {
 impl CancellationToken {
     /// Cancel the streaming operation
     pub fn cancel(&self) -> Result<(), StreamingError> {
-        self.sender.send(()).map_err(|_| StreamingError::AlreadyCancelled)?;
+        self.sender
+            .send(())
+            .map_err(|_| StreamingError::AlreadyCancelled)?;
         Ok(())
     }
 }
@@ -219,8 +221,8 @@ impl StreamBuffer {
     }
 
     fn should_yield(&self, config: &StreamingConfig) -> bool {
-        self.content.len() >= config.min_chunk_size &&
-        self.last_update.elapsed() >= Duration::from_millis(config.debounce_ms)
+        self.content.len() >= config.min_chunk_size
+            && self.last_update.elapsed() >= Duration::from_millis(config.debounce_ms)
     }
 
     fn get_stats(&self, duration: Duration, backend: String) -> StreamingStats {
@@ -279,7 +281,10 @@ pub trait StreamingCommandGenerator: CommandGenerator {
         &self,
         request: &CommandRequest,
         config: &StreamingConfig,
-    ) -> Result<Pin<Box<dyn Stream<Item = Result<String, GeneratorError>> + Send + 'static>>, GeneratorError>;
+    ) -> Result<
+        Pin<Box<dyn Stream<Item = Result<String, GeneratorError>> + Send + 'static>>,
+        GeneratorError,
+    >;
 
     /// Check if this backend supports streaming
     fn supports_streaming(&self) -> bool {
@@ -313,10 +318,13 @@ impl StreamingGenerator {
         }
 
         let safety_validator = if config.enable_streaming_safety {
-            Some(SafetyValidator::new(crate::safety::SafetyConfig::moderate())
-                .map_err(|e| StreamingError::Internal {
-                    message: format!("Failed to create safety validator: {}", e),
-                })?)
+            Some(
+                SafetyValidator::new(crate::safety::SafetyConfig::moderate()).map_err(|e| {
+                    StreamingError::Internal {
+                        message: format!("Failed to create safety validator: {}", e),
+                    }
+                })?,
+            )
         } else {
             None
         };
@@ -332,9 +340,15 @@ impl StreamingGenerator {
     pub async fn generate_streaming(
         &self,
         request: &CommandRequest,
-    ) -> Result<(Pin<Box<dyn Stream<Item = Result<StreamChunk, StreamingError>> + Send>>, CancellationToken), StreamingError> {
+    ) -> Result<
+        (
+            Pin<Box<dyn Stream<Item = Result<StreamChunk, StreamingError>> + Send>>,
+            CancellationToken,
+        ),
+        StreamingError,
+    > {
         let _start_time = Instant::now();
-        
+
         // Create cancellation channel
         let (cancel_tx, mut cancel_rx) = mpsc::unbounded_channel();
         let cancellation_token = CancellationToken { sender: cancel_tx };
@@ -342,13 +356,14 @@ impl StreamingGenerator {
         // Check if backend supports streaming
         let streaming_backend = self.backend.clone();
         let backend_info = streaming_backend.backend_info();
-        
+
         // For now, simulate streaming with non-streaming backends
         let request_clone = request.clone();
         let config_clone = self.config.clone();
-        let safety_validator = self.safety_validator.as_ref().map(|_| {
-            SafetyValidator::new(crate::safety::SafetyConfig::moderate()).unwrap()
-        });
+        let safety_validator = self
+            .safety_validator
+            .as_ref()
+            .map(|_| SafetyValidator::new(crate::safety::SafetyConfig::moderate()).unwrap());
 
         let stream = async_stream::stream! {
             let mut buffer = StreamBuffer::new();
@@ -376,11 +391,11 @@ impl StreamingGenerator {
             match result {
                 Ok(final_command) => {
                     let command_text = &final_command.command;
-                    
+
                     // Simulate streaming by yielding the command in chunks
                     let chars: Vec<char> = command_text.chars().collect();
                     let chunk_size = config_clone.min_chunk_size.max(1);
-                    
+
                     // Yield partial chunks
                     let mut i = 0;
                     while i < chars.len() {
@@ -396,7 +411,7 @@ impl StreamingGenerator {
                         let end = std::cmp::min(i + chunk_size, chars.len());
                         let chunk: String = chars[i..end].iter().collect();
                         buffer.add_chunk(chunk.clone());
-                        
+
                         // Perform safety check if enabled
                         let mut is_safe = true;
                         if let Some(ref validator) = safety_validator {
@@ -442,7 +457,7 @@ impl StreamingGenerator {
                         }
 
                         i += chunk_size;
-                        
+
                         // Simulate realistic streaming delay
                         tokio::time::sleep(Duration::from_millis(config_clone.chunk_timeout_ms)).await;
                     }
@@ -535,28 +550,31 @@ impl<T: CommandGenerator> StreamingCommandGenerator for StreamingWrapper<T> {
         &self,
         request: &CommandRequest,
         config: &StreamingConfig,
-    ) -> Result<Pin<Box<dyn Stream<Item = Result<String, GeneratorError>> + Send + 'static>>, GeneratorError> {
+    ) -> Result<
+        Pin<Box<dyn Stream<Item = Result<String, GeneratorError>> + Send + 'static>>,
+        GeneratorError,
+    > {
         // For backends that don't natively support streaming, we simulate it
         let result = self.inner.generate_command(request).await?;
         let command = result.command;
         let chunk_size = config.min_chunk_size.max(1);
         let chunk_timeout = config.chunk_timeout_ms;
-        
+
         let stream = async_stream::stream! {
             let chars: Vec<char> = command.chars().collect();
             let mut i = 0;
-            
+
             while i < chars.len() {
                 let end = std::cmp::min(i + chunk_size, chars.len());
                 let chunk: String = chars[i..end].iter().collect();
                 yield Ok(chunk);
                 i += chunk_size;
-                
+
                 // Add realistic delay between chunks
                 tokio::time::sleep(Duration::from_millis(chunk_timeout)).await;
             }
         };
-        
+
         Ok(Box::pin(stream))
     }
 }
@@ -573,7 +591,10 @@ mod tests {
 
     #[async_trait]
     impl CommandGenerator for MockStreamingBackend {
-        async fn generate_command(&self, _request: &CommandRequest) -> Result<GeneratedCommand, GeneratorError> {
+        async fn generate_command(
+            &self,
+            _request: &CommandRequest,
+        ) -> Result<GeneratedCommand, GeneratorError> {
             Ok(GeneratedCommand {
                 command: "find /home -type f -size +100M".to_string(),
                 explanation: "Find large files in home directory".to_string(),
@@ -630,13 +651,21 @@ mod tests {
         while let Some(chunk_result) = stream.next().await {
             let chunk = chunk_result.unwrap();
             match chunk {
-                StreamChunk::Partial { content, confidence, is_safe, .. } => {
+                StreamChunk::Partial {
+                    content,
+                    confidence,
+                    is_safe,
+                    ..
+                } => {
                     assert!(!content.is_empty());
                     assert!(confidence >= 0.0 && confidence <= 1.0);
                     assert!(is_safe); // Mock command should be safe
                     chunks_received += 1;
                 }
-                StreamChunk::Complete { final_command, generation_stats } => {
+                StreamChunk::Complete {
+                    final_command,
+                    generation_stats,
+                } => {
                     assert_eq!(final_command.command, "find /home -type f -size +100M");
                     assert!(generation_stats.total_chunks > 0);
                     final_result = Some(final_command);
@@ -662,7 +691,8 @@ mod tests {
         let generator = StreamingGenerator::new(backend, config).await.unwrap();
 
         let request = CommandRequest::new("long command", ShellType::Bash);
-        let (mut stream, cancellation_token) = generator.generate_streaming(&request).await.unwrap();
+        let (mut stream, cancellation_token) =
+            generator.generate_streaming(&request).await.unwrap();
 
         // Cancel after first chunk
         tokio::spawn(async move {
@@ -685,15 +715,15 @@ mod tests {
     #[tokio::test]
     async fn test_streaming_config_validation() {
         let backend = Arc::new(MockStreamingBackend);
-        
+
         let invalid_config = StreamingConfig {
             chunk_timeout_ms: 0, // Invalid
             ..StreamingConfig::default()
         };
-        
+
         let result = StreamingGenerator::new(backend, invalid_config).await;
         assert!(result.is_err());
-        
+
         if let Err(StreamingError::InvalidConfig { message }) = result {
             assert!(message.contains("positive"));
         } else {
@@ -705,10 +735,10 @@ mod tests {
     async fn test_streaming_wrapper() {
         let backend = MockStreamingBackend;
         let wrapper = StreamingWrapper::new(backend);
-        
+
         assert!(wrapper.backend_info().supports_streaming);
         assert!(wrapper.is_available().await);
-        
+
         let request = CommandRequest::new("test", ShellType::Bash);
         let result = wrapper.generate_command(&request).await;
         assert!(result.is_ok());
@@ -717,15 +747,19 @@ mod tests {
     #[tokio::test]
     async fn test_different_streaming_configs() {
         let backend = Arc::new(MockStreamingBackend);
-        
+
         // Test interactive config
         let interactive_config = StreamingConfig::interactive();
-        let generator = StreamingGenerator::new(backend.clone(), interactive_config).await.unwrap();
+        let generator = StreamingGenerator::new(backend.clone(), interactive_config)
+            .await
+            .unwrap();
         assert!(generator.is_streaming_available());
-        
+
         // Test batch config
         let batch_config = StreamingConfig::batch();
-        let generator = StreamingGenerator::new(backend, batch_config).await.unwrap();
+        let generator = StreamingGenerator::new(backend, batch_config)
+            .await
+            .unwrap();
         assert_eq!(generator.config().min_chunk_size, 20);
     }
 }

@@ -49,31 +49,30 @@ pub use cache::{CacheError, CacheManager, CacheStats, IntegrityReport};
 pub use config::{ConfigError, ConfigManager};
 pub use execution::{ExecutionError, PlatformDetector, ShellDetector};
 pub use logging::{LogConfig, LogConfigBuilder, LogError, LogFormat, LogOutput, Logger, Redaction};
-pub use model_loader::{ModelLoader, ModelInfo};
+pub use model_loader::{ModelInfo, ModelLoader};
 
 // Advanced safety validation types
 pub use safety::advanced::{
-    AdvancedSafetyConfig, AdvancedSafetyValidator, AdvancedValidationResult,
-    BehavioralPattern, ThreatLevel, UserFeedback, ValidationContext,
-    UserPrivileges, SystemMetrics, ExecutionStats,
+    AdvancedSafetyConfig, AdvancedSafetyValidator, AdvancedValidationResult, BehavioralPattern,
+    ExecutionStats, SystemMetrics, ThreatLevel, UserFeedback, UserPrivileges, ValidationContext,
 };
 
 // Streaming command generation types
 pub use streaming::{
-    StreamingGenerator, StreamingConfig, StreamChunk, StreamingStats,
-    CancellationToken, StreamingError, StreamingCommandGenerator, StreamingWrapper,
+    CancellationToken, StreamChunk, StreamingCommandGenerator, StreamingConfig, StreamingError,
+    StreamingGenerator, StreamingStats, StreamingWrapper,
 };
 
 // Performance monitoring types
 pub use performance::{
-    PerformanceMonitor, BackendMetrics, PerformanceSnapshot, RealTimeStats, RingBuffer,
-    SelectionStrategy, HealthStatus, MetricsCollector,
+    BackendMetrics, HealthStatus, MetricsCollector, PerformanceMonitor, PerformanceSnapshot,
+    RealTimeStats, RingBuffer, SelectionStrategy,
 };
 
 // Semantic search and embedding types
 pub use semantic::cache::{
-    LocalEmbeddingCache, EmbeddingMetadata, CacheCleanupPolicy, CacheEntry,
-    CacheStatistics, EmbeddingCacheError,
+    CacheCleanupPolicy, CacheEntry, CacheStatistics, EmbeddingCacheError, EmbeddingMetadata,
+    LocalEmbeddingCache,
 };
 
 // Re-export backend types

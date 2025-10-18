@@ -5,18 +5,24 @@
 use crate::models::ConfigSchema;
 use std::path::{Path, PathBuf};
 
-mod schema;
 mod interactive;
 mod interactive_new;
-pub mod validation;
 pub mod io;
+mod schema;
+pub mod validation;
 
-pub use schema::{ConfigurationState, PrivacyLevel, VerbosityLevel, 
-                   BackendConfig, RetentionPolicy, ConfigValidationError, ConfigSerializationError};
-pub use validation::{ValidationRules, ValidationReport, ValidationSeverity, 
-                      PerformanceConstraints, SecurityRequirements};
+pub use schema::{
+    BackendConfig, ConfigSerializationError, ConfigValidationError, ConfigurationState,
+    PrivacyLevel, RetentionPolicy, VerbosityLevel,
+};
+pub use validation::{
+    PerformanceConstraints, SecurityRequirements, ValidationReport, ValidationRules,
+    ValidationSeverity,
+};
 // Use the new interactive module that works with ConfigurationState
-pub use interactive_new::{run_interactive_config as run_interactive_configuration, ConfigResult as ConfigurationResult};
+pub use interactive_new::{
+    run_interactive_config as run_interactive_configuration, ConfigResult as ConfigurationResult,
+};
 // Keep the old one for backward compatibility temporarily
 pub use interactive::{ConfigResult, InteractiveConfigUI};
 

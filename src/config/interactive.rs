@@ -3,8 +3,10 @@
 //! Provides a full-screen terminal interface for managing cmdai configuration,
 //! inspired by Atuin's advanced search interface with modern UX patterns.
 
-use super::schema::{ConfigurationState, BackendConfig, RetentionPolicy, PrivacyLevel, VerbosityLevel};
-use crate::models::{BackendType, RiskLevel, SafetyLevel};
+use super::schema::{
+    BackendConfig, ConfigurationState, PrivacyLevel, RetentionPolicy, VerbosityLevel,
+};
+use crate::models::{BackendType, LogLevel, RiskLevel, SafetyLevel, ShellType};
 use colored::Colorize;
 use dialoguer::{theme::ColorfulTheme, Confirm, Editor, Input, MultiSelect, Select};
 use std::collections::HashMap;
@@ -17,10 +19,10 @@ use thiserror::Error;
 pub enum InteractiveConfigError {
     #[error("I/O error: {0}")]
     IoError(#[from] io::Error),
-    
+
     #[error("Dialog error: {0}")]
     DialogError(#[from] dialoguer::Error),
-    
+
     #[error("Configuration error: {0}")]
     ConfigError(String),
 }
@@ -36,9 +38,12 @@ pub struct InteractiveConfigUI {
 /// Configuration section for organized UI navigation
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ConfigSection {
+    General,
     Backends,
     History,
     Safety,
+    Logging,
+    Cache,
     UserInterface,
     Privacy,
     Advanced,
@@ -49,9 +54,12 @@ pub enum ConfigSection {
 impl fmt::Display for ConfigSection {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::General => write!(f, "⚙️  General Settings"),
             Self::Backends => write!(f, "🚀 Backend Configuration"),
             Self::History => write!(f, "📚 Command History"),
             Self::Safety => write!(f, "🛡️  Safety & Validation"),
+            Self::Logging => write!(f, "📝 Logging Settings"),
+            Self::Cache => write!(f, "💾 Cache Settings"),
             Self::UserInterface => write!(f, "🎨 User Interface"),
             Self::Privacy => write!(f, "🔒 Privacy Settings"),
             Self::Advanced => write!(f, "⚙️  Advanced Options"),
@@ -71,9 +79,10 @@ pub struct ConfigResult {
 
 impl InteractiveConfigUI {
     /// Create a new interactive configuration UI
-    pub fn new(current_config: UserConfiguration) -> Self {
+    pub fn new(current_config: ConfigurationState) -> Self {
         Self {
             theme: ColorfulTheme::default(),
+            original_config: current_config.clone(),
             current_config,
             changes_made: false,
         }
@@ -86,7 +95,7 @@ impl InteractiveConfigUI {
 
         loop {
             let section = self.show_main_menu()?;
-            
+
             match section {
                 ConfigSection::General => self.configure_general()?,
                 ConfigSection::Safety => self.configure_safety()?,
@@ -119,7 +128,7 @@ impl InteractiveConfigUI {
     fn show_main_menu(&self) -> Result<ConfigSection, InteractiveConfigError> {
         self.clear_screen();
         self.show_header();
-        
+
         let sections = vec![
             ConfigSection::General,
             ConfigSection::Safety,
@@ -174,7 +183,11 @@ impl InteractiveConfigUI {
 
         // Default model configuration
         if let Some(ref current_model) = self.current_config.default_model {
-            println!("\n{} {}", "Current default model:".cyan(), current_model.yellow());
+            println!(
+                "\n{} {}",
+                "Current default model:".cyan(),
+                current_model.yellow()
+            );
         } else {
             println!("\n{}", "No default model set (will auto-select)".dimmed());
         }
@@ -187,7 +200,7 @@ impl InteractiveConfigUI {
             let models = vec![
                 "Auto-select best available",
                 "Qwen2.5-Coder-3B-Instruct",
-                "Qwen2.5-Coder-7B-Instruct", 
+                "Qwen2.5-Coder-7B-Instruct",
                 "CodeLlama-7B-Instruct",
                 "Custom model (enter manually)",
             ];
@@ -232,14 +245,26 @@ impl InteractiveConfigUI {
         self.show_section_header("Safety & Validation");
 
         let safety_levels = vec![
-            ("Strict", SafetyLevel::Strict, "🔒 Blocks High & Critical, confirms Moderate"),
-            ("Moderate", SafetyLevel::Moderate, "⚖️  Blocks Critical, confirms High"),
-            ("Permissive", SafetyLevel::Permissive, "⚠️  Warns about dangerous commands"),
+            (
+                "Strict",
+                SafetyLevel::Strict,
+                "🔒 Blocks High & Critical, confirms Moderate",
+            ),
+            (
+                "Moderate",
+                SafetyLevel::Moderate,
+                "⚖️  Blocks Critical, confirms High",
+            ),
+            (
+                "Permissive",
+                SafetyLevel::Permissive,
+                "⚠️  Warns about dangerous commands",
+            ),
         ];
 
         println!("{}", "Safety Level Configuration".bold().underline());
         println!();
-        
+
         for (name, level, description) in &safety_levels {
             let marker = if *level == self.current_config.safety_level {
                 "●".green()
@@ -257,7 +282,12 @@ impl InteractiveConfigUI {
 
         let safety_selection = Select::with_theme(&self.theme)
             .with_prompt("Select safety level")
-            .items(&safety_levels.iter().map(|(name, _, desc)| format!("{} - {}", name, desc)).collect::<Vec<_>>())
+            .items(
+                &safety_levels
+                    .iter()
+                    .map(|(name, _, desc)| format!("{} - {}", name, desc))
+                    .collect::<Vec<_>>(),
+            )
             .default(current_index)
             .interact()?;
 
@@ -290,7 +320,12 @@ impl InteractiveConfigUI {
 
         let log_selection = Select::with_theme(&self.theme)
             .with_prompt("Log level")
-            .items(&log_levels.iter().map(|(name, _, desc)| format!("{} - {}", name, desc)).collect::<Vec<_>>())
+            .items(
+                &log_levels
+                    .iter()
+                    .map(|(name, _, desc)| format!("{} - {}", name, desc))
+                    .collect::<Vec<_>>(),
+            )
             .default(current_index)
             .interact()?;
 
@@ -301,8 +336,12 @@ impl InteractiveConfigUI {
         }
 
         // Log rotation configuration
-        println!("\n{} {} days", "Current log rotation:".cyan(), self.current_config.log_rotation_days.to_string().yellow());
-        
+        println!(
+            "\n{} {} days",
+            "Current log rotation:".cyan(),
+            self.current_config.log_rotation_days.to_string().yellow()
+        );
+
         if Confirm::with_theme(&self.theme)
             .with_prompt("Change log rotation period?")
             .default(false)
@@ -325,7 +364,12 @@ impl InteractiveConfigUI {
 
             let rotation_selection = Select::with_theme(&self.theme)
                 .with_prompt("Log rotation period")
-                .items(&rotation_options.iter().map(|(name, _)| *name).collect::<Vec<_>>())
+                .items(
+                    &rotation_options
+                        .iter()
+                        .map(|(name, _)| *name)
+                        .collect::<Vec<_>>(),
+                )
                 .default(current_index)
                 .interact()?;
 
@@ -354,7 +398,11 @@ impl InteractiveConfigUI {
             ("100 GB", 100),
         ];
 
-        println!("{} {} GB", "Current cache limit:".cyan(), self.current_config.cache_max_size_gb.to_string().yellow());
+        println!(
+            "{} {} GB",
+            "Current cache limit:".cyan(),
+            self.current_config.cache_max_size_gb.to_string().yellow()
+        );
         println!();
 
         let current_index = cache_sizes
@@ -364,7 +412,12 @@ impl InteractiveConfigUI {
 
         let cache_selection = Select::with_theme(&self.theme)
             .with_prompt("Maximum cache size")
-            .items(&cache_sizes.iter().map(|(name, _)| *name).collect::<Vec<_>>())
+            .items(
+                &cache_sizes
+                    .iter()
+                    .map(|(name, _)| *name)
+                    .collect::<Vec<_>>(),
+            )
             .default(current_index)
             .interact()?;
 
@@ -398,7 +451,10 @@ impl InteractiveConfigUI {
         println!("• 🔗 Deep shell integration (Phase 3)");
         println!("• 🔌 Plugin system (Phase 4)");
         println!();
-        println!("{}", "These features will be configurable in future releases.".dimmed());
+        println!(
+            "{}",
+            "These features will be configurable in future releases.".dimmed()
+        );
 
         self.press_any_key();
         Ok(())
@@ -410,41 +466,49 @@ impl InteractiveConfigUI {
         self.show_section_header("Configuration Review");
 
         let mut config_display = HashMap::new();
-        
+
         config_display.insert(
             "General".to_string(),
             vec![
-                ("Default Shell", match &self.current_config.default_shell {
-                    Some(shell) => shell.to_string(),
-                    None => "Auto-detect".to_string(),
-                }),
-                ("Default Model", match &self.current_config.default_model {
-                    Some(model) => model.clone(),
-                    None => "Auto-select".to_string(),
-                }),
+                (
+                    "Default Shell",
+                    match &self.current_config.default_shell {
+                        Some(shell) => shell.to_string(),
+                        None => "Auto-detect".to_string(),
+                    },
+                ),
+                (
+                    "Default Model",
+                    match &self.current_config.default_model {
+                        Some(model) => model.clone(),
+                        None => "Auto-select".to_string(),
+                    },
+                ),
             ],
         );
 
         config_display.insert(
             "Safety".to_string(),
-            vec![
-                ("Safety Level", self.current_config.safety_level.to_string()),
-            ],
+            vec![("Safety Level", self.current_config.safety_level.to_string())],
         );
 
         config_display.insert(
             "Logging".to_string(),
             vec![
                 ("Log Level", self.current_config.log_level.to_string()),
-                ("Log Rotation", format!("{} days", self.current_config.log_rotation_days)),
+                (
+                    "Log Rotation",
+                    format!("{} days", self.current_config.log_rotation_days),
+                ),
             ],
         );
 
         config_display.insert(
             "Cache".to_string(),
-            vec![
-                ("Max Size", format!("{} GB", self.current_config.cache_max_size_gb)),
-            ],
+            vec![(
+                "Max Size",
+                format!("{} GB", self.current_config.cache_max_size_gb),
+            )],
         );
 
         for (section, items) in &config_display {
@@ -469,7 +533,7 @@ impl InteractiveConfigUI {
     fn confirm_save_changes(&self) -> Result<bool, InteractiveConfigError> {
         println!("\n{}", "Save Changes?".bold().green());
         println!("Your configuration changes will be written to disk.");
-        
+
         Ok(Confirm::with_theme(&self.theme)
             .with_prompt("Save configuration changes?")
             .default(true)
@@ -484,22 +548,51 @@ impl InteractiveConfigUI {
 
     /// Show welcome banner
     fn show_welcome_banner(&self) {
-        println!("{}", "╭─────────────────────────────────────────────────────────────╮".cyan());
-        println!("{}", "│                                                             │".cyan());
-        println!("{}", "│                    ✨ cmdai Configuration ✨                │".cyan());
-        println!("{}", "│                                                             │".cyan());
-        println!("{}", "│        Configure your AI-powered command generation         │".cyan());
-        println!("{}", "│                                                             │".cyan());
-        println!("{}", "╰─────────────────────────────────────────────────────────────╯".cyan());
+        println!(
+            "{}",
+            "╭─────────────────────────────────────────────────────────────╮".cyan()
+        );
+        println!(
+            "{}",
+            "│                                                             │".cyan()
+        );
+        println!(
+            "{}",
+            "│                    ✨ cmdai Configuration ✨                │".cyan()
+        );
+        println!(
+            "{}",
+            "│                                                             │".cyan()
+        );
+        println!(
+            "{}",
+            "│        Configure your AI-powered command generation         │".cyan()
+        );
+        println!(
+            "{}",
+            "│                                                             │".cyan()
+        );
+        println!(
+            "{}",
+            "╰─────────────────────────────────────────────────────────────╯".cyan()
+        );
         println!();
     }
 
     /// Show header for current configuration state
     fn show_header(&self) {
-        println!("{} {}", "cmdai".bold().cyan(), "Configuration Manager".bold());
-        
+        println!(
+            "{} {}",
+            "cmdai".bold().cyan(),
+            "Configuration Manager".bold()
+        );
+
         if self.changes_made {
-            println!("{} {}", "Status:".dimmed(), "Modified (unsaved changes)".yellow());
+            println!(
+                "{} {}",
+                "Status:".dimmed(),
+                "Modified (unsaved changes)".yellow()
+            );
         } else {
             println!("{} {}", "Status:".dimmed(), "Clean".green());
         }
@@ -521,7 +614,9 @@ impl InteractiveConfigUI {
 }
 
 /// Convenience function to run interactive configuration
-pub fn run_interactive_config(current_config: UserConfiguration) -> Result<ConfigResult, InteractiveConfigError> {
+pub fn run_interactive_config(
+    current_config: ConfigurationState,
+) -> Result<ConfigResult, InteractiveConfigError> {
     let mut ui = InteractiveConfigUI::new(current_config);
     ui.run()
 }

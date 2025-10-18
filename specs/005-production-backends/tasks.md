@@ -34,21 +34,21 @@ Based on the implementation plan and design documents, this task breakdown cover
 - [x] **T019** [P] Contract test BackendSelector intelligent routing in tests/contract/backend_selector_contract.rs
 - [x] **T020** [P] Integration test end-to-end command generation workflow in tests/contract/end_to_end_contract.rs
 
-## Phase 3.3: Core Entity Implementation ✅ T021 COMPLETED
+## Phase 3.3: Core Entity Implementation ✅ COMPLETED
 
 - [x] **T021** Implement HistoryManager with SQLite persistence in src/history/manager.rs
-- [ ] **T022** [P] Implement ConfigurationState with TOML serialization in src/config/schema.rs
-- [ ] **T023** [P] Implement ExecutionMetadata and SafetyMetadata extensions in src/history/models.rs
-- [ ] **T024** [P] Create PatternEngine with compiled regex patterns in src/safety/patterns.rs
-- [ ] **T025** [P] Implement GenerationStream with async streaming in src/streaming/stream.rs
-- [ ] **T026** [P] Create PerformanceMonitor for backend metrics in src/backends/performance.rs
+- [x] **T022** Implement ConfigurationState with TOML serialization in src/config/schema.rs
+- [x] **T023** Implement ExecutionMetadata and SafetyMetadata extensions in src/history/models.rs
+- [x] **T024** Create PatternEngine with compiled regex patterns in src/safety/patterns.rs
+- [x] **T025** Implement GenerationStream with async streaming in src/streaming/stream.rs
+- [x] **T026** Create PerformanceMonitor for backend metrics in src/backends/performance.rs
 
-## Phase 3.4: Search and Storage Implementation
+## Phase 3.4: Search and Storage Implementation ✅ COMPLETED
 
-- [ ] **T027** Implement FTS5 full-text search enhancements in src/history/search.rs (depends on T021)
-- [ ] **T028** [P] Create LocalEmbeddingCache for semantic search in src/semantic/cache.rs
-- [ ] **T029** [P] Add database migration system in src/history/migrations.rs
-- [ ] **T030** Implement history cleanup and retention policies in src/history/manager.rs (depends on T021)
+- [x] **T027** Implement FTS5 full-text search enhancements in src/history/search.rs
+- [x] **T028** Create LocalEmbeddingCache for semantic search in src/semantic/cache.rs
+- [x] **T029** Add database migration system in src/history/migrations.rs
+- [x] **T030** Implement history cleanup and retention policies in src/history/manager.rs
 
 ## Phase 3.5: Interactive Configuration System
 

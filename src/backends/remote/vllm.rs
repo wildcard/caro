@@ -77,7 +77,10 @@ impl std::fmt::Debug for VllmBackend {
             .field("model_name", &self.model_name)
             .field("client", &"<HTTP Client>")
             .field("api_key", &self.api_key.as_ref().map(|_| "<REDACTED>"))
-            .field("embedded_fallback", &self.embedded_fallback.as_ref().map(|_| "<Backend>"))
+            .field(
+                "embedded_fallback",
+                &self.embedded_fallback.as_ref().map(|_| "<Backend>"),
+            )
             .finish()
     }
 }

@@ -10,13 +10,13 @@
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use futures::StreamExt;
-use cmdai::streaming::{
-    StreamingGenerator, StreamingConfig, StreamChunk, StreamingError,
-    CancellationToken, StreamingWrapper,
-};
 use cmdai::backends::{BackendInfo, CommandGenerator, GeneratorError};
 use cmdai::models::{BackendType, CommandRequest, GeneratedCommand, RiskLevel, ShellType};
+use cmdai::streaming::{
+    CancellationToken, StreamChunk, StreamingConfig, StreamingError, StreamingGenerator,
+    StreamingWrapper,
+};
+use futures::StreamExt;
 
 #[derive(Debug)]
 struct TestBackend {
@@ -99,7 +99,10 @@ async fn test_streaming_generator_creation() {
     let backend = Arc::new(TestBackend::new("echo hello"));
     let config = StreamingConfig::default();
     let generator = StreamingGenerator::new(backend, config).await;
-    assert!(generator.is_ok(), "Valid configuration should create generator");
+    assert!(
+        generator.is_ok(),
+        "Valid configuration should create generator"
+    );
 
     // Invalid configuration should fail
     let backend = Arc::new(TestBackend::new("echo hello"));
@@ -109,7 +112,7 @@ async fn test_streaming_generator_creation() {
     };
     let result = StreamingGenerator::new(backend, invalid_config).await;
     assert!(result.is_err(), "Invalid configuration should fail");
-    
+
     if let Err(StreamingError::InvalidConfig { message }) = result {
         assert!(message.contains("positive"));
     } else {
@@ -141,19 +144,35 @@ async fn test_streaming_chunk_delivery() {
     while let Some(chunk_result) = stream.next().await {
         let chunk_time = start_time.elapsed();
         chunk_times.push(chunk_time);
-        
+
         let chunk = chunk_result.unwrap();
         match chunk {
-            StreamChunk::Partial { content, confidence, .. } => {
+            StreamChunk::Partial {
+                content,
+                confidence,
+                ..
+            } => {
                 assert!(!content.is_empty(), "Partial chunks should not be empty");
-                assert!(confidence >= 0.0 && confidence <= 1.0, "Confidence should be in [0,1]");
+                assert!(
+                    confidence >= 0.0 && confidence <= 1.0,
+                    "Confidence should be in [0,1]"
+                );
                 total_content = content; // Keep the accumulated content
                 chunks_received += 1;
             }
-            StreamChunk::Complete { final_command, generation_stats } => {
+            StreamChunk::Complete {
+                final_command,
+                generation_stats,
+            } => {
                 assert_eq!(final_command.command, "find /home -name '*.txt' -type f");
-                assert!(generation_stats.total_chunks > 0, "Should have generated chunks");
-                assert!(generation_stats.total_duration_ms > 0, "Should track duration");
+                assert!(
+                    generation_stats.total_chunks > 0,
+                    "Should have generated chunks"
+                );
+                assert!(
+                    generation_stats.total_duration_ms > 0,
+                    "Should track duration"
+                );
                 final_result = Some(final_command);
                 break;
             }
@@ -168,7 +187,7 @@ async fn test_streaming_chunk_delivery() {
     // Verify streaming behavior
     assert!(chunks_received > 0, "Should receive partial chunks");
     assert!(final_result.is_some(), "Should receive final result");
-    
+
     // Verify timing constraints (chunks should arrive at reasonable intervals)
     if chunk_times.len() > 1 {
         for window in chunk_times.windows(2) {
@@ -185,7 +204,9 @@ async fn test_streaming_chunk_delivery() {
 /// Contract: Cancellation support and graceful handling
 #[tokio::test]
 async fn test_streaming_cancellation() {
-    let backend = Arc::new(TestBackend::new("very long command that takes time to generate"));
+    let backend = Arc::new(TestBackend::new(
+        "very long command that takes time to generate",
+    ));
     let config = StreamingConfig {
         chunk_timeout_ms: 100, // Slower chunks for cancellation testing
         min_chunk_size: 5,
@@ -215,7 +236,10 @@ async fn test_streaming_cancellation() {
                 // If we complete before cancellation, that's also valid
                 break;
             }
-            StreamChunk::Cancelled { partial_content, reason } => {
+            StreamChunk::Cancelled {
+                partial_content,
+                reason,
+            } => {
                 assert!(!reason.is_empty(), "Cancellation reason should be provided");
                 was_cancelled = true;
                 break;
@@ -228,11 +252,14 @@ async fn test_streaming_cancellation() {
     }
 
     cancel_handle.abort(); // Clean up the cancellation task
-    
+
     // Either cancellation occurred, or generation completed quickly
     // Both are valid behaviors
     if was_cancelled {
-        assert!(received_chunks >= 0, "Should handle cancellation gracefully");
+        assert!(
+            received_chunks >= 0,
+            "Should handle cancellation gracefully"
+        );
     }
 }
 
@@ -269,9 +296,16 @@ async fn test_streaming_safety_integration() {
                 final_result = Some(final_command);
                 break;
             }
-            StreamChunk::SafetyWarning { warning, risk_level, .. } => {
+            StreamChunk::SafetyWarning {
+                warning,
+                risk_level,
+                ..
+            } => {
                 assert!(!warning.is_empty(), "Safety warning should have content");
-                assert!(matches!(risk_level, RiskLevel::Moderate | RiskLevel::High | RiskLevel::Critical));
+                assert!(matches!(
+                    risk_level,
+                    RiskLevel::Moderate | RiskLevel::High | RiskLevel::Critical
+                ));
                 safety_warnings += 1;
             }
             StreamChunk::Error { .. } => panic!("Unexpected error chunk"),
@@ -289,7 +323,7 @@ async fn test_streaming_safety_integration() {
 async fn test_streaming_performance() {
     let long_command = "find /usr -type f -name '*.so' | xargs ls -la | sort -k5 -n | tail -20";
     let backend = Arc::new(TestBackend::new(long_command).with_latency(50));
-    
+
     let config = StreamingConfig {
         chunk_timeout_ms: 25, // Fast chunks
         min_chunk_size: 2,
@@ -316,7 +350,9 @@ async fn test_streaming_performance() {
 
         let chunk = chunk_result.unwrap();
         match chunk {
-            StreamChunk::Partial { accumulated_length, .. } => {
+            StreamChunk::Partial {
+                accumulated_length, ..
+            } => {
                 total_chunks += 1;
                 assert!(
                     accumulated_length <= 1024, // Should respect buffer limits
@@ -324,9 +360,11 @@ async fn test_streaming_performance() {
                     accumulated_length
                 );
             }
-            StreamChunk::Complete { generation_stats, .. } => {
+            StreamChunk::Complete {
+                generation_stats, ..
+            } => {
                 let total_time = start_time.elapsed();
-                
+
                 // Performance assertions
                 assert!(
                     total_time <= Duration::from_secs(10),
@@ -365,7 +403,9 @@ async fn test_streaming_error_handling() {
     // Test backend failure during generation
     let failing_backend = Arc::new(TestBackend::new("test").with_failure());
     let config = StreamingConfig::default();
-    let generator = StreamingGenerator::new(failing_backend, config).await.unwrap();
+    let generator = StreamingGenerator::new(failing_backend, config)
+        .await
+        .unwrap();
 
     let request = CommandRequest::new("test command", ShellType::Bash);
     let (mut stream, _token) = generator.generate_streaming(&request).await.unwrap();
@@ -374,9 +414,16 @@ async fn test_streaming_error_handling() {
     while let Some(chunk_result) = stream.next().await {
         let chunk = chunk_result.unwrap();
         match chunk {
-            StreamChunk::Error { error, partial_content, recovery_suggestion } => {
+            StreamChunk::Error {
+                error,
+                partial_content,
+                recovery_suggestion,
+            } => {
                 assert!(!error.is_empty(), "Error should have description");
-                assert!(recovery_suggestion.is_some(), "Should provide recovery suggestion");
+                assert!(
+                    recovery_suggestion.is_some(),
+                    "Should provide recovery suggestion"
+                );
                 error_received = true;
                 break;
             }
@@ -395,7 +442,10 @@ async fn test_streaming_error_handling() {
         }
     }
 
-    assert!(error_received, "Should receive error chunk for failing backend");
+    assert!(
+        error_received,
+        "Should receive error chunk for failing backend"
+    );
 }
 
 /// Contract: Configuration validation and adaptation
@@ -442,11 +492,11 @@ async fn test_streaming_wrapper_functionality() {
     // Verify wrapper preserves backend functionality
     assert!(wrapper.is_available().await);
     assert!(wrapper.backend_info().supports_streaming);
-    
+
     let request = CommandRequest::new("list files", ShellType::Bash);
     let command_result = wrapper.generate_command(&request).await;
     assert!(command_result.is_ok());
-    
+
     // Test shutdown
     let shutdown_result = wrapper.shutdown().await;
     assert!(shutdown_result.is_ok());
@@ -460,14 +510,14 @@ async fn test_concurrent_streaming_sessions() {
     let generator = Arc::new(StreamingGenerator::new(backend, config).await.unwrap());
 
     let mut handles = Vec::new();
-    
+
     // Start multiple concurrent streaming sessions
     for i in 0..3 {
         let generator_clone = Arc::clone(&generator);
         let handle = tokio::spawn(async move {
             let request = CommandRequest::new(format!("test command {}", i), ShellType::Bash);
             let (mut stream, _token) = generator_clone.generate_streaming(&request).await.unwrap();
-            
+
             let mut completed = false;
             while let Some(chunk_result) = stream.next().await {
                 let chunk = chunk_result.unwrap();
@@ -532,7 +582,7 @@ async fn test_streaming_timeout_handling() {
     }
 
     let total_time = start_time.elapsed();
-    
+
     // Either the operation timed out, or completed quickly
     // The important thing is it doesn't hang indefinitely
     assert!(

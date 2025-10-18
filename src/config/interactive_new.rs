@@ -4,8 +4,8 @@
 //! with support for all backend settings, history management, and safety options.
 
 use super::schema::{
-    BackendConfig, ConfigurationState, PrivacyLevel, RetentionPolicy, VerbosityLevel,
-    ValidationRules,
+    BackendConfig, ConfigurationState, PrivacyLevel, RetentionPolicy, ValidationRules,
+    VerbosityLevel,
 };
 use crate::models::{BackendType, RiskLevel, SafetyLevel};
 use anyhow::{Context, Result};
@@ -293,12 +293,7 @@ impl InteractiveConfigUI {
             {
                 let max_entries: usize = Input::with_theme(&self.theme)
                     .with_prompt("Maximum entries")
-                    .default(
-                        self.config
-                            .retention_policy
-                            .max_entries
-                            .unwrap_or(10000),
-                    )
+                    .default(self.config.retention_policy.max_entries.unwrap_or(10000))
                     .validate_with(|input: &usize| {
                         if *input > 0 && *input <= 1000000 {
                             Ok(())
@@ -373,7 +368,11 @@ impl InteractiveConfigUI {
 
         // Safety level
         let safety_levels = vec![
-            ("Strict", SafetyLevel::Strict, "Blocks High & Critical risks"),
+            (
+                "Strict",
+                SafetyLevel::Strict,
+                "Blocks High & Critical risks",
+            ),
             (
                 "Moderate",
                 SafetyLevel::Moderate,
@@ -764,23 +763,10 @@ impl InteractiveConfigUI {
     }
 }
 
-impl Default for BackendConfig {
-    fn default() -> Self {
-        BackendConfig {
-            enabled: true,
-            endpoint: None,
-            model_name: None,
-            timeout_seconds: 30,
-            max_retries: 2,
-            additional_params: HashMap::new(),
-        }
-    }
-}
+// Default implementation moved to schema.rs to avoid duplicate
 
 /// Run interactive configuration with current settings
-pub async fn run_interactive_config(
-    current_config: ConfigurationState,
-) -> Result<ConfigResult> {
+pub async fn run_interactive_config(current_config: ConfigurationState) -> Result<ConfigResult> {
     let ui = InteractiveConfigUI::new(current_config);
     ui.run().await
 }

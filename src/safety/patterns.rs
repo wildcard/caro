@@ -461,13 +461,13 @@ mod tests {
     #[test]
     fn test_pattern_engine_analysis() {
         let engine = PatternEngine::new().expect("Should create pattern engine");
-        
+
         // Test safe command
         let safe_result = engine.analyze_command("ls -la", ShellType::Bash);
         assert!(!safe_result.matched);
         assert_eq!(safe_result.risk_level, RiskLevel::Safe);
         assert!(safe_result.safety_score < 0.1);
-        
+
         // Test dangerous command
         let dangerous_result = engine.analyze_command("rm -rf /", ShellType::Bash);
         assert!(dangerous_result.matched);
@@ -479,15 +479,15 @@ mod tests {
     #[test]
     fn test_compiled_patterns_filtering() {
         let engine = PatternEngine::new().expect("Should create pattern engine");
-        
+
         // Test risk-based filtering
         let critical_patterns = engine.dangerous_patterns.get_by_risk(RiskLevel::Critical);
         assert!(!critical_patterns.is_empty());
-        
+
         // Test category-based filtering
         let dangerous_patterns = engine.dangerous_patterns.get_by_category("dangerous");
         assert!(!dangerous_patterns.is_empty());
-        
+
         // Test enabled patterns
         let enabled_patterns = engine.dangerous_patterns.get_enabled();
         assert!(!enabled_patterns.is_empty());
@@ -498,17 +498,19 @@ mod tests {
     fn test_custom_pattern_addition() {
         let mut engine = PatternEngine::new().expect("Should create pattern engine");
         let initial_count = engine.dangerous_patterns.patterns.len();
-        
+
         let custom_pattern = DangerPattern {
             pattern: r"test_custom_danger".to_string(),
             risk_level: RiskLevel::High,
             description: "Test custom dangerous pattern".to_string(),
             shell_specific: None,
         };
-        
-        engine.add_custom_pattern(custom_pattern, "test").expect("Should add custom pattern");
+
+        engine
+            .add_custom_pattern(custom_pattern, "test")
+            .expect("Should add custom pattern");
         assert_eq!(engine.dangerous_patterns.patterns.len(), initial_count + 1);
-        
+
         // Test that the custom pattern works
         let result = engine.analyze_command("test_custom_danger", ShellType::Bash);
         assert!(result.matched);
@@ -576,14 +578,14 @@ impl PatternEngine {
         let dangerous_patterns = Self::compile_dangerous_patterns()?;
         let safe_patterns = Self::compile_safe_patterns()?;
         let context_patterns = Self::compile_context_patterns()?;
-        
+
         Ok(Self {
             dangerous_patterns,
             safe_patterns,
             context_patterns,
         })
     }
-    
+
     /// Create pattern engine with custom pattern sets
     pub fn with_custom_patterns(
         dangerous: Vec<DangerPattern>,
@@ -593,36 +595,38 @@ impl PatternEngine {
         let dangerous_patterns = Self::compile_pattern_set(dangerous, "dangerous")?;
         let safe_patterns = Self::compile_pattern_set(safe, "safe")?;
         let context_patterns = Self::compile_pattern_set(context, "context")?;
-        
+
         Ok(Self {
             dangerous_patterns,
             safe_patterns,
             context_patterns,
         })
     }
-    
+
     /// Analyze command for dangerous patterns with detailed results
     pub fn analyze_command(&self, command: &str, shell: ShellType) -> PatternMatchResult {
         let start_time = std::time::Instant::now();
         let mut matches = Vec::new();
         let mut max_risk = RiskLevel::Safe;
         let mut total_score = 0.0;
-        
+
         // Check dangerous patterns
         for (_i, pattern) in self.dangerous_patterns.patterns.iter().enumerate() {
             if !pattern.enabled {
                 continue;
             }
-            
+
             if let Some(shell_specific) = pattern.shell_specific {
                 if shell_specific != shell {
                     continue;
                 }
             }
-            
+
             if let Some(captures) = pattern.regex.find(command) {
-                pattern.match_count.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-                
+                pattern
+                    .match_count
+                    .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+
                 let pattern_match = PatternMatch {
                     pattern_description: pattern.description.clone(),
                     risk_level: pattern.risk_level,
@@ -631,14 +635,14 @@ impl PatternEngine {
                     end_pos: captures.end(),
                     category: pattern.category.clone(),
                 };
-                
+
                 matches.push(pattern_match);
-                
+
                 // Update maximum risk level
                 if pattern.risk_level as u8 > max_risk as u8 {
                     max_risk = pattern.risk_level;
                 }
-                
+
                 // Add to safety score (weighted by risk level)
                 total_score += match pattern.risk_level {
                     RiskLevel::Safe => 0.1,
@@ -648,23 +652,27 @@ impl PatternEngine {
                 };
             }
         }
-        
+
         let elapsed = start_time.elapsed();
-        
+
         // Update performance metrics
         for pattern_match in &matches {
-            if let Some(pattern) = self.dangerous_patterns.patterns.iter()
-                .find(|p| p.description == pattern_match.pattern_description) {
+            if let Some(pattern) = self
+                .dangerous_patterns
+                .patterns
+                .iter()
+                .find(|p| p.description == pattern_match.pattern_description)
+            {
                 pattern.total_match_time_ns.fetch_add(
                     elapsed.as_nanos() as u64 / matches.len() as u64,
-                    std::sync::atomic::Ordering::Relaxed
+                    std::sync::atomic::Ordering::Relaxed,
                 );
             }
         }
-        
+
         // Calculate final safety score (normalize and clamp)
         let safety_score = (total_score / 3.0f64).clamp(0.0, 1.0);
-        
+
         PatternMatchResult {
             matched: !matches.is_empty(),
             risk_level: max_risk,
@@ -673,25 +681,41 @@ impl PatternEngine {
             safety_score,
         }
     }
-    
+
     /// Get performance statistics for all patterns
     pub fn get_performance_stats(&self) -> Vec<PatternPerformanceStats> {
-        self.dangerous_patterns.patterns.iter().map(|pattern| {
-            let match_count = pattern.match_count.load(std::sync::atomic::Ordering::Relaxed);
-            let total_time = pattern.total_match_time_ns.load(std::sync::atomic::Ordering::Relaxed);
-            let avg_time = if match_count > 0 { total_time / match_count } else { 0 };
-            
-            PatternPerformanceStats {
-                description: pattern.description.clone(),
-                category: pattern.category.clone(),
-                match_count,
-                average_match_time_ns: avg_time,
-            }
-        }).collect()
+        self.dangerous_patterns
+            .patterns
+            .iter()
+            .map(|pattern| {
+                let match_count = pattern
+                    .match_count
+                    .load(std::sync::atomic::Ordering::Relaxed);
+                let total_time = pattern
+                    .total_match_time_ns
+                    .load(std::sync::atomic::Ordering::Relaxed);
+                let avg_time = if match_count > 0 {
+                    total_time / match_count
+                } else {
+                    0
+                };
+
+                PatternPerformanceStats {
+                    description: pattern.description.clone(),
+                    category: pattern.category.clone(),
+                    match_count,
+                    average_match_time_ns: avg_time,
+                }
+            })
+            .collect()
     }
-    
+
     /// Add custom pattern at runtime
-    pub fn add_custom_pattern(&mut self, pattern: DangerPattern, category: &str) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn add_custom_pattern(
+        &mut self,
+        pattern: DangerPattern,
+        category: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let regex = Regex::new(&pattern.pattern)?;
         let compiled = AdvancedCompiledPattern {
             regex,
@@ -703,34 +727,38 @@ impl PatternEngine {
             match_count: std::sync::atomic::AtomicU64::new(0),
             total_match_time_ns: std::sync::atomic::AtomicU64::new(0),
         };
-        
+
         let index = self.dangerous_patterns.patterns.len();
         self.dangerous_patterns.patterns.push(compiled);
-        
+
         // Update indices
-        self.dangerous_patterns.by_category
+        self.dangerous_patterns
+            .by_category
             .entry(category.to_string())
             .or_insert_with(Vec::new)
             .push(index);
-        
-        self.dangerous_patterns.by_risk
+
+        self.dangerous_patterns
+            .by_risk
             .entry(pattern.risk_level)
             .or_insert_with(Vec::new)
             .push(index);
-        
+
         Ok(())
     }
-    
+
     /// Compile dangerous patterns from the built-in set
     fn compile_dangerous_patterns() -> Result<CompiledPatterns, Box<dyn std::error::Error>> {
         Self::compile_pattern_set(DANGEROUS_PATTERNS.clone(), "dangerous")
     }
-    
+
     /// Compile safe patterns (patterns that indicate safe operations)
     fn compile_safe_patterns() -> Result<CompiledPatterns, Box<dyn std::error::Error>> {
         let safe_patterns = vec![
             DangerPattern {
-                pattern: r"^(ls|pwd|whoami|date|echo|cat|less|more|head|tail|grep|find|which|man)\s".to_string(),
+                pattern:
+                    r"^(ls|pwd|whoami|date|echo|cat|less|more|head|tail|grep|find|which|man)\s"
+                        .to_string(),
                 risk_level: RiskLevel::Safe,
                 description: "Safe read-only commands".to_string(),
                 shell_specific: None,
@@ -742,10 +770,10 @@ impl PatternEngine {
                 shell_specific: None,
             },
         ];
-        
+
         Self::compile_pattern_set(safe_patterns, "safe")
     }
-    
+
     /// Compile context patterns (patterns that provide execution context)
     fn compile_context_patterns() -> Result<CompiledPatterns, Box<dyn std::error::Error>> {
         let context_patterns = vec![
@@ -762,19 +790,22 @@ impl PatternEngine {
                 shell_specific: None,
             },
         ];
-        
+
         Self::compile_pattern_set(context_patterns, "context")
     }
-    
+
     /// Compile a set of patterns into CompiledPatterns
-    fn compile_pattern_set(patterns: Vec<DangerPattern>, category: &str) -> Result<CompiledPatterns, Box<dyn std::error::Error>> {
+    fn compile_pattern_set(
+        patterns: Vec<DangerPattern>,
+        category: &str,
+    ) -> Result<CompiledPatterns, Box<dyn std::error::Error>> {
         let mut compiled_patterns = Vec::new();
         let mut by_category = std::collections::HashMap::new();
         let mut by_risk = std::collections::HashMap::new();
-        
+
         for (i, pattern) in patterns.iter().enumerate() {
             let regex = Regex::new(&pattern.pattern)?;
-            
+
             let compiled = AdvancedCompiledPattern {
                 regex,
                 risk_level: pattern.risk_level,
@@ -785,21 +816,21 @@ impl PatternEngine {
                 match_count: std::sync::atomic::AtomicU64::new(0),
                 total_match_time_ns: std::sync::atomic::AtomicU64::new(0),
             };
-            
+
             compiled_patterns.push(compiled);
-            
+
             // Update indices
             by_category
                 .entry(category.to_string())
                 .or_insert_with(Vec::new)
                 .push(i);
-            
+
             by_risk
                 .entry(pattern.risk_level)
                 .or_insert_with(Vec::new)
                 .push(i);
         }
-        
+
         Ok(CompiledPatterns {
             patterns: compiled_patterns,
             by_category,
@@ -832,7 +863,7 @@ impl CompiledPatterns {
             Vec::new()
         }
     }
-    
+
     /// Get patterns by category
     pub fn get_by_category(&self, category: &str) -> Vec<&AdvancedCompiledPattern> {
         if let Some(indices) = self.by_category.get(category) {
@@ -841,7 +872,7 @@ impl CompiledPatterns {
             Vec::new()
         }
     }
-    
+
     /// Get enabled patterns only
     pub fn get_enabled(&self) -> Vec<&AdvancedCompiledPattern> {
         self.patterns.iter().filter(|p| p.enabled).collect()

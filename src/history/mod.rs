@@ -5,17 +5,17 @@
 //!
 //! Inspired by Atuin's rich history management with privacy-first design.
 
-pub mod models;
 pub mod manager;
 pub mod migrations;
+pub mod models;
 pub mod search;
 
-pub use models::{
-    CommandHistoryEntry, HistoryDatabase, HistoryQueryFilter, HistorySearchResult,
-    ExecutionMetadata, SafetyMetadata,
-};
 pub use manager::{HistoryManager, PaginatedHistory, RetentionPolicy, RetentionStats};
 pub use migrations::{
-    MigrationManager, Migration, DatabaseFeature, MigrationResult, DatabaseState,
+    DatabaseFeature, DatabaseState, Migration, MigrationManager, MigrationResult,
 };
-pub use search::{SearchQuery, SearchFilters, SearchResult, DateRange};
+pub use models::{
+    CommandHistoryEntry, ExecutionMetadata, HistoryDatabase, HistoryQueryFilter,
+    HistorySearchResult, SafetyMetadata,
+};
+pub use search::{DateRange, SearchFilters, SearchQuery, SearchResult};

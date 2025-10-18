@@ -171,23 +171,27 @@ impl OperationSpan {
     pub fn new(name: impl Into<String>) -> Self {
         let span_name = name.into();
         let span = tracing::info_span!("operation", operation = %span_name);
-        
-        Self { 
-            _span: span,
-            start_time: std::time::Instant::now(),
-        }
-    }
-    
-    pub fn with_field(name: impl Into<String>, _field: &str, value: impl std::fmt::Display) -> Self {
-        let span_name = name.into();
-        let span = tracing::info_span!("operation", operation = %span_name, field = %value);
-        
+
         Self {
             _span: span,
             start_time: std::time::Instant::now(),
         }
     }
-    
+
+    pub fn with_field(
+        name: impl Into<String>,
+        _field: &str,
+        value: impl std::fmt::Display,
+    ) -> Self {
+        let span_name = name.into();
+        let span = tracing::info_span!("operation", operation = %span_name, field = %value);
+
+        Self {
+            _span: span,
+            start_time: std::time::Instant::now(),
+        }
+    }
+
     pub fn record_timing(&self, event: &str) {
         let elapsed = self.start_time.elapsed();
         tracing::info!(
@@ -196,7 +200,7 @@ impl OperationSpan {
             "Operation timing recorded"
         );
     }
-    
+
     pub fn record_error(&self, error: &str) {
         tracing::error!(
             error = error,
@@ -209,10 +213,7 @@ impl OperationSpan {
 impl Drop for OperationSpan {
     fn drop(&mut self) {
         let elapsed = self.start_time.elapsed();
-        tracing::info!(
-            duration_ms = elapsed.as_millis(),
-            "Operation completed"
-        );
+        tracing::info!(duration_ms = elapsed.as_millis(), "Operation completed");
     }
 }
 
@@ -224,13 +225,13 @@ impl PerformanceLogger {
     pub fn log_startup_time(duration: std::time::Duration) {
         let millis = duration.as_millis();
         let meets_requirement = millis < 100;
-        
+
         tracing::info!(
             startup_time_ms = millis,
             constitutional_compliant = meets_requirement,
             "Application startup completed"
         );
-        
+
         if !meets_requirement {
             tracing::warn!(
                 startup_time_ms = millis,
@@ -239,19 +240,19 @@ impl PerformanceLogger {
             );
         }
     }
-    
+
     /// Log inference timing (constitutional requirement: <2s)
     pub fn log_inference_time(duration: std::time::Duration, backend: &str) {
         let millis = duration.as_millis();
         let meets_requirement = millis < 2000;
-        
+
         tracing::info!(
             inference_time_ms = millis,
             backend = backend,
             constitutional_compliant = meets_requirement,
             "Model inference completed"
         );
-        
+
         if !meets_requirement {
             tracing::warn!(
                 inference_time_ms = millis,
@@ -261,18 +262,18 @@ impl PerformanceLogger {
             );
         }
     }
-    
+
     /// Log safety validation timing (constitutional requirement: <50ms)
     pub fn log_safety_validation_time(duration: std::time::Duration) {
         let millis = duration.as_millis();
         let meets_requirement = millis < 50;
-        
+
         tracing::info!(
             validation_time_ms = millis,
             constitutional_compliant = meets_requirement,
             "Safety validation completed"
         );
-        
+
         if !meets_requirement {
             tracing::warn!(
                 validation_time_ms = millis,
@@ -281,18 +282,18 @@ impl PerformanceLogger {
             );
         }
     }
-    
+
     /// Log history write timing (constitutional requirement: <10ms)
     pub fn log_history_write_time(duration: std::time::Duration) {
         let millis = duration.as_millis();
         let meets_requirement = millis < 10;
-        
+
         tracing::info!(
             history_write_ms = millis,
             constitutional_compliant = meets_requirement,
             "History write completed"
         );
-        
+
         if !meets_requirement {
             tracing::warn!(
                 history_write_ms = millis,
@@ -325,7 +326,7 @@ impl Logger {
 
         Ok(())
     }
-    
+
     /// Initialize logger for development with pretty formatting
     pub fn init_development() -> Result<(), LogError> {
         if LOGGER_INITIALIZED.swap(true, Ordering::SeqCst) {
@@ -339,7 +340,7 @@ impl Logger {
             .init();
 
         tracing::info!(
-            component = "logger", 
+            component = "logger",
             environment = "development",
             "Development logging initialized"
         );

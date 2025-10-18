@@ -2,7 +2,7 @@
 //
 // This module implements intelligent backend selection with:
 // - Performance-based prioritization
-// - Automatic health checking  
+// - Automatic health checking
 // - Graceful fallback chains
 // - Adaptive learning from usage patterns
 
@@ -111,7 +111,7 @@ impl BackendSelector {
         priority: u8,
     ) -> Result<(), GeneratorError> {
         let mut backends = self.backends.write().await;
-        
+
         let managed = ManagedBackend {
             backend,
             name: name.clone(),
@@ -121,10 +121,10 @@ impl BackendSelector {
         };
 
         backends.push(managed);
-        
+
         // Sort by priority (lower number = higher priority)
         backends.sort_by_key(|b| b.priority);
-        
+
         info!("Added backend '{}' with priority {}", name, priority);
         Ok(())
     }
@@ -132,7 +132,7 @@ impl BackendSelector {
     /// Get the best available backend based on current metrics
     pub async fn select_backend(&self) -> Result<Arc<dyn CommandGenerator>, GeneratorError> {
         let mut backends = self.backends.write().await;
-        
+
         if backends.is_empty() {
             return Err(GeneratorError::BackendUnavailable {
                 reason: "No backends configured".to_string(),
@@ -144,7 +144,7 @@ impl BackendSelector {
 
         // Find the best backend using our selection algorithm
         let best_backend = self.find_best_backend(&backends).await?;
-        
+
         debug!("Selected backend: {}", best_backend.name);
         Ok(best_backend.backend.clone())
     }
@@ -155,7 +155,8 @@ impl BackendSelector {
         let refresh_interval = Duration::from_secs(self.config.refresh_interval_secs);
 
         for backend in backends.iter_mut() {
-            let needs_check = backend.last_health_check
+            let needs_check = backend
+                .last_health_check
                 .map(|last| now.duration_since(last) > refresh_interval)
                 .unwrap_or(true);
 
@@ -165,10 +166,10 @@ impl BackendSelector {
                 let check_duration = start.elapsed();
 
                 backend.last_health_check = Some(now);
-                
+
                 // Update availability score with exponential moving average
                 let new_score = if is_available { 1.0 } else { 0.0 };
-                backend.metrics.availability_score = 
+                backend.metrics.availability_score =
                     0.8 * backend.metrics.availability_score + 0.2 * new_score;
 
                 debug!(
@@ -180,7 +181,10 @@ impl BackendSelector {
     }
 
     /// Select the best backend using our multi-factor algorithm
-    async fn find_best_backend<'a>(&self, backends: &'a [ManagedBackend]) -> Result<&'a ManagedBackend, GeneratorError> {
+    async fn find_best_backend<'a>(
+        &self,
+        backends: &'a [ManagedBackend],
+    ) -> Result<&'a ManagedBackend, GeneratorError> {
         let mut best_backend: Option<&ManagedBackend> = None;
         let mut best_score = f64::NEG_INFINITY;
 
@@ -191,11 +195,14 @@ impl BackendSelector {
             }
 
             let score = self.calculate_backend_score(backend);
-            
+
             debug!(
                 "Backend '{}' score: {:.3} (latency: {}ms, success: {:.2}, availability: {:.2})",
-                backend.name, score, backend.metrics.average_latency_ms, 
-                backend.metrics.success_rate, backend.metrics.availability_score
+                backend.name,
+                score,
+                backend.metrics.average_latency_ms,
+                backend.metrics.success_rate,
+                backend.metrics.availability_score
             );
 
             if score > best_score {
@@ -212,7 +219,7 @@ impl BackendSelector {
     /// Calculate a composite score for backend selection
     fn calculate_backend_score(&self, backend: &ManagedBackend) -> f64 {
         let metrics = &backend.metrics;
-        
+
         // Normalize latency score (lower is better)
         let latency_score = if metrics.average_latency_ms > 0 {
             1.0 / (1.0 + metrics.average_latency_ms as f64 / 1000.0) // Normalize to seconds
@@ -224,11 +231,10 @@ impl BackendSelector {
         let priority_bonus = 1.0 - (backend.priority as f64 / 255.0);
 
         // Combine factors with weights
-        let score = 
-            self.config.latency_weight * latency_score +
-            self.config.availability_weight * metrics.availability_score +
-            self.config.success_rate_weight * metrics.success_rate +
-            0.1 * priority_bonus; // Small priority influence
+        let score = self.config.latency_weight * latency_score
+            + self.config.availability_weight * metrics.availability_score
+            + self.config.success_rate_weight * metrics.success_rate
+            + 0.1 * priority_bonus; // Small priority influence
 
         score
     }
@@ -241,35 +247,37 @@ impl BackendSelector {
         success: bool,
     ) {
         let mut backends = self.backends.write().await;
-        
+
         if let Some(backend) = backends.iter_mut().find(|b| b.name == backend_name) {
             let metrics = &mut backend.metrics;
-            
+
             // Update counters
             metrics.total_requests += 1;
             if !success {
                 metrics.failed_requests += 1;
             }
-            
+
             // Update success rate with exponential moving average
-            let new_success_rate = (metrics.total_requests - metrics.failed_requests) as f64 
+            let new_success_rate = (metrics.total_requests - metrics.failed_requests) as f64
                 / metrics.total_requests as f64;
             metrics.success_rate = 0.9 * metrics.success_rate + 0.1 * new_success_rate;
-            
+
             // Update average latency with exponential moving average
             let latency_ms = duration.as_millis() as u64;
             if metrics.total_requests == 1 {
                 metrics.average_latency_ms = latency_ms;
             } else {
-                metrics.average_latency_ms = 
-                    (9 * metrics.average_latency_ms + latency_ms) / 10;
+                metrics.average_latency_ms = (9 * metrics.average_latency_ms + latency_ms) / 10;
             }
-            
+
             metrics.last_used = Some(Instant::now());
-            
+
             debug!(
                 "Updated metrics for '{}': latency={}ms, success_rate={:.2}, total={}",
-                backend_name, metrics.average_latency_ms, metrics.success_rate, metrics.total_requests
+                backend_name,
+                metrics.average_latency_ms,
+                metrics.success_rate,
+                metrics.total_requests
             );
         }
     }
@@ -278,12 +286,12 @@ impl BackendSelector {
     pub async fn get_backend_status(&self) -> Vec<(String, BackendInfo, BackendMetrics)> {
         let backends = self.backends.read().await;
         let mut status = Vec::new();
-        
+
         for backend in backends.iter() {
             let info = backend.backend.backend_info();
             status.push((backend.name.clone(), info, backend.metrics.clone()));
         }
-        
+
         status
     }
 }
@@ -329,34 +337,38 @@ impl CommandGenerator for SmartBackend {
         request: &CommandRequest,
     ) -> Result<GeneratedCommand, GeneratorError> {
         let start_time = Instant::now();
-        
+
         // Try to get the best backend
         let backend = self.selector.select_backend().await?;
         let backend_info = backend.backend_info();
         let backend_name = format!("{}:{}", backend_info.backend_type, backend_info.model_name);
-        
+
         // Attempt generation
         match backend.generate_command(request).await {
             Ok(mut result) => {
                 let duration = start_time.elapsed();
-                
+
                 // Update metrics with success
-                self.selector.record_operation_result(&backend_name, duration, true).await;
-                
+                self.selector
+                    .record_operation_result(&backend_name, duration, true)
+                    .await;
+
                 // Enhance result with selection info
                 result.backend_used = format!("Smart[{}]", result.backend_used);
                 result.generation_time_ms = duration.as_millis() as u64;
-                
+
                 Ok(result)
             }
             Err(error) => {
                 let duration = start_time.elapsed();
-                
+
                 // Update metrics with failure
-                self.selector.record_operation_result(&backend_name, duration, false).await;
-                
+                self.selector
+                    .record_operation_result(&backend_name, duration, false)
+                    .await;
+
                 warn!("Backend '{}' failed: {}", backend_name, error);
-                
+
                 // For now, return the error - future versions could implement retry with fallback
                 Err(error)
             }
@@ -411,7 +423,10 @@ mod tests {
 
     #[async_trait]
     impl CommandGenerator for MockBackend {
-        async fn generate_command(&self, _request: &CommandRequest) -> Result<GeneratedCommand, GeneratorError> {
+        async fn generate_command(
+            &self,
+            _request: &CommandRequest,
+        ) -> Result<GeneratedCommand, GeneratorError> {
             if !self.available {
                 return Err(GeneratorError::BackendUnavailable {
                     reason: format!("{} is unavailable", self.name),
@@ -419,7 +434,7 @@ mod tests {
             }
 
             tokio::time::sleep(Duration::from_millis(self.latency_ms)).await;
-            
+
             Ok(GeneratedCommand {
                 command: "echo test".to_string(),
                 explanation: format!("Generated by {}", self.name),
@@ -470,8 +485,14 @@ mod tests {
             latency_ms: 1000,
         });
 
-        selector.add_backend(slow_backend, "slow".to_string(), 1).await.unwrap();
-        selector.add_backend(fast_backend, "fast".to_string(), 0).await.unwrap();
+        selector
+            .add_backend(slow_backend, "slow".to_string(), 1)
+            .await
+            .unwrap();
+        selector
+            .add_backend(fast_backend, "fast".to_string(), 0)
+            .await
+            .unwrap();
 
         // Should select the fast backend due to better latency and priority
         let selected = selector.select_backend().await.unwrap();
@@ -489,11 +510,14 @@ mod tests {
             latency_ms: 500,
         });
 
-        smart.add_backend(working_backend, "working".to_string(), 0).await.unwrap();
+        smart
+            .add_backend(working_backend, "working".to_string(), 0)
+            .await
+            .unwrap();
 
         let request = CommandRequest::new("test", ShellType::Bash);
         let result = smart.generate_command(&request).await;
-        
+
         assert!(result.is_ok());
         let cmd = result.unwrap();
         assert!(cmd.backend_used.contains("Smart"));

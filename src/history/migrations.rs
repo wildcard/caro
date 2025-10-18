@@ -81,15 +81,18 @@ impl MigrationManager {
                     safety_metadata TEXT,
                     tags TEXT
                 );
-                "#.to_string(),
+                "#
+                .to_string(),
                 r#"
                 CREATE INDEX IF NOT EXISTS idx_command_history_timestamp 
                 ON command_history(timestamp);
-                "#.to_string(),
+                "#
+                .to_string(),
                 r#"
                 CREATE INDEX IF NOT EXISTS idx_command_history_shell_type 
                 ON command_history(shell_type);
-                "#.to_string(),
+                "#
+                .to_string(),
             ],
             backward_sql: vec![
                 "DROP INDEX IF EXISTS idx_command_history_shell_type;".to_string(),
@@ -111,14 +114,14 @@ impl MigrationManager {
                     content='command_history',
                     content_rowid='rowid'
                 );
-                "#.to_string(),
+                "#
+                .to_string(),
                 r#"
                 INSERT INTO command_history_fts(command_history_fts) VALUES('rebuild');
-                "#.to_string(),
+                "#
+                .to_string(),
             ],
-            backward_sql: vec![
-                "DROP TABLE IF EXISTS command_history_fts;".to_string(),
-            ],
+            backward_sql: vec!["DROP TABLE IF EXISTS command_history_fts;".to_string()],
             required_features: vec![DatabaseFeature::FTS5],
         });
 
@@ -131,11 +134,13 @@ impl MigrationManager {
                 r#"
                 ALTER TABLE command_history 
                 ADD COLUMN embedding_vector BLOB;
-                "#.to_string(),
+                "#
+                .to_string(),
                 r#"
                 ALTER TABLE command_history 
                 ADD COLUMN relevance_score REAL;
-                "#.to_string(),
+                "#
+                .to_string(),
                 r#"
                 CREATE TABLE IF NOT EXISTS embedding_cache (
                     content_hash TEXT PRIMARY KEY,
@@ -144,11 +149,13 @@ impl MigrationManager {
                     access_count INTEGER DEFAULT 0,
                     last_accessed TEXT NOT NULL
                 );
-                "#.to_string(),
+                "#
+                .to_string(),
                 r#"
                 CREATE INDEX IF NOT EXISTS idx_embedding_cache_last_accessed 
                 ON embedding_cache(last_accessed);
-                "#.to_string(),
+                "#
+                .to_string(),
             ],
             backward_sql: vec![
                 "DROP INDEX IF EXISTS idx_embedding_cache_last_accessed;".to_string(),
@@ -173,14 +180,16 @@ impl MigrationManager {
                     last_health_check TEXT,
                     metrics_json TEXT
                 );
-                "#.to_string(),
+                "#
+                .to_string(),
                 r#"
                 CREATE TABLE IF NOT EXISTS configuration (
                     key TEXT PRIMARY KEY,
                     value TEXT NOT NULL,
                     last_updated TEXT NOT NULL
                 );
-                "#.to_string(),
+                "#
+                .to_string(),
             ],
             backward_sql: vec![
                 "DROP TABLE IF EXISTS configuration;".to_string(),
@@ -198,15 +207,18 @@ impl MigrationManager {
                 r#"
                 CREATE INDEX IF NOT EXISTS idx_command_history_working_directory 
                 ON command_history(working_directory);
-                "#.to_string(),
+                "#
+                .to_string(),
                 r#"
                 CREATE INDEX IF NOT EXISTS idx_command_history_compound 
                 ON command_history(shell_type, timestamp);
-                "#.to_string(),
+                "#
+                .to_string(),
                 r#"
                 CREATE INDEX IF NOT EXISTS idx_embedding_cache_access_pattern 
                 ON embedding_cache(access_count, last_accessed);
-                "#.to_string(),
+                "#
+                .to_string(),
             ],
             backward_sql: vec![
                 "DROP INDEX IF EXISTS idx_embedding_cache_access_pattern;".to_string(),
@@ -233,7 +245,8 @@ impl MigrationManager {
             );
             "#,
             [],
-        ).context("Failed to create schema_migrations table")?;
+        )
+        .context("Failed to create schema_migrations table")?;
 
         debug!("Migration tracking table initialized");
         Ok(())
@@ -242,11 +255,9 @@ impl MigrationManager {
     /// Get current database version
     pub fn get_current_version(&self, conn: &Connection) -> Result<u32> {
         let version: Option<u32> = conn
-            .query_row(
-                "SELECT MAX(version) FROM schema_migrations",
-                [],
-                |row| row.get(0),
-            )
+            .query_row("SELECT MAX(version) FROM schema_migrations", [], |row| {
+                row.get(0)
+            })
             .optional()
             .context("Failed to query current schema version")?
             .flatten();
@@ -302,11 +313,11 @@ impl MigrationManager {
     /// Get database state
     pub fn get_database_state(&self, conn: &Connection) -> Result<DatabaseState> {
         self.initialize_migration_table(conn)?;
-        
+
         let current_version = self.get_current_version(conn)?;
         let available_features = self.check_features(conn)?;
         let latest_version = self.migrations.iter().map(|m| m.version).max().unwrap_or(0);
-        
+
         let migration_history = self.get_migration_history(conn)?;
 
         Ok(DatabaseState {
@@ -320,7 +331,7 @@ impl MigrationManager {
     /// Apply all pending migrations
     pub fn migrate_to_latest(&self, conn: &Connection) -> Result<Vec<MigrationResult>> {
         self.initialize_migration_table(conn)?;
-        
+
         let current_version = self.get_current_version(conn)?;
         let available_features = self.check_features(conn)?;
         let mut results = Vec::new();
@@ -337,7 +348,8 @@ impl MigrationManager {
             }
 
             // Check if required features are available
-            let missing_features: Vec<_> = migration.required_features
+            let missing_features: Vec<_> = migration
+                .required_features
                 .iter()
                 .filter(|feature| !*available_features.get(feature).unwrap_or(&false))
                 .collect();
@@ -416,11 +428,14 @@ impl MigrationManager {
                     start_time.elapsed().as_millis() as i64,
                     checksum
                 ],
-            ).context("Failed to record migration")?;
+            )
+            .context("Failed to record migration")?;
 
-            tx.commit().context("Failed to commit migration transaction")?;
+            tx.commit()
+                .context("Failed to commit migration transaction")?;
         } else {
-            tx.rollback().context("Failed to rollback failed migration")?;
+            tx.rollback()
+                .context("Failed to rollback failed migration")?;
         }
 
         Ok(MigrationResult {
@@ -434,9 +449,13 @@ impl MigrationManager {
     }
 
     /// Rollback to a specific version
-    pub fn rollback_to_version(&self, conn: &Connection, target_version: u32) -> Result<Vec<MigrationResult>> {
+    pub fn rollback_to_version(
+        &self,
+        conn: &Connection,
+        target_version: u32,
+    ) -> Result<Vec<MigrationResult>> {
         let current_version = self.get_current_version(conn)?;
-        
+
         if target_version >= current_version {
             return Ok(vec![]);
         }
@@ -471,7 +490,11 @@ impl MigrationManager {
     }
 
     /// Rollback a specific migration
-    fn rollback_migration(&self, conn: &Connection, migration: &Migration) -> Result<MigrationResult> {
+    fn rollback_migration(
+        &self,
+        conn: &Connection,
+        migration: &Migration,
+    ) -> Result<MigrationResult> {
         let start_time = std::time::Instant::now();
         let executed_at = Utc::now();
 
@@ -506,11 +529,14 @@ impl MigrationManager {
             tx.execute(
                 "DELETE FROM schema_migrations WHERE version = ?",
                 params![migration.version],
-            ).context("Failed to remove migration record")?;
+            )
+            .context("Failed to remove migration record")?;
 
-            tx.commit().context("Failed to commit rollback transaction")?;
+            tx.commit()
+                .context("Failed to commit rollback transaction")?;
         } else {
-            tx.rollback().context("Failed to rollback failed rollback")?;
+            tx.rollback()
+                .context("Failed to rollback failed rollback")?;
         }
 
         Ok(MigrationResult {
@@ -530,21 +556,29 @@ impl MigrationManager {
             SELECT version, name, description, executed_at, execution_time_ms
             FROM schema_migrations 
             ORDER BY version
-            "#
+            "#,
         )?;
 
-        let results = stmt.query_map([], |row| {
-            Ok(MigrationResult {
-                version: row.get(0)?,
-                name: row.get(1)?,
-                executed_at: DateTime::parse_from_rfc3339(&row.get::<_, String>(3)?)
-                    .map_err(|e| rusqlite::Error::InvalidColumnType(3, format!("Invalid timestamp: {}", e).into(), rusqlite::types::Type::Text))?
-                    .with_timezone(&Utc),
-                execution_time_ms: row.get(4)?,
-                success: true, // Only successful migrations are recorded
-                error_message: None,
-            })
-        })?.collect::<Result<Vec<_>, _>>()?;
+        let results = stmt
+            .query_map([], |row| {
+                Ok(MigrationResult {
+                    version: row.get(0)?,
+                    name: row.get(1)?,
+                    executed_at: DateTime::parse_from_rfc3339(&row.get::<_, String>(3)?)
+                        .map_err(|e| {
+                            rusqlite::Error::InvalidColumnType(
+                                3,
+                                format!("Invalid timestamp: {}", e).into(),
+                                rusqlite::types::Type::Text,
+                            )
+                        })?
+                        .with_timezone(&Utc),
+                    execution_time_ms: row.get(4)?,
+                    success: true, // Only successful migrations are recorded
+                    error_message: None,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
 
         Ok(results)
     }
@@ -552,22 +586,24 @@ impl MigrationManager {
     /// Validate database schema integrity
     pub fn validate_schema(&self, conn: &Connection) -> Result<bool> {
         let state = self.get_database_state(conn)?;
-        
+
         // Check if all expected tables exist
         let expected_tables = vec![
-            "command_history", 
+            "command_history",
             "schema_migrations",
             "embedding_cache",
             "backend_metrics",
-            "configuration"
+            "configuration",
         ];
 
         for table in expected_tables {
-            let exists: bool = conn.query_row(
-                "SELECT COUNT(*) > 0 FROM sqlite_master WHERE type='table' AND name=?",
-                params![table],
-                |row| row.get(0),
-            ).unwrap_or(false);
+            let exists: bool = conn
+                .query_row(
+                    "SELECT COUNT(*) > 0 FROM sqlite_master WHERE type='table' AND name=?",
+                    params![table],
+                    |row| row.get(0),
+                )
+                .unwrap_or(false);
 
             if !exists && state.current_version >= self.get_table_introduction_version(table) {
                 warn!(table = table, "Expected table is missing");
@@ -576,7 +612,12 @@ impl MigrationManager {
         }
 
         // Validate FTS5 table if it should exist
-        if state.current_version >= 2 && *state.available_features.get(&DatabaseFeature::FTS5).unwrap_or(&false) {
+        if state.current_version >= 2
+            && *state
+                .available_features
+                .get(&DatabaseFeature::FTS5)
+                .unwrap_or(&false)
+        {
             let fts_exists: bool = conn.query_row(
                 "SELECT COUNT(*) > 0 FROM sqlite_master WHERE type='table' AND name='command_history_fts'",
                 [],
@@ -595,16 +636,16 @@ impl MigrationManager {
     /// Calculate migration checksum for integrity verification
     fn calculate_migration_checksum(&self, migration: &Migration) -> String {
         use sha2::{Digest, Sha256};
-        
+
         let mut hasher = Sha256::new();
         hasher.update(migration.version.to_string());
         hasher.update(&migration.name);
         hasher.update(&migration.description);
-        
+
         for sql in &migration.forward_sql {
             hasher.update(sql);
         }
-        
+
         format!("{:x}", hasher.finalize())
     }
 
@@ -642,16 +683,16 @@ mod tests {
     fn test_database_initialization() {
         let conn = Connection::open_in_memory().unwrap();
         let manager = MigrationManager::new();
-        
+
         manager.initialize_migration_table(&conn).unwrap();
-        
+
         // Verify table was created
         let table_exists: bool = conn.query_row(
             "SELECT COUNT(*) > 0 FROM sqlite_master WHERE type='table' AND name='schema_migrations'",
             [],
             |row| row.get(0),
         ).unwrap();
-        
+
         assert!(table_exists);
     }
 
@@ -659,9 +700,9 @@ mod tests {
     fn test_feature_detection() {
         let conn = Connection::open_in_memory().unwrap();
         let manager = MigrationManager::new();
-        
+
         let features = manager.check_features(&conn).unwrap();
-        
+
         // These features should be available in modern SQLite
         assert!(features.contains_key(&DatabaseFeature::JSONExtract));
         assert!(features.contains_key(&DatabaseFeature::WindowFunctions));
@@ -671,13 +712,13 @@ mod tests {
     fn test_migration_application() {
         let conn = Connection::open_in_memory().unwrap();
         let manager = MigrationManager::new();
-        
+
         let results = manager.migrate_to_latest(&conn).unwrap();
-        
+
         // Should have applied some migrations
         assert!(!results.is_empty());
         assert!(results.iter().all(|r| r.success));
-        
+
         // Verify final version
         let final_version = manager.get_current_version(&conn).unwrap();
         assert!(final_version > 0);
@@ -687,10 +728,10 @@ mod tests {
     fn test_schema_validation() {
         let conn = Connection::open_in_memory().unwrap();
         let manager = MigrationManager::new();
-        
+
         // Apply all migrations
         manager.migrate_to_latest(&conn).unwrap();
-        
+
         // Schema should be valid
         assert!(manager.validate_schema(&conn).unwrap());
     }
@@ -699,14 +740,14 @@ mod tests {
     fn test_migration_rollback() {
         let conn = Connection::open_in_memory().unwrap();
         let manager = MigrationManager::new();
-        
+
         // Apply migrations
         manager.migrate_to_latest(&conn).unwrap();
         let initial_version = manager.get_current_version(&conn).unwrap();
-        
+
         // Rollback to version 1
         let rollback_results = manager.rollback_to_version(&conn, 1).unwrap();
-        
+
         if initial_version > 1 {
             assert!(!rollback_results.is_empty());
             assert_eq!(manager.get_current_version(&conn).unwrap(), 1);
@@ -717,10 +758,10 @@ mod tests {
     fn test_migration_checksum() {
         let manager = MigrationManager::new();
         let migration = &manager.migrations[0];
-        
+
         let checksum1 = manager.calculate_migration_checksum(migration);
         let checksum2 = manager.calculate_migration_checksum(migration);
-        
+
         assert_eq!(checksum1, checksum2);
         assert!(!checksum1.is_empty());
     }

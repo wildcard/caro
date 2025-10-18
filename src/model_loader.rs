@@ -1,9 +1,9 @@
 // Model loading and distribution strategy for embedded models
 
 use anyhow::{Context, Result};
+use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use tracing::{debug, info, warn};
-use serde::{Deserialize, Serialize};
 
 use crate::backends::embedded::ModelVariant;
 
@@ -116,7 +116,7 @@ impl ModelLoader {
     /// Download the model from Hugging Face Hub
     async fn download_model(&self, dest_path: &Path, variant: ModelVariant) -> Result<()> {
         use hf_hub::api::tokio::Api;
-        
+
         // Ensure parent directory exists
         if let Some(parent) = dest_path.parent() {
             std::fs::create_dir_all(parent).context("Failed to create model cache directory")?;
@@ -158,14 +158,13 @@ impl ModelLoader {
         let temp_dest = dest_path.with_extension("tmp");
         std::fs::copy(&downloaded_path, &temp_dest)
             .context("Failed to copy model to temporary location")?;
-        
-        std::fs::rename(&temp_dest, dest_path)
-            .context("Failed to move model to final location")?;
+
+        std::fs::rename(&temp_dest, dest_path).context("Failed to move model to final location")?;
 
         progress.finish_with_message("Download complete!");
 
         info!("Model downloaded successfully to: {}", dest_path.display());
-        
+
         // Verify the downloaded model
         if !self.verify_model(dest_path)? {
             std::fs::remove_file(dest_path).ok(); // Clean up invalid file
@@ -214,7 +213,8 @@ impl ModelLoader {
         let model_path = self.get_embedded_model_path()?;
         let exists = model_path.exists();
         let size_mb = if exists {
-            let metadata = std::fs::metadata(&model_path).context("Failed to get model metadata")?;
+            let metadata =
+                std::fs::metadata(&model_path).context("Failed to get model metadata")?;
             Some(metadata.len() / (1024 * 1024))
         } else {
             None
@@ -234,7 +234,8 @@ impl ModelLoader {
     pub fn clear_cache(&self) -> Result<()> {
         if self.cache_dir.exists() {
             std::fs::remove_dir_all(&self.cache_dir).context("Failed to remove cache directory")?;
-            std::fs::create_dir_all(&self.cache_dir).context("Failed to recreate cache directory")?;
+            std::fs::create_dir_all(&self.cache_dir)
+                .context("Failed to recreate cache directory")?;
             info!("Model cache cleared: {}", self.cache_dir.display());
         }
         Ok(())
@@ -263,11 +264,13 @@ impl ModelLoader {
         }
 
         // Verify GGUF magic number (first 4 bytes should be "GGUF")
-        let mut file = std::fs::File::open(model_path).context("Failed to open model file for verification")?;
+        let mut file = std::fs::File::open(model_path)
+            .context("Failed to open model file for verification")?;
         let mut magic = [0u8; 4];
         use std::io::Read;
-        file.read_exact(&mut magic).context("Failed to read GGUF magic number")?;
-        
+        file.read_exact(&mut magic)
+            .context("Failed to read GGUF magic number")?;
+
         if &magic != b"GGUF" {
             warn!("Invalid GGUF magic number in model file");
             return Ok(false);
@@ -276,19 +279,25 @@ impl ModelLoader {
         // Basic checksum verification (SHA-256 hash of first 1MB)
         file.read_to_end(&mut Vec::new()).ok(); // Reset file position
         drop(file);
-        
+
         let mut file = std::fs::File::open(model_path).context("Failed to reopen model file")?;
         let mut first_mb = vec![0u8; 1024 * 1024];
-        let bytes_read = file.read(&mut first_mb).context("Failed to read model file for checksum")?;
+        let bytes_read = file
+            .read(&mut first_mb)
+            .context("Failed to read model file for checksum")?;
         first_mb.truncate(bytes_read);
-        
-        use sha2::{Sha256, Digest};
+
+        use sha2::{Digest, Sha256};
         let hash = Sha256::digest(&first_mb);
         let hash_hex = format!("{:x}", hash);
-        
-        debug!("Model file validated: {}MB, hash: {}...", size_mb, &hash_hex[..16]);
+
+        debug!(
+            "Model file validated: {}MB, hash: {}...",
+            size_mb,
+            &hash_hex[..16]
+        );
         info!("Model validation successful: {}", model_path.display());
-        
+
         Ok(true)
     }
 }
@@ -360,7 +369,7 @@ mod tests {
         let loader = ModelLoader::new().unwrap();
         let info = loader.get_model_info();
         assert!(info.is_ok());
-        
+
         let info = info.unwrap();
         assert_eq!(info.model_name, DEFAULT_MODEL_Q4);
         assert_eq!(info.repository, HF_MODEL_REPO);
@@ -380,15 +389,15 @@ mod tests {
         use tempfile::TempDir;
         let temp_dir = TempDir::new().unwrap();
         let loader = ModelLoader::with_cache_dir(temp_dir.path().to_path_buf());
-        
+
         // Create some dummy content in cache
         std::fs::write(temp_dir.path().join("dummy.txt"), b"test").unwrap();
         assert!(temp_dir.path().join("dummy.txt").exists());
-        
+
         // Clear cache should succeed
         let result = loader.clear_cache();
         assert!(result.is_ok());
-        
+
         // Cache directory should exist but be empty
         assert!(temp_dir.path().exists());
         assert!(!temp_dir.path().join("dummy.txt").exists());

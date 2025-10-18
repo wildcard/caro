@@ -1,6 +1,6 @@
 use clap::Parser;
 use cmdai::cli::{CliApp, CliError, IntoCliArgs};
-use cmdai::config::{ConfigManager, run_interactive_config};
+use cmdai::config::{run_interactive_config, ConfigManager};
 use std::process;
 
 /// cmdai - Convert natural language to shell commands using local LLMs

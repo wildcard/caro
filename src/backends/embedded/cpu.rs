@@ -55,15 +55,17 @@ impl CpuBackend {
     /// Load the Candle model and tokenizer (blocking operation)
     /// This demonstrates the intended structure for real candle-core integration
     #[cfg(feature = "embedded-cpu")]
-    fn load_candle_model(model_path: &PathBuf) -> Result<CandleModelState, Box<dyn std::error::Error + Send + Sync>> {
+    fn load_candle_model(
+        model_path: &PathBuf,
+    ) -> Result<CandleModelState, Box<dyn std::error::Error + Send + Sync>> {
         tracing::info!("Loading GGUF model from: {}", model_path.display());
-        
+
         // TODO: Replace with actual candle-core implementation:
         // 1. Initialize CPU device: let device = candle_core::Device::Cpu;
         // 2. Load GGUF file: let content = ggml_file::Content::read(&mut file)?;
         // 3. Create model from content: let model = Model::load(&device, &content)?;
         // 4. Load tokenizer: let tokenizer = Tokenizer::from_file(&tokenizer_path)?;
-        
+
         // For now, return a placeholder that shows the model was "loaded"
         Ok(CandleModelState {
             model_path: model_path.clone(),
@@ -72,7 +74,9 @@ impl CpuBackend {
 
     /// Load the Candle model and tokenizer (feature-gated fallback)
     #[cfg(not(feature = "embedded-cpu"))]
-    fn load_candle_model(_model_path: &PathBuf) -> Result<CandleModelState, Box<dyn std::error::Error + Send + Sync>> {
+    fn load_candle_model(
+        _model_path: &PathBuf,
+    ) -> Result<CandleModelState, Box<dyn std::error::Error + Send + Sync>> {
         // For non-embedded builds, return a placeholder state
         Ok(CandleModelState { loaded: true })
     }
@@ -94,17 +98,17 @@ impl CpuBackend {
         // 6. Sample next token: let next_token = logits_processor.sample(&logits)?;
         // 7. Decode generated tokens: let text = tokenizer.decode(&tokens, false)?;
         // 8. Extract and validate JSON response
-        
+
         tracing::info!(
             "Running inference with model at: {} (max_tokens: {}, temperature: {})",
             model_path.display(),
             max_tokens,
             temperature
         );
-        
+
         // Simulate inference time (placeholder until real candle-core inference)
         std::thread::sleep(std::time::Duration::from_millis(10));
-        
+
         // Placeholder implementation that demonstrates JSON response format
         // This would be replaced with actual model inference
         let response = if prompt.contains("delete") && prompt.contains("system") {
@@ -115,7 +119,10 @@ impl CpuBackend {
             r#"{"cmd": "rm -rf /tmp/*"}"#
         } else if prompt.contains("list files") {
             r#"{"cmd": "ls -la"}"#
-        } else if prompt.contains("directory") || prompt.contains("pwd") || prompt.contains("current directory") {
+        } else if prompt.contains("directory")
+            || prompt.contains("pwd")
+            || prompt.contains("current directory")
+        {
             r#"{"cmd": "pwd"}"#
         } else if prompt.contains("find") {
             r#"{"cmd": "find . -name '*.txt'"}"#
@@ -123,7 +130,7 @@ impl CpuBackend {
             // Use a simpler approach that returns a &str
             r#"{"cmd": "ls"}"#
         };
-        
+
         Ok(response.to_string())
     }
 
@@ -158,18 +165,18 @@ impl InferenceBackend for CpuBackend {
                 .map_err(|_| GeneratorError::Internal {
                     message: "Failed to acquire model state lock for inference".to_string(),
                 })?;
-                
+
             let state = model_state.as_ref().unwrap();
-            
+
             // Extract necessary data while holding the lock
             #[cfg(feature = "embedded-cpu")]
             let model_path = state.model_path.clone();
             #[cfg(not(feature = "embedded-cpu"))]
             let model_path = self.model_path.clone();
-            
+
             (model_path, config.max_tokens, config.temperature)
         }; // Lock is released here
-        
+
         // Run inference in blocking task to maintain async interface
         let prompt_owned = prompt.to_string();
         let response = tokio::task::spawn_blocking(move || {
@@ -222,16 +229,15 @@ impl InferenceBackend for CpuBackend {
 
         // Load the model in a background task to keep async interface
         let model_path = self.model_path.clone();
-        let loaded_state = tokio::task::spawn_blocking(move || {
-            Self::load_candle_model(&model_path)
-        })
-        .await
-        .map_err(|e| GeneratorError::Internal {
-            message: format!("Failed to join model loading task: {}", e),
-        })?
-        .map_err(|e| GeneratorError::GenerationFailed {
-            details: format!("Failed to load candle model: {}", e),
-        })?;
+        let loaded_state =
+            tokio::task::spawn_blocking(move || Self::load_candle_model(&model_path))
+                .await
+                .map_err(|e| GeneratorError::Internal {
+                    message: format!("Failed to join model loading task: {}", e),
+                })?
+                .map_err(|e| GeneratorError::GenerationFailed {
+                    details: format!("Failed to load candle model: {}", e),
+                })?;
 
         // Set the model as loaded
         {
@@ -311,20 +317,20 @@ mod tests {
     #[tokio::test]
     async fn test_load_unload_cycle() {
         let mut backend = CpuBackend::new(PathBuf::from("/tmp/model.gguf")).unwrap();
-        
+
         // Create a temporary file to simulate model existence
         let temp_file = std::env::temp_dir().join("test_model.gguf");
         std::fs::write(&temp_file, b"dummy model data").unwrap();
         backend.model_path = temp_file.clone();
-        
+
         // Test loading
         let result = backend.load().await;
         assert!(result.is_ok());
-        
+
         // Test unloading
         let result = backend.unload().await;
         assert!(result.is_ok());
-        
+
         // Cleanup
         let _ = std::fs::remove_file(&temp_file);
     }
