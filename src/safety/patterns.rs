@@ -645,7 +645,9 @@ impl PatternEngine {
 
                 // Add to safety score (weighted by risk level)
                 total_score += match pattern.risk_level {
+                    RiskLevel::Low => 0.2,
                     RiskLevel::Safe => 0.1,
+                    RiskLevel::Medium => 0.3,
                     RiskLevel::Moderate => 0.4,
                     RiskLevel::High => 0.7,
                     RiskLevel::Critical => 1.0,

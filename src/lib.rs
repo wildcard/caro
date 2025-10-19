@@ -26,6 +26,7 @@
 pub mod backends;
 pub mod cache;
 pub mod cli;
+pub mod commands;
 pub mod config;
 pub mod execution;
 pub mod history;
@@ -36,6 +37,7 @@ pub mod performance;
 pub mod safety;
 pub mod semantic;
 pub mod streaming;
+pub mod testing;
 
 // Re-export commonly used types for convenience
 pub use models::{
@@ -85,3 +87,19 @@ pub use backends::embedded::{
 pub use backends::remote::{OllamaBackend, VllmBackend};
 pub use backends::selector::{BackendSelector, BackendSelectorConfig, SmartBackend};
 pub use backends::{BackendInfo as BackendInfoTrait, CommandGenerator, GeneratorError};
+
+// Manual testing types
+pub use testing::{
+    analyzer::{LogAnalysis, LogAnalyzer, PerformanceBottleneck, SafetyPattern},
+    cases::{TestCase, TestCategory, TestOutcome, TestResult},
+    metrics::{MetricsCollector as TestMetricsCollector, PerformanceInsights, TestMetrics},
+    reporter::{InteractiveReporter, UserResponse},
+    runner::{ManualTestRunner, TestLibrary},
+};
+
+// Slash command types
+pub use commands::{
+    handler::{CommandContext, CommandResponse, SlashCommandHandler},
+    parser::{ParsedCommand, SlashCommand, SlashCommandParser},
+    session::{SessionManager, SessionMode, SessionState},
+};

@@ -157,21 +157,28 @@ impl RiskLevel {
     /// Check if this risk level requires user confirmation at the given safety level
     pub fn requires_confirmation(&self, safety_level: SafetyLevel) -> bool {
         match safety_level {
+            SafetyLevel::Minimal => matches!(self, Self::Critical),
             SafetyLevel::Strict => matches!(
                 self,
                 Self::Medium | Self::Moderate | Self::High | Self::Critical
             ),
             SafetyLevel::Moderate => matches!(self, Self::High | Self::Critical),
             SafetyLevel::Permissive => matches!(self, Self::Critical),
+            SafetyLevel::Interactive => matches!(
+                self,
+                Self::Medium | Self::Moderate | Self::High | Self::Critical
+            ),
         }
     }
 
     /// Check if this risk level should be blocked at the given safety level
     pub fn is_blocked(&self, safety_level: SafetyLevel) -> bool {
         match safety_level {
+            SafetyLevel::Minimal => false,
             SafetyLevel::Strict => matches!(self, Self::High | Self::Critical),
             SafetyLevel::Moderate => matches!(self, Self::Critical),
             SafetyLevel::Permissive => false,
+            SafetyLevel::Interactive => matches!(self, Self::Critical),
         }
     }
 }
@@ -519,10 +526,12 @@ impl LogLevel {
     /// Convert to tracing Level
     pub fn to_tracing_level(&self) -> tracing::Level {
         match self {
+            LogLevel::Trace => tracing::Level::TRACE,
             LogLevel::Debug => tracing::Level::DEBUG,
             LogLevel::Info => tracing::Level::INFO,
             LogLevel::Warn => tracing::Level::WARN,
             LogLevel::Error => tracing::Level::ERROR,
+            LogLevel::Silent => tracing::Level::ERROR,
         }
     }
 }

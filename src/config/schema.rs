@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Complete configuration state for the cmdai system
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ConfigurationState {
     // Backend Configuration
     pub preferred_backend: BackendType,
@@ -44,7 +44,7 @@ pub struct ConfigurationState {
 }
 
 /// Backend-specific configuration options
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct BackendConfig {
     pub enabled: bool,
     pub endpoint: Option<String>,
@@ -55,7 +55,7 @@ pub struct BackendConfig {
 }
 
 /// Command history retention policy
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct RetentionPolicy {
     pub max_entries: Option<usize>,
     pub max_age_days: Option<u32>,

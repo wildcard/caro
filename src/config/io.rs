@@ -5,9 +5,7 @@
 
 use crate::config::{ConfigurationState, ValidationReport, ValidationRules};
 use anyhow::{Context, Result};
-use serde::{Deserialize, Serialize};
 use std::fs;
-use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use tracing::{debug, info, warn};
 
@@ -186,17 +184,19 @@ impl ConfigIO {
         ));
 
         // Export retention policy
+        if let Some(days) = config.retention_policy.max_age_days {
+            env_vars.push(format!("export CMDAI_RETENTION_DAYS=\"{}\"", days));
+        }
+        if let Some(entries) = config.retention_policy.max_entries {
+            env_vars.push(format!("export CMDAI_RETENTION_ENTRIES=\"{}\"", entries));
+        }
         env_vars.push(format!(
-            "export CMDAI_RETENTION_DAYS=\"{}\"",
-            config.retention_policy.max_age_days
+            "export CMDAI_RETENTION_KEEP_FAVORITES=\"{}\"",
+            config.retention_policy.preserve_favorites
         ));
         env_vars.push(format!(
-            "export CMDAI_RETENTION_ENTRIES=\"{}\"",
-            config.retention_policy.max_entries
-        ));
-        env_vars.push(format!(
-            "export CMDAI_RETENTION_SIZE_MB=\"{}\"",
-            config.retention_policy.max_size_mb
+            "export CMDAI_RETENTION_KEEP_FREQUENT=\"{}\"",
+            config.retention_policy.preserve_frequently_used
         ));
 
         // Export backend configurations
@@ -205,9 +205,17 @@ impl ConfigIO {
             if let Some(endpoint) = &backend.endpoint {
                 env_vars.push(format!("export {}=\"{}\"", prefix, endpoint));
             }
-            if let Some(key) = &backend.api_key {
-                env_vars.push(format!("export {}_KEY=\"{}\"", prefix, key));
+            if let Some(model_name) = &backend.model_name {
+                env_vars.push(format!("export {}_MODEL=\"{}\"", prefix, model_name));
             }
+            env_vars.push(format!(
+                "export {}_TIMEOUT=\"{}\"",
+                prefix, backend.timeout_seconds
+            ));
+            env_vars.push(format!(
+                "export {}_MAX_RETRIES=\"{}\"",
+                prefix, backend.max_retries
+            ));
         }
 
         Ok(env_vars.join("\n"))

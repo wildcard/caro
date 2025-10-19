@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, SqlitePool};
 use std::collections::HashMap;
 use std::fmt;
-use tracing::{debug, warn};
+use tracing::debug;
 
 /// Search query for history
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -359,15 +359,15 @@ impl FTS5SearchEngine {
                 }
             }
 
-            if let Some(dir) = &filters.working_directory {
+            if let Some(_dir) = &filters.working_directory {
                 conditions.push("h.working_directory = ?".to_string());
             }
 
-            if let Some(shell) = &filters.shell_type {
+            if let Some(_shell) = &filters.shell_type {
                 conditions.push("h.shell_type = ?".to_string());
             }
 
-            if let Some(risk) = &filters.risk_level {
+            if let Some(_risk) = &filters.risk_level {
                 conditions.push("h.risk_level = ?".to_string());
             }
 
@@ -431,6 +431,20 @@ impl FTS5SearchEngine {
         // Convert to search results
         let mut results = Vec::new();
         for row in rows {
+            let explanation = self.generate_explanation(&row)?;
+            let similarity_score = self.normalize_rank(row.rank);
+            let matching_context = row.command_snippet.clone().unwrap_or_default();
+
+            #[allow(deprecated)]
+            let safety_metadata = SafetyMetadata {
+                risk_level: row.risk_level.parse().unwrap_or(RiskLevel::Safe),
+                patterns_matched: Vec::new(),
+                user_confirmed: false,
+                safety_score: 0.0,
+                safety_level: SafetyLevel::Moderate,
+                validation_time_ms: 0,
+            };
+
             let entry = CommandHistoryEntry {
                 id: row.id.to_string(),
                 command: row.command,
@@ -451,19 +465,10 @@ impl FTS5SearchEngine {
                     model_name: String::new(),
                     confidence_score: 0.0,
                 }),
-                safety_metadata: Some(SafetyMetadata {
-                    risk_level: row
-                        .risk_level
-                        .parse()
-                        .unwrap_or(crate::models::RiskLevel::Safe),
-                    patterns_matched: Vec::new(),
-                    user_confirmed: false,
-                    safety_score: 0.0,
-                    safety_level: SafetyLevel::Moderate,
-                    validation_time_ms: 0,
-                }),
+                safety_metadata: Some(safety_metadata),
                 tags: row
                     .tags
+                    .clone()
                     .map(|t| t.split(',').map(String::from).collect())
                     .unwrap_or_default(),
                 session_id: None,
@@ -473,13 +478,11 @@ impl FTS5SearchEngine {
                 relevance_score: None,
             };
 
-            let similarity_score = self.normalize_rank(row.rank);
-
             let result = SearchResult {
                 entry,
                 similarity_score,
-                matching_context: row.command_snippet.unwrap_or_default(),
-                explanation: self.generate_explanation(&row)?,
+                matching_context,
+                explanation,
             };
 
             results.push(result);
@@ -714,7 +717,8 @@ impl SearchMetrics {
         self.total_results += results;
 
         // Update average search time
-        let total_time = self.avg_search_time * self.total_searches as u32;
+        let previous_count = self.total_searches.saturating_sub(1) as u32;
+        let total_time = self.avg_search_time * previous_count;
         self.avg_search_time = (total_time + duration) / (self.total_searches as u32);
     }
 }
@@ -775,8 +779,8 @@ impl HybridSearchEngine {
     /// Perform semantic search
     async fn semantic_search(
         &self,
-        cache: &crate::semantic::cache::LocalEmbeddingCache,
-        query: &SearchQuery,
+        _cache: &crate::semantic::cache::LocalEmbeddingCache,
+        _query: &SearchQuery,
     ) -> Result<Vec<SearchResult>> {
         // This would integrate with the LocalEmbeddingCache
         // For now, return empty results
@@ -953,7 +957,7 @@ mod tests {
     async fn test_fts5_engine_initialization() {
         let temp_dir = TempDir::new().unwrap();
         let db_path = temp_dir.path().join("test.db");
-        let db_url = format!("sqlite:{}", db_path.display());
+        let db_url = format!("sqlite://{}?mode=rwc", db_path.display());
 
         // Create pool
         let pool = SqlitePool::connect(&db_url).await.unwrap();

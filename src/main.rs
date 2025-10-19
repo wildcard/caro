@@ -1,6 +1,7 @@
 use clap::Parser;
 use cmdai::cli::{CliApp, CliError, IntoCliArgs};
-use cmdai::config::{run_interactive_config, ConfigManager};
+use cmdai::config::{run_interactive_config, ConfigManager, ConfigurationState, UserConfiguration};
+use cmdai::testing::ManualTestRunner;
 use std::process;
 
 /// cmdai - Convert natural language to shell commands using local LLMs
@@ -55,6 +56,14 @@ struct Cli {
     /// Launch interactive configuration UI
     #[arg(long, help = "Launch interactive configuration interface")]
     configure: bool,
+
+    /// Launch interactive manual testing interface
+    #[arg(long, help = "Launch interactive manual testing system")]
+    test: bool,
+
+    /// Launch interactive mode with slash commands
+    #[arg(short, long, help = "Launch interactive mode with slash command support")]
+    interactive: bool,
 }
 
 impl IntoCliArgs for Cli {
@@ -131,8 +140,34 @@ async fn main() {
         }
     }
 
-    // Handle missing prompt
-    if cli.prompt.is_none() {
+    // Handle --test
+    if cli.test {
+        match run_interactive_testing().await {
+            Ok(()) => {
+                process::exit(0);
+            }
+            Err(e) => {
+                eprintln!("Error in testing: {}", e);
+                process::exit(1);
+            }
+        }
+    }
+
+    // Handle --interactive
+    if cli.interactive {
+        match run_interactive_mode().await {
+            Ok(()) => {
+                process::exit(0);
+            }
+            Err(e) => {
+                eprintln!("Error in interactive mode: {}", e);
+                process::exit(1);
+            }
+        }
+    }
+
+    // Handle missing prompt (but allow interactive mode)
+    if cli.prompt.is_none() && !cli.interactive {
         eprintln!("Error: No prompt provided");
         eprintln!();
         eprintln!("Usage: cmdai [OPTIONS] <PROMPT>");
@@ -142,9 +177,13 @@ async fn main() {
         eprintln!("  cmdai --shell zsh \"find large files\"");
         eprintln!("  cmdai --safety strict \"delete temporary files\"");
         eprintln!();
-        eprintln!("Configuration:");
+        eprintln!("Interactive modes:");
+        eprintln!("  cmdai --interactive        # Launch interactive mode with slash commands");
         eprintln!("  cmdai --configure          # Launch interactive configuration");
-        eprintln!("  cmdai --show-config         # Show current configuration");
+        eprintln!("  cmdai --test               # Launch interactive testing system");
+        eprintln!();
+        eprintln!("Configuration:");
+        eprintln!("  cmdai --show-config        # Show current configuration");
         eprintln!();
         eprintln!("Run 'cmdai --help' for more information.");
         process::exit(1);
@@ -327,6 +366,28 @@ async fn show_configuration(cli: &Cli) -> Result<String, CliError> {
     Ok(output)
 }
 
+fn user_config_to_state(user: &UserConfiguration) -> ConfigurationState {
+    let mut state = ConfigurationState::default();
+    state.default_shell = user.default_shell;
+    state.default_model = user.default_model.clone();
+    state.safety_level = user.safety_level;
+    state.log_level = user.log_level;
+    state.cache_max_size_gb = user.cache_max_size_gb;
+    state.log_rotation_days = user.log_rotation_days;
+    state
+}
+
+fn state_to_user_config(state: &ConfigurationState) -> UserConfiguration {
+    UserConfiguration {
+        default_shell: state.default_shell,
+        safety_level: state.safety_level,
+        default_model: state.default_model.clone(),
+        log_level: state.log_level,
+        cache_max_size_gb: state.cache_max_size_gb,
+        log_rotation_days: state.log_rotation_days,
+    }
+}
+
 async fn run_interactive_configuration(cli: &Cli) -> Result<(), CliError> {
     use colored::Colorize;
 
@@ -350,8 +411,10 @@ async fn run_interactive_configuration(cli: &Cli) -> Result<(), CliError> {
             message: format!("Failed to load configuration: {}", e),
         })?;
 
+    let state = user_config_to_state(&current_config);
+
     // Run interactive configuration
-    let result = run_interactive_config(current_config).map_err(|e| CliError::Internal {
+    let result = run_interactive_config(state).map_err(|e| CliError::Internal {
         message: format!("Interactive configuration failed: {}", e),
     })?;
 
@@ -362,8 +425,10 @@ async fn run_interactive_configuration(cli: &Cli) -> Result<(), CliError> {
 
     if result.changes_made {
         // Save the updated configuration
+        let updated_user_config = state_to_user_config(&result.config);
+
         config_manager
-            .save(&result.config)
+            .save(&updated_user_config)
             .map_err(|e| CliError::ConfigurationError {
                 message: format!("Failed to save configuration: {}", e),
             })?;
@@ -381,5 +446,24 @@ async fn run_interactive_configuration(cli: &Cli) -> Result<(), CliError> {
         println!("{}", "No changes made to configuration.".dimmed());
     }
 
+    Ok(())
+}
+
+/// Run interactive testing session
+async fn run_interactive_testing() -> Result<(), Box<dyn std::error::Error>> {
+    // Create and run the manual test runner
+    let mut test_runner = ManualTestRunner::new().await?;
+    test_runner.run_interactive_session().await?;
+    Ok(())
+}
+
+/// Run interactive mode with slash command support
+async fn run_interactive_mode() -> Result<(), CliError> {
+    // Create CLI application
+    let app = CliApp::new().await?;
+    
+    // Run interactive mode
+    app.run_interactive().await?;
+    
     Ok(())
 }

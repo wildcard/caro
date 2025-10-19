@@ -2,7 +2,7 @@
 //!
 //! Tests T001-T010: History models and database schema validation
 
-use chrono::{DateTime, Utc};
+use chrono::Utc;
 use cmdai::history::models::{
     CommandHistoryEntry, ExecutionMetadata, HistoryQueryFilter, SafetyMetadata,
 };
@@ -34,17 +34,20 @@ fn test_command_history_entry_creation() {
 fn test_command_history_entry_with_metadata() {
     let safety_metadata = SafetyMetadata {
         risk_level: RiskLevel::Moderate,
-        safety_level: SafetyLevel::Strict,
-        validation_time_ms: 15,
         patterns_matched: vec!["sudo".to_string()],
         user_confirmed: true,
+        safety_score: 0.6,
+        safety_level: SafetyLevel::Strict,
+        validation_time_ms: 15,
     };
 
     let execution_metadata = ExecutionMetadata {
         exit_code: Some(0),
-        duration: Duration::from_millis(1250),
+        execution_time: Some(Duration::from_millis(1250)),
+        output_size: None,
         backend_used: "embedded".to_string(),
-        generation_time_ms: 450,
+        generation_time: Duration::from_millis(450),
+        validation_time: Duration::from_millis(75),
         model_name: "Qwen2.5-Coder-3B".to_string(),
         confidence_score: 0.92,
     };
@@ -108,33 +111,40 @@ fn test_history_query_filter_creation() {
 
 #[test]
 fn test_safety_metadata_validation() {
+    #[allow(deprecated)]
     let metadata = SafetyMetadata {
         risk_level: RiskLevel::High,
-        safety_level: SafetyLevel::Permissive,
-        validation_time_ms: 25,
         patterns_matched: vec!["rm".to_string(), "recursive".to_string()],
         user_confirmed: false,
+        safety_score: 0.9,
+        safety_level: SafetyLevel::Permissive,
+        validation_time_ms: 25,
     };
 
     assert_eq!(metadata.risk_level, RiskLevel::High);
     assert_eq!(metadata.patterns_matched.len(), 2);
     assert!(!metadata.user_confirmed);
-    assert!(metadata.validation_time_ms > 0);
+    #[allow(deprecated)]
+    {
+        assert!(metadata.validation_time_ms > 0);
+    }
 }
 
 #[test]
 fn test_execution_metadata_validation() {
     let metadata = ExecutionMetadata {
         exit_code: Some(1),
-        duration: Duration::from_secs(2),
+        execution_time: Some(Duration::from_secs(2)),
+        output_size: Some(1024),
         backend_used: "mlx".to_string(),
-        generation_time_ms: 1800,
+        generation_time: Duration::from_millis(1800),
+        validation_time: Duration::from_millis(120),
         model_name: "Qwen2.5-Coder-7B".to_string(),
         confidence_score: 0.87,
     };
 
     assert_eq!(metadata.exit_code, Some(1));
-    assert_eq!(metadata.duration, Duration::from_secs(2));
+    assert_eq!(metadata.execution_time, Some(Duration::from_secs(2)));
     assert_eq!(metadata.backend_used, "mlx");
     assert!(metadata.confidence_score > 0.0 && metadata.confidence_score <= 1.0);
 }

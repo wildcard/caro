@@ -3,12 +3,10 @@
 //! Provides a full-screen terminal interface for managing cmdai configuration,
 //! inspired by Atuin's advanced search interface with modern UX patterns.
 
-use super::schema::{
-    BackendConfig, ConfigurationState, PrivacyLevel, RetentionPolicy, VerbosityLevel,
-};
-use crate::models::{BackendType, LogLevel, RiskLevel, SafetyLevel, ShellType};
+use super::schema::ConfigurationState;
+use crate::models::{LogLevel, SafetyLevel, ShellType};
 use colored::Colorize;
-use dialoguer::{theme::ColorfulTheme, Confirm, Editor, Input, MultiSelect, Select};
+use dialoguer::{theme::ColorfulTheme, Confirm, Editor, Select};
 use std::collections::HashMap;
 use std::fmt;
 use std::io::{self, Write};
@@ -54,7 +52,7 @@ pub enum ConfigSection {
 impl fmt::Display for ConfigSection {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::General => write!(f, "⚙️  General Settings"),
+            Self::General => write!(f, "🌟 General Settings"),
             Self::Backends => write!(f, "🚀 Backend Configuration"),
             Self::History => write!(f, "📚 Command History"),
             Self::Safety => write!(f, "🛡️  Safety & Validation"),
@@ -98,6 +96,10 @@ impl InteractiveConfigUI {
 
             match section {
                 ConfigSection::General => self.configure_general()?,
+                ConfigSection::Backends
+                | ConfigSection::History
+                | ConfigSection::UserInterface
+                | ConfigSection::Privacy => self.show_placeholder(section)?,
                 ConfigSection::Safety => self.configure_safety()?,
                 ConfigSection::Logging => self.configure_logging()?,
                 ConfigSection::Cache => self.configure_cache()?,
@@ -122,6 +124,19 @@ impl InteractiveConfigUI {
                 }
             }
         }
+    }
+
+    /// Show placeholder for sections that are not yet interactive
+    fn show_placeholder(&self, section: ConfigSection) -> Result<(), InteractiveConfigError> {
+        self.clear_screen();
+        self.show_section_header(&format!("{}", section));
+        println!(
+            "{}",
+            "This section is coming soon. Configuration is managed via the TOML file for now."
+                .dimmed()
+        );
+        self.press_any_key();
+        Ok(())
     }
 
     /// Show the main configuration menu
@@ -634,7 +649,7 @@ mod tests {
 
     #[test]
     fn test_interactive_ui_creation() {
-        let config = UserConfiguration::default();
+        let config = ConfigurationState::default();
         let ui = InteractiveConfigUI::new(config.clone());
         assert_eq!(ui.current_config, config);
         assert!(!ui.changes_made);
@@ -642,7 +657,7 @@ mod tests {
 
     #[test]
     fn test_config_result() {
-        let config = UserConfiguration::default();
+        let config = ConfigurationState::default();
         let result = ConfigResult {
             config: config.clone(),
             changes_made: true,

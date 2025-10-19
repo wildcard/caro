@@ -5,10 +5,10 @@
 
 use crate::models::{RiskLevel, SafetyAssessment};
 use anyhow::Result;
-use once_cell::sync::Lazy;
+use percent_encoding::percent_decode_str;
 use regex::Regex;
-use std::collections::{HashMap, HashSet};
-use tracing::{debug, warn};
+use std::collections::HashSet;
+use tracing::debug;
 
 /// Advanced dangerous pattern detector
 #[derive(Debug, Clone)]
@@ -91,14 +91,17 @@ impl DangerousPatternDetector {
         }
 
         // Build detection result
+        let suggestions = self.generate_suggestions(&detected_patterns);
+        let confidence = self.calculate_confidence(&detected_patterns);
+
         let result = DetectionResult {
             is_dangerous: !detected_patterns.is_empty(),
             risk_level: highest_risk,
             detected_patterns,
             command: command.to_string(),
             normalized_command: normalized,
-            suggestions: self.generate_suggestions(&detected_patterns),
-            confidence: self.calculate_confidence(&detected_patterns),
+            suggestions,
+            confidence,
         };
 
         self.metrics
@@ -197,9 +200,9 @@ impl DangerousPatternDetector {
             .to_string();
 
         // Decode URL encoding (%41 -> A)
-        decoded = urlencoding::decode(&decoded)
-            .unwrap_or(decoded.clone())
-            .to_string();
+        decoded = percent_decode_str(&decoded)
+            .decode_utf8_lossy()
+            .into_owned();
 
         decoded
     }
@@ -648,14 +651,21 @@ impl DetectionResult {
     /// Convert to safety assessment
     pub fn to_safety_assessment(&self) -> SafetyAssessment {
         SafetyAssessment {
-            is_safe: !self.is_dangerous,
             risk_level: self.risk_level,
-            warnings: self
+            requires_confirmation: self.risk_level >= RiskLevel::Medium,
+            detected_patterns: self
                 .detected_patterns
                 .iter()
                 .map(|p| format!("{}: {}", p.name, p.description))
                 .collect(),
-            requires_confirmation: self.risk_level >= RiskLevel::Medium,
+            safety_message: if self.is_dangerous {
+                Some(format!(
+                    "Detected {} potentially dangerous pattern(s)",
+                    self.detected_patterns.len()
+                ))
+            } else {
+                None
+            },
         }
     }
 }
@@ -736,7 +746,8 @@ impl DetectorMetrics {
         }
 
         // Update timing metrics
-        let total_time = self.avg_detection_time * self.total_detections as u32;
+        let previous_count = self.total_detections.saturating_sub(1) as u32;
+        let total_time = self.avg_detection_time * previous_count;
         self.avg_detection_time = (total_time + duration) / (self.total_detections as u32);
 
         if duration < self.min_detection_time {

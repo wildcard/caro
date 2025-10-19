@@ -563,6 +563,7 @@ dependencies = [
  "once_cell",
  "os_info",
  "parking_lot",
+ "percent-encoding",
  "pin-project-lite",
  "proptest",
  "r2d2",

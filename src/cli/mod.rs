@@ -7,6 +7,8 @@ use std::time::Instant;
 
 use crate::{
     backends::{BackendInfo, CommandGenerator, GeneratorError},
+    commands::{SlashCommandHandler, SlashCommandParser, CommandContext},
+    config::ConfigManager,
     models::{BackendType, CommandRequest, GeneratedCommand, RiskLevel, SafetyLevel, ShellType},
     safety::SafetyValidator,
 };
@@ -428,6 +430,196 @@ impl CliApp {
             },
             detected_context: prompt.clone(),
         })
+    }
+
+    /// Run CLI in interactive mode with slash command support
+    pub async fn run_interactive(&self) -> Result<(), CliError> {
+        use colored::Colorize;
+        use std::io::{self, Write};
+
+        println!("{}", "🚀 cmdai Interactive Mode".cyan().bold());
+        println!("{}", "Type /help for available slash commands, or enter natural language for command generation.".dimmed());
+        println!("{}", "Use /exit to quit.".dimmed());
+        println!();
+
+        // Create command context
+        let config_manager = ConfigManager::new().map_err(|e| CliError::ConfigurationError {
+            message: format!("Failed to create config manager: {}", e),
+        })?;
+
+        let context = CommandContext {
+            config_manager: Some(config_manager),
+            verbose: false,
+            cwd: std::env::current_dir()
+                .unwrap_or_default()
+                .to_string_lossy()
+                .to_string(),
+        };
+
+        let mut handler = SlashCommandHandler::new(context);
+        let parser = SlashCommandParser::new();
+
+        loop {
+            // Check if session should continue
+            if !handler.session_manager().should_continue() {
+                break;
+            }
+
+            // Display prompt
+            print!("{} ", "cmdai>".green().bold());
+            io::stdout().flush().unwrap_or(());
+
+            // Read user input
+            let mut input = String::new();
+            match io::stdin().read_line(&mut input) {
+                Ok(_) => {
+                    let input = input.trim();
+                    
+                    // Skip empty input
+                    if input.is_empty() {
+                        continue;
+                    }
+
+                    // Check if it's a slash command
+                    if SlashCommandParser::is_slash_command(input) {
+                        if let Some(parsed) = parser.parse(input) {
+                            // Validate arguments
+                            if let Err(error) = parser.validate_args(&parsed) {
+                                println!("{}: {}", "Error".red().bold(), error);
+                                continue;
+                            }
+
+                            // Execute slash command
+                            let response = handler.execute(&parsed).await;
+                            
+                            if !response.message.is_empty() {
+                                println!("{}", response.message);
+                            }
+
+                            // Handle mode changes
+                            if let Some(new_mode) = response.new_mode {
+                                handler.session_manager_mut().set_mode(new_mode);
+                            }
+
+                            // Check if we should exit
+                            if !response.continue_session {
+                                break;
+                            }
+                        } else {
+                            println!("{}: Failed to parse slash command", "Error".red().bold());
+                        }
+                    } else {
+                        // Regular natural language command generation
+                        match self.process_natural_language_input(input, &mut handler).await {
+                            Ok(()) => {
+                                // Command processed successfully
+                            }
+                            Err(e) => {
+                                println!("{}: {}", "Error".red().bold(), e);
+                                handler.session_manager_mut().record_error();
+                            }
+                        }
+                    }
+                }
+                Err(e) => {
+                    println!("{}: Failed to read input: {}", "Error".red().bold(), e);
+                    break;
+                }
+            }
+        }
+
+        println!("{}", "Goodbye!".yellow().bold());
+        Ok(())
+    }
+
+    /// Process natural language input for command generation
+    async fn process_natural_language_input(
+        &self,
+        input: &str,
+        handler: &mut SlashCommandHandler,
+    ) -> Result<(), CliError> {
+        use colored::Colorize;
+        use std::io::{self, Write};
+
+        // Record the user input
+        handler.session_manager_mut().record_command(input);
+
+        // Create command request
+        let request = CommandRequest {
+            input: input.to_string(),
+            context: None,
+            shell: self.config.default_shell,
+            safety_level: self.config.safety_level,
+            backend_preference: None,
+        };
+
+        // Generate command
+        println!("{}", "🤖 Generating command...".cyan());
+        let generated = self.backend.generate_command(&request).await.map_err(|e| {
+            CliError::GenerationFailed {
+                details: e.to_string(),
+            }
+        })?;
+
+        // Record the generated command
+        handler.session_manager_mut().record_generated_command(&generated.command);
+
+        // Validate command safety
+        let validation = self
+            .validator
+            .validate_command(&generated.command, self.config.default_shell)
+            .await
+            .map_err(|e| CliError::Internal {
+                message: format!("Safety validation failed: {}", e),
+            })?;
+
+        // Display results
+        println!();
+        println!("{}: {}", "Generated Command".green().bold(), generated.command.yellow());
+        println!("{}: {}", "Explanation".blue().bold(), generated.explanation);
+
+        // Show warnings if any
+        if !validation.warnings.is_empty() {
+            println!("{}: {}", "Warnings".yellow().bold(), validation.warnings.join(", "));
+        }
+
+        // Handle risk level
+        if validation.risk_level.is_blocked(self.config.safety_level) {
+            println!(
+                "{}: Command blocked due to {} risk",
+                "Safety Block".red().bold(),
+                validation.risk_level
+            );
+            return Ok(());
+        }
+
+        if validation.risk_level.requires_confirmation(self.config.safety_level) {
+            print!(
+                "{}: Command '{}' requires confirmation due to {} risk. Execute? (y/N): ",
+                "Confirmation Required".yellow().bold(),
+                generated.command.yellow(),
+                validation.risk_level
+            );
+            io::stdout().flush().unwrap_or(());
+
+            let mut confirmation = String::new();
+            io::stdin().read_line(&mut confirmation).unwrap_or(0);
+            
+            if !confirmation.trim().to_lowercase().starts_with('y') {
+                println!("{}", "Command execution cancelled.".yellow());
+                return Ok(());
+            }
+        }
+
+        // Show alternatives if available
+        if !generated.alternatives.is_empty() {
+            println!("{}: {}", "Alternatives".blue().bold(), generated.alternatives.join(", "));
+        }
+
+        println!("{}: Command ready for execution", "Ready".green().bold());
+        println!();
+
+        Ok(())
     }
 
     /// Show help information

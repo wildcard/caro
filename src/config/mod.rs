@@ -24,7 +24,7 @@ pub use interactive_new::{
     run_interactive_config as run_interactive_configuration, ConfigResult as ConfigurationResult,
 };
 // Keep the old one for backward compatibility temporarily
-pub use interactive::{ConfigResult, InteractiveConfigUI};
+pub use interactive::{run_interactive_config, ConfigResult, InteractiveConfigUI};
 
 // Re-export models types for convenience
 pub use crate::models::{UserConfiguration, UserConfigurationBuilder};

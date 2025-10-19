@@ -244,6 +244,8 @@ async fn test_configuration_integration() {
             SafetyLevel::Strict => SafetyConfig::strict(),
             SafetyLevel::Moderate => SafetyConfig::moderate(),
             SafetyLevel::Permissive => SafetyConfig::permissive(),
+            SafetyLevel::Minimal => SafetyConfig::permissive(),
+            SafetyLevel::Interactive => SafetyConfig::moderate(),
         };
 
         let validator = SafetyValidator::new(safety_config);

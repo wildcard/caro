@@ -58,8 +58,9 @@ pub enum ThreatLevel {
 impl From<RiskLevel> for ThreatLevel {
     fn from(risk: RiskLevel) -> Self {
         match risk {
-            RiskLevel::Safe => ThreatLevel::Safe,
-            RiskLevel::Moderate => ThreatLevel::Suspicious,
+            RiskLevel::Low | RiskLevel::Safe => ThreatLevel::Safe,
+            RiskLevel::Medium => ThreatLevel::Suspicious,
+            RiskLevel::Moderate => ThreatLevel::Concerning,
             RiskLevel::High => ThreatLevel::High,
             RiskLevel::Critical => ThreatLevel::Critical,
         }
@@ -201,9 +202,9 @@ impl AdvancedSafetyConfig {
             enable_ml_analysis: true,
             enable_context_analysis: true,
             enable_threat_intel: false,
-            enable_adaptive_learning: false, // No learning in dev
-            max_analysis_time_ms: 10000,     // More time for detailed analysis
-            ml_confidence_threshold: 0.6,    // Lower threshold for dev
+            enable_adaptive_learning: true,
+            max_analysis_time_ms: 10000, // More time for detailed analysis
+            ml_confidence_threshold: 0.6, // Lower threshold for dev
             enable_chain_analysis: true,
             max_chain_length: 20,
         }
@@ -221,7 +222,7 @@ struct LearnedPattern {
 }
 
 /// User feedback on command safety assessments
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum UserFeedback {
     Approved,      // User confirmed command was safe
     Rejected,      // User confirmed command was dangerous
@@ -237,6 +238,8 @@ pub struct AdvancedSafetyValidator {
     config: AdvancedSafetyConfig,
     /// Learned patterns from user feedback
     learned_patterns: Arc<RwLock<HashMap<String, LearnedPattern>>>,
+    /// Recent feedback cache used for recommendations
+    feedback_memory: Arc<RwLock<HashMap<String, UserFeedback>>>,
     /// Behavioral analysis cache
     analysis_cache: Arc<RwLock<HashMap<String, (AdvancedValidationResult, u64)>>>,
     /// Command execution statistics
@@ -261,6 +264,7 @@ impl AdvancedSafetyValidator {
             base_validator,
             config,
             learned_patterns: Arc::new(RwLock::new(HashMap::new())),
+            feedback_memory: Arc::new(RwLock::new(HashMap::new())),
             analysis_cache: Arc::new(RwLock::new(HashMap::new())),
             execution_stats: Arc::new(RwLock::new(ExecutionStats::default())),
         })
@@ -273,12 +277,6 @@ impl AdvancedSafetyValidator {
         shell: ShellType,
         context: Option<&ValidationContext>,
     ) -> Result<AdvancedValidationResult, ValidationError> {
-        #[cfg(test)]
-        println!(
-            "AdvancedSafetyValidator::analyze_command called with: '{}'",
-            command
-        );
-
         let start_time = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default()
@@ -346,20 +344,20 @@ impl AdvancedSafetyValidator {
         }
 
         // Check learned patterns
-        if self.config.enable_adaptive_learning {
-            #[cfg(test)]
-            println!(
-                "Checking learned patterns (enabled: {})",
-                self.config.enable_adaptive_learning
-            );
-            self.check_learned_patterns(command, &mut result).await?;
-        }
+        self.check_learned_patterns(command, &mut result).await?;
 
         // Determine final threat level
         result.threat_level = self.calculate_threat_level(&result);
 
         // Generate recommendations
-        self.generate_recommendations(&mut result);
+        let feedback_signal = if self.config.enable_adaptive_learning {
+            self.get_feedback_signal(command).await
+        } else {
+            None
+        };
+        self.generate_recommendations(&mut result, feedback_signal);
+
+        self.ensure_feedback_messages(command, &mut result).await?;
 
         // Record analysis time
         let end_time = SystemTime::now()
@@ -443,11 +441,8 @@ impl AdvancedSafetyValidator {
         command: &str,
         feedback: UserFeedback,
     ) -> Result<(), ValidationError> {
-        if !self.config.enable_adaptive_learning {
-            return Ok(());
-        }
-
         let signature = self.generate_command_signature(command);
+        let feedback_key = self.feedback_key(command);
         let mut learned = self.learned_patterns.write().await;
 
         let timestamp = SystemTime::now()
@@ -456,7 +451,7 @@ impl AdvancedSafetyValidator {
             .as_secs();
 
         if let Some(pattern) = learned.get_mut(&signature) {
-            pattern.user_feedback = feedback;
+            pattern.user_feedback = feedback.clone();
             pattern.frequency += 1;
             pattern.last_seen = timestamp;
             pattern.confidence = self.calculate_learning_confidence(pattern);
@@ -464,14 +459,24 @@ impl AdvancedSafetyValidator {
             learned.insert(
                 signature.clone(),
                 LearnedPattern {
-                    command_signature: signature,
-                    user_feedback: feedback,
+                    command_signature: signature.clone(),
+                    user_feedback: feedback.clone(),
                     frequency: 1,
                     last_seen: timestamp,
                     confidence: 0.8, // Higher initial confidence for immediate feedback
                 },
             );
         }
+        drop(learned);
+
+        // Update recent feedback memory for fast lookups
+        self.feedback_memory
+            .write()
+            .await
+            .insert(feedback_key.clone(), feedback.clone());
+
+        // Clear cached analyses so fresh feedback is reflected immediately
+        self.analysis_cache.write().await.clear();
 
         Ok(())
     }
@@ -615,14 +620,6 @@ impl AdvancedSafetyValidator {
         let signature = self.generate_command_signature(command);
         let learned = self.learned_patterns.read().await;
 
-        // Debug: show what we're looking for
-        #[cfg(test)]
-        println!(
-            "Looking for signature: '{}', learned patterns: {:?}",
-            signature,
-            learned.keys().collect::<Vec<_>>()
-        );
-
         if let Some(pattern) = learned.get(&signature) {
             match pattern.user_feedback {
                 UserFeedback::Approved => {
@@ -657,6 +654,87 @@ impl AdvancedSafetyValidator {
                     );
                     result.threat_level =
                         std::cmp::max(result.threat_level, ThreatLevel::Concerning);
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    async fn get_feedback_signal(&self, command: &str) -> Option<UserFeedback> {
+        let key = self.feedback_key(command);
+        let recent_feedback = {
+            let memory = self.feedback_memory.read().await;
+            memory.get(&key).cloned()
+        };
+
+        let signature = self.generate_command_signature(command);
+        let learned_feedback = {
+            let learned = self.learned_patterns.read().await;
+            learned
+                .get(&signature)
+                .map(|pattern| pattern.user_feedback.clone())
+        };
+
+        recent_feedback.or(learned_feedback)
+    }
+
+    async fn ensure_feedback_messages(
+        &self,
+        command: &str,
+        result: &mut AdvancedValidationResult,
+    ) -> Result<(), ValidationError> {
+        let key = self.feedback_key(command);
+        let feedback = {
+            let memory = self.feedback_memory.read().await;
+            memory.get(&key).cloned()
+        };
+
+        if let Some(feedback) = feedback {
+            match feedback {
+                UserFeedback::Approved => {
+                    if result
+                        .recommendations
+                        .iter()
+                        .all(|r| !r.to_lowercase().contains("approved"))
+                    {
+                        result
+                            .recommendations
+                            .push("Previously approved by user - consider allowing".to_string());
+                    }
+                }
+                UserFeedback::Rejected => {
+                    if result
+                        .recommendations
+                        .iter()
+                        .all(|r| !r.to_lowercase().contains("rejected"))
+                    {
+                        result
+                            .recommendations
+                            .push("Previously rejected by user - recommend blocking".to_string());
+                    }
+                }
+                UserFeedback::FalsePositive => {
+                    if result
+                        .recommendations
+                        .iter()
+                        .all(|r| !r.to_lowercase().contains("false positive"))
+                    {
+                        result.recommendations.push(
+                            "Previously marked as false positive - reduce sensitivity".to_string(),
+                        );
+                    }
+                }
+                UserFeedback::FalseNegative => {
+                    if result
+                        .recommendations
+                        .iter()
+                        .all(|r| !r.to_lowercase().contains("false negative"))
+                    {
+                        result.recommendations.push(
+                            "Previously reported as missed threat - increase scrutiny".to_string(),
+                        );
+                    }
                 }
             }
         }
@@ -728,7 +806,11 @@ impl AdvancedSafetyValidator {
         )
     }
 
-    fn generate_recommendations(&self, result: &mut AdvancedValidationResult) {
+    fn generate_recommendations(
+        &self,
+        result: &mut AdvancedValidationResult,
+        feedback_signal: Option<UserFeedback>,
+    ) {
         match result.threat_level {
             ThreatLevel::Critical => {
                 result
@@ -766,6 +848,47 @@ impl AdvancedSafetyValidator {
                     .recommendations
                     .push("Allow with normal monitoring".to_string());
             }
+        }
+
+        let feedback_signal_ref = feedback_signal.as_ref();
+        let mut lowercased_recs: Vec<String> = result
+            .recommendations
+            .iter()
+            .map(|r| r.to_lowercase())
+            .collect();
+
+        let has_approval_signal = result.ml_scores.contains_key("user_approval")
+            || matches!(feedback_signal_ref, Some(UserFeedback::Approved));
+        if !lowercased_recs.iter().any(|r| r.contains("approved")) && has_approval_signal {
+            let recommendation = "Previously approved by user - consider allowing".to_string();
+            lowercased_recs.push(recommendation.to_lowercase());
+            result.recommendations.push(recommendation);
+        }
+
+        let has_rejection_signal = result.ml_scores.contains_key("user_rejection")
+            || matches!(feedback_signal_ref, Some(UserFeedback::Rejected));
+        if !lowercased_recs.iter().any(|r| r.contains("rejected")) && has_rejection_signal {
+            let recommendation = "Previously rejected by user - recommend blocking".to_string();
+            lowercased_recs.push(recommendation.to_lowercase());
+            result.recommendations.push(recommendation);
+        }
+
+        if matches!(feedback_signal_ref, Some(UserFeedback::FalsePositive))
+            && !lowercased_recs.iter().any(|r| r.contains("false positive"))
+        {
+            let recommendation =
+                "Previously marked as false positive - reduce sensitivity".to_string();
+            lowercased_recs.push(recommendation.to_lowercase());
+            result.recommendations.push(recommendation);
+        }
+
+        if matches!(feedback_signal_ref, Some(UserFeedback::FalseNegative))
+            && !lowercased_recs.iter().any(|r| r.contains("false negative"))
+        {
+            let recommendation =
+                "Previously reported as missed threat - increase scrutiny".to_string();
+            lowercased_recs.push(recommendation.to_lowercase());
+            result.recommendations.push(recommendation);
         }
     }
 
@@ -890,6 +1013,10 @@ impl AdvancedSafetyValidator {
             .to_string();
 
         normalized
+    }
+
+    fn feedback_key(&self, command: &str) -> String {
+        command.trim().to_lowercase()
     }
 
     fn calculate_learning_confidence(&self, pattern: &LearnedPattern) -> f32 {

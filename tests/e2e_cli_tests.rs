@@ -19,10 +19,20 @@ struct CliTestRunner {
 impl CliTestRunner {
     /// Create a new CLI test runner with temporary directory
     fn new() -> Self {
-        let binary_path = if Path::new("target/debug/cmdai").exists() {
-            "target/debug/cmdai".to_string()
+        let binary = Path::new("target/debug/cmdai");
+        if !binary.exists() {
+            // Build the binary once to ensure consistent output across runs
+            let status = Command::new("cargo")
+                .args(["build", "--bin", "cmdai"])
+                .status()
+                .expect("Failed to build cmdai binary for tests");
+            assert!(status.success(), "Building cmdai binary failed");
+        }
+
+        let binary_path = if binary.exists() {
+            binary.to_string_lossy().into_owned()
         } else {
-            // Fallback to cargo run for cases where binary isn't built
+            // Fallback to cargo run for cases where build still fails
             "cargo".to_string()
         };
 

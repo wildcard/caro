@@ -208,7 +208,7 @@ mod tests {
     #[tokio::test]
     async fn test_semantic_init_creates_directories() {
         let temp_dir = tempdir().unwrap();
-        let cache_dir = temp_dir.path().join("cache");
+        let _cache_dir = temp_dir.path().join("cache");
 
         // This would be tested with a custom config pointing to temp_dir
         let result = SemanticInit::initialize();

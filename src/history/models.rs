@@ -514,7 +514,9 @@ impl SafetyMetadata {
     /// Get risk description based on score and level
     pub fn get_risk_description(&self) -> String {
         match self.risk_level {
+            RiskLevel::Low => format!("Low risk (score: {:.2})", self.safety_score),
             RiskLevel::Safe => format!("Safe command (score: {:.2})", self.safety_score),
+            RiskLevel::Medium => format!("Medium risk (score: {:.2})", self.safety_score),
             RiskLevel::Moderate => format!("Moderate risk (score: {:.2})", self.safety_score),
             RiskLevel::High => format!("High risk command (score: {:.2})", self.safety_score),
             RiskLevel::Critical => format!(
@@ -535,9 +537,11 @@ impl SafetyMetadata {
 
         // Validate consistency between risk level and safety score
         let expected_range = match self.risk_level {
+            RiskLevel::Low => (0.0, 0.2),
             RiskLevel::Safe => (0.0, 0.3),
-            RiskLevel::Moderate => (0.3, 0.6),
-            RiskLevel::High => (0.6, 0.85),
+            RiskLevel::Medium => (0.3, 0.5),
+            RiskLevel::Moderate => (0.5, 0.7),
+            RiskLevel::High => (0.7, 0.85),
             RiskLevel::Critical => (0.85, 1.0),
         };
 
@@ -712,7 +716,7 @@ mod tests {
     #[test]
     fn test_safety_metadata_validation() {
         // Valid metadata
-        let valid_metadata = SafetyMetadata::new(RiskLevel::Moderate, 0.45, SafetyLevel::Moderate);
+        let valid_metadata = SafetyMetadata::new(RiskLevel::Moderate, 0.6, SafetyLevel::Moderate);
         assert!(valid_metadata.validate().is_ok());
 
         // Invalid safety score

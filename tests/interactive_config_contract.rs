@@ -1,12 +1,12 @@
 //! Integration tests for interactive configuration UI
 
-use cmdai::config::{run_interactive_config, ConfigManager};
+use cmdai::config::{run_interactive_config, ConfigManager, ConfigurationState};
 use cmdai::models::{LogLevel, SafetyLevel, UserConfiguration};
 use tempfile::TempDir;
 
 #[test]
 fn test_interactive_config_creation() {
-    let config = UserConfiguration::default();
+    let config = ConfigurationState::default();
     let result = run_interactive_config(config);
 
     // Should be able to create the interactive config, even if it fails in headless mode

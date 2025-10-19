@@ -8,13 +8,13 @@ use crate::config::{
 };
 use crate::models::{BackendType, RiskLevel, SafetyLevel};
 use crate::models::{LogLevel, ShellType, UserConfiguration};
-use anyhow::{Context, Result};
+use anyhow::Result;
 use std::collections::{HashMap, HashSet};
-use std::path::{Path, PathBuf};
-use tracing::{debug, warn};
+use std::path::Path;
+use tracing::debug;
 
 /// Configuration validation rules engine
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct ValidationRules {
     /// Strict mode for production environments
     pub strict_mode: bool,
@@ -73,20 +73,13 @@ impl ValidationRules {
         // Validate cache settings
         self.validate_cache_settings(config.cache_max_size_gb, &mut report)?;
 
+        // Validate log rotation period
+        self.validate_log_rotation(config.log_rotation_days, &mut report)?;
+
         // Validate model settings
         if let Some(model) = &config.default_model {
             self.validate_model_name(model, &mut report)?;
         }
-
-        // Validate color settings
-        self.validate_color_settings(config.enable_colors, &mut report)?;
-
-        // Validate history settings
-        self.validate_history_settings(
-            config.enable_history,
-            config.history_max_entries,
-            &mut report,
-        )?;
 
         // Check for deprecations
         if !self.allow_deprecated {
@@ -199,6 +192,7 @@ impl ValidationRules {
             ShellType::Sh => "sh",
             ShellType::PowerShell => "powershell",
             ShellType::Cmd => "cmd",
+            ShellType::Unknown => return Ok(()),
         };
 
         if !self.is_shell_available(shell_cmd) {
@@ -218,21 +212,21 @@ impl ValidationRules {
     }
 
     /// Validate cache settings
-    fn validate_cache_settings(&self, size_gb: f64, report: &mut ValidationReport) -> Result<()> {
-        if size_gb < 0.1 {
-            report.add_error("Cache size too small (minimum 0.1 GB)");
-        } else if size_gb > 100.0 {
-            report.add_warning("Cache size very large (>100 GB)");
+    fn validate_cache_settings(&self, size_gb: u64, report: &mut ValidationReport) -> Result<()> {
+        if size_gb == 0 {
+            report.add_error("Cache size must be at least 1 GB");
+        } else if size_gb > 1000 {
+            report.add_warning("Cache size very large (>1000 GB)");
         }
 
         // Check available disk space
         if let Ok(available) = self.get_available_disk_space() {
-            let required = (size_gb * 1024.0 * 1024.0 * 1024.0) as u64;
+            let required = size_gb.saturating_mul(1024_u64.pow(3));
             if required > available {
                 report.add_error(format!(
                     "Insufficient disk space for cache (required: {} GB, available: {} GB)",
                     size_gb,
-                    available / (1024 * 1024 * 1024)
+                    available / 1024_u64.pow(3)
                 ));
             }
         }
@@ -267,27 +261,12 @@ impl ValidationRules {
         Ok(())
     }
 
-    /// Validate color settings
-    fn validate_color_settings(&self, enabled: bool, report: &mut ValidationReport) -> Result<()> {
-        if enabled && std::env::var("NO_COLOR").is_ok() {
-            report.add_warning("Colors enabled but NO_COLOR environment variable is set");
-        }
-        Ok(())
-    }
-
-    /// Validate history settings
-    fn validate_history_settings(
-        &self,
-        enabled: bool,
-        max_entries: usize,
-        report: &mut ValidationReport,
-    ) -> Result<()> {
-        if enabled {
-            if max_entries < 10 {
-                report.add_warning("History max entries very low (<10)");
-            } else if max_entries > 1000000 {
-                report.add_warning("History max entries very high (>1M)");
-            }
+    /// Validate log rotation period
+    fn validate_log_rotation(&self, days: u32, report: &mut ValidationReport) -> Result<()> {
+        if !(1..=365).contains(&days) {
+            report.add_error("Log rotation days must be between 1 and 365");
+        } else if days > 60 {
+            report.add_warning("Long log retention may grow log files significantly");
         }
         Ok(())
     }
@@ -296,7 +275,7 @@ impl ValidationRules {
     fn check_deprecated_settings(
         &self,
         _config: &UserConfiguration,
-        report: &mut ValidationReport,
+        _report: &mut ValidationReport,
     ) -> Result<()> {
         // Check for deprecated patterns
         // This would be extended as settings are deprecated
@@ -342,9 +321,10 @@ impl ValidationRules {
         }
 
         // Validate timeout
-        if config.timeout_ms < 100 {
+        let timeout_ms = u64::from(config.timeout_seconds) * 1000;
+        if timeout_ms < 100 {
             report.add_error(format!("Timeout too short for {} (min 100ms)", name));
-        } else if config.timeout_ms > 300000 {
+        } else if timeout_ms > 300_000 {
             report.add_warning(format!("Timeout very long for {} (>5 minutes)", name));
         }
 
@@ -353,10 +333,16 @@ impl ValidationRules {
             report.add_warning(format!("High retry count for {} (>10)", name));
         }
 
-        // Validate model path
-        if let Some(model_path) = &config.model_path {
-            if !Path::new(model_path).exists() {
-                report.add_error(format!("Model path not found for {}: {}", name, model_path));
+        // Validate model entry
+        if let Some(model_name) = &config.model_name {
+            if model_name.trim().is_empty() {
+                report.add_error(format!("Model name for {} cannot be empty", name));
+            } else if model_name.starts_with('/') || model_name.starts_with("./") {
+                let path = Path::new(model_name);
+                if !path.exists() {
+                    report
+                        .add_warning(format!("Model path not found for {}: {}", name, model_name));
+                }
             }
         }
 
@@ -395,20 +381,24 @@ impl ValidationRules {
         policy: &RetentionPolicy,
         report: &mut ValidationReport,
     ) -> Result<()> {
-        if policy.max_entries < 10 {
-            report.add_warning("Very low max entries in retention policy (<10)");
+        if let Some(max_entries) = policy.max_entries {
+            if max_entries < 10 {
+                report.add_warning("Very low max entries in retention policy (<10)");
+            } else if max_entries > 1_000_000 {
+                report.add_warning("Very high max entries in retention policy (>1M)");
+            }
+        } else {
+            report.add_info("Retention policy uses unlimited entries");
         }
 
-        if policy.max_age_days < 1 {
-            report.add_error("Invalid max age days (must be >= 1)");
-        } else if policy.max_age_days > 3650 {
-            report.add_warning("Very long retention period (>10 years)");
-        }
-
-        if policy.max_size_mb < 1 {
-            report.add_error("Invalid max size (must be >= 1 MB)");
-        } else if policy.max_size_mb > 10000 {
-            report.add_warning("Very large retention size (>10 GB)");
+        if let Some(max_age_days) = policy.max_age_days {
+            if max_age_days < 1 {
+                report.add_error("Invalid max age days (must be >= 1)");
+            } else if max_age_days > 3650 {
+                report.add_warning("Very long retention period (>10 years)");
+            }
+        } else {
+            report.add_info("Retention policy keeps history indefinitely");
         }
 
         Ok(())
@@ -506,7 +496,8 @@ impl ValidationRules {
 
         // Check inference time constraints
         for (name, config) in &state.backend_configs {
-            if config.timeout_ms < self.performance_constraints.min_inference_timeout_ms {
+            let timeout_ms = u64::from(config.timeout_seconds) * 1000;
+            if timeout_ms < self.performance_constraints.min_inference_timeout_ms {
                 report.add_warning(format!(
                     "Backend {} timeout below recommended minimum ({} ms)",
                     name, self.performance_constraints.min_inference_timeout_ms
@@ -750,7 +741,6 @@ pub trait ValidationRule: Send + Sync + std::fmt::Debug {
 }
 
 /// Configuration migration for updating old configs
-#[derive(Debug)]
 pub struct ConfigMigration {
     /// Source version
     pub from_version: String,
@@ -771,6 +761,16 @@ impl ConfigMigration {
         );
         (self.migrate)(config)?;
         Ok(())
+    }
+}
+
+impl std::fmt::Debug for ConfigMigration {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ConfigMigration")
+            .field("from_version", &self.from_version)
+            .field("to_version", &self.to_version)
+            .field("has_migrate", &true)
+            .finish()
     }
 }
 
@@ -854,19 +854,19 @@ mod tests {
         let mut report = ValidationReport::new();
 
         // Test invalid cache size
-        rules.validate_cache_settings(0.05, &mut report).unwrap();
+        rules.validate_cache_settings(0, &mut report).unwrap();
         assert!(!report.errors.is_empty());
-        assert!(report.errors[0].contains("too small"));
+        assert!(report.errors[0].contains("at least 1 GB"));
 
         // Test warning for large cache
         let mut report = ValidationReport::new();
-        rules.validate_cache_settings(150.0, &mut report).unwrap();
+        rules.validate_cache_settings(1_500, &mut report).unwrap();
         assert!(!report.warnings.is_empty());
         assert!(report.warnings[0].contains("very large"));
 
         // Test valid cache size
         let mut report = ValidationReport::new();
-        rules.validate_cache_settings(1.0, &mut report).unwrap();
+        rules.validate_cache_settings(10, &mut report).unwrap();
         assert!(report.errors.is_empty());
         assert!(report.warnings.is_empty());
     }

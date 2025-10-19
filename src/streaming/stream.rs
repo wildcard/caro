@@ -472,7 +472,7 @@ impl Stream for GenerationStream {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::{SafetyLevel, ShellType};
+    use crate::models::ShellType;
     use futures::StreamExt;
 
     #[tokio::test]

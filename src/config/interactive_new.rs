@@ -3,15 +3,11 @@
 //! Provides a comprehensive terminal interface for managing cmdai configuration
 //! with support for all backend settings, history management, and safety options.
 
-use super::schema::{
-    BackendConfig, ConfigurationState, PrivacyLevel, RetentionPolicy, ValidationRules,
-    VerbosityLevel,
-};
+use super::schema::{ConfigurationState, PrivacyLevel, VerbosityLevel};
 use crate::models::{BackendType, RiskLevel, SafetyLevel};
 use anyhow::{Context, Result};
 use colored::Colorize;
 use dialoguer::{theme::ColorfulTheme, Confirm, Input, MultiSelect, Select};
-use std::collections::HashMap;
 use std::fmt;
 use std::io::{self, Write};
 
@@ -391,7 +387,7 @@ impl InteractiveConfigUI {
             .unwrap_or(1);
 
         println!("{}", "Safety Level".bold());
-        for (i, (name, level, desc)) in safety_levels.iter().enumerate() {
+        for (i, (name, _level, desc)) in safety_levels.iter().enumerate() {
             let marker = if i == current_idx {
                 "●".green()
             } else {
@@ -774,6 +770,7 @@ pub async fn run_interactive_config(current_config: ConfigurationState) -> Resul
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::schema::BackendConfig;
 
     #[test]
     fn test_config_section_display() {

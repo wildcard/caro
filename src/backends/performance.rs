@@ -3,7 +3,6 @@
 //! Provides comprehensive performance tracking for backend selection,
 //! load balancing, and health monitoring according to the production specification.
 
-use crate::models::BackendType;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, VecDeque};
@@ -331,7 +330,7 @@ impl Default for PerformanceMonitor {
 
 impl BackendMetrics {
     /// Create new metrics for a backend
-    pub fn new(backend_name: &str) -> Self {
+    pub fn new(_backend_name: &str) -> Self {
         Self {
             avg_response_time: Duration::from_millis(1000), // Default 1s
             success_rate: 1.0,
@@ -530,7 +529,6 @@ impl<T> RingBuffer<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::thread;
 
     #[test]
     fn test_performance_monitor_creation() {
@@ -599,7 +597,7 @@ mod tests {
                 backend: format!("backend_{}", i % 2),
                 success: i % 4 != 3, // 3/4 success rate
                 response_time: Duration::from_millis(100 + i * 50),
-                tokens_generated: 20 + i * 5,
+                tokens_generated: (20 + i * 5) as usize,
                 error_type: if i % 4 == 3 {
                     Some("test_error".to_string())
                 } else {
