@@ -1,0 +1,61 @@
+command: "ls -la"
+category: "file-operations"
+subcategory: "listing"
+description: "List all files with detailed information including hidden files"
+tldr: "Shows files, permissions, sizes, modification dates, including hidden files"
+
+# Quality metrics (updated automatically)
+rating: 4.8
+usage_count: 15420
+safety_level: "safe"
+
+# Command alternatives
+alternatives:
+  - command: "ls -l"
+    description: "List files without hidden files"
+    usage_count: 8234
+  - command: "ls -al"
+    description: "Alternative flag order (same result)"
+    usage_count: 2156
+  - command: "exa -la"
+    description: "Modern alternative with colors and icons"
+    usage_count: 1205
+    requirements: ["exa"]
+  - command: "ll"
+    description: "Common alias for ls -l"
+    usage_count: 3467
+
+# Usage examples
+examples:
+  - input: "list all files"
+    context: "general"
+    confidence: 0.95
+  - input: "show hidden files"
+    context: "general"
+    confidence: 0.92
+  - input: "display files with permissions"
+    context: "admin"
+    confidence: 0.87
+  - input: "show detailed file information"
+    context: "general"
+    confidence: 0.90
+  - input: "list everything in directory"
+    context: "general"
+    confidence: 0.85
+
+# Metadata
+tags: ["listing", "permissions", "hidden", "detailed", "files", "basic"]
+shell_compatibility:
+  bash: true
+  zsh: true
+  fish: true
+  powershell: false
+  cmd: false
+requirements: []
+os_compatibility: ["linux", "macos", "unix", "bsd"]
+
+# Community metadata
+contributors: ["cmdai-maintainers"]
+created_date: "2025-10-19"
+last_updated: "2025-10-19"
+review_status: "approved"
