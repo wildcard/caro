@@ -155,14 +155,8 @@ impl CliApp {
     async fn create_backend(
         _user_config: &crate::models::UserConfiguration,
     ) -> Result<Box<dyn CommandGenerator>, CliError> {
-        // For unit tests only, use mock backend to avoid model downloads
-        #[cfg(test)]
-        {
-            return Ok(Box::new(MockCommandGenerator::new()));
-        }
-
-        // For production, use smart backend selector with intelligent fallback
-        #[cfg(not(test))]
+        // Use smart backend selector with intelligent fallback for all builds
+        // Tests will now exercise the real backend selection logic
         {
             use crate::backends::embedded::EmbeddedModelBackend;
             use crate::backends::selector::{BackendSelectorConfig, SmartBackend};
@@ -177,7 +171,7 @@ impl CliApp {
                 selector_config,
             ));
 
-            // Add embedded backend as primary (always available)
+            // Add embedded backend as primary (always available) 
             let embedded_backend =
                 EmbeddedModelBackend::new().map_err(|e| CliError::ConfigurationError {
                     message: format!("Failed to create embedded backend: {}", e),
@@ -192,6 +186,23 @@ impl CliApp {
                 .await
                 .map_err(|e| CliError::ConfigurationError {
                     message: format!("Failed to add embedded backend: {}", e),
+                })?;
+
+            // Add decision tree backend as ultimate fallback (when no models work)
+            use crate::backends::decision_tree::DecisionTreeBackend;
+            let decision_tree = DecisionTreeBackend::new().map_err(|e| CliError::ConfigurationError {
+                message: format!("Failed to create decision tree backend: {}", e),
+            })?;
+
+            smart_backend
+                .add_backend(
+                    Arc::new(decision_tree),
+                    "decision-tree-fallback".to_string(),
+                    100, // Lowest priority - only used when all model backends fail
+                )
+                .await
+                .map_err(|e| CliError::ConfigurationError {
+                    message: format!("Failed to add decision tree backend: {}", e),
                 })?;
 
             // Add MLX backend if on Apple Silicon
@@ -692,83 +703,8 @@ pub enum CliError {
     Internal { message: String },
 }
 
-/// Mock command generator for testing
-///
-/// SECURITY: This mock is restricted to debug builds via #[cfg(any(test, debug_assertions))].
-/// It can generate dangerous commands for testing the safety validator,
-/// which would be a security risk if used in production.
-/// Production (release) builds will not include this code.
-#[cfg(any(test, debug_assertions))]
-struct MockCommandGenerator;
-
-#[cfg(any(test, debug_assertions))]
-impl MockCommandGenerator {
-    fn new() -> Self {
-        Self
-    }
-}
-
-#[cfg(any(test, debug_assertions))]
-#[async_trait]
-impl CommandGenerator for MockCommandGenerator {
-    async fn generate_command(
-        &self,
-        request: &CommandRequest,
-    ) -> Result<GeneratedCommand, GeneratorError> {
-        use std::time::Duration;
-
-        // Simulate generation time
-        tokio::time::sleep(Duration::from_millis(50)).await;
-
-        // Analyze the input to determine appropriate command
-        let command = if request.input.contains("list") && request.input.contains("files") {
-            match request.shell {
-                ShellType::PowerShell => "Get-ChildItem".to_string(),
-                ShellType::Cmd => "dir".to_string(),
-                _ => "ls -la".to_string(),
-            }
-        } else if request.input.contains("directory") || request.input.contains("pwd") {
-            "pwd".to_string()
-        } else if request.input.contains("delete") && request.input.contains("system") {
-            // Very dangerous command for testing
-            "rm -rf /".to_string()
-        } else if request.input.contains("delete") || request.input.contains("remove") {
-            "rm -rf /tmp/*".to_string() // Potentially dangerous
-        } else {
-            format!("echo '{}'", request.input)
-        };
-
-        Ok(GeneratedCommand {
-            command,
-            explanation: format!("Command for: {}", request.input),
-            safety_level: RiskLevel::Safe,
-            estimated_impact: Default::default(),
-            alternatives: vec!["Alternative command".to_string()],
-            backend_used: "mock".to_string(),
-            generation_time_ms: 50,
-            confidence_score: 0.95,
-        })
-    }
-
-    async fn is_available(&self) -> bool {
-        true
-    }
-
-    fn backend_info(&self) -> BackendInfo {
-        BackendInfo {
-            backend_type: BackendType::Ollama,
-            model_name: "mock-model".to_string(),
-            supports_streaming: false,
-            max_tokens: 1000,
-            typical_latency_ms: 50,
-            memory_usage_mb: 100,
-            version: "1.0.0".to_string(),
-        }
-    }
-
-    async fn shutdown(&self) -> Result<(), GeneratorError> {
-        Ok(())
-    }
-}
+// MockCommandGenerator has been replaced by DecisionTreeBackend
+// The complex if/else logic has been moved to src/backends/decision_tree.rs
+// with an algorithmic approach as documented in prds/decision-tree-algorithm.md
 
 // Types are already public, no re-export needed

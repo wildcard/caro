@@ -1,0 +1,20 @@
+[package]
+name = "eval-assertions"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "Assertion DSL and validators for cmdai evaluation framework"
+
+[dependencies]
+eval-core = { path = "../eval-core" }
+eval-sandbox = { path = "../eval-sandbox" }
+anyhow.workspace = true
+thiserror.workspace = true
+regex.workspace = true
+serde.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tokio-test = "0.4"

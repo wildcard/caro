@@ -1,0 +1,28 @@
+[package]
+name = "eval-sandbox"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "Sandbox backends for safe command execution in cmdai evaluation framework"
+
+[dependencies]
+# Workspace dependencies
+eval-core = { path = "../eval-core" }
+anyhow.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+async-trait.workspace = true
+tracing.workspace = true
+tempfile.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+regex.workspace = true
+
+# Additional dependencies for sandbox
+nix = { version = "0.27", features = ["process", "signal"] }
+libc = "0.2"
+
+[dev-dependencies]
+tokio-test = "0.4"

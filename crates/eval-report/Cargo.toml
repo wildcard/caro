@@ -1,0 +1,22 @@
+[package]
+name = "eval-report"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "Report generation (JUnit, JSON, HTML) for cmdai evaluation framework"
+
+[dependencies]
+eval-core = { path = "../eval-core" }
+anyhow.workspace = true
+thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+
+# For JUnit XML generation
+quick-xml = { version = "0.31", features = ["serialize"] }
+
+[dev-dependencies]
+tempfile.workspace = true

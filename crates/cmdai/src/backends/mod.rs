@@ -1,6 +1,7 @@
 // Backends module - LLM backend trait and implementations
 // These are placeholder stubs - tests should fail until proper implementation
 
+pub mod decision_tree;
 pub mod embedded;
 pub mod performance;
 #[cfg(feature = "remote-backends")]

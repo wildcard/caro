@@ -1,0 +1,23 @@
+[package]
+name = "eval-runner"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "Test execution engine for cmdai evaluation framework"
+
+[dependencies]
+eval-core = { path = "../eval-core" }
+eval-sandbox = { path = "../eval-sandbox" }
+eval-assertions = { path = "../eval-assertions" }
+anyhow.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+async-trait.workspace = true
+tracing.workspace = true
+serde.workspace = true
+
+[dev-dependencies]
+tokio-test = "0.4"
+tempfile.workspace = true

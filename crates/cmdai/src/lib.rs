@@ -13,6 +13,7 @@
 //! - [`config`] - Configuration management with TOML support
 //! - [`execution`] - Execution context capture and shell detection
 //! - [`logging`] - Structured logging with sensitive data redaction
+//! - [`evaluation`] - Command accuracy evaluation framework and testing
 //!
 //! # Example
 //!
@@ -28,6 +29,7 @@ pub mod cache;
 pub mod cli;
 pub mod commands;
 pub mod config;
+pub mod evaluation;
 pub mod execution;
 pub mod history;
 pub mod logging;
@@ -52,6 +54,13 @@ pub use config::{ConfigError, ConfigManager};
 pub use execution::{ExecutionError, PlatformDetector, ShellDetector};
 pub use logging::{LogConfig, LogConfigBuilder, LogError, LogFormat, LogOutput, Logger, Redaction};
 pub use model_loader::{ModelInfo, ModelLoader};
+
+// Re-export evaluation framework types
+pub use evaluation::{
+    AccuracyScore, DatasetStats, DifficultyLevel, EvaluationEngine, EvaluationResult, 
+    EvaluationRunner, PerformanceMetrics, SafetyLevel as EvalSafetyLevel, TestCase as EvalTestCase, 
+    TestCaseResult, TestDataset
+};
 
 // Advanced safety validation types
 pub use safety::advanced::{
