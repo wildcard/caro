@@ -1,0 +1,36 @@
+{
+  "name": "cmdai-promptfoo-evals",
+  "version": "0.1.0",
+  "description": "Promptfoo evaluation framework for cmdai - testing command generation quality across different LLM providers",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "install-promptfoo": "npm install",
+    "eval:cmdai": "promptfoo eval -c configs/cmdai-binary.yaml",
+    "eval:prompts": "promptfoo eval -c configs/prompt-variations.yaml",
+    "eval:providers": "promptfoo eval -c configs/providers-comparison.yaml",
+    "eval:all": "npm run eval:cmdai && npm run eval:prompts && npm run eval:providers",
+    "view": "promptfoo view",
+    "view:latest": "promptfoo view latest",
+    "convert": "node scripts/convert-dataset.js",
+    "clean": "rm -rf outputs/* .promptfoo/* test-cases/converted/*",
+    "help": "echo 'Available commands:\n  npm run eval:cmdai - Test cmdai binary directly\n  npm run eval:prompts - Test prompt variations\n  npm run eval:providers - Compare LLM providers\n  npm run eval:all - Run all evaluations\n  npm run view - View results in web UI\n  npm run convert - Convert Rust datasets to promptfoo format\n  npm run clean - Clean output directories'"
+  },
+  "keywords": [
+    "promptfoo",
+    "evaluation",
+    "llm",
+    "cmdai",
+    "testing"
+  ],
+  "dependencies": {
+    "promptfoo": "^0.118.0"
+  },
+  "devDependencies": {
+    "js-yaml": "^4.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

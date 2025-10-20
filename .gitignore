@@ -153,6 +153,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Promptfoo evaluation sub-project
+tools/promptfoo/node_modules/
+tools/promptfoo/outputs/
+tools/promptfoo/.promptfoo/
+tools/promptfoo/test-cases/converted/
+
 # Terraform (if using for deployment)
 *.tfstate
 *.tfstate.*
