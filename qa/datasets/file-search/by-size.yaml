@@ -1,0 +1,137 @@
+# File Search by Size - Test Dataset
+# Tests for file finding commands with size constraints
+
+test_cases:
+  - id: "pdf_size_small"
+    category: "file_search"
+    subcategory: "size_filtering"
+    shell: "bash"
+    difficulty: "intermediate"
+    input: "list all pdf files size less than 5mb"
+    expected_commands:
+      - "find . -type f -iname \"*.pdf\" -size -5M"
+      - "find . -name \"*.pdf\" -type f -size -5M"
+      - "find . -type f -name \"*.pdf\" -size -5M"
+    explanation: "Find PDF files under 5MB using size constraint"
+    tags: ["pdf", "size", "file_search", "find", "less_than"]
+    safety_level: "safe"
+    
+  - id: "pdf_size_large"
+    category: "file_search"
+    subcategory: "size_filtering"
+    shell: "bash"
+    difficulty: "intermediate"
+    input: "find pdf files greater than 10mb"
+    expected_commands:
+      - "find . -type f -iname \"*.pdf\" -size +10M"
+      - "find . -name \"*.pdf\" -type f -size +10M"
+      - "find . -type f -name \"*.pdf\" -size +10M"
+    explanation: "Find PDF files over 10MB using size constraint"
+    tags: ["pdf", "size", "file_search", "find", "greater_than"]
+    safety_level: "safe"
+    
+  - id: "img_size_large"
+    category: "file_search" 
+    subcategory: "size_filtering"
+    shell: "bash"
+    difficulty: "advanced"
+    input: "find img files greater than 10mb"
+    expected_commands:
+      - "find . -type f \\( -iname \"*.jpg\" -o -iname \"*.jpeg\" -o -iname \"*.png\" -o -iname \"*.gif\" -o -iname \"*.bmp\" -o -iname \"*.tiff\" \\) -size +10M"
+      - "find . -type f \\( -name \"*.jpg\" -o -name \"*.jpeg\" -o -name \"*.png\" -o -name \"*.gif\" -o -name \"*.bmp\" -o -name \"*.tiff\" \\) -size +10M"
+    explanation: "Find image files over 10MB with multiple file extensions"
+    tags: ["image", "size", "file_search", "find", "multiple_extensions", "greater_than"]
+    safety_level: "safe"
+    
+  - id: "video_size_very_large"
+    category: "file_search"
+    subcategory: "size_filtering" 
+    shell: "bash"
+    difficulty: "advanced"
+    input: "find video files greater than 100mb"
+    expected_commands:
+      - "find . -type f \\( -iname \"*.mp4\" -o -iname \"*.avi\" -o -iname \"*.mkv\" -o -iname \"*.mov\" -o -iname \"*.wmv\" -o -iname \"*.flv\" \\) -size +100M"
+      - "find . -type f \\( -name \"*.mp4\" -o -name \"*.avi\" -o -name \"*.mkv\" -o -name \"*.mov\" -o -name \"*.wmv\" -o -name \"*.flv\" \\) -size +100M"
+    explanation: "Find video files over 100MB with multiple video extensions"
+    tags: ["video", "size", "file_search", "find", "multiple_extensions", "greater_than"]
+    safety_level: "safe"
+    
+  - id: "doc_size_medium"
+    category: "file_search"
+    subcategory: "size_filtering"
+    shell: "bash" 
+    difficulty: "advanced"
+    input: "list document files between 1mb and 10mb"
+    expected_commands:
+      - "find . -type f \\( -iname \"*.doc\" -o -iname \"*.docx\" -o -iname \"*.pdf\" -o -iname \"*.txt\" -o -iname \"*.rtf\" -o -iname \"*.odt\" \\) -size +1M -size -10M"
+      - "find . -type f \\( -name \"*.doc\" -o -name \"*.docx\" -o -name \"*.pdf\" -o -name \"*.txt\" -o -name \"*.rtf\" -o -name \"*.odt\" \\) -size +1M -size -10M"
+    explanation: "Find document files between 1MB and 10MB using size range"
+    tags: ["document", "size", "file_search", "find", "range", "multiple_extensions"]
+    safety_level: "safe"
+    
+  - id: "large_files_any"
+    category: "file_search"
+    subcategory: "size_filtering"
+    shell: "bash"
+    difficulty: "intermediate"
+    input: "find all files larger than 50mb"
+    expected_commands:
+      - "find . -type f -size +50M"
+      - "find . -size +50M -type f"
+    explanation: "Find any files over 50MB regardless of type"
+    tags: ["any_file", "size", "file_search", "find", "greater_than"]
+    safety_level: "safe"
+    
+  - id: "small_files_any"
+    category: "file_search"
+    subcategory: "size_filtering"
+    shell: "bash"
+    difficulty: "intermediate"
+    input: "list files smaller than 1kb"
+    expected_commands:
+      - "find . -type f -size -1k"
+      - "find . -size -1k -type f"
+    explanation: "Find any files under 1KB"
+    tags: ["any_file", "size", "file_search", "find", "less_than", "kilobytes"]
+    safety_level: "safe"
+    
+  - id: "empty_files"
+    category: "file_search"
+    subcategory: "size_filtering"
+    shell: "bash"
+    difficulty: "intermediate"
+    input: "find empty files"
+    expected_commands:
+      - "find . -type f -empty"
+      - "find . -type f -size 0"
+      - "find . -empty -type f"
+    explanation: "Find files with zero size"
+    tags: ["empty", "size", "file_search", "find"]
+    safety_level: "safe"
+
+# PowerShell equivalents for cross-platform testing    
+  - id: "pdf_size_small_powershell"
+    category: "file_search"
+    subcategory: "size_filtering"
+    shell: "powershell"
+    difficulty: "intermediate" 
+    input: "list all pdf files size less than 5mb"
+    expected_commands:
+      - "Get-ChildItem -Recurse -File -Filter *.pdf | Where-Object {$_.Length -lt 5MB}"
+      - "Get-ChildItem -Path . -Recurse -Include *.pdf | Where-Object {$_.Length -lt 5242880}"
+    explanation: "Find PDF files under 5MB using PowerShell"
+    tags: ["pdf", "size", "file_search", "powershell", "less_than"]
+    safety_level: "safe"
+    
+  - id: "large_files_powershell"
+    category: "file_search"
+    subcategory: "size_filtering"
+    shell: "powershell"
+    difficulty: "intermediate"
+    input: "find all files larger than 50mb"
+    expected_commands:
+      - "Get-ChildItem -Recurse -File | Where-Object {$_.Length -gt 50MB}"
+      - "Get-ChildItem -Path . -Recurse | Where-Object {$_.Length -gt 52428800 -and !$_.PSIsContainer}"
+    explanation: "Find any files over 50MB using PowerShell"
+    tags: ["any_file", "size", "file_search", "powershell", "greater_than"]
+    safety_level: "safe"
