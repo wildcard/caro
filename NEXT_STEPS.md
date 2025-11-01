@@ -286,6 +286,7 @@ See **TECH_DEBT.md** for:
 
 ### Resources
 - **ROADMAP.md** - Detailed production plan
+- **CI_INFERENCE_TESTING_PLAN.md** - Real LLM inference testing in CI
 - **CLAUDE.md** - Project architecture and guidelines
 - **TDD-WORKFLOW.md** - Test-driven development process
 - **CONTRIBUTING.md** - Contribution guidelines
