@@ -5,6 +5,43 @@
 
 ---
 
+## 🚀 Spec-Driven Development Approach (RECOMMENDED)
+
+**Use speckit slash commands** for systematic, well-documented implementation:
+
+### Quick Start
+```bash
+# 1. Start with first feature
+/specify
+# → Paste: "Fix contract test alignment - ~35 compilation errors..."
+
+# 2. Follow the workflow
+/clarify  # Answer questions
+/plan     # Review architecture
+/tasks    # Check task breakdown
+/analyze  # Validate consistency
+/implement # Execute implementation
+```
+
+### Complete Guides
+- **[SPECKIT_QUICK_START.md](SPECKIT_QUICK_START.md)** - Minimal command sequence for all features
+- **[SPECKIT_EXECUTION_PLAN.md](SPECKIT_EXECUTION_PLAN.md)** - Detailed specifications and workflows
+
+**Benefits**:
+- ✅ Automated task breakdown
+- ✅ Dependency ordering
+- ✅ Consistency validation
+- ✅ Clear documentation trail
+- ✅ Systematic progress tracking
+
+---
+
+## 🔧 Manual Implementation Approach (ALTERNATIVE)
+
+If not using speckit, follow the manual implementation steps below:
+
+---
+
 ## ⚡ THIS WEEK: Critical Blockers (Week 1)
 
 ### 🔴 Priority 1: Fix Contract Test Alignment
@@ -285,11 +322,20 @@ See **TECH_DEBT.md** for:
 - Configuration error messages
 
 ### Resources
-- **ROADMAP.md** - Detailed production plan
-- **CI_INFERENCE_TESTING_PLAN.md** - Real LLM inference testing in CI
-- **CLAUDE.md** - Project architecture and guidelines
-- **TDD-WORKFLOW.md** - Test-driven development process
-- **CONTRIBUTING.md** - Contribution guidelines
+
+**Spec-Driven Development**:
+- **[SPECKIT_QUICK_START.md](SPECKIT_QUICK_START.md)** - Command execution order (RECOMMENDED)
+- **[SPECKIT_EXECUTION_PLAN.md](SPECKIT_EXECUTION_PLAN.md)** - Complete implementation workflow
+
+**Project Planning**:
+- **[ROADMAP.md](ROADMAP.md)** - Detailed production plan
+- **[CI_INFERENCE_TESTING_PLAN.md](CI_INFERENCE_TESTING_PLAN.md)** - Real LLM inference testing in CI
+- **[CI_INFRASTRUCTURE_SETUP.md](CI_INFRASTRUCTURE_SETUP.md)** - CI workflows and fixtures
+
+**Development Guidelines**:
+- **[CLAUDE.md](CLAUDE.md)** - Project architecture and guidelines
+- **[TDD-WORKFLOW.md](TDD-WORKFLOW.md)** - Test-driven development process
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contribution guidelines
 
 ### Questions?
 - GitHub Issues: https://github.com/wildcard/cmdai/issues
