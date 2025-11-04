@@ -1,6 +1,6 @@
 //! Terminal rendering for sprites using Unicode block characters
 
-use crate::rendering::{sprites::*, RenderError, RenderResult};
+use crate::rendering::{ansi_parser::*, sprites::*, RenderError, RenderResult};
 use colored::*;
 use std::io::{self, Write};
 
@@ -170,6 +170,89 @@ impl TerminalRenderer {
             RenderError::RenderingError(format!("Failed to flush stdout: {}", e))
         })?;
         Ok(())
+    }
+
+    /// Render an ANSI frame to the terminal
+    pub fn render_ansi_frame(&self, frame: &AnsiFrame) -> RenderResult<String> {
+        let mut output = String::new();
+
+        for y in 0..frame.height() {
+            for x in 0..frame.width() {
+                if let Some(cell) = frame.get_cell(x, y) {
+                    let colored_char = self.colorize_ansi_cell(cell);
+                    output.push_str(&colored_char);
+                } else {
+                    output.push(' ');
+                }
+            }
+            output.push('\n');
+        }
+
+        Ok(output)
+    }
+
+    /// Print an ANSI frame directly to stdout
+    pub fn print_ansi_frame(&self, frame: &AnsiFrame) -> RenderResult<()> {
+        let rendered = self.render_ansi_frame(frame)?;
+        print!("{}", rendered);
+        io::stdout().flush().map_err(|e| {
+            RenderError::RenderingError(format!("Failed to flush stdout: {}", e))
+        })?;
+        Ok(())
+    }
+
+    /// Render an ANSI frame at a specific terminal position
+    pub fn render_ansi_frame_at(
+        &self,
+        frame: &AnsiFrame,
+        row: usize,
+        col: usize,
+    ) -> RenderResult<()> {
+        for y in 0..frame.height() {
+            self.move_cursor(row + y, col)?;
+
+            for x in 0..frame.width() {
+                if let Some(cell) = frame.get_cell(x, y) {
+                    let colored_char = self.colorize_ansi_cell(cell);
+                    print!("{}", colored_char);
+                } else {
+                    print!(" ");
+                }
+            }
+        }
+
+        io::stdout().flush().map_err(|e| {
+            RenderError::RenderingError(format!("Failed to flush stdout: {}", e))
+        })?;
+        Ok(())
+    }
+
+    /// Colorize an ANSI cell with foreground and background colors
+    fn colorize_ansi_cell(&self, cell: &AnsiCell) -> String {
+        let ch = if cell.character == '\0' || cell.character == '\r' {
+            ' '
+        } else {
+            cell.character
+        };
+
+        if self.use_true_color {
+            // Use true color (24-bit RGB)
+            format!(
+                "\x1b[38;2;{};{};{}m\x1b[48;2;{};{};{}m{}\x1b[0m",
+                cell.fg_color.r,
+                cell.fg_color.g,
+                cell.fg_color.b,
+                cell.bg_color.r,
+                cell.bg_color.g,
+                cell.bg_color.b,
+                ch
+            )
+        } else {
+            // Use 256-color palette
+            let fg_code = cell.fg_color.to_ansi_256();
+            let bg_code = cell.bg_color.to_ansi_256();
+            format!("\x1b[38;5;{}m\x1b[48;5;{}m{}\x1b[0m", fg_code, bg_code, ch)
+        }
     }
 }
 

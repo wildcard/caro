@@ -28,10 +28,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - True color and 256-color rendering modes
   - Cursor positioning and screen clearing
   - Frame rendering at specific terminal positions
+  - ANSI frame rendering with foreground/background colors
 - **animator.rs**: Animation playback and sequencing
   - `Animation`: Frame sequencing with multiple playback modes
   - `Animator`: Async animation playback with frame timing
   - Support for Once, Loop, and LoopN animation modes
+- **ansi_parser.rs**: ANSI art file format parser
+  - Full ANSI escape sequence parsing (SGR, cursor control)
+  - SAUCE metadata extraction and parsing
+  - 16-color and 256-color support
+  - Character preservation (€, ‹, ﬂ, etc.)
+  - Convert ANSI frames to Sprite format
+  - File loading from .ans files
 - **examples.rs**: Pre-built sprite examples
   - Idle character (8x8 static sprite)
   - Walking animation (8x8, 4 frames)
@@ -39,8 +47,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Spinning coin (8x8, 4 frames)
   - Loading spinner (5x5, 8 frames)
 
+#### ANSI Art File Support
+- **SAUCE Metadata**: Standard Architecture for Universal Comment Extensions
+  - Title, author, group, date fields
+  - Width and height dimensions
+  - Automatic detection at file end (128 bytes)
+- **Escape Sequence Support**:
+  - SGR codes: Reset (0), bold (1), blink (5), colors (30-37, 40-47, 90-97, 100-107)
+  - 256-color mode: 38;5;N (foreground), 48;5;N (background)
+  - Cursor positioning: H/f (position), A/B/C/D (movement)
+- **Color Palette**: Standard ANSI 16-color palette with RGB mappings
+- **Conversion**: AnsiFrame → Sprite for animation system integration
+
 #### Demo and Documentation
 - Interactive sprite demo (`examples/sprite_demo.rs`)
+- ANSI art parsing demo (`examples/ansi_art_demo.rs`)
 - Comprehensive module documentation (`src/rendering/README.md`)
 - Usage examples and integration guide
 - Unit tests for all components

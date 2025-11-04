@@ -307,6 +307,8 @@ cmdai includes a powerful terminal-based sprite animation system for rendering p
 - **Unicode block rendering** (█) for true pixel-based graphics
 - **True color (24-bit RGB)** or 256-color ANSI mode
 - **Animation modes**: Play once, loop, or loop N times
+- **ANSI art file support** - Parse and render traditional ANSI art files (.ans)
+- **SAUCE metadata** - Full support for SAUCE headers in ANSI files
 
 ### Example Usage
 
@@ -345,10 +347,42 @@ The module includes several ready-to-use sprites:
 - **Spinning Coin** - 3D coin rotation effect
 - **Loading Spinner** - Circular loading indicator
 
-### Try the Demo
+### ANSI Art File Support
+
+Load and render traditional ANSI art files:
+
+```rust
+use cmdai::rendering::{AnsiParser, TerminalRenderer};
+
+// Load ANSI art file
+let (frame, sauce) = AnsiParser::load_file("artwork.ans")?;
+
+// Display metadata
+if let Some(metadata) = sauce {
+    println!("Title: {}", metadata.title);
+    println!("Author: {}", metadata.author);
+}
+
+// Render it
+let renderer = TerminalRenderer::new();
+renderer.print_ansi_frame(&frame)?;
+```
+
+Supports:
+- Full ANSI escape sequence parsing
+- SAUCE metadata extraction
+- 16-color and 256-color palettes
+- Foreground/background colors
+- Character preservation (€, ‹, ﬂ, etc.)
+
+### Try the Demos
 
 ```bash
+# Sprite animation demo
 cargo run --example sprite_demo
+
+# ANSI art parsing demo
+cargo run --example ansi_art_demo
 ```
 
 See [src/rendering/README.md](src/rendering/README.md) for detailed documentation.

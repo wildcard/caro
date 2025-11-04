@@ -22,7 +22,118 @@ This module provides a complete system for rendering animated pixel art characte
 1. **sprites.rs** - Data structures for sprites, frames, and color palettes
 2. **terminal.rs** - Terminal rendering with ANSI escape codes
 3. **animator.rs** - Animation playback and frame sequencing
-4. **examples.rs** - Pre-built example sprites and animations
+4. **ansi_parser.rs** - ANSI art file format parser with SAUCE metadata support
+5. **examples.rs** - Pre-built example sprites and animations
+
+## ANSI Art File Support
+
+The module includes comprehensive support for traditional ANSI art files (.ans format):
+
+### Features
+- **ANSI Escape Sequences**: Full parsing of SGR (Set Graphics Rendition) codes
+- **SAUCE Metadata**: Automatic detection and parsing of SAUCE (Standard Architecture for Universal Comment Extensions) headers
+- **16-Color Support**: Standard ANSI color palette (black, red, green, yellow, blue, magenta, cyan, white + bright variants)
+- **256-Color Support**: Extended ANSI color codes
+- **Cursor Positioning**: Support for cursor movement commands
+- **Character Preservation**: Maintains original characters (not just blocks)
+- **Foreground/Background**: Full support for both foreground and background colors
+
+### Loading ANSI Art Files
+
+```rust
+use cmdai::rendering::{AnsiParser, TerminalRenderer};
+
+// Load from file
+let (frame, sauce) = AnsiParser::load_file("artwork.ans")?;
+
+// Display SAUCE metadata
+if let Some(metadata) = sauce {
+    println!("Title: {}", metadata.title);
+    println!("Author: {}", metadata.author);
+    println!("Dimensions: {}x{}", metadata.width?, metadata.height?);
+}
+
+// Render the frame
+let renderer = TerminalRenderer::new();
+renderer.print_ansi_frame(&frame)?;
+```
+
+### Parsing ANSI from Bytes
+
+```rust
+// Parse ANSI art from raw bytes
+let ansi_data = b"\x1b[31mRed\x1b[0m \x1b[32mGreen\x1b[0m";
+let (frame, _) = AnsiParser::parse_bytes(ansi_data)?;
+
+// Render it
+let renderer = TerminalRenderer::new();
+renderer.print_ansi_frame(&frame)?;
+```
+
+### Converting ANSI to Sprites
+
+```rust
+// Load ANSI art
+let (frame, _) = AnsiParser::load_file("character.ans")?;
+
+// Convert to sprite for animation
+let sprite = AnsiParser::ansi_to_sprite(&frame, "my_character", 1000)?;
+
+// Now you can use it in animations
+let mut animation = Animation::new(sprite, AnimationMode::Loop);
+animator.play(&mut animation).await?;
+```
+
+### Supported ANSI Codes
+
+**SGR (Set Graphics Rendition):**
+- `0` - Reset all attributes
+- `1` - Bold/bright
+- `5` - Blink
+- `22` - Normal intensity
+- `25` - Blink off
+- `30-37` - Foreground colors
+- `38;5;N` - 256-color foreground
+- `40-47` - Background colors
+- `48;5;N` - 256-color background
+- `90-97` - Bright foreground colors
+- `100-107` - Bright background colors
+
+**Cursor Control:**
+- `H` or `f` - Cursor position
+- `A` - Cursor up
+- `B` - Cursor down
+- `C` - Cursor forward
+- `D` - Cursor backward
+
+### SAUCE Metadata Structure
+
+```rust
+pub struct SauceMetadata {
+    pub title: String,      // 35 chars max
+    pub author: String,     // 20 chars max
+    pub group: String,      // 20 chars max
+    pub date: String,       // 8 chars (YYYYMMDD)
+    pub width: Option<u16>, // Character width
+    pub height: Option<u16>,// Character height
+}
+```
+
+### Example: Creating ANSI Art Programmatically
+
+```rust
+let mut ansi = Vec::new();
+
+// Red text on blue background
+ansi.extend_from_slice(b"\x1b[1;31;44mHello\x1b[0m\n");
+
+// Green text
+ansi.extend_from_slice(b"\x1b[32mWorld\x1b[0m\n");
+
+// Parse and render
+let (frame, _) = AnsiParser::parse_bytes(&ansi)?;
+renderer.print_ansi_frame(&frame)?;
+```
 
 ## Quick Start
 
