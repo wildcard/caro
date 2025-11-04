@@ -2,18 +2,21 @@
 //!
 //! This module provides functionality to render animated pixel art characters
 //! in the terminal using Unicode block characters (█, ▀, ▄) with ANSI colors.
-//! Also supports parsing traditional ANSI art files with escape sequences.
+//! Also supports parsing traditional ANSI art files with escape sequences and
+//! modern DurDraw format files.
 
 mod sprites;
 mod animator;
 mod terminal;
 mod ansi_parser;
+mod durdraw_parser;
 pub mod examples;
 
 pub use sprites::{ColorPalette, Sprite, SpriteFrame, Color};
 pub use animator::{Animation, Animator, AnimationMode};
 pub use terminal::TerminalRenderer;
 pub use ansi_parser::{AnsiParser, AnsiFrame, AnsiCell, SauceMetadata};
+pub use durdraw_parser::{DurDrawParser, DurDrawFile, DurDrawCell, DurDrawColor};
 
 /// Result type for rendering operations
 pub type RenderResult<T> = Result<T, RenderError>;

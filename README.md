@@ -309,6 +309,7 @@ cmdai includes a powerful terminal-based sprite animation system for rendering p
 - **Animation modes**: Play once, loop, or loop N times
 - **ANSI art file support** - Parse and render traditional ANSI art files (.ans)
 - **SAUCE metadata** - Full support for SAUCE headers in ANSI files
+- **DurDraw format** - Modern JSON-based ANSI art format (.dur) with full metadata
 
 ### Example Usage
 
@@ -375,6 +376,39 @@ Supports:
 - Foreground/background colors
 - Character preservation (€, ‹, ﬂ, etc.)
 
+### DurDraw Format Support
+
+Load and save modern DurDraw format files:
+
+```rust
+use cmdai::rendering::{DurDrawParser, DurDrawFile, DurDrawColor};
+
+// Load DurDraw file
+let (frame, metadata) = DurDrawParser::load_with_metadata("artwork.dur")?;
+
+// Display with full colors
+let renderer = TerminalRenderer::new();
+renderer.print_ansi_frame(&frame)?;
+
+// Or create programmatically
+let dur = DurDrawFile {
+    title: "My Art".to_string(),
+    author: "Artist".to_string(),
+    width: 10,
+    height: 5,
+    data: vec![/* cells */],
+    palette: vec![/* colors */],
+    // ...
+};
+DurDrawParser::save_file(&dur, "output.dur")?;
+```
+
+Features:
+- JSON-based, human-readable format
+- Multiple color formats (RGB, hex, named, palette)
+- Full metadata (title, author, date, group)
+- Bidirectional conversion with ANSI
+
 ### Try the Demos
 
 ```bash
@@ -383,6 +417,9 @@ cargo run --example sprite_demo
 
 # ANSI art parsing demo
 cargo run --example ansi_art_demo
+
+# DurDraw format demo
+cargo run --example durdraw_demo
 ```
 
 See [src/rendering/README.md](src/rendering/README.md) for detailed documentation.

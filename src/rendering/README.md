@@ -135,6 +135,175 @@ let (frame, _) = AnsiParser::parse_bytes(&ansi)?;
 renderer.print_ansi_frame(&frame)?;
 ```
 
+## DurDraw File Support
+
+The module also supports modern DurDraw format files (.dur) - a JSON-based format for ANSI/ASCII art.
+
+### Features
+- **JSON Format**: Human-readable, easy to edit
+- **Full Metadata**: Title, author, group, date, dimensions
+- **Multiple Color Formats**: RGB arrays, hex strings, named colors, palette indices
+- **Custom Palettes**: Define reusable color palettes
+- **Character Attributes**: Bold, blink, and other attributes
+- **Bidirectional Conversion**: Convert to/from ANSI frames
+
+### Loading DurDraw Files
+
+```rust
+use cmdai::rendering::{DurDrawParser, TerminalRenderer};
+
+// Load from file
+let (frame, metadata) = DurDrawParser::load_with_metadata("artwork.dur")?;
+
+// Display metadata
+println!("Title: {}", metadata.title);
+println!("Author: {}", metadata.author);
+println!("Dimensions: {}x{}", metadata.width?, metadata.height?);
+
+// Render
+let renderer = TerminalRenderer::new();
+renderer.print_ansi_frame(&frame)?;
+```
+
+### Creating DurDraw Files
+
+```rust
+use cmdai::rendering::{DurDrawFile, DurDrawCell, DurDrawColor};
+
+let dur = DurDrawFile {
+    version: "1.0".to_string(),
+    title: "My Art".to_string(),
+    author: "Artist Name".to_string(),
+    group: "Group Name".to_string(),
+    date: "20240101".to_string(),
+    width: 10,
+    height: 5,
+    data: vec![
+        DurDrawCell {
+            char: "█".to_string(),
+            fg: DurDrawColor::Rgb([255, 0, 0]),
+            bg: DurDrawColor::Rgb([0, 0, 0]),
+            attr: 1, // Bold
+        },
+        // ... more cells
+    ],
+    palette: vec![],
+};
+
+// Save to file
+DurDrawParser::save_file(&dur, "output.dur")?;
+```
+
+### Color Formats
+
+DurDraw supports multiple ways to specify colors:
+
+```rust
+// 1. RGB array
+DurDrawColor::Rgb([255, 128, 64])
+
+// 2. Hex string
+DurDrawColor::Hex("#FF8040".to_string())
+
+// 3. Palette index (references palette array)
+DurDrawColor::Index(5)
+
+// 4. Named color
+DurDrawColor::Named("red".to_string())
+```
+
+**Available named colors:**
+- Basic: `black`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `white`
+- Bright: `bright_red`, `bright_green`, `bright_yellow`, `bright_blue`, `bright_magenta`, `bright_cyan`, `bright_white`
+- Aliases: `gray` (same as `bright_black`)
+
+### Using Custom Palettes
+
+```rust
+let dur = DurDrawFile {
+    // ... metadata ...
+    palette: vec![
+        DurDrawColor::Rgb([0, 0, 0]),       // Index 0: Black
+        DurDrawColor::Rgb([255, 0, 0]),     // Index 1: Red
+        DurDrawColor::Rgb([0, 255, 0]),     // Index 2: Green
+        DurDrawColor::Rgb([0, 0, 255]),     // Index 3: Blue
+    ],
+    data: vec![
+        DurDrawCell {
+            char: "X".to_string(),
+            fg: DurDrawColor::Index(1),  // References palette[1] (red)
+            bg: DurDrawColor::Index(0),  // References palette[0] (black)
+            attr: 0,
+        },
+    ],
+    // ...
+};
+```
+
+### Converting Between Formats
+
+```rust
+// ANSI → DurDraw
+let (ansi_frame, _) = AnsiParser::load_file("input.ans")?;
+let dur = DurDrawParser::from_ansi_frame(
+    &ansi_frame,
+    "Converted Art".to_string(),
+    "Author".to_string(),
+)?;
+DurDrawParser::save_file(&dur, "output.dur")?;
+
+// DurDraw → ANSI Frame
+let (frame, _) = DurDrawParser::load_with_metadata("input.dur")?;
+renderer.print_ansi_frame(&frame)?;
+
+// DurDraw → Sprite (for animation)
+let sprite = AnsiParser::ansi_to_sprite(&frame, "animated", 1000)?;
+```
+
+### DurDraw JSON Structure
+
+```json
+{
+  "version": "1.0",
+  "title": "My Artwork",
+  "author": "Artist Name",
+  "group": "Group Name",
+  "date": "20240101",
+  "width": 10,
+  "height": 5,
+  "palette": [
+    [0, 0, 0],
+    [255, 0, 0],
+    [0, 255, 0]
+  ],
+  "data": [
+    {
+      "char": "█",
+      "fg": 1,
+      "bg": 0,
+      "attr": 0
+    }
+  ]
+}
+```
+
+### Attributes
+
+The `attr` field is a bitfield:
+- Bit 0 (0x01): Bold
+- Bit 1 (0x02): Blink
+
+```rust
+// Bold text
+attr: 0x01  // or 1
+
+// Blink text
+attr: 0x02  // or 2
+
+// Bold + Blink
+attr: 0x03  // or 3
+```
+
 ## Quick Start
 
 ### Creating a Simple Static Sprite

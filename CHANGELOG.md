@@ -40,6 +40,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Character preservation (€, ‹, ﬂ, etc.)
   - Convert ANSI frames to Sprite format
   - File loading from .ans files
+- **durdraw_parser.rs**: DurDraw format parser
+  - JSON-based modern ANSI art format (.dur files)
+  - Multiple color formats (RGB arrays, hex strings, named colors, palette indices)
+  - Full metadata support (title, author, group, date, dimensions)
+  - Custom color palettes with reusable indices
+  - Character attributes (bold, blink) as bitfield
+  - Bidirectional conversion with AnsiFrame
+  - File loading and saving with JSON serialization
 - **examples.rs**: Pre-built sprite examples
   - Idle character (8x8 static sprite)
   - Walking animation (8x8, 4 frames)
@@ -59,9 +67,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Color Palette**: Standard ANSI 16-color palette with RGB mappings
 - **Conversion**: AnsiFrame → Sprite for animation system integration
 
+#### DurDraw File Format Support
+- **JSON-based format**: Human-readable structure for easy editing
+- **Color Formats**:
+  - RGB arrays: `[255, 128, 64]`
+  - Hex strings: `"#FF8040"`
+  - Named colors: `"red"`, `"bright_green"`, `"cyan"`
+  - Palette indices: Reference to custom palette array
+- **Metadata Fields**: version, title, author, group, date, width, height
+- **Custom Palettes**: Reusable color definitions with index references
+- **Attributes**: Bitfield for bold (0x01) and blink (0x02)
+- **Conversions**: AnsiFrame ↔ DurDraw with full fidelity
+
 #### Demo and Documentation
 - Interactive sprite demo (`examples/sprite_demo.rs`)
 - ANSI art parsing demo (`examples/ansi_art_demo.rs`)
+- DurDraw format demo (`examples/durdraw_demo.rs`)
 - Comprehensive module documentation (`src/rendering/README.md`)
 - Usage examples and integration guide
 - Unit tests for all components
