@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - Sprite Animation Rendering System
+
+#### Terminal Sprite Renderer (`src/rendering/`)
+- **Complete pixel art animation system** for terminal-based graphics
+  - Color palette system with hex color support (#RRGGBB format)
+  - Multi-frame sprite animations with customizable timing
+  - Transparency support for complex sprite compositions
+  - Unicode block character rendering (█) for true pixel-based graphics
+  - True color (24-bit RGB) and 256-color ANSI mode support
+  - Automatic terminal capability detection
+
+#### Core Components
+- **sprites.rs**: Data structures for sprites, frames, and color palettes
+  - `Color`: RGB color with hex string parsing and ANSI conversion
+  - `ColorPalette`: Color palette with transparency support
+  - `SpriteFrame`: Individual animation frames with timing
+  - `Sprite`: Complete sprite with palette and frame sequence
+- **terminal.rs**: Terminal rendering with ANSI escape codes
+  - True color and 256-color rendering modes
+  - Cursor positioning and screen clearing
+  - Frame rendering at specific terminal positions
+- **animator.rs**: Animation playback and sequencing
+  - `Animation`: Frame sequencing with multiple playback modes
+  - `Animator`: Async animation playback with frame timing
+  - Support for Once, Loop, and LoopN animation modes
+- **examples.rs**: Pre-built sprite examples
+  - Idle character (8x8 static sprite)
+  - Walking animation (8x8, 4 frames)
+  - Heart pulse effect (6x6, 3 frames)
+  - Spinning coin (8x8, 4 frames)
+  - Loading spinner (5x5, 8 frames)
+
+#### Demo and Documentation
+- Interactive sprite demo (`examples/sprite_demo.rs`)
+- Comprehensive module documentation (`src/rendering/README.md`)
+- Usage examples and integration guide
+- Unit tests for all components
+
 ### Added - Feature 004: Embedded Model + Remote Backend Support
 
 #### Embedded Model Backend (`src/backends/embedded/`)

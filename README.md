@@ -21,6 +21,7 @@ This project is in **active early development**. The architecture and module str
 - Modular architecture with trait-based backends
 - **Embedded model backend with MLX (Apple Silicon) and CPU variants** ✨
 - **Remote backend support (Ollama, vLLM) with automatic fallback** ✨
+- **Terminal sprite animation rendering system** ✨
 - Safety validation with pattern matching and risk assessment
 - Configuration management with TOML support
 - Interactive user confirmation flows
@@ -48,6 +49,7 @@ This project is in **active early development**. The architecture and module str
 - 🎯 **Multiple backends** - Extensible backend system (MLX, vLLM, Ollama)
 - 💾 **Smart caching** - Hugging Face model management
 - 🌐 **Cross-platform** - macOS, Linux, Windows support
+- 🎨 **Terminal animations** - Pixel art sprite rendering with color palettes
 
 ## 🚀 Quick Start
 
@@ -159,6 +161,12 @@ cmdai/
 │   │   └── ollama.rs       # Ollama local backend
 │   ├── safety/             # Command validation
 │   │   └── mod.rs          # Safety validator
+│   ├── rendering/          # Terminal sprite animation
+│   │   ├── mod.rs          # Rendering system
+│   │   ├── sprites.rs      # Sprite data structures
+│   │   ├── animator.rs     # Animation engine
+│   │   ├── terminal.rs     # Terminal rendering
+│   │   └── examples.rs     # Example sprites
 │   ├── cache/              # Model caching
 │   ├── config/             # Configuration management
 │   ├── cli/                # CLI interface
@@ -287,6 +295,63 @@ level = "moderate"  # strict, moderate, or permissive
 require_confirmation = true
 custom_patterns = ["additional", "dangerous", "patterns"]
 ```
+
+## 🎨 Sprite Animation System
+
+cmdai includes a powerful terminal-based sprite animation system for rendering pixel art characters using colored Unicode blocks.
+
+### Features
+- **Color palettes** with hex color definitions
+- **Multi-frame animations** with customizable timing
+- **Transparency support** for complex sprites
+- **Unicode block rendering** (█) for true pixel-based graphics
+- **True color (24-bit RGB)** or 256-color ANSI mode
+- **Animation modes**: Play once, loop, or loop N times
+
+### Example Usage
+
+```rust
+use cmdai::rendering::*;
+
+// Create a simple animated sprite
+let palette = ColorPalette::from_hex_strings(&[
+    "#000000",  // Transparent
+    "#FF5733",  // Red
+    "#33FF57",  // Green
+])?.with_transparent(0);
+
+// Define frames
+let frame1 = SpriteFrame::new(4, 4, vec![
+    0, 1, 1, 0,
+    1, 1, 1, 1,
+    0, 1, 1, 0,
+    0, 2, 2, 0,
+], 200)?;
+
+let sprite = Sprite::new("demo", palette, vec![frame1])?;
+
+// Animate it
+let animator = Animator::new();
+let mut animation = Animation::new(sprite, AnimationMode::Loop);
+animator.play(&mut animation).await?;
+```
+
+### Pre-built Examples
+
+The module includes several ready-to-use sprites:
+- **Idle Character** - 8x8 humanoid sprite
+- **Walking Animation** - 4-frame walk cycle
+- **Heart Pulse** - Animated beating heart
+- **Spinning Coin** - 3D coin rotation effect
+- **Loading Spinner** - Circular loading indicator
+
+### Try the Demo
+
+```bash
+cargo run --example sprite_demo
+```
+
+See [src/rendering/README.md](src/rendering/README.md) for detailed documentation.
 
 ## 🤝 Contributing
 
