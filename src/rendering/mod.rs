@@ -10,6 +10,7 @@ mod animator;
 mod terminal;
 mod ansi_parser;
 mod durdraw_parser;
+mod aseprite_parser;
 pub mod examples;
 
 pub use sprites::{ColorPalette, Sprite, SpriteFrame, Color};
@@ -17,6 +18,7 @@ pub use animator::{Animation, Animator, AnimationMode};
 pub use terminal::TerminalRenderer;
 pub use ansi_parser::{AnsiParser, AnsiFrame, AnsiCell, SauceMetadata};
 pub use durdraw_parser::{DurDrawParser, DurDrawFile, DurDrawCell, DurDrawColor};
+pub use aseprite_parser::{AsepriteParser, AsepriteFile, AsepriteFrame, AsepriteCel, AsepriteLayer};
 
 /// Result type for rendering operations
 pub type RenderResult<T> = Result<T, RenderError>;

@@ -79,10 +79,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Attributes**: Bitfield for bold (0x01) and blink (0x02)
 - **Conversions**: AnsiFrame ↔ DurDraw with full fidelity
 
+#### Aseprite File Format Support
+- **aseprite_parser.rs**: Binary .ase/.aseprite file parser
+  - Binary file format parser with little-endian byte order
+  - Header parsing with magic number validation (0xA5E0)
+  - Frame-based structure with chunk parsing system
+  - Layer support with visibility, opacity, and blend modes
+  - Cel (pixel data) parsing with multiple formats
+  - Zlib/DEFLATE decompression for compressed cels
+  - Alpha blending for proper layer compositing
+  - Palette chunk parsing for indexed color modes
+  - Convert to Sprite format for animation playback
+  - File loading from .ase and .aseprite files
+- **Binary Format Features**:
+  - Header: 128 bytes with file metadata
+  - Frames: Variable length with frame duration
+  - Chunks: Layer (0x2004), Cel (0x2005), Palette (0x2019), Tags, User Data
+  - Color modes: RGBA (32-bit), Grayscale (16-bit), Indexed (8-bit)
+  - Cel types: Raw (0), Linked (1), Compressed (2)
+  - Compression: Zlib DEFLATE algorithm
+- **Layer Compositing**:
+  - Layer visibility filtering (skip hidden layers)
+  - Alpha blending with opacity support
+  - Proper background initialization (transparent or white)
+  - Row-major pixel order for cel composition
+- **Sprite Conversion**: AsepriteFile → Sprite with full fidelity
+  - Extract unique colors to build palette
+  - Composite all visible layers per frame
+  - Preserve frame durations (milliseconds)
+  - Support linked cels (frame references)
+
 #### Demo and Documentation
 - Interactive sprite demo (`examples/sprite_demo.rs`)
 - ANSI art parsing demo (`examples/ansi_art_demo.rs`)
 - DurDraw format demo (`examples/durdraw_demo.rs`)
+- Aseprite format demo (`examples/aseprite_demo.rs`)
 - Comprehensive module documentation (`src/rendering/README.md`)
 - Usage examples and integration guide
 - Unit tests for all components
@@ -176,6 +207,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `serde_yaml = "0.9"` - YAML output format
 - `atty = "0.2"` - Terminal detection
 - `dialoguer = "0.11"` - Interactive confirmations
+- `flate2 = "1.0"` - Zlib/DEFLATE compression for Aseprite files
 
 ### Added - Feature 003: Core Infrastructure Modules
 

@@ -310,6 +310,7 @@ cmdai includes a powerful terminal-based sprite animation system for rendering p
 - **ANSI art file support** - Parse and render traditional ANSI art files (.ans)
 - **SAUCE metadata** - Full support for SAUCE headers in ANSI files
 - **DurDraw format** - Modern JSON-based ANSI art format (.dur) with full metadata
+- **Aseprite format** - Binary .ase/.aseprite files with layers, animations, and compression
 
 ### Example Usage
 
@@ -409,6 +410,39 @@ Features:
 - Full metadata (title, author, date, group)
 - Bidirectional conversion with ANSI
 
+### Aseprite Format Support
+
+Load pixel art directly from Aseprite source files:
+
+```rust
+use cmdai::rendering::{AsepriteParser, Animator, Animation, AnimationMode};
+
+// Load Aseprite file
+let ase_file = AsepriteParser::load_file("sprite.ase")?;
+
+// Display file information
+println!("Dimensions: {}x{}", ase_file.header.width, ase_file.header.height);
+println!("Frames: {}", ase_file.header.frames);
+println!("Layers: {}", ase_file.layers.len());
+
+// Convert to Sprite for animation
+let sprite = AsepriteParser::to_sprite(&ase_file)?;
+
+// Animate it
+let animator = Animator::new();
+let mut animation = Animation::new(sprite, AnimationMode::Loop);
+animator.play(&mut animation).await?;
+```
+
+Supported features:
+- Binary .ase and .aseprite file formats
+- Multiple animation frames with individual durations
+- Layer system with visibility and opacity
+- Alpha blending for layer compositing
+- Zlib-compressed cel data
+- Color palettes (RGBA, Grayscale, Indexed modes)
+- Raw and linked cel types
+
 ### Try the Demos
 
 ```bash
@@ -420,6 +454,9 @@ cargo run --example ansi_art_demo
 
 # DurDraw format demo
 cargo run --example durdraw_demo
+
+# Aseprite format demo
+cargo run --example aseprite_demo
 ```
 
 See [src/rendering/README.md](src/rendering/README.md) for detailed documentation.

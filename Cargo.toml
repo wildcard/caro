@@ -66,6 +66,9 @@ sha2 = "0.10"
 # Async trait support
 async-trait = "0.1"
 
+# Compression (for Aseprite files)
+flate2 = "1.0"
+
 # Optional MLX support for Apple Silicon (behind feature flag)
 cxx = { version = "1.0", optional = true }
 
