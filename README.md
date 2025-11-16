@@ -51,6 +51,8 @@ This project is in **active early development**. The architecture and module str
 - 🌐 **Cross-platform** - macOS, Linux, Windows support
 - 🎨 **Terminal animations** - Pixel art sprite rendering with color palettes
 
+> 💡 **New to animations?** Check out the [Animation Quick Start Guide](docs/QUICKSTART_ANIMATIONS.md) or browse the [complete documentation](docs/README.md).
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -459,7 +461,20 @@ cargo run --example durdraw_demo
 cargo run --example aseprite_demo
 ```
 
-See [src/rendering/README.md](src/rendering/README.md) for detailed documentation.
+### Documentation
+
+**📚 Complete Animation Documentation**:
+- **[Quick Start Guide](docs/QUICKSTART_ANIMATIONS.md)** - Get started in 5 minutes
+- **[Animation Guide](docs/ANIMATION_GUIDE.md)** - Complete technical reference (developers)
+- **[Designer Guide](docs/DESIGNER_GUIDE.md)** - Workflow for UX designers & artists
+- **[Testing Guide](docs/TESTING_ANIMATIONS.md)** - Testing and validation procedures
+- **[Documentation Index](docs/README.md)** - Full documentation directory
+
+**For Developers**: Start with the [Quick Start Guide](docs/QUICKSTART_ANIMATIONS.md), then dive into the [Animation Guide](docs/ANIMATION_GUIDE.md) for complete API reference.
+
+**For Designers**: Check out the [Designer Guide](docs/DESIGNER_GUIDE.md) for Aseprite workflows, color palettes, and animation principles.
+
+**For Testing**: See the [Testing Guide](docs/TESTING_ANIMATIONS.md) for validation checklists and debugging procedures.
 
 ## 🤝 Contributing
 
