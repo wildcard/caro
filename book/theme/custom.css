@@ -1,0 +1,80 @@
+/* Custom styles for cmdai documentation */
+
+:root {
+    --cmdai-primary: #0066cc;
+    --cmdai-success: #28a745;
+    --cmdai-warning: #ffc107;
+    --cmdai-danger: #dc3545;
+}
+
+/* Code blocks */
+.hljs {
+    border-radius: 4px;
+}
+
+/* Improve table styling */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+}
+
+table thead {
+    background-color: var(--table-header-bg);
+}
+
+table th,
+table td {
+    padding: 0.75em;
+    border: 1px solid var(--table-border-color);
+}
+
+/* Callout boxes */
+.warning {
+    background-color: var(--warning-border);
+    border-left: 4px solid var(--cmdai-warning);
+    padding: 1em;
+    margin: 1em 0;
+}
+
+.info {
+    background-color: var(--quote-bg);
+    border-left: 4px solid var(--cmdai-primary);
+    padding: 1em;
+    margin: 1em 0;
+}
+
+/* Improve navigation */
+.sidebar {
+    font-size: 0.95em;
+}
+
+.chapter {
+    padding: 0.5em 0;
+}
+
+/* Make inline code more readable */
+code {
+    background-color: var(--inline-code-bg);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+/* Better spacing for lists */
+ul, ol {
+    line-height: 1.8;
+}
+
+/* Enhance headers */
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    table {
+        font-size: 0.9em;
+    }
+}
