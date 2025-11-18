@@ -14,6 +14,15 @@ Complete documentation for the terminal-based sprite animation rendering system:
 | **[Animation Guide](ANIMATION_GUIDE.md)** | Developers | Complete technical reference and API documentation | 30 min |
 | **[Designer Guide](DESIGNER_GUIDE.md)** | UX/UI Designers | Workflow guide for creating animations with professional tools | 25 min |
 | **[Testing Guide](TESTING_ANIMATIONS.md)** | QA/Developers | Comprehensive testing and validation procedures | 30 min |
+| **[Contributing Assets](CONTRIBUTING_ASSETS.md)** | Artists/Designers | How to upload and license your artwork | 20 min |
+
+### Asset Management
+
+| Document | Description |
+|----------|-------------|
+| **[Assets Directory](../assets/README.md)** | Overview of contributed artwork and licensing |
+| **[Asset License Template](../ASSET-LICENSE-TEMPLATE.md)** | Template for protecting your artwork |
+| **[Artist README Template](../assets/ARTIST_README_TEMPLATE.md)** | Template for artist documentation |
 
 ### Other Documentation
 
@@ -61,6 +70,21 @@ You're creating pixel art animations for terminal applications.
 - Animation principles for terminals
 - Testing without writing code
 - Design guidelines for readability
+
+### For Artists/Contributors
+You're contributing your original artwork to the cmdai project.
+
+**Learning Path**:
+1. [Designer Guide](DESIGNER_GUIDE.md) - Create your artwork
+2. [Contributing Assets](CONTRIBUTING_ASSETS.md) - Upload and license it
+3. [Testing Guide](TESTING_ANIMATIONS.md) - Validate your work
+
+**Key Sections**:
+- Understanding licensing (code vs. artwork)
+- Uploading files to GitHub (no coding needed)
+- Protecting your copyright
+- Organizing your assets
+- Getting proper attribution
 
 ### For QA/Testers
 You're validating animation features and catching bugs.

@@ -503,9 +503,15 @@ We welcome contributions! This is an early-stage project with many opportunities
 
 ## 📜 License
 
-This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)** - see the [LICENSE](LICENSE) file for details.
+### Dual Licensing: Code and Artwork
 
-### License Summary
+This project uses **different licenses** for code and artwork:
+
+#### Source Code License
+
+The **cmdai source code** is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)** - see the [LICENSE](LICENSE) file for details.
+
+**Code License Summary**:
 - ✅ Commercial use
 - ✅ Modification
 - ✅ Distribution
@@ -514,13 +520,49 @@ This project is licensed under the **GNU Affero General Public License v3.0 (AGP
 - ⚠️ Same license requirement
 - ⚠️ State changes documentation
 
+#### Artwork and Assets License
+
+**Artwork, animations, and visual assets** in the `assets/` directory are **NOT covered by the AGPL-3.0 license**.
+
+Each artist retains copyright over their work and specifies their own license terms:
+
+- 🎨 **Original characters and artwork**: Typically under restrictive licenses (not open source)
+- 📁 **Check individual licenses**: See `assets/[artist-name]/LICENSE.md` for specific terms
+- ⚠️ **Not redistributable**: Most artwork cannot be used outside of cmdai without permission
+- ✅ **Attribution required**: Always credit the original artists
+
+**For full details**, see:
+- [Assets Directory README](assets/README.md) - Overview of all contributed artwork
+- [Contributing Assets Guide](docs/CONTRIBUTING_ASSETS.md) - How to contribute your artwork
+- Individual `LICENSE.md` files in each artist's folder
+
+#### Why Separate Licenses?
+
+This dual-licensing approach:
+- ✅ Protects artists' creative work and original characters
+- ✅ Allows open-source collaboration on the code
+- ✅ Encourages contributions from both developers and artists
+- ✅ Ensures proper attribution and copyright respect
+
+**Important**: If you fork or redistribute cmdai, you may need to **exclude artwork** with restrictive licenses or get explicit permission from the artists.
+
 ## 🙏 Acknowledgments
 
+### Technology
 - [MLX](https://github.com/ml-explore/mlx) - Apple's machine learning framework
 - [vLLM](https://github.com/vllm-project/vllm) - High-performance LLM serving
 - [Ollama](https://ollama.ai) - Local LLM runtime
 - [Hugging Face](https://huggingface.co) - Model hosting and caching
 - [clap](https://github.com/clap-rs/clap) - Command-line argument parsing
+
+### Artwork Contributors
+
+Thank you to all artists who have contributed to cmdai! 🎨
+
+<!-- Artists will be listed here as they contribute -->
+<!-- See assets/README.md for the full list of contributors -->
+
+**Want to contribute artwork?** See the [Contributing Assets Guide](docs/CONTRIBUTING_ASSETS.md).
 
 ## 📞 Support & Community
 

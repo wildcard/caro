@@ -756,6 +756,205 @@ Save time with these ready-to-use templates in `examples/`:
 
 Copy, modify, and make them your own!
 
+## Sharing Your Artwork: Contributing to the Repository
+
+Once you've created amazing animations, you may want to contribute them to the cmdai project!
+
+### Why Contribute Your Artwork?
+
+✅ **Showcase your work** - Get your art seen by the community
+✅ **Get attributed** - Proper credit in the project
+✅ **Help others** - Your art can be used as examples and inspiration
+✅ **Protect your rights** - You retain copyright and control
+
+### Important: Licensing Your Artwork
+
+**Your artwork is NOT automatically open source!**
+
+Even though cmdai's code is open source (AGPL-3.0), **your artwork is separate** and you choose how it can be used.
+
+**Two main options**:
+
+1. **Restrictive License** (Recommended for original characters)
+   - ✅ People can view your art in cmdai
+   - ✅ People can use cmdai including your art
+   - ❌ People cannot use your art in other projects
+   - ❌ People cannot redistribute your art separately
+   - **Best for**: Original characters you want to protect
+
+2. **Permissive License** (Creative Commons)
+   - ✅ People can use your art with attribution
+   - ✅ More exposure for your work
+   - ⚠️ Less control over usage
+   - **Best for**: Generic UI elements, reusable sprites
+
+**When in doubt**: Use the restrictive license. You can always make it more permissive later!
+
+### Step-by-Step: Uploading Your Assets
+
+**Complete guide**: See [Contributing Assets Guide](CONTRIBUTING_ASSETS.md) for full details.
+
+**Quick version**:
+
+#### 1. Get Repository Access
+
+1. Create a GitHub account at [github.com](https://github.com)
+2. Contact the project owner to be added as a collaborator
+3. Accept the invitation email
+
+#### 2. Create Your Artist Folder
+
+Using GitHub's web interface (no Git knowledge needed):
+
+1. Navigate to the `assets/` folder
+2. Click **"Add file"** → **"Create new file"**
+3. Name it: `your-name/README.md` (this creates the folder!)
+4. Fill in the README using the [template](../assets/ARTIST_README_TEMPLATE.md)
+5. Click **"Commit new file"**
+
+#### 3. Add Your License
+
+1. In your folder (`assets/your-name/`), click **"Add file"** → **"Create new file"**
+2. Name it: `LICENSE.md`
+3. Copy the [Asset License Template](../ASSET-LICENSE-TEMPLATE.md)
+4. Fill in your information
+5. Click **"Commit new file"**
+
+#### 4. Upload Your Files
+
+1. In your folder, click **"Add file"** → **"Upload files"**
+2. Drag and drop your files:
+   - Aseprite source files (`.ase`)
+   - ANSI art (`.ans`)
+   - DurDraw files (`.dur`)
+   - PNG exports
+   - Concept art
+3. Organize into subfolders:
+   ```
+   your-name/
+   ├── character-name/
+   │   ├── source/      (Aseprite files)
+   │   ├── export/      (ANSI, DurDraw, PNG)
+   │   └── README.md    (About the character)
+   ```
+4. Add a commit message like: "Add [Character Name] artwork and animations"
+5. Click **"Commit changes"**
+
+### What to Include
+
+**Required**:
+- ✅ `README.md` - About you and your assets
+- ✅ `LICENSE.md` - How your artwork can be used
+- ✅ Source files - Original Aseprite files
+- ✅ Exported files - ANSI, DurDraw, or PNG
+
+**Recommended**:
+- ⭐ Character documentation - Explain each character
+- ⭐ Concept art - Show your design process
+- ⭐ Color palette info - Document your color choices
+
+**Optional**:
+- 💡 Sketches and early designs
+- 💡 Animation specifications
+- 💡 Design notes and inspiration
+
+### File Organization Example
+
+Here's how to organize your files:
+
+```
+assets/
+└── your-name/               # Your artist folder
+    ├── README.md           # About you
+    ├── LICENSE.md          # Your asset license
+    ├── kyaro/              # Example character
+    │   ├── source/
+    │   │   ├── kyaro-idle.ase
+    │   │   └── kyaro-walk.ase
+    │   ├── export/
+    │   │   ├── kyaro-idle.ans
+    │   │   ├── kyaro-walk.dur
+    │   │   └── frames/
+    │   │       ├── walk-01.png
+    │   │       └── walk-02.png
+    │   └── README.md       # About Kyaro
+    └── ui-elements/
+        └── spinner.ase
+```
+
+### Testing Before You Upload
+
+Before uploading, make sure:
+
+1. **Files are complete**
+   - All source files included
+   - Exports are up to date
+   - No temporary files
+
+2. **Files work correctly**
+   - Test in the demo applications
+   - Verify animations play properly
+   - Check colors display correctly
+
+3. **Documentation is clear**
+   - README explains what each file is
+   - License terms are specific
+   - Contact information is accurate (if included)
+
+### After Uploading
+
+Once your files are uploaded:
+
+1. **Test them in the project**
+   ```bash
+   # Pull the latest code
+   git pull
+
+   # Test your asset
+   cargo run --example aseprite_demo
+   ```
+
+2. **Get feedback**
+   - Share the link with the project owner
+   - Ask for code review
+   - Make any requested changes
+
+3. **Celebrate!** 🎉
+   - Your artwork is now part of cmdai
+   - You'll be credited in the project
+   - Others can see and appreciate your work
+
+### Attribution
+
+Your work will be credited in:
+- The main README
+- The assets directory README
+- The application's About/Credits section
+
+**Example attribution**:
+```
+Kyaro character © 2025 Your Name
+Created for cmdai terminal animation system
+Licensed under Restrictive Asset License
+```
+
+### Getting Help
+
+**Questions about uploading assets?**
+
+1. **Read the complete guide**: [Contributing Assets Guide](CONTRIBUTING_ASSETS.md)
+2. **Check the templates**:
+   - [Asset License Template](../ASSET-LICENSE-TEMPLATE.md)
+   - [Artist README Template](../assets/ARTIST_README_TEMPLATE.md)
+3. **Ask for help**:
+   - Create a GitHub Issue
+   - Tag it with "assets" or "documentation"
+   - The community will help!
+
+**Contact the project owner**:
+- Email: [If provided]
+- GitHub: Create an issue or discussion
+
 ## Quick Reference Card
 
 ### File Formats Quick Guide
