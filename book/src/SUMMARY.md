@@ -2,6 +2,13 @@
 
 [Introduction](./introduction.md)
 
+# Learn by Example
+
+- [Tutorial: Your First Command](./tutorial/first-command.md)
+- [Tutorial: Working with Files](./tutorial/working-with-files.md)
+- [Tutorial: System Operations](./tutorial/system-operations.md)
+- [Try It Online](./tutorial/playground.md)
+
 # User Guide
 
 - [Getting Started](./user-guide/getting-started.md)

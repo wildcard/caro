@@ -52,6 +52,36 @@ This project is in **active early development**. The architecture and module str
 - Shell script generation
 - Command history and learning
 
+## Learn by Example
+
+New to cmdai? Start with our interactive tutorials:
+
+### 🎯 [Tutorial: Your First Command](./tutorial/first-command.md)
+**5 minutes** - Step-by-step introduction to generating commands
+- Generate your first command
+- Understand safety validation
+- Execute commands safely
+
+### 📂 [Tutorial: Working with Files](./tutorial/working-with-files.md)
+**15 minutes** - Master file operations through real-world examples
+- Find and organize files
+- Safe deletion and cleanup
+- Advanced file operations
+
+### 💻 [Tutorial: System Operations](./tutorial/system-operations.md)
+**15 minutes** - Monitor and manage your system
+- Check disk space and memory
+- Monitor processes
+- Network troubleshooting
+
+### 🎮 [Try It Online](./tutorial/playground.md)
+**Coming Soon** - Interactive playground in your browser
+- No installation required
+- Safe experimentation
+- Share examples
+
+---
+
 ## Quick Example
 
 ```bash
@@ -70,9 +100,14 @@ cmdai --safety permissive "clean temporary files"
 
 ## Next Steps
 
-- [Getting Started](./user-guide/getting-started.md) - Install and run cmdai
-- [Architecture](./dev-guide/architecture.md) - Understand the design
-- [Contributing](./dev-guide/contributing.md) - Join the project
+**New users:**
+- 🚀 [Tutorial: Your First Command](./tutorial/first-command.md) - Start here!
+- 📖 [Getting Started](./user-guide/getting-started.md) - Install and run cmdai
+- 🎯 [Quick Start](./user-guide/quick-start.md) - Common patterns
+
+**Contributors:**
+- 🏗️ [Architecture](./dev-guide/architecture.md) - Understand the design
+- 🤝 [Contributing](./dev-guide/contributing.md) - Join the project
 
 ---
 
