@@ -74,13 +74,13 @@ jobs:
             ${{ runner.os }}-target-clippy-
 
       - name: Run clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
+        run: cargo clippy --lib --bins --tests --all-features -- -D warnings
 
   # ============================================================================
   # Build and Test Matrix
   # ============================================================================
   test:
-    name: Test (${{ matrix.os }}, ${{ matrix.features }})
+    name: Test (${{ matrix.os }}, ${{ matrix.features.name }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

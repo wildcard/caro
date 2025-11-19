@@ -40,14 +40,7 @@ pub fn restore_terminal(terminal: &mut TerminalType) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
-    // Note: These tests don't actually test terminal setup/restore
-    // because they require a real terminal. They're here for completeness.
-
-    #[test]
-    fn test_module_exists() {
-        // Dummy test to verify module compiles
-        assert!(true);
-    }
+    // Note: Terminal setup/restore tests require a real terminal environment.
+    // Integration tests should be added when running in a CI environment with
+    // proper terminal emulation.
 }

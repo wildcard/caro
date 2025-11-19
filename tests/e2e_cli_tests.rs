@@ -515,7 +515,7 @@ fn ensure_binary_built() {
     use std::process::Command;
 
     let output = Command::new("cargo")
-        .args(&["build", "--bin", "cmdai"])
+        .args(["build", "--bin", "cmdai"])
         .output()
         .expect("Failed to build cmdai binary");
 

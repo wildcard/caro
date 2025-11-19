@@ -2,6 +2,12 @@
 
 Thank you for your interest in contributing to cmdai! We're building a safety-first, high-performance CLI tool that brings the power of local LLMs to shell command generation. Whether you're fixing bugs, adding features, improving documentation, or expanding safety patterns, your contributions are welcome.
 
+## 🚀 Quick Links
+
+- **Having build issues?** → See [BUILD.md](BUILD.md) for complete build instructions and troubleshooting
+- **CI failing on your PR?** → Check [BUILD.md#troubleshooting](BUILD.md#troubleshooting) for common CI issues
+- **First time contributor?** → Start with [Getting Started](#getting-started) below
+
 ## Table of Contents
 
 - [Project Vision](#project-vision)
@@ -77,13 +83,13 @@ Run the full validation suite to ensure everything is working:
 
 ```bash
 # Format check
-cargo fmt --check
+cargo fmt --all -- --check
 
-# Linter
-cargo clippy -- -D warnings
+# Linter (same as CI)
+cargo clippy --lib --bins --tests --all-features -- -D warnings
 
 # Tests
-cargo test
+cargo test --lib
 
 # Or use the convenience command
 make check
@@ -173,8 +179,8 @@ cargo fmt --check
 All Clippy warnings are treated as errors:
 
 ```bash
-# Run linter
-cargo clippy -- -D warnings
+# Run linter (same as CI)
+cargo clippy --lib --bins --tests --all-features -- -D warnings
 ```
 
 **Key rules**:
@@ -285,8 +291,10 @@ async fn test_cache_manager_handles_missing_model() {
 1. **Run full validation**:
    ```bash
    make check
-   # Or manually:
-   cargo test && cargo fmt --check && cargo clippy -- -D warnings
+   # Or manually (same as CI):
+   cargo fmt --all -- --check
+   cargo clippy --lib --bins --tests --all-features -- -D warnings
+   cargo test --lib
    ```
 
 2. **Update documentation**:
