@@ -8,27 +8,27 @@ This implementation adds comprehensive prompt testing infrastructure using GitHu
 
 ### 1. Prompt Files (`prompts/` directory)
 
-Four production-ready `.prompt.yml` files for GitHub Models:
+Four production-ready `.prompt.yaml` files for GitHub Models:
 
-#### `base-command-generation.prompt.yml`
+#### `base-command-generation.prompt.yaml`
 - **Status**: Production
 - **Purpose**: Current system prompt used across all backends
 - **Features**: JSON-only output, POSIX compliance, basic safety
 - **Use case**: Default prompt for general command generation
 
-#### `safety-focused.prompt.yml`
+#### `safety-focused.prompt.yaml`
 - **Status**: Experimental
 - **Purpose**: Enhanced safety-first variant
 - **Features**: Stricter safety rules, explicit risk assessment, read-only preference
 - **Use case**: High-security environments, enterprise deployments
 
-#### `concise-generation.prompt.yml`
+#### `concise-generation.prompt.yaml`
 - **Status**: Experimental
 - **Purpose**: Performance-optimized minimal token variant
 - **Features**: Reduced prompt length, faster inference (<1s target)
 - **Use case**: Performance-critical applications, resource-constrained environments
 
-#### `verbose-explanation.prompt.yml`
+#### `verbose-explanation.prompt.yaml`
 - **Status**: Experimental
 - **Purpose**: Educational variant with explanations
 - **Features**: Extended output format: `{"cmd": "...", "explanation": "..."}`
@@ -94,20 +94,20 @@ Added new section: "Prompt Engineering & Testing" that:
 
 1. **Manual Testing (GitHub UI)**
    - Navigate to Models tab → Prompts
-   - Select a `.prompt.yml` file
+   - Select a `.prompt.yaml` file
    - Click Run to test against different models
    - Compare outputs side-by-side
 
 2. **Automated Testing (CLI)**
    ```bash
    # Single prompt
-   gh models eval prompts/base-command-generation.prompt.yml
+   gh models eval prompts/base-command-generation.prompt.yaml
 
    # All prompts
-   gh models eval prompts/*.prompt.yml
+   gh models eval prompts/*.prompt.yaml
 
    # Specific model
-   gh models eval prompts/base-command-generation.prompt.yml --model gpt-4
+   gh models eval prompts/base-command-generation.prompt.yaml --model gpt-4
    ```
 
 3. **CI/CD Pipeline**
@@ -190,7 +190,7 @@ We track these metrics for each prompt variant:
 
 1. **Test existing prompts**
    ```bash
-   gh models eval prompts/base-command-generation.prompt.yml
+   gh models eval prompts/base-command-generation.prompt.yaml
    ```
 
 2. **Review benchmark results**
@@ -205,7 +205,7 @@ We track these metrics for each prompt variant:
 ### Short-term (Next sprint)
 
 1. **Dynamic prompt loading**
-   - Refactor backends to load `.prompt.yml` files
+   - Refactor backends to load `.prompt.yaml` files
    - Add prompt selection CLI flag: `--prompt safety-focused`
    - Implement runtime prompt switching
 
@@ -222,7 +222,7 @@ We track these metrics for each prompt variant:
 ### Long-term (Future releases)
 
 1. **User-customizable prompts**
-   - Allow users to create custom `.prompt.yml` files
+   - Allow users to create custom `.prompt.yaml` files
    - Prompt marketplace/sharing
    - Community-contributed variants
 
@@ -245,10 +245,10 @@ New files:
 ├── prompts/
 │   ├── README.md                            (Prompts overview)
 │   ├── QUICKSTART.md                        (5-min getting started)
-│   ├── base-command-generation.prompt.yml   (Production prompt)
-│   ├── safety-focused.prompt.yml            (Safety variant)
-│   ├── concise-generation.prompt.yml        (Performance variant)
-│   └── verbose-explanation.prompt.yml       (Educational variant)
+│   ├── base-command-generation.prompt.yaml   (Production prompt)
+│   ├── safety-focused.prompt.yaml            (Safety variant)
+│   ├── concise-generation.prompt.yaml        (Performance variant)
+│   └── verbose-explanation.prompt.yaml       (Educational variant)
 └── GITHUB_MODELS_IMPLEMENTATION.md          (This file)
 
 Modified files:

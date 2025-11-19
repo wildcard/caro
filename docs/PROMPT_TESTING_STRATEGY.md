@@ -49,7 +49,7 @@ We use GitHub Models for prompt evaluation because it provides:
 
 - **40+ models** including GPT-4, Claude, Llama, Mixtral, and more
 - **Side-by-side comparison** across different models
-- **Version control** - Prompts stored as `.prompt.yml` files in Git
+- **Version control** - Prompts stored as `.prompt.yaml` files in Git
 - **CI/CD integration** - Automated testing on every PR
 - **Free tier** for public repositories
 
@@ -187,7 +187,7 @@ We track these metrics for each prompt variant:
 1. Go to your repository on GitHub
 2. Click the **Models** tab
 3. Select **Prompts** from sidebar
-4. Click on a `.prompt.yml` file
+4. Click on a `.prompt.yaml` file
 5. Click **Run** to test against different models
 6. Compare outputs side-by-side
 
@@ -202,23 +202,23 @@ brew install gh  # macOS
 gh auth login
 
 # Run evaluation on a single prompt
-gh models eval prompts/base-command-generation.prompt.yml
+gh models eval prompts/base-command-generation.prompt.yaml
 
 # Run evaluation on all prompts
-gh models eval prompts/*.prompt.yml
+gh models eval prompts/*.prompt.yaml
 
 # Compare two prompt variants
 gh models eval \
-  prompts/base-command-generation.prompt.yml \
-  prompts/safety-focused.prompt.yml \
+  prompts/base-command-generation.prompt.yaml \
+  prompts/safety-focused.prompt.yaml \
   --output comparison.json
 
 # Test with specific model
-gh models eval prompts/base-command-generation.prompt.yml \
+gh models eval prompts/base-command-generation.prompt.yaml \
   --model gpt-4
 
 # Run with custom test cases
-gh models eval prompts/base-command-generation.prompt.yml \
+gh models eval prompts/base-command-generation.prompt.yaml \
   --test-file tests/custom-scenarios.yml
 ```
 
@@ -240,7 +240,7 @@ def evaluate_prompt(prompt_file, model="gpt-4"):
     return json.loads(result.stdout)
 
 # Evaluate all prompts
-for prompt_file in Path("prompts").glob("*.prompt.yml"):
+for prompt_file in Path("prompts").glob("*.prompt.yaml"):
     print(f"Evaluating {prompt_file.name}...")
 
     results = evaluate_prompt(prompt_file)
@@ -262,7 +262,7 @@ Our GitHub Actions workflow (`.github/workflows/prompt-evaluation.yml`) automati
 
 ### On Every PR
 
-1. **Validates YAML syntax** - Ensures `.prompt.yml` files are well-formed
+1. **Validates YAML syntax** - Ensures `.prompt.yaml` files are well-formed
 2. **Checks required fields** - Verifies name, description, version, etc.
 3. **Tests template rendering** - Confirms parameter substitution works
 4. **Analyzes metrics** - Reports character count, token estimates, test coverage
@@ -284,7 +284,7 @@ All PR checks plus:
 on:
   pull_request:
     paths:
-      - 'prompts/**/*.prompt.yml'  # Only when prompts change
+      - 'prompts/**/*.prompt.yaml'  # Only when prompts change
 
   push:
     branches:
@@ -398,7 +398,7 @@ Test each prompt variant against multiple models:
 
 ```bash
 # Create a test matrix
-for prompt in prompts/*.prompt.yml; do
+for prompt in prompts/*.prompt.yaml; do
   for model in gpt-4 claude-3-5-sonnet llama-3-70b; do
     echo "Testing $prompt with $model..."
     gh models eval "$prompt" --model "$model"
@@ -484,7 +484,7 @@ prompt: |
 4. Enable caching where available
 
 ```yaml
-# Use concise-generation.prompt.yml
+# Use concise-generation.prompt.yaml
 optimization_goal: minimal_tokens
 max_tokens: 50  # Reduce from 100
 ```
@@ -519,7 +519,7 @@ prompt: |
 
 1. **Run your first evaluation**:
    ```bash
-   gh models eval prompts/base-command-generation.prompt.yml
+   gh models eval prompts/base-command-generation.prompt.yaml
    ```
 
 2. **Review the results** in GitHub Models UI

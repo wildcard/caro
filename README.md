@@ -264,7 +264,7 @@ The project uses contract-based testing:
 
 cmdai uses GitHub Models for systematic prompt testing and optimization:
 
-- **Version-controlled prompts** - All system prompts stored as `.prompt.yml` files in `prompts/`
+- **Version-controlled prompts** - All system prompts stored as `.prompt.yaml` files in `prompts/`
 - **Multi-model evaluation** - Test prompts across 40+ models (GPT-4, Claude, Llama, etc.)
 - **Automated testing** - CI/CD pipeline validates prompts on every PR
 - **4 prompt variants** - Production, safety-focused, concise, and verbose options
@@ -273,11 +273,11 @@ cmdai uses GitHub Models for systematic prompt testing and optimization:
 ```bash
 # Test prompts in GitHub UI
 # 1. Go to the Models tab in this repository
-# 2. Click Prompts → Select a .prompt.yml file
+# 2. Click Prompts → Select a .prompt.yaml file
 # 3. Click Run to test
 
 # Or use GitHub CLI
-gh models eval prompts/base-command-generation.prompt.yml
+gh models eval prompts/base-command-generation.prompt.yaml
 ```
 
 **Documentation:**

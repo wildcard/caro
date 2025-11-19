@@ -6,14 +6,14 @@ This directory contains version-controlled prompts for cmdai's natural language 
 
 cmdai uses carefully crafted system prompts to convert natural language descriptions into safe POSIX shell commands. This directory provides:
 
-- **Versioned prompt templates** in `.prompt.yml` format
+- **Versioned prompt templates** in `.prompt.yaml` format
 - **Test cases** for each prompt variant
 - **Safety constraints** and validation rules
 - **Performance benchmarks** for prompt optimization
 
 ## Prompt Variants
 
-### 1. Base Command Generation (`base-command-generation.prompt.yml`)
+### 1. Base Command Generation (`base-command-generation.prompt.yaml`)
 
 **Status:** Production
 **Use Case:** Default prompt used across all backends (Ollama, vLLM, MLX)
@@ -29,7 +29,7 @@ Our core system prompt optimized for:
 - General command generation
 - Cross-platform compatibility
 
-### 2. Safety-Focused Generation (`safety-focused.prompt.yml`)
+### 2. Safety-Focused Generation (`safety-focused.prompt.yaml`)
 
 **Status:** Experimental
 **Use Case:** High-security environments, enterprise deployments
@@ -45,7 +45,7 @@ Enhanced safety-first variant with:
 - Educational tools where safety is paramount
 - Testing safety boundary cases
 
-### 3. Concise Generation (`concise-generation.prompt.yml`)
+### 3. Concise Generation (`concise-generation.prompt.yaml`)
 
 **Status:** Experimental
 **Use Case:** Performance optimization, embedded systems
@@ -61,7 +61,7 @@ Minimal token usage variant optimized for:
 - High-frequency command generation
 - Embedded or edge deployments
 
-### 4. Verbose Explanation (`verbose-explanation.prompt.yml`)
+### 4. Verbose Explanation (`verbose-explanation.prompt.yaml`)
 
 **Status:** Experimental
 **Use Case:** Educational, debugging, user transparency
@@ -92,7 +92,7 @@ Extended response format with explanations:
 
 1. Navigate to the **Models** tab in your repository
 2. Click **Prompts** in the sidebar
-3. Select a `.prompt.yml` file to open in the editor
+3. Select a `.prompt.yaml` file to open in the editor
 4. Click **Run** to test against different models
 5. Compare outputs across 40+ models (GPT-4, Claude, Llama, etc.)
 
@@ -100,14 +100,14 @@ Extended response format with explanations:
 
 ```bash
 # Test a specific prompt
-gh models eval prompts/base-command-generation.prompt.yml
+gh models eval prompts/base-command-generation.prompt.yaml
 
 # Run evaluations across all prompts
-gh models eval prompts/*.prompt.yml
+gh models eval prompts/*.prompt.yaml
 
 # Compare prompt variants side-by-side
-gh models eval prompts/base-command-generation.prompt.yml \
-               prompts/safety-focused.prompt.yml \
+gh models eval prompts/base-command-generation.prompt.yaml \
+               prompts/safety-focused.prompt.yaml \
                --output comparison.json
 ```
 
@@ -125,7 +125,7 @@ When testing prompts, evaluate on:
 ### Example Test Scenarios
 
 ```yaml
-# Add to test_cases in any .prompt.yml file
+# Add to test_cases in any .prompt.yaml file
 test_cases:
   # Basic file operations
   - input: "list all files"
@@ -161,9 +161,9 @@ fn create_system_prompt(&self, request: &CommandRequest) -> String {
 }
 ```
 
-### Migrating to `.prompt.yml` Files
+### Migrating to `.prompt.yaml` Files
 
-**Future Enhancement:** Load prompts dynamically from `.prompt.yml` files:
+**Future Enhancement:** Load prompts dynamically from `.prompt.yaml` files:
 
 ```rust
 // Proposed architecture
@@ -171,7 +171,7 @@ use std::fs;
 use serde_yaml;
 
 fn load_prompt_template(variant: &str) -> Result<PromptTemplate> {
-    let path = format!("prompts/{}.prompt.yml", variant);
+    let path = format!("prompts/{}.prompt.yaml", variant);
     let content = fs::read_to_string(path)?;
     serde_yaml::from_str(&content)
 }
@@ -202,7 +202,7 @@ Example version history:
 
 When creating a new prompt variant:
 
-1. Copy an existing `.prompt.yml` template
+1. Copy an existing `.prompt.yaml` template
 2. Update the `name`, `description`, and `version` fields
 3. Modify the `prompt` content
 4. Add relevant `test_cases` with expected outputs

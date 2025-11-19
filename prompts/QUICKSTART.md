@@ -18,9 +18,9 @@ Get started testing cmdai prompts in 5 minutes!
 ### Step 2: Select a Prompt
 
 Choose one of these prompts to start:
-- `base-command-generation.prompt.yml` - Current production prompt
-- `safety-focused.prompt.yml` - Enhanced safety variant
-- `concise-generation.prompt.yml` - Performance-optimized
+- `base-command-generation.prompt.yaml` - Current production prompt
+- `safety-focused.prompt.yaml` - Enhanced safety variant
+- `concise-generation.prompt.yaml` - Performance-optimized
 
 ### Step 3: Run the Prompt
 
@@ -79,23 +79,23 @@ Follow the prompts to authenticate.
 cd /path/to/cmdai
 
 # Test the base prompt
-gh models eval prompts/base-command-generation.prompt.yml
+gh models eval prompts/base-command-generation.prompt.yaml
 ```
 
 ### Step 4: Try Different Prompts
 
 ```bash
 # Test all prompts
-gh models eval prompts/*.prompt.yml
+gh models eval prompts/*.prompt.yaml
 
 # Test specific model
-gh models eval prompts/base-command-generation.prompt.yml \
+gh models eval prompts/base-command-generation.prompt.yaml \
   --model gpt-4
 
 # Compare two variants
 gh models eval \
-  prompts/base-command-generation.prompt.yml \
-  prompts/safety-focused.prompt.yml \
+  prompts/base-command-generation.prompt.yaml \
+  prompts/safety-focused.prompt.yaml \
   --output comparison.json
 ```
 
@@ -226,11 +226,11 @@ gh workflow run prompt-evaluation.yml
 
 ### 3. Create Your Own Prompt Variant
 
-Copy an existing `.prompt.yml` file and modify:
+Copy an existing `.prompt.yaml` file and modify:
 
 ```bash
 cd prompts
-cp base-command-generation.prompt.yml my-custom-prompt.prompt.yml
+cp base-command-generation.prompt.yaml my-custom-prompt.prompt.yaml
 ```
 
 Edit the file:
@@ -246,7 +246,7 @@ prompt: |
 
 Test it:
 ```bash
-gh models eval prompts/my-custom-prompt.prompt.yml
+gh models eval prompts/my-custom-prompt.prompt.yaml
 ```
 
 ### 4. Compare Performance
@@ -255,16 +255,16 @@ Run benchmarks:
 
 ```bash
 # Test latency
-time gh models eval prompts/concise-generation.prompt.yml
+time gh models eval prompts/concise-generation.prompt.yaml
 
 # Test safety
-gh models eval prompts/safety-focused.prompt.yml \
+gh models eval prompts/safety-focused.prompt.yaml \
   --test-file tests/dangerous-requests.yml
 
 # Test across models
 for model in gpt-4 claude-3-5-sonnet llama-3-70b; do
   echo "Testing with $model..."
-  gh models eval prompts/base-command-generation.prompt.yml \
+  gh models eval prompts/base-command-generation.prompt.yaml \
     --model $model
 done
 ```

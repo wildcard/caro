@@ -3,18 +3,18 @@ name: Prompt Evaluation
 on:
   pull_request:
     paths:
-      - 'prompts/**/*.prompt.yml'
+      - 'prompts/**/*.prompt.yaml'
       - '.github/workflows/prompt-evaluation.yml'
   push:
     branches:
       - main
       - claude/**
     paths:
-      - 'prompts/**/*.prompt.yml'
+      - 'prompts/**/*.prompt.yaml'
   workflow_dispatch:
     inputs:
       prompt_file:
-        description: 'Specific prompt file to evaluate (e.g., prompts/base-command-generation.prompt.yml)'
+        description: 'Specific prompt file to evaluate (e.g., prompts/base-command-generation.prompt.yaml)'
         required: false
         type: string
       model_name:
@@ -48,7 +48,7 @@ jobs:
           from pathlib import Path
 
           errors = []
-          for prompt_file in Path('prompts').glob('*.prompt.yml'):
+          for prompt_file in Path('prompts').glob('*.prompt.yaml'):
               try:
                   with open(prompt_file) as f:
                       data = yaml.safe_load(f)
@@ -79,7 +79,7 @@ jobs:
                   print(f"  ✗ {error}")
               sys.exit(1)
           else:
-              print(f"\n✓ All {len(list(Path('prompts').glob('*.prompt.yml')))} prompt files are valid")
+              print(f"\n✓ All {len(list(Path('prompts').glob('*.prompt.yaml')))} prompt files are valid")
           EOF
 
       - name: Check for duplicate test cases
@@ -91,7 +91,7 @@ jobs:
 
           test_inputs = defaultdict(list)
 
-          for prompt_file in Path('prompts').glob('*.prompt.yml'):
+          for prompt_file in Path('prompts').glob('*.prompt.yaml'):
               with open(prompt_file) as f:
                   data = yaml.safe_load(f)
                   if 'test_cases' in data:
@@ -138,7 +138,7 @@ jobs:
               'input': 'list all files'
           }
 
-          for prompt_file in Path('prompts').glob('*.prompt.yml'):
+          for prompt_file in Path('prompts').glob('*.prompt.yaml'):
               with open(prompt_file) as f:
                   data = yaml.safe_load(f)
 
@@ -190,7 +190,7 @@ jobs:
 
           print("Prompt Analysis Report\n" + "="*60)
 
-          for prompt_file in sorted(Path('prompts').glob('*.prompt.yml')):
+          for prompt_file in sorted(Path('prompts').glob('*.prompt.yaml')):
               with open(prompt_file) as f:
                   data = yaml.safe_load(f)
 
@@ -243,7 +243,7 @@ jobs:
 
           issues = []
 
-          for prompt_file in Path('prompts').glob('*.prompt.yml'):
+          for prompt_file in Path('prompts').glob('*.prompt.yaml'):
               with open(prompt_file) as f:
                   content = f.read().lower()
 
@@ -268,7 +268,7 @@ jobs:
 
           print("Safety Constraints Review:\n")
 
-          for prompt_file in Path('prompts').glob('*.prompt.yml'):
+          for prompt_file in Path('prompts').glob('*.prompt.yaml'):
               with open(prompt_file) as f:
                   data = yaml.safe_load(f)
 
@@ -325,7 +325,7 @@ jobs:
             gh models eval "${{ inputs.prompt_file }}"
           else
             echo "Evaluating all prompts..."
-            for prompt in prompts/*.prompt.yml; do
+            for prompt in prompts/*.prompt.yaml; do
               echo "Evaluating $prompt..."
               gh models eval "$prompt" || echo "Warning: Evaluation failed for $prompt"
             done
