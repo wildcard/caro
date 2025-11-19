@@ -242,23 +242,38 @@ Available custom classes in `globals.css`:
 
 ## 🚀 Deployment
 
-### Static Export
+**📖 For complete deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md)**
+
+### Quick Deploy to Vercel
 
 ```bash
-# Build for static hosting
-npm run build
+# Install Vercel CLI
+npm install -g vercel
 
-# Output will be in .next/ directory
-# Deploy .next/ to your hosting provider
+# Login
+vercel login
+
+# Deploy
+cd apps/devrel
+vercel --prod
 ```
 
 ### Recommended Platforms
 
-- **Vercel** (optimized for Next.js)
+- **Vercel** (optimized for Next.js) - ⭐ Recommended
 - **Netlify**
 - **Cloudflare Pages**
 - **GitHub Pages** (with static export)
 - **AWS S3 + CloudFront**
+
+### CI/CD
+
+GitHub Actions automatically:
+- ✅ Builds and tests on every PR
+- ✅ Checks accessibility and bundle size
+- ✅ Verifies monorepo separation
+
+See `.github/workflows/devrel-website.yml` for details.
 
 ### Environment Variables
 
