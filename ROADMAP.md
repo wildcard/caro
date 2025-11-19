@@ -1,17 +1,30 @@
 # cmdai MVP Roadmap
 ## Spec-Driven Development Path to Production
 
-**Document Version**: 1.0
+**Document Version**: 1.1
 **Last Updated**: 2025-11-19
 **Project**: cmdai - Natural Language to Shell Command CLI
 **Current Status**: Pre-Alpha (65% MVP Complete)
 **Target MVP Release**: Q1 2026
+
+> ⚠️ **Important**: The timelines in this document are optimistic and assume perfect execution with team collaboration.
+>
+> **For realistic timelines and achievability analysis**, see:
+> - **[ROADMAP_REALITY_CHECK.md](./ROADMAP_REALITY_CHECK.md)** - Honest assessment with 3 scenarios (solo: 12-16 weeks, team: 8-12 weeks, community: 6-10 weeks)
+> - **[PHASE_1_TASKS.md](./PHASE_1_TASKS.md)** - Detailed task breakdown with 2-4 hour tasks for Phase 1
 
 ---
 
 ## Executive Summary
 
 This roadmap defines the structured path from the current pre-alpha state to a production-ready MVP, followed by community-driven feature prioritization for post-MVP releases. The project follows **spec-driven development** methodology using GitHub's spec-kit workflow.
+
+**Timeline Note**: The original estimates (6-7 weeks total) were optimistic. Realistic timelines:
+- **Solo developer**: 12-16 weeks (3-4 months)
+- **Small team (2-3)**: 8-12 weeks (2-3 months)
+- **Active community (5+)**: 6-10 weeks (1.5-2.5 months)
+
+See [ROADMAP_REALITY_CHECK.md](./ROADMAP_REALITY_CHECK.md) for detailed analysis.
 
 ### Current State (as of 2025-11-19)
 - ✅ **65% MVP Feature Complete**
@@ -63,13 +76,17 @@ This roadmap defines the structured path from the current pre-alpha state to a p
 ---
 
 ## 🎯 Phase 1: Real Model Inference (CRITICAL PATH)
-**Target**: 2 weeks
+**Target**: 2 weeks (optimistic) | **Realistic**: 4-6 weeks solo, 2-3 weeks team
 **Priority**: CRITICAL - Blocks all other work
 **Assignable**: Yes
 **Spec Command**: `/specify Feature 006: Real Model Inference Integration`
 
+> 📋 **Detailed Task Breakdown**: See [PHASE_1_TASKS.md](./PHASE_1_TASKS.md) for 40+ granular tasks with 2-4 hour estimates
+
 ### Overview
-Connect simulated inference to actual neural network models using mlx-rs (Apple Silicon) and candle-transformers (cross-platform CPU). This is the single most critical blocker to MVP.
+Connect simulated inference to actual neural network models using llama-cpp-rs (recommended for MVP) or candle-transformers (cross-platform CPU). This is the single most critical blocker to MVP.
+
+**Simplified Approach for MVP**: Use llama-cpp-rs instead of building MLX/Candle from scratch. This reduces complexity and timeline significantly.
 
 ### Milestones
 
