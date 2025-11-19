@@ -14,10 +14,13 @@ Execute this command? (y/N) y
 
 ## 📋 Project Status
 
-**Current State**: 80% Complete | **Timeline**: 6-8 weeks to v1.0
-**Test Suite**: 133/136 passing (98%) | **Documentation**: Comprehensive
+**Current State**: **70% Complete** (revised) | **Timeline**: **8-10 weeks** to v1.0 (revised)
+**Test Suite**: 133/136 passing (98%) | **Gaps**: 13 total (4 P0, 5 P1, 4 P2)
 
-> **📖 For detailed project assessment, see [PROJECT_STATUS.md](PROJECT_STATUS.md)**
+> **⚠️ UPDATED**: Comprehensive MVP gap analysis revealed 9 additional gaps beyond original 4 blockers
+>
+> **📖 For complete gap analysis, see [MVP_GAPS.md](MVP_GAPS.md)** ← **START HERE**
+> **📊 For detailed project assessment, see [PROJECT_STATUS.md](PROJECT_STATUS.md)**
 > **🚨 For critical blockers and solutions, see [BLOCKERS.md](BLOCKERS.md)**
 > **💻 For implementation guides, see [IMPLEMENTATION_GUIDE.md](IMPLEMENTATION_GUIDE.md)**
 
@@ -41,37 +44,38 @@ Execute this command? (y/N) y
 - ✅ Clippy clean - no warnings with `--deny warnings`
 - ✅ Security audit - `cargo audit` passing
 
-### 🔴 Critical Blockers (4 items, 40-64 hours to resolve)
+### 🔴 Critical Gaps (13 items, 100-140 hours to resolve)
 
-**P0 - Blocking Launch**:
-1. **Embedded Backend Not Functional** (8-12 hours)
-   - 3 tests failing in embedded_backend_contract.rs
-   - Missing: CPU/MLX inference integration with Candle/PyO3
-   - Impact: Tool cannot generate commands
+**⚠️ UPDATED**: Originally identified 4 blockers, now 13 total gaps after comprehensive analysis.
+**📖 See [MVP_GAPS.md](MVP_GAPS.md) for complete details.**
 
-2. **Model Download Not Implemented** (16-24 hours)
-   - Placeholder function in cache/mod.rs
-   - Missing: Hugging Face HTTP download with progress bar
-   - Impact: Fresh installs completely broken
+**P0 - Must Fix Before Launch** (80-118 hours):
+1. **Embedded Backend Not Functional** (8-12 hours) - 3 failing tests
+2. **Model Download Not Implemented** (16-24 hours) - Fresh installs broken
+3. **🆕 Command Execution Missing** (12-16 hours) - **Tool only displays commands, doesn't execute**
+4. **🆕 Tokenizer Download Missing** (2-4 hours) - **Will break embedded backend**
+5. **Binary Distribution Not Setup** (8-12 hours) - Users can't install
+6. **🆕 User Documentation Missing** (8-12 hours) - **Only developer docs exist**
+7. **🆕 Performance Unvalidated** (6-8 hours) - **Promises not verified**
+8. **🆕 Cross-Platform Testing Incomplete** (8-12 hours) - **No Windows/Linux evidence**
+9. **🆕 Error Messages Not User-Friendly** (4-6 hours) - **Need actionable suggestions**
+10. **🆕 Real-World Validation Missing** (8-12 hours) - **No alpha testing done**
 
-**P1 - Performance & Distribution**:
-3. **MLX Backend Not Optimized** (8-16 hours)
-   - Missing: Apple Silicon GPU acceleration
-   - Target: <2s first inference on M1 Mac
+**P1 - Should Fix Before Launch** (13-23 hours):
+11. **MLX Backend Not Optimized** (8-16 hours) - Apple Silicon performance
+12-13. **Install Scripts & Config Validation** (5-7 hours) - User experience polish
 
-4. **Binary Distribution Not Setup** (8-12 hours)
-   - Missing: Automated releases, Homebrew formula
-   - Impact: Users cannot easily install
+**For detailed analysis of ALL 13 gaps**: See [MVP_GAPS.md](MVP_GAPS.md)
+**For implementation solutions**: See [BLOCKERS.md](BLOCKERS.md) and [IMPLEMENTATION_GUIDE.md](IMPLEMENTATION_GUIDE.md)
 
-**See [BLOCKERS.md](BLOCKERS.md) for detailed solutions and implementation plans.**
+### 🎯 Revised Path to v1.0 Production Launch
 
-### 🎯 Path to v1.0 Production Launch
+**Week 1-2**: Core functionality (50-70h) - Backend, download, execution
+**Week 3**: Quality & validation (30-50h) - Testing, distribution
+**Week 4**: Documentation & polish (20-30h) - User docs, MLX, config
+**Week 5-6**: Beta testing & launch prep
 
-**Week 1-2**: Fix critical blockers (embedded backend + model download)
-**Week 3**: Polish performance and setup distribution
-**Week 4-6**: Documentation, testing, community preparation
-
-**Total Effort**: 40-64 hours of focused development
+**Total Effort**: 100-140 hours of focused development (2.5-3.5 weeks full-time)
 
 ### 📊 Test Status
 
@@ -99,14 +103,15 @@ See [IMPLEMENTATION_GUIDE.md](IMPLEMENTATION_GUIDE.md) for step-by-step instruct
 
 ### 📚 Project Documentation
 
-| Document | Purpose |
-|----------|---------|
-| [PROJECT_STATUS.md](PROJECT_STATUS.md) | Complete project assessment - what works, what's missing, where we're stuck |
-| [BLOCKERS.md](BLOCKERS.md) | Critical issues preventing v1.0, with detailed solutions |
-| [IMPLEMENTATION_GUIDE.md](IMPLEMENTATION_GUIDE.md) | Step-by-step code implementation instructions |
-| [ROADMAP.md](ROADMAP.md) | Detailed 5-phase plan to production (842 lines) |
-| [TECH_DEBT.md](TECH_DEBT.md) | Known issues and improvement opportunities |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute to the project |
+| Document | Purpose | Priority |
+|----------|---------|----------|
+| **[MVP_GAPS.md](MVP_GAPS.md)** | **Complete MVP gap analysis - 13 gaps discovered** | **READ FIRST** ⭐ |
+| [PROJECT_STATUS.md](PROJECT_STATUS.md) | Complete project assessment - honest 70% complete status | High |
+| [BLOCKERS.md](BLOCKERS.md) | Original 4 critical blockers with detailed solutions | High |
+| [IMPLEMENTATION_GUIDE.md](IMPLEMENTATION_GUIDE.md) | Step-by-step code implementation instructions | High |
+| [ROADMAP.md](ROADMAP.md) | Detailed 5-phase plan to production (842 lines) | Medium |
+| [TECH_DEBT.md](TECH_DEBT.md) | Known issues and improvement opportunities | Medium |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute to the project | Medium |
 
 ## ✨ Features (Planned & In Development)
 

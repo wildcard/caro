@@ -1,29 +1,71 @@
 # cmdai Project Status - Complete Assessment
 
-**Last Updated**: 2025-11-18
+**Last Updated**: 2025-11-18 (Updated with comprehensive MVP gap analysis)
 **Version**: v0.1.0 (Pre-release)
-**Completion**: 80% to v1.0 Production Ready
-**Timeline**: 6-8 weeks to production launch
+**Completion**: **70%** to v1.0 Production Ready (revised from 80%)
+**Timeline**: **8-10 weeks** to production launch (revised from 6-8 weeks)
+
+> **⚠️ CRITICAL UPDATE**: Comprehensive MVP analysis revealed 9 additional gaps beyond the 4 originally documented blockers.
+> **📖 See [MVP_GAPS.md](MVP_GAPS.md) for complete gap analysis and revised estimates.**
 
 ---
 
 ## 📊 Executive Summary
 
-**cmdai** is a Rust CLI tool that converts natural language to safe POSIX shell commands using local LLMs. The project has **excellent architectural foundations** with all core infrastructure in place, but requires **4 critical fixes** to become fully operational.
+**cmdai** is a Rust CLI tool that converts natural language to safe POSIX shell commands using local LLMs. The project has **excellent architectural foundations** with all core infrastructure in place, but requires **13 total gaps** to be addressed for production deployment.
 
-### Current State
-- ✅ **80% Complete** - Core architecture, safety system, backends designed
+### Original Assessment (INCOMPLETE)
+- ❌ 4 blockers identified
+- ❌ 40-64 hours to v1.0
+- ❌ 80% complete
+- ❌ 6-8 weeks timeline
+
+### Revised Assessment (COMPLETE - After Comprehensive Analysis)
+- ✅ **13 total gaps** identified (4 original + 9 newly discovered)
+- ✅ **100-140 hours** to production-ready v1.0
+- ✅ **70% complete** (more realistic)
+- ✅ **8-10 weeks** timeline (accounts for testing & validation)
+
+### Critical Discoveries
+
+**New P0 Gaps** (Missed in original assessment):
+1. ✅ **Command Execution Module Missing** - Tool only displays commands, doesn't execute them (12-16h)
+2. ✅ **Tokenizer Download Missing** - Embedded backend needs tokenizer.json, not in model download plan (2-4h)
+
+**New P1 Gaps** (Quality & UX):
+3. ✅ **User Documentation Missing** - Only developer docs exist, no USER_GUIDE.md (8-12h)
+4. ✅ **Performance Unvalidated** - Benchmarks exist but never run, promises unverified (6-8h)
+5. ✅ **Cross-Platform Testing Incomplete** - No evidence of Windows/Linux testing (8-12h)
+6. ✅ **Error Messages Not User-Friendly** - Technical errors need actionable suggestions (4-6h)
+7. ✅ **Real-World Validation Missing** - No alpha testers, no real usage data (8-12h)
+
+**New P2 Gaps** (Polish):
+8. ✅ Installation scripts, upgrade docs, shell completions (9-13h total)
+
+### Current State (Honest Assessment)
+- ✅ **70% Complete** - Core architecture excellent, but missing execution & docs
 - ✅ **Clean Architecture** - Trait-based design, modular structure, comprehensive tests
-- ✅ **Production-Grade Code** - 133 passing tests, clippy-clean, well-documented
-- ❌ **4 Critical Blockers** - Preventing production deployment
+- ✅ **Production-Grade Code** - 133/136 tests passing (98%), clippy-clean
+- ❌ **13 Total Gaps** - 4 P0 (critical), 5 P1 (high), 4 P2 (nice-to-have)
 
-### Path to Production
-1. **Fix 3 failing embedded backend tests** (8-12 hours)
-2. **Implement model download system** (16-24 hours)
-3. **Optimize MLX backend performance** (8-16 hours)
-4. **Create binary distribution** (8-12 hours)
+### Path to Production (Revised)
+**P0 - Must Have** (80-118 hours):
+1. Fix 3 failing embedded backend tests (8-12h)
+2. Implement model download + tokenizer (18-28h combined)
+3. **NEW: Implement command execution module (12-16h)**
+4. Create binary distribution (8-12h)
+5. **NEW: Create user documentation (8-12h)**
+6. **NEW: Validate performance targets (6-8h)**
+7. **NEW: Cross-platform testing (8-12h)**
+8. **NEW: Improve error messages (4-6h)**
+9. **NEW: Real-world validation testing (8-12h)**
 
-**Total Effort**: 40-64 hours (1-2 sprints with focused work)
+**P1 - Should Have** (13-23 hours):
+- MLX optimization (8-16h)
+- Install scripts (3-4h)
+- Config validation (2-3h)
+
+**Total Effort**: 93-141 hours realistic estimate (use 100-140h for planning)
 
 ---
 
