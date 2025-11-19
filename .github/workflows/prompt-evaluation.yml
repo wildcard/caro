@@ -341,10 +341,129 @@ jobs:
             **/*-comparison.json
           retention-days: 30
 
+  # Comprehensive prompt testing using Python test suite
+  run-prompt-tests:
+    name: Run Comprehensive Prompt Tests
+    runs-on: ubuntu-latest
+    needs: validate-prompts
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install test dependencies
+        run: |
+          pip install pyyaml jinja2
+
+      - name: Run prompt structure tests
+        id: structure_tests
+        run: |
+          python3 tests/prompts/test_prompt_structure.py
+
+      - name: Run prompt rendering tests
+        id: rendering_tests
+        run: |
+          python3 tests/prompts/test_prompt_rendering.py
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prompt-test-results
+          path: |
+            test-results.json
+            rendering-test-results.json
+          retention-days: 30
+
+      - name: Generate test summary
+        if: always()
+        run: |
+          echo "# 🧪 Prompt Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f test-results.json ]; then
+            echo "## Structure Validation" >> $GITHUB_STEP_SUMMARY
+            python3 << 'EOF'
+          import json
+          from pathlib import Path
+
+          with open('test-results.json') as f:
+              results = json.load(f)
+
+          valid_count = sum(1 for r in results.values() if r['valid'])
+          total_count = len(results)
+          total_errors = sum(len(r['errors']) for r in results.values())
+          total_warnings = sum(len(r['warnings']) for r in results.values())
+          total_tests = sum(r['metrics'].get('test_cases', 0) for r in results.values())
+
+          print(f"- ✅ Valid prompts: **{valid_count}/{total_count}**")
+          print(f"- ❌ Total errors: **{total_errors}**")
+          print(f"- ⚠️ Total warnings: **{total_warnings}**")
+          print(f"- 🧪 Total test cases: **{total_tests}**")
+          print("")
+
+          for filename, result in sorted(results.items()):
+              status = "✅" if result['valid'] else "❌"
+              print(f"### {status} {filename}")
+              if result['errors']:
+                  print("**Errors:**")
+                  for error in result['errors']:
+                      print(f"- {error}")
+              if result['warnings']:
+                  print("**Warnings:**")
+                  for warning in result['warnings']:
+                      print(f"- {warning}")
+              if result['metrics']:
+                  m = result['metrics']
+                  print(f"**Metrics:** {m.get('test_cases', 0)} tests, {m.get('char_count', 0)} chars, {m.get('word_count', 0)} words")
+              print("")
+          EOF
+          fi >> $GITHUB_STEP_SUMMARY
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f rendering-test-results.json ]; then
+            echo "## Rendering Tests" >> $GITHUB_STEP_SUMMARY
+            python3 << 'EOF'
+          import json
+
+          with open('rendering-test-results.json') as f:
+              results = json.load(f)
+
+          passed_count = sum(1 for r in results.values() if r['passed'])
+          total_count = len(results)
+          total_tests = sum(len(r.get('tests', [])) for r in results.values())
+          passed_tests = sum(sum(1 for t in r.get('tests', []) if t['passed']) for r in results.values())
+
+          print(f"- ✅ Prompts passed: **{passed_count}/{total_count}**")
+          print(f"- 🧪 Individual tests: **{passed_tests}/{total_tests}**")
+          print("")
+
+          for filename, result in sorted(results.items()):
+              status = "✅" if result['passed'] else "❌"
+              print(f"### {status} {filename}")
+              if 'error' in result:
+                  print(f"**Error:** {result['error']}")
+              elif 'tests' in result:
+                  for test in result['tests']:
+                      test_status = "✓" if test['passed'] else "✗"
+                      print(f"- {test_status} {test['scenario']}")
+                      if test.get('issues'):
+                          for issue in test['issues']:
+                              print(f"  - ⚠️ {issue}")
+              print("")
+          EOF
+          fi >> $GITHUB_STEP_SUMMARY
+
   summary:
     name: Evaluation Summary
     runs-on: ubuntu-latest
-    needs: [validate-prompts, test-prompt-rendering, analyze-prompt-metrics, security-check]
+    needs: [validate-prompts, test-prompt-rendering, analyze-prompt-metrics, security-check, run-prompt-tests]
     if: always()
 
     steps:
@@ -357,8 +476,17 @@ jobs:
           echo "- Template Rendering: ${{ needs.test-prompt-rendering.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- Metrics Analysis: ${{ needs.analyze-prompt-metrics.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- Security Check: ${{ needs.security-check.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Comprehensive Tests: ${{ needs.run-prompt-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Overall Status" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.run-prompt-tests.result }}" == "success" ]; then
+            echo "✅ **All prompt tests passed!**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Some tests failed - review job outputs**" >> $GITHUB_STEP_SUMMARY
+          fi
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Next Steps" >> $GITHUB_STEP_SUMMARY
-          echo "1. Review any warnings in job outputs" >> $GITHUB_STEP_SUMMARY
-          echo "2. Test prompts manually using GitHub Models UI" >> $GITHUB_STEP_SUMMARY
-          echo "3. Update benchmark results in prompts/README.md" >> $GITHUB_STEP_SUMMARY
+          echo "1. Review detailed test results in run-prompt-tests job" >> $GITHUB_STEP_SUMMARY
+          echo "2. Download test artifacts for offline analysis" >> $GITHUB_STEP_SUMMARY
+          echo "3. Test prompts manually using GitHub Models UI" >> $GITHUB_STEP_SUMMARY
+          echo "4. Update benchmark results in prompts/README.md" >> $GITHUB_STEP_SUMMARY

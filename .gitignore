@@ -160,3 +160,6 @@ yarn-error.log*
 
 # Docker (if containerizing)
 *.dockerignore.local
+# Prompt test results
+test-results.json
+rendering-test-results.json
