@@ -2,6 +2,43 @@
 
 Thank you for your interest in contributing to the cmdai TUI Component Showcase! This guide will help you create high-quality, production-ready terminal UI components.
 
+---
+
+## 📚 Documentation Guide - Start Here!
+
+**New to the project? Start with these guides based on your experience level:**
+
+### For Beginners (No Rust or TUI Experience)
+👉 **[GETTING_STARTED.md](GETTING_STARTED.md)** - Your first component in 5 minutes
+- Step-by-step tutorial with explanations
+- Copy-paste examples
+- Common patterns and troubleshooting
+- No prior knowledge assumed
+
+### For Understanding the System
+👉 **[ARCHITECTURE_GUIDE.md](ARCHITECTURE_GUIDE.md)** - How it all works
+- Core abstractions explained
+- Component lifecycle
+- Design decisions and rationale
+- Extending the framework
+
+### For CI/CD and GitHub Actions
+👉 **[CI_CD_EXPLAINED.md](CI_CD_EXPLAINED.md)** - Visual testing pipeline
+- What happens when you push code
+- Reading build logs
+- Understanding PR comments
+- Troubleshooting failed checks
+
+### For Quick Answers
+👉 **[FAQ.md](FAQ.md)** - Frequently asked questions
+- Common issues and solutions
+- Quick reference guide
+- "How do I..." answers
+
+**This document (CONTRIBUTING_TUI.md)** contains detailed technical guidelines for production-quality components. Use it as a reference after you've completed your first component!
+
+---
+
 ## 🎯 What Makes a Great Component?
 
 A great showcase component should:
@@ -14,17 +51,24 @@ A great showcase component should:
 
 ## 🚀 Quick Start Guide
 
+> **First time?** Consider using the [fully-commented template](docs/templates/simple_component_template.rs) instead!
+> It includes extensive inline documentation and examples.
+
 ### Step 1: Create Component File
 
 Create a new file in `src/tui/components/`:
 
 ```bash
+# Option 1: Copy the template (recommended for beginners)
+cp docs/templates/simple_component_template.rs src/tui/components/my_component.rs
+
+# Option 2: Create from scratch
 touch src/tui/components/my_component.rs
 ```
 
 ### Step 2: Component Template
 
-Use this template as a starting point:
+Use this template as a starting point (or see the [detailed template](docs/templates/simple_component_template.rs) with extensive comments):
 
 ```rust
 //! Brief description of what this component demonstrates
