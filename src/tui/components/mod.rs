@@ -26,18 +26,17 @@
 /// // In render loop:
 /// component.render(&mut frame, area);
 /// ```
-
 use anyhow::Result;
 use crossterm::event::Event;
-use ratatui::{Frame, layout::Rect};
+use ratatui::{layout::Rect, Frame};
 
-pub mod status_bar;
 pub mod help_footer;
 pub mod repl;
+pub mod status_bar;
 
-pub use status_bar::StatusBarComponent;
 pub use help_footer::HelpFooterComponent;
 pub use repl::ReplComponent;
+pub use status_bar::StatusBarComponent;
 
 /// Result of handling an event
 #[derive(Debug, Clone)]
@@ -53,6 +52,19 @@ pub enum EventResult {
 
     /// Request to quit the application
     Quit,
+}
+
+impl PartialEq for EventResult {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (EventResult::Consumed, EventResult::Consumed) => true,
+            (EventResult::Ignored, EventResult::Ignored) => true,
+            (EventResult::Quit, EventResult::Quit) => true,
+            // For Event variant, only check that both are Event (don't compare inner value)
+            (EventResult::Event(_), EventResult::Event(_)) => true,
+            _ => false,
+        }
+    }
 }
 
 /// Component trait - all UI components implement this
@@ -192,9 +204,7 @@ mod tests {
             title: "Test".to_string(),
         });
 
-        let result = component
-            .handle_event(Event::Resize(80, 24))
-            .unwrap();
+        let result = component.handle_event(Event::Resize(80, 24)).unwrap();
 
         assert_eq!(result, EventResult::Ignored);
     }

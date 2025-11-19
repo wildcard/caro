@@ -5,7 +5,6 @@
 /// - State management (AppState updates)
 /// - Component rendering
 /// - Integration with backend (CliApp)
-
 use anyhow::Result;
 use crossterm::event::{self, Event};
 use ratatui::{
@@ -14,7 +13,7 @@ use ratatui::{
 };
 use std::time::Duration;
 
-use crate::config::{ConfigManager, UserConfiguration};
+use crate::config::ConfigManager;
 use crate::tui::{
     components::{Component, HelpFooterComponent, ReplComponent, StatusBarComponent},
     state::{AppEvent, AppMode, AppState},
@@ -41,9 +40,6 @@ pub struct TuiApp {
 
     /// Terminal instance
     terminal: TerminalType,
-
-    /// Configuration manager
-    config_manager: ConfigManager,
 }
 
 impl TuiApp {
@@ -62,11 +58,7 @@ impl TuiApp {
         // Set backend status (for now, just show "Loading...")
         state.set_backend_status("Loading...".to_string(), false, None);
 
-        Ok(Self {
-            state,
-            terminal,
-            config_manager,
-        })
+        Ok(Self { state, terminal })
     }
 
     /// Run the TUI application
@@ -144,11 +136,8 @@ impl TuiApp {
     async fn detect_backend(&mut self) {
         // TODO: Actually detect backend
         // For now, just set a placeholder
-        self.state.set_backend_status(
-            "Mock".to_string(),
-            true,
-            Some("Phase 1 MVP".to_string()),
-        );
+        self.state
+            .set_backend_status("Mock".to_string(), true, Some("Phase 1 MVP".to_string()));
     }
 
     /// Render the current state to the terminal
@@ -170,9 +159,9 @@ impl TuiApp {
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
-                Constraint::Length(1),  // Status bar
-                Constraint::Min(10),    // Main content
-                Constraint::Length(1),  // Help footer
+                Constraint::Length(1), // Status bar
+                Constraint::Min(10),   // Main content
+                Constraint::Length(1), // Help footer
             ])
             .split(size);
 
@@ -233,6 +222,7 @@ use std::io;
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::models::UserConfiguration;
 
     #[test]
     fn test_app_state_initialization() {

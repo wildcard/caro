@@ -24,22 +24,19 @@
 ///
 /// assert_eq!(state.repl.input_buffer, "l");
 /// ```
-
-use anyhow::Result;
-use crate::models::{ShellType, SafetyLevel};
-
 pub mod app_state;
-pub mod repl_state;
 pub mod events;
+pub mod repl_state;
 
 pub use app_state::AppState;
-pub use repl_state::ReplState;
 pub use events::{AppEvent, SideEffect};
+pub use repl_state::ReplState;
 
 /// Current application mode
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum AppMode {
     /// REPL mode - interactive command generation
+    #[default]
     Repl,
 
     /// History browser mode (future)
@@ -53,12 +50,6 @@ pub enum AppMode {
     /// Help screen (future)
     #[allow(dead_code)]
     Help,
-}
-
-impl Default for AppMode {
-    fn default() -> Self {
-        AppMode::Repl
-    }
 }
 
 impl AppMode {

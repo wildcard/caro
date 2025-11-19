@@ -1,7 +1,6 @@
 /// Theme and Styling Module
 ///
 /// Defines colors, styles, and visual elements for the TUI.
-
 use ratatui::style::Color;
 
 /// Application color theme

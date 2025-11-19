@@ -1,16 +1,12 @@
 /// Terminal Utilities
 ///
 /// Helper functions for terminal setup, cleanup, and management.
-
 use anyhow::Result;
 use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use ratatui::{
-    backend::CrosstermBackend,
-    Terminal,
-};
+use ratatui::{backend::CrosstermBackend, Terminal};
 use std::io::{self, Stdout};
 
 pub type TerminalType = Terminal<CrosstermBackend<Stdout>>;
@@ -37,10 +33,7 @@ pub fn setup_terminal() -> Result<TerminalType> {
 /// - Disables raw mode
 pub fn restore_terminal(terminal: &mut TerminalType) -> Result<()> {
     disable_raw_mode()?;
-    execute!(
-        terminal.backend_mut(),
-        LeaveAlternateScreen
-    )?;
+    execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
     terminal.show_cursor()?;
     Ok(())
 }

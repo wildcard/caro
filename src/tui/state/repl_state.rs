@@ -2,11 +2,10 @@
 ///
 /// State specific to the REPL (Read-Eval-Print-Loop) mode.
 /// This includes user input, generated commands, and validation results.
-
 use super::events::{GeneratedCommandEvent, ValidationResultEvent};
 
 /// State for the REPL mode
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ReplState {
     // ===== Input State =====
     /// User's current input buffer
@@ -31,20 +30,6 @@ pub struct ReplState {
 
     /// Validation result (if any)
     pub validation_result: Option<ValidationResultEvent>,
-}
-
-impl Default for ReplState {
-    fn default() -> Self {
-        Self {
-            input_buffer: String::new(),
-            cursor_position: 0,
-            generating: false,
-            generated_command: None,
-            generation_error: None,
-            validating: false,
-            validation_result: None,
-        }
-    }
 }
 
 impl ReplState {

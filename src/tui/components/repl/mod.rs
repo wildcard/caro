@@ -10,14 +10,13 @@
 /// - `InputArea` - Text input for natural language
 /// - `ValidationPanel` - Live safety validation feedback
 /// - `CommandPreviewPanel` - Generated command with explanation
-
 use anyhow::Result;
-use crossterm::event::{Event, KeyCode, KeyEvent};
+use crossterm::event::Event;
 use ratatui::{
-    Frame,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Style},
     widgets::{Block, Borders, Paragraph},
+    Frame,
 };
 
 use crate::tui::components::{Component, EventResult};
@@ -128,9 +127,11 @@ impl ReplComponent {
             Style::default().fg(Color::DarkGray)
         };
 
-        let preview_widget = Paragraph::new(text)
-            .style(style)
-            .block(Block::default().borders(Borders::ALL).title("Generated Command"));
+        let preview_widget = Paragraph::new(text).style(style).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("Generated Command"),
+        );
 
         frame.render_widget(preview_widget, area);
     }
@@ -149,14 +150,9 @@ impl Component for ReplComponent {
 
     fn handle_event(&mut self, event: Event) -> Result<EventResult> {
         match event {
-            Event::Key(KeyEvent { code, .. }) => {
-                match code {
-                    KeyCode::Char(_) | KeyCode::Backspace | KeyCode::Delete | KeyCode::Enter => {
-                        // These are handled by AppState, pass them through
-                        Ok(EventResult::Ignored)
-                    }
-                    _ => Ok(EventResult::Ignored),
-                }
+            Event::Key(_) => {
+                // All key events are handled by AppState, pass them through
+                Ok(EventResult::Ignored)
             }
             _ => Ok(EventResult::Ignored),
         }
@@ -175,9 +171,9 @@ impl Component for ReplComponent {
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
-                Constraint::Length(4),  // Input area
-                Constraint::Length(3),  // Validation panel
-                Constraint::Min(5),     // Command preview
+                Constraint::Length(4), // Input area
+                Constraint::Length(3), // Validation panel
+                Constraint::Min(5),    // Command preview
             ])
             .split(area);
 
@@ -194,6 +190,7 @@ impl Component for ReplComponent {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crossterm::event::{KeyCode, KeyEvent};
 
     #[test]
     fn test_repl_component_creation() {

@@ -2,7 +2,6 @@
 ///
 /// All state changes flow through the `AppEvent` enum. This makes the
 /// application predictable and easy to test.
-
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 use crate::models::SafetyLevel;
@@ -184,9 +183,7 @@ pub enum SideEffect {
 impl From<KeyEvent> for AppEvent {
     fn from(key: KeyEvent) -> Self {
         match key.code {
-            KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                AppEvent::Quit
-            }
+            KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => AppEvent::Quit,
             KeyCode::Char('l') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                 AppEvent::ClearInput
             }

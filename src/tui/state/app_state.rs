@@ -2,20 +2,18 @@
 ///
 /// Central state management for the TUI application.
 /// This is the single source of truth for all UI state.
-
 use anyhow::Result;
 
 use crate::config::UserConfiguration;
-use crate::models::{ShellType, SafetyLevel};
+use crate::models::{SafetyLevel, ShellType};
 
 use super::{AppEvent, AppMode, ReplState, SideEffect};
-use super::events::{GeneratedCommandEvent, ValidationResultEvent};
 
 /// Central application state - single source of truth
 ///
 /// All UI state lives here. Components read from this state
 /// and emit events to modify it.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct AppState {
     /// Current application mode
     pub current_mode: AppMode,
@@ -58,20 +56,6 @@ impl Default for BackendStatus {
             name: "Unknown".to_string(),
             available: false,
             model: None,
-        }
-    }
-}
-
-impl Default for AppState {
-    fn default() -> Self {
-        Self {
-            current_mode: AppMode::default(),
-            repl: ReplState::default(),
-            config: UserConfiguration::default(),
-            backend_status: BackendStatus::default(),
-            show_help_modal: false,
-            error_message: None,
-            should_quit: false,
         }
     }
 }
@@ -169,15 +153,16 @@ impl AppState {
             // ===== Validation =====
             AppEvent::ValidateCommand => {
                 // Clone command before setting validating state to avoid borrow conflicts
-                let command_opt = self.repl.generated_command.as_ref().map(|cmd| cmd.command.clone());
+                let command_opt = self
+                    .repl
+                    .generated_command
+                    .as_ref()
+                    .map(|cmd| cmd.command.clone());
 
                 if let Some(command) = command_opt {
                     self.repl.set_validating(true);
                     let shell = self.shell();
-                    vec![SideEffect::ValidateCommand {
-                        command,
-                        shell,
-                    }]
+                    vec![SideEffect::ValidateCommand { command, shell }]
                 } else {
                     vec![]
                 }
@@ -217,7 +202,7 @@ impl AppState {
 
     /// Get the current shell type (defaults to Bash if not configured)
     pub fn shell(&self) -> ShellType {
-        self.config.default_shell.clone().unwrap_or(ShellType::Bash)
+        self.config.default_shell.unwrap_or(ShellType::Bash)
     }
 
     /// Get the current safety level
@@ -248,7 +233,7 @@ impl AppState {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tui::state::events::RiskLevel;
+    use crate::tui::state::events::{GeneratedCommandEvent, RiskLevel, ValidationResultEvent};
 
     #[test]
     fn test_app_state_default() {

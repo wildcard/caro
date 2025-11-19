@@ -1,5 +1,9 @@
 # cmdai
 
+[![CI](https://github.com/wildcard/cmdai/actions/workflows/ci.yml/badge.svg)](https://github.com/wildcard/cmdai/actions/workflows/ci.yml)
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL_3.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+[![Rust Version](https://img.shields.io/badge/rust-1.75%2B-orange.svg)](https://www.rust-lang.org)
+
 > 🚧 **Early Development Stage** - Architecture defined, core implementation in progress
 
 **cmdai** converts natural language descriptions into safe POSIX shell commands using local LLMs. Built with Rust for blazing-fast performance, single-binary distribution, and safety-first design.

@@ -9,13 +9,12 @@
 ///   │        │             │                                      │
 /// Backend  Shell    Safety Level                          Help Indicator
 /// ```
-
 use ratatui::{
-    Frame,
     layout::{Alignment, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::Paragraph,
+    Frame,
 };
 
 use crate::models::{SafetyLevel, ShellType};
@@ -71,7 +70,7 @@ impl StatusBarComponent {
             backend_name: state.backend_status.name.clone(),
             backend_available: state.backend_status.available,
             backend_model: state.backend_status.model.clone(),
-            shell: state.shell(),  // Use the helper method that handles Option
+            shell: state.shell(), // Use the helper method that handles Option
             safety_level: state.config.safety_level,
             show_help: true,
         })
@@ -139,10 +138,7 @@ impl Component for StatusBarComponent {
                 Style::default().fg(Color::Green),
             ),
             Span::raw(" • "),
-            Span::styled(
-                self.safety_text(),
-                Style::default().fg(safety_color),
-            ),
+            Span::styled(self.safety_text(), Style::default().fg(safety_color)),
         ]);
 
         let status_text = Line::from(left_spans);

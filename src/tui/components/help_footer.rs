@@ -8,13 +8,12 @@
 /// └──┬──┘ └───┬───┘  └──┬───┘ └──┬──┘  └──┬───┘ └─┬─┘  └─┬─┘ └───┬───┘
 ///   Key  Description   Key  Description  Key  Description Key  Description
 /// ```
-
 use ratatui::{
-    Frame,
     layout::{Alignment, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::Paragraph,
+    Frame,
 };
 
 use crate::tui::components::Component;
@@ -120,20 +119,12 @@ impl HelpFooterComponent {
         };
 
         vec![
-            Span::styled(
-                "[",
-                Style::default().fg(Color::DarkGray),
-            ),
+            Span::styled("[", Style::default().fg(Color::DarkGray)),
             Span::styled(
                 shortcut.key.as_str(),
-                Style::default()
-                    .fg(key_color)
-                    .add_modifier(Modifier::BOLD),
+                Style::default().fg(key_color).add_modifier(Modifier::BOLD),
             ),
-            Span::styled(
-                "] ",
-                Style::default().fg(Color::DarkGray),
-            ),
+            Span::styled("] ", Style::default().fg(Color::DarkGray)),
             Span::styled(
                 shortcut.description.as_str(),
                 Style::default().fg(desc_color),

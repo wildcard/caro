@@ -50,7 +50,6 @@
 /// - `backend` - Integration with CliApp backend
 /// - `theme` - Colors and styling
 /// - `utils` - Terminal utilities
-
 pub mod app;
 pub mod components;
 pub mod state;
@@ -59,5 +58,5 @@ pub mod utils;
 
 // Re-export main types for convenience
 pub use app::TuiApp;
-pub use components::{Component, StatusBarComponent, HelpFooterComponent, ReplComponent};
-pub use state::{AppState, AppEvent, AppMode};
+pub use components::{Component, HelpFooterComponent, ReplComponent, StatusBarComponent};
+pub use state::{AppEvent, AppMode, AppState};
