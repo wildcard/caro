@@ -6,7 +6,7 @@
 //! ## Component Categories
 //!
 //! - **Display**: SimpleText, CommandPreview, TableSelector, CommandOutputViewer,
-//!               HistoryTimeline, GenerationComparison, MetricDashboard
+//!               HistoryTimeline, GenerationComparison, MetricDashboard, SplitPane, BarChart
 //! - **Input**: ConfirmationDialog, CommandEditor, CommandRating
 //! - **Feedback**: SafetyIndicator, ProgressSpinner, NotificationToast
 //! - **Workflow**: CommandFlow
@@ -19,6 +19,7 @@ pub mod generation_comparison;
 pub mod history_timeline;
 pub mod metric_dashboard;
 pub mod simple_text;
+pub mod split_pane;
 pub mod table_selector;
 
 // Input components
@@ -40,7 +41,11 @@ pub mod keyboard_shortcuts;
 // File system components
 pub mod file_browser;
 
+// Chart components
+pub mod bar_chart;
+
 // Re-export components for easier access
+pub use bar_chart::BarChartComponent;
 pub use command_editor::CommandEditorComponent;
 pub use command_flow::CommandFlowComponent;
 pub use command_output_viewer::CommandOutputViewerComponent;
@@ -56,4 +61,5 @@ pub use notification_toast::NotificationToastComponent;
 pub use progress_spinner::ProgressSpinnerComponent;
 pub use safety_indicator::SafetyIndicatorComponent;
 pub use simple_text::SimpleTextComponent;
+pub use split_pane::SplitPaneComponent;
 pub use table_selector::TableSelectorComponent;
