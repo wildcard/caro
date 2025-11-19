@@ -91,7 +91,7 @@ RUST_LOG=debug cargo run -- "your command"
 
 ## 🎨 TUI Component Showcase
 
-This project includes a **Storybook-like development tool** for terminal UI components! Develop, test, and showcase Ratatui components in isolation.
+This project includes a **production-grade Storybook-like development tool** for terminal UI components! Develop, test, and showcase Ratatui components in isolation.
 
 ```bash
 # Run the TUI showcase
@@ -102,13 +102,25 @@ cargo install cargo-watch
 cargo watch -x 'run --bin tui-showcase'
 ```
 
-**Features:**
-- 📦 **Component Isolation** - Build and test UI components independently
-- 🔄 **Hot Reload** - Instant feedback during development
-- 📚 **Story-Based** - Showcase multiple states and variations
-- 🎯 **Interactive Browser** - Navigate components with keyboard
+**Showcase Highlights:**
+- 🎯 **10 Production Components** - 52+ stories across 5 categories
+- 🔄 **Hot Reload Support** - Instant feedback during development with cargo-watch
+- 📚 **Story-Based Development** - Multiple variations per component
+- 🖥️ **Interactive Browser** - Full keyboard navigation and help system
+- 🎨 **Visual Gallery** - ASCII art previews and comprehensive examples
+- 📖 **Complete Documentation** - User guide and contributor guidelines
 
-See [TUI_SHOWCASE.md](TUI_SHOWCASE.md) for detailed documentation on creating and using showcase components.
+**Component Categories:**
+- **Display**: SimpleText, CommandPreview, TableSelector
+- **Input**: ConfirmationDialog, CommandEditor
+- **Feedback**: SafetyIndicator, ProgressSpinner, NotificationToast
+- **Workflow**: CommandFlow
+- **Help**: KeyboardShortcuts
+
+**Documentation:**
+- [TUI_SHOWCASE.md](TUI_SHOWCASE.md) - User guide and development workflow
+- [COMPONENT_GALLERY.md](COMPONENT_GALLERY.md) - Visual component reference with ASCII art
+- [CONTRIBUTING_TUI.md](CONTRIBUTING_TUI.md) - Comprehensive contributor guidelines
 
 ## 📖 Usage
 

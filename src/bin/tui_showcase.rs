@@ -23,8 +23,10 @@
 
 use cmdai::tui::{
     components::{
-        CommandPreviewComponent, ConfirmationDialogComponent, ProgressSpinnerComponent,
-        SafetyIndicatorComponent, SimpleTextComponent,
+        CommandEditorComponent, CommandFlowComponent, CommandPreviewComponent,
+        ConfirmationDialogComponent, KeyboardShortcutsComponent, NotificationToastComponent,
+        ProgressSpinnerComponent, SafetyIndicatorComponent, SimpleTextComponent,
+        TableSelectorComponent,
     },
     showcase::ShowcaseRegistry,
 };
@@ -69,11 +71,27 @@ impl App {
         let mut registry = ShowcaseRegistry::new();
 
         // Register all showcase components
+        // Organized by category for better browsing experience
+
+        // Display components
         registry.register(Box::new(SimpleTextComponent));
         registry.register(Box::new(CommandPreviewComponent));
-        registry.register(Box::new(SafetyIndicatorComponent));
+        registry.register(Box::new(TableSelectorComponent));
+
+        // Input components
         registry.register(Box::new(ConfirmationDialogComponent));
+        registry.register(Box::new(CommandEditorComponent));
+
+        // Feedback components
+        registry.register(Box::new(SafetyIndicatorComponent));
         registry.register(Box::new(ProgressSpinnerComponent));
+        registry.register(Box::new(NotificationToastComponent));
+
+        // Workflow components
+        registry.register(Box::new(CommandFlowComponent));
+
+        // Help components
+        registry.register(Box::new(KeyboardShortcutsComponent));
 
         Self {
             registry,
