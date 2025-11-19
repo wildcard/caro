@@ -28,15 +28,53 @@ cmdai includes comprehensive safety validation:
 
 ### How Safety Validation Works
 
-1. **Command Generation**: LLM generates a command
-2. **Pattern Matching**: Check against dangerous patterns
-3. **Risk Assessment**: Assign a risk level
-4. **User Confirmation**: Request approval based on safety level
-5. **Execution**: Only execute if approved
+```
+┌──────────────────────┐
+│ Natural Language     │  "delete old files"
+│ Prompt               │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│ LLM Generation       │  find . -name "*.tmp" -mtime +30 -delete
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│ Pattern Matching     │  Checking against dangerous patterns...
+│ • System destruction │  ✅ Pass
+│ • Fork bombs         │  ✅ Pass
+│ • Critical paths     │  ✅ Pass
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│ Risk Assessment      │  Risk Level: 🔶 High (deletion)
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│ User Confirmation    │  Execute? (y/N) ← YOU DECIDE
+└──────────┬───────────┘
+           │
+           ▼ (if approved)
+┌──────────────────────┐
+│ Execution            │  Command runs safely
+└──────────────────────┘
+```
+
+> **📖 Learn More:** See [Safety Validation](../technical/safety-validation.md) for technical implementation details.
 
 ## Risk Levels
 
 cmdai categorizes commands into four risk levels:
+
+| Risk Level | Indicator | Typical Commands | Default Behavior |
+|------------|-----------|------------------|------------------|
+| **Safe** | ✅ Green | `ls`, `cat`, `grep` | Confirm to execute |
+| **Moderate** | ⚠️ Yellow | `mkdir`, `cp`, `git commit` | Confirm with caution |
+| **High** | 🔶 Orange | `rm`, `mv`, `find -delete` | Confirm with warning |
+| **Critical** | 🛑 Red | `rm -rf /`, `mkfs`, fork bombs | Blocked in strict mode |
 
 ### Safe (Green)
 
@@ -302,6 +340,32 @@ If cmdai generated a dangerous command:
 
 ## Next Steps
 
-- [Configuration](./configuration.md) - Configure safety settings
-- [Security Policy](../reference/security.md) - Full security details
-- [Architecture](../dev-guide/architecture.md) - How safety validation works
+**User Guides:**
+- [Configuration](./configuration.md) - Configure custom safety settings
+- [Getting Started](./getting-started.md) - Installation and setup
+- [Quick Start](./quick-start.md) - Usage examples
+
+**Technical Details:**
+- [Safety Validation](../technical/safety-validation.md) - Implementation deep dive
+- [Architecture](../dev-guide/architecture.md) - System design
+- [Security Policy](../reference/security.md) - Full security policy
+
+**Tutorials:**
+- [Tutorial: Working with Files](../tutorial/working-with-files.md) - Safe file operations
+- [Tutorial: System Operations](../tutorial/system-operations.md) - Safe system commands
+
+---
+
+## See Also
+
+**Configuration:**
+- [Configuration Guide](./configuration.md) - Customize safety levels and patterns
+- Custom pattern documentation for organization-specific risks
+
+**Security:**
+- [Security Policy](../reference/security.md) - Vulnerability reporting
+- [Code of Conduct](../reference/code-of-conduct.md) - Community guidelines
+
+**Technical:**
+- [Safety Validation Deep Dive](../technical/safety-validation.md) - Pattern matching algorithms
+- [Backend Development](../dev-guide/backends.md) - Safe command generation

@@ -2,6 +2,8 @@
 
 cmdai can be configured through configuration files, environment variables, and command-line flags.
 
+> **💡 Quick Start:** For common configurations, see the [Example Configurations](#example-configurations) section below.
+
 ## Configuration File
 
 cmdai uses TOML for configuration. The default location is:
@@ -225,10 +227,37 @@ cmdai --config /path/to/config.toml "your command"
 
 Configuration is loaded in this order (later overrides earlier):
 
-1. **Built-in defaults**
+```
+┌─────────────────────┐
+│  Built-in Defaults  │  ← Lowest priority (base configuration)
+└──────────┬──────────┘
+           │ Overridden by
+           ▼
+┌─────────────────────┐
+│  Configuration File │  ~/.config/cmdai/config.toml
+│  ~/.config/cmdai/   │
+│     config.toml     │
+└──────────┬──────────┘
+           │ Overridden by
+           ▼
+┌─────────────────────┐
+│  Environment Vars   │  CMDAI_BACKEND=ollama
+│  CMDAI_*            │  CMDAI_SAFETY_LEVEL=strict
+└──────────┬──────────┘
+           │ Overridden by
+           ▼
+┌─────────────────────┐
+│  Command-Line Flags │  ← Highest priority (final decision)
+│  --backend vllm     │
+│  --safety strict    │
+└─────────────────────┘
+```
+
+**Priority Order:**
+1. **Built-in defaults** (lowest)
 2. **Configuration file** (`~/.config/cmdai/config.toml`)
 3. **Environment variables** (`CMDAI_*`)
-4. **Command-line flags** (`--backend`, `--safety`, etc.)
+4. **Command-line flags** (highest)
 
 ### Example
 
@@ -352,6 +381,36 @@ chmod 600 ~/.config/cmdai/config.toml
 
 ## Next Steps
 
-- [Safety & Security](./safety.md) - Configure safety settings
+**User Guides:**
+- [Safety & Security](./safety.md) - Configure safety patterns and levels
+- [Getting Started](./getting-started.md) - Installation and first run
+- [Quick Start](./quick-start.md) - Common usage patterns
+
+**Developer Guides:**
 - [Backend Development](../dev-guide/backends.md) - Develop custom backends
-- [Architecture](../dev-guide/architecture.md) - Understand the system
+- [Architecture](../dev-guide/architecture.md) - Configuration system design
+
+**Technical Details:**
+- [MLX Integration](../technical/mlx-integration.md) - Apple Silicon backend configuration
+- [Performance](../technical/performance.md) - Performance tuning options
+
+---
+
+## See Also
+
+**Configuration:**
+- Environment variable reference for all `CMDAI_*` variables
+- TOML syntax guide for configuration files
+
+**Backends:**
+- [Backend Development](../dev-guide/backends.md) - Implementing custom backends
+- [Ollama documentation](https://ollama.ai) - External backend setup
+- [vLLM documentation](https://vllm.ai) - Remote inference setup
+
+**Safety:**
+- [Safety & Security](./safety.md) - Safety configuration options
+- [Safety Validation](../technical/safety-validation.md) - Custom pattern implementation
+
+**Tutorials:**
+- [Tutorial: Your First Command](../tutorial/first-command.md) - Basic usage
+- [Tutorial: Working with Files](../tutorial/working-with-files.md) - File operations configuration

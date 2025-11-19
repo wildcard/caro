@@ -2,9 +2,21 @@
 
 This guide explains how to implement and integrate new LLM backends into cmdai.
 
+> **💡 Quick Reference:** For the trait definition and architecture overview, see [Architecture: Backend Trait System](./architecture.md#backend-trait-system).
+
 ## Backend Architecture
 
 All backends implement the `CommandGenerator` trait, providing a unified interface for command generation.
+
+**Available Backends:**
+
+| Backend | Type | Platform | Status |
+|---------|------|----------|--------|
+| **Embedded** | Local | All | ✅ Implemented |
+| **MLX** | Local | Apple Silicon | ✅ Implemented |
+| **Ollama** | Local API | All | ✅ Implemented |
+| **vLLM** | Remote API | All | ✅ Implemented |
+| **Custom** | Flexible | All | 📖 This guide |
 
 ## The CommandGenerator Trait
 
@@ -552,6 +564,39 @@ pub struct CachedBackend {
 
 ## Next Steps
 
-- [Architecture](./architecture.md) - Understand the overall design
-- [Testing Strategy](./testing.md) - Write comprehensive tests
-- [Contributing](./contributing.md) - Submit your backend
+**Developer Guides:**
+- [Architecture](./architecture.md) - Overall system design and backend selection
+- [Testing Strategy](./testing.md) - Contract tests for backends
+- [TDD Workflow](./tdd-workflow.md) - Test-driven development process
+- [Contributing](./contributing.md) - Submit your backend to the project
+
+**Technical Deep Dives:**
+- [MLX Integration](../technical/mlx-integration.md) - Example of FFI backend implementation
+- [Safety Validation](../technical/safety-validation.md) - How backends integrate with safety
+- [Rust Learnings](../technical/rust-learnings.md) - Rust patterns used in backends
+
+**User Guides:**
+- [Configuration](../user-guide/configuration.md) - Configure backend selection and fallback
+
+---
+
+## See Also
+
+**Backend Examples:**
+- [HTTP-Based Backend](#http-based-backend-ollamavllm) - Remote API integration
+- [Native/FFI Backend](#nativeffi-backend-mlx) - Low-level integration
+- [Error Handling](#error-handling) - Backend error management
+
+**Related Documentation:**
+- [Architecture: Backend Selection Algorithm](./architecture.md#backend-selection-algorithm) - How backends are chosen
+- [Configuration: Backend Config](../user-guide/configuration.md#backend-configuration) - User-facing configuration
+- [Testing: Contract Tests](./testing.md) - Backend test requirements
+
+**External Resources:**
+- [Ollama API Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md) - Ollama backend reference
+- [vLLM Documentation](https://vllm.readthedocs.io/) - vLLM backend reference
+- [MLX Documentation](https://ml-explore.github.io/mlx/) - MLX backend reference
+
+**Community:**
+- [Contributing Guide](./contributing.md) - How to submit a backend implementation
+- [Active Development](../community/active-development.md) - Ongoing backend work

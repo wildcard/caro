@@ -1,0 +1,207 @@
+name: Example Request
+description: Request a new code example or use case demonstration
+title: "[EXAMPLE]: "
+labels: ["example", "documentation", "enhancement"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new example! 💡
+
+        Good examples help users understand how to use cmdai in real-world scenarios.
+        Your suggestion helps us create practical, useful demonstrations.
+
+  - type: input
+    id: example-title
+    attributes:
+      label: Example Title
+      description: What would you call this example?
+      placeholder: "Using cmdai in a Git pre-commit hook"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: example-category
+    attributes:
+      label: Example Category
+      description: What area does this example demonstrate?
+      options:
+        - Basic Usage
+        - Backend Configuration
+        - Safety Features
+        - Integration with Other Tools
+        - Scripting and Automation
+        - Error Handling
+        - Performance Optimization
+        - Advanced Workflows
+        - Real-world Use Cases
+        - Testing and Development
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Complexity Level
+      description: How complex is this example?
+      options:
+        - Simple (single command, basic usage)
+        - Moderate (multiple steps, some configuration)
+        - Complex (full workflow, advanced features)
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case / Scenario
+      description: Describe the real-world scenario this example addresses
+      placeholder: |
+        As a developer working with Git, I want to use cmdai to generate
+        commit messages based on staged changes. This example would show
+        how to integrate cmdai into a Git pre-commit hook to automate
+        commit message generation.
+    validations:
+      required: true
+
+  - type: textarea
+    id: example-description
+    attributes:
+      label: What Should This Example Demonstrate?
+      description: What specific features or techniques should this example show?
+      placeholder: |
+        This example should demonstrate:
+        - How to capture git diff output
+        - How to pass it to cmdai with appropriate prompt
+        - How to format the output as a commit message
+        - Error handling if cmdai is unavailable
+        - Configuration for consistent results
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-code
+    attributes:
+      label: Expected Code/Commands
+      description: Do you have a rough idea of what the example code might look like?
+      placeholder: |
+        ```bash
+        #!/bin/bash
+        # Get staged changes
+        DIFF=$(git diff --cached)
+
+        # Generate commit message
+        MSG=$(cmdai --backend ollama "Write a commit message for: $DIFF")
+
+        # Use the message
+        git commit -m "$MSG"
+        ```
+    validations:
+      required: false
+
+  - type: textarea
+    id: expected-output
+    attributes:
+      label: Expected Output/Result
+      description: What should users see when they run this example?
+      placeholder: |
+        ```
+        $ ./commit-with-cmdai.sh
+        Generated commit message:
+          feat: add MLX backend support for Apple Silicon
+
+          - Implement MLX backend with FFI bindings
+          - Add model caching for offline usage
+          - Update documentation
+
+        Commit created: abc123f
+        ```
+    validations:
+      required: false
+
+  - type: dropdown
+    id: documentation-location
+    attributes:
+      label: Where Should This Example Live?
+      description: Where would this example be most useful?
+      options:
+        - User Guide (inline with documentation)
+        - Dedicated Examples Section
+        - Tutorial
+        - README
+        - Code Comments (rustdoc)
+        - Separate Examples Repository
+        - Not sure
+    validations:
+      required: false
+
+  - type: textarea
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      description: What should users have installed or know before trying this example?
+      placeholder: |
+        - cmdai installed
+        - Git installed
+        - Basic shell scripting knowledge
+        - Ollama backend configured (or any backend)
+    validations:
+      required: false
+
+  - type: textarea
+    id: related-examples
+    attributes:
+      label: Related Examples
+      description: Are there existing examples that are similar? How is this different?
+      placeholder: |
+        The basic usage example shows simple commands, but doesn't
+        demonstrate integration with other tools or scripting.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Would you like to help create this example?
+      options:
+        - label: I'd like to submit this example as a PR
+          required: false
+        - label: I have working code but need help polishing it
+          required: false
+        - label: I can test this example once it's written
+          required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other information that would help us create this example?
+      placeholder: |
+        - Links to similar examples from other projects
+        - Common questions this example would answer
+        - Edge cases to consider
+        - Performance considerations
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+
+        ## Next Steps
+
+        After submitting this request:
+        1. We'll review and discuss the example scope
+        2. Community members can volunteer to create it
+        3. We'll add it to our documentation roadmap
+
+        Want to contribute the example yourself? Check out our:
+        - [Documentation Guide](https://wildcard.github.io/cmdai/community/documentation-guide.html)
+        - [Contributing Guide](https://wildcard.github.io/cmdai/community/contributing.html)
+
+        Thank you for helping us build better examples! 🎯

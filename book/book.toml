@@ -17,7 +17,9 @@ preferred-dark-theme = "navy"
 git-repository-url = "https://github.com/wildcard/cmdai"
 edit-url-template = "https://github.com/wildcard/cmdai/edit/main/book/{path}"
 additional-css = ["theme/custom.css"]
-additional-js = []
+additional-js = ["theme/custom.js"]
+mathjax-support = false
+site-url = "https://docs.cmdai.io/"
 
 [output.html.search]
 enable = true
@@ -42,3 +44,7 @@ line-numbers = true
 
 [output.html.print]
 enable = true
+
+[output.html.redirect]
+# Redirect legacy URLs if needed
+# "/old/path/" = "/new/path/"

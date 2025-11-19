@@ -600,6 +600,27 @@ This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.
 
 ---
 
+## See Also
+
+**Developer Resources:**
+- [Architecture](../dev-guide/architecture.md) - System design and components
+- [Backend Development](../dev-guide/backends.md) - Implementing new backends
+- [Testing Strategy](../dev-guide/testing.md) - Test requirements and patterns
+- [TDD Workflow](../dev-guide/tdd-workflow.md) - Test-driven development process
+
+**Community:**
+- [Development Agents](./agents.md) - Specialized agents for different tasks
+- [Project Roadmap](./roadmap.md) - Future plans and milestones
+- [Active Development](./active-development.md) - Current work and progress
+- [Contributor Showcase](./contributors.md) - Recognition and appreciation
+
+**Guidelines:**
+- [Documentation Guide](./documentation-guide.md) - Writing and maintaining docs
+- [Code of Conduct](../reference/code-of-conduct.md) - Community standards
+- [Security Policy](../reference/security.md) - Reporting vulnerabilities
+
+---
+
 **Thank you for contributing to cmdai!** Together we're building a safer, faster, more accessible way to harness LLMs for shell command generation.
 
 ---

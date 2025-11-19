@@ -12,6 +12,16 @@ In this tutorial, you'll learn to:
 
 **Time to complete:** ~15 minutes
 **Prerequisites:** [Your First Command](./first-command.md)
+**Related:** [Safety & Security](../user-guide/safety.md) | [Quick Start Guide](../user-guide/quick-start.md)
+
+## Quick Reference
+
+| Operation | Example Prompt | Common Commands |
+|-----------|----------------|-----------------|
+| **Find** | "find all PDF files" | `find`, `locate` |
+| **Organize** | "create backup directory" | `mkdir`, `cp`, `mv` |
+| **Info** | "show directory sizes" | `du`, `ls`, `stat` |
+| **Cleanup** | "delete old temp files" | `find -delete`, `rm` |
 
 ---
 
@@ -493,6 +503,22 @@ Continue learning:
 Or explore advanced topics:
 - [Configuration](../user-guide/configuration.md) - Customize behavior
 - [Quick Start](../user-guide/quick-start.md) - More examples
+
+---
+
+## See Also
+
+**Related Tutorials:**
+- [Your First Command](./first-command.md) - Basic cmdai usage
+- [System Operations](./system-operations.md) - System monitoring and management
+
+**User Guides:**
+- [Safety & Security](../user-guide/safety.md) - Understanding risk levels and protections
+- [Configuration](../user-guide/configuration.md) - Customize safety settings for file operations
+
+**Technical Details:**
+- [Safety Validation](../technical/safety-validation.md) - How cmdai prevents dangerous file operations
+- [Architecture](../dev-guide/architecture.md) - Command generation and validation flow
 
 ---
 

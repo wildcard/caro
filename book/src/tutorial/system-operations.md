@@ -13,6 +13,17 @@ In this tutorial, you'll learn to:
 
 **Time to complete:** ~15 minutes
 **Prerequisites:** [Working with Files](./working-with-files.md)
+**Related:** [Performance Optimization](../technical/performance.md) | [Safety & Security](../user-guide/safety.md)
+
+## Quick Reference
+
+| Category | Example Prompt | Common Commands |
+|----------|----------------|-----------------|
+| **System Info** | "show system information" | `uname`, `sw_vers`, `lsb_release` |
+| **Disk** | "show disk usage" | `df`, `du` |
+| **Processes** | "show running processes" | `ps`, `top`, `htop` |
+| **Network** | "test internet connection" | `ping`, `ifconfig`, `netstat` |
+| **Performance** | "show CPU usage" | `top`, `ps`, `vmstat` |
 
 ---
 
@@ -684,6 +695,23 @@ You've completed all tutorials! 🎉
 
 **Contribute:**
 - **[Contributing Guide](../community/contributing.md)** - Join the project
+
+---
+
+## See Also
+
+**Related Tutorials:**
+- [Your First Command](./first-command.md) - Basic cmdai usage
+- [Working with Files](./working-with-files.md) - File operations
+
+**User Guides:**
+- [Safety & Security](../user-guide/safety.md) - Understand risk levels for system commands
+- [Configuration](../user-guide/configuration.md) - Configure safety for system operations
+
+**Technical Details:**
+- [Safety Validation](../technical/safety-validation.md) - Protection against dangerous system commands
+- [Performance Optimization](../technical/performance.md) - cmdai performance characteristics
+- [Architecture](../dev-guide/architecture.md) - How command generation works
 
 ---
 

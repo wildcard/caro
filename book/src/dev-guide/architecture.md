@@ -382,6 +382,37 @@ pub const CUSTOM_PATTERNS: &[DangerousPattern] = &[
 
 ## Next Steps
 
-- [Backend Development](./backends.md) - Implement backends
+**Developer Guides:**
+- [Backend Development](./backends.md) - Implement new LLM backends
 - [Testing Strategy](./testing.md) - Write comprehensive tests
+- [TDD Workflow](./tdd-workflow.md) - Test-driven development process
 - [Contributing](./contributing.md) - Contribute to the project
+
+**Technical Deep Dives:**
+- [Safety Validation](../technical/safety-validation.md) - Safety system implementation
+- [MLX Integration](../technical/mlx-integration.md) - Apple Silicon backend details
+- [Performance Optimization](../technical/performance.md) - Performance characteristics
+- [Rust Learnings](../technical/rust-learnings.md) - Insights from implementation
+
+**User Guides:**
+- [Configuration](../user-guide/configuration.md) - Configure cmdai
+- [Safety & Security](../user-guide/safety.md) - Understanding safety features
+
+---
+
+## See Also
+
+**Architecture Resources:**
+- [Backend Trait System](#backend-trait-system) - Interface design patterns
+- [Error Handling](#error-handling) - Error hierarchy and propagation
+- [Performance Optimizations](#performance-optimizations) - Speed and memory management
+
+**Related Pages:**
+- [Backend Development](./backends.md) - Implementing the `CommandGenerator` trait
+- [Testing Strategy](./testing.md) - Contract-based testing for backends
+- [Contributing](./contributing.md) - Development workflow and guidelines
+
+**Community:**
+- [Development Agents](../community/agents.md) - Specialized agents for different tasks
+- [Project Roadmap](../community/roadmap.md) - Future architecture enhancements
+- [Active Development](../community/active-development.md) - Current implementation work
