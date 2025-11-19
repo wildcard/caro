@@ -359,16 +359,29 @@ cmdai is on a journey from open-source CLI tool to venture-scale company. We're 
 
 **Vision (2028)**: The AI-native operations platform trusted by 10,000+ teams, $50M+ ARR
 
+### Quick Start Guides (Read These First!)
+
+**New to cmdai?** Start here:
+
+1. **[EXECUTIVE_SUMMARY.md](EXECUTIVE_SUMMARY.md)** - 5-minute overview: what we're building, why, and how
+2. **[RECRUITING.md](RECRUITING.md)** - Why join cmdai (employees & contributors)
+3. **[COMMUNITY_GROWTH.md](COMMUNITY_GROWTH.md)** - How to get involved and help grow the project
+
+**Planning to pitch/present?**
+
+4. **[PITCH_DECK_OUTLINE.md](PITCH_DECK_OUTLINE.md)** - Copy-paste ready slides for investors
+5. **[AI_STRATEGY.md](AI_STRATEGY.md)** - How we use AI to accelerate development
+
 ### Complete Planning Documents
 
-We've created comprehensive documentation for the entire journey:
+For deep dives, read these comprehensive guides:
 
-1. **[ROADMAP.md](ROADMAP.md)** - Complete quarterly product roadmap with features, metrics, and milestones
-2. **[BUSINESS_MODEL.md](BUSINESS_MODEL.md)** - Dual-tier business model, pricing, unit economics, GTM strategy
-3. **[ARCHITECTURE.md](ARCHITECTURE.md)** - Technical architecture for cloud and enterprise features
-4. **[MVP_TO_V1.md](MVP_TO_V1.md)** - Immediate next steps to complete V1.0
-5. **[GITHUB_SETUP.md](GITHUB_SETUP.md)** - How we organize work with issues, milestones, and labels
-6. **[CONTRIBUTING.md](CONTRIBUTING.md)** - Updated with roadmap-specific contribution guidance
+6. **[ROADMAP.md](ROADMAP.md)** - Complete quarterly product roadmap with features, metrics, and milestones
+7. **[BUSINESS_MODEL.md](BUSINESS_MODEL.md)** - Dual-tier business model, pricing, unit economics, GTM strategy
+8. **[ARCHITECTURE.md](ARCHITECTURE.md)** - Technical architecture for cloud and enterprise features
+9. **[MVP_TO_V1.md](MVP_TO_V1.md)** - Immediate next steps to complete V1.0
+10. **[GITHUB_SETUP.md](GITHUB_SETUP.md)** - How we organize work with issues, milestones, and labels
+11. **[CONTRIBUTING.md](CONTRIBUTING.md)** - Updated with roadmap-specific contribution guidance
 
 ### How to Get Involved
 
