@@ -44,3 +44,7 @@
 
 - [Contributing Guide](./community/contributing.md)
 - [Development Agents](./community/agents.md)
+- [Project Roadmap](./community/roadmap.md)
+- [What's Being Built](./community/active-development.md)
+- [Documenting Your Work](./community/documentation-guide.md)
+- [Contributor Showcase](./community/contributors.md)
