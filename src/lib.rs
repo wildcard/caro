@@ -32,6 +32,7 @@ pub mod logging;
 pub mod model_loader;
 pub mod models;
 pub mod safety;
+pub mod tui;
 
 // Re-export commonly used types for convenience
 pub use models::{

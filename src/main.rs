@@ -51,6 +51,10 @@ struct Cli {
     /// Show configuration information
     #[arg(long, help = "Show current configuration and exit")]
     show_config: bool,
+
+    /// Launch interactive TUI mode
+    #[arg(long, help = "Launch interactive Terminal User Interface mode")]
+    tui: bool,
 }
 
 impl IntoCliArgs for Cli {
@@ -109,6 +113,17 @@ async fn main() {
             }
             Err(e) => {
                 eprintln!("Error showing configuration: {}", e);
+                process::exit(1);
+            }
+        }
+    }
+
+    // Handle --tui flag (launch interactive TUI mode)
+    if cli.tui {
+        match run_tui().await {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("TUI Error: {}", e);
                 process::exit(1);
             }
         }
@@ -304,4 +319,17 @@ async fn show_configuration(cli: &Cli) -> Result<String, CliError> {
     }
 
     Ok(output)
+}
+
+/// Run the TUI application
+async fn run_tui() -> Result<(), CliError> {
+    let app = cmdai::tui::TuiApp::new().map_err(|e| CliError::Internal {
+        message: format!("Failed to initialize TUI: {}", e),
+    })?;
+
+    app.run().await.map_err(|e| CliError::Internal {
+        message: format!("TUI runtime error: {}", e),
+    })?;
+
+    Ok(())
 }
