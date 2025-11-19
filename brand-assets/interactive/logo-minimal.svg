@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
+  <!-- cmdai minimal logo -->
+  <defs>
+    <style>
+      .logo-text { font-family: 'Monaco', 'Consolas', monospace; font-weight: bold; }
+      .terminal-green { fill: #00FF41; }
+      .cyber-cyan { fill: #00D9FF; }
+    </style>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Symbols -->
+  <text x="10" y="40" font-size="32" filter="url(#glow)" class="terminal-green">⚡</text>
+  <text x="35" y="40" font-size="32" filter="url(#glow)" class="cyber-cyan">🛡️</text>
+
+  <!-- Text -->
+  <text x="70" y="40" font-size="28" class="logo-text terminal-green" filter="url(#glow)">cmdai</text>
+</svg>

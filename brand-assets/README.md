@@ -4,6 +4,17 @@ This directory contains all official brand materials, guidelines, and assets for
 
 ## 📁 What's Inside
 
+### Interactive Visual Guide
+
+**🎨 [interactive/brand-guide.html](interactive/brand-guide.html)** 🚀 **NEW! START HERE FOR VISUAL REFERENCE**
+   - **Interactive HTML brand guidebook** - Open in browser!
+   - Click-to-copy color swatches (hex, RGB, ANSI)
+   - Live terminal output previews with proper colors
+   - Copy-paste code snippets (CSS, Bash, Rust, Python)
+   - SVG logo files for web use
+   - Responsive design, works on mobile
+   - **Perfect for developers who want visual, interactive reference**
+
 ### Core Documents
 
 1. **[../BRAND_STYLE_GUIDE.md](../BRAND_STYLE_GUIDE.md)** ⭐️
@@ -41,17 +52,24 @@ This directory contains all official brand materials, guidelines, and assets for
 
 ## 🚀 Quick Start
 
+### 🎨 Want Visual, Interactive Reference?
+**→ Open [interactive/brand-guide.html](interactive/brand-guide.html) in your browser!**
+- Click colors to copy hex codes
+- See live terminal previews
+- Copy-paste code snippets
+- Download SVG logos
+
 ### For Developers/Contributors
 
-**Need a logo?** → [ASCII_LOGOS.md](ASCII_LOGOS.md)
+**Need a logo?** → [interactive/brand-guide.html](interactive/brand-guide.html#logos) or [ASCII_LOGOS.md](ASCII_LOGOS.md)
 
-**Need colors?** → [QUICK_REFERENCE.md](QUICK_REFERENCE.md#colors)
+**Need colors?** → [interactive/brand-guide.html](interactive/brand-guide.html#colors) or [QUICK_REFERENCE.md](QUICK_REFERENCE.md#colors)
 
 **Need a tagline?** → [QUICK_REFERENCE.md](QUICK_REFERENCE.md#primary-taglines)
 
 **Writing docs?** → [BRAND_APPLICATION_EXAMPLES.md](BRAND_APPLICATION_EXAMPLES.md#documentation-examples)
 
-**Creating terminal UI?** → [BRAND_APPLICATION_EXAMPLES.md](BRAND_APPLICATION_EXAMPLES.md#terminal-output-examples)
+**Creating terminal UI?** → [interactive/brand-guide.html](interactive/brand-guide.html#terminal) or [BRAND_APPLICATION_EXAMPLES.md](BRAND_APPLICATION_EXAMPLES.md#terminal-output-examples)
 
 ### For Marketing/Community
 
