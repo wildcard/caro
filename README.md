@@ -476,6 +476,72 @@ cargo run --example aseprite_demo
 
 **For Testing**: See the [Testing Guide](docs/TESTING_ANIMATIONS.md) for validation checklists and debugging procedures.
 
+### Using in Your TUI App
+
+**New to Terminal UI development?** We've got you covered!
+
+#### 🚀 Complete Beginner? Start Here!
+
+**[Getting Started with TUI Animations](docs/GETTING_STARTED_TUI.md)** - Complete beginner's guide
+- No TUI experience required
+- Step-by-step from zero to your first app
+- Explains everything you need to know
+- **Your first animated app in 5 minutes!**
+
+#### 📖 Progressive Tutorials
+
+Learn by doing with our tutorial series:
+
+1. **[Tutorial 01: Hello Animated World](examples/tutorial_01_hello_animated.rs)** (5 min) ⭐☆☆☆☆
+   - Your first animated sprite
+   - Just 10 lines of code!
+   - Run: `cargo run --example tutorial_01_hello_animated --features tui`
+
+2. **[Tutorial 02: Keyboard Controls](examples/tutorial_02_keyboard_controls.rs)** (10 min) ⭐⭐☆☆☆
+   - Add pause/resume with SPACE
+   - Handle keyboard input
+   - Run: `cargo run --example tutorial_02_keyboard_controls --features tui`
+
+3. **[Tutorial 03: Multiple Sprites](examples/tutorial_03_multiple_sprites.rs)** (15 min) ⭐⭐⭐☆☆
+   - Show 3 animations at once
+   - Layout system basics
+   - Run: `cargo run --example tutorial_03_multiple_sprites --features tui`
+
+**More tutorials coming soon!** Tutorial 04 (Interactive Scene) and Tutorial 05 (Complete Game)
+
+#### 🎮 TUI Framework Integration
+
+**Using Ratatui?** Perfect!
+
+- **[TUI Integration Guide](docs/TUI_INTEGRATION.md)** - Deep dive into Ratatui integration
+- **[Complete Demo](examples/ratatui_sprite_demo.rs)** - Full interactive example
+- **[Widget Implementation](src/rendering/ratatui_widget.rs)** - Production-ready widgets
+
+```bash
+# Try the interactive demo
+cargo run --example ratatui_sprite_demo --features tui
+```
+
+**Want to use a game engine?**
+- **[Game Engine Integration](docs/GAME_ENGINE_INTEGRATION.md)** - Bevy, Macroquad, ggez examples
+
+#### 🎨 For Contributors
+
+Want to help make this better?
+
+- **[Contributing Guide](docs/CONTRIBUTING_SPRITES.md)** - How to contribute code, art, or docs
+- **[Project Roadmap](docs/ROADMAP.md)** - Where we're headed
+- **[Good First Issues](https://github.com/wildcard/cmdai/labels/good%20first%20issue)** - Start here!
+
+**This project needs**:
+- ✨ More tutorial examples
+- 🎨 Sprite artwork contributions
+- 📚 Documentation improvements
+- 🐛 Bug reports and fixes
+- 💡 Creative use cases
+
+Every contribution helps! See [CONTRIBUTING_SPRITES.md](docs/CONTRIBUTING_SPRITES.md) for details.
+
 ## 🤝 Contributing
 
 We welcome contributions! This is an early-stage project with many opportunities to contribute.

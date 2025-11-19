@@ -15,6 +15,8 @@ Complete documentation for the terminal-based sprite animation rendering system:
 | **[Designer Guide](DESIGNER_GUIDE.md)** | UX/UI Designers | Workflow guide for creating animations with professional tools | 25 min |
 | **[Testing Guide](TESTING_ANIMATIONS.md)** | QA/Developers | Comprehensive testing and validation procedures | 30 min |
 | **[Contributing Assets](CONTRIBUTING_ASSETS.md)** | Artists/Designers | How to upload and license your artwork | 20 min |
+| **[TUI Integration](TUI_INTEGRATION.md)** | Developers | Integrate sprites with Ratatui and other TUI frameworks | 35 min |
+| **[Game Engine Integration](GAME_ENGINE_INTEGRATION.md)** | Game Developers | Using Bevy, Macroquad, or ggez with terminal sprites | 25 min |
 
 ### Asset Management
 
@@ -47,14 +49,33 @@ You're building Rust applications with terminal animations.
 **Learning Path**:
 1. [Quick Start Guide](QUICKSTART_ANIMATIONS.md) - Basic concepts
 2. [Animation Guide](ANIMATION_GUIDE.md) - Complete API reference
-3. [Testing Guide](TESTING_ANIMATIONS.md) - Quality assurance
+3. [TUI Integration](TUI_INTEGRATION.md) - Ratatui integration
+4. [Testing Guide](TESTING_ANIMATIONS.md) - Quality assurance
 
 **Key Sections**:
 - Creating animations programmatically
 - Loading files from disk
 - Async animation playback
+- Integrating with Ratatui widgets
+- Event handling and controls
 - Error handling
 - Performance optimization
+
+### For TUI Application Developers
+You're integrating animated sprites into Ratatui-based terminal UIs.
+
+**Learning Path**:
+1. [Quick Start Guide](QUICKSTART_ANIMATIONS.md) - See what's possible
+2. [TUI Integration](TUI_INTEGRATION.md) - Complete Ratatui guide
+3. [Animation Guide](ANIMATION_GUIDE.md) - Deep dive into API
+
+**Key Sections**:
+- Ratatui widget patterns
+- Animation controllers and state management
+- Multi-sprite scenes
+- Event handling (keyboard/mouse)
+- Performance optimization for TUI apps
+- When to use game engines vs. simple widgets
 
 ### For UX/UI Designers
 You're creating pixel art animations for terminal applications.
@@ -164,6 +185,7 @@ cargo run --example sprite_demo
 cargo run --example ansi_art_demo
 cargo run --example durdraw_demo
 cargo run --example aseprite_demo
+cargo run --example ratatui_sprite_demo --features tui
 ```
 
 ### "I want to create my first animation"
@@ -182,6 +204,13 @@ cargo run --example aseprite_demo
 2. Add dependency: `cmdai` to your `Cargo.toml`
 3. Import: `use cmdai::rendering::*;`
 4. Create and play your animation
+
+### "I want to add sprites to my Ratatui TUI app"
+1. Read: [TUI Integration Guide](TUI_INTEGRATION.md)
+2. Add dependencies: `cmdai = { version = "*", features = ["tui"] }`
+3. Import: `use cmdai::rendering::ratatui_widget::*;`
+4. Use `SpriteWidget` or `AnimatedSprite` in your app
+5. See: `examples/ratatui_sprite_demo.rs` for a complete example
 
 ### "I need to test animations thoroughly"
 1. Read: [Testing Guide](TESTING_ANIMATIONS.md)

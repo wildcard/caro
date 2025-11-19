@@ -13,6 +13,9 @@ mod durdraw_parser;
 mod aseprite_parser;
 pub mod examples;
 
+#[cfg(feature = "tui")]
+pub mod ratatui_widget;
+
 pub use sprites::{ColorPalette, Sprite, SpriteFrame, Color};
 pub use animator::{Animation, Animator, AnimationMode};
 pub use terminal::TerminalRenderer;
