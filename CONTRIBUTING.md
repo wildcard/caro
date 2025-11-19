@@ -5,6 +5,7 @@ Thank you for your interest in contributing to cmdai! We're building a safety-fi
 ## Table of Contents
 
 - [Project Vision](#project-vision)
+- [The Roadmap: MVP to $50M Company](#the-roadmap-mvp-to-50m-company)
 - [Getting Started](#getting-started)
 - [Development Workflow](#development-workflow)
 - [Code Standards](#code-standards)
@@ -26,6 +27,99 @@ cmdai aims to make shell command generation:
 - **Community-driven** - Open development, transparent processes, welcoming to all skill levels
 
 We prioritize correctness, safety, and user experience above all else.
+
+---
+
+## The Roadmap: MVP to $50M Company
+
+cmdai is on a journey from open-source CLI tool to venture-scale company using the **PostHog dual-tier model**: open-source community edition + cloud/enterprise SaaS.
+
+### Our Vision for 2025-2027
+
+**By 2028, cmdai will be:**
+- The standard for AI-assisted terminal operations
+- Used by 100,000+ developers (open source)
+- Powering 10,000+ teams (cloud/enterprise)
+- Generating $50M+ ARR with 100% YoY growth
+
+### How You Can Help
+
+We're building this **as a community**, and there are many ways to contribute:
+
+#### For Developers
+
+**Current Phase (V1.0 - Production CLI)**:
+- Performance optimization (<100ms startup)
+- Binary size reduction (<50MB)
+- Package distribution (Homebrew, apt, cargo)
+- Integration testing
+- Documentation polish
+
+**Next Phase (Q1 2025 - Cloud Launch)**:
+- Cloud API backend (Rust + Axum + PostgreSQL)
+- Team collaboration features
+- Analytics and learning pipeline
+- Usage telemetry (privacy-first)
+
+**Future Phases**:
+- **Q2 2025**: Enterprise features (audit logs, RBAC, SSO)
+- **Q3 2025**: Platform features (workflows, integrations)
+- **Q4 2025**: Scale and fundraising (Series A prep)
+
+See [ROADMAP.md](ROADMAP.md) for the complete quarterly plan.
+
+#### For Technical Writers
+
+- Documentation for cloud features
+- API documentation (OpenAPI specs)
+- Tutorial content (blog posts, videos)
+- Case studies from early adopters
+
+#### For Designers
+
+- Web UI for team dashboard
+- Landing page design (cmdai.dev)
+- Marketing materials
+- User onboarding flows
+
+#### For Business Minded Contributors
+
+- Go-to-market strategy feedback
+- Pricing and packaging research
+- Customer interviews and research
+- Partnership development
+
+### Key Documents
+
+If you want to understand where we're going:
+
+1. **[ROADMAP.md](ROADMAP.md)** - Quarterly product roadmap (MVP → $50M ARR)
+2. **[BUSINESS_MODEL.md](BUSINESS_MODEL.md)** - Dual-tier business model and economics
+3. **[ARCHITECTURE.md](ARCHITECTURE.md)** - Technical architecture for cloud/enterprise
+4. **[MVP_TO_V1.md](MVP_TO_V1.md)** - Immediate next steps to V1.0
+5. **[GITHUB_SETUP.md](GITHUB_SETUP.md)** - How we track work (issues, milestones, labels)
+
+### Finding Your Place
+
+Not sure where to start? Here's a quick guide:
+
+- **New to open source?** → Look for `good-first-issue` label
+- **Want quick wins?** → Check [TECH_DEBT.md](TECH_DEBT.md) for small tasks
+- **Interested in cloud features?** → Read [ARCHITECTURE.md](ARCHITECTURE.md)
+- **Want to shape the vision?** → Comment on [Roadmap Discussions](https://github.com/wildcard/cmdai/discussions)
+
+### Commitment to Open Source
+
+**Our Promise**:
+- Core CLI will **always be free and open source** (MIT/Apache 2.0)
+- No features will be "ripped out" and made paid-only
+- Cloud/enterprise features are **additive**, not restrictive
+- Community input shapes the roadmap (it's not just top-down)
+
+**How We Stay Sustainable**:
+- Open source = growth engine (trust, adoption, contributors)
+- Cloud/enterprise = revenue engine (pays for development)
+- Like PostHog, GitLab, Supabase before us
 
 ---
 

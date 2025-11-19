@@ -340,37 +340,55 @@ This project is licensed under the **GNU Affero General Public License v3.0 (AGP
 - 💡 **Feature Requests**: [GitHub Discussions](https://github.com/wildcard/cmdai/discussions)
 - 📖 **Documentation**: See `/specs` directory for detailed specifications
 
-## 🗺️ Roadmap
+## 🗺️ Product Roadmap
 
-### Phase 1: Core Structure (Current)
-- [x] CLI argument parsing
-- [x] Module architecture
-- [x] Backend trait system
-- [ ] Basic command generation
+cmdai is on a journey from open-source CLI tool to venture-scale company. We're following the **PostHog model**: open-source community edition + cloud/enterprise SaaS.
 
-### Phase 2: Safety & Validation
-- [ ] Dangerous pattern detection
-- [ ] POSIX compliance checking
-- [ ] User confirmation workflows
-- [ ] Risk assessment system
+### Quick Overview
 
-### Phase 3: Backend Integration
-- [ ] vLLM HTTP API support
-- [ ] Ollama local backend
-- [ ] Response parsing
-- [ ] Error handling
+**Current Phase**: MVP → V1.0 (Production-Ready CLI)
+- Performance optimization (<100ms startup, <2s inference)
+- Binary distribution (Homebrew, apt, cargo)
+- Complete documentation and testing
 
-### Phase 4: MLX Optimization
-- [ ] FFI bindings with cxx
-- [ ] Metal Performance Shaders
-- [ ] Unified memory handling
-- [ ] Apple Silicon optimization
+**Next Phases**:
+- **Q1 2025**: Cloud backend, team collaboration ($2K MRR target)
+- **Q2 2025**: Enterprise features (audit, RBAC, SSO) ($150K ARR target)
+- **Q3 2025**: Platform features (workflows, integrations) ($500K ARR target)
+- **Q4 2025**: Scale and Series A fundraising ($100K MRR target)
 
-### Phase 5: Production Ready
-- [ ] Comprehensive testing
-- [ ] Performance optimization
-- [ ] Binary distribution
-- [ ] Package manager support
+**Vision (2028)**: The AI-native operations platform trusted by 10,000+ teams, $50M+ ARR
+
+### Complete Planning Documents
+
+We've created comprehensive documentation for the entire journey:
+
+1. **[ROADMAP.md](ROADMAP.md)** - Complete quarterly product roadmap with features, metrics, and milestones
+2. **[BUSINESS_MODEL.md](BUSINESS_MODEL.md)** - Dual-tier business model, pricing, unit economics, GTM strategy
+3. **[ARCHITECTURE.md](ARCHITECTURE.md)** - Technical architecture for cloud and enterprise features
+4. **[MVP_TO_V1.md](MVP_TO_V1.md)** - Immediate next steps to complete V1.0
+5. **[GITHUB_SETUP.md](GITHUB_SETUP.md)** - How we organize work with issues, milestones, and labels
+6. **[CONTRIBUTING.md](CONTRIBUTING.md)** - Updated with roadmap-specific contribution guidance
+
+### How to Get Involved
+
+We're building this **as a community**! Here's how you can help:
+
+- **Developers**: Work on V1.0 completion, cloud backend, or enterprise features
+- **Technical Writers**: Document features, write tutorials, create case studies
+- **Designers**: Help with web UI, landing pages, and user experience
+- **Business Contributors**: Provide GTM feedback, customer research, partnership ideas
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution guidelines.
+
+### Our Commitment
+
+- Core CLI will **always be free and open source** (MIT/Apache 2.0)
+- No "rug pull" - features won't be removed and made paid-only
+- Cloud/enterprise features are **additive** (like PostHog, GitLab, Supabase)
+- Community input shapes the roadmap
+
+**Open source** = growth engine | **Cloud/enterprise** = revenue engine
 
 ---
 
