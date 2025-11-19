@@ -9,10 +9,14 @@ authors = ["Claude Code <noreply@anthropic.com>"]
 keywords = ["cli", "llm", "shell", "commands", "ai"]
 categories = ["command-line-utilities", "development-tools"]
 
-# Binary target
+# Binary targets
 [[bin]]
 name = "cmdai"
 path = "src/main.rs"
+
+[[bin]]
+name = "tui-showcase"
+path = "src/bin/tui_showcase.rs"
 
 [dependencies]
 # Core CLI and async runtime
@@ -65,6 +69,10 @@ sha2 = "0.10"
 
 # Async trait support
 async-trait = "0.1"
+
+# Terminal UI framework (for TUI showcase and future interactive features)
+ratatui = "0.29"
+crossterm = "0.28"
 
 # Optional MLX support for Apple Silicon (behind feature flag)
 cxx = { version = "1.0", optional = true }

@@ -27,6 +27,7 @@ This project is in **active early development**. The architecture and module str
 - Multiple output formats (JSON, YAML, Plain)
 - Contract-based test structure with TDD methodology
 - Multi-platform CI/CD pipeline
+- **TUI Component Showcase - Storybook for Ratatui development** ✨
 
 ### 🚧 In Progress
 - Model downloading and caching system
@@ -87,6 +88,27 @@ make build-release
 # Run with debug logging
 RUST_LOG=debug cargo run -- "your command"
 ```
+
+## 🎨 TUI Component Showcase
+
+This project includes a **Storybook-like development tool** for terminal UI components! Develop, test, and showcase Ratatui components in isolation.
+
+```bash
+# Run the TUI showcase
+cargo run --bin tui-showcase
+
+# Run with hot-reload for fast iteration
+cargo install cargo-watch
+cargo watch -x 'run --bin tui-showcase'
+```
+
+**Features:**
+- 📦 **Component Isolation** - Build and test UI components independently
+- 🔄 **Hot Reload** - Instant feedback during development
+- 📚 **Story-Based** - Showcase multiple states and variations
+- 🎯 **Interactive Browser** - Navigate components with keyboard
+
+See [TUI_SHOWCASE.md](TUI_SHOWCASE.md) for detailed documentation on creating and using showcase components.
 
 ## 📖 Usage
 
