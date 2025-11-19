@@ -25,9 +25,10 @@ use cmdai::tui::{
     components::{
         CommandEditorComponent, CommandFlowComponent, CommandOutputViewerComponent,
         CommandPreviewComponent, CommandRatingComponent, ConfirmationDialogComponent,
-        GenerationComparisonComponent, HistoryTimelineComponent, KeyboardShortcutsComponent,
-        NotificationToastComponent, ProgressSpinnerComponent, SafetyIndicatorComponent,
-        SimpleTextComponent, TableSelectorComponent,
+        FileBrowserComponent, GenerationComparisonComponent, HistoryTimelineComponent,
+        KeyboardShortcutsComponent, MetricDashboardComponent, NotificationToastComponent,
+        ProgressSpinnerComponent, SafetyIndicatorComponent, SimpleTextComponent,
+        TableSelectorComponent,
     },
     showcase::ShowcaseRegistry,
 };
@@ -44,11 +45,7 @@ use ratatui::{
     widgets::{Block, Borders, List, ListItem, Paragraph},
     Frame, Terminal,
 };
-use std::{
-    error::Error,
-    io,
-    time::Duration,
-};
+use std::{error::Error, io, time::Duration};
 
 /// Application state
 struct App {
@@ -78,14 +75,16 @@ impl App {
         registry.register(Box::new(SimpleTextComponent));
         registry.register(Box::new(CommandPreviewComponent));
         registry.register(Box::new(TableSelectorComponent));
-        registry.register(Box::new(CommandOutputViewerComponent));  // 🌟 Community requested!
-        registry.register(Box::new(HistoryTimelineComponent));      // 🌟 Community requested!
+        registry.register(Box::new(CommandOutputViewerComponent)); // 🌟 Community requested!
+        registry.register(Box::new(HistoryTimelineComponent)); // 🌟 Community requested!
         registry.register(Box::new(GenerationComparisonComponent)); // 🌟 Community requested!
+        registry.register(Box::new(FileBrowserComponent)); // 🌟 File system browser!
+        registry.register(Box::new(MetricDashboardComponent)); // 🌟 Community requested!
 
         // Input components
         registry.register(Box::new(ConfirmationDialogComponent));
         registry.register(Box::new(CommandEditorComponent));
-        registry.register(Box::new(CommandRatingComponent));        // 🌟 Community requested!
+        registry.register(Box::new(CommandRatingComponent)); // 🌟 Community requested!
 
         // Feedback components
         registry.register(Box::new(SafetyIndicatorComponent));
@@ -218,30 +217,44 @@ fn render_help(frame: &mut Frame, area: Rect) {
     let help_text = vec![
         Line::from(""),
         Line::from(vec![
-            Span::styled("TUI Showcase ", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "TUI Showcase ",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::raw("- A Storybook-like tool for Ratatui"),
         ]),
         Line::from(""),
-        Line::from(vec![
-            Span::styled("Navigation:", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
-        ]),
+        Line::from(vec![Span::styled(
+            "Navigation:",
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        )]),
         Line::from("  ↑/↓ or j/k     Navigate items"),
         Line::from("  Enter          Select item"),
         Line::from("  Backspace      Go back"),
         Line::from("  h              Toggle help"),
         Line::from("  q or Esc       Quit / Close"),
         Line::from(""),
-        Line::from(vec![
-            Span::styled("Features:", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
-        ]),
+        Line::from(vec![Span::styled(
+            "Features:",
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        )]),
         Line::from("  • Browse components and stories"),
         Line::from("  • View isolated component renders"),
         Line::from("  • Test different component states"),
         Line::from("  • Fast iteration with cargo-watch"),
         Line::from(""),
-        Line::from(vec![
-            Span::styled("Development:", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
-        ]),
+        Line::from(vec![Span::styled(
+            "Development:",
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        )]),
         Line::from("  cargo watch -x 'run --bin tui-showcase'"),
         Line::from(""),
         Line::from("Press h to close this help"),
@@ -264,16 +277,23 @@ fn render_help(frame: &mut Frame, area: Rect) {
 fn render_component_list(frame: &mut Frame, app: &App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Length(3), Constraint::Min(0), Constraint::Length(3)])
+        .constraints([
+            Constraint::Length(3),
+            Constraint::Min(0),
+            Constraint::Length(3),
+        ])
         .split(frame.area());
 
     // Header
-    let header = Paragraph::new(vec![
-        Line::from(vec![
-            Span::styled("TUI Showcase", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            Span::raw(" - Select a component to explore"),
-        ]),
-    ])
+    let header = Paragraph::new(vec![Line::from(vec![
+        Span::styled(
+            "TUI Showcase",
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::raw(" - Select a component to explore"),
+    ])])
     .block(Block::default().borders(Borders::ALL))
     .alignment(Alignment::Center);
     frame.render_widget(header, chunks[0]);
@@ -326,7 +346,11 @@ fn render_component_list(frame: &mut Frame, app: &App) {
 fn render_story_list(frame: &mut Frame, app: &App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Length(3), Constraint::Min(0), Constraint::Length(3)])
+        .constraints([
+            Constraint::Length(3),
+            Constraint::Min(0),
+            Constraint::Length(3),
+        ])
         .split(frame.area());
 
     if let Some(component) = app.registry.get(app.selected_component) {
@@ -334,7 +358,12 @@ fn render_story_list(frame: &mut Frame, app: &App) {
 
         // Header
         let header = Paragraph::new(vec![Line::from(vec![
-            Span::styled(metadata.name.clone(), Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                metadata.name.clone(),
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::raw(" - "),
             Span::raw(metadata.description.clone()),
         ])])
@@ -388,7 +417,11 @@ fn render_story_list(frame: &mut Frame, app: &App) {
 fn render_story_view(frame: &mut Frame, app: &App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Length(3), Constraint::Min(0), Constraint::Length(3)])
+        .constraints([
+            Constraint::Length(3),
+            Constraint::Min(0),
+            Constraint::Length(3),
+        ])
         .split(frame.area());
 
     if let Some(component) = app.registry.get(app.selected_component) {
@@ -398,9 +431,19 @@ fn render_story_view(frame: &mut Frame, app: &App) {
         if let Some(story) = stories.get(app.selected_story) {
             // Header
             let header = Paragraph::new(vec![Line::from(vec![
-                Span::styled(metadata.name.clone(), Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    metadata.name.clone(),
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
+                ),
                 Span::raw(" / "),
-                Span::styled(story.name.clone(), Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    story.name.clone(),
+                    Style::default()
+                        .fg(Color::Green)
+                        .add_modifier(Modifier::BOLD),
+                ),
             ])])
             .block(Block::default().borders(Borders::ALL))
             .alignment(Alignment::Center);

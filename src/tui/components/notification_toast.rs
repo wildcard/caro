@@ -96,15 +96,11 @@ fn render_toast(
             Span::raw("  "),
             Span::styled(
                 format!("{} ", level.icon()),
-                Style::default()
-                    .fg(color)
-                    .add_modifier(Modifier::BOLD),
+                Style::default().fg(color).add_modifier(Modifier::BOLD),
             ),
             Span::styled(
                 level.label(),
-                Style::default()
-                    .fg(color)
-                    .add_modifier(Modifier::BOLD),
+                Style::default().fg(color).add_modifier(Modifier::BOLD),
             ),
             Span::raw(": "),
             Span::raw(message),
@@ -134,13 +130,7 @@ fn render_toast(
     frame.render_widget(toast, toast_area);
 }
 
-fn render_banner(
-    frame: &mut Frame,
-    area: Rect,
-    level: ToastLevel,
-    message: &str,
-    position: &str,
-) {
+fn render_banner(frame: &mut Frame, area: Rect, level: ToastLevel, message: &str, position: &str) {
     let banner_height = 3;
 
     let banner_area = match position {

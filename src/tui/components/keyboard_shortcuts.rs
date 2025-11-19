@@ -82,12 +82,7 @@ const SHORTCUTS: &[Shortcut] = &[
     },
 ];
 
-fn render_shortcuts(
-    frame: &mut Frame,
-    area: Rect,
-    style_variant: &str,
-    show_categories: bool,
-) {
+fn render_shortcuts(frame: &mut Frame, area: Rect, style_variant: &str, show_categories: bool) {
     match style_variant {
         "compact" => render_compact(frame, area, show_categories),
         "detailed" => render_detailed(frame, area, show_categories),
@@ -237,14 +232,12 @@ fn render_grid(frame: &mut Frame, area: Rect) {
         .iter()
         .flat_map(|s| {
             vec![
-                Line::from(vec![
-                    Span::styled(
-                        s.key,
-                        Style::default()
-                            .fg(Color::Green)
-                            .add_modifier(Modifier::BOLD),
-                    ),
-                ]),
+                Line::from(vec![Span::styled(
+                    s.key,
+                    Style::default()
+                        .fg(Color::Green)
+                        .add_modifier(Modifier::BOLD),
+                )]),
                 Line::from(vec![
                     Span::styled("  ", Style::default()),
                     Span::raw(s.description),
@@ -254,11 +247,8 @@ fn render_grid(frame: &mut Frame, area: Rect) {
         })
         .collect();
 
-    let left_widget = Paragraph::new(left_shortcuts).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .title("Essential"),
-    );
+    let left_widget = Paragraph::new(left_shortcuts)
+        .block(Block::default().borders(Borders::ALL).title("Essential"));
     frame.render_widget(left_widget, columns[0]);
 
     // Right column
@@ -266,14 +256,12 @@ fn render_grid(frame: &mut Frame, area: Rect) {
         .iter()
         .flat_map(|s| {
             vec![
-                Line::from(vec![
-                    Span::styled(
-                        s.key,
-                        Style::default()
-                            .fg(Color::Cyan)
-                            .add_modifier(Modifier::BOLD),
-                    ),
-                ]),
+                Line::from(vec![Span::styled(
+                    s.key,
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
+                )]),
                 Line::from(vec![
                     Span::styled("  ", Style::default()),
                     Span::raw(s.description),
@@ -283,11 +271,8 @@ fn render_grid(frame: &mut Frame, area: Rect) {
         })
         .collect();
 
-    let right_widget = Paragraph::new(right_shortcuts).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .title("Advanced"),
-    );
+    let right_widget = Paragraph::new(right_shortcuts)
+        .block(Block::default().borders(Borders::ALL).title("Advanced"));
     frame.render_widget(right_widget, columns[1]);
 
     // Footer

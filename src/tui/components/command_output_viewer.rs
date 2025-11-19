@@ -25,9 +25,9 @@ fn render_output(
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(3),  // Header
-            Constraint::Min(5),     // Output area
-            Constraint::Length(3),  // Footer with stats
+            Constraint::Length(3), // Header
+            Constraint::Min(5),    // Output area
+            Constraint::Length(3), // Footer with stats
         ])
         .split(area);
 
@@ -39,12 +39,15 @@ fn render_output(
         _ => "ls -la",
     };
 
-    let header = Paragraph::new(vec![
-        Line::from(vec![
-            Span::styled("$ ", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
-            Span::styled(command, Style::default().fg(Color::White)),
-        ]),
-    ])
+    let header = Paragraph::new(vec![Line::from(vec![
+        Span::styled(
+            "$ ",
+            Style::default()
+                .fg(Color::Green)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(command, Style::default().fg(Color::White)),
+    ])])
     .block(
         Block::default()
             .borders(Borders::ALL)
@@ -74,11 +77,23 @@ fn render_output(
         if line_content.contains("Error") || line_content.contains("error") {
             spans.push(Span::styled(*line_content, Style::default().fg(Color::Red)));
         } else if line_content.contains("Warning") || line_content.contains("warning") {
-            spans.push(Span::styled(*line_content, Style::default().fg(Color::Yellow)));
+            spans.push(Span::styled(
+                *line_content,
+                Style::default().fg(Color::Yellow),
+            ));
         } else if line_content.contains("Success") || line_content.starts_with('+') {
-            spans.push(Span::styled(*line_content, Style::default().fg(Color::Green)));
-        } else if line_content.starts_with("│") || line_content.starts_with("├") || line_content.starts_with("└") {
-            spans.push(Span::styled(*line_content, Style::default().fg(Color::Cyan)));
+            spans.push(Span::styled(
+                *line_content,
+                Style::default().fg(Color::Green),
+            ));
+        } else if line_content.starts_with("│")
+            || line_content.starts_with("├")
+            || line_content.starts_with("└")
+        {
+            spans.push(Span::styled(
+                *line_content,
+                Style::default().fg(Color::Cyan),
+            ));
         } else {
             spans.push(Span::raw(*line_content));
         }
@@ -88,7 +103,8 @@ fn render_output(
 
     let output_block = Block::default()
         .borders(Borders::ALL)
-        .title(format!("Output (Lines {}-{}/{})",
+        .title(format!(
+            "Output (Lines {}-{}/{})",
             visible_start + 1,
             visible_end,
             output_lines.len()
@@ -104,18 +120,13 @@ fn render_output(
 
     // Scrollbar if content is long
     if output_lines.len() > chunks[1].height as usize {
-        let mut scrollbar_state = ScrollbarState::new(output_lines.len())
-            .position(scroll_position);
+        let mut scrollbar_state = ScrollbarState::new(output_lines.len()).position(scroll_position);
 
         let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight)
             .begin_symbol(Some("↑"))
             .end_symbol(Some("↓"));
 
-        frame.render_stateful_widget(
-            scrollbar,
-            chunks[1],
-            &mut scrollbar_state,
-        );
+        frame.render_stateful_widget(scrollbar, chunks[1], &mut scrollbar_state);
     }
 
     // Footer with stats
@@ -129,18 +140,24 @@ fn render_output(
         _ => "0.2s",
     };
 
-    let footer = Paragraph::new(vec![
-        Line::from(vec![
-            Span::styled("Exit Code: ", Style::default().fg(Color::DarkGray)),
-            Span::styled(exit_code.0, Style::default().fg(exit_code.1).add_modifier(Modifier::BOLD)),
-            Span::raw("  │  "),
-            Span::styled("Duration: ", Style::default().fg(Color::DarkGray)),
-            Span::styled(duration, Style::default().fg(Color::Cyan)),
-            Span::raw("  │  "),
-            Span::styled("Lines: ", Style::default().fg(Color::DarkGray)),
-            Span::styled(output_lines.len().to_string(), Style::default().fg(Color::White)),
-        ]),
-    ])
+    let footer = Paragraph::new(vec![Line::from(vec![
+        Span::styled("Exit Code: ", Style::default().fg(Color::DarkGray)),
+        Span::styled(
+            exit_code.0,
+            Style::default()
+                .fg(exit_code.1)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::raw("  │  "),
+        Span::styled("Duration: ", Style::default().fg(Color::DarkGray)),
+        Span::styled(duration, Style::default().fg(Color::Cyan)),
+        Span::raw("  │  "),
+        Span::styled("Lines: ", Style::default().fg(Color::DarkGray)),
+        Span::styled(
+            output_lines.len().to_string(),
+            Style::default().fg(Color::White),
+        ),
+    ])])
     .block(Block::default().borders(Borders::ALL))
     .alignment(ratatui::layout::Alignment::Center);
     frame.render_widget(footer, chunks[2]);

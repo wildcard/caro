@@ -23,7 +23,11 @@ fn render_editor(
 ) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Length(3), Constraint::Min(5), Constraint::Length(3)])
+        .constraints([
+            Constraint::Length(3),
+            Constraint::Min(5),
+            Constraint::Length(3),
+        ])
         .split(area);
 
     // Header
@@ -212,7 +216,9 @@ fn highlight_syntax(text: &str, spans: &mut Vec<Span>, is_cursor_line: bool) {
 
 fn add_highlighted_word(word: &str, spans: &mut Vec<Span>, _brightness: f32) {
     // Keywords/commands
-    let keywords = ["find", "grep", "sed", "awk", "ls", "cat", "cd", "rm", "cp", "mv"];
+    let keywords = [
+        "find", "grep", "sed", "awk", "ls", "cat", "cd", "rm", "cp", "mv",
+    ];
 
     let style = if keywords.contains(&word) {
         Style::default()
@@ -319,9 +325,7 @@ impl ShowcaseComponent for CommandEditorComponent {
                     render_editor(
                         frame,
                         area,
-                        &[
-                            "cat file.txt | sed 's/old/new/g' | grep pattern",
-                        ],
+                        &["cat file.txt | sed 's/old/new/g' | grep pattern"],
                         None,
                         false,
                         true,
@@ -335,10 +339,7 @@ impl ShowcaseComponent for CommandEditorComponent {
                     render_editor(
                         frame,
                         area,
-                        &[
-                            "find . -name '*.pdf'",
-                            "ls -la /home/user",
-                        ],
+                        &["find . -name '*.pdf'", "ls -la /home/user"],
                         Some(1),
                         true,
                         false,

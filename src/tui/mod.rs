@@ -7,7 +7,7 @@ pub mod components;
 pub mod showcase;
 
 // Re-export commonly used types
-pub use ratatui;
 pub use crossterm;
+pub use ratatui;
 
-pub use showcase::{ShowcaseComponent, ShowcaseStory, ComponentMetadata};
+pub use showcase::{ComponentMetadata, ShowcaseComponent, ShowcaseStory};

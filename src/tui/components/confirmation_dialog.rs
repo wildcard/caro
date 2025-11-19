@@ -11,13 +11,7 @@ use ratatui::{
 
 pub struct ConfirmationDialogComponent;
 
-fn render_dialog(
-    frame: &mut Frame,
-    area: Rect,
-    title: &str,
-    message: &str,
-    selected: bool,
-) {
+fn render_dialog(frame: &mut Frame, area: Rect, title: &str, message: &str, selected: bool) {
     // Center the dialog in the available area
     let dialog_width = area.width.min(60);
     let dialog_height = area.height.min(12);
@@ -31,10 +25,7 @@ fn render_dialog(
 
     let chunks = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Min(3),
-            Constraint::Length(3),
-        ])
+        .constraints([Constraint::Min(3), Constraint::Length(3)])
         .split(dialog_area);
 
     // Message area

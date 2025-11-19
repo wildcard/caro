@@ -60,15 +60,13 @@ fn render_table(
     show_header: bool,
     highlight_dangerous: bool,
 ) {
-    let header_cells = ["Time", "Query", "Command", "Status"]
-        .iter()
-        .map(|h| {
-            Cell::from(*h).style(
-                Style::default()
-                    .fg(Color::Cyan)
-                    .add_modifier(Modifier::BOLD),
-            )
-        });
+    let header_cells = ["Time", "Query", "Command", "Status"].iter().map(|h| {
+        Cell::from(*h).style(
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        )
+    });
 
     let header = Row::new(header_cells)
         .style(Style::default().bg(Color::DarkGray))

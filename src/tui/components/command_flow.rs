@@ -75,7 +75,11 @@ fn render_flow(frame: &mut Frame, area: Rect, current_step: FlowStep, query: &st
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(Color::Cyan)),
         )
-        .style(Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))
+        .style(
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        )
         .alignment(ratatui::layout::Alignment::Center);
     frame.render_widget(title, chunks[0]);
 
@@ -106,11 +110,8 @@ fn render_flow(frame: &mut Frame, area: Rect, current_step: FlowStep, query: &st
         ]));
     }
 
-    let flow_viz = Paragraph::new(flow_lines).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .title("Progress"),
-    );
+    let flow_viz =
+        Paragraph::new(flow_lines).block(Block::default().borders(Borders::ALL).title("Progress"));
     frame.render_widget(flow_viz, chunks[1]);
 
     // Content based on current step
@@ -118,15 +119,19 @@ fn render_flow(frame: &mut Frame, area: Rect, current_step: FlowStep, query: &st
         FlowStep::Input => {
             vec![
                 Line::from(""),
-                Line::from(vec![
-                    Span::styled("Query: ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
-                ]),
+                Line::from(vec![Span::styled(
+                    "Query: ",
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD),
+                )]),
                 Line::from(""),
                 Line::from(format!("  {}", query)),
                 Line::from(""),
-                Line::from(vec![
-                    Span::styled("Press Enter to generate command", Style::default().fg(Color::DarkGray)),
-                ]),
+                Line::from(vec![Span::styled(
+                    "Press Enter to generate command",
+                    Style::default().fg(Color::DarkGray),
+                )]),
             ]
         }
         FlowStep::Generating => {
@@ -150,9 +155,12 @@ fn render_flow(frame: &mut Frame, area: Rect, current_step: FlowStep, query: &st
         FlowStep::SafetyCheck => {
             vec![
                 Line::from(""),
-                Line::from(vec![
-                    Span::styled("Generated Command:", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-                ]),
+                Line::from(vec![Span::styled(
+                    "Generated Command:",
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
+                )]),
                 Line::from(""),
                 Line::from(vec![
                     Span::styled("$ ", Style::default().fg(Color::Green)),
@@ -161,7 +169,12 @@ fn render_flow(frame: &mut Frame, area: Rect, current_step: FlowStep, query: &st
                 Line::from(""),
                 Line::from(vec![
                     Span::styled("✓ ", Style::default().fg(Color::Green)),
-                    Span::styled("SAFE", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+                    Span::styled(
+                        "SAFE",
+                        Style::default()
+                            .fg(Color::Green)
+                            .add_modifier(Modifier::BOLD),
+                    ),
                     Span::raw(" - This command is safe to execute"),
                 ]),
             ]
@@ -169,9 +182,12 @@ fn render_flow(frame: &mut Frame, area: Rect, current_step: FlowStep, query: &st
         FlowStep::Confirmation => {
             vec![
                 Line::from(""),
-                Line::from(vec![
-                    Span::styled("Command: ", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-                ]),
+                Line::from(vec![Span::styled(
+                    "Command: ",
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
+                )]),
                 Line::from(""),
                 Line::from(vec![
                     Span::styled("$ ", Style::default().fg(Color::Green)),
@@ -179,9 +195,10 @@ fn render_flow(frame: &mut Frame, area: Rect, current_step: FlowStep, query: &st
                 ]),
                 Line::from(""),
                 Line::from(""),
-                Line::from(vec![
-                    Span::styled("Execute this command? ", Style::default().fg(Color::Yellow)),
-                ]),
+                Line::from(vec![Span::styled(
+                    "Execute this command? ",
+                    Style::default().fg(Color::Yellow),
+                )]),
                 Line::from(""),
                 Line::from(vec![
                     Span::raw("  "),
@@ -209,8 +226,16 @@ fn render_flow(frame: &mut Frame, area: Rect, current_step: FlowStep, query: &st
             vec![
                 Line::from(""),
                 Line::from(vec![
-                    Span::styled("✓ ", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
-                    Span::styled("Command executed successfully!", Style::default().fg(Color::Green)),
+                    Span::styled(
+                        "✓ ",
+                        Style::default()
+                            .fg(Color::Green)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::styled(
+                        "Command executed successfully!",
+                        Style::default().fg(Color::Green),
+                    ),
                 ]),
                 Line::from(""),
                 Line::from("Output:"),
@@ -219,18 +244,16 @@ fn render_flow(frame: &mut Frame, area: Rect, current_step: FlowStep, query: &st
                 Line::from("  file2.txt"),
                 Line::from("  file3.txt"),
                 Line::from(""),
-                Line::from(vec![
-                    Span::styled("Completed in 1.2s", Style::default().fg(Color::DarkGray)),
-                ]),
+                Line::from(vec![Span::styled(
+                    "Completed in 1.2s",
+                    Style::default().fg(Color::DarkGray),
+                )]),
             ]
         }
     };
 
-    let content_widget = Paragraph::new(content).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .title("Current Step"),
-    );
+    let content_widget =
+        Paragraph::new(content).block(Block::default().borders(Borders::ALL).title("Current Step"));
     frame.render_widget(content_widget, chunks[2]);
 }
 

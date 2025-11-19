@@ -52,34 +52,18 @@ impl ShowcaseComponent for ProgressSpinnerComponent {
 
     fn stories(&self) -> Vec<ShowcaseStory> {
         vec![
-            ShowcaseStory::new(
-                "Frame 0",
-                "Spinner animation frame 0",
-                |frame, area| {
-                    render_spinner(frame, area, 0, "Loading model...", Color::Cyan);
-                },
-            ),
-            ShowcaseStory::new(
-                "Frame 1",
-                "Spinner animation frame 1",
-                |frame, area| {
-                    render_spinner(frame, area, 1, "Loading model...", Color::Cyan);
-                },
-            ),
-            ShowcaseStory::new(
-                "Frame 2",
-                "Spinner animation frame 2",
-                |frame, area| {
-                    render_spinner(frame, area, 2, "Loading model...", Color::Cyan);
-                },
-            ),
-            ShowcaseStory::new(
-                "Frame 3",
-                "Spinner animation frame 3",
-                |frame, area| {
-                    render_spinner(frame, area, 3, "Loading model...", Color::Cyan);
-                },
-            ),
+            ShowcaseStory::new("Frame 0", "Spinner animation frame 0", |frame, area| {
+                render_spinner(frame, area, 0, "Loading model...", Color::Cyan);
+            }),
+            ShowcaseStory::new("Frame 1", "Spinner animation frame 1", |frame, area| {
+                render_spinner(frame, area, 1, "Loading model...", Color::Cyan);
+            }),
+            ShowcaseStory::new("Frame 2", "Spinner animation frame 2", |frame, area| {
+                render_spinner(frame, area, 2, "Loading model...", Color::Cyan);
+            }),
+            ShowcaseStory::new("Frame 3", "Spinner animation frame 3", |frame, area| {
+                render_spinner(frame, area, 3, "Loading model...", Color::Cyan);
+            }),
             ShowcaseStory::new(
                 "Generating Command",
                 "Spinner while generating a command",
@@ -87,13 +71,9 @@ impl ShowcaseComponent for ProgressSpinnerComponent {
                     render_spinner(frame, area, 0, "Generating command...", Color::Green);
                 },
             ),
-            ShowcaseStory::new(
-                "Processing",
-                "Spinner during processing",
-                |frame, area| {
-                    render_spinner(frame, area, 5, "Processing request...", Color::Yellow);
-                },
-            ),
+            ShowcaseStory::new("Processing", "Spinner during processing", |frame, area| {
+                render_spinner(frame, area, 5, "Processing request...", Color::Yellow);
+            }),
         ]
     }
 }

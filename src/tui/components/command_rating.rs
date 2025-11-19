@@ -96,15 +96,19 @@ fn render_rating(
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(3),  // Header
-            Constraint::Min(5),     // Command list
-            Constraint::Length(3),  // Footer
+            Constraint::Length(3), // Header
+            Constraint::Min(5),    // Command list
+            Constraint::Length(3), // Footer
         ])
         .split(area);
 
     // Header
     let header = Paragraph::new("Community-Rated Commands")
-        .style(Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))
+        .style(
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        )
         .alignment(ratatui::layout::Alignment::Center)
         .block(Block::default().borders(Borders::ALL));
     frame.render_widget(header, chunks[0]);
@@ -141,7 +145,9 @@ fn render_rating(
 
         // Score and voting arrows
         let up_style = if cmd.user_vote == Some(Vote::Up) {
-            Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)
+            Style::default()
+                .fg(Color::Green)
+                .add_modifier(Modifier::BOLD)
         } else {
             Style::default().fg(Color::DarkGray)
         };
@@ -156,14 +162,18 @@ fn render_rating(
             Span::styled(" ▲ ", up_style),
             Span::styled(
                 format!("{:4}", score),
-                Style::default().fg(score_color).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(score_color)
+                    .add_modifier(Modifier::BOLD),
             ),
             Span::styled(" ▼", down_style),
             Span::raw("  │  "),
             Span::styled(
                 cmd.query,
                 if is_selected {
-                    Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD)
                 } else {
                     Style::default().fg(Color::White)
                 },
@@ -211,15 +221,13 @@ fn render_rating(
         }
     }
 
-    let list = Paragraph::new(lines).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .title(match view_type {
-                "top" => "Top Rated",
-                "controversial" => "Most Controversial",
-                _ => "All Commands",
-            }),
-    );
+    let list = Paragraph::new(lines).block(Block::default().borders(Borders::ALL).title(
+        match view_type {
+            "top" => "Top Rated",
+            "controversial" => "Most Controversial",
+            _ => "All Commands",
+        },
+    ));
     frame.render_widget(list, chunks[1]);
 
     // Footer
@@ -238,31 +246,38 @@ fn render_voting_detail(frame: &mut Frame, area: Rect, cmd_idx: usize) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(5),   // Query and command
-            Constraint::Length(8),   // Voting stats
-            Constraint::Min(5),      // Comments preview
-            Constraint::Length(3),   // Actions
+            Constraint::Length(5), // Query and command
+            Constraint::Length(8), // Voting stats
+            Constraint::Min(5),    // Comments preview
+            Constraint::Length(3), // Actions
         ])
         .split(area);
 
     // Query and command
     let query_lines = vec![
         Line::from(vec![
-            Span::styled("Query: ", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "Query: ",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::raw(cmd.query),
         ]),
         Line::from(""),
         Line::from(vec![
-            Span::styled("$ ", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "$ ",
+                Style::default()
+                    .fg(Color::Green)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::styled(cmd.command, Style::default().fg(Color::White)),
         ]),
     ];
 
-    let query_block = Paragraph::new(query_lines).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .title("Command"),
-    );
+    let query_block =
+        Paragraph::new(query_lines).block(Block::default().borders(Borders::ALL).title("Command"));
     frame.render_widget(query_block, chunks[0]);
 
     // Voting stats
@@ -276,22 +291,40 @@ fn render_voting_detail(frame: &mut Frame, area: Rect, cmd_idx: usize) {
             Span::styled("  Score: ", Style::default().fg(Color::White)),
             Span::styled(
                 format!("{:+}", score),
-                Style::default().fg(if score > 0 { Color::Green } else { Color::Red }).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(if score > 0 { Color::Green } else { Color::Red })
+                    .add_modifier(Modifier::BOLD),
             ),
-            Span::styled(format!("  ({:.0}% upvoted)", percentage), Style::default().fg(Color::DarkGray)),
+            Span::styled(
+                format!("  ({:.0}% upvoted)", percentage),
+                Style::default().fg(Color::DarkGray),
+            ),
         ]),
         Line::from(""),
         Line::from(vec![
             Span::styled("  ▲ Upvotes:   ", Style::default().fg(Color::Green)),
-            Span::styled(cmd.upvotes.to_string(), Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                cmd.upvotes.to_string(),
+                Style::default()
+                    .fg(Color::Green)
+                    .add_modifier(Modifier::BOLD),
+            ),
         ]),
         Line::from(vec![
             Span::styled("  ▼ Downvotes: ", Style::default().fg(Color::Red)),
-            Span::styled(cmd.downvotes.to_string(), Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                cmd.downvotes.to_string(),
+                Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
+            ),
         ]),
         Line::from(vec![
             Span::styled("  Total Votes: ", Style::default().fg(Color::White)),
-            Span::styled(total_votes.to_string(), Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                total_votes.to_string(),
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ),
         ]),
     ];
 
@@ -306,20 +339,31 @@ fn render_voting_detail(frame: &mut Frame, area: Rect, cmd_idx: usize) {
     let comments_lines = vec![
         Line::from(""),
         Line::from(vec![
-            Span::styled("@rustdev42 ", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "@rustdev42 ",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::styled("2h ago", Style::default().fg(Color::DarkGray)),
         ]),
         Line::from("  This is a great command! Much better than using du."),
         Line::from(""),
         Line::from(vec![
-            Span::styled("@shellmaster ", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "@shellmaster ",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::styled("5h ago", Style::default().fg(Color::DarkGray)),
         ]),
         Line::from("  Consider adding -prune to avoid traversing excluded dirs."),
         Line::from(""),
-        Line::from(vec![
-            Span::styled(format!("  {} more comments...", cmd.comments - 2), Style::default().fg(Color::DarkGray)),
-        ]),
+        Line::from(vec![Span::styled(
+            format!("  {} more comments...", cmd.comments - 2),
+            Style::default().fg(Color::DarkGray),
+        )]),
     ];
 
     let comments_block = Paragraph::new(comments_lines).block(
@@ -330,10 +374,12 @@ fn render_voting_detail(frame: &mut Frame, area: Rect, cmd_idx: usize) {
     frame.render_widget(comments_block, chunks[2]);
 
     // Actions
-    let actions = Paragraph::new("↑: Upvote │ ↓: Downvote │ C: View All Comments │ A: View Alternatives │ Esc: Back")
-        .style(Style::default().fg(Color::DarkGray))
-        .block(Block::default().borders(Borders::ALL))
-        .alignment(ratatui::layout::Alignment::Center);
+    let actions = Paragraph::new(
+        "↑: Upvote │ ↓: Downvote │ C: View All Comments │ A: View Alternatives │ Esc: Back",
+    )
+    .style(Style::default().fg(Color::DarkGray))
+    .block(Block::default().borders(Borders::ALL))
+    .alignment(ratatui::layout::Alignment::Center);
     frame.render_widget(actions, chunks[3]);
 }
 

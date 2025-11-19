@@ -130,9 +130,9 @@ fn render_timeline(
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(3),  // Header with filters
-            Constraint::Min(5),     // Timeline content
-            Constraint::Length(3),  // Footer with stats
+            Constraint::Length(3), // Header with filters
+            Constraint::Min(5),    // Timeline content
+            Constraint::Length(3), // Footer with stats
         ])
         .split(area);
 
@@ -143,13 +143,16 @@ fn render_timeline(
         "Showing all commands".to_string()
     };
 
-    let header = Paragraph::new(vec![
-        Line::from(vec![
-            Span::styled("Command History Timeline", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            Span::raw("  │  "),
-            Span::styled(filter_text, Style::default().fg(Color::Yellow)),
-        ]),
-    ])
+    let header = Paragraph::new(vec![Line::from(vec![
+        Span::styled(
+            "Command History Timeline",
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::raw("  │  "),
+        Span::styled(filter_text, Style::default().fg(Color::Yellow)),
+    ])])
     .block(Block::default().borders(Borders::ALL))
     .alignment(ratatui::layout::Alignment::Center);
     frame.render_widget(header, chunks[0]);
@@ -176,7 +179,9 @@ fn render_timeline(
                 lines.push(Line::from(vec![
                     Span::styled(
                         format!(" {} ", entry.status.icon()),
-                        Style::default().fg(entry.status.color()).add_modifier(Modifier::BOLD),
+                        Style::default()
+                            .fg(entry.status.color())
+                            .add_modifier(Modifier::BOLD),
                     ),
                     Span::styled(format!(" {} ", entry.time), style.fg(Color::DarkGray)),
                     Span::styled(format!("{:40}", entry.query), style.fg(Color::White)),
@@ -189,30 +194,44 @@ fn render_timeline(
                 let is_selected = selected_idx == Some(idx);
 
                 // Timeline connector
-                let connector = if idx == 0 { "┌" } else if idx == filtered_history.len() - 1 { "└" } else { "├" };
+                let connector = if idx == 0 {
+                    "┌"
+                } else if idx == filtered_history.len() - 1 {
+                    "└"
+                } else {
+                    "├"
+                };
                 let connector_color = entry.status.color();
 
                 // Entry header
                 lines.push(Line::from(vec![
                     Span::styled(
                         format!(" {} ", connector),
-                        Style::default().fg(connector_color).add_modifier(Modifier::BOLD),
+                        Style::default()
+                            .fg(connector_color)
+                            .add_modifier(Modifier::BOLD),
                     ),
                     Span::styled(
                         format!(" {} ", entry.status.icon()),
-                        Style::default().fg(entry.status.color()).add_modifier(Modifier::BOLD),
+                        Style::default()
+                            .fg(entry.status.color())
+                            .add_modifier(Modifier::BOLD),
                     ),
                     Span::styled(
                         format!("{} {} ", entry.timestamp, entry.time),
                         if is_selected {
-                            Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)
+                            Style::default()
+                                .fg(Color::Yellow)
+                                .add_modifier(Modifier::BOLD)
                         } else {
                             Style::default().fg(Color::DarkGray)
                         },
                     ),
                     Span::styled(
                         entry.status.label(),
-                        Style::default().fg(entry.status.color()).add_modifier(Modifier::BOLD),
+                        Style::default()
+                            .fg(entry.status.color())
+                            .add_modifier(Modifier::BOLD),
                     ),
                 ]));
 
@@ -239,50 +258,101 @@ fn render_timeline(
 
                 // Spacer
                 if idx < filtered_history.len() - 1 {
-                    lines.push(Line::from(vec![
-                        Span::styled(" │", Style::default().fg(connector_color)),
-                    ]));
+                    lines.push(Line::from(vec![Span::styled(
+                        " │",
+                        Style::default().fg(connector_color),
+                    )]));
                 }
             }
         }
         "stats" => {
             // Summary statistics view
             let total = filtered_history.len();
-            let success = filtered_history.iter().filter(|e| e.status == CommandStatus::Success).count();
-            let blocked = filtered_history.iter().filter(|e| e.status == CommandStatus::Blocked).count();
-            let cancelled = filtered_history.iter().filter(|e| e.status == CommandStatus::Cancelled).count();
-            let failed = filtered_history.iter().filter(|e| e.status == CommandStatus::Failed).count();
+            let success = filtered_history
+                .iter()
+                .filter(|e| e.status == CommandStatus::Success)
+                .count();
+            let blocked = filtered_history
+                .iter()
+                .filter(|e| e.status == CommandStatus::Blocked)
+                .count();
+            let cancelled = filtered_history
+                .iter()
+                .filter(|e| e.status == CommandStatus::Cancelled)
+                .count();
+            let failed = filtered_history
+                .iter()
+                .filter(|e| e.status == CommandStatus::Failed)
+                .count();
 
             lines.push(Line::from(""));
-            lines.push(Line::from(vec![
-                Span::styled("Session Statistics", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            ]));
+            lines.push(Line::from(vec![Span::styled(
+                "Session Statistics",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            )]));
             lines.push(Line::from(""));
             lines.push(Line::from(""));
             lines.push(Line::from(vec![
                 Span::styled("  Total Commands: ", Style::default().fg(Color::White)),
-                Span::styled(total.to_string(), Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    total.to_string(),
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
+                ),
             ]));
             lines.push(Line::from(""));
             lines.push(Line::from(vec![
                 Span::styled("  ✓ Success:   ", Style::default().fg(Color::Green)),
-                Span::styled(format!("{:3}", success), Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
-                Span::styled(format!("  ({:3.0}%)", (success as f32 / total as f32) * 100.0), Style::default().fg(Color::DarkGray)),
+                Span::styled(
+                    format!("{:3}", success),
+                    Style::default()
+                        .fg(Color::Green)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    format!("  ({:3.0}%)", (success as f32 / total as f32) * 100.0),
+                    Style::default().fg(Color::DarkGray),
+                ),
             ]));
             lines.push(Line::from(vec![
                 Span::styled("  ✗ Blocked:   ", Style::default().fg(Color::Red)),
-                Span::styled(format!("{:3}", blocked), Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),
-                Span::styled(format!("  ({:3.0}%)", (blocked as f32 / total as f32) * 100.0), Style::default().fg(Color::DarkGray)),
+                Span::styled(
+                    format!("{:3}", blocked),
+                    Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    format!("  ({:3.0}%)", (blocked as f32 / total as f32) * 100.0),
+                    Style::default().fg(Color::DarkGray),
+                ),
             ]));
             lines.push(Line::from(vec![
                 Span::styled("  ⚠ Cancelled: ", Style::default().fg(Color::Yellow)),
-                Span::styled(format!("{:3}", cancelled), Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
-                Span::styled(format!("  ({:3.0}%)", (cancelled as f32 / total as f32) * 100.0), Style::default().fg(Color::DarkGray)),
+                Span::styled(
+                    format!("{:3}", cancelled),
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    format!("  ({:3.0}%)", (cancelled as f32 / total as f32) * 100.0),
+                    Style::default().fg(Color::DarkGray),
+                ),
             ]));
             lines.push(Line::from(vec![
                 Span::styled("  ✗ Failed:    ", Style::default().fg(Color::LightRed)),
-                Span::styled(format!("{:3}", failed), Style::default().fg(Color::LightRed).add_modifier(Modifier::BOLD)),
-                Span::styled(format!("  ({:3.0}%)", (failed as f32 / total as f32) * 100.0), Style::default().fg(Color::DarkGray)),
+                Span::styled(
+                    format!("{:3}", failed),
+                    Style::default()
+                        .fg(Color::LightRed)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    format!("  ({:3.0}%)", (failed as f32 / total as f32) * 100.0),
+                    Style::default().fg(Color::DarkGray),
+                ),
             ]));
             lines.push(Line::from(""));
             lines.push(Line::from(""));
@@ -290,18 +360,17 @@ fn render_timeline(
                 Span::styled("  Success Rate: ", Style::default().fg(Color::White)),
                 Span::styled(
                     format!("{:.1}%", (success as f32 / total as f32) * 100.0),
-                    Style::default().fg(Color::Green).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::Green)
+                        .add_modifier(Modifier::BOLD),
                 ),
             ]));
         }
         _ => {}
     }
 
-    let timeline = Paragraph::new(lines).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .title("Timeline"),
-    );
+    let timeline =
+        Paragraph::new(lines).block(Block::default().borders(Borders::ALL).title("Timeline"));
     frame.render_widget(timeline, chunks[1]);
 
     // Footer

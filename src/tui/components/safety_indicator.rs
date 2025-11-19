@@ -104,14 +104,9 @@ fn render_safety_indicator(frame: &mut Frame, area: Rect, level: SafetyLevel, co
     frame.render_widget(cmd_paragraph, chunks[1]);
 
     // Description
-    let desc_text = vec![
-        Line::from(""),
-        Line::from(level.description()),
-    ];
+    let desc_text = vec![Line::from(""), Line::from(level.description())];
 
-    let desc_block = Block::default()
-        .borders(Borders::ALL)
-        .title("Description");
+    let desc_block = Block::default().borders(Borders::ALL).title("Description");
 
     let desc_paragraph = Paragraph::new(desc_text).block(desc_block);
     frame.render_widget(desc_paragraph, chunks[2]);
@@ -152,24 +147,14 @@ impl ShowcaseComponent for SafetyIndicatorComponent {
                 "High Risk",
                 "Orange/Light Red indicator for high risk commands",
                 |frame, area| {
-                    render_safety_indicator(
-                        frame,
-                        area,
-                        SafetyLevel::High,
-                        "rm -rf ./target",
-                    );
+                    render_safety_indicator(frame, area, SafetyLevel::High, "rm -rf ./target");
                 },
             ),
             ShowcaseStory::new(
                 "Critical Risk",
                 "Red indicator for critical/dangerous commands",
                 |frame, area| {
-                    render_safety_indicator(
-                        frame,
-                        area,
-                        SafetyLevel::Critical,
-                        "sudo rm -rf /",
-                    );
+                    render_safety_indicator(frame, area, SafetyLevel::Critical, "sudo rm -rf /");
                 },
             ),
         ]

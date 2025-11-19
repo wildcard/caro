@@ -58,7 +58,11 @@ fn get_alternatives(query: &str) -> Vec<GeneratedAlternative> {
             GeneratedAlternative {
                 command: "find . -type f -size +100M -exec ls -lh {} \\;",
                 explanation: "Uses find with exec to list large files with human-readable sizes",
-                pros: &["POSIX compliant", "Works on all systems", "Shows file details"],
+                pros: &[
+                    "POSIX compliant",
+                    "Works on all systems",
+                    "Shows file details",
+                ],
                 cons: &["Slower due to multiple ls calls", "Verbose output"],
                 safety_level: SafetyRating::Safe,
                 performance: "Medium (multiple processes)",
@@ -69,7 +73,10 @@ fn get_alternatives(query: &str) -> Vec<GeneratedAlternative> {
                 command: "find . -type f -size +100M -ls",
                 explanation: "Uses find's built-in -ls flag for efficient output",
                 pros: &["Faster execution", "Single process", "Clean output"],
-                cons: &["Less portable (not all find implementations)", "Fixed format"],
+                cons: &[
+                    "Less portable (not all find implementations)",
+                    "Fixed format",
+                ],
                 safety_level: SafetyRating::Safe,
                 performance: "Fast (single process)",
                 upvotes: 32,
@@ -78,8 +85,16 @@ fn get_alternatives(query: &str) -> Vec<GeneratedAlternative> {
             GeneratedAlternative {
                 command: "du -ah | awk '$1 ~ /[0-9]+M/ && $1+0 > 100'",
                 explanation: "Uses du and awk to filter files by size threshold",
-                pros: &["Very portable", "Flexible filtering", "Can process all file types"],
-                cons: &["Less precise size matching", "Requires awk", "Slower for large trees"],
+                pros: &[
+                    "Very portable",
+                    "Flexible filtering",
+                    "Can process all file types",
+                ],
+                cons: &[
+                    "Less precise size matching",
+                    "Requires awk",
+                    "Slower for large trees",
+                ],
                 safety_level: SafetyRating::Safe,
                 performance: "Slow (full directory scan)",
                 upvotes: 18,
@@ -90,7 +105,11 @@ fn get_alternatives(query: &str) -> Vec<GeneratedAlternative> {
             GeneratedAlternative {
                 command: "find /tmp -type f -name '*.tmp' -mtime +7 -delete",
                 explanation: "Safely deletes only .tmp files older than 7 days in /tmp",
-                pros: &["Safe (limited scope)", "Preserves recent files", "POSIX compliant"],
+                pros: &[
+                    "Safe (limited scope)",
+                    "Preserves recent files",
+                    "POSIX compliant",
+                ],
                 cons: &["Only deletes .tmp files", "Fixed time threshold"],
                 safety_level: SafetyRating::Safe,
                 performance: "Fast",
@@ -101,7 +120,11 @@ fn get_alternatives(query: &str) -> Vec<GeneratedAlternative> {
                 command: "rm -rf /tmp/*",
                 explanation: "Removes all files in /tmp directory",
                 pros: &["Simple command", "Fast execution"],
-                cons: &["DANGEROUS: Deletes everything", "May break running processes", "No confirmation"],
+                cons: &[
+                    "DANGEROUS: Deletes everything",
+                    "May break running processes",
+                    "No confirmation",
+                ],
                 safety_level: SafetyRating::Risky,
                 performance: "Very fast",
                 upvotes: 2,
@@ -110,7 +133,11 @@ fn get_alternatives(query: &str) -> Vec<GeneratedAlternative> {
             GeneratedAlternative {
                 command: "find ~/Downloads -type f -name '*.tmp' -o -name '*.cache' -delete",
                 explanation: "Deletes temp and cache files from Downloads folder",
-                pros: &["User-scoped (safer)", "Targets specific file types", "Good for cleanup"],
+                pros: &[
+                    "User-scoped (safer)",
+                    "Targets specific file types",
+                    "Good for cleanup",
+                ],
                 cons: &["Limited to Downloads folder", "Might delete wanted files"],
                 safety_level: SafetyRating::Moderate,
                 performance: "Medium",
@@ -122,13 +149,7 @@ fn get_alternatives(query: &str) -> Vec<GeneratedAlternative> {
     }
 }
 
-fn render_comparison(
-    frame: &mut Frame,
-    area: Rect,
-    query: &str,
-    selected_idx: usize,
-    view: &str,
-) {
+fn render_comparison(frame: &mut Frame, area: Rect, query: &str, selected_idx: usize, view: &str) {
     let alternatives = get_alternatives(query);
 
     if view == "side-by-side" && alternatives.len() >= 2 {
@@ -148,18 +169,24 @@ fn render_side_by_side(
     let main_chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(3),  // Header
-            Constraint::Min(5),     // Comparison area
+            Constraint::Length(3), // Header
+            Constraint::Min(5),    // Comparison area
         ])
         .split(area);
 
     // Header
-    let header = Paragraph::new(vec![
-        Line::from(vec![
-            Span::styled("Comparing Alternatives for: ", Style::default().fg(Color::Cyan)),
-            Span::styled(query, Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
-        ]),
-    ])
+    let header = Paragraph::new(vec![Line::from(vec![
+        Span::styled(
+            "Comparing Alternatives for: ",
+            Style::default().fg(Color::Cyan),
+        ),
+        Span::styled(
+            query,
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        ),
+    ])])
     .block(Block::default().borders(Borders::ALL))
     .alignment(ratatui::layout::Alignment::Center);
     frame.render_widget(header, main_chunks[0]);
@@ -167,10 +194,7 @@ fn render_side_by_side(
     // Split into columns for side-by-side comparison
     let columns = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Percentage(50),
-            Constraint::Percentage(50),
-        ])
+        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
         .split(main_chunks[1]);
 
     for (idx, (alt, column)) in alternatives.iter().take(2).zip(columns.iter()).enumerate() {
@@ -185,13 +209,20 @@ fn render_alternative_panel(
     is_selected: bool,
     number: usize,
 ) {
-    let border_color = if is_selected { Color::Yellow } else { alt.safety_level.color() };
+    let border_color = if is_selected {
+        Color::Yellow
+    } else {
+        alt.safety_level.color()
+    };
 
     let mut lines = vec![
         Line::from(""),
-        Line::from(vec![
-            Span::styled("Command:", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-        ]),
+        Line::from(vec![Span::styled(
+            "Command:",
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        )]),
         Line::from(vec![
             Span::styled("$ ", Style::default().fg(Color::Green)),
             Span::raw(alt.command),
@@ -201,7 +232,9 @@ fn render_alternative_panel(
             Span::styled("Safety: ", Style::default().fg(Color::White)),
             Span::styled(
                 alt.safety_level.label(),
-                Style::default().fg(alt.safety_level.color()).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(alt.safety_level.color())
+                    .add_modifier(Modifier::BOLD),
             ),
         ]),
         Line::from(vec![
@@ -210,12 +243,18 @@ fn render_alternative_panel(
         ]),
         Line::from(vec![
             Span::styled("Votes: ", Style::default().fg(Color::White)),
-            Span::styled(format!("▲ {}", alt.upvotes), Style::default().fg(Color::Green)),
+            Span::styled(
+                format!("▲ {}", alt.upvotes),
+                Style::default().fg(Color::Green),
+            ),
         ]),
         Line::from(""),
-        Line::from(vec![
-            Span::styled("Pros:", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
-        ]),
+        Line::from(vec![Span::styled(
+            "Pros:",
+            Style::default()
+                .fg(Color::Green)
+                .add_modifier(Modifier::BOLD),
+        )]),
     ];
 
     for pro in alt.pros {
@@ -226,9 +265,10 @@ fn render_alternative_panel(
     }
 
     lines.push(Line::from(""));
-    lines.push(Line::from(vec![
-        Span::styled("Cons:", Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),
-    ]));
+    lines.push(Line::from(vec![Span::styled(
+        "Cons:",
+        Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
+    )]));
 
     for con in alt.cons {
         lines.push(Line::from(vec![
@@ -262,19 +302,22 @@ fn render_detailed(
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(3),   // Header
-            Constraint::Min(10),     // Selected alternative detail
-            Constraint::Length(8),   // Other alternatives list
+            Constraint::Length(3), // Header
+            Constraint::Min(10),   // Selected alternative detail
+            Constraint::Length(8), // Other alternatives list
         ])
         .split(area);
 
     // Header
-    let header = Paragraph::new(vec![
-        Line::from(vec![
-            Span::styled("Query: ", Style::default().fg(Color::Cyan)),
-            Span::styled(query, Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
-        ]),
-    ])
+    let header = Paragraph::new(vec![Line::from(vec![
+        Span::styled("Query: ", Style::default().fg(Color::Cyan)),
+        Span::styled(
+            query,
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        ),
+    ])])
     .block(Block::default().borders(Borders::ALL))
     .alignment(ratatui::layout::Alignment::Center);
     frame.render_widget(header, chunks[0]);
@@ -283,11 +326,19 @@ fn render_detailed(
     if let Some(alt) = alternatives.get(selected_idx) {
         let mut detail_lines = vec![
             Line::from(""),
+            Line::from(vec![Span::styled(
+                "Command:",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            )]),
             Line::from(vec![
-                Span::styled("Command:", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            ]),
-            Line::from(vec![
-                Span::styled("$ ", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    "$ ",
+                    Style::default()
+                        .fg(Color::Green)
+                        .add_modifier(Modifier::BOLD),
+                ),
                 Span::styled(alt.command, Style::default().fg(Color::White)),
             ]),
             Line::from(""),
@@ -300,7 +351,9 @@ fn render_detailed(
                 Span::styled("Safety: ", Style::default().fg(Color::White)),
                 Span::styled(
                     alt.safety_level.label(),
-                    Style::default().fg(alt.safety_level.color()).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(alt.safety_level.color())
+                        .add_modifier(Modifier::BOLD),
                 ),
                 Span::raw("  │  "),
                 Span::styled("Performance: ", Style::default().fg(Color::White)),
@@ -313,7 +366,11 @@ fn render_detailed(
 
         let detail_block = Block::default()
             .borders(Borders::ALL)
-            .title(format!("Alternative {} of {}", selected_idx + 1, alternatives.len()))
+            .title(format!(
+                "Alternative {} of {}",
+                selected_idx + 1,
+                alternatives.len()
+            ))
             .border_style(Style::default().fg(Color::Yellow));
 
         let detail = Paragraph::new(detail_lines).block(detail_block);
@@ -332,7 +389,9 @@ fn render_detailed(
             Span::styled(
                 format!("{:2}. ", idx + 1),
                 if is_current {
-                    Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD)
                 } else {
                     Style::default().fg(Color::DarkGray)
                 },
@@ -340,13 +399,18 @@ fn render_detailed(
             Span::styled(
                 format!("{:50}", alt.command),
                 if is_current {
-                    Style::default().fg(Color::White).add_modifier(Modifier::BOLD)
+                    Style::default()
+                        .fg(Color::White)
+                        .add_modifier(Modifier::BOLD)
                 } else {
                     Style::default().fg(Color::White)
                 },
             ),
             Span::styled("  ", Style::default()),
-            Span::styled(alt.safety_level.label(), Style::default().fg(alt.safety_level.color())),
+            Span::styled(
+                alt.safety_level.label(),
+                Style::default().fg(alt.safety_level.color()),
+            ),
         ]));
     }
 

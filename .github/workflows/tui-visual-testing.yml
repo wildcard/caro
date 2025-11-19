@@ -60,6 +60,38 @@ jobs:
           # ImageMagick for image manipulation
           sudo apt-get install -y imagemagick
 
+      - name: Run TUI component tests
+        run: |
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "🧪 Running TUI Component Test Suite"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+
+          # Run showcase framework tests
+          echo "📦 Testing showcase framework..."
+          cargo test --lib tui::showcase --verbose
+          echo "✓ Showcase framework tests passed!"
+          echo ""
+
+          # Run component unit tests
+          echo "🎨 Testing components..."
+          cargo test --lib tui::components --verbose
+          echo "✓ Component unit tests passed!"
+          echo ""
+
+          # Run integration tests
+          echo "🔗 Testing showcase integration..."
+          cargo test --test showcase_registry_tests --verbose
+          cargo test --test browser_integration_tests --verbose
+          echo "✓ Integration tests passed!"
+          echo ""
+
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✅ All TUI tests passed!"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+
       - name: Build TUI Showcase
         run: |
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
