@@ -27,15 +27,12 @@ impl EmbeddedModelBackend {
     /// Create a new embedded model backend with auto-detected platform variant
     pub fn new() -> Result<Self, GeneratorError> {
         let variant = ModelVariant::detect();
-        let model_loader = ModelLoader::new().map_err(|e| GeneratorError::ConfigError {
-            message: format!("Failed to initialize model loader: {}", e),
+        let model_loader = ModelLoader::new().map_err(|e| {
+            GeneratorError::config_error(&format!("Failed to initialize model loader: {}", e))
         })?;
-        let model_path =
-            model_loader
-                .get_embedded_model_path()
-                .map_err(|e| GeneratorError::ConfigError {
-                    message: format!("Failed to get model path: {}", e),
-                })?;
+        let model_path = model_loader.get_embedded_model_path().map_err(|e| {
+            GeneratorError::config_error(&format!("Failed to get model path: {}", e))
+        })?;
 
         Self::with_variant_and_path(variant, model_path)
     }
@@ -49,19 +46,15 @@ impl EmbeddedModelBackend {
         let backend: Box<dyn InferenceBackend> = match variant {
             #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
             ModelVariant::MLX => Box::new(MlxBackend::new(model_path.clone()).map_err(|e| {
-                GeneratorError::ConfigError {
-                    message: format!("Failed to create MLX backend: {}", e),
-                }
+                GeneratorError::config_error(&format!("Failed to create MLX backend: {}", e))
             })?),
             ModelVariant::CPU => Box::new(CpuBackend::new(model_path.clone()).map_err(|e| {
-                GeneratorError::ConfigError {
-                    message: format!("Failed to create CPU backend: {}", e),
-                }
+                GeneratorError::config_error(&format!("Failed to create CPU backend: {}", e))
             })?),
         };
 
-        let model_loader = ModelLoader::new().map_err(|e| GeneratorError::ConfigError {
-            message: format!("Failed to initialize model loader: {}", e),
+        let model_loader = ModelLoader::new().map_err(|e| {
+            GeneratorError::config_error(&format!("Failed to initialize model loader: {}", e))
         })?;
 
         Ok(Self {
@@ -95,8 +88,8 @@ impl EmbeddedModelBackend {
         self.model_loader
             .download_model_if_missing(self.model_variant)
             .await
-            .map_err(|e| GeneratorError::BackendUnavailable {
-                reason: format!("Failed to download model: {}", e),
+            .map_err(|e| {
+                GeneratorError::backend_unavailable("embedded", &format!("Failed to download model: {}", e))
             })?;
 
         // Load the model in the backend
@@ -104,9 +97,7 @@ impl EmbeddedModelBackend {
         backend
             .load()
             .await
-            .map_err(|e| GeneratorError::GenerationFailed {
-                details: format!("Failed to load model: {}", e),
-            })
+            .map_err(|e| GeneratorError::generation_failed(&format!("Failed to load model: {}", e)))
     }
 
     /// Explicitly unload the model to free memory
@@ -115,9 +106,7 @@ impl EmbeddedModelBackend {
         backend
             .unload()
             .await
-            .map_err(|e| GeneratorError::Internal {
-                message: format!("Failed to unload model: {}", e),
-            })
+            .map_err(|e| GeneratorError::internal(&format!("Failed to unload model: {}", e)))
     }
 
     /// Generate system prompt for shell command generation
@@ -181,9 +170,10 @@ Request: {}
             }
         }
 
-        Err(GeneratorError::ParseError {
-            content: response.to_string(),
-        })
+        Err(GeneratorError::parse_error(
+            "Failed to extract command from model response",
+            response,
+        ))
     }
 }
 
@@ -200,8 +190,8 @@ impl CommandGenerator for EmbeddedModelBackend {
         self.model_loader
             .download_model_if_missing(self.model_variant)
             .await
-            .map_err(|e| GeneratorError::BackendUnavailable {
-                reason: format!("Failed to download model: {}", e),
+            .map_err(|e| {
+                GeneratorError::backend_unavailable("embedded", &format!("Failed to download model: {}", e))
             })?;
 
         // Create system prompt
@@ -214,17 +204,13 @@ impl CommandGenerator for EmbeddedModelBackend {
         backend
             .load()
             .await
-            .map_err(|e| GeneratorError::GenerationFailed {
-                details: format!("Failed to load model: {}", e),
-            })?;
+            .map_err(|e| GeneratorError::generation_failed(&format!("Failed to load model: {}", e)))?;
 
         // Run inference
         let raw_response = backend
             .infer(&system_prompt, &self.config)
             .await
-            .map_err(|e| GeneratorError::GenerationFailed {
-                details: format!("Inference failed: {}", e),
-            })?;
+            .map_err(|e| GeneratorError::generation_failed(&format!("Inference failed: {}", e)))?;
 
         // Parse the response
         let command = self.parse_command_response(&raw_response)?;
@@ -274,9 +260,7 @@ impl CommandGenerator for EmbeddedModelBackend {
         backend
             .unload()
             .await
-            .map_err(|e| GeneratorError::Internal {
-                message: format!("Failed to unload model: {}", e),
-            })?;
+            .map_err(|e| GeneratorError::internal(&format!("Failed to unload model: {}", e)))?;
 
         tracing::debug!("Embedded model backend shutdown complete");
         Ok(())
