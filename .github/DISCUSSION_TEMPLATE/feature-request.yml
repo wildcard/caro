@@ -1,0 +1,166 @@
+title: "[Feature Request] "
+labels:
+  - feature-request
+  - needs-triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🚀 Feature Request
+
+        Thank you for proposing a new feature for cmdai! This template will help organize your request so the community can discuss and vote on it.
+
+        **Before submitting**: Please search existing discussions to avoid duplicates.
+
+  - type: dropdown
+    id: theme
+    attributes:
+      label: Feature Theme
+      description: Which roadmap theme does this feature belong to?
+      options:
+        - "Theme 1: Advanced Model Support"
+        - "Theme 2: Command Execution & Workflows"
+        - "Theme 3: Integration & Ecosystem"
+        - "Theme 4: AI/LLM Enhancements"
+        - "Theme 5: Platform & Language Support"
+        - "Theme 6: Enterprise & Security"
+        - "Theme 7: Developer Experience"
+        - "Theme 8: Education & Onboarding"
+        - "Other / New Theme"
+    validations:
+      required: true
+
+  - type: input
+    id: feature-name
+    attributes:
+      label: Feature Name
+      description: A short, descriptive name for the feature
+      placeholder: "e.g., Command Explanation Mode"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Your Priority Assessment
+      description: How important is this feature to you?
+      options:
+        - "High - Critical for my workflow"
+        - "Medium - Would be very useful"
+        - "Low - Nice to have"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: effort
+    attributes:
+      label: Estimated Effort
+      description: How much work do you think this requires? (If you know)
+      options:
+        - "Not sure"
+        - "Small (1 week)"
+        - "Medium (2-3 weeks)"
+        - "Large (1+ months)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve? Who experiences this problem?
+      placeholder: |
+        Currently, when I want to understand what a complex shell command does, I have to manually look up each part in man pages or online...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: How would this feature work? What would the user experience be?
+      placeholder: |
+        Add a `cmdai explain <command>` subcommand that takes an existing shell command and generates a natural language explanation...
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-cases
+    attributes:
+      label: Use Cases
+      description: Provide specific examples of when and how you would use this feature
+      placeholder: |
+        1. Learning: I find a complex one-liner online and want to understand it before running
+        2. Code review: I want to verify what a script does without executing it
+        3. Documentation: I want to generate documentation for shell scripts
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What other solutions or workarounds have you tried?
+      placeholder: |
+        - Manually reading man pages (time-consuming)
+        - Using explainshell.com (requires internet, limited features)
+        - ChatGPT (requires copy-paste, not integrated with workflow)
+    validations:
+      required: false
+
+  - type: textarea
+    id: mockups
+    attributes:
+      label: User Interface Mockup (Optional)
+      description: Show what the feature would look like in the CLI
+      placeholder: |
+        ```bash
+        $ cmdai explain 'find . -name "*.rs" | xargs grep -l "TODO"'
+
+        This command:
+        1. find . -name "*.rs"
+           → Searches recursively for all Rust files
+
+        2. | xargs grep -l "TODO"
+           → Passes files to grep, lists files containing "TODO"
+        ```
+    validations:
+      required: false
+
+  - type: textarea
+    id: questions
+    attributes:
+      label: Open Questions
+      description: What aspects need clarification or discussion?
+      placeholder: |
+        - Should this work with shell pipelines or individual commands?
+        - Should explanations be interactive or one-shot?
+        - Should there be different verbosity levels?
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Are you willing to contribute to this feature?
+      options:
+        - label: I'm willing to implement this feature (following spec-driven development process)
+        - label: I can help with testing and feedback
+        - label: I can help with documentation
+        - label: I can only provide the idea and use case
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+
+        ## What happens next?
+
+        1. **Community Discussion**: Others can comment with feedback, use cases, and improvements
+        2. **Voting**: Use 👍 to vote for this feature, 👎 if you disagree, 👀 if you're interested
+        3. **Quarterly Planning**: Top-voted features are reviewed by maintainers
+        4. **Specification**: If prioritized, a detailed spec is created using `/specify`
+        5. **Implementation**: Community members can implement following spec-driven workflow
+
+        Thank you for contributing to cmdai! 🚀

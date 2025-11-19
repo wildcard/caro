@@ -290,28 +290,48 @@ custom_patterns = ["additional", "dangerous", "patterns"]
 
 ## 🤝 Contributing
 
-We welcome contributions! This is an early-stage project with many opportunities to contribute.
+We welcome contributions! cmdai is a **community-driven project** where you can help shape its future.
+
+### How to Contribute
+
+1. **Vote on Features** - Help prioritize what gets built next ([Voting Guide](VOTING.md))
+2. **Propose Features** - Share your ideas using our [feature request template](.github/DISCUSSION_TEMPLATE/feature-request.yml)
+3. **Implement Features** - Build features following our [spec-driven workflow](SPEC_DRIVEN_DEV.md)
+4. **Report Bugs** - Submit detailed bug reports via [GitHub Issues](https://github.com/wildcard/cmdai/issues)
+5. **Improve Documentation** - Help make cmdai easier to use
 
 ### Areas for Contribution
-- 🔌 Backend implementations
-- 🛡️ Safety pattern definitions
+- 🔌 Backend implementations (MLX, Candle, remote backends)
+- 🛡️ Safety pattern definitions and validation
 - 🧪 Test coverage expansion
 - 📚 Documentation improvements
 - 🐛 Bug fixes and optimizations
+- 🎨 UX enhancements and branding
 
-### Getting Started
+### Development Workflow
+
+cmdai follows **spec-driven development**. Read the [Spec-Driven Development Guide](SPEC_DRIVEN_DEV.md) for details.
+
+**Quick Start**:
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes with tests
-4. Ensure all tests pass
-5. Submit a pull request
+2. Pick a feature from [Discussions](https://github.com/wildcard/cmdai/discussions) or [Roadmap](ROADMAP.md)
+3. Create spec using `/specify` command
+4. Get community feedback
+5. Implement following TDD principles
+6. Submit pull request
 
 ### Development Guidelines
-- Follow Rust best practices
-- Add tests for new functionality
-- Update documentation as needed
-- Use conventional commit messages
-- Run `make check` before submitting
+- ✅ Follow Rust best practices and API guidelines
+- ✅ Write tests first (TDD approach)
+- ✅ Update documentation as you code
+- ✅ Use conventional commit messages
+- ✅ Run `make check` before submitting
+- ✅ Keep PRs focused and atomic
+
+**Read More**:
+- [Spec-Driven Development Guide](SPEC_DRIVEN_DEV.md)
+- [Architecture Documentation](CLAUDE.md)
+- [MVP Roadmap](ROADMAP.md)
 
 ## 📜 License
 
@@ -342,35 +362,34 @@ This project is licensed under the **GNU Affero General Public License v3.0 (AGP
 
 ## 🗺️ Roadmap
 
-### Phase 1: Core Structure (Current)
-- [x] CLI argument parsing
-- [x] Module architecture
-- [x] Backend trait system
-- [ ] Basic command generation
+cmdai follows a **community-driven, spec-driven development** approach. See the detailed planning documents:
 
-### Phase 2: Safety & Validation
-- [ ] Dangerous pattern detection
-- [ ] POSIX compliance checking
-- [ ] User confirmation workflows
-- [ ] Risk assessment system
+- **[📋 MVP Roadmap](ROADMAP.md)** - Complete path to production-ready v1.0
+- **[🗳️ Community Voting Guide](VOTING.md)** - How to vote on and propose features
+- **[📝 Spec-Driven Development](SPEC_DRIVEN_DEV.md)** - Development workflow and best practices
 
-### Phase 3: Backend Integration
-- [ ] vLLM HTTP API support
-- [ ] Ollama local backend
-- [ ] Response parsing
-- [ ] Error handling
+### Current Status: Pre-Alpha (65% MVP Complete)
 
-### Phase 4: MLX Optimization
-- [ ] FFI bindings with cxx
-- [ ] Metal Performance Shaders
-- [ ] Unified memory handling
-- [ ] Apple Silicon optimization
+**Next Milestones**:
+1. **Phase 1: Real Model Inference** (Critical) - Connect simulated inference to actual ML models
+2. **Phase 2: UX Polish** - Branding, error messages, first-run experience
+3. **Phase 3: Distribution** - Cross-platform binaries, package managers
+4. **Phase 4: Documentation** - Complete user & developer docs
+5. **Phase 5: Testing & QA** - Beta program, security audit
 
-### Phase 5: Production Ready
-- [ ] Comprehensive testing
-- [ ] Performance optimization
-- [ ] Binary distribution
-- [ ] Package manager support
+### Post-MVP: Community-Driven Features
+
+The roadmap includes **50+ community-votable features** organized into themes:
+- 🤖 Advanced Model Support (custom models, marketplace)
+- ⚙️ Command Execution & Workflows (safe execution, multi-step)
+- 🔌 Integration & Ecosystem (shell integration, IDE plugins)
+- 🧠 AI/LLM Enhancements (explanations, optimization)
+- 🌍 Platform & Language Support (PowerShell, i18n)
+- 🔒 Enterprise & Security (audit logs, policies)
+- 🛠️ Developer Experience (plugin system, testing)
+- 📚 Education & Onboarding (learning mode, tutorials)
+
+**Want to influence what gets built?** Vote on features in [GitHub Discussions](https://github.com/wildcard/cmdai/discussions)!
 
 ---
 

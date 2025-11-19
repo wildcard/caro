@@ -1,0 +1,150 @@
+name: Quarterly Planning Milestone
+description: Track quarterly feature development milestone
+title: "[Q{quarter} {year}] Quarterly Feature Development"
+labels: ["milestone", "planning"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Quarterly Development Milestone
+
+        This issue tracks the feature development for a quarterly planning cycle.
+
+  - type: input
+    id: quarter
+    attributes:
+      label: Quarter
+      description: Which quarter (Q1, Q2, Q3, Q4) and year
+      placeholder: "Q1 2026"
+    validations:
+      required: true
+
+  - type: input
+    id: release-version
+    attributes:
+      label: Target Release Version
+      description: Expected version number for this release
+      placeholder: "v1.2.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: selected-features
+    attributes:
+      label: Selected Features
+      description: List of features selected from community voting
+      value: |
+        Based on community voting, the following features were selected:
+
+        1. **Feature Name** (Theme X, Score: X.X)
+           - Discussion: #link
+           - Spec: specs/XXX-feature.md
+           - Assignee: @username
+           - Effort: X weeks
+
+        2. **Feature Name** (Theme X, Score: X.X)
+           - Discussion: #link
+           - Spec: specs/XXX-feature.md
+           - Assignee: @username
+           - Effort: X weeks
+
+        3. **Feature Name** (Theme X, Score: X.X)
+           - Discussion: #link
+           - Spec: specs/XXX-feature.md
+           - Assignee: @username
+           - Effort: X weeks
+    validations:
+      required: true
+
+  - type: textarea
+    id: voting-summary
+    attributes:
+      label: Voting Summary
+      description: Summary of voting results
+      value: |
+        **Voting Period**: YYYY-MM-DD to YYYY-MM-DD
+        **Total Proposals**: XX
+        **Total Votes**: XXX
+        **Participants**: XX unique voters
+
+        **Top 10 Features by Score**:
+        | Rank | Feature | Theme | Votes | Score | Selected |
+        |------|---------|-------|-------|-------|----------|
+        | 1 | Feature A | 4 | 187 | 4.2 | ✅ |
+        | 2 | Feature B | 3 | 156 | 3.8 | ✅ |
+        | 3 | Feature C | 8 | 134 | 3.5 | ✅ |
+        | 4 | Feature D | 2 | 112 | 3.2 | ⏳ Deferred |
+        | ... | ... | ... | ... | ... | ... |
+    validations:
+      required: true
+
+  - type: textarea
+    id: deferred-features
+    attributes:
+      label: Deferred Features
+      description: Features with significant votes that weren't selected this quarter
+      value: |
+        The following features received community support but are deferred:
+
+        - **Feature Name** (Score: X.X) - Reason: High complexity, needs more spec work
+        - **Feature Name** (Score: X.X) - Reason: Dependency on Feature A
+        - **Feature Name** (Score: X.X) - Reason: Resource constraints
+    validations:
+      required: false
+
+  - type: textarea
+    id: timeline
+    attributes:
+      label: Timeline
+      description: Key dates for this development cycle
+      value: |
+        **Week 1 (YYYY-MM-DD)**: Feature voting closes, specs created
+        **Week 2-3**: Spec review and refinement
+        **Week 4-10**: Implementation phase
+        **Week 11**: Feature freeze, testing & QA
+        **Week 12**: Beta release
+        **Week 13**: Final release {version}
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: milestones
+    attributes:
+      label: Milestone Checklist
+      description: Track progress through the quarter
+      options:
+        - label: Voting completed and results published
+        - label: All feature specs created and reviewed
+        - label: Implementation plans approved
+        - label: Tasks generated for all features
+        - label: Feature 1 implemented and tested
+        - label: Feature 2 implemented and tested
+        - label: Feature 3 implemented and tested
+        - label: All documentation updated
+        - label: Performance benchmarks passing
+        - label: Security audit completed
+        - label: Beta release published
+        - label: Community feedback addressed
+        - label: Final release published
+        - label: Release retrospective completed
+
+  - type: textarea
+    id: resources
+    attributes:
+      label: Resources & Links
+      description: Important links for this milestone
+      value: |
+        - **Voting Discussion**: #link
+        - **Project Board**: #link
+        - **Release Milestone**: #link
+        - **Spec Directory**: /specs/
+        - **Documentation**: /docs/
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        This issue will be updated throughout the quarter to track progress.
+        Community members can subscribe to receive updates.
