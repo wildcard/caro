@@ -1,6 +1,12 @@
 # Contributing to cmdai
 
+```
+⚡🛡️ cmdai - AI-Powered Commands. Human-Level Safety.
+```
+
 Thank you for your interest in contributing to cmdai! We're building a safety-first, high-performance CLI tool that brings the power of local LLMs to shell command generation. Whether you're fixing bugs, adding features, improving documentation, or expanding safety patterns, your contributions are welcome.
+
+**Think Fast. Stay Safe.** That's not just our tagline - it's our development philosophy.
 
 ## Table of Contents
 
@@ -18,18 +24,28 @@ Thank you for your interest in contributing to cmdai! We're building a safety-fi
 
 ## Project Vision
 
+**Guard Rails for the Fast Lane**
+
 cmdai aims to make shell command generation:
-- **Safe by default** - Comprehensive validation prevents destructive operations
+- **Safe by default** - Every command validated before execution
 - **Blazingly fast** - Sub-100ms startup, sub-2s inference on Apple Silicon
-- **Truly local** - No cloud dependencies, works offline with cached models
-- **Developer-friendly** - Single binary, minimal configuration, clear error messages
+- **Truly local** - No cloud dependencies, your data stays on your machine
+- **Developer-friendly** - Single binary, minimal configuration, helpful error messages
 - **Community-driven** - Open development, transparent processes, welcoming to all skill levels
 
 We prioritize correctness, safety, and user experience above all else.
 
+**Your terminal. Now with a brain.** We're building the safety validator that every AI terminal tool should have.
+
+> For a comprehensive understanding of our culture and values, see our [Culture Handbook](culture/CULTURAL_HANDBOOK.md)
+
 ---
 
 ## Getting Started
+
+**New to cmdai?** Start with our [Contributor Onboarding Guide](culture/CONTRIBUTOR_ONBOARDING.md) - it's designed to get you from zero to first contribution in 5 minutes.
+
+**Already familiar?** Jump straight into the quick setup below.
 
 ### Prerequisites
 
@@ -38,7 +54,7 @@ We prioritize correctness, safety, and user experience above all else.
 - **cargo-watch** (optional but recommended): `cargo install cargo-watch`
 - **macOS with Apple Silicon** (optional, for MLX backend development)
 
-### Setup Development Environment
+### Quick Setup
 
 1. **Fork and clone the repository**:
    ```bash
@@ -90,6 +106,8 @@ make check
 ```
 
 If all checks pass, you're ready to contribute!
+
+**Ship faster. Sleep better.** Our development tools are designed to catch issues early.
 
 ---
 
@@ -150,6 +168,8 @@ vim src/cache/mod.rs
 
 ## Code Standards
 
+**Quality is a feature.** These standards help us maintain fast, safe, and reliable code.
+
 ### Formatting
 
 We use rustfmt with project-specific configuration:
@@ -193,7 +213,7 @@ Follow Rust standard naming:
 
 ### Error Handling
 
-**Never panic in production code**. Use `Result` types:
+**Never panic in production code.** We use `Result` types to provide clear, actionable error messages.
 
 ```rust
 // Library code - use thiserror
@@ -594,14 +614,44 @@ Consistent, high-quality contributions may lead to:
 
 ---
 
-## Code of Conduct
+## Community & Code of Conduct
 
-This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). By participating, you agree to uphold this code. Please report unacceptable behavior via GitHub Issues with the "conduct" label.
+We're committed to maintaining a welcoming, inclusive, and harassment-free environment.
+
+**Please review:**
+- [Community Guidelines](culture/COMMUNITY_GUIDELINES.md) - How we treat each other
+- [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md) - Our formal code of conduct
+
+By participating, you agree to uphold these standards. Report unacceptable behavior via GitHub Issues with the "conduct" label or contact the core team directly.
+
+**We're building something great together.** Respect, kindness, and collaboration are as important as the code we write.
 
 ---
 
-**Thank you for contributing to cmdai!** Together we're building a safer, faster, more accessible way to harness LLMs for shell command generation.
+<div align="center">
+
+## ⚡🛡️ Thank You for Contributing!
+
+**Together we're building the guard rails for AI-powered terminal tools.**
+
+```
+┌─────────────────────────────────────────────────┐
+│  "Think Fast. Stay Safe."                      │
+│                                                 │
+│  Every contribution makes cmdai better.        │
+│  Every validation prevents a disaster.         │
+│  Every line of code matters.                   │
+└─────────────────────────────────────────────────┘
+```
+
+**Ship faster. Sleep better.** That's the cmdai way.
 
 ---
 
-*Last updated: 2025-10-03*
+[Contributor Onboarding](culture/CONTRIBUTOR_ONBOARDING.md) · [Community Guidelines](culture/COMMUNITY_GUIDELINES.md) · [Brand Guide](brand-assets/interactive/brand-guide.html)
+
+**1985 Vibes. 2025 Brains.**
+
+*Last updated: 2025-11-19*
+
+</div>
