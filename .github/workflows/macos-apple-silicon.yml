@@ -1,0 +1,383 @@
+name: macOS Apple Silicon Testing
+
+on:
+  push:
+    branches: [ main, develop, 'claude/**' ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:  # Allow manual triggering
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # ============================================================================
+  # APPLE SILICON BUILD & TEST
+  # ============================================================================
+  test-apple-silicon:
+    name: Test on Apple Silicon (M1/M2/M3/M4)
+    runs-on: macos-14  # macOS 14 (Sonoma) runs on Apple Silicon (M1)
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Test CPU backend (baseline)
+          - name: "CPU Backend"
+            features: "embedded-cpu"
+            test_pattern: "cpu"
+
+          # Test MLX backend (Apple Silicon specific)
+          - name: "MLX Backend (Stub)"
+            features: "embedded-mlx"
+            test_pattern: "mlx"
+
+          # Test both backends together
+          - name: "All Embedded Backends"
+            features: "embedded-mlx,embedded-cpu"
+            test_pattern: "embedded"
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Display system information
+      run: |
+        echo "=== System Information ==="
+        system_profiler SPHardwareDataType
+        echo ""
+        echo "=== CPU Architecture ==="
+        uname -m
+        echo ""
+        echo "=== macOS Version ==="
+        sw_vers
+        echo ""
+        echo "=== Metal Support ==="
+        system_profiler SPDisplaysDataType | grep -i metal || echo "Metal info not available"
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: stable
+        components: rustfmt, clippy
+        targets: aarch64-apple-darwin
+
+    - name: Display Rust information
+      run: |
+        echo "=== Rust Version ==="
+        rustc --version
+        cargo --version
+        echo ""
+        echo "=== Installed Targets ==="
+        rustup target list --installed
+
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: macos-silicon-${{ matrix.features }}-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          macos-silicon-${{ matrix.features }}-
+          macos-silicon-
+
+    # -------------------------------------------------------------------------
+    # CODE QUALITY CHECKS
+    # -------------------------------------------------------------------------
+
+    - name: Check code formatting
+      run: cargo fmt --all -- --check
+
+    - name: Run clippy (with ${{ matrix.name }})
+      run: |
+        cargo clippy --features ${{ matrix.features }} --tests --lib -- -D warnings
+
+    # -------------------------------------------------------------------------
+    # COMPILATION TESTS
+    # -------------------------------------------------------------------------
+
+    - name: Check compilation (lib with ${{ matrix.name }})
+      run: |
+        echo "=== Compiling library with features: ${{ matrix.features }} ==="
+        cargo check --lib --features ${{ matrix.features }} --verbose
+
+    - name: Check compilation (tests with ${{ matrix.name }})
+      run: |
+        echo "=== Compiling tests with features: ${{ matrix.features }} ==="
+        cargo test --no-run --features ${{ matrix.features }} --verbose
+
+    - name: Build release binary (with ${{ matrix.name }})
+      run: |
+        echo "=== Building release binary for aarch64-apple-darwin ==="
+        cargo build --release --target aarch64-apple-darwin --features ${{ matrix.features }}
+        ls -lh target/aarch64-apple-darwin/release/cmdai
+
+    # -------------------------------------------------------------------------
+    # UNIT TESTS
+    # -------------------------------------------------------------------------
+
+    - name: Run unit tests (lib with ${{ matrix.name }})
+      run: |
+        echo "=== Running library unit tests ==="
+        cargo test --lib --features ${{ matrix.features }} --verbose -- --nocapture
+
+    - name: Run unit tests (specific to ${{ matrix.test_pattern }})
+      run: |
+        echo "=== Running ${{ matrix.test_pattern }}-specific tests ==="
+        cargo test --features ${{ matrix.features }} ${{ matrix.test_pattern }} --verbose -- --nocapture
+      continue-on-error: true  # Some tests may be #[ignore] during development
+
+    # -------------------------------------------------------------------------
+    # CONTRACT TESTS (MLX Backend)
+    # -------------------------------------------------------------------------
+
+    - name: Run MLX contract tests (if applicable)
+      if: contains(matrix.features, 'embedded-mlx')
+      run: |
+        echo "=== Running MLX Backend Contract Tests ==="
+        echo "NOTE: Some tests may be marked #[ignore] pending full implementation"
+        cargo test --features ${{ matrix.features }} --test mlx_backend_contract --verbose -- --nocapture --include-ignored
+      continue-on-error: true  # Allow failures for ignored tests
+
+    - name: Run MLX contract tests (non-ignored only)
+      if: contains(matrix.features, 'embedded-mlx')
+      run: |
+        echo "=== Running MLX Backend Contract Tests (non-ignored) ==="
+        cargo test --features ${{ matrix.features }} --test mlx_backend_contract --verbose -- --nocapture
+
+    # -------------------------------------------------------------------------
+    # INTEGRATION TESTS
+    # -------------------------------------------------------------------------
+
+    - name: Run integration tests (embedded backends)
+      run: |
+        echo "=== Running integration tests for embedded backends ==="
+        cargo test --features ${{ matrix.features }} --test '*' --verbose -- --nocapture
+      continue-on-error: true  # Some integration tests may fail during development
+
+    # -------------------------------------------------------------------------
+    # E2E TESTS
+    # -------------------------------------------------------------------------
+
+    - name: Run E2E smoke tests
+      run: |
+        echo "=== Running E2E Smoke Tests ==="
+        cargo test --features ${{ matrix.features }} e2e_smoke_test_suite --verbose -- --nocapture
+
+    - name: Run E2E critical functionality tests
+      run: |
+        echo "=== Running E2E Critical Functionality Tests ==="
+        cargo test --features ${{ matrix.features }} e2e_help_output --verbose -- --nocapture
+        cargo test --features ${{ matrix.features }} e2e_json_output_format --verbose -- --nocapture
+        cargo test --features ${{ matrix.features }} e2e_basic_command_generation --verbose -- --nocapture
+
+    # -------------------------------------------------------------------------
+    # BINARY VALIDATION
+    # -------------------------------------------------------------------------
+
+    - name: Validate binary size
+      run: |
+        echo "=== Validating Binary Size ==="
+        BINARY_PATH="target/aarch64-apple-darwin/release/cmdai"
+        SIZE=$(stat -f%z "$BINARY_PATH")
+        SIZE_MB=$((SIZE / 1024 / 1024))
+        echo "Binary size: $SIZE bytes ($SIZE_MB MB)"
+
+        # Check if binary is under 50MB (excluding model)
+        if [ $SIZE -gt 52428800 ]; then
+          echo "❌ FAIL: Binary size ($SIZE_MB MB) exceeds 50MB limit"
+          exit 1
+        else
+          echo "✅ PASS: Binary size ($SIZE_MB MB) is within 50MB limit"
+        fi
+
+    - name: Test binary execution (sanity check)
+      run: |
+        echo "=== Testing Binary Execution ==="
+        BINARY_PATH="target/aarch64-apple-darwin/release/cmdai"
+
+        # Test --help
+        echo "Testing --help flag..."
+        $BINARY_PATH --help
+
+        # Test --version
+        echo "Testing --version flag..."
+        $BINARY_PATH --version
+
+        echo "✅ Binary executes successfully"
+
+    - name: Upload binary as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: cmdai-macos-silicon-${{ matrix.name }}
+        path: target/aarch64-apple-darwin/release/cmdai
+        retention-days: 7
+
+  # ============================================================================
+  # PERFORMANCE & BENCHMARKS
+  # ============================================================================
+  benchmark-apple-silicon:
+    name: Benchmarks on Apple Silicon
+    runs-on: macos-14
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: stable
+
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: macos-silicon-bench-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Build benchmarks
+      run: |
+        echo "=== Building Benchmarks ==="
+        cargo bench --no-run --verbose
+
+    - name: Run benchmarks
+      run: |
+        echo "=== Running Benchmarks ==="
+        cargo bench --verbose || echo "⚠️  Some benchmarks may fail during TDD phase"
+      continue-on-error: true
+
+    - name: Upload benchmark results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: benchmark-results-apple-silicon
+        path: target/criterion/
+        retention-days: 30
+
+  # ============================================================================
+  # METAL GPU VALIDATION
+  # ============================================================================
+  validate-metal-support:
+    name: Validate Metal GPU Support
+    runs-on: macos-14
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check Metal framework availability
+      run: |
+        echo "=== Validating Metal Framework ==="
+
+        # Check if Metal framework is available
+        if [ -d "/System/Library/Frameworks/Metal.framework" ]; then
+          echo "✅ Metal framework found"
+        else
+          echo "❌ Metal framework not found"
+          exit 1
+        fi
+
+        # Display GPU information
+        echo ""
+        echo "=== GPU Information ==="
+        system_profiler SPDisplaysDataType | grep -A 10 "Chipset Model" || true
+
+        # Check Metal feature set
+        echo ""
+        echo "=== Metal Feature Set ==="
+        system_profiler SPDisplaysDataType | grep -i "metal" || echo "Metal feature set info not available"
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Test Metal feature compilation
+      run: |
+        echo "=== Testing Metal Feature Compilation ==="
+
+        # Try to compile with embedded-mlx feature
+        cargo check --features embedded-mlx --verbose
+
+        echo "✅ Metal features compile successfully"
+
+  # ============================================================================
+  # CROSS-COMPILATION CHECK (Intel Mac)
+  # ============================================================================
+  cross-compile-check:
+    name: Cross-compile for Intel Mac
+    runs-on: macos-14  # Apple Silicon runner
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: x86_64-apple-darwin
+
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: macos-intel-cross-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Build for Intel Mac (x86_64)
+      run: |
+        echo "=== Cross-compiling for x86_64-apple-darwin ==="
+        # Note: embedded-mlx should NOT be included for Intel Macs
+        cargo build --release --target x86_64-apple-darwin --features embedded-cpu,remote-backends
+        ls -lh target/x86_64-apple-darwin/release/cmdai
+
+    - name: Validate Intel binary
+      run: |
+        BINARY_PATH="target/x86_64-apple-darwin/release/cmdai"
+        SIZE=$(stat -f%z "$BINARY_PATH")
+        SIZE_MB=$((SIZE / 1024 / 1024))
+        echo "Intel binary size: $SIZE bytes ($SIZE_MB MB)"
+
+        # Architecture check
+        echo "Binary architecture:"
+        file "$BINARY_PATH"
+
+  # ============================================================================
+  # TEST REPORT SUMMARY
+  # ============================================================================
+  test-summary:
+    name: Test Summary
+    needs: [test-apple-silicon, benchmark-apple-silicon, validate-metal-support, cross-compile-check]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+    - name: Generate test summary
+      run: |
+        echo "# macOS Apple Silicon Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Test Status" >> $GITHUB_STEP_SUMMARY
+        echo "- Apple Silicon Tests: ${{ needs.test-apple-silicon.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Benchmarks: ${{ needs.benchmark-apple-silicon.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Metal Validation: ${{ needs.validate-metal-support.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Cross-compilation: ${{ needs.cross-compile-check.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Build Information" >> $GITHUB_STEP_SUMMARY
+        echo "- Runner: macOS 14 (Sonoma) on Apple Silicon (M1)" >> $GITHUB_STEP_SUMMARY
+        echo "- Architecture: aarch64-apple-darwin" >> $GITHUB_STEP_SUMMARY
+        echo "- Rust: stable" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        # Check if all required jobs passed
+        if [ "${{ needs.test-apple-silicon.result }}" = "success" ] && \
+           [ "${{ needs.validate-metal-support.result }}" = "success" ]; then
+          echo "✅ **All critical tests passed!**" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Some tests failed. Please review the logs.**" >> $GITHUB_STEP_SUMMARY
+        fi

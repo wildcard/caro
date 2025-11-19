@@ -1,8 +1,14 @@
 # cmdai
 
+[![CI](https://github.com/wildcard/cmdai/actions/workflows/ci.yml/badge.svg)](https://github.com/wildcard/cmdai/actions/workflows/ci.yml)
+[![macOS Apple Silicon](https://github.com/wildcard/cmdai/actions/workflows/macos-apple-silicon.yml/badge.svg)](https://github.com/wildcard/cmdai/actions/workflows/macos-apple-silicon.yml)
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%203.0-blue.svg)](LICENSE)
+
 > 🚧 **Early Development Stage** - Architecture defined, core implementation in progress
 
 **cmdai** converts natural language descriptions into safe POSIX shell commands using local LLMs. Built with Rust for blazing-fast performance, single-binary distribution, and safety-first design.
+
+> 📊 **macOS Users**: Check the [macOS Testing Status](https://github.com/wildcard/cmdai/actions/workflows/macos-apple-silicon.yml) to see if builds pass on Apple Silicon. If the badge is green and your local build fails, see our [macOS Testing Guide](docs/MACOS_TESTING.md) for troubleshooting.
 
 ```bash
 $ cmdai "list all PDF files in Downloads folder larger than 10MB"
