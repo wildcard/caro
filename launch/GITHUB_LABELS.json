@@ -1,0 +1,147 @@
+[
+  {
+    "name": "type: feature",
+    "color": "0075ca",
+    "description": "New feature or enhancement"
+  },
+  {
+    "name": "type: bug",
+    "color": "d73a4a",
+    "description": "Something isn't working"
+  },
+  {
+    "name": "type: docs",
+    "color": "0075ca",
+    "description": "Documentation improvements"
+  },
+  {
+    "name": "type: refactor",
+    "color": "fbca04",
+    "description": "Code refactoring, no new features"
+  },
+  {
+    "name": "type: test",
+    "color": "1d76db",
+    "description": "Testing improvements"
+  },
+  {
+    "name": "type: infra",
+    "color": "5319e7",
+    "description": "Infrastructure, CI/CD, deployment"
+  },
+  {
+    "name": "priority: P0",
+    "color": "d73a4a",
+    "description": "Critical, blocking"
+  },
+  {
+    "name": "priority: P1",
+    "color": "fbca04",
+    "description": "High priority"
+  },
+  {
+    "name": "priority: P2",
+    "color": "0e8a16",
+    "description": "Medium priority"
+  },
+  {
+    "name": "priority: P3",
+    "color": "c2e0c6",
+    "description": "Low priority"
+  },
+  {
+    "name": "component: cli",
+    "color": "006b75",
+    "description": "CLI interface and argument parsing"
+  },
+  {
+    "name": "component: backend",
+    "color": "1d76db",
+    "description": "LLM backends (MLX, vLLM, Ollama)"
+  },
+  {
+    "name": "component: safety",
+    "color": "d93f0b",
+    "description": "Safety validation and risk assessment"
+  },
+  {
+    "name": "component: cloud",
+    "color": "0052cc",
+    "description": "Cloud API and SaaS features"
+  },
+  {
+    "name": "component: enterprise",
+    "color": "5319e7",
+    "description": "Enterprise features (RBAC, audit, SSO)"
+  },
+  {
+    "name": "component: workflows",
+    "color": "0e8a16",
+    "description": "Workflow engine"
+  },
+  {
+    "name": "component: integrations",
+    "color": "fbca04",
+    "description": "Third-party integrations"
+  },
+  {
+    "name": "phase: mvp",
+    "color": "c2e0c6",
+    "description": "Current MVP work"
+  },
+  {
+    "name": "phase: v1.0",
+    "color": "0075ca",
+    "description": "Production-ready CLI"
+  },
+  {
+    "name": "phase: q1-2025",
+    "color": "1d76db",
+    "description": "Q1 2025 - Cloud Launch"
+  },
+  {
+    "name": "phase: q2-2025",
+    "color": "0052cc",
+    "description": "Q2 2025 - Enterprise"
+  },
+  {
+    "name": "phase: q3-2025",
+    "color": "5319e7",
+    "description": "Q3 2025 - Platform"
+  },
+  {
+    "name": "phase: q4-2025",
+    "color": "d93f0b",
+    "description": "Q4 2025 - Scale"
+  },
+  {
+    "name": "good-first-issue",
+    "color": "7057ff",
+    "description": "Good for newcomers"
+  },
+  {
+    "name": "help-wanted",
+    "color": "008672",
+    "description": "Extra attention needed"
+  },
+  {
+    "name": "blocked",
+    "color": "d73a4a",
+    "description": "Blocked by another issue"
+  },
+  {
+    "name": "needs-design",
+    "color": "fbca04",
+    "description": "Needs design/architecture decisions"
+  },
+  {
+    "name": "needs-review",
+    "color": "0075ca",
+    "description": "Needs code review"
+  },
+  {
+    "name": "breaking-change",
+    "color": "d93f0b",
+    "description": "Breaking API change"
+  }
+]
