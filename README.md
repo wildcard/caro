@@ -25,14 +25,14 @@ This project is in **active early development**. The architecture and module str
 ### ✅ Completed
 - Core CLI structure with comprehensive argument parsing
 - Modular architecture with trait-based backends
-- **Embedded model backend with MLX (Apple Silicon) and CPU variants** ✨
+- **Embedded model backend with Candle (Metal/CPU variants)** ✨
 - **Remote backend support (Ollama, vLLM) with automatic fallback** ✨
 - Safety validation with pattern matching and risk assessment
 - Configuration management with TOML support
 - Interactive user confirmation flows
 - Multiple output formats (JSON, YAML, Plain)
 - Contract-based test structure with TDD methodology
-- Multi-platform CI/CD pipeline
+- Multi-platform CI/CD pipeline with Apple Silicon testing
 
 ### 🚧 In Progress
 - Model downloading and caching system
@@ -47,19 +47,19 @@ This project is in **active early development**. The architecture and module str
 
 ## ✨ Features (Planned & In Development)
 
-- 🚀 **Instant startup** - Single binary with <100ms cold start (target)
-- 🧠 **Local LLM inference** - Optimized for Apple Silicon with MLX
+- 🚀 **Instant startup** - Single binary with <100ms cold start
+- 🧠 **Local LLM inference** - Candle Metal backend optimized for Apple Silicon
 - 🛡️ **Safety-first** - Comprehensive command validation framework
 - 📦 **Zero dependencies** - Self-contained binary distribution
-- 🎯 **Multiple backends** - Extensible backend system (MLX, vLLM, Ollama)
+- 🎯 **Multiple backends** - Extensible: Candle (CPU/Metal), vLLM, Ollama
 - 💾 **Smart caching** - Hugging Face model management
 - 🌐 **Cross-platform** - macOS, Linux, Windows support
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Rust 1.75+ with Cargo
-- macOS with Apple Silicon (for MLX backend, optional)
+- Rust 1.82+ with Cargo
+- macOS with Apple Silicon (for Metal GPU acceleration, optional)
 
 ### Building from Source
 
@@ -68,12 +68,19 @@ This project is in **active early development**. The architecture and module str
 git clone https://github.com/wildcard/cmdai.git
 cd cmdai
 
-# Build the project
-cargo build --release
+# Build with CPU backend (all platforms)
+cargo build --release --features embedded-cpu
+
+# Build with Metal backend (Apple Silicon only)
+cargo build --release --features embedded-metal
 
 # Run the CLI
 ./target/release/cmdai --version
 ```
+
+For Apple Silicon users: The Metal backend provides 3-5x faster inference
+compared to CPU. Check the [macOS Testing Guide](docs/MACOS_TESTING.md)
+if you encounter build issues.
 
 ### Development Commands
 
@@ -160,7 +167,9 @@ cmdai/
 │   ├── main.rs              # CLI entry point
 │   ├── backends/            # LLM backend implementations
 │   │   ├── mod.rs          # Backend trait definition
-│   │   ├── mlx.rs          # Apple Silicon MLX backend
+│   │   ├── embedded/       # Embedded model backends
+│   │   │   ├── cpu.rs      # Candle CPU backend
+│   │   │   └── metal.rs    # Candle Metal backend (Apple Silicon)
 │   │   ├── vllm.rs         # vLLM remote backend
 │   │   └── ollama.rs       # Ollama local backend
 │   ├── safety/             # Command validation
@@ -226,9 +235,9 @@ cargo clippy -- -D warnings
 cmdai supports multiple inference backends with automatic fallback:
 
 #### Embedded Backend (Default)
-- **MLX**: Optimized for Apple Silicon Macs (M1/M2/M3)
+- **Metal**: GPU-accelerated inference on Apple Silicon (M1/M2/M3/M4) using Candle
 - **CPU**: Cross-platform fallback using Candle framework
-- Model: Qwen2.5-Coder-1.5B-Instruct (quantized)
+- Model: Qwen2.5-Coder-1.5B-Instruct (GGUF Q4_K_M quantized)
 - No external dependencies required
 
 #### Remote Backends (Optional)
@@ -334,7 +343,7 @@ This project is licensed under the **GNU Affero General Public License v3.0 (AGP
 
 ## 🙏 Acknowledgments
 
-- [MLX](https://github.com/ml-explore/mlx) - Apple's machine learning framework
+- [Candle](https://github.com/huggingface/candle) - HuggingFace's Rust ML framework with Metal support
 - [vLLM](https://github.com/vllm-project/vllm) - High-performance LLM serving
 - [Ollama](https://ollama.ai) - Local LLM runtime
 - [Hugging Face](https://huggingface.co) - Model hosting and caching
@@ -366,11 +375,11 @@ This project is licensed under the **GNU Affero General Public License v3.0 (AGP
 - [ ] Response parsing
 - [ ] Error handling
 
-### Phase 4: MLX Optimization
-- [ ] FFI bindings with cxx
-- [ ] Metal Performance Shaders
-- [ ] Unified memory handling
-- [ ] Apple Silicon optimization
+### Phase 4: Candle Metal Optimization
+- [ ] Metal GPU acceleration via candle-core
+- [ ] GGUF quantized model loading
+- [ ] Device auto-detection with fallback
+- [ ] Apple Silicon performance optimization
 
 ### Phase 5: Production Ready
 - [ ] Comprehensive testing

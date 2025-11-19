@@ -28,14 +28,14 @@ jobs:
             features: "embedded-cpu"
             test_pattern: "cpu"
 
-          # Test MLX backend (Apple Silicon specific)
-          - name: "MLX Backend (Stub)"
-            features: "embedded-mlx"
-            test_pattern: "mlx"
+          # Test Metal backend (Apple Silicon specific - Candle Metal)
+          - name: "Metal Backend (Candle)"
+            features: "embedded-metal"
+            test_pattern: "metal"
 
           # Test both backends together
           - name: "All Embedded Backends"
-            features: "embedded-mlx,embedded-cpu"
+            features: "embedded-metal,embedded-cpu"
             test_pattern: "embedded"
 
     steps:
@@ -131,22 +131,22 @@ jobs:
       continue-on-error: true  # Some tests may be #[ignore] during development
 
     # -------------------------------------------------------------------------
-    # CONTRACT TESTS (MLX Backend)
+    # CONTRACT TESTS (Metal Backend)
     # -------------------------------------------------------------------------
 
-    - name: Run MLX contract tests (if applicable)
-      if: contains(matrix.features, 'embedded-mlx')
+    - name: Run Metal contract tests (if applicable)
+      if: contains(matrix.features, 'embedded-metal')
       run: |
-        echo "=== Running MLX Backend Contract Tests ==="
+        echo "=== Running Metal Backend Contract Tests ==="
         echo "NOTE: Some tests may be marked #[ignore] pending full implementation"
-        cargo test --features ${{ matrix.features }} --test mlx_backend_contract --verbose -- --nocapture --include-ignored
+        cargo test --features ${{ matrix.features }} --test metal_backend_contract --verbose -- --nocapture --include-ignored
       continue-on-error: true  # Allow failures for ignored tests
 
-    - name: Run MLX contract tests (non-ignored only)
-      if: contains(matrix.features, 'embedded-mlx')
+    - name: Run Metal contract tests (non-ignored only)
+      if: contains(matrix.features, 'embedded-metal')
       run: |
-        echo "=== Running MLX Backend Contract Tests (non-ignored) ==="
-        cargo test --features ${{ matrix.features }} --test mlx_backend_contract --verbose -- --nocapture
+        echo "=== Running Metal Backend Contract Tests (non-ignored) ==="
+        cargo test --features ${{ matrix.features }} --test metal_backend_contract --verbose -- --nocapture
 
     # -------------------------------------------------------------------------
     # INTEGRATION TESTS
@@ -300,8 +300,8 @@ jobs:
       run: |
         echo "=== Testing Metal Feature Compilation ==="
 
-        # Try to compile with embedded-mlx feature
-        cargo check --features embedded-mlx --verbose
+        # Try to compile with embedded-metal feature (Candle Metal)
+        cargo check --features embedded-metal --verbose
 
         echo "✅ Metal features compile successfully"
 
@@ -333,7 +333,7 @@ jobs:
     - name: Build for Intel Mac (x86_64)
       run: |
         echo "=== Cross-compiling for x86_64-apple-darwin ==="
-        # Note: embedded-mlx should NOT be included for Intel Macs
+        # Note: embedded-metal should NOT be included for Intel Macs (ARM64 only)
         cargo build --release --target x86_64-apple-darwin --features embedded-cpu,remote-backends
         ls -lh target/x86_64-apple-darwin/release/cmdai
 

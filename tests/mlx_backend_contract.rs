@@ -1,6 +1,13 @@
 // Contract tests for MlxBackend (Apple Silicon GPU acceleration)
 // These tests verify the behavioral contract defined in:
 // specs/004-implement-ollama-and/contracts/mlx-backend.md
+//
+// NOTE: Strategic pivot to Candle Metal backend
+// These tests are kept for backward compatibility but the actual implementation
+// uses Candle with Metal backend instead of mlx-rs for better performance.
+// See: tests/candle_metal_contract.rs for the new Candle-based tests.
+//
+// This file may be deprecated once the Candle Metal backend is fully implemented.
 
 use cmdai::backends::embedded::ModelVariant;
 

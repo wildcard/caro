@@ -51,8 +51,8 @@ The workflow tests **three configurations**:
 | Configuration | Features | Purpose |
 |--------------|----------|---------|
 | **CPU Backend** | `embedded-cpu` | Cross-platform baseline using Candle |
-| **MLX Backend** | `embedded-mlx` | Apple Silicon GPU acceleration (stub) |
-| **All Backends** | `embedded-mlx,embedded-cpu` | Full embedded feature set |
+| **Metal Backend** | `embedded-metal` | Apple Silicon GPU acceleration with Candle Metal |
+| **All Backends** | `embedded-metal,embedded-cpu` | Full embedded feature set |
 
 ### Test Stages
 
@@ -70,7 +70,7 @@ Each configuration goes through:
 3. **Unit Tests**
    - ✅ Library unit tests
    - ✅ Backend-specific tests
-   - ✅ MLX contract tests (including `#[ignore]` tests)
+   - ✅ Embedded backend contract tests (including `#[ignore]` tests)
 
 4. **Integration Tests**
    - ✅ End-to-end workflows
@@ -155,8 +155,8 @@ You can manually trigger the workflow:
 5. **Check feature flags**
    ```bash
    # Are you using the right features?
-   cargo build --features embedded-mlx  # For MLX backend
-   cargo build --features embedded-cpu  # For CPU backend
+   cargo build --features embedded-metal  # For Metal backend (Apple Silicon)
+   cargo build --features embedded-cpu    # For CPU backend (all platforms)
    ```
 
 ### Scenario 2: Red Build
@@ -317,11 +317,11 @@ rustup default stable
 # CPU backend test (as CI does)
 cargo test --features embedded-cpu --verbose -- --nocapture
 
-# MLX backend test (as CI does)
-cargo test --features embedded-mlx --test mlx_backend_contract --verbose -- --nocapture
+# Metal backend test (as CI does)
+cargo test --features embedded-metal --test embedded_backend_contract --verbose -- --nocapture
 
 # Build release binary (as CI does)
-cargo build --release --target aarch64-apple-darwin --features embedded-mlx,embedded-cpu
+cargo build --release --target aarch64-apple-darwin --features embedded-metal,embedded-cpu
 ```
 
 ### Clean Build (Like CI)
@@ -343,7 +343,7 @@ cargo build --release --features embedded-cpu
 
 ```bash
 # Run ALL tests including #[ignore]
-cargo test --features embedded-mlx --test mlx_backend_contract -- --include-ignored --nocapture
+cargo test --features embedded-metal --test embedded_backend_contract -- --include-ignored --nocapture
 ```
 
 ## Performance Benchmarks
@@ -359,7 +359,7 @@ The workflow runs performance benchmarks and uploads results as artifacts.
 
 ### What's Benchmarked
 
-- Inference performance (CPU vs MLX)
+- Inference performance (CPU vs Metal)
 - Model loading time
 - Command generation latency
 - Safety validation overhead
@@ -371,7 +371,7 @@ Each successful run uploads binary artifacts:
 ### Available Artifacts
 
 - `cmdai-macos-silicon-CPU Backend`
-- `cmdai-macos-silicon-MLX Backend (Stub)`
+- `cmdai-macos-silicon-Metal Backend`
 - `cmdai-macos-silicon-All Embedded Backends`
 
 ### Downloading Artifacts
@@ -429,7 +429,7 @@ No workflow changes needed!
 
 ### Q: Why use macOS-14 runners?
 
-**A**: macOS-14 runs on Apple Silicon (M1). Earlier versions (macOS-12, macOS-13) run on Intel, which can't test MLX features.
+**A**: macOS-14 runs on Apple Silicon (M1). Earlier versions (macOS-12, macOS-13) run on Intel, which can't test Metal GPU acceleration features.
 
 ### Q: Can I test on M2/M3/M4 specifically?
 
