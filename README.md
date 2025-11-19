@@ -260,6 +260,33 @@ The project uses contract-based testing:
 - Contract tests to ensure trait compliance
 - Property-based testing for safety validation
 
+### Prompt Engineering & Testing
+
+cmdai uses GitHub Models for systematic prompt testing and optimization:
+
+- **Version-controlled prompts** - All system prompts stored as `.prompt.yml` files in `prompts/`
+- **Multi-model evaluation** - Test prompts across 40+ models (GPT-4, Claude, Llama, etc.)
+- **Automated testing** - CI/CD pipeline validates prompts on every PR
+- **4 prompt variants** - Production, safety-focused, concise, and verbose options
+
+**Quick Start:**
+```bash
+# Test prompts in GitHub UI
+# 1. Go to the Models tab in this repository
+# 2. Click Prompts → Select a .prompt.yml file
+# 3. Click Run to test
+
+# Or use GitHub CLI
+gh models eval prompts/base-command-generation.prompt.yml
+```
+
+**Documentation:**
+- 📚 [Prompt Testing Strategy](docs/PROMPT_TESTING_STRATEGY.md) - Comprehensive testing guide
+- 📖 [Prompts README](prompts/README.md) - Prompt variants and integration
+- 🚀 [Quick Start Guide](prompts/QUICKSTART.md) - Get testing in 5 minutes
+
+**Learn more:** See [`prompts/`](prompts/) directory for all prompt variants and test cases.
+
 ## 🛡️ Safety Features
 
 cmdai includes comprehensive safety validation to prevent dangerous operations:

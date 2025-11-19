@@ -1,0 +1,364 @@
+name: Prompt Evaluation
+
+on:
+  pull_request:
+    paths:
+      - 'prompts/**/*.prompt.yml'
+      - '.github/workflows/prompt-evaluation.yml'
+  push:
+    branches:
+      - main
+      - claude/**
+    paths:
+      - 'prompts/**/*.prompt.yml'
+  workflow_dispatch:
+    inputs:
+      prompt_file:
+        description: 'Specific prompt file to evaluate (e.g., prompts/base-command-generation.prompt.yml)'
+        required: false
+        type: string
+      model_name:
+        description: 'Specific model to test against (e.g., gpt-4, claude-3-5-sonnet)'
+        required: false
+        type: string
+
+jobs:
+  validate-prompts:
+    name: Validate Prompt Files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pyyaml jsonschema
+
+      - name: Validate YAML syntax
+        run: |
+          python3 << 'EOF'
+          import yaml
+          import sys
+          from pathlib import Path
+
+          errors = []
+          for prompt_file in Path('prompts').glob('*.prompt.yml'):
+              try:
+                  with open(prompt_file) as f:
+                      data = yaml.safe_load(f)
+
+                      # Validate required fields
+                      required = ['name', 'description', 'version', 'prompt', 'parameters']
+                      for field in required:
+                          if field not in data:
+                              errors.append(f"{prompt_file}: Missing required field '{field}'")
+
+                      # Validate version format (semver)
+                      if 'version' in data:
+                          version = data['version']
+                          parts = str(version).split('.')
+                          if len(parts) != 3:
+                              errors.append(f"{prompt_file}: Invalid version format '{version}' (expected X.Y.Z)")
+
+                      print(f"✓ {prompt_file.name} is valid")
+
+              except yaml.YAMLError as e:
+                  errors.append(f"{prompt_file}: YAML syntax error - {e}")
+              except Exception as e:
+                  errors.append(f"{prompt_file}: Validation error - {e}")
+
+          if errors:
+              print("\nValidation Errors:")
+              for error in errors:
+                  print(f"  ✗ {error}")
+              sys.exit(1)
+          else:
+              print(f"\n✓ All {len(list(Path('prompts').glob('*.prompt.yml')))} prompt files are valid")
+          EOF
+
+      - name: Check for duplicate test cases
+        run: |
+          python3 << 'EOF'
+          import yaml
+          from pathlib import Path
+          from collections import defaultdict
+
+          test_inputs = defaultdict(list)
+
+          for prompt_file in Path('prompts').glob('*.prompt.yml'):
+              with open(prompt_file) as f:
+                  data = yaml.safe_load(f)
+                  if 'test_cases' in data:
+                      for test in data['test_cases']:
+                          if 'input' in test:
+                              test_inputs[test['input']].append(prompt_file.name)
+
+          duplicates = {k: v for k, v in test_inputs.items() if len(v) > 1}
+
+          if duplicates:
+              print("Warning: Duplicate test cases found across prompts:")
+              for input_text, files in duplicates.items():
+                  print(f"  '{input_text}' in: {', '.join(files)}")
+          else:
+              print("✓ No duplicate test cases found")
+          EOF
+
+  test-prompt-rendering:
+    name: Test Prompt Template Rendering
+    runs-on: ubuntu-latest
+    needs: validate-prompts
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Jinja2 for template testing
+        run: pip install pyyaml jinja2
+
+      - name: Test parameter substitution
+        run: |
+          python3 << 'EOF'
+          import yaml
+          from pathlib import Path
+          from jinja2 import Template
+
+          test_params = {
+              'shell': 'bash',
+              'input': 'list all files'
+          }
+
+          for prompt_file in Path('prompts').glob('*.prompt.yml'):
+              with open(prompt_file) as f:
+                  data = yaml.safe_load(f)
+
+                  # Render the prompt template
+                  template = Template(data['prompt'])
+                  rendered = template.render(**test_params)
+
+                  # Check that parameters were substituted
+                  if '{{' in rendered or '}}' in rendered:
+                      print(f"✗ {prompt_file.name}: Unsubstituted parameters found")
+                  else:
+                      print(f"✓ {prompt_file.name}: Template renders correctly")
+
+                  # Validate it contains key safety terms
+                  safety_terms = ['safe', 'POSIX', 'JSON']
+                  missing = [term for term in safety_terms if term.lower() not in rendered.lower()]
+
+                  if missing:
+                      print(f"  Warning: Missing recommended terms: {missing}")
+          EOF
+
+  analyze-prompt-metrics:
+    name: Analyze Prompt Characteristics
+    runs-on: ubuntu-latest
+    needs: validate-prompts
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Analyze prompt statistics
+        run: |
+          pip install pyyaml tiktoken
+
+          python3 << 'EOF'
+          import yaml
+          from pathlib import Path
+          try:
+              import tiktoken
+              has_tiktoken = True
+          except ImportError:
+              has_tiktoken = False
+              print("Warning: tiktoken not available, skipping token counting")
+
+          print("Prompt Analysis Report\n" + "="*60)
+
+          for prompt_file in sorted(Path('prompts').glob('*.prompt.yml')):
+              with open(prompt_file) as f:
+                  data = yaml.safe_load(f)
+
+                  prompt_text = data.get('prompt', '')
+
+                  print(f"\n{data.get('name', prompt_file.name)}")
+                  print(f"  Version: {data.get('version', 'N/A')}")
+                  print(f"  Tags: {', '.join(data.get('tags', []))}")
+                  print(f"  Character count: {len(prompt_text)}")
+                  print(f"  Line count: {len(prompt_text.splitlines())}")
+                  print(f"  Test cases: {len(data.get('test_cases', []))}")
+
+                  if has_tiktoken:
+                      enc = tiktoken.encoding_for_model("gpt-4")
+                      tokens = len(enc.encode(prompt_text))
+                      print(f"  Estimated tokens (GPT-4): {tokens}")
+
+                  # Safety keyword analysis
+                  safety_keywords = ['safe', 'dangerous', 'destructive', 'never', 'always']
+                  found_keywords = [kw for kw in safety_keywords if kw.lower() in prompt_text.lower()]
+                  print(f"  Safety keywords: {', '.join(found_keywords) if found_keywords else 'none'}")
+
+          print("\n" + "="*60)
+          EOF
+
+  security-check:
+    name: Security Review
+    runs-on: ubuntu-latest
+    needs: validate-prompts
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check for prompt injection vulnerabilities
+        run: |
+          python3 << 'EOF'
+          import yaml
+          from pathlib import Path
+
+          # Common prompt injection patterns to watch for
+          dangerous_patterns = [
+              'ignore previous instructions',
+              'forget all',
+              'new instructions',
+              'system: ',
+              'assistant: ',
+              'disregard',
+          ]
+
+          issues = []
+
+          for prompt_file in Path('prompts').glob('*.prompt.yml'):
+              with open(prompt_file) as f:
+                  content = f.read().lower()
+
+                  for pattern in dangerous_patterns:
+                      if pattern in content:
+                          issues.append(f"{prompt_file.name}: Contains pattern '{pattern}'")
+
+          if issues:
+              print("⚠ Potential security issues found:")
+              for issue in issues:
+                  print(f"  {issue}")
+              print("\nReview these prompts to ensure they're not vulnerable to injection attacks")
+          else:
+              print("✓ No obvious prompt injection vulnerabilities detected")
+          EOF
+
+      - name: Verify safety constraints are defined
+        run: |
+          python3 << 'EOF'
+          import yaml
+          from pathlib import Path
+
+          print("Safety Constraints Review:\n")
+
+          for prompt_file in Path('prompts').glob('*.prompt.yml'):
+              with open(prompt_file) as f:
+                  data = yaml.safe_load(f)
+
+                  has_safety = 'safety_constraints' in data or 'safety_level' in data
+
+                  # Check if prompt text mentions safety
+                  prompt_text = data.get('prompt', '').lower()
+                  mentions_safety = any(term in prompt_text for term in [
+                      'safe', 'dangerous', 'destructive', 'never generate', 'security'
+                  ])
+
+                  status = "✓" if (has_safety or mentions_safety) else "⚠"
+                  print(f"{status} {prompt_file.name}")
+
+                  if not has_safety and not mentions_safety:
+                      print(f"    Consider adding safety constraints or safety language")
+          EOF
+
+  # GitHub Models evaluation (requires GitHub Models access)
+  # This job is optional and only runs if GitHub Models is available
+  github-models-eval:
+    name: GitHub Models Evaluation
+    runs-on: ubuntu-latest
+    needs: [validate-prompts, test-prompt-rendering]
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup GitHub CLI
+        uses: cli/cli@v2
+
+      - name: Check GitHub Models availability
+        id: check_models
+        continue-on-error: true
+        run: |
+          # Check if gh models command is available
+          if gh models --help > /dev/null 2>&1; then
+            echo "available=true" >> $GITHUB_OUTPUT
+          else
+            echo "available=false" >> $GITHUB_OUTPUT
+            echo "::warning::GitHub Models CLI not available - skipping evaluation"
+          fi
+
+      - name: Run prompt evaluations
+        if: steps.check_models.outputs.available == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Evaluate all prompts or specific prompt if provided
+          if [ -n "${{ inputs.prompt_file }}" ]; then
+            echo "Evaluating specific prompt: ${{ inputs.prompt_file }}"
+            gh models eval "${{ inputs.prompt_file }}"
+          else
+            echo "Evaluating all prompts..."
+            for prompt in prompts/*.prompt.yml; do
+              echo "Evaluating $prompt..."
+              gh models eval "$prompt" || echo "Warning: Evaluation failed for $prompt"
+            done
+          fi
+
+      - name: Upload evaluation results
+        if: steps.check_models.outputs.available == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: prompt-evaluation-results
+          path: |
+            **/*-evaluation.json
+            **/*-comparison.json
+          retention-days: 30
+
+  summary:
+    name: Evaluation Summary
+    runs-on: ubuntu-latest
+    needs: [validate-prompts, test-prompt-rendering, analyze-prompt-metrics, security-check]
+    if: always()
+
+    steps:
+      - name: Generate summary
+        run: |
+          echo "# Prompt Evaluation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Jobs Status" >> $GITHUB_STEP_SUMMARY
+          echo "- Validation: ${{ needs.validate-prompts.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Template Rendering: ${{ needs.test-prompt-rendering.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Metrics Analysis: ${{ needs.analyze-prompt-metrics.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Security Check: ${{ needs.security-check.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Review any warnings in job outputs" >> $GITHUB_STEP_SUMMARY
+          echo "2. Test prompts manually using GitHub Models UI" >> $GITHUB_STEP_SUMMARY
+          echo "3. Update benchmark results in prompts/README.md" >> $GITHUB_STEP_SUMMARY
