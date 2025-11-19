@@ -23,10 +23,11 @@
 
 use cmdai::tui::{
     components::{
-        CommandEditorComponent, CommandFlowComponent, CommandPreviewComponent,
-        ConfirmationDialogComponent, KeyboardShortcutsComponent, NotificationToastComponent,
-        ProgressSpinnerComponent, SafetyIndicatorComponent, SimpleTextComponent,
-        TableSelectorComponent,
+        CommandEditorComponent, CommandFlowComponent, CommandOutputViewerComponent,
+        CommandPreviewComponent, CommandRatingComponent, ConfirmationDialogComponent,
+        GenerationComparisonComponent, HistoryTimelineComponent, KeyboardShortcutsComponent,
+        NotificationToastComponent, ProgressSpinnerComponent, SafetyIndicatorComponent,
+        SimpleTextComponent, TableSelectorComponent,
     },
     showcase::ShowcaseRegistry,
 };
@@ -77,10 +78,14 @@ impl App {
         registry.register(Box::new(SimpleTextComponent));
         registry.register(Box::new(CommandPreviewComponent));
         registry.register(Box::new(TableSelectorComponent));
+        registry.register(Box::new(CommandOutputViewerComponent));  // 🌟 Community requested!
+        registry.register(Box::new(HistoryTimelineComponent));      // 🌟 Community requested!
+        registry.register(Box::new(GenerationComparisonComponent)); // 🌟 Community requested!
 
         // Input components
         registry.register(Box::new(ConfirmationDialogComponent));
         registry.register(Box::new(CommandEditorComponent));
+        registry.register(Box::new(CommandRatingComponent));        // 🌟 Community requested!
 
         // Feedback components
         registry.register(Box::new(SafetyIndicatorComponent));

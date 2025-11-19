@@ -103,19 +103,22 @@ cargo watch -x 'run --bin tui-showcase'
 ```
 
 **Showcase Highlights:**
-- 🎯 **10 Production Components** - 52+ stories across 5 categories
+- 🎯 **14 Production Components** - 73+ stories across 5 categories (**+40% from community feedback!** 🌟)
 - 🔄 **Hot Reload Support** - Instant feedback during development with cargo-watch
 - 📚 **Story-Based Development** - Multiple variations per component
 - 🖥️ **Interactive Browser** - Full keyboard navigation and help system
 - 🎨 **Visual Gallery** - ASCII art previews and comprehensive examples
 - 📖 **Complete Documentation** - User guide and contributor guidelines
+- 💬 **Community-Driven** - New components based on user requests!
 
 **Component Categories:**
-- **Display**: SimpleText, CommandPreview, TableSelector
-- **Input**: ConfirmationDialog, CommandEditor
+- **Display**: SimpleText, CommandPreview, TableSelector, **CommandOutputViewer** 🌟, **HistoryTimeline** 🌟, **GenerationComparison** 🌟
+- **Input**: ConfirmationDialog, CommandEditor, **CommandRating** 🌟
 - **Feedback**: SafetyIndicator, ProgressSpinner, NotificationToast
 - **Workflow**: CommandFlow
 - **Help**: KeyboardShortcuts
+
+🌟 = Community-requested components!
 
 **Documentation:**
 - [TUI_SHOWCASE.md](TUI_SHOWCASE.md) - User guide and development workflow
