@@ -1,14 +1,22 @@
 // CLI module - Command-line interface and user interaction
 
-use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use std::time::Instant;
 
 use crate::{
-    backends::{BackendInfo, CommandGenerator, GeneratorError},
-    models::{BackendType, CommandRequest, GeneratedCommand, RiskLevel, SafetyLevel, ShellType},
+    backends::CommandGenerator,
+    models::{CommandRequest, SafetyLevel, ShellType},
     safety::SafetyValidator,
+};
+
+// Imports needed for MockCommandGenerator (test/debug builds only)
+#[cfg(any(test, debug_assertions))]
+use async_trait::async_trait;
+#[cfg(any(test, debug_assertions))]
+use crate::{
+    backends::{BackendInfo, GeneratorError},
+    models::{BackendType, GeneratedCommand, RiskLevel},
 };
 
 /// Main CLI application struct
@@ -163,24 +171,23 @@ impl CliApp {
         #[cfg(not(any(test, debug_assertions)))]
         {
             use crate::backends::embedded::{EmbeddedModelBackend, ModelVariant};
-            use std::sync::Arc;
 
-            // Create embedded backend as fallback
-            let embedded_backend = EmbeddedModelBackend::with_variant_and_path(
-                ModelVariant::detect(),
-                std::env::temp_dir().join("cmdai_model.gguf"), // TODO: Use proper model cache
-            )
-            .map_err(|e| CliError::ConfigurationError {
-                message: format!("Failed to create embedded backend: {}", e),
-            })?;
-
-            let embedded_arc: Arc<dyn CommandGenerator> = Arc::new(embedded_backend);
-
-            // Try remote backends with embedded fallback based on configuration
+            // Try remote backends first
             #[cfg(feature = "remote-backends")]
             {
                 use crate::backends::remote::{OllamaBackend, VllmBackend};
                 use reqwest::Url;
+                use std::sync::Arc;
+
+                // Create embedded backend for fallback
+                let embedded_for_fallback = EmbeddedModelBackend::with_variant_and_path(
+                    ModelVariant::detect(),
+                    std::env::temp_dir().join("cmdai_model.gguf"), // TODO: Use proper model cache
+                )
+                .map_err(|e| CliError::ConfigurationError {
+                    message: format!("Failed to create embedded backend: {}", e),
+                })?;
+                let embedded_arc: Arc<dyn CommandGenerator> = Arc::new(embedded_for_fallback);
 
                 // TODO: Add backend preference to user configuration
                 // For now, try Ollama first, then vLLM, then embedded
@@ -213,9 +220,16 @@ impl CliApp {
                 }
             }
 
-            // Fall back to embedded backend only
+            // Fall back to embedded backend only (no remote backends available)
             tracing::info!("Using embedded backend only");
-            Ok(Box::new(embedded_arc))
+            let embedded_backend = EmbeddedModelBackend::with_variant_and_path(
+                ModelVariant::detect(),
+                std::env::temp_dir().join("cmdai_model.gguf"), // TODO: Use proper model cache
+            )
+            .map_err(|e| CliError::ConfigurationError {
+                message: format!("Failed to create embedded backend: {}", e),
+            })?;
+            Ok(Box::new(embedded_backend))
         }
     }
 

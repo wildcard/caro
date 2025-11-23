@@ -32,7 +32,9 @@ pub struct ReplProps {
 /// REPL component state
 #[derive(Debug, Clone, Default)]
 pub struct ReplComponentState {
-    // Internal state if needed
+    /// Copy of the REPL state from AppState
+    /// This allows render() to access the state without needing &AppState
+    pub repl_state: ReplState,
 }
 
 /// Main REPL component
@@ -50,8 +52,13 @@ pub struct ReplComponent {
 
 impl ReplComponent {
     /// Create from application state
-    pub fn from_state(_app_state: &AppState) -> Self {
-        Self::new(ReplProps { focused: true })
+    pub fn from_state(app_state: &AppState) -> Self {
+        Self {
+            props: ReplProps { focused: true },
+            state: ReplComponentState {
+                repl_state: app_state.repl.clone(),
+            },
+        }
     }
 
     /// Render input area
@@ -158,14 +165,15 @@ impl Component for ReplComponent {
         }
     }
 
-    fn update(&mut self, _state: &AppState) -> Result<()> {
+    fn update(&mut self, state: &AppState) -> Result<()> {
+        // Update internal state when AppState changes
+        self.state.repl_state = state.repl.clone();
         Ok(())
     }
 
     fn render(&self, frame: &mut Frame, area: Rect) {
-        // Get repl state from somewhere - for now use default
-        // TODO: Pass repl_state properly when rendering
-        let repl_state = ReplState::default();
+        // Use the actual repl state stored in the component
+        let repl_state = &self.state.repl_state;
 
         // Layout: Input (4 lines), Validation (3 lines), Preview (rest)
         let chunks = Layout::default()
@@ -177,9 +185,9 @@ impl Component for ReplComponent {
             ])
             .split(area);
 
-        self.render_input_area(frame, chunks[0], &repl_state);
-        self.render_validation_panel(frame, chunks[1], &repl_state);
-        self.render_command_preview(frame, chunks[2], &repl_state);
+        self.render_input_area(frame, chunks[0], repl_state);
+        self.render_validation_panel(frame, chunks[1], repl_state);
+        self.render_command_preview(frame, chunks[2], repl_state);
     }
 
     fn state(&self) -> &Self::State {
@@ -209,5 +217,50 @@ mod tests {
 
         // Events should be passed through to AppState
         assert_eq!(result, EventResult::Ignored);
+    }
+
+    #[test]
+    fn test_repl_component_uses_actual_state() {
+        // Create an AppState with some input
+        let mut app_state = AppState::default();
+        app_state.repl.input_buffer = "test input".to_string();
+        app_state.repl.cursor_position = 10;
+
+        // Create component from state
+        let component = ReplComponent::from_state(&app_state);
+
+        // Verify component has the actual state
+        let state = component.state();
+        assert_eq!(state.repl_state.input_buffer, "test input");
+        assert_eq!(state.repl_state.cursor_position, 10);
+    }
+
+    #[test]
+    fn test_repl_component_update_syncs_state() {
+        use crate::tui::state::events::{GeneratedCommandEvent, RiskLevel};
+
+        // Create component with default state
+        let mut component = ReplComponent::new(ReplProps { focused: true });
+        assert_eq!(component.state().repl_state.input_buffer, "");
+
+        // Update with modified AppState
+        let mut app_state = AppState::default();
+        app_state.repl.input_buffer = "updated input".to_string();
+        app_state.repl.generated_command = Some(GeneratedCommandEvent {
+            command: "ls -la".to_string(),
+            explanation: "List all files".to_string(),
+            risk_level: RiskLevel::Safe,
+        });
+
+        component.update(&app_state).unwrap();
+
+        // Verify state was synced
+        let state = component.state();
+        assert_eq!(state.repl_state.input_buffer, "updated input");
+        assert!(state.repl_state.generated_command.is_some());
+        assert_eq!(
+            state.repl_state.generated_command.as_ref().unwrap().command,
+            "ls -la"
+        );
     }
 }

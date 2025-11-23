@@ -323,7 +323,7 @@ async fn show_configuration(cli: &Cli) -> Result<String, CliError> {
 
 /// Run the TUI application
 async fn run_tui() -> Result<(), CliError> {
-    let app = cmdai::tui::TuiApp::new().map_err(|e| CliError::Internal {
+    let app = cmdai::tui::TuiApp::new().await.map_err(|e| CliError::Internal {
         message: format!("Failed to initialize TUI: {}", e),
     })?;
 
