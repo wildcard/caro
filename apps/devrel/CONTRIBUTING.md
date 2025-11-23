@@ -634,6 +634,13 @@ export const ComponentName: React.FC<ComponentProps> = ({
 - Look at existing components in `components/`
 - Copy patterns for consistency
 
+**8-Bit Component Library (New!):**
+- See `8BITCN_INTEGRATION.md` for comprehensive guide
+- 40+ pre-built 8-bit styled React components
+- Based on shadcn/ui with Tailwind CSS
+- Perfect for forms, dialogs, and new features
+- **Recommendation:** Use for new features to speed up development!
+
 **Questions:**
 - Slack: #devrel-website
 - Tag: @alrezky (design) or @team (technical)

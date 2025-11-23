@@ -306,8 +306,11 @@ This website is part of the cmdai open-source project. Contributions are welcome
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Tailwind CSS Documentation](https://tailwindcss.com/docs)
 - [Press Start 2P Font](https://fonts.google.com/specimen/Press+Start+2P)
+- [8bitcn/ui Components](https://www.8bitcn.com/) - 40+ 8-bit styled React components
+- [8BITCN_INTEGRATION.md](./8BITCN_INTEGRATION.md) - Integration guide for 8bitcn/ui
 - [cmdai Repository](https://github.com/wildcard/cmdai)
 - [DESIGN_GUIDELINES.md](./DESIGN_GUIDELINES.md)
+- [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ## 🤝 Team
 
