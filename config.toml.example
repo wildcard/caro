@@ -1,0 +1,240 @@
+# cmdai V2 Configuration File
+# Copy this file to ~/.config/cmdai/config.toml to customize cmdai behavior
+
+# ============================================================================
+# Context Intelligence Settings
+# ============================================================================
+[context]
+# Enable context intelligence (project detection, git state, tool discovery)
+enabled = true
+
+# Detect project type (Rust, Node.js, Python, Go, Docker, etc.)
+detect_project = true
+
+# Analyze git repository state
+detect_git = true
+
+# Detect available infrastructure tools (docker, kubectl, aws, etc.)
+detect_tools = true
+
+# Analyze shell history for user preferences (privacy-preserving)
+# Set to false to opt out of history analysis
+analyze_history = true
+
+# Context build timeout in milliseconds (default: 300ms)
+timeout_ms = 300
+
+# ============================================================================
+# Safety Settings
+# ============================================================================
+[safety]
+# Default risk threshold: "safe", "moderate", "high", "critical"
+# Commands above this threshold require confirmation
+default_risk_threshold = "moderate"
+
+# Enable audit logging for compliance
+audit_logging = false
+
+# Audit log path (relative to ~/.cmdai/ or absolute path)
+audit_log_path = "audit.log"
+
+# Execute commands in sandbox by default (slower but safer)
+sandbox_by_default = false
+
+# Block execution of commands with critical risk
+block_critical = true
+
+# ============================================================================
+# Learning Engine Settings
+# ============================================================================
+[learning]
+# Enable learning from user interactions
+enabled = true
+
+# Record command generations for pattern learning
+record_interactions = true
+
+# Learn from user edits (when you modify generated commands)
+learn_from_edits = true
+
+# Auto-suggest improvements based on past patterns
+auto_suggest_improvements = true
+
+# Maximum number of patterns to store (older patterns pruned)
+max_patterns = 100000
+
+# Enable achievement system
+enable_achievements = true
+
+# Pattern database path (relative to ~/.cmdai/ or absolute path)
+db_path = "patterns.db"
+
+# ============================================================================
+# Backend Configuration
+# ============================================================================
+[backends]
+# Default backend: "mlx", "vllm", "ollama", "cpu"
+# Auto-detected based on platform if not specified
+default = "auto"
+
+# Fallback backends (tried in order if default fails)
+fallbacks = ["cpu"]
+
+# Backend-specific settings
+[backends.mlx]
+# MLX backend (Apple Silicon only)
+model = "mlx-community/Llama-3.2-3B-Instruct-4bit"
+max_tokens = 512
+temperature = 0.7
+
+[backends.vllm]
+# vLLM backend (HTTP API)
+api_url = "http://localhost:8000/v1/completions"
+model = "codellama/CodeLlama-7b-hf"
+timeout_seconds = 30
+
+[backends.ollama]
+# Ollama backend (local API)
+api_url = "http://localhost:11434"
+model = "codellama:7b"
+timeout_seconds = 30
+
+[backends.cpu]
+# CPU-only embedded backend (portable, slower)
+model_path = "~/.cache/cmdai/models/llama-3.2-3b-instruct.gguf"
+threads = 4  # Auto-detected from CPU cores if 0
+use_gpu = false
+
+# ============================================================================
+# Privacy Settings
+# ============================================================================
+[privacy]
+# Enable telemetry (send anonymized usage data to improve cmdai)
+# Currently: ALWAYS FALSE (telemetry not implemented)
+telemetry_enabled = false
+
+# All data stored locally only (no cloud sync)
+local_only = true
+
+# Encrypt pattern database at rest (requires SQLCipher)
+encrypt_database = false
+
+# Encryption key derivation (if encrypt_database = true)
+# Options: "system_keyring", "password", "file"
+encryption_key_source = "system_keyring"
+
+# History analysis opt-out (alternative to setting context.analyze_history = false)
+# This provides more granular control
+opt_out_history = false
+opt_out_git = false
+opt_out_tools = false
+
+# ============================================================================
+# Shell Preferences
+# ============================================================================
+[shell]
+# Default shell type if not auto-detected
+# Options: "bash", "zsh", "fish", "sh", "powershell", "cmd"
+default = "auto"
+
+# Shell-specific command preferences
+[shell.bash]
+# Prefer GNU tools over BSD (on macOS)
+prefer_gnu = true
+
+[shell.zsh]
+# Use zsh-specific features (associative arrays, etc.)
+use_extended_features = true
+
+[shell.fish]
+# Use fish-specific syntax
+use_fish_syntax = true
+
+# ============================================================================
+# Output Preferences
+# ============================================================================
+[output]
+# Default output format: "plain", "json", "yaml"
+default_format = "plain"
+
+# Enable colored output
+colors = true
+
+# Show context summary in verbose mode
+show_context_summary = true
+
+# Show alternatives to generated command
+show_alternatives = true
+
+# Show command explanations
+show_explanations = true
+
+# ============================================================================
+# Performance Tuning
+# ============================================================================
+[performance]
+# Cache context analysis results (seconds to cache)
+cache_context_seconds = 60
+
+# Parallel workers for context analysis
+parallel_workers = 0  # Auto-detected from CPU cores
+
+# Limit shell history analysis (number of recent commands)
+history_limit = 1000
+
+# Preload models on startup (faster first inference, slower startup)
+preload_models = false
+
+# ============================================================================
+# Tutorial Settings
+# ============================================================================
+[tutorials]
+# Enable interactive tutorials
+enabled = true
+
+# Track tutorial progress
+track_progress = true
+
+# Tutorial difficulty preference: "beginner", "intermediate", "advanced", "all"
+preferred_difficulty = "all"
+
+# Custom tutorial directory (YAML files)
+custom_tutorial_dir = "~/.config/cmdai/tutorials"
+
+# ============================================================================
+# Advanced Settings (Rarely Changed)
+# ============================================================================
+[advanced]
+# Context graph serialization format: "json", "messagepack"
+context_serialization = "json"
+
+# Risk prediction model: "rule_based", "ml" (ml not yet implemented)
+risk_model = "rule_based"
+
+# Command similarity algorithm: "keyword", "embedding" (embedding not yet implemented)
+similarity_algorithm = "keyword"
+
+# Log level: "error", "warn", "info", "debug", "trace"
+log_level = "info"
+
+# Log output: "stdout", "stderr", "file"
+log_output = "stderr"
+
+# Log file path (if log_output = "file")
+log_file = "~/.cmdai/cmdai.log"
+
+# ============================================================================
+# Experimental Features (Use at Your Own Risk)
+# ============================================================================
+[experimental]
+# Enable multi-step workflows (not yet implemented)
+multi_step_workflows = false
+
+# Enable command chaining suggestions
+command_chaining = false
+
+# Enable natural language debugging assistance
+nl_debugging = false
+
+# Enable project-specific prompt customization
+project_specific_prompts = false

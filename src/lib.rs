@@ -13,6 +13,8 @@
 //! - [`config`] - Configuration management with TOML support
 //! - [`execution`] - Execution context capture and shell detection
 //! - [`logging`] - Structured logging with sensitive data redaction
+//! - [`intelligence`] - Context intelligence engine (V2 Phase 1)
+//! - [`learning`] - Learning engine for pattern storage and command explanation (V2 Phase 1)
 //!
 //! # Example
 //!
@@ -28,9 +30,12 @@ pub mod cache;
 pub mod cli;
 pub mod config;
 pub mod execution;
+pub mod intelligence;
+pub mod learning;
 pub mod logging;
 pub mod model_loader;
 pub mod models;
+pub mod platform;
 pub mod safety;
 
 // Re-export commonly used types for convenience
@@ -56,3 +61,23 @@ pub use backends::embedded::{
 #[cfg(feature = "remote-backends")]
 pub use backends::remote::{OllamaBackend, VllmBackend};
 pub use backends::{BackendInfo as BackendInfoTrait, CommandGenerator, GeneratorError};
+
+// Re-export intelligence types (V2 Phase 1)
+pub use intelligence::{
+    ContextError, ContextGraph, ContextOptions, EnvironmentContext, GitAnalyzer, GitContext,
+    HistoryAnalyzer, HistoryContext, InfrastructureContext, ProjectContext, ProjectParser,
+    ProjectType, Tool, ToolDetector,
+};
+
+// Re-export learning types (V2 Phase 1)
+pub use learning::{
+    Achievement, AchievementTracker, Alternative, CommandExplainer, CommandInfo, CommandPattern,
+    Difficulty, Example, Explanation, ExplanationPart, ImprovementLearner, ImprovementPattern,
+    LearningConfig, LearningEngine, LearningStats, Lesson, PatternDB, Quiz, SimilaritySearch,
+    Tutorial, TutorialResult, UnlockCondition,
+};
+
+// Re-export platform types
+pub use platform::{
+    init as platform_init, Architecture, OperatingSystem, PlatformInfo, Shell as PlatformShell,
+};

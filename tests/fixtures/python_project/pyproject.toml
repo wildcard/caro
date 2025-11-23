@@ -1,0 +1,13 @@
+[project]
+name = "test-python-project"
+version = "0.1.0"
+description = "Test Python project"
+dependencies = [
+    "fastapi>=0.100.0",
+    "uvicorn>=0.23.0",
+    "pydantic>=2.0.0",
+    "sqlalchemy>=2.0.0"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

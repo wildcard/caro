@@ -1,0 +1,552 @@
+{
+  "find": {
+    "name": "find",
+    "description": "Search for files in directory hierarchy",
+    "common_flags": {
+      "-name": "Search by filename pattern (case-sensitive)",
+      "-iname": "Search by filename pattern (case-insensitive)",
+      "-type": "Filter by type (f=file, d=directory, l=symlink)",
+      "-mtime": "Filter by modification time in days (-7 = last 7 days)",
+      "-size": "Filter by file size (+1M = larger than 1MB)",
+      "-delete": "⚠️ DANGEROUS: Delete matched files without confirmation",
+      "-exec": "Execute command on each matched file",
+      "-maxdepth": "Limit directory traversal depth"
+    },
+    "examples": [
+      {
+        "command": "find . -name '*.log'",
+        "explanation": "Find all .log files in current directory and subdirectories"
+      },
+      {
+        "command": "find . -type f -mtime -7",
+        "explanation": "Find all files modified in the last 7 days"
+      }
+    ],
+    "safety_notes": [
+      "Be careful with -delete flag - it cannot be undone"
+    ]
+  },
+  "grep": {
+    "name": "grep",
+    "description": "Search for patterns in text files",
+    "common_flags": {
+      "-r": "Recursive search in directories",
+      "-i": "Case-insensitive search",
+      "-n": "Show line numbers",
+      "-v": "Invert match (show non-matching lines)",
+      "-l": "Show only filenames with matches",
+      "-c": "Count matching lines",
+      "-A": "Show N lines after match",
+      "-B": "Show N lines before match",
+      "-E": "Use extended regular expressions",
+      "--color": "Highlight matches in color"
+    },
+    "examples": [
+      {
+        "command": "grep -r 'error' logs/",
+        "explanation": "Search for 'error' in all files under logs/ directory"
+      },
+      {
+        "command": "grep -in 'TODO' *.js",
+        "explanation": "Case-insensitive search for TODO with line numbers in JS files"
+      }
+    ],
+    "safety_notes": []
+  },
+  "rm": {
+    "name": "rm",
+    "description": "Remove files or directories",
+    "common_flags": {
+      "-r": "Recursive deletion (for directories)",
+      "-f": "Force deletion without confirmation",
+      "-i": "Interactive mode (prompt before each deletion)",
+      "-v": "Verbose output (show what's being deleted)",
+      "-rf": "⚠️ EXTREMELY DANGEROUS: Recursive force deletion"
+    },
+    "examples": [
+      {
+        "command": "rm file.txt",
+        "explanation": "Delete a single file"
+      },
+      {
+        "command": "rm -r directory/",
+        "explanation": "Recursively delete a directory and its contents"
+      }
+    ],
+    "safety_notes": [
+      "NEVER use 'rm -rf /' - it will destroy your system",
+      "Always double-check paths before using rm -rf",
+      "Consider using 'trash' command instead for safer deletion"
+    ]
+  },
+  "ls": {
+    "name": "ls",
+    "description": "List directory contents",
+    "common_flags": {
+      "-l": "Long format with permissions, owner, size, date",
+      "-a": "Show hidden files (starting with .)",
+      "-h": "Human-readable sizes (KB, MB, GB)",
+      "-t": "Sort by modification time",
+      "-r": "Reverse sort order",
+      "-S": "Sort by file size",
+      "-R": "Recursive listing"
+    },
+    "examples": [
+      {
+        "command": "ls -lah",
+        "explanation": "Long format, all files, human-readable sizes"
+      },
+      {
+        "command": "ls -lt",
+        "explanation": "Long format sorted by modification time (newest first)"
+      }
+    ],
+    "safety_notes": []
+  },
+  "chmod": {
+    "name": "chmod",
+    "description": "Change file permissions",
+    "common_flags": {
+      "-R": "Recursive (apply to directories and contents)",
+      "-v": "Verbose output"
+    },
+    "examples": [
+      {
+        "command": "chmod +x script.sh",
+        "explanation": "Make script.sh executable"
+      },
+      {
+        "command": "chmod 644 file.txt",
+        "explanation": "Set read/write for owner, read-only for others"
+      }
+    ],
+    "safety_notes": [
+      "Never use chmod 777 on system files - major security risk",
+      "Be careful with -R flag on important directories"
+    ]
+  },
+  "tar": {
+    "name": "tar",
+    "description": "Archive and compress files",
+    "common_flags": {
+      "-c": "Create new archive",
+      "-x": "Extract archive",
+      "-v": "Verbose output",
+      "-f": "Specify filename",
+      "-z": "Compress with gzip (.tar.gz)",
+      "-j": "Compress with bzip2 (.tar.bz2)",
+      "-t": "List contents without extracting"
+    },
+    "examples": [
+      {
+        "command": "tar -czf archive.tar.gz folder/",
+        "explanation": "Create compressed archive of folder/"
+      },
+      {
+        "command": "tar -xzf archive.tar.gz",
+        "explanation": "Extract gzip-compressed archive"
+      }
+    ],
+    "safety_notes": []
+  },
+  "curl": {
+    "name": "curl",
+    "description": "Transfer data from or to a server",
+    "common_flags": {
+      "-O": "Save with remote filename",
+      "-o": "Save with custom filename",
+      "-L": "Follow redirects",
+      "-X": "Specify HTTP method (GET, POST, etc.)",
+      "-H": "Add custom header",
+      "-d": "Send data in POST request",
+      "-i": "Include HTTP headers in output",
+      "-s": "Silent mode (no progress bar)"
+    },
+    "examples": [
+      {
+        "command": "curl -L https://example.com/file.zip -o file.zip",
+        "explanation": "Download file following redirects"
+      },
+      {
+        "command": "curl -X POST -H 'Content-Type: application/json' -d '{\"key\":\"value\"}' https://api.example.com",
+        "explanation": "Send JSON POST request to API"
+      }
+    ],
+    "safety_notes": [
+      "Be careful with 'curl | sh' patterns - review scripts before executing"
+    ]
+  },
+  "awk": {
+    "name": "awk",
+    "description": "Pattern scanning and text processing",
+    "common_flags": {
+      "-F": "Specify field separator",
+      "-v": "Define variable"
+    },
+    "examples": [
+      {
+        "command": "awk '{print $1}' file.txt",
+        "explanation": "Print first column of each line"
+      },
+      {
+        "command": "awk -F',' '{sum+=$2} END {print sum}' data.csv",
+        "explanation": "Sum values in second column of CSV file"
+      }
+    ],
+    "safety_notes": []
+  },
+  "sed": {
+    "name": "sed",
+    "description": "Stream editor for filtering and transforming text",
+    "common_flags": {
+      "-i": "Edit files in-place",
+      "-e": "Add script to commands to execute",
+      "-n": "Suppress automatic printing"
+    },
+    "examples": [
+      {
+        "command": "sed 's/old/new/g' file.txt",
+        "explanation": "Replace all occurrences of 'old' with 'new'"
+      },
+      {
+        "command": "sed -i 's/foo/bar/g' *.txt",
+        "explanation": "Replace 'foo' with 'bar' in all .txt files in-place"
+      }
+    ],
+    "safety_notes": [
+      "Use -i with care - it modifies files directly",
+      "Test sed commands without -i first"
+    ]
+  },
+  "ps": {
+    "name": "ps",
+    "description": "Display currently running processes",
+    "common_flags": {
+      "aux": "Show all processes with detailed info",
+      "-ef": "Full format listing",
+      "-u": "Show processes for specific user"
+    },
+    "examples": [
+      {
+        "command": "ps aux",
+        "explanation": "Show all running processes with full details"
+      },
+      {
+        "command": "ps aux | grep nginx",
+        "explanation": "Find nginx processes"
+      }
+    ],
+    "safety_notes": []
+  },
+  "kill": {
+    "name": "kill",
+    "description": "Send signal to a process",
+    "common_flags": {
+      "-9": "Force kill (SIGKILL) - cannot be ignored",
+      "-15": "Graceful termination (SIGTERM) - default",
+      "-l": "List all signal names"
+    },
+    "examples": [
+      {
+        "command": "kill 1234",
+        "explanation": "Gracefully terminate process with PID 1234"
+      },
+      {
+        "command": "kill -9 1234",
+        "explanation": "Force kill process 1234"
+      }
+    ],
+    "safety_notes": [
+      "Use kill -9 only as last resort",
+      "Verify PID before killing to avoid terminating wrong process"
+    ]
+  },
+  "df": {
+    "name": "df",
+    "description": "Display disk space usage",
+    "common_flags": {
+      "-h": "Human-readable sizes",
+      "-T": "Show filesystem type",
+      "-i": "Show inode information"
+    },
+    "examples": [
+      {
+        "command": "df -h",
+        "explanation": "Show disk usage in human-readable format"
+      }
+    ],
+    "safety_notes": []
+  },
+  "du": {
+    "name": "du",
+    "description": "Estimate file and directory space usage",
+    "common_flags": {
+      "-h": "Human-readable sizes",
+      "-s": "Summary only (total for each argument)",
+      "-a": "Show all files, not just directories",
+      "-c": "Produce grand total",
+      "--max-depth": "Limit directory depth"
+    },
+    "examples": [
+      {
+        "command": "du -sh *",
+        "explanation": "Show size of each item in current directory"
+      },
+      {
+        "command": "du -h --max-depth=1 | sort -h",
+        "explanation": "Show directory sizes sorted by size"
+      }
+    ],
+    "safety_notes": []
+  },
+  "git": {
+    "name": "git",
+    "description": "Version control system",
+    "common_flags": {},
+    "examples": [
+      {
+        "command": "git status",
+        "explanation": "Show working tree status"
+      },
+      {
+        "command": "git log --oneline --graph",
+        "explanation": "Show commit history as graph"
+      }
+    ],
+    "safety_notes": []
+  },
+  "docker": {
+    "name": "docker",
+    "description": "Container platform",
+    "common_flags": {},
+    "examples": [
+      {
+        "command": "docker ps",
+        "explanation": "List running containers"
+      },
+      {
+        "command": "docker build -t myapp .",
+        "explanation": "Build image from Dockerfile in current directory"
+      }
+    ],
+    "safety_notes": []
+  },
+  "ssh": {
+    "name": "ssh",
+    "description": "Secure shell remote login",
+    "common_flags": {
+      "-i": "Specify identity file (private key)",
+      "-p": "Specify port number",
+      "-L": "Local port forwarding",
+      "-v": "Verbose mode (useful for debugging)"
+    },
+    "examples": [
+      {
+        "command": "ssh user@example.com",
+        "explanation": "Connect to remote server as user"
+      },
+      {
+        "command": "ssh -i ~/.ssh/mykey.pem user@server",
+        "explanation": "Connect using specific private key"
+      }
+    ],
+    "safety_notes": [
+      "Never share private keys",
+      "Verify host fingerprint on first connection"
+    ]
+  },
+  "rsync": {
+    "name": "rsync",
+    "description": "Fast, versatile file copying tool",
+    "common_flags": {
+      "-a": "Archive mode (preserve permissions, timestamps)",
+      "-v": "Verbose output",
+      "-z": "Compress during transfer",
+      "-h": "Human-readable output",
+      "--progress": "Show transfer progress",
+      "--delete": "Delete files in destination not in source"
+    },
+    "examples": [
+      {
+        "command": "rsync -avz source/ user@remote:/dest/",
+        "explanation": "Sync local directory to remote server with compression"
+      }
+    ],
+    "safety_notes": [
+      "Be careful with --delete flag",
+      "Test with --dry-run first"
+    ]
+  },
+  "cat": {
+    "name": "cat",
+    "description": "Concatenate and display files",
+    "common_flags": {
+      "-n": "Number all output lines",
+      "-b": "Number non-empty output lines",
+      "-s": "Squeeze multiple blank lines into one"
+    },
+    "examples": [
+      {
+        "command": "cat file.txt",
+        "explanation": "Display contents of file.txt"
+      },
+      {
+        "command": "cat file1.txt file2.txt > combined.txt",
+        "explanation": "Concatenate two files into one"
+      }
+    ],
+    "safety_notes": []
+  },
+  "head": {
+    "name": "head",
+    "description": "Output the first part of files",
+    "common_flags": {
+      "-n": "Number of lines to show (default: 10)",
+      "-c": "Number of bytes to show"
+    },
+    "examples": [
+      {
+        "command": "head -n 20 file.txt",
+        "explanation": "Show first 20 lines of file"
+      }
+    ],
+    "safety_notes": []
+  },
+  "tail": {
+    "name": "tail",
+    "description": "Output the last part of files",
+    "common_flags": {
+      "-n": "Number of lines to show (default: 10)",
+      "-f": "Follow file (show new lines as they're added)",
+      "-F": "Follow file with retry (useful for log rotation)"
+    },
+    "examples": [
+      {
+        "command": "tail -f /var/log/syslog",
+        "explanation": "Follow system log in real-time"
+      },
+      {
+        "command": "tail -n 50 error.log",
+        "explanation": "Show last 50 lines of error log"
+      }
+    ],
+    "safety_notes": []
+  },
+  "sort": {
+    "name": "sort",
+    "description": "Sort lines of text files",
+    "common_flags": {
+      "-r": "Reverse sort order",
+      "-n": "Numeric sort",
+      "-h": "Human-numeric sort (1K, 1M, 1G)",
+      "-k": "Sort by specific column",
+      "-u": "Output only unique lines"
+    },
+    "examples": [
+      {
+        "command": "sort -n numbers.txt",
+        "explanation": "Sort file numerically"
+      },
+      {
+        "command": "du -sh * | sort -h",
+        "explanation": "Sort directory sizes in human-readable format"
+      }
+    ],
+    "safety_notes": []
+  },
+  "uniq": {
+    "name": "uniq",
+    "description": "Report or filter out repeated lines",
+    "common_flags": {
+      "-c": "Count occurrences",
+      "-d": "Only print duplicate lines",
+      "-u": "Only print unique lines"
+    },
+    "examples": [
+      {
+        "command": "sort file.txt | uniq -c",
+        "explanation": "Count occurrences of each unique line"
+      }
+    ],
+    "safety_notes": []
+  },
+  "wc": {
+    "name": "wc",
+    "description": "Count lines, words, and bytes",
+    "common_flags": {
+      "-l": "Count lines only",
+      "-w": "Count words only",
+      "-c": "Count bytes only",
+      "-m": "Count characters"
+    },
+    "examples": [
+      {
+        "command": "wc -l file.txt",
+        "explanation": "Count number of lines in file"
+      },
+      {
+        "command": "find . -name '*.js' | wc -l",
+        "explanation": "Count number of JavaScript files"
+      }
+    ],
+    "safety_notes": []
+  },
+  "xargs": {
+    "name": "xargs",
+    "description": "Build and execute command lines from standard input",
+    "common_flags": {
+      "-n": "Use at most N arguments per command",
+      "-I": "Replace string in command with input",
+      "-P": "Run N processes in parallel",
+      "-0": "Handle null-terminated input (from find -print0)"
+    },
+    "examples": [
+      {
+        "command": "find . -name '*.tmp' | xargs rm",
+        "explanation": "Find and delete all .tmp files"
+      },
+      {
+        "command": "cat urls.txt | xargs -I {} curl -O {}",
+        "explanation": "Download all URLs from file"
+      }
+    ],
+    "safety_notes": [
+      "Use -print0 with find and -0 with xargs for files with spaces"
+    ]
+  },
+  "top": {
+    "name": "top",
+    "description": "Display and update sorted process information",
+    "common_flags": {
+      "-u": "Show processes for specific user",
+      "-p": "Monitor specific PIDs"
+    },
+    "examples": [
+      {
+        "command": "top",
+        "explanation": "Show real-time system resource usage"
+      }
+    ],
+    "safety_notes": []
+  },
+  "sudo": {
+    "name": "sudo",
+    "description": "Execute command as another user (typically root)",
+    "common_flags": {
+      "-u": "Run as specific user",
+      "-i": "Interactive login shell",
+      "-s": "Run shell as target user"
+    },
+    "examples": [
+      {
+        "command": "sudo apt update",
+        "explanation": "Update package lists as root"
+      }
+    ],
+    "safety_notes": [
+      "⚠️ Commands run with sudo have full system access",
+      "Always verify commands before running with sudo",
+      "Never run untrusted scripts with sudo"
+    ]
+  }
+}

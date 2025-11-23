@@ -28,6 +28,13 @@
 
 mod patterns;
 
+// V2 Safety ML Engine modules
+pub mod feature_extractor;
+pub mod ml_predictor;
+pub mod impact_estimator;
+pub mod sandbox;
+pub mod audit_logger;
+
 use serde::{Deserialize, Serialize};
 
 use crate::models::{RiskLevel, SafetyLevel, ShellType};
@@ -35,6 +42,19 @@ use crate::models::{RiskLevel, SafetyLevel, ShellType};
 pub use patterns::{
     get_compiled_patterns_for_shell, get_patterns_by_risk, get_patterns_for_shell,
     validate_patterns,
+};
+
+// Re-export V2 components
+pub use feature_extractor::{CommandFeatures, PrivilegeLevel, TargetScope};
+pub use ml_predictor::{
+    RiskPredictor, RuleBasedPredictor, RiskPrediction, RiskFactor,
+    BlastRadius, ImpactEstimate as MLImpactEstimate,
+};
+pub use impact_estimator::{ImpactEstimator, DetailedImpact, format_bytes};
+pub use sandbox::{Sandbox, SandboxResult, FileChange, ChangeType};
+pub use audit_logger::{
+    AuditLogger, AuditEntry, AuditFilter, ExecutionOutcome,
+    ComplianceFormat, FileModification,
 };
 
 /// Main safety validator for analyzing command safety
