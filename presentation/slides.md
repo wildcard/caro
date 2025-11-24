@@ -38,9 +38,19 @@ We're building something that solves a real problem: the gap between knowing wha
 -->
 
 ---
-layout: image-right
-image: /mascot.gif
-backgroundSize: contain
+layout: two-cols
+---
+
+# Meet Your AI Shell Assistant
+
+::right::
+
+<div class="text-center mt-20">
+  <div class="text-8xl mb-4">🤖</div>
+  <div class="text-sm opacity-70">Your friendly AI shell assistant</div>
+  <div class="text-xs opacity-50 mt-4">(Add your mascot GIF to public/mascot.gif)</div>
+</div>
+
 ---
 
 # Meet Your AI Shell Assistant
@@ -969,8 +979,8 @@ layout: end
 🚀 Star • 🧪 Test • 🤝 Contribute • 📣 Share
 </div>
 
-<div class="mt-12">
-<img src="/mascot.gif" class="inline-block w-32 h-32" />
+<div class="mt-12 text-8xl">
+🤖
 </div>
 
 <div class="mt-8 text-sm opacity-50">
