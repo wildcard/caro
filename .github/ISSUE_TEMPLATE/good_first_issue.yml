@@ -1,0 +1,178 @@
+name: Good First Issue
+description: Propose a good first issue for new contributors
+title: "[Good First Issue]: "
+labels: ["good-first-issue", "help-wanted"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **For Maintainers**: Use this template to create beginner-friendly issues.
+
+        Good first issues should:
+        - Have clear, well-defined scope
+        - Not require deep system knowledge
+        - Include helpful context and guidance
+        - Have acceptance criteria
+        - Be achievable in 1-3 days
+
+        Examples: Documentation improvements, simple bug fixes, adding tests, shell completion scripts
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - CLI
+        - Backend
+        - Safety
+        - Documentation
+        - Testing
+        - Configuration
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Task Description
+      description: What needs to be done?
+      placeholder: |
+        Add shell completion scripts for Bash, Zsh, and Fish shells.
+        This will improve the developer experience by enabling tab-completion for cmdai commands.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Background Context
+      description: What does a new contributor need to know?
+      placeholder: |
+        cmdai uses `clap` for CLI argument parsing. The `clap_complete` crate can generate
+        completion scripts automatically from our CLI definition.
+
+        Relevant files:
+        - `src/main.rs` - CLI definition
+        - `Cargo.toml` - Dependencies
+
+        Documentation:
+        - https://docs.rs/clap_complete/latest/clap_complete/
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Suggested Implementation Steps
+      description: Break down the task into steps
+      placeholder: |
+        1. Add `clap_complete` dependency to Cargo.toml
+        2. Create `build.rs` to generate completion scripts
+        3. Generate completions for Bash, Zsh, Fish
+        4. Add completions to `completions/` directory
+        5. Update README with installation instructions
+        6. Test completions in each shell
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: How do we know when this is done?
+      placeholder: |
+        - [ ] Completion scripts generated for Bash, Zsh, Fish
+        - [ ] Scripts in `completions/` directory
+        - [ ] README updated with installation instructions
+        - [ ] Tested in at least one shell
+        - [ ] All existing tests still passing
+      value: |
+        - [ ]
+        - [ ]
+        - [ ]
+    validations:
+      required: true
+
+  - type: textarea
+    id: resources
+    attributes:
+      label: Helpful Resources
+      description: Links to documentation, examples, or related code
+      placeholder: |
+        **Documentation**:
+        - clap_complete: https://docs.rs/clap_complete/
+        - Shell completion guide: https://clap.rs/
+
+        **Example PRs**:
+        - Similar implementation in ripgrep: https://github.com/BurntSushi/ripgrep/blob/master/build.rs
+      value: |
+        **Documentation**:
+        -
+
+        **Examples**:
+        -
+
+  - type: dropdown
+    id: effort
+    attributes:
+      label: Effort Estimate
+      description: How much time should this take?
+      options:
+        - 1-2 hours (trivial)
+        - Half day (simple)
+        - 1-2 days (moderate)
+        - 3+ days (complex)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: skills
+    attributes:
+      label: Skills Needed
+      description: What skills does a contributor need?
+      multiple: true
+      options:
+        - Rust basics
+        - CLI tools
+        - Shell scripting
+        - Testing
+        - Documentation
+        - No special skills (anyone can do this)
+    validations:
+      required: true
+
+  - type: textarea
+    id: help
+    attributes:
+      label: Where to Get Help
+      description: Who can help if the contributor gets stuck?
+      placeholder: |
+        - Ask questions in the GitHub Discussion for this issue
+        - Tag @maintainer-username for help
+        - Join our Discord: [link]
+      value: |
+        - Comment on this issue with questions
+        - Ask in GitHub Discussions: https://github.com/wildcard/cmdai/discussions
+        - We'll respond within 24 hours!
+
+  - type: checkboxes
+    id: maintainer-checks
+    attributes:
+      label: Maintainer Checklist
+      description: Ensure this issue is truly beginner-friendly
+      options:
+        - label: Scope is clear and well-defined
+          required: true
+        - label: Steps are actionable and specific
+          required: true
+        - label: Acceptance criteria are testable
+          required: true
+        - label: Helpful resources provided
+          required: true
+        - label: Estimated effort is reasonable for first-time contributor
+          required: true
