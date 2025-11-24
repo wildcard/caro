@@ -2,6 +2,8 @@
 
 Slidev presentation showcasing cmdai's capabilities, roadmap, and call to action for contributors.
 
+**Featuring Caro** 🐕 - The friendly Shiba Inu mascot representing cmdai's mission to make shell commands safe and accessible!
+
 ## Setup
 
 ```bash
@@ -49,8 +51,10 @@ npm run export-pdf
 ## Assets Needed
 
 Place in `public/` directory:
-- `mascot.gif` - Project mascot animation
+- ✅ `mascot.gif` - **Caro the Shiba Inu** (already included!)
 - Any additional images or media
+
+See `MASCOT.md` for more about Caro, the cmdai mascot.
 
 ## Export Options
 

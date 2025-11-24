@@ -61,16 +61,17 @@ During presentation:
 
 ## Adding Your Mascot
 
-1. Place your mascot GIF in `public/mascot.gif`
-2. Edit `slides.md` on slide 2 to reference it:
+✅ **Caro (the cmdai mascot) is already included!**
 
-```markdown
----
-layout: image-right
-image: /mascot.gif
-backgroundSize: contain
----
-```
+Caro is a friendly Shiba Inu who serves as cmdai's mascot. The GIF is already in `public/mascot.gif` and configured in the presentation.
+
+If you want to use a different mascot:
+
+1. Replace `public/mascot.gif` with your image
+2. Update slide 2 references if needed
+3. Update the final slide if desired
+
+See `MASCOT.md` for more about Caro!
 
 ## Troubleshooting
 

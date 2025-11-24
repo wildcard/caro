@@ -38,17 +38,17 @@ We're building something that solves a real problem: the gap between knowing wha
 -->
 
 ---
-layout: two-cols
+layout: image-right
+image: /mascot.gif
+backgroundSize: contain
 ---
 
-# Meet Your AI Shell Assistant
+# Meet Caro
 
-::right::
+## Your AI Shell Assistant
 
-<div class="text-center mt-20">
-  <div class="text-8xl mb-4">🤖</div>
-  <div class="text-sm opacity-70">Your friendly AI shell assistant</div>
-  <div class="text-xs opacity-50 mt-4">(Add your mascot GIF to public/mascot.gif)</div>
+<div class="mt-4 text-sm opacity-80">
+Meet Caro (inspired by Kyaro 🐕) - your friendly command-line companion!
 </div>
 
 ---
@@ -979,8 +979,12 @@ layout: end
 🚀 Star • 🧪 Test • 🤝 Contribute • 📣 Share
 </div>
 
-<div class="mt-12 text-8xl">
-🤖
+<div class="mt-12">
+<img src="/mascot.gif" class="inline-block w-48 h-48" alt="Caro mascot" />
+</div>
+
+<div class="mt-4 text-sm opacity-70">
+Caro says: Let's build the future of shell interaction together! 🐕
 </div>
 
 <div class="mt-8 text-sm opacity-50">
