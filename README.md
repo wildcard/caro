@@ -21,6 +21,7 @@ This project is in **active early development**. The architecture and module str
 - Modular architecture with trait-based backends
 - **Embedded model backend with MLX (Apple Silicon) and CPU variants** ✨
 - **Remote backend support (Ollama, vLLM) with automatic fallback** ✨
+- **Terminal sprite animation rendering system** ✨
 - Safety validation with pattern matching and risk assessment
 - Configuration management with TOML support
 - Interactive user confirmation flows
@@ -48,6 +49,9 @@ This project is in **active early development**. The architecture and module str
 - 🎯 **Multiple backends** - Extensible backend system (MLX, vLLM, Ollama)
 - 💾 **Smart caching** - Hugging Face model management
 - 🌐 **Cross-platform** - macOS, Linux, Windows support
+- 🎨 **Terminal animations** - Pixel art sprite rendering with color palettes
+
+> 💡 **New to animations?** Check out the [Animation Quick Start Guide](docs/QUICKSTART_ANIMATIONS.md) or browse the [complete documentation](docs/README.md).
 
 ## 🚀 Quick Start
 
@@ -159,6 +163,12 @@ cmdai/
 │   │   └── ollama.rs       # Ollama local backend
 │   ├── safety/             # Command validation
 │   │   └── mod.rs          # Safety validator
+│   ├── rendering/          # Terminal sprite animation
+│   │   ├── mod.rs          # Rendering system
+│   │   ├── sprites.rs      # Sprite data structures
+│   │   ├── animator.rs     # Animation engine
+│   │   ├── terminal.rs     # Terminal rendering
+│   │   └── examples.rs     # Example sprites
 │   ├── cache/              # Model caching
 │   ├── config/             # Configuration management
 │   ├── cli/                # CLI interface
@@ -288,6 +298,250 @@ require_confirmation = true
 custom_patterns = ["additional", "dangerous", "patterns"]
 ```
 
+## 🎨 Sprite Animation System
+
+cmdai includes a powerful terminal-based sprite animation system for rendering pixel art characters using colored Unicode blocks.
+
+### Features
+- **Color palettes** with hex color definitions
+- **Multi-frame animations** with customizable timing
+- **Transparency support** for complex sprites
+- **Unicode block rendering** (█) for true pixel-based graphics
+- **True color (24-bit RGB)** or 256-color ANSI mode
+- **Animation modes**: Play once, loop, or loop N times
+- **ANSI art file support** - Parse and render traditional ANSI art files (.ans)
+- **SAUCE metadata** - Full support for SAUCE headers in ANSI files
+- **DurDraw format** - Modern JSON-based ANSI art format (.dur) with full metadata
+- **Aseprite format** - Binary .ase/.aseprite files with layers, animations, and compression
+
+### Example Usage
+
+```rust
+use cmdai::rendering::*;
+
+// Create a simple animated sprite
+let palette = ColorPalette::from_hex_strings(&[
+    "#000000",  // Transparent
+    "#FF5733",  // Red
+    "#33FF57",  // Green
+])?.with_transparent(0);
+
+// Define frames
+let frame1 = SpriteFrame::new(4, 4, vec![
+    0, 1, 1, 0,
+    1, 1, 1, 1,
+    0, 1, 1, 0,
+    0, 2, 2, 0,
+], 200)?;
+
+let sprite = Sprite::new("demo", palette, vec![frame1])?;
+
+// Animate it
+let animator = Animator::new();
+let mut animation = Animation::new(sprite, AnimationMode::Loop);
+animator.play(&mut animation).await?;
+```
+
+### Pre-built Examples
+
+The module includes several ready-to-use sprites:
+- **Idle Character** - 8x8 humanoid sprite
+- **Walking Animation** - 4-frame walk cycle
+- **Heart Pulse** - Animated beating heart
+- **Spinning Coin** - 3D coin rotation effect
+- **Loading Spinner** - Circular loading indicator
+
+### ANSI Art File Support
+
+Load and render traditional ANSI art files:
+
+```rust
+use cmdai::rendering::{AnsiParser, TerminalRenderer};
+
+// Load ANSI art file
+let (frame, sauce) = AnsiParser::load_file("artwork.ans")?;
+
+// Display metadata
+if let Some(metadata) = sauce {
+    println!("Title: {}", metadata.title);
+    println!("Author: {}", metadata.author);
+}
+
+// Render it
+let renderer = TerminalRenderer::new();
+renderer.print_ansi_frame(&frame)?;
+```
+
+Supports:
+- Full ANSI escape sequence parsing
+- SAUCE metadata extraction
+- 16-color and 256-color palettes
+- Foreground/background colors
+- Character preservation (€, ‹, ﬂ, etc.)
+
+### DurDraw Format Support
+
+Load and save modern DurDraw format files:
+
+```rust
+use cmdai::rendering::{DurDrawParser, DurDrawFile, DurDrawColor};
+
+// Load DurDraw file
+let (frame, metadata) = DurDrawParser::load_with_metadata("artwork.dur")?;
+
+// Display with full colors
+let renderer = TerminalRenderer::new();
+renderer.print_ansi_frame(&frame)?;
+
+// Or create programmatically
+let dur = DurDrawFile {
+    title: "My Art".to_string(),
+    author: "Artist".to_string(),
+    width: 10,
+    height: 5,
+    data: vec![/* cells */],
+    palette: vec![/* colors */],
+    // ...
+};
+DurDrawParser::save_file(&dur, "output.dur")?;
+```
+
+Features:
+- JSON-based, human-readable format
+- Multiple color formats (RGB, hex, named, palette)
+- Full metadata (title, author, date, group)
+- Bidirectional conversion with ANSI
+
+### Aseprite Format Support
+
+Load pixel art directly from Aseprite source files:
+
+```rust
+use cmdai::rendering::{AsepriteParser, Animator, Animation, AnimationMode};
+
+// Load Aseprite file
+let ase_file = AsepriteParser::load_file("sprite.ase")?;
+
+// Display file information
+println!("Dimensions: {}x{}", ase_file.header.width, ase_file.header.height);
+println!("Frames: {}", ase_file.header.frames);
+println!("Layers: {}", ase_file.layers.len());
+
+// Convert to Sprite for animation
+let sprite = AsepriteParser::to_sprite(&ase_file)?;
+
+// Animate it
+let animator = Animator::new();
+let mut animation = Animation::new(sprite, AnimationMode::Loop);
+animator.play(&mut animation).await?;
+```
+
+Supported features:
+- Binary .ase and .aseprite file formats
+- Multiple animation frames with individual durations
+- Layer system with visibility and opacity
+- Alpha blending for layer compositing
+- Zlib-compressed cel data
+- Color palettes (RGBA, Grayscale, Indexed modes)
+- Raw and linked cel types
+
+### Try the Demos
+
+```bash
+# Sprite animation demo
+cargo run --example sprite_demo
+
+# ANSI art parsing demo
+cargo run --example ansi_art_demo
+
+# DurDraw format demo
+cargo run --example durdraw_demo
+
+# Aseprite format demo
+cargo run --example aseprite_demo
+```
+
+### Documentation
+
+**📚 Complete Animation Documentation**:
+- **[Quick Start Guide](docs/QUICKSTART_ANIMATIONS.md)** - Get started in 5 minutes
+- **[Animation Guide](docs/ANIMATION_GUIDE.md)** - Complete technical reference (developers)
+- **[Designer Guide](docs/DESIGNER_GUIDE.md)** - Workflow for UX designers & artists
+- **[Testing Guide](docs/TESTING_ANIMATIONS.md)** - Testing and validation procedures
+- **[Documentation Index](docs/README.md)** - Full documentation directory
+
+**For Developers**: Start with the [Quick Start Guide](docs/QUICKSTART_ANIMATIONS.md), then dive into the [Animation Guide](docs/ANIMATION_GUIDE.md) for complete API reference.
+
+**For Designers**: Check out the [Designer Guide](docs/DESIGNER_GUIDE.md) for Aseprite workflows, color palettes, and animation principles.
+
+**For Testing**: See the [Testing Guide](docs/TESTING_ANIMATIONS.md) for validation checklists and debugging procedures.
+
+### Using in Your TUI App
+
+**New to Terminal UI development?** We've got you covered!
+
+#### 🚀 Complete Beginner? Start Here!
+
+**[Getting Started with TUI Animations](docs/GETTING_STARTED_TUI.md)** - Complete beginner's guide
+- No TUI experience required
+- Step-by-step from zero to your first app
+- Explains everything you need to know
+- **Your first animated app in 5 minutes!**
+
+#### 📖 Progressive Tutorials
+
+Learn by doing with our tutorial series:
+
+1. **[Tutorial 01: Hello Animated World](examples/tutorial_01_hello_animated.rs)** (5 min) ⭐☆☆☆☆
+   - Your first animated sprite
+   - Just 10 lines of code!
+   - Run: `cargo run --example tutorial_01_hello_animated --features tui`
+
+2. **[Tutorial 02: Keyboard Controls](examples/tutorial_02_keyboard_controls.rs)** (10 min) ⭐⭐☆☆☆
+   - Add pause/resume with SPACE
+   - Handle keyboard input
+   - Run: `cargo run --example tutorial_02_keyboard_controls --features tui`
+
+3. **[Tutorial 03: Multiple Sprites](examples/tutorial_03_multiple_sprites.rs)** (15 min) ⭐⭐⭐☆☆
+   - Show 3 animations at once
+   - Layout system basics
+   - Run: `cargo run --example tutorial_03_multiple_sprites --features tui`
+
+**More tutorials coming soon!** Tutorial 04 (Interactive Scene) and Tutorial 05 (Complete Game)
+
+#### 🎮 TUI Framework Integration
+
+**Using Ratatui?** Perfect!
+
+- **[TUI Integration Guide](docs/TUI_INTEGRATION.md)** - Deep dive into Ratatui integration
+- **[Complete Demo](examples/ratatui_sprite_demo.rs)** - Full interactive example
+- **[Widget Implementation](src/rendering/ratatui_widget.rs)** - Production-ready widgets
+
+```bash
+# Try the interactive demo
+cargo run --example ratatui_sprite_demo --features tui
+```
+
+**Want to use a game engine?**
+- **[Game Engine Integration](docs/GAME_ENGINE_INTEGRATION.md)** - Bevy, Macroquad, ggez examples
+
+#### 🎨 For Contributors
+
+Want to help make this better?
+
+- **[Contributing Guide](docs/CONTRIBUTING_SPRITES.md)** - How to contribute code, art, or docs
+- **[Project Roadmap](docs/ROADMAP.md)** - Where we're headed
+- **[Good First Issues](https://github.com/wildcard/cmdai/labels/good%20first%20issue)** - Start here!
+
+**This project needs**:
+- ✨ More tutorial examples
+- 🎨 Sprite artwork contributions
+- 📚 Documentation improvements
+- 🐛 Bug reports and fixes
+- 💡 Creative use cases
+
+Every contribution helps! See [CONTRIBUTING_SPRITES.md](docs/CONTRIBUTING_SPRITES.md) for details.
+
 ## 🤝 Contributing
 
 We welcome contributions! This is an early-stage project with many opportunities to contribute.
@@ -315,9 +569,15 @@ We welcome contributions! This is an early-stage project with many opportunities
 
 ## 📜 License
 
-This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)** - see the [LICENSE](LICENSE) file for details.
+### Dual Licensing: Code and Artwork
 
-### License Summary
+This project uses **different licenses** for code and artwork:
+
+#### Source Code License
+
+The **cmdai source code** is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)** - see the [LICENSE](LICENSE) file for details.
+
+**Code License Summary**:
 - ✅ Commercial use
 - ✅ Modification
 - ✅ Distribution
@@ -326,13 +586,49 @@ This project is licensed under the **GNU Affero General Public License v3.0 (AGP
 - ⚠️ Same license requirement
 - ⚠️ State changes documentation
 
+#### Artwork and Assets License
+
+**Artwork, animations, and visual assets** in the `assets/` directory are **NOT covered by the AGPL-3.0 license**.
+
+Each artist retains copyright over their work and specifies their own license terms:
+
+- 🎨 **Original characters and artwork**: Typically under restrictive licenses (not open source)
+- 📁 **Check individual licenses**: See `assets/[artist-name]/LICENSE.md` for specific terms
+- ⚠️ **Not redistributable**: Most artwork cannot be used outside of cmdai without permission
+- ✅ **Attribution required**: Always credit the original artists
+
+**For full details**, see:
+- [Assets Directory README](assets/README.md) - Overview of all contributed artwork
+- [Contributing Assets Guide](docs/CONTRIBUTING_ASSETS.md) - How to contribute your artwork
+- Individual `LICENSE.md` files in each artist's folder
+
+#### Why Separate Licenses?
+
+This dual-licensing approach:
+- ✅ Protects artists' creative work and original characters
+- ✅ Allows open-source collaboration on the code
+- ✅ Encourages contributions from both developers and artists
+- ✅ Ensures proper attribution and copyright respect
+
+**Important**: If you fork or redistribute cmdai, you may need to **exclude artwork** with restrictive licenses or get explicit permission from the artists.
+
 ## 🙏 Acknowledgments
 
+### Technology
 - [MLX](https://github.com/ml-explore/mlx) - Apple's machine learning framework
 - [vLLM](https://github.com/vllm-project/vllm) - High-performance LLM serving
 - [Ollama](https://ollama.ai) - Local LLM runtime
 - [Hugging Face](https://huggingface.co) - Model hosting and caching
 - [clap](https://github.com/clap-rs/clap) - Command-line argument parsing
+
+### Artwork Contributors
+
+Thank you to all artists who have contributed to cmdai! 🎨
+
+<!-- Artists will be listed here as they contribute -->
+<!-- See assets/README.md for the full list of contributors -->
+
+**Want to contribute artwork?** See the [Contributing Assets Guide](docs/CONTRIBUTING_ASSETS.md).
 
 ## 📞 Support & Community
 

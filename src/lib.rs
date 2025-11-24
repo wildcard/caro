@@ -13,6 +13,7 @@
 //! - [`config`] - Configuration management with TOML support
 //! - [`execution`] - Execution context capture and shell detection
 //! - [`logging`] - Structured logging with sensitive data redaction
+//! - [`rendering`] - Sprite animation rendering for terminal pixel art
 //!
 //! # Example
 //!
@@ -31,6 +32,7 @@ pub mod execution;
 pub mod logging;
 pub mod model_loader;
 pub mod models;
+pub mod rendering;
 pub mod safety;
 
 // Re-export commonly used types for convenience

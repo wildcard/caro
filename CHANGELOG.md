@@ -7,6 +7,117 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - Sprite Animation Rendering System
+
+#### Terminal Sprite Renderer (`src/rendering/`)
+- **Complete pixel art animation system** for terminal-based graphics
+  - Color palette system with hex color support (#RRGGBB format)
+  - Multi-frame sprite animations with customizable timing
+  - Transparency support for complex sprite compositions
+  - Unicode block character rendering (█) for true pixel-based graphics
+  - True color (24-bit RGB) and 256-color ANSI mode support
+  - Automatic terminal capability detection
+
+#### Core Components
+- **sprites.rs**: Data structures for sprites, frames, and color palettes
+  - `Color`: RGB color with hex string parsing and ANSI conversion
+  - `ColorPalette`: Color palette with transparency support
+  - `SpriteFrame`: Individual animation frames with timing
+  - `Sprite`: Complete sprite with palette and frame sequence
+- **terminal.rs**: Terminal rendering with ANSI escape codes
+  - True color and 256-color rendering modes
+  - Cursor positioning and screen clearing
+  - Frame rendering at specific terminal positions
+  - ANSI frame rendering with foreground/background colors
+- **animator.rs**: Animation playback and sequencing
+  - `Animation`: Frame sequencing with multiple playback modes
+  - `Animator`: Async animation playback with frame timing
+  - Support for Once, Loop, and LoopN animation modes
+- **ansi_parser.rs**: ANSI art file format parser
+  - Full ANSI escape sequence parsing (SGR, cursor control)
+  - SAUCE metadata extraction and parsing
+  - 16-color and 256-color support
+  - Character preservation (€, ‹, ﬂ, etc.)
+  - Convert ANSI frames to Sprite format
+  - File loading from .ans files
+- **durdraw_parser.rs**: DurDraw format parser
+  - JSON-based modern ANSI art format (.dur files)
+  - Multiple color formats (RGB arrays, hex strings, named colors, palette indices)
+  - Full metadata support (title, author, group, date, dimensions)
+  - Custom color palettes with reusable indices
+  - Character attributes (bold, blink) as bitfield
+  - Bidirectional conversion with AnsiFrame
+  - File loading and saving with JSON serialization
+- **examples.rs**: Pre-built sprite examples
+  - Idle character (8x8 static sprite)
+  - Walking animation (8x8, 4 frames)
+  - Heart pulse effect (6x6, 3 frames)
+  - Spinning coin (8x8, 4 frames)
+  - Loading spinner (5x5, 8 frames)
+
+#### ANSI Art File Support
+- **SAUCE Metadata**: Standard Architecture for Universal Comment Extensions
+  - Title, author, group, date fields
+  - Width and height dimensions
+  - Automatic detection at file end (128 bytes)
+- **Escape Sequence Support**:
+  - SGR codes: Reset (0), bold (1), blink (5), colors (30-37, 40-47, 90-97, 100-107)
+  - 256-color mode: 38;5;N (foreground), 48;5;N (background)
+  - Cursor positioning: H/f (position), A/B/C/D (movement)
+- **Color Palette**: Standard ANSI 16-color palette with RGB mappings
+- **Conversion**: AnsiFrame → Sprite for animation system integration
+
+#### DurDraw File Format Support
+- **JSON-based format**: Human-readable structure for easy editing
+- **Color Formats**:
+  - RGB arrays: `[255, 128, 64]`
+  - Hex strings: `"#FF8040"`
+  - Named colors: `"red"`, `"bright_green"`, `"cyan"`
+  - Palette indices: Reference to custom palette array
+- **Metadata Fields**: version, title, author, group, date, width, height
+- **Custom Palettes**: Reusable color definitions with index references
+- **Attributes**: Bitfield for bold (0x01) and blink (0x02)
+- **Conversions**: AnsiFrame ↔ DurDraw with full fidelity
+
+#### Aseprite File Format Support
+- **aseprite_parser.rs**: Binary .ase/.aseprite file parser
+  - Binary file format parser with little-endian byte order
+  - Header parsing with magic number validation (0xA5E0)
+  - Frame-based structure with chunk parsing system
+  - Layer support with visibility, opacity, and blend modes
+  - Cel (pixel data) parsing with multiple formats
+  - Zlib/DEFLATE decompression for compressed cels
+  - Alpha blending for proper layer compositing
+  - Palette chunk parsing for indexed color modes
+  - Convert to Sprite format for animation playback
+  - File loading from .ase and .aseprite files
+- **Binary Format Features**:
+  - Header: 128 bytes with file metadata
+  - Frames: Variable length with frame duration
+  - Chunks: Layer (0x2004), Cel (0x2005), Palette (0x2019), Tags, User Data
+  - Color modes: RGBA (32-bit), Grayscale (16-bit), Indexed (8-bit)
+  - Cel types: Raw (0), Linked (1), Compressed (2)
+  - Compression: Zlib DEFLATE algorithm
+- **Layer Compositing**:
+  - Layer visibility filtering (skip hidden layers)
+  - Alpha blending with opacity support
+  - Proper background initialization (transparent or white)
+  - Row-major pixel order for cel composition
+- **Sprite Conversion**: AsepriteFile → Sprite with full fidelity
+  - Extract unique colors to build palette
+  - Composite all visible layers per frame
+  - Preserve frame durations (milliseconds)
+  - Support linked cels (frame references)
+
+#### Demo and Documentation
+- Interactive sprite demo (`examples/sprite_demo.rs`)
+- ANSI art parsing demo (`examples/ansi_art_demo.rs`)
+- DurDraw format demo (`examples/durdraw_demo.rs`)
+- Aseprite format demo (`examples/aseprite_demo.rs`)
+- Comprehensive module documentation (`src/rendering/README.md`)
+- Usage examples and integration guide
+- Unit tests for all components
+
 ### Added - Feature 004: Embedded Model + Remote Backend Support
 
 #### Embedded Model Backend (`src/backends/embedded/`)
@@ -96,6 +207,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `serde_yaml = "0.9"` - YAML output format
 - `atty = "0.2"` - Terminal detection
 - `dialoguer = "0.11"` - Interactive confirmations
+- `flate2 = "1.0"` - Zlib/DEFLATE compression for Aseprite files
 
 ### Added - Feature 003: Core Infrastructure Modules
 
