@@ -53,7 +53,7 @@ Meet Caro (inspired by Kyaro 🐕) - your friendly command-line companion!
 
 ---
 
-# Meet Your AI Shell Assistant
+# What cmdai Does
 
 <v-clicks>
 
@@ -65,6 +65,21 @@ Meet Caro (inspired by Kyaro 🐕) - your friendly command-line companion!
 🛡️ **Safety-First Design**
 - Dangerous pattern detection
 - Risk level assessment
+
+</v-clicks>
+
+<!--
+This is our mascot - representing the friendly, helpful nature of cmdai.
+But don't let the friendly face fool you - this tool is serious about safety.
+-->
+
+---
+
+# What cmdai Does
+
+<v-clicks>
+
+🛡️ **Safety-First Design**
 - User confirmation workflows
 
 ⚡ **Blazing Fast**
@@ -73,11 +88,6 @@ Meet Caro (inspired by Kyaro 🐕) - your friendly command-line companion!
 - Single binary <50MB
 
 </v-clicks>
-
-<!--
-This is our mascot - representing the friendly, helpful nature of cmdai.
-But don't let the friendly face fool you - this tool is serious about safety.
--->
 
 ---
 layout: two-cols
@@ -99,16 +109,6 @@ find . -type f -size +100M \
   sort -hr
 ```
 
-🔍 **Constant Context Switching**
-- Google → Stack Overflow → Man pages
-- Breaking flow and productivity
-- Copy-paste errors and mistakes
-
-⚠️ **Dangerous Commands**
-- One typo away from disaster
-- `rm -rf /` accidents happen
-- No safety net
-
 </v-clicks>
 
 ::right::
@@ -125,17 +125,41 @@ cmdai "find files larger than 100MB"
 # ✓ Risk assessed
 ```
 
+</v-clicks>
+
+---
+layout: two-cols
+---
+
+# The Problem
+
+<v-clicks>
+
+🔍 **Constant Context Switching**
+- Google → Stack Overflow → Man pages
+- Breaking flow and productivity
+
+⚠️ **Dangerous Commands**
+- One typo away from disaster
+- `rm -rf /` accidents happen
+
+</v-clicks>
+
+::right::
+
+# The Solution
+
+<v-clicks>
+
 🧠 **Context-Aware Intelligence**
 - Understands intent
 - Generates POSIX-compliant commands
-- Adapts to your shell (bash/zsh/fish)
 
 🔒 **Built-in Safety**
 ```bash
 cmdai "delete all files"
 # ⚠️  CRITICAL RISK DETECTED
-# Command: rm -rf /
-# ❌ BLOCKED - requires explicit confirmation
+# ❌ BLOCKED
 ```
 
 </v-clicks>
@@ -171,47 +195,22 @@ make demo
 🐕 Caro-branded experience
 </div>
 
-<div class="text-xs mt-2 opacity-60">
-Perfect for live presentations!
-</div>
-
 </div>
 
 <div v-click>
 
-### 📊 Production Model Results
+### 📊 Production Model
 **Qwen2.5-Coder-1.5B**
-
-<div class="text-left mt-4 space-y-2">
 
 **Performance:**
 - ⚡ 1.5s avg inference
-- 🚀 0.6s fastest command
 - 📈 1.36 commands/sec
 
 **Quality:**
 - 🎯 87% shell accuracy
-- ✅ POSIX-compliant
 - 🛡️ 100% safety detection
 
-**Infrastructure:**
-- 🍎 Apple Silicon optimized
-- ⚙️ Metal GPU acceleration
-- 🌍 100% offline capable
-
 </div>
-
-</div>
-
-</div>
-
-<div v-click class="mt-8 p-4 bg-blue-900 bg-opacity-30 rounded-lg border border-blue-500">
-
-### 🧪 Complete Test Suite Available
-
-**Additional Tests**: `make run-structured` (12 scenarios), `make run-batch` (performance), `make run-qwen` (technical)
-
-See `mlx-test/` for comprehensive testing framework with safety validation and benchmarks.
 
 </div>
 
@@ -226,10 +225,77 @@ The MLX test suite proves the feasibility of our approach.
 -->
 
 ---
+layout: center
+class: text-center
+---
+
+# Demo Details
+
+<div class="grid grid-cols-2 gap-8 mt-12">
+
+<div v-click>
+
+### 🧪 Complete Test Suite
+
+**Available Tests:**
+- `make demo` - Interactive presentation
+- `make run-structured` - 12 scenarios
+
+</div>
+
+<div v-click>
+
+### 🏗️ Infrastructure
+
+- 🍎 Apple Silicon optimized
+- ⚙️ Metal GPU acceleration
+
+</div>
+
+</div>
+
+---
+layout: center
+class: text-center
+---
+
+# Demo Details
+
+<div class="grid grid-cols-2 gap-8 mt-12">
+
+<div v-click>
+
+### 🧪 Complete Test Suite
+- `make run-batch` - Performance
+- `make run-qwen` - Technical validation
+
+</div>
+
+<div v-click>
+
+### 🏗️ Infrastructure
+- 🌍 100% offline capable
+- ✅ POSIX-compliant output
+
+</div>
+
+</div>
+
+<div v-click class="mt-8 text-sm opacity-70">
+See `mlx-test/` for comprehensive testing framework with safety validation and benchmarks
+</div>
+
+<!--
+This is huge! We're not showing mockups or concepts.
+We have actual working inference running on Apple Silicon right now.
+The MLX test suite proves the feasibility of our approach.
+-->
+
+---
 
 # Architecture: Local-First AI
 
-```mermaid {scale: 0.7}
+```mermaid {scale: 0.29}
 graph TB
     A[Natural Language Input] --> B{cmdai CLI}
     B --> C[Safety Validator]
@@ -268,8 +334,6 @@ But safety validation always happens locally, regardless of the backend.
 -->
 
 ---
-layout: two-cols
----
 
 # Safety Validation
 
@@ -280,13 +344,28 @@ layout: two-cols
 🔴 **Critical (Blocked)**
 - `rm -rf /`, `rm -rf ~`
 - `mkfs.*`, `dd if=.*of=/dev/`
-- Fork bombs: `:(){ :|:& };:`
-- Privilege escalation
-- System path destruction
 
 🟠 **High (Confirmation)**
 - `rm -rf` operations
 - `chmod 777` on system files
+
+</v-clicks>
+
+<!--
+This is THE critical feature. We cannot trust the model's safety assessment.
+Our 52 pre-compiled regex patterns provide an independent safety net.
+The model generates, we validate. Always.
+-->
+
+---
+
+# Safety Validation
+
+<v-clicks>
+
+### 52 Pre-Compiled Patterns
+
+🟠 **High (Confirmation)**
 - Package installations
 - Service modifications
 
@@ -298,7 +377,7 @@ layout: two-cols
 
 </v-clicks>
 
-::right::
+---
 
 # Real Safety in Action
 
@@ -324,6 +403,10 @@ $ cmdai "delete all files in root"
 
 </v-click>
 
+---
+
+# Real Safety in Action
+
 <v-click>
 
 ```bash
@@ -348,17 +431,11 @@ directory path for deletion.
 
 </v-click>
 
-<!--
-This is THE critical feature. We cannot trust the model's safety assessment.
-Our 52 pre-compiled regex patterns provide an independent safety net.
-The model generates, we validate. Always.
--->
-
 ---
 
 # Performance Benchmarks
 
-<div class="grid grid-cols-3 gap-6">
+<div class="grid grid-cols-2 gap-6">
 
 <div v-click>
 
@@ -383,44 +460,11 @@ Current: ~80ms
 Apple Silicon (MLX):
   First:  2-4s
   Next:   0.6-0.9s
-  
-CPU (Candle):
-  First:  4-6s
-  Next:   3-5s
 ```
 
 ✅ **Below 2s target on M1**
 
 </div>
-
-<div v-click>
-
-## Accuracy
-```
-Qwen2.5-Coder-1.5B:
-  Shell commands: 87%
-  POSIX compliance: 94%
-  JSON parsing: 83%
-  Safety detection: 100%
-```
-
-✅ **Production-ready quality**
-
-</div>
-
-</div>
-
-<div v-click class="mt-12 text-center">
-
-### Real Test Results from MLX Suite
-
-| Metric | Target | Actual | Status |
-|--------|--------|--------|--------|
-| Startup | <100ms | 80ms | ✅ |
-| Inference (M1) | <2s | 0.7s | ✅ |
-| Binary Size | <50MB | TBD | 🏗️ |
-| Safety Detection | 100% | 100% | ✅ |
-| Throughput | >1/s | 1.36/s | ✅ |
 
 </div>
 
@@ -431,7 +475,78 @@ CPU inference is also within acceptable ranges for cross-platform support.
 -->
 
 ---
-layout: two-cols
+
+# Performance Benchmarks
+
+<div class="grid grid-cols-2 gap-6">
+
+<div v-click>
+
+## Inference Speed
+```
+CPU (Candle):
+  First:  4-6s
+  Next:   3-5s
+```
+
+</div>
+
+<div v-click>
+
+## Accuracy
+```
+Qwen2.5-Coder-1.5B:
+  Shell commands: 87%
+  POSIX compliance: 94%
+```
+
+✅ **Production-ready quality**
+
+</div>
+
+</div>
+
+---
+
+# Performance Benchmarks
+
+<div v-click>
+
+## Accuracy
+```
+  JSON parsing: 83%
+  Safety detection: 100%
+```
+
+</div>
+
+<div v-click class="mt-12">
+
+### Real Test Results from MLX Suite
+
+| Metric | Target | Actual | Status |
+|--------|--------|--------|--------|
+| Startup | <100ms | 80ms | ✅ |
+| Inference (M1) | <2s | 0.7s | ✅ |
+
+</div>
+
+---
+
+# Performance Benchmarks
+
+<div v-click>
+
+### Real Test Results from MLX Suite
+
+| Metric | Target | Actual | Status |
+|--------|--------|--------|--------|
+| Binary Size | <50MB | TBD | 🏗️ |
+| Safety Detection | 100% | 100% | ✅ |
+| Throughput | >1/s | 1.36/s | ✅ |
+
+</div>
+
 ---
 
 # Multiple Backend Support
@@ -445,12 +560,28 @@ layout: two-cols
 - <2s inference
 - 100% offline
 
+</v-clicks>
+
+---
+
+# Multiple Backend Support
+
+<v-clicks>
+
 ### 💻 Embedded CPU (Candle)
 - Cross-platform (Linux/Windows)
 - Pure Rust inference
 - Same model, CPU execution
 - <5s inference
 - 100% offline
+
+</v-clicks>
+
+---
+
+# Multiple Backend Support
+
+<v-clicks>
 
 ### 🌐 Remote Backends (Optional)
 - **Ollama**: Local LLM server
@@ -460,7 +591,13 @@ layout: two-cols
 
 </v-clicks>
 
-::right::
+<!--
+Flexibility is key. Users can start with the embedded model and optionally
+connect to more powerful backends as their needs grow.
+But the default experience requires zero configuration.
+-->
+
+---
 
 # Configuration
 
@@ -476,7 +613,17 @@ enable_fallback = true
 [backend.embedded]
 model = "qwen2.5-coder-1.5b-q4"
 variant = "mlx"  # or "cpu"
+```
 
+</v-clicks>
+
+---
+
+# Configuration
+
+<v-clicks>
+
+```toml
 [backend.ollama]
 base_url = "http://localhost:11434"
 model_name = "codellama:7b"
@@ -496,21 +643,12 @@ cmdai "list files"
 
 </v-clicks>
 
-<!--
-Flexibility is key. Users can start with the embedded model and optionally
-connect to more powerful backends as their needs grow.
-But the default experience requires zero configuration.
--->
-
 ---
 
-# Roadmap: The Vision
+# Roadmap: Phase 1 ✅
 
-<div class="grid grid-cols-2 gap-8">
+## Core (Current)
 
-<div>
-
-## Phase 1: Core ✅ (Current)
 <v-clicks>
 
 - ✅ Safety validation (52 patterns)
@@ -523,7 +661,18 @@ But the default experience requires zero configuration.
 
 </v-clicks>
 
-## Phase 2: Enhancement 🎯
+<!--
+We're not just building a tool - we're building a platform.
+Self-maintenance means the tool gets smarter over time.
+Community governance ensures safety decisions are democratic and transparent.
+-->
+
+---
+
+# Roadmap: Phase 2 🎯
+
+## Enhancement
+
 <v-clicks>
 
 - Command history learning
@@ -535,42 +684,50 @@ But the default experience requires zero configuration.
 
 </v-clicks>
 
-</div>
+---
 
-<div>
+# Roadmap: Phase 3 🚀
 
-## Phase 3: Intelligence 🚀
+## Intelligence - Self-Maintenance
+
 <v-clicks>
 
-### Self-Maintenance
 - Auto-update safety patterns
 - Community-validated rules
 - Crowdsourced command database
 - Model fine-tuning from usage
 
-### Community Governance
+</v-clicks>
+
+---
+
+# Roadmap: Phase 3 🚀
+
+## Community Governance
+
+<v-clicks>
+
 - Vote on new safety patterns
 - Contribute command examples
 - Review dangerous operations
 - Transparent decision-making
 
-### Static Generation
+</v-clicks>
+
+---
+
+# Roadmap: Phase 3 🚀
+
+## Static Generation
+
+<v-clicks>
+
 - Pre-compile common commands
 - Context-aware suggestions
 - Shell completion integration
 - Predictive command generation
 
 </v-clicks>
-
-</div>
-
-</div>
-
-<!--
-We're not just building a tool - we're building a platform.
-Self-maintenance means the tool gets smarter over time.
-Community governance ensures safety decisions are democratic and transparent.
--->
 
 ---
 layout: center
@@ -579,7 +736,7 @@ class: text-center
 
 # Future Ideas: Beyond Command Generation
 
-<div class="grid grid-cols-3 gap-8 mt-12">
+<div class="grid grid-cols-2 gap-8 mt-12">
 
 <div v-click>
 
@@ -605,6 +762,23 @@ cmdai explain pipeline.sh
 
 </div>
 
+</div>
+
+<!--
+The foundation we're building enables so much more than command generation.
+Self-healing scripts, documentation generation, learning assistance.
+Multi-faceted backends mean different models for different tasks.
+-->
+
+---
+layout: center
+class: text-center
+---
+
+# Future Ideas: Beyond Command Generation
+
+<div class="grid grid-cols-2 gap-8 mt-12">
+
 <div v-click>
 
 ## 🎓 Learning Assistant
@@ -617,24 +791,18 @@ cmdai teach "find command"
 
 </div>
 
-</div>
-
-<div v-click class="mt-12">
+<div v-click>
 
 ## 🌐 Multi-Faceted Backends
 
-- **Local models**: Privacy-focused, offline
-- **Cloud models**: Access to largest models
-- **Specialized models**: Domain-specific (DevOps, Data Science, Security)
-- **Ensemble**: Combine multiple models for validation
+- **Local models**: Privacy-focused
+- **Cloud models**: Largest models
+- **Specialized models**: Domain-specific
+- **Ensemble**: Multi-model validation
 
 </div>
 
-<!--
-The foundation we're building enables so much more than command generation.
-Self-healing scripts, documentation generation, learning assistance.
-Multi-faceted backends mean different models for different tasks.
--->
+</div>
 
 ---
 
@@ -644,7 +812,7 @@ Multi-faceted backends mean different models for different tasks.
 
 ### Democratic Safety Decisions
 
-```mermaid
+```mermaid {scale: 0.7}
 graph LR
     A[User Submits<br/>Pattern] --> B[Community Review]
     B --> C{Vote}
@@ -658,6 +826,20 @@ graph LR
     style D fill:#ff6b6b
     style F fill:#51cf66
 ```
+
+</v-clicks>
+
+<!--
+Safety is too important to be controlled by a single entity.
+Community governance ensures diverse perspectives and democratic decisions.
+Think of it like how Debian handles security updates, but for command safety.
+-->
+
+---
+
+# Community Governance: The Safety Council
+
+<v-clicks>
 
 ### Transparent Process
 - **Propose**: Submit new safety patterns
@@ -673,17 +855,9 @@ graph LR
 
 </v-clicks>
 
-<!--
-Safety is too important to be controlled by a single entity.
-Community governance ensures diverse perspectives and democratic decisions.
-Think of it like how Debian handles security updates, but for command safety.
--->
-
 ---
 
 # Static Generation: Pre-Compiled Intelligence
-
-<div class="grid grid-cols-2 gap-8">
 
 <div v-click>
 
@@ -701,6 +875,21 @@ cmdai compile-common-commands
 "find python" → "find . -name '*.py'"
 ```
 
+</div>
+
+<!--
+Not every command needs AI inference.
+Common operations can be pre-compiled for instant responses.
+The system learns which commands you use most and optimizes accordingly.
+Best of both worlds: instant for common, AI for novel.
+-->
+
+---
+
+# Static Generation: Pre-Compiled Intelligence
+
+<div v-click>
+
 ### Benefits
 - ⚡ Instant responses (0ms)
 - 🔋 No model needed for common tasks
@@ -709,11 +898,13 @@ cmdai compile-common-commands
 
 </div>
 
+---
+
+# Static Generation: Hybrid Approach
+
 <div v-click>
 
-## Hybrid Approach
-
-```mermaid
+```mermaid {scale: 0.7}
 graph TB
     A[User Input] --> B{Static Match?}
     B -->|Yes| C[Instant Response<br/>0ms]
@@ -728,6 +919,14 @@ graph TB
     style D fill:#ffd93d
 ```
 
+</div>
+
+---
+
+# Static Generation: Hybrid Approach
+
+<div v-click>
+
 ### Learning Over Time
 - Track frequently used commands
 - Promote to static generation
@@ -736,17 +935,6 @@ graph TB
 
 </div>
 
-</div>
-
-<!--
-Not every command needs AI inference.
-Common operations can be pre-compiled for instant responses.
-The system learns which commands you use most and optimizes accordingly.
-Best of both worlds: instant for common, AI for novel.
--->
-
----
-layout: two-cols
 ---
 
 # Open Source Principles
@@ -762,6 +950,16 @@ layout: two-cols
 ## Development Philosophy
 - **Test-driven development**
 - Safety-first architecture
+
+</v-clicks>
+
+---
+
+# Open Source Principles
+
+<v-clicks>
+
+## Development Philosophy
 - Library-first design
 - Comprehensive documentation
 
@@ -773,7 +971,7 @@ layout: two-cols
 
 </v-clicks>
 
-::right::
+---
 
 # Contributing Areas
 
@@ -788,6 +986,22 @@ layout: two-cols
 ### 🛡️ Security
 - Safety pattern discovery
 - Vulnerability analysis
+
+</v-clicks>
+
+<!--
+This is an open source project that needs diverse skills.
+You don't have to be a Rust expert or ML engineer to contribute.
+Documentation, testing, design, security - all are critical.
+-->
+
+---
+
+# Contributing Areas
+
+<v-clicks>
+
+### 🛡️ Security
 - Security audits
 - Penetration testing
 
@@ -796,6 +1010,14 @@ layout: two-cols
 - Platform support
 - Performance tuning
 - Build optimization
+
+</v-clicks>
+
+---
+
+# Contributing Areas
+
+<v-clicks>
 
 ### 📚 Documentation
 - User guides
@@ -811,12 +1033,6 @@ layout: two-cols
 
 </v-clicks>
 
-<!--
-This is an open source project that needs diverse skills.
-You don't have to be a Rust expert or ML engineer to contribute.
-Documentation, testing, design, security - all are critical.
--->
-
 ---
 layout: center
 class: text-center
@@ -828,7 +1044,7 @@ class: text-center
 🚀 We Need You!
 </div>
 
-<div class="grid grid-cols-3 gap-8">
+<div class="grid grid-cols-2 gap-8">
 
 <div v-click>
 
@@ -855,6 +1071,23 @@ make run-qwen
 
 </div>
 
+</div>
+
+<!--
+This is where you come in. We have a working proof of concept.
+We have a clear roadmap. We need contributors to make this a reality.
+Whether you can contribute code, test, document, or just spread the word - we need you.
+-->
+
+---
+layout: center
+class: text-center
+---
+
+# Call to Action
+
+<div class="grid grid-cols-2 gap-8 mt-12">
+
 <div v-click>
 
 ## 🤝 Join Development
@@ -867,25 +1100,33 @@ Pick an issue and dive in
 
 </div>
 
-</div>
-
-<div v-click class="mt-12 text-2xl">
+<div v-click>
 
 ### Current Focus: Phase 1 Completion
 
 We're 60% done with core implementation. Help us:
 - ✅ Complete Candle CPU backend
 - ✅ Finalize Rust FFI wrapper
+
+</div>
+
+</div>
+
+---
+layout: center
+class: text-center
+---
+
+# Call to Action
+
+<div v-click class="mt-12">
+
+### Current Focus: Phase 1 Completion
+
 - ✅ Build CLI interface
 - ✅ Package for distribution
 
 </div>
-
-<!--
-This is where you come in. We have a working proof of concept.
-We have a clear roadmap. We need contributors to make this a reality.
-Whether you can contribute code, test, document, or just spread the word - we need you.
--->
 
 ---
 
@@ -904,7 +1145,44 @@ Whether you can contribute code, test, document, or just spread the word - we ne
 - **Discord**: Join our server
 - **Email**: kobi@cmdai.dev
 
+</v-clicks>
+
+</div>
+
+<div>
+
+## 🎯 Quick Wins for New Contributors
+
+<v-clicks>
+
+1. **Add safety patterns**
+   - Find dangerous commands
+   - Submit pattern + test
+   - ~1 hour task
+
+</v-clicks>
+
+</div>
+
+</div>
+
+<!--
+Getting started is easy. We have good-first-issue labels.
+We have comprehensive documentation. We have a welcoming community.
+Pick something small, make your first contribution, and grow from there.
+-->
+
+---
+
+# Get Involved
+
+<div class="grid grid-cols-2 gap-12 mt-12">
+
+<div>
+
 ## 📖 Resources
+
+<v-clicks>
 
 - Documentation: docs.cmdai.dev
 - Contributing Guide: CONTRIBUTING.md
@@ -921,11 +1199,6 @@ Whether you can contribute code, test, document, or just spread the word - we ne
 
 <v-clicks>
 
-1. **Add safety patterns**
-   - Find dangerous commands
-   - Submit pattern + test
-   - ~1 hour task
-
 2. **Test on your platform**
    - Run test suite
    - Report issues
@@ -934,6 +1207,28 @@ Whether you can contribute code, test, document, or just spread the word - we ne
 3. **Improve documentation**
    - Fix typos
    - Add examples
+
+</v-clicks>
+
+</div>
+
+</div>
+
+---
+
+# Get Involved
+
+<div class="grid grid-cols-2 gap-12 mt-12">
+
+<div></div>
+
+<div>
+
+## 🎯 Quick Wins for New Contributors
+
+<v-clicks>
+
+3. **Improve documentation**
    - Clarify concepts
 
 4. **Share feedback**
@@ -946,12 +1241,6 @@ Whether you can contribute code, test, document, or just spread the word - we ne
 </div>
 
 </div>
-
-<!--
-Getting started is easy. We have good-first-issue labels.
-We have comprehensive documentation. We have a welcoming community.
-Pick something small, make your first contribution, and grow from there.
--->
 
 ---
 layout: center
@@ -977,6 +1266,17 @@ Imagine a world where:
 <div class="text-xl mb-6">
 🧠 Your terminal understands your intent, not just syntax
 </div>
+
+</v-clicks>
+
+---
+layout: center
+class: text-center
+---
+
+# The Future of Shell Interaction
+
+<v-clicks>
 
 <div class="text-xl mb-6">
 🌍 This intelligence runs locally, respecting your privacy

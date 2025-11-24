@@ -10,6 +10,15 @@ use crate::{
     safety::SafetyValidator,
 };
 
+#[cfg(any(test, debug_assertions))]
+use async_trait::async_trait;
+
+#[cfg(any(test, debug_assertions))]
+use crate::{
+    backends::{BackendInfo, GeneratorError},
+    models::{BackendType, GeneratedCommand, RiskLevel},
+};
+
 /// Main CLI application struct
 pub struct CliApp {
     config: CliConfig,
