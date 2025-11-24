@@ -26,7 +26,7 @@ mdc: true
 </div>
 
 <div class="abs-br m-6 flex gap-2">
-  <a href="https://github.com/yourusername/cmdai" target="_blank" alt="GitHub"
+  <a href="https://github.com/wildcard/cmdai" target="_blank" alt="GitHub"
     class="text-xl slidev-icon-btn opacity-50 !border-none !hover:text-white">
     <carbon-logo-github />
   </a>
@@ -807,7 +807,7 @@ class: text-center
 Help us gain visibility
 
 ```bash
-github.com/yourusername/cmdai
+github.com/wildcard/cmdai
 ```
 
 </div>
@@ -870,10 +870,10 @@ Whether you can contribute code, test, document, or just spread the word - we ne
 
 <v-clicks>
 
-- **GitHub**: github.com/yourusername/cmdai
+- **GitHub**: github.com/wildcard/cmdai
 - **Discussions**: Community forum
 - **Discord**: Join our server
-- **Email**: cmdai@yourproject.org
+- **Email**: kobi@cmdai.dev
 
 ## 📖 Resources
 
@@ -973,22 +973,22 @@ layout: end
 
 ## Ready to Contribute?
 
-**github.com/yourusername/cmdai**
+**github.com/wildcard/cmdai**
 
 <div class="mt-8 text-xl">
 🚀 Star • 🧪 Test • 🤝 Contribute • 📣 Share
 </div>
 
 <div class="mt-12">
-<img src="/mascot.gif" class="inline-block w-48 h-48" alt="Caro mascot" />
+<img src="/mascot-loop.gif" class="inline-block w-64 h-64" alt="Caro mascot" />
 </div>
 
 <div class="mt-4 text-sm opacity-70">
 Caro says: Let's build the future of shell interaction together! 🐕
 </div>
 
-<div class="mt-8 text-sm opacity-50">
-Slides: slides.cmdai.dev | Docs: docs.cmdai.dev
+<div class="mt-6 text-sm opacity-60">
+📧 kobi@cmdai.dev | 🐙 github.com/wildcard/cmdai
 </div>
 
 </div>

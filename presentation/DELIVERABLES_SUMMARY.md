@@ -131,7 +131,7 @@ make export-pdf # Export PDF
 
 Before presenting, update:
 
-- [ ] GitHub URLs (replace `yourusername/cmdai`)
+- [ ] GitHub URLs (replace `wildcard/cmdai`)
 - [ ] Contact information (Discord, email)
 - [ ] Add mascot GIF to `public/mascot.gif`
 - [ ] Update statistics with latest numbers

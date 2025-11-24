@@ -107,7 +107,7 @@ The presentation uses a placeholder emoji (🤖) by default. To use your mascot 
 ## Customization
 
 Before presenting, update in `slides.md`:
-- GitHub URLs (replace `yourusername/cmdai`)
+- GitHub URLs (replace `wildcard/cmdai`)
 - Contact information
 - Project statistics
 - Demo results
