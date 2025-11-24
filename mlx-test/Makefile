@@ -1,4 +1,4 @@
-.PHONY: setup run run-structured run-batch clean
+.PHONY: setup run run-structured run-batch run-qwen clean
 
 setup:
 	python3 -m venv venv
@@ -7,6 +7,9 @@ setup:
 
 run:
 	. venv/bin/activate && python simple_inference.py
+
+run-qwen:
+	. venv/bin/activate && python qwen_inference.py
 
 run-structured:
 	. venv/bin/activate && python structured_inference.py
