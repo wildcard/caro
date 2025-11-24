@@ -85,10 +85,10 @@ async fn test_embedded_backend_performance() {
 
     // Check performance targets based on variant
     match backend.model_variant {
-        ModelVariant::MLX => {
+        ModelVariant::Metal => {
             // FR-027: <100ms startup, FR-025: <2s inference
             assert!(first_call_duration < Duration::from_secs(2),
-                "MLX must complete within 2s (startup + inference)");
+                "Metal must complete within 2s (startup + inference)");
         },
         ModelVariant::CPU => {
             // Acceptable: <5s total for CPU fallback
@@ -136,7 +136,7 @@ async fn test_embedded_backend_safety_integration() {
 ```
 
 #### CR-EMB-005: Model Variant Detection
-**MUST** correctly detect and use platform-appropriate variant (MLX on Apple Silicon, CPU elsewhere).
+**MUST** correctly detect and use platform-appropriate variant (Metal on Apple Silicon, CPU elsewhere).
 
 **Test**:
 ```rust
@@ -145,7 +145,7 @@ fn test_model_variant_detection() {
     let detected = ModelVariant::detect();
 
     #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-    assert_eq!(detected, ModelVariant::MLX, "Apple Silicon must use MLX");
+    assert_eq!(detected, ModelVariant::Metal, "Apple Silicon must use Metal");
 
     #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
     assert_eq!(detected, ModelVariant::CPU, "Other platforms must use CPU");
@@ -259,7 +259,7 @@ async fn test_resource_cleanup() {
 #[test]
 fn test_backend_info() {
     let backend = EmbeddedModelBackend::new(
-        ModelVariant::MLX,
+        ModelVariant::Metal,
         test_model_path()
     ).unwrap();
 
@@ -290,7 +290,7 @@ fn test_backend_info() {
 
 ## Performance Requirements
 
-| Metric | MLX (macOS) | CPU (Other) |
+| Metric | Metal (macOS) | CPU (Other) |
 |--------|-------------|-------------|
 | Construction | <10ms | <10ms |
 | First load | <100ms | <500ms |

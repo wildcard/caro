@@ -66,17 +66,17 @@ sha2 = "0.10"
 # Async trait support
 async-trait = "0.1"
 
-# Optional MLX support for Apple Silicon (behind feature flag)
-cxx = { version = "1.0", optional = true }
-
-# Embedded model inference - MLX for Apple Silicon
-[target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
-mlx-rs = { version = "0.25", optional = true }
-
 # Embedded model inference - Candle for CPU (cross-platform)
 candle-core = { version = "0.9", optional = true }
 candle-transformers = { version = "0.9", optional = true }
-tokenizers = { version = "0.15", features = ["http"] }
+tokenizers = { version = "0.15", features = ["http"], optional = true }
+
+# Embedded model inference - Metal GPU acceleration for Apple Silicon
+[target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
+candle-core = { version = "0.9", features = ["metal"], optional = true }
+candle-nn = { version = "0.9", optional = true }
+metal = { version = "0.29", optional = true }
+accelerate-src = { version = "0.3", optional = true }
 
 [dev-dependencies]
 tokio-test = "0.4"
@@ -85,19 +85,34 @@ serial_test = "3"
 proptest = "1"
 criterion = { version = "0.5", features = ["html_reports"] }
 futures = "0.3"
+# Dependencies for examples
+candle-core = "0.9"
+candle-transformers = "0.9"
 
 [[bench]]
 name = "performance"
+harness = false
+
+[[bench]]
+name = "metal_vs_cpu"
 harness = false
 
 [features]
 default = ["embedded-cpu"]
 mock-backend = []
 remote-backends = ["reqwest", "tokio/net"]
-embedded-mlx = ["cxx", "mlx-rs"]
-embedded-cpu = ["candle-core", "candle-transformers"]
-embedded = ["embedded-cpu"]  # Alias for embedded model support
-full = ["remote-backends", "embedded-mlx", "embedded-cpu"]
+
+# Embedded model inference - CPU backend (cross-platform)
+embedded-cpu = ["candle-core", "candle-transformers", "tokenizers"]
+
+# Embedded model inference - Metal GPU backend (Apple Silicon only)
+embedded-metal = ["candle-core/metal", "candle-transformers", "candle-nn", "dep:metal", "accelerate-src", "tokenizers"]
+
+# Alias for embedded support (defaults to CPU)
+embedded = ["embedded-cpu"]
+
+# All features enabled
+full = ["remote-backends", "embedded-metal", "embedded-cpu"]
 
 [profile.release]
 # Optimize for binary size (<50MB target)

@@ -259,7 +259,7 @@ cmdai "test command" --verbose --output json
 - [ ] Clear indication of which backend generated the command
 
 **Platform-Specific Tests**:
-- [ ] **Apple Silicon**: Should prefer MLX backend when available
+- [ ] **Apple Silicon**: Should prefer Metal backend when available
 - [ ] **Other platforms**: Should use CPU backend
 - [ ] **Remote backends**: Should fallback to embedded when network unavailable
 
