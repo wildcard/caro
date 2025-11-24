@@ -1,0 +1,15 @@
+{
+  "$schema": "https://charm.land/crush.json",
+  "lsp": {
+    "rust": {
+      "command": "rust-analyzer",
+      "env": {
+        "RUST_LOG": "error"
+      }
+    },
+    "toml": {
+      "command": "taplo",
+      "args": ["lsp", "stdio"]
+    }
+  }
+}
