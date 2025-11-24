@@ -48,23 +48,90 @@
 ---
 
 ### Slide 4: We Have a Working Demo!
-**Duration: 2 minutes**
+**Duration: 3-5 minutes** (includes live demo)
 
-🎉 **EXCITEMENT POINT**
+🎉 **EXCITEMENT POINT + LIVE DEMO**
 
-"This is huge. We're not showing mockups or prototypes. We have actual working inference running right now on Apple Silicon."
+"This is huge. We're not showing mockups or prototypes. Let me show you actual working inference running right now."
 
-**Left side - Demo results:**
-- Point to real numbers from MLX test suite
-- 0.8s per command - faster than typing
-- 87% accuracy on shell commands
+**Opening:**
+- "We have a live demo ready to go"
+- "This is running on Apple Silicon with the production model"
+- "Let's switch to the terminal"
 
-**Right side - Production model:**
-- "We're using Qwen2.5-Coder-1.5B - a model specifically trained for code"
-- "1.5GB, runs 100% offline"
-- "Optimized for Apple Silicon with Metal GPU"
+**Demo Time (2-3 minutes):**
 
-**Call out:** "You can try this demo yourself today. It's in the mlx-test directory."
+*Switch to terminal*
+
+```bash
+cd mlx-test
+make demo
+```
+
+**What to say while it runs:**
+
+1. **Welcome screen appears**
+   - "This is our interactive presentation demo"
+   - "Notice it's branded with Caro, our mascot"
+   - *Press Enter*
+
+2. **System info shows**
+   - "Metal GPU acceleration - that's Apple Silicon"
+   - "Production model: Qwen2.5-Coder-1.5B"
+   - "87% accuracy on shell commands"
+   - *Press Enter*
+
+3. **Model loading**
+   - "Loading the 1.5GB model..."
+   - "This runs 100% locally, offline capable"
+   - *Wait for load (~3s)*
+
+4. **First demo: "list all files"**
+   - *Press Enter*
+   - "Watch the natural language prompt"
+   - "Command generated in under 2 seconds"
+   - "Green safety indicator - safe to execute"
+   - "This is real inference happening live"
+   - *Press Enter*
+
+5. **Second demo: "find Python files modified in last 7 days"**
+   - "More complex query"
+   - "Still fast, still accurate"
+   - "POSIX-compliant output"
+   - *Press Enter*
+
+6. **Third demo (optional): "show disk usage"**
+   - "Notice the consistent performance"
+   - "Safety checks on every command"
+
+**Return to slides:**
+- "As you can see, this isn't vaporware"
+- "Real inference, real performance, real safety"
+- "Let's look at how we built this..."
+
+**Slide content highlights:**
+
+**Left side - Live Demo:**
+- Emphasize: "Interactive, beautiful, professional"
+- Point out: "Color-coded output, real-time safety"
+- Note: "Press Enter to pace - perfect for presenting"
+
+**Right side - Production Model:**
+- "1.5s average inference"
+- "87% accuracy validated"
+- "100% safety detection"
+
+**Bottom - Additional Tests:**
+- "We have comprehensive testing"
+- "12-scenario test suite for safety validation"
+- "Performance benchmarks confirm these numbers"
+- "Everything documented in mlx-test/"
+
+**Key message:** 
+"This demo proves cmdai works. Fast, accurate, safe. Now let's see the architecture behind it."
+
+**Transition to Slide 5:**
+"You've seen it work. Now let me show you how we make it safe..."
 
 ---
 
