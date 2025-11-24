@@ -8,6 +8,7 @@ Thank you for your interest in contributing to cmdai! We're building a safety-fi
 - [Getting Started](#getting-started)
 - [Development Workflow](#development-workflow)
 - [Code Standards](#code-standards)
+- [Brand Voice and Tone](#brand-voice-and-tone)
 - [Pull Request Process](#pull-request-process)
 - [Areas for Contribution](#areas-for-contribution)
 - [Agent Collaboration](#agent-collaboration)
@@ -275,6 +276,61 @@ async fn test_cache_manager_handles_missing_model() {
     assert!(matches!(result, Err(CacheError::ModelNotFound(_))));
 }
 ```
+
+---
+
+## Brand Voice and Tone
+
+cmdai has personality. We take shell command safety seriously, but we don't take ourselves too seriously. Our brand voice is inspired by companies like Slack—confident yet humble, witty but clear, conversational yet professional.
+
+### Writing Guidelines
+
+When contributing documentation, error messages, CLI output, or any user-facing text:
+
+1. **Read [BRAND_VOICE.md](BRAND_VOICE.md)** - Our complete guide to voice and tone
+2. **Be clear first, clever second** - Clarity always trumps humor
+3. **Slip in personality where it fits** - Error messages, release notes, help text
+4. **Anticipate questions** - Answer before users ask
+5. **Stay empathetic** - Remember what it's like to learn something new
+
+### Voice Principles
+
+- **Confident, not cocky** - We know our stuff, but stay humble
+- **Witty, not silly** - Humor enhances understanding, never obscures it
+- **Conversational, not casual** - Professional but friendly
+- **Playful and bold** - Inject personality into unexpected places
+- **Empathetic and helpful** - Show you care with clear next steps
+
+### Examples
+
+**Error Messages:**
+```
+✗ Couldn't connect to Ollama backend
+
+  Is Ollama running? Try:
+    ollama serve
+
+  Or use the embedded backend:
+    cmdai --backend embedded "your prompt"
+```
+
+**CLI Help Text:**
+```
+cmdai - Convert natural language to safe shell commands
+
+We're like autocomplete for your terminal, but with better judgment
+about when NOT to run 'rm -rf'.
+```
+
+**Release Notes:**
+```
+## v0.2.0 - "The One With Ollama"
+
+We agonized over how to announce this (seriously, we spent an hour
+debating the changelog), so here goes: cmdai now supports Ollama! 🎉
+```
+
+For complete guidelines, examples, and the philosophy behind our voice, see [BRAND_VOICE.md](BRAND_VOICE.md).
 
 ---
 
