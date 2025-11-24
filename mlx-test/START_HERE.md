@@ -4,9 +4,26 @@
 
 ```bash
 cd mlx-test
-make setup      # One-time setup
-make run-structured  # Run full test suite (recommended)
+make setup              # One-time setup
+make demo              # 🎬 Run presentation demo (recommended for first time!)
+make run-structured    # Run full test suite
 ```
+
+## 🎬 For Live Presentations
+
+**NEW**: Professional presentation demo with interactive pacing!
+
+```bash
+make demo
+```
+
+This runs `presentation_demo.py` - a beautifully formatted, interactive demo perfect for showing cmdai during talks. Features:
+- Color-coded output with safety indicators
+- Press Enter to pace through 5 scenarios
+- Real-time performance metrics
+- Professional visual design
+
+See **[DEMO_GUIDE.md](DEMO_GUIDE.md)** for presentation tips!
 
 ## 📋 What's in This Directory
 

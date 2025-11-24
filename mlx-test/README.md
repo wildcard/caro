@@ -16,6 +16,29 @@ pip install -r requirements.txt
 
 ## Tests
 
+### 🎬 Presentation Demo (`presentation_demo.py`) ⭐ NEW!
+**Interactive live demo** designed for presentations and talks.
+
+```bash
+make demo
+# or
+python presentation_demo.py
+```
+
+**Features:**
+- Beautiful color-coded output
+- Interactive pacing (press Enter between demos)
+- Real-time safety assessment display
+- 5 carefully chosen scenarios
+- Performance metrics summary
+- Perfect for live demonstrations
+
+**Use this for:** Conference talks, demos, showing cmdai to others
+
+See **[DEMO_GUIDE.md](DEMO_GUIDE.md)** for full presentation guide!
+
+---
+
 ### 1. Simple Inference (`simple_inference.py`)
 Basic test showing MLX working with single prompt.
 

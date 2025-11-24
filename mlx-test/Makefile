@@ -1,4 +1,4 @@
-.PHONY: setup run run-structured run-batch run-qwen clean
+.PHONY: setup run run-structured run-batch run-qwen demo clean
 
 setup:
 	python3 -m venv venv
@@ -16,6 +16,9 @@ run-structured:
 
 run-batch:
 	. venv/bin/activate && python batch_inference.py
+
+demo:
+	. venv/bin/activate && python presentation_demo.py
 
 clean:
 	rm -rf venv

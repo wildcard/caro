@@ -2,7 +2,7 @@
   "summary": {
     "total": 12,
     "successful": 10,
-    "avg_inference_time": 2.55855260292689,
+    "avg_inference_time": 2.521121064821879,
     "risk_distribution": {
       "Safe": 7,
       "Unknown": 2,
@@ -26,7 +26,7 @@
       },
       "assessed_risk": "Safe",
       "needs_confirmation": false,
-      "inference_time": 3.067003011703491,
+      "inference_time": 2.7106361389160156,
       "success": true
     },
     {
@@ -44,7 +44,7 @@
       },
       "assessed_risk": "Safe",
       "needs_confirmation": false,
-      "inference_time": 2.556696891784668,
+      "inference_time": 2.3628599643707275,
       "success": true
     },
     {
@@ -65,7 +65,7 @@
       },
       "assessed_risk": "Unknown",
       "needs_confirmation": true,
-      "inference_time": 2.664630174636841,
+      "inference_time": 2.491533041000366,
       "success": false
     },
     {
@@ -83,7 +83,7 @@
       },
       "assessed_risk": "Safe",
       "needs_confirmation": false,
-      "inference_time": 2.3331379890441895,
+      "inference_time": 2.3761589527130127,
       "success": true
     },
     {
@@ -101,7 +101,7 @@
       },
       "assessed_risk": "Safe",
       "needs_confirmation": false,
-      "inference_time": 2.377423048019409,
+      "inference_time": 3.012455940246582,
       "success": true
     },
     {
@@ -119,7 +119,7 @@
       },
       "assessed_risk": "Safe",
       "needs_confirmation": true,
-      "inference_time": 2.45881724357605,
+      "inference_time": 2.4478600025177,
       "success": true
     },
     {
@@ -140,7 +140,7 @@
       },
       "assessed_risk": "Unknown",
       "needs_confirmation": true,
-      "inference_time": 2.6589789390563965,
+      "inference_time": 2.371047019958496,
       "success": false
     },
     {
@@ -158,7 +158,7 @@
       },
       "assessed_risk": "Safe",
       "needs_confirmation": false,
-      "inference_time": 2.368298053741455,
+      "inference_time": 2.2976179122924805,
       "success": true
     },
     {
@@ -176,7 +176,7 @@
       },
       "assessed_risk": "Moderate",
       "needs_confirmation": false,
-      "inference_time": 2.617237091064453,
+      "inference_time": 2.5854549407958984,
       "success": true
     },
     {
@@ -194,7 +194,7 @@
       },
       "assessed_risk": "Critical",
       "needs_confirmation": true,
-      "inference_time": 2.377526044845581,
+      "inference_time": 2.483181953430176,
       "success": true
     },
     {
@@ -212,7 +212,7 @@
       },
       "assessed_risk": "Critical",
       "needs_confirmation": true,
-      "inference_time": 2.7908899784088135,
+      "inference_time": 2.7916369438171387,
       "success": true
     },
     {
@@ -230,7 +230,7 @@
       },
       "assessed_risk": "Safe",
       "needs_confirmation": false,
-      "inference_time": 2.431992769241333,
+      "inference_time": 2.323009967803955,
       "success": true
     }
   ]
