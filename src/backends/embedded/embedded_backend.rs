@@ -15,6 +15,7 @@ use crate::ModelLoader;
 use crate::backends::embedded::MlxBackend;
 
 /// Primary command generator using embedded Qwen model with platform-specific inference
+#[derive(Clone)]
 pub struct EmbeddedModelBackend {
     model_variant: ModelVariant,
     model_path: PathBuf,
