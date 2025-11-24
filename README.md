@@ -1,5 +1,9 @@
 # cmdai
 
+[![CI](https://github.com/wildcard/cmdai/actions/workflows/ci.yml/badge.svg)](https://github.com/wildcard/cmdai/actions/workflows/ci.yml)
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL_3.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+[![Rust Version](https://img.shields.io/badge/rust-1.75%2B-orange.svg)](https://www.rust-lang.org)
+
 > 🚧 **Early Development Stage** - Architecture defined, core implementation in progress
 
 **cmdai** converts natural language descriptions into safe POSIX shell commands using local LLMs. Built with Rust for blazing-fast performance, single-binary distribution, and safety-first design.
@@ -51,6 +55,8 @@ This project is in **active early development**. The architecture and module str
 
 ## 🚀 Quick Start
 
+> **Having build issues?** See [BUILD.md](BUILD.md) for detailed instructions and troubleshooting
+
 ### Prerequisites
 - Rust 1.75+ with Cargo
 - macOS with Apple Silicon (for MLX backend, optional)
@@ -69,24 +75,31 @@ cargo build --release
 ./target/release/cmdai --version
 ```
 
+**Troubleshooting?** Check [BUILD.md#troubleshooting](BUILD.md#troubleshooting) for common issues
+
 ### Development Commands
 
 ```bash
 # Run tests
-make test
+cargo test --lib
 
 # Format code
-make fmt
+cargo fmt --all
 
-# Run linter
-make lint
+# Run linter (same as CI)
+cargo clippy --lib --bins --tests --all-features -- -D warnings
 
 # Build optimized binary
-make build-release
+cargo build --release
 
 # Run with debug logging
 RUST_LOG=debug cargo run -- "your command"
+
+# Try the TUI
+cargo run -- --tui
 ```
+
+📖 **For complete build instructions, feature flags, and troubleshooting**, see [BUILD.md](BUILD.md)
 
 ## 📖 Usage
 
@@ -189,31 +202,32 @@ trait CommandGenerator {
 
 ## 🔧 Development
 
-### Prerequisites
-- Rust 1.75+ 
-- Cargo
-- Make (optional, for convenience commands)
-- Docker (optional, for development container)
+> **📖 For complete development setup, build instructions, and troubleshooting**, see [BUILD.md](BUILD.md)
 
-### Setup Development Environment
+### Quick Setup
 
 ```bash
 # Clone and enter the project
 git clone https://github.com/wildcard/cmdai.git
 cd cmdai
 
-# Install dependencies and build
+# Build
 cargo build
 
 # Run tests
-cargo test
+cargo test --lib
 
-# Check formatting
-cargo fmt -- --check
-
-# Run clippy linter
-cargo clippy -- -D warnings
+# Check formatting and linting (same as CI)
+cargo fmt --all -- --check
+cargo clippy --lib --bins --tests --all-features -- -D warnings
 ```
+
+### Contributing
+
+Want to contribute? Check out:
+- [BUILD.md](BUILD.md) - Build instructions and troubleshooting
+- [CONTRIBUTING.md](CONTRIBUTING.md) - Development workflow and standards
+- [docs/TUI_CONTRIBUTING.md](docs/TUI_CONTRIBUTING.md) - TUI development guide
 
 ### Backend Configuration
 

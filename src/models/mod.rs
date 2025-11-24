@@ -183,12 +183,13 @@ impl std::fmt::Display for RiskLevel {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum SafetyLevel {
     /// Blocks High and Critical commands, confirms Moderate
     Strict,
     /// Blocks Critical commands, confirms High
+    #[default]
     Moderate,
     /// Warns about all dangerous commands but allows with confirmation
     Permissive,
@@ -207,12 +208,6 @@ impl std::str::FromStr for SafetyLevel {
                 s
             )),
         }
-    }
-}
-
-impl Default for SafetyLevel {
-    fn default() -> Self {
-        Self::Moderate
     }
 }
 
