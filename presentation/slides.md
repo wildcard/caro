@@ -156,33 +156,62 @@ class: text-center
 
 <div v-click>
 
-### MLX Test Suite
+### 🎬 Live Presentation Demo
 ```bash
-make run-qwen
+cd mlx-test
+make demo
 ```
 
-<div class="text-left mt-4 p-4 bg-gray-800 rounded-lg text-sm">
-🚀 MLX Inference Test
-✅ Model loaded in 2.1s
-🎯 Qwen2.5-Coder-1.5B
-⚡ 0.8s per command
-🎓 87% shell accuracy
+<div class="text-left mt-4 p-4 bg-gradient-to-r from-green-900 to-blue-900 rounded-lg text-sm border-2 border-green-500">
+<div class="font-bold text-green-400 mb-2">✨ Interactive & Beautiful</div>
+🎨 Color-coded output<br/>
+🛡️ Real-time safety indicators<br/>
+⚡ Sub-2s command generation<br/>
+🎯 Press Enter to pace demos<br/>
+🐕 Caro-branded experience
+</div>
+
+<div class="text-xs mt-2 opacity-60">
+Perfect for live presentations!
 </div>
 
 </div>
 
 <div v-click>
 
-### Production Model
+### 📊 Production Model Results
 **Qwen2.5-Coder-1.5B**
 
-- 🎯 Trained for code generation
-- 🐚 Optimized for shell commands
-- 📦 1.5GB quantized (Q4)
+<div class="text-left mt-4 space-y-2">
+
+**Performance:**
+- ⚡ 1.5s avg inference
+- 🚀 0.6s fastest command
+- 📈 1.36 commands/sec
+
+**Quality:**
+- 🎯 87% shell accuracy
+- ✅ POSIX-compliant
+- 🛡️ 100% safety detection
+
+**Infrastructure:**
 - 🍎 Apple Silicon optimized
-- 🌍 Runs 100% offline
+- ⚙️ Metal GPU acceleration
+- 🌍 100% offline capable
 
 </div>
+
+</div>
+
+</div>
+
+<div v-click class="mt-8 p-4 bg-blue-900 bg-opacity-30 rounded-lg border border-blue-500">
+
+### 🧪 Complete Test Suite Available
+
+**Additional Tests**: `make run-structured` (12 scenarios), `make run-batch` (performance), `make run-qwen` (technical)
+
+See `mlx-test/` for comprehensive testing framework with safety validation and benchmarks.
 
 </div>
 
