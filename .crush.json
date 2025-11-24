@@ -1,15 +1,54 @@
 {
   "$schema": "https://charm.land/crush.json",
+  "env": {
+    "RUST_LOG": "warn",
+    "RUST_BACKTRACE": "1"
+  },
   "lsp": {
     "rust": {
       "command": "rust-analyzer",
       "env": {
         "RUST_LOG": "error"
+      },
+      "settings": {
+        "rust-analyzer.checkOnSave.command": "clippy",
+        "rust-analyzer.cargo.features": "all",
+        "rust-analyzer.cargo.allFeatures": true
       }
     },
     "toml": {
       "command": "taplo",
       "args": ["lsp", "stdio"]
     }
-  }
+  },
+  "mcp": {
+    "memory": {
+      "command": "mcp-server-memory"
+    },
+    "sequential-thinking": {
+      "command": "mcp-server-sequential-thinking"
+    },
+    "brave-search": {
+      "command": "mcp-server-brave-search"
+    }
+  },
+  "prompts": {
+    "test": "Run tests for this file using the appropriate test suite (contract/integration/unit). Use RUST_LOG=warn and -q flag for clean output.",
+    "tdd": "Follow TDD workflow: 1) Write failing test first (RED), 2) Implement minimal code to pass (GREEN), 3) Refactor while keeping tests green, 4) Commit after each passing test.",
+    "safety": "Review this code for safety issues per project safety guidelines: dangerous commands, path validation, proper error handling, no panics in production.",
+    "check": "Run pre-commit checks: make fmt (format code), make lint (clippy), make test (run tests). Ensure all pass before committing.",
+    "impl": "Implement this feature following library-first architecture: 1) Add to models/ if new types needed, 2) Update relevant module (safety/, backends/, etc), 3) Write tests first, 4) Keep main.rs for orchestration only."
+  },
+  "rules": [
+    "Always read files before editing - note exact whitespace and indentation",
+    "Follow TDD: RED-GREEN-REFACTOR cycle strictly enforced",
+    "Run tests immediately after changes with RUST_LOG=warn cargo test -q",
+    "Library-first architecture: all business logic in lib.rs exports, main.rs orchestrates only",
+    "Safety-first: validate dangerous operations, no unsafe Rust without justification",
+    "Use exact text matching for edits - include 3-5 lines of context",
+    "No business logic in main.rs - keep it thin for CLI orchestration",
+    "Check memory files (AGENTS.md) for project commands and conventions",
+    "Before committing: make check (fmt + lint + audit + test)",
+    "Implementation order: Models → Safety → Backends → CLI"
+  ]
 }
