@@ -152,6 +152,13 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+package-lock.json
+dist/
+dist-ssr/
+
+# Tauri
+src-tauri/target/
+src-tauri/WixTools
 
 # Terraform (if using for deployment)
 *.tfstate
