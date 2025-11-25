@@ -1,0 +1,165 @@
+# File Search by Extension - Test Dataset
+# Tests for finding files by file type/extension
+
+test_cases:
+  - id: "find_text_files"
+    category: "file_search"
+    subcategory: "by_extension"
+    shell: "bash"
+    difficulty: "basic"
+    input: "find text files"
+    expected_commands:
+      - "find . -type f -iname \"*.txt\""
+      - "find . -name \"*.txt\" -type f"
+      - "find . -type f -name \"*.txt\""
+    explanation: "Find all text files with .txt extension"
+    tags: ["text", "files", "find", "txt", "extension"]
+    safety_level: "safe"
+    
+  - id: "find_js_files"
+    category: "file_search"
+    subcategory: "by_extension"
+    shell: "bash"
+    difficulty: "basic"
+    input: "find .js files"
+    expected_commands:
+      - "find . -type f -iname \"*.js\""
+      - "find . -name \"*.js\" -type f"
+      - "find . -type f -name \"*.js\""
+    explanation: "Find JavaScript files"
+    tags: ["javascript", "files", "find", "js", "extension"]
+    safety_level: "safe"
+    
+  - id: "find_python_files"
+    category: "file_search"
+    subcategory: "by_extension"
+    shell: "bash"
+    difficulty: "basic"
+    input: "list python files"
+    expected_commands:
+      - "find . -type f -iname \"*.py\""
+      - "find . -name \"*.py\" -type f"
+      - "find . -type f -name \"*.py\""
+    explanation: "Find Python source files"
+    tags: ["python", "files", "find", "py", "extension"]
+    safety_level: "safe"
+    
+  - id: "find_css_files"
+    category: "file_search"
+    subcategory: "by_extension"
+    shell: "bash"
+    difficulty: "basic"
+    input: "find css files"
+    expected_commands:
+      - "find . -type f -iname \"*.css\""
+      - "find . -name \"*.css\" -type f"
+      - "find . -type f -name \"*.css\""
+    explanation: "Find CSS stylesheet files"
+    tags: ["css", "files", "find", "stylesheet", "extension"]
+    safety_level: "safe"
+    
+  - id: "find_log_files"
+    category: "file_search"
+    subcategory: "by_extension"
+    shell: "bash"
+    difficulty: "basic"
+    input: "find log files"
+    expected_commands:
+      - "find . -type f -iname \"*.log\""
+      - "find . -name \"*.log\" -type f"
+      - "find . -type f -name \"*.log\""
+    explanation: "Find log files"
+    tags: ["log", "files", "find", "extension"]
+    safety_level: "safe"
+    
+  - id: "find_image_files"
+    category: "file_search"
+    subcategory: "by_extension"
+    shell: "bash"
+    difficulty: "intermediate"
+    input: "find image files"
+    expected_commands:
+      - "find . -type f \\( -iname \"*.jpg\" -o -iname \"*.jpeg\" -o -iname \"*.png\" -o -iname \"*.gif\" -o -iname \"*.bmp\" -o -iname \"*.tiff\" \\)"
+      - "find . -type f \\( -name \"*.jpg\" -o -name \"*.jpeg\" -o -name \"*.png\" -o -name \"*.gif\" -o -name \"*.bmp\" -o -name \"*.tiff\" \\)"
+    explanation: "Find image files with multiple common extensions"
+    tags: ["image", "files", "find", "multiple_extensions", "jpg", "png", "gif"]
+    safety_level: "safe"
+    
+  - id: "find_document_files"
+    category: "file_search"
+    subcategory: "by_extension"
+    shell: "bash"
+    difficulty: "intermediate"
+    input: "list document files"
+    expected_commands:
+      - "find . -type f \\( -iname \"*.doc\" -o -iname \"*.docx\" -o -iname \"*.pdf\" -o -iname \"*.txt\" -o -iname \"*.rtf\" -o -iname \"*.odt\" \\)"
+      - "find . -type f \\( -name \"*.doc\" -o -name \"*.docx\" -o -name \"*.pdf\" -o -name \"*.txt\" -o -name \"*.rtf\" -o -name \"*.odt\" \\)"
+    explanation: "Find document files with multiple extensions"
+    tags: ["document", "files", "find", "multiple_extensions", "doc", "pdf", "txt"]
+    safety_level: "safe"
+    
+  - id: "find_video_files"
+    category: "file_search"
+    subcategory: "by_extension"
+    shell: "bash"
+    difficulty: "intermediate"
+    input: "find video files"
+    expected_commands:
+      - "find . -type f \\( -iname \"*.mp4\" -o -iname \"*.avi\" -o -iname \"*.mkv\" -o -iname \"*.mov\" -o -iname \"*.wmv\" -o -iname \"*.flv\" \\)"
+      - "find . -type f \\( -name \"*.mp4\" -o -name \"*.avi\" -o -name \"*.mkv\" -o -name \"*.mov\" -o -name \"*.wmv\" -o -name \"*.flv\" \\)"
+    explanation: "Find video files with multiple common extensions"
+    tags: ["video", "files", "find", "multiple_extensions", "mp4", "avi", "mkv"]
+    safety_level: "safe"
+    
+  - id: "find_audio_files"
+    category: "file_search"
+    subcategory: "by_extension"
+    shell: "bash"
+    difficulty: "intermediate"
+    input: "find audio files"
+    expected_commands:
+      - "find . -type f \\( -iname \"*.mp3\" -o -iname \"*.wav\" -o -iname \"*.flac\" -o -iname \"*.aac\" -o -iname \"*.ogg\" -o -iname \"*.m4a\" \\)"
+      - "find . -type f \\( -name \"*.mp3\" -o -name \"*.wav\" -o -name \"*.flac\" -o -name \"*.aac\" -o -name \"*.ogg\" -o -name \"*.m4a\" \\)"
+    explanation: "Find audio files with multiple common extensions"
+    tags: ["audio", "files", "find", "multiple_extensions", "mp3", "wav", "flac"]
+    safety_level: "safe"
+    
+  - id: "find_archive_files"
+    category: "file_search"
+    subcategory: "by_extension"
+    shell: "bash"
+    difficulty: "intermediate"
+    input: "find archive files"
+    expected_commands:
+      - "find . -type f \\( -iname \"*.zip\" -o -iname \"*.tar\" -o -iname \"*.gz\" -o -iname \"*.rar\" -o -iname \"*.7z\" -o -iname \"*.bz2\" \\)"
+      - "find . -type f \\( -name \"*.zip\" -o -name \"*.tar\" -o -name \"*.gz\" -o -name \"*.rar\" -o -name \"*.7z\" -o -name \"*.bz2\" \\)"
+    explanation: "Find compressed archive files"
+    tags: ["archive", "files", "find", "multiple_extensions", "zip", "tar", "gz"]
+    safety_level: "safe"
+    
+  # PowerShell equivalents
+  - id: "find_text_files_powershell"
+    category: "file_search"
+    subcategory: "by_extension"
+    shell: "powershell"
+    difficulty: "basic"
+    input: "find text files"
+    expected_commands:
+      - "Get-ChildItem -Recurse -Filter *.txt"
+      - "Get-ChildItem -Path . -Recurse -Include *.txt"
+    explanation: "Find text files using PowerShell"
+    tags: ["text", "files", "powershell", "txt", "extension"]
+    safety_level: "safe"
+    
+  - id: "find_image_files_powershell"
+    category: "file_search"
+    subcategory: "by_extension"
+    shell: "powershell"
+    difficulty: "intermediate"
+    input: "find image files"
+    expected_commands:
+      - "Get-ChildItem -Recurse -Include *.jpg,*.jpeg,*.png,*.gif,*.bmp,*.tiff"
+      - "Get-ChildItem -Path . -Recurse | Where-Object {$_.Extension -match '\\.(jpg|jpeg|png|gif|bmp|tiff)$'}"
+    explanation: "Find image files with multiple extensions using PowerShell"
+    tags: ["image", "files", "powershell", "multiple_extensions"]
+    safety_level: "safe"

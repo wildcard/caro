@@ -36,6 +36,16 @@ status-level = "fail"
 [profile.ci.junit]
 path = "target/nextest/ci-junit.xml"
 
+[profile.tdd]
+# TDD profile - optimized for immediate feedback
+fail-fast = true  # Stop on first failure for immediate attention
+test-threads = "num-cpus"  # Use all available cores
+slow-timeout = { period = "15s", terminate-after = 1 }  # Quick timeout
+success-output = "never"  # Only show failures
+failure-output = "immediate"  # Show failures immediately
+status-level = "retry"  # Show retry attempts
+retries = 0  # No retries in TDD for immediate feedback
+
 [profile.verbose]
 # Verbose profile for detailed debugging
 fail-fast = false

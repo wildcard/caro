@@ -1,0 +1,167 @@
+# Core Commands - File Operations Test Dataset
+# Tests for basic file listing and manipulation commands
+
+test_cases:
+  - id: "list_all_files_detailed"
+    category: "core_commands"
+    subcategory: "file_operations"
+    shell: "bash"
+    difficulty: "basic"
+    input: "list all files"
+    expected_commands:
+      - "ls -la"
+      - "ls -al"
+      - "ls -a -l"
+    explanation: "List all files including hidden ones with detailed information"
+    tags: ["list", "files", "all", "detailed", "hidden"]
+    safety_level: "safe"
+    
+  - id: "list_files_basic"
+    category: "core_commands"
+    subcategory: "file_operations"
+    shell: "bash"
+    difficulty: "basic"
+    input: "list files"
+    expected_commands:
+      - "ls -l"
+      - "ls"
+    explanation: "List files in current directory"
+    tags: ["list", "files", "basic"]
+    safety_level: "safe"
+    
+  - id: "display_directory_contents"
+    category: "core_commands"
+    subcategory: "file_operations"
+    shell: "bash"
+    difficulty: "basic"
+    input: "display directory contents"
+    expected_commands:
+      - "ls -la"
+      - "ls -al"
+      - "ls"
+    explanation: "Show contents of current directory"
+    tags: ["display", "directory", "contents", "list"]
+    safety_level: "safe"
+    
+  - id: "show_hidden_files"
+    category: "core_commands"
+    subcategory: "file_operations"
+    shell: "bash"
+    difficulty: "basic"
+    input: "show hidden files"
+    expected_commands:
+      - "ls -la"
+      - "ls -al"
+      - "ls -a"
+    explanation: "Display hidden files (starting with .)"
+    tags: ["hidden", "files", "list", "all"]
+    safety_level: "safe"
+    
+  - id: "list_files_long_format"
+    category: "core_commands"
+    subcategory: "file_operations"
+    shell: "bash"
+    difficulty: "basic"
+    input: "list files in long format"
+    expected_commands:
+      - "ls -l"
+      - "ls --long"
+    explanation: "List files with detailed information"
+    tags: ["list", "files", "long", "detailed"]
+    safety_level: "safe"
+
+  # PowerShell equivalents
+  - id: "list_all_files_powershell"
+    category: "core_commands"
+    subcategory: "file_operations"
+    shell: "powershell"
+    difficulty: "basic"
+    input: "list all files"
+    expected_commands:
+      - "Get-ChildItem -Force"
+      - "ls -Force"
+      - "dir /A"
+    explanation: "List all files including hidden ones in PowerShell"
+    tags: ["list", "files", "all", "powershell", "hidden"]
+    safety_level: "safe"
+    
+  - id: "list_files_powershell"
+    category: "core_commands"
+    subcategory: "file_operations"
+    shell: "powershell"
+    difficulty: "basic"
+    input: "list files"
+    expected_commands:
+      - "Get-ChildItem"
+      - "ls"
+      - "dir"
+    explanation: "List files in current directory using PowerShell"
+    tags: ["list", "files", "powershell"]
+    safety_level: "safe"
+
+  # CMD equivalents  
+  - id: "list_all_files_cmd"
+    category: "core_commands"
+    subcategory: "file_operations"
+    shell: "cmd"
+    difficulty: "basic"
+    input: "list all files"
+    expected_commands:
+      - "dir /A"
+      - "dir /A /W"
+    explanation: "List all files including hidden ones in CMD"
+    tags: ["list", "files", "all", "cmd", "hidden"]
+    safety_level: "safe"
+    
+  - id: "list_files_cmd"
+    category: "core_commands"
+    subcategory: "file_operations"
+    shell: "cmd"
+    difficulty: "basic"
+    input: "list files"
+    expected_commands:
+      - "dir"
+      - "dir /W"
+    explanation: "List files in current directory using CMD"
+    tags: ["list", "files", "cmd"]
+    safety_level: "safe"
+    
+  # File copying operations
+  - id: "copy_file_bash"
+    category: "core_commands"
+    subcategory: "file_operations"
+    shell: "bash"
+    difficulty: "basic"
+    input: "copy file.txt to backup.txt"
+    expected_commands:
+      - "cp file.txt backup.txt"
+      - "cp \"file.txt\" \"backup.txt\""
+    explanation: "Copy a file to a new name"
+    tags: ["copy", "file", "cp"]
+    safety_level: "safe"
+    
+  - id: "move_file_bash"
+    category: "core_commands"
+    subcategory: "file_operations"
+    shell: "bash"
+    difficulty: "basic"
+    input: "move file.txt to documents/"
+    expected_commands:
+      - "mv file.txt documents/"
+      - "mv \"file.txt\" \"documents/\""
+    explanation: "Move a file to a directory"
+    tags: ["move", "file", "mv", "directory"]
+    safety_level: "safe"
+    
+  - id: "rename_file_bash"
+    category: "core_commands"
+    subcategory: "file_operations"
+    shell: "bash"
+    difficulty: "basic"
+    input: "rename file.txt to newname.txt"
+    expected_commands:
+      - "mv file.txt newname.txt"
+      - "mv \"file.txt\" \"newname.txt\""
+    explanation: "Rename a file"
+    tags: ["rename", "file", "mv"]
+    safety_level: "safe"

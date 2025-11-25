@@ -1,0 +1,21 @@
+[package]
+name = "eval-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "Core data types and traits for cmdai evaluation framework"
+
+[dependencies]
+# Workspace dependencies
+serde.workspace = true
+serde_json.workspace = true
+serde_yaml.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+chrono.workspace = true
+regex.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

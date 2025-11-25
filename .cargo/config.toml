@@ -1,0 +1,42 @@
+# Clippy configuration for production safety
+[target.clippy]
+# Production safety lints - elevate to errors
+[target.clippy.env]
+RUSTFLAGS = "-D warnings"
+
+# Clippy lint configuration
+[build]
+rustflags = [
+    # Deny common safety issues
+    "-D", "clippy::unwrap_used",
+    "-D", "clippy::expect_used", 
+    "-D", "clippy::panic",
+    "-D", "clippy::unimplemented",
+    "-D", "clippy::todo",
+    
+    # Memory safety
+    "-D", "clippy::mem_forget",
+    "-D", "clippy::mem_replace_with_uninit",
+    
+    # Error handling
+    "-D", "clippy::result_unwrap_used",
+    "-D", "clippy::option_unwrap_used",
+    
+    # Security
+    "-D", "clippy::print_stdout",
+    "-D", "clippy::print_stderr",
+    "-W", "clippy::dbg_macro",
+    
+    # Performance
+    "-W", "clippy::inefficient_to_string",
+    "-W", "clippy::clone_on_ref_ptr",
+    
+    # Correctness
+    "-D", "clippy::float_cmp",
+    "-D", "clippy::lossy_float_literal",
+    
+    # Style and idioms
+    "-W", "clippy::explicit_iter_loop",
+    "-W", "clippy::map_unwrap_or",
+    "-W", "clippy::needless_pass_by_value",
+]

@@ -37,16 +37,31 @@ cargo-watch provides continuous test execution on file changes:
 
 ### Starting the Test Watch
 
-Launch cargo-watch in the background for continuous feedback:
+Use the comprehensive test watcher script for enhanced TDD workflow:
+
+```bash
+# Standard TDD mode with nextest, check, and clippy
+./scripts/test_watch.sh
+
+# Quick options
+./scripts/test_watch.sh --help          # Show all options
+./scripts/test_watch.sh --tests-only    # Only run tests
+./scripts/test_watch.sh --verbose       # Debug logging
+./scripts/test_watch.sh --quiet         # Minimal output
+```
+
+Or use basic cargo-watch:
 
 ```bash
 . "$HOME/.cargo/env" && cargo watch -x test
 ```
 
-This command:
-- Watches all Rust source files
-- Runs `cargo test` on any change
-- Provides immediate feedback on test status
+The enhanced watcher:
+- Uses nextest for faster test execution
+- Runs compilation checks, tests, and linting
+- Provides clear TDD cycle guidance
+- Supports multiple profiles and features
+- Shows comprehensive status reporting
 
 ### Checking Running Watches
 
@@ -537,9 +552,21 @@ async fn test_cli_startup_performance() {
 
 ## Quick Reference
 
-**Start watch**:
+**Start enhanced watch**:
+```bash
+./scripts/test_watch.sh
+```
+
+**Start basic watch**:
 ```bash
 . "$HOME/.cargo/env" && cargo watch -x test
+```
+
+**Nextest profiles**:
+```bash
+cargo nextest run --profile tdd     # Fast TDD feedback
+cargo nextest run --profile verbose # Detailed output
+cargo nextest run --profile ci      # CI-style comprehensive
 ```
 
 **Check watch status**:
