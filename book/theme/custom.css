@@ -1,0 +1,684 @@
+/* Custom styles for cmdai documentation */
+
+:root {
+    --cmdai-primary: #0066cc;
+    --cmdai-success: #28a745;
+    --cmdai-warning: #ffc107;
+    --cmdai-danger: #dc3545;
+    --cmdai-info: #17a2b8;
+    --cmdai-tip: #20c997;
+
+    /* Light mode colors */
+    --callout-info-bg: #e7f3ff;
+    --callout-info-border: #0066cc;
+    --callout-warning-bg: #fff3cd;
+    --callout-warning-border: #ff9800;
+    --callout-danger-bg: #f8d7da;
+    --callout-danger-border: #dc3545;
+    --callout-success-bg: #d4edda;
+    --callout-success-border: #28a745;
+    --callout-tip-bg: #d1ecf1;
+    --callout-tip-border: #20c997;
+}
+
+/* Dark mode adjustments */
+html[data-theme="navy"],
+html[data-theme="ayu"],
+html[data-theme="coal"] {
+    --callout-info-bg: rgba(0, 102, 204, 0.1);
+    --callout-info-border: #4da6ff;
+    --callout-warning-bg: rgba(255, 152, 0, 0.1);
+    --callout-warning-border: #ffb74d;
+    --callout-danger-bg: rgba(220, 53, 69, 0.1);
+    --callout-danger-border: #ff6b7a;
+    --callout-success-bg: rgba(40, 167, 69, 0.1);
+    --callout-success-border: #66bb6a;
+    --callout-tip-bg: rgba(32, 201, 151, 0.1);
+    --callout-tip-border: #4dd0e1;
+}
+
+/* =====================================================
+   CODE BLOCKS & SYNTAX HIGHLIGHTING
+   ===================================================== */
+
+.hljs {
+    border-radius: 6px;
+    padding: 1em !important;
+    line-height: 1.5;
+    font-size: 0.95em;
+    position: relative;
+    overflow-x: auto;
+}
+
+.hljs::-webkit-scrollbar {
+    height: 8px;
+}
+
+.hljs::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.hljs::-webkit-scrollbar-thumb {
+    background: var(--scrollbar);
+    border-radius: 4px;
+}
+
+/* Code copy button styling */
+.copy-button {
+    position: absolute;
+    top: 0.5em;
+    right: 0.5em;
+    padding: 0.4em 0.8em;
+    background-color: var(--inline-code-bg);
+    border: 1px solid var(--table-border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85em;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.copy-button:hover {
+    opacity: 1;
+}
+
+.copy-button.copied {
+    background-color: var(--cmdai-success);
+    color: white;
+}
+
+/* Code blocks in text */
+pre {
+    margin: 1.5em 0;
+}
+
+pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+/* Inline code */
+code {
+    background-color: var(--inline-code-bg);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-size: 0.9em;
+    font-family: 'Courier New', monospace;
+}
+
+pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+/* =====================================================
+   CALLOUT BOXES / ADMONITIONS
+   ===================================================== */
+
+blockquote {
+    border-left: 4px solid var(--quote-border);
+    padding: 0.5em 0 0.5em 1em;
+    margin: 1.5em 0;
+}
+
+/* Info callout - blue */
+.info {
+    background-color: var(--callout-info-bg);
+    border-left: 4px solid var(--callout-info-border);
+    padding: 1em;
+    margin: 1.5em 0;
+    border-radius: 4px;
+}
+
+.info strong::before {
+    content: "ℹ️ ";
+    margin-right: 0.5em;
+}
+
+/* Warning callout - orange */
+.warning {
+    background-color: var(--callout-warning-bg);
+    border-left: 4px solid var(--callout-warning-border);
+    padding: 1em;
+    margin: 1.5em 0;
+    border-radius: 4px;
+}
+
+.warning strong::before {
+    content: "⚠️ ";
+    margin-right: 0.5em;
+}
+
+/* Danger/Critical callout - red */
+.danger {
+    background-color: var(--callout-danger-bg);
+    border-left: 4px solid var(--callout-danger-border);
+    padding: 1em;
+    margin: 1.5em 0;
+    border-radius: 4px;
+}
+
+.danger strong::before {
+    content: "🚨 ";
+    margin-right: 0.5em;
+}
+
+/* Success callout - green */
+.success {
+    background-color: var(--callout-success-bg);
+    border-left: 4px solid var(--callout-success-border);
+    padding: 1em;
+    margin: 1.5em 0;
+    border-radius: 4px;
+}
+
+.success strong::before {
+    content: "✅ ";
+    margin-right: 0.5em;
+}
+
+/* Tip callout - cyan */
+.tip {
+    background-color: var(--callout-tip-bg);
+    border-left: 4px solid var(--callout-tip-border);
+    padding: 1em;
+    margin: 1.5em 0;
+    border-radius: 4px;
+}
+
+.tip strong::before {
+    content: "💡 ";
+    margin-right: 0.5em;
+}
+
+/* Note callout - gray */
+.note {
+    background-color: var(--quote-bg);
+    border-left: 4px solid var(--quote-border);
+    padding: 1em;
+    margin: 1.5em 0;
+    border-radius: 4px;
+}
+
+.note strong::before {
+    content: "📝 ";
+    margin-right: 0.5em;
+}
+
+/* =====================================================
+   STATUS BADGES & PILLS
+   ===================================================== */
+
+.badge {
+    display: inline-block;
+    padding: 0.3em 0.7em;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: 600;
+    margin: 0 0.25em;
+}
+
+.badge-info {
+    background-color: var(--callout-info-border);
+    color: white;
+}
+
+.badge-success {
+    background-color: var(--cmdai-success);
+    color: white;
+}
+
+.badge-warning {
+    background-color: var(--callout-warning-border);
+    color: white;
+}
+
+.badge-danger {
+    background-color: var(--callout-danger-border);
+    color: white;
+}
+
+.badge-tip {
+    background-color: var(--callout-tip-border);
+    color: white;
+}
+
+/* Status tags for project phases */
+.status-badge {
+    display: inline-block;
+    padding: 0.25em 0.6em;
+    border-radius: 10px;
+    font-size: 0.8em;
+    font-weight: 600;
+    margin-right: 0.5em;
+}
+
+.status-completed {
+    background-color: var(--cmdai-success);
+    color: white;
+}
+
+.status-inprogress {
+    background-color: var(--cmdai-warning);
+    color: #333;
+}
+
+.status-planned {
+    background-color: var(--cmdai-primary);
+    color: white;
+}
+
+/* =====================================================
+   TABLE STYLING
+   ===================================================== */
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1.5em 0;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+table thead {
+    background-color: var(--table-header-bg);
+    font-weight: 600;
+}
+
+table th {
+    padding: 0.75em;
+    text-align: left;
+    border: 1px solid var(--table-border-color);
+}
+
+table td {
+    padding: 0.75em;
+    border: 1px solid var(--table-border-color);
+}
+
+table tbody tr {
+    transition: background-color 0.2s;
+}
+
+table tbody tr:hover {
+    background-color: var(--quote-bg);
+}
+
+table code {
+    white-space: nowrap;
+}
+
+/* Responsive table wrapper */
+.table-wrapper {
+    overflow-x: auto;
+    margin: 1.5em 0;
+}
+
+/* =====================================================
+   NAVIGATION
+   ===================================================== */
+
+.sidebar {
+    font-size: 0.95em;
+    line-height: 1.6;
+}
+
+.chapter {
+    padding: 0.5em 0;
+}
+
+.chapter > a {
+    transition: color 0.2s;
+}
+
+.chapter > a:hover {
+    color: var(--cmdai-primary);
+}
+
+.section {
+    margin: 1em 0;
+}
+
+/* Breadcrumb styling */
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    margin-bottom: 1.5em;
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+.breadcrumb span {
+    display: flex;
+    align-items: center;
+    gap: 0.3em;
+}
+
+.breadcrumb a {
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+/* =====================================================
+   TYPOGRAPHY & SPACING
+   ===================================================== */
+
+body {
+    line-height: 1.65;
+    letter-spacing: 0.3px;
+}
+
+p {
+    margin: 1em 0;
+}
+
+/* Better spacing for lists */
+ul, ol {
+    line-height: 1.8;
+    margin: 1em 0;
+}
+
+li {
+    margin: 0.5em 0;
+}
+
+/* Enhance headers */
+h1 {
+    font-size: 2.2em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    font-weight: 700;
+}
+
+h2 {
+    font-size: 1.8em;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    font-weight: 700;
+    border-bottom: 2px solid var(--quote-bg);
+    padding-bottom: 0.3em;
+}
+
+h3 {
+    font-size: 1.4em;
+    margin-top: 1.3em;
+    margin-bottom: 0.4em;
+    font-weight: 600;
+}
+
+h4, h5, h6 {
+    margin-top: 1em;
+    margin-bottom: 0.4em;
+}
+
+/* Header links */
+a.header {
+    color: inherit;
+    text-decoration: none;
+}
+
+a.header:hover {
+    text-decoration: underline;
+}
+
+/* =====================================================
+   LINKS & BUTTONS
+   ===================================================== */
+
+a {
+    transition: color 0.2s;
+}
+
+a:hover {
+    color: var(--cmdai-primary);
+}
+
+button, .button {
+    padding: 0.5em 1.2em;
+    border: 1px solid var(--cmdai-primary);
+    border-radius: 4px;
+    background-color: var(--cmdai-primary);
+    color: white;
+    cursor: pointer;
+    font-size: 1em;
+    transition: all 0.2s;
+}
+
+button:hover, .button:hover {
+    opacity: 0.9;
+    box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
+}
+
+/* =====================================================
+   MOBILE RESPONSIVE DESIGN
+   ===================================================== */
+
+@media (max-width: 1024px) {
+    .main-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Reduce padding on mobile */
+    body {
+        font-size: 0.95em;
+    }
+
+    h1 {
+        font-size: 1.8em;
+    }
+
+    h2 {
+        font-size: 1.4em;
+    }
+
+    h3 {
+        font-size: 1.1em;
+    }
+
+    /* Responsive table - scroll on mobile */
+    table {
+        font-size: 0.9em;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table th,
+    table td {
+        padding: 0.5em;
+    }
+
+    /* Code blocks on mobile */
+    .hljs {
+        padding: 0.75em !important;
+        font-size: 0.85em;
+    }
+
+    /* Adjust copy button position */
+    .copy-button {
+        padding: 0.3em 0.6em;
+        font-size: 0.75em;
+    }
+
+    /* Callout boxes on mobile */
+    .info, .warning, .danger, .success, .tip, .note {
+        padding: 0.75em;
+        margin: 1em 0;
+    }
+
+    /* Sidebar adjustments */
+    .sidebar {
+        font-size: 0.9em;
+    }
+
+    /* Lists on mobile */
+    ul, ol {
+        padding-left: 1.5em;
+        line-height: 1.7;
+    }
+
+    /* Breadcrumb on mobile */
+    .breadcrumb {
+        font-size: 0.8em;
+        gap: 0.3em;
+    }
+
+    /* Header reduction on mobile */
+    h1, h2, h3, h4, h5, h6 {
+        margin-top: 1em;
+        margin-bottom: 0.3em;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Extra small screens */
+    body {
+        font-size: 0.9em;
+    }
+
+    h1 {
+        font-size: 1.5em;
+    }
+
+    h2 {
+        font-size: 1.2em;
+    }
+
+    h3 {
+        font-size: 1em;
+    }
+
+    /* Reduce padding even more */
+    table th,
+    table td {
+        padding: 0.4em;
+    }
+
+    .hljs {
+        padding: 0.5em !important;
+        font-size: 0.8em;
+    }
+
+    code {
+        font-size: 0.85em;
+        padding: 0.15em 0.3em;
+    }
+
+    /* Callout boxes */
+    .info, .warning, .danger, .success, .tip, .note {
+        padding: 0.5em;
+        margin: 0.75em 0;
+        border-left-width: 3px;
+    }
+
+    ul, ol {
+        padding-left: 1.2em;
+    }
+
+    li {
+        margin: 0.3em 0;
+    }
+}
+
+/* =====================================================
+   PRINT STYLES
+   ===================================================== */
+
+@media print {
+    .sidebar,
+    .page-navigation,
+    .nav-wide {
+        display: none;
+    }
+
+    .main {
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Improve code blocks for printing */
+    .hljs {
+        border: 1px solid #ccc;
+        page-break-inside: avoid;
+    }
+
+    /* Improve tables for printing */
+    table {
+        page-break-inside: avoid;
+    }
+
+    tr {
+        page-break-inside: avoid;
+    }
+
+    /* Better heading hierarchy */
+    h1 {
+        page-break-after: avoid;
+    }
+
+    h2 {
+        page-break-after: avoid;
+    }
+
+    /* Callout boxes for printing */
+    .info, .warning, .danger, .success, .tip, .note {
+        page-break-inside: avoid;
+        border: 1px solid #999;
+    }
+
+    a {
+        text-decoration: none;
+    }
+
+    a[href]::after {
+        content: none;
+    }
+}
+
+/* =====================================================
+   ACCESSIBILITY
+   ===================================================== */
+
+/* Focus states for keyboard navigation */
+a:focus,
+button:focus,
+.button:focus,
+input:focus,
+textarea:focus {
+    outline: 2px solid var(--cmdai-primary);
+    outline-offset: 2px;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: more) {
+    .hljs {
+        border: 1px solid var(--table-border-color);
+    }
+
+    table th,
+    table td {
+        border-width: 2px;
+    }
+
+    .info, .warning, .danger, .success, .tip, .note {
+        border-left-width: 5px;
+    }
+}

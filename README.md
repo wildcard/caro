@@ -39,6 +39,37 @@ This project is in **active early development**. The architecture and module str
 - Shell script generation
 - Command history and learning
 
+## 📚 Documentation
+
+**Comprehensive guides, tutorials, and community resources are now available!**
+
+[![Documentation](https://img.shields.io/badge/docs-mdBook-blue)](https://wildcard.github.io/cmdai/)
+[![Contributors](https://img.shields.io/github/contributors/wildcard/cmdai)](https://github.com/wildcard/cmdai/graphs/contributors)
+[![License](https://img.shields.io/badge/license-AGPL--3.0-green)](LICENSE)
+
+### Quick Links
+
+- **[Getting Started Guide](book/src/user-guide/getting-started.md)** - Installation, first commands, and basic usage
+- **[Interactive Tutorials](book/src/tutorial/first-command.md)** - Learn by doing with hands-on examples
+- **[What's Being Built](book/src/community/active-development.md)** - See current work and find ways to help
+- **[Contributing Guide](book/src/community/contributing.md)** - Join the community and make your first contribution
+- **[Contributor Showcase](book/src/community/contributors.md)** - Meet the amazing people building cmdai
+
+### For Developers
+
+- **[Architecture Overview](book/src/dev-guide/architecture.md)** - System design and module structure
+- **[Backend Development](book/src/dev-guide/backends.md)** - Build LLM integration backends
+- **[TDD Workflow](book/src/dev-guide/tdd-workflow.md)** - Test-driven development process
+- **[Rust Learnings](book/src/technical/rust-learnings.md)** - Lessons from building cmdai
+
+### Community Resources
+
+- **[Project Roadmap](book/src/community/roadmap.md)** - Long-term vision and upcoming features
+- **[Development Agents](book/src/community/agents.md)** - Specialized AI agents for different tasks
+- **[Documenting Your Work](book/src/community/documentation-guide.md)** - How to contribute to documentation
+
+The documentation is built with [mdBook](https://rust-lang.github.io/mdBook/) and deployed to GitHub Pages. You can build it locally with `mdbook serve` in the `book/` directory.
+
 ## ✨ Features (Planned & In Development)
 
 - 🚀 **Instant startup** - Single binary with <100ms cold start (target)
@@ -292,26 +323,35 @@ custom_patterns = ["additional", "dangerous", "patterns"]
 
 We welcome contributions! This is an early-stage project with many opportunities to contribute.
 
+**New to the project?** Check out our **[Contributor Welcome Kit](.github/WELCOME.md)** for a guided onboarding experience.
+
+### Quick Start for Contributors
+
+1. **Explore** - Read the [What's Being Built](book/src/community/active-development.md) page to see active work
+2. **Choose** - Find a task that interests you or check [good first issues](https://github.com/wildcard/cmdai/labels/good%20first%20issue)
+3. **Learn** - Read the [Contributing Guide](book/src/community/contributing.md) for detailed instructions
+4. **Build** - Follow the [TDD Workflow](book/src/dev-guide/tdd-workflow.md) for development
+5. **Document** - Use the [Documentation Guide](book/src/community/documentation-guide.md) to document your work
+6. **Share** - Submit a PR and see your work featured in the [Contributor Showcase](book/src/community/contributors.md)
+
 ### Areas for Contribution
 - 🔌 Backend implementations
 - 🛡️ Safety pattern definitions
 - 🧪 Test coverage expansion
 - 📚 Documentation improvements
 - 🐛 Bug fixes and optimizations
+- 🎨 UI/UX enhancements
+- 🌍 Internationalization
 
-### Getting Started
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes with tests
-4. Ensure all tests pass
-5. Submit a pull request
+### Why Contribute?
 
-### Development Guidelines
-- Follow Rust best practices
-- Add tests for new functionality
-- Update documentation as needed
-- Use conventional commit messages
-- Run `make check` before submitting
+- **Visible Impact** - Your work is showcased from day one in [What's Being Built](book/src/community/active-development.md)
+- **Recognition** - All contributors are celebrated in the [Contributor Showcase](book/src/community/contributors.md)
+- **Learning** - Gain experience with Rust, LLMs, and CLI development
+- **Community** - Join a welcoming community of developers
+- **Open Source** - Build your portfolio with meaningful contributions
+
+See our [Contributing Guide](book/src/community/contributing.md) for complete details and [Maintainer Guide](.github/MAINTAINERS.md) if you're helping with reviews.
 
 ## 📜 License
 
@@ -336,9 +376,14 @@ This project is licensed under the **GNU Affero General Public License v3.0 (AGP
 
 ## 📞 Support & Community
 
+- 📚 **Documentation**: [Full Documentation Site](https://wildcard.github.io/cmdai/)
 - 🐛 **Bug Reports**: [GitHub Issues](https://github.com/wildcard/cmdai/issues)
 - 💡 **Feature Requests**: [GitHub Discussions](https://github.com/wildcard/cmdai/discussions)
-- 📖 **Documentation**: See `/specs` directory for detailed specifications
+- 💬 **Questions**: [GitHub Discussions Q&A](https://github.com/wildcard/cmdai/discussions/categories/q-a)
+- 🚀 **What's Being Built**: [Active Development Dashboard](book/src/community/active-development.md)
+- 🌟 **Contributors**: [Contributor Showcase](book/src/community/contributors.md)
+
+Join our community and help shape the future of cmdai!
 
 ## 🗺️ Roadmap
 

@@ -52,10 +52,28 @@
 
 ### Documentation
 
+#### Code Documentation
 - [ ] I have added rustdoc comments for new public APIs
-- [ ] I have updated relevant documentation (README, specs, guides)
-- [ ] I have added examples to demonstrate new functionality (if applicable)
+- [ ] I have added module-level documentation (//! comments)
+- [ ] I have added code examples in documentation comments
+- [ ] I have documented error cases and safety considerations
+
+#### User Documentation
+- [ ] I have updated relevant user guides (if user-facing changes)
+- [ ] I have added usage examples to book/src/user-guide/ (if applicable)
+- [ ] I have updated README.md (if changing core features or installation)
+- [ ] I have added troubleshooting tips (if introducing new failure modes)
+
+#### Project Documentation
 - [ ] I have updated the CHANGELOG.md with my changes
+- [ ] I have added my work to "What's Being Built" (book/src/community/active-development.md)
+- [ ] I have updated the roadmap (if completing a milestone feature)
+- [ ] I have linked relevant documentation in this PR description
+
+#### Examples and Tutorials
+- [ ] I have added examples for new features
+- [ ] I have verified all code examples compile and work
+- [ ] I have considered whether a tutorial would help users (if major feature)
 
 ### TDD Workflow
 

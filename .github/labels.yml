@@ -1,0 +1,206 @@
+# GitHub Labels Configuration for cmdai
+#
+# This file defines labels for the cmdai project, with a focus on documentation
+# and community contributions.
+#
+# To sync labels with GitHub, use: https://github.com/marketplace/actions/github-labeler
+# Or manually create these labels in your repository settings
+
+# Documentation Labels
+- name: documentation
+  description: Improvements or additions to documentation
+  color: "0075ca"
+
+- name: tutorial
+  description: Tutorial or learning guide
+  color: "0075ca"
+
+- name: example
+  description: Code examples or demonstrations
+  color: "0075ca"
+
+- name: good-first-doc
+  description: Good first documentation contribution
+  color: "7057ff"
+
+- name: help-wanted-docs
+  description: Documentation help wanted
+  color: "008672"
+
+- name: docs-user-guide
+  description: User-facing documentation
+  color: "d4c5f9"
+
+- name: docs-dev-guide
+  description: Developer documentation
+  color: "d4c5f9"
+
+- name: docs-api
+  description: API reference documentation
+  color: "d4c5f9"
+
+- name: docs-outdated
+  description: Documentation that needs updating
+  color: "e99695"
+
+- name: docs-missing
+  description: Missing documentation
+  color: "e99695"
+
+# Priority Labels
+- name: priority-critical
+  description: Critical priority (P0)
+  color: "b60205"
+
+- name: priority-high
+  description: High priority (P1)
+  color: "d93f0b"
+
+- name: priority-medium
+  description: Medium priority (P2)
+  color: "fbca04"
+
+- name: priority-low
+  description: Low priority (P3)
+  color: "0e8a16"
+
+# Type Labels
+- name: bug
+  description: Something isn't working
+  color: "d73a4a"
+
+- name: enhancement
+  description: New feature or request
+  color: "a2eeef"
+
+- name: refactor
+  description: Code refactoring
+  color: "c5def5"
+
+- name: performance
+  description: Performance improvement
+  color: "f9d0c4"
+
+- name: security
+  description: Security issue or enhancement
+  color: "ee0701"
+
+# Backend Labels
+- name: backend-mlx
+  description: MLX backend (Apple Silicon)
+  color: "bfdadc"
+
+- name: backend-ollama
+  description: Ollama backend
+  color: "bfdadc"
+
+- name: backend-vllm
+  description: vLLM backend
+  color: "bfdadc"
+
+# Area Labels
+- name: area-safety
+  description: Command safety validation
+  color: "d4c5f9"
+
+- name: area-cli
+  description: Command-line interface
+  color: "d4c5f9"
+
+- name: area-cache
+  description: Model caching
+  color: "d4c5f9"
+
+- name: area-config
+  description: Configuration management
+  color: "d4c5f9"
+
+# Status Labels
+- name: status-blocked
+  description: Blocked by another issue or dependency
+  color: "e99695"
+
+- name: status-in-progress
+  description: Work is in progress
+  color: "fbca04"
+
+- name: status-needs-review
+  description: Needs review
+  color: "0e8a16"
+
+- name: status-needs-testing
+  description: Needs manual testing
+  color: "f9d0c4"
+
+# Community Labels
+- name: good-first-issue
+  description: Good for newcomers
+  color: "7057ff"
+
+- name: help-wanted
+  description: Extra attention is needed
+  color: "008672"
+
+- name: question
+  description: Further information is requested
+  color: "d876e3"
+
+- name: discussion
+  description: Needs discussion or feedback
+  color: "cc317c"
+
+# Workflow Labels
+- name: needs-triage
+  description: Needs initial review and categorization
+  color: "ededed"
+
+- name: duplicate
+  description: This issue or pull request already exists
+  color: "cfd3d7"
+
+- name: wontfix
+  description: This will not be worked on
+  color: "ffffff"
+
+- name: invalid
+  description: This doesn't seem right
+  color: "e4e669"
+
+# Special Labels
+- name: breaking-change
+  description: Breaking API change
+  color: "b60205"
+
+- name: dependencies
+  description: Pull requests that update a dependency file
+  color: "0366d6"
+
+- name: tests
+  description: Related to testing
+  color: "c5def5"
+
+- name: ci-cd
+  description: Continuous integration/deployment
+  color: "c5def5"
+
+# Platform Labels
+- name: platform-macos
+  description: macOS specific
+  color: "bfd4f2"
+
+- name: platform-linux
+  description: Linux specific
+  color: "bfd4f2"
+
+- name: platform-windows
+  description: Windows specific
+  color: "bfd4f2"
+
+# Recognition Labels
+- name: documentation-champion
+  description: Exceptional documentation contribution
+  color: "fef2c0"
+
+- name: significant-contribution
+  description: Major contribution to the project
+  color: "fef2c0"

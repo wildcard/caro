@@ -1,0 +1,50 @@
+[book]
+title = "cmdai Documentation"
+authors = ["cmdai Contributors"]
+description = "Fast, safe command generation using local LLMs"
+language = "en"
+src = "src"
+
+[build]
+build-dir = "book"
+create-missing = true
+
+[preprocessor.links]
+
+[output.html]
+default-theme = "rust"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/wildcard/cmdai"
+edit-url-template = "https://github.com/wildcard/cmdai/edit/main/book/{path}"
+additional-css = ["theme/custom.css"]
+additional-js = ["theme/custom.js"]
+mathjax-support = false
+site-url = "https://docs.cmdai.io/"
+
+[output.html.search]
+enable = true
+limit-results = 30
+teaser-word-count = 30
+use-boolean-and = true
+boost-title = 2
+boost-hierarchy = 1
+boost-paragraph = 1
+expand = true
+heading-split-level = 3
+
+[output.html.fold]
+enable = true
+level = 0
+
+[output.html.playground]
+editable = false
+copyable = true
+copy-js = true
+line-numbers = true
+
+[output.html.print]
+enable = true
+
+[output.html.redirect]
+# Redirect legacy URLs if needed
+# "/old/path/" = "/new/path/"

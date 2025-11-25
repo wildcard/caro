@@ -1,0 +1,134 @@
+name: Documentation Issue
+description: Report a documentation issue or suggest improvements
+title: "[DOCS]: "
+labels: ["documentation", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve cmdai documentation! 📚
+
+        Good documentation makes the project accessible to everyone. Whether you found a typo,
+        unclear explanation, missing example, or have an idea for better organization - we want to hear about it!
+
+  - type: dropdown
+    id: doc-type
+    attributes:
+      label: Documentation Type
+      description: What kind of documentation is affected?
+      options:
+        - User Guide (how to use cmdai)
+        - Developer Guide (contributing to cmdai)
+        - API Reference (code documentation)
+        - Tutorial (step-by-step guides)
+        - Examples (code examples)
+        - README or top-level docs
+        - Community docs (roadmap, contributing, etc.)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue-category
+    attributes:
+      label: Issue Category
+      description: What kind of issue is this?
+      options:
+        - Incorrect information
+        - Unclear or confusing
+        - Missing documentation
+        - Outdated documentation
+        - Broken links or formatting
+        - Typo or grammar
+        - Organization or structure
+        - Missing examples
+        - Accessibility issue
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: doc-location
+    attributes:
+      label: Documentation Location
+      description: Where is this documentation located? (e.g., book/src/user-guide/installation.md, README.md, code comments)
+      placeholder: "book/src/user-guide/backends.md"
+    validations:
+      required: false
+
+  - type: textarea
+    id: current-state
+    attributes:
+      label: Current State
+      description: What does the documentation currently say? (paste the relevant section or describe it)
+      placeholder: |
+        Current documentation says:
+        "Run cmdai with the MLX backend..."
+
+        But it doesn't explain how to install MLX or what systems it works on.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-state
+    attributes:
+      label: Expected or Desired State
+      description: What should it say instead? How could it be improved?
+      placeholder: |
+        Should include:
+        1. System requirements for MLX (Apple Silicon)
+        2. Installation instructions
+        3. Example of how to use it
+        4. What to do if it's not available
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any other context that would help us improve this documentation?
+      placeholder: |
+        - User perspective: I'm a beginner and found this confusing
+        - Related issues: #123
+        - Similar good examples: The Ollama backend docs are clearer
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Would you like to help fix this?
+      options:
+        - label: I'd like to submit a PR to fix this documentation issue
+          required: false
+        - label: I need help understanding how to contribute documentation
+          required: false
+
+  - type: textarea
+    id: related-areas
+    attributes:
+      label: Related Documentation
+      description: Are there other documentation pages that might need similar updates?
+      placeholder: |
+        - book/src/user-guide/backends.md
+        - book/src/dev-guide/backend-development.md
+        - README.md installation section
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+
+        ## Next Steps
+
+        After submitting this issue:
+        1. We'll triage and label it appropriately
+        2. If you want to help, check out our [Documentation Guide](https://wildcard.github.io/cmdai/community/documentation-guide.html)
+        3. Join the discussion in [GitHub Discussions](https://github.com/wildcard/cmdai/discussions)
+
+        Thank you for helping make cmdai documentation better! 🙏

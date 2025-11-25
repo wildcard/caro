@@ -1,0 +1,177 @@
+name: Tutorial Request
+description: Request a new tutorial or learning guide
+title: "[TUTORIAL]: "
+labels: ["tutorial", "documentation", "enhancement"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new tutorial! 📖
+
+        Tutorials help users learn cmdai effectively. Your suggestion helps us understand
+        what learning resources would be most valuable to the community.
+
+  - type: input
+    id: tutorial-title
+    attributes:
+      label: Tutorial Title
+      description: What would you call this tutorial?
+      placeholder: "Getting Started with MLX Backend on Apple Silicon"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: skill-level
+    attributes:
+      label: Target Skill Level
+      description: Who is this tutorial for?
+      options:
+        - Beginner (new to cmdai)
+        - Intermediate (familiar with basics)
+        - Advanced (experienced users)
+        - All levels
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tutorial-category
+    attributes:
+      label: Tutorial Category
+      description: What area does this tutorial cover?
+      options:
+        - Installation and Setup
+        - Basic Usage
+        - Backend Configuration
+        - Safety and Validation
+        - Model Management
+        - Advanced Features
+        - Integration with Other Tools
+        - Troubleshooting
+        - Development and Contributing
+        - Performance Optimization
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: learning-goals
+    attributes:
+      label: Learning Goals
+      description: What should users be able to do after completing this tutorial?
+      placeholder: |
+        After completing this tutorial, users will be able to:
+        - Install and configure the MLX backend on Apple Silicon
+        - Verify their setup is working correctly
+        - Understand when to use MLX vs other backends
+        - Optimize performance for their specific hardware
+    validations:
+      required: true
+
+  - type: textarea
+    id: tutorial-outline
+    attributes:
+      label: Suggested Tutorial Outline
+      description: What topics or steps should this tutorial cover?
+      placeholder: |
+        1. Prerequisites and system requirements
+        2. Installing MLX dependencies
+        3. Configuring cmdai for MLX
+        4. Running your first command
+        5. Performance benchmarks
+        6. Troubleshooting common issues
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case / Motivation
+      description: Why is this tutorial needed? What problem does it solve?
+      placeholder: |
+        Many Apple Silicon users want to use local models for privacy and performance,
+        but the setup process isn't clearly documented. This tutorial would provide
+        a complete, step-by-step guide specifically for macOS users.
+    validations:
+      required: true
+
+  - type: textarea
+    id: existing-docs
+    attributes:
+      label: Existing Documentation
+      description: Is there any existing documentation that partially covers this? What's missing?
+      placeholder: |
+        The README mentions MLX backend, but doesn't provide setup instructions.
+        The developer guide covers backend architecture, but not user-facing setup.
+    validations:
+      required: false
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Key Examples to Include
+      description: What specific examples would make this tutorial more helpful?
+      placeholder: |
+        - Example command for basic file listing
+        - Example showing performance comparison
+        - Example of handling errors when MLX isn't available
+        - Real-world use case (e.g., scripting workflow)
+    validations:
+      required: false
+
+  - type: dropdown
+    id: format-preference
+    attributes:
+      label: Preferred Format
+      description: How should this tutorial be delivered?
+      options:
+        - Step-by-step written guide
+        - Interactive example with explanations
+        - Video walkthrough (with written transcript)
+        - Quickstart guide (brief)
+        - In-depth guide (comprehensive)
+        - No preference
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Would you like to help create this tutorial?
+      options:
+        - label: I'd like to write this tutorial (with guidance)
+          required: false
+        - label: I can provide technical review for this tutorial
+          required: false
+        - label: I can test this tutorial and provide feedback
+          required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other information that would help us create this tutorial?
+      placeholder: |
+        - Similar tutorials from other projects that work well
+        - Common questions you've seen in the community
+        - Pain points you experienced when learning this
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+
+        ## Next Steps
+
+        After submitting this request:
+        1. Community members can discuss and refine the tutorial scope
+        2. Someone from the team or community can volunteer to write it
+        3. We'll track progress in our [documentation roadmap](https://wildcard.github.io/cmdai/community/roadmap.html)
+
+        Want to help write it? Check out our [Tutorial Writing Guide](https://wildcard.github.io/cmdai/community/documentation-guide.html)!
+
+        Thank you for helping us improve cmdai's learning resources! 🎓
