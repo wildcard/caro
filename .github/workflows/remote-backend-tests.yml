@@ -1,0 +1,377 @@
+name: Remote Backend Tests
+
+on:
+  schedule:
+    # Run weekly on Sunday at 3 AM UTC
+    - cron: '0 3 * * 0'
+
+  workflow_dispatch:
+    # Allow manual trigger
+    inputs:
+      backend:
+        description: 'Backend to test'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'ollama'
+          - 'vllm'
+          - 'fallback-only'
+
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/backends/remote/**'
+      - 'tests/remote/**'
+      - '.github/workflows/remote-backend-tests.yml'
+
+env:
+  RUST_BACKTRACE: 1
+  CARGO_TERM_COLOR: always
+  RUST_LOG: info
+
+jobs:
+  ollama-integration:
+    name: Ollama Backend Integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      ollama:
+        image: ollama/ollama:latest
+        ports:
+          - 11434:11434
+        options: >-
+          --health-cmd "curl -f http://localhost:11434/api/tags || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/
+          key: ${{ runner.os }}-cargo-remote-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Wait for Ollama to be ready
+        run: |
+          echo "Waiting for Ollama service to be ready..."
+          timeout 60 bash -c 'until curl -s http://localhost:11434/api/tags; do sleep 2; done'
+          echo "✅ Ollama is ready"
+
+      - name: Pull Ollama model
+        run: |
+          echo "Pulling qwen2.5-coder:0.5b model..."
+          docker exec ${{ job.services.ollama.id }} ollama pull qwen2.5-coder:0.5b
+          echo "✅ Model pulled successfully"
+
+      - name: Test Ollama API
+        run: |
+          echo "Testing Ollama API..."
+          curl -X POST http://localhost:11434/api/generate \
+            -H "Content-Type: application/json" \
+            -d '{
+              "model": "qwen2.5-coder:0.5b",
+              "prompt": "Say hello",
+              "stream": false
+            }' | jq '.'
+
+      - name: Build with remote backends
+        run: cargo build --features remote-backends,remote-tests --release
+
+      - name: Run Ollama integration tests
+        run: |
+          cargo test --features remote-backends,remote-tests \
+                     --test remote \
+                     -- --ignored --nocapture \
+                     test_ollama
+        env:
+          OLLAMA_HOST: http://localhost:11434
+          OLLAMA_MODEL: qwen2.5-coder:0.5b
+        timeout-minutes: 15
+
+      - name: Test Ollama failure scenarios
+        run: |
+          # Stop Ollama to test error handling
+          docker stop ${{ job.services.ollama.id }}
+
+          # Run error handling tests
+          cargo test --features remote-backends,remote-tests \
+                     --test remote \
+                     -- --ignored \
+                     test_ollama_connection_failure || true
+        continue-on-error: true
+
+      - name: Upload Ollama test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ollama-test-results
+          path: target/debug/
+          retention-days: 7
+
+  vllm-simulation:
+    name: vLLM Backend Simulation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/
+          key: ${{ runner.os }}-cargo-remote-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Setup mock vLLM server
+        run: |
+          # Install Python for mock server
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-pip
+
+          # Create simple mock vLLM server
+          cat > mock_vllm_server.py <<'EOF'
+          from http.server import HTTPServer, BaseHTTPRequestHandler
+          import json
+
+          class MockVLLMHandler(BaseHTTPRequestHandler):
+              def do_POST(self):
+                  if self.path == '/v1/chat/completions':
+                      content_length = int(self.headers['Content-Length'])
+                      post_data = self.rfile.read(content_length)
+
+                      # Mock response
+                      response = {
+                          "id": "mock-id",
+                          "object": "chat.completion",
+                          "created": 1234567890,
+                          "model": "qwen2.5-coder",
+                          "choices": [{
+                              "index": 0,
+                              "message": {
+                                  "role": "assistant",
+                                  "content": '{"cmd": "ls -la"}'
+                              },
+                              "finish_reason": "stop"
+                          }]
+                      }
+
+                      self.send_response(200)
+                      self.send_header('Content-Type', 'application/json')
+                      self.end_headers()
+                      self.wfile.write(json.dumps(response).encode())
+
+              def log_message(self, format, *args):
+                  # Suppress logs
+                  pass
+
+          if __name__ == '__main__':
+              server = HTTPServer(('localhost', 8000), MockVLLMHandler)
+              print('Mock vLLM server running on http://localhost:8000')
+              server.serve_forever()
+          EOF
+
+          # Start mock server in background
+          python3 mock_vllm_server.py &
+          sleep 2
+
+          # Test mock server
+          curl -X POST http://localhost:8000/v1/chat/completions \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer test-key" \
+            -d '{
+              "model": "qwen2.5-coder",
+              "messages": [{"role": "user", "content": "test"}]
+            }' | jq '.'
+
+      - name: Build with remote backends
+        run: cargo build --features remote-backends,remote-tests
+
+      - name: Run vLLM integration tests
+        run: |
+          cargo test --features remote-backends,remote-tests \
+                     --test remote \
+                     -- --ignored --nocapture \
+                     test_vllm || true
+        env:
+          VLLM_API_URL: http://localhost:8000
+          VLLM_API_KEY: test-key
+        continue-on-error: true
+
+  fallback-scenarios:
+    name: Backend Fallback Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/
+          key: ${{ runner.os }}-cargo-remote-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache embedded model
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/cmdai/models
+          key: v1-models-0.5B-${{ hashFiles('src/backends/embedded/config.rs') }}
+
+      - name: Setup embedded model for fallback
+        run: |
+          chmod +x .github/scripts/setup-inference-model.sh
+          .github/scripts/setup-inference-model.sh
+        env:
+          MODEL_SIZE: "0.5B"
+
+      - name: Build with all backends
+        run: cargo build --features slow-tests,remote-backends,remote-tests --release
+
+      - name: Test fallback: Ollama unavailable → Embedded
+        run: |
+          cargo test --features slow-tests,remote-backends,remote-tests \
+                     --test remote \
+                     -- --ignored --nocapture \
+                     test_ollama_fallback_to_embedded
+        env:
+          OLLAMA_HOST: http://localhost:99999  # Invalid host
+        timeout-minutes: 10
+
+      - name: Test fallback: vLLM network error → Embedded
+        run: |
+          cargo test --features slow-tests,remote-backends,remote-tests \
+                     --test remote \
+                     -- --ignored --nocapture \
+                     test_vllm_fallback_to_embedded
+        env:
+          VLLM_API_URL: http://unreachable.example.com
+        timeout-minutes: 10
+        continue-on-error: true
+
+      - name: Test backend priority chain
+        run: |
+          cargo test --features slow-tests,remote-backends,remote-tests \
+                     --test remote \
+                     -- --ignored --nocapture \
+                     test_backend_priority_chain
+        timeout-minutes: 10
+        continue-on-error: true
+
+      - name: Upload fallback test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fallback-test-results
+          path: target/debug/
+          retention-days: 7
+
+  network-resilience:
+    name: Network Resilience Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/
+          key: ${{ runner.os }}-cargo-remote-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables
+
+      - name: Build with remote backends
+        run: cargo build --features remote-backends,remote-tests
+
+      - name: Test timeout handling
+        run: |
+          cargo test --features remote-backends,remote-tests \
+                     --test remote \
+                     -- --ignored --nocapture \
+                     test_request_timeout
+        continue-on-error: true
+
+      - name: Test retry logic
+        run: |
+          cargo test --features remote-backends,remote-tests \
+                     --test remote \
+                     -- --ignored --nocapture \
+                     test_retry_logic
+        continue-on-error: true
+
+      - name: Test rate limiting
+        run: |
+          cargo test --features remote-backends,remote-tests \
+                     --test remote \
+                     -- --ignored --nocapture \
+                     test_rate_limiting
+        continue-on-error: true
+
+  summary:
+    name: Remote Backend Test Summary
+    runs-on: ubuntu-latest
+    needs: [ollama-integration, vllm-simulation, fallback-scenarios, network-resilience]
+    if: always()
+
+    steps:
+      - name: Generate summary
+        run: |
+          echo "# Remote Backend Tests Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow**: ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Date**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Ollama Integration: ${{ needs.ollama-integration.result == 'success' && '✅ Passed' || '❌ Failed' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- vLLM Simulation: ${{ needs.vllm-simulation.result == 'success' && '✅ Passed' || '⚠️ Issues Detected' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Fallback Scenarios: ${{ needs.fallback-scenarios.result == 'success' && '✅ Passed' || '⚠️ Issues Detected' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Network Resilience: ${{ needs.network-resilience.result == 'success' && '✅ Passed' || '⚠️ Issues Detected' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 View detailed results in workflow artifacts" >> $GITHUB_STEP_SUMMARY
+
+      - name: Check critical failures
+        if: needs.ollama-integration.result == 'failure' || needs.fallback-scenarios.result == 'failure'
+        run: |
+          echo "❌ Critical remote backend tests failed"
+          exit 1

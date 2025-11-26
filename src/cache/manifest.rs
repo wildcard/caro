@@ -47,7 +47,8 @@ impl ManifestManager {
 
     /// Load manifest from disk
     fn load_manifest(path: &PathBuf) -> Result<CacheManifest, CacheError> {
-        let contents = std::fs::read_to_string(path)?;
+        let contents = std::fs::read_to_string(path)
+            .map_err(|e| CacheError::from_io_error(e, path.clone()))?;
         serde_json::from_str(&contents)
             .map_err(|e| CacheError::ManifestError(format!("Failed to parse manifest: {}", e)))
     }
@@ -60,7 +61,8 @@ impl ManifestManager {
             CacheError::ManifestError(format!("Failed to serialize manifest: {}", e))
         })?;
 
-        std::fs::write(&self.manifest_path, contents)?;
+        std::fs::write(&self.manifest_path, contents)
+            .map_err(|e| CacheError::from_io_error(e, self.manifest_path.clone()))?;
 
         Ok(())
     }

@@ -24,9 +24,7 @@ impl CpuBackend {
     /// Create a new CPU backend with the given model path
     pub fn new(model_path: PathBuf) -> Result<Self, GeneratorError> {
         if model_path.to_str().unwrap_or("").is_empty() {
-            return Err(GeneratorError::ConfigError {
-                message: "Model path cannot be empty".to_string(),
-            });
+            return Err(GeneratorError::config_error("Model path cannot be empty"));
         }
 
         Ok(Self {
@@ -44,14 +42,12 @@ impl InferenceBackend for CpuBackend {
             let model_state = self
                 .model_state
                 .lock()
-                .map_err(|_| GeneratorError::Internal {
-                    message: "Failed to acquire model state lock".to_string(),
-                })?;
+                .map_err(|_| GeneratorError::internal("Failed to acquire model state lock"))?;
 
             if model_state.is_none() {
-                return Err(GeneratorError::GenerationFailed {
-                    details: "Model not loaded. Call load() first".to_string(),
-                });
+                return Err(GeneratorError::generation_failed(
+                    "Model not loaded. Call load() first",
+                ));
             }
         } // Lock is released here
 
@@ -90,9 +86,7 @@ impl InferenceBackend for CpuBackend {
             let model_state = self
                 .model_state
                 .lock()
-                .map_err(|_| GeneratorError::Internal {
-                    message: "Failed to acquire model state lock".to_string(),
-                })?;
+                .map_err(|_| GeneratorError::internal("Failed to acquire model state lock"))?;
 
             if model_state.is_some() {
                 tracing::debug!("CPU model already loaded");
@@ -102,9 +96,10 @@ impl InferenceBackend for CpuBackend {
 
         // Check if model file exists
         if !self.model_path.exists() {
-            return Err(GeneratorError::GenerationFailed {
-                details: format!("Model file not found: {}", self.model_path.display()),
-            });
+            return Err(GeneratorError::generation_failed(&format!(
+                "Model file not found: {}",
+                self.model_path.display()
+            )));
         }
 
         // Simulate model loading time (CPU loading is typically slower)
@@ -112,12 +107,10 @@ impl InferenceBackend for CpuBackend {
 
         // Set the model as loaded
         {
-            let mut model_state =
-                self.model_state
-                    .lock()
-                    .map_err(|_| GeneratorError::Internal {
-                        message: "Failed to acquire model state lock".to_string(),
-                    })?;
+            let mut model_state = self
+                .model_state
+                .lock()
+                .map_err(|_| GeneratorError::internal("Failed to acquire model state lock"))?;
             *model_state = Some(CandleModelState { loaded: true });
         } // Lock released here
 
@@ -131,9 +124,7 @@ impl InferenceBackend for CpuBackend {
             let model_state = self
                 .model_state
                 .lock()
-                .map_err(|_| GeneratorError::Internal {
-                    message: "Failed to acquire model state lock".to_string(),
-                })?;
+                .map_err(|_| GeneratorError::internal("Failed to acquire model state lock"))?;
 
             if model_state.is_none() {
                 tracing::debug!("CPU model already unloaded");
@@ -146,12 +137,10 @@ impl InferenceBackend for CpuBackend {
 
         // Unload the model
         {
-            let mut model_state =
-                self.model_state
-                    .lock()
-                    .map_err(|_| GeneratorError::Internal {
-                        message: "Failed to acquire model state lock".to_string(),
-                    })?;
+            let mut model_state = self
+                .model_state
+                .lock()
+                .map_err(|_| GeneratorError::internal("Failed to acquire model state lock"))?;
             *model_state = None;
         } // Lock released here
 
