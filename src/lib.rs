@@ -27,6 +27,7 @@ pub mod backends;
 pub mod cache;
 pub mod cli;
 pub mod config;
+pub mod demo;
 pub mod execution;
 pub mod logging;
 pub mod model_loader;

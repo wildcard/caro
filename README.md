@@ -127,9 +127,10 @@ cmdai --verbose "search for Python files"
 | `-v, --verbose` | Enable verbose output with timing | ✅ Implemented |
 | `-c, --config <FILE>` | Custom configuration file | ✅ Implemented |
 | `--show-config` | Display current configuration | ✅ Implemented |
+| `--demo` | Enable demo mode for showcasing capabilities | ✅ Implemented |
+| `--demo-output <FILE>` | Save demo session to asciinema format | ✅ Implemented |
 | `--auto` | Execute without confirmation | 📅 Planned |
 | `--allow-dangerous` | Allow potentially dangerous commands | 📅 Planned |
-| `--verbose` | Enable verbose logging | ✅ Available |
 
 ### Examples (Target Functionality)
 
@@ -142,6 +143,70 @@ cmdai --backend mlx "find large log files"
 
 # Verbose mode for debugging
 cmdai --verbose "show disk usage"
+```
+
+### 🎯 Demo Mode
+
+Demo mode is designed to showcase cmdai's capabilities in the best possible light, perfect for presentations, marketing, or converting users into contributors.
+
+**Features:**
+- 🎨 Enhanced visual output with rich formatting
+- 💡 Multiple high-quality command alternatives (3-5 options)
+- 📚 Detailed educational explanations
+- 🎓 Suggested follow-up commands to explore
+- 😎 Sassy/critical responses to inappropriate requests
+- 📼 ASCII cinema recording for creating marketing videos
+
+**Usage:**
+```bash
+# Basic demo mode
+cmdai --demo "list all files"
+
+# Demo mode with recording
+cmdai --demo --demo-output demo.cast "find large files"
+
+# Play the recording
+asciinema play demo.cast
+```
+
+**Demo Mode Behavior:**
+- Generates impressive showcase commands even for simple requests
+- Provides critical feedback for off-topic or trivial requests
+- Redirects users to explore cmdai's actual capabilities
+- Suggests powerful commands that highlight key features
+- Perfect for creating marketing materials and tutorials
+
+**Example Demo Output:**
+```bash
+$ cmdai --demo "list files"
+
+═══════════════════════════════════════════════════════
+            🎯 CMDAI DEMO MODE ACTIVATED 🎯
+═══════════════════════════════════════════════════════
+
+╔═══════════════════════════════════════════════════════╗
+║                  GENERATED COMMAND                    ║
+╚═══════════════════════════════════════════════════════╝
+
+  ls -lAh --color=auto --group-directories-first
+
+┌─ DETAILED EXPLANATION ─────────────────────────────┐
+│ This command showcases multiple POSIX features:
+│ • -l: Long format with permissions, size, timestamps
+│ • -A: Show hidden files (except . and ..)
+│ • -h: Human-readable sizes (KB, MB, GB)
+│ • --color: Color-coded output
+│ • --group-directories-first: Organized layout
+└────────────────────────────────────────────────────┘
+
+🎯 ALTERNATIVE APPROACHES:
+  1. find . -maxdepth 1 -type f -ls
+  2. tree -L 1 -h --dirsfirst
+  3. exa -la --group-directories-first --git
+
+💡 SUGGESTED NEXT STEPS:
+   • Try: 'find all PDF files larger than 10MB'
+   • Try: 'show top 5 memory-consuming processes'
 ```
 
 ## 🏗️ Architecture

@@ -24,6 +24,11 @@ cmdai/
 │   │   ├── mlx.rs          # Apple Silicon MLX backend (FFI)
 │   │   ├── vllm.rs         # vLLM HTTP API backend
 │   │   └── ollama.rs       # Ollama local backend
+│   ├── demo/               # Demo mode for showcasing capabilities
+│   │   ├── mod.rs          # Demo orchestrator
+│   │   ├── agent.rs        # Demo-specific command generator
+│   │   ├── prompts.rs      # Showcase-focused prompts
+│   │   └── recorder.rs     # ASCII cinema recording
 │   ├── cache/              # Hugging Face model caching
 │   ├── safety/             # Command validation and safety checks
 │   └── config/             # Configuration management
@@ -55,6 +60,15 @@ Safety module provides:
 - Conditional compilation with feature flags
 - Cross-platform cache directory management
 - Shell-specific optimizations and detection
+
+### Demo Mode
+Demo mode is a special feature designed to showcase cmdai's capabilities:
+- **Enhanced Agent**: Generates multiple high-quality alternatives (3-5 options)
+- **Critical Responses**: Sassy/snarky feedback for inappropriate requests
+- **Educational Output**: Detailed explanations showcasing tool understanding
+- **Suggestions**: Follow-up commands that highlight key features
+- **Recording**: ASCII cinema format for marketing/demo videos
+- **Visual Enhancement**: Rich terminal formatting with colors and boxes
 
 ## Development Commands
 
