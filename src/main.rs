@@ -51,6 +51,18 @@ struct Cli {
     /// Show configuration information
     #[arg(long, help = "Show current configuration and exit")]
     show_config: bool,
+
+    /// Enable demo mode with enhanced output and command suggestions
+    #[arg(long, help = "Enable demo mode for showcasing capabilities")]
+    demo: bool,
+
+    /// Output file for demo recording (ASCII cinema format)
+    #[arg(
+        long,
+        help = "Save demo session to file in asciinema format",
+        requires = "demo"
+    )]
+    demo_output: Option<String>,
 }
 
 impl IntoCliArgs for Cli {
@@ -80,6 +92,14 @@ impl IntoCliArgs for Cli {
 
     fn config_file(&self) -> Option<String> {
         self.config_file.clone()
+    }
+
+    fn demo(&self) -> bool {
+        self.demo
+    }
+
+    fn demo_output(&self) -> Option<String> {
+        self.demo_output.clone()
     }
 }
 
@@ -152,6 +172,11 @@ async fn main() {
 }
 
 async fn run_cli(cli: &Cli) -> Result<(), CliError> {
+    // Check if demo mode is enabled
+    if cli.demo {
+        return run_demo_mode(cli).await;
+    }
+
     // Create CLI application
     let app = CliApp::new().await?;
 
@@ -176,6 +201,110 @@ async fn run_cli(cli: &Cli) -> Result<(), CliError> {
             print_plain_output(&result, cli).await?;
         }
     }
+
+    Ok(())
+}
+
+async fn run_demo_mode(cli: &Cli) -> Result<(), CliError> {
+    use cmdai::demo::DemoMode;
+    use std::path::PathBuf;
+
+    // Print demo mode banner
+    print_demo_banner();
+
+    // Create demo mode with optional recording
+    let output_file = cli.demo_output.as_ref().map(PathBuf::from);
+    let mut demo = DemoMode::new(output_file.clone())?;
+
+    // Create CLI application for validation
+    let app = CliApp::new().await?;
+
+    // Run command generation in demo mode
+    let result = app.run_with_args_demo(cli.clone(), &mut demo).await?;
+
+    // Display result (always in plain format for demo)
+    print_demo_output(&result, cli).await?;
+
+    // Save recording if enabled
+    if output_file.is_some() {
+        demo.save_recording()?;
+        if let Some(path) = output_file {
+            println!();
+            println!("📼 Demo recording saved to: {}", path.display());
+            println!("   Play with: asciinema play {}", path.display());
+        }
+    }
+
+    Ok(())
+}
+
+fn print_demo_banner() {
+    use colored::Colorize;
+
+    println!();
+    println!("{}", "═══════════════════════════════════════════════════════".bright_cyan());
+    println!("{}", "            🎯 CMDAI DEMO MODE ACTIVATED 🎯            ".bright_cyan().bold());
+    println!("{}", "═══════════════════════════════════════════════════════".bright_cyan());
+    println!();
+    println!("{}", "  Showcasing the best of cmdai's capabilities!".yellow());
+    println!("{}", "  Watch as we generate intelligent shell commands...".yellow());
+    println!();
+}
+
+async fn print_demo_output(result: &cmdai::cli::CliResult, _cli: &Cli) -> Result<(), CliError> {
+    use colored::Colorize;
+
+    // Print warnings first
+    for warning in &result.warnings {
+        eprintln!("{} {}", "Warning:".yellow().bold(), warning);
+    }
+
+    // Handle blocked commands
+    if let Some(blocked_reason) = &result.blocked_reason {
+        eprintln!("{} {}", "Blocked:".red().bold(), blocked_reason);
+        return Ok(());
+    }
+
+    // Print the main command with extra emphasis
+    println!("{}", "╔═══════════════════════════════════════════════════════╗".bright_cyan());
+    println!("{}", "║                  GENERATED COMMAND                    ║".bright_cyan().bold());
+    println!("{}", "╚═══════════════════════════════════════════════════════╝".bright_cyan());
+    println!();
+    println!("  {}", result.generated_command.bright_green().bold());
+    println!();
+
+    // Print explanation with formatting
+    if !result.explanation.is_empty() {
+        println!("{}", "┌─ DETAILED EXPLANATION ─────────────────────────────┐".bright_blue());
+        for line in result.explanation.lines() {
+            println!("│ {}", line);
+        }
+        println!("{}", "└────────────────────────────────────────────────────┘".bright_blue());
+        println!();
+    }
+
+    // Print alternatives with extra emphasis
+    if !result.alternatives.is_empty() {
+        println!("{}", "🎯 ALTERNATIVE APPROACHES:".bright_magenta().bold());
+        for (i, alt) in result.alternatives.iter().enumerate() {
+            println!("  {}. {}", i + 1, alt.bright_white());
+        }
+        println!();
+    }
+
+    // Print debug information if verbose
+    if let Some(debug_info) = &result.debug_info {
+        println!("{}", "Debug Info:".dimmed());
+        println!("  {}", debug_info.dimmed());
+    }
+
+    if !result.generation_details.is_empty() {
+        println!("  {}", result.generation_details.dimmed());
+    }
+
+    println!();
+    println!("{}", "═══════════════════════════════════════════════════════".bright_cyan());
+    println!();
 
     Ok(())
 }

@@ -96,6 +96,8 @@ pub struct ParsedArgs {
     pub confirm: bool,
     pub verbose: bool,
     pub config_file: Option<String>,
+    pub demo: bool,
+    pub demo_output: Option<String>,
 }
 
 /// Trait for types that can be converted to CLI arguments
@@ -107,6 +109,8 @@ pub trait IntoCliArgs {
     fn confirm(&self) -> bool;
     fn verbose(&self) -> bool;
     fn config_file(&self) -> Option<String>;
+    fn demo(&self) -> bool;
+    fn demo_output(&self) -> Option<String>;
 }
 
 impl CliApp {
@@ -390,6 +394,129 @@ EXAMPLES:
     /// Show version information
     pub async fn show_version(&self) -> Result<String, CliError> {
         Ok(format!("cmdai v{}", env!("CARGO_PKG_VERSION")))
+    }
+
+    /// Run CLI with demo mode
+    pub async fn run_with_args_demo<T>(
+        &self,
+        args: T,
+        demo: &mut crate::demo::DemoMode,
+    ) -> Result<CliResult, CliError>
+    where
+        T: IntoCliArgs,
+    {
+        use std::str::FromStr;
+        use std::time::Instant;
+
+        let start_time = Instant::now();
+        let mut warnings_list = Vec::new();
+
+        // Parse shell type
+        let shell = if let Some(shell_str) = args.shell() {
+            let parsed = ShellType::from_str(&shell_str).unwrap_or(self.config.default_shell);
+            if matches!(parsed, ShellType::Unknown) {
+                warnings_list.push(format!(
+                    "Invalid shell '{}', using default {}",
+                    shell_str, self.config.default_shell
+                ));
+                self.config.default_shell
+            } else {
+                parsed
+            }
+        } else {
+            self.config.default_shell
+        };
+
+        // Parse safety level
+        let safety_level = if let Some(safety_str) = args.safety() {
+            SafetyLevel::from_str(&safety_str).unwrap_or(self.config.safety_level)
+        } else {
+            self.config.safety_level
+        };
+
+        // Parse output format (always plain for demo)
+        let output_format = OutputFormat::Plain;
+
+        // Get the prompt
+        let prompt = args.prompt().ok_or_else(|| CliError::InvalidArgument {
+            message: "No prompt provided".to_string(),
+        })?;
+
+        // Create command request
+        let request = CommandRequest {
+            input: prompt.clone(),
+            context: None,
+            shell,
+            safety_level,
+            backend_preference: None,
+        };
+
+        // Generate command using demo mode
+        let gen_start = Instant::now();
+        let generated = demo.process_request(&request).await?;
+        let generation_time = gen_start.elapsed();
+
+        // Validate command safety
+        let validation = self
+            .validator
+            .validate_command(&generated.command, shell)
+            .await
+            .map_err(|e| CliError::Internal {
+                message: format!("Safety validation failed: {}", e),
+            })?;
+
+        // Demo mode doesn't require confirmation (for showcase purposes)
+        let requires_confirmation = false;
+        let blocked_reason = None;
+        let executed = true;
+
+        // Build confirmation prompt (empty for demo)
+        let confirmation_prompt = String::new();
+
+        // Collect debug info if verbose
+        let debug_info = if args.verbose() {
+            Some(format!(
+                "Backend: {}, Model: {}, Confidence: {:.2}, Safety: {:?}",
+                generated.backend_used, "demo-agent", generated.confidence_score, safety_level
+            ))
+        } else {
+            None
+        };
+
+        let total_time = start_time.elapsed();
+
+        Ok(CliResult {
+            generated_command: generated.command,
+            explanation: generated.explanation,
+            executed,
+            blocked_reason,
+            requires_confirmation,
+            confirmation_prompt,
+            alternatives: generated.alternatives,
+            shell_used: shell,
+            output_format,
+            debug_info,
+            generation_details: if args.verbose() {
+                format!(
+                    "Generated in {}ms using {} backend",
+                    generation_time.as_millis(),
+                    generated.backend_used
+                )
+            } else {
+                String::new()
+            },
+            timing_info: TimingInfo {
+                generation_time_ms: generation_time.as_millis() as u64,
+                execution_time_ms: 0,
+                total_time_ms: total_time.as_millis() as u64,
+            },
+            warnings: {
+                let mut all_warnings = warnings_list;
+                all_warnings.extend(validation.warnings);
+                all_warnings
+            },
+            detected_context: prompt.clone(),
+        })
     }
 }
 
