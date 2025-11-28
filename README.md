@@ -439,28 +439,69 @@ custom_patterns = ["additional", "dangerous", "patterns"]
 
 ## 🤝 Contributing
 
-We welcome contributions! This is an early-stage project with many opportunities to contribute.
+**We're building the safety layer for AI-to-terminal interactions, and we need your help.**
 
-### Areas for Contribution
-- 🔌 Backend implementations
-- 🛡️ Safety pattern definitions
-- 🧪 Test coverage expansion
-- 📚 Documentation improvements
-- 🐛 Bug fixes and optimizations
+cmdai is more than a CLI tool - it's a collective knowledge base of terminal expertise. Every safety pattern you contribute, every edge case you document, every test you write helps make the terminal safer and more accessible for everyone.
+
+### Why Contribute?
+
+**Your expertise matters:**
+- **Terminal power users** - Your war stories become safety patterns that prevent disasters
+- **Domain experts** - Your k8s/database/cloud knowledge enriches our validation
+- **Rust developers** - Build production-grade systems programming skills
+- **Security researchers** - Help us stay ahead of command injection and LLM vulnerabilities
+- **Platform specialists** - macOS, Linux, Windows - we need cross-platform insights
+
+**What's in it for you:**
+- Master production Rust (async, FFI, trait systems)
+- Build OSS portfolio with high-quality, impactful work
+- Join a welcoming community with mentorship
+- See real impact - your contributions protect actual users
+- Path to maintainership and technical leadership
+
+### Quick Start
+
+**Never contributed to OSS before?** We have [good first issues](https://github.com/wildcard/cmdai/labels/good-first-issue) with step-by-step guidance.
+
+**Experienced developer?** Check out our [roadmap](https://github.com/wildcard/cmdai/issues) and [feature specs](specs/).
+
+**Domain expert (non-technical)?** [Submit safety patterns](https://github.com/wildcard/cmdai/issues/new?template=safety_pattern.yml) or [share your use cases](https://github.com/wildcard/cmdai/issues/new?template=use_case.yml).
+
+### Contribution Pathways
+
+**Code contributions:**
+- Implement new LLM backends (vLLM, Ollama, custom)
+- Expand safety validation patterns
+- Optimize performance (startup time, inference speed)
+- Improve cross-platform compatibility
+
+**Non-code contributions:**
+- Document your workflows and use cases
+- Improve error messages and user experience
+- Triage issues and help others in discussions
+- Write tutorials, guides, and examples
+- Test on different platforms and report edge cases
+
+### Essential Reading
+
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Complete contribution guide
+- **[HANDBOOK.md](HANDBOOK.md)** - Our values, culture, and how we work
+- **[CLAUDE.md](CLAUDE.md)** - Technical architecture overview
+- **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** - Community standards
 
 ### Getting Started
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes with tests
-4. Ensure all tests pass
-5. Submit a pull request
 
-### Development Guidelines
-- Follow Rust best practices
-- Add tests for new functionality
-- Update documentation as needed
-- Use conventional commit messages
-- Run `make check` before submitting
+1. Read [CONTRIBUTING.md](CONTRIBUTING.md) - Understand our workflow
+2. Join [GitHub Discussions](https://github.com/wildcard/cmdai/discussions) - Ask questions, share ideas
+3. Pick an issue labeled [`good-first-issue`](https://github.com/wildcard/cmdai/labels/good-first-issue)
+4. Fork, code, test, submit PR
+5. Celebrate your first contribution!
+
+**Questions?** Open a [discussion](https://github.com/wildcard/cmdai/discussions) or comment on an issue. We're here to help.
+
+---
+
+**Every contribution moves us closer to a safer, more accessible terminal for everyone. Thank you for being part of this journey.**
 
 ## 📜 License
 
