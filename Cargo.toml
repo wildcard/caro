@@ -26,8 +26,8 @@ serde_yaml = "0.9"
 toml = "0.8"
 config = "0.13"
 
-# HTTP client for remote backends (optional - feature-gated)
-reqwest = { version = "0.11", features = ["json", "rustls-tls"], default-features = false, optional = true }
+# HTTP client for remote backends and knowledge base indexing
+reqwest = { version = "0.11", features = ["json", "rustls-tls"], default-features = false }
 
 # Error handling and logging
 anyhow = "1"
@@ -66,6 +66,10 @@ sha2 = "0.10"
 # Async trait support
 async-trait = "0.1"
 
+# ChromaDB vector database for knowledge base and RAG
+chromadb = "2.3"
+uuid = { version = "1.10", features = ["v4", "serde"] }
+
 # Optional MLX support for Apple Silicon (behind feature flag)
 cxx = { version = "1.0", optional = true }
 
@@ -93,7 +97,7 @@ harness = false
 [features]
 default = ["embedded-cpu"]
 mock-backend = []
-remote-backends = ["reqwest", "tokio/net"]
+remote-backends = ["tokio/net"]
 embedded-mlx = ["cxx", "mlx-rs"]
 embedded-cpu = ["candle-core", "candle-transformers"]
 embedded = ["embedded-cpu"]  # Alias for embedded model support

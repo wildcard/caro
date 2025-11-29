@@ -13,6 +13,7 @@
 //! - [`config`] - Configuration management with TOML support
 //! - [`execution`] - Execution context capture and shell detection
 //! - [`logging`] - Structured logging with sensitive data redaction
+//! - [`knowledge`] - Knowledge base and RAG for enhanced command generation
 //!
 //! # Example
 //!
@@ -28,6 +29,7 @@ pub mod cache;
 pub mod cli;
 pub mod config;
 pub mod execution;
+pub mod knowledge;
 pub mod logging;
 pub mod model_loader;
 pub mod models;
@@ -56,3 +58,10 @@ pub use backends::embedded::{
 #[cfg(feature = "remote-backends")]
 pub use backends::remote::{OllamaBackend, VllmBackend};
 pub use backends::{BackendInfo as BackendInfoTrait, CommandGenerator, GeneratorError};
+
+// Re-export knowledge base types
+pub use knowledge::{
+    CollectionType, DocumentIndexer, DocumentMetadata, IndexingProgress, KnowledgeBaseClient,
+    KnowledgeBaseConfig, KnowledgeBaseError, RAGRetriever, RetrievalContext, RetrievalResult,
+    UserProfile, UserProfileManager,
+};
