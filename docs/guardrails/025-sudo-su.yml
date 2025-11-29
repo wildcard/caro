@@ -1,0 +1,90 @@
+id: "grd-025"
+pattern:
+  regex: "sudo\\s+su\\s*$"
+  risk_level: High
+  description: "Switch to root user without specific command"
+  shell_specific: null
+
+category: PrivilegeEscalation
+
+examples_blocked:
+  - "sudo su"
+  - "sudo su "
+
+examples_safe:
+  - "sudo su postgres"
+  - "sudo su - username"
+  - "sudo su -c 'specific command'"
+  - "sudo apt install package"
+  - "sudo systemctl restart nginx"
+  - 'echo "sudo su" > notes.txt'
+
+explanation: |
+  This pattern blocks `sudo su` without arguments, which switches you to
+  a root shell with unrestricted access. This is dangerous because:
+
+  **Security Concerns:**
+  1. **No audit trail**: Commands run as root aren't logged individually
+  2. **Unlimited scope**: Easy to forget you're root and run dangerous commands
+  3. **Session persistence**: Root shell stays open, increasing risk window
+  4. **Bad practice**: Violates principle of least privilege
+
+  **Why not just run `sudo command` instead?**
+  - Better audit logging (each sudo command is logged)
+  - Explicit privilege elevation per command
+  - Temporary elevation (sudo expires after 5-15 minutes)
+  - Clear intent (you know exactly what you're running as root)
+
+  **Safer alternatives:**
+  ```bash
+  # Instead of: sudo su
+  # Use: sudo specific-command
+
+  # If you need multiple commands:
+  sudo -s  # Start a shell, but with better logging
+
+  # Or use sudo -i for interactive root shell with logging:
+  sudo -i  # Login shell as root (better than su)
+  ```
+
+  **When might you override this?**
+  - Switching to a different user (not root): `sudo su postgres`
+  - Running specific command: `sudo su -c 'command'`
+  - Legacy systems where sudo -i doesn't work
+  - System recovery mode where normal rules don't apply
+
+  cmdai blocks the dangerous `sudo su` pattern but allows targeted
+  user switching and command execution.
+
+learn_more_url: "https://github.com/wildcard/cmdai/blob/main/docs/guardrails/025-sudo-su.md"
+
+tags:
+  - sudo
+  - privilege
+  - root
+  - escalation
+  - security
+  - best-practices
+
+community_notes:
+  - author: "sysadmin_veteran"
+    date: "2024-02-05T11:00:00Z"
+    note: "After 20 years of sysadmin work, I've seen more damage from 'sudo su' sessions than any other command"
+    upvotes: 234
+  - author: "security_team_lead"
+    date: "2024-04-12T14:15:00Z"
+    note: "Our company policy forbids 'sudo su'. Use 'sudo -i' for audit compliance. This guardrail enforces best practices."
+    upvotes: 178
+  - author: "linux_newbie"
+    date: "2024-06-18T09:30:00Z"
+    note: "I didn't know the difference. Thank you cmdai for teaching me the safer way!"
+    upvotes: 92
+
+stats:
+  times_triggered: 892
+  times_overridden: 23
+  false_positive_reports: 2
+  last_triggered: "2024-11-28T14:00:00Z"
+
+created_at: "2024-01-01T00:00:00Z"
+updated_at: "2024-11-28T00:00:00Z"

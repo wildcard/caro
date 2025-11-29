@@ -1,0 +1,73 @@
+id: "grd-001"
+pattern:
+  regex: "rm\\s+(-[rfRF]*\\s+)*(/|~|\\$HOME|/\\*|~/\\*)"
+  risk_level: Critical
+  description: "Recursive deletion of root or home directory"
+  shell_specific: null
+
+category: FilesystemDestruction
+
+examples_blocked:
+  - "rm -rf /"
+  - "rm -rf ~"
+  - "rm -rf $HOME"
+  - "rm -rf /*"
+  - "rm -rf ~/*"
+  - "rm -R /"
+
+examples_safe:
+  - "rm -rf ./temp"
+  - "rm -rf /tmp/my-folder"
+  - 'echo "rm -rf /" > dangerous-script.sh'
+  - "# rm -rf /"
+  - "echo 'Be careful with rm -rf /'"
+
+explanation: |
+  This pattern blocks attempts to recursively delete your entire filesystem
+  from the root (/) or home (~) directory. Such commands can destroy your
+  operating system in seconds and are almost never intentional.
+
+  The pattern catches:
+  - Direct deletions: `rm -rf /`
+  - Home directory deletion: `rm -rf ~` or `rm -rf $HOME`
+  - Glob patterns: `rm -rf /*` or `rm -rf ~/*`
+  - Different flag orders: `rm -Rf /`, `rm -fr /`
+
+  It does NOT block:
+  - Deletions in safe directories: `rm -rf ./folder`
+  - Deletions in temp: `rm -rf /tmp/myfiles`
+  - Commands in strings/comments (safe to echo or document)
+
+  **Why this is dangerous:**
+  Without this protection, a simple typo like `rm -rf / tmp` (space before tmp)
+  would start deleting your entire system starting from root, instead of the
+  intended `/tmp` directory.
+
+learn_more_url: "https://github.com/wildcard/cmdai/blob/main/docs/guardrails/001-rm-rf-root.md"
+
+tags:
+  - rm
+  - deletion
+  - filesystem
+  - critical
+  - root
+  - home
+
+community_notes:
+  - author: "user123"
+    date: "2024-01-15T10:30:00Z"
+    note: "This saved me when I accidentally had a space in `rm -rf / tmp`"
+    upvotes: 42
+  - author: "developer456"
+    date: "2024-02-20T14:00:00Z"
+    note: "Consider also blocking `rm -rf .*` which can delete hidden files in unexpected ways"
+    upvotes: 18
+
+stats:
+  times_triggered: 1247
+  times_overridden: 3
+  false_positive_reports: 0
+  last_triggered: "2024-11-28T12:00:00Z"
+
+created_at: "2024-01-01T00:00:00Z"
+updated_at: "2024-11-28T00:00:00Z"

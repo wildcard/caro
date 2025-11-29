@@ -1,7 +1,18 @@
 // Models module - Core data structures
 // These are placeholder stubs - tests should fail until proper implementation
 
+pub mod guardrails;
+pub mod guides;
+
 use serde::{Deserialize, Serialize};
+
+// Re-export guardrails and guides types
+pub use guardrails::{
+    CommunityNote, GuardrailCategory, GuardrailFilter, GuardrailMeta, GuardrailStats,
+};
+pub use guides::{
+    CommunityGuide, GuideCategory, GuideDifficulty, GuideFilter, GuideMetrics, GuideSortOrder,
+};
 
 /// Request for command generation from natural language
 #[derive(Debug, Clone, Serialize, Deserialize)]
