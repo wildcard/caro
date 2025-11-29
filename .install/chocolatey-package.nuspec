@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>cmdai</id>
+    <version>0.1.0</version>
+    <packageSourceUrl>https://github.com/wildcard/cmdai</packageSourceUrl>
+    <owners>wildcard</owners>
+
+    <title>cmdai</title>
+    <authors>wildcard</authors>
+    <projectUrl>https://github.com/wildcard/cmdai</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/wildcard/cmdai/main/.install/icon.png</iconUrl>
+    <copyright>2025 wildcard</copyright>
+    <licenseUrl>https://github.com/wildcard/cmdai/blob/main/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectSourceUrl>https://github.com/wildcard/cmdai</projectSourceUrl>
+    <docsUrl>https://github.com/wildcard/cmdai#readme</docsUrl>
+    <bugTrackerUrl>https://github.com/wildcard/cmdai/issues</bugTrackerUrl>
+    <tags>cmdai cli shell command-line llm ai rust</tags>
+
+    <summary>Convert natural language to safe POSIX shell commands using local LLMs</summary>
+    <description>
+cmdai is a single-binary Rust CLI tool that converts natural language descriptions
+into safe POSIX shell commands using local LLMs. The tool prioritizes safety,
+performance, and developer experience with Apple Silicon optimization via MLX framework.
+
+Features:
+- Instant startup - Single binary with fast cold start
+- Local LLM inference - Optimized for performance
+- Safety-first - Comprehensive command validation framework
+- Zero dependencies - Self-contained binary distribution
+- Multiple backends - Extensible backend system (MLX, vLLM, Ollama)
+- Cross-platform - macOS, Linux, Windows support
+    </description>
+    <releaseNotes>https://github.com/wildcard/cmdai/releases</releaseNotes>
+  </metadata>
+
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>

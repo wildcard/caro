@@ -71,11 +71,10 @@ This project is in **active development** with core features implemented and wor
 - 🌐 **Cross-platform** - Full support for macOS (including Apple Silicon), Linux, and Windows
 - 🎬 **Safe execution** - Optional command execution with shell-aware handling
 
-## 🚀 Quick Start
+## 🚀 Installation
 
-### Installation
+### Option 1: One-Line Setup (Recommended)
 
-#### Option 1: One-Line Setup (Recommended)
 ```bash
 bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)
 ```
@@ -91,19 +90,30 @@ This will:
 - Set up the `caro` alias automatically
 - Configure your shell (bash, zsh, or fish)
 
-#### Option 2: Using Cargo
-```bash
-cargo install cmdai
+### Option 2: Package Managers
 
-# Add alias manually to your shell config (~/.bashrc, ~/.zshrc, etc.)
+| Platform | Method | Command |
+|----------|--------|---------|
+| All | Cargo | `cargo install cmdai` |
+| macOS/Linux | Homebrew | `brew install wildcard/tap/cmdai` |
+| Windows | Scoop | `scoop install cmdai` |
+| Windows | Chocolatey | `choco install cmdai` |
+| Windows | Winget | `winget install wildcard.cmdai` |
+
+**Manual alias setup (if needed):**
+```bash
+# Add to your shell config (~/.bashrc, ~/.zshrc, ~/.config/fish/config.fish)
 alias caro='cmdai'
 ```
 
-#### Option 3: Pre-built Binaries
+### Option 3: Pre-built Binaries
+
 Download the latest release from [GitHub Releases](https://github.com/wildcard/cmdai/releases/latest) for your platform:
 - Linux (x64, ARM64)
 - macOS (Intel, Apple Silicon)
 - Windows (x64)
+
+📖 **[Full Installation Guide](INSTALL.md)** - Detailed instructions for all platforms and methods
 
 ### Building from Source
 
@@ -173,20 +183,6 @@ cd cmdai
 cargo build --release
 ```
 
-### Building from Source
-
-```bash
-# Clone the repository
-git clone https://github.com/wildcard/cmdai.git
-cd cmdai
-
-# Build the project (uses CPU backend by default)
-cargo build --release
-
-# Run the CLI
-./target/release/cmdai --version
-```
-
 ### Development Commands
 
 ```bash
@@ -211,12 +207,15 @@ RUST_LOG=debug cargo run -- "your command"
 ### Basic Syntax
 ```bash
 cmdai [OPTIONS] <PROMPT>
+# or with the alias
+caro [OPTIONS] <PROMPT>
 ```
 
 ### Examples
 ```bash
 # Basic command generation
 cmdai "list all files in the current directory"
+caro "find large files"
 
 # With specific shell
 cmdai --shell zsh "find large files"
@@ -227,8 +226,8 @@ cmdai --output json "show disk usage"
 # Adjust safety level
 cmdai --safety permissive "clean temporary files"
 
-# Auto-confirm dangerous commands
-cmdai --confirm "remove old log files"
+# Execute command automatically (with confirmation)
+cmdai --execute "list all files"
 
 # Verbose mode with timing info
 cmdai --verbose "search for Python files"
@@ -241,26 +240,10 @@ cmdai --verbose "search for Python files"
 | `-s, --shell <SHELL>` | Target shell (bash, zsh, fish, sh, powershell, cmd) | ✅ Implemented |
 | `--safety <LEVEL>` | Safety level (strict, moderate, permissive) | ✅ Implemented |
 | `-o, --output <FORMAT>` | Output format (json, yaml, plain) | ✅ Implemented |
-| `-y, --confirm` | Auto-confirm dangerous commands | ✅ Implemented |
+| `-e, --execute` | Execute command after confirmation | ✅ Implemented |
 | `-v, --verbose` | Enable verbose output with timing | ✅ Implemented |
 | `-c, --config <FILE>` | Custom configuration file | ✅ Implemented |
 | `--show-config` | Display current configuration | ✅ Implemented |
-| `--auto` | Execute without confirmation | 📅 Planned |
-| `--allow-dangerous` | Allow potentially dangerous commands | 📅 Planned |
-| `--verbose` | Enable verbose logging | ✅ Available |
-
-### Examples (Target Functionality)
-
-```bash
-# Simple command generation
-cmdai "compress all images in current directory"
-
-# With specific backend
-cmdai --backend mlx "find large log files"
-
-# Verbose mode for debugging
-cmdai --verbose "show disk usage"
-```
 
 ## 🏗️ Architecture
 
@@ -291,38 +274,7 @@ cmdai/
 1. **CommandGenerator Trait** - Unified interface for all LLM backends
 2. **SafetyValidator** - Command validation and risk assessment
 3. **Backend System** - Extensible architecture for multiple inference engines
-4. **AgentLoop** - Iterative refinement with platform detection
-5. **ExecutionContext** - Comprehensive system environment detection
-6. **Model Loader** - Efficient model initialization and management
-
-### Intelligent Command Generation
-
-cmdai uses a sophisticated **2-iteration agentic loop** for generating platform-appropriate commands:
-
-**Iteration 1: Context-Aware Generation**
-- Detects your OS (macOS, Linux, Windows), architecture, and shell
-- Identifies available commands on your system
-- Applies platform-specific rules (BSD vs GNU differences)
-- Generates initial command with confidence score
-
-**Iteration 2: Smart Refinement** (triggered when needed)
-- Extracts commands from pipes and chains
-- Fetches command-specific help and version info
-- Detects and fixes platform compatibility issues
-- Refines complex commands (sed, awk, xargs)
-
-**Example Flow:**
-```
-User: "show top 5 processes by CPU"
-  ↓
-Context Detection: macOS 14.2, arm64, zsh
-  ↓
-Iteration 1: Generates with macOS rules
-  ↓
-Smart Refinement: Fixes BSD sort syntax
-  ↓
-Result: ps aux | sort -nrk 3,3 | head -6
-```
+4. **Cache Manager** - Hugging Face model management (planned)
 
 ### Backend Architecture
 
@@ -491,42 +443,35 @@ This project is licensed under the **GNU Affero General Public License v3.0 (AGP
 
 ## 🗺️ Roadmap
 
-### Phase 1: Core Structure ✅ Complete
+### Phase 1: Core Structure (Current)
 - [x] CLI argument parsing
 - [x] Module architecture
 - [x] Backend trait system
-- [x] Command generation with embedded models
+- [x] Basic command generation
 
-### Phase 2: Safety & Validation ✅ Complete
-- [x] Dangerous pattern detection (52+ patterns)
+### Phase 2: Safety & Validation
+- [x] Dangerous pattern detection
 - [x] POSIX compliance checking
 - [x] User confirmation workflows
-- [x] Risk assessment system with color coding
+- [x] Risk assessment system
 
-### Phase 3: Backend Integration ✅ Complete
-- [x] Embedded MLX backend (Apple Silicon)
-- [x] Embedded CPU backend (cross-platform)
+### Phase 3: Backend Integration
 - [x] vLLM HTTP API support
 - [x] Ollama local backend
-- [x] Response parsing with fallback strategies
-- [x] Comprehensive error handling
+- [x] Response parsing
+- [x] Error handling
 
-### Phase 4: Platform Intelligence ✅ Complete
-- [x] Execution context detection
-- [x] Platform-specific command rules
-- [x] Agentic refinement loop
-- [x] Command info enrichment
-- [x] Shell-aware execution
+### Phase 4: MLX Optimization
+- [x] FFI bindings with cxx
+- [x] Metal Performance Shaders
+- [x] Unified memory handling
+- [x] Apple Silicon optimization
 
-### Phase 5: Production Ready 🚧 In Progress
-- [x] Published to crates.io
-- [x] Installation script with alias setup
-- [x] Multi-platform CI/CD
-- [x] Website and documentation
-- [x] Professional demos
-- [ ] Extended test coverage
-- [ ] Performance benchmarking suite
-- [ ] Binary distribution optimization
+### Phase 5: Production Ready
+- [x] Comprehensive testing
+- [x] Performance optimization
+- [x] Binary distribution
+- [ ] Package manager support (In Progress)
 
 ---
 
