@@ -8,6 +8,7 @@
 //! - [`models`] - Core data types (CommandRequest, GeneratedCommand, enums)
 //! - [`safety`] - Safety validation with dangerous command detection
 //! - [`backends`] - Command generation backends (Embedded, Ollama, vLLM)
+//! - [`autocomplete`] - LLM-powered command autocomplete with validation
 //! - [`cli`] - CLI interface and argument parsing
 //! - [`cache`] - Model caching with integrity validation
 //! - [`config`] - Configuration management with TOML support
@@ -23,6 +24,7 @@
 //!     .with_safety(SafetyLevel::Moderate);
 //! ```
 
+pub mod autocomplete;
 pub mod backends;
 pub mod cache;
 pub mod cli;
@@ -56,3 +58,10 @@ pub use backends::embedded::{
 #[cfg(feature = "remote-backends")]
 pub use backends::remote::{OllamaBackend, VllmBackend};
 pub use backends::{BackendInfo as BackendInfoTrait, CommandGenerator, GeneratorError};
+
+// Re-export autocomplete types
+pub use autocomplete::{
+    ArgumentSpec, ArgumentType, ArgumentValidator, AutocompleteConfig, AutocompleteEngine,
+    AutocompleteError, Candidate, CommandSignature, CompletionContext, FlagSpec, InferenceAgent,
+    InferenceConfig, SubcommandSpec, SuggestionResult, ValidatorConfig,
+};
