@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- cmdai square icon -->
+  <defs>
+    <style>
+      .terminal-green { fill: #00FF41; }
+      .cyber-cyan { fill: #00D9FF; }
+      .deep-space { fill: #0A0E27; }
+    </style>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="128" height="128" class="deep-space" rx="16"/>
+
+  <!-- Border -->
+  <rect x="4" y="4" width="120" height="120" fill="none" stroke="#00FF41" stroke-width="2" rx="12" opacity="0.5"/>
+
+  <!-- Symbols (centered) -->
+  <text x="28" y="75" font-size="48" filter="url(#glow)" class="terminal-green">⚡</text>
+  <text x="68" y="75" font-size="48" filter="url(#glow)" class="cyber-cyan">🛡️</text>
+</svg>

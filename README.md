@@ -1,8 +1,38 @@
-# cmdai
+```
+   ╔═══════════════════════════════════════╗
+   ║     ██████╗███╗   ███╗██████╗        ║
+   ║    ██╔════╝████╗ ████║██╔══██╗       ║
+   ║    ██║     ██╔████╔██║██║  ██║       ║
+   ║    ██║     ██║╚██╔╝██║██║  ██║       ║
+   ║    ╚██████╗██║ ╚═╝ ██║██████╔╝       ║
+   ║     ╚═════╝╚═╝     ╚═╝╚═════╝        ║
+   ║         ▲ AI                          ║
+   ╚═══════════════════════════════════════╝
+```
 
-> 🚧 **Early Development Stage** - Architecture defined, core implementation in progress
+<div align="center">
+
+# ⚡🛡️ cmdai
+
+**AI-Powered Commands. Human-Level Safety.**
+
+[![AGPL License](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
+[![Rust](https://img.shields.io/badge/rust-1.75%2B-orange.svg)](https://www.rust-lang.org)
+[![Development Stage](https://img.shields.io/badge/status-early%20development-yellow.svg)](https://github.com/wildcard/cmdai)
+
+**Guard Rails for the Fast Lane** | **Think Fast. Stay Safe.**
+
+[Quick Start](#-quick-start) · [Documentation](#-usage) · [Contributing](CONTRIBUTING.md) · [Brand Guide](brand-assets/interactive/brand-guide.html)
+
+</div>
+
+---
+
+> **Early Development Stage** - Architecture defined, core implementation in progress
 
 **cmdai** converts natural language descriptions into safe POSIX shell commands using local LLMs. Built with Rust for blazing-fast performance, single-binary distribution, and safety-first design.
+
+**Every command validated. Every time.**
 
 ```bash
 $ cmdai "list all PDF files in Downloads folder larger than 10MB"
@@ -260,11 +290,24 @@ The project uses contract-based testing:
 - Contract tests to ensure trait compliance
 - Property-based testing for safety validation
 
-## 🛡️ Safety Features
+## 🛡️ Safety System: Your Command Line Guardian
 
-cmdai includes comprehensive safety validation to prevent dangerous operations:
+cmdai includes comprehensive safety validation to prevent dangerous operations. Every command is analyzed and color-coded before execution.
 
-### Implemented Safety Checks
+### Safety Level Visualization
+
+```
+┌─ cmdai Safety Levels ────────────────────────────────┐
+│                                                       │
+│  SAFE      ▓▓▓▓▓▓▓▓▓▓ 100%   🟢 Green               │
+│  MODERATE  ▓▓▓▓▓▓░░░░  60%   🟡 Yellow              │
+│  HIGH      ▓▓▓▓░░░░░░  40%   🟠 Orange              │
+│  CRITICAL  ▓░░░░░░░░░  10%   🔴 Red                 │
+│                                                       │
+└───────────────────────────────────────────────────────┘
+```
+
+### What We Protect Against
 - ✅ System destruction patterns (`rm -rf /`, `rm -rf ~`)
 - ✅ Fork bombs detection (`:(){:|:&};:`)
 - ✅ Disk operations (`mkfs`, `dd if=/dev/zero`)
@@ -272,11 +315,13 @@ cmdai includes comprehensive safety validation to prevent dangerous operations:
 - ✅ Critical path protection (`/bin`, `/usr`, `/etc`)
 - ✅ Command validation and sanitization
 
-### Risk Levels
-- **Safe** (Green) - Normal operations, no confirmation needed
-- **Moderate** (Yellow) - Requires user confirmation in strict mode
-- **High** (Orange) - Requires confirmation in moderate mode
-- **Critical** (Red) - Blocked in strict mode, requires explicit confirmation
+### How It Works
+- **🟢 SAFE** - Normal operations, executes immediately
+- **🟡 MODERATE** - Requires user confirmation in strict mode
+- **🟠 HIGH** - Requires confirmation in moderate mode
+- **🔴 CRITICAL** - Blocked by default, requires explicit override
+
+**Ship faster. Sleep better.** Your terminal now has a brain.
 
 ### Safety Configuration
 Configure safety levels in `~/.config/cmdai/config.toml`:
@@ -292,26 +337,27 @@ custom_patterns = ["additional", "dangerous", "patterns"]
 
 We welcome contributions! This is an early-stage project with many opportunities to contribute.
 
+**Your terminal. Now with a brain.** Help us make it even smarter and safer.
+
 ### Areas for Contribution
-- 🔌 Backend implementations
-- 🛡️ Safety pattern definitions
-- 🧪 Test coverage expansion
-- 📚 Documentation improvements
-- 🐛 Bug fixes and optimizations
+- 🔌 **Backend implementations** - MLX, vLLM, Ollama support
+- 🛡️ **Safety pattern definitions** - Help protect against dangerous commands
+- 🧪 **Test coverage expansion** - TDD is our way
+- 📚 **Documentation improvements** - Clear docs = happy developers
+- 🐛 **Bug fixes and optimizations** - Make it faster, safer, better
 
 ### Getting Started
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes with tests
-4. Ensure all tests pass
-5. Submit a pull request
+1. Read our [Contributor Onboarding Guide](culture/CONTRIBUTOR_ONBOARDING.md)
+2. Check out [Community Guidelines](culture/COMMUNITY_GUIDELINES.md)
+3. Fork the repository
+4. Create a feature branch
+5. Make your changes with tests
+6. Ensure all tests pass (`make check`)
+7. Submit a pull request
 
-### Development Guidelines
-- Follow Rust best practices
-- Add tests for new functionality
-- Update documentation as needed
-- Use conventional commit messages
-- Run `make check` before submitting
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
+**Think Fast. Stay Safe.** We value quality contributions over quick fixes.
 
 ## 📜 License
 
@@ -325,6 +371,24 @@ This project is licensed under the **GNU Affero General Public License v3.0 (AGP
 - ⚠️ Network use requires source disclosure
 - ⚠️ Same license requirement
 - ⚠️ State changes documentation
+
+## 🎨 Brand & Assets
+
+Our logo, name, and brand identity are licensed under **CC BY-ND 4.0** and additionally protected as trademarks.
+
+- 📦 [Brand Assets](./brand-assets/) - Logos, colors, typography, messaging
+- 📋 [Brand & Trademark Usage Policy](./brand-assets/BRAND_USAGE.md) - What you can and cannot do
+- ⚖️ [Assets License (CC BY-ND 4.0)](./LICENSE-ASSETS.md) - Full license text
+- 🎨 [Interactive Brand Guide](./brand-assets/interactive/brand-guide.html) - Visual reference with click-to-copy colors
+
+### Important for Forks
+
+**If you fork this project, you are NOT allowed to reuse or modify our branding.** You must create your own distinct brand identity.
+
+✅ **You CAN**: Reference cmdai in blog posts, tutorials, and comparative discussions
+❌ **You CANNOT**: Use the cmdai name, ⚡🛡️ logo, or brand colors for your fork
+
+See our [Brand Usage Policy](./brand-assets/BRAND_USAGE.md) for complete guidelines.
 
 ## 🙏 Acknowledgments
 
@@ -374,6 +438,27 @@ This project is licensed under the **GNU Affero General Public License v3.0 (AGP
 
 ---
 
-**Built with Rust** | **Safety First** | **Open Source**
+<div align="center">
+
+## ⚡🛡️ Think Fast. Stay Safe.
+
+**Built with Rust** · **Safety First** · **Open Source (AGPL-3.0)**
+
+```
+┌─────────────────────────────────────────────────────┐
+│  "Guard Rails for the Fast Lane"                   │
+│                                                     │
+│  Your AI assistant. Your safety validator.         │
+│  Your terminal's new best friend.                  │
+└─────────────────────────────────────────────────────┘
+```
+
+[Website (planned)](https://cmdai.dev) · [GitHub](https://github.com/wildcard/cmdai) · [Interactive Brand Guide](brand-assets/interactive/brand-guide.html)
+
+---
+
+**1985 Vibes. 2025 Brains.**
 
 > **Note**: This is an active development project. Features and APIs are subject to change. See the [specs](specs/) directory for detailed design documentation.
+
+</div>

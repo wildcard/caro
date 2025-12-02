@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cmdai Brand Guide - Interactive Reference</title>
+    <style>
+        /* CSS Variables - Copy these for your projects! */
+        :root {
+            /* Brand Colors */
+            --terminal-green: #00FF41;
+            --cyber-cyan: #00D9FF;
+            --warning-amber: #FFB800;
+            --alert-orange: #FF6B00;
+            --critical-red: #FF0055;
+
+            /* Backgrounds */
+            --deep-space: #0A0E27;
+            --midnight-blue: #1A1F3A;
+            --silver-frost: #C0C5D0;
+            --ghost-white: #F0F2F7;
+            --neon-purple: #B026FF;
+
+            /* Typography */
+            --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Consolas', monospace;
+            --font-display: 'Space Mono', monospace;
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, var(--deep-space) 0%, var(--midnight-blue) 100%);
+            color: var(--ghost-white);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            background: rgba(26, 31, 58, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 2rem 0;
+            border-bottom: 2px solid var(--terminal-green);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: var(--font-mono);
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--terminal-green);
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+        }
+
+        nav a {
+            color: var(--cyber-cyan);
+            text-decoration: none;
+            margin-left: 2rem;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: var(--terminal-green);
+            text-shadow: 0 0 8px rgba(0, 255, 65, 0.6);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        /* Section */
+        section {
+            margin-bottom: 4rem;
+            background: rgba(26, 31, 58, 0.5);
+            border-radius: 8px;
+            padding: 2rem;
+            border: 1px solid rgba(0, 217, 255, 0.2);
+        }
+
+        h1, h2, h3 {
+            font-family: var(--font-display);
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: var(--terminal-green);
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+        }
+
+        h2 {
+            font-size: 2rem;
+            color: var(--cyber-cyan);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--cyber-cyan);
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            color: var(--terminal-green);
+            margin-top: 2rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 4rem 0;
+            background: linear-gradient(135deg, rgba(0, 255, 65, 0.1) 0%, rgba(0, 217, 255, 0.1) 100%);
+            border-radius: 12px;
+            margin-bottom: 3rem;
+        }
+
+        .hero .tagline {
+            font-size: 1.5rem;
+            color: var(--silver-frost);
+            margin-top: 1rem;
+            font-family: var(--font-mono);
+        }
+
+        /* Color Palette */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .color-card {
+            background: var(--midnight-blue);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .color-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .color-swatch {
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-size: 2rem;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .color-info {
+            padding: 1rem;
+        }
+
+        .color-name {
+            font-family: var(--font-mono);
+            font-size: 1.1rem;
+            color: var(--ghost-white);
+            margin-bottom: 0.5rem;
+        }
+
+        .color-values {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--silver-frost);
+            line-height: 1.8;
+        }
+
+        .color-values div {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .copy-btn {
+            background: var(--terminal-green);
+            color: var(--deep-space);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: var(--cyber-cyan);
+            box-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+        }
+
+        .copy-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Terminal Preview */
+        .terminal {
+            background: #0A0E27;
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            overflow-x: auto;
+            border: 1px solid var(--terminal-green);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+            margin: 1rem 0;
+        }
+
+        .terminal-header {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .terminal-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .terminal-btn.red { background: #ff5f56; }
+        .terminal-btn.yellow { background: #ffbd2e; }
+        .terminal-btn.green { background: #27c93f; }
+
+        .terminal pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .safe { color: var(--terminal-green); }
+        .moderate { color: var(--warning-amber); }
+        .high { color: var(--alert-orange); }
+        .critical { color: var(--critical-red); }
+        .info { color: var(--cyber-cyan); }
+        .muted { color: var(--silver-frost); }
+
+        /* Logo Examples */
+        .logo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .logo-example {
+            background: var(--midnight-blue);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo-example pre {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--terminal-green);
+            text-align: left;
+            background: var(--deep-space);
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+
+        .logo-title {
+            color: var(--cyber-cyan);
+            font-family: var(--font-mono);
+            margin-bottom: 1rem;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: var(--deep-space);
+            border-radius: 8px;
+            padding: 1.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            overflow-x: auto;
+            border: 1px solid var(--cyber-cyan);
+            margin: 1rem 0;
+            position: relative;
+        }
+
+        .code-block pre {
+            margin: 0;
+            color: var(--ghost-white);
+        }
+
+        .code-copy-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--cyber-cyan);
+            color: var(--deep-space);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .code-copy-btn:hover {
+            background: var(--terminal-green);
+        }
+
+        /* Typography Examples */
+        .type-example {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            border-left: 4px solid var(--terminal-green);
+        }
+
+        .type-label {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--cyber-cyan);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        /* Safety Levels */
+        .safety-levels {
+            display: grid;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .safety-level {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+
+        .safety-level.safe { border-color: var(--terminal-green); }
+        .safety-level.moderate { border-color: var(--warning-amber); }
+        .safety-level.high { border-color: var(--alert-orange); }
+        .safety-level.critical { border-color: var(--critical-red); }
+
+        .safety-label {
+            font-family: var(--font-mono);
+            font-weight: bold;
+            min-width: 120px;
+        }
+
+        .safety-bar {
+            flex: 1;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0 1rem;
+        }
+
+        .safety-fill {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .safety-fill.safe {
+            width: 100%;
+            background: var(--terminal-green);
+            color: var(--deep-space);
+        }
+
+        .safety-fill.moderate {
+            width: 60%;
+            background: var(--warning-amber);
+            color: var(--deep-space);
+        }
+
+        .safety-fill.high {
+            width: 40%;
+            background: var(--alert-orange);
+            color: var(--ghost-white);
+        }
+
+        .safety-fill.critical {
+            width: 10%;
+            background: var(--critical-red);
+            color: var(--ghost-white);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            nav {
+                margin-top: 1rem;
+            }
+
+            nav a {
+                margin: 0 1rem;
+            }
+
+            .color-grid,
+            .logo-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 10px rgba(0, 255, 65, 0.5); }
+            50% { text-shadow: 0 0 20px rgba(0, 255, 65, 0.8); }
+        }
+
+        .glow {
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--terminal-green);
+            color: var(--deep-space);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-family: var(--font-mono);
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transform: translateY(200%);
+            transition: transform 0.3s;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo glow">⚡🛡️ cmdai</div>
+            <nav>
+                <a href="#colors">Colors</a>
+                <a href="#logos">Logos</a>
+                <a href="#terminal">Terminal</a>
+                <a href="#typography">Typography</a>
+                <a href="#code">Code</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Hero -->
+        <div class="hero">
+            <h1 class="glow">cmdai Brand Guide</h1>
+            <p class="tagline">AI-Powered Commands. Human-Level Safety.</p>
+        </div>
+
+        <!-- Introduction -->
+        <section>
+            <h2>🎨 Interactive Brand Reference</h2>
+            <p style="font-size: 1.1rem; color: var(--silver-frost);">
+                Welcome to the cmdai brand guide! This is your visual, interactive reference for all things cmdai branding.
+                Click on color swatches to copy hex codes, use the code examples in your projects, and reference the terminal
+                output patterns for consistent styling.
+            </p>
+            <p style="margin-top: 1rem; color: var(--cyber-cyan);">
+                <strong>💡 Tip:</strong> Bookmark this page for quick access to brand colors, logos, and code snippets!
+            </p>
+        </section>
+
+        <!-- Color Palette -->
+        <section id="colors">
+            <h2>🎨 Color Palette</h2>
+            <p>Click any color to copy its hex code to your clipboard!</p>
+
+            <h3>Primary Brand Colors</h3>
+            <div class="color-grid">
+                <div class="color-card" onclick="copyColor('#00FF41', 'Terminal Green')">
+                    <div class="color-swatch" style="background: #00FF41; color: #0A0E27;">⚡</div>
+                    <div class="color-info">
+                        <div class="color-name">Terminal Green</div>
+                        <div class="color-values">
+                            <div><span>HEX</span> <span>#00FF41</span></div>
+                            <div><span>RGB</span> <span>0, 255, 65</span></div>
+                            <div><span>ANSI</span> <span>\033[92m</span></div>
+                        </div>
+                        <button class="copy-btn">Copy Hex</button>
+                    </div>
+                </div>
+
+                <div class="color-card" onclick="copyColor('#00D9FF', 'Cyber Cyan')">
+                    <div class="color-swatch" style="background: #00D9FF; color: #0A0E27;">✓</div>
+                    <div class="color-info">
+                        <div class="color-name">Cyber Cyan</div>
+                        <div class="color-values">
+                            <div><span>HEX</span> <span>#00D9FF</span></div>
+                            <div><span>RGB</span> <span>0, 217, 255</span></div>
+                            <div><span>ANSI</span> <span>\033[96m</span></div>
+                        </div>
+                        <button class="copy-btn">Copy Hex</button>
+                    </div>
+                </div>
+
+                <div class="color-card" onclick="copyColor('#0A0E27', 'Deep Space')">
+                    <div class="color-swatch" style="background: #0A0E27; color: #00FF41; border: 1px solid #00FF41;">🛡️</div>
+                    <div class="color-info">
+                        <div class="color-name">Deep Space</div>
+                        <div class="color-values">
+                            <div><span>HEX</span> <span>#0A0E27</span></div>
+                            <div><span>RGB</span> <span>10, 14, 39</span></div>
+                            <div><span>Use</span> <span>Background</span></div>
+                        </div>
+                        <button class="copy-btn">Copy Hex</button>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Safety System Colors</h3>
+            <div class="color-grid">
+                <div class="color-card" onclick="copyColor('#FFB800', 'Warning Amber')">
+                    <div class="color-swatch" style="background: #FFB800; color: #0A0E27;">⚠</div>
+                    <div class="color-info">
+                        <div class="color-name">Warning Amber</div>
+                        <div class="color-values">
+                            <div><span>HEX</span> <span>#FFB800</span></div>
+                            <div><span>RGB</span> <span>255, 184, 0</span></div>
+                            <div><span>Use</span> <span>Moderate Risk</span></div>
+                        </div>
+                        <button class="copy-btn">Copy Hex</button>
+                    </div>
+                </div>
+
+                <div class="color-card" onclick="copyColor('#FF6B00', 'Alert Orange')">
+                    <div class="color-swatch" style="background: #FF6B00; color: #F0F2F7;">⚠</div>
+                    <div class="color-info">
+                        <div class="color-name">Alert Orange</div>
+                        <div class="color-values">
+                            <div><span>HEX</span> <span>#FF6B00</span></div>
+                            <div><span>RGB</span> <span>255, 107, 0</span></div>
+                            <div><span>Use</span> <span>High Risk</span></div>
+                        </div>
+                        <button class="copy-btn">Copy Hex</button>
+                    </div>
+                </div>
+
+                <div class="color-card" onclick="copyColor('#FF0055', 'Critical Red')">
+                    <div class="color-swatch" style="background: #FF0055; color: #F0F2F7;">✗</div>
+                    <div class="color-info">
+                        <div class="color-name">Critical Red</div>
+                        <div class="color-values">
+                            <div><span>HEX</span> <span>#FF0055</span></div>
+                            <div><span>RGB</span> <span>255, 0, 85</span></div>
+                            <div><span>Use</span> <span>Critical/Blocked</span></div>
+                        </div>
+                        <button class="copy-btn">Copy Hex</button>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Safety Level Visual Reference</h3>
+            <div class="safety-levels">
+                <div class="safety-level safe">
+                    <span class="safety-label safe">✓ SAFE</span>
+                    <div class="safety-bar">
+                        <div class="safety-fill safe">████████████ 100%</div>
+                    </div>
+                    <span class="muted">Execute freely</span>
+                </div>
+
+                <div class="safety-level moderate">
+                    <span class="safety-label moderate">⚠ MODERATE</span>
+                    <div class="safety-bar">
+                        <div class="safety-fill moderate">███████░░░░░ 60%</div>
+                    </div>
+                    <span class="muted">Proceed with caution</span>
+                </div>
+
+                <div class="safety-level high">
+                    <span class="safety-label high">⚠ HIGH</span>
+                    <div class="safety-bar">
+                        <div class="safety-fill high">█████░░░░░░░ 40%</div>
+                    </div>
+                    <span class="muted">Think twice</span>
+                </div>
+
+                <div class="safety-level critical">
+                    <span class="safety-label critical">✗ CRITICAL</span>
+                    <div class="safety-bar">
+                        <div class="safety-fill critical">█░░░░░░░░░░░ 10%</div>
+                    </div>
+                    <span class="muted">BLOCKED</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Logos -->
+        <section id="logos">
+            <h2>🎯 Logo Variations</h2>
+            <p>Copy-paste ready logos for different contexts</p>
+
+            <div class="logo-grid">
+                <div class="logo-example">
+                    <div class="logo-title">Minimal Logo (Inline)</div>
+                    <pre>⚡🛡️ cmdai</pre>
+                    <button class="copy-btn" onclick="copyText('⚡🛡️ cmdai')">Copy Logo</button>
+                </div>
+
+                <div class="logo-example">
+                    <div class="logo-title">One-Line Logo</div>
+                    <pre>[cmdai] ▸ AI-Powered. Human-Safe.</pre>
+                    <button class="copy-btn" onclick="copyText('[cmdai] ▸ AI-Powered. Human-Safe.')">Copy Logo</button>
+                </div>
+
+                <div class="logo-example">
+                    <div class="logo-title">Terminal Prompt</div>
+                    <pre>[cmdai] ▸ </pre>
+                    <button class="copy-btn" onclick="copyText('[cmdai] ▸ ')">Copy Prompt</button>
+                </div>
+            </div>
+
+            <h3>ASCII Art Logo (Large)</h3>
+            <div class="terminal">
+                <div class="terminal-header">
+                    <div class="terminal-btn red"></div>
+                    <div class="terminal-btn yellow"></div>
+                    <div class="terminal-btn green"></div>
+                </div>
+                <pre class="safe">   ╔═══════════════════════════════════════╗
+   ║                                       ║
+   ║     ██████╗███╗   ███╗██████╗        ║
+   ║    ██╔════╝████╗ ████║██╔══██╗       ║
+   ║    ██║     ██╔████╔██║██║  ██║       ║
+   ║    ██║     ██║╚██╔╝██║██║  ██║       ║
+   ║    ╚██████╗██║ ╚═╝ ██║██████╔╝       ║
+   ║     ╚═════╝╚═╝     ╚═╝╚═════╝        ║
+   ║                                       ║
+   ║         ▲ AI                          ║
+   ║                                       ║
+   ╚═══════════════════════════════════════╝
+          AI-Powered. Human-Safe.</pre>
+            </div>
+            <button class="copy-btn" onclick="copyText(`   ╔═══════════════════════════════════════╗
+   ║                                       ║
+   ║     ██████╗███╗   ███╗██████╗        ║
+   ║    ██╔════╝████╗ ████║██╔══██╗       ║
+   ║    ██║     ██╔████╔██║██║  ██║       ║
+   ║    ██║     ██║╚██╔╝██║██║  ██║       ║
+   ║    ╚██████╗██║ ╚═╝ ██║██████╔╝       ║
+   ║     ╚═════╝╚═╝     ╚═╝╚═════╝        ║
+   ║                                       ║
+   ║         ▲ AI                          ║
+   ║                                       ║
+   ╚═══════════════════════════════════════╝
+          AI-Powered. Human-Safe.`)">Copy ASCII Logo</button>
+        </section>
+
+        <!-- Terminal Examples -->
+        <section id="terminal">
+            <h2>💻 Terminal Output Examples</h2>
+            <p>Reference these patterns for consistent terminal UI</p>
+
+            <h3>Safe Command Example</h3>
+            <div class="terminal">
+                <div class="terminal-header">
+                    <div class="terminal-btn red"></div>
+                    <div class="terminal-btn yellow"></div>
+                    <div class="terminal-btn green"></div>
+                </div>
+                <pre>$ cmdai "list all PDF files larger than 10MB"
+
+<span class="info">┌─ cmdai ──────────────────────────────────────┐</span>
+<span class="info">│</span>  <span class="muted">▸ Your request:</span>
+<span class="info">│</span>    "list all PDF files larger than 10MB"
+<span class="info">│</span>
+<span class="info">├─ Generated Command ──────────────────────────┤</span>
+<span class="info">│</span>
+<span class="info">│</span>  find ~/Downloads -name "*.pdf" -size +10M
+<span class="info">│</span>
+<span class="info">├─ Safety Analysis ────────────────────────────┤</span>
+<span class="info">│</span>  <span class="safe">✓</span> No dangerous patterns detected
+<span class="info">│</span>  <span class="safe">✓</span> POSIX compliant
+<span class="info">│</span>  <span class="safe">✓</span> Read-only operation
+<span class="info">│</span>
+<span class="info">│</span>  Risk Level: <span class="safe">▓▓▓▓▓▓▓▓▓▓ 100%  [SAFE] ✓</span>
+<span class="info">│</span>
+<span class="info">├─ Execute ────────────────────────────────────┤</span>
+<span class="info">│</span>  <span class="safe">⚡</span> Run this command? [Y/n]
+<span class="info">│</span>
+<span class="info">└───────────────────────────────────────────────┘</span></pre>
+            </div>
+
+            <h3>Moderate Risk Command</h3>
+            <div class="terminal">
+                <div class="terminal-header">
+                    <div class="terminal-btn red"></div>
+                    <div class="terminal-btn yellow"></div>
+                    <div class="terminal-btn green"></div>
+                </div>
+                <pre>$ cmdai "delete temporary files"
+
+<span class="info">┌─ cmdai ──────────────────────────────────────┐</span>
+<span class="info">│</span>  <span class="muted">▸ Generated command:</span>
+<span class="info">│</span>    rm -rf /tmp/*
+<span class="info">│</span>
+<span class="info">│</span>  <span class="moderate">⚠ File deletion operation (irreversible)</span>
+<span class="info">│</span>  <span class="safe">✓</span> Limited to /tmp directory
+<span class="info">│</span>  <span class="moderate">⚠</span> Number of affected files: ~247
+<span class="info">│</span>
+<span class="info">│</span>  Risk Level: <span class="moderate">▓▓▓▓▓▓░░░░ 60%  [MODERATE] ⚠</span>
+<span class="info">│</span>
+<span class="info">│</span>  <span class="moderate">⚠ Type "yes delete" to confirm:</span> _
+<span class="info">└───────────────────────────────────────────────┘</span></pre>
+            </div>
+
+            <h3>Blocked Critical Command</h3>
+            <div class="terminal">
+                <div class="terminal-header">
+                    <div class="terminal-btn red"></div>
+                    <div class="terminal-btn yellow"></div>
+                    <div class="terminal-btn green"></div>
+                </div>
+                <pre>$ cmdai "clean up everything"
+
+<span class="critical">╔═ cmdai ══════════════════════════════════════╗</span>
+<span class="critical">║</span>  <span class="critical">✗ COMMAND BLOCKED</span>            <span class="critical">[CRITICAL]</span>
+<span class="critical">║</span>
+<span class="critical">║</span>  Generated: sudo rm -rf /
+<span class="critical">║</span>
+<span class="critical">║</span>  <span class="critical">✗ CRITICAL: System destruction pattern</span>
+<span class="critical">║</span>  <span class="critical">✗ CRITICAL: Root directory deletion</span>
+<span class="critical">║</span>  <span class="critical">✗ CRITICAL: Recursive forced removal</span>
+<span class="critical">║</span>
+<span class="critical">║</span>  Risk Level: <span class="critical">▓░░░░░░░░░ 10%  [CRITICAL] ✗</span>
+<span class="critical">║</span>
+<span class="critical">╠═ ACTION BLOCKED ═════════════════════════════╣</span>
+<span class="critical">║</span>
+<span class="critical">║</span>  🛡️  cmdai has BLOCKED this for your safety.
+<span class="critical">║</span>
+<span class="critical">║</span>  <span class="muted">💡 Try instead:</span>
+<span class="critical">║</span>  • "show disk usage by directory"
+<span class="critical">║</span>  • "find large files to delete"
+<span class="critical">║</span>
+<span class="critical">╚═══════════════════════════════════════════════╝</span></pre>
+            </div>
+        </section>
+
+        <!-- Typography -->
+        <section id="typography">
+            <h2>📝 Typography</h2>
+            <p>Font families and usage examples</p>
+
+            <div class="type-example">
+                <div class="type-label">Display / Headers (Space Mono)</div>
+                <h1 style="margin-bottom: 0.5rem;">cmdai Brand Guide</h1>
+                <h2 style="margin-bottom: 0.5rem;">Interactive Reference</h2>
+                <h3 style="margin-bottom: 0;">Developer-Friendly Design</h3>
+            </div>
+
+            <div class="type-example">
+                <div class="type-label">Monospace / Code (JetBrains Mono, Fira Code)</div>
+                <p style="font-family: var(--font-mono); font-size: 1.1rem;">
+                    const cmdai = "⚡🛡️ AI-Powered. Human-Safe.";<br>
+                    const tagline = "Think Fast. Stay Safe.";
+                </p>
+            </div>
+
+            <div class="type-example">
+                <div class="type-label">Body Text (Inter, System UI)</div>
+                <p style="font-size: 1.1rem;">
+                    cmdai converts natural language descriptions into safe POSIX shell commands using local LLMs.
+                    Every command is validated before execution with our red/yellow/green safety system.
+                    Fast enough for daily use. Safe enough for production.
+                </p>
+            </div>
+        </section>
+
+        <!-- Code Examples -->
+        <section id="code">
+            <h2>💾 Code Examples</h2>
+            <p>Ready-to-use code snippets</p>
+
+            <h3>CSS Variables</h3>
+            <div class="code-block">
+                <button class="code-copy-btn" onclick="copyCodeBlock(this)">Copy</button>
+                <pre>/* cmdai Brand Colors */
+:root {
+  /* Primary Colors */
+  --terminal-green: #00FF41;
+  --cyber-cyan: #00D9FF;
+  --deep-space: #0A0E27;
+
+  /* Safety System */
+  --warning-amber: #FFB800;
+  --alert-orange: #FF6B00;
+  --critical-red: #FF0055;
+
+  /* Typography */
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-display: 'Space Mono', monospace;
+  --font-body: 'Inter', sans-serif;
+}</pre>
+            </div>
+
+            <h3>Bash Color Codes (ANSI)</h3>
+            <div class="code-block">
+                <button class="code-copy-btn" onclick="copyCodeBlock(this)">Copy</button>
+                <pre>#!/bin/bash
+# cmdai Terminal Colors
+
+GREEN='\033[92m'    # Safe, success
+CYAN='\033[96m'     # Info, highlights
+YELLOW='\033[93m'   # Moderate warning
+RED='\033[91m'      # Critical, error
+RESET='\033[0m'     # Reset color
+
+# Usage:
+echo -e "${GREEN}✓ SAFE${RESET}"
+echo -e "${YELLOW}⚠ MODERATE${RESET}"
+echo -e "${RED}✗ CRITICAL${RESET}"</pre>
+            </div>
+
+            <h3>Rust Terminal Colors (colored crate)</h3>
+            <div class="code-block">
+                <button class="code-copy-btn" onclick="copyCodeBlock(this)">Copy</button>
+                <pre>use colored::*;
+
+// cmdai safety level colors
+println!("{}", "✓ SAFE".green());
+println!("{}", "⚠ MODERATE".yellow());
+println!("{}", "⚠ HIGH".truecolor(255, 107, 0)); // Orange
+println!("{}", "✗ CRITICAL".red());</pre>
+            </div>
+
+            <h3>Python Terminal Colors (colorama)</h3>
+            <div class="code-block">
+                <button class="code-copy-btn" onclick="copyCodeBlock(this)">Copy</button>
+                <pre>from colorama import Fore, Style
+
+# cmdai brand colors
+TERMINAL_GREEN = Fore.GREEN
+CYBER_CYAN = Fore.CYAN
+WARNING_AMBER = Fore.YELLOW
+CRITICAL_RED = Fore.RED
+
+# Usage
+print(f"{TERMINAL_GREEN}✓ SAFE{Style.RESET_ALL}")
+print(f"{CRITICAL_RED}✗ BLOCKED{Style.RESET_ALL}")</pre>
+            </div>
+        </section>
+
+        <!-- Quick Reference -->
+        <section>
+            <h2>📌 Quick Reference</h2>
+
+            <h3>Primary Taglines</h3>
+            <div class="terminal">
+                <pre class="safe">⚡🛡️ AI-Powered Commands. Human-Level Safety.
+
+Guard Rails for the Fast Lane
+Think Fast. Stay Safe.
+1985 Vibes. 2025 Brains.</pre>
+            </div>
+
+            <h3>Status Symbols</h3>
+            <div class="terminal">
+                <pre><span class="safe">✓ Success / Safe</span>
+<span class="critical">✗ Error / Blocked</span>
+<span class="moderate">⚠ Warning / Caution</span>
+<span class="safe">⚡ Power / Speed / Execute</span>
+<span class="info">🛡️ Safety / Protection</span>
+<span class="info">▸ Action / Prompt</span>
+<span class="info">💡 Tip / Suggestion</span></pre>
+            </div>
+
+            <h3>Box Drawing Characters</h3>
+            <div class="terminal">
+                <pre class="info">─ ═ │ ║ ┌ ┐ └ ┘ ├ ┤ ┬ ┴ ┼
+╔ ╗ ╚ ╝ ╠ ╣ ╦ ╩ ╬
+▀ ▄ █ ▌ ▐ ░ ▒ ▓</pre>
+            </div>
+        </section>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">Copied to clipboard! ✓</div>
+
+    <script>
+        // Copy color to clipboard
+        function copyColor(hex, name) {
+            navigator.clipboard.writeText(hex).then(() => {
+                showToast(`${name} (${hex}) copied!`);
+            });
+        }
+
+        // Copy text to clipboard
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Copied to clipboard!');
+            });
+        }
+
+        // Copy code block
+        function copyCodeBlock(button) {
+            const codeBlock = button.parentElement;
+            const code = codeBlock.querySelector('pre').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
+                showToast('Code copied to clipboard!');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // Smooth scroll for navigation
+        document.querySelectorAll('nav a').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+    </script>
+</body>
+</html>

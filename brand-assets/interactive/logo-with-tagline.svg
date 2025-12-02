@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 80" width="500" height="80">
+  <!-- cmdai logo with tagline -->
+  <defs>
+    <style>
+      .logo-text { font-family: 'Monaco', 'Consolas', monospace; font-weight: bold; }
+      .tagline-text { font-family: 'Monaco', 'Consolas', monospace; font-size: 12px; }
+      .terminal-green { fill: #00FF41; }
+      .cyber-cyan { fill: #00D9FF; }
+      .silver-frost { fill: #C0C5D0; }
+      .deep-space { fill: #0A0E27; }
+    </style>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background (optional - remove rect if you want transparent) -->
+  <!-- <rect width="500" height="80" class="deep-space" rx="8"/> -->
+
+  <!-- Symbols -->
+  <text x="10" y="40" font-size="32" filter="url(#glow)" class="terminal-green">⚡</text>
+  <text x="35" y="40" font-size="32" filter="url(#glow)" class="cyber-cyan">🛡️</text>
+
+  <!-- Text -->
+  <text x="70" y="40" font-size="32" class="logo-text terminal-green" filter="url(#glow)">cmdai</text>
+
+  <!-- Tagline -->
+  <text x="10" y="65" class="tagline-text silver-frost">AI-Powered Commands. Human-Level Safety.</text>
+</svg>
