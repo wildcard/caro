@@ -372,6 +372,24 @@ This project is licensed under the **GNU Affero General Public License v3.0 (AGP
 - ⚠️ Same license requirement
 - ⚠️ State changes documentation
 
+## 🎨 Brand & Assets
+
+Our logo, name, and brand identity are licensed under **CC BY-ND 4.0** and additionally protected as trademarks.
+
+- 📦 [Brand Assets](./brand-assets/) - Logos, colors, typography, messaging
+- 📋 [Brand & Trademark Usage Policy](./brand-assets/BRAND_USAGE.md) - What you can and cannot do
+- ⚖️ [Assets License (CC BY-ND 4.0)](./LICENSE-ASSETS.md) - Full license text
+- 🎨 [Interactive Brand Guide](./brand-assets/interactive/brand-guide.html) - Visual reference with click-to-copy colors
+
+### Important for Forks
+
+**If you fork this project, you are NOT allowed to reuse or modify our branding.** You must create your own distinct brand identity.
+
+✅ **You CAN**: Reference cmdai in blog posts, tutorials, and comparative discussions
+❌ **You CANNOT**: Use the cmdai name, ⚡🛡️ logo, or brand colors for your fork
+
+See our [Brand Usage Policy](./brand-assets/BRAND_USAGE.md) for complete guidelines.
+
 ## 🙏 Acknowledgments
 
 - [MLX](https://github.com/ml-explore/mlx) - Apple's machine learning framework

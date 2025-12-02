@@ -5,6 +5,30 @@
  Everyone is permitted to copy and distribute verbatim copies
  of this license document, but changing it is not allowed.
 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+NOTE: Brand Assets Are NOT Covered by This License
+
+The cmdai source code is licensed under AGPL-3.0 (this license).
+
+However, the following are NOT covered by AGPL-3.0:
+  - The "cmdai" name and branding
+  - The ⚡🛡️ logo and all logo variations
+  - Brand colors, typography, and visual identity
+  - Signature slogans and taglines
+  - All files in the /brand-assets/ directory
+
+These brand assets are licensed separately under:
+  Creative Commons Attribution-NoDerivatives 4.0 International (CC BY-ND 4.0)
+
+For complete details, see:
+  - LICENSE-ASSETS.md (brand assets license)
+  - brand-assets/BRAND_USAGE.md (trademark and usage policy)
+
+If you fork this project, you MUST create your own distinct branding.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
                             Preamble
 
   The GNU Affero General Public License is a free, copyleft license for
