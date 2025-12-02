@@ -15,7 +15,7 @@
 3. [Color Palette](#color-palette)
 4. [Typography](#typography)
 5. [Components](#components)
-6. [Mascot - Caro](#mascot---caro)
+6. [Mascot - Kyaro](#mascot---kyaro)
 7. [Animation & Interactions](#animation--interactions)
 8. [Layout & Spacing](#layout--spacing)
 9. [Development Workflow](#development-workflow)
@@ -238,7 +238,7 @@ text-rendering: geometricPrecision;
 
 ---
 
-## 🤖 Mascot - Caro
+## 🤖 Mascot - Kyaro
 
 ### Current State
 
@@ -261,7 +261,7 @@ A **placeholder** exists in the Hero section (`Hero.tsx` around line 66):
 
 ### For Alrezky: Mascot Design Brief
 
-**Character:** Caro (adapted from Kyaro, similar to GitHub's Octocat)
+**Character:** Kyaro (cmdai's Shiba-inspired mascot, similar to GitHub's Octocat)
 
 **Personality:**
 - Friendly, approachable, helpful
@@ -290,7 +290,7 @@ Replace the placeholder in `Hero.tsx` with:
 ```tsx
 <Image
   src="/caro-mascot.png"
-  alt="Caro - cmdai mascot"
+  alt="Kyaro - cmdai mascot"
   width={192}
   height={192}
   className="sprite-animate"
@@ -443,7 +443,7 @@ export { NewComponent } from './NewComponent';
 #### For Alrezky (Art Director):
 
 1. **Mascot Creation**
-   - [ ] Design Caro character in 8-bit style
+   - [ ] Design Kyaro character in 8-bit style (see KYARO_SPRITE_GUIDE.md)
    - [ ] Create multiple sizes (48px, 96px, 192px, 256px)
    - [ ] Optional: Create sprite sheet for animations
    - [ ] Deliver in PNG and/or SVG format
@@ -554,7 +554,7 @@ export { NewComponent } from './NewComponent';
 
 - **Design Assets:** Place in `/public` directory
   - `/public/images/` - General images
-  - `/public/mascot/` - Caro variations
+  - `/public/mascot/` - Kyaro sprite sheets and variations
   - `/public/icons/` - Icon set
   - `/public/patterns/` - Pixel patterns/textures
 

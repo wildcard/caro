@@ -72,16 +72,19 @@ export const Hero: React.FC = () => {
 
           {/* Right side - Terminal demo */}
           <div className="space-y-6">
-            {/* Mascot placeholder - Alrezky will add Caro illustration here */}
+            {/* Mascot placeholder - Alrezky will add Kyaro illustration here */}
             <div className="flex justify-center mb-6">
               <div className="w-48 h-48 bg-pixel-bg-secondary border-4 border-neon-purple flex items-center justify-center relative sprite-animate">
                 <div className="text-center">
                   <div className="pixel-text text-[10px] text-neon-purple mb-2">
-                    CARO
+                    KYARO
                   </div>
-                  <div className="text-6xl">🤖</div>
+                  <div className="text-6xl">🐕</div>
                   <div className="text-[8px] text-gray-500 mt-2 font-mono">
-                    [Mascot illustration by Alrezky]
+                    [Shiba companion by Aci/Alrezky]
+                  </div>
+                  <div className="text-[7px] text-gray-600 mt-1 font-mono">
+                    See KYARO_SPRITE_GUIDE.md
                   </div>
                 </div>
               </div>
