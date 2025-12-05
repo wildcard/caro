@@ -1,13 +1,12 @@
 // CLI module - Command-line interface and user interaction
 
-use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use std::time::Instant;
 
 use crate::{
-    backends::{BackendInfo, CommandGenerator, GeneratorError},
-    models::{BackendType, CommandRequest, GeneratedCommand, RiskLevel, SafetyLevel, ShellType},
+    backends::CommandGenerator,
+    models::{CommandRequest, SafetyLevel, ShellType},
     safety::SafetyValidator,
 };
 
@@ -163,7 +162,6 @@ impl CliApp {
         #[cfg(not(any(test, debug_assertions)))]
         {
             use crate::backends::embedded::{EmbeddedModelBackend, ModelVariant};
-            use std::sync::Arc;
 
             // Create embedded backend as fallback
             let embedded_backend = EmbeddedModelBackend::with_variant_and_path(
@@ -174,13 +172,15 @@ impl CliApp {
                 message: format!("Failed to create embedded backend: {}", e),
             })?;
 
-            let embedded_arc: Arc<dyn CommandGenerator> = Arc::new(embedded_backend);
-
             // Try remote backends with embedded fallback based on configuration
             #[cfg(feature = "remote-backends")]
             {
                 use crate::backends::remote::{OllamaBackend, VllmBackend};
                 use reqwest::Url;
+                use std::sync::Arc;
+
+                // Create Arc wrapper for fallback usage
+                let embedded_arc: Arc<dyn CommandGenerator> = Arc::new(embedded_backend);
 
                 // TODO: Add backend preference to user configuration
                 // For now, try Ollama first, then vLLM, then embedded
@@ -211,11 +211,22 @@ impl CliApp {
                         return Ok(Box::new(vllm_backend));
                     }
                 }
+
+                // Fall back to embedded backend only - unwrap from Arc
+                tracing::info!("Using embedded backend only");
+                Arc::try_unwrap(embedded_arc)
+                    .map(|backend| Box::new(backend) as Box<dyn CommandGenerator>)
+                    .map_err(|_| CliError::ConfigurationError {
+                        message: "Failed to unwrap embedded backend from Arc".to_string(),
+                    })
             }
 
-            // Fall back to embedded backend only
-            tracing::info!("Using embedded backend only");
-            Ok(Box::new(embedded_arc))
+            // Without remote backends, just use embedded directly
+            #[cfg(not(feature = "remote-backends"))]
+            {
+                tracing::info!("Using embedded backend only");
+                Ok(Box::new(embedded_backend))
+            }
         }
     }
 
