@@ -21,6 +21,7 @@ All contributors must:
 - [Getting Started](#getting-started)
 - [Development Workflow](#development-workflow)
 - [Code Standards](#code-standards)
+- [Contributor License Agreement](#contributor-license-agreement)
 - [Pull Request Process](#pull-request-process)
 - [Areas for Contribution](#areas-for-contribution)
 - [Agent Collaboration](#agent-collaboration)
@@ -643,6 +644,57 @@ async fn test_cache_manager_handles_missing_model() {
     assert!(matches!(result, Err(CacheError::ModelNotFound(_))));
 }
 ```
+
+---
+
+## Contributor License Agreement
+
+### Why We Use a CLA
+
+cmdai is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**, a strong copyleft license that ensures the software and all contributions remain free and open source. To accept your contributions, we use a **Contributor License Agreement (CLA)** to:
+
+- Confirm you have the legal right to contribute your code
+- Grant the project the necessary rights to distribute your contributions under AGPL-3.0
+- Protect contributors, users, and the project from legal uncertainty
+- Maintain the copyleft nature of the project
+
+**Important**: Unlike some projects that use CLAs for dual licensing, cmdai commits to keeping all contributions under AGPL-3.0. We will not use your contributions under proprietary licenses.
+
+### How to Sign the CLA
+
+Signing the CLA is simple and happens directly on your pull request:
+
+1. **Read the CLA**: Review [CLA.md](CLA.md) to understand the terms
+2. **Comment on your PR**: Add this exact comment to your pull request:
+   ```
+   I have read the CLA Document and I hereby sign the CLA
+   ```
+3. **Continue**: Once signed, maintainers can proceed with reviewing your contribution
+
+**First-time contributors**: You only need to sign the CLA once. Your signature covers all future contributions to cmdai.
+
+### Alternative: Developer Certificate of Origin (DCO)
+
+We also provide a **Developer Certificate of Origin (DCO)** option as specified in [DCO.txt](DCO.txt). The DCO is a lighter-weight alternative used by projects like the Linux kernel, Node.js, and Spring Framework.
+
+If you prefer to use DCO instead of the CLA, you can sign off your commits using:
+
+```bash
+git commit -s -m "Your commit message"
+```
+
+This adds a `Signed-off-by:` line to your commit message, indicating you agree to the DCO terms.
+
+**Note**: You must use either CLA or DCO for your contributions to be accepted. Choose whichever you're more comfortable with.
+
+### Questions About the CLA?
+
+- **"Why does an AGPL project need a CLA?"** - While AGPL-3.0 itself provides strong protections, the CLA ensures we have clear documentation that contributors have the right to submit their code and agree to its use under AGPL-3.0.
+- **"Will my code be used in proprietary software?"** - No. cmdai commits to maintaining AGPL-3.0 licensing for all contributions.
+- **"What if my employer owns my code?"** - You'll need employer permission to contribute. See section 4 of the CLA for details.
+- **"Can I submit third-party code?"** - Yes, but it must be clearly marked and comply with section 7 of the CLA.
+
+For more questions, open an issue with the `question` label or start a discussion on GitHub.
 
 ---
 
