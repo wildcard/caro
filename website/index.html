@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cmdai - Claude for your shell</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            background: #ffffff;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .logo {
+            font-size: 72px;
+            margin-bottom: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tagline {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .subtitle {
+            font-size: 20px;
+            color: #7f8c8d;
+            margin-bottom: 40px;
+            max-width: 600px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 16px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 10px;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .cta-button.secondary {
+            background: transparent;
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .cta-button.secondary:hover {
+            background: #f8f9fa;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+        }
+
+        /* Section Styles */
+        section {
+            padding: 80px 20px;
+        }
+
+        section h2 {
+            font-size: 36px;
+            text-align: center;
+            margin-bottom: 50px;
+            color: #2c3e50;
+        }
+
+        /* Video Section */
+        .video-section {
+            background: #f8f9fa;
+        }
+
+        .video-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            aspect-ratio: 16 / 9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #7f8c8d;
+            font-size: 18px;
+        }
+
+        /* Features Section */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .feature {
+            text-align: center;
+            padding: 30px;
+            border-radius: 12px;
+            background: #ffffff;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .feature:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .feature h3 {
+            font-size: 22px;
+            margin-bottom: 12px;
+            color: #2c3e50;
+        }
+
+        .feature p {
+            color: #7f8c8d;
+            line-height: 1.7;
+        }
+
+        /* Download Section */
+        .download-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .download-section h2 {
+            color: white;
+        }
+
+        .install-command {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px 30px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 16px;
+            margin: 30px auto;
+            max-width: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .install-command code {
+            color: #fff;
+        }
+
+        .copy-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .copy-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .download-options {
+            margin-top: 40px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .download-link {
+            background: white;
+            color: #667eea;
+            padding: 14px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .download-link:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            background: #2c3e50;
+            color: #ecf0f1;
+        }
+
+        footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Terminal Demo */
+        .terminal {
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 40px auto;
+            max-width: 700px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            color: #d4d4d4;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .terminal-header {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .terminal-dot.red { background: #ff5f56; }
+        .terminal-dot.yellow { background: #ffbd2e; }
+        .terminal-dot.green { background: #27c93f; }
+
+        .terminal-line {
+            margin: 8px 0;
+        }
+
+        .terminal-prompt {
+            color: #4ec9b0;
+        }
+
+        .terminal-command {
+            color: #9cdcfe;
+        }
+
+        .terminal-output {
+            color: #ce9178;
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 48px;
+            }
+
+            .tagline {
+                font-size: 24px;
+            }
+
+            .subtitle {
+                font-size: 18px;
+            }
+
+            section h2 {
+                font-size: 28px;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <div class="hero">
+        <div class="container">
+            <div class="logo">cmdai</div>
+            <h1 class="tagline">Claude for your shell</h1>
+            <p class="subtitle">Turn natural language into safe POSIX shell commands using local LLMs. Fast, secure, and works offline.</p>
+            <div>
+                <a href="#download" class="cta-button">Get Started</a>
+                <a href="#how-it-works" class="cta-button secondary">Watch Demo</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terminal Demo -->
+    <div class="container">
+        <div class="terminal">
+            <div class="terminal-header">
+                <div class="terminal-dot red"></div>
+                <div class="terminal-dot yellow"></div>
+                <div class="terminal-dot green"></div>
+            </div>
+            <div class="terminal-line">
+                <span class="terminal-prompt">$</span>
+                <span class="terminal-command"> cmdai "find all python files modified in the last week"</span>
+            </div>
+            <div class="terminal-line">
+                <span class="terminal-output">→ find . -name "*.py" -type f -mtime -7</span>
+            </div>
+            <div class="terminal-line">
+                <span style="color: #6a9955;">✓ Safe to run</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Section -->
+    <section id="how-it-works" class="video-section">
+        <div class="container">
+            <h2>How It Works</h2>
+            <div class="video-container">
+                <!-- Placeholder for video - replace with actual video embed -->
+                <div>Video demo coming soon</div>
+                <!-- Example YouTube embed:
+                <iframe width="100%" height="100%" src="https://www.youtube.com/embed/YOUR_VIDEO_ID" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features">
+        <div class="container">
+            <h2>Why cmdai?</h2>
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Safety First</h3>
+                    <p>Comprehensive validation blocks dangerous commands like rm -rf /, fork bombs, and destructive operations before execution.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Lightning Fast</h3>
+                    <p>Sub-100ms startup, sub-2s inference on Apple Silicon. Optimized with MLX framework for maximum performance.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📦</div>
+                    <h3>Single Binary</h3>
+                    <p>One small binary, no dependencies. Under 50MB without embedded models. Easy to install and distribute.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🔌</div>
+                    <h3>Works Offline</h3>
+                    <p>Run completely local with Ollama or MLX. Your commands never leave your machine. Privacy by design.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🌐</div>
+                    <h3>Multiple Backends</h3>
+                    <p>Support for MLX (Apple Silicon), Ollama, and vLLM. Choose the backend that works best for you.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">✅</div>
+                    <h3>POSIX Compliant</h3>
+                    <p>Generates portable shell commands that work across macOS, Linux, and Unix systems.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section id="download" class="download-section">
+        <div class="container">
+            <h2>Get Started</h2>
+            <p style="font-size: 18px; margin-bottom: 20px;">Install cmdai and start converting natural language to shell commands</p>
+
+            <div class="install-command">
+                <code>cargo install cmdai</code>
+                <button class="copy-button" onclick="copyToClipboard('cargo install cmdai')">Copy</button>
+            </div>
+
+            <p style="margin: 20px 0;">Or download pre-built binaries:</p>
+
+            <div class="download-options">
+                <a href="https://github.com/wildcard/cmdai/releases/latest" class="download-link">macOS (Apple Silicon)</a>
+                <a href="https://github.com/wildcard/cmdai/releases/latest" class="download-link">macOS (Intel)</a>
+                <a href="https://github.com/wildcard/cmdai/releases/latest" class="download-link">Linux (x86_64)</a>
+            </div>
+
+            <div style="margin-top: 40px; padding-top: 40px; border-top: 1px solid rgba(255,255,255,0.2);">
+                <h3 style="margin-bottom: 20px;">Quick Start</h3>
+                <div style="text-align: left; max-width: 600px; margin: 0 auto; font-size: 16px; line-height: 1.8;">
+                    <p style="margin-bottom: 15px;">1. Install Ollama or configure your preferred backend</p>
+                    <p style="margin-bottom: 15px;">2. Run cmdai with a natural language description:</p>
+                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 6px; margin: 15px 0; font-family: monospace;">
+                        cmdai "list all files larger than 100MB"
+                    </div>
+                    <p style="margin-bottom: 15px;">3. Review the generated command and confirm to execute</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>Built with Rust 🦀 | Open source on <a href="https://github.com/wildcard/cmdai">GitHub</a></p>
+            <p style="margin-top: 10px; font-size: 14px; color: #95a5a6;">
+                <a href="https://github.com/wildcard/cmdai/blob/main/LICENSE">MIT License</a> |
+                <a href="https://github.com/wildcard/cmdai/blob/main/CONTRIBUTING.md">Contributing</a> |
+                <a href="https://github.com/wildcard/cmdai/issues">Issues</a>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
