@@ -1,0 +1,96 @@
+---
+const features = [
+  {
+    icon: "🤝",
+    title: "Claude's Companion",
+    description: "Seamlessly integrates with Claude as an MCP and Skill, offloading shell command inference and execution while Claude focuses on your broader work."
+  },
+  {
+    icon: "🛡️",
+    title: "Safety Guardian",
+    description: "Comprehensive validation blocks dangerous commands like rm -rf /, fork bombs, and destructive operations. She keeps you safe like a loyal companion should."
+  },
+  {
+    icon: "🌍",
+    title: "Cross-Platform Expert",
+    description: "Works across macOS, Linux, Windows, GNU, and BSD. Understands platform-specific nuances and respects your distribution of choice."
+  },
+  {
+    icon: "🧠",
+    title: "Platform-Aware",
+    description: "Provides recommendations based on your preferences, platform capabilities, and best practices for your specific environment."
+  },
+  {
+    icon: "⚡",
+    title: "Lightning Fast",
+    description: "Sub-100ms startup, sub-2s inference on Apple Silicon. Optimized with MLX framework for maximum performance without sacrificing safety."
+  },
+  {
+    icon: "✅",
+    title: "POSIX Specialist",
+    description: "Expert in POSIX-compliant shell commands that work reliably across systems. Portable, safe, and optimized for your terminal."
+  }
+];
+---
+
+<section id="features">
+  <div class="container">
+    <h2>Why Caro?</h2>
+    <p class="section-subtitle">A companion agent built for safety, empathy, and expertise</p>
+    <div class="features">
+      {features.map((feature) => (
+        <div class="feature">
+          <div class="feature-icon">{feature.icon}</div>
+          <h3>{feature.title}</h3>
+          <p>{feature.description}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 40px;
+    margin-top: 40px;
+  }
+
+  .feature {
+    text-align: center;
+    padding: 30px;
+    border-radius: 12px;
+    background: #ffffff;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #f0f0f0;
+  }
+
+  .feature:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.1);
+    border-color: #ff8c42;
+  }
+
+  .feature-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+  }
+
+  .feature h3 {
+    font-size: 22px;
+    margin-bottom: 12px;
+    color: #2c3e50;
+  }
+
+  .feature p {
+    color: #7f8c8d;
+    line-height: 1.7;
+  }
+
+  @media (max-width: 768px) {
+    .features {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
