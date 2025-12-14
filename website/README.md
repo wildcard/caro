@@ -1,44 +1,57 @@
-# cmdai Website
+# Caro Website
 
-Simple, clean website for the cmdai project - "Claude for your shell"
+Official website for **Caro** - Your loyal shell companion. Visit at **caro.sh**
 
 ## Overview
 
-This website showcases cmdai, a Rust CLI tool that converts natural language into safe POSIX shell commands using local LLMs.
+Caro is a companion agent that specializes in POSIX shell commands. She's available as an MCP for Claude and as a dedicated Skill, helping keep you safe while Claude gets the work done.
 
-## Features
+## The Story
 
-- **Hero Section**: Clean introduction with call-to-action buttons
-- **Terminal Demo**: Interactive terminal preview showing cmdai in action
-- **Video Section**: Placeholder for demo video (easily replaceable)
-- **Features Grid**: Highlights key capabilities (safety, speed, offline support)
-- **Download Section**: Installation instructions and quick start guide
-- **Responsive Design**: Mobile-friendly and works across all devices
+Caro is the digitalization of Kyaro (Kyarorain Kadosh), the maintainer's beloved dog. Inspired by Portal's Caroline/GLaDOS—loyalty transformed into eternal companionship.
+
+## Website Features
+
+- **Hero Section**: Warm, inviting introduction with companion badge
+- **Terminal Demo**: Interactive preview showing Caro generating safe shell commands
+- **Story Section**: The origin story connecting Kyaro, Portal's Caroline, and GLaDOS
+- **Features Grid**: 6 key capabilities emphasizing safety, cross-platform support, and Claude integration
+- **Download Section**: Three ways to use Caro (CLI, MCP, Skill) with installation instructions
+- **Responsive Design**: Mobile-friendly across all devices
+
+## Design Philosophy
+
+The website uses warm orange/amber gradient colors (#ff8c42 → #ff6b35) to evoke:
+- Warmth and companionship (like a loyal dog)
+- Safety and guardianship
+- Energy and reliability
+
+The design emphasizes:
+- Companion-focused messaging
+- Safety as a core value
+- Cross-platform expertise
+- Integration with Claude
 
 ## Local Development
 
-To view the website locally, simply open the `index.html` file in your browser:
+To view the website locally:
 
 ```bash
-# macOS
+# Simple way - just open in browser
 open index.html
 
-# Linux
-xdg-open index.html
-
-# Or use a simple HTTP server
+# Or use a local server
 python3 -m http.server 8000
-# Then visit http://localhost:8000
+# Visit http://localhost:8000
 ```
 
 ## Customization
 
-### Adding a Video
+### Adding the Demo Video
 
-Replace the video placeholder in the video section:
+Replace the video placeholder in the video section around line 437:
 
 ```html
-<!-- Replace this section in index.html -->
 <div class="video-container">
     <iframe
         width="100%"
@@ -53,55 +66,67 @@ Replace the video placeholder in the video section:
 
 ### Updating Colors
 
-The main brand colors are defined at the top of the CSS:
-
-- Primary gradient: `#667eea` to `#764ba2` (purple)
+Main brand colors (warm orange/amber for loyalty):
+- Primary gradient: `#ff8c42` to `#ff6b35`
+- Background warmth: `#fff8f0`
 - Text: `#2c3e50` (dark blue-gray)
-- Background: `#ffffff` (white)
 - Accent: `#7f8c8d` (gray)
 
 ### Modifying Content
 
 All content is in `index.html` with clear section markers:
-- Hero section: Main tagline and CTA
-- Terminal demo: Example command/output
-- Features: 6 feature cards
-- Download: Installation instructions
+- Hero: Companion badge, tagline, and CTAs
+- Terminal demo: Example Caro command
+- Story: The Kyaro/Caroline/GLaDOS narrative
+- Features: 6 companion-focused capabilities
+- Download: Three usage modes (CLI, MCP, Skill)
 
 ## Deployment
 
 ### GitHub Pages
 
-1. Push the website directory to your repository
-2. Go to Settings > Pages
-3. Select the branch and `/website` folder
-4. Your site will be available at `https://username.github.io/cmdai`
+1. Push to repository
+2. Settings > Pages
+3. Select branch and `/website` folder
+4. Site available at your GitHub Pages URL
+
+### Custom Domain (caro.sh)
+
+Configure your DNS:
+
+```
+# DNS Records for caro.sh
+A     @     <your-server-ip>
+CNAME www   <your-hosting-provider>
+```
+
+For GitHub Pages with custom domain:
+1. Add `CNAME` file with `caro.sh`
+2. Configure DNS A records to GitHub's IPs
+3. Enable HTTPS in repository settings
 
 ### Netlify/Vercel
 
-1. Drag and drop the `website` folder to Netlify/Vercel
-2. Or connect your GitHub repo and set the publish directory to `website`
-
-### Custom Domain
-
-Update the deployment settings in your hosting provider to point to your custom domain.
+1. Connect GitHub repo
+2. Set publish directory to `website`
+3. Configure custom domain to `caro.sh`
 
 ## File Structure
 
 ```
 website/
-├── index.html       # Main website file (HTML + CSS + JS)
+├── index.html       # Single-file website (HTML + CSS + JS)
 └── README.md        # This file
 ```
 
-## Design Philosophy
+## Key Messaging
 
-The website follows a minimal, clean aesthetic similar to modern SaaS landing pages:
-- Single-page design for simplicity
-- Gradient accents for visual interest
-- Clear hierarchy and generous whitespace
-- Mobile-first responsive design
-- Fast loading (no external dependencies except optional video)
+- **Tagline**: "Your loyal shell companion"
+- **Mission**: Specialized POSIX shell command agent with empathy and agency
+- **Safety**: Comprehensive validation like a loyal companion
+- **Platform**: Works across macOS, Linux, Windows, GNU, BSD
+- **Integration**: MCP for Claude, dedicated Skill, standalone CLI
+- **Story**: Kyaro → Caro, inspired by Portal's Caroline → GLaDOS
 
 ## Browser Support
 
@@ -112,4 +137,4 @@ The website follows a minimal, clean aesthetic similar to modern SaaS landing pa
 
 ## License
 
-Same as the cmdai project - MIT License
+MIT License - Same as the Caro project

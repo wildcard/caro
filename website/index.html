@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>cmdai - Claude for your shell</title>
+    <title>Caro - Your loyal shell companion</title>
+    <meta name="description" content="Caro is a companion agent that helps you with POSIX shell commands. Available as an MCP for Claude and as a dedicated Skill.">
     <style>
         * {
             margin: 0;
@@ -33,20 +34,34 @@
             align-items: center;
             text-align: center;
             padding: 60px 20px;
+            background: linear-gradient(135deg, #fff8f0 0%, #ffffff 100%);
         }
 
         .logo {
             font-size: 72px;
             margin-bottom: 20px;
             font-weight: 700;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
+        .companion-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
         .tagline {
-            font-size: 32px;
+            font-size: 38px;
             font-weight: 600;
             margin-bottom: 20px;
             color: #2c3e50;
@@ -56,13 +71,14 @@
             font-size: 20px;
             color: #7f8c8d;
             margin-bottom: 40px;
-            max-width: 600px;
+            max-width: 650px;
+            line-height: 1.7;
         }
 
         .cta-button {
             display: inline-block;
             padding: 16px 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
             color: white;
             text-decoration: none;
             border-radius: 8px;
@@ -74,18 +90,18 @@
 
         .cta-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 25px rgba(255, 140, 66, 0.3);
         }
 
         .cta-button.secondary {
             background: transparent;
-            border: 2px solid #667eea;
-            color: #667eea;
+            border: 2px solid #ff8c42;
+            color: #ff8c42;
         }
 
         .cta-button.secondary:hover {
-            background: #f8f9fa;
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+            background: #fff8f0;
+            box-shadow: 0 10px 25px rgba(255, 140, 66, 0.2);
         }
 
         /* Section Styles */
@@ -96,8 +112,45 @@
         section h2 {
             font-size: 36px;
             text-align: center;
-            margin-bottom: 50px;
+            margin-bottom: 20px;
             color: #2c3e50;
+        }
+
+        section .section-subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 18px;
+            margin-bottom: 50px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Story Section */
+        .story-section {
+            background: linear-gradient(135deg, #fff8f0 0%, #ffffff 100%);
+        }
+
+        .story-content {
+            max-width: 700px;
+            margin: 0 auto;
+            font-size: 18px;
+            line-height: 1.9;
+            color: #34495e;
+        }
+
+        .story-content p {
+            margin-bottom: 20px;
+        }
+
+        .story-highlight {
+            background: #fff;
+            border-left: 4px solid #ff8c42;
+            padding: 20px 30px;
+            margin: 30px 0;
+            border-radius: 4px;
+            font-style: italic;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
 
         /* Video Section */
@@ -134,11 +187,13 @@
             border-radius: 12px;
             background: #ffffff;
             transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #f0f0f0;
         }
 
         .feature:hover {
             transform: translateY(-4px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 10px 30px rgba(255, 140, 66, 0.1);
+            border-color: #ff8c42;
         }
 
         .feature-icon {
@@ -159,13 +214,17 @@
 
         /* Download Section */
         .download-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
             color: white;
             text-align: center;
         }
 
         .download-section h2 {
             color: white;
+        }
+
+        .download-section .section-subtitle {
+            color: rgba(255, 255, 255, 0.9);
         }
 
         .install-command {
@@ -210,7 +269,7 @@
 
         .download-link {
             background: white;
-            color: #667eea;
+            color: #ff6b35;
             padding: 14px 30px;
             border-radius: 8px;
             text-decoration: none;
@@ -231,7 +290,7 @@
         }
 
         footer a {
-            color: #667eea;
+            color: #ff8c42;
             text-decoration: none;
         }
 
@@ -284,13 +343,17 @@
             color: #ce9178;
         }
 
+        .terminal-caro {
+            color: #ff8c42;
+        }
+
         @media (max-width: 768px) {
             .logo {
                 font-size: 48px;
             }
 
             .tagline {
-                font-size: 24px;
+                font-size: 28px;
             }
 
             .subtitle {
@@ -311,9 +374,10 @@
     <!-- Hero Section -->
     <div class="hero">
         <div class="container">
-            <div class="logo">cmdai</div>
-            <h1 class="tagline">Claude for your shell</h1>
-            <p class="subtitle">Turn natural language into safe POSIX shell commands using local LLMs. Fast, secure, and works offline.</p>
+            <div class="companion-badge">🐕 Companion Agent</div>
+            <div class="logo">Caro</div>
+            <h1 class="tagline">Your loyal shell companion</h1>
+            <p class="subtitle">A specialized POSIX shell command agent with empathy and agency. Available as an MCP for Claude and as a dedicated Skill. She keeps you safe while helping Claude get the job done.</p>
             <div>
                 <a href="#download" class="cta-button">Get Started</a>
                 <a href="#how-it-works" class="cta-button secondary">Watch Demo</a>
@@ -331,21 +395,45 @@
             </div>
             <div class="terminal-line">
                 <span class="terminal-prompt">$</span>
-                <span class="terminal-command"> cmdai "find all python files modified in the last week"</span>
+                <span class="terminal-command"> caro "find python files modified in the last 7 days"</span>
             </div>
             <div class="terminal-line">
-                <span class="terminal-output">→ find . -name "*.py" -type f -mtime -7</span>
+                <span class="terminal-caro">🐕 Caro:</span>
+                <span class="terminal-output"> find . -name "*.py" -type f -mtime -7</span>
             </div>
             <div class="terminal-line">
-                <span style="color: #6a9955;">✓ Safe to run</span>
+                <span style="color: #6a9955;">✓ Safe to run on your macOS system</span>
             </div>
         </div>
     </div>
 
+    <!-- Story Section -->
+    <section id="story" class="story-section">
+        <div class="container">
+            <h2>Meet Caro</h2>
+            <p class="section-subtitle">A companion with a story of loyalty and transformation</p>
+            <div class="story-content">
+                <p>
+                    Caro is the digitalization of Kyaro (Kyarorain Kadosh), the maintainer's beloved dog. Just as a loyal companion stays by your side through every challenge, Caro is here to help you navigate the complexities of shell commands with safety and expertise.
+                </p>
+                <div class="story-highlight">
+                    "In Portal 2, we learned that GLaDOS was once Caroline, the secretary of Aperture Science's founder—transformed into the eternal guardian of the facility. Like Caroline became the beating heart of the testing chambers, Caro is your eternal companion for the terminal."
+                </div>
+                <p>
+                    She specializes in POSIX shell commands and understands the nuances of every platform—whether you're on macOS, Linux, Windows, GNU, or BSD. Caro brings your preferences with her wherever you deploy her, respecting your distribution of choice while keeping you safe from dangerous commands.
+                </p>
+                <p>
+                    As Claude's loyal companion, Caro handles the shell-specific heavy lifting, allowing Claude to focus on the broader work while she ensures every command is safe, correct, and optimized for your platform.
+                </p>
+            </div>
+        </div>
+    </section>
+
     <!-- Video Section -->
     <section id="how-it-works" class="video-section">
         <div class="container">
-            <h2>How It Works</h2>
+            <h2>How Caro Works</h2>
+            <p class="section-subtitle">See Caro in action as your shell companion</p>
             <div class="video-container">
                 <!-- Placeholder for video - replace with actual video embed -->
                 <div>Video demo coming soon</div>
@@ -359,37 +447,38 @@
     <!-- Features Section -->
     <section id="features">
         <div class="container">
-            <h2>Why cmdai?</h2>
+            <h2>Why Caro?</h2>
+            <p class="section-subtitle">A companion agent built for safety, empathy, and expertise</p>
             <div class="features">
                 <div class="feature">
+                    <div class="feature-icon">🤝</div>
+                    <h3>Claude's Companion</h3>
+                    <p>Seamlessly integrates with Claude as an MCP and Skill, offloading shell command inference and execution while Claude focuses on your broader work.</p>
+                </div>
+                <div class="feature">
                     <div class="feature-icon">🛡️</div>
-                    <h3>Safety First</h3>
-                    <p>Comprehensive validation blocks dangerous commands like rm -rf /, fork bombs, and destructive operations before execution.</p>
+                    <h3>Safety Guardian</h3>
+                    <p>Comprehensive validation blocks dangerous commands like rm -rf /, fork bombs, and destructive operations. She keeps you safe like a loyal companion should.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🌍</div>
+                    <h3>Cross-Platform Expert</h3>
+                    <p>Works across macOS, Linux, Windows, GNU, and BSD. Understands platform-specific nuances and respects your distribution of choice.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🧠</div>
+                    <h3>Platform-Aware</h3>
+                    <p>Provides recommendations based on your preferences, platform capabilities, and best practices for your specific environment.</p>
                 </div>
                 <div class="feature">
                     <div class="feature-icon">⚡</div>
                     <h3>Lightning Fast</h3>
-                    <p>Sub-100ms startup, sub-2s inference on Apple Silicon. Optimized with MLX framework for maximum performance.</p>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">📦</div>
-                    <h3>Single Binary</h3>
-                    <p>One small binary, no dependencies. Under 50MB without embedded models. Easy to install and distribute.</p>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">🔌</div>
-                    <h3>Works Offline</h3>
-                    <p>Run completely local with Ollama or MLX. Your commands never leave your machine. Privacy by design.</p>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">🌐</div>
-                    <h3>Multiple Backends</h3>
-                    <p>Support for MLX (Apple Silicon), Ollama, and vLLM. Choose the backend that works best for you.</p>
+                    <p>Sub-100ms startup, sub-2s inference on Apple Silicon. Optimized with MLX framework for maximum performance without sacrificing safety.</p>
                 </div>
                 <div class="feature">
                     <div class="feature-icon">✅</div>
-                    <h3>POSIX Compliant</h3>
-                    <p>Generates portable shell commands that work across macOS, Linux, and Unix systems.</p>
+                    <h3>POSIX Specialist</h3>
+                    <p>Expert in POSIX-compliant shell commands that work reliably across systems. Portable, safe, and optimized for your terminal.</p>
                 </div>
             </div>
         </div>
@@ -398,12 +487,12 @@
     <!-- Download Section -->
     <section id="download" class="download-section">
         <div class="container">
-            <h2>Get Started</h2>
-            <p style="font-size: 18px; margin-bottom: 20px;">Install cmdai and start converting natural language to shell commands</p>
+            <h2>Get Started with Caro</h2>
+            <p class="section-subtitle">Bring your loyal shell companion to your terminal</p>
 
             <div class="install-command">
-                <code>cargo install cmdai</code>
-                <button class="copy-button" onclick="copyToClipboard('cargo install cmdai')">Copy</button>
+                <code>cargo install caro</code>
+                <button class="copy-button" onclick="copyToClipboard('cargo install caro')">Copy</button>
             </div>
 
             <p style="margin: 20px 0;">Or download pre-built binaries:</p>
@@ -412,17 +501,45 @@
                 <a href="https://github.com/wildcard/cmdai/releases/latest" class="download-link">macOS (Apple Silicon)</a>
                 <a href="https://github.com/wildcard/cmdai/releases/latest" class="download-link">macOS (Intel)</a>
                 <a href="https://github.com/wildcard/cmdai/releases/latest" class="download-link">Linux (x86_64)</a>
+                <a href="https://github.com/wildcard/cmdai/releases/latest" class="download-link">Windows</a>
             </div>
 
-            <div style="margin-top: 40px; padding-top: 40px; border-top: 1px solid rgba(255,255,255,0.2);">
-                <h3 style="margin-bottom: 20px;">Quick Start</h3>
-                <div style="text-align: left; max-width: 600px; margin: 0 auto; font-size: 16px; line-height: 1.8;">
-                    <p style="margin-bottom: 15px;">1. Install Ollama or configure your preferred backend</p>
-                    <p style="margin-bottom: 15px;">2. Run cmdai with a natural language description:</p>
-                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 6px; margin: 15px 0; font-family: monospace;">
-                        cmdai "list all files larger than 100MB"
+            <div style="margin-top: 60px; padding-top: 40px; border-top: 1px solid rgba(255,255,255,0.2);">
+                <h3 style="margin-bottom: 30px; font-size: 28px;">Multiple Ways to Use Caro</h3>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-top: 30px;">
+                    <div style="background: rgba(255,255,255,0.1); padding: 25px; border-radius: 8px;">
+                        <h4 style="margin-bottom: 15px; font-size: 20px;">🔧 Standalone CLI</h4>
+                        <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px; margin: 15px 0; font-family: monospace; font-size: 14px; text-align: left;">
+                            caro "list files &gt; 100MB"
+                        </div>
                     </div>
-                    <p style="margin-bottom: 15px;">3. Review the generated command and confirm to execute</p>
+
+                    <div style="background: rgba(255,255,255,0.1); padding: 25px; border-radius: 8px;">
+                        <h4 style="margin-bottom: 15px; font-size: 20px;">🔌 MCP for Claude</h4>
+                        <p style="font-size: 15px; line-height: 1.6;">
+                            Add Caro as an MCP server to Claude Desktop and let her handle all shell commands seamlessly.
+                        </p>
+                    </div>
+
+                    <div style="background: rgba(255,255,255,0.1); padding: 25px; border-radius: 8px;">
+                        <h4 style="margin-bottom: 15px; font-size: 20px;">✨ Dedicated Skill</h4>
+                        <p style="font-size: 15px; line-height: 1.6;">
+                            Use Caro as a Skill to offload shell command generation and execution while Claude focuses on your work.
+                        </p>
+                    </div>
+                </div>
+
+                <div style="margin-top: 50px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto;">
+                    <h3 style="margin-bottom: 20px; text-align: center;">Quick Start</h3>
+                    <div style="font-size: 16px; line-height: 1.8;">
+                        <p style="margin-bottom: 15px;">1. Install Ollama or configure your preferred backend</p>
+                        <p style="margin-bottom: 15px;">2. Run Caro with a natural language description:</p>
+                        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 6px; margin: 15px 0; font-family: monospace;">
+                            caro "find all python files modified in the last 7 days"
+                        </div>
+                        <p style="margin-bottom: 15px;">3. Review the generated command and let Caro keep you safe</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -432,10 +549,17 @@
     <footer>
         <div class="container">
             <p>Built with Rust 🦀 | Open source on <a href="https://github.com/wildcard/cmdai">GitHub</a></p>
+            <p style="margin-top: 15px; font-size: 16px;">
+                <strong>caro.sh</strong> - Your loyal shell companion
+            </p>
             <p style="margin-top: 10px; font-size: 14px; color: #95a5a6;">
                 <a href="https://github.com/wildcard/cmdai/blob/main/LICENSE">MIT License</a> |
                 <a href="https://github.com/wildcard/cmdai/blob/main/CONTRIBUTING.md">Contributing</a> |
                 <a href="https://github.com/wildcard/cmdai/issues">Issues</a>
+            </p>
+            <p style="margin-top: 20px; font-size: 13px; color: #7f8c8d; font-style: italic;">
+                In memory of Kyaro (Kyarorain Kadosh) 🐕<br>
+                Inspired by Portal's Caroline—loyalty transformed into eternal companionship
             </p>
         </div>
     </footer>
