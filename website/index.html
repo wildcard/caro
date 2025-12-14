@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="cmdai converts natural language to safe POSIX shell commands using local LLMs. Fast, secure, and works offline.">
     <title>Caro - Your loyal shell companion</title>
     <meta name="description" content="Caro is a companion agent that helps you with POSIX shell commands. Available as an MCP for Claude and as a dedicated Skill.">
     <style>
@@ -438,7 +439,7 @@
                 <!-- Placeholder for video - replace with actual video embed -->
                 <div>Video demo coming soon</div>
                 <!-- Example YouTube embed:
-                <iframe width="100%" height="100%" src="https://www.youtube.com/embed/YOUR_VIDEO_ID" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                <iframe width="100%" height="100%" src="https://www.youtube.com/embed/YOUR_VIDEO_ID" style="border: none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 -->
             </div>
         </div>
@@ -565,7 +566,7 @@
     </footer>
 
     <script>
-        function copyToClipboard(text) {
+        function copyToClipboard(event, text) {
             navigator.clipboard.writeText(text).then(() => {
                 const button = event.target;
                 const originalText = button.textContent;
@@ -573,6 +574,15 @@
                 setTimeout(() => {
                     button.textContent = originalText;
                 }, 2000);
+            }).catch((err) => {
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = 'Copy failed';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
+                // Optionally, log the error for debugging
+                // console.error('Clipboard write failed:', err);
             });
         }
 
