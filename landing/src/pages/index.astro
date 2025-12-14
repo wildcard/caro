@@ -33,7 +33,7 @@ import Layout from '../layouts/Layout.astro';
       <div class="text-center max-w-4xl mx-auto">
         <div class="inline-flex items-center px-4 py-2 rounded-full bg-primary-950/50 border border-primary-800/30 mb-8">
           <span class="w-2 h-2 bg-primary-500 rounded-full mr-2 animate-pulse"></span>
-          <span class="text-sm text-primary-300">Air-Gap Compatible • Zero External Dependencies</span>
+          <span class="text-sm text-primary-300">Air-Gap Compatible | Zero External Dependencies</span>
         </div>
 
         <h1 class="text-5xl md:text-7xl font-bold mb-6 leading-tight">
@@ -77,11 +77,11 @@ import Layout from '../layouts/Layout.astro';
               </div>
               <div class="flex items-start gap-2 text-slate-400 mb-4">
                 <span class="text-security-500">→</span>
-                <span>docker stats --no-stream --format "table {{.Name}}\t{{.MemUsage}}" | awk 'NR>1 && $2 > 2'</span>
+                <span>docker stats --no-stream --format "table &#123;&#123;.Name&#125;&#125;\t&#123;&#123;.MemUsage&#125;&#125;" | awk 'NR&gt;1 &amp;&amp; $2 &gt; 2'</span>
               </div>
               <div class="flex items-start gap-2 text-green-400">
                 <span>✓</span>
-                <span>Command verified safe • POSIX compliant</span>
+                <span>Command verified safe | POSIX compliant</span>
               </div>
             </div>
           </div>
