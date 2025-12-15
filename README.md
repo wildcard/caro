@@ -1,11 +1,18 @@
-# cmdai
+# cmdai (caro)
 
-> 🚧 **Early Development Stage** - Architecture defined, core implementation in progress
+[![Crates.io](https://img.shields.io/crates/v/cmdai.svg)](https://crates.io/crates/cmdai)
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%203.0-blue.svg)](https://opensource.org/licenses/AGPL-3.0)
+[![CI](https://github.com/wildcard/cmdai/workflows/CI/badge.svg)](https://github.com/wildcard/cmdai/actions)
 
-**cmdai** converts natural language descriptions into safe POSIX shell commands using local LLMs. Built with Rust for blazing-fast performance, single-binary distribution, and safety-first design.
+> 🚧 **Early Development Stage** - Published on crates.io, core features implemented, advanced features in progress
+
+**cmdai** (also known as **caro**) converts natural language descriptions into safe POSIX shell commands using local LLMs. Built with Rust for blazing-fast performance, single-binary distribution, and safety-first design.
 
 ```bash
 $ cmdai "list all PDF files in Downloads folder larger than 10MB"
+# or use the alias
+$ caro "list all PDF files in Downloads folder larger than 10MB"
+
 Generated command:
   find ~/Downloads -name "*.pdf" -size +10M -ls
 
@@ -14,30 +21,37 @@ Execute this command? (y/N) y
 
 ## 📋 Project Status
 
-This project is in **active early development**. The architecture and module structure are in place, with implementation ongoing.
+**Current Version:** 0.1.0 (Published on [crates.io](https://crates.io/crates/cmdai))
 
-### ✅ Completed
-- Core CLI structure with comprehensive argument parsing
-- Modular architecture with trait-based backends
-- **Embedded model backend with MLX (Apple Silicon) and CPU variants** ✨
-- **Remote backend support (Ollama, vLLM) with automatic fallback** ✨
-- Safety validation with pattern matching and risk assessment
-- Configuration management with TOML support
-- Interactive user confirmation flows
-- Multiple output formats (JSON, YAML, Plain)
-- Contract-based test structure with TDD methodology
-- Multi-platform CI/CD pipeline
+This project is in **active early development**. Core architecture is implemented and the package is published, with advanced features in progress.
+
+### ✅ Completed & Published
+- ✨ **Published to crates.io** - Install via `cargo install cmdai`
+- 🎯 Core CLI structure with comprehensive argument parsing
+- 🏗️ Modular architecture with trait-based backends
+- 🧠 Embedded model backend with MLX (Apple Silicon) and CPU variants
+- 🌐 Remote backend support (Ollama, vLLM) with automatic fallback
+- 🛡️ Safety validation with 52 pre-compiled dangerous command patterns
+- ⚙️ Configuration management with TOML support
+- 💬 Interactive user confirmation flows with color-coded risk levels
+- 📄 Multiple output formats (JSON, YAML, Plain)
+- 🧪 Contract-based test structure with TDD methodology
+- 🔄 Multi-platform CI/CD pipeline with automated publishing
+- 📦 Installation script with automatic `caro` alias setup
+- 🖥️ Cross-platform detection and validation (macOS, Linux, Windows)
 
 ### 🚧 In Progress
 - Model downloading and caching system
+- Full MLX backend integration for Apple Silicon
 - Advanced command execution engine
-- Performance optimization
+- Performance optimization and benchmarking
 
 ### 📅 Planned
 - Multi-step goal completion
 - Advanced context awareness
 - Shell script generation
 - Command history and learning
+- Interactive command refinement
 
 ## ✨ Features (Planned & In Development)
 
@@ -51,7 +65,35 @@ This project is in **active early development**. The architecture and module str
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Installation
+
+#### Option 1: One-Line Install (Recommended)
+```bash
+curl -fsSL https://raw.githubusercontent.com/wildcard/cmdai/main/install.sh | bash
+```
+
+This will:
+- Install cmdai via cargo
+- Set up the `caro` alias automatically
+- Configure your shell (bash, zsh, or fish)
+
+#### Option 2: Using Cargo
+```bash
+cargo install cmdai
+
+# Add alias manually to your shell config (~/.bashrc, ~/.zshrc, etc.)
+alias caro='cmdai'
+```
+
+#### Option 3: Pre-built Binaries
+Download the latest release from [GitHub Releases](https://github.com/wildcard/cmdai/releases/latest) for your platform:
+- Linux (x64, ARM64)
+- macOS (Intel, Apple Silicon)
+- Windows (x64)
+
+### Building from Source
+
+#### Prerequisites
 - **Rust 1.75+** with Cargo
 - **CMake** (for model inference backends)
 - **macOS with Apple Silicon** (optional, for GPU acceleration)
