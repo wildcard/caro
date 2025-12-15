@@ -18,19 +18,26 @@
   }
 
   .video-container {
-    max-width: 800px;
+    max-width: 100%;
     margin: 0 auto;
     background: #000;
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-    aspect-ratio: 16 / 9;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--color-text-secondary);
     font-size: 18px;
     transition: color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  /* Make asciinema player fill the container */
+  .video-container :global(.asciinema-player-wrapper),
+  .video-container :global(.asciinema-player),
+  .video-container :global(#asciicast-container-FOxFkOjVHmYSB0S2I2xaZsaX0) {
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
   :global(.dark) .video-container {
