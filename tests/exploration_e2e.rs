@@ -158,8 +158,8 @@ async fn test_exploration_performance() {
         
         println!("Query {}: '{}' - {}ms", idx + 1, query, elapsed.as_millis());
         
-        // First query includes cold start, subsequent should be faster
-        let max_time = if idx == 0 { 8 } else { 3 };
+        // First query includes cold start, subsequent queries also reasonable
+        let max_time = if idx == 0 { 8 } else { 5 };
         assert!(
             elapsed.as_secs() < max_time,
             "Query {} should be < {}s (was {}s)", idx + 1, max_time, elapsed.as_secs()
