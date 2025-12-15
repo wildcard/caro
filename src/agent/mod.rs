@@ -9,6 +9,12 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use tracing::{debug, info, warn};
 
+// Exploration module for complexity assessment and tool discovery
+pub mod exploration;
+
+// Re-export key types
+pub use exploration::{ExplorationAgent, ComplexityAssessment, ExploreConfig, ExploreFiles};
+
 /// Agent loop for iterative command refinement
 pub struct AgentLoop {
     backend: Arc<dyn CommandGenerator>,
