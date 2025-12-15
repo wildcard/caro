@@ -19,6 +19,8 @@ pub use exploration::{
     ExploreConfig,
     ExploreFiles,
     ToolSuggestion,
+    ToolContext,
+    EnrichmentResult,
 };
 
 /// Agent loop for iterative command refinement

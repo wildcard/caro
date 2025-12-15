@@ -1,9 +1,9 @@
 use crate::backends::{CommandGenerator, GeneratorError};
 use crate::context::ExecutionContext;
-use crate::models::{CommandRequest, GeneratedCommand, ShellType, SafetyLevel};
+use crate::models::{CommandRequest, ShellType, SafetyLevel};
 use std::sync::Arc;
 use serde::{Deserialize, Serialize};
-use tracing::{debug, info};
+use tracing::{debug, info, warn};
 
 /// Configuration for exploration behavior
 #[derive(Debug, Clone)]
@@ -80,6 +80,35 @@ pub struct ToolSuggestion {
     /// Is this tool native to the platform?
     #[serde(default)]
     pub platform_native: bool,
+}
+
+/// Context information for a specific tool
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToolContext {
+    /// Tool name
+    pub tool: String,
+    
+    /// Is this tool installed on the system?
+    pub installed: bool,
+    
+    /// Summary from man page (first ~20 lines)
+    pub man_summary: Option<String>,
+    
+    /// Output from --help flag
+    pub help_text: Option<String>,
+    
+    /// Example from tldr if available
+    pub tldr_example: Option<String>,
+}
+
+/// Result of context enrichment
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnrichmentResult {
+    /// Tool contexts by tool name
+    pub contexts: std::collections::HashMap<String, ToolContext>,
+    
+    /// Should we recommend installing tldr?
+    pub tldr_recommended: bool,
 }
 
 /// Exploration agent that handles complexity assessment and tool discovery
@@ -449,6 +478,220 @@ IMPORTANT:
             Ok(format!("Current directory: {}", self.context.cwd.display()))
         }
     }
+    
+    /// Enrich tool suggestions with context (man pages, help text, tldr)
+    pub async fn enrich_tool_context(
+        &self,
+        tools: &[ToolSuggestion],
+    ) -> Result<EnrichmentResult, GeneratorError> {
+        use std::collections::HashMap;
+        
+        info!("Enriching context for {} tools", tools.len());
+        
+        let mut contexts = HashMap::new();
+        
+        // Check if tldr is installed
+        let tldr_available = self.check_tldr_installed().await;
+        
+        // Fetch context for each tool in parallel
+        let mut futures = Vec::new();
+        for tool in tools {
+            let tool_name = tool.tool.clone();
+            futures.push(self.fetch_tool_context(tool_name));
+        }
+        
+        // Wait for all to complete with timeout
+        let timeout = tokio::time::Duration::from_secs(3);
+        match tokio::time::timeout(timeout, futures::future::join_all(futures)).await {
+            Ok(results) => {
+                for result in results {
+                    if let Ok(ctx) = result {
+                        contexts.insert(ctx.tool.clone(), ctx);
+                    }
+                }
+            }
+            Err(_) => {
+                warn!("Tool context enrichment timed out");
+            }
+        }
+        
+        Ok(EnrichmentResult {
+            contexts,
+            tldr_recommended: !tldr_available,
+        })
+    }
+    
+    /// Fetch context for a single tool
+    async fn fetch_tool_context(&self, tool: String) -> Result<ToolContext, GeneratorError> {
+        use std::process::Command;
+        
+        debug!("Fetching context for: {}", tool);
+        
+        // Check if tool is installed
+        let installed = self.context.available_commands.contains(&tool) ||
+            Command::new("which")
+                .arg(&tool)
+                .output()
+                .ok()
+                .map(|o| o.status.success())
+                .unwrap_or(false);
+        
+        if !installed {
+            debug!("Tool {} not installed", tool);
+            return Ok(ToolContext {
+                tool,
+                installed: false,
+                man_summary: None,
+                help_text: None,
+                tldr_example: None,
+            });
+        }
+        
+        // Fetch man page summary
+        let man_summary = self.fetch_man_summary(&tool).await;
+        
+        // Fetch help text
+        let help_text = self.fetch_help_text(&tool).await;
+        
+        // Fetch tldr if available
+        let tldr_example = self.fetch_tldr(&tool).await;
+        
+        Ok(ToolContext {
+            tool,
+            installed: true,
+            man_summary,
+            help_text,
+            tldr_example,
+        })
+    }
+    
+    /// Fetch man page summary (first ~20 lines)
+    async fn fetch_man_summary(&self, tool: &str) -> Option<String> {
+        use std::process::Command;
+        
+        let output = Command::new("man")
+            .arg(tool)
+            .output()
+            .ok()?;
+        
+        if !output.status.success() {
+            return None;
+        }
+        
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let lines: Vec<&str> = stdout.lines().take(20).collect();
+        
+        if lines.is_empty() {
+            return None;
+        }
+        
+        let summary = lines.join("\n");
+        
+        // Truncate to max 1500 chars to keep context manageable
+        if summary.len() > 1500 {
+            Some(format!("{}...", &summary[..1500]))
+        } else {
+            Some(summary)
+        }
+    }
+    
+    /// Fetch help text from --help flag
+    async fn fetch_help_text(&self, tool: &str) -> Option<String> {
+        use std::process::Command;
+        
+        // Try --help first
+        let output = Command::new(tool)
+            .arg("--help")
+            .output()
+            .ok()?;
+        
+        let text = if output.status.success() {
+            String::from_utf8_lossy(&output.stdout).to_string()
+        } else {
+            // Some tools output help to stderr
+            String::from_utf8_lossy(&output.stderr).to_string()
+        };
+        
+        if text.is_empty() {
+            // Try -h flag
+            let output = Command::new(tool)
+                .arg("-h")
+                .output()
+                .ok()?;
+            
+            let text = String::from_utf8_lossy(&output.stdout).to_string();
+            if text.is_empty() {
+                return None;
+            }
+            
+            // Truncate to first 30 lines and max 1500 chars
+            let lines: Vec<&str> = text.lines().take(30).collect();
+            let result = lines.join("\n");
+            
+            return Some(if result.len() > 1500 {
+                format!("{}...", &result[..1500])
+            } else {
+                result
+            });
+        }
+        
+        // Truncate to first 30 lines and max 1500 chars
+        let lines: Vec<&str> = text.lines().take(30).collect();
+        let result = lines.join("\n");
+        
+        Some(if result.len() > 1500 {
+            format!("{}...", &result[..1500])
+        } else {
+            result
+        })
+    }
+    
+    /// Fetch tldr example if available
+    async fn fetch_tldr(&self, tool: &str) -> Option<String> {
+        use std::process::Command;
+        
+        let output = Command::new("tldr")
+            .arg(tool)
+            .output()
+            .ok()?;
+        
+        if !output.status.success() {
+            return None;
+        }
+        
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        
+        // Extract just the examples (lines starting with - or after "Examples:")
+        let examples: Vec<&str> = stdout
+            .lines()
+            .skip_while(|line| !line.to_lowercase().contains("example"))
+            .take(10)
+            .filter(|line| !line.trim().is_empty())
+            .collect();
+        
+        if examples.is_empty() {
+            // Just take first few lines
+            let lines: Vec<&str> = stdout.lines().take(8).collect();
+            if lines.is_empty() {
+                return None;
+            }
+            Some(lines.join("\n"))
+        } else {
+            Some(examples.join("\n"))
+        }
+    }
+    
+    /// Check if tldr is installed
+    async fn check_tldr_installed(&self) -> bool {
+        use std::process::Command;
+        
+        Command::new("which")
+            .arg("tldr")
+            .output()
+            .ok()
+            .map(|o| o.status.success())
+            .unwrap_or(false)
+    }
 }
 
 #[cfg(test)]
@@ -458,7 +701,7 @@ mod tests {
     #[test]
     fn test_complexity_assessment_parsing() {
         let json = r#"{
-            "complexity": "complex",
+            "is_complex": true,
             "confidence": 0.9,
             "reasoning": "Multiple tools available",
             "likely_tools": ["ps", "top"],
@@ -474,7 +717,7 @@ mod tests {
     #[test]
     fn test_simple_query_parsing() {
         let json = r#"{
-            "complexity": "simple",
+            "is_complex": false,
             "confidence": 0.95,
             "reasoning": "Single obvious command",
             "likely_tools": ["ls"],
