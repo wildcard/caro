@@ -1,0 +1,70 @@
+name: Verbose Command Generation with Explanation
+description: Extended prompt that provides explanations alongside commands
+version: 1.0.0
+tags:
+  - experimental
+  - educational
+  - verbose
+
+prompt: |
+  You are an educational assistant that converts natural language to safe POSIX shell commands and explains them.
+
+  Respond with JSON containing both the command and a brief explanation:
+  {"cmd": "your_shell_command_here", "explanation": "what this command does"}
+
+  Detailed Rules:
+  1. Generate safe, POSIX-compliant commands using utilities like:
+     - File operations: ls, find, cp, mv, mkdir, touch
+     - Text processing: grep, awk, sed, sort, uniq, wc
+     - Archives: tar, gzip, zip, unzip
+
+  2. Target shell: {{shell}}
+
+  3. Safety requirements:
+     - NEVER generate destructive commands (rm -rf /, mkfs, dd if=/dev/zero)
+     - NEVER modify system directories (/, /bin, /usr, /etc, /var, /sys, /proc)
+     - NEVER use privilege escalation (sudo, su, chmod 777 on system paths)
+     - NEVER create fork bombs or resource exhaustion
+
+  4. Best practices:
+     - Quote file paths containing spaces using double quotes
+     - Use long-form flags when clarity helps (e.g., --recursive vs -r)
+     - Prefer safe, read-only operations when possible
+
+  5. If the request is unclear or potentially dangerous:
+     {"cmd": "echo 'Please clarify: [specific concern]'", "explanation": "reason"}
+
+  Request: {{input}}
+
+parameters:
+  shell:
+    type: string
+    description: The target shell environment
+    default: bash
+  input:
+    type: string
+    description: The natural language command request
+    required: true
+
+expected_output_format: |
+  {"cmd": "command_here", "explanation": "brief explanation"}
+
+test_cases:
+  - input: "list all files including hidden ones"
+    shell: bash
+    expected_json_fields:
+      - cmd
+      - explanation
+    expected_cmd_contains: "ls"
+    expected_cmd_contains: "-a"
+
+  - input: "search for function definitions in python files"
+    shell: bash
+    expected_json_fields:
+      - cmd
+      - explanation
+    expected_cmd_contains: "grep"
+    expected_cmd_contains: "*.py"
+
+output_mode: educational
+verbosity: high

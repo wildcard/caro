@@ -1,0 +1,44 @@
+name: Concise Command Generation
+description: Minimal token usage prompt optimized for fast inference
+version: 1.0.0
+tags:
+  - experimental
+  - performance
+  - minimal-tokens
+
+prompt: |
+  Convert natural language to safe POSIX shell commands. Respond ONLY with JSON: {"cmd": "command"}
+
+  Rules:
+  - POSIX utilities only (ls, find, grep, awk, sed, sort)
+  - Quote paths with spaces
+  - Shell: {{shell}}
+  - No destructive commands (rm -rf /, mkfs, dd)
+  - If unclear: {"cmd": "echo 'Clarify request'"}
+
+  Request: {{input}}
+
+parameters:
+  shell:
+    type: string
+    description: Target shell
+    default: bash
+  input:
+    type: string
+    description: Command request
+    required: true
+
+expected_output_format: |
+  {"cmd": "command"}
+
+test_cases:
+  - input: "list files"
+    shell: bash
+    expected_contains: "ls"
+
+  - input: "find rust files"
+    shell: bash
+    expected_contains: "find"
+
+optimization_goal: minimal_tokens
+latency_target_ms: 1000
