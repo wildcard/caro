@@ -7,6 +7,7 @@ use std::time::Instant;
 
 use crate::{
     backends::{BackendInfo, CommandGenerator, GeneratorError},
+    intelligence::ContextGraph,
     models::{BackendType, CommandRequest, GeneratedCommand, RiskLevel, SafetyLevel, ShellType},
     safety::SafetyValidator,
 };
@@ -55,6 +56,7 @@ pub struct CliResult {
     pub timing_info: TimingInfo,
     pub warnings: Vec<String>,
     pub detected_context: String,
+    pub context_summary: Option<String>,
 }
 
 /// Supported output formats
@@ -262,10 +264,29 @@ impl CliApp {
             message: "No prompt provided".to_string(),
         })?;
 
-        // Create command request
+        // Build context graph
+        let context_result = ContextGraph::build(&std::env::current_dir().unwrap_or_default()).await;
+        let (context_str, context_summary) = match context_result {
+            Ok(ctx) => {
+                let summary = ctx.summary();
+                let llm_context = ctx.to_llm_context();
+                if args.verbose() {
+                    tracing::info!("Context: {}", summary);
+                }
+                (Some(llm_context), Some(summary))
+            }
+            Err(e) => {
+                if args.verbose() {
+                    tracing::warn!("Failed to build context: {}", e);
+                }
+                (None, None)
+            }
+        };
+
+        // Create command request with context
         let request = CommandRequest {
             input: prompt.clone(),
-            context: None,
+            context: context_str,
             shell,
             safety_level,
             backend_preference: None,
@@ -359,6 +380,7 @@ impl CliApp {
                 all_warnings
             },
             detected_context: prompt.clone(),
+            context_summary,
         })
     }
 
