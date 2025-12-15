@@ -1,0 +1,7 @@
+Nov 26 10:15:20 prod-web-01 systemd[1]: Started nginx.service
+Nov 26 10:15:21 prod-web-01 kernel: [12345.678] Out of memory: Kill process 1234 (java) score 892
+Nov 26 10:15:22 prod-web-01 sshd[5678]: Accepted publickey for deploy from 192.168.1.50 port 54321
+Nov 26 10:15:23 prod-web-01 systemd[1]: Started docker.service
+Nov 26 10:15:24 prod-web-01 dockerd: Successfully pulled image nginx:latest
+Nov 26 10:15:25 prod-web-01 cron[9876]: (root) CMD (/usr/local/bin/backup.sh)
+Nov 26 10:15:26 prod-web-01 fail2ban[1111]: WARNING Ban 192.168.1.99 after 5 failed attempts

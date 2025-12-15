@@ -1,0 +1,13 @@
+# Ignore generated demo files
+*.gif
+*.mp4
+*.webm
+*.mov
+
+# Ignore temp files
+*.tmp
+*.log
+
+# Ignore OS files
+.DS_Store
+Thumbs.db

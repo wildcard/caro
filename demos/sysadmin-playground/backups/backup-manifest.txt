@@ -1,0 +1,7 @@
+mydb_20251126_020000.sql.gz  1.2GB  SUCCESS
+mydb_20251125_020000.sql.gz  1.1GB  SUCCESS
+mydb_20251124_020000.sql.gz  1.2GB  SUCCESS
+mydb_20251123_020000.sql.gz  1.1GB  SUCCESS
+mydb_20251122_020000.sql.gz  1.3GB  SUCCESS
+configs_20251126.tar.gz      45MB   SUCCESS
+logs_archive_nov.tar.gz      890MB  SUCCESS
