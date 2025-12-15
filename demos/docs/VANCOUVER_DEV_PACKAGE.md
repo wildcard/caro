@@ -18,7 +18,7 @@
 - Backup plans
 - Success criteria
 
-### 3. **SLIDES_OUTLINE.md** - Slide deck blueprint
+### 3. **../SLIDES_OUTLINE.md** - Slide deck blueprint
 - 11 main slides
 - 3 backup slides (FAQ, Technical, Roadmap)
 - ASCII art for terminal feel
