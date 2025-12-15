@@ -11,13 +11,13 @@
       <button class="copy-button" data-command="bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)">Copy</button>
     </div>
 
-    <p style="margin: 20px 0;">Or download pre-built binaries:</p>
+    <p style="margin: 20px 0;">Or download pre-built binaries: <span class="coming-soon-inline">Coming Soon</span></p>
 
     <div class="download-options">
-      <a href="https://github.com/wildcard/cmdai/releases/latest" class="download-link">macOS (Apple Silicon)</a>
-      <a href="https://github.com/wildcard/cmdai/releases/latest" class="download-link">macOS (Intel)</a>
-      <a href="https://github.com/wildcard/cmdai/releases/latest" class="download-link">Linux (x86_64)</a>
-      <a href="https://github.com/wildcard/cmdai/releases/latest" class="download-link">Windows</a>
+      <span class="download-link disabled">macOS (Apple Silicon)</span>
+      <span class="download-link disabled">macOS (Intel)</span>
+      <span class="download-link disabled">Linux (x86_64)</span>
+      <span class="download-link disabled">Windows</span>
     </div>
 
     <div class="usage-modes">
@@ -128,6 +128,26 @@
 
   .download-link:hover {
     transform: translateY(-2px);
+  }
+
+  .download-link.disabled {
+    background: rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.6);
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .download-link.disabled:hover {
+    transform: none;
+  }
+
+  .coming-soon-inline {
+    font-size: 14px;
+    background: rgba(255, 255, 255, 0.3);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: 500;
+    white-space: nowrap;
   }
 
   .usage-modes {
