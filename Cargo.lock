@@ -389,6 +389,53 @@ dependencies = [
 ]
 
 [[package]]
+name = "carosh"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "atty",
+ "candle-core",
+ "candle-transformers",
+ "chrono",
+ "clap",
+ "colored",
+ "config",
+ "criterion",
+ "cxx",
+ "dialoguer",
+ "directories",
+ "dirs",
+ "futures",
+ "hf-hub",
+ "indicatif",
+ "llama_cpp",
+ "mlx-rs",
+ "once_cell",
+ "os_info",
+ "proptest",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "serial_test",
+ "sha2",
+ "sysinfo",
+ "tempfile",
+ "thiserror 1.0.69",
+ "tokenizers",
+ "tokio",
+ "tokio-test",
+ "toml 0.8.23",
+ "tracing",
+ "tracing-appender",
+ "tracing-subscriber",
+ "url",
+ "which",
+]
+
+[[package]]
 name = "cast"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -520,53 +567,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e7caa3f9de89ddbe2c607f4101924c5abec803763ae9534e4f4d7d8f84aa81f0"
 dependencies = [
  "cc",
-]
-
-[[package]]
-name = "cmdai"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "atty",
- "candle-core",
- "candle-transformers",
- "chrono",
- "clap",
- "colored",
- "config",
- "criterion",
- "cxx",
- "dialoguer",
- "directories",
- "dirs",
- "futures",
- "hf-hub",
- "indicatif",
- "llama_cpp",
- "mlx-rs",
- "once_cell",
- "os_info",
- "proptest",
- "regex",
- "reqwest",
- "serde",
- "serde_json",
- "serde_yaml",
- "serial_test",
- "sha2",
- "sysinfo",
- "tempfile",
- "thiserror 1.0.69",
- "tokenizers",
- "tokio",
- "tokio-test",
- "toml 0.8.23",
- "tracing",
- "tracing-appender",
- "tracing-subscriber",
- "url",
- "which",
 ]
 
 [[package]]
