@@ -59,7 +59,15 @@ install_binary() {
     # Check if cargo is available for direct installation
     if command_exists cargo; then
         echo -e "${BLUE}Installing via cargo...${NC}"
-        cargo install cmdai
+        
+        # Detect if on macOS with Apple Silicon for MLX optimization
+        local cargo_features=""
+        if [[ "$(uname -s)" == "Darwin" ]] && [[ "$(uname -m)" == "arm64" ]]; then
+            echo -e "${GREEN}Detected Apple Silicon - building with MLX optimization${NC}"
+            cargo_features="--features embedded-mlx"
+        fi
+        
+        cargo install cmdai $cargo_features
         return 0
     fi
 
