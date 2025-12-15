@@ -51,7 +51,35 @@ This project is in **active early development**. The architecture and module str
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Installation
+
+#### Option 1: One-Line Install (Recommended)
+```bash
+curl -fsSL https://raw.githubusercontent.com/wildcard/cmdai/main/install.sh | bash
+```
+
+This will:
+- Install cmdai via cargo
+- Set up the `caro` alias automatically
+- Configure your shell (bash, zsh, or fish)
+
+#### Option 2: Using Cargo
+```bash
+cargo install cmdai
+
+# Add alias manually to your shell config (~/.bashrc, ~/.zshrc, etc.)
+alias caro='cmdai'
+```
+
+#### Option 3: Pre-built Binaries
+Download the latest release from [GitHub Releases](https://github.com/wildcard/cmdai/releases/latest) for your platform:
+- Linux (x64, ARM64)
+- macOS (Intel, Apple Silicon)
+- Windows (x64)
+
+### Building from Source
+
+#### Prerequisites
 - **Rust 1.75+** with Cargo
 - **CMake** (for model inference backends)
 - **macOS with Apple Silicon** (optional, for GPU acceleration)
