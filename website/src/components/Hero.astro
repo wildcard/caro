@@ -4,6 +4,7 @@
 <div class="hero">
   <div class="container">
     <div class="companion-badge">🐕 Companion Agent</div>
+    <img src="/caro-pixel.png" alt="Caro - 8-bit pixel art" class="pixel-art" />
     <div class="logo">Caro</div>
     <h1 class="tagline">Your loyal shell companion</h1>
     <p class="subtitle">
@@ -95,7 +96,31 @@
     box-shadow: 0 10px 25px rgba(255, 140, 66, 0.2);
   }
 
+  .pixel-art {
+    width: 120px;
+    height: 120px;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    margin-bottom: 10px;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
   @media (max-width: 768px) {
+    .pixel-art {
+      width: 80px;
+      height: 80px;
+    }
+
     .logo {
       font-size: 48px;
     }
