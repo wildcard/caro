@@ -3,7 +3,7 @@
 
 Output caro-before-after.gif
 
-Require ../target/release/cmdai
+Require caro
 
 Set FontSize 20
 Set Width 1600
@@ -96,7 +96,7 @@ Enter
 Type@40ms "# 😎 AFTER Caro: The New Way"
 Enter
 Sleep 1s
-Type@80ms "./target/release/cmdai "
+Type@80ms "caro "
 Type@120ms '"find large files in current directory"'
 Enter
 Sleep 3s
@@ -135,22 +135,22 @@ Type@40ms "# More examples in seconds:"
 Enter
 Sleep 1s
 
-Type@60ms "./target/release/cmdai "
+Type@60ms "caro "
 Type@100ms '"show system uptime"'
 Enter
 Sleep 2s
 
-Type@60ms "./target/release/cmdai "
+Type@60ms "caro "
 Type@100ms '"archive current directory"'
 Enter
 Sleep 2s
 
-Type@60ms "./target/release/cmdai "
+Type@60ms "caro "
 Type@100ms '"find rust files modified today"'
 Enter
 Sleep 2s
 
-Type@60ms "./target/release/cmdai "
+Type@60ms "caro "
 Type@100ms '"show top CPU processes"'
 Enter
 Sleep 2s

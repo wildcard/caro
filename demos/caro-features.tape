@@ -3,13 +3,13 @@
 
 Output caro-features.gif
 
-Require ../target/release/cmdai
+Require caro
 
 Set FontSize 20
 Set Width 1600
 Set Height 900
 Set Padding 30
-Set Theme "Catppuccin Mocha"
+Set Theme "Catppuccin-mocha"
 Set WindowBar ColorfulRight
 Set BorderRadius 12
 Set TypingSpeed 60ms
@@ -44,7 +44,7 @@ Sleep 2s
 Type@50ms "# 🔍 System Monitoring"
 Enter
 Sleep 500ms
-Type@80ms "./target/release/cmdai "
+Type@80ms "caro "
 Type@120ms '"show system uptime and load average"'
 Enter
 Sleep 3s
@@ -57,7 +57,7 @@ Enter
 Type@50ms "# 🏃 Process Management"
 Enter
 Sleep 500ms
-Type@80ms "./target/release/cmdai "
+Type@80ms "caro "
 Type@120ms '"show top 10 processes by CPU usage"'
 Enter
 Sleep 3s
@@ -70,7 +70,7 @@ Enter
 Type@50ms "# 📁 File Operations"
 Enter
 Sleep 500ms
-Type@80ms "./target/release/cmdai "
+Type@80ms "caro "
 Type@120ms '"find all rust files modified in the last 7 days"'
 Enter
 Sleep 3s
@@ -83,7 +83,7 @@ Enter
 Type@50ms "# 🔒 Security Auditing"
 Enter
 Sleep 500ms
-Type@80ms "./target/release/cmdai "
+Type@80ms "caro "
 Type@120ms '"find files with setuid bit enabled"'
 Enter
 Sleep 3s
@@ -96,7 +96,7 @@ Enter
 Type@50ms "# 🌐 Network Diagnostics"
 Enter
 Sleep 500ms
-Type@80ms "./target/release/cmdai "
+Type@80ms "caro "
 Type@120ms '"check DNS resolution for api.example.com"'
 Enter
 Sleep 3s
@@ -109,7 +109,7 @@ Enter
 Type@50ms "# 📦 Archive Operations"
 Enter
 Sleep 500ms
-Type@80ms "./target/release/cmdai "
+Type@80ms "caro "
 Type@120ms '"archive current directory"'
 Enter
 Sleep 2s
@@ -146,7 +146,7 @@ Sleep 500ms
 Type@50ms "# cargo build --release --features embedded-mlx"
 Enter
 Sleep 500ms
-Type@50ms "# ./target/release/cmdai "
+Type@50ms "# caro "
 Type@100ms '"your command here"'
 Enter
 Sleep 3s

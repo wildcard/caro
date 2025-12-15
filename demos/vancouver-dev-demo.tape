@@ -3,13 +3,13 @@
 
 Output vancouver-dev-demo.gif
 
-Require ../target/release/cmdai
+Require caro
 
 Set FontSize 22
 Set Width 1800
 Set Height 1000
 Set Padding 40
-Set Theme "Tokyo Night"
+Set Theme "TokyoNight"
 Set WindowBar Rings
 Set BorderRadius 15
 Set TypingSpeed 70ms
@@ -55,7 +55,7 @@ Enter
 Type@50ms "# ⚡ Speed: From question to command in seconds"
 Enter
 Sleep 1s
-Type@80ms "./target/release/cmdai "
+Type@80ms "caro "
 Type@120ms '"show system uptime and load average"'
 Enter
 Sleep 2.5s
@@ -71,7 +71,7 @@ Enter
 Type@50ms "# 🔧 Real DevOps Workflows"
 Enter
 Sleep 1s
-Type@80ms "./target/release/cmdai "
+Type@80ms "caro "
 Type@120ms '"show top 10 processes by CPU usage"'
 Enter
 Sleep 2.5s
@@ -84,7 +84,7 @@ Enter
 Type@50ms "# 💻 Developer Daily Tasks"
 Enter
 Sleep 1s
-Type@80ms "./target/release/cmdai "
+Type@80ms "caro "
 Type@120ms '"find all rust files modified in the last 7 days"'
 Enter
 Sleep 2.5s
@@ -97,7 +97,7 @@ Enter
 Type@50ms "# 🔒 Security Auditing Made Simple"
 Enter
 Sleep 1s
-Type@80ms "./target/release/cmdai "
+Type@80ms "caro "
 Type@120ms '"find files with setuid bit enabled"'
 Enter
 Sleep 2.5s

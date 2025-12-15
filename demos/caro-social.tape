@@ -3,13 +3,13 @@
 
 Output caro-social.gif
 
-Require ../target/release/cmdai
+Require caro
 
 Set FontSize 24
 Set Width 1200
 Set Height 700
 Set Padding 25
-Set Theme "Catppuccin Mocha"
+Set Theme "Catppuccin-mocha"
 Set WindowBar Rings
 Set BorderRadius 10
 Set TypingSpeed 40ms
@@ -28,27 +28,27 @@ Enter
 Sleep 1s
 
 # Rapid fire demos
-Type@40ms "./target/release/cmdai "
+Type@40ms "caro "
 Type@60ms '"list all files"'
 Enter
 Sleep 2s
 
-Type@40ms "./target/release/cmdai "
+Type@40ms "caro "
 Type@60ms '"show system uptime"'
 Enter
 Sleep 2s
 
-Type@40ms "./target/release/cmdai "
+Type@40ms "caro "
 Type@60ms '"find rust files"'
 Enter
 Sleep 2s
 
-Type@40ms "./target/release/cmdai "
+Type@40ms "caro "
 Type@60ms '"archive directory"'
 Enter
 Sleep 2s
 
-Type@40ms "./target/release/cmdai "
+Type@40ms "caro "
 Type@60ms '"top CPU processes"'
 Enter
 Sleep 2s

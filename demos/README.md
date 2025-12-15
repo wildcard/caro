@@ -38,7 +38,7 @@ This directory contains VHS tape files for generating terminal demos inspired by
 
 ### Prerequisites
 
-Install VHS:
+1. **Install VHS:**
 ```bash
 # macOS
 brew install vhs
@@ -47,9 +47,17 @@ brew install vhs
 go install github.com/charmbracelet/vhs@latest
 ```
 
-Ensure binary is built:
+2. **Build the binary:**
 ```bash
 cargo build --release --features embedded-mlx
+```
+
+3. **Setup `caro` alias (required for demos):**
+```bash
+./demos/setup_caro_alias.sh
+
+# Or manually add to your shell config:
+alias caro='./target/release/cmdai'
 ```
 
 ### Generate Single Demo
