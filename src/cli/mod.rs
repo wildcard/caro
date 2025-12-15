@@ -332,8 +332,9 @@ impl CliApp {
         };
 
         // Execute command if requested and allowed
+        // Note: dry_run prevents execution even if execute/interactive flags are set
         let (exit_code, stdout, stderr, execution_error, execution_time_ms) =
-            if (args.execute() || args.interactive()) && can_execute {
+            if (args.execute() || args.interactive()) && can_execute && !args.dry_run() {
                 use crate::execution::CommandExecutor;
 
                 let executor = CommandExecutor::new(shell);
