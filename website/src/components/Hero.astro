@@ -26,7 +26,8 @@
     align-items: center;
     text-align: center;
     padding: 60px 20px;
-    background: linear-gradient(135deg, #fff8f0 0%, #ffffff 100%);
+    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+    transition: background 0.3s ease;
   }
 
   .logo {
@@ -56,15 +57,17 @@
     font-size: 38px;
     font-weight: 600;
     margin-bottom: 20px;
-    color: #2c3e50;
+    color: var(--color-text);
+    transition: color 0.3s ease;
   }
 
   .subtitle {
     font-size: 20px;
-    color: #7f8c8d;
+    color: var(--color-text-secondary);
     margin-bottom: 40px;
     max-width: 650px;
     line-height: 1.7;
+    transition: color 0.3s ease;
   }
 
   .cta-button {

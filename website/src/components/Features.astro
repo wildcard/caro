@@ -61,15 +61,19 @@ const features = [
     text-align: center;
     padding: 30px;
     border-radius: 12px;
-    background: #ffffff;
-    transition: transform 0.2s, box-shadow 0.2s;
-    border: 1px solid #f0f0f0;
+    background: var(--color-bg);
+    transition: transform 0.2s, box-shadow 0.2s, background 0.3s ease, border-color 0.3s ease;
+    border: 1px solid var(--color-border);
   }
 
   .feature:hover {
     transform: translateY(-4px);
     box-shadow: 0 10px 30px rgba(255, 140, 66, 0.1);
     border-color: #ff8c42;
+  }
+
+  :global(.dark) .feature:hover {
+    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.2);
   }
 
   .feature-icon {
@@ -80,12 +84,14 @@ const features = [
   .feature h3 {
     font-size: 22px;
     margin-bottom: 12px;
-    color: #2c3e50;
+    color: var(--color-text);
+    transition: color 0.3s ease;
   }
 
   .feature p {
-    color: #7f8c8d;
+    color: var(--color-text-secondary);
     line-height: 1.7;
+    transition: color 0.3s ease;
   }
 
   @media (max-width: 768px) {

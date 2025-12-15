@@ -5,7 +5,7 @@
   <div class="container">
     <p>Built with Rust 🦀 | Open source on <a href="https://github.com/wildcard/cmdai">GitHub</a></p>
     <p class="domain">
-      <strong>caro.sh</strong> - Your loyal shell companion
+      <strong>caro.sh</strong> 🧡 - Your loyal shell companion
     </p>
     <p class="links">
       <a href="https://github.com/wildcard/cmdai/blob/main/LICENSE">MIT License</a> |
@@ -13,7 +13,7 @@
       <a href="https://github.com/wildcard/cmdai/issues">Issues</a>
     </p>
     <p class="kyaro-love">
-      Meet the real Kyaro (Kyarorain Kadosh)! 🐕💙<br>
+      Meet IRL Kyaro (Kyarorain Kadosh)! 🐕🖤<br>
       Follow her adventures on <a href="https://www.instagram.com/kyaroblackheart/" target="_blank" rel="noopener noreferrer">Instagram @kyaroblackheart</a>
     </p>
     <p class="inspiration">
@@ -26,13 +26,15 @@
   footer {
     text-align: center;
     padding: 40px 20px;
-    background: #2c3e50;
-    color: #ecf0f1;
+    background: var(--color-footer-bg);
+    color: var(--color-footer-text);
+    transition: background 0.3s ease, color 0.3s ease;
   }
 
   footer a {
     color: #ff8c42;
     text-decoration: none;
+    transition: color 0.3s ease;
   }
 
   footer a:hover {
@@ -47,14 +49,16 @@
   .links {
     margin-top: 10px;
     font-size: 14px;
-    color: #95a5a6;
+    color: var(--color-links-muted);
+    transition: color 0.3s ease;
   }
 
   .kyaro-love {
     margin-top: 20px;
     font-size: 15px;
-    color: #ecf0f1;
+    color: var(--color-footer-text);
     font-weight: 500;
+    transition: color 0.3s ease;
   }
 
   .kyaro-love a {
@@ -65,7 +69,8 @@
   .inspiration {
     margin-top: 10px;
     font-size: 13px;
-    color: #7f8c8d;
+    color: var(--color-footer-text-muted);
     font-style: italic;
+    transition: color 0.3s ease;
   }
 </style>
