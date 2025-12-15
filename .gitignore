@@ -160,3 +160,6 @@ yarn-error.log*
 
 # Docker (if containerizing)
 *.dockerignore.local
+
+# Test directories
+cmdai-validation/
