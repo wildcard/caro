@@ -1,0 +1,18 @@
+{
+  "name": "cmdai-presentation",
+  "version": "1.0.0",
+  "description": "cmdai: Safe AI-Powered Command Generation - Project Presentation",
+  "type": "module",
+  "scripts": {
+    "dev": "slidev slides.md",
+    "build": "slidev build slides.md",
+    "export": "slidev export slides.md"
+  },
+  "dependencies": {
+    "@slidev/cli": "^0.50.0",
+    "@slidev/theme-seriph": "^0.25.0"
+  },
+  "devDependencies": {
+    "playwright-chromium": "^1.48.0"
+  }
+}

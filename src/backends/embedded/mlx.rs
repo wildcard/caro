@@ -1,4 +1,4 @@
-// MLX GPU-accelerated inference for Apple Silicon
+// MLX GPU-accelerated inference for Apple Silicon via llama.cpp
 // Only compiles on macOS aarch64
 
 #![cfg(all(target_os = "macos", target_arch = "aarch64"))]
@@ -10,9 +10,18 @@ use std::sync::{Arc, Mutex};
 use crate::backends::embedded::common::{EmbeddedConfig, InferenceBackend, ModelVariant};
 use crate::backends::GeneratorError;
 
-/// MLX-backed inference state (placeholder for actual MLX types)
+#[cfg(feature = "embedded-mlx")]
+use llama_cpp::{
+    LlamaModel, LlamaParams, SessionParams,
+    standard_sampler::{StandardSampler, SamplerStage},
+};
+
+/// MLX-backed inference state using llama.cpp with Metal acceleration
 struct MlxModelState {
-    loaded: bool,
+    #[cfg(feature = "embedded-mlx")]
+    model: LlamaModel,
+    #[cfg(not(feature = "embedded-mlx"))]
+    _loaded: bool,
 }
 
 /// MLX backend for Apple Silicon GPU acceleration
@@ -38,54 +47,163 @@ impl MlxBackend {
     }
 }
 
+#[cfg(feature = "embedded-mlx")]
+fn extract_json_command(text: &str) -> Result<String, GeneratorError> {
+    // Try to find JSON in the response
+    if let Some(start) = text.find('{') {
+        if let Some(end) = text[start..].find('}') {
+            let json_str = &text[start..start + end + 1];
+            
+            // Parse and validate JSON
+            if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(json_str) {
+                if let Some(cmd) = parsed.get("cmd").and_then(|v| v.as_str()) {
+                    return Ok(format!(r#"{{"cmd": "{}"}}"#, cmd));
+                }
+            }
+        }
+    }
+    
+    // Fallback: return safe default if no valid JSON found
+    Ok(r#"{"cmd": "echo 'Unable to generate command'"}"#.to_string())
+}
+
+#[cfg(feature = "embedded-mlx")]
+fn build_prompt(prompt: &str) -> String {
+    format!(
+        r#"<|im_start|>system
+You are a helpful assistant that converts natural language to POSIX shell commands.
+Respond ONLY with valid JSON in this exact format: {{"cmd": "command here"}}
+Use only POSIX-compliant commands (ls, find, grep, awk, sed, etc.)
+Quote file paths properly. Never use destructive commands.
+<|im_end|>
+<|im_start|>user
+{}
+<|im_end|>
+<|im_start|>assistant
+"#,
+        prompt
+    )
+}
+
 #[async_trait]
 impl InferenceBackend for MlxBackend {
+    #[cfg(feature = "embedded-mlx")]
     async fn infer(&self, prompt: &str, config: &EmbeddedConfig) -> Result<String, GeneratorError> {
-        // Check if model is loaded (scope the lock properly)
-        {
-            let model_state = self
+        // Build the full prompt with chat template
+        let full_prompt = build_prompt(prompt);
+        
+        tracing::debug!(
+            "Starting MLX inference (prompt: {} chars, max_tokens: {}, temperature: {})",
+            full_prompt.len(),
+            config.max_tokens,
+            config.temperature
+        );
+
+        // Create session parameters
+        let mut session_params = SessionParams::default();
+        session_params.n_ctx = 2048; // Context window
+        session_params.n_batch = 512; // Batch size for prompt processing
+        session_params.n_threads = 8; // Use multiple threads
+        
+        // Clone model for this inference (Arc internally, cheap)
+        // Do this in a separate scope to release the lock before await
+        let model = {
+            let model_state_guard = self
                 .model_state
                 .lock()
                 .map_err(|_| GeneratorError::Internal {
                     message: "Failed to acquire model state lock".to_string(),
                 })?;
 
-            if model_state.is_none() {
-                return Err(GeneratorError::GenerationFailed {
+            let model_state = model_state_guard
+                .as_ref()
+                .ok_or_else(|| GeneratorError::GenerationFailed {
                     details: "Model not loaded. Call load() first".to_string(),
-                });
+                })?;
+
+            model_state.model.clone()
+        }; // Lock released here
+        
+        let max_tokens = config.max_tokens;
+        let temperature = config.temperature;
+        
+        // Run inference in blocking task (llama.cpp is blocking)
+        let response_text = tokio::task::spawn_blocking(move || {
+            // Create session
+            let mut ctx = model
+                .create_session(session_params)
+                .map_err(|e| GeneratorError::GenerationFailed {
+                    details: format!("Failed to create session: {}", e),
+                })?;
+
+            // Advance context with the prompt
+            ctx.advance_context(&full_prompt)
+                .map_err(|e| GeneratorError::GenerationFailed {
+                    details: format!("Failed to advance context: {}", e),
+                })?;
+
+            // Create sampler with custom temperature
+            let sampler = StandardSampler::new_softmax(
+                vec![
+                    SamplerStage::RepetitionPenalty {
+                        repetition_penalty: 1.1,
+                        frequency_penalty: 0.0,
+                        presence_penalty: 0.0,
+                        last_n: 64,
+                    },
+                    SamplerStage::TopK(40),
+                    SamplerStage::TopP(0.95),
+                    SamplerStage::MinP(0.05),
+                    SamplerStage::Temperature(temperature),
+                ],
+                1, // min_keep
+            );
+            
+            // Start completion
+            let completions = ctx
+                .start_completing_with(sampler, max_tokens)
+                .map_err(|e| GeneratorError::GenerationFailed {
+                    details: format!("Failed to start completion: {}", e),
+                })?
+                .into_strings();
+
+            // Collect tokens
+            let mut output = String::new();
+            for completion_token in completions {
+                output.push_str(&completion_token);
+                // Stop if we have a complete JSON response
+                if output.contains('}') && output.contains("cmd") {
+                    break;
+                }
             }
-        } // Lock is released here
 
-        // Simulate GPU processing time (MLX is typically faster than CPU)
-        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+            Ok::<String, GeneratorError>(output)
+        })
+        .await
+        .map_err(|e| GeneratorError::Internal {
+            message: format!("Inference task failed: {}", e),
+        })??;
 
-        // Simulate MLX inference (placeholder - actual MLX integration would use mlx-rs)
-        // This simulates fast GPU inference with consistent JSON output
-        let response = if prompt.contains("delete") || prompt.contains("rm") {
-            r#"{"cmd": "echo 'Please clarify your request'"}"#
-        } else if prompt.contains("list files") {
-            r#"{"cmd": "ls -la"}"#
-        } else if prompt.contains("find") {
-            r#"{"cmd": "find . -name '*.txt'"}"#
-        } else {
-            r#"{"cmd": "ls"}"#
-        };
+        tracing::debug!("MLX inference completed, raw response: {}", response_text);
 
-        tracing::debug!(
-            "MLX inference completed for prompt length {} chars, max_tokens: {}, temperature: {}",
-            prompt.len(),
-            config.max_tokens,
-            config.temperature
-        );
+        // Extract JSON command from response
+        extract_json_command(&response_text)
+    }
 
-        Ok(response.to_string())
+    #[cfg(not(feature = "embedded-mlx"))]
+    async fn infer(&self, prompt: &str, config: &EmbeddedConfig) -> Result<String, GeneratorError> {
+        // Stub implementation when feature is disabled
+        let _ = (prompt, config);
+        Err(GeneratorError::ConfigError {
+            message: "MLX backend not enabled. Rebuild with --features embedded-mlx".to_string(),
+        })
     }
 
     fn variant(&self) -> ModelVariant {
         ModelVariant::MLX
     }
 
+    #[cfg(feature = "embedded-mlx")]
     async fn load(&mut self) -> Result<(), GeneratorError> {
         // Check if already loaded
         {
@@ -100,7 +218,7 @@ impl InferenceBackend for MlxBackend {
                 tracing::debug!("MLX model already loaded");
                 return Ok(());
             }
-        } // Lock released here
+        }
 
         // Check if model file exists
         if !self.model_path.exists() {
@@ -109,22 +227,48 @@ impl InferenceBackend for MlxBackend {
             });
         }
 
-        // Simulate model loading time (MLX is typically faster than CPU)
-        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+        tracing::info!("Loading MLX model from {}...", self.model_path.display());
 
-        // Set the model as loaded
+        // Load model (blocking operation)
+        let model_path = self.model_path.clone();
+        let model = tokio::task::spawn_blocking(move || {
+            // Create model parameters with Metal acceleration
+            let mut params = LlamaParams::default();
+            params.n_gpu_layers = 99; // Use all GPU layers (Metal acceleration)
+            params.use_mmap = true; // Use memory mapping for faster loading
+            params.use_mlock = false; // Don't lock memory
+
+            // Load the model
+            LlamaModel::load_from_file(model_path, params)
+                .map_err(|e| GeneratorError::GenerationFailed {
+                    details: format!("Failed to load model: {}", e),
+                })
+        })
+        .await
+        .map_err(|e| GeneratorError::Internal {
+            message: format!("Model loading task failed: {}", e),
+        })??;
+
+        // Store the loaded model state
         {
-            let mut model_state =
-                self.model_state
-                    .lock()
-                    .map_err(|_| GeneratorError::Internal {
-                        message: "Failed to acquire model state lock".to_string(),
-                    })?;
-            *model_state = Some(MlxModelState { loaded: true });
-        } // Lock released here
+            let mut model_state = self
+                .model_state
+                .lock()
+                .map_err(|_| GeneratorError::Internal {
+                    message: "Failed to acquire model state lock".to_string(),
+                })?;
+            *model_state = Some(MlxModelState { model });
+        }
 
-        tracing::info!("MLX model loaded from {}", self.model_path.display());
+        tracing::info!("MLX model loaded successfully with Metal acceleration");
         Ok(())
+    }
+
+    #[cfg(not(feature = "embedded-mlx"))]
+    async fn load(&mut self) -> Result<(), GeneratorError> {
+        Err(GeneratorError::ConfigError {
+            message: "MLX backend not enabled. Rebuild with --features embedded-mlx".to_string(),
+        })
     }
 
     async fn unload(&mut self) -> Result<(), GeneratorError> {
@@ -141,21 +285,18 @@ impl InferenceBackend for MlxBackend {
                 tracing::debug!("MLX model already unloaded");
                 return Ok(());
             }
-        } // Lock released here
-
-        // Simulate cleanup time
-        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+        }
 
         // Unload the model
         {
-            let mut model_state =
-                self.model_state
-                    .lock()
-                    .map_err(|_| GeneratorError::Internal {
-                        message: "Failed to acquire model state lock".to_string(),
-                    })?;
+            let mut model_state = self
+                .model_state
+                .lock()
+                .map_err(|_| GeneratorError::Internal {
+                    message: "Failed to acquire model state lock".to_string(),
+                })?;
             *model_state = None;
-        } // Lock released here
+        }
 
         tracing::info!("MLX model unloaded");
         Ok(())
@@ -182,5 +323,23 @@ mod tests {
     fn test_mlx_variant() {
         let backend = MlxBackend::new(PathBuf::from("/tmp/model.gguf")).unwrap();
         assert_eq!(backend.variant(), ModelVariant::MLX);
+    }
+
+    #[cfg(feature = "embedded-mlx")]
+    #[test]
+    fn test_extract_json_command() {
+        let text = r#"Sure! Here's the command: {"cmd": "ls -la"}"#;
+        let result = extract_json_command(text);
+        assert!(result.is_ok());
+        assert!(result.unwrap().contains(r#""cmd": "ls -la""#));
+    }
+
+    #[cfg(feature = "embedded-mlx")]
+    #[test]
+    fn test_build_prompt() {
+        let prompt = build_prompt("list files");
+        assert!(prompt.contains("list files"));
+        assert!(prompt.contains("<|im_start|>"));
+        assert!(prompt.contains("POSIX"));
     }
 }

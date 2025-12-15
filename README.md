@@ -52,8 +52,70 @@ This project is in **active early development**. The architecture and module str
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Rust 1.75+ with Cargo
-- macOS with Apple Silicon (for MLX backend, optional)
+- **Rust 1.75+** with Cargo
+- **CMake** (for model inference backends)
+- **macOS with Apple Silicon** (optional, for GPU acceleration)
+- **Xcode** (optional, for full MLX GPU support on Apple Silicon)
+
+### Platform-Specific Setup
+
+#### macOS (Recommended for Apple Silicon)
+
+For complete macOS setup instructions including GPU acceleration, see [macOS Setup Guide](docs/MACOS_SETUP.md).
+
+**Quick Install:**
+```bash
+# Install Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source "$HOME/.cargo/env"
+
+# Install CMake via Homebrew
+brew install cmake
+
+# Clone and build
+git clone https://github.com/wildcard/cmdai.git
+cd cmdai
+cargo build --release
+
+# Run
+./target/release/cmdai "list all files"
+```
+
+**For GPU Acceleration (Apple Silicon only):**
+- Install Xcode from App Store (required for Metal compiler)
+- Build with: `cargo build --release --features embedded-mlx`
+- See [macOS Setup Guide](docs/MACOS_SETUP.md) for details
+
+**Note:** The default build uses a stub implementation that works immediately without Xcode. For production GPU acceleration, Xcode is required.
+
+#### Linux
+
+```bash
+# Install Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source "$HOME/.cargo/env"
+
+# Install dependencies (Ubuntu/Debian)
+sudo apt-get update
+sudo apt-get install cmake build-essential
+
+# Clone and build
+git clone https://github.com/wildcard/cmdai.git
+cd cmdai
+cargo build --release
+```
+
+#### Windows
+
+```bash
+# Install Rust from https://rustup.rs
+# Install CMake from https://cmake.org/download/
+
+# Clone and build
+git clone https://github.com/wildcard/cmdai.git
+cd cmdai
+cargo build --release
+```
 
 ### Building from Source
 
@@ -62,7 +124,7 @@ This project is in **active early development**. The architecture and module str
 git clone https://github.com/wildcard/cmdai.git
 cd cmdai
 
-# Build the project
+# Build the project (uses CPU backend by default)
 cargo build --release
 
 # Run the CLI

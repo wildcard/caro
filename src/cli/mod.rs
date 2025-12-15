@@ -1,14 +1,22 @@
 // CLI module - Command-line interface and user interaction
 
-use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use std::time::Instant;
 
 use crate::{
-    backends::{BackendInfo, CommandGenerator, GeneratorError},
-    models::{BackendType, CommandRequest, GeneratedCommand, RiskLevel, SafetyLevel, ShellType},
+    backends::CommandGenerator,
+    models::{CommandRequest, SafetyLevel, ShellType},
     safety::SafetyValidator,
+};
+
+#[cfg(any(test, debug_assertions))]
+use async_trait::async_trait;
+
+#[cfg(any(test, debug_assertions))]
+use crate::{
+    backends::{BackendInfo, GeneratorError},
+    models::{BackendType, GeneratedCommand, RiskLevel},
 };
 
 /// Main CLI application struct
@@ -166,15 +174,12 @@ impl CliApp {
             use std::sync::Arc;
 
             // Create embedded backend as fallback
-            let embedded_backend = EmbeddedModelBackend::with_variant_and_path(
-                ModelVariant::detect(),
-                std::env::temp_dir().join("cmdai_model.gguf"), // TODO: Use proper model cache
-            )
-            .map_err(|e| CliError::ConfigurationError {
-                message: format!("Failed to create embedded backend: {}", e),
-            })?;
+            let embedded_backend = EmbeddedModelBackend::new()
+                .map_err(|e| CliError::ConfigurationError {
+                    message: format!("Failed to create embedded backend: {}", e),
+                })?;
 
-            let embedded_arc: Arc<dyn CommandGenerator> = Arc::new(embedded_backend);
+            let embedded_arc: Arc<EmbeddedModelBackend> = Arc::new(embedded_backend);
 
             // Try remote backends with embedded fallback based on configuration
             #[cfg(feature = "remote-backends")]
@@ -215,7 +220,10 @@ impl CliApp {
 
             // Fall back to embedded backend only
             tracing::info!("Using embedded backend only");
-            Ok(Box::new(embedded_arc))
+            match std::sync::Arc::try_unwrap(embedded_arc) {
+                Ok(backend) => Ok(Box::new(backend)),
+                Err(arc) => Ok(Box::new((*arc).clone())),
+            }
         }
     }
 

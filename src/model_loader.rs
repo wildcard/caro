@@ -17,6 +17,7 @@ const DEFAULT_MODEL_Q8: &str = "qwen2.5-coder-1.5b-instruct-q8_0.gguf";
 const HF_MODEL_REPO: &str = "Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF";
 
 /// Model loader for managing embedded model distribution and caching
+#[derive(Clone)]
 pub struct ModelLoader {
     cache_dir: PathBuf,
 }
