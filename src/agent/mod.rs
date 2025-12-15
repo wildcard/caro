@@ -1,7 +1,6 @@
-use crate::backends::CommandGenerator;
+use crate::backends::{CommandGenerator, GeneratorError};
 use crate::context::ExecutionContext;
 use crate::models::{CommandRequest, GeneratedCommand, ShellType, SafetyLevel};
-use crate::backends::GeneratorError;
 use std::collections::HashMap;
 use std::process::Command;
 use std::sync::Arc;
@@ -42,7 +41,7 @@ impl AgentLoop {
             backend,
             context,
             max_iterations: 2,
-            timeout: Duration::from_secs(5),
+            timeout: Duration::from_secs(15), // Allow enough time for 2 iterations
         }
     }
     
@@ -127,31 +126,29 @@ impl AgentLoop {
     
     /// Build initial system prompt with platform context
     fn build_initial_prompt(&self) -> String {
-        format!(r#"You are a shell command generator.
+        format!(r#"You are a shell command generator for {OS}.
 
-{}
+**PLATFORM: {OS} - BSD COMMANDS**
+{platform_notes}
 
 CRITICAL RULES:
-1. Output ONLY valid JSON: {{"cmd": "command here", "confidence": 0.95}}
-2. Use ONLY commands available in the system
-3. Follow platform-specific syntax and flags
+1. Output ONLY valid JSON: {{"cmd": "command here"}}
+2. NEVER use GNU flags (--sort, --max-depth, etc.) on macOS
+3. Use BSD-compatible syntax (see platform notes above)
 4. Use relative paths (. or ~/) unless absolute path requested
 5. Escape quotes properly: use single quotes inside JSON string
-6. For complex pipes, break into clear steps
-7. confidence: 0.0-1.0 score of how confident you are
+
+{context}
 
 RESPONSE FORMAT:
 {{
-  "cmd": "your command here",
-  "confidence": 0.95,
-  "commands_used": ["ps", "sort", "head"]
+  "cmd": "your command here"
 }}
 
-IMPORTANT FOR {}:
-{}"#,
-            self.context.get_prompt_context(),
-            self.context.os,
-            self.get_os_specific_notes()
+Generate a safe, platform-appropriate command."#,
+            OS = self.context.os,
+            platform_notes = self.get_os_specific_notes(),
+            context = self.context.get_prompt_context()
         )
     }
     
