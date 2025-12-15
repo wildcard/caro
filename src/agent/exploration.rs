@@ -65,6 +65,23 @@ pub struct ComplexityAssessment {
     pub quick_command: Option<String>,
 }
 
+/// Tool suggestion from discovery phase
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToolSuggestion {
+    /// Tool name (ps, top, find, etc.)
+    pub tool: String,
+    
+    /// Why this tool is relevant
+    pub relevance: String,
+    
+    /// Confidence that this tool is appropriate (0.0-1.0)
+    pub confidence: f32,
+    
+    /// Is this tool native to the platform?
+    #[serde(default)]
+    pub platform_native: bool,
+}
+
 /// Exploration agent that handles complexity assessment and tool discovery
 pub struct ExplorationAgent {
     backend: Arc<dyn CommandGenerator>,
@@ -98,6 +115,139 @@ impl ExplorationAgent {
         
         // Parse the assessment from response
         self.parse_complexity_assessment(&response.command)
+    }
+    
+    /// Discover relevant command-line tools for a query
+    pub async fn discover_tools(
+        &self,
+        prompt: &str,
+        include_files: bool,
+    ) -> Result<Vec<ToolSuggestion>, GeneratorError> {
+        info!("Discovering tools for: {}", prompt);
+        
+        let system_prompt = self.build_discovery_prompt(prompt, include_files).await?;
+        
+        let request = CommandRequest {
+            input: prompt.to_string(),
+            shell: ShellType::Bash,
+            safety_level: SafetyLevel::Moderate,
+            context: Some(system_prompt),
+            backend_preference: None,
+        };
+        
+        let response = self.backend.generate_command(&request).await?;
+        
+        // Parse tool suggestions from response
+        self.parse_tool_suggestions(&response.command)
+    }
+    
+    /// Build system prompt for tool discovery
+    async fn build_discovery_prompt(
+        &self,
+        prompt: &str,
+        include_files: bool,
+    ) -> Result<String, GeneratorError> {
+        // Keep it short to avoid context errors
+        let available_tools = self.context.available_commands
+            .iter()
+            .take(15)  // Only top 15 commands
+            .map(|s| s.as_str())
+            .collect::<Vec<_>>()
+            .join(", ");
+        
+        let base_prompt = format!(
+            r#"Query: "{}"
+Platform: {}
+Available: {}
+
+List 2-3 tools to use. JSON format:
+{{"tools": [{{"tool": "ps", "relevance": "monitors processes", "confidence": 0.9, "platform_native": true}}]}}"#,
+            prompt,
+            self.context.os,
+            available_tools
+        );
+        
+        Ok(base_prompt)
+    }
+    
+    /// Parse tool suggestions from model response
+    fn parse_tool_suggestions(
+        &self,
+        response: &str,
+    ) -> Result<Vec<ToolSuggestion>, GeneratorError> {
+        debug!("Parsing tool suggestions from: {}", response);
+        
+        // Try to parse as JSON first
+        if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(response) {
+            if let Some(tools_array) = parsed.get("tools").and_then(|v| v.as_array()) {
+                let mut suggestions = Vec::new();
+                
+                for tool_val in tools_array {
+                    if let Ok(tool) = serde_json::from_value::<ToolSuggestion>(tool_val.clone()) {
+                        suggestions.push(tool);
+                    }
+                }
+                
+                if !suggestions.is_empty() {
+                    return Ok(suggestions);
+                }
+            }
+        }
+        
+        // Try to extract JSON from response
+        if let Some(start) = response.find('{') {
+            if let Some(end) = response.rfind('}') {
+                let json_part = &response[start..=end];
+                if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(json_part) {
+                    if let Some(tools_array) = parsed.get("tools").and_then(|v| v.as_array()) {
+                        let mut suggestions = Vec::new();
+                        
+                        for tool_val in tools_array {
+                            if let Ok(tool) = serde_json::from_value::<ToolSuggestion>(tool_val.clone()) {
+                                suggestions.push(tool);
+                            }
+                        }
+                        
+                        if !suggestions.is_empty() {
+                            return Ok(suggestions);
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Fallback: extract tool names from text
+        let tool_names = self.extract_tool_names_from_text(response);
+        if !tool_names.is_empty() {
+            return Ok(tool_names
+                .into_iter()
+                .map(|name| ToolSuggestion {
+                    tool: name.clone(),
+                    relevance: "Extracted from response".to_string(),
+                    confidence: 0.5,
+                    platform_native: self.context.available_commands.contains(&name),
+                })
+                .collect());
+        }
+        
+        // No tools found
+        Err(GeneratorError::ParseError {
+            content: format!("Could not extract tool suggestions from: {}", response),
+        })
+    }
+    
+    /// Extract tool names from free-form text
+    fn extract_tool_names_from_text(&self, text: &str) -> Vec<String> {
+        let mut found_tools = Vec::new();
+        
+        // Look for known commands in the text
+        for cmd in &self.context.available_commands {
+            if text.contains(cmd) && !found_tools.contains(cmd) {
+                found_tools.push(cmd.clone());
+            }
+        }
+        
+        found_tools
     }
     
     /// Build system prompt for complexity assessment

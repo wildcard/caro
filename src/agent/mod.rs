@@ -13,7 +13,13 @@ use tracing::{debug, info, warn};
 pub mod exploration;
 
 // Re-export key types
-pub use exploration::{ExplorationAgent, ComplexityAssessment, ExploreConfig, ExploreFiles};
+pub use exploration::{
+    ExplorationAgent,
+    ComplexityAssessment,
+    ExploreConfig,
+    ExploreFiles,
+    ToolSuggestion,
+};
 
 /// Agent loop for iterative command refinement
 pub struct AgentLoop {
