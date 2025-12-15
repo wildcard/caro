@@ -34,12 +34,12 @@ demos/
 ```
 
 ### 2. Website Hero (website)
-**Purpose**: Homepage for caro.sh (repo: wildcard/carosh)  
+**Purpose**: Homepage for caro.sh (repo: wildcard/caro)  
 **Duration**: ~30 seconds  
 **Audience**: Website visitors  
 **Content**: Quick, impressive demo for immediate impact
 
-**Repository**: github.com/wildcard/carosh  
+**Repository**: github.com/wildcard/caro  
 **Domain**: caro.sh
 
 **Run with**:
@@ -174,7 +174,7 @@ Or self-host:
 
 ## Notes
 
-- **Repo name**: wildcard/carosh (no .sh in repo name)
+- **Repo name**: wildcard/caro (no .sh in repo name)
 - **Domain**: caro.sh (with .sh)
 - All scripts automatically find the binary
 - First run will be slow (model loading ~2-3s)
@@ -215,4 +215,4 @@ When adding new demos:
 
 ## Contact
 
-Questions? Issues? Open a GitHub issue on wildcard/carosh
+Questions? Issues? Open a GitHub issue on wildcard/caro

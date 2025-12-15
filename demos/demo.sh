@@ -76,7 +76,7 @@ get_demo_name() {
 get_demo_purpose() {
     case "$1" in
         vancouver) echo "For tomorrow's community presentation" ;;
-        website) echo "For caro.sh homepage (repo: wildcard/carosh)" ;;
+        website) echo "For caro.sh homepage (repo: wildcard/caro)" ;;
         sysadmin) echo "For technical operations audience" ;;
         *) echo "" ;;
     esac
@@ -264,7 +264,7 @@ EXAMPLES:
     $0 record-all
 
 REPOSITORY:
-    Website demo is for: github.com/wildcard/carosh
+    Website demo is for: github.com/wildcard/caro
     Domain: caro.sh
 
 REQUIREMENTS:
