@@ -136,16 +136,32 @@ The `demo.sh` script provides all demo operations:
 ## Technology Separation
 
 ### Asciinema (`asciinema/`)
-- Real terminal recordings
+- **Real terminal recordings** - actual command execution
 - Can be played back with `asciinema play`
 - Upload to asciinema.org for embedding
-- Best for: Website embeds, sharing online
+- **Interactive and editable** - can trim, edit timing
+- **Best for**: Website embeds, interactive presentations, Vancouver.Dev event
+
+**Manage with**: `./demo.sh`
 
 ### VHS (`vhs/`)
-- Automated tape-based recordings
-- Generates GIFs directly
+- **Automated tape-based recordings** - scripted
+- Generates static GIFs directly
 - Requires VHS: `brew install vhs`
-- Best for: README files, documentation
+- **Pre-scripted animations** - consistent output
+- **Best for**: README files, social media, documentation
+
+**Manage with**: `make` (e.g., `make social`, `make all`)
+
+### Use Case Guide
+
+| Use Case | Tool | Why |
+|----------|------|-----|
+| Vancouver.Dev event (tomorrow) | Asciinema | Live execution, interactive |
+| caro.sh website hero | Asciinema | Embeddable, real commands |
+| README.md showcase | VHS | Static GIF, no dependencies |
+| Social media (Twitter/LinkedIn) | VHS | Animated GIF, auto-plays |
+| Documentation examples | VHS | Consistent, reproducible |
 
 ## Embedding Demos
 
