@@ -21,6 +21,8 @@ pub use exploration::{
     ToolSuggestion,
     ToolContext,
     EnrichmentResult,
+    CommandAlternative,
+    AlternativesResult,
 };
 
 /// Agent loop for iterative command refinement

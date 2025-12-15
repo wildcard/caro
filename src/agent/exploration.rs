@@ -111,6 +111,46 @@ pub struct EnrichmentResult {
     pub tldr_recommended: bool,
 }
 
+/// Alternative command with ranking and analysis
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommandAlternative {
+    /// The generated command
+    pub command: String,
+    
+    /// Rank (1 = best, 2 = second best, etc.)
+    pub rank: usize,
+    
+    /// Confidence score (0.0-1.0)
+    pub confidence: f32,
+    
+    /// Tools used in this command
+    pub tools_used: Vec<String>,
+    
+    /// Advantages of this approach
+    #[serde(default)]
+    pub pros: Vec<String>,
+    
+    /// Disadvantages or limitations
+    #[serde(default)]
+    pub cons: Vec<String>,
+    
+    /// Explanation of what this command does
+    pub explanation: String,
+}
+
+/// Result of multi-command generation
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AlternativesResult {
+    /// Generated alternatives (ranked)
+    pub alternatives: Vec<CommandAlternative>,
+    
+    /// Original query
+    pub query: String,
+    
+    /// Total time taken (ms)
+    pub total_time_ms: u64,
+}
+
 /// Exploration agent that handles complexity assessment and tool discovery
 pub struct ExplorationAgent {
     backend: Arc<dyn CommandGenerator>,
@@ -691,6 +731,158 @@ IMPORTANT:
             .ok()
             .map(|o| o.status.success())
             .unwrap_or(false)
+    }
+    
+    /// Generate multiple command alternatives with ranking and analysis
+    pub async fn generate_alternatives(
+        &self,
+        prompt: &str,
+        enrichment: &EnrichmentResult,
+    ) -> Result<Vec<CommandAlternative>, GeneratorError> {
+        use std::time::Instant;
+        
+        let start = Instant::now();
+        info!("Generating command alternatives for: {}", prompt);
+        
+        // Build enriched prompt with tool context
+        let system_prompt = self.build_alternatives_prompt(prompt, enrichment);
+        
+        let request = CommandRequest {
+            input: prompt.to_string(),
+            shell: ShellType::Bash,
+            safety_level: SafetyLevel::Moderate,
+            context: Some(system_prompt),
+            backend_preference: None,
+        };
+        
+        let response = self.backend.generate_command(&request).await?;
+        
+        // Parse alternatives from response
+        let alternatives = self.parse_alternatives(&response.command, prompt)?;
+        
+        let elapsed = start.elapsed();
+        debug!("Generated {} alternatives in {:?}", alternatives.len(), elapsed);
+        
+        Ok(alternatives)
+    }
+    
+    /// Build prompt for alternatives generation
+    fn build_alternatives_prompt(&self, prompt: &str, enrichment: &EnrichmentResult) -> String {
+        // Build tool context summary (keep it SHORT)
+        let tools: Vec<String> = enrichment
+            .contexts
+            .keys()
+            .filter(|k| enrichment.contexts.get(*k).map(|c| c.installed).unwrap_or(false))
+            .map(|k| k.clone())
+            .collect();
+        
+        // Ultra-short prompt to avoid context issues
+        format!(
+            r#"Query: "{}"
+Platform: {}
+Tools: {}
+
+Generate 2-3 commands as JSON:
+{{"alternatives": [{{"command": "ps aux | sort -k3 -rn | head -5", "rank": 1, "confidence": 0.9, "tools_used": ["ps","sort","head"], "pros": ["simple"], "cons": [], "explanation": "sorts by CPU"}}]}}
+
+Return ONLY JSON."#,
+            prompt,
+            self.context.os,
+            tools.join(", ")
+        )
+    }
+    
+    /// Parse command alternatives from model response
+    fn parse_alternatives(&self, response: &str, prompt: &str) -> Result<Vec<CommandAlternative>, GeneratorError> {
+        debug!("Parsing alternatives from: {}", response);
+        
+        // Try to parse as JSON first
+        if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(response) {
+            if let Some(alts_array) = parsed.get("alternatives").and_then(|v| v.as_array()) {
+                let mut alternatives = Vec::new();
+                
+                for (idx, alt_val) in alts_array.iter().enumerate() {
+                    if let Ok(mut alt) = serde_json::from_value::<CommandAlternative>(alt_val.clone()) {
+                        // Ensure rank is set
+                        if alt.rank == 0 {
+                            alt.rank = idx + 1;
+                        }
+                        alternatives.push(alt);
+                    }
+                }
+                
+                if !alternatives.is_empty() {
+                    return Ok(alternatives);
+                }
+            }
+        }
+        
+        // Try to extract JSON from response
+        if let Some(start) = response.find('{') {
+            if let Some(end) = response.rfind('}') {
+                let json_part = &response[start..=end];
+                if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(json_part) {
+                    if let Some(alts_array) = parsed.get("alternatives").and_then(|v| v.as_array()) {
+                        let mut alternatives = Vec::new();
+                        
+                        for (idx, alt_val) in alts_array.iter().enumerate() {
+                            if let Ok(mut alt) = serde_json::from_value::<CommandAlternative>(alt_val.clone()) {
+                                if alt.rank == 0 {
+                                    alt.rank = idx + 1;
+                                }
+                                alternatives.push(alt);
+                            }
+                        }
+                        
+                        if !alternatives.is_empty() {
+                            return Ok(alternatives);
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Fallback: try to extract a single command
+        debug!("Could not parse alternatives JSON, using fallback");
+        let command = self.extract_command_from_text(response)
+            .ok_or_else(|| GeneratorError::ParseError {
+                content: format!("Could not extract alternatives from: {}", response),
+            })?;
+        
+        // Extract tools used from the command
+        let tools_used = self.extract_tools_from_command(&command);
+        
+        Ok(vec![CommandAlternative {
+            command,
+            rank: 1,
+            confidence: 0.7,  // Higher confidence if we extracted tools
+            tools_used,
+            pros: vec![],
+            cons: vec![],
+            explanation: format!("Generated command for: {}", prompt),
+        }])
+    }
+    
+    /// Extract tool names from a command string
+    fn extract_tools_from_command(&self, command: &str) -> Vec<String> {
+        let mut tools = Vec::new();
+        
+        // Split by pipes and semicolons to get command segments
+        for segment in command.split(&['|', ';', '&'][..]) {
+            let segment = segment.trim();
+            
+            // Get first word (the command name)
+            if let Some(cmd) = segment.split_whitespace().next() {
+                // Check if it's a known command
+                if self.context.available_commands.contains(&cmd.to_string()) {
+                    if !tools.contains(&cmd.to_string()) {
+                        tools.push(cmd.to_string());
+                    }
+                }
+            }
+        }
+        
+        tools
     }
 }
 
