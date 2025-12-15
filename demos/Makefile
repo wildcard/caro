@@ -11,30 +11,40 @@ all: quickstart features vancouver before-after social
 	@echo "✅ All demos generated!"
 	@ls -lh *.gif *.mp4 2>/dev/null || true
 
-# Individual demos - use sed to inject absolute path
+# Individual demos - use sed to inject absolute path (with quotes)
 quickstart:
 	@echo "🎬 Generating quickstart demo..."
-	@sed "s|Require ../target/release/cmdai|Require $(BINARY)|g" caro-quickstart.tape | vhs -
+	@sed 's|Require ../target/release/cmdai|Require "$(BINARY)"|g' caro-quickstart.tape > /tmp/caro-quickstart.tape.tmp
+	@vhs /tmp/caro-quickstart.tape.tmp
+	@rm /tmp/caro-quickstart.tape.tmp
 	@echo "✅ caro-quickstart.gif"
 
 features:
 	@echo "🎬 Generating features demo..."
-	@sed "s|Require ../target/release/cmdai|Require $(BINARY)|g" caro-features.tape | vhs -
+	@sed 's|Require ../target/release/cmdai|Require "$(BINARY)"|g' caro-features.tape > /tmp/caro-features.tape.tmp
+	@vhs /tmp/caro-features.tape.tmp
+	@rm /tmp/caro-features.tape.tmp
 	@echo "✅ caro-features.gif"
 
 vancouver:
 	@echo "🎬 Generating Vancouver.Dev demo..."
-	@sed "s|Require ../target/release/cmdai|Require $(BINARY)|g" vancouver-dev-demo.tape | vhs -
+	@sed 's|Require ../target/release/cmdai|Require "$(BINARY)"|g' vancouver-dev-demo.tape > /tmp/vancouver-dev-demo.tape.tmp
+	@vhs /tmp/vancouver-dev-demo.tape.tmp
+	@rm /tmp/vancouver-dev-demo.tape.tmp
 	@echo "✅ vancouver-dev-demo.gif"
 
 before-after:
 	@echo "🎬 Generating before/after demo..."
-	@sed "s|Require ../target/release/cmdai|Require $(BINARY)|g" caro-before-after.tape | vhs -
+	@sed 's|Require ../target/release/cmdai|Require "$(BINARY)"|g' caro-before-after.tape > /tmp/caro-before-after.tape.tmp
+	@vhs /tmp/caro-before-after.tape.tmp
+	@rm /tmp/caro-before-after.tape.tmp
 	@echo "✅ caro-before-after.gif"
 
 social:
 	@echo "🎬 Generating social media demo..."
-	@sed "s|Require ../target/release/cmdai|Require $(BINARY)|g" caro-social.tape | vhs -
+	@sed 's|Require ../target/release/cmdai|Require "$(BINARY)"|g' caro-social.tape > /tmp/caro-social.tape.tmp
+	@vhs /tmp/caro-social.tape.tmp
+	@rm /tmp/caro-social.tape.tmp
 	@echo "✅ caro-social.gif"
 
 # Clean generated files
