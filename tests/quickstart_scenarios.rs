@@ -44,6 +44,18 @@ impl IntoCliArgs for TestArgs {
     fn config_file(&self) -> Option<String> {
         self.config_file.clone()
     }
+
+    fn execute(&self) -> bool {
+        false
+    }
+
+    fn dry_run(&self) -> bool {
+        false
+    }
+
+    fn interactive(&self) -> bool {
+        false
+    }
 }
 
 // =============================================================================
