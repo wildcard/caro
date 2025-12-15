@@ -51,6 +51,26 @@ struct Cli {
     /// Show configuration information
     #[arg(long, help = "Show current configuration and exit")]
     show_config: bool,
+
+    /// Execute the generated command
+    #[arg(
+        short = 'x',
+        long,
+        help = "Execute the generated command after validation"
+    )]
+    execute: bool,
+
+    /// Dry run mode (show what would be executed)
+    #[arg(long, help = "Show execution plan without running the command")]
+    dry_run: bool,
+
+    /// Interactive execution mode
+    #[arg(
+        short = 'i',
+        long,
+        help = "Interactive mode with step-by-step confirmation"
+    )]
+    interactive: bool,
 }
 
 impl IntoCliArgs for Cli {
@@ -80,6 +100,18 @@ impl IntoCliArgs for Cli {
 
     fn config_file(&self) -> Option<String> {
         self.config_file.clone()
+    }
+
+    fn execute(&self) -> bool {
+        self.execute
+    }
+
+    fn dry_run(&self) -> bool {
+        self.dry_run
+    }
+
+    fn interactive(&self) -> bool {
+        self.interactive
     }
 }
 
@@ -234,6 +266,72 @@ async fn print_plain_output(result: &cmdai::cli::CliResult, cli: &Cli) -> Result
     if !result.explanation.is_empty() {
         println!("{}", "Explanation:".bold());
         println!("  {}", result.explanation);
+        println!();
+    }
+
+    // Handle dry-run mode
+    if cli.dry_run {
+        println!("{}", "Dry Run Mode:".bold().cyan());
+        println!("  The command would be executed with shell: {:?}", result.shell_used);
+        if result.blocked_reason.is_some() || result.requires_confirmation {
+            println!("  {} This command would be blocked or require confirmation", "⚠".yellow());
+        } else {
+            println!("  {} This command would execute successfully", "✓".green());
+        }
+        println!();
+    }
+
+    // Print execution results if command was actually executed
+    if result.exit_code.is_some() {
+        println!("{}", "Execution Results:".bold().green());
+
+        // Print exit code
+        if let Some(exit_code) = result.exit_code {
+            let status_msg = if exit_code == 0 {
+                format!("✓ Success (exit code: {})", exit_code).green()
+            } else {
+                format!("✗ Failed (exit code: {})", exit_code).red()
+            };
+            println!("  {}", status_msg);
+        }
+
+        // Print execution time
+        if result.timing_info.execution_time_ms > 0 {
+            println!("  Execution time: {}ms", result.timing_info.execution_time_ms);
+        }
+
+        // Print stdout if present
+        if let Some(stdout) = &result.stdout {
+            if !stdout.trim().is_empty() {
+                println!();
+                println!("{}", "Standard Output:".bold());
+                for line in stdout.lines() {
+                    println!("  {}", line);
+                }
+            }
+        }
+
+        // Print stderr if present
+        if let Some(stderr) = &result.stderr {
+            if !stderr.trim().is_empty() {
+                println!();
+                println!("{}", "Standard Error:".bold().yellow());
+                for line in stderr.lines() {
+                    println!("  {}", line.yellow());
+                }
+            }
+        }
+
+        // Print execution error if present
+        if let Some(error) = &result.execution_error {
+            println!();
+            println!("{} {}", "Execution Error:".red().bold(), error.red());
+        }
+
+        println!();
+    } else if cli.execute || cli.interactive {
+        // User requested execution but it didn't happen
+        println!("{}", "Command was not executed (blocked by safety checks or user cancelled).".yellow());
         println!();
     }
 

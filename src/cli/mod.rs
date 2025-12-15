@@ -63,6 +63,10 @@ pub struct CliResult {
     pub timing_info: TimingInfo,
     pub warnings: Vec<String>,
     pub detected_context: String,
+    pub exit_code: Option<i32>,
+    pub stdout: Option<String>,
+    pub stderr: Option<String>,
+    pub execution_error: Option<String>,
 }
 
 /// Supported output formats
@@ -115,6 +119,9 @@ pub trait IntoCliArgs {
     fn confirm(&self) -> bool;
     fn verbose(&self) -> bool;
     fn config_file(&self) -> Option<String>;
+    fn execute(&self) -> bool;
+    fn dry_run(&self) -> bool;
+    fn interactive(&self) -> bool;
 }
 
 impl CliApp {
@@ -311,8 +318,8 @@ impl CliApp {
             None
         };
 
-        // Determine if command should execute
-        let executed = blocked_reason.is_none() && !requires_confirmation;
+        // Determine if command passes safety checks
+        let can_execute = blocked_reason.is_none() && !requires_confirmation;
 
         // Build confirmation prompt
         let confirmation_prompt = if requires_confirmation {
@@ -323,6 +330,39 @@ impl CliApp {
         } else {
             String::new()
         };
+
+        // Execute command if requested and allowed
+        let (exit_code, stdout, stderr, execution_error, execution_time_ms) =
+            if (args.execute() || args.interactive()) && can_execute {
+                use crate::execution::CommandExecutor;
+
+                let executor = CommandExecutor::new(shell);
+                match executor.execute(&generated.command) {
+                    Ok(result) => (
+                        Some(result.exit_code),
+                        Some(result.stdout),
+                        Some(result.stderr),
+                        if !result.success {
+                            Some(format!("Command exited with code {}", result.exit_code))
+                        } else {
+                            None
+                        },
+                        result.execution_time_ms,
+                    ),
+                    Err(e) => (
+                        None,
+                        None,
+                        None,
+                        Some(format!("Execution failed: {}", e)),
+                        0,
+                    ),
+                }
+            } else {
+                (None, None, None, None, 0)
+            };
+
+        // The 'executed' field indicates whether safety checks passed (original behavior)
+        let executed = can_execute;
 
         // Collect debug info if verbose
         let debug_info = if args.verbose() {
@@ -358,7 +398,7 @@ impl CliApp {
             },
             timing_info: TimingInfo {
                 generation_time_ms: generation_time.as_millis() as u64,
-                execution_time_ms: 0,
+                execution_time_ms,
                 total_time_ms: total_time.as_millis() as u64,
             },
             warnings: {
@@ -367,6 +407,10 @@ impl CliApp {
                 all_warnings
             },
             detected_context: prompt.clone(),
+            exit_code,
+            stdout,
+            stderr,
+            execution_error,
         })
     }
 

@@ -7,7 +7,10 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 mod shell;
+mod executor;
+
 pub use shell::{PlatformDetector, ShellDetector};
+pub use executor::{CommandExecutor, ExecutionResult, ExecutorError};
 
 /// Execution-related errors
 #[derive(Debug, thiserror::Error)]
