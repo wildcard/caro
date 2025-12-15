@@ -3,9 +3,12 @@
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use std::time::Instant;
+use std::sync::Arc;
 
 use crate::{
+    agent::AgentLoop,
     backends::CommandGenerator,
+    context::ExecutionContext,
     models::{CommandRequest, SafetyLevel, ShellType},
     safety::SafetyValidator,
 };
@@ -22,9 +25,10 @@ use crate::{
 /// Main CLI application struct
 pub struct CliApp {
     config: CliConfig,
-    #[allow(dead_code)]
-    backend: Box<dyn CommandGenerator>,
+    backend: Arc<dyn CommandGenerator>,
+    agent_loop: AgentLoop,
     validator: SafetyValidator,
+    context: ExecutionContext,
 }
 
 impl std::fmt::Debug for CliApp {
@@ -33,6 +37,7 @@ impl std::fmt::Debug for CliApp {
             .field("config", &self.config)
             .field("backend", &"<CommandGenerator>")
             .field("validator", &self.validator)
+            .field("context", &"<ExecutionContext>")
             .finish()
     }
 }
@@ -149,6 +154,7 @@ impl CliApp {
 
         // Create backend based on configuration
         let backend = Self::create_backend(&user_config).await?;
+        let backend_arc: Arc<dyn CommandGenerator> = Arc::from(backend);
 
         let validator =
             SafetyValidator::new(crate::safety::SafetyConfig::default()).map_err(|e| {
@@ -157,10 +163,18 @@ impl CliApp {
                 }
             })?;
 
+        // Detect execution context
+        let context = ExecutionContext::detect();
+        
+        // Create agent loop with backend and context
+        let agent_loop = AgentLoop::new(backend_arc.clone(), context.clone());
+
         Ok(Self {
             config,
-            backend,
+            backend: backend_arc,
+            agent_loop,
             validator,
+            context,
         })
     }
 
