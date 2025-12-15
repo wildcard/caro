@@ -93,7 +93,7 @@ name = "performance"
 harness = false
 
 [features]
-default = ["embedded-cpu"]
+default = ["embedded-mlx", "embedded-cpu"]  # Always build with MLX on macOS
 mock-backend = []
 remote-backends = ["reqwest", "tokio/net"]
 embedded-mlx = ["cxx", "llama_cpp"]
