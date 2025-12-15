@@ -8,6 +8,8 @@
 //! - [`models`] - Core data types (CommandRequest, GeneratedCommand, enums)
 //! - [`safety`] - Safety validation with dangerous command detection
 //! - [`backends`] - Command generation backends (Embedded, Ollama, vLLM)
+//! - [`context`] - Execution context detection and platform-specific rules
+//! - [`agent`] - Agentic loop for iterative command refinement
 //! - [`cli`] - CLI interface and argument parsing
 //! - [`cache`] - Model caching with integrity validation
 //! - [`config`] - Configuration management with TOML support
@@ -23,10 +25,12 @@
 //!     .with_safety(SafetyLevel::Moderate);
 //! ```
 
+pub mod agent;
 pub mod backends;
 pub mod cache;
 pub mod cli;
 pub mod config;
+pub mod context;
 pub mod execution;
 pub mod logging;
 pub mod model_loader;

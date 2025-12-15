@@ -3,7 +3,7 @@
 # Caro Setup Script
 # 
 # Usage:
-#   bash <(curl --proto '=https' --tlsv1.2 -sSf https://setup.caro.sh)
+#   bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)
 #   bash <(wget -qO- https://setup.caro.sh)
 
 set -e

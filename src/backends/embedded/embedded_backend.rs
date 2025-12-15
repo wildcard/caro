@@ -123,7 +123,7 @@ impl EmbeddedModelBackend {
 
     /// Generate system prompt for shell command generation
     fn create_system_prompt(&self, request: &CommandRequest) -> String {
-        format!(
+        let base_prompt = format!(
             r#"You are a helpful assistant that converts natural language to safe POSIX shell commands.
 
 CRITICAL: You MUST respond with ONLY valid JSON in this exact format:
@@ -141,7 +141,14 @@ Rules:
 Request: {}
 "#,
             request.shell, request.input
-        )
+        );
+
+        // Append context if available
+        if let Some(context) = &request.context {
+            format!("{}\n\n{}", base_prompt, context)
+        } else {
+            base_prompt
+        }
     }
 
     /// Parse JSON response from model inference

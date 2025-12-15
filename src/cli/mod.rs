@@ -3,9 +3,12 @@
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use std::time::Instant;
+use std::sync::Arc;
 
 use crate::{
+    agent::AgentLoop,
     backends::CommandGenerator,
+    context::ExecutionContext,
     models::{CommandRequest, SafetyLevel, ShellType},
     safety::SafetyValidator,
 };
@@ -22,9 +25,10 @@ use crate::{
 /// Main CLI application struct
 pub struct CliApp {
     config: CliConfig,
-    #[allow(dead_code)]
-    backend: Box<dyn CommandGenerator>,
+    backend: Arc<dyn CommandGenerator>,
+    agent_loop: AgentLoop,
     validator: SafetyValidator,
+    context: ExecutionContext,
 }
 
 impl std::fmt::Debug for CliApp {
@@ -33,6 +37,7 @@ impl std::fmt::Debug for CliApp {
             .field("config", &self.config)
             .field("backend", &"<CommandGenerator>")
             .field("validator", &self.validator)
+            .field("context", &"<ExecutionContext>")
             .finish()
     }
 }
@@ -149,6 +154,7 @@ impl CliApp {
 
         // Create backend based on configuration
         let backend = Self::create_backend(&user_config).await?;
+        let backend_arc: Arc<dyn CommandGenerator> = Arc::from(backend);
 
         let validator =
             SafetyValidator::new(crate::safety::SafetyConfig::default()).map_err(|e| {
@@ -157,10 +163,18 @@ impl CliApp {
                 }
             })?;
 
+        // Detect execution context
+        let context = ExecutionContext::detect();
+        
+        // Create agent loop with backend and context
+        let agent_loop = AgentLoop::new(backend_arc.clone(), context.clone());
+
         Ok(Self {
             config,
-            backend,
+            backend: backend_arc,
+            agent_loop,
             validator,
+            context,
         })
     }
 
@@ -286,55 +300,15 @@ impl CliApp {
             backend_preference: None,
         };
 
-        // Generate command with retry logic for failed generations
+        // Generate command using agent loop (handles iterations internally)
         let gen_start = Instant::now();
-        let max_retries = 3;
-        let mut generated = None;
-        let mut last_error = None;
-
-        for attempt in 1..=max_retries {
-            match self.backend.generate_command(&request).await {
-                Ok(gen) => {
-                    // Check if we got the fallback "Unable to generate command"
-                    if gen.command.contains("Unable to generate command") {
-                        if attempt < max_retries {
-                            tracing::debug!(
-                                "Generation attempt {} returned fallback, retrying...",
-                                attempt
-                            );
-                            continue;
-                        } else {
-                            tracing::warn!(
-                                "All {} attempts returned fallback for prompt: {}",
-                                max_retries,
-                                prompt
-                            );
-                        }
-                    }
-                    generated = Some(gen);
-                    break;
-                }
-                Err(e) => {
-                    last_error = Some(e);
-                    if attempt < max_retries {
-                        tracing::debug!("Generation attempt {} failed, retrying...", attempt);
-                        continue;
-                    }
-                }
-            }
-        }
-
-        let generated = generated.ok_or_else(|| {
-            if let Some(err) = last_error {
-                CliError::GenerationFailed {
-                    details: err.to_string(),
-                }
-            } else {
-                CliError::GenerationFailed {
-                    details: "Failed to generate valid command after retries".to_string(),
-                }
-            }
-        })?;
+        let generated = self
+            .agent_loop
+            .generate_command(&prompt)
+            .await
+            .map_err(|e| CliError::GenerationFailed {
+                details: e.to_string(),
+            })?;
         let generation_time = gen_start.elapsed();
 
         // Validate command safety
