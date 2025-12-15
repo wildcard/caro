@@ -69,7 +69,7 @@ This project is in **active early development**. Core architecture is implemente
 
 #### Option 1: One-Line Setup (Recommended)
 ```bash
-bash <(curl --proto '=https' --tlsv1.2 -sSf https://setup.caro.sh)
+bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)
 ```
 
 Or with wget:
