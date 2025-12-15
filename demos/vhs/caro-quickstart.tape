@@ -51,11 +51,9 @@
 # Display:
 #   Hide                            Hide the subsequent commands from the output
 #   Show                            Show the subsequent commands in the output
-
 Output caro-quickstart.gif
 
-Require ../target/release/cmdai
-
+Set Shell zsh
 Set FontSize 18
 Set Width 1400
 Set Height 800
@@ -63,81 +61,74 @@ Set Padding 20
 Set Theme "Dracula"
 Set WindowBar Colorful
 Set BorderRadius 10
-Set TypingSpeed 80ms
-Set PlaybackSpeed 1.0
+Set TypingSpeed 20ms
+Set PlaybackSpeed 2.0
 
 # Clear screen and show prompt
 Hide
 Type "clear"
 Enter
+Type "source ~/.zshrc"
+Enter
+Type "cd demos/playground"
+Enter
 Show
 
-Sleep 1s
+Sleep 500ms
 
 # Title card
 Type "# Caro.sh - Your Terminal's AI Companion"
 Enter
-Sleep 1s
+Sleep 500ms
 Type "# From prompt to command in seconds"
 Enter
 Enter
-Sleep 2s
+Sleep 1s
 
 # Demo 1: Simple file listing
-Type@50ms "caro "
-Type@100ms '"list all files"'
-Sleep 500ms
+Type@20ms "caro "
+Type@30ms '"list all files"'
 Enter
-Sleep 3s
+Sleep 2s
 
 # Show the actual command
 Type "ls"
 Enter
-Sleep 2s
+Sleep 1s
 
 # Demo 2: System monitoring
-Type@50ms "caro "
-Type@100ms '"show system uptime"'
-Sleep 500ms
+Type@20ms "caro "
+Type@30ms '"show system uptime"'
 Enter
-Sleep 3s
+Sleep 2s
 
 Type "uptime"
 Enter
-Sleep 2s
+Sleep 1s
 
 # Demo 3: Process management
-Type@50ms "caro "
-Type@100ms '"show top 5 CPU processes"'
-Sleep 500ms
+Type@20ms "caro "
+Type@30ms '"show top 5 CPU processes"'
 Enter
-Sleep 3s
+Sleep 2s
 
 # Demo 4: File operations
-Type@50ms "caro "
-Type@100ms '"find rust files modified today"'
-Sleep 500ms
-Enter
-Sleep 3s
-
-# Demo 5: Archive
-Type@50ms "caro "
-Type@100ms '"archive current directory"'
-Sleep 500ms
+Type@20ms "caro "
+Type@30ms '"find JavaScript files"'
 Enter
 Sleep 2s
 
 Type "# Perfect! Ready to use."
 Enter
-Sleep 2s
+Sleep 1s
 
 # Closing
-Type@50ms "# ⭐ Star: github.com/wildcard/caro.sh"
+Type@20ms "# ⭐ Star: github.com/wildcard/caro.sh"
 Enter
-Sleep 1s
-Type@50ms "# 🧪 Test it on your platform"
+Sleep 500ms
+Type@20ms "# 🧪 Test it on your platform"
 Enter
-Sleep 1s
-Type@50ms "# 💬 Join the community"
+Sleep 500ms
+Type@20ms "# 💬 Join the community"
 Enter
-Sleep 3s
+Sleep 2s

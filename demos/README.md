@@ -1,311 +1,218 @@
-# Caro.sh VHS Demo Tapes
+# Caro Demos
 
-This directory contains VHS tape files for generating terminal demos inspired by [Atuin](https://github.com/atuinsh/atuin) and [Crush](https://github.com/charmbracelet/crush).
+This directory contains all demo materials for Caro.sh presentations and marketing.
 
-## 📼 Available Demos
+## Directory Structure
 
-### 1. **caro-quickstart.tape** - Quick Start Demo
-- **Duration**: ~30 seconds
-- **Purpose**: GitHub README, documentation
-- **Content**: Basic command generation showcase
-- **Theme**: Dracula
-
-### 2. **caro-features.tape** - Feature Showcase
-- **Duration**: ~60 seconds  
-- **Purpose**: Feature overview, product page
-- **Content**: System monitoring, file ops, security, networking
-- **Theme**: Catppuccin Mocha
-
-### 3. **vancouver-dev-demo.tape** - Vancouver.Dev Presentation
-- **Duration**: ~90 seconds
-- **Purpose**: Community presentation, emphasizing open source
-- **Content**: Full demo with community messaging
-- **Theme**: Tokyo Night
-
-### 4. **caro-before-after.tape** - Before/After Comparison
-- **Duration**: ~45 seconds
-- **Purpose**: Showing productivity gains, investor pitch
-- **Content**: Traditional workflow vs Caro workflow
-- **Theme**: Nord
-
-### 5. **caro-social.tape** - Social Media Version
-- **Duration**: ~20 seconds
-- **Purpose**: Twitter, LinkedIn, short-form content
-- **Content**: Rapid-fire command generation
-- **Theme**: Catppuccin Mocha
-
-## 🚀 Generating Demos
-
-### Prerequisites
-
-1. **Install VHS:**
-```bash
-# macOS
-brew install vhs
-
-# Other platforms
-go install github.com/charmbracelet/vhs@latest
+```
+demos/
+├── demo.sh              # Main demo management script
+├── asciinema/          # Asciinema recordings and scripts
+│   ├── README.md       # Asciinema-specific documentation
+│   ├── *.sh            # Demo execution scripts
+│   └── *.cast          # Recorded demos
+├── vhs/                # VHS tape files for automated recordings
+│   ├── *.tape          # VHS configuration files
+│   └── *.gif           # Generated GIFs
+├── playground/         # Node.js web app demo environment
+├── sysadmin-playground/ # Server ops demo environment
+└── docs/               # Documentation and notes
 ```
 
-2. **Build the binary:**
+## Demo Types
+
+### 1. Vancouver.Dev Event (vancouver)
+**Purpose**: Community presentation happening tomorrow  
+**Duration**: ~60 seconds  
+**Audience**: Local developers at Vancouver.Dev meetup  
+**Content**: Full feature showcase with 4 working examples
+
+**Run with**:
 ```bash
-cargo build --release --features embedded-mlx
+./demo.sh record vancouver
+./demo.sh play vancouver
 ```
 
-3. **Setup `caro` alias (required for demos):**
-```bash
-./demos/setup_caro_alias.sh
+### 2. Website Hero (website)
+**Purpose**: Homepage for caro.sh (repo: wildcard/carosh)  
+**Duration**: ~30 seconds  
+**Audience**: Website visitors  
+**Content**: Quick, impressive demo for immediate impact
 
-# Or manually add to your shell config:
-alias caro='./target/release/cmdai'
+**Repository**: github.com/wildcard/carosh  
+**Domain**: caro.sh
+
+**Run with**:
+```bash
+./demo.sh record website
+./demo.sh play website
 ```
 
-### Generate Single Demo
+### 3. SysAdmin/DevOps (sysadmin)
+**Purpose**: Technical operations audience  
+**Duration**: ~45 seconds  
+**Audience**: SysAdmins, DevOps engineers, SREs  
+**Content**: Log analysis and operations tasks
 
-**Important: Run commands from the `demos/` directory!**
+**Run with**:
+```bash
+./demo.sh record sysadmin
+./demo.sh play sysadmin
+```
+
+## Quick Start
+
+### Record a Demo
 
 ```bash
-# Navigate to demos directory
-cd demos
+# Record Vancouver demo
+./demo.sh record vancouver
+
+# Record website demo  
+./demo.sh record website
+
+# Record all demos
+./demo.sh record-all
+```
+
+### Play Back
+
+```bash
+./demo.sh play vancouver
+```
+
+### Generate GIF
+
+```bash
+# Install agg first
+cargo install agg
 
 # Generate GIF
-vhs caro-quickstart.tape
+./demo.sh gif vancouver
 
-# Or use make
-make quickstart
-
-# Generate MP4 instead
-# Edit the tape file: Change "Output demos/caro-quickstart.gif" to ".mp4"
+# Generate all GIFs
+./demo.sh gif-all
 ```
 
-### Generate All Demos
+### Upload to asciinema.org
 
 ```bash
-# From demos/ directory
-cd demos
-make all
+./demo.sh upload vancouver
 ```
 
-Or manually:
+## Requirements
+
+- **asciinema**: `brew install asciinema`
+- **agg** (for GIFs): `cargo install agg`
+- **Binary**: Build with `cargo build --release --features embedded-mlx`
+
+## Demo Management Script
+
+The `demo.sh` script provides all demo operations:
+
 ```bash
-cd demos
-vhs caro-quickstart.tape
-vhs caro-features.tape
-vhs vancouver-dev-demo.tape
-vhs caro-before-after.tape
-vhs caro-social.tape
+# List available demos
+./demo.sh list
+
+# Record a specific demo
+./demo.sh record <demo-id>
+
+# Play back a recording
+./demo.sh play <demo-id>
+
+# Upload to asciinema.org
+./demo.sh upload <demo-id>
+
+# Generate GIF
+./demo.sh gif <demo-id>
+
+# Record all demos
+./demo.sh record-all
+
+# Generate all GIFs
+./demo.sh gif-all
 ```
 
-## 📊 Demo Specifications
+## Technology Separation
 
-| Demo | Duration | Size (approx) | Use Case |
-|------|----------|---------------|----------|
-| quickstart | 30s | 1-2MB | README, docs |
-| features | 60s | 2-3MB | Product pages |
-| vancouver-dev | 90s | 3-4MB | Presentations |
-| before-after | 45s | 2MB | Investor pitch |
-| social | 20s | 1MB | Social media |
+### Asciinema (`asciinema/`)
+- Real terminal recordings
+- Can be played back with `asciinema play`
+- Upload to asciinema.org for embedding
+- Best for: Website embeds, sharing online
 
-## 🎨 Customization
+### VHS (`vhs/`)
+- Automated tape-based recordings
+- Generates GIFs directly
+- Requires VHS: `brew install vhs`
+- Best for: README files, documentation
 
-### Change Theme
+## Embedding Demos
 
-Edit the tape file and modify the `Set Theme` line:
+### On caro.sh Website
 
-```bash
-Set Theme "Dracula"           # Dark theme
-Set Theme "Catppuccin Mocha"  # Catppuccin dark
-Set Theme "Nord"              # Nord theme
-Set Theme "Tokyo Night"       # Tokyo Night
-Set Theme "Monokai"           # Monokai
+After uploading to asciinema.org:
+
+```html
+<script src="https://asciinema.org/a/YOUR_RECORDING_ID.js" 
+        id="asciicast-YOUR_RECORDING_ID" 
+        async>
+</script>
 ```
 
-See all themes: https://github.com/charmbracelet/vhs#themes
+Or self-host:
 
-### Change Output Format
-
-```bash
-# GIF (default)
-Output demos/my-demo.gif
-
-# MP4 (better for presentations)
-Output demos/my-demo.mp4
-
-# WebM (better for web)
-Output demos/my-demo.webm
+```html
+<link rel="stylesheet" type="text/css" href="/asciinema-player.css" />
+<div id="demo"></div>
+<script src="/asciinema-player.min.js"></script>
+<script>
+  AsciinemaPlayer.create('/demos/website-demo.cast', 
+                         document.getElementById('demo'));
+</script>
 ```
 
-### Adjust Timing
+## Notes
 
+- **Repo name**: wildcard/carosh (no .sh in repo name)
+- **Domain**: caro.sh (with .sh)
+- All scripts automatically find the binary
+- First run will be slow (model loading ~2-3s)
+- Subsequent runs are fast (<1s)
+
+## Troubleshooting
+
+### Binary not found
 ```bash
-Set TypingSpeed 80ms          # Typing speed
-Set PlaybackSpeed 1.0         # Playback multiplier
-Sleep 2s                      # Pause duration
-```
-
-## 📝 Creating New Demos
-
-1. **Copy a template**:
-   ```bash
-   cp demos/caro-quickstart.tape demos/my-demo.tape
-   ```
-
-2. **Edit the tape file**:
-   - Change output filename
-   - Modify theme/dimensions
-   - Update commands
-   - Adjust timing
-
-3. **Test it**:
-   ```bash
-   vhs demos/my-demo.tape
-   ```
-
-4. **Preview**:
-   ```bash
-   open demos/my-demo.gif
-   ```
-
-## 🎯 Best Practices
-
-### For Documentation
-- Keep under 30 seconds
-- Focus on 3-4 key commands
-- Use clear, simple prompts
-- Show actual output
-
-### For Social Media
-- Keep under 20 seconds
-- High energy, fast pacing
-- Bold text for key messages
-- End with clear CTA
-
-### For Presentations
-- Allow 60-90 seconds
-- Tell a story
-- Include context/messaging
-- Show real-world scenarios
-
-### For Investor Pitch
-- Emphasize ROI/value
-- Show before/after
-- Include stats/numbers
-- Professional theme
-
-## 🐛 Troubleshooting
-
-### Demo Fails to Generate
-
-**Issue**: `cmdai not found`
-```bash
-# Solution: Ensure binary is built
+cd ..
 cargo build --release --features embedded-mlx
-
-# Or update Require line in tape:
-Require /absolute/path/to/target/release/cmdai
 ```
 
-**Issue**: Commands show "Unable to generate"
+### Asciinema not installed
 ```bash
-# Solution: Warm up model first
-./target/release/cmdai "test command"
-
-# Or add warmup to tape:
-Hide
-Type "./target/release/cmdai 'test'"
-Enter
-Sleep 5s
-Type "clear"
-Enter
-Show
+brew install asciinema
 ```
 
-### Theme Doesn't Apply
-
+### GIF generation fails
 ```bash
-# List available themes
-vhs themes
-
-# Use exact theme name (case-sensitive)
-Set Theme "Dracula"  # ✅
-Set Theme "dracula"  # ❌
+cargo install agg
 ```
 
-### Output Too Large
+### Script can't find binary
+Scripts look in:
+1. `caro` command (if alias exists)
+2. `cmdai` command (if installed globally)
+3. `../target/release/cmdai`
+4. `../target/debug/cmdai`
 
-```bash
-# Reduce dimensions
-Set Width 1200   # Instead of 1800
-Set Height 700   # Instead of 1000
+## Contributing
 
-# Reduce font size
-Set FontSize 16  # Instead of 22
+When adding new demos:
+1. Create script in `asciinema/`
+2. Add entry to `demo.sh` DEMOS array
+3. Test with `./demo.sh record <id>`
+4. Update this README
 
-# Increase playback speed
-Set PlaybackSpeed 1.5  # Play 1.5x faster
+## Contact
 
-# Convert to MP4 (better compression)
-Output demos/demo.mp4  # Instead of .gif
-```
-
-## 📚 Resources
-
-- **VHS Documentation**: https://github.com/charmbracelet/vhs
-- **VHS Examples**: https://github.com/charmbracelet/vhs/tree/main/examples
-- **Atuin Demo**: https://github.com/atuinsh/atuin#demo
-- **Crush Demo**: https://github.com/charmbracelet/crush
-
-## 🎬 Demo Guidelines
-
-### Content
-- ✅ Show real commands that work
-- ✅ Use realistic prompts
-- ✅ Include actual output
-- ❌ Don't fake success
-- ❌ Don't hide failures
-
-### Design
-- ✅ Consistent theming
-- ✅ Readable font sizes (18-24)
-- ✅ Clear visual hierarchy
-- ✅ Professional appearance
-- ❌ Don't overcrowd
-
-### Pacing
-- ✅ Give time to read
-- ✅ Natural typing speed
-- ✅ Appropriate pauses
-- ❌ Don't rush through
-- ❌ Don't drag on
-
-## 🚀 Next Steps
-
-After generating demos:
-
-1. **Add to README**:
-   ```markdown
-   ![Caro Demo](demos/caro-quickstart.gif)
-   ```
-
-2. **Share on Social**:
-   - Twitter: Upload directly
-   - LinkedIn: Convert to MP4
-   - Reddit: GIF works best
-
-3. **Use in Presentations**:
-   - MP4 for slides
-   - GIF for web embeds
-   - WebM for optimal web
-
-4. **Update Documentation**:
-   - Feature pages
-   - Tutorial walkthroughs
-   - Blog posts
-
-## 📄 License
-
-Same as main project (AGPL-3.0)
-
----
-
-**Created with** [VHS](https://github.com/charmbracelet/vhs) by [Charm](https://charm.sh)
+Questions? Issues? Open a GitHub issue on wildcard/carosh
