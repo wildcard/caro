@@ -1,5 +1,5 @@
 [package]
-name = "carosh"
+name = "cmdai"
 version = "0.1.0"
 edition = "2021"
 description = "Convert natural language to shell commands using local LLMs"
@@ -11,7 +11,7 @@ categories = ["command-line-utilities", "development-tools"]
 
 # Binary target
 [[bin]]
-name = "caro"
+name = "cmdai"
 path = "src/main.rs"
 
 [dependencies]
