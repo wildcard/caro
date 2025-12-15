@@ -3,7 +3,7 @@
 
 Output vancouver-dev-demo.gif
 
-Require caro
+Require ../target/release/cmdai
 
 Set FontSize 22
 Set Width 1800

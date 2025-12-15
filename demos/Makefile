@@ -3,41 +3,44 @@
 
 .PHONY: all quickstart features vancouver before-after social clean help
 
+# Get absolute path to binary
+BINARY := $(shell cd .. && pwd)/target/release/cmdai
+
 # Generate all demos
 all: quickstart features vancouver before-after social
 	@echo "✅ All demos generated!"
 	@ls -lh *.gif *.mp4 2>/dev/null || true
 
-# Individual demos
+# Individual demos - use sed to inject absolute path
 quickstart:
 	@echo "🎬 Generating quickstart demo..."
-	vhs caro-quickstart.tape
+	@sed "s|Require ../target/release/cmdai|Require $(BINARY)|g" caro-quickstart.tape | vhs -
 	@echo "✅ caro-quickstart.gif"
 
 features:
 	@echo "🎬 Generating features demo..."
-	vhs caro-features.tape
+	@sed "s|Require ../target/release/cmdai|Require $(BINARY)|g" caro-features.tape | vhs -
 	@echo "✅ caro-features.gif"
 
 vancouver:
 	@echo "🎬 Generating Vancouver.Dev demo..."
-	vhs vancouver-dev-demo.tape
+	@sed "s|Require ../target/release/cmdai|Require $(BINARY)|g" vancouver-dev-demo.tape | vhs -
 	@echo "✅ vancouver-dev-demo.gif"
 
 before-after:
 	@echo "🎬 Generating before/after demo..."
-	vhs caro-before-after.tape
+	@sed "s|Require ../target/release/cmdai|Require $(BINARY)|g" caro-before-after.tape | vhs -
 	@echo "✅ caro-before-after.gif"
 
 social:
 	@echo "🎬 Generating social media demo..."
-	vhs caro-social.tape
+	@sed "s|Require ../target/release/cmdai|Require $(BINARY)|g" caro-social.tape | vhs -
 	@echo "✅ caro-social.gif"
 
 # Clean generated files
 clean:
 	@echo "🧹 Cleaning generated demos..."
-	rm -f *.gif *.mp4 *.webm
+	@rm -f *.gif *.mp4 *.webm
 	@echo "✅ Cleaned!"
 
 # Help
@@ -57,3 +60,5 @@ help:
 	@echo "Prerequisites:"
 	@echo "  - VHS installed (brew install vhs)"
 	@echo "  - Binary built (cargo build --release --features embedded-mlx)"
+	@echo ""
+	@echo "Binary location: $(BINARY)"

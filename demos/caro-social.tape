@@ -3,7 +3,7 @@
 
 Output caro-social.gif
 
-Require caro
+Require ../target/release/cmdai
 
 Set FontSize 24
 Set Width 1200

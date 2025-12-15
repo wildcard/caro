@@ -3,7 +3,7 @@
 
 Output caro-before-after.gif
 
-Require caro
+Require ../target/release/cmdai
 
 Set FontSize 20
 Set Width 1600

@@ -54,7 +54,7 @@
 
 Output caro-quickstart.gif
 
-Require caro
+Require ../target/release/cmdai
 
 Set FontSize 18
 Set Width 1400
