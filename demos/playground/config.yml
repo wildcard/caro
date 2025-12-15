@@ -1,0 +1,8 @@
+database:
+  host: localhost
+  port: 5432
+  name: myapp_db
+
+server:
+  port: 3000
+  environment: development

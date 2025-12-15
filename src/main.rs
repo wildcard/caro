@@ -126,8 +126,9 @@ async fn main() {
             .with_level(true)
             .init();
     } else {
+        // Hide all logs in non-verbose mode for clean output
         tracing_subscriber::fmt()
-            .with_env_filter("cmdai=info")
+            .with_env_filter("cmdai=warn")
             .without_time()
             .init();
     }
@@ -262,8 +263,8 @@ async fn print_plain_output(result: &mut cmdai::cli::CliResult, cli: &Cli) -> Re
     println!("  {}", result.generated_command.bright_cyan().bold());
     println!();
 
-    // Print explanation
-    if !result.explanation.is_empty() {
+    // Print explanation only in verbose mode
+    if cli.verbose && !result.explanation.is_empty() {
         println!("{}", "Explanation:".bold());
         println!("  {}", result.explanation);
         println!();
