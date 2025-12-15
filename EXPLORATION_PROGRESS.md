@@ -1,292 +1,157 @@
 # Exploration Agent - Implementation Progress
 
-## Session Summary: Phase 0 Complete ✅
+## Current Status: Phases 0, 1, 2 Complete ✅
 
 **Date**: December 15, 2024  
 **Branch**: `feature/agentic-context-loop`  
-**Phase**: Complexity Assessment (Foundation)
+**Progress**: 60% Complete (3/5 phases)
 
 ---
 
-## What We Built
+## Completed Phases
 
-### 1. Core Module: `src/agent/exploration.rs` (350 lines)
+### Phase 0: Complexity Assessment ✅ (1.5 hours)
+- ✅ `assess_complexity()` - Determine simple vs complex queries
+- ✅ `should_include_files()` - Auto-detect file relevance
+- ✅ `get_file_context()` - Fetch ls output
+- ✅ Robust JSON parsing with fallbacks
+- ✅ Test harness created
 
-**ExplorationAgent** - Main agent for complexity assessment and tool discovery
-- `assess_complexity()` - Determine if query is simple or complex
-- `should_include_files()` - Auto-detect if files are relevant
-- `get_file_context()` - Fetch ls output for context
+### Phase 1: Tool Discovery ✅ (1 hour)
+- ✅ `discover_tools()` - Find 2-3 relevant tools
+- ✅ Short, focused prompts (avoid context errors)
+- ✅ `ToolSuggestion` structure with relevance + confidence
+- ✅ 6/6 integration tests passing
+- ✅ Reliable tool discovery in ~1-2s
 
-**Data Structures:**
-```rust
-ComplexityAssessment {
-    is_complex: bool,
-    confidence: f32,
-    reasoning: String,
-    likely_tools: Vec<String>,
-    quick_command: Option<String>,
-}
-
-ExploreConfig {
-    enabled: bool,           // Default: false (opt-in)
-    depth: usize,            // Default: 3 alternatives
-    wait: bool,              // Default: false (async)
-    files: ExploreFiles,     // Auto/Always/Never
-}
-```
-
-### 2. Comprehensive Spec: `specs/EXPLORATION_AGENT_SPEC.md`
-
-**Complete architecture** for 5-phase exploration system:
-- Phase 0: Complexity Assessment (DONE ✅)
-- Phase 1: Tool Discovery 
-- Phase 2: Context Enrichment
-- Phase 3: Multi-Command Generation
-- Phase 4: Async Execution
-- Phase 5: Interactive Selection
-
-**Key Design Decisions:**
-- ✅ Exploration OFF by default (user opts in)
-- ✅ Progressive enhancement (fast initial, async exploration)
-- ✅ File context auto-detection
-- ✅ Interactive alternative selection on failure
-- ✅ Performance gating (<10s total, <2s initial)
-
-### 3. Test Harness: `examples/test_complexity.rs`
-
-Test program to validate complexity assessment with 7 sample queries:
-- Simple: "list files", "current directory", "what time"
-- Complex: "top CPU processes", "listening ports", "disk usage"
-
----
-
-## How It Works
-
-### Complexity Assessment Flow
-
-```
-User Query: "show top 5 CPU processes"
-    ↓
-[ExplorationAgent.assess_complexity()]
-    ↓
-Build system prompt with:
-- Platform context (macOS, zsh)
-- Available commands (ps, top, lsof, ...)
-- Simple vs Complex criteria
-    ↓
-[Model inference ~1-2s]
-    ↓
-Parse JSON response:
-{
-  "complexity": "complex",
-  "confidence": 0.9,
-  "reasoning": "Multiple tools available, platform-specific",
-  "likely_tools": ["ps", "top"],
-  "quick_command": null
-}
-    ↓
-Return ComplexityAssessment
-```
-
-### Decision Logic (Planned for CLI Integration)
-
-```rust
-if !explore_enabled {
-    return generate_command_direct(prompt);
-}
-
-let assessment = assess_complexity(prompt).await?;
-
-if assessment.is_complex || assessment.confidence < 0.8 {
-    // Run full exploration (Phases 1-5)
-    return generate_with_exploration(prompt, assessment).await;
-} else {
-    // Fast path: use quick_command
-    return Ok(assessment.quick_command);
-}
-```
-
----
-
-## Key Features
-
-### 1. Smart File Context Detection
-
-```rust
-// Auto mode: Ask model if files are relevant
-agent.should_include_files("find large files", ExploreFiles::Auto)
-  → true (includes ls output)
-
-agent.should_include_files("top processes", ExploreFiles::Auto)
-  → false (no file context needed)
-```
-
-### 2. Robust Parsing
-
-Multiple fallback strategies for model responses:
-1. Parse valid JSON
-2. Extract JSON from text `{...}`
-3. Manual keyword detection
-4. Pattern matching for commands
-
-### 3. Command Recognition
-
-```rust
-agent.looks_like_command("ls -lh")  → true
-agent.looks_like_command("explain this")  → false
-```
-
-Validates against `context.available_commands` list.
-
----
-
-## Integration Points
-
-### Module Exports
-
-```rust
-// src/agent/mod.rs
-pub mod exploration;
-pub use exploration::{
-    ExplorationAgent,
-    ComplexityAssessment,
-    ExploreConfig,
-    ExploreFiles
-};
-```
-
-### CLI Args (To Be Added)
-
-```bash
-cmdai "query" --explore              # Enable exploration
-cmdai "query" --explore-files        # Always include ls
-cmdai "query" --explore-files=auto   # Auto-detect
-cmdai "query" --explore-depth=5      # 5 alternatives
-cmdai "query" --explore-wait         # Wait for exploration
-```
-
----
-
-## Current Status: 4/6 Demos Passing
-
-**Before Exploration:**
-- ✅ Demo 2: ps command (BSD-compatible)
-- ✅ Demo 4: Network debugging
-- ✅ Demo 5: Disk usage
-- ✅ Demo 6: Log analysis
-- ❌ Demo 1: Git commits (incomplete flag)
-- ❌ Demo 3: Find files (fallback response)
-
-**After Phase 0:**
-- Foundation ready for exploration
-- Can assess query complexity
-- Can detect file-related queries
-- Next: Tool discovery to find relevant commands
-
----
-
-## Testing
-
-### Unit Tests Included
-
-```rust
-#[test]
-fn test_complexity_assessment_parsing()
-fn test_simple_query_parsing()
-```
-
-### Manual Testing
-
-```bash
-cargo run --release --example test_complexity
-```
-
-Tests 7 queries (simple + complex) and shows:
-- Complexity classification
-- Confidence scores
-- Reasoning
-- Likely tools
-- Quick commands (for simple queries)
+### Phase 2: Context Enrichment ✅ (1 hour)
+- ✅ `enrich_tool_context()` - Comprehensive tool context
+- ✅ `fetch_man_summary()` - Man page first 20 lines
+- ✅ `fetch_help_text()` - --help flag output
+- ✅ `fetch_tldr()` - tldr examples if available
+- ✅ Parallel fetching with 3s timeout
+- ✅ 8/8 integration tests passing
+- ✅ Graceful handling of missing tools
 
 ---
 
 ## Next Steps
 
-### Phase 1: Tool Discovery (Next Session - 60 min)
-
-**Goal**: Identify 2-4 relevant command-line tools for the query
+### Phase 3: Multi-Command Generation (45 min) 🔄 NEXT
+**Goal**: Generate 2-3 ranked alternative commands
 
 **Implementation**:
 ```rust
 impl ExplorationAgent {
-    pub async fn discover_tools(
+    pub async fn generate_alternatives(
         &self,
         prompt: &str,
-        include_files: bool
-    ) -> Result<Vec<ToolSuggestion>, GeneratorError> {
-        // Build discovery prompt with platform + files
-        // Ask model for relevant tools
-        // Parse tool suggestions
-        // Return ranked list
+        enrichment: &EnrichmentResult,
+    ) -> Result<Vec<CommandAlternative>, GeneratorError> {
+        // Feed enriched context to model
+        // Generate 2-3 concrete commands
+        // Include pros/cons for each
+        // Return ranked alternatives
     }
 }
 ```
 
-**Expected Output**:
-```json
-{
-  "tools": [
-    {
-      "name": "ps",
-      "reason": "Process monitoring",
-      "confidence": 0.95,
-      "native": true
-    },
-    {
-      "name": "top",
-      "reason": "Real-time process viewer",
-      "confidence": 0.85,
-      "native": true
-    }
-  ]
+**Structure**:
+```rust
+struct CommandAlternative {
+    command: String,
+    rank: usize,            // 1, 2, 3
+    confidence: f32,        // 0.0-1.0
+    tools_used: Vec<String>,
+    pros: Vec<String>,
+    cons: Vec<String>,
+    explanation: String,
 }
 ```
 
-### Phase 2: Context Enrichment (60 min)
-
-For each discovered tool:
-- Fetch `man <tool> | head -20`
-- Fetch `<tool> --help`
-- Fetch `tldr <tool>` (if available)
-- Check if tldr installed, recommend if not
-
-### Phase 3: Multi-Command Generation (45 min)
-
-Feed enriched context back to model:
-- Generate 2-3 concrete commands
-- Rank by suitability
-- Include pros/cons for each
-- Return structured alternatives
-
-### Phases 4-5: Async + Interactive (60 min)
-
+### Phase 4: Async Execution (30 min)
 - Show initial command immediately
 - Run exploration in background
-- Interactive selection on failure
-- Test with Vancouver demos
+- Non-blocking progress updates
+
+### Phase 5: Interactive Selection (30 min)
+- Interactive menu on failure
+- Alternative selection UI
+- Fallback command execution
 
 ---
 
-## Performance Targets
+## Session Summary: Phases 0-2 Complete ✅
 
-| Metric | Target | Status |
-|--------|--------|--------|
-| Complexity assessment | <2s | ✅ Implemented |
-| Tool discovery | <2s | 📋 Next |
-| Context enrichment | <3s | 📋 Parallel |
-| Command generation | <3s | 📋 Planned |
-| **Total (with explore)** | <10s | 🎯 On track |
-| Initial response (no wait) | <2s | ✅ Ready |
+**What We Built:**
+1. `src/agent/exploration.rs` (~700 lines)
+2. `specs/EXPLORATION_AGENT_SPEC.md` (Complete architecture)
+3. `tests/exploration_tool_discovery.rs` (6 tests)
+4. `tests/exploration_context_enrichment.rs` (8 tests)
+5. `examples/test_complexity.rs` (Test harness)
+
+**Test Results:**
+- ✅ 14/14 tests passing (6 tool discovery + 8 context enrichment)
+- ✅ Parallel context fetching working
+- ✅ Graceful error handling
+- ✅ Performance targets met (<2s complexity, <2s discovery, <3s enrichment)
+
+---
+
+## How It Works (End-to-End)
+
+```
+User: "show top 5 CPU processes" + --explore flag
+    ↓
+[Phase 0: Complexity Assessment ~1s]
+{
+  "is_complex": true,
+  "confidence": 0.9,
+  "reasoning": "Multiple tools available, platform-specific"
+}
+    ↓
+[Phase 1: Tool Discovery ~1-2s]
+{
+  "tools": [
+    {"tool": "ps", "relevance": "process status", "confidence": 0.95},
+    {"tool": "top", "relevance": "real-time monitoring", "confidence": 0.85}
+  ]
+}
+    ↓
+[Phase 2: Context Enrichment ~2-3s]
+{
+  "contexts": {
+    "ps": {
+      "installed": true,
+      "man_summary": "ps - process status...",
+      "help_text": "usage: ps [-AaCcEefhjlMmrSTvwXx]...",
+      "tldr_example": "ps aux | head"
+    },
+    "top": {...}
+  },
+  "tldr_recommended": false
+}
+    ↓
+[Phase 3: Multi-Command Generation ~2-3s] 🔄 TODO
+[
+  {
+    "command": "ps aux | sort -k3 -rn | head -5",
+    "rank": 1,
+    "confidence": 0.95,
+    "tools_used": ["ps", "sort", "head"],
+    "pros": ["BSD-compatible", "simple", "reliable"],
+    "cons": ["snapshot only, not real-time"]
+  },
+  {
+    "command": "top -o cpu -n 5 -l 1",
+    "rank": 2,
+    "confidence": 0.85,
+    "tools_used": ["top"],
+    "pros": ["native tool", "real-time capable"],
+    "cons": ["macOS-specific flags"]
+  }
+]
+```
 
 ---
 
@@ -294,83 +159,76 @@ Feed enriched context back to model:
 
 ### Progressive Enhancement
 ```
-[0-2s]  Show quick command (from assessment)
+[0-2s]  Quick command shown (from complexity assessment)
         User can execute immediately
         
-[2-7s]  Background: Tool discovery + enrichment
+[2-5s]  Background: Tool discovery + enrichment
         Non-blocking, async
         
-[7-10s] Background: Alternative generation
+[5-8s]  Background: Alternative generation
         Available if initial fails
 ```
 
-### Smart Gating
-- **Simple queries**: Skip exploration entirely (fast path)
+### Smart Gating (Performance)
+- **Simple queries**: Skip exploration (fast path <2s)
 - **Complex queries**: Full exploration with alternatives
-- **Uncertain queries**: Run exploration for safety
+- **Uncertain**: Run exploration for safety
 
 ### User Control
-- Default: Exploration OFF (backward compatible)
-- Opt-in: `--explore` flag
-- File context: Auto-detect or explicit
-- Wait behavior: Execute now or wait for alternatives
+- Exploration OFF by default (backward compatible)
+- Opt-in with `--explore` flag
+- File context: auto-detect or explicit control
+- Interactive selection on failure
 
 ---
 
-## Success Metrics
+## Performance Metrics
 
-### Must Have (Phase 0) ✅
-- [x] Complexity assessment implemented
-- [x] ExploreConfig structure defined
-- [x] File context detection ready
-- [x] Robust parsing with fallbacks
-- [x] Compiles and runs
-- [x] Test harness created
-
-### Must Have (Full System)
-- [ ] All 5 phases implemented
-- [ ] 6/6 Vancouver demos passing
-- [ ] <10s total exploration time
-- [ ] Interactive alternative selection
-- [ ] Backward compatible (no regression)
+| Phase | Target | Actual | Status |
+|-------|--------|--------|--------|
+| Complexity assessment | <2s | ~1-2s | ✅ |
+| Tool discovery | <2s | ~1-2s | ✅ |
+| Context enrichment | <3s | ~2-3s | ✅ |
+| Command generation | <3s | TBD | 🔄 |
+| **Total exploration** | <10s | ~6-8s (so far) | 🎯 |
+| Initial response (no wait) | <2s | ~1-2s | ✅ |
 
 ---
 
 ## Commits
 
 ```
+eb0b9c1 feat: Implement Phase 2 - Context Enrichment (TDD)
+4929a23 feat: Implement Phase 1 - Tool Discovery (TDD)
 1b07217 feat: Implement Phase 0 - Complexity Assessment for Exploration
-38cfe47 feat: Wire agent loop into CLI with platform-aware prompts
-d257967 feat: Integrate AgentLoop into CLI
 ```
 
 ---
 
 ## Time Investment
 
-**Phase 0 (This Session)**: 1.5 hours
-- Spec creation: 30 min
-- Implementation: 45 min
-- Testing & integration: 15 min
+**Completed**: 3.5 hours (Phases 0-2)
+- Phase 0: Complexity Assessment (1.5 hours)
+- Phase 1: Tool Discovery (1 hour)
+- Phase 2: Context Enrichment (1 hour)
 
-**Remaining Phases**: ~4 hours
-- Phase 1: Tool Discovery (60 min)
-- Phase 2: Context Enrichment (60 min)
+**Remaining**: ~1.5 hours (Phases 3-5)
 - Phase 3: Multi-Command Generation (45 min)
-- Phases 4-5: Async + Interactive (60 min)
-- Testing & polish: 30 min
+- Phase 4: Async Execution (30 min)
+- Phase 5: Interactive Selection (30 min)
 
-**Total**: ~5.5 hours to full exploration system
+**Total**: ~5 hours for full exploration system
 
 ---
 
-## Ready for Phase 1! 🚀
+## Ready for Phase 3! 🚀
 
-Foundation is solid. Next session:
-1. Implement tool discovery
-2. Test with Vancouver demos
-3. Verify performance targets
+Foundation is solid. Next:
+1. Implement multi-command generation with ranking
+2. Add pros/cons analysis
+3. Test with enriched context
+4. Verify Vancouver demos improve
 
 **Branch**: `feature/agentic-context-loop`  
-**Status**: Phase 0 Complete ✅  
-**Next**: Phase 1 - Tool Discovery 🔍
+**Status**: Phases 0, 1, 2 Complete ✅  
+**Next**: Phase 3 - Multi-Command Generation 🎯
