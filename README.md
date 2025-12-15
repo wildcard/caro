@@ -67,13 +67,19 @@ This project is in **active early development**. Core architecture is implemente
 
 ### Installation
 
-#### Option 1: One-Line Install (Recommended)
+#### Option 1: One-Line Setup (Recommended)
 ```bash
-curl -fsSL https://raw.githubusercontent.com/wildcard/cmdai/main/install.sh | bash
+bash <(curl --proto '=https' --tlsv1.2 -sSf https://setup.caro.sh)
+```
+
+Or with wget:
+```bash
+bash <(wget -qO- https://setup.caro.sh)
 ```
 
 This will:
-- Install cmdai via cargo
+- Install Rust (if not already installed)
+- Install cmdai via cargo with MLX optimization (Apple Silicon)
 - Set up the `caro` alias automatically
 - Configure your shell (bash, zsh, or fish)
 
