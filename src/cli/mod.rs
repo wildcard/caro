@@ -191,7 +191,7 @@ impl CliApp {
         // Production backend selection
         #[cfg(not(any(test, debug_assertions)))]
         {
-            use crate::backends::embedded::{EmbeddedModelBackend, ModelVariant};
+            use crate::backends::embedded::EmbeddedModelBackend;
             use std::sync::Arc;
 
             // Create embedded backend as fallback

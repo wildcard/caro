@@ -121,12 +121,16 @@ async fn main() {
 
     // Initialize tracing/logging
     if cli.verbose {
+        // In verbose mode, show all logs (info, debug, trace) with timestamps
+        // Allow RUST_LOG env var to override if set
+        let filter = tracing_subscriber::EnvFilter::try_from_default_env()
+            .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("cmdai=info"));
         tracing_subscriber::fmt()
-            .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+            .with_env_filter(filter)
             .with_level(true)
             .init();
     } else {
-        // Hide all logs in non-verbose mode for clean output
+        // Only show warnings and errors by default for cleaner output
         tracing_subscriber::fmt()
             .with_env_filter("cmdai=warn")
             .without_time()
