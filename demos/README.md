@@ -54,9 +54,17 @@ cargo build --release --features embedded-mlx
 
 ### Generate Single Demo
 
+**Important: Run commands from the `demos/` directory!**
+
 ```bash
+# Navigate to demos directory
+cd demos
+
 # Generate GIF
-vhs demos/caro-quickstart.tape
+vhs caro-quickstart.tape
+
+# Or use make
+make quickstart
 
 # Generate MP4 instead
 # Edit the tape file: Change "Output demos/caro-quickstart.gif" to ".mp4"
@@ -65,16 +73,19 @@ vhs demos/caro-quickstart.tape
 ### Generate All Demos
 
 ```bash
-make demos
+# From demos/ directory
+cd demos
+make all
 ```
 
 Or manually:
 ```bash
-vhs demos/caro-quickstart.tape
-vhs demos/caro-features.tape
-vhs demos/vancouver-dev-demo.tape
-vhs demos/caro-before-after.tape
-vhs demos/caro-social.tape
+cd demos
+vhs caro-quickstart.tape
+vhs caro-features.tape
+vhs vancouver-dev-demo.tape
+vhs caro-before-after.tape
+vhs caro-social.tape
 ```
 
 ## 📊 Demo Specifications

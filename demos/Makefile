@@ -1,42 +1,43 @@
 # Makefile for VHS demo generation
+# Can be run from project root or demos/ directory
 
 .PHONY: all quickstart features vancouver before-after social clean help
 
 # Generate all demos
 all: quickstart features vancouver before-after social
 	@echo "✅ All demos generated!"
-	@ls -lh demos/*.gif demos/*.mp4 2>/dev/null || true
+	@ls -lh *.gif *.mp4 2>/dev/null || true
 
 # Individual demos
 quickstart:
 	@echo "🎬 Generating quickstart demo..."
-	vhs demos/caro-quickstart.tape
-	@echo "✅ demos/caro-quickstart.gif"
+	vhs caro-quickstart.tape
+	@echo "✅ caro-quickstart.gif"
 
 features:
 	@echo "🎬 Generating features demo..."
-	vhs demos/caro-features.tape
-	@echo "✅ demos/caro-features.gif"
+	vhs caro-features.tape
+	@echo "✅ caro-features.gif"
 
 vancouver:
 	@echo "🎬 Generating Vancouver.Dev demo..."
-	vhs demos/vancouver-dev-demo.tape
-	@echo "✅ demos/vancouver-dev-demo.gif"
+	vhs vancouver-dev-demo.tape
+	@echo "✅ vancouver-dev-demo.gif"
 
 before-after:
 	@echo "🎬 Generating before/after demo..."
-	vhs demos/caro-before-after.tape
-	@echo "✅ demos/caro-before-after.gif"
+	vhs caro-before-after.tape
+	@echo "✅ caro-before-after.gif"
 
 social:
 	@echo "🎬 Generating social media demo..."
-	vhs demos/caro-social.tape
-	@echo "✅ demos/caro-social.gif"
+	vhs caro-social.tape
+	@echo "✅ caro-social.gif"
 
 # Clean generated files
 clean:
 	@echo "🧹 Cleaning generated demos..."
-	rm -f demos/*.gif demos/*.mp4 demos/*.webm
+	rm -f *.gif *.mp4 *.webm
 	@echo "✅ Cleaned!"
 
 # Help
