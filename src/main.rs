@@ -51,6 +51,26 @@ struct Cli {
     /// Show configuration information
     #[arg(long, help = "Show current configuration and exit")]
     show_config: bool,
+
+    /// Execute the generated command
+    #[arg(
+        short = 'x',
+        long,
+        help = "Execute the generated command after validation"
+    )]
+    execute: bool,
+
+    /// Dry run mode (show what would be executed)
+    #[arg(long, help = "Show execution plan without running the command")]
+    dry_run: bool,
+
+    /// Interactive execution mode
+    #[arg(
+        short = 'i',
+        long,
+        help = "Interactive mode with step-by-step confirmation"
+    )]
+    interactive: bool,
 }
 
 impl IntoCliArgs for Cli {
@@ -80,6 +100,18 @@ impl IntoCliArgs for Cli {
 
     fn config_file(&self) -> Option<String> {
         self.config_file.clone()
+    }
+
+    fn execute(&self) -> bool {
+        self.execute
+    }
+
+    fn dry_run(&self) -> bool {
+        self.dry_run
+    }
+
+    fn interactive(&self) -> bool {
+        self.interactive
     }
 }
 
@@ -156,7 +188,7 @@ async fn run_cli(cli: &Cli) -> Result<(), CliError> {
     let app = CliApp::new().await?;
 
     // Run command generation
-    let result = app.run_with_args(cli.clone()).await?;
+    let mut result = app.run_with_args(cli.clone()).await?;
 
     // Display result
     match result.output_format {
@@ -173,14 +205,14 @@ async fn run_cli(cli: &Cli) -> Result<(), CliError> {
             println!("{}", yaml);
         }
         cmdai::cli::OutputFormat::Plain => {
-            print_plain_output(&result, cli).await?;
+            print_plain_output(&mut result, cli).await?;
         }
     }
 
     Ok(())
 }
 
-async fn print_plain_output(result: &cmdai::cli::CliResult, cli: &Cli) -> Result<(), CliError> {
+async fn print_plain_output(result: &mut cmdai::cli::CliResult, cli: &Cli) -> Result<(), CliError> {
     use colored::Colorize;
 
     // Print warnings first
@@ -194,7 +226,7 @@ async fn print_plain_output(result: &cmdai::cli::CliResult, cli: &Cli) -> Result
         return Ok(());
     }
 
-    // Handle confirmation required
+    // Handle confirmation required for dangerous commands
     if result.requires_confirmation && !cli.confirm {
         use dialoguer::Confirm;
 
@@ -215,7 +247,7 @@ async fn print_plain_output(result: &cmdai::cli::CliResult, cli: &Cli) -> Result
 
             println!(
                 "{}",
-                "✓ Confirmed. Proceeding with command execution.".green()
+                "✓ Confirmed. Command is safe to execute.".green()
             );
         } else {
             // Non-interactive environment - show confirmation message and exit
@@ -234,6 +266,122 @@ async fn print_plain_output(result: &cmdai::cli::CliResult, cli: &Cli) -> Result
     if !result.explanation.is_empty() {
         println!("{}", "Explanation:".bold());
         println!("  {}", result.explanation);
+        println!();
+    }
+
+    // Handle dry-run mode
+    if cli.dry_run {
+        println!("{}", "Dry Run Mode:".bold().cyan());
+        println!("  The command would be executed with shell: {:?}", result.shell_used);
+        if result.blocked_reason.is_some() || result.requires_confirmation {
+            println!("  {} This command would be blocked or require confirmation", "⚠".yellow());
+        } else {
+            println!("  {} This command would execute successfully", "✓".green());
+        }
+        println!();
+    }
+    // If command wasn't executed yet and passes safety checks, ask user if they want to execute
+    else if result.exit_code.is_none() && result.executed && !cli.execute && !cli.interactive {
+        use dialoguer::Confirm;
+
+        // Check if we're in a terminal environment
+        if atty::is(atty::Stream::Stdin) {
+            let should_execute = Confirm::new()
+                .with_prompt("Execute this command?")
+                .default(false)
+                .interact()
+                .map_err(|e| CliError::Internal {
+                    message: format!("Failed to get user confirmation: {}", e),
+                })?;
+
+            if should_execute {
+                println!();
+                println!("{}", "Executing command...".dimmed());
+
+                // Execute the command
+                use cmdai::execution::CommandExecutor;
+
+                let executor = CommandExecutor::new(result.shell_used);
+
+                match executor.execute(&result.generated_command) {
+                    Ok(exec_result) => {
+                        result.exit_code = Some(exec_result.exit_code);
+                        result.stdout = Some(exec_result.stdout);
+                        result.stderr = Some(exec_result.stderr);
+                        result.execution_error = if !exec_result.success {
+                            Some(format!("Command exited with code {}", exec_result.exit_code))
+                        } else {
+                            None
+                        };
+                        result.timing_info.execution_time_ms = exec_result.execution_time_ms;
+                    }
+                    Err(e) => {
+                        result.execution_error = Some(format!("Execution failed: {}", e));
+                    }
+                }
+                println!();
+            } else {
+                println!("{}", "Execution skipped.".yellow());
+                println!();
+            }
+        } else {
+            // Non-interactive environment - show message
+            println!("{}", "Use --execute/-x flag to auto-execute commands in non-interactive environments.".dimmed());
+            println!();
+        }
+    }
+
+    // Print execution results if command was actually executed
+    if result.exit_code.is_some() {
+        println!("{}", "Execution Results:".bold().green());
+
+        // Print exit code
+        if let Some(exit_code) = result.exit_code {
+            let status_msg = if exit_code == 0 {
+                format!("✓ Success (exit code: {})", exit_code).green()
+            } else {
+                format!("✗ Failed (exit code: {})", exit_code).red()
+            };
+            println!("  {}", status_msg);
+        }
+
+        // Print execution time
+        if result.timing_info.execution_time_ms > 0 {
+            println!("  Execution time: {}ms", result.timing_info.execution_time_ms);
+        }
+
+        // Print stdout if present
+        if let Some(stdout) = &result.stdout {
+            if !stdout.trim().is_empty() {
+                println!();
+                println!("{}", "Standard Output:".bold());
+                for line in stdout.lines() {
+                    println!("  {}", line);
+                }
+            }
+        }
+
+        // Print stderr if present
+        if let Some(stderr) = &result.stderr {
+            if !stderr.trim().is_empty() {
+                println!();
+                println!("{}", "Standard Error:".bold().yellow());
+                for line in stderr.lines() {
+                    println!("  {}", line.yellow());
+                }
+            }
+        }
+
+        // Print execution error if present
+        if let Some(error) = &result.execution_error {
+            println!();
+            println!("{} {}", "Execution Error:".red().bold(), error.red());
+        }
+
+        println!();
+    } else if cli.execute || cli.interactive {
+        // User requested execution but it didn't happen
+        println!("{}", "Command was not executed (blocked by safety checks or user cancelled).".yellow());
         println!();
     }
 
