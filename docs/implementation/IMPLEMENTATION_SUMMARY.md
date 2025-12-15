@@ -58,8 +58,8 @@
 ✅ Early exit if confidence high
 
 ### 5. Architecture Documentation
-✅ `AGENTIC_LOOP_ARCHITECTURE.md` - Complete design document
-✅ `VANCOUVER_DEMO_FIXES.md` - Issue analysis and fixes needed
+✅ `../development/AGENTIC_LOOP_ARCHITECTURE.md` - Complete design document
+✅ `../development/VANCOUVER_DEMO_FIXES.md` - Issue analysis and fixes needed
 
 ---
 
@@ -218,8 +218,8 @@ cd demos/asciinema
 ### New Files:
 - `src/context/mod.rs` - Platform detection (240 lines)
 - `src/agent/mod.rs` - Agent loop (350 lines)
-- `AGENTIC_LOOP_ARCHITECTURE.md` - Design doc
-- `VANCOUVER_DEMO_FIXES.md` - Issue analysis
+- `../development/AGENTIC_LOOP_ARCHITECTURE.md` - Design doc
+- `../development/VANCOUVER_DEMO_FIXES.md` - Issue analysis
 
 ### Modified Files:
 - `Cargo.toml` - Default features updated

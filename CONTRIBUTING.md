@@ -95,7 +95,7 @@ If all checks pass, you're ready to contribute!
 
 ## Development Workflow
 
-cmdai follows strict **Test-Driven Development (TDD)** with spec-driven design. See [TDD-WORKFLOW.md](TDD-WORKFLOW.md) for complete details.
+cmdai follows strict **Test-Driven Development (TDD)** with spec-driven design. See [TDD-WORKFLOW.md](docs/development/TDD-WORKFLOW.md) for complete details.
 
 ### The Red-Green-Refactor Cycle
 
@@ -325,7 +325,7 @@ async fn test_cache_manager_handles_missing_model() {
    - Title Case for subjects
    - Reference issues/PRs in parentheses: `(#42)`
    - Optional leading emoji for visual categorization
-   - See [AGENTS.md](AGENTS.md) for detailed conventions
+   - See [AGENTS.md](docs/development/AGENTS.md) for detailed conventions
 
 4. **Push to your fork**:
    ```bash
@@ -361,7 +361,7 @@ We welcome contributions in these areas:
 
 ### 🟢 Good First Issues & Technical Debt
 
-**New to the project?** Start here! We maintain a curated list of beginner-friendly issues and technical debt items in [TECH_DEBT.md](TECH_DEBT.md).
+**New to the project?** Start here! We maintain a curated list of beginner-friendly issues and technical debt items in [TECH_DEBT.md](docs/development/TECH_DEBT.md).
 
 **Current opportunities**:
 - 📝 **Documentation** - Add rustdoc examples to public APIs ([#7](https://github.com/wildcard/cmdai/issues/7))
@@ -380,7 +380,7 @@ We welcome contributions in these areas:
 3. Ask questions in the issue thread
 4. Submit your PR when ready!
 
-See [TECH_DEBT.md](TECH_DEBT.md) for the complete list with detailed implementation guides.
+See [TECH_DEBT.md](docs/development/TECH_DEBT.md) for the complete list with detailed implementation guides.
 
 ---
 
@@ -486,7 +486,7 @@ cmdai development leverages specialized AI agents for different tasks. When work
 - Quality assurance processes
 - CI/CD improvements
 
-See [AGENTS.md](AGENTS.md) for repository guidelines and [CLAUDE.md](CLAUDE.md) for agent usage details.
+See [AGENTS.md](docs/development/AGENTS.md) for repository guidelines and [CLAUDE.md](CLAUDE.md) for agent usage details.
 
 ---
 

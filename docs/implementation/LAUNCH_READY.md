@@ -104,8 +104,8 @@
 - `public/README.md` - Asset management
 
 **Project Docs**:
-- `SESSION_SUMMARY.md` - Complete session record
-- `CARO_CELEBRATION.md` - Mascot documentation
+- `../sessions/SESSION_SUMMARY.md` - Complete session record
+- `../sessions/CARO_CELEBRATION.md` - Mascot documentation
 - Various test result documents
 
 **Total Documentation**: 3,000+ lines across 15+ files
@@ -191,7 +191,7 @@ npm run build
 - ✅ **Contributor recruitment** - Clear call to action
 
 ### Next Steps
-- 📱 **Social media posts** - Templates in CARO_CELEBRATION.md
+- 📱 **Social media posts** - Templates in ../sessions/CARO_CELEBRATION.md
 - 🎥 **Video recording** - Screen capture presentation
 - 📄 **PDF export** - For email distribution
 - 🌟 **GitHub launch** - Ready to announce
@@ -302,13 +302,13 @@ bec9b83 docs: Add Caro celebration and mascot documentation
 
 ### For Contributors
 - Read TALKING_POINTS.md for full context
-- Check SESSION_SUMMARY.md for technical details
+- Check ../sessions/SESSION_SUMMARY.md for technical details
 - Review TEST_RESULTS.md for integration info
 - Join via contact info on final slide
 
 ### For Social Media
 - Use Caro images from public/ directory
-- Reference CARO_CELEBRATION.md for messaging
+- Reference ../sessions/CARO_CELEBRATION.md for messaging
 - Include both GitHub and email
 - Emphasize safety-first approach
 
@@ -335,9 +335,9 @@ bec9b83 docs: Add Caro celebration and mascot documentation
 ## 📞 Contact & Resources
 
 **Primary Contact**: kobi@cmdai.dev  
-**GitHub**: https://github.com/wildcard/cmdai  
-**Presentation**: Run `npm run dev` in presentation/  
-**Documentation**: See SESSION_SUMMARY.md  
+**GitHub**: https://github.com/wildcard/cmdai
+**Presentation**: Run `npm run dev` in presentation/
+**Documentation**: See ../sessions/SESSION_SUMMARY.md  
 
 ---
 

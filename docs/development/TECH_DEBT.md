@@ -351,16 +351,16 @@ fn generate_schema() {
 
 - All contributions must include tests
 - Follow the TDD workflow documented in `TDD-WORKFLOW.md`
-- Update `CHANGELOG.md` with your changes
+- Update `../../CHANGELOG.md` with your changes
 - Add rustdoc examples for new public APIs
 - Run `cargo clippy -- -D warnings` before submitting
 - Run `cargo test` to ensure all tests pass
 
 ## 📚 Resources
 
-- [CONTRIBUTING.md](CONTRIBUTING.md) - Full contribution guidelines
+- [CONTRIBUTING.md](../../CONTRIBUTING.md) - Full contribution guidelines
 - [TDD-WORKFLOW.md](TDD-WORKFLOW.md) - Test-driven development process
-- [CLAUDE.md](CLAUDE.md) - Project structure and architecture
+- [CLAUDE.md](../../CLAUDE.md) - Project structure and architecture
 - [Rust Book](https://doc.rust-lang.org/book/) - For Rust beginners
 
 ## 💬 Getting Help
