@@ -11,7 +11,7 @@ categories = ["command-line-utilities", "development-tools"]
 
 # Binary target
 [[bin]]
-name = "carosh"
+name = "caro"
 path = "src/main.rs"
 
 [dependencies]
