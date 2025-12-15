@@ -1,9 +1,9 @@
 # Vancouver.Dev Community Demo
 # Emphasizing open source, community-driven approach
 
-Output demos/vancouver-dev-demo.gif
+Output vancouver-dev-demo.gif
 
-Require ./target/release/cmdai
+Require ../target/release/cmdai
 
 Set FontSize 22
 Set Width 1800

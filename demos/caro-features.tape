@@ -1,9 +1,9 @@
 # Caro.sh Feature Showcase Demo
 # Inspired by Atuin and Crush demos
 
-Output demos/caro-features.gif
+Output caro-features.gif
 
-Require ./target/release/cmdai
+Require ../target/release/cmdai
 
 Set FontSize 20
 Set Width 1600

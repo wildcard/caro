@@ -1,9 +1,9 @@
 # Before/After Comparison Demo
 # Showing the productivity difference
 
-Output demos/caro-before-after.gif
+Output caro-before-after.gif
 
-Require ./target/release/cmdai
+Require ../target/release/cmdai
 
 Set FontSize 20
 Set Width 1600

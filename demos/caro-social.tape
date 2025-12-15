@@ -1,9 +1,9 @@
 # Ultra-fast demo for social media
 # 30 second version for Twitter/LinkedIn
 
-Output demos/caro-social.gif
+Output caro-social.gif
 
-Require ./target/release/cmdai
+Require ../target/release/cmdai
 
 Set FontSize 24
 Set Width 1200

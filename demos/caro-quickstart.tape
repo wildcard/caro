@@ -52,9 +52,9 @@
 #   Hide                            Hide the subsequent commands from the output
 #   Show                            Show the subsequent commands in the output
 
-Output demos/caro-quickstart.gif
+Output caro-quickstart.gif
 
-Require ./target/release/cmdai
+Require ../target/release/cmdai
 
 Set FontSize 18
 Set Width 1400
