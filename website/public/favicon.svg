@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="caroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff8c42;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff6b35;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Orange circle background -->
+  <circle cx="50" cy="50" r="48" fill="url(#caroGradient)"/>
+  <!-- Inner white circle for contrast -->
+  <circle cx="50" cy="50" r="42" fill="white"/>
+  <!-- Caro pixel art placeholder -->
+  <image href="/caro-pixel.png" x="25" y="25" width="50" height="50" style="image-rendering: pixelated;"/>
+</svg>

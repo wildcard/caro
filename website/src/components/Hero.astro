@@ -1,0 +1,139 @@
+---
+---
+
+<div class="hero">
+  <div class="container">
+    <div class="companion-badge">🐕 Companion Agent</div>
+    <img src="/caro-prompting.gif" alt="Caro - 8-bit pixel art" class="pixel-art" />
+    <div class="logo">Caro</div>
+    <h1 class="tagline">Your loyal shell companion</h1>
+    <p class="subtitle">
+      A specialized POSIX shell command agent with empathy and agency. Available as an MCP for Claude and as a dedicated Skill. She keeps you safe while helping Claude get the job done.
+    </p>
+    <div>
+      <a href="#download" class="cta-button">Get Started</a>
+      <a href="#how-it-works" class="cta-button secondary">Watch Demo</a>
+    </div>
+  </div>
+</div>
+
+<style>
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 60px 20px;
+    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+    transition: background 0.3s ease;
+  }
+
+  .logo {
+    font-size: 72px;
+    margin-bottom: 20px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .companion-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .tagline {
+    font-size: 38px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--color-text);
+    transition: color 0.3s ease;
+  }
+
+  .subtitle {
+    font-size: 20px;
+    color: var(--color-text-secondary);
+    margin-bottom: 40px;
+    max-width: 650px;
+    line-height: 1.7;
+    transition: color 0.3s ease;
+  }
+
+  .cta-button {
+    display: inline-block;
+    padding: 16px 40px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin: 10px;
+  }
+
+  .cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(255, 140, 66, 0.3);
+  }
+
+  .cta-button.secondary {
+    background: transparent;
+    border: 2px solid #ff8c42;
+    color: #ff8c42;
+  }
+
+  .cta-button.secondary:hover {
+    background: #fff8f0;
+    box-shadow: 0 10px 25px rgba(255, 140, 66, 0.2);
+  }
+
+  .pixel-art {
+    width: 100px;
+    height: auto;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    margin-bottom: -30px;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .pixel-art {
+      width: 70px;
+      height: auto;
+    }
+
+    .logo {
+      font-size: 48px;
+    }
+
+    .tagline {
+      font-size: 28px;
+    }
+
+    .subtitle {
+      font-size: 18px;
+    }
+  }
+</style>

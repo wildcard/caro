@@ -1,0 +1,46 @@
+---
+---
+
+<section id="how-it-works" class="video-section">
+  <div class="container">
+    <h2>How Caro Works</h2>
+    <p class="section-subtitle">See Caro in action as your shell companion</p>
+    <div class="video-container">
+      <script src="https://asciinema.org/a/FOxFkOjVHmYSB0S2I2xaZsaX0.js" id="asciicast-FOxFkOjVHmYSB0S2I2xaZsaX0" async data-theme="monokai" data-autoplay="true"></script>
+    </div>
+  </div>
+</section>
+
+<style>
+  .video-section {
+    background: var(--color-bg-secondary);
+    transition: background 0.3s ease;
+  }
+
+  .video-container {
+    max-width: 100%;
+    margin: 0 auto;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    transition: color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  /* Make asciinema player fill the container */
+  .video-container :global(.asciinema-player-wrapper),
+  .video-container :global(.asciinema-player),
+  .video-container :global(#asciicast-container-FOxFkOjVHmYSB0S2I2xaZsaX0) {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  :global(.dark) .video-container {
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+</style>

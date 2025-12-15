@@ -1,0 +1,19 @@
+{
+  "name": "caro-website",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Official website for Caro - Your loyal shell companion",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "^4.0.0"
+  },
+  "devDependencies": {
+    "@astrojs/sitemap": "^3.0.0"
+  }
+}

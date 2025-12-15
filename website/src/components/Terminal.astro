@@ -1,0 +1,77 @@
+---
+---
+
+<div class="container">
+  <div class="terminal">
+    <div class="terminal-header">
+      <div class="terminal-dot red"></div>
+      <div class="terminal-dot yellow"></div>
+      <div class="terminal-dot green"></div>
+    </div>
+    <div class="terminal-line">
+      <span class="terminal-prompt">$</span>
+      <span class="terminal-command"> caro "find python files modified in the last 7 days"</span>
+    </div>
+    <div class="terminal-line">
+      <span class="terminal-caro">🐕 Caro:</span>
+      <span class="terminal-output"> find . -name "*.py" -type f -mtime -7</span>
+    </div>
+    <div class="terminal-line">
+      <span class="terminal-safe">✓ Safe to run on your macOS system</span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .terminal {
+    background: #1e1e1e;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 40px auto;
+    max-width: 700px;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    color: #d4d4d4;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  }
+
+  .terminal-header {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+  }
+
+  .terminal-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .terminal-dot.red { background: #ff5f56; }
+  .terminal-dot.yellow { background: #ffbd2e; }
+  .terminal-dot.green { background: #27c93f; }
+
+  .terminal-line {
+    margin: 8px 0;
+  }
+
+  .terminal-prompt {
+    color: #4ec9b0;
+  }
+
+  .terminal-command {
+    color: #9cdcfe;
+  }
+
+  .terminal-output {
+    color: #ce9178;
+  }
+
+  .terminal-caro {
+    color: #ff8c42;
+  }
+
+  .terminal-safe {
+    color: #6a9955;
+  }
+</style>
