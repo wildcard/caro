@@ -188,7 +188,7 @@ async fn run_cli(cli: &Cli) -> Result<(), CliError> {
     let app = CliApp::new().await?;
 
     // Run command generation
-    let result = app.run_with_args(cli.clone()).await?;
+    let mut result = app.run_with_args(cli.clone()).await?;
 
     // Display result
     match result.output_format {
@@ -205,14 +205,14 @@ async fn run_cli(cli: &Cli) -> Result<(), CliError> {
             println!("{}", yaml);
         }
         cmdai::cli::OutputFormat::Plain => {
-            print_plain_output(&result, cli).await?;
+            print_plain_output(&mut result, cli).await?;
         }
     }
 
     Ok(())
 }
 
-async fn print_plain_output(result: &cmdai::cli::CliResult, cli: &Cli) -> Result<(), CliError> {
+async fn print_plain_output(result: &mut cmdai::cli::CliResult, cli: &Cli) -> Result<(), CliError> {
     use colored::Colorize;
 
     // Print warnings first
@@ -226,7 +226,7 @@ async fn print_plain_output(result: &cmdai::cli::CliResult, cli: &Cli) -> Result
         return Ok(());
     }
 
-    // Handle confirmation required
+    // Handle confirmation required for dangerous commands
     if result.requires_confirmation && !cli.confirm {
         use dialoguer::Confirm;
 
@@ -247,7 +247,7 @@ async fn print_plain_output(result: &cmdai::cli::CliResult, cli: &Cli) -> Result
 
             println!(
                 "{}",
-                "✓ Confirmed. Proceeding with command execution.".green()
+                "✓ Confirmed. Command is safe to execute.".green()
             );
         } else {
             // Non-interactive environment - show confirmation message and exit
@@ -279,6 +279,56 @@ async fn print_plain_output(result: &cmdai::cli::CliResult, cli: &Cli) -> Result
             println!("  {} This command would execute successfully", "✓".green());
         }
         println!();
+    }
+    // If command wasn't executed yet and passes safety checks, ask user if they want to execute
+    else if result.exit_code.is_none() && result.executed && !cli.execute && !cli.interactive {
+        use dialoguer::Confirm;
+
+        // Check if we're in a terminal environment
+        if atty::is(atty::Stream::Stdin) {
+            let should_execute = Confirm::new()
+                .with_prompt("Execute this command?")
+                .default(false)
+                .interact()
+                .map_err(|e| CliError::Internal {
+                    message: format!("Failed to get user confirmation: {}", e),
+                })?;
+
+            if should_execute {
+                println!();
+                println!("{}", "Executing command...".dimmed());
+
+                // Execute the command
+                use cmdai::execution::CommandExecutor;
+
+                let executor = CommandExecutor::new(result.shell_used);
+
+                match executor.execute(&result.generated_command) {
+                    Ok(exec_result) => {
+                        result.exit_code = Some(exec_result.exit_code);
+                        result.stdout = Some(exec_result.stdout);
+                        result.stderr = Some(exec_result.stderr);
+                        result.execution_error = if !exec_result.success {
+                            Some(format!("Command exited with code {}", exec_result.exit_code))
+                        } else {
+                            None
+                        };
+                        result.timing_info.execution_time_ms = exec_result.execution_time_ms;
+                    }
+                    Err(e) => {
+                        result.execution_error = Some(format!("Execution failed: {}", e));
+                    }
+                }
+                println!();
+            } else {
+                println!("{}", "Execution skipped.".yellow());
+                println!();
+            }
+        } else {
+            // Non-interactive environment - show message
+            println!("{}", "Use --execute/-x flag to auto-execute commands in non-interactive environments.".dimmed());
+            println!();
+        }
     }
 
     // Print execution results if command was actually executed
