@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Spec-Kitty: Merge completed feature
+# Usage: bin/sk-merge <feature-id>
+
+set -e
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+FEATURE_ID="$1"
+
+if [ -z "$FEATURE_ID" ]; then
+    echo -e "${RED}Error: Feature ID required${NC}"
+    echo "Usage: bin/sk-merge <feature-id>"
+    echo "Example: bin/sk-merge 001-add-caching"
+    exit 1
+fi
+
+echo -e "${BLUE}Merging feature: ${GREEN}${FEATURE_ID}${NC}"
+echo -e "${YELLOW}Running acceptance checks first...${NC}"
+
+# Call the merge script
+bash .kittify/scripts/bash/merge-feature.sh "$FEATURE_ID"
+
+echo -e "${GREEN}Feature merged successfully!${NC}"

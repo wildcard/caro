@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# Spec-Kitty: Create new feature with worktree
+# Usage: bin/sk-new-feature "feature description" [--name "Feature Name"]
+
+set -e
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Check if we're in the main repo
+if [ ! -d ".kittify" ]; then
+    echo -e "${RED}Error: Must run from project root (directory with .kittify/)${NC}"
+    exit 1
+fi
+
+# Parse arguments
+FEATURE_DESCRIPTION=""
+FEATURE_NAME=""
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --name)
+            FEATURE_NAME="$2"
+            shift 2
+            ;;
+        *)
+            FEATURE_DESCRIPTION="$1"
+            shift
+            ;;
+    esac
+done
+
+if [ -z "$FEATURE_DESCRIPTION" ]; then
+    echo -e "${RED}Error: Feature description required${NC}"
+    echo "Usage: bin/sk-new-feature \"feature description\" [--name \"Feature Name\"]"
+    exit 1
+fi
+
+echo -e "${BLUE}Creating new feature with spec-kitty...${NC}"
+echo -e "Description: ${GREEN}${FEATURE_DESCRIPTION}${NC}"
+
+# Call the spec-kitty create-new-feature script
+if [ -n "$FEATURE_NAME" ]; then
+    bash .kittify/scripts/bash/create-new-feature.sh --feature-name "$FEATURE_NAME" "$FEATURE_DESCRIPTION"
+else
+    bash .kittify/scripts/bash/create-new-feature.sh "$FEATURE_DESCRIPTION"
+fi
+
+echo -e "${GREEN}Feature created successfully!${NC}"
+echo -e "${YELLOW}Next steps:${NC}"
+echo "1. cd into the worktree: cd kitty-specs/XXX-feature-name/"
+echo "2. Run /spec-kitty.specify to create the spec"
+echo "3. Run /spec-kitty.plan to create the plan"
+echo "4. Run /spec-kitty.tasks to generate tasks"
+echo "5. Run /spec-kitty.implement to start implementation"

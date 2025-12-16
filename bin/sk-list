@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# Spec-Kitty: List all features and their status
+# Usage: bin/sk-list
+
+set -e
+
+# Colors
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+
+echo -e "${BLUE}Spec-Kitty Features:${NC}\n"
+
+if [ -d "kitty-specs" ]; then
+    for feature_dir in kitty-specs/*/; do
+        if [ -d "$feature_dir" ]; then
+            feature_id=$(basename "$feature_dir")
+
+            # Check if spec.md exists to get feature name
+            if [ -f "${feature_dir}spec.md" ]; then
+                # Extract title from spec.md (first # heading)
+                feature_name=$(grep -m 1 "^# " "${feature_dir}spec.md" | sed 's/^# //' || echo "Unknown")
+            else
+                feature_name="(No spec yet)"
+            fi
+
+            # Check status based on tasks directory
+            if [ -d "${feature_dir}tasks/done" ] && [ "$(ls -A ${feature_dir}tasks/done 2>/dev/null)" ]; then
+                status="${GREEN}✓ Done${NC}"
+            elif [ -d "${feature_dir}tasks/doing" ] && [ "$(ls -A ${feature_dir}tasks/doing 2>/dev/null)" ]; then
+                status="${YELLOW}⚡ In Progress${NC}"
+            elif [ -d "${feature_dir}tasks/planned" ] && [ "$(ls -A ${feature_dir}tasks/planned 2>/dev/null)" ]; then
+                status="${CYAN}📋 Planned${NC}"
+            else
+                status="${BLUE}📝 Spec Phase${NC}"
+            fi
+
+            echo -e "${BLUE}${feature_id}${NC}"
+            echo -e "  Name: ${feature_name}"
+            echo -e "  Status: ${status}"
+            echo ""
+        fi
+    done
+else
+    echo -e "${YELLOW}No features yet. Create one with:${NC}"
+    echo "  bin/sk-new-feature \"your feature description\""
+fi
+
+echo -e "\n${CYAN}Dashboard:${NC} bin/sk-dashboard"
