@@ -35,6 +35,8 @@ pub mod execution;
 #[cfg(feature = "vector-store")]
 pub mod indexing;
 pub mod logging;
+#[cfg(feature = "vector-store")]
+pub mod vector_store;
 pub mod model_loader;
 pub mod models;
 pub mod platform;
