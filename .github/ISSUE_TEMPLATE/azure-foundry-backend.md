@@ -2,7 +2,7 @@
 
 ## Inspiration & Community Credit
 
-Inspired by **Umi** from the **Vancouver Dev community** - thank you for championing this feature request and highlighting the need for enterprise AI infrastructure integration! 🙏
+Inspired by **Lucky** from the **Vancouver Dev community** - thank you for championing this feature request and highlighting the need for enterprise AI infrastructure integration! 🙏
 
 ## Overview
 
@@ -343,7 +343,7 @@ We welcome contributions from the community! Areas where help is appreciated:
 
 ---
 
-**Special Thanks:** This feature request is directly inspired by **Umi** from the **Vancouver Dev community**, whose advocacy for enterprise AI tooling integration helps make cmdai more accessible to organizations worldwide.
+**Special Thanks:** This feature request is directly inspired by **Lucky** from the **Vancouver Dev community**, whose advocacy for enterprise AI tooling integration helps make cmdai more accessible to organizations worldwide.
 
 **Maintainer Notes:**
 - [ ] Assign to milestone: v0.X.0
