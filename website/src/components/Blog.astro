@@ -2,10 +2,10 @@
 // Blog component displaying recent articles
 const blogPosts = [
   {
-    title: "Why CARO? The Story Behind Your Terminal Companion",
+    title: "Why Caro? The Story Behind Your Terminal Companion",
     slug: "why-caro",
     date: "2025-12-17",
-    excerpt: "Discover the heartwarming story of how Kyaro, an office-loving Shiba Inu who grew up among developers and system administrators, became CARO—your eternal companion in the terminal.",
+    excerpt: "Discover the heartwarming story of how Kyaro, an office-loving Shiba Inu who grew up among developers and system administrators, became Caro—your eternal companion in the terminal.",
     readTime: "8 min read"
   }
 ];
@@ -48,7 +48,8 @@ const blogPosts = [
 <style>
   .blog-section {
     padding: 80px 20px;
-    background: linear-gradient(135deg, #ffffff 0%, #fff8f0 100%);
+    background: linear-gradient(135deg, var(--color-bg) 0%, var(--color-bg-tertiary) 100%);
+    transition: background 0.3s ease;
   }
 
   .container {
@@ -60,12 +61,12 @@ const blogPosts = [
     font-size: 36px;
     text-align: center;
     margin-bottom: 20px;
-    color: #2c3e50;
+    color: var(--color-text);
   }
 
   .section-subtitle {
     text-align: center;
-    color: #7f8c8d;
+    color: var(--color-text-secondary);
     font-size: 18px;
     margin-bottom: 50px;
     max-width: 700px;
@@ -81,11 +82,11 @@ const blogPosts = [
   }
 
   .blog-card {
-    background: white;
+    background: var(--color-bg);
     border-radius: 12px;
     padding: 30px;
-    border: 1px solid #f0f0f0;
-    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid var(--color-border);
+    transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s, border-color 0.3s;
     display: flex;
     flex-direction: column;
   }
@@ -102,7 +103,7 @@ const blogPosts = [
     align-items: center;
     margin-bottom: 15px;
     font-size: 14px;
-    color: #7f8c8d;
+    color: var(--color-text-secondary);
   }
 
   .blog-date {
@@ -110,7 +111,7 @@ const blogPosts = [
   }
 
   .blog-read-time {
-    color: #95a5a6;
+    color: var(--color-links-muted);
   }
 
   .blog-title {
@@ -120,7 +121,7 @@ const blogPosts = [
   }
 
   .blog-title a {
-    color: #2c3e50;
+    color: var(--color-text);
     text-decoration: none;
     transition: color 0.2s;
   }
@@ -130,7 +131,7 @@ const blogPosts = [
   }
 
   .blog-excerpt {
-    color: #7f8c8d;
+    color: var(--color-text-secondary);
     line-height: 1.7;
     margin-bottom: 20px;
     flex-grow: 1;
