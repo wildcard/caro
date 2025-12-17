@@ -136,33 +136,128 @@
 </style>
 
 <script>
-  // Fetch GitHub star count
+  const CACHE_KEY = 'github_star_count_wildcard_caro';
+  const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
+
+  /**
+   * Get cached star count data from localStorage
+   * @returns {Object|null} Cached data or null if expired/not found
+   */
+  function getCachedData() {
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (!cached) return null;
+
+      const data = JSON.parse(cached);
+      const now = Date.now();
+
+      if (now - data.timestamp < CACHE_DURATION) {
+        return data;
+      }
+
+      // Cache expired, remove it
+      localStorage.removeItem(CACHE_KEY);
+      return null;
+    } catch (error) {
+      console.error('Error reading cache:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Save star count to localStorage cache
+   * @param {number} count - The star count to cache
+   */
+  function setCachedData(count) {
+    try {
+      const data = {
+        count: count,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+    } catch (error) {
+      console.error('Error writing cache:', error);
+    }
+  }
+
+  /**
+   * Format star count for display
+   * @param {number} count - The star count to format
+   * @returns {string} Formatted count (e.g., "1.2k")
+   */
+  function formatCount(count) {
+    if (count >= 1000) {
+      return (count / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+    }
+    return count.toString();
+  }
+
+  /**
+   * Update the UI with star count
+   * @param {number} count - The star count to display
+   */
+  function updateStarCount(count) {
+    const starCountElement = document.getElementById('star-count');
+    if (starCountElement) {
+      starCountElement.classList.add('loaded');
+      starCountElement.textContent = formatCount(count);
+    }
+  }
+
+  /**
+   * Show error state in UI
+   * @param {string} message - Error message for console
+   */
+  function showError(message) {
+    console.error(message);
+    const starCountElement = document.getElementById('star-count');
+    if (starCountElement) {
+      starCountElement.classList.add('loaded');
+      starCountElement.textContent = 'N/A';
+    }
+  }
+
+  /**
+   * Fetch GitHub star count from API
+   */
   async function fetchStarCount() {
+    // Check cache first to avoid rate limiting
+    const cached = getCachedData();
+    if (cached) {
+      updateStarCount(cached.count);
+      return;
+    }
+
     try {
       const response = await fetch('https://api.github.com/repos/wildcard/caro');
+
+      // Check for HTTP errors
+      if (!response.ok) {
+        // Handle rate limiting specifically
+        if (response.status === 403) {
+          const rateLimitRemaining = response.headers.get('X-RateLimit-Remaining');
+          if (rateLimitRemaining === '0') {
+            throw new Error('GitHub API rate limit exceeded. Try again later.');
+          }
+        }
+        throw new Error(`GitHub API request failed with status ${response.status} ${response.statusText}`);
+      }
+
       const data = await response.json();
       const starCount = data.stargazers_count;
 
-      // Format the number (e.g., 1234 -> 1.2k)
-      const formatCount = (count: number): string => {
-        if (count >= 1000) {
-          return (count / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
-        }
-        return count.toString();
-      };
+      // Validate the star count
+      if (typeof starCount !== 'number' || !Number.isFinite(starCount)) {
+        throw new Error('GitHub API response does not contain a valid stargazers_count');
+      }
 
-      const starCountElement = document.getElementById('star-count');
-      if (starCountElement) {
-        starCountElement.classList.add('loaded');
-        starCountElement.textContent = formatCount(starCount);
-      }
+      // Cache the result
+      setCachedData(starCount);
+
+      // Update UI
+      updateStarCount(starCount);
     } catch (error) {
-      console.error('Failed to fetch GitHub stars:', error);
-      const starCountElement = document.getElementById('star-count');
-      if (starCountElement) {
-        starCountElement.classList.add('loaded');
-        starCountElement.textContent = '★';
-      }
+      showError('Failed to fetch GitHub stars: ' + error.message);
     }
   }
 
