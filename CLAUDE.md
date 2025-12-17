@@ -58,10 +58,14 @@ Safety module provides:
 
 ## Development Commands
 
-> !IMPORTANT: 
-> Before running `cargo` or any rust development command in the shell, check the the command is installed with `which` and inspect the `$PATH` for the relevant bin. 
+> !IMPORTANT:
+> Before running `cargo` or any rust development command in the shell, check the the command is installed with `which` and inspect the `$PATH` for the relevant bin.
 
 > If it doesn't run `. "$HOME/.cargo/env"` in your shell before command execution
+
+### Git Workflow
+
+**When reverting changes**: Use `git revert <commit-hash>` or `git reset`, NOT manual file edits. Manual edits break git history and introduce inconsistencies. Always use git commands to manage history.
 
 ### Building & Testing
 ```bash
