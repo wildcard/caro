@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Spec-Kitty: Open dashboard in browser
+# Usage: bin/sk-dashboard
+
+set -e
+
+# Colors
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+echo -e "${BLUE}Opening Spec-Kitty dashboard...${NC}"
+spec-kitty dashboard
+
+echo -e "${GREEN}Dashboard is running!${NC}"

@@ -163,3 +163,36 @@ yarn-error.log*
 
 # Test directories
 cmdai-validation/
+
+# Spec-Kitty worktrees and agent directories
+# Keep command files in git, exclude agent session data
+kitty-specs/
+
+# Agent directories - keep commands, exclude sessions/logs/credentials
+# Claude Code
+.claude/sessions/
+.claude/logs/
+.claude/credentials/
+.claude/.env
+.claude/cache/
+
+# Codex CLI
+.codex/sessions/
+.codex/logs/
+.codex/credentials/
+.codex/.env
+
+# Other AI agents (fully excluded unless you use them)
+.opencode/
+.windsurf/
+.gemini/
+.cursor/
+.qwen/
+.kilocode/
+.augment/
+.roo/
+.amazonq/
+.github/copilot/
+
+# Spec-Kitty dashboard runtime
+.kittify/.dashboard
