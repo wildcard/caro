@@ -1,4 +1,5 @@
 ---
+import GitHubStarButton from './GitHubStarButton.astro';
 ---
 
 <div class="hero">
@@ -10,7 +11,10 @@
     <p class="subtitle">
       A specialized POSIX shell command agent with empathy and agency. Available as an MCP for Claude and as a dedicated Skill. She keeps you safe while helping Claude get the job done.
     </p>
-    <div>
+    <div class="github-star-wrapper">
+      <GitHubStarButton />
+    </div>
+    <div class="cta-buttons">
       <a href="#download" class="cta-button">Get Started</a>
       <a href="#how-it-works" class="cta-button secondary">Watch Demo</a>
     </div>
@@ -64,10 +68,24 @@
   .subtitle {
     font-size: 20px;
     color: var(--color-text-secondary);
-    margin-bottom: 40px;
+    margin-bottom: 30px;
     max-width: 650px;
     line-height: 1.7;
     transition: color 0.3s ease;
+  }
+
+  .github-star-wrapper {
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .cta-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
   }
 
   .cta-button {
@@ -80,7 +98,6 @@
     font-size: 18px;
     font-weight: 600;
     transition: transform 0.2s, box-shadow 0.2s;
-    margin: 10px;
   }
 
   .cta-button:hover {

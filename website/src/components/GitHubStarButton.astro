@@ -1,0 +1,174 @@
+---
+---
+
+<a
+  href="https://github.com/wildcard/caro"
+  target="_blank"
+  rel="noopener noreferrer"
+  class="github-star-button"
+  id="github-star-button"
+>
+  <svg class="star-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 .587l3.668 7.431 8.2 1.191-5.934 5.787 1.4 8.173L12 18.896l-7.334 3.857 1.4-8.173L.132 9.209l8.2-1.191z"/>
+  </svg>
+  <span class="star-text">Star</span>
+  <span class="star-count" id="star-count">
+    <span class="loading-spinner"></span>
+  </span>
+</a>
+
+<style>
+  .github-star-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    border: 2px solid var(--color-border);
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .github-star-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 140, 66, 0.1), transparent);
+    transition: left 0.5s;
+  }
+
+  .github-star-button:hover::before {
+    left: 100%;
+  }
+
+  .github-star-button:hover {
+    transform: translateY(-2px);
+    border-color: #ff8c42;
+    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.25);
+  }
+
+  .github-star-button:active {
+    transform: translateY(0);
+  }
+
+  .star-icon {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #ff8c42;
+  }
+
+  .github-star-button:hover .star-icon {
+    transform: rotate(72deg) scale(1.1);
+  }
+
+  .star-text {
+    font-weight: 600;
+  }
+
+  .star-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 24px;
+    padding: 0 8px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .github-star-button:hover .star-count {
+    transform: scale(1.05);
+  }
+
+  .loading-spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .star-count.loaded .loading-spinner {
+    display: none;
+  }
+
+  /* Mobile responsive */
+  @media (max-width: 768px) {
+    .github-star-button {
+      font-size: 14px;
+      padding: 8px 14px;
+      gap: 6px;
+    }
+
+    .star-icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    .star-count {
+      min-width: 28px;
+      height: 20px;
+      font-size: 12px;
+      padding: 0 6px;
+    }
+  }
+</style>
+
+<script>
+  // Fetch GitHub star count
+  async function fetchStarCount() {
+    try {
+      const response = await fetch('https://api.github.com/repos/wildcard/caro');
+      const data = await response.json();
+      const starCount = data.stargazers_count;
+
+      // Format the number (e.g., 1234 -> 1.2k)
+      const formatCount = (count: number): string => {
+        if (count >= 1000) {
+          return (count / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+        }
+        return count.toString();
+      };
+
+      const starCountElement = document.getElementById('star-count');
+      if (starCountElement) {
+        starCountElement.classList.add('loaded');
+        starCountElement.textContent = formatCount(starCount);
+      }
+    } catch (error) {
+      console.error('Failed to fetch GitHub stars:', error);
+      const starCountElement = document.getElementById('star-count');
+      if (starCountElement) {
+        starCountElement.classList.add('loaded');
+        starCountElement.textContent = '★';
+      }
+    }
+  }
+
+  // Run when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', fetchStarCount);
+  } else {
+    fetchStarCount();
+  }
+</script>
