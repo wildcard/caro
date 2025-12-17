@@ -68,16 +68,14 @@ async-trait = "0.1"
 futures = "0.3"
 
 # ChromaDB and vector store support
-chromadb = { version = "0.1", optional = true }
-qdrant-client = { version = "1.7", optional = true }  # Alternative vector DB
-fastembed = { version = "3.0", optional = true }      # Fast embeddings
+qdrant-client = { version = "1.7", optional = true }  # Vector DB client
 
 # Text processing for man pages
 scraper = { version = "0.17", optional = true }
 flate2 = { version = "1.0", optional = true }         # For compressed man pages
 
-# Network detection
-ping = { version = "0.5", optional = true }
+# Network detection for air-gapped mode
+dns-lookup = { version = "2.0", optional = true }
 
 # Optional MLX support for Apple Silicon (behind feature flag)
 cxx = { version = "1.0", optional = true }
@@ -111,7 +109,7 @@ remote-backends = ["reqwest", "tokio/net"]
 embedded-mlx = ["cxx", "llama_cpp"]
 embedded-cpu = ["candle-core", "candle-transformers"]
 embedded = ["embedded-cpu"]  # Alias for embedded model support
-vector-store = ["qdrant-client", "fastembed", "scraper", "flate2", "ping"]  # ChromaDB/vector store support
+vector-store = ["qdrant-client", "scraper", "flate2", "dns-lookup"]  # Vector store support
 full = ["remote-backends", "embedded-mlx", "embedded-cpu", "vector-store"]
 
 [profile.release]

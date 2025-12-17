@@ -108,7 +108,7 @@ pub struct CommandMetadata {
 }
 
 /// Classification of command types
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum CommandType {
     CoreUtil,      // Core utilities (ls, cat, grep, etc.)
     NetworkTool,   // Network tools (curl, wget, netstat, etc.)
