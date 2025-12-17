@@ -402,6 +402,21 @@ custom_patterns = ["additional", "dangerous", "patterns"]
 
 We welcome contributions! This is an early-stage project with many opportunities to contribute.
 
+### 🌟 **First-Time Contributors Welcome!**
+
+**New to open source?** We want to be your first project!
+
+👉 **Start here:** [FIRST_TIME_CONTRIBUTORS.md](FIRST_TIME_CONTRIBUTORS.md)
+
+We've created **10 fabulous first-time issues** designed for newcomers:
+- 🐕 Fun issues (ASCII art, animations)
+- 🛡️ Safety issues (PowerShell patterns, tutorials)
+- 🤖 Agent issues (decision trees, similarity detection)
+- ⚡ Integration issues (MCP/Claude Code)
+- 🛠️ Curation issues (tool library)
+
+See all issues in [.github/first-time-issues/](.github/first-time-issues/README.md)
+
 ### Areas for Contribution
 - 🔌 Backend implementations
 - 🛡️ Safety pattern definitions
