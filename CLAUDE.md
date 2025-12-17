@@ -216,6 +216,139 @@ When working on specific components:
 - Security-first approach for system-level operations
 - POSIX compliance for maximum portability
 
+## Spec-Driven Development Workflows
+
+This project uses **dual spec-driven workflows** optimized for different feature sizes:
+
+### Spec-Kitty Workflow (Rapid Development)
+
+**Use for**: Small/medium features (< 2 weeks), bug fixes, enhancements, parallel development
+
+**Location**: `kitty-specs/` (git worktrees)
+
+**Commands**: `/spec-kitty.*` slash commands in `.claude/commands/`
+
+**Workflow**:
+1. `bin/sk-new-feature "description"` - Creates isolated worktree
+2. `/spec-kitty.specify` - Create spec.md
+3. `/spec-kitty.plan` - Create plan.md
+4. `/spec-kitty.tasks` - Generate work packages
+5. `/spec-kitty.implement` - Execute tasks
+6. `/spec-kitty.accept` - Run acceptance checks
+7. `/spec-kitty.merge` - Merge and cleanup worktree
+
+**Benefits**:
+- ✅ Parallel development (multiple features simultaneously)
+- ✅ No branch switching overhead
+- ✅ Real-time dashboard (http://127.0.0.1:9237)
+- ✅ Automated task management
+- ✅ Perfect for rapid iteration with tools like Charm.land Crush
+
+**Dashboard**: `bin/sk-dashboard` to monitor all features
+
+### Spec-Kit Workflow (Large Features)
+
+**Use for**: Large features (> 2 weeks), major architecture changes, extensive research
+
+**Location**: `specs/` (traditional directories)
+
+**Commands**: Custom slash commands in `.codex/prompts/`
+
+**Workflow**:
+1. Manual directory creation in `specs/NNN-feature-name/`
+2. Create spec.md, plan.md, tasks.md manually
+3. Use `.specify/templates/` for structure
+4. Follow `.specify/memory/constitution.md` principles
+5. Standard git workflow on feature branches
+
+**Benefits**:
+- ✅ Better for complex, long-running features
+- ✅ Explicit constitution-based governance
+- ✅ Flexible structure for research-heavy work
+
+### Decision Matrix: Which Workflow?
+
+| Criteria | Spec-Kitty | Spec-Kit |
+|----------|------------|----------|
+| **Feature size** | < 2 weeks | > 2 weeks |
+| **Complexity** | Low-Medium | High |
+| **Parallel dev** | Multiple features at once | One at a time |
+| **Research phase** | Light research | Extensive research |
+| **Architecture** | Incremental changes | Major refactoring |
+| **Examples** | Add caching, Fix bug, New API endpoint | MLX backend, Safety system, Multi-backend |
+
+### When to Use Spec-Kitty
+
+✅ **DO use spec-kitty when:**
+- Adding a new feature that takes < 2 weeks
+- Fixing a bug that requires changes across multiple files
+- Building an enhancement to existing functionality
+- Working on multiple features in parallel (e.g., with Charm.land Crush)
+- You want visual tracking via the dashboard
+- The feature has clear, well-defined scope
+
+**Example scenarios**:
+- "Add Redis caching with TTL support"
+- "Fix memory leak in MLX initialization"
+- "Add Prometheus metrics endpoint"
+- "Implement command history feature"
+- "Add JSON output format option"
+
+### When to Use Spec-Kit
+
+✅ **DO use spec-kit when:**
+- Building a major new system (> 2 weeks)
+- Extensive research or prototyping needed
+- Architectural decisions require deep investigation
+- Multiple competing approaches need evaluation
+- Long-running feature with many unknowns
+
+**Example scenarios**:
+- "Implement complete MLX backend with C++ FFI"
+- "Design and build multi-backend inference system"
+- "Create comprehensive safety validation framework"
+- "Research and implement model quantization pipeline"
+- "Architect distributed caching system"
+
+### Both Workflows Coexist
+
+The project supports **both workflows simultaneously**:
+- `kitty-specs/` for rapid, parallel development
+- `specs/` for large, complex features
+
+**Example**: You can work on a large MLX backend feature in `specs/004-implement-ollama-and/` while simultaneously using spec-kitty for quick bug fixes in `kitty-specs/001-fix-memory-leak/`.
+
+### Integration Points
+
+**Shared resources**:
+- Both follow the same constitution principles (`.specify/memory/constitution.md`)
+- Both use the same testing standards
+- Both require security-first approach
+- Both commit to the same git repository
+
+**Different tools**:
+- Spec-kitty: Automated task management, worktrees, dashboard
+- Spec-kit: Manual planning, traditional branches, constitution-driven
+
+### Quick Reference
+
+```bash
+# Spec-Kitty workflow
+bin/sk-new-feature "Add caching"      # Create feature
+cd kitty-specs/001-add-caching/       # Enter worktree
+/spec-kitty.specify                   # Generate spec
+/spec-kitty.implement                 # Execute tasks
+bin/sk-dashboard                      # Monitor progress
+
+# Spec-Kit workflow
+mkdir -p specs/005-new-feature/       # Create directory
+# Manually create spec.md, plan.md
+# Use .specify/templates/ as reference
+# Follow constitution-based development
+```
+
+See `docs/SPEC_KITTY_GUIDE.md` for comprehensive spec-kitty documentation.
+
 ## Multi-Agent Development Process
 
 This project follows spec-driven development with coordinated multi-agent teams:

@@ -121,10 +121,103 @@ spec-kitty validate-encoding --all --fix
 
 ---
 
+---
+
+## 6. Workflow Selection Rule (cmdai-specific)
+
+**This project uses dual spec-driven workflows. Choose the right one for the task.**
+
+### Spec-Kitty Workflow (You Are Here)
+
+**Use when:**
+- Feature size: < 2 weeks
+- Complexity: Low to Medium
+- Scope: Well-defined with clear requirements
+- Need: Parallel development capability
+- Want: Visual dashboard tracking
+
+**Location**: `kitty-specs/` (git worktrees)
+
+**Commands**: `/spec-kitty.*` slash commands
+
+**Quick test**: If the user says "add feature X" or "fix bug Y" and you can estimate it's under 2 weeks, use spec-kitty.
+
+**Examples**:
+- ✅ "Add Redis caching with TTL"
+- ✅ "Fix memory leak in MLX backend"
+- ✅ "Add Prometheus metrics endpoint"
+- ✅ "Implement command history"
+- ✅ "Add --json output flag"
+
+### Spec-Kit Workflow (Alternative)
+
+**Use when:**
+- Feature size: > 2 weeks
+- Complexity: High
+- Scope: Requires extensive research
+- Need: Deep architectural investigation
+- Want: Constitution-driven governance
+
+**Location**: `specs/` (traditional directories)
+
+**Commands**: Custom commands in `.codex/prompts/`
+
+**Quick test**: If the feature requires major architecture changes, research phase, or affects core systems, suggest spec-kit.
+
+**Examples**:
+- ✅ "Implement complete MLX backend with C++ FFI"
+- ✅ "Build multi-backend inference system"
+- ✅ "Design comprehensive safety framework"
+- ✅ "Research model quantization pipeline"
+
+### Decision Logic
+
+When the user requests a feature/bug fix:
+
+1. **Estimate complexity and time**
+   - Can this be done in < 2 weeks? → spec-kitty
+   - Needs > 2 weeks or extensive research? → spec-kit
+
+2. **Check scope clarity**
+   - Clear, well-defined scope? → spec-kitty
+   - Requires investigation/research? → spec-kit
+
+3. **Assess architecture impact**
+   - Incremental changes to existing systems? → spec-kitty
+   - Major refactoring or new core systems? → spec-kit
+
+4. **Consider parallel work**
+   - Working on multiple features? → spec-kitty (worktrees)
+   - Single large feature? → either (prefer spec-kit for complexity)
+
+### Both Workflows Coexist
+
+The project supports **both simultaneously**:
+- `kitty-specs/001-feature/` for rapid development (spec-kitty)
+- `specs/004-implement-ollama-and/` for large features (spec-kit)
+
+You can work on a quick bug fix in `kitty-specs/` while a large feature progresses in `specs/`.
+
+### When in Doubt
+
+If you're unsure which workflow to use:
+1. **Ask the user**: "This looks like a [small/large] feature. Should we use spec-kitty for rapid development or spec-kit for comprehensive planning?"
+2. **Default to spec-kitty**: For most features/bugs, spec-kitty is the faster, more practical choice
+3. **Check existing work**: Look at `specs/` to see examples of large features that used spec-kit
+
+### Workflow Switching
+
+You **cannot switch** mid-feature. Once started in one workflow, complete it there.
+
+If a spec-kitty feature grows beyond 2 weeks, continue in spec-kitty but note it for future planning.
+
+---
+
 ### Quick Reference
 
-- 📁 **Paths**: Always specify exact locations.  
-- 🔤 **Encoding**: UTF-8 only. Run the validator when unsure.  
-- 🧠 **Context**: Read what you need; don’t forget what you already learned.  
-- ✅ **Quality**: Follow secure, tested, documented practices.  
+- 📁 **Paths**: Always specify exact locations.
+- 🔤 **Encoding**: UTF-8 only. Run the validator when unsure.
+- 🧠 **Context**: Read what you need; don't forget what you already learned.
+- ✅ **Quality**: Follow secure, tested, documented practices.
 - 📝 **Git**: Commit cleanly with clear messages.
+- 🔀 **Workflow**: < 2 weeks & clear scope → spec-kitty; > 2 weeks & complex → spec-kit
