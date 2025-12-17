@@ -56,9 +56,9 @@ These rules apply to **all commands** (specify, plan, research, tasks, implement
 
 ### Safe Characters
 
-✅ Emoji (proper UTF-8)
-✅ Accented characters typed directly: café, naïve, Zürich
-✅ Unicode math typed directly (√ ≈ ≠ ≤ ≥)
+✅ Emoji (proper UTF-8)  
+✅ Accented characters typed directly: café, naïve, Zürich  
+✅ Unicode math typed directly (√ ≈ ≠ ≤ ≥)  
 
 ### Copy/Paste Guidance
 
@@ -90,9 +90,9 @@ spec-kitty validate-encoding --all --fix
 
 **Build the context you need, then maintain it intelligently.**
 
-- Session start (0 tokens): You have zero context. Read plan.md, tasks.md, relevant artifacts.
-- Mid-session (you already read them): Use your judgment—don't re-read everything unless necessary.
-- Never skip relevant information; do skip redundant re-reads to save tokens.
+- Session start (0 tokens): You have zero context. Read plan.md, tasks.md, relevant artifacts.  
+- Mid-session (you already read them): Use your judgment—don’t re-read everything unless necessary.  
+- Never skip relevant information; do skip redundant re-reads to save tokens.  
 - Rely on the steps in the command you are executing.
 
 ---
@@ -101,11 +101,11 @@ spec-kitty validate-encoding --all --fix
 
 **Produce secure, tested, documented work.**
 
-- Follow the plan and constitution requirements.
-- Prefer existing patterns over invention.
-- Treat security warnings as fatal—fix or escalate.
-- Run all required tests before claiming work is complete.
-- Be transparent: state what you did, what you didn't, and why.
+- Follow the plan and constitution requirements.  
+- Prefer existing patterns over invention.  
+- Treat security warnings as fatal—fix or escalate.  
+- Run all required tests before claiming work is complete.  
+- Be transparent: state what you did, what you didn’t, and why.
 
 ---
 
@@ -113,18 +113,18 @@ spec-kitty validate-encoding --all --fix
 
 **Keep commits clean and auditable.**
 
-- Commit only meaningful units of work.
-- Write descriptive commit messages (imperative mood).
-- Do not rewrite history of shared branches.
-- Keep feature branches up to date with main via merge or rebase as appropriate.
+- Commit only meaningful units of work.  
+- Write descriptive commit messages (imperative mood).  
+- Do not rewrite history of shared branches.  
+- Keep feature branches up to date with main via merge or rebase as appropriate.  
 - Never commit secrets, tokens, or credentials.
 
 ---
 
 ### Quick Reference
 
-- 📁 **Paths**: Always specify exact locations.
-- 🔤 **Encoding**: UTF-8 only. Run the validator when unsure.
-- 🧠 **Context**: Read what you need; don't forget what you already learned.
-- ✅ **Quality**: Follow secure, tested, documented practices.
+- 📁 **Paths**: Always specify exact locations.  
+- 🔤 **Encoding**: UTF-8 only. Run the validator when unsure.  
+- 🧠 **Context**: Read what you need; don’t forget what you already learned.  
+- ✅ **Quality**: Follow secure, tested, documented practices.  
 - 📝 **Git**: Commit cleanly with clear messages.
