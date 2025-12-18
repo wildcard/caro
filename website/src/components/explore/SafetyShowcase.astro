@@ -1,0 +1,470 @@
+---
+const safetyFeatures = [
+  {
+    title: "52 Dangerous Patterns Blocked",
+    icon: "🛡️",
+    description: "Comprehensive pattern matching prevents destructive operations before they happen",
+    examples: [
+      { pattern: "rm -rf /", reason: "Filesystem destruction", risk: "critical" },
+      { pattern: "mkfs.*", reason: "Disk formatting", risk: "critical" },
+      { pattern: ":(){ :|:& };:", reason: "Fork bomb", risk: "critical" },
+      { pattern: "chmod 777 /", reason: "Privilege escalation", risk: "high" },
+      { pattern: "dd if=/dev/zero", reason: "Disk overwrite", risk: "critical" }
+    ]
+  },
+  {
+    title: "Risk Level Assessment",
+    icon: "📊",
+    description: "Every command is evaluated and color-coded based on potential impact",
+    levels: [
+      {
+        level: "Safe",
+        color: "green",
+        description: "Read-only operations with no system impact",
+        examples: ["ls -la", "grep pattern file.txt", "find . -name '*.log'"]
+      },
+      {
+        level: "Moderate",
+        color: "yellow",
+        description: "File modifications or network operations",
+        examples: ["sed -i 's/old/new/g' file.txt", "wget https://example.com/file", "curl -X POST api.example.com"]
+      },
+      {
+        level: "High",
+        color: "orange",
+        description: "System-level changes requiring caution",
+        examples: ["chmod +x script.sh", "chown user:group file", "kill -9 <pid>"]
+      },
+      {
+        level: "Critical",
+        color: "red",
+        description: "Dangerous operations that are blocked by default",
+        examples: ["rm -rf /", "mkfs /dev/sda", "fork bombs"]
+      }
+    ]
+  },
+  {
+    title: "POSIX Compliance Validation",
+    icon: "✅",
+    description: "Ensures commands work reliably across different systems and shells",
+    checks: [
+      "Standard utilities only (ls, find, grep, awk, sed)",
+      "Proper path quoting for spaces and special characters",
+      "No bash-specific features (ensures portability)",
+      "Command syntax validation before execution"
+    ]
+  }
+];
+
+const validationFlow = [
+  {
+    step: 1,
+    title: "Command Generation",
+    description: "LLM generates POSIX-compliant command from natural language"
+  },
+  {
+    step: 2,
+    title: "Pattern Matching",
+    description: "Check against 52 dangerous patterns and destructive operations"
+  },
+  {
+    step: 3,
+    title: "Risk Assessment",
+    description: "Evaluate potential impact and assign risk level (Safe → Critical)"
+  },
+  {
+    step: 4,
+    title: "User Confirmation",
+    description: "Display command with risk level, require explicit confirmation"
+  },
+  {
+    step: 5,
+    title: "Execution",
+    description: "Execute command only after user approval, log for audit trail"
+  }
+];
+---
+
+<section id="safety-showcase">
+  <div class="container">
+    <h2>Safety First</h2>
+    <p class="section-subtitle">Caro's multi-layered safety validation protects you from dangerous commands</p>
+
+    <!-- Validation Flow -->
+    <div class="validation-flow">
+      <h3>How Safety Validation Works</h3>
+      <div class="flow-steps">
+        {validationFlow.map((item, index) => (
+          <div class="flow-step">
+            <div class="step-circle">{item.step}</div>
+            <div class="step-content">
+              <h4>{item.title}</h4>
+              <p>{item.description}</p>
+            </div>
+            {index < validationFlow.length - 1 && <div class="step-arrow">→</div>}
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Safety Features -->
+    <div class="safety-features">
+      {safetyFeatures.map((feature) => (
+        <div class="safety-feature">
+          <div class="feature-header">
+            <span class="feature-icon">{feature.icon}</span>
+            <h3>{feature.title}</h3>
+          </div>
+          <p class="feature-description">{feature.description}</p>
+
+          {feature.examples && (
+            <div class="dangerous-patterns">
+              <h4>Example Blocked Patterns</h4>
+              <div class="patterns-list">
+                {feature.examples.map((example) => (
+                  <div class="pattern-item">
+                    <code>{example.pattern}</code>
+                    <div class="pattern-meta">
+                      <span class="pattern-reason">{example.reason}</span>
+                      <span class={`risk-badge risk-${example.risk}`}>
+                        {example.risk}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {feature.levels && (
+            <div class="risk-levels">
+              {feature.levels.map((level) => (
+                <div class={`risk-level risk-level-${level.color}`}>
+                  <div class="level-header">
+                    <span class={`level-indicator level-${level.color}`}></span>
+                    <h4>{level.level}</h4>
+                  </div>
+                  <p class="level-description">{level.description}</p>
+                  <div class="level-examples">
+                    {level.examples.map((ex) => (
+                      <code>{ex}</code>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {feature.checks && (
+            <div class="compliance-checks">
+              <ul>
+                {feature.checks.map((check) => (
+                  <li>{check}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .validation-flow {
+    margin: 50px 0;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 30px;
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+
+  .validation-flow h3 {
+    font-size: 24px;
+    color: var(--color-text);
+    margin-bottom: 30px;
+    text-align: center;
+    transition: color 0.3s ease;
+  }
+
+  .flow-steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .flow-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 150px;
+    max-width: 200px;
+  }
+
+  .step-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+  }
+
+  .step-content {
+    text-align: center;
+  }
+
+  .step-content h4 {
+    font-size: 16px;
+    color: var(--color-text);
+    margin-bottom: 8px;
+    transition: color 0.3s ease;
+  }
+
+  .step-content p {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    transition: color 0.3s ease;
+  }
+
+  .step-arrow {
+    font-size: 24px;
+    color: #ff8c42;
+    align-self: center;
+  }
+
+  .safety-features {
+    display: grid;
+    gap: 30px;
+    margin-top: 40px;
+  }
+
+  .safety-feature {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 30px;
+    transition: transform 0.3s, box-shadow 0.3s, background 0.3s ease, border-color 0.3s ease;
+  }
+
+  .safety-feature:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 140, 66, 0.1);
+  }
+
+  :global(.dark) .safety-feature:hover {
+    box-shadow: 0 8px 24px rgba(255, 140, 66, 0.2);
+  }
+
+  .feature-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+  }
+
+  .feature-icon {
+    font-size: 36px;
+  }
+
+  .safety-feature h3 {
+    font-size: 22px;
+    color: var(--color-text);
+    margin: 0;
+    transition: color 0.3s ease;
+  }
+
+  .feature-description {
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin-bottom: 25px;
+    transition: color 0.3s ease;
+  }
+
+  .dangerous-patterns h4,
+  .risk-levels h4,
+  .compliance-checks h4 {
+    font-size: 16px;
+    color: var(--color-text);
+    margin-bottom: 15px;
+    transition: color 0.3s ease;
+  }
+
+  .patterns-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .pattern-item {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 12px;
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+
+  .pattern-item code {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 14px;
+    color: var(--color-text);
+    display: block;
+    margin-bottom: 8px;
+    transition: color 0.3s ease;
+  }
+
+  .pattern-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .pattern-reason {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    transition: color 0.3s ease;
+  }
+
+  .risk-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+
+  .risk-critical {
+    background: rgba(244, 67, 54, 0.1);
+    color: #f44336;
+  }
+
+  .risk-high {
+    background: rgba(255, 152, 0, 0.1);
+    color: #ff9800;
+  }
+
+  .risk-levels {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+  }
+
+  .risk-level {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 15px;
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+
+  .level-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .level-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .level-green {
+    background: #4caf50;
+  }
+
+  .level-yellow {
+    background: #ffeb3b;
+  }
+
+  .level-orange {
+    background: #ff9800;
+  }
+
+  .level-red {
+    background: #f44336;
+  }
+
+  .level-header h4 {
+    font-size: 15px;
+    color: var(--color-text);
+    margin: 0;
+    transition: color 0.3s ease;
+  }
+
+  .level-description {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin-bottom: 10px;
+    line-height: 1.5;
+    transition: color 0.3s ease;
+  }
+
+  .level-examples {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .level-examples code {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 12px;
+    color: var(--color-text-tertiary);
+    background: var(--color-bg-tertiary);
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: color 0.3s ease, background 0.3s ease;
+  }
+
+  .compliance-checks ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .compliance-checks li {
+    padding: 10px 0;
+    color: var(--color-text-tertiary);
+    font-size: 15px;
+    position: relative;
+    padding-left: 28px;
+    line-height: 1.6;
+    transition: color 0.3s ease;
+  }
+
+  .compliance-checks li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #4caf50;
+    font-weight: bold;
+    font-size: 18px;
+  }
+
+  @media (max-width: 768px) {
+    .flow-steps {
+      flex-direction: column;
+    }
+
+    .step-arrow {
+      transform: rotate(90deg);
+    }
+
+    .risk-levels {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

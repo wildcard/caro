@@ -1,0 +1,186 @@
+---
+const paths = [
+  {
+    icon: "👨‍💻",
+    title: "Individual Developers",
+    description: "Install Caro as a standalone CLI tool and start generating safe shell commands instantly",
+    steps: [
+      "Install from source or download the binary",
+      "Try your first command: caro 'list all files larger than 1GB'",
+      "Review and execute the generated command",
+      "Customize safety settings and backend preferences"
+    ],
+    cta: { text: "Quick Start Guide", link: "#installation" }
+  },
+  {
+    icon: "🚀",
+    title: "DevOps & SysAdmin Teams",
+    description: "Deploy Caro across your infrastructure for consistent, safe command generation",
+    steps: [
+      "Configure platform-specific backends (MLX for macOS, vLLM for Linux servers)",
+      "Set up shared safety policies for your organization",
+      "Integrate with existing automation workflows",
+      "Monitor usage and audit command generation logs"
+    ],
+    cta: { text: "Team Setup Guide", link: "#platform-guides" }
+  },
+  {
+    icon: "🤖",
+    title: "Claude Power Users",
+    description: "Enhance Claude with Caro's specialized shell command expertise via MCP integration",
+    steps: [
+      "Install Caro MCP server (coming soon)",
+      "Configure Claude Desktop to use Caro for shell commands",
+      "Let Claude delegate command generation to Caro automatically",
+      "Benefit from safety validation without interrupting your workflow"
+    ],
+    cta: { text: "MCP Integration", link: "#integration-methods" }
+  },
+  {
+    icon: "🍎",
+    title: "Apple Silicon Enthusiasts",
+    description: "Experience blazing-fast inference with MLX-optimized local models on Apple Silicon",
+    steps: [
+      "Install MLX backend dependencies",
+      "Configure Caro to use MLX for sub-2s inference",
+      "Download optimized models from Hugging Face",
+      "Enjoy offline, privacy-focused command generation"
+    ],
+    cta: { text: "MLX Setup", link: "#backend-mlx" }
+  }
+];
+---
+
+<section id="get-started">
+  <div class="container">
+    <h2>Choose Your Path</h2>
+    <p class="section-subtitle">Get started with Caro based on your workflow and goals</p>
+    <div class="paths">
+      {paths.map((path) => (
+        <div class="path-card">
+          <div class="path-icon">{path.icon}</div>
+          <h3>{path.title}</h3>
+          <p class="path-description">{path.description}</p>
+          <div class="path-steps">
+            {path.steps.map((step, index) => (
+              <div class="step">
+                <span class="step-number">{index + 1}</span>
+                <span class="step-text">{step}</span>
+              </div>
+            ))}
+          </div>
+          <a href={path.cta.link} class="cta-button">{path.cta.text} →</a>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .paths {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 30px;
+    margin-top: 50px;
+  }
+
+  .path-card {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 30px;
+    transition: transform 0.3s, box-shadow 0.3s, background 0.3s ease, border-color 0.3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .path-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.15);
+    border-color: #ff8c42;
+  }
+
+  :global(.dark) .path-card:hover {
+    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.25);
+  }
+
+  .path-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+  }
+
+  .path-card h3 {
+    font-size: 22px;
+    margin-bottom: 15px;
+    color: var(--color-text);
+    transition: color 0.3s ease;
+  }
+
+  .path-description {
+    color: var(--color-text-secondary);
+    margin-bottom: 25px;
+    line-height: 1.6;
+    transition: color 0.3s ease;
+  }
+
+  .path-steps {
+    flex-grow: 1;
+    margin-bottom: 25px;
+  }
+
+  .step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 15px;
+  }
+
+  .step:last-child {
+    margin-bottom: 0;
+  }
+
+  .step-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    flex-shrink: 0;
+  }
+
+  .step-text {
+    color: var(--color-text-tertiary);
+    font-size: 14px;
+    line-height: 1.5;
+    transition: color 0.3s ease;
+  }
+
+  .cta-button {
+    display: inline-block;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    align-self: flex-start;
+  }
+
+  .cta-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+  }
+
+  @media (max-width: 768px) {
+    .paths {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
