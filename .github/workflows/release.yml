@@ -3,132 +3,426 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - 'v[0-9]+.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g., v0.2.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
 
 env:
   CARGO_TERM_COLOR: always
+  BINARY_NAME: cmdai
 
 jobs:
-  create-release:
-    name: Create Release
+  # =============================================================================
+  # PREPARATION: Generate changelog and prepare release metadata
+  # =============================================================================
+  prepare:
+    name: Prepare Release
     runs-on: ubuntu-latest
     outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-      version: ${{ steps.get_version.outputs.VERSION }}
+      version: ${{ steps.version.outputs.version }}
+      changelog: ${{ steps.changelog.outputs.content }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
     steps:
-    - name: Get version from tag
-      id: get_version
-      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-    
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: cmdai v${{ steps.get_version.outputs.VERSION }}
-        draft: false
-        prerelease: ${{ contains(steps.get_version.outputs.VERSION, 'alpha') || contains(steps.get_version.outputs.VERSION, 'beta') || contains(steps.get_version.outputs.VERSION, 'rc') }}
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-  build-and-upload:
-    name: Build and Upload
-    needs: create-release
+      - name: Get version from tag
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.tag }}" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+          VERSION="${TAG#v}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+          # Detect prerelease
+          if [[ "$VERSION" == *"alpha"* ]] || [[ "$VERSION" == *"beta"* ]] || [[ "$VERSION" == *"rc"* ]]; then
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install git-cliff
+        uses: taiki-e/install-action@git-cliff
+
+      - name: Generate changelog for release
+        id: changelog
+        run: |
+          # Get the previous tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+
+          if [ -n "$PREV_TAG" ]; then
+            # Generate changelog since last tag
+            git cliff --latest --strip header > RELEASE_NOTES.md
+          else
+            # First release - generate full changelog
+            git cliff --unreleased --strip header > RELEASE_NOTES.md
+          fi
+
+          # Add installation instructions to release notes
+          cat >> RELEASE_NOTES.md << 'EOF'
+
+## Installation
+
+### Quick Install (Recommended)
+
+```bash
+curl -sSfL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
+```
+
+### Manual Download
+
+Download the appropriate binary for your platform from the assets below.
+
+#### Linux (x86_64)
+```bash
+curl -L -o cmdai https://github.com/wildcard/caro/releases/download/${{ steps.version.outputs.tag }}/cmdai-linux-amd64
+chmod +x cmdai
+sudo mv cmdai /usr/local/bin/
+```
+
+#### Linux (ARM64)
+```bash
+curl -L -o cmdai https://github.com/wildcard/caro/releases/download/${{ steps.version.outputs.tag }}/cmdai-linux-arm64
+chmod +x cmdai
+sudo mv cmdai /usr/local/bin/
+```
+
+#### macOS (Apple Silicon)
+```bash
+curl -L -o cmdai https://github.com/wildcard/caro/releases/download/${{ steps.version.outputs.tag }}/cmdai-macos-silicon
+chmod +x cmdai
+sudo mv cmdai /usr/local/bin/
+```
+
+#### macOS (Intel)
+```bash
+curl -L -o cmdai https://github.com/wildcard/caro/releases/download/${{ steps.version.outputs.tag }}/cmdai-macos-intel
+chmod +x cmdai
+sudo mv cmdai /usr/local/bin/
+```
+
+#### Windows
+Download `cmdai-windows-amd64.exe` and add it to your PATH.
+
+### Verify Installation
+
+```bash
+cmdai --version
+```
+
+## Checksums
+
+SHA256 checksums are provided for all binaries. Verify your download:
+
+```bash
+# Linux/macOS
+shasum -a 256 -c cmdai-<platform>.sha256
+
+# Or manually compare
+shasum -a 256 cmdai-<platform>
+```
+EOF
+
+          # Save content for GitHub release
+          {
+            echo 'content<<EOF'
+            cat RELEASE_NOTES.md
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
+
+      - name: Update CHANGELOG.md
+        run: |
+          # Generate full changelog
+          git cliff --output CHANGELOG.md
+
+      - name: Upload changelog artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: |
+            CHANGELOG.md
+            RELEASE_NOTES.md
+
+  # =============================================================================
+  # BUILD: Cross-platform binary builds
+  # =============================================================================
+  build:
+    name: Build ${{ matrix.name }}
+    needs: prepare
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         include:
+          # Linux x86_64
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            name: cmdai-v${{ needs.create-release.outputs.version }}-linux-amd64
-            asset_name: cmdai-linux-amd64
+            name: linux-amd64
+            features: embedded-cpu,remote-backends
+            cross: false
+
+          # Linux ARM64
           - os: ubuntu-latest
             target: aarch64-unknown-linux-gnu
-            name: cmdai-v${{ needs.create-release.outputs.version }}-linux-arm64
-            asset_name: cmdai-linux-arm64
-          - os: macos-latest
+            name: linux-arm64
+            features: embedded-cpu,remote-backends
+            cross: true
+
+          # Linux x86_64 musl (static binary)
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            name: linux-amd64-musl
+            features: embedded-cpu,remote-backends
+            cross: true
+
+          # macOS Intel
+          - os: macos-13
             target: x86_64-apple-darwin
-            name: cmdai-v${{ needs.create-release.outputs.version }}-macos-intel
-            asset_name: cmdai-macos-intel
-          - os: macos-latest
+            name: macos-intel
+            features: embedded-cpu,remote-backends
+            cross: false
+
+          # macOS Apple Silicon
+          - os: macos-14
             target: aarch64-apple-darwin
-            name: cmdai-v${{ needs.create-release.outputs.version }}-macos-silicon
-            asset_name: cmdai-macos-silicon
+            name: macos-silicon
+            features: embedded-mlx,embedded-cpu,remote-backends
+            cross: false
+
+          # Windows x86_64
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            name: cmdai-v${{ needs.create-release.outputs.version }}-windows-amd64.exe
-            asset_name: cmdai-windows-amd64.exe
+            name: windows-amd64
+            features: embedded-cpu,remote-backends
+            cross: false
 
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@stable
-      with:
-        targets: ${{ matrix.target }}
-    
-    - name: Install cross (for cross-compilation)
-      if: matrix.target == 'aarch64-unknown-linux-gnu'
-      run: cargo install cross
-    
-    - name: Build release binary
-      run: |
-        if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
-          cross build --release --target ${{ matrix.target }}
-        else
-          cargo build --release --target ${{ matrix.target }}
-        fi
-      shell: bash
-    
-    - name: Create release package
-      run: |
-        if [ "${{ runner.os }}" = "Windows" ]; then
-          cp target/${{ matrix.target }}/release/cmdai.exe ${{ matrix.name }}
-        else
-          cp target/${{ matrix.target }}/release/cmdai ${{ matrix.name }}
-          chmod +x ${{ matrix.name }}
-        fi
-      shell: bash
-    
-    - name: Generate checksums
-      run: |
-        if [ "${{ runner.os }}" = "Windows" ]; then
-          certUtil -hashfile ${{ matrix.name }} SHA256 > ${{ matrix.name }}.sha256
-        else
-          shasum -a 256 ${{ matrix.name }} > ${{ matrix.name }}.sha256
-        fi
-      shell: bash
-    
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ needs.create-release.outputs.upload_url }}
-        asset_path: ./${{ matrix.name }}
-        asset_name: ${{ matrix.asset_name }}
-        asset_content_type: application/octet-stream
-    
-    - name: Upload Checksum
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ needs.create-release.outputs.upload_url }}
-        asset_path: ./${{ matrix.name }}.sha256
-        asset_name: ${{ matrix.asset_name }}.sha256
-        asset_content_type: text/plain
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  publish-crate:
-    name: Publish to crates.io
-    needs: create-release
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install cross
+        if: matrix.cross
+        uses: taiki-e/install-action@cross
+
+      - name: Install musl tools
+        if: matrix.target == 'x86_64-unknown-linux-musl'
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.target }}-cargo-
+
+      - name: Build release binary
+        shell: bash
+        run: |
+          if [ "${{ matrix.cross }}" = "true" ]; then
+            cross build --release --target ${{ matrix.target }} --features ${{ matrix.features }}
+          else
+            cargo build --release --target ${{ matrix.target }} --features ${{ matrix.features }}
+          fi
+
+      - name: Prepare binary
+        shell: bash
+        run: |
+          VERSION="${{ needs.prepare.outputs.version }}"
+          BINARY_NAME="${{ env.BINARY_NAME }}"
+          TARGET="${{ matrix.target }}"
+          PLATFORM="${{ matrix.name }}"
+
+          # Create release directory
+          mkdir -p release
+
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            BINARY_PATH="target/${TARGET}/release/${BINARY_NAME}.exe"
+            ARCHIVE_NAME="${BINARY_NAME}-v${VERSION}-${PLATFORM}.zip"
+            BINARY_RELEASE_NAME="${BINARY_NAME}-${PLATFORM}.exe"
+
+            cp "$BINARY_PATH" "release/${BINARY_RELEASE_NAME}"
+
+            # Create zip archive with binary and docs
+            cp README.md LICENSE release/ 2>/dev/null || true
+            cd release
+            7z a "../${ARCHIVE_NAME}" "${BINARY_RELEASE_NAME}" README.md LICENSE
+            cd ..
+          else
+            BINARY_PATH="target/${TARGET}/release/${BINARY_NAME}"
+            ARCHIVE_NAME="${BINARY_NAME}-v${VERSION}-${PLATFORM}.tar.gz"
+            BINARY_RELEASE_NAME="${BINARY_NAME}-${PLATFORM}"
+
+            cp "$BINARY_PATH" "release/${BINARY_RELEASE_NAME}"
+            chmod +x "release/${BINARY_RELEASE_NAME}"
+
+            # Create tarball with binary and docs
+            cp README.md LICENSE release/ 2>/dev/null || true
+            tar -czvf "${ARCHIVE_NAME}" -C release "${BINARY_RELEASE_NAME}" README.md LICENSE
+          fi
+
+          echo "ARCHIVE_NAME=${ARCHIVE_NAME}" >> $GITHUB_ENV
+          echo "BINARY_RELEASE_NAME=${BINARY_RELEASE_NAME}" >> $GITHUB_ENV
+
+      - name: Generate checksums
+        shell: bash
+        run: |
+          # Checksum for standalone binary
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            certUtil -hashfile "release/${{ env.BINARY_RELEASE_NAME }}" SHA256 | grep -v "hash" | tr -d '[:space:]' > "release/${{ env.BINARY_RELEASE_NAME }}.sha256"
+            echo "  ${{ env.BINARY_RELEASE_NAME }}" >> "release/${{ env.BINARY_RELEASE_NAME }}.sha256"
+          else
+            cd release
+            shasum -a 256 "${{ env.BINARY_RELEASE_NAME }}" > "${{ env.BINARY_RELEASE_NAME }}.sha256"
+            cd ..
+          fi
+
+          # Checksum for archive
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            certUtil -hashfile "${{ env.ARCHIVE_NAME }}" SHA256 | grep -v "hash" | tr -d '[:space:]' > "${{ env.ARCHIVE_NAME }}.sha256"
+            echo "  ${{ env.ARCHIVE_NAME }}" >> "${{ env.ARCHIVE_NAME }}.sha256"
+          else
+            shasum -a 256 "${{ env.ARCHIVE_NAME }}" > "${{ env.ARCHIVE_NAME }}.sha256"
+          fi
+
+      - name: Get binary size
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            ls -la "release/${{ env.BINARY_RELEASE_NAME }}"
+          else
+            SIZE=$(stat -f%z "release/${{ env.BINARY_RELEASE_NAME }}" 2>/dev/null || stat -c%s "release/${{ env.BINARY_RELEASE_NAME }}")
+            SIZE_MB=$((SIZE / 1024 / 1024))
+            echo "Binary size: ${SIZE_MB}MB (${SIZE} bytes)"
+          fi
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-${{ matrix.name }}
+          path: |
+            release/${{ env.BINARY_RELEASE_NAME }}
+            release/${{ env.BINARY_RELEASE_NAME }}.sha256
+            ${{ env.ARCHIVE_NAME }}
+            ${{ env.ARCHIVE_NAME }}.sha256
+
+  # =============================================================================
+  # RELEASE: Create GitHub Release with all artifacts
+  # =============================================================================
+  release:
+    name: Create GitHub Release
+    needs: [prepare, build]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@stable
-    
-    - name: Publish to crates.io
-      run: cargo publish --token ${{ secrets.CARGO_TOKEN }}
-      continue-on-error: true  # Allow failure if already published
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Organize release assets
+        run: |
+          mkdir -p release-assets
+          find artifacts -type f \( -name "cmdai-*" -o -name "*.tar.gz" -o -name "*.zip" -o -name "*.sha256" \) -exec cp {} release-assets/ \;
+          ls -la release-assets/
+
+      - name: Generate combined checksums file
+        run: |
+          cd release-assets
+          echo "# SHA256 Checksums for cmdai v${{ needs.prepare.outputs.version }}" > SHA256SUMS.txt
+          echo "" >> SHA256SUMS.txt
+          for f in *.sha256; do
+            if [ -f "$f" ]; then
+              cat "$f" >> SHA256SUMS.txt
+              echo "" >> SHA256SUMS.txt
+            fi
+          done
+          cd ..
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.prepare.outputs.version }}
+          name: cmdai v${{ needs.prepare.outputs.version }}
+          body: ${{ needs.prepare.outputs.changelog }}
+          draft: false
+          prerelease: ${{ needs.prepare.outputs.prerelease == 'true' }}
+          files: |
+            release-assets/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # =============================================================================
+  # PUBLISH: Publish to crates.io
+  # =============================================================================
+  publish-crate:
+    name: Publish to crates.io
+    needs: [prepare, release]
+    runs-on: ubuntu-latest
+    # Only publish stable releases
+    if: needs.prepare.outputs.prerelease == 'false'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Publish to crates.io
+        run: cargo publish --token ${{ secrets.CARGO_TOKEN }}
+        continue-on-error: true
+
+  # =============================================================================
+  # POST-RELEASE: Update changelog in repository
+  # =============================================================================
+  update-changelog:
+    name: Update CHANGELOG.md
+    needs: [prepare, release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Download changelog artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: changelog
+          path: .
+
+      - name: Commit and push changelog
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet CHANGELOG.md; then
+            echo "No changes to CHANGELOG.md"
+          else
+            git add CHANGELOG.md
+            git commit -m "chore(release): update CHANGELOG.md for v${{ needs.prepare.outputs.version }} [skip ci]"
+            git push origin main
+          fi
