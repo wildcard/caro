@@ -1,0 +1,222 @@
+name: "👔 Lane Lead Application"
+description: Apply to lead a contribution lane
+title: "Lane Lead Application: [lane name]"
+labels: ["lane-lead-application"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Lane Lead Application
+
+        Thank you for your interest in leading a contribution lane!
+
+        **Lane leads are responsible for:**
+        - Owning the technical direction for their lane
+        - Reviewing PRs in their area
+        - Mentoring contributors
+        - Defining success metrics
+        - Recruiting contributors to their lane
+
+        **See:** [HELP_WANTED.md](https://github.com/wildcard/caro/blob/main/HELP_WANTED.md)
+
+  - type: dropdown
+    id: lane
+    attributes:
+      label: Which lane are you applying for?
+      description: Select the lane you want to lead
+      options:
+        - Security Lane (Guardrails, policies, red-team testing)
+        - Runtime Lane (Tokio, streaming, backend orchestration)
+        - Inference Lane (Performance, quantization, benchmarking)
+        - UX Lane (Ratatui, TUI design, confirmations)
+        - Ecosystem Lane (MCP, IDE integration, plugins)
+        - Distribution Lane (Packaging, signing, offline bundles)
+    validations:
+      required: true
+
+  - type: textarea
+    id: experience
+    attributes:
+      label: Relevant Experience
+      description: What experience do you have relevant to this lane?
+      placeholder: |
+        Example for Security Lane:
+        - 5 years as security engineer at Company X
+        - Conducted penetration testing for CLI tools
+        - Contributed to OWASP projects
+        - Published research on prompt injection attacks
+
+        Example for Runtime Lane:
+        - Maintainer of async-foo Rust crate (5k+ downloads)
+        - Contributed to Tokio project
+        - Built production systems using async Rust at Scale
+        - Speaker at RustConf on async patterns
+    validations:
+      required: true
+
+  - type: textarea
+    id: vision
+    attributes:
+      label: Vision for the Lane
+      description: What's your vision for this lane over the next 6 months?
+      placeholder: |
+        Example:
+        Quarter 1:
+        - Build comprehensive policy engine with rule language
+        - Establish red-team testing culture
+        - Document all dangerous patterns with explanations
+
+        Quarter 2:
+        - Implement audit logging system
+        - Create security hardening guide
+        - Achieve 100% coverage of OWASP command injection vectors
+    validations:
+      required: true
+
+  - type: textarea
+    id: initial-priorities
+    attributes:
+      label: Initial Priorities
+      description: What would you tackle first as lane lead?
+      placeholder: |
+        Top 3 priorities:
+        1. [Specific deliverable with timeline]
+        2. [Specific deliverable with timeline]
+        3. [Specific deliverable with timeline]
+    validations:
+      required: true
+
+  - type: textarea
+    id: time-commitment
+    attributes:
+      label: Time Commitment
+      description: How much time can you dedicate to lane leadership?
+      placeholder: |
+        Example:
+        - 10-15 hours/week
+        - Available for PR reviews: weekday evenings (Pacific time)
+        - Can attend bi-weekly lane sync calls
+        - Available for urgent security issues: 24/7 on-call rotation
+    validations:
+      required: true
+
+  - type: textarea
+    id: relevant-work
+    attributes:
+      label: Relevant Work / Portfolio
+      description: Links to your relevant work (GitHub, blog posts, talks, etc.)
+      placeholder: |
+        - GitHub: https://github.com/username
+        - Blog: https://example.com/security-blog
+        - Talk: "Building Secure CLI Tools" at Conference 2024
+        - Published crates: async-runtime-foo, security-lib-bar
+    validations:
+      required: false
+
+  - type: textarea
+    id: mentorship
+    attributes:
+      label: Mentorship Approach
+      description: How would you mentor contributors in your lane?
+      placeholder: |
+        Example:
+        - Weekly office hours for questions
+        - Detailed code review with learning explanations
+        - Pair programming sessions for complex features
+        - Creating "good first issue" ladder (easy → advanced)
+        - Documenting patterns and anti-patterns
+    validations:
+      required: true
+
+  - type: textarea
+    id: recruiting
+    attributes:
+      label: Recruiting Strategy
+      description: How would you attract contributors to your lane?
+      placeholder: |
+        Example:
+        - Write blog posts about security challenges in AI agents
+        - Present at security conferences
+        - Create video tutorials for common contributions
+        - Engage with security community on Twitter/Mastodon
+        - Collaborate with related open source projects
+    validations:
+      required: false
+
+  - type: textarea
+    id: success-metrics
+    attributes:
+      label: Success Metrics
+      description: How would you measure success for your lane?
+      placeholder: |
+        Example for Security Lane:
+        - Zero critical vulnerabilities in production
+        - 100% test coverage for dangerous patterns
+        - <48h turnaround on security PRs
+        - 5+ active contributors in lane
+        - Red-team suite blocks all known attack vectors
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: commitments
+    attributes:
+      label: Lane Lead Commitments
+      description: I understand and commit to the following
+      options:
+        - label: I will respond to lane-specific issues within 48 hours
+          required: true
+        - label: I will review PRs in my lane within 72 hours
+          required: true
+        - label: I will maintain documentation for my lane
+          required: true
+        - label: I will mentor contributors with patience and clarity
+          required: true
+        - label: I will collaborate with other lane leads
+          required: true
+        - label: I will report monthly on lane progress
+          required: true
+
+  - type: textarea
+    id: questions-for-maintainers
+    attributes:
+      label: Questions for Maintainers
+      description: Any questions about the lane lead role?
+      placeholder: |
+        - What's the approval process for architectural changes?
+        - Who do I escalate security issues to?
+        - What resources are available for lane leads?
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional Information
+      description: Anything else you'd like us to know
+      placeholder: |
+        - Timezone: Pacific Time (PST/PDT)
+        - Preferred contact: GitHub / Email / Discord
+        - Start date availability: Immediate / After [date]
+        - Past open source leadership experience
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+
+        ## Next Steps
+
+        After submitting this application:
+        1. Maintainers will review within 1 week
+        2. We'll schedule a video call to discuss your vision
+        3. You'll be asked to review 2-3 PRs in your proposed lane
+        4. Final decision and announcement
+
+        **Questions?** Reach out in [GitHub Discussions](https://github.com/wildcard/caro/discussions)
+
+        Thank you for your interest in leading a lane! We're excited to work with you.
