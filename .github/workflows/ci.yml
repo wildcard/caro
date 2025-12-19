@@ -2,9 +2,10 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, 'claude/**' ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
@@ -62,12 +63,25 @@ jobs:
     
     - name: Run E2E tests (smoke test)
       run: cargo test e2e_smoke_test_suite --verbose
-    
+
     - name: Run E2E tests (critical functionality)
       run: |
         cargo test e2e_help_output --verbose
         cargo test e2e_json_output_format --verbose
         cargo test e2e_basic_command_generation --verbose
+
+    - name: Run E2E tests (Suite G - Natural Language Input)
+      run: |
+        cargo test e2e_natural_language_without_quotes --verbose
+        cargo test e2e_backward_compatibility_quoted_input --verbose
+        cargo test e2e_natural_language_with_flags --verbose
+        cargo test e2e_output_equivalence_quoted_vs_unquoted --verbose
+        cargo test e2e_single_word_prompt --verbose
+        cargo test e2e_long_natural_language_input --verbose
+        cargo test e2e_special_characters_in_natural_language --verbose
+        cargo test e2e_help_shows_both_quote_styles --verbose
+        cargo test e2e_error_messages_no_quote_requirement --verbose
+        cargo test e2e_json_output_with_natural_language --verbose
 
   security:
     name: Security Audit
