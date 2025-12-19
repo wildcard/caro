@@ -49,6 +49,9 @@ which = "4.4"
 os_info = "3.7"
 sysinfo = "0.29"
 
+# Handy.Computer integration
+copypasta = "0.10"  # Cross-platform clipboard support
+
 # Model integration (Hugging Face Hub)
 hf-hub = { version = "0.3", features = ["tokio"] }
 url = "2.5"

@@ -32,6 +32,7 @@ pub mod cli;
 pub mod config;
 pub mod context;
 pub mod execution;
+pub mod handy;
 pub mod logging;
 pub mod model_loader;
 pub mod models;
@@ -62,3 +63,9 @@ pub use backends::embedded::{
 #[cfg(feature = "remote-backends")]
 pub use backends::remote::{OllamaBackend, VllmBackend};
 pub use backends::{BackendInfo as BackendInfoTrait, CommandGenerator, GeneratorError};
+
+// Re-export Handy.Computer integration types
+pub use handy::{
+    get_handy_status, is_handy_available, is_handy_installed, HandyConfig, HandyDetector,
+    HandyStatus, HANDY_ATTRIBUTION, HANDY_GITHUB, HANDY_WEBSITE,
+};

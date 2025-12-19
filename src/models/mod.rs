@@ -617,7 +617,7 @@ impl CacheManifest {
 }
 
 /// User configuration with preferences
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct UserConfiguration {
     pub default_shell: Option<ShellType>,
     pub safety_level: SafetyLevel,
@@ -625,6 +625,8 @@ pub struct UserConfiguration {
     pub log_level: LogLevel,
     pub cache_max_size_gb: u64,
     pub log_rotation_days: u32,
+    #[serde(default)]
+    pub handy: crate::handy::HandyConfig,
 }
 
 impl Default for UserConfiguration {
@@ -636,6 +638,7 @@ impl Default for UserConfiguration {
             log_level: LogLevel::Info,
             cache_max_size_gb: 10,
             log_rotation_days: 7,
+            handy: crate::handy::HandyConfig::default(),
         }
     }
 }
@@ -672,6 +675,7 @@ pub struct UserConfigurationBuilder {
     log_level: LogLevel,
     cache_max_size_gb: u64,
     log_rotation_days: u32,
+    handy: crate::handy::HandyConfig,
 }
 
 impl Default for UserConfigurationBuilder {
@@ -690,6 +694,7 @@ impl UserConfigurationBuilder {
             log_level: defaults.log_level,
             cache_max_size_gb: defaults.cache_max_size_gb,
             log_rotation_days: defaults.log_rotation_days,
+            handy: defaults.handy,
         }
     }
 
@@ -723,6 +728,11 @@ impl UserConfigurationBuilder {
         self
     }
 
+    pub fn handy(mut self, handy_config: crate::handy::HandyConfig) -> Self {
+        self.handy = handy_config;
+        self
+    }
+
     pub fn build(self) -> Result<UserConfiguration, String> {
         let config = UserConfiguration {
             default_shell: self.default_shell,
@@ -731,6 +741,7 @@ impl UserConfigurationBuilder {
             log_level: self.log_level,
             cache_max_size_gb: self.cache_max_size_gb,
             log_rotation_days: self.log_rotation_days,
+            handy: self.handy,
         };
         config.validate()?;
         Ok(config)

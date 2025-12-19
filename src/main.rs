@@ -149,14 +149,25 @@ async fn main() {
 
     // Handle missing prompt
     if cli.prompt.is_none() {
+        use cmdai::handy::{get_handy_status, show_handy_welcome};
+        use colored::Colorize;
+
+        eprintln!("{}", "Welcome to cmdai - Natural Language Shell Commands".bold());
+        eprintln!();
         eprintln!("Error: No prompt provided");
         eprintln!();
-        eprintln!("Usage: cmdai [OPTIONS] <PROMPT>");
+        eprintln!("{}", "Usage:".bold());
+        eprintln!("  cmdai [OPTIONS] <PROMPT>");
         eprintln!();
-        eprintln!("Examples:");
+        eprintln!("{}", "Examples:".bold());
         eprintln!("  cmdai \"list all files\"");
         eprintln!("  cmdai --shell zsh \"find large files\"");
         eprintln!("  cmdai --safety strict \"delete temporary files\"");
+
+        // Check Handy.Computer status and show integration info
+        let handy_status = get_handy_status();
+        show_handy_welcome(&handy_status);
+
         eprintln!();
         eprintln!("Run 'cmdai --help' for more information.");
         process::exit(1);

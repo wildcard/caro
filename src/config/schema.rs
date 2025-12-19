@@ -33,6 +33,11 @@ impl Default for ConfigSchema {
         known_keys.insert("logging.log_level".to_string(), "LogLevel enum".to_string());
         known_keys.insert("logging.log_rotation_days".to_string(), "u32".to_string());
         known_keys.insert("cache.max_size_gb".to_string(), "u64".to_string());
+        known_keys.insert("handy.enabled".to_string(), "bool".to_string());
+        known_keys.insert("handy.auto_detect".to_string(), "bool".to_string());
+        known_keys.insert("handy.show_status".to_string(), "bool".to_string());
+        known_keys.insert("handy.clipboard_timeout_ms".to_string(), "u64".to_string());
+        known_keys.insert("handy.show_transcription".to_string(), "bool".to_string());
 
         let deprecated_keys = HashMap::new();
         // Example: deprecated_keys.insert("old.key".to_string(), "new.key".to_string());
@@ -42,6 +47,7 @@ impl Default for ConfigSchema {
                 "general".to_string(),
                 "logging".to_string(),
                 "cache".to_string(),
+                "handy".to_string(),
             ],
             known_keys,
             deprecated_keys,
