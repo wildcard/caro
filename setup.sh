@@ -148,7 +148,13 @@ setup_alias() {
         esac
     fi
 
-    if [ -z "$shell_config" ] || [ ! -f "$shell_config" ]; then
+    if [ -z "$shell_config" ]; then
+        say_warn "Could not detect shell config file. Please manually add alias:"
+        echo "  alias caro='cmdai'"
+        return
+    fi
+
+    if [ ! -f "$shell_config" ]; then
         say_warn "Shell config file not found. Creating $shell_config"
         touch "$shell_config"
     fi
