@@ -1,0 +1,253 @@
+---
+---
+
+<section id="download" class="download-section">
+  <div class="container">
+    <h2>开始使用 Caro</h2>
+    <p class="section-subtitle">将你忠诚的 Shell 伙伴带到你的终端</p>
+
+    <div class="install-command">
+      <code>bash &lt;(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)</code>
+      <button class="copy-button" data-command="bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)">复制</button>
+    </div>
+
+    <p style="margin: 20px 0;">或下载预编译二进制文件: <span class="coming-soon-inline">即将推出</span></p>
+
+    <div class="download-options">
+      <span class="download-link disabled">macOS (Apple Silicon)</span>
+      <span class="download-link disabled">macOS (Intel)</span>
+      <span class="download-link disabled">Linux (x86_64)</span>
+      <span class="download-link disabled">Windows</span>
+    </div>
+
+    <div class="usage-modes">
+      <h3>多种使用方式</h3>
+
+      <div class="modes-grid">
+        <div class="mode-card">
+          <h4>🔧 独立 CLI</h4>
+          <div class="mode-command">
+            caro "列出大于 100MB 的文件"
+          </div>
+        </div>
+
+        <div class="mode-card">
+          <h4>🔌 Claude 的 MCP <span class="coming-soon">即将推出</span></h4>
+          <p>
+            将 Caro 作为 MCP 服务器添加到 Claude Desktop，让她无缝处理所有 Shell 命令。
+          </p>
+        </div>
+
+        <div class="mode-card">
+          <h4>✨ 专用技能 <span class="coming-soon">即将推出</span></h4>
+          <p>
+            将 Caro 用作技能，承担 Shell 命令生成和执行工作，让 Claude 专注于你的任务。
+          </p>
+        </div>
+      </div>
+
+      <div class="quick-start">
+        <h3>快速开始</h3>
+        <div class="quick-start-steps">
+          <p>运行上述安装脚本后，直接使用 Caro:</p>
+          <div class="quick-start-command">
+            caro "查找最近 7 天内修改过的所有 Python 文件"
+          </div>
+          <p>Caro 会生成命令并保护你的安全。安装脚本会处理所有前置条件，包括 Rust 编译。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .download-section {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    text-align: center;
+  }
+
+  .download-section h2 {
+    color: white;
+  }
+
+  .download-section .section-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .install-command {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 20px 30px;
+    border-radius: 8px;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 16px;
+    margin: 30px auto;
+    max-width: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .install-command code {
+    color: #fff;
+  }
+
+  .copy-button {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+  }
+
+  .copy-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  .download-options {
+    margin-top: 40px;
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .download-link {
+    background: white;
+    color: #ff6b35;
+    padding: 14px 30px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: transform 0.2s;
+  }
+
+  .download-link:hover {
+    transform: translateY(-2px);
+  }
+
+  .download-link.disabled {
+    background: rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.6);
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .download-link.disabled:hover {
+    transform: none;
+  }
+
+  .coming-soon-inline {
+    font-size: 14px;
+    background: rgba(255, 255, 255, 0.3);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .usage-modes {
+    margin-top: 60px;
+    padding-top: 40px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .usage-modes h3 {
+    margin-bottom: 30px;
+    font-size: 28px;
+  }
+
+  .modes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+    margin-top: 30px;
+  }
+
+  .mode-card {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 25px;
+    border-radius: 8px;
+  }
+
+  .mode-card h4 {
+    margin-bottom: 15px;
+    font-size: 20px;
+  }
+
+  .mode-card p {
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .mode-command {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 12px;
+    border-radius: 6px;
+    margin: 15px 0;
+    font-family: monospace;
+    font-size: 14px;
+    text-align: left;
+  }
+
+  .quick-start {
+    margin-top: 50px;
+    text-align: left;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .quick-start h3 {
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .quick-start-steps {
+    font-size: 16px;
+    line-height: 1.8;
+  }
+
+  .quick-start-steps p {
+    margin-bottom: 15px;
+  }
+
+  .quick-start-command {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 6px;
+    margin: 15px 0;
+    font-family: monospace;
+  }
+
+  .coming-soon {
+    font-size: 12px;
+    background: rgba(255, 255, 255, 0.3);
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+    margin-left: 8px;
+    white-space: nowrap;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const copyButtons = document.querySelectorAll('.copy-button');
+    copyButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const command = button.getAttribute('data-command') || '';
+        navigator.clipboard.writeText(command).then(() => {
+          const originalText = button.textContent;
+          button.textContent = '已复制!';
+          setTimeout(() => {
+            button.textContent = originalText;
+          }, 2000);
+        });
+      });
+    });
+  });
+</script>

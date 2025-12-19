@@ -1,0 +1,162 @@
+---
+// Blog component displaying recent articles
+const blogPosts = [
+  {
+    title: "为什么选择 Caro？你的终端伙伴背后的故事",
+    slug: "why-caro",
+    date: "2025-12-17",
+    excerpt: "了解 Kyaro 的暖心故事——一只在开发者和系统管理员中长大的办公室柴犬，如何成为 Caro——你终端中永恒的伙伴。",
+    readTime: "8 分钟阅读"
+  }
+];
+---
+
+<section id="blog" class="blog-section">
+  <div class="container">
+    <h2>来自族群</h2>
+    <p class="section-subtitle">关于 Caro 的故事、更新和见解</p>
+
+    <div class="blog-grid">
+      {blogPosts.map(post => (
+        <article class="blog-card">
+          <div class="blog-card-header">
+            <time datetime={post.date} class="blog-date">
+              {new Date(post.date).toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </time>
+            <span class="blog-read-time">{post.readTime}</span>
+          </div>
+
+          <h3 class="blog-title">
+            <a href={`/blog/${post.slug}`}>{post.title}</a>
+          </h3>
+
+          <p class="blog-excerpt">{post.excerpt}</p>
+
+          <a href={`/blog/${post.slug}`} class="blog-read-more">
+            阅读全文 →
+          </a>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .blog-section {
+    padding: 80px 20px;
+    background: linear-gradient(135deg, var(--color-bg) 0%, var(--color-bg-tertiary) 100%);
+    transition: background 0.3s ease;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .blog-section h2 {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 20px;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    margin-bottom: 50px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .blog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+  }
+
+  .blog-card {
+    background: var(--color-bg);
+    border-radius: 12px;
+    padding: 30px;
+    border: 1px solid var(--color-border);
+    transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s, border-color 0.3s;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .blog-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.15);
+    border-color: #ff8c42;
+  }
+
+  .blog-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .blog-date {
+    font-weight: 500;
+  }
+
+  .blog-read-time {
+    color: var(--color-links-muted);
+  }
+
+  .blog-title {
+    font-size: 24px;
+    margin-bottom: 15px;
+    line-height: 1.3;
+  }
+
+  .blog-title a {
+    color: var(--color-text);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .blog-title a:hover {
+    color: #ff8c42;
+  }
+
+  .blog-excerpt {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin-bottom: 20px;
+    flex-grow: 1;
+  }
+
+  .blog-read-more {
+    color: #ff8c42;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    transition: transform 0.2s;
+  }
+
+  .blog-read-more:hover {
+    transform: translateX(4px);
+  }
+
+  @media (max-width: 768px) {
+    .blog-section h2 {
+      font-size: 28px;
+    }
+
+    .blog-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

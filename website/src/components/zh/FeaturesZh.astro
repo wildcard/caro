@@ -1,0 +1,209 @@
+---
+const features = [
+  {
+    icon: "🛡️",
+    title: "安全守护者",
+    description: "全面验证机制，阻止危险命令如 rm -rf /、fork 炸弹和破坏性操作。52 个预编译安全模式，具备风险等级评估。",
+    status: "implemented",
+    statusLabel: "已上线"
+  },
+  {
+    icon: "🌍",
+    title: "跨平台专家",
+    description: "适用于 macOS、Linux、Windows、GNU 和 BSD。理解平台特定的细微差异，尊重你所选择的发行版。",
+    status: "implemented",
+    statusLabel: "已上线"
+  },
+  {
+    icon: "🧠",
+    title: "平台感知",
+    description: "根据你的平台能力和最佳实践提供建议。自动区分 BSD 和 GNU 命令语法。",
+    status: "implemented",
+    statusLabel: "已上线"
+  },
+  {
+    icon: "✅",
+    title: "POSIX 专家",
+    description: "精通可跨系统可靠运行的 POSIX 兼容 Shell 命令。可移植、安全，为你的终端优化。",
+    status: "implemented",
+    statusLabel: "已上线"
+  },
+  {
+    icon: "⚡",
+    title: "闪电般快速",
+    description: "目标：Apple Silicon 上启动时间低于 100ms，推理时间低于 2s。集成 MLX 框架，在 M 系列芯片上实现 GPU 加速。",
+    status: "in-progress",
+    statusLabel: "开发中"
+  },
+  {
+    icon: "🤝",
+    title: "Claude 的伙伴",
+    description: "愿景：作为 MCP 服务器和技能与 Claude 无缝集成，承担 Shell 命令推理工作，让 Claude 专注于你更广泛的任务。",
+    status: "planned",
+    statusLabel: "规划中"
+  }
+];
+---
+
+<section id="features">
+  <div class="container">
+    <h2>为什么选择 Caro？</h2>
+    <p class="section-subtitle">一个为安全、同理心和专业知识而生的伙伴智能体</p>
+    <p class="alpha-notice"><span aria-hidden="true">🚧</span> <strong>公测 Alpha 版</strong> — 我们正在与社区一起积极构建。加入我们，共同塑造 Caro 的未来！</p>
+    <div class="features">
+      {features.map((feature) => (
+        <div class={`feature feature-${feature.status}`}>
+          <div class="feature-header">
+            <div class="feature-icon">{feature.icon}</div>
+            <span
+              class={`status-badge status-${feature.status}`}
+              role="status"
+              aria-label={`状态: ${feature.statusLabel}`}
+            >
+              {feature.statusLabel}
+            </span>
+          </div>
+          <h3>{feature.title}</h3>
+          <p>{feature.description}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .alpha-notice {
+    text-align: center;
+    margin: 20px auto 0;
+    padding: 16px 24px;
+    background: rgba(255, 140, 66, 0.1);
+    border: 1px solid rgba(255, 140, 66, 0.3);
+    border-radius: 8px;
+    color: var(--color-text);
+    max-width: 700px;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  :global(.dark) .alpha-notice {
+    background: rgba(255, 140, 66, 0.15);
+    border-color: rgba(255, 140, 66, 0.4);
+  }
+
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 40px;
+    margin-top: 40px;
+  }
+
+  .feature {
+    text-align: center;
+    padding: 30px;
+    border-radius: 12px;
+    background: var(--color-bg);
+    transition: transform 0.2s, box-shadow 0.2s, background 0.3s ease, border-color 0.3s ease;
+    border: 1px solid var(--color-border);
+  }
+
+  .feature:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.1);
+    border-color: #ff8c42;
+  }
+
+  :global(.dark) .feature:hover {
+    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.2);
+  }
+
+  .feature-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .feature-icon {
+    font-size: 48px;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+  }
+
+  .status-implemented {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+
+  :global(.dark) .status-implemented {
+    background: rgba(34, 197, 94, 0.2);
+    border-color: rgba(34, 197, 94, 0.4);
+  }
+
+  :root {
+    --status-in-progress-bg: rgba(59, 130, 246, 0.15);
+    --status-in-progress-border: rgba(59, 130, 246, 0.3);
+    --status-in-progress-color: #3b82f6;
+
+    --status-planned-bg: rgba(168, 85, 247, 0.15);
+    --status-planned-border: rgba(168, 85, 247, 0.3);
+    --status-planned-color: #a855f7;
+  }
+
+  :global(.dark) {
+    --status-in-progress-bg: rgba(59, 130, 246, 0.2);
+    --status-in-progress-border: rgba(59, 130, 246, 0.4);
+
+    --status-planned-bg: rgba(168, 85, 247, 0.2);
+    --status-planned-border: rgba(168, 85, 247, 0.4);
+  }
+
+  .status-in-progress {
+    background: var(--status-in-progress-bg);
+    color: var(--status-in-progress-color);
+    border: 1px solid var(--status-in-progress-border);
+  }
+
+  .status-planned {
+    background: var(--status-planned-bg);
+    color: var(--status-planned-color);
+    border: 1px solid var(--status-planned-border);
+  }
+
+  .feature-planned {
+    opacity: 0.85;
+  }
+
+  .feature-planned:hover {
+    opacity: 1;
+  }
+
+  .feature h3 {
+    font-size: 22px;
+    margin-bottom: 12px;
+    color: var(--color-text);
+    transition: color 0.3s ease;
+  }
+
+  .feature p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    transition: color 0.3s ease;
+  }
+
+  @media (max-width: 768px) {
+    .features {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

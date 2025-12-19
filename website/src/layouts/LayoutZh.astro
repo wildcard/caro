@@ -10,7 +10,7 @@ const { title, description } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="description" content={description} />
@@ -39,11 +39,11 @@ const { title, description } = Astro.props;
   </head>
   <body>
     <div class="lang-switch">
-      <a href="/" class="active" title="English">EN</a>
+      <a href="/" title="English">EN</a>
       <span class="separator">|</span>
-      <a href="/zh" title="简体中文">中文</a>
+      <a href="/zh" class="active" title="简体中文">中文</a>
     </div>
-    <button id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+    <button id="theme-toggle" aria-label="切换暗色模式" title="切换暗色模式">
       <svg class="sun-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="5"/>
         <line x1="12" y1="1" x2="12" y2="3"/>
@@ -104,7 +104,7 @@ const { title, description } = Astro.props;
   }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
     line-height: 1.6;
     color: var(--color-text);
     background: var(--color-bg);
