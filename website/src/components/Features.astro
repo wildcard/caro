@@ -49,13 +49,19 @@ const features = [
   <div class="container">
     <h2>Why Caro?</h2>
     <p class="section-subtitle">A companion agent built for safety, empathy, and expertise</p>
-    <p class="alpha-notice">🚧 <strong>Soft Launch Alpha</strong> — We're actively building with our community. Join us to help shape Caro's future!</p>
+    <p class="alpha-notice"><span aria-hidden="true">🚧</span> <strong>Soft Launch Alpha</strong> — We're actively building with our community. Join us to help shape Caro's future!</p>
     <div class="features">
       {features.map((feature) => (
         <div class={`feature feature-${feature.status}`}>
           <div class="feature-header">
             <div class="feature-icon">{feature.icon}</div>
-            <span class={`status-badge status-${feature.status}`}>{feature.statusLabel}</span>
+            <span
+              class={`status-badge status-${feature.status}`}
+              role="status"
+              aria-label={`Status: ${feature.statusLabel}`}
+            >
+              {feature.statusLabel}
+            </span>
           </div>
           <h3>{feature.title}</h3>
           <p>{feature.description}</p>
@@ -144,26 +150,34 @@ const features = [
     border-color: rgba(34, 197, 94, 0.4);
   }
 
-  .status-in-progress {
-    background: rgba(59, 130, 246, 0.15);
-    color: #3b82f6;
-    border: 1px solid rgba(59, 130, 246, 0.3);
+  :root {
+    --status-in-progress-bg: rgba(59, 130, 246, 0.15);
+    --status-in-progress-border: rgba(59, 130, 246, 0.3);
+    --status-in-progress-color: #3b82f6;
+
+    --status-planned-bg: rgba(168, 85, 247, 0.15);
+    --status-planned-border: rgba(168, 85, 247, 0.3);
+    --status-planned-color: #a855f7;
   }
 
-  :global(.dark) .status-in-progress {
-    background: rgba(59, 130, 246, 0.2);
-    border-color: rgba(59, 130, 246, 0.4);
+  :global(.dark) {
+    --status-in-progress-bg: rgba(59, 130, 246, 0.2);
+    --status-in-progress-border: rgba(59, 130, 246, 0.4);
+
+    --status-planned-bg: rgba(168, 85, 247, 0.2);
+    --status-planned-border: rgba(168, 85, 247, 0.4);
+  }
+
+  .status-in-progress {
+    background: var(--status-in-progress-bg);
+    color: var(--status-in-progress-color);
+    border: 1px solid var(--status-in-progress-border);
   }
 
   .status-planned {
-    background: rgba(168, 85, 247, 0.15);
-    color: #a855f7;
-    border: 1px solid rgba(168, 85, 247, 0.3);
-  }
-
-  :global(.dark) .status-planned {
-    background: rgba(168, 85, 247, 0.2);
-    border-color: rgba(168, 85, 247, 0.4);
+    background: var(--status-planned-bg);
+    color: var(--status-planned-color);
+    border: 1px solid var(--status-planned-border);
   }
 
   .feature-planned {
