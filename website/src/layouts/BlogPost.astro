@@ -6,13 +6,14 @@ interface Props {
   description: string;
   date: string;
   readTime: string;
+  variation?: 'default' | 'minimal' | 'feature' | 'technical' | 'story';
 }
 
-const { title, description, date, readTime } = Astro.props;
+const { title, description, date, readTime, variation = 'default' } = Astro.props;
 ---
 
 <Layout title={`${title} - Caro Blog`} description={description}>
-  <div class="blog-post">
+  <div class={`blog-post blog-post-${variation}`}>
     <div class="blog-post-header">
       <div class="container">
         <a href="/#blog" class="back-link">← Back to all stories</a>
@@ -269,5 +270,68 @@ const { title, description, date, readTime } = Astro.props;
       font-size: 18px;
       padding: 15px 20px;
     }
+  }
+
+  /* Variation: Minimal */
+  .blog-post-minimal .blog-post-header {
+    background: var(--color-bg);
+    border-bottom: 2px solid #ff8c42;
+  }
+
+  .blog-post-minimal .blog-post-title {
+    font-size: 42px;
+    font-weight: 600;
+  }
+
+  .blog-post-minimal .blog-post-content {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 80px 20px;
+  }
+
+  /* Variation: Feature */
+  .blog-post-feature .blog-post-header {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    padding: 120px 20px 60px;
+  }
+
+  .blog-post-feature .blog-post-title {
+    color: white;
+    font-size: 52px;
+  }
+
+  .blog-post-feature .blog-post-meta {
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .blog-post-feature .back-link {
+    color: white;
+  }
+
+  /* Variation: Technical */
+  .blog-post-technical .blog-post-content :global(code) {
+    background: #1e1e1e;
+    color: #ff8c42;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  .blog-post-technical .blog-post-content :global(pre) {
+    border: 1px solid var(--color-border);
+  }
+
+  /* Variation: Story */
+  .blog-post-story .blog-post-content :global(p:first-letter) {
+    font-size: 60px;
+    font-weight: 700;
+    line-height: 1;
+    float: left;
+    margin: 5px 10px 0 0;
+    color: #ff8c42;
+  }
+
+  .blog-post-story .blog-post-title {
+    font-family: Georgia, serif;
+    font-style: italic;
   }
 </style>

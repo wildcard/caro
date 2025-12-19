@@ -1,0 +1,140 @@
+---
+// Minimalist List variation - Clean, text-focused minimal design
+interface Props {
+  posts: Array<{
+    title: string;
+    slug: string;
+    date: string;
+    excerpt: string;
+    readTime: string;
+  }>;
+}
+
+const { posts } = Astro.props;
+---
+
+<div class="minimalist-list">
+  {posts.map(post => (
+    <article class="minimalist-item">
+      <a href={`/blog/${post.slug}`} class="minimalist-link">
+        <div class="minimalist-header">
+          <time datetime={post.date} class="minimalist-date">
+            {new Date(post.date).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric'
+            })}
+          </time>
+          <span class="minimalist-divider">—</span>
+          <span class="minimalist-read-time">{post.readTime}</span>
+        </div>
+
+        <h3 class="minimalist-title">{post.title}</h3>
+        <p class="minimalist-excerpt">{post.excerpt}</p>
+      </a>
+    </article>
+  ))}
+</div>
+
+<style>
+  .minimalist-list {
+    max-width: 900px;
+    margin: 60px auto 0;
+    padding: 0;
+  }
+
+  .minimalist-item {
+    border-bottom: 1px solid var(--color-border);
+    padding: 40px 0;
+    transition: border-color 0.3s;
+  }
+
+  .minimalist-item:first-child {
+    border-top: 1px solid var(--color-border);
+  }
+
+  .minimalist-item:hover {
+    border-bottom-color: #ff8c42;
+  }
+
+  .minimalist-link {
+    text-decoration: none;
+    display: block;
+    transition: padding-left 0.3s;
+  }
+
+  .minimalist-link:hover {
+    padding-left: 12px;
+  }
+
+  .minimalist-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .minimalist-date {
+    color: #ff8c42;
+  }
+
+  .minimalist-divider {
+    color: var(--color-links-muted);
+  }
+
+  .minimalist-read-time {
+    color: var(--color-text-secondary);
+  }
+
+  .minimalist-title {
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 12px;
+    color: var(--color-text);
+    transition: color 0.2s;
+  }
+
+  .minimalist-link:hover .minimalist-title {
+    color: #ff8c42;
+  }
+
+  .minimalist-excerpt {
+    font-size: 17px;
+    line-height: 1.7;
+    color: var(--color-text-tertiary);
+    max-width: 700px;
+  }
+
+  @media (max-width: 768px) {
+    .minimalist-list {
+      margin-top: 40px;
+    }
+
+    .minimalist-item {
+      padding: 30px 0;
+    }
+
+    .minimalist-header {
+      flex-wrap: wrap;
+      font-size: 13px;
+    }
+
+    .minimalist-title {
+      font-size: 22px;
+    }
+
+    .minimalist-excerpt {
+      font-size: 16px;
+    }
+
+    .minimalist-link:hover {
+      padding-left: 8px;
+    }
+  }
+</style>
