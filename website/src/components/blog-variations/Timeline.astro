@@ -1,0 +1,238 @@
+---
+// Timeline variation - Vertical timeline with date emphasis
+interface Props {
+  posts: Array<{
+    title: string;
+    slug: string;
+    date: string;
+    excerpt: string;
+    readTime: string;
+  }>;
+}
+
+const { posts } = Astro.props;
+---
+
+<div class="timeline-container">
+  <div class="timeline-line"></div>
+  {posts.map((post, index) => (
+    <article class="timeline-item" style={`animation-delay: ${index * 0.1}s`}>
+      <div class="timeline-marker">
+        <span class="timeline-dot"></span>
+      </div>
+
+      <a href={`/blog/${post.slug}`} class="timeline-content">
+        <div class="timeline-date-box">
+          <div class="timeline-month">
+            {new Date(post.date).toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}
+          </div>
+          <div class="timeline-day">
+            {new Date(post.date).getDate()}
+          </div>
+          <div class="timeline-year">
+            {new Date(post.date).getFullYear()}
+          </div>
+        </div>
+
+        <div class="timeline-text">
+          <div class="timeline-read-time">{post.readTime}</div>
+          <h3 class="timeline-title">{post.title}</h3>
+          <p class="timeline-excerpt">{post.excerpt}</p>
+          <span class="timeline-arrow">Read more →</span>
+        </div>
+      </a>
+    </article>
+  ))}
+</div>
+
+<style>
+  .timeline-container {
+    position: relative;
+    max-width: 900px;
+    margin: 60px auto 0;
+    padding-left: 140px;
+  }
+
+  .timeline-line {
+    position: absolute;
+    left: 100px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, transparent, #ff8c42, transparent);
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 60px;
+    opacity: 0;
+    animation: fadeInUp 0.6s ease forwards;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .timeline-marker {
+    position: absolute;
+    left: -140px;
+    top: 8px;
+    width: 100px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .timeline-dot {
+    width: 16px;
+    height: 16px;
+    background: #ff8c42;
+    border: 3px solid var(--color-bg);
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px var(--color-border);
+    transition: all 0.3s;
+  }
+
+  .timeline-item:hover .timeline-dot {
+    transform: scale(1.3);
+    box-shadow: 0 0 0 6px rgba(255, 140, 66, 0.2);
+  }
+
+  .timeline-content {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 30px;
+    text-decoration: none;
+    color: inherit;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 30px;
+    transition: all 0.3s;
+  }
+
+  .timeline-content:hover {
+    border-color: #ff8c42;
+    box-shadow: 0 8px 24px rgba(255, 140, 66, 0.12);
+    transform: translateX(4px);
+  }
+
+  .timeline-date-box {
+    text-align: center;
+    padding: 20px 15px;
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.1) 0%, rgba(255, 107, 53, 0.1) 100%);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 140, 66, 0.2);
+  }
+
+  .timeline-month {
+    font-size: 13px;
+    font-weight: 700;
+    color: #ff8c42;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .timeline-day {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--color-text);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .timeline-year {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+  }
+
+  .timeline-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .timeline-read-time {
+    font-size: 13px;
+    color: var(--color-links-muted);
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+
+  .timeline-title {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 14px;
+    color: var(--color-text);
+    transition: color 0.2s;
+  }
+
+  .timeline-content:hover .timeline-title {
+    color: #ff8c42;
+  }
+
+  .timeline-excerpt {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--color-text-tertiary);
+    margin-bottom: 16px;
+    flex-grow: 1;
+  }
+
+  .timeline-arrow {
+    color: #ff8c42;
+    font-weight: 600;
+    font-size: 15px;
+    transition: transform 0.2s;
+    display: inline-block;
+  }
+
+  .timeline-content:hover .timeline-arrow {
+    transform: translateX(4px);
+  }
+
+  @media (max-width: 768px) {
+    .timeline-container {
+      padding-left: 60px;
+    }
+
+    .timeline-line {
+      left: 20px;
+    }
+
+    .timeline-marker {
+      left: -60px;
+      width: 20px;
+    }
+
+    .timeline-content {
+      grid-template-columns: 1fr;
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .timeline-date-box {
+      padding: 15px 10px;
+    }
+
+    .timeline-day {
+      font-size: 28px;
+    }
+
+    .timeline-title {
+      font-size: 22px;
+    }
+
+    .timeline-excerpt {
+      font-size: 15px;
+    }
+  }
+</style>
