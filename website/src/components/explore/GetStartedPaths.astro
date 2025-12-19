@@ -2,51 +2,53 @@
 const paths = [
   {
     icon: "👨‍💻",
-    title: "Individual Developers",
-    description: "Install Caro as a standalone CLI tool and start generating safe shell commands instantly",
+    title: "Try Caro Today",
+    description: "Get started with the core CLI tool - install via cargo and start generating safe commands",
     steps: [
-      "Install from source or download the binary",
-      "Try your first command: caro 'list all files larger than 1GB'",
-      "Review and execute the generated command",
-      "Customize safety settings and backend preferences"
+      "Install with: cargo install cmdai",
+      "Try: cmdai 'list all files larger than 1GB'",
+      "Review the generated command with safety validation",
+      "Execute or customize as needed"
     ],
-    cta: { text: "Quick Start Guide", link: "#installation" }
-  },
-  {
-    icon: "🚀",
-    title: "DevOps & SysAdmin Teams",
-    description: "Deploy Caro across your infrastructure for consistent, safe command generation",
-    steps: [
-      "Configure platform-specific backends (MLX for macOS, vLLM for Linux servers)",
-      "Set up shared safety policies for your organization",
-      "Integrate with existing automation workflows",
-      "Monitor usage and audit command generation logs"
-    ],
-    cta: { text: "Team Setup Guide", link: "#platform-guides" }
-  },
-  {
-    icon: "🤖",
-    title: "Claude Power Users",
-    description: "Enhance Claude with Caro's specialized shell command expertise via MCP integration",
-    steps: [
-      "Install Caro MCP server (coming soon)",
-      "Configure Claude Desktop to use Caro for shell commands",
-      "Let Claude delegate command generation to Caro automatically",
-      "Benefit from safety validation without interrupting your workflow"
-    ],
-    cta: { text: "MCP Integration", link: "#integration-methods" }
+    cta: { text: "Installation Guide", link: "#platform-guides" }
   },
   {
     icon: "🍎",
-    title: "Apple Silicon Enthusiasts",
-    description: "Experience blazing-fast inference with MLX-optimized local models on Apple Silicon",
+    title: "Apple Silicon Users",
+    description: "Early access to MLX-optimized inference for blazing-fast local command generation",
     steps: [
-      "Install MLX backend dependencies",
-      "Configure Caro to use MLX for sub-2s inference",
-      "Download optimized models from Hugging Face",
-      "Enjoy offline, privacy-focused command generation"
+      "Build from source with MLX support (in development)",
+      "Experience sub-2s inference on M1/M2/M3",
+      "Run completely offline with local models",
+      "Help us test and improve performance"
     ],
-    cta: { text: "MLX Setup", link: "#backend-mlx" }
+    cta: { text: "MLX Details", link: "#backend-options" },
+    badge: "In Development"
+  },
+  {
+    icon: "🤖",
+    title: "Claude Integration",
+    description: "Future MCP and Skill modes will let Claude delegate shell commands to Caro automatically",
+    steps: [
+      "MCP server integration (planned)",
+      "Dedicated Skill mode (planned)",
+      "Automatic safety validation for Claude's workflows",
+      "Stay tuned for updates"
+    ],
+    cta: { text: "Integration Roadmap", link: "#integration-methods" },
+    badge: "Coming Soon"
+  },
+  {
+    icon: "🔧",
+    title: "Advanced Setups",
+    description: "Connect to remote inference servers or configure custom backends",
+    steps: [
+      "Use Ollama for local multi-model support",
+      "Connect to vLLM servers for team deployments",
+      "Configure backends in ~/.config/cmdai/config.toml",
+      "Automatic fallback to embedded CPU backend"
+    ],
+    cta: { text: "Backend Config", link: "#backend-options" }
   }
 ];
 ---
@@ -59,7 +61,10 @@ const paths = [
       {paths.map((path) => (
         <div class="path-card">
           <div class="path-icon">{path.icon}</div>
-          <h3>{path.title}</h3>
+          <div class="title-row">
+            <h3>{path.title}</h3>
+            {path.badge && <span class="path-badge">{path.badge}</span>}
+          </div>
           <p class="path-description">{path.description}</p>
           <div class="path-steps">
             {path.steps.map((step, index) => (
@@ -109,11 +114,29 @@ const paths = [
     margin-bottom: 20px;
   }
 
+  .title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+  }
+
   .path-card h3 {
     font-size: 22px;
-    margin-bottom: 15px;
+    margin: 0;
     color: var(--color-text);
     transition: color 0.3s ease;
+  }
+
+  .path-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: rgba(33, 150, 243, 0.1);
+    color: #2196f3;
+    white-space: nowrap;
   }
 
   .path-description {

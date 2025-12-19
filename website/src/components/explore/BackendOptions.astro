@@ -4,8 +4,8 @@ const backends = [
     name: "MLX",
     id: "backend-mlx",
     icon: "🍎",
-    tagline: "Apple Silicon Native",
-    description: "Blazing-fast local inference optimized for Apple Silicon with Metal Performance Shaders",
+    tagline: "Apple Silicon Native (In Development)",
+    description: "Work in progress: local inference optimized for Apple Silicon with Metal Performance Shaders",
     status: "in-development",
     highlights: [
       "Sub-2s inference on M1/M2/M3 chips",
@@ -32,8 +32,8 @@ const backends = [
     id: "backend-ollama",
     icon: "🦙",
     tagline: "Local & Flexible",
-    description: "Run open-source LLMs locally with easy model management and cross-platform support",
-    status: "planned",
+    description: "Connect to Ollama for local LLM inference with easy model management",
+    status: "available",
     highlights: [
       "Cross-platform (macOS, Linux, Windows)",
       "Simple model management (ollama pull/list)",
@@ -58,8 +58,8 @@ const backends = [
     name: "vLLM",
     id: "backend-vllm",
     tagline: "High-Throughput Server",
-    description: "Production-grade inference server for deploying LLMs at scale with optimized performance",
-    status: "planned",
+    description: "Connect to vLLM servers for production-grade inference with optimized performance",
+    status: "available",
     icon: "🚀",
     highlights: [
       "PagedAttention for efficient memory",
@@ -82,18 +82,18 @@ const backends = [
     bestFor: ["Team deployments", "Centralized inference", "High-throughput scenarios", "Cloud-based workflows"]
   },
   {
-    name: "Embedded Model",
+    name: "CPU Backend",
     id: "backend-embedded",
-    tagline: "Always Available Fallback",
+    tagline: "Built-in Fallback",
     icon: "📦",
-    description: "Lightweight embedded model included in the binary for instant availability without setup",
-    status: "planned",
+    description: "CPU-based embedded backend works out of the box as automatic fallback",
+    status: "available",
     highlights: [
-      "Zero setup required",
-      "Works everywhere (macOS, Linux, Windows)",
-      "No external dependencies",
-      "Automatic fallback when other backends unavailable",
-      "Small binary footprint (< 50MB total)"
+      "Zero external setup required",
+      "Cross-platform (macOS, Linux, Windows)",
+      "Automatic fallback mode",
+      "Simple, reliable baseline option",
+      "Works immediately after installation"
     ],
     performance: {
       startup: "< 50ms",
@@ -187,10 +187,10 @@ const backends = [
     <div class="comparison-note">
       <h3>Which Backend Should I Choose?</h3>
       <p>
-        <strong>For Apple Silicon users:</strong> MLX offers the best performance with sub-2s inference and complete privacy.<br/>
-        <strong>For cross-platform teams:</strong> Ollama provides flexibility with easy model management.<br/>
-        <strong>For production deployments:</strong> vLLM scales efficiently for high-throughput scenarios.<br/>
-        <strong>For quick testing:</strong> Embedded model works instantly without any setup.
+        <strong>Just getting started?</strong> The CPU backend works out of the box - no configuration needed.<br/>
+        <strong>Want local models?</strong> Install Ollama for easy local inference with model flexibility.<br/>
+        <strong>Have a team server?</strong> Connect to vLLM for centralized, high-performance inference.<br/>
+        <strong>On Apple Silicon?</strong> MLX support is coming soon for ultra-fast local inference.
       </p>
     </div>
   </div>

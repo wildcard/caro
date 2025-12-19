@@ -7,32 +7,38 @@ const platforms = [
     architectures: ["Apple Silicon (M1/M2/M3)", "Intel x86_64"],
     installation: [
       {
-        method: "Homebrew (Recommended)",
+        method: "One-Line Install (Recommended)",
         commands: [
-          "brew tap caro-sh/caro",
-          "brew install caro"
+          "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)"
+        ]
+      },
+      {
+        method: "Using Cargo",
+        commands: [
+          "cargo install cmdai",
+          "# Add alias to ~/.zshrc or ~/.bashrc:",
+          "alias caro='cmdai'"
         ]
       },
       {
         method: "Build from Source",
         commands: [
-          "git clone https://github.com/caro-sh/caro.git",
+          "git clone https://github.com/wildcard/caro.git",
           "cd caro",
           ". \"$HOME/.cargo/env\"",
-          "cargo build --release",
-          "sudo cp target/release/caro /usr/local/bin/"
+          "cargo build --release"
         ]
       }
     ],
     postInstall: [
-      "Verify installation: caro --version",
-      "Configure MLX backend (Apple Silicon only): caro config set backend mlx",
-      "Test: caro \"list all files in current directory\""
+      "Verify: cmdai --version (or caro --version if alias set)",
+      "Try it: cmdai \"list files in current directory\"",
+      "Configure backends in ~/.config/cmdai/config.toml (optional)"
     ],
     tips: [
-      "Use MLX backend for best performance on Apple Silicon",
-      "Enable shell completions: caro completions bash >> ~/.bashrc",
-      "Add alias: alias c='caro'"
+      "MLX backend coming soon for Apple Silicon performance",
+      "Use Ollama for local model flexibility",
+      "CPU backend works immediately with zero configuration"
     ]
   },
   {
@@ -42,73 +48,70 @@ const platforms = [
     architectures: ["x86_64", "ARM64"],
     installation: [
       {
-        method: "Download Binary (Recommended)",
+        method: "One-Line Install (Recommended)",
         commands: [
-          "curl -LO https://github.com/caro-sh/caro/releases/latest/download/caro-linux-amd64",
-          "chmod +x caro-linux-amd64",
-          "sudo mv caro-linux-amd64 /usr/local/bin/caro"
+          "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)"
+        ]
+      },
+      {
+        method: "Using Cargo",
+        commands: [
+          "cargo install cmdai",
+          "alias caro='cmdai'  # Add to ~/.bashrc"
         ]
       },
       {
         method: "Build from Source",
         commands: [
-          "# Install Rust if not already installed",
-          "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh",
-          ". \"$HOME/.cargo/env\"",
-          "git clone https://github.com/caro-sh/caro.git",
+          "git clone https://github.com/wildcard/caro.git",
           "cd caro",
-          "cargo build --release",
-          "sudo cp target/release/caro /usr/local/bin/"
+          "cargo build --release"
         ]
       }
     ],
     postInstall: [
-      "Verify: caro --version",
-      "Configure backend: caro config set backend ollama",
-      "Install Ollama: curl -fsSL https://ollama.ai/install.sh | sh",
-      "Pull model: ollama pull llama2"
+      "Verify: cmdai --version",
+      "Try: cmdai \"show disk usage\"",
+      "Optional: Install Ollama for local models"
     ],
     tips: [
-      "Use Ollama or vLLM backend for best Linux experience",
-      "For GPU acceleration, ensure CUDA/ROCm drivers installed",
-      "Add to systemd for automatic startup: systemctl --user enable caro"
+      "CPU backend works out of the box",
+      "Connect to Ollama or vLLM for more features",
+      "Configure backends in ~/.config/cmdai/config.toml"
     ]
   },
   {
     name: "Windows",
     icon: "🪟",
-    versions: "Windows 10/11 (via WSL2 recommended)",
+    versions: "Windows 10/11 (WSL2 recommended)",
     architectures: ["x86_64"],
     installation: [
       {
         method: "WSL2 (Recommended)",
         commands: [
-          "# In PowerShell (Admin)",
+          "# In PowerShell (Admin):",
           "wsl --install",
           "# After restart, in WSL Ubuntu:",
-          "curl -LO https://github.com/caro-sh/caro/releases/latest/download/caro-linux-amd64",
-          "chmod +x caro-linux-amd64",
-          "sudo mv caro-linux-amd64 /usr/local/bin/caro"
+          "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)"
         ]
       },
       {
-        method: "Native Windows (Coming Soon)",
+        method: "Using Cargo in WSL",
         commands: [
-          "# Download from releases page",
-          "# Extract caro.exe to C:\\Program Files\\Caro\\",
-          "# Add to PATH"
+          "cargo install cmdai",
+          "alias caro='cmdai'"
         ]
       }
     ],
     postInstall: [
-      "Verify: caro --version",
-      "Configure: caro config set backend ollama",
-      "Test with: caro \"show disk usage\""
+      "Verify: cmdai --version",
+      "Try: cmdai \"list files\"",
+      "Works with POSIX commands in WSL environment"
     ],
     tips: [
-      "WSL2 provides best compatibility with POSIX commands",
-      "Native Windows support coming soon with limited command set",
-      "Use Windows Terminal for better experience"
+      "WSL2 provides full POSIX compatibility",
+      "Native Windows support planned for future releases",
+      "Use Windows Terminal for best experience"
     ]
   },
   {
@@ -118,26 +121,31 @@ const platforms = [
     architectures: ["x86_64", "ARM64"],
     installation: [
       {
+        method: "Using Cargo",
+        commands: [
+          "# Install Rust if needed",
+          "pkg install rust cargo",
+          "cargo install cmdai"
+        ]
+      },
+      {
         method: "Build from Source",
         commands: [
-          "# Install Rust toolchain",
-          "pkg install rust cargo",
-          "git clone https://github.com/caro-sh/caro.git",
+          "git clone https://github.com/wildcard/caro.git",
           "cd caro",
-          "cargo build --release",
-          "sudo cp target/release/caro /usr/local/bin/"
+          "cargo build --release"
         ]
       }
     ],
     postInstall: [
-      "Verify: caro --version",
-      "Configure backend: caro config set backend ollama",
-      "Test: caro \"list open ports\""
+      "Verify: cmdai --version",
+      "Try: cmdai \"list open ports\"",
+      "POSIX compliance ensures BSD compatibility"
     ],
     tips: [
-      "POSIX compliance ensures excellent BSD compatibility",
-      "Use pkg/ports for dependencies",
-      "Consider vLLM backend for production deployments"
+      "CPU backend works reliably on BSD systems",
+      "Connect to Ollama or vLLM as needed",
+      "Excellent POSIX command compatibility"
     ]
   }
 ];

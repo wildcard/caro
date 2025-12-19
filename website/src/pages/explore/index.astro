@@ -17,10 +17,11 @@ import Footer from '../../components/Footer.astro';
   <section class="explore-hero">
     <div class="container">
       <div class="hero-content">
+        <div class="early-dev-badge">🚧 Early Development (v0.1.0)</div>
         <h1>Explore Caro</h1>
         <p class="hero-subtitle">
-          Your loyal companion for safe, intelligent shell command generation.
-          Convert natural language to POSIX-compliant commands with comprehensive safety validation.
+          Your loyal companion for safe shell command generation.
+          Published on crates.io with core features working - advanced features in active development.
         </p>
         <div class="hero-cta">
           <a href="#get-started" class="cta-primary">Get Started</a>
@@ -109,6 +110,18 @@ import Footer from '../../components/Footer.astro';
   .hero-content {
     text-align: center;
     margin-bottom: 50px;
+  }
+
+  .early-dev-badge {
+    display: inline-block;
+    background: rgba(33, 150, 243, 0.1);
+    border: 1px solid rgba(33, 150, 243, 0.3);
+    color: #2196f3;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 20px;
   }
 
   .explore-hero h1 {
