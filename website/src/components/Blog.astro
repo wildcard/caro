@@ -1,5 +1,11 @@
 ---
-// Blog component displaying recent articles
+// Blog component displaying recent articles with different variations
+import ClassicCard from './blog-variations/ClassicCard.astro';
+import MagazineStyle from './blog-variations/MagazineStyle.astro';
+import MinimalistList from './blog-variations/MinimalistList.astro';
+import Timeline from './blog-variations/Timeline.astro';
+import GridMasonry from './blog-variations/GridMasonry.astro';
+
 const blogPosts = [
   {
     title: "Announcing Caro: Your Terminal's AI Companion",
@@ -24,6 +30,20 @@ const blogPosts = [
     readTime: "8 min read"
   }
 ];
+
+// Determine which variation to use (can be passed as a prop or use default)
+const variation = blogPosts[0]?.variation || "classic";
+
+// Map variation names to components
+const variationComponents = {
+  classic: ClassicCard,
+  magazine: MagazineStyle,
+  minimalist: MinimalistList,
+  timeline: Timeline,
+  masonry: GridMasonry
+};
+
+const VariationComponent = variationComponents[variation] || ClassicCard;
 ---
 
 <section id="blog" class="blog-section">
@@ -31,35 +51,7 @@ const blogPosts = [
     <h2>From the Pack</h2>
     <p class="section-subtitle">Stories, updates, and insights about Caro</p>
 
-    <div class="blog-grid">
-      {blogPosts.map(post => (
-        <article class="blog-card">
-          {post.badge && (
-            <div class="blog-badge">{post.badge}</div>
-          )}
-          <div class="blog-card-header">
-            <time datetime={post.date} class="blog-date">
-              {new Date(post.date).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
-            </time>
-            <span class="blog-read-time">{post.readTime}</span>
-          </div>
-
-          <h3 class="blog-title">
-            <a href={`/blog/${post.slug}`}>{post.title}</a>
-          </h3>
-
-          <p class="blog-excerpt">{post.excerpt}</p>
-
-          <a href={`/blog/${post.slug}`} class="blog-read-more">
-            Read full story →
-          </a>
-        </article>
-      ))}
-    </div>
+    <VariationComponent posts={blogPosts} />
 
     <div style="text-align: center; margin-top: 40px;">
       <a href="/blog" class="view-all-link">
@@ -98,98 +90,6 @@ const blogPosts = [
     margin-right: auto;
   }
 
-  .blog-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 30px;
-    margin-top: 40px;
-  }
-
-  .blog-card {
-    background: var(--color-bg);
-    border-radius: 12px;
-    padding: 30px;
-    border: 1px solid var(--color-border);
-    transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s, border-color 0.3s;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-  }
-
-  .blog-badge {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: white;
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    z-index: 1;
-  }
-
-  .blog-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.15);
-    border-color: #ff8c42;
-  }
-
-  .blog-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    font-size: 14px;
-    color: var(--color-text-secondary);
-  }
-
-  .blog-date {
-    font-weight: 500;
-  }
-
-  .blog-read-time {
-    color: var(--color-links-muted);
-  }
-
-  .blog-title {
-    font-size: 24px;
-    margin-bottom: 15px;
-    line-height: 1.3;
-  }
-
-  .blog-title a {
-    color: var(--color-text);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-
-  .blog-title a:hover {
-    color: #ff8c42;
-  }
-
-  .blog-excerpt {
-    color: var(--color-text-secondary);
-    line-height: 1.7;
-    margin-bottom: 20px;
-    flex-grow: 1;
-  }
-
-  .blog-read-more {
-    color: #ff8c42;
-    text-decoration: none;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    transition: transform 0.2s;
-  }
-
-  .blog-read-more:hover {
-    transform: translateX(4px);
-  }
-
   .view-all-link {
     color: #ff8c42;
     text-decoration: none;
@@ -205,10 +105,6 @@ const blogPosts = [
   @media (max-width: 768px) {
     .blog-section h2 {
       font-size: 28px;
-    }
-
-    .blog-grid {
-      grid-template-columns: 1fr;
     }
   }
 </style>

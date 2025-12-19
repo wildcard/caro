@@ -1,0 +1,182 @@
+---
+// Magazine Style variation - Editorial layout with large featured images
+interface Props {
+  posts: Array<{
+    title: string;
+    slug: string;
+    date: string;
+    excerpt: string;
+    readTime: string;
+  }>;
+}
+
+const { posts } = Astro.props;
+---
+
+<div class="magazine-layout">
+  {posts.map((post, index) => (
+    <article class={`magazine-article ${index === 0 ? 'featured' : ''}`}>
+      <a href={`/blog/${post.slug}`} class="magazine-link">
+        <div class="magazine-image-placeholder">
+          <span class="magazine-icon">🐕</span>
+        </div>
+
+        <div class="magazine-content">
+          <div class="magazine-meta">
+            <time datetime={post.date}>
+              {new Date(post.date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+              })}
+            </time>
+            <span class="separator">•</span>
+            <span class="read-time">{post.readTime}</span>
+          </div>
+
+          <h3 class="magazine-title">{post.title}</h3>
+          <p class="magazine-excerpt">{post.excerpt}</p>
+
+          <span class="magazine-cta">
+            Continue reading →
+          </span>
+        </div>
+      </a>
+    </article>
+  ))}
+</div>
+
+<style>
+  .magazine-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+    margin-top: 40px;
+  }
+
+  .magazine-article {
+    background: var(--color-bg);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+  }
+
+  .magazine-article:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(255, 140, 66, 0.12);
+    border-color: #ff8c42;
+  }
+
+  .magazine-article.featured .magazine-image-placeholder {
+    height: 400px;
+  }
+
+  .magazine-link {
+    display: grid;
+    grid-template-columns: 1fr;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .magazine-image-placeholder {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s;
+  }
+
+  .magazine-article:hover .magazine-image-placeholder {
+    opacity: 0.95;
+  }
+
+  .magazine-icon {
+    font-size: 80px;
+    filter: brightness(1.2);
+  }
+
+  .magazine-content {
+    padding: 35px;
+  }
+
+  .magazine-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    margin-bottom: 16px;
+    font-weight: 500;
+  }
+
+  .separator {
+    color: var(--color-links-muted);
+  }
+
+  .magazine-title {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 16px;
+    color: var(--color-text);
+    transition: color 0.2s;
+  }
+
+  .magazine-article:hover .magazine-title {
+    color: #ff8c42;
+  }
+
+  .magazine-article.featured .magazine-title {
+    font-size: 38px;
+  }
+
+  .magazine-excerpt {
+    font-size: 18px;
+    line-height: 1.7;
+    color: var(--color-text-tertiary);
+    margin-bottom: 24px;
+  }
+
+  .magazine-cta {
+    color: #ff8c42;
+    font-weight: 600;
+    font-size: 16px;
+    display: inline-flex;
+    align-items: center;
+    transition: transform 0.2s;
+  }
+
+  .magazine-article:hover .magazine-cta {
+    transform: translateX(4px);
+  }
+
+  @media (max-width: 768px) {
+    .magazine-layout {
+      gap: 30px;
+    }
+
+    .magazine-article.featured .magazine-image-placeholder,
+    .magazine-image-placeholder {
+      height: 220px;
+    }
+
+    .magazine-icon {
+      font-size: 60px;
+    }
+
+    .magazine-content {
+      padding: 25px;
+    }
+
+    .magazine-title,
+    .magazine-article.featured .magazine-title {
+      font-size: 24px;
+    }
+
+    .magazine-excerpt {
+      font-size: 16px;
+    }
+  }
+</style>
