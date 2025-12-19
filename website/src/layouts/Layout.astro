@@ -19,7 +19,11 @@ const { title, description } = Astro.props;
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     <!-- GNU Unifont - FOSS bitmap font from unifoundry.com -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/unifont@15.1.04/unifont.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script is:inline>
       // Dark mode initialization (before render to prevent flash)
       const theme = (() => {
@@ -63,43 +67,67 @@ const { title, description } = Astro.props;
 
 <style is:global>
   :root {
-    /* Retro Terminal Color Palette - keeping current orange scheme */
-    --color-bg: #faf8f0;
-    --color-bg-secondary: #e8e4d8;
-    --color-bg-tertiary: #fff8f0;
-    --color-text: #2c2416;
-    --color-text-secondary: #5a4f3a;
-    --color-text-tertiary: #3d3424;
-    --color-border: #2c2416;
-    --color-footer-bg: #2c2416;
-    --color-footer-text: #faf8f0;
-    --color-footer-text-muted: #a8a090;
-    --color-links-muted: #5a4f3a;
+    /* Amber CRT Terminal Theme - DOS/Commodore inspired */
+    --color-bg: #1a0f00;
+    --color-bg-secondary: #2a1f0f;
+    --color-bg-tertiary: #3a2f1f;
+    --color-text: #ffb000;
+    --color-text-secondary: #ff8c42;
+    --color-text-tertiary: #ffcc66;
+    --color-border: #ff8c42;
+    --color-footer-bg: #0d0800;
+    --color-footer-text: #ffb000;
+    --color-footer-text-muted: #cc7700;
+    --color-links-muted: #ff8c42;
 
-    /* Retro accent colors */
-    --color-orange: #ff8c42;
-    --color-orange-dark: #ff6b35;
-    --color-terminal-green: #33ff00;
+    /* Accent colors */
+    --color-primary: #ff8c42;
+    --color-primary-bright: #ffb866;
+    --color-secondary: #ffb000;
+    --color-accent: #ff6b35;
+    --color-success: #00ff88;
+    --color-warning: #ffcc00;
+
+    /* Terminal colors */
+    --color-terminal-green: #00ff88;
     --color-terminal-amber: #ffb000;
+    --color-terminal-red: #ff4444;
 
-    /* CRT/Scanline effect variables */
-    --scanline-opacity: 0.05;
-    --crt-curve: 0px;
+    /* Effects */
+    --scanline-opacity: 0.08;
+    --glow-color: rgba(255, 176, 0, 0.3);
   }
 
   .dark {
-    --color-bg: #0f0f0f;
-    --color-bg-secondary: #1a1a1a;
-    --color-bg-tertiary: #141414;
-    --color-text: #33ff00;
-    --color-text-secondary: #22bb00;
-    --color-text-tertiary: #44ff22;
-    --color-border: #33ff00;
+    /* Green Phosphor Terminal Theme - VT100/Apple II inspired */
+    --color-bg: #000000;
+    --color-bg-secondary: #001a00;
+    --color-bg-tertiary: #002200;
+    --color-text: #00ff88;
+    --color-text-secondary: #00dd77;
+    --color-text-tertiary: #66ffaa;
+    --color-border: #00ff88;
     --color-footer-bg: #000000;
-    --color-footer-text: #33ff00;
-    --color-footer-text-muted: #22bb00;
-    --color-links-muted: #22bb00;
-    --scanline-opacity: 0.08;
+    --color-footer-text: #00ff88;
+    --color-footer-text-muted: #00aa55;
+    --color-links-muted: #00dd77;
+
+    /* Accent colors */
+    --color-primary: #00ff88;
+    --color-primary-bright: #66ffaa;
+    --color-secondary: #00dd77;
+    --color-accent: #00ffff;
+    --color-success: #00ff88;
+    --color-warning: #ffff00;
+
+    /* Terminal colors */
+    --color-terminal-green: #00ff88;
+    --color-terminal-amber: #ffff00;
+    --color-terminal-red: #ff4444;
+
+    /* Effects */
+    --scanline-opacity: 0.12;
+    --glow-color: rgba(0, 255, 136, 0.4);
   }
 
   * {
@@ -116,14 +144,15 @@ const { title, description } = Astro.props;
   }
 
   body {
-    font-family: 'Unifont', 'Courier New', 'Courier', monospace;
-    line-height: 1.6;
+    font-family: 'JetBrains Mono', 'Inconsolata', 'Courier New', monospace;
+    line-height: 1.7;
     color: var(--color-text);
     background: var(--color-bg);
     transition: none;
     position: relative;
     font-size: 16px;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
+    font-weight: 400;
   }
 
   /* CRT Scanline Effect */
@@ -185,34 +214,34 @@ const { title, description } = Astro.props;
     margin-right: auto;
   }
 
-  /* Dark mode toggle button - NES style */
+  /* Dark mode toggle button - Retro terminal style */
   #theme-toggle {
     position: fixed;
     top: 20px;
     right: 20px;
     z-index: 10000;
-    background: var(--color-bg-secondary);
-    border: 4px solid var(--color-border);
+    background: var(--color-bg);
+    border: 3px solid var(--color-border);
     border-radius: 0;
-    width: 56px;
-    height: 56px;
+    width: 52px;
+    height: 52px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     color: var(--color-text);
     transition: none;
-    box-shadow: 4px 4px 0 var(--color-border);
+    box-shadow: 0 0 15px var(--glow-color), 4px 4px 0 var(--color-border);
     image-rendering: pixelated;
   }
 
   #theme-toggle:hover {
-    background: var(--color-orange);
-    color: white;
+    background: var(--color-bg-secondary);
+    box-shadow: 0 0 25px var(--glow-color), 4px 4px 0 var(--color-border);
   }
 
   #theme-toggle:active {
-    box-shadow: 2px 2px 0 var(--color-border);
+    box-shadow: 0 0 15px var(--glow-color), 2px 2px 0 var(--color-border);
     transform: translate(2px, 2px);
   }
 
@@ -284,5 +313,10 @@ const { title, description } = Astro.props;
         }
       }
     });
+
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
   });
 </script>

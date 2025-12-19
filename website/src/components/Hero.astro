@@ -4,46 +4,52 @@ import GitHubStarButton from './GitHubStarButton.astro';
 
 <div class="hero">
   <div class="container">
-    <div class="ascii-border-top">
-╔════════════════════════════════════════════════════════════════════════════╗
+    <div class="ascii-art-top">
+   ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+   ██░▀██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▀██░
+   ██░░██████████████████████████████████████████████████████████████████░░██░
     </div>
-    <div class="companion-badge">[ 🐕 COMPANION AGENT ]</div>
+    <div class="companion-badge">
+      <i data-lucide="dog" class="icon"></i>
+      <span>COMPANION AGENT</span>
+    </div>
     <img src="/caro-prompting.gif" alt="Caro - 8-bit pixel art" class="pixel-art" />
     <div class="logo">
-      <div class="logo-ascii">
-   ▄████▄   ▄▄▄       ██▀███   ▒█████
-  ▒██▀ ▀█  ▒████▄    ▓██ ▒ ██▒▒██▒  ██▒
-  ▒▓█    ▄ ▒██  ▀█▄  ▓██ ░▄█ ▒▒██░  ██▒
-  ▒▓▓▄ ▄██▒░██▄▄▄▄██ ▒██▀▀█▄  ▒██   ██░
-  ▒ ▓███▀ ░ ▓█   ▓██▒░██▓ ▒██▒░ ████▓▒░
-  ░ ░▒ ▒  ░ ▒▒   ▓▒█░░ ▒▓ ░▒▓░░ ▒░▒░▒░
-    ░  ▒     ▒   ▒▒ ░  ░▒ ░ ▒░  ░ ▒ ▒░
-  ░          ░   ▒     ░░   ░ ░ ░ ░ ▒
-  ░ ░            ░  ░   ░         ░ ░
+      <div class="logo-text">CARO</div>
+      <div class="logo-subtitle">Shell Command AI</div>
+    </div>
+    <h1 class="tagline">&gt; YOUR LOYAL SHELL COMPANION</h1>
+    <div class="feature-tags">
+      <div class="tag">
+        <i data-lucide="shield-check" class="tag-icon"></i>
+        <span>POSIX Expert</span>
+      </div>
+      <div class="tag">
+        <i data-lucide="heart-pulse" class="tag-icon"></i>
+        <span>Safety First</span>
+      </div>
+      <div class="tag">
+        <i data-lucide="zap" class="tag-icon"></i>
+        <span>Lightning Fast</span>
       </div>
     </div>
-    <h1 class="tagline">>>> YOUR LOYAL SHELL COMPANION <<<</h1>
-    <p class="subtitle">
-      [ POSIX SHELL COMMAND AGENT ] • [ EMPATHY + AGENCY ]<br/>
-      [ MCP FOR CLAUDE ] • [ DEDICATED SKILL ] • [ SAFETY FIRST ]
-    </p>
     <div class="github-star-wrapper">
       <GitHubStarButton />
     </div>
     <div class="cta-buttons">
-      <a href="#download" class="cta-button">
-        <span class="button-border">╔══════════════╗</span>
-        <span class="button-text">║ GET STARTED ║</span>
-        <span class="button-border">╚══════════════╝</span>
+      <a href="#download" class="cta-button primary">
+        <i data-lucide="download" class="button-icon"></i>
+        <span>GET STARTED</span>
       </a>
       <a href="#how-it-works" class="cta-button secondary">
-        <span class="button-border">╔══════════════╗</span>
-        <span class="button-text">║ WATCH DEMO  ║</span>
-        <span class="button-border">╚══════════════╝</span>
+        <i data-lucide="play-circle" class="button-icon"></i>
+        <span>WATCH DEMO</span>
       </a>
     </div>
-    <div class="ascii-border-bottom">
-╚════════════════════════════════════════════════════════════════════════════╝
+    <div class="ascii-art-bottom">
+   ██░░██████████████████████████████████████████████████████████████████░░██░
+   ██░▄██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▄██░
+   ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
     </div>
   </div>
 </div>
@@ -61,62 +67,111 @@ import GitHubStarButton from './GitHubStarButton.astro';
     position: relative;
   }
 
-  .ascii-border-top,
-  .ascii-border-bottom {
-    font-family: 'Unifont', monospace;
-    color: var(--color-border);
-    font-size: 10px;
-    line-height: 1;
+  .ascii-art-top,
+  .ascii-art-bottom {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--color-text);
+    font-size: 9px;
+    line-height: 1.1;
     white-space: pre;
     margin: 20px 0;
-    text-shadow: 2px 2px 0 var(--color-orange);
+    text-shadow: 0 0 10px var(--glow-color);
+    font-weight: 400;
+  }
+
+  .companion-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+    padding: 10px 24px;
+    border: 2px solid var(--color-border);
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 30px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    box-shadow: 0 0 15px var(--glow-color), 4px 4px 0 var(--color-border);
+  }
+
+  .companion-badge .icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .pixel-art {
+    width: 140px;
+    height: auto;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    margin-bottom: 25px;
+    border: 3px solid var(--color-border);
+    box-shadow: 0 0 20px var(--glow-color);
+    padding: 5px;
+    background: var(--color-bg-secondary);
   }
 
   .logo {
     margin-bottom: 30px;
   }
 
-  .logo-ascii {
-    font-family: 'Unifont', monospace;
-    font-size: 12px;
-    line-height: 1.2;
-    color: var(--color-orange);
-    text-shadow: 3px 3px 0 var(--color-orange-dark);
-    white-space: pre;
-    margin: 0 auto;
+  .logo-text {
+    font-size: 72px;
+    font-weight: 900;
+    color: var(--color-text);
+    letter-spacing: 8px;
+    text-shadow:
+      0 0 20px var(--glow-color),
+      0 0 40px var(--glow-color),
+      3px 3px 0 var(--color-border);
+    line-height: 1;
+    margin-bottom: 10px;
   }
 
-  .companion-badge {
-    display: inline-block;
-    background: var(--color-orange);
-    color: #000;
-    padding: 12px 24px;
-    border: 4px solid var(--color-border);
+  .logo-subtitle {
     font-size: 14px;
+    color: var(--color-text-secondary);
+    letter-spacing: 4px;
     font-weight: 700;
-    margin-bottom: 30px;
     text-transform: uppercase;
-    letter-spacing: 2px;
-    box-shadow: 6px 6px 0 var(--color-border);
   }
 
   .tagline {
-    font-size: 28px;
+    font-size: 32px;
     font-weight: 700;
-    margin-bottom: 30px;
+    margin-bottom: 35px;
     color: var(--color-text);
-    letter-spacing: 3px;
-    font-family: 'Unifont', monospace;
+    letter-spacing: 2px;
+    text-shadow: 0 0 15px var(--glow-color);
   }
 
-  .subtitle {
-    font-size: 16px;
-    color: var(--color-text-secondary);
+  .feature-tags {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
     margin-bottom: 40px;
-    max-width: 700px;
-    line-height: 2;
-    font-family: 'Unifont', monospace;
+  }
+
+  .tag {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    background: var(--color-bg-tertiary);
+    border: 2px solid var(--color-border);
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    font-weight: 700;
     letter-spacing: 1px;
+    box-shadow: 0 0 10px var(--glow-color);
+  }
+
+  .tag-icon {
+    width: 16px;
+    height: 16px;
   }
 
   .github-star-wrapper {
@@ -128,7 +183,7 @@ import GitHubStarButton from './GitHubStarButton.astro';
 
   .cta-buttons {
     display: flex;
-    gap: 30px;
+    gap: 20px;
     justify-content: center;
     flex-wrap: wrap;
     margin-bottom: 30px;
@@ -136,99 +191,100 @@ import GitHubStarButton from './GitHubStarButton.astro';
 
   .cta-button {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    background: var(--color-orange);
-    color: #000;
+    gap: 10px;
+    padding: 16px 32px;
     text-decoration: none;
-    border: 4px solid var(--color-border);
-    font-size: 16px;
+    border: 3px solid var(--color-border);
+    font-size: 15px;
     font-weight: 700;
-    box-shadow: 6px 6px 0 var(--color-border);
-    font-family: 'Unifont', monospace;
-    padding: 0;
-    transition: none;
+    letter-spacing: 1px;
     cursor: pointer;
+    transition: all 0.15s ease;
   }
 
-  .cta-button .button-border {
-    font-size: 12px;
-    line-height: 1;
+  .cta-button.primary {
+    background: var(--color-primary);
+    color: var(--color-bg);
+    box-shadow: 0 0 20px var(--glow-color), 4px 4px 0 var(--color-border);
   }
 
-  .cta-button .button-text {
-    padding: 8px 16px;
-    font-size: 14px;
-    letter-spacing: 2px;
+  .cta-button.primary:hover {
+    box-shadow: 0 0 30px var(--glow-color), 4px 4px 0 var(--color-border);
+    transform: translateY(-2px);
   }
 
-  .cta-button:hover {
-    background: var(--color-orange-dark);
-  }
-
-  .cta-button:active {
-    box-shadow: 3px 3px 0 var(--color-border);
-    transform: translate(3px, 3px);
+  .cta-button.primary:active {
+    box-shadow: 0 0 15px var(--glow-color), 2px 2px 0 var(--color-border);
+    transform: translate(2px, 2px);
   }
 
   .cta-button.secondary {
     background: var(--color-bg);
-    color: var(--color-orange);
-    border: 4px solid var(--color-orange);
-    box-shadow: 6px 6px 0 var(--color-orange);
+    color: var(--color-text);
+    box-shadow: 0 0 15px var(--glow-color), 4px 4px 0 var(--color-border);
   }
 
   .cta-button.secondary:hover {
     background: var(--color-bg-secondary);
+    box-shadow: 0 0 25px var(--glow-color), 4px 4px 0 var(--color-border);
+    transform: translateY(-2px);
   }
 
   .cta-button.secondary:active {
-    box-shadow: 3px 3px 0 var(--color-orange);
+    box-shadow: 0 0 15px var(--glow-color), 2px 2px 0 var(--color-border);
+    transform: translate(2px, 2px);
   }
 
-  .pixel-art {
-    width: 120px;
-    height: auto;
-    image-rendering: pixelated;
-    image-rendering: -moz-crisp-edges;
-    image-rendering: crisp-edges;
-    margin-bottom: 20px;
-    border: 4px solid var(--color-border);
-    box-shadow: 6px 6px 0 var(--color-orange);
+  .button-icon {
+    width: 20px;
+    height: 20px;
   }
 
   @media (max-width: 768px) {
-    .ascii-border-top,
-    .ascii-border-bottom {
+    .ascii-art-top,
+    .ascii-art-bottom {
       font-size: 6px;
       overflow-x: auto;
     }
 
-    .pixel-art {
-      width: 80px;
-      height: auto;
+    .logo-text {
+      font-size: 48px;
+      letter-spacing: 4px;
     }
 
-    .logo-ascii {
-      font-size: 8px;
+    .logo-subtitle {
+      font-size: 11px;
+    }
+
+    .pixel-art {
+      width: 100px;
     }
 
     .tagline {
-      font-size: 18px;
-      letter-spacing: 2px;
+      font-size: 22px;
+      letter-spacing: 1px;
     }
 
-    .subtitle {
-      font-size: 14px;
+    .feature-tags {
+      gap: 10px;
+    }
+
+    .tag {
+      font-size: 11px;
+      padding: 6px 14px;
     }
 
     .cta-buttons {
-      gap: 20px;
       flex-direction: column;
+      gap: 15px;
+      width: 100%;
+      max-width: 300px;
     }
 
-    .cta-button .button-text {
-      font-size: 12px;
+    .cta-button {
+      width: 100%;
+      justify-content: center;
     }
   }
 </style>
