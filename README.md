@@ -4,9 +4,9 @@
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%203.0-blue.svg)](https://opensource.org/licenses/AGPL-3.0)
 [![CI](https://github.com/wildcard/cmdai/workflows/CI/badge.svg)](https://github.com/wildcard/cmdai/actions)
 
-> 🚧 **Early Development Stage** - Published on crates.io, core features implemented, advanced features in progress
+> ✨ **Active Development** - Published on crates.io with core features working. Visit [caro.sh](https://caro.sh) for more info.
 
-**cmdai** (also known as **caro**) converts natural language descriptions into safe POSIX shell commands using local LLMs. Built with Rust for blazing-fast performance, single-binary distribution, and safety-first design.
+**cmdai** (also known as **caro**) converts natural language descriptions into safe POSIX shell commands using local LLMs. Built with Rust for blazing-fast performance, single-binary distribution, and safety-first design with intelligent platform detection.
 
 ```bash
 $ cmdai "list all PDF files in Downloads folder larger than 10MB"
@@ -23,45 +23,53 @@ Execute this command? (y/N) y
 
 **Current Version:** 0.1.0 (Published on [crates.io](https://crates.io/crates/cmdai))
 
-This project is in **active early development**. Core architecture is implemented and the package is published, with advanced features in progress.
+This project is in **active development** with core features implemented and working. The CLI is functional with embedded local inference and advanced platform-aware command generation.
 
 ### ✅ Completed & Published
 - ✨ **Published to crates.io** - Install via `cargo install cmdai`
 - 🎯 Core CLI structure with comprehensive argument parsing
 - 🏗️ Modular architecture with trait-based backends
-- 🧠 Embedded model backend with MLX (Apple Silicon) and CPU variants
+- 🧠 **Embedded model backend** with MLX (Apple Silicon) and CPU variants
+- 🤖 **Agentic context loop** - Iterative refinement with platform detection
+- 🌍 **Platform-aware generation** - Detects OS, architecture, available commands
+- 📍 **Execution context detection** - CWD, shell type, system constraints
 - 🌐 Remote backend support (Ollama, vLLM) with automatic fallback
 - 🛡️ Safety validation with 52 pre-compiled dangerous command patterns
 - ⚙️ Configuration management with TOML support
 - 💬 Interactive user confirmation flows with color-coded risk levels
+- 🎬 **Command execution engine** - Safe execution with shell detection
 - 📄 Multiple output formats (JSON, YAML, Plain)
 - 🧪 Contract-based test structure with TDD methodology
 - 🔄 Multi-platform CI/CD pipeline with automated publishing
 - 📦 Installation script with automatic `caro` alias setup
 - 🖥️ Cross-platform detection and validation (macOS, Linux, Windows)
+- 🌐 **Official website** at [caro.sh](https://caro.sh)
+- 🎥 **Professional demos** with asciinema recordings
 
 ### 🚧 In Progress
-- Model downloading and caching system
-- Full MLX backend integration for Apple Silicon
-- Advanced command execution engine
-- Performance optimization and benchmarking
+- Model downloading and caching optimization
+- Command history and learning from user feedback
+- Performance profiling and optimization
+- Extended safety pattern library
 
 ### 📅 Planned
-- Multi-step goal completion
-- Advanced context awareness
-- Shell script generation
-- Command history and learning
-- Interactive command refinement
+- Multi-step goal completion with dependency resolution
+- Shell script generation for complex workflows
+- Interactive command refinement with explanations
+- Plugin system for custom backends and validators
 
-## ✨ Features (Planned & In Development)
+## ✨ Features
 
-- 🚀 **Instant startup** - Single binary with <100ms cold start (target)
-- 🧠 **Local LLM inference** - Optimized for Apple Silicon with MLX
-- 🛡️ **Safety-first** - Comprehensive command validation framework
-- 📦 **Zero dependencies** - Self-contained binary distribution
-- 🎯 **Multiple backends** - Extensible backend system (MLX, vLLM, Ollama)
-- 💾 **Smart caching** - Hugging Face model management
-- 🌐 **Cross-platform** - macOS, Linux, Windows support
+- 🚀 **Fast startup** - Single binary with quick initialization
+- 🧠 **Local LLM inference** - Embedded models optimized for Apple Silicon (MLX) and CPU
+- 🤖 **Intelligent refinement** - 2-iteration agentic loop for platform-specific command generation
+- 🌍 **Platform-aware** - Automatically detects OS, architecture, shell, and available commands
+- 🛡️ **Safety-first** - Comprehensive validation with 52+ dangerous command patterns
+- 📦 **Self-contained** - Single binary distribution with embedded models
+- 🎯 **Multiple backends** - Extensible system supporting MLX, CPU, vLLM, and Ollama
+- 💾 **Model management** - Built-in model loading with optimization
+- 🌐 **Cross-platform** - Full support for macOS (including Apple Silicon), Linux, and Windows
+- 🎬 **Safe execution** - Optional command execution with shell-aware handling
 
 ## 🚀 Quick Start
 
@@ -283,7 +291,38 @@ cmdai/
 1. **CommandGenerator Trait** - Unified interface for all LLM backends
 2. **SafetyValidator** - Command validation and risk assessment
 3. **Backend System** - Extensible architecture for multiple inference engines
-4. **Cache Manager** - Hugging Face model management (planned)
+4. **AgentLoop** - Iterative refinement with platform detection
+5. **ExecutionContext** - Comprehensive system environment detection
+6. **Model Loader** - Efficient model initialization and management
+
+### Intelligent Command Generation
+
+cmdai uses a sophisticated **2-iteration agentic loop** for generating platform-appropriate commands:
+
+**Iteration 1: Context-Aware Generation**
+- Detects your OS (macOS, Linux, Windows), architecture, and shell
+- Identifies available commands on your system
+- Applies platform-specific rules (BSD vs GNU differences)
+- Generates initial command with confidence score
+
+**Iteration 2: Smart Refinement** (triggered when needed)
+- Extracts commands from pipes and chains
+- Fetches command-specific help and version info
+- Detects and fixes platform compatibility issues
+- Refines complex commands (sed, awk, xargs)
+
+**Example Flow:**
+```
+User: "show top 5 processes by CPU"
+  ↓
+Context Detection: macOS 14.2, arm64, zsh
+  ↓
+Iteration 1: Generates with macOS rules
+  ↓
+Smart Refinement: Fixes BSD sort syntax
+  ↓
+Result: ps aux | sort -nrk 3,3 | head -6
+```
 
 ### Backend Architecture
 
@@ -452,35 +491,42 @@ This project is licensed under the **GNU Affero General Public License v3.0 (AGP
 
 ## 🗺️ Roadmap
 
-### Phase 1: Core Structure (Current)
+### Phase 1: Core Structure ✅ Complete
 - [x] CLI argument parsing
 - [x] Module architecture
 - [x] Backend trait system
-- [ ] Basic command generation
+- [x] Command generation with embedded models
 
-### Phase 2: Safety & Validation
-- [ ] Dangerous pattern detection
-- [ ] POSIX compliance checking
-- [ ] User confirmation workflows
-- [ ] Risk assessment system
+### Phase 2: Safety & Validation ✅ Complete
+- [x] Dangerous pattern detection (52+ patterns)
+- [x] POSIX compliance checking
+- [x] User confirmation workflows
+- [x] Risk assessment system with color coding
 
-### Phase 3: Backend Integration
-- [ ] vLLM HTTP API support
-- [ ] Ollama local backend
-- [ ] Response parsing
-- [ ] Error handling
+### Phase 3: Backend Integration ✅ Complete
+- [x] Embedded MLX backend (Apple Silicon)
+- [x] Embedded CPU backend (cross-platform)
+- [x] vLLM HTTP API support
+- [x] Ollama local backend
+- [x] Response parsing with fallback strategies
+- [x] Comprehensive error handling
 
-### Phase 4: MLX Optimization
-- [ ] FFI bindings with cxx
-- [ ] Metal Performance Shaders
-- [ ] Unified memory handling
-- [ ] Apple Silicon optimization
+### Phase 4: Platform Intelligence ✅ Complete
+- [x] Execution context detection
+- [x] Platform-specific command rules
+- [x] Agentic refinement loop
+- [x] Command info enrichment
+- [x] Shell-aware execution
 
-### Phase 5: Production Ready
-- [ ] Comprehensive testing
-- [ ] Performance optimization
-- [ ] Binary distribution
-- [ ] Package manager support
+### Phase 5: Production Ready 🚧 In Progress
+- [x] Published to crates.io
+- [x] Installation script with alias setup
+- [x] Multi-platform CI/CD
+- [x] Website and documentation
+- [x] Professional demos
+- [ ] Extended test coverage
+- [ ] Performance benchmarking suite
+- [ ] Binary distribution optimization
 
 ---
 
