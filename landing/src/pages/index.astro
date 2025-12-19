@@ -2,515 +2,355 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="CMDAI Enterprise - Secure Terminal Intelligence for Organizations">
-  <!-- Navigation -->
-  <nav class="fixed top-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center h-16">
-        <div class="flex items-center space-x-2">
-          <svg class="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          <span class="text-xl font-bold bg-gradient-to-r from-primary-400 to-security-400 bg-clip-text text-transparent">CMDAI Enterprise</span>
-        </div>
-        <div class="hidden md:flex items-center space-x-8">
-          <a href="#features" class="text-slate-300 hover:text-primary-400 transition-colors">Features</a>
-          <a href="#security" class="text-slate-300 hover:text-primary-400 transition-colors">Security</a>
-          <a href="#enterprise" class="text-slate-300 hover:text-primary-400 transition-colors">Enterprise</a>
-          <a href="#pricing" class="text-slate-300 hover:text-primary-400 transition-colors">Pricing</a>
-          <a href="#contact" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors font-medium">Contact Sales</a>
-        </div>
+<Layout title="cmdai - Turn words into shell commands">
+  <!-- Minimal Navigation -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-slate-950/60 backdrop-blur-xl border-b border-slate-800/50">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg"></div>
+        <span class="text-lg font-semibold">cmdai</span>
+      </div>
+      <div class="hidden md:flex items-center gap-8 text-sm">
+        <a href="#features" class="text-slate-400 hover:text-slate-100 transition">Features</a>
+        <a href="#how-it-works" class="text-slate-400 hover:text-slate-100 transition">How it works</a>
+        <a href="#pricing" class="text-slate-400 hover:text-slate-100 transition">Pricing</a>
+        <a href="#waitlist" class="px-4 py-2 bg-violet-600 hover:bg-violet-700 rounded-lg transition font-medium">Join Waitlist</a>
       </div>
     </div>
   </nav>
 
   <!-- Hero Section -->
-  <section class="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
-    <!-- Background gradient -->
-    <div class="absolute inset-0 bg-gradient-to-br from-primary-950/20 via-slate-950 to-security-950/20"></div>
+  <section class="relative min-h-screen flex items-center justify-center px-6 pt-20">
+    <div class="absolute inset-0 bg-gradient-to-b from-violet-950/20 via-slate-950 to-slate-950"></div>
 
-    <div class="relative max-w-7xl mx-auto">
-      <div class="text-center max-w-4xl mx-auto">
-        <div class="inline-flex items-center px-4 py-2 rounded-full bg-primary-950/50 border border-primary-800/30 mb-8">
-          <span class="w-2 h-2 bg-primary-500 rounded-full mr-2 animate-pulse"></span>
-          <span class="text-sm text-primary-300">Air-Gap Compatible | Zero External Dependencies</span>
-        </div>
+    <div class="relative max-w-5xl mx-auto text-center">
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-950/30 border border-violet-800/30 mb-8">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-violet-500"></span>
+        </span>
+        <span class="text-xs text-violet-300">Runs 100% locally | Zero external dependencies</span>
+      </div>
 
-        <h1 class="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-          <span class="bg-gradient-to-r from-slate-100 via-primary-100 to-security-100 bg-clip-text text-transparent">
-            Empowering Organizations
-          </span>
-          <br />
-          <span class="bg-gradient-to-r from-primary-400 via-primary-500 to-security-500 bg-clip-text text-transparent">
-            with Secure Terminal Intelligence
-          </span>
-        </h1>
+      <h1 class="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+        Turn <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-purple-400">natural language</span><br/>
+        into shell commands
+      </h1>
 
-        <p class="text-xl md:text-2xl text-slate-300 mb-12 leading-relaxed">
-          Transform command line workflows for enterprise teams with specialized AI agents purpose-built for system administrators, DevOps engineers, and developers.
-        </p>
+      <p class="text-xl md:text-2xl text-slate-400 mb-12 max-w-3xl mx-auto">
+        Stop memorizing syntax. Just describe what you want in plain English.
+        cmdai generates safe, POSIX-compliant commands using local AI.
+      </p>
 
-        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <a href="#contact" class="px-8 py-4 bg-primary-600 hover:bg-primary-700 rounded-lg font-semibold text-lg transition-all hover:scale-105 shadow-lg shadow-primary-900/50">
-            Request Demo
-          </a>
-          <a href="#features" class="px-8 py-4 bg-slate-800 hover:bg-slate-700 rounded-lg font-semibold text-lg transition-all border border-slate-700">
-            Learn More
-          </a>
-        </div>
-
-        <!-- Terminal Demo -->
-        <div class="mt-16 max-w-3xl mx-auto">
-          <div class="bg-slate-900 rounded-lg border border-slate-800 shadow-2xl overflow-hidden">
-            <div class="flex items-center gap-2 px-4 py-3 bg-slate-800/50 border-b border-slate-700">
-              <div class="flex gap-2">
-                <div class="w-3 h-3 rounded-full bg-red-500"></div>
-                <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <div class="w-3 h-3 rounded-full bg-green-500"></div>
-              </div>
-              <span class="text-sm text-slate-400 ml-4 font-mono">Terminal</span>
+      <!-- Interactive Terminal Demo -->
+      <div class="max-w-3xl mx-auto mb-12">
+        <div class="bg-slate-900/80 backdrop-blur rounded-2xl border border-slate-800 shadow-2xl overflow-hidden">
+          <div class="flex items-center gap-2 px-4 py-3 bg-slate-800/50 border-b border-slate-700/50">
+            <div class="flex gap-2">
+              <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+              <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+              <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
             </div>
-            <div class="p-6 font-mono text-sm">
-              <div class="flex items-start gap-2 mb-4">
-                <span class="text-primary-500">$</span>
-                <span class="text-slate-300">cmdai "find all Docker containers using more than 2GB memory"</span>
+            <span class="text-xs text-slate-500 ml-4 font-mono">terminal</span>
+          </div>
+
+          <div class="p-6 font-mono text-sm space-y-4">
+            <div class="flex items-start gap-3">
+              <span class="text-violet-500">$</span>
+              <span class="text-slate-300 flex-1">cmdai "find large Docker images over 1GB"</span>
+            </div>
+            <div class="pl-6 space-y-2 text-slate-400">
+              <div class="flex items-start gap-2">
+                <span class="text-purple-400">✓</span>
+                <span class="flex-1">docker images --format "table &#123;&#123;.Repository&#125;&#125;\t&#123;&#123;.Size&#125;&#125;" | awk 'NR &gt; 1 &#123; if ($2 ~ /GB/ &amp;&amp; $2 &gt;= 1) print $0 &#125;'</span>
               </div>
-              <div class="flex items-start gap-2 text-slate-400 mb-4">
-                <span class="text-security-500">→</span>
-                <span>docker stats --no-stream --format "table &#123;&#123;.Name&#125;&#125;\t&#123;&#123;.MemUsage&#125;&#125;" | awk 'NR&gt;1 &amp;&amp; $2 &gt; 2'</span>
+            </div>
+            <div class="pl-6 flex items-center gap-2 text-sm">
+              <div class="flex items-center gap-1.5 px-2 py-1 bg-green-950/30 border border-green-800/30 rounded">
+                <div class="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                <span class="text-green-400 text-xs">Safe</span>
               </div>
-              <div class="flex items-start gap-2 text-green-400">
-                <span>✓</span>
-                <span>Command verified safe | POSIX compliant</span>
-              </div>
+              <span class="text-slate-500 text-xs">POSIX compliant | No destructive operations</span>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="text-violet-500">$</span>
+              <span class="text-slate-300/50">_</span>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- CTA Buttons -->
+      <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <a href="#waitlist" class="px-8 py-4 bg-violet-600 hover:bg-violet-700 rounded-xl font-semibold transition-all hover:scale-105 shadow-lg shadow-violet-900/50">
+          Join Enterprise Waitlist
+        </a>
+        <a href="#demo" class="px-8 py-4 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-xl font-semibold transition-all">
+          Request Demo
+        </a>
+      </div>
+
+      <p class="text-sm text-slate-500 mt-6">
+        <span class="text-violet-400 font-semibold">2,847</span> teams already on the waitlist
+      </p>
     </div>
   </section>
 
-  <!-- Key Benefits Section -->
-  <section id="features" class="py-20 px-4 sm:px-6 lg:px-8 bg-slate-900/50">
-    <div class="max-w-7xl mx-auto">
+  <!-- What Makes It Different -->
+  <section class="py-32 px-6 bg-slate-900/30">
+    <div class="max-w-6xl mx-auto">
       <div class="text-center mb-16">
         <h2 class="text-4xl md:text-5xl font-bold mb-4">
-          <span class="bg-gradient-to-r from-primary-400 to-security-400 bg-clip-text text-transparent">
-            Purpose-Built for Enterprise Teams
-          </span>
+          Why teams choose <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-purple-400">cmdai</span>
         </h2>
-        <p class="text-xl text-slate-400 max-w-3xl mx-auto">
-          Unlike general-purpose AI assistants, CMDAI is engineered specifically for terminal environments with security and performance at its core.
+        <p class="text-lg text-slate-400 max-w-2xl mx-auto">
+          Built for security-conscious teams who need power without compromise
         </p>
       </div>
 
-      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <!-- Feature Card 1 -->
-        <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-6 hover:border-primary-700 transition-all hover:shadow-lg hover:shadow-primary-900/20">
-          <div class="w-12 h-12 bg-primary-900/30 rounded-lg flex items-center justify-center mb-4">
-            <svg class="w-6 h-6 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold mb-2 text-slate-100">Air-Gap Compatible</h3>
-          <p class="text-slate-400">
-            Runs entirely locally with optimized small models. No external API calls, ensuring command data never leaves your secure environment.
-          </p>
-        </div>
-
-        <!-- Feature Card 2 -->
-        <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-6 hover:border-primary-700 transition-all hover:shadow-lg hover:shadow-primary-900/20">
-          <div class="w-12 h-12 bg-security-900/30 rounded-lg flex items-center justify-center mb-4">
-            <svg class="w-6 h-6 text-security-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="group bg-slate-900/50 border border-slate-800 rounded-2xl p-8 hover:border-violet-700/50 transition-all">
+          <div class="w-12 h-12 bg-violet-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-violet-500/20 transition">
+            <svg class="w-6 h-6 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
           </div>
-          <h3 class="text-xl font-semibold mb-2 text-slate-100">Deterministic Safety Rules</h3>
-          <p class="text-slate-400">
-            Every command undergoes rigorous safety checks against customizable rulesets, providing protection beyond sandboxing.
+          <h3 class="text-xl font-bold mb-3">100% Air-Gapped</h3>
+          <p class="text-slate-400 leading-relaxed">
+            Runs entirely on your infrastructure. No external API calls, no data leaves your network. Perfect for compliance requirements.
           </p>
+          <div class="mt-4 flex items-center gap-2 text-sm">
+            <span class="px-2 py-0.5 bg-violet-950/30 border border-violet-800/30 rounded text-violet-300 text-xs">MLX (Apple Silicon)</span>
+            <span class="px-2 py-0.5 bg-violet-950/30 border border-violet-800/30 rounded text-violet-300 text-xs">CPU Fallback</span>
+          </div>
         </div>
 
-        <!-- Feature Card 3 -->
-        <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-6 hover:border-primary-700 transition-all hover:shadow-lg hover:shadow-primary-900/20">
-          <div class="w-12 h-12 bg-primary-900/30 rounded-lg flex items-center justify-center mb-4">
-            <svg class="w-6 h-6 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        <div class="group bg-slate-900/50 border border-slate-800 rounded-2xl p-8 hover:border-violet-700/50 transition-all">
+          <div class="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-purple-500/20 transition">
+            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
-          <h3 class="text-xl font-semibold mb-2 text-slate-100">Team Knowledge Sharing</h3>
-          <p class="text-slate-400">
-            Build shared command repositories that become your organization's living knowledge base of operational expertise.
+          <h3 class="text-xl font-bold mb-3">Safety-First Validation</h3>
+          <p class="text-slate-400 leading-relaxed">
+            Every command passes through rigorous safety checks. Blocks destructive operations, validates POSIX compliance, prevents privilege escalation.
           </p>
-        </div>
-
-        <!-- Feature Card 4 -->
-        <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-6 hover:border-primary-700 transition-all hover:shadow-lg hover:shadow-primary-900/20">
-          <div class="w-12 h-12 bg-security-900/30 rounded-lg flex items-center justify-center mb-4">
-            <svg class="w-6 h-6 text-security-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
+          <div class="mt-4 space-y-1.5 text-xs text-slate-500">
+            <div class="flex items-center gap-2">
+              <div class="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+              <span>Safe • Moderate • High • Critical risk levels</span>
+            </div>
           </div>
-          <h3 class="text-xl font-semibold mb-2 text-slate-100">Enterprise Administration</h3>
-          <p class="text-slate-400">
-            Comprehensive dashboard with custom safety rules, monitoring, alerts, and integration with existing identity management.
-          </p>
         </div>
 
-        <!-- Feature Card 5 -->
-        <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-6 hover:border-primary-700 transition-all hover:shadow-lg hover:shadow-primary-900/20">
-          <div class="w-12 h-12 bg-primary-900/30 rounded-lg flex items-center justify-center mb-4">
-            <svg class="w-6 h-6 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="group bg-slate-900/50 border border-slate-800 rounded-2xl p-8 hover:border-violet-700/50 transition-all">
+          <div class="w-12 h-12 bg-violet-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-violet-500/20 transition">
+            <svg class="w-6 h-6 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <h3 class="text-xl font-semibold mb-2 text-slate-100">Optimized Performance</h3>
-          <p class="text-slate-400">
-            Near-instant response times with intelligent caching. Learns from your organization's patterns for continuous optimization.
+          <h3 class="text-xl font-bold mb-3">Blazing Fast</h3>
+          <p class="text-slate-400 leading-relaxed">
+            Single binary under 50MB. Starts in &lt;100ms. First inference &lt;2s on M1. Built with Rust for maximum performance.
           </p>
-        </div>
-
-        <!-- Feature Card 6 -->
-        <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-6 hover:border-primary-700 transition-all hover:shadow-lg hover:shadow-primary-900/20">
-          <div class="w-12 h-12 bg-security-900/30 rounded-lg flex items-center justify-center mb-4">
-            <svg class="w-6 h-6 text-security-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
+          <div class="mt-4 flex items-center gap-2 text-sm">
+            <span class="px-2 py-0.5 bg-violet-950/30 border border-violet-800/30 rounded text-violet-300 text-xs">1.5B model</span>
+            <span class="px-2 py-0.5 bg-violet-950/30 border border-violet-800/30 rounded text-violet-300 text-xs">Quantized</span>
           </div>
-          <h3 class="text-xl font-semibold mb-2 text-slate-100">Comprehensive Auditing</h3>
-          <p class="text-slate-400">
-            Complete audit trails with user attribution, SIEM integration, and pre-built compliance reports for regulatory frameworks.
-          </p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Security-First Section -->
-  <section id="security" class="py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-    <div class="absolute inset-0 bg-gradient-to-b from-slate-950 via-security-950/10 to-slate-950"></div>
+  <!-- How It Works -->
+  <section id="how-it-works" class="py-32 px-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-20">
+        <h2 class="text-4xl md:text-5xl font-bold mb-4">How it works</h2>
+        <p class="text-lg text-slate-400">Three simple steps from idea to execution</p>
+      </div>
 
-    <div class="relative max-w-7xl mx-auto">
-      <div class="grid lg:grid-cols-2 gap-12 items-center">
-        <div>
-          <div class="inline-flex items-center px-4 py-2 rounded-full bg-security-950/50 border border-security-800/30 mb-6">
-            <svg class="w-4 h-4 text-security-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-            </svg>
-            <span class="text-sm text-security-300">Security-First Architecture</span>
+      <div class="grid md:grid-cols-3 gap-8 relative">
+        <!-- Connecting lines -->
+        <div class="hidden md:block absolute top-1/4 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-violet-500/20 to-transparent"></div>
+
+        <div class="relative">
+          <div class="flex flex-col items-center text-center">
+            <div class="w-16 h-16 bg-violet-500/10 border-2 border-violet-500/30 rounded-2xl flex items-center justify-center mb-6 relative z-10">
+              <span class="text-2xl font-bold text-violet-400">1</span>
+            </div>
+            <h3 class="text-xl font-semibold mb-3">Describe your intent</h3>
+            <p class="text-slate-400 leading-relaxed">
+              Use natural language to explain what you want to accomplish. No need to remember syntax or flags.
+            </p>
           </div>
+        </div>
 
-          <h2 class="text-4xl md:text-5xl font-bold mb-6">
-            <span class="bg-gradient-to-r from-security-400 to-primary-400 bg-clip-text text-transparent">
-              Built for Sensitive Environments
-            </span>
+        <div class="relative">
+          <div class="flex flex-col items-center text-center">
+            <div class="w-16 h-16 bg-purple-500/10 border-2 border-purple-500/30 rounded-2xl flex items-center justify-center mb-6 relative z-10">
+              <span class="text-2xl font-bold text-purple-400">2</span>
+            </div>
+            <h3 class="text-xl font-semibold mb-3">AI generates & validates</h3>
+            <p class="text-slate-400 leading-relaxed">
+              Local model creates POSIX-compliant commands. Safety system validates against dangerous patterns.
+            </p>
+          </div>
+        </div>
+
+        <div class="relative">
+          <div class="flex flex-col items-center text-center">
+            <div class="w-16 h-16 bg-violet-500/10 border-2 border-violet-500/30 rounded-2xl flex items-center justify-center mb-6 relative z-10">
+              <span class="text-2xl font-bold text-violet-400">3</span>
+            </div>
+            <h3 class="text-xl font-semibold mb-3">Review & execute</h3>
+            <p class="text-slate-400 leading-relaxed">
+              See the command, understand what it does, confirm execution. Full transparency, complete control.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Backend Architecture -->
+  <section id="features" class="py-32 px-6 bg-slate-900/30">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid lg:grid-cols-2 gap-16 items-center">
+        <div>
+          <h2 class="text-4xl font-bold mb-6">
+            Flexible backend architecture
           </h2>
-
-          <p class="text-xl text-slate-300 mb-8">
-            CMDAI Enterprise is specifically designed for air-gapped environments and systems where external AI services cannot be used. Your command data stays completely within your infrastructure.
+          <p class="text-lg text-slate-400 mb-8">
+            Choose the inference backend that fits your infrastructure. Automatic fallback ensures reliability.
           </p>
 
           <div class="space-y-4">
-            <div class="flex items-start gap-3">
-              <div class="flex-shrink-0 w-6 h-6 bg-security-900/50 rounded-full flex items-center justify-center mt-0.5">
-                <svg class="w-4 h-4 text-security-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+            <div class="flex items-start gap-4 p-4 bg-slate-900/50 border border-slate-800 rounded-xl">
+              <div class="flex-shrink-0 w-10 h-10 bg-violet-500/10 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-violet-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                 </svg>
               </div>
               <div>
-                <h4 class="font-semibold text-slate-100 mb-1">Zero External Dependencies</h4>
-                <p class="text-slate-400">Optimized local models require no internet connectivity or external API calls.</p>
+                <h4 class="font-semibold mb-1">Embedded (Default)</h4>
+                <p class="text-sm text-slate-400">MLX for Apple Silicon or CPU fallback. No external dependencies. Always available.</p>
               </div>
             </div>
 
-            <div class="flex items-start gap-3">
-              <div class="flex-shrink-0 w-6 h-6 bg-security-900/50 rounded-full flex items-center justify-center mt-0.5">
-                <svg class="w-4 h-4 text-security-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+            <div class="flex items-start gap-4 p-4 bg-slate-900/50 border border-slate-800 rounded-xl">
+              <div class="flex-shrink-0 w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                 </svg>
               </div>
               <div>
-                <h4 class="font-semibold text-slate-100 mb-1">Deterministic Safety Validation</h4>
-                <p class="text-slate-400">Multi-layer protection with pattern matching for dangerous commands, POSIX compliance, and custom rules.</p>
+                <h4 class="font-semibold mb-1">Ollama Integration</h4>
+                <p class="text-sm text-slate-400">Connect to local Ollama instance. Use larger models when needed with automatic fallback.</p>
               </div>
             </div>
 
-            <div class="flex items-start gap-3">
-              <div class="flex-shrink-0 w-6 h-6 bg-security-900/50 rounded-full flex items-center justify-center mt-0.5">
-                <svg class="w-4 h-4 text-security-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+            <div class="flex items-start gap-4 p-4 bg-slate-900/50 border border-slate-800 rounded-xl">
+              <div class="flex-shrink-0 w-10 h-10 bg-violet-500/10 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-violet-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                 </svg>
               </div>
               <div>
-                <h4 class="font-semibold text-slate-100 mb-1">Role-Based Access Controls</h4>
-                <p class="text-slate-400">Integrate with Active Directory and existing identity management for granular permissions.</p>
+                <h4 class="font-semibold mb-1">vLLM Support</h4>
+                <p class="text-sm text-slate-400">OpenAI-compatible API for enterprise deployments. High-performance inference at scale.</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="lg:pl-8">
-          <div class="bg-slate-900 rounded-xl border border-slate-800 p-6 shadow-2xl">
-            <h4 class="text-lg font-semibold mb-4 text-slate-100">Safety Validation Pipeline</h4>
-            <div class="space-y-3 font-mono text-sm">
-              <div class="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
-                <div class="flex-shrink-0 w-8 h-8 bg-primary-900/30 rounded flex items-center justify-center text-primary-400 font-semibold">1</div>
-                <div class="flex-1">
-                  <div class="text-slate-300">Command Parsing</div>
-                  <div class="text-xs text-slate-500">Tokenize and analyze structure</div>
-                </div>
-                <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                </svg>
-              </div>
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 font-mono text-sm">
+          <div class="text-xs text-slate-500 mb-4">~/.config/cmdai/config.toml</div>
+          <pre class="text-slate-300 overflow-x-auto"><code>[backend]
+primary = "embedded"  <span class="text-slate-500"># or "ollama", "vllm"</span>
+enable_fallback = true
 
-              <div class="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
-                <div class="flex-shrink-0 w-8 h-8 bg-security-900/30 rounded flex items-center justify-center text-security-400 font-semibold">2</div>
-                <div class="flex-1">
-                  <div class="text-slate-300">Pattern Matching</div>
-                  <div class="text-xs text-slate-500">Check against dangerous patterns</div>
-                </div>
-                <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                </svg>
-              </div>
+[backend.ollama]
+base_url = "http://localhost:11434"
+model_name = "codellama:7b"
 
-              <div class="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
-                <div class="flex-shrink-0 w-8 h-8 bg-primary-900/30 rounded flex items-center justify-center text-primary-400 font-semibold">3</div>
-                <div class="flex-1">
-                  <div class="text-slate-300">POSIX Compliance</div>
-                  <div class="text-xs text-slate-500">Validate portability</div>
-                </div>
-                <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                </svg>
-              </div>
+[backend.vllm]
+base_url = "http://localhost:8000"
+model_name = "codellama/CodeLlama-7b-hf"
 
-              <div class="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
-                <div class="flex-shrink-0 w-8 h-8 bg-security-900/30 rounded flex items-center justify-center text-security-400 font-semibold">4</div>
-                <div class="flex-1">
-                  <div class="text-slate-300">Custom Rules</div>
-                  <div class="text-xs text-slate-500">Organization-specific policies</div>
-                </div>
-                <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                </svg>
-              </div>
-
-              <div class="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-green-900/30">
-                <div class="flex-shrink-0 w-8 h-8 bg-green-900/30 rounded flex items-center justify-center text-green-400 font-semibold">✓</div>
-                <div class="flex-1">
-                  <div class="text-green-400 font-semibold">Command Approved</div>
-                  <div class="text-xs text-green-500">Safe for execution</div>
-                </div>
-              </div>
-            </div>
-          </div>
+[safety]
+enabled = true
+level = "moderate"  <span class="text-slate-500"># strict, moderate, permissive</span>
+require_confirmation = true</code></pre>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Enterprise Features Section -->
-  <section id="enterprise" class="py-20 px-4 sm:px-6 lg:px-8 bg-slate-900/50">
-    <div class="max-w-7xl mx-auto">
+  <!-- Coming Soon Features -->
+  <section class="py-32 px-6">
+    <div class="max-w-6xl mx-auto">
       <div class="text-center mb-16">
-        <h2 class="text-4xl md:text-5xl font-bold mb-4">
-          <span class="bg-gradient-to-r from-primary-400 to-security-400 bg-clip-text text-transparent">
-            Enterprise-Grade Features
-          </span>
-        </h2>
-        <p class="text-xl text-slate-400 max-w-3xl mx-auto">
-          Everything your organization needs for secure, scalable terminal intelligence deployment.
-        </p>
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-950/30 border border-purple-800/30 mb-6">
+          <span class="text-xs text-purple-300">In Development</span>
+        </div>
+        <h2 class="text-4xl md:text-5xl font-bold mb-4">What's coming next</h2>
+        <p class="text-lg text-slate-400">Features we're actively building for enterprise teams</p>
       </div>
 
-      <div class="grid md:grid-cols-2 gap-8 mb-12">
-        <div class="bg-gradient-to-br from-slate-800/80 to-slate-800/40 border border-slate-700 rounded-xl p-8">
-          <div class="flex items-center gap-4 mb-6">
-            <div class="w-14 h-14 bg-primary-900/40 rounded-xl flex items-center justify-center">
-              <svg class="w-7 h-7 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="bg-gradient-to-br from-slate-900/80 to-slate-900/40 border border-slate-800 rounded-2xl p-8">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="flex-shrink-0 w-10 h-10 bg-violet-500/10 rounded-lg flex items-center justify-center">
+              <svg class="w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
             </div>
-            <h3 class="text-2xl font-bold text-slate-100">Centralized Administration</h3>
+            <div>
+              <h3 class="text-xl font-semibold mb-2">Auto Model Download</h3>
+              <p class="text-slate-400">Intelligent model caching from Hugging Face with offline support and version management.</p>
+            </div>
           </div>
-          <p class="text-slate-300 mb-4">
-            Comprehensive dashboard for IT and security teams with complete visibility across the organization.
-          </p>
-          <ul class="space-y-2 text-slate-400">
-            <li class="flex items-center gap-2">
-              <svg class="w-5 h-5 text-primary-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-              Custom safety rules and policies
-            </li>
-            <li class="flex items-center gap-2">
-              <svg class="w-5 h-5 text-primary-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-              Real-time monitoring and alerts
-            </li>
-            <li class="flex items-center gap-2">
-              <svg class="w-5 h-5 text-primary-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-              Active Directory integration
-            </li>
-          </ul>
         </div>
 
-        <div class="bg-gradient-to-br from-slate-800/80 to-slate-800/40 border border-slate-700 rounded-xl p-8">
-          <div class="flex items-center gap-4 mb-6">
-            <div class="w-14 h-14 bg-security-900/40 rounded-xl flex items-center justify-center">
-              <svg class="w-7 h-7 text-security-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        <div class="bg-gradient-to-br from-slate-900/80 to-slate-900/40 border border-slate-800 rounded-2xl p-8">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="flex-shrink-0 w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
+              <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
               </svg>
             </div>
-            <h3 class="text-2xl font-bold text-slate-100">Team Collaboration</h3>
+            <div>
+              <h3 class="text-xl font-semibold mb-2">Multi-Step Goals</h3>
+              <p class="text-slate-400">Complex workflows broken into validated steps. Chain commands safely with rollback support.</p>
+            </div>
           </div>
-          <p class="text-slate-300 mb-4">
-            Build and share organizational knowledge through verified command repositories.
-          </p>
-          <ul class="space-y-2 text-slate-400">
-            <li class="flex items-center gap-2">
-              <svg class="w-5 h-5 text-security-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-              Shared command libraries
-            </li>
-            <li class="flex items-center gap-2">
-              <svg class="w-5 h-5 text-security-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-              Automated knowledge capture
-            </li>
-            <li class="flex items-center gap-2">
-              <svg class="w-5 h-5 text-security-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-              Team-specific best practices
-            </li>
-          </ul>
         </div>
 
-        <div class="bg-gradient-to-br from-slate-800/80 to-slate-800/40 border border-slate-700 rounded-xl p-8">
-          <div class="flex items-center gap-4 mb-6">
-            <div class="w-14 h-14 bg-primary-900/40 rounded-xl flex items-center justify-center">
-              <svg class="w-7 h-7 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+        <div class="bg-gradient-to-br from-slate-900/80 to-slate-900/40 border border-slate-800 rounded-2xl p-8">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="flex-shrink-0 w-10 h-10 bg-violet-500/10 rounded-lg flex items-center justify-center">
+              <svg class="w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
             </div>
-            <h3 class="text-2xl font-bold text-slate-100">Cross-Platform Support</h3>
+            <div>
+              <h3 class="text-xl font-semibold mb-2">Context Awareness</h3>
+              <p class="text-slate-400">Understands your environment, git repos, running processes. Smarter suggestions based on context.</p>
+            </div>
           </div>
-          <p class="text-slate-300 mb-4">
-            Consistent functionality across all operating systems and environments your teams use.
-          </p>
-          <ul class="space-y-2 text-slate-400">
-            <li class="flex items-center gap-2">
-              <svg class="w-5 h-5 text-primary-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-              Linux, macOS, and Windows
-            </li>
-            <li class="flex items-center gap-2">
-              <svg class="w-5 h-5 text-primary-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-              Terminal integration
-            </li>
-            <li class="flex items-center gap-2">
-              <svg class="w-5 h-5 text-primary-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-              Enterprise API access
-            </li>
-          </ul>
         </div>
 
-        <div class="bg-gradient-to-br from-slate-800/80 to-slate-800/40 border border-slate-700 rounded-xl p-8">
-          <div class="flex items-center gap-4 mb-6">
-            <div class="w-14 h-14 bg-security-900/40 rounded-xl flex items-center justify-center">
-              <svg class="w-7 h-7 text-security-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-gradient-to-br from-slate-900/80 to-slate-900/40 border border-slate-800 rounded-2xl p-8">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="flex-shrink-0 w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
+              <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h3 class="text-2xl font-bold text-slate-100">Audit & Compliance</h3>
-          </div>
-          <p class="text-slate-300 mb-4">
-            Complete visibility and compliance reporting for regulated environments.
-          </p>
-          <ul class="space-y-2 text-slate-400">
-            <li class="flex items-center gap-2">
-              <svg class="w-5 h-5 text-security-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-              Comprehensive audit trails
-            </li>
-            <li class="flex items-center gap-2">
-              <svg class="w-5 h-5 text-security-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-              SIEM integration
-            </li>
-            <li class="flex items-center gap-2">
-              <svg class="w-5 h-5 text-security-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-              Compliance reporting
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ROI & Productivity Section -->
-  <section class="py-20 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-7xl mx-auto">
-      <div class="bg-gradient-to-br from-primary-900/20 via-slate-900/50 to-security-900/20 border border-slate-800 rounded-2xl p-12">
-        <div class="text-center mb-12">
-          <h2 class="text-4xl md:text-5xl font-bold mb-4">
-            <span class="bg-gradient-to-r from-primary-400 to-security-400 bg-clip-text text-transparent">
-              Measurable ROI from Day One
-            </span>
-          </h2>
-          <p class="text-xl text-slate-300 max-w-3xl mx-auto">
-            Organizations report significant productivity gains and error reduction within the first month of deployment.
-          </p>
-        </div>
-
-        <div class="grid md:grid-cols-3 gap-8">
-          <div class="text-center">
-            <div class="text-5xl font-bold text-primary-400 mb-2">30-40%</div>
-            <div class="text-slate-300 font-medium mb-2">Time Reduction</div>
-            <div class="text-sm text-slate-400">On command line operations, especially complex multi-step processes</div>
-          </div>
-
-          <div class="text-center">
-            <div class="text-5xl font-bold text-security-400 mb-2">65%</div>
-            <div class="text-slate-300 font-medium mb-2">Fewer Errors</div>
-            <div class="text-sm text-slate-400">In critical operations, minimizing costly downtime and recovery</div>
-          </div>
-
-          <div class="text-center">
-            <div class="text-5xl font-bold text-primary-400 mb-2">50%</div>
-            <div class="text-slate-300 font-medium mb-2">Faster Onboarding</div>
-            <div class="text-sm text-slate-400">New technical staff become productive much more quickly</div>
-          </div>
-        </div>
-
-        <div class="mt-12 p-6 bg-slate-900/50 rounded-xl border border-slate-700">
-          <div class="flex items-start gap-4">
-            <svg class="w-6 h-6 text-primary-400 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
             <div>
-              <h4 class="text-lg font-semibold text-slate-100 mb-2">Continuous Value Growth</h4>
-              <p class="text-slate-400">
-                As your command knowledge base grows, CMDAI becomes increasingly valuable. The platform learns from your organization's patterns, delivering greater efficiency over time.
-              </p>
+              <h3 class="text-xl font-semibold mb-2">Shell Script Generation</h3>
+              <p class="text-slate-400">Generate complete scripts with error handling, logging, and documentation from descriptions.</p>
             </div>
           </div>
         </div>
@@ -518,159 +358,126 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </section>
 
-  <!-- Pricing Section -->
-  <section id="pricing" class="py-20 px-4 sm:px-6 lg:px-8 bg-slate-900/50">
-    <div class="max-w-7xl mx-auto">
+  <!-- Enterprise Pricing -->
+  <section id="pricing" class="py-32 px-6 bg-slate-900/30">
+    <div class="max-w-5xl mx-auto">
       <div class="text-center mb-16">
-        <h2 class="text-4xl md:text-5xl font-bold mb-4">
-          <span class="bg-gradient-to-r from-primary-400 to-security-400 bg-clip-text text-transparent">
-            Enterprise Pricing
-          </span>
-        </h2>
-        <p class="text-xl text-slate-400 max-w-3xl mx-auto">
-          Flexible deployment options tailored to your organization's size and requirements.
-        </p>
+        <h2 class="text-4xl md:text-5xl font-bold mb-4">Simple, transparent pricing</h2>
+        <p class="text-lg text-slate-400">Start free, scale when you need it</p>
       </div>
 
-      <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-        <!-- Starter Plan -->
-        <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-8 hover:border-primary-700 transition-all">
-          <h3 class="text-2xl font-bold mb-2 text-slate-100">Team</h3>
-          <div class="text-4xl font-bold mb-4 text-primary-400">Custom</div>
-          <p class="text-slate-400 mb-6">Perfect for small technical teams getting started with terminal intelligence.</p>
-
+      <div class="grid md:grid-cols-3 gap-6">
+        <!-- Open Source -->
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-8">
+          <h3 class="text-xl font-semibold mb-2">Open Source</h3>
+          <div class="mb-6">
+            <span class="text-4xl font-bold">$0</span>
+            <span class="text-slate-500">/forever</span>
+          </div>
           <ul class="space-y-3 mb-8">
-            <li class="flex items-start gap-2 text-slate-300">
-              <svg class="w-5 h-5 text-primary-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <li class="flex items-start gap-2 text-sm">
+              <svg class="w-5 h-5 text-violet-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
               </svg>
-              <span>Up to 25 users</span>
+              <span class="text-slate-300">Embedded backend</span>
             </li>
-            <li class="flex items-start gap-2 text-slate-300">
-              <svg class="w-5 h-5 text-primary-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <li class="flex items-start gap-2 text-sm">
+              <svg class="w-5 h-5 text-violet-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
               </svg>
-              <span>Core safety validation</span>
+              <span class="text-slate-300">Safety validation</span>
             </li>
-            <li class="flex items-start gap-2 text-slate-300">
-              <svg class="w-5 h-5 text-primary-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <li class="flex items-start gap-2 text-sm">
+              <svg class="w-5 h-5 text-violet-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
               </svg>
-              <span>Shared command libraries</span>
+              <span class="text-slate-300">Community support</span>
             </li>
-            <li class="flex items-start gap-2 text-slate-300">
-              <svg class="w-5 h-5 text-primary-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <li class="flex items-start gap-2 text-sm">
+              <svg class="w-5 h-5 text-violet-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
               </svg>
-              <span>Basic audit logging</span>
-            </li>
-            <li class="flex items-start gap-2 text-slate-300">
-              <svg class="w-5 h-5 text-primary-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-              <span>Email support</span>
+              <span class="text-slate-300">AGPL-3.0 license</span>
             </li>
           </ul>
-
-          <a href="#contact" class="block w-full py-3 bg-slate-700 hover:bg-slate-600 text-center rounded-lg font-semibold transition-colors">
-            Contact Sales
+          <a href="https://github.com/wildcard/cmdai" class="block w-full py-3 bg-slate-800 hover:bg-slate-700 text-center rounded-xl font-semibold transition border border-slate-700">
+            View on GitHub
           </a>
         </div>
 
-        <!-- Professional Plan -->
-        <div class="bg-gradient-to-br from-primary-900/30 to-security-900/30 border-2 border-primary-600 rounded-xl p-8 relative transform scale-105">
-          <div class="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-primary-600 rounded-full text-sm font-semibold">
+        <!-- Team -->
+        <div class="bg-gradient-to-br from-violet-900/20 to-purple-900/20 border-2 border-violet-700 rounded-2xl p-8 relative">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-violet-600 rounded-full text-xs font-semibold">
             Most Popular
           </div>
-
-          <h3 class="text-2xl font-bold mb-2 text-slate-100">Enterprise</h3>
-          <div class="text-4xl font-bold mb-4 text-primary-400">Custom</div>
-          <p class="text-slate-300 mb-6">Comprehensive solution for organizations requiring advanced features and support.</p>
-
+          <h3 class="text-xl font-semibold mb-2">Team</h3>
+          <div class="mb-6">
+            <span class="text-4xl font-bold">Custom</span>
+          </div>
           <ul class="space-y-3 mb-8">
-            <li class="flex items-start gap-2 text-slate-200">
-              <svg class="w-5 h-5 text-primary-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <li class="flex items-start gap-2 text-sm">
+              <svg class="w-5 h-5 text-violet-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
               </svg>
-              <span>Unlimited users</span>
+              <span class="text-slate-200">Everything in Open Source</span>
             </li>
-            <li class="flex items-start gap-2 text-slate-200">
-              <svg class="w-5 h-5 text-primary-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <li class="flex items-start gap-2 text-sm">
+              <svg class="w-5 h-5 text-violet-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
               </svg>
-              <span>Custom safety rules</span>
+              <span class="text-slate-200">Shared command libraries</span>
             </li>
-            <li class="flex items-start gap-2 text-slate-200">
-              <svg class="w-5 h-5 text-primary-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <li class="flex items-start gap-2 text-sm">
+              <svg class="w-5 h-5 text-violet-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
               </svg>
-              <span>AD/LDAP integration</span>
+              <span class="text-slate-200">Usage analytics</span>
             </li>
-            <li class="flex items-start gap-2 text-slate-200">
-              <svg class="w-5 h-5 text-primary-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <li class="flex items-start gap-2 text-sm">
+              <svg class="w-5 h-5 text-violet-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
               </svg>
-              <span>SIEM integration</span>
-            </li>
-            <li class="flex items-start gap-2 text-slate-200">
-              <svg class="w-5 h-5 text-primary-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-              <span>Priority support & SLA</span>
-            </li>
-            <li class="flex items-start gap-2 text-slate-200">
-              <svg class="w-5 h-5 text-primary-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-              <span>Training & onboarding</span>
+              <span class="text-slate-200">Priority support</span>
             </li>
           </ul>
-
-          <a href="#contact" class="block w-full py-3 bg-primary-600 hover:bg-primary-700 text-center rounded-lg font-semibold transition-colors">
-            Contact Sales
+          <a href="#waitlist" class="block w-full py-3 bg-violet-600 hover:bg-violet-700 text-center rounded-xl font-semibold transition">
+            Join Waitlist
           </a>
         </div>
 
-        <!-- Custom Plan -->
-        <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-8 hover:border-primary-700 transition-all">
-          <h3 class="text-2xl font-bold mb-2 text-slate-100">Custom</h3>
-          <div class="text-4xl font-bold mb-4 text-primary-400">Let's Talk</div>
-          <p class="text-slate-400 mb-6">Tailored solutions for unique requirements and large-scale deployments.</p>
-
+        <!-- Enterprise -->
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-8">
+          <h3 class="text-xl font-semibold mb-2">Enterprise</h3>
+          <div class="mb-6">
+            <span class="text-4xl font-bold">Custom</span>
+          </div>
           <ul class="space-y-3 mb-8">
-            <li class="flex items-start gap-2 text-slate-300">
-              <svg class="w-5 h-5 text-primary-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <li class="flex items-start gap-2 text-sm">
+              <svg class="w-5 h-5 text-violet-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
               </svg>
-              <span>Everything in Enterprise</span>
+              <span class="text-slate-300">Everything in Team</span>
             </li>
-            <li class="flex items-start gap-2 text-slate-300">
-              <svg class="w-5 h-5 text-primary-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <li class="flex items-start gap-2 text-sm">
+              <svg class="w-5 h-5 text-violet-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
               </svg>
-              <span>Custom model training</span>
+              <span class="text-slate-300">SSO & SAML</span>
             </li>
-            <li class="flex items-start gap-2 text-slate-300">
-              <svg class="w-5 h-5 text-primary-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <li class="flex items-start gap-2 text-sm">
+              <svg class="w-5 h-5 text-violet-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
               </svg>
-              <span>On-premises deployment</span>
+              <span class="text-slate-300">Audit logs & compliance</span>
             </li>
-            <li class="flex items-start gap-2 text-slate-300">
-              <svg class="w-5 h-5 text-primary-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <li class="flex items-start gap-2 text-sm">
+              <svg class="w-5 h-5 text-violet-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
               </svg>
-              <span>Dedicated support team</span>
-            </li>
-            <li class="flex items-start gap-2 text-slate-300">
-              <svg class="w-5 h-5 text-primary-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-              <span>Custom integrations</span>
+              <span class="text-slate-300">Dedicated support & SLA</span>
             </li>
           </ul>
-
-          <a href="#contact" class="block w-full py-3 bg-slate-700 hover:bg-slate-600 text-center rounded-lg font-semibold transition-colors">
+          <a href="#demo" class="block w-full py-3 bg-slate-800 hover:bg-slate-700 text-center rounded-xl font-semibold transition border border-slate-700">
             Contact Sales
           </a>
         </div>
@@ -678,83 +485,209 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </section>
 
-  <!-- CTA Section -->
-  <section id="contact" class="py-20 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-4xl mx-auto text-center">
-      <h2 class="text-4xl md:text-5xl font-bold mb-6">
-        <span class="bg-gradient-to-r from-primary-400 to-security-400 bg-clip-text text-transparent">
-          Ready to Transform Your Terminal Operations?
-        </span>
-      </h2>
-      <p class="text-xl text-slate-300 mb-8">
-        Join leading organizations that are empowering their technical teams with secure, intelligent command line assistance.
-      </p>
+  <!-- Waitlist Section -->
+  <section id="waitlist" class="py-32 px-6">
+    <div class="max-w-3xl mx-auto">
+      <div class="bg-gradient-to-br from-violet-900/20 to-purple-900/20 border border-violet-700/50 rounded-3xl p-12 text-center">
+        <h2 class="text-4xl font-bold mb-4">Join the enterprise waitlist</h2>
+        <p class="text-lg text-slate-400 mb-8">
+          Be first to get access when we launch team and enterprise features. No spam, just updates.
+        </p>
 
-      <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-        <a href="mailto:enterprise@cmdai.io" class="px-8 py-4 bg-primary-600 hover:bg-primary-700 rounded-lg font-semibold text-lg transition-all hover:scale-105 shadow-lg shadow-primary-900/50">
-          Request a Demo
-        </a>
-        <a href="mailto:sales@cmdai.io" class="px-8 py-4 bg-slate-800 hover:bg-slate-700 rounded-lg font-semibold text-lg transition-all border border-slate-700">
-          Talk to Sales
-        </a>
+        <form class="max-w-md mx-auto space-y-4">
+          <input
+            type="email"
+            placeholder="Your work email"
+            class="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition"
+          />
+          <input
+            type="text"
+            placeholder="Company name"
+            class="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition"
+          />
+          <select class="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition">
+            <option>Team size</option>
+            <option>1-10 people</option>
+            <option>11-50 people</option>
+            <option>51-200 people</option>
+            <option>200+ people</option>
+          </select>
+          <button type="submit" class="w-full px-8 py-4 bg-violet-600 hover:bg-violet-700 rounded-xl font-semibold transition-all hover:scale-105">
+            Join Waitlist
+          </button>
+        </form>
+
+        <p class="text-sm text-slate-500 mt-6">
+          2,847 teams ahead of you. Average wait time: 2-3 weeks.
+        </p>
       </div>
 
-      <p class="text-slate-400">
-        Questions? Contact us at <a href="mailto:hello@cmdai.io" class="text-primary-400 hover:text-primary-300">hello@cmdai.io</a>
-      </p>
+      <!-- White Paper Download -->
+      <div class="mt-8 bg-slate-900/50 border border-slate-800 rounded-2xl p-8 text-center">
+        <div class="flex items-center justify-center gap-3 mb-4">
+          <svg class="w-8 h-8 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <h3 class="text-xl font-semibold">Download Technical Whitepaper</h3>
+        </div>
+        <p class="text-slate-400 mb-6">
+          Deep dive into our architecture, security model, and performance benchmarks
+        </p>
+        <a href="#" class="inline-flex items-center gap-2 px-6 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl font-medium transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+          </svg>
+          Download PDF (2.4 MB)
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Demo Request -->
+  <section id="demo" class="py-32 px-6 bg-slate-900/30">
+    <div class="max-w-4xl mx-auto">
+      <div class="text-center mb-12">
+        <h2 class="text-4xl font-bold mb-4">See cmdai in action</h2>
+        <p class="text-lg text-slate-400">
+          Schedule a personalized demo with our team
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-8">
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-8">
+          <h3 class="text-xl font-semibold mb-6">Request a demo</h3>
+          <form class="space-y-4">
+            <input
+              type="text"
+              placeholder="Full name"
+              class="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition"
+            />
+            <input
+              type="email"
+              placeholder="Work email"
+              class="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition"
+            />
+            <input
+              type="text"
+              placeholder="Company"
+              class="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition"
+            />
+            <textarea
+              placeholder="Tell us about your use case..."
+              rows="4"
+              class="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition resize-none"
+            ></textarea>
+            <button type="submit" class="w-full px-6 py-3 bg-violet-600 hover:bg-violet-700 rounded-xl font-semibold transition">
+              Request Demo
+            </button>
+          </form>
+        </div>
+
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-8">
+          <h3 class="text-xl font-semibold mb-6">What to expect</h3>
+          <div class="space-y-4">
+            <div class="flex items-start gap-3">
+              <div class="flex-shrink-0 w-6 h-6 bg-violet-500/10 rounded-full flex items-center justify-center mt-0.5">
+                <span class="text-xs text-violet-400 font-semibold">1</span>
+              </div>
+              <div>
+                <h4 class="font-medium mb-1">30-minute walkthrough</h4>
+                <p class="text-sm text-slate-400">Live demo tailored to your infrastructure and workflows</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <div class="flex-shrink-0 w-6 h-6 bg-violet-500/10 rounded-full flex items-center justify-center mt-0.5">
+                <span class="text-xs text-violet-400 font-semibold">2</span>
+              </div>
+              <div>
+                <h4 class="font-medium mb-1">Q&A with engineers</h4>
+                <p class="text-sm text-slate-400">Ask technical questions about security, deployment, integration</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <div class="flex-shrink-0 w-6 h-6 bg-violet-500/10 rounded-full flex items-center justify-center mt-0.5">
+                <span class="text-xs text-violet-400 font-semibold">3</span>
+              </div>
+              <div>
+                <h4 class="font-medium mb-1">Custom POC plan</h4>
+                <p class="text-sm text-slate-400">We'll help you run a pilot in your environment</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-8 pt-6 border-t border-slate-700">
+            <p class="text-sm text-slate-400 mb-4">Or book directly:</p>
+            <a href="#" class="inline-flex items-center gap-2 text-violet-400 hover:text-violet-300 transition">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Schedule on Calendly
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
   <!-- Footer -->
-  <footer class="bg-slate-900/80 border-t border-slate-800 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-7xl mx-auto">
+  <footer class="border-t border-slate-800 py-12 px-6">
+    <div class="max-w-6xl mx-auto">
       <div class="grid md:grid-cols-4 gap-8 mb-8">
         <div>
-          <div class="flex items-center space-x-2 mb-4">
-            <svg class="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <span class="text-xl font-bold bg-gradient-to-r from-primary-400 to-security-400 bg-clip-text text-transparent">CMDAI</span>
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg"></div>
+            <span class="text-lg font-semibold">cmdai</span>
           </div>
-          <p class="text-slate-400 text-sm">
-            Empowering organizations with secure terminal intelligence.
+          <p class="text-sm text-slate-400">
+            Natural language to shell commands. Built for teams who value security.
           </p>
         </div>
 
         <div>
-          <h4 class="font-semibold text-slate-100 mb-4">Product</h4>
+          <h4 class="font-semibold mb-3">Product</h4>
           <ul class="space-y-2 text-sm">
-            <li><a href="#features" class="text-slate-400 hover:text-primary-400 transition-colors">Features</a></li>
-            <li><a href="#security" class="text-slate-400 hover:text-primary-400 transition-colors">Security</a></li>
-            <li><a href="#enterprise" class="text-slate-400 hover:text-primary-400 transition-colors">Enterprise</a></li>
-            <li><a href="#pricing" class="text-slate-400 hover:text-primary-400 transition-colors">Pricing</a></li>
+            <li><a href="#features" class="text-slate-400 hover:text-slate-100 transition">Features</a></li>
+            <li><a href="#pricing" class="text-slate-400 hover:text-slate-100 transition">Pricing</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-slate-100 transition">Documentation</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-slate-100 transition">Changelog</a></li>
           </ul>
         </div>
 
         <div>
-          <h4 class="font-semibold text-slate-100 mb-4">Resources</h4>
+          <h4 class="font-semibold mb-3">Company</h4>
           <ul class="space-y-2 text-sm">
-            <li><a href="#" class="text-slate-400 hover:text-primary-400 transition-colors">Documentation</a></li>
-            <li><a href="#" class="text-slate-400 hover:text-primary-400 transition-colors">API Reference</a></li>
-            <li><a href="#" class="text-slate-400 hover:text-primary-400 transition-colors">Case Studies</a></li>
-            <li><a href="#" class="text-slate-400 hover:text-primary-400 transition-colors">Blog</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-slate-100 transition">About</a></li>
+            <li><a href="https://github.com/wildcard/cmdai" class="text-slate-400 hover:text-slate-100 transition">GitHub</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-slate-100 transition">Blog</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-slate-100 transition">Contact</a></li>
           </ul>
         </div>
 
         <div>
-          <h4 class="font-semibold text-slate-100 mb-4">Company</h4>
+          <h4 class="font-semibold mb-3">Legal</h4>
           <ul class="space-y-2 text-sm">
-            <li><a href="#" class="text-slate-400 hover:text-primary-400 transition-colors">About</a></li>
-            <li><a href="#contact" class="text-slate-400 hover:text-primary-400 transition-colors">Contact</a></li>
-            <li><a href="#" class="text-slate-400 hover:text-primary-400 transition-colors">Privacy Policy</a></li>
-            <li><a href="#" class="text-slate-400 hover:text-primary-400 transition-colors">Terms of Service</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-slate-100 transition">Privacy</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-slate-100 transition">Terms</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-slate-100 transition">Security</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-slate-100 transition">License (AGPL-3.0)</a></li>
           </ul>
         </div>
       </div>
 
       <div class="pt-8 border-t border-slate-800 text-center text-sm text-slate-500">
-        <p>&copy; 2025 CMDAI Enterprise. All rights reserved.</p>
+        <p>&copy; 2025 cmdai. Built with Rust. Open source under AGPL-3.0.</p>
       </div>
     </div>
   </footer>
 </Layout>
+
+<style>
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: .5;
+    }
+  }
+</style>
