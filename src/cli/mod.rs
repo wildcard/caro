@@ -25,9 +25,11 @@ use crate::{
 /// Main CLI application struct
 pub struct CliApp {
     config: CliConfig,
+    #[allow(dead_code)]
     backend: Arc<dyn CommandGenerator>,
     agent_loop: AgentLoop,
     validator: SafetyValidator,
+    #[allow(dead_code)]
     context: ExecutionContext,
 }
 
@@ -292,7 +294,7 @@ impl CliApp {
         })?;
 
         // Create command request
-        let request = CommandRequest {
+        let _request = CommandRequest {
             input: prompt.clone(),
             context: None,
             shell,

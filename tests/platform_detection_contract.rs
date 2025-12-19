@@ -49,12 +49,8 @@ async fn test_platform_context_has_required_fields() {
         arch
     );
 
-    // Check POSIX compliance flag
-    let posix = ctx.is_posix_compliant();
-    assert!(
-        posix == true || posix == false,
-        "POSIX compliance should be boolean"
-    );
+    // Check POSIX compliance flag (always valid as it's a boolean)
+    let _posix = ctx.is_posix_compliant();
 }
 
 /// Test OS version detection

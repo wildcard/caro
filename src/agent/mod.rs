@@ -13,6 +13,7 @@ use tracing::{debug, info, warn};
 pub struct AgentLoop {
     backend: Arc<dyn CommandGenerator>,
     context: ExecutionContext,
+    #[allow(dead_code)]
     max_iterations: usize,
     timeout: Duration,
 }
@@ -265,9 +266,7 @@ If you made changes, explain what was fixed."#,
         let mut commands = Vec::new();
 
         // Split by pipes, semicolons, and logical operators
-        let parts: Vec<&str> = command
-            .split(|c| c == '|' || c == ';' || c == '&')
-            .collect();
+        let parts: Vec<&str> = command.split(['|', ';', '&']).collect();
 
         for part in parts {
             let trimmed = part.trim();

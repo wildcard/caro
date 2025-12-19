@@ -7,7 +7,7 @@ use std::process::{Command, Stdio};
 /// Helper to run cmdai binary with input
 fn run_cmdai_with_input(args: &[&str], input: &str) -> (String, String, i32) {
     let mut child = Command::new("cargo")
-        .args(&["run", "--quiet", "--"])
+        .args(["run", "--quiet", "--"])
         .args(args)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -35,7 +35,7 @@ fn run_cmdai_with_input(args: &[&str], input: &str) -> (String, String, i32) {
 /// Helper to run cmdai binary without input (for non-interactive tests)
 fn run_cmdai(args: &[&str]) -> (String, String, i32) {
     let output = Command::new("cargo")
-        .args(&["run", "--quiet", "--"])
+        .args(["run", "--quiet", "--"])
         .args(args)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
