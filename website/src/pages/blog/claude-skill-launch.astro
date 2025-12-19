@@ -1,0 +1,352 @@
+---
+import BlogPost from '../../layouts/BlogPost.astro';
+---
+
+<BlogPost
+  title="Introducing the Caro Claude Skill: Safe Shell Commands in Your AI Workflow"
+  description="Caro comes to Claude Code! Generate safe, POSIX-compliant shell commands directly in your Claude sessions with comprehensive safety validation and educational guidance."
+  date="2025-12-19"
+  readTime="6 min read"
+>
+
+<p>
+  Today, we're excited to announce the <strong>Caro Claude Skill</strong>—bringing safe, POSIX-compliant shell command generation directly into your Claude Code workflow. No more context-switching between Claude and your terminal. Caro is now your companion inside Claude.
+</p>
+
+<h2>What is a Claude Skill?</h2>
+
+<p>
+  A Claude skill is a specialized capability that Claude automatically activates based on context. Unlike slash commands that require explicit invocation, skills work seamlessly in the background—Claude knows when to use them, so you don't have to think about it.
+</p>
+
+<p>
+  The Caro skill detects when you need shell command help and springs into action, providing:
+</p>
+
+<ul>
+  <li><strong>Automatic activation</strong> when you ask "how do I...?" shell questions</li>
+  <li><strong>4-tier safety validation</strong> (Safe, Moderate, High, Critical)</li>
+  <li><strong>POSIX compliance education</strong> for portable scripts</li>
+  <li><strong>Installation guidance</strong> if cmdai isn't installed yet</li>
+  <li><strong>Best practices coaching</strong> for command safety</li>
+</ul>
+
+<h2>How It Works</h2>
+
+<p>
+  Here's a real example of the skill in action:
+</p>
+
+<div class="code-example">
+  <p><strong>You:</strong> "I need to find all PDF files larger than 10MB in my Downloads folder"</p>
+
+  <p><strong>Claude (with Caro skill):</strong></p>
+
+  <pre><code>I'll help you generate a safe command using cmdai.
+
+$ caro "find all PDF files larger than 10MB in Downloads"
+
+Generated command:
+  find ~/Downloads -name "*.pdf" -type f -size +10M
+
+Safety Assessment: ✅ Safe (Green)
+- Read-only operation
+- POSIX-compliant syntax
+- Properly quoted paths
+
+This command searches your Downloads directory for PDF files
+larger than 10MB using the standard POSIX find utility.
+
+Execute this command? (y/N)</code></pre>
+</div>
+
+<p>
+  Notice how Claude doesn't just give you the command—it explains the safety level, validates POSIX compliance, and helps you understand what the command does. This is Caro's philosophy: educate, don't just execute.
+</p>
+
+<h2>Safety First, Always</h2>
+
+<p>
+  Caro's four-tier safety system is built into the skill:
+</p>
+
+<h3>🟢 Safe (Green)</h3>
+<p>
+  Read-only operations like <code>ls</code>, <code>find</code>, <code>grep</code>. These execute without confirmation—they can't harm your system.
+</p>
+
+<h3>🟡 Moderate (Yellow)</h3>
+<p>
+  File modifications, package operations. These require review in strict mode to ensure you understand the impact.
+</p>
+
+<h3>🟠 High (Orange)</h3>
+<p>
+  Recursive deletions (<code>rm -rf</code>), mass operations, system configuration changes. Always requires explicit confirmation and suggests safer alternatives.
+</p>
+
+<h3>🔴 Critical (Red)</h3>
+<p>
+  System destruction (<code>rm -rf /</code>), fork bombs, disk operations, privilege escalation. Blocked entirely or requires safety override with explicit acknowledgment.
+</p>
+
+<p>
+  The skill guides you through this safety framework, helping you develop intuition about command risk over time.
+</p>
+
+<h2>POSIX Compliance Education</h2>
+
+<p>
+  One of Caro's core principles is <strong>POSIX compliance</strong>—ensuring your commands work reliably across bash, zsh, sh, dash, and other shells on macOS, Linux, and Unix systems.
+</p>
+
+<div class="highlight">
+  <p>
+    The skill teaches you the difference between portable POSIX commands and bash-specific features. For example, it explains why <code>[ "$var" = "value" ]</code> is more portable than <code>[[ "$var" == "value" ]]</code>, and when you should care about that difference.
+  </p>
+</div>
+
+<p>
+  This isn't just academic—portable commands mean fewer surprises when your script runs in a Docker container, on a minimal embedded system, or on a colleague's differently-configured machine.
+</p>
+
+<h2>Installation</h2>
+
+<p>
+  Getting the Caro skill is simple:
+</p>
+
+<pre><code># In Claude Code
+/plugin install wildcard/caro</code></pre>
+
+<p>
+  That's it! The skill is now available in all your Claude Code sessions.
+</p>
+
+<p>
+  If you don't have cmdai (caro) installed yet, the skill will detect this and guide you through installation:
+</p>
+
+<pre><code># Quick install (recommended)
+bash <(curl -sSfL https://setup.caro.sh)
+
+# Or via cargo
+cargo install cmdai</code></pre>
+
+<p>
+  The skill works even without cmdai installed—it provides shell command education and guidance. But installing cmdai unlocks the full LLM-powered command generation capabilities.
+</p>
+
+<h2>What Makes This Special?</h2>
+
+<p>
+  There are many ways to generate shell commands with AI. What makes the Caro skill different?
+</p>
+
+<h3>1. Educational, Not Just Transactional</h3>
+<p>
+  Caro doesn't just give you fish—it teaches you to fish. Every command comes with explanation, safety context, and alternatives when needed.
+</p>
+
+<h3>2. Safety as a Core Value</h3>
+<p>
+  With 52 pre-compiled dangerous command patterns and comprehensive risk assessment, Caro prevents catastrophic mistakes while teaching you to recognize risks independently.
+</p>
+
+<h3>3. Seamless Integration</h3>
+<p>
+  No context-switching, no separate tools. Ask Claude a shell question, and Caro's skill activates automatically. It's like having a safety-conscious sysadmin looking over your shoulder.
+</p>
+
+<h3>4. POSIX-First Philosophy</h3>
+<p>
+  In a world of bash-isms and GNU-specific flags, Caro champions portable, standard-compliant commands that work everywhere.
+</p>
+
+<h2>Real-World Examples</h2>
+
+<h3>Example 1: Safe File Cleanup</h3>
+
+<div class="code-example">
+  <p><strong>You:</strong> "Delete all .log files older than 30 days"</p>
+
+  <p><strong>Caro skill activates and provides:</strong></p>
+  <ul>
+    <li>Generated command: <code>find . -name "*.log" -type f -mtime +30 -delete</code></li>
+    <li>Safety assessment: 🟠 High (Orange) - deletion is irreversible</li>
+    <li>Recommendation: Preview files first with <code>-ls</code> instead of <code>-delete</code></li>
+    <li>Safer alternative: Use <code>-exec rm -i {'{}'} \;</code> for interactive deletion</li>
+  </ul>
+</div>
+
+<h3>Example 2: System Monitoring</h3>
+
+<div class="code-example">
+  <p><strong>You:</strong> "Show me the top 10 processes by memory usage"</p>
+
+  <p><strong>Caro skill provides:</strong></p>
+  <ul>
+    <li>POSIX-compliant command: <code>ps aux --sort=-%mem | head -11</code></li>
+    <li>Safety: 🟢 Safe (Green) - read-only</li>
+    <li>Explanation of each flag</li>
+    <li>Platform note: Works on Linux; macOS equivalent provided if needed</li>
+  </ul>
+</div>
+
+<h3>Example 3: Dangerous Request</h3>
+
+<div class="code-example">
+  <p><strong>You:</strong> "How do I clean up my root directory?"</p>
+
+  <p><strong>Caro skill responds:</strong></p>
+  <ul>
+    <li>🔴 CRITICAL WARNING: Operations on root directory are extremely dangerous</li>
+    <li>Blocks generation of <code>rm -rf /</code> or similar commands</li>
+    <li>Asks clarifying questions: "What specifically are you trying to clean?"</li>
+    <li>Suggests safer alternatives for common cleanup tasks</li>
+  </ul>
+</div>
+
+<h2>What's Included</h2>
+
+<p>
+  The Caro skill comes with comprehensive documentation:
+</p>
+
+<ul>
+  <li><strong>52+ dangerous command patterns</strong> with explanations</li>
+  <li><strong>POSIX vs bash reference guide</strong> with examples</li>
+  <li><strong>Safe alternatives</strong> for risky operations</li>
+  <li><strong>Step-by-step usage examples</strong> for common tasks</li>
+  <li><strong>Installation checker script</strong> to verify cmdai availability</li>
+</ul>
+
+<p>
+  All of this is automatically available to Claude when the skill activates, so you get expert-level guidance without memorizing patterns or reading docs.
+</p>
+
+<h2>Try It Today</h2>
+
+<p>
+  Ready to bring Caro into your Claude Code workflow?
+</p>
+
+<pre><code>/plugin install wildcard/caro</code></pre>
+
+<p>
+  Then just ask Claude any shell question. Caro will be there, ready to help—with safety, education, and POSIX compliance at the forefront.
+</p>
+
+<div class="highlight">
+  <p>
+    <strong>Pro tip:</strong> Try asking "explain the difference between POSIX and bash commands" to see Caro's educational side in action.
+  </p>
+</div>
+
+<h2>Looking Forward</h2>
+
+<p>
+  This is just the beginning. We're exploring:
+</p>
+
+<ul>
+  <li>Multi-step workflow support for complex operations</li>
+  <li>Platform-specific optimization guidance</li>
+  <li>Integration with MCP (Model Context Protocol) servers</li>
+  <li>Community-contributed safety patterns</li>
+</ul>
+
+<p>
+  Caro started as a CLI tool. Now it's a Claude companion. And Kyaro's legacy of helping developers continues to grow.
+</p>
+
+<hr />
+
+<p>
+  <em>Have questions or feedback? Join the discussion on <a href="https://github.com/wildcard/caro/discussions" target="_blank" rel="noopener noreferrer">GitHub Discussions</a> or share your experience on social media with #CaroSkill.</em>
+</p>
+
+<p>
+  <em>Learn more about Kyaro's story and why we built Caro in our post: <a href="/blog/why-caro">Why Caro? The Story Behind Your Terminal Companion</a></em>
+</p>
+
+</BlogPost>
+
+<style>
+  .code-example {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+  }
+
+  .code-example pre {
+    background: rgba(0, 0, 0, 0.05);
+    padding: 15px;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 10px 0;
+  }
+
+  :global(.dark) .code-example pre {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .code-example code {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .highlight {
+    background: rgba(255, 140, 66, 0.1);
+    border-left: 4px solid #ff8c42;
+    padding: 15px 20px;
+    margin: 20px 0;
+    border-radius: 4px;
+  }
+
+  :global(.dark) .highlight {
+    background: rgba(255, 140, 66, 0.15);
+  }
+
+  h2 {
+    margin-top: 40px;
+    margin-bottom: 20px;
+    color: var(--color-text);
+  }
+
+  h3 {
+    margin-top: 30px;
+    margin-bottom: 15px;
+    color: var(--color-text);
+  }
+
+  ul {
+    line-height: 1.8;
+    margin: 15px 0;
+  }
+
+  li {
+    margin: 8px 0;
+  }
+
+  code {
+    background: rgba(0, 0, 0, 0.05);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.9em;
+  }
+
+  :global(.dark) code {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  hr {
+    margin: 40px 0;
+    border: none;
+    border-top: 1px solid var(--color-border);
+  }
+</style>
