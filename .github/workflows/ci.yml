@@ -68,6 +68,7 @@ jobs:
         cargo test e2e_help_output --verbose
         cargo test e2e_json_output_format --verbose
         cargo test e2e_basic_command_generation --verbose
+        cargo test e2e_verbose_flag_logging_behavior --verbose
 
   security:
     name: Security Audit

@@ -398,7 +398,7 @@ fn e2e_verbose_mode() {
 fn e2e_timing_information() {
     let runner = CliTestRunner::new();
     let output = runner.run_success(&["test command", "--verbose"]);
-    
+
     // Should contain timing information in verbose mode
     assert!(
         output.contains("ms") ||
@@ -407,8 +407,70 @@ fn e2e_timing_information() {
         "Verbose output should contain timing information: {}",
         output
     );
-    
+
     println!("✅ E2E-E2: Timing information displayed in verbose mode");
+}
+
+/// E2E-E3: Verbose Flag Logging Behavior Test
+/// Verifies that info logs are hidden by default and shown only with --verbose
+#[test]
+fn e2e_verbose_flag_logging_behavior() {
+    let runner = CliTestRunner::new();
+
+    // Test without verbose flag - should have clean output (no INFO logs)
+    let normal_result = runner.run_command(&["list files"]);
+    let normal_combined = format!("{}{}", normal_result.stdout, normal_result.stderr);
+
+    // Verify no INFO level logs in normal mode
+    assert!(
+        !normal_combined.contains("INFO") && !normal_combined.contains("cmdai::"),
+        "Normal output should not contain INFO logs. Output:\nStdout: {}\nStderr: {}",
+        normal_result.stdout, normal_result.stderr
+    );
+
+    // Verify no model loading logs in normal mode
+    assert!(
+        !normal_combined.contains("Using embedded backend") &&
+        !normal_combined.contains("Using Ollama backend") &&
+        !normal_combined.contains("Using vLLM backend") &&
+        !normal_combined.contains("Model not found") &&
+        !normal_combined.contains("Downloading model"),
+        "Normal output should not contain backend selection or model loading logs. Output: {}",
+        normal_combined
+    );
+
+    println!("✅ Normal mode: Clean output without INFO logs");
+
+    // Test with verbose flag - should show INFO logs
+    let verbose_result = runner.run_command(&["list files", "--verbose"]);
+    let verbose_combined = format!("{}{}", verbose_result.stdout, verbose_result.stderr);
+
+    // Verify INFO level logs are present in verbose mode
+    let has_info_logs = verbose_combined.contains("INFO") ||
+                        verbose_combined.contains("cmdai::");
+
+    // Verify backend/model logs are present in verbose mode
+    let has_backend_logs = verbose_combined.contains("backend") ||
+                           verbose_combined.contains("Backend") ||
+                           verbose_combined.contains("Model") ||
+                           verbose_combined.contains("model");
+
+    assert!(
+        has_info_logs || has_backend_logs,
+        "Verbose output should contain INFO logs or backend/model information. Output:\nStdout: {}\nStderr: {}",
+        verbose_result.stdout, verbose_result.stderr
+    );
+
+    println!("✅ Verbose mode: INFO logs and backend information displayed");
+
+    // Verify verbose output has more content than normal output
+    assert!(
+        verbose_combined.len() > normal_combined.len(),
+        "Verbose output ({} bytes) should be longer than normal output ({} bytes)",
+        verbose_combined.len(), normal_combined.len()
+    );
+
+    println!("✅ E2E-E3: Verbose flag correctly controls logging output (clean by default, detailed with --verbose)");
 }
 
 // =============================================================================
