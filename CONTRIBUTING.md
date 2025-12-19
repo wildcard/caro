@@ -96,7 +96,7 @@ If all checks pass, you're ready to contribute!
 
 ## Development Workflow
 
-cmdai follows strict **Test-Driven Development (TDD)** with spec-driven design. See [TDD-WORKFLOW.md](TDD-WORKFLOW.md) for complete details.
+cmdai follows strict **Test-Driven Development (TDD)** with spec-driven design. See [TDD-WORKFLOW.md](docs/development/TDD-WORKFLOW.md) for complete details.
 
 ### The Red-Green-Refactor Cycle
 
@@ -296,7 +296,7 @@ cmdai is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)*
 
 Signing the CLA is simple and happens directly on your pull request:
 
-1. **Read the CLA**: Review [CLA.md](CLA.md) to understand the terms
+1. **Read the CLA**: Review [CLA.md](docs/legal/CLA.md) to understand the terms
 2. **Comment on your PR**: Add this exact comment to your pull request:
    ```
    I have read the CLA Document and I hereby sign the CLA
@@ -307,7 +307,7 @@ Signing the CLA is simple and happens directly on your pull request:
 
 ### Alternative: Developer Certificate of Origin (DCO)
 
-We also provide a **Developer Certificate of Origin (DCO)** option as specified in [DCO.txt](DCO.txt). The DCO is a lighter-weight alternative used by projects like the Linux kernel, Node.js, and Spring Framework.
+We also provide a **Developer Certificate of Origin (DCO)** option as specified in [DCO.txt](docs/legal/DCO.txt). The DCO is a lighter-weight alternative used by projects like the Linux kernel, Node.js, and Spring Framework.
 
 If you prefer to use DCO instead of the CLA, you can sign off your commits using:
 
@@ -377,7 +377,7 @@ For more questions, open an issue with the `question` label or start a discussio
    - Title Case for subjects
    - Reference issues/PRs in parentheses: `(#42)`
    - Optional leading emoji for visual categorization
-   - See [AGENTS.md](AGENTS.md) for detailed conventions
+   - See [AGENTS.md](docs/development/AGENTS.md) for detailed conventions
 
 4. **Push to your fork**:
    ```bash
@@ -413,7 +413,7 @@ We welcome contributions in these areas:
 
 ### 🟢 Good First Issues & Technical Debt
 
-**New to the project?** Start here! We maintain a curated list of beginner-friendly issues and technical debt items in [TECH_DEBT.md](TECH_DEBT.md).
+**New to the project?** Start here! We maintain a curated list of beginner-friendly issues and technical debt items in [TECH_DEBT.md](docs/development/TECH_DEBT.md).
 
 **Current opportunities**:
 - 📝 **Documentation** - Add rustdoc examples to public APIs ([#7](https://github.com/wildcard/cmdai/issues/7))
@@ -432,7 +432,7 @@ We welcome contributions in these areas:
 3. Ask questions in the issue thread
 4. Submit your PR when ready!
 
-See [TECH_DEBT.md](TECH_DEBT.md) for the complete list with detailed implementation guides.
+See [TECH_DEBT.md](docs/development/TECH_DEBT.md) for the complete list with detailed implementation guides.
 
 ---
 
@@ -538,7 +538,7 @@ cmdai development leverages specialized AI agents for different tasks. When work
 - Quality assurance processes
 - CI/CD improvements
 
-See [AGENTS.md](AGENTS.md) for repository guidelines and [CLAUDE.md](CLAUDE.md) for agent usage details.
+See [AGENTS.md](docs/development/AGENTS.md) for repository guidelines and [CLAUDE.md](docs/development/CLAUDE.md) for agent usage details.
 
 ---
 
