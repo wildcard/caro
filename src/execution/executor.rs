@@ -64,9 +64,9 @@ impl CommandExecutor {
         cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
 
         // Execute the command
-        let output = cmd.output().map_err(|e| {
-            ExecutorError::SpawnError(format!("Failed to execute command: {}", e))
-        })?;
+        let output = cmd
+            .output()
+            .map_err(|e| ExecutorError::SpawnError(format!("Failed to execute command: {}", e)))?;
 
         let execution_time_ms = start_time.elapsed().as_millis() as u64;
 

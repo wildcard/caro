@@ -1,9 +1,8 @@
 /// End-to-End CLI Black-box Tests
-/// 
+///
 /// These tests run the actual cmdai binary as a user would and verify behavior
 /// from a user's perspective. Tests are based on the comprehensive manual QA
 /// test cases and validate the complete user experience.
-
 use std::path::Path;
 use std::process::{Command, Stdio};
 use std::time::Duration;
@@ -28,7 +27,7 @@ impl CliTestRunner {
         };
 
         let temp_dir = TempDir::new().expect("Failed to create temp dir");
-        
+
         Self {
             binary_path,
             temp_dir,
@@ -38,7 +37,7 @@ impl CliTestRunner {
     /// Run a cmdai command and return stdout, stderr, and exit status
     fn run_command(&self, args: &[&str]) -> CliTestResult {
         let start_time = std::time::Instant::now();
-        
+
         let mut cmd = if self.binary_path == "cargo" {
             let mut cmd = Command::new("cargo");
             cmd.arg("run").arg("--");
@@ -53,7 +52,7 @@ impl CliTestRunner {
         // Set clean environment
         cmd.env("CMDAI_CONFIG_DIR", self.temp_dir.path());
         cmd.env_remove("CMDAI_CACHE_DIR");
-        
+
         let output = cmd
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
@@ -113,7 +112,7 @@ struct CliTestResult {
 fn e2e_help_output() {
     let runner = CliTestRunner::new();
     let output = runner.run_success(&["--help"]);
-    
+
     // Verify essential help content
     assert!(output.contains("cmdai converts natural language"));
     assert!(output.contains("Usage: cmdai"));
@@ -122,10 +121,10 @@ fn e2e_help_output() {
     assert!(output.contains("--output"));
     assert!(output.contains("--verbose"));
     assert!(output.contains("--version"));
-    
+
     // Verify help describes shell options
     assert!(output.contains("bash") || output.contains("Shell type"));
-    
+
     println!("✅ E2E-A1: Help output contains all expected elements");
 }
 
@@ -135,11 +134,11 @@ fn e2e_help_output() {
 fn e2e_version_information() {
     let runner = CliTestRunner::new();
     let output = runner.run_success(&["--version"]);
-    
+
     // Should show version in format "cmdai X.Y.Z"
     assert!(output.contains("cmdai"));
     assert!(output.matches(char::is_numeric).count() >= 3); // At least X.Y.Z
-    
+
     println!("✅ E2E-A2: Version information displayed correctly");
 }
 
@@ -149,15 +148,15 @@ fn e2e_version_information() {
 fn e2e_basic_command_generation() {
     let runner = CliTestRunner::new();
     let output = runner.run_success(&["list files in current directory"]);
-    
+
     // Should contain command output
     assert!(output.contains("Command:") || output.len() > 10);
     assert!(!output.is_empty());
-    
+
     // Should not contain error messages
     assert!(!output.to_lowercase().contains("error"));
     assert!(!output.to_lowercase().contains("failed"));
-    
+
     println!("✅ E2E-A3: Basic command generation works");
 }
 
@@ -167,15 +166,18 @@ fn e2e_basic_command_generation() {
 fn e2e_performance_startup_time() {
     let runner = CliTestRunner::new();
     let result = runner.run_command(&["--version"]);
-    
+
     // CLI should start within reasonable time (allowing for compilation in CI)
     assert!(
         result.execution_time < Duration::from_secs(30),
         "CLI startup took too long: {:?}",
         result.execution_time
     );
-    
-    println!("✅ E2E-A4: CLI startup time acceptable ({:?})", result.execution_time);
+
+    println!(
+        "✅ E2E-A4: CLI startup time acceptable ({:?})",
+        result.execution_time
+    );
 }
 
 // =============================================================================
@@ -188,17 +190,17 @@ fn e2e_performance_startup_time() {
 fn e2e_json_output_format() {
     let runner = CliTestRunner::new();
     let output = runner.run_success(&["show disk usage", "--output", "json"]);
-    
+
     // Should be valid JSON
     let json_result: Result<Value, _> = serde_json::from_str(&output);
     assert!(json_result.is_ok(), "Output is not valid JSON: {}", output);
-    
+
     let json_value = json_result.unwrap();
-    
+
     // Should contain expected fields
     assert!(json_value.get("generated_command").is_some());
     assert!(json_value.get("explanation").is_some());
-    
+
     println!("✅ E2E-B1: JSON output format is valid and complete");
 }
 
@@ -208,15 +210,15 @@ fn e2e_json_output_format() {
 fn e2e_yaml_output_format() {
     let runner = CliTestRunner::new();
     let output = runner.run_success(&["show system info", "--output", "yaml"]);
-    
+
     // Should contain YAML-style output
     assert!(output.contains(":"));
-    assert!(!output.starts_with("{"));  // Not JSON
-    
+    assert!(!output.starts_with("{")); // Not JSON
+
     // Should contain expected fields
     assert!(output.contains("generated_command") || output.contains("command"));
     assert!(output.contains("explanation"));
-    
+
     println!("✅ E2E-B2: YAML output format is properly structured");
 }
 
@@ -226,14 +228,14 @@ fn e2e_yaml_output_format() {
 fn e2e_plain_output_format() {
     let runner = CliTestRunner::new();
     let output = runner.run_success(&["list files"]);
-    
+
     // Plain output should be human-readable
     assert!(!output.starts_with("{")); // Not JSON
     assert!(!output.contains("generated_command:")); // Not YAML
-    
+
     // Should contain readable command information
     assert!(output.contains("Command:") || output.len() > 5);
-    
+
     println!("✅ E2E-B3: Plain output format is human-readable");
 }
 
@@ -246,16 +248,20 @@ fn e2e_plain_output_format() {
 #[test]
 fn e2e_shell_type_selection() {
     let runner = CliTestRunner::new();
-    
+
     let shells = ["bash", "zsh", "fish", "sh"];
-    
+
     for shell in &shells {
         let output = runner.run_success(&["list files", "--shell", shell]);
         assert!(!output.is_empty(), "No output for shell: {}", shell);
-        assert!(!output.to_lowercase().contains("error"), 
-                "Error with shell {}: {}", shell, output);
+        assert!(
+            !output.to_lowercase().contains("error"),
+            "Error with shell {}: {}",
+            shell,
+            output
+        );
     }
-    
+
     println!("✅ E2E-C1: All major shell types accepted (bash, zsh, fish, sh)");
 }
 
@@ -264,16 +270,20 @@ fn e2e_shell_type_selection() {
 #[test]
 fn e2e_safety_level_configuration() {
     let runner = CliTestRunner::new();
-    
+
     let safety_levels = ["strict", "moderate", "permissive"];
-    
+
     for level in &safety_levels {
         let output = runner.run_success(&["rm *.tmp", "--safety", level]);
         assert!(!output.is_empty(), "No output for safety level: {}", level);
-        assert!(!output.to_lowercase().contains("error"),
-                "Error with safety level {}: {}", level, output);
+        assert!(
+            !output.to_lowercase().contains("error"),
+            "Error with safety level {}: {}",
+            level,
+            output
+        );
     }
-    
+
     println!("✅ E2E-C2: All safety levels accepted (strict, moderate, permissive)");
 }
 
@@ -283,11 +293,11 @@ fn e2e_safety_level_configuration() {
 fn e2e_configuration_display() {
     let runner = CliTestRunner::new();
     let output = runner.run_success(&["--show-config"]);
-    
+
     // Should contain configuration information
     assert!(output.contains("Configuration") || output.contains("config"));
     assert!(output.contains("Safety level") || output.contains("safety"));
-    
+
     println!("✅ E2E-C3: Configuration display shows relevant information");
 }
 
@@ -301,10 +311,10 @@ fn e2e_configuration_display() {
 fn e2e_empty_input_handling() {
     let runner = CliTestRunner::new();
     let _output = runner.run_success(&[""]);
-    
+
     // Should handle empty input gracefully (not crash)
     // Output might be empty or contain a message, but shouldn't error
-    
+
     println!("✅ E2E-D1: Empty input handled gracefully");
 }
 
@@ -314,23 +324,26 @@ fn e2e_empty_input_handling() {
 fn e2e_invalid_shell_type_handling() {
     let runner = CliTestRunner::new();
     let result = runner.run_command(&["test command", "--shell", "invalid_shell"]);
-    
+
     // Should either succeed with warning or fail with clear error
     if result.exit_code == 0 {
         // If it succeeds, should contain a warning
         let combined_output = format!("{}{}", result.stdout, result.stderr);
         assert!(
-            combined_output.to_lowercase().contains("warning") ||
-            combined_output.to_lowercase().contains("invalid") ||
-            combined_output.to_lowercase().contains("default"),
-            "No warning for invalid shell. Output: {}", combined_output
+            combined_output.to_lowercase().contains("warning")
+                || combined_output.to_lowercase().contains("invalid")
+                || combined_output.to_lowercase().contains("default"),
+            "No warning for invalid shell. Output: {}",
+            combined_output
         );
     } else {
         // If it fails, error should be clear
-        assert!(!result.stderr.is_empty() || !result.stdout.is_empty(),
-                "No error message for invalid shell");
+        assert!(
+            !result.stderr.is_empty() || !result.stdout.is_empty(),
+            "No error message for invalid shell"
+        );
     }
-    
+
     println!("✅ E2E-D2: Invalid shell type handled appropriately");
 }
 
@@ -341,10 +354,10 @@ fn e2e_long_input_handling() {
     let runner = CliTestRunner::new();
     let long_input = "a".repeat(1000);
     let output = runner.run_success(&[&long_input]);
-    
+
     // Should handle long input without crashing
     assert!(!output.is_empty() || !output.contains("error"));
-    
+
     println!("✅ E2E-D3: Long input (1000 chars) handled successfully");
 }
 
@@ -355,10 +368,10 @@ fn e2e_special_characters_handling() {
     let runner = CliTestRunner::new();
     let special_input = "test with special chars: @#$%^&*()[]{}|\\;':\"<>?,./";
     let output = runner.run_success(&[special_input]);
-    
+
     // Should handle special characters without crashing
     assert!(!output.is_empty());
-    
+
     println!("✅ E2E-D4: Special characters handled successfully");
 }
 
@@ -373,22 +386,22 @@ fn e2e_verbose_mode() {
     let runner = CliTestRunner::new();
     let normal_output = runner.run_success(&["test command"]);
     let verbose_output = runner.run_success(&["test command", "--verbose"]);
-    
+
     // Verbose output should contain more information
     assert!(
         verbose_output.len() >= normal_output.len(),
         "Verbose output should be longer or equal to normal output"
     );
-    
+
     // Should contain debug information
     assert!(
-        verbose_output.contains("Debug") || 
-        verbose_output.contains("Backend") ||
-        verbose_output.contains("Generated in"),
+        verbose_output.contains("Debug")
+            || verbose_output.contains("Backend")
+            || verbose_output.contains("Generated in"),
         "Verbose output should contain debug information: {}",
         verbose_output
     );
-    
+
     println!("✅ E2E-E1: Verbose mode provides additional debugging information");
 }
 
@@ -398,16 +411,14 @@ fn e2e_verbose_mode() {
 fn e2e_timing_information() {
     let runner = CliTestRunner::new();
     let output = runner.run_success(&["test command", "--verbose"]);
-    
+
     // Should contain timing information in verbose mode
     assert!(
-        output.contains("ms") ||
-        output.contains("time") ||
-        output.contains("Generated in"),
+        output.contains("ms") || output.contains("time") || output.contains("Generated in"),
         "Verbose output should contain timing information: {}",
         output
     );
-    
+
     println!("✅ E2E-E2: Timing information displayed in verbose mode");
 }
 
@@ -420,20 +431,26 @@ fn e2e_timing_information() {
 #[test]
 fn e2e_complete_workflow() {
     let runner = CliTestRunner::new();
-    
+
     // Test complex command with multiple options
     let output = runner.run_success(&[
         "find all Python files in the project",
-        "--shell", "bash",
-        "--safety", "moderate",
-        "--output", "json",
-        "--verbose"
+        "--shell",
+        "bash",
+        "--safety",
+        "moderate",
+        "--output",
+        "json",
+        "--verbose",
     ]);
-    
+
     // Should produce valid JSON with debug info
     let json_result: Result<Value, _> = serde_json::from_str(&output);
-    assert!(json_result.is_ok(), "Complex workflow should produce valid JSON");
-    
+    assert!(
+        json_result.is_ok(),
+        "Complex workflow should produce valid JSON"
+    );
+
     println!("✅ E2E-F1: Complete workflow with all options works correctly");
 }
 
@@ -442,30 +459,30 @@ fn e2e_complete_workflow() {
 #[test]
 fn e2e_multiple_commands_performance() {
     let runner = CliTestRunner::new();
-    
+
     let commands = [
         "list files",
         "show date",
         "check disk space",
-        "display environment variables"
+        "display environment variables",
     ];
-    
+
     let start_time = std::time::Instant::now();
-    
+
     for cmd in &commands {
         let output = runner.run_success(&[cmd]);
         assert!(!output.is_empty(), "Command '{}' produced no output", cmd);
     }
-    
+
     let total_time = start_time.elapsed();
-    
+
     // Multiple commands should complete in reasonable time
     assert!(
         total_time < Duration::from_secs(60),
         "Multiple commands took too long: {:?}",
         total_time
     );
-    
+
     println!("✅ E2E-F2: Multiple commands completed in {:?}", total_time);
 }
 
@@ -474,16 +491,16 @@ fn e2e_multiple_commands_performance() {
 #[test]
 fn e2e_output_consistency() {
     let runner = CliTestRunner::new();
-    
+
     let test_input = "show current directory";
     let output1 = runner.run_success(&[test_input]);
     let output2 = runner.run_success(&[test_input]);
-    
+
     // Outputs should be consistent (same command, same explanation structure)
     // Allow for minor variations in timing or mock data
     assert!(!output1.is_empty() && !output2.is_empty());
     assert_eq!(output1.len(), output2.len());
-    
+
     println!("✅ E2E-F3: Output consistency verified for repeated commands");
 }
 
@@ -496,15 +513,17 @@ fn e2e_output_consistency() {
 #[cfg(test)]
 fn ensure_binary_built() {
     use std::process::Command;
-    
+
     let output = Command::new("cargo")
-        .args(&["build", "--bin", "cmdai"])
+        .args(["build", "--bin", "cmdai"])
         .output()
         .expect("Failed to build cmdai binary");
-    
+
     if !output.status.success() {
-        panic!("Failed to build cmdai binary: {}", 
-               String::from_utf8_lossy(&output.stderr));
+        panic!(
+            "Failed to build cmdai binary: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
     }
 }
 
@@ -513,28 +532,28 @@ fn ensure_binary_built() {
 #[test]
 fn e2e_smoke_test_suite() {
     ensure_binary_built();
-    
+
     let runner = CliTestRunner::new();
-    
+
     // Critical functionality tests
     println!("Running E2E smoke tests...");
-    
+
     // Test 1: Basic functionality
     let help_output = runner.run_success(&["--help"]);
     assert!(help_output.contains("cmdai"));
-    
+
     // Test 2: Command generation
     let cmd_output = runner.run_success(&["list files"]);
     assert!(!cmd_output.is_empty());
-    
+
     // Test 3: JSON output
     let json_output = runner.run_success(&["test", "--output", "json"]);
     assert!(serde_json::from_str::<Value>(&json_output).is_ok());
-    
+
     // Test 4: Error handling
     let _result = runner.run_command(&["", "--shell", "invalid"]);
     // Should not panic regardless of output
-    
+
     println!("✅ E2E Smoke Test Suite: All critical tests passed");
 }
 

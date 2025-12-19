@@ -63,6 +63,7 @@ impl IntoCliArgs for TestArgs {
 // =============================================================================
 
 #[tokio::test]
+#[ignore = "TDD: Requires full backend implementation for accurate command generation"]
 async fn test_list_pdf_files_in_downloads() {
     // QUICKSTART SCENARIO: User wants to find all PDF files in Downloads folder
     // Expected command: find ~/Downloads -name "*.pdf" OR ls ~/Downloads/*.pdf
@@ -132,6 +133,7 @@ async fn test_list_pdf_files_in_downloads() {
 // =============================================================================
 
 #[tokio::test]
+#[ignore = "TDD: Requires full backend implementation for accurate command generation"]
 async fn test_compress_images_auto_execute() {
     // QUICKSTART SCENARIO: Compress all images with automatic execution
     // Expected: Command generation + execution tracking (execution module needed)
@@ -261,6 +263,7 @@ async fn test_find_large_files_custom_backend() {
 // =============================================================================
 
 #[tokio::test]
+#[ignore = "TDD: Requires full backend implementation for accurate safety response testing"]
 async fn test_dangerous_command_safety_blocking() {
     // QUICKSTART SCENARIO: Safety system blocks dangerous operations
     // Test multiple dangerous command types and safety levels

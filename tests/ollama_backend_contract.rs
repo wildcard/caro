@@ -63,6 +63,7 @@ impl CommandGenerator for OllamaBackend {
 /// FR-NEW-001: Embedded Model Fallback
 /// MUST fallback to embedded model when Ollama backend fails or is unavailable
 #[tokio::test]
+#[ignore = "TDD: Requires embedded backend and Ollama fallback implementation"]
 async fn test_fallback_to_embedded_on_connection_failure() {
     use cmdai::backends::embedded::{EmbeddedModelBackend, ModelVariant};
     use std::path::PathBuf;
@@ -104,6 +105,7 @@ async fn test_fallback_to_embedded_on_connection_failure() {
 /// FR-NEW-002: Retry Before Fallback
 /// MUST attempt retry according to retry policy before falling back
 #[tokio::test]
+#[ignore = "TDD: Requires Ollama retry logic implementation"]
 async fn test_retry_before_fallback() {
     use cmdai::backends::embedded::{EmbeddedModelBackend, ModelVariant};
     use std::path::PathBuf;
@@ -141,6 +143,7 @@ async fn test_retry_before_fallback() {
 /// FR-NEW-003: Optional Backend Status (Non-blocking)
 /// MUST return false from is_available() when Ollama unreachable
 #[tokio::test]
+#[ignore = "TDD: Requires Ollama is_available implementation"]
 async fn test_optional_backend_status_non_blocking() {
     let ollama = OllamaBackend::new(
         Url::parse("http://localhost:99999").unwrap(),

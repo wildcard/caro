@@ -8,15 +8,14 @@ use cmdai::platform::{PlatformContext, UtilityType};
 /// Test that PlatformContext can be detected from the current environment
 #[tokio::test]
 async fn test_platform_context_detection() {
-    let ctx = PlatformContext::detect().await.expect("Should detect platform context");
+    let ctx = PlatformContext::detect()
+        .await
+        .expect("Should detect platform context");
 
     // Basic platform info should be populated
     assert!(!ctx.os().is_empty(), "OS should not be empty");
     assert!(!ctx.shell().is_empty(), "Shell should not be empty");
-    assert!(
-        !ctx.arch().is_empty(),
-        "Architecture should not be empty"
-    );
+    assert!(!ctx.arch().is_empty(), "Architecture should not be empty");
 }
 
 /// Test that platform context includes required fields
@@ -50,12 +49,9 @@ async fn test_platform_context_has_required_fields() {
         arch
     );
 
-    // Check POSIX compliance flag
-    let posix = ctx.is_posix_compliant();
-    assert!(
-        posix == true || posix == false,
-        "POSIX compliance should be boolean"
-    );
+    // Check POSIX compliance flag - value is used to verify the method exists and returns
+    let _posix = ctx.is_posix_compliant();
+    // POSIX compliance is a boolean, test passes if method returns without panic
 }
 
 /// Test OS version detection
@@ -66,10 +62,7 @@ async fn test_os_version_detection() {
         .expect("Should detect platform context");
 
     let os_version = ctx.os_version();
-    assert!(
-        !os_version.is_empty(),
-        "OS version should not be empty"
-    );
+    assert!(!os_version.is_empty(), "OS version should not be empty");
 
     // Version should contain numbers
     assert!(
@@ -138,18 +131,12 @@ async fn test_coreutils_detection() {
 
         // On macOS, should typically have BSD utils
         if ctx.os() == "macos" {
-            assert!(
-                has_bsd,
-                "macOS should typically have BSD utilities"
-            );
+            assert!(has_bsd, "macOS should typically have BSD utilities");
         }
 
         // On Linux, should typically have GNU utils
         if ctx.os() == "linux" {
-            assert!(
-                has_gnu,
-                "Linux should typically have GNU coreutils"
-            );
+            assert!(has_gnu, "Linux should typically have GNU coreutils");
         }
     }
 }
@@ -163,9 +150,12 @@ async fn test_utility_type_detection() {
 
     if ctx.is_posix_compliant() {
         let util_type = ctx.utility_type();
-        
+
         assert!(
-            matches!(util_type, UtilityType::Gnu | UtilityType::Bsd | UtilityType::Busybox),
+            matches!(
+                util_type,
+                UtilityType::Gnu | UtilityType::Bsd | UtilityType::Busybox
+            ),
             "Should detect utility type on POSIX systems: got {:?}",
             util_type
         );
@@ -190,10 +180,7 @@ async fn test_platform_context_to_prompt() {
         prompt_str.contains("Shell:") || prompt_str.contains("shell:"),
         "Prompt should include shell information"
     );
-    assert!(
-        !prompt_str.is_empty(),
-        "Prompt string should not be empty"
-    );
+    assert!(!prompt_str.is_empty(), "Prompt string should not be empty");
 }
 
 /// Test platform context includes platform-specific notes
@@ -273,7 +260,11 @@ async fn test_common_utilities() {
 
         for util in &common {
             if utils.contains_key(*util) {
-                println!("Found {}: {}", util, utils.get(*util).unwrap_or(&"".to_string()));
+                println!(
+                    "Found {}: {}",
+                    util,
+                    utils.get(*util).unwrap_or(&"".to_string())
+                );
             }
         }
     }
@@ -285,7 +276,9 @@ async fn test_platform_detection_performance() {
     use std::time::Instant;
 
     let start = Instant::now();
-    let _ctx = PlatformContext::detect().await.expect("Should detect platform");
+    let _ctx = PlatformContext::detect()
+        .await
+        .expect("Should detect platform");
     let duration = start.elapsed();
 
     // Detection should complete within 2 seconds (even with utility checks)

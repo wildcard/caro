@@ -324,7 +324,9 @@ fn detect_os() -> String {
 async fn detect_os_version() -> Result<String, PlatformContextError> {
     #[cfg(target_os = "macos")]
     {
-        if let Ok(output) = run_command_with_timeout("sw_vers", &["-productVersion"], Duration::from_secs(1)).await {
+        if let Ok(output) =
+            run_command_with_timeout("sw_vers", &["-productVersion"], Duration::from_secs(1)).await
+        {
             return Ok(output.trim().to_string());
         }
     }
@@ -345,7 +347,8 @@ async fn detect_os_version() -> Result<String, PlatformContextError> {
         }
 
         // Fallback to uname
-        if let Ok(output) = run_command_with_timeout("uname", &["-r"], Duration::from_secs(1)).await {
+        if let Ok(output) = run_command_with_timeout("uname", &["-r"], Duration::from_secs(1)).await
+        {
             return Ok(output.trim().to_string());
         }
     }
@@ -366,7 +369,7 @@ fn detect_arch() -> String {
 
 fn detect_shell() -> String {
     if let Ok(shell) = std::env::var("SHELL") {
-        if let Some(name) = shell.split('/').last() {
+        if let Some(name) = shell.split('/').next_back() {
             return name.to_string();
         }
     }
@@ -397,7 +400,7 @@ async fn detect_shell_version(shell: &str) -> String {
         if let Some(first_line) = output.lines().next() {
             // Extract version pattern (e.g., "5.1.16" or "3.1.2")
             for word in first_line.split_whitespace() {
-                if word.chars().next().map_or(false, |c| c.is_numeric()) {
+                if word.chars().next().is_some_and(|c| c.is_numeric()) {
                     return word.to_string();
                 }
             }
@@ -413,7 +416,9 @@ fn is_posix_compliant(os: &str) -> bool {
 
 async fn detect_gnu_coreutils() -> bool {
     // Try to run `ls --version` - GNU coreutils respond with version info
-    if let Ok(output) = run_command_with_timeout("ls", &["--version"], Duration::from_millis(500)).await {
+    if let Ok(output) =
+        run_command_with_timeout("ls", &["--version"], Duration::from_millis(500)).await
+    {
         output.to_lowercase().contains("gnu")
     } else {
         false
@@ -422,7 +427,10 @@ async fn detect_gnu_coreutils() -> bool {
 
 async fn detect_bsd_utils() -> bool {
     // BSD utils typically don't support --version
-    if let Ok(_) = run_command_with_timeout("ls", &["--version"], Duration::from_millis(500)).await {
+    if run_command_with_timeout("ls", &["--version"], Duration::from_millis(500))
+        .await
+        .is_ok()
+    {
         false // If --version works, it's likely GNU
     } else {
         // BSD utils will fail on --version, check if ls exists normally
@@ -463,7 +471,9 @@ async fn detect_available_tools() -> HashMap<String, String> {
 async fn detect_tool_version(tool: &str) -> String {
     // Try common version flags
     for flag in &["--version", "-v", "-V", "version"] {
-        if let Ok(output) = run_command_with_timeout(tool, &[flag], Duration::from_millis(500)).await {
+        if let Ok(output) =
+            run_command_with_timeout(tool, &[flag], Duration::from_millis(500)).await
+        {
             // Extract version from first line
             if let Some(first_line) = output.lines().next() {
                 return first_line.trim().to_string();

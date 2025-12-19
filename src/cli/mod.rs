@@ -2,8 +2,8 @@
 
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
-use std::time::Instant;
 use std::sync::Arc;
+use std::time::Instant;
 
 use crate::{
     agent::AgentLoop,
@@ -25,10 +25,10 @@ use crate::{
 /// Main CLI application struct
 pub struct CliApp {
     config: CliConfig,
-    backend: Arc<dyn CommandGenerator>,
+    _backend: Arc<dyn CommandGenerator>,
     agent_loop: AgentLoop,
     validator: SafetyValidator,
-    context: ExecutionContext,
+    _context: ExecutionContext,
 }
 
 impl std::fmt::Debug for CliApp {
@@ -165,16 +165,16 @@ impl CliApp {
 
         // Detect execution context
         let context = ExecutionContext::detect();
-        
+
         // Create agent loop with backend and context
         let agent_loop = AgentLoop::new(backend_arc.clone(), context.clone());
 
         Ok(Self {
             config,
-            backend: backend_arc,
+            _backend: backend_arc,
             agent_loop,
             validator,
-            context,
+            _context: context,
         })
     }
 
@@ -195,8 +195,8 @@ impl CliApp {
             use std::sync::Arc;
 
             // Create embedded backend as fallback
-            let embedded_backend = EmbeddedModelBackend::new()
-                .map_err(|e| CliError::ConfigurationError {
+            let embedded_backend =
+                EmbeddedModelBackend::new().map_err(|e| CliError::ConfigurationError {
                     message: format!("Failed to create embedded backend: {}", e),
                 })?;
 
@@ -291,8 +291,8 @@ impl CliApp {
             message: "No prompt provided".to_string(),
         })?;
 
-        // Create command request
-        let request = CommandRequest {
+        // Create command request (currently unused, but kept for future use)
+        let _request = CommandRequest {
             input: prompt.clone(),
             context: None,
             shell,
