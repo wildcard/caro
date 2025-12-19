@@ -170,6 +170,36 @@ The file must be in TOML format.
 .BR \-v ", " \-\-verbose
 Enable verbose output with timing information, debug messages,
 and detailed progress updates.
+.TP
+.BR \-\-completions " " \fISHELL\fR
+Generate shell completion scripts for the specified shell and print to stdout.
+Supported shells:
+.RS
+.TP
+.B bash
+Bash completions
+.TP
+.B zsh
+Zsh completions
+.TP
+.B fish
+Fish completions
+.TP
+.B powershell
+PowerShell completions
+.TP
+.B elvish
+Elvish completions
+.RE
+.IP
+Example:
+.RS
+.nf
+cmdai --completions bash > ~/.local/share/bash-completion/completions/cmdai
+cmdai --completions zsh > ~/.local/share/zsh/site-functions/_cmdai
+cmdai --completions fish > ~/.config/fish/completions/cmdai.fish
+.fi
+.RE
 .\"
 .\" ===== CONFIGURATION =====
 .SH CONFIGURATION

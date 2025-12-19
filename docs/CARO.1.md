@@ -98,6 +98,22 @@ Caro uses a sophisticated **2-iteration agentic loop** that detects your operati
 **-v**, **--verbose**
 :   Enable verbose output with timing information, debug messages, and detailed progress updates.
 
+**--completions** *SHELL*
+:   Generate shell completion scripts for the specified shell and print to stdout.
+    Supported shells: `bash`, `zsh`, `fish`, `powershell`, `elvish`.
+
+    Example usage:
+    ```bash
+    # Generate and install bash completions
+    cmdai --completions bash > ~/.local/share/bash-completion/completions/cmdai
+
+    # Generate zsh completions
+    cmdai --completions zsh > ~/.local/share/zsh/site-functions/_cmdai
+
+    # Generate fish completions
+    cmdai --completions fish > ~/.config/fish/completions/cmdai.fish
+    ```
+
 ## CONFIGURATION
 
 ### Configuration File Location
