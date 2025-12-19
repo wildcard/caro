@@ -1,6 +1,8 @@
-use clap::Parser;
+use clap::{CommandFactory, Parser};
+use clap_complete::{generate, Shell};
 use cmdai::cli::{CliApp, CliError, IntoCliArgs};
 use cmdai::config::ConfigManager;
+use std::io;
 use std::process;
 
 /// cmdai - Convert natural language to shell commands using local LLMs
@@ -71,6 +73,14 @@ struct Cli {
         help = "Interactive mode with step-by-step confirmation"
     )]
     interactive: bool,
+
+    /// Generate shell completions
+    #[arg(
+        long,
+        value_name = "SHELL",
+        help = "Generate shell completions for the specified shell (bash, zsh, fish, powershell, elvish)"
+    )]
+    completions: Option<Shell>,
 }
 
 impl IntoCliArgs for Cli {
@@ -131,6 +141,13 @@ async fn main() {
             .with_env_filter("cmdai=warn")
             .without_time()
             .init();
+    }
+
+    // Handle --completions
+    if let Some(shell) = cli.completions {
+        let mut cmd = Cli::command();
+        generate(shell, &mut cmd, "cmdai", &mut io::stdout());
+        process::exit(0);
     }
 
     // Handle --show-config
