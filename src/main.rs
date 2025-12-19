@@ -121,7 +121,7 @@ async fn main() {
 
     // Initialize tracing/logging
     if cli.verbose {
-        // In verbose mode, show all logs (info, debug, trace) with timestamps
+        // In verbose mode, show info logs (and above) with timestamps
         // Allow RUST_LOG env var to override if set
         let filter = tracing_subscriber::EnvFilter::try_from_default_env()
             .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("cmdai=info"));
