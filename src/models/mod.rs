@@ -237,6 +237,8 @@ pub enum BackendType {
     Ollama,
     /// vLLM HTTP API backend
     VLlm,
+    /// Azure Foundry backend
+    AzureFoundry,
     /// Apple Silicon MLX backend (legacy)
     Mlx,
 }
@@ -250,6 +252,7 @@ impl std::str::FromStr for BackendType {
             "embedded" => Ok(Self::Embedded),
             "ollama" => Ok(Self::Ollama),
             "vllm" => Ok(Self::VLlm),
+            "azure-foundry" | "azurefoundry" => Ok(Self::AzureFoundry),
             "mlx" => Ok(Self::Mlx),
             _ => Err(format!("Unknown backend type: {}", s)),
         }
@@ -263,6 +266,7 @@ impl std::fmt::Display for BackendType {
             Self::Embedded => write!(f, "embedded"),
             Self::Ollama => write!(f, "ollama"),
             Self::VLlm => write!(f, "vllm"),
+            Self::AzureFoundry => write!(f, "azure-foundry"),
             Self::Mlx => write!(f, "mlx"),
         }
     }
@@ -625,6 +629,16 @@ pub struct UserConfiguration {
     pub log_level: LogLevel,
     pub cache_max_size_gb: u64,
     pub log_rotation_days: u32,
+
+    // Azure Foundry configuration
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub azure_foundry_endpoint: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub azure_foundry_api_key: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub azure_foundry_model: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub azure_foundry_api_version: Option<String>,
 }
 
 impl Default for UserConfiguration {
@@ -636,6 +650,10 @@ impl Default for UserConfiguration {
             log_level: LogLevel::Info,
             cache_max_size_gb: 10,
             log_rotation_days: 7,
+            azure_foundry_endpoint: None,
+            azure_foundry_api_key: None,
+            azure_foundry_model: None,
+            azure_foundry_api_version: None,
         }
     }
 }
@@ -672,6 +690,10 @@ pub struct UserConfigurationBuilder {
     log_level: LogLevel,
     cache_max_size_gb: u64,
     log_rotation_days: u32,
+    azure_foundry_endpoint: Option<String>,
+    azure_foundry_api_key: Option<String>,
+    azure_foundry_model: Option<String>,
+    azure_foundry_api_version: Option<String>,
 }
 
 impl Default for UserConfigurationBuilder {
@@ -690,6 +712,10 @@ impl UserConfigurationBuilder {
             log_level: defaults.log_level,
             cache_max_size_gb: defaults.cache_max_size_gb,
             log_rotation_days: defaults.log_rotation_days,
+            azure_foundry_endpoint: defaults.azure_foundry_endpoint,
+            azure_foundry_api_key: defaults.azure_foundry_api_key,
+            azure_foundry_model: defaults.azure_foundry_model,
+            azure_foundry_api_version: defaults.azure_foundry_api_version,
         }
     }
 
@@ -723,6 +749,26 @@ impl UserConfigurationBuilder {
         self
     }
 
+    pub fn azure_foundry_endpoint(mut self, endpoint: impl Into<String>) -> Self {
+        self.azure_foundry_endpoint = Some(endpoint.into());
+        self
+    }
+
+    pub fn azure_foundry_api_key(mut self, api_key: impl Into<String>) -> Self {
+        self.azure_foundry_api_key = Some(api_key.into());
+        self
+    }
+
+    pub fn azure_foundry_model(mut self, model: impl Into<String>) -> Self {
+        self.azure_foundry_model = Some(model.into());
+        self
+    }
+
+    pub fn azure_foundry_api_version(mut self, version: impl Into<String>) -> Self {
+        self.azure_foundry_api_version = Some(version.into());
+        self
+    }
+
     pub fn build(self) -> Result<UserConfiguration, String> {
         let config = UserConfiguration {
             default_shell: self.default_shell,
@@ -731,6 +777,10 @@ impl UserConfigurationBuilder {
             log_level: self.log_level,
             cache_max_size_gb: self.cache_max_size_gb,
             log_rotation_days: self.log_rotation_days,
+            azure_foundry_endpoint: self.azure_foundry_endpoint,
+            azure_foundry_api_key: self.azure_foundry_api_key,
+            azure_foundry_model: self.azure_foundry_model,
+            azure_foundry_api_version: self.azure_foundry_api_version,
         };
         config.validate()?;
         Ok(config)

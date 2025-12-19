@@ -180,7 +180,7 @@ impl CliApp {
 
     /// Create appropriate backend based on user configuration
     async fn create_backend(
-        _user_config: &crate::models::UserConfiguration,
+        user_config: &crate::models::UserConfiguration,
     ) -> Result<Box<dyn CommandGenerator>, CliError> {
         // For test builds, use mock backend
         #[cfg(any(test, debug_assertions))]
@@ -205,12 +205,45 @@ impl CliApp {
             // Try remote backends with embedded fallback based on configuration
             #[cfg(feature = "remote-backends")]
             {
-                use crate::backends::remote::{OllamaBackend, VllmBackend};
+                use crate::backends::remote::{AzureFoundryBackend, OllamaBackend, VllmBackend};
                 use reqwest::Url;
 
-                // TODO: Add backend preference to user configuration
-                // For now, try Ollama first, then vLLM, then embedded
+                // Priority 1: Azure Foundry (if configured)
+                if let (Some(endpoint), Some(api_key)) = (
+                    &user_config.azure_foundry_endpoint,
+                    &user_config.azure_foundry_api_key,
+                ) {
+                    if let Ok(azure_url) = Url::parse(endpoint) {
+                        let model = user_config
+                            .azure_foundry_model
+                            .clone()
+                            .unwrap_or_else(|| "gpt-4o".to_string());
 
+                        let mut azure_backend =
+                            AzureFoundryBackend::new(azure_url, model.clone(), api_key.clone())
+                                .map_err(|e| CliError::ConfigurationError {
+                                    message: format!("Failed to create Azure Foundry backend: {}", e),
+                                })?
+                                .with_embedded_fallback(embedded_arc.clone());
+
+                        // Set API version if configured
+                        if let Some(api_version) = &user_config.azure_foundry_api_version {
+                            azure_backend = azure_backend.with_api_version(api_version.clone());
+                        }
+
+                        if azure_backend.is_available().await {
+                            tracing::info!(
+                                "Using Azure Foundry backend ({}) with embedded fallback",
+                                model
+                            );
+                            return Ok(Box::new(azure_backend));
+                        } else {
+                            tracing::warn!("Azure Foundry configured but unavailable, trying other backends");
+                        }
+                    }
+                }
+
+                // Priority 2: Ollama (local)
                 if let Ok(ollama_url) = Url::parse("http://localhost:11434") {
                     let ollama_backend = OllamaBackend::new(ollama_url, "codellama:7b".to_string())
                         .map_err(|e| CliError::ConfigurationError {
@@ -224,6 +257,7 @@ impl CliApp {
                     }
                 }
 
+                // Priority 3: vLLM (local)
                 if let Ok(vllm_url) = Url::parse("http://localhost:8000") {
                     let vllm_backend =
                         VllmBackend::new(vllm_url, "codellama/CodeLlama-7b-hf".to_string())

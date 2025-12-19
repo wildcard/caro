@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Single binary under 50MB (without embedded model)
 - Startup time < 100ms, first inference < 2s on M1 Mac
 - Safety-first approach with comprehensive command validation
-- Extensible backend system (MLX, vLLM, Ollama)
+- Extensible backend system (Azure Foundry, MLX, vLLM, Ollama)
 - Hugging Face model caching with offline capability
 
 ## Project Structure
@@ -22,6 +22,7 @@ cmdai/
 │   ├── backends/            # Inference backend implementations
 │   │   ├── mod.rs          # Backend trait system
 │   │   ├── mlx.rs          # Apple Silicon MLX backend (FFI)
+│   │   ├── azure_foundry.rs # Azure Foundry enterprise backend
 │   │   ├── vllm.rs         # vLLM HTTP API backend
 │   │   └── ollama.rs       # Ollama local backend
 │   ├── cache/              # Hugging Face model caching
@@ -111,6 +112,11 @@ cargo watch -x check -x test -x run
 - Risk assessment and color-coded output
 
 ### Phase 3: Remote Backends
+- Azure Foundry enterprise backend (NEW - Completed)
+  - OpenAI-compatible API integration
+  - Bearer token authentication
+  - Model selection from Azure catalog
+  - Environment variable configuration support
 - vLLM HTTP API integration
 - Ollama local API support
 - Error handling and retry mechanisms

@@ -159,6 +159,23 @@ impl ConfigManager {
             })?;
         }
 
+        // Azure Foundry environment variables
+        if let Ok(endpoint) = std::env::var("CMDAI_AZURE_FOUNDRY_ENDPOINT") {
+            config.azure_foundry_endpoint = Some(endpoint);
+        }
+
+        if let Ok(api_key) = std::env::var("CMDAI_AZURE_FOUNDRY_API_KEY") {
+            config.azure_foundry_api_key = Some(api_key);
+        }
+
+        if let Ok(model) = std::env::var("CMDAI_AZURE_FOUNDRY_MODEL") {
+            config.azure_foundry_model = Some(model);
+        }
+
+        if let Ok(version) = std::env::var("CMDAI_AZURE_FOUNDRY_API_VERSION") {
+            config.azure_foundry_api_version = Some(version);
+        }
+
         Ok(config)
     }
 

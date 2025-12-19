@@ -30,7 +30,7 @@ This project is in **active early development**. Core architecture is implemente
 - 🎯 Core CLI structure with comprehensive argument parsing
 - 🏗️ Modular architecture with trait-based backends
 - 🧠 Embedded model backend with MLX (Apple Silicon) and CPU variants
-- 🌐 Remote backend support (Ollama, vLLM) with automatic fallback
+- 🌐 Remote backend support (Azure Foundry, Ollama, vLLM) with automatic fallback
 - 🛡️ Safety validation with 52 pre-compiled dangerous command patterns
 - ⚙️ Configuration management with TOML support
 - 💬 Interactive user confirmation flows with color-coded risk levels
@@ -59,7 +59,7 @@ This project is in **active early development**. Core architecture is implemente
 - 🧠 **Local LLM inference** - Optimized for Apple Silicon with MLX
 - 🛡️ **Safety-first** - Comprehensive command validation framework
 - 📦 **Zero dependencies** - Self-contained binary distribution
-- 🎯 **Multiple backends** - Extensible backend system (MLX, vLLM, Ollama)
+- 🎯 **Multiple backends** - Extensible backend system (Azure Foundry, MLX, vLLM, Ollama)
 - 💾 **Smart caching** - Hugging Face model management
 - 🌐 **Cross-platform** - macOS, Linux, Windows support
 
@@ -336,22 +336,61 @@ cmdai supports multiple inference backends with automatic fallback:
 - No external dependencies required
 
 #### Remote Backends (Optional)
+
+##### Azure Foundry Backend
+Perfect for enterprise environments using Microsoft Azure AI:
+
+```toml
+# Add to ~/.config/cmdai/config.toml
+azure_foundry_endpoint = "https://my-foundry.eastus.inference.ml.azure.com"
+azure_foundry_api_key = "your-api-key"
+azure_foundry_model = "gpt-4o"  # or any available model
+azure_foundry_api_version = "2024-05-01-preview"  # optional
+```
+
+Or use environment variables:
+```bash
+export CMDAI_AZURE_FOUNDRY_ENDPOINT="https://my-foundry.eastus.inference.ml.azure.com"
+export CMDAI_AZURE_FOUNDRY_API_KEY="your-api-key"
+export CMDAI_AZURE_FOUNDRY_MODEL="gpt-4o"
+```
+
+**Features:**
+- Enterprise-grade security and compliance
+- Model selection from Azure Foundry catalog
+- Automatic fallback to embedded backend on connection issues
+- Support for API version customization
+
+**Supported Models:**
+- GPT-4o, GPT-4 Turbo
+- Claude 3.5 Sonnet (via Azure)
+- Llama 3 70B Instruct
+- And more available through your Azure Foundry deployment
+
+##### Ollama Backend
 Configure in `~/.config/cmdai/config.toml`:
 
 ```toml
-[backend]
-primary = "embedded"  # or "ollama", "vllm"
-enable_fallback = true
-
 [backend.ollama]
 base_url = "http://localhost:11434"
 model_name = "codellama:7b"
+```
 
+##### vLLM Backend
+Configure in `~/.config/cmdai/config.toml`:
+
+```toml
 [backend.vllm]
 base_url = "http://localhost:8000"
 model_name = "codellama/CodeLlama-7b-hf"
 api_key = "optional-api-key"
 ```
+
+**Backend Priority:**
+1. Azure Foundry (if configured)
+2. Ollama (if available on localhost:11434)
+3. vLLM (if available on localhost:8000)
+4. Embedded backend (always available as fallback)
 
 ### Project Configuration
 
