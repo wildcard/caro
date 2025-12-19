@@ -128,7 +128,7 @@ cmdai is:
 - Provides legal protection for those who want it
 - Aligns with modern open source trends
 
-**Documentation**: Updated [CONTRIBUTING.md](CONTRIBUTING.md) to explain both options
+**Documentation**: Updated [CONTRIBUTING.md](../../CONTRIBUTING.md) to explain both options
 
 ---
 
