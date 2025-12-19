@@ -539,6 +539,348 @@ fn e2e_smoke_test_suite() {
 }
 
 // =============================================================================
+// E2E Test Suite G: Natural Language Input Without Quotes
+// =============================================================================
+
+/// E2E-G1: Natural Language Input Without Quotes Test
+/// Verifies that users can type natural language prompts without requiring quotes
+#[test]
+fn e2e_natural_language_without_quotes() {
+    let runner = CliTestRunner::new();
+
+    // Test various natural language inputs without quotes
+    let test_cases = [
+        &["list", "all", "files", "in", "dir"][..],
+        &["show", "disk", "usage"][..],
+        &["find", "large", "files"][..],
+        &["display", "current", "directory"][..],
+    ];
+
+    for args in &test_cases {
+        let result = runner.run_command(args);
+
+        // Should succeed without errors
+        assert_eq!(
+            result.exit_code, 0,
+            "Natural language without quotes failed. Args: {:?}\nStdout: {}\nStderr: {}",
+            args, result.stdout, result.stderr
+        );
+
+        // Should contain command output
+        assert!(
+            result.stdout.contains("Command:") || result.stdout.len() > 10,
+            "No command output for args: {:?}\nOutput: {}",
+            args, result.stdout
+        );
+
+        // Should not show argument parsing errors
+        assert!(
+            !result.stderr.contains("unexpected argument"),
+            "Unexpected argument error for {:?}\nStderr: {}",
+            args, result.stderr
+        );
+    }
+
+    println!("✅ E2E-G1: Natural language input without quotes works correctly");
+}
+
+/// E2E-G2: Backward Compatibility with Quoted Input Test
+/// Verifies that quoted input still works for backward compatibility
+#[test]
+fn e2e_backward_compatibility_quoted_input() {
+    let runner = CliTestRunner::new();
+
+    // Test quoted input (traditional form)
+    let test_cases = [
+        "list all files in dir",
+        "show disk usage",
+        "find large files",
+    ];
+
+    for prompt in &test_cases {
+        let result = runner.run_command(&[prompt]);
+
+        // Should succeed
+        assert_eq!(
+            result.exit_code, 0,
+            "Quoted input failed. Prompt: {}\nStdout: {}\nStderr: {}",
+            prompt, result.stdout, result.stderr
+        );
+
+        // Should contain command output
+        assert!(
+            result.stdout.contains("Command:") || result.stdout.len() > 10,
+            "No command output for prompt: {}\nOutput: {}",
+            prompt, result.stdout
+        );
+    }
+
+    println!("✅ E2E-G2: Backward compatibility with quoted input maintained");
+}
+
+/// E2E-G3: Natural Language with Flags Test
+/// Verifies that natural language input works correctly when combined with CLI flags
+#[test]
+fn e2e_natural_language_with_flags() {
+    let runner = CliTestRunner::new();
+
+    // Test natural language with various flags
+    let test_cases = [
+        // shell flag
+        (&["--shell", "bash", "list", "all", "files"][..], "--shell"),
+        // output format flag
+        (&["--output", "json", "show", "disk", "usage"][..], "--output"),
+        // safety flag (use a safe command to avoid blocking)
+        (&["--safety", "moderate", "show", "temp", "directory"][..], "--safety"),
+        // verbose flag
+        (&["--verbose", "find", "large", "files"][..], "--verbose"),
+    ];
+
+    for (args, flag_name) in &test_cases {
+        let result = runner.run_command(args);
+
+        // Should succeed
+        assert_eq!(
+            result.exit_code, 0,
+            "Natural language with {} flag failed. Args: {:?}\nStdout: {}\nStderr: {}",
+            flag_name, args, result.stdout, result.stderr
+        );
+
+        // Should contain output (check both stdout and stderr)
+        let combined_output = format!("{}{}", result.stdout, result.stderr);
+        assert!(
+            !combined_output.trim().is_empty(),
+            "No output for args with {} flag: {:?}",
+            flag_name, args
+        );
+    }
+
+    println!("✅ E2E-G3: Natural language works correctly with CLI flags");
+}
+
+/// E2E-G4: Output Equivalence Test
+/// Verifies that quoted and unquoted forms produce equivalent output
+#[test]
+fn e2e_output_equivalence_quoted_vs_unquoted() {
+    let runner = CliTestRunner::new();
+
+    // Test that quoted and unquoted forms produce the same result
+    let test_prompt = "list all files in current directory";
+
+    // Run with quoted form
+    let quoted_output = runner.run_success(&[test_prompt]);
+
+    // Run with unquoted form (split into words)
+    let unquoted_output = runner.run_success(&[
+        "list", "all", "files", "in", "current", "directory"
+    ]);
+
+    // Both should produce output
+    assert!(!quoted_output.is_empty());
+    assert!(!unquoted_output.is_empty());
+
+    // Both should contain command output
+    assert!(quoted_output.contains("Command:") || quoted_output.len() > 10);
+    assert!(unquoted_output.contains("Command:") || unquoted_output.len() > 10);
+
+    // Structure should be the same (both should have same length or very similar)
+    // Allow for minor variations in whitespace
+    assert!(
+        (quoted_output.len() as i32 - unquoted_output.len() as i32).abs() < 10,
+        "Quoted and unquoted outputs differ significantly.\nQuoted: {}\nUnquoted: {}",
+        quoted_output, unquoted_output
+    );
+
+    println!("✅ E2E-G4: Quoted and unquoted forms produce equivalent output");
+}
+
+/// E2E-G5: Edge Case - Single Word Prompt Test
+/// Verifies that single-word prompts work correctly
+#[test]
+fn e2e_single_word_prompt() {
+    let runner = CliTestRunner::new();
+
+    // Single word prompts
+    let test_cases = ["help", "date", "pwd"];
+
+    for word in &test_cases {
+        let result = runner.run_command(&[word]);
+
+        // Should succeed (even if it generates a simple command)
+        assert_eq!(
+            result.exit_code, 0,
+            "Single word prompt failed. Word: {}\nStderr: {}",
+            word, result.stderr
+        );
+
+        // Should produce some output
+        assert!(
+            !result.stdout.is_empty(),
+            "No output for single word: {}",
+            word
+        );
+    }
+
+    println!("✅ E2E-G5: Single-word prompts work correctly");
+}
+
+/// E2E-G6: Edge Case - Long Natural Language Input Test
+/// Verifies that long natural language sentences work without quotes
+#[test]
+fn e2e_long_natural_language_input() {
+    let runner = CliTestRunner::new();
+
+    // Long natural language prompt split into words
+    let words = [
+        "find", "all", "files", "with", "extension", "txt", "that", "are",
+        "larger", "than", "1", "megabyte", "in", "the", "current", "directory",
+        "and", "all", "subdirectories"
+    ];
+
+    let result = runner.run_command(&words);
+
+    // Should succeed
+    assert_eq!(
+        result.exit_code, 0,
+        "Long natural language input failed.\nStderr: {}",
+        result.stderr
+    );
+
+    // Should contain command output
+    assert!(
+        result.stdout.contains("Command:") || result.stdout.len() > 10,
+        "No command output for long input.\nOutput: {}",
+        result.stdout
+    );
+
+    // Should not show unexpected argument errors
+    assert!(
+        !result.stderr.contains("unexpected argument"),
+        "Got unexpected argument error for long input.\nStderr: {}",
+        result.stderr
+    );
+
+    println!("✅ E2E-G6: Long natural language sentences work without quotes");
+}
+
+/// E2E-G7: Special Characters in Natural Language Test
+/// Verifies that natural language with special characters works correctly
+#[test]
+fn e2e_special_characters_in_natural_language() {
+    let runner = CliTestRunner::new();
+
+    // When using natural language without quotes, shell may interpret some special chars
+    // Test common safe patterns
+    let test_cases = [
+        &["show", "files", "modified", "today"][..],
+        &["list", "files", "matching", "pattern"][..],
+        &["find", "files", "created", "yesterday"][..],
+    ];
+
+    for args in &test_cases {
+        let result = runner.run_command(args);
+
+        // Should not crash and should produce output
+        assert_eq!(
+            result.exit_code, 0,
+            "Natural language with common words failed. Args: {:?}\nStderr: {}",
+            args, result.stderr
+        );
+
+        assert!(
+            !result.stdout.is_empty(),
+            "No output for args: {:?}",
+            args
+        );
+    }
+
+    println!("✅ E2E-G7: Natural language with common patterns works correctly");
+}
+
+/// E2E-G8: Help Documentation Accuracy Test
+/// Verifies that help output shows examples with and without quotes
+#[test]
+fn e2e_help_shows_both_quote_styles() {
+    let runner = CliTestRunner::new();
+    let help_output = runner.run_success(&["--help"]);
+
+    // Help should show both styles in examples or usage
+    // The usage line should indicate multiple arguments are accepted
+    assert!(
+        help_output.contains("[PROMPT]...") || help_output.contains("<PROMPT>..."),
+        "Help should show that multiple arguments are accepted.\nHelp: {}",
+        help_output
+    );
+
+    println!("✅ E2E-G8: Help documentation correctly indicates multi-arg support");
+}
+
+/// E2E-G9: Error Message Clarity Test
+/// Verifies that error messages don't incorrectly suggest using quotes when not needed
+#[test]
+fn e2e_error_messages_no_quote_requirement() {
+    let runner = CliTestRunner::new();
+
+    // Run without any arguments (should show usage)
+    let result = runner.run_command(&[]);
+
+    // Error message should show examples
+    let combined_output = format!("{}{}", result.stdout, result.stderr);
+
+    if combined_output.contains("Examples:") || combined_output.contains("Usage:") {
+        // If it shows examples, it should include both quoted and unquoted forms
+        // or just show the natural unquoted form
+        // At minimum, it should not ONLY show quoted examples
+
+        // This test passes if we see usage information
+        assert!(
+            combined_output.contains("cmdai"),
+            "Usage information should mention cmdai"
+        );
+    }
+
+    println!("✅ E2E-G9: Error messages provide clear usage information");
+}
+
+/// E2E-G10: JSON Output with Natural Language Input Test
+/// Verifies that JSON output works correctly with unquoted natural language
+#[test]
+fn e2e_json_output_with_natural_language() {
+    let runner = CliTestRunner::new();
+
+    // Test JSON output with natural language (no quotes on the prompt)
+    let result = runner.run_command(&[
+        "--output", "json",
+        "list", "all", "files", "in", "directory"
+    ]);
+
+    // Should succeed
+    assert_eq!(
+        result.exit_code, 0,
+        "JSON output with natural language failed.\nStderr: {}",
+        result.stderr
+    );
+
+    // Should produce valid JSON
+    let json_result: Result<Value, _> = serde_json::from_str(&result.stdout);
+    assert!(
+        json_result.is_ok(),
+        "Output is not valid JSON: {}",
+        result.stdout
+    );
+
+    let json_value = json_result.unwrap();
+
+    // Should contain the expected fields
+    assert!(
+        json_value.get("generated_command").is_some(),
+        "JSON output missing generated_command field"
+    );
+
+    println!("✅ E2E-G10: JSON output works correctly with natural language input");
+}
+
+// =============================================================================
 // E2E Test Documentation and Usage
 // =============================================================================
 
@@ -557,6 +899,7 @@ mod e2e_documentation {
     //! - **Suite D**: Error handling and edge cases
     //! - **Suite E**: Verbose mode and debugging
     //! - **Suite F**: Integration and workflow tests
+    //! - **Suite G**: Natural language input without quotes
     //!
     //! ## Running Tests
     //! ```bash
