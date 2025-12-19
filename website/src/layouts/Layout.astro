@@ -18,6 +18,13 @@ const { title, description } = Astro.props;
     <link rel="icon" type="image/png" href="/caro-pixel.png" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+    <!-- GNU Unifont - FOSS bitmap font from unifoundry.com -->
+    <link rel="stylesheet" href="https://unifoundry.com/pub/unifont/unifont-15.1.05/font-builds/unifont-15.1.05.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script is:inline>
       // Dark mode initialization (before render to prevent flash)
       const theme = (() => {
@@ -61,31 +68,67 @@ const { title, description } = Astro.props;
 
 <style is:global>
   :root {
-    --color-bg: #ffffff;
-    --color-bg-secondary: #f8f9fa;
-    --color-bg-tertiary: #fff8f0;
-    --color-text: #2c3e50;
-    --color-text-secondary: #7f8c8d;
-    --color-text-tertiary: #34495e;
-    --color-border: #f0f0f0;
-    --color-footer-bg: #2c3e50;
-    --color-footer-text: #ecf0f1;
-    --color-footer-text-muted: #7f8c8d;
-    --color-links-muted: #95a5a6;
+    /* Amber CRT Terminal Theme - DOS/Commodore inspired */
+    --color-bg: #1a0f00;
+    --color-bg-secondary: #2a1f0f;
+    --color-bg-tertiary: #3a2f1f;
+    --color-text: #ffb000;
+    --color-text-secondary: #ff8c42;
+    --color-text-tertiary: #ffcc66;
+    --color-border: #ff8c42;
+    --color-footer-bg: #0d0800;
+    --color-footer-text: #ffb000;
+    --color-footer-text-muted: #cc7700;
+    --color-links-muted: #ff8c42;
+
+    /* Accent colors */
+    --color-primary: #ff8c42;
+    --color-primary-bright: #ffb866;
+    --color-secondary: #ffb000;
+    --color-accent: #ff6b35;
+    --color-success: #00ff88;
+    --color-warning: #ffcc00;
+
+    /* Terminal colors */
+    --color-terminal-green: #00ff88;
+    --color-terminal-amber: #ffb000;
+    --color-terminal-red: #ff4444;
+
+    /* Effects */
+    --scanline-opacity: 0.08;
+    --glow-color: rgba(255, 176, 0, 0.3);
   }
 
   .dark {
-    --color-bg: #1a1a1a;
-    --color-bg-secondary: #2d2d2d;
-    --color-bg-tertiary: #252525;
-    --color-text: #e0e0e0;
-    --color-text-secondary: #a0a0a0;
-    --color-text-tertiary: #c0c0c0;
-    --color-border: #3a3a3a;
-    --color-footer-bg: #0f0f0f;
-    --color-footer-text: #e0e0e0;
-    --color-footer-text-muted: #888888;
-    --color-links-muted: #a0a0a0;
+    /* Green Phosphor Terminal Theme - VT100/Apple II inspired */
+    --color-bg: #000000;
+    --color-bg-secondary: #001a00;
+    --color-bg-tertiary: #002200;
+    --color-text: #00ff88;
+    --color-text-secondary: #00dd77;
+    --color-text-tertiary: #66ffaa;
+    --color-border: #00ff88;
+    --color-footer-bg: #000000;
+    --color-footer-text: #00ff88;
+    --color-footer-text-muted: #00aa55;
+    --color-links-muted: #00dd77;
+
+    /* Accent colors */
+    --color-primary: #00ff88;
+    --color-primary-bright: #66ffaa;
+    --color-secondary: #00dd77;
+    --color-accent: #00ffff;
+    --color-success: #00ff88;
+    --color-warning: #ffff00;
+
+    /* Terminal colors */
+    --color-terminal-green: #00ff88;
+    --color-terminal-amber: #ffff00;
+    --color-terminal-red: #ff4444;
+
+    /* Effects */
+    --scanline-opacity: 0.12;
+    --glow-color: rgba(0, 255, 136, 0.4);
   }
 
   * {
@@ -95,15 +138,54 @@ const { title, description } = Astro.props;
   }
 
   html {
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: none;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
   }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    line-height: 1.6;
+    font-family: 'Unifont', 'JetBrains Mono', 'Inconsolata', 'Courier New', monospace;
+    line-height: 1.7;
     color: var(--color-text);
     background: var(--color-bg);
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: none;
+    position: relative;
+    font-size: 16px;
+    letter-spacing: 0.5px;
+    font-weight: 400;
+  }
+
+  /* CRT Scanline Effect */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9998;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, var(--scanline-opacity)) 0px,
+      transparent 1px,
+      transparent 2px,
+      rgba(0, 0, 0, var(--scanline-opacity)) 3px
+    );
+  }
+
+  /* Retro CRT Glow Effect */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9997;
+    background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.1) 100%);
   }
 
   .container {
@@ -133,33 +215,35 @@ const { title, description } = Astro.props;
     margin-right: auto;
   }
 
-  /* Dark mode toggle button */
+  /* Dark mode toggle button - Retro terminal style */
   #theme-toggle {
     position: fixed;
     top: 20px;
     right: 20px;
-    z-index: 1000;
-    background: var(--color-bg-secondary);
-    border: 2px solid var(--color-border);
-    border-radius: 50%;
-    width: 48px;
-    height: 48px;
+    z-index: 10000;
+    background: var(--color-bg);
+    border: 3px solid var(--color-border);
+    border-radius: 0;
+    width: 52px;
+    height: 52px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     color: var(--color-text);
-    transition: transform 0.2s, background-color 0.3s, border-color 0.3s;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: none;
+    box-shadow: 0 0 15px var(--glow-color), 4px 4px 0 var(--color-border);
+    image-rendering: pixelated;
   }
 
   #theme-toggle:hover {
-    transform: scale(1.1);
-    background: var(--color-bg-tertiary);
+    background: var(--color-bg-secondary);
+    box-shadow: 0 0 25px var(--glow-color), 4px 4px 0 var(--color-border);
   }
 
   #theme-toggle:active {
-    transform: scale(0.95);
+    box-shadow: 0 0 15px var(--glow-color), 2px 2px 0 var(--color-border);
+    transform: translate(2px, 2px);
   }
 
   .sun-icon {
@@ -230,5 +314,10 @@ const { title, description } = Astro.props;
         }
       }
     });
+
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
   });
 </script>
