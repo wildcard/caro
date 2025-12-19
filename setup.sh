@@ -110,43 +110,52 @@ setup_alias() {
     local shell_config=""
     local shell_name=""
 
-    # Detect shell
-    if [ -n "$BASH_VERSION" ]; then
-        shell_name="bash"
-        if [ -f "$HOME/.bashrc" ]; then
-            shell_config="$HOME/.bashrc"
-        elif [ -f "$HOME/.bash_profile" ]; then
-            shell_config="$HOME/.bash_profile"
-        fi
-    elif [ -n "$ZSH_VERSION" ]; then
-        shell_name="zsh"
-        shell_config="${ZDOTDIR:-$HOME}/.zshrc"
-    elif [ -n "$FISH_VERSION" ]; then
-        shell_name="fish"
-        shell_config="$HOME/.config/fish/config.fish"
-    else
-        # Try to detect from SHELL environment variable
-        case "$SHELL" in
-            */bash)
-                shell_name="bash"
+    # Detect shell - prioritize $SHELL env var over subprocess shell version vars
+    # This is important when script is run via 'bash <(curl ...)' where BASH_VERSION
+    # would be set even if user's actual shell is zsh/fish
+    case "$SHELL" in
+        */bash)
+            shell_name="bash"
+            if [ -f "$HOME/.bashrc" ]; then
                 shell_config="$HOME/.bashrc"
-                [ -f "$HOME/.bash_profile" ] && shell_config="$HOME/.bash_profile"
-                ;;
-            */zsh)
+            elif [ -f "$HOME/.bash_profile" ]; then
+                shell_config="$HOME/.bash_profile"
+            else
+                shell_config="$HOME/.bashrc"  # default to .bashrc
+            fi
+            ;;
+        */zsh)
+            shell_name="zsh"
+            shell_config="${ZDOTDIR:-$HOME}/.zshrc"
+            ;;
+        */fish)
+            shell_name="fish"
+            shell_config="$HOME/.config/fish/config.fish"
+            ;;
+        *)
+            # Fallback to checking version variables if $SHELL is not set or unknown
+            if [ -n "$ZSH_VERSION" ]; then
                 shell_name="zsh"
                 shell_config="${ZDOTDIR:-$HOME}/.zshrc"
-                ;;
-            */fish)
+            elif [ -n "$BASH_VERSION" ]; then
+                shell_name="bash"
+                if [ -f "$HOME/.bashrc" ]; then
+                    shell_config="$HOME/.bashrc"
+                elif [ -f "$HOME/.bash_profile" ]; then
+                    shell_config="$HOME/.bash_profile"
+                else
+                    shell_config="$HOME/.bashrc"
+                fi
+            elif [ -n "$FISH_VERSION" ]; then
                 shell_name="fish"
                 shell_config="$HOME/.config/fish/config.fish"
-                ;;
-            *)
+            else
                 say_warn "Could not detect shell. Please manually add alias:"
                 echo "  alias caro='cmdai'"
                 return
-                ;;
-        esac
-    fi
+            fi
+            ;;
+    esac
 
     if [ -z "$shell_config" ]; then
         say_warn "Could not detect shell config file. Please manually add alias:"
@@ -156,6 +165,8 @@ setup_alias() {
 
     if [ ! -f "$shell_config" ]; then
         say_warn "Shell config file not found. Creating $shell_config"
+        # Create parent directory if needed (e.g., for fish config)
+        mkdir -p "$(dirname "$shell_config")"
         touch "$shell_config"
     fi
 
