@@ -13,8 +13,12 @@ use std::process;
 #[command(version)]
 struct Cli {
     /// Natural language task description
-    #[arg(help = "Natural language description of the task")]
-    prompt: Option<String>,
+    #[arg(
+        help = "Natural language description of the task",
+        trailing_var_arg = true,
+        num_args = 0..,
+    )]
+    prompt: Vec<String>,
 
     /// Target shell type
     #[arg(
@@ -75,7 +79,11 @@ struct Cli {
 
 impl IntoCliArgs for Cli {
     fn prompt(&self) -> Option<String> {
-        self.prompt.clone()
+        if self.prompt.is_empty() {
+            None
+        } else {
+            Some(self.prompt.join(" "))
+        }
     }
 
     fn shell(&self) -> Option<String> {
@@ -148,15 +156,16 @@ async fn main() {
     }
 
     // Handle missing prompt
-    if cli.prompt.is_none() {
+    if cli.prompt.is_empty() {
         eprintln!("Error: No prompt provided");
         eprintln!();
         eprintln!("Usage: cmdai [OPTIONS] <PROMPT>");
         eprintln!();
         eprintln!("Examples:");
+        eprintln!("  cmdai list all files");
         eprintln!("  cmdai \"list all files\"");
-        eprintln!("  cmdai --shell zsh \"find large files\"");
-        eprintln!("  cmdai --safety strict \"delete temporary files\"");
+        eprintln!("  cmdai --shell zsh find large files");
+        eprintln!("  cmdai --safety strict delete temporary files");
         eprintln!();
         eprintln!("Run 'cmdai --help' for more information.");
         process::exit(1);
