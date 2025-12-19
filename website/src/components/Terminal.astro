@@ -3,75 +3,123 @@
 
 <div class="container">
   <div class="terminal">
-    <div class="terminal-header">
-      <div class="terminal-dot red"></div>
-      <div class="terminal-dot yellow"></div>
-      <div class="terminal-dot green"></div>
+    <div class="terminal-border-top">
+╔════════════════════════════════════════════════════════════════════╗
+║ GNU/POSIX TERMINAL v1.0 - caro.sh                        [■][□][×] ║
+╠════════════════════════════════════════════════════════════════════╣
     </div>
-    <div class="terminal-line">
-      <span class="terminal-prompt">$</span>
-      <span class="terminal-command"> caro "find python files modified in the last 7 days"</span>
+    <div class="terminal-content">
+      <div class="terminal-line">
+        <span class="terminal-prompt">user@system:~$</span>
+        <span class="terminal-command"> caro "find python files modified in the last 7 days"</span>
+      </div>
+      <div class="terminal-line">
+        <span class="terminal-caro">🐕 [CARO]:</span>
+        <span class="terminal-output"> find . -name "*.py" -type f -mtime -7</span>
+      </div>
+      <div class="terminal-line">
+        <span class="terminal-safe">✓ [SAFE] Compatible with your macOS system</span>
+      </div>
     </div>
-    <div class="terminal-line">
-      <span class="terminal-caro">🐕 Caro:</span>
-      <span class="terminal-output"> find . -name "*.py" -type f -mtime -7</span>
-    </div>
-    <div class="terminal-line">
-      <span class="terminal-safe">✓ Safe to run on your macOS system</span>
+    <div class="terminal-border-bottom">
+╚════════════════════════════════════════════════════════════════════╝
     </div>
   </div>
 </div>
 
 <style>
   .terminal {
-    background: #1e1e1e;
-    border-radius: 8px;
-    padding: 20px;
-    margin: 40px auto;
-    max-width: 700px;
-    font-family: 'Monaco', 'Courier New', monospace;
+    background: #0f0f0f;
+    border: 6px double var(--color-terminal-green);
+    padding: 0;
+    margin: 60px auto;
+    max-width: 800px;
+    font-family: 'Unifont', 'Courier New', monospace;
     font-size: 14px;
-    color: #d4d4d4;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    color: var(--color-terminal-green);
+    box-shadow:
+      0 0 20px rgba(51, 255, 0, 0.3),
+      inset 0 0 40px rgba(0, 0, 0, 0.5),
+      8px 8px 0 var(--color-border);
+    position: relative;
   }
 
-  .terminal-header {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 15px;
+  .terminal-border-top,
+  .terminal-border-bottom {
+    font-family: 'Unifont', monospace;
+    font-size: 11px;
+    line-height: 1.3;
+    white-space: pre;
+    color: var(--color-terminal-green);
+    background: #000;
+    padding: 4px;
+    text-shadow: 0 0 5px var(--color-terminal-green);
   }
 
-  .terminal-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
+  .terminal-content {
+    padding: 20px;
+    background: #0a0a0a;
   }
-
-  .terminal-dot.red { background: #ff5f56; }
-  .terminal-dot.yellow { background: #ffbd2e; }
-  .terminal-dot.green { background: #27c93f; }
 
   .terminal-line {
-    margin: 8px 0;
+    margin: 12px 0;
+    line-height: 1.8;
+    font-family: 'Unifont', monospace;
   }
 
   .terminal-prompt {
-    color: #4ec9b0;
+    color: var(--color-terminal-amber);
+    font-weight: 700;
+    text-shadow: 0 0 5px var(--color-terminal-amber);
   }
 
   .terminal-command {
-    color: #9cdcfe;
+    color: #fff;
+    font-weight: 400;
   }
 
   .terminal-output {
-    color: #ce9178;
+    color: var(--color-terminal-green);
+    font-weight: 700;
+    text-shadow: 0 0 3px var(--color-terminal-green);
   }
 
   .terminal-caro {
-    color: #ff8c42;
+    color: var(--color-orange);
+    font-weight: 700;
+    text-shadow: 0 0 5px var(--color-orange);
   }
 
   .terminal-safe {
-    color: #6a9955;
+    color: var(--color-terminal-green);
+    font-weight: 700;
+    text-shadow: 0 0 5px var(--color-terminal-green);
+  }
+
+  /* Retro CRT flicker effect */
+  @keyframes flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.97; }
+  }
+
+  .terminal {
+    animation: flicker 0.15s infinite;
+  }
+
+  @media (max-width: 768px) {
+    .terminal {
+      margin: 40px auto;
+      font-size: 12px;
+    }
+
+    .terminal-border-top,
+    .terminal-border-bottom {
+      font-size: 8px;
+      overflow-x: auto;
+    }
+
+    .terminal-content {
+      padding: 15px;
+    }
   }
 </style>

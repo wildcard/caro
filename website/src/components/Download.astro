@@ -3,8 +3,13 @@
 
 <section id="download" class="download-section">
   <div class="container">
-    <h2>Get Started with Caro</h2>
-    <p class="section-subtitle">Bring your loyal shell companion to your terminal</p>
+    <div class="download-header">
+╔════════════════════════════════════════════════════════════════════════════╗
+║                      [ GET STARTED WITH CARO ]                             ║
+╠════════════════════════════════════════════════════════════════════════════╣
+║              BRING YOUR LOYAL SHELL COMPANION TO YOUR TERMINAL             ║
+╚════════════════════════════════════════════════════════════════════════════╝
+    </div>
 
     <div class="install-command">
       <code>bash &lt;(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)</code>
@@ -62,152 +67,195 @@
 
 <style>
   .download-section {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: white;
+    background: var(--color-orange);
+    color: #000;
     text-align: center;
+    border-top: 6px solid var(--color-border);
+    border-bottom: 6px solid var(--color-border);
+    font-family: 'Unifont', monospace;
+    position: relative;
   }
 
-  .download-section h2 {
-    color: white;
-  }
-
-  .download-section .section-subtitle {
-    color: rgba(255, 255, 255, 0.9);
+  .download-header {
+    font-family: 'Unifont', monospace;
+    font-size: 11px;
+    line-height: 1.3;
+    white-space: pre;
+    color: #000;
+    margin-bottom: 40px;
+    font-weight: 700;
   }
 
   .install-command {
-    background: rgba(0, 0, 0, 0.3);
-    padding: 20px 30px;
-    border-radius: 8px;
-    font-family: 'Monaco', 'Courier New', monospace;
-    font-size: 16px;
-    margin: 30px auto;
-    max-width: 600px;
+    background: #000;
+    padding: 25px 30px;
+    border: 4px solid var(--color-border);
+    font-family: 'Unifont', monospace;
+    font-size: 14px;
+    margin: 40px auto;
+    max-width: 700px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 15px;
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.3);
   }
 
   .install-command code {
-    color: #fff;
+    color: var(--color-terminal-green);
+    font-weight: 700;
+    text-shadow: 0 0 5px var(--color-terminal-green);
+    flex: 1;
+    word-break: break-all;
   }
 
   .copy-button {
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 4px;
+    background: var(--color-orange);
+    border: 3px solid var(--color-border);
+    color: #000;
+    padding: 10px 20px;
     cursor: pointer;
-    font-size: 14px;
-    transition: background 0.2s;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'Unifont', monospace;
+    letter-spacing: 1px;
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.3);
+    transition: none;
   }
 
   .copy-button:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: var(--color-orange-dark);
+  }
+
+  .copy-button:active {
+    box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+    transform: translate(2px, 2px);
   }
 
   .download-options {
     margin-top: 40px;
     display: flex;
-    gap: 20px;
+    gap: 15px;
     justify-content: center;
     flex-wrap: wrap;
   }
 
   .download-link {
-    background: white;
-    color: #ff6b35;
-    padding: 14px 30px;
-    border-radius: 8px;
+    background: #000;
+    color: var(--color-terminal-green);
+    padding: 16px 32px;
     text-decoration: none;
-    font-weight: 600;
-    transition: transform 0.2s;
+    font-weight: 700;
+    border: 4px solid var(--color-border);
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
+    font-family: 'Unifont', monospace;
+    font-size: 14px;
+    letter-spacing: 1px;
+    transition: none;
   }
 
   .download-link:hover {
-    transform: translateY(-2px);
+    background: var(--color-terminal-green);
+    color: #000;
   }
 
   .download-link.disabled {
-    background: rgba(255, 255, 255, 0.3);
-    color: rgba(255, 255, 255, 0.6);
+    background: rgba(0, 0, 0, 0.5);
+    color: rgba(0, 0, 0, 0.6);
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: 0.5;
   }
 
   .download-link.disabled:hover {
-    transform: none;
+    background: rgba(0, 0, 0, 0.5);
+    color: rgba(0, 0, 0, 0.6);
   }
 
   .coming-soon-inline {
-    font-size: 14px;
-    background: rgba(255, 255, 255, 0.3);
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-weight: 500;
+    font-size: 13px;
+    background: #000;
+    color: var(--color-terminal-amber);
+    padding: 6px 14px;
+    font-weight: 700;
+    border: 3px solid var(--color-border);
     white-space: nowrap;
+    font-family: 'Unifont', monospace;
+    letter-spacing: 1px;
   }
 
   .usage-modes {
     margin-top: 60px;
     padding-top: 40px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    border-top: 4px solid rgba(0, 0, 0, 0.3);
   }
 
   .usage-modes h3 {
     margin-bottom: 30px;
-    font-size: 28px;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 2px;
   }
 
   .modes-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 30px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
     margin-top: 30px;
   }
 
   .mode-card {
-    background: rgba(255, 255, 255, 0.1);
+    background: #000;
+    color: #fff;
     padding: 25px;
-    border-radius: 8px;
+    border: 4px solid var(--color-border);
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.3);
   }
 
   .mode-card h4 {
     margin-bottom: 15px;
-    font-size: 20px;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 1px;
   }
 
   .mode-card p {
-    font-size: 15px;
-    line-height: 1.6;
+    font-size: 14px;
+    line-height: 1.7;
   }
 
   .mode-command {
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(51, 255, 0, 0.1);
+    color: var(--color-terminal-green);
     padding: 12px;
-    border-radius: 6px;
     margin: 15px 0;
-    font-family: monospace;
-    font-size: 14px;
+    font-family: 'Unifont', monospace;
+    font-size: 13px;
     text-align: left;
+    border: 2px solid var(--color-terminal-green);
   }
 
   .quick-start {
     margin-top: 50px;
     text-align: left;
-    max-width: 600px;
+    max-width: 700px;
     margin-left: auto;
     margin-right: auto;
+    background: #000;
+    color: #fff;
+    padding: 30px;
+    border: 4px solid var(--color-border);
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.3);
   }
 
   .quick-start h3 {
     margin-bottom: 20px;
     text-align: center;
+    font-size: 22px;
+    letter-spacing: 2px;
   }
 
   .quick-start-steps {
-    font-size: 16px;
+    font-size: 15px;
     line-height: 1.8;
   }
 
@@ -216,21 +264,41 @@
   }
 
   .quick-start-command {
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(51, 255, 0, 0.1);
+    color: var(--color-terminal-green);
     padding: 15px;
-    border-radius: 6px;
     margin: 15px 0;
-    font-family: monospace;
+    font-family: 'Unifont', monospace;
+    border: 2px solid var(--color-terminal-green);
+    font-weight: 700;
   }
 
   .coming-soon {
-    font-size: 12px;
-    background: rgba(255, 255, 255, 0.3);
-    padding: 3px 8px;
-    border-radius: 12px;
-    font-weight: 500;
+    font-size: 11px;
+    background: rgba(255, 180, 0, 0.3);
+    color: var(--color-terminal-amber);
+    padding: 4px 10px;
+    border: 2px solid var(--color-terminal-amber);
+    font-weight: 700;
     margin-left: 8px;
     white-space: nowrap;
+    font-family: 'Unifont', monospace;
+  }
+
+  @media (max-width: 768px) {
+    .download-header {
+      font-size: 8px;
+      overflow-x: auto;
+    }
+
+    .install-command {
+      flex-direction: column;
+      padding: 20px;
+    }
+
+    .modes-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
 

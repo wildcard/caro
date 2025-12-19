@@ -3,14 +3,24 @@
 
 <section id="story" class="story-section">
   <div class="container">
-    <h2>Meet Caro</h2>
-    <p class="section-subtitle">A companion with a story of loyalty and transformation</p>
+    <div class="story-header">
+╔════════════════════════════════════════════════════════════════════════════╗
+║                            [ MEET CARO ]                                   ║
+╠════════════════════════════════════════════════════════════════════════════╣
+║         A COMPANION WITH A STORY OF LOYALTY AND TRANSFORMATION             ║
+╚════════════════════════════════════════════════════════════════════════════╝
+    </div>
     <div class="story-content">
       <p>
         Caro is the digitalization of Kyaro (Kyarorain Kadosh), the maintainer's beloved dog. Just as a loyal companion stays by your side through every challenge, Caro is here to help you navigate the complexities of shell commands with safety and expertise.
       </p>
       <div class="story-highlight">
-        "In Portal 2, we learned that GLaDOS was once Caroline, the secretary of Aperture Science's founder—transformed into the eternal guardian of the facility. Like Caroline became the beating heart of the testing chambers, Caro is your eternal companion for the terminal."
+╔════════════════════════════════════════════════════════════════════════════╗
+║ "In Portal 2, we learned that GLaDOS was once Caroline, the secretary of  ║
+║ Aperture Science's founder—transformed into the eternal guardian of the   ║
+║ facility. Like Caroline became the beating heart of the testing chambers, ║
+║ Caro is your eternal companion for the terminal."                         ║
+╚════════════════════════════════════════════════════════════════════════════╝
       </div>
       <p>
         She specializes in POSIX shell commands and understands the nuances of every platform—whether you're on macOS, Linux, Windows, GNU, or BSD. Caro brings your preferences with her wherever you deploy her, respecting your distribution of choice while keeping you safe from dangerous commands.
@@ -24,35 +34,72 @@
 
 <style>
   .story-section {
-    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
-    transition: background 0.3s ease;
+    background: var(--color-bg-secondary);
+    font-family: 'Unifont', monospace;
+  }
+
+  .story-header {
+    font-family: 'Unifont', monospace;
+    font-size: 11px;
+    line-height: 1.3;
+    white-space: pre;
+    color: var(--color-text);
+    margin-bottom: 40px;
+    text-align: center;
+    font-weight: 700;
+    text-shadow: 2px 2px 0 var(--color-orange);
   }
 
   .story-content {
-    max-width: 700px;
+    max-width: 800px;
     margin: 0 auto;
-    font-size: 18px;
-    line-height: 1.9;
-    color: var(--color-text-tertiary);
-    transition: color 0.3s ease;
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--color-text);
+    background: var(--color-bg);
+    padding: 40px;
+    border: 4px solid var(--color-border);
+    box-shadow: 8px 8px 0 var(--color-border);
   }
 
   .story-content p {
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+    font-family: 'Unifont', monospace;
+    letter-spacing: 0.5px;
   }
 
   .story-highlight {
-    background: var(--color-bg);
-    border-left: 4px solid #ff8c42;
-    padding: 20px 30px;
-    margin: 30px 0;
-    border-radius: 4px;
-    font-style: italic;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    transition: background 0.3s ease, box-shadow 0.3s ease;
+    background: #000;
+    color: var(--color-terminal-green);
+    padding: 0;
+    margin: 35px 0;
+    font-style: normal;
+    box-shadow: 6px 6px 0 var(--color-orange);
+    font-family: 'Unifont', monospace;
+    font-size: 11px;
+    line-height: 1.3;
+    white-space: pre;
+    text-shadow: 0 0 5px var(--color-terminal-green);
   }
 
   :global(.dark) .story-highlight {
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    box-shadow: 6px 6px 0 var(--color-orange);
+  }
+
+  @media (max-width: 768px) {
+    .story-header {
+      font-size: 8px;
+      overflow-x: auto;
+    }
+
+    .story-content {
+      padding: 25px;
+      font-size: 14px;
+    }
+
+    .story-highlight {
+      font-size: 9px;
+      overflow-x: auto;
+    }
   }
 </style>

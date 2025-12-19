@@ -3,74 +3,191 @@
 
 <footer>
   <div class="container">
-    <p>Built with Rust 🦀 | Open source on <a href="https://github.com/wildcard/caro">GitHub</a></p>
-    <p class="domain">
-      <strong>caro.sh</strong> 🧡 - Your loyal shell companion
-    </p>
-    <p class="links">
-      <a href="https://github.com/wildcard/caro/blob/main/LICENSE">AGPL-3.0</a> |
-      <a href="https://github.com/wildcard/caro/contribute">Contributing</a> |
-      <a href="https://github.com/wildcard/caro/issues">Issues</a>
-    </p>
-    <p class="kyaro-love">
-      Meet IRL Kyaro (Kyarorain Kadosh)! 🐕🖤<br>
-      Follow her adventures on <a href="https://www.instagram.com/kyaroblackheart/" target="_blank" rel="noopener noreferrer">Instagram @kyaroblackheart</a>
-    </p>
-    <p class="inspiration">
-      Inspired by Portal's Caroline—loyalty transformed into digital companionship
-    </p>
+    <div class="footer-border">
+╔════════════════════════════════════════════════════════════════════════════╗
+║                         [ CARO.SH - FOSS PROJECT ]                         ║
+╠════════════════════════════════════════════════════════════════════════════╣
+    </div>
+    <div class="footer-content">
+      <p class="build-info">
+        <span class="badge">BUILT WITH RUST 🦀</span>
+        <span class="badge">OPEN SOURCE</span>
+        <span class="badge">GNU/POSIX</span>
+      </p>
+      <p class="domain">
+        <strong>[ CARO.SH ]</strong> 🧡 YOUR LOYAL SHELL COMPANION
+      </p>
+      <div class="links">
+        <a href="https://github.com/wildcard/caro/blob/main/LICENSE" class="link-box">[ AGPL-3.0 ]</a>
+        <a href="https://github.com/wildcard/caro/contribute" class="link-box">[ CONTRIBUTE ]</a>
+        <a href="https://github.com/wildcard/caro" class="link-box">[ GITHUB ]</a>
+        <a href="https://github.com/wildcard/caro/issues" class="link-box">[ ISSUES ]</a>
+      </div>
+      <div class="kyaro-section">
+        <p class="kyaro-love">
+          🐕 MEET IRL KYARO (KYARORAIN KADOSH) 🖤
+        </p>
+        <p class="kyaro-instagram">
+          <a href="https://www.instagram.com/kyaroblackheart/" target="_blank" rel="noopener noreferrer" class="instagram-link">
+            [ FOLLOW @KYAROBLACKHEART ON INSTAGRAM ]
+          </a>
+        </p>
+      </div>
+      <p class="inspiration">
+        // INSPIRED BY PORTAL'S CAROLINE<br/>
+        // LOYALTY TRANSFORMED INTO DIGITAL COMPANIONSHIP
+      </p>
+    </div>
+    <div class="footer-border-bottom">
+╚════════════════════════════════════════════════════════════════════════════╝
+    </div>
   </div>
 </footer>
 
 <style>
   footer {
     text-align: center;
-    padding: 40px 20px;
+    padding: 60px 20px;
     background: var(--color-footer-bg);
     color: var(--color-footer-text);
-    transition: background 0.3s ease, color 0.3s ease;
+    font-family: 'Unifont', monospace;
+    border-top: 6px solid var(--color-border);
   }
 
-  footer a {
-    color: #ff8c42;
-    text-decoration: none;
-    transition: color 0.3s ease;
+  .footer-border,
+  .footer-border-bottom {
+    font-family: 'Unifont', monospace;
+    font-size: 10px;
+    line-height: 1.3;
+    white-space: pre;
+    color: var(--color-footer-text);
+    margin: 20px 0;
   }
 
-  footer a:hover {
-    text-decoration: underline;
+  .footer-content {
+    padding: 20px 0;
+  }
+
+  .build-info {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 25px;
+  }
+
+  .badge {
+    background: var(--color-orange);
+    color: #000;
+    padding: 8px 16px;
+    border: 3px solid var(--color-border);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 1px;
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
   }
 
   .domain {
-    margin-top: 15px;
-    font-size: 16px;
+    margin: 25px 0;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--color-footer-text);
   }
 
   .links {
-    margin-top: 10px;
-    font-size: 14px;
-    color: var(--color-links-muted);
-    transition: color 0.3s ease;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 25px 0;
+  }
+
+  .link-box {
+    color: var(--color-orange);
+    text-decoration: none;
+    padding: 8px 16px;
+    border: 3px solid var(--color-orange);
+    background: transparent;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 1px;
+    transition: none;
+    box-shadow: 4px 4px 0 var(--color-orange);
+  }
+
+  .link-box:hover {
+    background: var(--color-orange);
+    color: #000;
+  }
+
+  .kyaro-section {
+    margin: 30px 0;
+    padding: 20px;
+    border: 4px solid var(--color-footer-text-muted);
+    background: rgba(0, 0, 0, 0.3);
   }
 
   .kyaro-love {
-    margin-top: 20px;
-    font-size: 15px;
-    color: var(--color-footer-text);
-    font-weight: 500;
-    transition: color 0.3s ease;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
   }
 
-  .kyaro-love a {
-    color: #ff8c42;
-    font-weight: 600;
+  .kyaro-instagram {
+    margin-top: 10px;
+  }
+
+  .instagram-link {
+    color: var(--color-orange);
+    text-decoration: none;
+    font-weight: 700;
+    padding: 10px 20px;
+    border: 3px solid var(--color-orange);
+    display: inline-block;
+    font-size: 13px;
+    letter-spacing: 1px;
+    box-shadow: 4px 4px 0 var(--color-orange);
+  }
+
+  .instagram-link:hover {
+    background: var(--color-orange);
+    color: #000;
   }
 
   .inspiration {
-    margin-top: 10px;
+    margin-top: 30px;
     font-size: 13px;
     color: var(--color-footer-text-muted);
-    font-style: italic;
-    transition: color 0.3s ease;
+    font-style: normal;
+    line-height: 1.8;
+    letter-spacing: 1px;
+  }
+
+  @media (max-width: 768px) {
+    .footer-border,
+    .footer-border-bottom {
+      font-size: 7px;
+      overflow-x: auto;
+    }
+
+    .build-info {
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .badge {
+      font-size: 11px;
+    }
+
+    .links {
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .domain {
+      font-size: 14px;
+    }
   }
 </style>
