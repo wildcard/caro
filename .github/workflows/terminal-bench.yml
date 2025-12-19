@@ -1,0 +1,280 @@
+name: Terminal-Bench 2.0 Evaluation
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: 'Model to use for testing'
+        required: true
+        default: 'anthropic/claude-sonnet-4-5'
+        type: choice
+        options:
+          - anthropic/claude-sonnet-4-5
+          - anthropic/claude-sonnet-4
+          - anthropic/claude-opus-4
+          - openai/gpt-4
+      n_concurrent:
+        description: 'Number of concurrent trials'
+        required: true
+        default: '4'
+        type: string
+      dataset:
+        description: 'Dataset to test against'
+        required: true
+        default: 'terminal-bench@2.0'
+        type: choice
+        options:
+          - terminal-bench@2.0
+          - hello-world@head
+      n_runs:
+        description: 'Number of complete benchmark runs (for leaderboard: 5)'
+        required: true
+        default: '1'
+        type: string
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  terminal-bench:
+    name: Run Terminal-Bench 2.0
+    runs-on: ubuntu-latest
+    timeout-minutes: 360  # 6 hours max
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt, clippy
+
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install uv (Python package manager)
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+    - name: Install Harbor framework
+      run: |
+        uv tool install harbor
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Verify Harbor installation
+      run: |
+        harbor --help
+        harbor datasets list
+
+    - name: Build cmdai (release)
+      run: |
+        cargo build --release --features embedded-cpu,remote-backends
+        ls -lh target/release/cmdai
+
+    - name: Verify cmdai build
+      run: |
+        ./target/release/cmdai --version
+        ./target/release/cmdai --help
+
+    - name: Set up Docker
+      uses: docker/setup-buildx-action@v3
+
+    - name: Verify Docker installation
+      run: |
+        docker --version
+        docker ps
+
+    - name: Run Terminal-Bench evaluation (Run 1)
+      env:
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      run: |
+        mkdir -p results
+        RUN_NUM=1
+
+        harbor run \
+          --dataset ${{ inputs.dataset }} \
+          --agent-import-path ${{ github.workspace }}/harbor_agents/cmdai/cmdai_agent.py:CmdaiAgent \
+          --model ${{ inputs.model }} \
+          --n-concurrent ${{ inputs.n_concurrent }} \
+          --env docker \
+          --jobs-dir results/run-${RUN_NUM} \
+          --debug
+
+        echo "✅ Run ${RUN_NUM} completed"
+
+    - name: Run Terminal-Bench evaluation (Run 2)
+      if: inputs.n_runs >= 2
+      env:
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      run: |
+        RUN_NUM=2
+
+        harbor run \
+          --dataset ${{ inputs.dataset }} \
+          --agent-import-path ${{ github.workspace }}/harbor_agents/cmdai/cmdai_agent.py:CmdaiAgent \
+          --model ${{ inputs.model }} \
+          --n-concurrent ${{ inputs.n_concurrent }} \
+          --env docker \
+          --jobs-dir results/run-${RUN_NUM}
+
+        echo "✅ Run ${RUN_NUM} completed"
+
+    - name: Run Terminal-Bench evaluation (Run 3)
+      if: inputs.n_runs >= 3
+      env:
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      run: |
+        RUN_NUM=3
+
+        harbor run \
+          --dataset ${{ inputs.dataset }} \
+          --agent-import-path ${{ github.workspace }}/harbor_agents/cmdai/cmdai_agent.py:CmdaiAgent \
+          --model ${{ inputs.model }} \
+          --n-concurrent ${{ inputs.n_concurrent }} \
+          --env docker \
+          --jobs-dir results/run-${RUN_NUM}
+
+        echo "✅ Run ${RUN_NUM} completed"
+
+    - name: Run Terminal-Bench evaluation (Run 4)
+      if: inputs.n_runs >= 4
+      env:
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      run: |
+        RUN_NUM=4
+
+        harbor run \
+          --dataset ${{ inputs.dataset }} \
+          --agent-import-path ${{ github.workspace }}/harbor_agents/cmdai/cmdai_agent.py:CmdaiAgent \
+          --model ${{ inputs.model }} \
+          --n-concurrent ${{ inputs.n_concurrent }} \
+          --env docker \
+          --jobs-dir results/run-${RUN_NUM}
+
+        echo "✅ Run ${RUN_NUM} completed"
+
+    - name: Run Terminal-Bench evaluation (Run 5)
+      if: inputs.n_runs >= 5
+      env:
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      run: |
+        RUN_NUM=5
+
+        harbor run \
+          --dataset ${{ inputs.dataset }} \
+          --agent-import-path ${{ github.workspace }}/harbor_agents/cmdai/cmdai_agent.py:CmdaiAgent \
+          --model ${{ inputs.model }} \
+          --n-concurrent ${{ inputs.n_concurrent }} \
+          --env docker \
+          --jobs-dir results/run-${RUN_NUM}
+
+        echo "✅ Run ${RUN_NUM} completed"
+
+    - name: Aggregate results
+      run: |
+        echo "## Terminal-Bench 2.0 Results" > results/SUMMARY.md
+        echo "" >> results/SUMMARY.md
+        echo "**Agent**: cmdai v0.1.0" >> results/SUMMARY.md
+        echo "**Model**: ${{ inputs.model }}" >> results/SUMMARY.md
+        echo "**Dataset**: ${{ inputs.dataset }}" >> results/SUMMARY.md
+        echo "**Concurrent trials**: ${{ inputs.n_concurrent }}" >> results/SUMMARY.md
+        echo "**Total runs**: ${{ inputs.n_runs }}" >> results/SUMMARY.md
+        echo "**Date**: $(date -u +%Y-%m-%d)" >> results/SUMMARY.md
+        echo "" >> results/SUMMARY.md
+        echo "### Individual Run Results" >> results/SUMMARY.md
+        echo "" >> results/SUMMARY.md
+
+        for run_dir in results/run-*; do
+          if [ -d "$run_dir" ]; then
+            run_num=$(basename "$run_dir" | sed 's/run-//')
+            echo "#### Run ${run_num}" >> results/SUMMARY.md
+
+            if [ -f "$run_dir/result.json" ]; then
+              # Extract key metrics from result.json
+              success_rate=$(jq -r '.mean // "N/A"' "$run_dir/result.json" 2>/dev/null || echo "N/A")
+              total_trials=$(jq -r '.trials // "N/A"' "$run_dir/result.json" 2>/dev/null || echo "N/A")
+              errors=$(jq -r '.errors // "N/A"' "$run_dir/result.json" 2>/dev/null || echo "N/A")
+
+              echo "- Success rate: ${success_rate}" >> results/SUMMARY.md
+              echo "- Total trials: ${total_trials}" >> results/SUMMARY.md
+              echo "- Errors: ${errors}" >> results/SUMMARY.md
+            else
+              echo "- No results file found" >> results/SUMMARY.md
+            fi
+            echo "" >> results/SUMMARY.md
+          fi
+        done
+
+        echo "### Leaderboard Submission" >> results/SUMMARY.md
+        echo "" >> results/SUMMARY.md
+        if [ "${{ inputs.n_runs }}" -ge 5 ]; then
+          echo "✅ **Ready for submission** - 5 complete runs completed" >> results/SUMMARY.md
+          echo "" >> results/SUMMARY.md
+          echo "To submit to Terminal-Bench leaderboard:" >> results/SUMMARY.md
+          echo "1. Download the results artifact from this workflow run" >> results/SUMMARY.md
+          echo "2. Email the job directories to the Terminal-Bench team" >> results/SUMMARY.md
+          echo "3. Include agent metadata: cmdai v0.1.0, ${{ inputs.model }}" >> results/SUMMARY.md
+        else
+          echo "⏸️ **Not ready** - Need 5 complete runs for leaderboard submission (currently: ${{ inputs.n_runs }})" >> results/SUMMARY.md
+        fi
+
+        cat results/SUMMARY.md
+
+    - name: Upload results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: terminal-bench-results-${{ inputs.dataset }}-${{ inputs.model }}-${{ github.run_number }}
+        path: |
+          results/
+          !results/**/*.cast
+        retention-days: 90
+
+    - name: Create results comment
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const summary = fs.readFileSync('results/SUMMARY.md', 'utf8');
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: summary
+          });
+
+    - name: Display final summary
+      run: |
+        echo ""
+        echo "================================================"
+        echo "Terminal-Bench 2.0 Evaluation Complete!"
+        echo "================================================"
+        echo ""
+        cat results/SUMMARY.md
+        echo ""
+        echo "Results have been uploaded as artifacts."
+        echo "Download them from the Actions tab to review detailed logs."
+        echo ""
+        if [ "${{ inputs.n_runs }}" -ge 5 ]; then
+          echo "🎉 Ready for leaderboard submission!"
+        fi
