@@ -6,8 +6,8 @@
 # It will automatically detect your platform and download the appropriate binary.
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/wildcard/cmdai/main/install.sh | bash
-#   wget -qO- https://raw.githubusercontent.com/wildcard/cmdai/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/wildcard/cmdai/main/scripts/install.sh | bash
+#   wget -qO- https://raw.githubusercontent.com/wildcard/cmdai/main/scripts/install.sh | bash
 #
 # Environment Variables:
 #   CMDAI_INSTALL_DIR - Installation directory (default: ~/.local/bin)
@@ -172,6 +172,7 @@ get_latest_version() {
 extract_archive() {
     local archive=$1
     local dest=$2
+    local ext="${archive##*.}"
 
     case "$archive" in
         *.tar.gz|*.tgz)

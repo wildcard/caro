@@ -75,23 +75,54 @@ This project is in **active development** with core features implemented and wor
 
 ### Installation
 
-#### Option 1: One-Line Setup (Recommended)
+#### Option 1: Pre-built Binaries (Recommended)
+
+The fastest way to install cmdai is using our pre-built binaries:
+
+**Quick Install Script (macOS/Linux):**
 ```bash
-bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)
+curl -fsSL https://raw.githubusercontent.com/wildcard/cmdai/main/install.sh | bash
 ```
 
 Or with wget:
 ```bash
-bash <(wget -qO- https://setup.caro.sh)
+wget -qO- https://raw.githubusercontent.com/wildcard/cmdai/main/install.sh | bash
 ```
 
-This will:
-- Install Rust (if not already installed)
-- Install cmdai via cargo with MLX optimization (Apple Silicon)
-- Set up the `caro` alias automatically
-- Configure your shell (bash, zsh, or fish)
+This will automatically:
+- Detect your platform and architecture
+- Download the appropriate pre-built binary
+- Install to `~/.local/bin`
+- Set up the `caro` alias
+- Configure your PATH if needed
+
+**Manual Download:**
+
+Download the latest release from [GitHub Releases](https://github.com/wildcard/cmdai/releases/latest):
+
+| Platform | Architecture | Download |
+|----------|--------------|----------|
+| Linux | x86_64 | `cmdai-vX.X.X-linux-x86_64.tar.gz` |
+| Linux | x86_64 (static) | `cmdai-vX.X.X-linux-x86_64-musl.tar.gz` |
+| Linux | ARM64 | `cmdai-vX.X.X-linux-aarch64.tar.gz` |
+| macOS | Intel | `cmdai-vX.X.X-darwin-x86_64.tar.gz` |
+| macOS | Apple Silicon | `cmdai-vX.X.X-darwin-aarch64.tar.gz` |
+| Windows | x86_64 | `cmdai-vX.X.X-windows-x86_64.zip` |
+
+```bash
+# Example for Linux x86_64
+curl -LO https://github.com/wildcard/cmdai/releases/latest/download/cmdai-v0.1.0-linux-x86_64.tar.gz
+tar -xzf cmdai-v0.1.0-linux-x86_64.tar.gz
+sudo mv cmdai-v0.1.0-linux-x86_64/cmdai /usr/local/bin/
+
+# Add alias to your shell config
+echo "alias caro='cmdai'" >> ~/.bashrc
+```
 
 #### Option 2: Using Cargo
+
+If you have Rust installed, you can build from source:
+
 ```bash
 cargo install cmdai
 
@@ -99,11 +130,19 @@ cargo install cmdai
 alias caro='cmdai'
 ```
 
-#### Option 3: Pre-built Binaries
-Download the latest release from [GitHub Releases](https://github.com/wildcard/cmdai/releases/latest) for your platform:
-- Linux (x64, ARM64)
-- macOS (Intel, Apple Silicon)
-- Windows (x64)
+#### Option 3: One-Line Setup Script
+
+For a fully automated setup (installs Rust if needed):
+
+```bash
+bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)
+```
+
+This will:
+- Install Rust (if not already installed)
+- Install cmdai via cargo with MLX optimization (Apple Silicon)
+- Set up the `caro` alias automatically
+- Configure your shell (bash, zsh, or fish)
 
 ### Building from Source
 
@@ -526,7 +565,7 @@ This project is licensed under the **GNU Affero General Public License v3.0 (AGP
 - [x] Professional demos
 - [ ] Extended test coverage
 - [ ] Performance benchmarking suite
-- [ ] Binary distribution optimization
+- [x] Binary distribution optimization (multi-platform pre-built binaries)
 
 ---
 

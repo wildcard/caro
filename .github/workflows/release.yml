@@ -4,131 +4,301 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g., v0.1.0)'
+        required: true
+        type: string
 
 env:
   CARGO_TERM_COLOR: always
+  BINARY_NAME: cmdai
+
+permissions:
+  contents: write
 
 jobs:
-  create-release:
-    name: Create Release
-    runs-on: ubuntu-latest
-    outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-      version: ${{ steps.get_version.outputs.VERSION }}
-    steps:
-    - name: Get version from tag
-      id: get_version
-      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-    
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: cmdai v${{ steps.get_version.outputs.VERSION }}
-        draft: false
-        prerelease: ${{ contains(steps.get_version.outputs.VERSION, 'alpha') || contains(steps.get_version.outputs.VERSION, 'beta') || contains(steps.get_version.outputs.VERSION, 'rc') }}
-
-  build-and-upload:
-    name: Build and Upload
-    needs: create-release
+  build:
+    name: Build ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          # Linux x86_64
+          - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
-            name: cmdai-v${{ needs.create-release.outputs.version }}-linux-amd64
-            asset_name: cmdai-linux-amd64
-          - os: ubuntu-latest
+            name: linux-x86_64
+            archive: tar.gz
+            features: embedded-cpu,remote-backends
+
+          # Linux x86_64 with musl (static linking for Alpine/portable)
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-musl
+            name: linux-x86_64-musl
+            archive: tar.gz
+            features: embedded-cpu,remote-backends
+
+          # Linux ARM64
+          - os: ubuntu-22.04
             target: aarch64-unknown-linux-gnu
-            name: cmdai-v${{ needs.create-release.outputs.version }}-linux-arm64
-            asset_name: cmdai-linux-arm64
-          - os: macos-latest
+            name: linux-aarch64
+            archive: tar.gz
+            features: embedded-cpu,remote-backends
+            cross: true
+
+          # macOS x86_64 (Intel)
+          - os: macos-13
             target: x86_64-apple-darwin
-            name: cmdai-v${{ needs.create-release.outputs.version }}-macos-intel
-            asset_name: cmdai-macos-intel
-          - os: macos-latest
+            name: darwin-x86_64
+            archive: tar.gz
+            features: embedded-cpu,remote-backends
+
+          # macOS ARM64 (Apple Silicon) - with MLX support
+          - os: macos-14
             target: aarch64-apple-darwin
-            name: cmdai-v${{ needs.create-release.outputs.version }}-macos-silicon
-            asset_name: cmdai-macos-silicon
+            name: darwin-aarch64
+            archive: tar.gz
+            features: embedded-mlx,embedded-cpu,remote-backends
+
+          # Windows x86_64
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            name: cmdai-v${{ needs.create-release.outputs.version }}-windows-amd64.exe
-            asset_name: cmdai-windows-amd64.exe
+            name: windows-x86_64
+            archive: zip
+            features: embedded-cpu,remote-backends
 
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@stable
-      with:
-        targets: ${{ matrix.target }}
-    
-    - name: Install cross (for cross-compilation)
-      if: matrix.target == 'aarch64-unknown-linux-gnu'
-      run: cargo install cross
-    
-    - name: Build release binary
-      run: |
-        if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
-          cross build --release --target ${{ matrix.target }}
-        else
-          cargo build --release --target ${{ matrix.target }}
-        fi
-      shell: bash
-    
-    - name: Create release package
-      run: |
-        if [ "${{ runner.os }}" = "Windows" ]; then
-          cp target/${{ matrix.target }}/release/cmdai.exe ${{ matrix.name }}
-        else
-          cp target/${{ matrix.target }}/release/cmdai ${{ matrix.name }}
-          chmod +x ${{ matrix.name }}
-        fi
-      shell: bash
-    
-    - name: Generate checksums
-      run: |
-        if [ "${{ runner.os }}" = "Windows" ]; then
-          certUtil -hashfile ${{ matrix.name }} SHA256 > ${{ matrix.name }}.sha256
-        else
-          shasum -a 256 ${{ matrix.name }} > ${{ matrix.name }}.sha256
-        fi
-      shell: bash
-    
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ needs.create-release.outputs.upload_url }}
-        asset_path: ./${{ matrix.name }}
-        asset_name: ${{ matrix.asset_name }}
-        asset_content_type: application/octet-stream
-    
-    - name: Upload Checksum
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ needs.create-release.outputs.upload_url }}
-        asset_path: ./${{ matrix.name }}.sha256
-        asset_name: ${{ matrix.asset_name }}.sha256
-        asset_content_type: text/plain
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  publish-crate:
-    name: Publish to crates.io
-    needs: create-release
+      - name: Get version from tag
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.tag }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "version_number=${VERSION#v}" >> $GITHUB_OUTPUT
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install musl-tools (Linux musl)
+        if: matrix.target == 'x86_64-unknown-linux-musl'
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+
+      - name: Install cross (for cross-compilation)
+        if: matrix.cross == true
+        uses: taiki-e/install-action@cross
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.target }}-cargo-
+
+      - name: Build release binary
+        shell: bash
+        run: |
+          if [ "${{ matrix.cross }}" = "true" ]; then
+            cross build --release --locked --target ${{ matrix.target }} --features ${{ matrix.features }}
+          else
+            cargo build --release --locked --target ${{ matrix.target }} --features ${{ matrix.features }}
+          fi
+
+      - name: Prepare release artifacts (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          ARTIFACT_DIR="cmdai-${{ steps.version.outputs.version }}-${{ matrix.name }}"
+          mkdir -p "$ARTIFACT_DIR"
+
+          # Copy binary
+          cp "target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}" "$ARTIFACT_DIR/"
+          chmod +x "$ARTIFACT_DIR/${{ env.BINARY_NAME }}"
+
+          # Copy documentation
+          cp README.md LICENSE "$ARTIFACT_DIR/" 2>/dev/null || true
+
+          # Create tarball
+          tar -czvf "${ARTIFACT_DIR}.tar.gz" "$ARTIFACT_DIR"
+
+          # Generate checksum
+          shasum -a 256 "${ARTIFACT_DIR}.tar.gz" > "${ARTIFACT_DIR}.tar.gz.sha256"
+
+          echo "ARTIFACT_PATH=${ARTIFACT_DIR}.tar.gz" >> $GITHUB_ENV
+          echo "CHECKSUM_PATH=${ARTIFACT_DIR}.tar.gz.sha256" >> $GITHUB_ENV
+
+      - name: Prepare release artifacts (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ArtifactDir = "cmdai-${{ steps.version.outputs.version }}-${{ matrix.name }}"
+          New-Item -ItemType Directory -Force -Path $ArtifactDir
+
+          # Copy binary
+          Copy-Item "target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}.exe" "$ArtifactDir/"
+
+          # Copy documentation
+          Copy-Item "README.md" "$ArtifactDir/" -ErrorAction SilentlyContinue
+          Copy-Item "LICENSE" "$ArtifactDir/" -ErrorAction SilentlyContinue
+
+          # Create zip
+          Compress-Archive -Path "$ArtifactDir/*" -DestinationPath "$ArtifactDir.zip"
+
+          # Generate checksum
+          $hash = (Get-FileHash -Algorithm SHA256 "$ArtifactDir.zip").Hash.ToLower()
+          "$hash  $ArtifactDir.zip" | Out-File -Encoding ascii "$ArtifactDir.zip.sha256"
+
+          echo "ARTIFACT_PATH=$ArtifactDir.zip" >> $env:GITHUB_ENV
+          echo "CHECKSUM_PATH=$ArtifactDir.zip.sha256" >> $env:GITHUB_ENV
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cmdai-${{ matrix.name }}
+          path: |
+            ${{ env.ARTIFACT_PATH }}
+            ${{ env.CHECKSUM_PATH }}
+          retention-days: 7
+
+  release:
+    name: Create Release
+    needs: build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@stable
-    
-    - name: Publish to crates.io
-      run: cargo publish --token ${{ secrets.CARGO_TOKEN }}
-      continue-on-error: true  # Allow failure if already published
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.tag }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "version_number=${VERSION#v}" >> $GITHUB_OUTPUT
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release files
+        run: |
+          mkdir -p release-files
+          find artifacts -type f \( -name "*.tar.gz" -o -name "*.zip" -o -name "*.sha256" \) -exec mv {} release-files/ \;
+
+          # Create combined checksums file
+          cd release-files
+          cat *.sha256 > checksums.txt
+          ls -la
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          cat << 'EOF' > release-notes.md
+          ## Installation
+
+          ### Quick Install (Recommended)
+
+          **macOS/Linux:**
+          ```bash
+          curl -fsSL https://raw.githubusercontent.com/wildcard/cmdai/main/scripts/install.sh | bash
+          ```
+
+          Or with wget:
+          ```bash
+          wget -qO- https://raw.githubusercontent.com/wildcard/cmdai/main/scripts/install.sh | bash
+          ```
+
+          ### Manual Download
+
+          Download the appropriate binary for your platform:
+
+          | Platform | Architecture | Download |
+          |----------|--------------|----------|
+          | Linux | x86_64 | `cmdai-${{ steps.version.outputs.version }}-linux-x86_64.tar.gz` |
+          | Linux | x86_64 (static) | `cmdai-${{ steps.version.outputs.version }}-linux-x86_64-musl.tar.gz` |
+          | Linux | ARM64 | `cmdai-${{ steps.version.outputs.version }}-linux-aarch64.tar.gz` |
+          | macOS | Intel | `cmdai-${{ steps.version.outputs.version }}-darwin-x86_64.tar.gz` |
+          | macOS | Apple Silicon | `cmdai-${{ steps.version.outputs.version }}-darwin-aarch64.tar.gz` |
+          | Windows | x86_64 | `cmdai-${{ steps.version.outputs.version }}-windows-x86_64.zip` |
+
+          ### Using Cargo
+
+          ```bash
+          cargo install cmdai
+          ```
+
+          ### Verify Download (Optional)
+
+          Each release includes SHA256 checksums. To verify:
+
+          ```bash
+          # Download the checksum file
+          curl -LO https://github.com/wildcard/cmdai/releases/download/${{ steps.version.outputs.version }}/checksums.txt
+
+          # Verify (example for Linux x86_64)
+          sha256sum -c checksums.txt --ignore-missing
+          ```
+
+          ---
+
+          EOF
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: cmdai ${{ steps.version.outputs.version }}
+          body_path: release-notes.md
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.version, 'alpha') || contains(steps.version.outputs.version, 'beta') || contains(steps.version.outputs.version, 'rc') }}
+          files: |
+            release-files/*.tar.gz
+            release-files/*.zip
+            release-files/*.sha256
+            release-files/checksums.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-crates:
+    name: Publish to crates.io
+    needs: release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, 'alpha') && !contains(github.ref, 'beta') && !contains(github.ref, 'rc')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Verify version matches tag
+        run: |
+          TAG_VERSION=${GITHUB_REF#refs/tags/v}
+          CARGO_VERSION=$(grep '^version = ' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+          if [ "$TAG_VERSION" != "$CARGO_VERSION" ]; then
+            echo "Error: Tag version ($TAG_VERSION) doesn't match Cargo.toml version ($CARGO_VERSION)"
+            exit 1
+          fi
+
+      - name: Publish to crates.io
+        run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        continue-on-error: true
