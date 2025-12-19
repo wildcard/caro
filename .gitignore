@@ -98,6 +98,9 @@ perf.data
 perf.data.old
 flamegraph.svg
 
+# Harbor test results (Terminal-Bench)
+jobs/
+
 # Release artifacts
 /dist/
 /release/
