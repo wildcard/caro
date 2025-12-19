@@ -1,291 +1,304 @@
 name: Release
 
-# Triggered after successful publish to crates.io
-# Note: workflow_run depends on exact workflow name matching
 on:
-  workflow_run:
-    workflows: ["Publish to crates.io"]
-    types:
-      - completed
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Git tag to release (e.g., v1.0.2)'
+        description: 'Release tag (e.g., v0.1.0)'
         required: true
         type: string
+
+env:
+  CARGO_TERM_COLOR: always
+  BINARY_NAME: cmdai
 
 permissions:
   contents: write
 
-env:
-  CARGO_TERM_COLOR: always
-  RUST_VERSION: stable
-
 jobs:
-  prepare-release:
-    name: Prepare Release
-    runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
-    outputs:
-      tag: ${{ steps.get_tag.outputs.tag }}
-      version: ${{ steps.get_tag.outputs.version }}
-    steps:
-      - name: Checkout at trigger commit
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.event.workflow_run.head_sha }}
-          fetch-depth: 0
-
-      - name: Get tag from commit or input
-        id: get_tag
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            # Manual trigger - use provided tag
-            TAG="${{ inputs.tag }}"
-            VERSION="${TAG#v}"
-            echo "tag=$TAG" >> $GITHUB_OUTPUT
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
-            echo "Manual trigger with tag: $TAG (version: $VERSION)"
-          else
-            # Workflow run trigger - get tag from commit
-            TAG=$(git tag --points-at ${{ github.event.workflow_run.head_sha }} | grep '^v' | head -1)
-            if [ -z "$TAG" ]; then
-              echo "::error::No version tag found for commit ${{ github.event.workflow_run.head_sha }}"
-              exit 1
-            fi
-            VERSION="${TAG#v}"
-            echo "tag=$TAG" >> $GITHUB_OUTPUT
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
-            echo "Found tag: $TAG (version: $VERSION)"
-          fi
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@v1
-        with:
-          toolchain: stable
-
-      - name: Verify version consistency
-        run: |
-          CARGO_VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[0].version')
-          if [ "${{ steps.get_tag.outputs.version }}" != "$CARGO_VERSION" ]; then
-            echo "::error::Tag version (${{ steps.get_tag.outputs.version }}) doesn't match Cargo.toml version ($CARGO_VERSION)"
-            exit 1
-          fi
-          echo "Version check passed: $CARGO_VERSION"
-
-      - name: Verify package on crates.io
-        run: |
-          VERSION="${{ steps.get_tag.outputs.version }}"
-          echo "Checking if caro@$VERSION is available on crates.io..."
-
-          # Poll crates.io API with proper User-Agent (required by crates.io policy)
-          # Using 10 retries with 15s intervals to handle propagation delays
-          for i in $(seq 1 10); do
-            RESPONSE=$(curl -s -H "User-Agent: caro-release-workflow (https://github.com/wildcard/caro)" \
-              "https://crates.io/api/v1/crates/caro/$VERSION")
-
-            FOUND_VERSION=$(echo "$RESPONSE" | jq -r '.version.num // empty')
-            if [ "$FOUND_VERSION" = "$VERSION" ]; then
-              echo "Verified: caro@$VERSION is published on crates.io"
-              exit 0
-            fi
-
-            echo "Attempt $i/10: Package not yet available, waiting 15s..."
-            sleep 15
-          done
-
-          echo "::error::Could not verify caro@$VERSION on crates.io after 10 attempts"
-          exit 1
-
-  create-release:
-    name: Create GitHub Release
-    needs: prepare-release
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ needs.prepare-release.outputs.tag }}
-
-      - name: Check if release exists
-        id: check_release
-        run: |
-          if gh release view ${{ needs.prepare-release.outputs.tag }} &>/dev/null; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-            echo "Release ${{ needs.prepare-release.outputs.tag }} already exists"
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-            echo "Release ${{ needs.prepare-release.outputs.tag }} does not exist"
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Generate changelog for template
-        if: steps.check_release.outputs.exists != 'true'
-        id: changelog
-        run: |
-          # Get auto-generated changelog from GitHub API
-          CHANGELOG=$(gh api repos/${{ github.repository }}/releases/generate-notes \
-            -f tag_name="${RELEASE_TAG}" \
-            -f previous_tag_name="$(git describe --tags --abbrev=0 ${RELEASE_TAG}^ 2>/dev/null || echo '')" \
-            --jq '.body')
-
-          # Replace VERSION placeholder in template
-          sed "s/VERSION/${RELEASE_VERSION}/g" .github/RELEASE_TEMPLATE.md > /tmp/template-with-version.md
-
-          # Create release notes by combining changelog with template
-          {
-            echo "$CHANGELOG"
-            echo ""
-            cat /tmp/template-with-version.md
-          } > /tmp/release-notes.md
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ needs.prepare-release.outputs.tag }}
-          RELEASE_VERSION: ${{ needs.prepare-release.outputs.version }}
-
-      - name: Create Release
-        if: steps.check_release.outputs.exists != 'true'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ needs.prepare-release.outputs.tag }}
-          name: caro v${{ needs.prepare-release.outputs.version }}
-          draft: false
-          prerelease: ${{ contains(needs.prepare-release.outputs.version, 'alpha') || contains(needs.prepare-release.outputs.version, 'beta') || contains(needs.prepare-release.outputs.version, 'rc') }}
-          body_path: /tmp/release-notes.md
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  build-and-upload:
-    name: Build and Upload
-    needs: [prepare-release, create-release]
+  build:
+    name: Build ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          # Linux x86_64
+          - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
-            asset_name: caro-linux-amd64
-          - os: ubuntu-latest
+            name: linux-x86_64
+            archive: tar.gz
+            features: embedded-cpu,remote-backends
+
+          # Linux x86_64 with musl (static linking for Alpine/portable)
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-musl
+            name: linux-x86_64-musl
+            archive: tar.gz
+            features: embedded-cpu,remote-backends
+
+          # Linux ARM64
+          - os: ubuntu-22.04
             target: aarch64-unknown-linux-gnu
-            asset_name: caro-linux-arm64
-          - os: macos-latest
+            name: linux-aarch64
+            archive: tar.gz
+            features: embedded-cpu,remote-backends
+            cross: true
+
+          # macOS x86_64 (Intel)
+          - os: macos-13
             target: x86_64-apple-darwin
-            asset_name: caro-macos-intel
-          - os: macos-latest
+            name: darwin-x86_64
+            archive: tar.gz
+            features: embedded-cpu,remote-backends
+
+          # macOS ARM64 (Apple Silicon) - with MLX support
+          - os: macos-14
             target: aarch64-apple-darwin
-            asset_name: caro-macos-silicon
+            name: darwin-aarch64
+            archive: tar.gz
+            features: embedded-mlx,embedded-cpu,remote-backends
+
+          # Windows x86_64
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            asset_name: caro-windows-amd64.exe
+            name: windows-x86_64
+            archive: zip
+            features: embedded-cpu,remote-backends
 
     steps:
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ needs.prepare-release.outputs.tag }}
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@v1
+      - name: Get version from tag
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.tag }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "version_number=${VERSION#v}" >> $GITHUB_OUTPUT
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
           targets: ${{ matrix.target }}
 
-      - name: Determine Rust version
-        id: rust-version
-        run: echo "version=$(rustc --version)" >> "$GITHUB_OUTPUT"
-
-      - name: Cache cargo registry
-        uses: actions/cache@v5
-        with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-${{ matrix.target }}-${{ steps.rust-version.outputs.version }}-registry-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Cache cargo index
-        uses: actions/cache@v5
-        with:
-          path: ~/.cargo/git
-          key: ${{ runner.os }}-${{ matrix.target }}-${{ steps.rust-version.outputs.version }}-index-${{ hashFiles('**/Cargo.lock') }}
+      - name: Install musl-tools (Linux musl)
+        if: matrix.target == 'x86_64-unknown-linux-musl'
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
 
       - name: Install cross (for cross-compilation)
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
-        run: cargo install cross
+        if: matrix.cross == true
+        uses: taiki-e/install-action@cross
 
-      - name: Run comprehensive tests per platform
-        if: matrix.target != 'aarch64-unknown-linux-gnu'
-        run: cargo test --workspace --all-features --verbose
-        env:
-          RUST_BACKTRACE: 1
-
-      - name: Run MLX backend tests (macOS Apple Silicon only)
-        if: matrix.target == 'aarch64-apple-darwin'
-        run: |
-          echo "Running MLX-specific tests for Apple Silicon"
-          cargo test --test mlx_backend_contract --verbose
-          cargo test --test mlx_integration_test --verbose
-        env:
-          RUST_BACKTRACE: 1
-
-      - name: Run E2E tests per platform
-        if: matrix.target != 'aarch64-unknown-linux-gnu'
-        run: |
-          echo "Running E2E tests on ${{ matrix.os }} for ${{ matrix.target }}"
-          cargo test --test e2e_cli_tests --verbose
-          cargo test --test e2e_interactive_execution --verbose
-          cargo test --test embedded_integration --verbose
-          cargo test --test system_integration --verbose
-        env:
-          RUST_BACKTRACE: 1
-
-      - name: Run contract tests per platform
-        if: matrix.target != 'aarch64-unknown-linux-gnu'
-        run: |
-          cargo test --test backend_trait_contract --verbose
-          cargo test --test safety_validator_contract --verbose
-          cargo test --test platform_detection_contract --verbose
-        env:
-          RUST_BACKTRACE: 1
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.target }}-cargo-
 
       - name: Build release binary
-        run: |
-          if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
-            cross build --release --target ${{ matrix.target }}
-          else
-            cargo build --release --target ${{ matrix.target }}
-          fi
         shell: bash
-        env:
-          CARO_RELEASE: 1  # Mark as official release build for version info
-
-      - name: Prepare release artifact
         run: |
-          VERSION="${{ needs.prepare-release.outputs.version }}"
-          BASE_NAME=$(echo "${{ matrix.asset_name }}" | sed 's/^caro-//')
-          VERSIONED_NAME="caro-${VERSION}-${BASE_NAME}"
-
-          echo "Creating versioned asset: ${VERSIONED_NAME}"
-
-          if [ "${{ runner.os }}" = "Windows" ]; then
-            cp target/${{ matrix.target }}/release/caro.exe "${VERSIONED_NAME}"
-            # certUtil output format differs from shasum, normalize to: <hash>  <filename>
-            HASH=$(certUtil -hashfile "${VERSIONED_NAME}" SHA256 | grep -v ":" | tr -d '[:space:]')
-            echo "$HASH  ${VERSIONED_NAME}" > "${VERSIONED_NAME}.sha256"
+          if [ "${{ matrix.cross }}" = "true" ]; then
+            cross build --release --locked --target ${{ matrix.target }} --features ${{ matrix.features }}
           else
-            cp target/${{ matrix.target }}/release/caro "${VERSIONED_NAME}"
-            chmod +x "${VERSIONED_NAME}"
-            shasum -a 256 "${VERSIONED_NAME}" > "${VERSIONED_NAME}.sha256"
+            cargo build --release --locked --target ${{ matrix.target }} --features ${{ matrix.features }}
           fi
 
-          # Save versioned name for upload step
-          echo "versioned_asset=${VERSIONED_NAME}" >> $GITHUB_OUTPUT
-        id: prepare_asset
+      - name: Prepare release artifacts (Unix)
+        if: runner.os != 'Windows'
         shell: bash
+        run: |
+          ARTIFACT_DIR="cmdai-${{ steps.version.outputs.version }}-${{ matrix.name }}"
+          mkdir -p "$ARTIFACT_DIR"
 
-      - name: Upload Release Assets
+          # Copy binary
+          cp "target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}" "$ARTIFACT_DIR/"
+          chmod +x "$ARTIFACT_DIR/${{ env.BINARY_NAME }}"
+
+          # Copy documentation
+          cp README.md LICENSE "$ARTIFACT_DIR/" 2>/dev/null || true
+
+          # Create tarball
+          tar -czvf "${ARTIFACT_DIR}.tar.gz" "$ARTIFACT_DIR"
+
+          # Generate checksum
+          shasum -a 256 "${ARTIFACT_DIR}.tar.gz" > "${ARTIFACT_DIR}.tar.gz.sha256"
+
+          echo "ARTIFACT_PATH=${ARTIFACT_DIR}.tar.gz" >> $GITHUB_ENV
+          echo "CHECKSUM_PATH=${ARTIFACT_DIR}.tar.gz.sha256" >> $GITHUB_ENV
+
+      - name: Prepare release artifacts (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ArtifactDir = "cmdai-${{ steps.version.outputs.version }}-${{ matrix.name }}"
+          New-Item -ItemType Directory -Force -Path $ArtifactDir
+
+          # Copy binary
+          Copy-Item "target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}.exe" "$ArtifactDir/"
+
+          # Copy documentation
+          Copy-Item "README.md" "$ArtifactDir/" -ErrorAction SilentlyContinue
+          Copy-Item "LICENSE" "$ArtifactDir/" -ErrorAction SilentlyContinue
+
+          # Create zip
+          Compress-Archive -Path "$ArtifactDir/*" -DestinationPath "$ArtifactDir.zip"
+
+          # Generate checksum
+          $hash = (Get-FileHash -Algorithm SHA256 "$ArtifactDir.zip").Hash.ToLower()
+          "$hash  $ArtifactDir.zip" | Out-File -Encoding ascii "$ArtifactDir.zip.sha256"
+
+          echo "ARTIFACT_PATH=$ArtifactDir.zip" >> $env:GITHUB_ENV
+          echo "CHECKSUM_PATH=$ArtifactDir.zip.sha256" >> $env:GITHUB_ENV
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cmdai-${{ matrix.name }}
+          path: |
+            ${{ env.ARTIFACT_PATH }}
+            ${{ env.CHECKSUM_PATH }}
+          retention-days: 7
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.tag }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "version_number=${VERSION#v}" >> $GITHUB_OUTPUT
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release files
+        run: |
+          mkdir -p release-files
+          find artifacts -type f \( -name "*.tar.gz" -o -name "*.zip" -o -name "*.sha256" \) -exec mv {} release-files/ \;
+
+          # Create combined checksums file
+          cd release-files
+          cat *.sha256 > checksums.txt
+          ls -la
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          cat << 'EOF' > release-notes.md
+          ## Installation
+
+          ### Quick Install (Recommended)
+
+          **macOS/Linux:**
+          ```bash
+          curl -fsSL https://raw.githubusercontent.com/wildcard/cmdai/main/scripts/install.sh | bash
+          ```
+
+          Or with wget:
+          ```bash
+          wget -qO- https://raw.githubusercontent.com/wildcard/cmdai/main/scripts/install.sh | bash
+          ```
+
+          ### Manual Download
+
+          Download the appropriate binary for your platform:
+
+          | Platform | Architecture | Download |
+          |----------|--------------|----------|
+          | Linux | x86_64 | `cmdai-${{ steps.version.outputs.version }}-linux-x86_64.tar.gz` |
+          | Linux | x86_64 (static) | `cmdai-${{ steps.version.outputs.version }}-linux-x86_64-musl.tar.gz` |
+          | Linux | ARM64 | `cmdai-${{ steps.version.outputs.version }}-linux-aarch64.tar.gz` |
+          | macOS | Intel | `cmdai-${{ steps.version.outputs.version }}-darwin-x86_64.tar.gz` |
+          | macOS | Apple Silicon | `cmdai-${{ steps.version.outputs.version }}-darwin-aarch64.tar.gz` |
+          | Windows | x86_64 | `cmdai-${{ steps.version.outputs.version }}-windows-x86_64.zip` |
+
+          ### Using Cargo
+
+          ```bash
+          cargo install cmdai
+          ```
+
+          ### Verify Download (Optional)
+
+          Each release includes SHA256 checksums. To verify:
+
+          ```bash
+          # Download the checksum file
+          curl -LO https://github.com/wildcard/cmdai/releases/download/${{ steps.version.outputs.version }}/checksums.txt
+
+          # Verify (example for Linux x86_64)
+          sha256sum -c checksums.txt --ignore-missing
+          ```
+
+          ---
+
+          EOF
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.prepare-release.outputs.tag }}
+          tag_name: ${{ steps.version.outputs.version }}
+          name: cmdai ${{ steps.version.outputs.version }}
+          body_path: release-notes.md
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.version, 'alpha') || contains(steps.version.outputs.version, 'beta') || contains(steps.version.outputs.version, 'rc') }}
           files: |
-            ${{ steps.prepare_asset.outputs.versioned_asset }}
-            ${{ steps.prepare_asset.outputs.versioned_asset }}.sha256
+            release-files/*.tar.gz
+            release-files/*.zip
+            release-files/*.sha256
+            release-files/checksums.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-crates:
+    name: Publish to crates.io
+    needs: release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, 'alpha') && !contains(github.ref, 'beta') && !contains(github.ref, 'rc')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Verify version matches tag
+        run: |
+          TAG_VERSION=${GITHUB_REF#refs/tags/v}
+          CARGO_VERSION=$(grep '^version = ' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+          if [ "$TAG_VERSION" != "$CARGO_VERSION" ]; then
+            echo "Error: Tag version ($TAG_VERSION) doesn't match Cargo.toml version ($CARGO_VERSION)"
+            exit 1
+          fi
+
+      - name: Publish to crates.io
+        run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        continue-on-error: true
