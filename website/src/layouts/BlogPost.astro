@@ -321,17 +321,13 @@ const { title, description, date, readTime, variation = 'default' } = Astro.prop
   }
 
   /* Variation: Story */
-  .blog-post-story .blog-post-content :global(p:first-letter) {
-    font-size: 60px;
-    font-weight: 700;
-    line-height: 1;
-    float: left;
-    margin: 5px 10px 0 0;
-    color: #ff8c42;
-  }
-
   .blog-post-story .blog-post-title {
     font-family: Georgia, serif;
     font-style: italic;
+  }
+
+  .blog-post-story .blog-post-content :global(p) {
+    font-size: 18px;
+    line-height: 1.8;
   }
 </style>

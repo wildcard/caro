@@ -1,0 +1,427 @@
+---
+// OmniMenu - Command palette for quick navigation
+// Activated with Cmd+K (Mac) or Ctrl+K (Windows/Linux)
+
+interface Page {
+  title: string;
+  path: string;
+  description: string;
+  category: string;
+}
+
+const pages: Page[] = [
+  {
+    title: "Home",
+    path: "/",
+    description: "Caro - Your terminal companion",
+    category: "Main"
+  },
+  {
+    title: "Why Caro?",
+    path: "/blog/why-caro",
+    description: "The story behind your terminal companion",
+    category: "Blog"
+  },
+  {
+    title: "Storybook",
+    path: "/storybook",
+    description: "Blog component variations showcase",
+    category: "Development"
+  }
+];
+---
+
+<div id="omni-menu" class="omni-menu" aria-hidden="true">
+  <div class="omni-backdrop"></div>
+  <div class="omni-dialog" role="dialog" aria-modal="true" aria-labelledby="omni-title">
+    <div class="omni-container">
+      <div class="omni-header">
+        <input
+          type="text"
+          id="omni-search"
+          class="omni-search"
+          placeholder="Search pages... (Cmd+K or Ctrl+K)"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <kbd class="omni-shortcut">ESC</kbd>
+      </div>
+
+      <div class="omni-results" id="omni-results">
+        {pages.map((page, index) => (
+          <a
+            href={page.path}
+            class="omni-item"
+            data-index={index}
+            data-title={page.title.toLowerCase()}
+            data-description={page.description.toLowerCase()}
+            data-category={page.category.toLowerCase()}
+          >
+            <div class="omni-item-content">
+              <div class="omni-item-title">{page.title}</div>
+              <div class="omni-item-description">{page.description}</div>
+            </div>
+            <div class="omni-item-category">{page.category}</div>
+          </a>
+        ))}
+      </div>
+
+      <div class="omni-footer">
+        <div class="omni-hint">
+          <kbd>↑</kbd> <kbd>↓</kbd> to navigate
+          <span class="separator">•</span>
+          <kbd>↵</kbd> to select
+          <span class="separator">•</span>
+          <kbd>ESC</kbd> to close
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const omniMenu = document.getElementById('omni-menu');
+  const omniSearch = document.getElementById('omni-search') as HTMLInputElement;
+  const omniResults = document.getElementById('omni-results');
+  let selectedIndex = 0;
+
+  function getAllItems() {
+    return Array.from(omniResults?.querySelectorAll('.omni-item') || []) as HTMLAnchorElement[];
+  }
+
+  function getVisibleItems() {
+    return getAllItems().filter(item => item.style.display !== 'none');
+  }
+
+  function openOmniMenu() {
+    omniMenu?.setAttribute('aria-hidden', 'false');
+    omniMenu?.classList.add('active');
+    setTimeout(() => omniSearch?.focus(), 50);
+    selectedIndex = 0;
+    updateSelection();
+  }
+
+  function closeOmniMenu() {
+    omniMenu?.setAttribute('aria-hidden', 'true');
+    omniMenu?.classList.remove('active');
+    omniSearch.value = '';
+    filterItems('');
+  }
+
+  function updateSelection() {
+    const items = getVisibleItems();
+    items.forEach((item, index) => {
+      if (index === selectedIndex) {
+        item.classList.add('selected');
+        item.scrollIntoView({ block: 'nearest' });
+      } else {
+        item.classList.remove('selected');
+      }
+    });
+  }
+
+  function filterItems(query: string) {
+    const items = getAllItems();
+    const searchLower = query.toLowerCase();
+
+    items.forEach(item => {
+      const title = item.dataset.title || '';
+      const description = item.dataset.description || '';
+      const category = item.dataset.category || '';
+
+      const matches = title.includes(searchLower) ||
+                     description.includes(searchLower) ||
+                     category.includes(searchLower);
+
+      item.style.display = matches ? 'flex' : 'none';
+    });
+
+    selectedIndex = 0;
+    updateSelection();
+  }
+
+  function navigateToSelected() {
+    const items = getVisibleItems();
+    if (items[selectedIndex]) {
+      window.location.href = items[selectedIndex].href;
+    }
+  }
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    // Cmd+K (Mac) or Ctrl+K (Windows/Linux)
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      if (omniMenu?.classList.contains('active')) {
+        closeOmniMenu();
+      } else {
+        openOmniMenu();
+      }
+    }
+
+    // Only handle these if menu is open
+    if (!omniMenu?.classList.contains('active')) return;
+
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeOmniMenu();
+    }
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const items = getVisibleItems();
+      selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+      updateSelection();
+    }
+
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedIndex = Math.max(selectedIndex - 1, 0);
+      updateSelection();
+    }
+
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      navigateToSelected();
+    }
+  });
+
+  // Search input
+  omniSearch?.addEventListener('input', (e) => {
+    const target = e.target as HTMLInputElement;
+    filterItems(target.value);
+  });
+
+  // Click backdrop to close
+  omniMenu?.querySelector('.omni-backdrop')?.addEventListener('click', () => {
+    closeOmniMenu();
+  });
+
+  // Click item to navigate
+  getAllItems().forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.location.href = item.href;
+    });
+  });
+</script>
+
+<style>
+  .omni-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    display: none;
+    animation: fadeIn 0.15s ease;
+  }
+
+  .omni-menu.active {
+    display: block;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .omni-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+  }
+
+  .omni-dialog {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 640px;
+    animation: slideDown 0.2s ease;
+  }
+
+  @keyframes slideDown {
+    from {
+      transform: translateX(-50%) translateY(-20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .omni-container {
+    background: var(--color-bg);
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--color-border);
+    overflow: hidden;
+  }
+
+  .omni-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .omni-search {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 18px;
+    color: var(--color-text);
+    font-family: inherit;
+  }
+
+  .omni-search::placeholder {
+    color: var(--color-text-secondary);
+  }
+
+  .omni-shortcut {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-secondary);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid var(--color-border);
+  }
+
+  .omni-results {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 8px;
+  }
+
+  .omni-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.15s ease;
+    margin-bottom: 4px;
+  }
+
+  .omni-item:hover,
+  .omni-item.selected {
+    background: var(--color-bg-secondary);
+  }
+
+  .omni-item.selected {
+    border-left: 3px solid #ff8c42;
+  }
+
+  .omni-item-content {
+    flex: 1;
+  }
+
+  .omni-item-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 4px;
+  }
+
+  .omni-item-description {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .omni-item-category {
+    font-size: 12px;
+    color: var(--color-links-muted);
+    background: var(--color-bg-tertiary);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: 500;
+  }
+
+  .omni-footer {
+    padding: 12px 20px;
+    border-top: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+  }
+
+  .omni-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+
+  .omni-hint kbd {
+    background: var(--color-bg);
+    color: var(--color-text);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid var(--color-border);
+    font-family: inherit;
+  }
+
+  .separator {
+    color: var(--color-links-muted);
+  }
+
+  /* Scrollbar styling */
+  .omni-results::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .omni-results::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .omni-results::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 4px;
+  }
+
+  .omni-results::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-secondary);
+  }
+
+  @media (max-width: 768px) {
+    .omni-dialog {
+      top: 10%;
+      width: 95%;
+    }
+
+    .omni-search {
+      font-size: 16px;
+    }
+
+    .omni-item-title {
+      font-size: 15px;
+    }
+
+    .omni-item-description {
+      font-size: 13px;
+    }
+
+    .omni-hint {
+      font-size: 12px;
+    }
+  }
+</style>
