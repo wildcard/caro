@@ -1,7 +1,7 @@
-//! Vector store module for ChromaDB/Qdrant integration
+//! Vector store module for ChromaDB integration
 //!
 //! This module provides functionality to:
-//! - Initialize and manage Qdrant vector database
+//! - Initialize and manage ChromaDB vector database
 //! - Store indexed man page documents with embeddings
 //! - Query for relevant command documentation using RAG
 //! - Handle graceful degradation when vector store unavailable
@@ -21,7 +21,7 @@ use serde::{Deserialize, Serialize};
 /// Vector store configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VectorStoreConfig {
-    /// Path to Qdrant database directory
+    /// Path to ChromaDB database directory
     pub db_path: PathBuf,
 
     /// Collection name for this OS/distribution
@@ -40,7 +40,7 @@ pub struct VectorStoreConfig {
 impl Default for VectorStoreConfig {
     fn default() -> Self {
         Self {
-            db_path: PathBuf::from("~/.cache/cmdai/qdrant"),
+            db_path: PathBuf::from("~/.cache/cmdai/chromadb"),
             collection_name: "cmdai_default".to_string(),
             embedding_model: "all-MiniLM-L6-v2".to_string(),
             vector_dim: 384,

@@ -68,7 +68,7 @@ async-trait = "0.1"
 futures = "0.3"
 
 # ChromaDB and vector store support
-qdrant-client = { version = "1.7", optional = true }  # Vector DB client
+chroma = { version = "0.2", optional = true }  # ChromaDB client
 
 # Text processing for man pages
 scraper = { version = "0.17", optional = true }
@@ -109,7 +109,7 @@ remote-backends = ["reqwest", "tokio/net"]
 embedded-mlx = ["cxx", "llama_cpp"]
 embedded-cpu = ["candle-core", "candle-transformers"]
 embedded = ["embedded-cpu"]  # Alias for embedded model support
-vector-store = ["qdrant-client", "scraper", "flate2", "dns-lookup"]  # Vector store support
+vector-store = ["chroma", "scraper", "flate2", "dns-lookup"]  # ChromaDB vector store support
 full = ["remote-backends", "embedded-mlx", "embedded-cpu", "vector-store"]
 
 [profile.release]
