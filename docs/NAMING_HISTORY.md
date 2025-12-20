@@ -6,10 +6,10 @@
 
 ## Timeline
 
-### December 2024: The cmdai Era
+### Before 20 December 2025: The cmdai Era
 The project was initially developed and published under the name **cmdai** (short for "command AI"). The name reflected the tool's purpose: using AI to generate commands.
 
-### December 2025: The Caro Transition
+### 20 December 2025: The Caro Transition
 After initial development and testing, the project was renamed to **caro** thanks to the generosity of [@aeplay](https://github.com/aeplay), who graciously transferred the `caro` crate name to the project.
 
 ## Why "caro"?
