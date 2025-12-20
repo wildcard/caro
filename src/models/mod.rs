@@ -616,7 +616,7 @@ impl CacheManifest {
 }
 
 /// User configuration with preferences
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct UserConfiguration {
     pub default_shell: Option<ShellType>,
     pub safety_level: SafetyLevel,
@@ -624,6 +624,12 @@ pub struct UserConfiguration {
     pub log_level: LogLevel,
     pub cache_max_size_gb: u64,
     pub log_rotation_days: u32,
+    /// Whether history tracking is enabled
+    pub history_enabled: bool,
+    /// Maximum history storage size in MB (default: 100)
+    pub history_max_size_mb: u64,
+    /// Maximum size for individual output fields before summarization in KB (default: 10)
+    pub history_max_output_size_kb: u64,
 }
 
 impl Default for UserConfiguration {
@@ -635,6 +641,9 @@ impl Default for UserConfiguration {
             log_level: LogLevel::Info,
             cache_max_size_gb: 10,
             log_rotation_days: 7,
+            history_enabled: true,
+            history_max_size_mb: 100,
+            history_max_output_size_kb: 10,
         }
     }
 }
@@ -671,6 +680,9 @@ pub struct UserConfigurationBuilder {
     log_level: LogLevel,
     cache_max_size_gb: u64,
     log_rotation_days: u32,
+    history_enabled: bool,
+    history_max_size_mb: u64,
+    history_max_output_size_kb: u64,
 }
 
 impl Default for UserConfigurationBuilder {
@@ -689,6 +701,9 @@ impl UserConfigurationBuilder {
             log_level: defaults.log_level,
             cache_max_size_gb: defaults.cache_max_size_gb,
             log_rotation_days: defaults.log_rotation_days,
+            history_enabled: defaults.history_enabled,
+            history_max_size_mb: defaults.history_max_size_mb,
+            history_max_output_size_kb: defaults.history_max_output_size_kb,
         }
     }
 
@@ -722,6 +737,21 @@ impl UserConfigurationBuilder {
         self
     }
 
+    pub fn history_enabled(mut self, enabled: bool) -> Self {
+        self.history_enabled = enabled;
+        self
+    }
+
+    pub fn history_max_size_mb(mut self, size: u64) -> Self {
+        self.history_max_size_mb = size;
+        self
+    }
+
+    pub fn history_max_output_size_kb(mut self, size: u64) -> Self {
+        self.history_max_output_size_kb = size;
+        self
+    }
+
     pub fn build(self) -> Result<UserConfiguration, String> {
         let config = UserConfiguration {
             default_shell: self.default_shell,
@@ -730,6 +760,9 @@ impl UserConfigurationBuilder {
             log_level: self.log_level,
             cache_max_size_gb: self.cache_max_size_gb,
             log_rotation_days: self.log_rotation_days,
+            history_enabled: self.history_enabled,
+            history_max_size_mb: self.history_max_size_mb,
+            history_max_output_size_kb: self.history_max_output_size_kb,
         };
         config.validate()?;
         Ok(config)
@@ -758,12 +791,17 @@ impl ConfigSchema {
         known_keys.insert("logging.log_level".to_string(), "LogLevel enum".to_string());
         known_keys.insert("logging.log_rotation_days".to_string(), "u32".to_string());
         known_keys.insert("cache.max_size_gb".to_string(), "u64".to_string());
+        // History configuration keys
+        known_keys.insert("history.enabled".to_string(), "bool".to_string());
+        known_keys.insert("history.max_size_mb".to_string(), "u64".to_string());
+        known_keys.insert("history.max_output_size_kb".to_string(), "u64".to_string());
 
         Self {
             known_sections: vec![
                 "general".to_string(),
                 "logging".to_string(),
                 "cache".to_string(),
+                "history".to_string(),
             ],
             known_keys,
             deprecated_keys: HashMap::new(),

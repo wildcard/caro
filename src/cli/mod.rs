@@ -9,6 +9,7 @@ use crate::{
     agent::AgentLoop,
     backends::CommandGenerator,
     context::ExecutionContext,
+    history::{ExecutionOutcome, HistoryConfig, HistoryManager, RequestRecord},
     models::{CommandRequest, SafetyLevel, ShellType},
     safety::SafetyValidator,
 };
@@ -31,6 +32,7 @@ pub struct CliApp {
     validator: SafetyValidator,
     #[allow(dead_code)]
     context: ExecutionContext,
+    history: Option<HistoryManager>,
 }
 
 impl std::fmt::Debug for CliApp {
@@ -40,6 +42,7 @@ impl std::fmt::Debug for CliApp {
             .field("backend", &"<CommandGenerator>")
             .field("validator", &self.validator)
             .field("context", &"<ExecutionContext>")
+            .field("history", &self.history.is_some())
             .finish()
     }
 }
@@ -171,12 +174,38 @@ impl CliApp {
         // Create agent loop with backend and context
         let agent_loop = AgentLoop::new(backend_arc.clone(), context.clone());
 
+        // Initialize history manager if enabled
+        let history = if user_config.history_enabled {
+            let history_config = HistoryConfig {
+                max_history_size_bytes: user_config.history_max_size_mb * 1024 * 1024,
+                max_output_size_bytes: (user_config.history_max_output_size_kb * 1024) as usize,
+                enabled: true,
+                retention_days: 0, // Size-based rotation only
+            };
+            match HistoryManager::with_directory(
+                dirs::data_dir()
+                    .unwrap_or_else(|| std::path::PathBuf::from("."))
+                    .join("cmdai")
+                    .join("history"),
+                history_config,
+            ) {
+                Ok(manager) => Some(manager),
+                Err(e) => {
+                    tracing::warn!("Failed to initialize history manager: {}", e);
+                    None
+                }
+            }
+        } else {
+            None
+        };
+
         Ok(Self {
             config,
             backend: backend_arc,
             agent_loop,
             validator,
             context,
+            history,
         })
     }
 
@@ -409,6 +438,67 @@ impl CliApp {
         };
 
         let total_time = start_time.elapsed();
+
+        // Record to history if enabled
+        if let Some(ref history) = self.history {
+            // Determine execution outcome
+            let outcome = if blocked_reason.is_some() {
+                ExecutionOutcome::NotExecuted
+            } else if !executed {
+                ExecutionOutcome::NotExecuted
+            } else if exit_code == Some(0) {
+                ExecutionOutcome::Success
+            } else if exit_code.is_some() {
+                ExecutionOutcome::Failed
+            } else {
+                ExecutionOutcome::NotExecuted
+            };
+
+            // Build the history record
+            let mut record = RequestRecord::new(
+                prompt.clone(),
+                generated.command.clone(),
+                env!("CARGO_PKG_VERSION").to_string(),
+                history
+                    .get_current_prompt_version()
+                    .map(|v| v.version)
+                    .unwrap_or_else(|_| "1.0.0".to_string()),
+            )
+            .with_timing(
+                generation_time.as_millis() as u64,
+                total_time.as_millis() as u64,
+            )
+            .with_backend(generated.backend_used.clone(), None)
+            .with_assessment(
+                generated.confidence_score,
+                validation.risk_level.to_string(),
+            )
+            .with_shell(shell.to_string())
+            .with_block(
+                blocked_reason.is_some(),
+                blocked_reason.clone(),
+            )
+            .with_warnings(validation.warnings.clone());
+
+            // Add execution details if executed
+            if exit_code.is_some() {
+                let output_combined = format!(
+                    "{}{}",
+                    stdout.as_deref().unwrap_or(""),
+                    stderr.as_deref().unwrap_or("")
+                );
+                record = record.with_execution(
+                    true,
+                    outcome,
+                    exit_code.unwrap_or(-1),
+                    output_combined,
+                    execution_time_ms,
+                );
+            }
+
+            // Record asynchronously (fire and forget, don't block on history write)
+            let _ = history.record_request(record).await;
+        }
 
         Ok(CliResult {
             generated_command: generated.command,

@@ -32,6 +32,7 @@ pub mod cli;
 pub mod config;
 pub mod context;
 pub mod execution;
+pub mod history;
 pub mod logging;
 pub mod model_catalog;
 pub mod model_loader;
@@ -52,6 +53,10 @@ pub use models::{
 pub use cache::{CacheError, CacheManager, CacheStats, IntegrityReport};
 pub use config::{ConfigError, ConfigManager};
 pub use execution::{ExecutionError, PlatformDetector, ShellDetector};
+pub use history::{
+    ExecutionOutcome, HistoryConfig, HistoryError, HistoryManager, HistoryManifest,
+    HistoryManifestManager, HistoryStats, OutputSummarizer, PromptVersion, RequestRecord,
+};
 pub use logging::{LogConfig, LogConfigBuilder, LogError, LogFormat, LogOutput, Logger, Redaction};
 pub use model_loader::ModelLoader;
 pub use platform::{PlatformContext, PlatformContextBuilder, PlatformContextError, UtilityType};

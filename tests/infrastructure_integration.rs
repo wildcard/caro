@@ -93,6 +93,9 @@ async fn test_returning_user_with_cache() {
         default_model: Some("custom-model-id".to_string()),
         cache_max_size_gb: 5,
         log_rotation_days: 3,
+        history_enabled: true,
+        history_max_size_mb: 100,
+        history_max_output_size_kb: 10,
     };
 
     // Save custom config
