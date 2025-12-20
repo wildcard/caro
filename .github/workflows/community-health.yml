@@ -23,17 +23,20 @@ jobs:
             // Get various metrics
             const [openIssues, openPRs, contributors] = await Promise.all([
               github.rest.issues.listForRepo({
-                owner, repo,
+                owner: owner,
+                repo: repo,
                 state: 'open',
                 per_page: 100
               }),
               github.rest.pulls.list({
-                owner, repo,
+                owner: owner,
+                repo: repo,
                 state: 'open',
                 per_page: 100
               }),
               github.rest.repos.listContributors({
-                owner, repo,
+                owner: owner,
+                repo: repo,
                 per_page: 100
               })
             ]);
@@ -58,44 +61,32 @@ jobs:
             const draftPRs = openPRs.data.filter(pr => pr.draft);
             const readyPRs = openPRs.data.filter(pr => !pr.draft);
 
-            const report = `## Weekly Community Health Report
+            const dateStr = now.toISOString().split('T')[0];
+            const staleWarning = staleIssues.length > 5 ? 'Consider triaging stale issues' : 'Stale issues under control';
+            const labelWarning = unlabeledIssues.length > 3 ? 'Some issues need labels' : 'Issues are well-labeled';
+            const prWarning = readyPRs.length > 5 ? 'Several PRs awaiting review' : 'PR queue is manageable';
 
-📊 **Metrics as of ${now.toISOString().split('T')[0]}**
-
-### Issues
-- 📬 Open issues: **${openIssues.data.length}**
-- 🆕 New this week: **${recentIssues.length}**
-- ⏰ Stale (no activity 30+ days): **${staleIssues.length}**
-- 🏷️ Unlabeled: **${unlabeledIssues.length}**
-
-### Pull Requests
-- 📝 Open PRs: **${openPRs.data.length}**
-- ✅ Ready for review: **${readyPRs.length}**
-- 📋 Drafts: **${draftPRs.length}**
-
-### Contributors
-- 👥 Total contributors: **${contributors.data.length}**
-
-### Action Items
-${staleIssues.length > 5 ? '⚠️ Consider triaging stale issues' : '✅ Stale issues under control'}
-${unlabeledIssues.length > 3 ? '⚠️ Some issues need labels' : '✅ Issues are well-labeled'}
-${readyPRs.length > 5 ? '⚠️ Several PRs awaiting review' : '✅ PR queue is manageable'}
-
----
-*This report is generated automatically every Monday.*`;
+            const report = '## Weekly Community Health Report\n\n' +
+              '**Metrics as of ' + dateStr + '**\n\n' +
+              '### Issues\n' +
+              '- Open issues: **' + openIssues.data.length + '**\n' +
+              '- New this week: **' + recentIssues.length + '**\n' +
+              '- Stale (no activity 30+ days): **' + staleIssues.length + '**\n' +
+              '- Unlabeled: **' + unlabeledIssues.length + '**\n\n' +
+              '### Pull Requests\n' +
+              '- Open PRs: **' + openPRs.data.length + '**\n' +
+              '- Ready for review: **' + readyPRs.length + '**\n' +
+              '- Drafts: **' + draftPRs.length + '**\n\n' +
+              '### Contributors\n' +
+              '- Total contributors: **' + contributors.data.length + '**\n\n' +
+              '### Action Items\n' +
+              '- ' + staleWarning + '\n' +
+              '- ' + labelWarning + '\n' +
+              '- ' + prWarning + '\n\n' +
+              '---\n' +
+              '*This report is generated automatically every Monday.*';
 
             console.log(report);
-
-            // Optionally create an issue with the report
-            // Uncomment below if you want weekly report issues
-            /*
-            await github.rest.issues.create({
-              owner, repo,
-              title: `Community Health Report - Week of ${now.toISOString().split('T')[0]}`,
-              body: report,
-              labels: ['documentation', 'automated']
-            });
-            */
 
   check-required-files:
     runs-on: ubuntu-latest
@@ -127,8 +118,8 @@ ${readyPRs.length > 5 ? '⚠️ Several PRs awaiting review' : '✅ PR queue is 
           done
 
           if [ ${#missing[@]} -eq 0 ]; then
-            echo "✅ All required community health files are present"
+            echo "All required community health files are present"
           else
-            echo "⚠️ Missing files:"
+            echo "Missing files:"
             printf '%s\n' "${missing[@]}"
           fi

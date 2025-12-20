@@ -21,11 +21,13 @@ jobs:
           script: |
             const issueAuthor = context.payload.issue.user.login;
             const issueNumber = context.payload.issue.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
 
             // Check if this is the user's first issue
             const { data: issues } = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
+              owner: owner,
+              repo: repo,
               creator: issueAuthor,
               state: 'all'
             });
@@ -34,27 +36,23 @@ jobs:
 
             let message = '';
             if (isFirstIssue) {
-              message = `## Welcome to cmdai! :wave:
-
-Thank you for opening your first issue, @${issueAuthor}! We're excited to have you here.
-
-**What happens next?**
-- A maintainer will review your issue and add appropriate labels
-- We aim to respond within 48 hours
-- Feel free to join the discussion in [GitHub Discussions](https://github.com/${context.repo.owner}/${context.repo.repo}/discussions)
-
-**While you wait:**
-- Check out our [Contributing Guide](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/CONTRIBUTING.md)
-- Browse [good first issues](https://github.com/${context.repo.owner}/${context.repo.repo}/labels/good%20first%20issue) if you'd like to contribute
-
-Thanks for helping make cmdai better!`;
+              message = '## Welcome to cmdai! :wave:\n\n' +
+                'Thank you for opening your first issue, @' + issueAuthor + '! We\'re excited to have you here.\n\n' +
+                '**What happens next?**\n' +
+                '- A maintainer will review your issue and add appropriate labels\n' +
+                '- We aim to respond within 48 hours\n' +
+                '- Feel free to join the discussion in [GitHub Discussions](https://github.com/' + owner + '/' + repo + '/discussions)\n\n' +
+                '**While you wait:**\n' +
+                '- Check out our [Contributing Guide](https://github.com/' + owner + '/' + repo + '/blob/main/CONTRIBUTING.md)\n' +
+                '- Browse [good first issues](https://github.com/' + owner + '/' + repo + '/labels/good%20first%20issue) if you\'d like to contribute\n\n' +
+                'Thanks for helping make cmdai better!';
             } else {
-              message = `Thanks for opening this issue, @${issueAuthor}! A maintainer will review it shortly.`;
+              message = 'Thanks for opening this issue, @' + issueAuthor + '! A maintainer will review it shortly.';
             }
 
             await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
+              owner: owner,
+              repo: repo,
               issue_number: issueNumber,
               body: message
             });
@@ -69,6 +67,8 @@ Thanks for helping make cmdai better!`;
           script: |
             const prAuthor = context.payload.pull_request.user.login;
             const prNumber = context.payload.pull_request.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
 
             // Skip bot PRs
             if (prAuthor.includes('[bot]') || prAuthor === 'dependabot') {
@@ -78,8 +78,8 @@ Thanks for helping make cmdai better!`;
 
             // Check if this is the user's first PR
             const { data: prs } = await github.rest.pulls.list({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
+              owner: owner,
+              repo: repo,
               state: 'all'
             });
 
@@ -88,33 +88,28 @@ Thanks for helping make cmdai better!`;
 
             let message = '';
             if (isFirstPR) {
-              message = `## Welcome to cmdai! :tada:
-
-Thank you for your first pull request, @${prAuthor}! We're thrilled to have you as a contributor.
-
-**Review Process:**
-- Automated checks will run (tests, linting, formatting)
-- A maintainer will review your changes within 48-72 hours
-- We may request changes - this is normal and helps ensure code quality
-- Once approved, your PR will be merged
-
-**Helpful Resources:**
-- [Contributing Guide](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/CONTRIBUTING.md)
-- [Code of Conduct](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/CODE_OF_CONDUCT.md)
-
-**Tips for a smooth review:**
-- Ensure all CI checks pass
-- Respond to feedback promptly
-- Keep changes focused and well-documented
-
-We appreciate your contribution! :heart:`;
+              message = '## Welcome to cmdai! :tada:\n\n' +
+                'Thank you for your first pull request, @' + prAuthor + '! We\'re thrilled to have you as a contributor.\n\n' +
+                '**Review Process:**\n' +
+                '- Automated checks will run (tests, linting, formatting)\n' +
+                '- A maintainer will review your changes within 48-72 hours\n' +
+                '- We may request changes - this is normal and helps ensure code quality\n' +
+                '- Once approved, your PR will be merged\n\n' +
+                '**Helpful Resources:**\n' +
+                '- [Contributing Guide](https://github.com/' + owner + '/' + repo + '/blob/main/CONTRIBUTING.md)\n' +
+                '- [Code of Conduct](https://github.com/' + owner + '/' + repo + '/blob/main/CODE_OF_CONDUCT.md)\n\n' +
+                '**Tips for a smooth review:**\n' +
+                '- Ensure all CI checks pass\n' +
+                '- Respond to feedback promptly\n' +
+                '- Keep changes focused and well-documented\n\n' +
+                'We appreciate your contribution! :heart:';
             } else {
-              message = `Thanks for the PR, @${prAuthor}! A maintainer will review it soon.`;
+              message = 'Thanks for the PR, @' + prAuthor + '! A maintainer will review it soon.';
             }
 
             await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
+              owner: owner,
+              repo: repo,
               issue_number: prNumber,
               body: message
             });

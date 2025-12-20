@@ -18,12 +18,12 @@ jobs:
             const issue = context.payload.issue;
             const title = issue.title.toLowerCase();
             const body = (issue.body || '').toLowerCase();
-            const content = `${title} ${body}`;
+            const content = title + ' ' + body;
 
             const labelsToAdd = [];
 
             // Bug detection keywords
-            const bugKeywords = ['bug', 'error', 'crash', 'fail', 'broken', 'not working', 'issue with', 'problem', 'doesn\'t work', 'exception', 'panic'];
+            const bugKeywords = ['bug', 'error', 'crash', 'fail', 'broken', 'not working', 'issue with', 'problem', 'doesnt work', 'exception', 'panic'];
             if (bugKeywords.some(kw => content.includes(kw))) {
               labelsToAdd.push('bug');
             }
@@ -82,7 +82,7 @@ jobs:
             }
 
             // Question detection
-            const questionKeywords = ['how do', 'how can', 'how to', 'what is', 'why does', 'can i', 'is it possible', 'does it support', '?'];
+            const questionKeywords = ['how do', 'how can', 'how to', 'what is', 'why does', 'can i', 'is it possible', 'does it support'];
             if (questionKeywords.some(kw => content.includes(kw)) && !labelsToAdd.includes('bug') && !labelsToAdd.includes('enhancement')) {
               labelsToAdd.push('question');
             }
@@ -97,7 +97,7 @@ jobs:
                 issue_number: issue.number,
                 labels: uniqueLabels
               });
-              console.log(`Added labels to issue #${issue.number}: ${uniqueLabels.join(', ')}`);
+              console.log('Added labels to issue #' + issue.number + ': ' + uniqueLabels.join(', '));
             }
 
   check-for-duplicates:
@@ -109,11 +109,13 @@ jobs:
           script: |
             const issue = context.payload.issue;
             const title = issue.title.toLowerCase();
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
 
             // Get open issues
             const { data: openIssues } = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
+              owner: owner,
+              repo: repo,
               state: 'open',
               per_page: 100
             });
@@ -128,28 +130,25 @@ jobs:
                 const otherWords = otherTitle.split(/\s+/).filter(w => w.length > 3);
                 const commonWords = titleWords.filter(w => otherWords.includes(w));
                 const similarity = commonWords.length / Math.max(titleWords.length, 1);
-                return similarity > 0.5; // More than 50% word overlap
+                return similarity > 0.5;
               })
-              .slice(0, 3); // Max 3 suggestions
+              .slice(0, 3);
 
             if (potentialDuplicates.length > 0) {
               const duplicateList = potentialDuplicates
-                .map(d => `- #${d.number}: ${d.title}`)
+                .map(d => '- #' + d.number + ': ' + d.title)
                 .join('\n');
 
-              const comment = `### Potential Related Issues
-
-This issue might be related to existing issues:
-
-${duplicateList}
-
-If your issue is a duplicate, please add a comment to the existing issue instead. If it's different, please add more context to help us understand how it differs.
-
-*This is an automated check. Please verify the suggestions above.*`;
+              const comment = '### Potential Related Issues\n\n' +
+                'This issue might be related to existing issues:\n\n' +
+                duplicateList + '\n\n' +
+                'If your issue is a duplicate, please add a comment to the existing issue instead. ' +
+                'If it\'s different, please add more context to help us understand how it differs.\n\n' +
+                '*This is an automated check. Please verify the suggestions above.*';
 
               await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
+                owner: owner,
+                repo: repo,
                 issue_number: issue.number,
                 body: comment
               });

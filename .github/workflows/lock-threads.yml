@@ -26,23 +26,34 @@ jobs:
           pr-inactive-days: 180
 
           # Add a comment when locking issues
-          issue-comment: |
-            :lock: This issue has been automatically locked since there has not been any recent activity after it was closed.
+          issue-comment: >-
+            :lock: This issue has been automatically locked since there
+            has not been any recent activity after it was closed.
+
 
             **If you have a related question or issue:**
-            - For bugs: Please [open a new issue](https://github.com/${context.repo.owner}/${context.repo.repo}/issues/new/choose) with current information
-            - For questions: Please use [GitHub Discussions](https://github.com/${context.repo.owner}/${context.repo.repo}/discussions)
-            - For security issues: Please see our [Security Policy](https://github.com/${context.repo.owner}/${context.repo.repo}/security/policy)
+
+            - For bugs: Please open a new issue with current information
+
+            - For questions: Please use GitHub Discussions
+
+            - For security issues: Please see our Security Policy
+
 
             Thank you for your contributions to cmdai!
 
           # Add a comment when locking PRs
-          pr-comment: |
-            :lock: This pull request has been automatically locked since there has not been any recent activity after it was closed.
+          pr-comment: >-
+            :lock: This pull request has been automatically locked since
+            there has not been any recent activity after it was closed.
+
 
             **If you'd like to continue this work:**
+
             - Please open a new pull request with your changes
+
             - Reference this PR for context
+
 
             Thank you for your contributions to cmdai!
 

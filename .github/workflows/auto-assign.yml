@@ -34,7 +34,7 @@ jobs:
               assignees: [prAuthor]
             });
 
-            console.log(`Assigned PR #${context.payload.pull_request.number} to ${prAuthor}`);
+            console.log('Assigned PR #' + context.payload.pull_request.number + ' to ' + prAuthor);
 
   request-review:
     if: github.event_name == 'pull_request_target' && !github.event.pull_request.draft
@@ -70,9 +70,9 @@ jobs:
                 pull_number: context.payload.pull_request.number,
                 reviewers: reviewers
               });
-              console.log(`Requested review from: ${reviewers.join(', ')}`);
+              console.log('Requested review from: ' + reviewers.join(', '));
             } catch (error) {
-              console.log(`Could not request reviewers: ${error.message}`);
+              console.log('Could not request reviewers: ' + error.message);
             }
 
   add-triage-label:
@@ -98,4 +98,4 @@ jobs:
               labels: ['needs-triage']
             });
 
-            console.log(`Added 'needs-triage' label to issue #${issue.number}`);
+            console.log('Added needs-triage label to issue #' + issue.number);

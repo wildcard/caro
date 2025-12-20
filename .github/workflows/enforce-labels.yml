@@ -31,17 +31,14 @@ jobs:
             let messages = [];
 
             if (!hasTypeLabel) {
-              messages.push(`**Missing type label**: Please add one of: \`${typeLabels.join('`, `')}\``);
+              messages.push('**Missing type label**: Please add one of: ' + typeLabels.map(l => '`' + l + '`').join(', '));
             }
 
             if (messages.length > 0) {
-              const failMessage = `## Label Check Failed
-
-${messages.join('\n\n')}
-
-Please add the appropriate labels to this PR. Labels help us categorize and prioritize changes.
-
-*This check will pass automatically once the required labels are added.*`;
+              const failMessage = '## Label Check Failed\n\n' +
+                messages.join('\n\n') + '\n\n' +
+                'Please add the appropriate labels to this PR. Labels help us categorize and prioritize changes.\n\n' +
+                '*This check will pass automatically once the required labels are added.*';
 
               core.setFailed(failMessage);
             } else {
@@ -70,5 +67,5 @@ Please add the appropriate labels to this PR. Labels help us categorize and prio
             const hasBreakingLabel = labels.includes('breaking-change');
 
             if (suggestsBreaking && !hasBreakingLabel) {
-              core.warning('This PR mentions breaking changes but doesn\'t have the `breaking-change` label. Please add the label if this PR introduces breaking changes.');
+              core.warning('This PR mentions breaking changes but does not have the breaking-change label. Please add the label if this PR introduces breaking changes.');
             }
