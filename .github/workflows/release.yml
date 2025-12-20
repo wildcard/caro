@@ -27,7 +27,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ github.ref }}
-        release_name: cmdai v${{ steps.get_version.outputs.VERSION }}
+        release_name: caro v${{ steps.get_version.outputs.VERSION }}
         draft: false
         prerelease: ${{ contains(steps.get_version.outputs.VERSION, 'alpha') || contains(steps.get_version.outputs.VERSION, 'beta') || contains(steps.get_version.outputs.VERSION, 'rc') }}
 
@@ -40,24 +40,24 @@ jobs:
         include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            name: cmdai-v${{ needs.create-release.outputs.version }}-linux-amd64
-            asset_name: cmdai-linux-amd64
+            name: caro-v${{ needs.create-release.outputs.version }}-linux-amd64
+            asset_name: caro-linux-amd64
           - os: ubuntu-latest
             target: aarch64-unknown-linux-gnu
-            name: cmdai-v${{ needs.create-release.outputs.version }}-linux-arm64
-            asset_name: cmdai-linux-arm64
+            name: caro-v${{ needs.create-release.outputs.version }}-linux-arm64
+            asset_name: caro-linux-arm64
           - os: macos-latest
             target: x86_64-apple-darwin
-            name: cmdai-v${{ needs.create-release.outputs.version }}-macos-intel
-            asset_name: cmdai-macos-intel
+            name: caro-v${{ needs.create-release.outputs.version }}-macos-intel
+            asset_name: caro-macos-intel
           - os: macos-latest
             target: aarch64-apple-darwin
-            name: cmdai-v${{ needs.create-release.outputs.version }}-macos-silicon
-            asset_name: cmdai-macos-silicon
+            name: caro-v${{ needs.create-release.outputs.version }}-macos-silicon
+            asset_name: caro-macos-silicon
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            name: cmdai-v${{ needs.create-release.outputs.version }}-windows-amd64.exe
-            asset_name: cmdai-windows-amd64.exe
+            name: caro-v${{ needs.create-release.outputs.version }}-windows-amd64.exe
+            asset_name: caro-windows-amd64.exe
 
     steps:
     - uses: actions/checkout@v4
@@ -83,9 +83,9 @@ jobs:
     - name: Create release package
       run: |
         if [ "${{ runner.os }}" = "Windows" ]; then
-          cp target/${{ matrix.target }}/release/cmdai.exe ${{ matrix.name }}
+          cp target/${{ matrix.target }}/release/caro.exe ${{ matrix.name }}
         else
-          cp target/${{ matrix.target }}/release/cmdai ${{ matrix.name }}
+          cp target/${{ matrix.target }}/release/caro ${{ matrix.name }}
           chmod +x ${{ matrix.name }}
         fi
       shell: bash

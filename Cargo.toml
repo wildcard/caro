@@ -1,17 +1,17 @@
 [package]
-name = "cmdai"
+name = "caro"
 version = "0.1.0"
 edition = "2021"
 description = "Convert natural language to shell commands using local LLMs"
 license = "AGPL-3.0"
-repository = "https://github.com/wildcard/cmdai"
+repository = "https://github.com/wildcard/caro"
 authors = ["Claude Code <noreply@anthropic.com>"]
 keywords = ["cli", "llm", "shell", "commands", "ai"]
 categories = ["command-line-utilities", "development-tools"]
 
 # Binary target
 [[bin]]
-name = "cmdai"
+name = "caro"
 path = "src/main.rs"
 
 [dependencies]

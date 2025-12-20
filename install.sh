@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
-# cmdai (caro) installer
-# 
+# caro installer (formerly cmdai)
+#
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/wildcard/cmdai/main/install.sh | bash
-#   wget -qO- https://raw.githubusercontent.com/wildcard/cmdai/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
+#   wget -qO- https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
 
 set -e
 
@@ -16,10 +16,9 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-REPO="wildcard/cmdai"
-BINARY_NAME="cmdai"
-ALIAS_NAME="caro"
-INSTALL_DIR="${CMDAI_INSTALL_DIR:-$HOME/.local/bin}"
+REPO="wildcard/caro"
+BINARY_NAME="caro"
+INSTALL_DIR="${CARO_INSTALL_DIR:-$HOME/.local/bin}"
 
 # Detect OS and architecture
 detect_platform() {
@@ -54,20 +53,20 @@ command_exists() {
 
 # Download and install binary
 install_binary() {
-    echo -e "${BLUE}Installing cmdai...${NC}"
+    echo -e "${BLUE}Installing caro...${NC}"
 
     # Check if cargo is available for direct installation
     if command_exists cargo; then
         echo -e "${BLUE}Installing via cargo...${NC}"
-        
+
         # Detect if on macOS with Apple Silicon for MLX optimization
         local cargo_features=""
         if [[ "$(uname -s)" == "Darwin" ]] && [[ "$(uname -m)" == "arm64" ]]; then
             echo -e "${GREEN}Detected Apple Silicon - building with MLX optimization${NC}"
             cargo_features="--features embedded-mlx"
         fi
-        
-        cargo install cmdai $cargo_features
+
+        cargo install caro $cargo_features
         return 0
     fi
 
@@ -104,78 +103,32 @@ install_binary() {
     echo -e "${BLUE}Installing Rust and cargo is recommended:${NC}"
     echo -e "  ${GREEN}curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh${NC}"
     echo -e "${BLUE}Then run:${NC}"
-    echo -e "  ${GREEN}cargo install cmdai${NC}"
+    echo -e "  ${GREEN}cargo install caro${NC}"
     exit 1
 }
 
-# Setup alias in shell configuration
-setup_alias() {
+# Note: No alias setup needed anymore since the binary is now named 'caro'
+# This function is kept for backward compatibility and information
+check_legacy_alias() {
     local shell_config=""
-    local shell_name=""
 
-    # Detect shell
-    if [ -n "$BASH_VERSION" ]; then
-        shell_name="bash"
-        if [ -f "$HOME/.bashrc" ]; then
-            shell_config="$HOME/.bashrc"
-        elif [ -f "$HOME/.bash_profile" ]; then
-            shell_config="$HOME/.bash_profile"
-        fi
-    elif [ -n "$ZSH_VERSION" ]; then
-        shell_name="zsh"
+    # Detect shell config
+    if [ -n "$BASH_VERSION" ] || [[ "$SHELL" == */bash ]]; then
+        shell_config="$HOME/.bashrc"
+        [ -f "$HOME/.bash_profile" ] && shell_config="$HOME/.bash_profile"
+    elif [ -n "$ZSH_VERSION" ] || [[ "$SHELL" == */zsh ]]; then
         shell_config="$HOME/.zshrc"
-    elif [ -n "$FISH_VERSION" ]; then
-        shell_name="fish"
+    elif [ -n "$FISH_VERSION" ] || [[ "$SHELL" == */fish ]]; then
         shell_config="$HOME/.config/fish/config.fish"
-    else
-        # Try to detect from SHELL environment variable
-        case "$SHELL" in
-            */bash)
-                shell_name="bash"
-                shell_config="$HOME/.bashrc"
-                [ -f "$HOME/.bash_profile" ] && shell_config="$HOME/.bash_profile"
-                ;;
-            */zsh)
-                shell_name="zsh"
-                shell_config="$HOME/.zshrc"
-                ;;
-            */fish)
-                shell_name="fish"
-                shell_config="$HOME/.config/fish/config.fish"
-                ;;
-            *)
-                echo -e "${YELLOW}Could not detect shell. Please manually add alias:${NC}"
-                echo -e "  ${GREEN}alias caro='cmdai'${NC}"
-                return
-                ;;
-        esac
     fi
 
-    if [ -z "$shell_config" ] || [ ! -f "$shell_config" ]; then
-        echo -e "${YELLOW}Shell config file not found. Please manually add alias to your shell config:${NC}"
-        echo -e "  ${GREEN}alias caro='cmdai'${NC}"
-        return
+    if [ -n "$shell_config" ] && [ -f "$shell_config" ]; then
+        # Check if old cmdai alias exists
+        if grep -q "alias caro='cmdai'" "$shell_config" 2>/dev/null; then
+            echo -e "${YELLOW}Found old 'cmdai' alias in $shell_config${NC}"
+            echo -e "${BLUE}You can remove it - the binary is now named 'caro' directly${NC}"
+        fi
     fi
-
-    # Check if alias already exists
-    if grep -q "alias $ALIAS_NAME=" "$shell_config" 2>/dev/null; then
-        echo -e "${YELLOW}Alias '$ALIAS_NAME' already exists in $shell_config${NC}"
-        return
-    fi
-
-    # Add alias based on shell type
-    echo -e "${BLUE}Adding alias '$ALIAS_NAME' to $shell_config...${NC}"
-    
-    if [ "$shell_name" = "fish" ]; then
-        echo -e "\n# cmdai (caro) alias" >> "$shell_config"
-        echo "alias $ALIAS_NAME='$BINARY_NAME'" >> "$shell_config"
-    else
-        echo -e "\n# cmdai (caro) alias" >> "$shell_config"
-        echo "alias $ALIAS_NAME='$BINARY_NAME'" >> "$shell_config"
-    fi
-
-    echo -e "${GREEN}✓ Alias added successfully${NC}"
-    echo -e "${BLUE}Run 'source $shell_config' or restart your shell to use the alias${NC}"
 }
 
 # Add install directory to PATH if needed
@@ -200,10 +153,10 @@ setup_path() {
             echo -e "${BLUE}Adding $INSTALL_DIR to PATH in $shell_config...${NC}"
             
             if [[ "$shell_config" == *"fish"* ]]; then
-                echo -e "\n# cmdai PATH" >> "$shell_config"
+                echo -e "\n# caro PATH" >> "$shell_config"
                 echo "set -gx PATH $INSTALL_DIR \$PATH" >> "$shell_config"
             else
-                echo -e "\n# cmdai PATH" >> "$shell_config"
+                echo -e "\n# caro PATH" >> "$shell_config"
                 echo "export PATH=\"$INSTALL_DIR:\$PATH\"" >> "$shell_config"
             fi
             
@@ -217,7 +170,7 @@ setup_path() {
 # Main installation flow
 main() {
     echo -e "${BLUE}╔═══════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║   cmdai (caro) Installer              ║${NC}"
+    echo -e "${BLUE}║      Caro Installer                   ║${NC}"
     echo -e "${BLUE}╚═══════════════════════════════════════╝${NC}"
     echo ""
 
@@ -233,8 +186,8 @@ main() {
     # Setup PATH if needed
     setup_path
 
-    # Setup alias
-    setup_alias
+    # Check for legacy alias
+    check_legacy_alias
 
     echo ""
     echo -e "${GREEN}╔═══════════════════════════════════════╗${NC}"
@@ -242,12 +195,12 @@ main() {
     echo -e "${GREEN}╚═══════════════════════════════════════╝${NC}"
     echo ""
     echo -e "${BLUE}Usage:${NC}"
-    echo -e "  ${GREEN}cmdai \"list all files in this directory\"${NC}"
     echo -e "  ${GREEN}caro \"list all files in this directory\"${NC}"
     echo ""
     echo -e "${BLUE}For more information:${NC}"
-    echo -e "  ${GREEN}cmdai --help${NC}"
+    echo -e "  ${GREEN}caro --help${NC}"
     echo -e "  ${GREEN}https://github.com/${REPO}${NC}"
+    echo -e "  ${GREEN}https://caro.sh${NC}"
     echo ""
 }
 

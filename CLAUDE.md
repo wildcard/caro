@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-`cmdai` is a single-binary Rust CLI tool that converts natural language descriptions into safe POSIX shell commands using local LLMs. The tool prioritizes safety, performance, and developer experience with Apple Silicon optimization via MLX framework.
+`caro` (formerly `cmdai`) is a single-binary Rust CLI tool that converts natural language descriptions into safe POSIX shell commands using local LLMs. The tool prioritizes safety, performance, and developer experience with Apple Silicon optimization via MLX framework.
+
+> **Note**: The project was renamed from `cmdai` to `caro` in December 2025. See [docs/NAMING_HISTORY.md](docs/NAMING_HISTORY.md) for details.
 
 **Core Goals:**
 - Single binary under 50MB (without embedded model)
@@ -16,7 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Structure
 
 ```
-cmdai/
+caro/
 ├── src/
 │   ├── main.rs              # CLI entry point with clap configuration
 │   ├── backends/            # Inference backend implementations
