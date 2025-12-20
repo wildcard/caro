@@ -1,6 +1,7 @@
-use clap::Parser;
+use clap::{Parser, Subcommand};
 use cmdai::cli::{CliApp, CliError, IntoCliArgs};
 use cmdai::config::ConfigManager;
+use cmdai::setup::{SetupWizard, needs_setup};
 use std::process;
 
 /// cmdai - Convert natural language to shell commands using local LLMs
@@ -12,6 +13,9 @@ use std::process;
 )]
 #[command(version)]
 struct Cli {
+    #[command(subcommand)]
+    command: Option<Commands>,
+
     /// Natural language task description
     #[arg(help = "Natural language description of the task")]
     prompt: Option<String>,
@@ -71,6 +75,21 @@ struct Cli {
         help = "Interactive mode with step-by-step confirmation"
     )]
     interactive: bool,
+}
+
+/// Available subcommands
+#[derive(Subcommand, Clone)]
+enum Commands {
+    /// Run the interactive setup wizard to configure cmdai
+    Init {
+        /// Use minimal ASCII art banner (for smaller terminals)
+        #[arg(long, help = "Use minimal banner for smaller terminals")]
+        minimal: bool,
+
+        /// Force re-run setup even if already configured
+        #[arg(short, long, help = "Force setup even if already configured")]
+        force: bool,
+    },
 }
 
 impl IntoCliArgs for Cli {
@@ -133,6 +152,77 @@ async fn main() {
             .init();
     }
 
+    // Handle init subcommand
+    if let Some(Commands::Init { minimal, force }) = &cli.command {
+        match run_init_wizard(*minimal, *force) {
+            Ok(completed) => {
+                process::exit(if completed { 0 } else { 1 });
+            }
+            Err(e) => {
+                eprintln!("Error running setup wizard: {}", e);
+                process::exit(1);
+            }
+        }
+    }
+
+    // Check for first-time setup (if running without subcommand and no config exists)
+    if cli.command.is_none() && cli.prompt.is_none() && !cli.show_config {
+        // Check if this is a first-time run
+        if needs_setup() {
+            use colored::Colorize;
+            println!();
+            println!(
+                "{}",
+                "Welcome to cmdai! It looks like this is your first time running the tool.".bold()
+            );
+            println!();
+
+            // Check if we're in a terminal for interactive setup
+            if atty::is(atty::Stream::Stdin) && atty::is(atty::Stream::Stdout) {
+                use dialoguer::Confirm;
+
+                let run_setup = Confirm::new()
+                    .with_prompt("Would you like to run the setup wizard now?")
+                    .default(true)
+                    .interact()
+                    .unwrap_or(false);
+
+                if run_setup {
+                    match run_init_wizard(false, false) {
+                        Ok(true) => process::exit(0),
+                        Ok(false) => {
+                            // User cancelled, show usage
+                            print_usage();
+                            process::exit(0);
+                        }
+                        Err(e) => {
+                            eprintln!("Error running setup wizard: {}", e);
+                            process::exit(1);
+                        }
+                    }
+                } else {
+                    println!();
+                    println!(
+                        "{}",
+                        "You can run 'cmdai init' at any time to configure the tool.".dimmed()
+                    );
+                    println!();
+                    print_usage();
+                    process::exit(0);
+                }
+            } else {
+                // Non-interactive: show message and usage
+                println!(
+                    "{}",
+                    "Run 'cmdai init' in an interactive terminal to configure the tool.".dimmed()
+                );
+                println!();
+                print_usage();
+                process::exit(0);
+            }
+        }
+    }
+
     // Handle --show-config
     if cli.show_config {
         match show_configuration(&cli).await {
@@ -149,16 +239,7 @@ async fn main() {
 
     // Handle missing prompt
     if cli.prompt.is_none() {
-        eprintln!("Error: No prompt provided");
-        eprintln!();
-        eprintln!("Usage: cmdai [OPTIONS] <PROMPT>");
-        eprintln!();
-        eprintln!("Examples:");
-        eprintln!("  cmdai \"list all files\"");
-        eprintln!("  cmdai --shell zsh \"find large files\"");
-        eprintln!("  cmdai --safety strict \"delete temporary files\"");
-        eprintln!();
-        eprintln!("Run 'cmdai --help' for more information.");
+        print_usage();
         process::exit(1);
     }
 
@@ -182,6 +263,67 @@ async fn main() {
             process::exit(1);
         }
     }
+}
+
+/// Run the init setup wizard
+fn run_init_wizard(minimal: bool, force: bool) -> Result<bool, cmdai::setup::SetupError> {
+    use colored::Colorize;
+
+    let wizard = SetupWizard::new()?.use_minimal_banner(minimal);
+
+    // Check if already configured
+    if !force && !wizard.needs_setup() {
+        println!();
+        println!(
+            "{}",
+            "cmdai is already configured!".green().bold()
+        );
+        println!();
+
+        // Check if we're in a terminal
+        if atty::is(atty::Stream::Stdin) {
+            use dialoguer::Confirm;
+
+            let reconfigure = Confirm::new()
+                .with_prompt("Would you like to reconfigure?")
+                .default(false)
+                .interact()
+                .unwrap_or(false);
+
+            if !reconfigure {
+                println!();
+                println!(
+                    "{}",
+                    "Configuration unchanged. Use 'cmdai init --force' to reset configuration."
+                        .dimmed()
+                );
+                return Ok(true);
+            }
+        } else {
+            println!(
+                "{}",
+                "Use 'cmdai init --force' to reconfigure.".dimmed()
+            );
+            return Ok(true);
+        }
+    }
+
+    // Run the wizard
+    let result = wizard.run()?;
+    Ok(result.completed)
+}
+
+/// Print usage information
+fn print_usage() {
+    eprintln!("Usage: cmdai [OPTIONS] <PROMPT>");
+    eprintln!("       cmdai init              Run the setup wizard");
+    eprintln!();
+    eprintln!("Examples:");
+    eprintln!("  cmdai \"list all files\"");
+    eprintln!("  cmdai --shell zsh \"find large files\"");
+    eprintln!("  cmdai --safety strict \"delete temporary files\"");
+    eprintln!();
+    eprintln!("Run 'cmdai --help' for more information.");
 }
 
 async fn run_cli(cli: &Cli) -> Result<(), CliError> {
