@@ -1,0 +1,186 @@
+name: DevRel Website CI
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'apps/devrel/**'
+      - '.github/workflows/devrel-website.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'apps/devrel/**'
+      - '.github/workflows/devrel-website.yml'
+
+defaults:
+  run:
+    working-directory: apps/devrel
+
+jobs:
+  lint-and-build:
+    name: Lint and Build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+        cache-dependency-path: apps/devrel/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run linter
+      run: npm run lint
+      continue-on-error: true  # Don't fail CI on lint warnings initially
+
+    - name: Type check
+      run: npx tsc --noEmit
+
+    - name: Build website
+      run: npm run build
+      env:
+        NODE_ENV: production
+
+    - name: Check build output
+      run: |
+        if [ -d ".next" ]; then
+          echo "✅ Build successful - .next directory created"
+          ls -lh .next
+        else
+          echo "❌ Build failed - .next directory not found"
+          exit 1
+        fi
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: devrel-build
+        path: apps/devrel/.next
+        retention-days: 7
+
+  # Optional: Add accessibility testing
+  accessibility:
+    name: Accessibility Check
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+        cache-dependency-path: apps/devrel/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build for accessibility testing
+      run: npm run build
+
+    - name: Install Pa11y
+      run: npm install -g pa11y-ci
+
+    - name: Start server
+      run: npm run start &
+      env:
+        NODE_ENV: production
+
+    - name: Wait for server
+      run: npx wait-on http://localhost:3000 -t 30000
+
+    - name: Run accessibility tests
+      run: |
+        echo "Running Pa11y accessibility tests..."
+        pa11y http://localhost:3000 || echo "⚠️  Accessibility issues found - review recommended"
+      continue-on-error: true  # Don't fail CI, just warn
+
+  # Check bundle size
+  bundle-size:
+    name: Check Bundle Size
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+        cache-dependency-path: apps/devrel/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build
+      run: npm run build
+
+    - name: Analyze bundle size
+      run: |
+        echo "📦 Analyzing bundle size..."
+
+        # Check total .next size
+        NEXT_SIZE=$(du -sh .next | cut -f1)
+        echo "Total .next directory: $NEXT_SIZE"
+
+        # Check for large JavaScript bundles
+        echo ""
+        echo "Largest JavaScript bundles:"
+        find .next -name "*.js" -type f -exec ls -lh {} \; | sort -k5 -hr | head -10
+
+        # Warning if .next is too large (>100MB)
+        NEXT_SIZE_BYTES=$(du -sb .next | cut -f1)
+        MAX_SIZE=$((100 * 1024 * 1024))  # 100MB
+
+        if [ $NEXT_SIZE_BYTES -gt $MAX_SIZE ]; then
+          echo "⚠️  Warning: Build size ($NEXT_SIZE) is larger than 100MB"
+          echo "Consider optimizing images, code splitting, or removing unused dependencies"
+        else
+          echo "✅ Build size ($NEXT_SIZE) is within acceptable limits"
+        fi
+
+  # Verify monorepo separation
+  verify-separation:
+    name: Verify Monorepo Separation
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Verify Rust build still works
+      run: |
+        echo "Checking that Rust project is unaffected by DevRel website..."
+        cargo check --verbose
+      working-directory: .
+
+    - name: Verify Next.js build is isolated
+      run: |
+        echo "Checking that DevRel website has isolated dependencies..."
+
+        # Ensure no shared package.json at root
+        if [ -f "package.json" ]; then
+          echo "⚠️  Warning: package.json found at repository root"
+          echo "DevRel website should have isolated dependencies in apps/devrel/"
+        fi
+
+        # Ensure apps/devrel has its own package.json
+        if [ ! -f "apps/devrel/package.json" ]; then
+          echo "❌ Error: apps/devrel/package.json not found"
+          exit 1
+        fi
+
+        echo "✅ DevRel website dependencies are properly isolated"
+      working-directory: .

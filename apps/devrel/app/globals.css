@@ -1,0 +1,283 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+:root {
+  /* 8-bit Retro Color Palette */
+  --pixel-bg-primary: #0f0f23;
+  --pixel-bg-secondary: #1a1a2e;
+  --pixel-bg-tertiary: #16213e;
+
+  /* Game Boy inspired greens */
+  --gameboy-dark: #0f380f;
+  --gameboy-medium: #306230;
+  --gameboy-light: #8bac0f;
+  --gameboy-lightest: #9bbc0f;
+
+  /* Cybersecurity neon accents */
+  --neon-green: #39ff14;
+  --neon-blue: #00f0ff;
+  --neon-pink: #ff10f0;
+  --neon-purple: #bf00ff;
+  --neon-yellow: #ffff00;
+
+  /* Terminal colors */
+  --terminal-green: #00ff41;
+  --terminal-amber: #ffb000;
+  --terminal-red: #ff3b3b;
+
+  /* Pixel borders */
+  --pixel-border: 4px;
+  --pixel-border-thick: 6px;
+
+  /* Background and text */
+  --background: var(--pixel-bg-primary);
+  --foreground: var(--neon-green);
+
+  /* Grid pattern for retro feel */
+  --grid-size: 8px;
+}
+
+@theme inline {
+  /* Colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-pixel-bg-primary: var(--pixel-bg-primary);
+  --color-pixel-bg-secondary: var(--pixel-bg-secondary);
+  --color-pixel-bg-tertiary: var(--pixel-bg-tertiary);
+  --color-gameboy-dark: var(--gameboy-dark);
+  --color-gameboy-medium: var(--gameboy-medium);
+  --color-gameboy-light: var(--gameboy-light);
+  --color-gameboy-lightest: var(--gameboy-lightest);
+  --color-neon-green: var(--neon-green);
+  --color-neon-blue: var(--neon-blue);
+  --color-neon-pink: var(--neon-pink);
+  --color-neon-purple: var(--neon-purple);
+  --color-neon-yellow: var(--neon-yellow);
+  --color-terminal-green: var(--terminal-green);
+  --color-terminal-amber: var(--terminal-amber);
+  --color-terminal-red: var(--terminal-red);
+
+  /* Fonts */
+  --font-pixel: 'Press Start 2P', cursive;
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-mono);
+  image-rendering: pixelated;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Pixel art text rendering */
+.pixel-text {
+  font-family: var(--font-pixel);
+  image-rendering: pixelated;
+  -webkit-font-smoothing: none;
+  text-rendering: geometricPrecision;
+}
+
+/* Retro scanline effect */
+.scanlines::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* CRT screen effect */
+.crt-effect {
+  animation: flicker 0.15s infinite;
+}
+
+@keyframes flicker {
+  0% {
+    opacity: 0.97;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.97;
+  }
+}
+
+/* Pixel borders */
+.pixel-border {
+  border-style: solid;
+  border-width: var(--pixel-border);
+  image-rendering: pixelated;
+}
+
+.pixel-border-thick {
+  border-style: solid;
+  border-width: var(--pixel-border-thick);
+  image-rendering: pixelated;
+}
+
+/* Retro button styles */
+.pixel-button {
+  font-family: var(--font-pixel);
+  padding: 12px 24px;
+  border: 4px solid currentColor;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  image-rendering: pixelated;
+  text-transform: uppercase;
+  font-size: 12px;
+  position: relative;
+}
+
+.pixel-button:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 currentColor;
+}
+
+.pixel-button:active {
+  transform: translate(0, 0);
+  box-shadow: 2px 2px 0 currentColor;
+}
+
+/* Glowing neon text */
+.neon-glow {
+  text-shadow:
+    0 0 5px currentColor,
+    0 0 10px currentColor,
+    0 0 20px currentColor,
+    0 0 40px currentColor;
+  animation: neon-pulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes neon-pulse {
+  from {
+    text-shadow:
+      0 0 5px currentColor,
+      0 0 10px currentColor,
+      0 0 20px currentColor,
+      0 0 40px currentColor;
+  }
+  to {
+    text-shadow:
+      0 0 2px currentColor,
+      0 0 5px currentColor,
+      0 0 10px currentColor,
+      0 0 20px currentColor;
+  }
+}
+
+/* Pixel grid background */
+.pixel-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
+}
+
+/* Terminal-style container */
+.terminal-window {
+  background: var(--pixel-bg-secondary);
+  border: 4px solid var(--terminal-green);
+  box-shadow:
+    0 0 10px rgba(0, 255, 65, 0.5),
+    inset 0 0 30px rgba(0, 0, 0, 0.5);
+  font-family: var(--font-mono);
+}
+
+/* Retro card style */
+.pixel-card {
+  background: var(--pixel-bg-secondary);
+  border: 4px solid var(--neon-blue);
+  padding: 24px;
+  position: relative;
+  transition: transform 0.2s ease;
+}
+
+.pixel-card:hover {
+  transform: translate(-4px, -4px);
+  box-shadow: 8px 8px 0 rgba(0, 240, 255, 0.3);
+}
+
+/* 8-bit sprite animations */
+@keyframes sprite-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.sprite-animate {
+  animation: sprite-bounce 0.6s ease-in-out infinite;
+}
+
+/* Retro loading animation */
+@keyframes pixel-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.pixel-loader {
+  border: 4px solid var(--pixel-bg-tertiary);
+  border-top: 4px solid var(--neon-green);
+  border-radius: 0;
+  width: 40px;
+  height: 40px;
+  animation: pixel-spin 1s steps(8) infinite;
+}
+
+/* Utility classes */
+.text-shadow-pixel {
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+  background: var(--pixel-bg-primary);
+}
+
+::-webkit-scrollbar-track {
+  background: var(--pixel-bg-secondary);
+  border: 2px solid var(--neon-green);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--neon-green);
+  border: 2px solid var(--pixel-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--terminal-green);
+}

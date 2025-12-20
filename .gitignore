@@ -152,6 +152,17 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# Next.js DevRel website (apps/devrel)
+apps/devrel/.next/
+apps/devrel/out/
+apps/devrel/.cache/
+apps/devrel/dist/
+apps/devrel/.turbo/
+apps/devrel/.vercel
+apps/devrel/.env*.local
 
 # Terraform (if using for deployment)
 *.tfstate
