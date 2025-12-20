@@ -13,8 +13,7 @@ use tracing::{debug, info, warn};
 pub struct AgentLoop {
     backend: Arc<dyn CommandGenerator>,
     context: ExecutionContext,
-    #[allow(dead_code)]
-    max_iterations: usize,
+    _max_iterations: usize,
     timeout: Duration,
 }
 
@@ -41,7 +40,7 @@ impl AgentLoop {
         Self {
             backend,
             context,
-            max_iterations: 2,
+            _max_iterations: 2,
             timeout: Duration::from_secs(15), // Allow enough time for 2 iterations
         }
     }
