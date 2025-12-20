@@ -2,7 +2,9 @@ name: Enforce PR Labels
 
 on:
   pull_request:
-    types: [opened, labeled, unlabeled, synchronize]
+    types: [labeled, unlabeled]
+  pull_request_target:
+    types: [labeled, unlabeled]
 
 permissions:
   pull-requests: read
