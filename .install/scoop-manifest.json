@@ -1,0 +1,42 @@
+{
+  "version": "0.1.0",
+  "description": "Convert natural language to safe POSIX shell commands using local LLMs",
+  "homepage": "https://github.com/wildcard/cmdai",
+  "license": "AGPL-3.0",
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/wildcard/cmdai/releases/download/v0.1.0/cmdai-windows-amd64.exe",
+      "hash": "PLACEHOLDER_HASH",
+      "bin": [
+        [
+          "cmdai-windows-amd64.exe",
+          "cmdai"
+        ]
+      ]
+    }
+  },
+  "checkver": {
+    "url": "https://api.github.com/repos/wildcard/cmdai/releases/latest",
+    "jsonpath": "$.tag_name",
+    "regex": "v([\\d.]+)"
+  },
+  "autoupdate": {
+    "architecture": {
+      "64bit": {
+        "url": "https://github.com/wildcard/cmdai/releases/download/v$version/cmdai-windows-amd64.exe"
+      }
+    },
+    "hash": {
+      "url": "$url.sha256"
+    }
+  },
+  "notes": [
+    "cmdai has been installed successfully!",
+    "",
+    "Get started with:",
+    "  cmdai --help",
+    "",
+    "Configuration file:",
+    "  $env:USERPROFILE\\.config\\cmdai\\config.toml"
+  ]
+}

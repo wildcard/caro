@@ -125,10 +125,162 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
-    
+
     - name: Publish to crates.io
       run: cargo publish --token ${{ secrets.CARGO_TOKEN }}
       continue-on-error: true  # Allow failure if already published
+
+  generate-installers:
+    name: Generate Installer Manifests
+    needs: [create-release, build-and-upload]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download release assets
+      run: |
+        VERSION=${{ needs.create-release.outputs.version }}
+        mkdir -p release-assets
+
+        # Download all binaries and checksums
+        for asset in \
+          cmdai-linux-amd64 \
+          cmdai-linux-arm64 \
+          cmdai-macos-intel \
+          cmdai-macos-silicon \
+          cmdai-windows-amd64.exe; do
+          curl -fSL "https://github.com/${{ github.repository }}/releases/download/v${VERSION}/${asset}" -o "release-assets/${asset}"
+          curl -fSL "https://github.com/${{ github.repository }}/releases/download/v${VERSION}/${asset}.sha256" -o "release-assets/${asset}.sha256"
+        done
+
+    - name: Generate Homebrew formula
+      run: |
+        VERSION=${{ needs.create-release.outputs.version }}
+
+        # Extract checksums
+        MACOS_SILICON_SHA=$(cat release-assets/cmdai-macos-silicon.sha256 | awk '{print $1}')
+        MACOS_INTEL_SHA=$(cat release-assets/cmdai-macos-intel.sha256 | awk '{print $1}')
+        LINUX_ARM64_SHA=$(cat release-assets/cmdai-linux-arm64.sha256 | awk '{print $1}')
+        LINUX_AMD64_SHA=$(cat release-assets/cmdai-linux-amd64.sha256 | awk '{print $1}')
+
+        # Update Homebrew formula
+        sed -i "s/version \".*\"/version \"${VERSION}\"/" .install/homebrew-formula.rb
+        sed -i "s/PLACEHOLDER_ARM64_SHA256/${MACOS_SILICON_SHA}/" .install/homebrew-formula.rb
+        sed -i "s/PLACEHOLDER_AMD64_SHA256/${MACOS_INTEL_SHA}/" .install/homebrew-formula.rb
+        sed -i "s/PLACEHOLDER_LINUX_ARM64_SHA256/${LINUX_ARM64_SHA}/" .install/homebrew-formula.rb
+        sed -i "s/PLACEHOLDER_LINUX_AMD64_SHA256/${LINUX_AMD64_SHA}/" .install/homebrew-formula.rb
+
+    - name: Generate Scoop manifest
+      run: |
+        VERSION=${{ needs.create-release.outputs.version }}
+        WINDOWS_SHA=$(cat release-assets/cmdai-windows-amd64.exe.sha256 | awk '{print $1}')
+
+        sed -i "s/\"version\": \".*\"/\"version\": \"${VERSION}\"/" .install/scoop-manifest.json
+        sed -i "s|/v0.1.0/|/v${VERSION}/|g" .install/scoop-manifest.json
+        sed -i "s/PLACEHOLDER_HASH/${WINDOWS_SHA}/" .install/scoop-manifest.json
+
+    - name: Generate Chocolatey package
+      run: |
+        VERSION=${{ needs.create-release.outputs.version }}
+        WINDOWS_SHA=$(cat release-assets/cmdai-windows-amd64.exe.sha256 | awk '{print $1}')
+
+        sed -i "s/<version>.*<\/version>/<version>${VERSION}<\/version>/" .install/chocolatey-package.nuspec
+        sed -i "s/\$version = '.*'/\$version = '${VERSION}'/" .install/chocolatey-install.ps1
+        sed -i "s/PLACEHOLDER_CHECKSUM/${WINDOWS_SHA}/" .install/chocolatey-install.ps1
+
+    - name: Generate Winget manifest
+      run: |
+        VERSION=${{ needs.create-release.outputs.version }}
+        WINDOWS_SHA=$(cat release-assets/cmdai-windows-amd64.exe.sha256 | awk '{print $1}')
+
+        sed -i "s/PackageVersion: .*/PackageVersion: ${VERSION}/" .install/winget-manifest.yaml
+        sed -i "s|/v0.1.0/|/v${VERSION}/|" .install/winget-manifest.yaml
+        sed -i "s/PLACEHOLDER_SHA256/${WINDOWS_SHA}/" .install/winget-manifest.yaml
+
+    - name: Create installer archive
+      run: |
+        VERSION=${{ needs.create-release.outputs.version }}
+        tar -czf installers-v${VERSION}.tar.gz .install/
+
+    - name: Upload installer manifests
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./installers-v${{ needs.create-release.outputs.version }}.tar.gz
+        asset_name: installers.tar.gz
+        asset_content_type: application/gzip
+
+    - name: Create installation instructions
+      run: |
+        VERSION=${{ needs.create-release.outputs.version }}
+        cat > INSTALL_METHODS.md << 'EOF'
+        # cmdai Installation Methods
+
+        ## Quick Install (macOS/Linux)
+
+        ```bash
+        curl -fsSL https://raw.githubusercontent.com/${{ github.repository }}/main/install.sh | bash
+        ```
+
+        ## Package Managers
+
+        ### Homebrew (macOS/Linux)
+        ```bash
+        brew install wildcard/tap/cmdai
+        ```
+
+        ### Cargo (All platforms)
+        ```bash
+        cargo install cmdai
+        ```
+
+        ### Scoop (Windows)
+        ```powershell
+        scoop bucket add wildcard https://github.com/wildcard/scoop-bucket
+        scoop install cmdai
+        ```
+
+        ### Chocolatey (Windows)
+        ```powershell
+        choco install cmdai
+        ```
+
+        ### Winget (Windows)
+        ```powershell
+        winget install wildcard.cmdai
+        ```
+
+        ## Manual Download
+
+        Download pre-built binaries from:
+        https://github.com/${{ github.repository }}/releases/latest
+
+        ### Verification
+
+        All binaries include SHA256 checksums. Verify downloads:
+
+        **macOS/Linux:**
+        ```bash
+        shasum -a 256 -c cmdai-*.sha256
+        ```
+
+        **Windows:**
+        ```powershell
+        certUtil -hashfile cmdai-windows-amd64.exe SHA256
+        ```
+        EOF
+
+    - name: Upload installation instructions
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./INSTALL_METHODS.md
+        asset_name: INSTALL_METHODS.md
+        asset_content_type: text/markdown

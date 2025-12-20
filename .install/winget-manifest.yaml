@@ -1,0 +1,30 @@
+# Winget manifest template for cmdai
+# This should be submitted to microsoft/winget-pkgs repository
+
+PackageIdentifier: wildcard.cmdai
+PackageVersion: 0.1.0
+PackageName: cmdai
+Publisher: wildcard
+License: AGPL-3.0
+LicenseUrl: https://github.com/wildcard/cmdai/blob/main/LICENSE
+ShortDescription: Convert natural language to safe POSIX shell commands using local LLMs
+PackageUrl: https://github.com/wildcard/cmdai
+Tags:
+  - cli
+  - command-line
+  - shell
+  - llm
+  - ai
+  - rust
+  - developer-tools
+
+Installers:
+  - Architecture: x64
+    InstallerType: portable
+    InstallerUrl: https://github.com/wildcard/cmdai/releases/download/v0.1.0/cmdai-windows-amd64.exe
+    InstallerSha256: PLACEHOLDER_SHA256
+    Commands:
+      - cmdai
+
+ManifestType: singleton
+ManifestVersion: 1.0.0
