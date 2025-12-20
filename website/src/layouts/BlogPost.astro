@@ -6,12 +6,24 @@ interface Props {
   description: string;
   date: string;
   readTime: string;
+  image?: string;
+  tags?: string[];
 }
 
-const { title, description, date, readTime } = Astro.props;
+const { title, description, date, readTime, image, tags = ['terminal', 'shell', 'AI', 'developer-tools'] } = Astro.props;
+
+// Convert date to ISO format for structured data
+const publishedTime = new Date(date).toISOString();
 ---
 
-<Layout title={`${title} - Caro Blog`} description={description}>
+<Layout
+  title={`${title} - Caro Blog`}
+  description={description}
+  type="article"
+  publishedTime={publishedTime}
+  image={image}
+  tags={tags}
+>
   <div class="blog-post">
     <div class="blog-post-header">
       <div class="container">

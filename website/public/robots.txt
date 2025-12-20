@@ -1,0 +1,38 @@
+# Caro.sh Robots Configuration
+# https://caro.sh
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://caro.sh/sitemap-index.xml
+
+# AI Crawlers - Welcome to index our content
+User-agent: GPTBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+# Disallow build artifacts and source maps
+User-agent: *
+Disallow: /*.map$
+Disallow: /_astro/

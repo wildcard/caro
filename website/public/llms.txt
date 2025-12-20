@@ -1,0 +1,109 @@
+# Caro - Your Loyal Shell Companion
+# https://caro.sh
+# LLM-friendly documentation for AI assistants and agents
+
+> Caro is a companion agent that converts natural language to safe POSIX shell commands.
+
+## Overview
+
+Caro helps developers and terminal users by:
+- Converting plain English descriptions to shell commands
+- Providing safety validation for dangerous operations
+- Integrating with Claude as an MCP (Model Context Protocol) server
+- Available as a dedicated Skill for quick access in Claude Code
+
+## Key Features
+
+1. **Natural Language Processing**: Describe what you want in plain English
+2. **Safety First**: Validates commands before execution, blocks dangerous patterns
+3. **POSIX Compliant**: Generates portable commands that work across Unix systems
+4. **Multiple Modes**: Use as MCP server or direct Skill integration
+
+## Installation
+
+### Via Homebrew (macOS/Linux)
+```bash
+brew install wildcard/tap/caro
+```
+
+### Via npm (for Claude Desktop MCP)
+```bash
+npm install -g @anthropic/caro
+```
+
+### From Source
+```bash
+git clone https://github.com/wildcard/caro
+cd caro
+cargo build --release
+```
+
+## Usage Examples
+
+Ask Caro in natural language:
+
+| Request | Generated Command |
+|---------|-------------------|
+| "find all Python files modified today" | `find . -name "*.py" -mtime 0` |
+| "compress this folder into a tarball" | `tar -czvf archive.tar.gz .` |
+| "show disk usage sorted by size" | `du -sh * \| sort -h` |
+| "kill the process using port 3000" | `lsof -ti:3000 \| xargs kill` |
+| "count lines in all JavaScript files" | `find . -name "*.js" -exec wc -l {} +` |
+
+## Integration with Claude
+
+### MCP Server Mode (Claude Desktop)
+
+Add to your Claude Desktop configuration (`claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "caro": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/caro"]
+    }
+  }
+}
+```
+
+### Skill Mode (Claude Code)
+
+Access directly in Claude Code terminal sessions. Caro automatically provides shell command assistance when working in terminal contexts.
+
+## Safety Features
+
+Caro validates all generated commands for safety:
+
+### Blocked Patterns
+- Filesystem destruction: `rm -rf /`, `rm -rf ~`
+- Disk operations: `mkfs`, `dd if=/dev/zero`
+- Fork bombs and resource exhaustion
+- System path modifications
+- Privilege escalation attempts
+
+### Risk Assessment
+Commands are categorized by risk level:
+- **Safe**: Standard read operations, file listing
+- **Moderate**: Write operations, file modifications
+- **High**: System changes, permission modifications
+- **Critical**: Blocked automatically
+
+## Technical Details
+
+- **Language**: Rust
+- **Platforms**: macOS (Apple Silicon optimized), Linux
+- **License**: MIT
+- **Performance**: < 100ms startup, < 2s inference
+
+## Links
+
+- **Website**: https://caro.sh
+- **GitHub**: https://github.com/wildcard/caro
+- **Issues**: https://github.com/wildcard/caro/issues
+
+## About
+
+Caro is named after Kyaro, a beloved companion. The project aims to make terminal interactions more accessible while maintaining safety and reliability.
+
+For questions or support, open an issue on GitHub.
