@@ -20,6 +20,9 @@ pub struct ExecutionContext {
     /// Current working directory
     pub cwd: PathBuf,
 
+    /// User's home directory
+    pub home: PathBuf,
+
     /// Current shell (zsh, bash, fish)
     pub shell: String,
 
@@ -39,6 +42,7 @@ impl ExecutionContext {
             os_version: Self::get_os_version(),
             distribution: Self::detect_distribution(),
             cwd: std::env::current_dir().unwrap_or_else(|_| PathBuf::from("/")),
+            home: Self::detect_home(),
             shell: Self::detect_shell(),
             user: std::env::var("USER").unwrap_or_else(|_| "user".to_string()),
             available_commands: Self::scan_available_commands(),
@@ -61,16 +65,22 @@ impl ExecutionContext {
 - ps: Use 'ps aux' (no --sort flag), pipe to 'sort -nrk 3,3' for CPU sorting
 - Network: Use 'lsof -iTCP -sTCP:LISTEN' or 'netstat' (NOT ss - not available)
 - df: Use 'df -h' (no --sort flag), pipe to 'sort -k5 -hr' for size sorting
-- find: Use 'find .' for current directory (avoid 'find /' - permission errors)
+- find: Use 'find {}' for current directory (avoid 'find /' - permission errors)
 - sed: Use 'sed -i ""' for in-place editing (note the empty string after -i)
 - du: Use 'du -h' (no --max-depth), use '-d' flag instead: 'du -d 1 -h'
 - date: BSD date format, use 'date -v-7d' not 'date --date'
 - readlink: Use 'readlink' (no -f flag), use 'greadlink -f' if available
 - stat: Use 'stat -f %s' not 'stat --format'
 - xargs: Works same as Linux
-- Current directory: {}"#,
+
+**Path Context:**
+- Working directory: {}
+- Home directory: {}
+- Use full paths when referencing files in current directory"#,
             self.os_version,
-            self.cwd.display()
+            self.cwd.display(),
+            self.cwd.display(),
+            self.home.display()
         )
     }
 
@@ -81,15 +91,21 @@ impl ExecutionContext {
 - ps: Can use 'ps aux --sort=-pcpu' for CPU sorting
 - Network: Use 'ss -tuln' for listening ports
 - df: Can use 'df -h --sort=size' for size sorting
-- find: Use 'find .' for current directory
+- find: Use 'find {}' for current directory
 - sed: Use 'sed -i' for in-place editing
 - du: Can use 'du -h --max-depth=1'
 - date: GNU date, use 'date --date="7 days ago"'
 - readlink: Use 'readlink -f' for canonical path
 - stat: Use 'stat --format=%s'
-- Current directory: {}"#,
+
+**Path Context:**
+- Working directory: {}
+- Home directory: {}
+- Use full paths when referencing files in current directory"#,
             dist,
-            self.cwd.display()
+            self.cwd.display(),
+            self.cwd.display(),
+            self.home.display()
         )
     }
 
@@ -105,9 +121,14 @@ impl ExecutionContext {
 - Date/time: Use 'date /t' and 'time /t' or 'Get-Date' (PowerShell)
 - File content: Use 'type' or 'Get-Content' (PowerShell)
 - Paths: Use backslashes '\' for paths (e.g., C:\Users\)
-- Current directory: {}"#,
+
+**Path Context:**
+- Working directory: {}
+- Home directory: {}
+- Use full paths when referencing files in current directory"#,
             self.os_version,
-            self.cwd.display()
+            self.cwd.display(),
+            self.home.display()
         )
     }
 
@@ -183,6 +204,23 @@ impl ExecutionContext {
             .unwrap_or_else(|| "bash".to_string())
     }
 
+    fn detect_home() -> PathBuf {
+        std::env::var("HOME")
+            .ok()
+            .map(PathBuf::from)
+            .or_else(|| {
+                #[cfg(target_os = "windows")]
+                {
+                    std::env::var("USERPROFILE").ok().map(PathBuf::from)
+                }
+                #[cfg(not(target_os = "windows"))]
+                {
+                    None
+                }
+            })
+            .unwrap_or_else(|| PathBuf::from("/"))
+    }
+
     fn scan_available_commands() -> Vec<String> {
         let common_commands = vec![
             "ps", "top", "kill", "killall", "find", "grep", "egrep", "fgrep", "sed", "awk", "sort",
@@ -215,8 +253,18 @@ impl ExecutionContext {
 - Platform: {} {} ({})
 - Architecture: {}
 - Shell: {}
-- Current Directory: {}
 - User: {}
+
+**IMPORTANT - DIRECTORY CONTEXT:**
+- Current Working Directory (CWD): {}
+- User Home Directory: {}
+
+When generating commands:
+  • If the user doesn't specify a path, assume they want to work in the CURRENT DIRECTORY: {}
+  • Use FULL ABSOLUTE PATHS from CWD instead of "." notation when possible
+  • Only use relative paths (. or ./) if the command specifically benefits from it
+  • Replace ~ with the full home path: {}
+  • DO NOT generate random paths - use the actual CWD provided above
 
 AVAILABLE COMMANDS: {}
 
@@ -227,8 +275,11 @@ PLATFORM-SPECIFIC RULES:
             self.distribution.as_deref().unwrap_or("Unknown"),
             self.arch,
             self.shell,
-            self.cwd.display(),
             self.user,
+            self.cwd.display(),
+            self.home.display(),
+            self.cwd.display(),
+            self.home.display(),
             self.available_commands.join(", "),
             self.get_platform_rules()
         )
@@ -255,6 +306,7 @@ mod tests {
         let rules = context.get_platform_rules();
 
         assert!(!rules.is_empty());
-        assert!(rules.contains("Current directory"));
+        assert!(rules.contains("Working directory"));
+        assert!(rules.contains("Home directory"));
     }
 }

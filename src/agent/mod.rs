@@ -142,7 +142,13 @@ CRITICAL RULES:
 1. Output ONLY valid JSON: {{"cmd": "command here"}}
 2. NEVER use GNU flags (--sort, --max-depth, etc.) on macOS
 3. Use BSD-compatible syntax (see platform notes above)
-4. Use relative paths (. or ~/) unless absolute path requested
+4. **PATH HANDLING:**
+   - User is currently in: {cwd}
+   - User's home directory: {home}
+   - If user doesn't specify a path, commands should operate in: {cwd}
+   - Use absolute paths from CWD instead of "." when it makes the command clearer
+   - Replace ~ with the full home directory path: {home}
+   - DO NOT invent random paths - use the actual directories provided above
 5. Escape quotes properly: use single quotes inside JSON string
 
 {context}
@@ -155,6 +161,8 @@ RESPONSE FORMAT:
 Generate a safe, platform-appropriate command."#,
             OS = self.context.os,
             platform_notes = self.get_os_specific_notes(),
+            cwd = self.context.cwd.display(),
+            home = self.context.home.display(),
             context = self.context.get_prompt_context()
         )
     }
@@ -190,6 +198,12 @@ ORIGINAL REQUEST: {}
 
 INITIAL COMMAND: {}
 
+**DIRECTORY CONTEXT - VERIFY PATHS:**
+- Current working directory: {}
+- User home directory: {}
+- Commands should operate in CWD unless user specified otherwise
+- Check that paths are correct and not random/invented
+
 COMMAND DETAILS FOR YOUR PLATFORM ({}):
 {}
 
@@ -200,7 +214,8 @@ COMMON ISSUES TO CHECK:
 2. Command availability (ss vs lsof vs netstat)
 3. Correct syntax for version installed
 4. Proper quoting and escaping
-5. Path assumptions (/ vs . vs ~/)
+5. Path correctness (verify using CWD: {} and HOME: {})
+6. Ensure no random paths are used - must match actual directories
 
 OUTPUT FORMAT (JSON):
 {{
@@ -211,7 +226,14 @@ OUTPUT FORMAT (JSON):
 
 If the initial command is correct, return it with confidence > 0.9.
 If you made changes, explain what was fixed."#,
-            prompt, initial.command, self.context.os, command_details
+            prompt,
+            initial.command,
+            self.context.cwd.display(),
+            self.context.home.display(),
+            self.context.os,
+            command_details,
+            self.context.cwd.display(),
+            self.context.home.display()
         )
     }
 
