@@ -6,9 +6,9 @@ use std::process;
 /// cmdai - Convert natural language to shell commands using local LLMs
 #[derive(Parser, Clone)]
 #[command(name = "cmdai")]
-#[command(about = "Convert natural language to shell commands using local LLMs")]
+#[command(about = "Convert natural language to safe shell commands using local LLMs")]
 #[command(
-    long_about = "cmdai converts natural language descriptions into safe POSIX shell commands using local language models. Features safety validation, multiple output formats, and configurable backends."
+    long_about = "cmdai converts natural language descriptions into safe POSIX shell commands using local language models.\n\nWe're like autocomplete for your terminal, but with better judgment about when NOT to run 'rm -rf'.\n\nFeatures safety validation, multiple output formats, and configurable backends."
 )]
 #[command(version)]
 struct Cli {
