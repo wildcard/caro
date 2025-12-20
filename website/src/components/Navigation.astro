@@ -1,0 +1,92 @@
+---
+---
+
+<nav class="navigation">
+  <div class="container">
+    <a href="/" class="nav-brand">🐕 Caro</a>
+    <ul class="nav-links">
+      <li><a href="/#features">Features</a></li>
+      <li><a href="/#blog">Blog</a></li>
+      <li><a href="/#download">Get Started</a></li>
+      <li><a href="https://github.com/wildcard/caro" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+    </ul>
+  </div>
+</nav>
+
+<style>
+  .navigation {
+    background: var(--color-bg);
+    padding: 15px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 38px;
+    z-index: 999;
+    transition: background-color 0.3s ease;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .nav-brand {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ff8c42;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .nav-brand:hover {
+    color: #ff6b35;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 30px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav-links a {
+    color: var(--color-text);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover {
+    color: #ff8c42;
+  }
+
+  @media (max-width: 768px) {
+    .navigation {
+      top: 33px;
+    }
+
+    .nav-brand {
+      font-size: 20px;
+    }
+
+    .nav-links {
+      gap: 15px;
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .nav-links {
+      gap: 10px;
+      font-size: 12px;
+    }
+
+    .nav-links li:last-child {
+      display: none; /* Hide GitHub link on very small screens */
+    }
+  }
+</style>

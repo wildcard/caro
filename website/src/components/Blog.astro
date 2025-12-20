@@ -2,6 +2,14 @@
 // Blog component displaying recent articles
 const blogPosts = [
   {
+    title: "Announcing Caro: Your Terminal's AI Companion",
+    slug: "announcing-caro",
+    date: "2025-12-20",
+    excerpt: "We're excited to announce that cmdai has been renamed to caro! Thanks to @aeplay for graciously transferring the crate name. Learn about the rename, new features, and how to get started.",
+    readTime: "5 min read",
+    badge: "NEW"
+  },
+  {
     title: "Why Caro? The Story Behind Your Terminal Companion",
     slug: "why-caro",
     date: "2025-12-17",
@@ -13,12 +21,15 @@ const blogPosts = [
 
 <section id="blog" class="blog-section">
   <div class="container">
-    <h2>From the Pack</h2>
+    <h2>📝 From the Pack</h2>
     <p class="section-subtitle">Stories, updates, and insights about Caro</p>
 
     <div class="blog-grid">
       {blogPosts.map(post => (
         <article class="blog-card">
+          {post.badge && (
+            <div class="blog-badge">{post.badge}</div>
+          )}
           <div class="blog-card-header">
             <time datetime={post.date} class="blog-date">
               {new Date(post.date).toLocaleDateString('en-US', {
@@ -41,6 +52,12 @@ const blogPosts = [
           </a>
         </article>
       ))}
+    </div>
+
+    <div style="text-align: center; margin-top: 40px;">
+      <a href="/blog" class="view-all-link">
+        View all blog posts →
+      </a>
     </div>
   </div>
 </section>
@@ -89,6 +106,21 @@ const blogPosts = [
     transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s, border-color 0.3s;
     display: flex;
     flex-direction: column;
+    position: relative;
+  }
+
+  .blog-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 
   .blog-card:hover {
@@ -148,6 +180,18 @@ const blogPosts = [
 
   .blog-read-more:hover {
     transform: translateX(4px);
+  }
+
+  .view-all-link {
+    color: #ff8c42;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 18px;
+    transition: color 0.2s;
+  }
+
+  .view-all-link:hover {
+    color: #ff6b35;
   }
 
   @media (max-width: 768px) {
