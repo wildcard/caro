@@ -1,0 +1,160 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+  title="Security"
+  description="Security considerations and best practices when using Caro for shell command generation"
+>
+  <h1>Security</h1>
+
+  <p>
+    Caro uses AI to generate shell commands from natural language. While we've built
+    comprehensive safety features, it's important to understand the security considerations
+    when using AI-powered command generation.
+  </p>
+
+  <h2>AI Command Generation Risks</h2>
+
+  <h3>Caro Can Make Mistakes</h3>
+  <p>
+    Like all AI systems, Caro can generate incorrect or unexpected commands.
+    You should <strong>always review generated commands</strong> before executing them,
+    especially those that:
+  </p>
+  <ul>
+    <li>Modify or delete files</li>
+    <li>Change system configurations</li>
+    <li>Access sensitive data</li>
+    <li>Make network requests</li>
+    <li>Require elevated privileges (sudo)</li>
+  </ul>
+
+  <h3>Prompt Injection</h3>
+  <p>
+    Due to prompt injection risks, only use Caro with code and content you trust.
+    Malicious content in files or environment variables could potentially influence
+    the generated commands. Be cautious when:
+  </p>
+  <ul>
+    <li>Working with untrusted codebases</li>
+    <li>Processing files from unknown sources</li>
+    <li>Using Caro in automated pipelines with external input</li>
+  </ul>
+
+  <div class="callout callout-warning">
+    <strong>Important</strong>
+    Never pipe Caro's output directly to a shell without review. Always inspect
+    generated commands before execution.
+  </div>
+
+  <h2>Built-in Safety Features</h2>
+
+  <p>
+    Caro includes multiple layers of protection to prevent dangerous operations:
+  </p>
+
+  <h3>Command Validation</h3>
+  <p>
+    All generated commands pass through a safety validation system that detects
+    potentially dangerous patterns:
+  </p>
+  <ul>
+    <li><strong>Filesystem destruction</strong>: <code>rm -rf /</code>, <code>rm -rf ~</code></li>
+    <li><strong>Disk operations</strong>: <code>mkfs</code>, <code>dd if=/dev/zero</code></li>
+    <li><strong>Fork bombs</strong>: <code>:(){ :|:& };:</code></li>
+    <li><strong>System paths</strong>: Operations on <code>/bin</code>, <code>/usr</code>, <code>/etc</code></li>
+    <li><strong>Privilege escalation</strong>: <code>sudo su</code>, <code>chmod 777 /</code></li>
+  </ul>
+
+  <h3>Safety Levels</h3>
+  <p>
+    Configure how cautious Caro should be with the <code>--safety</code> flag:
+  </p>
+  <ul>
+    <li>
+      <strong>Strict</strong>: Blocks high and critical risk commands, requires
+      confirmation for moderate risk
+    </li>
+    <li>
+      <strong>Moderate</strong> (default): Blocks critical commands, requires
+      confirmation for high risk
+    </li>
+    <li>
+      <strong>Permissive</strong>: Warns about all dangerous commands but allows
+      execution with confirmation
+    </li>
+  </ul>
+
+  <h3>Confirmation Prompts</h3>
+  <p>
+    When Caro detects a potentially dangerous command, it will ask for confirmation
+    before proceeding. This gives you a chance to review the command and abort if needed.
+  </p>
+
+  <pre><code>$ caro "remove all temporary files"
+Warning: This command may modify or delete files
+Command: rm -rf /tmp/*
+Do you want to proceed? [y/N]</code></pre>
+
+  <h2>Best Practices</h2>
+
+  <h3>Review Before Execution</h3>
+  <p>
+    Always read and understand the generated command before running it.
+    If you're unsure what a command does, look it up or ask for an explanation.
+  </p>
+
+  <h3>Use Dry Run Mode</h3>
+  <p>
+    Use the <code>--dry-run</code> flag to see what would be executed without
+    actually running the command:
+  </p>
+  <pre><code>$ caro --dry-run "find and delete old log files"</code></pre>
+
+  <h3>Start with Strict Safety</h3>
+  <p>
+    When working with unfamiliar commands or critical systems, use
+    <code>--safety strict</code> for maximum protection.
+  </p>
+
+  <h3>Work in Safe Environments</h3>
+  <p>
+    When experimenting or learning, use:
+  </p>
+  <ul>
+    <li>Docker containers or virtual machines</li>
+    <li>Test directories with sample data</li>
+    <li>Version-controlled projects (so you can revert)</li>
+  </ul>
+
+  <h3>Don't Disable Safety Features</h3>
+  <p>
+    Avoid using <code>--confirm</code> or <code>--safety permissive</code> in
+    production environments or with critical data.
+  </p>
+
+  <h2>Reporting Security Issues</h2>
+
+  <p>
+    If you discover a security vulnerability in Caro, please report it responsibly:
+  </p>
+  <ol>
+    <li>
+      <strong>Do not</strong> create a public GitHub issue
+    </li>
+    <li>
+      Email details to the maintainers (see the
+      <a href="https://github.com/wildcard/caro/security">security policy</a>)
+    </li>
+    <li>
+      Include steps to reproduce the vulnerability
+    </li>
+  </ol>
+
+  <div class="callout callout-info">
+    <strong>Questions?</strong>
+    If you have questions about Caro's security model, feel free to open a
+    <a href="https://github.com/wildcard/caro/discussions">discussion</a> on GitHub.
+  </div>
+</DocsLayout>

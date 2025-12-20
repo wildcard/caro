@@ -1,0 +1,137 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+  title="Model Backends"
+  description="Configure inference backends for Caro"
+>
+  <h1>Model Backends</h1>
+
+  <p>
+    Caro supports multiple inference backends for running language models.
+    Choose the best option for your hardware and use case.
+  </p>
+
+  <h2>Available Backends</h2>
+
+  <h3>MLX (Apple Silicon)</h3>
+  <p>
+    Optimized for Apple M1/M2/M3 chips using Metal Performance Shaders.
+    This is the fastest option for Mac users with Apple Silicon.
+  </p>
+  <ul>
+    <li><strong>Platform</strong>: macOS (Apple Silicon only)</li>
+    <li><strong>Performance</strong>: Fastest on supported hardware</li>
+    <li><strong>Memory</strong>: Uses unified memory efficiently</li>
+  </ul>
+
+  <h3>Ollama</h3>
+  <p>
+    Connect to a local Ollama instance for inference.
+    Great for users who already have Ollama set up.
+  </p>
+  <ul>
+    <li><strong>Platform</strong>: Cross-platform</li>
+    <li><strong>Requires</strong>: Ollama running locally</li>
+    <li><strong>Models</strong>: Any Ollama-compatible model</li>
+  </ul>
+
+  <h3>vLLM</h3>
+  <p>
+    Connect to a vLLM server for high-throughput inference.
+    Best for users with powerful GPU servers.
+  </p>
+  <ul>
+    <li><strong>Platform</strong>: Cross-platform (client)</li>
+    <li><strong>Requires</strong>: vLLM server running</li>
+    <li><strong>Performance</strong>: Excellent for batch processing</li>
+  </ul>
+
+  <h3>CPU Backend (Candle)</h3>
+  <p>
+    Pure CPU inference using the Candle library.
+    Works everywhere but slower than GPU-accelerated options.
+  </p>
+  <ul>
+    <li><strong>Platform</strong>: Cross-platform</li>
+    <li><strong>Performance</strong>: Slower but universal</li>
+    <li><strong>No GPU required</strong></li>
+  </ul>
+
+  <h2>Recommended Models</h2>
+
+  <p>Caro works best with coding-focused models:</p>
+
+  <h3>Qwen 2.5 Coder (Recommended)</h3>
+  <ul>
+    <li><code>qwen2.5-coder:3b</code> - Fast, good for simple commands</li>
+    <li><code>qwen2.5-coder:7b</code> - Balanced performance and quality</li>
+    <li><code>qwen2.5-coder:14b</code> - Best quality, needs more RAM</li>
+  </ul>
+
+  <h3>Other Compatible Models</h3>
+  <ul>
+    <li><code>codellama:7b</code> - Meta's coding model</li>
+    <li><code>deepseek-coder:6.7b</code> - DeepSeek's coding model</li>
+    <li><code>starcoder2:7b</code> - BigCode's model</li>
+  </ul>
+
+  <h2>Setting Up Ollama</h2>
+
+  <ol>
+    <li>
+      <strong>Install Ollama</strong>:
+      <pre><code>curl -fsSL https://ollama.com/install.sh | sh</code></pre>
+    </li>
+    <li>
+      <strong>Pull a model</strong>:
+      <pre><code>ollama pull qwen2.5-coder:7b</code></pre>
+    </li>
+    <li>
+      <strong>Configure Caro</strong>:
+      <pre><code># In ~/.config/cmdai/config.toml
+default_model = "qwen2.5-coder:7b"</code></pre>
+    </li>
+  </ol>
+
+  <h2>Model Caching</h2>
+
+  <p>
+    Caro caches downloaded models to speed up subsequent runs.
+    The cache is stored in:
+  </p>
+  <ul>
+    <li><strong>macOS/Linux</strong>: <code>~/.cache/cmdai/models/</code></li>
+    <li><strong>Windows</strong>: <code>%LOCALAPPDATA%\cmdai\models\</code></li>
+  </ul>
+
+  <h3>Cache Management</h3>
+  <pre><code># View cache size
+du -sh ~/.cache/cmdai/
+
+# Configure max cache size (in config.toml)
+cache_max_size_gb = 20</code></pre>
+
+  <p>
+    When the cache exceeds the limit, Caro automatically removes
+    least-recently-used models.
+  </p>
+
+  <h2>Performance Tips</h2>
+
+  <ul>
+    <li>
+      <strong>Apple Silicon</strong>: Use MLX backend for best performance
+    </li>
+    <li>
+      <strong>NVIDIA GPU</strong>: Use Ollama with GPU acceleration
+    </li>
+    <li>
+      <strong>Limited RAM</strong>: Use smaller models (3B parameters)
+    </li>
+    <li>
+      <strong>Slow internet</strong>: Pre-download models with Ollama
+    </li>
+  </ul>
+</DocsLayout>
