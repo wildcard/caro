@@ -1,0 +1,144 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+  title="Configuration"
+  description="Configure Caro to match your workflow"
+>
+  <h1>Configuration</h1>
+
+  <p>
+    Caro stores its configuration in a TOML file and can be customized via
+    the config file, command-line flags, or environment variables.
+  </p>
+
+  <h2>Configuration File</h2>
+
+  <p>The configuration file is located at:</p>
+  <ul>
+    <li><strong>macOS/Linux</strong>: <code>~/.config/cmdai/config.toml</code></li>
+    <li><strong>Windows</strong>: <code>%APPDATA%\cmdai\config.toml</code></li>
+  </ul>
+
+  <h3>Example Configuration</h3>
+  <pre><code># ~/.config/cmdai/config.toml
+
+# Default shell for command generation
+default_shell = "zsh"
+
+# Safety level: strict, moderate, or permissive
+safety_level = "moderate"
+
+# Default model (optional)
+default_model = "qwen2.5-coder:3b"
+
+# Logging level: debug, info, warn, error
+log_level = "info"
+
+# Maximum cache size for models (in GB)
+cache_max_size_gb = 10
+
+# Log rotation period (in days)
+log_rotation_days = 7</code></pre>
+
+  <h2>Interactive Setup</h2>
+
+  <p>Run the setup wizard to configure Caro interactively:</p>
+  <pre><code>$ caro init</code></pre>
+
+  <p>To reconfigure an existing installation:</p>
+  <pre><code>$ caro init --force</code></pre>
+
+  <h2>Configuration Options</h2>
+
+  <h3>default_shell</h3>
+  <p>
+    The shell to target when generating commands. If not set, Caro will
+    auto-detect your current shell.
+  </p>
+  <ul>
+    <li><code>bash</code></li>
+    <li><code>zsh</code></li>
+    <li><code>fish</code></li>
+    <li><code>sh</code> (POSIX)</li>
+    <li><code>powershell</code></li>
+  </ul>
+
+  <h3>safety_level</h3>
+  <p>Controls how cautious Caro is with potentially dangerous commands:</p>
+  <ul>
+    <li><code>strict</code> - Maximum protection, blocks high/critical risk commands</li>
+    <li><code>moderate</code> - Balanced protection (default)</li>
+    <li><code>permissive</code> - Warnings only, allows all commands with confirmation</li>
+  </ul>
+
+  <h3>log_level</h3>
+  <p>Amount of logging output:</p>
+  <ul>
+    <li><code>debug</code> - Verbose debugging information</li>
+    <li><code>info</code> - Normal operation (default)</li>
+    <li><code>warn</code> - Warnings and errors only</li>
+    <li><code>error</code> - Errors only</li>
+  </ul>
+
+  <h2>Environment Variables</h2>
+
+  <p>
+    Override configuration with environment variables. These take precedence
+    over the config file:
+  </p>
+
+  <pre><code># Set safety level
+export CMDAI_SAFETY_LEVEL=strict
+
+# Set default shell
+export CMDAI_DEFAULT_SHELL=bash
+
+# Set log level
+export CMDAI_LOG_LEVEL=debug
+
+# Set default model
+export CMDAI_DEFAULT_MODEL=qwen2.5-coder:7b
+
+# Set cache size (in GB)
+export CMDAI_CACHE_MAX_SIZE_GB=20</code></pre>
+
+  <h2>Command-Line Overrides</h2>
+
+  <p>
+    CLI flags override both the config file and environment variables:
+  </p>
+
+  <pre><code># Override shell for this command
+$ caro --shell bash "list files"
+
+# Override safety level
+$ caro --safety strict "delete old files"
+
+# Use a custom config file
+$ caro --config-file /path/to/config.toml "list files"</code></pre>
+
+  <h2>Priority Order</h2>
+
+  <p>Configuration sources are applied in this order (highest priority first):</p>
+  <ol>
+    <li>Command-line flags</li>
+    <li>Environment variables</li>
+    <li>Configuration file</li>
+    <li>Default values</li>
+  </ol>
+
+  <h2>View Current Configuration</h2>
+
+  <pre><code>$ caro --show-config
+Configuration file: /home/user/.config/cmdai/config.toml
+Configuration exists: true
+
+Current configuration:
+  Default shell: Some(Zsh)
+  Safety level: Moderate
+  Log level: INFO
+  Cache max size: 10 GB
+  Log rotation: 7 days</code></pre>
+</DocsLayout>

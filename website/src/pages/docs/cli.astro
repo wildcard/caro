@@ -1,0 +1,145 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+  title="CLI Reference"
+  description="Complete command-line reference for Caro"
+>
+  <h1>CLI Reference</h1>
+
+  <p>
+    Complete reference for all Caro command-line options and subcommands.
+  </p>
+
+  <h2>Basic Usage</h2>
+
+  <pre><code>caro [OPTIONS] &lt;PROMPT&gt;
+caro &lt;SUBCOMMAND&gt;</code></pre>
+
+  <h2>Subcommands</h2>
+
+  <h3>init</h3>
+  <p>Run the interactive setup wizard to configure Caro.</p>
+  <pre><code>caro init [OPTIONS]
+
+Options:
+  --minimal     Use minimal ASCII art banner
+  -f, --force   Force reconfiguration even if already set up</code></pre>
+
+  <h2>Options</h2>
+
+  <h3>-s, --shell &lt;SHELL&gt;</h3>
+  <p>Target shell type for command generation.</p>
+  <pre><code>caro --shell bash "list files"
+caro -s zsh "find large files"</code></pre>
+  <p>Valid values: <code>bash</code>, <code>zsh</code>, <code>fish</code>, <code>sh</code>, <code>powershell</code>, <code>cmd</code></p>
+
+  <h3>--safety &lt;LEVEL&gt;</h3>
+  <p>Safety level for command validation.</p>
+  <pre><code>caro --safety strict "delete old files"</code></pre>
+  <p>Valid values: <code>strict</code>, <code>moderate</code>, <code>permissive</code></p>
+
+  <h3>-o, --output &lt;FORMAT&gt;</h3>
+  <p>Output format for the generated command.</p>
+  <pre><code>caro -o json "list files"
+caro --output yaml "show disk usage"</code></pre>
+  <p>Valid values: <code>plain</code> (default), <code>json</code>, <code>yaml</code></p>
+
+  <h3>-y, --confirm</h3>
+  <p>Auto-confirm dangerous commands without prompting.</p>
+  <pre><code>caro -y "remove temp files"</code></pre>
+  <div class="callout callout-warning">
+    <strong>Warning</strong>
+    Use with caution. Only use when you're certain about the command.
+  </div>
+
+  <h3>-v, --verbose</h3>
+  <p>Enable verbose output with timing and debug information.</p>
+  <pre><code>caro -v "find Python files"</code></pre>
+
+  <h3>-c, --config-file &lt;PATH&gt;</h3>
+  <p>Path to a custom configuration file.</p>
+  <pre><code>caro -c /path/to/config.toml "list files"</code></pre>
+
+  <h3>--show-config</h3>
+  <p>Show current configuration and exit.</p>
+  <pre><code>caro --show-config</code></pre>
+
+  <h3>-x, --execute</h3>
+  <p>Execute the generated command after validation.</p>
+  <pre><code>caro -x "show current date"</code></pre>
+
+  <h3>--dry-run</h3>
+  <p>Show execution plan without running the command.</p>
+  <pre><code>caro --dry-run "delete all log files"</code></pre>
+
+  <h3>-i, --interactive</h3>
+  <p>Interactive mode with step-by-step confirmation.</p>
+  <pre><code>caro -i "set up Python virtual environment"</code></pre>
+
+  <h3>-h, --help</h3>
+  <p>Print help information.</p>
+  <pre><code>caro --help
+caro init --help</code></pre>
+
+  <h3>-V, --version</h3>
+  <p>Print version information.</p>
+  <pre><code>caro --version</code></pre>
+
+  <h2>Examples</h2>
+
+  <h3>Basic Commands</h3>
+  <pre><code># Generate a command
+caro "list all Python files"
+
+# With specific shell
+caro --shell bash "find large files"
+
+# With JSON output
+caro -o json "show disk usage"</code></pre>
+
+  <h3>Safety Options</h3>
+  <pre><code># Strict safety mode
+caro --safety strict "clean up old files"
+
+# Preview dangerous commands
+caro --dry-run "remove all temp files"
+
+# Auto-confirm (use carefully!)
+caro -y "delete cache"</code></pre>
+
+  <h3>Execution Options</h3>
+  <pre><code># Execute immediately
+caro -x "show current directory"
+
+# Interactive mode
+caro -i "set up new project"
+
+# Verbose output
+caro -v "compile source code"</code></pre>
+
+  <h3>Configuration</h3>
+  <pre><code># Run setup wizard
+caro init
+
+# Force reconfiguration
+caro init --force
+
+# Use custom config
+caro -c ~/my-config.toml "list files"
+
+# Show current config
+caro --show-config</code></pre>
+
+  <h2>Exit Codes</h2>
+
+  <ul>
+    <li><code>0</code> - Success</li>
+    <li><code>1</code> - Error (configuration, validation, or execution)</li>
+  </ul>
+
+  <h2>Environment Variables</h2>
+
+  <p>See <a href="/docs/configuration">Configuration</a> for available environment variables.</p>
+</DocsLayout>

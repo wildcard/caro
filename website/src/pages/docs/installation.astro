@@ -1,0 +1,81 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+  title="Installation"
+  description="Install Caro on macOS, Linux, or Windows"
+>
+  <h1>Installation</h1>
+
+  <p>
+    Caro is distributed as a single binary with no external dependencies.
+    Choose your preferred installation method below.
+  </p>
+
+  <h2>Quick Install (Recommended)</h2>
+
+  <p>Install Caro with our install script:</p>
+  <pre><code>curl -fsSL https://caro.sh/install.sh | sh</code></pre>
+
+  <p>Or if you prefer wget:</p>
+  <pre><code>wget -qO- https://caro.sh/install.sh | sh</code></pre>
+
+  <h2>Package Managers</h2>
+
+  <h3>Homebrew (macOS/Linux)</h3>
+  <pre><code>brew install wildcard/tap/caro</code></pre>
+
+  <h3>Cargo (All Platforms)</h3>
+  <pre><code>cargo install cmdai</code></pre>
+
+  <h2>Manual Installation</h2>
+
+  <p>Download the latest release for your platform from
+    <a href="https://github.com/wildcard/caro/releases">GitHub Releases</a>:
+  </p>
+  <ul>
+    <li><strong>macOS (Apple Silicon)</strong>: <code>caro-darwin-arm64</code></li>
+    <li><strong>macOS (Intel)</strong>: <code>caro-darwin-x86_64</code></li>
+    <li><strong>Linux (x86_64)</strong>: <code>caro-linux-x86_64</code></li>
+    <li><strong>Linux (ARM64)</strong>: <code>caro-linux-arm64</code></li>
+    <li><strong>Windows</strong>: <code>caro-windows-x86_64.exe</code></li>
+  </ul>
+
+  <h3>macOS/Linux</h3>
+  <pre><code># Download the binary
+curl -LO https://github.com/wildcard/caro/releases/latest/download/caro-darwin-arm64
+
+# Make it executable
+chmod +x caro-darwin-arm64
+
+# Move to your PATH
+sudo mv caro-darwin-arm64 /usr/local/bin/caro</code></pre>
+
+  <h2>Verify Installation</h2>
+
+  <pre><code>$ caro --version
+caro 0.1.0</code></pre>
+
+  <h2>First-Time Setup</h2>
+
+  <p>
+    When you first run Caro, it will guide you through an interactive setup wizard
+    to configure your preferences:
+  </p>
+
+  <pre><code>$ caro init</code></pre>
+
+  <p>
+    This will configure your preferred shell, safety level, and other options.
+    You can re-run <code>caro init</code> at any time to change your settings.
+  </p>
+
+  <h2>Next Steps</h2>
+
+  <ul>
+    <li><a href="/docs/quickstart">Quick Start Guide</a> - Your first commands</li>
+    <li><a href="/docs/configuration">Configuration</a> - Customize your setup</li>
+    <li><a href="/docs/security">Security</a> - Important safety information</li>
+  </ul>
+</DocsLayout>

@@ -9,6 +9,9 @@ use colored::Colorize;
 use dialoguer::{theme::ColorfulTheme, Confirm, Select};
 use std::io::{self, Write};
 
+/// Current version of caro (from Cargo.toml)
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 /// Theme configuration for terminal display
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum Theme {
@@ -155,8 +158,9 @@ impl SetupWizard {
             return Err(SetupError::NotATty);
         }
 
-        // Clear screen and show banner
+        // Clear screen and show welcome header
         self.clear_screen();
+        self.print_welcome_header();
         self.print_banner();
 
         println!();
@@ -212,6 +216,10 @@ impl SetupWizard {
             "  Config file: {}",
             self.config_manager.config_path().display().to_string().dimmed()
         );
+
+        // Print security notes
+        self.print_security_notes();
+
         println!();
         println!("{}", "You're all set! Try running:".bold());
         println!("  {} \"list all files in current directory\"", "caro".bright_cyan());
@@ -234,6 +242,17 @@ impl SetupWizard {
         let _ = io::stdout().flush();
     }
 
+    /// Print the welcome header with version
+    fn print_welcome_header(&self) {
+        println!(
+            "{} {}",
+            "Welcome to Caro".bold(),
+            format!("v{}", VERSION).dimmed()
+        );
+        println!("{}", "…………………………………………………………………………………………………………………………………………………………".dimmed());
+        println!();
+    }
+
     /// Print the welcome banner
     fn print_banner(&self) {
         let banner = if self.use_minimal_banner {
@@ -245,6 +264,36 @@ impl SetupWizard {
         for line in banner.lines() {
             println!("{}", line.bright_cyan());
         }
+    }
+
+    /// Print security notes after setup completion
+    fn print_security_notes(&self) {
+        println!();
+        println!("{}", "━".repeat(60).dimmed());
+        println!();
+        println!(" {}", "Security notes:".bold().yellow());
+        println!();
+        println!("  {}", "Caro uses AI to generate shell commands".bold());
+        println!(
+            "  {}",
+            "You should always review commands before executing them,"
+        );
+        println!(
+            "  {}",
+            "especially those that modify files or system settings."
+        );
+        println!();
+        println!(
+            "  {}",
+            "Due to prompt injection risks, only use it with code you trust."
+        );
+        println!("  For more details see:");
+        println!(
+            "  {}",
+            "https://caro.sh/docs/security".bright_cyan().underline()
+        );
+        println!();
+        println!("{}", "━".repeat(60).dimmed());
     }
 
     /// Select terminal theme

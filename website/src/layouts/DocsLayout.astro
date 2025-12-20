@@ -1,0 +1,438 @@
+---
+import Analytics from '@vercel/analytics/astro';
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/caro-pixel.png" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title} - Caro Docs</title>
+    <script is:inline>
+      const theme = (() => {
+        if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+          return localStorage.getItem('theme');
+        }
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          return 'dark';
+        }
+        return 'light';
+      })();
+
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    </script>
+  </head>
+  <body>
+    <nav class="docs-nav">
+      <div class="nav-container">
+        <a href="/" class="logo">
+          <img src="/caro-pixel.png" alt="Caro" width="32" height="32" />
+          <span>Caro</span>
+        </a>
+        <div class="nav-links">
+          <a href="/docs">Docs</a>
+          <a href="https://github.com/wildcard/caro" target="_blank" rel="noopener">GitHub</a>
+        </div>
+        <button id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+          <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+      </div>
+    </nav>
+    <div class="docs-wrapper">
+      <aside class="docs-sidebar">
+        <nav class="sidebar-nav">
+          <h3>Getting Started</h3>
+          <ul>
+            <li><a href="/docs">Overview</a></li>
+            <li><a href="/docs/installation">Installation</a></li>
+            <li><a href="/docs/quickstart">Quick Start</a></li>
+          </ul>
+          <h3>Guides</h3>
+          <ul>
+            <li><a href="/docs/configuration">Configuration</a></li>
+            <li><a href="/docs/safety">Safety Levels</a></li>
+            <li><a href="/docs/backends">Model Backends</a></li>
+          </ul>
+          <h3>Reference</h3>
+          <ul>
+            <li><a href="/docs/cli">CLI Reference</a></li>
+            <li><a href="/docs/security">Security</a></li>
+          </ul>
+        </nav>
+      </aside>
+      <main class="docs-content">
+        <article>
+          <slot />
+        </article>
+      </main>
+    </div>
+    <Analytics />
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --color-bg: #ffffff;
+    --color-bg-secondary: #f8f9fa;
+    --color-bg-tertiary: #fff8f0;
+    --color-text: #2c3e50;
+    --color-text-secondary: #7f8c8d;
+    --color-text-tertiary: #34495e;
+    --color-border: #e0e0e0;
+    --color-accent: #e74c3c;
+    --color-accent-light: #ff6b5b;
+    --color-code-bg: #f5f5f5;
+    --color-sidebar-bg: #fafafa;
+  }
+
+  .dark {
+    --color-bg: #1a1a1a;
+    --color-bg-secondary: #2d2d2d;
+    --color-bg-tertiary: #252525;
+    --color-text: #e0e0e0;
+    --color-text-secondary: #a0a0a0;
+    --color-text-tertiary: #c0c0c0;
+    --color-border: #3a3a3a;
+    --color-code-bg: #2d2d2d;
+    --color-sidebar-bg: #1f1f1f;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--color-text);
+    background: var(--color-bg);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .docs-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+    z-index: 100;
+  }
+
+  .nav-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--color-text);
+    font-weight: 600;
+    font-size: 18px;
+  }
+
+  .logo img {
+    border-radius: 4px;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+  }
+
+  .nav-links a {
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover {
+    color: var(--color-text);
+  }
+
+  #theme-toggle {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+  }
+
+  #theme-toggle:hover {
+    color: var(--color-text);
+  }
+
+  .sun-icon {
+    display: none;
+  }
+
+  .moon-icon {
+    display: block;
+  }
+
+  .dark .sun-icon {
+    display: block;
+  }
+
+  .dark .moon-icon {
+    display: none;
+  }
+
+  .docs-wrapper {
+    display: flex;
+    margin-top: 60px;
+    min-height: calc(100vh - 60px);
+  }
+
+  .docs-sidebar {
+    width: 260px;
+    background: var(--color-sidebar-bg);
+    border-right: 1px solid var(--color-border);
+    padding: 24px 0;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    height: calc(100vh - 60px);
+    overflow-y: auto;
+  }
+
+  .sidebar-nav {
+    padding: 0 20px;
+  }
+
+  .sidebar-nav h3 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-text-secondary);
+    margin: 24px 0 12px;
+    font-weight: 600;
+  }
+
+  .sidebar-nav h3:first-child {
+    margin-top: 0;
+  }
+
+  .sidebar-nav ul {
+    list-style: none;
+  }
+
+  .sidebar-nav li {
+    margin: 4px 0;
+  }
+
+  .sidebar-nav a {
+    display: block;
+    padding: 6px 12px;
+    color: var(--color-text-tertiary);
+    text-decoration: none;
+    font-size: 14px;
+    border-radius: 6px;
+    transition: background-color 0.2s, color 0.2s;
+  }
+
+  .sidebar-nav a:hover {
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  .docs-content {
+    margin-left: 260px;
+    flex: 1;
+    max-width: 900px;
+    padding: 40px 60px;
+  }
+
+  .docs-content h1 {
+    font-size: 32px;
+    margin-bottom: 16px;
+    color: var(--color-text);
+  }
+
+  .docs-content h2 {
+    font-size: 24px;
+    margin: 40px 0 16px;
+    color: var(--color-text);
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .docs-content h3 {
+    font-size: 18px;
+    margin: 32px 0 12px;
+    color: var(--color-text);
+  }
+
+  .docs-content p {
+    margin: 16px 0;
+    color: var(--color-text-tertiary);
+  }
+
+  .docs-content ul, .docs-content ol {
+    margin: 16px 0;
+    padding-left: 24px;
+  }
+
+  .docs-content li {
+    margin: 8px 0;
+    color: var(--color-text-tertiary);
+  }
+
+  .docs-content code {
+    background: var(--color-code-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+    font-size: 14px;
+  }
+
+  .docs-content pre {
+    background: var(--color-code-bg);
+    padding: 16px 20px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 20px 0;
+  }
+
+  .docs-content pre code {
+    background: transparent;
+    padding: 0;
+  }
+
+  .docs-content a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .docs-content a:hover {
+    text-decoration: underline;
+  }
+
+  .callout {
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+  }
+
+  .callout-warning {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+  }
+
+  .dark .callout-warning {
+    background: #3d3520;
+    border-left-color: #ffc107;
+  }
+
+  .callout-info {
+    background: #d1ecf1;
+    border-left: 4px solid #17a2b8;
+  }
+
+  .dark .callout-info {
+    background: #1d3a40;
+    border-left-color: #17a2b8;
+  }
+
+  .callout-danger {
+    background: #f8d7da;
+    border-left: 4px solid #dc3545;
+  }
+
+  .dark .callout-danger {
+    background: #3d2020;
+    border-left-color: #dc3545;
+  }
+
+  .callout strong {
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  @media (max-width: 900px) {
+    .docs-sidebar {
+      display: none;
+    }
+
+    .docs-content {
+      margin-left: 0;
+      padding: 24px 20px;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const themeToggle = document.getElementById('theme-toggle');
+
+    themeToggle?.addEventListener('click', () => {
+      const isDark = document.documentElement.classList.contains('dark');
+
+      if (isDark) {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+      }
+    });
+
+    // Highlight current page in sidebar
+    const currentPath = window.location.pathname;
+    const sidebarLinks = document.querySelectorAll('.sidebar-nav a');
+    sidebarLinks.forEach(link => {
+      if (link.getAttribute('href') === currentPath) {
+        link.style.background = 'var(--color-accent)';
+        link.style.color = 'white';
+      }
+    });
+  });
+</script>

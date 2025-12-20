@@ -1,0 +1,76 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+  title="Documentation"
+  description="Official documentation for Caro - your loyal shell companion that converts natural language to POSIX commands"
+>
+  <h1>Caro Documentation</h1>
+
+  <p>
+    Welcome to the Caro documentation. Caro is your loyal shell companion that
+    converts natural language descriptions into safe, POSIX-compliant shell commands
+    using local language models.
+  </p>
+
+  <h2>Getting Started</h2>
+
+  <p>New to Caro? Start here:</p>
+  <ul>
+    <li><a href="/docs/installation">Installation</a> - Get Caro running on your system</li>
+    <li><a href="/docs/quickstart">Quick Start</a> - Your first commands in minutes</li>
+    <li><a href="/docs/configuration">Configuration</a> - Customize Caro for your workflow</li>
+  </ul>
+
+  <h2>Quick Example</h2>
+
+  <pre><code># Ask Caro to generate a command
+$ caro "find all Python files modified in the last week"
+
+Command:
+  find . -name "*.py" -mtime -7
+
+Execute this command? [y/N]</code></pre>
+
+  <h2>Key Features</h2>
+
+  <ul>
+    <li>
+      <strong>Natural Language Input</strong> - Describe what you want in plain English
+    </li>
+    <li>
+      <strong>Safety First</strong> - Built-in validation blocks dangerous commands
+    </li>
+    <li>
+      <strong>POSIX Compliant</strong> - Commands work across Unix-like systems
+    </li>
+    <li>
+      <strong>Local LLMs</strong> - Your data stays on your machine
+    </li>
+    <li>
+      <strong>Multiple Backends</strong> - MLX for Apple Silicon, Ollama, and more
+    </li>
+  </ul>
+
+  <h2>Documentation Sections</h2>
+
+  <h3>Guides</h3>
+  <ul>
+    <li><a href="/docs/configuration">Configuration</a> - Set up your preferences</li>
+    <li><a href="/docs/safety">Safety Levels</a> - Understand command validation</li>
+    <li><a href="/docs/backends">Model Backends</a> - Configure inference engines</li>
+  </ul>
+
+  <h3>Reference</h3>
+  <ul>
+    <li><a href="/docs/cli">CLI Reference</a> - Complete command-line options</li>
+    <li><a href="/docs/security">Security</a> - Security considerations and best practices</li>
+  </ul>
+
+  <div class="callout callout-info">
+    <strong>Need Help?</strong>
+    Join the community on <a href="https://github.com/wildcard/caro/discussions">GitHub Discussions</a>
+    or report issues on the <a href="https://github.com/wildcard/caro/issues">issue tracker</a>.
+  </div>
+</DocsLayout>
