@@ -548,6 +548,7 @@ dependencies = [
  "once_cell",
  "os_info",
  "proptest",
+ "rand 0.8.5",
  "regex",
  "reqwest",
  "serde",

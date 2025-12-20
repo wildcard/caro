@@ -8,6 +8,7 @@ use std::sync::Arc;
 use crate::{
     agent::AgentLoop,
     backends::CommandGenerator,
+    capabilities::{format_rejection, CapabilityValidator},
     context::ExecutionContext,
     models::{CommandRequest, SafetyLevel, ShellType},
     safety::SafetyValidator,
@@ -28,6 +29,7 @@ pub struct CliApp {
     backend: Arc<dyn CommandGenerator>,
     agent_loop: AgentLoop,
     validator: SafetyValidator,
+    capability_validator: CapabilityValidator,
     context: ExecutionContext,
 }
 
@@ -37,6 +39,7 @@ impl std::fmt::Debug for CliApp {
             .field("config", &self.config)
             .field("backend", &"<CommandGenerator>")
             .field("validator", &self.validator)
+            .field("capability_validator", &self.capability_validator)
             .field("context", &"<ExecutionContext>")
             .finish()
     }
@@ -163,9 +166,15 @@ impl CliApp {
                 }
             })?;
 
+        // Initialize capability validator for scope checking
+        let capability_validator =
+            CapabilityValidator::new().map_err(|e| CliError::ConfigurationError {
+                message: format!("Failed to initialize capability validator: {}", e),
+            })?;
+
         // Detect execution context
         let context = ExecutionContext::detect();
-        
+
         // Create agent loop with backend and context
         let agent_loop = AgentLoop::new(backend_arc.clone(), context.clone());
 
@@ -174,6 +183,7 @@ impl CliApp {
             backend: backend_arc,
             agent_loop,
             validator,
+            capability_validator,
             context,
         })
     }
@@ -290,6 +300,24 @@ impl CliApp {
         let prompt = args.prompt().ok_or_else(|| CliError::InvalidArgument {
             message: "No prompt provided".to_string(),
         })?;
+
+        // Check if request is within Caro's capabilities BEFORE generating
+        let capability_check = self.capability_validator.check(&prompt);
+        if !capability_check.is_within_scope {
+            let formatted_rejection = format_rejection(&capability_check);
+            return Err(CliError::OutOfScope {
+                message: formatted_rejection,
+                category: capability_check
+                    .rejection_category
+                    .map(|c| c.to_string())
+                    .unwrap_or_else(|| "unknown".to_string()),
+                alternatives: capability_check
+                    .alternatives
+                    .iter()
+                    .map(|a| format!("{} - {}", a.name, a.description))
+                    .collect(),
+            });
+        }
 
         // Create command request
         let request = CommandRequest {
@@ -499,6 +527,13 @@ pub enum CliError {
 
     #[error("Internal CLI error: {message}")]
     Internal { message: String },
+
+    #[error("{message}")]
+    OutOfScope {
+        message: String,
+        category: String,
+        alternatives: Vec<String>,
+    },
 }
 
 /// Mock command generator for testing
