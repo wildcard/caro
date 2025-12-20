@@ -32,6 +32,7 @@ pub mod cli;
 pub mod config;
 pub mod context;
 pub mod execution;
+pub mod interactive;
 pub mod logging;
 pub mod model_catalog;
 pub mod model_loader;
@@ -65,3 +66,6 @@ pub use backends::embedded::{
 #[cfg(feature = "remote-backends")]
 pub use backends::remote::{OllamaBackend, VllmBackend};
 pub use backends::{BackendInfo as BackendInfoTrait, CommandGenerator, GeneratorError};
+
+// Re-export interactive mode types
+pub use interactive::{InteractiveApp, InteractiveConfig, run_interactive};

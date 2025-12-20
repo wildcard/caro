@@ -42,6 +42,13 @@ dialoguer = "0.12"
 colored = "3"
 indicatif = "0.18"
 
+# Interactive TUI
+ratatui = "0.29"
+crossterm = "0.28"
+unicode-width = "0.2"
+textwrap = "0.16"
+whoami = "1.5"
+
 # Cross-platform support
 directories = "6"
 dirs = "6"

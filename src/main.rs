@@ -331,23 +331,42 @@ async fn main() {
         }
     }
 
-    // Validate prompt and show help if empty/whitespace-only
+    // Validate prompt and determine action
     let prompt_text = cli.prompt.as_deref().unwrap_or("");
     match validate_prompt(prompt_text) {
         ValidationAction::ShowHelp => {
-            // Show help message for empty or whitespace-only prompts
-            println!("caro - Convert natural language to shell commands using local LLMs");
-            println!();
-            println!("Usage: caro [OPTIONS] <PROMPT>");
-            println!();
-            println!("Examples:");
-            println!("  caro list files");
-            println!("  caro -p \"list files\"");
-            println!("  echo \"list files\" | caro");
-            println!("  caro --shell zsh \"find large files\"");
-            println!();
-            println!("Run 'caro --help' for more information.");
-            process::exit(0);
+            // Check if running in a terminal - launch interactive mode
+            use std::io::IsTerminal;
+            if std::io::stdin().is_terminal() && std::io::stdout().is_terminal() {
+                // Launch interactive mode
+                let config = caro::interactive::InteractiveConfig {
+                    user_name: whoami::fallible::realname().ok(),
+                    working_directory: std::env::current_dir()
+                        .unwrap_or_else(|_| std::path::PathBuf::from("/")),
+                    verbose: cli.verbose,
+                };
+
+                if let Err(e) = caro::interactive::run_interactive(config).await {
+                    eprintln!("Error in interactive mode: {}", e);
+                    process::exit(1);
+                }
+                process::exit(0);
+            } else {
+                // Non-interactive environment - show help message
+                println!("caro - Convert natural language to shell commands using local LLMs");
+                println!();
+                println!("Usage: caro [OPTIONS] <PROMPT>");
+                println!();
+                println!("Examples:");
+                println!("  caro list files");
+                println!("  caro -p \"list files\"");
+                println!("  echo \"list files\" | caro");
+                println!("  caro --shell zsh \"find large files\"");
+                println!();
+                println!("Run 'caro --help' for more information.");
+                println!("Run without arguments in a terminal for interactive mode.");
+                process::exit(0);
+            }
         }
         ValidationAction::ProceedWithPrompt => {
             // Continue with command generation
