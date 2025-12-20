@@ -132,6 +132,8 @@ const bannerId = 'caro-announcement-dec-2025'; // Unique ID for this banner
       banner.classList.add('hidden');
       setTimeout(() => {
         banner.remove();
+        // Trigger event for other components to reposition
+        window.dispatchEvent(new CustomEvent('banner-dismissed'));
       }, 300);
     });
   });
