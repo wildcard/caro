@@ -38,6 +38,7 @@ pub mod model_loader;
 pub mod models;
 pub mod platform;
 pub mod safety;
+pub mod setup;
 pub mod version;
 
 // Re-export commonly used types for convenience
@@ -65,3 +66,6 @@ pub use backends::embedded::{
 #[cfg(feature = "remote-backends")]
 pub use backends::remote::{OllamaBackend, VllmBackend};
 pub use backends::{BackendInfo as BackendInfoTrait, CommandGenerator, GeneratorError};
+
+// Re-export setup wizard types
+pub use setup::{needs_setup, run_setup, SetupError, SetupResult, SetupWizard, Theme};

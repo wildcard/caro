@@ -1,6 +1,8 @@
 use caro::cli::{CliApp, CliError, IntoCliArgs};
 use caro::config::ConfigManager;
-use clap::Parser;
+use caro::setup::{needs_setup, SetupWizard};
+use clap::{Parser, Subcommand};
+use std::io::IsTerminal;
 use std::process;
 
 // =============================================================================
@@ -155,6 +157,9 @@ pub fn truncate_at_shell_operator(args: Vec<String>) -> Vec<String> {
 )]
 #[command(version)]
 struct Cli {
+    #[command(subcommand)]
+    command: Option<Commands>,
+
     /// Explicit prompt via -p/--prompt flag (highest priority)
     #[arg(
         short = 'p',
@@ -222,6 +227,21 @@ struct Cli {
     /// Trailing unquoted arguments forming the prompt
     #[arg(trailing_var_arg = true, num_args = 0..)]
     trailing_args: Vec<String>,
+}
+
+/// Available subcommands
+#[derive(Subcommand, Clone)]
+enum Commands {
+    /// Run the interactive setup wizard to configure caro
+    Init {
+        /// Use minimal ASCII art banner (for smaller terminals)
+        #[arg(long, help = "Use minimal banner for smaller terminals")]
+        minimal: bool,
+
+        /// Force re-run setup even if already configured
+        #[arg(short, long, help = "Force setup even if already configured")]
+        force: bool,
+    },
 }
 
 impl IntoCliArgs for Cli {
@@ -317,6 +337,77 @@ async fn main() {
             .init();
     }
 
+    // Handle init subcommand
+    if let Some(Commands::Init { minimal, force }) = &cli.command {
+        match run_init_wizard(*minimal, *force) {
+            Ok(completed) => {
+                process::exit(if completed { 0 } else { 1 });
+            }
+            Err(e) => {
+                eprintln!("Error running setup wizard: {}", e);
+                process::exit(1);
+            }
+        }
+    }
+
+    // Check for first-time setup (if running without subcommand and no config exists)
+    if cli.command.is_none() && cli.prompt.is_none() && !cli.show_config {
+        // Check if this is a first-time run
+        if needs_setup() {
+            use colored::Colorize;
+            println!();
+            println!(
+                "{}",
+                "Welcome to caro! It looks like this is your first time running the tool.".bold()
+            );
+            println!();
+
+            // Check if we're in a terminal for interactive setup
+            if std::io::stdin().is_terminal() && std::io::stdout().is_terminal() {
+                use dialoguer::Confirm;
+
+                let run_setup = Confirm::new()
+                    .with_prompt("Would you like to run the setup wizard now?")
+                    .default(true)
+                    .interact()
+                    .unwrap_or(false);
+
+                if run_setup {
+                    match run_init_wizard(false, false) {
+                        Ok(true) => process::exit(0),
+                        Ok(false) => {
+                            // User cancelled, show usage
+                            print_usage();
+                            process::exit(0);
+                        }
+                        Err(e) => {
+                            eprintln!("Error running setup wizard: {}", e);
+                            process::exit(1);
+                        }
+                    }
+                } else {
+                    println!();
+                    println!(
+                        "{}",
+                        "You can run 'caro init' at any time to configure the tool.".dimmed()
+                    );
+                    println!();
+                    print_usage();
+                    process::exit(0);
+                }
+            } else {
+                // Non-interactive: show message and usage
+                println!(
+                    "{}",
+                    "Run 'caro init' in an interactive terminal to configure the tool.".dimmed()
+                );
+                println!();
+                print_usage();
+                process::exit(0);
+            }
+        }
+    }
+
     // Handle --show-config
     if cli.show_config {
         match show_configuration(&cli).await {
@@ -336,17 +427,7 @@ async fn main() {
     match validate_prompt(prompt_text) {
         ValidationAction::ShowHelp => {
             // Show help message for empty or whitespace-only prompts
-            println!("caro - Convert natural language to shell commands using local LLMs");
-            println!();
-            println!("Usage: caro [OPTIONS] <PROMPT>");
-            println!();
-            println!("Examples:");
-            println!("  caro list files");
-            println!("  caro -p \"list files\"");
-            println!("  echo \"list files\" | caro");
-            println!("  caro --shell zsh \"find large files\"");
-            println!();
-            println!("Run 'caro --help' for more information.");
+            print_usage();
             process::exit(0);
         }
         ValidationAction::ProceedWithPrompt => {
@@ -374,6 +455,70 @@ async fn main() {
             process::exit(1);
         }
     }
+}
+
+/// Run the init setup wizard
+fn run_init_wizard(minimal: bool, force: bool) -> Result<bool, caro::setup::SetupError> {
+    use colored::Colorize;
+
+    let wizard = SetupWizard::new()?.use_minimal_banner(minimal);
+
+    // Check if already configured
+    if !force && !wizard.needs_setup() {
+        println!();
+        println!(
+            "{}",
+            "caro is already configured!".green().bold()
+        );
+        println!();
+
+        // Check if we're in a terminal
+        if std::io::stdin().is_terminal() {
+            use dialoguer::Confirm;
+
+            let reconfigure = Confirm::new()
+                .with_prompt("Would you like to reconfigure?")
+                .default(false)
+                .interact()
+                .unwrap_or(false);
+
+            if !reconfigure {
+                println!();
+                println!(
+                    "{}",
+                    "Configuration unchanged. Use 'caro init --force' to reset configuration."
+                        .dimmed()
+                );
+                return Ok(true);
+            }
+        } else {
+            println!(
+                "{}",
+                "Use 'caro init --force' to reconfigure.".dimmed()
+            );
+            return Ok(true);
+        }
+    }
+
+    // Run the wizard
+    let result = wizard.run()?;
+    Ok(result.completed)
+}
+
+/// Print usage information
+fn print_usage() {
+    println!("caro - Convert natural language to shell commands using local LLMs");
+    println!();
+    println!("Usage: caro [OPTIONS] <PROMPT>");
+    println!("       caro init              Run the setup wizard");
+    println!();
+    println!("Examples:");
+    println!("  caro list files");
+    println!("  caro -p \"list files\"");
+    println!("  echo \"list files\" | caro");
+    println!("  caro --shell zsh \"find large files\"");
+    println!();
+    println!("Run 'caro --help' for more information.");
 }
 
 async fn run_cli(cli: &Cli) -> Result<(), CliError> {
