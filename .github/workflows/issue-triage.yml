@@ -1,0 +1,156 @@
+name: Issue Triage
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  issues: write
+
+jobs:
+  auto-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Auto-label issues based on content
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const title = issue.title.toLowerCase();
+            const body = (issue.body || '').toLowerCase();
+            const content = `${title} ${body}`;
+
+            const labelsToAdd = [];
+
+            // Bug detection keywords
+            const bugKeywords = ['bug', 'error', 'crash', 'fail', 'broken', 'not working', 'issue with', 'problem', 'doesn\'t work', 'exception', 'panic'];
+            if (bugKeywords.some(kw => content.includes(kw))) {
+              labelsToAdd.push('bug');
+            }
+
+            // Feature request keywords
+            const featureKeywords = ['feature', 'request', 'would be nice', 'suggestion', 'enhancement', 'add support', 'could you add', 'please add', 'implement'];
+            if (featureKeywords.some(kw => content.includes(kw))) {
+              labelsToAdd.push('enhancement');
+            }
+
+            // Documentation keywords
+            const docKeywords = ['documentation', 'docs', 'readme', 'example', 'tutorial', 'guide', 'explain', 'how to', 'unclear'];
+            if (docKeywords.some(kw => content.includes(kw))) {
+              labelsToAdd.push('documentation');
+            }
+
+            // Performance keywords
+            const perfKeywords = ['slow', 'performance', 'memory', 'speed', 'optimize', 'faster', 'latency', 'benchmark'];
+            if (perfKeywords.some(kw => content.includes(kw))) {
+              labelsToAdd.push('performance');
+            }
+
+            // Security keywords
+            const securityKeywords = ['security', 'vulnerability', 'cve', 'exploit', 'injection', 'xss', 'unsafe'];
+            if (securityKeywords.some(kw => content.includes(kw))) {
+              labelsToAdd.push('security');
+            }
+
+            // Backend-related keywords
+            const backendKeywords = ['mlx', 'vllm', 'ollama', 'backend', 'inference', 'model', 'llm'];
+            if (backendKeywords.some(kw => content.includes(kw))) {
+              labelsToAdd.push('backend');
+            }
+
+            // Safety-related keywords
+            const safetyKeywords = ['safety', 'dangerous', 'validation', 'pattern', 'rm -rf', 'destructive'];
+            if (safetyKeywords.some(kw => content.includes(kw))) {
+              labelsToAdd.push('safety');
+            }
+
+            // Platform-specific keywords
+            if (content.includes('macos') || content.includes('mac os') || content.includes('apple') || content.includes('m1') || content.includes('m2') || content.includes('m3') || content.includes('silicon')) {
+              labelsToAdd.push('platform/macos');
+            }
+            if (content.includes('linux') || content.includes('ubuntu') || content.includes('debian') || content.includes('fedora') || content.includes('arch')) {
+              labelsToAdd.push('platform/linux');
+            }
+            if (content.includes('windows') || content.includes('win32') || content.includes('win64')) {
+              labelsToAdd.push('platform/windows');
+            }
+
+            // Good first issue indicators (questions from newcomers)
+            const beginnerKeywords = ['beginner', 'newcomer', 'first time', 'getting started', 'how do i start', 'contribution guide'];
+            if (beginnerKeywords.some(kw => content.includes(kw))) {
+              labelsToAdd.push('good first issue');
+            }
+
+            // Question detection
+            const questionKeywords = ['how do', 'how can', 'how to', 'what is', 'why does', 'can i', 'is it possible', 'does it support', '?'];
+            if (questionKeywords.some(kw => content.includes(kw)) && !labelsToAdd.includes('bug') && !labelsToAdd.includes('enhancement')) {
+              labelsToAdd.push('question');
+            }
+
+            // Remove duplicates
+            const uniqueLabels = [...new Set(labelsToAdd)];
+
+            if (uniqueLabels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: uniqueLabels
+              });
+              console.log(`Added labels to issue #${issue.number}: ${uniqueLabels.join(', ')}`);
+            }
+
+  check-for-duplicates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for potential duplicate issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const title = issue.title.toLowerCase();
+
+            // Get open issues
+            const { data: openIssues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100
+            });
+
+            // Simple word-based similarity check
+            const titleWords = title.split(/\s+/).filter(w => w.length > 3);
+
+            const potentialDuplicates = openIssues
+              .filter(i => i.number !== issue.number)
+              .filter(i => {
+                const otherTitle = i.title.toLowerCase();
+                const otherWords = otherTitle.split(/\s+/).filter(w => w.length > 3);
+                const commonWords = titleWords.filter(w => otherWords.includes(w));
+                const similarity = commonWords.length / Math.max(titleWords.length, 1);
+                return similarity > 0.5; // More than 50% word overlap
+              })
+              .slice(0, 3); // Max 3 suggestions
+
+            if (potentialDuplicates.length > 0) {
+              const duplicateList = potentialDuplicates
+                .map(d => `- #${d.number}: ${d.title}`)
+                .join('\n');
+
+              const comment = `### Potential Related Issues
+
+This issue might be related to existing issues:
+
+${duplicateList}
+
+If your issue is a duplicate, please add a comment to the existing issue instead. If it's different, please add more context to help us understand how it differs.
+
+*This is an automated check. Please verify the suggestions above.*`;
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: comment
+              });
+            }

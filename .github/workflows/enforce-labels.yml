@@ -1,0 +1,74 @@
+name: Enforce PR Labels
+
+on:
+  pull_request:
+    types: [opened, labeled, unlabeled, synchronize]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  check-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for required labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const labels = pr.labels.map(l => l.name);
+
+            // Define required label categories
+            const typeLabels = ['bug', 'enhancement', 'documentation', 'testing', 'ci/cd', 'dependencies', 'performance', 'security'];
+            const sizeLabels = ['size/XS', 'size/S', 'size/M', 'size/L', 'size/XL'];
+
+            // Check for at least one type label
+            const hasTypeLabel = labels.some(l => typeLabels.includes(l));
+
+            // Size labels are auto-added by labeler workflow, so we just check
+            const hasSizeLabel = labels.some(l => sizeLabels.includes(l));
+
+            let messages = [];
+
+            if (!hasTypeLabel) {
+              messages.push(`**Missing type label**: Please add one of: \`${typeLabels.join('`, `')}\``);
+            }
+
+            if (messages.length > 0) {
+              const failMessage = `## Label Check Failed
+
+${messages.join('\n\n')}
+
+Please add the appropriate labels to this PR. Labels help us categorize and prioritize changes.
+
+*This check will pass automatically once the required labels are added.*`;
+
+              core.setFailed(failMessage);
+            } else {
+              console.log('All required labels present');
+            }
+
+  check-breaking-change:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for breaking change acknowledgment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const body = (pr.body || '').toLowerCase();
+            const title = pr.title.toLowerCase();
+            const labels = pr.labels.map(l => l.name);
+
+            // Keywords that suggest breaking changes
+            const breakingKeywords = ['breaking', 'breaking change', 'backwards incompatible', 'migration required'];
+
+            const suggestsBreaking = breakingKeywords.some(kw =>
+              body.includes(kw) || title.includes(kw)
+            );
+
+            const hasBreakingLabel = labels.includes('breaking-change');
+
+            if (suggestsBreaking && !hasBreakingLabel) {
+              core.warning('This PR mentions breaking changes but doesn\'t have the `breaking-change` label. Please add the label if this PR introduces breaking changes.');
+            }

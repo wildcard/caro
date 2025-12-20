@@ -1,0 +1,113 @@
+name: Thank Contributors
+
+on:
+  pull_request_target:
+    types: [closed]
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  thank-contributor:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Thank the contributor
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prAuthor = context.payload.pull_request.user.login;
+            const prNumber = context.payload.pull_request.number;
+            const prTitle = context.payload.pull_request.title;
+
+            // Skip bot PRs
+            if (prAuthor.includes('[bot]') || prAuthor === 'dependabot') {
+              console.log('Skipping bot PR');
+              return;
+            }
+
+            // Check total merged PRs by this contributor
+            const { data: allPRs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'closed',
+              per_page: 100
+            });
+
+            const mergedPRsByAuthor = allPRs.filter(
+              pr => pr.user.login === prAuthor && pr.merged_at !== null
+            );
+
+            const totalMergedPRs = mergedPRsByAuthor.length;
+
+            let message = '';
+            let celebrationEmoji = ':tada:';
+
+            // Milestone celebrations
+            if (totalMergedPRs === 1) {
+              celebrationEmoji = ':rocket:';
+              message = `## Congratulations on your first merged PR! ${celebrationEmoji}
+
+@${prAuthor}, you're now officially a cmdai contributor! Your contribution matters, and we're grateful you chose to help improve this project.
+
+**What's next?**
+- Check out more [good first issues](https://github.com/${context.repo.owner}/${context.repo.repo}/labels/good%20first%20issue) to continue contributing
+- Join the conversation in [GitHub Discussions](https://github.com/${context.repo.owner}/${context.repo.repo}/discussions)
+- Star the repo if you haven't already!
+
+Welcome to the cmdai community! :heart:`;
+            } else if (totalMergedPRs === 5) {
+              celebrationEmoji = ':star:';
+              message = `## 5 PRs merged! ${celebrationEmoji}
+
+Incredible work, @${prAuthor}! You've now contributed 5 pull requests to cmdai. You're becoming a regular contributor!
+
+Thank you for your continued dedication to making cmdai better. Your contributions are making a real difference! :muscle:`;
+            } else if (totalMergedPRs === 10) {
+              celebrationEmoji = ':trophy:';
+              message = `## 10 PRs merged! ${celebrationEmoji}
+
+Amazing milestone, @${prAuthor}! You've contributed 10 pull requests to cmdai. You're a valued member of our community!
+
+Contributors like you are what make open source amazing. Thank you for your incredible dedication! :star2:`;
+            } else if (totalMergedPRs === 25) {
+              celebrationEmoji = ':crown:';
+              message = `## 25 PRs merged! ${celebrationEmoji}
+
+Legendary status achieved, @${prAuthor}! 25 pull requests is an outstanding accomplishment.
+
+Your sustained contributions have had a significant impact on cmdai. We're incredibly grateful for everything you do! :gem:`;
+            } else {
+              message = `## Thank you! ${celebrationEmoji}
+
+Thanks for your contribution, @${prAuthor}! Your PR has been merged.
+
+Contribution #${totalMergedPRs} - Every contribution helps make cmdai better! :heart:`;
+            }
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: message
+            });
+
+  add-contributor:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Add contributor to all-contributors
+        uses: all-contributors/add-contributor@v1
+        continue-on-error: true
+        with:
+          contributor_name: ${{ github.event.pull_request.user.login }}
+          contributor_type: code
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

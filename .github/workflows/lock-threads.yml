@@ -1,0 +1,61 @@
+name: Lock Old Threads
+
+on:
+  schedule:
+    # Run every Sunday at midnight UTC
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  lock:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lock old threads
+        uses: dessant/lock-threads@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+          # Lock issues after 365 days of inactivity after being closed
+          issue-inactive-days: 365
+
+          # Lock PRs after 180 days of inactivity after being closed
+          pr-inactive-days: 180
+
+          # Add a comment when locking issues
+          issue-comment: |
+            :lock: This issue has been automatically locked since there has not been any recent activity after it was closed.
+
+            **If you have a related question or issue:**
+            - For bugs: Please [open a new issue](https://github.com/${context.repo.owner}/${context.repo.repo}/issues/new/choose) with current information
+            - For questions: Please use [GitHub Discussions](https://github.com/${context.repo.owner}/${context.repo.repo}/discussions)
+            - For security issues: Please see our [Security Policy](https://github.com/${context.repo.owner}/${context.repo.repo}/security/policy)
+
+            Thank you for your contributions to cmdai!
+
+          # Add a comment when locking PRs
+          pr-comment: |
+            :lock: This pull request has been automatically locked since there has not been any recent activity after it was closed.
+
+            **If you'd like to continue this work:**
+            - Please open a new pull request with your changes
+            - Reference this PR for context
+
+            Thank you for your contributions to cmdai!
+
+          # Lock issues/PRs as resolved (alternatives: off-topic, too heated, spam)
+          issue-lock-reason: 'resolved'
+          pr-lock-reason: 'resolved'
+
+          # Don't lock issues with these labels
+          exclude-issue-created-before: ''
+          exclude-issue-labels: 'keep-open,pinned'
+
+          # Process limit per run
+          process-only: 100
+
+          # Log output for debugging
+          log-output: true

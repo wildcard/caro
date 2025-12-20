@@ -1,0 +1,161 @@
+# Release Drafter Configuration
+# Automatically drafts release notes based on merged PRs
+
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+
+categories:
+  - title: ':boom: Breaking Changes'
+    labels:
+      - 'breaking-change'
+
+  - title: ':rocket: Features'
+    labels:
+      - 'enhancement'
+
+  - title: ':bug: Bug Fixes'
+    labels:
+      - 'bug'
+
+  - title: ':shield: Security'
+    labels:
+      - 'security'
+
+  - title: ':zap: Performance'
+    labels:
+      - 'performance'
+
+  - title: ':books: Documentation'
+    labels:
+      - 'documentation'
+
+  - title: ':wrench: Maintenance'
+    labels:
+      - 'ci/cd'
+      - 'dependencies'
+      - 'testing'
+
+  - title: ':package: Other Changes'
+    labels:
+      - '*'
+
+# Exclude certain labels from release notes
+exclude-labels:
+  - 'skip-changelog'
+  - 'duplicate'
+  - 'invalid'
+  - 'wontfix'
+  - 'stale'
+
+# Auto-labeling based on branch names or titles
+autolabeler:
+  - label: 'bug'
+    branch:
+      - '/fix\/.+/'
+      - '/bugfix\/.+/'
+    title:
+      - '/fix/i'
+      - '/bug/i'
+
+  - label: 'enhancement'
+    branch:
+      - '/feature\/.+/'
+      - '/feat\/.+/'
+    title:
+      - '/feat/i'
+      - '/feature/i'
+      - '/add/i'
+
+  - label: 'documentation'
+    branch:
+      - '/docs\/.+/'
+    title:
+      - '/docs/i'
+      - '/documentation/i'
+
+  - label: 'ci/cd'
+    branch:
+      - '/ci\/.+/'
+      - '/github-actions\/.+/'
+    files:
+      - '.github/**'
+
+  - label: 'dependencies'
+    branch:
+      - '/deps\/.+/'
+      - '/dependabot\/.+/'
+    files:
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+
+  - label: 'testing'
+    branch:
+      - '/test\/.+/'
+    files:
+      - 'tests/**'
+      - 'benches/**'
+
+  - label: 'backend'
+    files:
+      - 'src/backends/**'
+
+  - label: 'safety'
+    files:
+      - 'src/safety/**'
+
+# Version resolver based on labels
+version-resolver:
+  major:
+    labels:
+      - 'breaking-change'
+  minor:
+    labels:
+      - 'enhancement'
+  patch:
+    labels:
+      - 'bug'
+      - 'documentation'
+      - 'ci/cd'
+      - 'dependencies'
+      - 'performance'
+  default: patch
+
+# Template for release notes
+template: |
+  ## What's Changed
+
+  $CHANGES
+
+  ## Contributors
+
+  $CONTRIBUTORS
+
+  ---
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+
+  ## Installation
+
+  ```bash
+  # Using cargo
+  cargo install cmdai
+
+  # Or download the binary for your platform from the assets below
+  ```
+
+# Change template for each PR
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+
+# Template for changes without a category
+change-title-escapes: '\<*_&'
+
+# Sorting PRs
+sort-by: merged_at
+sort-direction: descending
+
+# Replacers for consistent formatting
+replacers:
+  - search: '/\[skip ci\]/g'
+    replace: ''
+  - search: '/\[ci skip\]/g'
+    replace: ''
