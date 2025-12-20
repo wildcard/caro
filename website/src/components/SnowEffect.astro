@@ -1,0 +1,222 @@
+---
+// Snow Effect Component
+// Creates a beautiful falling snow animation overlay
+// Can be toggled on/off by the user
+---
+
+<div id="snow-container" class="snow-container"></div>
+
+<style is:global>
+  .snow-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  .snow-container.active {
+    opacity: 1;
+  }
+
+  .snowflake {
+    position: absolute;
+    top: -10px;
+    color: white;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+    user-select: none;
+    animation: fall linear infinite, sway ease-in-out infinite;
+    will-change: transform;
+  }
+
+  /* Different snowflake sizes */
+  .snowflake.small {
+    font-size: 10px;
+    opacity: 0.6;
+  }
+
+  .snowflake.medium {
+    font-size: 16px;
+    opacity: 0.8;
+  }
+
+  .snowflake.large {
+    font-size: 24px;
+    opacity: 1;
+  }
+
+  @keyframes fall {
+    0% {
+      transform: translateY(-10px) rotate(0deg);
+    }
+    100% {
+      transform: translateY(100vh) rotate(360deg);
+    }
+  }
+
+  @keyframes sway {
+    0%, 100% {
+      margin-left: 0;
+    }
+    25% {
+      margin-left: 15px;
+    }
+    50% {
+      margin-left: -5px;
+    }
+    75% {
+      margin-left: 10px;
+    }
+  }
+
+  /* Hanukkah mode: blue-tinted snowflakes */
+  .hanukkah .snowflake {
+    color: #e6f0ff;
+    text-shadow: 0 0 5px rgba(0, 56, 184, 0.6);
+  }
+
+  /* Reduce motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    .snowflake {
+      animation: none;
+      opacity: 0;
+    }
+  }
+</style>
+
+<script>
+  // Snow effect management
+  class SnowEffect {
+    private container: HTMLElement | null;
+    private snowflakes: HTMLElement[] = [];
+    private isActive: boolean = false;
+    private maxSnowflakes: number = 50;
+    private snowflakeChars: string[] = ['❄', '❅', '❆', '✻', '✼', '❉'];
+
+    constructor() {
+      this.container = document.getElementById('snow-container');
+      this.setupResizeHandler();
+    }
+
+    private setupResizeHandler(): void {
+      let resizeTimeout: number;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = window.setTimeout(() => {
+          if (this.isActive) {
+            this.regenerateSnowflakes();
+          }
+        }, 250);
+      });
+    }
+
+    private createSnowflake(): HTMLElement {
+      const snowflake = document.createElement('span');
+      snowflake.className = 'snowflake';
+
+      // Random size
+      const sizes = ['small', 'medium', 'large'];
+      const sizeWeights = [0.5, 0.35, 0.15]; // More small, fewer large
+      const random = Math.random();
+      let cumulative = 0;
+      let selectedSize = 'small';
+      for (let i = 0; i < sizes.length; i++) {
+        cumulative += sizeWeights[i];
+        if (random <= cumulative) {
+          selectedSize = sizes[i];
+          break;
+        }
+      }
+      snowflake.classList.add(selectedSize);
+
+      // Random snowflake character
+      snowflake.textContent = this.snowflakeChars[Math.floor(Math.random() * this.snowflakeChars.length)];
+
+      // Random position
+      snowflake.style.left = `${Math.random() * 100}%`;
+
+      // Random animation duration (slower for larger flakes for depth effect)
+      const baseDuration = selectedSize === 'large' ? 8 : selectedSize === 'medium' ? 10 : 12;
+      const duration = baseDuration + Math.random() * 5;
+      snowflake.style.animationDuration = `${duration}s, ${2 + Math.random() * 3}s`;
+
+      // Random animation delay
+      snowflake.style.animationDelay = `${Math.random() * 10}s, ${Math.random() * 2}s`;
+
+      return snowflake;
+    }
+
+    private regenerateSnowflakes(): void {
+      this.clearSnowflakes();
+      this.generateSnowflakes();
+    }
+
+    private generateSnowflakes(): void {
+      if (!this.container) return;
+
+      // Adjust number based on screen width
+      const screenWidth = window.innerWidth;
+      let count = this.maxSnowflakes;
+      if (screenWidth < 768) {
+        count = 25; // Fewer on mobile for performance
+      } else if (screenWidth < 1200) {
+        count = 35;
+      }
+
+      for (let i = 0; i < count; i++) {
+        const snowflake = this.createSnowflake();
+        this.snowflakes.push(snowflake);
+        this.container.appendChild(snowflake);
+      }
+    }
+
+    private clearSnowflakes(): void {
+      this.snowflakes.forEach(sf => sf.remove());
+      this.snowflakes = [];
+    }
+
+    public start(): void {
+      if (this.isActive || !this.container) return;
+
+      this.isActive = true;
+      this.container.classList.add('active');
+      this.generateSnowflakes();
+    }
+
+    public stop(): void {
+      if (!this.isActive || !this.container) return;
+
+      this.isActive = false;
+      this.container.classList.remove('active');
+
+      // Clear snowflakes after fade out
+      setTimeout(() => {
+        if (!this.isActive) {
+          this.clearSnowflakes();
+        }
+      }, 500);
+    }
+
+    public toggle(): void {
+      if (this.isActive) {
+        this.stop();
+      } else {
+        this.start();
+      }
+    }
+
+    public isRunning(): boolean {
+      return this.isActive;
+    }
+  }
+
+  // Initialize and expose globally
+  document.addEventListener('DOMContentLoaded', () => {
+    (window as any).snowEffect = new SnowEffect();
+  });
+</script>
