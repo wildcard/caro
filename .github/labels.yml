@@ -1,0 +1,204 @@
+# Label configuration for GitHub Label Sync
+# Use: npx github-label-sync --labels .github/labels.yml owner/repo
+
+# Type labels
+- name: "bug"
+  color: "d73a4a"
+  description: "Something isn't working"
+
+- name: "enhancement"
+  color: "a2eeef"
+  description: "New feature or request"
+
+- name: "documentation"
+  color: "0075ca"
+  description: "Improvements or additions to documentation"
+
+- name: "question"
+  color: "d876e3"
+  description: "Further information is requested"
+
+- name: "security"
+  color: "ee0701"
+  description: "Security-related issue or improvement"
+
+# Priority labels
+- name: "priority/critical"
+  color: "b60205"
+  description: "Must be fixed immediately"
+
+- name: "priority/high"
+  color: "d93f0b"
+  description: "Should be addressed soon"
+
+- name: "priority/medium"
+  color: "fbca04"
+  description: "Normal priority"
+
+- name: "priority/low"
+  color: "0e8a16"
+  description: "Nice to have"
+
+# Size labels (for PRs)
+- name: "size/XS"
+  color: "3CBF00"
+  description: "Extra small PR (< 10 lines)"
+
+- name: "size/S"
+  color: "5D9801"
+  description: "Small PR (10-50 lines)"
+
+- name: "size/M"
+  color: "7F7203"
+  description: "Medium PR (50-200 lines)"
+
+- name: "size/L"
+  color: "A14C05"
+  description: "Large PR (200-500 lines)"
+
+- name: "size/XL"
+  color: "C32607"
+  description: "Extra large PR (> 500 lines)"
+
+# Status labels
+- name: "needs-triage"
+  color: "ededed"
+  description: "Needs initial triage and labeling"
+
+- name: "stale"
+  color: "fef2c0"
+  description: "No recent activity"
+
+- name: "blocked"
+  color: "b60205"
+  description: "Blocked by another issue or external factor"
+
+- name: "work-in-progress"
+  color: "fef2c0"
+  description: "Currently being worked on"
+
+- name: "awaiting-response"
+  color: "fef2c0"
+  description: "Waiting for response from author"
+
+- name: "ready-for-review"
+  color: "0e8a16"
+  description: "Ready for maintainer review"
+
+- name: "approved"
+  color: "0e8a16"
+  description: "Approved and ready to merge"
+
+# Component labels
+- name: "backend"
+  color: "c5def5"
+  description: "Related to inference backends"
+
+- name: "safety"
+  color: "d4c5f9"
+  description: "Related to command safety validation"
+
+- name: "cli"
+  color: "c5def5"
+  description: "Related to CLI interface"
+
+- name: "config"
+  color: "c5def5"
+  description: "Related to configuration system"
+
+- name: "cache"
+  color: "c5def5"
+  description: "Related to model caching"
+
+- name: "rust"
+  color: "dea584"
+  description: "Rust source code changes"
+
+- name: "testing"
+  color: "bfd4f2"
+  description: "Related to tests"
+
+- name: "ci/cd"
+  color: "1d76db"
+  description: "CI/CD and GitHub Actions"
+
+- name: "dependencies"
+  color: "0366d6"
+  description: "Dependency updates"
+
+- name: "performance"
+  color: "ffc0cb"
+  description: "Performance improvements"
+
+# Platform labels
+- name: "platform/macos"
+  color: "f9d0c4"
+  description: "macOS specific"
+
+- name: "platform/linux"
+  color: "f9d0c4"
+  description: "Linux specific"
+
+- name: "platform/windows"
+  color: "f9d0c4"
+  description: "Windows specific"
+
+# Contributor experience labels
+- name: "good first issue"
+  color: "7057ff"
+  description: "Good for newcomers"
+
+- name: "help wanted"
+  color: "008672"
+  description: "Extra attention is needed"
+
+- name: "mentor-available"
+  color: "7057ff"
+  description: "Maintainer willing to mentor on this issue"
+
+# Management labels
+- name: "pinned"
+  color: "006b75"
+  description: "Pinned issue - won't be auto-closed"
+
+- name: "keep-open"
+  color: "006b75"
+  description: "Keep this issue open"
+
+- name: "duplicate"
+  color: "cfd3d7"
+  description: "This issue or pull request already exists"
+
+- name: "wontfix"
+  color: "ffffff"
+  description: "This will not be worked on"
+
+- name: "invalid"
+  color: "e4e669"
+  description: "This doesn't seem right"
+
+# Release labels
+- name: "breaking-change"
+  color: "b60205"
+  description: "Introduces a breaking change"
+
+- name: "needs-changelog"
+  color: "fbca04"
+  description: "Requires changelog entry"
+
+- name: "release-blocker"
+  color: "b60205"
+  description: "Blocks the next release"
+
+# Spec labels
+- name: "specs"
+  color: "c2e0c6"
+  description: "Related to specifications"
+
+- name: "website"
+  color: "bfdadc"
+  description: "Related to website"
+
+- name: "devcontainer"
+  color: "0969da"
+  description: "Related to development container"
