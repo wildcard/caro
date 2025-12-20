@@ -44,12 +44,6 @@ const bannerId = 'caro-announcement-dec-2025'; // Unique ID for this banner
       if (banner) {
         banner.style.display = 'block';
       }
-    } else {
-      // Update navigation position if banner is hidden
-      const nav = document.querySelector('.navigation');
-      if (nav) {
-        nav.style.top = '0';
-      }
     }
   })();
 </script>
@@ -62,8 +56,7 @@ const bannerId = 'caro-announcement-dec-2025'; // Unique ID for this banner
     text-align: center;
     font-weight: 500;
     font-size: 14px;
-    position: sticky;
-    top: 0;
+    position: relative;
     z-index: 1001;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease, opacity 0.3s ease;
@@ -133,21 +126,12 @@ const bannerId = 'caro-announcement-dec-2025'; // Unique ID for this banner
     const bannerId = banner.dataset.bannerId;
     const dismissButton = document.getElementById('dismiss-banner');
 
-    // Helper function to update navigation position
-    function updateNavigationPosition() {
-      const nav = document.querySelector('.navigation');
-      if (nav) {
-        nav.style.top = '0';
-      }
-    }
-
     // Handle dismiss button click
     dismissButton?.addEventListener('click', () => {
       localStorage.setItem(`banner-dismissed-${bannerId}`, 'true');
       banner.classList.add('hidden');
       setTimeout(() => {
         banner.remove();
-        updateNavigationPosition();
       }, 300);
     });
   });
