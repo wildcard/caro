@@ -4,7 +4,7 @@ const expiryDate = '2026-01-10'; // Auto-dismiss after this date
 const bannerId = 'caro-announcement-dec-2025'; // Unique ID for this banner
 ---
 
-<div id="announcement-banner" class="announcement-banner" data-banner-id={bannerId} data-expiry={expiryDate}>
+<div id="announcement-banner" class="announcement-banner" data-banner-id={bannerId} data-expiry={expiryDate} style="display: none;">
   <div class="announcement-content">
     <span>🎉 <strong>Announcing Caro!</strong> We've renamed from cmdai to caro. <a href="/blog/announcing-caro">Read the announcement</a> →</span>
     <button id="dismiss-banner" class="dismiss-button" aria-label="Dismiss announcement" title="Dismiss">
@@ -15,6 +15,44 @@ const bannerId = 'caro-announcement-dec-2025'; // Unique ID for this banner
     </button>
   </div>
 </div>
+
+<script is:inline>
+  // Inline script to prevent flash - runs immediately before DOM is ready
+  (function() {
+    const bannerId = 'caro-announcement-dec-2025';
+    const expiryDate = '2026-01-10';
+
+    // Check if banner should be shown
+    const shouldShow = () => {
+      // Check expiry
+      if (new Date() > new Date(expiryDate)) {
+        return false;
+      }
+
+      // Check if dismissed
+      const dismissed = localStorage.getItem(`banner-dismissed-${bannerId}`);
+      if (dismissed) {
+        return false;
+      }
+
+      return true;
+    };
+
+    // Show banner if needed
+    if (shouldShow()) {
+      const banner = document.getElementById('announcement-banner');
+      if (banner) {
+        banner.style.display = 'block';
+      }
+    } else {
+      // Update navigation position if banner is hidden
+      const nav = document.querySelector('.navigation');
+      if (nav) {
+        nav.style.top = '0';
+      }
+    }
+  })();
+</script>
 
 <style>
   .announcement-banner {
@@ -93,7 +131,6 @@ const bannerId = 'caro-announcement-dec-2025'; // Unique ID for this banner
     if (!banner) return;
 
     const bannerId = banner.dataset.bannerId;
-    const expiryDate = banner.dataset.expiry;
     const dismissButton = document.getElementById('dismiss-banner');
 
     // Helper function to update navigation position
@@ -102,27 +139,6 @@ const bannerId = 'caro-announcement-dec-2025'; // Unique ID for this banner
       if (nav) {
         nav.style.top = '0';
       }
-    }
-
-    // Check if banner has expired
-    if (expiryDate && new Date() > new Date(expiryDate)) {
-      banner.classList.add('hidden');
-      setTimeout(() => {
-        banner.remove();
-        updateNavigationPosition();
-      }, 300);
-      return;
-    }
-
-    // Check if user has dismissed this banner
-    const dismissed = localStorage.getItem(`banner-dismissed-${bannerId}`);
-    if (dismissed) {
-      banner.classList.add('hidden');
-      setTimeout(() => {
-        banner.remove();
-        updateNavigationPosition();
-      }, 300);
-      return;
     }
 
     // Handle dismiss button click

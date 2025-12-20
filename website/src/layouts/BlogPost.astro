@@ -1,5 +1,7 @@
 ---
 import Layout from './Layout.astro';
+import AnnouncementBanner from '../components/AnnouncementBanner.astro';
+import Navigation from '../components/Navigation.astro';
 
 interface Props {
   title: string;
@@ -12,6 +14,9 @@ const { title, description, date, readTime } = Astro.props;
 ---
 
 <Layout title={`${title} - Caro Blog`} description={description}>
+  <AnnouncementBanner />
+  <Navigation />
+
   <div class="blog-post">
     <div class="blog-post-header">
       <div class="container">

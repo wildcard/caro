@@ -1,6 +1,35 @@
 ---
 ---
 
+<script is:inline>
+  // Update navigation position based on banner height
+  (function() {
+    const updateNavPosition = () => {
+      const banner = document.getElementById('announcement-banner');
+      const nav = document.querySelector('.navigation');
+
+      if (!nav) return;
+
+      if (banner && banner.style.display !== 'none' && !banner.classList.contains('hidden')) {
+        // Banner is visible - position nav below it
+        const bannerHeight = banner.offsetHeight;
+        nav.style.top = `${bannerHeight}px`;
+      } else {
+        // Banner is hidden - nav at top
+        nav.style.top = '0';
+      }
+    };
+
+    // Run immediately
+    updateNavPosition();
+
+    // Update on window resize
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', updateNavPosition);
+    }
+  })();
+</script>
+
 <nav class="navigation">
   <div class="container">
     <a href="/" class="nav-brand">🐕 Caro</a>
@@ -37,9 +66,9 @@
     padding: 15px 0;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     position: sticky;
-    top: 38px;
+    top: 0;
     z-index: 999;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, top 0.3s ease;
   }
 
   .container {
@@ -69,6 +98,12 @@
     list-style: none;
     margin: 0;
     padding: 0;
+    align-items: center;
+  }
+
+  .nav-links li {
+    display: flex;
+    align-items: center;
   }
 
   .nav-links a {
@@ -76,6 +111,8 @@
     text-decoration: none;
     font-weight: 500;
     transition: color 0.2s;
+    display: flex;
+    align-items: center;
   }
 
   .nav-links a:hover {
@@ -125,10 +162,6 @@
   }
 
   @media (max-width: 768px) {
-    .navigation {
-      top: 33px;
-    }
-
     .nav-brand {
       font-size: 20px;
     }
