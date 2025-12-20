@@ -15,6 +15,7 @@
 //! - [`config`] - Configuration management with TOML support
 //! - [`execution`] - Execution context capture and shell detection
 //! - [`logging`] - Structured logging with sensitive data redaction
+//! - [`suggestions`] - Proactive query suggestions based on user environment
 //!
 //! # Example
 //!
@@ -37,6 +38,7 @@ pub mod model_loader;
 pub mod models;
 pub mod platform;
 pub mod safety;
+pub mod suggestions;
 
 // Re-export commonly used types for convenience
 pub use models::{
@@ -62,3 +64,9 @@ pub use backends::embedded::{
 #[cfg(feature = "remote-backends")]
 pub use backends::remote::{OllamaBackend, VllmBackend};
 pub use backends::{BackendInfo as BackendInfoTrait, CommandGenerator, GeneratorError};
+
+// Re-export suggestions types
+pub use suggestions::{
+    AnalysisCoordinator, QueryCategory, SuggestedQuery, SuggestionError, SuggestionReason,
+    SuggestionsConfig,
+};
