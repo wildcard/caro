@@ -28,6 +28,7 @@
 pub mod agent;
 pub mod backends;
 pub mod cache;
+pub mod capabilities;
 pub mod cli;
 pub mod config;
 pub mod context;
@@ -55,6 +56,11 @@ pub use execution::{ExecutionError, PlatformDetector, ShellDetector};
 pub use logging::{LogConfig, LogConfigBuilder, LogError, LogFormat, LogOutput, Logger, Redaction};
 pub use model_loader::ModelLoader;
 pub use platform::{PlatformContext, PlatformContextBuilder, PlatformContextError, UtilityType};
+
+// Re-export capability boundary types
+pub use capabilities::{
+    AlternativeTool, BoundaryCheckResult, CapabilityError, CapabilityValidator, RejectionCategory,
+};
 
 // Re-export backend types
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
