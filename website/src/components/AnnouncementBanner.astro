@@ -1,7 +1,7 @@
 ---
 // Announcement banner configuration
-const expiryDate = '2025-01-10'; // Auto-dismiss after this date
-const bannerId = 'caro-rename-announcement'; // Unique ID for this banner
+const expiryDate = '2026-01-10'; // Auto-dismiss after this date
+const bannerId = 'caro-announcement-dec-2025'; // Unique ID for this banner
 ---
 
 <div id="announcement-banner" class="announcement-banner" data-banner-id={bannerId} data-expiry={expiryDate}>
@@ -96,10 +96,21 @@ const bannerId = 'caro-rename-announcement'; // Unique ID for this banner
     const expiryDate = banner.dataset.expiry;
     const dismissButton = document.getElementById('dismiss-banner');
 
+    // Helper function to update navigation position
+    function updateNavigationPosition() {
+      const nav = document.querySelector('.navigation');
+      if (nav) {
+        nav.style.top = '0';
+      }
+    }
+
     // Check if banner has expired
     if (expiryDate && new Date() > new Date(expiryDate)) {
       banner.classList.add('hidden');
-      setTimeout(() => banner.remove(), 300);
+      setTimeout(() => {
+        banner.remove();
+        updateNavigationPosition();
+      }, 300);
       return;
     }
 
@@ -107,7 +118,10 @@ const bannerId = 'caro-rename-announcement'; // Unique ID for this banner
     const dismissed = localStorage.getItem(`banner-dismissed-${bannerId}`);
     if (dismissed) {
       banner.classList.add('hidden');
-      setTimeout(() => banner.remove(), 300);
+      setTimeout(() => {
+        banner.remove();
+        updateNavigationPosition();
+      }, 300);
       return;
     }
 
@@ -115,7 +129,10 @@ const bannerId = 'caro-rename-announcement'; // Unique ID for this banner
     dismissButton?.addEventListener('click', () => {
       localStorage.setItem(`banner-dismissed-${bannerId}`, 'true');
       banner.classList.add('hidden');
-      setTimeout(() => banner.remove(), 300);
+      setTimeout(() => {
+        banner.remove();
+        updateNavigationPosition();
+      }, 300);
     });
   });
 </script>
