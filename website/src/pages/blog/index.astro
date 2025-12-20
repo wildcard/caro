@@ -1,0 +1,284 @@
+---
+import '../../styles/global.css';
+
+const posts = [
+  {
+    title: "Announcing Caro: Your Terminal's AI Companion",
+    description: "We're excited to announce that cmdai has been renamed to caro! Thanks to @aeplay for graciously transferring the crate name. Learn about the rename, new features, and how to get started.",
+    date: "December 20, 2025",
+    readTime: "5 min read",
+    slug: "announcing-caro",
+    badge: "🎉 NEW"
+  },
+  {
+    title: "Why Caro? The Story Behind Your Terminal Companion",
+    description: "Discover the heartwarming story of how Kyaro, an office-loving Shiba Inu who grew up among developers and system administrators, became Caro—your eternal companion in the terminal.",
+    date: "December 17, 2025",
+    readTime: "8 min read",
+    slug: "why-caro",
+    badge: null
+  }
+];
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - Caro</title>
+    <meta name="description" content="Stories, updates, and insights from Caro's journey - your loyal shell companion">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-brand {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ff8c42;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: #ff8c42;
+        }
+
+        /* Hero */
+        .hero {
+            background: linear-gradient(135deg, #fff8f0 0%, #ffffff 100%);
+            padding: 80px 20px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: #7f8c8d;
+        }
+
+        /* Posts */
+        .posts {
+            padding: 60px 20px;
+        }
+
+        .blog-posts {
+            display: grid;
+            gap: 30px;
+        }
+
+        .blog-card {
+            background: white;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .blog-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        .blog-badge {
+            display: inline-block;
+            background: #fff3e6;
+            color: #ff8c42;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .blog-meta {
+            display: flex;
+            gap: 20px;
+            color: #ff8c42;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .blog-card h2 {
+            font-size: 32px;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .blog-card p {
+            color: #7f8c8d;
+            line-height: 1.8;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .read-more {
+            color: #ff8c42;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 16px;
+        }
+
+        .read-more:after {
+            content: '→';
+            transition: transform 0.2s;
+        }
+
+        .blog-card:hover .read-more:after {
+            transform: translateX(5px);
+        }
+
+        /* Footer */
+        footer {
+            background: #2c3e50;
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            margin-top: 80px;
+        }
+
+        footer a {
+            color: #ff8c42;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 32px;
+            }
+
+            .nav-links {
+                gap: 15px;
+                font-size: 14px;
+            }
+
+            .blog-card {
+                padding: 30px;
+            }
+
+            .blog-card h2 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <a href="/" class="nav-brand">🐕 Caro</a>
+            <ul class="nav-links">
+                <li><a href="/#features">Features</a></li>
+                <li><a href="/blog">Blog</a></li>
+                <li><a href="/#download">Get Started</a></li>
+                <li><a href="https://github.com/wildcard/caro">GitHub</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <div class="hero">
+        <div class="container">
+            <h1>📝 From the Pack</h1>
+            <p>Stories, updates, and insights from Caro's journey</p>
+        </div>
+    </div>
+
+    <!-- Posts -->
+    <section class="posts">
+        <div class="container">
+            <div class="blog-posts">
+                {posts.map(post => (
+                    <a href={`/blog/${post.slug}`} class="blog-card">
+                        {post.badge && <div class="blog-badge">{post.badge}</div>}
+                        <div class="blog-meta">
+                            <span>{post.date}</span>
+                            <span>•</span>
+                            <span>{post.readTime}</span>
+                        </div>
+                        <h2>{post.title}</h2>
+                        <p>{post.description}</p>
+                        <span class="read-more">Read more</span>
+                    </a>
+                ))}
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>Built with Rust 🦀 | Open source on <a href="https://github.com/wildcard/caro">GitHub</a></p>
+            <p style="margin-top: 15px; font-size: 16px;">
+                <strong>caro.sh</strong> - Your loyal shell companion
+            </p>
+            <p style="margin-top: 10px; font-size: 14px; color: #95a5a6;">
+                <a href="https://github.com/wildcard/caro/blob/main/LICENSE">AGPL-3.0</a> |
+                <a href="https://github.com/wildcard/caro/blob/main/CONTRIBUTING.md">Contributing</a> |
+                <a href="https://github.com/wildcard/caro/issues">Issues</a>
+            </p>
+        </div>
+    </footer>
+</body>
+</html>
