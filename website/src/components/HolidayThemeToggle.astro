@@ -1,0 +1,249 @@
+---
+// Holiday Theme Toggle Component
+// Allows users to switch between Christmas, Hanukkah, or no holiday theme
+// Only visible during the holiday season (December 1 - January 1)
+---
+
+<div id="holiday-theme-container" class="holiday-theme-container hidden">
+  <button id="holiday-toggle" class="holiday-toggle" aria-label="Toggle holiday theme menu" title="Holiday Theme">
+    <span class="holiday-icon christmas-icon">🎄</span>
+    <span class="holiday-icon hanukkah-icon">🕎</span>
+    <span class="holiday-icon default-icon">✨</span>
+  </button>
+
+  <div id="holiday-menu" class="holiday-menu hidden">
+    <div class="holiday-menu-header">Holiday Theme</div>
+    <button class="holiday-option" data-theme="christmas">
+      <span class="option-icon">🎄</span>
+      <span class="option-text">Christmas</span>
+      <span class="option-check">✓</span>
+    </button>
+    <button class="holiday-option" data-theme="hanukkah">
+      <span class="option-icon">🕎</span>
+      <span class="option-text">Hanukkah</span>
+      <span class="option-check">✓</span>
+    </button>
+    <div class="holiday-menu-divider"></div>
+    <button class="holiday-option" data-theme="none">
+      <span class="option-icon">🚫</span>
+      <span class="option-text">No Theme</span>
+      <span class="option-check">✓</span>
+    </button>
+    <div class="holiday-menu-divider"></div>
+    <div class="snow-toggle-wrapper">
+      <label class="snow-toggle-label">
+        <span class="option-icon">❄️</span>
+        <span class="option-text">Snow Effect</span>
+        <input type="checkbox" id="snow-toggle-checkbox" class="snow-checkbox" />
+        <span class="snow-slider"></span>
+      </label>
+    </div>
+  </div>
+</div>
+
+<style>
+  .holiday-theme-container {
+    position: fixed;
+    top: 20px;
+    right: 80px;
+    z-index: 1001;
+  }
+
+  .holiday-theme-container.hidden {
+    display: none;
+  }
+
+  .holiday-toggle {
+    background: var(--color-bg-secondary);
+    border: 2px solid var(--color-border);
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--color-text);
+    transition: transform 0.2s, background-color 0.3s, border-color 0.3s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    font-size: 22px;
+  }
+
+  .holiday-toggle:hover {
+    transform: scale(1.1);
+    background: var(--color-bg-tertiary);
+  }
+
+  .holiday-toggle:active {
+    transform: scale(0.95);
+  }
+
+  /* Theme-specific button styling */
+  .christmas .holiday-toggle {
+    border-color: #c41e3a;
+    background: linear-gradient(135deg, rgba(196, 30, 58, 0.1) 0%, rgba(34, 139, 34, 0.1) 100%);
+  }
+
+  .hanukkah .holiday-toggle {
+    border-color: #0038b8;
+    background: linear-gradient(135deg, rgba(0, 56, 184, 0.1) 0%, rgba(255, 215, 0, 0.1) 100%);
+  }
+
+  .holiday-icon {
+    display: none;
+  }
+
+  .christmas .christmas-icon {
+    display: block;
+  }
+
+  .hanukkah .hanukkah-icon {
+    display: block;
+  }
+
+  :not(.christmas):not(.hanukkah) .default-icon {
+    display: block;
+  }
+
+  .holiday-menu {
+    position: absolute;
+    top: 56px;
+    right: 0;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    min-width: 200px;
+    padding: 8px 0;
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.2s, transform 0.2s;
+  }
+
+  .holiday-menu.hidden {
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+  }
+
+  .holiday-menu-header {
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .holiday-menu-divider {
+    height: 1px;
+    background: var(--color-border);
+    margin: 8px 0;
+  }
+
+  .holiday-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text);
+    font-size: 14px;
+    text-align: left;
+    transition: background-color 0.2s;
+  }
+
+  .holiday-option:hover {
+    background: var(--color-bg-secondary);
+  }
+
+  .option-icon {
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+  }
+
+  .option-text {
+    flex: 1;
+  }
+
+  .option-check {
+    opacity: 0;
+    color: #22c55e;
+    font-weight: bold;
+    transition: opacity 0.2s;
+  }
+
+  .holiday-option.active .option-check {
+    opacity: 1;
+  }
+
+  /* Snow toggle styling */
+  .snow-toggle-wrapper {
+    padding: 8px 16px;
+  }
+
+  .snow-toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--color-text);
+  }
+
+  .snow-checkbox {
+    display: none;
+  }
+
+  .snow-slider {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background: var(--color-border);
+    border-radius: 12px;
+    transition: background-color 0.3s;
+  }
+
+  .snow-slider::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .snow-checkbox:checked + .snow-slider {
+    background: #22c55e;
+  }
+
+  .snow-checkbox:checked + .snow-slider::before {
+    transform: translateX(20px);
+  }
+
+  @media (max-width: 768px) {
+    .holiday-theme-container {
+      top: 16px;
+      right: 70px;
+    }
+
+    .holiday-toggle {
+      width: 44px;
+      height: 44px;
+      font-size: 20px;
+    }
+
+    .holiday-menu {
+      right: -50px;
+      min-width: 180px;
+    }
+  }
+</style>

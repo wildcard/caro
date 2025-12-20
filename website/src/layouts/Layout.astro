@@ -1,5 +1,7 @@
 ---
 import Analytics from '@vercel/analytics/astro';
+import HolidayThemeToggle from '../components/HolidayThemeToggle.astro';
+import SnowEffect from '../components/SnowEffect.astro';
 
 interface Props {
   title: string;
@@ -35,9 +37,29 @@ const { title, description } = Astro.props;
       } else {
         document.documentElement.classList.remove('dark');
       }
+
+      // Holiday theme initialization (before render to prevent flash)
+      (function() {
+        function isHolidaySeason() {
+          const now = new Date();
+          const month = now.getMonth(); // 0-indexed
+          const day = now.getDate();
+          // December 1 - January 1 (inclusive)
+          return (month === 11) || (month === 0 && day === 1);
+        }
+
+        if (isHolidaySeason()) {
+          const savedHolidayTheme = localStorage.getItem('holidayTheme');
+          if (savedHolidayTheme && savedHolidayTheme !== 'none') {
+            document.documentElement.classList.add(savedHolidayTheme);
+          }
+        }
+      })();
     </script>
   </head>
   <body>
+    <SnowEffect />
+    <HolidayThemeToggle />
     <button id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
       <svg class="sun-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="5"/>
@@ -86,6 +108,260 @@ const { title, description } = Astro.props;
     --color-footer-text: #e0e0e0;
     --color-footer-text-muted: #888888;
     --color-links-muted: #a0a0a0;
+  }
+
+  /* ============================================
+     CHRISTMAS THEME
+     Colors: Red, Green, White, Gold
+     ============================================ */
+  .christmas {
+    --color-accent: #c41e3a;
+    --color-accent-secondary: #228b22;
+    --color-accent-tertiary: #ffd700;
+    --color-bg-tertiary: #fff5f5;
+    --christmas-red: #c41e3a;
+    --christmas-green: #228b22;
+    --christmas-gold: #ffd700;
+    --christmas-white: #fffafa;
+  }
+
+  .christmas.dark {
+    --color-bg-tertiary: #1f1a1a;
+    --christmas-red: #e63946;
+    --christmas-green: #2ecc71;
+    --christmas-gold: #f1c40f;
+    --christmas-white: #f5f5f5;
+  }
+
+  /* Christmas accents on UI elements */
+  .christmas .cta-button,
+  .christmas .companion-badge {
+    background: linear-gradient(135deg, var(--christmas-red) 0%, #a01830 100%) !important;
+  }
+
+  .christmas .cta-button:hover {
+    box-shadow: 0 10px 25px rgba(196, 30, 58, 0.4) !important;
+  }
+
+  .christmas .cta-button.secondary {
+    background: transparent !important;
+    border-color: var(--christmas-red) !important;
+    color: var(--christmas-red) !important;
+  }
+
+  .christmas .cta-button.secondary:hover {
+    background: rgba(196, 30, 58, 0.1) !important;
+  }
+
+  .christmas .logo {
+    background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-green) 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+  }
+
+  .christmas .feature {
+    border-color: rgba(196, 30, 58, 0.2) !important;
+  }
+
+  .christmas .feature:hover {
+    border-color: var(--christmas-red) !important;
+    box-shadow: 0 10px 30px rgba(196, 30, 58, 0.15) !important;
+  }
+
+  .christmas .status-implemented {
+    background: rgba(34, 139, 34, 0.2) !important;
+    color: var(--christmas-green) !important;
+    border-color: rgba(34, 139, 34, 0.4) !important;
+  }
+
+  .christmas .status-in-progress {
+    background: rgba(196, 30, 58, 0.2) !important;
+    color: var(--christmas-red) !important;
+    border-color: rgba(196, 30, 58, 0.4) !important;
+  }
+
+  .christmas .download-section {
+    background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-green) 100%) !important;
+  }
+
+  .christmas .alpha-notice {
+    background: rgba(196, 30, 58, 0.1) !important;
+    border-color: rgba(196, 30, 58, 0.3) !important;
+  }
+
+  /* ============================================
+     HANUKKAH THEME
+     Colors: Blue, White, Gold/Silver
+     ============================================ */
+  .hanukkah {
+    --color-accent: #0038b8;
+    --color-accent-secondary: #4169e1;
+    --color-accent-tertiary: #c0c0c0;
+    --color-bg-tertiary: #f0f5ff;
+    --hanukkah-blue: #0038b8;
+    --hanukkah-light-blue: #4169e1;
+    --hanukkah-white: #ffffff;
+    --hanukkah-silver: #c0c0c0;
+    --hanukkah-gold: #ffd700;
+  }
+
+  .hanukkah.dark {
+    --color-bg-tertiary: #1a1d24;
+    --hanukkah-blue: #3366cc;
+    --hanukkah-light-blue: #5a8dee;
+    --hanukkah-white: #f5f5f5;
+    --hanukkah-silver: #d4d4d4;
+    --hanukkah-gold: #f1c40f;
+  }
+
+  /* Hanukkah accents on UI elements */
+  .hanukkah .cta-button,
+  .hanukkah .companion-badge {
+    background: linear-gradient(135deg, var(--hanukkah-blue) 0%, var(--hanukkah-light-blue) 100%) !important;
+  }
+
+  .hanukkah .cta-button:hover {
+    box-shadow: 0 10px 25px rgba(0, 56, 184, 0.4) !important;
+  }
+
+  .hanukkah .cta-button.secondary {
+    background: transparent !important;
+    border-color: var(--hanukkah-blue) !important;
+    color: var(--hanukkah-blue) !important;
+  }
+
+  .hanukkah .cta-button.secondary:hover {
+    background: rgba(0, 56, 184, 0.1) !important;
+  }
+
+  .hanukkah .logo {
+    background: linear-gradient(135deg, var(--hanukkah-blue) 0%, var(--hanukkah-gold) 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+  }
+
+  .hanukkah .feature {
+    border-color: rgba(0, 56, 184, 0.2) !important;
+  }
+
+  .hanukkah .feature:hover {
+    border-color: var(--hanukkah-blue) !important;
+    box-shadow: 0 10px 30px rgba(0, 56, 184, 0.15) !important;
+  }
+
+  .hanukkah .status-implemented {
+    background: rgba(255, 215, 0, 0.2) !important;
+    color: #b8860b !important;
+    border-color: rgba(255, 215, 0, 0.4) !important;
+  }
+
+  .hanukkah .status-in-progress {
+    background: rgba(0, 56, 184, 0.2) !important;
+    color: var(--hanukkah-blue) !important;
+    border-color: rgba(0, 56, 184, 0.4) !important;
+  }
+
+  .hanukkah .download-section {
+    background: linear-gradient(135deg, var(--hanukkah-blue) 0%, var(--hanukkah-light-blue) 100%) !important;
+  }
+
+  .hanukkah .alpha-notice {
+    background: rgba(0, 56, 184, 0.1) !important;
+    border-color: rgba(0, 56, 184, 0.3) !important;
+  }
+
+  /* ============================================
+     HOLIDAY DECORATIONS - HERO SECTION
+     ============================================ */
+
+  /* Christmas decorations */
+  .christmas .hero::before {
+    content: '🎄';
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 40px;
+    animation: gentleSway 3s ease-in-out infinite;
+    opacity: 0.8;
+  }
+
+  .christmas .hero::after {
+    content: '🎅';
+    position: absolute;
+    top: 20px;
+    right: 80px;
+    font-size: 36px;
+    animation: gentleBob 2s ease-in-out infinite;
+    opacity: 0.8;
+  }
+
+  /* Hanukkah decorations */
+  .hanukkah .hero::before {
+    content: '🕎';
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 40px;
+    animation: gentleGlow 2s ease-in-out infinite;
+    opacity: 0.9;
+  }
+
+  .hanukkah .hero::after {
+    content: '✡️';
+    position: absolute;
+    top: 25px;
+    right: 80px;
+    font-size: 32px;
+    animation: gentleSpin 8s linear infinite;
+    opacity: 0.7;
+  }
+
+  @keyframes gentleSway {
+    0%, 100% { transform: rotate(-3deg); }
+    50% { transform: rotate(3deg); }
+  }
+
+  @keyframes gentleBob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  @keyframes gentleGlow {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.3); }
+  }
+
+  @keyframes gentleSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Add position relative to hero for decorations */
+  .christmas .hero,
+  .hanukkah .hero {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Mobile adjustments for decorations */
+  @media (max-width: 768px) {
+    .christmas .hero::before,
+    .christmas .hero::after,
+    .hanukkah .hero::before,
+    .hanukkah .hero::after {
+      font-size: 24px;
+      top: 10px;
+    }
+
+    .christmas .hero::before,
+    .hanukkah .hero::before {
+      left: 10px;
+    }
+
+    .christmas .hero::after,
+    .hanukkah .hero::after {
+      right: 60px;
+    }
   }
 
   * {
@@ -230,5 +506,145 @@ const { title, description } = Astro.props;
         }
       }
     });
+
+    // ============================================
+    // HOLIDAY THEME SYSTEM
+    // ============================================
+
+    // Check if we're in the holiday season (December 1 - January 1)
+    function isHolidaySeason(): boolean {
+      const now = new Date();
+      const month = now.getMonth(); // 0-indexed (0 = Jan, 11 = Dec)
+      const day = now.getDate();
+      // December 1 through January 1 (inclusive)
+      return (month === 11) || (month === 0 && day === 1);
+    }
+
+    // Detect if user is from Israel using timezone
+    function isFromIsrael(): boolean {
+      try {
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        return timezone === 'Asia/Jerusalem' || timezone === 'Asia/Tel_Aviv';
+      } catch {
+        return false;
+      }
+    }
+
+    // Get the default holiday theme based on location
+    function getDefaultHolidayTheme(): 'christmas' | 'hanukkah' {
+      return isFromIsrael() ? 'hanukkah' : 'christmas';
+    }
+
+    // Apply holiday theme
+    function applyHolidayTheme(theme: 'christmas' | 'hanukkah' | 'none'): void {
+      const html = document.documentElement;
+      html.classList.remove('christmas', 'hanukkah');
+
+      if (theme !== 'none') {
+        html.classList.add(theme);
+      }
+
+      localStorage.setItem('holidayTheme', theme);
+      updateHolidayMenuState(theme);
+    }
+
+    // Update the holiday menu to show which theme is active
+    function updateHolidayMenuState(theme: string): void {
+      const options = document.querySelectorAll('.holiday-option');
+      options.forEach(option => {
+        const optionTheme = (option as HTMLElement).dataset.theme;
+        option.classList.toggle('active', optionTheme === theme);
+      });
+    }
+
+    // Initialize snow effect state
+    function initSnowEffect(): void {
+      const snowEnabled = localStorage.getItem('snowEnabled');
+      const checkbox = document.getElementById('snow-toggle-checkbox') as HTMLInputElement;
+
+      if (checkbox) {
+        // Default snow to ON for holiday themes
+        const shouldEnableSnow = snowEnabled === null ? true : snowEnabled === 'true';
+        checkbox.checked = shouldEnableSnow;
+
+        if (shouldEnableSnow && (window as any).snowEffect) {
+          (window as any).snowEffect.start();
+        }
+      }
+    }
+
+    // Initialize holiday theme system
+    function initHolidayTheme(): void {
+      const container = document.getElementById('holiday-theme-container');
+      const toggleBtn = document.getElementById('holiday-toggle');
+      const menu = document.getElementById('holiday-menu');
+      const snowCheckbox = document.getElementById('snow-toggle-checkbox') as HTMLInputElement;
+
+      // Only show during holiday season
+      if (!isHolidaySeason()) {
+        container?.classList.add('hidden');
+        return;
+      }
+
+      // Show the holiday toggle
+      container?.classList.remove('hidden');
+
+      // Get saved or default theme
+      let savedTheme = localStorage.getItem('holidayTheme') as 'christmas' | 'hanukkah' | 'none' | null;
+
+      if (savedTheme === null) {
+        // First visit during holiday season - use geolocation default
+        savedTheme = getDefaultHolidayTheme();
+      }
+
+      // Apply the theme
+      if (savedTheme !== 'none') {
+        applyHolidayTheme(savedTheme);
+      }
+      updateHolidayMenuState(savedTheme);
+
+      // Toggle menu visibility
+      toggleBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        menu?.classList.toggle('hidden');
+      });
+
+      // Close menu when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!container?.contains(e.target as Node)) {
+          menu?.classList.add('hidden');
+        }
+      });
+
+      // Theme option clicks
+      const options = document.querySelectorAll('.holiday-option');
+      options.forEach(option => {
+        option.addEventListener('click', () => {
+          const theme = (option as HTMLElement).dataset.theme as 'christmas' | 'hanukkah' | 'none';
+          applyHolidayTheme(theme);
+          menu?.classList.add('hidden');
+        });
+      });
+
+      // Snow toggle
+      snowCheckbox?.addEventListener('change', () => {
+        const isEnabled = snowCheckbox.checked;
+        localStorage.setItem('snowEnabled', String(isEnabled));
+
+        if ((window as any).snowEffect) {
+          if (isEnabled) {
+            (window as any).snowEffect.start();
+          } else {
+            (window as any).snowEffect.stop();
+          }
+        }
+      });
+
+      // Initialize snow effect after a brief delay to ensure it's loaded
+      setTimeout(initSnowEffect, 100);
+    }
+
+    // Initialize holiday theme
+    initHolidayTheme();
   });
 </script>
