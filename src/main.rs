@@ -219,6 +219,22 @@ struct Cli {
     )]
     interactive: bool,
 
+    /// Show suggested queries based on environment analysis
+    #[arg(
+        short = 'S',
+        long,
+        help = "Show suggested queries based on your environment and history"
+    )]
+    suggest: bool,
+
+    /// Number of suggestions to show
+    #[arg(long, default_value = "5", help = "Number of suggestions to display")]
+    num_suggestions: usize,
+
+    /// Force refresh of user profile analysis
+    #[arg(long, help = "Force re-analysis of environment (ignore cache)")]
+    refresh_profile: bool,
+
     /// Trailing unquoted arguments forming the prompt
     #[arg(trailing_var_arg = true, num_args = 0..)]
     trailing_args: Vec<String>,
@@ -331,26 +347,33 @@ async fn main() {
         }
     }
 
-    // Validate prompt and show help if empty/whitespace-only
+    // Validate prompt and determine if we should show suggestions
     let prompt_text = cli.prompt.as_deref().unwrap_or("");
-    match validate_prompt(prompt_text) {
-        ValidationAction::ShowHelp => {
-            // Show help message for empty or whitespace-only prompts
-            println!("caro - Convert natural language to shell commands using local LLMs");
-            println!();
-            println!("Usage: caro [OPTIONS] <PROMPT>");
-            println!();
-            println!("Examples:");
-            println!("  caro list files");
-            println!("  caro -p \"list files\"");
-            println!("  echo \"list files\" | caro");
-            println!("  caro --shell zsh \"find large files\"");
-            println!();
-            println!("Run 'caro --help' for more information.");
-            process::exit(0);
-        }
-        ValidationAction::ProceedWithPrompt => {
-            // Continue with command generation
+    let prompt_is_empty = matches!(validate_prompt(prompt_text), ValidationAction::ShowHelp);
+
+    // Handle --suggest or empty prompt (enter interactive suggestions mode)
+    if cli.suggest || prompt_is_empty {
+        match show_suggestions(&cli).await {
+            Ok(Some(selected_prompt)) => {
+                // User selected a suggestion, run with that prompt
+                let mut cli_with_prompt = cli.clone();
+                cli_with_prompt.prompt = Some(selected_prompt);
+                match run_cli(&cli_with_prompt).await {
+                    Ok(()) => process::exit(0),
+                    Err(e) => {
+                        eprintln!("Error: {}", e);
+                        process::exit(1);
+                    }
+                }
+            }
+            Ok(None) => {
+                // User cancelled or no selection
+                process::exit(0);
+            }
+            Err(e) => {
+                eprintln!("Error showing suggestions: {}", e);
+                process::exit(1);
+            }
         }
     }
 
@@ -615,6 +638,136 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
     }
 
     Ok(())
+}
+
+async fn show_suggestions(cli: &Cli) -> Result<Option<String>, CliError> {
+    use caro::suggestions::{
+        AnalysisCoordinator, SuggestionGenerator, SuggestionsConfig,
+    };
+    use colored::Colorize;
+    use dialoguer::{theme::ColorfulTheme, Select};
+
+    // Configure suggestions
+    let mut config = SuggestionsConfig::default();
+    config.max_suggestions = cli.num_suggestions;
+
+    // Create coordinator and get/refresh profile
+    let coordinator = AnalysisCoordinator::new(config.clone()).map_err(|e| {
+        CliError::ConfigurationError {
+            message: format!("Failed to initialize suggestions: {}", e),
+        }
+    })?;
+
+    let profile = if cli.refresh_profile {
+        eprintln!("{}", "Analyzing your environment...".dimmed());
+        coordinator.refresh_profile().await
+    } else {
+        coordinator.get_profile().await
+    }
+    .map_err(|e| CliError::ConfigurationError {
+        message: format!("Failed to analyze environment: {}", e),
+    })?;
+
+    // Generate suggestions
+    let generator = SuggestionGenerator::new(config);
+    let suggestions = generator.generate(&profile).map_err(|e| {
+        CliError::ConfigurationError {
+            message: format!("Failed to generate suggestions: {}", e),
+        }
+    })?;
+
+    if suggestions.is_empty() {
+        println!("{}", "No suggestions available. Try running with --refresh-profile".yellow());
+        return Ok(None);
+    }
+
+    // Display header
+    println!();
+    println!("{}", "🐱 Caro - What can I help you with?".bold().cyan());
+    println!();
+
+    // Show experience level if verbose
+    if cli.verbose {
+        println!(
+            "{} {}",
+            "Experience level:".dimmed(),
+            format!("{}", profile.experience_level).dimmed()
+        );
+        println!();
+    }
+
+    // Check if we're in a terminal
+    use std::io::IsTerminal;
+    if !std::io::stdin().is_terminal() {
+        // Non-interactive: just print suggestions
+        println!("{}", "Suggested queries:".bold());
+        for (i, suggestion) in suggestions.iter().enumerate() {
+            println!(
+                "  {} {}",
+                format!("[{}]", i + 1).bright_cyan(),
+                suggestion.query
+            );
+            println!("      {}", suggestion.reason.to_string().dimmed());
+        }
+        println!();
+        println!("{}", "Run with a prompt: caro \"your query here\"".dimmed());
+        return Ok(None);
+    }
+
+    // Build selection items
+    let items: Vec<String> = suggestions
+        .iter()
+        .map(|s| {
+            format!(
+                "{} ({})",
+                s.query,
+                s.reason.to_string()
+            )
+        })
+        .collect();
+
+    // Add "Type your own" option
+    let mut all_items = items.clone();
+    all_items.push("Type your own query...".to_string());
+    all_items.push("Exit".to_string());
+
+    // Show interactive selection
+    let selection = Select::with_theme(&ColorfulTheme::default())
+        .with_prompt("Select a suggestion or type your own")
+        .items(&all_items)
+        .default(0)
+        .interact_opt()
+        .map_err(|e| CliError::Internal {
+            message: format!("Selection failed: {}", e),
+        })?;
+
+    match selection {
+        Some(idx) if idx < suggestions.len() => {
+            // User selected a suggestion
+            Ok(Some(suggestions[idx].query.clone()))
+        }
+        Some(idx) if idx == suggestions.len() => {
+            // User wants to type their own
+            use dialoguer::Input;
+
+            let input: String = Input::with_theme(&ColorfulTheme::default())
+                .with_prompt("Enter your query")
+                .interact_text()
+                .map_err(|e| CliError::Internal {
+                    message: format!("Input failed: {}", e),
+                })?;
+
+            if input.trim().is_empty() {
+                Ok(None)
+            } else {
+                Ok(Some(input))
+            }
+        }
+        _ => {
+            // User selected Exit or cancelled
+            Ok(None)
+        }
+    }
 }
 
 async fn show_configuration(cli: &Cli) -> Result<String, CliError> {
