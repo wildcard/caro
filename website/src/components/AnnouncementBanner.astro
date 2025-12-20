@@ -1,8 +1,19 @@
 ---
+// Announcement banner configuration
+const expiryDate = '2025-01-10'; // Auto-dismiss after this date
+const bannerId = 'caro-rename-announcement'; // Unique ID for this banner
 ---
 
-<div class="announcement-banner">
-  🎉 <strong>Announcing Caro!</strong> We've renamed from cmdai to caro. <a href="/blog/announcing-caro">Read the announcement</a> →
+<div id="announcement-banner" class="announcement-banner" data-banner-id={bannerId} data-expiry={expiryDate}>
+  <div class="announcement-content">
+    <span>🎉 <strong>Announcing Caro!</strong> We've renamed from cmdai to caro. <a href="/blog/announcing-caro">Read the announcement</a> →</span>
+    <button id="dismiss-banner" class="dismiss-button" aria-label="Dismiss announcement" title="Dismiss">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="4" y1="4" x2="12" y2="12"/>
+        <line x1="12" y1="4" x2="4" y2="12"/>
+      </svg>
+    </button>
+  </div>
 </div>
 
 <style>
@@ -15,8 +26,24 @@
     font-size: 14px;
     position: sticky;
     top: 0;
-    z-index: 1000;
+    z-index: 1001;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+
+  .announcement-banner.hidden {
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .announcement-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    max-width: 1200px;
+    margin: 0 auto;
   }
 
   .announcement-banner a {
@@ -29,10 +56,66 @@
     text-decoration: none;
   }
 
+  .dismiss-button {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    padding: 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+
+  .dismiss-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
   @media (max-width: 768px) {
     .announcement-banner {
       font-size: 13px;
       padding: 10px 15px;
     }
+
+    .announcement-content {
+      gap: 10px;
+    }
   }
 </style>
+
+<script>
+  // Client-side banner dismissal logic
+  document.addEventListener('DOMContentLoaded', () => {
+    const banner = document.getElementById('announcement-banner');
+    if (!banner) return;
+
+    const bannerId = banner.dataset.bannerId;
+    const expiryDate = banner.dataset.expiry;
+    const dismissButton = document.getElementById('dismiss-banner');
+
+    // Check if banner has expired
+    if (expiryDate && new Date() > new Date(expiryDate)) {
+      banner.classList.add('hidden');
+      setTimeout(() => banner.remove(), 300);
+      return;
+    }
+
+    // Check if user has dismissed this banner
+    const dismissed = localStorage.getItem(`banner-dismissed-${bannerId}`);
+    if (dismissed) {
+      banner.classList.add('hidden');
+      setTimeout(() => banner.remove(), 300);
+      return;
+    }
+
+    // Handle dismiss button click
+    dismissButton?.addEventListener('click', () => {
+      localStorage.setItem(`banner-dismissed-${bannerId}`, 'true');
+      banner.classList.add('hidden');
+      setTimeout(() => banner.remove(), 300);
+    });
+  });
+</script>
