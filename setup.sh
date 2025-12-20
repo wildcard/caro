@@ -97,8 +97,8 @@ install_via_cargo() {
         cargo_features="--features embedded-mlx"
     fi
     
-    if cargo install cmdai $cargo_features; then
-        say_success "Installed cmdai successfully"
+    if cargo install caro $cargo_features; then
+        say_success "Installed caro successfully"
         return 0
     else
         err "Failed to install via cargo"
@@ -150,16 +150,14 @@ setup_alias() {
                 shell_name="fish"
                 shell_config="$HOME/.config/fish/config.fish"
             else
-                say_warn "Could not detect shell. Please manually add alias:"
-                echo "  alias caro='cmdai'"
+                say_warn "Could not detect shell."
                 return
             fi
             ;;
     esac
 
     if [ -z "$shell_config" ]; then
-        say_warn "Could not detect shell config file. Please manually add alias:"
-        echo "  alias caro='cmdai'"
+        say_warn "Could not detect shell config file."
         return
     fi
 
@@ -170,21 +168,12 @@ setup_alias() {
         touch "$shell_config"
     fi
 
-    # Check if alias already exists
-    if grep -q "alias caro=" "$shell_config" 2>/dev/null; then
-        say "Alias 'caro' already exists in $shell_config"
-        return
+    # Check if old cmdai alias exists and inform user
+    if grep -q "alias caro='cmdai'" "$shell_config" 2>/dev/null; then
+        say_warn "Found old 'cmdai' alias in $shell_config"
+        say "You can remove it - the binary is now named 'caro' directly"
+        echo ""
     fi
-
-    # Add alias
-    say "Adding alias 'caro' to $shell_config..."
-    echo "" >> "$shell_config"
-    echo "# Caro alias" >> "$shell_config"
-    echo "alias caro='cmdai'" >> "$shell_config"
-    
-    say_success "Alias added successfully"
-    echo ""
-    say "Run 'source $shell_config' or restart your shell to use the alias"
 }
 
 # Main installation
@@ -222,11 +211,11 @@ main() {
         echo ""
     fi
 
-    # Install cmdai
+    # Install caro
     install_via_cargo
     echo ""
 
-    # Setup alias
+    # Check for legacy alias
     setup_alias
     echo ""
 
@@ -237,7 +226,6 @@ main() {
 ═══════════════════════════════════════════════════════════
 
 Usage:
-  cmdai "list all files in this directory"
   caro "list all files in this directory"
 
 Execute directly:
@@ -257,7 +245,7 @@ Documentation:
 
 ═══════════════════════════════════════════════════════════
 
-To start using caro, either:
+To start using caro:
   • Restart your shell, or
   • Run: source ~/.bashrc (or ~/.zshrc, etc.)
 

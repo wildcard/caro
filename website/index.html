@@ -348,6 +348,153 @@
             color: #ff8c42;
         }
 
+        /* Announcement Banner */
+        .announcement-banner {
+            background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            font-weight: 500;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .announcement-banner a {
+            color: white;
+            text-decoration: underline;
+            font-weight: 600;
+        }
+
+        .announcement-banner a:hover {
+            text-decoration: none;
+        }
+
+        /* Navigation */
+        nav {
+            background: #ffffff;
+            padding: 15px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 51px;
+            z-index: 999;
+        }
+
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav .nav-brand {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ff8c42;
+            text-decoration: none;
+        }
+
+        nav .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        nav .nav-links a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        nav .nav-links a:hover {
+            color: #ff8c42;
+        }
+
+        /* Blog Section */
+        .blog-section {
+            background: #f8f9fa;
+            padding: 80px 20px;
+        }
+
+        .blog-section h2 {
+            font-size: 36px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .blog-posts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .blog-card {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .blog-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        .blog-card .blog-date {
+            color: #ff8c42;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .blog-card h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .blog-card p {
+            color: #7f8c8d;
+            line-height: 1.7;
+            margin-bottom: 15px;
+        }
+
+        .blog-card .read-more {
+            color: #ff8c42;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .blog-card .read-more:after {
+            content: '→';
+            transition: transform 0.2s;
+        }
+
+        .blog-card:hover .read-more:after {
+            transform: translateX(5px);
+        }
+
+        .blog-badge {
+            display: inline-block;
+            background: #fff3e6;
+            color: #ff8c42;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
         @media (max-width: 768px) {
             .logo {
                 font-size: 48px;
@@ -368,10 +515,37 @@
             .features {
                 grid-template-columns: 1fr;
             }
+
+            nav .nav-links {
+                gap: 15px;
+                font-size: 14px;
+            }
+
+            .blog-posts {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Announcement Banner -->
+    <div class="announcement-banner">
+        🎉 <strong>Announcing Caro!</strong> We've renamed from cmdai to caro. <a href="/blog/announcing-caro">Read the announcement</a> →
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <a href="/" class="nav-brand">🐕 Caro</a>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#blog">Blog</a></li>
+                <li><a href="#download">Get Started</a></li>
+                <li><a href="https://github.com/wildcard/caro">GitHub</a></li>
+            </ul>
+        </div>
+    </nav>
+
     <!-- Hero Section -->
     <div class="hero">
         <div class="container">
@@ -425,6 +599,11 @@
                 </p>
                 <p>
                     As Claude's loyal companion, Caro handles the shell-specific heavy lifting, allowing Claude to focus on the broader work while she ensures every command is safe, correct, and optimized for your platform.
+                </p>
+                <p style="margin-top: 30px;">
+                    <a href="/blog/why-caro" style="color: #ff8c42; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+                        Read the full story of Kyaro and Caro →
+                    </a>
                 </p>
             </div>
         </div>
@@ -481,6 +660,37 @@
                     <h3>POSIX Specialist</h3>
                     <p>Expert in POSIX-compliant shell commands that work reliably across systems. Portable, safe, and optimized for your terminal.</p>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Blog Section - From the Pack -->
+    <section id="blog" class="blog-section">
+        <div class="container">
+            <h2>📝 From the Pack</h2>
+            <p class="section-subtitle">Stories, updates, and insights from Caro's journey</p>
+
+            <div class="blog-posts">
+                <a href="/blog/announcing-caro" class="blog-card">
+                    <div class="blog-badge">🎉 NEW</div>
+                    <div class="blog-date">December 20, 2025</div>
+                    <h3>Announcing Caro: Your Terminal's AI Companion</h3>
+                    <p>We're excited to announce that cmdai has been renamed to caro! Thanks to @aeplay for graciously transferring the crate name. Learn about the rename, new features, and how to get started.</p>
+                    <span class="read-more">Read the announcement</span>
+                </a>
+
+                <a href="/blog/why-caro" class="blog-card">
+                    <div class="blog-date">December 17, 2025</div>
+                    <h3>Why Caro? The Story Behind Your Terminal Companion</h3>
+                    <p>Discover the heartwarming story of how Kyaro, an office-loving Shiba Inu who grew up among developers and system administrators, became Caro—your eternal companion in the terminal.</p>
+                    <span class="read-more">Read the story</span>
+                </a>
+            </div>
+
+            <div style="text-align: center; margin-top: 40px;">
+                <a href="/blog" style="color: #ff8c42; font-weight: 600; text-decoration: none; font-size: 18px;">
+                    View all blog posts →
+                </a>
             </div>
         </div>
     </section>

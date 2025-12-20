@@ -4,6 +4,65 @@
 // Only visible during the holiday season (December 1 - January 1)
 ---
 
+<script is:inline>
+  // Update holiday toggle position based on banner visibility
+  (function() {
+    const updateHolidayTogglePosition = () => {
+      const banner = document.getElementById('announcement-banner');
+      const nav = document.querySelector('.navigation');
+      const holidayContainer = document.getElementById('holiday-theme-container');
+
+      if (!holidayContainer || !nav) return;
+
+      let topPosition = 70; // Default position below nav only
+
+      // If banner is visible, add its height
+      if (banner && banner.style.display !== 'none' && !banner.classList.contains('hidden')) {
+        const bannerHeight = banner.offsetHeight;
+        const navHeight = nav.offsetHeight;
+        topPosition = bannerHeight + navHeight + 10; // 10px gap
+      }
+
+      holidayContainer.style.top = `${topPosition}px`;
+    };
+
+    // Run immediately
+    updateHolidayTogglePosition();
+
+    // Update on window resize
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', updateHolidayTogglePosition);
+
+      // Listen for banner dismissal event
+      window.addEventListener('banner-dismissed', updateHolidayTogglePosition);
+
+      // Watch for banner removal
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === 'childList' || mutation.type === 'attributes') {
+            updateHolidayTogglePosition();
+          }
+        });
+      });
+
+      // Observe banner for changes
+      const banner = document.getElementById('announcement-banner');
+      if (banner) {
+        observer.observe(banner, {
+          attributes: true,
+          attributeFilter: ['class', 'style'],
+          childList: true,
+          subtree: false
+        });
+        observer.observe(banner.parentElement, {
+          childList: true,
+          subtree: false
+        });
+      }
+    }
+  })();
+</script>
+
 <div id="holiday-theme-container" class="holiday-theme-container hidden">
   <button id="holiday-toggle" class="holiday-toggle" aria-label="Toggle holiday theme menu" title="Holiday Theme">
     <span class="holiday-icon christmas-icon">🎄</span>
@@ -44,9 +103,10 @@
 <style>
   .holiday-theme-container {
     position: fixed;
-    top: 20px;
-    right: 80px;
-    z-index: 1001;
+    top: 70px;
+    right: 20px;
+    z-index: 1000;
+    transition: top 0.3s ease;
   }
 
   .holiday-theme-container.hidden {
@@ -231,8 +291,7 @@
 
   @media (max-width: 768px) {
     .holiday-theme-container {
-      top: 16px;
-      right: 70px;
+      right: 16px;
     }
 
     .holiday-toggle {
@@ -242,7 +301,7 @@
     }
 
     .holiday-menu {
-      right: -50px;
+      right: 0;
       min-width: 180px;
     }
   }

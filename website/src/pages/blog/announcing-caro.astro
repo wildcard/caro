@@ -1,0 +1,174 @@
+---
+import BlogPost from '../../layouts/BlogPost.astro';
+---
+
+<BlogPost
+  title="Announcing Caro: Your Terminal's AI Companion"
+  description="We're excited to announce that cmdai has been renamed to caro! Thanks to @aeplay for graciously transferring the crate name, enabling us to have a more memorable and brandable identity."
+  date="2025-12-20"
+  readTime="5 min read"
+>
+
+<div class="highlight">
+  <p>
+    We're excited to announce that <strong>cmdai</strong> has been renamed to <strong>caro</strong>! 🎉
+  </p>
+</div>
+
+<h2>A New Name, The Same Mission</h2>
+
+<p>
+  Thanks to the incredible generosity of <a href="https://github.com/aeplay" target="_blank" rel="noopener noreferrer">@aeplay</a>, who graciously transferred the <code>caro</code> crate name to our project, we now have a name that better reflects our vision: a friendly, approachable AI companion for your terminal.
+</p>
+
+<h2>What is Caro?</h2>
+
+<p>
+  <strong>caro</strong> is a single-binary Rust CLI tool that converts natural language descriptions into safe POSIX shell commands using local LLMs. Built with safety-first design and optimized for Apple Silicon via the MLX framework, caro makes complex command-line operations accessible to everyone.
+</p>
+
+<pre><code>$ caro "find all PDF files larger than 10MB in Downloads"
+
+Generated command:
+  find ~/Downloads -name "*.pdf" -size +10M -ls
+
+Execute this command? (y/N)</code></pre>
+
+<h2>Why "Caro"?</h2>
+
+<p>
+  The name <strong>caro</strong> offers several advantages:
+</p>
+
+<ul>
+  <li><strong>Brevity</strong>: Shorter and easier to type (4 characters)</li>
+  <li><strong>Memorability</strong>: More distinctive and memorable as a brand</li>
+  <li><strong>Pronounceability</strong>: Natural pronunciation in multiple languages</li>
+  <li><strong>Brandability</strong>: Better suited for a product name</li>
+</ul>
+
+<p>
+  In Latin, <em>caro</em> means "dear" or "beloved"—fitting for a tool designed to make your terminal experience more friendly and approachable. And for those who know <a href="/blog/why-caro">Kyaro's story</a>, the connection runs even deeper.
+</p>
+
+<h2>Key Features</h2>
+
+<ul>
+  <li>🚀 <strong>Fast startup</strong> - Single binary with quick initialization</li>
+  <li>🧠 <strong>Local LLM inference</strong> - Embedded models optimized for Apple Silicon (MLX) and CPU</li>
+  <li>🤖 <strong>Intelligent refinement</strong> - 2-iteration agentic loop for platform-specific commands</li>
+  <li>🌍 <strong>Platform-aware</strong> - Automatically detects OS, architecture, shell, and available commands</li>
+  <li>🛡️ <strong>Safety-first</strong> - Comprehensive validation with 52+ dangerous command patterns</li>
+  <li>📦 <strong>Self-contained</strong> - Single binary distribution</li>
+  <li>🎯 <strong>Multiple backends</strong> - Extensible system supporting MLX, CPU, vLLM, and Ollama</li>
+</ul>
+
+<h2>Getting Started</h2>
+
+<h3>Quick Installation</h3>
+
+<pre><code># One-line setup (recommended)
+bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)
+
+# Or via cargo
+cargo install caro</code></pre>
+
+<h3>First Command</h3>
+
+<pre><code>$ caro "show me the top 5 processes by CPU usage"</code></pre>
+
+<p>
+  caro will generate the appropriate command for your platform, validate it for safety, and ask for confirmation before execution.
+</p>
+
+<h2>What's New in v0.1.0</h2>
+
+<ul>
+  <li>✅ Core CLI with comprehensive argument parsing</li>
+  <li>✅ Embedded model backend with MLX (Apple Silicon) and CPU variants</li>
+  <li>✅ Agentic context loop with iterative refinement</li>
+  <li>✅ Platform-aware command generation</li>
+  <li>✅ Safety validation with 52+ dangerous command patterns</li>
+  <li>✅ Remote backend support (Ollama, vLLM)</li>
+  <li>✅ Interactive execution with shell detection</li>
+  <li>✅ Multiple output formats (JSON, YAML, Plain)</li>
+</ul>
+
+<h2>Migration from cmdai</h2>
+
+<p>
+  If you previously installed <code>cmdai</code>, migration is simple:
+</p>
+
+<pre><code># Uninstall old version
+cargo uninstall cmdai
+
+# Install new version
+cargo install caro
+
+# Migrate config (if you have custom configuration)
+mv ~/.config/cmdai ~/.config/caro</code></pre>
+
+<p>
+  For detailed migration instructions, see our <a href="https://github.com/wildcard/caro/blob/main/docs/NAMING_HISTORY.md" target="_blank" rel="noopener noreferrer">Naming History</a> documentation.
+</p>
+
+<h2>Thank You, @aeplay</h2>
+
+<div class="highlight">
+  <p>
+    We want to extend our heartfelt gratitude to <a href="https://github.com/aeplay" target="_blank" rel="noopener noreferrer">@aeplay</a> for:
+  </p>
+  <ul>
+    <li>Graciously transferring the <code>caro</code> crate name to this project</li>
+    <li>Believing in the project's future and potential</li>
+    <li>Supporting the open-source Rust community</li>
+  </ul>
+  <p>
+    This generosity has enabled us to have a better, more memorable name that will serve the project well as it grows.
+  </p>
+</div>
+
+<h2>What's Next</h2>
+
+<p>
+  We have exciting plans for caro's future:
+</p>
+
+<ul>
+  <li>📊 <strong>Enhanced analytics</strong> - Command history and usage insights</li>
+  <li>🔄 <strong>Multi-step workflows</strong> - Complex task automation</li>
+  <li>🎓 <strong>Learning from feedback</strong> - Adaptive command generation</li>
+  <li>🔌 <strong>Plugin system</strong> - Custom backends and validators</li>
+  <li>📱 <strong>Shell integration</strong> - Direct shell plugins for zsh, bash, fish</li>
+</ul>
+
+<h2>Join the Community</h2>
+
+<ul>
+  <li>🌐 <strong>Website</strong>: <a href="https://caro.sh" target="_blank" rel="noopener noreferrer">caro.sh</a></li>
+  <li>💻 <strong>GitHub</strong>: <a href="https://github.com/wildcard/caro" target="_blank" rel="noopener noreferrer">github.com/wildcard/caro</a></li>
+  <li>📦 <strong>Crates.io</strong>: <a href="https://crates.io/crates/caro" target="_blank" rel="noopener noreferrer">crates.io/crates/caro</a></li>
+  <li>🐛 <strong>Issues</strong>: <a href="https://github.com/wildcard/caro/issues" target="_blank" rel="noopener noreferrer">GitHub Issues</a></li>
+  <li>💬 <strong>Discussions</strong>: <a href="https://github.com/wildcard/caro/discussions" target="_blank" rel="noopener noreferrer">GitHub Discussions</a></li>
+</ul>
+
+<h2>Try It Today</h2>
+
+<p>
+  Ready to supercharge your terminal experience?
+</p>
+
+<pre><code>bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)</code></pre>
+
+<p>
+  We can't wait to see what you build with caro!
+</p>
+
+<hr style="margin: 50px 0; border: none; border-top: 1px solid #e0e0e0;">
+
+<p style="text-align: center; margin-top: 40px;">
+  <em>Built with Rust | Safety First | Open Source</em>
+</p>
+
+</BlogPost>

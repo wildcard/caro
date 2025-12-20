@@ -1,6 +1,5 @@
 ---
 import Analytics from '@vercel/analytics/astro';
-import HolidayThemeToggle from '../components/HolidayThemeToggle.astro';
 import SnowEffect from '../components/SnowEffect.astro';
 
 interface Props {
@@ -59,23 +58,6 @@ const { title, description } = Astro.props;
   </head>
   <body>
     <SnowEffect />
-    <HolidayThemeToggle />
-    <button id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
-      <svg class="sun-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="5"/>
-        <line x1="12" y1="1" x2="12" y2="3"/>
-        <line x1="12" y1="21" x2="12" y2="23"/>
-        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-        <line x1="1" y1="12" x2="3" y2="12"/>
-        <line x1="21" y1="12" x2="23" y2="12"/>
-        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-      </svg>
-      <svg class="moon-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-      </svg>
-    </button>
     <slot />
     <Analytics />
   </body>
@@ -409,74 +391,47 @@ const { title, description } = Astro.props;
     margin-right: auto;
   }
 
-  /* Dark mode toggle button */
-  #theme-toggle {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1000;
-    background: var(--color-bg-secondary);
-    border: 2px solid var(--color-border);
-    border-radius: 50%;
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--color-text);
-    transition: transform 0.2s, background-color 0.3s, border-color 0.3s;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  #theme-toggle:hover {
-    transform: scale(1.1);
-    background: var(--color-bg-tertiary);
-  }
-
-  #theme-toggle:active {
-    transform: scale(0.95);
-  }
-
-  .sun-icon {
-    display: none;
-  }
-
-  .moon-icon {
-    display: block;
-  }
-
-  .dark .sun-icon {
-    display: block;
-  }
-
-  .dark .moon-icon {
-    display: none;
-  }
-
   @media (max-width: 768px) {
     section h2 {
       font-size: 28px;
-    }
-
-    #theme-toggle {
-      width: 44px;
-      height: 44px;
-      top: 16px;
-      right: 16px;
     }
   }
 </style>
 
 <script>
-  // Smooth scrolling for anchor links
+  // Calculate offset for sticky headers (banner + nav)
+  function getScrollOffset() {
+    const banner = document.getElementById('announcement-banner');
+    const nav = document.querySelector('.navigation');
+    let offset = 0;
+
+    if (banner && !banner.classList.contains('hidden')) {
+      offset += banner.offsetHeight;
+    }
+    if (nav) {
+      offset += nav.offsetHeight;
+    }
+
+    return offset + 20; // Add 20px padding
+  }
+
+  // Smooth scrolling for anchor links with offset
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function (e) {
         e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href') || '');
+        const href = this.getAttribute('href');
+        if (!href || href === '#') return;
+
+        const target = document.querySelector(href);
         if (target) {
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          const offset = getScrollOffset();
+          const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
+
+          window.scrollTo({
+            top: targetPosition,
+            behavior: 'smooth'
+          });
         }
       });
     });
@@ -506,145 +461,5 @@ const { title, description } = Astro.props;
         }
       }
     });
-
-    // ============================================
-    // HOLIDAY THEME SYSTEM
-    // ============================================
-
-    // Check if we're in the holiday season (December 1 - January 1)
-    function isHolidaySeason(): boolean {
-      const now = new Date();
-      const month = now.getMonth(); // 0-indexed (0 = Jan, 11 = Dec)
-      const day = now.getDate();
-      // December 1 through January 1 (inclusive)
-      return (month === 11) || (month === 0 && day === 1);
-    }
-
-    // Detect if user is from Israel using timezone
-    function isFromIsrael(): boolean {
-      try {
-        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        return timezone === 'Asia/Jerusalem' || timezone === 'Asia/Tel_Aviv';
-      } catch {
-        return false;
-      }
-    }
-
-    // Get the default holiday theme based on location
-    function getDefaultHolidayTheme(): 'christmas' | 'hanukkah' {
-      return isFromIsrael() ? 'hanukkah' : 'christmas';
-    }
-
-    // Apply holiday theme
-    function applyHolidayTheme(theme: 'christmas' | 'hanukkah' | 'none'): void {
-      const html = document.documentElement;
-      html.classList.remove('christmas', 'hanukkah');
-
-      if (theme !== 'none') {
-        html.classList.add(theme);
-      }
-
-      localStorage.setItem('holidayTheme', theme);
-      updateHolidayMenuState(theme);
-    }
-
-    // Update the holiday menu to show which theme is active
-    function updateHolidayMenuState(theme: string): void {
-      const options = document.querySelectorAll('.holiday-option');
-      options.forEach(option => {
-        const optionTheme = (option as HTMLElement).dataset.theme;
-        option.classList.toggle('active', optionTheme === theme);
-      });
-    }
-
-    // Initialize snow effect state
-    function initSnowEffect(): void {
-      const snowEnabled = localStorage.getItem('snowEnabled');
-      const checkbox = document.getElementById('snow-toggle-checkbox') as HTMLInputElement;
-
-      if (checkbox) {
-        // Default snow to ON for holiday themes
-        const shouldEnableSnow = snowEnabled === null ? true : snowEnabled === 'true';
-        checkbox.checked = shouldEnableSnow;
-
-        if (shouldEnableSnow && (window as any).snowEffect) {
-          (window as any).snowEffect.start();
-        }
-      }
-    }
-
-    // Initialize holiday theme system
-    function initHolidayTheme(): void {
-      const container = document.getElementById('holiday-theme-container');
-      const toggleBtn = document.getElementById('holiday-toggle');
-      const menu = document.getElementById('holiday-menu');
-      const snowCheckbox = document.getElementById('snow-toggle-checkbox') as HTMLInputElement;
-
-      // Only show during holiday season
-      if (!isHolidaySeason()) {
-        container?.classList.add('hidden');
-        return;
-      }
-
-      // Show the holiday toggle
-      container?.classList.remove('hidden');
-
-      // Get saved or default theme
-      let savedTheme = localStorage.getItem('holidayTheme') as 'christmas' | 'hanukkah' | 'none' | null;
-
-      if (savedTheme === null) {
-        // First visit during holiday season - use geolocation default
-        savedTheme = getDefaultHolidayTheme();
-      }
-
-      // Apply the theme
-      if (savedTheme !== 'none') {
-        applyHolidayTheme(savedTheme);
-      }
-      updateHolidayMenuState(savedTheme);
-
-      // Toggle menu visibility
-      toggleBtn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        menu?.classList.toggle('hidden');
-      });
-
-      // Close menu when clicking outside
-      document.addEventListener('click', (e) => {
-        if (!container?.contains(e.target as Node)) {
-          menu?.classList.add('hidden');
-        }
-      });
-
-      // Theme option clicks
-      const options = document.querySelectorAll('.holiday-option');
-      options.forEach(option => {
-        option.addEventListener('click', () => {
-          const theme = (option as HTMLElement).dataset.theme as 'christmas' | 'hanukkah' | 'none';
-          applyHolidayTheme(theme);
-          menu?.classList.add('hidden');
-        });
-      });
-
-      // Snow toggle
-      snowCheckbox?.addEventListener('change', () => {
-        const isEnabled = snowCheckbox.checked;
-        localStorage.setItem('snowEnabled', String(isEnabled));
-
-        if ((window as any).snowEffect) {
-          if (isEnabled) {
-            (window as any).snowEffect.start();
-          } else {
-            (window as any).snowEffect.stop();
-          }
-        }
-      });
-
-      // Initialize snow effect after a brief delay to ensure it's loaded
-      setTimeout(initSnowEffect, 100);
-    }
-
-    // Initialize holiday theme
-    initHolidayTheme();
   });
 </script>
