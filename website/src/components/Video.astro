@@ -1,10 +1,14 @@
 ---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
 ---
 
 <section id="how-it-works" class="video-section">
   <div class="container">
-    <h2>How Caro Works</h2>
-    <p class="section-subtitle">See Caro in action as your shell companion</p>
+    <h2>{t('video.title')}</h2>
+    <p class="section-subtitle">{t('video.subtitle')}</p>
     <div class="video-container">
       <script is:inline src="https://asciinema.org/a/FOxFkOjVHmYSB0S2I2xaZsaX0.js" id="asciicast-FOxFkOjVHmYSB0S2I2xaZsaX0" async data-theme="monokai" data-autoplay="true"></script>
     </div>

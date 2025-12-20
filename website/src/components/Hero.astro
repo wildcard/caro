@@ -1,22 +1,24 @@
 ---
 import GitHubStarButton from './GitHubStarButton.astro';
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
 ---
 
 <div class="hero">
   <div class="container">
-    <div class="companion-badge">🐕 Companion Agent</div>
+    <div class="companion-badge">🐕 {t('hero.badge')}</div>
     <img src="/caro-prompting.gif" alt="Caro - 8-bit pixel art" class="pixel-art" />
     <div class="logo">Caro</div>
-    <h1 class="tagline">Your loyal shell companion</h1>
-    <p class="subtitle">
-      A specialized POSIX shell command agent with empathy and agency. Available as an MCP for Claude and as a dedicated Skill. She keeps you safe while helping Claude get the job done.
-    </p>
+    <h1 class="tagline">{t('hero.tagline')}</h1>
+    <p class="subtitle">{t('hero.subtitle')}</p>
     <div class="github-star-wrapper">
       <GitHubStarButton />
     </div>
     <div class="cta-buttons">
-      <a href="#download" class="cta-button">Get Started</a>
-      <a href="#how-it-works" class="cta-button secondary">Watch Demo</a>
+      <a href="#download" class="cta-button">{t('hero.cta.start')}</a>
+      <a href="#how-it-works" class="cta-button secondary">{t('hero.cta.demo')}</a>
     </div>
   </div>
 </div>

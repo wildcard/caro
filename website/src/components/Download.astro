@@ -1,17 +1,21 @@
 ---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
 ---
 
 <section id="download" class="download-section">
   <div class="container">
-    <h2>Get Started with Caro</h2>
-    <p class="section-subtitle">Bring your loyal shell companion to your terminal</p>
+    <h2>{t('download.title')}</h2>
+    <p class="section-subtitle">{t('download.subtitle')}</p>
 
     <div class="install-command">
       <code>bash &lt;(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)</code>
-      <button class="copy-button" data-command="bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)">Copy</button>
+      <button class="copy-button" data-command="bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)" data-copy-text={t('download.copy')} data-copied-text={t('download.copied')}>{t('download.copy')}</button>
     </div>
 
-    <p style="margin: 20px 0;">Or download pre-built binaries: <span class="coming-soon-inline">Coming Soon</span></p>
+    <p style="margin: 20px 0;">{t('download.binaries')} <span class="coming-soon-inline">{t('download.comingsoon')}</span></p>
 
     <div class="download-options">
       <span class="download-link disabled">macOS (Apple Silicon)</span>
@@ -21,39 +25,35 @@
     </div>
 
     <div class="usage-modes">
-      <h3>Multiple Ways to Use Caro</h3>
+      <h3>{t('download.modes.title')}</h3>
 
       <div class="modes-grid">
         <div class="mode-card">
-          <h4>🔧 Standalone CLI</h4>
+          <h4>🔧 {t('download.mode.cli')}</h4>
           <div class="mode-command">
             caro "list files &gt; 100MB"
           </div>
         </div>
 
         <div class="mode-card">
-          <h4>🔌 MCP for Claude <span class="coming-soon">Coming Soon</span></h4>
-          <p>
-            Add Caro as an MCP server to Claude Desktop and let her handle all shell commands seamlessly.
-          </p>
+          <h4>🔌 {t('download.mode.mcp')} <span class="coming-soon">{t('download.comingsoon')}</span></h4>
+          <p>{t('download.mode.mcp.desc')}</p>
         </div>
 
         <div class="mode-card">
-          <h4>✨ Dedicated Skill <span class="coming-soon">Coming Soon</span></h4>
-          <p>
-            Use Caro as a Skill to offload shell command generation and execution while Claude focuses on your work.
-          </p>
+          <h4>✨ {t('download.mode.skill')} <span class="coming-soon">{t('download.comingsoon')}</span></h4>
+          <p>{t('download.mode.skill.desc')}</p>
         </div>
       </div>
 
       <div class="quick-start">
-        <h3>Quick Start</h3>
+        <h3>{t('download.quickstart')}</h3>
         <div class="quick-start-steps">
-          <p>After running the setup script above, just use Caro:</p>
+          <p>{t('download.quickstart.after')}</p>
           <div class="quick-start-command">
-            caro "find all python files modified in the last 7 days"
+            caro "{t('terminal.command')}"
           </div>
-          <p>Caro will generate the command and keep you safe. The setup script handles all prerequisites including Rust compilation.</p>
+          <p>{t('download.quickstart.safe')}</p>
         </div>
       </div>
     </div>
@@ -240,11 +240,12 @@
     copyButtons.forEach(button => {
       button.addEventListener('click', () => {
         const command = button.getAttribute('data-command') || '';
+        const copyText = button.getAttribute('data-copy-text') || 'Copy';
+        const copiedText = button.getAttribute('data-copied-text') || 'Copied!';
         navigator.clipboard.writeText(command).then(() => {
-          const originalText = button.textContent;
-          button.textContent = 'Copied!';
+          button.textContent = copiedText;
           setTimeout(() => {
-            button.textContent = originalText;
+            button.textContent = copyText;
           }, 2000);
         });
       });

@@ -1,23 +1,19 @@
 ---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
 ---
 
 <section id="story" class="story-section">
   <div class="container">
-    <h2>Meet Caro</h2>
-    <p class="section-subtitle">A companion with a story of loyalty and transformation</p>
+    <h2>{t('story.title')}</h2>
+    <p class="section-subtitle">{t('story.subtitle')}</p>
     <div class="story-content">
-      <p>
-        Caro is the digitalization of Kyaro (Kyarorain Kadosh), the maintainer's beloved dog. Just as a loyal companion stays by your side through every challenge, Caro is here to help you navigate the complexities of shell commands with safety and expertise.
-      </p>
-      <div class="story-highlight">
-        "In Portal 2, we learned that GLaDOS was once Caroline, the secretary of Aperture Science's founder—transformed into the eternal guardian of the facility. Like Caroline became the beating heart of the testing chambers, Caro is your eternal companion for the terminal."
-      </div>
-      <p>
-        She specializes in POSIX shell commands and understands the nuances of every platform—whether you're on macOS, Linux, Windows, GNU, or BSD. Caro brings your preferences with her wherever you deploy her, respecting your distribution of choice while keeping you safe from dangerous commands.
-      </p>
-      <p>
-        As Claude's loyal companion, Caro handles the shell-specific heavy lifting, allowing Claude to focus on the broader work while she ensures every command is safe, correct, and optimized for your platform.
-      </p>
+      <p>{t('story.p1')}</p>
+      <div class="story-highlight">{t('story.highlight')}</div>
+      <p>{t('story.p2')}</p>
+      <p>{t('story.p3')}</p>
     </div>
   </div>
 </section>

@@ -1,0 +1,63 @@
+---
+import { languages, getLangFromUrl } from '../i18n/utils';
+
+const currentLang = getLangFromUrl(Astro.url);
+---
+
+<div class="lang-switch">
+  {Object.entries(languages).map(([lang, label]) => (
+    <a
+      href={lang === 'en' ? '/' : `/${lang}/`}
+      class={currentLang === lang ? 'active' : ''}
+      title={label}
+    >
+      {lang === 'en' ? 'EN' : '中文'}
+    </a>
+  ))}
+</div>
+
+<style>
+  .lang-switch {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    background: var(--color-bg-secondary);
+    border: 2px solid var(--color-border);
+    border-radius: 20px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s, border-color 0.3s;
+  }
+
+  .lang-switch a {
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .lang-switch a:hover,
+  .lang-switch a.active {
+    color: #ff8c42;
+  }
+
+  .lang-switch a:not(:last-child)::after {
+    content: '|';
+    margin-left: 8px;
+    color: var(--color-border);
+  }
+
+  @media (max-width: 768px) {
+    .lang-switch {
+      top: 16px;
+      left: 16px;
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+  }
+</style>

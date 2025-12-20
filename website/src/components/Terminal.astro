@@ -1,4 +1,8 @@
 ---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
 ---
 
 <div class="container">
@@ -10,14 +14,14 @@
     </div>
     <div class="terminal-line">
       <span class="terminal-prompt">$</span>
-      <span class="terminal-command"> caro "find python files modified in the last 7 days"</span>
+      <span class="terminal-command"> caro "{t('terminal.command')}"</span>
     </div>
     <div class="terminal-line">
       <span class="terminal-caro">🐕 Caro:</span>
       <span class="terminal-output"> find . -name "*.py" -type f -mtime -7</span>
     </div>
     <div class="terminal-line">
-      <span class="terminal-safe">✓ Safe to run on your macOS system</span>
+      <span class="terminal-safe">✓ {t('terminal.safe')}</span>
     </div>
   </div>
 </div>

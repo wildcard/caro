@@ -1,24 +1,26 @@
 ---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
 ---
 
 <footer>
   <div class="container">
-    <p>Built with Rust 🦀 | Open source on <a href="https://github.com/wildcard/caro">GitHub</a></p>
+    <p>{t('footer.built')} 🦀 | {t('footer.opensource')} <a href="https://github.com/wildcard/caro">GitHub</a></p>
     <p class="domain">
-      <strong>caro.sh</strong> 🧡 - Your loyal shell companion
+      <strong>caro.sh</strong> 🧡 - {t('footer.tagline')}
     </p>
     <p class="links">
       <a href="https://github.com/wildcard/caro/blob/main/LICENSE">AGPL-3.0</a> |
-      <a href="https://github.com/wildcard/caro/contribute">Contributing</a> |
-      <a href="https://github.com/wildcard/caro/issues">Issues</a>
+      <a href="https://github.com/wildcard/caro/contribute">{t('footer.contributing')}</a> |
+      <a href="https://github.com/wildcard/caro/issues">{t('footer.issues')}</a>
     </p>
     <p class="kyaro-love">
-      Meet IRL Kyaro (Kyarorain Kadosh)! 🐕🖤<br>
-      Follow her adventures on <a href="https://www.instagram.com/kyaroblackheart/" target="_blank" rel="noopener noreferrer">Instagram @kyaroblackheart</a>
+      {t('footer.kyaro')} 🐕🖤<br>
+      {t('footer.kyaro.follow')} <a href="https://www.instagram.com/kyaroblackheart/" target="_blank" rel="noopener noreferrer">Instagram @kyaroblackheart</a>
     </p>
-    <p class="inspiration">
-      Inspired by Portal's Caroline—loyalty transformed into digital companionship
-    </p>
+    <p class="inspiration">{t('footer.inspiration')}</p>
   </div>
 </footer>
 

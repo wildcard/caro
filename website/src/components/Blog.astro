@@ -1,43 +1,47 @@
 ---
-// Blog component displaying recent articles
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
 const blogPosts = [
   {
-    title: "Why Caro? The Story Behind Your Terminal Companion",
+    titleKey: "blog.post1.title",
     slug: "why-caro",
     date: "2025-12-17",
-    excerpt: "Discover the heartwarming story of how Kyaro, an office-loving Shiba Inu who grew up among developers and system administrators, became Caro—your eternal companion in the terminal.",
-    readTime: "8 min read"
+    excerptKey: "blog.post1.excerpt",
+    readTimeKey: "blog.post1.readtime"
   }
 ];
 ---
 
 <section id="blog" class="blog-section">
   <div class="container">
-    <h2>From the Pack</h2>
-    <p class="section-subtitle">Stories, updates, and insights about Caro</p>
+    <h2>{t('blog.title')}</h2>
+    <p class="section-subtitle">{t('blog.subtitle')}</p>
 
     <div class="blog-grid">
       {blogPosts.map(post => (
         <article class="blog-card">
           <div class="blog-card-header">
             <time datetime={post.date} class="blog-date">
-              {new Date(post.date).toLocaleDateString('en-US', {
+              {new Date(post.date).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
               })}
             </time>
-            <span class="blog-read-time">{post.readTime}</span>
+            <span class="blog-read-time">{t(post.readTimeKey as any)}</span>
           </div>
 
           <h3 class="blog-title">
-            <a href={`/blog/${post.slug}`}>{post.title}</a>
+            <a href={`/blog/${post.slug}`}>{t(post.titleKey as any)}</a>
           </h3>
 
-          <p class="blog-excerpt">{post.excerpt}</p>
+          <p class="blog-excerpt">{t(post.excerptKey as any)}</p>
 
           <a href={`/blog/${post.slug}`} class="blog-read-more">
-            Read full story →
+            {t('blog.readmore')} →
           </a>
         </article>
       ))}

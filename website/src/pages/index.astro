@@ -8,11 +8,14 @@ import Features from '../components/Features.astro';
 import Blog from '../components/Blog.astro';
 import Download from '../components/Download.astro';
 import Footer from '../components/Footer.astro';
+import { useTranslations } from '../i18n/utils';
+
+const t = useTranslations('en');
 ---
 
 <Layout
-  title="Caro - Your loyal shell companion"
-  description="Caro is a companion agent that helps you with POSIX shell commands. Available as an MCP for Claude and as a dedicated Skill."
+  title={t('site.title')}
+  description={t('site.description')}
 >
   <Hero />
   <Terminal />
