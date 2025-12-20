@@ -15,6 +15,78 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Extensible backend system (MLX, vLLM, Ollama)
 - Hugging Face model caching with offline capability
 
+## Caro as a Coding Agent Companion
+
+Caro is designed as a **coding agent companion** - a tool that works alongside any AI coding assistant to provide safe, platform-aware shell command generation. This means Caro integrates with and enhances other coding agents.
+
+### Supported Coding Agents
+
+Caro has documented integrations with 15+ coding agents:
+
+| Category | Agents |
+|----------|--------|
+| **CLI Agents** | Claude Code, Crush, Codex CLI, Augie, Shai, Aider |
+| **IDE Agents** | Cursor, Windsurf, Void, Zed |
+| **VS Code Extensions** | Continue, Cody, Cline, Roo Code, GitHub Copilot |
+
+### Installation Commands (Quick Reference)
+
+```bash
+# Claude Code (Anthropic)
+npm install -g @anthropic-ai/claude-code
+
+# Crush (Charm.land)
+brew install charmbracelet/tap/crush
+
+# Cursor (AI IDE)
+brew install --cask cursor
+
+# Aider (Git-aware)
+pip install aider-chat
+
+# Continue (Open-source extension)
+code --install-extension continue.continue
+
+# Cody (Sourcegraph)
+code --install-extension sourcegraph.cody-ai
+```
+
+### Integration Patterns
+
+All agents can integrate with Caro through:
+
+1. **Shell Validation**: `caro --validate "<command>"`
+2. **Safe Execution**: `caro --execute "<command>"`
+3. **Command Generation**: `caro "<natural language>"`
+4. **MCP Server**: For agents supporting Model Context Protocol
+5. **Configuration**: Add Caro to agent config files
+
+### Example Integration
+
+```bash
+# Generate a safe command with any agent
+claude "find large files" | caro --validate
+
+# Or use Caro directly
+caro "find files larger than 100MB"
+# Generates platform-appropriate, validated command
+```
+
+### Documentation
+
+Full documentation for each agent integration is in `docs/coding-agents/`:
+- [Agent Companion Guide](../coding-agents/README.md) - Overview and quick start
+- [Agent Discovery Pipeline](../coding-agents/AGENT_DISCOVERY.md) - How new agents are added
+- Individual agent docs: `docs/coding-agents/<agent-name>.md`
+
+### Adding New Agents
+
+To add support for a new coding agent:
+1. Evaluate using criteria in `docs/coding-agents/AGENT_DISCOVERY.md`
+2. Create documentation following the template
+3. Add to the known agents registry
+4. Submit a PR
+
 ## Project Structure
 
 ```
