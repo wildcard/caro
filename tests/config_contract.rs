@@ -215,6 +215,9 @@ fn test_save_persists_configuration() {
         log_level: LogLevel::Warn,
         cache_max_size_gb: 20,
         log_rotation_days: 14,
+        history_enabled: true,
+        history_max_size_mb: 100,
+        history_max_output_size_kb: 10,
     };
 
     let save_result = config_manager.save(&config);
@@ -355,6 +358,9 @@ fn test_validate_accepts_valid_config() {
         log_level: LogLevel::Info,
         cache_max_size_gb: 10,
         log_rotation_days: 7,
+        history_enabled: true,
+        history_max_size_mb: 100,
+        history_max_output_size_kb: 10,
     };
 
     // UserConfiguration has its own validate() method
