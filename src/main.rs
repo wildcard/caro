@@ -147,19 +147,38 @@ async fn main() {
         }
     }
 
-    // Handle missing prompt
+    // Handle missing prompt - launch interactive mode
     if cli.prompt.is_none() {
-        eprintln!("Error: No prompt provided");
-        eprintln!();
-        eprintln!("Usage: cmdai [OPTIONS] <PROMPT>");
-        eprintln!();
-        eprintln!("Examples:");
-        eprintln!("  cmdai \"list all files\"");
-        eprintln!("  cmdai --shell zsh \"find large files\"");
-        eprintln!("  cmdai --safety strict \"delete temporary files\"");
-        eprintln!();
-        eprintln!("Run 'cmdai --help' for more information.");
-        process::exit(1);
+        // Check if running in a terminal
+        if atty::is(atty::Stream::Stdin) && atty::is(atty::Stream::Stdout) {
+            // Launch interactive mode
+            let config = cmdai::interactive::InteractiveConfig {
+                user_name: whoami::fallible::realname().ok(),
+                working_directory: std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("/")),
+                verbose: cli.verbose,
+            };
+
+            if let Err(e) = cmdai::interactive::run_interactive(config).await {
+                eprintln!("Error in interactive mode: {}", e);
+                process::exit(1);
+            }
+            process::exit(0);
+        } else {
+            // Non-interactive environment - show usage
+            eprintln!("Error: No prompt provided");
+            eprintln!();
+            eprintln!("Usage: cmdai [OPTIONS] <PROMPT>");
+            eprintln!();
+            eprintln!("Examples:");
+            eprintln!("  cmdai \"list all files\"");
+            eprintln!("  cmdai --shell zsh \"find large files\"");
+            eprintln!("  cmdai --safety strict \"delete temporary files\"");
+            eprintln!();
+            eprintln!("Run 'cmdai --help' for more information.");
+            eprintln!();
+            eprintln!("Or run without a prompt in a terminal for interactive mode.");
+            process::exit(1);
+        }
     }
 
     // Run the CLI application

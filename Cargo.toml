@@ -42,6 +42,13 @@ colored = "2"
 indicatif = "0.17"
 atty = "0.2"
 
+# Interactive TUI
+ratatui = "0.29"
+crossterm = "0.28"
+unicode-width = "0.2"
+textwrap = "0.16"
+whoami = "1.5"
+
 # Cross-platform support
 directories = "5"
 dirs = "5"
