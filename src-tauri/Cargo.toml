@@ -1,0 +1,46 @@
+[package]
+name = "cmdai-gui"
+version = "0.1.0"
+edition = "2021"
+description = "Tauri GUI for cmdai"
+authors = ["Claude Code <noreply@anthropic.com>"]
+license = "AGPL-3.0"
+
+[dependencies]
+# Tauri dependencies
+tauri = { version = "2.9", features = ["protocol-asset"] }
+tauri-plugin-shell = "2.9"
+tauri-plugin-dialog = "2.9"
+tauri-plugin-fs = "2.9"
+tauri-plugin-process = "2.9"
+
+# Core cmdai - use parent crate
+cmdai = { path = ".." }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Error handling
+anyhow = "1"
+thiserror = "1"
+
+# Database for execution history
+rusqlite = { version = "0.32", features = ["bundled", "chrono", "serde_json"] }
+
+# Date/time
+chrono = { version = "0.4", features = ["serde"] }
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[build-dependencies]
+tauri-build = { version = "2.9", features = [] }
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
