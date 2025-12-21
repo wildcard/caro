@@ -1,7 +1,7 @@
 // Tests for interactive execution prompt behavior
 // Verifies that commands prompt for execution by default
 
-use cmdai::cli::{CliApp, IntoCliArgs};
+use caro::cli::{CliApp, IntoCliArgs};
 
 /// Mock CLI arguments for testing
 #[derive(Default, Clone)]

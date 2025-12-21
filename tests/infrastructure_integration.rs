@@ -3,11 +3,11 @@
 //! Tests end-to-end scenarios from quickstart.md demonstrating integration
 //! of cache, config, execution, and logging modules.
 
-use cmdai::cache::CacheManager;
-use cmdai::config::ConfigManager;
-use cmdai::execution::ExecutionContext;
-use cmdai::logging::{LogConfig, LogFormat, LogLevel, LogOutput};
-use cmdai::models::{Platform, SafetyLevel, ShellType, UserConfiguration};
+use caro::cache::CacheManager;
+use caro::config::ConfigManager;
+use caro::execution::ExecutionContext;
+use caro::logging::{LogConfig, LogFormat, LogLevel, LogOutput};
+use caro::models::{Platform, SafetyLevel, ShellType, UserConfiguration};
 use std::path::PathBuf;
 use tempfile::TempDir;
 
@@ -238,7 +238,7 @@ async fn test_context_aware_generation() {
 async fn test_structured_logging_operations() {
     // GIVEN: A configured logger with JSON format
     let temp_dir = TempDir::new().unwrap();
-    let log_file = temp_dir.path().join("cmdai.log");
+    let log_file = temp_dir.path().join("caro.log");
 
     let log_config = LogConfig {
         log_level: LogLevel::Debug,
@@ -262,7 +262,7 @@ async fn test_structured_logging_operations() {
     assert!(log_config.redaction_enabled, "Redaction should be enabled");
 
     // WHEN: Creating an operation span
-    use cmdai::logging::OperationSpan;
+    use caro::logging::OperationSpan;
     let _span = OperationSpan::new("command_generation");
 
     // THEN: Operation span is created successfully

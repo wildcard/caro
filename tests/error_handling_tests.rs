@@ -4,7 +4,7 @@
 use std::time::Duration;
 
 // Import system components
-use cmdai::{
+use caro::{
     cli::{CliApp, CliError},
     models::ShellType,
     safety::{SafetyConfig, SafetyValidator, ValidationError},

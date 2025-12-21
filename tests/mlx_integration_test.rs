@@ -3,10 +3,10 @@
 
 #![cfg(all(target_os = "macos", target_arch = "aarch64"))]
 
-use cmdai::backends::embedded::{EmbeddedConfig, InferenceBackend, MlxBackend, ModelVariant};
-use cmdai::backends::CommandGenerator;
-use cmdai::EmbeddedModelBackend;
-use cmdai::models::{CommandRequest, ShellType};
+use caro::backends::embedded::{EmbeddedConfig, InferenceBackend, MlxBackend, ModelVariant};
+use caro::backends::CommandGenerator;
+use caro::EmbeddedModelBackend;
+use caro::models::{CommandRequest, ShellType};
 use std::path::PathBuf;
 
 /// Test that verifies MLX is correctly detected on Apple Silicon
@@ -297,7 +297,7 @@ fn test_mlx_implementation_status() {
     // Model cache
     let cache_dir = dirs::cache_dir()
         .unwrap()
-        .join("cmdai")
+        .join("caro")
         .join("models");
     let model_file = cache_dir.join("qwen2.5-coder-1.5b-instruct-q4_k_m.gguf");
 

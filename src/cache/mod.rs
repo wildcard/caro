@@ -64,7 +64,7 @@ impl CacheManager {
             .ok_or_else(|| {
                 CacheError::DirectoryError("Could not determine cache directory".to_string())
             })?
-            .join("cmdai")
+            .join("caro")
             .join("models");
 
         Self::with_cache_dir(cache_dir)

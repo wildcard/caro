@@ -13,15 +13,15 @@
 //! # Example
 //!
 //! ```no_run
-//! use cmdai::safety::{SafetyValidator, SafetyConfig};
-//! use cmdai::models::ShellType;
+//! use caro::safety::{SafetyValidator, SafetyConfig};
+//! use caro::models::ShellType;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let validator = SafetyValidator::new(SafetyConfig::moderate())?;
 //! let result = validator.validate_command("rm -rf /", ShellType::Bash).await?;
 //!
 //! assert!(!result.allowed); // Dangerous command blocked
-//! assert_eq!(result.risk_level, cmdai::models::RiskLevel::Critical);
+//! assert_eq!(result.risk_level, caro::models::RiskLevel::Critical);
 //! # Ok(())
 //! # }
 //! ```
@@ -404,8 +404,8 @@ impl SafetyConfig {
     /// # Example
     ///
     /// ```
-    /// use cmdai::safety::{SafetyConfig, DangerPattern};
-    /// use cmdai::models::RiskLevel;
+    /// use caro::safety::{SafetyConfig, DangerPattern};
+    /// use caro::models::RiskLevel;
     ///
     /// let mut config = SafetyConfig::default();
     /// let pattern = DangerPattern {

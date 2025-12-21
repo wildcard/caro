@@ -6,8 +6,8 @@ use tempfile::TempDir;
 
 // Import types that will be implemented later
 // NOTE: These imports will fail until we implement the actual config module
-use cmdai::config::{ConfigError, ConfigManager, UserConfiguration};
-use cmdai::models::{LogLevel, SafetyLevel, ShellType};
+use caro::config::{ConfigError, ConfigManager, UserConfiguration};
+use caro::models::{LogLevel, SafetyLevel, ShellType};
 
 // Mock CLI args for testing
 struct TestCliArgs {
@@ -27,8 +27,8 @@ fn test_config_manager_new() {
     // Verify config path is set to XDG location
     let config_path = config_manager.config_path();
     assert!(
-        config_path.to_str().unwrap().contains("cmdai"),
-        "Config path should contain cmdai"
+        config_path.to_str().unwrap().contains("caro"),
+        "Config path should contain caro"
     );
 }
 
@@ -431,10 +431,10 @@ fn test_config_path_resolution() {
     let config_manager = ConfigManager::new().unwrap();
     let config_path = config_manager.config_path();
 
-    // Should be in .config/cmdai/ on Linux/macOS or equivalent on Windows
+    // Should be in .config/caro/ on Linux/macOS or equivalent on Windows
     let path_str = config_path.to_str().unwrap();
     assert!(
-        path_str.contains("config") || path_str.contains("Config") || path_str.contains("cmdai"),
+        path_str.contains("config") || path_str.contains("Config") || path_str.contains("caro"),
         "Config path should be in standard config location: {}",
         path_str
     );

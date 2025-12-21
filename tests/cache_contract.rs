@@ -4,7 +4,7 @@
 use tempfile::TempDir;
 
 // Import types from cache module
-use cmdai::cache::{CacheError, CacheManager};
+use caro::cache::{CacheError, CacheManager};
 
 #[tokio::test]
 async fn test_cache_manager_new() {

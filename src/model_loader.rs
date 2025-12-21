@@ -35,14 +35,14 @@ impl ModelLoader {
     }
 
     /// Get the default cache directory for models
-    /// Returns: ~/.cache/cmdai/models/ on Unix, %LOCALAPPDATA%\cmdai\models\ on Windows
+    /// Returns: ~/.cache/caro/models/ on Unix, %LOCALAPPDATA%\caro\models\ on Windows
     pub fn default_cache_dir() -> Result<PathBuf> {
         let cache_base = directories::BaseDirs::new()
             .context("Failed to determine user cache directory")?
             .cache_dir()
             .to_path_buf();
 
-        let cmdai_cache = cache_base.join("cmdai").join("models");
+        let cmdai_cache = cache_base.join("caro").join("models");
 
         // Create cache directory if it doesn't exist
         std::fs::create_dir_all(&cmdai_cache).context("Failed to create model cache directory")?;
@@ -59,7 +59,7 @@ impl ModelLoader {
     ///
     /// Priority:
     /// 1. Check bundled model path (models/qwen2.5-coder-1.5b/*.gguf)
-    /// 2. Check cache directory (~/.cache/cmdai/models/*.gguf)
+    /// 2. Check cache directory (~/.cache/caro/models/*.gguf)
     /// 3. If not found, returns path where it should be downloaded
     pub fn get_embedded_model_path(&self) -> Result<PathBuf> {
         // Check bundled models first (for future binary embedding)
@@ -193,7 +193,7 @@ mod tests {
     #[test]
     fn test_default_cache_dir() {
         let cache_dir = ModelLoader::default_cache_dir().unwrap();
-        assert!(cache_dir.to_string_lossy().contains("cmdai"));
+        assert!(cache_dir.to_string_lossy().contains("caro"));
         assert!(cache_dir.to_string_lossy().contains("models"));
     }
 

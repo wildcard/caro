@@ -1,6 +1,6 @@
 /// End-to-End CLI Black-box Tests
 /// 
-/// These tests run the actual cmdai binary as a user would and verify behavior
+/// These tests run the actual caro binary as a user would and verify behavior
 /// from a user's perspective. Tests are based on the comprehensive manual QA
 /// test cases and validate the complete user experience.
 
@@ -11,7 +11,7 @@ use std::time::Duration;
 use serde_json::Value;
 use tempfile::TempDir;
 
-/// Helper struct for running cmdai CLI commands and capturing output
+/// Helper struct for running caro CLI commands and capturing output
 struct CliTestRunner {
     binary_path: String,
     temp_dir: TempDir,
@@ -20,8 +20,8 @@ struct CliTestRunner {
 impl CliTestRunner {
     /// Create a new CLI test runner with temporary directory
     fn new() -> Self {
-        let binary_path = if Path::new("target/debug/cmdai").exists() {
-            "target/debug/cmdai".to_string()
+        let binary_path = if Path::new("target/debug/caro").exists() {
+            "target/debug/caro".to_string()
         } else {
             // Fallback to cargo run for cases where binary isn't built
             "cargo".to_string()
@@ -35,7 +35,7 @@ impl CliTestRunner {
         }
     }
 
-    /// Run a cmdai command and return stdout, stderr, and exit status
+    /// Run a caro command and return stdout, stderr, and exit status
     fn run_command(&self, args: &[&str]) -> CliTestResult {
         let start_time = std::time::Instant::now();
         
@@ -58,7 +58,7 @@ impl CliTestRunner {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .output()
-            .expect("Failed to execute cmdai");
+            .expect("Failed to execute caro");
 
         let execution_time = start_time.elapsed();
 
@@ -115,8 +115,8 @@ fn e2e_help_output() {
     let output = runner.run_success(&["--help"]);
     
     // Verify essential help content
-    assert!(output.contains("cmdai converts natural language"));
-    assert!(output.contains("Usage: cmdai"));
+    assert!(output.contains("caro converts natural language"));
+    assert!(output.contains("Usage: caro"));
     assert!(output.contains("--shell"));
     assert!(output.contains("--safety"));
     assert!(output.contains("--output"));
@@ -136,8 +136,8 @@ fn e2e_version_information() {
     let runner = CliTestRunner::new();
     let output = runner.run_success(&["--version"]);
     
-    // Should show version in format "cmdai X.Y.Z"
-    assert!(output.contains("cmdai"));
+    // Should show version in format "caro X.Y.Z"
+    assert!(output.contains("caro"));
     assert!(output.matches(char::is_numeric).count() >= 3); // At least X.Y.Z
     
     println!("✅ E2E-A2: Version information displayed correctly");
@@ -498,12 +498,12 @@ fn ensure_binary_built() {
     use std::process::Command;
     
     let output = Command::new("cargo")
-        .args(&["build", "--bin", "cmdai"])
+        .args(&["build", "--bin", "caro"])
         .output()
-        .expect("Failed to build cmdai binary");
+        .expect("Failed to build caro binary");
     
     if !output.status.success() {
-        panic!("Failed to build cmdai binary: {}", 
+        panic!("Failed to build caro binary: {}", 
                String::from_utf8_lossy(&output.stderr));
     }
 }
@@ -521,7 +521,7 @@ fn e2e_smoke_test_suite() {
     
     // Test 1: Basic functionality
     let help_output = runner.run_success(&["--help"]);
-    assert!(help_output.contains("cmdai"));
+    assert!(help_output.contains("caro"));
     
     // Test 2: Command generation
     let cmd_output = runner.run_success(&["list files"]);
@@ -547,7 +547,7 @@ mod e2e_documentation {
     //! # End-to-End Test Documentation
     //!
     //! ## Overview
-    //! These E2E tests validate the cmdai CLI from a user's perspective by running
+    //! These E2E tests validate the caro CLI from a user's perspective by running
     //! the actual binary and testing complete workflows.
     //!
     //! ## Test Categories

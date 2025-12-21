@@ -433,10 +433,10 @@ impl CliApp {
 
     /// Show help information
     pub async fn show_help(&self) -> Result<String, CliError> {
-        Ok(r#"cmdai - Natural language to shell command converter
+        Ok(r#"caro - Natural language to shell command converter
 
 USAGE:
-    cmdai [OPTIONS] <PROMPT>
+    caro [OPTIONS] <PROMPT>
 
 OPTIONS:
     -s, --shell <SHELL>       Shell type (bash, zsh, fish, sh, powershell, cmd)
@@ -449,16 +449,16 @@ OPTIONS:
     -V, --version             Show version information
 
 EXAMPLES:
-    cmdai "list all files"
-    cmdai --shell zsh "find large files"
-    cmdai --safety strict "delete temporary files"
+    caro "list all files"
+    caro --shell zsh "find large files"
+    caro --safety strict "delete temporary files"
 "#
         .to_string())
     }
 
     /// Show version information
     pub async fn show_version(&self) -> Result<String, CliError> {
-        Ok(format!("cmdai v{}", env!("CARGO_PKG_VERSION")))
+        Ok(format!("caro v{}", env!("CARGO_PKG_VERSION")))
     }
 }
 

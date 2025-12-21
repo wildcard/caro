@@ -3,7 +3,7 @@
 //! Tests the platform detection enhancements required for command validation.
 //! Following TDD: These tests define the contract before implementation.
 
-use cmdai::platform::{PlatformContext, UtilityType};
+use caro::platform::{PlatformContext, UtilityType};
 
 /// Test that PlatformContext can be detected from the current environment
 #[tokio::test]

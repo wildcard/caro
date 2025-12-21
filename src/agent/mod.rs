@@ -334,6 +334,7 @@ mod tests {
     fn test_extract_complex_commands() {
         let cmd = "find . -name '*.rs' | xargs grep -l 'TODO'";
         let commands = AgentLoop::extract_commands(cmd);
-        assert_eq!(commands, vec!["find", "xargs", "grep"]);
+        // xargs takes grep as an argument, so only find and xargs are top-level commands
+        assert_eq!(commands, vec!["find", "xargs"]);
     }
 }

@@ -46,7 +46,7 @@ impl ConfigManager {
             .ok_or_else(|| {
                 ConfigError::DirectoryError("Could not determine config directory".to_string())
             })?
-            .join("cmdai");
+            .join("caro");
 
         // Create config directory if it doesn't exist
         if !config_dir.exists() {

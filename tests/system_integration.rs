@@ -3,12 +3,12 @@
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use cmdai::backends::embedded::{EmbeddedModelBackend, ModelVariant};
-use cmdai::backends::CommandGenerator;
-use cmdai::models::{CommandRequest, RiskLevel, ShellType};
+use caro::backends::embedded::{EmbeddedModelBackend, ModelVariant};
+use caro::backends::CommandGenerator;
+use caro::models::{CommandRequest, RiskLevel, ShellType};
 
 #[cfg(feature = "remote-backends")]
-use cmdai::backends::remote::{OllamaBackend, VllmBackend};
+use caro::backends::remote::{OllamaBackend, VllmBackend};
 #[cfg(feature = "remote-backends")]
 use reqwest::Url;
 

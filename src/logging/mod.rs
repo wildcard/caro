@@ -83,7 +83,7 @@ impl LogConfig {
         Self {
             log_level: LogLevel::Info,
             format: LogFormat::Json,
-            output: LogOutput::File(PathBuf::from("/var/log/cmdai/cmdai.log")),
+            output: LogOutput::File(PathBuf::from("/var/log/caro/caro.log")),
             redaction_enabled: true,
             rotation: Some(LogRotation {
                 max_files: 7,

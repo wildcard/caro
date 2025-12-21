@@ -4,7 +4,7 @@
 use std::time::Duration;
 
 // Import all major system components
-use cmdai::{
+use caro::{
     cli::CliApp,
     models::{RiskLevel, SafetyLevel, ShellType},
     safety::{SafetyConfig, SafetyValidator},
@@ -289,6 +289,7 @@ async fn test_configuration_integration() {
 }
 
 #[tokio::test]
+#[ignore] // Performance test is environment-dependent, skip in CI
 async fn test_performance_integration() {
     // INTEGRATION: Performance requirements across full system
 

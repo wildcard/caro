@@ -4,8 +4,8 @@
 use std::io::Write;
 use std::process::{Command, Stdio};
 
-/// Helper to run cmdai binary with input
-fn run_cmdai_with_input(args: &[&str], input: &str) -> (String, String, i32) {
+/// Helper to run caro binary with input
+fn run_caro_with_input(args: &[&str], input: &str) -> (String, String, i32) {
     let mut child = Command::new("cargo")
         .args(&["run", "--quiet", "--"])
         .args(args)
@@ -13,7 +13,7 @@ fn run_cmdai_with_input(args: &[&str], input: &str) -> (String, String, i32) {
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .expect("Failed to spawn cmdai");
+        .expect("Failed to spawn caro");
 
     // Write input to stdin
     if let Some(mut stdin) = child.stdin.take() {
@@ -21,7 +21,7 @@ fn run_cmdai_with_input(args: &[&str], input: &str) -> (String, String, i32) {
     }
 
     // Wait for completion and capture output
-    let output = child.wait_with_output().expect("Failed to wait for cmdai");
+    let output = child.wait_with_output().expect("Failed to wait for caro");
 
     let stdout = String::from_utf8_lossy(&output.stdout).to_string();
     let stderr = String::from_utf8_lossy(&output.stderr).to_string();
@@ -30,17 +30,17 @@ fn run_cmdai_with_input(args: &[&str], input: &str) -> (String, String, i32) {
     (stdout, stderr, exit_code)
 }
 
-/// Helper to run cmdai binary without input (for non-interactive tests)
-fn run_cmdai(args: &[&str]) -> (String, String, i32) {
+/// Helper to run caro binary without input (for non-interactive tests)
+fn run_caro(args: &[&str]) -> (String, String, i32) {
     let output = Command::new("cargo")
         .args(&["run", "--quiet", "--"])
         .args(args)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .expect("Failed to spawn cmdai")
+        .expect("Failed to spawn caro")
         .wait_with_output()
-        .expect("Failed to wait for cmdai");
+        .expect("Failed to wait for caro");
 
     let stdout = String::from_utf8_lossy(&output.stdout).to_string();
     let stderr = String::from_utf8_lossy(&output.stderr).to_string();
@@ -52,10 +52,10 @@ fn run_cmdai(args: &[&str]) -> (String, String, i32) {
 #[test]
 fn test_e2e_execute_flag_runs_command() {
     // Test: --execute flag should auto-execute the command
-    let (stdout, _stderr, exit_code) = run_cmdai(&["--execute", "current directory"]);
+    let (stdout, _stderr, exit_code) = run_caro(&["--execute", "current directory"]);
 
     // Should succeed
-    assert_eq!(exit_code, 0, "cmdai should exit successfully");
+    assert_eq!(exit_code, 0, "caro should exit successfully");
 
     // Should show the command
     assert!(stdout.contains("pwd") || stdout.contains("Command:"),
@@ -66,16 +66,16 @@ fn test_e2e_execute_flag_runs_command() {
             "Should show execution results");
 
     // Should contain actual output from pwd command
-    assert!(stdout.contains("cmdai") || stdout.contains("/home/") || stdout.contains("/"),
+    assert!(stdout.contains("caro") || stdout.contains("/home/") || stdout.contains("/"),
             "Should contain output from pwd command");
 }
 
 #[test]
 fn test_e2e_dry_run_no_execution() {
     // Test: --dry-run should show what would happen without executing
-    let (stdout, _stderr, exit_code) = run_cmdai(&["--dry-run", "list files"]);
+    let (stdout, _stderr, exit_code) = run_caro(&["--dry-run", "list files"]);
 
-    assert_eq!(exit_code, 0, "cmdai should exit successfully");
+    assert_eq!(exit_code, 0, "caro should exit successfully");
 
     // Should show the command
     assert!(stdout.contains("ls") || stdout.contains("Command:"),
@@ -97,9 +97,9 @@ fn test_e2e_dry_run_no_execution() {
 #[test]
 fn test_e2e_short_execute_flag() {
     // Test: -x short flag should work the same as --execute
-    let (stdout, _stderr, exit_code) = run_cmdai(&["-x", "current directory"]);
+    let (stdout, _stderr, exit_code) = run_caro(&["-x", "current directory"]);
 
-    assert_eq!(exit_code, 0, "cmdai should exit successfully");
+    assert_eq!(exit_code, 0, "caro should exit successfully");
     assert!(stdout.contains("pwd") || stdout.contains("Command:"),
             "Should show command");
     assert!(stdout.contains("Execution Results:") || stdout.contains("Success"),
@@ -109,9 +109,9 @@ fn test_e2e_short_execute_flag() {
 #[test]
 fn test_e2e_interactive_flag() {
     // Test: -i flag should auto-execute
-    let (stdout, _stderr, exit_code) = run_cmdai(&["-i", "current directory"]);
+    let (stdout, _stderr, exit_code) = run_caro(&["-i", "current directory"]);
 
-    assert_eq!(exit_code, 0, "cmdai should exit successfully");
+    assert_eq!(exit_code, 0, "caro should exit successfully");
     assert!(stdout.contains("Execution Results:") || stdout.contains("Success"),
             "Should execute with -i flag");
 }
@@ -119,9 +119,9 @@ fn test_e2e_interactive_flag() {
 #[test]
 fn test_e2e_verbose_with_execute() {
     // Test: --verbose with --execute should show debug info
-    let (stdout, _stderr, exit_code) = run_cmdai(&["--verbose", "--execute", "current directory"]);
+    let (stdout, _stderr, exit_code) = run_caro(&["--verbose", "--execute", "current directory"]);
 
-    assert_eq!(exit_code, 0, "cmdai should exit successfully");
+    assert_eq!(exit_code, 0, "caro should exit successfully");
 
     // Should show execution results
     assert!(stdout.contains("Execution Results:") || stdout.contains("Success"),
@@ -135,9 +135,9 @@ fn test_e2e_verbose_with_execute() {
 #[test]
 fn test_e2e_json_output_format() {
     // Test: JSON output format
-    let (stdout, _stderr, exit_code) = run_cmdai(&["--output", "json", "--execute", "current directory"]);
+    let (stdout, _stderr, exit_code) = run_caro(&["--output", "json", "--execute", "current directory"]);
 
-    assert_eq!(exit_code, 0, "cmdai should exit successfully");
+    assert_eq!(exit_code, 0, "caro should exit successfully");
 
     // Should be valid JSON
     assert!(stdout.contains("{") && stdout.contains("}"),
@@ -160,9 +160,9 @@ fn test_e2e_json_output_format() {
 #[test]
 fn test_e2e_no_flags_non_interactive() {
     // Test: Without flags in non-interactive mode (piped stdin)
-    let (stdout, _stderr, exit_code) = run_cmdai(&["list files"]);
+    let (stdout, _stderr, exit_code) = run_caro(&["list files"]);
 
-    assert_eq!(exit_code, 0, "cmdai should exit successfully");
+    assert_eq!(exit_code, 0, "caro should exit successfully");
 
     // Should show the command
     assert!(stdout.contains("ls") || stdout.contains("Command:"),
@@ -186,9 +186,9 @@ fn test_e2e_multiple_commands() {
     ];
 
     for (args, expected_cmd) in commands {
-        let (stdout, _stderr, exit_code) = run_cmdai(&args);
+        let (stdout, _stderr, exit_code) = run_caro(&args);
 
-        assert_eq!(exit_code, 0, "cmdai should exit successfully for {:?}", args);
+        assert_eq!(exit_code, 0, "caro should exit successfully for {:?}", args);
         assert!(stdout.contains(expected_cmd) || stdout.contains("Command:"),
                 "Should show command for {:?}", args);
     }
@@ -197,9 +197,9 @@ fn test_e2e_multiple_commands() {
 #[test]
 fn test_e2e_command_with_output() {
     // Test: Command that produces output
-    let (stdout, _stderr, exit_code) = run_cmdai(&["-x", "current directory"]);
+    let (stdout, _stderr, exit_code) = run_caro(&["-x", "current directory"]);
 
-    assert_eq!(exit_code, 0, "cmdai should exit successfully");
+    assert_eq!(exit_code, 0, "caro should exit successfully");
 
     // Should show Standard Output section
     assert!(stdout.contains("Standard Output:") || stdout.contains("/"),
@@ -213,7 +213,7 @@ fn test_e2e_command_with_output() {
 #[test]
 fn test_e2e_help_flag() {
     // Test: --help flag
-    let (stdout, _stderr, exit_code) = run_cmdai(&["--help"]);
+    let (stdout, _stderr, exit_code) = run_caro(&["--help"]);
 
     assert_eq!(exit_code, 0, "Should exit successfully with --help");
 
@@ -227,19 +227,19 @@ fn test_e2e_help_flag() {
 #[test]
 fn test_e2e_version_flag() {
     // Test: --version flag
-    let (stdout, _stderr, _exit_code) = run_cmdai(&["--version"]);
+    let (stdout, _stderr, _exit_code) = run_caro(&["--version"]);
 
     // Should show version
-    assert!(stdout.contains("cmdai") && (stdout.contains("0.") || stdout.contains("1.")),
+    assert!(stdout.contains("caro") && (stdout.contains("0.") || stdout.contains("1.")),
             "Should show version number");
 }
 
 #[test]
 fn test_e2e_shell_selection() {
     // Test: Shell type selection
-    let (stdout, _stderr, exit_code) = run_cmdai(&["--shell", "bash", "-x", "current directory"]);
+    let (stdout, _stderr, exit_code) = run_caro(&["--shell", "bash", "-x", "current directory"]);
 
-    assert_eq!(exit_code, 0, "cmdai should exit successfully");
+    assert_eq!(exit_code, 0, "caro should exit successfully");
     assert!(stdout.contains("Success") || stdout.contains("exit code: 0"),
             "Should execute successfully with bash shell");
 }
@@ -247,9 +247,9 @@ fn test_e2e_shell_selection() {
 #[test]
 fn test_e2e_execution_timing() {
     // Test: Verify execution timing is captured
-    let (stdout, _stderr, exit_code) = run_cmdai(&["-x", "current directory"]);
+    let (stdout, _stderr, exit_code) = run_caro(&["-x", "current directory"]);
 
-    assert_eq!(exit_code, 0, "cmdai should exit successfully");
+    assert_eq!(exit_code, 0, "caro should exit successfully");
 
     // Should show execution time
     assert!(stdout.contains("Execution time:") && stdout.contains("ms"),
@@ -259,9 +259,9 @@ fn test_e2e_execution_timing() {
 #[test]
 fn test_e2e_exit_code_display() {
     // Test: Exit code is displayed
-    let (stdout, _stderr, exit_code) = run_cmdai(&["-x", "current directory"]);
+    let (stdout, _stderr, exit_code) = run_caro(&["-x", "current directory"]);
 
-    assert_eq!(exit_code, 0, "cmdai should exit successfully");
+    assert_eq!(exit_code, 0, "caro should exit successfully");
 
     // Should show exit code
     assert!(stdout.contains("exit code") || stdout.contains("Success"),
@@ -274,9 +274,9 @@ fn test_e2e_exit_code_display() {
 #[ignore] // This test requires actual interactive TTY
 fn test_e2e_interactive_prompt_yes() {
     // Test: Answering 'y' to interactive prompt
-    let (stdout, _stderr, exit_code) = run_cmdai_with_input(&["list files"], "y\n");
+    let (stdout, _stderr, exit_code) = run_caro_with_input(&["list files"], "y\n");
 
-    assert_eq!(exit_code, 0, "cmdai should exit successfully");
+    assert_eq!(exit_code, 0, "caro should exit successfully");
 
     // Should show execution results when user says yes
     assert!(stdout.contains("Execution Results:") || stdout.contains("Executing"),
@@ -287,9 +287,9 @@ fn test_e2e_interactive_prompt_yes() {
 #[ignore] // This test requires actual interactive TTY
 fn test_e2e_interactive_prompt_no() {
     // Test: Answering 'n' to interactive prompt
-    let (stdout, _stderr, exit_code) = run_cmdai_with_input(&["list files"], "n\n");
+    let (stdout, _stderr, exit_code) = run_caro_with_input(&["list files"], "n\n");
 
-    assert_eq!(exit_code, 0, "cmdai should exit successfully");
+    assert_eq!(exit_code, 0, "caro should exit successfully");
 
     // Should NOT execute when user says no
     assert!(!stdout.contains("Execution Results:"),
