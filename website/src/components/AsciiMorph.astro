@@ -24,52 +24,85 @@ const {
 
 // Generate a unique ID for this instance
 const instanceId = `ascii-morph-${Math.random().toString(36).substr(2, 9)}`;
+
+// Serialize the arts data as JSON to pass to the client
+const artsJson = JSON.stringify(arts);
 ---
 
 <div class={`ascii-morph-container ${className}`}>
-  <pre id={instanceId} class="ascii-canvas"></pre>
+  <pre
+    id={instanceId}
+    class="ascii-canvas"
+    data-arts={artsJson}
+    data-width={width}
+    data-height={height}
+    data-interval={interval}
+    data-morph-delay={morphDelay}
+  ></pre>
 </div>
 
-<script define:vars={{ instanceId, arts, width, height, interval, morphDelay }}>
-  // Wait for DOM and AsciiMorph library to be ready
-  function initAsciiMorph() {
-    if (typeof window.AsciiMorph === 'undefined') {
-      console.warn('AsciiMorph library not loaded yet');
-      return;
-    }
+<script>
+  // This script runs on every page load
+  function initializeAsciiMorphs() {
+    // Find all ASCII morph elements
+    const elements = document.querySelectorAll('.ascii-canvas[data-arts]');
 
-    const element = document.getElementById(instanceId);
-    if (!element) {
-      console.warn('ASCII morph element not found:', instanceId);
-      return;
-    }
+    elements.forEach((element) => {
+      try {
+        // Get configuration from data attributes
+        const arts = JSON.parse(element.getAttribute('data-arts') || '[]');
+        const width = parseInt(element.getAttribute('data-width') || '100');
+        const height = parseInt(element.getAttribute('data-height') || '45');
+        const interval = parseInt(element.getAttribute('data-interval') || '4000');
+        const morphDelay = parseInt(element.getAttribute('data-morph-delay') || '50');
 
-    // Initialize AsciiMorph
-    const morph = window.AsciiMorph(element, { x: width, y: height });
+        console.log('Initializing ASCII morph:', {
+          id: element.id,
+          arts: arts.length,
+          width,
+          height
+        });
 
-    // Render the first frame
-    if (arts.length > 0) {
-      morph.render(arts[0]);
-    }
+        // Check if AsciiMorph is available
+        if (typeof window.AsciiMorph === 'undefined') {
+          console.error('AsciiMorph library not loaded!');
+          element.textContent = 'ASCII Morph library not loaded';
+          return;
+        }
 
-    // If there's more than one art, set up morphing
-    if (arts.length > 1) {
-      let currentIndex = 0;
+        // Initialize AsciiMorph
+        const morph = window.AsciiMorph(element, { x: width, y: height });
 
-      setInterval(() => {
-        currentIndex = (currentIndex + 1) % arts.length;
-        morph.morph(arts[currentIndex], morphDelay);
-      }, interval);
-    }
+        // Render the first frame
+        if (arts.length > 0) {
+          morph.render(arts[0]);
+          console.log('Rendered first frame');
+        }
+
+        // If there's more than one art, set up morphing
+        if (arts.length > 1) {
+          let currentIndex = 0;
+
+          setInterval(() => {
+            currentIndex = (currentIndex + 1) % arts.length;
+            console.log('Morphing to frame', currentIndex);
+            morph.morph(arts[currentIndex], morphDelay);
+          }, interval);
+        }
+      } catch (error) {
+        console.error('Error initializing ASCII morph:', error);
+        element.textContent = 'Error loading ASCII art';
+      }
+    });
   }
 
-  // Try to initialize when the page loads
+  // Wait for both DOM and AsciiMorph library
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(initAsciiMorph, 100);
+      setTimeout(initializeAsciiMorphs, 200);
     });
   } else {
-    setTimeout(initAsciiMorph, 100);
+    setTimeout(initializeAsciiMorphs, 200);
   }
 </script>
 
