@@ -48,7 +48,7 @@ mod shell;
 mod translation;
 
 pub use cache::{CacheEntry, PreferenceCache};
-pub use project::{BuildTool, Language, PackageManager, ProjectContext};
+pub use project::{BuildTool, CloudContext, InfraTool, Language, PackageManager, ProjectContext};
 pub use shell::ShellProfile;
 pub use translation::{CommandTranslator, TranslatedCommand};
 
@@ -391,8 +391,11 @@ mod tests {
                 package_manager: Some(PackageManager::Yarn),
                 build_tool: Some(BuildTool::Make),
                 languages: vec![Language::Rust, Language::TypeScript],
+                infra_tools: vec![],
+                cloud_context: None,
                 root_path: PathBuf::from("/test/project"),
                 detected_files: vec!["yarn.lock".to_string(), "Cargo.toml".to_string()],
+                raw_signals: vec![],
             },
             shell: ShellProfile {
                 aliases: [
@@ -423,8 +426,11 @@ mod tests {
                 package_manager: Some(PackageManager::Yarn),
                 build_tool: None,
                 languages: vec![],
+                infra_tools: vec![],
+                cloud_context: None,
                 root_path: PathBuf::from("/test"),
                 detected_files: vec!["yarn.lock".to_string()],
+                raw_signals: vec![],
             },
             shell: ShellProfile::empty(ShellType::Bash),
             detected_at: Utc::now(),
@@ -445,8 +451,11 @@ mod tests {
                 package_manager: Some(PackageManager::Yarn),
                 build_tool: None,
                 languages: vec![],
+                infra_tools: vec![],
+                cloud_context: None,
                 root_path: PathBuf::from("/test"),
                 detected_files: vec!["yarn.lock".to_string()],
+                raw_signals: vec![],
             },
             shell: ShellProfile::empty(ShellType::Bash),
             detected_at: Utc::now(),

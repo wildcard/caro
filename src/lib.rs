@@ -67,7 +67,7 @@ pub use backends::{BackendInfo as BackendInfoTrait, CommandGenerator, GeneratorE
 
 // Re-export preferences types
 pub use preferences::{
-    BuildTool, CacheEntry, CommandTranslator, Language, PackageManager, PreferenceCache,
-    PreferenceCompliance, PreferenceError, ProjectContext, ShellProfile, TranslatedCommand,
-    UserPreferences,
+    BuildTool, CacheEntry, CloudContext, CommandTranslator, InfraTool, Language, PackageManager,
+    PreferenceCache, PreferenceCompliance, PreferenceError, ProjectContext, ShellProfile,
+    TranslatedCommand, UserPreferences,
 };

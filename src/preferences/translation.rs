@@ -214,8 +214,11 @@ mod tests {
                 package_manager: Some(pm),
                 build_tool: None,
                 languages: vec![],
+                infra_tools: vec![],
+                cloud_context: None,
                 root_path: PathBuf::from("/test"),
                 detected_files: vec![],
+                raw_signals: vec![],
             },
             shell: ShellProfile {
                 aliases,
