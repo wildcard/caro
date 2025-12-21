@@ -10,6 +10,7 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
+  RUST_VERSION: stable
 
 jobs:
   publish:
@@ -17,22 +18,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check version consistency
-        run: |
-          TAG_VERSION=${GITHUB_REF#refs/tags/v}
-          echo "Tag version: $TAG_VERSION"
-          echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
-
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Verify Cargo.toml version matches tag
+      - name: Verify version consistency
+        id: version
         run: |
+          TAG_VERSION=${GITHUB_REF#refs/tags/v}
           CARGO_VERSION=$(grep '^version = ' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+          echo "Tag version: $TAG_VERSION"
+          echo "Cargo.toml version: $CARGO_VERSION"
           if [ "$TAG_VERSION" != "$CARGO_VERSION" ]; then
             echo "::error::Tag version ($TAG_VERSION) doesn't match Cargo.toml version ($CARGO_VERSION)"
             exit 1
           fi
+          echo "version=$TAG_VERSION" >> $GITHUB_OUTPUT
           echo "Version check passed: $TAG_VERSION"
 
       - name: Install Rust toolchain
@@ -42,19 +42,19 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ env.RUST_VERSION }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Cache cargo index
         uses: actions/cache@v4
         with:
           path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ env.RUST_VERSION }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Cache cargo build
         uses: actions/cache@v4
         with:
           path: target
-          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ env.RUST_VERSION }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Run tests
         run: cargo test --all-features
@@ -62,4 +62,7 @@ jobs:
       - name: Publish to crates.io
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-        run: cargo publish
+        run: |
+          echo "Publishing version ${{ steps.version.outputs.version }} to crates.io..."
+          cargo publish
+          echo "Successfully published to crates.io"
