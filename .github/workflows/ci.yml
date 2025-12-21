@@ -48,6 +48,15 @@ jobs:
       env:
         RUST_BACKTRACE: 1
 
+    - name: Run MLX backend tests (macOS Apple Silicon only)
+      if: matrix.os == 'macos-latest'
+      run: |
+        echo "Running MLX-specific tests on macOS"
+        cargo test --test mlx_backend_contract --verbose
+        cargo test --test mlx_integration_test --verbose
+      env:
+        RUST_BACKTRACE: 1
+
     - name: Run E2E tests per platform
       run: |
         echo "Running comprehensive E2E tests on ${{ matrix.os }}"

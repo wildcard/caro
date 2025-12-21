@@ -162,6 +162,15 @@ jobs:
         env:
           RUST_BACKTRACE: 1
 
+      - name: Run MLX backend tests (macOS Apple Silicon only)
+        if: matrix.target == 'aarch64-apple-darwin'
+        run: |
+          echo "Running MLX-specific tests for Apple Silicon"
+          cargo test --test mlx_backend_contract --verbose
+          cargo test --test mlx_integration_test --verbose
+        env:
+          RUST_BACKTRACE: 1
+
       - name: Run E2E tests per platform
         if: matrix.target != 'aarch64-unknown-linux-gnu'
         run: |
