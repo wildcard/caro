@@ -242,6 +242,14 @@
       isMuted = true;
       localStorage.setItem('elevatorMuted', 'true');
 
+      // Stop all currently playing audio
+      const audioElements = document.querySelectorAll('audio');
+      audioElements.forEach((audio) => {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.remove();
+      });
+
       // Hide mute button when muted
       muteToggle.classList.remove('visible');
 
