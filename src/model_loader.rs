@@ -5,33 +5,74 @@ use std::path::{Path, PathBuf};
 use tracing::{debug, info, warn};
 
 use crate::backends::embedded::ModelVariant;
-
-/// Default model filename for Q4_K_M quantization (recommended)
-const DEFAULT_MODEL_Q4: &str = "qwen2.5-coder-1.5b-instruct-q4_k_m.gguf";
-
-/// Alternative model filename for Q8_0 quantization (higher quality)
-#[allow(dead_code)]
-const DEFAULT_MODEL_Q8: &str = "qwen2.5-coder-1.5b-instruct-q8_0.gguf";
-
-/// Hugging Face model repository for GGUF files
-const HF_MODEL_REPO: &str = "Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF";
+use crate::model_catalog::{ModelCatalog, ModelInfo};
 
 /// Model loader for managing embedded model distribution and caching
 #[derive(Clone)]
 pub struct ModelLoader {
     cache_dir: PathBuf,
+    selected_model: &'static ModelInfo,
 }
 
 impl ModelLoader {
-    /// Create a new model loader with default cache directory
+    /// Create a new model loader with default cache directory and default model
     pub fn new() -> Result<Self> {
         let cache_dir = Self::default_cache_dir()?;
-        Ok(Self { cache_dir })
+        Ok(Self {
+            cache_dir,
+            selected_model: ModelCatalog::default(),
+        })
+    }
+
+    /// Create a new model loader with a specific model
+    pub fn with_model(model_id: &str) -> Result<Self> {
+        let cache_dir = Self::default_cache_dir()?;
+        let model = ModelCatalog::by_id(model_id)
+            .ok_or_else(|| anyhow::anyhow!("Model not found: {}", model_id))?;
+        Ok(Self {
+            cache_dir,
+            selected_model: model,
+        })
+    }
+
+    /// Create a model loader with the smallest model (best for CI/CD)
+    pub fn with_smallest_model() -> Result<Self> {
+        let cache_dir = Self::default_cache_dir()?;
+        Ok(Self {
+            cache_dir,
+            selected_model: ModelCatalog::smallest(),
+        })
     }
 
     /// Create a model loader with a custom cache directory
     pub fn with_cache_dir(cache_dir: PathBuf) -> Self {
-        Self { cache_dir }
+        Self {
+            cache_dir,
+            selected_model: ModelCatalog::default(),
+        }
+    }
+
+    /// Create a model loader with custom cache directory and model
+    pub fn with_cache_dir_and_model(cache_dir: PathBuf, model: &'static ModelInfo) -> Self {
+        Self {
+            cache_dir,
+            selected_model: model,
+        }
+    }
+
+    /// Get the currently selected model info
+    pub fn selected_model(&self) -> &'static ModelInfo {
+        self.selected_model
+    }
+
+    /// List all available models
+    pub fn list_models() -> &'static [&'static ModelInfo] {
+        ModelCatalog::all_models()
+    }
+
+    /// List CI-suitable models (< 1GB)
+    pub fn list_ci_models() -> Vec<&'static ModelInfo> {
+        ModelCatalog::ci_models()
     }
 
     /// Get the default cache directory for models
@@ -58,8 +99,8 @@ impl ModelLoader {
     /// Get the embedded model path (bundled with binary or from cache)
     ///
     /// Priority:
-    /// 1. Check bundled model path (models/qwen2.5-coder-1.5b/*.gguf)
-    /// 2. Check cache directory (~/.cache/caro/models/*.gguf)
+    /// 1. Check bundled model path (models/*/filename.gguf)
+    /// 2. Check cache directory (~/.cache/caro/models/filename.gguf)
     /// 3. If not found, returns path where it should be downloaded
     pub fn get_embedded_model_path(&self) -> Result<PathBuf> {
         // Check bundled models first (for future binary embedding)
@@ -78,7 +119,8 @@ impl ModelLoader {
 
         // Return cache path where model should be downloaded
         info!(
-            "Model not found, will download to: {}",
+            "Model {} not found, will download to: {}",
+            self.selected_model.name,
             cached_path.display()
         );
         Ok(cached_path)
@@ -86,7 +128,7 @@ impl ModelLoader {
 
     /// Download model from Hugging Face Hub if missing
     ///
-    /// This will download the Q4_K_M quantized model (~1.1GB) from Hugging Face
+    /// This will download the selected model from Hugging Face
     /// and save it to the cache directory.
     pub async fn download_model_if_missing(&self, variant: ModelVariant) -> Result<PathBuf> {
         let model_path = self.get_embedded_model_path()?;
@@ -96,7 +138,10 @@ impl ModelLoader {
             return Ok(model_path);
         }
 
-        info!("Downloading model from Hugging Face Hub...");
+        info!(
+            "Downloading {} ({} MB) from Hugging Face Hub...",
+            self.selected_model.name, self.selected_model.size_mb
+        );
         self.download_model(&model_path, variant).await?;
 
         Ok(model_path)
@@ -107,14 +152,17 @@ impl ModelLoader {
         use hf_hub::api::tokio::Api;
 
         let api = Api::new().context("Failed to initialize Hugging Face API")?;
-        let repo = api.model(HF_MODEL_REPO.to_string());
+        let repo = api.model(self.selected_model.hf_repo.to_string());
 
-        info!("Downloading {} from Hugging Face Hub...", DEFAULT_MODEL_Q4);
-        info!("This may take a few minutes (~1.1GB)...");
+        info!(
+            "Downloading {} from {}...",
+            self.selected_model.filename, self.selected_model.hf_repo
+        );
+        info!("This may take a few minutes (~{}MB)...", self.selected_model.size_mb);
 
         // Download the model file
         let downloaded = repo
-            .get(DEFAULT_MODEL_Q4)
+            .get(self.selected_model.filename)
             .await
             .context("Failed to download model from Hugging Face Hub")?;
 
@@ -131,13 +179,13 @@ impl ModelLoader {
         // For future: models embedded in binary distribution
         // For now, this will always return a non-existent path
         PathBuf::from("models")
-            .join("qwen2.5-coder-1.5b")
-            .join(DEFAULT_MODEL_Q4)
+            .join(self.selected_model.id)
+            .join(self.selected_model.filename)
     }
 
     /// Get the path to the cached model
     fn cached_model_path(&self) -> PathBuf {
-        self.cache_dir.join(DEFAULT_MODEL_Q4)
+        self.cache_dir.join(self.selected_model.filename)
     }
 
     /// Get the tokenizer path (bundled with source)
@@ -210,6 +258,16 @@ mod tests {
     fn test_model_loader_new() {
         let loader = ModelLoader::new();
         assert!(loader.is_ok());
+        let loader = loader.unwrap();
+        assert_eq!(loader.selected_model.id, "qwen-1.5b-q4");
+    }
+
+    #[test]
+    fn test_with_smallest_model() {
+        let loader = ModelLoader::with_smallest_model();
+        assert!(loader.is_ok());
+        let loader = loader.unwrap();
+        assert_eq!(loader.selected_model.id, "smollm-135m-q4");
     }
 
     #[test]
@@ -217,6 +275,22 @@ mod tests {
         let temp_dir = TempDir::new().unwrap();
         let loader = ModelLoader::with_cache_dir(temp_dir.path().to_path_buf());
         assert_eq!(loader.cache_dir, temp_dir.path());
+    }
+
+    #[test]
+    fn test_list_models() {
+        let models = ModelLoader::list_models();
+        assert!(!models.is_empty());
+        assert!(models.len() >= 5);
+    }
+
+    #[test]
+    fn test_list_ci_models() {
+        let models = ModelLoader::list_ci_models();
+        assert!(!models.is_empty());
+        for model in models {
+            assert!(model.ci_suitable);
+        }
     }
 
     #[test]

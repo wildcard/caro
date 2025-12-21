@@ -33,12 +33,14 @@ pub mod config;
 pub mod context;
 pub mod execution;
 pub mod logging;
+pub mod model_catalog;
 pub mod model_loader;
 pub mod models;
 pub mod platform;
 pub mod safety;
 
 // Re-export commonly used types for convenience
+pub use model_catalog::{ModelCatalog, ModelInfo, ModelSize};
 pub use models::{
     BackendInfo, BackendType, CacheManifest, CachedModel, CommandRequest, ConfigSchema,
     ExecutionContext, GeneratedCommand, LogEntry, LogLevel, Platform, RiskLevel, SafetyLevel,
