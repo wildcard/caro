@@ -1,5 +1,7 @@
 name: Release
 
+# Triggered after successful publish to crates.io
+# Note: workflow_run depends on exact workflow name matching
 on:
   workflow_run:
     workflows: ["Publish to crates.io"]
@@ -42,9 +44,12 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Found tag: $TAG (version: $VERSION)"
 
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
       - name: Verify version consistency
         run: |
-          CARGO_VERSION=$(grep '^version = ' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+          CARGO_VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[0].version')
           if [ "${{ steps.get_tag.outputs.version }}" != "$CARGO_VERSION" ]; then
             echo "::error::Tag version (${{ steps.get_tag.outputs.version }}) doesn't match Cargo.toml version ($CARGO_VERSION)"
             exit 1
@@ -56,18 +61,23 @@ jobs:
           VERSION="${{ steps.get_tag.outputs.version }}"
           echo "Checking if caro@$VERSION is available on crates.io..."
 
-          # Poll crates.io API (with retries for propagation delay)
-          for i in 1 2 3 4 5; do
-            RESPONSE=$(curl -s "https://crates.io/api/v1/crates/caro/$VERSION")
-            if echo "$RESPONSE" | grep -q "\"version\":\"$VERSION\""; then
+          # Poll crates.io API with proper User-Agent (required by crates.io policy)
+          # Using 10 retries with 15s intervals to handle propagation delays
+          for i in $(seq 1 10); do
+            RESPONSE=$(curl -s -H "User-Agent: caro-release-workflow (https://github.com/wildcard/caro)" \
+              "https://crates.io/api/v1/crates/caro/$VERSION")
+
+            FOUND_VERSION=$(echo "$RESPONSE" | jq -r '.version.num // empty')
+            if [ "$FOUND_VERSION" = "$VERSION" ]; then
               echo "Verified: caro@$VERSION is published on crates.io"
               exit 0
             fi
-            echo "Attempt $i: Package not yet available, waiting 10s..."
-            sleep 10
+
+            echo "Attempt $i/10: Package not yet available, waiting 15s..."
+            sleep 15
           done
 
-          echo "::error::Could not verify caro@$VERSION on crates.io after 5 attempts"
+          echo "::error::Could not verify caro@$VERSION on crates.io after 10 attempts"
           exit 1
 
   create-release:
