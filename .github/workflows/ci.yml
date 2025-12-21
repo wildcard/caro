@@ -51,11 +51,12 @@ jobs:
     - name: Run MLX backend tests (macOS Apple Silicon only)
       if: matrix.os == 'macos-latest'
       run: |
-        echo "Running MLX-specific tests on macOS"
+        echo "Running MLX-specific tests on macOS with default model"
         cargo test --test mlx_backend_contract --verbose
         cargo test --test mlx_integration_test --verbose
       env:
         RUST_BACKTRACE: 1
+        CARO_MODEL: qwen-1.5b-q4  # Use default for comprehensive MLX tests
 
     - name: Run E2E tests per platform
       run: |
@@ -101,6 +102,96 @@ jobs:
     
     - name: Run security audit
       run: cargo audit
+
+  test-models-macos:
+    name: Test Models on macOS (${{ matrix.model.name }})
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        model:
+          - id: smollm-135m-q4
+            name: SmolLM 135M
+            size: 82MB
+            description: Ultra-fast CI model
+          - id: qwen-0.5b-q4
+            name: Qwen 0.5B
+            size: 352MB
+            description: Balanced CI model (MLX-optimized)
+          - id: tinyllama-1.1b-q4
+            name: TinyLlama 1.1B
+            size: 669MB
+            description: Quality CI model
+          - id: starcoder-1b-q4
+            name: StarCoder 1B
+            size: 700MB
+            description: Code-specialized model
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@v1
+      with:
+        toolchain: stable
+        components: rustfmt, clippy
+    
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: macos-${{ matrix.model.id }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+    
+    - name: Cache model files
+      uses: actions/cache@v4
+      with:
+        path: ~/Library/Caches/caro/models
+        key: model-${{ matrix.model.id }}-${{ hashFiles('src/model_catalog.rs') }}
+        restore-keys: |
+          model-${{ matrix.model.id }}-
+    
+    - name: Display model info
+      run: |
+        echo "=========================================="
+        echo "Testing with: ${{ matrix.model.name }}"
+        echo "Model ID: ${{ matrix.model.id }}"
+        echo "Size: ${{ matrix.model.size }}"
+        echo "Description: ${{ matrix.model.description }}"
+        echo "=========================================="
+    
+    - name: Run E2E tests with ${{ matrix.model.name }}
+      run: |
+        echo "Running E2E tests with ${{ matrix.model.name }} (${{ matrix.model.size }})"
+        cargo test --test e2e_cli_tests --verbose -- --test-threads=1
+        cargo test --test system_integration --verbose -- --test-threads=1
+      env:
+        RUST_BACKTRACE: 1
+        CARO_MODEL: ${{ matrix.model.id }}
+    
+    - name: Run MLX integration tests with ${{ matrix.model.name }}
+      run: |
+        echo "Running MLX integration tests with ${{ matrix.model.name }}"
+        cargo test --test mlx_integration_test --verbose
+      env:
+        RUST_BACKTRACE: 1
+        CARO_MODEL: ${{ matrix.model.id }}
+    
+    - name: Run embedded backend tests with ${{ matrix.model.name }}
+      run: |
+        echo "Running embedded backend tests with ${{ matrix.model.name }}"
+        cargo test --test embedded_backend_contract --verbose
+      env:
+        RUST_BACKTRACE: 1
+        CARO_MODEL: ${{ matrix.model.id }}
+    
+    - name: Report test results
+      if: always()
+      run: |
+        echo "✅ Tests completed for ${{ matrix.model.name }}"
+        echo "Model: ${{ matrix.model.id }} (${{ matrix.model.size }})"
 
   build:
     name: Build Release

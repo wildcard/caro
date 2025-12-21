@@ -16,11 +16,22 @@ pub struct ModelLoader {
 
 impl ModelLoader {
     /// Create a new model loader with default cache directory and default model
+    /// Checks CARO_MODEL environment variable for model selection
     pub fn new() -> Result<Self> {
         let cache_dir = Self::default_cache_dir()?;
+        
+        // Check for CARO_MODEL environment variable
+        let selected_model = if let Ok(model_id) = std::env::var("CARO_MODEL") {
+            debug!("Using model from CARO_MODEL env var: {}", model_id);
+            ModelCatalog::by_id(&model_id)
+                .ok_or_else(|| anyhow::anyhow!("Model not found: {}", model_id))?
+        } else {
+            ModelCatalog::default()
+        };
+        
         Ok(Self {
             cache_dir,
-            selected_model: ModelCatalog::default(),
+            selected_model,
         })
     }
 
@@ -259,7 +270,19 @@ mod tests {
         let loader = ModelLoader::new();
         assert!(loader.is_ok());
         let loader = loader.unwrap();
-        assert_eq!(loader.selected_model.id, "qwen-1.5b-q4");
+        // Default should be qwen-1.5b-q4 unless CARO_MODEL is set
+        assert!(!loader.selected_model.id.is_empty());
+    }
+
+    #[test]
+    fn test_model_loader_env_var() {
+        // Test with environment variable
+        std::env::set_var("CARO_MODEL", "smollm-135m-q4");
+        let loader = ModelLoader::new();
+        assert!(loader.is_ok());
+        let loader = loader.unwrap();
+        assert_eq!(loader.selected_model.id, "smollm-135m-q4");
+        std::env::remove_var("CARO_MODEL");
     }
 
     #[test]
