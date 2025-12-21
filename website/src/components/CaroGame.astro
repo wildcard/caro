@@ -1,5 +1,5 @@
 ---
-// CaroGame.astro - Atari-style "fetch" game featuring Caro
+// CaroGame.astro - Atari-style arcade game where Caro catches falling commands
 ---
 
 <section id="game" class="game-section">
@@ -32,43 +32,22 @@
         </div>
 
         <div id="game-screen" class="game-screen">
-          <!-- Scanline effect -->
           <div class="scanlines"></div>
+          <div id="caro" class="caro"></div>
 
-          <!-- Caro at the bottom -->
-          <div id="caro" class="caro">
-            <img src="/caro-pixel.png" alt="Caro" />
-          </div>
-
-          <!-- Commands will spawn here -->
-          <div id="commands-layer" class="commands-layer"></div>
-
-          <!-- Game overlay -->
           <div id="overlay" class="overlay">
             <div class="overlay-box">
               <div id="overlay-title" class="title">CARO FETCH</div>
               <div class="instructions">
-                <p>Catch safe commands</p>
-                <p>Avoid dangerous ones!</p>
+                <p>Catch safe commands, avoid dangerous ones!</p>
               </div>
               <div class="command-legend">
-                <div class="legend-row">
-                  <span class="terminal-preview safe">$ ls -la</span>
-                  <span class="pts">+10 PTS</span>
-                </div>
-                <div class="legend-row">
-                  <span class="terminal-preview bonus">$ git commit</span>
-                  <span class="pts">+25 PTS</span>
-                </div>
-                <div class="legend-row">
-                  <span class="terminal-preview danger">$ rm -rf /</span>
-                  <span class="pts">-1 LIFE</span>
-                </div>
+                <div class="legend-row"><span class="cmd-preview safe">$ ls -la</span><span>+10</span></div>
+                <div class="legend-row"><span class="cmd-preview bonus">$ git commit</span><span>+25</span></div>
+                <div class="legend-row"><span class="cmd-preview danger">$ rm -rf /</span><span>-1 ❤️</span></div>
               </div>
-              <button id="start-btn" class="start-btn">
-                <span>INSERT COIN</span>
-              </button>
-              <p class="controls-hint">← → or A D to move</p>
+              <button id="start-btn" class="start-btn">INSERT COIN</button>
+              <p class="hint">← → or A/D to move | SPACE to start</p>
             </div>
           </div>
         </div>
@@ -94,13 +73,10 @@
   }
 
   .arcade-cabinet {
-    background: #1a1a2e;
-    border-radius: 20px;
+    background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+    border-radius: 16px;
     padding: 20px;
-    box-shadow:
-      0 0 0 4px #ff8c42,
-      0 0 30px rgba(255, 140, 66, 0.3),
-      inset 0 0 60px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 0 4px #ff8c42, 0 0 40px rgba(255, 140, 66, 0.3);
     max-width: 700px;
     width: 100%;
   }
@@ -109,8 +85,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 20px;
-    margin-bottom: 10px;
+    padding: 10px 15px;
+    margin-bottom: 8px;
   }
 
   .score-display {
@@ -121,221 +97,171 @@
   }
 
   .score-display .label {
-    font-size: 12px;
+    font-size: 11px;
     color: #ff8c42;
     letter-spacing: 2px;
   }
 
   .score-display .value {
-    font-size: 24px;
+    font-size: 22px;
     color: #fff;
     font-weight: bold;
     text-shadow: 0 0 10px rgba(255, 140, 66, 0.8);
   }
 
   .title-display {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: bold;
     color: #ff8c42;
-    text-shadow:
-      0 0 10px rgba(255, 140, 66, 0.8),
-      0 0 20px rgba(255, 140, 66, 0.4);
-    letter-spacing: 3px;
+    text-shadow: 0 0 15px rgba(255, 140, 66, 0.8);
+    letter-spacing: 4px;
     font-family: 'Courier New', monospace;
   }
 
   .lives-display {
     text-align: center;
-    padding: 8px;
-    font-size: 24px;
+    padding: 6px;
+    font-size: 22px;
   }
 
   .lives-display .life {
-    margin: 0 4px;
-    transition: opacity 0.3s, transform 0.3s;
+    margin: 0 3px;
+    transition: all 0.3s;
+    display: inline-block;
   }
 
   .lives-display .life.lost {
-    opacity: 0.2;
-    transform: scale(0.7);
+    opacity: 0.15;
+    transform: scale(0.6);
   }
 
   .game-screen {
     position: relative;
     width: 100%;
-    height: 500px;
-    background: #0a0a0a;
-    border: 4px solid #333;
-    border-radius: 8px;
+    height: 480px;
+    background: radial-gradient(ellipse at center, #0a0a12 0%, #000 100%);
+    border: 3px solid #333;
+    border-radius: 6px;
     overflow: hidden;
-    box-shadow: inset 0 0 100px rgba(0, 50, 0, 0.3);
   }
 
   .scanlines {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     background: repeating-linear-gradient(
       0deg,
-      rgba(0, 0, 0, 0.1) 0px,
-      rgba(0, 0, 0, 0.1) 1px,
-      transparent 1px,
-      transparent 3px
+      transparent 0px,
+      transparent 2px,
+      rgba(0, 0, 0, 0.1) 2px,
+      rgba(0, 0, 0, 0.1) 4px
     );
     pointer-events: none;
-    z-index: 100;
+    z-index: 1000;
   }
 
   .caro {
     position: absolute;
-    bottom: 20px;
-    width: 70px;
-    height: 70px;
+    bottom: 15px;
+    width: 64px;
+    height: 64px;
+    background-image: url('/caro-pixel.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 12px rgba(255, 140, 66, 0.6));
     z-index: 10;
     transition: left 0.05s linear;
   }
 
-  .caro img {
-    width: 100%;
-    height: 100%;
-    image-rendering: pixelated;
-    filter: drop-shadow(0 0 15px rgba(255, 140, 66, 0.7));
-  }
-
   .caro.flash {
-    animation: flash 0.15s ease-out 2;
-  }
-
-  @keyframes flash {
-    0%, 100% { filter: drop-shadow(0 0 15px rgba(255, 140, 66, 0.7)); }
-    50% { filter: drop-shadow(0 0 30px #fff) brightness(2); }
+    filter: drop-shadow(0 0 20px #fff) brightness(1.5);
   }
 
   .caro.hurt {
-    animation: hurt 0.4s ease-out;
+    animation: shake 0.3s ease-out;
   }
 
-  @keyframes hurt {
+  @keyframes shake {
     0%, 100% { transform: translateX(0); }
-    20%, 60% { transform: translateX(-8px); }
-    40%, 80% { transform: translateX(8px); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
   }
 
-  .commands-layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    pointer-events: none;
-  }
-
-  /* Terminal-styled falling commands */
-  .cmd {
+  /* Falling command items */
+  .falling-cmd {
     position: absolute;
     font-family: 'Courier New', monospace;
     font-size: 13px;
     font-weight: bold;
-    padding: 6px 10px;
-    border-radius: 4px;
+    padding: 8px 14px;
+    border-radius: 6px;
     white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    z-index: 5;
+    pointer-events: none;
   }
 
-  .cmd::before {
-    content: '$';
-    opacity: 0.7;
-  }
-
-  .cmd.safe {
-    background: linear-gradient(180deg, #2a2a3a 0%, #1a1a2a 100%);
+  .falling-cmd.safe {
+    background: linear-gradient(180deg, #252530 0%, #15151f 100%);
     border: 2px solid #ff8c42;
     color: #ff8c42;
-    box-shadow:
-      0 0 10px rgba(255, 140, 66, 0.4),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 12px rgba(255, 140, 66, 0.5), inset 0 1px 0 rgba(255,255,255,0.1);
   }
 
-  .cmd.bonus {
-    background: linear-gradient(180deg, #1a3a2a 0%, #0a2a1a 100%);
+  .falling-cmd.bonus {
+    background: linear-gradient(180deg, #1a2f1a 0%, #0a1f0a 100%);
     border: 2px solid #2ecc71;
     color: #2ecc71;
-    box-shadow:
-      0 0 15px rgba(46, 204, 113, 0.5),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    animation: bonusPulse 0.6s ease-in-out infinite;
+    box-shadow: 0 0 16px rgba(46, 204, 113, 0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+    animation: glow-green 0.5s ease-in-out infinite alternate;
   }
 
-  @keyframes bonusPulse {
-    0%, 100% { box-shadow: 0 0 15px rgba(46, 204, 113, 0.5); }
-    50% { box-shadow: 0 0 25px rgba(46, 204, 113, 0.8); }
+  @keyframes glow-green {
+    from { box-shadow: 0 0 12px rgba(46, 204, 113, 0.5); }
+    to { box-shadow: 0 0 22px rgba(46, 204, 113, 0.9); }
   }
 
-  .cmd.danger {
-    background: linear-gradient(180deg, #3a1a1a 0%, #2a0a0a 100%);
+  .falling-cmd.danger {
+    background: linear-gradient(180deg, #2f1a1a 0%, #1f0a0a 100%);
     border: 2px solid #e74c3c;
     color: #e74c3c;
-    box-shadow:
-      0 0 15px rgba(231, 76, 60, 0.5),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    animation: dangerPulse 0.4s ease-in-out infinite;
+    box-shadow: 0 0 16px rgba(231, 76, 60, 0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+    animation: glow-red 0.3s ease-in-out infinite alternate;
   }
 
-  @keyframes dangerPulse {
-    0%, 100% { box-shadow: 0 0 15px rgba(231, 76, 60, 0.5); }
-    50% { box-shadow: 0 0 25px rgba(231, 76, 60, 0.9); }
+  @keyframes glow-red {
+    from { box-shadow: 0 0 12px rgba(231, 76, 60, 0.5); }
+    to { box-shadow: 0 0 24px rgba(231, 76, 60, 1); }
   }
 
-  .cmd.caught {
-    transition: all 0.15s ease-out;
-    transform: scale(1.3);
-    opacity: 0;
+  .falling-cmd::before {
+    content: '$ ';
+    opacity: 0.6;
   }
 
   /* Score popup */
-  .score-popup {
+  .popup {
     position: absolute;
     font-family: 'Courier New', monospace;
-    font-size: 20px;
+    font-size: 22px;
     font-weight: bold;
     pointer-events: none;
-    z-index: 50;
+    z-index: 100;
     text-shadow: 0 0 10px currentColor;
-    animation: popUp 0.6s ease-out forwards;
-  }
-
-  @keyframes popUp {
-    0% {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-    100% {
-      opacity: 0;
-      transform: translateY(-40px) scale(1.2);
-    }
   }
 
   /* Overlay */
   .overlay {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.92);
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 200;
+    z-index: 500;
   }
 
-  .overlay.hidden {
-    display: none;
-  }
+  .overlay.hidden { display: none; }
 
   .overlay-box {
     text-align: center;
@@ -344,356 +270,274 @@
   }
 
   .overlay-box .title {
-    font-size: 36px;
+    font-size: 32px;
     color: #ff8c42;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     text-shadow: 0 0 20px rgba(255, 140, 66, 0.8);
-    letter-spacing: 4px;
+    letter-spacing: 3px;
   }
 
   .overlay-box .instructions {
-    margin-bottom: 25px;
-    line-height: 1.8;
+    margin-bottom: 20px;
     color: #aaa;
   }
 
   .command-legend {
-    margin-bottom: 30px;
+    margin-bottom: 25px;
   }
 
   .legend-row {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 15px;
-    margin: 10px 0;
+    gap: 12px;
+    margin: 8px 0;
+    font-size: 14px;
   }
 
-  .terminal-preview {
-    font-family: 'Courier New', monospace;
-    font-size: 12px;
-    padding: 5px 10px;
+  .cmd-preview {
+    font-size: 11px;
+    padding: 4px 10px;
     border-radius: 4px;
-    min-width: 100px;
+    min-width: 90px;
     text-align: left;
   }
 
-  .terminal-preview.safe {
-    background: #1a1a2a;
+  .cmd-preview.safe {
+    background: #15151f;
     border: 2px solid #ff8c42;
     color: #ff8c42;
   }
 
-  .terminal-preview.bonus {
-    background: #0a2a1a;
+  .cmd-preview.bonus {
+    background: #0a1f0a;
     border: 2px solid #2ecc71;
     color: #2ecc71;
   }
 
-  .terminal-preview.danger {
-    background: #2a0a0a;
+  .cmd-preview.danger {
+    background: #1f0a0a;
     border: 2px solid #e74c3c;
     color: #e74c3c;
   }
 
-  .pts {
-    font-size: 14px;
-    color: #888;
-    min-width: 70px;
-  }
-
   .start-btn {
-    background: linear-gradient(180deg, #ff8c42 0%, #ff6b35 100%);
+    background: linear-gradient(180deg, #ff8c42 0%, #e67635 100%);
     border: none;
     color: #fff;
     font-family: 'Courier New', monospace;
     font-size: 18px;
     font-weight: bold;
-    padding: 15px 40px;
+    padding: 14px 36px;
     border-radius: 8px;
     cursor: pointer;
     text-transform: uppercase;
     letter-spacing: 2px;
-    box-shadow: 0 0 20px rgba(255, 140, 66, 0.5);
-    transition: transform 0.1s, box-shadow 0.2s;
+    box-shadow: 0 4px 0 #b35c20, 0 0 20px rgba(255, 140, 66, 0.4);
+    transition: all 0.1s;
   }
 
   .start-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 30px rgba(255, 140, 66, 0.8);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #b35c20, 0 0 30px rgba(255, 140, 66, 0.6);
   }
 
   .start-btn:active {
-    transform: scale(0.98);
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #b35c20;
   }
 
-  .controls-hint {
-    margin-top: 20px;
-    color: #666;
-    font-size: 12px;
+  .hint {
+    margin-top: 16px;
+    color: #555;
+    font-size: 11px;
   }
 
   .game-controls {
     display: flex;
     justify-content: center;
-    gap: 40px;
-    margin-top: 20px;
+    gap: 30px;
+    margin-top: 16px;
   }
 
   .ctrl-btn {
-    width: 80px;
-    height: 60px;
-    font-size: 28px;
-    background: linear-gradient(180deg, #333 0%, #222 100%);
+    width: 70px;
+    height: 50px;
+    font-size: 24px;
+    background: linear-gradient(180deg, #2a2a3a 0%, #1a1a2a 100%);
     color: #ff8c42;
-    border: 3px solid #ff8c42;
-    border-radius: 10px;
+    border: 2px solid #ff8c42;
+    border-radius: 8px;
     cursor: pointer;
+    box-shadow: 0 3px 0 #111;
     transition: all 0.1s;
-    box-shadow: 0 4px 0 #111;
-  }
-
-  .ctrl-btn:hover {
-    background: linear-gradient(180deg, #444 0%, #333 100%);
   }
 
   .ctrl-btn:active {
     transform: translateY(2px);
-    box-shadow: 0 2px 0 #111;
+    box-shadow: 0 1px 0 #111;
   }
 
   @media (max-width: 600px) {
-    .arcade-cabinet {
-      padding: 15px;
-    }
-
-    .game-screen {
-      height: 400px;
-    }
-
-    .title-display {
-      font-size: 18px;
-    }
-
-    .score-display .value {
-      font-size: 18px;
-    }
-
-    .caro {
-      width: 55px;
-      height: 55px;
-    }
-
-    .cmd {
-      font-size: 11px;
-      padding: 5px 8px;
-    }
-
-    .overlay-box .title {
-      font-size: 28px;
-    }
+    .game-screen { height: 380px; }
+    .caro { width: 50px; height: 50px; }
+    .title-display { font-size: 18px; letter-spacing: 2px; }
+    .falling-cmd { font-size: 11px; padding: 6px 10px; }
   }
 </style>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // Elements
-    const screen = document.getElementById('game-screen') as HTMLElement;
-    const caro = document.getElementById('caro') as HTMLElement;
-    const layer = document.getElementById('commands-layer') as HTMLElement;
-    const overlay = document.getElementById('overlay') as HTMLElement;
-    const overlayTitle = document.getElementById('overlay-title') as HTMLElement;
-    const startBtn = document.getElementById('start-btn') as HTMLElement;
-    const scoreEl = document.getElementById('score') as HTMLElement;
-    const highScoreEl = document.getElementById('high-score') as HTMLElement;
-    const livesEl = document.getElementById('lives') as HTMLElement;
-    const leftBtn = document.getElementById('left-btn') as HTMLElement;
-    const rightBtn = document.getElementById('right-btn') as HTMLElement;
+  (function() {
+    const screen = document.getElementById('game-screen');
+    const caroEl = document.getElementById('caro');
+    const overlay = document.getElementById('overlay');
+    const overlayTitle = document.getElementById('overlay-title');
+    const startBtn = document.getElementById('start-btn');
+    const scoreEl = document.getElementById('score');
+    const highScoreEl = document.getElementById('high-score');
+    const livesEl = document.getElementById('lives');
+    const leftBtn = document.getElementById('left-btn');
+    const rightBtn = document.getElementById('right-btn');
 
-    if (!screen || !caro || !layer || !overlay || !startBtn) return;
+    if (!screen || !caroEl || !overlay || !startBtn) return;
 
-    // Game config
-    const CARO_SIZE = 70;
-    const CMD_HEIGHT = 32;
-    const SPAWN_INTERVAL = 1200;
-    const BASE_SPEED = 3;
+    // Config
+    const CARO_W = 64;
+    let screenW = screen.offsetWidth;
+    let screenH = screen.offsetHeight;
 
-    // Game state
+    // State
     let running = false;
     let score = 0;
     let lives = 3;
-    let caroX = 0;
-    let screenW = 0;
-    let screenH = 0;
-    let highScore = parseInt(localStorage.getItem('caroFetchHigh') || '0');
-    let spawnTimer: number | null = null;
-    let animFrame: number | null = null;
+    let caroX = screenW / 2 - CARO_W / 2;
+    let highScore = parseInt(localStorage.getItem('caroHigh') || '0');
+    let commands: { el: HTMLElement; x: number; y: number; w: number; h: number; speed: number; type: string }[] = [];
+    let lastSpawn = 0;
+    let spawnInterval = 1500;
+    let baseSpeed = 2.5;
+    let lastTime = 0;
 
-    // Commands data
-    interface Cmd {
-      el: HTMLElement;
-      x: number;
-      y: number;
-      w: number;
-      speed: number;
-      type: 'safe' | 'bonus' | 'danger';
-    }
-    let commands: Cmd[] = [];
+    // Commands
+    const safeCmds = ['ls -la', 'pwd', 'cat file', 'mkdir dir', 'grep hi', 'find .', 'echo hi', 'cd ~', 'touch f', 'head -5', 'tail -f', 'wc -l', 'chmod +x', 'ps aux', 'df -h', 'curl', 'wget'];
+    const dangerCmds = ['rm -rf /', 'rm -rf ~', 'sudo rm', ':(){:|:&};:', 'mkfs', 'dd zero'];
+    const bonusCmds = ['git commit', 'cargo build', 'npm run', 'docker up'];
 
-    const safeCommands = [
-      'ls -la', 'pwd', 'cat file', 'mkdir dir', 'cp a b',
-      'grep text', 'find .', 'echo hi', 'cd ~', 'touch f',
-      'head -5', 'tail -f', 'wc -l', 'sort', 'chmod +x',
-      'ps aux', 'df -h', 'curl url', 'wget', 'tar -xf'
-    ];
+    // Init display
+    highScoreEl!.textContent = String(highScore).padStart(4, '0');
+    caroEl.style.left = caroX + 'px';
 
-    const dangerCommands = [
-      'rm -rf /', 'rm -rf ~', 'sudo rm', ':(){:|:&};:', 'mkfs', 'dd zero'
-    ];
-
-    const bonusCommands = [
-      'git commit', 'cargo build', 'npm run', 'docker up'
-    ];
-
-    // Initialize
-    highScoreEl.textContent = String(highScore).padStart(4, '0');
-
-    function updateSize() {
+    function resize() {
       screenW = screen.offsetWidth;
       screenH = screen.offsetHeight;
+      if (caroX > screenW - CARO_W - 10) {
+        caroX = screenW - CARO_W - 10;
+        caroEl.style.left = caroX + 'px';
+      }
     }
+    window.addEventListener('resize', resize);
 
     function updateLives() {
-      const dogs = livesEl.querySelectorAll('.life');
+      const dogs = livesEl!.querySelectorAll('.life');
       dogs.forEach((d, i) => d.classList.toggle('lost', i >= lives));
     }
 
-    function formatScore(n: number): string {
-      return String(n).padStart(4, '0');
-    }
+    function spawn(time: number) {
+      if (time - lastSpawn < spawnInterval) return;
+      lastSpawn = time;
 
-    function spawnCommand() {
-      if (!running) return;
-      updateSize();
+      // Increase difficulty
+      if (spawnInterval > 600) spawnInterval -= 15;
+      if (baseSpeed < 6) baseSpeed += 0.03;
 
-      // Determine type
       const r = Math.random();
-      let type: 'safe' | 'bonus' | 'danger';
-      let cmdList: string[];
+      let type: string, list: string[];
+      if (r < 0.12) { type = 'danger'; list = dangerCmds; }
+      else if (r < 0.22) { type = 'bonus'; list = bonusCmds; }
+      else { type = 'safe'; list = safeCmds; }
 
-      if (r < 0.12) {
-        type = 'danger';
-        cmdList = dangerCommands;
-      } else if (r < 0.22) {
-        type = 'bonus';
-        cmdList = bonusCommands;
-      } else {
-        type = 'safe';
-        cmdList = safeCommands;
-      }
-
-      const text = cmdList[Math.floor(Math.random() * cmdList.length)];
-
-      // Create element
+      const text = list[Math.floor(Math.random() * list.length)];
       const el = document.createElement('div');
-      el.className = `cmd ${type}`;
+      el.className = `falling-cmd ${type}`;
       el.textContent = text;
-      layer.appendChild(el);
+      screen.appendChild(el);
 
-      // Get width after render
       const w = el.offsetWidth;
+      const h = el.offsetHeight;
+      const x = 20 + Math.random() * (screenW - w - 40);
+      const speed = baseSpeed + Math.random() * 1.5;
 
-      // Random X position across full width
-      const padding = 15;
-      const maxX = screenW - w - padding * 2;
-      const x = padding + Math.random() * maxX;
+      el.style.left = x + 'px';
+      el.style.top = '-50px';
 
-      el.style.left = `${x}px`;
-      el.style.top = `-${CMD_HEIGHT + 10}px`;
-
-      // Speed increases slightly with score
-      const speedBoost = Math.min(score / 200, 2);
-      const speed = BASE_SPEED + speedBoost + Math.random() * 0.8;
-
-      commands.push({ el, x, y: -CMD_HEIGHT - 10, w, speed, type });
+      commands.push({ el, x, y: -50, w, h, speed, type });
     }
 
     function showPopup(text: string, color: string, x: number, y: number) {
-      const popup = document.createElement('div');
-      popup.className = 'score-popup';
-      popup.textContent = text;
-      popup.style.left = `${x}px`;
-      popup.style.top = `${y}px`;
-      popup.style.color = color;
-      screen.appendChild(popup);
-      setTimeout(() => popup.remove(), 600);
+      const p = document.createElement('div');
+      p.className = 'popup';
+      p.textContent = text;
+      p.style.left = x + 'px';
+      p.style.top = y + 'px';
+      p.style.color = color;
+      p.style.animation = 'popAnim 0.5s ease-out forwards';
+      screen.appendChild(p);
+      setTimeout(() => p.remove(), 500);
     }
 
-    function checkCollision(cmd: Cmd): boolean {
+    function collides(cmd: typeof commands[0]): boolean {
+      const caroTop = screenH - 64 - 15;
+      const caroBottom = screenH - 15;
       const caroLeft = caroX;
-      const caroRight = caroX + CARO_SIZE;
-      const caroTop = screenH - CARO_SIZE - 20;
+      const caroRight = caroX + CARO_W;
 
-      const cmdLeft = cmd.x;
+      const cmdBottom = cmd.y + cmd.h;
       const cmdRight = cmd.x + cmd.w;
-      const cmdBottom = cmd.y + CMD_HEIGHT;
 
-      // Check overlap
-      return cmdBottom >= caroTop &&
-             cmd.y < screenH - 10 &&
-             cmdRight > caroLeft &&
-             cmdLeft < caroRight;
+      return cmdBottom >= caroTop && cmd.y <= caroBottom && cmdRight >= caroLeft && cmd.x <= caroRight;
     }
 
-    function gameLoop() {
+    function gameLoop(time: number) {
       if (!running) return;
-      updateSize();
+
+      const dt = Math.min((time - lastTime) / 16.67, 3); // normalize to ~60fps
+      lastTime = time;
+
+      spawn(time);
 
       commands = commands.filter(cmd => {
-        // Move down
-        cmd.y += cmd.speed;
-        cmd.el.style.top = `${cmd.y}px`;
+        cmd.y += cmd.speed * dt;
+        cmd.el.style.top = cmd.y + 'px';
 
-        // Check collision with Caro
-        if (checkCollision(cmd)) {
-          cmd.el.classList.add('caught');
-
+        if (collides(cmd)) {
           if (cmd.type === 'safe') {
             score += 10;
-            showPopup('+10', '#ff8c42', cmd.x + cmd.w / 2, cmd.y);
-            caro.classList.add('flash');
-            setTimeout(() => caro.classList.remove('flash'), 300);
+            showPopup('+10', '#ff8c42', cmd.x + cmd.w/2 - 15, cmd.y);
+            caroEl.classList.add('flash');
+            setTimeout(() => caroEl.classList.remove('flash'), 150);
           } else if (cmd.type === 'bonus') {
             score += 25;
-            showPopup('+25', '#2ecc71', cmd.x + cmd.w / 2, cmd.y);
-            caro.classList.add('flash');
-            setTimeout(() => caro.classList.remove('flash'), 300);
+            showPopup('+25', '#2ecc71', cmd.x + cmd.w/2 - 15, cmd.y);
+            caroEl.classList.add('flash');
+            setTimeout(() => caroEl.classList.remove('flash'), 150);
           } else {
             lives--;
-            showPopup('OUCH!', '#e74c3c', cmd.x + cmd.w / 2, cmd.y);
-            caro.classList.add('hurt');
-            setTimeout(() => caro.classList.remove('hurt'), 400);
+            showPopup('OUCH!', '#e74c3c', cmd.x + cmd.w/2 - 25, cmd.y);
+            caroEl.classList.add('hurt');
+            setTimeout(() => caroEl.classList.remove('hurt'), 300);
             updateLives();
-            if (lives <= 0) {
-              endGame();
-              return false;
-            }
+            if (lives <= 0) { endGame(); return false; }
           }
-
-          scoreEl.textContent = formatScore(score);
-          setTimeout(() => cmd.el.remove(), 150);
+          scoreEl!.textContent = String(score).padStart(4, '0');
+          cmd.el.remove();
           return false;
         }
 
-        // Fell off screen
         if (cmd.y > screenH + 20) {
-          // Only lose life for missed safe/bonus commands
           if (cmd.type !== 'danger') {
             lives--;
             updateLives();
-            if (lives <= 0) {
-              endGame();
-            }
+            if (lives <= 0) endGame();
           }
           cmd.el.remove();
           return false;
@@ -702,137 +546,93 @@
         return true;
       });
 
-      animFrame = requestAnimationFrame(gameLoop);
+      requestAnimationFrame(gameLoop);
     }
 
     function startGame() {
-      updateSize();
+      resize();
       running = true;
       score = 0;
       lives = 3;
+      spawnInterval = 1500;
+      baseSpeed = 2.5;
+      lastSpawn = 0;
+      lastTime = performance.now();
 
-      // Center Caro
-      caroX = (screenW - CARO_SIZE) / 2;
-      caro.style.left = `${caroX}px`;
+      caroX = screenW / 2 - CARO_W / 2;
+      caroEl.style.left = caroX + 'px';
 
-      // Clear old commands
       commands.forEach(c => c.el.remove());
       commands = [];
 
-      scoreEl.textContent = '0000';
+      scoreEl!.textContent = '0000';
       updateLives();
       overlay.classList.add('hidden');
 
-      // Start spawning
-      spawnTimer = window.setInterval(spawnCommand, SPAWN_INTERVAL);
-
-      // Start game loop
-      animFrame = requestAnimationFrame(gameLoop);
+      requestAnimationFrame(gameLoop);
     }
 
     function endGame() {
       running = false;
-      if (spawnTimer) clearInterval(spawnTimer);
-      if (animFrame) cancelAnimationFrame(animFrame);
-
-      // Update high score
       if (score > highScore) {
         highScore = score;
-        localStorage.setItem('caroFetchHigh', String(highScore));
-        highScoreEl.textContent = formatScore(highScore);
-        overlayTitle.textContent = 'NEW HIGH!';
+        localStorage.setItem('caroHigh', String(highScore));
+        highScoreEl!.textContent = String(highScore).padStart(4, '0');
+        overlayTitle!.textContent = 'NEW HIGH!';
       } else {
-        overlayTitle.textContent = 'GAME OVER';
+        overlayTitle!.textContent = 'GAME OVER';
       }
-
-      startBtn.innerHTML = '<span>PLAY AGAIN</span>';
+      startBtn!.textContent = 'PLAY AGAIN';
       overlay.classList.remove('hidden');
     }
 
-    function moveCaro(dir: 'left' | 'right') {
+    function move(dir: number) {
       if (!running) return;
-      updateSize();
-
-      const step = 20;
-      if (dir === 'left') {
-        caroX = Math.max(10, caroX - step);
-      } else {
-        caroX = Math.min(screenW - CARO_SIZE - 10, caroX + step);
-      }
-      caro.style.left = `${caroX}px`;
+      caroX += dir * 18;
+      if (caroX < 10) caroX = 10;
+      if (caroX > screenW - CARO_W - 10) caroX = screenW - CARO_W - 10;
+      caroEl.style.left = caroX + 'px';
     }
 
-    // Keyboard
+    // Keyboard with continuous movement
     const keys: Record<string, boolean> = {};
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
-        e.preventDefault();
-        keys['left'] = true;
-      }
-      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
-        e.preventDefault();
-        keys['right'] = true;
-      }
-      if (e.key === ' ' && !running) {
-        e.preventDefault();
-        startGame();
-      }
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') { e.preventDefault(); keys.left = true; }
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { e.preventDefault(); keys.right = true; }
+      if (e.key === ' ' && !running) { e.preventDefault(); startGame(); }
+    });
+    document.addEventListener('keyup', e => {
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = false;
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = false;
     });
 
-    document.addEventListener('keyup', (e) => {
-      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
-        keys['left'] = false;
-      }
-      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
-        keys['right'] = false;
-      }
-    });
-
-    // Continuous keyboard movement
-    function keyboardLoop() {
-      if (keys['left']) moveCaro('left');
-      if (keys['right']) moveCaro('right');
-      requestAnimationFrame(keyboardLoop);
+    // Key polling loop
+    function keyPoll() {
+      if (keys.left) move(-1);
+      if (keys.right) move(1);
+      requestAnimationFrame(keyPoll);
     }
-    keyboardLoop();
+    keyPoll();
 
     // Button controls
     startBtn.addEventListener('click', startGame);
 
-    let moveInt: number | null = null;
+    let btnInt: number | null = null;
+    function startBtn_(dir: number) { move(dir); btnInt = window.setInterval(() => move(dir), 50); }
+    function stopBtn_() { if (btnInt) { clearInterval(btnInt); btnInt = null; } }
 
-    function startMove(dir: 'left' | 'right') {
-      moveCaro(dir);
-      if (moveInt) clearInterval(moveInt);
-      moveInt = window.setInterval(() => moveCaro(dir), 40);
-    }
-
-    function stopMove() {
-      if (moveInt) {
-        clearInterval(moveInt);
-        moveInt = null;
-      }
-    }
-
-    leftBtn.addEventListener('mousedown', () => startMove('left'));
-    leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startMove('left'); });
-    rightBtn.addEventListener('mousedown', () => startMove('right'));
-    rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startMove('right'); });
-
-    document.addEventListener('mouseup', stopMove);
-    document.addEventListener('touchend', stopMove);
-    document.addEventListener('touchcancel', stopMove);
-
-    // Resize handler
-    window.addEventListener('resize', () => {
-      updateSize();
-      if (caroX > screenW - CARO_SIZE - 10) {
-        caroX = screenW - CARO_SIZE - 10;
-        caro.style.left = `${caroX}px`;
-      }
-    });
-
-    updateSize();
-  });
+    leftBtn?.addEventListener('mousedown', () => startBtn_(-1));
+    leftBtn?.addEventListener('touchstart', e => { e.preventDefault(); startBtn_(-1); });
+    rightBtn?.addEventListener('mousedown', () => startBtn_(1));
+    rightBtn?.addEventListener('touchstart', e => { e.preventDefault(); startBtn_(1); });
+    document.addEventListener('mouseup', stopBtn_);
+    document.addEventListener('touchend', stopBtn_);
+  })();
 </script>
+
+<style is:global>
+  @keyframes popAnim {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-30px) scale(1.3); }
+  }
+</style>
