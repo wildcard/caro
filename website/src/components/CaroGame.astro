@@ -60,6 +60,10 @@
               </div>
               <button id="start-btn" class="start-btn">START GAME</button>
               <div id="high-score-display" class="high-score">High Score: <span id="high-score">0</span></div>
+              <div id="leaderboard" class="leaderboard hidden">
+                <div class="leaderboard-title">🏆 TOP SCORES 🏆</div>
+                <div id="leaderboard-list" class="leaderboard-list"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -446,6 +450,90 @@
     font-size: 14px;
   }
 
+  .leaderboard {
+    margin-top: 30px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .leaderboard.hidden {
+    display: none;
+  }
+
+  .leaderboard-title {
+    font-size: 20px;
+    color: #ff8c42;
+    margin-bottom: 15px;
+    text-shadow: 0 0 15px rgba(255, 140, 66, 0.8);
+    letter-spacing: 2px;
+  }
+
+  .leaderboard-list {
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid #ff8c42;
+    border-radius: 8px;
+    padding: 15px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .leaderboard-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    margin: 5px 0;
+    background: linear-gradient(90deg, rgba(255, 140, 66, 0.1) 0%, transparent 100%);
+    border-left: 3px solid #666;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #ddd;
+  }
+
+  .leaderboard-entry.top-3 {
+    border-left-color: #ff8c42;
+    background: linear-gradient(90deg, rgba(255, 140, 66, 0.2) 0%, transparent 100%);
+  }
+
+  .leaderboard-entry.current-score {
+    border-left-color: #2ecc71;
+    background: linear-gradient(90deg, rgba(46, 204, 113, 0.3) 0%, transparent 100%);
+    animation: pulse-glow 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  .leaderboard-rank {
+    font-weight: bold;
+    color: #ff8c42;
+    min-width: 35px;
+    font-size: 16px;
+  }
+
+  .leaderboard-entry.top-3 .leaderboard-rank {
+    font-size: 18px;
+  }
+
+  .leaderboard-score {
+    font-weight: bold;
+    color: #fff;
+    font-size: 16px;
+  }
+
+  .leaderboard-details {
+    color: #888;
+    font-size: 12px;
+    margin-left: 10px;
+  }
+
+  .medal {
+    margin-right: 8px;
+  }
+
   .footer-bar {
     display: flex;
     justify-content: space-between;
@@ -520,6 +608,8 @@
     const caroCenter = document.querySelector('.caro-center');
     const caroSpeech = document.getElementById('caro-speech');
     const streakEl = document.getElementById('streak-count');
+    const leaderboardEl = document.getElementById('leaderboard');
+    const leaderboardListEl = document.getElementById('leaderboard-list');
 
     if (!optionsGrid || !overlay || !startBtn) return;
 
@@ -544,18 +634,90 @@
       start: ['Pick the SAFE command!', 'Which one is safe?', 'Find the safe command!', 'Choose wisely!']
     };
 
+    // Score management
+    interface ScoreEntry {
+      score: number;
+      level: number;
+      date: string;
+    }
+
+    function loadScores(): ScoreEntry[] {
+      const stored = localStorage.getItem('caroQuizScores');
+      if (!stored) return [];
+      try {
+        return JSON.parse(stored);
+      } catch {
+        return [];
+      }
+    }
+
+    function saveScore(score: number, level: number) {
+      const scores = loadScores();
+      const newEntry: ScoreEntry = {
+        score,
+        level,
+        date: new Date().toISOString()
+      };
+      scores.push(newEntry);
+      // Sort by score descending
+      scores.sort((a, b) => b.score - a.score);
+      // Keep top 50 scores
+      const topScores = scores.slice(0, 50);
+      localStorage.setItem('caroQuizScores', JSON.stringify(topScores));
+      return topScores;
+    }
+
+    function getHighScore(): number {
+      const scores = loadScores();
+      return scores.length > 0 ? scores[0].score : 0;
+    }
+
+    function renderLeaderboard(scores: ScoreEntry[], currentScore?: number) {
+      if (!leaderboardListEl) return;
+
+      const topScores = scores.slice(0, 10);
+      const medals = ['🥇', '🥈', '🥉'];
+
+      if (topScores.length === 0) {
+        leaderboardListEl.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No scores yet. Be the first!</div>';
+        return;
+      }
+
+      leaderboardListEl.innerHTML = topScores.map((entry, idx) => {
+        const rank = idx + 1;
+        const medal = idx < 3 ? `<span class="medal">${medals[idx]}</span>` : '';
+        const isCurrentScore = currentScore !== undefined && entry.score === currentScore;
+        const classes = ['leaderboard-entry'];
+        if (idx < 3) classes.push('top-3');
+        if (isCurrentScore) classes.push('current-score');
+
+        const date = new Date(entry.date);
+        const dateStr = date.toLocaleDateString();
+
+        return `
+          <div class="${classes.join(' ')}">
+            <div style="display: flex; align-items: center; flex: 1;">
+              <span class="leaderboard-rank">${medal}${rank}.</span>
+              <span class="leaderboard-details">Level ${entry.level} • ${dateStr}</span>
+            </div>
+            <span class="leaderboard-score">${entry.score}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
     // Game state
     let level = 1;
     let score = 0;
     let lives = 3;
     let streak = 0;
-    let highScore = parseInt(localStorage.getItem('caroQuizHigh') || '0');
     let timer: number | null = null;
     let timeLeft = 100;
     let playing = false;
     let currentOptions: { cmd: string; safe: boolean }[] = [];
 
     // Init
+    const highScore = getHighScore();
     highScoreEl!.textContent = String(highScore);
 
     function getDifficulty(): 'easy' | 'medium' | 'hard' {
@@ -763,6 +925,9 @@
       streakEl!.textContent = '0';
       updateLives();
 
+      // Hide leaderboard when starting
+      leaderboardEl!.classList.add('hidden');
+
       overlay!.classList.add('hidden');
       showQuestion();
     }
@@ -771,17 +936,35 @@
       playing = false;
       clearInterval(timer!);
 
-      if (score > highScore) {
-        highScore = score;
-        localStorage.setItem('caroQuizHigh', String(highScore));
-        highScoreEl!.textContent = String(highScore);
+      // Save score and get updated leaderboard
+      const updatedScores = saveScore(score, level);
+      const newHighScore = getHighScore();
+
+      // Check if this is a new high score
+      const isNewHighScore = score > 0 && score === newHighScore;
+
+      if (isNewHighScore) {
         overlayTitle!.textContent = '🎉 NEW HIGH SCORE!';
       } else {
-        overlayTitle!.textContent = 'GAME OVER';
+        // Find player's rank
+        const rank = updatedScores.findIndex(s => s.score === score && s.level === level) + 1;
+        if (rank > 0 && rank <= 10) {
+          overlayTitle!.textContent = `RANK #${rank}!`;
+        } else {
+          overlayTitle!.textContent = 'GAME OVER';
+        }
       }
+
+      // Update high score display
+      highScoreEl!.textContent = String(newHighScore);
 
       overlaySubtitle!.textContent = `You reached Level ${level} with ${score} points!`;
       startBtn!.textContent = 'PLAY AGAIN';
+
+      // Show leaderboard with current score highlighted
+      renderLeaderboard(updatedScores, score);
+      leaderboardEl!.classList.remove('hidden');
+
       overlay!.classList.remove('hidden');
     }
 
