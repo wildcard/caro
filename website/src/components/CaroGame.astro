@@ -1,0 +1,553 @@
+---
+// CaroGame.astro - An interactive "fetch" game featuring Caro
+---
+
+<section id="game" class="game-section">
+  <div class="container">
+    <h2>Play with Caro</h2>
+    <p class="section-subtitle">
+      Help Caro catch falling shell commands! Use arrow keys or tap to move.
+    </p>
+
+    <div class="game-container">
+      <div class="game-header">
+        <div class="score">Score: <span id="score">0</span></div>
+        <div class="high-score">Best: <span id="high-score">0</span></div>
+        <div class="lives">
+          <span id="lives">
+            <span class="heart">&#10084;</span>
+            <span class="heart">&#10084;</span>
+            <span class="heart">&#10084;</span>
+          </span>
+        </div>
+      </div>
+
+      <div id="game-canvas" class="game-canvas">
+        <div id="caro" class="caro-sprite">
+          <img src="/caro-pixel.png" alt="Caro" class="caro-img" />
+        </div>
+        <div id="commands-container" class="commands-container"></div>
+        <div id="game-overlay" class="game-overlay">
+          <div class="overlay-content">
+            <h3 id="overlay-title">Caro Fetch!</h3>
+            <p id="overlay-message">Catch the shell commands!</p>
+            <button id="start-button" class="game-button">Play</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="game-controls">
+        <button id="left-btn" class="control-btn" aria-label="Move left">&#9664;</button>
+        <button id="right-btn" class="control-btn" aria-label="Move right">&#9654;</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .game-section {
+    background: var(--color-bg-secondary);
+    padding: 80px 20px;
+    transition: background 0.3s ease;
+  }
+
+  .game-container {
+    max-width: 500px;
+    margin: 0 auto;
+    background: var(--color-bg);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--color-border);
+    transition: all 0.3s ease;
+  }
+
+  .game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    background: var(--color-bg-tertiary);
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+  }
+
+  .score, .high-score {
+    color: var(--color-text);
+    font-size: 16px;
+  }
+
+  .lives .heart {
+    color: #ff6b35;
+    font-size: 18px;
+    margin-left: 2px;
+  }
+
+  .lives .heart.lost {
+    opacity: 0.2;
+  }
+
+  .game-canvas {
+    position: relative;
+    width: 100%;
+    height: 350px;
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 3px solid #ff8c42;
+  }
+
+  .caro-sprite {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 60px;
+    transition: left 0.1s ease-out;
+    z-index: 10;
+  }
+
+  .caro-img {
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    filter: drop-shadow(0 0 10px rgba(255, 140, 66, 0.5));
+  }
+
+  .commands-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .falling-command {
+    position: absolute;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 6px;
+    white-space: nowrap;
+    box-shadow: 0 4px 15px rgba(255, 140, 66, 0.4);
+    animation: glow 1s ease-in-out infinite alternate;
+  }
+
+  .falling-command.bad {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+  }
+
+  .falling-command.bonus {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+  }
+
+  @keyframes glow {
+    from { filter: brightness(1); }
+    to { filter: brightness(1.2); }
+  }
+
+  .game-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+    backdrop-filter: blur(4px);
+  }
+
+  .game-overlay.hidden {
+    display: none;
+  }
+
+  .overlay-content {
+    text-align: center;
+    color: white;
+  }
+
+  .overlay-content h3 {
+    font-size: 32px;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .overlay-content p {
+    font-size: 16px;
+    margin-bottom: 20px;
+    color: #ccc;
+  }
+
+  .game-button {
+    padding: 14px 40px;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .game-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 140, 66, 0.4);
+  }
+
+  .game-controls {
+    display: none;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 15px;
+  }
+
+  .control-btn {
+    width: 70px;
+    height: 50px;
+    font-size: 24px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+
+  .control-btn:active {
+    transform: scale(0.95);
+  }
+
+  @media (max-width: 768px) {
+    .game-controls {
+      display: flex;
+    }
+
+    .game-canvas {
+      height: 300px;
+    }
+
+    .caro-sprite {
+      width: 50px;
+      height: 50px;
+    }
+
+    .falling-command {
+      font-size: 10px;
+      padding: 6px 10px;
+    }
+  }
+
+  @media (pointer: coarse) {
+    .game-controls {
+      display: flex;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const canvas = document.getElementById('game-canvas');
+    const caro = document.getElementById('caro');
+    const commandsContainer = document.getElementById('commands-container');
+    const overlay = document.getElementById('game-overlay');
+    const overlayTitle = document.getElementById('overlay-title');
+    const overlayMessage = document.getElementById('overlay-message');
+    const startButton = document.getElementById('start-button');
+    const scoreDisplay = document.getElementById('score');
+    const highScoreDisplay = document.getElementById('high-score');
+    const livesDisplay = document.getElementById('lives');
+    const leftBtn = document.getElementById('left-btn');
+    const rightBtn = document.getElementById('right-btn');
+
+    if (!canvas || !caro || !commandsContainer || !overlay || !startButton) return;
+
+    // Game state
+    let gameRunning = false;
+    let score = 0;
+    let lives = 3;
+    let caroX = 50; // percentage
+    let commands: { el: HTMLElement; x: number; y: number; speed: number; type: string }[] = [];
+    let spawnInterval: number | null = null;
+    let gameLoop: number | null = null;
+    let highScore = parseInt(localStorage.getItem('caroGameHighScore') || '0');
+
+    // Shell commands to catch (good ones)
+    const goodCommands = [
+      'ls -la', 'pwd', 'cat file.txt', 'mkdir src', 'cp a b',
+      'grep "hi"', 'find .', 'echo $PATH', 'cd ~', 'touch f',
+      'head -n 5', 'tail -f', 'wc -l', 'sort', 'uniq',
+      'chmod +x', 'ps aux', 'top', 'df -h', 'du -sh'
+    ];
+
+    // Dangerous commands to avoid (bad ones - subtract points)
+    const badCommands = [
+      'rm -rf /', 'rm -rf ~', 'sudo rm -rf', ':(){ :|:& };:',
+      'mkfs.ext4', 'dd if=/dev/zero', 'chmod 777 /'
+    ];
+
+    // Bonus commands (extra points)
+    const bonusCommands = [
+      'git commit', 'cargo build', 'npm install', 'docker run'
+    ];
+
+    // Update displays
+    highScoreDisplay!.textContent = highScore.toString();
+
+    function updateLives() {
+      const hearts = livesDisplay!.querySelectorAll('.heart');
+      hearts.forEach((heart, i) => {
+        heart.classList.toggle('lost', i >= lives);
+      });
+    }
+
+    function spawnCommand() {
+      const rand = Math.random();
+      let type: 'good' | 'bad' | 'bonus';
+      let cmdArray: string[];
+
+      if (rand < 0.15) {
+        type = 'bad';
+        cmdArray = badCommands;
+      } else if (rand < 0.25) {
+        type = 'bonus';
+        cmdArray = bonusCommands;
+      } else {
+        type = 'good';
+        cmdArray = goodCommands;
+      }
+
+      const cmd = cmdArray[Math.floor(Math.random() * cmdArray.length)];
+      const el = document.createElement('div');
+      el.className = `falling-command ${type}`;
+      el.textContent = cmd;
+
+      commandsContainer!.appendChild(el);
+
+      const maxX = 100 - 25; // Leave room for command width
+      const x = Math.random() * maxX;
+      el.style.left = `${x}%`;
+      el.style.top = '0px';
+
+      const baseSpeed = 1 + Math.min(score / 50, 2); // Speed increases with score
+      const speed = baseSpeed + Math.random() * 0.5;
+
+      commands.push({ el, x, y: 0, speed, type });
+    }
+
+    function checkCollision(cmd: { el: HTMLElement; x: number; y: number }) {
+      const canvasRect = canvas!.getBoundingClientRect();
+      const caroRect = caro!.getBoundingClientRect();
+      const cmdRect = cmd.el.getBoundingClientRect();
+
+      // Calculate relative positions
+      const caroLeft = caroRect.left - canvasRect.left;
+      const caroRight = caroRect.right - canvasRect.left;
+      const caroTop = caroRect.top - canvasRect.top;
+
+      const cmdLeft = cmdRect.left - canvasRect.left;
+      const cmdRight = cmdRect.right - canvasRect.left;
+      const cmdBottom = cmdRect.bottom - canvasRect.top;
+
+      return cmdBottom >= caroTop &&
+             cmdLeft < caroRight &&
+             cmdRight > caroLeft;
+    }
+
+    function update() {
+      if (!gameRunning) return;
+
+      const canvasHeight = canvas!.offsetHeight;
+
+      commands = commands.filter(cmd => {
+        cmd.y += cmd.speed;
+        cmd.el.style.top = `${cmd.y}px`;
+
+        // Check for catch
+        if (checkCollision(cmd)) {
+          if (cmd.type === 'good') {
+            score += 10;
+            showFloatingText('+10', '#2ecc71');
+          } else if (cmd.type === 'bonus') {
+            score += 25;
+            showFloatingText('+25', '#f1c40f');
+          } else {
+            score = Math.max(0, score - 15);
+            lives--;
+            showFloatingText('-15', '#e74c3c');
+            updateLives();
+
+            if (lives <= 0) {
+              endGame();
+              return false;
+            }
+          }
+
+          scoreDisplay!.textContent = score.toString();
+          cmd.el.remove();
+          return false;
+        }
+
+        // Check if missed
+        if (cmd.y > canvasHeight) {
+          if (cmd.type === 'good') {
+            lives--;
+            updateLives();
+
+            if (lives <= 0) {
+              endGame();
+            }
+          }
+          cmd.el.remove();
+          return false;
+        }
+
+        return true;
+      });
+
+      gameLoop = requestAnimationFrame(update);
+    }
+
+    function showFloatingText(text: string, color: string) {
+      const floater = document.createElement('div');
+      floater.textContent = text;
+      floater.style.cssText = `
+        position: absolute;
+        left: ${caroX}%;
+        bottom: 80px;
+        transform: translateX(-50%);
+        color: ${color};
+        font-size: 20px;
+        font-weight: bold;
+        font-family: 'Courier New', monospace;
+        pointer-events: none;
+        animation: floatUp 0.8s ease-out forwards;
+        z-index: 15;
+      `;
+      canvas!.appendChild(floater);
+      setTimeout(() => floater.remove(), 800);
+    }
+
+    function startGame() {
+      gameRunning = true;
+      score = 0;
+      lives = 3;
+      caroX = 50;
+      commands.forEach(c => c.el.remove());
+      commands = [];
+
+      scoreDisplay!.textContent = '0';
+      updateLives();
+      overlay!.classList.add('hidden');
+
+      caro!.style.left = `${caroX}%`;
+
+      // Spawn commands
+      spawnInterval = window.setInterval(() => {
+        if (gameRunning) {
+          spawnCommand();
+        }
+      }, 1200 - Math.min(score, 400)); // Spawn faster as score increases
+
+      gameLoop = requestAnimationFrame(update);
+    }
+
+    function endGame() {
+      gameRunning = false;
+
+      if (spawnInterval) clearInterval(spawnInterval);
+      if (gameLoop) cancelAnimationFrame(gameLoop);
+
+      // Update high score
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('caroGameHighScore', highScore.toString());
+        highScoreDisplay!.textContent = highScore.toString();
+      }
+
+      overlayTitle!.textContent = 'Game Over!';
+      overlayMessage!.textContent = `Score: ${score} | Best: ${highScore}`;
+      startButton!.textContent = 'Play Again';
+      overlay!.classList.remove('hidden');
+    }
+
+    // Movement
+    function moveCaro(direction: 'left' | 'right') {
+      if (!gameRunning) return;
+
+      const step = 8;
+      if (direction === 'left') {
+        caroX = Math.max(5, caroX - step);
+      } else {
+        caroX = Math.min(95, caroX + step);
+      }
+      caro!.style.left = `${caroX}%`;
+    }
+
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') {
+        moveCaro('left');
+      } else if (e.key === 'ArrowRight' || e.key === 'd') {
+        moveCaro('right');
+      } else if (e.key === ' ' && !gameRunning) {
+        startGame();
+      }
+    });
+
+    // Touch/click controls
+    startButton!.addEventListener('click', startGame);
+    leftBtn?.addEventListener('click', () => moveCaro('left'));
+    rightBtn?.addEventListener('click', () => moveCaro('right'));
+
+    // Touch hold for continuous movement
+    let leftHeld = false;
+    let rightHeld = false;
+
+    function holdMove() {
+      if (leftHeld) moveCaro('left');
+      if (rightHeld) moveCaro('right');
+      if (leftHeld || rightHeld) {
+        requestAnimationFrame(holdMove);
+      }
+    }
+
+    leftBtn?.addEventListener('touchstart', (e) => { e.preventDefault(); leftHeld = true; holdMove(); });
+    leftBtn?.addEventListener('touchend', () => { leftHeld = false; });
+    leftBtn?.addEventListener('touchcancel', () => { leftHeld = false; });
+
+    rightBtn?.addEventListener('touchstart', (e) => { e.preventDefault(); rightHeld = true; holdMove(); });
+    rightBtn?.addEventListener('touchend', () => { rightHeld = false; });
+    rightBtn?.addEventListener('touchcancel', () => { rightHeld = false; });
+  });
+</script>
+
+<style is:global>
+  @keyframes floatUp {
+    0% {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(-50%) translateY(-40px);
+    }
+  }
+</style>
