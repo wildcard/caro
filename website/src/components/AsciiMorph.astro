@@ -63,20 +63,20 @@ const artsJson = JSON.stringify(arts);
           height
         });
 
-        // Check if AsciiMorph is available
-        if (typeof window.AsciiMorph === 'undefined') {
+        // Check if createAsciiMorph is available
+        if (typeof window.createAsciiMorph === 'undefined') {
           console.error('AsciiMorph library not loaded!');
           element.textContent = 'ASCII Morph library not loaded';
           return;
         }
 
-        // Initialize AsciiMorph
-        const morph = window.AsciiMorph(element, { x: width, y: height });
+        // Create an instance for this element
+        const morph = window.createAsciiMorph(element, { x: width, y: height });
 
         // Render the first frame
         if (arts.length > 0) {
           morph.render(arts[0]);
-          console.log('Rendered first frame');
+          console.log('✓ Rendered first frame for', element.id);
         }
 
         // If there's more than one art, set up morphing
@@ -85,7 +85,7 @@ const artsJson = JSON.stringify(arts);
 
           setInterval(() => {
             currentIndex = (currentIndex + 1) % arts.length;
-            console.log('Morphing to frame', currentIndex);
+            console.log('→ Morphing to frame', currentIndex, 'for', element.id);
             morph.morph(arts[currentIndex], morphDelay);
           }, interval);
         }
