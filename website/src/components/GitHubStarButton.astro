@@ -373,172 +373,162 @@
 
     if (isFib) {
       // Special Fibonacci confetti - DRAMATIC MULTI-PATTERN CELEBRATION!
-      const particleCount = Math.min(50 + seed, 200);
-      const spread = 60 + (normalizedSeed * 100);
-      const startVelocity = 30 + (normalizedSeed * 30);
+      const particleCount = Math.min(80 + seed, 250);
+      const spread = 80 + (normalizedSeed * 80);
+      const startVelocity = 35 + (normalizedSeed * 25);
       const palette = colorPalettes[seed % colorPalettes.length];
 
-      // Main center burst
+      // Main center burst - BIGGER AND MORE VISIBLE
       confetti({
         particleCount,
         spread,
         startVelocity,
-        origin: { x: 0.5, y: 0.6 },
+        origin: { x: 0.5, y: 0.5 },
         colors: palette,
         shapes: ['star', 'circle', 'square'],
-        scalar: 1.2 + (normalizedSeed * 0.5),
-        gravity: 1 + (normalizedSeed * 0.5),
+        scalar: 1.5,
+        gravity: 0.8,
         drift: (normalizedSeed - 0.5) * 2,
-        ticks: 200 + seed,
-        decay: 0.9
+        ticks: 300
       });
 
-      // Left side burst (delayed)
+      // Immediate secondary burst for density
+      confetti({
+        particleCount: 60,
+        spread: 100,
+        startVelocity: 30,
+        origin: { x: 0.5, y: 0.5 },
+        colors: palette,
+        shapes: ['star', 'circle'],
+        scalar: 1.2,
+        gravity: 1
+      });
+
+      // Left side burst
       setTimeout(() => {
         confetti({
-          particleCount: 40,
+          particleCount: 50,
           angle: 60,
-          spread: 80,
-          origin: { x: 0, y: 0.8 },
+          spread: 90,
+          origin: { x: 0, y: 0.7 },
           colors: palette.slice(0, 3),
           shapes: ['star', 'circle'],
-          startVelocity: 35,
-          gravity: 1.2,
-          drift: 1
+          startVelocity: 40,
+          gravity: 1,
+          scalar: 1.3
         });
-      }, 100);
+      }, 150);
 
-      // Right side burst (delayed)
+      // Right side burst
       setTimeout(() => {
         confetti({
-          particleCount: 40,
+          particleCount: 50,
           angle: 120,
-          spread: 80,
-          origin: { x: 1, y: 0.8 },
+          spread: 90,
+          origin: { x: 1, y: 0.7 },
           colors: palette.slice(3),
           shapes: ['star', 'circle'],
-          startVelocity: 35,
-          gravity: 1.2,
-          drift: -1
+          startVelocity: 40,
+          gravity: 1,
+          scalar: 1.3
         });
-      }, 100);
-
-      // Top rain (delayed)
-      setTimeout(() => {
-        confetti({
-          particleCount: 30,
-          angle: 90,
-          spread: 180,
-          origin: { x: 0.5, y: 0 },
-          colors: palette,
-          shapes: ['square', 'circle'],
-          startVelocity: 20,
-          gravity: 0.8,
-          scalar: 0.8
-        });
-      }, 300);
-
-      // Spiral effect (for higher Fibonacci numbers)
-      if (seed > 5) {
-        for (let i = 0; i < 3; i++) {
-          setTimeout(() => {
-            const angle = 90 + (i * 30);
-            confetti({
-              particleCount: 20,
-              angle: angle,
-              spread: 45,
-              origin: { x: 0.5, y: 0.5 },
-              colors: [palette[i % palette.length]],
-              shapes: ['star'],
-              startVelocity: 25,
-              scalar: 1.5
-            });
-          }, 200 + (i * 100));
-        }
-      }
+      }, 150);
 
     } else {
-      // Regular confetti - still diverse but less intense
+      // Regular confetti - MORE VISIBLE with higher particle counts
       const variation = clickCount % 5;
       const palette = colorPalettes[clickCount % colorPalettes.length];
 
       switch(variation) {
         case 0:
-          // Classic center burst
+          // Classic center burst - ENHANCED
           confetti({
-            particleCount: 60,
-            spread: 70,
-            origin: { x: 0.5, y: 0.6 },
+            particleCount: 100,
+            spread: 90,
+            origin: { x: 0.5, y: 0.5 },
             colors: palette,
-            startVelocity: 25 + (normalizedSeed * 10),
-            gravity: 1,
-            drift: (normalizedSeed - 0.5),
-            shapes: ['circle', 'square']
+            startVelocity: 35,
+            gravity: 0.8,
+            shapes: ['circle', 'square', 'star'],
+            scalar: 1.2
           });
           break;
 
         case 1:
-          // Dual side cannons
+          // Dual side cannons - ENHANCED
           confetti({
-            particleCount: 35,
+            particleCount: 60,
             angle: 60,
-            spread: 55,
-            origin: { x: 0 },
+            spread: 70,
+            origin: { x: 0, y: 0.6 },
             colors: palette.slice(0, 3),
-            shapes: ['star', 'circle']
+            shapes: ['star', 'circle'],
+            startVelocity: 35,
+            scalar: 1.3
           });
           confetti({
-            particleCount: 35,
+            particleCount: 60,
             angle: 120,
-            spread: 55,
-            origin: { x: 1 },
+            spread: 70,
+            origin: { x: 1, y: 0.6 },
             colors: palette.slice(3),
-            shapes: ['star', 'circle']
+            shapes: ['star', 'circle'],
+            startVelocity: 35,
+            scalar: 1.3
           });
           break;
 
         case 2:
-          // Fountain from bottom
+          // Fountain from bottom - ENHANCED
           confetti({
-            particleCount: 50,
+            particleCount: 80,
             angle: 90,
             spread: 120,
-            origin: { x: 0.5, y: 1 },
+            origin: { x: 0.5, y: 0.8 },
             colors: palette,
-            startVelocity: 40,
-            shapes: ['star', 'circle', 'square']
+            startVelocity: 50,
+            shapes: ['star', 'circle', 'square'],
+            scalar: 1.4
           });
           break;
 
         case 3:
-          // Rain from top
+          // Center explosion - NEW VISIBLE PATTERN
           confetti({
-            particleCount: 50,
-            angle: 90,
-            spread: 180,
-            origin: { x: 0.5, y: 0 },
+            particleCount: 100,
+            spread: 360,
+            origin: { x: 0.5, y: 0.5 },
             colors: palette,
-            startVelocity: 20,
-            gravity: 0.6,
-            shapes: ['circle', 'square'],
-            scalar: 0.7
+            startVelocity: 30,
+            gravity: 0.7,
+            shapes: ['circle', 'square', 'star'],
+            scalar: 1.2,
+            ticks: 250
           });
           break;
 
         case 4:
-          // Diagonal sweep
-          for (let i = 0; i < 3; i++) {
-            setTimeout(() => {
-              confetti({
-                particleCount: 25,
-                angle: 135,
-                spread: 50,
-                origin: { x: i * 0.3, y: 0 },
-                colors: palette,
-                shapes: ['star', 'circle']
-              });
-            }, i * 100);
-          }
+          // Multi-burst wave
+          confetti({
+            particleCount: 80,
+            spread: 100,
+            origin: { x: 0.5, y: 0.5 },
+            colors: palette,
+            shapes: ['star', 'circle'],
+            startVelocity: 35,
+            scalar: 1.3
+          });
+          setTimeout(() => {
+            confetti({
+              particleCount: 50,
+              spread: 80,
+              origin: { x: 0.5, y: 0.5 },
+              colors: palette,
+              shapes: ['circle', 'square'],
+              startVelocity: 25,
+              scalar: 1.1
+            });
+          }, 200);
           break;
       }
     }
@@ -565,16 +555,14 @@
       // First time ever - special treatment
       localStorage.setItem(FIRST_STAR_KEY, 'true');
 
-      // Delay for 800ms before showing confetti and message
-      setTimeout(() => {
-        fireConfetti(clickCount);
-        showThankYouMessage();
+      // Immediate confetti and message
+      fireConfetti(clickCount);
+      showThankYouMessage();
 
-        // Navigate after 4 seconds to let user enjoy the full celebration
-        setTimeout(() => {
-          window.location.assign(targetUrl);
-        }, 4000);
-      }, 800);
+      // Navigate after 2.2 seconds - enough to see the celebration
+      setTimeout(() => {
+        window.location.assign(targetUrl);
+      }, 2200);
     } else {
       // Subsequent clicks - immediate confetti with Fibonacci variations
       fireConfetti(clickCount);
@@ -582,16 +570,16 @@
       const isFib = isFibonacci(clickCount);
 
       if (isFib) {
-        // Fibonacci clicks get message and longer delay
+        // Fibonacci clicks get message and slightly longer delay
         showThankYouMessage();
         setTimeout(() => {
           window.location.assign(targetUrl);
-        }, 3500);
+        }, 2000);
       } else {
-        // Regular clicks - moderate delay to see confetti
+        // Regular clicks - shorter delay
         setTimeout(() => {
           window.location.assign(targetUrl);
-        }, 2500);
+        }, 1600);
       }
     }
   }
