@@ -68,7 +68,7 @@ jobs:
             } else {
               message = '## Thank you! :tada:\n\n' +
                 'Thanks for your contribution, @' + prAuthor + '! Your PR has been merged.\n\n' +
-                'Contribution #' + totalMergedPRs + ' - Every contribution helps make cmdai better! :heart:';
+                'Contribution ' + totalMergedPRs + ' - Every contribution helps make cmdai better! :heart:';
             }
 
             await github.rest.issues.createComment({
