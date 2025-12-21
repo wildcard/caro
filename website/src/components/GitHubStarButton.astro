@@ -136,8 +136,12 @@
 </style>
 
 <script>
+  import confetti from 'canvas-confetti';
+
   const CACHE_KEY = 'github_star_count_wildcard_caro';
   const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
+  const FIRST_STAR_KEY = 'caro_first_star_clicked';
+  const STAR_CLICK_COUNT_KEY = 'caro_star_click_count';
 
   /**
    * Get cached star count data from localStorage
@@ -261,10 +265,224 @@
     }
   }
 
+  /**
+   * Calculate Fibonacci number for given position
+   * @param {number} n - Position in Fibonacci sequence
+   * @returns {number} Fibonacci number
+   */
+  function fibonacci(n) {
+    if (n <= 1) return n;
+    let a = 0, b = 1;
+    for (let i = 2; i <= n; i++) {
+      const temp = a + b;
+      a = b;
+      b = temp;
+    }
+    return b;
+  }
+
+  /**
+   * Check if current click count is a Fibonacci number
+   * @param {number} num - Number to check
+   * @returns {boolean} True if number is in Fibonacci sequence
+   */
+  function isFibonacci(num) {
+    if (num <= 0) return false;
+    let a = 0, b = 1;
+    while (b < num) {
+      const temp = a + b;
+      a = b;
+      b = temp;
+    }
+    return b === num;
+  }
+
+  /**
+   * Get current click count and increment
+   * @returns {number} Current click count before incrementing
+   */
+  function getAndIncrementClickCount() {
+    try {
+      const count = parseInt(localStorage.getItem(STAR_CLICK_COUNT_KEY) || '0', 10);
+      localStorage.setItem(STAR_CLICK_COUNT_KEY, (count + 1).toString());
+      return count + 1;
+    } catch (error) {
+      console.error('Error managing click count:', error);
+      return 1;
+    }
+  }
+
+  /**
+   * Show thank you message from Caro
+   */
+  function showThankYouMessage() {
+    const messages = [
+      "Woof! Thank you for starring! 🐕",
+      "You're pawsome! Thanks for the star! 🌟",
+      "Tail wagging intensifies! Thank you! 💫",
+      "A loyal friend like you deserves the best! Thanks! ✨",
+      "Caro appreciates your support! Woof woof! 🎉"
+    ];
+
+    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+
+    // Create toast notification
+    const toast = document.createElement('div');
+    toast.className = 'caro-thank-you-toast';
+    toast.textContent = randomMessage;
+    document.body.appendChild(toast);
+
+    // Animate in
+    setTimeout(() => toast.classList.add('show'), 10);
+
+    // Remove after 4 seconds
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 300);
+    }, 4000);
+  }
+
+  /**
+   * Fire confetti with Fibonacci-seeded randomization
+   * @param {number} clickCount - Current click count
+   */
+  function fireConfetti(clickCount) {
+    const isFib = isFibonacci(clickCount);
+
+    // Use Fibonacci number as seed for variation
+    const fibIndex = isFib ? clickCount : 0;
+    const seed = fibonacci(Math.min(fibIndex, 20)); // Cap to prevent huge numbers
+
+    // Normalize seed for random values (0-1 range)
+    const normalizedSeed = (seed % 100) / 100;
+
+    if (isFib) {
+      // Special Fibonacci confetti - more dramatic!
+      const particleCount = Math.min(50 + seed, 200);
+      const spread = 60 + (normalizedSeed * 100);
+      const startVelocity = 30 + (normalizedSeed * 30);
+
+      confetti({
+        particleCount,
+        spread,
+        startVelocity,
+        origin: { y: 0.6 },
+        colors: ['#ff8c42', '#ff6b35', '#ffd700', '#ff1493', '#00ff00', '#00bfff'],
+        shapes: ['star', 'circle'],
+        scalar: 1.2 + (normalizedSeed * 0.5),
+        gravity: 1 + (normalizedSeed * 0.5),
+        drift: (normalizedSeed - 0.5) * 2,
+        ticks: 200 + seed
+      });
+
+      // Extra burst for Fibonacci clicks
+      setTimeout(() => {
+        confetti({
+          particleCount: 30,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+          colors: ['#ff8c42', '#ffd700']
+        });
+        confetti({
+          particleCount: 30,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+          colors: ['#ff6b35', '#ff1493']
+        });
+      }, 200);
+    } else {
+      // Regular confetti with subtle seed variation
+      confetti({
+        particleCount: 50,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#ff8c42', '#ff6b35', '#ffd700'],
+        startVelocity: 25 + (normalizedSeed * 10),
+        gravity: 1,
+        drift: (normalizedSeed - 0.5)
+      });
+    }
+  }
+
+  /**
+   * Handle star button click for confetti effect
+   */
+  function handleStarClick(event) {
+    const clickCount = getAndIncrementClickCount();
+    const isFirstClick = localStorage.getItem(FIRST_STAR_KEY) !== 'true';
+
+    if (isFirstClick) {
+      // First time ever - special treatment
+      localStorage.setItem(FIRST_STAR_KEY, 'true');
+
+      // Delay for 800ms before showing confetti and message
+      setTimeout(() => {
+        fireConfetti(clickCount);
+        showThankYouMessage();
+      }, 800);
+    } else {
+      // Subsequent clicks - immediate confetti with Fibonacci variations
+      fireConfetti(clickCount);
+
+      // Show message only on Fibonacci numbers
+      if (isFibonacci(clickCount)) {
+        showThankYouMessage();
+      }
+    }
+  }
+
   // Run when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', fetchStarCount);
   } else {
     fetchStarCount();
   }
+
+  // Add click handler
+  const starButton = document.getElementById('github-star-button');
+  if (starButton) {
+    starButton.addEventListener('click', handleStarClick);
+  }
 </script>
+
+<style is:global>
+  .caro-thank-you-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 16px;
+    box-shadow: 0 4px 20px rgba(255, 140, 66, 0.4);
+    transform: translateX(400px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10000;
+    pointer-events: none;
+  }
+
+  .caro-thank-you-toast.show {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  @media (max-width: 768px) {
+    .caro-thank-you-toast {
+      top: 10px;
+      right: 10px;
+      left: 10px;
+      font-size: 14px;
+      padding: 12px 16px;
+      transform: translateY(-100px);
+    }
+
+    .caro-thank-you-toast.show {
+      transform: translateY(0);
+    }
+  }
+</style>
