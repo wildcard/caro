@@ -116,32 +116,35 @@ const artsJson = JSON.stringify(arts);
 
   .ascii-canvas {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 10px;
-    line-height: 1.0;
+    font-size: 11px;
+    line-height: 1.05;
+    letter-spacing: 0.5px;
     color: var(--color-text-tertiary, #666);
     background: transparent;
     border: none;
-    padding: 1rem;
+    padding: 0.5rem;
     margin: 0;
     overflow: hidden;
     white-space: pre;
-    transition: color 0.3s ease;
+    transition: color 0.3s ease, transform 0.2s ease;
   }
 
   /* Make it responsive on smaller screens */
   @media (max-width: 768px) {
     .ascii-canvas {
-      font-size: 6px;
-      line-height: 1.0;
-      padding: 0.5rem;
+      font-size: 8px;
+      line-height: 1.05;
+      letter-spacing: 0.3px;
+      padding: 0.25rem;
     }
   }
 
   @media (max-width: 480px) {
     .ascii-canvas {
-      font-size: 4px;
+      font-size: 6px;
       line-height: 1.0;
-      padding: 0.25rem;
+      letter-spacing: 0.2px;
+      padding: 0.125rem;
     }
   }
 
@@ -153,5 +156,22 @@ const artsJson = JSON.stringify(arts);
   /* Hover effect */
   .ascii-canvas:hover {
     color: #ff8c42;
+    transform: scale(1.02);
+  }
+
+  /* Animation for smooth transitions */
+  .ascii-morph-container {
+    animation: fadeIn 0.5s ease-in;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 </style>
