@@ -6,11 +6,13 @@
   ↑
 </button>
 
-<button id="mute-toggle" class="mute-toggle" aria-label="Mute elevator music">
+<button id="mute-toggle" class="mute-toggle" aria-label="Toggle elevator music">
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
     <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
     <path class="sound-waves" d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
     <path class="sound-waves" d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+    <line class="mute-x" x1="23" y1="9" x2="17" y2="15" stroke-width="2"></line>
+    <line class="mute-x" x1="17" y1="9" x2="23" y2="15" stroke-width="2"></line>
   </svg>
 </button>
 
@@ -130,6 +132,18 @@
     animation-delay: 0.2s;
   }
 
+  .mute-toggle .mute-x {
+    display: none;
+  }
+
+  .mute-toggle.is-muted .sound-waves {
+    display: none;
+  }
+
+  .mute-toggle.is-muted .mute-x {
+    display: block;
+  }
+
   @keyframes soundWave {
     0%, 100% {
       opacity: 0.5;
@@ -210,6 +224,17 @@
     // Check localStorage for mute preference (default: unmuted)
     let isMuted = localStorage.getItem('elevatorMuted') === 'true';
 
+    // Update mute button visual state
+    const updateMuteButtonState = () => {
+      if (isMuted) {
+        muteToggle?.classList.add('is-muted');
+      } else {
+        muteToggle?.classList.remove('is-muted');
+      }
+    };
+
+    updateMuteButtonState();
+
     // Initialize elevator.js after it loads
     let elevator: any;
     let elevatorDuration = 3000; // 3 seconds
@@ -225,24 +250,15 @@
 
     initElevator(isMuted);
 
-    // Show mute button when elevator ride starts
-    button?.addEventListener('click', () => {
-      if (!isMuted && window.scrollY > 0) {
-        muteToggle?.classList.add('visible');
-
-        // Hide mute button after the ride completes
-        setTimeout(() => {
-          muteToggle?.classList.remove('visible');
-        }, elevatorDuration);
-      }
-    });
-
     // Mute toggle handler
-    muteToggle?.addEventListener('click', () => {
-      isMuted = true;
-      localStorage.setItem('elevatorMuted', 'true');
+    muteToggle?.addEventListener('click', (e) => {
+      e.stopPropagation();
 
-      // Stop all currently playing audio
+      // Toggle mute state
+      isMuted = !isMuted;
+      localStorage.setItem('elevatorMuted', isMuted.toString());
+
+      // Stop all currently playing audio immediately
       const audioElements = document.querySelectorAll('audio');
       audioElements.forEach((audio) => {
         audio.pause();
@@ -250,14 +266,14 @@
         audio.remove();
       });
 
-      // Hide mute button when muted
-      muteToggle.classList.remove('visible');
+      // Update visual state
+      updateMuteButtonState();
 
       // Reinitialize elevator with new audio settings
       initElevator(isMuted);
     });
 
-    // Show/hide back-to-top button based on scroll position
+    // Show/hide buttons based on scroll position
     let scrollTimeout: number;
     const handleScroll = () => {
       if (scrollTimeout) {
@@ -267,8 +283,10 @@
       scrollTimeout = window.setTimeout(() => {
         if (window.scrollY > 300) {
           button?.classList.add('visible');
+          muteToggle?.classList.add('visible');
         } else {
           button?.classList.remove('visible');
+          muteToggle?.classList.remove('visible');
         }
       }, 100);
     };
