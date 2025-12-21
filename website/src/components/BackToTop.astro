@@ -6,9 +6,12 @@
   ↑
 </button>
 
-<button id="mute-toggle" class="mute-toggle" aria-label="Toggle elevator music">
-  <span class="unmuted">🔊</span>
-  <span class="muted">🔇</span>
+<button id="mute-toggle" class="mute-toggle" aria-label="Mute elevator music">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
+    <path class="sound-waves" d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+    <path class="sound-waves" d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+  </svg>
 </button>
 
 <style>
@@ -83,17 +86,19 @@
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+    background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
     color: white;
     border: none;
-    font-size: 20px;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(155, 89, 182, 0.3);
     transition: all 0.3s ease;
     z-index: 1000;
     opacity: 0;
     visibility: hidden;
     transform: translateY(100px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .mute-toggle.visible {
@@ -103,52 +108,70 @@
   }
 
   .mute-toggle:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(127, 140, 141, 0.4);
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(155, 89, 182, 0.5);
+    background: linear-gradient(135deg, #a569bd 0%, #9b59b6 100%);
   }
 
   .mute-toggle:active {
-    transform: translateY(-2px);
+    transform: translateY(-2px) scale(0.98);
   }
 
-  .mute-toggle .muted {
-    display: none;
+  .mute-toggle svg {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
   }
 
-  .mute-toggle.is-muted .muted {
-    display: inline;
+  .mute-toggle .sound-waves {
+    animation: soundWave 1.5s ease-in-out infinite;
+    transform-origin: center;
   }
 
-  .mute-toggle.is-muted .unmuted {
-    display: none;
+  .mute-toggle .sound-waves:nth-child(3) {
+    animation-delay: 0.2s;
+  }
+
+  @keyframes soundWave {
+    0%, 100% {
+      opacity: 0.5;
+      stroke-width: 2;
+    }
+    50% {
+      opacity: 1;
+      stroke-width: 2.5;
+    }
   }
 
   /* Dark mode adjustments */
   .dark .mute-toggle {
-    background: linear-gradient(135deg, #7f8c8d 0%, #5d6d7e 100%);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, #8e44ad 0%, #6c3483 100%);
+    box-shadow: 0 4px 12px rgba(142, 68, 173, 0.4);
   }
 
   .dark .mute-toggle:hover {
-    box-shadow: 0 8px 20px rgba(127, 140, 141, 0.5);
+    background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+    box-shadow: 0 8px 20px rgba(155, 89, 182, 0.6);
   }
 
   /* Christmas theme */
   .christmas .mute-toggle {
     background: linear-gradient(135deg, var(--christmas-gold) 0%, #daa520 100%);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
   }
 
   .christmas .mute-toggle:hover {
+    background: linear-gradient(135deg, #ffd700 0%, var(--christmas-gold) 100%);
     box-shadow: 0 8px 20px rgba(255, 215, 0, 0.5);
   }
 
   /* Hanukkah theme */
   .hanukkah .mute-toggle {
-    background: linear-gradient(135deg, var(--hanukkah-silver) 0%, #a8a8a8 100%);
+    background: linear-gradient(135deg, var(--hanukkah-light-blue) 0%, var(--hanukkah-blue) 100%);
+    box-shadow: 0 4px 12px rgba(65, 105, 225, 0.3);
   }
 
   .hanukkah .mute-toggle:hover {
-    box-shadow: 0 8px 20px rgba(192, 192, 192, 0.5);
+    background: linear-gradient(135deg, #5a8dee 0%, var(--hanukkah-light-blue) 100%);
+    box-shadow: 0 8px 20px rgba(90, 141, 238, 0.5);
   }
 
   /* Mobile adjustments */
@@ -164,9 +187,13 @@
     .mute-toggle {
       bottom: 75px;
       right: 20px;
-      width: 40px;
-      height: 40px;
-      font-size: 18px;
+      width: 45px;
+      height: 45px;
+    }
+
+    .mute-toggle svg {
+      width: 20px;
+      height: 20px;
     }
   }
 </style>
@@ -182,11 +209,6 @@
 
     // Check localStorage for mute preference (default: unmuted)
     let isMuted = localStorage.getItem('elevatorMuted') === 'true';
-
-    // Update mute button state
-    if (isMuted) {
-      muteToggle?.classList.add('is-muted');
-    }
 
     // Initialize elevator.js after it loads
     let elevator: any;
@@ -204,14 +226,11 @@
 
     // Mute toggle handler
     muteToggle?.addEventListener('click', () => {
-      isMuted = !isMuted;
-      localStorage.setItem('elevatorMuted', isMuted.toString());
+      isMuted = true;
+      localStorage.setItem('elevatorMuted', 'true');
 
-      if (isMuted) {
-        muteToggle.classList.add('is-muted');
-      } else {
-        muteToggle.classList.remove('is-muted');
-      }
+      // Hide mute button when muted
+      muteToggle.classList.remove('visible');
 
       // Reinitialize elevator with new audio settings
       initElevator(isMuted);
@@ -227,7 +246,10 @@
       scrollTimeout = window.setTimeout(() => {
         if (window.scrollY > 300) {
           button?.classList.add('visible');
-          muteToggle?.classList.add('visible');
+          // Only show mute button if music is enabled
+          if (!isMuted) {
+            muteToggle?.classList.add('visible');
+          }
         } else {
           button?.classList.remove('visible');
           muteToggle?.classList.remove('visible');
