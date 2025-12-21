@@ -59,6 +59,80 @@ async fn good_io() {
 }
 ```
 
+### Timeout and Process Management
+```rust
+// BAD: Timeout checked after blocking call
+let output = cmd.output()?;  // Blocks until complete
+if start.elapsed() > timeout {
+    return Err(TimeoutError);  // Too late!
+}
+
+// GOOD: Async timeout with process cleanup
+match tokio::time::timeout(duration, child.wait()).await {
+    Ok(status) => Ok(status?),
+    Err(_) => {
+        child.kill().await?;  // CRITICAL: Kill orphaned process
+        Err(TimeoutError)
+    }
+}
+```
+
+## CLI Design Patterns
+
+### Flag Validation
+```rust
+// BAD: Conflicting flags allowed
+#[derive(Parser)]
+struct Args {
+    #[arg(long)]
+    execute: bool,
+    #[arg(long)]
+    dry_run: bool,
+}
+// User can pass both --execute and --dry-run
+
+// GOOD: Validate at parse time
+impl Args {
+    fn validate(&self) -> Result<()> {
+        if self.execute && self.dry_run {
+            return Err(anyhow!("Cannot use --execute and --dry-run together"));
+        }
+        Ok(())
+    }
+}
+```
+
+### Flag Naming
+```rust
+// BAD: Name doesn't match behavior
+#[arg(long, help = "Step-by-step confirmation")]
+interactive: bool,  // But actually auto-executes
+
+// GOOD: Accurate naming and implementation
+#[arg(long, help = "Execute command without confirmation")]
+execute: bool,
+```
+
+### Input Validation
+```rust
+// BAD: No validation before processing
+pub fn execute_command(cmd: &str) -> Result<()> {
+    Command::new("sh").arg("-c").arg(cmd).output()?;
+}
+
+// GOOD: Validate input first
+pub fn execute_command(cmd: &str) -> Result<()> {
+    let cmd = cmd.trim();
+    if cmd.is_empty() {
+        return Err(anyhow!("Command cannot be empty"));
+    }
+    if cmd.len() > MAX_COMMAND_LENGTH {
+        return Err(anyhow!("Command exceeds maximum length"));
+    }
+    Command::new("sh").arg("-c").arg(cmd).output()?;
+}
+```
+
 ## Memory and Performance
 
 ### Required Patterns
@@ -96,28 +170,61 @@ pub trait CommandGenerator: Send + Sync {
 
 ## Testing Requirements
 
-### Unit Tests
+### Async Test Syntax
 ```rust
-#[cfg(test)]
-mod tests {
-    use super::*;
+// BAD: .await in non-async test (won't compile)
+#[test]
+fn test_async_function() {
+    let result = async_fn().await;  // ERROR!
+}
 
-    #[test]
-    fn test_sync_function() {
-        // Arrange
-        let input = create_test_input();
+// GOOD: Use tokio::test for async
+#[tokio::test]
+async fn test_async_function() {
+    let result = async_fn().await;
+    assert!(result.is_ok());
+}
+```
 
-        // Act
-        let result = function_under_test(input);
+### Platform-Specific Tests
+```rust
+// BAD: Unix-only test without guard
+#[test]
+fn test_shell_command() {
+    Command::new("bash").arg("-c").arg("sleep 1");  // Fails on Windows
+}
 
-        // Assert
-        assert!(result.is_ok());
+// GOOD: Platform guard
+#[test]
+#[cfg(unix)]
+fn test_shell_command() {
+    Command::new("bash").arg("-c").arg("sleep 1");
+}
+
+// GOOD: Cross-platform alternative
+#[test]
+fn test_shell_command() {
+    #[cfg(unix)]
+    let shell = "bash";
+    #[cfg(windows)]
+    let shell = "cmd";
+    // ...
+}
+```
+
+### Test Helper Consistency
+```rust
+// BAD: Test helper returns wrong values
+impl TestArgs {
+    fn execute(&self) -> bool {
+        false  // Always returns false, ignores actual field!
     }
+}
 
-    #[tokio::test]
-    async fn test_async_function() {
-        let result = async_function().await;
-        assert!(result.is_ok());
+// GOOD: Return actual field values
+impl TestArgs {
+    fn execute(&self) -> bool {
+        self.execute
     }
 }
 ```
@@ -126,6 +233,59 @@ mod tests {
 - Property-based tests with `proptest` for input validation
 - Edge case coverage: empty strings, max lengths, unicode
 - Integration tests for cross-module workflows
+
+## Naming Semantics
+
+### Field Names Must Reflect Meaning
+```rust
+// BAD: Misleading field name
+pub struct CommandResult {
+    pub executed: bool,  // Actually means "passed safety checks"
+}
+
+// GOOD: Clear semantic meaning
+pub struct CommandResult {
+    pub passed_safety_checks: bool,
+}
+
+// BAD: Confusing boolean
+pub allowed: bool,  // Allowed to do what?
+
+// GOOD: Specific meaning
+pub safe_to_execute: bool,
+```
+
+### Constants for Repeated Values
+```rust
+// BAD: Magic strings throughout code
+if status == "implemented" { ... }
+if status == "in-progress" { ... }
+
+// GOOD: Define constants
+pub mod status {
+    pub const IMPLEMENTED: &str = "implemented";
+    pub const IN_PROGRESS: &str = "in-progress";
+    pub const PLANNED: &str = "planned";
+}
+```
+
+## Environment Variable Security
+
+```rust
+// BAD: Command inherits all env vars
+Command::new("sh")
+    .arg("-c")
+    .arg(user_command)
+    .output()?;  // Leaks API keys, tokens, etc.
+
+// GOOD: Clear or filter environment
+Command::new("sh")
+    .arg("-c")
+    .arg(user_command)
+    .env_clear()  // Start with empty env
+    .env("PATH", safe_path)  // Add only what's needed
+    .output()?;
+```
 
 ## Serialization
 
@@ -194,3 +354,7 @@ The following must pass: `cargo clippy -- -D warnings`
 - `clippy::panic` - Never panic in library code
 - `clippy::todo` - Remove before merging
 - `clippy::dbg_macro` - Remove debug statements
+
+## Legacy References
+
+> **Important**: The project was renamed from `cmdai` to `caro`. Flag any remaining references to `cmdai` in code, documentation, imports, or configuration.
