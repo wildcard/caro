@@ -100,10 +100,12 @@ impl InferenceBackend for MlxBackend {
         );
 
         // Create session parameters
-        let mut session_params = SessionParams::default();
-        session_params.n_ctx = 2048; // Context window
-        session_params.n_batch = 512; // Batch size for prompt processing
-        session_params.n_threads = 8; // Use multiple threads
+        let session_params = SessionParams {
+            n_ctx: 2048,      // Context window
+            n_batch: 512,     // Batch size for prompt processing
+            n_threads: 8,     // Use multiple threads
+            ..Default::default()
+        };
 
         // Clone model for this inference (Arc internally, cheap)
         // Do this in a separate scope to release the lock before await
@@ -234,10 +236,12 @@ impl InferenceBackend for MlxBackend {
         let model_path = self.model_path.clone();
         let model = tokio::task::spawn_blocking(move || {
             // Create model parameters with Metal acceleration
-            let mut params = LlamaParams::default();
-            params.n_gpu_layers = 99; // Use all GPU layers (Metal acceleration)
-            params.use_mmap = true; // Use memory mapping for faster loading
-            params.use_mlock = false; // Don't lock memory
+            let params = LlamaParams {
+                n_gpu_layers: 99,     // Use all GPU layers (Metal acceleration)
+                use_mmap: true,       // Use memory mapping for faster loading
+                use_mlock: false,     // Don't lock memory
+                ..Default::default()
+            };
 
             // Load the model
             LlamaModel::load_from_file(model_path, params).map_err(|e| {
