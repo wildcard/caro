@@ -76,6 +76,19 @@ jobs:
               return;
             }
 
+            // Check if PR author is a maintainer/collaborator
+            let isMaintainer = false;
+            try {
+              const { data: permissionLevel } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: owner,
+                repo: repo,
+                username: prAuthor
+              });
+              isMaintainer = ['admin', 'write', 'maintain'].includes(permissionLevel.permission);
+            } catch (error) {
+              console.log('Could not check maintainer status:', error.message);
+            }
+
             // Check if this is the user's first PR
             const { data: prs } = await github.rest.pulls.list({
               owner: owner,
@@ -103,6 +116,18 @@ jobs:
                 '- Respond to feedback promptly\n' +
                 '- Keep changes focused and well-documented\n\n' +
                 'We appreciate your contribution! :heart:';
+            } else if (isMaintainer) {
+              // Fun messages for maintainer PRs
+              const maintainerMessages = [
+                'Nice work! :rocket:',
+                'Looking good! :fire:',
+                'Great stuff! :sparkles:',
+                'Awesome contribution! :star2:',
+                'Solid work! :muscle:',
+                'Keep it up! :tada:',
+                'Props for pushing this forward! :clap:'
+              ];
+              message = maintainerMessages[Math.floor(Math.random() * maintainerMessages.length)];
             } else {
               message = 'Thanks for the PR, @' + prAuthor + '! A maintainer will review it soon.';
             }
