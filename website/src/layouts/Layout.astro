@@ -59,25 +59,27 @@ const { title, description } = Astro.props;
   <body>
     <SnowEffect />
     <!-- Overscroll Easter Egg -->
-    <img class="overscroll-easter-egg overscroll-top" src="/caro-pixel.png" alt="Caro easter egg" />
-    <img class="overscroll-easter-egg overscroll-bottom" src="/caro-pixel.png" alt="Caro easter egg" />
+    <img class="overscroll-easter-egg overscroll-top" src="/caro-pixel.png" alt="Caro easter egg" width="80" height="80" />
+    <img class="overscroll-easter-egg overscroll-bottom" src="/caro-pixel.png" alt="Caro easter egg" width="80" height="80" />
     <slot />
     <Analytics />
     <!-- Overscroll Library -->
     <script is:inline src="/overscroll.min.js"></script>
     <script is:inline>
-      if (typeof Overscroll !== 'undefined') {
-        const overscroll = new Overscroll();
-        const topEgg = document.querySelector('.overscroll-top');
-        const bottomEgg = document.querySelector('.overscroll-bottom');
+      window.addEventListener('load', function() {
+        if (typeof Overscroll !== 'undefined') {
+          const overscroll = new Overscroll();
+          const topEgg = document.querySelector('.overscroll-top');
+          const bottomEgg = document.querySelector('.overscroll-bottom');
 
-        if (topEgg) {
-          overscroll.bindElement(topEgg, 'top', 0.8);
+          if (topEgg) {
+            overscroll.bindElement(topEgg, 'top', 1);
+          }
+          if (bottomEgg) {
+            overscroll.bindElement(bottomEgg, 'bottom', 1);
+          }
         }
-        if (bottomEgg) {
-          overscroll.bindElement(bottomEgg, 'bottom', 0.8);
-        }
-      }
+      });
     </script>
   </body>
 </html>
@@ -422,7 +424,7 @@ const { title, description } = Astro.props;
   .overscroll-easter-egg {
     position: fixed;
     left: 50%;
-    transform: translateX(-50%);
+    margin-left: -40px; /* Half of width to center */
     width: 80px;
     height: 80px;
     z-index: 9999;
@@ -432,17 +434,26 @@ const { title, description } = Astro.props;
   }
 
   .overscroll-top {
-    top: -100px;
+    top: -80px; /* Hidden above viewport, equal to height */
   }
 
   .overscroll-bottom {
-    bottom: -100px;
+    bottom: -80px; /* Hidden below viewport, equal to height */
   }
 
   @media (max-width: 768px) {
     .overscroll-easter-egg {
+      margin-left: -30px; /* Half of mobile width */
       width: 60px;
       height: 60px;
+    }
+
+    .overscroll-top {
+      top: -60px;
+    }
+
+    .overscroll-bottom {
+      bottom: -60px;
     }
   }
 </style>
