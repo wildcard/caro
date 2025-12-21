@@ -19,7 +19,7 @@ impl ModelLoader {
     /// Checks CARO_MODEL environment variable for model selection
     pub fn new() -> Result<Self> {
         let cache_dir = Self::default_cache_dir()?;
-        
+
         // Check for CARO_MODEL environment variable
         let selected_model = if let Ok(model_id) = std::env::var("CARO_MODEL") {
             debug!("Using model from CARO_MODEL env var: {}", model_id);
@@ -28,7 +28,7 @@ impl ModelLoader {
         } else {
             ModelCatalog::default()
         };
-        
+
         Ok(Self {
             cache_dir,
             selected_model,
@@ -169,7 +169,10 @@ impl ModelLoader {
             "Downloading {} from {}...",
             self.selected_model.filename, self.selected_model.hf_repo
         );
-        info!("This may take a few minutes (~{}MB)...", self.selected_model.size_mb);
+        info!(
+            "This may take a few minutes (~{}MB)...",
+            self.selected_model.size_mb
+        );
 
         // Download the model file
         let downloaded = repo

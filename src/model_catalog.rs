@@ -75,7 +75,11 @@ impl ModelCatalog {
 
     /// Get models suitable for CI/CD (< 500MB)
     pub fn ci_models() -> Vec<&'static ModelInfo> {
-        ALL_MODELS.iter().copied().filter(|m| m.ci_suitable).collect()
+        ALL_MODELS
+            .iter()
+            .copied()
+            .filter(|m| m.ci_suitable)
+            .collect()
     }
 
     /// Get models by size category
@@ -94,7 +98,11 @@ impl ModelCatalog {
 
     /// Get MLX-optimized models
     pub fn mlx_models() -> Vec<&'static ModelInfo> {
-        ALL_MODELS.iter().copied().filter(|m| m.mlx_optimized).collect()
+        ALL_MODELS
+            .iter()
+            .copied()
+            .filter(|m| m.mlx_optimized)
+            .collect()
     }
 }
 
