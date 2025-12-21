@@ -162,7 +162,9 @@ jobs:
         run: |
           if [ "${{ runner.os }}" = "Windows" ]; then
             cp target/${{ matrix.target }}/release/caro.exe ${{ matrix.asset_name }}
-            certUtil -hashfile ${{ matrix.asset_name }} SHA256 > ${{ matrix.asset_name }}.sha256
+            # certUtil output format differs from shasum, normalize to: <hash>  <filename>
+            HASH=$(certUtil -hashfile ${{ matrix.asset_name }} SHA256 | grep -v ":" | tr -d '[:space:]')
+            echo "$HASH  ${{ matrix.asset_name }}" > ${{ matrix.asset_name }}.sha256
           else
             cp target/${{ matrix.target }}/release/caro ${{ matrix.asset_name }}
             chmod +x ${{ matrix.asset_name }}
