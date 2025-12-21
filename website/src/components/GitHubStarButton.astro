@@ -343,6 +343,13 @@
   }
 
   /**
+   * Get random element from array
+   */
+  function randomFromArray(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  /**
    * Fire confetti with Fibonacci-seeded randomization
    * @param {number} clickCount - Current click count
    */
@@ -356,53 +363,186 @@
     // Normalize seed for random values (0-1 range)
     const normalizedSeed = (seed % 100) / 100;
 
+    // Color palettes for variety
+    const colorPalettes = [
+      ['#ff8c42', '#ff6b35', '#ffd700', '#ff1493', '#00ff00', '#00bfff'], // Rainbow
+      ['#ff8c42', '#ff6b35', '#ff4500', '#ffa500', '#ffd700'], // Warm sunset
+      ['#00bfff', '#1e90ff', '#4169e1', '#0000ff', '#8a2be2'], // Cool blues
+      ['#ff1493', '#ff69b4', '#ff00ff', '#da70d6', '#ba55d3'], // Pink/purple
+      ['#00ff00', '#32cd32', '#00fa9a', '#7fff00', '#adff2f'], // Green garden
+      ['#ffd700', '#ffff00', '#ffffe0', '#fffacd', '#fff8dc'], // Golden
+    ];
+
     if (isFib) {
-      // Special Fibonacci confetti - more dramatic!
+      // Special Fibonacci confetti - DRAMATIC MULTI-PATTERN CELEBRATION!
       const particleCount = Math.min(50 + seed, 200);
       const spread = 60 + (normalizedSeed * 100);
       const startVelocity = 30 + (normalizedSeed * 30);
+      const palette = colorPalettes[seed % colorPalettes.length];
 
+      // Main center burst
       confetti({
         particleCount,
         spread,
         startVelocity,
-        origin: { y: 0.6 },
-        colors: ['#ff8c42', '#ff6b35', '#ffd700', '#ff1493', '#00ff00', '#00bfff'],
-        shapes: ['star', 'circle'],
+        origin: { x: 0.5, y: 0.6 },
+        colors: palette,
+        shapes: ['star', 'circle', 'square'],
         scalar: 1.2 + (normalizedSeed * 0.5),
         gravity: 1 + (normalizedSeed * 0.5),
         drift: (normalizedSeed - 0.5) * 2,
-        ticks: 200 + seed
+        ticks: 200 + seed,
+        decay: 0.9
       });
 
-      // Extra burst for Fibonacci clicks
+      // Left side burst (delayed)
+      setTimeout(() => {
+        confetti({
+          particleCount: 40,
+          angle: 60,
+          spread: 80,
+          origin: { x: 0, y: 0.8 },
+          colors: palette.slice(0, 3),
+          shapes: ['star', 'circle'],
+          startVelocity: 35,
+          gravity: 1.2,
+          drift: 1
+        });
+      }, 100);
+
+      // Right side burst (delayed)
+      setTimeout(() => {
+        confetti({
+          particleCount: 40,
+          angle: 120,
+          spread: 80,
+          origin: { x: 1, y: 0.8 },
+          colors: palette.slice(3),
+          shapes: ['star', 'circle'],
+          startVelocity: 35,
+          gravity: 1.2,
+          drift: -1
+        });
+      }, 100);
+
+      // Top rain (delayed)
       setTimeout(() => {
         confetti({
           particleCount: 30,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0 },
-          colors: ['#ff8c42', '#ffd700']
+          angle: 90,
+          spread: 180,
+          origin: { x: 0.5, y: 0 },
+          colors: palette,
+          shapes: ['square', 'circle'],
+          startVelocity: 20,
+          gravity: 0.8,
+          scalar: 0.8
         });
-        confetti({
-          particleCount: 30,
-          angle: 120,
-          spread: 55,
-          origin: { x: 1 },
-          colors: ['#ff6b35', '#ff1493']
-        });
-      }, 200);
+      }, 300);
+
+      // Spiral effect (for higher Fibonacci numbers)
+      if (seed > 5) {
+        for (let i = 0; i < 3; i++) {
+          setTimeout(() => {
+            const angle = 90 + (i * 30);
+            confetti({
+              particleCount: 20,
+              angle: angle,
+              spread: 45,
+              origin: { x: 0.5, y: 0.5 },
+              colors: [palette[i % palette.length]],
+              shapes: ['star'],
+              startVelocity: 25,
+              scalar: 1.5
+            });
+          }, 200 + (i * 100));
+        }
+      }
+
     } else {
-      // Regular confetti with subtle seed variation
-      confetti({
-        particleCount: 50,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#ff8c42', '#ff6b35', '#ffd700'],
-        startVelocity: 25 + (normalizedSeed * 10),
-        gravity: 1,
-        drift: (normalizedSeed - 0.5)
-      });
+      // Regular confetti - still diverse but less intense
+      const variation = clickCount % 5;
+      const palette = colorPalettes[clickCount % colorPalettes.length];
+
+      switch(variation) {
+        case 0:
+          // Classic center burst
+          confetti({
+            particleCount: 60,
+            spread: 70,
+            origin: { x: 0.5, y: 0.6 },
+            colors: palette,
+            startVelocity: 25 + (normalizedSeed * 10),
+            gravity: 1,
+            drift: (normalizedSeed - 0.5),
+            shapes: ['circle', 'square']
+          });
+          break;
+
+        case 1:
+          // Dual side cannons
+          confetti({
+            particleCount: 35,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 },
+            colors: palette.slice(0, 3),
+            shapes: ['star', 'circle']
+          });
+          confetti({
+            particleCount: 35,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 },
+            colors: palette.slice(3),
+            shapes: ['star', 'circle']
+          });
+          break;
+
+        case 2:
+          // Fountain from bottom
+          confetti({
+            particleCount: 50,
+            angle: 90,
+            spread: 120,
+            origin: { x: 0.5, y: 1 },
+            colors: palette,
+            startVelocity: 40,
+            shapes: ['star', 'circle', 'square']
+          });
+          break;
+
+        case 3:
+          // Rain from top
+          confetti({
+            particleCount: 50,
+            angle: 90,
+            spread: 180,
+            origin: { x: 0.5, y: 0 },
+            colors: palette,
+            startVelocity: 20,
+            gravity: 0.6,
+            shapes: ['circle', 'square'],
+            scalar: 0.7
+          });
+          break;
+
+        case 4:
+          // Diagonal sweep
+          for (let i = 0; i < 3; i++) {
+            setTimeout(() => {
+              confetti({
+                particleCount: 25,
+                angle: 135,
+                spread: 50,
+                origin: { x: i * 0.3, y: 0 },
+                colors: palette,
+                shapes: ['star', 'circle']
+              });
+            }, i * 100);
+          }
+          break;
+      }
     }
   }
 
@@ -417,6 +557,9 @@
     const isFirstClick = localStorage.getItem(FIRST_STAR_KEY) !== 'true';
     const targetUrl = event.currentTarget.href;
 
+    // Open window immediately to avoid popup blockers (opens blank page first)
+    const newWindow = window.open('about:blank', '_blank');
+
     if (isFirstClick) {
       // First time ever - special treatment
       localStorage.setItem(FIRST_STAR_KEY, 'true');
@@ -428,7 +571,9 @@
 
         // Navigate after 3 seconds to let user enjoy the celebration
         setTimeout(() => {
-          window.open(targetUrl, '_blank');
+          if (newWindow) {
+            newWindow.location.href = targetUrl;
+          }
         }, 3000);
       }, 800);
     } else {
@@ -443,12 +588,16 @@
 
         // Navigate after 2.5 seconds for Fibonacci clicks
         setTimeout(() => {
-          window.open(targetUrl, '_blank');
+          if (newWindow) {
+            newWindow.location.href = targetUrl;
+          }
         }, 2500);
       } else {
         // Regular clicks - shorter delay
         setTimeout(() => {
-          window.open(targetUrl, '_blank');
+          if (newWindow) {
+            newWindow.location.href = targetUrl;
+          }
         }, 1500);
       }
     }
