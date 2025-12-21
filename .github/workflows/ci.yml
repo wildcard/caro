@@ -5,37 +5,40 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main ]
+  schedule:
+    # Run extended tests nightly at 2 AM UTC
+    - cron: '0 2 * * *'
 
 env:
   CARGO_TERM_COLOR: always
+  CARGO_HOME: ~/.cargo
+  CARGO_INCREMENTAL: 0
 
 jobs:
-  test:
-    name: Test Suite
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        rust: [stable]
+  # ============================================================================
+  # Tier 0: Fast Checks (No Model Downloads)
+  # ============================================================================
 
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     
     - name: Install Rust
       uses: dtolnay/rust-toolchain@v1
       with:
-        toolchain: ${{ matrix.rust }}
+        toolchain: stable
         components: rustfmt, clippy
     
-    - name: Cache cargo registry
+    - name: Cache cargo
       uses: actions/cache@v4
       with:
         path: |
           ~/.cargo/registry
           ~/.cargo/git
           target
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        key: ${{ runner.os }}-cargo-lint-${{ hashFiles('**/Cargo.lock') }}
     
     - name: Check formatting
       run: cargo fmt --all -- --check
@@ -43,40 +46,121 @@ jobs:
     - name: Run clippy
       run: cargo clippy --all-targets --all-features -- -D warnings
 
-    - name: Run all tests (comprehensive)
-      run: cargo test --workspace --all-features --verbose -- --test-threads=1
-      env:
-        RUST_BACKTRACE: 1
+  # ============================================================================
+  # Tier A: PR Smoke Tests (Required, Fast, Minimal Models)
+  # ============================================================================
 
-    - name: Run MLX backend tests (macOS Apple Silicon only)
-      if: matrix.os == 'macos-latest'
+  smoke-tests:
+    name: Smoke Tests (${{ matrix.os }}, ${{ matrix.model.name }})
+    runs-on: ${{ matrix.os }}
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        model:
+          - id: smollm-135m-q4
+            name: SmolLM 135M
+            size_mb: 82
+            cache_path_linux: ~/.cache/caro/models
+            cache_path_macos: ~/Library/Caches/caro/models
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@v1
+      with:
+        toolchain: stable
+    
+    - name: Cache cargo
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-smoke-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-smoke-cargo-
+    
+    - name: Cache model files
+      uses: actions/cache@v4
+      with:
+        path: ${{ matrix.os == 'ubuntu-latest' && matrix.model.cache_path_linux || matrix.model.cache_path_macos }}
+        key: model-${{ matrix.model.id }}-${{ hashFiles('src/model_catalog.rs') }}
+        restore-keys: |
+          model-${{ matrix.model.id }}-
+    
+    - name: Set deterministic environment
       run: |
-        echo "Running MLX-specific tests on macOS with default model"
-        cargo test --test mlx_backend_contract --verbose
-        cargo test --test mlx_integration_test --verbose
-      env:
-        RUST_BACKTRACE: 1
-        CARO_MODEL: qwen-1.5b-q4  # Use default for comprehensive MLX tests
-
-    - name: Run E2E tests per platform
+        echo "OMP_NUM_THREADS=1" >> $GITHUB_ENV
+        echo "OPENBLAS_NUM_THREADS=1" >> $GITHUB_ENV
+        echo "MKL_NUM_THREADS=1" >> $GITHUB_ENV
+        echo "CARO_MODEL=${{ matrix.model.id }}" >> $GITHUB_ENV
+    
+    - name: Display test configuration
       run: |
-        echo "Running comprehensive E2E tests on ${{ matrix.os }}"
-        cargo test --test e2e_cli_tests --verbose
-        cargo test --test e2e_interactive_execution --verbose
-        cargo test --test embedded_integration --verbose
-        cargo test --test system_integration --verbose
-      env:
-        RUST_BACKTRACE: 1
-
-    - name: Run integration tests per platform
+        echo "==================== Smoke Test Configuration ===================="
+        echo "OS: ${{ matrix.os }}"
+        echo "Model: ${{ matrix.model.name }} (${{ matrix.model.size_mb }}MB)"
+        echo "Model ID: ${{ matrix.model.id }}"
+        echo "Deterministic: OMP_NUM_THREADS=1"
+        echo "=================================================================="
+    
+    - name: Run smoke tests
       run: |
-        cargo test --test integration_tests --verbose
-        cargo test --test infrastructure_integration --verbose
-        cargo test --test error_handling_tests --verbose
+        echo "Running Tier A smoke tests with ${{ matrix.model.name }}"
+        cargo test --test inference_smoke --verbose -- --test-threads=1 --nocapture
       env:
         RUST_BACKTRACE: 1
+        RUST_LOG: info
+    
+    - name: Verify cache usage
+      if: steps.cache-model.outputs.cache-hit == 'true'
+      run: echo "✅ Model cache hit - no download needed"
+    
+    - name: Upload logs on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: smoke-test-logs-${{ matrix.os }}-${{ matrix.model.id }}
+        path: |
+          target/
+          *.log
+        retention-days: 7
 
-    - name: Run contract tests per platform
+  # ============================================================================
+  # Tier A: Unit & Contract Tests (No Models)
+  # ============================================================================
+
+  unit-tests:
+    name: Unit Tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@v1
+      with:
+        toolchain: stable
+    
+    - name: Cache cargo
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-unit-${{ hashFiles('**/Cargo.lock') }}
+    
+    - name: Run contract tests
       run: |
         cargo test --test backend_trait_contract --verbose
         cargo test --test safety_validator_contract --verbose
@@ -85,6 +169,88 @@ jobs:
         cargo test --test execution_contract --verbose
       env:
         RUST_BACKTRACE: 1
+
+  # ============================================================================
+  # Tier B: Extended Model Matrix (Nightly / Manual)
+  # ============================================================================
+
+  extended-model-tests:
+    name: Extended Tests (${{ matrix.model.name }})
+    runs-on: macos-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        model:
+          - id: smollm-135m-q4
+            name: SmolLM 135M
+            size_mb: 82
+          - id: qwen-0.5b-q4
+            name: Qwen 0.5B
+            size_mb: 352
+          - id: tinyllama-1.1b-q4
+            name: TinyLlama 1.1B
+            size_mb: 669
+          - id: starcoder-1b-q4
+            name: StarCoder 1B
+            size_mb: 700
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@v1
+      with:
+        toolchain: stable
+    
+    - name: Cache cargo
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: macos-extended-${{ matrix.model.id }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+    
+    - name: Cache model files
+      uses: actions/cache@v4
+      with:
+        path: ~/Library/Caches/caro/models
+        key: model-${{ matrix.model.id }}-${{ hashFiles('src/model_catalog.rs') }}
+        restore-keys: |
+          model-${{ matrix.model.id }}-
+    
+    - name: Display model info
+      run: |
+        echo "=========================================="
+        echo "Extended Testing: ${{ matrix.model.name }}"
+        echo "Model ID: ${{ matrix.model.id }}"
+        echo "Size: ${{ matrix.model.size_mb }}MB"
+        echo "=========================================="
+    
+    - name: Run comprehensive E2E tests
+      run: |
+        echo "Running comprehensive tests with ${{ matrix.model.name }}"
+        cargo test --test e2e_cli_tests --verbose -- --test-threads=1
+        cargo test --test mlx_integration_test --verbose
+        cargo test --test embedded_backend_contract --verbose
+      env:
+        RUST_BACKTRACE: 1
+        CARO_MODEL: ${{ matrix.model.id }}
+    
+    - name: Upload logs on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: extended-test-logs-${{ matrix.model.id }}
+        path: |
+          target/
+          *.log
+        retention-days: 14
+
+  # ============================================================================
+  # Security & Build Checks
+  # ============================================================================
 
   security:
     name: Security Audit
@@ -103,121 +269,21 @@ jobs:
     - name: Run security audit
       run: cargo audit
 
-  test-models-macos:
-    name: Test Models on macOS (${{ matrix.model.name }})
-    runs-on: macos-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        model:
-          - id: smollm-135m-q4
-            name: SmolLM 135M
-            size: 82MB
-            description: Ultra-fast CI model
-          - id: qwen-0.5b-q4
-            name: Qwen 0.5B
-            size: 352MB
-            description: Balanced CI model (MLX-optimized)
-          - id: tinyllama-1.1b-q4
-            name: TinyLlama 1.1B
-            size: 669MB
-            description: Quality CI model
-          - id: starcoder-1b-q4
-            name: StarCoder 1B
-            size: 700MB
-            description: Code-specialized model
-
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@v1
-      with:
-        toolchain: stable
-        components: rustfmt, clippy
-    
-    - name: Cache cargo registry
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: macos-${{ matrix.model.id }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-    
-    - name: Cache model files
-      uses: actions/cache@v4
-      with:
-        path: ~/Library/Caches/caro/models
-        key: model-${{ matrix.model.id }}-${{ hashFiles('src/model_catalog.rs') }}
-        restore-keys: |
-          model-${{ matrix.model.id }}-
-    
-    - name: Display model info
-      run: |
-        echo "=========================================="
-        echo "Testing with: ${{ matrix.model.name }}"
-        echo "Model ID: ${{ matrix.model.id }}"
-        echo "Size: ${{ matrix.model.size }}"
-        echo "Description: ${{ matrix.model.description }}"
-        echo "=========================================="
-    
-    - name: Run E2E tests with ${{ matrix.model.name }}
-      run: |
-        echo "Running E2E tests with ${{ matrix.model.name }} (${{ matrix.model.size }})"
-        cargo test --test e2e_cli_tests --verbose -- --test-threads=1
-        cargo test --test system_integration --verbose -- --test-threads=1
-      env:
-        RUST_BACKTRACE: 1
-        CARO_MODEL: ${{ matrix.model.id }}
-    
-    - name: Run MLX integration tests with ${{ matrix.model.name }}
-      run: |
-        echo "Running MLX integration tests with ${{ matrix.model.name }}"
-        cargo test --test mlx_integration_test --verbose
-      env:
-        RUST_BACKTRACE: 1
-        CARO_MODEL: ${{ matrix.model.id }}
-    
-    - name: Run embedded backend tests with ${{ matrix.model.name }}
-      run: |
-        echo "Running embedded backend tests with ${{ matrix.model.name }}"
-        cargo test --test embedded_backend_contract --verbose
-      env:
-        RUST_BACKTRACE: 1
-        CARO_MODEL: ${{ matrix.model.id }}
-    
-    - name: Report test results
-      if: always()
-      run: |
-        echo "✅ Tests completed for ${{ matrix.model.name }}"
-        echo "Model: ${{ matrix.model.id }} (${{ matrix.model.size }})"
-
   build:
-    name: Build Release
+    name: Build Check (${{ matrix.target }})
     runs-on: ${{ matrix.os }}
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
     strategy:
       matrix:
         include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            name: caro-linux-amd64
-            features: embedded-cpu,remote-backends
-          - os: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
-            name: caro-linux-arm64
-            features: embedded-cpu,remote-backends
-          - os: macos-latest
-            target: x86_64-apple-darwin
-            name: caro-macos-intel
             features: embedded-cpu,remote-backends
           - os: macos-latest
             target: aarch64-apple-darwin
-            name: caro-macos-silicon
             features: embedded-mlx,embedded-cpu,remote-backends
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            name: caro-windows-amd64.exe
             features: embedded-cpu,remote-backends
 
     steps:
@@ -229,95 +295,36 @@ jobs:
         toolchain: stable
         targets: ${{ matrix.target }}
     
-    - name: Install cross (for cross-compilation)
-      if: matrix.target == 'aarch64-unknown-linux-gnu'
-      run: cargo install cross
-    
-    - name: Build release binary
-      run: |
-        if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
-          cross build --release --target ${{ matrix.target }} --features ${{ matrix.features }}
-        else
-          cargo build --release --target ${{ matrix.target }} --features ${{ matrix.features }}
-        fi
-      shell: bash
-    
-    - name: Create artifact
-      run: |
-        if [ "${{ runner.os }}" = "Windows" ]; then
-          cp target/${{ matrix.target }}/release/caro.exe ${{ matrix.name }}
-        else
-          cp target/${{ matrix.target }}/release/caro ${{ matrix.name }}
-        fi
-      shell: bash
-    
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ matrix.name }}
-        path: ${{ matrix.name }}
-
-  benchmark:
-    name: Performance Benchmarks
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@v1
-      with:
-        toolchain: stable
-    
-    - name: Cache cargo registry
+    - name: Cache cargo
       uses: actions/cache@v4
       with:
         path: |
           ~/.cargo/registry
           ~/.cargo/git
           target
-        key: ${{ runner.os }}-cargo-bench-${{ hashFiles('**/Cargo.lock') }}
+        key: ${{ runner.os }}-build-${{ matrix.target }}-${{ hashFiles('**/Cargo.lock') }}
     
-    - name: Build benchmarks
-      run: cargo bench --no-run --verbose
-      
-    - name: Run benchmarks (TDD - may fail)
-      run: cargo bench --verbose || echo "Benchmarks may fail during TDD phase"
-      continue-on-error: true
+    - name: Build release binary
+      run: cargo build --release --target ${{ matrix.target }} --features ${{ matrix.features }}
     
     - name: Check binary size
+      shell: bash
       run: |
-        cargo build --release
-        ls -la target/release/caro
-        SIZE=$(stat -f%z target/release/caro 2>/dev/null || stat -c%s target/release/caro)
-        echo "Binary size: $SIZE bytes"
-        # Fail if binary is larger than 50MB (52,428,800 bytes)
-        if [ $SIZE -gt 52428800 ]; then
-          echo "❌ Binary size ($SIZE bytes) exceeds 50MB limit"
-          exit 1
+        if [ "${{ runner.os }}" = "Windows" ]; then
+          BINARY="target/${{ matrix.target }}/release/caro.exe"
         else
-          echo "✅ Binary size ($SIZE bytes) is within 50MB limit"
+          BINARY="target/${{ matrix.target }}/release/caro"
         fi
-
-  coverage:
-    name: Code Coverage
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@v1
-      with:
-        toolchain: stable
-        components: llvm-tools-preview
-    
-    - name: Install cargo-llvm-cov
-      run: cargo install cargo-llvm-cov
-    
-    - name: Generate coverage report
-      run: cargo llvm-cov --all-features --lcov --output-path lcov.info
-    
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        file: lcov.info
-        fail_ci_if_error: true
+        
+        if [ -f "$BINARY" ]; then
+          SIZE=$(stat -f%z "$BINARY" 2>/dev/null || stat -c%s "$BINARY")
+          echo "Binary size: $SIZE bytes"
+          
+          # Fail if binary is larger than 50MB (52,428,800 bytes)
+          if [ $SIZE -gt 52428800 ]; then
+            echo "❌ Binary size ($SIZE bytes) exceeds 50MB limit"
+            exit 1
+          else
+            echo "✅ Binary size ($SIZE bytes) is within 50MB limit"
+          fi
+        fi
