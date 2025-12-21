@@ -380,6 +380,239 @@ pub struct ComplianceCheck {
     pub reason: String,
 }
 
+/// Raw preference data for model fallback
+///
+/// When static rules don't provide sufficient guidance, this struct
+/// contains raw signals that can be passed to the model for inference.
+/// The model can use this context to make preference-aware decisions
+/// even for scenarios we haven't written explicit rules for.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RawPreferenceData {
+    /// Files detected in the project that might indicate preferences
+    pub detected_files: Vec<String>,
+
+    /// Raw signal files (config files we found but don't parse)
+    pub raw_signal_files: Vec<String>,
+
+    /// User's shell aliases (full list for model context)
+    pub aliases: Vec<(String, String)>,
+
+    /// Non-sensitive environment variables that might indicate preferences
+    pub environment_hints: Vec<String>,
+
+    /// Infrastructure tools detected
+    pub infra_tools: Vec<String>,
+
+    /// Cloud provider context
+    pub cloud_hints: Vec<String>,
+
+    /// Detected programming languages
+    pub languages: Vec<String>,
+
+    /// Any package manager hints (lockfiles, configs)
+    pub package_hints: Vec<String>,
+}
+
+impl RawPreferenceData {
+    /// Create from UserPreferences
+    pub fn from_preferences(prefs: &UserPreferences) -> Self {
+        // Collect cloud hints
+        let mut cloud_hints = Vec::new();
+        if let Some(ctx) = &prefs.project.cloud_context {
+            if ctx.aws_configured {
+                cloud_hints.push(format!(
+                    "AWS configured{}",
+                    ctx.aws_profile
+                        .as_ref()
+                        .map(|p| format!(" (profile: {})", p))
+                        .unwrap_or_default()
+                ));
+            }
+            if ctx.gcp_configured {
+                cloud_hints.push(format!(
+                    "GCP configured{}",
+                    ctx.gcp_project
+                        .as_ref()
+                        .map(|p| format!(" (project: {})", p))
+                        .unwrap_or_default()
+                ));
+            }
+            if ctx.azure_configured {
+                cloud_hints.push(format!(
+                    "Azure configured{}",
+                    ctx.azure_subscription
+                        .as_ref()
+                        .map(|s| format!(" (subscription: {})", s))
+                        .unwrap_or_default()
+                ));
+            }
+            if let Some(ref k8s_ctx) = ctx.kubectl_context {
+                cloud_hints.push(format!("kubectl context: {}", k8s_ctx));
+            }
+        }
+
+        // Collect environment hints (non-sensitive)
+        let env_hints: Vec<String> = std::env::vars()
+            .filter(|(k, _)| {
+                // Include hints about tools and preferences, exclude secrets
+                let key_upper = k.to_uppercase();
+                (key_upper.contains("EDITOR")
+                    || key_upper.contains("SHELL")
+                    || key_upper.contains("TERM")
+                    || key_upper.contains("LANG")
+                    || key_upper.contains("LC_")
+                    || key_upper.starts_with("NPM_")
+                    || key_upper.starts_with("YARN_")
+                    || key_upper.starts_with("NODE_")
+                    || key_upper.starts_with("CARGO_")
+                    || key_upper.starts_with("RUSTUP_")
+                    || key_upper.starts_with("GO")
+                    || key_upper.starts_with("PYTHON")
+                    || key_upper.starts_with("VIRTUAL_ENV")
+                    || key_upper.starts_with("CONDA_")
+                    || key_upper.starts_with("DOCKER_")
+                    || key_upper.starts_with("KUBE")
+                    || key_upper.starts_with("HELM_"))
+                    && !key_upper.contains("TOKEN")
+                    && !key_upper.contains("SECRET")
+                    && !key_upper.contains("KEY")
+                    && !key_upper.contains("PASSWORD")
+                    && !key_upper.contains("CREDENTIAL")
+            })
+            .map(|(k, v)| format!("{}={}", k, v))
+            .take(30) // Limit to avoid token bloat
+            .collect();
+
+        // Package hints from detected files
+        let package_hints: Vec<String> = prefs
+            .project
+            .detected_files
+            .iter()
+            .filter(|f| {
+                f.contains("lock")
+                    || f.contains("package")
+                    || f.ends_with(".toml")
+                    || f.ends_with("mod")
+                    || f.contains("requirements")
+                    || f.contains("Gemfile")
+                    || f.contains("Pipfile")
+            })
+            .cloned()
+            .collect();
+
+        Self {
+            detected_files: prefs.project.detected_files.clone(),
+            raw_signal_files: prefs.project.raw_signals.clone(),
+            aliases: prefs
+                .shell
+                .aliases
+                .iter()
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect(),
+            environment_hints: env_hints,
+            infra_tools: prefs
+                .project
+                .infra_tools
+                .iter()
+                .map(|t| t.name().to_string())
+                .collect(),
+            cloud_hints,
+            languages: prefs
+                .project
+                .languages
+                .iter()
+                .map(|l| l.name().to_string())
+                .collect(),
+            package_hints,
+        }
+    }
+
+    /// Generate a model-friendly context string
+    ///
+    /// This creates a formatted string that can be included in a prompt
+    /// to help the model understand the user's environment when static
+    /// rules don't apply.
+    pub fn to_model_context(&self) -> String {
+        let mut context = String::new();
+        context.push_str("=== RAW ENVIRONMENT CONTEXT (for preference inference) ===\n\n");
+
+        if !self.languages.is_empty() {
+            context.push_str(&format!("Languages: {}\n", self.languages.join(", ")));
+        }
+
+        if !self.package_hints.is_empty() {
+            context.push_str(&format!(
+                "Package/Lock files: {}\n",
+                self.package_hints.join(", ")
+            ));
+        }
+
+        if !self.infra_tools.is_empty() {
+            context.push_str(&format!("Infrastructure: {}\n", self.infra_tools.join(", ")));
+        }
+
+        if !self.cloud_hints.is_empty() {
+            context.push_str(&format!("Cloud: {}\n", self.cloud_hints.join(", ")));
+        }
+
+        if !self.aliases.is_empty() {
+            context.push_str("\nUser shell aliases:\n");
+            for (alias, expansion) in self.aliases.iter().take(20) {
+                context.push_str(&format!("  {} = {}\n", alias, expansion));
+            }
+        }
+
+        if !self.environment_hints.is_empty() {
+            context.push_str("\nEnvironment hints:\n");
+            for hint in self.environment_hints.iter().take(15) {
+                context.push_str(&format!("  {}\n", hint));
+            }
+        }
+
+        if !self.raw_signal_files.is_empty() {
+            context.push_str("\nOther config files found:\n");
+            for file in self.raw_signal_files.iter().take(10) {
+                context.push_str(&format!("  {}\n", file));
+            }
+        }
+
+        context.push_str("\n=== END CONTEXT ===\n");
+        context
+    }
+}
+
+impl UserPreferences {
+    /// Get raw preference data for model fallback
+    ///
+    /// When static rules don't provide guidance for a particular scenario,
+    /// this raw data can be passed to the model to help it infer user preferences.
+    pub fn to_raw_data(&self) -> RawPreferenceData {
+        RawPreferenceData::from_preferences(self)
+    }
+
+    /// Get extended prompt context including infrastructure and cloud
+    ///
+    /// This is a more comprehensive version of `to_prompt_context` that
+    /// includes DevOps/SRE-relevant information.
+    pub fn to_extended_prompt_context(&self) -> String {
+        let mut context = self.to_prompt_context();
+
+        // Add infrastructure tools
+        if !self.project.infra_tools.is_empty() {
+            let tools: Vec<&str> = self.project.infra_tools.iter().map(|t| t.name()).collect();
+            context.push_str(&format!("INFRASTRUCTURE: {}\n", tools.join(", ")));
+        }
+
+        // Add cloud context
+        if let Some(cloud) = &self.project.cloud_context {
+            context.push_str(&cloud.to_prompt_context());
+            context.push('\n');
+        }
+
+        context
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -479,5 +712,116 @@ mod tests {
 
         assert!(compliance.needs_refinement(0.8));
         assert!(!compliance.needs_refinement(0.3));
+    }
+
+    #[test]
+    fn test_raw_preference_data() {
+        let prefs = UserPreferences {
+            project: ProjectContext {
+                package_manager: Some(PackageManager::Yarn),
+                build_tool: Some(BuildTool::Make),
+                languages: vec![Language::Rust, Language::TypeScript],
+                infra_tools: vec![InfraTool::Docker, InfraTool::Kubernetes],
+                cloud_context: Some(CloudContext {
+                    aws_configured: true,
+                    aws_profile: Some("prod".to_string()),
+                    gcp_configured: false,
+                    gcp_project: None,
+                    azure_configured: false,
+                    azure_subscription: None,
+                    kubectl_context: Some("minikube".to_string()),
+                }),
+                root_path: PathBuf::from("/test/project"),
+                detected_files: vec![
+                    "yarn.lock".to_string(),
+                    "Cargo.toml".to_string(),
+                    "Dockerfile".to_string(),
+                ],
+                raw_signals: vec!["serverless.yml".to_string()],
+            },
+            shell: ShellProfile {
+                aliases: [
+                    ("gst".to_string(), "git status".to_string()),
+                    ("k".to_string(), "kubectl".to_string()),
+                ]
+                .into_iter()
+                .collect(),
+                exports: HashMap::new(),
+                path_additions: vec![],
+                shell_type: ShellType::Zsh,
+                profile_files: vec![],
+            },
+            detected_at: Utc::now(),
+            cache_key: "/test/project".to_string(),
+        };
+
+        let raw_data = prefs.to_raw_data();
+
+        // Check languages are captured
+        assert!(raw_data.languages.contains(&"Rust".to_string()));
+        assert!(raw_data.languages.contains(&"TypeScript".to_string()));
+
+        // Check infra tools are captured
+        assert!(raw_data.infra_tools.contains(&"Docker".to_string()));
+        assert!(raw_data.infra_tools.contains(&"Kubernetes".to_string()));
+
+        // Check cloud hints
+        assert!(!raw_data.cloud_hints.is_empty());
+        assert!(raw_data.cloud_hints.iter().any(|h| h.contains("AWS")));
+        assert!(raw_data.cloud_hints.iter().any(|h| h.contains("minikube")));
+
+        // Check aliases are captured
+        assert!(raw_data.aliases.iter().any(|(a, _)| a == "gst"));
+        assert!(raw_data.aliases.iter().any(|(a, _)| a == "k"));
+
+        // Check raw signals are captured
+        assert!(raw_data.raw_signal_files.contains(&"serverless.yml".to_string()));
+
+        // Test model context generation
+        let context = raw_data.to_model_context();
+        assert!(context.contains("Languages:"));
+        assert!(context.contains("Rust"));
+        assert!(context.contains("Infrastructure:"));
+        assert!(context.contains("Docker"));
+        assert!(context.contains("Cloud:"));
+        assert!(context.contains("AWS"));
+    }
+
+    #[test]
+    fn test_extended_prompt_context() {
+        let prefs = UserPreferences {
+            project: ProjectContext {
+                package_manager: Some(PackageManager::Npm),
+                build_tool: None,
+                languages: vec![Language::TypeScript],
+                infra_tools: vec![InfraTool::Terraform, InfraTool::Ansible],
+                cloud_context: Some(CloudContext {
+                    aws_configured: false,
+                    aws_profile: None,
+                    gcp_configured: true,
+                    gcp_project: Some("my-project".to_string()),
+                    azure_configured: false,
+                    azure_subscription: None,
+                    kubectl_context: None,
+                }),
+                root_path: PathBuf::from("/test"),
+                detected_files: vec![],
+                raw_signals: vec![],
+            },
+            shell: ShellProfile::empty(ShellType::Bash),
+            detected_at: Utc::now(),
+            cache_key: "/test".to_string(),
+        };
+
+        let context = prefs.to_extended_prompt_context();
+
+        // Should include infra tools
+        assert!(context.contains("INFRASTRUCTURE:"));
+        assert!(context.contains("Terraform"));
+        assert!(context.contains("Ansible"));
+
+        // Should include cloud context
+        assert!(context.contains("GCP"));
+        assert!(context.contains("my-project"));
     }
 }
