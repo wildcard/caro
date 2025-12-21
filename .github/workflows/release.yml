@@ -1,9 +1,10 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_run:
+    workflows: ["Publish to crates.io"]
+    types:
+      - completed
 
 permissions:
   contents: write
@@ -12,138 +13,135 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  check-publish-success:
+    name: Verify Publish Succeeded
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+    outputs:
+      tag: ${{ steps.get_tag.outputs.tag }}
+      version: ${{ steps.get_tag.outputs.version }}
+    steps:
+      - name: Get tag from triggering workflow
+        id: get_tag
+        run: |
+          TAG="${{ github.event.workflow_run.head_branch }}"
+          if [[ ! "$TAG" =~ ^v[0-9] ]]; then
+            echo "::error::Not a version tag: $TAG"
+            exit 1
+          fi
+          VERSION="${TAG#v}"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Release tag: $TAG (version: $VERSION)"
+
   create-release:
-    name: Create Release
+    name: Create GitHub Release
+    needs: check-publish-success
     runs-on: ubuntu-latest
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
-      version: ${{ steps.get_version.outputs.VERSION }}
     steps:
-    - name: Get version from tag
-      id: get_version
-      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-    
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: caro v${{ steps.get_version.outputs.VERSION }}
-        draft: false
-        prerelease: ${{ contains(steps.get_version.outputs.VERSION, 'alpha') || contains(steps.get_version.outputs.VERSION, 'beta') || contains(steps.get_version.outputs.VERSION, 'rc') }}
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.check-publish-success.outputs.tag }}
+
+      - name: Verify version consistency
+        run: |
+          CARGO_VERSION=$(grep '^version = ' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+          if [ "${{ needs.check-publish-success.outputs.version }}" != "$CARGO_VERSION" ]; then
+            echo "::error::Tag version (${{ needs.check-publish-success.outputs.version }}) doesn't match Cargo.toml version ($CARGO_VERSION)"
+            exit 1
+          fi
+          echo "Version check passed: $CARGO_VERSION"
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.check-publish-success.outputs.tag }}
+          name: caro v${{ needs.check-publish-success.outputs.version }}
+          draft: false
+          prerelease: ${{ contains(needs.check-publish-success.outputs.version, 'alpha') || contains(needs.check-publish-success.outputs.version, 'beta') || contains(needs.check-publish-success.outputs.version, 'rc') }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-and-upload:
     name: Build and Upload
-    needs: create-release
+    needs: [check-publish-success, create-release]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            name: caro-v${{ needs.create-release.outputs.version }}-linux-amd64
             asset_name: caro-linux-amd64
           - os: ubuntu-latest
             target: aarch64-unknown-linux-gnu
-            name: caro-v${{ needs.create-release.outputs.version }}-linux-arm64
             asset_name: caro-linux-arm64
           - os: macos-latest
             target: x86_64-apple-darwin
-            name: caro-v${{ needs.create-release.outputs.version }}-macos-intel
             asset_name: caro-macos-intel
           - os: macos-latest
             target: aarch64-apple-darwin
-            name: caro-v${{ needs.create-release.outputs.version }}-macos-silicon
             asset_name: caro-macos-silicon
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            name: caro-v${{ needs.create-release.outputs.version }}-windows-amd64.exe
             asset_name: caro-windows-amd64.exe
 
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@stable
-      with:
-        targets: ${{ matrix.target }}
-    
-    - name: Install cross (for cross-compilation)
-      if: matrix.target == 'aarch64-unknown-linux-gnu'
-      run: cargo install cross
-    
-    - name: Build release binary
-      run: |
-        if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
-          cross build --release --target ${{ matrix.target }}
-        else
-          cargo build --release --target ${{ matrix.target }}
-        fi
-      shell: bash
-    
-    - name: Create release package
-      run: |
-        if [ "${{ runner.os }}" = "Windows" ]; then
-          cp target/${{ matrix.target }}/release/caro.exe ${{ matrix.name }}
-        else
-          cp target/${{ matrix.target }}/release/caro ${{ matrix.name }}
-          chmod +x ${{ matrix.name }}
-        fi
-      shell: bash
-    
-    - name: Generate checksums
-      run: |
-        if [ "${{ runner.os }}" = "Windows" ]; then
-          certUtil -hashfile ${{ matrix.name }} SHA256 > ${{ matrix.name }}.sha256
-        else
-          shasum -a 256 ${{ matrix.name }} > ${{ matrix.name }}.sha256
-        fi
-      shell: bash
-    
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ needs.create-release.outputs.upload_url }}
-        asset_path: ./${{ matrix.name }}
-        asset_name: ${{ matrix.asset_name }}
-        asset_content_type: application/octet-stream
-    
-    - name: Upload Checksum
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ needs.create-release.outputs.upload_url }}
-        asset_path: ./${{ matrix.name }}.sha256
-        asset_name: ${{ matrix.asset_name }}.sha256
-        asset_content_type: text/plain
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.check-publish-success.outputs.tag }}
 
-  publish-crate:
-    name: Publish to crates.io
-    needs: create-release
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
 
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@stable
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
 
-    - name: Check version consistency
-      run: |
-        TAG_VERSION=${GITHUB_REF#refs/tags/v}
-        CARGO_VERSION=$(grep '^version = ' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
-        if [ "$TAG_VERSION" != "$CARGO_VERSION" ]; then
-          echo "Error: Tag version ($TAG_VERSION) doesn't match Cargo.toml version ($CARGO_VERSION)"
-          exit 1
-        fi
-        echo "Version check passed: $TAG_VERSION"
+      - name: Cache cargo index
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
 
-    - name: Publish to crates.io
-      env:
-        CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-      run: cargo publish
-      continue-on-error: true  # Allow failure if already published
+      - name: Install cross (for cross-compilation)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: cargo install cross
+
+      - name: Build release binary
+        run: |
+          if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
+            cross build --release --target ${{ matrix.target }}
+          else
+            cargo build --release --target ${{ matrix.target }}
+          fi
+        shell: bash
+
+      - name: Prepare release artifact
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            cp target/${{ matrix.target }}/release/caro.exe ${{ matrix.asset_name }}
+            certUtil -hashfile ${{ matrix.asset_name }} SHA256 > ${{ matrix.asset_name }}.sha256
+          else
+            cp target/${{ matrix.target }}/release/caro ${{ matrix.asset_name }}
+            chmod +x ${{ matrix.asset_name }}
+            shasum -a 256 ${{ matrix.asset_name }} > ${{ matrix.asset_name }}.sha256
+          fi
+        shell: bash
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.check-publish-success.outputs.tag }}
+          files: |
+            ${{ matrix.asset_name }}
+            ${{ matrix.asset_name }}.sha256
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
