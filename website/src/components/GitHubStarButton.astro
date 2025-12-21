@@ -410,8 +410,12 @@
    * Handle star button click for confetti effect
    */
   function handleStarClick(event) {
+    // Prevent immediate navigation
+    event.preventDefault();
+
     const clickCount = getAndIncrementClickCount();
     const isFirstClick = localStorage.getItem(FIRST_STAR_KEY) !== 'true';
+    const targetUrl = event.currentTarget.href;
 
     if (isFirstClick) {
       // First time ever - special treatment
@@ -421,14 +425,31 @@
       setTimeout(() => {
         fireConfetti(clickCount);
         showThankYouMessage();
+
+        // Navigate after 3 seconds to let user enjoy the celebration
+        setTimeout(() => {
+          window.open(targetUrl, '_blank');
+        }, 3000);
       }, 800);
     } else {
       // Subsequent clicks - immediate confetti with Fibonacci variations
       fireConfetti(clickCount);
 
+      const isFib = isFibonacci(clickCount);
+
       // Show message only on Fibonacci numbers
-      if (isFibonacci(clickCount)) {
+      if (isFib) {
         showThankYouMessage();
+
+        // Navigate after 2.5 seconds for Fibonacci clicks
+        setTimeout(() => {
+          window.open(targetUrl, '_blank');
+        }, 2500);
+      } else {
+        // Regular clicks - shorter delay
+        setTimeout(() => {
+          window.open(targetUrl, '_blank');
+        }, 1500);
       }
     }
   }
@@ -450,39 +471,55 @@
 <style is:global>
   .caro-thank-you-toast {
     position: fixed;
-    top: 20px;
-    right: 20px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
     background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
     color: white;
-    padding: 16px 24px;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 16px;
-    box-shadow: 0 4px 20px rgba(255, 140, 66, 0.4);
-    transform: translateX(400px);
+    padding: 32px 48px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 28px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(255, 140, 66, 0.6),
+                0 0 0 4px rgba(255, 255, 255, 0.3);
     opacity: 0;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     z-index: 10000;
     pointer-events: none;
+    max-width: 90vw;
+    line-height: 1.4;
+    backdrop-filter: blur(10px);
+    border: 3px solid rgba(255, 255, 255, 0.5);
   }
 
   .caro-thank-you-toast.show {
-    transform: translateX(0);
+    transform: translate(-50%, -50%) scale(1);
     opacity: 1;
+    animation: pulse 1s ease-in-out;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+      transform: translate(-50%, -50%) scale(1.05);
+    }
   }
 
   @media (max-width: 768px) {
     .caro-thank-you-toast {
-      top: 10px;
-      right: 10px;
-      left: 10px;
-      font-size: 14px;
-      padding: 12px 16px;
-      transform: translateY(-100px);
+      font-size: 20px;
+      padding: 24px 32px;
+      max-width: 85vw;
     }
+  }
 
-    .caro-thank-you-toast.show {
-      transform: translateY(0);
+  @media (max-width: 480px) {
+    .caro-thank-you-toast {
+      font-size: 18px;
+      padding: 20px 24px;
     }
   }
 </style>
