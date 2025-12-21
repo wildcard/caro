@@ -7,7 +7,7 @@ use std::process::{Command, Stdio};
 /// Helper to run caro binary with input
 fn run_caro_with_input(args: &[&str], input: &str) -> (String, String, i32) {
     let mut child = Command::new("cargo")
-        .args(&["run", "--quiet", "--"])
+        .args(["run", "--quiet", "--"])
         .args(args)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -17,7 +17,9 @@ fn run_caro_with_input(args: &[&str], input: &str) -> (String, String, i32) {
 
     // Write input to stdin
     if let Some(mut stdin) = child.stdin.take() {
-        stdin.write_all(input.as_bytes()).expect("Failed to write to stdin");
+        stdin
+            .write_all(input.as_bytes())
+            .expect("Failed to write to stdin");
     }
 
     // Wait for completion and capture output
@@ -33,7 +35,7 @@ fn run_caro_with_input(args: &[&str], input: &str) -> (String, String, i32) {
 /// Helper to run caro binary without input (for non-interactive tests)
 fn run_caro(args: &[&str]) -> (String, String, i32) {
     let output = Command::new("cargo")
-        .args(&["run", "--quiet", "--"])
+        .args(["run", "--quiet", "--"])
         .args(args)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
@@ -58,16 +60,22 @@ fn test_e2e_execute_flag_runs_command() {
     assert_eq!(exit_code, 0, "caro should exit successfully");
 
     // Should show the command
-    assert!(stdout.contains("pwd") || stdout.contains("Command:"),
-            "Should show the generated command");
+    assert!(
+        stdout.contains("pwd") || stdout.contains("Command:"),
+        "Should show the generated command"
+    );
 
     // Should show execution results
-    assert!(stdout.contains("Execution Results:") || stdout.contains("Success"),
-            "Should show execution results");
+    assert!(
+        stdout.contains("Execution Results:") || stdout.contains("Success"),
+        "Should show execution results"
+    );
 
     // Should contain actual output from pwd command
-    assert!(stdout.contains("caro") || stdout.contains("/home/") || stdout.contains("/"),
-            "Should contain output from pwd command");
+    assert!(
+        stdout.contains("caro") || stdout.contains("/home/") || stdout.contains("/"),
+        "Should contain output from pwd command"
+    );
 }
 
 #[test]
@@ -78,20 +86,28 @@ fn test_e2e_dry_run_no_execution() {
     assert_eq!(exit_code, 0, "caro should exit successfully");
 
     // Should show the command
-    assert!(stdout.contains("ls") || stdout.contains("Command:"),
-            "Should show the generated command");
+    assert!(
+        stdout.contains("ls") || stdout.contains("Command:"),
+        "Should show the generated command"
+    );
 
     // Should show dry-run message
-    assert!(stdout.contains("Dry Run") || stdout.contains("would be executed"),
-            "Should indicate dry-run mode");
+    assert!(
+        stdout.contains("Dry Run") || stdout.contains("would be executed"),
+        "Should indicate dry-run mode"
+    );
 
     // Should NOT show execution results
-    assert!(!stdout.contains("Execution Results:"),
-            "Should not show execution results in dry-run");
+    assert!(
+        !stdout.contains("Execution Results:"),
+        "Should not show execution results in dry-run"
+    );
 
     // Should NOT contain actual ls output (file listings)
-    assert!(!stdout.contains("total"),
-            "Should not contain ls output in dry-run mode");
+    assert!(
+        !stdout.contains("total"),
+        "Should not contain ls output in dry-run mode"
+    );
 }
 
 #[test]
@@ -100,10 +116,14 @@ fn test_e2e_short_execute_flag() {
     let (stdout, _stderr, exit_code) = run_caro(&["-x", "current directory"]);
 
     assert_eq!(exit_code, 0, "caro should exit successfully");
-    assert!(stdout.contains("pwd") || stdout.contains("Command:"),
-            "Should show command");
-    assert!(stdout.contains("Execution Results:") || stdout.contains("Success"),
-            "Should execute with -x flag");
+    assert!(
+        stdout.contains("pwd") || stdout.contains("Command:"),
+        "Should show command"
+    );
+    assert!(
+        stdout.contains("Execution Results:") || stdout.contains("Success"),
+        "Should execute with -x flag"
+    );
 }
 
 #[test]
@@ -112,8 +132,10 @@ fn test_e2e_interactive_flag() {
     let (stdout, _stderr, exit_code) = run_caro(&["-i", "current directory"]);
 
     assert_eq!(exit_code, 0, "caro should exit successfully");
-    assert!(stdout.contains("Execution Results:") || stdout.contains("Success"),
-            "Should execute with -i flag");
+    assert!(
+        stdout.contains("Execution Results:") || stdout.contains("Success"),
+        "Should execute with -i flag"
+    );
 }
 
 #[test]
@@ -124,36 +146,51 @@ fn test_e2e_verbose_with_execute() {
     assert_eq!(exit_code, 0, "caro should exit successfully");
 
     // Should show execution results
-    assert!(stdout.contains("Execution Results:") || stdout.contains("Success"),
-            "Should execute command");
+    assert!(
+        stdout.contains("Execution Results:") || stdout.contains("Success"),
+        "Should execute command"
+    );
 
     // Verbose mode should show additional info
-    assert!(stdout.contains("Debug Info:") || stdout.contains("Backend:") || stdout.contains("ms"),
-            "Should show verbose debug information");
+    assert!(
+        stdout.contains("Debug Info:") || stdout.contains("Backend:") || stdout.contains("ms"),
+        "Should show verbose debug information"
+    );
 }
 
 #[test]
 fn test_e2e_json_output_format() {
     // Test: JSON output format
-    let (stdout, _stderr, exit_code) = run_caro(&["--output", "json", "--execute", "current directory"]);
+    let (stdout, _stderr, exit_code) =
+        run_caro(&["--output", "json", "--execute", "current directory"]);
 
     assert_eq!(exit_code, 0, "caro should exit successfully");
 
     // Should be valid JSON
-    assert!(stdout.contains("{") && stdout.contains("}"),
-            "Should output JSON format");
+    assert!(
+        stdout.contains("{") && stdout.contains("}"),
+        "Should output JSON format"
+    );
 
     // Should contain expected fields
-    assert!(stdout.contains("generated_command") && stdout.contains("exit_code"),
-            "Should contain expected JSON fields");
+    assert!(
+        stdout.contains("generated_command") && stdout.contains("exit_code"),
+        "Should contain expected JSON fields"
+    );
 
     // Verify it's actually valid JSON
     let parsed: Result<serde_json::Value, _> = serde_json::from_str(&stdout);
     assert!(parsed.is_ok(), "Should be valid JSON");
 
     if let Ok(json) = parsed {
-        assert!(json["exit_code"].as_i64().is_some(), "Should have exit_code in JSON");
-        assert!(json["executed"].as_bool().is_some(), "Should have executed field in JSON");
+        assert!(
+            json["exit_code"].as_i64().is_some(),
+            "Should have exit_code in JSON"
+        );
+        assert!(
+            json["executed"].as_bool().is_some(),
+            "Should have executed field in JSON"
+        );
     }
 }
 
@@ -165,16 +202,22 @@ fn test_e2e_no_flags_non_interactive() {
     assert_eq!(exit_code, 0, "caro should exit successfully");
 
     // Should show the command
-    assert!(stdout.contains("ls") || stdout.contains("Command:"),
-            "Should show command");
+    assert!(
+        stdout.contains("ls") || stdout.contains("Command:"),
+        "Should show command"
+    );
 
     // Should show message about using --execute flag
-    assert!(stdout.contains("--execute") || stdout.contains("-x"),
-            "Should suggest using --execute flag in non-interactive mode");
+    assert!(
+        stdout.contains("--execute") || stdout.contains("-x"),
+        "Should suggest using --execute flag in non-interactive mode"
+    );
 
     // Should NOT execute (no execution results)
-    assert!(!stdout.contains("Execution Results:"),
-            "Should not auto-execute without flag in non-interactive mode");
+    assert!(
+        !stdout.contains("Execution Results:"),
+        "Should not auto-execute without flag in non-interactive mode"
+    );
 }
 
 #[test]
@@ -189,8 +232,11 @@ fn test_e2e_multiple_commands() {
         let (stdout, _stderr, exit_code) = run_caro(&args);
 
         assert_eq!(exit_code, 0, "caro should exit successfully for {:?}", args);
-        assert!(stdout.contains(expected_cmd) || stdout.contains("Command:"),
-                "Should show command for {:?}", args);
+        assert!(
+            stdout.contains(expected_cmd) || stdout.contains("Command:"),
+            "Should show command for {:?}",
+            args
+        );
     }
 }
 
@@ -202,12 +248,16 @@ fn test_e2e_command_with_output() {
     assert_eq!(exit_code, 0, "caro should exit successfully");
 
     // Should show Standard Output section
-    assert!(stdout.contains("Standard Output:") || stdout.contains("/"),
-            "Should show stdout from command");
+    assert!(
+        stdout.contains("Standard Output:") || stdout.contains("/"),
+        "Should show stdout from command"
+    );
 
     // Should show execution time
-    assert!(stdout.contains("Execution time:") || stdout.contains("ms"),
-            "Should show execution time");
+    assert!(
+        stdout.contains("Execution time:") || stdout.contains("ms"),
+        "Should show execution time"
+    );
 }
 
 #[test]
@@ -218,10 +268,14 @@ fn test_e2e_help_flag() {
     assert_eq!(exit_code, 0, "Should exit successfully with --help");
 
     // Should show usage information
-    assert!(stdout.contains("Usage:") || stdout.contains("USAGE:"),
-            "Should show usage");
-    assert!(stdout.contains("--execute") && stdout.contains("--dry-run"),
-            "Should document execution flags");
+    assert!(
+        stdout.contains("Usage:") || stdout.contains("USAGE:"),
+        "Should show usage"
+    );
+    assert!(
+        stdout.contains("--execute") && stdout.contains("--dry-run"),
+        "Should document execution flags"
+    );
 }
 
 #[test]
@@ -230,8 +284,10 @@ fn test_e2e_version_flag() {
     let (stdout, _stderr, _exit_code) = run_caro(&["--version"]);
 
     // Should show version
-    assert!(stdout.contains("caro") && (stdout.contains("0.") || stdout.contains("1.")),
-            "Should show version number");
+    assert!(
+        stdout.contains("caro") && (stdout.contains("0.") || stdout.contains("1.")),
+        "Should show version number"
+    );
 }
 
 #[test]
@@ -240,8 +296,10 @@ fn test_e2e_shell_selection() {
     let (stdout, _stderr, exit_code) = run_caro(&["--shell", "bash", "-x", "current directory"]);
 
     assert_eq!(exit_code, 0, "caro should exit successfully");
-    assert!(stdout.contains("Success") || stdout.contains("exit code: 0"),
-            "Should execute successfully with bash shell");
+    assert!(
+        stdout.contains("Success") || stdout.contains("exit code: 0"),
+        "Should execute successfully with bash shell"
+    );
 }
 
 #[test]
@@ -252,8 +310,10 @@ fn test_e2e_execution_timing() {
     assert_eq!(exit_code, 0, "caro should exit successfully");
 
     // Should show execution time
-    assert!(stdout.contains("Execution time:") && stdout.contains("ms"),
-            "Should show execution time in milliseconds");
+    assert!(
+        stdout.contains("Execution time:") && stdout.contains("ms"),
+        "Should show execution time in milliseconds"
+    );
 }
 
 #[test]
@@ -264,10 +324,14 @@ fn test_e2e_exit_code_display() {
     assert_eq!(exit_code, 0, "caro should exit successfully");
 
     // Should show exit code
-    assert!(stdout.contains("exit code") || stdout.contains("Success"),
-            "Should display exit code");
-    assert!(stdout.contains("0") || stdout.contains("✓"),
-            "Should show success indicator");
+    assert!(
+        stdout.contains("exit code") || stdout.contains("Success"),
+        "Should display exit code"
+    );
+    assert!(
+        stdout.contains("0") || stdout.contains("✓"),
+        "Should show success indicator"
+    );
 }
 
 #[test]
@@ -279,8 +343,10 @@ fn test_e2e_interactive_prompt_yes() {
     assert_eq!(exit_code, 0, "caro should exit successfully");
 
     // Should show execution results when user says yes
-    assert!(stdout.contains("Execution Results:") || stdout.contains("Executing"),
-            "Should execute when user confirms");
+    assert!(
+        stdout.contains("Execution Results:") || stdout.contains("Executing"),
+        "Should execute when user confirms"
+    );
 }
 
 #[test]
@@ -292,8 +358,12 @@ fn test_e2e_interactive_prompt_no() {
     assert_eq!(exit_code, 0, "caro should exit successfully");
 
     // Should NOT execute when user says no
-    assert!(!stdout.contains("Execution Results:"),
-            "Should not execute when user declines");
-    assert!(stdout.contains("skipped") || stdout.contains("cancelled"),
-            "Should indicate execution was skipped");
+    assert!(
+        !stdout.contains("Execution Results:"),
+        "Should not execute when user declines"
+    );
+    assert!(
+        stdout.contains("skipped") || stdout.contains("cancelled"),
+        "Should indicate execution was skipped"
+    );
 }

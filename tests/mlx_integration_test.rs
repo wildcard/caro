@@ -5,8 +5,8 @@
 
 use caro::backends::embedded::{EmbeddedConfig, InferenceBackend, MlxBackend, ModelVariant};
 use caro::backends::CommandGenerator;
-use caro::EmbeddedModelBackend;
 use caro::models::{CommandRequest, ShellType};
+use caro::EmbeddedModelBackend;
 use std::path::PathBuf;
 
 /// Test that verifies MLX is correctly detected on Apple Silicon
@@ -178,7 +178,7 @@ async fn test_mlx_performance_stub() {
         first_inference.as_secs() < 60,
         "Stub should complete within 60s (includes potential model download)"
     );
-    
+
     // Second inference should be much faster since model is loaded
     assert!(
         second_inference.as_millis() < 5000,
@@ -295,10 +295,7 @@ fn test_mlx_implementation_status() {
     }
 
     // Model cache
-    let cache_dir = dirs::cache_dir()
-        .unwrap()
-        .join("caro")
-        .join("models");
+    let cache_dir = dirs::cache_dir().unwrap().join("caro").join("models");
     let model_file = cache_dir.join("qwen2.5-coder-1.5b-instruct-q4_k_m.gguf");
 
     if model_file.exists() {

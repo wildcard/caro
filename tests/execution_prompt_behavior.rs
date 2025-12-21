@@ -76,12 +76,24 @@ async fn test_default_behavior_no_auto_execution() {
     assert!(!result.generated_command.is_empty());
 
     // Safety checks should pass (list files is safe)
-    assert!(result.executed, "Safety checks should pass for safe commands");
+    assert!(
+        result.executed,
+        "Safety checks should pass for safe commands"
+    );
 
     // But command should NOT be auto-executed (no --execute flag)
-    assert!(result.exit_code.is_none(), "Command should not execute without --execute flag or user confirmation");
-    assert!(result.stdout.is_none(), "Should have no stdout without execution");
-    assert!(result.stderr.is_none(), "Should have no stderr without execution");
+    assert!(
+        result.exit_code.is_none(),
+        "Command should not execute without --execute flag or user confirmation"
+    );
+    assert!(
+        result.stdout.is_none(),
+        "Should have no stdout without execution"
+    );
+    assert!(
+        result.stderr.is_none(),
+        "Should have no stderr without execution"
+    );
 }
 
 #[tokio::test]
@@ -101,7 +113,10 @@ async fn test_execute_flag_auto_executes() {
     assert!(!result.generated_command.is_empty());
 
     // Command SHOULD be executed automatically
-    assert!(result.exit_code.is_some(), "Command should execute with --execute flag");
+    assert!(
+        result.exit_code.is_some(),
+        "Command should execute with --execute flag"
+    );
 
     // Should have execution output
     let exit_code = result.exit_code.unwrap();
@@ -126,7 +141,10 @@ async fn test_interactive_flag_auto_executes() {
     let result = cli.run_with_args(args).await.unwrap();
 
     // Command should be executed automatically with -i flag
-    assert!(result.exit_code.is_some(), "Command should execute with --interactive flag");
+    assert!(
+        result.exit_code.is_some(),
+        "Command should execute with --interactive flag"
+    );
     assert!(result.stdout.is_some(), "Should have stdout from execution");
 }
 
@@ -171,13 +189,18 @@ async fn test_dangerous_command_blocked_without_confirmation() {
     assert!(!result.generated_command.is_empty());
 
     // Should require confirmation
-    assert!(result.requires_confirmation || result.blocked_reason.is_some(),
-            "Dangerous commands should require confirmation or be blocked");
+    assert!(
+        result.requires_confirmation || result.blocked_reason.is_some(),
+        "Dangerous commands should require confirmation or be blocked"
+    );
 
     // Should NOT execute without explicit confirmation
     if result.blocked_reason.is_none() {
         // If not blocked, it requires confirmation, so shouldn't auto-execute
-        assert!(result.exit_code.is_none(), "Dangerous command should not auto-execute");
+        assert!(
+            result.exit_code.is_none(),
+            "Dangerous command should not auto-execute"
+        );
     }
 }
 
@@ -198,8 +221,10 @@ async fn test_dangerous_command_executes_with_confirm_flag() {
     // For moderately dangerous commands with confirm flag
     if result.blocked_reason.is_none() {
         // Command should execute if not blocked
-        assert!(result.exit_code.is_some() || result.execution_error.is_some(),
-                "Command should attempt execution with --confirm flag");
+        assert!(
+            result.exit_code.is_some() || result.execution_error.is_some(),
+            "Command should attempt execution with --confirm flag"
+        );
     }
 }
 
@@ -226,7 +251,10 @@ async fn test_execution_captures_output() {
     assert!(!stdout.trim().is_empty(), "Should have output");
 
     // Should capture execution time
-    assert!(result.timing_info.execution_time_ms > 0, "Should track execution time");
+    assert!(
+        result.timing_info.execution_time_ms > 0,
+        "Should track execution time"
+    );
 }
 
 #[tokio::test]
@@ -262,7 +290,10 @@ async fn test_multiple_execution_modes_mutually_exclusive() {
     let result = cli.run_with_args(args).await.unwrap();
 
     // Dry-run should prevent execution even with execute flag
-    assert!(result.exit_code.is_none(), "Dry-run should prevent execution");
+    assert!(
+        result.exit_code.is_none(),
+        "Dry-run should prevent execution"
+    );
 }
 
 #[tokio::test]
@@ -281,14 +312,26 @@ async fn test_safe_command_passes_all_checks() {
     assert!(!result.generated_command.is_empty());
 
     // Should NOT be blocked
-    assert!(result.blocked_reason.is_none(), "Safe command should not be blocked");
+    assert!(
+        result.blocked_reason.is_none(),
+        "Safe command should not be blocked"
+    );
 
     // Should NOT require confirmation
-    assert!(!result.requires_confirmation, "Safe command should not require confirmation");
+    assert!(
+        !result.requires_confirmation,
+        "Safe command should not require confirmation"
+    );
 
     // Safety checks pass
-    assert!(result.executed, "executed flag should be true (safety checks passed)");
+    assert!(
+        result.executed,
+        "executed flag should be true (safety checks passed)"
+    );
 
     // But not auto-executed (no --execute flag)
-    assert!(result.exit_code.is_none(), "Should not auto-execute without flag");
+    assert!(
+        result.exit_code.is_none(),
+        "Should not auto-execute without flag"
+    );
 }

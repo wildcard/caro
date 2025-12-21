@@ -2,8 +2,8 @@
 
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
-use std::time::Instant;
 use std::sync::Arc;
+use std::time::Instant;
 
 use crate::{
     agent::AgentLoop,
@@ -25,9 +25,11 @@ use crate::{
 /// Main CLI application struct
 pub struct CliApp {
     config: CliConfig,
+    #[allow(dead_code)]
     backend: Arc<dyn CommandGenerator>,
     agent_loop: AgentLoop,
     validator: SafetyValidator,
+    #[allow(dead_code)]
     context: ExecutionContext,
 }
 
@@ -165,7 +167,7 @@ impl CliApp {
 
         // Detect execution context
         let context = ExecutionContext::detect();
-        
+
         // Create agent loop with backend and context
         let agent_loop = AgentLoop::new(backend_arc.clone(), context.clone());
 
@@ -195,8 +197,8 @@ impl CliApp {
             use std::sync::Arc;
 
             // Create embedded backend as fallback
-            let embedded_backend = EmbeddedModelBackend::new()
-                .map_err(|e| CliError::ConfigurationError {
+            let embedded_backend =
+                EmbeddedModelBackend::new().map_err(|e| CliError::ConfigurationError {
                     message: format!("Failed to create embedded backend: {}", e),
                 })?;
 
@@ -292,7 +294,7 @@ impl CliApp {
         })?;
 
         // Create command request
-        let request = CommandRequest {
+        let _request = CommandRequest {
             input: prompt.clone(),
             context: None,
             shell,

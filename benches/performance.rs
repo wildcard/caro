@@ -4,7 +4,7 @@
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 
 // Import system components for benchmarking
-use cmdai::{
+use caro::{
     cli::CliApp,
     models::{SafetyLevel, ShellType},
     safety::{SafetyConfig, SafetyValidator},
