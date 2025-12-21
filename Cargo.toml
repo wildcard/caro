@@ -1,10 +1,11 @@
 [package]
 name = "caro"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
 description = "Convert natural language to shell commands using local LLMs"
 license = "AGPL-3.0"
 repository = "https://github.com/wildcard/caro"
+readme = "README.crates.io.md"
 authors = ["Claude Code <noreply@anthropic.com>"]
 keywords = ["cli", "llm", "shell", "commands", "ai"]
 categories = ["command-line-utilities", "development-tools"]
