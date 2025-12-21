@@ -235,20 +235,35 @@
 
     updateMuteButtonState();
 
-    // Initialize elevator.js after it loads
-    let elevator: any;
+    // Initialize elevator.js once without audio - we'll handle audio manually
     let elevatorDuration = 3000; // 3 seconds
+    let currentAudio: HTMLAudioElement | null = null;
 
-    const initElevator = (muted: boolean) => {
-      // @ts-ignore - Elevator is loaded from external script
-      elevator = new Elevator({
-        element: button,
-        mainAudio: muted ? undefined : '/elevator-music.mp3',
-        duration: elevatorDuration,
-      });
-    };
+    // @ts-ignore - Elevator is loaded from external script
+    const elevator = new Elevator({
+      element: button,
+      duration: elevatorDuration,
+    });
 
-    initElevator(isMuted);
+    // Handle audio manually on button click
+    button?.addEventListener('click', () => {
+      if (!isMuted) {
+        // Create and play audio
+        currentAudio = new Audio('/elevator-music.mp3');
+        currentAudio.play().catch(() => {
+          // Ignore errors if user hasn't interacted yet
+        });
+
+        // Stop audio after elevator ride
+        setTimeout(() => {
+          if (currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+            currentAudio = null;
+          }
+        }, elevatorDuration);
+      }
+    });
 
     // Mute toggle handler
     muteToggle?.addEventListener('click', (e) => {
@@ -258,19 +273,15 @@
       isMuted = !isMuted;
       localStorage.setItem('elevatorMuted', isMuted.toString());
 
-      // Stop all currently playing audio immediately
-      const audioElements = document.querySelectorAll('audio');
-      audioElements.forEach((audio) => {
-        audio.pause();
-        audio.currentTime = 0;
-        audio.remove();
-      });
+      // Stop currently playing audio immediately
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+        currentAudio = null;
+      }
 
       // Update visual state
       updateMuteButtonState();
-
-      // Reinitialize elevator with new audio settings
-      initElevator(isMuted);
     });
 
     // Show/hide buttons based on scroll position
