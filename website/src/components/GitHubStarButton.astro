@@ -3,8 +3,6 @@
 
 <a
   href="https://github.com/wildcard/caro"
-  target="_blank"
-  rel="noopener noreferrer"
   class="github-star-button"
   id="github-star-button"
   aria-label="Star wildcard/caro repository on GitHub"
@@ -550,15 +548,18 @@
    * Handle star button click for confetti effect
    */
   function handleStarClick(event) {
-    // Prevent immediate navigation
+    const targetUrl = event.currentTarget.href;
+
+    // Allow modified clicks (Cmd/Ctrl+click) to open new tab normally
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
+      return; // Let browser handle it
+    }
+
+    // Prevent default same-tab navigation so we can show confetti first
     event.preventDefault();
 
     const clickCount = getAndIncrementClickCount();
     const isFirstClick = localStorage.getItem(FIRST_STAR_KEY) !== 'true';
-    const targetUrl = event.currentTarget.href;
-
-    // Open window immediately to avoid popup blockers (opens blank page first)
-    const newWindow = window.open('about:blank', '_blank');
 
     if (isFirstClick) {
       // First time ever - special treatment
@@ -569,12 +570,10 @@
         fireConfetti(clickCount);
         showThankYouMessage();
 
-        // Navigate after 3 seconds to let user enjoy the celebration
+        // Navigate after 4 seconds to let user enjoy the full celebration
         setTimeout(() => {
-          if (newWindow) {
-            newWindow.location.href = targetUrl;
-          }
-        }, 3000);
+          window.location.assign(targetUrl);
+        }, 4000);
       }, 800);
     } else {
       // Subsequent clicks - immediate confetti with Fibonacci variations
@@ -582,23 +581,17 @@
 
       const isFib = isFibonacci(clickCount);
 
-      // Show message only on Fibonacci numbers
       if (isFib) {
+        // Fibonacci clicks get message and longer delay
         showThankYouMessage();
-
-        // Navigate after 2.5 seconds for Fibonacci clicks
         setTimeout(() => {
-          if (newWindow) {
-            newWindow.location.href = targetUrl;
-          }
-        }, 2500);
+          window.location.assign(targetUrl);
+        }, 3500);
       } else {
-        // Regular clicks - shorter delay
+        // Regular clicks - moderate delay to see confetti
         setTimeout(() => {
-          if (newWindow) {
-            newWindow.location.href = targetUrl;
-          }
-        }, 1500);
+          window.location.assign(targetUrl);
+        }, 2500);
       }
     }
   }
