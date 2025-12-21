@@ -264,7 +264,7 @@
     background: linear-gradient(180deg, #252535 0%, #1a1a28 100%);
     border: 3px solid #444;
     border-radius: 12px;
-    padding: 14px 18px;
+    padding: 16px 20px;
     font-family: 'Courier New', monospace;
     font-size: 15px;
     color: #ddd;
@@ -273,7 +273,8 @@
     text-align: left;
     display: flex;
     align-items: center;
-    gap: 12px;
+    justify-content: space-between;
+    gap: 14px;
   }
 
   .option-btn:hover:not(:disabled) {
@@ -621,7 +622,7 @@
       currentOptions.forEach((opt, i) => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
-        btn.innerHTML = `<span class="option-label">${labels[i]}</span><span class="option-cmd">${opt.cmd}</span>`;
+        btn.innerHTML = `<span class="option-cmd">${opt.cmd}</span><span class="option-label">${labels[i]}</span>`;
         btn.addEventListener('click', () => handleAnswer(i, btn));
         optionsGrid!.appendChild(btn);
       });
