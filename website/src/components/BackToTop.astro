@@ -1,0 +1,122 @@
+---
+// Back to top button with elevator.js
+---
+
+<button id="back-to-top" class="back-to-top" aria-label="Back to top">
+  ↑
+</button>
+
+<style>
+  .back-to-top {
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: white;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(100px);
+  }
+
+  .back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .back-to-top:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(238, 90, 111, 0.4);
+  }
+
+  .back-to-top:active {
+    transform: translateY(-2px);
+  }
+
+  /* Dark mode adjustments */
+  .dark .back-to-top {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .dark .back-to-top:hover {
+    box-shadow: 0 8px 20px rgba(231, 76, 60, 0.5);
+  }
+
+  /* Christmas theme */
+  .christmas .back-to-top {
+    background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-green) 100%);
+  }
+
+  .christmas .back-to-top:hover {
+    box-shadow: 0 8px 20px rgba(196, 30, 58, 0.5);
+  }
+
+  /* Hanukkah theme */
+  .hanukkah .back-to-top {
+    background: linear-gradient(135deg, var(--hanukkah-blue) 0%, var(--hanukkah-light-blue) 100%);
+  }
+
+  .hanukkah .back-to-top:hover {
+    box-shadow: 0 8px 20px rgba(0, 56, 184, 0.5);
+  }
+
+  /* Mobile adjustments */
+  @media (max-width: 768px) {
+    .back-to-top {
+      bottom: 20px;
+      right: 20px;
+      width: 45px;
+      height: 45px;
+      font-size: 20px;
+    }
+  }
+</style>
+
+<script>
+  // Import elevator.js
+  const script = document.createElement('script');
+  script.src = '/elevator.js';
+  script.onload = () => {
+    // Initialize elevator.js after it loads
+    const button = document.getElementById('back-to-top');
+
+    // @ts-ignore - Elevator is loaded from external script
+    const elevator = new Elevator({
+      element: button,
+      mainAudio: '/elevator-music.mp3',
+      endAudio: '/elevator-music.mp3',
+      duration: 3000, // 3 seconds
+    });
+
+    // Show/hide button based on scroll position
+    let scrollTimeout: number;
+    const handleScroll = () => {
+      if (scrollTimeout) {
+        window.clearTimeout(scrollTimeout);
+      }
+
+      scrollTimeout = window.setTimeout(() => {
+        if (window.scrollY > 300) {
+          button?.classList.add('visible');
+        } else {
+          button?.classList.remove('visible');
+        }
+      }, 100);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Check initial scroll position
+  };
+
+  document.head.appendChild(script);
+</script>
