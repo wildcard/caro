@@ -19,6 +19,8 @@ const { title, description } = Astro.props;
     <link rel="icon" type="image/png" href="/caro-pixel.png" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+    <!-- ASCII Morph Library -->
+    <script src="/ascii-morph.js" is:inline></script>
     <script is:inline>
       // Dark mode initialization (before render to prevent flash)
       const theme = (() => {

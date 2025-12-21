@@ -1,0 +1,124 @@
+---
+/**
+ * AsciiMorph Component
+ * Displays animated ASCII art morphing between different Caro poses
+ */
+
+interface Props {
+  arts: string[][]; // Array of ASCII art frames to morph between
+  width?: number; // Canvas width in characters
+  height?: number; // Canvas height in lines
+  interval?: number; // Time between morphs in milliseconds
+  morphDelay?: number; // Animation speed (ms per frame)
+  className?: string;
+}
+
+const {
+  arts,
+  width = 100,
+  height = 45,
+  interval = 4000,
+  morphDelay = 50,
+  className = ''
+} = Astro.props;
+
+// Generate a unique ID for this instance
+const instanceId = `ascii-morph-${Math.random().toString(36).substr(2, 9)}`;
+---
+
+<div class={`ascii-morph-container ${className}`}>
+  <pre id={instanceId} class="ascii-canvas"></pre>
+</div>
+
+<script define:vars={{ instanceId, arts, width, height, interval, morphDelay }}>
+  // Wait for DOM and AsciiMorph library to be ready
+  function initAsciiMorph() {
+    if (typeof window.AsciiMorph === 'undefined') {
+      console.warn('AsciiMorph library not loaded yet');
+      return;
+    }
+
+    const element = document.getElementById(instanceId);
+    if (!element) {
+      console.warn('ASCII morph element not found:', instanceId);
+      return;
+    }
+
+    // Initialize AsciiMorph
+    const morph = window.AsciiMorph(element, { x: width, y: height });
+
+    // Render the first frame
+    if (arts.length > 0) {
+      morph.render(arts[0]);
+    }
+
+    // If there's more than one art, set up morphing
+    if (arts.length > 1) {
+      let currentIndex = 0;
+
+      setInterval(() => {
+        currentIndex = (currentIndex + 1) % arts.length;
+        morph.morph(arts[currentIndex], morphDelay);
+      }, interval);
+    }
+  }
+
+  // Try to initialize when the page loads
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(initAsciiMorph, 100);
+    });
+  } else {
+    setTimeout(initAsciiMorph, 100);
+  }
+</script>
+
+<style>
+  .ascii-morph-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 2rem 0;
+  }
+
+  .ascii-canvas {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px;
+    line-height: 1.0;
+    color: var(--color-text-tertiary, #666);
+    background: transparent;
+    border: none;
+    padding: 1rem;
+    margin: 0;
+    overflow: hidden;
+    white-space: pre;
+    transition: color 0.3s ease;
+  }
+
+  /* Make it responsive on smaller screens */
+  @media (max-width: 768px) {
+    .ascii-canvas {
+      font-size: 6px;
+      line-height: 1.0;
+      padding: 0.5rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .ascii-canvas {
+      font-size: 4px;
+      line-height: 1.0;
+      padding: 0.25rem;
+    }
+  }
+
+  /* Theme support */
+  :global(.dark-mode) .ascii-canvas {
+    color: var(--color-text-tertiary, #999);
+  }
+
+  /* Hover effect */
+  .ascii-canvas:hover {
+    color: #ff8c42;
+  }
+</style>
