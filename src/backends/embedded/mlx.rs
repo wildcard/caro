@@ -101,9 +101,9 @@ impl InferenceBackend for MlxBackend {
 
         // Create session parameters
         let session_params = SessionParams {
-            n_ctx: 2048,      // Context window
-            n_batch: 512,     // Batch size for prompt processing
-            n_threads: 8,     // Use multiple threads
+            n_ctx: 2048,  // Context window
+            n_batch: 512, // Batch size for prompt processing
+            n_threads: 8, // Use multiple threads
             ..Default::default()
         };
 
@@ -237,9 +237,9 @@ impl InferenceBackend for MlxBackend {
         let model = tokio::task::spawn_blocking(move || {
             // Create model parameters with Metal acceleration
             let params = LlamaParams {
-                n_gpu_layers: 99,     // Use all GPU layers (Metal acceleration)
-                use_mmap: true,       // Use memory mapping for faster loading
-                use_mlock: false,     // Don't lock memory
+                n_gpu_layers: 99, // Use all GPU layers (Metal acceleration)
+                use_mmap: true,   // Use memory mapping for faster loading
+                use_mlock: false, // Don't lock memory
                 ..Default::default()
             };
 
