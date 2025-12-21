@@ -557,10 +557,10 @@
       fireConfetti(clickCount);
       showThankYouMessage();
 
-      // Navigate after 1.2 seconds - enough to see the celebration
+      // Navigate after 1.8 seconds - enough to see the message
       setTimeout(() => {
         window.location.assign(targetUrl);
-      }, 1200);
+      }, 1800);
     } else {
       // Subsequent clicks - immediate confetti with Fibonacci variations
       fireConfetti(clickCount);
@@ -568,16 +568,16 @@
       const isFib = isFibonacci(clickCount);
 
       if (isFib) {
-        // Fibonacci clicks get message and slightly longer delay
+        // Fibonacci clicks get message and longer delay to read it
         showThankYouMessage();
         setTimeout(() => {
           window.location.assign(targetUrl);
-        }, 1000);
+        }, 1600);
       } else {
-        // Regular clicks - shorter delay
+        // Regular clicks - no message, just confetti
         setTimeout(() => {
           window.location.assign(targetUrl);
-        }, 600);
+        }, 800);
       }
     }
   }
@@ -604,22 +604,22 @@
     transform: translate(-50%, -50%) scale(0);
     background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
     color: white;
-    padding: 32px 48px;
-    border-radius: 20px;
-    font-weight: 700;
-    font-size: 32px;
+    padding: 40px 56px;
+    border-radius: 24px;
+    font-weight: 800;
+    font-size: 36px;
     text-align: center;
-    box-shadow: 0 20px 60px rgba(255, 140, 66, 0.8),
-                0 0 0 6px rgba(255, 255, 255, 0.4),
-                0 0 30px rgba(255, 140, 66, 0.5);
+    box-shadow: 0 30px 80px rgba(255, 140, 66, 0.9),
+                0 0 0 8px rgba(255, 255, 255, 0.5),
+                0 0 40px rgba(255, 140, 66, 0.6);
     opacity: 0;
-    transition: all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    z-index: 10000;
+    transition: all 0.15s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    z-index: 999999;
     pointer-events: none;
     max-width: 90vw;
     line-height: 1.4;
     backdrop-filter: blur(10px);
-    border: 4px solid rgba(255, 255, 255, 0.6);
+    border: 5px solid rgba(255, 255, 255, 0.7);
   }
 
   .caro-thank-you-toast.show {
