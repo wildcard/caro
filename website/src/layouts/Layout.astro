@@ -58,8 +58,27 @@ const { title, description } = Astro.props;
   </head>
   <body>
     <SnowEffect />
+    <!-- Overscroll Easter Egg -->
+    <img class="overscroll-easter-egg overscroll-top" src="/caro-pixel.png" alt="Caro easter egg" />
+    <img class="overscroll-easter-egg overscroll-bottom" src="/caro-pixel.png" alt="Caro easter egg" />
     <slot />
     <Analytics />
+    <!-- Overscroll Library -->
+    <script is:inline src="/overscroll.min.js"></script>
+    <script is:inline>
+      if (typeof Overscroll !== 'undefined') {
+        const overscroll = new Overscroll();
+        const topEgg = document.querySelector('.overscroll-top');
+        const bottomEgg = document.querySelector('.overscroll-bottom');
+
+        if (topEgg) {
+          overscroll.bindElement(topEgg, 'top', 0.8);
+        }
+        if (bottomEgg) {
+          overscroll.bindElement(bottomEgg, 'bottom', 0.8);
+        }
+      }
+    </script>
   </body>
 </html>
 
@@ -394,6 +413,36 @@ const { title, description } = Astro.props;
   @media (max-width: 768px) {
     section h2 {
       font-size: 28px;
+    }
+  }
+
+  /* ============================================
+     OVERSCROLL EASTER EGG
+     ============================================ */
+  .overscroll-easter-egg {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 80px;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.9;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+  }
+
+  .overscroll-top {
+    top: -100px;
+  }
+
+  .overscroll-bottom {
+    bottom: -100px;
+  }
+
+  @media (max-width: 768px) {
+    .overscroll-easter-egg {
+      width: 60px;
+      height: 60px;
     }
   }
 </style>
