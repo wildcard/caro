@@ -19,7 +19,7 @@ Execute this command? (y/N) y
 
 ## 📋 Project Status
 
-**Current Version:** 0.1.0 (Published on [crates.io](https://crates.io/crates/caro))
+**Current Version:** 1.0.0 (Published on [crates.io](https://crates.io/crates/caro))
 
 This project is in **active development** with core features implemented and working. The CLI is functional with embedded local inference and advanced platform-aware command generation.
 
@@ -530,3 +530,7 @@ This project is licensed under the **GNU Affero General Public License v3.0 (AGP
 **Built with Rust** | **Safety First** | **Open Source**
 
 > **Note**: This is an active development project. Features and APIs are subject to change. See the [specs](specs/) directory for detailed design documentation.
+
+---
+
+<sub>The `caro` crate name was generously provided by its previous maintainer. If you're looking for the original "creation-addressed replicated objects" project, it remains available at [crates.io/crates/caro/0.7.1](https://crates.io/crates/caro/0.7.1).</sub>
