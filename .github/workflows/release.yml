@@ -156,6 +156,32 @@ jobs:
         if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: cargo install cross
 
+      - name: Run comprehensive tests per platform
+        if: matrix.target != 'aarch64-unknown-linux-gnu'
+        run: cargo test --workspace --all-features --verbose
+        env:
+          RUST_BACKTRACE: 1
+
+      - name: Run E2E tests per platform
+        if: matrix.target != 'aarch64-unknown-linux-gnu'
+        run: |
+          echo "Running E2E tests on ${{ matrix.os }} for ${{ matrix.target }}"
+          cargo test --test e2e_cli_tests --verbose
+          cargo test --test e2e_interactive_execution --verbose
+          cargo test --test embedded_integration --verbose
+          cargo test --test system_integration --verbose
+        env:
+          RUST_BACKTRACE: 1
+
+      - name: Run contract tests per platform
+        if: matrix.target != 'aarch64-unknown-linux-gnu'
+        run: |
+          cargo test --test backend_trait_contract --verbose
+          cargo test --test safety_validator_contract --verbose
+          cargo test --test platform_detection_contract --verbose
+        env:
+          RUST_BACKTRACE: 1
+
       - name: Build release binary
         run: |
           if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then

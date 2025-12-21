@@ -41,33 +41,40 @@ jobs:
       run: cargo fmt --all -- --check
 
     - name: Run clippy
-      run: cargo clippy --tests --lib -- -D warnings
+      run: cargo clippy --all-targets --all-features -- -D warnings
 
-    - name: Check test compilation (lib only)
-      run: cargo test --lib --no-run --verbose
+    - name: Run all tests (comprehensive)
+      run: cargo test --workspace --all-features --verbose -- --test-threads=1
+      env:
+        RUST_BACKTRACE: 1
 
-    - name: Run tests (lib)
-      run: cargo test --lib --verbose
-    
-    - name: Run tests (with embedded backends)
-      run: cargo test --features embedded-cpu --verbose
-    
-    - name: Run tests (with remote backends)
-      if: matrix.os == 'ubuntu-latest'
-      run: cargo test --features remote-backends --verbose
-    
-    - name: Run tests (all features)
-      if: matrix.os == 'ubuntu-latest'
-      run: cargo test --all-features --verbose
-    
-    - name: Run E2E tests (smoke test)
-      run: cargo test e2e_smoke_test_suite --verbose
-    
-    - name: Run E2E tests (critical functionality)
+    - name: Run E2E tests per platform
       run: |
-        cargo test e2e_help_output --verbose
-        cargo test e2e_json_output_format --verbose
-        cargo test e2e_basic_command_generation --verbose
+        echo "Running comprehensive E2E tests on ${{ matrix.os }}"
+        cargo test --test e2e_cli_tests --verbose
+        cargo test --test e2e_interactive_execution --verbose
+        cargo test --test embedded_integration --verbose
+        cargo test --test system_integration --verbose
+      env:
+        RUST_BACKTRACE: 1
+
+    - name: Run integration tests per platform
+      run: |
+        cargo test --test integration_tests --verbose
+        cargo test --test infrastructure_integration --verbose
+        cargo test --test error_handling_tests --verbose
+      env:
+        RUST_BACKTRACE: 1
+
+    - name: Run contract tests per platform
+      run: |
+        cargo test --test backend_trait_contract --verbose
+        cargo test --test safety_validator_contract --verbose
+        cargo test --test platform_detection_contract --verbose
+        cargo test --test config_contract --verbose
+        cargo test --test execution_contract --verbose
+      env:
+        RUST_BACKTRACE: 1
 
   security:
     name: Security Audit
@@ -94,23 +101,23 @@ jobs:
         include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            name: cmdai-linux-amd64
+            name: caro-linux-amd64
             features: embedded-cpu,remote-backends
           - os: ubuntu-latest
             target: aarch64-unknown-linux-gnu
-            name: cmdai-linux-arm64
+            name: caro-linux-arm64
             features: embedded-cpu,remote-backends
           - os: macos-latest
             target: x86_64-apple-darwin
-            name: cmdai-macos-intel
+            name: caro-macos-intel
             features: embedded-cpu,remote-backends
           - os: macos-latest
             target: aarch64-apple-darwin
-            name: cmdai-macos-silicon
+            name: caro-macos-silicon
             features: embedded-mlx,embedded-cpu,remote-backends
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            name: cmdai-windows-amd64.exe
+            name: caro-windows-amd64.exe
             features: embedded-cpu,remote-backends
 
     steps:
@@ -138,9 +145,9 @@ jobs:
     - name: Create artifact
       run: |
         if [ "${{ runner.os }}" = "Windows" ]; then
-          cp target/${{ matrix.target }}/release/cmdai.exe ${{ matrix.name }}
+          cp target/${{ matrix.target }}/release/caro.exe ${{ matrix.name }}
         else
-          cp target/${{ matrix.target }}/release/cmdai ${{ matrix.name }}
+          cp target/${{ matrix.target }}/release/caro ${{ matrix.name }}
         fi
       shell: bash
     
@@ -180,8 +187,8 @@ jobs:
     - name: Check binary size
       run: |
         cargo build --release
-        ls -la target/release/cmdai
-        SIZE=$(stat -f%z target/release/cmdai 2>/dev/null || stat -c%s target/release/cmdai)
+        ls -la target/release/caro
+        SIZE=$(stat -f%z target/release/caro 2>/dev/null || stat -c%s target/release/caro)
         echo "Binary size: $SIZE bytes"
         # Fail if binary is larger than 50MB (52,428,800 bytes)
         if [ $SIZE -gt 52428800 ]; then
@@ -201,7 +208,6 @@ jobs:
       uses: dtolnay/rust-toolchain@v1
       with:
         toolchain: stable
-      with:
         components: llvm-tools-preview
     
     - name: Install cargo-llvm-cov
