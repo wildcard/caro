@@ -22,12 +22,12 @@
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
     color: white;
     border: none;
     font-size: 24px;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
     transition: all 0.3s ease;
     z-index: 1000;
     opacity: 0;
@@ -43,7 +43,7 @@
 
   .back-to-top:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(238, 90, 111, 0.4);
+    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.4);
   }
 
   .back-to-top:active {
@@ -52,12 +52,12 @@
 
   /* Dark mode adjustments */
   .dark .back-to-top {
-    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
   }
 
   .dark .back-to-top:hover {
-    box-shadow: 0 8px 20px rgba(231, 76, 60, 0.5);
+    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.5);
   }
 
   /* Christmas theme */
@@ -212,17 +212,30 @@
 
     // Initialize elevator.js after it loads
     let elevator: any;
+    let elevatorDuration = 3000; // 3 seconds
 
     const initElevator = (muted: boolean) => {
       // @ts-ignore - Elevator is loaded from external script
       elevator = new Elevator({
         element: button,
         mainAudio: muted ? undefined : '/elevator-music.mp3',
-        duration: 3000, // 3 seconds
+        duration: elevatorDuration,
       });
     };
 
     initElevator(isMuted);
+
+    // Show mute button when elevator ride starts
+    button?.addEventListener('click', () => {
+      if (!isMuted && window.scrollY > 0) {
+        muteToggle?.classList.add('visible');
+
+        // Hide mute button after the ride completes
+        setTimeout(() => {
+          muteToggle?.classList.remove('visible');
+        }, elevatorDuration);
+      }
+    });
 
     // Mute toggle handler
     muteToggle?.addEventListener('click', () => {
@@ -236,7 +249,7 @@
       initElevator(isMuted);
     });
 
-    // Show/hide buttons based on scroll position
+    // Show/hide back-to-top button based on scroll position
     let scrollTimeout: number;
     const handleScroll = () => {
       if (scrollTimeout) {
@@ -246,13 +259,8 @@
       scrollTimeout = window.setTimeout(() => {
         if (window.scrollY > 300) {
           button?.classList.add('visible');
-          // Only show mute button if music is enabled
-          if (!isMuted) {
-            muteToggle?.classList.add('visible');
-          }
         } else {
           button?.classList.remove('visible');
-          muteToggle?.classList.remove('visible');
         }
       }, 100);
     };
