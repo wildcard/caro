@@ -16,9 +16,6 @@ use caro::backends::embedded::EmbeddedConfig;
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
 use caro::backends::embedded::{InferenceBackend, MlxBackend};
 
-#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-use caro::backends::GeneratorError;
-
 // Helper function to get test model path
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
 fn test_model_path() -> PathBuf {
