@@ -6,7 +6,7 @@
   <div class="container">
     <h2>Play with Caro</h2>
     <p class="section-subtitle">
-      Help Caro catch falling shell commands! Use arrow keys or tap to move.
+      Help Caro catch falling shell commands! Use arrow keys or tap/click to move.
     </p>
 
     <div class="game-container">
@@ -23,14 +23,25 @@
       </div>
 
       <div id="game-canvas" class="game-canvas">
+        <!-- Ground/catch zone indicator -->
+        <div class="catch-zone"></div>
+
+        <!-- Caro sprite with larger hitbox -->
         <div id="caro" class="caro-sprite">
           <img src="/caro-pixel.png" alt="Caro" class="caro-img" />
         </div>
+
         <div id="commands-container" class="commands-container"></div>
+
         <div id="game-overlay" class="game-overlay">
           <div class="overlay-content">
             <h3 id="overlay-title">Caro Fetch!</h3>
-            <p id="overlay-message">Catch the shell commands!</p>
+            <p id="overlay-message">Catch good commands, avoid dangerous ones!</p>
+            <div class="legend">
+              <div class="legend-item"><span class="legend-good"></span> Safe (+10)</div>
+              <div class="legend-item"><span class="legend-bonus"></span> Bonus (+25)</div>
+              <div class="legend-item"><span class="legend-bad"></span> Danger! (-life)</div>
+            </div>
             <button id="start-button" class="game-button">Play</button>
           </div>
         </div>
@@ -40,6 +51,8 @@
         <button id="left-btn" class="control-btn" aria-label="Move left">&#9664;</button>
         <button id="right-btn" class="control-btn" aria-label="Move right">&#9654;</button>
       </div>
+
+      <p class="game-hint">Tip: Use arrow keys or A/D to move. Press Space to start!</p>
     </div>
   </div>
 </section>
@@ -52,12 +65,12 @@
   }
 
   .game-container {
-    max-width: 500px;
+    max-width: 700px;
     margin: 0 auto;
     background: var(--color-bg);
     border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
     border: 1px solid var(--color-border);
     transition: all 0.3s ease;
   }
@@ -66,48 +79,80 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
-    padding: 10px 15px;
+    margin-bottom: 16px;
+    padding: 12px 20px;
     background: var(--color-bg-tertiary);
-    border-radius: 8px;
+    border-radius: 10px;
     font-family: 'Courier New', monospace;
     font-weight: bold;
+    font-size: 18px;
   }
 
   .score, .high-score {
     color: var(--color-text);
-    font-size: 16px;
   }
 
   .lives .heart {
     color: #ff6b35;
-    font-size: 18px;
-    margin-left: 2px;
+    font-size: 22px;
+    margin-left: 4px;
+    transition: opacity 0.3s, transform 0.3s;
   }
 
   .lives .heart.lost {
     opacity: 0.2;
+    transform: scale(0.8);
   }
 
   .game-canvas {
     position: relative;
     width: 100%;
-    height: 350px;
-    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+    height: 450px;
+    background: linear-gradient(180deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
     border-radius: 12px;
     overflow: hidden;
-    border: 3px solid #ff8c42;
+    border: 4px solid #ff8c42;
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.5);
+  }
+
+  .catch-zone {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 90px;
+    background: linear-gradient(180deg, transparent 0%, rgba(255, 140, 66, 0.1) 100%);
+    border-top: 2px dashed rgba(255, 140, 66, 0.3);
   }
 
   .caro-sprite {
     position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60px;
-    height: 60px;
-    transition: left 0.1s ease-out;
+    bottom: 15px;
+    width: 80px;
+    height: 80px;
     z-index: 10;
+    transition: left 0.08s ease-out;
+  }
+
+  .caro-sprite.catch {
+    animation: catchBounce 0.3s ease-out;
+  }
+
+  .caro-sprite.hit {
+    animation: hitShake 0.4s ease-out;
+  }
+
+  @keyframes catchBounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+  }
+
+  @keyframes hitShake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-10px); }
+    40% { transform: translateX(10px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
   }
 
   .caro-img {
@@ -116,7 +161,7 @@
     image-rendering: pixelated;
     image-rendering: -moz-crisp-edges;
     image-rendering: crisp-edges;
-    filter: drop-shadow(0 0 10px rgba(255, 140, 66, 0.5));
+    filter: drop-shadow(0 0 15px rgba(255, 140, 66, 0.6));
   }
 
   .commands-container {
@@ -130,31 +175,49 @@
 
   .falling-command {
     position: absolute;
-    padding: 8px 12px;
+    padding: 10px 16px;
     background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
     color: white;
     font-family: 'Courier New', monospace;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: bold;
-    border-radius: 6px;
+    border-radius: 8px;
     white-space: nowrap;
-    box-shadow: 0 4px 15px rgba(255, 140, 66, 0.4);
-    animation: glow 1s ease-in-out infinite alternate;
+    box-shadow: 0 4px 20px rgba(255, 140, 66, 0.5);
+    transition: transform 0.1s;
+  }
+
+  .falling-command.good {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    box-shadow: 0 4px 20px rgba(255, 140, 66, 0.5);
   }
 
   .falling-command.bad {
     background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+    box-shadow: 0 4px 20px rgba(231, 76, 60, 0.5);
+    animation: dangerPulse 0.5s ease-in-out infinite;
   }
 
   .falling-command.bonus {
     background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-    box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+    box-shadow: 0 4px 20px rgba(46, 204, 113, 0.5);
+    animation: bonusGlow 0.8s ease-in-out infinite alternate;
   }
 
-  @keyframes glow {
+  .falling-command.caught {
+    transform: scale(1.3);
+    opacity: 0;
+    transition: all 0.2s ease-out;
+  }
+
+  @keyframes dangerPulse {
+    0%, 100% { box-shadow: 0 4px 20px rgba(231, 76, 60, 0.5); }
+    50% { box-shadow: 0 4px 30px rgba(231, 76, 60, 0.8); }
+  }
+
+  @keyframes bonusGlow {
     from { filter: brightness(1); }
-    to { filter: brightness(1.2); }
+    to { filter: brightness(1.3); }
   }
 
   .game-overlay {
@@ -163,7 +226,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.85);
+    background: rgba(0, 0, 0, 0.9);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -178,11 +241,12 @@
   .overlay-content {
     text-align: center;
     color: white;
+    padding: 20px;
   }
 
   .overlay-content h3 {
-    font-size: 32px;
-    margin-bottom: 10px;
+    font-size: 42px;
+    margin-bottom: 15px;
     background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -190,117 +254,191 @@
   }
 
   .overlay-content p {
-    font-size: 16px;
+    font-size: 18px;
     margin-bottom: 20px;
     color: #ccc;
   }
 
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #aaa;
+  }
+
+  .legend-item span:first-child {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+  }
+
+  .legend-good {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+  }
+
+  .legend-bonus {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+  }
+
+  .legend-bad {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  }
+
   .game-button {
-    padding: 14px 40px;
-    font-size: 18px;
+    padding: 16px 50px;
+    font-size: 20px;
     font-weight: bold;
     color: white;
     background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
   }
 
   .game-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(255, 140, 66, 0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.5);
   }
 
   .game-controls {
-    display: none;
+    display: flex;
     justify-content: center;
-    gap: 20px;
-    margin-top: 15px;
+    gap: 30px;
+    margin-top: 20px;
   }
 
   .control-btn {
-    width: 70px;
-    height: 50px;
-    font-size: 24px;
+    width: 100px;
+    height: 60px;
+    font-size: 28px;
     background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
     color: white;
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     cursor: pointer;
-    transition: transform 0.1s;
+    transition: transform 0.1s, box-shadow 0.2s;
+    box-shadow: 0 4px 15px rgba(255, 140, 66, 0.3);
+  }
+
+  .control-btn:hover {
+    box-shadow: 0 6px 20px rgba(255, 140, 66, 0.4);
   }
 
   .control-btn:active {
     transform: scale(0.95);
   }
 
+  .game-hint {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  /* Floating score text */
+  .floating-score {
+    position: absolute;
+    font-size: 24px;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    pointer-events: none;
+    z-index: 15;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    animation: floatUp 0.8s ease-out forwards;
+  }
+
   @media (max-width: 768px) {
-    .game-controls {
-      display: flex;
+    .game-container {
+      padding: 16px;
     }
 
     .game-canvas {
-      height: 300px;
+      height: 380px;
     }
 
     .caro-sprite {
-      width: 50px;
-      height: 50px;
+      width: 65px;
+      height: 65px;
     }
 
     .falling-command {
-      font-size: 10px;
-      padding: 6px 10px;
+      font-size: 12px;
+      padding: 8px 12px;
     }
-  }
 
-  @media (pointer: coarse) {
-    .game-controls {
-      display: flex;
+    .game-header {
+      font-size: 14px;
+      padding: 10px 15px;
+    }
+
+    .overlay-content h3 {
+      font-size: 32px;
+    }
+
+    .legend {
+      gap: 12px;
+    }
+
+    .legend-item {
+      font-size: 12px;
     }
   }
 </style>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const canvas = document.getElementById('game-canvas');
-    const caro = document.getElementById('caro');
-    const commandsContainer = document.getElementById('commands-container');
-    const overlay = document.getElementById('game-overlay');
-    const overlayTitle = document.getElementById('overlay-title');
-    const overlayMessage = document.getElementById('overlay-message');
-    const startButton = document.getElementById('start-button');
-    const scoreDisplay = document.getElementById('score');
-    const highScoreDisplay = document.getElementById('high-score');
-    const livesDisplay = document.getElementById('lives');
-    const leftBtn = document.getElementById('left-btn');
-    const rightBtn = document.getElementById('right-btn');
+    const canvas = document.getElementById('game-canvas') as HTMLElement;
+    const caro = document.getElementById('caro') as HTMLElement;
+    const commandsContainer = document.getElementById('commands-container') as HTMLElement;
+    const overlay = document.getElementById('game-overlay') as HTMLElement;
+    const overlayTitle = document.getElementById('overlay-title') as HTMLElement;
+    const overlayMessage = document.getElementById('overlay-message') as HTMLElement;
+    const startButton = document.getElementById('start-button') as HTMLElement;
+    const scoreDisplay = document.getElementById('score') as HTMLElement;
+    const highScoreDisplay = document.getElementById('high-score') as HTMLElement;
+    const livesDisplay = document.getElementById('lives') as HTMLElement;
+    const leftBtn = document.getElementById('left-btn') as HTMLElement;
+    const rightBtn = document.getElementById('right-btn') as HTMLElement;
 
     if (!canvas || !caro || !commandsContainer || !overlay || !startButton) return;
+
+    // Game constants
+    const CARO_WIDTH = 80;
+    const CATCH_ZONE_HEIGHT = 90;
 
     // Game state
     let gameRunning = false;
     let score = 0;
     let lives = 3;
-    let caroX = 50; // percentage
-    let commands: { el: HTMLElement; x: number; y: number; speed: number; type: string }[] = [];
+    let caroX = 0; // pixel position (will be centered on start)
+    let commands: { el: HTMLElement; x: number; y: number; speed: number; type: string; width: number }[] = [];
     let spawnInterval: number | null = null;
     let gameLoop: number | null = null;
     let highScore = parseInt(localStorage.getItem('caroGameHighScore') || '0');
+    let canvasWidth = 0;
+    let canvasHeight = 0;
 
     // Shell commands to catch (good ones)
     const goodCommands = [
-      'ls -la', 'pwd', 'cat file.txt', 'mkdir src', 'cp a b',
+      'ls -la', 'pwd', 'cat file', 'mkdir src', 'cp a b',
       'grep "hi"', 'find .', 'echo $PATH', 'cd ~', 'touch f',
-      'head -n 5', 'tail -f', 'wc -l', 'sort', 'uniq',
-      'chmod +x', 'ps aux', 'top', 'df -h', 'du -sh'
+      'head -n 5', 'tail -f', 'wc -l', 'sort', 'chmod +x',
+      'ps aux', 'df -h', 'du -sh', 'curl', 'wget'
     ];
 
-    // Dangerous commands to avoid (bad ones - subtract points)
+    // Dangerous commands to avoid
     const badCommands = [
-      'rm -rf /', 'rm -rf ~', 'sudo rm -rf', ':(){ :|:& };:',
-      'mkfs.ext4', 'dd if=/dev/zero', 'chmod 777 /'
+      'rm -rf /', 'rm -rf ~', 'sudo rm', ':(){ :|:&', 'mkfs', 'dd zero'
     ];
 
     // Bonus commands (extra points)
@@ -309,24 +447,33 @@
     ];
 
     // Update displays
-    highScoreDisplay!.textContent = highScore.toString();
+    highScoreDisplay.textContent = highScore.toString();
+
+    function updateDimensions() {
+      canvasWidth = canvas.offsetWidth;
+      canvasHeight = canvas.offsetHeight;
+    }
 
     function updateLives() {
-      const hearts = livesDisplay!.querySelectorAll('.heart');
+      const hearts = livesDisplay.querySelectorAll('.heart');
       hearts.forEach((heart, i) => {
         heart.classList.toggle('lost', i >= lives);
       });
     }
 
     function spawnCommand() {
+      if (!gameRunning) return;
+
+      updateDimensions();
+
       const rand = Math.random();
       let type: 'good' | 'bad' | 'bonus';
       let cmdArray: string[];
 
-      if (rand < 0.15) {
+      if (rand < 0.12) {
         type = 'bad';
         cmdArray = badCommands;
-      } else if (rand < 0.25) {
+      } else if (rand < 0.22) {
         type = 'bonus';
         cmdArray = bonusCommands;
       } else {
@@ -339,42 +486,61 @@
       el.className = `falling-command ${type}`;
       el.textContent = cmd;
 
-      commandsContainer!.appendChild(el);
+      commandsContainer.appendChild(el);
 
-      const maxX = 100 - 25; // Leave room for command width
-      const x = Math.random() * maxX;
-      el.style.left = `${x}%`;
+      // Get actual width after adding to DOM
+      const cmdWidth = el.offsetWidth;
+
+      // Position randomly but ensure it's fully within canvas
+      const padding = 10;
+      const maxX = canvasWidth - cmdWidth - padding;
+      const x = padding + Math.random() * maxX;
+
+      el.style.left = `${x}px`;
       el.style.top = '0px';
 
-      const baseSpeed = 1 + Math.min(score / 50, 2); // Speed increases with score
-      const speed = baseSpeed + Math.random() * 0.5;
+      // Speed increases with score but caps out
+      const baseSpeed = 2 + Math.min(score / 100, 3);
+      const speed = baseSpeed + Math.random() * 1;
 
-      commands.push({ el, x, y: 0, speed, type });
+      commands.push({ el, x, y: -el.offsetHeight, speed, type, width: cmdWidth });
     }
 
-    function checkCollision(cmd: { el: HTMLElement; x: number; y: number }) {
-      const canvasRect = canvas!.getBoundingClientRect();
-      const caroRect = caro!.getBoundingClientRect();
-      const cmdRect = cmd.el.getBoundingClientRect();
+    function checkCollision(cmd: { el: HTMLElement; x: number; y: number; width: number }): boolean {
+      // Caro's catch zone (wider than sprite for easier gameplay)
+      const caroCenterX = caroX + CARO_WIDTH / 2;
+      const caroLeft = caroCenterX - CARO_WIDTH * 0.7;
+      const caroRight = caroCenterX + CARO_WIDTH * 0.7;
+      const caroTop = canvasHeight - CATCH_ZONE_HEIGHT;
 
-      // Calculate relative positions
-      const caroLeft = caroRect.left - canvasRect.left;
-      const caroRight = caroRect.right - canvasRect.left;
-      const caroTop = caroRect.top - canvasRect.top;
+      // Command position
+      const cmdLeft = cmd.x;
+      const cmdRight = cmd.x + cmd.width;
+      const cmdBottom = cmd.y + cmd.el.offsetHeight;
+      const cmdTop = cmd.y;
 
-      const cmdLeft = cmdRect.left - canvasRect.left;
-      const cmdRight = cmdRect.right - canvasRect.left;
-      const cmdBottom = cmdRect.bottom - canvasRect.top;
+      // Check if command is in the catch zone and overlaps with Caro
+      const inCatchZone = cmdBottom >= caroTop && cmdTop < canvasHeight;
+      const horizontalOverlap = cmdRight > caroLeft && cmdLeft < caroRight;
 
-      return cmdBottom >= caroTop &&
-             cmdLeft < caroRight &&
-             cmdRight > caroLeft;
+      return inCatchZone && horizontalOverlap;
+    }
+
+    function showFloatingText(text: string, color: string, x: number) {
+      const floater = document.createElement('div');
+      floater.className = 'floating-score';
+      floater.textContent = text;
+      floater.style.left = `${x}px`;
+      floater.style.bottom = `${CATCH_ZONE_HEIGHT + 20}px`;
+      floater.style.color = color;
+      canvas.appendChild(floater);
+      setTimeout(() => floater.remove(), 800);
     }
 
     function update() {
       if (!gameRunning) return;
 
-      const canvasHeight = canvas!.offsetHeight;
+      updateDimensions();
 
       commands = commands.filter(cmd => {
         cmd.y += cmd.speed;
@@ -382,16 +548,23 @@
 
         // Check for catch
         if (checkCollision(cmd)) {
+          cmd.el.classList.add('caught');
+
           if (cmd.type === 'good') {
             score += 10;
-            showFloatingText('+10', '#2ecc71');
+            showFloatingText('+10', '#2ecc71', cmd.x + cmd.width / 2);
+            caro.classList.add('catch');
+            setTimeout(() => caro.classList.remove('catch'), 300);
           } else if (cmd.type === 'bonus') {
             score += 25;
-            showFloatingText('+25', '#f1c40f');
+            showFloatingText('+25', '#f1c40f', cmd.x + cmd.width / 2);
+            caro.classList.add('catch');
+            setTimeout(() => caro.classList.remove('catch'), 300);
           } else {
-            score = Math.max(0, score - 15);
             lives--;
-            showFloatingText('-15', '#e74c3c');
+            showFloatingText('OUCH!', '#e74c3c', cmd.x + cmd.width / 2);
+            caro.classList.add('hit');
+            setTimeout(() => caro.classList.remove('hit'), 400);
             updateLives();
 
             if (lives <= 0) {
@@ -400,14 +573,15 @@
             }
           }
 
-          scoreDisplay!.textContent = score.toString();
-          cmd.el.remove();
+          scoreDisplay.textContent = score.toString();
+          setTimeout(() => cmd.el.remove(), 200);
           return false;
         }
 
-        // Check if missed
+        // Check if missed (fell off bottom)
         if (cmd.y > canvasHeight) {
-          if (cmd.type === 'good') {
+          if (cmd.type === 'good' || cmd.type === 'bonus') {
+            // Missed a good command
             lives--;
             updateLives();
 
@@ -425,46 +599,31 @@
       gameLoop = requestAnimationFrame(update);
     }
 
-    function showFloatingText(text: string, color: string) {
-      const floater = document.createElement('div');
-      floater.textContent = text;
-      floater.style.cssText = `
-        position: absolute;
-        left: ${caroX}%;
-        bottom: 80px;
-        transform: translateX(-50%);
-        color: ${color};
-        font-size: 20px;
-        font-weight: bold;
-        font-family: 'Courier New', monospace;
-        pointer-events: none;
-        animation: floatUp 0.8s ease-out forwards;
-        z-index: 15;
-      `;
-      canvas!.appendChild(floater);
-      setTimeout(() => floater.remove(), 800);
-    }
-
     function startGame() {
+      updateDimensions();
+
       gameRunning = true;
       score = 0;
       lives = 3;
-      caroX = 50;
+
+      // Center Caro
+      caroX = (canvasWidth - CARO_WIDTH) / 2;
+      caro.style.left = `${caroX}px`;
+
+      // Clear old commands
       commands.forEach(c => c.el.remove());
       commands = [];
 
-      scoreDisplay!.textContent = '0';
+      scoreDisplay.textContent = '0';
       updateLives();
-      overlay!.classList.add('hidden');
+      overlay.classList.add('hidden');
 
-      caro!.style.left = `${caroX}%`;
-
-      // Spawn commands
+      // Spawn commands at regular intervals
       spawnInterval = window.setInterval(() => {
         if (gameRunning) {
           spawnCommand();
         }
-      }, 1200 - Math.min(score, 400)); // Spawn faster as score increases
+      }, 1000);
 
       gameLoop = requestAnimationFrame(update);
     }
@@ -479,63 +638,92 @@
       if (score > highScore) {
         highScore = score;
         localStorage.setItem('caroGameHighScore', highScore.toString());
-        highScoreDisplay!.textContent = highScore.toString();
+        highScoreDisplay.textContent = highScore.toString();
+        overlayTitle.textContent = 'New High Score!';
+      } else {
+        overlayTitle.textContent = 'Game Over!';
       }
 
-      overlayTitle!.textContent = 'Game Over!';
-      overlayMessage!.textContent = `Score: ${score} | Best: ${highScore}`;
-      startButton!.textContent = 'Play Again';
-      overlay!.classList.remove('hidden');
+      overlayMessage.textContent = `Score: ${score} | Best: ${highScore}`;
+      startButton.textContent = 'Play Again';
+      overlay.classList.remove('hidden');
     }
 
     // Movement
     function moveCaro(direction: 'left' | 'right') {
       if (!gameRunning) return;
 
-      const step = 8;
+      updateDimensions();
+      const step = 25; // Bigger steps for more responsive movement
+
       if (direction === 'left') {
-        caroX = Math.max(5, caroX - step);
+        caroX = Math.max(0, caroX - step);
       } else {
-        caroX = Math.min(95, caroX + step);
+        caroX = Math.min(canvasWidth - CARO_WIDTH, caroX + step);
       }
-      caro!.style.left = `${caroX}%`;
+      caro.style.left = `${caroX}px`;
     }
 
     // Keyboard controls
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowLeft' || e.key === 'a') {
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        e.preventDefault();
         moveCaro('left');
-      } else if (e.key === 'ArrowRight' || e.key === 'd') {
+      } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        e.preventDefault();
         moveCaro('right');
       } else if (e.key === ' ' && !gameRunning) {
+        e.preventDefault();
         startGame();
       }
     });
 
-    // Touch/click controls
-    startButton!.addEventListener('click', startGame);
+    // Click controls
+    startButton.addEventListener('click', startGame);
     leftBtn?.addEventListener('click', () => moveCaro('left'));
     rightBtn?.addEventListener('click', () => moveCaro('right'));
 
-    // Touch hold for continuous movement
-    let leftHeld = false;
-    let rightHeld = false;
+    // Touch/mouse hold for continuous movement
+    let moveInterval: number | null = null;
 
-    function holdMove() {
-      if (leftHeld) moveCaro('left');
-      if (rightHeld) moveCaro('right');
-      if (leftHeld || rightHeld) {
-        requestAnimationFrame(holdMove);
+    function startMoving(direction: 'left' | 'right') {
+      moveCaro(direction);
+      if (moveInterval) clearInterval(moveInterval);
+      moveInterval = window.setInterval(() => moveCaro(direction), 50);
+    }
+
+    function stopMoving() {
+      if (moveInterval) {
+        clearInterval(moveInterval);
+        moveInterval = null;
       }
     }
 
-    leftBtn?.addEventListener('touchstart', (e) => { e.preventDefault(); leftHeld = true; holdMove(); });
-    leftBtn?.addEventListener('touchend', () => { leftHeld = false; });
-    leftBtn?.addEventListener('touchcancel', () => { leftHeld = false; });
+    // Left button
+    leftBtn?.addEventListener('mousedown', () => startMoving('left'));
+    leftBtn?.addEventListener('touchstart', (e) => { e.preventDefault(); startMoving('left'); });
 
-    rightBtn?.addEventListener('touchstart', (e) => { e.preventDefault(); rightHeld = true; holdMove(); });
-    rightBtn?.addEventListener('touchend', () => { rightHeld = false; });
-    rightBtn?.addEventListener('touchcancel', () => { rightHeld = false; });
+    // Right button
+    rightBtn?.addEventListener('mousedown', () => startMoving('right'));
+    rightBtn?.addEventListener('touchstart', (e) => { e.preventDefault(); startMoving('right'); });
+
+    // Stop on release
+    document.addEventListener('mouseup', stopMoving);
+    document.addEventListener('touchend', stopMoving);
+    document.addEventListener('touchcancel', stopMoving);
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      updateDimensions();
+      // Keep Caro in bounds
+      if (caroX > canvasWidth - CARO_WIDTH) {
+        caroX = canvasWidth - CARO_WIDTH;
+        caro.style.left = `${caroX}px`;
+      }
+    });
+
+    // Initialize dimensions
+    updateDimensions();
   });
 </script>
 
@@ -543,11 +731,11 @@
   @keyframes floatUp {
     0% {
       opacity: 1;
-      transform: translateX(-50%) translateY(0);
+      transform: translateY(0);
     }
     100% {
       opacity: 0;
-      transform: translateX(-50%) translateY(-40px);
+      transform: translateY(-50px);
     }
   }
 </style>
