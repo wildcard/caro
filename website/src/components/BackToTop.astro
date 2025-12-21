@@ -6,6 +6,11 @@
   ↑
 </button>
 
+<button id="mute-toggle" class="mute-toggle" aria-label="Toggle elevator music">
+  <span class="unmuted">🔊</span>
+  <span class="muted">🔇</span>
+</button>
+
 <style>
   .back-to-top {
     position: fixed;
@@ -70,6 +75,82 @@
     box-shadow: 0 8px 20px rgba(0, 56, 184, 0.5);
   }
 
+  /* Mute toggle button */
+  .mute-toggle {
+    position: fixed;
+    bottom: 100px;
+    right: 40px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+    color: white;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(100px);
+  }
+
+  .mute-toggle.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .mute-toggle:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(127, 140, 141, 0.4);
+  }
+
+  .mute-toggle:active {
+    transform: translateY(-2px);
+  }
+
+  .mute-toggle .muted {
+    display: none;
+  }
+
+  .mute-toggle.is-muted .muted {
+    display: inline;
+  }
+
+  .mute-toggle.is-muted .unmuted {
+    display: none;
+  }
+
+  /* Dark mode adjustments */
+  .dark .mute-toggle {
+    background: linear-gradient(135deg, #7f8c8d 0%, #5d6d7e 100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .dark .mute-toggle:hover {
+    box-shadow: 0 8px 20px rgba(127, 140, 141, 0.5);
+  }
+
+  /* Christmas theme */
+  .christmas .mute-toggle {
+    background: linear-gradient(135deg, var(--christmas-gold) 0%, #daa520 100%);
+  }
+
+  .christmas .mute-toggle:hover {
+    box-shadow: 0 8px 20px rgba(255, 215, 0, 0.5);
+  }
+
+  /* Hanukkah theme */
+  .hanukkah .mute-toggle {
+    background: linear-gradient(135deg, var(--hanukkah-silver) 0%, #a8a8a8 100%);
+  }
+
+  .hanukkah .mute-toggle:hover {
+    box-shadow: 0 8px 20px rgba(192, 192, 192, 0.5);
+  }
+
   /* Mobile adjustments */
   @media (max-width: 768px) {
     .back-to-top {
@@ -79,6 +160,14 @@
       height: 45px;
       font-size: 20px;
     }
+
+    .mute-toggle {
+      bottom: 75px;
+      right: 20px;
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
+    }
   }
 </style>
 
@@ -87,18 +176,48 @@
   const script = document.createElement('script');
   script.src = '/elevator.js';
   script.onload = () => {
-    // Initialize elevator.js after it loads
+    // Get buttons and mute state
     const button = document.getElementById('back-to-top');
+    const muteToggle = document.getElementById('mute-toggle');
 
-    // @ts-ignore - Elevator is loaded from external script
-    const elevator = new Elevator({
-      element: button,
-      mainAudio: '/elevator-music.mp3',
-      endAudio: '/elevator-music.mp3',
-      duration: 3000, // 3 seconds
+    // Check localStorage for mute preference (default: unmuted)
+    let isMuted = localStorage.getItem('elevatorMuted') === 'true';
+
+    // Update mute button state
+    if (isMuted) {
+      muteToggle?.classList.add('is-muted');
+    }
+
+    // Initialize elevator.js after it loads
+    let elevator: any;
+
+    const initElevator = (muted: boolean) => {
+      // @ts-ignore - Elevator is loaded from external script
+      elevator = new Elevator({
+        element: button,
+        mainAudio: muted ? undefined : '/elevator-music.mp3',
+        duration: 3000, // 3 seconds
+      });
+    };
+
+    initElevator(isMuted);
+
+    // Mute toggle handler
+    muteToggle?.addEventListener('click', () => {
+      isMuted = !isMuted;
+      localStorage.setItem('elevatorMuted', isMuted.toString());
+
+      if (isMuted) {
+        muteToggle.classList.add('is-muted');
+      } else {
+        muteToggle.classList.remove('is-muted');
+      }
+
+      // Reinitialize elevator with new audio settings
+      initElevator(isMuted);
     });
 
-    // Show/hide button based on scroll position
+    // Show/hide buttons based on scroll position
     let scrollTimeout: number;
     const handleScroll = () => {
       if (scrollTimeout) {
@@ -108,8 +227,10 @@
       scrollTimeout = window.setTimeout(() => {
         if (window.scrollY > 300) {
           button?.classList.add('visible');
+          muteToggle?.classList.add('visible');
         } else {
           button?.classList.remove('visible');
+          muteToggle?.classList.remove('visible');
         }
       }, 100);
     };
