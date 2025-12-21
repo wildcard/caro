@@ -264,15 +264,16 @@
     background: linear-gradient(180deg, #252535 0%, #1a1a28 100%);
     border: 3px solid #444;
     border-radius: 12px;
-    padding: 18px 20px;
+    padding: 14px 18px;
     font-family: 'Courier New', monospace;
     font-size: 15px;
     color: #ddd;
     cursor: pointer;
     transition: all 0.15s ease;
     text-align: left;
-    position: relative;
-    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
 
   .option-btn:hover:not(:disabled) {
@@ -318,18 +319,27 @@
     50% { transform: scale(1.05); }
   }
 
-  .option-btn::before {
-    content: '$ ';
-    color: #666;
+  .option-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(180deg, #ff8c42 0%, #e67635 100%);
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 8px;
+    flex-shrink: 0;
   }
 
-  .option-label {
-    position: absolute;
-    top: 5px;
-    left: 10px;
-    font-size: 11px;
+  .option-cmd {
+    flex: 1;
+  }
+
+  .option-cmd::before {
+    content: '$ ';
     color: #666;
-    font-weight: bold;
   }
 
   /* Overlay */
@@ -611,7 +621,7 @@
       currentOptions.forEach((opt, i) => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
-        btn.innerHTML = `<span class="option-label">${labels[i]}</span>${opt.cmd}`;
+        btn.innerHTML = `<span class="option-label">${labels[i]}</span><span class="option-cmd">${opt.cmd}</span>`;
         btn.addEventListener('click', () => handleAnswer(i, btn));
         optionsGrid!.appendChild(btn);
       });
