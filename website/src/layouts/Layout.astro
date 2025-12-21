@@ -1,6 +1,7 @@
 ---
 import Analytics from '@vercel/analytics/astro';
 import SnowEffect from '../components/SnowEffect.astro';
+import BackToTop from '../components/BackToTop.astro';
 
 interface Props {
   title: string;
@@ -59,6 +60,7 @@ const { title, description } = Astro.props;
   <body>
     <SnowEffect />
     <slot />
+    <BackToTop />
     <Analytics />
   </body>
 </html>
