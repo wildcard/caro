@@ -27,6 +27,9 @@ Thumbs.db
 .env.*.local
 *.env
 
+# act secrets (local GitHub Actions runner)
+.secrets
+
 # OS generated files
 .DS_Store
 .DS_Store?

@@ -1,0 +1,28 @@
+# act configuration for caro project
+# This file configures act to closely match GitHub's hosted runners
+
+# Use runner images that match GitHub's preinstalled tools
+-P ubuntu-latest=ghcr.io/catthehacker/ubuntu:act-latest
+-P ubuntu-22.04=ghcr.io/catthehacker/ubuntu:act-22.04
+-P ubuntu-20.04=ghcr.io/catthehacker/ubuntu:act-20.04
+
+# macOS runner image (limited functionality - mainly for syntax checks)
+-P macos-latest=ghcr.io/catthehacker/ubuntu:act-latest
+-P macos-13=ghcr.io/catthehacker/ubuntu:act-latest
+
+# Windows runner image (limited functionality)
+-P windows-latest=ghcr.io/catthehacker/ubuntu:act-latest
+
+# Apple Silicon architecture support (for local M1/M2/M3 Macs)
+# Force amd64 architecture for compatibility (GitHub runners use x86_64)
+--container-architecture linux/amd64
+
+# Default to verbose output for better debugging
+-v
+
+# Reuse containers for faster iteration (comment out if you need clean state)
+--reuse
+
+# Set sensible container options (separate flags)
+--container-options --cpus=4
+--container-options --memory=8g
