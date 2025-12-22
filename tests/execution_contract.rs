@@ -62,7 +62,12 @@ fn test_execution_context_capture() {
 #[test]
 fn test_execution_context_new() {
     // CONTRACT: ExecutionContext::new() creates context with custom values
+    // Use platform-appropriate test path
+    #[cfg(unix)]
     let test_dir = PathBuf::from("/tmp/test");
+    #[cfg(windows)]
+    let test_dir = PathBuf::from("C:\\Windows\\Temp\\test");
+    
     let result = ExecutionContext::new(test_dir.clone(), ShellType::Bash, Platform::Linux);
 
     assert!(
@@ -92,8 +97,15 @@ fn test_context_filters_sensitive_env_vars() {
     );
 
     // Non-sensitive var should be included
+    // Windows uses USERPROFILE instead of HOME
+    #[cfg(unix)]
     assert!(
         context.has_env_var("HOME") || context.has_env_var("PATH"),
+        "Standard env vars should be included"
+    );
+    #[cfg(windows)]
+    assert!(
+        context.has_env_var("USERPROFILE") || context.has_env_var("PATH"),
         "Standard env vars should be included"
     );
 
@@ -193,11 +205,20 @@ fn test_shell_detector_falls_back_to_sh() {
 
     let detected = detector.detect();
 
-    // Should fall back to Sh
+    // Should fall back to platform-appropriate default
+    // Unix: Sh, Windows: PowerShell
+    #[cfg(unix)]
     assert_eq!(
         detected,
         ShellType::Sh,
-        "Should fallback to Sh when detection fails"
+        "Should fallback to Sh on Unix when detection fails"
+    );
+    
+    #[cfg(windows)]
+    assert_eq!(
+        detected,
+        ShellType::PowerShell,
+        "Should fallback to PowerShell on Windows when detection fails"
     );
 
     // Restore SHELL
