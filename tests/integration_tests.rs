@@ -197,13 +197,11 @@ async fn test_error_propagation_across_components() {
 
         // Create safety validator
         let validator = SafetyValidator::new(SafetyConfig::strict());
-        if validator.is_ok() {
-            let v = validator.unwrap();
+        if let Ok(v) = validator {
             let result = v.validate_command(prompt, ShellType::Bash).await;
 
             // Should either succeed with appropriate risk level or fail gracefully
-            if result.is_ok() {
-                let validation = result.unwrap();
+            if let Ok(validation) = result {
                 if prompt.is_empty() {
                     assert!(validation.allowed, "Empty commands should be allowed");
                 } else if prompt.contains("malicious") {
@@ -214,9 +212,8 @@ async fn test_error_propagation_across_components() {
                         "Malicious commands should have risk assessment"
                     );
                 }
-            } else {
+            } else if let Err(error) = result {
                 // Error should be meaningful
-                let error = result.unwrap_err();
                 assert!(
                     !error.to_string().is_empty(),
                     "Error message should not be empty"
@@ -247,15 +244,11 @@ async fn test_configuration_integration() {
         };
 
         let validator = SafetyValidator::new(safety_config);
-        if validator.is_ok() {
-            let v = validator.unwrap();
-
+        if let Ok(v) = validator {
             // Test with borderline dangerous command
             let result = v.validate_command("rm *.tmp", ShellType::Bash).await;
 
-            if result.is_ok() {
-                let validation = result.unwrap();
-
+            if let Ok(validation) = result {
                 // Different safety levels should behave differently
                 match safety_level {
                     SafetyLevel::Strict => {
@@ -397,9 +390,7 @@ async fn test_state_consistency_integration() {
     for operation in operations {
         let result = v.validate_command(operation, ShellType::Bash).await;
 
-        if result.is_ok() {
-            let validation = result.unwrap();
-
+        if let Ok(validation) = result {
             // Safe operations should consistently be safe
             if operation.starts_with("echo") || operation == "pwd" || operation == "date" {
                 assert!(
