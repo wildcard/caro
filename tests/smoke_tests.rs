@@ -46,7 +46,7 @@ async fn smoke_test_basic_inference() {
         eprintln!("⚠️  Skipping test - inference failed");
         return;
     };
-    
+
     assert!(!cmd.command.is_empty(), "Command should not be empty");
     assert!(
         cmd.command.len() < 500,
