@@ -37,6 +37,7 @@ pub mod model_catalog;
 pub mod model_loader;
 pub mod models;
 pub mod platform;
+pub mod resources;
 pub mod safety;
 pub mod version;
 
@@ -55,6 +56,12 @@ pub use execution::{ExecutionError, PlatformDetector, ShellDetector};
 pub use logging::{LogConfig, LogConfigBuilder, LogError, LogFormat, LogOutput, Logger, Redaction};
 pub use model_loader::ModelLoader;
 pub use platform::{PlatformContext, PlatformContextBuilder, PlatformContextError, UtilityType};
+
+// Re-export resources module types
+pub use resources::{
+    ModelInfo, ModelRecommendation, ModelTier, ModelTierConfig, OnboardingFlow, OnboardingResult,
+    RecommendationEngine, ResourceAssessment, ResourceError, SystemResources, UserPreferences,
+};
 
 // Re-export backend types
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
