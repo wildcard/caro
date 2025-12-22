@@ -73,9 +73,7 @@ async fn test_safety_validator_error_handling() {
 
     // Test with valid configuration
     let valid_validator = SafetyValidator::new(SafetyConfig::moderate());
-    if valid_validator.is_ok() {
-        let validator = valid_validator.unwrap();
-
+    if let Ok(validator) = valid_validator {
         // Test error scenarios
         let long_command = "a".repeat(10000);
         let error_test_cases = vec![
@@ -124,9 +122,7 @@ async fn test_timeout_error_handling() {
     // ERROR HANDLING: System should handle timeouts gracefully
 
     let validator = SafetyValidator::new(SafetyConfig::moderate());
-    if validator.is_ok() {
-        let v = validator.unwrap();
-
+    if let Ok(v) = validator {
         // Test with timeout
         let timeout_result = tokio::time::timeout(
             Duration::from_millis(10), // Very short timeout
@@ -159,9 +155,7 @@ async fn test_resource_exhaustion_handling() {
     // ERROR HANDLING: System should handle resource exhaustion
 
     let validator = SafetyValidator::new(SafetyConfig::moderate());
-    if validator.is_ok() {
-        let _v = validator.unwrap();
-
+    if let Ok(_v) = validator {
         // Test with many concurrent operations
         let commands: Vec<_> = (0..100).map(|i| format!("test command {}", i)).collect();
         let handles: Vec<_> = commands
@@ -210,9 +204,7 @@ async fn test_invalid_shell_type_handling() {
     // ERROR HANDLING: Should handle invalid or unsupported shell types gracefully
 
     let validator = SafetyValidator::new(SafetyConfig::moderate());
-    if validator.is_ok() {
-        let v = validator.unwrap();
-
+    if let Ok(v) = validator {
         // Test with all supported shell types
         let shells = vec![
             ShellType::Bash,
@@ -254,16 +246,14 @@ async fn test_malformed_input_handling() {
     // ERROR HANDLING: Should handle malformed input without crashing
 
     let validator = SafetyValidator::new(SafetyConfig::moderate());
-    if validator.is_ok() {
-        let v = validator.unwrap();
-
+    if let Ok(v) = validator {
         let malformed_inputs = vec![
             "command\n\nwith\r\nnewlines",
             "command\twith\ttabs",
             "command with unicode: 你好世界 🌍",
             "command with emoji: 💻🚀🔒",
             "command with quotes: \"nested 'quotes'\"",
-            "command with backslashes: \\\\server\\share",
+            "command with backslashes: \\server\share",
             "command with semicolons; && || operators",
             "command | with | pipes > and < redirects",
             "command $(with) `backticks` and $variables",
@@ -324,8 +314,7 @@ async fn test_error_serialization() {
             error
         );
 
-        if serialized.is_ok() {
-            let json = serialized.unwrap();
+        if let Ok(json) = serialized {
             assert!(!json.is_empty(), "Serialized error should not be empty");
 
             // Test deserialization
@@ -352,16 +341,14 @@ async fn test_graceful_degradation() {
     let validator_ok = validator_result.is_ok();
     let cli_ok = cli_result.is_ok();
 
-    if validator_result.is_err() {
-        let error = validator_result.unwrap_err();
+    if let Err(error) = validator_result {
         if !error.to_string().is_empty() {
             has_useful_error = true;
             println!("Validator error: {}", error);
         }
     }
 
-    if cli_result.is_err() {
-        let error = cli_result.unwrap_err();
+    if let Err(error) = cli_result {
         if !error.to_string().is_empty() {
             has_useful_error = true;
             println!("CLI error: {}", error);
@@ -380,9 +367,7 @@ async fn test_error_context_preservation() {
     // ERROR HANDLING: Error context should be preserved through call stack
 
     let validator = SafetyValidator::new(SafetyConfig::moderate());
-    if validator.is_ok() {
-        let v = validator.unwrap();
-
+    if let Ok(v) = validator {
         // Test command that might trigger various error paths
         let problematic_command = "rm -rf $(find / -name '*.important' 2>/dev/null)";
         let result = v
@@ -422,9 +407,7 @@ async fn test_recovery_from_errors() {
     // ERROR HANDLING: System should recover from errors and continue functioning
 
     let validator = SafetyValidator::new(SafetyConfig::moderate());
-    if validator.is_ok() {
-        let v = validator.unwrap();
-
+    if let Ok(v) = validator {
         // Test sequence: error -> recovery -> normal operation
         let test_sequence = vec![
             ("", "empty command"),
