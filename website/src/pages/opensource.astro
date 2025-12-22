@@ -1,0 +1,164 @@
+---
+import StaticPage from '../layouts/StaticPage.astro';
+---
+
+<StaticPage
+  title="Open Source"
+  description="Open source isn't just our distribution model—it's how we think about building software. Learn about Caro's open source philosophy and how to contribute."
+  subtitle="Open source isn't just our distribution model—it's how we think about building software."
+>
+
+<h2>Building in the Open</h2>
+
+<p>
+  When we started caro, we made a deliberate choice: develop everything in public from day one. Not because we had to, but because we believe better software emerges when development happens in the open.
+</p>
+
+<p>
+  Every commit, every design decision, every failed experiment—it's all there in the git history. This isn't always comfortable. Early code is messy. Architectural decisions get revisited. Features get abandoned mid-implementation. But that transparency creates accountability and invites collaboration in ways that polished releases never can.
+</p>
+
+<h2>Why AGPL-3.0</h2>
+
+<p>
+  We chose the GNU Affero General Public License for a specific reason: caro is a tool that generates shell commands using AI. If someone takes this code and runs it as a service, we believe their users deserve access to any improvements they've made.
+</p>
+
+<p>
+  This isn't about restricting use—commercial use is explicitly allowed. It's about ensuring that the safety improvements, the new patterns we detect, the edge cases we handle, all flow back to the community. When you're building a tool that executes commands on people's systems, the collective wisdom of the community matters.
+</p>
+
+<blockquote>
+  If AGPL doesn't work for your use case, reach out. We're open to discussing alternatives for genuine needs.
+</blockquote>
+
+<h2>What's Open</h2>
+
+<p><strong>Everything.</strong></p>
+
+<p>The entire codebase is open source:</p>
+
+<ul>
+  <li>Core CLI and command generation</li>
+  <li>All inference backends (MLX, vLLM, Ollama)</li>
+  <li>Safety validation with 52+ dangerous patterns</li>
+  <li>The agentic refinement loop</li>
+  <li>Platform detection and context awareness</li>
+  <li>Our test suite and development tooling</li>
+</ul>
+
+<p>
+  We don't maintain a proprietary version with additional features. We don't hold back security patches for paying customers. The code you see on GitHub is the code we run.
+</p>
+
+<h2>Safety in the Open</h2>
+
+<p>
+  Building an AI tool that generates shell commands requires a particular kind of openness. Our safety module isn't just open source—it's designed to be audited, challenged, and improved by anyone who cares about command-line safety.
+</p>
+
+<p>
+  Every dangerous pattern we detect is visible. Every decision about risk levels is documented. If you find a gap in our safety coverage, that's not a vulnerability to exploit—it's a contribution waiting to happen.
+</p>
+
+<div class="highlight">
+  <p>
+    We maintain a public list of dangerous patterns that we block. We'd rather have attackers know what we catch than have defenders not know what we miss.
+  </p>
+</div>
+
+<h2>Standing on the Shoulders of Giants</h2>
+
+<p>Caro exists because of open source:</p>
+
+<ul>
+  <li><strong><a href="https://github.com/ml-explore/mlx" target="_blank" rel="noopener noreferrer">MLX</a></strong> — Apple's machine learning framework powers our Apple Silicon inference</li>
+  <li><strong><a href="https://github.com/huggingface/candle" target="_blank" rel="noopener noreferrer">Candle</a></strong> — Hugging Face's Rust ML framework enables cross-platform CPU inference</li>
+  <li><strong><a href="https://github.com/vllm-project/vllm" target="_blank" rel="noopener noreferrer">vLLM</a></strong> — High-performance serving for remote inference</li>
+  <li><strong><a href="https://ollama.ai" target="_blank" rel="noopener noreferrer">Ollama</a></strong> — Local LLM runtime that made local inference accessible</li>
+  <li><strong><a href="https://github.com/clap-rs/clap" target="_blank" rel="noopener noreferrer">clap</a></strong> — The CLI framework that handles our argument parsing</li>
+  <li><strong><a href="https://tokio.rs" target="_blank" rel="noopener noreferrer">tokio</a></strong> — Async runtime that powers our backend communication</li>
+</ul>
+
+<p>
+  We upstream fixes when we find them. We document our integration experiences. We try to be the kind of downstream user that maintainers appreciate.
+</p>
+
+<h2>Community-Driven Development</h2>
+
+<p>Open source at caro isn't just about code access—it's about development process:</p>
+
+<p>
+  <strong>Specifications are public.</strong> Our <code>specs/</code> directory contains design documents, architectural decisions, and implementation plans. You can see not just what we built, but why we built it that way.
+</p>
+
+<p>
+  <strong>Development is visible.</strong> We use GitHub issues for planning, discussions for ideas, and pull requests for all changes. There are no private roadmap meetings. If it affects the project, it happens in public.
+</p>
+
+<p>
+  <strong>Contributions shape direction.</strong> We don't have a fixed roadmap that ignores community input. Backend implementations, safety patterns, platform support—these can come from anyone.
+</p>
+
+<h2>Areas for Contribution</h2>
+
+<p>We actively welcome contributions in:</p>
+
+<ul>
+  <li><strong>Safety patterns</strong> — New dangerous command patterns, edge cases, platform-specific risks</li>
+  <li><strong>Backend implementations</strong> — Additional inference backends, optimization improvements</li>
+  <li><strong>Platform support</strong> — Better handling for Linux distributions, BSD variants, Windows edge cases</li>
+  <li><strong>Documentation</strong> — Usage examples, integration guides, troubleshooting</li>
+  <li><strong>Test coverage</strong> — Property-based testing, fuzzing, edge case discovery</li>
+</ul>
+
+<h2>The Economics of Open Source</h2>
+
+<p>
+  We believe open source can be sustainable without being extractive. Caro is currently a community project, but our approach to potential commercialization is straightforward:
+</p>
+
+<ul>
+  <li>The core tool will always be open source and free</li>
+  <li>Any commercial offerings would be services built around the tool, not locked-down versions of it</li>
+  <li>Improvements made in commercial contexts flow back to the open source project</li>
+</ul>
+
+<p>
+  We're inspired by projects like <a href="https://tailscale.com/opensource" target="_blank" rel="noopener noreferrer">Tailscale</a>, <a href="https://grafana.com/oss/" target="_blank" rel="noopener noreferrer">Grafana</a>, and <a href="https://about.gitlab.com/company/stewardship/" target="_blank" rel="noopener noreferrer">GitLab</a> that have shown open source and sustainability aren't mutually exclusive.
+</p>
+
+<h2>Transparency as a Feature</h2>
+
+<p>
+  When you run <code>caro "delete old log files"</code>, you're trusting the tool to generate something safe. That trust is easier to extend when:
+</p>
+
+<ul>
+  <li>You can read exactly how we validate commands</li>
+  <li>You can see the model prompts we use</li>
+  <li>You can verify our safety patterns match your risk tolerance</li>
+  <li>You can fork and modify if our choices don't fit your needs</li>
+</ul>
+
+<blockquote>
+  Closed-source AI tools ask you to trust their judgment. Open-source AI tools let you verify it.
+</blockquote>
+
+<div class="cta-section">
+  <h3>Get Involved</h3>
+  <p>The best time to get involved in an open source project is early. We're still small enough that individual contributions meaningfully shape the project's direction.</p>
+  <a href="https://github.com/wildcard/caro" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+</div>
+
+<hr>
+
+<p style="text-align: center; font-style: italic; color: var(--color-text-secondary);">
+  "The best way to have a good idea is to have lots of ideas." — Linus Pauling
+</p>
+
+<p style="text-align: center; color: var(--color-text-secondary);">
+  In open source, the best way to have good ideas is to have lots of people thinking about the problem. That's why we build in the open.
+</p>
+
+</StaticPage>
