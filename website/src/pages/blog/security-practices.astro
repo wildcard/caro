@@ -34,31 +34,8 @@ import BlogPost from '../../layouts/BlogPost.astro';
 </p>
 
 <p>
-  Our Dependabot configuration covers:
+  Our Dependabot configuration monitors Cargo (Rust) dependencies and GitHub Actions weekly, with grouped updates to reduce PR noise.
 </p>
-
-<ul>
-  <li><strong>Cargo (Rust) dependencies</strong>: Weekly scans of all crates in our dependency tree</li>
-  <li><strong>GitHub Actions</strong>: Keeping our CI/CD pipeline secure with updated actions</li>
-</ul>
-
-<pre><code># Our dependabot.yml configuration
-version: 2
-updates:
-  - package-ecosystem: "cargo"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    groups:
-      rust-minor-patch:
-        patterns: ["*"]
-        update-types: ["minor", "patch"]
-
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"</code></pre>
 
 <p>
   When Dependabot finds a vulnerability, it creates a pull request with the fix, links to the security advisory, and shows us the severity level. This automation means we catch security issues quickly without manual monitoring.
@@ -67,7 +44,7 @@ updates:
 <h3>Dependency Review: PR-Level Security Checks</h3>
 
 <p>
-  Every pull request that modifies <code>Cargo.toml</code>, <code>Cargo.lock</code>, or package manifests triggers our <a href="https://github.com/actions/dependency-review-action" target="_blank" rel="noopener noreferrer">Dependency Review</a> workflow. This action:
+  Every pull request that modifies <code>Cargo.toml</code>, <code>Cargo.lock</code>, or package manifests triggers our <a href="https://github.com/actions/dependency-review-action" target="_blank" rel="noopener noreferrer">Dependency Review</a> workflow. This action performs the following tasks:
 </p>
 
 <ul>
@@ -84,18 +61,7 @@ updates:
 <h3>cargo-audit: Rust-Specific Security Scanning</h3>
 
 <p>
-  We run <a href="https://rustsec.org/" target="_blank" rel="noopener noreferrer">cargo-audit</a> on every push and pull request. This tool checks our <code>Cargo.lock</code> against the RustSec Advisory Database—a community-maintained database of security vulnerabilities in Rust crates.
-</p>
-
-<pre><code># From our CI workflow
-- name: Run security audit
-  run: cargo audit
-
-- name: Check for unmaintained crates
-  run: cargo audit --deny warnings</code></pre>
-
-<p>
-  We also use <a href="https://github.com/EmbarkStudios/cargo-deny" target="_blank" rel="noopener noreferrer">cargo-deny</a> for additional checks on licenses, duplicate dependencies, and source trust validation.
+  We run <a href="https://rustsec.org/" target="_blank" rel="noopener noreferrer">cargo-audit</a> on every push and pull request. This tool checks our <code>Cargo.lock</code> against the RustSec Advisory Database—a community-maintained database of security vulnerabilities in Rust crates. We also use <a href="https://github.com/EmbarkStudios/cargo-deny" target="_blank" rel="noopener noreferrer">cargo-deny</a> for additional checks on licenses, duplicate dependencies, and source trust validation.
 </p>
 
 <h3>Security Advisories and Private Reporting</h3>
@@ -125,7 +91,7 @@ updates:
 
 <ul>
   <li><strong>Filesystem destruction</strong>: <code>rm -rf /</code>, <code>mkfs</code>, <code>dd if=/dev/zero</code></li>
-  <li><strong>Fork bombs</strong>: <code>:(){ :|:& };:</code> and variants</li>
+  <li><strong>Fork bombs</strong>: <code>{`:(){ :|:& };:`}</code> and variants</li>
   <li><strong>Privilege escalation</strong>: <code>sudo su</code>, <code>chmod 777 /</code></li>
   <li><strong>System path tampering</strong>: Operations on <code>/bin</code>, <code>/usr</code>, <code>/etc</code></li>
   <li><strong>Device manipulation</strong>: Direct writes to block devices</li>
