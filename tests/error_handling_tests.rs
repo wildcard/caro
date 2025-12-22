@@ -253,7 +253,7 @@ async fn test_malformed_input_handling() {
             "command with unicode: 你好世界 🌍",
             "command with emoji: 💻🚀🔒",
             "command with quotes: \"nested 'quotes'\"",
-            "command with backslashes: \\server\share",
+            r"command with backslashes: \\server\share",
             "command with semicolons; && || operators",
             "command | with | pipes > and < redirects",
             "command $(with) `backticks` and $variables",
