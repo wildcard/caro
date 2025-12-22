@@ -215,3 +215,11 @@ cmdai-validation/
 # Ledgers are OPTIONAL to track (uncomment if you want to share session state)
 # thoughts/ledgers/CONTINUITY_CLAUDE-*.md
 .continuous-claude-tmp/
+
+# AI Code Reviewer
+# The tool itself is cloned into tools/ and should not be tracked
+tools/ai-code-reviewer/
+# Task queue for ai-code-reviewer lives in project root
+.beads/
+# Logs generated during reviews
+.ai-code-reviewer/
