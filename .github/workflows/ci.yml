@@ -111,7 +111,7 @@ jobs:
     - name: Run smoke tests
       run: |
         echo "Running Tier A smoke tests with ${{ matrix.model.name }}"
-        cargo test --test inference_smoke --verbose -- --test-threads=1 --nocapture
+        cargo test --test smoke_tests --verbose -- --test-threads=1 --nocapture
       env:
         RUST_BACKTRACE: 1
         RUST_LOG: info
