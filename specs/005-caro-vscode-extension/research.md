@@ -138,7 +138,336 @@ Caro positions itself among elite AI coding assistants (Claude Code, GitHub Copi
 
 ---
 
-### 1.4 Cursor AI
+### 1.4 Cline Deep Dive: Agentic Architecture & Multi-Backend Support
+
+**Task Execution Loop:**
+
+Cline implements a sophisticated recursive conversation loop that is the core of its agentic capabilities:
+
+```
+User Task Input
+    ↓
+Controller.initTask() → Creates Task Instance
+    ↓
+┌─────────────────────────────────────────┐
+│         Recursive Conversation Loop      │
+│  ┌─────────────────────────────────┐    │
+│  │ 1. Send request to AI provider  │    │
+│  │ 2. Process response             │    │
+│  │ 3. Execute tools (with approval)│    │
+│  │ 4. Continue until completion    │    │
+│  └─────────────────────────────────┘    │
+└─────────────────────────────────────────┘
+    ↓
+Task Completion / User Abort
+```
+
+**Tool Approval Architecture:**
+
+The ToolExecutor class coordinates all tool operations through a registration-based architecture:
+
+| Approval Level | Description | Examples |
+|----------------|-------------|----------|
+| **Auto-Approve (Safe)** | Read-only operations | `ls`, `cat`, file reads |
+| **Auto-Approve (Config)** | User-configured safe ops | Build commands, tests |
+| **Require Approval** | Potentially destructive | File writes, `rm`, network |
+| **YOLO Mode** | Approve all (dangerous) | Full autonomy |
+
+**Built-in Tools:**
+- `read_file`: Read file contents with line numbers
+- `write_to_file`: Create/overwrite entire files
+- `search_files`: Regex search across workspace
+- `list_files`: Directory listing with recursion
+- `execute_command`: Terminal command execution
+- `browser_action`: Headless browser automation
+- `use_mcp_tool`: Execute MCP server tools
+
+**Multi-Backend Support:**
+
+Cline supports extensive backend flexibility:
+
+| Provider Type | Examples | Configuration |
+|---------------|----------|---------------|
+| **Cloud APIs** | Anthropic, OpenAI, Google Gemini | API keys |
+| **Cloud Gateways** | OpenRouter, AWS Bedrock, Azure | Endpoint + auth |
+| **Local Inference** | Ollama, LM Studio | `http://127.0.0.1:11434/v1` |
+| **Custom** | Any OpenAI-compatible API | URL + optional key |
+
+**Ollama Integration Details:**
+
+```typescript
+// Cline connects via OpenAI-compatible endpoint
+const ollamaConfig = {
+  baseUrl: "http://127.0.0.1:11434/v1",
+  model: "deepseek-r1:32b",  // or any Ollama model
+  apiKey: "ollama"  // placeholder, not validated
+};
+```
+
+**Challenges with Local Models:**
+- Complex prompts strain smaller models
+- Quantization reduces tool-use capability
+- Recommended: Claude 3.5 Sonnet for best results
+- Local models work but may struggle with multi-step reasoning
+
+**MCP (Model Context Protocol) Integration:**
+
+Cline is a first-class MCP client:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                         Cline                                │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │                    MCP Client                          │  │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐   │  │
+│  │  │ Filesystem  │  │   GitHub    │  │   Custom    │   │  │
+│  │  │   Server    │  │   Server    │  │   Server    │   │  │
+│  │  │  (stdio)    │  │  (stdio)    │  │  (HTTP)     │   │  │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘   │  │
+│  └───────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**MCP Features:**
+- Tools: Executable functions (file ops, API calls, DB queries)
+- Resources: Data sources for context
+- Prompts: Reusable interaction templates
+- Self-extending: Cline can create MCP servers via conversation
+
+**Terminal Integration (VS Code 1.93+):**
+
+```typescript
+// Cline leverages shell integration for:
+// - Direct command execution
+// - Real-time output capture
+// - Long-running process monitoring
+// - "Proceed While Running" for dev servers
+```
+
+**ShadowGit Checkpoint System:**
+
+Cline maintains recovery points using a shadow git repository, allowing users to revert to any previous state during autonomous operations.
+
+**Source:** [Cline DeepWiki](https://deepwiki.com/cline/cline), [Cline GitHub](https://github.com/cline/cline)
+
+---
+
+### 1.5 Tabby (Self-Hosted AI Coding Assistant)
+
+**Architecture Overview:**
+- Self-hosted, open-source alternative to GitHub Copilot
+- No DBMS or cloud service required
+- OpenAPI interface for infrastructure integration
+- Consumer-grade GPU support
+- RAG-based code completion with repository context
+
+**Key Features:**
+- **Code Completion**: Real-time multi-line suggestions
+- **Chat**: Side-panel conversation (since v1.7, June 2024)
+- **Answer Engine**: Central knowledge engine for teams (v0.13, July 2024)
+- **Context Providers**: Repository, docs, and custom integrations
+- **Agent** (Preview): Agentic coding capabilities
+
+**RAG Pipeline for Code Completion:**
+
+```
+User Code Context (from IDE)
+    ↓
+┌─────────────────────────────────────────────────┐
+│              RAG Code Completion                 │
+│  ┌───────────────────────────────────────────┐  │
+│  │ 1. Embed query using embedding model      │  │
+│  │ 2. Semantic search (Tantivy vector index) │  │
+│  │ 3. BM25 keyword search                    │  │
+│  │ 4. Merge with Reciprocal Rank Fusion      │  │
+│  │ 5. Insert relevant context into prompt    │  │
+│  └───────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────┘
+    ↓
+LLM generates completion with project context
+```
+
+**Repository Context (Tree-sitter Based):**
+
+Tabby uses tree-sitter to build its code index:
+
+```toml
+# ~/.tabby/config.toml
+[[repositories]]
+name = "my-project"
+git_url = "https://github.com/user/project.git"
+
+# Supports: Git, GitHub, GitLab (self-hosted or cloud)
+```
+
+**Context Sources:**
+| Source | Description |
+|--------|-------------|
+| **Repositories** | Codebase, PRs, issues, commits |
+| **Docs** | Developer documentation |
+| **Local LSP** | Declarations from language server |
+| **Recent Code** | Recently modified files |
+
+**VS Code Extension Features:**
+- Multi-line inline completion
+- Auto-generated commit messages (v1.6, May 2024)
+- Chat in side-panel (v1.7, June 2024)
+- Multiple completion choices
+
+**2024-2025 Release Timeline:**
+| Version | Date | Key Features |
+|---------|------|--------------|
+| v0.9 | Mar 2024 | Full admin UI |
+| v0.11 | May 2024 | Enterprise: GitHub/GitLab integration |
+| v0.12 | Jun 2024 | GitLab SSO, HTTP API |
+| v0.13 | Jul 2024 | Answer Engine |
+| v0.20 | Nov 2024 | Multi-model chat switching |
+| v0.21 | Dec 2024 | Llamafile deployment |
+| v0.23 | Jan 2025 | Enhanced code browser |
+
+**Agent Mode (Private Preview):**
+
+Tabby is developing agent capabilities:
+- Natural language to working code
+- Component building (React/Vue/Svelte)
+- Mockup to deployable frontend
+- Complex prompt handling
+
+**Strengths:**
+- Fully self-hosted (data stays on-prem)
+- RAG improves relevance with project context
+- Open source with active development
+- Team-friendly with predictable costs
+
+**Limitations:**
+- Requires setup/ops
+- Completion quality varies by model
+- Fewer out-of-box agentic features than paid tools
+- Agent mode still in preview
+
+**Source:** [Tabby GitHub](https://github.com/TabbyML/tabby), [Tabby Docs](https://tabby.tabbyml.com/docs/)
+
+---
+
+### 1.6 llama.cpp & llama.vscode (Local Inference)
+
+**llama.cpp Overview:**
+- C/C++ implementation for LLM inference
+- Optimized for consumer hardware
+- OpenAI-compatible HTTP server
+- Cross-platform (macOS Metal, CUDA, CPU)
+
+**llama.vscode Extension:**
+
+Official VS Code extension from the llama.cpp team:
+
+**Features:**
+- Inline code completion (rivals Copilot)
+- Side-panel chat
+- **Agent mode** with multi-file task iteration
+- Zero telemetry, full offline support
+- Auto-installs llama.cpp for Mac/Windows
+
+**Agent Mode Architecture:**
+
+```
+User: "Add authentication to this API"
+    ↓
+┌─────────────────────────────────────────────────┐
+│              Llama Agent (Ctrl+Shift+A)          │
+│  ┌───────────────────────────────────────────┐  │
+│  │ Built-in Tools (9 total):                 │  │
+│  │  • read_file    • write_file              │  │
+│  │  • grep         • npm_install             │  │
+│  │  • run_tests    • web_search              │  │
+│  │  • custom_js_eval                         │  │
+│  └───────────────────────────────────────────┘  │
+│                      ↓                           │
+│  Iterates up to N times (configurable)          │
+│                      ↓                           │
+│  Changes presented in diff view                 │
+│  Accept/reject per file                         │
+└─────────────────────────────────────────────────┘
+```
+
+**Server API Endpoints:**
+
+| Endpoint | Description | Use Case |
+|----------|-------------|----------|
+| `/v1/completions` | Text completion | Code generation |
+| `/v1/chat/completions` | Chat messages | Conversation |
+| `/v1/models` | List loaded model | Discovery |
+| `/infill` | Fill-in-the-middle | IDE completion |
+| `/embedding` | Text embeddings | RAG, search |
+
+**FIM (Fill-in-the-Middle) Endpoint:**
+
+Critical for IDE code completion:
+
+```json
+// POST /infill
+{
+  "input_prefix": "def calculate_sum(",
+  "input_suffix": "):\n    return result",
+  "temperature": 0.2,
+  "max_tokens": 128,
+  "t_max_predict_ms": 500  // Timeout for FIM
+}
+```
+
+**FIM Prompt Template (Qwen2.5 Coder):**
+```
+<|fim_prefix|>{prefix}<|fim_suffix|>{suffix}<|fim_middle|>
+```
+
+**Performance Benchmarks:**
+
+| Hardware | Model Size | Speed |
+|----------|------------|-------|
+| Apple M1/M2/M3 (Metal) | 3B | ~60 tok/s |
+| NVIDIA RTX 4090 | 7B Q4_0 | ~90 tok/s |
+| 8-core CPU | 1.5B | ~15 tok/s |
+
+**Configuration Options:**
+
+```json
+{
+  "llama.serverPort": 8012,
+  "llama.completion.maxTokens": 128,
+  "llama.completion.temperature": 0.2,
+  "llama.completion.contextWindow": 8192,
+  "llama.agent.maxLoops": 15
+}
+```
+
+**Managing Agents:**
+
+llama.vscode supports custom agents:
+```typescript
+interface Agent {
+  name: string;
+  description: string;
+  systemPrompt: string;
+  tools: string[];  // Subset of built-in tools
+}
+```
+
+**Strengths:**
+- Zero cost, zero telemetry
+- Full offline capability
+- Direct hardware optimization
+- Agent mode for multi-file tasks
+
+**Limitations:**
+- Requires local model download
+- Quality depends on model choice
+- Less polished UX than commercial tools
+
+**Source:** [llama.cpp GitHub](https://github.com/ggml-org/llama.cpp), [llama.vscode Marketplace](https://marketplace.visualstudio.com/items?itemName=ggml-org.llama-vscode)
+
+---
+
+### 1.7 Cursor AI
 
 **Architecture Overview:**
 - Fork of VS Code with native AI integration
@@ -165,7 +494,7 @@ Caro positions itself among elite AI coding assistants (Claude Code, GitHub Copi
 
 ---
 
-### 1.5 Warp Terminal
+### 1.8 Warp Terminal
 
 **Architecture Overview:**
 - Native terminal application (Rust-based)
@@ -193,19 +522,27 @@ Caro positions itself among elite AI coding assistants (Claude Code, GitHub Copi
 
 ---
 
-### 1.6 Competitive Positioning Matrix
+### 1.9 Competitive Positioning Matrix
 
-| Feature | Caro | Claude Code | Copilot | Cline | Cursor | Warp |
-|---------|------|-------------|---------|-------|--------|------|
-| **Chat Panel** | Planned | Yes | Yes | Yes | Yes | N/A |
-| **Inline Suggestions** | Planned | No | Yes | No | Yes | N/A |
-| **Terminal Integration** | Core | Yes | Yes | Yes | Yes | Native |
-| **Proactive Analysis** | Planned | No | No | No | No | Yes |
-| **Local/Offline** | Yes | No | No | No | No | No |
-| **Shell Specialized** | Core | No | No | No | No | Yes |
-| **Safety Validation** | Core | No | No | Partial | No | No |
-| **POSIX Focus** | Core | No | No | No | No | Partial |
-| **Open Source** | Yes | No | No | Yes | No | No |
+| Feature | Caro | Claude Code | Copilot | Cline | Tabby | llama.vscode | Cursor | Warp |
+|---------|------|-------------|---------|-------|-------|--------------|--------|------|
+| **Chat Panel** | Planned | Yes | Yes | Yes | Yes | Yes | Yes | N/A |
+| **Inline Suggestions** | Planned | No | Yes | No | Yes | Yes | Yes | N/A |
+| **Agent Mode** | Planned | No | Yes | Yes | Preview | Yes | Yes | Yes |
+| **Terminal Integration** | Core | Yes | Yes | Yes | No | No | Yes | Native |
+| **Proactive Analysis** | Planned | No | No | No | No | No | No | Yes |
+| **Local/Offline** | Yes | No | No | Yes* | Yes | Yes | No | No |
+| **Shell Specialized** | Core | No | No | No | No | No | No | Yes |
+| **Safety Validation** | Core | No | No | Partial | No | No | No | No |
+| **POSIX Focus** | Core | No | No | No | No | No | No | Partial |
+| **Open Source** | Yes | No | No | Yes | Yes | Yes | No | No |
+| **RAG/Context** | Planned | No | Yes | Yes | Yes | No | Yes | No |
+| **MCP Support** | Planned | No | No | Yes | No | No | No | No |
+| **Multi-Backend** | Yes | No | No | Yes | Yes | No | No | Yes |
+| **FIM/Infill** | Planned | No | Yes | No | Yes | Yes | Yes | No |
+| **Self-Hosted** | Yes | No | No | N/A | Yes | Yes | No | No |
+
+*Cline supports local via Ollama/LM Studio
 
 ---
 
@@ -1118,8 +1455,24 @@ When VS Code Chat Participant API matures:
 - [Claude Code VS Code Docs](https://code.claude.com/docs/en/vs-code)
 - [GitHub Copilot Overview](https://code.visualstudio.com/docs/copilot/overview)
 - [Cline Architecture](https://deepwiki.com/cline/cline/1.3-architecture-overview)
+- [Cline GitHub](https://github.com/cline/cline)
+- [Cline Tool Integrations](https://deepwiki.com/cline/cline/5-tool-integrations)
 - [Cursor AI Guide](https://www.datacamp.com/tutorial/cursor-ai-code-editor)
 - [Warp AI Features](https://www.warp.dev/warp-ai)
+- [Tabby GitHub](https://github.com/TabbyML/tabby)
+- [Tabby Documentation](https://tabby.tabbyml.com/docs/)
+- [Tabby Context Providers](https://tabby.tabbyml.com/docs/administration/context/)
+
+### Local Inference
+- [llama.cpp GitHub](https://github.com/ggml-org/llama.cpp)
+- [llama.vscode Extension](https://marketplace.visualstudio.com/items?itemName=ggml-org.llama-vscode)
+- [llama.vscode Wiki](https://github.com/ggml-org/llama.vscode/wiki/How-to-use)
+- [llama.cpp Server API](https://deepwiki.com/ggml-org/llama.cpp/5.2-server)
+
+### Model Context Protocol (MCP)
+- [MCP Architecture](https://modelcontextprotocol.io/docs/learn/architecture)
+- [MCP GitHub](https://github.com/modelcontextprotocol)
+- [MCP Introduction](https://www.philschmid.de/mcp-introduction)
 
 ### Technical References
 - [Language Server Protocol](https://microsoft.github.io/language-server-protocol/)
@@ -1140,10 +1493,13 @@ When VS Code Chat Participant API matures:
 | **IPC** | Inter-Process Communication |
 | **JSON-RPC** | JSON-based Remote Procedure Call protocol |
 | **LSP** | Language Server Protocol |
-| **MCP** | Model Context Protocol (Anthropic) |
+| **MCP** | Model Context Protocol (Anthropic) - Open protocol for LLM tool integration |
+| **RAG** | Retrieval-Augmented Generation - Using search to enhance LLM context |
+| **FIM** | Fill-in-the-Middle - Code completion with prefix and suffix context |
 | **WebView** | Embedded web browser in VS Code |
 
 ---
 
-*Document Version: 1.0*
+*Document Version: 1.1*
 *Last Updated: 2025-12-22*
+*Revision Notes: Added Tabby, llama.cpp/llama.vscode, and expanded Cline analysis*
