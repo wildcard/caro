@@ -356,12 +356,14 @@ async fn detect_os_version() -> Result<String, PlatformContextError> {
     #[cfg(target_os = "windows")]
     {
         // ver is a shell builtin, must run through cmd
-        if let Ok(output) = run_command_with_timeout("cmd", &["/c", "ver"], Duration::from_secs(1)).await {
+        if let Ok(output) =
+            run_command_with_timeout("cmd", &["/c", "ver"], Duration::from_secs(1)).await
+        {
             let trimmed = output.trim();
             // Extract version number from output like "Microsoft Windows [Version 10.0.20348.2340]"
             if let Some(start) = trimmed.find('[') {
                 if let Some(end) = trimmed.find(']') {
-                    let version_part = &trimmed[start+1..end];
+                    let version_part = &trimmed[start + 1..end];
                     if let Some(version) = version_part.strip_prefix("Version ") {
                         return Ok(version.to_string());
                     }
@@ -370,9 +372,15 @@ async fn detect_os_version() -> Result<String, PlatformContextError> {
             // If parsing fails, return the whole output
             return Ok(trimmed.to_string());
         }
-        
+
         // Fallback: Try wmic (older Windows)
-        if let Ok(output) = run_command_with_timeout("wmic", &["os", "get", "Version", "/value"], Duration::from_secs(2)).await {
+        if let Ok(output) = run_command_with_timeout(
+            "wmic",
+            &["os", "get", "Version", "/value"],
+            Duration::from_secs(2),
+        )
+        .await
+        {
             for line in output.lines() {
                 if let Some(version) = line.strip_prefix("Version=") {
                     return Ok(version.trim().to_string());

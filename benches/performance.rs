@@ -44,11 +44,10 @@ fn bench_safety_validation(c: &mut Criterion) {
         b.iter(|| {
             rt.block_on(async {
                 let validator = SafetyValidator::new(SafetyConfig::moderate());
-                if validator.is_ok() {
-                    let v = validator.unwrap();
+                if let Ok(v) = validator {
                     for cmd in &test_commands {
                         let result = v.validate_command(cmd, ShellType::Bash).await;
-                        black_box(result);
+                        let _ = black_box(result);
                     }
                 }
             })
@@ -83,11 +82,10 @@ fn bench_batch_vs_individual(c: &mut Criterion) {
         b.iter(|| {
             rt.block_on(async {
                 let validator = SafetyValidator::new(SafetyConfig::moderate());
-                if validator.is_ok() {
-                    let v = validator.unwrap();
+                if let Ok(v) = validator {
                     for cmd in &commands {
                         let result = v.validate_command(cmd, ShellType::Bash).await;
-                        black_box(result);
+                        let _ = black_box(result);
                     }
                 }
             })
@@ -99,10 +97,9 @@ fn bench_batch_vs_individual(c: &mut Criterion) {
         b.iter(|| {
             rt.block_on(async {
                 let validator = SafetyValidator::new(SafetyConfig::moderate());
-                if validator.is_ok() {
-                    let v = validator.unwrap();
+                if let Ok(v) = validator {
                     let result = v.validate_batch(&commands, ShellType::Bash).await;
-                    black_box(result);
+                    let _ = black_box(result);
                 }
             })
         })
@@ -135,10 +132,9 @@ fn bench_safety_levels(c: &mut Criterion) {
                     };
 
                     let validator = SafetyValidator::new(config);
-                    if validator.is_ok() {
-                        let v = validator.unwrap();
+                    if let Ok(v) = validator {
                         let result = v.validate_command(test_command, ShellType::Bash).await;
-                        black_box(result);
+                        let _ = black_box(result);
                     }
                 })
             })
@@ -169,9 +165,7 @@ fn bench_concurrent_validation(c: &mut Criterion) {
         b.iter(|| {
             rt.block_on(async {
                 let validator = SafetyValidator::new(SafetyConfig::moderate());
-                if validator.is_ok() {
-                    let v = validator.unwrap();
-
+                if let Ok(v) = validator {
                     // Validate all commands (simulating concurrent validation workload)
                     let mut results = Vec::new();
                     for cmd in &commands {
@@ -198,11 +192,10 @@ fn bench_memory_usage(c: &mut Criterion) {
         b.iter(|| {
             rt.block_on(async {
                 let validator = SafetyValidator::new(SafetyConfig::moderate());
-                if validator.is_ok() {
-                    let v = validator.unwrap();
+                if let Ok(v) = validator {
                     for cmd in &large_commands {
                         let result = v.validate_command(cmd, ShellType::Bash).await;
-                        black_box(result);
+                        let _ = black_box(result);
                     }
                 }
             })
@@ -230,10 +223,9 @@ fn bench_shell_types(c: &mut Criterion) {
             b.iter(|| {
                 rt.block_on(async {
                     let validator = SafetyValidator::new(SafetyConfig::moderate());
-                    if validator.is_ok() {
-                        let v = validator.unwrap();
+                    if let Ok(v) = validator {
                         let result = v.validate_command(test_command, shell).await;
-                        black_box(result);
+                        let _ = black_box(result);
                     }
                 })
             })
@@ -260,11 +252,10 @@ fn bench_pattern_matching(c: &mut Criterion) {
         b.iter(|| {
             rt.block_on(async {
                 let validator = SafetyValidator::new(SafetyConfig::strict());
-                if validator.is_ok() {
-                    let v = validator.unwrap();
+                if let Ok(v) = validator {
                     for cmd in &pattern_test_commands {
                         let result = v.validate_command(cmd, ShellType::Bash).await;
-                        black_box(result);
+                        let _ = black_box(result);
                     }
                 }
             })
@@ -282,9 +273,7 @@ fn bench_sustained_load(c: &mut Criterion) {
                 let start = std::time::Instant::now();
 
                 let validator = SafetyValidator::new(SafetyConfig::moderate());
-                if validator.is_ok() {
-                    let v = validator.unwrap();
-
+                if let Ok(v) = validator {
                     for _ in 0..iters {
                         // Simulate sustained validation load
                         let commands = vec![
@@ -300,7 +289,7 @@ fn bench_sustained_load(c: &mut Criterion) {
 
                         for cmd in commands {
                             let result = v.validate_command(cmd, ShellType::Bash).await;
-                            black_box(result);
+                            let _ = black_box(result);
                         }
                     }
                 }

@@ -59,7 +59,7 @@ pub struct ModelCatalog;
 
 impl ModelCatalog {
     /// Get the default model (balanced for most use cases)
-    pub fn default() -> &'static ModelInfo {
+    pub fn default_model() -> &'static ModelInfo {
         &QWEN_1_5B_Q4
     }
 
@@ -70,7 +70,7 @@ impl ModelCatalog {
 
     /// Get all available models
     pub fn all_models() -> &'static [&'static ModelInfo] {
-        &ALL_MODELS
+        ALL_MODELS
     }
 
     /// Get models suitable for CI/CD (< 500MB)
@@ -225,7 +225,7 @@ mod tests {
 
     #[test]
     fn test_default_model() {
-        let model = ModelCatalog::default();
+        let model = ModelCatalog::default_model();
         assert_eq!(model.id, "qwen-1.5b-q4");
     }
 

@@ -67,7 +67,7 @@ fn test_execution_context_new() {
     let test_dir = PathBuf::from("/tmp/test");
     #[cfg(windows)]
     let test_dir = PathBuf::from("C:\\Windows\\Temp\\test");
-    
+
     let result = ExecutionContext::new(test_dir.clone(), ShellType::Bash, Platform::Linux);
 
     assert!(
@@ -213,7 +213,7 @@ fn test_shell_detector_falls_back_to_sh() {
         ShellType::Sh,
         "Should fallback to Sh on Unix when detection fails"
     );
-    
+
     #[cfg(windows)]
     assert_eq!(
         detected,

@@ -26,7 +26,7 @@ impl ModelLoader {
             ModelCatalog::by_id(&model_id)
                 .ok_or_else(|| anyhow::anyhow!("Model not found: {}", model_id))?
         } else {
-            ModelCatalog::default()
+            ModelCatalog::default_model()
         };
 
         Ok(Self {
@@ -59,7 +59,7 @@ impl ModelLoader {
     pub fn with_cache_dir(cache_dir: PathBuf) -> Self {
         Self {
             cache_dir,
-            selected_model: ModelCatalog::default(),
+            selected_model: ModelCatalog::default_model(),
         }
     }
 
