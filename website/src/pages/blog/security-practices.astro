@@ -1,11 +1,5 @@
-# Security Practices
+### Fork Bomb Deployment Error Anecdote
 
-## Safety Validation: 52+ Dangerous Patterns
+While creating this blog post to highlight Caro's security practices, an unexpected issue arose. Including a fork bomb example (`:(){ :|:& };:`)—a known hazardous shell command—caused our CI/CD to fail during deployment. The Astro parser, mistaking this snippet for JavaScript syntax, returned parsing errors that halted the site build. This incident emphasized how even controlled examples can trigger system vulnerabilities, reinforcing the imperative for escaping and validating all potentially risky content.
 
-One of the core principles of Caro's security practices is ensuring all code blocks and patterns utilized in development pipelines are vetted rigorously. For example, in our repository, we include extensive validation steps for potentially hazardous patterns.
-
-Take the **fork bomb** example `:(){ :|:& };:`. It's a compact yet destructive string whose misuse can lead to infinite process creation. Interestingly, its inclusion in our documentation once caused our Continuous Integration/Continuous Deployment (CI/CD) pipeline to fail spectacularly. The Astro parser, encountering this unescaped text, misinterpreted part of the syntax as JavaScript code, throwing unexpected and confusing errors. 
-
-This experience, while humorous in hindsight, highlighted how even well-known examples like the fork bomb could disrupt automated systems. It underscored the importance of escaping and auditing all input rigorously, especially when dealing with interpreters or parsers as part of automated pipelines.
-
-Caro has since implemented additional validation layers specifically to handle such edge cases. We use this anecdote to reinforce that robust security checks are not just theoretical—they're essential in real-world development environments.
+This lesson fed directly into our ongoing commitment to security-first development. Curious readers can see the resolving PR [fixing this issue](https://github.com/wildcard/caro/pull/99).
