@@ -2,6 +2,46 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Issue Tracking with Beads
+
+**IMPORTANT**: This project uses `bd` (Beads) for ALL issue tracking. Do NOT use markdown TODOs or task lists for multi-session work that needs persistence.
+
+### Why Beads?
+Beads provides persistent, structured memory for coding agents with dependency-aware task tracking. It enables unprecedented continuity from session to session - you will never lose discovered work.
+
+### Essential Commands
+
+```bash
+# Finding work
+bd ready                    # Show tasks ready to work (no blockers)
+bd list --status=open       # All open issues
+bd show <id>                # Detailed view with dependencies
+
+# Creating & updating
+bd create --title="..." --type=task --priority=2   # New issue (priority 0-4)
+bd update <id> --status=in_progress                # Claim work
+bd close <id>                                       # Mark complete
+
+# Dependencies
+bd dep add <child> <parent>  # child depends on parent
+
+# CRITICAL: Session end
+bd sync                      # Sync with git - ALWAYS run before ending session
+```
+
+### When to Use Beads vs TodoWrite
+- **Beads (`bd`)**: Multi-session work, dependencies, discovered work that must persist
+- **TodoWrite**: Simple single-session execution tracking
+
+When in doubt, prefer `bd` - persistence you don't need beats lost context.
+
+### Session End Protocol
+Before ending any session, you MUST:
+1. `bd sync` - Commit beads changes
+2. `git push` - Push to remote
+
+Work is NOT complete until pushed.
+
 ## Project Overview
 
 `caro` (formerly `cmdai`) is a single-binary Rust CLI tool that converts natural language descriptions into safe POSIX shell commands using local LLMs. The tool prioritizes safety, performance, and developer experience with Apple Silicon optimization via MLX framework.
