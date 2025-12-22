@@ -9,7 +9,7 @@ mod onboarding;
 mod recommendation;
 
 pub use assessment::{ResourceAssessment, SystemResources};
-pub use models::{ModelInfo, ModelTier, ModelTierConfig};
+pub use models::{ModelTier, ModelTierConfig, TierModelInfo};
 pub use onboarding::{OnboardingFlow, OnboardingResult, UserPreferences};
 pub use recommendation::{ModelRecommendation, RecommendationEngine};
 

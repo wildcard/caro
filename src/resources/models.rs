@@ -66,7 +66,7 @@ impl ModelTier {
 
 /// Detailed model information
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ModelInfo {
+pub struct TierModelInfo {
     /// Model tier
     pub tier: ModelTier,
 
@@ -113,7 +113,7 @@ pub struct ModelInfo {
     pub lmstudio_url: Option<String>,
 }
 
-impl ModelInfo {
+impl TierModelInfo {
     /// Get the default micro model (Qwen 2.5 Coder 1.5B)
     pub fn micro() -> Self {
         Self {
@@ -253,7 +253,7 @@ impl ModelInfo {
             ModelTier::Small => Self::small(),
             ModelTier::Medium => Self::medium(),
             ModelTier::Large => Self::large(),
-            ModelTier::Custom => panic!("Use ModelInfo::custom() for custom models"),
+            ModelTier::Custom => panic!("Use TierModelInfo::custom() for custom models"),
         }
     }
 
@@ -268,7 +268,7 @@ impl ModelInfo {
     }
 }
 
-impl std::fmt::Display for ModelInfo {
+impl std::fmt::Display for TierModelInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "{} ({})", self.name, self.tier)?;
         writeln!(f, "  Parameters: {:.1}B", self.parameters_b)?;
@@ -292,7 +292,7 @@ pub struct ModelTierConfig {
     pub tier: ModelTier,
 
     /// Selected model info
-    pub model: ModelInfo,
+    pub model: TierModelInfo,
 
     /// Whether to enable thinking/reasoning mode
     pub enable_thinking: bool,
@@ -312,7 +312,7 @@ pub struct ModelTierConfig {
 
 impl Default for ModelTierConfig {
     fn default() -> Self {
-        let model = ModelInfo::micro();
+        let model = TierModelInfo::micro();
         Self {
             tier: ModelTier::Micro,
             model,
@@ -328,7 +328,7 @@ impl Default for ModelTierConfig {
 impl ModelTierConfig {
     /// Create config for a specific tier
     pub fn for_tier(tier: ModelTier) -> Self {
-        let model = ModelInfo::for_tier(tier);
+        let model = TierModelInfo::for_tier(tier);
         let enable_thinking = model.supports_thinking;
         let enable_tool_calling = model.supports_tool_calling;
         let fast_mode = tier == ModelTier::Micro;
@@ -346,7 +346,7 @@ impl ModelTierConfig {
 
     /// Create config for a custom model
     pub fn custom(hf_repo: String, gguf_file: String, size_mb: u64) -> Self {
-        let model = ModelInfo::custom(
+        let model = TierModelInfo::custom(
             format!("Custom: {}", gguf_file),
             hf_repo.clone(),
             gguf_file.clone(),
@@ -408,7 +408,7 @@ mod tests {
 
     #[test]
     fn test_model_info_micro() {
-        let model = ModelInfo::micro();
+        let model = TierModelInfo::micro();
         assert_eq!(model.tier, ModelTier::Micro);
         assert!(model.size_mb > 0);
         assert!(model.parameters_b > 0.0);
@@ -417,10 +417,10 @@ mod tests {
 
     #[test]
     fn test_model_info_medium() {
-        let model = ModelInfo::medium();
+        let model = TierModelInfo::medium();
         assert_eq!(model.tier, ModelTier::Medium);
         assert!(model.supports_thinking);
-        assert!(model.size_mb > ModelInfo::micro().size_mb);
+        assert!(model.size_mb > TierModelInfo::micro().size_mb);
     }
 
     #[test]
@@ -432,7 +432,7 @@ mod tests {
 
     #[test]
     fn test_model_info_display() {
-        let model = ModelInfo::micro();
+        let model = TierModelInfo::micro();
         let display = format!("{}", model);
         assert!(display.contains("Qwen"));
         assert!(display.contains("1.5B"));
@@ -440,7 +440,7 @@ mod tests {
 
     #[test]
     fn test_custom_model() {
-        let custom = ModelInfo::custom(
+        let custom = TierModelInfo::custom(
             "my-org/my-model".to_string(),
             "my-org/my-model-GGUF".to_string(),
             "my-model-q4.gguf".to_string(),
@@ -453,7 +453,7 @@ mod tests {
 
     #[test]
     fn test_hf_url() {
-        let model = ModelInfo::micro();
+        let model = TierModelInfo::micro();
         let url = model.hf_url();
         assert!(url.contains("huggingface.co"));
         assert!(url.contains("Qwen"));

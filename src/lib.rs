@@ -59,8 +59,9 @@ pub use platform::{PlatformContext, PlatformContextBuilder, PlatformContextError
 
 // Re-export resources module types
 pub use resources::{
-    ModelInfo, ModelRecommendation, ModelTier, ModelTierConfig, OnboardingFlow, OnboardingResult,
-    RecommendationEngine, ResourceAssessment, ResourceError, SystemResources, UserPreferences,
+    ModelRecommendation, ModelTier, ModelTierConfig, OnboardingFlow, OnboardingResult,
+    RecommendationEngine, ResourceAssessment, ResourceError, SystemResources, TierModelInfo,
+    UserPreferences,
 };
 
 // Re-export backend types

@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use tracing::{debug, info};
 
 use super::assessment::SystemResources;
-use super::models::{ModelInfo, ModelTier, ModelTierConfig};
+use super::models::{TierModelInfo, ModelTier, ModelTierConfig};
 use super::ResourceError;
 
 /// A model recommendation with reasoning
@@ -17,7 +17,7 @@ pub struct ModelRecommendation {
     pub tier: ModelTier,
 
     /// Model information
-    pub model: ModelInfo,
+    pub model: TierModelInfo,
 
     /// Reasoning for the recommendation
     pub reasoning: String,
@@ -38,7 +38,7 @@ pub struct ModelRecommendation {
 impl ModelRecommendation {
     /// Create a new recommendation
     pub fn new(tier: ModelTier, resources: &SystemResources) -> Self {
-        let model = ModelInfo::for_tier(tier);
+        let model = TierModelInfo::for_tier(tier);
         let (is_compatible, warnings) = Self::check_compatibility(&model, resources);
         let reasoning = Self::generate_reasoning(tier, resources);
         let resource_summary = Self::generate_resource_summary(&model, resources);
@@ -56,7 +56,7 @@ impl ModelRecommendation {
     }
 
     /// Check if model is compatible with resources
-    fn check_compatibility(model: &ModelInfo, resources: &SystemResources) -> (bool, Vec<String>) {
+    fn check_compatibility(model: &TierModelInfo, resources: &SystemResources) -> (bool, Vec<String>) {
         let mut warnings = Vec::new();
         let mut compatible = true;
 
@@ -136,7 +136,7 @@ impl ModelRecommendation {
     }
 
     /// Generate resource summary
-    fn generate_resource_summary(model: &ModelInfo, resources: &SystemResources) -> String {
+    fn generate_resource_summary(model: &TierModelInfo, resources: &SystemResources) -> String {
         let storage_status = if resources.available_storage_gb() >= model.min_storage_gb {
             format!("Storage: OK ({} GB available)", resources.available_storage_gb())
         } else {
@@ -176,7 +176,7 @@ impl ModelRecommendation {
 
         for tier in ModelTier::presets() {
             if *tier != selected {
-                let model = ModelInfo::for_tier(*tier);
+                let model = TierModelInfo::for_tier(*tier);
                 if resources.available_storage_gb() >= model.min_storage_gb
                     && resources.ram_gb() >= model.min_ram_gb
                 {
@@ -257,7 +257,7 @@ impl RecommendationEngine {
 
         // Check if we have heavy resources (large model)
         if self.resources.is_heavy_machine() {
-            let large = ModelInfo::large();
+            let large = TierModelInfo::large();
             if self.can_run_model(&large) {
                 debug!("Heavy machine detected, recommending Large tier");
                 return ModelTier::Large;
@@ -266,7 +266,7 @@ impl RecommendationEngine {
 
         // Check if we have medium resources (medium model)
         if self.resources.is_medium_machine() || self.resources.is_heavy_machine() {
-            let medium = ModelInfo::medium();
+            let medium = TierModelInfo::medium();
             if self.can_run_model(&medium) {
                 debug!("Medium machine detected, recommending Medium tier");
                 return ModelTier::Medium;
@@ -274,7 +274,7 @@ impl RecommendationEngine {
         }
 
         // Check if we can run small model
-        let small = ModelInfo::small();
+        let small = TierModelInfo::small();
         if self.can_run_model(&small) {
             debug!("Recommending Small tier");
             return ModelTier::Small;
@@ -286,7 +286,7 @@ impl RecommendationEngine {
     }
 
     /// Check if a model can be run on current resources
-    fn can_run_model(&self, model: &ModelInfo) -> bool {
+    fn can_run_model(&self, model: &TierModelInfo) -> bool {
         // Check storage
         if self.resources.available_storage_gb() < model.min_storage_gb {
             debug!(

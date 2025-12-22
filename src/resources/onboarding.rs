@@ -7,6 +7,7 @@ use colored::Colorize;
 use dialoguer::{Confirm, Input, Select};
 use indicatif::{ProgressBar, ProgressStyle};
 use serde::{Deserialize, Serialize};
+use std::io::IsTerminal;
 use std::time::Duration;
 use tracing::info;
 
@@ -111,7 +112,7 @@ impl OnboardingFlow {
         Ok(Self {
             resources,
             engine,
-            interactive: atty::is(atty::Stream::Stdin),
+            interactive: std::io::stdin().is_terminal(),
         })
     }
 
@@ -121,7 +122,7 @@ impl OnboardingFlow {
         Self {
             resources,
             engine,
-            interactive: atty::is(atty::Stream::Stdin),
+            interactive: std::io::stdin().is_terminal(),
         }
     }
 

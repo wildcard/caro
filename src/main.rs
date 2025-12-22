@@ -989,7 +989,7 @@ async fn save_model_config(
     tier: &caro::resources::ModelTier,
     _resources: &caro::resources::SystemResources,
 ) -> Result<(), CliError> {
-    use caro::resources::ModelInfo;
+    use caro::resources::TierModelInfo;
 
     let config_manager = ConfigManager::new().map_err(|e| CliError::ConfigurationError {
         message: format!("Failed to create config manager: {}", e),
@@ -1000,7 +1000,7 @@ async fn save_model_config(
     })?;
 
     // Set the default model based on tier
-    let model = ModelInfo::for_tier(*tier);
+    let model = TierModelInfo::for_tier(*tier);
     config.default_model = Some(model.model_id);
 
     // Adjust cache size based on model requirements
@@ -1088,7 +1088,7 @@ async fn show_status(verbose: bool) -> Result<(), CliError> {
 
 /// Show available models
 async fn show_models(all: bool) -> Result<(), CliError> {
-    use caro::resources::{ModelInfo, ModelTier, RecommendationEngine};
+    use caro::resources::{ModelTier, RecommendationEngine, TierModelInfo};
     use colored::Colorize;
 
     println!();
@@ -1104,7 +1104,7 @@ async fn show_models(all: bool) -> Result<(), CliError> {
     let recommendation = engine.recommend();
 
     for tier in ModelTier::presets() {
-        let model = ModelInfo::for_tier(*tier);
+        let model = TierModelInfo::for_tier(*tier);
         let rec = caro::resources::ModelRecommendation::new(*tier, &resources);
 
         // Skip incompatible models unless --all is specified

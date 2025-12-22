@@ -4,7 +4,7 @@
 //! optimal model configuration.
 
 use serde::{Deserialize, Serialize};
-use sysinfo::{CpuExt, DiskExt, System, SystemExt};
+use sysinfo::{Disks, System};
 use tracing::{debug, info, warn};
 
 use super::ResourceError;
@@ -219,8 +219,8 @@ impl ResourceAssessment {
             total_ram_mb, available_ram_mb
         );
 
-        // Get storage information (refresh system to get disk info)
-        let (total_storage_mb, available_storage_mb) = Self::calculate_storage(&sys);
+        // Get storage information using Disks API
+        let (total_storage_mb, available_storage_mb) = Self::calculate_storage();
 
         debug!(
             "Storage: {} MB available of {} MB",
@@ -265,11 +265,12 @@ impl ResourceAssessment {
     }
 
     /// Calculate storage from available disks
-    fn calculate_storage(sys: &System) -> (u64, u64) {
+    fn calculate_storage() -> (u64, u64) {
+        let disks = Disks::new_with_refreshed_list();
         let mut total = 0u64;
         let mut available = 0u64;
 
-        for disk in sys.disks() {
+        for disk in disks.list() {
             // Only count the root filesystem or primary drive
             let mount = disk.mount_point();
             if mount.to_string_lossy() == "/"
@@ -283,7 +284,7 @@ impl ResourceAssessment {
 
         // Fallback to first disk if nothing matched
         if total == 0 {
-            if let Some(disk) = sys.disks().first() {
+            if let Some(disk) = disks.list().first() {
                 total = disk.total_space() / (1024 * 1024);
                 available = disk.available_space() / (1024 * 1024);
             }
