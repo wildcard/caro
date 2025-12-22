@@ -1,0 +1,19 @@
+{
+  "name": "caro-docs",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Documentation site for caro - Natural language to shell commands",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.37.1",
+    "astro": "^5.16.6",
+    "sharp": "^0.34.5"
+  }
+}

@@ -1,0 +1,108 @@
+---
+title: caro
+description: Transform natural language into safe, POSIX-compliant shell commands using local LLMs
+template: splash
+hero:
+  title: |
+    Talk to your terminal.
+  tagline: |
+    caro transforms natural language into safe, POSIX-compliant shell commands.
+    Powered by local LLMs. Privacy-first. Blazingly fast on Apple Silicon.
+  image:
+    file: ../../assets/logo-dark.svg
+  actions:
+    - text: Get Started
+      link: /getting-started/introduction/
+      icon: right-arrow
+      variant: primary
+    - text: View on GitHub
+      link: https://github.com/wildcard/caro
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+<div class="features-grid">
+  <div class="feature-card">
+    <div class="feature-icon">🔒</div>
+    <h3>Safety First</h3>
+    <p>Comprehensive validation blocks dangerous commands before execution. Pattern matching for rm -rf, fork bombs, and more.</p>
+  </div>
+
+  <div class="feature-card">
+    <div class="feature-icon">🚀</div>
+    <h3>Blazingly Fast</h3>
+    <p>Optimized for Apple Silicon with MLX. Sub-2-second inference on M1/M2/M3/M4 chips with GPU acceleration.</p>
+  </div>
+
+  <div class="feature-card">
+    <div class="feature-icon">🏠</div>
+    <h3>Privacy First</h3>
+    <p>All inference runs locally on your machine. Your commands and data never leave your computer.</p>
+  </div>
+
+  <div class="feature-card">
+    <div class="feature-icon">🔧</div>
+    <h3>POSIX Compliant</h3>
+    <p>Generated commands work across all Unix systems. Standard utilities like find, grep, awk, and sed.</p>
+  </div>
+</div>
+
+## Quick Example
+
+```bash
+# Install caro
+cargo install caro
+
+# Convert natural language to shell commands
+caro "find all rust files modified in the last week"
+# Output: find . -name "*.rs" -mtime -7
+
+caro "show disk usage sorted by size"
+# Output: du -sh * | sort -hr
+
+caro "count lines in all python files"
+# Output: find . -name "*.py" -exec wc -l {} + | tail -1
+```
+
+## Why caro?
+
+<CardGrid stagger>
+  <Card title="No Cloud Dependency" icon="laptop">
+    Everything runs locally. No API keys, no rate limits, no privacy concerns.
+    Works offline after the initial model download.
+  </Card>
+  <Card title="Single Binary" icon="seti:rust">
+    One Rust binary under 50MB. No Python environments, no containers,
+    no complex dependencies to manage.
+  </Card>
+  <Card title="Multiple Backends" icon="setting">
+    Supports MLX for Apple Silicon, Ollama for local inference,
+    and vLLM for high-performance serving.
+  </Card>
+  <Card title="Developer Friendly" icon="open-book">
+    Intuitive CLI with colored output, confirmation prompts,
+    and helpful error messages.
+  </Card>
+</CardGrid>
+
+## Get Started
+
+<LinkCard
+  title="Installation Guide"
+  description="Install caro and get running in minutes"
+  href="/getting-started/installation/"
+/>
+
+<LinkCard
+  title="Quick Start"
+  description="Learn the basics with practical examples"
+  href="/getting-started/quick-start/"
+/>
+
+<LinkCard
+  title="macOS Setup"
+  description="Optimize for Apple Silicon with MLX GPU acceleration"
+  href="/guides/macos-setup/"
+/>
