@@ -1,0 +1,262 @@
+---
+import BlogPost from '../../layouts/BlogPost.astro';
+---
+
+<BlogPost
+  title="Building Caro with Security in Mind"
+  description="Explore how the Caro project implements security-first practices from dependency management to code review, creating a security-conscious open source community."
+  date="2025-12-22"
+  readTime="7 min read"
+>
+
+<div class="highlight">
+  <p>
+    Security isn't an afterthought at Caro—it's foundational to everything we build. As a CLI tool that generates and executes shell commands, we take our responsibility to protect users seriously.
+  </p>
+</div>
+
+<h2>Why Security Matters for Caro</h2>
+
+<p>
+  Caro converts natural language into shell commands using AI. This power comes with significant responsibility: a malicious or buggy command could harm user systems. That's why we've built multiple layers of security into both the tool itself and our development practices.
+</p>
+
+<p>
+  This post walks through our security posture, the GitHub security features we use, and the practices that make Caro a security-conscious project.
+</p>
+
+<h2>GitHub Security Features We Use</h2>
+
+<h3>Dependabot: Automated Dependency Updates</h3>
+
+<p>
+  <a href="https://docs.github.com/code-security/dependabot" target="_blank" rel="noopener noreferrer">Dependabot</a> is GitHub's automated dependency update service. It monitors our dependencies for known vulnerabilities and outdated packages, automatically creating pull requests when updates are available.
+</p>
+
+<p>
+  Our Dependabot configuration covers:
+</p>
+
+<ul>
+  <li><strong>Cargo (Rust) dependencies</strong>: Weekly scans of all crates in our dependency tree</li>
+  <li><strong>GitHub Actions</strong>: Keeping our CI/CD pipeline secure with updated actions</li>
+</ul>
+
+<pre><code># Our dependabot.yml configuration
+version: 2
+updates:
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      rust-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"</code></pre>
+
+<p>
+  When Dependabot finds a vulnerability, it creates a pull request with the fix, links to the security advisory, and shows us the severity level. This automation means we catch security issues quickly without manual monitoring.
+</p>
+
+<h3>Dependency Review: PR-Level Security Checks</h3>
+
+<p>
+  Every pull request that modifies <code>Cargo.toml</code>, <code>Cargo.lock</code>, or package manifests triggers our <a href="https://github.com/actions/dependency-review-action" target="_blank" rel="noopener noreferrer">Dependency Review</a> workflow. This action:
+</p>
+
+<ul>
+  <li>Scans new and updated dependencies for known vulnerabilities</li>
+  <li>Fails the PR if high or critical vulnerabilities are found</li>
+  <li>Validates licenses against our approved list (MIT, Apache-2.0, BSD, etc.)</li>
+  <li>Posts a summary comment on the PR with findings</li>
+</ul>
+
+<p>
+  This prevents vulnerable code from ever reaching our main branch. If a contributor adds a dependency with a known CVE, they'll see the failure immediately and can address it before merge.
+</p>
+
+<h3>cargo-audit: Rust-Specific Security Scanning</h3>
+
+<p>
+  We run <a href="https://rustsec.org/" target="_blank" rel="noopener noreferrer">cargo-audit</a> on every push and pull request. This tool checks our <code>Cargo.lock</code> against the RustSec Advisory Database—a community-maintained database of security vulnerabilities in Rust crates.
+</p>
+
+<pre><code># From our CI workflow
+- name: Run security audit
+  run: cargo audit
+
+- name: Check for unmaintained crates
+  run: cargo audit --deny warnings</code></pre>
+
+<p>
+  We also use <a href="https://github.com/EmbarkStudios/cargo-deny" target="_blank" rel="noopener noreferrer">cargo-deny</a> for additional checks on licenses, duplicate dependencies, and source trust validation.
+</p>
+
+<h3>Security Advisories and Private Reporting</h3>
+
+<p>
+  GitHub's <a href="https://docs.github.com/code-security/security-advisories" target="_blank" rel="noopener noreferrer">Security Advisories</a> feature allows security researchers to report vulnerabilities privately. We document our full vulnerability disclosure process in our <a href="https://github.com/wildcard/caro/blob/main/SECURITY.md" target="_blank" rel="noopener noreferrer">SECURITY.md</a> file.
+</p>
+
+<p>
+  Our response commitments:
+</p>
+
+<ul>
+  <li><strong>48 hours</strong>: Acknowledgment of report</li>
+  <li><strong>7 days</strong>: Initial assessment and severity classification</li>
+  <li><strong>30 days</strong>: Target fix for critical vulnerabilities</li>
+  <li><strong>90 days</strong>: Target fix for moderate vulnerabilities</li>
+</ul>
+
+<h2>Application-Level Security</h2>
+
+<h3>Safety Validation: 52+ Dangerous Patterns</h3>
+
+<p>
+  Caro's safety module is the heart of our security model. Before any command is presented to the user, it passes through our pattern-based validator that checks for:
+</p>
+
+<ul>
+  <li><strong>Filesystem destruction</strong>: <code>rm -rf /</code>, <code>mkfs</code>, <code>dd if=/dev/zero</code></li>
+  <li><strong>Fork bombs</strong>: <code>:(){ :|:& };:</code> and variants</li>
+  <li><strong>Privilege escalation</strong>: <code>sudo su</code>, <code>chmod 777 /</code></li>
+  <li><strong>System path tampering</strong>: Operations on <code>/bin</code>, <code>/usr</code>, <code>/etc</code></li>
+  <li><strong>Device manipulation</strong>: Direct writes to block devices</li>
+</ul>
+
+<p>
+  Commands are classified into risk levels: <strong>Safe</strong>, <strong>Moderate</strong>, <strong>High</strong>, and <strong>Critical</strong>. High-risk commands require explicit confirmation, and critical commands are blocked entirely unless the user opts in with <code>--allow-dangerous</code>.
+</p>
+
+<h3>Defense in Depth</h3>
+
+<p>
+  We don't rely on a single security control. Our defense-in-depth strategy includes:
+</p>
+
+<ol>
+  <li><strong>Input sanitization</strong>: Prompts are validated before reaching the model</li>
+  <li><strong>Output validation</strong>: Generated commands are checked against safety patterns</li>
+  <li><strong>User confirmation</strong>: Commands require explicit approval before execution</li>
+  <li><strong>Fail-safe defaults</strong>: Dangerous operations are blocked by default</li>
+  <li><strong>Least privilege</strong>: We never encourage running as root</li>
+</ol>
+
+<h2>Development Practices</h2>
+
+<h3>CI/CD Security Pipeline</h3>
+
+<p>
+  Every commit to Caro runs through our comprehensive CI pipeline:
+</p>
+
+<ul>
+  <li><strong>Clippy linting</strong> with <code>-D warnings</code> to catch common mistakes</li>
+  <li><strong>cargo-audit</strong> for dependency vulnerabilities</li>
+  <li><strong>cargo-deny</strong> for license compliance</li>
+  <li><strong>Dependency review</strong> for PRs touching dependencies</li>
+  <li><strong>Cross-platform testing</strong> on Linux, macOS, and Windows</li>
+</ul>
+
+<h3>Code Review Standards</h3>
+
+<p>
+  All changes to security-sensitive code (safety validation, command execution, model interaction) receive extra scrutiny:
+</p>
+
+<ul>
+  <li>Security-focused review checklist</li>
+  <li>Property-based testing with proptest for edge cases</li>
+  <li>Integration tests covering execution paths</li>
+  <li>Manual security testing before releases</li>
+</ul>
+
+<h3>Minimal Dependencies</h3>
+
+<p>
+  Every dependency is an attack surface. We consciously minimize our dependency tree, carefully evaluate new dependencies, and prefer well-maintained crates with strong security track records. Dependencies are pinned in <code>Cargo.lock</code> for reproducible builds.
+</p>
+
+<h2>Community and Transparency</h2>
+
+<h3>Security Hall of Fame</h3>
+
+<p>
+  We maintain a <a href="https://github.com/wildcard/caro/blob/main/SECURITY.md#security-hall-of-fame" target="_blank" rel="noopener noreferrer">Security Hall of Fame</a> in our SECURITY.md to recognize researchers who responsibly disclose vulnerabilities. Contributors receive:
+</p>
+
+<ul>
+  <li>Public acknowledgment in security advisories</li>
+  <li>Credit in release notes</li>
+  <li>Listing in the Hall of Fame</li>
+</ul>
+
+<h3>Open Development</h3>
+
+<p>
+  Security through obscurity doesn't work. Our entire codebase, including the safety validation patterns, is open source. This transparency allows:
+</p>
+
+<ul>
+  <li>Community review of security implementations</li>
+  <li>External security audits</li>
+  <li>Contributions to improve our safety patterns</li>
+  <li>Trust through verifiability</li>
+</ul>
+
+<h2>Best Practices for Users</h2>
+
+<p>
+  While we build security into Caro, users play a role too:
+</p>
+
+<ol>
+  <li><strong>Always review generated commands</strong> before execution</li>
+  <li><strong>Never use <code>--auto</code> mode</strong> for destructive operations</li>
+  <li><strong>Keep Caro updated</strong> for the latest security fixes</li>
+  <li><strong>Limit <code>--allow-dangerous</code></strong> to specific, understood cases</li>
+  <li><strong>Report suspicious behavior</strong> through our security advisory process</li>
+</ol>
+
+<h2>Looking Ahead</h2>
+
+<p>
+  Security is an ongoing journey, not a destination. We're continuously improving:
+</p>
+
+<ul>
+  <li><strong>Expanding safety patterns</strong> based on community feedback</li>
+  <li><strong>Enhancing model output validation</strong> for edge cases</li>
+  <li><strong>Exploring sandboxed execution</strong> for high-risk environments</li>
+  <li><strong>Regular security audits</strong> as the project matures</li>
+</ul>
+
+<div class="highlight">
+  <p>
+    Security is a community effort. If you find a vulnerability, please report it through our <a href="https://github.com/wildcard/caro/security" target="_blank" rel="noopener noreferrer">GitHub Security Advisories</a>. Together, we can keep Caro safe for everyone.
+  </p>
+</div>
+
+<h2>Resources</h2>
+
+<ul>
+  <li><a href="https://github.com/wildcard/caro/blob/main/SECURITY.md" target="_blank" rel="noopener noreferrer">SECURITY.md</a> - Full security policy and vulnerability reporting</li>
+  <li><a href="https://github.com/wildcard/caro/security" target="_blank" rel="noopener noreferrer">GitHub Security Tab</a> - Report vulnerabilities privately</li>
+  <li><a href="https://docs.github.com/code-security/dependabot" target="_blank" rel="noopener noreferrer">Dependabot Documentation</a> - Learn more about automated updates</li>
+  <li><a href="https://rustsec.org/" target="_blank" rel="noopener noreferrer">RustSec Advisory Database</a> - Rust security advisories</li>
+</ul>
+
+<hr style="margin: 50px 0; border: none; border-top: 1px solid #e0e0e0;">
+
+<p style="text-align: center; margin-top: 40px;">
+  <em>Built with Rust | Safety First | Open Source</em>
+</p>
+
+</BlogPost>
