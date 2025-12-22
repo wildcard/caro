@@ -364,3 +364,200 @@ This project follows spec-driven development with coordinated multi-agent teams:
 4. Quality assurance and documentation
 
 Each phase includes specific agent coordination for optimal development flow and maintains alignment with project constitution and safety standards.
+
+---
+
+## Code Review Integration: ai-code-reviewer
+
+You have access to a powerful AI code review tool that enhances your analysis capabilities for Rust code.
+
+**Tool Location**: `tools/ai-code-reviewer/`
+**Repository**: https://github.com/jordanhubbard/ai-code-reviewer
+**License**: BSD-2-Clause
+
+### First-Time Setup
+
+If `tools/ai-code-reviewer/` does not exist, set it up:
+
+```bash
+mkdir -p tools
+git clone https://github.com/jordanhubbard/ai-code-reviewer.git tools/ai-code-reviewer
+cd tools/ai-code-reviewer
+cp config.yaml.defaults config.yaml
+# Edit config.yaml with Rust-specific settings (see existing config.yaml)
+```
+
+### When to Use ai-code-reviewer
+
+**ALWAYS invoke ai-code-reviewer for:**
+
+1. **Security Audits** - Any review of safety validation, command execution, or user input handling
+2. **Pre-PR Reviews** - Before suggesting a PR is ready for merge
+3. **Backend Reviews** - When reviewing LLM backend implementations (MLX, vLLM, Ollama)
+4. **Safety Module Changes** - Any modifications to `src/safety/` directory
+5. **FFI Code Reviews** - C++/Rust interop code for MLX backend
+
+**DO NOT use for:**
+
+- Quick syntax fixes
+- Single-line changes
+- Documentation-only updates
+- Cargo.toml dependency updates
+
+### Review Personas
+
+Select the appropriate persona based on the review context:
+
+| Context | Persona | Use Case |
+|---------|---------|----------|
+| Safety validation, command execution, user input | `security-hawk` | Most paranoid, catches vulnerabilities |
+| Hot paths, inference performance, memory allocation | `performance-cop` | Focuses on speed and efficiency |
+| Full security audit, production prep | `freebsd-angry-ai` | Battle-tested, ruthless, never accepts "good enough" |
+| Onboarding, educational code review | `friendly-mentor` | Constructive, educational |
+
+### Execution Commands
+
+```bash
+cd tools/ai-code-reviewer
+
+# Review entire caro project
+make run
+
+# Review specific module
+make run TARGET_DIR=../../src/safety
+
+# Review backend implementations
+make run TARGET_DIR=../../src/backends
+
+# Check status of ongoing review
+make status
+
+# Verify dependencies are installed
+make check-deps
+```
+
+### Review Workflow
+
+The tool operates hierarchically:
+
+```
+Directory Level (build + commit boundary)
+  - File Level
+      - Function Level (chunks for files >800 lines)
+```
+
+1. Tool picks a directory
+2. Reviews all Rust files, function by function
+3. Makes fixes automatically
+4. Runs `cargo fmt --check && cargo clippy && cargo test` to validate
+5. If build fails → iterates until success
+6. Commits only when all checks pass
+7. Moves to next directory
+
+### Rust-Specific Review Checklist
+
+When reviewing caro code, ensure ai-code-reviewer checks align with these standards:
+
+#### Safety Module (`src/safety/`)
+
+- Pattern matching is comprehensive for dangerous commands
+- No false negatives for destructive operations (`rm -rf /`, `mkfs`, fork bombs)
+- Risk level assessment is accurate (Safe, Moderate, High, Critical)
+- User confirmation workflows are triggered appropriately
+- POSIX compliance validation is strict
+
+#### Backend Implementations (`src/backends/`)
+
+- `ModelBackend` trait is correctly implemented
+- Async inference uses proper `Result<String>` error handling
+- Availability checking gracefully falls back
+- JSON parsing has multiple fallback strategies
+- Timeouts are configured appropriately
+
+#### MLX FFI Code
+
+- `cxx` bindings are memory-safe
+- No panics across FFI boundary - use `Result` types
+- Metal Performance Shaders integration is correct
+- Unified memory architecture is properly handled
+- C++ exceptions are caught and converted to Rust errors
+
+#### CLI & Configuration
+
+- `clap` arguments are validated
+- Configuration file parsing handles malformed input
+- Cache directory operations check permissions
+- Environment variable handling is safe
+
+#### General Rust Standards
+
+- No `unwrap()` or `expect()` in production code paths
+- All public APIs have documentation
+- Error types are informative with helpful messages
+- Memory allocations are minimized in hot paths
+- `async` code doesn't block the runtime
+
+### Integration with Your Reviews
+
+When performing code reviews, combine your analysis with ai-code-reviewer insights:
+
+#### Step 1: Initial Assessment
+Quickly scan the code yourself to understand scope and intent.
+
+#### Step 2: Run ai-code-reviewer
+```bash
+cd tools/ai-code-reviewer
+make run TARGET_DIR=../../src/path/to/module
+```
+
+#### Step 3: Synthesize Findings
+Merge tool findings with your own analysis. Prioritize:
+1. Security vulnerabilities (CRITICAL) - command injection, unsafe FFI
+2. Safety validation gaps (HIGH) - missing dangerous command patterns
+3. Performance problems (MEDIUM) - blocking async, unnecessary allocations
+4. Style/maintainability (LOW) - clippy warnings, documentation
+
+#### Step 4: Report
+Present consolidated findings with actionable recommendations.
+
+### Troubleshooting
+
+#### Ollama Connection Failed
+```bash
+# Verify Ollama is running
+curl http://localhost:11434/api/tags
+
+# Start Ollama if needed
+OLLAMA_HOST=0.0.0.0:11434 ollama serve
+```
+
+#### Build Command Fails
+The default config uses:
+```yaml
+build_command: "cargo fmt --check && cargo clippy -- -D warnings && cargo test"
+```
+
+Ensure Rust toolchain is available:
+```bash
+. "$HOME/.cargo/env"
+rustup update
+```
+
+#### Missing Python Dependencies
+```bash
+cd tools/ai-code-reviewer
+pip install -r requirements.txt
+```
+
+### Important Architecture Note
+
+The `.beads/` task queue directory lives in **this repository** (caro), NOT in the ai-code-reviewer tool directory. This is by design - the tool is generic and stateless.
+
+```
+caro/                    <- Your code + .beads/ task queue
+   .beads/               <- Task queue lives HERE
+   src/
+   tests/
+   tools/
+       ai-code-reviewer/ <- Tool (no .beads/ here)
+```

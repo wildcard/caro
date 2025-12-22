@@ -196,3 +196,11 @@ kitty-specs/
 
 # Spec-Kitty dashboard runtime
 .kittify/.dashboard
+
+# AI Code Reviewer
+# The tool itself is cloned into tools/ and should not be tracked
+tools/ai-code-reviewer/
+# Task queue for ai-code-reviewer lives in project root
+.beads/
+# Logs generated during reviews
+.ai-code-reviewer/
