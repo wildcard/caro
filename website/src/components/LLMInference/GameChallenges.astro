@@ -7,43 +7,11 @@
 ---
 
 <div id="game-challenges" class="game-challenges">
-  <!-- Caro AI Assistant Panel -->
-  <div class="caro-assistant" id="caro-assistant">
-    <div class="caro-header">
-      <div class="caro-avatar">
-        <img src="/caro-pixel.png" alt="Caro" />
-        <span class="status-dot online"></span>
-      </div>
-      <div class="caro-info">
-        <span class="caro-name">Caro</span>
-        <span class="caro-status" id="caro-status">Ready to help!</span>
-      </div>
-      <button class="caro-toggle" id="caro-toggle" title="Toggle assistant">
-        <span class="toggle-icon">−</span>
-      </button>
-    </div>
-    <div class="caro-body" id="caro-body">
-      <div class="caro-messages" id="caro-messages">
-        <div class="caro-message">
-          <p>Hey there! I'm Caro, your terminal companion. I'm here to help you through these challenges!</p>
-          <p class="hint-text">Try typing commands in the terminal below. If you get stuck, just ask me!</p>
-        </div>
-      </div>
-      <div class="caro-input-area">
-        <input
-          type="text"
-          id="caro-input"
-          class="caro-input"
-          placeholder="Ask Caro for help..."
-          autocomplete="off"
-        />
-        <button class="caro-send" id="caro-send">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
-          </svg>
-        </button>
-      </div>
-    </div>
+  <!-- Caro status indicator (minimal, in header area) -->
+  <div class="caro-status-bar" id="caro-status-bar">
+    <img src="/caro-pixel.png" alt="Caro" class="caro-mini-avatar" />
+    <span class="caro-status-text" id="caro-status">Caro is ready to help!</span>
+    <span class="status-dot online" id="status-dot"></span>
   </div>
 
   <!-- Challenge Selection -->
@@ -124,15 +92,7 @@
       </div>
     </div>
 
-    <!-- Objectives Panel -->
-    <div class="objectives-panel">
-      <h4>Objectives</h4>
-      <ul class="objectives-list" id="objectives-list">
-        <!-- Objectives populated by JS -->
-      </ul>
-    </div>
-
-    <!-- Game Terminal -->
+    <!-- Game Terminal with Inline Objectives -->
     <div class="game-terminal">
       <div class="terminal-header">
         <div class="terminal-dots">
@@ -142,9 +102,26 @@
         </div>
         <div class="terminal-title" id="game-terminal-path">learner@caro-game:~</div>
         <div class="terminal-actions">
-          <button class="hint-btn" id="request-hint" title="Ask Caro for a hint">
-            💡 Hint
+          <button class="objectives-toggle" id="toggle-objectives" title="Show/hide objectives">
+            📋 Objectives
           </button>
+          <button class="hint-btn" id="request-hint" title="Ask Caro for a hint">
+            💡 Ask Caro
+          </button>
+        </div>
+      </div>
+      <!-- Inline Objectives (inside terminal) -->
+      <div class="terminal-objectives" id="terminal-objectives">
+        <div class="objectives-header">
+          <span class="objectives-title">🎯 Current Objectives</span>
+          <button class="close-objectives" id="close-objectives">×</button>
+        </div>
+        <ul class="objectives-list" id="objectives-list">
+          <!-- Objectives populated by JS -->
+        </ul>
+        <div class="objectives-tip">
+          <img src="/caro-pixel.png" alt="Caro" class="tip-avatar" />
+          <span>Tip: Type <code>caro help</code> or just ask in natural language!</span>
         </div>
       </div>
       <div class="terminal-body">
@@ -159,7 +136,7 @@
             type="text"
             id="game-input"
             class="terminal-input"
-            placeholder="Type command..."
+            placeholder="Type command or ask Caro in natural language..."
             autocomplete="off"
             spellcheck="false"
           />
@@ -202,65 +179,42 @@
     position: relative;
   }
 
-  /* Caro Assistant Panel */
-  .caro-assistant {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 350px;
-    background: var(--color-bg);
-    border-radius: 16px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-    overflow: hidden;
-    border: 1px solid var(--color-border);
-    transition: all 0.3s ease;
-  }
-
-  .caro-assistant.minimized {
-    width: 200px;
-  }
-
-  .caro-assistant.minimized .caro-body {
-    display: none;
-  }
-
-  .caro-header {
+  /* Caro Status Bar (minimal) */
+  .caro-status-bar {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: white;
+    gap: 10px;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.1) 0%, rgba(255, 107, 53, 0.1) 100%);
+    border: 1px solid rgba(255, 140, 66, 0.3);
+    border-radius: 10px;
+    margin-bottom: 20px;
   }
 
-  .caro-avatar {
-    position: relative;
-    width: 40px;
-    height: 40px;
-  }
-
-  .caro-avatar img {
-    width: 100%;
-    height: 100%;
+  .caro-mini-avatar {
+    width: 28px;
+    height: 28px;
     image-rendering: pixelated;
     border-radius: 50%;
     background: white;
-    padding: 4px;
+    padding: 3px;
+  }
+
+  .caro-status-text {
+    flex: 1;
+    font-size: 14px;
+    color: var(--color-text);
   }
 
   .status-dot {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
-    border: 2px solid #ff8c42;
   }
 
   .status-dot.online {
     background: #22c55e;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
   }
 
   .status-dot.thinking {
@@ -273,100 +227,237 @@
     50% { opacity: 0.5; }
   }
 
-  .caro-info {
-    flex: 1;
+  /* Inline Objectives inside Terminal */
+  .terminal-objectives {
+    background: rgba(255, 140, 66, 0.05);
+    border-bottom: 1px solid #3d3d3d;
+    padding: 12px 16px;
+    display: none;
+  }
+
+  .terminal-objectives.visible {
+    display: block;
+  }
+
+  .objectives-header {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
   }
 
-  .caro-name {
-    font-weight: 700;
-    font-size: 15px;
+  .objectives-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ff8c42;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 
-  .caro-status {
-    font-size: 12px;
-    opacity: 0.9;
-  }
-
-  .caro-toggle {
-    background: rgba(255, 255, 255, 0.2);
+  .close-objectives {
+    background: transparent;
     border: none;
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-    color: white;
-    cursor: pointer;
+    color: #888;
     font-size: 18px;
+    cursor: pointer;
+    padding: 0 4px;
+  }
+
+  .close-objectives:hover {
+    color: #fff;
+  }
+
+  .objectives-toggle {
+    background: rgba(255, 140, 66, 0.2);
+    border: 1px solid rgba(255, 140, 66, 0.3);
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: #ff8c42;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .objectives-toggle:hover {
+    background: rgba(255, 140, 66, 0.3);
+    border-color: #ff8c42;
+  }
+
+  .objectives-tip {
     display: flex;
     align-items: center;
-    justify-content: center;
-    transition: background 0.2s;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #3d3d3d;
+    font-size: 12px;
+    color: #888;
   }
 
-  .caro-toggle:hover {
-    background: rgba(255, 255, 255, 0.3);
+  .objectives-tip .tip-avatar {
+    width: 20px;
+    height: 20px;
+    image-rendering: pixelated;
+    border-radius: 50%;
+    background: white;
+    padding: 2px;
   }
 
-  .caro-body {
-    display: flex;
-    flex-direction: column;
-    height: 300px;
-  }
-
-  .caro-messages {
-    flex: 1;
-    padding: 16px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .caro-message {
-    background: var(--color-bg-secondary);
-    padding: 12px 16px;
-    border-radius: 12px;
-    border-top-left-radius: 4px;
-    font-size: 14px;
-    line-height: 1.5;
-    color: var(--color-text);
-  }
-
-  .caro-message p {
-    margin: 0 0 8px;
-  }
-
-  .caro-message p:last-child {
-    margin-bottom: 0;
-  }
-
-  .caro-message .hint-text {
-    color: var(--color-text-secondary);
-    font-size: 13px;
-  }
-
-  .caro-message code {
-    background: var(--color-bg);
+  .objectives-tip code {
+    background: #333;
     padding: 2px 6px;
     border-radius: 4px;
     font-family: 'Monaco', monospace;
     color: #ff8c42;
   }
 
-  .user-message {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: white;
-    border-radius: 12px;
-    border-top-right-radius: 4px;
-    align-self: flex-end;
-    max-width: 85%;
+  /* Caro Inline Response in Terminal */
+  .caro-inline-response {
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.1) 0%, rgba(255, 107, 53, 0.05) 100%);
+    border-left: 3px solid #ff8c42;
+    border-radius: 0 8px 8px 0;
+    margin: 8px 0;
+    padding: 12px 16px;
   }
 
-  .caro-message.thinking {
+  .caro-inline-header {
     display: flex;
     align-items: center;
     gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .caro-inline-header img {
+    width: 24px;
+    height: 24px;
+    image-rendering: pixelated;
+    border-radius: 50%;
+    background: white;
+    padding: 2px;
+  }
+
+  .caro-inline-header .caro-name {
+    font-weight: 600;
+    color: #ff8c42;
+    font-size: 13px;
+  }
+
+  .caro-inline-text {
+    color: #d4d4d4;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+
+  .caro-inline-command {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .caro-inline-command code {
+    color: #60a5fa;
+    font-family: 'Monaco', monospace;
+    font-size: 14px;
+  }
+
+  .caro-inline-command .copy-btn {
+    background: transparent;
+    border: 1px solid #444;
+    color: #888;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .caro-inline-command .copy-btn:hover {
+    border-color: #ff8c42;
+    color: #ff8c42;
+  }
+
+  .caro-safety-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    margin-top: 8px;
+  }
+
+  .caro-safety-indicator.safe {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+  }
+
+  .caro-safety-indicator.moderate {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+  }
+
+  .caro-safety-indicator.dangerous {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+  }
+
+  .caro-inline-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .caro-inline-actions button {
+    background: transparent;
+    border: 1px solid #444;
+    color: #888;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .caro-inline-actions button:hover {
+    border-color: #ff8c42;
+    color: #ff8c42;
+  }
+
+  .caro-inline-actions button.execute-btn {
+    background: rgba(34, 197, 94, 0.2);
+    border-color: rgba(34, 197, 94, 0.4);
+    color: #22c55e;
+  }
+
+  .caro-inline-actions button.execute-btn:hover {
+    background: rgba(34, 197, 94, 0.3);
+    border-color: #22c55e;
+  }
+
+  /* Thinking animation inline */
+  .caro-thinking-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: rgba(255, 140, 66, 0.05);
+    border-left: 3px solid #ff8c42;
+    margin: 8px 0;
+  }
+
+  .caro-thinking-inline img {
+    width: 24px;
+    height: 24px;
+    image-rendering: pixelated;
+    border-radius: 50%;
+    background: white;
+    padding: 2px;
   }
 
   .thinking-dots {
@@ -389,48 +480,6 @@
   @keyframes bounce {
     0%, 80%, 100% { transform: scale(0); }
     40% { transform: scale(1); }
-  }
-
-  .caro-input-area {
-    display: flex;
-    gap: 8px;
-    padding: 12px 16px;
-    border-top: 1px solid var(--color-border);
-    background: var(--color-bg-secondary);
-  }
-
-  .caro-input {
-    flex: 1;
-    padding: 10px 14px;
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    background: var(--color-bg);
-    color: var(--color-text);
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .caro-input:focus {
-    border-color: #ff8c42;
-  }
-
-  .caro-send {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s;
-  }
-
-  .caro-send:hover {
-    transform: scale(1.05);
   }
 
   /* Challenge Selector */
@@ -632,51 +681,37 @@
     color: var(--color-text-secondary);
   }
 
-  /* Objectives Panel */
-  .objectives-panel {
-    background: var(--color-bg);
-    border-radius: 12px;
-    padding: 16px 20px;
-    border: 1px solid var(--color-border);
-  }
-
-  .objectives-panel h4 {
-    margin: 0 0 12px;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--color-text-secondary);
-  }
-
+  /* Objectives List (inside terminal) */
   .objectives-list {
     list-style: none;
     padding: 0;
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 6px;
   }
 
   .objectives-list li {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    background: var(--color-bg-secondary);
-    border-radius: 8px;
-    font-size: 14px;
-    color: var(--color-text);
+    gap: 8px;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: 'Monaco', monospace;
+    color: #d4d4d4;
   }
 
   .objectives-list li.completed {
     text-decoration: line-through;
-    color: var(--color-text-secondary);
+    color: #666;
   }
 
   .objective-check {
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--color-border);
+    width: 16px;
+    height: 16px;
+    border: 2px solid #444;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -692,7 +727,7 @@
 
   .objectives-list li.completed .objective-check::after {
     content: '✓';
-    font-size: 12px;
+    font-size: 10px;
   }
 
   /* Game Terminal */
@@ -945,11 +980,8 @@
 
   /* Responsive */
   @media (max-width: 768px) {
-    .caro-assistant {
-      width: 100%;
-      right: 0;
-      bottom: 0;
-      border-radius: 16px 16px 0 0;
+    .caro-status-bar {
+      flex-wrap: wrap;
     }
 
     .challenge-grid {
@@ -957,6 +989,10 @@
     }
 
     .challenge-header {
+      flex-wrap: wrap;
+    }
+
+    .terminal-actions {
       flex-wrap: wrap;
     }
   }
@@ -1147,7 +1183,15 @@
   let completedObjectives: Set<string> = new Set();
   let unlockedAchievements: Set<string> = new Set();
   let modelReady = false;
-  let caroMinimized = false;
+  let objectivesVisible = true; // Show by default
+
+  // Natural language patterns for detection
+  const NATURAL_LANGUAGE_PATTERNS = [
+    /^(how do i|how can i|how to|what is|what's|where is|where are|show me|help me|i want to|i need to|can you|please|find|search for|look for|tell me)/i,
+    /^(create|make|delete|remove|move|copy|rename|list|show|open|go to|navigate to|change to)\s+(a|an|the|my|some|all)/i,
+    /\?$/,
+    /^(what|where|how|why|when|which|who)\s/i,
+  ];
 
   // DOM Elements
   const challengeSelector = document.getElementById('challenge-selector')!;
@@ -1167,16 +1211,13 @@
   const achievementTitle = document.getElementById('achievement-title')!;
   const achievementDesc = document.getElementById('achievement-desc')!;
   const requestHintBtn = document.getElementById('request-hint')!;
+  const toggleObjectivesBtn = document.getElementById('toggle-objectives')!;
+  const closeObjectivesBtn = document.getElementById('close-objectives')!;
+  const terminalObjectives = document.getElementById('terminal-objectives')!;
 
   // Caro elements
-  const caroAssistant = document.getElementById('caro-assistant')!;
-  const caroToggle = document.getElementById('caro-toggle')!;
-  const caroBody = document.getElementById('caro-body')!;
-  const caroMessages = document.getElementById('caro-messages')!;
-  const caroInput = document.getElementById('caro-input') as HTMLInputElement;
-  const caroSend = document.getElementById('caro-send')!;
   const caroStatus = document.getElementById('caro-status')!;
-  const statusDot = document.querySelector('.status-dot')!;
+  const statusDot = document.getElementById('status-dot')!;
 
   // Initialize
   function init() {
@@ -1214,23 +1255,32 @@
       }
     });
 
-    // Hint button
+    // Hint button - triggers inline Caro response
     requestHintBtn.addEventListener('click', requestHint);
 
-    // Caro toggle
-    caroToggle.addEventListener('click', () => {
-      caroMinimized = !caroMinimized;
-      caroAssistant.classList.toggle('minimized', caroMinimized);
-      caroToggle.querySelector('.toggle-icon')!.textContent = caroMinimized ? '+' : '−';
+    // Objectives toggle
+    toggleObjectivesBtn.addEventListener('click', () => {
+      objectivesVisible = !objectivesVisible;
+      terminalObjectives.classList.toggle('visible', objectivesVisible);
     });
 
-    // Caro input
-    caroInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        askCaro();
-      }
+    closeObjectivesBtn.addEventListener('click', () => {
+      objectivesVisible = false;
+      terminalObjectives.classList.remove('visible');
     });
-    caroSend.addEventListener('click', askCaro);
+  }
+
+  // Check if input is natural language (not a command)
+  function isNaturalLanguage(input: string): boolean {
+    const trimmed = input.trim().toLowerCase();
+
+    // If starts with "caro", treat the rest as a query
+    if (trimmed.startsWith('caro ')) {
+      return true;
+    }
+
+    // Check natural language patterns
+    return NATURAL_LANGUAGE_PATTERNS.some(pattern => pattern.test(trimmed));
   }
 
   // Start a challenge
@@ -1251,15 +1301,21 @@
     challengeBadge.textContent = challenge.difficulty;
     storyIntro.innerHTML = challenge.storyIntro;
 
-    // Render objectives
+    // Render objectives and show objectives panel
     renderObjectives();
+    objectivesVisible = true;
+    terminalObjectives.classList.add('visible');
     updatePrompt();
 
-    // Clear game output
+    // Clear game output and add story intro + Caro welcome
     gameOutput.innerHTML = `<div class="story-intro">${challenge.storyIntro}</div>`;
 
-    // Caro introduction
-    addCaroMessage(`Starting "${challenge.title}"! ${getCaroEncouragement()}`);
+    // Add inline Caro welcome message
+    addCaroInlineMessage(
+      `Welcome to "${challenge.title}"! ${getCaroEncouragement()}`,
+      null,
+      `Type <code>caro help</code> to ask me anything, or just type in natural language!`
+    );
 
     gameInput.focus();
   }
@@ -1288,21 +1344,207 @@
   }
 
   // Handle game command
-  function handleGameCommand() {
+  async function handleGameCommand() {
     const input = gameInput.value.trim();
     if (!input) return;
 
     gameInput.value = '';
     addGameOutput(`<span class="prompt-text">${gamePrompt.textContent}</span> <span class="command-text">${escapeHtml(input)}</span>`, 'terminal-line');
 
+    // Check if it's natural language input (should go to Caro)
+    if (isNaturalLanguage(input)) {
+      // Extract the query (remove "caro " prefix if present)
+      const query = input.toLowerCase().startsWith('caro ')
+        ? input.substring(5).trim()
+        : input;
+      await handleCaroQuery(query);
+      return;
+    }
+
+    // Check if it's just "caro" by itself
+    if (input.toLowerCase() === 'caro') {
+      addCaroInlineMessage(
+        "Hey! I'm Caro, your terminal assistant. How can I help?",
+        null,
+        'Try asking me something like "how do I find hidden files?" or "caro help"'
+      );
+      return;
+    }
+
     // Execute command
     const result = executeGameCommand(input);
     if (result) {
       addGameOutput(result.output, result.type || 'output-text');
+
+      // If command failed, offer Caro help
+      if (result.type?.includes('error') && modelReady) {
+        offerCaroHelp(input, result.output);
+      }
     }
 
     // Check objectives
     checkObjectives(input);
+  }
+
+  // Handle Caro query (natural language or explicit caro command)
+  async function handleCaroQuery(query: string) {
+    // Show Caro thinking
+    showCaroThinking();
+
+    if (!modelReady) {
+      hideCaroThinking();
+      addCaroInlineMessage(
+        "I'd love to help with my full AI brain, but the model isn't loaded yet!",
+        null,
+        "Once the model is loaded, I can translate natural language to commands for you."
+      );
+      // Still try to give a helpful response based on keywords
+      const helpfulHint = getKeywordBasedHint(query);
+      if (helpfulHint) {
+        addCaroInlineMessage(helpfulHint.text, helpfulHint.command, helpfulHint.explanation);
+      }
+      return;
+    }
+
+    try {
+      const engine = getTerminalTutorEngine();
+      const context = currentChallenge
+        ? `User is in challenge "${CHALLENGES[currentChallenge as keyof typeof CHALLENGES].title}". Current directory: ${currentDirectory}.`
+        : `User is exploring. Current directory: ${currentDirectory}.`;
+
+      let response = '';
+      await engine.generateResponse(
+        `${context}
+
+User's request: "${query}"
+
+Respond with:
+1. A brief friendly explanation of what command to use
+2. The exact terminal command
+3. Safety level (safe/moderate/dangerous)
+
+Keep it concise and helpful. Format your response naturally.`,
+        (token) => { response = token; }
+      );
+
+      hideCaroThinking();
+
+      // Parse the response to extract command if present
+      const commandMatch = response.match(/`([^`]+)`/);
+      const command = commandMatch ? commandMatch[1] : null;
+
+      // Determine safety level from response
+      let safetyLevel: 'safe' | 'moderate' | 'dangerous' = 'safe';
+      if (/dangerous|careful|warning|risky/i.test(response)) {
+        safetyLevel = 'dangerous';
+      } else if (/moderate|caution/i.test(response)) {
+        safetyLevel = 'moderate';
+      }
+
+      addCaroInlineMessage(response.replace(/`[^`]+`/g, '').trim(), command, null, safetyLevel, true);
+
+    } catch (error) {
+      hideCaroThinking();
+      addCaroInlineMessage(
+        "Hmm, I had trouble thinking about that. Let me try a simpler approach...",
+        null
+      );
+      // Fallback to keyword-based hint
+      const helpfulHint = getKeywordBasedHint(query);
+      if (helpfulHint) {
+        addCaroInlineMessage(helpfulHint.text, helpfulHint.command, helpfulHint.explanation);
+      }
+    }
+  }
+
+  // Offer Caro help when a command fails
+  function offerCaroHelp(command: string, error: string) {
+    setTimeout(() => {
+      addCaroInlineMessage(
+        `Looks like that command didn't work. Need help?`,
+        null,
+        `Try typing <code>caro how do I ${command.split(' ')[0]}</code> or click the "Ask Caro" button!`
+      );
+    }, 300);
+  }
+
+  // Get keyword-based hint when model isn't loaded
+  function getKeywordBasedHint(query: string): { text: string; command: string | null; explanation: string } | null {
+    const q = query.toLowerCase();
+
+    if (/hidden|secret|dot file/i.test(q)) {
+      return {
+        text: "To see hidden files (those starting with a dot), use the -a flag with ls!",
+        command: "ls -a",
+        explanation: "The -a flag shows ALL files, including hidden ones."
+      };
+    }
+
+    if (/list|show|see|what.*here/i.test(q)) {
+      return {
+        text: "To list files in the current directory:",
+        command: "ls",
+        explanation: "Add -l for detailed info, or -a to show hidden files too."
+      };
+    }
+
+    if (/where.*am|current.*dir|pwd/i.test(q)) {
+      return {
+        text: "To see your current directory:",
+        command: "pwd",
+        explanation: "pwd stands for 'print working directory'"
+      };
+    }
+
+    if (/go to|navigate|change.*dir|cd/i.test(q)) {
+      return {
+        text: "To change directories, use cd followed by the directory name:",
+        command: "cd folder_name",
+        explanation: "Use cd .. to go up, cd ~ to go home"
+      };
+    }
+
+    if (/read|view|cat|content/i.test(q)) {
+      return {
+        text: "To read the contents of a file:",
+        command: "cat filename",
+        explanation: "cat displays the entire file content"
+      };
+    }
+
+    if (/create|make|mkdir|folder/i.test(q)) {
+      return {
+        text: "To create a new directory:",
+        command: "mkdir folder_name",
+        explanation: "mkdir creates a new empty directory"
+      };
+    }
+
+    if (/move|mv/i.test(q)) {
+      return {
+        text: "To move a file to a different location:",
+        command: "mv source destination",
+        explanation: "mv can also be used to rename files"
+      };
+    }
+
+    if (/copy|cp/i.test(q)) {
+      return {
+        text: "To copy a file:",
+        command: "cp source destination",
+        explanation: "The original file remains in place"
+      };
+    }
+
+    if (/help/i.test(q)) {
+      return {
+        text: "Here are the available commands: pwd, ls, cd, cat, mkdir, mv, cp, help",
+        command: null,
+        explanation: "Type any command to try it, or ask me about a specific one!"
+      };
+    }
+
+    return null;
   }
 
   // Execute game command
@@ -1642,7 +1884,7 @@
     }
   }
 
-  // Request hint
+  // Request hint - now shows inline in terminal
   async function requestHint() {
     if (!currentChallenge) return;
     const challenge = CHALLENGES[currentChallenge as keyof typeof CHALLENGES];
@@ -1655,54 +1897,11 @@
       // Use AI for contextual hint
       await askCaroForHint(incompleteObjectives[0]?.text || 'completing the challenge');
     } else {
-      addCaroMessage(`💡 Hint: ${hint}`);
+      addCaroInlineMessage(`💡 ${hint}`, null, 'Load the AI model for smarter hints!');
     }
   }
 
-  // Ask Caro for help
-  async function askCaro() {
-    const question = caroInput.value.trim();
-    if (!question) return;
-
-    caroInput.value = '';
-
-    // Add user message
-    addUserMessage(question);
-
-    if (!modelReady) {
-      addCaroMessage("I'd love to help with my full AI brain, but the model isn't loaded yet. Let me give you a basic hint instead!");
-      if (currentChallenge) {
-        const challenge = CHALLENGES[currentChallenge as keyof typeof CHALLENGES];
-        const hint = challenge.hints[0];
-        addCaroMessage(`💡 ${hint}`);
-      }
-      return;
-    }
-
-    // Show thinking
-    showCaroThinking();
-
-    try {
-      const engine = getTerminalTutorEngine();
-      const context = currentChallenge
-        ? `The user is working on the "${CHALLENGES[currentChallenge as keyof typeof CHALLENGES].title}" challenge. Current directory: ${currentDirectory}.`
-        : 'The user is exploring the terminal challenges.';
-
-      let response = '';
-      await engine.generateResponse(
-        `${context}\n\nUser asks: "${question}"\n\nProvide a helpful, encouraging response. Keep it concise (2-3 sentences). If they seem stuck, give a gentle hint without giving away the answer.`,
-        (token) => { response = token; }
-      );
-
-      hideCaroThinking();
-      addCaroMessage(response);
-    } catch (error) {
-      hideCaroThinking();
-      addCaroMessage("Hmm, I had trouble thinking about that. Try asking in a different way!");
-    }
-  }
-
-  // Ask Caro for contextual hint
+  // Ask Caro for contextual hint (inline in terminal)
   async function askCaroForHint(objective: string) {
     showCaroThinking();
 
@@ -1710,16 +1909,27 @@
       const engine = getTerminalTutorEngine();
       let response = '';
       await engine.generateResponse(
-        `The user needs help with: "${objective}". Current directory: ${currentDirectory}. Give ONE specific, helpful hint without giving the full answer. Be encouraging!`,
+        `The user needs help with: "${objective}". Current directory: ${currentDirectory}. Give ONE specific, helpful hint without giving the full answer. If there's a command they should try, include it. Be encouraging!`,
         (token) => { response = token; }
       );
 
       hideCaroThinking();
-      addCaroMessage(`💡 ${response}`);
+
+      // Try to extract command from response
+      const commandMatch = response.match(/`([^`]+)`/);
+      const command = commandMatch ? commandMatch[1] : null;
+
+      addCaroInlineMessage(
+        `💡 ${response.replace(/`[^`]+`/g, '').trim()}`,
+        command,
+        null,
+        'safe',
+        !!command
+      );
     } catch (error) {
       hideCaroThinking();
       const challenge = CHALLENGES[currentChallenge as keyof typeof CHALLENGES];
-      addCaroMessage(`💡 ${challenge.hints[0]}`);
+      addCaroInlineMessage(`💡 ${challenge.hints[0]}`, null);
     }
   }
 
@@ -1732,37 +1942,110 @@
     gameOutput.scrollTop = gameOutput.scrollHeight;
   }
 
-  function addCaroMessage(message: string) {
+  // Add Caro inline message in terminal (the main way Caro communicates)
+  function addCaroInlineMessage(
+    text: string,
+    command: string | null,
+    tip?: string | null,
+    safetyLevel: 'safe' | 'moderate' | 'dangerous' = 'safe',
+    showActions: boolean = false
+  ) {
+    const safetyIcons = {
+      safe: '✓',
+      moderate: '⚠',
+      dangerous: '⚠'
+    };
+    const safetyLabels = {
+      safe: 'Safe to run',
+      moderate: 'Use with caution',
+      dangerous: 'Potentially dangerous'
+    };
+
+    const commandBlock = command ? `
+      <div class="caro-inline-command">
+        <code>${escapeHtml(command)}</code>
+        <button class="copy-btn" data-command="${escapeHtml(command)}">Copy</button>
+      </div>
+      <div class="caro-safety-indicator ${safetyLevel}">
+        <span>${safetyIcons[safetyLevel]}</span>
+        <span>${safetyLabels[safetyLevel]}</span>
+      </div>
+    ` : '';
+
+    const actionsBlock = showActions && command ? `
+      <div class="caro-inline-actions">
+        <button class="execute-btn" data-command="${escapeHtml(command)}">▶ Execute</button>
+        <button class="explain-btn" data-command="${escapeHtml(command)}">💡 Explain more</button>
+      </div>
+    ` : '';
+
+    const tipBlock = tip ? `<div class="caro-inline-tip" style="font-size: 12px; color: #888; margin-top: 8px;">${tip}</div>` : '';
+
     const div = document.createElement('div');
-    div.className = 'caro-message';
-    div.innerHTML = `<p>${message}</p>`;
-    caroMessages.appendChild(div);
-    caroMessages.scrollTop = caroMessages.scrollHeight;
+    div.className = 'caro-inline-response';
+    div.innerHTML = `
+      <div class="caro-inline-header">
+        <img src="/caro-pixel.png" alt="Caro" />
+        <span class="caro-name">Caro</span>
+      </div>
+      <div class="caro-inline-text">${text}</div>
+      ${commandBlock}
+      ${actionsBlock}
+      ${tipBlock}
+    `;
+
+    // Add event listeners for buttons
+    const copyBtn = div.querySelector('.copy-btn');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(command!);
+        (copyBtn as HTMLButtonElement).textContent = 'Copied!';
+        setTimeout(() => { (copyBtn as HTMLButtonElement).textContent = 'Copy'; }, 1500);
+      });
+    }
+
+    const executeBtn = div.querySelector('.execute-btn');
+    if (executeBtn) {
+      executeBtn.addEventListener('click', () => {
+        gameInput.value = command!;
+        handleGameCommand();
+      });
+    }
+
+    const explainBtn = div.querySelector('.explain-btn');
+    if (explainBtn) {
+      explainBtn.addEventListener('click', async () => {
+        await handleCaroQuery(`explain what ${command} does in detail`);
+      });
+    }
+
+    gameOutput.appendChild(div);
+    gameOutput.scrollTop = gameOutput.scrollHeight;
   }
 
-  function addUserMessage(message: string) {
-    const div = document.createElement('div');
-    div.className = 'caro-message user-message';
-    div.innerHTML = `<p>${escapeHtml(message)}</p>`;
-    caroMessages.appendChild(div);
-    caroMessages.scrollTop = caroMessages.scrollHeight;
+  // Legacy function for backwards compatibility
+  function addCaroMessage(message: string) {
+    addCaroInlineMessage(message, null);
   }
 
   function showCaroThinking() {
-    statusDot.classList.add('thinking');
-    caroStatus.textContent = 'Thinking...';
+    if (statusDot) statusDot.classList.add('thinking');
+    if (caroStatus) caroStatus.textContent = 'Caro is thinking...';
 
     const div = document.createElement('div');
-    div.className = 'caro-message thinking';
+    div.className = 'caro-thinking-inline';
     div.id = 'caro-thinking';
-    div.innerHTML = `<div class="thinking-dots"><span></span><span></span><span></span></div>`;
-    caroMessages.appendChild(div);
-    caroMessages.scrollTop = caroMessages.scrollHeight;
+    div.innerHTML = `
+      <img src="/caro-pixel.png" alt="Caro" />
+      <div class="thinking-dots"><span></span><span></span><span></span></div>
+    `;
+    gameOutput.appendChild(div);
+    gameOutput.scrollTop = gameOutput.scrollHeight;
   }
 
   function hideCaroThinking() {
-    statusDot.classList.remove('thinking');
-    caroStatus.textContent = 'Ready to help!';
+    if (statusDot) statusDot.classList.remove('thinking');
+    if (caroStatus) caroStatus.textContent = 'Caro is ready to help!';
     document.getElementById('caro-thinking')?.remove();
   }
 
