@@ -5,6 +5,7 @@ import Footer from '../components/Footer.astro';
 import ModelSelector from '../components/LLMInference/ModelSelector.astro';
 import TerminalSimulator from '../components/LLMInference/TerminalSimulator.astro';
 import LessonGuide from '../components/LLMInference/LessonGuide.astro';
+import GameChallenges from '../components/LLMInference/GameChallenges.astro';
 ---
 
 <Layout
@@ -52,12 +53,18 @@ import LessonGuide from '../components/LLMInference/LessonGuide.astro';
     <!-- Mode Selector -->
     <section class="mode-selector-section">
       <div class="container">
-        <div class="mode-cards">
+        <div class="mode-cards three-columns">
           <button class="mode-card active" data-mode="lessons">
             <div class="mode-icon">📚</div>
             <h3>Guided Lessons</h3>
             <p>Step-by-step tutorials with structured learning path</p>
             <div class="mode-badge recommended">Recommended for Beginners</div>
+          </button>
+          <button class="mode-card" data-mode="challenges">
+            <div class="mode-icon">🏆</div>
+            <h3>Game Challenges</h3>
+            <p>Discover secrets and complete missions with Caro's help</p>
+            <div class="mode-badge new">New! With AI Assistant</div>
           </button>
           <button class="mode-card" data-mode="playground">
             <div class="mode-icon">🎮</div>
@@ -79,6 +86,40 @@ import LessonGuide from '../components/LLMInference/LessonGuide.astro';
           </p>
         </div>
         <LessonGuide />
+      </div>
+    </section>
+
+    <!-- Challenges Mode -->
+    <section class="challenges-section" id="challenges-section">
+      <div class="container">
+        <!-- Model Loading for Challenges -->
+        <div class="challenge-model-area" id="challenge-model-area">
+          <div class="caro-intro-box">
+            <img src="/caro-pixel.png" alt="Caro" class="intro-caro" />
+            <div class="intro-content">
+              <h3>Power Up Caro with AI!</h3>
+              <p>
+                Load an AI model to unlock Caro's full potential. She'll provide intelligent hints,
+                answer your questions, and guide you through challenges in real-time.
+              </p>
+              <p class="optional-note">
+                <strong>Optional:</strong> Challenges work without AI, but Caro's hints are much smarter with it!
+              </p>
+            </div>
+          </div>
+          <ModelSelector />
+        </div>
+
+        <!-- Game Challenges Area -->
+        <div class="challenges-area" id="challenges-area">
+          <div class="section-header">
+            <h2>Terminal Challenges</h2>
+            <p class="section-subtitle">
+              Complete missions, discover secrets, and unlock achievements. Caro is here to help!
+            </p>
+          </div>
+          <GameChallenges />
+        </div>
       </div>
     </section>
 
@@ -374,6 +415,11 @@ import LessonGuide from '../components/LLMInference/LessonGuide.astro';
     margin: 0 auto;
   }
 
+  .mode-cards.three-columns {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 1000px;
+  }
+
   .mode-card {
     display: flex;
     flex-direction: column;
@@ -431,16 +477,78 @@ import LessonGuide from '../components/LLMInference/LessonGuide.astro';
     color: #16a34a;
   }
 
+  .mode-badge.new {
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.2) 0%, rgba(255, 107, 53, 0.2) 100%);
+    color: #ff8c42;
+    border: 1px solid rgba(255, 140, 66, 0.3);
+  }
+
   /* Sections */
   .lessons-section,
-  .playground-section {
+  .playground-section,
+  .challenges-section {
     padding: 60px 20px;
     display: none;
   }
 
   .lessons-section.active,
-  .playground-section.active {
+  .playground-section.active,
+  .challenges-section.active {
     display: block;
+  }
+
+  /* Caro Intro Box for Challenges */
+  .caro-intro-box {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 24px;
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.05) 0%, rgba(255, 107, 53, 0.1) 100%);
+    border: 1px solid rgba(255, 140, 66, 0.2);
+    border-radius: 16px;
+    margin-bottom: 30px;
+  }
+
+  .intro-caro {
+    width: 80px;
+    height: 80px;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 15px rgba(255, 140, 66, 0.4));
+    animation: float 2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  .intro-content h3 {
+    margin: 0 0 8px;
+    font-size: 20px;
+    color: var(--color-text);
+  }
+
+  .intro-content p {
+    margin: 0 0 8px;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .intro-content p:last-child {
+    margin-bottom: 0;
+  }
+
+  .optional-note {
+    font-size: 13px !important;
+    padding: 8px 12px;
+    background: var(--color-bg);
+    border-radius: 8px;
+    display: inline-block;
+  }
+
+  .optional-note strong {
+    color: #ff8c42;
+  }
+
+  .challenge-model-area {
+    margin-bottom: 40px;
   }
 
   .section-header {
@@ -647,8 +755,14 @@ import LessonGuide from '../components/LLMInference/LessonGuide.astro';
       display: none;
     }
 
-    .mode-cards {
+    .mode-cards,
+    .mode-cards.three-columns {
       grid-template-columns: 1fr;
+    }
+
+    .caro-intro-box {
+      flex-direction: column;
+      text-align: center;
     }
 
     .faq-grid {
@@ -671,7 +785,11 @@ import LessonGuide from '../components/LLMInference/LessonGuide.astro';
   // Mode switching
   const modeCards = document.querySelectorAll('.mode-card');
   const lessonsSection = document.getElementById('lessons-section')!;
+  const challengesSection = document.getElementById('challenges-section')!;
   const playgroundSection = document.getElementById('playground-section')!;
+
+  // All mode sections
+  const allSections = [lessonsSection, challengesSection, playgroundSection];
 
   modeCards.forEach(card => {
     card.addEventListener('click', () => {
@@ -681,25 +799,64 @@ import LessonGuide from '../components/LLMInference/LessonGuide.astro';
       modeCards.forEach(c => c.classList.remove('active'));
       card.classList.add('active');
 
-      // Show/hide sections
+      // Hide all sections
+      allSections.forEach(section => section.classList.remove('active'));
+
+      // Show selected section
       if (mode === 'lessons') {
         lessonsSection.classList.add('active');
-        playgroundSection.classList.remove('active');
-      } else {
-        lessonsSection.classList.remove('active');
+      } else if (mode === 'challenges') {
+        challengesSection.classList.add('active');
+      } else if (mode === 'playground') {
         playgroundSection.classList.add('active');
       }
     });
   });
 
-  // Handle model loaded event
-  window.addEventListener('model-loaded', () => {
+  // Handle model loaded event - update all relevant areas
+  window.addEventListener('model-loaded', (e: any) => {
+    const { modelId, modelName } = e.detail || {};
+
+    // Update playground area
     const modelLoadingArea = document.getElementById('model-loading-area');
     const terminalArea = document.getElementById('terminal-area');
-
     if (modelLoadingArea && terminalArea) {
       modelLoadingArea.classList.add('hidden');
       terminalArea.classList.remove('hidden');
     }
+
+    // Update challenges area - hide model selector, keep challenges visible
+    const challengeModelArea = document.getElementById('challenge-model-area');
+    if (challengeModelArea) {
+      // Collapse the model selector but show success message
+      challengeModelArea.innerHTML = `
+        <div class="model-loaded-banner">
+          <span class="check-icon">✓</span>
+          <span>Caro's AI is ready! (${modelName || 'Model loaded'})</span>
+        </div>
+      `;
+    }
   });
 </script>
+
+<style>
+  /* Model loaded banner */
+  .model-loaded-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(22, 163, 74, 0.1) 100%);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: 12px;
+    color: #16a34a;
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 20px;
+  }
+
+  .check-icon {
+    font-size: 20px;
+  }
+</style>
