@@ -1,0 +1,742 @@
+---
+/**
+ * ModelSelector.astro
+ * Model selection and download UI for MediaPipe LLM inference
+ */
+---
+
+<div id="model-selector" class="model-selector">
+  <div class="selector-header">
+    <div class="header-icon">
+      <img src="/caro-pixel.png" alt="Caro" class="caro-icon" />
+    </div>
+    <div class="header-text">
+      <h3>Choose Your AI Model</h3>
+      <p>Select a model to power your terminal learning experience</p>
+    </div>
+  </div>
+
+  <div class="webgpu-check" id="webgpu-status">
+    <div class="status-icon checking">
+      <span class="spinner"></span>
+    </div>
+    <span class="status-text">Checking WebGPU support...</span>
+  </div>
+
+  <div class="models-grid" id="models-grid">
+    <!-- Models will be populated by JavaScript -->
+  </div>
+
+  <div class="download-progress hidden" id="download-progress">
+    <div class="progress-header">
+      <span class="progress-model" id="progress-model-name">Downloading model...</span>
+      <span class="progress-percent" id="progress-percent">0%</span>
+    </div>
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" id="progress-bar-fill" style="width: 0%"></div>
+    </div>
+    <p class="progress-note">This may take a few minutes depending on your connection</p>
+  </div>
+
+  <div class="config-panel hidden" id="config-panel">
+    <div class="config-header" id="config-toggle">
+      <span>Advanced Settings</span>
+      <span class="toggle-icon">+</span>
+    </div>
+    <div class="config-options hidden" id="config-options">
+      <div class="config-option">
+        <label for="temperature">Temperature</label>
+        <div class="slider-container">
+          <input type="range" id="temperature" min="0" max="100" value="80" />
+          <span class="slider-value" id="temperature-value">0.8</span>
+        </div>
+        <p class="config-hint">Higher = more creative, Lower = more focused</p>
+      </div>
+      <div class="config-option">
+        <label for="max-tokens">Max Tokens</label>
+        <div class="slider-container">
+          <input type="range" id="max-tokens" min="128" max="2048" value="1024" step="128" />
+          <span class="slider-value" id="max-tokens-value">1024</span>
+        </div>
+        <p class="config-hint">Maximum length of generated responses</p>
+      </div>
+      <div class="config-option">
+        <label for="top-k">Top-K</label>
+        <div class="slider-container">
+          <input type="range" id="top-k" min="1" max="100" value="40" />
+          <span class="slider-value" id="top-k-value">40</span>
+        </div>
+        <p class="config-hint">Number of tokens to consider for each step</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .model-selector {
+    background: var(--color-bg-secondary);
+    border-radius: 16px;
+    padding: 30px;
+    max-width: 800px;
+    margin: 0 auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .selector-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .header-icon {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+  }
+
+  .caro-icon {
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 10px rgba(255, 140, 66, 0.4));
+    animation: float 2s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+
+  .header-text h3 {
+    margin: 0 0 4px;
+    font-size: 24px;
+    color: var(--color-text);
+  }
+
+  .header-text p {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+  }
+
+  .webgpu-check {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--color-bg);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid var(--color-border);
+  }
+
+  .status-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .status-icon.checking .spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--color-border);
+    border-top-color: #ff8c42;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .status-icon.success::after {
+    content: '✓';
+    color: #22c55e;
+    font-size: 18px;
+  }
+
+  .status-icon.error::after {
+    content: '✗';
+    color: #ef4444;
+    font-size: 18px;
+  }
+
+  .status-text {
+    color: var(--color-text);
+    font-size: 14px;
+  }
+
+  .webgpu-check.success {
+    border-color: rgba(34, 197, 94, 0.3);
+    background: rgba(34, 197, 94, 0.05);
+  }
+
+  .webgpu-check.error {
+    border-color: rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.05);
+  }
+
+  .models-grid {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .model-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background: var(--color-bg);
+    border: 2px solid var(--color-border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .model-card:hover {
+    border-color: #ff8c42;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.15);
+  }
+
+  .model-card.selected {
+    border-color: #ff8c42;
+    background: rgba(255, 140, 66, 0.05);
+  }
+
+  .model-card.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .model-card.disabled:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .model-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+
+  .model-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .model-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .recommended-badge {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+  }
+
+  .model-description {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin: 0 0 8px;
+  }
+
+  .model-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    background: var(--color-bg-secondary);
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+
+  .model-action {
+    flex-shrink: 0;
+  }
+
+  .load-btn {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .load-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.4);
+  }
+
+  .load-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .load-btn.loading {
+    position: relative;
+    color: transparent;
+  }
+
+  .load-btn.loading::after {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    top: 50%;
+    left: 50%;
+    margin-left: -9px;
+    margin-top: -9px;
+    border: 2px solid white;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .download-progress {
+    padding: 20px;
+    background: var(--color-bg);
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    margin-bottom: 20px;
+  }
+
+  .download-progress.hidden {
+    display: none;
+  }
+
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .progress-model {
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .progress-percent {
+    color: #ff8c42;
+    font-weight: 600;
+  }
+
+  .progress-bar-container {
+    height: 8px;
+    background: var(--color-border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff8c42 0%, #ff6b35 100%);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+  }
+
+  .progress-note {
+    margin: 12px 0 0;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+
+  .config-panel {
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .config-panel.hidden {
+    display: none;
+  }
+
+  .config-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    background: var(--color-bg);
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--color-text);
+    transition: background-color 0.2s;
+  }
+
+  .config-header:hover {
+    background: var(--color-bg-secondary);
+  }
+
+  .toggle-icon {
+    font-size: 18px;
+    color: var(--color-text-secondary);
+    transition: transform 0.2s;
+  }
+
+  .config-header.expanded .toggle-icon {
+    transform: rotate(45deg);
+  }
+
+  .config-options {
+    padding: 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .config-options.hidden {
+    display: none;
+  }
+
+  .config-option {
+    margin-bottom: 20px;
+  }
+
+  .config-option:last-child {
+    margin-bottom: 0;
+  }
+
+  .config-option label {
+    display: block;
+    font-weight: 500;
+    color: var(--color-text);
+    margin-bottom: 8px;
+  }
+
+  .slider-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .slider-container input[type="range"] {
+    flex: 1;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--color-border);
+    border-radius: 3px;
+    outline: none;
+  }
+
+  .slider-container input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #ff8c42;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  .slider-container input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+  }
+
+  .slider-value {
+    min-width: 50px;
+    text-align: right;
+    font-family: 'Monaco', 'Courier New', monospace;
+    color: #ff8c42;
+    font-weight: 600;
+  }
+
+  .config-hint {
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+
+  @media (max-width: 600px) {
+    .model-selector {
+      padding: 20px;
+    }
+
+    .selector-header {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .model-card {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .model-meta {
+      justify-content: center;
+    }
+
+    .model-action {
+      width: 100%;
+    }
+
+    .load-btn {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  import type { ModelInfo, ModelState } from './types';
+  import { AVAILABLE_MODELS } from './types';
+  import { getTerminalTutorEngine } from './LLMEngine';
+
+  // State
+  let selectedModelId: string | null = null;
+  let isLoading = false;
+
+  // DOM elements
+  const modelsGrid = document.getElementById('models-grid')!;
+  const webgpuStatus = document.getElementById('webgpu-status')!;
+  const downloadProgress = document.getElementById('download-progress')!;
+  const progressModelName = document.getElementById('progress-model-name')!;
+  const progressPercent = document.getElementById('progress-percent')!;
+  const progressBarFill = document.getElementById('progress-bar-fill')!;
+  const configPanel = document.getElementById('config-panel')!;
+  const configToggle = document.getElementById('config-toggle')!;
+  const configOptions = document.getElementById('config-options')!;
+
+  // Initialize
+  async function init() {
+    await checkWebGPU();
+    renderModels();
+    setupConfigPanel();
+    restoreLastModel();
+  }
+
+  // Check WebGPU support
+  async function checkWebGPU() {
+    const statusIcon = webgpuStatus.querySelector('.status-icon')!;
+    const statusText = webgpuStatus.querySelector('.status-text')!;
+
+    if (!navigator.gpu) {
+      statusIcon.classList.remove('checking');
+      statusIcon.classList.add('error');
+      statusText.textContent = 'WebGPU not supported. Please use Chrome 113+ or Edge 113+.';
+      webgpuStatus.classList.add('error');
+      disableAllModels();
+      return;
+    }
+
+    try {
+      const adapter = await navigator.gpu.requestAdapter();
+      if (!adapter) {
+        throw new Error('No GPU adapter found');
+      }
+
+      statusIcon.classList.remove('checking');
+      statusIcon.classList.add('success');
+      statusText.textContent = 'WebGPU is available! Select a model to get started.';
+      webgpuStatus.classList.add('success');
+    } catch (error) {
+      statusIcon.classList.remove('checking');
+      statusIcon.classList.add('error');
+      statusText.textContent = `WebGPU error: ${error}`;
+      webgpuStatus.classList.add('error');
+      disableAllModels();
+    }
+  }
+
+  // Render model cards
+  function renderModels() {
+    modelsGrid.innerHTML = AVAILABLE_MODELS.map(model => `
+      <div class="model-card" data-model-id="${model.id}">
+        <div class="model-icon">🤖</div>
+        <div class="model-info">
+          <h4 class="model-name">
+            ${model.name}
+            ${model.recommended ? '<span class="recommended-badge">Recommended</span>' : ''}
+          </h4>
+          <p class="model-description">${model.description}</p>
+          <div class="model-meta">
+            <span class="meta-item">📦 ${model.sizeFormatted}</span>
+            <span class="meta-item">⚡ ${model.quantization}</span>
+            <span class="meta-item">💬 ${model.capabilities.join(', ')}</span>
+          </div>
+        </div>
+        <div class="model-action">
+          <button class="load-btn" data-model-id="${model.id}">
+            Load Model
+          </button>
+        </div>
+      </div>
+    `).join('');
+
+    // Add click handlers
+    modelsGrid.querySelectorAll('.model-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if ((e.target as HTMLElement).classList.contains('load-btn')) return;
+        const modelId = (card as HTMLElement).dataset.modelId!;
+        selectModel(modelId);
+      });
+    });
+
+    modelsGrid.querySelectorAll('.load-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const modelId = (btn as HTMLElement).dataset.modelId!;
+        await loadModel(modelId);
+      });
+    });
+  }
+
+  // Select a model (visual only)
+  function selectModel(modelId: string) {
+    selectedModelId = modelId;
+
+    modelsGrid.querySelectorAll('.model-card').forEach(card => {
+      card.classList.toggle('selected', (card as HTMLElement).dataset.modelId === modelId);
+    });
+  }
+
+  // Load a model
+  async function loadModel(modelId: string) {
+    if (isLoading) return;
+
+    const model = AVAILABLE_MODELS.find(m => m.id === modelId);
+    if (!model) return;
+
+    isLoading = true;
+    selectModel(modelId);
+
+    // Update UI
+    const btn = modelsGrid.querySelector(`[data-model-id="${modelId}"] .load-btn`) as HTMLButtonElement;
+    btn.classList.add('loading');
+    btn.disabled = true;
+
+    // Show progress
+    downloadProgress.classList.remove('hidden');
+    progressModelName.textContent = `Downloading ${model.name}...`;
+    progressPercent.textContent = '0%';
+    progressBarFill.style.width = '0%';
+
+    try {
+      const engine = getTerminalTutorEngine();
+
+      await engine.loadModel(model, (progress) => {
+        progressPercent.textContent = `${progress}%`;
+        progressBarFill.style.width = `${progress}%`;
+
+        if (progress >= 100) {
+          progressModelName.textContent = 'Initializing model...';
+        }
+      });
+
+      // Success - hide selector and show config
+      downloadProgress.classList.add('hidden');
+      configPanel.classList.remove('hidden');
+
+      // Dispatch event for parent components
+      window.dispatchEvent(new CustomEvent('model-loaded', {
+        detail: { modelId, modelName: model.name }
+      }));
+
+    } catch (error) {
+      console.error('Failed to load model:', error);
+      progressModelName.textContent = `Error: ${error}`;
+      progressPercent.textContent = '';
+      progressBarFill.style.width = '0%';
+
+      btn.classList.remove('loading');
+      btn.disabled = false;
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  // Disable all models (when WebGPU not available)
+  function disableAllModels() {
+    modelsGrid.querySelectorAll('.model-card').forEach(card => {
+      card.classList.add('disabled');
+    });
+    modelsGrid.querySelectorAll('.load-btn').forEach(btn => {
+      (btn as HTMLButtonElement).disabled = true;
+    });
+  }
+
+  // Setup config panel
+  function setupConfigPanel() {
+    configToggle.addEventListener('click', () => {
+      configToggle.classList.toggle('expanded');
+      configOptions.classList.toggle('hidden');
+    });
+
+    // Temperature slider
+    const tempSlider = document.getElementById('temperature') as HTMLInputElement;
+    const tempValue = document.getElementById('temperature-value')!;
+    tempSlider.addEventListener('input', () => {
+      const value = parseInt(tempSlider.value) / 100;
+      tempValue.textContent = value.toFixed(1);
+      updateEngineOptions({ temperature: value });
+    });
+
+    // Max tokens slider
+    const maxTokensSlider = document.getElementById('max-tokens') as HTMLInputElement;
+    const maxTokensValue = document.getElementById('max-tokens-value')!;
+    maxTokensSlider.addEventListener('input', () => {
+      const value = parseInt(maxTokensSlider.value);
+      maxTokensValue.textContent = value.toString();
+      updateEngineOptions({ maxTokens: value });
+    });
+
+    // Top-K slider
+    const topKSlider = document.getElementById('top-k') as HTMLInputElement;
+    const topKValue = document.getElementById('top-k-value')!;
+    topKSlider.addEventListener('input', () => {
+      const value = parseInt(topKSlider.value);
+      topKValue.textContent = value.toString();
+      updateEngineOptions({ topK: value });
+    });
+  }
+
+  // Update engine options
+  function updateEngineOptions(options: any) {
+    try {
+      const engine = getTerminalTutorEngine();
+      engine.updateOptions(options);
+    } catch (e) {
+      // Engine not initialized yet
+    }
+  }
+
+  // Restore last loaded model preference
+  function restoreLastModel() {
+    const lastModel = localStorage.getItem('lastLoadedModel');
+    if (lastModel) {
+      selectModel(lastModel);
+    }
+  }
+
+  // Initialize on load
+  init();
+</script>

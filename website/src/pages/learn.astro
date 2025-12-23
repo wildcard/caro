@@ -1,0 +1,705 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+import Footer from '../components/Footer.astro';
+import ModelSelector from '../components/LLMInference/ModelSelector.astro';
+import TerminalSimulator from '../components/LLMInference/TerminalSimulator.astro';
+import LessonGuide from '../components/LLMInference/LessonGuide.astro';
+---
+
+<Layout
+  title="Learn Terminal Commands with Caro - Interactive Terminal Tutor"
+  description="Master terminal commands with Caro's AI-powered learning experience. Interactive lessons, natural language input, and hands-on practice - all running locally in your browser."
+>
+  <Navigation />
+
+  <main class="learn-page">
+    <!-- Hero Section -->
+    <section class="learn-hero">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="badge-icon">🧠</span>
+          <span class="badge-text">AI-Powered Learning</span>
+        </div>
+        <h1>Master the Terminal with Caro</h1>
+        <p class="hero-subtitle">
+          Learn terminal commands through natural language. Describe what you want to do,
+          and Caro will teach you how - all powered by AI running locally in your browser.
+        </p>
+        <div class="hero-features">
+          <div class="feature">
+            <span class="feature-icon">🔒</span>
+            <span class="feature-text">100% Private - Runs in Your Browser</span>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">💬</span>
+            <span class="feature-text">Natural Language Input</span>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">📚</span>
+            <span class="feature-text">Structured Lessons</span>
+          </div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <img src="/caro-pixel.png" alt="Caro" class="hero-caro" />
+        <div class="hero-speech">
+          <p>Ready to learn? I'll be your guide!</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mode Selector -->
+    <section class="mode-selector-section">
+      <div class="container">
+        <div class="mode-cards">
+          <button class="mode-card active" data-mode="lessons">
+            <div class="mode-icon">📚</div>
+            <h3>Guided Lessons</h3>
+            <p>Step-by-step tutorials with structured learning path</p>
+            <div class="mode-badge recommended">Recommended for Beginners</div>
+          </button>
+          <button class="mode-card" data-mode="playground">
+            <div class="mode-icon">🎮</div>
+            <h3>Free Playground</h3>
+            <p>Explore and experiment with AI-powered assistance</p>
+            <div class="mode-badge">Requires AI Model</div>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Lessons Mode -->
+    <section class="lessons-section active" id="lessons-section">
+      <div class="container">
+        <div class="section-header">
+          <h2>Terminal Foundations</h2>
+          <p class="section-subtitle">
+            Master essential commands step by step. Each lesson builds on the last.
+          </p>
+        </div>
+        <LessonGuide />
+      </div>
+    </section>
+
+    <!-- Playground Mode -->
+    <section class="playground-section" id="playground-section">
+      <div class="container">
+        <!-- Model Loading -->
+        <div class="model-loading-area" id="model-loading-area">
+          <div class="section-header">
+            <h2>Load Your AI Assistant</h2>
+            <p class="section-subtitle">
+              Select and download an AI model to enable natural language terminal tutoring.
+              Models run 100% locally - your data never leaves your device.
+            </p>
+          </div>
+          <ModelSelector />
+        </div>
+
+        <!-- Terminal Area (shown after model loads) -->
+        <div class="terminal-area hidden" id="terminal-area">
+          <div class="section-header">
+            <h2>Interactive Terminal</h2>
+            <p class="section-subtitle">
+              Ask Caro anything about terminal commands in plain English, or type commands directly.
+            </p>
+          </div>
+          <TerminalSimulator />
+        </div>
+      </div>
+    </section>
+
+    <!-- Learning Path Overview -->
+    <section class="learning-path-section">
+      <div class="container">
+        <h2>Your Learning Journey</h2>
+        <p class="section-subtitle">
+          Progress through structured phases to become a terminal pro
+        </p>
+
+        <div class="path-timeline">
+          <div class="path-item active">
+            <div class="path-marker">
+              <span class="marker-number">1</span>
+            </div>
+            <div class="path-content">
+              <h3>Foundation</h3>
+              <p>Orientation & Navigation</p>
+              <ul class="path-commands">
+                <li><code>pwd</code></li>
+                <li><code>ls</code></li>
+                <li><code>cd</code></li>
+              </ul>
+              <span class="path-status">Week 1</span>
+            </div>
+          </div>
+
+          <div class="path-item">
+            <div class="path-marker">
+              <span class="marker-number">2</span>
+            </div>
+            <div class="path-content">
+              <h3>File Operations</h3>
+              <p>Reading & Creating</p>
+              <ul class="path-commands">
+                <li><code>cat</code></li>
+                <li><code>touch</code></li>
+                <li><code>mkdir</code></li>
+              </ul>
+              <span class="path-status">Week 2</span>
+            </div>
+          </div>
+
+          <div class="path-item">
+            <div class="path-marker">
+              <span class="marker-number">3</span>
+            </div>
+            <div class="path-content">
+              <h3>Organization</h3>
+              <p>Moving & Copying</p>
+              <ul class="path-commands">
+                <li><code>cp</code></li>
+                <li><code>mv</code></li>
+                <li><code>rm</code></li>
+              </ul>
+              <span class="path-status">Week 3</span>
+            </div>
+          </div>
+
+          <div class="path-item">
+            <div class="path-marker">
+              <span class="marker-number">4</span>
+            </div>
+            <div class="path-content">
+              <h3>Mastery</h3>
+              <p>Advanced Skills</p>
+              <ul class="path-commands">
+                <li><code>grep</code></li>
+                <li><code>find</code></li>
+                <li><code>git</code></li>
+              </ul>
+              <span class="path-status">Week 4+</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq-section">
+      <div class="container">
+        <h2>Frequently Asked Questions</h2>
+
+        <div class="faq-grid">
+          <div class="faq-item">
+            <h3>How does the AI work?</h3>
+            <p>
+              We use MediaPipe's LLM Inference to run AI models directly in your browser
+              using WebGPU. No data is sent to any server - everything runs locally on your device.
+            </p>
+          </div>
+
+          <div class="faq-item">
+            <h3>Which browsers are supported?</h3>
+            <p>
+              Chrome 113+, Edge 113+, and Safari 18+ (macOS 15/iOS 18) support WebGPU.
+              Firefox support is coming soon.
+            </p>
+          </div>
+
+          <div class="faq-item">
+            <h3>How large are the AI models?</h3>
+            <p>
+              Models range from 555MB (Gemma3 1B) to 2.9GB (Gemma 3n E2B).
+              They're downloaded once and cached locally.
+            </p>
+          </div>
+
+          <div class="faq-item">
+            <h3>Can I use this offline?</h3>
+            <p>
+              Yes! Once a model is downloaded, the terminal tutor works completely offline.
+              Your progress is also saved locally.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .learn-page {
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  /* Hero Section */
+  .learn-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 60px;
+    padding: 80px 40px;
+    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+  }
+
+  .hero-content {
+    flex: 1;
+    max-width: 600px;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(255, 140, 66, 0.1);
+    border: 1px solid rgba(255, 140, 66, 0.3);
+    border-radius: 20px;
+    margin-bottom: 24px;
+  }
+
+  .badge-icon {
+    font-size: 16px;
+  }
+
+  .badge-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ff8c42;
+  }
+
+  .learn-hero h1 {
+    font-size: 48px;
+    line-height: 1.2;
+    margin: 0 0 16px;
+    color: var(--color-text);
+  }
+
+  .hero-subtitle {
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+    margin: 0 0 32px;
+  }
+
+  .hero-features {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .feature {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .feature-icon {
+    font-size: 20px;
+  }
+
+  .feature-text {
+    font-size: 15px;
+    color: var(--color-text);
+  }
+
+  .hero-visual {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .hero-caro {
+    width: 200px;
+    height: 200px;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 30px rgba(255, 140, 66, 0.4));
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+  }
+
+  .hero-speech {
+    position: absolute;
+    top: -20px;
+    right: -60px;
+    background: var(--color-bg);
+    padding: 16px 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    max-width: 200px;
+  }
+
+  .hero-speech::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 30px;
+    width: 16px;
+    height: 16px;
+    background: var(--color-bg);
+    transform: rotate(45deg);
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .hero-speech p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--color-text);
+  }
+
+  /* Mode Selector */
+  .mode-selector-section {
+    padding: 40px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .mode-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .mode-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 30px;
+    background: var(--color-bg);
+    border: 2px solid var(--color-border);
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .mode-card:hover {
+    border-color: #ff8c42;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(255, 140, 66, 0.15);
+  }
+
+  .mode-card.active {
+    border-color: #ff8c42;
+    background: rgba(255, 140, 66, 0.03);
+  }
+
+  .mode-icon {
+    font-size: 40px;
+    margin-bottom: 16px;
+  }
+
+  .mode-card h3 {
+    margin: 0 0 8px;
+    color: var(--color-text);
+    font-size: 20px;
+  }
+
+  .mode-card p {
+    margin: 0 0 16px;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+  }
+
+  .mode-badge {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 6px 12px;
+    border-radius: 12px;
+    background: var(--color-bg-secondary);
+    color: var(--color-text-secondary);
+  }
+
+  .mode-badge.recommended {
+    background: rgba(34, 197, 94, 0.1);
+    color: #16a34a;
+  }
+
+  /* Sections */
+  .lessons-section,
+  .playground-section {
+    padding: 60px 20px;
+    display: none;
+  }
+
+  .lessons-section.active,
+  .playground-section.active {
+    display: block;
+  }
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .section-header h2 {
+    font-size: 32px;
+    margin: 0 0 12px;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    font-size: 16px;
+    color: var(--color-text-secondary);
+    margin: 0;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .terminal-area.hidden,
+  .model-loading-area.hidden {
+    display: none;
+  }
+
+  /* Learning Path */
+  .learning-path-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .learning-path-section h2 {
+    text-align: center;
+    font-size: 32px;
+    margin: 0 0 12px;
+    color: var(--color-text);
+  }
+
+  .learning-path-section .section-subtitle {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+
+  .path-timeline {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .path-item {
+    flex: 1;
+    min-width: 200px;
+    max-width: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .path-marker {
+    width: 50px;
+    height: 50px;
+    background: var(--color-border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    transition: all 0.3s;
+  }
+
+  .path-item.active .path-marker {
+    background: linear-gradient(135deg, #ff8c42, #ff6b35);
+    box-shadow: 0 4px 15px rgba(255, 140, 66, 0.4);
+  }
+
+  .path-item.completed .path-marker {
+    background: #22c55e;
+  }
+
+  .marker-number {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+  }
+
+  .path-content h3 {
+    margin: 0 0 4px;
+    font-size: 18px;
+    color: var(--color-text);
+  }
+
+  .path-content > p {
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+
+  .path-commands {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 12px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .path-commands li {
+    background: var(--color-bg);
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
+
+  .path-commands code {
+    font-family: 'Monaco', monospace;
+    font-size: 12px;
+    color: #ff8c42;
+  }
+
+  .path-status {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-text-secondary);
+  }
+
+  /* FAQ Section */
+  .faq-section {
+    padding: 80px 20px;
+  }
+
+  .faq-section h2 {
+    text-align: center;
+    font-size: 32px;
+    margin: 0 0 40px;
+    color: var(--color-text);
+  }
+
+  .faq-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .faq-item {
+    background: var(--color-bg-secondary);
+    padding: 24px;
+    border-radius: 12px;
+  }
+
+  .faq-item h3 {
+    margin: 0 0 12px;
+    font-size: 16px;
+    color: var(--color-text);
+  }
+
+  .faq-item p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .learn-hero {
+      flex-direction: column;
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .learn-hero h1 {
+      font-size: 32px;
+    }
+
+    .hero-features {
+      align-items: center;
+    }
+
+    .hero-visual {
+      order: -1;
+    }
+
+    .hero-caro {
+      width: 120px;
+      height: 120px;
+    }
+
+    .hero-speech {
+      position: static;
+      margin-top: 16px;
+    }
+
+    .hero-speech::after {
+      display: none;
+    }
+
+    .mode-cards {
+      grid-template-columns: 1fr;
+    }
+
+    .faq-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .path-timeline {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .path-item {
+      max-width: 100%;
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  // Mode switching
+  const modeCards = document.querySelectorAll('.mode-card');
+  const lessonsSection = document.getElementById('lessons-section')!;
+  const playgroundSection = document.getElementById('playground-section')!;
+
+  modeCards.forEach(card => {
+    card.addEventListener('click', () => {
+      const mode = (card as HTMLElement).dataset.mode;
+
+      // Update card states
+      modeCards.forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+
+      // Show/hide sections
+      if (mode === 'lessons') {
+        lessonsSection.classList.add('active');
+        playgroundSection.classList.remove('active');
+      } else {
+        lessonsSection.classList.remove('active');
+        playgroundSection.classList.add('active');
+      }
+    });
+  });
+
+  // Handle model loaded event
+  window.addEventListener('model-loaded', () => {
+    const modelLoadingArea = document.getElementById('model-loading-area');
+    const terminalArea = document.getElementById('terminal-area');
+
+    if (modelLoadingArea && terminalArea) {
+      modelLoadingArea.classList.add('hidden');
+      terminalArea.classList.remove('hidden');
+    }
+  });
+</script>

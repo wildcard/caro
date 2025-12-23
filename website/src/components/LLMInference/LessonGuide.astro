@@ -1,0 +1,1103 @@
+---
+/**
+ * LessonGuide.astro
+ * Structured lesson interface for progressive terminal learning
+ * Implements the 5-step lesson pattern: Explain → Demonstrate → Action → Celebrate → Reinforce
+ */
+---
+
+<div id="lesson-guide" class="lesson-guide">
+  <!-- Week/Phase Navigation -->
+  <div class="phase-nav">
+    <button class="phase-btn active" data-phase="1">
+      <span class="phase-icon">📚</span>
+      <span class="phase-label">Foundation</span>
+      <span class="phase-week">Week 1</span>
+    </button>
+    <button class="phase-btn" data-phase="2">
+      <span class="phase-icon">🔨</span>
+      <span class="phase-label">Creation</span>
+      <span class="phase-week">Week 2</span>
+    </button>
+    <button class="phase-btn locked" data-phase="3">
+      <span class="phase-icon">🎯</span>
+      <span class="phase-label">Mastery</span>
+      <span class="phase-week">Week 3+</span>
+      <span class="lock-icon">🔒</span>
+    </button>
+  </div>
+
+  <!-- Current Lesson Card -->
+  <div class="lesson-card" id="lesson-card">
+    <!-- Progress Bar -->
+    <div class="lesson-progress">
+      <div class="progress-track">
+        <div class="progress-fill" id="lesson-progress-fill" style="width: 0%"></div>
+      </div>
+      <span class="progress-text" id="progress-text">Step 1 of 5</span>
+    </div>
+
+    <!-- Lesson Header -->
+    <div class="lesson-header">
+      <div class="lesson-number" id="lesson-number">Lesson 1</div>
+      <h3 class="lesson-title" id="lesson-title">Where Am I?</h3>
+      <p class="lesson-objective" id="lesson-objective">
+        Learn to find your current location in the file system
+      </p>
+    </div>
+
+    <!-- Lesson Content Area -->
+    <div class="lesson-content" id="lesson-content">
+      <!-- Step 1: Explanation -->
+      <div class="step step-explain active" data-step="explain">
+        <div class="step-badge">📖 Explanation</div>
+        <div class="step-content">
+          <p class="explanation-text" id="explanation-text">
+            The <code>pwd</code> command stands for "Print Working Directory".
+            It shows you exactly where you are in the file system - like looking at a map
+            and seeing "You Are Here" marked with a star.
+          </p>
+          <div class="why-box">
+            <strong>Why does this matter?</strong>
+            <p>Before you can navigate anywhere, you need to know where you're starting from!</p>
+          </div>
+        </div>
+        <button class="step-next-btn" id="btn-to-demo">Got it! Show me →</button>
+      </div>
+
+      <!-- Step 2: Demonstration -->
+      <div class="step step-demo" data-step="demo">
+        <div class="step-badge">👀 Watch This</div>
+        <div class="step-content">
+          <div class="demo-terminal">
+            <div class="demo-header">
+              <span class="demo-dot red"></span>
+              <span class="demo-dot yellow"></span>
+              <span class="demo-dot green"></span>
+            </div>
+            <div class="demo-body">
+              <div class="demo-line">
+                <span class="demo-prompt">learner@caro:~$</span>
+                <span class="demo-command" id="demo-command">pwd</span>
+                <span class="typing-cursor">▋</span>
+              </div>
+              <div class="demo-output" id="demo-output">/home/learner</div>
+            </div>
+          </div>
+          <div class="demo-explanation">
+            <p id="demo-explanation">See how the terminal shows <code>/home/learner</code>? That's your home directory!</p>
+          </div>
+        </div>
+        <button class="step-next-btn" id="btn-to-action">My turn! →</button>
+      </div>
+
+      <!-- Step 3: Student Action -->
+      <div class="step step-action" data-step="action">
+        <div class="step-badge">⌨️ Your Turn</div>
+        <div class="step-content">
+          <p class="action-prompt" id="action-prompt">
+            Now you try! Type <code>pwd</code> in the terminal below and press Enter.
+          </p>
+          <div class="action-terminal">
+            <div class="action-header">Type your command:</div>
+            <div class="action-input-wrap">
+              <span class="action-prompt-text">learner@caro:~$</span>
+              <input
+                type="text"
+                id="action-input"
+                class="action-input"
+                placeholder="Type command here..."
+                autocomplete="off"
+                spellcheck="false"
+              />
+            </div>
+            <div class="action-output" id="action-output"></div>
+          </div>
+          <div class="hint-section" id="hint-section">
+            <button class="hint-btn" id="hint-btn">💡 Need a hint?</button>
+            <p class="hint-text hidden" id="hint-text">Try typing exactly: pwd</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Celebration -->
+      <div class="step step-celebrate" data-step="celebrate">
+        <div class="celebration-container">
+          <div class="celebration-icon" id="celebration-icon">🎉</div>
+          <h3 class="celebration-title" id="celebration-title">Fabulous!</h3>
+          <p class="celebration-message" id="celebration-message">
+            You just ran your first terminal command!
+          </p>
+          <div class="achievement-badge">
+            <span class="badge-icon">🏆</span>
+            <span class="badge-text">First Command</span>
+          </div>
+        </div>
+        <button class="step-next-btn" id="btn-to-reinforce">What did I learn? →</button>
+      </div>
+
+      <!-- Step 5: Reinforcement -->
+      <div class="step step-reinforce" data-step="reinforce">
+        <div class="step-badge">🧠 Remember This</div>
+        <div class="step-content">
+          <div class="summary-box">
+            <h4>What you learned:</h4>
+            <ul class="summary-list" id="summary-list">
+              <li><code>pwd</code> prints your current directory</li>
+              <li>The path shows your location in the filesystem</li>
+              <li><code>/home/learner</code> is your home directory</li>
+            </ul>
+          </div>
+          <div class="next-teaser">
+            <p>Coming up: <strong id="next-lesson-title">Looking Around with ls</strong></p>
+          </div>
+        </div>
+        <button class="step-next-btn primary" id="btn-next-lesson">Continue to Next Lesson →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lesson Navigation -->
+  <div class="lesson-nav">
+    <button class="nav-btn prev" id="prev-lesson" disabled>
+      <span>←</span> Previous
+    </button>
+    <div class="lesson-dots" id="lesson-dots">
+      <span class="dot active" data-lesson="1"></span>
+      <span class="dot" data-lesson="2"></span>
+      <span class="dot" data-lesson="3"></span>
+      <span class="dot" data-lesson="4"></span>
+      <span class="dot" data-lesson="5"></span>
+    </div>
+    <button class="nav-btn next" id="next-lesson-btn">
+      Next <span>→</span>
+    </button>
+  </div>
+</div>
+
+<style>
+  .lesson-guide {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .phase-nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 6px;
+    background: var(--color-bg-secondary);
+    border-radius: 12px;
+  }
+
+  .phase-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 12px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .phase-btn:hover:not(.locked) {
+    background: var(--color-bg);
+  }
+
+  .phase-btn.active {
+    background: var(--color-bg);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .phase-btn.locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .phase-icon {
+    font-size: 24px;
+  }
+
+  .phase-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .phase-week {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+  }
+
+  .lock-icon {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 12px;
+  }
+
+  .lesson-card {
+    background: var(--color-bg);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+  }
+
+  .lesson-progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 6px;
+    background: var(--color-border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff8c42, #ff6b35);
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-text {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+  }
+
+  .lesson-header {
+    padding: 24px;
+    text-align: center;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .lesson-number {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #ff8c42;
+    margin-bottom: 8px;
+  }
+
+  .lesson-title {
+    margin: 0 0 8px;
+    font-size: 24px;
+    color: var(--color-text);
+  }
+
+  .lesson-objective {
+    margin: 0;
+    color: var(--color-text-secondary);
+  }
+
+  .lesson-content {
+    padding: 24px;
+    min-height: 300px;
+  }
+
+  .step {
+    display: none;
+  }
+
+  .step.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .step-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    background: rgba(255, 140, 66, 0.1);
+    color: #ff8c42;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+  .step-content {
+    margin-bottom: 24px;
+  }
+
+  .explanation-text {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--color-text);
+    margin: 0 0 16px;
+  }
+
+  .explanation-text code {
+    background: var(--color-bg-secondary);
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: #ff8c42;
+    font-family: 'Monaco', monospace;
+  }
+
+  .why-box {
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.05), rgba(255, 107, 53, 0.1));
+    border-left: 4px solid #ff8c42;
+    padding: 16px 20px;
+    border-radius: 0 8px 8px 0;
+  }
+
+  .why-box strong {
+    color: #ff8c42;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .why-box p {
+    margin: 0;
+    color: var(--color-text-secondary);
+  }
+
+  .step-next-btn {
+    display: block;
+    width: 100%;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #ff8c42, #ff6b35);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .step-next-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 140, 66, 0.4);
+  }
+
+  .step-next-btn.primary {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+  }
+
+  .step-next-btn.primary:hover {
+    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+  }
+
+  /* Demo Terminal */
+  .demo-terminal {
+    background: #1e1e1e;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .demo-header {
+    display: flex;
+    gap: 6px;
+    padding: 10px 12px;
+    background: #2d2d2d;
+  }
+
+  .demo-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .demo-dot.red { background: #ff5f56; }
+  .demo-dot.yellow { background: #ffbd2e; }
+  .demo-dot.green { background: #27c93f; }
+
+  .demo-body {
+    padding: 16px;
+    font-family: 'Monaco', monospace;
+    font-size: 14px;
+  }
+
+  .demo-line {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .demo-prompt {
+    color: #22c55e;
+  }
+
+  .demo-command {
+    color: #60a5fa;
+  }
+
+  .typing-cursor {
+    color: white;
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+
+  .demo-output {
+    color: #d4d4d4;
+    padding-left: 4px;
+  }
+
+  .demo-explanation {
+    padding: 16px;
+    background: var(--color-bg-secondary);
+    border-radius: 8px;
+  }
+
+  .demo-explanation p {
+    margin: 0;
+    color: var(--color-text-secondary);
+  }
+
+  .demo-explanation code {
+    background: var(--color-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #ff8c42;
+  }
+
+  /* Action Terminal */
+  .action-prompt {
+    font-size: 16px;
+    margin: 0 0 16px;
+    color: var(--color-text);
+  }
+
+  .action-terminal {
+    background: #1e1e1e;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .action-header {
+    padding: 10px 16px;
+    background: #2d2d2d;
+    color: #888;
+    font-size: 13px;
+  }
+
+  .action-input-wrap {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    gap: 8px;
+  }
+
+  .action-prompt-text {
+    color: #22c55e;
+    font-family: 'Monaco', monospace;
+    font-size: 14px;
+  }
+
+  .action-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #60a5fa;
+    font-family: 'Monaco', monospace;
+    font-size: 14px;
+    outline: none;
+  }
+
+  .action-input::placeholder {
+    color: #555;
+  }
+
+  .action-output {
+    padding: 0 16px 16px;
+    font-family: 'Monaco', monospace;
+    font-size: 14px;
+    color: #d4d4d4;
+    min-height: 20px;
+  }
+
+  .action-output.error {
+    color: #ef4444;
+  }
+
+  .action-output.success {
+    color: #22c55e;
+  }
+
+  .hint-section {
+    margin-top: 16px;
+  }
+
+  .hint-btn {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--color-text);
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+
+  .hint-btn:hover {
+    background: var(--color-bg-tertiary);
+  }
+
+  .hint-text {
+    margin: 12px 0 0;
+    padding: 12px;
+    background: rgba(255, 140, 66, 0.1);
+    border-radius: 8px;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+  }
+
+  .hint-text.hidden {
+    display: none;
+  }
+
+  /* Celebration */
+  .celebration-container {
+    text-align: center;
+    padding: 40px 20px;
+  }
+
+  .celebration-icon {
+    font-size: 64px;
+    animation: celebrateBounce 0.6s ease;
+  }
+
+  @keyframes celebrateBounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+  }
+
+  .celebration-title {
+    font-size: 32px;
+    color: #22c55e;
+    margin: 16px 0 8px;
+  }
+
+  .celebration-message {
+    color: var(--color-text-secondary);
+    font-size: 16px;
+    margin: 0 0 24px;
+  }
+
+  .achievement-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: white;
+    border-radius: 30px;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);
+  }
+
+  .badge-icon {
+    font-size: 20px;
+  }
+
+  /* Reinforcement */
+  .summary-box {
+    background: var(--color-bg-secondary);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .summary-box h4 {
+    margin: 0 0 12px;
+    color: var(--color-text);
+    font-size: 16px;
+  }
+
+  .summary-list {
+    margin: 0;
+    padding-left: 20px;
+    color: var(--color-text-secondary);
+  }
+
+  .summary-list li {
+    margin-bottom: 8px;
+  }
+
+  .summary-list code {
+    background: var(--color-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #ff8c42;
+    font-family: 'Monaco', monospace;
+  }
+
+  .next-teaser {
+    padding: 16px;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.05), rgba(22, 163, 74, 0.1));
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .next-teaser p {
+    margin: 0;
+    color: var(--color-text-secondary);
+  }
+
+  .next-teaser strong {
+    color: #22c55e;
+  }
+
+  /* Lesson Navigation */
+  .lesson-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    background: var(--color-bg-secondary);
+    border-radius: 12px;
+    margin-top: 16px;
+  }
+
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .nav-btn:hover:not(:disabled) {
+    background: var(--color-bg);
+    border-color: #ff8c42;
+    color: #ff8c42;
+  }
+
+  .nav-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .lesson-dots {
+    display: flex;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    background: var(--color-border);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .dot:hover {
+    background: #ff8c42;
+    transform: scale(1.2);
+  }
+
+  .dot.active {
+    background: #ff8c42;
+    width: 24px;
+    border-radius: 5px;
+  }
+
+  .dot.completed {
+    background: #22c55e;
+  }
+
+  @media (max-width: 600px) {
+    .phase-nav {
+      flex-direction: column;
+    }
+
+    .phase-btn {
+      flex-direction: row;
+      justify-content: flex-start;
+      gap: 12px;
+    }
+
+    .lesson-nav {
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .lesson-dots {
+      order: 3;
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+
+<script>
+  // Lesson data
+  const LESSONS = [
+    {
+      id: 1,
+      title: 'Where Am I?',
+      objective: 'Learn to find your current location in the file system',
+      command: 'pwd',
+      explanation: `The <code>pwd</code> command stands for "Print Working Directory".
+        It shows you exactly where you are in the file system - like looking at a map
+        and seeing "You Are Here" marked with a star.`,
+      why: 'Before you can navigate anywhere, you need to know where you\'re starting from!',
+      demoCommand: 'pwd',
+      demoOutput: '/home/learner',
+      demoExplanation: 'See how the terminal shows <code>/home/learner</code>? That\'s your home directory!',
+      actionPrompt: 'Now you try! Type <code>pwd</code> in the terminal below and press Enter.',
+      expectedCommand: 'pwd',
+      expectedOutput: '/home/learner',
+      hints: ['Try typing exactly: pwd'],
+      celebration: {
+        icon: '🎉',
+        title: 'Fabulous!',
+        message: 'You just ran your first terminal command!'
+      },
+      summary: [
+        '<code>pwd</code> prints your current directory',
+        'The path shows your location in the filesystem',
+        '<code>/home/learner</code> is your home directory'
+      ],
+      nextLesson: 'Looking Around with ls'
+    },
+    {
+      id: 2,
+      title: 'Looking Around',
+      objective: 'Learn to see what files and folders are in your current location',
+      command: 'ls',
+      explanation: `The <code>ls</code> command stands for "list".
+        It shows you all the files and folders in your current directory -
+        like opening a drawer and seeing what's inside.`,
+      why: 'Once you know where you are, you want to see what\'s there!',
+      demoCommand: 'ls',
+      demoOutput: 'Documents  Downloads  Projects',
+      demoExplanation: 'See the folder names? Those are directories you can explore!',
+      actionPrompt: 'Your turn! Type <code>ls</code> to see what\'s in your home directory.',
+      expectedCommand: 'ls',
+      expectedOutput: 'Documents  Downloads  Projects',
+      hints: ['Type: ls (that\'s a lowercase L and S)'],
+      celebration: {
+        icon: '👀',
+        title: 'Well done!',
+        message: 'Now you can see what\'s around you!'
+      },
+      summary: [
+        '<code>ls</code> lists files and directories',
+        'Folders are shown by name',
+        'You can now "look" inside any directory'
+      ],
+      nextLesson: 'Moving Around with cd'
+    },
+    {
+      id: 3,
+      title: 'Moving Around',
+      objective: 'Learn to navigate between directories',
+      command: 'cd',
+      explanation: `The <code>cd</code> command stands for "change directory".
+        It lets you move into different folders - like walking through doors
+        in a building to get to different rooms.`,
+      why: 'To work with files, you need to go where they are!',
+      demoCommand: 'cd Documents',
+      demoOutput: '',
+      demoExplanation: 'Notice the prompt changed? You\'re now in Documents! The command ran silently.',
+      actionPrompt: 'Try it! Type <code>cd Documents</code> to enter the Documents folder.',
+      expectedCommand: 'cd Documents',
+      expectedOutput: '',
+      hints: ['Type: cd Documents (with a space between cd and Documents)'],
+      celebration: {
+        icon: '🚶',
+        title: 'You moved!',
+        message: 'You successfully navigated to a new directory!'
+      },
+      summary: [
+        '<code>cd [folder]</code> moves you into a folder',
+        '<code>cd ..</code> goes back up one level',
+        '<code>cd ~</code> takes you home'
+      ],
+      nextLesson: 'Reading Files with cat'
+    },
+    {
+      id: 4,
+      title: 'Reading Files',
+      objective: 'Learn to view the contents of files',
+      command: 'cat',
+      explanation: `The <code>cat</code> command displays the entire contents of a file.
+        It's like opening a document to read what's written inside.`,
+      why: 'Files contain information - you need to read them!',
+      demoCommand: 'cat notes.txt',
+      demoOutput: 'Welcome to the terminal!\nThis is your first file.',
+      demoExplanation: 'The file contents are displayed directly in the terminal.',
+      actionPrompt: 'Your turn! Type <code>cat notes.txt</code> to read the file.',
+      expectedCommand: 'cat notes.txt',
+      expectedOutput: 'Welcome to the terminal!\nThis is your first file.',
+      hints: ['Type: cat notes.txt', 'Make sure you\'re in the Documents folder first'],
+      celebration: {
+        icon: '📖',
+        title: 'Reading master!',
+        message: 'You can now read any text file!'
+      },
+      summary: [
+        '<code>cat [file]</code> shows file contents',
+        'Great for small files',
+        'For long files, use <code>head</code> or <code>tail</code>'
+      ],
+      nextLesson: 'Finding Hidden Files'
+    },
+    {
+      id: 5,
+      title: 'Finding Hidden Files',
+      objective: 'Discover hidden files and folders with ls -a',
+      command: 'ls -a',
+      explanation: `Adding <code>-a</code> to <code>ls</code> shows ALL files,
+        including hidden ones. Hidden files start with a dot (.) and are
+        normally invisible - like secret compartments!`,
+      why: 'Important configuration files are often hidden. Finding them is essential!',
+      demoCommand: 'ls -a',
+      demoOutput: '.  ..  .bashrc  .hidden_treasure  Documents  Projects',
+      demoExplanation: 'The files starting with dots were hidden before! Now you can see them.',
+      actionPrompt: 'Uncover the secrets! Type <code>ls -a</code> to see hidden files.',
+      expectedCommand: 'ls -a',
+      expectedOutput: '.  ..  .bashrc  .hidden_treasure  Documents  Projects',
+      hints: ['Type: ls -a (the -a is called a "flag")'],
+      celebration: {
+        icon: '🔍',
+        title: 'Secret finder!',
+        message: 'You discovered the hidden files!'
+      },
+      summary: [
+        '<code>ls -a</code> shows all files including hidden',
+        'Hidden files start with a dot (.)',
+        'Flags modify command behavior'
+      ],
+      nextLesson: 'Creating Your First File'
+    }
+  ];
+
+  // State
+  let currentLesson = 0;
+  let currentStep = 'explain';
+  let completedLessons: number[] = [];
+
+  // DOM elements
+  const lessonTitle = document.getElementById('lesson-title')!;
+  const lessonNumber = document.getElementById('lesson-number')!;
+  const lessonObjective = document.getElementById('lesson-objective')!;
+  const explanationText = document.getElementById('explanation-text')!;
+  const progressFill = document.getElementById('lesson-progress-fill')!;
+  const progressText = document.getElementById('progress-text')!;
+  const demoCommand = document.getElementById('demo-command')!;
+  const demoOutput = document.getElementById('demo-output')!;
+  const demoExplanation = document.getElementById('demo-explanation')!;
+  const actionPrompt = document.getElementById('action-prompt')!;
+  const actionInput = document.getElementById('action-input') as HTMLInputElement;
+  const actionOutput = document.getElementById('action-output')!;
+  const hintBtn = document.getElementById('hint-btn')!;
+  const hintText = document.getElementById('hint-text')!;
+  const celebrationIcon = document.getElementById('celebration-icon')!;
+  const celebrationTitle = document.getElementById('celebration-title')!;
+  const celebrationMessage = document.getElementById('celebration-message')!;
+  const summaryList = document.getElementById('summary-list')!;
+  const nextLessonTitle = document.getElementById('next-lesson-title')!;
+  const lessonDots = document.getElementById('lesson-dots')!;
+  const prevLessonBtn = document.getElementById('prev-lesson') as HTMLButtonElement;
+  const nextLessonBtn = document.getElementById('next-lesson-btn') as HTMLButtonElement;
+
+  // Initialize
+  function init() {
+    loadLesson(0);
+    setupEventListeners();
+    loadProgress();
+  }
+
+  function setupEventListeners() {
+    // Step navigation buttons
+    document.getElementById('btn-to-demo')?.addEventListener('click', () => goToStep('demo'));
+    document.getElementById('btn-to-action')?.addEventListener('click', () => goToStep('action'));
+    document.getElementById('btn-to-reinforce')?.addEventListener('click', () => goToStep('reinforce'));
+    document.getElementById('btn-next-lesson')?.addEventListener('click', () => nextLesson());
+
+    // Action input
+    actionInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        checkCommand();
+      }
+    });
+
+    // Hint button
+    hintBtn.addEventListener('click', () => {
+      hintText.classList.remove('hidden');
+    });
+
+    // Lesson navigation
+    prevLessonBtn.addEventListener('click', () => {
+      if (currentLesson > 0) loadLesson(currentLesson - 1);
+    });
+
+    nextLessonBtn.addEventListener('click', nextLesson);
+
+    // Lesson dots
+    lessonDots.querySelectorAll('.dot').forEach((dot, index) => {
+      dot.addEventListener('click', () => {
+        if (index <= completedLessons.length) {
+          loadLesson(index);
+        }
+      });
+    });
+  }
+
+  function loadLesson(index: number) {
+    if (index < 0 || index >= LESSONS.length) return;
+
+    currentLesson = index;
+    const lesson = LESSONS[index];
+
+    // Update header
+    lessonNumber.textContent = `Lesson ${lesson.id}`;
+    lessonTitle.textContent = lesson.title;
+    lessonObjective.textContent = lesson.objective;
+
+    // Update explanation
+    explanationText.innerHTML = lesson.explanation;
+    document.querySelector('.why-box p')!.textContent = lesson.why;
+
+    // Update demo
+    demoCommand.textContent = lesson.demoCommand;
+    demoOutput.textContent = lesson.demoOutput;
+    demoExplanation.innerHTML = lesson.demoExplanation;
+
+    // Update action
+    actionPrompt.innerHTML = lesson.actionPrompt;
+    actionInput.value = '';
+    actionOutput.textContent = '';
+    actionOutput.className = 'action-output';
+    hintText.textContent = lesson.hints[0] || '';
+    hintText.classList.add('hidden');
+
+    // Update celebration
+    celebrationIcon.textContent = lesson.celebration.icon;
+    celebrationTitle.textContent = lesson.celebration.title;
+    celebrationMessage.textContent = lesson.celebration.message;
+
+    // Update summary
+    summaryList.innerHTML = lesson.summary.map(s => `<li>${s}</li>`).join('');
+    nextLessonTitle.textContent = lesson.nextLesson;
+
+    // Update navigation
+    prevLessonBtn.disabled = index === 0;
+    updateLessonDots();
+
+    // Go to first step
+    goToStep('explain');
+  }
+
+  function goToStep(step: string) {
+    currentStep = step;
+
+    // Hide all steps
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+
+    // Show current step
+    document.querySelector(`.step-${step}`)?.classList.add('active');
+
+    // Update progress
+    const steps = ['explain', 'demo', 'action', 'celebrate', 'reinforce'];
+    const stepIndex = steps.indexOf(step);
+    const progress = ((stepIndex + 1) / steps.length) * 100;
+    progressFill.style.width = `${progress}%`;
+    progressText.textContent = `Step ${stepIndex + 1} of ${steps.length}`;
+
+    // Focus input on action step
+    if (step === 'action') {
+      setTimeout(() => actionInput.focus(), 100);
+    }
+  }
+
+  function checkCommand() {
+    const lesson = LESSONS[currentLesson];
+    const input = actionInput.value.trim();
+
+    if (input === lesson.expectedCommand) {
+      // Success!
+      actionOutput.textContent = lesson.expectedOutput || '(command executed successfully)';
+      actionOutput.className = 'action-output success';
+
+      // Mark lesson as completed
+      if (!completedLessons.includes(currentLesson)) {
+        completedLessons.push(currentLesson);
+        saveProgress();
+      }
+
+      // Go to celebration after brief delay
+      setTimeout(() => goToStep('celebrate'), 800);
+    } else {
+      // Try again
+      actionOutput.textContent = `Command not recognized. ${lesson.hints[0] ? 'Hint: ' + lesson.hints[0] : ''}`;
+      actionOutput.className = 'action-output error';
+    }
+  }
+
+  function nextLesson() {
+    if (currentLesson < LESSONS.length - 1) {
+      loadLesson(currentLesson + 1);
+    } else {
+      // All lessons complete - could show completion screen
+      alert('Congratulations! You\'ve completed Week 1!');
+    }
+  }
+
+  function updateLessonDots() {
+    lessonDots.querySelectorAll('.dot').forEach((dot, index) => {
+      dot.classList.remove('active', 'completed');
+      if (index === currentLesson) {
+        dot.classList.add('active');
+      } else if (completedLessons.includes(index)) {
+        dot.classList.add('completed');
+      }
+    });
+  }
+
+  function saveProgress() {
+    localStorage.setItem('lessonProgress', JSON.stringify({
+      currentLesson,
+      completedLessons
+    }));
+  }
+
+  function loadProgress() {
+    const saved = localStorage.getItem('lessonProgress');
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        completedLessons = data.completedLessons || [];
+        updateLessonDots();
+      } catch (e) {
+        // Ignore parsing errors
+      }
+    }
+  }
+
+  // Initialize
+  init();
+</script>
