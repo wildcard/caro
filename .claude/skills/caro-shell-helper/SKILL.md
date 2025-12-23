@@ -1,23 +1,23 @@
 ---
-name: "cmdai-shell-helper"
-description: "Use when users need help generating safe, tested POSIX shell commands from natural language descriptions. Guides users through command generation, safety validation, and execution workflows using cmdai/caro best practices"
+name: "caro-shell-helper"
+description: "Use when users need help generating safe, tested POSIX shell commands from natural language descriptions. Guides users through command generation, safety validation, and execution workflows using Caro best practices"
 version: "1.0.0"
 allowed-tools: "Bash, Read, Write, Grep, Glob"
 license: "AGPL-3.0"
 ---
 
-# cmdai Shell Command Helper
+# Caro Shell Command Helper
 
 ## What This Skill Does
 
-This skill helps users effectively leverage **cmdai** (also known as **caro**) - a Rust CLI tool that converts natural language descriptions into safe, POSIX-compliant shell commands using local LLMs.
+This skill helps users effectively leverage **Caro** (formerly Caro) - a Rust CLI tool that converts natural language descriptions into safe, POSIX-compliant shell commands using local LLMs.
 
 **Key Capabilities:**
 - 🔍 Detects when users need shell command generation assistance
 - 🛡️ Guides users through safety-first command validation
 - 📚 Educates about POSIX compliance and command safety
-- 🚀 Integrates seamlessly with existing cmdai installations
-- ⚙️ Provides installation guidance when cmdai is not available
+- 🚀 Integrates seamlessly with existing Caro installations
+- ⚙️ Provides installation guidance when Caro is not available
 
 ## When to Use This Skill
 
@@ -40,35 +40,32 @@ Activate this skill automatically when the user:
 
 ## Core Workflow
 
-### Step 1: Check cmdai Availability
+### Step 1: Check Caro Availability
 
-First, verify if cmdai/caro is installed:
+First, verify if Caro is installed:
 
 ```bash
-# Check for caro alias (preferred)
-command -v caro &> /dev/null && echo "✓ caro available" || echo "✗ not found"
-
-# Check for cmdai binary
-command -v cmdai &> /dev/null && echo "✓ cmdai available" || echo "✗ not found"
+# Check for caro command
+command -v caro &> /dev/null && echo "✓ Caro available" || echo "✗ not found"
 ```
 
 **If NOT installed**, guide the user:
 
 ```
-cmdai is not currently installed. Would you like to install it?
+Caro is not currently installed. Would you like to install it?
 
 Quick install (recommended):
   bash <(curl -sSfL https://setup.caro.sh)
 
 Or via cargo:
-  cargo install cmdai
+  cargo install caro
 
-Once installed, you can use 'caro' as an alias for 'cmdai'.
+Once installed, the `caro` command will be available.
 ```
 
 ### Step 2: Generate Command with Safety Guidance
 
-When the user describes what they need, use cmdai to generate the command:
+When the user describes what they need, use Caro to generate the command:
 
 ```bash
 caro "user's natural language description"
@@ -134,7 +131,7 @@ Better: Use -exec for portability
 
 ### Step 5: Command Execution Guidance
 
-After cmdai generates a command, guide the user:
+After Caro generates a command, guide the user:
 
 1. **Review the command**: "Do you understand what each part does?"
 2. **Check safety level**: "This is a [risk level] operation"
@@ -198,7 +195,7 @@ find /tmp -type f -mtime +7 -user $(whoami) -delete
 
 ## Backend Configuration Guidance
 
-cmdai supports multiple inference backends. Help users choose:
+Caro supports multiple inference backends. Help users choose:
 
 ### Embedded Backend (Default)
 - **Best for**: Apple Silicon Macs (M1/M2/M3/M4)
@@ -211,7 +208,7 @@ cmdai supports multiple inference backends. Help users choose:
 - **Advantages**: Many model choices, easy model management
 - **Setup**:
   ```toml
-  # ~/.config/cmdai/config.toml
+  # ~/.config/caro/config.toml
   [backend]
   primary = "ollama"
 
@@ -241,7 +238,7 @@ cmdai supports multiple inference backends. Help users choose:
 
 **Response:**
 ```
-I'll help you generate a safe command using cmdai.
+I'll help you generate a safe command using Caro.
 
 $ caro "find all Python files modified in the last week"
 
@@ -268,7 +265,7 @@ Execute? (y/N)
 
 **Response:**
 ```
-This involves deletion, so let's be careful. I'll use cmdai's safety features.
+This involves deletion, so let's be careful. I'll use Caro's safety features.
 
 $ caro "delete all .log files older than 30 days"
 
@@ -348,10 +345,10 @@ Would you like to proceed with step 1?
 
 ### Configuration Customization
 
-Help users customize cmdai behavior:
+Help users customize Caro behavior:
 
 ```toml
-# ~/.config/cmdai/config.toml
+# ~/.config/caro/config.toml
 
 [safety]
 enabled = true
@@ -385,13 +382,13 @@ Non-POSIX features that break portability:
 - Extended globbing: shopt -s extglob
 - [[ ]] conditional (use [ ] instead)
 
-cmdai generates POSIX-compliant commands by default for maximum portability.
+Caro generates POSIX-compliant commands by default for maximum portability.
 ```
 
 ### Risk Assessment Philosophy
 
 ```
-cmdai uses a 4-tier risk model:
+Caro uses a 4-tier risk model:
 
 1. Safe (Green): Read-only, no system impact
    - Listings, searches, queries
@@ -414,7 +411,7 @@ This helps users develop safety intuition over time.
 
 ## Troubleshooting
 
-### cmdai Not Found
+### Caro Not Found
 
 ```bash
 # Add cargo bin to PATH
@@ -425,7 +422,7 @@ source ~/.bashrc
 ### Command Generation Fails
 
 ```bash
-# Check cmdai status
+# Check Caro status
 caro --version
 
 # Enable verbose mode for debugging
@@ -438,14 +435,14 @@ caro --backend ollama "your prompt here"
 ### Safety Validation Too Strict
 
 ```toml
-# Adjust in ~/.config/cmdai/config.toml
+# Adjust in ~/.config/caro/config.toml
 [safety]
 level = "permissive"  # or "moderate"
 ```
 
 ## Best Practices Summary
 
-1. **Always check if cmdai is installed** before suggesting usage
+1. **Always check if Caro is installed** before suggesting usage
 2. **Explain risk levels** to educate users about command safety
 3. **Highlight POSIX compliance** for portable, reliable commands
 4. **Suggest preview before execution** for destructive operations
@@ -455,7 +452,7 @@ level = "permissive"  # or "moderate"
 
 ## Resources
 
-- **cmdai Repository**: https://github.com/wildcard/cmdai
+- **Caro Repository**: https://github.com/wildcard/caro
 - **Website**: https://caro.sh
 - **Installation Guide**: https://caro.sh/install
 - **Safety Patterns**: See `references/safety-patterns.md`

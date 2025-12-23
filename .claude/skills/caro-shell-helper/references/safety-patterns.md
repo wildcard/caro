@@ -1,6 +1,6 @@
-# cmdai Safety Patterns Reference
+# Caro Safety Patterns Reference
 
-This document catalogs the dangerous command patterns that cmdai detects and blocks or warns about.
+This document catalogs the dangerous command patterns that Caro detects and blocks or warns about.
 
 ## Risk Level Matrix
 
@@ -408,7 +408,7 @@ pandoc input.md -o output.pdf
 
 ## Command Validation Rules
 
-cmdai applies these rules automatically:
+Caro applies these rules automatically:
 
 ### 1. Path Quoting
 
@@ -448,7 +448,7 @@ rm -rf ./specific-directory/*
 
 ## Custom Safety Patterns
 
-Users can add custom patterns in `~/.config/cmdai/config.toml`:
+Users can add custom patterns in `~/.config/Caro/config.toml`:
 
 ```toml
 [safety]
@@ -483,7 +483,7 @@ level = "permissive"  # strict, moderate, or permissive
 
 ## Summary
 
-cmdai's safety system is designed to:
+Caro's safety system is designed to:
 - ✅ Prevent catastrophic mistakes
 - ✅ Educate users about command risks
 - ✅ Promote POSIX compliance

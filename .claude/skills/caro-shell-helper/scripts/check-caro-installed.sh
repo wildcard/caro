@@ -1,5 +1,5 @@
 #!/bin/bash
-# Check if cmdai or caro is installed and provide installation guidance
+# Check if Caro or caro is installed and provide installation guidance
 
 set -euo pipefail
 
@@ -9,7 +9,7 @@ RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo "Checking for cmdai/caro installation..."
+echo "Checking for Caro/caro installation..."
 echo ""
 
 # Check for caro alias (preferred)
@@ -25,35 +25,35 @@ if command -v caro &> /dev/null; then
     exit 0
 fi
 
-# Check for cmdai binary
-if command -v cmdai &> /dev/null; then
-    echo -e "${GREEN}✓ cmdai found:${NC} $(which cmdai)"
+# Check for Caro binary
+if command -v Caro &> /dev/null; then
+    echo -e "${GREEN}✓ Caro found:${NC} $(which Caro)"
     echo ""
-    cmdai --version
+    Caro --version
     echo ""
-    echo -e "${YELLOW}Note:${NC} cmdai is installed, but 'caro' alias is not set up."
+    echo -e "${YELLOW}Note:${NC} Caro is installed, but 'caro' alias is not set up."
     echo ""
     echo "Add this alias to your shell config:"
-    echo "  alias caro='cmdai'"
+    echo "  alias caro='Caro'"
     echo ""
-    echo "Or use 'cmdai' directly:"
-    echo "  $ cmdai \"your natural language description\""
+    echo "Or use 'Caro' directly:"
+    echo "  $ Caro \"your natural language description\""
     exit 0
 fi
 
 # Neither found - provide installation instructions
-echo -e "${RED}✗ cmdai/caro not found${NC}"
+echo -e "${RED}✗ Caro/caro not found${NC}"
 echo ""
-echo "Install cmdai using one of these methods:"
+echo "Install Caro using one of these methods:"
 echo ""
 echo "Option 1: One-line setup (Recommended)"
 echo -e "${GREEN}  bash <(curl -sSfL https://setup.caro.sh)${NC}"
 echo ""
 echo "Option 2: Using cargo"
-echo -e "${GREEN}  cargo install cmdai${NC}"
+echo -e "${GREEN}  cargo install Caro${NC}"
 echo ""
 echo "Option 3: Pre-built binaries"
-echo "  Download from: https://github.com/wildcard/cmdai/releases/latest"
+echo "  Download from: https://github.com/wildcard/caro/releases/latest"
 echo ""
 echo "After installation, use 'caro' as the command alias."
 exit 1

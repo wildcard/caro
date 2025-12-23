@@ -445,7 +445,7 @@ done
 
 ## Shell Portability Checklist
 
-When cmdai generates commands, it ensures:
+When Caro generates commands, it ensures:
 
 - [ ] Uses `[ ]` instead of `[[ ]]` for tests
 - [ ] Uses `=` instead of `==` for string comparison
@@ -561,7 +561,7 @@ It's acceptable to use non-POSIX features when:
 
 ## Summary
 
-cmdai prioritizes POSIX compliance to ensure:
+Caro prioritizes POSIX compliance to ensure:
 - ✅ Maximum portability across systems
 - ✅ Predictable behavior
 - ✅ Compatibility with all major shells

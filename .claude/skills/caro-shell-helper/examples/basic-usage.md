@@ -1,11 +1,11 @@
-# cmdai Basic Usage Examples
+# Caro Basic Usage Examples
 
 ## Getting Started
 
 ### Installation Check
 
 ```bash
-# Check if cmdai is installed
+# Check if Caro is installed
 command -v caro && echo "✓ Installed" || echo "✗ Not installed"
 
 # Show version
@@ -181,7 +181,7 @@ Execute this command? (y/N) y
 
 ```bash
 # Edit config
-vim ~/.config/cmdai/config.toml
+vim ~/.config/Caro/config.toml
 ```
 
 ```toml
@@ -265,7 +265,7 @@ $ caro "explain how to recursively find and compress all log files older than a 
 
 ## Keyboard Shortcuts
 
-When cmdai prompts for confirmation:
+When Caro prompts for confirmation:
 - `y` or `yes` - Execute the command
 - `n` or `no` - Cancel
 - `e` or `explain` - Show detailed explanation
@@ -367,7 +367,7 @@ $ caro "third step: move compressed files to archive/"
 
 ### Custom Patterns
 
-Add to `~/.config/cmdai/config.toml`:
+Add to `~/.config/Caro/config.toml`:
 
 ```toml
 [aliases]
@@ -399,11 +399,11 @@ caro --backend-info
 
 ## Summary
 
-cmdai makes shell command generation:
+Caro makes shell command generation:
 - ✅ **Safe**: Comprehensive safety validation
 - ✅ **Easy**: Natural language input
 - ✅ **Educational**: Explains what commands do
 - ✅ **Portable**: POSIX-compliant output
 - ✅ **Fast**: Local LLM inference
 
-Start simple, build confidence, and let cmdai help you become more effective on the command line!
+Start simple, build confidence, and let Caro help you become more effective on the command line!

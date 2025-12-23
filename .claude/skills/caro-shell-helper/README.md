@@ -1,33 +1,47 @@
-# cmdai Shell Command Helper - Claude Skill
+# Caro Shell Command Helper - Claude Skill
 
-A Claude skill that helps you generate safe, POSIX-compliant shell commands using cmdai's LLM-powered command generation with comprehensive safety validation.
+A Claude skill that helps you generate safe, POSIX-compliant shell commands using Caro's LLM-powered command generation with comprehensive safety validation.
+
+> **Quick Start**: See [QUICK_START.md](QUICK_START.md) for installation and testing!
 
 ## What is this?
 
-This skill integrates [cmdai](https://github.com/wildcard/caro) (also known as **caro**) into your Claude Code workflow, enabling:
+This skill integrates [Caro](https://github.com/wildcard/caro) (formerly cmdai) into your Claude Code workflow, enabling:
 - 🔍 **Automatic activation** when you need shell command help
 - 🛡️ **Safety-first guidance** through 4-tier risk assessment
 - 📚 **POSIX compliance education** for portable scripts
-- 🚀 **Seamless integration** with existing cmdai installations
-- ⚙️ **Installation assistance** when cmdai is not available
+- 🚀 **Seamless integration** with existing Caro installations
+- ⚙️ **Installation assistance** when Caro is not available
 
 ## Installation
 
-### Via Claude Code
+### Quick Install (Recommended)
 
 ```bash
-# Install from this repository
+# In Claude Code, run:
 /plugin install wildcard/caro
 ```
 
-The skill will be automatically available in your Claude Code sessions.
+Done! The skill is now active. See [QUICK_START.md](QUICK_START.md) for test cases.
+
+### Optional: Install Caro CLI
+
+For full functionality, install Caro:
+
+```bash
+# Quick install
+bash <(curl -sSfL https://setup.caro.sh)
+
+# Or via Cargo
+cargo install caro
+```
 
 ### Manual Installation
 
-1. Clone this repository or copy the `.claude/skills/cmdai-shell-helper/` directory
+1. Clone this repository or copy the `.claude/skills/caro-shell-helper/` directory
 2. Place it in one of these locations:
-   - `~/.claude/skills/cmdai-shell-helper/` (user-wide)
-   - `.claude/skills/cmdai-shell-helper/` (project-specific)
+   - `~/.claude/skills/caro-shell-helper/` (user-wide)
+   - `.claude/skills/caro-shell-helper/` (project-specific)
 3. Restart Claude Code
 
 ## How It Works
@@ -38,7 +52,7 @@ The skill automatically activates when Claude detects you need shell command ass
 
 **Claude (with skill):**
 ```
-I'll help you generate a safe command using cmdai.
+I'll help you generate a safe command using Caro.
 
 $ caro "find all PDF files larger than 10MB"
 
@@ -90,19 +104,19 @@ Helps you understand:
 
 ## Requirements
 
-### Optional: cmdai
+### Optional: Caro
 
-The skill works best with [cmdai](https://github.com/wildcard/caro) installed:
+The skill works best with [Caro](https://github.com/wildcard/caro) installed:
 
 ```bash
 # Quick install
 bash <(curl -sSfL https://setup.caro.sh)
 
 # Or via cargo
-cargo install cmdai
+cargo install Caro
 ```
 
-**Without cmdai:** The skill still provides guidance and education about shell commands, but won't generate commands via LLM.
+**Without Caro:** The skill still provides guidance and education about shell commands, but won't generate commands via LLM.
 
 ## Usage Examples
 
@@ -111,7 +125,7 @@ cargo install cmdai
 **You:** "I need to find all JavaScript files modified this week"
 
 **Skill activates and guides:**
-- Checks if cmdai is installed
+- Checks if Caro is installed
 - Generates: `find . -name "*.js" -type f -mtime -7`
 - Explains safety level and command parts
 - Offers to execute with confirmation
@@ -138,9 +152,9 @@ cargo install cmdai
 
 ## Configuration
 
-### cmdai Configuration
+### Caro Configuration
 
-Customize behavior in `~/.config/cmdai/config.toml`:
+Customize behavior in `~/.config/Caro/config.toml`:
 
 ```toml
 [safety]
@@ -170,7 +184,7 @@ The skill respects these settings:
 
 ### Helper Scripts
 
-- **check-cmdai-installed.sh**: Verify cmdai availability and guide installation
+- **check-Caro-installed.sh**: Verify Caro availability and guide installation
 
 ## Safety Features
 
@@ -196,11 +210,11 @@ Suggests safer options for risky operations:
 ### Project Structure
 
 ```
-.claude/skills/cmdai-shell-helper/
+.claude/skills/Caro-shell-helper/
 ├── SKILL.md                    # Main skill definition
 ├── README.md                   # This file
 ├── scripts/
-│   └── check-cmdai-installed.sh   # Installation checker
+│   └── check-Caro-installed.sh   # Installation checker
 ├── references/
 │   ├── safety-patterns.md      # Dangerous patterns
 │   └── posix-compliance.md     # POSIX guide
@@ -222,42 +236,42 @@ Contributions welcome! Areas for improvement:
 
 1. Verify installation location:
    ```bash
-   ls -la ~/.claude/skills/cmdai-shell-helper/
+   ls -la ~/.claude/skills/Caro-shell-helper/
    ```
 
 2. Check SKILL.md has proper YAML frontmatter
 
 3. Restart Claude Code
 
-### cmdai Not Found
+### Caro Not Found
 
 Run the installation checker:
 ```bash
-bash .claude/skills/cmdai-shell-helper/scripts/check-cmdai-installed.sh
+bash .claude/skills/Caro-shell-helper/scripts/check-Caro-installed.sh
 ```
 
 Follow installation instructions provided.
 
 ## Resources
 
-- **cmdai Repository**: https://github.com/wildcard/caro
-- **cmdai Website**: https://caro.sh
+- **Caro Repository**: https://github.com/wildcard/caro
+- **Caro Website**: https://caro.sh
 - **Claude Skills Documentation**: https://code.claude.com/docs/en/skills
 - **POSIX Standards**: https://pubs.opengroup.org/onlinepubs/9699919799/
 
 ## License
 
-AGPL-3.0 - Same as cmdai
+AGPL-3.0 - Same as Caro
 
 ## Support
 
 - **Issues**: [GitHub Issues](https://github.com/wildcard/caro/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/wildcard/caro/discussions)
-- **Documentation**: See `/specs` in cmdai repository
+- **Documentation**: See `/specs` in Caro repository
 
-## About cmdai
+## About Caro
 
-cmdai (caro) is a Rust CLI tool that converts natural language to safe POSIX shell commands using local LLMs. Features:
+Caro (caro) is a Rust CLI tool that converts natural language to safe POSIX shell commands using local LLMs. Features:
 - 🚀 Single binary, instant startup
 - 🧠 Local LLM inference (MLX for Apple Silicon)
 - 🛡️ 52 pre-compiled safety patterns
