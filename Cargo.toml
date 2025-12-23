@@ -40,7 +40,7 @@ tracing-appender = "0.2"
 # User interface and interaction
 dialoguer = "0.11"
 colored = "2"
-indicatif = "0.17"
+indicatif = "0.18"
 atty = "0.2"
 
 # Cross-platform support
