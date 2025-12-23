@@ -34,7 +34,7 @@ export const DEFAULT_LLM_OPTIONS: LLMInferenceOptions = {
 };
 
 // Available models for the terminal tutor
-// Note: Some HuggingFace models require authentication. We provide both online and local options.
+// Note: Using litert-community models with -web suffix for WebGPU compatibility
 export const AVAILABLE_MODELS: ModelInfo[] = [
   {
     id: 'gemma3-1b',
@@ -45,7 +45,7 @@ export const AVAILABLE_MODELS: ModelInfo[] = [
     quantization: 'int4',
     capabilities: ['text'],
     source: 'huggingface',
-    downloadUrl: 'https://huggingface.co/nicecui/Gemma3-1B-IT/resolve/main/gemma3-1b-it-int4.task',
+    downloadUrl: 'https://huggingface.co/litert-community/Gemma3-1B-IT/resolve/main/gemma3-1b-it-int4-web.task',
     recommended: true,
   },
   {
@@ -57,7 +57,7 @@ export const AVAILABLE_MODELS: ModelInfo[] = [
     quantization: 'int4',
     capabilities: ['text'],
     source: 'huggingface',
-    downloadUrl: 'https://huggingface.co/nicecui/Gemma2-2B-IT/resolve/main/gemma2-2b-it-gpu-int4.bin',
+    downloadUrl: 'https://huggingface.co/litert-community/Gemma2-2B-IT/resolve/main/gemma2-2b-it-gpu-int4.bin',
   },
   {
     id: 'local-upload',
@@ -72,15 +72,17 @@ export const AVAILABLE_MODELS: ModelInfo[] = [
   },
 ];
 
-// Download links for models that require authentication
+// Download links for models (direct file downloads)
 export const MODEL_DOWNLOAD_SOURCES = {
   'gemma3-1b': {
+    direct: 'https://huggingface.co/litert-community/Gemma3-1B-IT/resolve/main/gemma3-1b-it-int4-web.task',
+    page: 'https://huggingface.co/litert-community/Gemma3-1B-IT/tree/main',
     kaggle: 'https://www.kaggle.com/models/google/gemma-3/tfLite/gemma3-1b-it-int4',
-    huggingface: 'https://huggingface.co/litert-community/Gemma3-1B-IT',
   },
   'gemma2-2b': {
+    direct: 'https://huggingface.co/litert-community/Gemma2-2B-IT/resolve/main/gemma2-2b-it-gpu-int4.bin',
+    page: 'https://huggingface.co/litert-community/Gemma2-2B-IT/tree/main',
     kaggle: 'https://www.kaggle.com/models/google/gemma-2/tfLite/gemma2-2b-it-gpu-int4',
-    huggingface: 'https://huggingface.co/litert-community/Gemma2-2B-IT',
   },
 };
 

@@ -46,12 +46,12 @@
     <div class="upload-instructions">
       <p>Upload a MediaPipe LLM Inference compatible model file (.task or .bin format).</p>
       <div class="download-links">
-        <p><strong>Download models from:</strong></p>
+        <p><strong>Download models from HuggingFace:</strong></p>
         <ul>
-          <li><a href="https://www.kaggle.com/models/google/gemma-3/tfLite/gemma3-1b-it-int4" target="_blank" rel="noopener">Gemma3 1B on Kaggle</a></li>
-          <li><a href="https://www.kaggle.com/models/google/gemma-2/tfLite/gemma2-2b-it-gpu-int4" target="_blank" rel="noopener">Gemma2 2B on Kaggle</a></li>
-          <li><a href="https://huggingface.co/nicecui/Gemma3-1B-IT" target="_blank" rel="noopener">Gemma3 1B on HuggingFace</a></li>
+          <li><a href="https://huggingface.co/litert-community/Gemma3-1B-IT/resolve/main/gemma3-1b-it-int4-web.task" target="_blank" rel="noopener">Gemma3 1B (555 MB) - Recommended</a></li>
+          <li><a href="https://huggingface.co/litert-community/Gemma2-2B-IT/resolve/main/gemma2-2b-it-gpu-int4.bin" target="_blank" rel="noopener">Gemma2 2B (1.35 GB)</a></li>
         </ul>
+        <p class="download-note">Note: Use the <code>-web.task</code> files for WebGPU compatibility.</p>
       </div>
     </div>
     <div class="upload-dropzone" id="upload-dropzone">
@@ -604,6 +604,20 @@
     text-decoration: underline;
   }
 
+  .download-note {
+    margin-top: 12px !important;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    opacity: 0.8;
+  }
+
+  .download-note code {
+    background: var(--color-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+  }
+
   .upload-dropzone {
     border: 2px dashed var(--color-border);
     border-radius: 12px;
@@ -1092,7 +1106,7 @@
     // Set the link to the model download page
     const sources = MODEL_DOWNLOAD_SOURCES[modelId as keyof typeof MODEL_DOWNLOAD_SOURCES];
     if (sources) {
-      authErrorLink.href = sources.huggingface || sources.kaggle || '#';
+      authErrorLink.href = sources.page || sources.direct || '#';
     }
   }
 
