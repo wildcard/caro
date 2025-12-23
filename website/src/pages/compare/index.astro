@@ -1,0 +1,705 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Navigation from '../../components/Navigation.astro';
+import Footer from '../../components/Footer.astro';
+
+// VS page data for SEO and internal linking
+const vsPages = [
+  {
+    slug: 'github-copilot-cli',
+    name: 'GitHub Copilot CLI',
+    tagline: 'Cloud-dependent vs local-first',
+    description: 'Compare Caro\'s offline-first, safety-focused approach with GitHub Copilot CLI\'s cloud-powered convenience.',
+    icon: '🐙',
+    keyDiff: 'Privacy & Offline'
+  },
+  {
+    slug: 'warp',
+    name: 'Warp',
+    tagline: 'New terminal vs your terminal',
+    description: 'Caro works in your existing terminal. Warp requires switching to a new AI-native terminal emulator.',
+    icon: '🚀',
+    keyDiff: 'No App Switch'
+  },
+  {
+    slug: 'amazon-q-cli',
+    name: 'Amazon Q CLI',
+    tagline: 'Enterprise cloud vs local control',
+    description: 'Compare Amazon Q\'s AWS-integrated approach with Caro\'s self-contained, privacy-first design.',
+    icon: '☁️',
+    keyDiff: 'Self-Contained'
+  },
+  {
+    slug: 'opencode',
+    name: 'OpenCode',
+    tagline: 'General coding vs shell specialist',
+    description: 'Both are open-source and local-first. Caro specializes in shell commands with unique safety guardrails.',
+    icon: '💻',
+    keyDiff: 'Safety Rules'
+  },
+];
+
+// Detailed comparison matrix
+const comparisonMatrix = {
+  categories: [
+    {
+      name: 'Privacy & Data Control',
+      icon: '🔒',
+      description: 'How your terminal activity is handled',
+      features: [
+        { name: 'Works 100% offline', caro: true, copilot: false, warp: false, amazon: false, opencode: 'partial' },
+        { name: 'Zero telemetry by default', caro: true, copilot: false, warp: false, amazon: false, opencode: true },
+        { name: 'Commands never leave your machine', caro: true, copilot: false, warp: false, amazon: false, opencode: 'partial' },
+        { name: 'Air-gapped environment support', caro: true, copilot: false, warp: false, amazon: false, opencode: 'partial' },
+        { name: 'Full source code available', caro: true, copilot: 'partial', warp: false, amazon: false, opencode: true },
+      ]
+    },
+    {
+      name: 'Safety & Guardrails',
+      icon: '🛡️',
+      description: 'What happens before a command runs',
+      features: [
+        { name: 'Rule-based safety validation', caro: true, copilot: false, warp: false, amazon: false, opencode: false },
+        { name: 'Blocks destructive patterns (rm -rf /, fork bombs)', caro: true, copilot: false, warp: false, amazon: false, opencode: false },
+        { name: 'Explicit confirmation always required', caro: true, copilot: 'partial', warp: 'partial', amazon: 'partial', opencode: 'partial' },
+        { name: 'Risk level assessment', caro: true, copilot: false, warp: false, amazon: false, opencode: false },
+        { name: 'Customizable safety rules', caro: true, copilot: false, warp: false, amazon: false, opencode: false },
+      ]
+    },
+    {
+      name: 'Shell Expertise',
+      icon: '🖥️',
+      description: 'Specialized for terminal workflows',
+      features: [
+        { name: 'POSIX-first command generation', caro: true, copilot: 'partial', warp: 'partial', amazon: 'partial', opencode: 'partial' },
+        { name: 'GNU vs BSD syntax awareness', caro: true, copilot: 'partial', warp: 'partial', amazon: 'partial', opencode: 'partial' },
+        { name: 'Uses your existing terminal', caro: true, copilot: true, warp: false, amazon: true, opencode: true },
+        { name: 'Cross-platform (macOS, Linux, BSD)', caro: true, copilot: true, warp: 'partial', amazon: true, opencode: true },
+        { name: 'Shell-specific optimizations', caro: true, copilot: 'partial', warp: 'partial', amazon: 'partial', opencode: 'partial' },
+      ]
+    },
+    {
+      name: 'Architecture & Extensibility',
+      icon: '🧠',
+      description: 'Technical foundation and flexibility',
+      features: [
+        { name: 'Local model inference', caro: true, copilot: false, warp: false, amazon: false, opencode: 'partial' },
+        { name: 'Multi-backend support (MLX, Ollama, vLLM)', caro: true, copilot: false, warp: false, amazon: false, opencode: true },
+        { name: 'Single binary distribution', caro: true, copilot: true, warp: false, amazon: false, opencode: 'partial' },
+        { name: 'Model-agnostic design', caro: true, copilot: false, warp: false, amazon: false, opencode: true },
+        { name: 'Apple Silicon optimized (MLX)', caro: 'partial', copilot: false, warp: 'partial', amazon: false, opencode: false },
+      ]
+    },
+  ]
+};
+
+function renderValue(value: boolean | string) {
+  if (value === true) return { icon: '✓', class: 'yes', label: 'Yes' };
+  if (value === false) return { icon: '✗', class: 'no', label: 'No' };
+  if (value === 'partial') return { icon: '◐', class: 'partial', label: 'Partial' };
+  if (value === 'planned') return { icon: '◎', class: 'planned', label: 'Planned' };
+  return { icon: value, class: 'text', label: value };
+}
+---
+
+<Layout
+  title="Compare Caro - Shell AI Comparison | Caro vs Copilot, Warp, Amazon Q"
+  description="See how Caro compares to GitHub Copilot CLI, Warp, Amazon Q, and other shell AI tools. Local-first, safety-focused, zero telemetry."
+>
+  <Navigation />
+
+  <main class="compare-page">
+    <section class="hero">
+      <div class="container">
+        <h1>Compare Caro to Alternatives</h1>
+        <p class="hero-subtitle">
+          Make an informed decision. See exactly how Caro's local-first, safety-focused approach
+          compares to cloud-based alternatives.
+        </p>
+
+        <!-- Trust Badges -->
+        <div class="trust-badges">
+          <span class="badge"><span class="badge-icon">🔒</span> Zero Data Collection</span>
+          <span class="badge"><span class="badge-icon">🛡️</span> 52+ Safety Patterns</span>
+          <span class="badge"><span class="badge-icon">📡</span> 100% Offline</span>
+          <span class="badge"><span class="badge-icon">🦀</span> Open Source</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Compare Cards -->
+    <section class="vs-cards-section">
+      <div class="container">
+        <h2>Choose a Comparison</h2>
+        <p class="section-subtitle">Deep-dive into how Caro stacks up against specific tools</p>
+
+        <div class="vs-cards">
+          {vsPages.map((page) => (
+            <a href={`/compare/${page.slug}`} class="vs-card">
+              <div class="vs-card-header">
+                <span class="vs-icon">{page.icon}</span>
+                <span class="vs-label">vs</span>
+              </div>
+              <h3>{page.name}</h3>
+              <p class="vs-tagline">{page.tagline}</p>
+              <p class="vs-description">{page.description}</p>
+              <div class="vs-cta">
+                <span class="key-diff">{page.keyDiff}</span>
+                <span class="arrow">→</span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Full Comparison Matrix -->
+    <section class="matrix-section">
+      <div class="container">
+        <h2>Complete Feature Comparison</h2>
+        <p class="section-subtitle">
+          Every feature, every tool. Make your own decision.
+        </p>
+
+        {comparisonMatrix.categories.map((category) => (
+          <div class="matrix-category">
+            <h3 class="category-header">
+              <span class="category-icon">{category.icon}</span>
+              {category.name}
+              <span class="category-desc">{category.description}</span>
+            </h3>
+
+            <div class="table-wrapper">
+              <table class="matrix-table">
+                <thead>
+                  <tr>
+                    <th class="feature-col">Feature</th>
+                    <th class="tool-col highlight">Caro</th>
+                    <th class="tool-col">Copilot CLI</th>
+                    <th class="tool-col">Warp</th>
+                    <th class="tool-col">Amazon Q</th>
+                    <th class="tool-col">OpenCode</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {category.features.map((feature) => (
+                    <tr>
+                      <td class="feature-name">{feature.name}</td>
+                      <td class={`value ${renderValue(feature.caro).class} highlight-col`}>
+                        <span class="value-icon">{renderValue(feature.caro).icon}</span>
+                      </td>
+                      <td class={`value ${renderValue(feature.copilot).class}`}>
+                        <span class="value-icon">{renderValue(feature.copilot).icon}</span>
+                      </td>
+                      <td class={`value ${renderValue(feature.warp).class}`}>
+                        <span class="value-icon">{renderValue(feature.warp).icon}</span>
+                      </td>
+                      <td class={`value ${renderValue(feature.amazon).class}`}>
+                        <span class="value-icon">{renderValue(feature.amazon).icon}</span>
+                      </td>
+                      <td class={`value ${renderValue(feature.opencode).class}`}>
+                        <span class="value-icon">{renderValue(feature.opencode).icon}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ))}
+
+        <!-- Legend -->
+        <div class="legend">
+          <span class="legend-item"><span class="legend-icon yes">✓</span> Full support</span>
+          <span class="legend-item"><span class="legend-icon partial">◐</span> Partial/varies</span>
+          <span class="legend-item"><span class="legend-icon no">✗</span> Not supported</span>
+          <span class="legend-item"><span class="legend-icon planned">◎</span> Planned</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Why Caro Section -->
+    <section class="why-section">
+      <div class="container">
+        <h2>Why Teams Choose Caro</h2>
+
+        <div class="reasons">
+          <div class="reason">
+            <h3>🏢 For Security-Conscious Orgs</h3>
+            <p>Air-gapped environments, compliance requirements, or simply not wanting shell commands to leave your network? Caro runs 100% locally with zero telemetry.</p>
+          </div>
+
+          <div class="reason">
+            <h3>🛡️ For SREs Who Can't Afford Mistakes</h3>
+            <p>Rule-based safety checks catch dangerous commands before they execute. 52+ patterns block rm -rf /, fork bombs, and other destructive operations.</p>
+          </div>
+
+          <div class="reason">
+            <h3>🔧 For DevOps Who Live in the Terminal</h3>
+            <p>Works in YOUR terminal. No new apps, no context switching. Just shell commands that work across macOS, Linux, and BSD with POSIX compliance.</p>
+          </div>
+
+          <div class="reason">
+            <h3>🌐 For Developers Who Work Offline</h3>
+            <p>Airplanes, VPNs, restricted networks. When you can't phone home, Caro still works with local model inference.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="final-cta">
+      <div class="container">
+        <h2>Ready to Try Caro?</h2>
+        <p>Join developers who refuse to sacrifice privacy for productivity.</p>
+        <div class="cta-buttons">
+          <a href="/#download" class="cta-button primary">Get Started Free</a>
+          <a href="https://github.com/wildcard/caro" class="cta-button secondary" target="_blank" rel="noopener noreferrer">
+            View on GitHub
+          </a>
+        </div>
+        <p class="cta-note">Open source. No account required. No data collected.</p>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .compare-page {
+    background: var(--color-bg);
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  /* Hero */
+  .hero {
+    padding: 80px 20px 60px;
+    text-align: center;
+    background: linear-gradient(180deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+  }
+
+  .hero h1 {
+    font-size: 42px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--color-text);
+  }
+
+  .hero-subtitle {
+    font-size: 18px;
+    color: var(--color-text-secondary);
+    max-width: 600px;
+    margin: 0 auto 30px;
+    line-height: 1.6;
+  }
+
+  .trust-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  .badge-icon {
+    font-size: 16px;
+  }
+
+  /* VS Cards Section */
+  .vs-cards-section {
+    padding: 60px 20px;
+  }
+
+  .vs-cards-section h2 {
+    font-size: 32px;
+    text-align: center;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    margin-bottom: 40px;
+  }
+
+  .vs-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+
+  .vs-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 28px;
+    text-decoration: none;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .vs-card:hover {
+    border-color: #ff8c42;
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(255, 140, 66, 0.15);
+  }
+
+  .vs-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .vs-icon {
+    font-size: 32px;
+  }
+
+  .vs-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .vs-card h3 {
+    font-size: 20px;
+    margin-bottom: 8px;
+    color: var(--color-text);
+  }
+
+  .vs-tagline {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ff8c42;
+    margin-bottom: 12px;
+  }
+
+  .vs-description {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    flex-grow: 1;
+  }
+
+  .vs-cta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .key-diff {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-text-secondary);
+    background: var(--color-bg-tertiary);
+    padding: 6px 12px;
+    border-radius: 100px;
+  }
+
+  .arrow {
+    font-size: 20px;
+    color: #ff8c42;
+    transition: transform 0.2s;
+  }
+
+  .vs-card:hover .arrow {
+    transform: translateX(4px);
+  }
+
+  /* Matrix Section */
+  .matrix-section {
+    padding: 60px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .matrix-section h2 {
+    font-size: 32px;
+    text-align: center;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  .matrix-category {
+    margin-bottom: 40px;
+  }
+
+  .category-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 22px;
+    margin-bottom: 16px;
+    color: var(--color-text);
+    flex-wrap: wrap;
+  }
+
+  .category-icon {
+    font-size: 24px;
+  }
+
+  .category-desc {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--color-text-secondary);
+    margin-left: auto;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+  }
+
+  .matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+  }
+
+  .matrix-table th,
+  .matrix-table td {
+    padding: 14px 16px;
+    text-align: center;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .matrix-table th {
+    background: var(--color-bg-tertiary);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--color-text);
+  }
+
+  .matrix-table th.highlight {
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.15) 0%, rgba(255, 140, 66, 0.05) 100%);
+    color: #ff8c42;
+  }
+
+  .feature-col {
+    text-align: left !important;
+    min-width: 280px;
+  }
+
+  .tool-col {
+    min-width: 100px;
+    white-space: nowrap;
+  }
+
+  .feature-name {
+    text-align: left !important;
+    font-size: 14px;
+    color: var(--color-text);
+  }
+
+  .matrix-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .matrix-table tbody tr:hover {
+    background: var(--color-bg-tertiary);
+  }
+
+  .value {
+    font-size: 18px;
+  }
+
+  .highlight-col {
+    background: rgba(255, 140, 66, 0.05);
+  }
+
+  .value-icon {
+    font-weight: 600;
+  }
+
+  .value.yes .value-icon { color: #22c55e; }
+  .value.no .value-icon { color: #ef4444; }
+  .value.partial .value-icon { color: #f59e0b; }
+  .value.planned .value-icon { color: #8b5cf6; }
+
+  .legend {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 30px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .legend-icon {
+    font-weight: 600;
+  }
+
+  .legend-icon.yes { color: #22c55e; }
+  .legend-icon.no { color: #ef4444; }
+  .legend-icon.partial { color: #f59e0b; }
+  .legend-icon.planned { color: #8b5cf6; }
+
+  /* Why Section */
+  .why-section {
+    padding: 80px 20px;
+  }
+
+  .why-section h2 {
+    font-size: 32px;
+    text-align: center;
+    margin-bottom: 40px;
+    color: var(--color-text);
+  }
+
+  .reasons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+  }
+
+  .reason {
+    padding: 24px;
+    background: var(--color-bg-secondary);
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+  }
+
+  .reason h3 {
+    font-size: 18px;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  .reason p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+  }
+
+  /* Final CTA */
+  .final-cta {
+    padding: 80px 20px;
+    text-align: center;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+  }
+
+  .final-cta h2 {
+    font-size: 36px;
+    margin-bottom: 16px;
+    color: white;
+  }
+
+  .final-cta p {
+    font-size: 18px;
+    opacity: 0.9;
+    margin-bottom: 30px;
+  }
+
+  .cta-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .cta-button {
+    display: inline-block;
+    padding: 16px 32px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .cta-button.primary {
+    background: white;
+    color: #ff6b35;
+  }
+
+  .cta-button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .cta-button.secondary {
+    background: transparent;
+    color: white;
+    border: 2px solid white;
+  }
+
+  .cta-button.secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .cta-note {
+    font-size: 14px;
+    opacity: 0.8;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero h1 {
+      font-size: 32px;
+    }
+
+    .vs-cards-section h2,
+    .matrix-section h2,
+    .why-section h2 {
+      font-size: 26px;
+    }
+
+    .category-desc {
+      display: block;
+      width: 100%;
+      margin-left: 36px;
+      margin-top: 8px;
+    }
+
+    .final-cta h2 {
+      font-size: 28px;
+    }
+
+    .cta-buttons {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .cta-button {
+      width: 100%;
+      max-width: 280px;
+    }
+  }
+</style>

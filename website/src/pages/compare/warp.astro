@@ -1,0 +1,89 @@
+---
+import ComparisonPageLayout from '../../layouts/ComparisonPageLayout.astro';
+
+const comparison = {
+  competitor: {
+    name: 'Warp',
+    icon: '🚀',
+    tagline: 'AI-native terminal emulator',
+  },
+  tldr: {
+    title: 'TL;DR',
+    points: [
+      'Warp is a completely new terminal app; Caro works in YOUR existing terminal',
+      'Warp requires cloud for AI features; Caro runs 100% offline with local models',
+      'Warp collects telemetry by default; Caro has zero data collection',
+      'Both have AI command assistance, but Caro adds rule-based safety validation',
+      'Warp has rich UI features; Caro is CLI-focused and lightweight'
+    ]
+  },
+  headToHead: [
+    { feature: 'Works in existing terminal', caro: true, competitor: false, winner: 'caro' },
+    { feature: 'Works 100% offline', caro: true, competitor: false, winner: 'caro' },
+    { feature: 'Zero telemetry', caro: true, competitor: false, winner: 'caro' },
+    { feature: 'Rule-based safety checks', caro: true, competitor: false, winner: 'caro' },
+    { feature: 'Cross-platform', caro: true, competitor: 'partial', winner: 'caro' },
+    { feature: 'Modern UI/UX', caro: false, competitor: true, winner: 'competitor' },
+    { feature: 'Blocks editing in outputs', caro: false, competitor: true, winner: 'competitor' },
+    { feature: 'Team collaboration', caro: false, competitor: true, winner: 'competitor' },
+  ],
+  sections: [
+    {
+      title: 'Terminal Philosophy',
+      icon: '🖥️',
+      content: `
+        <p><strong>Warp</strong> is a completely new terminal emulator built from scratch with AI capabilities baked in. It requires you to switch from your current terminal (iTerm2, Terminal.app, Alacritty, etc.) to Warp.</p>
+        <p><strong>Caro</strong> is a companion agent that works with your existing terminal. No app switching, no new UI to learn, no config migration. Just shell command assistance that integrates into your current workflow.</p>
+      `
+    },
+    {
+      title: 'Privacy & Connectivity',
+      icon: '🔒',
+      content: `
+        <p><strong>Warp</strong> requires cloud connectivity for its AI features. Your prompts are sent to Warp's servers for processing. Warp also collects telemetry data by default (though it can be disabled).</p>
+        <p><strong>Caro</strong> runs entirely locally. AI inference happens on your machine with local models. No internet required, no data collected, no telemetry sent anywhere. Perfect for air-gapped environments or privacy-conscious users.</p>
+      `
+    },
+    {
+      title: 'Features vs Focus',
+      icon: '⚖️',
+      content: `
+        <p><strong>Warp</strong> offers a rich feature set: modern text editing in terminal, command blocks, notebook-style outputs, team workflows, and more. It's a full terminal replacement with many capabilities.</p>
+        <p><strong>Caro</strong> intentionally does one thing well: help you remember shell commands safely. It's lightweight, focused, and doesn't try to reinvent the terminal. If you love your current terminal, Caro enhances it without replacing it.</p>
+      `
+    },
+    {
+      title: 'Safety Approach',
+      icon: '🛡️',
+      content: `
+        <p><strong>Warp</strong> relies on AI to generate commands without systematic safety validation. Dangerous commands can still be suggested if the model doesn't catch them.</p>
+        <p><strong>Caro</strong> validates every command against 52+ safety patterns before presenting it. Commands like <code>rm -rf /</code>, fork bombs, and system-breaking operations are blocked regardless of what the model suggests.</p>
+      `
+    },
+  ],
+  verdict: {
+    chooseCaro: [
+      'You love your current terminal and don\'t want to switch',
+      'You need offline functionality (flights, VPNs, air-gapped)',
+      'You require zero telemetry and complete privacy',
+      'You want rule-based safety guarantees',
+      'You prefer lightweight, focused tools',
+    ],
+    chooseCompetitor: [
+      'You want a modern, redesigned terminal experience',
+      'Team collaboration features are important to you',
+      'You like notebook-style command outputs',
+      'You\'re okay with cloud-dependent AI features',
+    ]
+  }
+};
+---
+
+<ComparisonPageLayout
+  title="Caro vs Warp - Feature Comparison | Terminal AI Tools"
+  description="Compare Caro and Warp. Work in your existing terminal vs switching to a new AI-native terminal emulator."
+  comparison={comparison}
+  heroSubtitle="Your existing terminal vs a new AI-native terminal"
+  finalCtaHeading="Keep Your Terminal. Add AI Safely."
+  finalCtaSubtext="Caro works in your existing terminal. No switching required."
+/>

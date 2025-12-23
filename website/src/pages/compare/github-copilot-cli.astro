@@ -1,0 +1,101 @@
+---
+import ComparisonPageLayout from '../../layouts/ComparisonPageLayout.astro';
+
+const comparison = {
+  competitor: {
+    name: 'GitHub Copilot CLI',
+    icon: '🐙',
+    tagline: 'AI-powered CLI from GitHub',
+    description: 'GitHub Copilot CLI extends the popular Copilot experience to the command line, powered by OpenAI\'s models through GitHub\'s cloud infrastructure.'
+  },
+  tldr: {
+    title: 'TL;DR',
+    points: [
+      'Copilot CLI requires constant internet and sends your prompts to GitHub/OpenAI servers',
+      'Caro runs 100% offline with local models - your commands never leave your machine',
+      'Caro has rule-based safety checks; Copilot CLI relies on the model to be "careful"',
+      'Both work in your existing terminal (no new app required)',
+      'Copilot CLI requires GitHub subscription; Caro is free and open source'
+    ]
+  },
+  headToHead: [
+    { feature: 'Works offline', caro: true, competitor: false, winner: 'caro' },
+    { feature: 'Zero telemetry', caro: true, competitor: false, winner: 'caro' },
+    { feature: 'Rule-based safety checks', caro: true, competitor: false, winner: 'caro' },
+    { feature: 'Blocks dangerous commands', caro: true, competitor: false, winner: 'caro' },
+    { feature: 'Uses existing terminal', caro: true, competitor: true, winner: 'tie' },
+    { feature: 'Free to use', caro: true, competitor: false, winner: 'caro' },
+    { feature: 'Open source', caro: true, competitor: 'partial', winner: 'caro' },
+    { feature: 'Backed by major company', caro: false, competitor: true, winner: 'competitor' },
+    { feature: 'Large model access', caro: 'local', competitor: true, winner: 'competitor' },
+  ],
+  sections: [
+    {
+      title: 'Privacy & Data',
+      icon: '🔒',
+      content: `
+        <p><strong>GitHub Copilot CLI</strong> sends your prompts to GitHub's servers, where they're processed by OpenAI's models. While GitHub has privacy policies in place, your shell commands - including potentially sensitive paths, server names, and operations - traverse the internet.</p>
+        <p><strong>Caro</strong> runs entirely on your machine. With local model inference, your commands, prompts, and terminal context never leave your computer. This makes Caro suitable for air-gapped environments, compliance-restricted organizations, and developers who simply prefer to keep their terminal activity private.</p>
+      `
+    },
+    {
+      title: 'Safety Approach',
+      icon: '🛡️',
+      content: `
+        <p><strong>GitHub Copilot CLI</strong> relies on the underlying language model to generate "safe" suggestions. There's no systematic validation layer - the model might or might not catch dangerous patterns like <code>rm -rf /</code>.</p>
+        <p><strong>Caro</strong> has 52+ predefined safety patterns that validate every command before presenting it to you. Dangerous operations like recursive deletions, fork bombs, and system-breaking commands are blocked at the validation layer - independent of what the model suggests.</p>
+      `
+    },
+    {
+      title: 'Cost & Access',
+      icon: '💰',
+      content: `
+        <p><strong>GitHub Copilot CLI</strong> requires a GitHub Copilot subscription ($10-19/month for individuals, more for enterprises). You're also dependent on GitHub's service availability.</p>
+        <p><strong>Caro</strong> is completely free and open source. You run it on your hardware with your own models. No accounts, no subscriptions, no vendor lock-in.</p>
+      `
+    },
+    {
+      title: 'Model Quality',
+      icon: '🧠',
+      content: `
+        <p><strong>GitHub Copilot CLI</strong> has access to powerful OpenAI models (GPT-4 class) trained on massive datasets. For complex, novel commands, it may produce better suggestions.</p>
+        <p><strong>Caro</strong> uses local models which, while improving rapidly, may not match the raw capability of cloud giants. However, for common shell operations (finding files, text processing, system administration), local models are often sufficient - and you get the benefit of privacy and speed.</p>
+      `
+    },
+  ],
+  verdict: {
+    chooseCaro: [
+      'You work in air-gapped or compliance-restricted environments',
+      'You want zero telemetry and complete privacy',
+      'You need rule-based safety guarantees (not just model discretion)',
+      'You prefer open source and no subscription fees',
+      'You frequently work offline (flights, VPNs, restricted networks)',
+    ],
+    chooseCompetitor: [
+      'You\'re already paying for GitHub Copilot and want unified experience',
+      'You need the most powerful models for complex, novel commands',
+      'You prefer backed-by-Microsoft enterprise support',
+      'Internet connectivity is never an issue for you',
+    ]
+  }
+};
+---
+
+<ComparisonPageLayout
+  title="Caro vs GitHub Copilot CLI - Feature Comparison | Shell AI Tools"
+  description="Compare Caro and GitHub Copilot CLI. See how Caro's offline-first, safety-focused approach differs from Copilot's cloud-powered convenience."
+  comparison={comparison}
+  heroSubtitle="Local-first shell companion vs cloud-powered CLI assistant"
+  finalCtaHeading="Ready for a Privacy-First Shell Companion?"
+  finalCtaSubtext="Try Caro today. No account required. No data collected. Ever."
+>
+  <p slot="competitor-note" class="competitor-note">Already using Copilot? You can still try Caro for offline scenarios.</p>
+</ComparisonPageLayout>
+
+<style>
+  .competitor-note {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    font-style: italic;
+  }
+</style>

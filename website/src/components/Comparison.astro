@@ -1,0 +1,551 @@
+---
+// Comparison table data structured for growth-hacking SEO and conversion
+const competitors = [
+  { id: 'caro', name: 'Caro', highlight: true },
+  { id: 'copilot-cli', name: 'GitHub Copilot CLI' },
+  { id: 'warp', name: 'Warp AI' },
+  { id: 'amazon-q', name: 'Amazon Q CLI' },
+  { id: 'opencode', name: 'OpenCode' },
+];
+
+type FeatureValue = 'yes' | 'no' | 'partial' | string;
+
+interface ComparisonRow {
+  feature: string;
+  tooltip?: string;
+  values: Record<string, FeatureValue>;
+}
+
+const comparisonData: { category: string; icon: string; rows: ComparisonRow[] }[] = [
+  {
+    category: 'Privacy & Data',
+    icon: '🔒',
+    rows: [
+      {
+        feature: 'Works 100% offline',
+        tooltip: 'No internet required for core functionality',
+        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'amazon-q': 'no', 'opencode': 'partial' }
+      },
+      {
+        feature: 'Zero telemetry',
+        tooltip: 'No usage data sent anywhere',
+        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'amazon-q': 'no', 'opencode': 'yes' }
+      },
+      {
+        feature: 'Air-gapped friendly',
+        tooltip: 'Can run in isolated environments',
+        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'amazon-q': 'no', 'opencode': 'partial' }
+      },
+      {
+        feature: 'Open source',
+        tooltip: 'Full source code available',
+        values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'no', 'amazon-q': 'no', 'opencode': 'yes' }
+      },
+    ]
+  },
+  {
+    category: 'Safety & Control',
+    icon: '🛡️',
+    rows: [
+      {
+        feature: 'Rule-based safety checks',
+        tooltip: 'Pre-execution validation with defined patterns',
+        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'amazon-q': 'no', 'opencode': 'no' }
+      },
+      {
+        feature: 'Explicit confirmation required',
+        tooltip: 'Commands never run without your approval',
+        values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'amazon-q': 'partial', 'opencode': 'partial' }
+      },
+      {
+        feature: 'Blocks dangerous commands',
+        tooltip: 'Prevents rm -rf /, fork bombs, etc.',
+        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'amazon-q': 'no', 'opencode': 'no' }
+      },
+      {
+        feature: 'Risk level assessment',
+        tooltip: 'Commands rated by potential impact',
+        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'amazon-q': 'no', 'opencode': 'no' }
+      },
+    ]
+  },
+  {
+    category: 'Shell Expertise',
+    icon: '🖥️',
+    rows: [
+      {
+        feature: 'POSIX-first approach',
+        tooltip: 'Portable commands that work everywhere',
+        values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'amazon-q': 'partial', 'opencode': 'partial' }
+      },
+      {
+        feature: 'Cross-platform (macOS/Linux/BSD)',
+        tooltip: 'Works across Unix-like systems',
+        values: { 'caro': 'yes', 'copilot-cli': 'yes', 'warp': 'macOS/Linux', 'amazon-q': 'yes', 'opencode': 'yes' }
+      },
+      {
+        feature: 'Uses your existing terminal',
+        tooltip: 'No new terminal emulator required',
+        values: { 'caro': 'yes', 'copilot-cli': 'yes', 'warp': 'no', 'amazon-q': 'yes', 'opencode': 'yes' }
+      },
+      {
+        feature: 'Platform-aware commands',
+        tooltip: 'Adjusts for GNU vs BSD syntax',
+        values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'amazon-q': 'partial', 'opencode': 'partial' }
+      },
+    ]
+  },
+  {
+    category: 'Model & Backend',
+    icon: '🧠',
+    rows: [
+      {
+        feature: 'Local inference',
+        tooltip: 'Models run on your machine',
+        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'amazon-q': 'no', 'opencode': 'partial' }
+      },
+      {
+        feature: 'Multi-backend support',
+        tooltip: 'Choose your inference engine',
+        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'amazon-q': 'no', 'opencode': 'yes' }
+      },
+      {
+        feature: 'Apple Silicon optimized',
+        tooltip: 'MLX framework for M-series Macs',
+        values: { 'caro': 'partial', 'copilot-cli': 'no', 'warp': 'partial', 'amazon-q': 'no', 'opencode': 'no' }
+      },
+      {
+        feature: 'Self-hostable',
+        tooltip: 'Full control over infrastructure',
+        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'amazon-q': 'no', 'opencode': 'yes' }
+      },
+    ]
+  },
+];
+
+// Helper to render cell value
+function getCellDisplay(value: FeatureValue): { icon: string; class: string; label: string } {
+  switch (value) {
+    case 'yes':
+      return { icon: '✓', class: 'cell-yes', label: 'Yes' };
+    case 'no':
+      return { icon: '✗', class: 'cell-no', label: 'No' };
+    case 'partial':
+      return { icon: '◐', class: 'cell-partial', label: 'Partial' };
+    case 'planned':
+      return { icon: '◎', class: 'cell-planned', label: 'Planned' };
+    default:
+      return { icon: '', class: 'cell-text', label: value };
+  }
+}
+---
+
+<section id="compare" class="comparison-section">
+  <div class="container">
+    <h2>How Caro Compares</h2>
+    <p class="section-subtitle">
+      Built for DevOps engineers and SREs who refuse to sacrifice privacy for productivity
+    </p>
+
+    <!-- Quick Summary Cards -->
+    <div class="summary-cards">
+      <div class="summary-card highlight">
+        <span class="summary-icon">🔒</span>
+        <span class="summary-stat">Zero</span>
+        <span class="summary-label">Data Collection</span>
+      </div>
+      <div class="summary-card highlight">
+        <span class="summary-icon">🛡️</span>
+        <span class="summary-stat">52+</span>
+        <span class="summary-label">Safety Patterns</span>
+      </div>
+      <div class="summary-card highlight">
+        <span class="summary-icon">📡</span>
+        <span class="summary-stat">100%</span>
+        <span class="summary-label">Offline Capable</span>
+      </div>
+      <div class="summary-card highlight">
+        <span class="summary-icon">🦀</span>
+        <span class="summary-stat">Rust</span>
+        <span class="summary-label">Built for Speed</span>
+      </div>
+    </div>
+
+    <!-- Comparison Tables by Category -->
+    {comparisonData.map((category) => (
+      <div class="comparison-category">
+        <h3 class="category-title">
+          <span class="category-icon">{category.icon}</span>
+          {category.category}
+        </h3>
+        <div class="table-wrapper">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th class="feature-header">Feature</th>
+                {competitors.map((comp) => (
+                  <th class={comp.highlight ? 'competitor-header highlight' : 'competitor-header'}>
+                    {comp.highlight && <span class="highlight-badge">You're here</span>}
+                    {comp.name}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {category.rows.map((row) => (
+                <tr>
+                  <td class="feature-cell" title={row.tooltip}>
+                    {row.feature}
+                    {row.tooltip && <span class="tooltip-icon" aria-label={row.tooltip}>?</span>}
+                  </td>
+                  {competitors.map((comp) => {
+                    const display = getCellDisplay(row.values[comp.id]);
+                    return (
+                      <td class={`value-cell ${display.class} ${comp.highlight ? 'highlight-col' : ''}`}>
+                        <span class="cell-icon" aria-label={display.label}>{display.icon}</span>
+                        {display.icon === '' && <span class="cell-text-value">{display.label}</span>}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    ))}
+
+    <!-- Bottom CTA -->
+    <div class="comparison-cta">
+      <p class="cta-text">Ready for a shell companion that respects your privacy?</p>
+      <div class="cta-buttons">
+        <a href="#download" class="cta-button primary">Get Started Free</a>
+        <a href="/compare" class="cta-button secondary">See Full Comparison</a>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+      <span class="legend-item"><span class="legend-icon cell-yes">✓</span> Full support</span>
+      <span class="legend-item"><span class="legend-icon cell-partial">◐</span> Partial/configurable</span>
+      <span class="legend-item"><span class="legend-icon cell-no">✗</span> Not supported</span>
+      <span class="legend-item"><span class="legend-icon cell-planned">◎</span> Planned</span>
+    </div>
+  </div>
+</section>
+
+<style>
+  .comparison-section {
+    background: var(--color-bg-secondary);
+    padding: 80px 20px;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  h2 {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 16px;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    margin-bottom: 40px;
+  }
+
+  /* Summary Cards */
+  .summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 20px;
+    margin-bottom: 50px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .summary-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .summary-card.highlight {
+    border-color: #ff8c42;
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.1);
+  }
+
+  .summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 140, 66, 0.15);
+  }
+
+  .summary-icon {
+    font-size: 28px;
+  }
+
+  .summary-stat {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ff8c42;
+  }
+
+  .summary-label {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Category Headers */
+  .comparison-category {
+    margin-bottom: 40px;
+  }
+
+  .category-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 22px;
+    margin-bottom: 16px;
+    color: var(--color-text);
+  }
+
+  .category-icon {
+    font-size: 24px;
+  }
+
+  /* Table Wrapper for horizontal scroll on mobile */
+  .table-wrapper {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+  }
+
+  .comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 700px;
+  }
+
+  .comparison-table th,
+  .comparison-table td {
+    padding: 14px 16px;
+    text-align: center;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .comparison-table th {
+    background: var(--color-bg-tertiary);
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-text);
+    position: relative;
+  }
+
+  .comparison-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .comparison-table tbody tr:hover {
+    background: var(--color-bg-tertiary);
+  }
+
+  .feature-header {
+    text-align: left !important;
+    min-width: 200px;
+  }
+
+  .competitor-header {
+    min-width: 120px;
+    white-space: nowrap;
+  }
+
+  .competitor-header.highlight {
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.15) 0%, rgba(255, 140, 66, 0.05) 100%);
+    color: #ff8c42;
+  }
+
+  .highlight-badge {
+    display: block;
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #ff8c42;
+    margin-bottom: 4px;
+  }
+
+  .feature-cell {
+    text-align: left !important;
+    font-size: 14px;
+    color: var(--color-text);
+    position: relative;
+  }
+
+  .tooltip-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    margin-left: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    background: var(--color-bg-secondary);
+    border-radius: 50%;
+    cursor: help;
+    vertical-align: middle;
+  }
+
+  .value-cell {
+    font-size: 18px;
+  }
+
+  .highlight-col {
+    background: rgba(255, 140, 66, 0.05);
+  }
+
+  .cell-icon {
+    font-weight: 600;
+  }
+
+  .cell-yes .cell-icon {
+    color: #22c55e;
+  }
+
+  .cell-no .cell-icon {
+    color: #ef4444;
+  }
+
+  .cell-partial .cell-icon {
+    color: #f59e0b;
+  }
+
+  .cell-planned .cell-icon {
+    color: #8b5cf6;
+  }
+
+  .cell-text-value {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+
+  /* CTA Section */
+  .comparison-cta {
+    text-align: center;
+    margin: 50px 0 30px;
+    padding: 40px;
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.1) 0%, rgba(255, 107, 53, 0.05) 100%);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 140, 66, 0.2);
+  }
+
+  .cta-text {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 20px;
+  }
+
+  .cta-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .cta-button {
+    display: inline-block;
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .cta-button.primary {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    border: none;
+  }
+
+  .cta-button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.3);
+  }
+
+  .cta-button.secondary {
+    background: transparent;
+    color: #ff8c42;
+    border: 2px solid #ff8c42;
+  }
+
+  .cta-button.secondary:hover {
+    background: rgba(255, 140, 66, 0.1);
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .legend-icon {
+    font-weight: 600;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 28px;
+    }
+
+    .summary-cards {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .comparison-cta {
+      padding: 30px 20px;
+    }
+
+    .cta-text {
+      font-size: 18px;
+    }
+
+    .cta-buttons {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .cta-button {
+      width: 100%;
+      max-width: 280px;
+    }
+  }
+</style>
