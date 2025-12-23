@@ -8,6 +8,9 @@
 
 ### Tagline Options (Pick ONE focus)
 
+**XKCD Energy (Recommended):**
+> "For when you need tar flags but can't remember if it's -xvzf or -zxvf"
+
 **Privacy Focus:**
 > "The shell companion that never phones home"
 
@@ -17,10 +20,13 @@
 **Specificity Focus:**
 > "Forgot the find flags? Your SRE memory, locally"
 
-**Recommended Tagline:**
-> "Forgot that find command? Get it back—offline, with guardrails"
+**Humor + Value:**
+> "Because nobody extracts a tar archive on the first try"
 
-*Why this works: Leads with pain point, includes both key differentiators, targets the professional*
+**Recommended Tagline:**
+> "For XKCD #1168 moments—shell command recall, offline, with guardrails"
+
+*Why this works: Instant recognition, shared pain, humor + differentiation*
 
 ---
 
@@ -29,10 +35,16 @@
 ```markdown
 ## The Problem
 
-You're debugging a production issue at 2am. You need to find log files
-modified in the last hour, but your brain blanks on the exact `find`
-syntax. You open a browser tab. Stack Overflow. Copy. Paste. Typo.
-Google again.
+You know [XKCD #1168](https://xkcd.com/1168/)? The one where someone
+needs to extract a tar archive to defuse a bomb, but can't remember
+the flags?
+
+Everyone laughs because everyone's lived it. Maybe not with bombs,
+but definitely at 2am during a production incident.
+
+You need to find log files modified in the last hour, but your brain
+blanks on the exact `find` syntax. Is it `-mtime` or `-mmin`? You open
+a browser tab. Stack Overflow. Copy. Paste. Typo. Google again.
 
 **The context switch just cost you 5 minutes and your flow state.**
 
@@ -219,9 +231,13 @@ Show HN: Caro – Local-first shell command companion with rule-based safety (Ru
 
 **Post Body:**
 ```markdown
-I built Caro because I kept context-switching to Stack Overflow for
-forgotten shell commands. `find -mtime` vs `-mmin`? The exact tar
-flags for excluding directories? These micro-interruptions add up.
+Everyone's seen XKCD #1168—the one where someone needs tar syntax to
+defuse a bomb. It's funny because it's true.
+
+I built Caro because I was tired of being that person, minus the bomb.
+
+`find -mtime` vs `-mmin`? The exact tar flags for excluding directories?
+BSD sed vs GNU sed? These micro-interruptions add up.
 
 **What Caro does:**
 
