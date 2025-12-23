@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import Navigation from '../components/Navigation.astro';
 import Footer from '../components/Footer.astro';
 import ModelSelector from '../components/LLMInference/ModelSelector.astro';
-import TerminalSimulator from '../components/LLMInference/TerminalSimulator.astro';
+import CaroTerminal from '../components/LLMInference/CaroTerminal.astro';
 import LessonGuide from '../components/LLMInference/LessonGuide.astro';
 import GameChallenges from '../components/LLMInference/GameChallenges.astro';
 ---
@@ -50,104 +50,97 @@ import GameChallenges from '../components/LLMInference/GameChallenges.astro';
       </div>
     </section>
 
-    <!-- Mode Selector -->
-    <section class="mode-selector-section">
+    <!-- Model Loading Section (shown first) -->
+    <section class="model-section" id="model-section">
       <div class="container">
-        <div class="mode-cards three-columns">
-          <button class="mode-card active" data-mode="lessons">
-            <div class="mode-icon">📚</div>
-            <h3>Guided Lessons</h3>
-            <p>Step-by-step tutorials with structured learning path</p>
-            <div class="mode-badge recommended">Recommended for Beginners</div>
+        <ModelSelector />
+      </div>
+    </section>
+
+    <!-- Post-Model-Load: Mode Selection (hidden until model loads) -->
+    <section class="mode-selection-section hidden" id="mode-selection-section">
+      <div class="container">
+        <div class="model-ready-banner">
+          <div class="ready-icon">✓</div>
+          <div class="ready-content">
+            <h3>Caro is Ready!</h3>
+            <p>Choose how you want to learn with AI-powered assistance</p>
+          </div>
+        </div>
+
+        <div class="mode-cards">
+          <button class="mode-card" data-mode="terminal">
+            <div class="mode-icon">💬</div>
+            <h3>Interactive Terminal</h3>
+            <p>Talk to Caro directly. Type in natural language and get command translations.</p>
+            <div class="mode-preview">
+              <code>$ find all large files</code>
+              <span class="preview-arrow">→</span>
+              <code>find . -size +100M</code>
+            </div>
+            <div class="mode-badge recommended">Start Here</div>
           </button>
           <button class="mode-card" data-mode="challenges">
             <div class="mode-icon">🏆</div>
             <h3>Game Challenges</h3>
-            <p>Discover secrets and complete missions with Caro's help</p>
-            <div class="mode-badge new">New! With AI Assistant</div>
+            <p>Complete missions to discover secrets. Caro provides hints when you're stuck.</p>
+            <div class="mode-badge">4 Challenges</div>
           </button>
-          <button class="mode-card" data-mode="playground">
-            <div class="mode-icon">🎮</div>
-            <h3>Free Playground</h3>
-            <p>Explore and experiment with AI-powered assistance</p>
-            <div class="mode-badge">Requires AI Model</div>
+          <button class="mode-card" data-mode="lessons">
+            <div class="mode-icon">📚</div>
+            <h3>Guided Lessons</h3>
+            <p>Step-by-step tutorials that teach core commands systematically.</p>
+            <div class="mode-badge">5 Lessons</div>
           </button>
         </div>
       </div>
     </section>
 
-    <!-- Lessons Mode -->
-    <section class="lessons-section active" id="lessons-section">
+    <!-- Terminal Mode (Caro integrated) -->
+    <section class="terminal-section hidden" id="terminal-section">
       <div class="container">
         <div class="section-header">
+          <button class="back-btn" id="back-to-modes">
+            <span>←</span> Back to modes
+          </button>
+          <h2>Interactive Terminal with Caro</h2>
+          <p class="section-subtitle">
+            Ask Caro anything in plain English, or type commands directly. Caro translates, explains, and keeps you safe.
+          </p>
+        </div>
+        <CaroTerminal />
+      </div>
+    </section>
+
+    <!-- Challenges Mode -->
+    <section class="challenges-section hidden" id="challenges-section">
+      <div class="container">
+        <div class="section-header">
+          <button class="back-btn" id="back-to-modes-challenges">
+            <span>←</span> Back to modes
+          </button>
+          <h2>Terminal Challenges</h2>
+          <p class="section-subtitle">
+            Complete missions, discover secrets, and unlock achievements. Ask Caro for hints anytime!
+          </p>
+        </div>
+        <GameChallenges />
+      </div>
+    </section>
+
+    <!-- Lessons Mode -->
+    <section class="lessons-section hidden" id="lessons-section">
+      <div class="container">
+        <div class="section-header">
+          <button class="back-btn" id="back-to-modes-lessons">
+            <span>←</span> Back to modes
+          </button>
           <h2>Terminal Foundations</h2>
           <p class="section-subtitle">
             Master essential commands step by step. Each lesson builds on the last.
           </p>
         </div>
         <LessonGuide />
-      </div>
-    </section>
-
-    <!-- Challenges Mode -->
-    <section class="challenges-section" id="challenges-section">
-      <div class="container">
-        <!-- Model Loading for Challenges -->
-        <div class="challenge-model-area" id="challenge-model-area">
-          <div class="caro-intro-box">
-            <img src="/caro-pixel.png" alt="Caro" class="intro-caro" />
-            <div class="intro-content">
-              <h3>Power Up Caro with AI!</h3>
-              <p>
-                Load an AI model to unlock Caro's full potential. She'll provide intelligent hints,
-                answer your questions, and guide you through challenges in real-time.
-              </p>
-              <p class="optional-note">
-                <strong>Optional:</strong> Challenges work without AI, but Caro's hints are much smarter with it!
-              </p>
-            </div>
-          </div>
-          <ModelSelector />
-        </div>
-
-        <!-- Game Challenges Area -->
-        <div class="challenges-area" id="challenges-area">
-          <div class="section-header">
-            <h2>Terminal Challenges</h2>
-            <p class="section-subtitle">
-              Complete missions, discover secrets, and unlock achievements. Caro is here to help!
-            </p>
-          </div>
-          <GameChallenges />
-        </div>
-      </div>
-    </section>
-
-    <!-- Playground Mode -->
-    <section class="playground-section" id="playground-section">
-      <div class="container">
-        <!-- Model Loading -->
-        <div class="model-loading-area" id="model-loading-area">
-          <div class="section-header">
-            <h2>Load Your AI Assistant</h2>
-            <p class="section-subtitle">
-              Select and download an AI model to enable natural language terminal tutoring.
-              Models run 100% locally - your data never leaves your device.
-            </p>
-          </div>
-          <ModelSelector />
-        </div>
-
-        <!-- Terminal Area (shown after model loads) -->
-        <div class="terminal-area hidden" id="terminal-area">
-          <div class="section-header">
-            <h2>Interactive Terminal</h2>
-            <p class="section-subtitle">
-              Ask Caro anything about terminal commands in plain English, or type commands directly.
-            </p>
-          </div>
-          <TerminalSimulator />
-        </div>
       </div>
     </section>
 
@@ -782,81 +775,269 @@ import GameChallenges from '../components/LLMInference/GameChallenges.astro';
 </style>
 
 <script>
-  // Mode switching
-  const modeCards = document.querySelectorAll('.mode-card');
-  const lessonsSection = document.getElementById('lessons-section')!;
+  // Section elements
+  const modelSection = document.getElementById('model-section')!;
+  const modeSelectionSection = document.getElementById('mode-selection-section')!;
+  const terminalSection = document.getElementById('terminal-section')!;
   const challengesSection = document.getElementById('challenges-section')!;
-  const playgroundSection = document.getElementById('playground-section')!;
+  const lessonsSection = document.getElementById('lessons-section')!;
 
-  // All mode sections
-  const allSections = [lessonsSection, challengesSection, playgroundSection];
+  const allContentSections = [terminalSection, challengesSection, lessonsSection];
 
+  // Mode cards
+  const modeCards = document.querySelectorAll('.mode-card');
+
+  // Back buttons
+  document.getElementById('back-to-modes')?.addEventListener('click', showModeSelection);
+  document.getElementById('back-to-modes-challenges')?.addEventListener('click', showModeSelection);
+  document.getElementById('back-to-modes-lessons')?.addEventListener('click', showModeSelection);
+
+  // Mode card clicks
   modeCards.forEach(card => {
     card.addEventListener('click', () => {
       const mode = (card as HTMLElement).dataset.mode;
-
-      // Update card states
-      modeCards.forEach(c => c.classList.remove('active'));
-      card.classList.add('active');
-
-      // Hide all sections
-      allSections.forEach(section => section.classList.remove('active'));
-
-      // Show selected section
-      if (mode === 'lessons') {
-        lessonsSection.classList.add('active');
-      } else if (mode === 'challenges') {
-        challengesSection.classList.add('active');
-      } else if (mode === 'playground') {
-        playgroundSection.classList.add('active');
+      if (mode) {
+        selectMode(mode);
       }
     });
   });
 
-  // Handle model loaded event - update all relevant areas
+  function selectMode(mode: string) {
+    // Hide mode selection
+    modeSelectionSection.classList.add('hidden');
+
+    // Hide all content sections
+    allContentSections.forEach(section => section.classList.add('hidden'));
+
+    // Show selected section
+    if (mode === 'terminal') {
+      terminalSection.classList.remove('hidden');
+    } else if (mode === 'challenges') {
+      challengesSection.classList.remove('hidden');
+    } else if (mode === 'lessons') {
+      lessonsSection.classList.remove('hidden');
+    }
+
+    // Scroll to top of section
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function showModeSelection() {
+    // Hide all content sections
+    allContentSections.forEach(section => section.classList.add('hidden'));
+
+    // Show mode selection
+    modeSelectionSection.classList.remove('hidden');
+
+    // Scroll to mode selection
+    modeSelectionSection.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // Handle model loaded event
   window.addEventListener('model-loaded', (e: any) => {
     const { modelId, modelName } = e.detail || {};
 
-    // Update playground area
-    const modelLoadingArea = document.getElementById('model-loading-area');
-    const terminalArea = document.getElementById('terminal-area');
-    if (modelLoadingArea && terminalArea) {
-      modelLoadingArea.classList.add('hidden');
-      terminalArea.classList.remove('hidden');
-    }
+    // Hide model loading section
+    modelSection.classList.add('hidden');
 
-    // Update challenges area - hide model selector, keep challenges visible
-    const challengeModelArea = document.getElementById('challenge-model-area');
-    if (challengeModelArea) {
-      // Collapse the model selector but show success message
-      challengeModelArea.innerHTML = `
-        <div class="model-loaded-banner">
-          <span class="check-icon">✓</span>
-          <span>Caro's AI is ready! (${modelName || 'Model loaded'})</span>
-        </div>
-      `;
-    }
+    // Show mode selection section
+    modeSelectionSection.classList.remove('hidden');
+
+    // Scroll to mode selection
+    setTimeout(() => {
+      modeSelectionSection.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   });
 </script>
 
 <style>
-  /* Model loaded banner */
-  .model-loaded-banner {
+  /* Model Section */
+  .model-section {
+    padding: 60px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .model-section.hidden {
+    display: none;
+  }
+
+  /* Mode Selection Section */
+  .mode-selection-section {
+    padding: 60px 20px;
+  }
+
+  .mode-selection-section.hidden {
+    display: none;
+  }
+
+  .model-ready-banner {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px 32px;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(22, 163, 74, 0.12) 100%);
+    border: 2px solid rgba(34, 197, 94, 0.3);
+    border-radius: 16px;
+    margin-bottom: 40px;
+  }
+
+  .ready-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    padding: 16px 24px;
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(22, 163, 74, 0.1) 100%);
-    border: 1px solid rgba(34, 197, 94, 0.3);
-    border-radius: 12px;
-    color: #16a34a;
-    font-weight: 600;
-    font-size: 15px;
-    margin-bottom: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    flex-shrink: 0;
   }
 
-  .check-icon {
+  .ready-content h3 {
+    margin: 0 0 4px;
+    color: #16a34a;
     font-size: 20px;
+  }
+
+  .ready-content p {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+  }
+
+  .mode-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .mode-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 32px 24px;
+    background: var(--color-bg);
+    border: 2px solid var(--color-border);
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .mode-card:hover {
+    border-color: #ff8c42;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(255, 140, 66, 0.15);
+  }
+
+  .mode-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+
+  .mode-card h3 {
+    margin: 0 0 8px;
+    color: var(--color-text);
+    font-size: 20px;
+  }
+
+  .mode-card p {
+    margin: 0 0 16px;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .mode-preview {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #1a1b26;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-family: 'Monaco', monospace;
+    font-size: 11px;
+  }
+
+  .mode-preview code {
+    color: #9ece6a;
+  }
+
+  .preview-arrow {
+    color: #ff9e64;
+  }
+
+  .mode-badge {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 6px 14px;
+    border-radius: 12px;
+    background: var(--color-bg-secondary);
+    color: var(--color-text-secondary);
+  }
+
+  .mode-badge.recommended {
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.15) 0%, rgba(255, 107, 53, 0.15) 100%);
+    color: #ff8c42;
+    border: 1px solid rgba(255, 140, 66, 0.3);
+  }
+
+  /* Back Button */
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    cursor: pointer;
+    margin-bottom: 24px;
+    transition: all 0.2s;
+  }
+
+  .back-btn:hover {
+    border-color: #ff8c42;
+    color: #ff8c42;
+  }
+
+  /* Content Sections */
+  .terminal-section,
+  .challenges-section,
+  .lessons-section {
+    padding: 40px 20px 80px;
+  }
+
+  .terminal-section.hidden,
+  .challenges-section.hidden,
+  .lessons-section.hidden {
+    display: none;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .mode-cards {
+      grid-template-columns: 1fr;
+    }
+
+    .model-ready-banner {
+      flex-direction: column;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .mode-preview {
+      flex-direction: column;
+      gap: 4px;
+    }
   }
 </style>
