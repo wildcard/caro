@@ -51,7 +51,7 @@ os_info = "3.7"
 sysinfo = "0.29"
 
 # Model integration (Hugging Face Hub)
-hf-hub = { version = "0.3", features = ["tokio"] }
+hf-hub = { version = "0.4", features = ["tokio"] }
 url = "2.5"
 
 # Date/time handling
