@@ -1,16 +1,14 @@
-# cmdai (caro)
+# caro
 
-[![Crates.io](https://img.shields.io/crates/v/cmdai.svg)](https://crates.io/crates/cmdai)
+[![Crates.io](https://img.shields.io/crates/v/caro.svg)](https://crates.io/crates/caro)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%203.0-blue.svg)](https://opensource.org/licenses/AGPL-3.0)
-[![CI](https://github.com/wildcard/cmdai/workflows/CI/badge.svg)](https://github.com/wildcard/cmdai/actions)
+[![CI](https://github.com/wildcard/caro/workflows/CI/badge.svg)](https://github.com/wildcard/caro/actions)
 
-> 🚧 **Early Development Stage** - Published on crates.io, core features implemented, advanced features in progress
+> ✨ **Active Development** - Published on crates.io with core features working. Visit [caro.sh](https://caro.sh) for more info.
 
-**cmdai** (also known as **caro**) converts natural language descriptions into safe POSIX shell commands using local LLMs. Built with Rust for blazing-fast performance, single-binary distribution, and safety-first design.
+**caro** (formerly **cmdai**) converts natural language descriptions into safe POSIX shell commands using local LLMs. Built with Rust for blazing-fast performance, single-binary distribution, and safety-first design with intelligent platform detection.
 
 ```bash
-$ cmdai "list all PDF files in Downloads folder larger than 10MB"
-# or use the alias
 $ caro "list all PDF files in Downloads folder larger than 10MB"
 
 Generated command:
@@ -21,47 +19,57 @@ Execute this command? (y/N) y
 
 ## 📋 Project Status
 
-**Current Version:** 0.1.0 (Published on [crates.io](https://crates.io/crates/cmdai))
+**Current Version:** 1.0.0 (Published on [crates.io](https://crates.io/crates/caro))
 
-This project is in **active early development**. Core architecture is implemented and the package is published, with advanced features in progress.
+This project is in **active development** with core features implemented and working. The CLI is functional with embedded local inference and advanced platform-aware command generation.
+
+> **Note:** The project was originally named `cmdai` but has been renamed to `caro`. See [Naming History](docs/NAMING_HISTORY.md) for details.
 
 ### ✅ Completed & Published
-- ✨ **Published to crates.io** - Install via `cargo install cmdai`
+- ✨ **Published to crates.io** - Install via `cargo install caro`
 - 🎯 Core CLI structure with comprehensive argument parsing
 - 🏗️ Modular architecture with trait-based backends
-- 🧠 Embedded model backend with MLX (Apple Silicon) and CPU variants
+- 🧠 **Embedded model backend** with MLX (Apple Silicon) and CPU variants
+- 🤖 **Agentic context loop** - Iterative refinement with platform detection
+- 🌍 **Platform-aware generation** - Detects OS, architecture, available commands
+- 📍 **Execution context detection** - CWD, shell type, system constraints
 - 🌐 Remote backend support (Ollama, vLLM) with automatic fallback
 - 🛡️ Safety validation with 52 pre-compiled dangerous command patterns
 - ⚙️ Configuration management with TOML support
 - 💬 Interactive user confirmation flows with color-coded risk levels
+- 🎬 **Command execution engine** - Safe execution with shell detection
 - 📄 Multiple output formats (JSON, YAML, Plain)
 - 🧪 Contract-based test structure with TDD methodology
 - 🔄 Multi-platform CI/CD pipeline with automated publishing
 - 📦 Installation script with automatic `caro` alias setup
 - 🖥️ Cross-platform detection and validation (macOS, Linux, Windows)
+- 🌐 **Official website** at [caro.sh](https://caro.sh)
+- 🎥 **Professional demos** with asciinema recordings
 
 ### 🚧 In Progress
-- Model downloading and caching system
-- Full MLX backend integration for Apple Silicon
-- Advanced command execution engine
-- Performance optimization and benchmarking
+- Model downloading and caching optimization
+- Command history and learning from user feedback
+- Performance profiling and optimization
+- Extended safety pattern library
 
 ### 📅 Planned
-- Multi-step goal completion
-- Advanced context awareness
-- Shell script generation
-- Command history and learning
-- Interactive command refinement
+- Multi-step goal completion with dependency resolution
+- Shell script generation for complex workflows
+- Interactive command refinement with explanations
+- Plugin system for custom backends and validators
 
-## ✨ Features (Planned & In Development)
+## ✨ Features
 
-- 🚀 **Instant startup** - Single binary with <100ms cold start (target)
-- 🧠 **Local LLM inference** - Optimized for Apple Silicon with MLX
-- 🛡️ **Safety-first** - Comprehensive command validation framework
-- 📦 **Zero dependencies** - Self-contained binary distribution
-- 🎯 **Multiple backends** - Extensible backend system (MLX, vLLM, Ollama)
-- 💾 **Smart caching** - Hugging Face model management
-- 🌐 **Cross-platform** - macOS, Linux, Windows support
+- 🚀 **Fast startup** - Single binary with quick initialization
+- 🧠 **Local LLM inference** - Embedded models optimized for Apple Silicon (MLX) and CPU
+- 🤖 **Intelligent refinement** - 2-iteration agentic loop for platform-specific command generation
+- 🌍 **Platform-aware** - Automatically detects OS, architecture, shell, and available commands
+- 🛡️ **Safety-first** - Comprehensive validation with 52+ dangerous command patterns
+- 📦 **Self-contained** - Single binary distribution with embedded models
+- 🎯 **Multiple backends** - Extensible system supporting MLX, CPU, vLLM, and Ollama
+- 💾 **Model management** - Built-in model loading with optimization
+- 🌐 **Cross-platform** - Full support for macOS (including Apple Silicon), Linux, and Windows
+- 🎬 **Safe execution** - Optional command execution with shell-aware handling
 
 ## 🚀 Quick Start
 
@@ -85,14 +93,11 @@ This will:
 
 #### Option 2: Using Cargo
 ```bash
-cargo install cmdai
-
-# Add alias manually to your shell config (~/.bashrc, ~/.zshrc, etc.)
-alias caro='cmdai'
+cargo install caro
 ```
 
 #### Option 3: Pre-built Binaries
-Download the latest release from [GitHub Releases](https://github.com/wildcard/cmdai/releases/latest) for your platform:
+Download the latest release from [GitHub Releases](https://github.com/wildcard/caro/releases/latest) for your platform:
 - Linux (x64, ARM64)
 - macOS (Intel, Apple Silicon)
 - Windows (x64)
@@ -121,12 +126,12 @@ source "$HOME/.cargo/env"
 brew install cmake
 
 # Clone and build
-git clone https://github.com/wildcard/cmdai.git
-cd cmdai
+git clone https://github.com/wildcard/caro.git
+cd caro
 cargo build --release
 
 # Run
-./target/release/cmdai "list all files"
+./target/release/caro "list all files"
 ```
 
 **For GPU Acceleration (Apple Silicon only):**
@@ -148,8 +153,8 @@ sudo apt-get update
 sudo apt-get install cmake build-essential
 
 # Clone and build
-git clone https://github.com/wildcard/cmdai.git
-cd cmdai
+git clone https://github.com/wildcard/caro.git
+cd caro
 cargo build --release
 ```
 
@@ -160,8 +165,8 @@ cargo build --release
 # Install CMake from https://cmake.org/download/
 
 # Clone and build
-git clone https://github.com/wildcard/cmdai.git
-cd cmdai
+git clone https://github.com/wildcard/caro.git
+cd caro
 cargo build --release
 ```
 
@@ -169,14 +174,14 @@ cargo build --release
 
 ```bash
 # Clone the repository
-git clone https://github.com/wildcard/cmdai.git
-cd cmdai
+git clone https://github.com/wildcard/caro.git
+cd caro
 
 # Build the project (uses CPU backend by default)
 cargo build --release
 
 # Run the CLI
-./target/release/cmdai --version
+./target/release/caro --version
 ```
 
 ### Development Commands
@@ -202,28 +207,28 @@ RUST_LOG=debug cargo run -- "your command"
 
 ### Basic Syntax
 ```bash
-cmdai [OPTIONS] <PROMPT>
+caro [OPTIONS] <PROMPT>
 ```
 
 ### Examples
 ```bash
 # Basic command generation
-cmdai "list all files in the current directory"
+caro "list all files in the current directory"
 
 # With specific shell
-cmdai --shell zsh "find large files"
+caro --shell zsh "find large files"
 
 # JSON output for scripting
-cmdai --output json "show disk usage"
+caro --output json "show disk usage"
 
 # Adjust safety level
-cmdai --safety permissive "clean temporary files"
+caro --safety permissive "clean temporary files"
 
 # Auto-confirm dangerous commands
-cmdai --confirm "remove old log files"
+caro --confirm "remove old log files"
 
 # Verbose mode with timing info
-cmdai --verbose "search for Python files"
+caro --verbose "search for Python files"
 ```
 
 ### CLI Options
@@ -245,13 +250,13 @@ cmdai --verbose "search for Python files"
 
 ```bash
 # Simple command generation
-cmdai "compress all images in current directory"
+caro "compress all images in current directory"
 
 # With specific backend
-cmdai --backend mlx "find large log files"
+caro --backend mlx "find large log files"
 
 # Verbose mode for debugging
-cmdai --verbose "show disk usage"
+caro --verbose "show disk usage"
 ```
 
 ## 🏗️ Architecture
@@ -259,7 +264,7 @@ cmdai --verbose "show disk usage"
 ### Module Structure
 
 ```
-cmdai/
+caro/
 ├── src/
 │   ├── main.rs              # CLI entry point
 │   ├── backends/            # LLM backend implementations
@@ -283,7 +288,38 @@ cmdai/
 1. **CommandGenerator Trait** - Unified interface for all LLM backends
 2. **SafetyValidator** - Command validation and risk assessment
 3. **Backend System** - Extensible architecture for multiple inference engines
-4. **Cache Manager** - Hugging Face model management (planned)
+4. **AgentLoop** - Iterative refinement with platform detection
+5. **ExecutionContext** - Comprehensive system environment detection
+6. **Model Loader** - Efficient model initialization and management
+
+### Intelligent Command Generation
+
+caro uses a sophisticated **2-iteration agentic loop** for generating platform-appropriate commands:
+
+**Iteration 1: Context-Aware Generation**
+- Detects your OS (macOS, Linux, Windows), architecture, and shell
+- Identifies available commands on your system
+- Applies platform-specific rules (BSD vs GNU differences)
+- Generates initial command with confidence score
+
+**Iteration 2: Smart Refinement** (triggered when needed)
+- Extracts commands from pipes and chains
+- Fetches command-specific help and version info
+- Detects and fixes platform compatibility issues
+- Refines complex commands (sed, awk, xargs)
+
+**Example Flow:**
+```
+User: "show top 5 processes by CPU"
+  ↓
+Context Detection: macOS 14.2, arm64, zsh
+  ↓
+Iteration 1: Generates with macOS rules
+  ↓
+Smart Refinement: Fixes BSD sort syntax
+  ↓
+Result: ps aux | sort -nrk 3,3 | head -6
+```
 
 ### Backend Architecture
 
@@ -309,8 +345,8 @@ trait CommandGenerator {
 
 ```bash
 # Clone and enter the project
-git clone https://github.com/wildcard/cmdai.git
-cd cmdai
+git clone https://github.com/wildcard/caro.git
+cd caro
 
 # Install dependencies and build
 cargo build
@@ -327,7 +363,7 @@ cargo clippy -- -D warnings
 
 ### Backend Configuration
 
-cmdai supports multiple inference backends with automatic fallback:
+caro supports multiple inference backends with automatic fallback:
 
 #### Embedded Backend (Default)
 - **MLX**: Optimized for Apple Silicon Macs (M1/M2/M3)
@@ -336,7 +372,7 @@ cmdai supports multiple inference backends with automatic fallback:
 - No external dependencies required
 
 #### Remote Backends (Optional)
-Configure in `~/.config/cmdai/config.toml`:
+Configure in `~/.config/caro/config.toml`:
 
 ```toml
 [backend]
@@ -357,7 +393,7 @@ api_key = "optional-api-key"
 
 The project uses several configuration files:
 - `Cargo.toml` - Rust dependencies and build configuration
-- `~/.config/cmdai/config.toml` - User configuration
+- `~/.config/caro/config.toml` - User configuration
 - `clippy.toml` - Linter rules
 - `rustfmt.toml` - Code formatting rules
 - `deny.toml` - Dependency audit configuration
@@ -372,7 +408,7 @@ The project uses contract-based testing:
 
 ## 🛡️ Safety Features
 
-cmdai includes comprehensive safety validation to prevent dangerous operations:
+caro includes comprehensive safety validation to prevent dangerous operations:
 
 ### Implemented Safety Checks
 - ✅ System destruction patterns (`rm -rf /`, `rm -rf ~`)
@@ -389,7 +425,7 @@ cmdai includes comprehensive safety validation to prevent dangerous operations:
 - **Critical** (Red) - Blocked in strict mode, requires explicit confirmation
 
 ### Safety Configuration
-Configure safety levels in `~/.config/cmdai/config.toml`:
+Configure safety levels in `~/.config/caro/config.toml`:
 ```toml
 [safety]
 enabled = true
@@ -446,44 +482,55 @@ This project is licensed under the **GNU Affero General Public License v3.0 (AGP
 
 ## 📞 Support & Community
 
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/wildcard/cmdai/issues)
-- 💡 **Feature Requests**: [GitHub Discussions](https://github.com/wildcard/cmdai/discussions)
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/wildcard/caro/issues)
+- 💡 **Feature Requests**: [GitHub Discussions](https://github.com/wildcard/caro/discussions)
 - 📖 **Documentation**: See `/specs` directory for detailed specifications
 
 ## 🗺️ Roadmap
 
-### Phase 1: Core Structure (Current)
+### Phase 1: Core Structure ✅ Complete
 - [x] CLI argument parsing
 - [x] Module architecture
 - [x] Backend trait system
-- [ ] Basic command generation
+- [x] Command generation with embedded models
 
-### Phase 2: Safety & Validation
-- [ ] Dangerous pattern detection
-- [ ] POSIX compliance checking
-- [ ] User confirmation workflows
-- [ ] Risk assessment system
+### Phase 2: Safety & Validation ✅ Complete
+- [x] Dangerous pattern detection (52+ patterns)
+- [x] POSIX compliance checking
+- [x] User confirmation workflows
+- [x] Risk assessment system with color coding
 
-### Phase 3: Backend Integration
-- [ ] vLLM HTTP API support
-- [ ] Ollama local backend
-- [ ] Response parsing
-- [ ] Error handling
+### Phase 3: Backend Integration ✅ Complete
+- [x] Embedded MLX backend (Apple Silicon)
+- [x] Embedded CPU backend (cross-platform)
+- [x] vLLM HTTP API support
+- [x] Ollama local backend
+- [x] Response parsing with fallback strategies
+- [x] Comprehensive error handling
 
-### Phase 4: MLX Optimization
-- [ ] FFI bindings with cxx
-- [ ] Metal Performance Shaders
-- [ ] Unified memory handling
-- [ ] Apple Silicon optimization
+### Phase 4: Platform Intelligence ✅ Complete
+- [x] Execution context detection
+- [x] Platform-specific command rules
+- [x] Agentic refinement loop
+- [x] Command info enrichment
+- [x] Shell-aware execution
 
-### Phase 5: Production Ready
-- [ ] Comprehensive testing
-- [ ] Performance optimization
-- [ ] Binary distribution
-- [ ] Package manager support
+### Phase 5: Production Ready 🚧 In Progress
+- [x] Published to crates.io
+- [x] Installation script with alias setup
+- [x] Multi-platform CI/CD
+- [x] Website and documentation
+- [x] Professional demos
+- [ ] Extended test coverage
+- [ ] Performance benchmarking suite
+- [ ] Binary distribution optimization
 
 ---
 
 **Built with Rust** | **Safety First** | **Open Source**
 
 > **Note**: This is an active development project. Features and APIs are subject to change. See the [specs](specs/) directory for detailed design documentation.
+
+---
+
+<sub>The `caro` crate name was generously provided by its previous maintainer. If you're looking for the original "creation-addressed replicated objects" project, it remains available at [crates.io/crates/caro/0.7.1](https://crates.io/crates/caro/0.7.1).</sub>

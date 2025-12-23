@@ -1,0 +1,98 @@
+# Configuration for actions/labeler
+# Labels are applied based on which files are changed in a PR
+
+# Core source code
+rust:
+  - changed-files:
+      - any-glob-to-any-file: 'src/**/*.rs'
+
+# Backend implementations
+backend:
+  - changed-files:
+      - any-glob-to-any-file: 'src/backends/**'
+
+# Safety validation
+safety:
+  - changed-files:
+      - any-glob-to-any-file: 'src/safety/**'
+
+# Configuration system
+config:
+  - changed-files:
+      - any-glob-to-any-file: 'src/config/**'
+
+# Cache system
+cache:
+  - changed-files:
+      - any-glob-to-any-file: 'src/cache/**'
+
+# CLI changes
+cli:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/main.rs'
+          - 'src/cli/**'
+
+# Testing
+testing:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'tests/**'
+          - 'benches/**'
+          - '**/*_test.rs'
+
+# Documentation
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.md'
+          - 'docs/**'
+          - 'specs/**'
+
+# CI/CD and GitHub configuration
+ci/cd:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**'
+          - 'Makefile'
+          - 'justfile'
+
+# Dependencies
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'Cargo.toml'
+          - 'Cargo.lock'
+
+# DevContainer
+devcontainer:
+  - changed-files:
+      - any-glob-to-any-file: '.devcontainer/**'
+
+# Specifications
+specs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'specs/**'
+          - 'kitty-specs/**'
+
+# Website
+website:
+  - changed-files:
+      - any-glob-to-any-file: 'website/**'
+
+# Platform-specific: Apple/macOS
+platform/macos:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/backends/mlx.rs'
+          - '**/macos/**'
+          - '**/*apple*'
+          - '**/*darwin*'
+
+# Platform-specific: Linux
+platform/linux:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/linux/**'
+          - '**/*linux*'

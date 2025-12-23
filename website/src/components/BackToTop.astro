@@ -1,0 +1,310 @@
+---
+// Back to top button with elevator.js
+---
+
+<button id="back-to-top" class="back-to-top" aria-label="Back to top">
+  ↑
+</button>
+
+<button id="mute-toggle" class="mute-toggle" aria-label="Toggle elevator music">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
+    <path class="sound-waves" d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+    <path class="sound-waves" d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+    <line class="mute-x" x1="23" y1="9" x2="17" y2="15" stroke-width="2"></line>
+    <line class="mute-x" x1="17" y1="9" x2="23" y2="15" stroke-width="2"></line>
+  </svg>
+</button>
+
+<style>
+  .back-to-top {
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(100px);
+  }
+
+  .back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .back-to-top:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.4);
+  }
+
+  .back-to-top:active {
+    transform: translateY(-2px);
+  }
+
+  /* Dark mode adjustments */
+  .dark .back-to-top {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+  }
+
+  .dark .back-to-top:hover {
+    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.5);
+  }
+
+  /* Christmas theme */
+  .christmas .back-to-top {
+    background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-green) 100%);
+  }
+
+  .christmas .back-to-top:hover {
+    box-shadow: 0 8px 20px rgba(196, 30, 58, 0.5);
+  }
+
+  /* Hanukkah theme */
+  .hanukkah .back-to-top {
+    background: linear-gradient(135deg, var(--hanukkah-blue) 0%, var(--hanukkah-light-blue) 100%);
+  }
+
+  .hanukkah .back-to-top:hover {
+    box-shadow: 0 8px 20px rgba(0, 56, 184, 0.5);
+  }
+
+  /* Mute toggle button */
+  .mute-toggle {
+    position: fixed;
+    bottom: 100px;
+    right: 40px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(155, 89, 182, 0.3);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(100px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mute-toggle.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .mute-toggle:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(155, 89, 182, 0.5);
+    background: linear-gradient(135deg, #a569bd 0%, #9b59b6 100%);
+  }
+
+  .mute-toggle:active {
+    transform: translateY(-2px) scale(0.98);
+  }
+
+  .mute-toggle svg {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  }
+
+  .mute-toggle .sound-waves {
+    animation: soundWave 1.5s ease-in-out infinite;
+    transform-origin: center;
+  }
+
+  .mute-toggle .sound-waves:nth-child(3) {
+    animation-delay: 0.2s;
+  }
+
+  .mute-toggle .mute-x {
+    display: none;
+  }
+
+  .mute-toggle.is-muted .sound-waves {
+    display: none;
+  }
+
+  .mute-toggle.is-muted .mute-x {
+    display: block;
+  }
+
+  @keyframes soundWave {
+    0%, 100% {
+      opacity: 0.5;
+      stroke-width: 2;
+    }
+    50% {
+      opacity: 1;
+      stroke-width: 2.5;
+    }
+  }
+
+  /* Dark mode adjustments */
+  .dark .mute-toggle {
+    background: linear-gradient(135deg, #8e44ad 0%, #6c3483 100%);
+    box-shadow: 0 4px 12px rgba(142, 68, 173, 0.4);
+  }
+
+  .dark .mute-toggle:hover {
+    background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+    box-shadow: 0 8px 20px rgba(155, 89, 182, 0.6);
+  }
+
+  /* Christmas theme */
+  .christmas .mute-toggle {
+    background: linear-gradient(135deg, var(--christmas-gold) 0%, #daa520 100%);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+  }
+
+  .christmas .mute-toggle:hover {
+    background: linear-gradient(135deg, #ffd700 0%, var(--christmas-gold) 100%);
+    box-shadow: 0 8px 20px rgba(255, 215, 0, 0.5);
+  }
+
+  /* Hanukkah theme */
+  .hanukkah .mute-toggle {
+    background: linear-gradient(135deg, var(--hanukkah-light-blue) 0%, var(--hanukkah-blue) 100%);
+    box-shadow: 0 4px 12px rgba(65, 105, 225, 0.3);
+  }
+
+  .hanukkah .mute-toggle:hover {
+    background: linear-gradient(135deg, #5a8dee 0%, var(--hanukkah-light-blue) 100%);
+    box-shadow: 0 8px 20px rgba(90, 141, 238, 0.5);
+  }
+
+  /* Mobile adjustments */
+  @media (max-width: 768px) {
+    .back-to-top {
+      bottom: 20px;
+      right: 20px;
+      width: 45px;
+      height: 45px;
+      font-size: 20px;
+    }
+
+    .mute-toggle {
+      bottom: 75px;
+      right: 20px;
+      width: 45px;
+      height: 45px;
+    }
+
+    .mute-toggle svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+</style>
+
+<script>
+  // Import elevator.js
+  const script = document.createElement('script');
+  script.src = '/elevator.js';
+  script.onload = () => {
+    // Get buttons and mute state
+    const button = document.getElementById('back-to-top');
+    const muteToggle = document.getElementById('mute-toggle');
+
+    // Check localStorage for mute preference (default: unmuted)
+    let isMuted = localStorage.getItem('elevatorMuted') === 'true';
+
+    // Update mute button visual state
+    const updateMuteButtonState = () => {
+      if (isMuted) {
+        muteToggle?.classList.add('is-muted');
+      } else {
+        muteToggle?.classList.remove('is-muted');
+      }
+    };
+
+    updateMuteButtonState();
+
+    // Initialize elevator.js once without audio - we'll handle audio manually
+    let elevatorDuration = 3000; // 3 seconds
+    let currentAudio: HTMLAudioElement | null = null;
+
+    // @ts-ignore - Elevator is loaded from external script
+    const elevator = new Elevator({
+      element: button,
+      duration: elevatorDuration,
+    });
+
+    // Handle audio manually on button click
+    button?.addEventListener('click', () => {
+      if (!isMuted) {
+        // Create and play audio
+        currentAudio = new Audio('/elevator-music.mp3');
+        currentAudio.play().catch(() => {
+          // Ignore errors if user hasn't interacted yet
+        });
+
+        // Stop audio after elevator ride
+        setTimeout(() => {
+          if (currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+            currentAudio = null;
+          }
+        }, elevatorDuration);
+      }
+    });
+
+    // Mute toggle handler
+    muteToggle?.addEventListener('click', (e) => {
+      e.stopPropagation();
+
+      // Toggle mute state
+      isMuted = !isMuted;
+      localStorage.setItem('elevatorMuted', isMuted.toString());
+
+      // Stop currently playing audio immediately
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+        currentAudio = null;
+      }
+
+      // Update visual state
+      updateMuteButtonState();
+    });
+
+    // Show/hide buttons based on scroll position
+    let scrollTimeout: number;
+    const handleScroll = () => {
+      if (scrollTimeout) {
+        window.clearTimeout(scrollTimeout);
+      }
+
+      scrollTimeout = window.setTimeout(() => {
+        if (window.scrollY > 300) {
+          button?.classList.add('visible');
+          muteToggle?.classList.add('visible');
+        } else {
+          button?.classList.remove('visible');
+          muteToggle?.classList.remove('visible');
+        }
+      }, 100);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Check initial scroll position
+  };
+
+  document.head.appendChild(script);
+</script>

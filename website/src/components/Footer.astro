@@ -9,7 +9,7 @@
     </p>
     <p class="links">
       <a href="https://github.com/wildcard/caro/blob/main/LICENSE">AGPL-3.0</a> |
-      <a href="https://github.com/wildcard/caro/blob/main/CONTRIBUTING.md">Contributing</a> |
+      <a href="https://github.com/wildcard/caro/contribute">Contributing</a> |
       <a href="https://github.com/wildcard/caro/issues">Issues</a>
     </p>
     <p class="kyaro-love">
@@ -18,6 +18,9 @@
     </p>
     <p class="inspiration">
       Inspired by Portal's Caroline—loyalty transformed into digital companionship
+    </p>
+    <p class="elevator-credit">
+      Scroll effect by <a href="https://tholman.com/elevator.js/" target="_blank" rel="noopener noreferrer">elevator.js</a>
     </p>
   </div>
 </footer>
@@ -72,5 +75,26 @@
     color: var(--color-footer-text-muted);
     font-style: italic;
     transition: color 0.3s ease;
+  }
+
+  .elevator-credit {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--color-footer-text-muted);
+    opacity: 0.7;
+    transition: color 0.3s ease, opacity 0.3s ease;
+  }
+
+  .elevator-credit:hover {
+    opacity: 1;
+  }
+
+  .elevator-credit a {
+    color: var(--color-links-muted);
+    font-size: 12px;
+  }
+
+  .elevator-credit a:hover {
+    color: #ff8c42;
   }
 </style>

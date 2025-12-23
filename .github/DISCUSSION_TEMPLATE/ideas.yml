@@ -1,0 +1,72 @@
+title: "[Idea] "
+labels:
+  - "enhancement"
+  - "discussion"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Share Your Idea! 💡
+
+        We love hearing new ideas from our community. Whether it's a small improvement or a big vision, we want to hear it!
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Idea Summary
+      description: Briefly describe your idea in a sentence or two
+      placeholder: "What if cmdai could..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: Why is this idea valuable? What problem does it solve?
+      placeholder: |
+        - What's the current limitation?
+        - Who would benefit from this?
+        - How would it improve the user experience?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Detailed Proposal
+      description: Describe your idea in detail
+      placeholder: |
+        - How would it work?
+        - What would the user experience look like?
+        - Are there any technical considerations?
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you considered any alternative approaches?
+      placeholder: "I also thought about..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Examples or References
+      description: Are there similar features in other tools we could learn from?
+      placeholder: "Similar to how [tool] does..."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Would you be willing to help implement this idea?
+      options:
+        - label: I'd be willing to help implement this feature
+        - label: I could help with testing
+        - label: I could help with documentation

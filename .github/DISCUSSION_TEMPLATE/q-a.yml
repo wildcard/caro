@@ -1,0 +1,70 @@
+title: "[Q&A] "
+labels:
+  - "question"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Ask a Question 🙋
+
+        Have a question about cmdai? You're in the right place! Before asking, please:
+
+        1. Check the [documentation](https://github.com/wildcard/cmdai#readme)
+        2. Search existing [Q&A discussions](https://github.com/wildcard/cmdai/discussions/categories/q-a)
+        3. Review [closed issues](https://github.com/wildcard/cmdai/issues?q=is%3Aissue+is%3Aclosed)
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Question Category
+      description: What area does your question relate to?
+      options:
+        - Installation & Setup
+        - Configuration
+        - Usage & Commands
+        - Backend Integration (MLX, Ollama, vLLM)
+        - Safety & Validation
+        - Performance
+        - Contributing
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What would you like to know?
+      placeholder: "How do I...?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Any relevant context that might help us answer your question
+      placeholder: |
+        - What are you trying to accomplish?
+        - What have you already tried?
+        - Any relevant configuration or error messages?
+    validations:
+      required: false
+
+  - type: input
+    id: version
+    attributes:
+      label: cmdai Version
+      description: What version of cmdai are you using? (run `cmdai --version`)
+      placeholder: "0.1.0"
+    validations:
+      required: false
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      description: What OS are you using?
+      placeholder: "macOS 14.0 / Ubuntu 22.04 / Windows 11"
+    validations:
+      required: false

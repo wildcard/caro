@@ -1,0 +1,140 @@
+name: Welcome New Contributors
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  welcome-issue:
+    if: github.event_name == 'issues'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Welcome new issue author
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueAuthor = context.payload.issue.user.login;
+            const issueNumber = context.payload.issue.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // Check if this is the user's first issue
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: owner,
+              repo: repo,
+              creator: issueAuthor,
+              state: 'all'
+            });
+
+            const isFirstIssue = issues.length === 1;
+
+            let message = '';
+            if (isFirstIssue) {
+              message = '## Welcome to cmdai! :wave:\n\n' +
+                'Thank you for opening your first issue, @' + issueAuthor + '! We\'re excited to have you here.\n\n' +
+                '**What happens next?**\n' +
+                '- A maintainer will review your issue and add appropriate labels\n' +
+                '- We aim to respond within 48 hours\n' +
+                '- Feel free to join the discussion in [GitHub Discussions](https://github.com/' + owner + '/' + repo + '/discussions)\n\n' +
+                '**While you wait:**\n' +
+                '- Check out our [Contributing Guide](https://github.com/' + owner + '/' + repo + '/blob/main/CONTRIBUTING.md)\n' +
+                '- Browse [good first issues](https://github.com/' + owner + '/' + repo + '/labels/good%20first%20issue) if you\'d like to contribute\n\n' +
+                'Thanks for helping make cmdai better!';
+            } else {
+              message = 'Thanks for opening this issue, @' + issueAuthor + '! A maintainer will review it shortly.';
+            }
+
+            await github.rest.issues.createComment({
+              owner: owner,
+              repo: repo,
+              issue_number: issueNumber,
+              body: message
+            });
+
+  welcome-pr:
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Welcome new PR author
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prAuthor = context.payload.pull_request.user.login;
+            const prNumber = context.payload.pull_request.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // Skip bot PRs
+            if (prAuthor.includes('[bot]') || prAuthor === 'dependabot') {
+              console.log('Skipping bot PR');
+              return;
+            }
+
+            // Check if PR author is a maintainer/collaborator
+            let isMaintainer = false;
+            try {
+              const { data: permissionLevel } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: owner,
+                repo: repo,
+                username: prAuthor
+              });
+              isMaintainer = ['admin', 'write', 'maintain'].includes(permissionLevel.permission);
+            } catch (error) {
+              console.log('Could not check maintainer status:', error.message);
+            }
+
+            // Check if this is the user's first PR
+            const { data: prs } = await github.rest.pulls.list({
+              owner: owner,
+              repo: repo,
+              state: 'all'
+            });
+
+            const userPRs = prs.filter(pr => pr.user.login === prAuthor);
+            const isFirstPR = userPRs.length === 1;
+
+            let message = '';
+            if (isFirstPR) {
+              message = '## Welcome to cmdai! :tada:\n\n' +
+                'Thank you for your first pull request, @' + prAuthor + '! We\'re thrilled to have you as a contributor.\n\n' +
+                '**Review Process:**\n' +
+                '- Automated checks will run (tests, linting, formatting)\n' +
+                '- A maintainer will review your changes within 48-72 hours\n' +
+                '- We may request changes - this is normal and helps ensure code quality\n' +
+                '- Once approved, your PR will be merged\n\n' +
+                '**Helpful Resources:**\n' +
+                '- [Contributing Guide](https://github.com/' + owner + '/' + repo + '/blob/main/CONTRIBUTING.md)\n' +
+                '- [Code of Conduct](https://github.com/' + owner + '/' + repo + '/blob/main/CODE_OF_CONDUCT.md)\n\n' +
+                '**Tips for a smooth review:**\n' +
+                '- Ensure all CI checks pass\n' +
+                '- Respond to feedback promptly\n' +
+                '- Keep changes focused and well-documented\n\n' +
+                'We appreciate your contribution! :heart:';
+            } else if (isMaintainer) {
+              // Fun messages for maintainer PRs
+              const maintainerMessages = [
+                'Nice work! :rocket:',
+                'Looking good! :fire:',
+                'Great stuff! :sparkles:',
+                'Awesome contribution! :star2:',
+                'Solid work! :muscle:',
+                'Keep it up! :tada:',
+                'Props for pushing this forward! :clap:'
+              ];
+              message = maintainerMessages[Math.floor(Math.random() * maintainerMessages.length)];
+            } else {
+              message = 'Thanks for the PR, @' + prAuthor + '! A maintainer will review it soon.';
+            }
+
+            await github.rest.issues.createComment({
+              owner: owner,
+              repo: repo,
+              issue_number: prNumber,
+              body: message
+            });

@@ -1,0 +1,105 @@
+name: Manage Stale Issues and PRs
+
+on:
+  schedule:
+    # Run every day at midnight UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mark stale issues and PRs
+        uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+          # Issue configuration
+          stale-issue-message: |
+            :wave: This issue has been automatically marked as stale because it has not had recent activity.
+
+            **What happens next?**
+            - If no further activity occurs, this issue will be closed in 14 days
+            - Any comment or update will remove the stale label
+            - You can also add the `pinned` or `keep-open` label to prevent auto-closing
+
+            If this is still relevant, please:
+            - Add a comment with any updates or additional context
+            - Or let us know if you're still interested in working on this
+
+            Thank you for your contributions to cmdai!
+
+          stale-pr-message: |
+            :wave: This pull request has been automatically marked as stale because it has not had recent activity.
+
+            **What happens next?**
+            - If no further activity occurs, this PR will be closed in 14 days
+            - Any push, comment, or review will remove the stale label
+
+            If you're still working on this:
+            - Please add a comment with your progress or timeline
+            - Push any updates you have
+            - Or let us know if you need help
+
+            We appreciate your contribution!
+
+          close-issue-message: |
+            :lock: This issue has been automatically closed due to inactivity.
+
+            **This doesn't mean your issue isn't valuable!** If you believe this should be reopened:
+            - Comment on this issue with any updates
+            - Open a new issue referencing this one
+
+            Thank you for helping improve cmdai!
+
+          close-pr-message: |
+            :lock: This pull request has been automatically closed due to inactivity.
+
+            **Your work isn't lost!** If you'd like to continue:
+            - Reopen this PR with any updates
+            - Or open a new PR with your changes
+
+            We appreciate your contribution and hope to see you again!
+
+          # Timing
+          days-before-issue-stale: 60
+          days-before-pr-stale: 30
+          days-before-issue-close: 14
+          days-before-pr-close: 14
+
+          # Labels
+          stale-issue-label: 'stale'
+          stale-pr-label: 'stale'
+
+          # Exempt labels - these issues/PRs won't be marked stale
+          exempt-issue-labels: 'pinned,keep-open,security,bug,good first issue,help wanted'
+          exempt-pr-labels: 'pinned,keep-open,work-in-progress,blocked'
+
+          # Exempt all issues/PRs with milestones
+          exempt-all-milestones: true
+
+          # Exempt draft PRs
+          exempt-draft-pr: true
+
+          # Exempt issues/PRs with assignees
+          exempt-all-assignees: true
+
+          # Don't remove stale label on updates (let users do it manually if needed)
+          remove-stale-when-updated: true
+
+          # Limit operations per run to avoid rate limiting
+          operations-per-run: 100
+
+          # Labels to remove when marking stale
+          labels-to-remove-when-stale: 'awaiting-response'
+
+          # Ascending order (oldest first)
+          ascending: true
+
+          # Debug mode (set to true for testing)
+          debug-only: false

@@ -1,5 +1,7 @@
 ---
 import Analytics from '@vercel/analytics/astro';
+import SnowEffect from '../components/SnowEffect.astro';
+import BackToTop from '../components/BackToTop.astro';
 
 interface Props {
   title: string;
@@ -35,26 +37,30 @@ const { title, description } = Astro.props;
       } else {
         document.documentElement.classList.remove('dark');
       }
+
+      // Holiday theme initialization (before render to prevent flash)
+      (function() {
+        function isHolidaySeason() {
+          const now = new Date();
+          const month = now.getMonth(); // 0-indexed
+          const day = now.getDate();
+          // December 1 - January 1 (inclusive)
+          return (month === 11) || (month === 0 && day === 1);
+        }
+
+        if (isHolidaySeason()) {
+          const savedHolidayTheme = localStorage.getItem('holidayTheme');
+          if (savedHolidayTheme && savedHolidayTheme !== 'none') {
+            document.documentElement.classList.add(savedHolidayTheme);
+          }
+        }
+      })();
     </script>
   </head>
   <body>
-    <button id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
-      <svg class="sun-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="5"/>
-        <line x1="12" y1="1" x2="12" y2="3"/>
-        <line x1="12" y1="21" x2="12" y2="23"/>
-        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-        <line x1="1" y1="12" x2="3" y2="12"/>
-        <line x1="21" y1="12" x2="23" y2="12"/>
-        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-      </svg>
-      <svg class="moon-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-      </svg>
-    </button>
+    <SnowEffect />
     <slot />
+    <BackToTop />
     <Analytics />
   </body>
 </html>
@@ -86,6 +92,260 @@ const { title, description } = Astro.props;
     --color-footer-text: #e0e0e0;
     --color-footer-text-muted: #888888;
     --color-links-muted: #a0a0a0;
+  }
+
+  /* ============================================
+     CHRISTMAS THEME
+     Colors: Red, Green, White, Gold
+     ============================================ */
+  .christmas {
+    --color-accent: #c41e3a;
+    --color-accent-secondary: #228b22;
+    --color-accent-tertiary: #ffd700;
+    --color-bg-tertiary: #fff5f5;
+    --christmas-red: #c41e3a;
+    --christmas-green: #228b22;
+    --christmas-gold: #ffd700;
+    --christmas-white: #fffafa;
+  }
+
+  .christmas.dark {
+    --color-bg-tertiary: #1f1a1a;
+    --christmas-red: #e63946;
+    --christmas-green: #2ecc71;
+    --christmas-gold: #f1c40f;
+    --christmas-white: #f5f5f5;
+  }
+
+  /* Christmas accents on UI elements */
+  .christmas .cta-button,
+  .christmas .companion-badge {
+    background: linear-gradient(135deg, var(--christmas-red) 0%, #a01830 100%) !important;
+  }
+
+  .christmas .cta-button:hover {
+    box-shadow: 0 10px 25px rgba(196, 30, 58, 0.4) !important;
+  }
+
+  .christmas .cta-button.secondary {
+    background: transparent !important;
+    border-color: var(--christmas-red) !important;
+    color: var(--christmas-red) !important;
+  }
+
+  .christmas .cta-button.secondary:hover {
+    background: rgba(196, 30, 58, 0.1) !important;
+  }
+
+  .christmas .logo {
+    background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-green) 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+  }
+
+  .christmas .feature {
+    border-color: rgba(196, 30, 58, 0.2) !important;
+  }
+
+  .christmas .feature:hover {
+    border-color: var(--christmas-red) !important;
+    box-shadow: 0 10px 30px rgba(196, 30, 58, 0.15) !important;
+  }
+
+  .christmas .status-implemented {
+    background: rgba(34, 139, 34, 0.2) !important;
+    color: var(--christmas-green) !important;
+    border-color: rgba(34, 139, 34, 0.4) !important;
+  }
+
+  .christmas .status-in-progress {
+    background: rgba(196, 30, 58, 0.2) !important;
+    color: var(--christmas-red) !important;
+    border-color: rgba(196, 30, 58, 0.4) !important;
+  }
+
+  .christmas .download-section {
+    background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-green) 100%) !important;
+  }
+
+  .christmas .alpha-notice {
+    background: rgba(196, 30, 58, 0.1) !important;
+    border-color: rgba(196, 30, 58, 0.3) !important;
+  }
+
+  /* ============================================
+     HANUKKAH THEME
+     Colors: Blue, White, Gold/Silver
+     ============================================ */
+  .hanukkah {
+    --color-accent: #0038b8;
+    --color-accent-secondary: #4169e1;
+    --color-accent-tertiary: #c0c0c0;
+    --color-bg-tertiary: #f0f5ff;
+    --hanukkah-blue: #0038b8;
+    --hanukkah-light-blue: #4169e1;
+    --hanukkah-white: #ffffff;
+    --hanukkah-silver: #c0c0c0;
+    --hanukkah-gold: #ffd700;
+  }
+
+  .hanukkah.dark {
+    --color-bg-tertiary: #1a1d24;
+    --hanukkah-blue: #3366cc;
+    --hanukkah-light-blue: #5a8dee;
+    --hanukkah-white: #f5f5f5;
+    --hanukkah-silver: #d4d4d4;
+    --hanukkah-gold: #f1c40f;
+  }
+
+  /* Hanukkah accents on UI elements */
+  .hanukkah .cta-button,
+  .hanukkah .companion-badge {
+    background: linear-gradient(135deg, var(--hanukkah-blue) 0%, var(--hanukkah-light-blue) 100%) !important;
+  }
+
+  .hanukkah .cta-button:hover {
+    box-shadow: 0 10px 25px rgba(0, 56, 184, 0.4) !important;
+  }
+
+  .hanukkah .cta-button.secondary {
+    background: transparent !important;
+    border-color: var(--hanukkah-blue) !important;
+    color: var(--hanukkah-blue) !important;
+  }
+
+  .hanukkah .cta-button.secondary:hover {
+    background: rgba(0, 56, 184, 0.1) !important;
+  }
+
+  .hanukkah .logo {
+    background: linear-gradient(135deg, var(--hanukkah-blue) 0%, var(--hanukkah-gold) 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+  }
+
+  .hanukkah .feature {
+    border-color: rgba(0, 56, 184, 0.2) !important;
+  }
+
+  .hanukkah .feature:hover {
+    border-color: var(--hanukkah-blue) !important;
+    box-shadow: 0 10px 30px rgba(0, 56, 184, 0.15) !important;
+  }
+
+  .hanukkah .status-implemented {
+    background: rgba(255, 215, 0, 0.2) !important;
+    color: #b8860b !important;
+    border-color: rgba(255, 215, 0, 0.4) !important;
+  }
+
+  .hanukkah .status-in-progress {
+    background: rgba(0, 56, 184, 0.2) !important;
+    color: var(--hanukkah-blue) !important;
+    border-color: rgba(0, 56, 184, 0.4) !important;
+  }
+
+  .hanukkah .download-section {
+    background: linear-gradient(135deg, var(--hanukkah-blue) 0%, var(--hanukkah-light-blue) 100%) !important;
+  }
+
+  .hanukkah .alpha-notice {
+    background: rgba(0, 56, 184, 0.1) !important;
+    border-color: rgba(0, 56, 184, 0.3) !important;
+  }
+
+  /* ============================================
+     HOLIDAY DECORATIONS - HERO SECTION
+     ============================================ */
+
+  /* Christmas decorations */
+  .christmas .hero::before {
+    content: '🎄';
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 40px;
+    animation: gentleSway 3s ease-in-out infinite;
+    opacity: 0.8;
+  }
+
+  .christmas .hero::after {
+    content: '🎅';
+    position: absolute;
+    top: 20px;
+    right: 80px;
+    font-size: 36px;
+    animation: gentleBob 2s ease-in-out infinite;
+    opacity: 0.8;
+  }
+
+  /* Hanukkah decorations */
+  .hanukkah .hero::before {
+    content: '🕎';
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 40px;
+    animation: gentleGlow 2s ease-in-out infinite;
+    opacity: 0.9;
+  }
+
+  .hanukkah .hero::after {
+    content: '✡️';
+    position: absolute;
+    top: 25px;
+    right: 80px;
+    font-size: 32px;
+    animation: gentleSpin 8s linear infinite;
+    opacity: 0.7;
+  }
+
+  @keyframes gentleSway {
+    0%, 100% { transform: rotate(-3deg); }
+    50% { transform: rotate(3deg); }
+  }
+
+  @keyframes gentleBob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  @keyframes gentleGlow {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.3); }
+  }
+
+  @keyframes gentleSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Add position relative to hero for decorations */
+  .christmas .hero,
+  .hanukkah .hero {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Mobile adjustments for decorations */
+  @media (max-width: 768px) {
+    .christmas .hero::before,
+    .christmas .hero::after,
+    .hanukkah .hero::before,
+    .hanukkah .hero::after {
+      font-size: 24px;
+      top: 10px;
+    }
+
+    .christmas .hero::before,
+    .hanukkah .hero::before {
+      left: 10px;
+    }
+
+    .christmas .hero::after,
+    .hanukkah .hero::after {
+      right: 60px;
+    }
   }
 
   * {
@@ -133,74 +393,47 @@ const { title, description } = Astro.props;
     margin-right: auto;
   }
 
-  /* Dark mode toggle button */
-  #theme-toggle {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1000;
-    background: var(--color-bg-secondary);
-    border: 2px solid var(--color-border);
-    border-radius: 50%;
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--color-text);
-    transition: transform 0.2s, background-color 0.3s, border-color 0.3s;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  #theme-toggle:hover {
-    transform: scale(1.1);
-    background: var(--color-bg-tertiary);
-  }
-
-  #theme-toggle:active {
-    transform: scale(0.95);
-  }
-
-  .sun-icon {
-    display: none;
-  }
-
-  .moon-icon {
-    display: block;
-  }
-
-  .dark .sun-icon {
-    display: block;
-  }
-
-  .dark .moon-icon {
-    display: none;
-  }
-
   @media (max-width: 768px) {
     section h2 {
       font-size: 28px;
-    }
-
-    #theme-toggle {
-      width: 44px;
-      height: 44px;
-      top: 16px;
-      right: 16px;
     }
   }
 </style>
 
 <script>
-  // Smooth scrolling for anchor links
+  // Calculate offset for sticky headers (banner + nav)
+  function getScrollOffset() {
+    const banner = document.getElementById('announcement-banner');
+    const nav = document.querySelector('.navigation');
+    let offset = 0;
+
+    if (banner && !banner.classList.contains('hidden')) {
+      offset += banner.offsetHeight;
+    }
+    if (nav) {
+      offset += nav.offsetHeight;
+    }
+
+    return offset + 20; // Add 20px padding
+  }
+
+  // Smooth scrolling for anchor links with offset
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function (e) {
         e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href') || '');
+        const href = this.getAttribute('href');
+        if (!href || href === '#') return;
+
+        const target = document.querySelector(href);
         if (target) {
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          const offset = getScrollOffset();
+          const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
+
+          window.scrollTo({
+            top: targetPosition,
+            behavior: 'smooth'
+          });
         }
       });
     });

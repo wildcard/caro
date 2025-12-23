@@ -97,8 +97,8 @@ install_via_cargo() {
         cargo_features="--features embedded-mlx"
     fi
     
-    if cargo install cmdai $cargo_features; then
-        say_success "Installed cmdai successfully"
+    if cargo install caro $cargo_features; then
+        say_success "Installed caro successfully"
         return 0
     else
         err "Failed to install via cargo"
@@ -110,64 +110,70 @@ setup_alias() {
     local shell_config=""
     local shell_name=""
 
-    # Detect shell
-    if [ -n "$BASH_VERSION" ]; then
-        shell_name="bash"
-        if [ -f "$HOME/.bashrc" ]; then
-            shell_config="$HOME/.bashrc"
-        elif [ -f "$HOME/.bash_profile" ]; then
-            shell_config="$HOME/.bash_profile"
-        fi
-    elif [ -n "$ZSH_VERSION" ]; then
-        shell_name="zsh"
-        shell_config="${ZDOTDIR:-$HOME}/.zshrc"
-    elif [ -n "$FISH_VERSION" ]; then
-        shell_name="fish"
-        shell_config="$HOME/.config/fish/config.fish"
-    else
-        # Try to detect from SHELL environment variable
-        case "$SHELL" in
-            */bash)
-                shell_name="bash"
+    # Detect shell - prioritize $SHELL env var over subprocess shell version vars
+    # This is important when script is run via 'bash <(curl ...)' where BASH_VERSION
+    # would be set even if user's actual shell is zsh/fish
+    case "$SHELL" in
+        */bash)
+            shell_name="bash"
+            if [ -f "$HOME/.bashrc" ]; then
                 shell_config="$HOME/.bashrc"
-                [ -f "$HOME/.bash_profile" ] && shell_config="$HOME/.bash_profile"
-                ;;
-            */zsh)
+            elif [ -f "$HOME/.bash_profile" ]; then
+                shell_config="$HOME/.bash_profile"
+            else
+                shell_config="$HOME/.bashrc"  # default to .bashrc
+            fi
+            ;;
+        */zsh)
+            shell_name="zsh"
+            shell_config="${ZDOTDIR:-$HOME}/.zshrc"
+            ;;
+        */fish)
+            shell_name="fish"
+            shell_config="$HOME/.config/fish/config.fish"
+            ;;
+        *)
+            # Fallback to checking version variables if $SHELL is not set or unknown
+            if [ -n "$ZSH_VERSION" ]; then
                 shell_name="zsh"
                 shell_config="${ZDOTDIR:-$HOME}/.zshrc"
-                ;;
-            */fish)
+            elif [ -n "$BASH_VERSION" ]; then
+                shell_name="bash"
+                if [ -f "$HOME/.bashrc" ]; then
+                    shell_config="$HOME/.bashrc"
+                elif [ -f "$HOME/.bash_profile" ]; then
+                    shell_config="$HOME/.bash_profile"
+                else
+                    shell_config="$HOME/.bashrc"
+                fi
+            elif [ -n "$FISH_VERSION" ]; then
                 shell_name="fish"
                 shell_config="$HOME/.config/fish/config.fish"
-                ;;
-            *)
-                say_warn "Could not detect shell. Please manually add alias:"
-                echo "  alias caro='cmdai'"
+            else
+                say_warn "Could not detect shell."
                 return
-                ;;
-        esac
-    fi
+            fi
+            ;;
+    esac
 
-    if [ -z "$shell_config" ] || [ ! -f "$shell_config" ]; then
-        say_warn "Shell config file not found. Creating $shell_config"
-        touch "$shell_config"
-    fi
-
-    # Check if alias already exists
-    if grep -q "alias caro=" "$shell_config" 2>/dev/null; then
-        say "Alias 'caro' already exists in $shell_config"
+    if [ -z "$shell_config" ]; then
+        say_warn "Could not detect shell config file."
         return
     fi
 
-    # Add alias
-    say "Adding alias 'caro' to $shell_config..."
-    echo "" >> "$shell_config"
-    echo "# Caro alias" >> "$shell_config"
-    echo "alias caro='cmdai'" >> "$shell_config"
-    
-    say_success "Alias added successfully"
-    echo ""
-    say "Run 'source $shell_config' or restart your shell to use the alias"
+    if [ ! -f "$shell_config" ]; then
+        say_warn "Shell config file not found. Creating $shell_config"
+        # Create parent directory if needed (e.g., for fish config)
+        mkdir -p "$(dirname "$shell_config")"
+        touch "$shell_config"
+    fi
+
+    # Check if old cmdai alias exists and inform user
+    if grep -q "alias caro='cmdai'" "$shell_config" 2>/dev/null; then
+        say_warn "Found old 'cmdai' alias in $shell_config"
+        say "You can remove it - the binary is now named 'caro' directly"
+        echo ""
+    fi
 }
 
 # Main installation
@@ -205,11 +211,11 @@ main() {
         echo ""
     fi
 
-    # Install cmdai
+    # Install caro
     install_via_cargo
     echo ""
 
-    # Setup alias
+    # Check for legacy alias
     setup_alias
     echo ""
 
@@ -220,7 +226,6 @@ main() {
 ═══════════════════════════════════════════════════════════
 
 Usage:
-  cmdai "list all files in this directory"
   caro "list all files in this directory"
 
 Execute directly:
@@ -240,7 +245,7 @@ Documentation:
 
 ═══════════════════════════════════════════════════════════
 
-To start using caro, either:
+To start using caro:
   • Restart your shell, or
   • Run: source ~/.bashrc (or ~/.zshrc, etc.)
 

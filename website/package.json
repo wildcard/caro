@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "@vercel/analytics": "^1.6.1",
-    "astro": "^4.0.0"
+    "astro": "^4.0.0",
+    "canvas-confetti": "^1.9.4"
   },
   "devDependencies": {
     "@astrojs/sitemap": "^3.0.0"

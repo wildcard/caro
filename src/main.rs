@@ -1,14 +1,14 @@
 use clap::Parser;
-use cmdai::cli::{CliApp, CliError, IntoCliArgs};
-use cmdai::config::ConfigManager;
+use caro::cli::{CliApp, CliError, IntoCliArgs};
+use caro::config::ConfigManager;
 use std::process;
 
-/// cmdai - Convert natural language to shell commands using local LLMs
+/// caro - Convert natural language to shell commands using local LLMs
 #[derive(Parser, Clone)]
-#[command(name = "cmdai")]
+#[command(name = "caro")]
 #[command(about = "Convert natural language to shell commands using local LLMs")]
 #[command(
-    long_about = "cmdai converts natural language descriptions into safe POSIX shell commands using local language models. Features safety validation, multiple output formats, and configurable backends."
+    long_about = "caro converts natural language descriptions into safe POSIX shell commands using local language models. Features safety validation, multiple output formats, and configurable backends."
 )]
 #[command(version)]
 struct Cli {
@@ -128,7 +128,7 @@ async fn main() {
     } else {
         // Hide all logs in non-verbose mode for clean output
         tracing_subscriber::fmt()
-            .with_env_filter("cmdai=warn")
+            .with_env_filter("caro=warn")
             .without_time()
             .init();
     }
@@ -151,14 +151,14 @@ async fn main() {
     if cli.prompt.is_none() {
         eprintln!("Error: No prompt provided");
         eprintln!();
-        eprintln!("Usage: cmdai [OPTIONS] <PROMPT>");
+        eprintln!("Usage: caro [OPTIONS] <PROMPT>");
         eprintln!();
         eprintln!("Examples:");
-        eprintln!("  cmdai \"list all files\"");
-        eprintln!("  cmdai --shell zsh \"find large files\"");
-        eprintln!("  cmdai --safety strict \"delete temporary files\"");
+        eprintln!("  caro \"list all files\"");
+        eprintln!("  caro --shell zsh \"find large files\"");
+        eprintln!("  caro --safety strict \"delete temporary files\"");
         eprintln!();
-        eprintln!("Run 'cmdai --help' for more information.");
+        eprintln!("Run 'caro --help' for more information.");
         process::exit(1);
     }
 
@@ -171,7 +171,7 @@ async fn main() {
                 CliError::NotImplemented => {
                     eprintln!();
                     eprintln!("This functionality is not yet implemented.");
-                    eprintln!("cmdai is currently in development.");
+                    eprintln!("caro is currently in development.");
                 }
                 CliError::ConfigurationError { .. } => {
                     eprintln!();
@@ -193,19 +193,19 @@ async fn run_cli(cli: &Cli) -> Result<(), CliError> {
 
     // Display result
     match result.output_format {
-        cmdai::cli::OutputFormat::Json => {
+        caro::cli::OutputFormat::Json => {
             let json = serde_json::to_string_pretty(&result).map_err(|e| CliError::Internal {
                 message: format!("JSON serialization failed: {}", e),
             })?;
             println!("{}", json);
         }
-        cmdai::cli::OutputFormat::Yaml => {
+        caro::cli::OutputFormat::Yaml => {
             let yaml = serde_yaml::to_string(&result).map_err(|e| CliError::Internal {
                 message: format!("YAML serialization failed: {}", e),
             })?;
             println!("{}", yaml);
         }
-        cmdai::cli::OutputFormat::Plain => {
+        caro::cli::OutputFormat::Plain => {
             print_plain_output(&mut result, cli).await?;
         }
     }
@@ -213,7 +213,7 @@ async fn run_cli(cli: &Cli) -> Result<(), CliError> {
     Ok(())
 }
 
-async fn print_plain_output(result: &mut cmdai::cli::CliResult, cli: &Cli) -> Result<(), CliError> {
+async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Result<(), CliError> {
     use colored::Colorize;
 
     // Print warnings first
@@ -300,7 +300,7 @@ async fn print_plain_output(result: &mut cmdai::cli::CliResult, cli: &Cli) -> Re
                 println!("{}", "Executing command...".dimmed());
 
                 // Execute the command
-                use cmdai::execution::CommandExecutor;
+                use caro::execution::CommandExecutor;
 
                 let executor = CommandExecutor::new(result.shell_used);
 

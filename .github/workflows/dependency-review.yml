@@ -1,0 +1,74 @@
+name: Dependency Review
+
+on:
+  pull_request:
+    paths:
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'yarn.lock'
+      - 'pnpm-lock.yaml'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  dependency-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          # Fail on high and critical vulnerabilities
+          fail-on-severity: high
+
+          # Allow specific licenses (permissive and copyleft compatible with AGPL-3.0)
+          allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, MPL-2.0, CC0-1.0, Unlicense, 0BSD, WTFPL, Zlib, BSL-1.0, AGPL-3.0, GPL-3.0, LGPL-3.0, LGPL-2.1, GPL-2.0-or-later, AGPL-3.0-or-later, GPL-3.0-or-later, LGPL-3.0-or-later, LGPL-2.1-or-later
+
+          # Comment on the PR with the review summary
+          comment-summary-in-pr: always
+
+          # Show a warning for dependencies that are being removed
+          warn-only: false
+
+          # Retry settings for GitHub API calls
+          retry-on-snapshot-warnings: true
+          retry-on-snapshot-warnings-timeout: 120
+
+  cargo-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-audit
+        run: cargo install cargo-audit
+
+      - name: Run security audit
+        run: cargo audit
+
+      - name: Check for unmaintained crates
+        run: cargo audit --deny warnings || echo "::warning::Some dependencies have warnings"
+        continue-on-error: true
+
+  cargo-deny:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check dependencies with cargo-deny
+        uses: EmbarkStudios/cargo-deny-action@v1
+        with:
+          log-level: warn
+          command: check
+          arguments: --all-features
+        continue-on-error: true

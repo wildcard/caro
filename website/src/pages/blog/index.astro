@@ -1,0 +1,194 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import AnnouncementBanner from '../../components/AnnouncementBanner.astro';
+import Navigation from '../../components/Navigation.astro';
+import Footer from '../../components/Footer.astro';
+
+const posts = [
+  {
+    title: "Announcing Caro: Your Terminal's AI Companion",
+    description: "We're excited to announce that cmdai has been renamed to caro! Thanks to @aeplay for graciously transferring the crate name. Learn about the rename, new features, and how to get started.",
+    date: "December 20, 2025",
+    readTime: "5 min read",
+    slug: "announcing-caro",
+    badge: "🎉 NEW"
+  },
+  {
+    title: "Building Caro with Security in Mind",
+    description: "Explore how the Caro project implements security-first practices from dependency management to code review, creating a security-conscious open source community.",
+    date: "December 22, 2025",
+    readTime: "7 min read",
+    slug: "security-practices",
+    badge: null
+  },
+  {
+    title: "Why Caro? The Story Behind Your Terminal Companion",
+    description: "Discover the heartwarming story of how Kyaro, an office-loving Shiba Inu who grew up among developers and system administrators, became Caro—your eternal companion in the terminal.",
+    date: "December 17, 2025",
+    readTime: "8 min read",
+    slug: "why-caro",
+    badge: null
+  }
+];
+---
+
+<Layout
+  title="Blog - Caro"
+  description="Stories, updates, and insights from Caro's journey - your loyal shell companion"
+>
+  <AnnouncementBanner />
+  <Navigation />
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="container">
+      <h1>From the Pack</h1>
+      <p>Stories, updates, and insights from Caro's journey</p>
+    </div>
+  </div>
+
+  <!-- Posts -->
+  <section class="posts">
+    <div class="container">
+      <div class="blog-posts">
+        {posts.map(post => (
+          <a href={`/blog/${post.slug}`} class="blog-card">
+            {post.badge && <div class="blog-badge">{post.badge}</div>}
+            <div class="blog-meta">
+              <span>{post.date}</span>
+              <span>•</span>
+              <span>{post.readTime}</span>
+            </div>
+            <h2>{post.title}</h2>
+            <p>{post.description}</p>
+            <span class="read-more">Read more</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</Layout>
+
+<style>
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+    padding: 80px 20px;
+    text-align: center;
+  }
+
+  .hero h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero p {
+    font-size: 20px;
+    color: var(--color-text-secondary);
+  }
+
+  /* Posts */
+  .posts {
+    padding: 60px 20px;
+  }
+
+  .blog-posts {
+    display: grid;
+    gap: 30px;
+  }
+
+  .blog-card {
+    background: var(--color-bg);
+    border-radius: 8px;
+    padding: 40px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    border: 1px solid var(--color-border);
+  }
+
+  .blog-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  }
+
+  .blog-badge {
+    display: inline-block;
+    background: #fff3e6;
+    color: #ff8c42;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 15px;
+  }
+
+  .dark .blog-badge {
+    background: rgba(255, 140, 66, 0.2);
+    color: #ff8c42;
+  }
+
+  .blog-meta {
+    display: flex;
+    gap: 20px;
+    color: #ff8c42;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+  }
+
+  .blog-card h2 {
+    font-size: 32px;
+    margin-bottom: 15px;
+    color: var(--color-text);
+  }
+
+  .blog-card p {
+    color: var(--color-text-secondary);
+    line-height: 1.8;
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+
+  .read-more {
+    color: #ff8c42;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 16px;
+  }
+
+  .read-more:after {
+    content: '→';
+    transition: transform 0.2s;
+  }
+
+  .blog-card:hover .read-more:after {
+    transform: translateX(5px);
+  }
+
+  @media (max-width: 768px) {
+    .hero h1 {
+      font-size: 32px;
+    }
+
+    .blog-card {
+      padding: 30px;
+    }
+
+    .blog-card h2 {
+      font-size: 24px;
+    }
+  }
+</style>

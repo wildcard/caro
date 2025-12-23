@@ -1,0 +1,40 @@
+# CODEOWNERS - Define who reviews code changes
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything in the repo
+* @wildcard
+
+# Backend implementations require extra review
+/src/backends/ @wildcard
+
+# Safety module is critical - require explicit review
+/src/safety/ @wildcard
+
+# Configuration changes
+/src/config/ @wildcard
+
+# CI/CD changes
+/.github/workflows/ @wildcard
+
+# Documentation
+*.md @wildcard
+/docs/ @wildcard
+/specs/ @wildcard
+
+# Security-sensitive files
+/src/safety/ @wildcard
+SECURITY.md @wildcard
+
+# Build and dependency configuration
+Cargo.toml @wildcard
+Cargo.lock @wildcard
+
+# Development environment
+/.devcontainer/ @wildcard
+
+# Website changes
+/website/ @wildcard
+
+# Release configuration
+/.github/workflows/release.yml @wildcard
+/.github/workflows/publish.yml @wildcard
