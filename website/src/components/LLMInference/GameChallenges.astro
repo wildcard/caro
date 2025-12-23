@@ -849,6 +849,20 @@
     font-style: italic;
   }
 
+  /* Caro auto-executed command styling */
+  .caro-ran {
+    background: rgba(255, 140, 66, 0.08);
+    border-left: 2px solid #ff8c42;
+    padding: 4px 8px 4px 12px;
+    margin: 4px 0;
+  }
+
+  .caro-executed {
+    color: #ff8c42;
+    font-weight: 500;
+    margin-right: 6px;
+  }
+
   .terminal-input-line {
     display: flex;
     align-items: center;
@@ -1184,6 +1198,9 @@
   let unlockedAchievements: Set<string> = new Set();
   let modelReady = false;
   let objectivesVisible = true; // Show by default
+  let commandHistory: string[] = [];
+  let historyIndex = -1;
+  let shownFeedback: Set<string> = new Set(); // Track shown feedback to avoid repeats
 
   // Natural language patterns for detection
   const NATURAL_LANGUAGE_PATTERNS = [
@@ -1248,10 +1265,28 @@
     // Back button
     backBtn.addEventListener('click', exitChallenge);
 
-    // Game terminal input
+    // Game terminal input with history support
     gameInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         handleGameCommand();
+        historyIndex = -1;
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (commandHistory.length > 0) {
+          if (historyIndex < commandHistory.length - 1) {
+            historyIndex++;
+          }
+          gameInput.value = commandHistory[commandHistory.length - 1 - historyIndex] || '';
+        }
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (historyIndex > 0) {
+          historyIndex--;
+          gameInput.value = commandHistory[commandHistory.length - 1 - historyIndex] || '';
+        } else {
+          historyIndex = -1;
+          gameInput.value = '';
+        }
       }
     });
 
@@ -1292,6 +1327,7 @@
     fileSystem = createChallengeFilesystem();
     currentDirectory = '/home/learner';
     completedObjectives = new Set();
+    shownFeedback = new Set(); // Reset feedback tracking for fresh challenge
 
     // Update UI
     challengeSelector.classList.add('hidden');
@@ -1348,6 +1384,12 @@
     const input = gameInput.value.trim();
     if (!input) return;
 
+    // Add to command history
+    if (input && !commandHistory.includes(input)) {
+      commandHistory.push(input);
+      if (commandHistory.length > 50) commandHistory.shift(); // Keep last 50
+    }
+
     gameInput.value = '';
     addGameOutput(`<span class="prompt-text">${gamePrompt.textContent}</span> <span class="command-text">${escapeHtml(input)}</span>`, 'terminal-line');
 
@@ -1377,7 +1419,7 @@
       addGameOutput(result.output, result.type || 'output-text');
 
       // If command failed, offer Caro help
-      if (result.type?.includes('error') && modelReady) {
+      if (result.type?.includes('error')) {
         offerCaroHelp(input, result.output);
       }
     }
@@ -1387,74 +1429,147 @@
   }
 
   // Handle Caro query (natural language or explicit caro command)
+  // Mimics the real Rust CLI behavior: translate → execute → show result
   async function handleCaroQuery(query: string) {
     // Show Caro thinking
     showCaroThinking();
 
+    // First, try keyword-based hint (works without model)
+    const keywordHint = getKeywordBasedHint(query);
+
     if (!modelReady) {
       hideCaroThinking();
-      addCaroInlineMessage(
-        "I'd love to help with my full AI brain, but the model isn't loaded yet!",
-        null,
-        "Once the model is loaded, I can translate natural language to commands for you."
-      );
-      // Still try to give a helpful response based on keywords
-      const helpfulHint = getKeywordBasedHint(query);
-      if (helpfulHint) {
-        addCaroInlineMessage(helpfulHint.text, helpfulHint.command, helpfulHint.explanation);
+
+      if (keywordHint) {
+        // We have a keyword match - show explanation and execute the command!
+        addCaroInlineMessage(
+          keywordHint.text,
+          keywordHint.command,
+          keywordHint.explanation
+        );
+
+        // If there's a command, execute it automatically (like real Caro)
+        if (keywordHint.command && !keywordHint.command.includes('folder_name') && !keywordHint.command.includes('filename')) {
+          executeAndShowResult(keywordHint.command);
+        }
+      } else {
+        addCaroInlineMessage(
+          "I'd love to help with my full AI brain, but the model isn't loaded yet!",
+          null,
+          "Load an AI model to get smarter translations. For now, try asking about: list files, show hidden, where am I, go to folder"
+        );
       }
       return;
     }
 
     try {
       const engine = getTerminalTutorEngine();
-      const context = currentChallenge
-        ? `User is in challenge "${CHALLENGES[currentChallenge as keyof typeof CHALLENGES].title}". Current directory: ${currentDirectory}.`
-        : `User is exploring. Current directory: ${currentDirectory}.`;
+
+      // Use structured translation (like real Rust CLI)
+      // Prompt for JSON response to parse reliably
+      const translationPrompt = `You are Caro, a terminal command translator. Translate the user's natural language request into a Unix command.
+
+Current directory: ${currentDirectory}
+User request: "${query}"
+
+Respond with ONLY a JSON object in this exact format (no markdown, no backticks):
+{"command":"the exact command to run","explanation":"brief explanation","safety":"safe"}
+
+Example responses:
+{"command":"ls -a","explanation":"List all files including hidden ones","safety":"safe"}
+{"command":"cat .bashrc","explanation":"Display contents of .bashrc file","safety":"safe"}
+{"command":"rm -rf /","explanation":"Delete everything - NEVER RUN THIS","safety":"dangerous"}`;
 
       let response = '';
-      await engine.generateResponse(
-        `${context}
-
-User's request: "${query}"
-
-Respond with:
-1. A brief friendly explanation of what command to use
-2. The exact terminal command
-3. Safety level (safe/moderate/dangerous)
-
-Keep it concise and helpful. Format your response naturally.`,
-        (token) => { response = token; }
-      );
+      await engine.generateResponse(translationPrompt, (token) => {
+        response = token;
+      });
 
       hideCaroThinking();
 
-      // Parse the response to extract command if present
-      const commandMatch = response.match(/`([^`]+)`/);
-      const command = commandMatch ? commandMatch[1] : null;
-
-      // Determine safety level from response
+      // Parse the JSON response (like real Rust CLI does)
+      let command: string | null = null;
+      let explanation = '';
       let safetyLevel: 'safe' | 'moderate' | 'dangerous' = 'safe';
-      if (/dangerous|careful|warning|risky/i.test(response)) {
-        safetyLevel = 'dangerous';
-      } else if (/moderate|caution/i.test(response)) {
-        safetyLevel = 'moderate';
+
+      try {
+        // Extract JSON from response (handle potential markdown wrapping)
+        const jsonMatch = response.match(/\{[\s\S]*?\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          command = parsed.command || parsed.cmd || null;
+          explanation = parsed.explanation || parsed.desc || 'Translated command';
+          safetyLevel = parsed.safety === 'dangerous' ? 'dangerous' :
+                        parsed.safety === 'moderate' ? 'moderate' : 'safe';
+        }
+      } catch (parseError) {
+        // Fallback: try to extract command from backticks or quotes
+        const cmdMatch = response.match(/`([^`]+)`/) || response.match(/"([^"]+)"/) || response.match(/'([^']+)'/);
+        if (cmdMatch) {
+          command = cmdMatch[1];
+          explanation = response.replace(cmdMatch[0], '').trim();
+        }
       }
 
-      addCaroInlineMessage(response.replace(/`[^`]+`/g, '').trim(), command, null, safetyLevel, true);
+      // If we got a command, show it and execute it (like real Caro)
+      if (command) {
+        addCaroInlineMessage(explanation, command, null, safetyLevel, true);
+
+        // Auto-execute safe commands (mimicking real Caro behavior)
+        if (safetyLevel === 'safe') {
+          executeAndShowResult(command);
+        }
+      } else if (keywordHint) {
+        // Fallback to keyword hint
+        addCaroInlineMessage(keywordHint.text, keywordHint.command, keywordHint.explanation);
+        if (keywordHint.command && !keywordHint.command.includes('_name')) {
+          executeAndShowResult(keywordHint.command);
+        }
+      } else {
+        // Couldn't parse - show raw response
+        addCaroInlineMessage(
+          response.trim() || "I understood your request but couldn't translate it to a specific command.",
+          null,
+          "Try being more specific, like 'show hidden files' or 'go to Documents folder'"
+        );
+      }
 
     } catch (error) {
+      console.error('[Caro] Translation error:', error);
       hideCaroThinking();
-      addCaroInlineMessage(
-        "Hmm, I had trouble thinking about that. Let me try a simpler approach...",
-        null
-      );
+
       // Fallback to keyword-based hint
-      const helpfulHint = getKeywordBasedHint(query);
-      if (helpfulHint) {
-        addCaroInlineMessage(helpfulHint.text, helpfulHint.command, helpfulHint.explanation);
+      if (keywordHint) {
+        addCaroInlineMessage(keywordHint.text, keywordHint.command, keywordHint.explanation);
+        if (keywordHint.command && !keywordHint.command.includes('_name')) {
+          executeAndShowResult(keywordHint.command);
+        }
+      } else {
+        addCaroInlineMessage(
+          "I had trouble understanding that. Let me help you differently!",
+          null,
+          "Try: 'show files', 'list hidden files', 'where am I', 'go to Downloads'"
+        );
       }
     }
+  }
+
+  // Execute a command and show the result in the terminal
+  function executeAndShowResult(command: string) {
+    // Add a small delay for better UX
+    setTimeout(() => {
+      // Show the command being executed
+      addGameOutput(`<span class="caro-executed">🐕 Caro ran:</span> <span class="command-text">${escapeHtml(command)}</span>`, 'terminal-line caro-ran');
+
+      // Execute and show result
+      const result = executeGameCommand(command);
+      if (result) {
+        addGameOutput(result.output, result.type || 'output-text');
+      }
+
+      // Check objectives
+      checkObjectives(command);
+    }, 200);
   }
 
   // Offer Caro help when a command fails
@@ -1558,9 +1673,25 @@ Keep it concise and helpful. Format your response naturally.`,
         return { output: currentDirectory };
 
       case 'ls': {
-        const showAll = args.includes('-a');
-        const longFormat = args.includes('-l');
-        const path = args.find(a => !a.startsWith('-')) || '.';
+        // Parse flags - support combined flags like -la, -al, -lah, etc.
+        let showAll = false;
+        let longFormat = false;
+        let path = '.';
+
+        for (const arg of args) {
+          if (arg.startsWith('-')) {
+            // Parse each character after the dash as a flag
+            const flags = arg.slice(1);
+            for (const flag of flags) {
+              if (flag === 'a') showAll = true;
+              if (flag === 'l') longFormat = true;
+              if (flag === 'h') { /* human readable - we already do this */ }
+            }
+          } else {
+            path = arg;
+          }
+        }
+
         const targetPath = resolvePath(currentDirectory, path);
         const node = getNodeAtPath(fileSystem, targetPath);
 
@@ -1830,13 +1961,23 @@ Keep it concise and helpful. Format your response naturally.`,
     completedObjectives.add(objectiveId);
     renderObjectives();
 
-    // Caro celebration
-    addCaroMessage(getCaroCelebration());
+    // Caro celebration (only show once per objective)
+    const feedbackKey = `objective-${objectiveId}`;
+    if (!shownFeedback.has(feedbackKey)) {
+      shownFeedback.add(feedbackKey);
+      addCaroMessage(getCaroCelebration());
+    }
   }
 
   // Complete challenge
   function completeChallenge() {
     if (!currentChallenge) return;
+
+    // Check if already celebrated this challenge
+    const feedbackKey = `challenge-complete-${currentChallenge}`;
+    if (shownFeedback.has(feedbackKey)) return;
+    shownFeedback.add(feedbackKey);
+
     const challenge = CHALLENGES[currentChallenge as keyof typeof CHALLENGES];
 
     // Show achievement
@@ -1850,7 +1991,7 @@ Keep it concise and helpful. Format your response naturally.`,
     // Unlock next challenge
     unlockNextChallenge();
 
-    // Caro big celebration
+    // Caro big celebration (only once)
     setTimeout(() => {
       addCaroMessage(`🎉 AMAZING! You completed "${challenge.title}"! ${challenge.achievement.desc}`);
     }, 2000);
