@@ -1,7 +1,8 @@
 ---
 /**
  * ModelSelector.astro
- * Model selection and download UI for MediaPipe LLM inference
+ * Model selection and loading UI for MediaPipe LLM inference
+ * Uses download-first pattern: users download models manually, then load locally
  */
 ---
 
@@ -11,8 +12,8 @@
       <img src="/caro-pixel.png" alt="Caro" class="caro-icon" />
     </div>
     <div class="header-text">
-      <h3>Choose Your AI Model</h3>
-      <p>Select a model to power your terminal learning experience</p>
+      <h3>Set Up Your AI Model</h3>
+      <p>Download a model and load it to power your learning experience</p>
     </div>
   </div>
 
@@ -23,68 +24,106 @@
     <span class="status-text">Checking WebGPU support...</span>
   </div>
 
-  <div class="models-grid" id="models-grid">
-    <!-- Models will be populated by JavaScript -->
+  <!-- Step 1: Download a Model -->
+  <div class="setup-step" id="download-step">
+    <div class="step-header">
+      <span class="step-number">1</span>
+      <h4>Download a Model</h4>
+    </div>
+    <p class="step-description">Choose a model and download it from HuggingFace. This only needs to be done once.</p>
+
+    <div class="model-options">
+      <div class="model-option recommended">
+        <div class="model-info">
+          <h5>Gemma3 1B <span class="badge">Recommended</span></h5>
+          <p>Fast, lightweight model ideal for terminal education</p>
+          <div class="model-specs">
+            <span>📦 555 MB</span>
+            <span>⚡ int4 quantized</span>
+          </div>
+        </div>
+        <a href="https://huggingface.co/litert-community/Gemma3-1B-IT/resolve/main/gemma3-1b-it-int4-web.task"
+           class="download-btn"
+           target="_blank"
+           rel="noopener"
+           download>
+          Download
+        </a>
+      </div>
+
+      <div class="model-option">
+        <div class="model-info">
+          <h5>Gemma2 2B</h5>
+          <p>Larger model with better comprehension</p>
+          <div class="model-specs">
+            <span>📦 1.35 GB</span>
+            <span>⚡ int4 quantized</span>
+          </div>
+        </div>
+        <a href="https://huggingface.co/nicecui/Gemma2-2B-IT/resolve/main/gemma2-2b-it-gpu-int4.bin"
+           class="download-btn secondary"
+           target="_blank"
+           rel="noopener"
+           download>
+          Download
+        </a>
+      </div>
+    </div>
+
+    <div class="step-note">
+      <strong>Note:</strong> If prompted to log in to HuggingFace, create a free account and accept the model license terms.
+    </div>
   </div>
 
-  <div class="download-progress hidden" id="download-progress">
+  <!-- Step 2: Load the Model -->
+  <div class="setup-step" id="load-step">
+    <div class="step-header">
+      <span class="step-number">2</span>
+      <h4>Load Your Model</h4>
+    </div>
+    <p class="step-description">Select the model file you downloaded (.task or .bin file)</p>
+
+    <div class="file-loader">
+      <input type="file" id="model-file-input" accept=".task,.bin" hidden />
+      <div class="load-dropzone" id="load-dropzone">
+        <div class="dropzone-content">
+          <span class="dropzone-icon">📁</span>
+          <p class="dropzone-main">Drop your model file here</p>
+          <p class="dropzone-sub">or <button class="browse-btn" id="browse-btn">choose file</button></p>
+        </div>
+      </div>
+
+      <div class="file-selected hidden" id="file-selected">
+        <span class="file-icon">✓</span>
+        <span class="file-name" id="selected-file-name"></span>
+        <span class="file-size" id="selected-file-size"></span>
+        <button class="load-model-btn" id="load-model-btn">Load Model</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Progress -->
+  <div class="loading-progress hidden" id="loading-progress">
     <div class="progress-header">
-      <span class="progress-model" id="progress-model-name">Downloading model...</span>
+      <span class="progress-title" id="progress-title">Loading model...</span>
       <span class="progress-percent" id="progress-percent">0%</span>
     </div>
     <div class="progress-bar-container">
-      <div class="progress-bar-fill" id="progress-bar-fill" style="width: 0%"></div>
+      <div class="progress-bar-fill" id="progress-bar-fill"></div>
     </div>
-    <p class="progress-note">This may take a few minutes depending on your connection</p>
+    <p class="progress-note" id="progress-note">Initializing WebGPU and loading model weights...</p>
   </div>
 
-  <div class="file-upload-panel hidden" id="file-upload-panel">
-    <div class="upload-header">
-      <h4>Upload a Local Model File</h4>
-      <button class="close-upload-btn" id="close-upload-btn">&times;</button>
-    </div>
-    <div class="upload-instructions">
-      <p>Upload a MediaPipe LLM Inference compatible model file (.task or .bin format).</p>
-      <div class="download-links">
-        <p><strong>Download models from HuggingFace:</strong></p>
-        <ul>
-          <li><a href="https://huggingface.co/litert-community/Gemma3-1B-IT/resolve/main/gemma3-1b-it-int4-web.task" target="_blank" rel="noopener">Gemma3 1B (555 MB) - Recommended</a></li>
-          <li><a href="https://huggingface.co/litert-community/Gemma2-2B-IT/resolve/main/gemma2-2b-it-gpu-int4.bin" target="_blank" rel="noopener">Gemma2 2B (1.35 GB)</a></li>
-        </ul>
-        <p class="download-note">Note: Use the <code>-web.task</code> files for WebGPU compatibility.</p>
-      </div>
-    </div>
-    <div class="upload-dropzone" id="upload-dropzone">
-      <input type="file" id="model-file-input" accept=".task,.bin" hidden />
-      <div class="dropzone-content">
-        <span class="dropzone-icon">📁</span>
-        <p>Drag and drop a model file here</p>
-        <p class="dropzone-hint">or <button class="browse-btn" id="browse-btn">browse files</button></p>
-      </div>
-    </div>
-    <div class="upload-status hidden" id="upload-status">
-      <span class="upload-filename" id="upload-filename"></span>
-      <span class="upload-size" id="upload-size"></span>
+  <!-- Error Display -->
+  <div class="error-panel hidden" id="error-panel">
+    <div class="error-content">
+      <span class="error-icon">⚠️</span>
+      <p class="error-message" id="error-message"></p>
+      <button class="retry-btn" id="retry-btn">Try Again</button>
     </div>
   </div>
 
-  <div class="auth-error-panel hidden" id="auth-error-panel">
-    <div class="error-icon">🔒</div>
-    <h4>Authentication Required</h4>
-    <p>This model requires accepting license terms before downloading. You have two options:</p>
-    <div class="error-options">
-      <div class="error-option">
-        <h5>Option 1: Download Manually</h5>
-        <p>Visit <a id="auth-error-link" href="#" target="_blank" rel="noopener">the model page</a>, accept the terms, download the file, then use "Load Local Model".</p>
-      </div>
-      <div class="error-option">
-        <h5>Option 2: Try Another Model</h5>
-        <p>Select a different model that doesn't require authentication.</p>
-      </div>
-    </div>
-    <button class="dismiss-error-btn" id="dismiss-error-btn">Try Another Model</button>
-  </div>
-
+  <!-- Config Panel (shown after model loads) -->
   <div class="config-panel hidden" id="config-panel">
     <div class="config-header" id="config-toggle">
       <span>Advanced Settings</span>
@@ -124,7 +163,7 @@
     background: var(--color-bg-secondary);
     border-radius: 16px;
     padding: 30px;
-    max-width: 800px;
+    max-width: 700px;
     margin: 0 auto;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   }
@@ -167,6 +206,7 @@
     font-size: 14px;
   }
 
+  /* WebGPU Check */
   .webgpu-check {
     display: flex;
     align-items: center;
@@ -174,7 +214,7 @@
     padding: 12px 16px;
     background: var(--color-bg);
     border-radius: 8px;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
     border: 1px solid var(--color-border);
   }
 
@@ -226,73 +266,85 @@
     background: rgba(239, 68, 68, 0.05);
   }
 
-  .models-grid {
-    display: grid;
-    gap: 16px;
+  /* Setup Steps */
+  .setup-step {
+    background: var(--color-bg);
+    border-radius: 12px;
+    padding: 24px;
     margin-bottom: 20px;
+    border: 1px solid var(--color-border);
   }
 
-  .model-card {
+  .setup-step.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .step-header {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 20px;
-    background: var(--color-bg);
-    border: 2px solid var(--color-border);
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    gap: 12px;
+    margin-bottom: 12px;
   }
 
-  .model-card:hover {
-    border-color: #ff8c42;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.15);
-  }
-
-  .model-card.selected {
-    border-color: #ff8c42;
-    background: rgba(255, 140, 66, 0.05);
-  }
-
-  .model-card.disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  .model-card.disabled:hover {
-    transform: none;
-    box-shadow: none;
-  }
-
-  .model-icon {
-    width: 48px;
-    height: 48px;
+  .step-number {
+    width: 28px;
+    height: 28px;
     background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    border-radius: 12px;
+    color: white;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
-    flex-shrink: 0;
+    font-weight: 700;
+    font-size: 14px;
   }
 
-  .model-info {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .model-name {
-    font-size: 16px;
-    font-weight: 600;
+  .step-header h4 {
+    margin: 0;
+    font-size: 18px;
     color: var(--color-text);
+  }
+
+  .step-description {
+    margin: 0 0 20px;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+  }
+
+  /* Model Options */
+  .model-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .model-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px;
+    background: var(--color-bg-secondary);
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+  }
+
+  .model-option.recommended {
+    border-color: rgba(255, 140, 66, 0.4);
+    background: rgba(255, 140, 66, 0.03);
+  }
+
+  .model-info h5 {
     margin: 0 0 4px;
+    font-size: 15px;
+    color: var(--color-text);
     display: flex;
     align-items: center;
     gap: 8px;
   }
 
-  .recommended-badge {
+  .badge {
     background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
     color: white;
     font-size: 10px;
@@ -302,35 +354,152 @@
     text-transform: uppercase;
   }
 
-  .model-description {
+  .model-info p {
+    margin: 0 0 8px;
     font-size: 13px;
     color: var(--color-text-secondary);
-    margin: 0 0 8px;
   }
 
-  .model-meta {
+  .model-specs {
     display: flex;
     gap: 12px;
-    flex-wrap: wrap;
-  }
-
-  .meta-item {
-    display: flex;
-    align-items: center;
-    gap: 4px;
     font-size: 12px;
     color: var(--color-text-secondary);
-    background: var(--color-bg-secondary);
-    padding: 4px 8px;
-    border-radius: 4px;
   }
 
-  .model-action {
+  .download-btn {
     flex-shrink: 0;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s ease;
   }
 
-  .load-btn {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+  .download-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.4);
+  }
+
+  .download-btn.secondary {
+    background: var(--color-bg);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+  }
+
+  .download-btn.secondary:hover {
+    border-color: #ff8c42;
+    color: #ff8c42;
+    box-shadow: none;
+  }
+
+  .step-note {
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(255, 140, 66, 0.08);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+
+  .step-note strong {
+    color: var(--color-text);
+  }
+
+  /* File Loader */
+  .file-loader {
+    position: relative;
+  }
+
+  .load-dropzone {
+    border: 2px dashed var(--color-border);
+    border-radius: 12px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--color-bg-secondary);
+  }
+
+  .load-dropzone:hover,
+  .load-dropzone.dragover {
+    border-color: #ff8c42;
+    background: rgba(255, 140, 66, 0.05);
+  }
+
+  .dropzone-content {
+    pointer-events: none;
+  }
+
+  .dropzone-icon {
+    font-size: 40px;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  .dropzone-main {
+    margin: 0 0 8px;
+    font-size: 16px;
+    color: var(--color-text);
+    font-weight: 500;
+  }
+
+  .dropzone-sub {
+    margin: 0;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .browse-btn {
+    background: none;
+    border: none;
+    color: #ff8c42;
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: inherit;
+    pointer-events: auto;
+    padding: 0;
+  }
+
+  .file-selected {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: 10px;
+    margin-top: 16px;
+  }
+
+  .file-selected.hidden {
+    display: none;
+  }
+
+  .file-icon {
+    color: #22c55e;
+    font-size: 20px;
+  }
+
+  .file-name {
+    flex: 1;
+    font-weight: 500;
+    color: var(--color-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .file-size {
+    color: var(--color-text-secondary);
+    font-size: 13px;
+  }
+
+  .load-model-btn {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
     color: white;
     border: none;
     padding: 10px 20px;
@@ -340,46 +509,27 @@
     transition: all 0.2s ease;
   }
 
-  .load-btn:hover {
+  .load-model-btn:hover {
     transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.4);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
   }
 
-  .load-btn:disabled {
+  .load-model-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
   }
 
-  .load-btn.loading {
-    position: relative;
-    color: transparent;
-  }
-
-  .load-btn.loading::after {
-    content: '';
-    position: absolute;
-    width: 18px;
-    height: 18px;
-    top: 50%;
-    left: 50%;
-    margin-left: -9px;
-    margin-top: -9px;
-    border: 2px solid white;
-    border-top-color: transparent;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-
-  .download-progress {
-    padding: 20px;
+  /* Loading Progress */
+  .loading-progress {
+    padding: 24px;
     background: var(--color-bg);
     border-radius: 12px;
     border: 1px solid var(--color-border);
     margin-bottom: 20px;
   }
 
-  .download-progress.hidden {
+  .loading-progress.hidden {
     display: none;
   }
 
@@ -389,7 +539,7 @@
     margin-bottom: 12px;
   }
 
-  .progress-model {
+  .progress-title {
     font-weight: 600;
     color: var(--color-text);
   }
@@ -411,14 +561,63 @@
     background: linear-gradient(90deg, #ff8c42 0%, #ff6b35 100%);
     border-radius: 4px;
     transition: width 0.3s ease;
+    width: 0%;
   }
 
   .progress-note {
     margin: 12px 0 0;
-    font-size: 12px;
+    font-size: 13px;
     color: var(--color-text-secondary);
   }
 
+  /* Error Panel */
+  .error-panel {
+    padding: 24px;
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+
+  .error-panel.hidden {
+    display: none;
+  }
+
+  .error-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .error-icon {
+    font-size: 24px;
+  }
+
+  .error-message {
+    flex: 1;
+    margin: 0;
+    color: #ef4444;
+    font-size: 14px;
+    min-width: 200px;
+  }
+
+  .retry-btn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .retry-btn:hover {
+    background: #dc2626;
+  }
+
+  /* Config Panel */
   .config-panel {
     border: 1px solid var(--color-border);
     border-radius: 12px;
@@ -524,256 +723,6 @@
     color: var(--color-text-secondary);
   }
 
-  /* File Upload Panel */
-  .file-upload-panel {
-    background: var(--color-bg);
-    border: 2px dashed var(--color-border);
-    border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 20px;
-  }
-
-  .file-upload-panel.hidden {
-    display: none;
-  }
-
-  .upload-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-  }
-
-  .upload-header h4 {
-    margin: 0;
-    color: var(--color-text);
-    font-size: 18px;
-  }
-
-  .close-upload-btn {
-    background: none;
-    border: none;
-    font-size: 24px;
-    color: var(--color-text-secondary);
-    cursor: pointer;
-    padding: 0;
-    line-height: 1;
-  }
-
-  .close-upload-btn:hover {
-    color: #ef4444;
-  }
-
-  .upload-instructions {
-    margin-bottom: 20px;
-    font-size: 14px;
-    color: var(--color-text-secondary);
-  }
-
-  .upload-instructions p {
-    margin: 0 0 12px;
-  }
-
-  .download-links {
-    background: var(--color-bg-secondary);
-    padding: 12px 16px;
-    border-radius: 8px;
-  }
-
-  .download-links p {
-    margin: 0 0 8px;
-    color: var(--color-text);
-    font-size: 13px;
-  }
-
-  .download-links ul {
-    margin: 0;
-    padding-left: 20px;
-  }
-
-  .download-links li {
-    margin-bottom: 4px;
-  }
-
-  .download-links a {
-    color: #ff8c42;
-    text-decoration: none;
-  }
-
-  .download-links a:hover {
-    text-decoration: underline;
-  }
-
-  .download-note {
-    margin-top: 12px !important;
-    font-size: 12px;
-    color: var(--color-text-secondary);
-    opacity: 0.8;
-  }
-
-  .download-note code {
-    background: var(--color-bg);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 11px;
-  }
-
-  .upload-dropzone {
-    border: 2px dashed var(--color-border);
-    border-radius: 12px;
-    padding: 40px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    background: var(--color-bg-secondary);
-  }
-
-  .upload-dropzone:hover,
-  .upload-dropzone.dragover {
-    border-color: #ff8c42;
-    background: rgba(255, 140, 66, 0.05);
-  }
-
-  .dropzone-content {
-    pointer-events: none;
-  }
-
-  .dropzone-icon {
-    font-size: 48px;
-    display: block;
-    margin-bottom: 12px;
-  }
-
-  .dropzone-content p {
-    margin: 0 0 8px;
-    color: var(--color-text);
-  }
-
-  .dropzone-hint {
-    color: var(--color-text-secondary);
-    font-size: 14px;
-  }
-
-  .browse-btn {
-    background: none;
-    border: none;
-    color: #ff8c42;
-    cursor: pointer;
-    text-decoration: underline;
-    font-size: inherit;
-    pointer-events: auto;
-  }
-
-  .upload-status {
-    display: flex;
-    gap: 12px;
-    margin-top: 16px;
-    padding: 12px;
-    background: rgba(34, 197, 94, 0.1);
-    border-radius: 8px;
-    border: 1px solid rgba(34, 197, 94, 0.3);
-  }
-
-  .upload-status.hidden {
-    display: none;
-  }
-
-  .upload-filename {
-    flex: 1;
-    color: var(--color-text);
-    font-weight: 500;
-  }
-
-  .upload-size {
-    color: var(--color-text-secondary);
-  }
-
-  /* Auth Error Panel */
-  .auth-error-panel {
-    background: var(--color-bg);
-    border: 2px solid rgba(239, 68, 68, 0.3);
-    border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 20px;
-    text-align: center;
-  }
-
-  .auth-error-panel.hidden {
-    display: none;
-  }
-
-  .auth-error-panel .error-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
-  }
-
-  .auth-error-panel h4 {
-    margin: 0 0 12px;
-    color: #ef4444;
-    font-size: 20px;
-  }
-
-  .auth-error-panel > p {
-    margin: 0 0 20px;
-    color: var(--color-text-secondary);
-    font-size: 14px;
-  }
-
-  .error-options {
-    display: grid;
-    gap: 16px;
-    margin-bottom: 20px;
-    text-align: left;
-  }
-
-  .error-option {
-    background: var(--color-bg-secondary);
-    padding: 16px;
-    border-radius: 8px;
-  }
-
-  .error-option h5 {
-    margin: 0 0 8px;
-    color: var(--color-text);
-    font-size: 14px;
-  }
-
-  .error-option p {
-    margin: 0;
-    color: var(--color-text-secondary);
-    font-size: 13px;
-  }
-
-  .error-option a {
-    color: #ff8c42;
-    text-decoration: none;
-  }
-
-  .error-option a:hover {
-    text-decoration: underline;
-  }
-
-  .dismiss-error-btn {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .dismiss-error-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.4);
-  }
-
-  /* Local upload model card styling */
-  .model-card.local-upload .model-icon {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  }
-
   @media (max-width: 600px) {
     .model-selector {
       padding: 20px;
@@ -784,72 +733,63 @@
       text-align: center;
     }
 
-    .model-card {
+    .model-option {
       flex-direction: column;
       text-align: center;
     }
 
-    .model-meta {
-      justify-content: center;
-    }
-
-    .model-action {
+    .download-btn {
       width: 100%;
+      text-align: center;
     }
 
-    .load-btn {
+    .file-selected {
+      flex-wrap: wrap;
+    }
+
+    .load-model-btn {
       width: 100%;
-    }
-
-    .error-options {
-      grid-template-columns: 1fr;
+      margin-top: 8px;
     }
   }
 </style>
 
 <script>
-  import type { ModelInfo, ModelState } from './types';
-  import { AVAILABLE_MODELS, MODEL_DOWNLOAD_SOURCES } from './types';
+  import type { ModelInfo } from './types';
   import { getTerminalTutorEngine } from './LLMEngine';
 
-  // State
-  let selectedModelId: string | null = null;
-  let isLoading = false;
-
-  // DOM elements
-  const modelsGrid = document.getElementById('models-grid')!;
+  // DOM Elements
   const webgpuStatus = document.getElementById('webgpu-status')!;
-  const downloadProgress = document.getElementById('download-progress')!;
-  const progressModelName = document.getElementById('progress-model-name')!;
+  const downloadStep = document.getElementById('download-step')!;
+  const loadStep = document.getElementById('load-step')!;
+  const modelFileInput = document.getElementById('model-file-input') as HTMLInputElement;
+  const loadDropzone = document.getElementById('load-dropzone')!;
+  const browseBtn = document.getElementById('browse-btn')!;
+  const fileSelected = document.getElementById('file-selected')!;
+  const selectedFileName = document.getElementById('selected-file-name')!;
+  const selectedFileSize = document.getElementById('selected-file-size')!;
+  const loadModelBtn = document.getElementById('load-model-btn')!;
+  const loadingProgress = document.getElementById('loading-progress')!;
+  const progressTitle = document.getElementById('progress-title')!;
   const progressPercent = document.getElementById('progress-percent')!;
   const progressBarFill = document.getElementById('progress-bar-fill')!;
+  const progressNote = document.getElementById('progress-note')!;
+  const errorPanel = document.getElementById('error-panel')!;
+  const errorMessage = document.getElementById('error-message')!;
+  const retryBtn = document.getElementById('retry-btn')!;
   const configPanel = document.getElementById('config-panel')!;
   const configToggle = document.getElementById('config-toggle')!;
   const configOptions = document.getElementById('config-options')!;
 
-  // File upload elements
-  const fileUploadPanel = document.getElementById('file-upload-panel')!;
-  const closeUploadBtn = document.getElementById('close-upload-btn')!;
-  const uploadDropzone = document.getElementById('upload-dropzone')!;
-  const modelFileInput = document.getElementById('model-file-input') as HTMLInputElement;
-  const browseBtn = document.getElementById('browse-btn')!;
-  const uploadStatus = document.getElementById('upload-status')!;
-  const uploadFilename = document.getElementById('upload-filename')!;
-  const uploadSize = document.getElementById('upload-size')!;
-
-  // Auth error elements
-  const authErrorPanel = document.getElementById('auth-error-panel')!;
-  const authErrorLink = document.getElementById('auth-error-link') as HTMLAnchorElement;
-  const dismissErrorBtn = document.getElementById('dismiss-error-btn')!;
+  // State
+  let selectedFile: File | null = null;
+  let isLoading = false;
 
   // Initialize
   async function init() {
     await checkWebGPU();
-    renderModels();
-    setupConfigPanel();
     setupFileUpload();
-    setupAuthErrorPanel();
-    restoreLastModel();
+    setupConfigPanel();
   }
 
   // Check WebGPU support
@@ -862,7 +802,7 @@
       statusIcon.classList.add('error');
       statusText.textContent = 'WebGPU not supported. Please use Chrome 113+ or Edge 113+.';
       webgpuStatus.classList.add('error');
-      disableAllModels();
+      disableSteps();
       return;
     }
 
@@ -874,195 +814,111 @@
 
       statusIcon.classList.remove('checking');
       statusIcon.classList.add('success');
-      statusText.textContent = 'WebGPU is available! Select a model to get started.';
+      statusText.textContent = 'WebGPU is available! Download a model to get started.';
       webgpuStatus.classList.add('success');
     } catch (error) {
       statusIcon.classList.remove('checking');
       statusIcon.classList.add('error');
       statusText.textContent = `WebGPU error: ${error}`;
       webgpuStatus.classList.add('error');
-      disableAllModels();
+      disableSteps();
     }
   }
 
-  // Render model cards
-  function renderModels() {
-    modelsGrid.innerHTML = AVAILABLE_MODELS.map(model => {
-      const isLocalUpload = model.id === 'local-upload';
-      const icon = isLocalUpload ? '📁' : '🤖';
-      const buttonText = isLocalUpload ? 'Upload File' : 'Load Model';
-      const cardClass = isLocalUpload ? 'model-card local-upload' : 'model-card';
+  // Disable steps when WebGPU not available
+  function disableSteps() {
+    downloadStep.classList.add('disabled');
+    loadStep.classList.add('disabled');
+  }
 
-      return `
-        <div class="${cardClass}" data-model-id="${model.id}">
-          <div class="model-icon">${icon}</div>
-          <div class="model-info">
-            <h4 class="model-name">
-              ${model.name}
-              ${model.recommended ? '<span class="recommended-badge">Recommended</span>' : ''}
-            </h4>
-            <p class="model-description">${model.description}</p>
-            <div class="model-meta">
-              ${!isLocalUpload ? `<span class="meta-item">📦 ${model.sizeFormatted}</span>` : ''}
-              ${!isLocalUpload ? `<span class="meta-item">⚡ ${model.quantization}</span>` : ''}
-              <span class="meta-item">💬 ${model.capabilities.join(', ')}</span>
-            </div>
-          </div>
-          <div class="model-action">
-            <button class="load-btn" data-model-id="${model.id}">
-              ${buttonText}
-            </button>
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    // Add click handlers
-    modelsGrid.querySelectorAll('.model-card').forEach(card => {
-      card.addEventListener('click', (e) => {
-        if ((e.target as HTMLElement).classList.contains('load-btn')) return;
-        const modelId = (card as HTMLElement).dataset.modelId!;
-        if (modelId === 'local-upload') {
-          showFileUploadPanel();
-        } else {
-          selectModel(modelId);
-        }
-      });
+  // Setup file upload handlers
+  function setupFileUpload() {
+    // Browse button click
+    browseBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      modelFileInput.click();
     });
 
-    modelsGrid.querySelectorAll('.load-btn').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        const modelId = (btn as HTMLElement).dataset.modelId!;
-        if (modelId === 'local-upload') {
-          showFileUploadPanel();
-        } else {
-          await loadModel(modelId);
-        }
-      });
+    // Dropzone click
+    loadDropzone.addEventListener('click', () => {
+      modelFileInput.click();
     });
-  }
 
-  // Show file upload panel
-  function showFileUploadPanel() {
-    fileUploadPanel.classList.remove('hidden');
-    authErrorPanel.classList.add('hidden');
-  }
-
-  // Hide file upload panel
-  function hideFileUploadPanel() {
-    fileUploadPanel.classList.add('hidden');
-    uploadStatus.classList.add('hidden');
-  }
-
-  // Select a model (visual only)
-  function selectModel(modelId: string) {
-    selectedModelId = modelId;
-
-    modelsGrid.querySelectorAll('.model-card').forEach(card => {
-      card.classList.toggle('selected', (card as HTMLElement).dataset.modelId === modelId);
-    });
-  }
-
-  // Load a model
-  async function loadModel(modelId: string) {
-    if (isLoading) return;
-
-    const model = AVAILABLE_MODELS.find(m => m.id === modelId);
-    if (!model) return;
-
-    isLoading = true;
-    selectModel(modelId);
-
-    // Update UI
-    const btn = modelsGrid.querySelector(`[data-model-id="${modelId}"] .load-btn`) as HTMLButtonElement;
-    btn.classList.add('loading');
-    btn.disabled = true;
-
-    // Hide any error panels
-    authErrorPanel.classList.add('hidden');
-    fileUploadPanel.classList.add('hidden');
-
-    // Show progress
-    downloadProgress.classList.remove('hidden');
-    progressModelName.textContent = `Downloading ${model.name}...`;
-    progressPercent.textContent = '0%';
-    progressBarFill.style.width = '0%';
-
-    try {
-      const engine = getTerminalTutorEngine();
-
-      await engine.loadModel(model, (progress) => {
-        progressPercent.textContent = `${progress}%`;
-        progressBarFill.style.width = `${progress}%`;
-
-        if (progress >= 100) {
-          progressModelName.textContent = 'Initializing model...';
-        }
-      });
-
-      // Success - hide progress and show config
-      downloadProgress.classList.add('hidden');
-      configPanel.classList.remove('hidden');
-
-      // Save last loaded model
-      localStorage.setItem('lastLoadedModel', modelId);
-
-      // Dispatch event for parent components
-      window.dispatchEvent(new CustomEvent('model-loaded', {
-        detail: { modelId, modelName: model.name }
-      }));
-
-    } catch (error: any) {
-      console.error('Failed to load model:', error);
-      downloadProgress.classList.add('hidden');
-
-      const errorMessage = String(error);
-
-      // Check for authentication/access errors (401, 403, restricted access)
-      if (errorMessage.includes('401') ||
-          errorMessage.includes('403') ||
-          errorMessage.includes('restricted') ||
-          errorMessage.includes('authenticated') ||
-          errorMessage.includes('Access') ||
-          errorMessage.includes('access')) {
-        showAuthError(modelId);
-      } else {
-        // Show generic error in progress area
-        downloadProgress.classList.remove('hidden');
-        progressModelName.textContent = `Error: ${errorMessage}`;
-        progressPercent.textContent = '';
-        progressBarFill.style.width = '0%';
+    // File input change
+    modelFileInput.addEventListener('change', () => {
+      const file = modelFileInput.files?.[0];
+      if (file) {
+        handleFileSelection(file);
       }
+    });
 
-      btn.classList.remove('loading');
-      btn.disabled = false;
-    } finally {
-      isLoading = false;
-    }
+    // Drag and drop
+    loadDropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      loadDropzone.classList.add('dragover');
+    });
+
+    loadDropzone.addEventListener('dragleave', () => {
+      loadDropzone.classList.remove('dragover');
+    });
+
+    loadDropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      loadDropzone.classList.remove('dragover');
+
+      const file = e.dataTransfer?.files[0];
+      if (file) {
+        if (file.name.endsWith('.task') || file.name.endsWith('.bin')) {
+          handleFileSelection(file);
+        } else {
+          showError('Please select a .task or .bin model file');
+        }
+      }
+    });
+
+    // Load button click
+    loadModelBtn.addEventListener('click', () => {
+      if (selectedFile) {
+        loadModel(selectedFile);
+      }
+    });
+
+    // Retry button
+    retryBtn.addEventListener('click', () => {
+      hideError();
+      if (selectedFile) {
+        loadModel(selectedFile);
+      }
+    });
   }
 
-  // Load model from file
-  async function loadModelFromFile(file: File) {
+  // Handle file selection
+  function handleFileSelection(file: File) {
+    selectedFile = file;
+    selectedFileName.textContent = file.name;
+    selectedFileSize.textContent = formatFileSize(file.size);
+    fileSelected.classList.remove('hidden');
+    loadDropzone.style.display = 'none';
+  }
+
+  // Load the model
+  async function loadModel(file: File) {
     if (isLoading) return;
 
     isLoading = true;
-
-    // Show progress
-    downloadProgress.classList.remove('hidden');
-    fileUploadPanel.classList.add('hidden');
-    progressModelName.textContent = `Loading ${file.name}...`;
-    progressPercent.textContent = 'Processing...';
-    progressBarFill.style.width = '50%';
+    hideError();
+    showProgress();
+    loadModelBtn.disabled = true;
 
     try {
       const engine = getTerminalTutorEngine();
 
-      // Create a model info object for the local file
-      const localModel: ModelInfo = {
+      // Create model info for the file
+      const modelInfo: ModelInfo = {
         id: 'local-' + file.name,
         name: file.name,
-        description: 'Locally uploaded model',
+        description: 'Locally loaded model',
         size: file.size / (1024 * 1024),
         sizeFormatted: formatFileSize(file.size),
         quantization: 'int4',
@@ -1071,46 +927,77 @@
         downloadUrl: '',
       };
 
-      await engine.loadModelFromFile(file, localModel, (progress) => {
-        progressPercent.textContent = `${progress}%`;
-        progressBarFill.style.width = `${progress}%`;
+      updateProgress('Loading MediaPipe...', 10);
 
-        if (progress >= 100) {
-          progressModelName.textContent = 'Initializing model...';
+      await engine.loadModelFromFile(file, modelInfo, (progress) => {
+        if (progress < 30) {
+          updateProgress('Loading MediaPipe...', progress);
+        } else if (progress < 50) {
+          updateProgress('Initializing WebGPU...', progress);
+        } else if (progress < 70) {
+          updateProgress('Reading model file...', progress);
+        } else if (progress < 100) {
+          updateProgress('Loading model weights...', progress);
+        } else {
+          updateProgress('Model ready!', 100);
         }
       });
 
-      // Success
-      downloadProgress.classList.add('hidden');
-      configPanel.classList.remove('hidden');
+      // Success!
+      hideProgress();
+      hideSetupSteps();
+      showConfig();
 
+      // Dispatch event for parent components
       window.dispatchEvent(new CustomEvent('model-loaded', {
-        detail: { modelId: localModel.id, modelName: file.name }
+        detail: { modelId: modelInfo.id, modelName: file.name }
       }));
 
     } catch (error) {
-      console.error('Failed to load local model:', error);
-      progressModelName.textContent = `Error: ${error}`;
-      progressPercent.textContent = '';
-      progressBarFill.style.width = '0%';
+      console.error('Failed to load model:', error);
+      hideProgress();
+      showError(String(error));
+      loadModelBtn.disabled = false;
     } finally {
       isLoading = false;
     }
   }
 
-  // Show authentication error panel
-  function showAuthError(modelId: string) {
-    authErrorPanel.classList.remove('hidden');
-    downloadProgress.classList.add('hidden');
-
-    // Set the link to the model download page
-    const sources = MODEL_DOWNLOAD_SOURCES[modelId as keyof typeof MODEL_DOWNLOAD_SOURCES];
-    if (sources) {
-      authErrorLink.href = sources.page || sources.direct || '#';
-    }
+  // UI Helper functions
+  function showProgress() {
+    loadingProgress.classList.remove('hidden');
+    loadStep.style.display = 'none';
+    downloadStep.style.display = 'none';
   }
 
-  // Format file size
+  function hideProgress() {
+    loadingProgress.classList.add('hidden');
+  }
+
+  function updateProgress(title: string, percent: number) {
+    progressTitle.textContent = title;
+    progressPercent.textContent = `${percent}%`;
+    progressBarFill.style.width = `${percent}%`;
+  }
+
+  function showError(message: string) {
+    errorMessage.textContent = message;
+    errorPanel.classList.remove('hidden');
+  }
+
+  function hideError() {
+    errorPanel.classList.add('hidden');
+  }
+
+  function hideSetupSteps() {
+    downloadStep.style.display = 'none';
+    loadStep.style.display = 'none';
+  }
+
+  function showConfig() {
+    configPanel.classList.remove('hidden');
+  }
+
   function formatFileSize(bytes: number): string {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
@@ -1118,17 +1005,7 @@
     return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
   }
 
-  // Disable all models (when WebGPU not available)
-  function disableAllModels() {
-    modelsGrid.querySelectorAll('.model-card').forEach(card => {
-      card.classList.add('disabled');
-    });
-    modelsGrid.querySelectorAll('.load-btn').forEach(btn => {
-      (btn as HTMLButtonElement).disabled = true;
-    });
-  }
-
-  // Setup config panel
+  // Config panel setup
   function setupConfigPanel() {
     configToggle.addEventListener('click', () => {
       configToggle.classList.toggle('expanded');
@@ -1163,7 +1040,6 @@
     });
   }
 
-  // Update engine options
   function updateEngineOptions(options: any) {
     try {
       const engine = getTerminalTutorEngine();
@@ -1171,80 +1047,6 @@
     } catch (e) {
       // Engine not initialized yet
     }
-  }
-
-  // Restore last loaded model preference
-  function restoreLastModel() {
-    const lastModel = localStorage.getItem('lastLoadedModel');
-    if (lastModel) {
-      selectModel(lastModel);
-    }
-  }
-
-  // Setup file upload handlers
-  function setupFileUpload() {
-    // Close button
-    closeUploadBtn.addEventListener('click', hideFileUploadPanel);
-
-    // Browse button
-    browseBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      modelFileInput.click();
-    });
-
-    // Dropzone click
-    uploadDropzone.addEventListener('click', () => {
-      modelFileInput.click();
-    });
-
-    // File input change
-    modelFileInput.addEventListener('change', () => {
-      const file = modelFileInput.files?.[0];
-      if (file) {
-        handleFileUpload(file);
-      }
-    });
-
-    // Drag and drop
-    uploadDropzone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      uploadDropzone.classList.add('dragover');
-    });
-
-    uploadDropzone.addEventListener('dragleave', () => {
-      uploadDropzone.classList.remove('dragover');
-    });
-
-    uploadDropzone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      uploadDropzone.classList.remove('dragover');
-
-      const file = e.dataTransfer?.files[0];
-      if (file && (file.name.endsWith('.task') || file.name.endsWith('.bin'))) {
-        handleFileUpload(file);
-      } else {
-        alert('Please upload a .task or .bin model file');
-      }
-    });
-  }
-
-  // Handle file upload
-  function handleFileUpload(file: File) {
-    // Show selected file info
-    uploadStatus.classList.remove('hidden');
-    uploadFilename.textContent = file.name;
-    uploadSize.textContent = formatFileSize(file.size);
-
-    // Immediately start loading
-    loadModelFromFile(file);
-  }
-
-  // Setup auth error panel
-  function setupAuthErrorPanel() {
-    dismissErrorBtn.addEventListener('click', () => {
-      authErrorPanel.classList.add('hidden');
-    });
   }
 
   // Initialize on load
