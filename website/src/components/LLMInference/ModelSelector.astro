@@ -38,6 +38,53 @@
     <p class="progress-note">This may take a few minutes depending on your connection</p>
   </div>
 
+  <div class="file-upload-panel hidden" id="file-upload-panel">
+    <div class="upload-header">
+      <h4>Upload a Local Model File</h4>
+      <button class="close-upload-btn" id="close-upload-btn">&times;</button>
+    </div>
+    <div class="upload-instructions">
+      <p>Upload a MediaPipe LLM Inference compatible model file (.task or .bin format).</p>
+      <div class="download-links">
+        <p><strong>Download models from:</strong></p>
+        <ul>
+          <li><a href="https://www.kaggle.com/models/google/gemma-3/tfLite/gemma3-1b-it-int4" target="_blank" rel="noopener">Gemma3 1B on Kaggle</a></li>
+          <li><a href="https://www.kaggle.com/models/google/gemma-2/tfLite/gemma2-2b-it-gpu-int4" target="_blank" rel="noopener">Gemma2 2B on Kaggle</a></li>
+          <li><a href="https://huggingface.co/nicecui/Gemma3-1B-IT" target="_blank" rel="noopener">Gemma3 1B on HuggingFace</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="upload-dropzone" id="upload-dropzone">
+      <input type="file" id="model-file-input" accept=".task,.bin" hidden />
+      <div class="dropzone-content">
+        <span class="dropzone-icon">📁</span>
+        <p>Drag and drop a model file here</p>
+        <p class="dropzone-hint">or <button class="browse-btn" id="browse-btn">browse files</button></p>
+      </div>
+    </div>
+    <div class="upload-status hidden" id="upload-status">
+      <span class="upload-filename" id="upload-filename"></span>
+      <span class="upload-size" id="upload-size"></span>
+    </div>
+  </div>
+
+  <div class="auth-error-panel hidden" id="auth-error-panel">
+    <div class="error-icon">🔒</div>
+    <h4>Authentication Required</h4>
+    <p>This model requires accepting license terms before downloading. You have two options:</p>
+    <div class="error-options">
+      <div class="error-option">
+        <h5>Option 1: Download Manually</h5>
+        <p>Visit <a id="auth-error-link" href="#" target="_blank" rel="noopener">the model page</a>, accept the terms, download the file, then use "Load Local Model".</p>
+      </div>
+      <div class="error-option">
+        <h5>Option 2: Try Another Model</h5>
+        <p>Select a different model that doesn't require authentication.</p>
+      </div>
+    </div>
+    <button class="dismiss-error-btn" id="dismiss-error-btn">Try Another Model</button>
+  </div>
+
   <div class="config-panel hidden" id="config-panel">
     <div class="config-header" id="config-toggle">
       <span>Advanced Settings</span>
@@ -477,6 +524,242 @@
     color: var(--color-text-secondary);
   }
 
+  /* File Upload Panel */
+  .file-upload-panel {
+    background: var(--color-bg);
+    border: 2px dashed var(--color-border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .file-upload-panel.hidden {
+    display: none;
+  }
+
+  .upload-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .upload-header h4 {
+    margin: 0;
+    color: var(--color-text);
+    font-size: 18px;
+  }
+
+  .close-upload-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .close-upload-btn:hover {
+    color: #ef4444;
+  }
+
+  .upload-instructions {
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .upload-instructions p {
+    margin: 0 0 12px;
+  }
+
+  .download-links {
+    background: var(--color-bg-secondary);
+    padding: 12px 16px;
+    border-radius: 8px;
+  }
+
+  .download-links p {
+    margin: 0 0 8px;
+    color: var(--color-text);
+    font-size: 13px;
+  }
+
+  .download-links ul {
+    margin: 0;
+    padding-left: 20px;
+  }
+
+  .download-links li {
+    margin-bottom: 4px;
+  }
+
+  .download-links a {
+    color: #ff8c42;
+    text-decoration: none;
+  }
+
+  .download-links a:hover {
+    text-decoration: underline;
+  }
+
+  .upload-dropzone {
+    border: 2px dashed var(--color-border);
+    border-radius: 12px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--color-bg-secondary);
+  }
+
+  .upload-dropzone:hover,
+  .upload-dropzone.dragover {
+    border-color: #ff8c42;
+    background: rgba(255, 140, 66, 0.05);
+  }
+
+  .dropzone-content {
+    pointer-events: none;
+  }
+
+  .dropzone-icon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  .dropzone-content p {
+    margin: 0 0 8px;
+    color: var(--color-text);
+  }
+
+  .dropzone-hint {
+    color: var(--color-text-secondary);
+    font-size: 14px;
+  }
+
+  .browse-btn {
+    background: none;
+    border: none;
+    color: #ff8c42;
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: inherit;
+    pointer-events: auto;
+  }
+
+  .upload-status {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(34, 197, 94, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+
+  .upload-status.hidden {
+    display: none;
+  }
+
+  .upload-filename {
+    flex: 1;
+    color: var(--color-text);
+    font-weight: 500;
+  }
+
+  .upload-size {
+    color: var(--color-text-secondary);
+  }
+
+  /* Auth Error Panel */
+  .auth-error-panel {
+    background: var(--color-bg);
+    border: 2px solid rgba(239, 68, 68, 0.3);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .auth-error-panel.hidden {
+    display: none;
+  }
+
+  .auth-error-panel .error-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+
+  .auth-error-panel h4 {
+    margin: 0 0 12px;
+    color: #ef4444;
+    font-size: 20px;
+  }
+
+  .auth-error-panel > p {
+    margin: 0 0 20px;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+  }
+
+  .error-options {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 20px;
+    text-align: left;
+  }
+
+  .error-option {
+    background: var(--color-bg-secondary);
+    padding: 16px;
+    border-radius: 8px;
+  }
+
+  .error-option h5 {
+    margin: 0 0 8px;
+    color: var(--color-text);
+    font-size: 14px;
+  }
+
+  .error-option p {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+  }
+
+  .error-option a {
+    color: #ff8c42;
+    text-decoration: none;
+  }
+
+  .error-option a:hover {
+    text-decoration: underline;
+  }
+
+  .dismiss-error-btn {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .dismiss-error-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.4);
+  }
+
+  /* Local upload model card styling */
+  .model-card.local-upload .model-icon {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  }
+
   @media (max-width: 600px) {
     .model-selector {
       padding: 20px;
@@ -503,12 +786,16 @@
     .load-btn {
       width: 100%;
     }
+
+    .error-options {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
 
 <script>
   import type { ModelInfo, ModelState } from './types';
-  import { AVAILABLE_MODELS } from './types';
+  import { AVAILABLE_MODELS, MODEL_DOWNLOAD_SOURCES } from './types';
   import { getTerminalTutorEngine } from './LLMEngine';
 
   // State
@@ -526,11 +813,28 @@
   const configToggle = document.getElementById('config-toggle')!;
   const configOptions = document.getElementById('config-options')!;
 
+  // File upload elements
+  const fileUploadPanel = document.getElementById('file-upload-panel')!;
+  const closeUploadBtn = document.getElementById('close-upload-btn')!;
+  const uploadDropzone = document.getElementById('upload-dropzone')!;
+  const modelFileInput = document.getElementById('model-file-input') as HTMLInputElement;
+  const browseBtn = document.getElementById('browse-btn')!;
+  const uploadStatus = document.getElementById('upload-status')!;
+  const uploadFilename = document.getElementById('upload-filename')!;
+  const uploadSize = document.getElementById('upload-size')!;
+
+  // Auth error elements
+  const authErrorPanel = document.getElementById('auth-error-panel')!;
+  const authErrorLink = document.getElementById('auth-error-link') as HTMLAnchorElement;
+  const dismissErrorBtn = document.getElementById('dismiss-error-btn')!;
+
   // Initialize
   async function init() {
     await checkWebGPU();
     renderModels();
     setupConfigPanel();
+    setupFileUpload();
+    setupAuthErrorPanel();
     restoreLastModel();
   }
 
@@ -569,35 +873,46 @@
 
   // Render model cards
   function renderModels() {
-    modelsGrid.innerHTML = AVAILABLE_MODELS.map(model => `
-      <div class="model-card" data-model-id="${model.id}">
-        <div class="model-icon">🤖</div>
-        <div class="model-info">
-          <h4 class="model-name">
-            ${model.name}
-            ${model.recommended ? '<span class="recommended-badge">Recommended</span>' : ''}
-          </h4>
-          <p class="model-description">${model.description}</p>
-          <div class="model-meta">
-            <span class="meta-item">📦 ${model.sizeFormatted}</span>
-            <span class="meta-item">⚡ ${model.quantization}</span>
-            <span class="meta-item">💬 ${model.capabilities.join(', ')}</span>
+    modelsGrid.innerHTML = AVAILABLE_MODELS.map(model => {
+      const isLocalUpload = model.id === 'local-upload';
+      const icon = isLocalUpload ? '📁' : '🤖';
+      const buttonText = isLocalUpload ? 'Upload File' : 'Load Model';
+      const cardClass = isLocalUpload ? 'model-card local-upload' : 'model-card';
+
+      return `
+        <div class="${cardClass}" data-model-id="${model.id}">
+          <div class="model-icon">${icon}</div>
+          <div class="model-info">
+            <h4 class="model-name">
+              ${model.name}
+              ${model.recommended ? '<span class="recommended-badge">Recommended</span>' : ''}
+            </h4>
+            <p class="model-description">${model.description}</p>
+            <div class="model-meta">
+              ${!isLocalUpload ? `<span class="meta-item">📦 ${model.sizeFormatted}</span>` : ''}
+              ${!isLocalUpload ? `<span class="meta-item">⚡ ${model.quantization}</span>` : ''}
+              <span class="meta-item">💬 ${model.capabilities.join(', ')}</span>
+            </div>
+          </div>
+          <div class="model-action">
+            <button class="load-btn" data-model-id="${model.id}">
+              ${buttonText}
+            </button>
           </div>
         </div>
-        <div class="model-action">
-          <button class="load-btn" data-model-id="${model.id}">
-            Load Model
-          </button>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
 
     // Add click handlers
     modelsGrid.querySelectorAll('.model-card').forEach(card => {
       card.addEventListener('click', (e) => {
         if ((e.target as HTMLElement).classList.contains('load-btn')) return;
         const modelId = (card as HTMLElement).dataset.modelId!;
-        selectModel(modelId);
+        if (modelId === 'local-upload') {
+          showFileUploadPanel();
+        } else {
+          selectModel(modelId);
+        }
       });
     });
 
@@ -605,9 +920,25 @@
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
         const modelId = (btn as HTMLElement).dataset.modelId!;
-        await loadModel(modelId);
+        if (modelId === 'local-upload') {
+          showFileUploadPanel();
+        } else {
+          await loadModel(modelId);
+        }
       });
     });
+  }
+
+  // Show file upload panel
+  function showFileUploadPanel() {
+    fileUploadPanel.classList.remove('hidden');
+    authErrorPanel.classList.add('hidden');
+  }
+
+  // Hide file upload panel
+  function hideFileUploadPanel() {
+    fileUploadPanel.classList.add('hidden');
+    uploadStatus.classList.add('hidden');
   }
 
   // Select a model (visual only)
@@ -634,6 +965,10 @@
     btn.classList.add('loading');
     btn.disabled = true;
 
+    // Hide any error panels
+    authErrorPanel.classList.add('hidden');
+    fileUploadPanel.classList.add('hidden');
+
     // Show progress
     downloadProgress.classList.remove('hidden');
     progressModelName.textContent = `Downloading ${model.name}...`;
@@ -652,26 +987,121 @@
         }
       });
 
-      // Success - hide selector and show config
+      // Success - hide progress and show config
       downloadProgress.classList.add('hidden');
       configPanel.classList.remove('hidden');
+
+      // Save last loaded model
+      localStorage.setItem('lastLoadedModel', modelId);
 
       // Dispatch event for parent components
       window.dispatchEvent(new CustomEvent('model-loaded', {
         detail: { modelId, modelName: model.name }
       }));
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load model:', error);
-      progressModelName.textContent = `Error: ${error}`;
-      progressPercent.textContent = '';
-      progressBarFill.style.width = '0%';
+      downloadProgress.classList.add('hidden');
+
+      const errorMessage = String(error);
+
+      // Check for authentication/access errors (401, 403, restricted access)
+      if (errorMessage.includes('401') ||
+          errorMessage.includes('403') ||
+          errorMessage.includes('restricted') ||
+          errorMessage.includes('authenticated') ||
+          errorMessage.includes('Access') ||
+          errorMessage.includes('access')) {
+        showAuthError(modelId);
+      } else {
+        // Show generic error in progress area
+        downloadProgress.classList.remove('hidden');
+        progressModelName.textContent = `Error: ${errorMessage}`;
+        progressPercent.textContent = '';
+        progressBarFill.style.width = '0%';
+      }
 
       btn.classList.remove('loading');
       btn.disabled = false;
     } finally {
       isLoading = false;
     }
+  }
+
+  // Load model from file
+  async function loadModelFromFile(file: File) {
+    if (isLoading) return;
+
+    isLoading = true;
+
+    // Show progress
+    downloadProgress.classList.remove('hidden');
+    fileUploadPanel.classList.add('hidden');
+    progressModelName.textContent = `Loading ${file.name}...`;
+    progressPercent.textContent = 'Processing...';
+    progressBarFill.style.width = '50%';
+
+    try {
+      const engine = getTerminalTutorEngine();
+
+      // Create a model info object for the local file
+      const localModel: ModelInfo = {
+        id: 'local-' + file.name,
+        name: file.name,
+        description: 'Locally uploaded model',
+        size: file.size / (1024 * 1024),
+        sizeFormatted: formatFileSize(file.size),
+        quantization: 'int4',
+        capabilities: ['text'],
+        source: 'local',
+        downloadUrl: '',
+      };
+
+      await engine.loadModelFromFile(file, localModel, (progress) => {
+        progressPercent.textContent = `${progress}%`;
+        progressBarFill.style.width = `${progress}%`;
+
+        if (progress >= 100) {
+          progressModelName.textContent = 'Initializing model...';
+        }
+      });
+
+      // Success
+      downloadProgress.classList.add('hidden');
+      configPanel.classList.remove('hidden');
+
+      window.dispatchEvent(new CustomEvent('model-loaded', {
+        detail: { modelId: localModel.id, modelName: file.name }
+      }));
+
+    } catch (error) {
+      console.error('Failed to load local model:', error);
+      progressModelName.textContent = `Error: ${error}`;
+      progressPercent.textContent = '';
+      progressBarFill.style.width = '0%';
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  // Show authentication error panel
+  function showAuthError(modelId: string) {
+    authErrorPanel.classList.remove('hidden');
+    downloadProgress.classList.add('hidden');
+
+    // Set the link to the model download page
+    const sources = MODEL_DOWNLOAD_SOURCES[modelId as keyof typeof MODEL_DOWNLOAD_SOURCES];
+    if (sources) {
+      authErrorLink.href = sources.huggingface || sources.kaggle || '#';
+    }
+  }
+
+  // Format file size
+  function formatFileSize(bytes: number): string {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
   }
 
   // Disable all models (when WebGPU not available)
@@ -735,6 +1165,72 @@
     if (lastModel) {
       selectModel(lastModel);
     }
+  }
+
+  // Setup file upload handlers
+  function setupFileUpload() {
+    // Close button
+    closeUploadBtn.addEventListener('click', hideFileUploadPanel);
+
+    // Browse button
+    browseBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      modelFileInput.click();
+    });
+
+    // Dropzone click
+    uploadDropzone.addEventListener('click', () => {
+      modelFileInput.click();
+    });
+
+    // File input change
+    modelFileInput.addEventListener('change', () => {
+      const file = modelFileInput.files?.[0];
+      if (file) {
+        handleFileUpload(file);
+      }
+    });
+
+    // Drag and drop
+    uploadDropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadDropzone.classList.add('dragover');
+    });
+
+    uploadDropzone.addEventListener('dragleave', () => {
+      uploadDropzone.classList.remove('dragover');
+    });
+
+    uploadDropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadDropzone.classList.remove('dragover');
+
+      const file = e.dataTransfer?.files[0];
+      if (file && (file.name.endsWith('.task') || file.name.endsWith('.bin'))) {
+        handleFileUpload(file);
+      } else {
+        alert('Please upload a .task or .bin model file');
+      }
+    });
+  }
+
+  // Handle file upload
+  function handleFileUpload(file: File) {
+    // Show selected file info
+    uploadStatus.classList.remove('hidden');
+    uploadFilename.textContent = file.name;
+    uploadSize.textContent = formatFileSize(file.size);
+
+    // Immediately start loading
+    loadModelFromFile(file);
+  }
+
+  // Setup auth error panel
+  function setupAuthErrorPanel() {
+    dismissErrorBtn.addEventListener('click', () => {
+      authErrorPanel.classList.add('hidden');
+    });
   }
 
   // Initialize on load

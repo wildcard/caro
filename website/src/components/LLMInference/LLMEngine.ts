@@ -152,6 +152,56 @@ export class TerminalTutorEngine {
   }
 
   /**
+   * Load a model from a local file
+   */
+  async loadModelFromFile(
+    file: File,
+    modelInfo: ModelInfo,
+    onProgress?: (progress: number) => void
+  ): Promise<void> {
+    try {
+      this.updateModelState({ status: 'loading' });
+      this.emit('model:loading', { modelId: modelInfo.id });
+      onProgress?.(10);
+
+      // Load MediaPipe scripts
+      await this.loadMediaPipeScripts();
+      onProgress?.(30);
+
+      // Initialize FilesetResolver
+      const genai = await window.FilesetResolver.forGenAiTasks(
+        'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-genai@latest/wasm'
+      );
+      onProgress?.(50);
+
+      // Read file as ArrayBuffer
+      const arrayBuffer = await file.arrayBuffer();
+      onProgress?.(70);
+
+      // Create LLM Inference instance
+      this.llmInference = await window.LlmInference.createFromOptions(genai, {
+        baseOptions: {
+          modelAssetBuffer: arrayBuffer,
+        },
+        maxTokens: this.options.maxTokens,
+        topK: this.options.topK,
+        temperature: this.options.temperature,
+        randomSeed: this.options.randomSeed,
+      });
+
+      onProgress?.(100);
+      this.updateModelState({ status: 'ready', modelId: modelInfo.id });
+      this.emit('model:loaded', { modelId: modelInfo.id });
+
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error loading model';
+      this.updateModelState({ status: 'error', message });
+      this.emit('model:error', { error: message });
+      throw error;
+    }
+  }
+
+  /**
    * Fetch model with download progress tracking
    */
   private async fetchModelWithProgress(
@@ -161,7 +211,7 @@ export class TerminalTutorEngine {
     const response = await fetch(url);
 
     if (!response.ok) {
-      throw new Error(`Failed to download model: ${response.status} ${response.statusText}`);
+      throw new Error(`HTTP ${response.status}: ${response.statusText}. Access to model may be restricted.`);
     }
 
     const contentLength = response.headers.get('content-length');

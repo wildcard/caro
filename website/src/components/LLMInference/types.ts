@@ -34,6 +34,7 @@ export const DEFAULT_LLM_OPTIONS: LLMInferenceOptions = {
 };
 
 // Available models for the terminal tutor
+// Note: Some HuggingFace models require authentication. We provide both online and local options.
 export const AVAILABLE_MODELS: ModelInfo[] = [
   {
     id: 'gemma3-1b',
@@ -44,32 +45,44 @@ export const AVAILABLE_MODELS: ModelInfo[] = [
     quantization: 'int4',
     capabilities: ['text'],
     source: 'huggingface',
-    downloadUrl: 'https://huggingface.co/litert-community/Gemma3-1B-IT/resolve/main/gemma3-1b-it-int4.task',
+    downloadUrl: 'https://huggingface.co/nicecui/Gemma3-1B-IT/resolve/main/gemma3-1b-it-int4.task',
     recommended: true,
   },
   {
     id: 'gemma2-2b',
     name: 'Gemma2 2B',
     description: 'Balanced performance and capability',
-    size: 2800,
-    sizeFormatted: '2.8 GB',
-    quantization: 'int8',
+    size: 1350,
+    sizeFormatted: '1.35 GB',
+    quantization: 'int4',
     capabilities: ['text'],
     source: 'huggingface',
-    downloadUrl: 'https://huggingface.co/litert-community/Gemma2-2B-IT/resolve/main/gemma2-2b-it-int8.task',
+    downloadUrl: 'https://huggingface.co/nicecui/Gemma2-2B-IT/resolve/main/gemma2-2b-it-gpu-int4.bin',
   },
   {
-    id: 'gemma-3n-e2b',
-    name: 'Gemma 3n E2B',
-    description: 'Multimodal with vision capabilities',
-    size: 2900,
-    sizeFormatted: '2.9 GB',
+    id: 'local-upload',
+    name: 'Load Local Model',
+    description: 'Upload a .task or .bin model file from your computer',
+    size: 0,
+    sizeFormatted: 'Varies',
     quantization: 'int4',
-    capabilities: ['text', 'vision'],
-    source: 'huggingface',
-    downloadUrl: 'https://huggingface.co/google/gemma-3n-E2B-it-litert-lm/resolve/main/gemma-3n-e2b-it-int4.task',
+    capabilities: ['text'],
+    source: 'local',
+    downloadUrl: '',
   },
 ];
+
+// Download links for models that require authentication
+export const MODEL_DOWNLOAD_SOURCES = {
+  'gemma3-1b': {
+    kaggle: 'https://www.kaggle.com/models/google/gemma-3/tfLite/gemma3-1b-it-int4',
+    huggingface: 'https://huggingface.co/litert-community/Gemma3-1B-IT',
+  },
+  'gemma2-2b': {
+    kaggle: 'https://www.kaggle.com/models/google/gemma-2/tfLite/gemma2-2b-it-gpu-int4',
+    huggingface: 'https://huggingface.co/litert-community/Gemma2-2B-IT',
+  },
+};
 
 // Chat message structure
 export interface ChatMessage {
