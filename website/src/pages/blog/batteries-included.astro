@@ -91,6 +91,74 @@ import BlogPost from '../../layouts/BlogPost.astro';
   This is why Qwen 2.5 Coder 1.5B can punch above its weight class. It's not just the model—it's the model plus the right scaffolding.
 </p>
 
+<h2>Caro's Mission: Knowing Everything About Your Environment</h2>
+
+<p>
+  Here's the deeper truth about "batteries included" for Caro: it's not just about shipping with a model. It's about shipping with an entire ecosystem designed around one core mission statement:
+</p>
+
+<div class="highlight">
+  <p>
+    <strong>Caro's mission is to know everything that needs to be known about her user</strong> in order to best accommodate their needs.
+  </p>
+</div>
+
+<p>
+  This goes far beyond detecting your OS and shell. Caro's roadmap includes:
+</p>
+
+<ul>
+  <li><strong>Vector-based tool documentation</strong>: Building a local vector database of your installed tools, distribution-specific utilities, and their usage patterns to provide the model with the right context and reduce hallucination</li>
+  <li><strong>Environment fingerprinting</strong>: Understanding not just what tools you have, but how they're configured, what versions you're running, and what patterns you use</li>
+  <li><strong>Iterative refinement</strong>: Multiple passes to collect data, validate assumptions, and improve command generation</li>
+  <li><strong>Dry runs and sandboxing</strong>: Testing commands in safe environments before presenting them to you</li>
+</ul>
+
+<h3>The Claude Code Secret: Comprehensive Context</h3>
+
+<p>
+  Why does <a href="https://claude.ai/code" target="_blank" rel="noopener noreferrer">Claude Code</a> feel magical when you throw basic requests at it? It's not just the model—it's the prompt engineering and context collection working together.
+</p>
+
+<p>
+  Claude Code runs on the best models possible with the most comprehensive prompting. It knows how to collect data on your project, pick up on patterns in your codebase, and understand where different types of information live. This context awareness transforms a good model into an exceptional tool.
+</p>
+
+<p>
+  Caro applies the same philosophy to shell commands. But since most Caro installations will run on smaller, less sophisticated models, we compensate through:
+</p>
+
+<ol>
+  <li><strong>Better context collection</strong>: More comprehensive system information, tool availability, and environment understanding</li>
+  <li><strong>Deterministic safety tools</strong>: Pattern-based validation that doesn't rely on the model to catch dangerous operations</li>
+  <li><strong>Iterative improvement</strong>: Multiple refinement passes to gather feedback and optimize outputs</li>
+  <li><strong>Smart prompting</strong>: Crafting prompts that guide smaller models toward correct, safe, platform-specific commands</li>
+</ol>
+
+<div class="highlight">
+  <p>
+    "Batteries included" means Caro ships not just with models, but with the deterministic tools and context-gathering systems that make those models work brilliantly—even at smaller scales.
+  </p>
+</div>
+
+<h3>Beyond Model Inference: The Tooling Ecosystem</h3>
+
+<p>
+  Caro isn't just about running inference on a language model. She's about running an entire ecosystem of tools that work together:
+</p>
+
+<ul>
+  <li><strong>Safety validators</strong>: Deterministic pattern matching that catches dangerous commands regardless of model output</li>
+  <li><strong>POSIX compliance checkers</strong>: Ensuring generated commands work across different Unix-like systems</li>
+  <li><strong>Context collectors</strong>: Gathering system information, available commands, and environment variables</li>
+  <li><strong>Prompt optimizers</strong>: Crafting the right prompts based on what information we've collected</li>
+  <li><strong>Execution validators</strong>: Dry runs and sandboxed testing before presenting commands to users</li>
+</ul>
+
+<p>
+  This tooling ecosystem is what allows smaller models to compete with larger ones for the specific task of command generation. We're not trying to build AGI—we're building a highly specialized tool that knows how to compensate for model limitations through better engineering.
+</p>
+
 <h2>The Frontier: Thinking, Reasoning, and Tool Calling</h2>
 
 <p>
