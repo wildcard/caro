@@ -1,0 +1,1032 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+---
+
+<Layout
+  title="Credits & Attribution - Caro"
+  description="Caro stands on the shoulders of giants. This page honors the open source projects, maintainers, and communities that make Caro possible."
+>
+  <Navigation />
+
+  <div class="credits-page">
+    <!-- Opening Crawl / Hero -->
+    <section class="credits-hero">
+      <div class="stars"></div>
+      <div class="twinkling"></div>
+      <div class="container">
+        <div class="crawl-text">
+          <p class="episode">A LONG TIME AGO IN AN OPEN SOURCE ECOSYSTEM FAR, FAR AWAY...</p>
+          <h1>CREDITS</h1>
+          <p class="tagline">Standing on the Shoulders of Giants</p>
+        </div>
+        <p class="intro">
+          Caro is an open source project that would not exist without the incredible work of countless developers,
+          maintainers, and communities who have built the foundations we rely on every day. This page is our way
+          of saying <strong>thank you</strong> to everyone who has contributed to the tools, libraries, and
+          resources that make Caro possible.
+        </p>
+      </div>
+    </section>
+
+    <!-- Main Credits Roll -->
+    <main class="credits-content">
+
+      <!-- Special Thanks Section -->
+      <section class="credits-section special-thanks">
+        <div class="container">
+          <div class="section-header">
+            <span class="sparkle">&#10024;</span>
+            <h2>Special Thanks</h2>
+            <span class="sparkle">&#10024;</span>
+          </div>
+
+          <div class="credit-card featured">
+            <div class="credit-icon">🎁</div>
+            <div class="credit-content">
+              <h3>Anselm Eickhoff</h3>
+              <p class="role">For the gift of a name</p>
+              <p class="description">
+                A heartfelt thank you to <a href="https://github.com/aeplay" target="_blank" rel="noopener noreferrer">@aeplay</a>
+                for graciously transferring the <code>caro</code> crate name to this project. This act of generosity
+                gave Caro its identity — a memorable, friendly name that embodies our mission.
+                <em>"Work sucks. Play works."</em> — We couldn't agree more.
+              </p>
+              <div class="social-links">
+                <a href="https://github.com/aeplay" target="_blank" rel="noopener noreferrer" class="social-link github">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                  GitHub
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="credit-card featured">
+            <div class="credit-icon">🤖</div>
+            <div class="credit-content">
+              <h3>Anthropic & Claude Code</h3>
+              <p class="role">The Maintainer's Co-Pilot</p>
+              <p class="description">
+                Caro was built with the help of <a href="https://www.anthropic.com/claude-code" target="_blank" rel="noopener noreferrer">Claude Code</a>,
+                Anthropic's agentic coding tool. From architecture decisions to code reviews, debugging sessions to
+                documentation — Claude Code has been an indispensable collaborator in bringing Caro to life.
+                A testament to how AI can augment human creativity in open source development.
+              </p>
+              <div class="social-links">
+                <a href="https://github.com/anthropics/claude-code" target="_blank" rel="noopener noreferrer" class="social-link github">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                  GitHub
+                </a>
+                <a href="https://www.anthropic.com" target="_blank" rel="noopener noreferrer" class="social-link website">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                  Website
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI & ML Models Section -->
+      <section class="credits-section ai-models">
+        <div class="container">
+          <div class="section-header">
+            <span class="icon">🧠</span>
+            <h2>AI & Machine Learning</h2>
+          </div>
+          <p class="section-description">
+            The brilliant minds and teams building the models and frameworks that power local AI inference.
+          </p>
+
+          <div class="credits-grid">
+            <div class="credit-card">
+              <div class="credit-icon">🦙</div>
+              <div class="credit-content">
+                <h3>llama.cpp</h3>
+                <p class="role">by Georgi Gerganov</p>
+                <p class="description">
+                  The project that brought LLM inference to the masses. llama.cpp's pure C/C++ implementation
+                  enables Caro to run language models efficiently on any hardware. With 91k+ GitHub stars,
+                  it's the backbone of local AI inference.
+                </p>
+                <div class="social-links">
+                  <a href="https://github.com/ggerganov" target="_blank" rel="noopener noreferrer" class="social-link github">GitHub</a>
+                  <a href="https://twitter.com/ggerganov" target="_blank" rel="noopener noreferrer" class="social-link twitter">X/Twitter</a>
+                  <a href="https://ggerganov.com/" target="_blank" rel="noopener noreferrer" class="social-link website">Website</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="credit-card">
+              <div class="credit-icon">🍎</div>
+              <div class="credit-content">
+                <h3>Apple MLX</h3>
+                <p class="role">by Apple Machine Learning Research</p>
+                <p class="description">
+                  The array framework that makes Apple Silicon sing. Built by Awni Hannun, Jagrit Digani,
+                  Angelos Katharopoulos, and Ronan Collobert — MLX powers Caro's blazing-fast inference
+                  on M-series Macs.
+                </p>
+                <div class="social-links">
+                  <a href="https://github.com/ml-explore" target="_blank" rel="noopener noreferrer" class="social-link github">GitHub</a>
+                  <a href="https://ml-explore.github.io/mlx/" target="_blank" rel="noopener noreferrer" class="social-link website">Docs</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="credit-card">
+              <div class="credit-icon">☁️</div>
+              <div class="credit-content">
+                <h3>Qwen</h3>
+                <p class="role">by Alibaba Cloud Qwen Team</p>
+                <p class="description">
+                  The magnificent Qwen2.5-Coder models that power Caro's shell command generation.
+                  With 100+ open weight models and 40M+ downloads, Qwen represents the best of
+                  open source AI. A massive shoutout to the entire Qwen team!
+                </p>
+                <div class="social-links">
+                  <a href="https://github.com/QwenLM" target="_blank" rel="noopener noreferrer" class="social-link github">GitHub</a>
+                  <a href="https://huggingface.co/Qwen" target="_blank" rel="noopener noreferrer" class="social-link huggingface">Hugging Face</a>
+                  <a href="https://qwenlm.github.io/" target="_blank" rel="noopener noreferrer" class="social-link website">Website</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="credit-card">
+              <div class="credit-icon">🤗</div>
+              <div class="credit-content">
+                <h3>Hugging Face</h3>
+                <p class="role">The AI Community Platform</p>
+                <p class="description">
+                  The hub that makes model distribution possible. Caro uses Hugging Face's infrastructure
+                  for model caching and downloads, bringing the best open models to your local machine.
+                </p>
+                <div class="social-links">
+                  <a href="https://github.com/huggingface" target="_blank" rel="noopener noreferrer" class="social-link github">GitHub</a>
+                  <a href="https://huggingface.co" target="_blank" rel="noopener noreferrer" class="social-link website">Website</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="credit-card">
+              <div class="credit-icon">🕯️</div>
+              <div class="credit-content">
+                <h3>Candle</h3>
+                <p class="role">by Hugging Face</p>
+                <p class="description">
+                  A minimalist ML framework for Rust that provides Caro's cross-platform CPU inference backend.
+                  Fast, lightweight, and Rust-native.
+                </p>
+                <div class="social-links">
+                  <a href="https://github.com/huggingface/candle" target="_blank" rel="noopener noreferrer" class="social-link github">GitHub</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Rust Ecosystem Section -->
+      <section class="credits-section rust-crates">
+        <div class="container">
+          <div class="section-header">
+            <span class="icon">🦀</span>
+            <h2>Rust Ecosystem</h2>
+          </div>
+          <p class="section-description">
+            The incredible Rust crates and their maintainers that form Caro's foundation.
+            Without these libraries, there would be no Caro.
+          </p>
+
+          <div class="credits-grid">
+            <div class="credit-card">
+              <div class="credit-icon">⚡</div>
+              <div class="credit-content">
+                <h3>Tokio</h3>
+                <p class="role">Async Runtime</p>
+                <p class="description">
+                  Created by Carl Lerche and maintained by Alice Ryhl — Tokio is the async foundation
+                  that powers Caro's concurrent operations. Alice's tireless work as the first paid
+                  Tokio contributor has been instrumental to the ecosystem.
+                </p>
+                <div class="social-links">
+                  <a href="https://github.com/tokio-rs/tokio" target="_blank" rel="noopener noreferrer" class="social-link github">GitHub</a>
+                  <a href="https://ryhl.io/" target="_blank" rel="noopener noreferrer" class="social-link website">Alice's Site</a>
+                  <a href="https://tokio.rs" target="_blank" rel="noopener noreferrer" class="social-link website">Tokio.rs</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="credit-card">
+              <div class="credit-icon">📜</div>
+              <div class="credit-content">
+                <h3>Serde</h3>
+                <p class="role">by David Tolnay</p>
+                <p class="description">
+                  The legendary serialization framework with 196M+ downloads. David Tolnay's work on
+                  serde, syn, quote, anyhow, and thiserror has shaped how the entire Rust ecosystem
+                  handles data and errors.
+                </p>
+                <div class="social-links">
+                  <a href="https://github.com/dtolnay" target="_blank" rel="noopener noreferrer" class="social-link github">GitHub</a>
+                  <a href="https://twitter.com/davidtolnay" target="_blank" rel="noopener noreferrer" class="social-link twitter">X/Twitter</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="credit-card">
+              <div class="credit-icon">🎯</div>
+              <div class="credit-content">
+                <h3>Clap</h3>
+                <p class="role">by Ed Page & rust-cli</p>
+                <p class="description">
+                  The CLI argument parser that makes Caro's interface possible. With 28M+ downloads per month,
+                  clap's derive macros and comprehensive features are the gold standard for Rust CLIs.
+                </p>
+                <div class="social-links">
+                  <a href="https://github.com/clap-rs/clap" target="_blank" rel="noopener noreferrer" class="social-link github">GitHub</a>
+                  <a href="https://docs.rs/clap" target="_blank" rel="noopener noreferrer" class="social-link website">Docs</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="credit-card">
+              <div class="credit-icon">🌐</div>
+              <div class="credit-content">
+                <h3>Reqwest</h3>
+                <p class="role">by Sean McArthur</p>
+                <p class="description">
+                  The ergonomic HTTP client for Rust. Sean's work on reqwest, hyper, and the entire
+                  networking stack powers Caro's remote backend connections.
+                </p>
+                <div class="social-links">
+                  <a href="https://github.com/seanmonstar" target="_blank" rel="noopener noreferrer" class="social-link github">GitHub</a>
+                  <a href="https://seanmonstar.com" target="_blank" rel="noopener noreferrer" class="social-link website">Blog</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="credit-card">
+              <div class="credit-icon">📊</div>
+              <div class="credit-content">
+                <h3>Tracing</h3>
+                <p class="role">by Eliza Weisman</p>
+                <p class="description">
+                  Structured diagnostics for Rust. Eliza's tracing ecosystem provides Caro with
+                  comprehensive logging and observability. A core tokio-rs team member whose work
+                  benefits the entire async Rust ecosystem.
+                </p>
+                <div class="social-links">
+                  <a href="https://github.com/tokio-rs/tracing" target="_blank" rel="noopener noreferrer" class="social-link github">GitHub</a>
+                  <a href="https://www.elizas.website/" target="_blank" rel="noopener noreferrer" class="social-link website">Website</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="credit-card">
+              <div class="credit-icon">📈</div>
+              <div class="credit-content">
+                <h3>Indicatif</h3>
+                <p class="role">by Armin Ronacher (mitsuhiko)</p>
+                <p class="description">
+                  Progress bars and spinners that make Caro's output beautiful. Armin Ronacher — creator of
+                  Flask and core Sentry contributor — brings the same polish to the Rust console ecosystem.
+                </p>
+                <div class="social-links">
+                  <a href="https://github.com/console-rs/indicatif" target="_blank" rel="noopener noreferrer" class="social-link github">GitHub</a>
+                  <a href="https://twitter.com/mitsuhiko" target="_blank" rel="noopener noreferrer" class="social-link twitter">X/Twitter</a>
+                  <a href="https://mitsuhiko.at/" target="_blank" rel="noopener noreferrer" class="social-link website">Website</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="more-crates">
+            <h3>Also Powered By</h3>
+            <div class="crate-tags">
+              <span class="crate-tag">anyhow</span>
+              <span class="crate-tag">thiserror</span>
+              <span class="crate-tag">serde_json</span>
+              <span class="crate-tag">serde_yaml</span>
+              <span class="crate-tag">toml</span>
+              <span class="crate-tag">config</span>
+              <span class="crate-tag">tracing-subscriber</span>
+              <span class="crate-tag">tracing-appender</span>
+              <span class="crate-tag">dialoguer</span>
+              <span class="crate-tag">colored</span>
+              <span class="crate-tag">directories</span>
+              <span class="crate-tag">dirs</span>
+              <span class="crate-tag">which</span>
+              <span class="crate-tag">os_info</span>
+              <span class="crate-tag">sysinfo</span>
+              <span class="crate-tag">hf-hub</span>
+              <span class="crate-tag">url</span>
+              <span class="crate-tag">chrono</span>
+              <span class="crate-tag">regex</span>
+              <span class="crate-tag">once_cell</span>
+              <span class="crate-tag">sha2</span>
+              <span class="crate-tag">async-trait</span>
+              <span class="crate-tag">futures</span>
+              <span class="crate-tag">atty</span>
+              <span class="crate-tag">tokenizers</span>
+              <span class="crate-tag">cxx</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Web Technologies Section -->
+      <section class="credits-section web-tech">
+        <div class="container">
+          <div class="section-header">
+            <span class="icon">🌐</span>
+            <h2>Web Technologies</h2>
+          </div>
+          <p class="section-description">
+            The frameworks and tools that power caro.sh — this very website you're reading.
+          </p>
+
+          <div class="credits-grid">
+            <div class="credit-card">
+              <div class="credit-icon">🚀</div>
+              <div class="credit-content">
+                <h3>Astro</h3>
+                <p class="role">by Fred K. Schott & The Astro Team</p>
+                <p class="description">
+                  The web framework for content-driven websites. Astro's zero-JS by default philosophy
+                  makes caro.sh fast and accessible. Thanks to Fred and the incredible open source community
+                  behind Astro — governance that puts contributors first.
+                </p>
+                <div class="social-links">
+                  <a href="https://github.com/withastro/astro" target="_blank" rel="noopener noreferrer" class="social-link github">GitHub</a>
+                  <a href="https://github.com/fredkschott" target="_blank" rel="noopener noreferrer" class="social-link github">Fred's GitHub</a>
+                  <a href="https://astro.build" target="_blank" rel="noopener noreferrer" class="social-link website">astro.build</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="credit-card">
+              <div class="credit-icon">📊</div>
+              <div class="credit-content">
+                <h3>Vercel Analytics</h3>
+                <p class="role">Privacy-friendly insights</p>
+                <p class="description">
+                  Real-time, privacy-friendly traffic insights that help us understand how people use caro.sh
+                  without compromising visitor privacy.
+                </p>
+                <div class="social-links">
+                  <a href="https://github.com/vercel/analytics" target="_blank" rel="noopener noreferrer" class="social-link github">GitHub</a>
+                  <a href="https://vercel.com" target="_blank" rel="noopener noreferrer" class="social-link website">Vercel</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="credit-card">
+              <div class="credit-icon">🎉</div>
+              <div class="credit-content">
+                <h3>canvas-confetti</h3>
+                <p class="role">Celebration effects</p>
+                <p class="description">
+                  Because sometimes you need confetti! This lightweight library adds joy to our celebrations
+                  without bloating the bundle.
+                </p>
+                <div class="social-links">
+                  <a href="https://github.com/catdad/canvas-confetti" target="_blank" rel="noopener noreferrer" class="social-link github">GitHub</a>
+                  <a href="https://www.kirilv.com/canvas-confetti/" target="_blank" rel="noopener noreferrer" class="social-link website">Demo</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="credit-card">
+              <div class="credit-icon">🛗</div>
+              <div class="credit-content">
+                <h3>elevator.js</h3>
+                <p class="role">by Tim Holman</p>
+                <p class="description">
+                  A "back to top" button that behaves like a real elevator — complete with muzak!
+                  Tim's delightfully weird creation adds personality to our scroll experience.
+                </p>
+                <div class="social-links">
+                  <a href="https://github.com/tholman/elevator.js" target="_blank" rel="noopener noreferrer" class="social-link github">GitHub</a>
+                  <a href="https://twitter.com/twholman" target="_blank" rel="noopener noreferrer" class="social-link twitter">X/Twitter</a>
+                  <a href="https://tholman.com/" target="_blank" rel="noopener noreferrer" class="social-link website">Website</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Inspiration Section -->
+      <section class="credits-section inspiration">
+        <div class="container">
+          <div class="section-header">
+            <span class="icon">💡</span>
+            <h2>Inspiration</h2>
+          </div>
+
+          <div class="inspiration-grid">
+            <div class="inspiration-card">
+              <h3>Portal's Caroline</h3>
+              <p>
+                The name "Caro" draws inspiration from Caroline, the AI assistant in Valve's Portal series.
+                Like Caroline, Caro aims to be a helpful, loyal companion — but one that respects your
+                autonomy and keeps you safe.
+              </p>
+            </div>
+
+            <div class="inspiration-card">
+              <h3>Kyaro (The Real One!)</h3>
+              <p>
+                Meet IRL Kyaro (Kyarorain Kadosh) — the real-life inspiration for Caro's loyal companion spirit.
+                Follow her adventures on <a href="https://www.instagram.com/kyaroblackheart/" target="_blank" rel="noopener noreferrer">Instagram @kyaroblackheart</a> 🐕🖤
+              </p>
+            </div>
+
+            <div class="inspiration-card">
+              <h3>Open Source Community</h3>
+              <p>
+                Every contributor who has ever opened an issue, submitted a PR, answered a question,
+                or shared knowledge freely. The open source ethos makes projects like Caro possible.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Licenses Section -->
+      <section class="credits-section licenses">
+        <div class="container">
+          <div class="section-header">
+            <span class="icon">⚖️</span>
+            <h2>Open Source Licenses</h2>
+          </div>
+          <p class="section-description">
+            Caro is licensed under <a href="https://github.com/wildcard/caro/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">AGPL-3.0</a>.
+            We depend on many open source projects with various licenses:
+          </p>
+
+          <div class="license-grid">
+            <div class="license-category">
+              <h4>MIT License</h4>
+              <p>tokio, clap, indicatif, dialoguer, colored, tracing, reqwest, hyper, anyhow, thiserror, elevator.js, canvas-confetti</p>
+            </div>
+            <div class="license-category">
+              <h4>MIT OR Apache-2.0</h4>
+              <p>serde, serde_json, chrono, regex, once_cell, async-trait, futures</p>
+            </div>
+            <div class="license-category">
+              <h4>Apache-2.0</h4>
+              <p>Qwen models, tokenizers, hf-hub</p>
+            </div>
+            <div class="license-category">
+              <h4>MIT</h4>
+              <p>llama.cpp, MLX (Apple), Astro</p>
+            </div>
+          </div>
+
+          <p class="license-note">
+            For a complete list of dependencies and their licenses, run <code>cargo tree</code>
+            or check our <a href="https://github.com/wildcard/caro/blob/main/Cargo.lock" target="_blank" rel="noopener noreferrer">Cargo.lock</a>.
+          </p>
+        </div>
+      </section>
+
+      <!-- Final Thanks -->
+      <section class="credits-section finale">
+        <div class="container">
+          <div class="finale-content">
+            <h2>Thank You</h2>
+            <p class="finale-text">
+              To every developer who has contributed a line of code, filed a bug report,
+              answered a question, or simply used and shared these incredible projects —
+              <strong>thank you</strong>. Open source is a gift economy, and we're grateful
+              to be part of it.
+            </p>
+            <p class="finale-subtext">
+              If we've missed anyone or made any errors, please
+              <a href="https://github.com/wildcard/caro/issues/new" target="_blank" rel="noopener noreferrer">open an issue</a>
+              and let us know!
+            </p>
+            <div class="finale-cta">
+              <a href="https://github.com/wildcard/caro" class="cta-button" target="_blank" rel="noopener noreferrer">
+                Star Caro on GitHub
+              </a>
+            </div>
+            <p class="finale-signature">
+              — The Caro Team 🐕
+            </p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</Layout>
+
+<style>
+  .credits-page {
+    min-height: 100vh;
+    background: var(--color-bg);
+    transition: background-color 0.3s ease;
+  }
+
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  /* Hero Section with Star Wars-style crawl */
+  .credits-hero {
+    position: relative;
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    overflow: hidden;
+    padding: 80px 20px;
+  }
+
+  .stars, .twinkling {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .stars {
+    background: transparent url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><circle fill="%23FFF" cx="50" cy="50" r="1"/><circle fill="%23FFF" cx="100" cy="30" r="0.5"/><circle fill="%23FFF" cx="150" cy="80" r="1"/><circle fill="%23FFF" cx="30" cy="120" r="0.5"/><circle fill="%23FFF" cx="170" cy="150" r="1"/><circle fill="%23FFF" cx="80" cy="180" r="0.5"/></svg>') repeat;
+    background-size: 200px 200px;
+    animation: twinkle 5s ease-in-out infinite;
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  .credits-hero .container {
+    position: relative;
+    z-index: 1;
+  }
+
+  .crawl-text {
+    margin-bottom: 40px;
+  }
+
+  .crawl-text .episode {
+    color: #ffd700;
+    font-size: 14px;
+    letter-spacing: 4px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+
+  .crawl-text h1 {
+    color: #ffd700;
+    font-size: 72px;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: 8px;
+    text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+  }
+
+  .crawl-text .tagline {
+    color: #fff;
+    font-size: 24px;
+    margin-top: 20px;
+    font-style: italic;
+    opacity: 0.9;
+  }
+
+  .credits-hero .intro {
+    color: #e0e0e0;
+    font-size: 18px;
+    line-height: 1.8;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .credits-hero .intro strong {
+    color: #ff8c42;
+  }
+
+  /* Section Styles */
+  .credits-section {
+    padding: 80px 20px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .credits-section:last-child {
+    border-bottom: none;
+  }
+
+  .credits-section:nth-child(even) {
+    background: var(--color-bg-secondary);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .section-header h2 {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  .section-header .icon {
+    font-size: 36px;
+  }
+
+  .section-header .sparkle {
+    font-size: 24px;
+    color: #ffd700;
+  }
+
+  .section-description {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    max-width: 700px;
+    margin: 0 auto 50px;
+    line-height: 1.7;
+  }
+
+  /* Credits Grid */
+  .credits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+  }
+
+  /* Credit Cards */
+  .credit-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 30px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    display: flex;
+    gap: 20px;
+  }
+
+  .credit-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border-color: #ff8c42;
+  }
+
+  .credit-card.featured {
+    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+    border: 2px solid #ff8c42;
+  }
+
+  .credit-icon {
+    font-size: 40px;
+    flex-shrink: 0;
+  }
+
+  .credit-content h3 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0 0 8px;
+  }
+
+  .credit-content .role {
+    font-size: 14px;
+    color: #ff8c42;
+    font-weight: 600;
+    margin: 0 0 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .credit-content .description {
+    font-size: 15px;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin: 0 0 16px;
+  }
+
+  .credit-content .description a {
+    color: #ff8c42;
+    text-decoration: none;
+  }
+
+  .credit-content .description a:hover {
+    text-decoration: underline;
+  }
+
+  .credit-content code {
+    background: var(--color-bg-secondary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 14px;
+    color: #ff8c42;
+  }
+
+  /* Social Links */
+  .social-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .social-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    font-size: 13px;
+    color: var(--color-text);
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .social-link:hover {
+    background: #ff8c42;
+    color: #fff;
+    border-color: #ff8c42;
+  }
+
+  .social-link svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* More Crates Section */
+  .more-crates {
+    margin-top: 50px;
+    text-align: center;
+  }
+
+  .more-crates h3 {
+    font-size: 20px;
+    color: var(--color-text);
+    margin-bottom: 20px;
+  }
+
+  .crate-tags {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .crate-tag {
+    display: inline-block;
+    padding: 8px 16px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    font-size: 14px;
+    font-family: monospace;
+    color: var(--color-text-secondary);
+    transition: all 0.2s ease;
+  }
+
+  .crate-tag:hover {
+    border-color: #ff8c42;
+    color: #ff8c42;
+  }
+
+  /* Inspiration Section */
+  .inspiration-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+  }
+
+  .inspiration-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 30px;
+    text-align: center;
+  }
+
+  .inspiration-card h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0 0 16px;
+  }
+
+  .inspiration-card p {
+    font-size: 15px;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin: 0;
+  }
+
+  .inspiration-card a {
+    color: #ff8c42;
+    text-decoration: none;
+  }
+
+  .inspiration-card a:hover {
+    text-decoration: underline;
+  }
+
+  /* Licenses Section */
+  .license-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin: 40px 0;
+  }
+
+  .license-category {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .license-category h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #ff8c42;
+    margin: 0 0 12px;
+  }
+
+  .license-category p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin: 0;
+    font-family: monospace;
+  }
+
+  .license-note {
+    text-align: center;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .license-note code {
+    background: var(--color-bg-secondary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    color: #ff8c42;
+  }
+
+  .license-note a {
+    color: #ff8c42;
+    text-decoration: none;
+  }
+
+  .license-note a:hover {
+    text-decoration: underline;
+  }
+
+  /* Finale Section */
+  .finale {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%) !important;
+    color: #fff;
+    text-align: center;
+    padding: 100px 20px;
+  }
+
+  .finale-content h2 {
+    font-size: 48px;
+    font-weight: 800;
+    color: #ffd700;
+    margin: 0 0 30px;
+  }
+
+  .finale-text {
+    font-size: 20px;
+    line-height: 1.8;
+    max-width: 700px;
+    margin: 0 auto 20px;
+    color: #e0e0e0;
+  }
+
+  .finale-text strong {
+    color: #ff8c42;
+  }
+
+  .finale-subtext {
+    font-size: 16px;
+    color: #a0a0a0;
+    margin-bottom: 40px;
+  }
+
+  .finale-subtext a {
+    color: #ff8c42;
+    text-decoration: none;
+  }
+
+  .finale-subtext a:hover {
+    text-decoration: underline;
+  }
+
+  .finale-cta {
+    margin-bottom: 40px;
+  }
+
+  .cta-button {
+    display: inline-block;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    text-decoration: none;
+    border-radius: 30px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.4);
+  }
+
+  .finale-signature {
+    font-size: 20px;
+    font-style: italic;
+    color: #ff8c42;
+  }
+
+  /* Dark mode overrides */
+  :global(.dark) .credits-section:nth-child(even) {
+    background: var(--color-bg-secondary);
+  }
+
+  :global(.dark) .credit-card {
+    background: var(--color-bg-secondary);
+  }
+
+  :global(.dark) .credit-card.featured {
+    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg-secondary) 100%);
+  }
+
+  :global(.dark) .inspiration-card,
+  :global(.dark) .license-category {
+    background: var(--color-bg-secondary);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .crawl-text h1 {
+      font-size: 48px;
+      letter-spacing: 4px;
+    }
+
+    .crawl-text .tagline {
+      font-size: 18px;
+    }
+
+    .section-header h2 {
+      font-size: 28px;
+    }
+
+    .credit-card {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .social-links {
+      justify-content: center;
+    }
+
+    .finale-content h2 {
+      font-size: 36px;
+    }
+
+    .finale-text {
+      font-size: 17px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .crawl-text h1 {
+      font-size: 36px;
+    }
+
+    .section-header {
+      flex-direction: column;
+      gap: 8px;
+    }
+  }
+</style>
