@@ -174,14 +174,23 @@ export class TerminalTutorEngine {
       );
       onProgress?.(50);
 
-      // Read file as ArrayBuffer
+      // Read file as ArrayBuffer and convert to Uint8Array
+      // MediaPipe requires Uint8Array, not raw ArrayBuffer
       const arrayBuffer = await file.arrayBuffer();
+      const modelData = new Uint8Array(arrayBuffer);
       onProgress?.(70);
 
+      console.log('[LLMEngine] Model file loaded:', {
+        fileName: file.name,
+        fileSize: file.size,
+        bufferSize: modelData.byteLength,
+      });
+
       // Create LLM Inference instance
+      // IMPORTANT: modelAssetBuffer must be Uint8Array
       this.llmInference = await window.LlmInference.createFromOptions(genai, {
         baseOptions: {
-          modelAssetBuffer: arrayBuffer,
+          modelAssetBuffer: modelData,
         },
         maxTokens: this.options.maxTokens,
         topK: this.options.topK,
