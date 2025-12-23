@@ -3,98 +3,125 @@
 
 <footer>
   <div class="container">
-    <p>Built with Rust 🦀 | Open source on <a href="https://github.com/wildcard/caro">GitHub</a></p>
-    <p class="domain">
-      <strong>caro.sh</strong> 🧡 - Your loyal shell companion
-    </p>
-    <p class="links">
-      <a href="https://github.com/wildcard/caro/blob/main/LICENSE">AGPL-3.0</a> |
-      <a href="https://github.com/wildcard/caro/contribute">Contributing</a> |
-      <a href="https://github.com/wildcard/caro/issues">Issues</a>
-    </p>
-    <p class="kyaro-love">
-      Meet IRL Kyaro (Kyarorain Kadosh)! 🐕🖤<br>
-      Follow her adventures on <a href="https://www.instagram.com/kyaroblackheart/" target="_blank" rel="noopener noreferrer">Instagram @kyaroblackheart</a>
-    </p>
-    <p class="inspiration">
-      Inspired by Portal's Caroline—loyalty transformed into digital companionship
-    </p>
-    <p class="elevator-credit">
-      Scroll effect by <a href="https://tholman.com/elevator.js/" target="_blank" rel="noopener noreferrer">elevator.js</a>
-    </p>
+    <div class="footer-main">
+      <div class="footer-brand">
+        <span class="brand-name">Caro</span>
+        <span class="brand-tagline">Safe shell commands, locally.</span>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/wildcard/caro">GitHub</a>
+        <a href="https://github.com/wildcard/caro/blob/main/LICENSE">AGPL-3.0</a>
+        <a href="https://github.com/wildcard/caro/contribute">Contributing</a>
+        <a href="https://github.com/wildcard/caro/issues">Report Issue</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="built-with">Built with Rust. No telemetry. Ever.</p>
+      <p class="mascot-tribute">
+        Named after <a href="https://www.instagram.com/kyaroblackheart/" target="_blank" rel="noopener noreferrer">Kyaro</a>, the goodest office dog.
+        <a href="/blog/why-caro" class="story-link">Read her story →</a>
+      </p>
+    </div>
   </div>
 </footer>
 
 <style>
   footer {
-    text-align: center;
-    padding: 40px 20px;
+    padding: 50px 20px 30px;
     background: var(--color-footer-bg);
     color: var(--color-footer-text);
     transition: background 0.3s ease, color 0.3s ease;
   }
 
-  footer a {
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .footer-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 40px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .footer-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .brand-name {
+    font-size: 24px;
+    font-weight: 700;
     color: #ff8c42;
-    text-decoration: none;
-    transition: color 0.3s ease;
   }
 
-  footer a:hover {
-    text-decoration: underline;
-  }
-
-  .domain {
-    margin-top: 15px;
-    font-size: 16px;
-  }
-
-  .links {
-    margin-top: 10px;
+  .brand-tagline {
     font-size: 14px;
-    color: var(--color-links-muted);
-    transition: color 0.3s ease;
+    color: var(--color-footer-text-muted);
   }
 
-  .kyaro-love {
-    margin-top: 20px;
-    font-size: 15px;
+  .footer-links {
+    display: flex;
+    gap: 24px;
+  }
+
+  .footer-links a {
     color: var(--color-footer-text);
-    font-weight: 500;
-    transition: color 0.3s ease;
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.2s;
   }
 
-  .kyaro-love a {
+  .footer-links a:hover {
     color: #ff8c42;
-    font-weight: 600;
   }
 
-  .inspiration {
-    margin-top: 10px;
+  .footer-bottom {
+    text-align: center;
+  }
+
+  .built-with {
     font-size: 13px;
     color: var(--color-footer-text-muted);
-    font-style: italic;
-    transition: color 0.3s ease;
+    margin-bottom: 12px;
   }
 
-  .elevator-credit {
-    margin-top: 8px;
-    font-size: 12px;
+  .mascot-tribute {
+    font-size: 13px;
     color: var(--color-footer-text-muted);
-    opacity: 0.7;
-    transition: color 0.3s ease, opacity 0.3s ease;
   }
 
-  .elevator-credit:hover {
-    opacity: 1;
+  .mascot-tribute a {
+    color: var(--color-footer-text);
+    text-decoration: none;
+    transition: color 0.2s;
   }
 
-  .elevator-credit a {
-    color: var(--color-links-muted);
-    font-size: 12px;
-  }
-
-  .elevator-credit a:hover {
+  .mascot-tribute a:hover {
     color: #ff8c42;
+  }
+
+  .story-link {
+    margin-left: 8px;
+    color: #ff8c42 !important;
+  }
+
+  @media (max-width: 768px) {
+    .footer-main {
+      flex-direction: column;
+      gap: 24px;
+      align-items: center;
+      text-align: center;
+    }
+
+    .footer-links {
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+    }
   }
 </style>

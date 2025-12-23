@@ -1,44 +1,174 @@
 ---
 ---
 
-<div class="container">
-  <div class="terminal">
-    <div class="terminal-header">
-      <div class="terminal-dot red"></div>
-      <div class="terminal-dot yellow"></div>
-      <div class="terminal-dot green"></div>
+<section id="demo" class="demo-section">
+  <div class="container">
+    <h2>See It In Action</h2>
+    <p class="section-subtitle">Natural language in. Safe, working commands out.</p>
+
+    <div class="demo-grid">
+      <!-- Scenario 1: Dangerous command prevention -->
+      <div class="scenario">
+        <div class="scenario-label danger-label">The Close Call</div>
+        <div class="terminal">
+          <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">Production Server - 2:47 AM</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-prompt">$</span>
+            <span class="terminal-command"> caro "delete all log files"</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-caro">Caro:</span>
+            <span class="terminal-output"> find /var/log -name "*.log" -mtime +30 -delete</span>
+          </div>
+          <div class="terminal-line warning-line">
+            <span class="terminal-warning">! High Risk: Recursive delete in system directory</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-info">Suggestion: Add -mtime +30 to only remove logs older than 30 days</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-prompt">Run this command? [y/N]</span>
+          </div>
+        </div>
+        <p class="scenario-caption">Caro warns you before you wipe critical logs</p>
+      </div>
+
+      <!-- Scenario 2: Cross-platform command generation -->
+      <div class="scenario">
+        <div class="scenario-label success-label">The Syntax Save</div>
+        <div class="terminal">
+          <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">Your Terminal</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-prompt">$</span>
+            <span class="terminal-command"> caro "find python files modified in the last 7 days"</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-caro">Caro:</span>
+            <span class="terminal-output"> find . -name "*.py" -type f -mtime -7</span>
+          </div>
+          <div class="terminal-line safe-line">
+            <span class="terminal-safe">✓ Safe to run on your macOS system</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-dim"># Adjusted for BSD find (would use -mtime 7 on GNU/Linux)</span>
+          </div>
+        </div>
+        <p class="scenario-caption">Platform-aware commands that work the first time</p>
+      </div>
     </div>
-    <div class="terminal-line">
-      <span class="terminal-prompt">$</span>
-      <span class="terminal-command"> caro "find python files modified in the last 7 days"</span>
-    </div>
-    <div class="terminal-line">
-      <span class="terminal-caro">🐕 Caro:</span>
-      <span class="terminal-output"> find . -name "*.py" -type f -mtime -7</span>
-    </div>
-    <div class="terminal-line">
-      <span class="terminal-safe">✓ Safe to run on your macOS system</span>
+
+    <!-- Blocked command showcase -->
+    <div class="blocked-showcase">
+      <h3>Commands Caro Blocks Before You Can Run Them</h3>
+      <div class="blocked-commands">
+        <code class="blocked">rm -rf /</code>
+        <code class="blocked">rm -rf ~</code>
+        <code class="blocked">:()&#123; :|:& &#125;;:</code>
+        <code class="blocked">dd if=/dev/zero of=/dev/sda</code>
+        <code class="blocked">chmod -R 777 /</code>
+        <code class="blocked">mkfs.ext4 /dev/sda1</code>
+      </div>
+      <p class="blocked-caption">52+ dangerous patterns detected and blocked automatically</p>
     </div>
   </div>
-</div>
+</section>
 
 <style>
+  .demo-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  h2 {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  h3 {
+    font-size: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    margin-bottom: 50px;
+  }
+
+  .demo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 30px;
+    margin-bottom: 60px;
+  }
+
+  .scenario {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .scenario-label {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    align-self: flex-start;
+  }
+
+  .danger-label {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
+  .success-label {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+
   .terminal {
-    background: #1e1e1e;
-    border-radius: 8px;
+    background: #1a1a2e;
+    border-radius: 12px;
     padding: 20px;
-    margin: 40px auto;
-    max-width: 700px;
-    font-family: 'Monaco', 'Courier New', monospace;
-    font-size: 14px;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Courier New', monospace;
+    font-size: 13px;
     color: #d4d4d4;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    flex-grow: 1;
   }
 
   .terminal-header {
     display: flex;
+    align-items: center;
     gap: 8px;
-    margin-bottom: 15px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .terminal-dot {
@@ -51,8 +181,16 @@
   .terminal-dot.yellow { background: #ffbd2e; }
   .terminal-dot.green { background: #27c93f; }
 
+  .terminal-title {
+    margin-left: auto;
+    font-size: 11px;
+    color: #666;
+    font-family: system-ui, sans-serif;
+  }
+
   .terminal-line {
-    margin: 8px 0;
+    margin: 10px 0;
+    line-height: 1.5;
   }
 
   .terminal-prompt {
@@ -69,9 +207,102 @@
 
   .terminal-caro {
     color: #ff8c42;
+    font-weight: 600;
   }
 
   .terminal-safe {
-    color: #6a9955;
+    color: #22c55e;
+  }
+
+  .terminal-warning {
+    color: #f59e0b;
+  }
+
+  .terminal-info {
+    color: #60a5fa;
+    font-size: 12px;
+  }
+
+  .terminal-dim {
+    color: #666;
+    font-size: 12px;
+  }
+
+  .warning-line {
+    background: rgba(245, 158, 11, 0.1);
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin: 12px 0;
+  }
+
+  .safe-line {
+    background: rgba(34, 197, 94, 0.1);
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin: 12px 0;
+  }
+
+  .scenario-caption {
+    margin-top: 12px;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    text-align: center;
+  }
+
+  .blocked-showcase {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(239, 68, 68, 0.02) 100%);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+  }
+
+  .blocked-commands {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .blocked {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Courier New', monospace;
+    font-size: 13px;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
+  .blocked-caption {
+    color: var(--color-text-secondary);
+    font-size: 14px;
+  }
+
+  @media (max-width: 960px) {
+    .demo-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 28px;
+    }
+
+    .terminal {
+      font-size: 11px;
+      padding: 16px;
+    }
+
+    .blocked-showcase {
+      padding: 24px 16px;
+    }
+
+    .blocked {
+      font-size: 11px;
+      padding: 6px 12px;
+    }
   }
 </style>

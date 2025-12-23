@@ -2,194 +2,115 @@
 const features = [
   {
     icon: "🛡️",
-    title: "Safety Guardian",
-    description: "Comprehensive validation blocks dangerous commands like rm -rf /, fork bombs, and destructive operations. 52 predefined safety patterns with risk-level assessment.",
-    status: "implemented",
-    statusLabel: "Available Now"
+    title: "Never Nuke Production Again",
+    description: "Blocks rm -rf /, fork bombs, and 50+ other career-ending commands BEFORE you can run them. Your 2 AM self will thank you.",
+    highlight: true
   },
   {
-    icon: "🌍",
-    title: "Cross-Platform Expert",
-    description: "Works across macOS, Linux, Windows, GNU, and BSD. Understands platform-specific nuances and respects your distribution of choice.",
-    status: "implemented",
-    statusLabel: "Available Now"
-  },
-  {
-    icon: "🧠",
-    title: "Platform-Aware",
-    description: "Provides recommendations based on your platform capabilities and best practices. Distinguishes between BSD and GNU command syntax automatically.",
-    status: "implemented",
-    statusLabel: "Available Now"
+    icon: "🔒",
+    title: "Your Data Stays Yours",
+    description: "Zero telemetry. Zero cloud API calls. Run in air-gapped networks. Pass any compliance audit. Your commands never leave your machine.",
+    highlight: true
   },
   {
     icon: "✅",
-    title: "POSIX Specialist",
-    description: "Expert in POSIX-compliant shell commands that work reliably across systems. Portable, safe, and optimized for your terminal.",
-    status: "implemented",
-    statusLabel: "Available Now"
+    title: "Commands That Actually Work",
+    description: "Generates commands that work on your Mac, your Linux server, and your coworker's BSD box. First time. Every time.",
+    highlight: false
   },
   {
     icon: "⚡",
-    title: "Lightning Fast",
-    description: "Target: Sub-100ms startup, sub-2s inference on Apple Silicon. MLX framework integration for GPU acceleration on M-series chips.",
-    status: "in-progress",
-    statusLabel: "In Development"
+    title: "Fast Enough to Not Break Flow",
+    description: "Sub-2s inference on Apple Silicon. No waiting for cloud APIs. No wondering if the server is down. Just answers.",
+    highlight: false
   },
-  {
-    icon: "🤝",
-    title: "Claude's Companion",
-    description: "Vision: Seamless integration with Claude as an MCP server and Skill, offloading shell command inference while Claude focuses on your broader work.",
-    status: "planned",
-    statusLabel: "Planned"
-  }
 ];
 ---
 
 <section id="features">
   <div class="container">
-    <h2>Why Caro?</h2>
-    <p class="section-subtitle">A companion agent built for safety, empathy, and expertise</p>
-    <p class="alpha-notice"><span aria-hidden="true">🚧</span> <strong>Soft Launch Alpha</strong> — We're actively building with our community. Join us to help shape Caro's future!</p>
+    <h2>Commands That Work. Mistakes That Don't.</h2>
+    <p class="section-subtitle">Built for engineers who can't afford to get it wrong</p>
+
     <div class="features">
       {features.map((feature) => (
-        <div class={`feature feature-${feature.status}`}>
-          <div class="feature-header">
-            <div class="feature-icon">{feature.icon}</div>
-            <span
-              class={`status-badge status-${feature.status}`}
-              role="status"
-              aria-label={`Status: ${feature.statusLabel}`}
-            >
-              {feature.statusLabel}
-            </span>
-          </div>
+        <div class={`feature ${feature.highlight ? 'feature-highlight' : ''}`}>
+          <div class="feature-icon">{feature.icon}</div>
           <h3>{feature.title}</h3>
           <p>{feature.description}</p>
         </div>
       ))}
     </div>
+
+    <div class="feature-cta">
+      <p class="cta-text">See exactly what Caro blocks and why</p>
+      <a href="#demo" class="cta-link">View safety patterns →</a>
+    </div>
   </div>
 </section>
 
 <style>
-  .alpha-notice {
-    text-align: center;
-    margin: 20px auto 0;
-    padding: 16px 24px;
-    background: rgba(255, 140, 66, 0.1);
-    border: 1px solid rgba(255, 140, 66, 0.3);
-    border-radius: 8px;
-    color: var(--color-text);
-    max-width: 700px;
-    font-size: 15px;
-    line-height: 1.6;
+  section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
   }
 
-  :global(.dark) .alpha-notice {
-    background: rgba(255, 140, 66, 0.15);
-    border-color: rgba(255, 140, 66, 0.4);
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  h2 {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 12px;
+    color: var(--color-text);
+    transition: color 0.3s ease;
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    margin-bottom: 50px;
   }
 
   .features {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 40px;
-    margin-top: 40px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
   }
 
   .feature {
-    text-align: center;
-    padding: 30px;
+    padding: 32px;
     border-radius: 12px;
     background: var(--color-bg);
-    transition: transform 0.2s, box-shadow 0.2s, background 0.3s ease, border-color 0.3s ease;
     border: 1px solid var(--color-border);
+    transition: transform 0.2s, box-shadow 0.2s, background 0.3s ease, border-color 0.3s ease;
   }
 
   .feature:hover {
     transform: translateY(-4px);
-    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     border-color: #ff8c42;
   }
 
   :global(.dark) .feature:hover {
-    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.2);
+    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.15);
   }
 
-  .feature-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
+  .feature-highlight {
+    border-color: rgba(255, 140, 66, 0.3);
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.03) 0%, var(--color-bg) 100%);
   }
 
   .feature-icon {
-    font-size: 48px;
-  }
-
-  .status-badge {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    transition: all 0.3s ease;
-  }
-
-  .status-implemented {
-    background: rgba(34, 197, 94, 0.15);
-    color: #22c55e;
-    border: 1px solid rgba(34, 197, 94, 0.3);
-  }
-
-  :global(.dark) .status-implemented {
-    background: rgba(34, 197, 94, 0.2);
-    border-color: rgba(34, 197, 94, 0.4);
-  }
-
-  :root {
-    --status-in-progress-bg: rgba(59, 130, 246, 0.15);
-    --status-in-progress-border: rgba(59, 130, 246, 0.3);
-    --status-in-progress-color: #3b82f6;
-
-    --status-planned-bg: rgba(168, 85, 247, 0.15);
-    --status-planned-border: rgba(168, 85, 247, 0.3);
-    --status-planned-color: #a855f7;
-  }
-
-  :global(.dark) {
-    --status-in-progress-bg: rgba(59, 130, 246, 0.2);
-    --status-in-progress-border: rgba(59, 130, 246, 0.4);
-
-    --status-planned-bg: rgba(168, 85, 247, 0.2);
-    --status-planned-border: rgba(168, 85, 247, 0.4);
-  }
-
-  .status-in-progress {
-    background: var(--status-in-progress-bg);
-    color: var(--status-in-progress-color);
-    border: 1px solid var(--status-in-progress-border);
-  }
-
-  .status-planned {
-    background: var(--status-planned-bg);
-    color: var(--status-planned-color);
-    border: 1px solid var(--status-planned-border);
-  }
-
-  .feature-planned {
-    opacity: 0.85;
-  }
-
-  .feature-planned:hover {
-    opacity: 1;
+    font-size: 40px;
+    margin-bottom: 16px;
   }
 
   .feature h3 {
-    font-size: 22px;
+    font-size: 20px;
     margin-bottom: 12px;
     color: var(--color-text);
     transition: color 0.3s ease;
@@ -198,12 +119,44 @@ const features = [
   .feature p {
     color: var(--color-text-secondary);
     line-height: 1.7;
+    font-size: 15px;
     transition: color 0.3s ease;
   }
 
+  .feature-cta {
+    text-align: center;
+    margin-top: 50px;
+  }
+
+  .cta-text {
+    color: var(--color-text-secondary);
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+
+  .cta-link {
+    color: #ff8c42;
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 16px;
+    transition: opacity 0.2s;
+  }
+
+  .cta-link:hover {
+    opacity: 0.8;
+  }
+
   @media (max-width: 768px) {
+    h2 {
+      font-size: 28px;
+    }
+
     .features {
       grid-template-columns: 1fr;
+    }
+
+    .feature {
+      padding: 24px;
     }
   }
 </style>

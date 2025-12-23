@@ -1,33 +1,25 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import AnnouncementBanner from '../components/AnnouncementBanner.astro';
 import Navigation from '../components/Navigation.astro';
 import Hero from '../components/Hero.astro';
 import Terminal from '../components/Terminal.astro';
-import Story from '../components/Story.astro';
-import Video from '../components/Video.astro';
+import UseCases from '../components/UseCases.astro';
 import Features from '../components/Features.astro';
 import Comparison from '../components/Comparison.astro';
-import CaroGame from '../components/CaroGame.astro';
-import Blog from '../components/Blog.astro';
 import Download from '../components/Download.astro';
 import Footer from '../components/Footer.astro';
 ---
 
 <Layout
-  title="Caro - Your loyal shell companion"
-  description="Caro is a companion agent that helps you with POSIX shell commands. Available as an MCP for Claude and as a dedicated Skill."
+  title="Caro - AI Shell Commands Without The Risk"
+  description="Generate safe shell commands with AI that runs 100% locally. Caro blocks dangerous patterns like rm -rf before you can execute them. Zero telemetry, zero cloud APIs."
 >
-  <AnnouncementBanner />
   <Navigation />
   <Hero />
   <Terminal />
-  <Story />
-  <Video />
+  <UseCases />
   <Features />
   <Comparison />
-  <CaroGame />
-  <Blog />
   <Download />
   <Footer />
 </Layout>

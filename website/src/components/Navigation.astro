@@ -5,11 +5,11 @@
   <div class="container">
     <a href="/" class="nav-brand">🐕 Caro</a>
     <ul class="nav-links">
+      <li><a href="/#demo">Demo</a></li>
       <li><a href="/#features">Features</a></li>
       <li><a href="/compare">Compare</a></li>
-      <li><a href="/#game">Play</a></li>
-      <li><a href="/#blog">Blog</a></li>
-      <li><a href="/#download">Get Started</a></li>
+      <li><a href="/blog">Blog</a></li>
+      <li><a href="/#download" class="nav-cta">Get Started</a></li>
       <li><a href="https://github.com/wildcard/caro" target="_blank" rel="noopener noreferrer">GitHub</a></li>
       <li id="holiday-theme-container" class="holiday-theme-container hidden">
         <button id="holiday-toggle" class="holiday-toggle" aria-label="Toggle holiday theme menu" title="Holiday Theme">
@@ -125,6 +125,19 @@
 
   .nav-links a:hover {
     color: #ff8c42;
+  }
+
+  .nav-links a.nav-cta {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+
+  .nav-links a.nav-cta:hover {
+    color: white;
+    opacity: 0.9;
   }
 
   /* Dark mode toggle button */

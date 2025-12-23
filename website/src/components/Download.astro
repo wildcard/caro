@@ -3,59 +3,43 @@
 
 <section id="download" class="download-section">
   <div class="container">
-    <h2>Get Started with Caro</h2>
-    <p class="section-subtitle">Bring your loyal shell companion to your terminal</p>
+    <h2>Try Caro in 30 Seconds</h2>
+    <p class="section-subtitle">No account. No API key. No data collection. Just safer shell commands.</p>
 
     <div class="install-command">
       <code>bash &lt;(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)</code>
       <button class="copy-button" data-command="bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)">Copy</button>
     </div>
 
-    <p style="margin: 20px 0;">Or download pre-built binaries: <span class="coming-soon-inline">Coming Soon</span></p>
-
-    <div class="download-options">
-      <span class="download-link disabled">macOS (Apple Silicon)</span>
-      <span class="download-link disabled">macOS (Intel)</span>
-      <span class="download-link disabled">Linux (x86_64)</span>
-      <span class="download-link disabled">Windows</span>
+    <div class="quick-start">
+      <p class="then-run">Then run:</p>
+      <div class="example-command">
+        <code>caro "find files modified in the last 7 days"</code>
+      </div>
     </div>
 
-    <div class="usage-modes">
-      <h3>Multiple Ways to Use Caro</h3>
-
-      <div class="modes-grid">
-        <div class="mode-card">
-          <h4>🔧 Standalone CLI</h4>
-          <div class="mode-command">
-            caro "list files &gt; 100MB"
-          </div>
-        </div>
-
-        <div class="mode-card">
-          <h4>🔌 MCP for Claude <span class="coming-soon">Coming Soon</span></h4>
-          <p>
-            Add Caro as an MCP server to Claude Desktop and let her handle all shell commands seamlessly.
-          </p>
-        </div>
-
-        <div class="mode-card">
-          <h4>✨ Dedicated Skill <span class="coming-soon">Coming Soon</span></h4>
-          <p>
-            Use Caro as a Skill to offload shell command generation and execution while Claude focuses on your work.
-          </p>
-        </div>
+    <div class="trust-points">
+      <div class="trust-point">
+        <span class="check">✓</span>
+        <span>Installs to ~/.cargo/bin</span>
       </div>
-
-      <div class="quick-start">
-        <h3>Quick Start</h3>
-        <div class="quick-start-steps">
-          <p>After running the setup script above, just use Caro:</p>
-          <div class="quick-start-command">
-            caro "find all python files modified in the last 7 days"
-          </div>
-          <p>Caro will generate the command and keep you safe. The setup script handles all prerequisites including Rust compilation.</p>
-        </div>
+      <div class="trust-point">
+        <span class="check">✓</span>
+        <span>Single binary, no dependencies</span>
       </div>
+      <div class="trust-point">
+        <span class="check">✓</span>
+        <span>Uninstall anytime: cargo uninstall caro</span>
+      </div>
+    </div>
+
+    <div class="source-note">
+      <p>
+        Prefer to build from source?
+        <a href="https://github.com/wildcard/caro#installation" target="_blank" rel="noopener noreferrer">
+          See all installation options →
+        </a>
+      </p>
     </div>
   </div>
 </section>
@@ -65,41 +49,52 @@
     background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
     color: white;
     text-align: center;
+    padding: 80px 20px;
   }
 
-  .download-section h2 {
-    color: white;
+  .container {
+    max-width: 700px;
+    margin: 0 auto;
   }
 
-  .download-section .section-subtitle {
+  h2 {
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+
+  .section-subtitle {
+    font-size: 18px;
     color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 40px;
   }
 
   .install-command {
     background: rgba(0, 0, 0, 0.3);
-    padding: 20px 30px;
+    padding: 20px 24px;
     border-radius: 8px;
-    font-family: 'Monaco', 'Courier New', monospace;
-    font-size: 16px;
-    margin: 30px auto;
-    max-width: 600px;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Courier New', monospace;
+    font-size: 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 16px;
   }
 
   .install-command code {
     color: #fff;
+    text-align: left;
   }
 
   .copy-button {
+    flex-shrink: 0;
     background: rgba(255, 255, 255, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.3);
     color: white;
-    padding: 8px 16px;
+    padding: 8px 20px;
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
+    font-weight: 600;
     transition: background 0.2s;
   }
 
@@ -107,130 +102,91 @@
     background: rgba(255, 255, 255, 0.3);
   }
 
-  .download-options {
-    margin-top: 40px;
-    display: flex;
-    gap: 20px;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  .download-link {
-    background: white;
-    color: #ff6b35;
-    padding: 14px 30px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: transform 0.2s;
-  }
-
-  .download-link:hover {
-    transform: translateY(-2px);
-  }
-
-  .download-link.disabled {
-    background: rgba(255, 255, 255, 0.3);
-    color: rgba(255, 255, 255, 0.6);
-    cursor: not-allowed;
-    opacity: 0.6;
-  }
-
-  .download-link.disabled:hover {
-    transform: none;
-  }
-
-  .coming-soon-inline {
-    font-size: 14px;
-    background: rgba(255, 255, 255, 0.3);
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-weight: 500;
-    white-space: nowrap;
-  }
-
-  .usage-modes {
-    margin-top: 60px;
-    padding-top: 40px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-  }
-
-  .usage-modes h3 {
-    margin-bottom: 30px;
-    font-size: 28px;
-  }
-
-  .modes-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 30px;
+  .quick-start {
     margin-top: 30px;
   }
 
-  .mode-card {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 25px;
-    border-radius: 8px;
-  }
-
-  .mode-card h4 {
-    margin-bottom: 15px;
-    font-size: 20px;
-  }
-
-  .mode-card p {
+  .then-run {
     font-size: 15px;
-    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 12px;
   }
 
-  .mode-command {
-    background: rgba(0, 0, 0, 0.3);
-    padding: 12px;
+  .example-command {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 16px 24px;
     border-radius: 6px;
-    margin: 15px 0;
-    font-family: monospace;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Courier New', monospace;
     font-size: 14px;
-    text-align: left;
   }
 
-  .quick-start {
-    margin-top: 50px;
-    text-align: left;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
+  .trust-points {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-top: 40px;
+    flex-wrap: wrap;
   }
 
-  .quick-start h3 {
-    margin-bottom: 20px;
-    text-align: center;
+  .trust-point {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
   }
 
-  .quick-start-steps {
-    font-size: 16px;
-    line-height: 1.8;
+  .check {
+    color: #fff;
+    font-weight: 600;
   }
 
-  .quick-start-steps p {
-    margin-bottom: 15px;
+  .source-note {
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
   }
 
-  .quick-start-command {
-    background: rgba(0, 0, 0, 0.3);
-    padding: 15px;
-    border-radius: 6px;
-    margin: 15px 0;
-    font-family: monospace;
+  .source-note p {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
   }
 
-  .coming-soon {
-    font-size: 12px;
-    background: rgba(255, 255, 255, 0.3);
-    padding: 3px 8px;
-    border-radius: 12px;
+  .source-note a {
+    color: white;
+    text-decoration: underline;
     font-weight: 500;
-    margin-left: 8px;
-    white-space: nowrap;
+  }
+
+  .source-note a:hover {
+    text-decoration: none;
+  }
+
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 28px;
+    }
+
+    .install-command {
+      flex-direction: column;
+      gap: 16px;
+      padding: 20px;
+    }
+
+    .install-command code {
+      font-size: 12px;
+      word-break: break-all;
+    }
+
+    .copy-button {
+      width: 100%;
+    }
+
+    .trust-points {
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+    }
   }
 </style>
 
