@@ -10,8 +10,8 @@ This skill integrates [Caro](https://github.com/wildcard/caro) (formerly cmdai) 
 - 🔍 **Automatic activation** when you need shell command help
 - 🛡️ **Safety-first guidance** through 4-tier risk assessment
 - 📚 **POSIX compliance education** for portable scripts
-- 🚀 **Seamless integration** with existing Caro installations
-- ⚙️ **Installation assistance** when Caro is not available
+- 🚀 **Seamless integration** with existing caro installations
+- ⚙️ **Installation assistance** when caro is not available
 
 ## Installation
 
@@ -113,10 +113,10 @@ The skill works best with [Caro](https://github.com/wildcard/caro) installed:
 bash <(curl -sSfL https://setup.caro.sh)
 
 # Or via cargo
-cargo install Caro
+cargo install caro
 ```
 
-**Without Caro:** The skill still provides guidance and education about shell commands, but won't generate commands via LLM.
+**Without caro:** The skill still provides guidance and education about shell commands, but won't generate commands via LLM.
 
 ## Usage Examples
 

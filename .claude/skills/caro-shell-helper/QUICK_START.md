@@ -14,7 +14,7 @@ That's it! The skill is now active in your Claude Code session.
 
 ### Step 2: (Optional) Install Caro CLI
 
-The skill works best when Caro is installed on your system:
+The skill works best when caro is installed on your system:
 
 **Quick Install (Recommended):**
 ```bash
@@ -31,7 +31,7 @@ cargo install caro
 caro --version
 ```
 
-> **Note:** The skill still works without Caro installed—it provides educational guidance and validation. But with Caro installed, you get full LLM-powered command generation.
+> **Note:** The skill still works without caro installed—it provides educational guidance and validation. But with caro installed, you get full LLM-powered command generation.
 
 ## Testing the Skill
 
@@ -45,7 +45,7 @@ How do I find all PDF files larger than 10MB?
 
 **Expected behavior:**
 - ✅ The skill automatically activates (you'll see guidance about Caro)
-- ✅ Claude checks if Caro is installed
+- ✅ Claude checks if caro is installed
 - ✅ If installed: generates the command using `caro`
 - ✅ If not installed: provides installation guidance
 - ✅ Explains the safety level (should be Green/Safe for this query)
@@ -104,13 +104,13 @@ The skill is working correctly if you see:
 2. **Risk assessment**: Commands are labeled with safety levels (🟢 🟡 🟠 🔴)
 3. **POSIX awareness**: Claude mentions portability or POSIX compliance
 4. **Educational tone**: Explanations of what commands do and why they're safe/unsafe
-5. **Installation guidance**: If Caro isn't installed, Claude offers installation steps
+5. **Installation guidance**: If caro isn't installed, Claude offers installation steps
 
 ## Troubleshooting
 
 ### Skill Not Activating
 
-**Problem:** You ask about shell commands but don't see Caro-specific guidance.
+**Problem:** You ask about shell commands but don't see caro-specific guidance.
 
 **Solution:**
 ```bash
@@ -127,7 +127,7 @@ ls ~/.claude/skills/caro-shell-helper/
 
 ### Caro Not Found
 
-**Problem:** Skill activates but says Caro isn't installed.
+**Problem:** Skill activates but says caro isn't installed.
 
 **Solution:**
 ```bash
@@ -188,7 +188,7 @@ Claude: [Suggests -exec rm -i or preview with -ls first]
 
 - **Explore safety features**: Try asking about potentially dangerous operations
 - **Learn POSIX compliance**: Ask about bash vs POSIX differences
-- **Configure Caro**: Customize `~/.config/caro/config.toml` for your preferences
+- **Configure caro**: Customize `~/.config/caro/config.toml` for your preferences
 - **Read documentation**: Check out the full [SKILL.md](SKILL.md) for all features
 
 ## Getting Help
@@ -202,7 +202,7 @@ Claude: [Suggests -exec rm -i or preview with -ls first]
 ✅ **Install**: `/plugin install wildcard/caro` in Claude Code
 ✅ **Test**: Ask "How do I find large files?"
 ✅ **Verify**: Look for safety levels and POSIX guidance
-✅ **Optional**: Install Caro CLI with `cargo install caro`
+✅ **Optional**: Install caro CLI with `cargo install caro`
 ✅ **Explore**: Try different command types and safety scenarios
 
 Welcome to safer, smarter shell command generation with Caro! 🐕
