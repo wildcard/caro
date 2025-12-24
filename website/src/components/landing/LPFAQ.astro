@@ -1,0 +1,208 @@
+---
+/**
+ * Common Concerns / FAQ - Address developer skepticism directly
+ * Based on real concerns from community discussions
+ */
+
+const concerns = [
+  {
+    question: "Wait, Caro runs locally. How does it stay updated with new dangerous patterns?",
+    answer: "Caro's safety patterns are baked into the binary—no network needed. When you update Caro (cargo install caro --force), you get the latest patterns. The core dangerous commands (rm -rf /, fork bombs, disk wipers) don't change. We also accept pattern contributions via GitHub.",
+    icon: "🔄"
+  },
+  {
+    question: "Will this slow down my incident response?",
+    answer: "No. Caro adds <100ms to command generation. The safety check is instant (pattern matching, not AI inference). In a real incident, that's 100ms that might save you from making things 10x worse. The validation is synchronous—you see the warning immediately.",
+    icon: "⚡"
+  },
+  {
+    question: "How does it know my specific system setup (BSD vs GNU, etc.)?",
+    answer: "Caro detects your OS and shell at runtime. On macOS, it knows you're using BSD tools. On Linux, it adjusts for GNU syntax. It reads your $SHELL and adjusts accordingly. No configuration needed—it just works.",
+    icon: "🖥️"
+  },
+  {
+    question: "What if I actually NEED to run a dangerous command?",
+    answer: "Caro warns, it doesn't jail. When you see a warning, you can still proceed—we just make sure you're doing it intentionally. For truly destructive commands (rm -rf /), you'll need to confirm. This is your seatbelt, not a straitjacket.",
+    icon: "🔓"
+  },
+  {
+    question: "Is this just another AI wrapper that sends my commands to the cloud?",
+    answer: "No. Caro runs 100% locally. Your commands, file paths, server names, and directory structures never leave your machine. The inference happens on your hardware. We have zero telemetry. Check the source code—it's AGPL-3.0 licensed.",
+    icon: "🔒"
+  },
+  {
+    question: "Why should I trust AI-generated shell commands at all?",
+    answer: "You shouldn't trust them blindly—that's the point. Caro generates commands AND validates them before you run them. It's not 'trust the AI'—it's 'trust the pattern-based safety layer that catches what the AI might get wrong.' The validation is deterministic, not probabilistic.",
+    icon: "🎯"
+  }
+];
+---
+
+<section id="faq" class="faq-section">
+  <div class="container">
+    <h2>Common Concerns</h2>
+    <p class="section-subtitle">Real questions from skeptical engineers (we get it)</p>
+
+    <div class="faq-grid">
+      {concerns.map((item) => (
+        <details class="faq-item">
+          <summary class="faq-question">
+            <span class="faq-icon">{item.icon}</span>
+            <span class="faq-text">{item.question}</span>
+            <span class="faq-toggle">+</span>
+          </summary>
+          <div class="faq-answer">
+            <p>{item.answer}</p>
+          </div>
+        </details>
+      ))}
+    </div>
+
+    <div class="faq-cta">
+      <p>Still skeptical? Good—you should be.</p>
+      <a href="https://github.com/wildcard/caro" class="cta-link" target="_blank" rel="noopener noreferrer">
+        Read the source code →
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  h2 {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    margin-bottom: 50px;
+  }
+
+  .faq-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .faq-item {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .faq-item:hover {
+    border-color: rgba(255, 140, 66, 0.3);
+  }
+
+  .faq-item[open] {
+    border-color: #ff8c42;
+  }
+
+  .faq-question {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px 24px;
+    cursor: pointer;
+    list-style: none;
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  .faq-question::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+
+  .faq-text {
+    flex-grow: 1;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .faq-toggle {
+    flex-shrink: 0;
+    font-size: 24px;
+    color: var(--color-text-secondary);
+    transition: transform 0.2s;
+  }
+
+  .faq-item[open] .faq-toggle {
+    transform: rotate(45deg);
+  }
+
+  .faq-answer {
+    padding: 0 24px 24px 62px;
+  }
+
+  .faq-answer p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  .faq-cta {
+    text-align: center;
+    margin-top: 50px;
+    padding: 32px;
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.08) 0%, rgba(255, 107, 53, 0.04) 100%);
+    border: 1px solid rgba(255, 140, 66, 0.2);
+    border-radius: 12px;
+  }
+
+  .faq-cta p {
+    font-size: 16px;
+    color: var(--color-text);
+    margin-bottom: 12px;
+  }
+
+  .cta-link {
+    color: #ff8c42;
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 16px;
+  }
+
+  .cta-link:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 28px;
+    }
+
+    .faq-question {
+      padding: 16px 18px;
+    }
+
+    .faq-answer {
+      padding: 0 18px 20px 18px;
+    }
+
+    .faq-icon {
+      display: none;
+    }
+  }
+</style>
