@@ -1,0 +1,26 @@
+---
+import DailyPickLayout from '../../../layouts/DailyPickLayout.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const dailyPicks = await getCollection('daily-picks');
+  return dailyPicks.map(pick => ({
+    params: { slug: pick.slug },
+    props: { pick }
+  }));
+}
+
+const { pick } = Astro.props;
+const { Content } = await pick.render();
+---
+
+<DailyPickLayout
+  title={pick.data.title}
+  type={pick.data.type}
+  publishedAt={pick.data.publishedAt}
+  socialText={pick.data.socialText}
+  hashtags={pick.data.hashtags}
+  source={pick.data.source}
+>
+  <Content />
+</DailyPickLayout>
