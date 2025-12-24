@@ -1,0 +1,92 @@
+---
+import Layout from './Layout.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<Layout title={`${title} | Caro Learn`} description={description}>
+  <div class="learn-container">
+    <nav class="learn-nav">
+      <a href="/learn" class="nav-logo">Learn</a>
+      <div class="nav-links">
+        <a href="/learn/commands">Commands</a>
+        <a href="/learn/stories">Stories</a>
+        <a href="/learn/daily">Daily Picks</a>
+      </div>
+    </nav>
+
+    <main class="learn-content">
+      <slot />
+    </main>
+
+    <footer class="learn-footer">
+      <p>Built with care by the Caro team. Your loyal shell companion.</p>
+      <p><a href="/">Back to caro.sh</a></p>
+    </footer>
+  </div>
+</Layout>
+
+<style>
+  .learn-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .learn-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 2rem;
+  }
+
+  .nav-logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #ff6b35;
+    text-decoration: none;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .nav-links a {
+    color: #2c3e50;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover {
+    color: #ff6b35;
+  }
+
+  .learn-content {
+    flex: 1;
+  }
+
+  .learn-footer {
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e0e0e0;
+    text-align: center;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+  }
+
+  .learn-footer a {
+    color: #ff6b35;
+  }
+</style>

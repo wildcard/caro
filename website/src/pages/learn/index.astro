@@ -1,0 +1,337 @@
+---
+import LearnLayout from '../../layouts/LearnLayout.astro';
+import { getCollection } from 'astro:content';
+
+const commands = await getCollection('commands');
+const stories = await getCollection('stories');
+const dailyPicks = await getCollection('daily-picks');
+
+const featuredCommands = commands.filter(c => c.data.featured).slice(0, 3);
+const featuredStories = stories.filter(s => s.data.featured).slice(0, 2);
+const recentPicks = dailyPicks.sort((a, b) =>
+  b.data.publishedAt.getTime() - a.data.publishedAt.getTime()
+).slice(0, 3);
+---
+
+<LearnLayout
+  title="Learn Unix"
+  description="Master Unix commands and discover the fascinating history of the Unix ecosystem"
+>
+  <div class="learn-home">
+    <header class="hero">
+      <h1>Learn with Caro</h1>
+      <p class="subtitle">
+        Master Unix commands. Discover the history. Become a command-line pro.
+      </p>
+    </header>
+
+    <section class="section">
+      <div class="section-header">
+        <h2>Command Tutorials</h2>
+        <a href="/learn/commands" class="view-all">View all {commands.length} commands</a>
+      </div>
+      <p class="section-description">
+        Practical, example-driven tutorials for essential Unix commands.
+        Each guide shows you the commands you'll actually use.
+      </p>
+      <div class="card-grid">
+        {featuredCommands.map(cmd => (
+          <a href={`/learn/commands/${cmd.slug}`} class="card command-card">
+            <code class="card-command">{cmd.data.command}</code>
+            <h3>{cmd.data.title}</h3>
+            <p>{cmd.data.description}</p>
+            <div class="card-meta">
+              <span class={`difficulty difficulty-${cmd.data.difficulty}`}>
+                {cmd.data.difficulty}
+              </span>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-header">
+        <h2>Unix Stories</h2>
+        <a href="/learn/stories" class="view-all">View all stories</a>
+      </div>
+      <p class="section-description">
+        Fascinating tales from Unix history. Learn why things are the way they are.
+      </p>
+      <div class="card-grid stories-grid">
+        {featuredStories.map(story => (
+          <a href={`/learn/stories/${story.slug}`} class="card story-card">
+            <span class="story-category">{story.data.category}</span>
+            <h3>{story.data.title}</h3>
+            {story.data.subtitle && <p class="story-subtitle">{story.data.subtitle}</p>}
+            <div class="card-meta">
+              <span class="reading-time">{story.data.readingTime} min read</span>
+              <span class="era">{story.data.era}</span>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-header">
+        <h2>Daily Picks</h2>
+        <a href="/learn/daily" class="view-all">View archive</a>
+      </div>
+      <p class="section-description">
+        Bite-sized Unix tips, trivia, and commands delivered daily.
+      </p>
+      <div class="daily-list">
+        {recentPicks.map(pick => (
+          <a href={`/learn/daily/${pick.slug}`} class="daily-item">
+            <span class="daily-type">{pick.data.type}</span>
+            <span class="daily-title">{pick.data.title}</span>
+            <span class="daily-date">
+              {pick.data.publishedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            </span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="section caro-cta">
+      <h2>Learn with Your Shell Companion</h2>
+      <p>
+        Caro helps you write safe, correct shell commands using natural language.
+        Ask questions like "find all large files modified today" and get instant,
+        validated commands.
+      </p>
+      <a href="/" class="cta-button">Try Caro</a>
+    </section>
+  </div>
+</LearnLayout>
+
+<style>
+  .learn-home {
+    max-width: 100%;
+  }
+
+  .hero {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .hero h1 {
+    font-size: 3rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+  }
+
+  .subtitle {
+    font-size: 1.3rem;
+    color: #7f8c8d;
+  }
+
+  .section {
+    margin-bottom: 3rem;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .section-header h2 {
+    font-size: 1.8rem;
+    color: #2c3e50;
+    margin: 0;
+  }
+
+  .view-all {
+    color: #ff6b35;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .view-all:hover {
+    text-decoration: underline;
+  }
+
+  .section-description {
+    color: #7f8c8d;
+    margin-bottom: 1.5rem;
+  }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .card {
+    display: block;
+    padding: 1.5rem;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s;
+  }
+
+  .card:hover {
+    border-color: #ff6b35;
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .command-card .card-command {
+    display: inline-block;
+    background: #f8f9fa;
+    color: #ff6b35;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .card h3 {
+    margin: 0.5rem 0;
+    color: #2c3e50;
+  }
+
+  .card p {
+    margin: 0;
+    color: #7f8c8d;
+    font-size: 0.95rem;
+  }
+
+  .card-meta {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .difficulty {
+    padding: 0.2rem 0.6rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: white;
+  }
+
+  .difficulty-beginner { background: #27ae60; }
+  .difficulty-intermediate { background: #f39c12; }
+  .difficulty-advanced { background: #e74c3c; }
+
+  .story-card .story-category {
+    display: inline-block;
+    color: #ff6b35;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .story-subtitle {
+    font-style: italic;
+  }
+
+  .reading-time, .era {
+    color: #7f8c8d;
+    font-size: 0.85rem;
+  }
+
+  .era::before {
+    content: '|';
+    margin: 0 0.5rem;
+  }
+
+  .daily-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .daily-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.2s;
+  }
+
+  .daily-item:hover {
+    background: #ecf0f1;
+  }
+
+  .daily-type {
+    background: #ff6b35;
+    color: white;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-right: 1rem;
+  }
+
+  .daily-title {
+    flex: 1;
+    color: #2c3e50;
+    font-weight: 500;
+  }
+
+  .daily-date {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+  }
+
+  .caro-cta {
+    text-align: center;
+    background: linear-gradient(135deg, #fff8f0, #fff);
+    padding: 3rem;
+    border-radius: 1rem;
+    border: 1px solid #ff6b35;
+  }
+
+  .caro-cta h2 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+  }
+
+  .caro-cta p {
+    color: #555;
+    max-width: 600px;
+    margin: 0 auto 1.5rem;
+  }
+
+  .cta-button {
+    display: inline-block;
+    background: linear-gradient(135deg, #ff8c42, #ff6b35);
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    font-weight: 600;
+    transition: transform 0.2s;
+  }
+
+  .cta-button:hover {
+    transform: scale(1.05);
+  }
+
+  @media (max-width: 600px) {
+    .hero h1 {
+      font-size: 2rem;
+    }
+
+    .section-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+  }
+</style>
