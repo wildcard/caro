@@ -1,0 +1,645 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+---
+
+<Layout title="Caro - Shell Command Recall for DevOps/SREs">
+  <main class="landing-page">
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="ph-badge">
+        <span class="badge-icon">🏆</span>
+        <span>Featured on Product Hunt</span>
+      </div>
+
+      <h1>Forgot that <code>find</code> command?</h1>
+      <p class="tagline">Get it back—offline, with guardrails</p>
+
+      <p class="hero-description">
+        Caro is the local-first shell companion for DevOps/SREs who refuse to sacrifice
+        privacy for productivity. Describe what you need, get the exact command, confirm before execution.
+      </p>
+
+      <div class="hero-demo">
+        <div class="terminal">
+          <div class="terminal-header">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+          </div>
+          <div class="terminal-body">
+            <p><span class="prompt">$</span> caro "find log files modified in the last hour"</p>
+            <p class="output">→ find /var/log -name "*.log" -mmin -60</p>
+            <p class="output"></p>
+            <p class="output confirm">Execute? [y/N] <span class="cursor">▊</span></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="cta-buttons">
+        <a href="https://github.com/wildcard/caro" class="btn primary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          View on GitHub
+        </a>
+        <a href="#install" class="btn secondary">Quick Install</a>
+      </div>
+    </section>
+
+    <!-- Why Caro Section -->
+    <section class="features" id="features">
+      <h2>Built for Terminal Professionals</h2>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <h3>100% Local</h3>
+          <p>No cloud. No telemetry. No data collection. Your command history stays on your machine.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🛡️</div>
+          <h3>Rule-Based Safety</h3>
+          <p>52 regex patterns validate every command. Even if the AI suggests something dangerous, it gets blocked.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">✋</div>
+          <h3>Explicit Confirmation</h3>
+          <p>Nothing executes without you typing 'y'. You see the command first. Every single time.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">✈️</div>
+          <h3>Works Offline</h3>
+          <p>Air-gapped networks, planes, remote servers. No internet required after initial setup.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- The Problem Section -->
+    <section class="problem-section">
+      <div class="xkcd-reference">
+        <h2>You know this moment...</h2>
+        <blockquote>
+          "Rob, the bomb is armed! We need to run tar to extract this archive, but we can't remember the flags!"
+          <cite>— XKCD #1168</cite>
+        </blockquote>
+        <p>
+          Everyone laughs because everyone's lived it. Maybe not with bombs, but definitely at 2am during a production incident.
+        </p>
+        <p>
+          <strong>Caro is for those moments.</strong>
+        </p>
+      </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works">
+      <h2>How It Works</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h3>Describe</h3>
+          <p>Tell Caro what you need in plain English</p>
+          <code>caro "find files larger than 100MB"</code>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <h3>Review</h3>
+          <p>See the exact command before anything runs</p>
+          <code>→ find . -type f -size +100M</code>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <h3>Confirm</h3>
+          <p>Execute only if you approve</p>
+          <code>Execute? [y/N]</code>
+        </div>
+      </div>
+    </section>
+
+    <!-- Install Section -->
+    <section class="install-section" id="install">
+      <h2>Quick Start</h2>
+      <div class="install-options">
+        <div class="install-option">
+          <h3>macOS (Homebrew)</h3>
+          <div class="code-block">
+            <code>brew install caro</code>
+            <button class="copy-btn" onclick="copyCode('brew install caro')">Copy</button>
+          </div>
+        </div>
+        <div class="install-option">
+          <h3>From Source (Cargo)</h3>
+          <div class="code-block">
+            <code>cargo install caro</code>
+            <button class="copy-btn" onclick="copyCode('cargo install caro')">Copy</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- What Caro Is NOT -->
+    <section class="not-section">
+      <h2>Honest About What We're Not</h2>
+      <div class="not-grid">
+        <div class="not-item">
+          <span class="not-icon">✗</span>
+          <p><strong>Not a replacement for shell knowledge</strong><br/>Power users will always be faster</p>
+        </div>
+        <div class="not-item">
+          <span class="not-icon">✗</span>
+          <p><strong>Not a general AI assistant</strong><br/>Shell commands only, intentionally focused</p>
+        </div>
+        <div class="not-item">
+          <span class="not-icon">✗</span>
+          <p><strong>Not production-ready</strong><br/>Alpha software, rough edges exist</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tech Stack -->
+    <section class="tech-section">
+      <h2>Built With</h2>
+      <div class="tech-badges">
+        <span class="tech-badge">Rust</span>
+        <span class="tech-badge">MLX (Apple Silicon)</span>
+        <span class="tech-badge">Candle (CPU)</span>
+        <span class="tech-badge">AGPL-3.0</span>
+      </div>
+    </section>
+
+    <!-- CTA Footer -->
+    <section class="cta-footer">
+      <h2>Ready to try it?</h2>
+      <p>Open source, free, and local-first.</p>
+      <a href="https://github.com/wildcard/caro" class="btn primary large">
+        Get Started on GitHub
+      </a>
+    </section>
+  </main>
+
+  <style>
+    .landing-page {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 4rem 0;
+    }
+
+    .ph-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: linear-gradient(135deg, #da552f, #ea532a);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+      color: #1a1a1a;
+    }
+
+    .hero h1 code {
+      background: #f0f0f0;
+      padding: 0.1em 0.3em;
+      border-radius: 4px;
+      color: #ff8c42;
+    }
+
+    .tagline {
+      font-size: 1.5rem;
+      color: #666;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-description {
+      font-size: 1.1rem;
+      color: #444;
+      max-width: 600px;
+      margin: 0 auto 2rem;
+      line-height: 1.6;
+    }
+
+    .hero-demo {
+      margin: 2rem auto;
+      max-width: 550px;
+    }
+
+    .terminal {
+      background: #1e1e1e;
+      border-radius: 8px;
+      overflow: hidden;
+      text-align: left;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .terminal-header {
+      background: #333;
+      padding: 0.75rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .dot.red { background: #ff5f56; }
+    .dot.yellow { background: #ffbd2e; }
+    .dot.green { background: #27c93f; }
+
+    .terminal-body {
+      padding: 1.5rem;
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      font-size: 0.9rem;
+      color: #e0e0e0;
+    }
+
+    .terminal-body p {
+      margin: 0.5rem 0;
+    }
+
+    .prompt {
+      color: #27c93f;
+    }
+
+    .output {
+      color: #ff8c42;
+    }
+
+    .confirm {
+      color: #ffbd2e;
+    }
+
+    .cursor {
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn.primary {
+      background: #ff8c42;
+      color: white;
+    }
+
+    .btn.primary:hover {
+      background: #ff7b2e;
+      transform: translateY(-2px);
+    }
+
+    .btn.secondary {
+      background: white;
+      color: #333;
+      border: 2px solid #ddd;
+    }
+
+    .btn.secondary:hover {
+      border-color: #ff8c42;
+      color: #ff8c42;
+    }
+
+    .btn.large {
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
+    }
+
+    .features {
+      padding: 4rem 0;
+    }
+
+    .features h2 {
+      text-align: center;
+      margin-bottom: 3rem;
+      font-size: 2rem;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 2rem;
+    }
+
+    .feature-card {
+      text-align: center;
+      padding: 1.5rem;
+    }
+
+    .feature-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .feature-card h3 {
+      margin-bottom: 0.5rem;
+      color: #333;
+    }
+
+    .feature-card p {
+      color: #666;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .problem-section {
+      padding: 4rem 0;
+      background: #f8f9fa;
+      margin: 0 -2rem;
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+
+    .xkcd-reference {
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .xkcd-reference h2 {
+      margin-bottom: 1.5rem;
+    }
+
+    .xkcd-reference blockquote {
+      font-size: 1.2rem;
+      font-style: italic;
+      color: #555;
+      border-left: 4px solid #ff8c42;
+      padding-left: 1.5rem;
+      margin: 1.5rem 0;
+      text-align: left;
+    }
+
+    .xkcd-reference cite {
+      display: block;
+      font-size: 0.9rem;
+      color: #888;
+      margin-top: 0.5rem;
+    }
+
+    .xkcd-reference p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+
+    .how-it-works {
+      padding: 4rem 0;
+    }
+
+    .how-it-works h2 {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+    }
+
+    .step {
+      text-align: center;
+    }
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      background: #ff8c42;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin: 0 auto 1rem;
+    }
+
+    .step h3 {
+      margin-bottom: 0.5rem;
+    }
+
+    .step p {
+      color: #666;
+      margin-bottom: 1rem;
+    }
+
+    .step code {
+      display: block;
+      background: #1e1e1e;
+      color: #e0e0e0;
+      padding: 0.75rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+
+    .install-section {
+      padding: 4rem 0;
+      background: #f8f9fa;
+      margin: 0 -2rem;
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+
+    .install-section h2 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .install-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .install-option {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .install-option h3 {
+      margin-bottom: 1rem;
+      font-size: 1rem;
+    }
+
+    .code-block {
+      display: flex;
+      align-items: center;
+      background: #1e1e1e;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .code-block code {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      color: #e0e0e0;
+      font-family: 'SF Mono', Monaco, monospace;
+    }
+
+    .copy-btn {
+      background: #333;
+      color: #888;
+      border: none;
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: #444;
+      color: white;
+    }
+
+    .not-section {
+      padding: 4rem 0;
+    }
+
+    .not-section h2 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .not-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .not-item {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .not-icon {
+      color: #dc3545;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .not-item p {
+      margin: 0;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    .tech-section {
+      padding: 3rem 0;
+      text-align: center;
+    }
+
+    .tech-section h2 {
+      margin-bottom: 1.5rem;
+    }
+
+    .tech-badges {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .tech-badge {
+      background: #f0f0f0;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    .cta-footer {
+      padding: 4rem 0;
+      text-align: center;
+      background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+      margin: 0 -2rem -2rem;
+      padding-left: 2rem;
+      padding-right: 2rem;
+      color: white;
+    }
+
+    .cta-footer h2 {
+      margin-bottom: 0.5rem;
+    }
+
+    .cta-footer p {
+      margin-bottom: 1.5rem;
+      opacity: 0.9;
+    }
+
+    .cta-footer .btn.primary {
+      background: white;
+      color: #ff8c42;
+    }
+
+    .cta-footer .btn.primary:hover {
+      background: #f8f8f8;
+    }
+
+    @media (max-width: 600px) {
+      .hero h1 {
+        font-size: 2rem;
+      }
+
+      .tagline {
+        font-size: 1.2rem;
+      }
+
+      .terminal-body {
+        font-size: 0.8rem;
+        padding: 1rem;
+      }
+    }
+  </style>
+
+  <script>
+    function copyCode(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        event.target.textContent = 'Copied!';
+        setTimeout(() => {
+          event.target.textContent = 'Copy';
+        }, 2000);
+      });
+    }
+
+    // Track source
+    const params = new URLSearchParams(window.location.search);
+    const source = params.get('utm_source') || 'producthunt';
+    console.log('Landing page visit from:', source);
+  </script>
+</Layout>

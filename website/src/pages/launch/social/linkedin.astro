@@ -1,0 +1,661 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+---
+
+<Layout title="LinkedIn Launch Copy - Caro Marketing Hub">
+  <main class="marketing-hub">
+    <nav class="breadcrumb">
+      <a href="/launch">Marketing Hub</a> /
+      <a href="/launch#social">Social Media</a> /
+      <span>LinkedIn</span>
+    </nav>
+
+    <header class="page-header">
+      <h1>LinkedIn Launch Copy</h1>
+      <p class="subtitle">Professional network templates for DevOps/SRE audience</p>
+    </header>
+
+    <!-- Platform Notes -->
+    <section class="platform-notes">
+      <h2>LinkedIn Strategy Notes</h2>
+      <div class="notes-grid">
+        <div class="note-card">
+          <h3>Audience</h3>
+          <ul>
+            <li>DevOps Engineers & SREs</li>
+            <li>Engineering Managers</li>
+            <li>Infrastructure Architects</li>
+            <li>Security Professionals</li>
+          </ul>
+        </div>
+        <div class="note-card">
+          <h3>Best Practices</h3>
+          <ul>
+            <li>Post Tuesday-Thursday, 8-10am PST</li>
+            <li>First line is crucial (before "...see more")</li>
+            <li>Use line breaks for readability</li>
+            <li>Hashtags at the end, max 3-5</li>
+          </ul>
+        </div>
+        <div class="note-card">
+          <h3>Tone</h3>
+          <ul>
+            <li>Professional but not corporate</li>
+            <li>Technical credibility matters</li>
+            <li>Personal stories resonate</li>
+            <li>Avoid "game-changing" hype</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Announcement Post -->
+    <section class="copy-section">
+      <h2>Main Announcement Post</h2>
+      <p class="section-note">Primary launch announcement for your personal LinkedIn profile</p>
+
+      <div class="linkedin-post">
+        <div class="post-header">
+          <div class="avatar-placeholder"></div>
+          <div class="author-info">
+            <span class="author-name">[Your Name]</span>
+            <span class="author-title">Founder @ Caro | Building tools for terminal professionals</span>
+            <span class="post-time">Just now</span>
+          </div>
+        </div>
+        <div class="post-content">
+          <p class="copy-text" id="linkedin-main">That XKCD comic about tar flags? The one where someone needs to extract an archive to defuse a bomb but can't remember the syntax?
+
+Everyone laughs because everyone's lived it.
+
+I built Caro because I was tired of being that person (minus the bomb).
+
+Here's the problem: You're debugging production at 2am. You need to find log files modified in the last hour. Your brain blanks on the exact find syntax.
+
+So you open Chrome. Stack Overflow. Copy. Paste. Typo. Google again.
+
+That 30-second context switch? It breaks your flow. Every time.
+
+Caro is different:
+
+→ Describe what you want in plain English
+→ Get the exact command
+→ Review it before execution
+→ Stay in your terminal
+
+The key difference: everything runs locally.
+
+No cloud. No telemetry. No data collection. Your command history stays on your machine.
+
+We built it for DevOps engineers and SREs who:
+• Work on production systems with sensitive data
+• Need offline capability (air-gapped networks, planes)
+• Want rule-based safety, not AI "trust me" claims
+
+52 regex patterns validate every command before it reaches your terminal. Even if the AI suggests something dangerous, it gets blocked.
+
+It's open source (AGPL-3.0), written in Rust, and alpha-stage honest about rough edges.
+
+If you've ever Googled "tar extract flags" at 2am, this is for you.
+
+Link in comments.
+
+#DevOps #SRE #CLI #OpenSource #Rust</p>
+        </div>
+        <button class="copy-btn" onclick="copyText('linkedin-main')">Copy Post</button>
+      </div>
+    </section>
+
+    <!-- Shorter Alternative -->
+    <section class="copy-section">
+      <h2>Shorter Version</h2>
+      <p class="section-note">More concise version for higher engagement</p>
+
+      <div class="linkedin-post">
+        <div class="post-content">
+          <p class="copy-text" id="linkedin-short">Every DevOps engineer has that moment:
+
+"How do I find files modified in the last hour again?"
+
+You know the answer exists in your brain somewhere. But it's 2am, and that neural pathway is temporarily unavailable.
+
+So you context-switch. Browser. Stack Overflow. Copy. Paste. Back to terminal.
+
+I built Caro to skip that loop.
+
+→ Natural language → shell command
+→ 100% local (no cloud, no telemetry)
+→ Safety validation before execution
+→ Works offline
+
+It's a small, focused tool. Not an AI coding assistant. Just shell command recall for terminal professionals.
+
+Open source. Written in Rust. Alpha-stage honest.
+
+Link in comments.
+
+#DevOps #SRE #OpenSource</p>
+        </div>
+        <button class="copy-btn" onclick="copyText('linkedin-short')">Copy Post</button>
+      </div>
+    </section>
+
+    <!-- Technical Deep Dive -->
+    <section class="copy-section">
+      <h2>Technical Credibility Post</h2>
+      <p class="section-note">For engineering-focused audiences</p>
+
+      <div class="linkedin-post">
+        <div class="post-content">
+          <p class="copy-text" id="linkedin-technical">Why we chose local inference over cloud APIs for Caro:
+
+When building a shell command assistant, the easy path is cloud: better models, simpler architecture, faster to market.
+
+We went the other way. Here's why:
+
+1. Command history contains secrets
+Your shell history has server names, file paths, database credentials. Sending that context to a cloud API? Hard pass.
+
+2. Production servers often lack internet
+Air-gapped networks, restricted egress, or just that remote VM where you're debugging at 3am with spotty WiFi.
+
+3. Latency matters for flow state
+Cloud roundtrip: 500ms-2s. Local inference on Apple Silicon: <500ms. That difference preserves your mental context.
+
+4. Trust should be verifiable
+"Our AI won't suggest dangerous commands" is a claim. 52 regex patterns that block rm -rf / regardless of what the model says? That's verification.
+
+The tradeoffs are real:
+- Smaller model = less capable on complex queries
+- Requires disk space for model weights
+- Platform-specific optimization needed
+
+But for the specific use case—shell command recall for experienced users—local inference hits the sweet spot.
+
+Caro is open source (AGPL-3.0), written in Rust, optimized for Apple Silicon.
+
+Still alpha. Rough edges exist. But the core philosophy is solid.
+
+#DevOps #MachineLearning #Rust #OpenSource #Privacy</p>
+        </div>
+        <button class="copy-btn" onclick="copyText('linkedin-technical')">Copy Post</button>
+      </div>
+    </section>
+
+    <!-- Problem-Focused Post -->
+    <section class="copy-section">
+      <h2>Problem-Focused Post</h2>
+      <p class="section-note">Leads with relatable pain point</p>
+
+      <div class="linkedin-post">
+        <div class="post-content">
+          <p class="copy-text" id="linkedin-problem">The duality of the senior SRE:
+
+Can architect distributed systems across 12 availability zones.
+
+Cannot remember if chmod uses -R or -r.
+
+This isn't a knowledge problem. It's a retrieval problem.
+
+You've written that find command 100 times. But at 2am during an incident, your brain serves a 404.
+
+So you open a browser tab. Which becomes 7 tabs. All Stack Overflow variations of the same question.
+
+I built Caro to short-circuit that loop.
+
+Describe what you want → Get the command → Confirm → Execute
+
+The key: everything stays local. No cloud API watching your command history. No telemetry. Just local inference and rule-based safety validation.
+
+It's a small tool that does one thing: helps you recall shell commands without leaving your terminal.
+
+Open source, Rust, alpha-stage.
+
+For anyone who's ever Googled "tar extract syntax" for the 50th time.
+
+#DevOps #SRE #Productivity</p>
+        </div>
+        <button class="copy-btn" onclick="copyText('linkedin-problem')">Copy Post</button>
+      </div>
+    </section>
+
+    <!-- Comment for Link -->
+    <section class="copy-section">
+      <h2>First Comment (with Link)</h2>
+      <p class="section-note">LinkedIn algorithm prefers links in comments</p>
+
+      <div class="linkedin-comment">
+        <p class="copy-text" id="linkedin-comment">GitHub: https://github.com/wildcard/caro
+
+Quick start:
+brew install caro  # macOS
+cargo install caro # from source
+
+Happy to answer questions about the technical decisions or use cases.</p>
+        <button class="copy-btn" onclick="copyText('linkedin-comment')">Copy Comment</button>
+      </div>
+    </section>
+
+    <!-- Engagement Responses -->
+    <section class="copy-section">
+      <h2>Engagement Response Templates</h2>
+
+      <div class="response-grid">
+        <div class="response-card">
+          <h4>When someone asks about privacy</h4>
+          <p class="copy-text" id="response-privacy">Great question. Everything runs locally—the model, the inference, the safety validation. No data leaves your machine. No analytics, no telemetry, no "anonymous usage data." We can't see your commands because we never receive them.</p>
+          <button class="copy-btn small" onclick="copyText('response-privacy')">Copy</button>
+        </div>
+
+        <div class="response-card">
+          <h4>When asked about Copilot comparison</h4>
+          <p class="copy-text" id="response-copilot">Different tradeoffs. Copilot has a more capable model (cloud-based) and broader scope. Caro is narrower: shell commands only, 100% local, works offline. For SREs working on production systems where command history might contain sensitive info, that local-only guarantee matters. Use whatever fits your workflow.</p>
+          <button class="copy-btn small" onclick="copyText('response-copilot')">Copy</button>
+        </div>
+
+        <div class="response-card">
+          <h4>When asked about model capability</h4>
+          <p class="copy-text" id="response-model">Fair point. Local models are smaller and less capable on complex queries. For shell command recall specifically—POSIX utilities, common flags, standard patterns—smaller models work well. For complex multi-step pipelines or obscure tools, you might want a larger model. We support remote backends (Ollama, vLLM) if you need more capability.</p>
+          <button class="copy-btn small" onclick="copyText('response-model')">Copy</button>
+        </div>
+
+        <div class="response-card">
+          <h4>When someone shares a use case</h4>
+          <p class="copy-text" id="response-usecase">That's exactly the use case we built for. Would love to hear how it works in practice for you. If you hit any rough edges (alpha software, they exist), please open an issue on GitHub—feedback from real workflows shapes the roadmap.</p>
+          <button class="copy-btn small" onclick="copyText('response-usecase')">Copy</button>
+        </div>
+
+        <div class="response-card">
+          <h4>When someone is skeptical</h4>
+          <p class="copy-text" id="response-skeptical">Healthy skepticism! A few things that might help: (1) it's open source, so you can audit exactly what it does, (2) nothing executes without explicit confirmation, (3) 52 regex patterns validate commands independently of what the AI suggests. But if CLI AI assistance isn't for you, that's a valid choice too.</p>
+          <button class="copy-btn small" onclick="copyText('response-skeptical')">Copy</button>
+        </div>
+
+        <div class="response-card">
+          <h4>Thank you / congratulations</h4>
+          <p class="copy-text" id="response-thanks">Thanks! Still early days—lots of rough edges to smooth out. If you try it and have feedback, I'm all ears. The roadmap is shaped by what actual users need.</p>
+          <button class="copy-btn small" onclick="copyText('response-thanks')">Copy</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Article Option -->
+    <section class="copy-section">
+      <h2>LinkedIn Article Option</h2>
+      <p class="section-note">For deeper technical content (higher effort, longer shelf life)</p>
+
+      <div class="article-outline">
+        <h3>Article: "Why I Built a Local-First CLI Assistant"</h3>
+        <div class="outline-content">
+          <h4>Suggested Structure:</h4>
+          <ol>
+            <li><strong>Hook:</strong> The 2am tar flags moment (XKCD #1168 reference)</li>
+            <li><strong>Problem:</strong> Context-switching cost during incidents</li>
+            <li><strong>Why not existing tools:</strong> Privacy concerns with cloud, terminal-switching with GUI tools</li>
+            <li><strong>Technical approach:</strong> Local inference, safety validation, explicit confirmation</li>
+            <li><strong>Tradeoffs we made:</strong> Smaller model, focused scope, alpha quality</li>
+            <li><strong>What we learned:</strong> Building for security-conscious users</li>
+            <li><strong>Call to action:</strong> Try it, give feedback, contribute</li>
+          </ol>
+          <p class="note">Length: 1,200-1,500 words. Include code snippets and the XKCD comic (with attribution).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Hashtag Reference -->
+    <section class="copy-section">
+      <h2>Hashtag Reference</h2>
+      <div class="hashtag-groups">
+        <div class="hashtag-group">
+          <h4>Primary (use 2-3)</h4>
+          <code>#DevOps #SRE #OpenSource</code>
+        </div>
+        <div class="hashtag-group">
+          <h4>Technical (use 1-2)</h4>
+          <code>#Rust #CLI #MachineLearning #Privacy</code>
+        </div>
+        <div class="hashtag-group">
+          <h4>Broader reach (optional)</h4>
+          <code>#Productivity #DeveloperTools #SoftwareEngineering</code>
+        </div>
+      </div>
+      <p class="note">LinkedIn best practice: 3-5 total hashtags, placed at the end of the post.</p>
+    </section>
+
+    <footer class="page-footer">
+      <a href="/launch" class="back-link">&larr; Back to Marketing Hub</a>
+      <div class="footer-links">
+        <a href="/launch/social/twitter">Twitter Templates</a>
+        <a href="/launch/channels/reddit">Reddit Copy</a>
+      </div>
+    </footer>
+  </main>
+
+  <style>
+    .marketing-hub {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .breadcrumb {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 2rem;
+    }
+
+    .breadcrumb a {
+      color: #0077b5;
+      text-decoration: none;
+    }
+
+    .page-header {
+      margin-bottom: 3rem;
+    }
+
+    .page-header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      color: #0077b5;
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      color: #666;
+    }
+
+    .platform-notes {
+      background: linear-gradient(135deg, #0077b5 0%, #005885 100%);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 3rem;
+      color: white;
+    }
+
+    .platform-notes h2 {
+      margin-top: 0;
+      margin-bottom: 1.5rem;
+    }
+
+    .notes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .note-card {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .note-card h3 {
+      margin-top: 0;
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .note-card ul {
+      margin: 0;
+      padding-left: 1.25rem;
+      font-size: 0.9rem;
+    }
+
+    .note-card li {
+      margin-bottom: 0.25rem;
+    }
+
+    .copy-section {
+      margin-bottom: 3rem;
+    }
+
+    .copy-section h2 {
+      color: #333;
+      border-bottom: 2px solid #0077b5;
+      padding-bottom: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-note {
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .linkedin-post {
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .post-header {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .avatar-placeholder {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #0077b5, #005885);
+      border-radius: 50%;
+    }
+
+    .author-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .author-name {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .author-title {
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .post-time {
+      font-size: 0.8rem;
+      color: #999;
+    }
+
+    .post-content {
+      margin-bottom: 1rem;
+    }
+
+    .copy-text {
+      white-space: pre-wrap;
+      line-height: 1.6;
+      color: #333;
+      font-size: 0.95rem;
+    }
+
+    .linkedin-comment {
+      background: #f3f6f8;
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .copy-btn {
+      background: #0077b5;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: #005885;
+    }
+
+    .copy-btn.small {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8rem;
+    }
+
+    .response-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 1rem;
+    }
+
+    .response-card {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .response-card h4 {
+      margin-top: 0;
+      margin-bottom: 0.75rem;
+      color: #0077b5;
+      font-size: 0.9rem;
+    }
+
+    .response-card .copy-text {
+      font-size: 0.85rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .article-outline {
+      background: #f8f9fa;
+      border: 2px dashed #0077b5;
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+
+    .article-outline h3 {
+      margin-top: 0;
+      color: #0077b5;
+    }
+
+    .outline-content h4 {
+      margin-bottom: 0.75rem;
+    }
+
+    .outline-content ol {
+      margin-bottom: 1rem;
+    }
+
+    .outline-content li {
+      margin-bottom: 0.5rem;
+    }
+
+    .outline-content .note {
+      font-size: 0.9rem;
+      color: #666;
+      font-style: italic;
+    }
+
+    .hashtag-groups {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .hashtag-group {
+      background: #f8f9fa;
+      padding: 1rem;
+      border-radius: 8px;
+    }
+
+    .hashtag-group h4 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    .hashtag-group code {
+      color: #0077b5;
+      font-size: 0.9rem;
+    }
+
+    .note {
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .page-footer {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid #e9ecef;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .back-link {
+      color: #0077b5;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .footer-links a {
+      color: #666;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+
+    .footer-links a:hover {
+      color: #0077b5;
+    }
+
+    @media (max-width: 600px) {
+      .marketing-hub {
+        padding: 1rem;
+      }
+
+      .page-header h1 {
+        font-size: 1.75rem;
+      }
+
+      .response-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .page-footer {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+    }
+  </style>
+
+  <script>
+    function copyText(elementId) {
+      const element = document.getElementById(elementId);
+      const text = element.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = element.parentElement.querySelector('.copy-btn') ||
+                    element.closest('.response-card')?.querySelector('.copy-btn');
+        if (btn) {
+          const originalText = btn.textContent;
+          btn.textContent = 'Copied!';
+          btn.style.background = '#28a745';
+          setTimeout(() => {
+            btn.textContent = originalText;
+            btn.style.background = '';
+          }, 2000);
+        }
+      });
+    }
+  </script>
+</Layout>

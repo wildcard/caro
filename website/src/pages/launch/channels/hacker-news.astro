@@ -1,0 +1,636 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+---
+
+<Layout
+  title="Hacker News Preview - Caro Launch"
+  description="Preview how Caro will appear on Hacker News"
+>
+  <div class="hn-preview">
+    <header class="preview-header">
+      <a href="/launch" class="back-link">← Back to Launch Hub</a>
+      <h1>📰 Hacker News Preview</h1>
+      <p>This simulates how Caro's Show HN post will appear</p>
+    </header>
+
+    <main class="preview-content">
+      <!-- HN Header Bar -->
+      <div class="hn-bar">
+        <span class="hn-logo">Y</span>
+        <span class="hn-title">Hacker News</span>
+        <nav class="hn-nav">
+          <a href="#">new</a> |
+          <a href="#">past</a> |
+          <a href="#">comments</a> |
+          <a href="#">ask</a> |
+          <a href="#" class="active">show</a> |
+          <a href="#">jobs</a> |
+          <a href="#">submit</a>
+        </nav>
+      </div>
+
+      <!-- Post Listing View -->
+      <section class="hn-section">
+        <h2>Listing View (Show HN Page)</h2>
+        <div class="hn-listing">
+          <div class="hn-item">
+            <span class="rank">1.</span>
+            <span class="vote">▲</span>
+            <div class="item-content">
+              <a href="#" class="title">Show HN: Caro – Local-first shell command companion with rule-based safety (Rust)</a>
+              <span class="domain">(github.com/wildcard)</span>
+              <div class="subtext">
+                <span class="score">127 points</span> by <a href="#">kobi</a> <span class="age">3 hours ago</span> |
+                <a href="#">hide</a> | <a href="#">42 comments</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Full Post View -->
+      <section class="hn-section">
+        <h2>Full Post View</h2>
+        <div class="hn-post">
+          <div class="hn-post-header">
+            <span class="vote">▲</span>
+            <div class="post-meta">
+              <a href="#" class="post-title">Show HN: Caro – Local-first shell command companion with rule-based safety (Rust)</a>
+              <span class="domain">(github.com/wildcard)</span>
+              <div class="post-subtext">
+                <span class="score">127 points</span> by <a href="#">kobi</a> <span class="age">3 hours ago</span> |
+                <a href="#">hide</a> | <a href="#">past</a> | <a href="#">favorite</a> | <a href="#">42 comments</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="hn-post-body">
+            <p>Everyone's seen XKCD #1168—the one where someone needs tar syntax to defuse a bomb. It's funny because it's true.</p>
+
+            <p>I built Caro because I was tired of being that person, minus the bomb.</p>
+
+            <p><code>find -mtime</code> vs <code>-mmin</code>? The exact tar flags for excluding directories? BSD sed vs GNU sed? These micro-interruptions add up.</p>
+
+            <p><strong>What Caro does:</strong></p>
+
+            <pre><code>$ caro "find log files changed in the last hour"
+Suggested: find /var/log -type f -mmin -60
+Execute? [y/N]</code></pre>
+
+            <p>Describe what you need in plain English, get the shell command, confirm before running.</p>
+
+            <p><strong>The philosophy:</strong></p>
+
+            <p>1. <strong>Local-first</strong>: Runs entirely offline with local inference (MLX on Apple Silicon, CPU fallback elsewhere). No cloud calls, no telemetry, no data collection.</p>
+
+            <p>2. <strong>Rule-based safety</strong>: I don't trust AI safety assessments in a terminal. Caro has 52 pre-compiled regex patterns that block dangerous operations (<code>rm -rf /</code>, fork bombs, etc.) independent of what the model outputs. The model can claim something is safe—we check anyway.</p>
+
+            <p>3. <strong>Explicit confirmation</strong>: Nothing executes without user confirmation. Ever. The <code>[y/N]</code> isn't optional.</p>
+
+            <p>4. <strong>Intentionally focused</strong>: This isn't an AI coding assistant. It's specifically for shell command recall. I wanted to do one thing well rather than compete with general-purpose tools.</p>
+
+            <p><strong>Technical details:</strong></p>
+            <ul>
+              <li>Written in Rust</li>
+              <li>MLX backend for Apple Silicon (&lt;2s inference)</li>
+              <li>CPU backend via Candle for cross-platform</li>
+              <li>Optional remote backends (Ollama, vLLM) if you prefer larger models</li>
+              <li>Model: Qwen2.5-Coder-1.5B (small enough for local, specialized enough for shell)</li>
+            </ul>
+
+            <p><strong>Current status: Alpha</strong></p>
+
+            <p>The core works. Safety patterns work. But I'm actively seeking feedback:</p>
+            <ul>
+              <li>What safety rules would you want that I'm missing?</li>
+              <li>What shell commands do you forget most often?</li>
+              <li>For SREs/DevOps folks: would you actually use this in your workflow?</li>
+            </ul>
+
+            <p>I'm particularly interested in edge cases where the safety system might fail—I'd rather hear about them now.</p>
+
+            <p>Source: <a href="https://github.com/wildcard/caro">https://github.com/wildcard/caro</a><br>
+            Install: <code>cargo install caro</code></p>
+
+            <p>Happy to discuss the architecture, safety model, or tradeoffs.</p>
+          </div>
+
+          <!-- Comments -->
+          <div class="hn-comments">
+            <div class="comment depth-0">
+              <div class="comment-head">
+                <span class="vote">▲</span>
+                <a href="#" class="user">sre_veteran</a>
+                <span class="age">2 hours ago</span>
+                <span class="nav">[–]</span>
+              </div>
+              <div class="comment-body">
+                <p>Interesting approach. The local-first design is appealing for working on production systems where I don't want to send commands to external services.</p>
+                <p>Question: how does it handle obfuscated dangerous commands? Like base64-encoded commands or scripts that call rm -rf indirectly?</p>
+              </div>
+              <a href="#" class="reply">reply</a>
+
+              <!-- Nested reply -->
+              <div class="comment depth-1 op">
+                <div class="comment-head">
+                  <span class="vote">▲</span>
+                  <a href="#" class="user">kobi</a>
+                  <span class="badge">OP</span>
+                  <span class="age">1 hour ago</span>
+                  <span class="nav">[–]</span>
+                </div>
+                <div class="comment-body">
+                  <p>Good question—this is the core challenge.</p>
+                  <p>The safety system works in layers:</p>
+                  <p>1. <strong>Pattern matching (regex)</strong>: 52 patterns like <code>rm\s+-rf\s+/</code> catch obvious cases. These run post-generation, independent of what the model claims about safety.</p>
+                  <p>2. <strong>Path analysis</strong>: Operations on <code>/bin</code>, <code>/usr</code>, <code>/etc</code>, <code>~</code> trigger higher risk levels.</p>
+                  <p>3. <strong>Confirmation requirement</strong>: Even if something passes patterns, you still see the command and confirm.</p>
+                  <p>What could still sneak through:</p>
+                  <ul>
+                    <li>Obfuscated commands (base64-encoded, etc.)</li>
+                    <li>Indirect destruction (program that does bad things)</li>
+                    <li>Novel patterns we haven't seen</li>
+                  </ul>
+                  <p>I'm not claiming it's bulletproof—that's why confirmation is mandatory and why I want feedback on edge cases. What patterns should I add?</p>
+                </div>
+                <a href="#" class="reply">reply</a>
+              </div>
+            </div>
+
+            <div class="comment depth-0">
+              <div class="comment-head">
+                <span class="vote">▲</span>
+                <a href="#" class="user">rustacean42</a>
+                <span class="age">1 hour ago</span>
+                <span class="nav">[–]</span>
+              </div>
+              <div class="comment-body">
+                <p>Nice to see this in Rust. What made you choose Candle for the CPU backend over llama.cpp bindings?</p>
+              </div>
+              <a href="#" class="reply">reply</a>
+            </div>
+
+            <div class="comment depth-0">
+              <div class="comment-head">
+                <span class="vote">▲</span>
+                <a href="#" class="user">pragmatic_dev</a>
+                <span class="age">45 minutes ago</span>
+                <span class="nav">[–]</span>
+              </div>
+              <div class="comment-body">
+                <p>Why not just use aliases or a cheat sheet? I have hundreds of aliases for common commands.</p>
+              </div>
+              <a href="#" class="reply">reply</a>
+
+              <div class="comment depth-1 op">
+                <div class="comment-head">
+                  <span class="vote">▲</span>
+                  <a href="#" class="user">kobi</a>
+                  <span class="badge">OP</span>
+                  <span class="age">30 minutes ago</span>
+                  <span class="nav">[–]</span>
+                </div>
+                <div class="comment-body">
+                  <p>You're right that aliases handle the common cases well. I use dozens of them myself.</p>
+                  <p>Caro is for the long tail: commands I use once a month, complex flag combinations, or when I'm on a server without my dotfiles.</p>
+                  <p>Example: I don't have an alias for "find files larger than 100MB modified in the last week excluding node_modules"—that's too specific to alias ahead of time, but exactly when I'd reach for Stack Overflow.</p>
+                  <p>For your top 20 commands, keep your aliases. For the other 200 you might need occasionally, that's where Caro helps.</p>
+                </div>
+                <a href="#" class="reply">reply</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Copyable Section -->
+      <section class="copy-section">
+        <h2>📋 Copy-Paste Ready</h2>
+
+        <div class="copy-block">
+          <h3>Post Title</h3>
+          <div class="copy-text" data-copy="Show HN: Caro – Local-first shell command companion with rule-based safety (Rust)">
+            Show HN: Caro – Local-first shell command companion with rule-based safety (Rust)
+          </div>
+        </div>
+
+        <div class="copy-block">
+          <h3>Alternative Titles</h3>
+          <div class="copy-text" data-copy="Show HN: Caro – Offline shell command recall with safety guardrails (Rust)">
+            Show HN: Caro – Offline shell command recall with safety guardrails (Rust)
+          </div>
+          <div class="copy-text" data-copy="Show HN: I built a local-first shell companion because I can't remember tar flags">
+            Show HN: I built a local-first shell companion because I can't remember tar flags
+          </div>
+        </div>
+
+        <div class="copy-block">
+          <h3>Post URL</h3>
+          <div class="copy-text" data-copy="https://github.com/wildcard/caro">
+            https://github.com/wildcard/caro
+          </div>
+        </div>
+
+        <div class="copy-block">
+          <h3>Post Timing</h3>
+          <p class="hint">Best times for HN (US timezone activity):</p>
+          <ul class="timing-list">
+            <li><strong>9-10 AM EST (6-7 AM PST)</strong> - Start of East Coast workday</li>
+            <li><strong>11 AM - 1 PM EST</strong> - Peak activity</li>
+            <li>Avoid: Weekends, late evenings, major US holidays</li>
+          </ul>
+        </div>
+
+        <div class="copy-block">
+          <h3>Response Templates Ready</h3>
+          <ul class="template-list">
+            <li>✅ "Why not just use aliases?"</li>
+            <li>✅ "Local models are too dumb"</li>
+            <li>✅ "What stops rm -rf from sneaking through?"</li>
+            <li>✅ "AGPL is a problem for enterprise"</li>
+            <li>✅ "Why not just use ChatGPT/Copilot?"</li>
+          </ul>
+          <p class="hint">See <a href="https://github.com/wildcard/caro/blob/main/docs/marketing/COMPETITIVE_PLAYBOOK.md">Competitive Playbook</a> for full responses</p>
+        </div>
+      </section>
+    </main>
+  </div>
+</Layout>
+
+<style>
+  .hn-preview {
+    min-height: 100vh;
+    background: #f6f6ef;
+  }
+
+  .preview-header {
+    background: #ff6600;
+    color: white;
+    padding: 40px 20px;
+    text-align: center;
+  }
+
+  .back-link {
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    color: white;
+    text-decoration: none;
+    opacity: 0.9;
+  }
+
+  .preview-header h1 {
+    margin: 0;
+    font-size: 36px;
+  }
+
+  .preview-header p {
+    margin: 8px 0 0;
+    opacity: 0.9;
+  }
+
+  .preview-content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px 40px;
+  }
+
+  /* HN Header Bar */
+  .hn-bar {
+    background: #ff6600;
+    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  .hn-logo {
+    background: white;
+    color: #ff6600;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+  }
+
+  .hn-title {
+    color: black;
+    font-weight: bold;
+    margin-right: 8px;
+  }
+
+  .hn-nav {
+    color: black;
+  }
+
+  .hn-nav a {
+    color: black;
+    text-decoration: none;
+  }
+
+  .hn-nav a:hover, .hn-nav a.active {
+    color: white;
+  }
+
+  /* Sections */
+  .hn-section {
+    margin-bottom: 40px;
+  }
+
+  .hn-section > h2 {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Listing */
+  .hn-listing {
+    background: #f6f6ef;
+    padding: 10px 0;
+  }
+
+  .hn-item {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    font-size: 13px;
+    padding: 4px 0;
+  }
+
+  .rank {
+    color: #828282;
+    min-width: 24px;
+    text-align: right;
+  }
+
+  .vote {
+    color: #828282;
+    cursor: pointer;
+  }
+
+  .vote:hover {
+    color: #ff6600;
+  }
+
+  .item-content .title {
+    color: black;
+    text-decoration: none;
+    font-size: 14px;
+  }
+
+  .item-content .title:hover {
+    text-decoration: underline;
+  }
+
+  .domain {
+    color: #828282;
+    font-size: 11px;
+    margin-left: 4px;
+  }
+
+  .subtext {
+    font-size: 11px;
+    color: #828282;
+    margin-top: 2px;
+  }
+
+  .subtext a {
+    color: #828282;
+    text-decoration: none;
+  }
+
+  .subtext a:hover {
+    text-decoration: underline;
+  }
+
+  /* Full Post */
+  .hn-post {
+    background: #f6f6ef;
+  }
+
+  .hn-post-header {
+    display: flex;
+    gap: 8px;
+    padding: 10px 0;
+    border-bottom: 1px solid #ff6600;
+  }
+
+  .post-meta .post-title {
+    color: black;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: normal;
+  }
+
+  .post-subtext {
+    font-size: 11px;
+    color: #828282;
+    margin-top: 4px;
+  }
+
+  .post-subtext a {
+    color: #828282;
+    text-decoration: none;
+  }
+
+  /* Post Body */
+  .hn-post-body {
+    padding: 16px 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #000;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .hn-post-body p {
+    margin: 0 0 12px;
+  }
+
+  .hn-post-body code {
+    background: #e0e0e0;
+    padding: 1px 4px;
+    font-family: monospace;
+    font-size: 13px;
+  }
+
+  .hn-post-body pre {
+    background: #e8e8e8;
+    padding: 12px;
+    overflow-x: auto;
+    font-family: monospace;
+    font-size: 13px;
+    margin: 12px 0;
+  }
+
+  .hn-post-body pre code {
+    background: none;
+    padding: 0;
+  }
+
+  .hn-post-body ul, .hn-post-body ol {
+    margin: 0 0 12px;
+    padding-left: 24px;
+  }
+
+  .hn-post-body a {
+    color: #000;
+  }
+
+  /* Comments */
+  .hn-comments {
+    padding: 16px 0;
+  }
+
+  .comment {
+    margin-bottom: 16px;
+  }
+
+  .comment.depth-0 {
+    padding-left: 0;
+  }
+
+  .comment.depth-1 {
+    padding-left: 40px;
+    margin-top: 12px;
+  }
+
+  .comment-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #828282;
+    margin-bottom: 4px;
+  }
+
+  .comment-head .user {
+    color: #828282;
+    text-decoration: none;
+  }
+
+  .comment-head .badge {
+    background: #ff6600;
+    color: white;
+    padding: 1px 4px;
+    font-size: 9px;
+    border-radius: 2px;
+  }
+
+  .comment-body {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #000;
+  }
+
+  .comment-body p {
+    margin: 0 0 8px;
+  }
+
+  .comment-body ul {
+    margin: 0 0 8px;
+    padding-left: 20px;
+  }
+
+  .comment-body code {
+    background: #e0e0e0;
+    padding: 1px 4px;
+    font-family: monospace;
+    font-size: 12px;
+  }
+
+  .comment .reply {
+    font-size: 11px;
+    color: #828282;
+    text-decoration: underline;
+  }
+
+  /* Copy Section */
+  .copy-section {
+    background: white;
+    padding: 24px;
+    border-radius: 8px;
+    margin-top: 40px;
+  }
+
+  .copy-section > h2 {
+    margin: 0 0 24px;
+    font-size: 20px;
+    color: #333;
+  }
+
+  .copy-block {
+    margin-bottom: 24px;
+  }
+
+  .copy-block h3 {
+    font-size: 13px;
+    color: #666;
+    margin: 0 0 8px;
+    text-transform: uppercase;
+  }
+
+  .copy-text {
+    background: #f4f4f4;
+    padding: 12px 16px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 13px;
+    cursor: pointer;
+    margin-bottom: 8px;
+    transition: background 0.2s;
+  }
+
+  .copy-text:hover {
+    background: #e8e8e8;
+  }
+
+  .hint {
+    font-size: 13px;
+    color: #666;
+    margin: 8px 0;
+  }
+
+  .hint a {
+    color: #ff6600;
+  }
+
+  .timing-list, .template-list {
+    margin: 8px 0;
+    padding-left: 20px;
+    font-size: 13px;
+  }
+
+  .timing-list li, .template-list li {
+    margin-bottom: 4px;
+  }
+
+  @media (max-width: 768px) {
+    .hn-bar {
+      flex-wrap: wrap;
+    }
+
+    .comment.depth-1 {
+      padding-left: 20px;
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll('.copy-text').forEach(el => {
+    el.addEventListener('click', () => {
+      const text = el.dataset.copy || el.textContent;
+      navigator.clipboard.writeText(text);
+      el.style.background = '#d4edda';
+      setTimeout(() => {
+        el.style.background = '';
+      }, 500);
+    });
+  });
+</script>

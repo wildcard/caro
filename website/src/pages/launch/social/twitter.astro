@@ -1,0 +1,625 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+---
+
+<Layout
+  title="Twitter/X Templates - Caro Launch"
+  description="Twitter/X post templates for Caro launch"
+>
+  <div class="twitter-preview">
+    <header class="preview-header">
+      <a href="/launch" class="back-link">← Back to Launch Hub</a>
+      <h1>𝕏 Twitter/X Templates</h1>
+      <p>Copy-paste ready tweets and thread templates</p>
+    </header>
+
+    <main class="preview-content">
+      <!-- Launch Thread -->
+      <section class="tweet-section">
+        <h2>🧵 Launch Thread</h2>
+        <p class="section-desc">Main announcement thread for launch day</p>
+
+        <div class="thread">
+          <div class="tweet" data-tweet="1">
+            <div class="tweet-header">
+              <div class="avatar">C</div>
+              <div class="user-info">
+                <span class="name">Caro</span>
+                <span class="handle">@caro_sh</span>
+              </div>
+            </div>
+            <div class="tweet-body">
+              <p>🐕 Introducing Caro — your local-first shell companion</p>
+              <p>You know that XKCD comic where someone needs tar flags to defuse a bomb?</p>
+              <p>Yeah. We've all been there at 2am during a production incident.</p>
+              <p>Caro is for those moments.</p>
+              <p>🧵 Thread below 👇</p>
+            </div>
+            <div class="tweet-actions">
+              <button class="copy-tweet">📋 Copy</button>
+            </div>
+          </div>
+
+          <div class="tweet" data-tweet="2">
+            <div class="tweet-header">
+              <div class="avatar">C</div>
+              <div class="user-info">
+                <span class="name">Caro</span>
+                <span class="handle">@caro_sh</span>
+              </div>
+            </div>
+            <div class="tweet-body">
+              <p>1/ <strong>The Problem</strong></p>
+              <p>Shell commands are optimized for speed + repetition — not recall.</p>
+              <p>• Is it -mtime or -mmin?</p>
+              <p>• tar -xvzf or -zxvf?</p>
+              <p>• BSD sed or GNU sed?</p>
+              <p>Every context-switch to Google breaks your flow. 🧠💔</p>
+            </div>
+            <div class="tweet-actions">
+              <button class="copy-tweet">📋 Copy</button>
+            </div>
+          </div>
+
+          <div class="tweet" data-tweet="3">
+            <div class="tweet-header">
+              <div class="avatar">C</div>
+              <div class="user-info">
+                <span class="name">Caro</span>
+                <span class="handle">@caro_sh</span>
+              </div>
+            </div>
+            <div class="tweet-body">
+              <p>2/ <strong>How Caro Works</strong></p>
+              <p>$ caro "find log files modified in the last hour"</p>
+              <p>→ find /var/log -type f -mmin -60</p>
+              <p>Execute? [y/N]</p>
+              <p>Natural language in → Safe command out → You confirm.</p>
+              <p>That's it. No magic. Just recall assistance.</p>
+            </div>
+            <div class="tweet-actions">
+              <button class="copy-tweet">📋 Copy</button>
+            </div>
+          </div>
+
+          <div class="tweet" data-tweet="4">
+            <div class="tweet-header">
+              <div class="avatar">C</div>
+              <div class="user-info">
+                <span class="name">Caro</span>
+                <span class="handle">@caro_sh</span>
+              </div>
+            </div>
+            <div class="tweet-body">
+              <p>3/ <strong>Why Local-First?</strong></p>
+              <p>🔒 Your commands never leave your machine</p>
+              <p>✈️ Works offline (production servers, planes)</p>
+              <p>⚡ &lt;2s inference (no network latency)</p>
+              <p>📊 Zero telemetry, zero data collection</p>
+              <p>No cloud. No tracking. No excuses.</p>
+            </div>
+            <div class="tweet-actions">
+              <button class="copy-tweet">📋 Copy</button>
+            </div>
+          </div>
+
+          <div class="tweet" data-tweet="5">
+            <div class="tweet-header">
+              <div class="avatar">C</div>
+              <div class="user-info">
+                <span class="name">Caro</span>
+                <span class="handle">@caro_sh</span>
+              </div>
+            </div>
+            <div class="tweet-body">
+              <p>4/ <strong>Safety First</strong></p>
+              <p>We don't trust AI safety claims. Neither should you.</p>
+              <p>Caro has 52 pre-compiled patterns that block dangerous commands INDEPENDENT of the model.</p>
+              <p>Model says "rm -rf /" is safe? We block it anyway.</p>
+              <p>Rule-based validation &gt; AI promises.</p>
+            </div>
+            <div class="tweet-actions">
+              <button class="copy-tweet">📋 Copy</button>
+            </div>
+          </div>
+
+          <div class="tweet" data-tweet="6">
+            <div class="tweet-header">
+              <div class="avatar">C</div>
+              <div class="user-info">
+                <span class="name">Caro</span>
+                <span class="handle">@caro_sh</span>
+              </div>
+            </div>
+            <div class="tweet-body">
+              <p>5/ <strong>Built for Terminal Pros</strong></p>
+              <p>🦀 Written in Rust</p>
+              <p>🍎 MLX optimized for Apple Silicon</p>
+              <p>🔓 Open source (AGPL-3.0)</p>
+              <p>🎯 Intentionally focused — shell commands only</p>
+              <p>Not trying to replace your AI coding assistant. Just remembering tar flags.</p>
+            </div>
+            <div class="tweet-actions">
+              <button class="copy-tweet">📋 Copy</button>
+            </div>
+          </div>
+
+          <div class="tweet" data-tweet="7">
+            <div class="tweet-header">
+              <div class="avatar">C</div>
+              <div class="user-info">
+                <span class="name">Caro</span>
+                <span class="handle">@caro_sh</span>
+              </div>
+            </div>
+            <div class="tweet-body">
+              <p>6/ <strong>Try it now</strong></p>
+              <p>cargo install caro</p>
+              <p>🌐 caro.sh</p>
+              <p>⭐ github.com/wildcard/caro</p>
+              <p>Currently in alpha — we want your feedback!</p>
+              <p>What safety rules matter to you?</p>
+              <p>What commands do you forget most?</p>
+            </div>
+            <div class="tweet-actions">
+              <button class="copy-tweet">📋 Copy</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Single Tweets -->
+      <section class="tweet-section">
+        <h2>📝 Single Tweets</h2>
+        <p class="section-desc">Standalone tweets for different occasions</p>
+
+        <div class="single-tweets">
+          <div class="tweet-card">
+            <h4>Launch Announcement</h4>
+            <div class="tweet">
+              <div class="tweet-body">
+                <p>🐕 Just launched Caro on Product Hunt!</p>
+                <p>Local-first shell companion for DevOps/SREs who refuse to sacrifice privacy for productivity.</p>
+                <p>→ Offline inference</p>
+                <p>→ Rule-based safety</p>
+                <p>→ Explicit confirmation</p>
+                <p>No cloud. No data. No tar flag googling.</p>
+                <p>🔗 [PH link]</p>
+              </div>
+              <div class="tweet-actions">
+                <button class="copy-tweet">📋 Copy</button>
+                <span class="char-count">274/280</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tweet-card">
+            <h4>XKCD Hook</h4>
+            <div class="tweet">
+              <div class="tweet-body">
+                <p>XKCD #1168 but you can actually defuse the bomb now.</p>
+                <p>$ caro "extract this tar.gz file"</p>
+                <p>→ tar -xzf archive.tar.gz</p>
+                <p>100% local. No googling. Just vibes.</p>
+                <p>caro.sh 🐕</p>
+              </div>
+              <div class="tweet-actions">
+                <button class="copy-tweet">📋 Copy</button>
+                <span class="char-count">178/280</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tweet-card">
+            <h4>Pain Point</h4>
+            <div class="tweet">
+              <div class="tweet-body">
+                <p>Things that should be easy but aren't:</p>
+                <p>- Remembering find -mtime vs -mmin</p>
+                <p>- tar flags. Any tar flags.</p>
+                <p>- BSD vs GNU sed syntax</p>
+                <p>- That one rsync flag that matters</p>
+                <p>Built Caro so I could stop context-switching to Stack Overflow.</p>
+                <p>caro.sh</p>
+              </div>
+              <div class="tweet-actions">
+                <button class="copy-tweet">📋 Copy</button>
+                <span class="char-count">262/280</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tweet-card">
+            <h4>Privacy Angle</h4>
+            <div class="tweet">
+              <div class="tweet-body">
+                <p>Controversial opinion: I don't want to send my shell commands to a cloud AI.</p>
+                <p>They often contain:</p>
+                <p>- Server names</p>
+                <p>- File paths</p>
+                <p>- Operational patterns</p>
+                <p>Built Caro to run 100% locally. Zero telemetry.</p>
+                <p>Your commands are yours.</p>
+                <p>caro.sh</p>
+              </div>
+              <div class="tweet-actions">
+                <button class="copy-tweet">📋 Copy</button>
+                <span class="char-count">258/280</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tweet-card">
+            <h4>Technical Angle</h4>
+            <div class="tweet">
+              <div class="tweet-body">
+                <p>Just shipped: Caro 🐕</p>
+                <p>Local shell command recall built with:</p>
+                <p>🦀 Rust</p>
+                <p>🧠 MLX (Apple Silicon) / Candle (CPU)</p>
+                <p>🛡️ 52 regex safety patterns</p>
+                <p>📦 Qwen2.5-Coder-1.5B</p>
+                <p>&lt;2s inference, works offline.</p>
+                <p>github.com/wildcard/caro</p>
+              </div>
+              <div class="tweet-actions">
+                <button class="copy-tweet">📋 Copy</button>
+                <span class="char-count">241/280</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tweet-card">
+            <h4>Meme Format</h4>
+            <div class="tweet">
+              <div class="tweet-body">
+                <p>Nobody:</p>
+                <p>DevOps at 3am:</p>
+                <p>$ tar -xvzf... no wait</p>
+                <p>$ tar xvzf... or is it</p>
+                <p>$ tar -x -v -z -f...</p>
+                <p>$ caro "extract this tar"</p>
+                <p>→ tar -xzf file.tar.gz</p>
+                <p>$ YES THANK YOU</p>
+                <p>caro.sh 🐕</p>
+              </div>
+              <div class="tweet-actions">
+                <button class="copy-tweet">📋 Copy</button>
+                <span class="char-count">196/280</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Engagement Responses -->
+      <section class="tweet-section">
+        <h2>💬 Engagement Responses</h2>
+        <p class="section-desc">Quick replies for common questions/comments</p>
+
+        <div class="response-grid">
+          <div class="response-card">
+            <div class="question">"Why not just use ChatGPT?"</div>
+            <div class="answer">
+              <p>Three reasons:</p>
+              <p>1. Latency — &lt;2s local vs 3-5s + network</p>
+              <p>2. Privacy — commands stay on your machine</p>
+              <p>3. Offline — works on air-gapped servers</p>
+              <p>Tradeoff: smaller model. For shell commands, it's usually enough!</p>
+            </div>
+            <button class="copy-response">📋 Copy</button>
+          </div>
+
+          <div class="response-card">
+            <div class="question">"Isn't this just a wrapper around X model?"</div>
+            <div class="answer">
+              <p>The model is just one part! The value is:</p>
+              <p>• 52 safety patterns that catch rm -rf /</p>
+              <p>• BSD vs GNU platform detection</p>
+              <p>• Explicit confirmation flow</p>
+              <p>• Terminal integration</p>
+              <p>Could you DIY? Sure. But it's ~2k lines of safety logic 🙂</p>
+            </div>
+            <button class="copy-response">📋 Copy</button>
+          </div>
+
+          <div class="response-card">
+            <div class="question">"I just use aliases"</div>
+            <div class="answer">
+              <p>Aliases are great for your top 20 commands!</p>
+              <p>Caro is for the long tail: commands you need once a month, or when you're on a server without your dotfiles.</p>
+              <p>"Find files &gt;100MB modified this week excluding node_modules" — too specific to alias, perfect for Caro.</p>
+            </div>
+            <button class="copy-response">📋 Copy</button>
+          </div>
+
+          <div class="response-card">
+            <div class="question">"Cool project!"</div>
+            <div class="answer">
+              <p>Thanks! 🙏 Would love feedback if you try it:</p>
+              <p>• What commands do you forget most?</p>
+              <p>• What safety rules matter to you?</p>
+              <p>cargo install caro</p>
+            </div>
+            <button class="copy-response">📋 Copy</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Hashtags -->
+      <section class="tweet-section">
+        <h2>#️⃣ Hashtags</h2>
+        <div class="hashtags">
+          <span class="hashtag">#DevOps</span>
+          <span class="hashtag">#SRE</span>
+          <span class="hashtag">#Rust</span>
+          <span class="hashtag">#CLI</span>
+          <span class="hashtag">#OpenSource</span>
+          <span class="hashtag">#LocalFirst</span>
+          <span class="hashtag">#TerminalTools</span>
+          <span class="hashtag">#DeveloperTools</span>
+        </div>
+        <p class="hint">Use 2-3 max per tweet. #DevOps #CLI #Rust is a good combo.</p>
+      </section>
+    </main>
+  </div>
+</Layout>
+
+<style>
+  .twitter-preview {
+    min-height: 100vh;
+    background: #15202b;
+    color: #e7e9ea;
+  }
+
+  .preview-header {
+    background: #1da1f2;
+    color: white;
+    padding: 40px 20px;
+    text-align: center;
+  }
+
+  .back-link {
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    color: white;
+    text-decoration: none;
+    opacity: 0.9;
+  }
+
+  .preview-header h1 {
+    margin: 0;
+    font-size: 36px;
+  }
+
+  .preview-header p {
+    margin: 8px 0 0;
+    opacity: 0.9;
+  }
+
+  .preview-content {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+
+  .tweet-section {
+    margin-bottom: 48px;
+  }
+
+  .tweet-section > h2 {
+    font-size: 20px;
+    margin-bottom: 8px;
+  }
+
+  .section-desc {
+    color: #8899a6;
+    margin-bottom: 20px;
+    font-size: 14px;
+  }
+
+  /* Tweet Card */
+  .tweet {
+    background: #192734;
+    border: 1px solid #38444d;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .tweet-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .avatar {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #ff8c42, #ff6b35);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 20px;
+    color: white;
+  }
+
+  .user-info .name {
+    font-weight: 700;
+    display: block;
+  }
+
+  .user-info .handle {
+    color: #8899a6;
+    font-size: 14px;
+  }
+
+  .tweet-body {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .tweet-body p {
+    margin: 0 0 8px;
+  }
+
+  .tweet-body p:last-child {
+    margin-bottom: 0;
+  }
+
+  .tweet-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #38444d;
+  }
+
+  .copy-tweet, .copy-response {
+    background: #1da1f2;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  .copy-tweet:hover, .copy-response:hover {
+    background: #1a91da;
+  }
+
+  .char-count {
+    color: #8899a6;
+    font-size: 13px;
+  }
+
+  /* Single Tweets */
+  .single-tweets {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .tweet-card h4 {
+    color: #1da1f2;
+    margin: 0 0 12px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Response Grid */
+  .response-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .response-card {
+    background: #192734;
+    border: 1px solid #38444d;
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .question {
+    color: #8899a6;
+    font-style: italic;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #38444d;
+  }
+
+  .answer {
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+
+  .answer p {
+    margin: 0 0 8px;
+  }
+
+  /* Hashtags */
+  .hashtags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .hashtag {
+    background: #192734;
+    color: #1da1f2;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .hashtag:hover {
+    background: #1da1f2;
+    color: white;
+  }
+
+  .hint {
+    color: #8899a6;
+    font-size: 13px;
+  }
+
+  @media (max-width: 768px) {
+    .preview-content {
+      padding: 20px 16px;
+    }
+  }
+</style>
+
+<script>
+  // Copy tweet content
+  document.querySelectorAll('.copy-tweet').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tweet = btn.closest('.tweet');
+      const body = tweet.querySelector('.tweet-body');
+      const text = body.innerText;
+      navigator.clipboard.writeText(text);
+      btn.textContent = '✓ Copied!';
+      setTimeout(() => {
+        btn.textContent = '📋 Copy';
+      }, 2000);
+    });
+  });
+
+  // Copy response content
+  document.querySelectorAll('.copy-response').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const card = btn.closest('.response-card');
+      const answer = card.querySelector('.answer');
+      const text = answer.innerText;
+      navigator.clipboard.writeText(text);
+      btn.textContent = '✓ Copied!';
+      setTimeout(() => {
+        btn.textContent = '📋 Copy';
+      }, 2000);
+    });
+  });
+
+  // Copy hashtags
+  document.querySelectorAll('.hashtag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      navigator.clipboard.writeText(tag.textContent);
+      const original = tag.style.background;
+      tag.style.background = '#1da1f2';
+      tag.style.color = 'white';
+      setTimeout(() => {
+        tag.style.background = '';
+        tag.style.color = '';
+      }, 500);
+    });
+  });
+</script>

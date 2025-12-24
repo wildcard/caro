@@ -1,0 +1,598 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout
+  title="Caro Launch Hub - Marketing Materials"
+  description="Marketing team hub for Caro product launch materials, channel previews, and copy templates."
+>
+  <div class="launch-hub">
+    <header class="hub-header">
+      <a href="/" class="back-link">← Back to caro.sh</a>
+      <h1>🚀 Launch Hub</h1>
+      <p class="subtitle">Marketing materials & channel previews</p>
+    </header>
+
+    <nav class="hub-nav">
+      <a href="#channels" class="nav-link">Platform Previews</a>
+      <a href="#social" class="nav-link">Social Media</a>
+      <a href="#landing" class="nav-link">Landing Pages</a>
+      <a href="#assets" class="nav-link">Assets</a>
+    </nav>
+
+    <main class="hub-content">
+      <!-- Platform Channel Previews -->
+      <section id="channels" class="hub-section">
+        <h2>📱 Platform Channel Previews</h2>
+        <p class="section-desc">See exactly how our launch will appear on each platform</p>
+
+        <div class="card-grid">
+          <a href="/launch/channels/product-hunt" class="preview-card">
+            <div class="card-icon">🏹</div>
+            <h3>Product Hunt</h3>
+            <p>Full page preview with description, media, and comments</p>
+            <span class="card-status ready">Ready</span>
+          </a>
+
+          <a href="/launch/channels/hacker-news" class="preview-card">
+            <div class="card-icon">📰</div>
+            <h3>Hacker News</h3>
+            <p>Show HN post preview with comment templates</p>
+            <span class="card-status ready">Ready</span>
+          </a>
+
+          <a href="/launch/channels/reddit" class="preview-card">
+            <div class="card-icon">🤖</div>
+            <h3>Reddit</h3>
+            <p>Subreddit-specific posts (r/rust, r/commandline, etc.)</p>
+            <span class="card-status ready">Ready</span>
+          </a>
+
+          <div class="preview-card disabled">
+            <div class="card-icon">🔧</div>
+            <h3>DevTool.io & Others</h3>
+            <p>Emerging developer tool platforms</p>
+            <span class="card-status coming">Coming</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Social Media Templates -->
+      <section id="social" class="hub-section">
+        <h2>🐦 Social Media Templates</h2>
+        <p class="section-desc">Copy-paste ready posts for each platform</p>
+
+        <div class="card-grid">
+          <a href="/launch/social/twitter" class="preview-card">
+            <div class="card-icon">𝕏</div>
+            <h3>Twitter/X</h3>
+            <p>Launch thread, single tweets, engagement responses</p>
+            <span class="card-status ready">Ready</span>
+          </a>
+
+          <a href="/launch/social/linkedin" class="preview-card">
+            <div class="card-icon">💼</div>
+            <h3>LinkedIn</h3>
+            <p>Professional announcement and follow-up posts</p>
+            <span class="card-status ready">Ready</span>
+          </a>
+
+          <div class="preview-card disabled">
+            <div class="card-icon">🐘</div>
+            <h3>Mastodon</h3>
+            <p>Fediverse-friendly posts for tech communities</p>
+            <span class="card-status coming">Coming</span>
+          </div>
+
+          <div class="preview-card disabled">
+            <div class="card-icon">💬</div>
+            <h3>Discord/Slack</h3>
+            <p>Community server announcement templates</p>
+            <span class="card-status coming">Coming</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Channel-Specific Landing Pages -->
+      <section id="landing" class="hub-section">
+        <h2>🎯 Channel Landing Pages</h2>
+        <p class="section-desc">UTM-tagged pages for tracking acquisition by channel</p>
+
+        <div class="landing-links">
+          <div class="landing-item">
+            <code>caro.sh/welcome/producthunt</code>
+            <a href="/launch/landing/producthunt" class="preview-btn">Preview</a>
+            <button class="copy-btn" data-url="https://caro.sh/welcome/producthunt?utm_source=producthunt&utm_medium=launch&utm_campaign=2025q1">Copy URL</button>
+          </div>
+          <div class="landing-item">
+            <code>caro.sh/welcome/hackernews</code>
+            <a href="/launch/landing/hackernews" class="preview-btn">Preview</a>
+            <button class="copy-btn" data-url="https://caro.sh/welcome/hackernews?utm_source=hackernews&utm_medium=launch&utm_campaign=2025q1">Copy URL</button>
+          </div>
+          <div class="landing-item">
+            <code>caro.sh/welcome/twitter</code>
+            <a href="/launch/landing/twitter" class="preview-btn">Preview</a>
+            <button class="copy-btn" data-url="https://caro.sh/welcome/twitter?utm_source=twitter&utm_medium=social&utm_campaign=2025q1">Copy URL</button>
+          </div>
+          <div class="landing-item">
+            <code>caro.sh/welcome/reddit</code>
+            <a href="/launch/landing/reddit" class="preview-btn">Preview</a>
+            <button class="copy-btn" data-url="https://caro.sh/welcome/reddit?utm_source=reddit&utm_medium=social&utm_campaign=2025q1">Copy URL</button>
+          </div>
+          <div class="landing-item">
+            <code>caro.sh/welcome/linkedin</code>
+            <a href="/launch/landing/linkedin" class="preview-btn">Preview</a>
+            <button class="copy-btn" data-url="https://caro.sh/welcome/linkedin?utm_source=linkedin&utm_medium=social&utm_campaign=2025q1">Copy URL</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Assets -->
+      <section id="assets" class="hub-section">
+        <h2>📦 Quick Assets</h2>
+        <p class="section-desc">Downloadable assets and key information</p>
+
+        <div class="assets-grid">
+          <div class="asset-box">
+            <h4>📝 Key Copy</h4>
+            <div class="asset-content">
+              <strong>Tagline:</strong>
+              <p class="copyable">"For XKCD #1168 moments—shell command recall, offline, with guardrails"</p>
+
+              <strong>One-liner:</strong>
+              <p class="copyable">"Caro suggests the shell command you forgot—100% local, with safety guardrails."</p>
+            </div>
+          </div>
+
+          <div class="asset-box">
+            <h4>🔗 Key Links</h4>
+            <ul class="link-list">
+              <li><strong>Website:</strong> <code>caro.sh</code></li>
+              <li><strong>GitHub:</strong> <code>github.com/wildcard/caro</code></li>
+              <li><strong>Install:</strong> <code>cargo install caro</code></li>
+              <li><strong>XKCD Reference:</strong> <code>xkcd.com/1168</code></li>
+            </ul>
+          </div>
+
+          <div class="asset-box">
+            <h4>🎨 Brand Colors</h4>
+            <div class="color-swatches">
+              <div class="swatch" style="background: #ff8c42;">
+                <span>#ff8c42</span>
+              </div>
+              <div class="swatch" style="background: #ff6b35;">
+                <span>#ff6b35</span>
+              </div>
+              <div class="swatch" style="background: #2c3e50; color: white;">
+                <span>#2c3e50</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="asset-box">
+            <h4>📊 Key Stats</h4>
+            <ul class="stats-list">
+              <li><strong>52</strong> safety patterns</li>
+              <li><strong>&lt;2s</strong> inference (Apple Silicon)</li>
+              <li><strong>100%</strong> local/offline</li>
+              <li><strong>0</strong> telemetry</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Documentation Links -->
+      <section class="hub-section docs-section">
+        <h2>📚 Full Documentation</h2>
+        <div class="doc-links">
+          <a href="https://github.com/wildcard/caro/blob/main/docs/marketing/PRODUCT_ANNOUNCEMENT_PLAN.md" class="doc-link" target="_blank">
+            📋 Full Launch Plan
+          </a>
+          <a href="https://github.com/wildcard/caro/blob/main/docs/marketing/COMPETITIVE_PLAYBOOK.md" class="doc-link" target="_blank">
+            🥊 Competitive Playbook
+          </a>
+          <a href="https://github.com/wildcard/caro/blob/main/docs/marketing/CULTURAL_REFERENCES.md" class="doc-link" target="_blank">
+            😄 Cultural References
+          </a>
+          <a href="https://github.com/wildcard/caro/blob/main/docs/marketing/VISUAL_ASSETS_GUIDE.md" class="doc-link" target="_blank">
+            🎨 Visual Assets Guide
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="hub-footer">
+      <p>Internal marketing hub for Caro launch team</p>
+      <p class="muted">Last updated: December 2025</p>
+    </footer>
+  </div>
+</Layout>
+
+<style>
+  .launch-hub {
+    min-height: 100vh;
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  .hub-header {
+    text-align: center;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+  }
+
+  .back-link {
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    color: white;
+    text-decoration: none;
+    opacity: 0.9;
+    font-size: 14px;
+  }
+
+  .back-link:hover {
+    opacity: 1;
+  }
+
+  .hub-header h1 {
+    font-size: 48px;
+    margin: 0;
+  }
+
+  .hub-header .subtitle {
+    font-size: 18px;
+    opacity: 0.9;
+    margin-top: 8px;
+  }
+
+  .hub-nav {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
+    background: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-border);
+    flex-wrap: wrap;
+  }
+
+  .nav-link {
+    color: var(--color-text);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: background 0.2s;
+  }
+
+  .nav-link:hover {
+    background: var(--color-border);
+  }
+
+  .hub-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+
+  .hub-section {
+    margin-bottom: 60px;
+  }
+
+  .hub-section h2 {
+    font-size: 28px;
+    margin-bottom: 8px;
+    text-align: left;
+  }
+
+  .section-desc {
+    color: var(--color-text-secondary);
+    margin-bottom: 24px;
+  }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+  }
+
+  .preview-card {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 24px;
+    text-decoration: none;
+    color: var(--color-text);
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    position: relative;
+  }
+
+  .preview-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.1);
+    border-color: #ff8c42;
+  }
+
+  .card-icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+
+  .preview-card h3 {
+    margin: 0 0 8px 0;
+    font-size: 20px;
+  }
+
+  .preview-card p {
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .card-status {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .card-status.ready {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+  }
+
+  .card-status.draft {
+    background: rgba(234, 179, 8, 0.15);
+    color: #eab308;
+  }
+
+  .card-status.coming {
+    background: rgba(148, 163, 184, 0.15);
+    color: #94a3b8;
+  }
+
+  .preview-card.disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  .preview-card.disabled:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: var(--color-border);
+  }
+
+  .landing-links {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .landing-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    flex-wrap: wrap;
+  }
+
+  .landing-item code {
+    flex: 1;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: #ff8c42;
+  }
+
+  .preview-btn, .copy-btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .preview-btn {
+    background: transparent;
+    border: 1px solid #ff8c42;
+    color: #ff8c42;
+    text-decoration: none;
+  }
+
+  .preview-btn:hover {
+    background: rgba(255, 140, 66, 0.1);
+  }
+
+  .copy-btn {
+    background: #ff8c42;
+    border: none;
+    color: white;
+  }
+
+  .copy-btn:hover {
+    background: #ff6b35;
+  }
+
+  .assets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  .asset-box {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .asset-box h4 {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+  }
+
+  .asset-content strong {
+    display: block;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin-bottom: 4px;
+    margin-top: 12px;
+  }
+
+  .asset-content strong:first-child {
+    margin-top: 0;
+  }
+
+  .copyable {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    background: var(--color-bg);
+    padding: 8px;
+    border-radius: 4px;
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .copyable:hover {
+    background: var(--color-border);
+  }
+
+  .link-list, .stats-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .link-list li, .stats-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 14px;
+  }
+
+  .link-list li:last-child, .stats-list li:last-child {
+    border-bottom: none;
+  }
+
+  .link-list code {
+    color: #ff8c42;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+  }
+
+  .stats-list strong {
+    color: #ff8c42;
+    font-size: 18px;
+    margin-right: 4px;
+  }
+
+  .color-swatches {
+    display: flex;
+    gap: 8px;
+  }
+
+  .swatch {
+    width: 80px;
+    height: 60px;
+    border-radius: 8px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 6px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .doc-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .doc-link {
+    padding: 12px 20px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--color-text);
+    transition: all 0.2s;
+  }
+
+  .doc-link:hover {
+    border-color: #ff8c42;
+    background: rgba(255, 140, 66, 0.05);
+  }
+
+  .hub-footer {
+    text-align: center;
+    padding: 40px 20px;
+    border-top: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+  }
+
+  .hub-footer .muted {
+    font-size: 12px;
+    opacity: 0.7;
+  }
+
+  @media (max-width: 768px) {
+    .hub-header h1 {
+      font-size: 32px;
+    }
+
+    .back-link {
+      position: static;
+      display: block;
+      margin-bottom: 16px;
+    }
+
+    .landing-item {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .landing-item code {
+      text-align: center;
+    }
+
+    .landing-item .preview-btn,
+    .landing-item .copy-btn {
+      width: 100%;
+      text-align: center;
+    }
+  }
+</style>
+
+<script>
+  // Copy button functionality
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const url = btn.dataset.url;
+      navigator.clipboard.writeText(url).then(() => {
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => {
+          btn.textContent = originalText;
+        }, 2000);
+      });
+    });
+  });
+
+  // Copyable text
+  document.querySelectorAll('.copyable').forEach(el => {
+    el.addEventListener('click', () => {
+      navigator.clipboard.writeText(el.textContent);
+      const originalBg = el.style.background;
+      el.style.background = 'rgba(34, 197, 94, 0.2)';
+      setTimeout(() => {
+        el.style.background = originalBg;
+      }, 500);
+    });
+  });
+</script>
