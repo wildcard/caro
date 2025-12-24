@@ -1,5 +1,11 @@
 # Caro Website Improvement Plan
 
+> **Implementation Note:** This plan was originally for a homepage overhaul but has been implemented as a **landing page strategy** instead. The conversion-focused content now lives at `/safe-shell-commands` while the original homepage remains for general exploration.
+>
+> See `LANDING_PAGES.md` for the full landing page strategy and future page plans.
+
+---
+
 ## Executive Summary
 
 Based on the harsh marketing critique, this plan addresses the core problems:

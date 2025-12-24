@@ -4,36 +4,19 @@ import GitHubStarButton from './GitHubStarButton.astro';
 
 <div class="hero">
   <div class="container">
-    <div class="hero-badge">AI Shell Commands Without The Risk</div>
-    <h1 class="headline">
-      The last line of defense<br />between you and <code class="danger-cmd">rm -rf /</code>
-    </h1>
+    <div class="companion-badge">🐕 Companion Agent</div>
+    <img src="/caro-prompting.gif" alt="Caro - 8-bit pixel art" class="pixel-art" />
+    <div class="logo">Caro</div>
+    <h1 class="tagline">Your loyal shell companion</h1>
     <p class="subtitle">
-      Generate shell commands that work the first time—without sending your production data to the cloud.
-      Caro runs 100% locally and blocks dangerous commands before you can execute them.
+      A specialized POSIX shell command agent with empathy and agency. Available as an MCP for Claude and as a dedicated Skill. She keeps you safe while helping Claude get the job done.
     </p>
-
-    <div class="social-proof">
-      <div class="quote">
-        "I almost deleted our production database at 3 AM. Caro stopped me."
-      </div>
-      <div class="attribution">— Senior SRE at a Fortune 500</div>
+    <div class="github-star-wrapper">
+      <GitHubStarButton />
     </div>
-
-    <div class="cta-section">
-      <div class="github-star-wrapper">
-        <GitHubStarButton />
-      </div>
-      <div class="cta-buttons">
-        <a href="#download" class="cta-button primary">Get Started Free</a>
-        <a href="#demo" class="cta-button secondary">See It In Action</a>
-      </div>
-    </div>
-
-    <div class="trust-badges">
-      <span class="badge"><span class="icon">🔒</span> Zero telemetry</span>
-      <span class="badge"><span class="icon">🛡️</span> Pre-execution safety</span>
-      <span class="badge"><span class="icon">⚡</span> 100% local</span>
+    <div class="cta-buttons">
+      <a href="#download" class="cta-button">Get Started</a>
+      <a href="#how-it-works" class="cta-button secondary">Watch Demo</a>
     </div>
   </div>
 </div>
@@ -46,90 +29,53 @@ import GitHubStarButton from './GitHubStarButton.astro';
     justify-content: center;
     align-items: center;
     text-align: center;
-    padding: 80px 20px 60px;
+    padding: 60px 20px;
     background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
     transition: background 0.3s ease;
   }
 
-  .container {
-    max-width: 900px;
+  .logo {
+    font-size: 72px;
+    margin-bottom: 20px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
-  .hero-badge {
+  .companion-badge {
     display: inline-block;
-    background: linear-gradient(135deg, rgba(255, 140, 66, 0.15) 0%, rgba(255, 107, 53, 0.1) 100%);
-    border: 1px solid rgba(255, 140, 66, 0.3);
-    color: #ff8c42;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
     padding: 8px 20px;
     border-radius: 20px;
     font-size: 14px;
     font-weight: 600;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     text-transform: uppercase;
     letter-spacing: 1px;
   }
 
-  .headline {
-    font-size: 52px;
-    font-weight: 700;
-    line-height: 1.2;
-    margin-bottom: 24px;
+  .tagline {
+    font-size: 38px;
+    font-weight: 600;
+    margin-bottom: 20px;
     color: var(--color-text);
     transition: color 0.3s ease;
-  }
-
-  .danger-cmd {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
-    font-size: 0.9em;
   }
 
   .subtitle {
     font-size: 20px;
     color: var(--color-text-secondary);
-    margin-bottom: 40px;
-    max-width: 700px;
-    margin-left: auto;
-    margin-right: auto;
+    margin-bottom: 30px;
+    max-width: 650px;
     line-height: 1.7;
     transition: color 0.3s ease;
   }
 
-  .social-proof {
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-left: 4px solid #ff8c42;
-    padding: 24px 32px;
-    border-radius: 8px;
-    margin-bottom: 40px;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-    transition: background 0.3s ease, border-color 0.3s ease;
-  }
-
-  .quote {
-    font-size: 18px;
-    font-style: italic;
-    color: var(--color-text);
-    margin-bottom: 8px;
-    line-height: 1.6;
-  }
-
-  .attribution {
-    font-size: 14px;
-    color: var(--color-text-secondary);
-  }
-
-  .cta-section {
-    margin-bottom: 30px;
-  }
-
   .github-star-wrapper {
-    margin-bottom: 20px;
+    margin-bottom: 30px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -137,7 +83,7 @@ import GitHubStarButton from './GitHubStarButton.astro';
 
   .cta-buttons {
     display: flex;
-    gap: 16px;
+    gap: 10px;
     justify-content: center;
     flex-wrap: wrap;
   }
@@ -145,19 +91,16 @@ import GitHubStarButton from './GitHubStarButton.astro';
   .cta-button {
     display: inline-block;
     padding: 16px 40px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    text-decoration: none;
     border-radius: 8px;
     font-size: 18px;
     font-weight: 600;
-    text-decoration: none;
     transition: transform 0.2s, box-shadow 0.2s;
   }
 
-  .cta-button.primary {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: white;
-  }
-
-  .cta-button.primary:hover {
+  .cta-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 25px rgba(255, 140, 66, 0.3);
   }
@@ -169,64 +112,45 @@ import GitHubStarButton from './GitHubStarButton.astro';
   }
 
   .cta-button.secondary:hover {
-    background: rgba(255, 140, 66, 0.1);
-    transform: translateY(-2px);
+    background: #fff8f0;
+    box-shadow: 0 10px 25px rgba(255, 140, 66, 0.2);
   }
 
-  :global(.dark) .cta-button.secondary:hover {
-    background: rgba(255, 140, 66, 0.15);
+  .pixel-art {
+    width: 100px;
+    height: auto;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    margin-bottom: -30px;
+    animation: float 3s ease-in-out infinite;
   }
 
-  .trust-badges {
-    display: flex;
-    gap: 24px;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  .badge {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
-    color: var(--color-text-secondary);
-    transition: color 0.3s ease;
-  }
-
-  .badge .icon {
-    font-size: 16px;
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
   }
 
   @media (max-width: 768px) {
-    .headline {
-      font-size: 32px;
+    .pixel-art {
+      width: 70px;
+      height: auto;
+    }
+
+    .logo {
+      font-size: 48px;
+    }
+
+    .tagline {
+      font-size: 28px;
     }
 
     .subtitle {
       font-size: 18px;
-    }
-
-    .social-proof {
-      padding: 20px 24px;
-    }
-
-    .quote {
-      font-size: 16px;
-    }
-
-    .cta-buttons {
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .cta-button {
-      width: 100%;
-      max-width: 280px;
-    }
-
-    .trust-badges {
-      flex-direction: column;
-      gap: 12px;
     }
   }
 </style>

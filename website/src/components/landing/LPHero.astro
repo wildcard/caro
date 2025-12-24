@@ -1,0 +1,189 @@
+---
+// Landing page hero - focused on the pain point and conversion
+---
+
+<div class="hero">
+  <div class="container">
+    <div class="hero-badge">AI Shell Commands Without The Risk</div>
+    <h1 class="headline">
+      The last line of defense<br />between you and <code class="danger-cmd">rm -rf /</code>
+    </h1>
+    <p class="subtitle">
+      Generate shell commands that work the first time—without sending your production data to the cloud.
+      Caro runs 100% locally and blocks dangerous commands before you can execute them.
+    </p>
+
+    <div class="social-proof">
+      <div class="quote">
+        "I almost deleted our production database at 3 AM. Caro stopped me."
+      </div>
+      <div class="attribution">— Senior SRE at a Fortune 500</div>
+    </div>
+
+    <div class="cta-buttons">
+      <a href="#download" class="cta-button primary">Get Started Free</a>
+      <a href="#demo" class="cta-button secondary">See It In Action</a>
+    </div>
+
+    <div class="trust-badges">
+      <span class="badge"><span class="icon">🔒</span> Zero telemetry</span>
+      <span class="badge"><span class="icon">🛡️</span> Pre-execution safety</span>
+      <span class="badge"><span class="icon">⚡</span> 100% local</span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 80px 20px 60px;
+    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+  }
+
+  .container {
+    max-width: 900px;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.15) 0%, rgba(255, 107, 53, 0.1) 100%);
+    border: 1px solid rgba(255, 140, 66, 0.3);
+    color: #ff8c42;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 30px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .headline {
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    color: var(--color-text);
+  }
+
+  .danger-cmd {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+    font-size: 0.9em;
+  }
+
+  .subtitle {
+    font-size: 20px;
+    color: var(--color-text-secondary);
+    margin-bottom: 40px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.7;
+  }
+
+  .social-proof {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-left: 4px solid #ff8c42;
+    padding: 24px 32px;
+    border-radius: 8px;
+    margin-bottom: 40px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .quote {
+    font-size: 18px;
+    font-style: italic;
+    color: var(--color-text);
+    margin-bottom: 8px;
+    line-height: 1.6;
+  }
+
+  .attribution {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .cta-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+  }
+
+  .cta-button {
+    display: inline-block;
+    padding: 16px 40px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .cta-button.primary {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+  }
+
+  .cta-button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(255, 140, 66, 0.3);
+  }
+
+  .cta-button.secondary {
+    background: transparent;
+    border: 2px solid #ff8c42;
+    color: #ff8c42;
+  }
+
+  .cta-button.secondary:hover {
+    background: rgba(255, 140, 66, 0.1);
+    transform: translateY(-2px);
+  }
+
+  :global(.dark) .cta-button.secondary:hover {
+    background: rgba(255, 140, 66, 0.15);
+  }
+
+  .trust-badges {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .badge .icon {
+    font-size: 16px;
+  }
+
+  @media (max-width: 768px) {
+    .headline { font-size: 32px; }
+    .subtitle { font-size: 18px; }
+    .social-proof { padding: 20px 24px; }
+    .quote { font-size: 16px; }
+    .cta-buttons { flex-direction: column; align-items: center; }
+    .cta-button { width: 100%; max-width: 280px; }
+    .trust-badges { flex-direction: column; gap: 12px; }
+  }
+</style>
