@@ -1,0 +1,837 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+---
+
+<Layout
+  title="Product Hunt Preview - Caro Launch"
+  description="Preview how Caro will appear on Product Hunt"
+>
+  <div class="ph-preview">
+    <header class="preview-header">
+      <a href="/launch" class="back-link">← Back to Launch Hub</a>
+      <h1>🏹 Product Hunt Preview</h1>
+      <p>This simulates how Caro will appear on Product Hunt</p>
+    </header>
+
+    <main class="preview-content">
+      <!-- Product Hunt Card Simulation -->
+      <section class="ph-card-section">
+        <h2>Launch Card (Homepage View)</h2>
+        <div class="ph-card">
+          <div class="ph-card-upvote">
+            <button class="upvote-btn">▲</button>
+            <span class="upvote-count">247</span>
+          </div>
+          <img src="/caro-pixel.png" alt="Caro" class="ph-thumbnail" />
+          <div class="ph-card-content">
+            <h3 class="ph-title">Caro</h3>
+            <p class="ph-tagline">For XKCD #1168 moments—shell command recall, offline, with guardrails</p>
+            <div class="ph-meta">
+              <span class="ph-tag">Developer Tools</span>
+              <span class="ph-tag">CLI</span>
+              <span class="ph-tag">Open Source</span>
+              <span class="ph-comments">💬 42</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Full Product Page -->
+      <section class="ph-page-section">
+        <h2>Full Product Page</h2>
+        <div class="ph-page">
+          <!-- Header -->
+          <div class="ph-page-header">
+            <div class="ph-page-main">
+              <img src="/caro-pixel.png" alt="Caro" class="ph-page-icon" />
+              <div class="ph-page-info">
+                <h1>Caro</h1>
+                <p class="ph-page-tagline">For XKCD #1168 moments—shell command recall, offline, with guardrails</p>
+                <div class="ph-page-tags">
+                  <span>Developer Tools</span>
+                  <span>CLI</span>
+                  <span>Open Source</span>
+                  <span>Rust</span>
+                  <span>AI</span>
+                </div>
+              </div>
+            </div>
+            <div class="ph-page-actions">
+              <button class="ph-upvote-big">
+                <span class="arrow">▲</span>
+                <span class="label">UPVOTE</span>
+                <span class="count">247</span>
+              </button>
+              <a href="https://caro.sh" class="ph-visit-btn">Visit Website</a>
+            </div>
+          </div>
+
+          <!-- Gallery -->
+          <div class="ph-gallery">
+            <div class="ph-gallery-main">
+              <div class="terminal-demo">
+                <div class="terminal-header">
+                  <span class="dot red"></span>
+                  <span class="dot yellow"></span>
+                  <span class="dot green"></span>
+                </div>
+                <div class="terminal-body">
+                  <div class="line">$ caro "find log files changed in the last hour"</div>
+                  <div class="line output"></div>
+                  <div class="line output">Suggested: <span class="cmd">find /var/log -type f -mmin -60</span></div>
+                  <div class="line output"></div>
+                  <div class="line output">Execute? [y/N] <span class="cursor">▊</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="ph-gallery-thumbs">
+              <div class="thumb active">Demo</div>
+              <div class="thumb">Safety</div>
+              <div class="thumb">Config</div>
+              <div class="thumb">Install</div>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="ph-description">
+            <h2>The Problem</h2>
+            <p>
+              You know <a href="https://xkcd.com/1168/" target="_blank">XKCD #1168</a>? The one where someone
+              needs to extract a tar archive to defuse a bomb, but can't remember the flags?
+            </p>
+            <p>
+              Everyone laughs because everyone's lived it. Maybe not with bombs, but definitely at 2am
+              during a production incident.
+            </p>
+            <p>
+              You need to find log files modified in the last hour, but your brain blanks on the exact
+              <code>find</code> syntax. Is it <code>-mtime</code> or <code>-mmin</code>? You open a
+              browser tab. Stack Overflow. Copy. Paste. Typo. Google again.
+            </p>
+            <p><strong>The context switch just cost you 5 minutes and your flow state.</strong></p>
+
+            <h2>What Caro Does Differently</h2>
+            <p>
+              Caro is a <strong>local-first shell companion</strong> built specifically for DevOps
+              engineers, SREs, and system administrators.
+            </p>
+
+            <div class="feature-list">
+              <div class="feature">
+                <span class="icon">🔒</span>
+                <div>
+                  <strong>Local-First, No Exceptions</strong>
+                  <p>Runs entirely offline with local inference. Zero telemetry. Zero data collection.
+                  Your commands never leave your machine.</p>
+                </div>
+              </div>
+              <div class="feature">
+                <span class="icon">🛡️</span>
+                <div>
+                  <strong>Rule-Based Safety, Not AI Promises</strong>
+                  <p>52 pre-compiled patterns block dangerous operations. <code>rm -rf /</code> gets
+                  blocked—not warned, blocked. We validate independently; the model can't override safety.</p>
+                </div>
+              </div>
+              <div class="feature">
+                <span class="icon">🎯</span>
+                <div>
+                  <strong>Intentionally Focused</strong>
+                  <p>Built for shell command recall—not code generation. A specialized sub-agent,
+                  not a full AI replacement. Does one thing well.</p>
+                </div>
+              </div>
+              <div class="feature">
+                <span class="icon">⚡</span>
+                <div>
+                  <strong>Built for Terminal Professionals</strong>
+                  <p>Written in Rust. &lt;2s inference on Apple Silicon. Works in your existing terminal.
+                  Understands BSD vs GNU differences automatically.</p>
+                </div>
+              </div>
+            </div>
+
+            <h2>Current Status: Alpha</h2>
+            <p>
+              We're actively developing Caro and seeking feedback on:
+            </p>
+            <ul>
+              <li>What safety rules matter most to you?</li>
+              <li>What shell commands do you forget most often?</li>
+              <li>What would make you trust an AI tool in your terminal?</li>
+            </ul>
+            <p>
+              <strong>Open source (AGPL-3.0) | Built with Rust | No data collection</strong>
+            </p>
+            <p>
+              Try it: <code>cargo install caro</code>
+            </p>
+          </div>
+
+          <!-- Maker Comment -->
+          <div class="ph-comments-section">
+            <h2>💬 Discussion</h2>
+            <div class="ph-comment maker">
+              <div class="comment-header">
+                <div class="avatar">K</div>
+                <div class="comment-meta">
+                  <span class="name">Kobi <span class="badge">Maker</span></span>
+                  <span class="time">Just now</span>
+                </div>
+              </div>
+              <div class="comment-body">
+                <p>Hey Product Hunt! 👋</p>
+                <p>
+                  I'm Kobi, and I built Caro because I kept losing flow state to forgotten shell commands.
+                </p>
+                <p>
+                  <strong>The story:</strong> I was debugging a production issue, needed to grep through
+                  rotated logs, and completely blanked on the zcat + grep combination. Opened Chrome.
+                  Stack Overflow. Lost 10 minutes. Happened again the next week with tar flags.
+                </p>
+                <p>I wanted something that:</p>
+                <ol>
+                  <li>Works offline (production servers don't always have internet)</li>
+                  <li>Confirms before executing (I don't trust AI in my terminal blindly)</li>
+                  <li>Just does shell commands (not another "AI for everything" tool)</li>
+                </ol>
+                <p><strong>What I'd love feedback on:</strong></p>
+                <ul>
+                  <li>What safety rules would make you trust a tool like this?</li>
+                  <li>What commands do YOU forget most often?</li>
+                  <li>Is "local-only" a dealbreaker or a feature for you?</li>
+                </ul>
+                <p>
+                  This is alpha—rough edges exist. But the core philosophy is set: no cloud, explicit
+                  confirmation, focused on one job.
+                </p>
+                <p>Happy to answer any questions! 🐕</p>
+              </div>
+              <div class="comment-actions">
+                <button>▲ 18</button>
+                <button>Reply</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Copyable Elements -->
+      <section class="copy-section">
+        <h2>📋 Copy-Paste Ready</h2>
+
+        <div class="copy-block">
+          <h3>Tagline (60 chars)</h3>
+          <div class="copy-text" data-copy="For XKCD #1168 moments—shell command recall, offline, with guardrails">
+            For XKCD #1168 moments—shell command recall, offline, with guardrails
+          </div>
+        </div>
+
+        <div class="copy-block">
+          <h3>Alternative Taglines</h3>
+          <div class="copy-text" data-copy="For when you need tar flags but can't remember if it's -xvzf or -zxvf">
+            For when you need tar flags but can't remember if it's -xvzf or -zxvf
+          </div>
+          <div class="copy-text" data-copy="Because nobody extracts a tar archive on the first try">
+            Because nobody extracts a tar archive on the first try
+          </div>
+          <div class="copy-text" data-copy="The shell companion that never phones home">
+            The shell companion that never phones home
+          </div>
+        </div>
+
+        <div class="copy-block">
+          <h3>Topics/Tags</h3>
+          <div class="tags-list">
+            <span class="tag">Developer Tools</span>
+            <span class="tag">CLI</span>
+            <span class="tag">Open Source</span>
+            <span class="tag">Rust</span>
+            <span class="tag">AI</span>
+            <span class="tag">DevOps</span>
+            <span class="tag">Productivity</span>
+          </div>
+        </div>
+
+        <div class="copy-block">
+          <h3>Media Checklist</h3>
+          <ul class="checklist">
+            <li><input type="checkbox" checked /> Product icon (240x240)</li>
+            <li><input type="checkbox" checked /> Gallery image 1: Terminal demo</li>
+            <li><input type="checkbox" /> Gallery image 2: Safety blocking</li>
+            <li><input type="checkbox" /> Gallery image 3: Configuration</li>
+            <li><input type="checkbox" /> Gallery image 4: Installation</li>
+            <li><input type="checkbox" /> Demo video (30-60s)</li>
+            <li><input type="checkbox" /> Animated GIF</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+  </div>
+</Layout>
+
+<style>
+  .ph-preview {
+    min-height: 100vh;
+    background: #f5f5f5;
+  }
+
+  .preview-header {
+    background: #da552f;
+    color: white;
+    padding: 40px 20px;
+    text-align: center;
+  }
+
+  .back-link {
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    color: white;
+    text-decoration: none;
+    opacity: 0.9;
+  }
+
+  .preview-header h1 {
+    margin: 0;
+    font-size: 36px;
+  }
+
+  .preview-header p {
+    margin: 8px 0 0;
+    opacity: 0.9;
+  }
+
+  .preview-content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+
+  section {
+    margin-bottom: 60px;
+  }
+
+  section > h2 {
+    font-size: 20px;
+    color: #666;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Product Hunt Card */
+  .ph-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  .ph-card-upvote {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .upvote-btn {
+    width: 48px;
+    height: 48px;
+    border: 2px solid #da552f;
+    background: white;
+    color: #da552f;
+    border-radius: 8px;
+    font-size: 20px;
+    cursor: pointer;
+  }
+
+  .upvote-btn:hover {
+    background: #da552f;
+    color: white;
+  }
+
+  .upvote-count {
+    font-weight: 600;
+    color: #da552f;
+  }
+
+  .ph-thumbnail {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    object-fit: cover;
+    image-rendering: pixelated;
+  }
+
+  .ph-card-content {
+    flex: 1;
+  }
+
+  .ph-title {
+    margin: 0 0 4px;
+    font-size: 18px;
+    color: #333;
+  }
+
+  .ph-tagline {
+    margin: 0 0 8px;
+    color: #666;
+    font-size: 14px;
+  }
+
+  .ph-meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .ph-tag {
+    background: #f0f0f0;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #666;
+  }
+
+  .ph-comments {
+    font-size: 14px;
+    color: #666;
+  }
+
+  /* Full Product Page */
+  .ph-page {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.1);
+    overflow: hidden;
+  }
+
+  .ph-page-header {
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid #eee;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .ph-page-main {
+    display: flex;
+    gap: 16px;
+  }
+
+  .ph-page-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    image-rendering: pixelated;
+  }
+
+  .ph-page-info h1 {
+    margin: 0 0 4px;
+    font-size: 24px;
+  }
+
+  .ph-page-tagline {
+    margin: 0 0 8px;
+    color: #666;
+  }
+
+  .ph-page-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .ph-page-tags span {
+    background: #f0f0f0;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    color: #666;
+  }
+
+  .ph-page-actions {
+    display: flex;
+    gap: 12px;
+  }
+
+  .ph-upvote-big {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 20px;
+    border: 2px solid #da552f;
+    background: white;
+    color: #da552f;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .ph-upvote-big:hover {
+    background: #da552f;
+    color: white;
+  }
+
+  .ph-upvote-big .arrow {
+    font-size: 18px;
+  }
+
+  .ph-upvote-big .label {
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .ph-upvote-big .count {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .ph-visit-btn {
+    padding: 16px 24px;
+    background: #da552f;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+  }
+
+  /* Gallery */
+  .ph-gallery {
+    padding: 24px;
+    background: #fafafa;
+    border-bottom: 1px solid #eee;
+  }
+
+  .ph-gallery-main {
+    margin-bottom: 16px;
+  }
+
+  .terminal-demo {
+    background: #1e1e1e;
+    border-radius: 8px;
+    overflow: hidden;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .terminal-header {
+    background: #333;
+    padding: 8px 12px;
+    display: flex;
+    gap: 6px;
+  }
+
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .dot.red { background: #ff5f56; }
+  .dot.yellow { background: #ffbd2e; }
+  .dot.green { background: #27c93f; }
+
+  .terminal-body {
+    padding: 16px;
+    color: #e0e0e0;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .terminal-body .line {
+    white-space: pre;
+  }
+
+  .terminal-body .cmd {
+    color: #4ec9b0;
+  }
+
+  .terminal-body .cursor {
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+
+  .ph-gallery-thumbs {
+    display: flex;
+    gap: 8px;
+  }
+
+  .thumb {
+    padding: 8px 16px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .thumb.active {
+    border-color: #da552f;
+    color: #da552f;
+  }
+
+  /* Description */
+  .ph-description {
+    padding: 24px;
+    line-height: 1.7;
+  }
+
+  .ph-description h2 {
+    font-size: 20px;
+    margin: 32px 0 12px;
+    color: #333;
+  }
+
+  .ph-description h2:first-child {
+    margin-top: 0;
+  }
+
+  .ph-description p {
+    margin: 0 0 16px;
+    color: #444;
+  }
+
+  .ph-description code {
+    background: #f4f4f4;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+  }
+
+  .ph-description a {
+    color: #da552f;
+  }
+
+  .ph-description ul, .ph-description ol {
+    margin: 0 0 16px;
+    padding-left: 24px;
+  }
+
+  .feature-list {
+    margin: 24px 0;
+  }
+
+  .feature {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    background: #fafafa;
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+
+  .feature .icon {
+    font-size: 24px;
+  }
+
+  .feature strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #333;
+  }
+
+  .feature p {
+    margin: 0;
+    font-size: 14px;
+    color: #666;
+  }
+
+  /* Comments */
+  .ph-comments-section {
+    padding: 24px;
+    border-top: 1px solid #eee;
+  }
+
+  .ph-comments-section h2 {
+    margin: 0 0 16px;
+    font-size: 18px;
+  }
+
+  .ph-comment {
+    background: #fafafa;
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  .ph-comment.maker {
+    border-left: 3px solid #da552f;
+  }
+
+  .comment-header {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    background: #da552f;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+  }
+
+  .comment-meta .name {
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .badge {
+    background: #da552f;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .comment-meta .time {
+    font-size: 12px;
+    color: #999;
+    display: block;
+  }
+
+  .comment-body {
+    line-height: 1.6;
+    color: #444;
+  }
+
+  .comment-body p {
+    margin: 0 0 12px;
+  }
+
+  .comment-body ol, .comment-body ul {
+    margin: 0 0 12px;
+    padding-left: 24px;
+  }
+
+  .comment-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .comment-actions button {
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  .comment-actions button:hover {
+    border-color: #da552f;
+    color: #da552f;
+  }
+
+  /* Copy Section */
+  .copy-section {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+  }
+
+  .copy-section > h2 {
+    color: #333;
+    margin-bottom: 24px;
+  }
+
+  .copy-block {
+    margin-bottom: 24px;
+  }
+
+  .copy-block h3 {
+    font-size: 14px;
+    color: #666;
+    margin: 0 0 8px;
+    text-transform: uppercase;
+  }
+
+  .copy-text {
+    background: #f4f4f4;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    cursor: pointer;
+    margin-bottom: 8px;
+    transition: background 0.2s;
+  }
+
+  .copy-text:hover {
+    background: #e8e8e8;
+  }
+
+  .tags-list {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .tags-list .tag {
+    background: #f0f0f0;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 13px;
+  }
+
+  .checklist {
+    list-style: none;
+    padding: 0;
+  }
+
+  .checklist li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  @media (max-width: 768px) {
+    .ph-page-header {
+      flex-direction: column;
+    }
+
+    .ph-page-actions {
+      width: 100%;
+    }
+
+    .ph-upvote-big, .ph-visit-btn {
+      flex: 1;
+      text-align: center;
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll('.copy-text').forEach(el => {
+    el.addEventListener('click', () => {
+      const text = el.dataset.copy || el.textContent;
+      navigator.clipboard.writeText(text);
+      el.style.background = '#d4edda';
+      setTimeout(() => {
+        el.style.background = '';
+      }, 500);
+    });
+  });
+</script>

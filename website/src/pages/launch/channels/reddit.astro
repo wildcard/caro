@@ -1,0 +1,739 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+---
+
+<Layout title="Reddit Launch Copy - Caro Marketing Hub">
+  <main class="marketing-hub">
+    <nav class="breadcrumb">
+      <a href="/launch">Marketing Hub</a> /
+      <a href="/launch#channels">Channels</a> /
+      <span>Reddit</span>
+    </nav>
+
+    <header class="page-header">
+      <h1>Reddit Launch Copy</h1>
+      <p class="subtitle">Subreddit-specific templates for community engagement</p>
+    </header>
+
+    <!-- Platform Strategy -->
+    <section class="platform-notes">
+      <h2>Reddit Strategy</h2>
+      <div class="notes-grid">
+        <div class="note-card warning">
+          <h3>Critical Rules</h3>
+          <ul>
+            <li>NO self-promotion without value</li>
+            <li>Be a community member first</li>
+            <li>Follow each subreddit's rules exactly</li>
+            <li>Never post the same content to multiple subs</li>
+          </ul>
+        </div>
+        <div class="note-card">
+          <h3>Target Subreddits</h3>
+          <ul>
+            <li>r/devops (187k members)</li>
+            <li>r/sysadmin (850k members)</li>
+            <li>r/commandline (250k members)</li>
+            <li>r/rust (270k members)</li>
+            <li>r/selfhosted (380k members)</li>
+          </ul>
+        </div>
+        <div class="note-card">
+          <h3>Best Practices</h3>
+          <ul>
+            <li>Post weekdays 9am-12pm EST</li>
+            <li>Engage with comments for hours</li>
+            <li>Be honest about limitations</li>
+            <li>Thank critics, don't argue</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- r/devops Post -->
+    <section class="copy-section">
+      <h2>r/devops Post</h2>
+      <p class="section-note">Focus on practical value for DevOps workflows</p>
+
+      <div class="reddit-post">
+        <div class="subreddit-tag">r/devops</div>
+        <h3 class="post-title" id="devops-title">I built an offline CLI tool for shell command recall (local-first, open source)</h3>
+        <button class="copy-btn small" onclick="copyText('devops-title')">Copy Title</button>
+
+        <div class="post-body">
+          <p class="copy-text" id="devops-body">**The problem I was trying to solve:**
+
+You're SSH'd into a production server at 2am. You need to find all log files modified in the last hour, but you blank on the exact `find` syntax. Your options:
+
+1. Open browser, Google it, navigate Stack Overflow
+2. Try to remember if it's `-mtime` or `-mmin` (and what the numbers mean)
+3. Read through `man find` (2,847 lines)
+
+I've done all three more times than I'd like to admit.
+
+**What I built:**
+
+[Caro](https://github.com/wildcard/caro) - a CLI that converts natural language to shell commands using local inference.
+
+```
+$ caro "find log files modified in the last hour"
+→ find /var/log -name "*.log" -mmin -60
+
+Execute? [y/N]
+```
+
+**Key design decisions:**
+
+- **Local-first**: Model runs on your machine. No cloud API, no telemetry, no command history leaving your system.
+- **Explicit confirmation**: Nothing executes without you typing `y`. Ever.
+- **Rule-based safety**: 52 regex patterns validate commands before they reach your terminal. Even if the model suggests `rm -rf /`, it gets blocked.
+- **Offline capable**: Works on air-gapped networks, planes, wherever.
+
+**What it's NOT:**
+
+- A replacement for knowing shell commands (power users will always be faster)
+- A general AI coding assistant (very focused on shell commands specifically)
+- Production-ready (alpha software, rough edges exist)
+
+**Tech stack:** Rust, MLX (Apple Silicon) / Candle (CPU), AGPL-3.0
+
+**Why I'm posting:**
+
+Looking for feedback from people who actually live in terminals. What's missing? What would make this useful for your workflow?
+
+GitHub: https://github.com/wildcard/caro
+
+Happy to answer questions about the architecture, safety approach, or anything else.</p>
+        </div>
+        <button class="copy-btn" onclick="copyText('devops-body')">Copy Post Body</button>
+      </div>
+    </section>
+
+    <!-- r/commandline Post -->
+    <section class="copy-section">
+      <h2>r/commandline Post</h2>
+      <p class="section-note">More technical, command-line focused audience</p>
+
+      <div class="reddit-post">
+        <div class="subreddit-tag">r/commandline</div>
+        <h3 class="post-title" id="cli-title">Show r/commandline: Local LLM tool for shell command recall</h3>
+        <button class="copy-btn small" onclick="copyText('cli-title')">Copy Title</button>
+
+        <div class="post-body">
+          <p class="copy-text" id="cli-body">That XKCD comic about tar flags ([#1168](https://xkcd.com/1168/))? Everyone laughs because everyone's lived it.
+
+I built something to help with those moments.
+
+**What it does:**
+
+Natural language → shell command → explicit confirmation → execute
+
+```
+$ caro "recursively find files larger than 100MB"
+→ find . -type f -size +100M
+
+Execute? [y/N]
+```
+
+**Key point: It's 100% local**
+
+- No cloud API
+- No telemetry
+- No data collection
+- Works offline
+
+Your command history stays on your machine.
+
+**Safety approach:**
+
+I don't trust AI to be safe on its own. So:
+
+1. 52 pre-compiled regex patterns catch dangerous operations
+2. Every command requires explicit confirmation
+3. Risk levels: Safe → Moderate → High → CRITICAL (blocked)
+
+Even if the model hallucinates `rm -rf /`, the safety layer blocks it.
+
+**Honest limitations:**
+
+- Local models are less capable than cloud (tradeoff for privacy)
+- Focused on POSIX utilities (not obscure tools)
+- Alpha software (rough edges)
+
+Written in Rust, uses MLX on Apple Silicon, Candle for CPU.
+
+Open source: https://github.com/wildcard/caro
+
+Interested in feedback from CLI power users. What patterns would you add to the safety list? What commands do you always forget?</p>
+        </div>
+        <button class="copy-btn" onclick="copyText('cli-body')">Copy Post Body</button>
+      </div>
+    </section>
+
+    <!-- r/rust Post -->
+    <section class="copy-section">
+      <h2>r/rust Post</h2>
+      <p class="section-note">Technical focus on Rust implementation</p>
+
+      <div class="reddit-post">
+        <div class="subreddit-tag">r/rust</div>
+        <h3 class="post-title" id="rust-title">[Show] Caro: Shell command assistant using local inference (MLX + Candle)</h3>
+        <button class="copy-btn small" onclick="copyText('rust-title')">Copy Title</button>
+
+        <div class="post-body">
+          <p class="copy-text" id="rust-body">I've been building a CLI tool that converts natural language to shell commands using local LLM inference. Wanted to share the Rust-specific technical choices.
+
+**Architecture:**
+
+- **CLI**: `clap` for argument parsing
+- **Inference backends**: Trait-based system supporting multiple providers
+  - MLX (Apple Silicon, via FFI)
+  - Candle (cross-platform CPU)
+  - Remote options (Ollama, vLLM) for larger models
+- **Safety validation**: 52 pre-compiled regex patterns for dangerous command detection
+- **Async runtime**: Tokio for backend communication
+
+**Interesting challenges:**
+
+1. **FFI with MLX**: Using `cxx` crate for safe C++ interop with Apple's MLX framework. Unified memory architecture on Apple Silicon makes this particularly efficient.
+
+2. **Regex performance**: Safety patterns are compiled once at startup. Had to balance pattern comprehensiveness with compilation time.
+
+3. **JSON parsing fallbacks**: LLMs aren't always reliable with structured output. Built a fallback chain: strict JSON → relaxed parsing → regex extraction.
+
+4. **Platform detection**: BSD vs GNU differences (especially `sed`, `find` flags) required runtime detection for appropriate suggestions.
+
+**Crate choices:**
+
+- `serde` + `serde_json` for config/response handling
+- `reqwest` for HTTP backends
+- `directories` for cross-platform cache management
+- `colored` for terminal output
+- `anyhow` for error handling
+
+**What I learned:**
+
+The trait system made adding new backends straightforward. Each backend implements `ModelBackend` with async inference and availability checking.
+
+Error handling philosophy: Use `Result` everywhere, no panics in production code. Every failure mode should have a helpful message.
+
+**Links:**
+
+- GitHub: https://github.com/wildcard/caro
+- License: AGPL-3.0
+
+Still alpha—would appreciate feedback on the Rust patterns, especially the FFI approach and error handling.</p>
+        </div>
+        <button class="copy-btn" onclick="copyText('rust-body')">Copy Post Body</button>
+      </div>
+    </section>
+
+    <!-- r/selfhosted Post -->
+    <section class="copy-section">
+      <h2>r/selfhosted Post</h2>
+      <p class="section-note">Privacy and self-hosting angle</p>
+
+      <div class="reddit-post">
+        <div class="subreddit-tag">r/selfhosted</div>
+        <h3 class="post-title" id="selfhosted-title">Self-hosted alternative to Copilot CLI - 100% local, no cloud dependencies</h3>
+        <button class="copy-btn small" onclick="copyText('selfhosted-title')">Copy Title</button>
+
+        <div class="post-body">
+          <p class="copy-text" id="selfhosted-body">Built this because I wanted AI-assisted shell commands without sending my command history to Microsoft/OpenAI.
+
+**What it does:**
+
+Describe what you want in plain English → get the shell command → review → execute
+
+```
+$ caro "compress this directory excluding node_modules"
+→ tar --exclude='node_modules' -czvf archive.tar.gz .
+
+Execute? [y/N]
+```
+
+**Self-hosting benefits:**
+
+- **Zero cloud dependencies**: Everything runs locally
+- **No telemetry**: Not even "anonymous" usage data
+- **Works offline**: Air-gapped networks, no internet required
+- **Your data stays yours**: Command history never leaves your machine
+
+**Requirements:**
+
+- ~3GB disk for model weights (cached in ~/.cache/caro)
+- Apple Silicon recommended (MLX backend), but CPU works too (Candle)
+- Or connect to your own Ollama/vLLM instance for larger models
+
+**Installation:**
+
+```bash
+# macOS
+brew install caro
+
+# From source
+cargo install caro
+```
+
+**Tradeoffs (being honest):**
+
+- Smaller local models = less capable than GPT-4
+- First inference downloads model weights
+- Alpha software, not production-ready
+
+GitHub: https://github.com/wildcard/caro (AGPL-3.0)
+
+For anyone else who prefers their shell history not going through cloud APIs.</p>
+        </div>
+        <button class="copy-btn" onclick="copyText('selfhosted-body')">Copy Post Body</button>
+      </div>
+    </section>
+
+    <!-- r/sysadmin Post -->
+    <section class="copy-section">
+      <h2>r/sysadmin Post</h2>
+      <p class="section-note">Sysadmin perspective - practical, no-nonsense</p>
+
+      <div class="reddit-post">
+        <div class="subreddit-tag">r/sysadmin</div>
+        <h3 class="post-title" id="sysadmin-title">Tool for those "what's the find syntax again" moments - runs locally</h3>
+        <button class="copy-btn small" onclick="copyText('sysadmin-title')">Copy Title</button>
+
+        <div class="post-body">
+          <p class="copy-text" id="sysadmin-body">Quick background: I admin a mix of Linux servers and got tired of context-switching to Stack Overflow every time I forgot some flag syntax.
+
+**The tool:** [Caro](https://github.com/wildcard/caro) - describe what you want, get the command, confirm before running.
+
+```
+$ caro "find files owned by apache user"
+→ find /var/www -user apache
+
+Execute? [y/N]
+```
+
+**Why I'm sharing here:**
+
+1. **Works on servers**: Doesn't require a GUI or browser. Pure CLI.
+2. **Offline**: Air-gapped servers, bastion hosts, wherever you need it.
+3. **Nothing phones home**: No analytics, no telemetry, no cloud API.
+
+**What this is NOT:**
+
+- A replacement for knowing your commands (power users are faster)
+- Smarter than GPT-4 (local models have limits)
+- Production-ready (alpha software)
+
+**Safety stuff:**
+
+Everything requires explicit confirmation. Plus 52 regex patterns that block obviously dangerous operations regardless of what the model suggests.
+
+I'm not claiming it's foolproof. But it won't run `rm -rf /` just because an LLM had a moment.
+
+**Tech:**
+- Rust binary
+- Uses MLX on Mac, Candle on Linux
+- AGPL-3.0 open source
+
+Feedback welcome, especially on what commands sysadmins actually forget. What patterns should be added to the safety list?
+
+https://github.com/wildcard/caro</p>
+        </div>
+        <button class="copy-btn" onclick="copyText('sysadmin-body')">Copy Post Body</button>
+      </div>
+    </section>
+
+    <!-- Comment Response Templates -->
+    <section class="copy-section">
+      <h2>Comment Response Templates</h2>
+      <p class="section-note">For engaging with the community</p>
+
+      <div class="response-grid">
+        <div class="response-card">
+          <h4>"Why not just use aliases?"</h4>
+          <p class="copy-text" id="resp-aliases">Totally valid approach for frequent commands. I have dozens of aliases myself.
+
+Caro is for the long tail: commands I use once a month, complex flag combinations, or when I'm on a server without my dotfiles.
+
+"Find files larger than 100MB modified this week excluding node_modules" - too specific to alias ahead of time, but exactly when I'd open Stack Overflow.</p>
+          <button class="copy-btn small" onclick="copyText('resp-aliases')">Copy</button>
+        </div>
+
+        <div class="response-card">
+          <h4>"Local models aren't smart enough"</h4>
+          <p class="copy-text" id="resp-smart">Fair point. For general coding, I'd agree.
+
+For shell command syntax specifically, smaller models work surprisingly well. The domain is constrained: POSIX utilities, known flags, predictable patterns.
+
+Where it breaks: complex multi-step pipelines, obscure tools, context-dependent logic. For those, we support connecting to larger models via Ollama or vLLM.
+
+The local-first default is a values choice (privacy/offline) more than a capability claim.</p>
+          <button class="copy-btn small" onclick="copyText('resp-smart')">Copy</button>
+        </div>
+
+        <div class="response-card">
+          <h4>"I don't trust AI in my terminal"</h4>
+          <p class="copy-text" id="resp-trust">Healthy skepticism. Few things to consider:
+
+1. Nothing runs without you typing `y`. You see the command first.
+2. We don't trust the model's safety claims either. 52 regex patterns validate independently.
+3. It's open source - you can audit exactly what it does.
+
+If CLI AI assistance isn't for you, that's a valid choice. The tool isn't trying to convince skeptics - it's for people who want this with proper guardrails.</p>
+          <button class="copy-btn small" onclick="copyText('resp-trust')">Copy</button>
+        </div>
+
+        <div class="response-card">
+          <h4>"How is this different from [X]?"</h4>
+          <p class="copy-text" id="resp-different">[X] is a solid tool. Main differences:
+
+1. **100% local default** - no cloud API, works offline
+2. **Shell commands only** - not a general AI assistant, just this one thing
+3. **Rule-based safety** - regex patterns that work independently of the model
+
+If [X] works for you, probably no reason to switch. We're optimizing for different tradeoffs (privacy/offline vs capability/convenience).</p>
+          <button class="copy-btn small" onclick="copyText('resp-different')">Copy</button>
+        </div>
+
+        <div class="response-card">
+          <h4>Feature suggestion</h4>
+          <p class="copy-text" id="resp-feature">Good idea! Would you mind opening an issue on GitHub? That helps us track requests and discuss implementation details.
+
+A few questions:
+- What's your use case for this?
+- How often would you use it?
+- Any specific behavior you'd expect?
+
+Feedback from actual workflows shapes the roadmap.</p>
+          <button class="copy-btn small" onclick="copyText('resp-feature')">Copy</button>
+        </div>
+
+        <div class="response-card">
+          <h4>Bug report in comments</h4>
+          <p class="copy-text" id="resp-bug">Thanks for the report! That shouldn't happen.
+
+Could you open an issue on GitHub with:
+- Your OS/architecture
+- The exact command you ran
+- The error message (if any)
+
+Happy to dig into it. Alpha software, so bugs are expected - reports help us fix them.</p>
+          <button class="copy-btn small" onclick="copyText('resp-bug')">Copy</button>
+        </div>
+
+        <div class="response-card">
+          <h4>Positive feedback</h4>
+          <p class="copy-text" id="resp-positive">Thanks! Still early days - lots of rough edges to smooth out.
+
+If you run into issues or have ideas for improvement, I'm all ears. The roadmap is shaped by what actual users need.
+
+Appreciate you trying it out.</p>
+          <button class="copy-btn small" onclick="copyText('resp-positive')">Copy</button>
+        </div>
+
+        <div class="response-card">
+          <h4>"This is just a wrapper"</h4>
+          <p class="copy-text" id="resp-wrapper">The core value isn't the model - you're right that's a thin layer.
+
+What we're providing:
+1. Terminal integration (no browser, no copy-paste)
+2. Safety validation (52 patterns, explicit confirmation)
+3. Platform awareness (BSD vs GNU differences)
+4. Offline/local-first default
+
+You could build this yourself. The value is not having to. Same reason people use oh-my-zsh instead of writing their own shell config from scratch.</p>
+          <button class="copy-btn small" onclick="copyText('resp-wrapper')">Copy</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Posting Checklist -->
+    <section class="copy-section">
+      <h2>Pre-Post Checklist</h2>
+      <div class="checklist">
+        <label><input type="checkbox"> Read subreddit rules</label>
+        <label><input type="checkbox"> Check for similar recent posts</label>
+        <label><input type="checkbox"> Customize post for specific subreddit culture</label>
+        <label><input type="checkbox"> Remove any cross-posting indicators</label>
+        <label><input type="checkbox"> Verify links work</label>
+        <label><input type="checkbox"> Schedule time to respond to comments (2-4 hours)</label>
+        <label><input type="checkbox"> Prepare for critical feedback (it will come)</label>
+        <label><input type="checkbox"> Have GitHub open for any issues that get filed</label>
+      </div>
+    </section>
+
+    <footer class="page-footer">
+      <a href="/launch" class="back-link">&larr; Back to Marketing Hub</a>
+      <div class="footer-links">
+        <a href="/launch/channels/hacker-news">Hacker News</a>
+        <a href="/launch/social/twitter">Twitter</a>
+      </div>
+    </footer>
+  </main>
+
+  <style>
+    .marketing-hub {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .breadcrumb {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 2rem;
+    }
+
+    .breadcrumb a {
+      color: #ff4500;
+      text-decoration: none;
+    }
+
+    .page-header {
+      margin-bottom: 3rem;
+    }
+
+    .page-header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      color: #ff4500;
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      color: #666;
+    }
+
+    .platform-notes {
+      background: linear-gradient(135deg, #ff4500 0%, #cc3700 100%);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 3rem;
+      color: white;
+    }
+
+    .platform-notes h2 {
+      margin-top: 0;
+      margin-bottom: 1.5rem;
+    }
+
+    .notes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .note-card {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .note-card.warning {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .note-card h3 {
+      margin-top: 0;
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .note-card ul {
+      margin: 0;
+      padding-left: 1.25rem;
+      font-size: 0.9rem;
+    }
+
+    .note-card li {
+      margin-bottom: 0.25rem;
+    }
+
+    .copy-section {
+      margin-bottom: 3rem;
+    }
+
+    .copy-section h2 {
+      color: #333;
+      border-bottom: 2px solid #ff4500;
+      padding-bottom: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-note {
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .reddit-post {
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .subreddit-tag {
+      color: #ff4500;
+      font-weight: 600;
+      font-size: 0.85rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .post-title {
+      font-size: 1.25rem;
+      color: #222;
+      margin: 0.5rem 0;
+      line-height: 1.3;
+    }
+
+    .post-body {
+      margin: 1rem 0;
+      padding-top: 1rem;
+      border-top: 1px solid #eee;
+    }
+
+    .copy-text {
+      white-space: pre-wrap;
+      line-height: 1.6;
+      color: #333;
+      font-size: 0.95rem;
+    }
+
+    .copy-btn {
+      background: #ff4500;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: #cc3700;
+    }
+
+    .copy-btn.small {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8rem;
+      margin-left: 0.5rem;
+    }
+
+    .response-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 1rem;
+    }
+
+    .response-card {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .response-card h4 {
+      margin-top: 0;
+      margin-bottom: 0.75rem;
+      color: #ff4500;
+      font-size: 0.9rem;
+    }
+
+    .response-card .copy-text {
+      font-size: 0.85rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .checklist {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+
+    .checklist label {
+      display: block;
+      margin-bottom: 0.75rem;
+      cursor: pointer;
+    }
+
+    .checklist input[type="checkbox"] {
+      margin-right: 0.75rem;
+      transform: scale(1.2);
+    }
+
+    .page-footer {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid #e9ecef;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .back-link {
+      color: #ff4500;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .footer-links a {
+      color: #666;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+
+    .footer-links a:hover {
+      color: #ff4500;
+    }
+
+    @media (max-width: 600px) {
+      .marketing-hub {
+        padding: 1rem;
+      }
+
+      .page-header h1 {
+        font-size: 1.75rem;
+      }
+
+      .response-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .page-footer {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+    }
+  </style>
+
+  <script>
+    function copyText(elementId) {
+      const element = document.getElementById(elementId);
+      const text = element.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = element.parentElement.querySelector('.copy-btn') ||
+                    element.closest('.response-card')?.querySelector('.copy-btn') ||
+                    element.nextElementSibling;
+        if (btn && btn.classList.contains('copy-btn')) {
+          const originalText = btn.textContent;
+          btn.textContent = 'Copied!';
+          btn.style.background = '#28a745';
+          setTimeout(() => {
+            btn.textContent = originalText;
+            btn.style.background = '';
+          }, 2000);
+        }
+      });
+    }
+  </script>
+</Layout>
