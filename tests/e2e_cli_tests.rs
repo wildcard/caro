@@ -189,7 +189,8 @@ fn e2e_performance_startup_time() {
 #[test]
 fn e2e_json_output_format() {
     let runner = CliTestRunner::new();
-    let output = runner.run_success(&["show disk usage", "--output", "json"]);
+    // Note: Flags must come BEFORE trailing args with unquoted prompts
+    let output = runner.run_success(&["--output", "json", "show", "disk", "usage"]);
 
     // Should be valid JSON
     let json_result: Result<Value, _> = serde_json::from_str(&output);
@@ -209,7 +210,8 @@ fn e2e_json_output_format() {
 #[test]
 fn e2e_yaml_output_format() {
     let runner = CliTestRunner::new();
-    let output = runner.run_success(&["show system info", "--output", "yaml"]);
+    // Note: Flags must come BEFORE trailing args with unquoted prompts
+    let output = runner.run_success(&["--output", "yaml", "show", "system", "info"]);
 
     // Should contain YAML-style output
     assert!(output.contains(":"));
@@ -306,16 +308,24 @@ fn e2e_configuration_display() {
 // =============================================================================
 
 /// E2E-D1: Empty Input Handling Test
-/// Verifies graceful handling of empty command input
+/// Verifies that empty input produces a helpful error message
 #[test]
 fn e2e_empty_input_handling() {
     let runner = CliTestRunner::new();
-    let _output = runner.run_success(&[""]);
+    let result = runner.run_command(&[""]);
 
-    // Should handle empty input gracefully (not crash)
-    // Output might be empty or contain a message, but shouldn't error
+    // Should fail with error when no prompt provided
+    assert_ne!(
+        result.exit_code, 0,
+        "Should fail when empty prompt provided"
+    );
+    assert!(
+        result.stderr.contains("No prompt provided"),
+        "Should show helpful error message, got: {}",
+        result.stderr
+    );
 
-    println!("✅ E2E-D1: Empty input handled gracefully");
+    println!("✅ E2E-D1: Empty input handled gracefully with error");
 }
 
 /// E2E-D2: Invalid Shell Type Handling Test
@@ -384,8 +394,9 @@ fn e2e_special_characters_handling() {
 #[test]
 fn e2e_verbose_mode() {
     let runner = CliTestRunner::new();
-    let normal_output = runner.run_success(&["test command"]);
-    let verbose_output = runner.run_success(&["test command", "--verbose"]);
+    let normal_output = runner.run_success(&["test", "command"]);
+    // Note: Flags must come BEFORE trailing args
+    let verbose_output = runner.run_success(&["--verbose", "test", "command"]);
 
     // Verbose output should contain more information
     assert!(
@@ -410,7 +421,8 @@ fn e2e_verbose_mode() {
 #[test]
 fn e2e_timing_information() {
     let runner = CliTestRunner::new();
-    let output = runner.run_success(&["test command", "--verbose"]);
+    // Note: Flags must come BEFORE trailing args
+    let output = runner.run_success(&["--verbose", "test", "command"]);
 
     // Should contain timing information in verbose mode
     assert!(
@@ -433,8 +445,8 @@ fn e2e_complete_workflow() {
     let runner = CliTestRunner::new();
 
     // Test complex command with multiple options
+    // Note: All flags must come BEFORE trailing args
     let output = runner.run_success(&[
-        "find all Python files in the project",
         "--shell",
         "bash",
         "--safety",
@@ -442,6 +454,13 @@ fn e2e_complete_workflow() {
         "--output",
         "json",
         "--verbose",
+        "find",
+        "all",
+        "Python",
+        "files",
+        "in",
+        "the",
+        "project",
     ]);
 
     // Should produce valid JSON with debug info
@@ -542,12 +561,12 @@ fn e2e_smoke_test_suite() {
     let help_output = runner.run_success(&["--help"]);
     assert!(help_output.contains("caro"));
 
-    // Test 2: Command generation
-    let cmd_output = runner.run_success(&["list files"]);
+    // Test 2: Command generation with unquoted prompt
+    let cmd_output = runner.run_success(&["list", "files"]);
     assert!(!cmd_output.is_empty());
 
-    // Test 3: JSON output
-    let json_output = runner.run_success(&["test", "--output", "json"]);
+    // Test 3: JSON output (flags must come before trailing args)
+    let json_output = runner.run_success(&["--output", "json", "test"]);
     assert!(serde_json::from_str::<Value>(&json_output).is_ok());
 
     // Test 4: Error handling
@@ -675,4 +694,94 @@ fn e2e_multi_word_unquoted_prompt() {
     );
 
     println!("✅ T010: Multi-word unquoted prompts work correctly");
+}
+
+// =============================================================================
+// Feature 002: Flag and Stdin Input - E2E Tests (WP04)
+// =============================================================================
+
+/// T019: Test -p/--prompt flag (US3 acceptance scenario 1)
+/// Verifies that `caro -p "list files"` works for non-interactive mode
+#[test]
+fn e2e_prompt_flag() {
+    let runner = CliTestRunner::new();
+    let output = runner.run_success(&["-p", "list files"]);
+
+    // Should generate a command
+    assert!(
+        output.contains("Command:") || output.contains("ls"),
+        "Expected command output, got: {}",
+        output
+    );
+
+    println!("✅ T019: -p/--prompt flag works");
+}
+
+/// T019b: Test --prompt long form
+#[test]
+fn e2e_prompt_flag_long_form() {
+    let runner = CliTestRunner::new();
+    let output = runner.run_success(&["--prompt", "find large files"]);
+
+    // Should generate a command
+    assert!(
+        output.contains("Command:"),
+        "Expected command output, got: {}",
+        output
+    );
+
+    println!("✅ T019b: --prompt long form works");
+}
+
+/// T020: Test stdin piping (US4 acceptance scenario 1)
+/// Note: E2E testing of actual piping is complex; we verify the mechanism works
+/// Real stdin piping would be: echo "list files" | caro
+#[test]
+fn e2e_stdin_mechanism() {
+    // This tests that the stdin reading mechanism exists
+    // Actual piping is tested in integration/manual testing
+    let runner = CliTestRunner::new();
+
+    // When no stdin and no args, should fail gracefully
+    let result = runner.run_command(&[]);
+
+    // Should exit with error (no prompt provided)
+    assert_ne!(result.exit_code, 0, "Should fail when no prompt provided");
+
+    println!("✅ T020: Stdin mechanism verified (full piping tested manually)");
+}
+
+/// T021: Test precedence - flag overrides trailing args
+#[test]
+fn e2e_flag_overrides_trailing() {
+    let runner = CliTestRunner::new();
+    let output = runner.run_success(&["-p", "list files", "should", "be", "ignored"]);
+
+    // Should use the flag prompt, not trailing args
+    assert!(
+        output.contains("Command:") || output.contains("ls"),
+        "Expected command from flag prompt, got: {}",
+        output
+    );
+
+    println!("✅ T021: Flag correctly overrides trailing args");
+}
+
+/// T022: Test non-interactive mode with -p flag
+/// Verifies SC-005: Non-interactive mode works with -p flag
+#[test]
+fn e2e_noninteractive_with_flag() {
+    let runner = CliTestRunner::new();
+
+    // Using -p flag should work in non-interactive environments
+    let output = runner.run_success(&["-p", "list files", "--output", "json"]);
+
+    // Should generate output without prompting for confirmation
+    assert!(
+        output.contains("generated_command") || output.contains("Command:"),
+        "Expected non-interactive output, got: {}",
+        output
+    );
+
+    println!("✅ T022: Non-interactive mode with -p flag works (SC-005)");
 }

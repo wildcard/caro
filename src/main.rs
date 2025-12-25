@@ -67,6 +67,16 @@ fn is_stdin_available() -> bool {
     !std::io::stdin().is_terminal()
 }
 
+/// Read all content from stdin
+///
+/// Returns the complete stdin content as a String, or an error if reading fails
+fn read_stdin() -> Result<String, std::io::Error> {
+    use std::io::Read;
+    let mut buffer = String::new();
+    std::io::stdin().read_to_string(&mut buffer)?;
+    Ok(buffer.trim().to_string())
+}
+
 // =============================================================================
 // CLI Argument Parsing
 // =============================================================================
@@ -80,8 +90,12 @@ fn is_stdin_available() -> bool {
 )]
 #[command(version)]
 struct Cli {
-    /// Natural language task description
-    #[arg(help = "Natural language description of the task")]
+    /// Explicit prompt via -p/--prompt flag (highest priority)
+    #[arg(
+        short = 'p',
+        long = "prompt",
+        help = "Explicit prompt text (overrides stdin and trailing args)"
+    )]
     prompt: Option<String>,
 
     /// Target shell type
@@ -147,15 +161,8 @@ struct Cli {
 
 impl IntoCliArgs for Cli {
     fn prompt(&self) -> Option<String> {
-        // Priority: explicit --prompt flag > trailing args
-        if self.prompt.is_some() {
-            self.prompt.clone()
-        } else if !self.trailing_args.is_empty() {
-            // Join trailing args with spaces for unquoted prompts
-            Some(self.trailing_args.join(" "))
-        } else {
-            None
-        }
+        // Prompt is already resolved in main() from flag/stdin/trailing_args
+        self.prompt.clone()
     }
 
     fn shell(&self) -> Option<String> {
@@ -197,7 +204,26 @@ impl IntoCliArgs for Cli {
 
 #[tokio::main]
 async fn main() {
-    let cli = Cli::parse();
+    let mut cli = Cli::parse();
+
+    // Resolve prompt from multiple sources (flag > stdin > trailing args)
+    let stdin_content = if is_stdin_available() {
+        match read_stdin() {
+            Ok(content) if !content.is_empty() => Some(content),
+            _ => None,
+        }
+    } else {
+        None
+    };
+
+    let resolved = resolve_prompt(
+        cli.prompt.clone(),
+        stdin_content,
+        cli.trailing_args.clone(),
+    );
+
+    // Store resolved prompt back into cli for downstream usage
+    cli.prompt = Some(resolved.text);
 
     // Initialize tracing/logging
     if cli.verbose {
@@ -227,16 +253,17 @@ async fn main() {
         }
     }
 
-    // Handle missing prompt
-    if cli.prompt.is_none() {
+    // Handle missing or empty prompt
+    if cli.prompt.as_ref().map_or(true, |p| p.trim().is_empty()) {
         eprintln!("Error: No prompt provided");
         eprintln!();
         eprintln!("Usage: caro [OPTIONS] <PROMPT>");
         eprintln!();
         eprintln!("Examples:");
-        eprintln!("  caro \"list all files\"");
+        eprintln!("  caro list files");
+        eprintln!("  caro -p \"list files\"");
+        eprintln!("  echo \"list files\" | caro");
         eprintln!("  caro --shell zsh \"find large files\"");
-        eprintln!("  caro --safety strict \"delete temporary files\"");
         eprintln!();
         eprintln!("Run 'caro --help' for more information.");
         process::exit(1);
