@@ -1,0 +1,165 @@
+---
+const useCases = [
+  {
+    scenario: "2 AM Incident Response",
+    icon: "🌙",
+    problem: "You're tired. Production is down. One wrong command could make it worse.",
+    solution: "Caro validates every command before you can make a mistake you'll regret.",
+    example: {
+      input: "restart all services",
+      warning: "Restarting all services affects 12 running processes. Continue?",
+    }
+  },
+  {
+    scenario: "New Hire Onboarding",
+    icon: "👋",
+    problem: "Junior devs running commands in production. Your palms get sweaty.",
+    solution: "Caro is guardrails without the micromanagement. Safety without the lecture.",
+    example: {
+      input: "delete old databases",
+      warning: "Blocked: DROP DATABASE requires explicit confirmation + backup check",
+    }
+  },
+  {
+    scenario: "Air-Gapped Environments",
+    icon: "🔒",
+    problem: "Compliance says no cloud APIs. But you still need AI assistance.",
+    solution: "Caro runs 100% locally. Zero data leaves your machine. Ever.",
+    example: {
+      input: "show network connections",
+      output: "netstat -tuln | grep LISTEN",
+    }
+  },
+  {
+    scenario: "Cross-Platform Hell",
+    icon: "💻",
+    problem: "Your Mac command doesn't work on the Linux server. Again.",
+    solution: "Caro knows BSD vs GNU and generates the right syntax for your platform.",
+    example: {
+      input: "get file dates",
+      output: "stat -f '%Sm' file  # macOS\nstat -c '%y' file   # Linux",
+    }
+  },
+];
+---
+
+<section id="use-cases" class="use-cases-section">
+  <div class="container">
+    <h2>When You Need Caro</h2>
+    <p class="section-subtitle">Real scenarios. Real problems. Real solutions.</p>
+
+    <div class="use-cases-grid">
+      {useCases.map((useCase) => (
+        <div class="use-case-card">
+          <div class="use-case-header">
+            <span class="use-case-icon">{useCase.icon}</span>
+            <h3>{useCase.scenario}</h3>
+          </div>
+          <div class="use-case-content">
+            <p class="problem"><strong>The problem:</strong> {useCase.problem}</p>
+            <p class="solution"><strong>Caro:</strong> {useCase.solution}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .use-cases-section {
+    padding: 80px 20px;
+    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  h2 {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    margin-bottom: 50px;
+  }
+
+  .use-cases-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  .use-case-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 28px;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  }
+
+  .use-case-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    border-color: #ff8c42;
+  }
+
+  :global(.dark) .use-case-card:hover {
+    box-shadow: 0 8px 24px rgba(255, 140, 66, 0.1);
+  }
+
+  .use-case-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .use-case-icon {
+    font-size: 28px;
+  }
+
+  .use-case-header h3 {
+    font-size: 18px;
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  .use-case-content {
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  .problem {
+    color: var(--color-text-secondary);
+    margin-bottom: 12px;
+  }
+
+  .solution {
+    color: var(--color-text);
+  }
+
+  .solution strong {
+    color: #ff8c42;
+  }
+
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 28px;
+    }
+
+    .use-cases-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .use-case-card {
+      padding: 24px;
+    }
+  }
+</style>

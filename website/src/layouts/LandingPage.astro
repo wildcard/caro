@@ -1,0 +1,124 @@
+---
+// LandingPage.astro - Base layout for conversion-focused landing pages
+// These pages target specific pain points and personas
+
+interface Props {
+  title: string;
+  description: string;
+  slug: string;
+  persona?: string;
+  painPoint?: string;
+}
+
+const { title, description, slug, persona, painPoint } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content={description} />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={`https://caro.sh/${slug}`} />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+
+  <!-- Landing page metadata for internal tracking -->
+  <meta name="lp:slug" content={slug} />
+  {persona && <meta name="lp:persona" content={persona} />}
+  {painPoint && <meta name="lp:pain-point" content={painPoint} />}
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <title>{title}</title>
+
+  <style is:global>
+    :root {
+      --color-bg: #ffffff;
+      --color-bg-secondary: #f8f9fa;
+      --color-bg-tertiary: #f0f0f0;
+      --color-text: #2c3e50;
+      --color-text-secondary: #666;
+      --color-text-tertiary: #555;
+      --color-border: #e0e0e0;
+      --color-footer-bg: #2c3e50;
+      --color-footer-text: #ecf0f1;
+      --color-footer-text-muted: #95a5a6;
+      --color-links-muted: #bdc3c7;
+    }
+
+    .dark {
+      --color-bg: #1a1a1a;
+      --color-bg-secondary: #242424;
+      --color-bg-tertiary: #2a2a2a;
+      --color-text: #e0e0e0;
+      --color-text-secondary: #a0a0a0;
+      --color-text-tertiary: #b0b0b0;
+      --color-border: #404040;
+      --color-footer-bg: #0f0f0f;
+      --color-footer-text: #e0e0e0;
+      --color-footer-text-muted: #888;
+      --color-links-muted: #666;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.6;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    section {
+      padding: 80px 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    h2 {
+      font-size: 36px;
+      text-align: center;
+      margin-bottom: 16px;
+      color: var(--color-text);
+    }
+
+    .section-subtitle {
+      text-align: center;
+      color: var(--color-text-secondary);
+      font-size: 18px;
+      margin-bottom: 40px;
+    }
+  </style>
+</head>
+<body>
+  <slot />
+
+  <!-- Theme initialization (prevent flash) -->
+  <script is:inline>
+    (function() {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+</body>
+</html>

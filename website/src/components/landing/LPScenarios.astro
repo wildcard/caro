@@ -1,0 +1,382 @@
+---
+/**
+ * Role-Based Scenarios - Show specific dangerous commands by role
+ * Interactive component that lets users see their own risks
+ */
+
+const roles = [
+  {
+    id: "devops",
+    name: "DevOps Engineer",
+    icon: "🔧",
+    scenarios: [
+      {
+        context: "3 AM incident: Database logs filling disk",
+        dangerous: "rm -rf /var/log/*",
+        problem: "Recursive delete could cascade across mounted volumes",
+        caroSays: "⚠️ High Risk: Recursive delete in system directory. Suggesting: find /var/log -name '*.log' -mtime +7 -delete"
+      },
+      {
+        context: "Cleaning up Docker resources",
+        dangerous: "docker system prune -a --volumes -f",
+        problem: "Silently removes ALL volumes including named ones with data",
+        caroSays: "⚠️ Warning: This removes named volumes. Use --filter to exclude production data volumes."
+      },
+      {
+        context: "Fixing file permissions after deployment",
+        dangerous: "chmod -R 777 /var/www",
+        problem: "World-writable files are a security vulnerability",
+        caroSays: "🛑 Blocked: chmod 777 creates security vulnerabilities. Suggesting: chmod -R 755 for directories, 644 for files."
+      }
+    ]
+  },
+  {
+    id: "sre",
+    name: "SRE",
+    icon: "🛡️",
+    scenarios: [
+      {
+        context: "Emergency: Need to restart all services",
+        dangerous: "systemctl restart *",
+        problem: "Could restart critical system services causing cascading failures",
+        caroSays: "⚠️ High Risk: Wildcard service restart. List specific services or use --show-transaction first."
+      },
+      {
+        context: "Disk space critical on production",
+        dangerous: "find / -size +100M -delete",
+        problem: "Could delete critical system files, binaries, or database files",
+        caroSays: "🛑 Blocked: Recursive delete from root. Suggesting: find /var/log -size +100M -mtime +30 -delete"
+      },
+      {
+        context: "Rolling back a deployment",
+        dangerous: "kubectl delete pods --all -n production",
+        problem: "Deletes all pods simultaneously causing downtime",
+        caroSays: "⚠️ Warning: Mass pod deletion. Suggesting: kubectl rollout undo deployment/[name] for zero-downtime rollback."
+      }
+    ]
+  },
+  {
+    id: "backend",
+    name: "Backend Developer",
+    icon: "💻",
+    scenarios: [
+      {
+        context: "Cleaning up old database backups",
+        dangerous: "rm -rf ~/backups/db*",
+        problem: "Glob pattern could match more than intended",
+        caroSays: "⚠️ Caution: Glob pattern rm -rf. Showing matches first: ls ~/backups/db* (3 files). Proceed?"
+      },
+      {
+        context: "Killing a stuck process",
+        dangerous: "pkill -9 -f java",
+        problem: "Could kill all Java processes including critical services",
+        caroSays: "⚠️ Warning: Pattern matches 4 processes. Suggesting: kill -9 [specific-pid] or use pgrep -l first."
+      },
+      {
+        context: "Fixing git history",
+        dangerous: "git push --force origin main",
+        problem: "Rewrites shared history, breaks teammates' work",
+        caroSays: "🛑 Blocked: Force push to main. Suggesting: git push --force-with-lease or push to a feature branch."
+      }
+    ]
+  },
+  {
+    id: "data",
+    name: "Data Engineer",
+    icon: "📊",
+    scenarios: [
+      {
+        context: "Cleaning up temporary data files",
+        dangerous: "rm -rf /data/tmp/*",
+        problem: "Could remove files still being processed",
+        caroSays: "⚠️ Warning: Active processes accessing these files. Suggesting: find /data/tmp -mtime +1 -delete"
+      },
+      {
+        context: "Dropping unused database tables",
+        dangerous: "DROP TABLE users_backup;",
+        problem: "No safety check, immediate irreversible action",
+        caroSays: "⚠️ High Risk: DROP without backup verification. Last backup: 7 days ago. Proceed with caution."
+      },
+      {
+        context: "Resetting Kafka offsets",
+        dangerous: "kafka-consumer-groups --reset-offsets --to-earliest --all-topics --execute",
+        problem: "Reprocesses ALL data, potentially causing duplicates",
+        caroSays: "⚠️ Warning: This will reprocess ~2.3TB of data. Suggesting: --to-datetime or --topic for specific reset."
+      }
+    ]
+  }
+];
+---
+
+<section id="scenarios" class="scenarios-section">
+  <div class="container">
+    <h2>Dangerous Commands by Role</h2>
+    <p class="section-subtitle">See the specific risks Caro catches for your workflow</p>
+
+    <div class="role-selector">
+      {roles.map((role, index) => (
+        <button
+          class={`role-btn ${index === 0 ? 'active' : ''}`}
+          data-role={role.id}
+        >
+          <span class="role-icon">{role.icon}</span>
+          <span class="role-name">{role.name}</span>
+        </button>
+      ))}
+    </div>
+
+    <div class="scenarios-container">
+      {roles.map((role, roleIndex) => (
+        <div
+          class={`role-scenarios ${roleIndex === 0 ? 'active' : ''}`}
+          data-role-content={role.id}
+        >
+          {role.scenarios.map((scenario, idx) => (
+            <div class="scenario-card">
+              <div class="scenario-number">{idx + 1}</div>
+              <div class="scenario-content">
+                <div class="scenario-context">{scenario.context}</div>
+                <div class="scenario-command">
+                  <span class="command-label">You type:</span>
+                  <code class="dangerous-command">{scenario.dangerous}</code>
+                </div>
+                <div class="scenario-problem">
+                  <span class="problem-icon">⚠️</span>
+                  <span class="problem-text">{scenario.problem}</span>
+                </div>
+                <div class="caro-response">
+                  <span class="caro-label">Caro:</span>
+                  <span class="caro-text">{scenario.caroSays}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .scenarios-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  h2 {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    margin-bottom: 40px;
+  }
+
+  .role-selector {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+  }
+
+  .role-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: var(--color-bg-secondary);
+    border: 2px solid var(--color-border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  .role-btn:hover {
+    border-color: #ff8c42;
+  }
+
+  .role-btn.active {
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.1) 0%, rgba(255, 107, 53, 0.05) 100%);
+    border-color: #ff8c42;
+    color: #ff8c42;
+  }
+
+  .role-icon {
+    font-size: 18px;
+  }
+
+  .role-scenarios {
+    display: none;
+  }
+
+  .role-scenarios.active {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .scenario-card {
+    display: flex;
+    gap: 20px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .scenario-number {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+  }
+
+  .scenario-content {
+    flex-grow: 1;
+  }
+
+  .scenario-context {
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 12px;
+    font-size: 15px;
+  }
+
+  .scenario-command {
+    margin-bottom: 12px;
+  }
+
+  .command-label {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .dangerous-command {
+    display: inline-block;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-family: 'SF Mono', 'Monaco', monospace;
+    font-size: 13px;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+
+  .scenario-problem {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: rgba(245, 158, 11, 0.08);
+    border-radius: 6px;
+  }
+
+  .problem-icon {
+    flex-shrink: 0;
+  }
+
+  .problem-text {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+
+  .caro-response {
+    padding: 14px;
+    background: rgba(34, 197, 94, 0.08);
+    border-radius: 6px;
+    border-left: 3px solid #22c55e;
+  }
+
+  .caro-label {
+    font-weight: 600;
+    color: #ff8c42;
+    margin-right: 8px;
+  }
+
+  .caro-text {
+    font-size: 14px;
+    color: var(--color-text);
+    line-height: 1.5;
+  }
+
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 28px;
+    }
+
+    .role-selector {
+      gap: 8px;
+    }
+
+    .role-btn {
+      padding: 10px 14px;
+      font-size: 13px;
+    }
+
+    .role-name {
+      display: none;
+    }
+
+    .scenario-card {
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .scenario-number {
+      width: 28px;
+      height: 28px;
+      font-size: 14px;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const roleButtons = document.querySelectorAll('.role-btn');
+    const roleContents = document.querySelectorAll('.role-scenarios');
+
+    roleButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const roleId = btn.getAttribute('data-role');
+
+        // Update button states
+        roleButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Update content visibility
+        roleContents.forEach(content => {
+          if (content.getAttribute('data-role-content') === roleId) {
+            content.classList.add('active');
+          } else {
+            content.classList.remove('active');
+          }
+        });
+      });
+    });
+  });
+</script>

@@ -1,0 +1,209 @@
+---
+---
+
+<section id="download" class="download-section">
+  <div class="container">
+    <h2>Try Caro in 30 Seconds</h2>
+    <p class="section-subtitle">No account. No API key. No data collection. Just safer shell commands.</p>
+
+    <div class="install-command">
+      <code>bash &lt;(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)</code>
+      <button class="copy-button" data-command="bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)">Copy</button>
+    </div>
+
+    <div class="quick-start">
+      <p class="then-run">Then run:</p>
+      <div class="example-command">
+        <code>caro "find files modified in the last 7 days"</code>
+      </div>
+    </div>
+
+    <div class="trust-points">
+      <div class="trust-point">
+        <span class="check">✓</span>
+        <span>Installs to ~/.cargo/bin</span>
+      </div>
+      <div class="trust-point">
+        <span class="check">✓</span>
+        <span>Single binary, no dependencies</span>
+      </div>
+      <div class="trust-point">
+        <span class="check">✓</span>
+        <span>Uninstall anytime: cargo uninstall caro</span>
+      </div>
+    </div>
+
+    <div class="source-note">
+      <p>
+        Prefer to build from source?
+        <a href="https://github.com/wildcard/caro#installation" target="_blank" rel="noopener noreferrer">
+          See all installation options →
+        </a>
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .download-section {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    text-align: center;
+    padding: 80px 20px;
+  }
+
+  .container {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  h2 {
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+
+  .section-subtitle {
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 40px;
+  }
+
+  .install-command {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 20px 24px;
+    border-radius: 8px;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Courier New', monospace;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .install-command code {
+    color: #fff;
+    text-align: left;
+  }
+
+  .copy-button {
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.2s;
+  }
+
+  .copy-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  .quick-start {
+    margin-top: 30px;
+  }
+
+  .then-run {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 12px;
+  }
+
+  .example-command {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 16px 24px;
+    border-radius: 6px;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Courier New', monospace;
+    font-size: 14px;
+  }
+
+  .trust-points {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-top: 40px;
+    flex-wrap: wrap;
+  }
+
+  .trust-point {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .check {
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .source-note {
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .source-note p {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .source-note a {
+    color: white;
+    text-decoration: underline;
+    font-weight: 500;
+  }
+
+  .source-note a:hover {
+    text-decoration: none;
+  }
+
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 28px;
+    }
+
+    .install-command {
+      flex-direction: column;
+      gap: 16px;
+      padding: 20px;
+    }
+
+    .install-command code {
+      font-size: 12px;
+      word-break: break-all;
+    }
+
+    .copy-button {
+      width: 100%;
+    }
+
+    .trust-points {
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const copyButtons = document.querySelectorAll('.copy-button');
+    copyButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const command = button.getAttribute('data-command') || '';
+        navigator.clipboard.writeText(command).then(() => {
+          const originalText = button.textContent;
+          button.textContent = 'Copied!';
+          setTimeout(() => {
+            button.textContent = originalText;
+          }, 2000);
+        });
+      });
+    });
+  });
+</script>
