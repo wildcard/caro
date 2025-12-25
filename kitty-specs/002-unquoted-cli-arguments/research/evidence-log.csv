@@ -1,0 +1,23 @@
+# Evidence Log: Track all research findings with citations
+#
+# Column Definitions:
+# - timestamp: When evidence was collected (ISO format: YYYY-MM-DDTHH:MM:SS)
+# - source_type: journal | conference | book | web | preprint | codebase | pr_review
+# - citation: Full citation (BibTeX, APA, or Simple format)
+# - key_finding: Main takeaway from this source (1-2 sentences)
+# - confidence: high | medium | low (based on source quality and clarity)
+# - notes: Additional context, caveats, or methodological notes
+#
+# Validation: Citations must be non-empty, source_type must be valid
+# Format: BibTeX (@article{...}) or APA (Author (Year). Title.) recommended
+timestamp,source_type,citation,key_finding,confidence,notes
+2025-12-25T10:00:00,pr_review,"GitHub PR #68: Fix list command to accept all argument. https://github.com/wildcard/caro/pull/68",PR #68 has test failures on Linux/macOS/Windows; changes 15 files with 800+ lines,high,Direct inspection of PR diff and CI check results
+2025-12-25T10:15:00,web,"clap documentation. https://docs.rs/clap/latest/clap/",clap 4.5+ supports trailing_var_arg=true and num_args=0.. for capturing unquoted trailing arguments,high,Official Rust crate documentation
+2025-12-25T10:30:00,web,"POSIX Shell Command Language. https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html",Shell operators (> | < >> 2> & ;) are defined metacharacters that terminate command arguments,high,Official POSIX specification standard
+2025-12-25T10:45:00,codebase,"User requirement via discovery interview (2025-12-25)",Unix conventions prioritize explicit flags > stdin > arguments for multiple input sources,high,Confirmed by user; matches cat/grep behavior
+2025-12-25T11:00:00,codebase,"User requirement via discovery interview (2025-12-25)",Empty/whitespace-only input should show help message (not error),high,Explicit user requirement during discovery phase
+2025-12-25T11:15:00,codebase,"User requirement via discovery interview (2025-12-25)",Shell operators must follow BSD/GNU best practices and terminate prompt parsing,high,User specified comprehensive operator handling (> | < >> 2> & ;)
+2025-12-25T11:30:00,codebase,"User requirement via planning interview (2025-12-25)",Fresh implementation preferred over fixing PR #68 directly due to test failure risk,high,User confirmed Option A after presentation of alternatives
+2025-12-25T11:45:00,codebase,"User requirement via planning interview (2025-12-25)",Minimal changes approach selected over comprehensive refactoring,high,User chose Option A to reduce scope and risk
+2025-12-25T12:00:00,codebase,"Project constitution (.specify/memory/constitution.md v1.0.0)",TDD mandatory with RED-GREEN-REFACTOR cycle; library-first architecture required,high,Constitutional principles must be followed
+2025-12-25T12:15:00,web,"ripgrep and fd crates (examples of clap trailing_var_arg usage)",Battle-tested Rust CLI tools use trailing_var_arg for accepting unquoted arguments,medium,Reference implementations showing pattern works in production

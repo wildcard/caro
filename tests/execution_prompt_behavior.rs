@@ -3,6 +3,10 @@
 
 use caro::cli::{CliApp, IntoCliArgs};
 
+// Import validation functions for WP05 tests
+// Note: These are defined in src/main.rs but need to be accessible for testing
+// We'll test them via integration tests below
+
 /// Mock CLI arguments for testing
 #[derive(Default, Clone)]
 struct TestArgs {

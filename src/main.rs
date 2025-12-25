@@ -3,6 +3,149 @@ use caro::config::ConfigManager;
 use clap::Parser;
 use std::process;
 
+// =============================================================================
+// Feature 002: Prompt Source Resolution
+// =============================================================================
+
+/// Source of the prompt input
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PromptSource {
+    /// From -p/--prompt flag (highest priority)
+    Flag,
+    /// From piped stdin (medium priority)
+    Stdin,
+    /// From trailing command-line arguments (lowest priority)
+    TrailingArgs,
+}
+
+/// Resolved prompt with its source
+#[derive(Debug, Clone)]
+pub struct ResolvedPrompt {
+    pub text: String,
+    pub source: PromptSource,
+}
+
+/// Resolve prompt from multiple input sources following priority order
+///
+/// Priority: -p/--prompt flag > stdin > trailing arguments
+///
+/// # Arguments
+/// * `flag` - Optional prompt from -p/--prompt flag
+/// * `stdin` - Optional prompt from piped stdin
+/// * `trailing_args` - Prompt from command-line trailing words
+///
+/// # Returns
+/// ResolvedPrompt with text and source indication
+fn resolve_prompt(
+    flag: Option<String>,
+    stdin: Option<String>,
+    trailing_args: Vec<String>,
+) -> ResolvedPrompt {
+    if let Some(text) = flag {
+        ResolvedPrompt {
+            text,
+            source: PromptSource::Flag,
+        }
+    } else if let Some(text) = stdin {
+        ResolvedPrompt {
+            text,
+            source: PromptSource::Stdin,
+        }
+    } else {
+        ResolvedPrompt {
+            text: trailing_args.join(" "),
+            source: PromptSource::TrailingArgs,
+        }
+    }
+}
+
+/// Check if stdin has available input (pipe or redirect)
+///
+/// Returns true if stdin is not a terminal (i.e., piped or redirected)
+fn is_stdin_available() -> bool {
+    use std::io::IsTerminal;
+    !std::io::stdin().is_terminal()
+}
+
+/// Read all content from stdin
+///
+/// Returns the complete stdin content as a String, or an error if reading fails
+fn read_stdin() -> Result<String, std::io::Error> {
+    use std::io::Read;
+    let mut buffer = String::new();
+    std::io::stdin().read_to_string(&mut buffer)?;
+    Ok(buffer.trim().to_string())
+}
+
+// =============================================================================
+// Prompt Validation
+// =============================================================================
+
+/// Action to take after validating a prompt
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ValidationAction {
+    /// Show help message and exit (for empty/whitespace-only prompts)
+    ShowHelp,
+    /// Proceed with the prompt (valid content provided)
+    ProceedWithPrompt,
+}
+
+/// Validate a prompt and determine the appropriate action
+///
+/// Empty or whitespace-only prompts should display help.
+/// Valid prompts should proceed to inference.
+/// Special characters are preserved (not validated).
+///
+/// # Arguments
+/// * `prompt` - The prompt text to validate
+///
+/// # Returns
+/// ValidationAction indicating whether to show help or proceed
+pub fn validate_prompt(prompt: &str) -> ValidationAction {
+    let trimmed = prompt.trim();
+    if trimmed.is_empty() {
+        ValidationAction::ShowHelp
+    } else {
+        ValidationAction::ProceedWithPrompt
+    }
+}
+
+// =============================================================================
+// Shell Operator Detection
+// =============================================================================
+
+/// Truncate arguments at the first POSIX shell operator
+///
+/// Detects standalone shell operators and removes them along with everything after.
+/// This handles edge cases where shell operators appear in quoted commands or scripts.
+/// In normal usage, the shell processes operators before caro sees them.
+///
+/// Detected operators: >, |, <, >>, 2>, &, ;
+///
+/// # Arguments
+/// * `args` - Vector of argument strings
+///
+/// # Returns
+/// Truncated vector stopping at the first operator
+///
+/// # Examples
+/// ```
+/// let args = vec!["list".into(), "files".into(), ">".into(), "output.txt".into()];
+/// let result = truncate_at_shell_operator(args);
+/// assert_eq!(result, vec!["list", "files"]);
+/// ```
+pub fn truncate_at_shell_operator(args: Vec<String>) -> Vec<String> {
+    const SHELL_OPERATORS: &[&str] = &[">", "|", "<", ">>", "2>", "&", ";"];
+
+    args.into_iter()
+        .take_while(|arg| !SHELL_OPERATORS.contains(&arg.as_str()))
+        .collect()
+}
+
+// =============================================================================
+// CLI Argument Parsing
+// =============================================================================
+
 /// caro - Convert natural language to shell commands using local LLMs
 #[derive(Parser, Clone)]
 #[command(name = "caro")]
@@ -12,8 +155,12 @@ use std::process;
 )]
 #[command(version)]
 struct Cli {
-    /// Natural language task description
-    #[arg(help = "Natural language description of the task")]
+    /// Explicit prompt via -p/--prompt flag (highest priority)
+    #[arg(
+        short = 'p',
+        long = "prompt",
+        help = "Explicit prompt text (overrides stdin and trailing args)"
+    )]
     prompt: Option<String>,
 
     /// Target shell type
@@ -71,10 +218,15 @@ struct Cli {
         help = "Interactive mode with step-by-step confirmation"
     )]
     interactive: bool,
+
+    /// Trailing unquoted arguments forming the prompt
+    #[arg(trailing_var_arg = true, num_args = 0..)]
+    trailing_args: Vec<String>,
 }
 
 impl IntoCliArgs for Cli {
     fn prompt(&self) -> Option<String> {
+        // Prompt is already resolved in main() from flag/stdin/trailing_args
         self.prompt.clone()
     }
 
@@ -117,7 +269,25 @@ impl IntoCliArgs for Cli {
 
 #[tokio::main]
 async fn main() {
-    let cli = Cli::parse();
+    let mut cli = Cli::parse();
+
+    // Truncate trailing args at shell operators (handles edge cases)
+    cli.trailing_args = truncate_at_shell_operator(cli.trailing_args);
+
+    // Resolve prompt from multiple sources (flag > stdin > trailing args)
+    let stdin_content = if is_stdin_available() {
+        match read_stdin() {
+            Ok(content) if !content.is_empty() => Some(content),
+            _ => None,
+        }
+    } else {
+        None
+    };
+
+    let resolved = resolve_prompt(cli.prompt.clone(), stdin_content, cli.trailing_args.clone());
+
+    // Store resolved prompt back into cli for downstream usage
+    cli.prompt = Some(resolved.text);
 
     // Initialize tracing/logging
     if cli.verbose {
@@ -147,19 +317,27 @@ async fn main() {
         }
     }
 
-    // Handle missing prompt
-    if cli.prompt.is_none() {
-        eprintln!("Error: No prompt provided");
-        eprintln!();
-        eprintln!("Usage: caro [OPTIONS] <PROMPT>");
-        eprintln!();
-        eprintln!("Examples:");
-        eprintln!("  caro \"list all files\"");
-        eprintln!("  caro --shell zsh \"find large files\"");
-        eprintln!("  caro --safety strict \"delete temporary files\"");
-        eprintln!();
-        eprintln!("Run 'caro --help' for more information.");
-        process::exit(1);
+    // Validate prompt and show help if empty/whitespace-only
+    let prompt_text = cli.prompt.as_deref().unwrap_or("");
+    match validate_prompt(prompt_text) {
+        ValidationAction::ShowHelp => {
+            // Show help message for empty or whitespace-only prompts
+            println!("caro - Convert natural language to shell commands using local LLMs");
+            println!();
+            println!("Usage: caro [OPTIONS] <PROMPT>");
+            println!();
+            println!("Examples:");
+            println!("  caro list files");
+            println!("  caro -p \"list files\"");
+            println!("  echo \"list files\" | caro");
+            println!("  caro --shell zsh \"find large files\"");
+            println!();
+            println!("Run 'caro --help' for more information.");
+            process::exit(0);
+        }
+        ValidationAction::ProceedWithPrompt => {
+            // Continue with command generation
+        }
     }
 
     // Run the CLI application
@@ -470,4 +648,155 @@ async fn show_configuration(cli: &Cli) -> Result<String, CliError> {
     }
 
     Ok(output)
+}
+
+// =============================================================================
+// Unit Tests
+// =============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // WP03: Prompt Source Resolution Tests
+
+    #[test]
+    fn test_flag_overrides_all() {
+        let resolved = resolve_prompt(
+            Some("flag".into()),
+            Some("stdin".into()),
+            vec!["trailing".into()],
+        );
+        assert_eq!(resolved.text, "flag");
+        assert_eq!(resolved.source, PromptSource::Flag);
+    }
+
+    #[test]
+    fn test_stdin_overrides_trailing() {
+        let resolved = resolve_prompt(None, Some("stdin".into()), vec!["trailing".into()]);
+        assert_eq!(resolved.text, "stdin");
+        assert_eq!(resolved.source, PromptSource::Stdin);
+    }
+
+    #[test]
+    fn test_trailing_args_default() {
+        let resolved = resolve_prompt(None, None, vec!["list".into(), "files".into()]);
+        assert_eq!(resolved.text, "list files");
+        assert_eq!(resolved.source, PromptSource::TrailingArgs);
+    }
+
+    #[test]
+    fn test_empty_trailing_args() {
+        let resolved = resolve_prompt(None, None, vec![]);
+        assert_eq!(resolved.text, "");
+        assert_eq!(resolved.source, PromptSource::TrailingArgs);
+    }
+
+    // WP05: Prompt Validation Tests
+
+    #[test]
+    fn test_empty_shows_help() {
+        assert_eq!(validate_prompt(""), ValidationAction::ShowHelp);
+    }
+
+    #[test]
+    fn test_whitespace_shows_help() {
+        assert_eq!(validate_prompt("   "), ValidationAction::ShowHelp);
+        assert_eq!(validate_prompt("\t"), ValidationAction::ShowHelp);
+        assert_eq!(validate_prompt("\n"), ValidationAction::ShowHelp);
+        assert_eq!(validate_prompt("  \t\n  "), ValidationAction::ShowHelp);
+    }
+
+    #[test]
+    fn test_valid_prompt_proceeds() {
+        assert_eq!(
+            validate_prompt("list files"),
+            ValidationAction::ProceedWithPrompt
+        );
+    }
+
+    #[test]
+    fn test_special_characters_preserved() {
+        // T026: Special characters should be preserved and prompt should proceed
+        assert_eq!(
+            validate_prompt("find *.txt"),
+            ValidationAction::ProceedWithPrompt
+        );
+        assert_eq!(
+            validate_prompt("grep 'pattern' file.txt"),
+            ValidationAction::ProceedWithPrompt
+        );
+        assert_eq!(
+            validate_prompt("echo $HOME"),
+            ValidationAction::ProceedWithPrompt
+        );
+    }
+
+    // WP06: Shell Operator Handling Tests
+
+    #[test]
+    fn test_all_operators() {
+        // T031: Test all 7 POSIX shell operators are detected
+        for op in &[">", "|", "<", ">>", "2>", "&", ";"] {
+            let args = vec!["cmd".to_string(), op.to_string(), "arg".to_string()];
+            let result = truncate_at_shell_operator(args);
+            assert_eq!(
+                result,
+                vec!["cmd"],
+                "Failed to truncate at operator: {}",
+                op
+            );
+        }
+    }
+
+    #[test]
+    fn test_embedded_operator_not_detected() {
+        // T032: Embedded operators (not standalone) should be ignored
+        let args = vec!["find".to_string(), "files>output.txt".to_string()];
+        let result = truncate_at_shell_operator(args);
+        assert_eq!(
+            result,
+            vec!["find", "files>output.txt"],
+            "Should not truncate embedded operator"
+        );
+
+        // Additional embedded operator cases
+        let args2 = vec!["grep".to_string(), "pattern|other".to_string()];
+        let result2 = truncate_at_shell_operator(args2);
+        assert_eq!(result2, vec!["grep", "pattern|other"]);
+    }
+
+    #[test]
+    fn test_operator_first() {
+        // T033: Operator as first argument should result in empty vector
+        let result = truncate_at_shell_operator(vec![">".to_string(), "file".to_string()]);
+        assert!(result.is_empty(), "Should be empty when operator is first");
+
+        let result2 = truncate_at_shell_operator(vec!["|".to_string(), "grep".to_string()]);
+        assert!(result2.is_empty());
+    }
+
+    #[test]
+    fn test_multiple_operators() {
+        // T034: Should stop at the first operator
+        let args = vec![
+            "cmd".to_string(),
+            ">".to_string(),
+            "out".to_string(),
+            "|".to_string(),
+            "grep".to_string(),
+        ];
+        let result = truncate_at_shell_operator(args);
+        assert_eq!(result, vec!["cmd"], "Should stop at first operator (>)");
+
+        // Test with different operator order
+        let args2 = vec![
+            "find".to_string(),
+            "files".to_string(),
+            ";".to_string(),
+            "ls".to_string(),
+        ];
+        let result2 = truncate_at_shell_operator(args2);
+        assert_eq!(result2, vec!["find", "files"]);
+    }
 }
