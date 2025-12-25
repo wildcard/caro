@@ -1,0 +1,375 @@
+---
+import { getCollection } from 'astro:content';
+
+// Fetch content
+const commands = await getCollection('commands');
+const stories = await getCollection('stories');
+const dailyPicks = await getCollection('daily-picks');
+
+// Get featured items
+const featuredCommand = commands.find(c => c.data.featured) || commands[0];
+const featuredStory = stories.find(s => s.data.featured) || stories[0];
+const latestPick = dailyPicks.sort((a, b) =>
+  b.data.publishedAt.getTime() - a.data.publishedAt.getTime()
+)[0];
+
+// Type metadata for daily picks
+const typeInfo: Record<string, { color: string; icon: string }> = {
+  command: { color: '#27ae60', icon: '>' },
+  trivia: { color: '#9b59b6', icon: '?' },
+  quote: { color: '#3498db', icon: '"' },
+  tip: { color: '#f39c12', icon: '!' },
+  error: { color: '#e74c3c', icon: 'x' }
+};
+
+// Category colors for stories
+const categoryColors: Record<string, string> = {
+  history: '#3498db',
+  people: '#9b59b6',
+  technology: '#27ae60',
+  culture: '#e74c3c',
+  platform: '#f39c12'
+};
+---
+
+<section id="learn" class="learn-preview">
+  <div class="container">
+    <header class="section-header">
+      <h2>Learn with Caro</h2>
+      <p class="section-subtitle">
+        Master Unix commands. Discover the fascinating history.
+        Build your shell expertise with daily tips.
+      </p>
+    </header>
+
+    <div class="preview-grid">
+      <!-- Commands Card -->
+      {featuredCommand && (
+        <a href={`/learn/commands/${featuredCommand.slug}`} class="preview-card commands-card">
+          <div class="card-badge">
+            <span class="badge-icon">></span>
+            <span>Command Tutorial</span>
+          </div>
+          <code class="command-name">{featuredCommand.data.command}</code>
+          <h3>{featuredCommand.data.title.replace(`${featuredCommand.data.command}: `, '')}</h3>
+          <p>{featuredCommand.data.description}</p>
+          <div class="card-meta">
+            <span class={`difficulty difficulty-${featuredCommand.data.difficulty}`}>
+              {featuredCommand.data.difficulty}
+            </span>
+            <span class="platform-count">
+              {featuredCommand.data.platforms.length} platforms
+            </span>
+          </div>
+        </a>
+      )}
+
+      <!-- Story Card -->
+      {featuredStory && (
+        <a href={`/learn/stories/${featuredStory.slug}`} class="preview-card story-card">
+          <div
+            class="card-badge story-badge"
+            style={`background-color: ${categoryColors[featuredStory.data.category] || '#7f8c8d'}`}
+          >
+            <span>{featuredStory.data.category}</span>
+          </div>
+          <span class="story-era">{featuredStory.data.era}</span>
+          <h3>{featuredStory.data.title}</h3>
+          {featuredStory.data.subtitle && (
+            <p class="story-subtitle">{featuredStory.data.subtitle}</p>
+          )}
+          <div class="card-meta">
+            <span class="reading-time">{featuredStory.data.readingTime} min read</span>
+          </div>
+        </a>
+      )}
+
+      <!-- Daily Pick Card -->
+      {latestPick && (
+        <a href={`/learn/daily/${latestPick.slug}`} class="preview-card daily-card">
+          <div
+            class="card-badge daily-badge"
+            style={`background-color: ${typeInfo[latestPick.data.type]?.color || '#7f8c8d'}`}
+          >
+            <span class="badge-icon">{typeInfo[latestPick.data.type]?.icon || '>'}</span>
+            <span>Daily Pick</span>
+          </div>
+          <h3>{latestPick.data.title}</h3>
+          <p class="daily-text">{latestPick.data.socialText}</p>
+          <div class="card-meta">
+            <span class="date">
+              {latestPick.data.publishedAt.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric'
+              })}
+            </span>
+          </div>
+        </a>
+      )}
+    </div>
+
+    <div class="stats-row">
+      <div class="stat">
+        <span class="stat-number">{commands.length}</span>
+        <span class="stat-label">Command Tutorials</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">{stories.length}</span>
+        <span class="stat-label">Unix Stories</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">{dailyPicks.length}</span>
+        <span class="stat-label">Daily Picks</span>
+      </div>
+    </div>
+
+    <div class="cta-row">
+      <a href="/learn" class="cta-button primary">Explore All Content</a>
+      <a href="/learn/commands" class="cta-button secondary">Browse Commands</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .learn-preview {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary, #f8f9fa);
+  }
+
+  :global(.dark) .learn-preview {
+    background: var(--color-bg-secondary, #1a1a2e);
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+
+  .section-header h2 {
+    font-size: 2.5rem;
+    color: var(--color-text, #2c3e50);
+    margin-bottom: 15px;
+  }
+
+  .section-subtitle {
+    font-size: 1.2rem;
+    color: var(--color-text-secondary, #7f8c8d);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+  }
+
+  .preview-card {
+    display: flex;
+    flex-direction: column;
+    padding: 25px;
+    background: var(--color-bg, white);
+    border: 1px solid var(--color-border, #e0e0e0);
+    border-radius: 12px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+  }
+
+  .preview-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(255, 107, 53, 0.15);
+    border-color: #ff6b35;
+  }
+
+  .card-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    background: linear-gradient(135deg, #ff8c42, #ff6b35);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    width: fit-content;
+    margin-bottom: 15px;
+  }
+
+  .badge-icon {
+    font-family: monospace;
+    font-size: 1rem;
+  }
+
+  .story-badge, .daily-badge {
+    background: none;
+  }
+
+  .command-name {
+    font-size: 2rem;
+    color: #ff6b35;
+    background: var(--color-bg-secondary, #f8f9fa);
+    padding: 5px 12px;
+    border-radius: 6px;
+    width: fit-content;
+    margin-bottom: 10px;
+  }
+
+  .preview-card h3 {
+    font-size: 1.3rem;
+    color: var(--color-text, #2c3e50);
+    margin: 0 0 10px 0;
+    line-height: 1.3;
+  }
+
+  .preview-card p {
+    color: var(--color-text-secondary, #7f8c8d);
+    font-size: 0.95rem;
+    margin: 0;
+    flex: 1;
+    line-height: 1.6;
+  }
+
+  .story-era {
+    font-style: italic;
+    color: var(--color-text-secondary, #7f8c8d);
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+
+  .story-subtitle {
+    font-style: italic;
+  }
+
+  .daily-text {
+    font-family: system-ui, -apple-system, sans-serif;
+    white-space: pre-wrap;
+  }
+
+  .card-meta {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--color-border, #e0e0e0);
+    font-size: 0.85rem;
+  }
+
+  .difficulty {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    color: white;
+  }
+
+  .difficulty-beginner { background: #27ae60; }
+  .difficulty-intermediate { background: #f39c12; }
+  .difficulty-advanced { background: #e74c3c; }
+
+  .platform-count, .reading-time, .date {
+    color: var(--color-text-secondary, #7f8c8d);
+  }
+
+  .stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+    margin-bottom: 40px;
+    padding: 30px;
+    background: var(--color-bg, white);
+    border-radius: 12px;
+    border: 1px solid var(--color-border, #e0e0e0);
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #ff6b35;
+  }
+
+  .stat-label {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary, #7f8c8d);
+    font-weight: 500;
+  }
+
+  .cta-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+  }
+
+  .cta-button {
+    padding: 14px 30px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .cta-button.primary {
+    background: linear-gradient(135deg, #ff8c42, #ff6b35);
+    color: white;
+  }
+
+  .cta-button.primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+  }
+
+  .cta-button.secondary {
+    background: transparent;
+    color: #ff6b35;
+    border: 2px solid #ff6b35;
+  }
+
+  .cta-button.secondary:hover {
+    background: #ff6b35;
+    color: white;
+  }
+
+  @media (max-width: 768px) {
+    .section-header h2 {
+      font-size: 2rem;
+    }
+
+    .preview-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .stats-row {
+      flex-direction: column;
+      gap: 25px;
+    }
+
+    .cta-row {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .cta-button {
+      width: 100%;
+      max-width: 300px;
+      text-align: center;
+    }
+  }
+</style>

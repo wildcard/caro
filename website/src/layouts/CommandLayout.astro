@@ -1,0 +1,275 @@
+---
+import LearnLayout from './LearnLayout.astro';
+
+interface Props {
+  title: string;
+  command: string;
+  description: string;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  platforms: string[];
+  tags: string[];
+  publishedAt: Date;
+  relatedCommands?: string[];
+  caroPrompt?: string;
+}
+
+const {
+  title,
+  command,
+  description,
+  difficulty,
+  platforms,
+  tags,
+  publishedAt,
+  relatedCommands,
+  caroPrompt
+} = Astro.props;
+
+const difficultyColors = {
+  beginner: '#27ae60',
+  intermediate: '#f39c12',
+  advanced: '#e74c3c'
+};
+
+const platformIcons: Record<string, string> = {
+  linux: 'Linux',
+  macos: 'macOS',
+  bsd: 'BSD',
+  posix: 'POSIX',
+  unix: 'Unix'
+};
+---
+
+<LearnLayout title={title} description={description}>
+  <article class="command-article">
+    <header class="command-header">
+      <div class="command-meta">
+        <span class="difficulty" style={`background-color: ${difficultyColors[difficulty]}`}>
+          {difficulty}
+        </span>
+        <span class="date">
+          {publishedAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </span>
+      </div>
+
+      <h1 class="command-title">
+        <code>{command}</code>
+      </h1>
+
+      <p class="command-description">{description}</p>
+
+      <div class="platforms">
+        {platforms.map(p => (
+          <span class="platform">{platformIcons[p] || p}</span>
+        ))}
+      </div>
+
+      <div class="tags">
+        {tags.map(tag => (
+          <a href={`/learn/commands?tag=${tag}`} class="tag">#{tag}</a>
+        ))}
+      </div>
+    </header>
+
+    <div class="content">
+      <slot />
+    </div>
+
+    {relatedCommands && relatedCommands.length > 0 && (
+      <aside class="related">
+        <h3>Related Commands</h3>
+        <div class="related-list">
+          {relatedCommands.map(cmd => (
+            <a href={`/learn/commands/${cmd}`} class="related-cmd">{cmd}</a>
+          ))}
+        </div>
+      </aside>
+    )}
+
+    {caroPrompt && (
+      <aside class="caro-box">
+        <h3>Try with Caro</h3>
+        <p>Ask Caro: <em>"{caroPrompt}"</em></p>
+      </aside>
+    )}
+  </article>
+</LearnLayout>
+
+<style>
+  .command-article {
+    line-height: 1.7;
+  }
+
+  .command-header {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .command-meta {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .difficulty {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: white;
+    text-transform: uppercase;
+  }
+
+  .date {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+  }
+
+  .command-title {
+    font-size: 2.5rem;
+    margin: 0.5rem 0;
+  }
+
+  .command-title code {
+    background: #f8f9fa;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    color: #ff6b35;
+  }
+
+  .command-description {
+    font-size: 1.2rem;
+    color: #555;
+    margin: 1rem 0;
+  }
+
+  .platforms {
+    display: flex;
+    gap: 0.5rem;
+    margin: 1rem 0;
+  }
+
+  .platform {
+    background: #ecf0f1;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.85rem;
+    color: #2c3e50;
+  }
+
+  .tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    color: #7f8c8d;
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+
+  .tag:hover {
+    color: #ff6b35;
+  }
+
+  .content {
+    font-size: 1.05rem;
+  }
+
+  .content :global(h2) {
+    margin-top: 2rem;
+    color: #2c3e50;
+    border-bottom: 2px solid #ff6b35;
+    padding-bottom: 0.5rem;
+  }
+
+  .content :global(h3) {
+    margin-top: 1.5rem;
+    color: #2c3e50;
+  }
+
+  .content :global(pre) {
+    background: #2c3e50;
+    color: #ecf0f1;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+  }
+
+  .content :global(code) {
+    background: #f8f9fa;
+    padding: 0.15rem 0.3rem;
+    border-radius: 0.2rem;
+    font-size: 0.9em;
+  }
+
+  .content :global(pre code) {
+    background: transparent;
+    padding: 0;
+  }
+
+  .content :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+  }
+
+  .content :global(th),
+  .content :global(td) {
+    border: 1px solid #e0e0e0;
+    padding: 0.5rem;
+    text-align: left;
+  }
+
+  .content :global(th) {
+    background: #f8f9fa;
+    font-weight: 600;
+  }
+
+  .related, .caro-box {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+  }
+
+  .related h3, .caro-box h3 {
+    margin: 0 0 1rem 0;
+    color: #2c3e50;
+  }
+
+  .related-list {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .related-cmd {
+    background: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    text-decoration: none;
+    color: #ff6b35;
+    font-family: monospace;
+    border: 1px solid #e0e0e0;
+    transition: all 0.2s;
+  }
+
+  .related-cmd:hover {
+    background: #ff6b35;
+    color: white;
+    border-color: #ff6b35;
+  }
+
+  .caro-box {
+    background: linear-gradient(135deg, #fff8f0, #fff);
+    border: 1px solid #ff6b35;
+  }
+
+  .caro-box p {
+    margin: 0;
+  }
+</style>

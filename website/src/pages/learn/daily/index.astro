@@ -1,0 +1,418 @@
+---
+import LearnLayout from '../../../layouts/LearnLayout.astro';
+import { getCollection } from 'astro:content';
+
+const dailyPicks = await getCollection('daily-picks');
+
+// Sort by date, newest first
+const sortedPicks = dailyPicks.sort((a, b) =>
+  b.data.publishedAt.getTime() - a.data.publishedAt.getTime()
+);
+
+// Group by month for archive display
+const groupedByMonth = sortedPicks.reduce((acc, pick) => {
+  const monthKey = pick.data.publishedAt.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long'
+  });
+  if (!acc[monthKey]) acc[monthKey] = [];
+  acc[monthKey].push(pick);
+  return acc;
+}, {} as Record<string, typeof dailyPicks>);
+
+// Type metadata
+const typeInfo: Record<string, { color: string; icon: string; label: string }> = {
+  command: { color: '#27ae60', icon: '>', label: 'Command' },
+  trivia: { color: '#9b59b6', icon: '?', label: 'Trivia' },
+  quote: { color: '#3498db', icon: '"', label: 'Quote' },
+  tip: { color: '#f39c12', icon: '!', label: 'Tip' },
+  error: { color: '#e74c3c', icon: 'x', label: 'Error' }
+};
+---
+
+<LearnLayout
+  title="Daily Picks"
+  description="Bite-sized Unix tips, trivia, and commands delivered daily"
+>
+  <div class="daily-page">
+    <header class="page-header">
+      <h1>Daily Picks</h1>
+      <p class="subtitle">
+        Bite-sized Unix wisdom delivered daily. Commands, trivia, quotes,
+        and tips to sharpen your shell skills.
+      </p>
+    </header>
+
+    <div class="type-filters">
+      <span class="filter-label">Filter by type:</span>
+      {Object.entries(typeInfo).map(([type, info]) => (
+        <button
+          class="type-btn"
+          data-type={type}
+          style={`--type-color: ${info.color}`}
+        >
+          <span class="type-icon">{info.icon}</span>
+          {info.label}
+        </button>
+      ))}
+    </div>
+
+    {sortedPicks.length > 0 && (
+      <div class="latest-pick">
+        <h2>Latest</h2>
+        <a href={`/learn/daily/${sortedPicks[0].slug}`} class="latest-card">
+          <div
+            class="type-badge"
+            style={`background-color: ${typeInfo[sortedPicks[0].data.type]?.color || '#7f8c8d'}`}
+          >
+            <span class="badge-icon">{typeInfo[sortedPicks[0].data.type]?.icon || '>'}</span>
+            {typeInfo[sortedPicks[0].data.type]?.label || sortedPicks[0].data.type}
+          </div>
+          <h3>{sortedPicks[0].data.title}</h3>
+          <p class="social-text">{sortedPicks[0].data.socialText}</p>
+          <time>
+            {sortedPicks[0].data.publishedAt.toLocaleDateString('en-US', {
+              weekday: 'long',
+              month: 'long',
+              day: 'numeric'
+            })}
+          </time>
+        </a>
+      </div>
+    )}
+
+    <div class="archive">
+      <h2>Archive</h2>
+
+      {Object.entries(groupedByMonth).map(([month, picks]) => (
+        <div class="month-group">
+          <h3 class="month-header">{month}</h3>
+          <div class="picks-list">
+            {picks.map(pick => (
+              <a
+                href={`/learn/daily/${pick.slug}`}
+                class="pick-item"
+                data-type={pick.data.type}
+              >
+                <div
+                  class="pick-type"
+                  style={`background-color: ${typeInfo[pick.data.type]?.color || '#7f8c8d'}`}
+                >
+                  {typeInfo[pick.data.type]?.icon || '>'}
+                </div>
+                <div class="pick-content">
+                  <span class="pick-title">{pick.data.title}</span>
+                  <span class="pick-date">
+                    {pick.data.publishedAt.toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric'
+                    })}
+                  </span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {dailyPicks.length === 0 && (
+      <div class="empty-state">
+        <p>No daily picks yet. Check back tomorrow!</p>
+      </div>
+    )}
+
+    <aside class="subscribe-box">
+      <h3>Never Miss a Pick</h3>
+      <p>Get daily Unix tips delivered to your inbox.</p>
+      <a href="#newsletter" class="subscribe-btn">Subscribe to Newsletter</a>
+    </aside>
+  </div>
+</LearnLayout>
+
+<style>
+  .daily-page {
+    max-width: 100%;
+  }
+
+  .page-header {
+    margin-bottom: 2rem;
+  }
+
+  .page-header h1 {
+    font-size: 2.5rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+  }
+
+  .page-header .subtitle {
+    color: #7f8c8d;
+    font-size: 1.1rem;
+  }
+
+  .type-filters {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+  }
+
+  .filter-label {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    margin-right: 0.5rem;
+  }
+
+  .type-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid #e0e0e0;
+    background: white;
+    border-radius: 0.25rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .type-btn:hover {
+    border-color: var(--type-color);
+    color: var(--type-color);
+  }
+
+  .type-btn.active {
+    background: var(--type-color);
+    border-color: var(--type-color);
+    color: white;
+  }
+
+  .type-icon {
+    font-family: monospace;
+    font-weight: bold;
+  }
+
+  .latest-pick {
+    margin-bottom: 3rem;
+  }
+
+  .latest-pick h2 {
+    font-size: 1.2rem;
+    color: #7f8c8d;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .latest-card {
+    display: block;
+    padding: 2rem;
+    background: linear-gradient(135deg, #fff8f0, #fff);
+    border: 2px solid #ff6b35;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s;
+  }
+
+  .latest-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 107, 53, 0.2);
+  }
+
+  .type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 0.25rem;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .badge-icon {
+    font-family: monospace;
+  }
+
+  .latest-card h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+    color: #2c3e50;
+  }
+
+  .social-text {
+    margin: 0 0 1rem 0;
+    color: #555;
+    font-family: system-ui, -apple-system, sans-serif;
+    white-space: pre-wrap;
+  }
+
+  .latest-card time {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+  }
+
+  .archive h2 {
+    font-size: 1.2rem;
+    color: #7f8c8d;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .month-group {
+    margin-bottom: 2rem;
+  }
+
+  .month-header {
+    font-size: 1rem;
+    color: #2c3e50;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .picks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .pick-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s;
+  }
+
+  .pick-item:hover {
+    background: #ecf0f1;
+    transform: translateX(4px);
+  }
+
+  .pick-type {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.25rem;
+    color: white;
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .pick-content {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .pick-title {
+    color: #2c3e50;
+    font-weight: 500;
+  }
+
+  .pick-date {
+    color: #7f8c8d;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #7f8c8d;
+  }
+
+  .subscribe-box {
+    margin-top: 3rem;
+    padding: 2rem;
+    background: #2c3e50;
+    border-radius: 0.5rem;
+    text-align: center;
+    color: white;
+  }
+
+  .subscribe-box h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.3rem;
+  }
+
+  .subscribe-box p {
+    margin: 0 0 1rem 0;
+    opacity: 0.9;
+  }
+
+  .subscribe-btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: #ff6b35;
+    color: white;
+    border-radius: 0.25rem;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.2s;
+  }
+
+  .subscribe-btn:hover {
+    background: #ff8c42;
+  }
+
+  @media (max-width: 600px) {
+    .type-filters {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .pick-content {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.25rem;
+    }
+  }
+</style>
+
+<script>
+  // Client-side filtering by type
+  const buttons = document.querySelectorAll('.type-btn');
+  const items = document.querySelectorAll('.pick-item');
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const type = btn.dataset.type;
+      const isActive = btn.classList.contains('active');
+
+      // Toggle active state
+      buttons.forEach(b => b.classList.remove('active'));
+      if (!isActive) {
+        btn.classList.add('active');
+      }
+
+      // Filter items
+      items.forEach(item => {
+        if (isActive || item.dataset.type === type) {
+          (item as HTMLElement).style.display = 'flex';
+        } else {
+          (item as HTMLElement).style.display = type ? 'none' : 'flex';
+        }
+      });
+    });
+  });
+</script>

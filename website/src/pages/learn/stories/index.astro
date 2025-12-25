@@ -1,0 +1,290 @@
+---
+import LearnLayout from '../../../layouts/LearnLayout.astro';
+import { getCollection } from 'astro:content';
+
+const stories = await getCollection('stories');
+
+// Sort by date, newest first
+const sortedStories = stories.sort((a, b) =>
+  b.data.publishedAt.getTime() - a.data.publishedAt.getTime()
+);
+
+// Get unique categories
+const categories = [...new Set(stories.map(s => s.data.category))];
+
+// Category metadata
+const categoryInfo: Record<string, { color: string; label: string; description: string }> = {
+  history: {
+    color: '#3498db',
+    label: 'Unix History',
+    description: 'The evolution of Unix from Bell Labs to today'
+  },
+  people: {
+    color: '#9b59b6',
+    label: 'People & Pioneers',
+    description: 'The brilliant minds who shaped computing'
+  },
+  technology: {
+    color: '#27ae60',
+    label: 'Technology',
+    description: 'Deep dives into Unix innovations'
+  },
+  culture: {
+    color: '#e74c3c',
+    label: 'Culture',
+    description: 'The philosophy and practices of Unix'
+  },
+  platform: {
+    color: '#f39c12',
+    label: 'Platforms',
+    description: 'BSD, Linux, and beyond'
+  }
+};
+---
+
+<LearnLayout
+  title="Unix Stories"
+  description="Fascinating tales from Unix history, the people who built it, and the culture that shaped computing"
+>
+  <div class="stories-page">
+    <header class="page-header">
+      <h1>Unix Stories</h1>
+      <p class="subtitle">
+        Fascinating tales from Unix history. Discover the people, decisions,
+        and accidents that shaped modern computing.
+      </p>
+    </header>
+
+    <nav class="category-nav">
+      <a href="/learn/stories" class="category-pill active">
+        All ({stories.length})
+      </a>
+      {categories.map(cat => (
+        <a
+          href={`/learn/stories?category=${cat}`}
+          class="category-pill"
+          style={`--cat-color: ${categoryInfo[cat]?.color || '#7f8c8d'}`}
+        >
+          {categoryInfo[cat]?.label || cat}
+        </a>
+      ))}
+    </nav>
+
+    <div class="stories-list">
+      {sortedStories.map((story, index) => (
+        <a
+          href={`/learn/stories/${story.slug}`}
+          class={`story-card ${index === 0 ? 'featured' : ''}`}
+          data-category={story.data.category}
+        >
+          <div class="card-content">
+            <div class="card-meta">
+              <span
+                class="category-badge"
+                style={`background-color: ${categoryInfo[story.data.category]?.color || '#7f8c8d'}`}
+              >
+                {categoryInfo[story.data.category]?.label || story.data.category}
+              </span>
+              <span class="era">{story.data.era}</span>
+            </div>
+
+            <h2>{story.data.title}</h2>
+
+            {story.data.subtitle && (
+              <p class="subtitle">{story.data.subtitle}</p>
+            )}
+
+            <div class="card-footer">
+              <span class="reading-time">{story.data.readingTime} min read</span>
+              <span class="date">
+                {story.data.publishedAt.toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric'
+                })}
+              </span>
+            </div>
+          </div>
+
+          {index === 0 && (
+            <div class="featured-badge">Featured</div>
+          )}
+        </a>
+      ))}
+    </div>
+
+    {stories.length === 0 && (
+      <div class="empty-state">
+        <p>No stories yet. Check back soon!</p>
+      </div>
+    )}
+  </div>
+</LearnLayout>
+
+<style>
+  .stories-page {
+    max-width: 100%;
+  }
+
+  .page-header {
+    margin-bottom: 2rem;
+  }
+
+  .page-header h1 {
+    font-size: 2.5rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+  }
+
+  .page-header .subtitle {
+    color: #7f8c8d;
+    font-size: 1.1rem;
+    max-width: 600px;
+  }
+
+  .category-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+  }
+
+  .category-pill {
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    background: white;
+    border: 1px solid #e0e0e0;
+    color: #2c3e50;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+
+  .category-pill:hover {
+    border-color: var(--cat-color, #ff6b35);
+    color: var(--cat-color, #ff6b35);
+  }
+
+  .category-pill.active {
+    background: #ff6b35;
+    border-color: #ff6b35;
+    color: white;
+  }
+
+  .stories-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .story-card {
+    display: block;
+    padding: 1.5rem;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .story-card:hover {
+    border-color: #ff6b35;
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .story-card.featured {
+    background: linear-gradient(135deg, #fff8f0, #fff);
+    border-color: #ff6b35;
+    border-width: 2px;
+  }
+
+  .featured-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: #ff6b35;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .category-badge {
+    padding: 0.25rem 0.6rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+    text-transform: uppercase;
+  }
+
+  .era {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    font-style: italic;
+  }
+
+  .story-card h2 {
+    margin: 0 0 0.5rem 0;
+    color: #2c3e50;
+    font-size: 1.5rem;
+    line-height: 1.3;
+  }
+
+  .story-card .subtitle {
+    margin: 0;
+    color: #555;
+    font-size: 1rem;
+    font-style: italic;
+  }
+
+  .card-footer {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f0f0f0;
+    color: #7f8c8d;
+    font-size: 0.85rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #7f8c8d;
+  }
+
+  @media (max-width: 600px) {
+    .category-nav {
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .category-pill {
+      white-space: nowrap;
+    }
+
+    .featured-badge {
+      position: static;
+      display: inline-block;
+      margin-top: 1rem;
+    }
+  }
+</style>

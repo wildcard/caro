@@ -1,0 +1,29 @@
+---
+import CommandLayout from '../../../layouts/CommandLayout.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const commands = await getCollection('commands');
+  return commands.map(command => ({
+    params: { slug: command.slug },
+    props: { command }
+  }));
+}
+
+const { command } = Astro.props;
+const { Content } = await command.render();
+---
+
+<CommandLayout
+  title={command.data.title}
+  command={command.data.command}
+  description={command.data.description}
+  difficulty={command.data.difficulty}
+  platforms={command.data.platforms}
+  tags={command.data.tags}
+  publishedAt={command.data.publishedAt}
+  relatedCommands={command.data.relatedCommands}
+  caroPrompt={command.data.caroPrompt}
+>
+  <Content />
+</CommandLayout>

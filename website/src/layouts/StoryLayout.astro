@@ -1,0 +1,321 @@
+---
+import LearnLayout from './LearnLayout.astro';
+
+interface Props {
+  title: string;
+  subtitle?: string;
+  category: 'history' | 'people' | 'technology' | 'culture' | 'platform';
+  era: string;
+  publishedAt: Date;
+  readingTime: number;
+  author: string;
+  sources?: Array<{ title: string; url: string }>;
+  tags?: string[];
+}
+
+const {
+  title,
+  subtitle,
+  category,
+  era,
+  publishedAt,
+  readingTime,
+  author,
+  sources,
+  tags
+} = Astro.props;
+
+const categoryColors: Record<string, string> = {
+  history: '#3498db',
+  people: '#9b59b6',
+  technology: '#27ae60',
+  culture: '#e74c3c',
+  platform: '#f39c12'
+};
+
+const categoryLabels: Record<string, string> = {
+  history: 'Unix History',
+  people: 'People & Pioneers',
+  technology: 'Technology Deep Dive',
+  culture: 'Unix Culture',
+  platform: 'Platform Spotlight'
+};
+---
+
+<LearnLayout title={title} description={subtitle || title}>
+  <article class="story-article">
+    <header class="story-header">
+      <div class="story-meta">
+        <span class="category" style={`background-color: ${categoryColors[category]}`}>
+          {categoryLabels[category]}
+        </span>
+        <span class="era">{era}</span>
+      </div>
+
+      <h1 class="story-title">{title}</h1>
+
+      {subtitle && <p class="story-subtitle">{subtitle}</p>}
+
+      <div class="story-info">
+        <span class="author">By {author}</span>
+        <span class="separator">|</span>
+        <span class="date">
+          {publishedAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </span>
+        <span class="separator">|</span>
+        <span class="reading-time">{readingTime} min read</span>
+      </div>
+
+      {tags && tags.length > 0 && (
+        <div class="tags">
+          {tags.map(tag => (
+            <a href={`/learn/stories?tag=${tag}`} class="tag">#{tag}</a>
+          ))}
+        </div>
+      )}
+    </header>
+
+    <div class="content">
+      <slot />
+    </div>
+
+    {sources && sources.length > 0 && (
+      <aside class="sources">
+        <h3>Sources & Further Reading</h3>
+        <ul>
+          {sources.map(source => (
+            <li>
+              <a href={source.url} target="_blank" rel="noopener noreferrer">
+                {source.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </aside>
+    )}
+
+    <nav class="story-nav">
+      <a href="/learn/stories" class="back-link">
+        &larr; All Stories
+      </a>
+    </nav>
+  </article>
+</LearnLayout>
+
+<style>
+  .story-article {
+    line-height: 1.8;
+  }
+
+  .story-header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .story-meta {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .category {
+    padding: 0.3rem 0.8rem;
+    border-radius: 0.25rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: white;
+    text-transform: uppercase;
+  }
+
+  .era {
+    color: #7f8c8d;
+    font-size: 0.95rem;
+    font-style: italic;
+  }
+
+  .story-title {
+    font-size: 2.8rem;
+    color: #2c3e50;
+    margin: 0.5rem 0;
+    line-height: 1.2;
+  }
+
+  .story-subtitle {
+    font-size: 1.4rem;
+    color: #555;
+    margin: 1rem 0;
+    font-style: italic;
+  }
+
+  .story-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    margin: 1rem 0;
+  }
+
+  .separator {
+    color: #bdc3c7;
+  }
+
+  .tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+  }
+
+  .tag {
+    color: #7f8c8d;
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+
+  .tag:hover {
+    color: #ff6b35;
+  }
+
+  .content {
+    font-size: 1.1rem;
+  }
+
+  .content :global(h2) {
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+    font-size: 1.8rem;
+  }
+
+  .content :global(h3) {
+    margin-top: 2rem;
+    color: #2c3e50;
+    font-size: 1.4rem;
+  }
+
+  .content :global(p) {
+    margin-bottom: 1.5rem;
+  }
+
+  .content :global(blockquote) {
+    border-left: 4px solid #ff6b35;
+    padding-left: 1.5rem;
+    margin: 2rem 0;
+    font-style: italic;
+    color: #555;
+    background: #f8f9fa;
+    padding: 1rem 1.5rem;
+    border-radius: 0 0.5rem 0.5rem 0;
+  }
+
+  .content :global(pre) {
+    background: #2c3e50;
+    color: #ecf0f1;
+    padding: 1.25rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+  }
+
+  .content :global(code) {
+    background: #f8f9fa;
+    padding: 0.15rem 0.4rem;
+    border-radius: 0.2rem;
+    font-size: 0.9em;
+  }
+
+  .content :global(pre code) {
+    background: transparent;
+    padding: 0;
+  }
+
+  .content :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+  }
+
+  .content :global(th),
+  .content :global(td) {
+    border: 1px solid #e0e0e0;
+    padding: 0.75rem;
+    text-align: left;
+  }
+
+  .content :global(th) {
+    background: #f8f9fa;
+    font-weight: 600;
+  }
+
+  .content :global(hr) {
+    border: none;
+    border-top: 2px solid #e0e0e0;
+    margin: 2.5rem 0;
+  }
+
+  .sources {
+    margin-top: 3rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+  }
+
+  .sources h3 {
+    margin: 0 0 1rem 0;
+    color: #2c3e50;
+    font-size: 1.1rem;
+  }
+
+  .sources ul {
+    margin: 0;
+    padding-left: 1.5rem;
+  }
+
+  .sources li {
+    margin-bottom: 0.5rem;
+  }
+
+  .sources a {
+    color: #ff6b35;
+    text-decoration: none;
+  }
+
+  .sources a:hover {
+    text-decoration: underline;
+  }
+
+  .story-nav {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e0e0e0;
+  }
+
+  .back-link {
+    color: #ff6b35;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .back-link:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 600px) {
+    .story-title {
+      font-size: 2rem;
+    }
+
+    .story-info {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .separator {
+      display: none;
+    }
+  }
+</style>

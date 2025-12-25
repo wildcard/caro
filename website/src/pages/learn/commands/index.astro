@@ -1,0 +1,292 @@
+---
+import LearnLayout from '../../../layouts/LearnLayout.astro';
+import { getCollection } from 'astro:content';
+
+const commands = await getCollection('commands');
+
+// Group by difficulty
+const beginnerCmds = commands.filter(c => c.data.difficulty === 'beginner');
+const intermediateCmds = commands.filter(c => c.data.difficulty === 'intermediate');
+const advancedCmds = commands.filter(c => c.data.difficulty === 'advanced');
+
+// Get all unique tags
+const allTags = [...new Set(commands.flatMap(c => c.data.tags))].sort();
+---
+
+<LearnLayout
+  title="Command Tutorials"
+  description="Learn Unix commands with practical, example-driven tutorials"
+>
+  <div class="commands-page">
+    <header class="page-header">
+      <h1>Command Tutorials</h1>
+      <p class="subtitle">
+        Practical guides to essential Unix commands.
+        Each tutorial focuses on the commands you'll actually use.
+      </p>
+    </header>
+
+    <nav class="filter-nav">
+      <div class="filter-group">
+        <span class="filter-label">Difficulty:</span>
+        <button class="filter-btn active" data-filter="all">All ({commands.length})</button>
+        <button class="filter-btn beginner" data-filter="beginner">
+          Beginner ({beginnerCmds.length})
+        </button>
+        <button class="filter-btn intermediate" data-filter="intermediate">
+          Intermediate ({intermediateCmds.length})
+        </button>
+        <button class="filter-btn advanced" data-filter="advanced">
+          Advanced ({advancedCmds.length})
+        </button>
+      </div>
+
+      <div class="tags-cloud">
+        {allTags.map(tag => (
+          <a href={`?tag=${tag}`} class="tag">#{tag}</a>
+        ))}
+      </div>
+    </nav>
+
+    <div class="commands-grid">
+      {commands.sort((a, b) => a.data.command.localeCompare(b.data.command)).map(cmd => (
+        <a
+          href={`/learn/commands/${cmd.slug}`}
+          class={`command-card difficulty-${cmd.data.difficulty}`}
+          data-difficulty={cmd.data.difficulty}
+          data-tags={cmd.data.tags.join(',')}
+        >
+          <div class="card-header">
+            <code class="command-name">{cmd.data.command}</code>
+            <span class={`badge badge-${cmd.data.difficulty}`}>
+              {cmd.data.difficulty}
+            </span>
+          </div>
+          <h3>{cmd.data.title.replace(`${cmd.data.command}: `, '')}</h3>
+          <p>{cmd.data.description}</p>
+          <div class="card-footer">
+            <div class="platforms">
+              {cmd.data.platforms.slice(0, 3).map(p => (
+                <span class="platform">{p}</span>
+              ))}
+            </div>
+            <div class="tags">
+              {cmd.data.tags.slice(0, 2).map(tag => (
+                <span class="tag">#{tag}</span>
+              ))}
+            </div>
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+</LearnLayout>
+
+<style>
+  .commands-page {
+    max-width: 100%;
+  }
+
+  .page-header {
+    margin-bottom: 2rem;
+  }
+
+  .page-header h1 {
+    font-size: 2.5rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+  }
+
+  .subtitle {
+    color: #7f8c8d;
+    font-size: 1.1rem;
+  }
+
+  .filter-nav {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+  }
+
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+
+  .filter-label {
+    font-weight: 600;
+    color: #2c3e50;
+  }
+
+  .filter-btn {
+    padding: 0.4rem 0.8rem;
+    border: 1px solid #e0e0e0;
+    background: white;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+  }
+
+  .filter-btn:hover {
+    border-color: #ff6b35;
+  }
+
+  .filter-btn.active {
+    background: #ff6b35;
+    color: white;
+    border-color: #ff6b35;
+  }
+
+  .filter-btn.beginner:not(.active):hover { background: #e8f8f0; }
+  .filter-btn.intermediate:not(.active):hover { background: #fef6e8; }
+  .filter-btn.advanced:not(.active):hover { background: #fdecea; }
+
+  .tags-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .tags-cloud .tag {
+    color: #7f8c8d;
+    text-decoration: none;
+    font-size: 0.85rem;
+  }
+
+  .tags-cloud .tag:hover {
+    color: #ff6b35;
+  }
+
+  .commands-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .command-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s;
+  }
+
+  .command-card:hover {
+    border-color: #ff6b35;
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+  }
+
+  .command-name {
+    font-size: 1.5rem;
+    color: #ff6b35;
+    background: #f8f9fa;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+  }
+
+  .badge {
+    padding: 0.2rem 0.6rem;
+    border-radius: 1rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: white;
+  }
+
+  .badge-beginner { background: #27ae60; }
+  .badge-intermediate { background: #f39c12; }
+  .badge-advanced { background: #e74c3c; }
+
+  .command-card h3 {
+    margin: 0 0 0.5rem 0;
+    color: #2c3e50;
+    font-size: 1.1rem;
+  }
+
+  .command-card p {
+    flex: 1;
+    margin: 0;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .card-footer {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .platforms {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .platform {
+    font-size: 0.7rem;
+    color: #7f8c8d;
+    background: #f0f0f0;
+    padding: 0.15rem 0.4rem;
+    border-radius: 0.2rem;
+  }
+
+  .tags {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .card-footer .tag {
+    font-size: 0.75rem;
+    color: #95a5a6;
+  }
+
+  @media (max-width: 600px) {
+    .filter-group {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>
+
+<script>
+  // Simple client-side filtering
+  const buttons = document.querySelectorAll('.filter-btn');
+  const cards = document.querySelectorAll('.command-card');
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const filter = btn.dataset.filter;
+
+      buttons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      cards.forEach(card => {
+        if (filter === 'all' || card.dataset.difficulty === filter) {
+          (card as HTMLElement).style.display = 'flex';
+        } else {
+          (card as HTMLElement).style.display = 'none';
+        }
+      });
+    });
+  });
+</script>
