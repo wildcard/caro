@@ -111,6 +111,38 @@ pub fn validate_prompt(prompt: &str) -> ValidationAction {
 }
 
 // =============================================================================
+// Shell Operator Detection
+// =============================================================================
+
+/// Truncate arguments at the first POSIX shell operator
+///
+/// Detects standalone shell operators and removes them along with everything after.
+/// This handles edge cases where shell operators appear in quoted commands or scripts.
+/// In normal usage, the shell processes operators before caro sees them.
+///
+/// Detected operators: >, |, <, >>, 2>, &, ;
+///
+/// # Arguments
+/// * `args` - Vector of argument strings
+///
+/// # Returns
+/// Truncated vector stopping at the first operator
+///
+/// # Examples
+/// ```
+/// let args = vec!["list".into(), "files".into(), ">".into(), "output.txt".into()];
+/// let result = truncate_at_shell_operator(args);
+/// assert_eq!(result, vec!["list", "files"]);
+/// ```
+pub fn truncate_at_shell_operator(args: Vec<String>) -> Vec<String> {
+    const SHELL_OPERATORS: &[&str] = &[">", "|", "<", ">>", "2>", "&", ";"];
+
+    args.into_iter()
+        .take_while(|arg| !SHELL_OPERATORS.contains(&arg.as_str()))
+        .collect()
+}
+
+// =============================================================================
 // CLI Argument Parsing
 // =============================================================================
 
@@ -238,6 +270,9 @@ impl IntoCliArgs for Cli {
 #[tokio::main]
 async fn main() {
     let mut cli = Cli::parse();
+
+    // Truncate trailing args at shell operators (handles edge cases)
+    cli.trailing_args = truncate_at_shell_operator(cli.trailing_args);
 
     // Resolve prompt from multiple sources (flag > stdin > trailing args)
     let stdin_content = if is_stdin_available() {
@@ -699,5 +734,72 @@ mod tests {
             validate_prompt("echo $HOME"),
             ValidationAction::ProceedWithPrompt
         );
+    }
+
+    // WP06: Shell Operator Handling Tests
+
+    #[test]
+    fn test_all_operators() {
+        // T031: Test all 7 POSIX shell operators are detected
+        for op in &[">", "|", "<", ">>", "2>", "&", ";"] {
+            let args = vec!["cmd".to_string(), op.to_string(), "arg".to_string()];
+            let result = truncate_at_shell_operator(args);
+            assert_eq!(result, vec!["cmd"], "Failed to truncate at operator: {}", op);
+        }
+    }
+
+    #[test]
+    fn test_embedded_operator_not_detected() {
+        // T032: Embedded operators (not standalone) should be ignored
+        let args = vec!["find".to_string(), "files>output.txt".to_string()];
+        let result = truncate_at_shell_operator(args);
+        assert_eq!(
+            result,
+            vec!["find", "files>output.txt"],
+            "Should not truncate embedded operator"
+        );
+
+        // Additional embedded operator cases
+        let args2 = vec!["grep".to_string(), "pattern|other".to_string()];
+        let result2 = truncate_at_shell_operator(args2);
+        assert_eq!(result2, vec!["grep", "pattern|other"]);
+    }
+
+    #[test]
+    fn test_operator_first() {
+        // T033: Operator as first argument should result in empty vector
+        let result = truncate_at_shell_operator(vec![">".to_string(), "file".to_string()]);
+        assert!(result.is_empty(), "Should be empty when operator is first");
+
+        let result2 = truncate_at_shell_operator(vec!["|".to_string(), "grep".to_string()]);
+        assert!(result2.is_empty());
+    }
+
+    #[test]
+    fn test_multiple_operators() {
+        // T034: Should stop at the first operator
+        let args = vec![
+            "cmd".to_string(),
+            ">".to_string(),
+            "out".to_string(),
+            "|".to_string(),
+            "grep".to_string(),
+        ];
+        let result = truncate_at_shell_operator(args);
+        assert_eq!(
+            result,
+            vec!["cmd"],
+            "Should stop at first operator (>)"
+        );
+
+        // Test with different operator order
+        let args2 = vec![
+            "find".to_string(),
+            "files".to_string(),
+            ";".to_string(),
+            "ls".to_string(),
+        ];
+        let result2 = truncate_at_shell_operator(args2);
+        assert_eq!(result2, vec!["find", "files"]);
     }
 }

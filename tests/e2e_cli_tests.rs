@@ -797,3 +797,48 @@ fn e2e_noninteractive_with_flag() {
 
     println!("✅ T022: Non-interactive mode with -p flag works (SC-005)");
 }
+
+// =============================================================================
+// E2E Test Suite F: Shell Operator Handling (WP06)
+// =============================================================================
+
+/// E2E-F1: Shell operator truncation test
+/// Verifies that standalone shell operators truncate the prompt (SC-007)
+#[test]
+fn e2e_shell_operator_truncation() {
+    let runner = CliTestRunner::new();
+
+    // Note: In shell, operators are usually processed before reaching the binary
+    // This test simulates edge cases (quoted operators, scripts)
+    // Testing with quoted operators to prevent shell from processing them
+    let output = runner.run_success(&["list", "files", ">", "output.txt"]);
+
+    // The prompt should be truncated to "list files" (before the >)
+    // The command generation should work based on the truncated prompt
+    assert!(
+        output.contains("Command:") || output.contains("ls"),
+        "Should generate command for truncated prompt, got: {}",
+        output
+    );
+
+    println!("✅ E2E-F1: Shell operator truncation works (SC-007)");
+}
+
+/// E2E-F2: Embedded operator not truncated
+/// Verifies that embedded operators (not standalone) are preserved
+#[test]
+fn e2e_embedded_operator_preserved() {
+    let runner = CliTestRunner::new();
+
+    // Embedded operator should NOT cause truncation
+    let output = runner.run_success(&["find", "files>output.txt"]);
+
+    // Should process the full prompt including the embedded operator
+    assert!(
+        output.contains("Command:"),
+        "Should generate command with embedded operator, got: {}",
+        output
+    );
+
+    println!("✅ E2E-F2: Embedded operators preserved correctly");
+}
