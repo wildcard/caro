@@ -23,7 +23,7 @@ jobs:
     name: Lint & Format
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     
     - name: Install Rust
       uses: dtolnay/rust-toolchain@v1
@@ -32,7 +32,7 @@ jobs:
         components: rustfmt, clippy
     
     - name: Cache cargo
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           ~/.cargo/registry
@@ -66,7 +66,7 @@ jobs:
             cache_path_macos: ~/Library/Caches/caro/models
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     
     - name: Install Rust
       uses: dtolnay/rust-toolchain@v1
@@ -74,7 +74,7 @@ jobs:
         toolchain: stable
     
     - name: Cache cargo
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           ~/.cargo/registry
@@ -85,7 +85,7 @@ jobs:
           ${{ runner.os }}-smoke-cargo-
     
     - name: Cache model files
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ${{ matrix.os == 'ubuntu-latest' && matrix.model.cache_path_linux || matrix.model.cache_path_macos }}
         key: model-${{ matrix.model.id }}-${{ hashFiles('src/model_catalog.rs') }}
@@ -122,7 +122,7 @@ jobs:
     
     - name: Upload logs on failure
       if: failure()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: smoke-test-logs-${{ matrix.os }}-${{ matrix.model.id }}
         path: |
@@ -144,7 +144,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     
     - name: Install Rust
       uses: dtolnay/rust-toolchain@v1
@@ -152,7 +152,7 @@ jobs:
         toolchain: stable
     
     - name: Cache cargo
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           ~/.cargo/registry
@@ -196,7 +196,7 @@ jobs:
             size_mb: 700
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     
     - name: Install Rust
       uses: dtolnay/rust-toolchain@v1
@@ -204,7 +204,7 @@ jobs:
         toolchain: stable
     
     - name: Cache cargo
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           ~/.cargo/registry
@@ -213,7 +213,7 @@ jobs:
         key: macos-extended-${{ matrix.model.id }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     
     - name: Cache model files
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ~/Library/Caches/caro/models
         key: model-${{ matrix.model.id }}-${{ hashFiles('src/model_catalog.rs') }}
@@ -240,7 +240,7 @@ jobs:
     
     - name: Upload logs on failure
       if: failure()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: extended-test-logs-${{ matrix.model.id }}
         path: |
@@ -256,7 +256,7 @@ jobs:
     name: Security Audit
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     
     - name: Install Rust
       uses: dtolnay/rust-toolchain@v1
@@ -287,7 +287,7 @@ jobs:
             features: embedded-cpu,remote-backends
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     
     - name: Install Rust
       uses: dtolnay/rust-toolchain@v1
@@ -296,7 +296,7 @@ jobs:
         targets: ${{ matrix.target }}
     
     - name: Cache cargo
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           ~/.cargo/registry
