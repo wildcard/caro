@@ -1,5 +1,7 @@
 ---
 import BlogPost from '../../layouts/BlogPost.astro';
+import AsciiMorph from '../../components/AsciiMorph.astro';
+import { blogAnnouncingMorphs } from '../../data/ascii-art';
 ---
 
 <BlogPost
@@ -26,6 +28,8 @@ import BlogPost from '../../layouts/BlogPost.astro';
 <p>
   <strong>caro</strong> is a single-binary Rust CLI tool that converts natural language descriptions into safe POSIX shell commands using local LLMs. Built with safety-first design and optimized for Apple Silicon via the MLX framework, caro makes complex command-line operations accessible to everyone.
 </p>
+
+<AsciiMorph arts={blogAnnouncingMorphs} width={36} height={33} interval={5000} morphDelay={40} />
 
 <pre><code>$ caro "find all PDF files larger than 10MB in Downloads"
 
@@ -164,6 +168,10 @@ mv ~/.config/cmdai ~/.config/caro</code></pre>
 <p>
   We can't wait to see what you build with caro!
 </p>
+
+<div style="margin: 50px 0;">
+  <AsciiMorph arts={blogAnnouncingMorphs} width={36} height={33} interval={5000} morphDelay={40} />
+</div>
 
 <hr style="margin: 50px 0; border: none; border-top: 1px solid #e0e0e0;">
 

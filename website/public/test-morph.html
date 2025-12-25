@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASCII Morph Test</title>
+    <style>
+        body {
+            background: #1a1a1a;
+            color: #fff;
+            font-family: monospace;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        #ascii-container {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 8px;
+            line-height: 1.0;
+            color: #ff8c42;
+            white-space: pre;
+            margin: 20px 0;
+        }
+        h1 {
+            color: #ff8c42;
+        }
+    </style>
+</head>
+<body>
+    <h1>ASCII Morph Test - Caro</h1>
+    <p>The ASCII art should morph between different poses below:</p>
+
+    <pre id="ascii-container"></pre>
+
+    <script src="/ascii-morph.js"></script>
+    <script>
+        // Simple ASCII art for testing
+        const art1 = [
+            "    /\\_/\\  ",
+            "   ( o.o ) ",
+            "    > ^ <  ",
+            "   /|   |\\ ",
+            "  (_|   |_)"
+        ];
+
+        const art2 = [
+            "    /\\_/\\  ",
+            "   ( ^.^ ) ",
+            "    > - <  ",
+            "   /|   |\\ ",
+            "  (_|   |_)"
+        ];
+
+        const art3 = [
+            "    /\\_/\\  ",
+            "   ( -.- ) ",
+            "    > ~ <  ",
+            "   /|   |\\ ",
+            "  (_|   |_)"
+        ];
+
+        const element = document.getElementById('ascii-container');
+
+        console.log('Element:', element);
+        console.log('AsciiMorph available:', typeof AsciiMorph);
+
+        if (typeof AsciiMorph !== 'undefined') {
+            const morph = AsciiMorph(element, { x: 15, y: 5 });
+            morph.render(art1);
+
+            let currentIndex = 0;
+            const arts = [art1, art2, art3];
+
+            setInterval(() => {
+                currentIndex = (currentIndex + 1) % arts.length;
+                morph.morph(arts[currentIndex], 50);
+                console.log('Morphing to art', currentIndex);
+            }, 3000);
+
+            console.log('Morph initialized successfully!');
+        } else {
+            element.textContent = 'ERROR: AsciiMorph library not loaded!';
+            console.error('AsciiMorph is not defined');
+        }
+    </script>
+</body>
+</html>
