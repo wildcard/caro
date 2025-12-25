@@ -234,6 +234,8 @@ pub enum BackendType {
     VLlm,
     /// Apple Silicon MLX backend (legacy)
     Mlx,
+    /// Exo distributed cluster backend
+    Exo,
 }
 
 impl std::str::FromStr for BackendType {
@@ -246,6 +248,7 @@ impl std::str::FromStr for BackendType {
             "ollama" => Ok(Self::Ollama),
             "vllm" => Ok(Self::VLlm),
             "mlx" => Ok(Self::Mlx),
+            "exo" => Ok(Self::Exo),
             _ => Err(format!("Unknown backend type: {}", s)),
         }
     }
@@ -259,6 +262,7 @@ impl std::fmt::Display for BackendType {
             Self::Ollama => write!(f, "ollama"),
             Self::VLlm => write!(f, "vllm"),
             Self::Mlx => write!(f, "mlx"),
+            Self::Exo => write!(f, "exo"),
         }
     }
 }
