@@ -308,24 +308,28 @@ fn e2e_configuration_display() {
 // =============================================================================
 
 /// E2E-D1: Empty Input Handling Test
-/// Verifies that empty input produces a helpful error message
+/// Verifies that empty input displays help message (WP05: SC-004)
 #[test]
 fn e2e_empty_input_handling() {
     let runner = CliTestRunner::new();
     let result = runner.run_command(&[""]);
 
-    // Should fail with error when no prompt provided
-    assert_ne!(
+    // Should succeed (exit code 0) and show help message
+    assert_eq!(
         result.exit_code, 0,
-        "Should fail when empty prompt provided"
+        "Should succeed with help display when empty prompt provided"
     );
     assert!(
-        result.stderr.contains("No prompt provided"),
-        "Should show helpful error message, got: {}",
-        result.stderr
+        result.stdout.contains("Usage: caro [OPTIONS] <PROMPT>"),
+        "Should show help message, got: {}",
+        result.stdout
+    );
+    assert!(
+        result.stdout.contains("Examples:"),
+        "Help should include examples"
     );
 
-    println!("✅ E2E-D1: Empty input handled gracefully with error");
+    println!("✅ E2E-D1: Empty input displays help message (SC-004)");
 }
 
 /// E2E-D2: Invalid Shell Type Handling Test
@@ -742,11 +746,19 @@ fn e2e_stdin_mechanism() {
     // Actual piping is tested in integration/manual testing
     let runner = CliTestRunner::new();
 
-    // When no stdin and no args, should fail gracefully
+    // When no stdin and no args, should show help (WP05)
     let result = runner.run_command(&[]);
 
-    // Should exit with error (no prompt provided)
-    assert_ne!(result.exit_code, 0, "Should fail when no prompt provided");
+    // Should succeed and show help message
+    assert_eq!(
+        result.exit_code, 0,
+        "Should show help when no prompt provided"
+    );
+    assert!(
+        result.stdout.contains("Usage: caro"),
+        "Should display help message, got: {}",
+        result.stdout
+    );
 
     println!("✅ T020: Stdin mechanism verified (full piping tested manually)");
 }

@@ -78,6 +78,39 @@ fn read_stdin() -> Result<String, std::io::Error> {
 }
 
 // =============================================================================
+// Prompt Validation
+// =============================================================================
+
+/// Action to take after validating a prompt
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ValidationAction {
+    /// Show help message and exit (for empty/whitespace-only prompts)
+    ShowHelp,
+    /// Proceed with the prompt (valid content provided)
+    ProceedWithPrompt,
+}
+
+/// Validate a prompt and determine the appropriate action
+///
+/// Empty or whitespace-only prompts should display help.
+/// Valid prompts should proceed to inference.
+/// Special characters are preserved (not validated).
+///
+/// # Arguments
+/// * `prompt` - The prompt text to validate
+///
+/// # Returns
+/// ValidationAction indicating whether to show help or proceed
+pub fn validate_prompt(prompt: &str) -> ValidationAction {
+    let trimmed = prompt.trim();
+    if trimmed.is_empty() {
+        ValidationAction::ShowHelp
+    } else {
+        ValidationAction::ProceedWithPrompt
+    }
+}
+
+// =============================================================================
 // CLI Argument Parsing
 // =============================================================================
 
@@ -253,20 +286,27 @@ async fn main() {
         }
     }
 
-    // Handle missing or empty prompt
-    if cli.prompt.as_ref().map_or(true, |p| p.trim().is_empty()) {
-        eprintln!("Error: No prompt provided");
-        eprintln!();
-        eprintln!("Usage: caro [OPTIONS] <PROMPT>");
-        eprintln!();
-        eprintln!("Examples:");
-        eprintln!("  caro list files");
-        eprintln!("  caro -p \"list files\"");
-        eprintln!("  echo \"list files\" | caro");
-        eprintln!("  caro --shell zsh \"find large files\"");
-        eprintln!();
-        eprintln!("Run 'caro --help' for more information.");
-        process::exit(1);
+    // Validate prompt and show help if empty/whitespace-only
+    let prompt_text = cli.prompt.as_ref().map(|s| s.as_str()).unwrap_or("");
+    match validate_prompt(prompt_text) {
+        ValidationAction::ShowHelp => {
+            // Show help message for empty or whitespace-only prompts
+            println!("caro - Convert natural language to shell commands using local LLMs");
+            println!();
+            println!("Usage: caro [OPTIONS] <PROMPT>");
+            println!();
+            println!("Examples:");
+            println!("  caro list files");
+            println!("  caro -p \"list files\"");
+            println!("  echo \"list files\" | caro");
+            println!("  caro --shell zsh \"find large files\"");
+            println!();
+            println!("Run 'caro --help' for more information.");
+            process::exit(0);
+        }
+        ValidationAction::ProceedWithPrompt => {
+            // Continue with command generation
+        }
     }
 
     // Run the CLI application
@@ -619,5 +659,45 @@ mod tests {
         let resolved = resolve_prompt(None, None, vec![]);
         assert_eq!(resolved.text, "");
         assert_eq!(resolved.source, PromptSource::TrailingArgs);
+    }
+
+    // WP05: Prompt Validation Tests
+
+    #[test]
+    fn test_empty_shows_help() {
+        assert_eq!(validate_prompt(""), ValidationAction::ShowHelp);
+    }
+
+    #[test]
+    fn test_whitespace_shows_help() {
+        assert_eq!(validate_prompt("   "), ValidationAction::ShowHelp);
+        assert_eq!(validate_prompt("\t"), ValidationAction::ShowHelp);
+        assert_eq!(validate_prompt("\n"), ValidationAction::ShowHelp);
+        assert_eq!(validate_prompt("  \t\n  "), ValidationAction::ShowHelp);
+    }
+
+    #[test]
+    fn test_valid_prompt_proceeds() {
+        assert_eq!(
+            validate_prompt("list files"),
+            ValidationAction::ProceedWithPrompt
+        );
+    }
+
+    #[test]
+    fn test_special_characters_preserved() {
+        // T026: Special characters should be preserved and prompt should proceed
+        assert_eq!(
+            validate_prompt("find *.txt"),
+            ValidationAction::ProceedWithPrompt
+        );
+        assert_eq!(
+            validate_prompt("grep 'pattern' file.txt"),
+            ValidationAction::ProceedWithPrompt
+        );
+        assert_eq!(
+            validate_prompt("echo $HOME"),
+            ValidationAction::ProceedWithPrompt
+        );
     }
 }
