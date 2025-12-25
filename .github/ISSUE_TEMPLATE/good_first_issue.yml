@@ -1,0 +1,184 @@
+name: Good First Issue
+description: Create a beginner-friendly issue for new contributors (Maintainers only)
+title: "[Good First Issue] "
+labels: ["good-first-issue", "help-wanted"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Creating a Good First Issue
+
+        This template helps maintainers create beginner-friendly issues that welcome new contributors.
+
+        **Good first issues should:**
+        - Have clear, specific scope
+        - Include step-by-step guidance
+        - Require minimal context about the codebase
+        - Be achievable in a few hours
+        - Offer learning value
+
+        ---
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What needs to be done? Be specific and clear.
+      placeholder: |
+        Example: Add rustdoc examples to the `CacheManager::get_model()` function
+
+        Currently, the `get_model()` function has only a basic doc comment. We should add a comprehensive rustdoc example showing:
+        - How to create a CacheManager
+        - How to call get_model() with a valid model ID
+        - How to handle the Result
+        - Expected behavior when the model exists vs. doesn't exist
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which area of the codebase does this affect?
+      options:
+        - Documentation
+        - Testing
+        - Safety Patterns
+        - Error Messages
+        - CLI Interface
+        - Backend Implementation
+        - Configuration
+        - Caching
+        - Logging
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: skill_level
+    attributes:
+      label: Recommended Skill Level
+      description: What level of Rust/project knowledge is needed?
+      options:
+        - "Beginner (No Rust required)"
+        - "Beginner (Basic Rust knowledge)"
+        - "Intermediate (Some Rust experience)"
+        - "Intermediate (Familiar with async Rust)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context and Background
+      description: What context does a new contributor need to understand this issue?
+      placeholder: |
+        Example:
+        - The CacheManager is defined in `src/cache/mod.rs`
+        - Rustdoc examples use triple-slash comments (///) with code blocks
+        - Examples should compile and pass `cargo test --doc`
+        - See `src/backends/mod.rs` for good rustdoc example format
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Step-by-Step Guidance
+      description: Provide clear steps for implementing this issue
+      placeholder: |
+        1. Open `src/cache/mod.rs` in your editor
+        2. Find the `get_model()` function (around line 50)
+        3. Add a rustdoc example using triple-slash comments and code blocks
+        4. Run `cargo test --doc` to verify the example compiles
+        5. Run `cargo fmt` to format the code
+        6. Commit with message: "docs: Add rustdoc example to CacheManager::get_model()"
+        7. Open a PR linking to this issue
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      description: How will we know this issue is complete?
+      placeholder: |
+        - [ ] Rustdoc example added to `get_model()` function
+        - [ ] Example demonstrates creating CacheManager
+        - [ ] Example shows successful model retrieval
+        - [ ] Example shows error handling
+        - [ ] Example compiles with `cargo test --doc`
+        - [ ] Code is formatted with `cargo fmt`
+    validations:
+      required: true
+
+  - type: textarea
+    id: helpful_links
+    attributes:
+      label: Helpful Resources
+      description: Links to documentation, examples, or relevant files
+      placeholder: |
+        - [Rust API Guidelines - Documentation](https://rust-lang.github.io/api-guidelines/documentation.html)
+        - [Example rustdoc in this codebase](https://github.com/wildcard/cmdai/blob/main/src/backends/mod.rs#L10-L30)
+        - [CacheManager implementation](https://github.com/wildcard/cmdai/blob/main/src/cache/mod.rs)
+        - [Cache API contract spec](https://github.com/wildcard/cmdai/blob/main/specs/003-implement-core-infrastructure/contracts/cache-api.md)
+
+  - type: dropdown
+    id: mentoring
+    attributes:
+      label: Mentoring Available
+      description: Will a maintainer provide guidance?
+      options:
+        - "Yes - Maintainer will provide code review and answer questions"
+        - "Yes - Maintainer will pair program if needed"
+        - "Limited - Maintainer can answer quick questions only"
+        - "Self-service - Issue description is comprehensive"
+    validations:
+      required: true
+
+  - type: textarea
+    id: mentor_info
+    attributes:
+      label: Mentor Information
+      description: Who should contributors contact for help? (Optional)
+      placeholder: |
+        @maintainer-username is available for questions on this issue.
+
+        Feel free to ask in:
+        - This issue thread
+        - The PR when you open it
+        - GitHub Discussions (for broader questions)
+
+  - type: checkboxes
+    id: maintainer_checklist
+    attributes:
+      label: Maintainer Checklist
+      description: Before publishing this good first issue
+      options:
+        - label: Issue has clear, specific scope (not too broad, not too narrow)
+          required: true
+        - label: Step-by-step guidance is detailed enough for a beginner
+          required: true
+        - label: Acceptance criteria are clear and testable
+          required: true
+        - label: Helpful resources are linked
+          required: true
+        - label: Issue is tagged with appropriate labels (good-first-issue, help-wanted, area-specific)
+          required: true
+        - label: Issue will be monitored for questions from contributors
+          required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+
+        ## After Creating This Issue
+
+        **To make this a great experience:**
+        1. Respond to questions quickly (within 24 hours)
+        2. Provide encouraging, educational feedback in PR review
+        3. Thank the contributor when they complete the work
+        4. Add their contribution to the changelog with attribution
+
+        **Thank you for creating opportunities for new contributors!**

@@ -41,6 +41,187 @@ caro aims to make shell command generation:
 
 We prioritize correctness, safety, and user experience above all else.
 
+### Our Mission: Democratizing Terminal Access Safely
+
+**cmdai is building the safety layer for AI-to-terminal interactions.** As AI agents become capable of executing commands, we're creating the collective knowledge base that keeps those interactions safe, efficient, and aligned with Unix philosophy.
+
+**Why this matters:**
+- Terminals are powerful but intimidating for many developers
+- AI can democratize command-line expertise, but only if it's safe
+- One well-validated POSIX command beats 1000 unmaintainable Python scripts
+- Community-validated safety patterns scale beyond what any individual can learn
+
+---
+
+## Should I Join? (Yes, You Should!)
+
+We're looking for contributors who care about:
+- Making the terminal accessible to more people
+- Preventing destructive command execution
+- Building reliable, production-grade Rust tools
+- Contributing collective expertise to benefit everyone
+- Championing Unix philosophy over script proliferation
+
+### You're a Great Fit If You Are...
+
+**Terminal Power Users:**
+- SREs, DevOps engineers, system administrators
+- Database administrators managing production systems
+- Anyone who SSHs to multiple machines daily
+- **What you bring:** Real-world war stories and safety patterns that prevent disasters
+
+**Multi-Platform Operators:**
+- Managing Kubernetes clusters across clouds
+- Supporting customers on varied infrastructure
+- Working with diverse shell environments (bash, zsh, fish, PowerShell)
+- **What you bring:** Cross-platform edge cases and platform-specific optimizations
+
+**Rust Enthusiasts:**
+- Learning Rust through practical projects
+- Passionate about systems programming
+- Interested in async Rust and FFI
+- **What you bring:** Code quality improvements, performance optimizations, and architectural insights
+
+**AI/Agent Developers:**
+- Building MCP (Model Context Protocol) tools
+- Integrating LLMs with terminal access
+- Creating autonomous agents with command execution
+- **What you bring:** Agent integration patterns and safety requirements from the AI side
+
+**Security Researchers:**
+- Identifying command injection vulnerabilities
+- Analyzing dangerous command patterns
+- Thinking adversarially about LLM outputs
+- **What you bring:** Attack vectors and defensive patterns
+
+**Unix Philosophy Advocates:**
+- Believers in composable, single-purpose tools
+- Fighting against monolithic scripts
+- Valuing portability and standards (POSIX)
+- **What you bring:** Design philosophy and architectural clarity
+
+### What's In It For Me?
+
+Contributing to cmdai offers tangible benefits:
+
+**Technical Skill Development:**
+- **Master production Rust** - Learn idiomatic patterns, async/await, trait systems, FFI
+- **Understand LLM inference** - Local models, quantization, Metal/MLX optimization
+- **Deepen terminal expertise** - POSIX standards, shell parsing, command safety
+- **Build OSS portfolio** - High-quality, well-documented code visible to employers
+
+**Community and Impact:**
+- **Join a welcoming community** - Supportive maintainers, collaborative culture
+- **See real-world impact** - Your safety patterns protect actual users
+- **Build collective knowledge** - Contribute expertise that benefits everyone
+- **Get recognized** - Attribution in changelogs, contributors file, social media
+
+**Career Growth:**
+- **Rust experience is valuable** - In-demand skill for systems, blockchain, infrastructure roles
+- **Open source credibility** - Demonstrated ability to collaborate, write quality code
+- **Domain expertise** - Security, performance, cross-platform development
+- **Path to maintainership** - Opportunities for leadership and decision-making
+
+**Personal Satisfaction:**
+- **Prevent disasters** - Your safety patterns stop actual data loss
+- **Empower others** - Make the terminal accessible to more developers
+- **Fight entropy** - Replace fragile scripts with robust, composable tools
+- **Learn continuously** - Every contribution teaches something new
+
+---
+
+## What Can I Do to Help?
+
+Not sure where to start? Here are contribution pathways for different interests and skill levels:
+
+### First-Time Contributors (Start Here!)
+
+**No Rust experience required:**
+- **Documentation improvements** - Fix typos, clarify confusing sections, add examples
+- **Safety pattern submissions** - Share dangerous commands from your experience
+- **Use case documentation** - Describe how you'd use cmdai in your workflow
+- **Issue triage** - Add labels, reproduce bugs, clarify requirements
+
+**Some Rust knowledge:**
+- **Good first issues** - Labeled issues with mentoring available
+- **Test coverage** - Add test cases for existing functionality
+- **Error messages** - Improve user-facing error text
+- **Code examples** - Add rustdoc examples to public APIs
+
+**Ready for a challenge:**
+- **New features** - Implement items from roadmap with spec support
+- **Performance optimization** - Profile and improve hot paths
+- **Cross-platform testing** - Verify behavior on different OSes/shells
+- **Documentation deep-dives** - Write comprehensive guides
+
+### Domain Experts
+
+**Your expertise is invaluable even without Rust knowledge:**
+
+**Database Administrators:**
+- Submit dangerous SQL/database commands (e.g., `DROP DATABASE`, `TRUNCATE TABLE`)
+- Validate safe data migration patterns
+- Test command generation for database operations
+
+**Kubernetes/Cloud Operators:**
+- Contribute k8s-specific dangerous operations (`kubectl delete namespace`)
+- Validate multi-cluster safety patterns
+- Test command generation for cloud provider CLIs (AWS, GCP, Azure)
+
+**Security Professionals:**
+- Audit safety validator for bypass techniques
+- Contribute command injection patterns
+- Review LLM output parsing for vulnerabilities
+- Test adversarial inputs
+
+**macOS/Apple Silicon Experts:**
+- Optimize MLX backend performance
+- Test Metal Performance Shaders integration
+- Validate unified memory architecture usage
+- Benchmark against other inference backends
+
+**Windows/PowerShell Users:**
+- Contribute PowerShell safety patterns
+- Test cross-platform compatibility
+- Document Windows-specific edge cases
+- Validate cmd.exe vs PowerShell differences
+
+### Developers
+
+**Backend developers:**
+- Implement new LLM backends (vLLM, Ollama, custom)
+- Optimize HTTP client performance
+- Add streaming support for backends
+- Implement retry logic and error recovery
+
+**Systems programmers:**
+- Optimize binary size and startup time
+- Improve memory allocation patterns
+- Add platform-specific optimizations
+- Work on FFI bindings (MLX, native libs)
+
+**Testing experts:**
+- Expand contract test coverage
+- Add property-based testing
+- Create benchmark suite
+- Improve CI/CD pipelines
+
+**Technical writers:**
+- Create comprehensive user guides
+- Write architecture documentation
+- Produce video tutorials
+- Design API documentation structure
+
+### Community Builders
+
+**Even non-technical contributions matter:**
+- Answer questions in GitHub Discussions
+- Welcome first-time contributors
+- Triage and label issues
+- Improve issue/PR templates
+- Organize community events (future)
+- Share cmdai on social media
+
 ---
 
 ## Security Development Practices

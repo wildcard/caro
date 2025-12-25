@@ -1,0 +1,233 @@
+name: Use Case Submission
+description: Share how you'd use cmdai in your workflow
+title: "[Use Case] "
+labels: ["use-case", "documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Share Your Use Case
+
+        Help us understand how cmdai fits into real-world workflows! Your use case:
+        - Informs feature priorities
+        - Identifies edge cases we haven't considered
+        - Helps other users discover new ways to use cmdai
+        - Validates our safety patterns against real scenarios
+
+        **Note:** This is NOT for bug reports or feature requests. Use the appropriate templates for those.
+
+        ---
+
+  - type: input
+    id: role
+    attributes:
+      label: Your Role
+      description: What's your primary job/role? (Optional, helps us understand user personas)
+      placeholder: "e.g., SRE, Database Administrator, DevOps Engineer, Full-Stack Developer, Student"
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Primary Environment
+      description: Where do you primarily work?
+      options:
+        - macOS (Apple Silicon)
+        - macOS (Intel)
+        - Linux (Server/VM)
+        - Linux (Desktop/Laptop)
+        - Windows (WSL2)
+        - Windows (Native)
+        - Multiple platforms
+    validations:
+      required: true
+
+  - type: textarea
+    id: scenario
+    attributes:
+      label: Use Case Scenario
+      description: Describe a specific scenario where you'd use cmdai
+      placeholder: |
+        Example:
+        "As a Kubernetes SRE managing 50+ clusters, I frequently need to find pods in crash loops across namespaces. I'd use cmdai like:
+
+        $ cmdai 'find all pods in crashloop backoff across all namespaces'
+
+        Expected output:
+        kubectl get pods --all-namespaces --field-selector status.phase=Failed
+
+        This saves me from looking up kubectl field selectors and reduces the chance of typos in production."
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_workflow
+    attributes:
+      label: Current Workflow
+      description: How do you currently accomplish this task?
+      placeholder: |
+        Example:
+        "Currently, I:
+        1. Google for kubectl field selectors
+        2. Search through Kubernetes docs
+        3. Try the command on a dev cluster first
+        4. Copy-paste to production (hoping I didn't mess up)
+        5. Sometimes write a bash script if I do it often enough
+
+        This is error-prone and time-consuming."
+    validations:
+      required: true
+
+  - type: textarea
+    id: desired_workflow
+    attributes:
+      label: Desired cmdai Workflow
+      description: How would cmdai improve this?
+      placeholder: |
+        Example:
+        "With cmdai:
+        1. Describe what I want in natural language
+        2. cmdai generates the correct kubectl command
+        3. Safety validator checks for dangerous operations
+        4. I confirm and execute
+
+        Benefits:
+        - No more googling for syntax
+        - Reduced chance of destructive typos
+        - Faster iteration
+        - Commands are POSIX-compliant, not bash-specific"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: How Often Would You Use This?
+      description: Frequency of this specific use case
+      options:
+        - Multiple times per day
+        - Daily
+        - Weekly
+        - Monthly
+        - Occasionally
+    validations:
+      required: true
+
+  - type: textarea
+    id: safety_concerns
+    attributes:
+      label: Safety Considerations
+      description: What could go wrong? What safety checks would you expect?
+      placeholder: |
+        Example:
+        "For this kubectl use case, cmdai should:
+        - Warn before any 'delete' operations
+        - Flag '--all-namespaces' deletions as CRITICAL risk
+        - Require explicit confirmation for production contexts
+        - Prevent 'kubectl delete node' without multiple confirmations
+        - Validate cluster context before destructive operations"
+
+  - type: textarea
+    id: similar_commands
+    attributes:
+      label: Similar Commands You'd Use
+      description: Other related commands in this workflow (helps identify patterns)
+      placeholder: |
+        Example:
+        - "find pods using more than 2GB memory"
+        - "list all services without endpoints"
+        - "get nodes with high CPU utilization"
+        - "find persistent volumes not bound to claims"
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Command Complexity
+      description: How complex is the command you need?
+      options:
+        - Simple (1-2 flags, single command)
+        - Moderate (multiple flags, piping)
+        - Complex (multiple commands, complex piping)
+        - Very complex (would normally require a script)
+    validations:
+      required: true
+
+  - type: textarea
+    id: pain_points
+    attributes:
+      label: Current Pain Points
+      description: What frustrates you about the current approach?
+      placeholder: |
+        Example:
+        - Flag syntax differs across tools (docker vs kubectl vs aws)
+        - Hard to remember escape sequences for find/sed/awk
+        - Bash scripts accumulate in ~/bin and become unmaintainable
+        - Copy-pasting from StackOverflow is error-prone
+        - Typos in production commands are scary
+
+  - type: textarea
+    id: ideal_experience
+    attributes:
+      label: Ideal cmdai Experience
+      description: What would make this workflow perfect?
+      placeholder: |
+        Example:
+        Ideal experience:
+        - cmdai understands my cluster context
+        - Suggests commonly used flags for my environment
+        - Warns about production vs staging contexts
+        - Offers to save frequently-used commands as aliases
+        - Learns from my command history (privacy-respecting)
+        - Generates idempotent commands by default
+
+  - type: dropdown
+    id: sharing
+    attributes:
+      label: Can We Share This Use Case?
+      description: May we use this in documentation, blog posts, or examples?
+      options:
+        - "Yes - with attribution (name/username)"
+        - "Yes - anonymously (no attribution)"
+        - "No - for internal analysis only"
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Anything else we should know?
+      placeholder: |
+        Example:
+        - Specific tools/CLIs you use frequently
+        - Team size and coordination challenges
+        - Compliance/audit requirements
+        - Integration with existing workflows
+
+  - type: checkboxes
+    id: acknowledgment
+    attributes:
+      label: Acknowledgment
+      options:
+        - label: I understand this is a use case submission, not a feature request or bug report
+          required: true
+        - label: I've provided enough detail for the maintainers to understand my workflow
+          required: true
+        - label: I'm willing to answer follow-up questions if needed
+          required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+
+        ## Thank You!
+
+        Your use case helps us:
+        - Prioritize features that solve real problems
+        - Design safety patterns that match real-world risks
+        - Understand diverse workflows and environments
+        - Build a tool that serves the community's actual needs
+
+        We may follow up with questions or use your scenario in documentation (respecting your sharing preferences).
+
+        **Thank you for taking the time to share your workflow!**
