@@ -43,7 +43,7 @@ colored = "2"
 indicatif = "0.18"
 
 # Cross-platform support
-directories = "5"
+directories = "6"
 dirs = "5"
 which = "8.0"
 os_info = "3.14"
