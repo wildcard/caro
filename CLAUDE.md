@@ -355,6 +355,106 @@ mkdir -p specs/005-new-feature/       # Create directory
 
 See `docs/SPEC_KITTY_GUIDE.md` for comprehensive spec-kitty documentation.
 
+## Release Management Workflow
+
+This project enforces a **security-first release workflow** using Claude Code slash commands. All releases MUST go through feature branches and pull requests - direct commits to `main` for release-related changes are prohibited.
+
+### Release Skills
+
+The release workflow is automated through 6 Claude skills in `.claude/commands/`:
+
+1. **`/caro.release.prepare`** - Start a new release
+   - Creates `release/vX.Y.Z` branch from main
+   - Runs pre-flight checks (CI status, release blockers)
+   - Lists pending changes since last tag
+   - **Prerequisite**: Must be on `main` branch with clean working directory
+
+2. **`/caro.release.security`** - Security audit and fixes
+   - Runs `cargo audit` and categorizes vulnerabilities
+   - Guides through fixing critical/unsound issues
+   - Updates dependencies to maintained versions
+   - Runs tests and creates detailed commit
+   - **Prerequisite**: Must be on `release/*` or `hotfix/*` branch
+
+3. **`/caro.release.version`** - Version bump and changelog
+   - Updates version in `Cargo.toml`
+   - Updates `CHANGELOG.md` (moves [Unreleased] to [X.Y.Z])
+   - Runs `cargo check` for verification
+   - Creates version bump commit
+   - **Prerequisite**: Must be on `release/*` or `hotfix/*` branch
+
+4. **`/caro.release.publish`** - Create PR, merge, and tag
+   - Creates pull request with release checklist
+   - Monitors CI checks and waits for approval
+   - Merges PR to main
+   - Creates and pushes annotated git tag
+   - Monitors automated publish workflows
+   - **Prerequisite**: Must be on `release/*` or `hotfix/*` branch
+
+5. **`/caro.release.verify`** - Post-release verification
+   - Installs from crates.io and verifies version
+   - Runs functionality tests
+   - Checks GitHub release creation
+   - Verifies documentation links
+   - **Prerequisite**: None (can run from any branch)
+
+6. **`/caro.release.hotfix`** - Emergency security patches
+   - Creates hotfix branch from latest tag
+   - Fast-tracks critical security fixes
+   - Publishes security advisories
+   - **Use ONLY for**: Critical vulnerabilities, data loss, crashes
+   - **Prerequisite**: None (emergency mode)
+
+### Standard Release Flow
+
+Execute commands in this order:
+
+```bash
+# 1. Start release (creates release/vX.Y.Z branch)
+/caro.release.prepare
+
+# 2. Run security audit and fix vulnerabilities
+/caro.release.security
+
+# 3. Bump version and update changelog
+/caro.release.version
+
+# 4. Create PR, merge, tag, and publish
+/caro.release.publish
+
+# 5. Verify published release
+/caro.release.verify
+```
+
+### Emergency Hotfix Flow
+
+For critical security vulnerabilities only:
+
+```bash
+# Creates hotfix branch, applies fix, and fast-tracks release
+/caro.release.hotfix
+```
+
+### Branch Enforcement
+
+Each command enforces branch requirements:
+- **prepare**: Must start on `main`
+- **security, version, publish**: Must be on `release/*` or `hotfix/*`
+- **verify**: Can run from any branch
+- **hotfix**: Can start from any branch (emergency mode)
+
+Commands will **REFUSE to proceed** if branch requirements aren't met, preventing accidental direct commits to `main`.
+
+### Design Principles
+
+- **Security-first**: Mandatory security audits before every release
+- **Consistency**: Same process every time, no missed steps
+- **Transparency**: All actions documented in commits
+- **Enforcement**: Branch protection enforced by commands
+- **Automation**: Reduces manual errors
+
+See `docs/RELEASE_PROCESS.md` for complete release procedures and security requirements.
+
 ## Multi-Agent Development Process
 
 This project follows spec-driven development with coordinated multi-agent teams:
