@@ -1,0 +1,233 @@
+---
+title: Quick Start
+description: Get up and running with caro in minutes
+---
+
+import { Aside, Steps, Tabs, TabItem, Card, CardGrid } from '@astrojs/starlight/components';
+
+# Quick Start
+
+This guide will get you productive with caro in just a few minutes.
+
+## Basic Usage
+
+The simplest way to use caro is to describe what you want to do:
+
+```bash
+caro "your natural language description"
+```
+
+<Steps>
+1. **Type your command description** in quotes
+2. **Review the generated command** shown in the terminal
+3. **Execute** by copying the command or piping it to your shell
+</Steps>
+
+## Common Examples
+
+### File Operations
+
+```bash
+# Find files
+caro "find all python files"
+# Output: find . -name "*.py"
+
+caro "find files larger than 100MB"
+# Output: find . -size +100M
+
+caro "find files modified in the last 24 hours"
+# Output: find . -mtime 0
+```
+
+### Text Search
+
+```bash
+# Search content
+caro "search for TODO in all source files"
+# Output: grep -r "TODO" --include="*.{py,js,rs,go}"
+
+caro "find lines containing error in log files"
+# Output: grep -i "error" *.log
+
+caro "count occurrences of function in all rust files"
+# Output: grep -c "function" *.rs
+```
+
+### System Information
+
+```bash
+# System commands
+caro "show disk usage"
+# Output: df -h
+
+caro "show running processes sorted by memory"
+# Output: ps aux --sort=-%mem | head -20
+
+caro "show network connections"
+# Output: netstat -an | grep ESTABLISHED
+```
+
+### Directory Operations
+
+```bash
+# Directory management
+caro "show directory size"
+# Output: du -sh .
+
+caro "list directories sorted by size"
+# Output: du -sh */ | sort -hr
+
+caro "create directory structure for a rust project"
+# Output: mkdir -p src/{bin,lib} tests docs
+```
+
+## Understanding the Output
+
+caro provides colored output to help you understand the command:
+
+```
+$ caro "find all rust files modified today"
+
+┌─────────────────────────────────────────┐
+│  find . -name "*.rs" -mtime 0           │
+└─────────────────────────────────────────┘
+
+Risk: Safe ✓
+```
+
+| Element | Description |
+|---------|-------------|
+| Command box | The generated shell command |
+| Risk level | Safety assessment (Safe, Moderate, High, Critical) |
+| Checkmark | Indicates the command passed safety validation |
+
+## Safety Features
+
+caro automatically validates commands for safety:
+
+```bash
+# This will be blocked
+$ caro "delete everything"
+
+⚠️  Command blocked: Potentially dangerous pattern detected
+    Pattern: rm -rf /
+    Risk: Critical
+
+# Safe alternative suggested
+Tip: Try "caro 'delete files in current directory'" for a safer approach
+```
+
+<Aside type="caution">
+  Never blindly execute generated commands. Always review them first, especially when dealing with file operations.
+</Aside>
+
+## Command Execution Options
+
+### Copy and Paste (Recommended)
+
+Review the command, then copy and paste to execute:
+
+```bash
+$ caro "find large log files"
+find . -name "*.log" -size +10M
+
+# Copy the command and paste to execute
+$ find . -name "*.log" -size +10M
+```
+
+### Direct Execution (Use Carefully)
+
+For trusted commands, you can pipe directly to your shell:
+
+```bash
+# ⚠️ Use with caution - only for well-understood commands
+caro "show current date" | sh
+```
+
+<Aside type="danger">
+  Piping to `sh` bypasses your ability to review the command. Only use this for simple, safe operations you fully understand.
+</Aside>
+
+## Tips for Better Results
+
+<CardGrid>
+  <Card title="Be Specific" icon="pencil">
+    More detail = better results. Instead of "find files", try "find python files modified this week".
+  </Card>
+  <Card title="Use Constraints" icon="approve-check">
+    Add limits like "in current directory" or "excluding node_modules".
+  </Card>
+  <Card title="Describe the Goal" icon="rocket">
+    Say what you want to achieve, not how. "compress images for web" beats "run imagemagick".
+  </Card>
+  <Card title="Iterate" icon="seti:todo">
+    If the first result isn't perfect, refine your description and try again.
+  </Card>
+</CardGrid>
+
+### Good vs. Bad Prompts
+
+| Bad Prompt | Good Prompt |
+|------------|-------------|
+| "files" | "find all PDF files in the downloads folder" |
+| "search" | "search for 'TODO' comments in python files" |
+| "compress" | "compress all jpg files to 80% quality" |
+| "ports" | "show which process is using port 8080" |
+
+## Workflow Examples
+
+### Development Workflow
+
+```bash
+# Find uncommitted changes
+caro "show git status with diff stats"
+# Output: git status -sb && git diff --stat
+
+# Find TODO comments
+caro "find TODO comments in src directory"
+# Output: grep -rn "TODO" src/
+
+# Count lines of code
+caro "count lines of rust code"
+# Output: find . -name "*.rs" -exec wc -l {} + | tail -1
+```
+
+### System Administration
+
+```bash
+# Check system health
+caro "show system uptime and load average"
+# Output: uptime
+
+# Find large files
+caro "find files larger than 1GB"
+# Output: find / -size +1G 2>/dev/null
+
+# Check disk space
+caro "show disk usage by directory sorted by size"
+# Output: du -sh */ | sort -hr
+```
+
+### Data Processing
+
+```bash
+# CSV operations
+caro "show first 10 lines of CSV file"
+# Output: head -10 file.csv
+
+caro "count unique values in second column of CSV"
+# Output: cut -d',' -f2 file.csv | sort | uniq -c | sort -rn
+
+# JSON processing
+caro "extract name field from JSON"
+# Output: jq '.name' file.json
+```
+
+## Next Steps
+
+Now that you know the basics:
+
+- [**macOS Setup**](/guides/macos-setup/) - Enable GPU acceleration for faster inference
+- [**Safety Validation**](/guides/safety/) - Learn about the safety system
+- [**Configuration**](/reference/configuration/) - Customize caro's behavior
+- [**Backend Options**](/reference/backends/) - Explore different inference backends
