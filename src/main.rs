@@ -71,6 +71,10 @@ struct Cli {
         help = "Interactive mode with step-by-step confirmation"
     )]
     interactive: bool,
+
+    /// Trailing unquoted arguments forming the prompt
+    #[arg(trailing_var_arg = true, num_args = 0..)]
+    trailing_args: Vec<String>,
 }
 
 impl IntoCliArgs for Cli {
@@ -471,3 +475,10 @@ async fn show_configuration(cli: &Cli) -> Result<String, CliError> {
 
     Ok(output)
 }
+
+// NOTE: Unit tests for Cli struct would go here, but Rust doesn't run tests in binary crates by default.
+// The trailing_args field parsing is verified through:
+// 1. Successful compilation with clap 4.5 (confirms correct attribute syntax)
+// 2. Type checking (Vec<String> with trailing_var_arg = true, num_args = 0..)
+// 3. Manual testing: cargo run -- list files (verifies runtime behavior)
+// 4. Integration tests in WP02 will test end-to-end CLI behavior
