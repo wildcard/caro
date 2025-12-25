@@ -156,6 +156,137 @@ Only **verified maintainers** with GPG-signed commits and proven track record ca
   - Watch for reported security issues
   - Enable GitHub security advisories notifications
 
+## Automated Release Workflow with Claude Skills
+
+**IMPORTANT**: As of this version, all releases MUST go through feature branches and pull requests. Direct commits to `main` are prohibited for release-related changes.
+
+caro provides Claude Code slash commands that automate and enforce the secure release workflow described above. These commands ensure consistency, prevent mistakes, and maintain our security-first approach.
+
+### Release Skills Overview
+
+The release workflow is divided into 6 distinct commands:
+
+1. **`/caro.release.prepare`** - Creates release branch and runs pre-flight checks
+2. **`/caro.release.security`** - Runs security audit and fixes vulnerabilities
+3. **`/caro.release.version`** - Bumps version and updates changelog
+4. **`/caro.release.publish`** - Creates PR, merges, tags, and monitors CI/CD
+5. **`/caro.release.verify`** - Verifies published release installation and functionality
+6. **`/caro.release.hotfix`** - Emergency hotfix workflow for critical security patches
+
+### Standard Release Workflow
+
+**Step 1: Prepare Release**
+```
+/caro.release.prepare
+```
+- Verifies you're on `main` branch with clean working directory
+- Creates `release/vX.Y.Z` branch
+- Checks for release-blocker issues
+- Verifies CI is green on main
+- Lists pending changes since last tag
+
+**Step 2: Security Audit**
+```
+/caro.release.security
+```
+- Runs `cargo audit` and categorizes vulnerabilities
+- Guides through fixing critical/unsound issues
+- Updates dependencies to maintained versions
+- Documents remaining low-priority warnings
+- Runs tests to verify fixes
+- Creates commit with detailed security update notes
+
+**Step 3: Version Bump**
+```
+/caro.release.version
+```
+- Extracts version from branch name
+- Updates `Cargo.toml` version
+- Updates `CHANGELOG.md` (moves [Unreleased] to [X.Y.Z])
+- Runs `cargo check` for verification
+- Creates commit with version bump
+
+**Step 4: Publish Release**
+```
+/caro.release.publish
+```
+- Pushes release branch
+- Creates PR with release checklist
+- Monitors CI checks
+- Waits for maintainer approval
+- Merges PR to main
+- Creates annotated git tag
+- Pushes tag (triggers automated workflows)
+- Monitors publish and release workflows
+- Verifies crates.io publication
+
+**Step 5: Verify Release**
+```
+/caro.release.verify
+```
+- Waits for crates.io index update
+- Installs from crates.io
+- Verifies version matches
+- Runs functionality tests
+- Checks GitHub release
+- Verifies documentation links
+
+### Emergency Hotfix Workflow
+
+For **critical security vulnerabilities only**:
+
+```
+/caro.release.hotfix
+```
+- Creates hotfix branch from latest release tag
+- Applies minimal fix with guidance
+- Updates version (patch bump)
+- Fast-tracks through PR process
+- Publishes security advisory
+- Provides backport instructions
+
+**Use hotfixes ONLY for**:
+- Critical security vulnerabilities (RUSTSEC advisories)
+- Data loss or corruption bugs
+- System crashes or panics
+- Actively exploited vulnerabilities
+
+### Branch Enforcement
+
+All release commands enforce the feature branch workflow:
+
+- **`/caro.release.prepare`**: Must start on `main` branch
+- **`/caro.release.security`**: Must be on `release/*` or `hotfix/*` branch
+- **`/caro.release.version`**: Must be on `release/*` or `hotfix/*` branch
+- **`/caro.release.publish`**: Must be on `release/*` or `hotfix/*` branch
+- **`/caro.release.verify`**: Can run from any branch (post-release verification)
+- **`/caro.release.hotfix`**: Can start from any branch (emergency mode)
+
+**Commands will REFUSE to proceed** if branch requirements are not met, preventing accidental direct commits to `main`.
+
+### Command Locations
+
+All release skills are located in:
+```
+.claude/commands/
+├── caro.release.prepare.md
+├── caro.release.security.md
+├── caro.release.version.md
+├── caro.release.publish.md
+├── caro.release.verify.md
+└── caro.release.hotfix.md
+```
+
+### Benefits of Skill-Based Workflow
+
+- ✅ **Consistency**: Same process every release, no missed steps
+- ✅ **Enforcement**: Branch protection enforced by commands
+- ✅ **Documentation**: Each command documents what it does
+- ✅ **Audit Trail**: Clear commit history with detailed messages
+- ✅ **Safety**: Security checks mandatory, not optional
+- ✅ **Automation**: Reduces manual errors and repetitive tasks
+- ✅ **Transparency**: All actions documented and visible
+
 ## Emergency Procedures
 
 ### Yanking a Release
