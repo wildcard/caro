@@ -1,0 +1,296 @@
+---
+const integrations = [
+  {
+    mode: "Standalone CLI",
+    icon: "⌨️",
+    status: "available",
+    description: "Use Caro directly from your terminal for instant command generation",
+    features: [
+      "Direct command-line interface",
+      "Interactive confirmation prompts",
+      "Customizable safety levels",
+      "Shell alias support"
+    ],
+    example: {
+      title: "Basic Usage",
+      code: `# Generate a command
+caro "find all Python files modified today"
+
+# Review the command
+find . -name "*.py" -type f -mtime 0
+
+# Execute (after confirmation)
+[y/N]? y`
+    },
+    setup: [
+      "Install Caro from source or download the binary",
+      "Add to PATH or create shell alias",
+      "Configure backend preferences (optional)",
+      "Start using: caro \"your natural language prompt\""
+    ]
+  },
+  {
+    mode: "Claude MCP Server",
+    icon: "🔌",
+    status: "coming-soon",
+    description: "Integrate Caro as an MCP server for seamless Claude Desktop integration",
+    features: [
+      "Automatic delegation from Claude",
+      "Safety validation without interruption",
+      "Context-aware command generation",
+      "Shared conversation history"
+    ],
+    example: {
+      title: "MCP Configuration",
+      code: `// claude_desktop_config.json
+{
+  "mcpServers": {
+    "caro": {
+      "command": "caro",
+      "args": ["--mcp"],
+      "env": {
+        "CARO_BACKEND": "mlx"
+      }
+    }
+  }
+}`
+    },
+    setup: [
+      "Install Caro MCP package",
+      "Configure Claude Desktop settings",
+      "Enable Caro MCP server",
+      "Claude automatically uses Caro for shell commands"
+    ]
+  },
+  {
+    mode: "Dedicated Skill",
+    icon: "🎯",
+    status: "coming-soon",
+    description: "Use Caro as a specialized skill within Claude's broader workflow",
+    features: [
+      "Explicit skill invocation",
+      "Specialized shell expertise",
+      "Multi-turn command refinement",
+      "Batch command generation"
+    ],
+    example: {
+      title: "Skill Invocation",
+      code: `You: @caro find large log files and compress them
+
+Caro: I'll generate a safe command for that:
+
+find /var/log -name "*.log" -size +100M \\
+  -exec gzip {} \\;
+
+Risk Level: Moderate
+- Modifies files (compression)
+- Targets system logs
+
+Proceed? [y/N]`
+    },
+    setup: [
+      "Install Caro skill package",
+      "Register skill with Claude",
+      "Invoke with @caro prefix",
+      "Enjoy specialized shell command expertise"
+    ]
+  }
+];
+---
+
+<section id="integration-methods">
+  <div class="container">
+    <h2>Integration Methods</h2>
+    <p class="section-subtitle">Choose how you want to work with Caro - standalone, with Claude, or both</p>
+    <div class="integrations">
+      {integrations.map((integration) => (
+        <div class="integration-card">
+          <div class="integration-header">
+            <div class="header-left">
+              <span class="integration-icon">{integration.icon}</span>
+              <h3>{integration.mode}</h3>
+            </div>
+            <span class={`status-badge status-${integration.status}`}>
+              {integration.status === 'available' ? 'Available Now' : 'Coming Soon'}
+            </span>
+          </div>
+          <p class="integration-description">{integration.description}</p>
+
+          <div class="features-list">
+            <h4>Features</h4>
+            <ul>
+              {integration.features.map((feature) => (
+                <li>{feature}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div class="example-block">
+            <h4>{integration.example.title}</h4>
+            <pre><code>{integration.example.code}</code></pre>
+          </div>
+
+          <div class="setup-steps">
+            <h4>Setup</h4>
+            <ol>
+              {integration.setup.map((step) => (
+                <li>{step}</li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .integrations {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 30px;
+    margin-top: 50px;
+  }
+
+  .integration-card {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 30px;
+    transition: transform 0.3s, box-shadow 0.3s, background 0.3s ease, border-color 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .integration-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.15);
+    border-color: #ff8c42;
+  }
+
+  :global(.dark) .integration-card:hover {
+    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.25);
+  }
+
+  .integration-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--color-border);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .integration-icon {
+    font-size: 36px;
+  }
+
+  .integration-card h3 {
+    font-size: 22px;
+    color: var(--color-text);
+    margin: 0;
+    transition: color 0.3s ease;
+  }
+
+  .status-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+
+  .status-available {
+    background: rgba(76, 175, 80, 0.1);
+    color: #4caf50;
+  }
+
+  .status-coming-soon {
+    background: rgba(33, 150, 243, 0.1);
+    color: #2196f3;
+  }
+
+  .integration-description {
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    transition: color 0.3s ease;
+  }
+
+  .features-list h4,
+  .example-block h4,
+  .setup-steps h4 {
+    font-size: 16px;
+    color: var(--color-text);
+    margin-bottom: 12px;
+    transition: color 0.3s ease;
+  }
+
+  .features-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .features-list li {
+    padding: 8px 0;
+    color: var(--color-text-tertiary);
+    font-size: 14px;
+    position: relative;
+    padding-left: 24px;
+    transition: color 0.3s ease;
+  }
+
+  .features-list li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #ff8c42;
+    font-weight: bold;
+  }
+
+  .example-block {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 15px;
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+
+  .example-block pre {
+    margin: 0;
+    overflow-x: auto;
+  }
+
+  .example-block code {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 13px;
+    color: var(--color-text);
+    line-height: 1.6;
+    transition: color 0.3s ease;
+  }
+
+  .setup-steps ol {
+    margin: 0;
+    padding-left: 20px;
+  }
+
+  .setup-steps li {
+    padding: 6px 0;
+    color: var(--color-text-tertiary);
+    font-size: 14px;
+    line-height: 1.5;
+    transition: color 0.3s ease;
+  }
+
+  @media (max-width: 1100px) {
+    .integrations {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

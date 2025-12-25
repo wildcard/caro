@@ -1,0 +1,441 @@
+---
+const backends = [
+  {
+    name: "MLX",
+    id: "backend-mlx",
+    icon: "🍎",
+    tagline: "Apple Silicon Native (In Development)",
+    description: "Work in progress: local inference optimized for Apple Silicon with Metal Performance Shaders",
+    status: "in-development",
+    highlights: [
+      "Sub-2s inference on M1/M2/M3 chips",
+      "Unified memory architecture for efficiency",
+      "Complete offline capability",
+      "Privacy-focused (no data leaves your machine)",
+      "Metal GPU acceleration"
+    ],
+    performance: {
+      startup: "< 100ms",
+      inference: "< 2s",
+      memory: "~2GB with 7B model"
+    },
+    setup: [
+      "Install MLX framework: pip install mlx",
+      "Download optimized model from Hugging Face",
+      "Configure Caro: caro config set backend mlx",
+      "Test: caro \"list files\""
+    ],
+    bestFor: ["macOS users with Apple Silicon", "Privacy-conscious developers", "Offline workflows", "Low-latency requirements"]
+  },
+  {
+    name: "Ollama",
+    id: "backend-ollama",
+    icon: "🦙",
+    tagline: "Local & Flexible",
+    description: "Connect to Ollama for local LLM inference with easy model management",
+    status: "available",
+    highlights: [
+      "Cross-platform (macOS, Linux, Windows)",
+      "Simple model management (ollama pull/list)",
+      "Multiple model support (Llama, Mistral, etc.)",
+      "GPU acceleration (CUDA, Metal)",
+      "Active community and ecosystem"
+    ],
+    performance: {
+      startup: "< 200ms",
+      inference: "2-5s (hardware dependent)",
+      memory: "Varies by model"
+    },
+    setup: [
+      "Install Ollama from ollama.ai",
+      "Pull a model: ollama pull llama2",
+      "Configure Caro: caro config set backend ollama",
+      "Specify model: caro config set ollama.model llama2"
+    ],
+    bestFor: ["Cross-platform development", "Model experimentation", "Local-first workflows", "GPU-accelerated inference"]
+  },
+  {
+    name: "vLLM",
+    id: "backend-vllm",
+    tagline: "High-Throughput Server",
+    description: "Connect to vLLM servers for production-grade inference with optimized performance",
+    status: "available",
+    icon: "🚀",
+    highlights: [
+      "PagedAttention for efficient memory",
+      "Continuous batching for throughput",
+      "Multi-GPU support",
+      "OpenAI-compatible API",
+      "Production-ready deployment"
+    ],
+    performance: {
+      startup: "< 150ms (client)",
+      inference: "< 5s (network dependent)",
+      memory: "Server-side (client is lightweight)"
+    },
+    setup: [
+      "Deploy vLLM server (Docker/k8s recommended)",
+      "Configure endpoint: caro config set vllm.url https://api.example.com",
+      "Set API key: caro config set vllm.api_key YOUR_KEY",
+      "Test connection: caro \"echo hello\""
+    ],
+    bestFor: ["Team deployments", "Centralized inference", "High-throughput scenarios", "Cloud-based workflows"]
+  },
+  {
+    name: "CPU Backend",
+    id: "backend-embedded",
+    tagline: "Built-in Fallback",
+    icon: "📦",
+    description: "CPU-based embedded backend works out of the box as automatic fallback",
+    status: "available",
+    highlights: [
+      "Zero external setup required",
+      "Cross-platform (macOS, Linux, Windows)",
+      "Automatic fallback mode",
+      "Simple, reliable baseline option",
+      "Works immediately after installation"
+    ],
+    performance: {
+      startup: "< 50ms",
+      inference: "5-10s",
+      memory: "< 500MB"
+    },
+    setup: [
+      "No setup needed - works out of the box",
+      "Automatically used if no other backend configured",
+      "Override with: caro config set backend embedded"
+    ],
+    bestFor: ["First-time users", "Quick testing", "Emergency fallback", "Minimal setup environments"]
+  }
+];
+---
+
+<section id="backend-options">
+  <div class="container">
+    <h2>Choose Your Backend</h2>
+    <p class="section-subtitle">Flexible inference options from ultra-fast local to scalable cloud deployments</p>
+
+    <div class="backends">
+      {backends.map((backend) => (
+        <div class="backend-card" id={backend.id}>
+          <div class="backend-header">
+            <div class="header-left">
+              <span class="backend-icon">{backend.icon}</span>
+              <div>
+                <h3>{backend.name}</h3>
+                <p class="tagline">{backend.tagline}</p>
+              </div>
+            </div>
+            <span class={`status-badge status-${backend.status}`}>
+              {backend.status === 'in-development' ? 'In Development' :
+               backend.status === 'available' ? 'Available' : 'Planned'}
+            </span>
+          </div>
+
+          <p class="backend-description">{backend.description}</p>
+
+          <div class="backend-content">
+            <div class="highlights">
+              <h4>Key Features</h4>
+              <ul>
+                {backend.highlights.map((highlight) => (
+                  <li>{highlight}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div class="performance-metrics">
+              <h4>Performance</h4>
+              <div class="metrics">
+                <div class="metric">
+                  <span class="metric-label">Startup</span>
+                  <span class="metric-value">{backend.performance.startup}</span>
+                </div>
+                <div class="metric">
+                  <span class="metric-label">Inference</span>
+                  <span class="metric-value">{backend.performance.inference}</span>
+                </div>
+                <div class="metric">
+                  <span class="metric-label">Memory</span>
+                  <span class="metric-value">{backend.performance.memory}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="setup-guide">
+              <h4>Quick Setup</h4>
+              <ol>
+                {backend.setup.map((step) => (
+                  <li>{step}</li>
+                ))}
+              </ol>
+            </div>
+
+            <div class="best-for">
+              <h4>Best For</h4>
+              <div class="tags">
+                {backend.bestFor.map((use) => (
+                  <span class="tag">{use}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div class="comparison-note">
+      <h3>Which Backend Should I Choose?</h3>
+      <p>
+        <strong>Just getting started?</strong> The CPU backend works out of the box - no configuration needed.<br/>
+        <strong>Want local models?</strong> Install Ollama for easy local inference with model flexibility.<br/>
+        <strong>Have a team server?</strong> Connect to vLLM for centralized, high-performance inference.<br/>
+        <strong>On Apple Silicon?</strong> MLX support is coming soon for ultra-fast local inference.
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .backends {
+    display: grid;
+    gap: 30px;
+    margin-top: 50px;
+  }
+
+  .backend-card {
+    background: var(--color-bg-secondary);
+    border: 2px solid var(--color-border);
+    border-radius: 12px;
+    padding: 30px;
+    transition: transform 0.3s, box-shadow 0.3s, background 0.3s ease, border-color 0.3s ease;
+  }
+
+  .backend-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 36px rgba(255, 140, 66, 0.15);
+    border-color: #ff8c42;
+  }
+
+  :global(.dark) .backend-card:hover {
+    box-shadow: 0 12px 36px rgba(255, 140, 66, 0.25);
+  }
+
+  .backend-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--color-border);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .backend-icon {
+    font-size: 48px;
+  }
+
+  .backend-card h3 {
+    font-size: 24px;
+    color: var(--color-text);
+    margin: 0 0 5px 0;
+    transition: color 0.3s ease;
+  }
+
+  .tagline {
+    font-size: 14px;
+    color: #ff8c42;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .status-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+
+  .status-in-development {
+    background: rgba(33, 150, 243, 0.1);
+    color: #2196f3;
+  }
+
+  .status-available {
+    background: rgba(76, 175, 80, 0.1);
+    color: #4caf50;
+  }
+
+  .status-planned {
+    background: rgba(156, 39, 176, 0.1);
+    color: #9c27b0;
+  }
+
+  .backend-description {
+    color: var(--color-text-secondary);
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    transition: color 0.3s ease;
+  }
+
+  .backend-content {
+    display: grid;
+    gap: 25px;
+  }
+
+  .highlights h4,
+  .performance-metrics h4,
+  .setup-guide h4,
+  .best-for h4 {
+    font-size: 16px;
+    color: var(--color-text);
+    margin-bottom: 12px;
+    transition: color 0.3s ease;
+  }
+
+  .highlights ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 8px;
+  }
+
+  .highlights li {
+    padding-left: 24px;
+    color: var(--color-text-tertiary);
+    font-size: 14px;
+    position: relative;
+    line-height: 1.6;
+    transition: color 0.3s ease;
+  }
+
+  .highlights li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: #ff8c42;
+    font-weight: bold;
+  }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+  }
+
+  .metric {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+
+  .metric-label {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: color 0.3s ease;
+  }
+
+  .metric-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ff8c42;
+  }
+
+  .setup-guide ol {
+    margin: 0;
+    padding-left: 20px;
+  }
+
+  .setup-guide li {
+    padding: 8px 0;
+    color: var(--color-text-tertiary);
+    font-size: 14px;
+    line-height: 1.6;
+    transition: color 0.3s ease;
+  }
+
+  .setup-guide li code {
+    background: var(--color-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 13px;
+    transition: background 0.3s ease;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tag {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--color-text-tertiary);
+    transition: all 0.2s ease;
+  }
+
+  .tag:hover {
+    background: var(--color-bg-tertiary);
+    border-color: #ff8c42;
+    transform: translateY(-1px);
+  }
+
+  .comparison-note {
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.1) 0%, rgba(255, 107, 53, 0.1) 100%);
+    border: 2px solid rgba(255, 140, 66, 0.3);
+    border-radius: 12px;
+    padding: 30px;
+    margin-top: 50px;
+  }
+
+  .comparison-note h3 {
+    font-size: 22px;
+    color: var(--color-text);
+    margin-bottom: 15px;
+    transition: color 0.3s ease;
+  }
+
+  .comparison-note p {
+    color: var(--color-text-secondary);
+    line-height: 1.8;
+    font-size: 15px;
+    margin: 0;
+    transition: color 0.3s ease;
+  }
+
+  .comparison-note strong {
+    color: var(--color-text);
+    transition: color 0.3s ease;
+  }
+
+  @media (max-width: 768px) {
+    .backend-header {
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .metrics {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
