@@ -3,6 +3,74 @@ use caro::config::ConfigManager;
 use clap::Parser;
 use std::process;
 
+// =============================================================================
+// Feature 002: Prompt Source Resolution
+// =============================================================================
+
+/// Source of the prompt input
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PromptSource {
+    /// From -p/--prompt flag (highest priority)
+    Flag,
+    /// From piped stdin (medium priority)
+    Stdin,
+    /// From trailing command-line arguments (lowest priority)
+    TrailingArgs,
+}
+
+/// Resolved prompt with its source
+#[derive(Debug, Clone)]
+pub struct ResolvedPrompt {
+    pub text: String,
+    pub source: PromptSource,
+}
+
+/// Resolve prompt from multiple input sources following priority order
+///
+/// Priority: -p/--prompt flag > stdin > trailing arguments
+///
+/// # Arguments
+/// * `flag` - Optional prompt from -p/--prompt flag
+/// * `stdin` - Optional prompt from piped stdin
+/// * `trailing_args` - Prompt from command-line trailing words
+///
+/// # Returns
+/// ResolvedPrompt with text and source indication
+fn resolve_prompt(
+    flag: Option<String>,
+    stdin: Option<String>,
+    trailing_args: Vec<String>,
+) -> ResolvedPrompt {
+    if let Some(text) = flag {
+        ResolvedPrompt {
+            text,
+            source: PromptSource::Flag,
+        }
+    } else if let Some(text) = stdin {
+        ResolvedPrompt {
+            text,
+            source: PromptSource::Stdin,
+        }
+    } else {
+        ResolvedPrompt {
+            text: trailing_args.join(" "),
+            source: PromptSource::TrailingArgs,
+        }
+    }
+}
+
+/// Check if stdin has available input (pipe or redirect)
+///
+/// Returns true if stdin is not a terminal (i.e., piped or redirected)
+fn is_stdin_available() -> bool {
+    use std::io::IsTerminal;
+    !std::io::stdin().is_terminal()
+}
+
+// =============================================================================
+// CLI Argument Parsing
+// =============================================================================
+
 /// caro - Convert natural language to shell commands using local LLMs
 #[derive(Parser, Clone)]
 #[command(name = "caro")]
@@ -484,9 +552,45 @@ async fn show_configuration(cli: &Cli) -> Result<String, CliError> {
     Ok(output)
 }
 
-// NOTE: Unit tests for Cli struct would go here, but Rust doesn't run tests in binary crates by default.
-// The trailing_args field parsing is verified through:
-// 1. Successful compilation with clap 4.5 (confirms correct attribute syntax)
-// 2. Type checking (Vec<String> with trailing_var_arg = true, num_args = 0..)
-// 3. Manual testing: cargo run -- list files (verifies runtime behavior)
-// 4. Integration tests in WP02 will test end-to-end CLI behavior
+// =============================================================================
+// Unit Tests
+// =============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // WP03: Prompt Source Resolution Tests
+
+    #[test]
+    fn test_flag_overrides_all() {
+        let resolved = resolve_prompt(
+            Some("flag".into()),
+            Some("stdin".into()),
+            vec!["trailing".into()],
+        );
+        assert_eq!(resolved.text, "flag");
+        assert_eq!(resolved.source, PromptSource::Flag);
+    }
+
+    #[test]
+    fn test_stdin_overrides_trailing() {
+        let resolved = resolve_prompt(None, Some("stdin".into()), vec!["trailing".into()]);
+        assert_eq!(resolved.text, "stdin");
+        assert_eq!(resolved.source, PromptSource::Stdin);
+    }
+
+    #[test]
+    fn test_trailing_args_default() {
+        let resolved = resolve_prompt(None, None, vec!["list".into(), "files".into()]);
+        assert_eq!(resolved.text, "list files");
+        assert_eq!(resolved.source, PromptSource::TrailingArgs);
+    }
+
+    #[test]
+    fn test_empty_trailing_args() {
+        let resolved = resolve_prompt(None, None, vec![]);
+        assert_eq!(resolved.text, "");
+        assert_eq!(resolved.source, PromptSource::TrailingArgs);
+    }
+}
