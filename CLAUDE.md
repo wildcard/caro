@@ -455,6 +455,113 @@ Commands will **REFUSE to proceed** if branch requirements aren't met, preventin
 
 See `docs/RELEASE_PROCESS.md` for complete release procedures and security requirements.
 
+## Claude Code Skills Reference
+
+This project uses **21 Claude Code skills** to automate development workflows. Skills are slash commands stored in `.claude/commands/` that provide structured, repeatable workflows.
+
+### Complete Skill Inventory
+
+**Release Management (7 skills)**:
+- `/caro.release.prepare` - Create release branch and run pre-flight checks
+- `/caro.release.security` - Security audit and vulnerability fixes
+- `/caro.release.version` - Version bump and changelog updates
+- `/caro.release.publish` - Create PR, merge, tag, and publish
+- `/caro.release.verify` - Post-release verification testing
+- `/caro.release.hotfix` - Emergency security patch workflow
+- `/caro.deps.review` - Review and merge Dependabot PRs with breaking change analysis
+
+**Feature Development (13 skills)**:
+- `/spec-kitty.specify` - Create feature specification
+- `/spec-kitty.plan` - Generate implementation plan
+- `/spec-kitty.tasks` - Break down into work packages
+- `/spec-kitty.implement` - Execute implementation
+- `/spec-kitty.review` - Code review and quality checks
+- `/spec-kitty.accept` - Acceptance testing
+- `/spec-kitty.merge` - Merge feature and cleanup
+- `/spec-kitty.clarify` - Ask clarification questions
+- `/spec-kitty.research` - Phase 0 research workflow
+- `/spec-kitty.analyze` - Cross-artifact consistency check
+- `/spec-kitty.constitution` - Update project principles
+- `/spec-kitty.checklist` - Generate custom checklists
+- `/spec-kitty.dashboard` - Open visual dashboard
+
+**Workflow Integration (1 utility)**:
+- `bin/sk-dashboard` - Monitor all features in browser
+
+### Common Workflow Examples
+
+**Complete Release Cycle**:
+```bash
+# 1. Dependency updates
+/caro.deps.review              # Merge Dependabot PRs
+
+# 2. Prepare release
+/caro.release.prepare          # Create release branch
+/caro.release.security         # Security audit
+/caro.release.version          # Version bump
+/caro.release.publish          # PR, merge, tag, publish
+/caro.release.verify           # Verify installation
+```
+
+**Rapid Feature Development**:
+```bash
+# 1. Create feature worktree
+bin/sk-new-feature "Add Redis caching"
+
+# 2. Execute spec-kitty workflow
+cd kitty-specs/001-add-redis-caching/
+/spec-kitty.specify            # Generate spec
+/spec-kitty.plan               # Implementation plan
+/spec-kitty.tasks              # Work breakdown
+/spec-kitty.implement          # Execute tasks
+/spec-kitty.accept             # Acceptance tests
+/spec-kitty.merge              # Merge to main
+```
+
+**Emergency Hotfix**:
+```bash
+/caro.release.hotfix           # Create hotfix branch
+# Apply minimal fix
+/caro.release.publish          # Fast-track release
+/caro.release.verify           # Verify fix
+```
+
+### When to Use Which Skill
+
+**Use `/caro.deps.review` when:**
+- Dependabot PRs are pending review
+- Before starting a release (dependency updates first)
+- After security alerts are resolved
+- Weekly maintenance to keep dependencies current
+
+**Use `/caro.release.*` when:**
+- Preparing a new version release
+- Applying security patches
+- Publishing to crates.io
+- Verifying published releases
+
+**Use `/spec-kitty.*` when:**
+- Building new features (< 2 weeks scope)
+- Fixing complex bugs across multiple files
+- Working on multiple features in parallel
+- Need automated task management and tracking
+
+**Use spec-kit (manual) when:**
+- Major architectural changes (> 2 weeks)
+- Research-heavy features
+- Multiple competing design approaches
+- Long-running exploratory work
+
+### Skill Documentation
+
+For complete skill documentation including:
+- Detailed workflow steps
+- Pre-flight requirements
+- Error handling and troubleshooting
+- Usage examples and best practices
+
+See: **`docs/SKILLS_GUIDE.md`**
+
 ## Multi-Agent Development Process
 
 This project follows spec-driven development with coordinated multi-agent teams:
