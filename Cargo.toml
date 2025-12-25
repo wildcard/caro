@@ -1,6 +1,6 @@
 [package]
 name = "caro"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2021"
 description = "Convert natural language to shell commands using local LLMs"
 license = "AGPL-3.0"
