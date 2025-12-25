@@ -25,7 +25,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_yaml = "0.9"
 toml = "0.8"
-config = "0.13"
+config = "0.15"
 
 # HTTP client for remote backends (optional - feature-gated)
 reqwest = { version = "0.11", features = ["json", "rustls-tls"], default-features = false, optional = true }
@@ -40,8 +40,7 @@ tracing-appender = "0.2"
 # User interface and interaction
 dialoguer = "0.11"
 colored = "2"
-indicatif = "0.17"
-atty = "0.2"
+indicatif = "0.18"
 
 # Cross-platform support
 directories = "5"
@@ -51,7 +50,7 @@ os_info = "3.7"
 sysinfo = "0.29"
 
 # Model integration (Hugging Face Hub)
-hf-hub = { version = "0.3", features = ["tokio"] }
+hf-hub = { version = "0.4", features = ["tokio"] }
 url = "2.5"
 
 # Date/time handling
@@ -79,7 +78,7 @@ llama_cpp = { version = "0.3", features = ["metal"], optional = true }
 # Embedded model inference - Candle for CPU (cross-platform)
 candle-core = { version = "0.9", optional = true }
 candle-transformers = { version = "0.9", optional = true }
-tokenizers = { version = "0.15", features = ["http"] }
+tokenizers = { version = "0.22", features = ["http"] }
 
 [dev-dependencies]
 tokio-test = "0.4"

@@ -215,6 +215,7 @@ async fn run_cli(cli: &Cli) -> Result<(), CliError> {
 
 async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Result<(), CliError> {
     use colored::Colorize;
+    use std::io::IsTerminal;
 
     // Print warnings first
     for warning in &result.warnings {
@@ -232,7 +233,7 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
         use dialoguer::Confirm;
 
         // Check if we're in a terminal environment
-        if atty::is(atty::Stream::Stdin) {
+        if std::io::stdin().is_terminal() {
             let confirmed = Confirm::new()
                 .with_prompt(&result.confirmation_prompt)
                 .default(false)
@@ -289,7 +290,7 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
         use dialoguer::Confirm;
 
         // Check if we're in a terminal environment
-        if atty::is(atty::Stream::Stdin) {
+        if std::io::stdin().is_terminal() {
             let should_execute = Confirm::new()
                 .with_prompt("Execute this command?")
                 .default(false)
