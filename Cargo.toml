@@ -85,7 +85,7 @@ tokio-test = "0.4"
 tempfile = "3"
 serial_test = "3"
 proptest = "1"
-criterion = { version = "0.5", features = ["html_reports"] }
+criterion = { version = "0.8", features = ["html_reports"] }
 futures = "0.3"
 
 [[bench]]
