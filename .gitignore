@@ -169,7 +169,7 @@ cmdai-validation/
 
 # Spec-Kitty worktrees and agent directories
 # Keep command files in git, exclude agent session data
-kitty-specs/
+# kitty-specs/
 
 # Agent directories - keep commands, exclude sessions/logs/credentials
 # Claude Code
