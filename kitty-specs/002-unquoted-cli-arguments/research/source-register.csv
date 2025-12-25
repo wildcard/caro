@@ -1,0 +1,22 @@
+# Source Register: Master list of all research sources
+#
+# Column Definitions:
+# - source_id: Unique identifier (lowercase, no spaces, e.g., "smith2024")
+# - citation: Full citation (BibTeX or APA format)
+# - url: Direct link to source (DOI, arXiv, or web URL)
+# - accessed_date: Date source was accessed (YYYY-MM-DD)
+# - relevance: high | medium | low (to primary research question)
+# - status: reviewed | pending | archived
+#
+# Usage: Add sources when discovered, update status as research progresses
+# Validation: source_id must be unique
+source_id,citation,url,accessed_date,relevance,status
+pr68,"GitHub PR #68: Fix list command to accept all argument",https://github.com/wildcard/caro/pull/68,2025-12-25,high,reviewed
+clap_docs,"clap - Rust command-line argument parser documentation",https://docs.rs/clap/latest/clap/,2025-12-25,high,reviewed
+posix_shell,"POSIX Shell Command Language specification",https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html,2025-12-25,high,reviewed
+constitution,"Project constitution v1.0.0",file://.specify/memory/constitution.md,2025-12-25,high,reviewed
+user_discovery,"User requirements from discovery interview (2025-12-25)",internal://discovery-phase,2025-12-25,high,reviewed
+user_planning,"User requirements from planning interview (2025-12-25)",internal://planning-phase,2025-12-25,high,reviewed
+ripgrep_ref,"ripgrep - fast grep implementation in Rust",https://github.com/BurntSushi/ripgrep,2025-12-25,medium,reviewed
+fd_ref,"fd - fast find alternative in Rust",https://github.com/sharkdp/fd,2025-12-25,medium,reviewed
+spec_md,"Feature specification: Unquoted CLI Arguments",file://kitty-specs/002-unquoted-cli-arguments/spec.md,2025-12-25,high,reviewed
