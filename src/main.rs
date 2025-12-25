@@ -79,7 +79,15 @@ struct Cli {
 
 impl IntoCliArgs for Cli {
     fn prompt(&self) -> Option<String> {
-        self.prompt.clone()
+        // Priority: explicit --prompt flag > trailing args
+        if self.prompt.is_some() {
+            self.prompt.clone()
+        } else if !self.trailing_args.is_empty() {
+            // Join trailing args with spaces for unquoted prompts
+            Some(self.trailing_args.join(" "))
+        } else {
+            None
+        }
     }
 
     fn shell(&self) -> Option<String> {

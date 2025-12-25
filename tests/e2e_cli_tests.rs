@@ -604,3 +604,75 @@ mod e2e_documentation {
     //! These tests are designed to run in CI environments and validate
     //! that the CLI behaves correctly in real deployment scenarios.
 }
+
+// =============================================================================
+// Feature 002: Unquoted CLI Arguments - E2E Tests
+// =============================================================================
+
+/// T007: Test basic unquoted prompt (US1 acceptance scenario 1)
+/// Verifies that `caro list files` works without quotes
+#[test]
+fn e2e_unquoted_prompt_basic() {
+    let runner = CliTestRunner::new();
+    let output = runner.run_success(&["list", "files"]);
+
+    // Should generate a command (not error)
+    assert!(
+        output.contains("Command:") || output.contains("ls"),
+        "Expected command output, got: {}",
+        output
+    );
+
+    println!("✅ T007: Basic unquoted prompt works");
+}
+
+/// T008: Test quoted prompt backward compatibility (US2 acceptance scenario 1)
+/// Verifies that `caro "list files"` still works as before
+#[test]
+fn e2e_quoted_prompt_backward_compat() {
+    let runner = CliTestRunner::new();
+    let output = runner.run_success(&["list files"]);
+
+    // Should generate a command (backward compatibility maintained)
+    assert!(
+        output.contains("Command:") || output.contains("ls"),
+        "Expected command output, got: {}",
+        output
+    );
+
+    println!("✅ T008: Quoted prompt backward compatibility maintained");
+}
+
+/// T009: Test flags before unquoted prompt (US1 acceptance scenario 3)
+/// Verifies that `caro --verbose list files` parses flags correctly
+#[test]
+fn e2e_flags_before_unquoted_prompt() {
+    let runner = CliTestRunner::new();
+    let output = runner.run_success(&["--verbose", "list", "files"]);
+
+    // Should generate a command with verbose mode
+    assert!(
+        output.contains("Command:") || output.contains("ls"),
+        "Expected command output, got: {}",
+        output
+    );
+
+    println!("✅ T009: Flags before unquoted prompt work correctly");
+}
+
+/// T010: Test multi-word unquoted prompts (US1 acceptance scenario 2)
+/// Verifies that `caro find large files in current directory` works
+#[test]
+fn e2e_multi_word_unquoted_prompt() {
+    let runner = CliTestRunner::new();
+    let output = runner.run_success(&["find", "large", "files", "in", "current", "directory"]);
+
+    // Should generate a command
+    assert!(
+        output.contains("Command:") || output.contains("find"),
+        "Expected command output, got: {}",
+        output
+    );
+
+    println!("✅ T010: Multi-word unquoted prompts work correctly");
+}
