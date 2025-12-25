@@ -1,0 +1,2284 @@
+---
+/**
+ * GameChallenges.astro
+ * Terminal Temple-style game challenges with discovery, exploration, and Caro AI assistance
+ * Features narrative-driven challenges, hidden secrets, and achievement system
+ */
+---
+
+<div id="game-challenges" class="game-challenges">
+  <!-- Caro status indicator (minimal, in header area) -->
+  <div class="caro-status-bar" id="caro-status-bar">
+    <img src="/caro-pixel.png" alt="Caro" class="caro-mini-avatar" />
+    <span class="caro-status-text" id="caro-status">Caro is ready to help!</span>
+    <span class="status-dot online" id="status-dot"></span>
+  </div>
+
+  <!-- Challenge Selection -->
+  <div class="challenge-selector" id="challenge-selector">
+    <h3>Choose Your Adventure</h3>
+    <div class="challenge-grid">
+      <button class="challenge-card" data-challenge="secret-message">
+        <div class="challenge-icon">🔍</div>
+        <div class="challenge-content">
+          <h4>The Secret Message</h4>
+          <p>Find a hidden message buried in the filesystem</p>
+          <div class="challenge-meta">
+            <span class="difficulty beginner">Beginner</span>
+            <span class="time">~5 min</span>
+          </div>
+        </div>
+        <div class="challenge-status" data-status="available"></div>
+      </button>
+
+      <button class="challenge-card" data-challenge="organize-chaos">
+        <div class="challenge-icon">📁</div>
+        <div class="challenge-content">
+          <h4>Organize the Chaos</h4>
+          <p>Sort a messy Downloads folder into proper categories</p>
+          <div class="challenge-meta">
+            <span class="difficulty intermediate">Intermediate</span>
+            <span class="time">~10 min</span>
+          </div>
+        </div>
+        <div class="challenge-status" data-status="available"></div>
+      </button>
+
+      <button class="challenge-card" data-challenge="crypto-heist">
+        <div class="challenge-icon">🔐</div>
+        <div class="challenge-content">
+          <h4>The Crypto Heist</h4>
+          <p>Navigate through hidden folders to find the secret keys</p>
+          <div class="challenge-meta">
+            <span class="difficulty intermediate">Intermediate</span>
+            <span class="time">~10 min</span>
+          </div>
+        </div>
+        <div class="challenge-status" data-status="locked"></div>
+      </button>
+
+      <button class="challenge-card" data-challenge="world-domination">
+        <div class="challenge-icon">🐹</div>
+        <div class="challenge-content">
+          <h4>Hamster World Domination</h4>
+          <p>Uncover the secret hamster conspiracy hidden in plain sight</p>
+          <div class="challenge-meta">
+            <span class="difficulty advanced">Advanced</span>
+            <span class="time">~15 min</span>
+          </div>
+        </div>
+        <div class="challenge-status" data-status="locked"></div>
+      </button>
+    </div>
+  </div>
+
+  <!-- Active Challenge View -->
+  <div class="challenge-active hidden" id="challenge-active">
+    <!-- Challenge Header -->
+    <div class="challenge-header">
+      <button class="back-btn" id="back-to-challenges">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back
+      </button>
+      <div class="challenge-title-area">
+        <span class="challenge-badge" id="challenge-badge">Beginner</span>
+        <h3 id="active-challenge-title">The Secret Message</h3>
+      </div>
+      <div class="challenge-progress">
+        <span id="objectives-progress">0/3</span>
+        <span class="progress-label">objectives</span>
+      </div>
+    </div>
+
+    <!-- Game Terminal with Inline Objectives -->
+    <div class="game-terminal">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+        </div>
+        <div class="terminal-title" id="game-terminal-path">learner@caro-game:~</div>
+        <div class="terminal-actions">
+          <button class="objectives-toggle" id="toggle-objectives" title="Show/hide objectives">
+            📋 Objectives
+          </button>
+          <button class="hint-btn" id="request-hint" title="Ask Caro for a hint">
+            💡 Ask Caro
+          </button>
+        </div>
+      </div>
+      <!-- Inline Objectives (inside terminal) -->
+      <div class="terminal-objectives" id="terminal-objectives">
+        <div class="objectives-header">
+          <span class="objectives-title">🎯 Current Objectives</span>
+          <button class="close-objectives" id="close-objectives">×</button>
+        </div>
+        <ul class="objectives-list" id="objectives-list">
+          <!-- Objectives populated by JS -->
+        </ul>
+        <div class="objectives-tip">
+          <img src="/caro-pixel.png" alt="Caro" class="tip-avatar" />
+          <span>Tip: Type <code>caro help</code> or just ask in natural language!</span>
+        </div>
+      </div>
+      <div class="terminal-body">
+        <div class="terminal-output" id="game-output">
+          <div class="story-intro" id="story-intro">
+            <!-- Story intro populated by JS -->
+          </div>
+        </div>
+        <div class="terminal-input-line">
+          <span class="prompt" id="game-prompt">learner@caro-game:~$</span>
+          <input
+            type="text"
+            id="game-input"
+            class="terminal-input"
+            placeholder="Type command or ask Caro in natural language..."
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Achievement Popup -->
+    <div class="achievement-popup hidden" id="achievement-popup">
+      <div class="achievement-content">
+        <div class="achievement-icon" id="achievement-icon">🏆</div>
+        <div class="achievement-text">
+          <h4 id="achievement-title">Achievement Unlocked!</h4>
+          <p id="achievement-desc">You found the secret!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Achievements Overview -->
+  <div class="achievements-bar">
+    <div class="achievements-label">
+      <span class="trophy">🏆</span>
+      <span>Achievements</span>
+    </div>
+    <div class="achievements-list" id="achievements-list">
+      <span class="achievement locked" title="First Steps - Complete your first challenge">👣</span>
+      <span class="achievement locked" title="Explorer - Find a hidden file">🔍</span>
+      <span class="achievement locked" title="Organizer - Sort 5 files correctly">📁</span>
+      <span class="achievement locked" title="Detective - Uncover a secret">🕵️</span>
+      <span class="achievement locked" title="Master - Complete all challenges">👑</span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .game-challenges {
+    max-width: 1000px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  /* Caro Status Bar (minimal) */
+  .caro-status-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.1) 0%, rgba(255, 107, 53, 0.1) 100%);
+    border: 1px solid rgba(255, 140, 66, 0.3);
+    border-radius: 10px;
+    margin-bottom: 20px;
+  }
+
+  .caro-mini-avatar {
+    width: 28px;
+    height: 28px;
+    image-rendering: pixelated;
+    border-radius: 50%;
+    background: white;
+    padding: 3px;
+  }
+
+  .caro-status-text {
+    flex: 1;
+    font-size: 14px;
+    color: var(--color-text);
+  }
+
+  .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .status-dot.online {
+    background: #22c55e;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+  }
+
+  .status-dot.thinking {
+    background: #fbbf24;
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* Inline Objectives inside Terminal */
+  .terminal-objectives {
+    background: rgba(255, 140, 66, 0.05);
+    border-bottom: 1px solid #3d3d3d;
+    padding: 12px 16px;
+    display: none;
+  }
+
+  .terminal-objectives.visible {
+    display: block;
+  }
+
+  .objectives-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .objectives-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ff8c42;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .close-objectives {
+    background: transparent;
+    border: none;
+    color: #888;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 4px;
+  }
+
+  .close-objectives:hover {
+    color: #fff;
+  }
+
+  .objectives-toggle {
+    background: rgba(255, 140, 66, 0.2);
+    border: 1px solid rgba(255, 140, 66, 0.3);
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: #ff8c42;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .objectives-toggle:hover {
+    background: rgba(255, 140, 66, 0.3);
+    border-color: #ff8c42;
+  }
+
+  .objectives-tip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #3d3d3d;
+    font-size: 12px;
+    color: #888;
+  }
+
+  .objectives-tip .tip-avatar {
+    width: 20px;
+    height: 20px;
+    image-rendering: pixelated;
+    border-radius: 50%;
+    background: white;
+    padding: 2px;
+  }
+
+  .objectives-tip code {
+    background: #333;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Monaco', monospace;
+    color: #ff8c42;
+  }
+
+  /* Caro Inline Response in Terminal */
+  .caro-inline-response {
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.1) 0%, rgba(255, 107, 53, 0.05) 100%);
+    border-left: 3px solid #ff8c42;
+    border-radius: 0 8px 8px 0;
+    margin: 8px 0;
+    padding: 12px 16px;
+  }
+
+  .caro-inline-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .caro-inline-header img {
+    width: 24px;
+    height: 24px;
+    image-rendering: pixelated;
+    border-radius: 50%;
+    background: white;
+    padding: 2px;
+  }
+
+  .caro-inline-header .caro-name {
+    font-weight: 600;
+    color: #ff8c42;
+    font-size: 13px;
+  }
+
+  .caro-inline-text {
+    color: #d4d4d4;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+
+  .caro-inline-command {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .caro-inline-command code {
+    color: #60a5fa;
+    font-family: 'Monaco', monospace;
+    font-size: 14px;
+  }
+
+  .caro-inline-command .copy-btn {
+    background: transparent;
+    border: 1px solid #444;
+    color: #888;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .caro-inline-command .copy-btn:hover {
+    border-color: #ff8c42;
+    color: #ff8c42;
+  }
+
+  .caro-safety-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    margin-top: 8px;
+  }
+
+  .caro-safety-indicator.safe {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+  }
+
+  .caro-safety-indicator.moderate {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+  }
+
+  .caro-safety-indicator.dangerous {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+  }
+
+  .caro-inline-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .caro-inline-actions button {
+    background: transparent;
+    border: 1px solid #444;
+    color: #888;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .caro-inline-actions button:hover {
+    border-color: #ff8c42;
+    color: #ff8c42;
+  }
+
+  .caro-inline-actions button.execute-btn {
+    background: rgba(34, 197, 94, 0.2);
+    border-color: rgba(34, 197, 94, 0.4);
+    color: #22c55e;
+  }
+
+  .caro-inline-actions button.execute-btn:hover {
+    background: rgba(34, 197, 94, 0.3);
+    border-color: #22c55e;
+  }
+
+  /* Thinking animation inline */
+  .caro-thinking-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: rgba(255, 140, 66, 0.05);
+    border-left: 3px solid #ff8c42;
+    margin: 8px 0;
+  }
+
+  .caro-thinking-inline img {
+    width: 24px;
+    height: 24px;
+    image-rendering: pixelated;
+    border-radius: 50%;
+    background: white;
+    padding: 2px;
+  }
+
+  .thinking-dots {
+    display: flex;
+    gap: 4px;
+  }
+
+  .thinking-dots span {
+    width: 6px;
+    height: 6px;
+    background: #ff8c42;
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out;
+  }
+
+  .thinking-dots span:nth-child(1) { animation-delay: 0s; }
+  .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+  }
+
+  /* Challenge Selector */
+  .challenge-selector h3 {
+    text-align: center;
+    font-size: 28px;
+    margin: 0 0 30px;
+    color: var(--color-text);
+  }
+
+  .challenge-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .challenge-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+    background: var(--color-bg);
+    border: 2px solid var(--color-border);
+    border-radius: 16px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .challenge-card:hover {
+    border-color: #ff8c42;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(255, 140, 66, 0.15);
+  }
+
+  .challenge-card[data-locked="true"] {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .challenge-card[data-locked="true"]:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .challenge-icon {
+    font-size: 36px;
+    flex-shrink: 0;
+  }
+
+  .challenge-content {
+    flex: 1;
+  }
+
+  .challenge-content h4 {
+    margin: 0 0 6px;
+    font-size: 18px;
+    color: var(--color-text);
+  }
+
+  .challenge-content p {
+    margin: 0 0 12px;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+  }
+
+  .challenge-meta {
+    display: flex;
+    gap: 10px;
+  }
+
+  .difficulty {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 12px;
+  }
+
+  .difficulty.beginner {
+    background: rgba(34, 197, 94, 0.1);
+    color: #16a34a;
+  }
+
+  .difficulty.intermediate {
+    background: rgba(251, 191, 36, 0.1);
+    color: #d97706;
+  }
+
+  .difficulty.advanced {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+  }
+
+  .time {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+
+  .challenge-status {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .challenge-status[data-status="locked"]::after {
+    content: '🔒';
+    font-size: 16px;
+  }
+
+  .challenge-status[data-status="completed"]::after {
+    content: '✓';
+    font-size: 18px;
+    color: #22c55e;
+    font-weight: bold;
+  }
+
+  /* Active Challenge View */
+  .challenge-active {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .challenge-active.hidden {
+    display: none;
+  }
+
+  .challenge-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 16px 20px;
+    background: var(--color-bg-secondary);
+    border-radius: 12px;
+  }
+
+  .back-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    color: var(--color-text);
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+
+  .back-btn:hover {
+    background: var(--color-bg);
+    border-color: #ff8c42;
+  }
+
+  .challenge-title-area {
+    flex: 1;
+  }
+
+  .challenge-badge {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: rgba(255, 140, 66, 0.1);
+    color: #ff8c42;
+    margin-bottom: 4px;
+    display: inline-block;
+  }
+
+  .challenge-title-area h3 {
+    margin: 0;
+    font-size: 20px;
+    color: var(--color-text);
+  }
+
+  .challenge-progress {
+    text-align: center;
+  }
+
+  .challenge-progress span:first-child {
+    display: block;
+    font-size: 24px;
+    font-weight: 700;
+    color: #ff8c42;
+  }
+
+  .progress-label {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+
+  /* Objectives List (inside terminal) */
+  .objectives-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .objectives-list li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: 'Monaco', monospace;
+    color: #d4d4d4;
+  }
+
+  .objectives-list li.completed {
+    text-decoration: line-through;
+    color: #666;
+  }
+
+  .objective-check {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #444;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .objectives-list li.completed .objective-check {
+    background: #22c55e;
+    border-color: #22c55e;
+    color: white;
+  }
+
+  .objectives-list li.completed .objective-check::after {
+    content: '✓';
+    font-size: 10px;
+  }
+
+  /* Game Terminal */
+  .game-terminal {
+    background: #1e1e1e;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  }
+
+  .terminal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: #2d2d2d;
+    border-bottom: 1px solid #3d3d3d;
+  }
+
+  .terminal-dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .dot.red { background: #ff5f56; }
+  .dot.yellow { background: #ffbd2e; }
+  .dot.green { background: #27c93f; }
+
+  .terminal-title {
+    font-family: 'Monaco', monospace;
+    font-size: 12px;
+    color: #888;
+  }
+
+  .terminal-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .hint-btn {
+    background: rgba(255, 140, 66, 0.2);
+    border: 1px solid rgba(255, 140, 66, 0.3);
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: #ff8c42;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .hint-btn:hover {
+    background: rgba(255, 140, 66, 0.3);
+    border-color: #ff8c42;
+  }
+
+  .terminal-body {
+    min-height: 350px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .terminal-output {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #d4d4d4;
+  }
+
+  .story-intro {
+    color: #888;
+    border-left: 3px solid #ff8c42;
+    padding-left: 12px;
+    margin-bottom: 16px;
+  }
+
+  .story-intro p {
+    margin: 0 0 8px;
+  }
+
+  .story-intro p:last-child {
+    margin-bottom: 0;
+  }
+
+  .terminal-line {
+    margin-bottom: 4px;
+  }
+
+  .terminal-line .prompt-text {
+    color: #22c55e;
+  }
+
+  .terminal-line .command-text {
+    color: #60a5fa;
+  }
+
+  .output-text {
+    white-space: pre-wrap;
+  }
+
+  .output-text.success {
+    color: #22c55e;
+  }
+
+  .output-text.error {
+    color: #ef4444;
+  }
+
+  .output-text.discovery {
+    color: #fbbf24;
+    font-style: italic;
+  }
+
+  /* Caro auto-executed command styling */
+  .caro-ran {
+    background: rgba(255, 140, 66, 0.08);
+    border-left: 2px solid #ff8c42;
+    padding: 4px 8px 4px 12px;
+    margin: 4px 0;
+  }
+
+  .caro-executed {
+    color: #ff8c42;
+    font-weight: 500;
+    margin-right: 6px;
+  }
+
+  .terminal-input-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px;
+    background: #1a1a1a;
+    border-top: 1px solid #333;
+  }
+
+  .prompt {
+    color: #22c55e;
+    font-family: 'Monaco', monospace;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .terminal-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #d4d4d4;
+    font-family: 'Monaco', monospace;
+    font-size: 14px;
+    outline: none;
+  }
+
+  /* Achievement Popup */
+  .achievement-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--color-bg);
+    padding: 30px 40px;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    z-index: 2000;
+    animation: popIn 0.4s ease;
+  }
+
+  .achievement-popup.hidden {
+    display: none;
+  }
+
+  @keyframes popIn {
+    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+    70% { transform: translate(-50%, -50%) scale(1.1); }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  }
+
+  .achievement-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .achievement-icon {
+    font-size: 48px;
+    animation: bounce 0.6s ease;
+  }
+
+  .achievement-text h4 {
+    margin: 0 0 4px;
+    font-size: 20px;
+    color: #ff8c42;
+  }
+
+  .achievement-text p {
+    margin: 0;
+    color: var(--color-text-secondary);
+  }
+
+  /* Achievements Bar */
+  .achievements-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    background: var(--color-bg-secondary);
+    border-radius: 12px;
+    margin-top: 20px;
+  }
+
+  .achievements-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .trophy {
+    font-size: 20px;
+  }
+
+  .achievements-list {
+    display: flex;
+    gap: 12px;
+  }
+
+  .achievement {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    background: var(--color-bg);
+    border-radius: 50%;
+    border: 2px solid var(--color-border);
+    transition: all 0.2s;
+  }
+
+  .achievement.locked {
+    filter: grayscale(1);
+    opacity: 0.4;
+  }
+
+  .achievement.unlocked {
+    border-color: #fbbf24;
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.4);
+    animation: glow 2s infinite;
+  }
+
+  @keyframes glow {
+    0%, 100% { box-shadow: 0 0 15px rgba(251, 191, 36, 0.4); }
+    50% { box-shadow: 0 0 25px rgba(251, 191, 36, 0.6); }
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .caro-status-bar {
+      flex-wrap: wrap;
+    }
+
+    .challenge-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .challenge-header {
+      flex-wrap: wrap;
+    }
+
+    .terminal-actions {
+      flex-wrap: wrap;
+    }
+  }
+</style>
+
+<script>
+  import { getTerminalTutorEngine } from './LLMEngine';
+  import {
+    createVirtualFileSystem,
+    resolvePath,
+    getNodeAtPath,
+    formatLsOutput,
+    generateId,
+    ansiToHtml,
+  } from './utils';
+  import type { VirtualFileSystem, VirtualDirectory, VirtualFile } from './types';
+
+  // Challenge definitions
+  const CHALLENGES = {
+    'secret-message': {
+      id: 'secret-message',
+      title: 'The Secret Message',
+      difficulty: 'beginner',
+      storyIntro: `<p>A mysterious user left a hidden message somewhere in your home directory...</p>
+        <p>Legend says it's buried in a file that starts with a dot.</p>
+        <p>Can you find it? Use your terminal skills to uncover the secret!</p>`,
+      objectives: [
+        { id: 'nav-home', text: 'Navigate to your home directory', completed: false },
+        { id: 'find-hidden', text: 'Find the hidden files (hint: they start with a dot)', completed: false },
+        { id: 'read-secret', text: 'Read the secret message', completed: false },
+      ],
+      hints: [
+        'Try using "ls -a" to see hidden files. Files starting with a dot are hidden by default.',
+        'Look for a file that might contain a "treasure" or "secret".',
+        'Once you find it, use "cat" to read its contents.',
+      ],
+      achievement: { icon: '🔍', title: 'Explorer', desc: 'You found the hidden secret!' },
+    },
+    'organize-chaos': {
+      id: 'organize-chaos',
+      title: 'Organize the Chaos',
+      difficulty: 'intermediate',
+      storyIntro: `<p>Your Downloads folder is a disaster zone!</p>
+        <p>Files from your last project are scattered everywhere.</p>
+        <p>Create folders and organize the files before your boss sees this mess!</p>`,
+      objectives: [
+        { id: 'go-downloads', text: 'Navigate to the Downloads folder', completed: false },
+        { id: 'create-folders', text: 'Create folders: Documents, Images, Code', completed: false },
+        { id: 'move-files', text: 'Move at least 3 files to their correct folders', completed: false },
+        { id: 'verify', text: 'Verify each folder has the right files', completed: false },
+      ],
+      hints: [
+        'Use "cd Downloads" to go to the Downloads folder.',
+        'Use "mkdir" to create new folders. Example: mkdir Documents',
+        'Use "mv" to move files. Example: mv report.txt Documents/',
+        'Use "ls" inside each folder to verify the files are there.',
+      ],
+      achievement: { icon: '📁', title: 'Organizer', desc: 'Your Downloads are now pristine!' },
+    },
+    'crypto-heist': {
+      id: 'crypto-heist',
+      title: 'The Crypto Heist',
+      difficulty: 'intermediate',
+      storyIntro: `<p>You've intercepted intelligence about a hidden crypto wallet.</p>
+        <p>The keys are stored in a secret folder structure...</p>
+        <p>Navigate through the maze of hidden directories to find the wallet!</p>`,
+      objectives: [
+        { id: 'find-crypto', text: 'Find the hidden .cryptoKeys folder', completed: false },
+        { id: 'navigate-deep', text: 'Navigate through the nested structure', completed: false },
+        { id: 'read-wallet', text: 'Read the wallet.key file', completed: false },
+        { id: 'copy-key', text: 'Copy the key file to your Documents', completed: false },
+      ],
+      hints: [
+        'Hidden folders start with a dot. Use "ls -a" everywhere!',
+        'The crypto folder might be hidden in an unexpected place.',
+        'Sometimes you need to go deep: cd folder/subfolder/subfolder',
+        'Use "cp" to copy files between locations.',
+      ],
+      achievement: { icon: '🔐', title: 'Crypto Hunter', desc: 'You secured the crypto keys!' },
+    },
+    'world-domination': {
+      id: 'world-domination',
+      title: 'Hamster World Domination',
+      difficulty: 'advanced',
+      storyIntro: `<p>CLASSIFIED INTELLIGENCE BRIEFING</p>
+        <p>We've discovered evidence of a hamster conspiracy...</p>
+        <p>Their plans for world domination are hidden across multiple locations.</p>
+        <p>Find ALL the evidence before they notice you're onto them!</p>`,
+      objectives: [
+        { id: 'find-plans', text: 'Find the hamster\'s master plan', completed: false },
+        { id: 'find-agents', text: 'Discover the list of hamster agents', completed: false },
+        { id: 'find-timeline', text: 'Uncover the attack timeline', completed: false },
+        { id: 'compile-report', text: 'Create a report.txt with your findings', completed: false },
+      ],
+      hints: [
+        'The hamsters are clever. Check EVERY hidden folder.',
+        'They might hide files with innocent-sounding names.',
+        'Use "grep" to search for keywords like "hamster" or "domination".',
+        'Combine what you find using "echo" and ">>" to create your report.',
+      ],
+      achievement: { icon: '🐹', title: 'Conspiracy Crusher', desc: 'The hamster plot is foiled!' },
+    },
+  };
+
+  // Create enhanced filesystem for challenges
+  function createChallengeFilesystem(): VirtualFileSystem {
+    const now = new Date();
+    const baseFS = createVirtualFileSystem();
+    const home = getNodeAtPath(baseFS, '/home/learner') as VirtualDirectory;
+
+    // Add Downloads folder with chaos
+    const downloads: VirtualDirectory = {
+      name: 'Downloads',
+      type: 'directory',
+      permissions: 'drwxr-xr-x',
+      owner: 'learner',
+      modified: now,
+      children: [
+        { name: 'report.txt', type: 'file', content: 'Q3 Financial Report\nRevenue: $1.2M', size: 40, permissions: '-rw-r--r--', owner: 'learner', modified: now },
+        { name: 'vacation.jpg', type: 'file', content: '[Binary image data]', size: 2048, permissions: '-rw-r--r--', owner: 'learner', modified: now },
+        { name: 'script.py', type: 'file', content: 'print("Hello, World!")', size: 25, permissions: '-rw-r--r--', owner: 'learner', modified: now },
+        { name: 'notes.md', type: 'file', content: '# Meeting Notes\n- Discuss Q4 plans', size: 35, permissions: '-rw-r--r--', owner: 'learner', modified: now },
+        { name: 'logo.png', type: 'file', content: '[Binary image data]', size: 1024, permissions: '-rw-r--r--', owner: 'learner', modified: now },
+        { name: 'app.js', type: 'file', content: 'console.log("App started");', size: 30, permissions: '-rw-r--r--', owner: 'learner', modified: now },
+        { name: 'budget.xlsx', type: 'file', content: '[Spreadsheet data]', size: 512, permissions: '-rw-r--r--', owner: 'learner', modified: now },
+      ],
+    };
+
+    // Add crypto keys hidden folder
+    const cryptoKeys: VirtualDirectory = {
+      name: '.cryptoKeys',
+      type: 'directory',
+      permissions: 'drwx------',
+      owner: 'learner',
+      modified: now,
+      children: [
+        {
+          name: 'vault',
+          type: 'directory',
+          permissions: 'drwx------',
+          owner: 'learner',
+          modified: now,
+          children: [
+            {
+              name: 'secure',
+              type: 'directory',
+              permissions: 'drwx------',
+              owner: 'learner',
+              modified: now,
+              children: [
+                { name: 'wallet.key', type: 'file', content: 'PRIVATE KEY: 0x7f8a9b3c4d5e6f1a2b3c4d5e6f7a8b9c\nDO NOT SHARE THIS FILE!', size: 80, permissions: '-rw-------', owner: 'learner', modified: now },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    // Add hamster conspiracy files
+    const hamsterLair: VirtualDirectory = {
+      name: '.hamster_lair',
+      type: 'directory',
+      permissions: 'drwx------',
+      owner: 'learner',
+      modified: now,
+      children: [
+        { name: 'master_plan.txt', type: 'file', content: 'OPERATION SUNFLOWER SEED\n========================\nPhase 1: Infiltrate pet stores\nPhase 2: Gain human trust\nPhase 3: WORLD DOMINATION\n\nTarget Date: When humans least expect it', size: 200, permissions: '-rw-------', owner: 'learner', modified: now },
+        { name: 'agents.list', type: 'file', content: 'HAMSTER SLEEPER AGENTS:\n- Mr. Whiskers (Location: Seattle)\n- Fluffy (Location: London)\n- Hamtaro (Location: Tokyo)\n- Sir Squeaks (Location: Sydney)', size: 180, permissions: '-rw-------', owner: 'learner', modified: now },
+        { name: 'timeline.txt', type: 'file', content: 'ATTACK TIMELINE:\n0600: Deploy cute faces\n0800: Request treats\n1200: Nap (maintain cover)\n1800: Secret wheel running\n2400: Global communication via squeaks', size: 200, permissions: '-rw-------', owner: 'learner', modified: now },
+      ],
+    };
+
+    home.children.push(downloads, cryptoKeys, hamsterLair);
+
+    // Update hidden treasure content
+    const treasure = home.children.find(c => c.name === '.hidden_treasure') as VirtualFile;
+    if (treasure) {
+      treasure.content = '🎉 CONGRATULATIONS! 🎉\n\nYou found the secret message!\n\n"The terminal is mightier than the GUI."\n- Ancient Unix Proverb\n\nYour reward: The knowledge that you can find ANYTHING in the filesystem!';
+    }
+
+    return baseFS;
+  }
+
+  // State
+  let currentChallenge: string | null = null;
+  let fileSystem: VirtualFileSystem = createChallengeFilesystem();
+  let currentDirectory = '/home/learner';
+  let completedObjectives: Set<string> = new Set();
+  let unlockedAchievements: Set<string> = new Set();
+  let modelReady = false;
+  let objectivesVisible = true; // Show by default
+  let commandHistory: string[] = [];
+  let historyIndex = -1;
+  let shownFeedback: Set<string> = new Set(); // Track shown feedback to avoid repeats
+
+  // Natural language patterns for detection
+  const NATURAL_LANGUAGE_PATTERNS = [
+    /^(how do i|how can i|how to|what is|what's|where is|where are|show me|help me|i want to|i need to|can you|please|find|search for|look for|tell me)/i,
+    /^(create|make|delete|remove|move|copy|rename|list|show|open|go to|navigate to|change to)\s+(a|an|the|my|some|all)/i,
+    /\?$/,
+    /^(what|where|how|why|when|which|who)\s/i,
+  ];
+
+  // DOM Elements
+  const challengeSelector = document.getElementById('challenge-selector')!;
+  const challengeActive = document.getElementById('challenge-active')!;
+  const backBtn = document.getElementById('back-to-challenges')!;
+  const gameOutput = document.getElementById('game-output')!;
+  const gameInput = document.getElementById('game-input') as HTMLInputElement;
+  const gamePrompt = document.getElementById('game-prompt')!;
+  const gameTerminalPath = document.getElementById('game-terminal-path')!;
+  const objectivesList = document.getElementById('objectives-list')!;
+  const objectivesProgress = document.getElementById('objectives-progress')!;
+  const storyIntro = document.getElementById('story-intro')!;
+  const activeChallengeTitle = document.getElementById('active-challenge-title')!;
+  const challengeBadge = document.getElementById('challenge-badge')!;
+  const achievementPopup = document.getElementById('achievement-popup')!;
+  const achievementIcon = document.getElementById('achievement-icon')!;
+  const achievementTitle = document.getElementById('achievement-title')!;
+  const achievementDesc = document.getElementById('achievement-desc')!;
+  const requestHintBtn = document.getElementById('request-hint')!;
+  const toggleObjectivesBtn = document.getElementById('toggle-objectives')!;
+  const closeObjectivesBtn = document.getElementById('close-objectives')!;
+  const terminalObjectives = document.getElementById('terminal-objectives')!;
+
+  // Caro elements
+  const caroStatus = document.getElementById('caro-status')!;
+  const statusDot = document.getElementById('status-dot')!;
+
+  // Initialize
+  function init() {
+    setupEventListeners();
+    loadProgress();
+    updateAchievementsDisplay();
+
+    // Listen for model loaded
+    window.addEventListener('model-loaded', () => {
+      modelReady = true;
+      caroStatus.textContent = 'AI Ready!';
+      addCaroMessage('My AI brain is now loaded! I can help you with hints and explanations. Just ask!');
+    });
+  }
+
+  function setupEventListeners() {
+    // Challenge card clicks
+    document.querySelectorAll('.challenge-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const challengeId = (card as HTMLElement).dataset.challenge!;
+        const status = card.querySelector('.challenge-status')!.getAttribute('data-status');
+        if (status !== 'locked') {
+          startChallenge(challengeId);
+        }
+      });
+    });
+
+    // Back button
+    backBtn.addEventListener('click', exitChallenge);
+
+    // Game terminal input with history support
+    gameInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        handleGameCommand();
+        historyIndex = -1;
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (commandHistory.length > 0) {
+          if (historyIndex < commandHistory.length - 1) {
+            historyIndex++;
+          }
+          gameInput.value = commandHistory[commandHistory.length - 1 - historyIndex] || '';
+        }
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (historyIndex > 0) {
+          historyIndex--;
+          gameInput.value = commandHistory[commandHistory.length - 1 - historyIndex] || '';
+        } else {
+          historyIndex = -1;
+          gameInput.value = '';
+        }
+      }
+    });
+
+    // Hint button - triggers inline Caro response
+    requestHintBtn.addEventListener('click', requestHint);
+
+    // Objectives toggle
+    toggleObjectivesBtn.addEventListener('click', () => {
+      objectivesVisible = !objectivesVisible;
+      terminalObjectives.classList.toggle('visible', objectivesVisible);
+    });
+
+    closeObjectivesBtn.addEventListener('click', () => {
+      objectivesVisible = false;
+      terminalObjectives.classList.remove('visible');
+    });
+  }
+
+  // Check if input is natural language (not a command)
+  function isNaturalLanguage(input: string): boolean {
+    const trimmed = input.trim().toLowerCase();
+
+    // If starts with "caro", treat the rest as a query
+    if (trimmed.startsWith('caro ')) {
+      return true;
+    }
+
+    // Check natural language patterns
+    return NATURAL_LANGUAGE_PATTERNS.some(pattern => pattern.test(trimmed));
+  }
+
+  // Start a challenge
+  function startChallenge(challengeId: string) {
+    currentChallenge = challengeId;
+    const challenge = CHALLENGES[challengeId as keyof typeof CHALLENGES];
+
+    // Reset state
+    fileSystem = createChallengeFilesystem();
+    currentDirectory = '/home/learner';
+    completedObjectives = new Set();
+    shownFeedback = new Set(); // Reset feedback tracking for fresh challenge
+
+    // Update UI
+    challengeSelector.classList.add('hidden');
+    challengeActive.classList.remove('hidden');
+
+    activeChallengeTitle.textContent = challenge.title;
+    challengeBadge.textContent = challenge.difficulty;
+    storyIntro.innerHTML = challenge.storyIntro;
+
+    // Render objectives and show objectives panel
+    renderObjectives();
+    objectivesVisible = true;
+    terminalObjectives.classList.add('visible');
+    updatePrompt();
+
+    // Clear game output and add story intro + Caro welcome
+    gameOutput.innerHTML = `<div class="story-intro">${challenge.storyIntro}</div>`;
+
+    // Add inline Caro welcome message
+    addCaroInlineMessage(
+      `Welcome to "${challenge.title}"! ${getCaroEncouragement()}`,
+      null,
+      `Type <code>caro help</code> to ask me anything, or just type in natural language!`
+    );
+
+    gameInput.focus();
+  }
+
+  // Exit challenge
+  function exitChallenge() {
+    currentChallenge = null;
+    challengeSelector.classList.remove('hidden');
+    challengeActive.classList.add('hidden');
+  }
+
+  // Render objectives
+  function renderObjectives() {
+    if (!currentChallenge) return;
+    const challenge = CHALLENGES[currentChallenge as keyof typeof CHALLENGES];
+
+    objectivesList.innerHTML = challenge.objectives.map(obj => `
+      <li class="${completedObjectives.has(obj.id) ? 'completed' : ''}" data-objective="${obj.id}">
+        <span class="objective-check"></span>
+        <span>${obj.text}</span>
+      </li>
+    `).join('');
+
+    const completed = challenge.objectives.filter(o => completedObjectives.has(o.id)).length;
+    objectivesProgress.textContent = `${completed}/${challenge.objectives.length}`;
+  }
+
+  // Handle game command
+  async function handleGameCommand() {
+    const input = gameInput.value.trim();
+    if (!input) return;
+
+    // Add to command history
+    if (input && !commandHistory.includes(input)) {
+      commandHistory.push(input);
+      if (commandHistory.length > 50) commandHistory.shift(); // Keep last 50
+    }
+
+    gameInput.value = '';
+    addGameOutput(`<span class="prompt-text">${gamePrompt.textContent}</span> <span class="command-text">${escapeHtml(input)}</span>`, 'terminal-line');
+
+    // Check if it's natural language input (should go to Caro)
+    if (isNaturalLanguage(input)) {
+      // Extract the query (remove "caro " prefix if present)
+      const query = input.toLowerCase().startsWith('caro ')
+        ? input.substring(5).trim()
+        : input;
+      await handleCaroQuery(query);
+      return;
+    }
+
+    // Check if it's just "caro" by itself
+    if (input.toLowerCase() === 'caro') {
+      addCaroInlineMessage(
+        "Hey! I'm Caro, your terminal assistant. How can I help?",
+        null,
+        'Try asking me something like "how do I find hidden files?" or "caro help"'
+      );
+      return;
+    }
+
+    // Execute command
+    const result = executeGameCommand(input);
+    if (result) {
+      addGameOutput(result.output, result.type || 'output-text');
+
+      // If command failed, offer Caro help
+      if (result.type?.includes('error')) {
+        offerCaroHelp(input, result.output);
+      }
+    }
+
+    // Check objectives
+    checkObjectives(input);
+  }
+
+  // Handle Caro query (natural language or explicit caro command)
+  // Mimics the real Rust CLI behavior: translate → execute → show result
+  async function handleCaroQuery(query: string) {
+    // Show Caro thinking
+    showCaroThinking();
+
+    // First, try keyword-based hint (works without model)
+    const keywordHint = getKeywordBasedHint(query);
+
+    if (!modelReady) {
+      hideCaroThinking();
+
+      if (keywordHint) {
+        // We have a keyword match - show explanation and execute the command!
+        addCaroInlineMessage(
+          keywordHint.text,
+          keywordHint.command,
+          keywordHint.explanation
+        );
+
+        // If there's a command, execute it automatically (like real Caro)
+        if (keywordHint.command && !keywordHint.command.includes('folder_name') && !keywordHint.command.includes('filename')) {
+          executeAndShowResult(keywordHint.command);
+        }
+      } else {
+        addCaroInlineMessage(
+          "I'd love to help with my full AI brain, but the model isn't loaded yet!",
+          null,
+          "Load an AI model to get smarter translations. For now, try asking about: list files, show hidden, where am I, go to folder"
+        );
+      }
+      return;
+    }
+
+    try {
+      const engine = getTerminalTutorEngine();
+
+      // Use structured translation (like real Rust CLI)
+      // Prompt for JSON response to parse reliably
+      const translationPrompt = `You are Caro, a terminal command translator. Translate the user's natural language request into a Unix command.
+
+Current directory: ${currentDirectory}
+User request: "${query}"
+
+Respond with ONLY a JSON object in this exact format (no markdown, no backticks):
+{"command":"the exact command to run","explanation":"brief explanation","safety":"safe"}
+
+Example responses:
+{"command":"ls -a","explanation":"List all files including hidden ones","safety":"safe"}
+{"command":"cat .bashrc","explanation":"Display contents of .bashrc file","safety":"safe"}
+{"command":"rm -rf /","explanation":"Delete everything - NEVER RUN THIS","safety":"dangerous"}`;
+
+      let response = '';
+      await engine.generateResponse(translationPrompt, (token) => {
+        response = token;
+      });
+
+      hideCaroThinking();
+
+      // Parse the JSON response (like real Rust CLI does)
+      let command: string | null = null;
+      let explanation = '';
+      let safetyLevel: 'safe' | 'moderate' | 'dangerous' = 'safe';
+
+      try {
+        // Extract JSON from response (handle potential markdown wrapping)
+        const jsonMatch = response.match(/\{[\s\S]*?\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          command = parsed.command || parsed.cmd || null;
+          explanation = parsed.explanation || parsed.desc || 'Translated command';
+          safetyLevel = parsed.safety === 'dangerous' ? 'dangerous' :
+                        parsed.safety === 'moderate' ? 'moderate' : 'safe';
+        }
+      } catch (parseError) {
+        // Fallback: try to extract command from backticks or quotes
+        const cmdMatch = response.match(/`([^`]+)`/) || response.match(/"([^"]+)"/) || response.match(/'([^']+)'/);
+        if (cmdMatch) {
+          command = cmdMatch[1];
+          explanation = response.replace(cmdMatch[0], '').trim();
+        }
+      }
+
+      // If we got a command, show it and execute it (like real Caro)
+      if (command) {
+        addCaroInlineMessage(explanation, command, null, safetyLevel, true);
+
+        // Auto-execute safe commands (mimicking real Caro behavior)
+        if (safetyLevel === 'safe') {
+          executeAndShowResult(command);
+        }
+      } else if (keywordHint) {
+        // Fallback to keyword hint
+        addCaroInlineMessage(keywordHint.text, keywordHint.command, keywordHint.explanation);
+        if (keywordHint.command && !keywordHint.command.includes('_name')) {
+          executeAndShowResult(keywordHint.command);
+        }
+      } else {
+        // Couldn't parse - show raw response
+        addCaroInlineMessage(
+          response.trim() || "I understood your request but couldn't translate it to a specific command.",
+          null,
+          "Try being more specific, like 'show hidden files' or 'go to Documents folder'"
+        );
+      }
+
+    } catch (error) {
+      console.error('[Caro] Translation error:', error);
+      hideCaroThinking();
+
+      // Fallback to keyword-based hint
+      if (keywordHint) {
+        addCaroInlineMessage(keywordHint.text, keywordHint.command, keywordHint.explanation);
+        if (keywordHint.command && !keywordHint.command.includes('_name')) {
+          executeAndShowResult(keywordHint.command);
+        }
+      } else {
+        addCaroInlineMessage(
+          "I had trouble understanding that. Let me help you differently!",
+          null,
+          "Try: 'show files', 'list hidden files', 'where am I', 'go to Downloads'"
+        );
+      }
+    }
+  }
+
+  // Execute a command and show the result in the terminal
+  function executeAndShowResult(command: string) {
+    // Add a small delay for better UX
+    setTimeout(() => {
+      // Show the command being executed
+      addGameOutput(`<span class="caro-executed">🐕 Caro ran:</span> <span class="command-text">${escapeHtml(command)}</span>`, 'terminal-line caro-ran');
+
+      // Execute and show result
+      const result = executeGameCommand(command);
+      if (result) {
+        addGameOutput(result.output, result.type || 'output-text');
+      }
+
+      // Check objectives
+      checkObjectives(command);
+    }, 200);
+  }
+
+  // Offer Caro help when a command fails
+  function offerCaroHelp(command: string, error: string) {
+    setTimeout(() => {
+      addCaroInlineMessage(
+        `Looks like that command didn't work. Need help?`,
+        null,
+        `Try typing <code>caro how do I ${command.split(' ')[0]}</code> or click the "Ask Caro" button!`
+      );
+    }, 300);
+  }
+
+  // Get keyword-based hint when model isn't loaded
+  function getKeywordBasedHint(query: string): { text: string; command: string | null; explanation: string } | null {
+    const q = query.toLowerCase();
+
+    if (/hidden|secret|dot file/i.test(q)) {
+      return {
+        text: "To see hidden files (those starting with a dot), use the -a flag with ls!",
+        command: "ls -a",
+        explanation: "The -a flag shows ALL files, including hidden ones."
+      };
+    }
+
+    if (/list|show|see|what.*here/i.test(q)) {
+      return {
+        text: "To list files in the current directory:",
+        command: "ls",
+        explanation: "Add -l for detailed info, or -a to show hidden files too."
+      };
+    }
+
+    if (/where.*am|current.*dir|pwd/i.test(q)) {
+      return {
+        text: "To see your current directory:",
+        command: "pwd",
+        explanation: "pwd stands for 'print working directory'"
+      };
+    }
+
+    if (/go to|navigate|change.*dir|cd/i.test(q)) {
+      return {
+        text: "To change directories, use cd followed by the directory name:",
+        command: "cd folder_name",
+        explanation: "Use cd .. to go up, cd ~ to go home"
+      };
+    }
+
+    if (/read|view|cat|content/i.test(q)) {
+      return {
+        text: "To read the contents of a file:",
+        command: "cat filename",
+        explanation: "cat displays the entire file content"
+      };
+    }
+
+    if (/create|make|mkdir|folder/i.test(q)) {
+      return {
+        text: "To create a new directory:",
+        command: "mkdir folder_name",
+        explanation: "mkdir creates a new empty directory"
+      };
+    }
+
+    if (/move|mv/i.test(q)) {
+      return {
+        text: "To move a file to a different location:",
+        command: "mv source destination",
+        explanation: "mv can also be used to rename files"
+      };
+    }
+
+    if (/copy|cp/i.test(q)) {
+      return {
+        text: "To copy a file:",
+        command: "cp source destination",
+        explanation: "The original file remains in place"
+      };
+    }
+
+    if (/help/i.test(q)) {
+      return {
+        text: "Here are the available commands: pwd, ls, cd, cat, mkdir, mv, cp, help",
+        command: null,
+        explanation: "Type any command to try it, or ask me about a specific one!"
+      };
+    }
+
+    return null;
+  }
+
+  // Execute game command
+  function executeGameCommand(command: string): { output: string; type?: string } | null {
+    const parts = command.trim().split(/\s+/);
+    const cmd = parts[0];
+    const args = parts.slice(1);
+
+    switch (cmd) {
+      case 'pwd':
+        return { output: currentDirectory };
+
+      case 'ls': {
+        // Parse flags - support combined flags like -la, -al, -lah, etc.
+        let showAll = false;
+        let longFormat = false;
+        let path = '.';
+
+        for (const arg of args) {
+          if (arg.startsWith('-')) {
+            // Parse each character after the dash as a flag
+            const flags = arg.slice(1);
+            for (const flag of flags) {
+              if (flag === 'a') showAll = true;
+              if (flag === 'l') longFormat = true;
+              if (flag === 'h') { /* human readable - we already do this */ }
+            }
+          } else {
+            path = arg;
+          }
+        }
+
+        const targetPath = resolvePath(currentDirectory, path);
+        const node = getNodeAtPath(fileSystem, targetPath);
+
+        if (!node) {
+          return { output: `ls: cannot access '${path}': No such file or directory`, type: 'output-text error' };
+        }
+
+        if (node.type === 'file') {
+          return { output: node.name };
+        }
+
+        const output = formatLsOutput(node.children, { showAll, longFormat });
+        return { output: ansiToHtml(output) || '(empty directory)' };
+      }
+
+      case 'cd': {
+        const target = args[0] || '~';
+        const newPath = resolvePath(currentDirectory, target);
+        const node = getNodeAtPath(fileSystem, newPath);
+
+        if (!node) {
+          return { output: `cd: no such file or directory: ${target}`, type: 'output-text error' };
+        }
+
+        if (node.type !== 'directory') {
+          return { output: `cd: not a directory: ${target}`, type: 'output-text error' };
+        }
+
+        currentDirectory = newPath;
+        updatePrompt();
+
+        // Discovery feedback
+        if (newPath.includes('.cryptoKeys')) {
+          return { output: '🔐 You found a hidden crypto folder!', type: 'output-text discovery' };
+        }
+        if (newPath.includes('.hamster')) {
+          return { output: '🐹 What\'s this? A secret hamster lair?!', type: 'output-text discovery' };
+        }
+
+        return null;
+      }
+
+      case 'cat': {
+        if (args.length === 0) {
+          return { output: 'cat: missing file operand', type: 'output-text error' };
+        }
+        const filePath = resolvePath(currentDirectory, args[0]);
+        const node = getNodeAtPath(fileSystem, filePath);
+
+        if (!node) {
+          return { output: `cat: ${args[0]}: No such file or directory`, type: 'output-text error' };
+        }
+        if (node.type === 'directory') {
+          return { output: `cat: ${args[0]}: Is a directory`, type: 'output-text error' };
+        }
+
+        // Check for special discoveries
+        if (node.name === '.hidden_treasure' || node.name === 'wallet.key' || node.name === 'master_plan.txt') {
+          return { output: node.content, type: 'output-text success' };
+        }
+
+        return { output: node.content };
+      }
+
+      case 'mkdir': {
+        if (args.length === 0) {
+          return { output: 'mkdir: missing operand', type: 'output-text error' };
+        }
+        const parent = getNodeAtPath(fileSystem, currentDirectory) as VirtualDirectory;
+        const dirName = args[0];
+
+        if (parent.children.some(c => c.name === dirName)) {
+          return { output: `mkdir: cannot create directory '${dirName}': File exists`, type: 'output-text error' };
+        }
+
+        parent.children.push({
+          name: dirName,
+          type: 'directory',
+          children: [],
+          permissions: 'drwxr-xr-x',
+          owner: 'learner',
+          modified: new Date(),
+        });
+
+        return { output: `Created directory: ${dirName}`, type: 'output-text success' };
+      }
+
+      case 'mv': {
+        if (args.length < 2) {
+          return { output: 'mv: missing destination file operand', type: 'output-text error' };
+        }
+
+        const sourcePath = resolvePath(currentDirectory, args[0]);
+        const destPath = resolvePath(currentDirectory, args[1]);
+
+        const sourceParentPath = sourcePath.substring(0, sourcePath.lastIndexOf('/')) || '/';
+        const sourceParent = getNodeAtPath(fileSystem, sourceParentPath) as VirtualDirectory;
+        const sourceNode = getNodeAtPath(fileSystem, sourcePath);
+
+        if (!sourceNode) {
+          return { output: `mv: cannot stat '${args[0]}': No such file or directory`, type: 'output-text error' };
+        }
+
+        const destNode = getNodeAtPath(fileSystem, destPath);
+        let destParent: VirtualDirectory;
+        let newName: string;
+
+        if (destNode && destNode.type === 'directory') {
+          destParent = destNode as VirtualDirectory;
+          newName = sourceNode.name;
+        } else {
+          const destParentPath = destPath.substring(0, destPath.lastIndexOf('/')) || '/';
+          destParent = getNodeAtPath(fileSystem, destParentPath) as VirtualDirectory;
+          newName = destPath.substring(destPath.lastIndexOf('/') + 1);
+        }
+
+        if (!destParent) {
+          return { output: `mv: cannot move to '${args[1]}': No such directory`, type: 'output-text error' };
+        }
+
+        // Remove from source
+        const sourceIndex = sourceParent.children.findIndex(c => c.name === sourceNode.name);
+        sourceParent.children.splice(sourceIndex, 1);
+
+        // Add to destination
+        sourceNode.name = newName;
+        destParent.children.push(sourceNode);
+
+        return { output: `Moved ${args[0]} to ${args[1]}`, type: 'output-text success' };
+      }
+
+      case 'cp': {
+        if (args.length < 2) {
+          return { output: 'cp: missing destination file operand', type: 'output-text error' };
+        }
+
+        const sourcePath = resolvePath(currentDirectory, args[0]);
+        const sourceNode = getNodeAtPath(fileSystem, sourcePath);
+
+        if (!sourceNode || sourceNode.type !== 'file') {
+          return { output: `cp: cannot copy '${args[0]}': Not a file`, type: 'output-text error' };
+        }
+
+        const destPath = resolvePath(currentDirectory, args[1]);
+        const destNode = getNodeAtPath(fileSystem, destPath);
+
+        let destParent: VirtualDirectory;
+        let newName: string;
+
+        if (destNode && destNode.type === 'directory') {
+          destParent = destNode as VirtualDirectory;
+          newName = sourceNode.name;
+        } else {
+          const destParentPath = destPath.substring(0, destPath.lastIndexOf('/')) || '/';
+          destParent = getNodeAtPath(fileSystem, destParentPath) as VirtualDirectory;
+          newName = destPath.substring(destPath.lastIndexOf('/') + 1);
+        }
+
+        if (!destParent) {
+          return { output: `cp: cannot copy to '${args[1]}': No such directory`, type: 'output-text error' };
+        }
+
+        // Create copy
+        const copy: VirtualFile = {
+          name: newName,
+          type: 'file',
+          content: sourceNode.content,
+          size: sourceNode.size,
+          permissions: sourceNode.permissions,
+          owner: sourceNode.owner,
+          modified: new Date(),
+        };
+
+        destParent.children.push(copy);
+        return { output: `Copied ${args[0]} to ${args[1]}`, type: 'output-text success' };
+      }
+
+      case 'help':
+        return { output: 'Available commands: pwd, ls, cd, cat, mkdir, mv, cp, help\n\nTip: Ask Caro for hints if you\'re stuck!' };
+
+      default:
+        return { output: `Command not found: ${cmd}. Type 'help' for available commands.`, type: 'output-text error' };
+    }
+  }
+
+  // Check objectives after command
+  function checkObjectives(command: string) {
+    if (!currentChallenge) return;
+    const challenge = CHALLENGES[currentChallenge as keyof typeof CHALLENGES];
+
+    // Secret Message challenge
+    if (currentChallenge === 'secret-message') {
+      if (currentDirectory === '/home/learner') {
+        completeObjective('nav-home');
+      }
+      if (command.includes('ls -a') || command.includes('ls -la')) {
+        completeObjective('find-hidden');
+      }
+      if (command.includes('cat .hidden_treasure') || command.includes('cat /home/learner/.hidden_treasure')) {
+        completeObjective('read-secret');
+      }
+    }
+
+    // Organize Chaos challenge
+    if (currentChallenge === 'organize-chaos') {
+      if (currentDirectory.includes('Downloads')) {
+        completeObjective('go-downloads');
+      }
+      if (command.startsWith('mkdir')) {
+        const downloads = getNodeAtPath(fileSystem, '/home/learner/Downloads') as VirtualDirectory;
+        const folders = downloads?.children.filter(c => c.type === 'directory').map(c => c.name) || [];
+        if (folders.includes('Documents') || folders.includes('Images') || folders.includes('Code')) {
+          completeObjective('create-folders');
+        }
+      }
+      if (command.startsWith('mv')) {
+        completeObjective('move-files');
+      }
+      if (command.startsWith('ls') && completedObjectives.has('move-files')) {
+        completeObjective('verify');
+      }
+    }
+
+    // Crypto Heist
+    if (currentChallenge === 'crypto-heist') {
+      if (currentDirectory.includes('.cryptoKeys')) {
+        completeObjective('find-crypto');
+      }
+      if (currentDirectory.includes('vault/secure')) {
+        completeObjective('navigate-deep');
+      }
+      if (command.includes('cat wallet.key')) {
+        completeObjective('read-wallet');
+      }
+      if (command.includes('cp') && command.includes('wallet.key') && command.includes('Documents')) {
+        completeObjective('copy-key');
+      }
+    }
+
+    // World Domination
+    if (currentChallenge === 'world-domination') {
+      if (command.includes('cat master_plan')) {
+        completeObjective('find-plans');
+      }
+      if (command.includes('cat agents')) {
+        completeObjective('find-agents');
+      }
+      if (command.includes('cat timeline')) {
+        completeObjective('find-timeline');
+      }
+      if (command.includes('echo') && command.includes('report.txt')) {
+        completeObjective('compile-report');
+      }
+    }
+
+    // Check for challenge completion
+    const allComplete = challenge.objectives.every(o => completedObjectives.has(o.id));
+    if (allComplete) {
+      completeChallenge();
+    }
+  }
+
+  // Complete an objective
+  function completeObjective(objectiveId: string) {
+    if (completedObjectives.has(objectiveId)) return;
+
+    completedObjectives.add(objectiveId);
+    renderObjectives();
+
+    // Caro celebration (only show once per objective)
+    const feedbackKey = `objective-${objectiveId}`;
+    if (!shownFeedback.has(feedbackKey)) {
+      shownFeedback.add(feedbackKey);
+      addCaroMessage(getCaroCelebration());
+    }
+  }
+
+  // Complete challenge
+  function completeChallenge() {
+    if (!currentChallenge) return;
+
+    // Check if already celebrated this challenge
+    const feedbackKey = `challenge-complete-${currentChallenge}`;
+    if (shownFeedback.has(feedbackKey)) return;
+    shownFeedback.add(feedbackKey);
+
+    const challenge = CHALLENGES[currentChallenge as keyof typeof CHALLENGES];
+
+    // Show achievement
+    showAchievement(challenge.achievement.icon, challenge.achievement.title, challenge.achievement.desc);
+
+    // Unlock achievement
+    unlockedAchievements.add(currentChallenge);
+    updateAchievementsDisplay();
+    saveProgress();
+
+    // Unlock next challenge
+    unlockNextChallenge();
+
+    // Caro big celebration (only once)
+    setTimeout(() => {
+      addCaroMessage(`🎉 AMAZING! You completed "${challenge.title}"! ${challenge.achievement.desc}`);
+    }, 2000);
+  }
+
+  // Show achievement popup
+  function showAchievement(icon: string, title: string, desc: string) {
+    achievementIcon.textContent = icon;
+    achievementTitle.textContent = title;
+    achievementDesc.textContent = desc;
+    achievementPopup.classList.remove('hidden');
+
+    setTimeout(() => {
+      achievementPopup.classList.add('hidden');
+    }, 3000);
+  }
+
+  // Unlock next challenge
+  function unlockNextChallenge() {
+    const challenges = ['secret-message', 'organize-chaos', 'crypto-heist', 'world-domination'];
+    const currentIndex = challenges.indexOf(currentChallenge!);
+    const nextChallenge = challenges[currentIndex + 1];
+
+    if (nextChallenge) {
+      const card = document.querySelector(`[data-challenge="${nextChallenge}"]`);
+      const status = card?.querySelector('.challenge-status');
+      if (status) {
+        status.setAttribute('data-status', 'available');
+        card?.removeAttribute('data-locked');
+      }
+    }
+  }
+
+  // Request hint - now shows inline in terminal
+  async function requestHint() {
+    if (!currentChallenge) return;
+    const challenge = CHALLENGES[currentChallenge as keyof typeof CHALLENGES];
+
+    const incompleteObjectives = challenge.objectives.filter(o => !completedObjectives.has(o.id));
+    const currentObjectiveIndex = challenge.objectives.length - incompleteObjectives.length;
+    const hint = challenge.hints[currentObjectiveIndex] || challenge.hints[0];
+
+    if (modelReady) {
+      // Use AI for contextual hint
+      await askCaroForHint(incompleteObjectives[0]?.text || 'completing the challenge');
+    } else {
+      addCaroInlineMessage(`💡 ${hint}`, null, 'Load the AI model for smarter hints!');
+    }
+  }
+
+  // Ask Caro for contextual hint (inline in terminal)
+  async function askCaroForHint(objective: string) {
+    showCaroThinking();
+
+    try {
+      const engine = getTerminalTutorEngine();
+      let response = '';
+      await engine.generateResponse(
+        `The user needs help with: "${objective}". Current directory: ${currentDirectory}. Give ONE specific, helpful hint without giving the full answer. If there's a command they should try, include it. Be encouraging!`,
+        (token) => { response = token; }
+      );
+
+      hideCaroThinking();
+
+      // Try to extract command from response
+      const commandMatch = response.match(/`([^`]+)`/);
+      const command = commandMatch ? commandMatch[1] : null;
+
+      addCaroInlineMessage(
+        `💡 ${response.replace(/`[^`]+`/g, '').trim()}`,
+        command,
+        null,
+        'safe',
+        !!command
+      );
+    } catch (error) {
+      hideCaroThinking();
+      const challenge = CHALLENGES[currentChallenge as keyof typeof CHALLENGES];
+      addCaroInlineMessage(`💡 ${challenge.hints[0]}`, null);
+    }
+  }
+
+  // Helper functions
+  function addGameOutput(content: string, className: string = 'output-text') {
+    const div = document.createElement('div');
+    div.className = className;
+    div.innerHTML = content;
+    gameOutput.appendChild(div);
+    gameOutput.scrollTop = gameOutput.scrollHeight;
+  }
+
+  // Add Caro inline message in terminal (the main way Caro communicates)
+  function addCaroInlineMessage(
+    text: string,
+    command: string | null,
+    tip?: string | null,
+    safetyLevel: 'safe' | 'moderate' | 'dangerous' = 'safe',
+    showActions: boolean = false
+  ) {
+    const safetyIcons = {
+      safe: '✓',
+      moderate: '⚠',
+      dangerous: '⚠'
+    };
+    const safetyLabels = {
+      safe: 'Safe to run',
+      moderate: 'Use with caution',
+      dangerous: 'Potentially dangerous'
+    };
+
+    const commandBlock = command ? `
+      <div class="caro-inline-command">
+        <code>${escapeHtml(command)}</code>
+        <button class="copy-btn" data-command="${escapeHtml(command)}">Copy</button>
+      </div>
+      <div class="caro-safety-indicator ${safetyLevel}">
+        <span>${safetyIcons[safetyLevel]}</span>
+        <span>${safetyLabels[safetyLevel]}</span>
+      </div>
+    ` : '';
+
+    const actionsBlock = showActions && command ? `
+      <div class="caro-inline-actions">
+        <button class="execute-btn" data-command="${escapeHtml(command)}">▶ Execute</button>
+        <button class="explain-btn" data-command="${escapeHtml(command)}">💡 Explain more</button>
+      </div>
+    ` : '';
+
+    const tipBlock = tip ? `<div class="caro-inline-tip" style="font-size: 12px; color: #888; margin-top: 8px;">${tip}</div>` : '';
+
+    const div = document.createElement('div');
+    div.className = 'caro-inline-response';
+    div.innerHTML = `
+      <div class="caro-inline-header">
+        <img src="/caro-pixel.png" alt="Caro" />
+        <span class="caro-name">Caro</span>
+      </div>
+      <div class="caro-inline-text">${text}</div>
+      ${commandBlock}
+      ${actionsBlock}
+      ${tipBlock}
+    `;
+
+    // Add event listeners for buttons
+    const copyBtn = div.querySelector('.copy-btn');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(command!);
+        (copyBtn as HTMLButtonElement).textContent = 'Copied!';
+        setTimeout(() => { (copyBtn as HTMLButtonElement).textContent = 'Copy'; }, 1500);
+      });
+    }
+
+    const executeBtn = div.querySelector('.execute-btn');
+    if (executeBtn) {
+      executeBtn.addEventListener('click', () => {
+        gameInput.value = command!;
+        handleGameCommand();
+      });
+    }
+
+    const explainBtn = div.querySelector('.explain-btn');
+    if (explainBtn) {
+      explainBtn.addEventListener('click', async () => {
+        await handleCaroQuery(`explain what ${command} does in detail`);
+      });
+    }
+
+    gameOutput.appendChild(div);
+    gameOutput.scrollTop = gameOutput.scrollHeight;
+  }
+
+  // Legacy function for backwards compatibility
+  function addCaroMessage(message: string) {
+    addCaroInlineMessage(message, null);
+  }
+
+  function showCaroThinking() {
+    if (statusDot) statusDot.classList.add('thinking');
+    if (caroStatus) caroStatus.textContent = 'Caro is thinking...';
+
+    const div = document.createElement('div');
+    div.className = 'caro-thinking-inline';
+    div.id = 'caro-thinking';
+    div.innerHTML = `
+      <img src="/caro-pixel.png" alt="Caro" />
+      <div class="thinking-dots"><span></span><span></span><span></span></div>
+    `;
+    gameOutput.appendChild(div);
+    gameOutput.scrollTop = gameOutput.scrollHeight;
+  }
+
+  function hideCaroThinking() {
+    if (statusDot) statusDot.classList.remove('thinking');
+    if (caroStatus) caroStatus.textContent = 'Caro is ready to help!';
+    document.getElementById('caro-thinking')?.remove();
+  }
+
+  function updatePrompt() {
+    const displayPath = currentDirectory.replace('/home/learner', '~');
+    gamePrompt.textContent = `learner@caro-game:${displayPath}$`;
+    gameTerminalPath.textContent = `learner@caro-game:${displayPath}`;
+  }
+
+  function updateAchievementsDisplay() {
+    const achievementMap: Record<string, number> = {
+      'secret-message': 1,
+      'organize-chaos': 2,
+      'crypto-heist': 3,
+      'world-domination': 4,
+    };
+
+    unlockedAchievements.forEach(id => {
+      const index = achievementMap[id];
+      if (index !== undefined) {
+        const achievement = document.querySelectorAll('.achievements-list .achievement')[index];
+        achievement?.classList.remove('locked');
+        achievement?.classList.add('unlocked');
+      }
+    });
+
+    // First steps achievement
+    if (unlockedAchievements.size > 0) {
+      const firstSteps = document.querySelectorAll('.achievements-list .achievement')[0];
+      firstSteps?.classList.remove('locked');
+      firstSteps?.classList.add('unlocked');
+    }
+
+    // Master achievement
+    if (unlockedAchievements.size >= 4) {
+      const master = document.querySelectorAll('.achievements-list .achievement')[4];
+      master?.classList.remove('locked');
+      master?.classList.add('unlocked');
+    }
+  }
+
+  function getCaroEncouragement(): string {
+    const messages = [
+      "You've got this!",
+      "Let's solve this together!",
+      "I believe in you!",
+      "Ready when you are!",
+      "This is going to be fun!",
+    ];
+    return messages[Math.floor(Math.random() * messages.length)];
+  }
+
+  function getCaroCelebration(): string {
+    const messages = [
+      "Nice work! You completed an objective! 🎉",
+      "Awesome! Keep going! 🌟",
+      "You're doing great! ✨",
+      "That's the way! 💪",
+      "Excellent progress! 🚀",
+    ];
+    return messages[Math.floor(Math.random() * messages.length)];
+  }
+
+  function saveProgress() {
+    localStorage.setItem('challengeProgress', JSON.stringify({
+      unlockedAchievements: Array.from(unlockedAchievements),
+    }));
+  }
+
+  function loadProgress() {
+    const saved = localStorage.getItem('challengeProgress');
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        unlockedAchievements = new Set(data.unlockedAchievements || []);
+
+        // Unlock challenges based on achievements
+        unlockedAchievements.forEach(id => {
+          unlockNextChallenge();
+        });
+      } catch (e) {
+        // Ignore
+      }
+    }
+  }
+
+  function escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Initialize
+  init();
+</script>

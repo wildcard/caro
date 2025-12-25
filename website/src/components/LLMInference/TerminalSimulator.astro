@@ -1,0 +1,1179 @@
+---
+/**
+ * TerminalSimulator.astro
+ * Interactive terminal simulator for learning shell commands
+ * Supports both natural language input and direct command execution
+ */
+---
+
+<div id="terminal-simulator" class="terminal-simulator">
+  <!-- Mode Toggle -->
+  <div class="mode-toggle">
+    <button class="mode-btn active" data-mode="natural">
+      <span class="mode-icon">💬</span>
+      <span class="mode-text">Natural Language</span>
+    </button>
+    <button class="mode-btn" data-mode="command">
+      <span class="mode-icon">⌨️</span>
+      <span class="mode-text">Direct Commands</span>
+    </button>
+  </div>
+
+  <!-- Terminal Window -->
+  <div class="terminal-window">
+    <div class="terminal-header">
+      <div class="terminal-buttons">
+        <span class="btn-close"></span>
+        <span class="btn-minimize"></span>
+        <span class="btn-maximize"></span>
+      </div>
+      <div class="terminal-title">
+        <span id="terminal-path">learner@caro-tutor:~</span>
+      </div>
+      <div class="terminal-actions">
+        <button class="action-btn" id="clear-terminal" title="Clear terminal">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="terminal-body" id="terminal-body">
+      <div class="terminal-output" id="terminal-output">
+        <div class="welcome-message">
+          <pre class="ascii-art">
+   ____
+  / ___|__ _ _ __ ___
+ | |   / _` | '__/ _ \
+ | |__| (_| | | | (_) |
+  \____\__,_|_|  \___/
+
+          </pre>
+          <p>Welcome to the Caro Terminal Tutor!</p>
+          <p class="dim">Type a command or describe what you want to do in plain English.</p>
+          <p class="dim">Try: "show me what files are here" or just type <code>ls</code></p>
+        </div>
+      </div>
+
+      <div class="terminal-input-area">
+        <span class="prompt" id="prompt">learner@caro-tutor:~$</span>
+        <input
+          type="text"
+          id="terminal-input"
+          class="terminal-input"
+          placeholder="Type a command or describe what you want..."
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <div class="input-actions">
+          <button class="submit-btn" id="submit-btn" title="Execute (Enter)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Command Help Panel -->
+  <div class="help-panel" id="help-panel">
+    <div class="help-header">
+      <h4>Quick Reference</h4>
+      <button class="help-close" id="help-close">×</button>
+    </div>
+    <div class="help-content">
+      <div class="help-category">
+        <h5>Navigation</h5>
+        <div class="help-commands">
+          <span class="help-cmd"><code>pwd</code> - where am I?</span>
+          <span class="help-cmd"><code>ls</code> - what's here?</span>
+          <span class="help-cmd"><code>cd</code> - go somewhere</span>
+        </div>
+      </div>
+      <div class="help-category">
+        <h5>Files</h5>
+        <div class="help-commands">
+          <span class="help-cmd"><code>cat</code> - read file</span>
+          <span class="help-cmd"><code>mkdir</code> - make folder</span>
+          <span class="help-cmd"><code>touch</code> - create file</span>
+        </div>
+      </div>
+      <div class="help-category">
+        <h5>Natural Language</h5>
+        <div class="help-examples">
+          <span class="help-example">"show me hidden files"</span>
+          <span class="help-example">"go to Documents"</span>
+          <span class="help-example">"what's in notes.txt?"</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Learning Progress -->
+  <div class="progress-bar-section" id="progress-section">
+    <div class="progress-info">
+      <span class="progress-label">Learning Progress</span>
+      <span class="progress-stats" id="progress-stats">Level 1 • 0 commands learned</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="learning-progress" style="width: 0%"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .terminal-simulator {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .mode-toggle {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 4px;
+    background: var(--color-bg-secondary);
+    border-radius: 12px;
+    width: fit-content;
+  }
+
+  .mode-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+
+  .mode-btn:hover {
+    color: var(--color-text);
+    background: var(--color-bg);
+  }
+
+  .mode-btn.active {
+    background: var(--color-bg);
+    color: var(--color-text);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .mode-icon {
+    font-size: 16px;
+  }
+
+  .terminal-window {
+    background: #1e1e1e;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  }
+
+  .terminal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: #2d2d2d;
+    border-bottom: 1px solid #3d3d3d;
+  }
+
+  .terminal-buttons {
+    display: flex;
+    gap: 8px;
+  }
+
+  .terminal-buttons span {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .btn-close { background: #ff5f56; }
+  .btn-minimize { background: #ffbd2e; }
+  .btn-maximize { background: #27c93f; }
+
+  .terminal-title {
+    font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+    font-size: 13px;
+    color: #888;
+  }
+
+  .terminal-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .action-btn {
+    background: transparent;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: #888;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+
+  .action-btn:hover {
+    color: #fff;
+    background: #444;
+  }
+
+  .terminal-body {
+    min-height: 400px;
+    max-height: 500px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .terminal-output {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #d4d4d4;
+  }
+
+  .welcome-message {
+    margin-bottom: 20px;
+  }
+
+  .ascii-art {
+    color: #ff8c42;
+    font-size: 12px;
+    line-height: 1.2;
+    margin: 0 0 16px;
+  }
+
+  .welcome-message p {
+    margin: 4px 0;
+  }
+
+  .welcome-message .dim {
+    color: #888;
+  }
+
+  .welcome-message code {
+    background: #333;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #ff8c42;
+  }
+
+  .terminal-line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .terminal-line .prompt {
+    color: #22c55e;
+  }
+
+  .terminal-line .command {
+    color: #60a5fa;
+  }
+
+  .output-line {
+    margin-bottom: 4px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .output-line.error {
+    color: #ef4444;
+  }
+
+  .output-line.success {
+    color: #22c55e;
+  }
+
+  .output-line.info {
+    color: #888;
+    font-style: italic;
+  }
+
+  .output-line :global(.text-blue) {
+    color: #60a5fa;
+  }
+
+  .output-line :global(.text-green) {
+    color: #22c55e;
+  }
+
+  .ai-response {
+    background: #252525;
+    border-left: 3px solid #ff8c42;
+    padding: 12px 16px;
+    margin: 12px 0;
+    border-radius: 0 8px 8px 0;
+  }
+
+  .ai-response-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    color: #ff8c42;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .ai-response-content {
+    color: #d4d4d4;
+    line-height: 1.6;
+  }
+
+  .ai-response-content code {
+    background: #333;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #ff8c42;
+  }
+
+  .ai-response-content pre {
+    background: #1a1a1a;
+    padding: 12px;
+    border-radius: 6px;
+    margin: 8px 0;
+    overflow-x: auto;
+  }
+
+  .terminal-input-area {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px;
+    background: #1a1a1a;
+    border-top: 1px solid #333;
+  }
+
+  .prompt {
+    color: #22c55e;
+    font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .terminal-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #d4d4d4;
+    font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+    font-size: 14px;
+    outline: none;
+  }
+
+  .terminal-input::placeholder {
+    color: #555;
+  }
+
+  .input-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .submit-btn {
+    background: #ff8c42;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+    transition: all 0.2s;
+  }
+
+  .submit-btn:hover {
+    background: #ff6b35;
+    transform: scale(1.05);
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .help-panel {
+    margin-top: 16px;
+    background: var(--color-bg-secondary);
+    border-radius: 12px;
+    padding: 16px;
+    display: none;
+  }
+
+  .help-panel.visible {
+    display: block;
+  }
+
+  .help-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .help-header h4 {
+    margin: 0;
+    color: var(--color-text);
+    font-size: 16px;
+  }
+
+  .help-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .help-close:hover {
+    color: var(--color-text);
+  }
+
+  .help-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+  }
+
+  .help-category h5 {
+    margin: 0 0 8px;
+    color: #ff8c42;
+    font-size: 14px;
+  }
+
+  .help-commands,
+  .help-examples {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .help-cmd,
+  .help-example {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+
+  .help-cmd code {
+    background: var(--color-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #ff8c42;
+    font-family: 'Monaco', 'Menlo', monospace;
+  }
+
+  .help-example {
+    font-style: italic;
+  }
+
+  .progress-bar-section {
+    margin-top: 16px;
+    background: var(--color-bg-secondary);
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .progress-label {
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .progress-stats {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+
+  .progress-track {
+    height: 8px;
+    background: var(--color-border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff8c42 0%, #ff6b35 100%);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+  }
+
+  /* Scrollbar styling */
+  .terminal-output::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .terminal-output::-webkit-scrollbar-track {
+    background: #1a1a1a;
+  }
+
+  .terminal-output::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 4px;
+  }
+
+  .terminal-output::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+
+  /* Loading indicator */
+  .thinking-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    color: #888;
+  }
+
+  .thinking-dots {
+    display: flex;
+    gap: 4px;
+  }
+
+  .thinking-dots span {
+    width: 6px;
+    height: 6px;
+    background: #ff8c42;
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out;
+  }
+
+  .thinking-dots span:nth-child(1) { animation-delay: 0s; }
+  .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+  }
+
+  @media (max-width: 600px) {
+    .mode-toggle {
+      width: 100%;
+    }
+
+    .mode-btn {
+      flex: 1;
+      justify-content: center;
+    }
+
+    .mode-text {
+      display: none;
+    }
+
+    .terminal-title {
+      display: none;
+    }
+
+    .terminal-body {
+      min-height: 300px;
+    }
+
+    .prompt {
+      font-size: 12px;
+    }
+
+    .terminal-input {
+      font-size: 14px;
+    }
+  }
+</style>
+
+<script>
+  import { getTerminalTutorEngine } from './LLMEngine';
+  import {
+    createVirtualFileSystem,
+    createInitialTerminalState,
+    resolvePath,
+    getNodeAtPath,
+    formatLsOutput,
+    TERMINAL_COMMANDS,
+    loadLearningProgress,
+    saveLearningProgress,
+    createInitialProgress,
+    ansiToHtml,
+    generateId,
+  } from './utils';
+  import type { VirtualFileSystem, TerminalState, LearningProgress } from './types';
+
+  // State
+  let mode: 'natural' | 'command' = 'natural';
+  let isProcessing = false;
+  let modelReady = false;
+  let fileSystem: VirtualFileSystem = createVirtualFileSystem();
+  let terminalState: TerminalState = createInitialTerminalState();
+  let progress: LearningProgress = loadLearningProgress() || createInitialProgress();
+
+  // DOM elements
+  const terminalOutput = document.getElementById('terminal-output')!;
+  const terminalInput = document.getElementById('terminal-input') as HTMLInputElement;
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+  const promptEl = document.getElementById('prompt')!;
+  const terminalPath = document.getElementById('terminal-path')!;
+  const clearBtn = document.getElementById('clear-terminal')!;
+  const progressStats = document.getElementById('progress-stats')!;
+  const learningProgress = document.getElementById('learning-progress')!;
+  const helpPanel = document.getElementById('help-panel')!;
+  const helpClose = document.getElementById('help-close')!;
+
+  // Initialize
+  function init() {
+    setupEventListeners();
+    updatePrompt();
+    updateProgress();
+
+    // Listen for model load event
+    window.addEventListener('model-loaded', (e: any) => {
+      modelReady = true;
+      addOutput('✓ AI model loaded! You can now use natural language.', 'success');
+    });
+  }
+
+  // Setup event listeners
+  function setupEventListeners() {
+    // Mode toggle
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const newMode = (btn as HTMLElement).dataset.mode as 'natural' | 'command';
+        setMode(newMode);
+      });
+    });
+
+    // Input submission
+    terminalInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSubmit();
+      } else if (e.key === 'ArrowUp') {
+        // Command history navigation would go here
+      }
+    });
+
+    submitBtn.addEventListener('click', handleSubmit);
+    clearBtn.addEventListener('click', clearTerminal);
+    helpClose.addEventListener('click', () => helpPanel.classList.remove('visible'));
+
+    // Focus input on terminal click
+    document.querySelector('.terminal-body')?.addEventListener('click', () => {
+      terminalInput.focus();
+    });
+
+    // Show help on first interaction
+    terminalInput.addEventListener('focus', () => {
+      if (terminalState.history.length === 0) {
+        helpPanel.classList.add('visible');
+      }
+    });
+  }
+
+  // Set input mode
+  function setMode(newMode: 'natural' | 'command') {
+    mode = newMode;
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.classList.toggle('active', (btn as HTMLElement).dataset.mode === newMode);
+    });
+
+    terminalInput.placeholder = mode === 'natural'
+      ? 'Describe what you want to do...'
+      : 'Type a command...';
+  }
+
+  // Handle input submission
+  async function handleSubmit() {
+    const input = terminalInput.value.trim();
+    if (!input || isProcessing) return;
+
+    isProcessing = true;
+    submitBtn.disabled = true;
+    terminalInput.value = '';
+
+    // Add user input to output
+    addCommandLine(input);
+
+    try {
+      if (mode === 'natural') {
+        await handleNaturalLanguage(input);
+      } else {
+        await handleDirectCommand(input);
+      }
+    } catch (error) {
+      addOutput(`Error: ${error}`, 'error');
+    } finally {
+      isProcessing = false;
+      submitBtn.disabled = false;
+      terminalInput.focus();
+      scrollToBottom();
+    }
+  }
+
+  // Handle natural language input
+  async function handleNaturalLanguage(input: string) {
+    if (!modelReady) {
+      addOutput('Please load an AI model first to use natural language mode.', 'info');
+      addOutput('Switching to command mode for now...', 'info');
+      setMode('command');
+      await handleDirectCommand(input);
+      return;
+    }
+
+    // Show thinking indicator
+    showThinking();
+
+    try {
+      const engine = getTerminalTutorEngine();
+
+      // Generate AI response
+      let fullResponse = '';
+      await engine.generateResponse(input, (token) => {
+        fullResponse = token;
+      });
+
+      // Hide thinking indicator
+      hideThinking();
+
+      // Display AI response
+      addAIResponse(fullResponse);
+
+      // Try to extract and execute command if present
+      const commandMatch = fullResponse.match(/`([^`]+)`/);
+      if (commandMatch) {
+        const suggestedCommand = commandMatch[1];
+        addOutput(`\nExecuting: ${suggestedCommand}`, 'info');
+        await executeCommand(suggestedCommand);
+      }
+    } catch (error) {
+      hideThinking();
+      addOutput(`AI Error: ${error}. Try using direct commands instead.`, 'error');
+    }
+  }
+
+  // Handle direct command input
+  async function handleDirectCommand(input: string) {
+    await executeCommand(input);
+  }
+
+  // Execute a terminal command
+  async function executeCommand(command: string) {
+    const parts = command.trim().split(/\s+/);
+    const cmd = parts[0];
+    const args = parts.slice(1);
+
+    // Track command for learning progress
+    if (!progress.commandsLearned.includes(cmd)) {
+      progress.commandsLearned.push(cmd);
+      updateProgress();
+      saveLearningProgress(progress);
+    }
+
+    // Add to history
+    terminalState.history.push({
+      id: generateId(),
+      input: command,
+      output: '',
+      timestamp: new Date(),
+      exitCode: 0,
+      isSimulated: true,
+    });
+
+    switch (cmd) {
+      case 'pwd':
+        addOutput(terminalState.currentDirectory);
+        break;
+
+      case 'ls':
+        handleLs(args);
+        break;
+
+      case 'cd':
+        handleCd(args);
+        break;
+
+      case 'cat':
+        handleCat(args);
+        break;
+
+      case 'head':
+        handleHead(args);
+        break;
+
+      case 'tail':
+        handleTail(args);
+        break;
+
+      case 'mkdir':
+        handleMkdir(args);
+        break;
+
+      case 'touch':
+        handleTouch(args);
+        break;
+
+      case 'echo':
+        addOutput(args.join(' '));
+        break;
+
+      case 'whoami':
+        addOutput(terminalState.user);
+        break;
+
+      case 'clear':
+        clearTerminal();
+        break;
+
+      case 'help':
+        showHelp();
+        break;
+
+      default:
+        addOutput(`Command not found: ${cmd}. Type 'help' for available commands.`, 'error');
+    }
+  }
+
+  // ls command
+  function handleLs(args: string[]) {
+    const showAll = args.includes('-a');
+    const longFormat = args.includes('-l');
+    const path = args.find(a => !a.startsWith('-')) || '.';
+
+    const targetPath = resolvePath(terminalState.currentDirectory, path);
+    const node = getNodeAtPath(fileSystem, targetPath);
+
+    if (!node) {
+      addOutput(`ls: cannot access '${path}': No such file or directory`, 'error');
+      return;
+    }
+
+    if (node.type === 'file') {
+      addOutput(node.name);
+      return;
+    }
+
+    const output = formatLsOutput(node.children, { showAll, longFormat });
+    if (output) {
+      addOutput(ansiToHtml(output));
+    }
+  }
+
+  // cd command
+  function handleCd(args: string[]) {
+    const target = args[0] || '~';
+    const newPath = resolvePath(terminalState.currentDirectory, target);
+    const node = getNodeAtPath(fileSystem, newPath);
+
+    if (!node) {
+      addOutput(`cd: no such file or directory: ${target}`, 'error');
+      return;
+    }
+
+    if (node.type !== 'directory') {
+      addOutput(`cd: not a directory: ${target}`, 'error');
+      return;
+    }
+
+    terminalState.currentDirectory = newPath;
+    updatePrompt();
+  }
+
+  // cat command
+  function handleCat(args: string[]) {
+    if (args.length === 0) {
+      addOutput('cat: missing file operand', 'error');
+      return;
+    }
+
+    const filePath = resolvePath(terminalState.currentDirectory, args[0]);
+    const node = getNodeAtPath(fileSystem, filePath);
+
+    if (!node) {
+      addOutput(`cat: ${args[0]}: No such file or directory`, 'error');
+      return;
+    }
+
+    if (node.type === 'directory') {
+      addOutput(`cat: ${args[0]}: Is a directory`, 'error');
+      return;
+    }
+
+    addOutput(node.content);
+  }
+
+  // head command
+  function handleHead(args: string[]) {
+    let lines = 10;
+    let filePath = '';
+
+    for (let i = 0; i < args.length; i++) {
+      if (args[i] === '-n' && args[i + 1]) {
+        lines = parseInt(args[i + 1], 10);
+        i++;
+      } else if (!args[i].startsWith('-')) {
+        filePath = args[i];
+      }
+    }
+
+    if (!filePath) {
+      addOutput('head: missing file operand', 'error');
+      return;
+    }
+
+    const fullPath = resolvePath(terminalState.currentDirectory, filePath);
+    const node = getNodeAtPath(fileSystem, fullPath);
+
+    if (!node || node.type !== 'file') {
+      addOutput(`head: ${filePath}: No such file`, 'error');
+      return;
+    }
+
+    const content = node.content.split('\n').slice(0, lines).join('\n');
+    addOutput(content);
+  }
+
+  // tail command
+  function handleTail(args: string[]) {
+    let lines = 10;
+    let filePath = '';
+
+    for (let i = 0; i < args.length; i++) {
+      if (args[i] === '-n' && args[i + 1]) {
+        lines = parseInt(args[i + 1], 10);
+        i++;
+      } else if (!args[i].startsWith('-')) {
+        filePath = args[i];
+      }
+    }
+
+    if (!filePath) {
+      addOutput('tail: missing file operand', 'error');
+      return;
+    }
+
+    const fullPath = resolvePath(terminalState.currentDirectory, filePath);
+    const node = getNodeAtPath(fileSystem, fullPath);
+
+    if (!node || node.type !== 'file') {
+      addOutput(`tail: ${filePath}: No such file`, 'error');
+      return;
+    }
+
+    const allLines = node.content.split('\n');
+    const content = allLines.slice(-lines).join('\n');
+    addOutput(content);
+  }
+
+  // mkdir command
+  function handleMkdir(args: string[]) {
+    if (args.length === 0) {
+      addOutput('mkdir: missing operand', 'error');
+      return;
+    }
+
+    const dirName = args[0];
+    const parentPath = terminalState.currentDirectory;
+    const parent = getNodeAtPath(fileSystem, parentPath);
+
+    if (!parent || parent.type !== 'directory') {
+      addOutput(`mkdir: cannot create directory: invalid path`, 'error');
+      return;
+    }
+
+    // Check if already exists
+    if (parent.children.some(c => c.name === dirName)) {
+      addOutput(`mkdir: cannot create directory '${dirName}': File exists`, 'error');
+      return;
+    }
+
+    parent.children.push({
+      name: dirName,
+      type: 'directory',
+      children: [],
+      permissions: 'drwxr-xr-x',
+      owner: terminalState.user,
+      modified: new Date(),
+    });
+
+    addOutput(`Created directory: ${dirName}`, 'success');
+  }
+
+  // touch command
+  function handleTouch(args: string[]) {
+    if (args.length === 0) {
+      addOutput('touch: missing file operand', 'error');
+      return;
+    }
+
+    const fileName = args[0];
+    const parentPath = terminalState.currentDirectory;
+    const parent = getNodeAtPath(fileSystem, parentPath);
+
+    if (!parent || parent.type !== 'directory') {
+      addOutput(`touch: cannot create file: invalid path`, 'error');
+      return;
+    }
+
+    // Check if already exists
+    const existing = parent.children.find(c => c.name === fileName);
+    if (existing) {
+      // Touch updates the timestamp
+      existing.modified = new Date();
+      return;
+    }
+
+    parent.children.push({
+      name: fileName,
+      type: 'file',
+      content: '',
+      size: 0,
+      permissions: '-rw-r--r--',
+      owner: terminalState.user,
+      modified: new Date(),
+    });
+
+    addOutput(`Created file: ${fileName}`, 'success');
+  }
+
+  // Show help
+  function showHelp() {
+    helpPanel.classList.add('visible');
+    addOutput('Available commands: pwd, ls, cd, cat, head, tail, mkdir, touch, echo, whoami, clear, help');
+    addOutput('Use natural language mode to describe what you want to do!', 'info');
+  }
+
+  // Update prompt based on current directory
+  function updatePrompt() {
+    const displayPath = terminalState.currentDirectory.replace('/home/learner', '~');
+    promptEl.textContent = `${terminalState.user}@${terminalState.hostname}:${displayPath}$`;
+    terminalPath.textContent = `${terminalState.user}@${terminalState.hostname}:${displayPath}`;
+  }
+
+  // Update learning progress
+  function updateProgress() {
+    const commandCount = progress.commandsLearned.length;
+    const totalCommands = TERMINAL_COMMANDS.length;
+    const percentage = Math.min((commandCount / totalCommands) * 100, 100);
+
+    progressStats.textContent = `Level ${progress.currentLevel} • ${commandCount} commands learned`;
+    learningProgress.style.width = `${percentage}%`;
+
+    // Level up every 5 commands
+    const newLevel = Math.floor(commandCount / 5) + 1;
+    if (newLevel > progress.currentLevel) {
+      progress.currentLevel = newLevel;
+      addOutput(`🎉 Level up! You're now level ${newLevel}!`, 'success');
+    }
+  }
+
+  // Add command line to output
+  function addCommandLine(command: string) {
+    const displayPath = terminalState.currentDirectory.replace('/home/learner', '~');
+    const prompt = `${terminalState.user}@${terminalState.hostname}:${displayPath}$`;
+
+    const line = document.createElement('div');
+    line.className = 'terminal-line';
+    line.innerHTML = `<span class="prompt">${prompt}</span> <span class="command">${escapeHtml(command)}</span>`;
+    terminalOutput.appendChild(line);
+    scrollToBottom();
+  }
+
+  // Add output line
+  function addOutput(text: string, type?: 'error' | 'success' | 'info') {
+    const line = document.createElement('div');
+    line.className = `output-line${type ? ` ${type}` : ''}`;
+    line.innerHTML = text;
+    terminalOutput.appendChild(line);
+    scrollToBottom();
+  }
+
+  // Add AI response
+  function addAIResponse(response: string) {
+    const container = document.createElement('div');
+    container.className = 'ai-response';
+
+    const header = document.createElement('div');
+    header.className = 'ai-response-header';
+    header.innerHTML = '🐕 Caro says:';
+
+    const content = document.createElement('div');
+    content.className = 'ai-response-content';
+
+    // Convert markdown-like formatting
+    let formatted = response
+      .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
+
+    content.innerHTML = formatted;
+
+    container.appendChild(header);
+    container.appendChild(content);
+    terminalOutput.appendChild(container);
+    scrollToBottom();
+  }
+
+  // Show thinking indicator
+  function showThinking() {
+    const indicator = document.createElement('div');
+    indicator.id = 'thinking-indicator';
+    indicator.className = 'thinking-indicator';
+    indicator.innerHTML = `
+      <span>Caro is thinking</span>
+      <div class="thinking-dots">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    `;
+    terminalOutput.appendChild(indicator);
+    scrollToBottom();
+  }
+
+  // Hide thinking indicator
+  function hideThinking() {
+    document.getElementById('thinking-indicator')?.remove();
+  }
+
+  // Clear terminal
+  function clearTerminal() {
+    terminalOutput.innerHTML = '';
+  }
+
+  // Scroll to bottom
+  function scrollToBottom() {
+    terminalOutput.scrollTop = terminalOutput.scrollHeight;
+  }
+
+  // Escape HTML
+  function escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Initialize
+  init();
+</script>
