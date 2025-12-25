@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2025-12-24
+
+### Changed - Project Rename
+
+**BREAKING CHANGE**: Project renamed from `cmdai` to `caro`
+- Binary name: `cmdai` → `caro`
+- Crate name: `cmdai` → `caro`
+- Package name on crates.io: `caro`
+- All imports updated: `use cmdai::*` → `use caro::*`
+- Repository and documentation updated throughout
+
+**Migration Guide**:
+```bash
+# Uninstall old version
+cargo uninstall cmdai
+
+# Install new version
+cargo install caro
+
+# Remove any shell aliases pointing to cmdai
+# Check ~/.zshrc, ~/.bashrc for: alias caro='cmdai'
+```
+
 ### Added - Feature 004: Embedded Model + Remote Backend Support
 
 #### Embedded Model Backend (`src/backends/embedded/`)
@@ -171,3 +194,64 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tracing-subscriber = "0.3"` - Tracing subscriber implementation
 - `tracing-appender = "0.2"` - Log file rotation support
 - `sha2 = "0.10"` - SHA256 checksums for integrity validation
+
+### Security
+
+This is the first stable release of caro with comprehensive security controls:
+
+**Release Security**:
+- Controlled release process with verified maintainers only
+- GPG-signed tags required for all releases
+- Automated CI/CD security checks (cargo audit, clippy)
+- crates.io publish tokens with minimal scope (publish-update only)
+- Multi-step verification before publication
+
+**Command Safety**:
+- Comprehensive dangerous command pattern detection
+- Risk level assessment (Safe, Moderate, High, Critical)
+- Interactive confirmation for potentially dangerous operations
+- Blocked commands with clear explanatory messages
+- POSIX compliance validation
+
+**Dependency Security**:
+- All dependencies vetted for security vulnerabilities
+- Minimal dependency tree to reduce attack surface
+- Regular security audits via `cargo audit`
+- Pinned versions for reproducible builds
+
+**Development Security**:
+- 2FA required for all maintainer accounts
+- Signed commits for release-related changes
+- Branch protection on main branch
+- Required code reviews for all changes
+- Automated security scanning in CI/CD
+
+See `docs/RELEASE_PROCESS.md` for complete security procedures.
+
+### Notes
+
+This release marks the transition from `cmdai` to `caro` and establishes the foundation for a security-critical CLI tool. We follow BSD/GNU-level security practices to ensure user trust.
+
+**First Release Highlights**:
+- ✅ Single binary under 50MB (without embedded model)
+- ✅ Startup time < 100ms
+- ✅ First inference < 2s on Apple Silicon
+- ✅ Comprehensive safety validation
+- ✅ Multi-backend support (MLX, Ollama, vLLM)
+- ✅ Cross-platform support (Linux, macOS, Windows)
+- ✅ Security-first development process
+
+**Known Limitations**:
+- ARM64 Linux binary builds may fail due to OpenSSL cross-compilation issues (users can compile from source)
+- Embedded models require manual download and caching
+- MLX backend requires Apple Silicon hardware
+
+**Upgrade Path**:
+If you previously installed `cmdai`, please uninstall it and install `caro`:
+```bash
+cargo uninstall cmdai
+cargo install caro
+```
+
+**Breaking Changes**:
+This is the first stable release. All previous versions were development previews and are not supported.

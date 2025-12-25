@@ -1,10 +1,23 @@
-# Contributing to cmdai
+# Contributing to caro
 
-Thank you for your interest in contributing to cmdai! We're building a safety-first, high-performance CLI tool that brings the power of local LLMs to shell command generation. Whether you're fixing bugs, adding features, improving documentation, or expanding safety patterns, your contributions are welcome.
+Thank you for your interest in contributing to caro! We're building a safety-first, high-performance CLI tool that brings the power of local LLMs to shell command generation. Whether you're fixing bugs, adding features, improving documentation, or expanding safety patterns, your contributions are welcome.
+
+## Security-Critical Project Notice
+
+**caro is a security-critical tool** that translates natural language into executable shell commands. A vulnerability in caro could lead to arbitrary command execution on user systems. We follow **BSD/GNU-level security practices** to ensure user trust and safety.
+
+All contributors must:
+- Understand the security implications of their changes
+- Follow secure coding practices
+- Never commit secrets or credentials
+- Report security issues privately (see [SECURITY.md](SECURITY.md))
+- Accept that security takes priority over features
 
 ## Table of Contents
 
+- [Security-Critical Project Notice](#security-critical-project-notice)
 - [Project Vision](#project-vision)
+- [Security Development Practices](#security-development-practices)
 - [Getting Started](#getting-started)
 - [Development Workflow](#development-workflow)
 - [Code Standards](#code-standards)
@@ -18,14 +31,188 @@ Thank you for your interest in contributing to cmdai! We're building a safety-fi
 
 ## Project Vision
 
-cmdai aims to make shell command generation:
+caro aims to make shell command generation:
 - **Safe by default** - Comprehensive validation prevents destructive operations
 - **Blazingly fast** - Sub-100ms startup, sub-2s inference on Apple Silicon
 - **Truly local** - No cloud dependencies, works offline with cached models
 - **Developer-friendly** - Single binary, minimal configuration, clear error messages
 - **Community-driven** - Open development, transparent processes, welcoming to all skill levels
+- **Trustworthy** - BSD/GNU-level security practices and code quality standards
 
 We prioritize correctness, safety, and user experience above all else.
+
+---
+
+## Security Development Practices
+
+caro follows security-first development practices inspired by BSD and GNU projects. All contributors must adhere to these practices.
+
+### Security Principles
+
+1. **Defense in Depth**
+   - Multiple layers of validation (parsing, safety checks, execution)
+   - Fail securely (block on uncertainty, never assume safe)
+   - Principle of least privilege (minimal permissions required)
+
+2. **Input Validation**
+   - Never trust user input or LLM output
+   - Validate all generated commands against safety patterns
+   - Sanitize file paths and shell arguments
+   - Reject malformed or suspicious commands
+
+3. **Secure Defaults**
+   - Default safety level is "moderate" (blocks most dangerous operations)
+   - Strict mode available for high-security environments
+   - Confirmation required for any potentially destructive command
+   - No auto-execution without explicit user consent
+
+4. **Code Review Requirements**
+   - All changes require at least one reviewer approval
+   - Security-sensitive changes require two approvals from maintainers
+   - No self-merging of PRs, even for maintainers
+   - Automated security checks must pass (cargo audit, clippy)
+
+5. **Dependency Management**
+   - Minimal dependency tree to reduce attack surface
+   - All dependencies must be from crates.io with:
+     - Active maintenance (updated within 6 months)
+     - No known security vulnerabilities
+     - Reasonable number of downloads (>100k or trusted org)
+   - Regular security audits with `cargo audit`
+   - Pin exact versions in Cargo.lock (committed to repo)
+
+6. **Secret Management**
+   - **NEVER commit secrets, API keys, tokens, or credentials**
+   - Use environment variables or secure config files
+   - Add sensitive patterns to .gitignore
+   - Rotate tokens immediately if accidentally committed
+   - Use GitHub secret scanning (enabled by default)
+
+7. **Testing for Security**
+   - Test safety validation with known dangerous commands
+   - Fuzz test command parsing and validation
+   - Property-based testing for invariants
+   - Integration tests for attack scenarios
+   - Never disable security checks in tests
+
+### Security Checklist for Contributors
+
+Before submitting a PR, verify:
+
+- [ ] No secrets or credentials committed
+- [ ] `cargo audit` passes with no vulnerabilities
+- [ ] `cargo clippy -- -D warnings` passes
+- [ ] Safety validation tests cover new command patterns
+- [ ] Error messages don't leak sensitive information
+- [ ] Input validation is comprehensive
+- [ ] No use of `unsafe` code (unless absolutely necessary with justification)
+- [ ] Dependencies are from trusted sources only
+- [ ] Documentation includes security considerations
+
+### Reporting Security Vulnerabilities
+
+**DO NOT open public issues for security vulnerabilities.**
+
+See [SECURITY.md](SECURITY.md) for our responsible disclosure process:
+- Email security contact privately
+- Allow time for patch development (typically 7-14 days)
+- Coordinate disclosure timeline
+- Receive credit in security advisories
+
+### Security-Sensitive Areas
+
+Extra care required when modifying:
+
+1. **Safety Module** (`src/safety/`)
+   - Command pattern matching
+   - Risk assessment logic
+   - POSIX compliance validation
+   - Dangerous operation detection
+
+2. **Execution Module** (`src/execution/`)
+   - Command execution logic
+   - Shell invocation
+   - Output handling
+   - Environment variable handling
+
+3. **Backend Integration** (`src/backends/`)
+   - LLM response parsing
+   - JSON extraction and validation
+   - Error handling in inference
+   - Prompt injection prevention
+
+4. **Configuration** (`src/config/`)
+   - Config file parsing
+   - Permission validation
+   - Path handling
+   - Default value selection
+
+### Secure Coding Guidelines
+
+**Memory Safety**:
+```rust
+// GOOD: Safe Rust with proper error handling
+fn process_command(input: &str) -> Result<String, ValidationError> {
+    validate_input(input)?;
+    Ok(sanitize(input))
+}
+
+// BAD: Using unsafe without justification
+unsafe {
+    // Avoid unless absolutely necessary
+}
+```
+
+**Input Validation**:
+```rust
+// GOOD: Comprehensive validation
+fn validate_command(cmd: &str) -> Result<(), SafetyError> {
+    if cmd.is_empty() {
+        return Err(SafetyError::EmptyCommand);
+    }
+
+    // Check against dangerous patterns
+    check_dangerous_patterns(cmd)?;
+
+    // Validate syntax
+    check_posix_compliance(cmd)?;
+
+    Ok(())
+}
+
+// BAD: Trusting input without validation
+fn execute(cmd: &str) {
+    std::process::Command::new("sh")
+        .arg("-c")
+        .arg(cmd)  // UNSAFE: No validation!
+        .spawn();
+}
+```
+
+**Error Handling**:
+```rust
+// GOOD: Errors don't leak sensitive info
+#[derive(Debug, thiserror::Error)]
+pub enum ConfigError {
+    #[error("Failed to read config file")]
+    ReadFailed,  // Don't expose file path in error
+}
+
+// BAD: Error reveals sensitive paths
+#[error("Failed to read API key from {0}")]
+ApiKeyError(PathBuf),  // Exposes config file location
+```
+
+### Release Security
+
+Only verified maintainers can release versions:
+- GPG-signed commits required for releases
+- Multi-step verification process (see `docs/RELEASE_PROCESS.md`)
+- Security audit before each release
+- Controlled access to crates.io publish tokens
+- Tag protection in GitHub repository
+
+See [docs/RELEASE_PROCESS.md](docs/RELEASE_PROCESS.md) for complete release security procedures.
 
 ---
 
@@ -42,8 +229,8 @@ We prioritize correctness, safety, and user experience above all else.
 
 1. **Fork and clone the repository**:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/cmdai.git
-   cd cmdai
+   git clone https://github.com/YOUR_USERNAME/caro.git
+   cd caro
    ```
 
 2. **Ensure Rust environment is loaded**:
@@ -95,7 +282,7 @@ If all checks pass, you're ready to contribute!
 
 ## Development Workflow
 
-cmdai follows strict **Test-Driven Development (TDD)** with spec-driven design. See [TDD-WORKFLOW.md](docs/development/TDD-WORKFLOW.md) for complete details.
+caro follows strict **Test-Driven Development (TDD)** with spec-driven design. See [TDD-WORKFLOW.md](docs/development/TDD-WORKFLOW.md) for complete details.
 
 ### The Red-Green-Refactor Cycle
 
@@ -214,7 +401,7 @@ use anyhow::{Context, Result};
 
 fn load_config() -> Result<Config> {
     Config::load()
-        .context("Failed to load configuration from ~/.config/cmdai/config.toml")?
+        .context("Failed to load configuration from ~/.config/caro/config.toml")?
 }
 ```
 
@@ -364,15 +551,15 @@ We welcome contributions in these areas:
 **New to the project?** Start here! We maintain a curated list of beginner-friendly issues and technical debt items in [TECH_DEBT.md](docs/development/TECH_DEBT.md).
 
 **Current opportunities**:
-- 📝 **Documentation** - Add rustdoc examples to public APIs ([#7](https://github.com/wildcard/cmdai/issues/7))
-- 🧪 **Testing** - Add property-based tests for LRU eviction ([#8](https://github.com/wildcard/cmdai/issues/8))
-- 📊 **Benchmarking** - Create performance benchmark suite ([#9](https://github.com/wildcard/cmdai/issues/9))
-- 🔧 **Tooling** - Generate JSON schema for config validation ([#11](https://github.com/wildcard/cmdai/issues/11))
+- 📝 **Documentation** - Add rustdoc examples to public APIs ([#7](https://github.com/wildcard/caro/issues/7))
+- 🧪 **Testing** - Add property-based tests for LRU eviction ([#8](https://github.com/wildcard/caro/issues/8))
+- 📊 **Benchmarking** - Create performance benchmark suite ([#9](https://github.com/wildcard/caro/issues/9))
+- 🔧 **Tooling** - Generate JSON schema for config validation ([#11](https://github.com/wildcard/caro/issues/11))
 
 **Looking for a bigger challenge?**
-- 🚀 **Feature 004** - Implement Hugging Face model downloads ([#10](https://github.com/wildcard/cmdai/issues/10))
-- 🔒 **Security** - Add file permission hardening ([#6](https://github.com/wildcard/cmdai/issues/6))
-- ✅ **Test Alignment** - Fix contract test API mismatches ([#4](https://github.com/wildcard/cmdai/issues/4))
+- 🚀 **Feature 004** - Implement Hugging Face model downloads ([#10](https://github.com/wildcard/caro/issues/10))
+- 🔒 **Security** - Add file permission hardening ([#6](https://github.com/wildcard/caro/issues/6))
+- ✅ **Test Alignment** - Fix contract test API mismatches ([#4](https://github.com/wildcard/caro/issues/4))
 
 **How to claim an issue**:
 1. Comment on the issue saying you'd like to work on it
@@ -453,7 +640,7 @@ Improve development and deployment:
 
 ## Agent Collaboration
 
-cmdai development leverages specialized AI agents for different tasks. When working on contributions, you may benefit from:
+caro development leverages specialized AI agents for different tasks. When working on contributions, you may benefit from:
 
 ### TDD Development Agents
 
@@ -492,7 +679,7 @@ See [AGENTS.md](docs/development/AGENTS.md) for repository guidelines and [CLAUD
 
 ## Spec-Driven Development
 
-cmdai follows a specification-first approach:
+caro follows a specification-first approach:
 
 ### Specification Structure
 
@@ -587,9 +774,9 @@ Consistent, high-quality contributions may lead to:
 
 ## Questions?
 
-- **General questions**: [GitHub Discussions](https://github.com/wildcard/cmdai/discussions)
-- **Bug reports**: [GitHub Issues](https://github.com/wildcard/cmdai/issues) with bug report template
-- **Feature requests**: [GitHub Issues](https://github.com/wildcard/cmdai/issues) with feature request template
+- **General questions**: [GitHub Discussions](https://github.com/wildcard/caro/discussions)
+- **Bug reports**: [GitHub Issues](https://github.com/wildcard/caro/issues) with bug report template
+- **Feature requests**: [GitHub Issues](https://github.com/wildcard/caro/issues) with feature request template
 - **Security issues**: See [SECURITY.md](SECURITY.md) for private disclosure process
 
 ---
@@ -600,8 +787,8 @@ This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.
 
 ---
 
-**Thank you for contributing to cmdai!** Together we're building a safer, faster, more accessible way to harness LLMs for shell command generation.
+**Thank you for contributing to caro!** Together we're building a safer, faster, more accessible way to harness LLMs for shell command generation with BSD/GNU-level security and trust.
 
 ---
 
-*Last updated: 2025-10-03*
+*Last updated: 2025-12-24*
