@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+#### Dependencies
+- **Major Updates**:
+  - `thiserror`: 1.0.69 → 2.0.16 - Updated error handling macros
+  - `sysinfo`: 0.29.11 → 0.37.2 - System information library API updates
+  - `which`: 4.4.2 → 8.0.0 - Executable path detection with new Sys trait
+  - `directories`: 5.0.1 → 6.0.0 - Platform directory utilities
+  - `criterion`: 0.5.1 → 0.8.1 - Benchmarking framework updates
+  - `dialoguer`: 0.11.0 → 0.12.0 - Interactive prompt improvements
+
+- **Minor/Patch Updates** (rust-minor-patch group):
+  - Updated 12 dependencies including: `clap`, `tokio`, `serde`, `regex`, and other core libraries
+  - All updates maintain API compatibility
+
+- **GitHub Actions Updates**:
+  - Updated 10 GitHub Actions to latest versions for improved CI/CD reliability
+  - Includes: `actions/checkout@v6`, `dtolnay/rust-toolchain@v1`, and other workflow actions
+
+### Fixed
+- Replace deprecated `criterion::black_box()` with `std::hint::black_box()` in benchmarks
+  - Resolves clippy warnings after criterion 0.8.1 upgrade
+  - Maintains benchmark functionality with standard library function
+
 ## [1.0.0] - 2025-12-24
 
 ### Changed - Project Rename
