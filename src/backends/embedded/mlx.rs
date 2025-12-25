@@ -12,8 +12,8 @@ use crate::backends::GeneratorError;
 
 #[cfg(feature = "embedded-mlx")]
 use llama_cpp::{
+    standard_sampler::{SamplerStage, StandardSampler},
     LlamaModel, LlamaParams, SessionParams,
-    standard_sampler::{StandardSampler, SamplerStage},
 };
 
 /// MLX-backed inference state using llama.cpp with Metal acceleration
@@ -53,7 +53,7 @@ fn extract_json_command(text: &str) -> Result<String, GeneratorError> {
     if let Some(start) = text.find('{') {
         if let Some(end) = text[start..].find('}') {
             let json_str = &text[start..start + end + 1];
-            
+
             // Parse and validate JSON
             if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(json_str) {
                 if let Some(cmd) = parsed.get("cmd").and_then(|v| v.as_str()) {
@@ -62,7 +62,7 @@ fn extract_json_command(text: &str) -> Result<String, GeneratorError> {
             }
         }
     }
-    
+
     // Fallback: return safe default if no valid JSON found
     Ok(r#"{"cmd": "echo 'Unable to generate command'"}"#.to_string())
 }
@@ -91,7 +91,7 @@ impl InferenceBackend for MlxBackend {
     async fn infer(&self, prompt: &str, config: &EmbeddedConfig) -> Result<String, GeneratorError> {
         // Build the full prompt with chat template
         let full_prompt = build_prompt(prompt);
-        
+
         tracing::debug!(
             "Starting MLX inference (prompt: {} chars, max_tokens: {}, temperature: {})",
             full_prompt.len(),
@@ -100,41 +100,44 @@ impl InferenceBackend for MlxBackend {
         );
 
         // Create session parameters
-        let mut session_params = SessionParams::default();
-        session_params.n_ctx = 2048; // Context window
-        session_params.n_batch = 512; // Batch size for prompt processing
-        session_params.n_threads = 8; // Use multiple threads
-        
+        let session_params = SessionParams {
+            n_ctx: 2048,  // Context window
+            n_batch: 512, // Batch size for prompt processing
+            n_threads: 8, // Use multiple threads
+            ..Default::default()
+        };
+
         // Clone model for this inference (Arc internally, cheap)
         // Do this in a separate scope to release the lock before await
         let model = {
-            let model_state_guard = self
-                .model_state
-                .lock()
-                .map_err(|_| GeneratorError::Internal {
-                    message: "Failed to acquire model state lock".to_string(),
-                })?;
+            let model_state_guard =
+                self.model_state
+                    .lock()
+                    .map_err(|_| GeneratorError::Internal {
+                        message: "Failed to acquire model state lock".to_string(),
+                    })?;
 
-            let model_state = model_state_guard
-                .as_ref()
-                .ok_or_else(|| GeneratorError::GenerationFailed {
-                    details: "Model not loaded. Call load() first".to_string(),
-                })?;
+            let model_state =
+                model_state_guard
+                    .as_ref()
+                    .ok_or_else(|| GeneratorError::GenerationFailed {
+                        details: "Model not loaded. Call load() first".to_string(),
+                    })?;
 
             model_state.model.clone()
         }; // Lock released here
-        
+
         let max_tokens = config.max_tokens;
         let temperature = config.temperature;
-        
+
         // Run inference in blocking task (llama.cpp is blocking)
         let response_text = tokio::task::spawn_blocking(move || {
             // Create session
-            let mut ctx = model
-                .create_session(session_params)
-                .map_err(|e| GeneratorError::GenerationFailed {
+            let mut ctx = model.create_session(session_params).map_err(|e| {
+                GeneratorError::GenerationFailed {
                     details: format!("Failed to create session: {}", e),
-                })?;
+                }
+            })?;
 
             // Advance context with the prompt
             ctx.advance_context(&full_prompt)
@@ -158,7 +161,7 @@ impl InferenceBackend for MlxBackend {
                 ],
                 1, // min_keep
             );
-            
+
             // Start completion
             let completions = ctx
                 .start_completing_with(sampler, max_tokens)
@@ -233,16 +236,19 @@ impl InferenceBackend for MlxBackend {
         let model_path = self.model_path.clone();
         let model = tokio::task::spawn_blocking(move || {
             // Create model parameters with Metal acceleration
-            let mut params = LlamaParams::default();
-            params.n_gpu_layers = 99; // Use all GPU layers (Metal acceleration)
-            params.use_mmap = true; // Use memory mapping for faster loading
-            params.use_mlock = false; // Don't lock memory
+            let params = LlamaParams {
+                n_gpu_layers: 99, // Use all GPU layers (Metal acceleration)
+                use_mmap: true,   // Use memory mapping for faster loading
+                use_mlock: false, // Don't lock memory
+                ..Default::default()
+            };
 
             // Load the model
-            LlamaModel::load_from_file(model_path, params)
-                .map_err(|e| GeneratorError::GenerationFailed {
+            LlamaModel::load_from_file(model_path, params).map_err(|e| {
+                GeneratorError::GenerationFailed {
                     details: format!("Failed to load model: {}", e),
-                })
+                }
+            })
         })
         .await
         .map_err(|e| GeneratorError::Internal {
@@ -251,12 +257,12 @@ impl InferenceBackend for MlxBackend {
 
         // Store the loaded model state
         {
-            let mut model_state = self
-                .model_state
-                .lock()
-                .map_err(|_| GeneratorError::Internal {
-                    message: "Failed to acquire model state lock".to_string(),
-                })?;
+            let mut model_state =
+                self.model_state
+                    .lock()
+                    .map_err(|_| GeneratorError::Internal {
+                        message: "Failed to acquire model state lock".to_string(),
+                    })?;
             *model_state = Some(MlxModelState { model });
         }
 
@@ -289,12 +295,12 @@ impl InferenceBackend for MlxBackend {
 
         // Unload the model
         {
-            let mut model_state = self
-                .model_state
-                .lock()
-                .map_err(|_| GeneratorError::Internal {
-                    message: "Failed to acquire model state lock".to_string(),
-                })?;
+            let mut model_state =
+                self.model_state
+                    .lock()
+                    .map_err(|_| GeneratorError::Internal {
+                        message: "Failed to acquire model state lock".to_string(),
+                    })?;
             *model_state = None;
         }
 

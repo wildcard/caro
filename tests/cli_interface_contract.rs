@@ -5,7 +5,7 @@ use std::time::Instant;
 
 // Import types that will be implemented later
 // NOTE: These imports will fail until we implement the actual CLI module
-use cmdai::{
+use caro::{
     cli::{CliApp, IntoCliArgs, OutputFormat},
     models::ShellType,
 };
@@ -243,7 +243,7 @@ async fn test_configuration_file_loading() {
 
     let args = TestArgs {
         prompt: Some("test config".to_string()),
-        config_file: Some("~/.cmdai/config.toml".to_string()),
+        config_file: Some("~/.caro/config.toml".to_string()),
         ..Default::default()
     };
 
@@ -276,8 +276,7 @@ async fn test_error_handling_graceful() {
 
     let result = cli.run_with_args(args).await;
 
-    if result.is_err() {
-        let error = result.unwrap_err();
+    if let Err(error) = &result {
         assert!(
             !error.to_string().is_empty(),
             "Error message should not be empty"
@@ -288,9 +287,8 @@ async fn test_error_handling_graceful() {
             "Error should mention shell issue: {}",
             error
         );
-    } else {
+    } else if let Ok(cli_result) = result {
         // If it succeeds, should provide feedback about shell choice
-        let cli_result = result.unwrap();
         assert!(
             cli_result
                 .warnings

@@ -22,7 +22,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
 
       - name: Verify version consistency
         id: version
@@ -56,8 +58,58 @@ jobs:
           path: target
           key: ${{ runner.os }}-${{ env.RUST_VERSION }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Run tests
-        run: cargo test --all-features
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Run comprehensive tests
+        run: cargo test --workspace --all-features --verbose
+        env:
+          RUST_BACKTRACE: 1
+
+      - name: Verify MLX tests compile (Ubuntu)
+        run: |
+          echo "Verifying MLX backend compiles on all platforms"
+          cargo test --test mlx_backend_contract --no-run --verbose
+          cargo test --test mlx_integration_test --no-run --verbose
+        env:
+          RUST_BACKTRACE: 1
+
+      - name: Run E2E tests
+        run: |
+          echo "Running comprehensive E2E tests before publish"
+          cargo test --test e2e_cli_tests --verbose
+          cargo test --test e2e_interactive_execution --verbose
+          cargo test --test embedded_integration --verbose
+          cargo test --test system_integration --verbose
+        env:
+          RUST_BACKTRACE: 1
+
+      - name: Run integration tests
+        run: |
+          cargo test --test integration_tests --verbose
+          cargo test --test infrastructure_integration --verbose
+          cargo test --test error_handling_tests --verbose
+        env:
+          RUST_BACKTRACE: 1
+
+      - name: Run contract tests
+        run: |
+          cargo test --test backend_trait_contract --verbose
+          cargo test --test safety_validator_contract --verbose
+          cargo test --test platform_detection_contract --verbose
+          cargo test --test config_contract --verbose
+          cargo test --test execution_contract --verbose
+        env:
+          RUST_BACKTRACE: 1
+
+      - name: Build release binary to verify
+        run: cargo build --release --all-features
+
+      - name: Verify package can be created
+        run: cargo package --allow-dirty
 
       - name: Publish to crates.io
         env:

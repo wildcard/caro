@@ -45,7 +45,9 @@ jobs:
           echo "Found tag: $TAG (version: $VERSION)"
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
 
       - name: Verify version consistency
         run: |
@@ -129,8 +131,9 @@ jobs:
           ref: ${{ needs.prepare-release.outputs.tag }}
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@v1
         with:
+          toolchain: stable
           targets: ${{ matrix.target }}
 
       - name: Determine Rust version
@@ -152,6 +155,41 @@ jobs:
       - name: Install cross (for cross-compilation)
         if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: cargo install cross
+
+      - name: Run comprehensive tests per platform
+        if: matrix.target != 'aarch64-unknown-linux-gnu'
+        run: cargo test --workspace --all-features --verbose
+        env:
+          RUST_BACKTRACE: 1
+
+      - name: Run MLX backend tests (macOS Apple Silicon only)
+        if: matrix.target == 'aarch64-apple-darwin'
+        run: |
+          echo "Running MLX-specific tests for Apple Silicon"
+          cargo test --test mlx_backend_contract --verbose
+          cargo test --test mlx_integration_test --verbose
+        env:
+          RUST_BACKTRACE: 1
+
+      - name: Run E2E tests per platform
+        if: matrix.target != 'aarch64-unknown-linux-gnu'
+        run: |
+          echo "Running E2E tests on ${{ matrix.os }} for ${{ matrix.target }}"
+          cargo test --test e2e_cli_tests --verbose
+          cargo test --test e2e_interactive_execution --verbose
+          cargo test --test embedded_integration --verbose
+          cargo test --test system_integration --verbose
+        env:
+          RUST_BACKTRACE: 1
+
+      - name: Run contract tests per platform
+        if: matrix.target != 'aarch64-unknown-linux-gnu'
+        run: |
+          cargo test --test backend_trait_contract --verbose
+          cargo test --test safety_validator_contract --verbose
+          cargo test --test platform_detection_contract --verbose
+        env:
+          RUST_BACKTRACE: 1
 
       - name: Build release binary
         run: |

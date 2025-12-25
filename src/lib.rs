@@ -1,4 +1,4 @@
-//! cmdai - Natural Language to Shell Command CLI Tool
+//! caro - Natural Language to Shell Command CLI Tool
 //!
 //! This library provides core functionality for converting natural language
 //! descriptions into safe, POSIX-compliant shell commands using local LLMs.
@@ -19,7 +19,7 @@
 //! # Example
 //!
 //! ```no_run
-//! use cmdai::models::{CommandRequest, ShellType, SafetyLevel};
+//! use caro::models::{CommandRequest, ShellType, SafetyLevel};
 //!
 //! let request = CommandRequest::new("list all files", ShellType::Bash)
 //!     .with_safety(SafetyLevel::Moderate);
@@ -33,12 +33,14 @@ pub mod config;
 pub mod context;
 pub mod execution;
 pub mod logging;
+pub mod model_catalog;
 pub mod model_loader;
 pub mod models;
 pub mod platform;
 pub mod safety;
 
 // Re-export commonly used types for convenience
+pub use model_catalog::{ModelCatalog, ModelInfo, ModelSize};
 pub use models::{
     BackendInfo, BackendType, CacheManifest, CachedModel, CommandRequest, ConfigSchema,
     ExecutionContext, GeneratedCommand, LogEntry, LogLevel, Platform, RiskLevel, SafetyLevel,

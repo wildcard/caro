@@ -6,9 +6,9 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use cmdai::backends::embedded::{EmbeddedConfig, EmbeddedModelBackend, ModelVariant};
-use cmdai::backends::{CommandGenerator, GeneratorError};
-use cmdai::models::{CommandRequest, SafetyLevel, ShellType};
+use caro::backends::embedded::{EmbeddedConfig, EmbeddedModelBackend, ModelVariant};
+use caro::backends::{CommandGenerator, GeneratorError};
+use caro::models::{CommandRequest, SafetyLevel, ShellType};
 
 // Helper function to get test model path
 fn test_model_path() -> PathBuf {
@@ -26,6 +26,7 @@ fn create_test_backend() -> Result<EmbeddedModelBackend, GeneratorError> {
 /// CR-EMB-001: Offline Operation (CRITICAL)
 /// MUST work completely offline without any network calls
 #[tokio::test]
+#[ignore] // Requires model download, skip in CI
 async fn test_offline_operation_no_network_calls() {
     // Disable network (best effort)
     std::env::set_var("NO_NETWORK", "1");
@@ -141,6 +142,7 @@ fn test_platform_detection_automatic() {
 /// CR-EMB-005: Safety Validator Integration
 /// MUST integrate with safety validation system
 #[tokio::test]
+#[ignore] // Requires model download, skip in CI
 async fn test_safety_validator_integration() {
     let backend = create_test_backend().expect("Failed to create backend");
 
@@ -245,6 +247,7 @@ async fn test_resource_cleanup_on_drop() {
 /// CR-EMB-009: Thread-Safe Concurrent Requests
 /// MUST safely handle concurrent inference requests
 #[tokio::test]
+#[ignore] // Requires model download, skip in CI
 async fn test_thread_safe_concurrent_requests() {
     let backend = Arc::new(create_test_backend().expect("Failed to create backend"));
 

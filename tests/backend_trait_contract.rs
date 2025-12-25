@@ -6,7 +6,7 @@ use std::time::{Duration, Instant};
 
 // Import types from the contract specification
 // NOTE: These imports will fail until we implement the actual types
-use cmdai::{
+use caro::{
     backends::{BackendInfo, CommandGenerator, GeneratorError},
     models::{BackendType, CommandRequest, GeneratedCommand, RiskLevel, SafetyLevel, ShellType},
 };

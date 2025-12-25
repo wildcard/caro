@@ -4,7 +4,7 @@
 use tempfile::TempDir;
 
 // Import types from cache module
-use cmdai::cache::{CacheError, CacheManager};
+use caro::cache::{CacheError, CacheManager};
 
 #[tokio::test]
 async fn test_cache_manager_new() {
@@ -326,12 +326,8 @@ async fn test_concurrent_access_safety() {
 
     // At least one should succeed (or both fail due to network in test env)
     // Contract: No corrupted state from concurrent access
-    if result_1.is_ok() && result_2.is_ok() {
-        assert_eq!(
-            result_1.unwrap(),
-            result_2.unwrap(),
-            "Both should return same path"
-        );
+    if let (Ok(path1), Ok(path2)) = (result_1, result_2) {
+        assert_eq!(path1, path2, "Both should return same path");
     }
 }
 

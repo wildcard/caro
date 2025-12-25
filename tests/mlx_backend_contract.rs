@@ -2,7 +2,7 @@
 // These tests verify the behavioral contract defined in:
 // specs/004-implement-ollama-and/contracts/mlx-backend.md
 
-use cmdai::backends::embedded::ModelVariant;
+use caro::backends::embedded::ModelVariant;
 
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
 use std::path::PathBuf;
@@ -11,13 +11,10 @@ use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-use cmdai::backends::embedded::EmbeddedConfig;
+use caro::backends::embedded::EmbeddedConfig;
 
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-use cmdai::backends::embedded::{InferenceBackend, MlxBackend};
-
-#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-use cmdai::backends::GeneratorError;
+use caro::backends::embedded::{InferenceBackend, MlxBackend};
 
 // Helper function to get test model path
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]

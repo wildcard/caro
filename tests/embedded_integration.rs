@@ -3,9 +3,9 @@
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
-use cmdai::backends::embedded::{EmbeddedModelBackend, ModelVariant};
-use cmdai::backends::CommandGenerator;
-use cmdai::models::{CommandRequest, RiskLevel, ShellType};
+use caro::backends::embedded::{EmbeddedModelBackend, ModelVariant};
+use caro::backends::CommandGenerator;
+use caro::models::{CommandRequest, RiskLevel, ShellType};
 
 /// Helper to create a test model path
 fn test_model_path() -> PathBuf {
