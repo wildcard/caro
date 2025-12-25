@@ -45,7 +45,7 @@ indicatif = "0.18"
 # Cross-platform support
 directories = "5"
 dirs = "5"
-which = "4.4"
+which = "8.0"
 os_info = "3.14"
 sysinfo = "0.29"
 
