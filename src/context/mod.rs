@@ -1,6 +1,6 @@
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::process::Command;
-use serde::{Deserialize, Serialize};
 
 /// Complete execution context for command generation
 #[derive(Debug, Clone, Serialize, Deserialize)]
