@@ -284,11 +284,7 @@ async fn main() {
         None
     };
 
-    let resolved = resolve_prompt(
-        cli.prompt.clone(),
-        stdin_content,
-        cli.trailing_args.clone(),
-    );
+    let resolved = resolve_prompt(cli.prompt.clone(), stdin_content, cli.trailing_args.clone());
 
     // Store resolved prompt back into cli for downstream usage
     cli.prompt = Some(resolved.text);
@@ -322,7 +318,7 @@ async fn main() {
     }
 
     // Validate prompt and show help if empty/whitespace-only
-    let prompt_text = cli.prompt.as_ref().map(|s| s.as_str()).unwrap_or("");
+    let prompt_text = cli.prompt.as_deref().unwrap_or("");
     match validate_prompt(prompt_text) {
         ValidationAction::ShowHelp => {
             // Show help message for empty or whitespace-only prompts
@@ -744,7 +740,12 @@ mod tests {
         for op in &[">", "|", "<", ">>", "2>", "&", ";"] {
             let args = vec!["cmd".to_string(), op.to_string(), "arg".to_string()];
             let result = truncate_at_shell_operator(args);
-            assert_eq!(result, vec!["cmd"], "Failed to truncate at operator: {}", op);
+            assert_eq!(
+                result,
+                vec!["cmd"],
+                "Failed to truncate at operator: {}",
+                op
+            );
         }
     }
 
@@ -786,11 +787,7 @@ mod tests {
             "grep".to_string(),
         ];
         let result = truncate_at_shell_operator(args);
-        assert_eq!(
-            result,
-            vec!["cmd"],
-            "Should stop at first operator (>)"
-        );
+        assert_eq!(result, vec!["cmd"], "Should stop at first operator (>)");
 
         // Test with different operator order
         let args2 = vec![
