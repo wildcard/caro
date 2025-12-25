@@ -1,7 +1,8 @@
 // Performance benchmarks - THESE MUST FAIL INITIALLY (TDD)
 // Benchmarks validate performance requirements across all components
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use std::hint::black_box;
 
 // Import system components for benchmarking
 use caro::{
