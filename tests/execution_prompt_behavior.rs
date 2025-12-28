@@ -65,6 +65,7 @@ impl IntoCliArgs for TestArgs {
 }
 
 #[tokio::test]
+#[cfg(unix)] // Tests execute generated shell commands which may use Unix-specific utilities
 async fn test_default_behavior_no_auto_execution() {
     // Default behavior: command generated but NOT executed
     let cli = CliApp::new().await.unwrap();
@@ -101,6 +102,7 @@ async fn test_default_behavior_no_auto_execution() {
 }
 
 #[tokio::test]
+#[cfg(unix)] // Tests execute generated shell commands which may use Unix-specific utilities
 async fn test_execute_flag_auto_executes() {
     // With --execute flag: command should auto-execute
     let cli = CliApp::new().await.unwrap();
@@ -132,6 +134,7 @@ async fn test_execute_flag_auto_executes() {
 }
 
 #[tokio::test]
+#[cfg(unix)] // Tests execute generated shell commands which may use Unix-specific utilities
 async fn test_interactive_flag_auto_executes() {
     // With --interactive flag: command should auto-execute
     let cli = CliApp::new().await.unwrap();
@@ -153,6 +156,7 @@ async fn test_interactive_flag_auto_executes() {
 }
 
 #[tokio::test]
+#[cfg(unix)] // Tests execute generated shell commands which may use Unix-specific utilities
 async fn test_dry_run_no_execution() {
     // With --dry-run: command should NOT execute
     let cli = CliApp::new().await.unwrap();
@@ -177,6 +181,7 @@ async fn test_dry_run_no_execution() {
 }
 
 #[tokio::test]
+#[cfg(unix)] // Tests execute generated shell commands which may use Unix-specific utilities
 async fn test_dangerous_command_blocked_without_confirmation() {
     // Dangerous commands should require confirmation
     let cli = CliApp::new().await.unwrap();
@@ -209,6 +214,7 @@ async fn test_dangerous_command_blocked_without_confirmation() {
 }
 
 #[tokio::test]
+#[cfg(unix)] // Tests execute generated shell commands which may use Unix-specific utilities
 async fn test_dangerous_command_executes_with_confirm_flag() {
     // Dangerous commands with --confirm flag should execute (after safety check passes)
     let cli = CliApp::new().await.unwrap();
@@ -233,6 +239,7 @@ async fn test_dangerous_command_executes_with_confirm_flag() {
 }
 
 #[tokio::test]
+#[cfg(unix)] // Tests execute generated shell commands which may use Unix-specific utilities
 async fn test_execution_captures_output() {
     // Verify that execution properly captures stdout, stderr, and exit code
     let cli = CliApp::new().await.unwrap();
@@ -262,6 +269,7 @@ async fn test_execution_captures_output() {
 }
 
 #[tokio::test]
+#[cfg(unix)] // Tests execute generated shell commands which may use Unix-specific utilities
 async fn test_execution_handles_errors() {
     // Test that failed commands are handled properly
     let cli = CliApp::new().await.unwrap();
@@ -279,6 +287,7 @@ async fn test_execution_handles_errors() {
 }
 
 #[tokio::test]
+#[cfg(unix)] // Tests execute generated shell commands which may use Unix-specific utilities
 async fn test_multiple_execution_modes_mutually_exclusive() {
     // Verify behavior when multiple flags are set
     let cli = CliApp::new().await.unwrap();
@@ -301,6 +310,7 @@ async fn test_multiple_execution_modes_mutually_exclusive() {
 }
 
 #[tokio::test]
+#[cfg(unix)] // Tests execute generated shell commands which may use Unix-specific utilities
 async fn test_safe_command_passes_all_checks() {
     // Verify a completely safe command passes all checks
     let cli = CliApp::new().await.unwrap();

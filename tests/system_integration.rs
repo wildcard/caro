@@ -79,6 +79,7 @@ fn create_test_embedded_backend() -> EmbeddedModelBackend {
 
 /// Test complete end-to-end workflow with embedded backend
 #[tokio::test]
+#[ignore = "Requires valid GGUF model and may hit unsupported Metal operations in CI"]
 async fn test_e2e_embedded_workflow() {
     let backend = create_test_embedded_backend();
 
@@ -167,6 +168,7 @@ async fn test_e2e_embedded_workflow() {
 
 /// Test backend selection and fallback chains
 #[tokio::test]
+#[ignore = "Requires valid GGUF model and may hit unsupported Metal operations in CI"]
 async fn test_backend_selection_and_fallback() {
     let embedded_primary = create_test_embedded_backend();
     let _embedded_fallback = create_test_embedded_backend();
@@ -194,6 +196,7 @@ async fn test_backend_selection_and_fallback() {
 /// Test remote backend fallback chains (only with remote-backends feature)
 #[cfg(feature = "remote-backends")]
 #[tokio::test]
+#[ignore = "Requires valid GGUF model and may hit unsupported Metal operations in CI"]
 async fn test_remote_backend_fallback_chains() {
     let embedded_fallback = Arc::new(create_test_embedded_backend());
 
@@ -227,6 +230,7 @@ async fn test_remote_backend_fallback_chains() {
 
 /// Test different shell types integration
 #[tokio::test]
+#[ignore = "Requires valid GGUF model and may hit unsupported Metal operations in CI"]
 async fn test_shell_type_integration() {
     let backend = create_test_embedded_backend();
     let test_shells = vec![
@@ -250,6 +254,7 @@ async fn test_shell_type_integration() {
 
 /// Test safety validation integration
 #[tokio::test]
+#[ignore = "Requires valid GGUF model and may hit unsupported Metal operations in CI"]
 async fn test_safety_validation_integration() {
     let backend = create_test_embedded_backend();
 
@@ -302,6 +307,7 @@ async fn test_safety_validation_integration() {
 
 /// Test concurrent request handling
 #[tokio::test]
+#[ignore = "Requires valid GGUF model and may hit unsupported Metal operations in CI"]
 async fn test_concurrent_request_handling() {
     let backend = Arc::new(create_test_embedded_backend());
     let num_concurrent = 5;
@@ -338,6 +344,7 @@ async fn test_concurrent_request_handling() {
 
 /// Test performance benchmarks
 #[tokio::test]
+#[ignore = "Requires valid GGUF model and may hit unsupported Metal operations in CI"]
 async fn test_performance_benchmarks() {
     let backend = create_test_embedded_backend();
     let test_requests = vec![
@@ -390,6 +397,7 @@ async fn test_performance_benchmarks() {
 
 /// Test error scenarios and edge cases
 #[tokio::test]
+#[ignore = "Requires valid GGUF model and may hit unsupported Metal operations in CI"]
 async fn test_error_scenarios_and_edge_cases() {
     let backend = create_test_embedded_backend();
 
@@ -417,6 +425,7 @@ async fn test_error_scenarios_and_edge_cases() {
 
 /// Test resource management
 #[tokio::test]
+#[ignore = "Requires valid GGUF model and may hit unsupported Metal operations in CI"]
 async fn test_resource_management() {
     // Test that multiple backend instances can coexist
     let backend1 = create_test_embedded_backend();
@@ -437,6 +446,7 @@ async fn test_resource_management() {
 
 /// Test system integration scenarios
 #[tokio::test]
+#[ignore = "Requires valid GGUF model and may hit unsupported Metal operations in CI"]
 async fn test_system_integration_scenarios() {
     let backend = create_test_embedded_backend();
 
