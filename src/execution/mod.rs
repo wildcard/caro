@@ -141,15 +141,32 @@ mod tests {
 
     #[test]
     fn test_execution_context_new() {
+        // Use platform-appropriate test directory, shell, and platform
+        #[cfg(windows)]
+        let test_dir = PathBuf::from("C:\\Users\\test");
+        #[cfg(not(windows))]
         let test_dir = PathBuf::from("/tmp/test");
-        let result = ExecutionContext::new(test_dir.clone(), ShellType::Bash, Platform::Linux);
+
+        #[cfg(windows)]
+        let shell_type = ShellType::PowerShell;
+        #[cfg(not(windows))]
+        let shell_type = ShellType::Bash;
+
+        #[cfg(windows)]
+        let platform = Platform::Windows;
+        #[cfg(target_os = "macos")]
+        let platform = Platform::MacOS;
+        #[cfg(all(not(windows), not(target_os = "macos")))]
+        let platform = Platform::Linux;
+
+        let result = ExecutionContext::new(test_dir.clone(), shell_type, platform);
 
         assert!(result.is_ok());
 
         let context = result.unwrap();
         assert_eq!(context.current_dir(), test_dir.as_path());
-        assert_eq!(context.shell_type(), ShellType::Bash);
-        assert_eq!(context.platform(), Platform::Linux);
+        assert_eq!(context.shell_type(), shell_type);
+        assert_eq!(context.platform(), platform);
     }
 
     #[test]

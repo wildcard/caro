@@ -162,7 +162,15 @@ mod tests {
 
     #[test]
     fn test_command_executor_simple_command() {
+        // Use platform-appropriate shell
+        #[cfg(windows)]
+        let executor = CommandExecutor::new(ShellType::Cmd);
+        #[cfg(not(windows))]
         let executor = CommandExecutor::new(ShellType::Bash);
+
+        #[cfg(windows)]
+        let result = executor.execute("echo Hello, World!");
+        #[cfg(not(windows))]
         let result = executor.execute("echo 'Hello, World!'");
 
         assert!(result.is_ok());
@@ -185,7 +193,15 @@ mod tests {
 
     #[test]
     fn test_command_executor_with_stderr() {
+        // Use platform-appropriate shell
+        #[cfg(windows)]
+        let executor = CommandExecutor::new(ShellType::Cmd);
+        #[cfg(not(windows))]
         let executor = CommandExecutor::new(ShellType::Bash);
+
+        #[cfg(windows)]
+        let result = executor.execute("echo error message 1>&2");
+        #[cfg(not(windows))]
         let result = executor.execute("echo 'error message' >&2");
 
         assert!(result.is_ok());
@@ -211,7 +227,15 @@ mod tests {
 
     #[test]
     fn test_execution_time_tracking() {
+        // Use platform-appropriate shell and sleep command
+        #[cfg(windows)]
+        let executor = CommandExecutor::new(ShellType::PowerShell);
+        #[cfg(not(windows))]
         let executor = CommandExecutor::new(ShellType::Bash);
+
+        #[cfg(windows)]
+        let result = executor.execute("Start-Sleep -Milliseconds 100");
+        #[cfg(not(windows))]
         let result = executor.execute("sleep 0.1");
 
         assert!(result.is_ok());

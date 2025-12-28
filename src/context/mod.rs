@@ -50,6 +50,7 @@ impl ExecutionContext {
         match self.os.as_str() {
             "macos" => self.get_macos_rules(),
             "linux" => self.get_linux_rules(),
+            "windows" => self.get_windows_rules(),
             _ => String::from("Use POSIX-compliant commands"),
         }
     }
@@ -88,6 +89,24 @@ impl ExecutionContext {
 - stat: Use 'stat --format=%s'
 - Current directory: {}"#,
             dist,
+            self.cwd.display()
+        )
+    }
+
+    fn get_windows_rules(&self) -> String {
+        format!(
+            r#"Windows {} (PowerShell/CMD):
+- Listing: Use 'dir' or 'Get-ChildItem' (PowerShell)
+- Network: Use 'netstat -an' or 'Get-NetTCPConnection' (PowerShell)
+- Processes: Use 'tasklist' or 'Get-Process' (PowerShell)
+- Find files: Use 'dir /s' or 'Get-ChildItem -Recurse' (PowerShell)
+- Environment: Use 'set' or '$env:' (PowerShell)
+- Disk usage: Use 'dir' or 'Get-ChildItem | Measure-Object' (PowerShell)
+- Date/time: Use 'date /t' and 'time /t' or 'Get-Date' (PowerShell)
+- File content: Use 'type' or 'Get-Content' (PowerShell)
+- Paths: Use backslashes '\' for paths (e.g., C:\Users\)
+- Current directory: {}"#,
+            self.os_version,
             self.cwd.display()
         )
     }

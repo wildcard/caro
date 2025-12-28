@@ -34,7 +34,9 @@ async fn test_embedded_backend_basic_workflow() {
 }
 
 /// Test command generation with embedded backend
+/// Skipped in CI as it requires a valid GGUF model file
 #[tokio::test]
+#[ignore = "Requires valid GGUF model file - skipped in CI"]
 async fn test_embedded_command_generation() {
     let model_path = test_model_path();
     let backend = EmbeddedModelBackend::with_variant_and_path(ModelVariant::detect(), model_path)
@@ -95,7 +97,9 @@ async fn test_variant_selection() {
 }
 
 /// Test concurrent inference requests
+/// Skipped in CI as it requires a valid GGUF model file
 #[tokio::test]
+#[ignore = "Requires valid GGUF model file - skipped in CI"]
 async fn test_concurrent_inference() {
     let model_path = test_model_path();
     let backend = EmbeddedModelBackend::with_variant_and_path(ModelVariant::detect(), model_path)
@@ -124,7 +128,9 @@ async fn test_concurrent_inference() {
 }
 
 /// Test performance characteristics
+/// Skipped in CI as it requires a valid GGUF model file
 #[tokio::test]
+#[ignore = "Requires valid GGUF model file - skipped in CI"]
 async fn test_embedded_performance() {
     let model_path = test_model_path();
     let backend = EmbeddedModelBackend::with_variant_and_path(ModelVariant::detect(), model_path)
@@ -159,7 +165,9 @@ async fn test_embedded_performance() {
 }
 
 /// Test lazy loading behavior
+/// Skipped in CI as it requires a valid GGUF model file
 #[tokio::test]
+#[ignore = "Requires valid GGUF model file - skipped in CI"]
 async fn test_lazy_loading() {
     let model_path = test_model_path();
     let backend = EmbeddedModelBackend::with_variant_and_path(ModelVariant::detect(), model_path)
@@ -188,7 +196,9 @@ async fn test_lazy_loading() {
 }
 
 /// Test safety validation in responses
+/// Skipped in CI as it requires a valid GGUF model file
 #[tokio::test]
+#[ignore = "Requires valid GGUF model file - skipped in CI"]
 async fn test_safety_validation() {
     let model_path = test_model_path();
     let backend = EmbeddedModelBackend::with_variant_and_path(ModelVariant::detect(), model_path)
@@ -217,7 +227,9 @@ async fn test_safety_validation() {
 }
 
 /// Test different shell types
+/// Skipped in CI as it requires a valid GGUF model file
 #[tokio::test]
+#[ignore = "Requires valid GGUF model file - skipped in CI"]
 async fn test_shell_types() {
     let model_path = test_model_path();
     let backend = EmbeddedModelBackend::with_variant_and_path(ModelVariant::detect(), model_path)
