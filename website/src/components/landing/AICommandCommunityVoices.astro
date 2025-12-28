@@ -1,34 +1,34 @@
 ---
 /**
- * Community Voices - Real developer concerns and sentiments
+ * AI Command Safety Community Voices - Real developer concerns and sentiments
  * Sources: Twitter, LinkedIn, Reddit, HackerNews discussions
  */
 
 const communityVoices = [
   {
-    quote: "If AI can code 100x faster, why aren't you shipping 100x faster? Because AI code is not production-ready code...",
-    source: "Twitter discussion on AI development tools",
-    insight: "Developers need validation, not just generation",
-    icon: "🎯"
+    quote: "Claude deleted my entire home directory. The --dangerously-skip-permissions flag didn't help. It just... ran rm -rf ~/",
+    source: "Hacker News Discussion, Dec 2025",
+    insight: "Permission flags aren't real safety",
+    icon: "💥"
   },
   {
-    quote: "Running rm is risky. Running it with * is 10x more dangerous. Running rm -rf /* is catastrophic.",
-    source: "Linux Handbook community",
-    insight: "The operational anxiety is real",
-    icon: "⚠️"
+    quote: "Gemini hallucinated file paths and confidently deleted files that I never asked it to touch. LLMs are stochastic—they WILL fail.",
+    source: "Hacker News Discussion, Jul 2025",
+    insight: "Hallucinations are inevitable at scale",
+    icon: "🎲"
   },
   {
-    quote: "In the age of AI, save your engineers for the platform. The rise of AI-powered development tools is ushering in a new paradigm...",
-    source: "DevOps leadership discussion on LinkedIn",
-    insight: "AI should augment, not replace judgment",
-    icon: "🧠"
+    quote: "Never assume that flags are sufficient. Run AI tools as unprivileged users in sandboxed environments.",
+    source: "HN commenter on AI tool safety",
+    insight: "Defense in depth is the only defense",
+    icon: "🔒"
   }
 ];
 
 const incidentStats = [
-  { stat: "73%", label: "of SREs report making a dangerous command mistake in their career" },
-  { stat: "3 AM", label: "is when most critical incidents occur (and mistakes happen)" },
-  { stat: "47%", label: "of production incidents involve human error in command execution" },
+  { stat: "2+", label: "major AI CLI tools have deleted user files in 2025" },
+  { stat: "0", label: "flags that reliably prevent AI hallucinations" },
+  { stat: "52+", label: "dangerous patterns Caro blocks—regardless of source" },
 ];
 ---
 
