@@ -1,0 +1,346 @@
+---
+// LPDownload.astro - Download/Get Started section
+---
+
+<section class="download" id="download">
+  <div class="container">
+    <h2 class="section-title">Start Using Caro Today</h2>
+    <p class="section-subtitle">
+      One command. No dependencies. Instant terminal mastery.
+    </p>
+
+    <div class="install-options">
+      <!-- Cargo Install -->
+      <div class="install-card primary">
+        <div class="install-header">
+          <span class="install-icon">📦</span>
+          <h3 class="install-title">Install via Cargo</h3>
+          <span class="install-badge">Recommended</span>
+        </div>
+        <div class="install-command">
+          <code>cargo install caro</code>
+          <button class="copy-btn" data-command="cargo install caro" aria-label="Copy command">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+          </button>
+        </div>
+        <p class="install-note">Requires Rust toolchain. Builds from source.</p>
+      </div>
+
+      <!-- Binary Download -->
+      <div class="install-card">
+        <div class="install-header">
+          <span class="install-icon">⬇️</span>
+          <h3 class="install-title">Download Binary</h3>
+        </div>
+        <div class="download-buttons">
+          <a href="https://github.com/wildcard/caro/releases" class="download-btn" target="_blank">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            View All Releases
+          </a>
+        </div>
+        <p class="install-note">Pre-built binaries for macOS, Linux, and Windows.</p>
+      </div>
+    </div>
+
+    <div class="quick-start">
+      <h3 class="quick-start-title">Quick Start</h3>
+      <div class="quick-start-steps">
+        <div class="step">
+          <span class="step-number">1</span>
+          <div class="step-content">
+            <code>caro "find all TypeScript files"</code>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-number">2</span>
+          <div class="step-content">
+            <span class="step-result">
+              <span class="caro-label">Caro suggests:</span>
+              <code>find . -name "*.ts" -type f</code>
+            </span>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-number">3</span>
+          <div class="step-content">
+            <span class="step-action">Review, run, and ship faster.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .download {
+    padding: 100px 20px;
+    background: linear-gradient(180deg, #0a0a0f 0%, #0f0f14 50%, #0a0a0f 100%);
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-align: center;
+    color: #ffffff;
+    margin-bottom: 16px;
+  }
+
+  .section-subtitle {
+    font-size: 1.125rem;
+    color: #888;
+    text-align: center;
+    max-width: 500px;
+    margin: 0 auto 48px;
+    line-height: 1.6;
+  }
+
+  .install-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    margin-bottom: 60px;
+  }
+
+  .install-card {
+    background: #16161f;
+    border-radius: 16px;
+    padding: 28px;
+    border: 1px solid #222;
+    transition: all 0.3s ease;
+  }
+
+  .install-card.primary {
+    border-color: #ff6b35;
+    box-shadow: 0 0 30px rgba(255, 107, 53, 0.1);
+  }
+
+  .install-card:hover {
+    border-color: #ff6b35;
+    transform: translateY(-4px);
+  }
+
+  .install-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .install-icon {
+    font-size: 1.5rem;
+  }
+
+  .install-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #ffffff;
+    flex: 1;
+  }
+
+  .install-badge {
+    background: linear-gradient(135deg, #ff6b35, #ff8c42);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+
+  .install-command {
+    background: #0a0a0f;
+    border-radius: 8px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .install-command code {
+    font-family: 'SF Mono', 'Monaco', monospace;
+    font-size: 0.95rem;
+    color: #50fa7b;
+  }
+
+  .copy-btn {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 4px;
+    transition: color 0.2s ease;
+  }
+
+  .copy-btn:hover {
+    color: #ff6b35;
+  }
+
+  .copy-btn.copied {
+    color: #50fa7b;
+  }
+
+  .install-note {
+    font-size: 0.8rem;
+    color: #666;
+  }
+
+  .download-buttons {
+    margin-bottom: 12px;
+  }
+
+  .download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #1f1f2a;
+    color: #ffffff;
+    text-decoration: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: 1px solid #333;
+  }
+
+  .download-btn:hover {
+    background: #2a2a3a;
+    border-color: #555;
+  }
+
+  .quick-start {
+    background: #16161f;
+    border-radius: 16px;
+    padding: 32px;
+    border: 1px solid #222;
+  }
+
+  .quick-start-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+
+  .quick-start-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .step-number {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #ff6b35, #ff8c42);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #ffffff;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  .step-content {
+    flex: 1;
+    background: #0a0a0f;
+    border-radius: 8px;
+    padding: 12px 16px;
+  }
+
+  .step-content code {
+    font-family: 'SF Mono', 'Monaco', monospace;
+    font-size: 0.85rem;
+    color: #8be9fd;
+  }
+
+  .step-result {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .caro-label {
+    font-size: 0.7rem;
+    color: #ff6b35;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .step-result code {
+    color: #50fa7b;
+  }
+
+  .step-action {
+    color: #888;
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 768px) {
+    .install-options {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .download {
+      padding: 60px 16px;
+    }
+
+    .section-title {
+      font-size: 1.75rem;
+    }
+
+    .install-card {
+      padding: 20px;
+    }
+
+    .quick-start {
+      padding: 24px 16px;
+    }
+
+    .step {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .step-content {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const command = btn.getAttribute('data-command');
+      if (command) {
+        await navigator.clipboard.writeText(command);
+        btn.classList.add('copied');
+        setTimeout(() => btn.classList.remove('copied'), 2000);
+      }
+    });
+  });
+</script>

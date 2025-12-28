@@ -1,0 +1,548 @@
+---
+// LPPersonas.astro - Three personas section with interactive CTAs
+---
+
+<section class="personas" id="personas">
+  <div class="container">
+    <h2 class="section-title">Built for How You Work</h2>
+    <p class="section-subtitle">
+      Whether you're accelerating your career, protecting your org, or living in the terminal - Caro adapts to you.
+    </p>
+
+    <div class="personas-grid">
+      <!-- The Accelerator -->
+      <div class="persona-card accelerator" data-persona="accelerator">
+        <div class="persona-icon">
+          <span>🚀</span>
+        </div>
+        <h3 class="persona-title">The Accelerator</h3>
+        <p class="persona-role">Individual Developer</p>
+
+        <div class="persona-problem">
+          <span class="label problem">The Friction</span>
+          <p>You're smart. But memorizing 500 flags and options for tools you use twice a month? That's not intelligence, it's trivia.</p>
+        </div>
+
+        <div class="persona-solution">
+          <span class="label solution">The Unlock</span>
+          <p>Express intent in English. Get validated, runnable commands. Ship faster without the Stack Overflow detour.</p>
+        </div>
+
+        <ul class="persona-benefits">
+          <li>10x faster command discovery</li>
+          <li>Learn shell idioms naturally</li>
+          <li>Build career-defining skills</li>
+        </ul>
+
+        <div class="persona-expanded" aria-hidden="true">
+          <div class="expanded-content">
+            <h4>How Accelerators Use Caro</h4>
+            <div class="use-case">
+              <code class="input">"find all Python files changed in the last week"</code>
+              <code class="output">find . -name "*.py" -mtime -7</code>
+            </div>
+            <p class="expanded-note">Caro teaches you the underlying command syntax as you use it, building real terminal expertise over time.</p>
+          </div>
+        </div>
+
+        <button class="persona-cta" aria-expanded="false">
+          <span class="cta-text">See how it works</span>
+          <span class="cta-icon">→</span>
+        </button>
+      </div>
+
+      <!-- The Guardian -->
+      <div class="persona-card guardian" data-persona="guardian">
+        <div class="persona-icon">
+          <span>🛡️</span>
+        </div>
+        <h3 class="persona-title">The Guardian</h3>
+        <p class="persona-role">Security & Platform Lead</p>
+
+        <div class="persona-problem">
+          <span class="label problem">The Risk</span>
+          <p>Every AI tool your team uses is a potential data leak. Cloud APIs see your infrastructure. Your secrets. Your blind spots.</p>
+        </div>
+
+        <div class="persona-solution">
+          <span class="label solution">The Shield</span>
+          <p>100% local execution. Zero data collection. Pre-execution validation catches dangerous commands before they run.</p>
+        </div>
+
+        <ul class="persona-benefits">
+          <li>Air-gapped friendly</li>
+          <li>52+ dangerous patterns blocked</li>
+          <li>Full audit capability</li>
+        </ul>
+
+        <div class="persona-expanded" aria-hidden="true">
+          <div class="expanded-content">
+            <h4>What Caro Catches</h4>
+            <div class="use-case danger">
+              <code class="input blocked">rm -rf /</code>
+              <span class="blocked-badge">⛔ BLOCKED</span>
+            </div>
+            <div class="use-case danger">
+              <code class="input blocked">:()&#123; :|:& &#125;;:</code>
+              <span class="blocked-badge">⛔ FORK BOMB</span>
+            </div>
+            <p class="expanded-note">52+ dangerous patterns are validated before any command runs. Your team is protected by default.</p>
+          </div>
+        </div>
+
+        <button class="persona-cta" aria-expanded="false">
+          <span class="cta-text">See what's blocked</span>
+          <span class="cta-icon">→</span>
+        </button>
+      </div>
+
+      <!-- The Operator -->
+      <div class="persona-card operator" data-persona="operator">
+        <div class="persona-icon">
+          <span>⚡</span>
+        </div>
+        <h3 class="persona-title">The Operator</h3>
+        <p class="persona-role">SRE / DevOps Engineer</p>
+
+        <div class="persona-problem">
+          <span class="label problem">The Chaos</span>
+          <p>Production is down. You're SSH'd into a box you've never seen. Is it BSD? Linux? What's the find syntax here again?</p>
+        </div>
+
+        <div class="persona-solution">
+          <span class="label solution">The Edge</span>
+          <p>Platform-aware commands. macOS vs Linux vs BSD - Caro knows the difference. You focus on the problem, not the syntax.</p>
+        </div>
+
+        <ul class="persona-benefits">
+          <li>Cross-platform intelligence</li>
+          <li>Instant command generation</li>
+          <li>Works in any terminal</li>
+        </ul>
+
+        <div class="persona-expanded" aria-hidden="true">
+          <div class="expanded-content">
+            <h4>Platform Intelligence</h4>
+            <div class="platform-grid">
+              <div class="platform-item">
+                <span class="platform-name">macOS</span>
+                <code>find . -name "*.log" -mtime +7</code>
+              </div>
+              <div class="platform-item">
+                <span class="platform-name">Linux</span>
+                <code>find . -name "*.log" -mtime +7</code>
+              </div>
+              <div class="platform-item">
+                <span class="platform-name">BSD</span>
+                <code>find . -name "*.log" -mtime +7d</code>
+              </div>
+            </div>
+            <p class="expanded-note">Same intent, platform-correct syntax. Caro detects your OS and adjusts automatically.</p>
+          </div>
+        </div>
+
+        <button class="persona-cta" aria-expanded="false">
+          <span class="cta-text">See platform support</span>
+          <span class="cta-icon">→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { track } from '@vercel/analytics';
+
+  document.querySelectorAll('.persona-cta').forEach(button => {
+    button.addEventListener('click', () => {
+      const card = button.closest('.persona-card') as HTMLElement;
+      const expanded = card?.querySelector('.persona-expanded');
+      const isExpanded = button.getAttribute('aria-expanded') === 'true';
+      const persona = card?.dataset.persona || 'unknown';
+
+      // Track persona engagement
+      if (!isExpanded) {
+        track('persona_expand', { persona });
+      }
+
+      // Toggle state
+      button.setAttribute('aria-expanded', (!isExpanded).toString());
+      expanded?.setAttribute('aria-hidden', isExpanded.toString());
+      card?.classList.toggle('is-expanded', !isExpanded);
+
+      // Update button text
+      const ctaText = button.querySelector('.cta-text') as HTMLElement;
+      if (ctaText) {
+        ctaText.textContent = isExpanded ? (button as HTMLElement).dataset.originalText || 'See how it works' : 'Close';
+        if (!(button as HTMLElement).dataset.originalText) {
+          (button as HTMLElement).dataset.originalText = ctaText.textContent || '';
+        }
+      }
+    });
+  });
+
+  // Track scroll to personas section
+  const personasSection = document.getElementById('personas');
+  let hasTrackedPersonasView = false;
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !hasTrackedPersonasView) {
+        track('section_view', { section: 'personas' });
+        hasTrackedPersonasView = true;
+      }
+    });
+  }, { threshold: 0.3 });
+
+  if (personasSection) {
+    observer.observe(personasSection);
+  }
+</script>
+
+<style>
+  .personas {
+    padding: 100px 20px;
+    background: #0f0f14;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-align: center;
+    color: #ffffff;
+    margin-bottom: 16px;
+  }
+
+  .section-subtitle {
+    font-size: 1.125rem;
+    color: #888;
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto 60px;
+    line-height: 1.6;
+  }
+
+  .personas-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .persona-card {
+    background: #16161f;
+    border-radius: 16px;
+    padding: 32px;
+    border: 1px solid #222;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .persona-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .persona-card.accelerator::before {
+    background: linear-gradient(90deg, #ff6b35, #ff8c42);
+  }
+
+  .persona-card.guardian::before {
+    background: linear-gradient(90deg, #50fa7b, #69ff94);
+  }
+
+  .persona-card.operator::before {
+    background: linear-gradient(90deg, #8be9fd, #a4ffff);
+  }
+
+  .persona-card:hover {
+    border-color: #333;
+    transform: translateY(-4px);
+  }
+
+  .persona-card:hover::before {
+    opacity: 1;
+  }
+
+  .persona-card.is-expanded {
+    border-color: #ff6b35;
+  }
+
+  .persona-card.is-expanded::before {
+    opacity: 1;
+  }
+
+  .persona-icon {
+    width: 56px;
+    height: 56px;
+    background: #1f1f2a;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin-bottom: 20px;
+  }
+
+  .persona-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 4px;
+  }
+
+  .persona-role {
+    font-size: 0.875rem;
+    color: #666;
+    margin-bottom: 24px;
+  }
+
+  .persona-problem, .persona-solution {
+    margin-bottom: 20px;
+  }
+
+  .label {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+
+  .label.problem {
+    background: rgba(255, 85, 85, 0.15);
+    color: #ff5555;
+  }
+
+  .label.solution {
+    background: rgba(80, 250, 123, 0.15);
+    color: #50fa7b;
+  }
+
+  .persona-problem p, .persona-solution p {
+    font-size: 0.95rem;
+    color: #a0a0a0;
+    line-height: 1.6;
+  }
+
+  .persona-benefits {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-top: 1px solid #222;
+    padding-top: 20px;
+  }
+
+  .persona-benefits li {
+    font-size: 0.875rem;
+    color: #888;
+    padding: 8px 0;
+    padding-left: 24px;
+    position: relative;
+  }
+
+  .persona-benefits li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #ff6b35;
+    font-weight: bold;
+  }
+
+  /* Expanded section */
+  .persona-expanded {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, padding 0.4s ease;
+    padding: 0;
+  }
+
+  .persona-expanded[aria-hidden="false"] {
+    max-height: 400px;
+    padding-top: 20px;
+  }
+
+  .expanded-content {
+    background: #0a0a0f;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #1e1e24;
+  }
+
+  .expanded-content h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .use-case {
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .use-case.danger {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .use-case code {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    font-size: 0.8125rem;
+    padding: 8px 12px;
+    border-radius: 6px;
+    display: block;
+  }
+
+  .use-case code.input {
+    background: #1e1e24;
+    color: #888;
+  }
+
+  .use-case code.output {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+  }
+
+  .use-case code.blocked {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    text-decoration: line-through;
+  }
+
+  .blocked-badge {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .platform-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .platform-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .platform-name {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #888;
+    min-width: 60px;
+  }
+
+  .platform-item code {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    font-size: 0.75rem;
+    color: #22c55e;
+    background: rgba(34, 197, 94, 0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+
+  .expanded-note {
+    font-size: 0.8125rem;
+    color: #666;
+    line-height: 1.5;
+    margin: 12px 0 0;
+  }
+
+  /* CTA Button */
+  .persona-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 20px;
+    width: 100%;
+    padding: 12px 16px;
+    margin-top: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #ff6b35;
+    background: transparent;
+    border: 1px solid #ff6b35;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .persona-cta:hover {
+    background: rgba(255, 107, 53, 0.1);
+  }
+
+  .persona-cta[aria-expanded="true"] {
+    background: #ff6b35;
+    color: #ffffff;
+  }
+
+  .cta-icon {
+    transition: transform 0.2s ease;
+  }
+
+  .persona-cta[aria-expanded="true"] .cta-icon {
+    transform: rotate(90deg);
+  }
+
+  @media (max-width: 1024px) {
+    .personas-grid {
+      grid-template-columns: 1fr;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .personas {
+      padding: 60px 16px;
+    }
+
+    .section-title {
+      font-size: 1.75rem;
+    }
+
+    .section-subtitle {
+      font-size: 1rem;
+    }
+
+    .persona-card {
+      padding: 24px;
+    }
+
+    .use-case.danger {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>

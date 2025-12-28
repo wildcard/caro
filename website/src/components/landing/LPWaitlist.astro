@@ -1,0 +1,304 @@
+---
+// LPWaitlist.astro - Email capture for Org Visibility feature
+// TODO: Connect to your email service (ConvertKit, Mailchimp, etc.)
+---
+
+<section class="waitlist" id="waitlist">
+  <div class="container">
+    <div class="waitlist-card">
+      <div class="waitlist-content">
+        <span class="badge">COMING SOON</span>
+        <h2 class="waitlist-title">Org Visibility for Teams</h2>
+        <p class="waitlist-description">
+          See what commands your team runs. Audit shell activity across your organization.
+          Identify training opportunities and security risks—without invading privacy.
+        </p>
+
+        <ul class="feature-list">
+          <li>
+            <span class="check">✓</span>
+            <span>Aggregated command analytics (no individual tracking)</span>
+          </li>
+          <li>
+            <span class="check">✓</span>
+            <span>Pattern detection for dangerous command attempts</span>
+          </li>
+          <li>
+            <span class="check">✓</span>
+            <span>Self-hosted dashboard—your data never leaves your network</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="waitlist-form-container">
+        <form class="waitlist-form" id="waitlist-form">
+          <div class="form-group">
+            <label for="email" class="sr-only">Work email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="Enter your work email"
+              required
+              class="email-input"
+            />
+          </div>
+          <button type="submit" class="submit-button">
+            <span class="button-text">Get Early Access</span>
+            <span class="button-icon">→</span>
+          </button>
+        </form>
+        <p class="form-note">
+          Join 200+ engineering leaders on the waitlist. No spam, just launch updates.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { track } from '@vercel/analytics';
+
+  const form = document.getElementById('waitlist-form') as HTMLFormElement;
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const emailInput = form.querySelector('input[type="email"]') as HTMLInputElement;
+    const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    const buttonText = submitButton.querySelector('.button-text') as HTMLSpanElement;
+
+    const email = emailInput.value;
+
+    // Track waitlist signup attempt
+    track('waitlist_signup', { action: 'submit' });
+
+    // Update button state
+    submitButton.disabled = true;
+    buttonText.textContent = 'Joining...';
+
+    try {
+      // TODO: Replace with your actual email service endpoint
+      // Example: await fetch('https://api.convertkit.com/v3/forms/YOUR_FORM_ID/subscribe', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ api_key: 'YOUR_API_KEY', email })
+      // });
+
+      // For now, simulate success
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Track successful signup
+      track('waitlist_signup', { action: 'success' });
+
+      // Success state
+      buttonText.textContent = 'You\'re on the list! ✓';
+      submitButton.classList.add('success');
+      emailInput.value = '';
+
+      // Reset after 3 seconds
+      setTimeout(() => {
+        buttonText.textContent = 'Get Early Access';
+        submitButton.disabled = false;
+        submitButton.classList.remove('success');
+      }, 3000);
+
+    } catch (error) {
+      // Error state
+      buttonText.textContent = 'Try again';
+      submitButton.disabled = false;
+    }
+  });
+</script>
+
+<style>
+  .waitlist {
+    padding: 80px 20px;
+    background: #0a0a0f;
+  }
+
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .waitlist-card {
+    background: linear-gradient(135deg, #111116 0%, #16161c 100%);
+    border: 1px solid #ff6b35;
+    border-radius: 24px;
+    padding: 48px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .waitlist-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #ff6b35, transparent);
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #ff6b35;
+    background: rgba(255, 107, 53, 0.15);
+    padding: 6px 12px;
+    border-radius: 100px;
+    margin-bottom: 16px;
+  }
+
+  .waitlist-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 16px;
+    line-height: 1.2;
+  }
+
+  .waitlist-description {
+    font-size: 1rem;
+    color: #888;
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+
+  .feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .feature-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.9375rem;
+    color: #ccc;
+    line-height: 1.5;
+  }
+
+  .check {
+    color: #22c55e;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .waitlist-form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .waitlist-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+
+  .email-input {
+    width: 100%;
+    padding: 16px 20px;
+    font-size: 1rem;
+    color: #ffffff;
+    background: #0a0a0f;
+    border: 1px solid #2a2a30;
+    border-radius: 12px;
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .email-input::placeholder {
+    color: #555;
+  }
+
+  .email-input:focus {
+    border-color: #ff6b35;
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+  }
+
+  .submit-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 16px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff;
+    background: linear-gradient(135deg, #ff6b35 0%, #ff8c5a 100%);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .submit-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 107, 53, 0.3);
+  }
+
+  .submit-button:disabled {
+    opacity: 0.8;
+    cursor: not-allowed;
+  }
+
+  .submit-button.success {
+    background: linear-gradient(135deg, #22c55e 0%, #4ade80 100%);
+  }
+
+  .button-icon {
+    transition: transform 0.2s ease;
+  }
+
+  .submit-button:hover .button-icon {
+    transform: translateX(4px);
+  }
+
+  .form-note {
+    font-size: 0.8125rem;
+    color: #666;
+    text-align: center;
+  }
+
+  @media (max-width: 768px) {
+    .waitlist {
+      padding: 60px 16px;
+    }
+
+    .waitlist-card {
+      grid-template-columns: 1fr;
+      gap: 32px;
+      padding: 32px 24px;
+    }
+
+    .waitlist-title {
+      font-size: 1.5rem;
+    }
+  }
+</style>

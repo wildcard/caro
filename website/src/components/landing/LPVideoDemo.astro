@@ -1,0 +1,248 @@
+---
+// LPVideoDemo.astro - Video/GIF demo section
+// TODO: Replace placeholder with actual Loom/Kap recording
+
+interface Props {
+  videoUrl?: string;
+  posterUrl?: string;
+}
+
+const { videoUrl, posterUrl } = Astro.props;
+const hasVideo = !!videoUrl;
+---
+
+<section class="video-demo" id="video-demo">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">SEE IT IN ACTION</span>
+      <h2 class="section-title">30 Seconds to Terminal Mastery</h2>
+      <p class="section-subtitle">
+        Watch how Caro transforms natural language into safe POSIX commands
+      </p>
+    </div>
+
+    <div class="video-container">
+      {hasVideo ? (
+        <video
+          class="demo-video"
+          controls
+          playsinline
+          preload="metadata"
+          poster={posterUrl}
+        >
+          <source src={videoUrl} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      ) : (
+        <div class="video-placeholder">
+          <div class="placeholder-content">
+            <div class="play-button">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                <circle cx="24" cy="24" r="24" fill="#ff6b35" fill-opacity="0.2"/>
+                <circle cx="24" cy="24" r="20" fill="#ff6b35"/>
+                <path d="M20 16L32 24L20 32V16Z" fill="white"/>
+              </svg>
+            </div>
+            <p class="placeholder-text">Video coming soon</p>
+            <p class="placeholder-subtext">
+              In the meantime, try the interactive demo below
+            </p>
+          </div>
+
+          <div class="demo-steps">
+            <div class="step">
+              <span class="step-number">1</span>
+              <span class="step-text">Type naturally: "find large files over 100MB"</span>
+            </div>
+            <div class="step-arrow">→</div>
+            <div class="step">
+              <span class="step-number">2</span>
+              <span class="step-text">Caro validates for safety</span>
+            </div>
+            <div class="step-arrow">→</div>
+            <div class="step">
+              <span class="step-number">3</span>
+              <span class="step-text">Get: <code>find . -size +100M -type f</code></span>
+            </div>
+            <div class="step-arrow">→</div>
+            <div class="step">
+              <span class="step-number">4</span>
+              <span class="step-text">Execute with confidence</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+</section>
+
+<style>
+  .video-demo {
+    padding: 80px 20px;
+    background: #0a0a0f;
+  }
+
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .section-label {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #ff6b35;
+    margin-bottom: 16px;
+    padding: 8px 16px;
+    background: rgba(255, 107, 53, 0.1);
+    border-radius: 100px;
+  }
+
+  .section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 16px;
+    line-height: 1.2;
+  }
+
+  .section-subtitle {
+    font-size: 1.125rem;
+    color: #888;
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .video-container {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #1e1e24;
+    background: #111116;
+  }
+
+  .demo-video {
+    width: 100%;
+    display: block;
+  }
+
+  .video-placeholder {
+    padding: 60px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+  }
+
+  .placeholder-content {
+    text-align: center;
+  }
+
+  .play-button {
+    margin-bottom: 20px;
+    opacity: 0.6;
+  }
+
+  .placeholder-text {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 8px;
+  }
+
+  .placeholder-subtext {
+    font-size: 0.9375rem;
+    color: #555;
+  }
+
+  .demo-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    width: 100%;
+    padding: 24px;
+    background: #0a0a0f;
+    border-radius: 12px;
+  }
+
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #16161c;
+    border-radius: 8px;
+    border: 1px solid #1e1e24;
+  }
+
+  .step-number {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ff6b35;
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .step-text {
+    font-size: 0.875rem;
+    color: #ccc;
+  }
+
+  .step-text code {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    font-size: 0.8125rem;
+    color: #22c55e;
+    background: rgba(34, 197, 94, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .step-arrow {
+    color: #ff6b35;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  @media (max-width: 768px) {
+    .video-demo {
+      padding: 60px 16px;
+    }
+
+    .section-title {
+      font-size: 1.75rem;
+    }
+
+    .video-placeholder {
+      padding: 40px 20px;
+    }
+
+    .demo-steps {
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .step-arrow {
+      transform: rotate(90deg);
+    }
+
+    .step {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
