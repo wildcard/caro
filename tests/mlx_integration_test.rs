@@ -87,7 +87,9 @@ async fn test_embedded_backend_with_mlx() {
 
 /// Test full command generation workflow with MLX backend
 /// This test will download the model if not cached (~1.1GB)
+/// Skipped in CI due to Metal GPU operation compatibility issues
 #[tokio::test]
+#[ignore = "Requires valid GGUF model and may hit unsupported Metal operations in CI"]
 async fn test_mlx_command_generation_workflow() {
     println!("🔄 Testing command generation workflow...");
     println!("   Note: May download model if not cached (~1.1GB)");
@@ -124,7 +126,9 @@ async fn test_mlx_command_generation_workflow() {
 
 /// Test MLX performance characteristics
 /// This test measures real inference times
+/// Skipped in CI due to Metal GPU operation compatibility issues
 #[tokio::test]
+#[ignore = "Requires valid GGUF model and may hit unsupported Metal operations in CI"]
 async fn test_mlx_performance() {
     use std::time::Instant;
 

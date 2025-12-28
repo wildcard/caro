@@ -52,6 +52,7 @@ fn run_caro(args: &[&str]) -> (String, String, i32) {
 }
 
 #[test]
+#[cfg(not(windows))] // Requires bash/POSIX commands not available on Windows by default
 fn test_e2e_execute_flag_runs_command() {
     // Test: --execute flag should auto-execute the command
     let (stdout, _stderr, exit_code) = run_caro(&["--execute", "current directory"]);
@@ -111,6 +112,7 @@ fn test_e2e_dry_run_no_execution() {
 }
 
 #[test]
+#[cfg(not(windows))] // Requires bash/POSIX commands not available on Windows by default
 fn test_e2e_short_execute_flag() {
     // Test: -x short flag should work the same as --execute
     let (stdout, _stderr, exit_code) = run_caro(&["-x", "current directory"]);
@@ -221,6 +223,7 @@ fn test_e2e_no_flags_non_interactive() {
 }
 
 #[test]
+#[cfg(not(windows))] // Requires bash/POSIX commands not available on Windows by default
 fn test_e2e_multiple_commands() {
     // Test: Run multiple commands in sequence
     let commands: Vec<(Vec<&str>, &str)> = vec![
@@ -241,6 +244,7 @@ fn test_e2e_multiple_commands() {
 }
 
 #[test]
+#[cfg(not(windows))] // Requires bash/POSIX commands not available on Windows by default
 fn test_e2e_command_with_output() {
     // Test: Command that produces output
     let (stdout, _stderr, exit_code) = run_caro(&["-x", "current directory"]);
@@ -291,6 +295,7 @@ fn test_e2e_version_flag() {
 }
 
 #[test]
+#[cfg(not(windows))] // Requires bash/POSIX commands not available on Windows by default
 fn test_e2e_shell_selection() {
     // Test: Shell type selection
     let (stdout, _stderr, exit_code) = run_caro(&["--shell", "bash", "-x", "current directory"]);
@@ -303,6 +308,7 @@ fn test_e2e_shell_selection() {
 }
 
 #[test]
+#[cfg(not(windows))] // Requires bash/POSIX commands not available on Windows by default
 fn test_e2e_execution_timing() {
     // Test: Verify execution timing is captured
     let (stdout, _stderr, exit_code) = run_caro(&["-x", "current directory"]);
@@ -317,6 +323,7 @@ fn test_e2e_execution_timing() {
 }
 
 #[test]
+#[cfg(not(windows))] // Requires bash/POSIX commands not available on Windows by default
 fn test_e2e_exit_code_display() {
     // Test: Exit code is displayed
     let (stdout, _stderr, exit_code) = run_caro(&["-x", "current directory"]);
