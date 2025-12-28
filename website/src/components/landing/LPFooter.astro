@@ -1,0 +1,127 @@
+---
+---
+
+<footer>
+  <div class="container">
+    <div class="footer-main">
+      <div class="footer-brand">
+        <span class="brand-name">Caro</span>
+        <span class="brand-tagline">Safe shell commands, locally.</span>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/wildcard/caro">GitHub</a>
+        <a href="https://github.com/wildcard/caro/blob/main/LICENSE">AGPL-3.0</a>
+        <a href="https://github.com/wildcard/caro/contribute">Contributing</a>
+        <a href="https://github.com/wildcard/caro/issues">Report Issue</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="built-with">Built with Rust. No telemetry. Ever.</p>
+      <p class="mascot-tribute">
+        Named after <a href="https://www.instagram.com/kyaroblackheart/" target="_blank" rel="noopener noreferrer">Kyaro</a>, the goodest office dog.
+        <a href="/blog/why-caro" class="story-link">Read her story →</a>
+      </p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  footer {
+    padding: 50px 20px 30px;
+    background: var(--color-footer-bg);
+    color: var(--color-footer-text);
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .footer-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 40px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .footer-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .brand-name {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ff8c42;
+  }
+
+  .brand-tagline {
+    font-size: 14px;
+    color: var(--color-footer-text-muted);
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 24px;
+  }
+
+  .footer-links a {
+    color: var(--color-footer-text);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover {
+    color: #ff8c42;
+  }
+
+  .footer-bottom {
+    text-align: center;
+  }
+
+  .built-with {
+    font-size: 13px;
+    color: var(--color-footer-text-muted);
+    margin-bottom: 12px;
+  }
+
+  .mascot-tribute {
+    font-size: 13px;
+    color: var(--color-footer-text-muted);
+  }
+
+  .mascot-tribute a {
+    color: var(--color-footer-text);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .mascot-tribute a:hover {
+    color: #ff8c42;
+  }
+
+  .story-link {
+    margin-left: 8px;
+    color: #ff8c42 !important;
+  }
+
+  @media (max-width: 768px) {
+    .footer-main {
+      flex-direction: column;
+      gap: 24px;
+      align-items: center;
+      text-align: center;
+    }
+
+    .footer-links {
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+    }
+  }
+</style>

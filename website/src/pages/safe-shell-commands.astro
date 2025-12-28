@@ -1,0 +1,50 @@
+---
+/**
+ * Landing Page: Safe Shell Commands
+ *
+ * Target Persona: Production-Paranoid SRE/DevOps Engineer
+ * Pain Point: Fear of making catastrophic shell command mistakes
+ * Search Queries: "safe shell commands", "prevent rm rf", "ai terminal safety"
+ *
+ * Main Message: "The last line of defense between you and rm -rf /"
+ *
+ * Enhanced with:
+ * - Real community voices and developer concerns
+ * - Role-based scenario selector (DevOps/SRE/Backend/Data)
+ * - Specific testimonials with context
+ * - FAQ addressing developer skepticism
+ */
+
+import LandingPage from '../layouts/LandingPage.astro';
+import LPNavigation from '../components/landing/LPNavigation.astro';
+import LPHero from '../components/landing/LPHero.astro';
+import LPDemo from '../components/landing/LPDemo.astro';
+import LPScenarios from '../components/landing/LPScenarios.astro';
+import LPCommunityVoices from '../components/landing/LPCommunityVoices.astro';
+import LPTrust from '../components/landing/LPTrust.astro';
+import LPFeatures from '../components/landing/LPFeatures.astro';
+import LPDifferentiators from '../components/landing/LPDifferentiators.astro';
+import LPFAQ from '../components/landing/LPFAQ.astro';
+import LPDownload from '../components/landing/LPDownload.astro';
+import LPFooter from '../components/landing/LPFooter.astro';
+---
+
+<LandingPage
+  title="Safe Shell Commands with AI | Caro"
+  description="Generate safe shell commands with AI that runs 100% locally. Caro validates commands BEFORE execution, catching dangerous patterns like rm -rf. Zero telemetry, zero cloud APIs, open source."
+  slug="safe-shell-commands"
+  persona="Production-Paranoid SRE/DevOps"
+  painPoint="Fear of catastrophic shell command mistakes"
+>
+  <LPNavigation />
+  <LPHero />
+  <LPDemo />
+  <LPScenarios />
+  <LPCommunityVoices />
+  <LPTrust />
+  <LPFeatures />
+  <LPDifferentiators />
+  <LPFAQ />
+  <LPDownload />
+  <LPFooter />
+</LandingPage>

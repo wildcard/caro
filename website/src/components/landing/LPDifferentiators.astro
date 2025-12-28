@@ -1,0 +1,198 @@
+---
+const differentiators = [
+  {
+    they: "They send your commands to the cloud.",
+    caro: "Caro runs 100% locally.",
+    detail: "Your production commands, server names, and file paths never leave your machine. Ever."
+  },
+  {
+    they: "They generate commands. Hope you check them.",
+    caro: "Caro blocks dangerous patterns before you can run them.",
+    detail: "52+ safety patterns including rm -rf, fork bombs, and disk wipes. Pre-execution, not post-mortem."
+  },
+  {
+    they: "They give you bash. Hope it works on Linux.",
+    caro: "Caro generates platform-specific commands that just work.",
+    detail: "Detects your OS, knows BSD vs GNU, and adjusts syntax automatically. No more Stack Overflow."
+  },
+];
+---
+
+<section id="compare" class="comparison-section">
+  <div class="container">
+    <h2>Why Engineers Choose Caro</h2>
+    <p class="section-subtitle">The differences that matter</p>
+
+    <div class="differentiators">
+      {differentiators.map((diff, index) => (
+        <div class="differentiator">
+          <div class="diff-number">{index + 1}</div>
+          <div class="diff-content">
+            <div class="diff-row">
+              <div class="diff-they">
+                <span class="diff-label">Others:</span>
+                <span class="diff-text">{diff.they}</span>
+              </div>
+              <div class="diff-caro">
+                <span class="diff-label">Caro:</span>
+                <span class="diff-text">{diff.caro}</span>
+              </div>
+            </div>
+            <p class="diff-detail">{diff.detail}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div class="comparison-cta">
+      <a href="/compare" class="cta-link">See detailed feature comparison →</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .comparison-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  h2 {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    margin-bottom: 50px;
+  }
+
+  .differentiators {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .differentiator {
+    display: flex;
+    gap: 20px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 28px;
+    transition: border-color 0.2s;
+  }
+
+  .differentiator:hover {
+    border-color: #ff8c42;
+  }
+
+  .diff-number {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+  }
+
+  .diff-content {
+    flex-grow: 1;
+  }
+
+  .diff-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 16px;
+  }
+
+  .diff-they,
+  .diff-caro {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .diff-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-text-secondary);
+  }
+
+  .diff-they .diff-text {
+    color: var(--color-text-secondary);
+    text-decoration: line-through;
+    text-decoration-color: rgba(239, 68, 68, 0.5);
+  }
+
+  .diff-caro .diff-text {
+    color: var(--color-text);
+    font-weight: 600;
+  }
+
+  .diff-caro .diff-label {
+    color: #ff8c42;
+  }
+
+  .diff-detail {
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+    padding-left: 0;
+    border-left: none;
+  }
+
+  .comparison-cta {
+    text-align: center;
+    margin-top: 40px;
+  }
+
+  .cta-link {
+    color: #ff8c42;
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 16px;
+    transition: opacity 0.2s;
+  }
+
+  .cta-link:hover {
+    opacity: 0.8;
+  }
+
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 28px;
+    }
+
+    .differentiator {
+      flex-direction: column;
+      padding: 24px;
+    }
+
+    .diff-number {
+      align-self: flex-start;
+    }
+
+    .diff-row {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+  }
+</style>

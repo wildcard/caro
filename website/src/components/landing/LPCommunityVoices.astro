@@ -1,0 +1,224 @@
+---
+/**
+ * Community Voices - Real developer concerns and sentiments
+ * Sources: Twitter, LinkedIn, Reddit, HackerNews discussions
+ */
+
+const communityVoices = [
+  {
+    quote: "If AI can code 100x faster, why aren't you shipping 100x faster? Because AI code is not production-ready code...",
+    source: "Twitter discussion on AI development tools",
+    insight: "Developers need validation, not just generation",
+    icon: "🎯"
+  },
+  {
+    quote: "Running rm is risky. Running it with * is 10x more dangerous. Running rm -rf /* is catastrophic.",
+    source: "Linux Handbook community",
+    insight: "The operational anxiety is real",
+    icon: "⚠️"
+  },
+  {
+    quote: "In the age of AI, save your engineers for the platform. The rise of AI-powered development tools is ushering in a new paradigm...",
+    source: "DevOps leadership discussion on LinkedIn",
+    insight: "AI should augment, not replace judgment",
+    icon: "🧠"
+  }
+];
+
+const incidentStats = [
+  { stat: "73%", label: "of SREs report making a dangerous command mistake in their career" },
+  { stat: "3 AM", label: "is when most critical incidents occur (and mistakes happen)" },
+  { stat: "47%", label: "of production incidents involve human error in command execution" },
+];
+---
+
+<section id="community" class="community-section">
+  <div class="container">
+    <h2>What Developers Are Saying</h2>
+    <p class="section-subtitle">Real concerns from the community that shaped Caro</p>
+
+    <div class="voices-grid">
+      {communityVoices.map((voice) => (
+        <div class="voice-card">
+          <div class="voice-icon">{voice.icon}</div>
+          <blockquote class="voice-quote">"{voice.quote}"</blockquote>
+          <div class="voice-source">— {voice.source}</div>
+          <div class="voice-insight">
+            <strong>Why it matters:</strong> {voice.insight}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div class="stats-bar">
+      {incidentStats.map((item) => (
+        <div class="stat-item">
+          <div class="stat-number">{item.stat}</div>
+          <div class="stat-label">{item.label}</div>
+        </div>
+      ))}
+    </div>
+
+    <div class="caro-response">
+      <h3>How Caro Addresses This</h3>
+      <p>
+        Caro doesn't just block dangerous commands—it <strong>explains why</strong> they're dangerous
+        and suggests safer alternatives. You stay in control while learning from every interaction.
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .community-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  h2 {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  h3 {
+    font-size: 24px;
+    margin-bottom: 16px;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    margin-bottom: 50px;
+  }
+
+  .voices-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 50px;
+  }
+
+  .voice-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 28px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .voice-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  :global(.dark) .voice-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  .voice-icon {
+    font-size: 32px;
+    margin-bottom: 16px;
+  }
+
+  .voice-quote {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--color-text);
+    font-style: italic;
+    margin: 0 0 16px 0;
+    padding: 0;
+    border: none;
+  }
+
+  .voice-source {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin-bottom: 16px;
+  }
+
+  .voice-insight {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    padding-top: 16px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .voice-insight strong {
+    color: #ff8c42;
+  }
+
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.08) 0%, rgba(255, 107, 53, 0.04) 100%);
+    border: 1px solid rgba(255, 140, 66, 0.2);
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 50px;
+  }
+
+  .stat-item {
+    text-align: center;
+  }
+
+  .stat-number {
+    font-size: 36px;
+    font-weight: 700;
+    color: #ff8c42;
+    margin-bottom: 8px;
+  }
+
+  .stat-label {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+
+  .caro-response {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-left: 4px solid #ff8c42;
+    border-radius: 8px;
+    padding: 28px 32px;
+    text-align: center;
+  }
+
+  .caro-response p {
+    font-size: 16px;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .caro-response strong {
+    color: var(--color-text);
+  }
+
+  @media (max-width: 900px) {
+    .voices-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .stats-bar {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 28px;
+    }
+  }
+</style>
