@@ -1,4 +1,4 @@
-# Research: Karo Distributed Mesh
+# Research: Caro Distributed Mesh
 
 **Document**: Technology Research and Decisions
 **Version**: 1.0.0
@@ -8,7 +8,7 @@
 
 ## Research Summary
 
-This document captures research findings for implementing Karo's distributed mesh functionality.
+This document captures research findings for implementing Caro's distributed mesh functionality.
 
 ---
 
@@ -54,7 +54,7 @@ What storage solution for local events, summaries, and audit logs?
 
 ### Decision
 - **rusqlite** crate for SQLite access
-- Single database file at `~/.local/share/karo/karo.db`
+- Single database file at `~/.local/share/caro/caro.db`
 - WAL mode for concurrent reads
 - VACUUM on startup if fragmented
 
@@ -83,41 +83,41 @@ How to capture commands from bash, zsh, and fish shells?
 ### Decision
 - Primary: Shell hooks for bash (DEBUG trap), zsh (preexec), fish (fish_preexec)
 - Fallback: History file polling for unsupported shells
-- Installation: `karo shell init bash >> ~/.bashrc`
+- Installation: `caro shell init bash >> ~/.bashrc`
 
 ### Shell Hook Implementations
 
 **Bash:**
 ```bash
 # ~/.bashrc
-eval "$(karo shell init bash)"
+eval "$(caro shell init bash)"
 
 # Expands to:
-__karo_preexec() {
-    karo __internal observe "$BASH_COMMAND"
+__caro_preexec() {
+    caro __internal observe "$BASH_COMMAND"
 }
-trap '__karo_preexec' DEBUG
+trap '__caro_preexec' DEBUG
 ```
 
 **Zsh:**
 ```zsh
 # ~/.zshrc
-eval "$(karo shell init zsh)"
+eval "$(caro shell init zsh)"
 
 # Expands to:
 preexec() {
-    karo __internal observe "$1"
+    caro __internal observe "$1"
 }
 ```
 
 **Fish:**
 ```fish
 # ~/.config/fish/config.fish
-karo shell init fish | source
+caro shell init fish | source
 
 # Expands to:
-function __karo_preexec --on-event fish_preexec
-    karo __internal observe $argv
+function __caro_preexec --on-event fish_preexec
+    caro __internal observe $argv
 end
 ```
 
@@ -126,7 +126,7 @@ end
 ## 4. Peer Discovery
 
 ### Question
-How to discover other Karo nodes on internal networks?
+How to discover other Caro nodes on internal networks?
 
 ### Research
 
@@ -141,12 +141,12 @@ How to discover other Karo nodes on internal networks?
 - Default: Static peer list in config file
 - Optional: mDNS via `mdns` crate for local discovery
 - mDNS disabled by default (security stance)
-- Service name: `_karo._tcp.local`
+- Service name: `_caro._tcp.local`
 
 ### mDNS Record
 ```
-_karo._tcp.local. IN SRV 0 0 9238 hostname.local.
-_karo._tcp.local. IN TXT "version=1" "fingerprint=a1b2c3d4"
+_caro._tcp.local. IN SRV 0 0 9238 hostname.local.
+_caro._tcp.local. IN TXT "version=1" "fingerprint=a1b2c3d4"
 ```
 
 ---
@@ -180,7 +180,7 @@ What format for wire messages between nodes?
 ## 6. Background Service Architecture
 
 ### Question
-How to run Karo as a persistent background service?
+How to run Caro as a persistent background service?
 
 ### Research
 
@@ -194,17 +194,17 @@ How to run Karo as a persistent background service?
 - macOS: launchd plist in `~/Library/LaunchAgents/`
 - Linux: systemd user service in `~/.config/systemd/user/`
 - Windows: Future (Windows Service API)
-- CLI fallback: `karo service run` for foreground mode
+- CLI fallback: `caro service run` for foreground mode
 
 ### Service Installation
 ```bash
 # macOS
-karo service install  # Creates launchd plist
-launchctl load ~/Library/LaunchAgents/com.karo.agent.plist
+caro service install  # Creates launchd plist
+launchctl load ~/Library/LaunchAgents/com.caro.agent.plist
 
 # Linux
-karo service install  # Creates systemd unit
-systemctl --user enable --now karo
+caro service install  # Creates systemd unit
+systemctl --user enable --now caro
 ```
 
 ---

@@ -1,4 +1,4 @@
-# Data Model: Karo Distributed Mesh
+# Data Model: Caro Distributed Mesh
 
 **Document**: Entity Relationship Model
 **Version**: 1.0.0
@@ -10,7 +10,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           KARO DATA MODEL                                   │
+│                           CARO DATA MODEL                                   │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  ┌───────────────┐        ┌───────────────┐        ┌───────────────┐       │
@@ -39,11 +39,11 @@
 
 ### 1. NodeIdentity
 
-The cryptographic identity of a Karo node.
+The cryptographic identity of a Caro node.
 
 | Field | Type | Constraints | Description |
 |-------|------|-------------|-------------|
-| `node_id` | String | PK, Unique | Format: `karo:ed25519:<base64-pubkey>` |
+| `node_id` | String | PK, Unique | Format: `caro:ed25519:<base64-pubkey>` |
 | `fingerprint` | String(16) | Unique | BLAKE3 hash, first 8 bytes, hex |
 | `display_name` | String? | Optional | Human-readable name |
 | `public_key` | Bytes(32) | Required | Ed25519 public key |
@@ -73,7 +73,7 @@ A single observed command execution. **Never transmitted.**
 | `cwd` | Path | Required | Working directory |
 | `exit_code` | Int? | Optional | Exit code (null if running) |
 | `duration_ms` | Int? | Optional | Execution duration |
-| `karo_generated` | Bool | Default: false | Was command from Karo |
+| `caro_generated` | Bool | Default: false | Was command from Caro |
 | `category` | Enum | Required | Computed category |
 | `risk_level` | Enum | Required | safe, moderate, high, critical |
 | `user_confirmed` | Bool | Default: false | User confirmed risky command |
@@ -285,8 +285,8 @@ summary_generated | summary_shared
   },
   "blocked_count": 2,
   "user_confirmed_risky": 3,
-  "karo_generated": 50,
-  "karo_executed": 48
+  "caro_generated": 50,
+  "caro_executed": 48
 }
 ```
 
@@ -334,7 +334,7 @@ CREATE TABLE terminal_events (
     cwd TEXT NOT NULL,
     exit_code INTEGER,
     duration_ms INTEGER,
-    karo_generated INTEGER NOT NULL DEFAULT 0,
+    caro_generated INTEGER NOT NULL DEFAULT 0,
     category TEXT NOT NULL,
     risk_level TEXT NOT NULL,
     user_confirmed INTEGER NOT NULL DEFAULT 0
@@ -455,4 +455,4 @@ NodeA (Summary) → Sign → Encrypt → TLS → NodeB → Verify → Store
 
 ---
 
-*This data model supports the Karo distributed mesh architecture defined in ADR-002.*
+*This data model supports the Caro distributed mesh architecture defined in ADR-002.*

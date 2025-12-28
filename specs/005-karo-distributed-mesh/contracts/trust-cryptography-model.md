@@ -1,6 +1,6 @@
 # Trust & Cryptography Model
 
-**Document**: Karo Distributed Mesh Security Architecture
+**Document**: Caro Distributed Mesh Security Architecture
 **Version**: 1.0.0
 **Date**: December 2025
 **Status**: Design Complete
@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-This document defines the cryptographic foundations and trust model for Karo's distributed mesh system. The design prioritizes:
+This document defines the cryptographic foundations and trust model for Caro's distributed mesh system. The design prioritizes:
 
 1. **Zero-trust default**: All nodes are untrusted until explicitly verified
 2. **Cryptographic identity**: Every node has a unique Ed25519 keypair
@@ -79,10 +79,10 @@ This document defines the cryptographic foundations and trust model for Karo's d
 │     └── BLAKE3(public_key)[0:8] → 16 hex chars                 │
 │                                                                 │
 │  4. Format node ID                                              │
-│     └── "karo:ed25519:<base64(public_key)>"                    │
+│     └── "caro:ed25519:<base64(public_key)>"                    │
 │                                                                 │
 │  5. Store securely                                              │
-│     └── ~/.local/share/karo/identity.key (mode 0600)           │
+│     └── ~/.local/share/caro/identity.key (mode 0600)           │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -90,7 +90,7 @@ This document defines the cryptographic foundations and trust model for Karo's d
 ### 2.2 Key Storage Format
 
 ```toml
-# ~/.local/share/karo/identity.key
+# ~/.local/share/caro/identity.key
 # This file contains the node's private key
 # Permissions MUST be 0600 (owner read/write only)
 
@@ -133,8 +133,8 @@ This allows a single identity key to be used for both signing and key exchange.
 │  2. Create rotation endorsement                                  │
 │     ┌──────────────────────────────────────────────────────┐   │
 │     │ KeyRotation {                                         │   │
-│     │   old_public_key: "karo:ed25519:OLD...",             │   │
-│     │   new_public_key: "karo:ed25519:NEW...",             │   │
+│     │   old_public_key: "caro:ed25519:OLD...",             │   │
+│     │   new_public_key: "caro:ed25519:NEW...",             │   │
 │     │   valid_from: "2025-12-28T12:00:00Z",                │   │
 │     │   expires_at: "2025-12-29T12:00:00Z",                │   │
 │     │   old_key_signature: sign(old_key, endorsement),     │   │
@@ -204,14 +204,14 @@ Certificate:
     Public Key: Ed25519 <public_key>
     Extensions:
         Subject Alternative Name:
-            DNS: karo-<fingerprint>.local
+            DNS: caro-<fingerprint>.local
             IP: (bound IP addresses)
         Key Usage: digitalSignature, keyAgreement
 ```
 
 ### 3.3 Certificate Validation
 
-Karo does NOT use traditional PKI trust chains. Instead:
+Caro does NOT use traditional PKI trust chains. Instead:
 
 1. **First connection**: Store peer's public key fingerprint
 2. **Subsequent connections**: Verify certificate matches stored fingerprint
@@ -222,14 +222,14 @@ This is similar to SSH's `known_hosts` model (TOFU - Trust On First Use).
 ### 3.4 TLS Configuration
 
 ```rust
-// rustls configuration for Karo nodes
+// rustls configuration for Caro nodes
 let config = ServerConfig::builder()
     .with_cipher_suites(&[
         TLS13_CHACHA20_POLY1305_SHA256,
     ])
     .with_kx_groups(&[X25519])
     .with_protocol_versions(&[ProtocolVersion::TLSv1_3])
-    .with_client_cert_verifier(KaroVerifier::new(trust_store))
+    .with_client_cert_verifier(CaroVerifier::new(trust_store))
     .with_single_cert(cert_chain, private_key)?;
 ```
 
@@ -326,8 +326,8 @@ After TLS handshake, all messages are encrypted with:
 │  Administrator distributes trust config file:                   │
 │                                                                 │
 │  [peers.trusted]                                                │
-│  "karo:ed25519:ABC123..." = { trust = "peer", name = "dev1" }  │
-│  "karo:ed25519:DEF456..." = { trust = "supervisor" }           │
+│  "caro:ed25519:ABC123..." = { trust = "peer", name = "dev1" }  │
+│  "caro:ed25519:DEF456..." = { trust = "supervisor" }           │
 │                                                                 │
 │  Pros: No interactive setup, enterprise-ready                   │
 │  Cons: Requires key distribution mechanism                      │
@@ -366,7 +366,7 @@ After TLS handshake, all messages are encrypted with:
 │  Organization runs internal CA that signs node certificates:    │
 │                                                                 │
 │  [trust.ca]                                                     │
-│  root_cert = "/etc/karo/org-ca.crt"                            │
+│  root_cert = "/etc/caro/org-ca.crt"                            │
 │  required_ou = "Engineering"                                    │
 │                                                                 │
 │  Pros: Leverages existing PKI                                   │
@@ -416,7 +416,7 @@ enum RevocationMethod {
 │  • Full command text                                            │
 │  • File paths                                                   │
 │  • Environment variables                                        │
-│  • User prompts to Karo                                         │
+│  • User prompts to Caro                                         │
 │  • Working directories                                          │
 │                                                                 │
 │  ENFORCEMENT: These fields are not included in any             │
@@ -542,7 +542,7 @@ aggregate_hours = 24    # Cache aggregates for 24 hours
 │      └── Protected by: Disabled by default; subnet scoped       │
 │                                                                 │
 │  LOCAL SURFACE                                                  │
-│  ├── SQLite database (~/.local/share/karo/)                     │
+│  ├── SQLite database (~/.local/share/caro/)                     │
 │  │   └── Protected by: File permissions (0600)                 │
 │  ├── Identity key file                                          │
 │  │   └── Protected by: File permissions (0600)                 │
@@ -704,4 +704,4 @@ pub mod transport {
 
 ---
 
-*This document defines the security architecture for Karo's distributed mesh. All implementations MUST follow these specifications. Deviations require security review and ADR amendment.*
+*This document defines the security architecture for Caro's distributed mesh. All implementations MUST follow these specifications. Deviations require security review and ADR amendment.*

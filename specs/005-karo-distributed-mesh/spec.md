@@ -1,9 +1,9 @@
-# Feature Specification: Karo Distributed Mesh
+# Feature Specification: Caro Distributed Mesh
 
-**Feature Branch**: `005-karo-distributed-mesh`
+**Feature Branch**: `005-caro-distributed-mesh`
 **Created**: December 2025
 **Status**: Draft
-**Input**: User description: "Karo distributed terminal intelligence system for closed networks with encrypted peer-to-peer node communication, organization-wide visibility, and privacy-preserving aggregation."
+**Input**: User description: "Caro distributed terminal intelligence system for closed networks with encrypted peer-to-peer node communication, organization-wide visibility, and privacy-preserving aggregation."
 
 ---
 
@@ -11,35 +11,35 @@
 
 ### Primary User Story
 
-As a developer working in an air-gapped network, I want my Karo installation to connect with my teammates' Karo nodes so that our security team can see aggregate terminal usage patterns without accessing my raw command history.
+As a developer working in an air-gapped network, I want my Caro installation to connect with my teammates' Caro nodes so that our security team can see aggregate terminal usage patterns without accessing my raw command history.
 
 ### Actor Definitions
 
 | Actor | Description | Primary Goals |
 |-------|-------------|---------------|
-| **Individual Contributor** | Developer running Karo on their workstation | Personal terminal insights, privacy control |
+| **Individual Contributor** | Developer running Caro on their workstation | Personal terminal insights, privacy control |
 | **System Administrator** | Ops engineer managing infrastructure | Team visibility, operational patterns |
 | **Security Analyst (CISO)** | Security team member | Organization-wide risk posture, anomaly detection |
-| **Node** | A Karo installation (software actor) | Mesh participation, data exchange |
+| **Node** | A Caro installation (software actor) | Mesh participation, data exchange |
 
 ### Acceptance Scenarios
 
 #### Scenario 1: Single Node Value (Standalone)
-1. **Given** a fresh Karo installation on an isolated machine
+1. **Given** a fresh Caro installation on an isolated machine
 2. **When** the user runs commands in their terminal
-3. **Then** Karo observes and categorizes commands locally
+3. **Then** Caro observes and categorizes commands locally
 4. **And** the user can view their personal dashboard at `localhost:9237`
 5. **And** no network communication occurs outside the machine
 
 #### Scenario 2: Peer Discovery and Connection
-1. **Given** two Karo nodes on the same internal network
+1. **Given** two Caro nodes on the same internal network
 2. **When** Node A is configured with Node B's address as a trusted peer
 3. **Then** Node A initiates a TLS 1.3 connection to Node B
 4. **And** both nodes perform mutual Ed25519 authentication
 5. **And** both nodes record the successful peer connection in their audit logs
 
 #### Scenario 3: Summary Exchange
-1. **Given** two connected and mutually trusted Karo nodes
+1. **Given** two connected and mutually trusted Caro nodes
 2. **When** Node A generates a daily summary of command patterns
 3. **Then** Node A signs the summary with its Ed25519 private key
 4. **And** Node A transmits the encrypted summary to Node B
@@ -47,7 +47,7 @@ As a developer working in an air-gapped network, I want my Karo installation to 
 6. **And** Node B does NOT receive raw command text
 
 #### Scenario 4: Aggregate Query (CISO Role)
-1. **Given** a CISO's Karo node connected to 10 developer nodes
+1. **Given** a CISO's Caro node connected to 10 developer nodes
 2. **When** the CISO queries "show me organization-wide risk distribution"
 3. **Then** the query is routed to all 10 peer nodes
 4. **And** each node evaluates its sharing policy for the CISO's identity
@@ -63,7 +63,7 @@ As a developer working in an air-gapped network, I want my Karo installation to 
 5. **And** the audit log records the query and response level
 
 #### Scenario 6: Air-Gap Operation
-1. **Given** a Karo mesh operating in an air-gapped facility
+1. **Given** a Caro mesh operating in an air-gapped facility
 2. **When** all nodes are configured with static peer lists
 3. **Then** no mDNS or external DNS queries occur
 4. **And** no traffic leaves the internal network
@@ -84,7 +84,7 @@ As a developer working in an air-gapped network, I want my Karo installation to 
   - **Expected**: All summaries are signed; signature verification fails; forged data rejected
 
 - What happens when the local SQLite database becomes corrupted?
-  - **Expected**: Karo detects corruption on startup; offers repair or fresh start option
+  - **Expected**: Caro detects corruption on startup; offers repair or fresh start option
 
 ---
 
@@ -94,8 +94,8 @@ As a developer working in an air-gapped network, I want my Karo installation to 
 
 #### FR-1xx: Node Identity and Cryptography
 - **FR-101**: System MUST generate an Ed25519 keypair on first startup
-- **FR-102**: System MUST store private key in `~/.local/share/karo/identity.key` with 0600 permissions
-- **FR-103**: System MUST represent node identity as `karo:ed25519:<base64-public-key>`
+- **FR-102**: System MUST store private key in `~/.local/share/caro/identity.key` with 0600 permissions
+- **FR-103**: System MUST represent node identity as `caro:ed25519:<base64-public-key>`
 - **FR-104**: System MUST support key rotation with signed endorsement from old key
 - **FR-105**: System MUST use BLAKE3 for fingerprint generation (first 8 bytes of hash)
 
@@ -187,7 +187,7 @@ As a developer working in an air-gapped network, I want my Karo installation to 
 
 ### Key Entities
 
-- **Node**: A Karo installation with cryptographic identity, local data store, and network presence
+- **Node**: A Caro installation with cryptographic identity, local data store, and network presence
 - **Peer**: Another Node that this Node has established trust with
 - **TerminalEvent**: A single observed command execution (Level 0 data)
 - **NodeSummary**: Aggregated patterns from TerminalEvents (Level 1 data)

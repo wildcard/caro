@@ -1,4 +1,4 @@
-# ADR-002: Karo System Definition — Distributed Terminal Intelligence
+# ADR-002: Caro System Definition — Distributed Terminal Intelligence
 
 | **Status**     | Proposed                            |
 |----------------|-------------------------------------|
@@ -27,7 +27,7 @@
 
 ## Executive Summary
 
-This document defines **Karo** as a distributed terminal intelligence system designed for air-gapped and closed internal networks. Karo evolves from a single-machine CLI tool into a cooperative node network that provides:
+This document defines **Caro** as a distributed terminal intelligence system designed for air-gapped and closed internal networks. Caro evolves from a single-machine CLI tool into a cooperative node network that provides:
 
 - **Individual value**: Personal terminal copilot with inference, safety checks, and usage insights
 - **Organizational value**: Aggregate visibility into terminal behavior, security posture, and operational patterns
@@ -46,7 +46,7 @@ This document defines **Karo** as a distributed terminal intelligence system des
 
 ### The Evolution
 
-ADR-001 established Karo as a local-first CLI tool for command generation. This ADR extends that vision to address organizational needs:
+ADR-001 established Caro as a local-first CLI tool for command generation. This ADR extends that vision to address organizational needs:
 
 1. **Individual developers** want terminal intelligence without data leaving their machine
 2. **Security teams** need visibility into terminal behavior patterns across the organization
@@ -64,7 +64,7 @@ Design a system that:
 
 ### Why Not Traditional Approaches?
 
-| Approach | Why Not for Karo? |
+| Approach | Why Not for Caro? |
 |----------|-------------------|
 | **Centralized logging** (Splunk, ELK) | Requires infrastructure, not air-gap friendly |
 | **Agent-based monitoring** (Datadog) | Phones home, requires internet |
@@ -94,11 +94,11 @@ Design a system that:
 
 ## System Mental Model
 
-Karo operates as four simultaneous identities:
+Caro operates as four simultaneous identities:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                         KARO NODE IDENTITY                          │
+│                         CARO NODE IDENTITY                          │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────┐ │
@@ -175,7 +175,7 @@ Karo operates as four simultaneous identities:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                           KARO NODE                                 │
+│                           CARO NODE                                 │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
 │  ┌─────────────────────────────────────────────────────────────┐   │
@@ -207,7 +207,7 @@ Karo operates as four simultaneous identities:
 │                              │                                      │
 │  ┌─────────────────────────────────────────────────────────────┐   │
 │  │                    LOCAL DATA STORE                          │   │
-│  │  ~/.local/share/karo/                                        │   │
+│  │  ~/.local/share/caro/                                        │   │
 │  │  ├── events.db          # SQLite event store                 │   │
 │  │  ├── config.toml        # Node configuration                 │   │
 │  │  ├── identity.key       # Node cryptographic identity        │   │
@@ -219,17 +219,17 @@ Karo operates as four simultaneous identities:
 
 ### Observation Scope
 
-What a Karo node observes on its machine:
+What a Caro node observes on its machine:
 
 | Category | Data Collected | Purpose |
 |----------|---------------|---------|
 | **Shell Commands** | Command text, exit codes, duration | Usage patterns, failure analysis |
 | **Working Context** | cwd, shell type, user, privileges | Context-aware assistance |
 | **Process Tree** | Child processes of terminal | Understanding command effects |
-| **Karo Interactions** | Generated commands, user prompts | Quality improvement, usage stats |
+| **Caro Interactions** | Generated commands, user prompts | Quality improvement, usage stats |
 | **Timestamps** | When commands executed | Temporal patterns |
 
-What a Karo node **never** collects:
+What a Caro node **never** collects:
 - File contents (only paths if part of command)
 - Network traffic or connections
 - Keystrokes outside of commands
@@ -244,7 +244,7 @@ What a Karo node **never** collects:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                    KARO MESH (Internal Network)                     │
+│                    CARO MESH (Internal Network)                     │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
 │     ┌───────────┐         ┌───────────┐         ┌───────────┐      │
@@ -291,7 +291,7 @@ Within closed networks, nodes discover each other via:
 | **Static Config** | Explicit list of peer addresses | `peers = ["10.0.0.5:9238", "10.0.0.6:9238"]` |
 | **Subnet Scan** | Probe known port on subnet | `discovery.subnet = "10.0.0.0/24"` |
 | **mDNS/Bonjour** | Multicast DNS service discovery | `discovery.mdns = true` |
-| **DNS-SD** | DNS service records in internal DNS | `discovery.dns_sd = "_karo._tcp.internal.corp"` |
+| **DNS-SD** | DNS service records in internal DNS | `discovery.dns_sd = "_caro._tcp.internal.corp"` |
 
 **Default**: Static config + optional mDNS (zero external dependencies).
 
@@ -310,7 +310,7 @@ Within closed networks, nodes discover each other via:
 │  ├── Full command text with arguments                               │
 │  ├── File paths and contents                                        │
 │  ├── Environment variables                                          │
-│  └── User prompts to Karo                                           │
+│  └── User prompts to Caro                                           │
 │                                                                     │
 │  LEVEL 1: SUMMARIZED (Shared with explicit consent)                 │
 │  ├── Command patterns (e.g., "git operations: 45/day")              │
@@ -332,7 +332,7 @@ Within closed networks, nodes discover each other via:
 #### Node Identity
 
 ```rust
-/// Cryptographic identity of a Karo node
+/// Cryptographic identity of a Caro node
 struct NodeIdentity {
     /// Ed25519 public key (32 bytes, base64 encoded)
     public_key: String,
@@ -354,8 +354,8 @@ struct NodeCapabilities {
     /// Protocol version
     protocol_version: u32,
 
-    /// Karo version
-    karo_version: String,
+    /// Caro version
+    caro_version: String,
 
     /// Supported sharing levels
     supports_level1: bool,
@@ -405,8 +405,8 @@ struct TerminalEvent {
     /// Duration in milliseconds
     duration_ms: Option<u64>,
 
-    /// Was this command generated by Karo?
-    karo_generated: bool,
+    /// Was this command generated by Caro?
+    caro_generated: bool,
 
     /// Safety assessment
     risk_level: RiskLevel,
@@ -511,8 +511,8 @@ struct SafetyStats {
     /// User-confirmed risky commands
     confirmed_risky: u32,
 
-    /// Karo-generated commands
-    karo_generated: u32,
+    /// Caro-generated commands
+    caro_generated: u32,
 }
 ```
 
@@ -647,7 +647,7 @@ enum ResponseData {
 
 In a serverless mesh, access is granted by:
 
-1. **Direct Connection**: User installs Karo on their machine, connects to mesh
+1. **Direct Connection**: User installs Caro on their machine, connects to mesh
 2. **Query Routing**: Their node routes queries through the mesh
 3. **Policy Enforcement**: Each responding node enforces its sharing policy
 4. **Result Aggregation**: Requesting node aggregates responses
@@ -685,7 +685,7 @@ In a serverless mesh, access is granted by:
 Each node defines its sharing policy:
 
 ```toml
-# ~/.local/share/karo/config.toml
+# ~/.local/share/caro/config.toml
 
 [sharing]
 # What level of data to share
@@ -734,15 +734,15 @@ untrusted = true
 │  1. GENERATION (First Run)                                          │
 │     ┌─────────────────────────────────────────────────────────┐    │
 │     │  Ed25519 keypair generated                              │    │
-│     │  Private key stored: ~/.local/share/karo/identity.key   │    │
-│     │  Public key = Node ID (base64: "karo:ed25519:Abc123...") │   │
+│     │  Private key stored: ~/.local/share/caro/identity.key   │    │
+│     │  Public key = Node ID (base64: "caro:ed25519:Abc123...") │   │
 │     │  Fingerprint = BLAKE3(public_key)[0:8] (for display)    │    │
 │     └─────────────────────────────────────────────────────────┘    │
 │                                                                     │
 │  2. PEER INTRODUCTION                                               │
 │     ┌─────────────────────────────────────────────────────────┐    │
-│     │  Node A ──► "Hello, I am karo:ed25519:Abc123"           │    │
-│     │  Node B ──► "Hello, I am karo:ed25519:Def456"           │    │
+│     │  Node A ──► "Hello, I am caro:ed25519:Abc123"           │    │
+│     │  Node B ──► "Hello, I am caro:ed25519:Def456"           │    │
 │     │  Both perform X25519 key agreement for session key      │    │
 │     │  TLS 1.3 channel established with mutual authentication │    │
 │     └─────────────────────────────────────────────────────────┘    │
@@ -751,7 +751,7 @@ untrusted = true
 │     ┌─────────────────────────────────────────────────────────┐    │
 │     │  Option A: Pre-shared trust (config file)               │    │
 │     │    [peers.trusted]                                      │    │
-│     │    "karo:ed25519:Def456" = { name = "Bob", role = "dev" }│   │
+│     │    "caro:ed25519:Def456" = { name = "Bob", role = "dev" }│   │
 │     │                                                          │    │
 │     │  Option B: TOFU (Trust On First Use) with confirmation   │    │
 │     │    "New peer detected: Def456. Trust? [y/N]"            │    │
@@ -839,7 +839,7 @@ struct SignedMessage<T> {
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
 │  Layer 1: Network Isolation                                         │
-│  └── Karo only binds to internal interfaces                         │
+│  └── Caro only binds to internal interfaces                         │
 │  └── Firewall rules can further restrict mesh ports                 │
 │                                                                     │
 │  Layer 2: Transport Security                                        │
@@ -960,7 +960,7 @@ Messages between nodes use a simple framed format:
 │                      Signature (64 bytes)                       │
 └─────────────────────────────────────────────────────────────────┘
 
-Magic: 0x4B41524F ("KARO")
+Magic: 0x4B41524F ("CARO")
 Version: Protocol version (currently 1)
 Length: Payload length in bytes
 Type: Message type enum
@@ -974,13 +974,13 @@ Signature: Ed25519 signature over (Version || Length || Type || Payload)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  KARO - Personal Terminal Intelligence        localhost:9237   │
+│  CARO - Personal Terminal Intelligence        localhost:9237   │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  Today's Activity                    Command Categories         │
 │  ─────────────────                   ──────────────────         │
 │  Commands: 127                       ████████ git (45)          │
-│  Karo-generated: 23                  ██████ docker (32)         │
+│  Caro-generated: 23                  ██████ docker (32)         │
 │  Risky (blocked): 2                  █████ kubectl (28)         │
 │  Avg duration: 1.2s                  ███ npm (15)               │
 │                                      ██ other (7)               │
@@ -1001,7 +1001,7 @@ Signature: Ed25519 signature over (Version || Length || Type || Payload)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  KARO - Organization Security Posture                          │
+│  CARO - Organization Security Posture                          │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  Mesh Health                         Risk Distribution          │
@@ -1034,4 +1034,4 @@ Signature: Ed25519 signature over (Version || Length || Type || Payload)
 
 ---
 
-*This ADR was authored in December 2025 and represents the target architecture for Karo as a distributed terminal intelligence system. Implementation will proceed in phases as defined in the Future Direction section.*
+*This ADR was authored in December 2025 and represents the target architecture for Caro as a distributed terminal intelligence system. Implementation will proceed in phases as defined in the Future Direction section.*
