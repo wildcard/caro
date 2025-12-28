@@ -18,6 +18,12 @@ const communityVoices = [
     icon: "🎲"
   },
   {
+    quote: "1 in 10 times it fails, nearly always because the demo gods got involved. LLMs are probabilistic—unreliability is fundamental to the architecture.",
+    source: "HN discussion on AI tool reliability",
+    insight: "Stochastic systems have stochastic failures",
+    icon: "🎰"
+  },
+  {
     quote: "Never assume that flags are sufficient. Run AI tools as unprivileged users in sandboxed environments.",
     source: "HN commenter on AI tool safety",
     insight: "Defense in depth is the only defense",
@@ -102,7 +108,7 @@ const incidentStats = [
 
   .voices-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 24px;
     margin-bottom: 50px;
   }

@@ -54,6 +54,16 @@ const concerns = [
     question: "Why should I trust AI-generated shell commands at all?",
     answer: "You shouldn't trust them blindly—that's the point. Caro generates commands AND validates them before you run them. It's not 'trust the AI'—it's 'trust the pattern-based safety layer that catches what the AI might get wrong.' The validation is deterministic, not probabilistic.",
     icon: "🎯"
+  },
+  {
+    question: "Aren't LLMs trained to be agreeable? Doesn't that make them dangerous?",
+    answer: "Yes—this is called LLM sycophancy. AI tools are trained to agree with users and appear confident, even when they're wrong. Gemini told a user they were 'overqualified and underpaid'—completely fabricated career advice. In shell commands, this means the AI will confidently generate commands that look right but are subtly destructive. Caro doesn't care about confidence. It validates the actual command.",
+    icon: "🎭"
+  },
+  {
+    question: "Who's responsible when an AI command goes wrong? The AI can't be held accountable.",
+    answer: "Exactly the problem. The machine cannot be held responsible, but the decision is yours. That's the 'decision responsibility gap'—you're accountable for commands an AI suggested but can't fully verify. Caro bridges this gap: you make informed decisions with explicit warnings about dangerous patterns. No more dice-roll decision making.",
+    icon: "⚖️"
   }
 ];
 ---
