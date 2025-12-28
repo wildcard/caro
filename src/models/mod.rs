@@ -278,6 +278,15 @@ pub enum ShellType {
 impl ShellType {
     /// Detect the current shell from environment
     pub fn detect() -> Self {
+        // Check for Windows shells FIRST (Windows may have SHELL set from Git Bash)
+        #[cfg(target_os = "windows")]
+        {
+            if std::env::var("PSModulePath").is_ok() {
+                return Self::PowerShell;
+            }
+            return Self::Cmd;
+        }
+
         // Check SHELL environment variable on Unix-like systems
         if let Ok(shell) = std::env::var("SHELL") {
             if shell.contains("bash") {
@@ -289,15 +298,6 @@ impl ShellType {
             } else if shell.ends_with("/sh") {
                 return Self::Sh;
             }
-        }
-
-        // Check for Windows shells
-        #[cfg(target_os = "windows")]
-        {
-            if std::env::var("PSModulePath").is_ok() {
-                return Self::PowerShell;
-            }
-            return Self::Cmd;
         }
 
         Self::Unknown
