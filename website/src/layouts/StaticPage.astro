@@ -59,7 +59,7 @@ const { title, description, subtitle } = Astro.props;
   .back-link {
     display: inline-flex;
     align-items: center;
-    color: #ff8c42;
+    color: var(--color-accent);
     text-decoration: none;
     font-weight: 500;
     margin-bottom: 30px;
@@ -128,7 +128,7 @@ const { title, description, subtitle } = Astro.props;
 
   .static-page-content :global(blockquote) {
     background: var(--color-bg-tertiary);
-    border-left: 4px solid #ff8c42;
+    border-left: 4px solid var(--color-accent);
     padding: 20px 30px;
     margin: 30px 0;
     border-radius: 4px;
@@ -145,12 +145,12 @@ const { title, description, subtitle } = Astro.props;
     border-radius: 3px;
     font-family: 'Monaco', 'Courier New', monospace;
     font-size: 16px;
-    color: #ff8c42;
+    color: var(--color-accent);
     transition: background-color 0.3s ease;
   }
 
   .static-page-content :global(pre) {
-    background: #1e1e1e;
+    background: var(--color-code-bg);
     padding: 20px;
     border-radius: 8px;
     overflow-x: auto;
@@ -159,25 +159,25 @@ const { title, description, subtitle } = Astro.props;
 
   .static-page-content :global(pre code) {
     background: transparent;
-    color: #d4d4d4;
+    color: var(--color-code-text);
     padding: 0;
     font-size: 14px;
   }
 
   .static-page-content :global(a) {
-    color: #ff8c42;
+    color: var(--color-accent);
     text-decoration: none;
     border-bottom: 1px solid transparent;
     transition: border-color 0.2s;
   }
 
   .static-page-content :global(a:hover) {
-    border-bottom-color: #ff8c42;
+    border-bottom-color: var(--color-accent);
   }
 
   .static-page-content :global(.highlight) {
     background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
-    border-left: 4px solid #ff8c42;
+    border-left: 4px solid var(--color-accent);
     padding: 25px 30px;
     margin: 30px 0;
     border-radius: 8px;
@@ -196,7 +196,7 @@ const { title, description, subtitle } = Astro.props;
   }
 
   .static-page-content :global(.cta-section) {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%);
     border-radius: 12px;
     padding: 40px;
     margin: 50px 0;
@@ -217,7 +217,7 @@ const { title, description, subtitle } = Astro.props;
   .static-page-content :global(.cta-section a) {
     display: inline-block;
     background: white;
-    color: #ff8c42;
+    color: var(--color-accent);
     padding: 12px 24px;
     border-radius: 8px;
     font-weight: 600;
