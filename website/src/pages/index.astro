@@ -2,10 +2,13 @@
 import Layout from '../layouts/Layout.astro';
 import LPNavigation from '../components/landing/LPNavigation.astro';
 import LPHero from '../components/landing/LPHero.astro';
+import LPVideoDemo from '../components/landing/LPVideoDemo.astro';
 import InteractiveTerminal from '../components/InteractiveTerminal.astro';
 import LPPersonas from '../components/landing/LPPersonas.astro';
 import LPMoments from '../components/landing/LPMoments.astro';
+import LPTestimonials from '../components/landing/LPTestimonials.astro';
 import LPFeatures from '../components/landing/LPFeatures.astro';
+import LPWaitlist from '../components/landing/LPWaitlist.astro';
 import LPDownload from '../components/landing/LPDownload.astro';
 import LPFooter from '../components/landing/LPFooter.astro';
 ---
@@ -17,6 +20,7 @@ import LPFooter from '../components/landing/LPFooter.astro';
   <LPNavigation />
   <main>
     <LPHero />
+    <LPVideoDemo />
     <section id="demo" class="demo-section">
       <div class="demo-container">
         <h2 class="demo-title">Try It Yourself</h2>
@@ -28,7 +32,9 @@ import LPFooter from '../components/landing/LPFooter.astro';
     </section>
     <LPPersonas />
     <LPMoments />
+    <LPTestimonials />
     <LPFeatures />
+    <LPWaitlist />
     <LPDownload />
   </main>
   <LPFooter />
