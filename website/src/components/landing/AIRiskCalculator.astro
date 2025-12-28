@@ -1,0 +1,392 @@
+---
+/**
+ * AI Risk Calculator - Interactive enterprise scale risk demonstration
+ * Shows the math of AI failures at scale
+ */
+---
+
+<section id="risk-calculator" class="section">
+  <div class="container">
+    <h2>Calculate Your AI Risk</h2>
+    <p class="section-subtitle">The math of probabilistic failures at enterprise scale</p>
+
+    <div class="calculator">
+      <div class="calculator-inputs">
+        <div class="input-group">
+          <label for="developers">Developers using AI tools</label>
+          <input type="range" id="developers" min="10" max="5000" value="500" step="10" />
+          <span class="input-value" id="dev-value">500</span>
+        </div>
+        <div class="input-group">
+          <label for="commands">AI commands per developer per day</label>
+          <input type="range" id="commands" min="10" max="500" value="50" step="10" />
+          <span class="input-value" id="cmd-value">50</span>
+        </div>
+        <div class="input-group">
+          <label for="accuracy">LLM accuracy rate (%)</label>
+          <input type="range" id="accuracy" min="95" max="99.9" value="99" step="0.1" />
+          <span class="input-value" id="acc-value">99.0%</span>
+        </div>
+      </div>
+
+      <div class="calculator-results">
+        <div class="result-row">
+          <div class="result-item">
+            <span class="result-label">Daily AI commands</span>
+            <span class="result-value" id="daily-commands">25,000</span>
+          </div>
+          <div class="result-operator">×</div>
+          <div class="result-item">
+            <span class="result-label">Failure rate</span>
+            <span class="result-value" id="failure-rate">1.0%</span>
+          </div>
+          <div class="result-operator">=</div>
+          <div class="result-item danger">
+            <span class="result-label">Potential dangerous commands</span>
+            <span class="result-value" id="dangerous-daily">250/day</span>
+          </div>
+        </div>
+
+        <div class="risk-summary">
+          <div class="without-caro">
+            <div class="summary-header bad">Without Caro</div>
+            <div class="summary-stat" id="without-stat">
+              <span class="stat-number">250</span>
+              <span class="stat-label">potentially dangerous commands daily that could slip through</span>
+            </div>
+            <p class="summary-note">Just ONE of these could be <code>rm -rf ~/</code></p>
+          </div>
+          <div class="with-caro">
+            <div class="summary-header good">With Caro</div>
+            <div class="summary-stat">
+              <span class="stat-number">0</span>
+              <span class="stat-label">dangerous patterns executed without warning</span>
+            </div>
+            <p class="summary-note">52+ patterns blocked deterministically, every time</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="enterprise-cta">
+      <p>Running AI agents at scale? Caro is your insurance policy.</p>
+      <a href="#download" class="cta-button">Get Started Free</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  h2 {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    margin-bottom: 50px;
+  }
+
+  .calculator {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 40px;
+    margin-bottom: 40px;
+  }
+
+  .calculator-inputs {
+    display: grid;
+    gap: 28px;
+    margin-bottom: 40px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .input-group {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .input-group label {
+    font-size: 15px;
+    color: var(--color-text);
+    font-weight: 500;
+  }
+
+  .input-group input[type="range"] {
+    grid-column: 1 / -1;
+    width: 100%;
+    height: 8px;
+    -webkit-appearance: none;
+    background: var(--color-bg-secondary);
+    border-radius: 4px;
+    outline: none;
+  }
+
+  .input-group input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(255, 140, 66, 0.3);
+  }
+
+  .input-value {
+    font-family: 'SF Mono', 'Monaco', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: #ff8c42;
+    min-width: 80px;
+    text-align: right;
+  }
+
+  .calculator-results {
+    text-align: center;
+  }
+
+  .result-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+  }
+
+  .result-item {
+    text-align: center;
+    padding: 16px 24px;
+    background: var(--color-bg-secondary);
+    border-radius: 8px;
+  }
+
+  .result-item.danger {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
+  .result-label {
+    display: block;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .result-value {
+    display: block;
+    font-family: 'SF Mono', 'Monaco', monospace;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  .result-item.danger .result-value {
+    color: #ef4444;
+  }
+
+  .result-operator {
+    font-size: 24px;
+    color: var(--color-text-secondary);
+    font-weight: 300;
+  }
+
+  .risk-summary {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  .without-caro,
+  .with-caro {
+    padding: 28px;
+    border-radius: 12px;
+    text-align: center;
+  }
+
+  .without-caro {
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+
+  .with-caro {
+    background: rgba(34, 197, 94, 0.05);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+  }
+
+  .summary-header {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+
+  .summary-header.bad {
+    color: #ef4444;
+  }
+
+  .summary-header.good {
+    color: #22c55e;
+  }
+
+  .summary-stat {
+    margin-bottom: 16px;
+  }
+
+  .stat-number {
+    display: block;
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .without-caro .stat-number {
+    color: #ef4444;
+  }
+
+  .with-caro .stat-number {
+    color: #22c55e;
+  }
+
+  .stat-label {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .summary-note {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  .summary-note code {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'SF Mono', 'Monaco', monospace;
+    font-size: 12px;
+  }
+
+  .enterprise-cta {
+    text-align: center;
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.08) 0%, rgba(255, 107, 53, 0.04) 100%);
+    border: 1px solid rgba(255, 140, 66, 0.2);
+    border-radius: 12px;
+    padding: 32px;
+  }
+
+  .enterprise-cta p {
+    font-size: 18px;
+    color: var(--color-text);
+    margin-bottom: 20px;
+  }
+
+  .cta-button {
+    display: inline-block;
+    padding: 14px 36px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.3);
+  }
+
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 28px;
+    }
+
+    .calculator {
+      padding: 24px;
+    }
+
+    .result-row {
+      flex-direction: column;
+    }
+
+    .result-operator {
+      display: none;
+    }
+
+    .risk-summary {
+      grid-template-columns: 1fr;
+    }
+
+    .stat-number {
+      font-size: 36px;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const devSlider = document.getElementById('developers') as HTMLInputElement;
+    const cmdSlider = document.getElementById('commands') as HTMLInputElement;
+    const accSlider = document.getElementById('accuracy') as HTMLInputElement;
+
+    const devValue = document.getElementById('dev-value');
+    const cmdValue = document.getElementById('cmd-value');
+    const accValue = document.getElementById('acc-value');
+
+    const dailyCommands = document.getElementById('daily-commands');
+    const failureRate = document.getElementById('failure-rate');
+    const dangerousDaily = document.getElementById('dangerous-daily');
+    const withoutStat = document.getElementById('without-stat');
+
+    function updateCalculator() {
+      const devs = parseInt(devSlider?.value || '500');
+      const cmds = parseInt(cmdSlider?.value || '50');
+      const acc = parseFloat(accSlider?.value || '99');
+
+      const daily = devs * cmds;
+      const failure = 100 - acc;
+      const dangerous = Math.round(daily * (failure / 100));
+
+      if (devValue) devValue.textContent = devs.toLocaleString();
+      if (cmdValue) cmdValue.textContent = cmds.toLocaleString();
+      if (accValue) accValue.textContent = acc.toFixed(1) + '%';
+
+      if (dailyCommands) dailyCommands.textContent = daily.toLocaleString();
+      if (failureRate) failureRate.textContent = failure.toFixed(1) + '%';
+      if (dangerousDaily) dangerousDaily.textContent = dangerous.toLocaleString() + '/day';
+
+      const statNumber = withoutStat?.querySelector('.stat-number');
+      if (statNumber) statNumber.textContent = dangerous.toLocaleString();
+    }
+
+    devSlider?.addEventListener('input', updateCalculator);
+    cmdSlider?.addEventListener('input', updateCalculator);
+    accSlider?.addEventListener('input', updateCalculator);
+
+    updateCalculator();
+  });
+</script>

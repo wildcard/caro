@@ -9,20 +9,29 @@ website/src/
 ├── pages/
 │   ├── index.astro                    # Homepage (general audience)
 │   ├── safe-shell-commands.astro      # Landing page 1 (SRE/DevOps)
-│   ├── [future-slug].astro            # Future landing pages
+│   ├── ai-agent-safety.astro          # Landing page 2 (Enterprise AI)
 │   └── ...
 ├── layouts/
 │   └── LandingPage.astro              # Shared layout for all landing pages
 └── components/
     └── landing/                       # Landing page components
-        ├── LPNavigation.astro
-        ├── LPHero.astro
-        ├── LPDemo.astro
-        ├── LPUseCases.astro
-        ├── LPFeatures.astro
-        ├── LPDifferentiators.astro
-        ├── LPDownload.astro
-        └── LPFooter.astro
+        ├── LPNavigation.astro         # Shared navigation
+        ├── LPHero.astro               # Safe shell commands hero
+        ├── LPDemo.astro               # Terminal demos
+        ├── LPBestPractices.astro      # Defense in depth section
+        ├── LPScenarios.astro          # Role-based scenarios
+        ├── LPCommunityVoices.astro    # Community quotes
+        ├── LPTrust.astro              # Trust badges
+        ├── LPFeatures.astro           # Feature cards
+        ├── LPDifferentiators.astro    # Comparison section
+        ├── LPFAQ.astro                # Common concerns
+        ├── LPDownload.astro           # Installation CTA
+        ├── LPFooter.astro             # Footer
+        ├── AIHero.astro               # AI safety hero
+        ├── AIWhyFlagsFail.astro       # Flag vs pattern comparison
+        ├── AIRiskCalculator.astro     # Interactive risk calculator
+        ├── AIIncidents.astro          # Real incidents
+        └── AITestimonials.astro       # Enterprise testimonials
 ```
 
 ## URL Strategy
@@ -59,9 +68,42 @@ Examples:
 
 ---
 
+### 2. `/ai-agent-safety`
+
+**Target Persona:** Enterprise teams deploying AI agents at scale
+**Pain Point:** AI hallucinations, flag failures, stochastic system risks
+**Main Message:** "AI Agents Run Dangerous Commands. Caro Catches Them."
+
+**Search Queries This Page Targets:**
+- "ai agent safety"
+- "llm hallucination prevention"
+- "ai coding tool safety"
+- "claude code safety"
+- "gemini cli safety"
+- "enterprise ai risk"
+
+**Key Differentiators:**
+- Hallucination-resistant (pattern-based, not permission-based)
+- Deterministic validation (not probabilistic)
+- Enterprise scale math (risk calculator)
+- Real incident documentation (Claude, Gemini)
+
+**Components:**
+- AIHero (incidents banner, hallucination focus)
+- AIWhyFlagsFail (flag vs pattern comparison)
+- AIRiskCalculator (interactive enterprise risk demo)
+- AIIncidents (documented incidents with HN links)
+- AITestimonials (enterprise-focused quotes)
+- LPBestPractices (defense in depth)
+- LPFAQ (AI-focused questions)
+
+**Status:** ✅ Live
+
+---
+
 ## Planned Landing Pages
 
-### 2. `/air-gapped-ai-terminal` (Priority: High)
+### 3. `/air-gapped-ai-terminal` (Priority: High)
 
 **Target Persona:** Security-Conscious Platform Engineer
 **Pain Point:** Need AI assistance but can't send data to cloud

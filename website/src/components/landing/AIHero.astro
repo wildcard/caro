@@ -1,0 +1,215 @@
+---
+/**
+ * AI Agent Safety Hero - Focused on AI hallucination and enterprise safety
+ * Target: Companies deploying AI agents at scale
+ */
+---
+
+<div class="hero">
+  <div class="container">
+    <div class="hero-badge">AI Agent Safety Layer</div>
+    <h1 class="headline">
+      AI Agents Run Dangerous Commands.<br />
+      <span class="highlight">Caro Catches Them.</span>
+    </h1>
+    <p class="subtitle">
+      Your LLMs will hallucinate. Your flags will fail. Caro doesn't rely on either.
+      Pattern-based validation that catches destructive commands—whether they came from
+      a user or a confused AI.
+    </p>
+
+    <div class="incidents-banner">
+      <div class="incident">
+        <span class="incident-tool">Claude Code</span>
+        <span class="incident-text">deleted entire home directory despite --dangerously-skip-permissions</span>
+      </div>
+      <div class="incident-divider"></div>
+      <div class="incident">
+        <span class="incident-tool">Gemini CLI</span>
+        <span class="incident-text">hallucinated file paths and deleted files that didn't exist</span>
+      </div>
+    </div>
+
+    <div class="cta-buttons">
+      <a href="#download" class="cta-button primary">Protect Your Systems</a>
+      <a href="#risk-calculator" class="cta-button secondary">Calculate Your Risk</a>
+    </div>
+
+    <div class="trust-badges">
+      <span class="badge"><span class="icon">🎲</span> Hallucination Resistant</span>
+      <span class="badge"><span class="icon">🔒</span> Pattern-Based</span>
+      <span class="badge"><span class="icon">✓</span> Deterministic</span>
+      <span class="badge"><span class="icon">📖</span> Open Source</span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 80px 20px 60px;
+    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+  }
+
+  .container {
+    max-width: 950px;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 30px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .headline {
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    color: var(--color-text);
+  }
+
+  .highlight {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    font-size: 20px;
+    color: var(--color-text-secondary);
+    margin-bottom: 40px;
+    max-width: 750px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.7;
+  }
+
+  .incidents-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(239, 68, 68, 0.03) 100%);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 12px;
+    padding: 24px 32px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+  }
+
+  .incident {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: center;
+  }
+
+  .incident-tool {
+    font-weight: 700;
+    color: #ef4444;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .incident-text {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    max-width: 300px;
+  }
+
+  .incident-divider {
+    width: 1px;
+    height: 50px;
+    background: rgba(239, 68, 68, 0.3);
+  }
+
+  .cta-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+  }
+
+  .cta-button {
+    display: inline-block;
+    padding: 16px 40px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .cta-button.primary {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+  }
+
+  .cta-button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(255, 140, 66, 0.3);
+  }
+
+  .cta-button.secondary {
+    background: transparent;
+    border: 2px solid #ff8c42;
+    color: #ff8c42;
+  }
+
+  .cta-button.secondary:hover {
+    background: rgba(255, 140, 66, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .trust-badges {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .badge .icon {
+    font-size: 16px;
+  }
+
+  @media (max-width: 768px) {
+    .headline { font-size: 32px; }
+    .subtitle { font-size: 18px; }
+    .incidents-banner {
+      flex-direction: column;
+      padding: 20px;
+    }
+    .incident-divider {
+      width: 80%;
+      height: 1px;
+    }
+    .cta-buttons { flex-direction: column; align-items: center; }
+    .cta-button { width: 100%; max-width: 280px; }
+    .trust-badges { flex-direction: column; gap: 12px; }
+  }
+</style>
