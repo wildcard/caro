@@ -1,0 +1,339 @@
+---
+// LPMoments.astro - "Moments That Hurt" section
+---
+
+<section class="moments">
+  <div class="container">
+    <h2 class="section-title">Moments That Hurt</h2>
+    <p class="section-subtitle">
+      Every developer knows these feelings. Caro makes them disappear.
+    </p>
+
+    <div class="moments-grid">
+      <!-- Moment 1: Did I type that right? -->
+      <div class="moment-card">
+        <div class="moment-before">
+          <div class="moment-icon">😰</div>
+          <h3 class="moment-pain">"Did I type that right?"</h3>
+          <p class="moment-description">
+            Staring at a command you found on Stack Overflow. Is that a backtick or a quote?
+            Will this delete everything or just the logs?
+          </p>
+          <div class="moment-example bad">
+            <code>rm -rf /var/log/*.log</code>
+            <span class="doubt">...right?</span>
+          </div>
+        </div>
+        <div class="moment-divider">
+          <span class="with-caro">With Caro</span>
+        </div>
+        <div class="moment-after">
+          <div class="moment-example good">
+            <span class="caro-label">You say:</span>
+            <span class="nl-input">"Delete old log files safely"</span>
+          </div>
+          <div class="moment-example validated">
+            <span class="caro-label">Caro:</span>
+            <code>find /var/log -name "*.log" -mtime +30 -delete</code>
+            <span class="badge safe">✓ Safe</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Moment 2: What if this breaks prod? -->
+      <div class="moment-card">
+        <div class="moment-before">
+          <div class="moment-icon">💀</div>
+          <h3 class="moment-pain">"What if this breaks prod?"</h3>
+          <p class="moment-description">
+            That sinking feeling before hitting Enter on a production server.
+            No undo. No sandbox. Just raw fear.
+          </p>
+          <div class="moment-example bad">
+            <code>chmod -R 777 /</code>
+            <span class="doubt">copied from tutorial...</span>
+          </div>
+        </div>
+        <div class="moment-divider">
+          <span class="with-caro">With Caro</span>
+        </div>
+        <div class="moment-after">
+          <div class="moment-example blocked">
+            <span class="badge danger">⛔ BLOCKED</span>
+            <p class="warning-text">This command would make all system files world-writable. Suggested safe alternative:</p>
+            <code>chmod 755 ./your-directory</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- Moment 3: What runs on this machine? -->
+      <div class="moment-card">
+        <div class="moment-before">
+          <div class="moment-icon">🤔</div>
+          <h3 class="moment-pain">"What runs on this machine?"</h3>
+          <p class="moment-description">
+            BSD? Linux? macOS? Is it GNU find or BSD find?
+            Why does every server have different flags?
+          </p>
+          <div class="moment-example bad">
+            <code>find . -regex ".*\.log" -print0</code>
+            <span class="doubt">works on my mac but...</span>
+          </div>
+        </div>
+        <div class="moment-divider">
+          <span class="with-caro">With Caro</span>
+        </div>
+        <div class="moment-after">
+          <div class="moment-example platform-aware">
+            <span class="badge platform">Detected: Ubuntu 22.04</span>
+            <p class="platform-text">Using GNU coreutils syntax:</p>
+            <code>find . -regextype posix-extended -regex ".*\.log" -print0</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .moments {
+    padding: 100px 20px;
+    background: linear-gradient(180deg, #0a0a0f 0%, #0f0f14 100%);
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-align: center;
+    color: #ffffff;
+    margin-bottom: 16px;
+  }
+
+  .section-subtitle {
+    font-size: 1.125rem;
+    color: #888;
+    text-align: center;
+    max-width: 500px;
+    margin: 0 auto 60px;
+    line-height: 1.6;
+  }
+
+  .moments-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .moment-card {
+    background: #12121a;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #1f1f2a;
+    transition: all 0.3s ease;
+  }
+
+  .moment-card:hover {
+    border-color: #333;
+    transform: translateY(-4px);
+  }
+
+  .moment-before {
+    padding: 28px;
+    background: linear-gradient(180deg, #1a1a24 0%, #12121a 100%);
+  }
+
+  .moment-icon {
+    font-size: 40px;
+    margin-bottom: 16px;
+  }
+
+  .moment-pain {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 12px;
+  }
+
+  .moment-description {
+    font-size: 0.9rem;
+    color: #888;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  .moment-example {
+    font-family: 'SF Mono', 'Monaco', monospace;
+    font-size: 0.8rem;
+    padding: 12px 16px;
+    border-radius: 8px;
+    position: relative;
+  }
+
+  .moment-example.bad {
+    background: rgba(255, 85, 85, 0.1);
+    border: 1px solid rgba(255, 85, 85, 0.2);
+  }
+
+  .moment-example.bad code {
+    color: #ff8888;
+  }
+
+  .moment-example .doubt {
+    display: block;
+    font-size: 0.75rem;
+    color: #666;
+    font-style: italic;
+    margin-top: 8px;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  .moment-divider {
+    background: linear-gradient(90deg, transparent, #ff6b35, transparent);
+    height: 2px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .with-caro {
+    background: #0f0f14;
+    color: #ff6b35;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 4px 12px;
+    position: absolute;
+  }
+
+  .moment-after {
+    padding: 28px;
+    background: #0f0f14;
+  }
+
+  .moment-example.good,
+  .moment-example.validated {
+    margin-bottom: 12px;
+  }
+
+  .moment-example.good {
+    background: rgba(255, 107, 53, 0.1);
+    border: 1px solid rgba(255, 107, 53, 0.2);
+  }
+
+  .moment-example.validated {
+    background: rgba(80, 250, 123, 0.1);
+    border: 1px solid rgba(80, 250, 123, 0.2);
+  }
+
+  .moment-example.validated code {
+    color: #50fa7b;
+    display: block;
+    margin-top: 8px;
+  }
+
+  .moment-example.blocked {
+    background: rgba(255, 85, 85, 0.1);
+    border: 1px solid rgba(255, 85, 85, 0.2);
+  }
+
+  .moment-example.blocked code {
+    color: #50fa7b;
+    display: block;
+    margin-top: 12px;
+    background: rgba(80, 250, 123, 0.1);
+    padding: 8px 12px;
+    border-radius: 6px;
+  }
+
+  .moment-example.platform-aware {
+    background: rgba(139, 233, 253, 0.1);
+    border: 1px solid rgba(139, 233, 253, 0.2);
+  }
+
+  .moment-example.platform-aware code {
+    color: #8be9fd;
+    display: block;
+    margin-top: 8px;
+  }
+
+  .caro-label {
+    font-size: 0.7rem;
+    color: #666;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 4px;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  .nl-input {
+    color: #ff8c42;
+    font-style: italic;
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  .badge.safe {
+    background: rgba(80, 250, 123, 0.2);
+    color: #50fa7b;
+    margin-left: 8px;
+  }
+
+  .badge.danger {
+    background: rgba(255, 85, 85, 0.2);
+    color: #ff5555;
+    margin-bottom: 12px;
+  }
+
+  .badge.platform {
+    background: rgba(139, 233, 253, 0.2);
+    color: #8be9fd;
+    margin-bottom: 12px;
+  }
+
+  .warning-text, .platform-text {
+    font-size: 0.8rem;
+    color: #888;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    margin: 8px 0;
+  }
+
+  @media (max-width: 1024px) {
+    .moments-grid {
+      grid-template-columns: 1fr;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .moments {
+      padding: 60px 16px;
+    }
+
+    .section-title {
+      font-size: 1.75rem;
+    }
+
+    .moment-before, .moment-after {
+      padding: 20px;
+    }
+
+    .moment-pain {
+      font-size: 1.1rem;
+    }
+  }
+</style>

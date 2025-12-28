@@ -1,0 +1,185 @@
+---
+// LPFooter.astro - Clean footer with dog mascot
+---
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-main">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <img src="/caro-pixel.png" alt="Caro" class="footer-mascot" />
+          <span class="footer-name">CARO</span>
+        </div>
+        <p class="footer-tagline">Terminal mastery, unlocked.</p>
+      </div>
+
+      <div class="footer-links">
+        <div class="footer-column">
+          <h4 class="footer-heading">Product</h4>
+          <ul>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#demo">Demo</a></li>
+            <li><a href="#download">Download</a></li>
+            <li><a href="/compare">Compare</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h4 class="footer-heading">Resources</h4>
+          <ul>
+            <li><a href="/blog">Blog</a></li>
+            <li><a href="https://github.com/wildcard/caro" target="_blank">GitHub</a></li>
+            <li><a href="https://github.com/wildcard/caro/issues" target="_blank">Report Issues</a></li>
+            <li><a href="https://github.com/wildcard/caro/blob/main/CHANGELOG.md" target="_blank">Changelog</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h4 class="footer-heading">Legal</h4>
+          <ul>
+            <li><a href="/blog/security-practices">Security</a></li>
+            <li><a href="https://github.com/wildcard/caro/blob/main/LICENSE" target="_blank">License (AGPL-3.0)</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p class="footer-copyright">
+        &copy; 2025 Caro. Built with 🧡 for developers everywhere.
+      </p>
+      <p class="footer-memorial">
+        In loving memory of Kyaro, Caroline, and all the good dogs.
+      </p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    background: #0a0a0f;
+    padding: 80px 20px 40px;
+    border-top: 1px solid #1a1a24;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .footer-main {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 60px;
+    margin-bottom: 60px;
+  }
+
+  .footer-brand {
+    max-width: 280px;
+  }
+
+  .footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .footer-mascot {
+    width: 40px;
+    height: 40px;
+    image-rendering: pixelated;
+  }
+
+  .footer-name {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .footer-tagline {
+    font-size: 0.9rem;
+    color: #666;
+    line-height: 1.6;
+  }
+
+  .footer-links {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+  }
+
+  .footer-column h4 {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 20px;
+  }
+
+  .footer-column ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .footer-column li {
+    margin-bottom: 12px;
+  }
+
+  .footer-column a {
+    color: #a0a0a0;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.2s ease;
+  }
+
+  .footer-column a:hover {
+    color: #ff6b35;
+  }
+
+  .footer-bottom {
+    border-top: 1px solid #1a1a24;
+    padding-top: 24px;
+    text-align: center;
+  }
+
+  .footer-copyright {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 8px;
+  }
+
+  .footer-memorial {
+    font-size: 0.8rem;
+    color: #444;
+    font-style: italic;
+  }
+
+  @media (max-width: 768px) {
+    .footer-main {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+
+    .footer-links {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .footer {
+      padding: 60px 16px 32px;
+    }
+
+    .footer-links {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+  }
+</style>

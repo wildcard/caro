@@ -1,33 +1,78 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import AnnouncementBanner from '../components/AnnouncementBanner.astro';
-import Navigation from '../components/Navigation.astro';
-import Hero from '../components/Hero.astro';
+import LPNavigation from '../components/landing/LPNavigation.astro';
+import LPHero from '../components/landing/LPHero.astro';
 import InteractiveTerminal from '../components/InteractiveTerminal.astro';
-import Story from '../components/Story.astro';
-import Video from '../components/Video.astro';
-import Features from '../components/Features.astro';
-import Comparison from '../components/Comparison.astro';
-import CaroGame from '../components/CaroGame.astro';
-import Blog from '../components/Blog.astro';
-import Download from '../components/Download.astro';
-import Footer from '../components/Footer.astro';
+import LPPersonas from '../components/landing/LPPersonas.astro';
+import LPMoments from '../components/landing/LPMoments.astro';
+import LPFeatures from '../components/landing/LPFeatures.astro';
+import LPDownload from '../components/landing/LPDownload.astro';
+import LPFooter from '../components/landing/LPFooter.astro';
 ---
 
 <Layout
-  title="Caro - Your loyal shell companion"
-  description="Caro is a companion agent that helps you with POSIX shell commands. Available as an MCP for Claude and as a dedicated Skill."
+  title="Caro - Terminal mastery, unlocked"
+  description="Transform natural language into safe POSIX shell commands. 52+ dangerous patterns blocked. Zero data collection. Works offline on macOS, Linux, BSD, and Windows."
 >
-  <AnnouncementBanner />
-  <Navigation />
-  <Hero />
-  <InteractiveTerminal />
-  <Story />
-  <Video />
-  <Features />
-  <Comparison />
-  <CaroGame />
-  <Blog />
-  <Download />
-  <Footer />
+  <LPNavigation />
+  <main>
+    <LPHero />
+    <section id="demo" class="demo-section">
+      <div class="demo-container">
+        <h2 class="demo-title">Try It Yourself</h2>
+        <p class="demo-subtitle">
+          Experience the difference. Start in vanilla mode, then install Caro to unlock natural language commands.
+        </p>
+        <InteractiveTerminal />
+      </div>
+    </section>
+    <LPPersonas />
+    <LPMoments />
+    <LPFeatures />
+    <LPDownload />
+  </main>
+  <LPFooter />
 </Layout>
+
+<style>
+  main {
+    padding-top: 64px; /* Account for fixed navigation */
+  }
+
+  .demo-section {
+    padding: 80px 20px;
+    background: #0a0a0f;
+  }
+
+  .demo-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .demo-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-align: center;
+    color: #ffffff;
+    margin-bottom: 16px;
+  }
+
+  .demo-subtitle {
+    font-size: 1.125rem;
+    color: #888;
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto 40px;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 640px) {
+    .demo-section {
+      padding: 60px 16px;
+    }
+
+    .demo-title {
+      font-size: 1.75rem;
+    }
+  }
+</style>

@@ -1,0 +1,337 @@
+---
+// LPFeatures.astro - Six features section
+---
+
+<section class="features" id="features">
+  <div class="container">
+    <h2 class="section-title">Why Caro Wins</h2>
+    <p class="section-subtitle">
+      Built for professionals who demand speed, safety, and privacy.
+    </p>
+
+    <div class="features-grid">
+      <!-- Pre-execution Validation -->
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <h3 class="feature-title">Pre-execution Validation</h3>
+        <p class="feature-description">
+          52+ dangerous command patterns detected before you hit Enter.
+          rm -rf /, chmod 777 /, fork bombs - all blocked automatically.
+        </p>
+        <div class="feature-stat">
+          <span class="stat-number">52+</span>
+          <span class="stat-label">patterns blocked</span>
+        </div>
+      </div>
+
+      <!-- Platform Intelligence -->
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+            <line x1="8" y1="21" x2="16" y2="21"/>
+            <line x1="12" y1="17" x2="12" y2="21"/>
+          </svg>
+        </div>
+        <h3 class="feature-title">Platform Intelligence</h3>
+        <p class="feature-description">
+          Automatic detection of macOS, Linux, BSD, and Windows.
+          Commands adapt to your environment's syntax and available tools.
+        </p>
+        <div class="feature-badges">
+          <span class="platform-badge">macOS</span>
+          <span class="platform-badge">Linux</span>
+          <span class="platform-badge">BSD</span>
+          <span class="platform-badge">Windows</span>
+        </div>
+      </div>
+
+      <!-- Zero Data Collection -->
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+            <line x1="1" y1="1" x2="23" y2="23" stroke-width="2"/>
+          </svg>
+        </div>
+        <h3 class="feature-title">Zero Data Collection</h3>
+        <p class="feature-description">
+          No telemetry. No cloud APIs. No command history uploaded anywhere.
+          Your terminal stays your terminal.
+        </p>
+        <div class="feature-highlight privacy">
+          <span class="highlight-icon">🔒</span>
+          <span class="highlight-text">100% Local Execution</span>
+        </div>
+      </div>
+
+      <!-- Instant Execution -->
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+        </div>
+        <h3 class="feature-title">Instant Execution</h3>
+        <p class="feature-description">
+          No loading spinners. No "thinking..." delays.
+          Local models mean instant command generation, every time.
+        </p>
+        <div class="feature-stat">
+          <span class="stat-number">&lt;100ms</span>
+          <span class="stat-label">startup time</span>
+        </div>
+      </div>
+
+      <!-- 100% Portable -->
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+        </div>
+        <h3 class="feature-title">100% Portable</h3>
+        <p class="feature-description">
+          Single binary. No dependencies. No installation headaches.
+          Copy to any machine, run immediately.
+        </p>
+        <div class="feature-highlight portable">
+          <span class="highlight-icon">📦</span>
+          <span class="highlight-text">Single Binary Install</span>
+        </div>
+      </div>
+
+      <!-- Org Visibility (Coming) -->
+      <div class="feature-card coming-soon">
+        <div class="coming-badge">Coming Soon</div>
+        <div class="feature-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <h3 class="feature-title">Org Visibility</h3>
+        <p class="feature-description">
+          Team dashboards. Command audit logs. Custom safety rules.
+          Enterprise features for security-conscious orgs.
+        </p>
+        <div class="feature-waitlist">
+          <a href="#waitlist" class="waitlist-link">Join the Waitlist →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .features {
+    padding: 100px 20px;
+    background: #0f0f14;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-align: center;
+    color: #ffffff;
+    margin-bottom: 16px;
+  }
+
+  .section-subtitle {
+    font-size: 1.125rem;
+    color: #888;
+    text-align: center;
+    max-width: 500px;
+    margin: 0 auto 60px;
+    line-height: 1.6;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .feature-card {
+    background: #16161f;
+    border-radius: 16px;
+    padding: 32px;
+    border: 1px solid #222;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .feature-card:hover {
+    border-color: #ff6b35;
+    transform: translateY(-4px);
+  }
+
+  .feature-card.coming-soon {
+    opacity: 0.7;
+  }
+
+  .feature-card.coming-soon:hover {
+    opacity: 1;
+    border-color: #666;
+  }
+
+  .coming-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: linear-gradient(135deg, #ff6b35, #ff8c42);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+
+  .feature-icon {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.15), rgba(255, 140, 66, 0.1));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    color: #ff6b35;
+  }
+
+  .feature-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 12px;
+  }
+
+  .feature-description {
+    font-size: 0.9rem;
+    color: #888;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  .feature-stat {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ff6b35;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+    color: #666;
+  }
+
+  .feature-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .platform-badge {
+    background: rgba(139, 233, 253, 0.1);
+    color: #8be9fd;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid rgba(139, 233, 253, 0.2);
+  }
+
+  .feature-highlight {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 8px;
+  }
+
+  .feature-highlight.privacy {
+    background: rgba(80, 250, 123, 0.1);
+    border: 1px solid rgba(80, 250, 123, 0.2);
+  }
+
+  .feature-highlight.portable {
+    background: rgba(255, 107, 53, 0.1);
+    border: 1px solid rgba(255, 107, 53, 0.2);
+  }
+
+  .highlight-icon {
+    font-size: 1rem;
+  }
+
+  .highlight-text {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #50fa7b;
+  }
+
+  .feature-highlight.portable .highlight-text {
+    color: #ff8c42;
+  }
+
+  .feature-waitlist {
+    margin-top: 8px;
+  }
+
+  .waitlist-link {
+    color: #ff6b35;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .waitlist-link:hover {
+    color: #ff8c42;
+  }
+
+  @media (max-width: 1024px) {
+    .features-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .features {
+      padding: 60px 16px;
+    }
+
+    .section-title {
+      font-size: 1.75rem;
+    }
+
+    .features-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .feature-card {
+      padding: 24px;
+    }
+  }
+</style>

@@ -1,0 +1,397 @@
+---
+// LPHero.astro - New hero section with repositioned messaging
+---
+
+<section class="hero">
+  <div class="hero-container">
+    <div class="hero-content">
+      <h1 class="hero-headline">
+        Terminal mastery is the inflection point.
+        <span class="highlight">CARO is how you reach it.</span>
+      </h1>
+      <p class="hero-subheadline">
+        Work at the speed of thinking, not the speed of memory.
+        Natural language in, validated POSIX out.
+      </p>
+      <div class="hero-cta">
+        <a href="#download" class="btn btn-primary">Get Started Free</a>
+        <a href="#demo" class="btn btn-secondary">See It In Action</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-value">52+</span>
+          <span class="stat-label">Safety Patterns</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">4</span>
+          <span class="stat-label">Platforms</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">0</span>
+          <span class="stat-label">Data Collected</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-demo">
+      <div class="demo-window">
+        <div class="demo-header">
+          <div class="demo-dots">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+          </div>
+          <span class="demo-title">Terminal</span>
+        </div>
+        <div class="demo-content">
+          <div class="demo-input">
+            <span class="prompt">You:</span>
+            <span class="input-text">"Find all log files larger than 100MB modified this week"</span>
+          </div>
+          <div class="demo-arrow">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M19 12l-7 7-7-7"/>
+            </svg>
+          </div>
+          <div class="demo-output">
+            <span class="prompt caro">Caro:</span>
+            <code class="command">find /var/log -name "*.log" -size +100M -mtime -7</code>
+          </div>
+          <div class="demo-validation">
+            <span class="validation-badge safe">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22,4 12,14.01 9,11.01"/>
+              </svg>
+              Safe to run
+            </span>
+            <span class="validation-badge platform">macOS / zsh</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    min-height: 90vh;
+    display: flex;
+    align-items: center;
+    padding: 120px 20px 80px;
+    background: linear-gradient(180deg, #0a0a0f 0%, #12121a 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(ellipse at 30% 20%, rgba(255, 107, 53, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(255, 107, 53, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .hero-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-content {
+    max-width: 560px;
+  }
+
+  .hero-headline {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1.15;
+    color: #ffffff;
+    margin-bottom: 24px;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-headline .highlight {
+    display: block;
+    background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero-subheadline {
+    font-size: 1.25rem;
+    color: #a0a0a0;
+    line-height: 1.6;
+    margin-bottom: 32px;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .btn {
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 20px rgba(255, 107, 53, 0.3);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 30px rgba(255, 107, 53, 0.4);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: #ffffff;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .btn-secondary:hover {
+    border-color: #ff6b35;
+    color: #ff6b35;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 40px;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ff6b35;
+  }
+
+  .stat-label {
+    font-size: 0.875rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .hero-demo {
+    perspective: 1000px;
+  }
+
+  .demo-window {
+    background: #1a1a24;
+    border-radius: 12px;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    transform: rotateY(-5deg) rotateX(2deg);
+    transition: transform 0.3s ease;
+  }
+
+  .demo-window:hover {
+    transform: rotateY(0) rotateX(0);
+  }
+
+  .demo-header {
+    background: linear-gradient(180deg, #2a2a3a 0%, #1f1f2d 100%);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid #333;
+  }
+
+  .demo-dots {
+    display: flex;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .dot.red { background: #ff5f56; }
+  .dot.yellow { background: #ffbd2e; }
+  .dot.green { background: #27c93f; }
+
+  .demo-title {
+    font-size: 0.875rem;
+    color: #666;
+    font-family: 'SF Mono', 'Monaco', monospace;
+  }
+
+  .demo-content {
+    padding: 24px;
+    font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+    font-size: 0.9rem;
+  }
+
+  .demo-input, .demo-output {
+    margin-bottom: 16px;
+  }
+
+  .prompt {
+    color: #666;
+    margin-right: 8px;
+  }
+
+  .prompt.caro {
+    color: #ff6b35;
+  }
+
+  .input-text {
+    color: #a0a0a0;
+    font-style: italic;
+  }
+
+  .demo-arrow {
+    display: flex;
+    justify-content: center;
+    color: #ff6b35;
+    margin: 16px 0;
+    animation: bounce 2s ease-in-out infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(4px); }
+  }
+
+  .command {
+    color: #50fa7b;
+    background: rgba(80, 250, 123, 0.1);
+    padding: 8px 12px;
+    border-radius: 6px;
+    display: inline-block;
+    border: 1px solid rgba(80, 250, 123, 0.2);
+  }
+
+  .demo-validation {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .validation-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  .validation-badge.safe {
+    background: rgba(80, 250, 123, 0.15);
+    color: #50fa7b;
+    border: 1px solid rgba(80, 250, 123, 0.3);
+  }
+
+  .validation-badge.platform {
+    background: rgba(255, 107, 53, 0.15);
+    color: #ff8c42;
+    border: 1px solid rgba(255, 107, 53, 0.3);
+  }
+
+  @media (max-width: 1024px) {
+    .hero-container {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+
+    .hero-content {
+      max-width: 100%;
+      text-align: center;
+    }
+
+    .hero-headline {
+      font-size: 2.25rem;
+    }
+
+    .hero-cta {
+      justify-content: center;
+    }
+
+    .hero-stats {
+      justify-content: center;
+    }
+
+    .demo-window {
+      transform: none;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .hero {
+      padding: 100px 16px 60px;
+      min-height: auto;
+    }
+
+    .hero-headline {
+      font-size: 1.75rem;
+    }
+
+    .hero-subheadline {
+      font-size: 1rem;
+    }
+
+    .hero-cta {
+      flex-direction: column;
+    }
+
+    .btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .hero-stats {
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+
+    .stat {
+      flex: 1;
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .demo-content {
+      padding: 16px;
+      font-size: 0.8rem;
+    }
+
+    .validation-badge {
+      font-size: 0.7rem;
+      padding: 4px 8px;
+    }
+  }
+</style>
