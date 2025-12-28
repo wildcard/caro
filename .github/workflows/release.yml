@@ -7,6 +7,12 @@ on:
     workflows: ["Publish to crates.io"]
     types:
       - completed
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Git tag to release (e.g., v1.0.2)'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -19,7 +25,7 @@ jobs:
   prepare-release:
     name: Prepare Release
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success'
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
     outputs:
       tag: ${{ steps.get_tag.outputs.tag }}
       version: ${{ steps.get_tag.outputs.version }}
@@ -27,22 +33,31 @@ jobs:
       - name: Checkout at trigger commit
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.event.workflow_run.head_sha }}
           fetch-depth: 0
 
-      - name: Get tag from commit
+      - name: Get tag from commit or input
         id: get_tag
         run: |
-          # Get tag pointing to this commit
-          TAG=$(git tag --points-at ${{ github.event.workflow_run.head_sha }} | grep '^v' | head -1)
-          if [ -z "$TAG" ]; then
-            echo "::error::No version tag found for commit ${{ github.event.workflow_run.head_sha }}"
-            exit 1
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # Manual trigger - use provided tag
+            TAG="${{ inputs.tag }}"
+            VERSION="${TAG#v}"
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "Manual trigger with tag: $TAG (version: $VERSION)"
+          else
+            # Workflow run trigger - get tag from commit
+            TAG=$(git tag --points-at ${{ github.event.workflow_run.head_sha }} | grep '^v' | head -1)
+            if [ -z "$TAG" ]; then
+              echo "::error::No version tag found for commit ${{ github.event.workflow_run.head_sha }}"
+              exit 1
+            fi
+            VERSION="${TAG#v}"
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "Found tag: $TAG (version: $VERSION)"
           fi
-          VERSION="${TAG#v}"
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Found tag: $TAG (version: $VERSION)"
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@v1
