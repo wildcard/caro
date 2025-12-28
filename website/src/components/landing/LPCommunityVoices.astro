@@ -12,23 +12,23 @@ const communityVoices = [
     icon: "💥"
   },
   {
+    quote: "Gemini hallucinated file paths and confidently deleted files that I never asked it to touch. LLMs are stochastic—they WILL fail.",
+    source: "Hacker News Discussion, Jul 2025",
+    insight: "Hallucinations are inevitable at scale",
+    icon: "🎲"
+  },
+  {
     quote: "Never assume that flags are sufficient. Run AI tools as unprivileged users in sandboxed environments.",
     source: "HN commenter on AI tool safety",
     insight: "Defense in depth is the only defense",
     icon: "🔒"
-  },
-  {
-    quote: "Running rm is risky. Running it with * is 10x more dangerous. Running rm -rf /* is catastrophic.",
-    source: "Linux Handbook community",
-    insight: "The operational anxiety is real",
-    icon: "⚠️"
   }
 ];
 
 const incidentStats = [
-  { stat: "100%", label: "of AI tools can generate dangerous commands if asked" },
-  { stat: "0", label: "flags that reliably prevent AI from running destructive commands" },
-  { stat: "52+", label: "dangerous patterns Caro blocks at the command level" },
+  { stat: "2+", label: "major AI CLI tools have deleted user files in 2025" },
+  { stat: "0", label: "flags that reliably prevent AI hallucinations" },
+  { stat: "52+", label: "dangerous patterns Caro blocks—regardless of source" },
 ];
 ---
 
