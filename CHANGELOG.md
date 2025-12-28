@@ -49,6 +49,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ✅ SC-006: Stdin processing works
 - ✅ SC-007: Shell operator detection 100% accurate
 
+## [1.0.2] - 2025-12-28
+
+### Fixed
+
+#### Cross-Platform Binary Distribution
+- **OpenSSL dependency removed**: Switched `hf-hub` and `tokenizers` from `native-tls` to `rustls-tls`
+  - Eliminates system OpenSSL dependency for cross-compilation
+  - Enables successful ARM64 Linux builds without OpenSSL headers
+  - Pure Rust TLS stack works across all platforms without system dependencies
+  - Fixes failed v1.0.1 release where no binaries were attached to GitHub release
+
+#### CI/CD Improvements
+- **Release workflow resilience**: Added `fail-fast: false` to build matrix
+  - Platform builds now run independently
+  - One platform failure doesn't cancel other builds
+  - Ensures maximum binary availability even if individual platforms fail
+
+### Technical Details
+- **Dependency changes**:
+  - `hf-hub`: `default-features = false, features = ["tokio", "rustls-tls"]`
+  - `tokenizers`: `default-features = false, features = ["http", "rustls-tls", "onig"]`
+- **Platform compatibility**: Binaries work on Ubuntu, Debian, Fedora, Arch, Alpine, WSL without OpenSSL
+- **Binary size**: No impact, rustls is similar size to native-tls when statically linked
+
 ## [1.0.1] - 2025-12-25
 
 ### Changed

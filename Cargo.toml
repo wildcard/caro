@@ -1,6 +1,6 @@
 [package]
 name = "caro"
-version = "1.0.1"
+version = "1.0.2"
 edition = "2021"
 description = "Convert natural language to shell commands using local LLMs"
 license = "AGPL-3.0"
@@ -50,7 +50,7 @@ os_info = "3.14"
 sysinfo = "0.37"
 
 # Model integration (Hugging Face Hub)
-hf-hub = { version = "0.4", features = ["tokio"] }
+hf-hub = { version = "0.4", default-features = false, features = ["tokio", "rustls-tls"] }
 url = "2.5"
 
 # Date/time handling
@@ -78,7 +78,7 @@ llama_cpp = { version = "0.3", features = ["metal"], optional = true }
 # Embedded model inference - Candle for CPU (cross-platform)
 candle-core = { version = "0.9", optional = true }
 candle-transformers = { version = "0.9", optional = true }
-tokenizers = { version = "0.22", features = ["http"] }
+tokenizers = { version = "0.22", default-features = false, features = ["http", "rustls-tls", "onig"] }
 
 [dev-dependencies]
 tokio-test = "0.4"
