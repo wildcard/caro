@@ -46,8 +46,8 @@ Ask Caro in natural language:
 |---------|-------------------|
 | "find all Python files modified today" | `find . -name "*.py" -mtime 0` |
 | "compress this folder into a tarball" | `tar -czvf archive.tar.gz .` |
-| "show disk usage sorted by size" | `du -sh * \| sort -h` |
-| "kill the process using port 3000" | `lsof -ti:3000 \| xargs kill` |
+| "show disk usage sorted by size" | `du -sh * | sort -h` |
+| "kill the process using port 3000" | `lsof -ti:3000 | xargs kill` |
 | "count lines in all JavaScript files" | `find . -name "*.js" -exec wc -l {} +` |
 
 ## Integration with Claude
