@@ -151,11 +151,19 @@
 </section>
 
 <script>
+  import { track } from '@vercel/analytics';
+
   document.querySelectorAll('.persona-cta').forEach(button => {
     button.addEventListener('click', () => {
-      const card = button.closest('.persona-card');
+      const card = button.closest('.persona-card') as HTMLElement;
       const expanded = card?.querySelector('.persona-expanded');
       const isExpanded = button.getAttribute('aria-expanded') === 'true';
+      const persona = card?.dataset.persona || 'unknown';
+
+      // Track persona engagement
+      if (!isExpanded) {
+        track('persona_expand', { persona });
+      }
 
       // Toggle state
       button.setAttribute('aria-expanded', (!isExpanded).toString());
@@ -163,15 +171,32 @@
       card?.classList.toggle('is-expanded', !isExpanded);
 
       // Update button text
-      const ctaText = button.querySelector('.cta-text');
+      const ctaText = button.querySelector('.cta-text') as HTMLElement;
       if (ctaText) {
-        ctaText.textContent = isExpanded ? button.dataset.originalText || 'See how it works' : 'Close';
-        if (!button.dataset.originalText) {
-          button.dataset.originalText = ctaText.textContent;
+        ctaText.textContent = isExpanded ? (button as HTMLElement).dataset.originalText || 'See how it works' : 'Close';
+        if (!(button as HTMLElement).dataset.originalText) {
+          (button as HTMLElement).dataset.originalText = ctaText.textContent || '';
         }
       }
     });
   });
+
+  // Track scroll to personas section
+  const personasSection = document.getElementById('personas');
+  let hasTrackedPersonasView = false;
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !hasTrackedPersonasView) {
+        track('section_view', { section: 'personas' });
+        hasTrackedPersonasView = true;
+      }
+    });
+  }, { threshold: 0.3 });
+
+  if (personasSection) {
+    observer.observe(personasSection);
+  }
 </script>
 
 <style>
