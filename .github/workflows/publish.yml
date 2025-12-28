@@ -116,5 +116,5 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         run: |
           echo "Publishing version ${{ steps.version.outputs.version }} to crates.io..."
-          cargo publish
+          cargo publish --allow-dirty
           echo "Successfully published to crates.io"
