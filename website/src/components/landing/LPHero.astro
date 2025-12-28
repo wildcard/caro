@@ -13,6 +13,15 @@
       what AI gets wrong. 100% local. Zero telemetry. Your commands never leave your machine.
     </p>
 
+    <div class="incident-warning">
+      <div class="incident-text">
+        AI coding tools have deleted entire home directories. Flags like <code>--dangerously-skip-permissions</code> didn't help.
+      </div>
+      <div class="incident-link">
+        <a href="#best-practices">Learn why flags aren't enough →</a>
+      </div>
+    </div>
+
     <div class="social-proof">
       <div class="quote">
         "Caught a recursive delete pattern I would have missed at 2 AM during an incident.
@@ -90,6 +99,46 @@
     margin-left: auto;
     margin-right: auto;
     line-height: 1.7;
+  }
+
+  .incident-warning {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+    padding: 20px 28px;
+    margin-bottom: 30px;
+    max-width: 650px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .incident-text {
+    font-size: 16px;
+    color: var(--color-text);
+    margin-bottom: 8px;
+  }
+
+  .incident-text code {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+    font-size: 14px;
+  }
+
+  .incident-link {
+    font-size: 14px;
+  }
+
+  .incident-link a {
+    color: #ef4444;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .incident-link a:hover {
+    text-decoration: underline;
   }
 
   .social-proof {
@@ -182,6 +231,9 @@
   @media (max-width: 768px) {
     .headline { font-size: 32px; }
     .subtitle { font-size: 18px; }
+    .incident-warning { padding: 16px 20px; }
+    .incident-text { font-size: 14px; }
+    .incident-text code { font-size: 12px; }
     .social-proof { padding: 20px 24px; }
     .quote { font-size: 16px; }
     .cta-buttons { flex-direction: column; align-items: center; }

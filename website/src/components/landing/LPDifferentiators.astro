@@ -11,6 +11,11 @@ const differentiators = [
     detail: "52+ safety patterns including rm -rf, fork bombs, and disk wipes. Pre-execution, not post-mortem."
   },
   {
+    they: "They rely on permission flags that fail.",
+    caro: "Caro uses pattern matching that can't be bypassed.",
+    detail: "Flags like --dangerously-skip-permissions still let AI delete your home directory. Caro's validation is deterministic."
+  },
+  {
     they: "They give you bash. Hope it works on Linux.",
     caro: "Caro generates platform-specific commands that just work.",
     detail: "Detects your OS, knows BSD vs GNU, and adjusts syntax automatically. No more Stack Overflow."

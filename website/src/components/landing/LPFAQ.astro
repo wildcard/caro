@@ -6,6 +6,16 @@
 
 const concerns = [
   {
+    question: "I heard AI coding tools deleted someone's home directory. How is Caro different?",
+    answer: "You're right—it happened. The tool had flags like --dangerously-skip-permissions but still ran rm -rf ~/. Caro's safety is pattern-based, not permission-based. We block destructive patterns at the command level, not the filesystem level. Flags can be bypassed. Pattern matching can't.",
+    icon: "💥"
+  },
+  {
+    question: "How should I deploy Caro for AI agents?",
+    answer: "Defense in depth: (1) Run as unprivileged user without sudo, (2) Sandbox to specific directories, (3) Use container isolation, (4) Let Caro validate commands. Each layer catches what others miss. See our Best Practices section for detailed setup.",
+    icon: "🐳"
+  },
+  {
     question: "Wait, Caro runs locally. How does it stay updated with new dangerous patterns?",
     answer: "Caro's safety patterns are baked into the binary—no network needed. When you update Caro (cargo install caro --force), you get the latest patterns. The core dangerous commands (rm -rf /, fork bombs, disk wipers) don't change. We also accept pattern contributions via GitHub.",
     icon: "🔄"
@@ -14,6 +24,11 @@ const concerns = [
     question: "Will this slow down my incident response?",
     answer: "No. Caro adds <100ms to command generation. The safety check is instant (pattern matching, not AI inference). In a real incident, that's 100ms that might save you from making things 10x worse. The validation is synchronous—you see the warning immediately.",
     icon: "⚡"
+  },
+  {
+    question: "Can I use Caro in enterprise environments with multiple user accounts?",
+    answer: "Yes. Caro is designed for teams running hundreds of developer accounts. Each user gets local validation with no shared state. No cloud dependencies means no data leaks between accounts. Deploy via your package manager or container registry.",
+    icon: "🏢"
   },
   {
     question: "How does it know my specific system setup (BSD vs GNU, etc.)?",

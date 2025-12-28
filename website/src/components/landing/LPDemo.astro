@@ -7,7 +7,37 @@
     <p class="section-subtitle">Natural language in. Safe, working commands out.</p>
 
     <div class="demo-grid">
-      <!-- Scenario 1: Dangerous command prevention -->
+      <!-- Scenario 1: AI Agent Home Directory Deletion -->
+      <div class="scenario scenario-critical">
+        <div class="scenario-label critical-label">The AI Disaster</div>
+        <div class="terminal">
+          <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">AI Coding Agent</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-prompt">[AI]</span>
+            <span class="terminal-command"> rm -rf ~/* # cleaning up temp files</span>
+          </div>
+          <div class="terminal-line critical-line">
+            <span class="terminal-critical">BLOCKED: Recursive delete of home directory</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-info">This command would delete your entire home directory.</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-info">Even with --dangerously-skip-permissions, this is blocked.</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-dim"># Suggestion: Specify the exact path to clean up</span>
+          </div>
+        </div>
+        <p class="scenario-caption">Caro stops what permission flags can't</p>
+      </div>
+
+      <!-- Scenario 2: Dangerous command prevention -->
       <div class="scenario">
         <div class="scenario-label danger-label">The Close Call</div>
         <div class="terminal">
@@ -38,7 +68,7 @@
         <p class="scenario-caption">Caro warns you before you wipe critical logs</p>
       </div>
 
-      <!-- Scenario 2: Cross-platform command generation -->
+      <!-- Scenario 3: Cross-platform command generation -->
       <div class="scenario">
         <div class="scenario-label success-label">The Syntax Save</div>
         <div class="terminal">
@@ -117,8 +147,8 @@
 
   .demo-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-    gap: 30px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
     margin-bottom: 60px;
   }
 
@@ -139,6 +169,18 @@
     align-self: flex-start;
   }
 
+  .critical-label {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.2) 0%, rgba(185, 28, 28, 0.15) 100%);
+    color: #dc2626;
+    border: 1px solid rgba(220, 38, 38, 0.4);
+    animation: pulse-critical 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-critical {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+    50% { box-shadow: 0 0 8px 2px rgba(220, 38, 38, 0.3); }
+  }
+
   .danger-label {
     background: rgba(239, 68, 68, 0.15);
     color: #ef4444;
@@ -149,6 +191,10 @@
     background: rgba(34, 197, 94, 0.15);
     color: #22c55e;
     border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+
+  .scenario-critical .terminal {
+    border: 1px solid rgba(220, 38, 38, 0.3);
   }
 
   .terminal {
@@ -218,9 +264,22 @@
     color: #f59e0b;
   }
 
+  .terminal-critical {
+    color: #dc2626;
+    font-weight: 600;
+  }
+
   .terminal-info {
     color: #60a5fa;
     font-size: 12px;
+  }
+
+  .critical-line {
+    background: rgba(220, 38, 38, 0.15);
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin: 12px 0;
+    border-left: 3px solid #dc2626;
   }
 
   .terminal-dim {
@@ -280,7 +339,13 @@
     font-size: 14px;
   }
 
-  @media (max-width: 960px) {
+  @media (max-width: 1200px) {
+    .demo-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 800px) {
     .demo-grid {
       grid-template-columns: 1fr;
     }

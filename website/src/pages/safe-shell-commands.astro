@@ -19,6 +19,7 @@ import LandingPage from '../layouts/LandingPage.astro';
 import LPNavigation from '../components/landing/LPNavigation.astro';
 import LPHero from '../components/landing/LPHero.astro';
 import LPDemo from '../components/landing/LPDemo.astro';
+import LPBestPractices from '../components/landing/LPBestPractices.astro';
 import LPScenarios from '../components/landing/LPScenarios.astro';
 import LPCommunityVoices from '../components/landing/LPCommunityVoices.astro';
 import LPTrust from '../components/landing/LPTrust.astro';
@@ -31,14 +32,15 @@ import LPFooter from '../components/landing/LPFooter.astro';
 
 <LandingPage
   title="Safe Shell Commands with AI | Caro"
-  description="Generate safe shell commands with AI that runs 100% locally. Caro validates commands BEFORE execution, catching dangerous patterns like rm -rf. Zero telemetry, zero cloud APIs, open source."
+  description="Generate safe shell commands with AI that runs 100% locally. Caro blocks dangerous patterns like rm -rf ~/ BEFORE execution—even when AI tools with 'skip-permissions' flags fail. Defense in depth for AI agents. Zero telemetry, open source."
   slug="safe-shell-commands"
   persona="Production-Paranoid SRE/DevOps"
-  painPoint="Fear of catastrophic shell command mistakes"
+  painPoint="Fear of AI tools deleting your home directory"
 >
   <LPNavigation />
   <LPHero />
   <LPDemo />
+  <LPBestPractices />
   <LPScenarios />
   <LPCommunityVoices />
   <LPTrust />
