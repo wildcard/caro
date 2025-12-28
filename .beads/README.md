@@ -72,9 +72,9 @@ bd create "Try out Beads"
 
 ## Learn More
 
-- **Documentation**: [github.com/steveyegge/beads/docs](https://github.com/steveyegge/beads/tree/main/docs)
-- **Quick Start Guide**: Run `bd quickstart`
-- **Examples**: [github.com/steveyegge/beads/examples](https://github.com/steveyegge/beads/tree/main/examples)
+- **Documentation**: See the [Beads documentation](https://github.com/steveyegge/beads/tree/main/docs)
+- **Quick Start Guide**: After installing the `bd` CLI, run `bd quickstart` in your repository
+- **Examples**: Browse the [example configurations and workflows](https://github.com/steveyegge/beads/tree/main/examples)
 
 ---
 
