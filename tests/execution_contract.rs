@@ -140,21 +140,42 @@ fn test_context_includes_essential_env_vars() {
 
 #[test]
 fn test_shell_detector_uses_env_variable() {
-    // CONTRACT: ShellDetector::detect_from_env() uses SHELL environment variable
+    // CONTRACT: ShellDetector::detect_from_env() uses platform-appropriate environment variables
     let detector = ShellDetector::new();
 
-    // Get current SHELL value (if set)
-    if let Ok(shell_path) = env::var("SHELL") {
+    #[cfg(unix)]
+    {
+        // Unix: Check SHELL environment variable
+        if let Ok(shell_path) = env::var("SHELL") {
+            let detected = detector.detect_from_env();
+
+            if shell_path.contains("bash") {
+                assert_eq!(detected, Some(ShellType::Bash));
+            } else if shell_path.contains("zsh") {
+                assert_eq!(detected, Some(ShellType::Zsh));
+            } else if shell_path.contains("fish") {
+                assert_eq!(detected, Some(ShellType::Fish));
+            }
+            // Other shells or None if not recognized
+        }
+    }
+
+    #[cfg(windows)]
+    {
+        // Windows: Should detect PowerShell or Cmd
         let detected = detector.detect_from_env();
 
-        if shell_path.contains("bash") {
-            assert_eq!(detected, Some(ShellType::Bash));
-        } else if shell_path.contains("zsh") {
-            assert_eq!(detected, Some(ShellType::Zsh));
-        } else if shell_path.contains("fish") {
-            assert_eq!(detected, Some(ShellType::Fish));
-        }
-        // Other shells or None if not recognized
+        assert!(
+            detected.is_some(),
+            "Should detect a shell on Windows"
+        );
+
+        let shell = detected.unwrap();
+        assert!(
+            matches!(shell, ShellType::PowerShell | ShellType::Cmd),
+            "Should detect PowerShell or Cmd on Windows, got {:?}",
+            shell
+        );
     }
 }
 
