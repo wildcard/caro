@@ -26,6 +26,7 @@ fn try_create_backend() -> Option<EmbeddedModelBackend> {
 
 #[tokio::test]
 #[serial]
+#[ignore = "Requires valid GGUF model and may hit unsupported Metal operations in CI"]
 async fn smoke_test_model_load() {
     setup_deterministic();
     if let Some(backend) = try_create_backend() {
@@ -35,6 +36,7 @@ async fn smoke_test_model_load() {
 
 #[tokio::test]
 #[serial]
+#[ignore = "Requires valid GGUF model and may hit unsupported Metal operations in CI"]
 async fn smoke_test_basic_inference() {
     setup_deterministic();
     let Some(backend) = try_create_backend() else {
@@ -68,6 +70,7 @@ async fn smoke_test_basic_inference() {
 
 #[tokio::test]
 #[serial]
+#[ignore = "Requires valid GGUF model and may hit unsupported Metal operations in CI"]
 async fn smoke_test_determinism() {
     setup_deterministic();
     let Some(backend) = try_create_backend() else {
@@ -130,6 +133,7 @@ async fn smoke_test_determinism() {
 
 #[tokio::test]
 #[serial]
+#[ignore = "Requires valid GGUF model and may hit unsupported Metal operations in CI"]
 async fn smoke_test_output_structure() {
     setup_deterministic();
     let Some(backend) = try_create_backend() else {
@@ -164,6 +168,7 @@ async fn smoke_test_output_structure() {
 
 #[tokio::test]
 #[serial]
+#[ignore = "Requires valid GGUF model and may hit unsupported Metal operations in CI"]
 async fn smoke_test_performance() {
     setup_deterministic();
 
