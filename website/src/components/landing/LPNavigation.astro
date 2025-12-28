@@ -209,6 +209,8 @@
 </style>
 
 <script>
+  import { track } from '@vercel/analytics';
+
   const toggle = document.querySelector('.nav-mobile-toggle');
   const menu = document.querySelector('.nav-mobile-menu');
 
@@ -220,6 +222,13 @@
   document.querySelectorAll('.mobile-link, .mobile-cta').forEach(link => {
     link.addEventListener('click', () => {
       menu?.classList.remove('open');
+    });
+  });
+
+  // Track CTA clicks
+  document.querySelectorAll('.nav-cta, .mobile-cta').forEach(cta => {
+    cta.addEventListener('click', () => {
+      track('cta_click', { location: 'navigation', action: 'get_started' });
     });
   });
 </script>
