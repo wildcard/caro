@@ -10,15 +10,15 @@
   "icons": [
     {
       "src": "/caro-pixel.png",
-      "sizes": "192x192",
+      "sizes": "64x64",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/caro-pixel.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ],
   "categories": ["developer", "utilities", "productivity"]
