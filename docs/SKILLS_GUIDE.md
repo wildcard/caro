@@ -6,11 +6,11 @@ Complete reference for all Claude Code skills available in the Caro project.
 
 Caro uses **Claude Code skills** (local slash commands) to automate complex development workflows. Skills are markdown files in `.claude/commands/` that provide structured, repeatable workflows for common tasks.
 
-**Total Skills**: 21 commands across 3 namespaces
+**Total Skills**: 20 commands across 3 namespaces
 
 ## Skill Namespaces
 
-### 1. `caro.release.*` - Release Management (7 skills)
+### 1. `caro.release.*` - Release Management (6 skills)
 Complete workflow for versioned releases with security controls.
 
 ### 2. `caro.deps.*` - Dependency Management (1 skill)
