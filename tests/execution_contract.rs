@@ -180,6 +180,7 @@ fn test_shell_detector_uses_env_variable() {
 }
 
 #[test]
+#[cfg(unix)] // Windows doesn't use SHELL environment variable for shell detection
 fn test_shell_detector_handles_variants() {
     // CONTRACT: ShellDetector handles multiple shell path variants
     let detector = ShellDetector::new();
