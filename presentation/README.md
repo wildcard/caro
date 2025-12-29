@@ -1,8 +1,11 @@
-# cmdai Presentation
+# Caro Presentations
 
-Slidev presentation showcasing cmdai's capabilities, roadmap, and call to action for contributors.
+Slidev presentations for the Caro project (formerly cmdai):
 
-**Featuring Caro** 🐕 - The friendly Shiba Inu mascot representing cmdai's mission to make shell commands safe and accessible!
+- **Main Presentation** (`slides.md`) - Technical overview and capabilities
+- **Roadmap Presentation** (`roadmap-slides.md`) - 2026 development roadmap
+
+**Featuring Caro** 🐕 - The friendly Shiba Inu mascot representing Caro's mission to make shell commands safe and accessible!
 
 ## Setup
 
@@ -10,7 +13,9 @@ Slidev presentation showcasing cmdai's capabilities, roadmap, and call to action
 npm install
 ```
 
-## Run Presentation
+## Run Presentations
+
+### Main Presentation
 
 ```bash
 # Development mode with hot reload
@@ -20,8 +25,41 @@ npm run dev
 npm run build
 
 # Export as PDF
-npm run export-pdf
+npm run export
 ```
+
+### Roadmap Presentation
+
+```bash
+# Development mode with hot reload
+npm run roadmap
+
+# Build for production
+npm run roadmap:build
+
+# Export as PDF
+npm run roadmap:export
+```
+
+### Build Both (for Deployment)
+
+```bash
+# Build both presentations to dist/
+npm run build:all
+```
+
+## Deployment
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for complete Vercel deployment instructions.
+
+**Quick Deploy**:
+```bash
+vercel --prod
+```
+
+Deployment structure:
+- Main presentation: `/` (root)
+- Roadmap presentation: `/roadmap/`
 
 ## Presentation Structure
 
