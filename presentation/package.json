@@ -1,7 +1,7 @@
 {
-  "name": "cmdai-presentation",
+  "name": "caro-presentation",
   "version": "1.0.0",
-  "description": "cmdai: Safe AI-Powered Command Generation - Project Presentation",
+  "description": "caro: Safe AI-Powered Command Generation - Project Presentation",
   "type": "module",
   "scripts": {
     "dev": "slidev slides.md",

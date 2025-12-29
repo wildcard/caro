@@ -80,12 +80,12 @@ and it just works. Now let's see the real thing..."
 #### 1️⃣ System Monitoring (30 sec)
 ```bash
 # Start with basics
-./target/release/cmdai "show system uptime and load average"
+./target/release/caro "show system uptime and load average"
 # Output: uptime
 # Run it: uptime
 # Show: "See? Real command, works instantly"
 
-./target/release/cmdai "show top 10 processes by CPU usage"
+./target/release/caro "show top 10 processes by CPU usage"
 # Output: ps aux | sort -nr -k 3 | head -n 10
 # Run it: ps aux | sort -nr -k 3 | head -n 10 | head -3
 # Show: "No googling, no Stack Overflow, just works"
@@ -93,35 +93,35 @@ and it just works. Now let's see the real thing..."
 
 #### 2️⃣ File Operations (30 sec)
 ```bash
-./target/release/cmdai "find all rust files modified in the last 7 days"
+./target/release/caro "find all rust files modified in the last 7 days"
 # Output: find / -type f -name '*.rs' -mtime -7
 # Run it: find . -type f -name '*.rs' -mtime -7 | head -3
 # Show: "Adjusted to current directory, perfect for daily work"
 
-./target/release/cmdai "archive current directory"
+./target/release/caro "archive current directory"
 # Output: tar czvf archive.tar.gz *
 # Show: "Ready to use, no syntax lookup needed"
 ```
 
 #### 3️⃣ Developer Workflows (30 sec)
 ```bash
-./target/release/cmdai "find large files in current directory"
+./target/release/caro "find large files in current directory"
 # Output: find . -type f -size +10M
 # Run it: find . -type f -size +10M 2>/dev/null | head -3
 
-./target/release/cmdai "count lines in all log files"
+./target/release/caro "count lines in all log files"
 # Output: ls *.log | xargs wc -l
 # Show: "Instant productivity boost"
 ```
 
 #### 4️⃣ Security & Auditing (30 sec)
 ```bash
-./target/release/cmdai "find files with setuid bit enabled"
+./target/release/caro "find files with setuid bit enabled"
 # Output: find /bin -type f -perm u+s
 # Run it: find /usr/bin -type f -perm -u+s 2>/dev/null | head -3
 # Show: "Security auditing made simple"
 
-./target/release/cmdai "show users who logged in today"
+./target/release/caro "show users who logged in today"
 # Output: last
 # Run it: last | head -5
 # Show: "No manual page lookup needed"
@@ -129,7 +129,7 @@ and it just works. Now let's see the real thing..."
 
 #### 5️⃣ Network Operations (30 sec)
 ```bash
-./target/release/cmdai "check DNS resolution for api.example.com"
+./target/release/caro "check DNS resolution for api.example.com"
 # Output: dig api.example.com +short
 # Show: "Even complex networking commands"
 ```
@@ -312,10 +312,10 @@ caro "your command here"
 Or pivot to:
 ```bash
 # Show the help
-./target/release/cmdai --help
+./target/release/caro --help
 
 # Show the version
-./target/release/cmdai --version
+./target/release/caro --version
 
 # Explain the architecture while recovering
 ```
@@ -368,7 +368,7 @@ Or pivot to:
 ## 🛠️ PRE-TALK CHECKLIST
 
 ### Technical Setup:
-- [ ] Binary compiled and tested (`./target/release/cmdai --version`)
+- [ ] Binary compiled and tested (`./target/release/caro --version`)
 - [ ] Model downloaded and cached (first run to warm up)
 - [ ] Internet connection for fallback (show GitHub, Discord)
 - [ ] Terminal font size increased (readable from back)

@@ -35,7 +35,7 @@ Evolve Caro from a single-machine CLI tool into a distributed terminal intellige
 
 ## Constitution Check
 
-*Validated against cmdai Constitution v1.0.0*
+*Validated against caro Constitution v1.0.0*
 
 | Principle | Status | Notes |
 |-----------|--------|-------|

@@ -233,7 +233,7 @@ pub async fn execute_workflow(prompt: &str) -> Result<()> {
 
 ## Configuration
 
-### User Configuration (`~/.config/cmdai/config.toml`)
+### User Configuration (`~/.config/caro/config.toml`)
 
 ```toml
 [validation]
@@ -254,7 +254,7 @@ commands = ["ls", "cd", "pwd", "echo"]
 ## Performance Considerations
 
 1. **Caching**: Cache help text for common commands
-   - `~/.cache/cmdai/help_text/{command}.json`
+   - `~/.cache/caro/help_text/{command}.json`
    - TTL: 7 days (commands don't change often)
 
 2. **Parallel collection**: Collect help text for all commands concurrently

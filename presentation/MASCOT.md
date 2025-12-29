@@ -1,4 +1,4 @@
-# Meet Caro - The cmdai Mascot! 🐕
+# Meet Caro - The caro Mascot! 🐕
 
 <div align="center">
   <img src="public/mascot.gif" alt="Caro the Shiba Inu mascot" width="300"/>
@@ -6,7 +6,7 @@
 
 ## About Caro
 
-**Caro** (with a C to respect the **C**ommand line) is the friendly face of cmdai! Inspired by Kyaro, a real Shiba Inu, Caro represents:
+**Caro** (with a C to respect the **C**ommand line) is the friendly face of caro! Inspired by Kyaro, a real Shiba Inu, Caro represents:
 
 - 🐕 **Loyalty**: Always by your side in the terminal
 - 🎯 **Intelligence**: Smart command generation

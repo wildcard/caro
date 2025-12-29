@@ -7,11 +7,11 @@ body:
       value: |
         ## Ask a Question 🙋
 
-        Have a question about cmdai? You're in the right place! Before asking, please:
+        Have a question about caro? You're in the right place! Before asking, please:
 
-        1. Check the [documentation](https://github.com/wildcard/cmdai#readme)
-        2. Search existing [Q&A discussions](https://github.com/wildcard/cmdai/discussions/categories/q-a)
-        3. Review [closed issues](https://github.com/wildcard/cmdai/issues?q=is%3Aissue+is%3Aclosed)
+        1. Check the [documentation](https://github.com/wildcard/caro#readme)
+        2. Search existing [Q&A discussions](https://github.com/wildcard/caro/discussions/categories/q-a)
+        3. Review [closed issues](https://github.com/wildcard/caro/issues?q=is%3Aissue+is%3Aclosed)
 
   - type: dropdown
     id: category
@@ -54,8 +54,8 @@ body:
   - type: input
     id: version
     attributes:
-      label: cmdai Version
-      description: What version of cmdai are you using? (run `cmdai --version`)
+      label: caro Version
+      description: What version of caro are you using? (run `caro --version`)
       placeholder: "0.1.0"
     validations:
       required: false

@@ -7,7 +7,7 @@
 
 ## Overview
 
-Implement the GREEN phase of Test-Driven Development for cmdai, making the 80 comprehensive contract tests pass by building the core data models, safety validation system, and backend trait implementations. This phase transforms the RED phase foundation into working functionality while maintaining strict TDD discipline.
+Implement the GREEN phase of Test-Driven Development for caro, making the 80 comprehensive contract tests pass by building the core data models, safety validation system, and backend trait implementations. This phase transforms the RED phase foundation into working functionality while maintaining strict TDD discipline.
 
 ## Background
 

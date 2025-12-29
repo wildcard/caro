@@ -1,9 +1,9 @@
 # 🎉 Caro Has Arrived! 
 
 <div align="center">
-  <img src="presentation/public/mascot.gif" alt="Caro the cmdai mascot" width="400"/>
+  <img src="presentation/public/mascot.gif" alt="Caro the caro mascot" width="400"/>
   
-  ## Meet Caro - The cmdai Mascot! 🐕
+  ## Meet Caro - The caro Mascot! 🐕
   
   *"Let's build the future of shell interaction together!"*
 </div>
@@ -14,7 +14,7 @@
 
 ### 🐕 Caro Joins the Team!
 
-**Caro** (Kyaro with a **C** for **C**ommand line) is now the official face of cmdai!
+**Caro** (Kyaro with a **C** for **C**ommand line) is now the official face of caro!
 
 - **Source**: Your beloved Shiba Inu Kyaro
 - **Design**: Animated GIF with speech bubble
@@ -164,7 +164,7 @@ Perfect blend of:
 *"Love the guardian dog metaphor for safety validation!"*
 
 ### General Tech Community
-*"So cute! I want to try cmdai now."*
+*"So cute! I want to try caro now."*
 
 ### Contributors
 *"The mascot makes me feel like part of a fun community."*
@@ -189,7 +189,7 @@ Perfect blend of:
 
 ### Tweet Template
 ```
-🐕 Meet Caro, the cmdai mascot!
+🐕 Meet Caro, the caro mascot!
 
 Your friendly AI command-line companion that:
 ✨ Converts natural language to shell commands
@@ -198,7 +198,7 @@ Your friendly AI command-line companion that:
 
 Like a loyal Shiba Inu for your terminal!
 
-#cmdai #CLI #AItools
+#caro #CLI #AItools
 ```
 
 ### GitHub README Impact

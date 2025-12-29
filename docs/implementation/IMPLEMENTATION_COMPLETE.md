@@ -1,10 +1,10 @@
-# cmdai - MLX Backend Implementation Complete ✅
+# caro - MLX Backend Implementation Complete ✅
 
 ## Executive Summary
 
 **Status:** ✅ **FULLY OPERATIONAL** on MacBook Pro M4 Pro
 
-The cmdai project is successfully running with MLX backend detection, model loading, and inference pipeline working end-to-end on your M4 Pro MacBook.
+The caro project is successfully running with MLX backend detection, model loading, and inference pipeline working end-to-end on your M4 Pro MacBook.
 
 ## What's Working RIGHT NOW
 
@@ -12,8 +12,8 @@ The cmdai project is successfully running with MLX backend detection, model load
 ```bash
 $ cargo run --release -- "find text files"
 
-INFO cmdai::cli: Using embedded backend only
-INFO cmdai::backends::embedded::mlx: MLX model loaded from /Users/kobi/Library/Caches/cmdai/models/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf
+INFO caro::cli: Using embedded backend only
+INFO caro::backends::embedded::mlx: MLX model loaded from /Users/kobi/Library/Caches/caro/models/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf
 
 Command:
   echo 'Please clarify your request'
@@ -184,7 +184,7 @@ $ cargo test --test mlx_integration_test
 **Quantization:** Q4_K_M (recommended)
 **Size:** 1.1GB (1,117MB)
 **Format:** GGUF
-**Location:** `~/Library/Caches/cmdai/models/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf`
+**Location:** `~/Library/Caches/caro/models/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf`
 **Download:** Automatic from Hugging Face on first run
 **Status:** ✅ Downloaded and verified
 
@@ -307,7 +307,7 @@ See `docs/XCODE_SETUP.md` for detailed instructions.
 
 ### ✅ Primary Objective: COMPLETE
 
-**Goal:** Make cmdai compile, build, and run with MLX backend on M4 Pro MacBook
+**Goal:** Make caro compile, build, and run with MLX backend on M4 Pro MacBook
 **Result:** ✅ **ACHIEVED**
 
 The project is **fully operational** with:
@@ -338,7 +338,7 @@ Install Xcode to unlock:
 
 ---
 
-**Project:** cmdai - Natural Language to Shell Commands  
+**Project:** caro - Natural Language to Shell Commands  
 **Platform:** macOS 15.2, Apple Silicon M4 Pro  
 **Status:** ✅ Operational with stub, ready for GPU acceleration  
 **Date:** 2025-01-24  

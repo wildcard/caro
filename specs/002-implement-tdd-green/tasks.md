@@ -1,7 +1,7 @@
 # Tasks: TDD GREEN Phase - Core Models and Safety System
 
 **Feature**: 002-implement-tdd-green | **Branch**: `002-implement-tdd-green` | **Date**: 2025-10-01
-**Input**: Design documents from `/workspaces/cmdai/specs/002-implement-tdd-green/`
+**Input**: Design documents from `/workspaces/caro/specs/002-implement-tdd-green/`
 **Prerequisites**: plan.md, research.md, data-model.md, quickstart.md (all available)
 
 ## Execution Flow
@@ -48,7 +48,7 @@
 ## Module A: Core Models (T001-T010)
 **Foundation layer - No external dependencies, enables all other modules**
 
-- [ ] **T001 [P]** Define ShellType enum in `/workspaces/cmdai/src/models/enums.rs`
+- [ ] **T001 [P]** Define ShellType enum in `/workspaces/caro/src/models/enums.rs`
   - **Description**: Create ShellType enum with variants (Bash, Zsh, Fish, Sh, PowerShell, Cmd, Unknown)
   - **Files**: Create `src/models/enums.rs`, update `src/models/mod.rs`
   - **Acceptance Criteria**:
@@ -62,7 +62,7 @@
   - **Test Verification**: `cargo test --lib models::enums` (should compile, no tests yet)
   - **Commit Message**: `[T001] Define ShellType enum with platform detection`
 
-- [ ] **T002 [P]** Define RiskLevel enum in `/workspaces/cmdai/src/models/enums.rs`
+- [ ] **T002 [P]** Define RiskLevel enum in `/workspaces/caro/src/models/enums.rs`
   - **Description**: Create RiskLevel enum for safety risk categorization
   - **Files**: Update `src/models/enums.rs`, export in `src/models/mod.rs`
   - **Acceptance Criteria**:
@@ -76,7 +76,7 @@
   - **Test Verification**: `cargo test --lib models::enums::risk_level`
   - **Commit Message**: `[T002] Define RiskLevel enum with ordering and confirmation logic`
 
-- [ ] **T003 [P]** Define SafetyLevel enum in `/workspaces/cmdai/src/models/enums.rs`
+- [ ] **T003 [P]** Define SafetyLevel enum in `/workspaces/caro/src/models/enums.rs`
   - **Description**: Create SafetyLevel enum for user safety preferences
   - **Files**: Update `src/models/enums.rs`, export in `src/models/mod.rs`
   - **Acceptance Criteria**:
@@ -88,7 +88,7 @@
   - **Test Verification**: `cargo test --lib models::enums::safety_level`
   - **Commit Message**: `[T003] Define SafetyLevel enum with default Moderate`
 
-- [ ] **T004 [P]** Define BackendType enum in `/workspaces/cmdai/src/models/backend.rs`
+- [ ] **T004 [P]** Define BackendType enum in `/workspaces/caro/src/models/backend.rs`
   - **Description**: Create BackendType enum for backend categorization
   - **Files**: Create `src/models/backend.rs`, export in `src/models/mod.rs`
   - **Acceptance Criteria**:
@@ -100,7 +100,7 @@
   - **Test Verification**: `cargo test --lib models::backend::backend_type`
   - **Commit Message**: `[T004] Define BackendType enum for backend selection`
 
-- [ ] **T005** Implement CommandRequest struct in `/workspaces/cmdai/src/models/request.rs`
+- [ ] **T005** Implement CommandRequest struct in `/workspaces/caro/src/models/request.rs`
   - **Description**: Create CommandRequest struct with builder pattern
   - **Files**: Create `src/models/request.rs`, export in `src/models/mod.rs`
   - **Acceptance Criteria**:
@@ -114,7 +114,7 @@
   - **Test Verification**: `cargo test --test integration_tests test_command_request_creation`
   - **Commit Message**: `[T005] Implement CommandRequest struct with builder pattern`
 
-- [ ] **T006** Implement GeneratedCommand struct in `/workspaces/cmdai/src/models/response.rs`
+- [ ] **T006** Implement GeneratedCommand struct in `/workspaces/caro/src/models/response.rs`
   - **Description**: Create GeneratedCommand struct for command generation results
   - **Files**: Create `src/models/response.rs`, export in `src/models/mod.rs`
   - **Acceptance Criteria**:
@@ -127,7 +127,7 @@
   - **Test Verification**: `cargo test --test integration_tests test_generated_command_structure`
   - **Commit Message**: `[T006] Implement GeneratedCommand struct with validation`
 
-- [ ] **T007** Implement BackendInfo struct in `/workspaces/cmdai/src/models/backend.rs`
+- [ ] **T007** Implement BackendInfo struct in `/workspaces/caro/src/models/backend.rs`
   - **Description**: Create BackendInfo struct for backend metadata
   - **Files**: Update `src/models/backend.rs`, export in `src/models/mod.rs`
   - **Acceptance Criteria**:
@@ -139,7 +139,7 @@
   - **Test Verification**: `cargo test --test backend_trait_contract test_backend_info_metadata`
   - **Commit Message**: `[T007] Implement BackendInfo struct for diagnostics`
 
-- [ ] **T008** Add serde serialization support in `/workspaces/cmdai/src/models/mod.rs`
+- [ ] **T008** Add serde serialization support in `/workspaces/caro/src/models/mod.rs`
   - **Description**: Ensure all models serialize correctly to JSON/YAML
   - **Files**: Update `src/models/mod.rs` with re-exports and serde config
   - **Acceptance Criteria**:
@@ -152,7 +152,7 @@
   - **Test Verification**: `cargo test --lib models::serde_tests`
   - **Commit Message**: `[T008] Add comprehensive serde serialization support`
 
-- [ ] **T009** Implement Display/Debug traits in `/workspaces/cmdai/src/models/enums.rs`
+- [ ] **T009** Implement Display/Debug traits in `/workspaces/caro/src/models/enums.rs`
   - **Description**: Add user-friendly string representations for enums
   - **Files**: Update `src/models/enums.rs` with Display implementations
   - **Acceptance Criteria**:
@@ -170,8 +170,8 @@
   - **Files**: Verify `src/models/mod.rs` exports, update `src/lib.rs`
   - **Acceptance Criteria**:
     - `cargo build` succeeds without warnings
-    - All types importable from `cmdai::models`
-    - Test imports: `use cmdai::models::{CommandRequest, GeneratedCommand, ShellType, RiskLevel, SafetyLevel, BackendInfo, BackendType};`
+    - All types importable from `caro::models`
+    - Test imports: `use caro::models::{CommandRequest, GeneratedCommand, ShellType, RiskLevel, SafetyLevel, BackendInfo, BackendType};`
     - No clippy warnings: `cargo clippy --lib -- -D warnings`
     - Code formatted: `cargo fmt --check`
     - Update `src/lib.rs` to export `pub mod models;`
@@ -183,7 +183,7 @@
 ## Module B: Safety Validation (T011-T020)
 **Depends on Models - Implements dangerous command detection and risk assessment**
 
-- [ ] **T011** Create SafetyValidator struct skeleton in `/workspaces/cmdai/src/safety/mod.rs`
+- [ ] **T011** Create SafetyValidator struct skeleton in `/workspaces/caro/src/safety/mod.rs`
   - **Description**: Define SafetyValidator struct and ValidationResult type
   - **Files**: Create `src/safety/mod.rs`, update `src/lib.rs`
   - **Acceptance Criteria**:
@@ -196,7 +196,7 @@
   - **Test Verification**: `cargo test --lib safety::validator`
   - **Commit Message**: `[T011] Create SafetyValidator struct skeleton`
 
-- [ ] **T012 [P]** Define dangerous pattern database in `/workspaces/cmdai/src/safety/patterns.rs`
+- [ ] **T012 [P]** Define dangerous pattern database in `/workspaces/caro/src/safety/patterns.rs`
   - **Description**: Create lazy static regex patterns for dangerous commands
   - **Files**: Create `src/safety/patterns.rs`, update `src/safety/mod.rs`
   - **Acceptance Criteria**:
@@ -217,7 +217,7 @@
   - **Test Verification**: `cargo test --lib safety::patterns::compilation`
   - **Commit Message**: `[T012] Define dangerous command pattern database`
 
-- [ ] **T013** Implement ValidationResult type in `/workspaces/cmdai/src/safety/mod.rs`
+- [ ] **T013** Implement ValidationResult type in `/workspaces/caro/src/safety/mod.rs`
   - **Description**: Complete ValidationResult with helper constructors
   - **Files**: Update `src/safety/mod.rs`
   - **Acceptance Criteria**:
@@ -231,7 +231,7 @@
   - **Test Verification**: `cargo test --lib safety::validation_result`
   - **Commit Message**: `[T013] Implement ValidationResult helper methods`
 
-- [ ] **T014** Implement validate() method in `/workspaces/cmdai/src/safety/mod.rs`
+- [ ] **T014** Implement validate() method in `/workspaces/caro/src/safety/mod.rs`
   - **Description**: Core validation logic with pattern matching
   - **Files**: Update `src/safety/mod.rs`, use `src/safety/patterns.rs`
   - **Acceptance Criteria**:
@@ -245,7 +245,7 @@
   - **Test Verification**: `cargo test --test safety_validator_contract test_basic_dangerous_patterns`
   - **Commit Message**: `[T014] Implement core validate() method with pattern matching`
 
-- [ ] **T015** Add POSIX-specific validation in `/workspaces/cmdai/src/safety/validators.rs`
+- [ ] **T015** Add POSIX-specific validation in `/workspaces/caro/src/safety/validators.rs`
   - **Description**: Implement validate_posix() for bash/zsh/fish/sh shells
   - **Files**: Create `src/safety/validators.rs`, update `src/safety/mod.rs`
   - **Acceptance Criteria**:
@@ -259,7 +259,7 @@
   - **Test Verification**: `cargo test --test safety_validator_contract test_posix_validation`
   - **Commit Message**: `[T015] Add POSIX-specific command validation`
 
-- [ ] **T016** Add Windows-specific validation in `/workspaces/cmdai/src/safety/validators.rs`
+- [ ] **T016** Add Windows-specific validation in `/workspaces/caro/src/safety/validators.rs`
   - **Description**: Implement validate_windows() for PowerShell and cmd.exe
   - **Files**: Update `src/safety/validators.rs`
   - **Acceptance Criteria**:
@@ -273,7 +273,7 @@
   - **Test Verification**: `cargo test --test safety_validator_contract test_windows_validation`
   - **Commit Message**: `[T016] Add Windows-specific command validation`
 
-- [ ] **T017** Implement custom pattern loading in `/workspaces/cmdai/src/safety/mod.rs`
+- [ ] **T017** Implement custom pattern loading in `/workspaces/caro/src/safety/mod.rs`
   - **Description**: Allow users to add custom dangerous patterns
   - **Files**: Update `src/safety/mod.rs`
   - **Acceptance Criteria**:
@@ -288,7 +288,7 @@
 
 - [ ] **T018 ✓ VERIFY** Safety contract tests pass (17/17)
   - **Description**: Verify all safety_validator_contract.rs tests pass
-  - **Files**: Run tests in `/workspaces/cmdai/tests/safety_validator_contract.rs`
+  - **Files**: Run tests in `/workspaces/caro/tests/safety_validator_contract.rs`
   - **Acceptance Criteria**:
     - All 17 tests in safety_validator_contract.rs pass
     - Test dangerous pattern detection (rm -rf /, fork bombs)
@@ -303,7 +303,7 @@
 
 - [ ] **T019 ✓ VERIFY** Property tests for safety validation
   - **Description**: Verify property-based tests for safety invariants
-  - **Files**: Run relevant tests in `/workspaces/cmdai/tests/property_tests.rs`
+  - **Files**: Run relevant tests in `/workspaces/caro/tests/property_tests.rs`
   - **Acceptance Criteria**:
     - Property: Safe commands always return RiskLevel::Safe
     - Property: Commands with "rm -rf" always return High or Critical
@@ -316,7 +316,7 @@
 
 - [ ] **T020 ✓ BENCHMARK** Validation performance <50ms
   - **Description**: Verify safety validation meets performance targets
-  - **Files**: Run benchmarks in `/workspaces/cmdai/tests/performance_tests.rs`
+  - **Files**: Run benchmarks in `/workspaces/caro/tests/performance_tests.rs`
   - **Acceptance Criteria**:
     - Single validation call <50ms (after first call)
     - First validation <100ms (includes regex compilation)
@@ -331,7 +331,7 @@
 ## Module C: Backend Trait System (T021-T030)
 **Depends on Models - Implements async command generation trait**
 
-- [ ] **T021** Define CommandGenerator trait in `/workspaces/cmdai/src/backends/mod.rs`
+- [ ] **T021** Define CommandGenerator trait in `/workspaces/caro/src/backends/mod.rs`
   - **Description**: Create async trait for command generation
   - **Files**: Create `src/backends/mod.rs`, update `src/lib.rs`
   - **Acceptance Criteria**:
@@ -346,7 +346,7 @@
   - **Test Verification**: `cargo build --lib` (trait compiles)
   - **Commit Message**: `[T021] Define CommandGenerator async trait`
 
-- [ ] **T022** Define GeneratorError enum in `/workspaces/cmdai/src/backends/error.rs`
+- [ ] **T022** Define GeneratorError enum in `/workspaces/caro/src/backends/error.rs`
   - **Description**: Create typed errors for backend failures
   - **Files**: Create `src/backends/error.rs`, export in `src/backends/mod.rs`
   - **Acceptance Criteria**:
@@ -363,7 +363,7 @@
   - **Test Verification**: `cargo test --lib backends::error`
   - **Commit Message**: `[T022] Define GeneratorError enum with thiserror`
 
-- [ ] **T023** Implement error conversions in `/workspaces/cmdai/src/backends/error.rs`
+- [ ] **T023** Implement error conversions in `/workspaces/caro/src/backends/error.rs`
   - **Description**: Add From trait implementations for error types
   - **Files**: Update `src/backends/error.rs`
   - **Acceptance Criteria**:
@@ -376,7 +376,7 @@
   - **Test Verification**: `cargo test --lib backends::error::conversions`
   - **Commit Message**: `[T023] Implement error conversions for GeneratorError`
 
-- [ ] **T024** Create MockBackend struct in `/workspaces/cmdai/src/backends/mock.rs`
+- [ ] **T024** Create MockBackend struct in `/workspaces/caro/src/backends/mock.rs`
   - **Description**: Implement mock backend for testing
   - **Files**: Create `src/backends/mock.rs`, export in `src/backends/mod.rs`
   - **Acceptance Criteria**:
@@ -402,7 +402,7 @@
   - **Test Verification**: `cargo build --lib` (trait implementation compiles)
   - **Commit Message**: `[T025] Implement CommandGenerator trait for MockBackend`
 
-- [ ] **T026** Implement async generate_command() in `/workspaces/cmdai/src/backends/mock.rs`
+- [ ] **T026** Implement async generate_command() in `/workspaces/caro/src/backends/mock.rs`
   - **Description**: Core command generation logic for mock
   - **Files**: Update `src/backends/mock.rs`
   - **Acceptance Criteria**:
@@ -417,7 +417,7 @@
   - **Test Verification**: `cargo test --test backend_trait_contract test_basic_command_generation`
   - **Commit Message**: `[T026] Implement async generate_command() with mock logic`
 
-- [ ] **T027** Implement is_available() and backend_info() in `/workspaces/cmdai/src/backends/mock.rs`
+- [ ] **T027** Implement is_available() and backend_info() in `/workspaces/caro/src/backends/mock.rs`
   - **Description**: Metadata and availability methods
   - **Files**: Update `src/backends/mock.rs`
   - **Acceptance Criteria**:
@@ -434,7 +434,7 @@
   - **Test Verification**: `cargo test --test backend_trait_contract test_backend_info_metadata`
   - **Commit Message**: `[T027] Implement is_available() and backend_info() methods`
 
-- [ ] **T028** Implement shutdown() method in `/workspaces/cmdai/src/backends/mock.rs`
+- [ ] **T028** Implement shutdown() method in `/workspaces/caro/src/backends/mock.rs`
   - **Description**: Cleanup method for graceful shutdown
   - **Files**: Update `src/backends/mock.rs`
   - **Acceptance Criteria**:
@@ -448,7 +448,7 @@
 
 - [ ] **T029 ✓ VERIFY** Backend contract tests pass (11/11)
   - **Description**: Verify all backend_trait_contract.rs tests pass
-  - **Files**: Run tests in `/workspaces/cmdai/tests/backend_trait_contract.rs`
+  - **Files**: Run tests in `/workspaces/caro/tests/backend_trait_contract.rs`
   - **Acceptance Criteria**:
     - All 11 tests in backend_trait_contract.rs pass
     - Test async command generation
@@ -463,7 +463,7 @@
 
 - [ ] **T030 ✓ VERIFY** Error handling tests for backends
   - **Description**: Verify error scenarios handled correctly
-  - **Files**: Run relevant tests in `/workspaces/cmdai/tests/error_handling_tests.rs`
+  - **Files**: Run relevant tests in `/workspaces/caro/tests/error_handling_tests.rs`
   - **Acceptance Criteria**:
     - Test empty input returns InvalidRequest error
     - Test error message clarity (user-friendly Display)
@@ -477,7 +477,7 @@
 ## Module D: CLI Interface (T031-T040)
 **Depends on ALL modules - Integrates everything into user interface**
 
-- [ ] **T031** Define CliApp struct in `/workspaces/cmdai/src/cli/mod.rs`
+- [ ] **T031** Define CliApp struct in `/workspaces/caro/src/cli/mod.rs`
   - **Description**: Create main CLI application structure
   - **Files**: Create `src/cli/mod.rs`, update `src/lib.rs`
   - **Acceptance Criteria**:
@@ -490,7 +490,7 @@
   - **Test Verification**: `cargo build --lib` (CLI struct compiles)
   - **Commit Message**: `[T031] Define CliApp struct with clap derive`
 
-- [ ] **T032** Create Clap argument structures in `/workspaces/cmdai/src/cli/args.rs`
+- [ ] **T032** Create Clap argument structures in `/workspaces/caro/src/cli/args.rs`
   - **Description**: Define subcommands and output format enum
   - **Files**: Create `src/cli/args.rs`, update `src/cli/mod.rs`
   - **Acceptance Criteria**:
@@ -500,13 +500,13 @@
     - OutputFormat enum: Json, Yaml, Text (derives ValueEnum)
     - Implement FromStr for custom value parsing
     - Add help documentation for each argument
-    - Environment variable support: CMDAI_LOG_LEVEL
+    - Environment variable support: CARO_LOG_LEVEL
   - **Dependencies**: T031 (CLI struct)
   - **Test Verification**: `cargo test --lib cli::args::parsing`
   - **Commit Message**: `[T032] Create Clap argument structures with subcommands`
 
-- [ ] **T033** Implement GenerateCommand handler in `/workspaces/cmdai/src/cli/handlers.rs`
-  - **Description**: Handle "cmdai generate" subcommand
+- [ ] **T033** Implement GenerateCommand handler in `/workspaces/caro/src/cli/handlers.rs`
+  - **Description**: Handle "caro generate" subcommand
   - **Files**: Create `src/cli/handlers.rs`, update `src/cli/mod.rs`
   - **Acceptance Criteria**:
     - Async function: `pub async fn handle_generate(...) -> Result<GeneratedCommand>`
@@ -519,8 +519,8 @@
   - **Test Verification**: `cargo test --lib cli::handlers::generate`
   - **Commit Message**: `[T033] Implement GenerateCommand handler logic`
 
-- [ ] **T034** Implement ValidateCommand handler in `/workspaces/cmdai/src/cli/handlers.rs`
-  - **Description**: Handle "cmdai validate" subcommand
+- [ ] **T034** Implement ValidateCommand handler in `/workspaces/caro/src/cli/handlers.rs`
+  - **Description**: Handle "caro validate" subcommand
   - **Files**: Update `src/cli/handlers.rs`
   - **Acceptance Criteria**:
     - Function: `pub fn handle_validate(command: &str) -> Result<ValidationResult>`
@@ -532,7 +532,7 @@
   - **Test Verification**: `cargo test --test cli_interface_contract test_validate_command`
   - **Commit Message**: `[T034] Implement ValidateCommand handler logic`
 
-- [ ] **T035** Create OutputFormat enum in `/workspaces/cmdai/src/cli/output.rs`
+- [ ] **T035** Create OutputFormat enum in `/workspaces/caro/src/cli/output.rs`
   - **Description**: Define output format handlers
   - **Files**: Create `src/cli/output.rs`, update `src/cli/mod.rs`
   - **Acceptance Criteria**:
@@ -544,7 +544,7 @@
   - **Test Verification**: `cargo test --lib cli::output::format_enum`
   - **Commit Message**: `[T035] Create OutputFormat enum with Formatter trait`
 
-- [ ] **T036** Implement JSON formatter in `/workspaces/cmdai/src/cli/output.rs`
+- [ ] **T036** Implement JSON formatter in `/workspaces/caro/src/cli/output.rs`
   - **Description**: JSON output formatting with serde_json
   - **Files**: Update `src/cli/output.rs`
   - **Acceptance Criteria**:
@@ -557,7 +557,7 @@
   - **Test Verification**: `cargo test --test cli_interface_contract test_json_output_format`
   - **Commit Message**: `[T036] Implement JSON formatter with serde_json`
 
-- [ ] **T037** Implement YAML formatter in `/workspaces/cmdai/src/cli/output.rs`
+- [ ] **T037** Implement YAML formatter in `/workspaces/caro/src/cli/output.rs`
   - **Description**: YAML output formatting with serde_yaml
   - **Files**: Update `src/cli/output.rs`
   - **Acceptance Criteria**:
@@ -570,7 +570,7 @@
   - **Test Verification**: `cargo test --test cli_interface_contract test_yaml_output_format`
   - **Commit Message**: `[T037] Implement YAML formatter with serde_yaml`
 
-- [ ] **T038** Implement plain text formatter in `/workspaces/cmdai/src/cli/output.rs`
+- [ ] **T038** Implement plain text formatter in `/workspaces/caro/src/cli/output.rs`
   - **Description**: Human-readable text output with colored formatting
   - **Files**: Update `src/cli/output.rs`
   - **Acceptance Criteria**:
@@ -586,7 +586,7 @@
 
 - [ ] **T039 ✓ VERIFY** CLI interface contract tests pass (14/14)
   - **Description**: Verify all cli_interface_contract.rs tests pass
-  - **Files**: Run tests in `/workspaces/cmdai/tests/cli_interface_contract.rs`
+  - **Files**: Run tests in `/workspaces/caro/tests/cli_interface_contract.rs`
   - **Acceptance Criteria**:
     - All 14 tests in cli_interface_contract.rs pass
     - Test argument parsing (generate, validate subcommands)
@@ -615,7 +615,7 @@
 ## Module E: Integration & Validation (T041-T050)
 **Final assembly - Wire everything together and validate full system**
 
-- [ ] **T041** Export all public types in `/workspaces/cmdai/src/lib.rs`
+- [ ] **T041** Export all public types in `/workspaces/caro/src/lib.rs`
   - **Description**: Configure public API exports for library users
   - **Files**: Update `src/lib.rs` with all module exports
   - **Acceptance Criteria**:
@@ -632,7 +632,7 @@
 
 - [ ] **T042** Implement main.rs with CLI initialization
   - **Description**: Binary entry point with tokio runtime
-  - **Files**: Update `/workspaces/cmdai/src/main.rs`
+  - **Files**: Update `/workspaces/caro/src/main.rs`
   - **Acceptance Criteria**:
     - Use `#[tokio::main]` for async runtime
     - Parse CLI arguments with `CliApp::parse()`
@@ -645,21 +645,21 @@
   - **Test Verification**: `cargo build --release` (binary builds)
   - **Commit Message**: `[T042] Implement main.rs with CLI initialization`
 
-- [ ] **T043** Add tracing subscriber initialization in `/workspaces/cmdai/src/main.rs`
+- [ ] **T043** Add tracing subscriber initialization in `/workspaces/caro/src/main.rs`
   - **Description**: Configure structured logging with env filter
   - **Files**: Update `src/main.rs`
   - **Acceptance Criteria**:
     - Use tracing-subscriber with env filter
     - Default log level: WARN (quiet by default)
-    - Support CMDAI_LOG_LEVEL env variable (DEBUG, INFO, WARN, ERROR)
+    - Support CARO_LOG_LEVEL env variable (DEBUG, INFO, WARN, ERROR)
     - Support --log-level CLI flag (overrides env)
     - Log format: timestamp, level, target, message
     - Initialize before any other operations
   - **Dependencies**: T042 (main.rs structure)
-  - **Test Verification**: `CMDAI_LOG_LEVEL=debug cargo run -- --help` (logs visible)
+  - **Test Verification**: `CARO_LOG_LEVEL=debug cargo run -- --help` (logs visible)
   - **Commit Message**: `[T043] Add tracing subscriber initialization`
 
-- [ ] **T044** Wire backend selection logic in `/workspaces/cmdai/src/cli/handlers.rs`
+- [ ] **T044** Wire backend selection logic in `/workspaces/caro/src/cli/handlers.rs`
   - **Description**: Add backend selection (Mock only for now)
   - **Files**: Update `src/cli/handlers.rs`
   - **Acceptance Criteria**:
@@ -674,7 +674,7 @@
 
 - [ ] **T045 ✓ VERIFY** Integration tests pass (8/8)
   - **Description**: Verify all integration_tests.rs tests pass
-  - **Files**: Run tests in `/workspaces/cmdai/tests/integration_tests.rs`
+  - **Files**: Run tests in `/workspaces/caro/tests/integration_tests.rs`
   - **Acceptance Criteria**:
     - All 8 integration tests pass
     - Test full command generation workflow (quickstart)
@@ -713,13 +713,13 @@
   - **Files**: Benchmark binary with hyperfine
   - **Acceptance Criteria**:
     - Build release binary: `cargo build --release`
-    - Benchmark: `hyperfine './target/release/cmdai --version'`
+    - Benchmark: `hyperfine './target/release/caro --version'`
     - Target: Mean time <100ms
     - Cold start <200ms (includes dynamic linking)
     - Warm start <50ms (cached)
     - Document results in performance log
   - **Dependencies**: T046 (all tests pass, binary stable)
-  - **Test Verification**: `hyperfine --warmup 3 './target/release/cmdai --help'`
+  - **Test Verification**: `hyperfine --warmup 3 './target/release/caro --help'`
   - **Commit Message**: `[T047] ✓ BENCHMARK: Startup time verified <100ms`
 
 - [ ] **T048 ✓ LINT** Clippy warnings resolution
@@ -753,13 +753,13 @@
 
 - [ ] **T050 ✓ FINAL** Quickstart workflow manual validation
   - **Description**: Manually execute quickstart.md workflow
-  - **Files**: Follow steps in `/workspaces/cmdai/specs/002-implement-tdd-green/quickstart.md`
+  - **Files**: Follow steps in `/workspaces/caro/specs/002-implement-tdd-green/quickstart.md`
   - **Acceptance Criteria**:
     - Step 1: Create CommandRequest - compiles, runs correctly
     - Step 2: Generate command with MockBackend - async works, returns valid response
     - Step 3: Validate safety - detects dangerous patterns, returns correct risk level
     - Step 4: Display results - all output formats work (JSON, YAML, text)
-    - CLI commands work: `cmdai generate "list files"`, `cmdai validate "ls"`
+    - CLI commands work: `caro generate "list files"`, `caro validate "ls"`
     - Performance targets met: <100ms startup, <50ms validation, <2s generation
     - All documentation examples executable and accurate
   - **Dependencies**: T049 (code quality verified)
@@ -849,10 +849,10 @@ Task T037: YAML formatter
 |--------|--------|--------------|
 | Test Pass Rate | 80/80 (100%) | `cargo test` |
 | Code Coverage | >80% | `cargo tarpaulin` |
-| Startup Time | <100ms | `hyperfine ./target/release/cmdai --version` |
+| Startup Time | <100ms | `hyperfine ./target/release/caro --version` |
 | Validation Time | <50ms | Performance tests |
 | Mock Generation | <2s | Integration tests |
-| Binary Size | <50MB | `ls -lh target/release/cmdai` |
+| Binary Size | <50MB | `ls -lh target/release/caro` |
 | Clippy Warnings | 0 | `cargo clippy -- -D warnings` |
 
 ## Notes

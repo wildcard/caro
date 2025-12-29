@@ -279,7 +279,7 @@ fn test_backend_info() {
 - No special handling; same pipeline as remote backends
 
 ### With Configuration
-- Model path read from `~/.cmdai/models/` or installation directory
+- Model path read from `~/.caro/models/` or installation directory
 - Variant auto-detected or overridden via config `backend.embedded.variant`
 - Temperature/context settings from `EmbeddedConfig`
 

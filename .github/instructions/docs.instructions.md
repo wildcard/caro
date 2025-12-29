@@ -121,7 +121,7 @@ Added: 2025-12-21
 ### Consistent Naming
 ```markdown
 <!-- BAD: Inconsistent product naming -->
-Use cmdai to generate commands.
+Use caro to generate commands.
 Caro provides safety validation.
 The CARO tool is fast.
 
@@ -214,13 +214,13 @@ See [Installing](#installing)
 ### Flag Outdated References
 ```markdown
 <!-- FLAG: Old project name -->
-Install cmdai with...
+Install caro with...
 
 <!-- Should be updated to -->
 Install caro with...
 ```
 
-> **Important**: The project was renamed from `cmdai` to `caro` in December 2025. Flag any remaining references to the old name.
+> **Important**: The project was renamed from `caro` to `caro` in December 2025. Flag any remaining references to the old name.
 
 ## README Structure
 

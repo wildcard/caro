@@ -357,4 +357,4 @@ The following must pass: `cargo clippy -- -D warnings`
 
 ## Legacy References
 
-> **Important**: The project was renamed from `cmdai` to `caro`. Flag any remaining references to `cmdai` in code, documentation, imports, or configuration.
+> **Important**: The project was renamed from `caro` to `caro`. Flag any remaining references to `caro` in code, documentation, imports, or configuration.

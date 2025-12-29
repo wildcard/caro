@@ -1,4 +1,4 @@
-# rustfmt configuration for cmdai project (stable features only)
+# rustfmt configuration for caro project (stable features only)
 max_width = 100
 hard_tabs = false
 tab_spaces = 4

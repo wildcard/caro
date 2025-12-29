@@ -40,7 +40,7 @@ jobs:
             - For security issues: Please see our Security Policy
 
 
-            Thank you for your contributions to cmdai!
+            Thank you for your contributions to caro!
 
           # Add a comment when locking PRs
           pr-comment: >-
@@ -55,7 +55,7 @@ jobs:
             - Reference this PR for context
 
 
-            Thank you for your contributions to cmdai!
+            Thank you for your contributions to caro!
 
           # Lock issues/PRs as resolved (alternatives: off-topic, too heated, spam)
           issue-lock-reason: 'resolved'

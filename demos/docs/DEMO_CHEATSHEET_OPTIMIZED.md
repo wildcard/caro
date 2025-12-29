@@ -1,4 +1,4 @@
-# cmdai Demo Cheatsheet - TESTED & OPTIMIZED
+# caro Demo Cheatsheet - TESTED & OPTIMIZED
 **For Angel Investor Demo - DevOps/SRE/SysAdmin Use Cases**
 
 ---
@@ -8,97 +8,97 @@
 ### System Monitoring & Health
 ```bash
 # Simple and effective
-cmdai "show system uptime and load average"
+caro "show system uptime and load average"
 # Output: uptime
 
-cmdai "list running processes sorted by memory"
+caro "list running processes sorted by memory"
 # Output: ps aux | sort -k4nr
 
-cmdai "show top 10 CPU consuming processes"
+caro "show top 10 CPU consuming processes"
 # Output: ps -eo pid,ppid,cmd,%cpu --sort=-%cpu | head -n 10
 
-cmdai "show kernel version and OS details"
+caro "show kernel version and OS details"
 # Output: uname -r && cat /etc/os-release
 ```
 
 ### File & Directory Operations
 ```bash
-cmdai "list all files"
+caro "list all files"
 # Output: ls
 
-cmdai "find files modified in the last 24 hours"
+caro "find files modified in the last 24 hours"
 # Output: find . -type f -mtime -1
 
-cmdai "find all rust files modified in the last 7 days"
+caro "find all rust files modified in the last 7 days"
 # Output: find . -type f -name '*.rs' -mtime +7
 
-cmdai "find broken symbolic links"
+caro "find broken symbolic links"
 # Output: find . -type l ! -e
 
-cmdai "archive current directory"
+caro "archive current directory"
 # Output: tar czvf .archive.tar.gz .
 
-cmdai "compress logs directory excluding current month"
+caro "compress logs directory excluding current month"
 # Output: tar czf logs_$(date +%Y%m).tgz /path/to/logs/*
 ```
 
 ### Network Operations
 ```bash
-cmdai "show all established TCP connections"
+caro "show all established TCP connections"
 # Output: ss -tuln
 
-cmdai "show network interface statistics"
+caro "show network interface statistics"
 # Output: ifconfig -a
 
-cmdai "check DNS resolution for api.example.com"
+caro "check DNS resolution for api.example.com"
 # Output: dig +short api.example.com
 
-cmdai "test connectivity to database server on port 5432"
+caro "test connectivity to database server on port 5432"
 # Output: ping -c 1 database_server
 
-cmdai "show open network ports and listening services"
+caro "show open network ports and listening services"
 # Output: netstat -tuln
 ```
 
 ### User & Security
 ```bash
-cmdai "show users who logged in today"
+caro "show users who logged in today"
 # Output: who
 
-cmdai "show failed login attempts"
+caro "show failed login attempts"
 # Output: grep 'Failed password' /var/log/auth.log
 
-cmdai "list sudo access for all users"
+caro "list sudo access for all users"
 # Output: sudo ls /etc/sudoers.d/
 
-cmdai "find files with setuid bit enabled"
+caro "find files with setuid bit enabled"
 # Output: find / -type f -executable -perm +s
 
-cmdai "find files with world-writable permissions"
+caro "find files with world-writable permissions"
 # Output: find . -type f -perm u+w
 ```
 
 ### Service Management
 ```bash
-cmdai "show all processes owned by user nginx"
+caro "show all processes owned by user nginx"
 # Output: ps aux | grep nginx
 
-cmdai "show nginx error log entries with 500 status"
+caro "show nginx error log entries with 500 status"
 # Output: grep '500' /var/log/nginx/error.log
 
-cmdai "show failed systemd services"
+caro "show failed systemd services"
 # Output: systemctl --type=service --state=failed
 
-cmdai "restart nginx service and check status"
+caro "restart nginx service and check status"
 # Output: service nginx restart && nginx -s check
 ```
 
 ### Disk & Storage
 ```bash
-cmdai "show disk usage by directory sorted by size"
+caro "show disk usage by directory sorted by size"
 # Output: df -h | sort -hr
 
-cmdai "count lines in all log files"
+caro "count lines in all log files"
 # Output: grep -l . /var/log/* | wc -l
 ```
 
@@ -204,41 +204,41 @@ cmdai "count lines in all log files"
 
 ### Act 1: Simple Wins (30 seconds)
 ```bash
-cmdai "list all files"
-cmdai "show system uptime and load average"
-cmdai "archive current directory"
+caro "list all files"
+caro "show system uptime and load average"
+caro "archive current directory"
 ```
 
 ### Act 2: Real DevOps Scenarios (90 seconds)
 ```bash
 # System monitoring
-cmdai "list running processes sorted by memory"
-cmdai "show top 10 CPU consuming processes"
+caro "list running processes sorted by memory"
+caro "show top 10 CPU consuming processes"
 
 # Network troubleshooting
-cmdai "show all established TCP connections"
-cmdai "check DNS resolution for api.example.com"
+caro "show all established TCP connections"
+caro "check DNS resolution for api.example.com"
 
 # Log analysis
-cmdai "show nginx error log entries with 500 status"
-cmdai "count lines in all log files"
+caro "show nginx error log entries with 500 status"
+caro "count lines in all log files"
 
 # Security audit
-cmdai "find files with setuid bit enabled"
-cmdai "show failed login attempts"
+caro "find files with setuid bit enabled"
+caro "show failed login attempts"
 ```
 
 ### Act 3: Complex Operations (60 seconds)
 ```bash
 # File operations
-cmdai "find files modified in the last 24 hours"
-cmdai "find broken symbolic links"
+caro "find files modified in the last 24 hours"
+caro "find broken symbolic links"
 
 # Backup & archive
-cmdai "compress logs directory excluding current month"
+caro "compress logs directory excluding current month"
 
 # Service management
-cmdai "show failed systemd services"
+caro "show failed systemd services"
 ```
 
 ---
@@ -267,29 +267,29 @@ cmdai "show failed systemd services"
 ## 🚀 DEMO SCRIPT (3 minutes)
 
 **Opening (20 sec):**
-> "Engineers spend 10-15% of their day looking up command syntax. cmdai eliminates that friction entirely."
+> "Engineers spend 10-15% of their day looking up command syntax. caro eliminates that friction entirely."
 
 **Live Demo (2 min):**
 ```bash
 # Start simple
-cmdai "show system uptime and load average"
+caro "show system uptime and load average"
 
 # Real scenario 1: Investigation
-cmdai "list running processes sorted by memory"
-cmdai "show all established TCP connections"
+caro "list running processes sorted by memory"
+caro "show all established TCP connections"
 
 # Real scenario 2: Log analysis
-cmdai "show nginx error log entries with 500 status"
+caro "show nginx error log entries with 500 status"
 
 # Real scenario 3: Security audit
-cmdai "find files with setuid bit enabled"
+caro "find files with setuid bit enabled"
 
 # Complex operation
-cmdai "find files modified in the last 24 hours"
+caro "find files modified in the last 24 hours"
 ```
 
 **Closing (40 sec):**
-> "That's 6 commands in 90 seconds. Before cmdai? 5-10 minutes of googling, Stack Overflow, and man pages. Multiply this by 10-50 commands per day per engineer. That's 1-4 hours saved daily. At scale, that's millions in productivity gains."
+> "That's 6 commands in 90 seconds. Before caro? 5-10 minutes of googling, Stack Overflow, and man pages. Multiply this by 10-50 commands per day per engineer. That's 1-4 hours saved daily. At scale, that's millions in productivity gains."
 
 ---
 
@@ -297,7 +297,7 @@ cmdai "find files modified in the last 24 hours"
 
 ### Time Savings:
 - **Traditional approach:** 2-5 min per command (search, verify, adapt)
-- **With cmdai:** 2-3 seconds per command
+- **With caro:** 2-3 seconds per command
 - **Savings:** 95%+ reduction in command lookup time
 
 ### ROI Calculation:
@@ -316,7 +316,7 @@ cmdai "find files modified in the last 24 hours"
 
 ## 🎬 CLOSING STATEMENTS
 
-**"From 5 minutes to 5 seconds - cmdai makes every engineer a shell expert."**
+**"From 5 minutes to 5 seconds - caro makes every engineer a shell expert."**
 
 **"Stop googling. Start shipping."**
 

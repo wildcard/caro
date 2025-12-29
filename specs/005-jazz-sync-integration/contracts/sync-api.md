@@ -273,14 +273,14 @@ When offline:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `CARO_SYNC_SOCKET` | `~/.config/cmdai/sync.sock` | IPC socket path |
+| `CARO_SYNC_SOCKET` | `~/.config/caro/sync.sock` | IPC socket path |
 | `CARO_SYNC_RELAY` | `wss://mesh.jazz.tools` | Jazz relay URL |
 | `CARO_SYNC_LOG_LEVEL` | `info` | Logging level |
-| `CARO_SYNC_CACHE_PATH` | `~/.cache/cmdai/sync.db` | Local cache DB |
+| `CARO_SYNC_CACHE_PATH` | `~/.cache/caro/sync.db` | Local cache DB |
 
 ### Config File
 
-`~/.config/cmdai/sync-daemon.json`:
+`~/.config/caro/sync-daemon.json`:
 
 ```json
 {

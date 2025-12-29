@@ -467,7 +467,7 @@ Quantization: Q4_K_M (4-bit, excellent quality/size)
 ### Cache Architecture
 
 ```
-~/.cache/cmdai/
+~/.cache/caro/
 ├── models/
 │   └── qwen2.5-coder-1.5b-instruct-q4_k_m.gguf
 ├── manifest.json  # Model metadata, checksums, timestamps

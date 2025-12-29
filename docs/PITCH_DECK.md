@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-Caro (cmdai) is a production-ready AI shell assistant that works locally, even in air-gapped environments, providing terminal users with natural language command generation. Unlike cloud-based alternatives, Caro runs entirely on-device with bundled models and GPU acceleration, making it ideal for enterprise environments with strict security requirements and limited connectivity.
+Caro (caro) is a production-ready AI shell assistant that works locally, even in air-gapped environments, providing terminal users with natural language command generation. Unlike cloud-based alternatives, Caro runs entirely on-device with bundled models and GPU acceleration, making it ideal for enterprise environments with strict security requirements and limited connectivity.
 
 **Current Status:** Published on crates.io (v0.1.0), live website at caro.sh, fully operational MLX backend with Metal GPU acceleration.
 

@@ -2,7 +2,7 @@
 
 ## Test Suite Overview
 
-Three comprehensive test scripts demonstrating MLX inference for cmdai:
+Three comprehensive test scripts demonstrating MLX inference for caro:
 
 ### 1. Simple Inference Test
 - **Purpose**: Basic MLX functionality validation
@@ -12,7 +12,7 @@ Three comprehensive test scripts demonstrating MLX inference for cmdai:
 
 ### 2. Structured Inference Test
 - **Purpose**: Production-ready command generation with safety assessment
-- **Test Cases**: 12 scenarios from cmdai repository
+- **Test Cases**: 12 scenarios from caro repository
 - **Success Rate**: 83.3% (10/12 successful parses)
 - **Average Inference Time**: 2.70s per command
 
@@ -80,7 +80,7 @@ top_p=default
 verbose=False
 ```
 
-## Integration Recommendations for cmdai
+## Integration Recommendations for caro
 
 ### 1. Prompt Engineering
 Current structured prompt works well but needs:
@@ -90,7 +90,7 @@ Current structured prompt works well but needs:
 
 ### 2. Safety Validation
 **Critical**: Cannot rely on model's risk assessment alone
-- Implement regex pattern matching (already in cmdai specs)
+- Implement regex pattern matching (already in caro specs)
 - Post-process all generated commands
 - Block dangerous patterns regardless of model output
 
@@ -127,7 +127,7 @@ For production:
 ## Next Steps
 
 1. **Implement Safety Layer** (CRITICAL)
-   - Regex pattern matching from cmdai specs
+   - Regex pattern matching from caro specs
    - 52 pre-compiled dangerous patterns
    - Independent of model output
 
@@ -161,7 +161,7 @@ For production:
 
 ## Conclusion
 
-MLX inference is **production-ready** for cmdai with the following caveats:
+MLX inference is **production-ready** for caro with the following caveats:
 
 ✅ **Working Well:**
 - Fast inference on Apple Silicon

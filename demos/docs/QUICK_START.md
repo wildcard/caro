@@ -3,7 +3,7 @@
 ## 1. Build the Binary
 
 ```bash
-cd /Users/kobi/personal/cmdai
+cd /Users/kobi/personal/caro
 cargo build --release --features embedded-mlx
 ```
 
@@ -37,17 +37,17 @@ asciinema rec vancouver-demo.cast -c "../vancouver-dev-demo.sh"
 asciinema upload vancouver-demo.cast
 ```
 
-## 4. Test cmdai Directly
+## 4. Test caro Directly
 
 ```bash
 # From project root
-./target/release/cmdai "list all files"
+./target/release/caro "list all files"
 
 # With execution
-./target/release/cmdai -x "list all files"
+./target/release/caro -x "list all files"
 
 # Verbose mode (shows logs)
-./target/release/cmdai -v "list all files"
+./target/release/caro -v "list all files"
 ```
 
 ## Notes

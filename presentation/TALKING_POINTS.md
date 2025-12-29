@@ -1,11 +1,11 @@
-# cmdai Presentation - Talking Points & Script
+# caro Presentation - Talking Points & Script
 
 ## Slide-by-Slide Speaker Notes
 
 ### Slide 1: Title
 **Duration: 30 seconds**
 
-"Good [morning/afternoon/evening] everyone. Today I'm excited to introduce cmdai - a project that's solving a real problem developers face every day: the gap between knowing what you want to do in the terminal and remembering the exact command syntax."
+"Good [morning/afternoon/evening] everyone. Today I'm excited to introduce caro - a project that's solving a real problem developers face every day: the gap between knowing what you want to do in the terminal and remembering the exact command syntax."
 
 **Key points:**
 - Local-first: Your data stays on your machine
@@ -17,7 +17,7 @@
 ### Slide 2: Meet Your AI Shell Assistant
 **Duration: 1 minute**
 
-"cmdai is your AI-powered shell assistant. But unlike other AI tools, it's designed specifically for safe command generation."
+"caro is your AI-powered shell assistant. But unlike other AI tools, it's designed specifically for safe command generation."
 
 **Demo the concept:**
 - Show natural language → command examples
@@ -39,7 +39,7 @@
 - "One typo away from `rm -rf /` instead of `rm -rf ./`"
 
 **Solution side (right):**
-- "cmdai bridges that gap with natural language"
+- "caro bridges that gap with natural language"
 - "Show the safety example - it BLOCKS dangerous commands"
 - "Not just a code generator - a safety net"
 
@@ -128,7 +128,7 @@ make demo
 - "Everything documented in mlx-test/"
 
 **Key message:** 
-"This demo proves cmdai works. Fast, accurate, safe. Now let's see the architecture behind it."
+"This demo proves caro works. Fast, accurate, safe. Now let's see the architecture behind it."
 
 **Transition to Slide 5:**
 "You've seen it work. Now let me show you how we make it safe..."
@@ -157,7 +157,7 @@ make demo
 
 🔴 **CRITICAL SLIDE**
 
-"This is THE most important feature of cmdai. Let me show you why."
+"This is THE most important feature of caro. Let me show you why."
 
 **Left side - Patterns:**
 - "52 pre-compiled regex patterns"
@@ -366,7 +366,7 @@ make demo
 - "This intelligence runs locally, respecting privacy"
 - "The community governs safety rules democratically"
 
-**Final statement:** "That's cmdai. Let's build it together."
+**Final statement:** "That's caro. Let's build it together."
 
 *Let it land. Pause for effect.*
 
@@ -375,7 +375,7 @@ make demo
 ### Slide 17: Thank You!
 **Duration: 30 seconds**
 
-"Thank you for your time. I'm excited to see where this community takes cmdai."
+"Thank you for your time. I'm excited to see where this community takes caro."
 
 **Reiterate the call to action:**
 - "Star, test, contribute, share"
@@ -404,7 +404,7 @@ Leaves room for:
 2. "We're not showing mockups. We have working code running right now."
 3. "Safety is too important to be controlled by a single entity."
 4. "Not every command needs AI inference."
-5. "That's cmdai. Let's build it together."
+5. "That's caro. Let's build it together."
 
 ## Props/Demos to Prepare
 

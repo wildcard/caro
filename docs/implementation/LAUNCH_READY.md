@@ -1,4 +1,4 @@
-# 🎉 COMPLETE: cmdai Presentation Ready for Launch!
+# 🎉 COMPLETE: caro Presentation Ready for Launch!
 
 ## ✅ Final Status: PRODUCTION READY
 
@@ -6,8 +6,8 @@
 
 ### Everything is Complete, Tested, and Working!
 
-**Repository**: https://github.com/wildcard/cmdai  
-**Contact**: kobi@cmdai.dev  
+**Repository**: https://github.com/wildcard/caro  
+**Contact**: kobi@caro.dev  
 **Presentation**: http://localhost:3333 (after `npm run dev`)
 
 </div>
@@ -22,8 +22,8 @@
 **Features**:
 - ✅ 17 professional slides
 - ✅ Caro mascot integrated (2 animations)
-- ✅ Official contact info (kobi@cmdai.dev)
-- ✅ Production GitHub URL (wildcard/cmdai)
+- ✅ Official contact info (kobi@caro.dev)
+- ✅ Production GitHub URL (wildcard/caro)
 - ✅ Complete speaker notes
 - ✅ Export-ready (PDF/PNG)
 
@@ -115,8 +115,8 @@
 ## 🔗 Official Information
 
 ### Contact Details
-- **Email**: kobi@cmdai.dev
-- **GitHub**: https://github.com/wildcard/cmdai
+- **Email**: kobi@caro.dev
+- **GitHub**: https://github.com/wildcard/caro
 - **Repository**: Production-ready URL
 - **Display**: Featured on title and final slides
 
@@ -334,8 +334,8 @@ bec9b83 docs: Add Caro celebration and mascot documentation
 
 ## 📞 Contact & Resources
 
-**Primary Contact**: kobi@cmdai.dev  
-**GitHub**: https://github.com/wildcard/cmdai
+**Primary Contact**: kobi@caro.dev  
+**GitHub**: https://github.com/wildcard/caro
 **Presentation**: Run `npm run dev` in presentation/
 **Documentation**: See ../sessions/SESSION_SUMMARY.md  
 

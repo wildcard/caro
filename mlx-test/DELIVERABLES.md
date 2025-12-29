@@ -2,7 +2,7 @@
 
 ## Project Completed ✅
 
-A comprehensive MLX testing framework for cmdai command generation with structured JSON outputs, safety validation, and performance benchmarking.
+A comprehensive MLX testing framework for caro command generation with structured JSON outputs, safety validation, and performance benchmarking.
 
 ## What Was Built
 
@@ -15,7 +15,7 @@ A comprehensive MLX testing framework for cmdai command generation with structur
    - Model loading validation
 
 2. **structured_inference.py** (323 lines) ⭐ **MAIN TEST SUITE**
-   - 12 test cases from cmdai repository specs
+   - 12 test cases from caro repository specs
    - JSON parsing with 3 fallback strategies
    - Safety pattern matching (10+ dangerous patterns)
    - Risk level assessment (Safe/Moderate/High/Critical)
@@ -43,7 +43,7 @@ A comprehensive MLX testing framework for cmdai command generation with structur
    - Success rates and metrics
    - Risk assessment results
    - Performance characteristics
-   - Integration recommendations for cmdai
+   - Integration recommendations for caro
    - Production readiness assessment
    - Next steps and action items
 
@@ -153,7 +153,7 @@ Risk Distribution:
 ### ❗ MUST IMPLEMENT
 
 1. **Independent Safety Validation Layer**
-   - Regex pattern matching (52 patterns from cmdai specs)
+   - Regex pattern matching (52 patterns from caro specs)
    - POSIX compliance checking
    - Critical path validation
    - User confirmation workflow
@@ -215,7 +215,7 @@ make run-batch        # Performance test
 make clean
 ```
 
-## Integration with cmdai
+## Integration with caro
 
 ### What's Ready to Use
 
@@ -282,7 +282,7 @@ MODERATE - Warn user:
 
 ## Conclusion
 
-✅ **MLX is production-ready for cmdai** with excellent performance and command quality
+✅ **MLX is production-ready for caro** with excellent performance and command quality
 
 ❌ **BLOCKER**: Must implement independent safety validation layer before production use
 

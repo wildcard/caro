@@ -1,9 +1,9 @@
 ---
 theme: seriph
 background: https://images.unsplash.com/photo-1629654297299-c8506221ca97?q=80&w=2574
-title: 'cmdai: Safe AI-Powered Command Generation'
+title: 'caro: Safe AI-Powered Command Generation'
 info: |
-  ## cmdai
+  ## caro
   
   Transform natural language into safe POSIX shell commands
   
@@ -15,7 +15,7 @@ transition: slide-left
 mdc: true
 ---
 
-# cmdai
+# caro
 
 ### Safe AI-Powered Shell Command Generation
 
@@ -26,14 +26,14 @@ mdc: true
 </div>
 
 <div class="abs-br m-6 flex gap-2">
-  <a href="https://github.com/wildcard/cmdai" target="_blank" alt="GitHub"
+  <a href="https://github.com/wildcard/caro" target="_blank" alt="GitHub"
     class="text-xl slidev-icon-btn opacity-50 !border-none !hover:text-white">
     <carbon-logo-github />
   </a>
 </div>
 
 <!--
-Welcome to cmdai - the safe, intelligent way to interact with your terminal.
+Welcome to caro - the safe, intelligent way to interact with your terminal.
 We're building something that solves a real problem: the gap between knowing what you want to do and remembering the exact command syntax.
 -->
 
@@ -53,7 +53,7 @@ Meet Caro (inspired by Kyaro 🐕) - your friendly command-line companion!
 
 ---
 
-# What cmdai Does
+# What caro Does
 
 <v-clicks>
 
@@ -69,13 +69,13 @@ Meet Caro (inspired by Kyaro 🐕) - your friendly command-line companion!
 </v-clicks>
 
 <!--
-This is our mascot - representing the friendly, helpful nature of cmdai.
+This is our mascot - representing the friendly, helpful nature of caro.
 But don't let the friendly face fool you - this tool is serious about safety.
 -->
 
 ---
 
-# What cmdai Does
+# What caro Does
 
 <v-clicks>
 
@@ -119,7 +119,7 @@ find . -type f -size +100M \
 
 ✨ **Natural Language Interface**
 ```bash
-cmdai "find files larger than 100MB"
+caro "find files larger than 100MB"
 # ✓ Safe, correct command generated
 # ✓ Explanation provided
 # ✓ Risk assessed
@@ -157,7 +157,7 @@ layout: two-cols
 
 🔒 **Built-in Safety**
 ```bash
-cmdai "delete all files"
+caro "delete all files"
 # ⚠️  CRITICAL RISK DETECTED
 # ❌ BLOCKED
 ```
@@ -166,7 +166,7 @@ cmdai "delete all files"
 
 <!--
 Let's be honest - shell commands are powerful but cryptic.
-cmdai bridges that gap while adding a crucial safety layer.
+caro bridges that gap while adding a crucial safety layer.
 -->
 
 ---
@@ -297,7 +297,7 @@ The MLX test suite proves the feasibility of our approach.
 
 ```mermaid {scale: 0.29}
 graph TB
-    A[Natural Language Input] --> B{cmdai CLI}
+    A[Natural Language Input] --> B{caro CLI}
     B --> C[Safety Validator]
     C --> D{Risk Assessment}
     D -->|Safe| E[Backend Router]
@@ -386,7 +386,7 @@ The model generates, we validate. Always.
 ### Example: Dangerous Request
 
 ```bash
-$ cmdai "delete all files in root"
+$ caro "delete all files in root"
 ```
 
 </v-click>
@@ -604,7 +604,7 @@ But the default experience requires zero configuration.
 <v-clicks>
 
 ```toml
-# ~/.config/cmdai/config.toml
+# ~/.config/caro/config.toml
 
 [backend]
 primary = "embedded"  # auto-detected
@@ -638,7 +638,7 @@ enabled = false
 ### Zero Configuration Required
 ```bash
 # Just works out of the box
-cmdai "list files"
+caro "list files"
 ```
 
 </v-clicks>
@@ -742,7 +742,7 @@ class: text-center
 
 ## 🔄 Self-Healing Scripts
 ```bash
-cmdai watch deploy.sh
+caro watch deploy.sh
 # Detects failures
 # Suggests fixes
 # Learns patterns
@@ -754,7 +754,7 @@ cmdai watch deploy.sh
 
 ## 📚 Documentation Generation
 ```bash
-cmdai explain pipeline.sh
+caro explain pipeline.sh
 # Natural language docs
 # Flow diagrams
 # Safety analysis
@@ -783,7 +783,7 @@ class: text-center
 
 ## 🎓 Learning Assistant
 ```bash
-cmdai teach "find command"
+caro teach "find command"
 # Interactive tutorials
 # Practice exercises
 # Skill progression
@@ -867,7 +867,7 @@ Instead of inference for every command:
 
 ```bash
 # At build/install time
-cmdai compile-common-commands
+caro compile-common-commands
 
 # Generates static mappings
 "list files" → "ls -lah"
@@ -1052,7 +1052,7 @@ class: text-center
 Help us gain visibility
 
 ```bash
-github.com/wildcard/cmdai
+github.com/wildcard/caro
 ```
 
 </div>
@@ -1064,7 +1064,7 @@ Try the MLX inference
 
 ```bash
 git clone ...
-cd cmdai/mlx-test
+cd caro/mlx-test
 make setup
 make run-qwen
 ```
@@ -1140,10 +1140,10 @@ class: text-center
 
 <v-clicks>
 
-- **GitHub**: github.com/wildcard/cmdai
+- **GitHub**: github.com/wildcard/caro
 - **Discussions**: Community forum
 - **Discord**: Join our server
-- **Email**: kobi@cmdai.dev
+- **Email**: kobi@caro.dev
 
 </v-clicks>
 
@@ -1184,7 +1184,7 @@ Pick something small, make your first contribution, and grow from there.
 
 <v-clicks>
 
-- Documentation: docs.cmdai.dev
+- Documentation: docs.caro.dev
 - Contributing Guide: CONTRIBUTING.md
 - Code of Conduct: CODE_OF_CONDUCT.md
 - Architecture Docs: specs/
@@ -1287,7 +1287,7 @@ class: text-center
 </div>
 
 <div class="text-3xl font-bold mt-12 text-green-400">
-That's cmdai. Let's build it together.
+That's caro. Let's build it together.
 </div>
 
 </v-clicks>
@@ -1302,7 +1302,7 @@ layout: end
 
 ## Ready to Contribute?
 
-**github.com/wildcard/cmdai**
+**github.com/wildcard/caro**
 
 <div class="mt-8 text-xl">
 🚀 Star • 🧪 Test • 🤝 Contribute • 📣 Share
@@ -1317,7 +1317,7 @@ Caro says: Let's build the future of shell interaction together! 🐕
 </div>
 
 <div class="mt-6 text-sm opacity-60">
-📧 kobi@cmdai.dev | 🐙 github.com/wildcard/cmdai
+📧 kobi@caro.dev | 🐙 github.com/wildcard/caro
 </div>
 
 </div>

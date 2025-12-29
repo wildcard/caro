@@ -1,6 +1,6 @@
-# TDD Development Workflow for cmdai
+# TDD Development Workflow for caro
 
-This document describes the Test-Driven Development (TDD) workflow for the cmdai project, including test watch setup, development cycles, agent collaboration, and project-specific standards.
+This document describes the Test-Driven Development (TDD) workflow for the caro project, including test watch setup, development cycles, agent collaboration, and project-specific standards.
 
 ## Table of Contents
 
@@ -62,7 +62,7 @@ Or use the `BashOutput` tool with the shell ID to inspect specific output.
 
 ## The TDD Cycle
 
-cmdai follows strict **Red-Green-Refactor** methodology aligned with spec-driven development.
+caro follows strict **Red-Green-Refactor** methodology aligned with spec-driven development.
 
 ### Phase 1: RED - Write Failing Contract Tests
 
@@ -216,7 +216,7 @@ kill $(pgrep -f "cargo watch")
 
 ## Agent Collaboration
 
-cmdai uses specialized agents for TDD workflows. Choose the right agent based on your development phase.
+caro uses specialized agents for TDD workflows. Choose the right agent based on your development phase.
 
 ### tdd-rust-watcher Agent
 
@@ -283,7 +283,7 @@ For complex features, agents may work together:
 
 ### Contract-First Testing
 
-Based on cmdai's spec-driven development (see `specs/003-implement-core-infrastructure/plan.md`):
+Based on caro's spec-driven development (see `specs/003-implement-core-infrastructure/plan.md`):
 
 1. **Specifications drive contracts**: Each feature has a spec in `specs/[feature-id]/`
 2. **Contracts define APIs**: Public APIs documented in `specs/[feature-id]/contracts/`
@@ -490,7 +490,7 @@ async fn test_first_time_user_experience() {
     let cache = CacheManager::new().expect("cache init");
     let context = ExecutionContext::capture().expect("context capture");
 
-    // User runs cmdai for first time
+    // User runs caro for first time
     assert!(!config.file_exists());
     assert_eq!(cache.stats().total_models, 0);
     assert!(context.shell_type != ShellType::Unknown);

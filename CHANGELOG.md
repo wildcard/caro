@@ -103,23 +103,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed - Project Rename
 
-**BREAKING CHANGE**: Project renamed from `cmdai` to `caro`
-- Binary name: `cmdai` → `caro`
-- Crate name: `cmdai` → `caro`
+**BREAKING CHANGE**: Project renamed from `caro` to `caro`
+- Binary name: `caro` → `caro`
+- Crate name: `caro` → `caro`
 - Package name on crates.io: `caro`
-- All imports updated: `use cmdai::*` → `use caro::*`
+- All imports updated: `use caro::*` → `use caro::*`
 - Repository and documentation updated throughout
 
 **Migration Guide**:
 ```bash
 # Uninstall old version
-cargo uninstall cmdai
+cargo uninstall caro
 
 # Install new version
 cargo install caro
 
-# Remove any shell aliases pointing to cmdai
-# Check ~/.zshrc, ~/.bashrc for: alias caro='cmdai'
+# Remove any shell aliases pointing to caro
+# Check ~/.zshrc, ~/.bashrc for: alias caro='caro'
 ```
 
 ### Added - Feature 004: Embedded Model + Remote Backend Support
@@ -322,7 +322,7 @@ See `docs/RELEASE_PROCESS.md` for complete security procedures.
 
 ### Notes
 
-This release marks the transition from `cmdai` to `caro` and establishes the foundation for a security-critical CLI tool. We follow BSD/GNU-level security practices to ensure user trust.
+This release marks the transition from `caro` to `caro` and establishes the foundation for a security-critical CLI tool. We follow BSD/GNU-level security practices to ensure user trust.
 
 **First Release Highlights**:
 - ✅ Single binary under 50MB (without embedded model)
@@ -339,9 +339,9 @@ This release marks the transition from `cmdai` to `caro` and establishes the fou
 - MLX backend requires Apple Silicon hardware
 
 **Upgrade Path**:
-If you previously installed `cmdai`, please uninstall it and install `caro`:
+If you previously installed `caro`, please uninstall it and install `caro`:
 ```bash
-cargo uninstall cmdai
+cargo uninstall caro
 cargo install caro
 ```
 

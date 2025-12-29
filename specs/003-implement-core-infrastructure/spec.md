@@ -47,12 +47,12 @@
 ### Primary User Story: Model Caching
 **As a** CLI user
 **I want** models to be downloaded once and cached locally
-**So that** I can use cmdai offline without re-downloading models every time
+**So that** I can use caro offline without re-downloading models every time
 
 **Flow**:
-1. User runs cmdai for first time with a model
+1. User runs caro for first time with a model
 2. System downloads model from Hugging Face and caches it locally
-3. User runs cmdai again (possibly offline)
+3. User runs caro again (possibly offline)
 4. System loads model from cache instead of downloading
 5. User can manually clear cache if needed
 
@@ -64,7 +64,7 @@
 **Flow**:
 1. User sets preferences via CLI flags or config file
 2. System persists preferences to user configuration directory
-3. User runs cmdai without flags
+3. User runs caro without flags
 4. System applies saved preferences as defaults
 5. CLI flags override saved preferences when provided
 
@@ -74,7 +74,7 @@
 **So that** I can generate contextually appropriate commands
 
 **Flow**:
-1. User invokes cmdai with a prompt
+1. User invokes caro with a prompt
 2. System captures execution context (pwd, shell type, platform, env vars)
 3. System passes context to command generator
 4. Generator creates platform-specific, context-aware command
@@ -82,11 +82,11 @@
 
 ### Primary User Story: Structured Logging
 **As a** system administrator or developer
-**I want** detailed, structured logs of cmdai operations
+**I want** detailed, structured logs of caro operations
 **So that** I can debug issues and monitor system behavior
 
 **Flow**:
-1. User runs cmdai with verbose logging enabled
+1. User runs caro with verbose logging enabled
 2. System logs operations with structured metadata (timestamps, levels, context)
 3. Developer/admin reviews logs to understand behavior
 4. Logs include performance metrics (timings, resource usage)
@@ -97,16 +97,16 @@
 #### Cache Management
 1. **Given** no cached models exist, **When** user requests command generation, **Then** system downloads model and caches it in platform-appropriate directory
 2. **Given** model is already cached, **When** user requests command generation offline, **Then** system loads model from cache without network access
-3. **Given** cache directory is full or corrupted, **When** user runs cmdai, **Then** system detects issue and provides clear error message with recovery steps
+3. **Given** cache directory is full or corrupted, **When** user runs caro, **Then** system detects issue and provides clear error message with recovery steps
 
 #### Configuration Management
-1. **Given** user has never configured cmdai, **When** user runs cmdai, **Then** system uses sensible defaults (Moderate safety, auto-detect shell)
-2. **Given** user sets default safety level to Strict, **When** user runs cmdai without safety flag, **Then** system uses Strict safety level
+1. **Given** user has never configured caro, **When** user runs caro, **Then** system uses sensible defaults (Moderate safety, auto-detect shell)
+2. **Given** user sets default safety level to Strict, **When** user runs caro without safety flag, **Then** system uses Strict safety level
 3. **Given** user provides CLI flag `--safety permissive`, **When** config has Strict, **Then** CLI flag overrides config (Permissive used)
 
 #### Execution Context
-1. **Given** user is in `/home/user/Downloads`, **When** cmdai generates command, **Then** context includes current directory for relative path resolution
-2. **Given** user runs cmdai in PowerShell on Windows, **When** command is generated, **Then** system detects PowerShell and generates Windows-specific command
+1. **Given** user is in `/home/user/Downloads`, **When** caro generates command, **Then** context includes current directory for relative path resolution
+2. **Given** user runs caro in PowerShell on Windows, **When** command is generated, **Then** system detects PowerShell and generates Windows-specific command
 3. **Given** relevant environment variables exist (PATH, HOME), **When** command is generated, **Then** context captures and makes them available to generator
 
 #### Structured Logging
@@ -119,7 +119,7 @@
 #### Cache Management
 - What happens when cache directory doesn't have write permissions?
 - How does system handle partial/corrupted model downloads?
-- What if user manually deletes cache files while cmdai is running?
+- What if user manually deletes cache files while caro is running?
 - How much disk space is reserved for cache? Is there a size limit?
 - What happens when Hugging Face API is unreachable?
 
@@ -128,10 +128,10 @@
 - What if config file has unknown/deprecated keys?
 - How are config file schema versions handled during upgrades?
 - What if config directory is read-only?
-- Can multiple cmdai instances safely write to config concurrently?
+- Can multiple caro instances safely write to config concurrently?
 
 #### Execution Context
-- What if current directory is deleted after cmdai starts?
+- What if current directory is deleted after caro starts?
 - How are non-ASCII paths handled in execution context?
 - What if shell environment variables contain sensitive data (passwords)?
 - How does system detect shell type if SHELL env var is missing?
@@ -163,7 +163,7 @@
 - **FR-CF005**: System MUST validate configuration values and provide clear error messages for invalid settings
 
 #### Execution Context Module (FR-E001 to FR-E005)
-- **FR-E001**: System MUST capture current working directory when cmdai is invoked
+- **FR-E001**: System MUST capture current working directory when caro is invoked
 - **FR-E002**: System MUST detect the user's shell type (bash, zsh, fish, powershell, cmd, sh)
 - **FR-E003**: System MUST detect the operating system platform (Linux, macOS, Windows)
 - **FR-E004**: System MUST make execution context available to command generators for context-aware generation
@@ -193,7 +193,7 @@
 
 - **CachedModel**: Represents a locally stored model file with metadata (name, version, path, checksum, download date)
 - **UserConfiguration**: Represents user preferences and settings (default shell, safety level, model preference, log level)
-- **ExecutionContext**: Represents the environment state when cmdai is invoked (working directory, shell type, platform, environment variables)
+- **ExecutionContext**: Represents the environment state when caro is invoked (working directory, shell type, platform, environment variables)
 - **LogEntry**: Represents a single log event with structured data (timestamp, level, message, metadata, operation_id)
 - **CacheManifest**: Tracks all cached models with metadata for integrity checking and cleanup
 - **ConfigSchema**: Defines valid configuration keys and value types for validation

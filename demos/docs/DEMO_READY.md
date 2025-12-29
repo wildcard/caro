@@ -3,7 +3,7 @@
 ## Changes Made
 
 ### 1. Hidden INFO Logs (main.rs:130)
-- Changed from `"cmdai=info"` to `"cmdai=warn"`  
+- Changed from `"caro=info"` to `"caro=warn"`  
 - Clean output without "Loading MLX model..." messages
 - Use `--verbose` flag to see debug info
 

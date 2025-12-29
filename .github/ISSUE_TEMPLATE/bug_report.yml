@@ -1,5 +1,5 @@
 name: Bug Report
-description: Report a bug or unexpected behavior in cmdai
+description: Report a bug or unexpected behavior in caro
 title: "[Bug]: "
 labels: ["bug", "triage"]
 body:
@@ -10,14 +10,14 @@ body:
 
         **Before submitting:**
         - Search existing issues to avoid duplicates
-        - Ensure you're using the latest version of cmdai
-        - For security vulnerabilities, use [private security advisories](https://github.com/wildcard/cmdai/security/advisories/new) instead
+        - Ensure you're using the latest version of caro
+        - For security vulnerabilities, use [private security advisories](https://github.com/wildcard/caro/security/advisories/new) instead
 
   - type: input
-    id: cmdai-version
+    id: caro-version
     attributes:
-      label: cmdai Version
-      description: Run `cmdai --version` to get the version
+      label: caro Version
+      description: Run `caro --version` to get the version
       placeholder: "v0.1.0"
     validations:
       required: true
@@ -35,7 +35,7 @@ body:
     id: os
     attributes:
       label: Operating System
-      description: Which OS are you running cmdai on?
+      description: Which OS are you running caro on?
       options:
         - macOS (Apple Silicon)
         - macOS (Intel)
@@ -78,7 +78,7 @@ body:
       label: Bug Description
       description: Clear and concise description of what went wrong
       placeholder: |
-        When I run cmdai with the prompt "list files", it crashes with a panic instead of generating a command.
+        When I run caro with the prompt "list files", it crashes with a panic instead of generating a command.
     validations:
       required: true
 
@@ -88,7 +88,7 @@ body:
       label: Expected Behavior
       description: What did you expect to happen?
       placeholder: |
-        cmdai should generate a safe shell command like `ls -la` or `find . -type f`
+        caro should generate a safe shell command like `ls -la` or `find . -type f`
     validations:
       required: true
 
@@ -98,7 +98,7 @@ body:
       label: Actual Behavior
       description: What actually happened?
       placeholder: |
-        cmdai panicked with:
+        caro panicked with:
         thread 'main' panicked at 'called `Result::unwrap()` on an `Err` value: ModelNotFound'
     validations:
       required: true
@@ -109,8 +109,8 @@ body:
       label: Steps to Reproduce
       description: Detailed steps to reproduce the bug
       placeholder: |
-        1. Install cmdai v0.1.0
-        2. Run `cmdai "list files"`
+        1. Install caro v0.1.0
+        2. Run `caro "list files"`
         3. Observe crash
       value: |
         1.
@@ -124,13 +124,13 @@ body:
     attributes:
       label: Debug Logs
       description: |
-        Run cmdai with `RUST_LOG=debug cmdai "your prompt"` and paste relevant logs.
+        Run caro with `RUST_LOG=debug caro "your prompt"` and paste relevant logs.
         **Tip:** Logs will be formatted as code automatically, no need for backticks.
       placeholder: |
-        RUST_LOG=debug cmdai "list files"
+        RUST_LOG=debug caro "list files"
 
-        [2025-10-03T10:30:45Z DEBUG cmdai::backends] Initializing mock backend
-        [2025-10-03T10:30:45Z ERROR cmdai::cache] Failed to load model: ModelNotFound
+        [2025-10-03T10:30:45Z DEBUG caro::backends] Initializing mock backend
+        [2025-10-03T10:30:45Z ERROR caro::cache] Failed to load model: ModelNotFound
         thread 'main' panicked at 'called `Result::unwrap()` on an `Err` value: ModelNotFound("test-model")'
       render: shell
 
@@ -139,7 +139,7 @@ body:
     attributes:
       label: Configuration
       description: |
-        If relevant, paste your `~/.config/cmdai/config.toml` (remove any sensitive information like API keys)
+        If relevant, paste your `~/.config/caro/config.toml` (remove any sensitive information like API keys)
       placeholder: |
         [general]
         backend = "mock"
@@ -170,9 +170,9 @@ body:
       options:
         - label: I have searched existing issues to avoid duplicates
           required: true
-        - label: I am using the latest version of cmdai (or specified which version has the bug)
+        - label: I am using the latest version of caro (or specified which version has the bug)
           required: true
         - label: I have included debug logs (`RUST_LOG=debug` output)
           required: false
-        - label: This is not a security vulnerability (if it is, I will use [private disclosure](https://github.com/wildcard/cmdai/security/advisories/new))
+        - label: This is not a security vulnerability (if it is, I will use [private disclosure](https://github.com/wildcard/caro/security/advisories/new))
           required: true

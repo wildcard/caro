@@ -36,7 +36,7 @@ jobs:
 
             let message = '';
             if (isFirstIssue) {
-              message = '## Welcome to cmdai! :wave:\n\n' +
+              message = '## Welcome to caro! :wave:\n\n' +
                 'Thank you for opening your first issue, @' + issueAuthor + '! We\'re excited to have you here.\n\n' +
                 '**What happens next?**\n' +
                 '- A maintainer will review your issue and add appropriate labels\n' +
@@ -45,7 +45,7 @@ jobs:
                 '**While you wait:**\n' +
                 '- Check out our [Contributing Guide](https://github.com/' + owner + '/' + repo + '/blob/main/CONTRIBUTING.md)\n' +
                 '- Browse [good first issues](https://github.com/' + owner + '/' + repo + '/labels/good%20first%20issue) if you\'d like to contribute\n\n' +
-                'Thanks for helping make cmdai better!';
+                'Thanks for helping make caro better!';
             } else {
               message = 'Thanks for opening this issue, @' + issueAuthor + '! A maintainer will review it shortly.';
             }
@@ -101,7 +101,7 @@ jobs:
 
             let message = '';
             if (isFirstPR) {
-              message = '## Welcome to cmdai! :tada:\n\n' +
+              message = '## Welcome to caro! :tada:\n\n' +
                 'Thank you for your first pull request, @' + prAuthor + '! We\'re thrilled to have you as a contributor.\n\n' +
                 '**Review Process:**\n' +
                 '- Automated checks will run (tests, linting, formatting)\n' +

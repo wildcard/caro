@@ -105,7 +105,7 @@ Press Enter for next demo...
 **Before:** Generic output
 **After:**
 - Caro mascot integration
-- cmdai branding throughout
+- caro branding throughout
 - Professional presentation feel
 - Memorable experience
 
@@ -186,7 +186,7 @@ make demo
 | **Safety** | No display | Visual indicators |
 | **Timing** | End summary | Per-command + summary |
 | **Visuals** | Plain text | Colors, emoji, sections |
-| **Branding** | None | Caro + cmdai throughout |
+| **Branding** | None | Caro + caro throughout |
 | **Use case** | Testing | **Live presentations** |
 
 ---
@@ -205,7 +205,7 @@ Response (1.84s): {"command": "find . -type f -name '*.py'"} ...
 ```bash
 $ make demo
 
-🐕 cmdai Live Demo - Powered by Caro
+🐕 caro Live Demo - Powered by Caro
 ====================================
 
 Welcome! This demo showcases:
@@ -312,7 +312,7 @@ Perfect for:
 - 🎥 Video content
 - 💼 Stakeholder meetings
 
-**Use this when presenting cmdai to the world!** 🌟
+**Use this when presenting caro to the world!** 🌟
 
 ---
 

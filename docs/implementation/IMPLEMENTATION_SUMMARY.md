@@ -73,7 +73,7 @@ User: "show top 5 processes by CPU"
   OS: macOS 14.2.1
   Arch: arm64
   Available: ps, sort, head (no ss)
-  CWD: /Users/kobi/personal/cmdai
+  CWD: /Users/kobi/personal/caro
   ↓
 [Iteration 1] Generate with platform rules
   Output: ps aux --sort=-pcpu | head -5
@@ -162,20 +162,20 @@ Final Command: ps aux | sort -nrk 3,3 | head -6
 cargo build --release
 
 # Test context detection
-./target/release/cmdai --debug "list files"
+./target/release/caro --debug "list files"
 
 # Test iteration 1
-./target/release/cmdai "show processes by CPU"
+./target/release/caro "show processes by CPU"
 
 # Test iteration 2 (refinement)
-./target/release/cmdai "find large files with xargs"
+./target/release/caro "find large files with xargs"
 
 # Test Vancouver demos
 cd demos/asciinema
 ./vancouver-dev-demo.sh
 
 # Measure timing
-./target/release/cmdai --timing "complex command"
+./target/release/caro --timing "complex command"
 ```
 
 ---

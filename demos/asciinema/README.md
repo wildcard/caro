@@ -38,14 +38,14 @@ asciinema rec sysadmin-demo.cast -c "../sysadmin-demo.sh"
 
 ### Before Recording
 
-**The scripts automatically detect the cmdai binary!** They check for:
+**The scripts automatically detect the caro binary!** They check for:
 1. `caro` command (if you have the alias)
-2. `cmdai` command (if installed globally)
-3. `../target/release/cmdai` (release build)
-4. `../target/debug/cmdai` (debug build)
+2. `caro` command (if installed globally)
+3. `../target/release/caro` (release build)
+4. `../target/debug/caro` (debug build)
 
 **You just need to:**
-1. Build cmdai: `cargo build --release` (or `cargo build` for debug)
+1. Build caro: `cargo build --release` (or `cargo build` for debug)
 2. Navigate to the appropriate playground directory (see each demo's "Context" above)
 
 ### Recording Commands
@@ -115,12 +115,12 @@ To test your setup:
 ```bash
 cd demos/playground
 
-# The script will auto-detect your cmdai binary
+# The script will auto-detect your caro binary
 ../vancouver-dev-demo.sh
 
 # Or test manually:
-cmdai "list files"
+caro "list files"
 # Or if you have the alias: caro "list files"
 ```
 
-If cmdai runs and generates a command, you're ready to record!
+If caro runs and generates a command, you're ready to record!

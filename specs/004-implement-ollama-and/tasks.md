@@ -107,7 +107,7 @@ Tasks are organized by implementation phase. Tasks marked with `[P]` can be exec
    - `detect_platform() -> ModelVariant` - returns `MLX` or `CPU` based on platform
 2. Implement Hugging Face Hub API integration using `hf-hub` crate
 3. Add progress bar for model downloads (optional enhancement)
-4. Store downloaded models in `~/.cache/cmdai/models/`
+4. Store downloaded models in `~/.cache/caro/models/`
 
 **Success Criteria**:
 - `ModelLoader::detect_platform()` returns correct variant
@@ -542,7 +542,7 @@ Tasks are organized by implementation phase. Tasks marked with `[P]` can be exec
 **Tasks**:
 1. Create `BackendSelector` struct with selection logic from research.md (R7):
    - Priority 1: CLI flag (`--backend ollama` or `--backend vllm`)
-   - Priority 2: Config file (`~/.config/cmdai/config.toml`)
+   - Priority 2: Config file (`~/.config/caro/config.toml`)
    - Priority 3: Embedded model (default fallback)
 2. Implement `select_backend()` method:
    ```rust
@@ -670,20 +670,20 @@ Tasks are organized by implementation phase. Tasks marked with `[P]` can be exec
 
 ---
 
-### T036: Implement `cmdai init` Command Updates
+### T036: Implement `caro init` Command Updates
 **File**: `src/cli/init.rs`
 
 **Tasks**:
-1. Update `cmdai init` to configure backends:
-   - `cmdai init` - Set up with embedded model (default)
-   - `cmdai init --backend ollama` - Configure Ollama + embedded fallback
-   - `cmdai init --backend vllm` - Configure vLLM + embedded fallback
+1. Update `caro init` to configure backends:
+   - `caro init` - Set up with embedded model (default)
+   - `caro init --backend ollama` - Configure Ollama + embedded fallback
+   - `caro init --backend vllm` - Configure vLLM + embedded fallback
 2. Interactive prompts for backend URLs, API keys
 3. Update config file atomically
 4. Verify backend availability during setup
 
 **Success Criteria**:
-- `cmdai init` creates valid config
+- `caro init` creates valid config
 - Interactive prompts work
 - Backend validation during init
 
@@ -697,14 +697,14 @@ Tasks are organized by implementation phase. Tasks marked with `[P]` can be exec
 **Tasks**:
 1. Add `--backend` CLI flag to all commands:
    ```bash
-   cmdai "list files" --backend embedded
-   cmdai "list files" --backend ollama
-   cmdai "list files" --backend vllm
+   caro "list files" --backend embedded
+   caro "list files" --backend ollama
+   caro "list files" --backend vllm
    ```
 2. Flag overrides config file setting (highest priority)
 3. Add `--list-backends` command to show available backends:
    ```bash
-   cmdai --list-backends
+   caro --list-backends
    # Output:
    # ✓ embedded (default, MLX GPU)
    # ✓ ollama (http://localhost:11434, healthy)
@@ -743,7 +743,7 @@ Tasks are organized by implementation phase. Tasks marked with `[P]` can be exec
 **File**: `src/cli/status.rs`
 
 **Tasks**:
-1. Create `cmdai status` command showing:
+1. Create `caro status` command showing:
    - Current backend (from config)
    - Embedded model variant (MLX or CPU)
    - Model path and size
@@ -771,7 +771,7 @@ Tasks are organized by implementation phase. Tasks marked with `[P]` can be exec
    - Runs on: `macos-14` (M1 runner)
    - Target: `aarch64-apple-darwin`
    - Features: `mlx,embedded`
-   - Binary name: `cmdai-mlx-aarch64-apple-darwin`
+   - Binary name: `caro-mlx-aarch64-apple-darwin`
 2. Bundle Qwen Q4_K_M model with binary (separate download)
 3. Create `.dmg` installer for macOS
 4. Upload artifacts to GitHub Releases
@@ -795,7 +795,7 @@ Tasks are organized by implementation phase. Tasks marked with `[P]` can be exec
      - macOS: `x86_64-apple-darwin`, `aarch64-apple-darwin` (CPU fallback)
      - Windows: `x86_64-pc-windows-msvc`
    - Features: `candle,embedded`
-   - Binary names: `cmdai-cpu-{target}`
+   - Binary names: `caro-cpu-{target}`
 2. Bundle Qwen Q4_K_M model (separate download)
 3. Create installers:
    - `.tar.gz` for Linux
@@ -820,7 +820,7 @@ Tasks are organized by implementation phase. Tasks marked with `[P]` can be exec
    ```bash
    #!/bin/bash
    # Download Qwen2.5-Coder-1.5B-Instruct Q4_K_M from Hugging Face
-   # Save to ~/.cache/cmdai/models/
+   # Save to ~/.cache/caro/models/
    ```
 2. Show progress bar during download
 3. Verify model checksum (SHA256)
@@ -872,10 +872,10 @@ Tasks are organized by implementation phase. Tasks marked with `[P]` can be exec
 2. Add quick start section:
    ```bash
    # Install (includes embedded model)
-   brew install cmdai  # or cargo install cmdai
+   brew install caro  # or cargo install caro
 
    # First command (works immediately, no setup)
-   cmdai "list all files larger than 100MB"
+   caro "list all files larger than 100MB"
    ```
 3. Update architecture diagram showing embedded model as core
 4. Add performance comparison table (MLX vs CPU vs Ollama vs vLLM)
@@ -897,13 +897,13 @@ Tasks are organized by implementation phase. Tasks marked with `[P]` can be exec
    - Installation (all platforms)
    - First command generation
    - Backend selection (embedded vs remote)
-   - Configuration (`cmdai init`)
+   - Configuration (`caro init`)
    - Safety features
    - Troubleshooting
 2. Add FAQs:
    - "Why is MLX faster than CPU?"
    - "How do I switch from embedded to Ollama?"
-   - "Does cmdai work offline?"
+   - "Does caro work offline?"
 3. Add screenshots and examples
 
 **Success Criteria**:

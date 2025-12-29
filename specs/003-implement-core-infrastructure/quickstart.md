@@ -10,8 +10,8 @@
 **Objective**: Validate complete infrastructure initialization flow for new user
 
 **Prerequisites**:
-- No existing config file at `~/.config/cmdai/config.toml`
-- No cache directory at `~/.cache/cmdai/`
+- No existing config file at `~/.config/caro/config.toml`
+- No cache directory at `~/.cache/caro/`
 - Clean test environment
 
 **Steps**:
@@ -42,7 +42,7 @@ assert!(model_path.exists());
 assert!(cache_manager.is_cached("test-model"));
 
 // 4. Logs contain all operations
-// Verify JSON logs at ~/.local/share/cmdai/logs/cmdai.YYYY-MM-DD.log
+// Verify JSON logs at ~/.local/share/caro/logs/caro.YYYY-MM-DD.log
 // Should include: config_load, context_capture, model_download events
 ```
 
@@ -90,7 +90,7 @@ let final_safety = config.safety_level; // Should be Strict from config
 assert_eq!(final_safety, SafetyLevel::Strict);
 
 // 5. Logs show cache hit
-// JSON log: {"level":"INFO","target":"cmdai::cache","message":"Model loaded from cache","duration_ms":45}
+// JSON log: {"level":"INFO","target":"caro::cache","message":"Model loaded from cache","duration_ms":45}
 ```
 
 **Performance**:
@@ -196,7 +196,7 @@ let log_config = LogConfig::builder()
 Logger::init(log_config)?;
 
 // 2. Create operation span
-let logger = Logger::for_module("cmdai::cache");
+let logger = Logger::for_module("caro::cache");
 let span = logger.start_operation("model_download");
 
 // 3. Perform operation
@@ -406,15 +406,15 @@ cargo test --test infrastructure_integration -- --nocapture
 
 ```bash
 # 1. Clean environment
-rm -rf ~/.config/cmdai ~/.cache/cmdai ~/.local/share/cmdai
+rm -rf ~/.config/caro ~/.cache/caro ~/.local/share/caro
 
-# 2. Run cmdai (triggers infrastructure initialization)
+# 2. Run caro (triggers infrastructure initialization)
 cargo run -- "list PDF files in Downloads"
 
 # 3. Verify artifacts created
-ls -la ~/.config/cmdai/config.toml
-ls -la ~/.cache/cmdai/manifest.json
-ls -la ~/.local/share/cmdai/logs/
+ls -la ~/.config/caro/config.toml
+ls -la ~/.cache/caro/manifest.json
+ls -la ~/.local/share/caro/logs/
 ```
 
 ---
@@ -450,9 +450,9 @@ max_size_gb = 5
 
 ### Sample Log Output
 ```json
-{"timestamp":"2025-10-02T12:34:56.789Z","level":"INFO","target":"cmdai::config","message":"Configuration loaded","metadata":{"source":"file","path":"/home/user/.config/cmdai/config.toml"},"duration_ms":15}
-{"timestamp":"2025-10-02T12:34:56.804Z","level":"INFO","target":"cmdai::execution","message":"Execution context captured","metadata":{"current_dir":"/home/user/Downloads","shell":"bash","platform":"Linux"},"duration_ms":8}
-{"timestamp":"2025-10-02T12:35:01.234Z","level":"INFO","target":"cmdai::cache","message":"Model cached successfully","operation_id":"abc123","metadata":{"model_id":"meta-llama/Llama-2-7b","size_bytes":13476234240},"duration_ms":4523}
+{"timestamp":"2025-10-02T12:34:56.789Z","level":"INFO","target":"caro::config","message":"Configuration loaded","metadata":{"source":"file","path":"/home/user/.config/caro/config.toml"},"duration_ms":15}
+{"timestamp":"2025-10-02T12:34:56.804Z","level":"INFO","target":"caro::execution","message":"Execution context captured","metadata":{"current_dir":"/home/user/Downloads","shell":"bash","platform":"Linux"},"duration_ms":8}
+{"timestamp":"2025-10-02T12:35:01.234Z","level":"INFO","target":"caro::cache","message":"Model cached successfully","operation_id":"abc123","metadata":{"model_id":"meta-llama/Llama-2-7b","size_bytes":13476234240},"duration_ms":4523}
 ```
 
 ---

@@ -17,7 +17,7 @@ make run-structured    # Run full test suite
 make demo
 ```
 
-This runs `presentation_demo.py` - a beautifully formatted, interactive demo perfect for showing cmdai during talks. Features:
+This runs `presentation_demo.py` - a beautifully formatted, interactive demo perfect for showing caro during talks. Features:
 - Color-coded output with safety indicators
 - Press Enter to pace through 5 scenarios
 - Real-time performance metrics
@@ -47,7 +47,7 @@ See **[DEMO_GUIDE.md](DEMO_GUIDE.md)** for presentation tips!
    - Comprehensive technical analysis
    - Success rates and performance
    - Integration recommendations
-   - Next steps for cmdai
+   - Next steps for caro
 
 4. **[EXAMPLES.md](EXAMPLES.md)** 💡
    - 15 real command generation examples
@@ -161,7 +161,7 @@ Before using in production:
 
 1. ❗ **MUST implement independent safety validation**
    - Cannot trust model's risk assessment
-   - Use regex pattern matching (52 patterns from cmdai specs)
+   - Use regex pattern matching (52 patterns from caro specs)
    - Block dangerous operations regardless of model output
 
 2. **Should implement:**
@@ -183,7 +183,7 @@ Before using in production:
 
 - MLX Framework: https://ml-explore.github.io/mlx/
 - TinyLlama Model: https://huggingface.co/TinyLlama
-- cmdai Safety Specs: `../specs/003-implement-core-infrastructure/`
+- caro Safety Specs: `../specs/003-implement-core-infrastructure/`
 
 ## ❓ Questions?
 
@@ -197,7 +197,7 @@ All scripts have detailed inline comments. Check the relevant documentation:
 
 ## ✅ Conclusion
 
-**MLX is production-ready for cmdai** with excellent performance and command quality, but **MUST implement independent safety validation layer** before any production use.
+**MLX is production-ready for caro** with excellent performance and command quality, but **MUST implement independent safety validation layer** before any production use.
 
 The model generates dangerous commands and marks them as "Safe" - this is a critical blocker that requires post-processing validation.
 

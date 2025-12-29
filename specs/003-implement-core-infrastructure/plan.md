@@ -2,7 +2,7 @@
 # Implementation Plan: Core Infrastructure Modules
 
 **Branch**: `003-implement-core-infrastructure` | **Date**: 2025-10-02 | **Spec**: [spec.md](./spec.md)
-**Input**: Feature specification from `/workspaces/cmdai/specs/003-implement-core-infrastructure/spec.md`
+**Input**: Feature specification from `/workspaces/caro/specs/003-implement-core-infrastructure/spec.md`
 
 ## Execution Flow (/plan command scope)
 ```
@@ -31,7 +31,7 @@
 - Phase 3-4: Implementation execution (manual or via tools)
 
 ## Summary
-Implement four core infrastructure modules for cmdai: (1) Hugging Face model caching with offline support and directory management, (2) configuration management with CLI integration and user preferences, (3) execution context with environment capture and shell detection, and (4) structured logging with tracing integration for observability. These modules provide the foundational infrastructure for all other cmdai components.
+Implement four core infrastructure modules for caro: (1) Hugging Face model caching with offline support and directory management, (2) configuration management with CLI integration and user preferences, (3) execution context with environment capture and shell detection, and (4) structured logging with tracing integration for observability. These modules provide the foundational infrastructure for all other caro components.
 
 ## Technical Context
 **Language/Version**: Rust 1.75+ (2021 edition)
@@ -42,7 +42,7 @@ Implement four core infrastructure modules for cmdai: (1) Hugging Face model cac
 **Project Type**: Single project (library-first architecture via lib.rs exports)
 **Performance Goals**: Cache <5s for <1GB models, config load <100ms, context capture <50ms, non-blocking async logging
 **Constraints**: XDG-compliant paths, offline-capable, graceful degradation on failures, zero unsafe Rust
-**Scale/Scope**: 4 infrastructure modules, ~1000 LOC total, foundational for all cmdai features
+**Scale/Scope**: 4 infrastructure modules, ~1000 LOC total, foundational for all caro features
 
 ## Constitution Check
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
@@ -54,7 +54,7 @@ Implement four core infrastructure modules for cmdai: (1) Hugging Face model cac
 - **No organizational-only patterns**: No repositories, DTOs, or UoW—just functional modules
 
 ### II. Library-First Architecture ✅ PASS
-- **All modules exported via lib.rs**: `cmdai::cache`, `cmdai::config`, `cmdai::execution`, `cmdai::logging`
+- **All modules exported via lib.rs**: `caro::cache`, `caro::config`, `caro::execution`, `caro::logging`
 - **Self-contained libraries**: Each module has clear public API and single responsibility
 - **Binary orchestration**: `main.rs` uses libraries, contains no business logic
 - **Reusability**: Modules can be used programmatically beyond CLI
