@@ -28,7 +28,7 @@ colorSchema: dark
 </div>
 
 <div class="absolute bottom-10 text-sm opacity-50">
-  Production-ready • Published on crates.io • v0.1.0
+  Production-ready • Published on crates.io • v1.0.2
 </div>
 
 ---
@@ -47,7 +47,7 @@ class: text-center
 - 🔒 **Offline-first**: Embedded models, no internet required
 - ⚡ **GPU accelerated**: <2s inference on Apple Silicon
 - 🛡️ **Safety-first**: 52 pre-compiled safety patterns
-- 🏢 **Enterprise-ready**: Published on crates.io v0.1.0
+- 🏢 **Enterprise-ready**: Published on crates.io v1.0.2
 - 🌐 **Live now**: caro.sh
 
 </v-clicks>
@@ -325,7 +325,7 @@ layout: center
 
 <div class="p-4 bg-orange-900 bg-opacity-20 rounded">
   <strong>Production Ready</strong><br/>
-  v0.1.0 published with 44 library + 9 integration tests
+  v1.0.2 published with 44 library + 9 integration tests
 </div>
 
 </v-clicks>
@@ -466,7 +466,7 @@ layout: center
 
 <v-clicks>
 
-- ✅ **v0.1.0** published on crates.io
+- ✅ **v1.0.2** published on crates.io (Dec 28, 2024)
 - ✅ **Website** live at caro.sh
 - ✅ **MLX backend** fully operational with Metal GPU
 - ✅ **Qwen2.5-Coder-1.5B** production model (87% accuracy)
@@ -912,7 +912,7 @@ class: text-center
 
 <div class="absolute bottom-10 left-0 right-0 text-center">
   <div class="text-sm opacity-50">
-    Caro v0.1.0 • Production Ready • December 2024
+    Caro v1.0.2 • Production Ready • December 2024
   </div>
 </div>
 
@@ -934,7 +934,7 @@ Additional materials and data
 
 <v-clicks>
 
-1. **Not pre-product** - v0.1.0 published, working GPU acceleration, real users
+1. **Not pre-product** - v1.0.2 published, working GPU acceleration, real users
 
 2. **Safety is differentiator** - AI models can't be trusted alone, our guardrails saved users from `rm -rf /`
 
