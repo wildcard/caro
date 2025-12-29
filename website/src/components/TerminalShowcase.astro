@@ -1,0 +1,288 @@
+---
+/**
+ * TerminalShowcase Component
+ * Displays animated terminal window showing example caro commands
+ */
+---
+
+<div class="terminal-showcase">
+  <div class="terminal-window">
+    <div class="terminal-header">
+      <div class="terminal-dots">
+        <span class="dot red"></span>
+        <span class="dot yellow"></span>
+        <span class="dot green"></span>
+      </div>
+      <div class="terminal-title">caro — shell companion</div>
+    </div>
+    <div class="terminal-body">
+      <div class="command-examples">
+        <div class="example active" data-example="0">
+          <div class="command-line">
+            <span class="prompt">$</span>
+            <span class="command">caro "list all files modified today"</span>
+          </div>
+          <div class="output">
+            <span class="arrow">→</span>
+            <span class="result">find . -type f -mtime 0</span>
+          </div>
+        </div>
+        <div class="example" data-example="1">
+          <div class="command-line">
+            <span class="prompt">$</span>
+            <span class="command">caro "find large files over 100MB"</span>
+          </div>
+          <div class="output">
+            <span class="arrow">→</span>
+            <span class="result">find . -type f -size +100M</span>
+          </div>
+        </div>
+        <div class="example" data-example="2">
+          <div class="command-line">
+            <span class="prompt">$</span>
+            <span class="command">caro "show disk usage by folder"</span>
+          </div>
+          <div class="output">
+            <span class="arrow">→</span>
+            <span class="result">du -sh */ | sort -rh | head -10</span>
+          </div>
+        </div>
+        <div class="example" data-example="3">
+          <div class="command-line">
+            <span class="prompt">$</span>
+            <span class="command">caro "count lines of code in this project"</span>
+          </div>
+          <div class="output">
+            <span class="arrow">→</span>
+            <span class="result">find . -name '*.rs' -exec wc -l {'{'} + | awk '{'{'}sum+=$1{'}'} END {'{'}print sum{'}'}'</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function initTerminalShowcase() {
+    const examples = document.querySelectorAll('.terminal-showcase .example');
+    if (examples.length === 0) return;
+
+    let currentIndex = 0;
+
+    function showNextExample() {
+      // Hide current example
+      examples[currentIndex].classList.remove('active');
+
+      // Move to next example (loop back to start)
+      currentIndex = (currentIndex + 1) % examples.length;
+
+      // Show next example
+      examples[currentIndex].classList.add('active');
+    }
+
+    // Cycle through examples every 4 seconds
+    setInterval(showNextExample, 4000);
+  }
+
+  // Initialize on page load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTerminalShowcase);
+  } else {
+    initTerminalShowcase();
+  }
+</script>
+
+<style>
+  .terminal-showcase {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 40px;
+    opacity: 0;
+    animation: fadeInUp 0.6s ease-out forwards;
+    animation-delay: 0.3s;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .terminal-window {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    width: 100%;
+    max-width: 700px;
+    border: 1px solid rgba(255, 140, 66, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .terminal-window:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 50px rgba(255, 140, 66, 0.2);
+  }
+
+  .terminal-header {
+    background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255, 140, 66, 0.1);
+  }
+
+  .terminal-dots {
+    display: flex;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    opacity: 0.8;
+  }
+
+  .dot.red {
+    background: #ff5f56;
+  }
+
+  .dot.yellow {
+    background: #ffbd2e;
+  }
+
+  .dot.green {
+    background: #27c93f;
+  }
+
+  .terminal-title {
+    font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    flex: 1;
+    text-align: center;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+
+  .terminal-body {
+    padding: 24px;
+    font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.8;
+    min-height: 120px;
+    position: relative;
+  }
+
+  .command-examples {
+    position: relative;
+  }
+
+  .example {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    pointer-events: none;
+  }
+
+  .example.active {
+    opacity: 1;
+    pointer-events: auto;
+    position: relative;
+  }
+
+  .command-line {
+    margin-bottom: 8px;
+  }
+
+  .prompt {
+    color: #ff8c42;
+    margin-right: 8px;
+    font-weight: 600;
+  }
+
+  .command {
+    color: #e0e0e0;
+  }
+
+  .output {
+    margin-left: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .arrow {
+    color: #27c93f;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .result {
+    color: #b0b0b0;
+    word-break: break-all;
+  }
+
+  /* Mobile responsiveness */
+  @media (max-width: 768px) {
+    .terminal-showcase {
+      margin-top: 30px;
+    }
+
+    .terminal-window {
+      max-width: 100%;
+      border-radius: 8px;
+    }
+
+    .terminal-body {
+      padding: 16px;
+      font-size: 12px;
+      min-height: 100px;
+    }
+
+    .terminal-title {
+      font-size: 11px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .terminal-body {
+      padding: 12px;
+      font-size: 10px;
+      line-height: 1.6;
+    }
+
+    .terminal-header {
+      padding: 10px 12px;
+    }
+
+    .terminal-title {
+      font-size: 10px;
+    }
+
+    .output {
+      margin-left: 12px;
+    }
+  }
+
+  /* Dark mode adjustments */
+  :global(.dark) .terminal-window {
+    border-color: rgba(255, 140, 66, 0.15);
+  }
+</style>

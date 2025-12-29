@@ -1,7 +1,6 @@
 ---
 import GitHubStarButton from './GitHubStarButton.astro';
-import AsciiMorph from './AsciiMorph.astro';
-import { heroMorphs } from '../data/ascii-art';
+import TerminalShowcase from './TerminalShowcase.astro';
 ---
 
 <div class="hero">
@@ -22,10 +21,8 @@ import { heroMorphs } from '../data/ascii-art';
       <a href="#how-it-works" class="cta-button secondary">Watch Demo</a>
     </div>
 
-    <!-- ASCII Art Morph -->
-    <div class="ascii-art-section">
-      <AsciiMorph arts={heroMorphs} width={36} height={33} interval={4000} morphDelay={40} />
-    </div>
+    <!-- Terminal Showcase -->
+    <TerminalShowcase />
   </div>
 </div>
 
@@ -158,16 +155,6 @@ import { heroMorphs } from '../data/ascii-art';
     }
   }
 
-  .ascii-art-section {
-    margin-top: 40px;
-    opacity: 0.7;
-    transition: opacity 0.3s ease;
-  }
-
-  .ascii-art-section:hover {
-    opacity: 1;
-  }
-
   @media (max-width: 768px) {
     .pixel-art {
       width: 70px;
@@ -184,10 +171,6 @@ import { heroMorphs } from '../data/ascii-art';
 
     .subtitle {
       font-size: 18px;
-    }
-
-    .ascii-art-section {
-      margin-top: 30px;
     }
   }
 </style>
