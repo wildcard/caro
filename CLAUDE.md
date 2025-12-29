@@ -457,17 +457,19 @@ See `docs/RELEASE_PROCESS.md` for complete release procedures and security requi
 
 ## Claude Code Skills Reference
 
-This project uses **21 Claude Code skills** to automate development workflows. Skills are slash commands stored in `.claude/commands/` that provide structured, repeatable workflows.
+This project uses **20 Claude Code skills** to automate development workflows. Skills are slash commands stored in `.claude/commands/` that provide structured, repeatable workflows.
 
 ### Complete Skill Inventory
 
-**Release Management (7 skills)**:
+**Release Management (6 skills)**:
 - `/caro.release.prepare` - Create release branch and run pre-flight checks
 - `/caro.release.security` - Security audit and vulnerability fixes
 - `/caro.release.version` - Version bump and changelog updates
 - `/caro.release.publish` - Create PR, merge, tag, and publish
 - `/caro.release.verify` - Post-release verification testing
 - `/caro.release.hotfix` - Emergency security patch workflow
+
+**Dependency Management (1 skill)**:
 - `/caro.deps.review` - Review and merge Dependabot PRs with breaking change analysis
 
 **Feature Development (13 skills)**:
