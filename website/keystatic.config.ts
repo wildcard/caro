@@ -32,7 +32,7 @@ export default config({
      */
     siteSettings: singleton({
       label: 'Site Settings',
-      path: 'src/content/settings/site',
+      path: 'src/data/settings/site',
       schema: {
         siteName: fields.text({
           label: 'Site Name',
