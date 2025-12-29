@@ -1,4 +1,12 @@
 ---
+import { type Locale } from '../../i18n/config';
+
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = 'en' } = Astro.props;
+
 /**
  * Role-Based Scenarios - Show specific dangerous commands by role
  * Interactive component that lets users see their own risks

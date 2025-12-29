@@ -30,7 +30,36 @@
         "openSource": "Open source (AGPL-3.0)"
       }
     },
-    "features": {},
+    "features": {
+      "title": "Why Developers Choose Caro",
+      "subtitle": "The safety net you need when AI generates your commands",
+      "items": [
+        {
+          "icon": "🛡️",
+          "title": "Never Nuke Production Again",
+          "description": "Blocks rm -rf /, fork bombs, and 50+ other career-ending commands BEFORE you can run them. Your 2 AM self will thank you.",
+          "highlight": true
+        },
+        {
+          "icon": "🔒",
+          "title": "Your Data Stays Yours",
+          "description": "Zero telemetry. Zero cloud API calls. Run in air-gapped networks. Pass any compliance audit. Your commands never leave your machine.",
+          "highlight": true
+        },
+        {
+          "icon": "✅",
+          "title": "Commands That Actually Work",
+          "description": "Generates commands that work on your Mac, your Linux server, and your coworker's BSD box. First time. Every time.",
+          "highlight": false
+        },
+        {
+          "icon": "⚡",
+          "title": "Fast Enough to Not Break Flow",
+          "description": "Sub-2s inference on Apple Silicon. No waiting for cloud APIs. No wondering if the server is down. Just answers.",
+          "highlight": false
+        }
+      ]
+    },
     "scenarios": {},
     "demo": {},
     "useCases": {},
