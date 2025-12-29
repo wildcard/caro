@@ -5,15 +5,21 @@
   "description": "Official website for Caro - Your loyal shell companion",
   "scripts": {
     "dev": "astro dev",
+    "dev:cms": "KEYSTATIC_CMS=true astro dev",
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/react": "^4.4.2",
+    "@keystatic/astro": "^5.0.6",
+    "@keystatic/core": "^0.5.48",
     "@vercel/analytics": "^1.6.1",
     "astro": "^4.0.0",
-    "canvas-confetti": "^1.9.4"
+    "canvas-confetti": "^1.9.4",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
   },
   "devDependencies": {
     "@astrojs/sitemap": "^3.0.0"

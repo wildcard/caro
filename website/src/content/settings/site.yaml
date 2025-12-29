@@ -1,0 +1,10 @@
+siteName: Caro Learn
+siteDescription: Master Unix commands and discover the fascinating history of the Unix ecosystem. Learn with your loyal shell companion.
+socialLinks:
+  twitter: https://twitter.com/caro_sh
+  mastodon: https://fosstodon.org/@caro
+  github: https://github.com/wildcard/caro
+newsletter:
+  enabled: true
+  provider: buttondown
+  signupUrl: ''
