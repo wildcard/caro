@@ -24,7 +24,7 @@ tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "sync"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_yaml = "0.9"
-toml = "0.8"
+toml = "0.9"
 config = "0.15"
 
 # HTTP client for remote backends (optional - feature-gated)
