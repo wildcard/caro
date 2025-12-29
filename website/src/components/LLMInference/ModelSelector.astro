@@ -1,0 +1,1054 @@
+---
+/**
+ * ModelSelector.astro
+ * Model selection and loading UI for MediaPipe LLM inference
+ * Uses download-first pattern: users download models manually, then load locally
+ */
+---
+
+<div id="model-selector" class="model-selector">
+  <div class="selector-header">
+    <div class="header-icon">
+      <img src="/caro-pixel.png" alt="Caro" class="caro-icon" />
+    </div>
+    <div class="header-text">
+      <h3>Set Up Your AI Model</h3>
+      <p>Download a model and load it to power your learning experience</p>
+    </div>
+  </div>
+
+  <div class="webgpu-check" id="webgpu-status">
+    <div class="status-icon checking">
+      <span class="spinner"></span>
+    </div>
+    <span class="status-text">Checking WebGPU support...</span>
+  </div>
+
+  <!-- Step 1: Download a Model -->
+  <div class="setup-step" id="download-step">
+    <div class="step-header">
+      <span class="step-number">1</span>
+      <h4>Download a Model</h4>
+    </div>
+    <p class="step-description">Choose a model and download it from HuggingFace. This only needs to be done once.</p>
+
+    <div class="model-options">
+      <div class="model-option recommended">
+        <div class="model-info">
+          <h5>Gemma3 1B <span class="badge">Recommended</span></h5>
+          <p>Fast, lightweight model ideal for terminal education</p>
+          <div class="model-specs">
+            <span>📦 555 MB</span>
+            <span>⚡ int4 quantized</span>
+          </div>
+        </div>
+        <a href="https://huggingface.co/litert-community/Gemma3-1B-IT/resolve/main/gemma3-1b-it-int4-web.task"
+           class="download-btn"
+           target="_blank"
+           rel="noopener"
+           download>
+          Download
+        </a>
+      </div>
+
+      <div class="model-option">
+        <div class="model-info">
+          <h5>Gemma2 2B</h5>
+          <p>Larger model with better comprehension</p>
+          <div class="model-specs">
+            <span>📦 1.35 GB</span>
+            <span>⚡ int4 quantized</span>
+          </div>
+        </div>
+        <a href="https://huggingface.co/nicecui/Gemma2-2B-IT/resolve/main/gemma2-2b-it-gpu-int4.bin"
+           class="download-btn secondary"
+           target="_blank"
+           rel="noopener"
+           download>
+          Download
+        </a>
+      </div>
+    </div>
+
+    <div class="step-note">
+      <strong>Note:</strong> If prompted to log in to HuggingFace, create a free account and accept the model license terms.
+    </div>
+  </div>
+
+  <!-- Step 2: Load the Model -->
+  <div class="setup-step" id="load-step">
+    <div class="step-header">
+      <span class="step-number">2</span>
+      <h4>Load Your Model</h4>
+    </div>
+    <p class="step-description">Select the model file you downloaded (.task or .bin file)</p>
+
+    <div class="file-loader">
+      <input type="file" id="model-file-input" accept=".task,.bin" hidden />
+      <div class="load-dropzone" id="load-dropzone">
+        <div class="dropzone-content">
+          <span class="dropzone-icon">📁</span>
+          <p class="dropzone-main">Drop your model file here</p>
+          <p class="dropzone-sub">or <button class="browse-btn" id="browse-btn">choose file</button></p>
+        </div>
+      </div>
+
+      <div class="file-selected hidden" id="file-selected">
+        <span class="file-icon">✓</span>
+        <span class="file-name" id="selected-file-name"></span>
+        <span class="file-size" id="selected-file-size"></span>
+        <button class="load-model-btn" id="load-model-btn">Load Model</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Progress -->
+  <div class="loading-progress hidden" id="loading-progress">
+    <div class="progress-header">
+      <span class="progress-title" id="progress-title">Loading model...</span>
+      <span class="progress-percent" id="progress-percent">0%</span>
+    </div>
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" id="progress-bar-fill"></div>
+    </div>
+    <p class="progress-note" id="progress-note">Initializing WebGPU and loading model weights...</p>
+  </div>
+
+  <!-- Error Display -->
+  <div class="error-panel hidden" id="error-panel">
+    <div class="error-content">
+      <span class="error-icon">⚠️</span>
+      <p class="error-message" id="error-message"></p>
+      <button class="retry-btn" id="retry-btn">Try Again</button>
+    </div>
+  </div>
+
+  <!-- Config Panel (shown after model loads) -->
+  <div class="config-panel hidden" id="config-panel">
+    <div class="config-header" id="config-toggle">
+      <span>Advanced Settings</span>
+      <span class="toggle-icon">+</span>
+    </div>
+    <div class="config-options hidden" id="config-options">
+      <div class="config-option">
+        <label for="temperature">Temperature</label>
+        <div class="slider-container">
+          <input type="range" id="temperature" min="0" max="100" value="80" />
+          <span class="slider-value" id="temperature-value">0.8</span>
+        </div>
+        <p class="config-hint">Higher = more creative, Lower = more focused</p>
+      </div>
+      <div class="config-option">
+        <label for="max-tokens">Max Tokens</label>
+        <div class="slider-container">
+          <input type="range" id="max-tokens" min="128" max="2048" value="1024" step="128" />
+          <span class="slider-value" id="max-tokens-value">1024</span>
+        </div>
+        <p class="config-hint">Maximum length of generated responses</p>
+      </div>
+      <div class="config-option">
+        <label for="top-k">Top-K</label>
+        <div class="slider-container">
+          <input type="range" id="top-k" min="1" max="100" value="40" />
+          <span class="slider-value" id="top-k-value">40</span>
+        </div>
+        <p class="config-hint">Number of tokens to consider for each step</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .model-selector {
+    background: var(--color-bg-secondary);
+    border-radius: 16px;
+    padding: 30px;
+    max-width: 700px;
+    margin: 0 auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .selector-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .header-icon {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+  }
+
+  .caro-icon {
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 10px rgba(255, 140, 66, 0.4));
+    animation: float 2s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+
+  .header-text h3 {
+    margin: 0 0 4px;
+    font-size: 24px;
+    color: var(--color-text);
+  }
+
+  .header-text p {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+  }
+
+  /* WebGPU Check */
+  .webgpu-check {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--color-bg);
+    border-radius: 8px;
+    margin-bottom: 24px;
+    border: 1px solid var(--color-border);
+  }
+
+  .status-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .status-icon.checking .spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--color-border);
+    border-top-color: #ff8c42;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .status-icon.success::after {
+    content: '✓';
+    color: #22c55e;
+    font-size: 18px;
+  }
+
+  .status-icon.error::after {
+    content: '✗';
+    color: #ef4444;
+    font-size: 18px;
+  }
+
+  .status-text {
+    color: var(--color-text);
+    font-size: 14px;
+  }
+
+  .webgpu-check.success {
+    border-color: rgba(34, 197, 94, 0.3);
+    background: rgba(34, 197, 94, 0.05);
+  }
+
+  .webgpu-check.error {
+    border-color: rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.05);
+  }
+
+  /* Setup Steps */
+  .setup-step {
+    background: var(--color-bg);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    border: 1px solid var(--color-border);
+  }
+
+  .setup-step.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .step-number {
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .step-header h4 {
+    margin: 0;
+    font-size: 18px;
+    color: var(--color-text);
+  }
+
+  .step-description {
+    margin: 0 0 20px;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+  }
+
+  /* Model Options */
+  .model-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .model-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px;
+    background: var(--color-bg-secondary);
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+  }
+
+  .model-option.recommended {
+    border-color: rgba(255, 140, 66, 0.4);
+    background: rgba(255, 140, 66, 0.03);
+  }
+
+  .model-info h5 {
+    margin: 0 0 4px;
+    font-size: 15px;
+    color: var(--color-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .badge {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+  }
+
+  .model-info p {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+
+  .model-specs {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+
+  .download-btn {
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s ease;
+  }
+
+  .download-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.4);
+  }
+
+  .download-btn.secondary {
+    background: var(--color-bg);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+  }
+
+  .download-btn.secondary:hover {
+    border-color: #ff8c42;
+    color: #ff8c42;
+    box-shadow: none;
+  }
+
+  .step-note {
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(255, 140, 66, 0.08);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+
+  .step-note strong {
+    color: var(--color-text);
+  }
+
+  /* File Loader */
+  .file-loader {
+    position: relative;
+  }
+
+  .load-dropzone {
+    border: 2px dashed var(--color-border);
+    border-radius: 12px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--color-bg-secondary);
+  }
+
+  .load-dropzone:hover,
+  .load-dropzone.dragover {
+    border-color: #ff8c42;
+    background: rgba(255, 140, 66, 0.05);
+  }
+
+  .dropzone-content {
+    pointer-events: none;
+  }
+
+  .dropzone-icon {
+    font-size: 40px;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  .dropzone-main {
+    margin: 0 0 8px;
+    font-size: 16px;
+    color: var(--color-text);
+    font-weight: 500;
+  }
+
+  .dropzone-sub {
+    margin: 0;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .browse-btn {
+    background: none;
+    border: none;
+    color: #ff8c42;
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: inherit;
+    pointer-events: auto;
+    padding: 0;
+  }
+
+  .file-selected {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: 10px;
+    margin-top: 16px;
+  }
+
+  .file-selected.hidden {
+    display: none;
+  }
+
+  .file-icon {
+    color: #22c55e;
+    font-size: 20px;
+  }
+
+  .file-name {
+    flex: 1;
+    font-weight: 500;
+    color: var(--color-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .file-size {
+    color: var(--color-text-secondary);
+    font-size: 13px;
+  }
+
+  .load-model-btn {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .load-model-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+  }
+
+  .load-model-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Loading Progress */
+  .loading-progress {
+    padding: 24px;
+    background: var(--color-bg);
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    margin-bottom: 20px;
+  }
+
+  .loading-progress.hidden {
+    display: none;
+  }
+
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .progress-title {
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .progress-percent {
+    color: #ff8c42;
+    font-weight: 600;
+  }
+
+  .progress-bar-container {
+    height: 8px;
+    background: var(--color-border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff8c42 0%, #ff6b35 100%);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    width: 0%;
+  }
+
+  .progress-note {
+    margin: 12px 0 0;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+
+  /* Error Panel */
+  .error-panel {
+    padding: 24px;
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+
+  .error-panel.hidden {
+    display: none;
+  }
+
+  .error-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .error-icon {
+    font-size: 24px;
+  }
+
+  .error-message {
+    flex: 1;
+    margin: 0;
+    color: #ef4444;
+    font-size: 14px;
+    min-width: 200px;
+  }
+
+  .retry-btn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .retry-btn:hover {
+    background: #dc2626;
+  }
+
+  /* Config Panel */
+  .config-panel {
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .config-panel.hidden {
+    display: none;
+  }
+
+  .config-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    background: var(--color-bg);
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--color-text);
+    transition: background-color 0.2s;
+  }
+
+  .config-header:hover {
+    background: var(--color-bg-secondary);
+  }
+
+  .toggle-icon {
+    font-size: 18px;
+    color: var(--color-text-secondary);
+    transition: transform 0.2s;
+  }
+
+  .config-header.expanded .toggle-icon {
+    transform: rotate(45deg);
+  }
+
+  .config-options {
+    padding: 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .config-options.hidden {
+    display: none;
+  }
+
+  .config-option {
+    margin-bottom: 20px;
+  }
+
+  .config-option:last-child {
+    margin-bottom: 0;
+  }
+
+  .config-option label {
+    display: block;
+    font-weight: 500;
+    color: var(--color-text);
+    margin-bottom: 8px;
+  }
+
+  .slider-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .slider-container input[type="range"] {
+    flex: 1;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--color-border);
+    border-radius: 3px;
+    outline: none;
+  }
+
+  .slider-container input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #ff8c42;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  .slider-container input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+  }
+
+  .slider-value {
+    min-width: 50px;
+    text-align: right;
+    font-family: 'Monaco', 'Courier New', monospace;
+    color: #ff8c42;
+    font-weight: 600;
+  }
+
+  .config-hint {
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+
+  @media (max-width: 600px) {
+    .model-selector {
+      padding: 20px;
+    }
+
+    .selector-header {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .model-option {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .download-btn {
+      width: 100%;
+      text-align: center;
+    }
+
+    .file-selected {
+      flex-wrap: wrap;
+    }
+
+    .load-model-btn {
+      width: 100%;
+      margin-top: 8px;
+    }
+  }
+</style>
+
+<script>
+  import type { ModelInfo } from './types';
+  import { getTerminalTutorEngine } from './LLMEngine';
+
+  // DOM Elements
+  const webgpuStatus = document.getElementById('webgpu-status')!;
+  const downloadStep = document.getElementById('download-step')!;
+  const loadStep = document.getElementById('load-step')!;
+  const modelFileInput = document.getElementById('model-file-input') as HTMLInputElement;
+  const loadDropzone = document.getElementById('load-dropzone')!;
+  const browseBtn = document.getElementById('browse-btn')!;
+  const fileSelected = document.getElementById('file-selected')!;
+  const selectedFileName = document.getElementById('selected-file-name')!;
+  const selectedFileSize = document.getElementById('selected-file-size')!;
+  const loadModelBtn = document.getElementById('load-model-btn')!;
+  const loadingProgress = document.getElementById('loading-progress')!;
+  const progressTitle = document.getElementById('progress-title')!;
+  const progressPercent = document.getElementById('progress-percent')!;
+  const progressBarFill = document.getElementById('progress-bar-fill')!;
+  const progressNote = document.getElementById('progress-note')!;
+  const errorPanel = document.getElementById('error-panel')!;
+  const errorMessage = document.getElementById('error-message')!;
+  const retryBtn = document.getElementById('retry-btn')!;
+  const configPanel = document.getElementById('config-panel')!;
+  const configToggle = document.getElementById('config-toggle')!;
+  const configOptions = document.getElementById('config-options')!;
+
+  // State
+  let selectedFile: File | null = null;
+  let isLoading = false;
+
+  // Initialize
+  async function init() {
+    await checkWebGPU();
+    setupFileUpload();
+    setupConfigPanel();
+  }
+
+  // Check WebGPU support
+  async function checkWebGPU() {
+    const statusIcon = webgpuStatus.querySelector('.status-icon')!;
+    const statusText = webgpuStatus.querySelector('.status-text')!;
+
+    if (!navigator.gpu) {
+      statusIcon.classList.remove('checking');
+      statusIcon.classList.add('error');
+      statusText.textContent = 'WebGPU not supported. Please use Chrome 113+ or Edge 113+.';
+      webgpuStatus.classList.add('error');
+      disableSteps();
+      return;
+    }
+
+    try {
+      const adapter = await navigator.gpu.requestAdapter();
+      if (!adapter) {
+        throw new Error('No GPU adapter found');
+      }
+
+      statusIcon.classList.remove('checking');
+      statusIcon.classList.add('success');
+      statusText.textContent = 'WebGPU is available! Download a model to get started.';
+      webgpuStatus.classList.add('success');
+    } catch (error) {
+      statusIcon.classList.remove('checking');
+      statusIcon.classList.add('error');
+      statusText.textContent = `WebGPU error: ${error}`;
+      webgpuStatus.classList.add('error');
+      disableSteps();
+    }
+  }
+
+  // Disable steps when WebGPU not available
+  function disableSteps() {
+    downloadStep.classList.add('disabled');
+    loadStep.classList.add('disabled');
+  }
+
+  // Setup file upload handlers
+  function setupFileUpload() {
+    // Browse button click
+    browseBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      modelFileInput.click();
+    });
+
+    // Dropzone click
+    loadDropzone.addEventListener('click', () => {
+      modelFileInput.click();
+    });
+
+    // File input change
+    modelFileInput.addEventListener('change', () => {
+      const file = modelFileInput.files?.[0];
+      if (file) {
+        handleFileSelection(file);
+      }
+    });
+
+    // Drag and drop
+    loadDropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      loadDropzone.classList.add('dragover');
+    });
+
+    loadDropzone.addEventListener('dragleave', () => {
+      loadDropzone.classList.remove('dragover');
+    });
+
+    loadDropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      loadDropzone.classList.remove('dragover');
+
+      const file = e.dataTransfer?.files[0];
+      if (file) {
+        if (file.name.endsWith('.task') || file.name.endsWith('.bin')) {
+          handleFileSelection(file);
+        } else {
+          showError('Please select a .task or .bin model file');
+        }
+      }
+    });
+
+    // Load button click
+    loadModelBtn.addEventListener('click', () => {
+      if (selectedFile) {
+        loadModel(selectedFile);
+      }
+    });
+
+    // Retry button
+    retryBtn.addEventListener('click', () => {
+      hideError();
+      if (selectedFile) {
+        loadModel(selectedFile);
+      }
+    });
+  }
+
+  // Handle file selection
+  function handleFileSelection(file: File) {
+    selectedFile = file;
+    selectedFileName.textContent = file.name;
+    selectedFileSize.textContent = formatFileSize(file.size);
+    fileSelected.classList.remove('hidden');
+    loadDropzone.style.display = 'none';
+  }
+
+  // Load the model
+  async function loadModel(file: File) {
+    if (isLoading) return;
+
+    isLoading = true;
+    hideError();
+    showProgress();
+    loadModelBtn.disabled = true;
+
+    try {
+      const engine = getTerminalTutorEngine();
+
+      // Create model info for the file
+      const modelInfo: ModelInfo = {
+        id: 'local-' + file.name,
+        name: file.name,
+        description: 'Locally loaded model',
+        size: file.size / (1024 * 1024),
+        sizeFormatted: formatFileSize(file.size),
+        quantization: 'int4',
+        capabilities: ['text'],
+        source: 'local',
+        downloadUrl: '',
+      };
+
+      updateProgress('Loading MediaPipe...', 10);
+
+      await engine.loadModelFromFile(file, modelInfo, (progress) => {
+        if (progress < 30) {
+          updateProgress('Loading MediaPipe...', progress);
+        } else if (progress < 50) {
+          updateProgress('Initializing WebGPU...', progress);
+        } else if (progress < 70) {
+          updateProgress('Reading model file...', progress);
+        } else if (progress < 100) {
+          updateProgress('Loading model weights...', progress);
+        } else {
+          updateProgress('Model ready!', 100);
+        }
+      });
+
+      // Success!
+      hideProgress();
+      hideSetupSteps();
+      showConfig();
+
+      // Dispatch event for parent components
+      window.dispatchEvent(new CustomEvent('model-loaded', {
+        detail: { modelId: modelInfo.id, modelName: file.name }
+      }));
+
+    } catch (error) {
+      console.error('Failed to load model:', error);
+      hideProgress();
+      showError(String(error));
+      loadModelBtn.disabled = false;
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  // UI Helper functions
+  function showProgress() {
+    loadingProgress.classList.remove('hidden');
+    loadStep.style.display = 'none';
+    downloadStep.style.display = 'none';
+  }
+
+  function hideProgress() {
+    loadingProgress.classList.add('hidden');
+  }
+
+  function updateProgress(title: string, percent: number) {
+    progressTitle.textContent = title;
+    progressPercent.textContent = `${percent}%`;
+    progressBarFill.style.width = `${percent}%`;
+  }
+
+  function showError(message: string) {
+    errorMessage.textContent = message;
+    errorPanel.classList.remove('hidden');
+  }
+
+  function hideError() {
+    errorPanel.classList.add('hidden');
+  }
+
+  function hideSetupSteps() {
+    downloadStep.style.display = 'none';
+    loadStep.style.display = 'none';
+  }
+
+  function showConfig() {
+    configPanel.classList.remove('hidden');
+  }
+
+  function formatFileSize(bytes: number): string {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+  }
+
+  // Config panel setup
+  function setupConfigPanel() {
+    configToggle.addEventListener('click', () => {
+      configToggle.classList.toggle('expanded');
+      configOptions.classList.toggle('hidden');
+    });
+
+    // Temperature slider
+    const tempSlider = document.getElementById('temperature') as HTMLInputElement;
+    const tempValue = document.getElementById('temperature-value')!;
+    tempSlider.addEventListener('input', () => {
+      const value = parseInt(tempSlider.value) / 100;
+      tempValue.textContent = value.toFixed(1);
+      updateEngineOptions({ temperature: value });
+    });
+
+    // Max tokens slider
+    const maxTokensSlider = document.getElementById('max-tokens') as HTMLInputElement;
+    const maxTokensValue = document.getElementById('max-tokens-value')!;
+    maxTokensSlider.addEventListener('input', () => {
+      const value = parseInt(maxTokensSlider.value);
+      maxTokensValue.textContent = value.toString();
+      updateEngineOptions({ maxTokens: value });
+    });
+
+    // Top-K slider
+    const topKSlider = document.getElementById('top-k') as HTMLInputElement;
+    const topKValue = document.getElementById('top-k-value')!;
+    topKSlider.addEventListener('input', () => {
+      const value = parseInt(topKSlider.value);
+      topKValue.textContent = value.toString();
+      updateEngineOptions({ topK: value });
+    });
+  }
+
+  function updateEngineOptions(options: any) {
+    try {
+      const engine = getTerminalTutorEngine();
+      engine.updateOptions(options);
+    } catch (e) {
+      // Engine not initialized yet
+    }
+  }
+
+  // Initialize on load
+  init();
+</script>

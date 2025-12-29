@@ -1,0 +1,968 @@
+---
+/**
+ * CaroTerminal.astro
+ * Unified terminal experience with Caro integrated inline
+ * Mirrors the actual caro.sh product: type natural language, get command suggestions
+ */
+---
+
+<div class="caro-terminal" id="caro-terminal">
+  <!-- Terminal Header -->
+  <div class="terminal-header">
+    <div class="terminal-dots">
+      <span class="dot red"></span>
+      <span class="dot yellow"></span>
+      <span class="dot green"></span>
+    </div>
+    <div class="terminal-title">
+      <img src="/caro-pixel.png" alt="Caro" class="terminal-caro-icon" />
+      <span>Caro Terminal</span>
+    </div>
+    <div class="terminal-controls">
+      <button class="mode-toggle" id="mode-toggle" title="Toggle mode">
+        <span class="mode-label" id="mode-label">Natural Language</span>
+        <span class="mode-indicator"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Terminal Body -->
+  <div class="terminal-body" id="terminal-body">
+    <!-- Welcome Message -->
+    <div class="terminal-welcome">
+      <div class="welcome-caro">
+        <img src="/caro-pixel.png" alt="Caro" class="welcome-icon" />
+        <div class="welcome-message">
+          <p><strong>Hi! I'm Caro, your shell companion.</strong></p>
+          <p>Tell me what you want to do in plain English, and I'll translate it to a shell command. Try typing something like:</p>
+          <ul class="example-queries">
+            <li><code>show me all files in this folder</code></li>
+            <li><code>find python files modified recently</code></li>
+            <li><code>what's my current directory?</code></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Terminal Output (will be populated dynamically) -->
+    <div class="terminal-output" id="terminal-output"></div>
+
+    <!-- Input Area -->
+    <div class="terminal-input-area" id="terminal-input-area">
+      <span class="prompt">
+        <span class="prompt-user">learner</span>
+        <span class="prompt-at">@</span>
+        <span class="prompt-host">caro</span>
+        <span class="prompt-colon">:</span>
+        <span class="prompt-path" id="prompt-path">~</span>
+        <span class="prompt-symbol">$</span>
+      </span>
+      <input
+        type="text"
+        id="terminal-input"
+        class="terminal-input"
+        placeholder="Type a command or ask Caro in natural language..."
+        autocomplete="off"
+        spellcheck="false"
+      />
+    </div>
+  </div>
+
+  <!-- Caro Thinking Indicator -->
+  <div class="caro-thinking hidden" id="caro-thinking">
+    <img src="/caro-pixel.png" alt="Caro" class="thinking-icon" />
+    <span class="thinking-text">Caro is thinking...</span>
+    <span class="thinking-dots">
+      <span>.</span><span>.</span><span>.</span>
+    </span>
+  </div>
+</div>
+
+<style>
+  .caro-terminal {
+    background: #1a1b26;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  /* Terminal Header */
+  .terminal-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background: #24283b;
+    border-bottom: 1px solid #414868;
+  }
+
+  .terminal-dots {
+    display: flex;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .dot.red { background: #f7768e; }
+  .dot.yellow { background: #e0af68; }
+  .dot.green { background: #9ece6a; }
+
+  .terminal-title {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #a9b1d6;
+    font-size: 13px;
+  }
+
+  .terminal-caro-icon {
+    width: 20px;
+    height: 20px;
+    image-rendering: pixelated;
+  }
+
+  .terminal-controls {
+    display: flex;
+    gap: 8px;
+  }
+
+  .mode-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(255, 140, 66, 0.1);
+    border: 1px solid rgba(255, 140, 66, 0.3);
+    border-radius: 6px;
+    color: #ff9e64;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .mode-toggle:hover {
+    background: rgba(255, 140, 66, 0.2);
+  }
+
+  .mode-toggle.direct-mode {
+    background: rgba(122, 162, 247, 0.1);
+    border-color: rgba(122, 162, 247, 0.3);
+    color: #7aa2f7;
+  }
+
+  .mode-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #9ece6a;
+  }
+
+  /* Terminal Body */
+  .terminal-body {
+    padding: 20px;
+    min-height: 400px;
+    max-height: 600px;
+    overflow-y: auto;
+  }
+
+  /* Welcome Message */
+  .terminal-welcome {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px dashed #414868;
+  }
+
+  .welcome-caro {
+    display: flex;
+    gap: 16px;
+  }
+
+  .welcome-icon {
+    width: 48px;
+    height: 48px;
+    image-rendering: pixelated;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 8px rgba(255, 140, 66, 0.4));
+  }
+
+  .welcome-message {
+    color: #a9b1d6;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .welcome-message p {
+    margin: 0 0 8px;
+  }
+
+  .welcome-message strong {
+    color: #ff9e64;
+  }
+
+  .example-queries {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .example-queries li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .example-queries li::before {
+    content: '→';
+    color: #7aa2f7;
+  }
+
+  .example-queries code {
+    background: rgba(122, 162, 247, 0.1);
+    padding: 4px 10px;
+    border-radius: 4px;
+    color: #7aa2f7;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .example-queries code:hover {
+    background: rgba(122, 162, 247, 0.2);
+  }
+
+  /* Terminal Output */
+  .terminal-output {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Entry styles */
+  .terminal-entry {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .entry-input {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .entry-prompt {
+    color: #7aa2f7;
+    white-space: nowrap;
+  }
+
+  .entry-command {
+    color: #c0caf5;
+    word-break: break-all;
+  }
+
+  /* Caro Response Block */
+  .caro-response {
+    margin-left: 20px;
+    padding: 16px;
+    background: rgba(255, 140, 66, 0.05);
+    border-left: 3px solid #ff9e64;
+    border-radius: 0 8px 8px 0;
+  }
+
+  .caro-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .caro-avatar {
+    width: 24px;
+    height: 24px;
+    image-rendering: pixelated;
+  }
+
+  .caro-name {
+    color: #ff9e64;
+    font-weight: 600;
+    font-size: 13px;
+  }
+
+  .caro-text {
+    color: #a9b1d6;
+    font-size: 13px;
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+
+  .caro-command-block {
+    background: #1a1b26;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+  }
+
+  .caro-command {
+    color: #9ece6a;
+    font-family: 'Monaco', monospace;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .copy-btn {
+    background: none;
+    border: none;
+    color: #565f89;
+    cursor: pointer;
+    padding: 4px;
+    font-size: 14px;
+    transition: color 0.2s;
+  }
+
+  .copy-btn:hover {
+    color: #a9b1d6;
+  }
+
+  /* Safety Indicator */
+  .safety-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+
+  .safety-indicator.safe {
+    color: #9ece6a;
+  }
+
+  .safety-indicator.moderate {
+    color: #e0af68;
+  }
+
+  .safety-indicator.dangerous {
+    color: #f7768e;
+  }
+
+  .safety-icon {
+    font-size: 14px;
+  }
+
+  /* Action Buttons */
+  .caro-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .action-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+  }
+
+  .action-btn.execute {
+    background: #9ece6a;
+    color: #1a1b26;
+  }
+
+  .action-btn.execute:hover {
+    background: #b9f27c;
+  }
+
+  .action-btn.modify {
+    background: rgba(122, 162, 247, 0.15);
+    color: #7aa2f7;
+    border: 1px solid rgba(122, 162, 247, 0.3);
+  }
+
+  .action-btn.modify:hover {
+    background: rgba(122, 162, 247, 0.25);
+  }
+
+  .action-btn.explain {
+    background: rgba(187, 154, 247, 0.15);
+    color: #bb9af7;
+    border: 1px solid rgba(187, 154, 247, 0.3);
+  }
+
+  .action-btn.explain:hover {
+    background: rgba(187, 154, 247, 0.25);
+  }
+
+  /* Command Output */
+  .command-output {
+    margin-left: 20px;
+    padding: 12px 16px;
+    background: rgba(26, 27, 38, 0.8);
+    border-radius: 6px;
+    color: #a9b1d6;
+    font-size: 13px;
+    white-space: pre-wrap;
+    line-height: 1.5;
+  }
+
+  .command-output.error {
+    color: #f7768e;
+    border-left: 3px solid #f7768e;
+  }
+
+  /* Direct command output (non-Caro) */
+  .direct-output {
+    color: #a9b1d6;
+    font-size: 13px;
+    white-space: pre-wrap;
+    padding-left: 20px;
+    line-height: 1.5;
+  }
+
+  /* Terminal Input Area */
+  .terminal-input-area {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed #414868;
+  }
+
+  .prompt {
+    display: flex;
+    color: #7aa2f7;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .prompt-user { color: #9ece6a; }
+  .prompt-at { color: #565f89; }
+  .prompt-host { color: #7aa2f7; }
+  .prompt-colon { color: #565f89; }
+  .prompt-path { color: #bb9af7; }
+  .prompt-symbol { color: #c0caf5; margin-left: 4px; }
+
+  .terminal-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #c0caf5;
+    font-family: inherit;
+    font-size: 14px;
+    caret-color: #ff9e64;
+  }
+
+  .terminal-input::placeholder {
+    color: #565f89;
+  }
+
+  /* Thinking Indicator */
+  .caro-thinking {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: rgba(255, 140, 66, 0.05);
+    border-top: 1px solid #414868;
+  }
+
+  .caro-thinking.hidden {
+    display: none;
+  }
+
+  .thinking-icon {
+    width: 24px;
+    height: 24px;
+    image-rendering: pixelated;
+    animation: pulse 1s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .thinking-text {
+    color: #ff9e64;
+    font-size: 13px;
+  }
+
+  .thinking-dots span {
+    color: #ff9e64;
+    animation: blink 1.4s infinite;
+    font-size: 16px;
+  }
+
+  .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes blink {
+    0%, 20% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* Scrollbar */
+  .terminal-body::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .terminal-body::-webkit-scrollbar-track {
+    background: #1a1b26;
+  }
+
+  .terminal-body::-webkit-scrollbar-thumb {
+    background: #414868;
+    border-radius: 4px;
+  }
+
+  .terminal-body::-webkit-scrollbar-thumb:hover {
+    background: #565f89;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .terminal-body {
+      padding: 16px;
+      min-height: 350px;
+    }
+
+    .welcome-caro {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .example-queries {
+      align-items: center;
+    }
+
+    .caro-actions {
+      flex-direction: column;
+    }
+
+    .action-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+
+<script>
+  import { getTerminalTutorEngine } from './LLMEngine';
+  import { createVirtualFileSystem, resolvePath, getDirectoryContents, getFileContent } from './utils';
+
+  // State
+  let isNaturalLanguageMode = true;
+  let currentPath = '/home/learner';
+  let commandHistory: string[] = [];
+  let historyIndex = -1;
+  const virtualFS = createVirtualFileSystem();
+
+  // DOM Elements
+  const terminalBody = document.getElementById('terminal-body')!;
+  const terminalOutput = document.getElementById('terminal-output')!;
+  const terminalInput = document.getElementById('terminal-input') as HTMLInputElement;
+  const promptPath = document.getElementById('prompt-path')!;
+  const modeToggle = document.getElementById('mode-toggle')!;
+  const modeLabel = document.getElementById('mode-label')!;
+  const caroThinking = document.getElementById('caro-thinking')!;
+
+  // Initialize
+  function init() {
+    setupInputHandlers();
+    setupModeToggle();
+    setupExampleQueries();
+    terminalInput.focus();
+  }
+
+  // Setup input handlers
+  function setupInputHandlers() {
+    terminalInput.addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter' && terminalInput.value.trim()) {
+        const input = terminalInput.value.trim();
+        terminalInput.value = '';
+
+        // Add to history
+        commandHistory.push(input);
+        historyIndex = commandHistory.length;
+
+        await processInput(input);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        navigateHistory(-1);
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        navigateHistory(1);
+      }
+    });
+  }
+
+  // Navigate command history
+  function navigateHistory(direction: number) {
+    const newIndex = historyIndex + direction;
+    if (newIndex >= 0 && newIndex < commandHistory.length) {
+      historyIndex = newIndex;
+      terminalInput.value = commandHistory[newIndex];
+    } else if (newIndex >= commandHistory.length) {
+      historyIndex = commandHistory.length;
+      terminalInput.value = '';
+    }
+  }
+
+  // Setup mode toggle
+  function setupModeToggle() {
+    modeToggle.addEventListener('click', () => {
+      isNaturalLanguageMode = !isNaturalLanguageMode;
+      modeLabel.textContent = isNaturalLanguageMode ? 'Natural Language' : 'Direct Commands';
+      modeToggle.classList.toggle('direct-mode', !isNaturalLanguageMode);
+      terminalInput.placeholder = isNaturalLanguageMode
+        ? 'Type a command or ask Caro in natural language...'
+        : 'Type shell commands directly...';
+    });
+  }
+
+  // Setup example query clicks
+  function setupExampleQueries() {
+    document.querySelectorAll('.example-queries code').forEach(code => {
+      code.addEventListener('click', () => {
+        terminalInput.value = code.textContent || '';
+        terminalInput.focus();
+      });
+    });
+  }
+
+  // Process input
+  async function processInput(input: string) {
+    // Detect if this is natural language or a direct command
+    const isNaturalLanguage = isNaturalLanguageMode && detectNaturalLanguage(input);
+
+    if (isNaturalLanguage) {
+      await processWithCaro(input);
+    } else {
+      await executeDirectCommand(input);
+    }
+
+    scrollToBottom();
+  }
+
+  // Detect if input is natural language
+  function detectNaturalLanguage(input: string): boolean {
+    // Direct shell patterns
+    const shellPatterns = [
+      /^(ls|cd|pwd|cat|mkdir|touch|rm|cp|mv|grep|find|echo|clear|exit)\b/,
+      /^\.{1,2}\//,  // ./ or ../
+      /^~/,          // ~
+      /^\//,         // Absolute path
+    ];
+
+    for (const pattern of shellPatterns) {
+      if (pattern.test(input)) return false;
+    }
+
+    // Natural language indicators
+    const nlPatterns = [
+      /\b(show|find|list|create|delete|move|copy|what|where|how|help|display)\b/i,
+      /\b(files?|folders?|directory|directories)\b/i,
+      /\?$/,  // Ends with question mark
+      /\s+(me|my|the|a|an|all|every)\s+/i,
+    ];
+
+    for (const pattern of nlPatterns) {
+      if (pattern.test(input)) return true;
+    }
+
+    // If contains spaces and doesn't start with known command, likely NL
+    return input.includes(' ') && !/^[a-z]+\s+-/.test(input);
+  }
+
+  // Process input with Caro (AI translation)
+  async function processWithCaro(input: string) {
+    // Add user input to output
+    addEntry({
+      type: 'natural-language',
+      input: input,
+    });
+
+    // Check if model is loaded
+    const engine = getTerminalTutorEngine();
+    const modelState = engine.getModelState();
+
+    if (modelState.status !== 'ready') {
+      addCaroResponse({
+        text: "I'd love to help, but I need an AI model loaded first! Go back to the model selector and load a model.",
+        command: null,
+        safetyLevel: 'safe',
+      });
+      return;
+    }
+
+    // Show thinking indicator
+    caroThinking.classList.remove('hidden');
+
+    try {
+      const result = await engine.translateToCommand(input);
+      caroThinking.classList.add('hidden');
+
+      addCaroResponse({
+        text: result.explanation || "Here's the command for that:",
+        command: result.command,
+        safetyLevel: result.safetyLevel || 'safe',
+        originalInput: input,
+      });
+    } catch (error) {
+      caroThinking.classList.add('hidden');
+      addCaroResponse({
+        text: `Sorry, I had trouble understanding that. Try rephrasing or type a direct command.`,
+        command: null,
+        safetyLevel: 'safe',
+      });
+    }
+  }
+
+  // Execute direct command
+  async function executeDirectCommand(command: string) {
+    // Add command to output
+    addEntry({
+      type: 'command',
+      input: command,
+    });
+
+    // Parse and execute command
+    const result = executeInVirtualFS(command);
+
+    if (result.output) {
+      addOutput(result.output, result.isError);
+    }
+  }
+
+  // Execute command in virtual filesystem
+  function executeInVirtualFS(command: string): { output: string; isError: boolean } {
+    const parts = command.trim().split(/\s+/);
+    const cmd = parts[0];
+    const args = parts.slice(1);
+
+    switch (cmd) {
+      case 'pwd':
+        return { output: currentPath, isError: false };
+
+      case 'ls': {
+        const targetPath = args[0] ? resolvePath(currentPath, args[0]) : currentPath;
+        const contents = getDirectoryContents(virtualFS, targetPath);
+        if (contents === null) {
+          return { output: `ls: ${targetPath}: No such file or directory`, isError: true };
+        }
+        const showHidden = args.includes('-a') || args.includes('-la') || args.includes('-al');
+        const filtered = showHidden ? contents : contents.filter(c => !c.startsWith('.'));
+        return { output: filtered.join('  ') || '(empty directory)', isError: false };
+      }
+
+      case 'cd': {
+        if (!args[0] || args[0] === '~') {
+          currentPath = '/home/learner';
+          updatePromptPath();
+          return { output: '', isError: false };
+        }
+        const newPath = resolvePath(currentPath, args[0]);
+        const contents = getDirectoryContents(virtualFS, newPath);
+        if (contents === null) {
+          return { output: `cd: ${args[0]}: No such file or directory`, isError: true };
+        }
+        currentPath = newPath;
+        updatePromptPath();
+        return { output: '', isError: false };
+      }
+
+      case 'cat': {
+        if (!args[0]) {
+          return { output: 'cat: missing file operand', isError: true };
+        }
+        const filePath = resolvePath(currentPath, args[0]);
+        const content = getFileContent(virtualFS, filePath);
+        if (content === null) {
+          return { output: `cat: ${args[0]}: No such file or directory`, isError: true };
+        }
+        return { output: content, isError: false };
+      }
+
+      case 'clear':
+        terminalOutput.innerHTML = '';
+        return { output: '', isError: false };
+
+      case 'echo':
+        return { output: args.join(' '), isError: false };
+
+      case 'whoami':
+        return { output: 'learner', isError: false };
+
+      case 'date':
+        return { output: new Date().toString(), isError: false };
+
+      case 'help':
+        return {
+          output: `Available commands: ls, cd, pwd, cat, echo, whoami, date, clear, help
+Or ask Caro anything in natural language!`,
+          isError: false
+        };
+
+      default:
+        return { output: `${cmd}: command not found`, isError: true };
+    }
+  }
+
+  // Update prompt path display
+  function updatePromptPath() {
+    const display = currentPath.replace('/home/learner', '~');
+    promptPath.textContent = display || '/';
+  }
+
+  // Add entry to output
+  function addEntry(entry: { type: string; input: string }) {
+    const div = document.createElement('div');
+    div.className = 'terminal-entry';
+
+    const inputDiv = document.createElement('div');
+    inputDiv.className = 'entry-input';
+    inputDiv.innerHTML = `
+      <span class="entry-prompt">learner@caro:${currentPath.replace('/home/learner', '~')}$</span>
+      <span class="entry-command">${escapeHtml(entry.input)}</span>
+    `;
+    div.appendChild(inputDiv);
+
+    terminalOutput.appendChild(div);
+  }
+
+  // Add Caro response
+  function addCaroResponse(response: {
+    text: string;
+    command: string | null;
+    safetyLevel: string;
+    originalInput?: string;
+  }) {
+    const lastEntry = terminalOutput.lastElementChild;
+    if (!lastEntry) return;
+
+    const responseDiv = document.createElement('div');
+    responseDiv.className = 'caro-response';
+
+    let html = `
+      <div class="caro-header">
+        <img src="/caro-pixel.png" alt="Caro" class="caro-avatar" />
+        <span class="caro-name">Caro</span>
+      </div>
+      <div class="caro-text">${escapeHtml(response.text)}</div>
+    `;
+
+    if (response.command) {
+      const safetyIcon = response.safetyLevel === 'safe' ? '✓' :
+                         response.safetyLevel === 'moderate' ? '⚠' : '✗';
+      const safetyText = response.safetyLevel === 'safe' ? 'Safe to run' :
+                         response.safetyLevel === 'moderate' ? 'Review before running' : 'Potentially dangerous';
+
+      html += `
+        <div class="caro-command-block">
+          <div class="caro-command">
+            <code>${escapeHtml(response.command)}</code>
+            <button class="copy-btn" title="Copy command">📋</button>
+          </div>
+        </div>
+        <div class="safety-indicator ${response.safetyLevel}">
+          <span class="safety-icon">${safetyIcon}</span>
+          <span>${safetyText}</span>
+        </div>
+        <div class="caro-actions">
+          <button class="action-btn execute" data-command="${escapeHtml(response.command)}">
+            ▶ Execute
+          </button>
+          <button class="action-btn explain" data-command="${escapeHtml(response.command)}">
+            💡 Explain
+          </button>
+        </div>
+      `;
+    }
+
+    responseDiv.innerHTML = html;
+    lastEntry.appendChild(responseDiv);
+
+    // Add event listeners
+    const executeBtn = responseDiv.querySelector('.action-btn.execute');
+    if (executeBtn) {
+      executeBtn.addEventListener('click', () => {
+        const cmd = (executeBtn as HTMLElement).dataset.command;
+        if (cmd) executeDirectCommand(cmd);
+      });
+    }
+
+    const explainBtn = responseDiv.querySelector('.action-btn.explain');
+    if (explainBtn) {
+      explainBtn.addEventListener('click', async () => {
+        const cmd = (explainBtn as HTMLElement).dataset.command;
+        if (cmd) {
+          await processWithCaro(`explain what this command does: ${cmd}`);
+        }
+      });
+    }
+
+    const copyBtn = responseDiv.querySelector('.copy-btn');
+    if (copyBtn && response.command) {
+      copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(response.command!);
+        (copyBtn as HTMLElement).textContent = '✓';
+        setTimeout(() => {
+          (copyBtn as HTMLElement).textContent = '📋';
+        }, 1500);
+      });
+    }
+  }
+
+  // Add output
+  function addOutput(output: string, isError: boolean = false) {
+    const lastEntry = terminalOutput.lastElementChild;
+    if (!lastEntry) return;
+
+    const outputDiv = document.createElement('div');
+    outputDiv.className = isError ? 'command-output error' : 'command-output';
+    outputDiv.textContent = output;
+    lastEntry.appendChild(outputDiv);
+  }
+
+  // Scroll to bottom
+  function scrollToBottom() {
+    terminalBody.scrollTop = terminalBody.scrollHeight;
+  }
+
+  // Escape HTML
+  function escapeHtml(text: string): string {
+    const map: Record<string, string> = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;',
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
+  }
+
+  // Initialize
+  init();
+</script>
