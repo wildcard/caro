@@ -1,0 +1,22 @@
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Featured article badge/seal -->
+  <!-- Outer decorative ring -->
+  <circle cx="40" cy="40" r="36" fill="none" stroke="#00E500" stroke-width="1" stroke-dasharray="4 2"/>
+
+  <!-- Main badge circle -->
+  <circle cx="40" cy="40" r="30" fill="#0a0a0a"/>
+  <circle cx="40" cy="40" r="30" fill="none" stroke="#00E500" stroke-width="2"/>
+
+  <!-- Inner accent ring -->
+  <circle cx="40" cy="40" r="24" fill="none" stroke="#00E500" stroke-width="1" opacity="0.4"/>
+
+  <!-- Star icon in center -->
+  <path d="M40 22 L43.5 32.5 L54.5 33 L46 40.5 L49 51.5 L40 45 L31 51.5 L34 40.5 L25.5 33 L36.5 32.5 Z"
+        fill="#00E500"/>
+
+  <!-- Decorative dots -->
+  <circle cx="40" cy="12" r="2" fill="#00E500"/>
+  <circle cx="40" cy="68" r="2" fill="#00E500"/>
+  <circle cx="12" cy="40" r="2" fill="#00E500"/>
+  <circle cx="68" cy="40" r="2" fill="#00E500"/>
+</svg>

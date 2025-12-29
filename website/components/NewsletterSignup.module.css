@@ -1,0 +1,236 @@
+/**
+ * NewsletterSignup Component Styles
+ */
+
+.wrapper {
+  padding: 2.5rem;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CONTENT
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.content {
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.description {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  max-width: 40ch;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FORM
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.form {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.inputWrapper {
+  flex: 1;
+}
+
+.input {
+  width: 100%;
+  height: 2.75rem;
+  padding: 0 1rem;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  color: var(--text-primary);
+  background-color: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.input::placeholder {
+  color: var(--input-placeholder);
+}
+
+.input:hover {
+  background-color: var(--input-bg-hover);
+  border-color: var(--input-border-hover);
+}
+
+.input:focus {
+  background-color: var(--input-bg-focus);
+  border-color: var(--input-border-focus);
+  box-shadow: 0 0 0 3px var(--green-alpha-15);
+}
+
+.inputError {
+  border-color: var(--color-error) !important;
+}
+
+.inputError:focus {
+  box-shadow: 0 0 0 3px var(--color-error-bg) !important;
+}
+
+.errorMessage {
+  margin-top: 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: var(--color-error);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PRIVACY NOTE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.privacy {
+  margin-top: 1rem;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: var(--text-tertiary);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SUCCESS STATE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.successState {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.successIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 1rem;
+  background-color: var(--green-alpha-15);
+  border-radius: var(--radius-full);
+  color: var(--green-500);
+}
+
+.successTitle {
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.successMessage {
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin-bottom: 1.25rem;
+}
+
+.resetButton {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+  color: var(--blue-500);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.resetButton:hover {
+  color: var(--blue-400);
+  text-decoration: underline;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   VARIANTS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Compact - Smaller padding, single row */
+.compact {
+  padding: 1.5rem;
+}
+
+.compact .title {
+  font-size: 1.125rem;
+}
+
+.compact .description {
+  font-size: 0.875rem;
+}
+
+.compact .input {
+  height: 2.25rem;
+  font-size: 0.875rem;
+}
+
+/* Inline - Horizontal layout */
+.inline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.inline .content {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.inline .form {
+  flex-shrink: 0;
+  min-width: 320px;
+}
+
+.inline .privacy {
+  display: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .wrapper {
+    padding: 1.75rem;
+  }
+
+  .form {
+    flex-direction: column;
+  }
+
+  .inline {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .inline .form {
+    min-width: 0;
+  }
+
+  .inline .content {
+    margin-bottom: 1.25rem;
+  }
+
+  .inline .privacy {
+    display: block;
+  }
+}

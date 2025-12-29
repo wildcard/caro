@@ -1,0 +1,516 @@
+/**
+ * Caro Blog - Color Palette System
+ * =================================
+ * A comprehensive color system for a modern tech blog.
+ * Inspired by Daytona's Dotfiles Insider aesthetic.
+ *
+ * Primary: Neon Green (#00E500)
+ * Secondary: Bright Blue (#0080FF), Coral (#FF5733)
+ * Base: Pure black/white with neutral grays
+ */
+
+:root {
+  /* ═══════════════════════════════════════════════════════════════════════════
+     GRAY SCALE
+     Neutral grays from pure black to pure white
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --gray-950: #000000;
+  --gray-900: #0a0a0a;
+  --gray-850: #0f0f0f;
+  --gray-800: #141414;
+  --gray-750: #1a1a1a;
+  --gray-700: #212121;
+  --gray-650: #292929;
+  --gray-600: #333333;
+  --gray-550: #404040;
+  --gray-500: #525252;
+  --gray-450: #666666;
+  --gray-400: #737373;
+  --gray-350: #858585;
+  --gray-300: #9a9a9a;
+  --gray-250: #adadad;
+  --gray-200: #c4c4c4;
+  --gray-150: #d4d4d4;
+  --gray-100: #e5e5e5;
+  --gray-50: #f5f5f5;
+  --gray-0: #ffffff;
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     PRIMARY ACCENT - NEON GREEN
+     Vibrant, eye-catching green for primary interactions
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --green-950: #002200;
+  --green-900: #003d00;
+  --green-800: #005c00;
+  --green-700: #007a00;
+  --green-600: #009900;
+  --green-500: #00E500;  /* PRIMARY ACCENT */
+  --green-400: #33ff33;
+  --green-300: #66ff66;
+  --green-200: #99ff99;
+  --green-100: #ccffcc;
+  --green-50: #e6ffe6;
+
+  /* Neon Green with Alpha Transparency */
+  --green-alpha-5: rgba(0, 229, 0, 0.05);
+  --green-alpha-10: rgba(0, 229, 0, 0.10);
+  --green-alpha-15: rgba(0, 229, 0, 0.15);
+  --green-alpha-20: rgba(0, 229, 0, 0.20);
+  --green-alpha-25: rgba(0, 229, 0, 0.25);
+  --green-alpha-30: rgba(0, 229, 0, 0.30);
+  --green-alpha-40: rgba(0, 229, 0, 0.40);
+  --green-alpha-50: rgba(0, 229, 0, 0.50);
+  --green-alpha-60: rgba(0, 229, 0, 0.60);
+  --green-alpha-70: rgba(0, 229, 0, 0.70);
+  --green-alpha-80: rgba(0, 229, 0, 0.80);
+  --green-alpha-90: rgba(0, 229, 0, 0.90);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     SECONDARY ACCENT - BRIGHT BLUE
+     Used for links, secondary actions, informational elements
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --blue-950: #001433;
+  --blue-900: #002966;
+  --blue-800: #003d99;
+  --blue-700: #0052cc;
+  --blue-600: #0066ff;
+  --blue-500: #0080FF;  /* SECONDARY ACCENT */
+  --blue-400: #3399ff;
+  --blue-300: #66b3ff;
+  --blue-200: #99ccff;
+  --blue-100: #cce6ff;
+  --blue-50: #e6f2ff;
+
+  /* Bright Blue with Alpha Transparency */
+  --blue-alpha-5: rgba(0, 128, 255, 0.05);
+  --blue-alpha-10: rgba(0, 128, 255, 0.10);
+  --blue-alpha-15: rgba(0, 128, 255, 0.15);
+  --blue-alpha-20: rgba(0, 128, 255, 0.20);
+  --blue-alpha-25: rgba(0, 128, 255, 0.25);
+  --blue-alpha-30: rgba(0, 128, 255, 0.30);
+  --blue-alpha-40: rgba(0, 128, 255, 0.40);
+  --blue-alpha-50: rgba(0, 128, 255, 0.50);
+  --blue-alpha-60: rgba(0, 128, 255, 0.60);
+  --blue-alpha-70: rgba(0, 128, 255, 0.70);
+  --blue-alpha-80: rgba(0, 128, 255, 0.80);
+  --blue-alpha-90: rgba(0, 128, 255, 0.90);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     TERTIARY ACCENT - CORAL
+     Used for warnings, highlights, attention-grabbing elements
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --coral-950: #1a0a00;
+  --coral-900: #331400;
+  --coral-800: #661f00;
+  --coral-700: #992900;
+  --coral-600: #cc3300;
+  --coral-500: #FF5733;  /* TERTIARY ACCENT */
+  --coral-400: #ff7a5c;
+  --coral-300: #ff9c85;
+  --coral-200: #ffbfad;
+  --coral-100: #ffe1d6;
+  --coral-50: #fff0eb;
+
+  /* Coral with Alpha Transparency */
+  --coral-alpha-5: rgba(255, 87, 51, 0.05);
+  --coral-alpha-10: rgba(255, 87, 51, 0.10);
+  --coral-alpha-15: rgba(255, 87, 51, 0.15);
+  --coral-alpha-20: rgba(255, 87, 51, 0.20);
+  --coral-alpha-25: rgba(255, 87, 51, 0.25);
+  --coral-alpha-30: rgba(255, 87, 51, 0.30);
+  --coral-alpha-40: rgba(255, 87, 51, 0.40);
+  --coral-alpha-50: rgba(255, 87, 51, 0.50);
+  --coral-alpha-60: rgba(255, 87, 51, 0.60);
+  --coral-alpha-70: rgba(255, 87, 51, 0.70);
+  --coral-alpha-80: rgba(255, 87, 51, 0.80);
+  --coral-alpha-90: rgba(255, 87, 51, 0.90);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     SEMANTIC COLORS
+     Consistent meaning across the interface
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* Success - Uses primary green */
+  --color-success: var(--green-500);
+  --color-success-light: var(--green-400);
+  --color-success-dark: var(--green-600);
+  --color-success-bg: var(--green-alpha-10);
+  --color-success-border: var(--green-alpha-30);
+
+  /* Info - Uses secondary blue */
+  --color-info: var(--blue-500);
+  --color-info-light: var(--blue-400);
+  --color-info-dark: var(--blue-600);
+  --color-info-bg: var(--blue-alpha-10);
+  --color-info-border: var(--blue-alpha-30);
+
+  /* Warning - Uses coral */
+  --color-warning: var(--coral-500);
+  --color-warning-light: var(--coral-400);
+  --color-warning-dark: var(--coral-600);
+  --color-warning-bg: var(--coral-alpha-10);
+  --color-warning-border: var(--coral-alpha-30);
+
+  /* Error - Stronger red variant */
+  --color-error: #ff3333;
+  --color-error-light: #ff5c5c;
+  --color-error-dark: #cc2929;
+  --color-error-bg: rgba(255, 51, 51, 0.10);
+  --color-error-border: rgba(255, 51, 51, 0.30);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     BACKGROUND COLORS (DARK MODE - DEFAULT)
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --bg-base: var(--gray-950);           /* #000000 - Pure black base */
+  --bg-surface: var(--gray-900);        /* #0a0a0a - Elevated surface */
+  --bg-elevated: var(--gray-850);       /* #0f0f0f - Cards, modals */
+  --bg-overlay: var(--gray-800);        /* #141414 - Dropdowns, popovers */
+  --bg-subtle: var(--gray-750);         /* #1a1a1a - Subtle backgrounds */
+  --bg-muted: var(--gray-700);          /* #212121 - Muted backgrounds */
+  --bg-hover: var(--gray-650);          /* #292929 - Hover states */
+  --bg-active: var(--gray-600);         /* #333333 - Active/pressed states */
+
+  /* Code block backgrounds */
+  --bg-code: var(--gray-850);
+  --bg-code-header: var(--gray-800);
+  --bg-inline-code: var(--gray-750);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     TEXT COLORS (DARK MODE - DEFAULT)
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --text-primary: var(--gray-0);        /* #ffffff - Primary content */
+  --text-secondary: var(--gray-300);    /* #9a9a9a - Secondary content */
+  --text-tertiary: var(--gray-450);     /* #666666 - Tertiary content */
+  --text-muted: var(--gray-550);        /* #404040 - Disabled, placeholders */
+  --text-inverse: var(--gray-950);      /* #000000 - Text on light backgrounds */
+
+  /* Text on accent colors */
+  --text-on-green: var(--gray-950);
+  --text-on-blue: var(--gray-0);
+  --text-on-coral: var(--gray-950);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     BORDER COLORS
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --border-subtle: var(--gray-800);     /* Subtle dividers */
+  --border-default: var(--gray-700);    /* Default borders */
+  --border-strong: var(--gray-600);     /* Emphasized borders */
+  --border-interactive: var(--gray-500); /* Interactive element borders */
+
+  /* Accent borders */
+  --border-accent: var(--green-500);
+  --border-accent-subtle: var(--green-alpha-30);
+  --border-info: var(--blue-500);
+  --border-warning: var(--coral-500);
+  --border-error: var(--color-error);
+
+  /* Focus ring */
+  --focus-ring: var(--green-alpha-50);
+  --focus-ring-offset: var(--gray-950);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     INTERACTIVE STATE COLORS
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* Primary Button States */
+  --btn-primary-bg: var(--green-500);
+  --btn-primary-bg-hover: var(--green-400);
+  --btn-primary-bg-active: var(--green-600);
+  --btn-primary-text: var(--gray-950);
+  --btn-primary-border: var(--green-500);
+
+  /* Secondary Button States */
+  --btn-secondary-bg: transparent;
+  --btn-secondary-bg-hover: var(--green-alpha-10);
+  --btn-secondary-bg-active: var(--green-alpha-20);
+  --btn-secondary-text: var(--green-500);
+  --btn-secondary-border: var(--green-500);
+
+  /* Ghost Button States */
+  --btn-ghost-bg: transparent;
+  --btn-ghost-bg-hover: var(--gray-750);
+  --btn-ghost-bg-active: var(--gray-700);
+  --btn-ghost-text: var(--gray-0);
+  --btn-ghost-border: transparent;
+
+  /* Link States */
+  --link-color: var(--blue-500);
+  --link-color-hover: var(--blue-400);
+  --link-color-active: var(--blue-600);
+  --link-color-visited: var(--blue-300);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     COMPONENT-SPECIFIC COLORS
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* Card Component */
+  --card-bg: var(--bg-elevated);
+  --card-bg-hover: var(--bg-overlay);
+  --card-border: var(--border-subtle);
+  --card-border-hover: var(--border-default);
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  --card-shadow-hover: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+  --card-accent-glow: var(--green-alpha-25);
+
+  /* Input Component */
+  --input-bg: var(--bg-subtle);
+  --input-bg-hover: var(--bg-muted);
+  --input-bg-focus: var(--bg-muted);
+  --input-border: var(--border-default);
+  --input-border-hover: var(--border-strong);
+  --input-border-focus: var(--green-500);
+  --input-placeholder: var(--text-muted);
+
+  /* Tag/Badge Component */
+  --tag-bg: var(--bg-subtle);
+  --tag-bg-hover: var(--green-alpha-15);
+  --tag-text: var(--text-secondary);
+  --tag-text-hover: var(--green-500);
+  --tag-border: var(--border-subtle);
+  --tag-border-hover: var(--green-500);
+
+  /* Navigation */
+  --nav-bg: rgba(0, 0, 0, 0.8);
+  --nav-bg-blur: blur(12px);
+  --nav-border: var(--border-subtle);
+  --nav-link: var(--text-secondary);
+  --nav-link-hover: var(--text-primary);
+  --nav-link-active: var(--green-500);
+
+  /* Footer */
+  --footer-bg: var(--bg-surface);
+  --footer-border: var(--border-subtle);
+  --footer-text: var(--text-secondary);
+  --footer-link: var(--text-tertiary);
+  --footer-link-hover: var(--text-primary);
+
+  /* Code Syntax Highlighting */
+  --syntax-comment: #6a737d;
+  --syntax-keyword: var(--coral-500);
+  --syntax-string: var(--green-400);
+  --syntax-number: var(--blue-400);
+  --syntax-function: var(--blue-500);
+  --syntax-variable: var(--gray-0);
+  --syntax-operator: var(--coral-400);
+  --syntax-class: var(--green-500);
+  --syntax-constant: var(--blue-300);
+  --syntax-punctuation: var(--gray-400);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     GRADIENTS
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* Primary Gradients */
+  --gradient-green: linear-gradient(135deg, var(--green-600) 0%, var(--green-400) 100%);
+  --gradient-blue: linear-gradient(135deg, var(--blue-600) 0%, var(--blue-400) 100%);
+  --gradient-coral: linear-gradient(135deg, var(--coral-600) 0%, var(--coral-400) 100%);
+
+  /* Accent Gradient - Green to Blue */
+  --gradient-accent: linear-gradient(135deg, var(--green-500) 0%, var(--blue-500) 100%);
+
+  /* Background Gradients */
+  --gradient-dark: linear-gradient(180deg, var(--gray-950) 0%, var(--gray-900) 100%);
+  --gradient-surface: linear-gradient(180deg, var(--gray-900) 0%, var(--gray-850) 100%);
+
+  /* Glow Effects */
+  --glow-green: 0 0 20px var(--green-alpha-40), 0 0 40px var(--green-alpha-20);
+  --glow-blue: 0 0 20px var(--blue-alpha-40), 0 0 40px var(--blue-alpha-20);
+  --glow-coral: 0 0 20px var(--coral-alpha-40), 0 0 40px var(--coral-alpha-20);
+
+  /* Text Gradients */
+  --gradient-text-accent: linear-gradient(90deg, var(--green-500) 0%, var(--blue-500) 100%);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     OVERLAY COLORS
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --overlay-light: rgba(255, 255, 255, 0.05);
+  --overlay-medium: rgba(255, 255, 255, 0.10);
+  --overlay-heavy: rgba(255, 255, 255, 0.15);
+
+  --overlay-dark-light: rgba(0, 0, 0, 0.3);
+  --overlay-dark-medium: rgba(0, 0, 0, 0.5);
+  --overlay-dark-heavy: rgba(0, 0, 0, 0.7);
+  --overlay-dark-solid: rgba(0, 0, 0, 0.9);
+
+  /* Modal/Dialog backdrop */
+  --backdrop: rgba(0, 0, 0, 0.8);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     SCROLLBAR COLORS
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --scrollbar-track: var(--bg-surface);
+  --scrollbar-thumb: var(--gray-600);
+  --scrollbar-thumb-hover: var(--gray-500);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     SELECTION COLORS
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --selection-bg: var(--green-500);
+  --selection-text: var(--gray-950);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   LIGHT MODE THEME
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+[data-theme="light"] {
+  /* Background Colors */
+  --bg-base: var(--gray-0);
+  --bg-surface: var(--gray-50);
+  --bg-elevated: var(--gray-0);
+  --bg-overlay: var(--gray-0);
+  --bg-subtle: var(--gray-100);
+  --bg-muted: var(--gray-150);
+  --bg-hover: var(--gray-200);
+  --bg-active: var(--gray-250);
+
+  /* Code backgrounds */
+  --bg-code: var(--gray-100);
+  --bg-code-header: var(--gray-150);
+  --bg-inline-code: var(--gray-100);
+
+  /* Text Colors */
+  --text-primary: var(--gray-950);
+  --text-secondary: var(--gray-500);
+  --text-tertiary: var(--gray-400);
+  --text-muted: var(--gray-350);
+  --text-inverse: var(--gray-0);
+
+  /* Border Colors */
+  --border-subtle: var(--gray-150);
+  --border-default: var(--gray-200);
+  --border-strong: var(--gray-300);
+  --border-interactive: var(--gray-400);
+
+  /* Adjusted accent colors for light mode legibility */
+  --green-500: #00cc00;  /* Slightly darker for contrast */
+  --blue-500: #0066cc;
+  --coral-500: #e64a2e;
+
+  /* Button adjustments */
+  --btn-primary-text: var(--gray-0);
+
+  /* Card Component */
+  --card-bg: var(--gray-0);
+  --card-bg-hover: var(--gray-50);
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --card-shadow-hover: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+
+  /* Navigation */
+  --nav-bg: rgba(255, 255, 255, 0.9);
+
+  /* Footer */
+  --footer-bg: var(--gray-50);
+
+  /* Focus ring */
+  --focus-ring-offset: var(--gray-0);
+
+  /* Scrollbar */
+  --scrollbar-track: var(--gray-100);
+  --scrollbar-thumb: var(--gray-300);
+  --scrollbar-thumb-hover: var(--gray-400);
+
+  /* Overlays */
+  --overlay-light: rgba(0, 0, 0, 0.02);
+  --overlay-medium: rgba(0, 0, 0, 0.05);
+  --overlay-heavy: rgba(0, 0, 0, 0.08);
+
+  /* Backdrop */
+  --backdrop: rgba(0, 0, 0, 0.5);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   AUTOMATIC DARK MODE (respects system preference)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    /* Background Colors */
+    --bg-base: var(--gray-0);
+    --bg-surface: var(--gray-50);
+    --bg-elevated: var(--gray-0);
+    --bg-overlay: var(--gray-0);
+    --bg-subtle: var(--gray-100);
+    --bg-muted: var(--gray-150);
+    --bg-hover: var(--gray-200);
+    --bg-active: var(--gray-250);
+
+    /* Text Colors */
+    --text-primary: var(--gray-950);
+    --text-secondary: var(--gray-500);
+    --text-tertiary: var(--gray-400);
+    --text-muted: var(--gray-350);
+    --text-inverse: var(--gray-0);
+
+    /* Border Colors */
+    --border-subtle: var(--gray-150);
+    --border-default: var(--gray-200);
+    --border-strong: var(--gray-300);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   HIGH CONTRAST MODE
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+@media (prefers-contrast: high) {
+  :root {
+    --text-secondary: var(--gray-200);
+    --text-tertiary: var(--gray-300);
+    --border-subtle: var(--gray-600);
+    --border-default: var(--gray-500);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   UTILITY CLASSES
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* Text Colors */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-tertiary { color: var(--text-tertiary); }
+.text-muted { color: var(--text-muted); }
+.text-accent { color: var(--green-500); }
+.text-info { color: var(--blue-500); }
+.text-warning { color: var(--coral-500); }
+.text-error { color: var(--color-error); }
+.text-success { color: var(--color-success); }
+
+/* Background Colors */
+.bg-base { background-color: var(--bg-base); }
+.bg-surface { background-color: var(--bg-surface); }
+.bg-elevated { background-color: var(--bg-elevated); }
+.bg-subtle { background-color: var(--bg-subtle); }
+.bg-accent { background-color: var(--green-500); }
+.bg-info { background-color: var(--blue-500); }
+.bg-warning { background-color: var(--coral-500); }
+
+/* Border Colors */
+.border-subtle { border-color: var(--border-subtle); }
+.border-default { border-color: var(--border-default); }
+.border-strong { border-color: var(--border-strong); }
+.border-accent { border-color: var(--green-500); }
+
+/* Gradient Text */
+.text-gradient {
+  background: var(--gradient-text-accent);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glow Effects */
+.glow-green { box-shadow: var(--glow-green); }
+.glow-blue { box-shadow: var(--glow-blue); }
+.glow-coral { box-shadow: var(--glow-coral); }

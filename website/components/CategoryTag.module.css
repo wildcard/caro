@@ -1,0 +1,133 @@
+/**
+ * CategoryTag Component Styles
+ */
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-default);
+  background-color: transparent;
+  color: var(--text-secondary);
+  cursor: default;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SIZES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.sm {
+  height: 1.5rem;
+  padding-inline: 0.625rem;
+  font-size: 0.625rem;
+}
+
+.md {
+  height: 1.75rem;
+  padding-inline: 0.875rem;
+  font-size: 0.6875rem;
+}
+
+.lg {
+  height: 2rem;
+  padding-inline: 1rem;
+  font-size: 0.75rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   INTERACTIVE STATE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.interactive {
+  cursor: pointer;
+}
+
+.interactive:hover {
+  color: var(--green-500);
+  border-color: var(--green-500);
+  background-color: var(--green-alpha-10);
+}
+
+.interactive:focus-visible {
+  outline: 2px solid var(--green-500);
+  outline-offset: 2px;
+}
+
+.interactive:active {
+  background-color: var(--green-alpha-20);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   VARIANTS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Primary - Filled with green */
+.primary {
+  color: var(--gray-950);
+  background-color: var(--green-500);
+  border-color: var(--green-500);
+}
+
+.primary.interactive:hover {
+  background-color: var(--green-400);
+  border-color: var(--green-400);
+  box-shadow: var(--glow-green);
+}
+
+/* Blue variant */
+.blue {
+  color: var(--blue-500);
+  border-color: var(--blue-500);
+}
+
+.blue.interactive:hover {
+  color: var(--blue-400);
+  background-color: var(--blue-alpha-10);
+  border-color: var(--blue-400);
+}
+
+/* Coral variant */
+.coral {
+  color: var(--coral-500);
+  border-color: var(--coral-500);
+}
+
+.coral.interactive:hover {
+  color: var(--coral-400);
+  background-color: var(--coral-alpha-10);
+  border-color: var(--coral-400);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SELECTED STATE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.selected {
+  color: var(--gray-950);
+  background-color: var(--green-500);
+  border-color: var(--green-500);
+}
+
+.selected.interactive:hover {
+  background-color: var(--green-400);
+  border-color: var(--green-400);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LABEL
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.label {
+  white-space: nowrap;
+}

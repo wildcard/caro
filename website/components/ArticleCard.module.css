@@ -1,0 +1,239 @@
+/**
+ * ArticleCard Component Styles
+ */
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.4s ease,
+    transform 0.4s ease;
+}
+
+.card:hover {
+  border-color: var(--card-border-hover);
+  box-shadow: var(--card-shadow-hover);
+  transform: translateY(-4px);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   IMAGE SECTION
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.imageLink {
+  display: block;
+  overflow: hidden;
+}
+
+.imageWrapper {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.card:hover .image {
+  transform: scale(1.05);
+}
+
+.imageOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 60%,
+    rgba(0, 0, 0, 0.4) 100%
+  );
+  pointer-events: none;
+}
+
+/* Neon green accent glow on hover */
+.accentGlow {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--green-500);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s ease;
+}
+
+.card:hover .accentGlow {
+  transform: scaleX(1);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CONTENT SECTION
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 1.5rem;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.featuredBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gray-950);
+  background: var(--green-500);
+  border-radius: var(--radius-full);
+}
+
+.title {
+  margin-bottom: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.titleLink {
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.titleLink:hover {
+  color: var(--green-500);
+}
+
+.excerpt {
+  flex: 1;
+  margin-bottom: 1.25rem;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.footer {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   VARIANTS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Horizontal layout */
+.horizontal {
+  flex-direction: row;
+}
+
+.horizontal .imageWrapper {
+  width: 280px;
+  flex-shrink: 0;
+  aspect-ratio: 4 / 3;
+}
+
+.horizontal .content {
+  padding: 1.25rem 1.5rem;
+}
+
+.horizontal .title {
+  font-size: 1.125rem;
+}
+
+.horizontal .excerpt {
+  -webkit-line-clamp: 2;
+}
+
+/* Featured layout - larger and more prominent */
+.featured {
+  border-color: var(--green-alpha-30);
+}
+
+.featured::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: var(--radius-lg);
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    var(--green-500) 0%,
+    var(--blue-500) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.featured:hover::before {
+  opacity: 1;
+}
+
+.featured .title {
+  font-size: 1.5rem;
+}
+
+.featured .imageWrapper {
+  aspect-ratio: 2 / 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .horizontal {
+    flex-direction: column;
+  }
+
+  .horizontal .imageWrapper {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+  }
+
+  .content {
+    padding: 1.25rem;
+  }
+
+  .title {
+    font-size: 1.125rem;
+  }
+
+  .featured .title {
+    font-size: 1.25rem;
+  }
+}

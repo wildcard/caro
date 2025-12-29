@@ -1,0 +1,134 @@
+/**
+ * AuthorByline Component Styles
+ */
+
+.byline {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.interactive {
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.interactive:hover {
+  opacity: 0.8;
+}
+
+.interactive:hover .name {
+  color: var(--green-500);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   AVATAR
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.avatarWrapper {
+  flex-shrink: 0;
+}
+
+.avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  border: 2px solid var(--border-subtle);
+}
+
+.avatarPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--bg-subtle);
+  border: 2px solid var(--border-subtle);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   INFO
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.name {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+  transition: color 0.2s ease;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+}
+
+.date {
+  text-transform: uppercase;
+}
+
+.separator {
+  color: var(--text-muted);
+}
+
+.readingTime {
+  text-transform: uppercase;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SIZES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.sm .avatar,
+.sm .avatarPlaceholder {
+  width: 2rem;
+  height: 2rem;
+}
+
+.sm .avatarPlaceholder {
+  font-size: 0.875rem;
+}
+
+.sm .name {
+  font-size: 0.6875rem;
+}
+
+.sm .meta {
+  font-size: 0.625rem;
+}
+
+.lg .avatar,
+.lg .avatarPlaceholder {
+  width: 3rem;
+  height: 3rem;
+}
+
+.lg .avatarPlaceholder {
+  font-size: 1.25rem;
+}
+
+.lg .name {
+  font-size: 0.875rem;
+}
+
+.lg .meta {
+  font-size: 0.75rem;
+}

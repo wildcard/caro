@@ -1,0 +1,294 @@
+/**
+ * HomePage Styles
+ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SHARED
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.container {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.sectionLink {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.sectionLink:hover {
+  color: var(--green-500);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HERO SECTION
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.hero {
+  padding: 6rem 0 4rem;
+  background: var(--gradient-dark);
+  overflow: hidden;
+}
+
+.heroContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.heroContent {
+  max-width: 560px;
+}
+
+.heroTitle {
+  font-family: var(--font-mono);
+  font-size: 4rem;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+}
+
+.heroAccent {
+  color: var(--green-500);
+  text-shadow: var(--glow-green);
+}
+
+.heroSubtitle {
+  font-family: var(--font-sans);
+  font-size: 1.25rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  max-width: 480px;
+}
+
+.heroActions {
+  display: flex;
+  gap: 1rem;
+}
+
+/* Terminal Visual */
+.heroVisual {
+  display: flex;
+  justify-content: center;
+}
+
+.terminalWindow {
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg-code);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--card-shadow-hover);
+}
+
+.terminalHeader {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.875rem 1rem;
+  background: var(--bg-code-header);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: var(--radius-full);
+}
+
+.dot[data-color="red"] {
+  background: #ff5f56;
+}
+
+.dot[data-color="yellow"] {
+  background: #ffbd2e;
+}
+
+.dot[data-color="green"] {
+  background: #27c93f;
+}
+
+.terminalBody {
+  padding: 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.8;
+}
+
+.terminalLine {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.prompt {
+  color: var(--green-500);
+  font-weight: 600;
+}
+
+.command {
+  color: var(--text-primary);
+}
+
+.output {
+  color: var(--text-secondary);
+  padding-left: 1.5rem;
+}
+
+.cursor {
+  display: inline-block;
+  width: 0.5rem;
+  height: 1.125rem;
+  background: var(--green-500);
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FEATURED SECTION
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.featured {
+  padding: 4rem 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ARTICLES SECTION
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.articles {
+  padding: 4rem 0;
+  background: var(--bg-surface);
+}
+
+.categoryFilter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.articleGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.loadMore {
+  display: flex;
+  justify-content: center;
+  margin-top: 3rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   NEWSLETTER SECTION
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.newsletter {
+  padding: 4rem 0 6rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 1024px) {
+  .heroContainer {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .heroContent {
+    max-width: none;
+    text-align: center;
+    margin: 0 auto;
+  }
+
+  .heroSubtitle {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .heroActions {
+    justify-content: center;
+  }
+
+  .terminalWindow {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .articleGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding: 4rem 0 3rem;
+  }
+
+  .heroTitle {
+    font-size: 2.5rem;
+  }
+
+  .heroSubtitle {
+    font-size: 1.0625rem;
+  }
+
+  .heroActions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .articleGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .terminalWindow {
+    max-width: none;
+  }
+
+  .terminalBody {
+    font-size: 0.75rem;
+  }
+}

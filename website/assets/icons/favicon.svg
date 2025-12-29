@@ -1,0 +1,11 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Favicon - 16x16px concept -->
+  <!-- Simple terminal prompt at favicon scale -->
+  <rect width="16" height="16" rx="3" fill="#0a0a0a"/>
+
+  <!-- Terminal prompt arrow -->
+  <path d="M4 5 L8 8 L4 11" stroke="#00E500" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Cursor -->
+  <rect x="10" y="7" width="3" height="2" rx="0.5" fill="#00E500"/>
+</svg>
