@@ -1,0 +1,39 @@
+{
+  "name": "Caro Shell Command Helper",
+  "description": "Generate safe, POSIX-compliant shell commands using Caro's LLM-powered command generation with comprehensive safety validation. Integrates seamlessly into Claude Code workflows.",
+  "version": "1.0.0",
+  "author": "wildcard",
+  "repository": "https://github.com/wildcard/caro",
+  "homepage": "https://caro.sh",
+  "license": "AGPL-3.0",
+  "skills": [
+    {
+      "name": "caro-shell-helper",
+      "description": "Safe shell command generation with POSIX compliance and risk assessment. Auto-activates when users need help generating shell commands from natural language.",
+      "path": ".claude/skills/caro-shell-helper"
+    }
+  ],
+  "installation": {
+    "requires": {
+      "caro": "optional"
+    },
+    "post_install": "The skill will guide you through Caro installation if needed. For immediate use, install Caro: cargo install caro"
+  },
+  "keywords": [
+    "shell",
+    "commands",
+    "safety",
+    "posix",
+    "bash",
+    "zsh",
+    "llm",
+    "code-generation",
+    "automation",
+    "sysadmin"
+  ],
+  "categories": [
+    "development",
+    "productivity",
+    "system-administration"
+  ]
+}

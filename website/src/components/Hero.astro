@@ -11,7 +11,7 @@ import { heroMorphs } from '../data/ascii-art';
     <div class="logo">Caro</div>
     <h1 class="tagline">Your loyal shell companion</h1>
     <p class="subtitle">
-      A specialized POSIX shell command agent with empathy and agency. Available as an MCP for Claude and as a dedicated Skill. She keeps you safe while helping Claude get the job done.
+      A specialized POSIX shell command agent for Claude users. Validates AI-generated commands with safety-first design, detects dangerous patterns, and ensures POSIX compliance. Install as a Claude Skill with <code>/plugin install wildcard/caro</code>
     </p>
     <div class="github-star-wrapper">
       <GitHubStarButton />
@@ -77,9 +77,24 @@ import { heroMorphs } from '../data/ascii-art';
     font-size: 20px;
     color: var(--color-text-secondary);
     margin-bottom: 30px;
-    max-width: 650px;
+    max-width: 700px;
     line-height: 1.7;
     transition: color 0.3s ease;
+  }
+
+  .subtitle code {
+    background: rgba(255, 140, 66, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 0.9em;
+    color: #ff8c42;
+    border: 1px solid rgba(255, 140, 66, 0.2);
+  }
+
+  :global(.dark) .subtitle code {
+    background: rgba(255, 140, 66, 0.15);
+    border-color: rgba(255, 140, 66, 0.3);
   }
 
   .github-star-wrapper {
