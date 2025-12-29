@@ -1,5 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import AnnouncementBanner from '../../components/AnnouncementBanner.astro';
+import Navigation from '../../components/Navigation.astro';
 import GetStartedPaths from '../../components/explore/GetStartedPaths.astro';
 import UseCaseGallery from '../../components/explore/UseCaseGallery.astro';
 import IntegrationMethods from '../../components/explore/IntegrationMethods.astro';
@@ -7,17 +9,21 @@ import SafetyShowcase from '../../components/explore/SafetyShowcase.astro';
 import BackendOptions from '../../components/explore/BackendOptions.astro';
 import PlatformGuides from '../../components/explore/PlatformGuides.astro';
 import Footer from '../../components/Footer.astro';
+import { SITE_CONFIG } from '../../config/site';
 ---
 
 <Layout
   title="Explore Caro - Your Loyal Shell Companion"
   description="Discover Caro's features, backends, safety validation, and platform-specific guides. Get started with natural language to shell command conversion."
 >
+  <AnnouncementBanner />
+  <Navigation />
+
   <!-- Hero Section -->
   <section class="explore-hero">
     <div class="container">
       <div class="hero-content">
-        <div class="early-dev-badge">🚧 Early Development (v0.1.0)</div>
+        <div class="early-dev-badge">v{SITE_CONFIG.version}</div>
         <h1>Explore Caro</h1>
         <p class="hero-subtitle">
           Your loyal companion for safe shell command generation.
@@ -73,17 +79,17 @@ import Footer from '../../components/Footer.astro';
         Caro is open source and built with the community. Contribute, report issues, or join the conversation.
       </p>
       <div class="community-links">
-        <a href="https://github.com/caro-sh/caro" target="_blank" class="community-card">
+        <a href={SITE_CONFIG.github.url} target="_blank" class="community-card">
           <span class="community-icon">⭐</span>
           <h3>Star on GitHub</h3>
           <p>Show your support and stay updated with the latest releases</p>
         </a>
-        <a href="https://github.com/caro-sh/caro/issues" target="_blank" class="community-card">
+        <a href={`${SITE_CONFIG.github.url}/issues`} target="_blank" class="community-card">
           <span class="community-icon">🐛</span>
           <h3>Report Issues</h3>
           <p>Found a bug or have a feature request? Let us know</p>
         </a>
-        <a href="https://github.com/caro-sh/caro/blob/main/CONTRIBUTING.md" target="_blank" class="community-card">
+        <a href={`${SITE_CONFIG.github.url}/blob/main/CONTRIBUTING.md`} target="_blank" class="community-card">
           <span class="community-icon">🤝</span>
           <h3>Contribute</h3>
           <p>Help make Caro better for everyone</p>

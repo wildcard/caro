@@ -1,4 +1,5 @@
 ---
+import { SITE_CONFIG } from '../config/site';
 ---
 
 <section id="download" class="download-section">
@@ -11,14 +12,14 @@
       <button class="copy-button" data-command="bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)">Copy</button>
     </div>
 
-    <p style="margin: 20px 0;">Or download pre-built binaries (v1.0.2):</p>
+    <p style="margin: 20px 0;">Or download pre-built binaries (v{SITE_CONFIG.version}):</p>
 
     <div class="download-options">
-      <a href="https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-macos-silicon" class="download-link">macOS (Apple Silicon)</a>
-      <a href="https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-macos-intel" class="download-link">macOS (Intel)</a>
-      <a href="https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-linux-amd64" class="download-link">Linux (x86_64)</a>
-      <a href="https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-linux-arm64" class="download-link">Linux (ARM64)</a>
-      <a href="https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-windows-amd64.exe" class="download-link">Windows</a>
+      <a href={`${SITE_CONFIG.downloads.baseUrl}/v${SITE_CONFIG.version}/caro-${SITE_CONFIG.version}-macos-silicon`} class="download-link">macOS (Apple Silicon)</a>
+      <a href={`${SITE_CONFIG.downloads.baseUrl}/v${SITE_CONFIG.version}/caro-${SITE_CONFIG.version}-macos-intel`} class="download-link">macOS (Intel)</a>
+      <a href={`${SITE_CONFIG.downloads.baseUrl}/v${SITE_CONFIG.version}/caro-${SITE_CONFIG.version}-linux-amd64`} class="download-link">Linux (x86_64)</a>
+      <a href={`${SITE_CONFIG.downloads.baseUrl}/v${SITE_CONFIG.version}/caro-${SITE_CONFIG.version}-linux-arm64`} class="download-link">Linux (ARM64)</a>
+      <a href={`${SITE_CONFIG.downloads.baseUrl}/v${SITE_CONFIG.version}/caro-${SITE_CONFIG.version}-windows-amd64.exe`} class="download-link">Windows</a>
     </div>
 
     <div class="usage-modes">
