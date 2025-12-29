@@ -5,8 +5,8 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use cmdai::backends::{CommandGenerator, GeneratorError};
-use cmdai::models::{CommandRequest, SafetyLevel, ShellType};
+use caro::backends::{CommandGenerator, GeneratorError};
+use caro::models::{CommandRequest, SafetyLevel, ShellType};
 use url::Url;
 
 // Placeholder struct - will be replaced with actual VllmBackend implementation
@@ -62,8 +62,8 @@ impl VllmBackend {
 impl CommandGenerator for VllmBackend {
     async fn generate_command(
         &self,
-        _request: &cmdai::models::CommandRequest,
-    ) -> Result<cmdai::models::GeneratedCommand, GeneratorError> {
+        _request: &caro::models::CommandRequest,
+    ) -> Result<caro::models::GeneratedCommand, GeneratorError> {
         Err(GeneratorError::GenerationFailed {
             details: "VllmBackend not yet implemented".to_string(),
         })
@@ -73,9 +73,9 @@ impl CommandGenerator for VllmBackend {
         false // Will be true when implemented
     }
 
-    fn backend_info(&self) -> cmdai::backends::BackendInfo {
-        cmdai::backends::BackendInfo {
-            backend_type: cmdai::models::BackendType::VLlm,
+    fn backend_info(&self) -> caro::backends::BackendInfo {
+        caro::backends::BackendInfo {
+            backend_type: caro::models::BackendType::VLlm,
             model_name: self.model.clone(),
             supports_streaming: false,
             max_tokens: 4096,
@@ -94,7 +94,7 @@ impl CommandGenerator for VllmBackend {
 /// MUST fallback to embedded model when vLLM backend fails or is unavailable
 #[tokio::test]
 async fn test_fallback_to_embedded_on_connection_failure() {
-    use cmdai::backends::embedded::{EmbeddedModelBackend, ModelVariant};
+    use caro::backends::embedded::{EmbeddedModelBackend, ModelVariant};
     use std::path::PathBuf;
 
     // Create embedded fallback backend
@@ -135,7 +135,7 @@ async fn test_fallback_to_embedded_on_connection_failure() {
 /// MUST fallback immediately on authentication failures (401/403)
 #[tokio::test]
 async fn test_auth_failure_fallback_no_retry() {
-    use cmdai::backends::embedded::{EmbeddedModelBackend, ModelVariant};
+    use caro::backends::embedded::{EmbeddedModelBackend, ModelVariant};
     use std::path::PathBuf;
 
     let embedded = EmbeddedModelBackend::with_variant_and_path(
@@ -285,7 +285,7 @@ fn test_vllm_backend_info() {
 
     let info = vllm.backend_info();
 
-    assert_eq!(info.backend_type, cmdai::models::BackendType::VLlm);
+    assert_eq!(info.backend_type, caro::models::BackendType::VLlm);
     assert_eq!(info.model_name, "codellama/CodeLlama-7b-hf");
     assert!(
         !info.supports_streaming,

@@ -4,7 +4,7 @@
 use proptest::prelude::*;
 
 // Import system components
-use cmdai::{
+use caro::{
     models::{RiskLevel, ShellType},
     safety::{SafetyConfig, SafetyValidator},
 };

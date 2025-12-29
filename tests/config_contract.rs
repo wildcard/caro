@@ -6,8 +6,8 @@ use tempfile::TempDir;
 
 // Import types that will be implemented later
 // NOTE: These imports will fail until we implement the actual config module
-use cmdai::config::{ConfigError, ConfigManager, UserConfiguration};
-use cmdai::models::{LogLevel, SafetyLevel, ShellType};
+use caro::config::{ConfigError, ConfigManager, UserConfiguration};
+use caro::models::{LogLevel, SafetyLevel, ShellType};
 
 // Mock CLI args for testing
 struct TestCliArgs {

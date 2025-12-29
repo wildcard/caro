@@ -6,9 +6,9 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use cmdai::backends::embedded::{EmbeddedConfig, EmbeddedModelBackend, ModelVariant};
-use cmdai::backends::{CommandGenerator, GeneratorError};
-use cmdai::models::{CommandRequest, SafetyLevel, ShellType};
+use caro::backends::embedded::{EmbeddedConfig, EmbeddedModelBackend, ModelVariant};
+use caro::backends::{CommandGenerator, GeneratorError};
+use caro::models::{CommandRequest, SafetyLevel, ShellType};
 
 // Helper function to get test model path
 fn test_model_path() -> PathBuf {

@@ -2,9 +2,9 @@
 /// These tests use placeholder structs until the remote backends are implemented
 use std::sync::Arc;
 
-use cmdai::backends::embedded::{EmbeddedModelBackend, ModelVariant};
-use cmdai::backends::{BackendInfo, CommandGenerator, GeneratorError};
-use cmdai::models::{BackendType, CommandRequest, GeneratedCommand, ShellType};
+use caro::backends::embedded::{EmbeddedModelBackend, ModelVariant};
+use caro::backends::{BackendInfo, CommandGenerator, GeneratorError};
+use caro::models::{BackendType, CommandRequest, GeneratedCommand, ShellType};
 use url::Url;
 
 // Placeholder structs for remote backends until they are implemented

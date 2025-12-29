@@ -7,7 +7,7 @@ use tempfile::TempDir;
 
 // Import types that will be implemented later
 // NOTE: These imports will fail until we implement the actual logging module
-use cmdai::logging::{
+use caro::logging::{
     LogConfig, LogError, LogFormat, LogLevel, LogOutput, LogRotation, Logger, Redaction,
 };
 
@@ -76,7 +76,7 @@ fn test_log_config_builder() {
     let temp_dir = TempDir::new().unwrap();
     let log_file = temp_dir.path().join("test.log");
 
-    use cmdai::logging::LogConfigBuilder;
+    use caro::logging::LogConfigBuilder;
     let config = LogConfigBuilder::new()
         .log_level(LogLevel::Warn)
         .format(LogFormat::Pretty)
@@ -141,7 +141,7 @@ fn test_log_level_to_tracing_level() {
 fn test_logger_for_module() {
     // CONTRACT: Logger::for_module() creates module-specific logger
     // TODO: Implement Logger::for_module() and OperationSpan
-    // let logger = Logger::for_module("cmdai::cache");
+    // let logger = Logger::for_module("caro::cache");
     // let _span = logger.start_operation("test_operation");
 }
 
@@ -289,7 +289,7 @@ fn test_log_output_file_creation() {
     let temp_dir = TempDir::new().unwrap();
     let log_file = temp_dir.path().join("logs").join("app.log");
 
-    use cmdai::logging::LogConfigBuilder;
+    use caro::logging::LogConfigBuilder;
     let config = LogConfigBuilder::new()
         .output(LogOutput::File(log_file.clone()))
         .build();
@@ -306,7 +306,7 @@ fn test_log_rotation_daily() {
     let temp_dir = TempDir::new().unwrap();
     let log_dir = temp_dir.path().join("logs");
 
-    use cmdai::logging::LogConfigBuilder;
+    use caro::logging::LogConfigBuilder;
     let config = LogConfigBuilder::new()
         .output(LogOutput::File(log_dir.join("app.log")))
         .rotation(LogRotation {
@@ -342,7 +342,7 @@ fn test_invalid_log_directory() {
     // CONTRACT: Logger returns error if log directory not writable
     // TODO: Implement LogError::DirectoryNotWritable variant
     // let read_only_path = std::path::PathBuf::from("/invalid/readonly/path.log");
-    // use cmdai::logging::LogConfigBuilder;
+    // use caro::logging::LogConfigBuilder;
     // let config = LogConfigBuilder::new()
     //     .output(LogOutput::File(read_only_path))
     //     .build();

@@ -2,7 +2,7 @@
 // These tests document expected behavior from quickstart.md and README examples
 // They MUST FAIL initially until full backend integration is complete
 
-use cmdai::cli::{CliApp, IntoCliArgs};
+use caro::cli::{CliApp, IntoCliArgs};
 
 /// Mock CLI arguments for testing
 #[derive(Default)]
