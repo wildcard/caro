@@ -1,8 +1,8 @@
-# Agent Guidelines for cmdai
+# Agent Guidelines for caro
 
 ## Project Overview
 
-**cmdai** is a safety-first Rust CLI tool that converts natural language to POSIX shell commands using local LLMs. Built for blazing-fast performance (<100ms startup, <2s inference on M1 Mac), single-binary distribution (<50MB), and comprehensive safety validation.
+**caro** is a safety-first Rust CLI tool that converts natural language to POSIX shell commands using local LLMs. Built for blazing-fast performance (<100ms startup, <2s inference on M1 Mac), single-binary distribution (<50MB), and comprehensive safety validation.
 
 **Core Technologies**: Rust 2021 Edition, async with Tokio, clap CLI, MLX for Apple Silicon, Candle for cross-platform CPU inference.
 
@@ -101,7 +101,7 @@ make profile
 ## Project Structure
 
 ```
-cmdai/
+caro/
 ├── src/
 │   ├── lib.rs              # Library exports (library-first architecture)
 │   ├── main.rs             # CLI entry point (orchestration only, no business logic)
@@ -360,7 +360,7 @@ which cargo
 - **Binary size**: <50MB (use `make size-check`)
 
 ### 5. Configuration Files
-- **User config**: `~/.config/cmdai/config.toml`
+- **User config**: `~/.config/caro/config.toml`
 - **Backend config**: Supports embedded (default), Ollama, vLLM
 - **Safety config**: Customizable patterns, safety levels (strict/moderate/permissive)
 
@@ -461,7 +461,7 @@ pub trait CommandGenerator: Send + Sync {
 3. **Ollama**: Local API backend (feature: `remote-backends`)
 4. **vLLM**: Remote HTTP API (feature: `remote-backends`)
 
-### Backend Configuration (`~/.config/cmdai/config.toml`)
+### Backend Configuration (`~/.config/caro/config.toml`)
 ```toml
 [backend]
 primary = "embedded"  # or "ollama", "vllm"
@@ -493,7 +493,7 @@ model_name = "codellama/CodeLlama-7b-hf"
 - System path modifications: `/bin`, `/usr`, `/etc`
 - Privilege escalation: `sudo su`, `chmod 777 /`
 
-### Safety Configuration (`~/.config/cmdai/config.toml`)
+### Safety Configuration (`~/.config/caro/config.toml`)
 ```toml
 [safety]
 enabled = true
@@ -612,9 +612,9 @@ make test-nextest   # Use nextest if available
 ```
 
 ### File Locations
-- **User config**: `~/.config/cmdai/config.toml`
+- **User config**: `~/.config/caro/config.toml`
 - **Cargo cache**: `~/.cargo/`
-- **Build output**: `target/release/cmdai`
+- **Build output**: `target/release/caro`
 - **Test artifacts**: `target/nextest/`
 - **Benchmark reports**: `target/criterion/`
 

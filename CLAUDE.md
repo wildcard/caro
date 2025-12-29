@@ -62,7 +62,7 @@ Safety module provides:
 Local-first sync with Jazz.tools for multi-device command history:
 - `src/sync/`: Rust sync library (identity, encryption, IPC client)
 - `sync-daemon/`: Node.js companion for Jazz SDK integration
-- IPC: Unix socket at `~/.config/cmdai/sync.sock`
+- IPC: Unix socket at `~/.config/caro/sync.sock`
 - Encryption: AES-256-GCM with Argon2id key derivation from BIP39 phrase
 - Privacy: E2E encrypted, zero-knowledge relay sync
 - See `specs/005-jazz-sync-integration/` for full specification

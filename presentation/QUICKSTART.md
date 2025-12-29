@@ -61,9 +61,9 @@ During presentation:
 
 ## Adding Your Mascot
 
-✅ **Caro (the cmdai mascot) is already included!**
+✅ **Caro (the caro mascot) is already included!**
 
-Caro is a friendly Shiba Inu who serves as cmdai's mascot. The GIF is already in `public/mascot.gif` and configured in the presentation.
+Caro is a friendly Shiba Inu who serves as caro's mascot. The GIF is already in `public/mascot.gif` and configured in the presentation.
 
 If you want to use a different mascot:
 
@@ -107,7 +107,7 @@ The presentation uses a placeholder emoji (🤖) by default. To use your mascot 
 ## Customization
 
 Before presenting, update in `slides.md`:
-- GitHub URLs (replace `wildcard/cmdai`)
+- GitHub URLs (replace `wildcard/caro`)
 - Contact information
 - Project statistics
 - Demo results

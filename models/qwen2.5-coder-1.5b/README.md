@@ -1,6 +1,6 @@
 # Qwen2.5-Coder-1.5B-Instruct Model Metadata
 
-This directory contains metadata files for the Qwen2.5-Coder-1.5B-Instruct model used by cmdai's embedded inference backends.
+This directory contains metadata files for the Qwen2.5-Coder-1.5B-Instruct model used by caro's embedded inference backends.
 
 ## Model Information
 
@@ -30,18 +30,18 @@ The actual model weights (GGUF files) are **not included** in this repository du
 
 ### Automatic Download (Recommended)
 ```bash
-cmdai "list files"  # Downloads model automatically on first run
+caro "list files"  # Downloads model automatically on first run
 ```
 
 ### Manual Download
 ```bash
 # Q4_K_M (recommended, ~1.1GB)
-mkdir -p ~/.cache/cmdai/models/
-curl -L -o ~/.cache/cmdai/models/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf \
+mkdir -p ~/.cache/caro/models/
+curl -L -o ~/.cache/caro/models/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf \
   "https://huggingface.co/Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF/resolve/main/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf"
 
 # Q8_0 (higher quality, ~1.9GB)
-curl -L -o ~/.cache/cmdai/models/qwen2.5-coder-1.5b-instruct-q8_0.gguf \
+curl -L -o ~/.cache/caro/models/qwen2.5-coder-1.5b-instruct-q8_0.gguf \
   "https://huggingface.co/Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF/resolve/main/qwen2.5-coder-1.5b-instruct-q8_0.gguf"
 ```
 
@@ -60,7 +60,7 @@ curl -L -o ~/.cache/cmdai/models/qwen2.5-coder-1.5b-instruct-q8_0.gguf \
 - **Throughput**: ~2-4 tokens/sec
 - **Memory**: ~1.5GB (model + runtime)
 
-## Usage in cmdai
+## Usage in caro
 
 This model is used by the embedded inference backends:
 

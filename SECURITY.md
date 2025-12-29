@@ -2,7 +2,7 @@
 
 ## Overview
 
-cmdai is a safety-first CLI tool that generates shell commands using local LLMs. Security is fundamental to our mission: we must prevent dangerous command execution while maintaining user trust in the tool.
+caro is a safety-first CLI tool that generates shell commands using local LLMs. Security is fundamental to our mission: we must prevent dangerous command execution while maintaining user trust in the tool.
 
 This document outlines:
 - Supported versions and security update policy
@@ -15,14 +15,14 @@ This document outlines:
 
 ## Supported Versions
 
-cmdai is currently in **early development** (v0.1.x). Security updates are provided for:
+caro is currently in **early development** (v0.1.x). Security updates are provided for:
 
 | Version | Supported | Notes |
 |---------|-----------|-------|
 | 0.1.x   | ✅ Yes    | Current development series |
 | < 0.1.0 | ❌ No     | Pre-release, not recommended for use |
 
-Once cmdai reaches v1.0.0, we will maintain security support for:
+Once caro reaches v1.0.0, we will maintain security support for:
 - **Latest stable release**: Full security support
 - **Previous major version**: Critical security fixes only for 6 months after new major release
 - **Older versions**: No security support (upgrade recommended)
@@ -37,7 +37,7 @@ Once cmdai reaches v1.0.0, we will maintain security support for:
 
 We use GitHub's private security advisory system for vulnerability reports:
 
-1. **Navigate to the Security tab**: Visit [github.com/wildcard/cmdai/security](https://github.com/wildcard/cmdai/security)
+1. **Navigate to the Security tab**: Visit [github.com/wildcard/caro/security](https://github.com/wildcard/caro/security)
 
 2. **Create a private security advisory**:
    - Click "Report a vulnerability"
@@ -94,7 +94,7 @@ Affected versions: 0.1.0 - 0.1.3
 Environment:
 - macOS 14.5, Apple M1
 - Rust 1.75.0
-- cmdai v0.1.2
+- caro v0.1.2
 
 Suggested fix:
 Apply shell escaping using the `shell-escape` crate before passing commands
@@ -223,21 +223,21 @@ We do **not** consider the following as security vulnerabilities:
 
 ## Security Best Practices for Users
 
-While using cmdai:
+While using caro:
 
 1. **Review generated commands** before execution, especially for sensitive operations
 2. **Never use `--auto` mode** for destructive or privileged operations
-3. **Keep cmdai updated** to get the latest security fixes
+3. **Keep caro updated** to get the latest security fixes
 4. **Verify model checksums** when downloading from Hugging Face
 5. **Limit `--allow-dangerous` usage** to specific, understood cases
 6. **Check logs** regularly for unexpected model or command behavior
-7. **Use restricted shells** if deploying cmdai in shared environments
+7. **Use restricted shells** if deploying caro in shared environments
 
 ---
 
 ## Security Development Practices
 
-cmdai employs security-first development practices:
+caro employs security-first development practices:
 
 ### Defense in Depth
 
@@ -312,7 +312,7 @@ Once a fix is released, we will:
 
 ## Security Hall of Fame
 
-We recognize security researchers who help improve cmdai:
+We recognize security researchers who help improve caro:
 
 ### 2025
 
@@ -338,13 +338,13 @@ Security researchers who responsibly disclose vulnerabilities receive:
 
 For security concerns:
 
-- **Report vulnerabilities**: [GitHub Security Advisories](https://github.com/wildcard/cmdai/security)
-- **Security questions**: [GitHub Discussions](https://github.com/wildcard/cmdai/discussions) (for non-sensitive topics)
+- **Report vulnerabilities**: [GitHub Security Advisories](https://github.com/wildcard/caro/security)
+- **Security questions**: [GitHub Discussions](https://github.com/wildcard/caro/discussions) (for non-sensitive topics)
 - **Maintainer contact**: See repository maintainer profiles for direct contact
 
 ---
 
-**cmdai takes security seriously.** Thank you for helping us keep our users safe.
+**caro takes security seriously.** Thank you for helping us keep our users safe.
 
 ---
 

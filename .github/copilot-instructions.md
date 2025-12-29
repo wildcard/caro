@@ -4,9 +4,9 @@ This file provides instructions for GitHub Copilot when reviewing code and gener
 
 ## Project Overview
 
-`caro` (formerly `cmdai`) is a single-binary Rust CLI tool that converts natural language descriptions into safe POSIX shell commands using local LLMs. The tool prioritizes safety, performance, and developer experience with Apple Silicon optimization via MLX framework.
+`caro` (formerly `caro`) is a single-binary Rust CLI tool that converts natural language descriptions into safe POSIX shell commands using local LLMs. The tool prioritizes safety, performance, and developer experience with Apple Silicon optimization via MLX framework.
 
-> **Important**: The project was renamed from `cmdai` to `caro` in December 2025. Flag any remaining references to `cmdai` in code, documentation, or configuration files.
+> **Important**: The project was renamed from `caro` to `caro` in December 2025. Flag any remaining references to `caro` in code, documentation, or configuration files.
 
 ## Core Principles
 

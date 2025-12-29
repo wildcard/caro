@@ -1,6 +1,6 @@
-# Tasks: cmdai - Natural Language to Shell Command CLI Tool
+# Tasks: caro - Natural Language to Shell Command CLI Tool
 
-**Input**: Design documents from `/workspaces/cmdai/specs/001-create-a-comprehensive/`
+**Input**: Design documents from `/workspaces/caro/specs/001-create-a-comprehensive/`
 **Prerequisites**: plan.md, research.md, data-model.md, contracts/, quickstart.md
 
 ## Execution Flow (main)

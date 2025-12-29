@@ -4,12 +4,12 @@ Sync Impact Report: Constitution Update v1.0.0 → v1.0.0 (Initial Ratification)
 VERSION CHANGE: TEMPLATE → 1.0.0 (MAJOR: Initial ratification with concrete principles)
 
 MODIFIED PRINCIPLES:
-- All placeholder tokens replaced with concrete cmdai project values
+- All placeholder tokens replaced with concrete caro project values
 - 5 core principles defined from TDD GREEN phase implementation plan
 
 ADDED SECTIONS:
 - Complete Core Principles section with 5 principles
-- Safety-First Development section (cmdai-specific)
+- Safety-First Development section (caro-specific)
 - Development Workflow section with TDD enforcement
 - Complete Governance section with versioning policy
 
@@ -32,7 +32,7 @@ RATIFICATION CONTEXT:
 - Enforced via: Specification-driven development workflow with /plan, /tasks, /implement commands
 -->
 
-# cmdai Constitution
+# caro Constitution
 
 ## Core Principles
 
@@ -53,10 +53,10 @@ RATIFICATION CONTEXT:
 - All modules exported via `src/lib.rs` for independent testing and reuse
 - Libraries must be self-contained with clear, documented public APIs
 - Each library serves a single, well-defined purpose:
-  - `cmdai::models` - Core data types and enums
-  - `cmdai::safety` - Command validation and risk assessment
-  - `cmdai::backends` - Command generation trait and implementations
-  - `cmdai::cli` - User interface and argument parsing
+  - `caro::models` - Core data types and enums
+  - `caro::safety` - Command validation and risk assessment
+  - `caro::backends` - Command generation trait and implementations
+  - `caro::cli` - User interface and argument parsing
 - Binary (`main.rs`) orchestrates libraries but contains no business logic
 - Libraries support both CLI usage and programmatic integration
 
@@ -94,7 +94,7 @@ RATIFICATION CONTEXT:
 - Device writes without confirmation
 - Unvalidated system path modifications
 
-**Rationale**: cmdai generates and executes system commands—safety failures can destroy data or compromise systems. Safety is a feature, not an afterthought.
+**Rationale**: caro generates and executes system commands—safety failures can destroy data or compromise systems. Safety is a feature, not an afterthought.
 
 ### V. Observability & Versioning
 **Structured logging, error context, and semantic versioning are required.**

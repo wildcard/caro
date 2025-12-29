@@ -62,7 +62,7 @@ Jazz Sync Integration adds local-first, E2E encrypted synchronization of command
 - [x] **JUSTIFIED**: Node.js sidecar adds complexity but avoids reimplementing Jazz protocol
 
 ### II. Library-First Architecture
-- [x] **PASS**: New `cmdai::sync` module as standalone library
+- [x] **PASS**: New `caro::sync` module as standalone library
 - [x] **PASS**: Clear public API: `SyncManager`, `EncryptionService`, `HistoryStore`
 - [x] **PASS**: Daemon is separate process, CLI orchestrates via IPC
 
@@ -175,7 +175,7 @@ Key entities:
 Communication between Rust CLI and Node.js daemon via Unix socket:
 
 ```
-Socket Path: ~/.config/cmdai/sync.sock (Unix) or \\.\pipe\cmdai-sync (Windows)
+Socket Path: ~/.config/caro/sync.sock (Unix) or \\.\pipe\caro-sync (Windows)
 Protocol: JSON-RPC 2.0 over newline-delimited JSON
 ```
 
@@ -279,7 +279,7 @@ Add to `CLAUDE.md`:
 ## Sync Module
 - `src/sync/`: Local-first sync with Jazz.tools
 - `sync-daemon/`: Node.js companion for Jazz SDK
-- IPC: Unix socket at `~/.config/cmdai/sync.sock`
+- IPC: Unix socket at `~/.config/caro/sync.sock`
 - Encryption: AES-256-GCM with Argon2id key derivation
 ```
 

@@ -84,7 +84,7 @@ test_my_new_feature() {
 
     # Assertions
     assert_file_exists "$HOME/.zshrc"
-    assert_file_contains "$HOME/.zshrc" "alias caro='cmdai'"
+    assert_file_contains "$HOME/.zshrc" "alias caro='caro'"
 
     cleanup_test_env
 }

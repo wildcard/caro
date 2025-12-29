@@ -1,6 +1,6 @@
 # Logging Module API Contract
 
-**Module**: `cmdai::logging`
+**Module**: `caro::logging`
 **Purpose**: Structured logging with tracing integration for observability
 
 ## Public API
@@ -221,7 +221,7 @@ pub enum LogError {
 - Contains: timestamp, level, target, message, field1
 - Example:
 ```json
-{"timestamp":"2025-10-02T12:34:56.789Z","level":"INFO","target":"cmdai::cache","message":"Test message","field1":"value1"}
+{"timestamp":"2025-10-02T12:34:56.789Z","level":"INFO","target":"caro::cache","message":"Test message","field1":"value1"}
 ```
 
 ### Contract: Pretty Console Logging
@@ -230,7 +230,7 @@ pub enum LogError {
 **When**: `tracing::info!("Test message")` is called
 **Then**:
 - Log output is human-readable with colors
-- Format: `2025-10-02 12:34:56 INFO cmdai::cache: Test message`
+- Format: `2025-10-02 12:34:56 INFO caro::cache: Test message`
 - Level colors: Debug=gray, Info=green, Warn=yellow, Error=red
 
 ### Contract: Log Level Filtering
@@ -249,7 +249,7 @@ pub enum LogError {
 **Given**: Logger initialized with `LogOutput::File` and `LogRotation::Daily`
 **When**: Logs are written over multiple days
 **Then**:
-- New file created each day: `cmdai.2025-10-02.log`, `cmdai.2025-10-03.log`
+- New file created each day: `caro.2025-10-02.log`, `caro.2025-10-03.log`
 - Old logs retained up to `log_rotation_days` configuration
 - Logs older than retention period automatically deleted
 

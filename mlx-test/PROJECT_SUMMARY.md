@@ -1,7 +1,7 @@
 # MLX Test Suite - Project Structure
 
 ## Overview
-Comprehensive MLX testing framework for cmdai command generation with structured outputs, safety validation, and performance benchmarking.
+Comprehensive MLX testing framework for caro command generation with structured outputs, safety validation, and performance benchmarking.
 
 **Total Lines of Code:** 1,131  
 **Test Coverage:** 12 structured scenarios + 10 batch tests  
@@ -61,7 +61,7 @@ python simple_inference.py
 **Purpose:** Production-ready command generation testing
 
 **Features:**
-- 12 test cases from cmdai repository
+- 12 test cases from caro repository
 - JSON output parsing with 3 fallback strategies
 - Safety pattern matching (dangerous command detection)
 - Risk level assessment (Safe/Moderate/High/Critical)
@@ -262,7 +262,7 @@ Throughput:            1.36 prompts/sec
 
 ---
 
-## Integration Points for cmdai
+## Integration Points for caro
 
 ### 1. Model Loading
 ```python
@@ -420,6 +420,6 @@ transformers>=4.57.1  # Model tokenizers
 
 ## Conclusion
 
-This test suite demonstrates that **MLX is production-ready for cmdai** with the critical requirement of implementing an independent safety validation layer. The model generates high-quality POSIX-compliant commands quickly, but cannot be trusted for safety assessment.
+This test suite demonstrates that **MLX is production-ready for caro** with the critical requirement of implementing an independent safety validation layer. The model generates high-quality POSIX-compliant commands quickly, but cannot be trusted for safety assessment.
 
 **Recommendation:** Proceed with integration, prioritizing safety validation layer implementation before any production use.

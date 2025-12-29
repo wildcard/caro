@@ -1,12 +1,12 @@
 # Implementation Plan: TDD GREEN Phase - Core Models and Safety System
 
 **Branch**: `002-implement-tdd-green` | **Date**: 2025-10-01 | **Spec**: [spec.md](./spec.md)
-**Input**: Feature specification from `/workspaces/cmdai/specs/002-implement-tdd-green/spec.md`
+**Input**: Feature specification from `/workspaces/caro/specs/002-implement-tdd-green/spec.md`
 
 ## Execution Flow (/plan command scope)
 ```
 1. Load feature spec from Input path
-   → ✓ Loaded successfully from /workspaces/cmdai/specs/002-implement-tdd-green/spec.md
+   → ✓ Loaded successfully from /workspaces/caro/specs/002-implement-tdd-green/spec.md
 2. Fill Technical Context (scan for NEEDS CLARIFICATION)
    → ✓ All technical details confirmed from Cargo.toml and existing test contracts
    → Project Type: Single binary CLI application
@@ -35,7 +35,7 @@
 
 ## Summary
 
-Implement the GREEN phase of TDD for cmdai by building working implementations that make 80 failing contract tests pass. The implementation focuses on four core modules: (1) Data models with serde serialization for command requests/responses, (2) Safety validation system with regex-based dangerous command detection, (3) Backend trait system with async command generation, and (4) CLI interface with clap-based argument parsing. All implementation follows strict TDD discipline - code is written solely to make existing tests pass, starting with models, then safety, backends, and finally CLI integration.
+Implement the GREEN phase of TDD for caro by building working implementations that make 80 failing contract tests pass. The implementation focuses on four core modules: (1) Data models with serde serialization for command requests/responses, (2) Safety validation system with regex-based dangerous command detection, (3) Backend trait system with async command generation, and (4) CLI interface with clap-based argument parsing. All implementation follows strict TDD discipline - code is written solely to make existing tests pass, starting with models, then safety, backends, and finally CLI integration.
 
 Technical approach: Use async-trait for trait-based command generation, regex crate for safety pattern matching, clap derive macros for CLI parsing, and tokio for async runtime. Maintain modular architecture with clear separation: models/ for data types, safety/ for validation logic, backends/ for generator trait, cli/ for user interface. Target performance: <100ms startup, <50ms safety validation, <2s mock generation.
 
@@ -54,7 +54,7 @@ Technical approach: Use async-trait for trait-based command generation, regex cr
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
 **Simplicity**:
-- Projects: 1 (cmdai binary with library structure) ✓
+- Projects: 1 (caro binary with library structure) ✓
 - Using framework directly? YES (clap macros, tokio runtime, no wrappers) ✓
 - Single data model? YES (CommandRequest → GeneratedCommand flow, no DTOs) ✓
 - Avoiding patterns? YES (Direct implementations, no Repository/UoW overhead) ✓
@@ -62,14 +62,14 @@ Technical approach: Use async-trait for trait-based command generation, regex cr
 **Architecture**:
 - EVERY feature as library? YES (All modules exported via lib.rs for testing) ✓
 - Libraries listed:
-  - cmdai::models - Core data types (CommandRequest, GeneratedCommand, enums)
-  - cmdai::safety - Safety validation (SafetyValidator with pattern matching)
-  - cmdai::backends - Command generation trait (CommandGenerator + implementations)
-  - cmdai::cli - User interface (CliApp with clap integration)
-- CLI per library: Single `cmdai` binary with subcommands ✓
-  - `cmdai generate <input>` - Generate command
-  - `cmdai validate <command>` - Safety check
-  - `cmdai --help`, `--version`, `--format json|yaml|text`
+  - caro::models - Core data types (CommandRequest, GeneratedCommand, enums)
+  - caro::safety - Safety validation (SafetyValidator with pattern matching)
+  - caro::backends - Command generation trait (CommandGenerator + implementations)
+  - caro::cli - User interface (CliApp with clap integration)
+- CLI per library: Single `caro` binary with subcommands ✓
+  - `caro generate <input>` - Generate command
+  - `caro validate <command>` - Safety check
+  - `caro --help`, `--version`, `--format json|yaml|text`
 - Library docs: llms.txt format planned (Phase 3) ✓
 
 **Testing (NON-NEGOTIABLE)**:
@@ -137,7 +137,7 @@ tests/
 └── performance_tests.rs           # 9 tests - Startup, validation benchmarks
 ```
 
-**Structure Decision**: Option 1 (Single project) - Matches existing codebase structure at /workspaces/cmdai/src/
+**Structure Decision**: Option 1 (Single project) - Matches existing codebase structure at /workspaces/caro/src/
 
 ## Phase 0: Outline & Research
 
@@ -214,7 +214,7 @@ Agent 5: "Research cross-platform shell path validation differences (bash vs Pow
 - Shell detection: Match on ShellType enum from user config or detection
 - Alternatives: Unified validator (too complex), shell-specific crates (heavyweight)
 
-**Output**: `/workspaces/cmdai/specs/002-implement-tdd-green/research.md` with detailed decisions
+**Output**: `/workspaces/caro/specs/002-implement-tdd-green/research.md` with detailed decisions
 
 ## Phase 1: Design & Contracts
 *Prerequisites: research.md complete*
@@ -288,22 +288,22 @@ ValidationResult (Safe/Moderate/High/Critical)
 Approved Command → [Future: Execution Module]
 ```
 
-**Output**: `/workspaces/cmdai/specs/002-implement-tdd-green/data-model.md` with entity definitions
+**Output**: `/workspaces/caro/specs/002-implement-tdd-green/data-model.md` with entity definitions
 
 ### 2. Validate existing contracts
 
 **Existing Contracts** (from Feature 001 TDD RED phase):
-- `/workspaces/cmdai/tests/backend_trait_contract.rs` - CommandGenerator trait (11 tests)
-- `/workspaces/cmdai/tests/safety_validator_contract.rs` - SafetyValidator API (17 tests)
-- `/workspaces/cmdai/tests/cli_interface_contract.rs` - CliApp interface (14 tests)
-- `/workspaces/cmdai/tests/integration_tests.rs` - End-to-end workflows (8 tests)
-- `/workspaces/cmdai/tests/property_tests.rs` - Property-based validation (10 tests)
-- `/workspaces/cmdai/tests/error_handling_tests.rs` - Error scenarios (11 tests)
-- `/workspaces/cmdai/tests/performance_tests.rs` - Benchmarks (9 tests)
+- `/workspaces/caro/tests/backend_trait_contract.rs` - CommandGenerator trait (11 tests)
+- `/workspaces/caro/tests/safety_validator_contract.rs` - SafetyValidator API (17 tests)
+- `/workspaces/caro/tests/cli_interface_contract.rs` - CliApp interface (14 tests)
+- `/workspaces/caro/tests/integration_tests.rs` - End-to-end workflows (8 tests)
+- `/workspaces/caro/tests/property_tests.rs` - Property-based validation (10 tests)
+- `/workspaces/caro/tests/error_handling_tests.rs` - Error scenarios (11 tests)
+- `/workspaces/caro/tests/performance_tests.rs` - Benchmarks (9 tests)
 
 **Validation Status**:
 - ✓ All contracts exist with complete test coverage
-- ✓ Tests import types from cmdai:: namespace (will fail until implemented)
+- ✓ Tests import types from caro:: namespace (will fail until implemented)
 - ✓ Mock implementations in tests demonstrate expected usage
 - ✓ Error cases explicitly tested
 - ✓ No new contract generation needed - proceed to implementation
@@ -359,11 +359,11 @@ async fn quickstart_command_generation() {
 }
 ```
 
-**Output**: `/workspaces/cmdai/specs/002-implement-tdd-green/quickstart.md` with step-by-step workflow
+**Output**: `/workspaces/caro/specs/002-implement-tdd-green/quickstart.md` with step-by-step workflow
 
 ### 4. Update CLAUDE.md incrementally
 
-**Current State**: `/workspaces/cmdai/CLAUDE.md` exists with project overview and structure
+**Current State**: `/workspaces/caro/CLAUDE.md` exists with project overview and structure
 
 **Incremental Updates** (O(1) operation, preserve existing content):
 
@@ -413,7 +413,7 @@ async fn quickstart_command_generation() {
 - Performance: `cargo bench`
 ```
 
-**Output**: Updated `/workspaces/cmdai/CLAUDE.md` with GREEN phase guidance (preserve all existing content)
+**Output**: Updated `/workspaces/caro/CLAUDE.md` with GREEN phase guidance (preserve all existing content)
 
 **Phase 1 Completion Checklist**:
 - [x] Data model entities extracted and documented (data-model.md)
@@ -427,7 +427,7 @@ async fn quickstart_command_generation() {
 
 **Task Generation Strategy**:
 
-1. **Load Template**: Use `/workspaces/cmdai/.specify/templates/tasks-template.md` as structural base
+1. **Load Template**: Use `/workspaces/caro/.specify/templates/tasks-template.md` as structural base
 
 2. **Generate Tasks from Phase 1 Artifacts**:
    - From `data-model.md`: Type definition tasks for each entity (7 entities = 7 tasks)
@@ -492,7 +492,7 @@ async fn quickstart_command_generation() {
    - T044: Wire backend selection logic (Mock for now)
    - T045: ✓ VERIFY: integration_tests.rs tests pass (8/8)
    - T046: ✓ VERIFY: Full test suite passes (80/80 target)
-   - T047: ✓ BENCHMARK: Startup time <100ms (hyperfine ./target/release/cmdai --help)
+   - T047: ✓ BENCHMARK: Startup time <100ms (hyperfine ./target/release/caro --help)
    - T048: ✓ LINT: cargo clippy -- -D warnings passes
    - T049: ✓ FORMAT: cargo fmt --check passes
    - T050: ✓ FINAL: Quickstart workflow manual validation
@@ -518,7 +518,7 @@ async fn quickstart_command_generation() {
    - After T040: CLI tests pass (~42/80 = 52%)
    - After T046: Integration tests pass (80/80 = 100% TARGET)
 
-**Estimated Output**: 50 numbered, strictly ordered tasks in `/workspaces/cmdai/specs/002-implement-tdd-green/tasks.md`
+**Estimated Output**: 50 numbered, strictly ordered tasks in `/workspaces/caro/specs/002-implement-tdd-green/tasks.md`
 
 **IMPORTANT**: This phase is executed by the `/tasks` command, NOT by `/plan`. The above describes the approach without creating the actual tasks.md file yet.
 
@@ -539,7 +539,7 @@ async fn quickstart_command_generation() {
 **Phase 5**: Validation & Quality Gates
 - **Functional**: All 80 tests passing (target 80/80)
 - **Performance**:
-  * Startup <100ms: `hyperfine ./target/release/cmdai --version`
+  * Startup <100ms: `hyperfine ./target/release/caro --version`
   * Validation <50ms: Run performance_tests.rs benchmarks
   * Mock generation <2s: Measure in integration tests
 - **Quality**:
@@ -587,7 +587,7 @@ async fn quickstart_command_generation() {
 - [x] Complexity deviations documented (None - no deviations)
 
 **Artifact Checklist**:
-- [x] Feature spec loaded from /workspaces/cmdai/specs/002-implement-tdd-green/spec.md
+- [x] Feature spec loaded from /workspaces/caro/specs/002-implement-tdd-green/spec.md
 - [x] Technical context filled (Rust 1.75+, clap 4.4, tokio, async-trait, etc.)
 - [x] Constitution check passed (library-first, test-first, simplicity)
 - [x] Research decisions documented inline (async-trait, regex, clap patterns)
@@ -600,9 +600,9 @@ async fn quickstart_command_generation() {
 - [x] Plan ready for /tasks command execution
 
 **Next Steps**:
-1. Execute Phase 0: Create `/workspaces/cmdai/specs/002-implement-tdd-green/research.md`
+1. Execute Phase 0: Create `/workspaces/caro/specs/002-implement-tdd-green/research.md`
 2. Execute Phase 1: Create data-model.md and quickstart.md files
-3. Update `/workspaces/cmdai/CLAUDE.md` with TDD GREEN guidelines
+3. Update `/workspaces/caro/CLAUDE.md` with TDD GREEN guidelines
 4. Run `/tasks` command to generate tasks.md (50 tasks)
 5. Begin implementation: Task T001 (Define ShellType enum)
 
@@ -624,5 +624,5 @@ async fn quickstart_command_generation() {
 
 ---
 *Plan Status: COMPLETE - Ready for /tasks command*
-*Based on Constitution v1.0.0 - See `/workspaces/cmdai/.specify/memory/constitution.md`*
+*Based on Constitution v1.0.0 - See `/workspaces/caro/.specify/memory/constitution.md`*
 *Feature 002: TDD GREEN Phase - Generated 2025-10-01*

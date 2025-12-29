@@ -186,7 +186,7 @@ After refactoring, code should demonstrate:
 
 ## Project-Specific Context
 
-When working on the cmdai project:
+When working on the caro project:
 - Follow the module structure defined in CLAUDE.md
 - Ensure safety-first approach for command validation
 - Optimize for Apple Silicon when using MLX backend

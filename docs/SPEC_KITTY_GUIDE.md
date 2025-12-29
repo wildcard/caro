@@ -1,10 +1,10 @@
 # Spec-Kitty Integration Guide
 
-This guide explains how to use Spec-Kitty in the cmdai project for rapid, multi-branch feature development.
+This guide explains how to use Spec-Kitty in the caro project for rapid, multi-branch feature development.
 
 ## Overview
 
-**Spec-Kitty** is integrated into cmdai to enable:
+**Spec-Kitty** is integrated into caro to enable:
 - **Worktree-based development**: Work on multiple features simultaneously without branch switching
 - **Real-time dashboard**: Visual kanban board showing all features and their status
 - **Multi-agent coordination**: Collaborate with multiple AI agents (Claude Code, Codex, etc.)
@@ -15,7 +15,7 @@ This guide explains how to use Spec-Kitty in the cmdai project for rapid, multi-
 ### Directory Structure
 
 ```
-cmdai/
+caro/
 ├── .kittify/               # Spec-Kitty configuration (committed to git)
 │   ├── missions/           # Workflow templates (software-dev, research)
 │   ├── scripts/            # Automation scripts

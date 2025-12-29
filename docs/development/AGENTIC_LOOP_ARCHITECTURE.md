@@ -434,16 +434,16 @@ fn scan_available_commands() -> HashMap<String, CommandInfo> {
 
 ```bash
 # Test iteration 1 (basic)
-cmdai "list files" --debug
+caro "list files" --debug
 
 # Test iteration 2 (complex)
-cmdai "show top 5 processes by CPU" --debug
+caro "show top 5 processes by CPU" --debug
 
 # Test context enrichment
-cmdai "find large files using xargs" --debug --verbose
+caro "find large files using xargs" --debug --verbose
 
 # Measure timing
-cmdai "complex query" --timing
+caro "complex query" --timing
 ```
 
 ## Implementation Order

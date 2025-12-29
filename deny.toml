@@ -1,4 +1,4 @@
-# cargo-deny configuration for cmdai project
+# cargo-deny configuration for caro project
 
 [graph]
 targets = [

@@ -1,21 +1,21 @@
-# cmdai CLI Quality Assurance Test Cases
+# caro CLI Quality Assurance Test Cases
 
 ## Overview
 
-This document provides comprehensive QA test cases for the cmdai CLI tool. These test cases serve as both manual testing guidelines and specifications for automated E2E tests. They are organized by functional area and include expected behaviors, edge cases, and performance requirements.
+This document provides comprehensive QA test cases for the caro CLI tool. These test cases serve as both manual testing guidelines and specifications for automated E2E tests. They are organized by functional area and include expected behaviors, edge cases, and performance requirements.
 
 ## Test Environment Setup
 
 ### Prerequisites
 - Rust toolchain installed and configured
-- cmdai binary built (`cargo build --release`)
+- caro binary built (`cargo build --release`)
 - Clean temporary directory for configuration isolation
 - All automated tests passing
 
 ### Environment Variables
 ```bash
-export CMDAI_CONFIG_DIR=/tmp/cmdai-test-config
-export CMDAI_CACHE_DIR=/tmp/cmdai-test-cache
+export CARO_CONFIG_DIR=/tmp/caro-test-config
+export CARO_CACHE_DIR=/tmp/caro-test-cache
 export RUST_LOG=debug  # For verbose testing
 ```
 
@@ -30,13 +30,13 @@ export RUST_LOG=debug  # For verbose testing
 
 **Test Steps**:
 ```bash
-cmdai --help
-cmdai -h
+caro --help
+caro -h
 ```
 
 **Expected Results**:
 - [ ] Displays tool description and purpose
-- [ ] Shows correct usage syntax: `cmdai [OPTIONS] [PROMPT]`
+- [ ] Shows correct usage syntax: `caro [OPTIONS] [PROMPT]`
 - [ ] Lists all command-line options with descriptions
 - [ ] Includes shell type options (bash, zsh, fish, sh, powershell, cmd)
 - [ ] Shows safety level options (strict, moderate, permissive)
@@ -58,12 +58,12 @@ cmdai -h
 
 **Test Steps**:
 ```bash
-cmdai --version
-cmdai -V
+caro --version
+caro -V
 ```
 
 **Expected Results**:
-- [ ] Displays version in format "cmdai X.Y.Z"
+- [ ] Displays version in format "caro X.Y.Z"
 - [ ] Version matches Cargo.toml version
 - [ ] No additional output or error messages
 - [ ] Clean, single-line output
@@ -81,20 +81,20 @@ cmdai -V
 **Test Cases**:
 ```bash
 # Simple file operations
-cmdai "list files in current directory"
-cmdai "show current date and time"
-cmdai "display disk usage"
-cmdai "find Python files"
+caro "list files in current directory"
+caro "show current date and time"
+caro "display disk usage"
+caro "find Python files"
 
 # Directory operations  
-cmdai "create a backup directory"
-cmdai "navigate to home directory"
-cmdai "show directory structure"
+caro "create a backup directory"
+caro "navigate to home directory"
+caro "show directory structure"
 
 # System information
-cmdai "show system information"
-cmdai "display environment variables"
-cmdai "check available memory"
+caro "show system information"
+caro "display environment variables"
+caro "check available memory"
 ```
 
 **Expected Results**:
@@ -122,9 +122,9 @@ cmdai "check available memory"
 
 **Test Steps**:
 ```bash
-cmdai "list files" --output json
-cmdai "show date" --output json
-cmdai "complex command with multiple parameters" --output json
+caro "list files" --output json
+caro "show date" --output json
+caro "complex command with multiple parameters" --output json
 ```
 
 **Expected Results**:
@@ -150,8 +150,8 @@ cmdai "complex command with multiple parameters" --output json
 
 **Validation Commands**:
 ```bash
-cmdai "test" --output json | jq .
-cmdai "test" --output json | python -m json.tool
+caro "test" --output json | jq .
+caro "test" --output json | python -m json.tool
 ```
 
 ---
@@ -161,9 +161,9 @@ cmdai "test" --output json | python -m json.tool
 
 **Test Steps**:
 ```bash
-cmdai "list files" --output yaml
-cmdai "show system info" --output yaml
-cmdai "multi-step process" --output yaml
+caro "list files" --output yaml
+caro "show system info" --output yaml
+caro "multi-step process" --output yaml
 ```
 
 **Expected Results**:
@@ -185,9 +185,9 @@ cmdai "multi-step process" --output yaml
 
 **Test Steps**:
 ```bash
-cmdai "list files"
-cmdai "show date"
-cmdai "complex operation"
+caro "list files"
+caro "show date"
+caro "complex operation"
 ```
 
 **Expected Results**:
@@ -213,12 +213,12 @@ cmdai "complex operation"
 **Test Matrix**:
 ```bash
 # Test each shell type
-cmdai "list files" --shell bash
-cmdai "list files" --shell zsh
-cmdai "list files" --shell fish
-cmdai "list files" --shell sh
-cmdai "list files" --shell powershell  # Windows
-cmdai "list files" --shell cmd         # Windows
+caro "list files" --shell bash
+caro "list files" --shell zsh
+caro "list files" --shell fish
+caro "list files" --shell sh
+caro "list files" --shell powershell  # Windows
+caro "list files" --shell cmd         # Windows
 ```
 
 **Expected Results**:
@@ -248,8 +248,8 @@ cmdai "list files" --shell cmd         # Windows
 **Test Steps**:
 ```bash
 # Test with verbose mode to see backend info
-cmdai "test command" --verbose
-cmdai "test command" --verbose --output json
+caro "test command" --verbose
+caro "test command" --verbose --output json
 ```
 
 **Expected Results**:
@@ -273,14 +273,14 @@ cmdai "test command" --verbose --output json
 **Test Matrix**:
 ```bash
 # Test with potentially dangerous commands at different safety levels
-cmdai "delete temporary files" --safety strict
-cmdai "delete temporary files" --safety moderate
-cmdai "delete temporary files" --safety permissive
+caro "delete temporary files" --safety strict
+caro "delete temporary files" --safety moderate
+caro "delete temporary files" --safety permissive
 
 # Test with clearly safe commands
-cmdai "list files" --safety strict
-cmdai "show date" --safety moderate
-cmdai "check disk usage" --safety permissive
+caro "list files" --safety strict
+caro "show date" --safety moderate
+caro "check disk usage" --safety permissive
 ```
 
 **Expected Results**:
@@ -293,9 +293,9 @@ cmdai "check disk usage" --safety permissive
 **Dangerous Command Tests**:
 ```bash
 # These should be blocked or heavily warned at all safety levels
-cmdai "rm -rf /" --safety permissive
-cmdai "format hard drive" --safety permissive
-cmdai "delete all files" --safety moderate
+caro "rm -rf /" --safety permissive
+caro "format hard drive" --safety permissive
+caro "delete all files" --safety moderate
 ```
 
 ---
@@ -306,11 +306,11 @@ cmdai "delete all files" --safety moderate
 **Test Steps**:
 ```bash
 # Test auto-confirmation
-cmdai "potentially dangerous command" --confirm
+caro "potentially dangerous command" --confirm
 
 # Test with different risk levels
-cmdai "rm *.tmp" --safety strict
-cmdai "sudo command" --safety moderate
+caro "rm *.tmp" --safety strict
+caro "sudo command" --safety moderate
 ```
 
 **Expected Results**:
@@ -329,7 +329,7 @@ cmdai "sudo command" --safety moderate
 
 **Test Steps**:
 ```bash
-cmdai --show-config
+caro --show-config
 ```
 
 **Expected Results**:
@@ -351,16 +351,16 @@ cmdai --show-config
 **Test Steps**:
 ```bash
 # Create test configuration
-mkdir -p ~/.config/cmdai
-cat > ~/.config/cmdai/config.toml << EOF
+mkdir -p ~/.config/caro
+cat > ~/.config/caro/config.toml << EOF
 default_shell = "zsh"
 safety_level = "strict"
 log_level = "debug"
 EOF
 
 # Test configuration is applied
-cmdai --show-config
-cmdai "test command"  # Should use zsh and strict safety
+caro --show-config
+caro "test command"  # Should use zsh and strict safety
 ```
 
 **Expected Results**:
@@ -379,15 +379,15 @@ cmdai "test command"  # Should use zsh and strict safety
 **Test Cases**:
 ```bash
 # Empty inputs
-cmdai ""
-cmdai "   "  # Whitespace only
+caro ""
+caro "   "  # Whitespace only
 
 # Very long inputs
-cmdai "$(printf 'a%.0s' {1..10000})"  # 10,000 character input
+caro "$(printf 'a%.0s' {1..10000})"  # 10,000 character input
 
 # Special characters
-cmdai "test with unicode: 🚀 ñ é 中文"
-cmdai "test with control chars: $(printf '\x00\x01\x02')"
+caro "test with unicode: 🚀 ñ é 中文"
+caro "test with control chars: $(printf '\x00\x01\x02')"
 ```
 
 **Expected Results**:
@@ -429,9 +429,9 @@ cmdai "test with control chars: $(printf '\x00\x01\x02')"
 
 **Test Commands**:
 ```bash
-time cmdai --version
-time cmdai "list files"
-time cmdai "complex multi-step operation"
+time caro --version
+time caro "list files"
+time caro "complex multi-step operation"
 ```
 
 ---
@@ -443,7 +443,7 @@ time cmdai "complex multi-step operation"
 ```bash
 # Run same command multiple times
 for i in {1..10}; do
-    cmdai "show current directory" --output json
+    caro "show current directory" --output json
 done | jq -r '.generated_command' | sort -u | wc -l
 # Should show 1 (identical outputs)
 ```
@@ -557,6 +557,6 @@ killall process          # kill processes
 
 ## Conclusion
 
-These QA test cases provide comprehensive coverage of cmdai CLI functionality and serve as both manual testing guidelines and specifications for automated E2E tests. They should be updated regularly as the tool evolves and new features are added.
+These QA test cases provide comprehensive coverage of caro CLI functionality and serve as both manual testing guidelines and specifications for automated E2E tests. They should be updated regularly as the tool evolves and new features are added.
 
 For questions or updates to these test cases, please refer to the project's issue tracker or development documentation.

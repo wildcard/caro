@@ -2,7 +2,7 @@
 
 ## 📊 What Was Created
 
-A complete Slidev presentation package for cmdai project demonstration and contributor recruitment.
+A complete Slidev presentation package for caro project demonstration and contributor recruitment.
 
 ### Files Created
 
@@ -21,9 +21,9 @@ presentation/
 ## 🎯 Presentation Structure (17 Slides)
 
 ### Act 1: Introduction & Problem (Slides 1-3)
-1. **Title** - cmdai introduction
+1. **Title** - caro introduction
 2. **Meet the Assistant** - Feature overview with mascot
-3. **Problem & Solution** - Pain points and how cmdai solves them
+3. **Problem & Solution** - Pain points and how caro solves them
 
 ### Act 2: The Demo (Slides 4-8) ⭐
 4. **Working Demo** - MLX test results (EXCITEMENT POINT)
@@ -80,7 +80,7 @@ presentation/
 > "Safety is too important to be controlled by a single entity."
 
 ### Vision
-> "That's cmdai. Let's build it together."
+> "That's caro. Let's build it together."
 
 ## 📈 Model Analysis Results
 
@@ -92,7 +92,7 @@ presentation/
 - Accuracy: High (87% from benchmarks)
 - Shell-specific: ✅ Yes
 
-**Recommendation**: ✅ **Use for cmdai**
+**Recommendation**: ✅ **Use for caro**
 - Better than TinyLlama for shell commands
 - Faster inference
 - Specifically trained for code generation
@@ -131,7 +131,7 @@ make export-pdf # Export PDF
 
 Before presenting, update:
 
-- [ ] GitHub URLs (replace `wildcard/cmdai`)
+- [ ] GitHub URLs (replace `wildcard/caro`)
 - [ ] Contact information (Discord, email)
 - [ ] Add mascot GIF to `public/mascot.gif`
 - [ ] Update statistics with latest numbers
@@ -244,7 +244,7 @@ Track after presentation:
 After presentation, follow up with:
 
 ```
-Thank you for attending the cmdai presentation!
+Thank you for attending the caro presentation!
 
 Here's how to get involved:
 - GitHub: [URL]

@@ -191,16 +191,16 @@ let logits = model.forward(&input_ids, None)?;
 ### Rationale
 - **Binary size target**: <50MB binary + ~900MB model = acceptable (<1GB total download)
 - **Zero-config operation**: Embedded quantized model works immediately (FR-012, FR-024)
-- **Quality upgrade path**: Users can opt into Q8 (~1.7GB) via `cmdai model upgrade` for 2-3% accuracy gain
+- **Quality upgrade path**: Users can opt into Q8 (~1.7GB) via `caro model upgrade` for 2-3% accuracy gain
 - **Offline capability**: Embedded Q4 model fully offline (FR-031)
-- **Update mechanism**: Model updates separate from cmdai binary updates (version model weights independently)
+- **Update mechanism**: Model updates separate from caro binary updates (version model weights independently)
 
 ### Distribution Architecture
 
-**Initial Download** (first cmdai installation):
+**Initial Download** (first caro installation):
 ```
-cmdai-v0.2.0-macos-aarch64-mlx.tar.gz
-├── cmdai                           # Binary (<50MB)
+caro-v0.2.0-macos-aarch64-mlx.tar.gz
+├── caro                           # Binary (<50MB)
 └── models/
     └── qwen2.5-coder-1.5b-q4.gguf  # Quantized model (~900MB)
 
@@ -209,20 +209,20 @@ Total: ~950MB download
 
 **Optional Upgrade** (user-initiated):
 ```bash
-$ cmdai model upgrade --quality high
+$ caro model upgrade --quality high
 Downloading Qwen2.5-Coder-1.5B Q8 quantization... 1.7GB
-Installed to: ~/.cmdai/models/qwen2.5-coder-1.5b-q8.gguf
+Installed to: ~/.caro/models/qwen2.5-coder-1.5b-q8.gguf
 ```
 
 **Model Selection Priority**:
-1. User-specified: `cmdai --model q8 "list files"`
-2. Config file: `model_quality = "high"` in ~/.cmdai/config.toml
+1. User-specified: `caro --model q8 "list files"`
+2. Config file: `model_quality = "high"` in ~/.caro/config.toml
 3. Auto-detect: Use Q8 if downloaded, else Q4 embedded
 
 ### Storage Locations
 - **Embedded model** (shipped with binary): `$INSTALL_DIR/models/qwen2.5-coder-1.5b-q4.gguf`
-- **User models** (downloaded upgrades): `~/.cmdai/models/*.gguf`
-- **Config**: `~/.cmdai/config.toml` specifies preferred model
+- **User models** (downloaded upgrades): `~/.caro/models/*.gguf`
+- **Config**: `~/.caro/config.toml` specifies preferred model
 
 ### Alternatives Considered
 - **No embedded model**: Rejected - violates batteries-included (FR-001)
@@ -243,7 +243,7 @@ Use Ollama HTTP API v0.1.0+ with `/api/generate` endpoint for **optional** local
 - **Simplicity**: Single endpoint design with minimal configuration
 - **Model variety**: Wide range of models (Llama 2, CodeLlama, Mistral, etc.) for user choice
 - **Performance**: Optimized for local inference with GPU acceleration
-- **Fallback strategy**: If Ollama unavailable, cmdai falls back to embedded Qwen model
+- **Fallback strategy**: If Ollama unavailable, caro falls back to embedded Qwen model
 
 ### API Specification
 
@@ -281,7 +281,7 @@ Use Ollama HTTP API v0.1.0+ with `/api/generate` endpoint for **optional** local
 }
 ```
 
-**Key Fields for cmdai**:
+**Key Fields for caro**:
 - `response`: The generated command (extract from here)
 - `done`: Indicates completion (must be `true`)
 - `total_duration`: Useful for performance logging (nanoseconds)
@@ -359,7 +359,7 @@ Use vLLM OpenAI-compatible `/v1/completions` endpoint for enterprise LLM serving
 }
 ```
 
-**Key Fields for cmdai**:
+**Key Fields for caro**:
 - `choices[0].text`: The generated command
 - `choices[0].finish_reason`: Completion status ("stop" = success)
 - `usage`: Token counts (useful for logging/cost tracking)
@@ -408,7 +408,7 @@ let client = reqwest::Client::builder()
     .timeout(Duration::from_secs(30))
     .connect_timeout(Duration::from_secs(5))
     .pool_max_idle_per_host(2)  // Reuse connections
-    .user_agent("cmdai/0.1.0")
+    .user_agent("caro/0.1.0")
     .build()?;
 ```
 
@@ -547,7 +547,7 @@ Priority order: CLI flag `--backend` > Config file `preferred_backend` > Auto-de
 
 ### Configuration Schema
 
-**TOML** (`~/.cmdai/config.toml`):
+**TOML** (`~/.caro/config.toml`):
 ```toml
 [backends]
 preferred_backend = "ollama"  # or "vllm" or "auto"
@@ -568,7 +568,7 @@ api_key = ""  # Optional, read from env if present
 ```
 Error: No LLM backends available
 
-cmdai requires either Ollama or vLLM to generate commands.
+caro requires either Ollama or vLLM to generate commands.
 
 To use Ollama (local):
   1. Install: curl -fsSL https://ollama.com/install.sh | sh
@@ -576,10 +576,10 @@ To use Ollama (local):
   3. Pull model: ollama pull codellama:7b
 
 To use vLLM (remote):
-  1. Configure URL in ~/.cmdai/config.toml
+  1. Configure URL in ~/.caro/config.toml
   2. Add API key if required
 
-For help: cmdai --help
+For help: caro --help
 ```
 
 ### Alternatives Considered
@@ -716,15 +716,15 @@ Err(GeneratorError::MalformedResponse {
 Implement three-tier priority system: **CLI flag > Config file > Embedded model default**.
 
 ### Rationale
-- **CLI flag highest priority**: Per-command override for testing/debugging (`cmdai --backend ollama "list files"`)
-- **Config file persistent**: User preference saved in `~/.cmdai/config.toml` for regular use
+- **CLI flag highest priority**: Per-command override for testing/debugging (`caro --backend ollama "list files"`)
+- **Config file persistent**: User preference saved in `~/.caro/config.toml` for regular use
 - **Embedded model default**: Zero-config works immediately without any setup (FR-012)
 - **Auto-detect disabled**: With embedded model always available, no need to ping remote backends on every invocation
-- **Init wizard**: `cmdai init` guides users through optional remote backend configuration
+- **Init wizard**: `caro init` guides users through optional remote backend configuration
 
 ### Configuration Schema
 
-**TOML** (`~/.cmdai/config.toml`):
+**TOML** (`~/.caro/config.toml`):
 ```toml
 [backend]
 # Options: "embedded", "ollama", "vllm"
@@ -735,13 +735,13 @@ model = "qwen2.5-coder-1.5b-q4"  # Auto-detected from embedded model
 variant = "mlx"  # Or "cpu" - auto-detected from platform
 
 [backend.ollama]
-# Only used if user runs: cmdai init --backend ollama
+# Only used if user runs: caro init --backend ollama
 url = "http://localhost:11434"
 model = "codellama:7b"
 enabled = false  # Toggle to enable
 
 [backend.vllm]
-# Only used if user runs: cmdai init --backend vllm
+# Only used if user runs: caro init --backend vllm
 url = "https://vllm.example.com:8000"
 model = "codellama/CodeLlama-7b-hf"
 api_key_env = "VLLM_API_KEY"  # Read from environment variable
@@ -768,10 +768,10 @@ enabled = false  # Toggle to enable
 
 ### Init Wizard Workflow
 
-**Command**: `cmdai init`
+**Command**: `caro init`
 
 ```
-Welcome to cmdai! Let's configure your command generation backend.
+Welcome to caro! Let's configure your command generation backend.
 
 Default: Embedded Qwen model (works offline, no setup needed)
   - Fast: <2s on Apple Silicon, <5s on CPU
@@ -793,8 +793,8 @@ Configuring Ollama backend...
   Model name [codellama:7b]: _
   Test connection: ✓ Success
 
-Configuration saved to ~/.cmdai/config.toml
-Try it: cmdai --backend ollama "list files"
+Configuration saved to ~/.caro/config.toml
+Try it: caro --backend ollama "list files"
 ```
 
 ### Alternatives Considered

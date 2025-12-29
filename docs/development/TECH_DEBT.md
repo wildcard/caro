@@ -233,7 +233,7 @@ impl CacheManager {
     ///
     /// # Example
     /// ```no_run
-    /// # use cmdai::cache::CacheManager;
+    /// # use caro::cache::CacheManager;
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let cache = CacheManager::new()?;
     /// let model_path = cache.get_model("facebook/opt-125m").await?;

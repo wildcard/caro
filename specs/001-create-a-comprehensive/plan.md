@@ -1,8 +1,8 @@
-# Implementation Plan: cmdai - Natural Language to Shell Command CLI Tool
+# Implementation Plan: caro - Natural Language to Shell Command CLI Tool
 
 
 **Branch**: `001-create-a-comprehensive` | **Date**: 2025-09-13 | **Spec**: [spec.md](./spec.md)
-**Input**: Feature specification from `/workspaces/cmdai/specs/001-create-a-comprehensive/spec.md`
+**Input**: Feature specification from `/workspaces/caro/specs/001-create-a-comprehensive/spec.md`
 
 ## Execution Flow (/plan command scope)
 ```
@@ -54,8 +54,8 @@ A Rust CLI tool that converts natural language descriptions into safe POSIX shel
 
 **Architecture**:
 - EVERY feature as library? YES (backend traits, safety module, cache management)
-- Libraries listed: [cmdai-core (main logic), cmdai-backends (LLM integration), cmdai-safety (validation), cmdai-cache (model management)]
-- CLI per library: Single `cmdai` command with --help/--version/--backend flags
+- Libraries listed: [caro-core (main logic), caro-backends (LLM integration), caro-safety (validation), caro-cache (model management)]
+- CLI per library: Single `caro` command with --help/--version/--backend flags
 - Library docs: llms.txt format planned for agent integration
 
 **Testing (NON-NEGOTIABLE)**:
@@ -301,4 +301,4 @@ ios/ or android/
 - [x] quickstart.md - User scenarios and validation tests
 
 ---
-*Based on Constitution v1.0.0 - See `/workspaces/cmdai/.specify/memory/constitution.md`*
+*Based on Constitution v1.0.0 - See `/workspaces/caro/.specify/memory/constitution.md`*

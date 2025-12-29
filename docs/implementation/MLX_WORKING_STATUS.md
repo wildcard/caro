@@ -10,7 +10,7 @@ $ cargo test model_variant_detect --lib
 
 ### 2. Model Download & Loading
 ```bash
-$ ls -lh ~/Library/Caches/cmdai/models/
+$ ls -lh ~/Library/Caches/caro/models/
 -rw-r--r--  1.0G  qwen2.5-coder-1.5b-instruct-q4_k_m.gguf
 ✅ Model downloaded: Qwen 2.5 Coder 1.5B (Q4_K_M quantization)
 ```
@@ -19,8 +19,8 @@ $ ls -lh ~/Library/Caches/cmdai/models/
 ```bash
 $ RUST_LOG=info cargo run --release -- "list files"
 
-INFO cmdai::cli: Using embedded backend only
-INFO cmdai::backends::embedded::mlx: MLX model loaded from /Users/kobi/Library/Caches/cmdai/models/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf
+INFO caro::cli: Using embedded backend only
+INFO caro::backends::embedded::mlx: MLX model loaded from /Users/kobi/Library/Caches/caro/models/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf
 
 Command:
   echo 'Please clarify your request'
@@ -38,7 +38,7 @@ Explanation:
 ### 4. Build System
 ```bash
 $ cargo build --release
-   Compiling cmdai v0.1.0
+   Compiling caro v0.1.0
    Finished `release` profile [optimized] target(s) in 24.49s
 ✅ Builds successfully without errors
 ```
@@ -119,20 +119,20 @@ make[2]: *** [mlx/backend/metal/kernels/arg_reduce.air] Error 72
 
 ### Model File Loaded
 ```bash
-$ ls -lh ~/Library/Caches/cmdai/models/
+$ ls -lh ~/Library/Caches/caro/models/
 total 2182272
 -rw-r--r--@ 1 kobi  staff   1.0G Nov 24 01:36 qwen2.5-coder-1.5b-instruct-q4_k_m.gguf
 ```
 
 ### Log Output Shows MLX Active
 ```
-INFO cmdai::backends::embedded::mlx: MLX model loaded from /Users/kobi/Library/Caches/cmdai/models/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf
+INFO caro::backends::embedded::mlx: MLX model loaded from /Users/kobi/Library/Caches/caro/models/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf
 ```
 
 ### Binary Size (Release)
 ```bash
-$ ls -lh target/release/cmdai
--rwxr-xr-x  8.2M cmdai
+$ ls -lh target/release/caro
+-rwxr-xr-x  8.2M caro
 ✅ Under 50MB target (without embedded model)
 ```
 

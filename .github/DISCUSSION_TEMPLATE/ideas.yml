@@ -15,7 +15,7 @@ body:
     attributes:
       label: Idea Summary
       description: Briefly describe your idea in a sentence or two
-      placeholder: "What if cmdai could..."
+      placeholder: "What if caro could..."
     validations:
       required: true
 

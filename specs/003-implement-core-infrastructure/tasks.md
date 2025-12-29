@@ -1,6 +1,6 @@
 # Tasks: Core Infrastructure Modules
 
-**Input**: Design documents from `/workspaces/cmdai/specs/003-implement-core-infrastructure/`
+**Input**: Design documents from `/workspaces/caro/specs/003-implement-core-infrastructure/`
 **Prerequisites**: plan.md ✅, research.md ✅, data-model.md ✅, contracts/ ✅, quickstart.md ✅
 **Feature Branch**: `003-implement-core-infrastructure`
 
@@ -37,7 +37,7 @@
 
 ## Format: `[ID] [P?] Description`
 - **[P]**: Can run in parallel (different files, no dependencies)
-- All paths are relative to repository root: `/workspaces/cmdai/`
+- All paths are relative to repository root: `/workspaces/caro/`
 
 ---
 
@@ -300,7 +300,7 @@
   - Title: "Feature 003: Core Infrastructure Modules (Cache, Config, Execution, Logging)"
   - Description: Comprehensive summary with key features, stats, performance validation
   - Checklist: All tests passing, performance validated, documentation updated
-  - PR created: https://github.com/wildcard/cmdai/pull/3
+  - PR created: https://github.com/wildcard/caro/pull/3
 
 ---
 
@@ -431,4 +431,4 @@ Task: "Write Scenario 9 test in tests/integration/infrastructure_integration.rs"
 
 ---
 
-*Generated from plan.md on 2025-10-02. See `/workspaces/cmdai/specs/003-implement-core-infrastructure/` for design documents.*
+*Generated from plan.md on 2025-10-02. See `/workspaces/caro/specs/003-implement-core-infrastructure/` for design documents.*

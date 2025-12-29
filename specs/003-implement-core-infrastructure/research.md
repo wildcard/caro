@@ -12,7 +12,7 @@
 
 **Rationale**:
 - Industry-standard for cross-platform directory management in Rust
-- Automatic platform-specific paths: `~/.cache/cmdai` (Linux), `~/Library/Caches/cmdai` (macOS), `%LOCALAPPDATA%\cmdai\cache` (Windows)
+- Automatic platform-specific paths: `~/.cache/caro` (Linux), `~/Library/Caches/caro` (macOS), `%LOCALAPPDATA%\caro\cache` (Windows)
 - Zero-cost abstraction over platform APIs
 - Well-maintained crate with 15M+ downloads
 
@@ -45,7 +45,7 @@
 - RON (Rusty Object Notation): Rejected as less familiar to users
 
 **Implementation Notes**:
-- Configuration file location: `~/.config/cmdai/config.toml` (XDG-compliant)
+- Configuration file location: `~/.config/caro/config.toml` (XDG-compliant)
 - Schema validation using serde with custom deserializers for enums
 - Graceful handling of unknown keys (forward compatibility)
 

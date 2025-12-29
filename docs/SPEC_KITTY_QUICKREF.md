@@ -35,7 +35,7 @@ cd kitty-specs/001-feature-name/
 ## Directory Structure
 
 ```
-cmdai/
+caro/
 ├── kitty-specs/              # Feature worktrees (auto-created)
 │   └── 001-feature-name/     # Each feature
 │       ├── spec.md

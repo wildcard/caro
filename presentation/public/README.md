@@ -41,5 +41,5 @@ background: /asset-name.jpg
 
 ## Current Asset Requirements
 
-For the cmdai presentation:
+For the caro presentation:
 1. **mascot.gif** - Place your mascot GIF here (required)

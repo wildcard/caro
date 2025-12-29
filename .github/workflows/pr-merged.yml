@@ -47,28 +47,28 @@ jobs:
             // Milestone celebrations
             if (totalMergedPRs === 1) {
               message = '## Congratulations on your first merged PR! :rocket:\n\n' +
-                '@' + prAuthor + ', you\'re now officially a cmdai contributor! Your contribution matters, and we\'re grateful you chose to help improve this project.\n\n' +
+                '@' + prAuthor + ', you\'re now officially a caro contributor! Your contribution matters, and we\'re grateful you chose to help improve this project.\n\n' +
                 '**What\'s next?**\n' +
                 '- Check out more [good first issues](https://github.com/' + owner + '/' + repo + '/labels/good%20first%20issue) to continue contributing\n' +
                 '- Join the conversation in [GitHub Discussions](https://github.com/' + owner + '/' + repo + '/discussions)\n' +
                 '- Star the repo if you haven\'t already!\n\n' +
-                'Welcome to the cmdai community! :heart:';
+                'Welcome to the caro community! :heart:';
             } else if (totalMergedPRs === 5) {
               message = '## 5 PRs merged! :star:\n\n' +
-                'Incredible work, @' + prAuthor + '! You\'ve now contributed 5 pull requests to cmdai. You\'re becoming a regular contributor!\n\n' +
-                'Thank you for your continued dedication to making cmdai better. Your contributions are making a real difference! :muscle:';
+                'Incredible work, @' + prAuthor + '! You\'ve now contributed 5 pull requests to caro. You\'re becoming a regular contributor!\n\n' +
+                'Thank you for your continued dedication to making caro better. Your contributions are making a real difference! :muscle:';
             } else if (totalMergedPRs === 10) {
               message = '## 10 PRs merged! :trophy:\n\n' +
-                'Amazing milestone, @' + prAuthor + '! You\'ve contributed 10 pull requests to cmdai. You\'re a valued member of our community!\n\n' +
+                'Amazing milestone, @' + prAuthor + '! You\'ve contributed 10 pull requests to caro. You\'re a valued member of our community!\n\n' +
                 'Contributors like you are what make open source amazing. Thank you for your incredible dedication! :star2:';
             } else if (totalMergedPRs === 25) {
               message = '## 25 PRs merged! :crown:\n\n' +
                 'Legendary status achieved, @' + prAuthor + '! 25 pull requests is an outstanding accomplishment.\n\n' +
-                'Your sustained contributions have had a significant impact on cmdai. We\'re incredibly grateful for everything you do! :gem:';
+                'Your sustained contributions have had a significant impact on caro. We\'re incredibly grateful for everything you do! :gem:';
             } else {
               message = '## Thank you! :tada:\n\n' +
                 'Thanks for your contribution, @' + prAuthor + '! Your PR has been merged.\n\n' +
-                'Contribution ' + totalMergedPRs + ' - Every contribution helps make cmdai better! :heart:';
+                'Contribution ' + totalMergedPRs + ' - Every contribution helps make caro better! :heart:';
             }
 
             await github.rest.issues.createComment({

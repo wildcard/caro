@@ -1,9 +1,9 @@
-# Feature Specification: cmdai - Natural Language to Shell Command CLI Tool
+# Feature Specification: caro - Natural Language to Shell Command CLI Tool
 
 **Feature Branch**: `001-create-a-comprehensive`  
 **Created**: 2025-09-13  
 **Status**: Draft  
-**Input**: User description: "Create a comprehensive specification for cmdai, a Rust CLI tool that converts natural language descriptions into safe POSIX shell commands using local LLMs."
+**Input**: User description: "Create a comprehensive specification for caro, a Rust CLI tool that converts natural language descriptions into safe POSIX shell commands using local LLMs."
 
 ## Execution Flow (main)
 ```
@@ -55,18 +55,18 @@ When creating this spec from a user prompt:
 ## User Scenarios & Testing *(mandatory)*
 
 ### Primary User Story
-A developer wants to perform a file system operation but doesn't remember the exact command syntax. They describe their intent in plain English to cmdai, which generates the appropriate shell command, explains what it will do, and asks for confirmation before executing it safely.
+A developer wants to perform a file system operation but doesn't remember the exact command syntax. They describe their intent in plain English to caro, which generates the appropriate shell command, explains what it will do, and asks for confirmation before executing it safely.
 
 ### Acceptance Scenarios
-1. **Given** a user wants to find files, **When** they type `cmdai "find all PDF files larger than 10MB in Downloads folder"`, **Then** the system generates `find ~/Downloads -name "*.pdf" -size +10M -type f`, displays it with safety indicators, explains the command's purpose, and requests confirmation before execution.
+1. **Given** a user wants to find files, **When** they type `caro "find all PDF files larger than 10MB in Downloads folder"`, **Then** the system generates `find ~/Downloads -name "*.pdf" -size +10M -type f`, displays it with safety indicators, explains the command's purpose, and requests confirmation before execution.
 
-2. **Given** a user requests a potentially dangerous operation, **When** they type `cmdai "delete all files in this directory"`, **Then** the system generates the command, displays a RED warning indicator, explains the risks, requires explicit confirmation with additional safety prompts, and logs the action.
+2. **Given** a user requests a potentially dangerous operation, **When** they type `caro "delete all files in this directory"`, **Then** the system generates the command, displays a RED warning indicator, explains the risks, requires explicit confirmation with additional safety prompts, and logs the action.
 
-3. **Given** a user provides an ambiguous request, **When** they type `cmdai "compress files"`, **Then** the system asks clarifying questions about which files, compression format, and destination before generating any command.
+3. **Given** a user provides an ambiguous request, **When** they type `caro "compress files"`, **Then** the system asks clarifying questions about which files, compression format, and destination before generating any command.
 
 4. **Given** the system cannot safely interpret a request, **When** a user asks for something potentially harmful or unclear, **Then** the system refuses to generate a command and suggests alternative approaches or asks for clarification.
 
-5. **Given** a user wants to explore shell capabilities, **When** they type `cmdai "show me disk usage by directory"`, **Then** the system generates `du -sh */ | sort -hr`, explains that it shows directory sizes sorted by largest first, and executes after confirmation.
+5. **Given** a user wants to explore shell capabilities, **When** they type `caro "show me disk usage by directory"`, **Then** the system generates `du -sh */ | sort -hr`, explains that it shows directory sizes sorted by largest first, and executes after confirmation.
 
 ### Edge Cases
 - What happens when the local LLM is unavailable or returns malformed responses?

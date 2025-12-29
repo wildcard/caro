@@ -1,7 +1,7 @@
 # Phase 0: Research & Technical Decisions
 
 ## Overview
-Research findings for cmdai CLI tool implementation, resolving technical unknowns and establishing architectural foundations.
+Research findings for caro CLI tool implementation, resolving technical unknowns and establishing architectural foundations.
 
 ## LLM Backend Integration Research
 
@@ -105,7 +105,7 @@ Research findings for cmdai CLI tool implementation, resolving technical unknown
 - Integrity verification and checksum validation
 
 **Cache Strategy**:
-- User-configurable cache directory (~/.cmdai/models/)
+- User-configurable cache directory (~/.caro/models/)
 - Model metadata tracking (version, size, performance metrics)
 - Intelligent cache eviction based on usage patterns
 - Atomic download operations for consistency
@@ -121,9 +121,9 @@ Research findings for cmdai CLI tool implementation, resolving technical unknown
 
 **Configuration Hierarchy** (highest to lowest priority):
 1. Command-line arguments
-2. Environment variables (CMDAI_*)
-3. User configuration (~/.config/cmdai/config.toml)
-4. System configuration (/etc/cmdai/config.toml)
+2. Environment variables (CARO_*)
+3. User configuration (~/.config/caro/config.toml)
+4. System configuration (/etc/caro/config.toml)
 5. Default values
 
 ## Error Handling Strategy

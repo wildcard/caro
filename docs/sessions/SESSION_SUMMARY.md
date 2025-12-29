@@ -74,7 +74,7 @@ make run-structured  # Full test suite (12 cases)
 - Phi-3-mini - Alternative (82% accuracy, 3.5s)
 - TinyLlama-1.1B - Demo/testing (moderate accuracy)
 
-**Decision**: Use Qwen2.5-Coder-1.5B for cmdai production
+**Decision**: Use Qwen2.5-Coder-1.5B for caro production
 
 ---
 
@@ -236,7 +236,7 @@ mlx-test/
 4. 🎬 Practice with speaker notes (22 min target)
 
 ### For Development
-1. 🔧 Integrate Qwen2.5-Coder into cmdai
+1. 🔧 Integrate Qwen2.5-Coder into caro
 2. 🛡️ Implement 52-pattern safety validation layer
 3. ⚙️ Build Rust FFI wrapper for MLX
 4. 🚀 Complete Phase 1 roadmap items

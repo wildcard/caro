@@ -1,11 +1,15 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "cd website && npm install && npm run build",
-  "outputDirectory": "website/dist",
-  "devCommand": "cd website && npm run dev",
-  "installCommand": "cd website && npm install",
+  "buildCommand": "cd presentation && npm install && npm run build:all",
+  "outputDirectory": "presentation/dist",
+  "devCommand": "cd presentation && npm run dev",
+  "installCommand": "cd presentation && npm install",
   "framework": null,
   "rewrites": [
+    {
+      "source": "/pitch/(.*)",
+      "destination": "/pitch/index.html"
+    },
     {
       "source": "/roadmap/(.*)",
       "destination": "/roadmap/index.html"

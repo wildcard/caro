@@ -1,4 +1,4 @@
-# Xcode and Metal Compiler Setup for cmdai (macOS)
+# Xcode and Metal Compiler Setup for caro (macOS)
 
 ## Why is Xcode Needed?
 
@@ -26,12 +26,12 @@ The project includes a fully functional stub implementation that:
 
 ```bash
 # This works RIGHT NOW without Xcode:
-cd /Users/kobi/personal/cmdai
+cd /Users/kobi/personal/caro
 cargo run --release -- "list files"
 
 # Output:
-# INFO cmdai::cli: Using embedded backend only
-# INFO cmdai::backends::embedded::mlx: MLX model loaded from ...
+# INFO caro::cli: Using embedded backend only
+# INFO caro::backends::embedded::mlx: MLX model loaded from ...
 # Command: echo 'Please clarify your request'
 ```
 
@@ -85,7 +85,7 @@ metal --version
 #### Step 3: Build with MLX
 
 ```bash
-cd /Users/kobi/personal/cmdai
+cd /Users/kobi/personal/caro
 
 # Clean previous build
 cargo clean
@@ -96,7 +96,7 @@ cargo build --release --features embedded-mlx
 # If successful, you'll see:
 # Compiling mlx-sys...
 # Compiling mlx-rs...
-# Compiling cmdai...
+# Compiling caro...
 # Finished `release` profile
 ```
 
@@ -107,8 +107,8 @@ cargo build --release --features embedded-mlx
 RUST_LOG=info cargo run --release -- "list all files recursively"
 
 # You should see different output indicating real inference:
-# INFO cmdai::backends::embedded::mlx: MLX GPU initialized
-# INFO cmdai::backends::embedded::mlx: Using Metal device
+# INFO caro::backends::embedded::mlx: MLX GPU initialized
+# INFO caro::backends::embedded::mlx: Using Metal device
 # Command: find . -type f  (actual inference result)
 ```
 
@@ -227,7 +227,7 @@ If you encounter issues:
 
 ## Summary
 
-**Current state:** Everything works with stub implementation! The model is loaded, inference pipeline is operational, and you can use cmdai immediately.
+**Current state:** Everything works with stub implementation! The model is loaded, inference pipeline is operational, and you can use caro immediately.
 
 **To unlock GPU:** Install Xcode (15GB, ~30 min download), configure it, and rebuild with `--features embedded-mlx`.
 

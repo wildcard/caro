@@ -2,7 +2,7 @@
 
 **Feature**: 002-implement-tdd-green | **Date**: 2025-10-01 | **Phase**: 1
 
-This document defines the core data model entities for cmdai's command generation system, extracted from contract tests and feature specifications.
+This document defines the core data model entities for caro's command generation system, extracted from contract tests and feature specifications.
 
 ## Overview
 

@@ -197,7 +197,7 @@ async fn test_cache_respects_ttl() {
 ```
 
 **Implementation** (`src/validation/help_cache.rs`)
-- Store help text in `~/.cache/cmdai/help/{command}.json`
+- Store help text in `~/.cache/caro/help/{command}.json`
 - Include TTL (default 7 days)
 - Validate cache freshness
 - Handle cache corruption gracefully

@@ -1,6 +1,6 @@
 # Caro Presentations
 
-Slidev presentations for the Caro project (formerly cmdai):
+Slidev presentations for the Caro project (formerly caro):
 
 - **Main Presentation** (`slides.md`) - Technical overview and capabilities
 - **Roadmap Presentation** (`roadmap-slides.md`) - 2026 development roadmap
@@ -63,8 +63,8 @@ Deployment structure:
 
 ## Presentation Structure
 
-1. **Introduction** - What is cmdai?
-2. **Problem & Solution** - Why cmdai matters
+1. **Introduction** - What is caro?
+2. **Problem & Solution** - Why caro matters
 3. **Working Demo** - MLX test suite results
 4. **Architecture** - Technical design
 5. **Safety Validation** - The critical feature
@@ -92,7 +92,7 @@ Place in `public/` directory:
 - ✅ `mascot.gif` - **Caro the Shiba Inu** (already included!)
 - Any additional images or media
 
-See `MASCOT.md` for more about Caro, the cmdai mascot.
+See `MASCOT.md` for more about Caro, the caro mascot.
 
 ## Export Options
 
@@ -134,4 +134,4 @@ Uses Slidev's `seriph` theme with custom styling for:
 
 ## License
 
-Same as cmdai project: AGPL-3.0
+Same as caro project: AGPL-3.0

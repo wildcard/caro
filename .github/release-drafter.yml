@@ -138,7 +138,7 @@ template: |
 
   ```bash
   # Using cargo
-  cargo install cmdai
+  cargo install caro
 
   # Or download the binary for your platform from the assets below
   ```

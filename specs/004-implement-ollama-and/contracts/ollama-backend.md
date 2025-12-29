@@ -2,7 +2,7 @@
 
 **Component**: `OllamaBackend`
 **Trait**: `CommandGenerator`
-**Module**: `cmdai::backends::ollama`
+**Module**: `caro::backends::ollama`
 **Purpose**: Define behavioral contract for Ollama HTTP API backend implementation
 
 ---
@@ -456,7 +456,7 @@ async fn test_ollama_retry_before_fallback() {
 **Update to `is_available()` behavior**:
 - Returns `false` when Ollama not installed/running
 - System continues with embedded model (no blocking error)
-- Users can optionally configure Ollama via `cmdai init --backend ollama`
+- Users can optionally configure Ollama via `caro init --backend ollama`
 
 ---
 

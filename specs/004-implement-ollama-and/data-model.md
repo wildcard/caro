@@ -6,7 +6,7 @@
 
 ## Overview
 
-This data model extends the existing `cmdai::models` and `cmdai::backends` modules with:
+This data model extends the existing `caro::models` and `caro::backends` modules with:
 1. **Embedded model backends** (E0-E2): Primary backends using Qwen model with MLX GPU or Candle CPU inference
 2. **Remote backend types** (E3-E5): HTTP connection management, retry logic, health tracking
 3. **Remote backend implementations** (E6-E7): Ollama and vLLM optional enhancements
@@ -61,7 +61,7 @@ impl CommandGenerator for EmbeddedModelBackend {
 ```rust
 let backend = EmbeddedModelBackend::new(
     ModelVariant::MLX,
-    PathBuf::from("/usr/local/lib/cmdai/models/qwen2.5-coder-1.5b-q4.gguf")
+    PathBuf::from("/usr/local/lib/caro/models/qwen2.5-coder-1.5b-q4.gguf")
 )?
 .with_config(EmbeddedConfig {
     temperature: 0.7,
@@ -460,7 +460,7 @@ pub struct OllamaRequest {
     pub prompt: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub system: Option<String>,
-    pub stream: bool,  // Always false for cmdai
+    pub stream: bool,  // Always false for caro
     #[serde(skip_serializing_if = "Option::is_none")]
     pub options: Option<OllamaOptions>,
 }
@@ -750,7 +750,7 @@ impl Default for UserConfiguration {
 
 ### Example 1: Create Ollama Backend
 ```rust
-use cmdai::backends::OllamaBackend;
+use caro::backends::OllamaBackend;
 use url::Url;
 
 let backend = OllamaBackend::new(
@@ -764,8 +764,8 @@ assert!(backend.is_available().await);
 
 ### Example 2: Generate Command with vLLM
 ```rust
-use cmdai::backends::VllmBackend;
-use cmdai::models::{CommandRequest, ShellType};
+use caro::backends::VllmBackend;
+use caro::models::{CommandRequest, ShellType};
 
 let backend = VllmBackend::new(
     Url::parse("https://vllm.company.com")?,
@@ -785,7 +785,7 @@ println!("Generated: {}", command.command);
 
 ### Example 3: Handle Connection Failures
 ```rust
-use cmdai::backends::{OllamaBackend, RetryPolicy};
+use caro::backends::{OllamaBackend, RetryPolicy};
 
 let backend = OllamaBackend::new(
     Url::parse("http://localhost:11434")?,

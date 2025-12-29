@@ -1,0 +1,318 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import GetStartedPaths from '../../components/explore/GetStartedPaths.astro';
+import UseCaseGallery from '../../components/explore/UseCaseGallery.astro';
+import IntegrationMethods from '../../components/explore/IntegrationMethods.astro';
+import SafetyShowcase from '../../components/explore/SafetyShowcase.astro';
+import BackendOptions from '../../components/explore/BackendOptions.astro';
+import PlatformGuides from '../../components/explore/PlatformGuides.astro';
+import Footer from '../../components/Footer.astro';
+---
+
+<Layout
+  title="Explore Caro - Your Loyal Shell Companion"
+  description="Discover Caro's features, backends, safety validation, and platform-specific guides. Get started with natural language to shell command conversion."
+>
+  <!-- Hero Section -->
+  <section class="explore-hero">
+    <div class="container">
+      <div class="hero-content">
+        <div class="early-dev-badge">🚧 Early Development (v0.1.0)</div>
+        <h1>Explore Caro</h1>
+        <p class="hero-subtitle">
+          Your loyal companion for safe shell command generation.
+          Published on crates.io with core features working - advanced features in active development.
+        </p>
+        <div class="hero-cta">
+          <a href="#get-started" class="cta-primary">Get Started</a>
+          <a href="#use-cases" class="cta-secondary">See Examples</a>
+        </div>
+      </div>
+      <div class="quick-nav">
+        <a href="#get-started" class="nav-item">
+          <span class="nav-icon">🚀</span>
+          <span class="nav-label">Get Started</span>
+        </a>
+        <a href="#use-cases" class="nav-item">
+          <span class="nav-icon">💻</span>
+          <span class="nav-label">Use Cases</span>
+        </a>
+        <a href="#integration-methods" class="nav-item">
+          <span class="nav-icon">🔌</span>
+          <span class="nav-label">Integration</span>
+        </a>
+        <a href="#safety-showcase" class="nav-item">
+          <span class="nav-icon">🛡️</span>
+          <span class="nav-label">Safety</span>
+        </a>
+        <a href="#backend-options" class="nav-item">
+          <span class="nav-icon">⚙️</span>
+          <span class="nav-label">Backends</span>
+        </a>
+        <a href="#platform-guides" class="nav-item">
+          <span class="nav-icon">📦</span>
+          <span class="nav-label">Install</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content Sections -->
+  <GetStartedPaths />
+  <UseCaseGallery />
+  <IntegrationMethods />
+  <SafetyShowcase />
+  <BackendOptions />
+  <PlatformGuides />
+
+  <!-- Community Section -->
+  <section class="community">
+    <div class="container">
+      <h2>Join the Pack</h2>
+      <p class="section-subtitle">
+        Caro is open source and built with the community. Contribute, report issues, or join the conversation.
+      </p>
+      <div class="community-links">
+        <a href="https://github.com/caro-sh/caro" target="_blank" class="community-card">
+          <span class="community-icon">⭐</span>
+          <h3>Star on GitHub</h3>
+          <p>Show your support and stay updated with the latest releases</p>
+        </a>
+        <a href="https://github.com/caro-sh/caro/issues" target="_blank" class="community-card">
+          <span class="community-icon">🐛</span>
+          <h3>Report Issues</h3>
+          <p>Found a bug or have a feature request? Let us know</p>
+        </a>
+        <a href="https://github.com/caro-sh/caro/blob/main/CONTRIBUTING.md" target="_blank" class="community-card">
+          <span class="community-icon">🤝</span>
+          <h3>Contribute</h3>
+          <p>Help make Caro better for everyone</p>
+        </a>
+        <a href="/" class="community-card">
+          <span class="community-icon">📚</span>
+          <h3>Read the Blog</h3>
+          <p>Learn about the story and philosophy behind Caro</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</Layout>
+
+<style>
+  .explore-hero {
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.05) 0%, rgba(255, 107, 53, 0.05) 100%);
+    padding: 100px 20px 60px 20px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .hero-content {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+
+  .early-dev-badge {
+    display: inline-block;
+    background: rgba(33, 150, 243, 0.1);
+    border: 1px solid rgba(33, 150, 243, 0.3);
+    color: #2196f3;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+
+  .explore-hero h1 {
+    font-size: 56px;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-subtitle {
+    font-size: 20px;
+    color: var(--color-text-secondary);
+    max-width: 700px;
+    margin: 0 auto 35px auto;
+    line-height: 1.7;
+    transition: color 0.3s ease;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .cta-primary,
+  .cta-secondary {
+    padding: 14px 32px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    display: inline-block;
+  }
+
+  .cta-primary {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 140, 66, 0.3);
+  }
+
+  .cta-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 140, 66, 0.4);
+  }
+
+  .cta-secondary {
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+    border: 2px solid var(--color-border);
+  }
+
+  .cta-secondary:hover {
+    border-color: #ff8c42;
+    transform: translateY(-2px);
+  }
+
+  .quick-nav {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 20px 10px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .nav-item:hover {
+    transform: translateY(-4px);
+    border-color: #ff8c42;
+    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.15);
+  }
+
+  :global(.dark) .nav-item:hover {
+    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.25);
+  }
+
+  .nav-icon {
+    font-size: 32px;
+  }
+
+  .nav-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text);
+    transition: color 0.3s ease;
+  }
+
+  .community {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+    transition: background 0.3s ease;
+  }
+
+  .community-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    margin-top: 40px;
+  }
+
+  .community-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .community-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.15);
+    border-color: #ff8c42;
+  }
+
+  :global(.dark) .community-card:hover {
+    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.25);
+  }
+
+  .community-icon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 15px;
+  }
+
+  .community-card h3 {
+    font-size: 20px;
+    color: var(--color-text);
+    margin-bottom: 10px;
+    transition: color 0.3s ease;
+  }
+
+  .community-card p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin: 0;
+    transition: color 0.3s ease;
+  }
+
+  @media (max-width: 768px) {
+    .explore-hero {
+      padding: 80px 20px 40px 20px;
+    }
+
+    .explore-hero h1 {
+      font-size: 40px;
+    }
+
+    .hero-subtitle {
+      font-size: 18px;
+    }
+
+    .hero-cta {
+      flex-direction: column;
+    }
+
+    .cta-primary,
+    .cta-secondary {
+      width: 100%;
+      max-width: 300px;
+    }
+
+    .quick-nav {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .community-links {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 500px) {
+    .quick-nav {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>

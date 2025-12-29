@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 /// Main CLI application structure
 #[derive(Parser)]
-#[command(name = "cmdai")]
+#[command(name = "caro")]
 #[command(about = "Convert natural language to shell commands", long_about = None)]
 #[command(version)]
 pub struct Cli {

@@ -1,0 +1,275 @@
+---
+/**
+ * Custom Hero component for caro documentation
+ * Displays a bold, animated hero section with terminal preview
+ */
+interface Props {
+  title: string;
+  tagline?: string;
+  image?: { alt: string; html?: string };
+  actions?: Array<{
+    text: string;
+    link: string;
+    icon?: { html?: string };
+    variant?: 'primary' | 'secondary' | 'minimal';
+  }>;
+}
+
+const { title, tagline, actions = [] } = Astro.props;
+---
+
+<div class="hero">
+  <div class="hero-content">
+    <h1 set:html={title} />
+    {tagline && <p class="tagline" set:html={tagline} />}
+
+    {actions.length > 0 && (
+      <div class="actions">
+        {actions.map((action) => (
+          <a
+            href={action.link}
+            class={`action ${action.variant || 'primary'}`}
+          >
+            {action.icon?.html && <span set:html={action.icon.html} />}
+            {action.text}
+          </a>
+        ))}
+      </div>
+    )}
+  </div>
+
+  <div class="hero-terminal">
+    <div class="hero-terminal-header">
+      <div class="hero-terminal-dot"></div>
+      <div class="hero-terminal-dot"></div>
+      <div class="hero-terminal-dot"></div>
+    </div>
+    <div class="hero-terminal-content">
+      <div class="terminal-line">
+        <span class="hero-terminal-prompt">$</span>
+        <span class="hero-terminal-command"> caro "find all rust files modified today"</span>
+      </div>
+      <div class="terminal-line hero-terminal-output">
+        find . -name "*.rs" -mtime 0
+      </div>
+      <div class="terminal-line" style="margin-top: 0.75rem;">
+        <span class="hero-terminal-prompt">$</span>
+        <span class="hero-terminal-command"> caro "count lines of code in src"</span>
+      </div>
+      <div class="terminal-line hero-terminal-output">
+        find src -name "*.rs" -exec wc -l {} + | tail -1
+      </div>
+      <div class="terminal-line" style="margin-top: 0.75rem;">
+        <span class="hero-terminal-prompt">$</span>
+        <span class="hero-terminal-command typing"> _</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .hero {
+    padding: 4rem 1rem 6rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150%;
+    height: 100%;
+    background: radial-gradient(ellipse at center, var(--caro-glow, rgba(232, 93, 76, 0.15)) 0%, transparent 70%);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .hero-content {
+    max-width: 48rem;
+    margin: 0 auto;
+  }
+
+  .hero h1 {
+    font-family: 'Space Grotesk', var(--sl-font, system-ui);
+    font-size: clamp(2.5rem, 8vw, 4.5rem);
+    font-weight: 700;
+    margin-bottom: 1rem;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, #e85d4c 0%, #ff8a7a 50%, #ffb5a5 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  :root[data-theme='light'] .hero h1 {
+    background: linear-gradient(135deg, #c13a2e 0%, #d4463a 50%, #e85d4c 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+
+  .tagline {
+    font-size: 1.25rem;
+    color: var(--sl-color-gray-2, #888);
+    max-width: 36rem;
+    margin: 0 auto 2rem;
+    line-height: 1.6;
+  }
+
+  .actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.75rem;
+    font-family: 'Space Grotesk', var(--sl-font, system-ui);
+    font-weight: 600;
+    font-size: 1rem;
+    text-decoration: none;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+  }
+
+  .action.primary {
+    background: linear-gradient(135deg, #e85d4c 0%, #ff8a7a 100%);
+    color: white;
+    box-shadow: 0 4px 14px rgba(232, 93, 76, 0.4);
+  }
+
+  .action.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(232, 93, 76, 0.5);
+    text-decoration: none;
+  }
+
+  .action.secondary,
+  .action.minimal {
+    background: var(--caro-glass, rgba(255, 255, 255, 0.03));
+    border: 1px solid var(--caro-border, rgba(255, 255, 255, 0.08));
+    color: var(--sl-color-text, #fff);
+  }
+
+  .action.secondary:hover,
+  .action.minimal:hover {
+    background: var(--caro-glow, rgba(232, 93, 76, 0.15));
+    border-color: var(--sl-color-accent, #e85d4c);
+    text-decoration: none;
+  }
+
+  .hero-terminal {
+    max-width: 36rem;
+    margin: 3rem auto 0;
+    text-align: left;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid var(--caro-border, rgba(255, 255, 255, 0.08));
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  }
+
+  :root[data-theme='light'] .hero-terminal {
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+  }
+
+  .hero-terminal-header {
+    background: var(--caro-glass, rgba(255, 255, 255, 0.03));
+    padding: 0.75rem 1rem;
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--caro-border, rgba(255, 255, 255, 0.08));
+  }
+
+  .hero-terminal-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .hero-terminal-dot:nth-child(1) { background: #ff5f57; }
+  .hero-terminal-dot:nth-child(2) { background: #febc2e; }
+  .hero-terminal-dot:nth-child(3) { background: #28c840; }
+
+  .hero-terminal-content {
+    padding: 1.25rem;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.875rem;
+    line-height: 1.8;
+  }
+
+  .terminal-line {
+    margin-bottom: 0.25rem;
+  }
+
+  .hero-terminal-prompt {
+    color: var(--sl-color-accent, #e85d4c);
+    font-weight: 600;
+  }
+
+  .hero-terminal-command {
+    color: var(--sl-color-gray-2, #ccc);
+  }
+
+  .hero-terminal-output {
+    color: var(--sl-color-gray-3, #888);
+    opacity: 0.9;
+    padding-left: 1rem;
+  }
+
+  .typing {
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  /* Animations */
+  .hero h1,
+  .tagline,
+  .actions,
+  .hero-terminal {
+    animation: fadeIn 0.6s ease-out backwards;
+  }
+
+  .hero h1 { animation-delay: 0.1s; }
+  .tagline { animation-delay: 0.2s; }
+  .actions { animation-delay: 0.3s; }
+  .hero-terminal { animation-delay: 0.4s; }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .hero {
+      padding: 2rem 1rem 4rem;
+    }
+
+    .hero-terminal {
+      margin: 2rem 0 0;
+    }
+
+    .hero-terminal-content {
+      font-size: 0.75rem;
+    }
+  }
+</style>

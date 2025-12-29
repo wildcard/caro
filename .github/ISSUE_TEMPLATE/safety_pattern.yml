@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thank you for helping make cmdai safer! Safety patterns prevent dangerous operations from being executed accidentally.
+        Thank you for helping make caro safer! Safety patterns prevent dangerous operations from being executed accidentally.
 
         **What qualifies as a safety pattern?**
         - Commands that can cause data loss or system damage
@@ -17,7 +17,7 @@ body:
 
         **Before submitting:**
         - Check `src/safety/patterns.rs` to see if this pattern already exists
-        - Review existing [safety-related issues](https://github.com/wildcard/cmdai/labels/safety)
+        - Review existing [safety-related issues](https://github.com/wildcard/caro/labels/safety)
 
   - type: input
     id: pattern-name
@@ -90,7 +90,7 @@ body:
     id: detection-strategy
     attributes:
       label: Detection Strategy
-      description: How should cmdai detect this pattern? Regex, exact match, AST parsing?
+      description: How should caro detect this pattern? Regex, exact match, AST parsing?
       placeholder: |
         **Suggested regex**:
         ```
@@ -155,7 +155,7 @@ body:
     id: error-message
     attributes:
       label: Suggested Error Message
-      description: What should cmdai tell the user when this pattern is detected?
+      description: What should caro tell the user when this pattern is detected?
       placeholder: |
         ```
         CRITICAL: Recursive deletion of system directory detected

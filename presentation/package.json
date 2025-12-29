@@ -1,17 +1,21 @@
 {
-  "name": "cmdai-presentation",
+  "name": "caro-presentation",
   "version": "1.0.0",
-  "description": "cmdai: Safe AI-Powered Command Generation - Project Presentation",
+  "description": "caro: Safe AI-Powered Command Generation - Project Presentation",
   "type": "module",
   "scripts": {
     "dev": "slidev slides.md",
     "build": "slidev build slides.md --out dist",
     "build:roadmap": "slidev build roadmap-slides.md --out dist-roadmap --base /roadmap/",
-    "build:all": "npm run build && npm run build:roadmap && mkdir -p dist/roadmap && cp -r dist-roadmap/* dist/roadmap/ && rm -rf dist-roadmap",
+    "build:pitch": "slidev build pitch-slides.md --out dist-pitch --base /pitch/",
+    "build:all": "npm run build && npm run build:roadmap && npm run build:pitch && mkdir -p dist/roadmap dist/pitch && cp -r dist-roadmap/* dist/roadmap/ && cp -r dist-pitch/* dist/pitch/ && rm -rf dist-roadmap dist-pitch",
     "export": "slidev export slides.md",
     "roadmap": "slidev roadmap-slides.md",
     "roadmap:build": "slidev build roadmap-slides.md",
-    "roadmap:export": "slidev export roadmap-slides.md"
+    "roadmap:export": "slidev export roadmap-slides.md",
+    "pitch": "slidev pitch-slides.md",
+    "pitch:build": "slidev build pitch-slides.md",
+    "pitch:export": "slidev export pitch-slides.md"
   },
   "dependencies": {
     "@slidev/cli": "^0.50.0",
