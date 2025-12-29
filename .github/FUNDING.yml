@@ -4,18 +4,18 @@
 # GitHub Sponsors (recommended)
 github: [wildcard]
 
+# Open Collective (via Open Source Collective fiscal host)
+open_collective: carosh
+
 # Patreon
 # patreon: username
 
-# Open Collective
-# open_collective: cmdai
-
 # Ko-fi
-# ko_fi: username
+ko_fi: kobikadosh
 
 # Buy Me a Coffee
 # buy_me_a_coffee: username
 
 # Custom sponsorship links (up to 4)
-# custom:
-#   - https://example.com/sponsor
+custom:
+  - https://caro.sh/support
