@@ -15,9 +15,9 @@ const platforms = [
       {
         method: "Using Cargo",
         commands: [
-          "cargo install cmdai",
+          "cargo install caro",
           "# Add alias to ~/.zshrc or ~/.bashrc:",
-          "alias caro='cmdai'"
+          "alias ai='caro'"
         ]
       },
       {
@@ -31,9 +31,9 @@ const platforms = [
       }
     ],
     postInstall: [
-      "Verify: cmdai --version (or caro --version if alias set)",
-      "Try it: cmdai \"list files in current directory\"",
-      "Configure backends in ~/.config/cmdai/config.toml (optional)"
+      "Verify: caro --version (or ai --version if alias set)",
+      "Try it: caro \"list files in current directory\"",
+      "Configure backends in ~/.config/caro/config.toml (optional)"
     ],
     tips: [
       "MLX backend coming soon for Apple Silicon performance",
@@ -56,8 +56,8 @@ const platforms = [
       {
         method: "Using Cargo",
         commands: [
-          "cargo install cmdai",
-          "alias caro='cmdai'  # Add to ~/.bashrc"
+          "cargo install caro",
+          "alias ai='caro'  # Add to ~/.bashrc"
         ]
       },
       {
@@ -70,14 +70,14 @@ const platforms = [
       }
     ],
     postInstall: [
-      "Verify: cmdai --version",
-      "Try: cmdai \"show disk usage\"",
+      "Verify: caro --version",
+      "Try: caro \"show disk usage\"",
       "Optional: Install Ollama for local models"
     ],
     tips: [
       "CPU backend works out of the box",
       "Connect to Ollama or vLLM for more features",
-      "Configure backends in ~/.config/cmdai/config.toml"
+      "Configure backends in ~/.config/caro/config.toml"
     ]
   },
   {
@@ -98,14 +98,14 @@ const platforms = [
       {
         method: "Using Cargo in WSL",
         commands: [
-          "cargo install cmdai",
-          "alias caro='cmdai'"
+          "cargo install caro",
+          "alias ai='caro'"
         ]
       }
     ],
     postInstall: [
-      "Verify: cmdai --version",
-      "Try: cmdai \"list files\"",
+      "Verify: caro --version",
+      "Try: caro \"list files\"",
       "Works with POSIX commands in WSL environment"
     ],
     tips: [
@@ -125,7 +125,7 @@ const platforms = [
         commands: [
           "# Install Rust if needed",
           "pkg install rust cargo",
-          "cargo install cmdai"
+          "cargo install caro"
         ]
       },
       {
@@ -138,8 +138,8 @@ const platforms = [
       }
     ],
     postInstall: [
-      "Verify: cmdai --version",
-      "Try: cmdai \"list open ports\"",
+      "Verify: caro --version",
+      "Try: caro \"list open ports\"",
       "POSIX compliance ensures BSD compatibility"
     ],
     tips: [
