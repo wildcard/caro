@@ -16,6 +16,7 @@ All contributors must:
 ## Table of Contents
 
 - [Security-Critical Project Notice](#security-critical-project-notice)
+- [Developer Certificate of Origin (DCO)](#developer-certificate-of-origin-dco)
 - [Project Vision](#project-vision)
 - [Security Development Practices](#security-development-practices)
 - [Getting Started](#getting-started)
@@ -26,6 +27,98 @@ All contributors must:
 - [Agent Collaboration](#agent-collaboration)
 - [Spec-Driven Development](#spec-driven-development)
 - [Recognition](#recognition)
+
+---
+
+## Developer Certificate of Origin (DCO)
+
+All contributions to caro **must** be signed off under the [Developer Certificate of Origin](https://developercertificate.org/) (DCO). This is a lightweight way for contributors to certify that they have the right to submit their contribution under the project's license.
+
+### Why We Require DCO
+
+As a security-critical tool that executes shell commands, caro requires clear provenance and accountability for all code contributions. The DCO provides:
+
+- **Legal clarity** - Protects contributors and the project from IP disputes
+- **Accountability** - Establishes traceable authorship aligned with our security-first philosophy
+- **Industry standard** - Used by Linux kernel, GitLab, CNCF projects, and many others
+
+### The DCO Text
+
+By signing off your contributions, you certify the following:
+
+```
+Developer Certificate of Origin
+Version 1.1
+
+Copyright (C) 2004, 2006 The Linux Foundation and its contributors.
+
+Everyone is permitted to copy and distribute verbatim copies of this
+license document, but changing it is not allowed.
+
+Developer's Certificate of Origin 1.1
+
+By making a contribution to this project, I certify that:
+
+(a) The contribution was created in whole or in part by me and I
+    have the right to submit it under the open source license
+    indicated in the file; or
+
+(b) The contribution is based upon previous work that, to the best
+    of my knowledge, is covered under an appropriate open source
+    license and I have the right under that license to submit that
+    work with modifications, whether created in whole or in part
+    by me, under the same open source license (unless I am
+    permitted to submit under a different license), as indicated
+    in the file; or
+
+(c) The contribution was provided directly to me by some other
+    person who certified (a), (b) or (c) and I have not modified
+    it.
+
+(d) I understand and agree that this project and the contribution
+    are public and that a record of the contribution (including all
+    personal information I submit with it, including my sign-off) is
+    maintained indefinitely and may be redistributed consistent with
+    this project or the open source license(s) involved.
+```
+
+### How to Sign Off Your Commits
+
+Add a `Signed-off-by` line to every commit message:
+
+```
+Add fork bomb detection to safety validator
+
+Signed-off-by: Your Name <your.email@example.com>
+```
+
+**The easiest way**: Use the `-s` flag with `git commit`:
+
+```bash
+git commit -s -m "Add fork bomb detection to safety validator"
+```
+
+**For multiple commits**, you can sign off interactively during rebase:
+
+```bash
+git rebase --signoff HEAD~3
+```
+
+**If you forgot to sign off**, amend your commit:
+
+```bash
+git commit --amend -s --no-edit
+```
+
+### DCO Check Enforcement
+
+Pull requests are automatically checked for DCO compliance. If any commit is missing a sign-off:
+
+1. The DCO check will fail
+2. You'll need to sign off the missing commits
+3. Force-push the corrected commits to your PR branch
+
+**Note**: The sign-off email must match a verified email on your GitHub account.
 
 ---
 
@@ -501,9 +594,9 @@ async fn test_cache_manager_handles_missing_model() {
 
 2. **Make your changes** following TDD workflow
 
-3. **Commit with clear messages**:
+3. **Commit with clear messages and DCO sign-off**:
    ```bash
-   git commit -m "Add fork bomb detection to safety validator"
+   git commit -s -m "Add fork bomb detection to safety validator"
    ```
 
    **Commit message guidelines**:
@@ -512,7 +605,9 @@ async fn test_cache_manager_handles_missing_model() {
    - Title Case for subjects
    - Reference issues/PRs in parentheses: `(#42)`
    - Optional leading emoji for visual categorization
+   - **Always include DCO sign-off** (use `git commit -s`)
    - See [AGENTS.md](docs/development/AGENTS.md) for detailed conventions
+   - See [Developer Certificate of Origin](#developer-certificate-of-origin-dco) for DCO details
 
 4. **Push to your fork**:
    ```bash
@@ -527,7 +622,7 @@ Your PR will use the template from `.github/PULL_REQUEST_TEMPLATE.md`. Include:
 
 - **Description**: What does this PR do and why?
 - **Type of change**: Feature, bug fix, documentation, refactor, test
-- **Checklist**: Tests added, tests pass, clippy clean, rustfmt applied
+- **Checklist**: Tests added, tests pass, clippy clean, rustfmt applied, **DCO signed**
 - **Breaking changes**: Any API changes requiring migration?
 - **Related issues/specs**: Link to relevant specifications or issues
 - **Performance impact**: Does this affect startup time, validation speed, or inference?
