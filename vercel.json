@@ -1,9 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "cd presentation && npm install && npm run build:all",
-  "outputDirectory": "presentation/dist",
-  "devCommand": "cd presentation && npm run dev",
-  "installCommand": "cd presentation && npm install",
+  "buildCommand": "npm install && npm run build:all",
+  "outputDirectory": "dist",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
   "framework": null,
   "rewrites": [
     {
