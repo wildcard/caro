@@ -65,7 +65,10 @@ impl CommandTool {
             cache.insert(command.to_string(), available);
         }
 
-        ToolResult::success(ToolData::Boolean(available), start.elapsed().as_millis() as u64)
+        ToolResult::success(
+            ToolData::Boolean(available),
+            start.elapsed().as_millis() as u64,
+        )
     }
 
     /// Get command version
@@ -331,58 +334,40 @@ impl CommandTool {
         let command_type = self.detect_command_type(command, None);
 
         let platform_flags = match (command, command_type.as_str()) {
-            ("ps", "bsd") => {
-                StructuredData::new("platform_flags")
-                    .with_field("sort_by_cpu", "ps aux | sort -nrk 3")
-                    .with_field("sort_by_mem", "ps aux | sort -nrk 4")
-                    .with_field("note", "BSD ps doesn't support --sort flag")
-            }
-            ("ps", "gnu") => {
-                StructuredData::new("platform_flags")
-                    .with_field("sort_by_cpu", "ps aux --sort=-pcpu")
-                    .with_field("sort_by_mem", "ps aux --sort=-pmem")
-                    .with_field("note", "GNU ps supports --sort flag")
-            }
-            ("sed", "bsd") => {
-                StructuredData::new("platform_flags")
-                    .with_field("in_place", "sed -i ''")
-                    .with_field("note", "BSD sed requires empty string after -i")
-            }
-            ("sed", "gnu") => {
-                StructuredData::new("platform_flags")
-                    .with_field("in_place", "sed -i")
-                    .with_field("note", "GNU sed uses -i without argument")
-            }
-            ("du", "bsd") => {
-                StructuredData::new("platform_flags")
-                    .with_field("depth", "-d")
-                    .with_field("example", "du -d 1 -h")
-                    .with_field("note", "BSD uses -d for depth")
-            }
-            ("du", "gnu") => {
-                StructuredData::new("platform_flags")
-                    .with_field("depth", "--max-depth")
-                    .with_field("example", "du --max-depth=1 -h")
-                    .with_field("note", "GNU uses --max-depth")
-            }
-            ("date", "bsd") => {
-                StructuredData::new("platform_flags")
-                    .with_field("relative", "-v")
-                    .with_field("example", "date -v-7d")
-                    .with_field("note", "BSD uses -v for relative dates")
-            }
-            ("date", "gnu") => {
-                StructuredData::new("platform_flags")
-                    .with_field("relative", "--date")
-                    .with_field("example", "date --date='7 days ago'")
-                    .with_field("note", "GNU uses --date for relative dates")
-            }
-            _ => {
-                StructuredData::new("platform_flags")
-                    .with_field("command", command)
-                    .with_field("type", command_type.clone())
-                    .with_field("note", "No platform-specific flags documented")
-            }
+            ("ps", "bsd") => StructuredData::new("platform_flags")
+                .with_field("sort_by_cpu", "ps aux | sort -nrk 3")
+                .with_field("sort_by_mem", "ps aux | sort -nrk 4")
+                .with_field("note", "BSD ps doesn't support --sort flag"),
+            ("ps", "gnu") => StructuredData::new("platform_flags")
+                .with_field("sort_by_cpu", "ps aux --sort=-pcpu")
+                .with_field("sort_by_mem", "ps aux --sort=-pmem")
+                .with_field("note", "GNU ps supports --sort flag"),
+            ("sed", "bsd") => StructuredData::new("platform_flags")
+                .with_field("in_place", "sed -i ''")
+                .with_field("note", "BSD sed requires empty string after -i"),
+            ("sed", "gnu") => StructuredData::new("platform_flags")
+                .with_field("in_place", "sed -i")
+                .with_field("note", "GNU sed uses -i without argument"),
+            ("du", "bsd") => StructuredData::new("platform_flags")
+                .with_field("depth", "-d")
+                .with_field("example", "du -d 1 -h")
+                .with_field("note", "BSD uses -d for depth"),
+            ("du", "gnu") => StructuredData::new("platform_flags")
+                .with_field("depth", "--max-depth")
+                .with_field("example", "du --max-depth=1 -h")
+                .with_field("note", "GNU uses --max-depth"),
+            ("date", "bsd") => StructuredData::new("platform_flags")
+                .with_field("relative", "-v")
+                .with_field("example", "date -v-7d")
+                .with_field("note", "BSD uses -v for relative dates"),
+            ("date", "gnu") => StructuredData::new("platform_flags")
+                .with_field("relative", "--date")
+                .with_field("example", "date --date='7 days ago'")
+                .with_field("note", "GNU uses --date for relative dates"),
+            _ => StructuredData::new("platform_flags")
+                .with_field("command", command)
+                .with_field("type", command_type.clone())
+                .with_field("note", "No platform-specific flags documented"),
         };
 
         ToolResult::success(
@@ -547,7 +532,11 @@ mod tests {
             .with_string("operation", "batch_available")
             .with_string_array(
                 "commands",
-                vec!["ls".to_string(), "cat".to_string(), "nonexistent_xyz".to_string()],
+                vec![
+                    "ls".to_string(),
+                    "cat".to_string(),
+                    "nonexistent_xyz".to_string(),
+                ],
             );
 
         let result = tool.execute(&params).await;

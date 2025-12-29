@@ -5,8 +5,8 @@
 //! caching for improved performance in multi-turn flows.
 
 use super::{
-    CommandTool, ContextTool, FileSystemTool, Tool, ToolCall, ToolCategory,
-    ToolError, ToolInfo, ToolResult, ValidationTool,
+    CommandTool, ContextTool, FileSystemTool, Tool, ToolCall, ToolCategory, ToolError, ToolInfo,
+    ToolResult, ValidationTool,
 };
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -218,9 +218,12 @@ impl ToolRegistry {
         }
 
         // Find the tool
-        let tool = self.tools.get(&call.tool_name).ok_or_else(|| ToolError::NotFound {
-            name: call.tool_name.clone(),
-        })?;
+        let tool = self
+            .tools
+            .get(&call.tool_name)
+            .ok_or_else(|| ToolError::NotFound {
+                name: call.tool_name.clone(),
+            })?;
 
         debug!("Invoking tool: {}", call.tool_name);
 

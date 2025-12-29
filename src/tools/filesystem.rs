@@ -57,7 +57,10 @@ impl FileSystemTool {
             p.symlink_metadata().is_ok()
         };
 
-        ToolResult::success(ToolData::Boolean(exists), start.elapsed().as_millis() as u64)
+        ToolResult::success(
+            ToolData::Boolean(exists),
+            start.elapsed().as_millis() as u64,
+        )
     }
 
     /// Get file/directory metadata
@@ -131,7 +134,10 @@ impl FileSystemTool {
             }
         };
 
-        ToolResult::success(ToolData::Boolean(result), start.elapsed().as_millis() as u64)
+        ToolResult::success(
+            ToolData::Boolean(result),
+            start.elapsed().as_millis() as u64,
+        )
     }
 
     fn can_read(&self, path: &Path) -> bool {
@@ -154,9 +160,7 @@ impl FileSystemTool {
             fs::OpenOptions::new().write(true).open(path).is_ok()
         } else {
             // For non-existent files, check if parent is writable
-            path.parent()
-                .map(|p| self.can_write(p))
-                .unwrap_or(false)
+            path.parent().map(|p| self.can_write(p)).unwrap_or(false)
         }
     }
 
@@ -186,7 +190,10 @@ impl FileSystemTool {
         let p = Path::new(path);
 
         if !p.is_dir() {
-            return ToolResult::error("Path is not a directory", start.elapsed().as_millis() as u64);
+            return ToolResult::error(
+                "Path is not a directory",
+                start.elapsed().as_millis() as u64,
+            );
         }
 
         let mut entries = Vec::new();
@@ -342,13 +349,37 @@ impl Tool for FileSystemTool {
 
     fn parameters(&self) -> ToolParameters {
         ToolParameters::new()
-            .with_required("operation", ParameterType::String, "Operation to perform: exists, metadata, permissions, list, resolve, is_safe")
+            .with_required(
+                "operation",
+                ParameterType::String,
+                "Operation to perform: exists, metadata, permissions, list, resolve, is_safe",
+            )
             .with_required("path", ParameterType::Path, "The file or directory path")
-            .with_optional("follow_symlinks", ParameterType::Boolean, "Follow symbolic links (default: true)")
-            .with_optional("permission_type", ParameterType::String, "Permission to check: read, write, execute, all")
-            .with_optional("depth", ParameterType::Integer, "Directory listing depth (default: 1)")
-            .with_optional("pattern", ParameterType::String, "Filter pattern for directory listing")
-            .with_optional("expand_home", ParameterType::Boolean, "Expand ~ to home directory (default: true)")
+            .with_optional(
+                "follow_symlinks",
+                ParameterType::Boolean,
+                "Follow symbolic links (default: true)",
+            )
+            .with_optional(
+                "permission_type",
+                ParameterType::String,
+                "Permission to check: read, write, execute, all",
+            )
+            .with_optional(
+                "depth",
+                ParameterType::Integer,
+                "Directory listing depth (default: 1)",
+            )
+            .with_optional(
+                "pattern",
+                ParameterType::String,
+                "Filter pattern for directory listing",
+            )
+            .with_optional(
+                "expand_home",
+                ParameterType::Boolean,
+                "Expand ~ to home directory (default: true)",
+            )
     }
 
     async fn execute(&self, params: &ToolCallParams) -> ToolResult {
@@ -481,15 +512,17 @@ mod tests {
         let result = tool.execute(&params).await;
         assert!(result.success);
         if let ToolData::Structured(data) = &result.data {
-            assert_eq!(data.fields.get("is_system_path"), Some(&serde_json::json!(true)));
+            assert_eq!(
+                data.fields.get("is_system_path"),
+                Some(&serde_json::json!(true))
+            );
         }
     }
 
     #[tokio::test]
     async fn test_missing_operation() {
         let tool = FileSystemTool::new();
-        let params = ToolCallParams::new()
-            .with_path("path", "/tmp");
+        let params = ToolCallParams::new().with_path("path", "/tmp");
 
         let result = tool.execute(&params).await;
         assert!(!result.success);
