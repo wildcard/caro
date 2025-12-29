@@ -47,7 +47,7 @@ class: text-center
 
 🎉 **v1.0.1 Released** - Production-ready CLI
 
-📊 **Progress**: 7/60 items complete (11%)
+📊 **Progress**: 9/60 items complete (15%)
 
 ✅ **Release Blockers**: 0
 
