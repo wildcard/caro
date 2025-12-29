@@ -290,6 +290,9 @@ If you made changes, explain what was fixed."#,
             }
 
             // Special handling for xargs: extract the command it will execute
+            // Note: This is a simplified heuristic that works for common cases like
+            // "xargs grep" but may not handle all xargs flags (e.g., "xargs -I {} cmd").
+            // For command context gathering, this is sufficient.
             if first_cmd == "xargs" && words.len() > 1 {
                 let xargs_cmd = words[1];
                 // Skip flags (words starting with -)
