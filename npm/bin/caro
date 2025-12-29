@@ -1,0 +1,4 @@
+#!/bin/sh
+# Placeholder script - replaced by actual binary during postinstall
+echo "Error: caro binary not installed properly. Run 'npm rebuild @wildcard/caro' to reinstall."
+exit 1

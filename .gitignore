@@ -156,6 +156,14 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# npm package build artifacts (in npm/ directory)
+# The placeholder script is tracked, actual binaries are ignored
+npm/bin/caro.exe
+
+# NuGet package build artifacts
+nuget/tools/caro.exe
+nuget/*.nupkg
+
 # Terraform (if using for deployment)
 *.tfstate
 *.tfstate.*

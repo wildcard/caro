@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>caro</id>
+    <version>1.0.2</version>
+    <title>caro - Natural Language to Shell Commands</title>
+    <authors>wildcard</authors>
+    <owners>wildcard</owners>
+    <license type="expression">AGPL-3.0-only</license>
+    <projectUrl>https://github.com/wildcard/caro</projectUrl>
+    <repository type="git" url="https://github.com/wildcard/caro.git" />
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Convert natural language descriptions into safe POSIX shell commands using local LLMs. Features safety-first validation, multiple backend support (MLX, Ollama, vLLM), and Apple Silicon optimization.</description>
+    <summary>Natural language to shell command converter powered by local LLMs</summary>
+    <releaseNotes>See https://github.com/wildcard/caro/releases</releaseNotes>
+    <copyright>Copyright (c) 2024-2025 wildcard</copyright>
+    <tags>cli shell commands ai llm natural-language terminal devtools</tags>
+    <readme>docs/README.md</readme>
+    <contentFiles>
+      <files include="**/*" buildAction="None" copyToOutput="true" flatten="false" />
+    </contentFiles>
+  </metadata>
+  <files>
+    <file src="tools/**" target="tools" />
+    <file src="README.md" target="docs/" />
+  </files>
+</package>
