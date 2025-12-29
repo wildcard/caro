@@ -905,7 +905,7 @@ class: text-center
 
 <div>
   <div class="text-sm opacity-60">Published</div>
-  <div class="text-lg font-bold">crates.io/crates/cmdai</div>
+  <div class="text-lg font-bold">crates.io/crates/caro</div>
 </div>
 
 </div>
