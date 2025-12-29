@@ -11,6 +11,14 @@ on:
         description: 'Force retranslation of all files'
         type: boolean
         default: false
+      backend:
+        description: 'Translation backend to use'
+        type: choice
+        options:
+          - openai
+          - libretranslate
+          - claude
+        default: openai
 
 permissions:
   contents: write
@@ -36,9 +44,13 @@ jobs:
         run: npm install openai
 
       - name: Run translation script
-        run: node .github/scripts/translate.js
+        run: node .github/scripts/translate-multi-backend.js
         env:
+          TRANSLATION_BACKEND: ${{ github.event.inputs.backend || 'openai' }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          LIBRETRANSLATE_URL: ${{ secrets.LIBRETRANSLATE_URL || 'https://libretranslate.com' }}
+          LIBRETRANSLATE_API_KEY: ${{ secrets.LIBRETRANSLATE_API_KEY }}
           TARGET_LOCALE: ${{ matrix.locale }}
           FORCE_RETRANSLATE: ${{ github.event.inputs.force_retranslate || 'false' }}
 
