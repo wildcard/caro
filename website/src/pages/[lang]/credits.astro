@@ -1,0 +1,162 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Navigation from '../../components/Navigation.astro';
+import { languages, type Locale } from '../../i18n/config';
+
+export function getStaticPaths() {
+  return Object.keys(languages)
+    .filter(lang => lang !== 'en')  // English stays at /credits
+    .map(lang => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Locale };
+---
+
+<Layout
+  title="Credits & Attribution - Caro"
+  description="Caro stands on the shoulders of giants. This page honors the open source projects, maintainers, and communities that make Caro possible."
+  lang={lang}
+>
+  <Navigation lang={lang} />
+
+  <div class="credits-page">
+    <!-- Opening Crawl / Hero -->
+    <section class="credits-hero">
+      <div class="stars"></div>
+      <div class="twinkling"></div>
+      <div class="container">
+        <div class="crawl-text">
+          <p class="episode">A LONG TIME AGO IN AN OPEN SOURCE ECOSYSTEM FAR, FAR AWAY...</p>
+          <h1>CREDITS</h1>
+          <p class="tagline">Standing on the Shoulders of Giants</p>
+        </div>
+        <p class="intro">
+          Caro is an open source project that would not exist without the incredible work of countless developers,
+          maintainers, and communities who have built the foundations we rely on every day. This page is our way
+          of saying <strong>thank you</strong> to everyone who has contributed to the tools, libraries, and
+          resources that make Caro possible.
+        </p>
+      </div>
+    </section>
+
+    <!-- Note: Full credits content would be imported from the main credits.astro -->
+    <!-- For now, this is a placeholder structure that can be expanded -->
+    <main class="credits-content">
+      <section class="credits-section">
+        <div class="container">
+          <p>Credits content will be localized in future iterations.</p>
+          <p><a href="/credits">View English credits page →</a></p>
+        </div>
+      </section>
+    </main>
+  </div>
+</Layout>
+
+<style>
+  .credits-page {
+    background: var(--color-bg);
+    min-height: 100vh;
+  }
+
+  .credits-hero {
+    position: relative;
+    min-height: 50vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 20px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+  }
+
+  .stars, .twinkling {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .stars {
+    background: #000 url('/stars.png') repeat top center;
+    z-index: 0;
+  }
+
+  .twinkling {
+    background: transparent url('/twinkling.png') repeat top center;
+    z-index: 1;
+    animation: move-twink-back 200s linear infinite;
+  }
+
+  @keyframes move-twink-back {
+    from { background-position: 0 0; }
+    to { background-position: -10000px 5000px; }
+  }
+
+  .container {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .crawl-text {
+    margin-bottom: 40px;
+  }
+
+  .episode {
+    color: #4da6ff;
+    font-size: 14px;
+    letter-spacing: 4px;
+    margin-bottom: 20px;
+  }
+
+  h1 {
+    font-size: 72px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+  }
+
+  .tagline {
+    font-size: 24px;
+    color: #ccc;
+    font-style: italic;
+  }
+
+  .intro {
+    font-size: 18px;
+    line-height: 1.8;
+    color: #ddd;
+  }
+
+  .credits-content {
+    padding: 60px 20px;
+  }
+
+  .credits-section {
+    margin-bottom: 60px;
+  }
+
+  .credits-section a {
+    color: #ff8c42;
+    text-decoration: none;
+  }
+
+  .credits-section a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    h1 { font-size: 48px; }
+    .tagline { font-size: 18px; }
+    .intro { font-size: 16px; }
+  }
+</style>
