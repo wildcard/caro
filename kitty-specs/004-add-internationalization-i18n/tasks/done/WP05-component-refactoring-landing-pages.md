@@ -4,10 +4,10 @@ subtasks:
   - "T022"
 title: "Component Refactoring - Landing Pages"
 phase: "Phase 3 - Component Refactoring"
-lane: "for_review"
+lane: "done"
 assignee: ""
 agent: "claude"
-shell_pid: "84745"
+shell_pid: "84844"
 review_status: ""
 reviewed_by: ""
 history:
@@ -59,3 +59,4 @@ grep -E '"[A-Z]' website/src/components/LP*.astro
 - 2025-12-29T00:00:00Z – system – lane=planned – Prompt created
 - 2025-12-29T10:32:16Z – claude – shell_pid=83593 – lane=doing – Starting LP component refactoring
 - 2025-12-29T10:37:26Z – claude – shell_pid=84745 – lane=for_review – Completed all 12 LP components with i18n support (commit b27be7d)
+- 2025-12-29T10:37:40Z – claude – shell_pid=84844 – lane=done – Approved - all LP components support i18n
