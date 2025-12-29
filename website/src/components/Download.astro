@@ -40,9 +40,9 @@
         </div>
 
         <div class="mode-card">
-          <h4>✨ Dedicated Skill <span class="coming-soon">Coming Soon</span></h4>
+          <h4>✨ Dedicated Skill <span class="available-now">Available Now</span></h4>
           <p>
-            Use Caro as a Skill to offload shell command generation and execution while Claude focuses on your work.
+            Use Caro as a Skill to offload shell command generation and execution while Claude focuses on your work. Install with <code>/plugin install wildcard/caro</code>
           </p>
         </div>
       </div>
@@ -231,6 +231,27 @@
     border-radius: 12px;
     font-weight: 500;
     margin-left: 8px;
+    white-space: nowrap;
+  }
+
+  .available-now {
+    font-size: 12px;
+    background: rgba(76, 175, 80, 0.2);
+    color: rgba(255, 255, 255, 0.95);
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+    margin-left: 8px;
+    white-space: nowrap;
+  }
+
+  .mode-card code {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 0.9em;
+    color: rgba(255, 255, 255, 0.95);
     white-space: nowrap;
   }
 </style>

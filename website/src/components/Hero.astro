@@ -11,8 +11,12 @@ import { heroMorphs } from '../data/ascii-art';
     <div class="logo">Caro</div>
     <h1 class="tagline">Your loyal shell companion</h1>
     <p class="subtitle">
-      A specialized POSIX shell command agent for Claude users. Validates AI-generated commands with safety-first design, detects dangerous patterns, and ensures POSIX compliance. Install as a Claude Skill with <code>/plugin install wildcard/caro</code>
+      A specialized POSIX shell command agent for Claude users. Validates AI-generated commands with safety-first design, detects dangerous patterns, and ensures POSIX compliance.
     </p>
+    <div class="plugin-install">
+      <span class="install-label">Available as a Claude Skill:</span>
+      <code class="install-command">/plugin install wildcard/caro</code>
+    </div>
     <div class="github-star-wrapper">
       <GitHubStarButton />
     </div>
@@ -93,6 +97,38 @@ import { heroMorphs } from '../data/ascii-art';
   }
 
   :global(.dark) .subtitle code {
+    background: rgba(255, 140, 66, 0.15);
+    border-color: rgba(255, 140, 66, 0.3);
+  }
+
+  .plugin-install {
+    margin-top: 20px;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .install-label {
+    font-size: 16px;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+  }
+
+  .install-command {
+    background: rgba(255, 140, 66, 0.1);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 16px;
+    color: #ff8c42;
+    border: 1px solid rgba(255, 140, 66, 0.2);
+    font-weight: 600;
+  }
+
+  :global(.dark) .install-command {
     background: rgba(255, 140, 66, 0.15);
     border-color: rgba(255, 140, 66, 0.3);
   }

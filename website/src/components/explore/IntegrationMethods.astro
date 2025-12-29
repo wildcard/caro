@@ -65,7 +65,7 @@ find . -name "*.py" -type f -mtime 0
   {
     mode: "Dedicated Skill",
     icon: "🎯",
-    status: "coming-soon",
+    status: "available",
     description: "Use Caro as a specialized skill within Claude's broader workflow",
     features: [
       "Explicit skill invocation",
@@ -74,8 +74,12 @@ find . -name "*.py" -type f -mtime 0
       "Batch command generation"
     ],
     example: {
-      title: "Skill Invocation",
-      code: `You: @caro find large log files and compress them
+      title: "Skill Installation",
+      code: `# Install Caro as a Claude skill
+/plugin install wildcard/caro
+
+# Use the skill
+You: /caro-shell-helper "find large log files and compress them"
 
 Caro: I'll generate a safe command for that:
 
@@ -89,10 +93,10 @@ Risk Level: Moderate
 Proceed? [y/N]`
     },
     setup: [
-      "Install Caro skill package",
-      "Register skill with Claude",
-      "Invoke with @caro prefix",
-      "Enjoy specialized shell command expertise"
+      "Install with: /plugin install wildcard/caro",
+      "Invoke with /caro-shell-helper command",
+      "Provide natural language description",
+      "Review and approve generated commands"
     ]
   }
 ];
