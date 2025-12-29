@@ -8,10 +8,10 @@ subtasks:
   - "T027"
 title: "Localized Routes & RTL Polish"
 phase: "Phase 4 - Localized Routes"
-lane: "planned"
+lane: "doing"
 assignee: ""
-agent: ""
-shell_pid: ""
+agent: "claude"
+shell_pid: "86061"
 review_status: ""
 reviewed_by: ""
 history:
@@ -102,3 +102,4 @@ npm run dev
 ## Activity Log
 
 - 2025-12-29T00:00:00Z – system – lane=planned – Prompt created
+- 2025-12-29T10:45:54Z – claude – shell_pid=86061 – lane=doing – Starting localized routes and RTL polish
