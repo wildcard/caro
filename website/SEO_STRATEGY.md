@@ -56,8 +56,8 @@ This document outlines a comprehensive strategy for implementing industry-standa
 
 ```html
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:site" content="@caro_sh" />
-<meta name="twitter:creator" content="@caro_sh" />
+<meta name="twitter:site" content="@CaroDaShellShib" />
+<meta name="twitter:creator" content="@CaroDaShellShib" />
 <meta name="twitter:title" content="Caro - Your Loyal Shell Companion" />
 <meta name="twitter:description" content="Convert natural language to POSIX shell commands with AI. Available as Claude MCP or dedicated Skill." />
 <meta name="twitter:image" content="https://caro.sh/twitter-card.png" />

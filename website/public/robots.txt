@@ -34,5 +34,5 @@ Allow: /
 
 # Disallow build artifacts and source maps
 User-agent: *
-Disallow: /*.map$
+Disallow: /*.map
 Disallow: /_astro/

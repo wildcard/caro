@@ -191,4 +191,48 @@ After adding images, test with these validators:
 
 ---
 
+## TODO: PWA Icon Sizes
+
+The `site.webmanifest` currently references the existing 64x64 pixel icon and SVG favicon. For optimal PWA support, the following additional icon sizes should be generated:
+
+### Required Sizes
+- **192x192 PNG**: Standard PWA icon size
+- **512x512 PNG**: Maskable PWA icon size
+
+### Generation Options
+
+**Option 1: Using the SVG source** (recommended)
+```bash
+# If rsvg-convert or inkscape is available
+rsvg-convert -w 192 -h 192 favicon.svg -o icon-192.png
+rsvg-convert -w 512 -h 512 favicon.svg -o icon-512.png
+```
+
+**Option 2: Using Imagen 3** (if SVG scaling is not suitable)
+Use the Apple Touch Icon prompt from above, but generate at:
+- 192x192 pixels for standard PWA icon
+- 512x512 pixels for maskable PWA icon
+
+**Option 3: Manual pixel art scaling**
+Create larger versions of the 64x64 pixel art by scaling 3x (192) and 8x (512) while maintaining the pixel art aesthetic.
+
+### Update After Generation
+Once icons are created, update `site.webmanifest`:
+```json
+{
+  "src": "/icon-192.png",
+  "sizes": "192x192",
+  "type": "image/png",
+  "purpose": "any"
+},
+{
+  "src": "/icon-512.png",
+  "sizes": "512x512",
+  "type": "image/png",
+  "purpose": "maskable"
+}
+```
+
+---
+
 *Document created for Caro.sh SEO image generation*
