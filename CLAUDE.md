@@ -368,6 +368,38 @@ See `docs/SPEC_KITTY_GUIDE.md` for comprehensive spec-kitty documentation.
 
 This project uses a structured project management system with GitHub Projects, milestones, and roadmap tracking. The `/caro.roadmap` skill helps agents select work aligned with project priorities.
 
+### Quick Start: Using /caro.roadmap
+
+**Before starting any work**, use `/caro.roadmap` to select aligned tasks:
+
+```bash
+# 1. Check roadmap status and get recommendation
+/caro.roadmap              # Shows milestones, progress, blockers, and suggested next work
+
+# 2. Get next recommended work (auto-selected by priority algorithm)
+/caro.roadmap next         # Returns highest-scored issue with breakdown
+
+# 3. Start work on recommended issue (auto-routes to spec-kitty or spec-kit)
+/caro.roadmap start #123   # Creates worktree or spec directory, updates issue status
+
+# 4. When done, mark complete
+/caro.roadmap complete #123 # Closes issue, updates roadmap, suggests next work
+```
+
+**Typical workflow**:
+1. Run `/caro.roadmap` → See status
+2. Run `/caro.roadmap next` → Get top recommendation
+3. Run `/caro.roadmap start #XXX` → Begin implementation
+4. Implement the feature
+5. Run `/caro.roadmap complete #XXX` → Mark done, get next task
+
+**Optional - Set your expertise** for better work matching:
+```bash
+/caro.roadmap profile rust     # If working on Rust/CLI
+/caro.roadmap profile docs     # If writing documentation
+/caro.roadmap profile devops   # If doing CI/CD/releases
+```
+
 ### Roadmap Structure
 
 **ROADMAP.md** defines three release milestones:
