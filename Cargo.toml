@@ -28,7 +28,7 @@ toml = "0.9"
 config = "0.15"
 
 # HTTP client for remote backends (optional - feature-gated)
-reqwest = { version = "0.11", features = ["json", "rustls-tls"], default-features = false, optional = true }
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false, optional = true }
 
 # Error handling and logging
 anyhow = "1"
