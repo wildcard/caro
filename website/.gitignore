@@ -33,3 +33,6 @@ storybook-static/
 # Dev/test files
 public/test-morph.html
 .vercel
+
+# Translation cache
+.translation-cache.json
