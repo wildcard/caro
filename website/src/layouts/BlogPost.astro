@@ -13,7 +13,9 @@ interface Props {
 const { title, description, date, readTime, image, tags = ['terminal', 'shell', 'AI', 'developer-tools'] } = Astro.props;
 
 // Convert date to ISO format for structured data
-const publishedTime = new Date(date).toISOString();
+// Validate date can be parsed, fallback to current date if invalid
+const dateObj = new Date(date);
+const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : dateObj.toISOString();
 ---
 
 <Layout

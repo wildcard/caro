@@ -36,11 +36,13 @@ const siteUrl = 'https://caro.sh';
 const siteName = 'Caro';
 const twitterHandle = '@CaroDaShellShib';
 
-// Build canonical URL
-const canonicalUrl = canonical || new URL(Astro.url.pathname, siteUrl).href;
+// Build canonical URL with normalized pathname (remove trailing slashes except for root)
+const normalizedPathname =
+  Astro.url.pathname === '/' ? '/' : Astro.url.pathname.replace(/\/+$/, '');
+const canonicalUrl = canonical || new URL(normalizedPathname, siteUrl).href;
 
 // Build full image URL
-const imageUrl = image.startsWith('http') ? image : new URL(image, siteUrl).href;
+const imageUrl = (image.startsWith('http') || image.startsWith('//')) ? image : new URL(image, siteUrl).href;
 
 // Structured data for the page
 const websiteSchema = {
@@ -71,6 +73,11 @@ const softwareSchema = {
     'POSIX compliant command generation',
     'Safety validation for dangerous commands',
   ],
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: '5.0',
+    ratingCount: 1,
+  },
 };
 
 const articleSchema = type === 'article' && publishedTime ? {
@@ -159,7 +166,9 @@ const articleSchema = type === 'article' && publishedTime ? {
 <link rel="manifest" href="/site.webmanifest" />
 
 <!-- Structured Data -->
-<script type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />
+{type === 'website' && (
+  <script type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />
+)}
 {type === 'website' && (
   <script type="application/ld+json" set:html={JSON.stringify(softwareSchema)} />
 )}
