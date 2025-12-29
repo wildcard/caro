@@ -1,0 +1,52 @@
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+
+# Audio files (raw recordings - keep processed)
+audio/raw/*
+!audio/raw/.gitkeep
+
+# Large model files
+models/ddsp/*.h5
+models/ddsp/*.ckpt*
+models/tts/*.pt
+models/tts/*.bin
+models/onnx/*.onnx
+*.safetensors
+
+# Generated audio (commit selectively)
+audio/generated/*
+!audio/generated/.gitkeep
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/

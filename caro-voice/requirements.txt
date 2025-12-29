@@ -1,0 +1,38 @@
+# Caro Voice Synthesis Dependencies
+
+# Core ML
+torch>=2.0
+torchaudio>=2.0
+tensorflow>=2.10
+
+# Audio Processing
+librosa>=0.10
+soundfile>=0.12
+pydub>=0.25
+parselmouth>=0.4
+praat-parselmouth>=0.4
+
+# Feature Extraction
+opensmile>=2.4
+numpy>=1.24
+scipy>=1.10
+
+# DDSP (Timbre Transfer)
+ddsp>=3.0
+
+# TTS (install separately when ready)
+# pip install f5-tts
+
+# Visualization & Analysis
+matplotlib>=3.7
+seaborn>=0.12
+pandas>=2.0
+
+# Jupyter
+jupyter>=1.0
+ipykernel>=6.0
+
+# Utilities
+tqdm>=4.65
+pyyaml>=6.0
+click>=8.0
