@@ -1,36 +1,40 @@
 ---
-// Landing page hero - focused on the pain point and conversion
+import { t, type Locale } from '../../i18n/config';
+
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = 'en' } = Astro.props;
 ---
 
 <div class="hero">
   <div class="container">
-    <div class="hero-badge">AI Shell Commands You Can Actually Trust</div>
+    <div class="hero-badge">{t(lang, 'landing.hero.badge')}</div>
     <h1 class="headline">
-      The last line of defense<br />between you and <code class="danger-cmd">rm -rf /</code>
+      {t(lang, 'landing.hero.headline.line1')}<br />{t(lang, 'landing.hero.headline.line2')} <code class="danger-cmd">{t(lang, 'landing.hero.headline.dangerCmd')}</code>
     </h1>
     <p class="subtitle">
-      Generate shell commands that work the first time—with pre-execution validation that catches
-      what AI gets wrong. 100% local. Zero telemetry. Your commands never leave your machine.
+      {t(lang, 'landing.hero.subtitle')}
     </p>
 
     <div class="social-proof">
       <div class="quote">
-        "Caught a recursive delete pattern I would have missed at 2 AM during an incident.
-        The warning was specific enough that I understood WHY it was dangerous."
+        {t(lang, 'landing.hero.socialProof.quote')}
       </div>
-      <div class="attribution">— Michael T., Senior SRE (Series C Fintech)</div>
+      <div class="attribution">{t(lang, 'landing.hero.socialProof.attribution')}</div>
     </div>
 
     <div class="cta-buttons">
-      <a href="#download" class="cta-button primary">Get Started Free</a>
-      <a href="#scenarios" class="cta-button secondary">See Your Risks</a>
+      <a href="#download" class="cta-button primary">{t(lang, 'landing.hero.cta.primary')}</a>
+      <a href="#scenarios" class="cta-button secondary">{t(lang, 'landing.hero.cta.secondary')}</a>
     </div>
 
     <div class="trust-badges">
-      <span class="badge"><span class="icon">🔒</span> Zero telemetry</span>
-      <span class="badge"><span class="icon">🛡️</span> Pre-execution validation</span>
-      <span class="badge"><span class="icon">⚡</span> 100% local inference</span>
-      <span class="badge"><span class="icon">📖</span> Open source (AGPL-3.0)</span>
+      <span class="badge"><span class="icon">🔒</span> {t(lang, 'landing.hero.trustBadges.zeroTelemetry')}</span>
+      <span class="badge"><span class="icon">🛡️</span> {t(lang, 'landing.hero.trustBadges.validation')}</span>
+      <span class="badge"><span class="icon">⚡</span> {t(lang, 'landing.hero.trustBadges.local')}</span>
+      <span class="badge"><span class="icon">📖</span> {t(lang, 'landing.hero.trustBadges.openSource')}</span>
     </div>
   </div>
 </div>
