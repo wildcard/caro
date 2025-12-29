@@ -1,0 +1,51 @@
+{
+  "name": "@wildcard/caro",
+  "version": "1.0.2",
+  "description": "Convert natural language to shell commands using local LLMs",
+  "license": "AGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wildcard/caro.git"
+  },
+  "homepage": "https://github.com/wildcard/caro",
+  "bugs": {
+    "url": "https://github.com/wildcard/caro/issues"
+  },
+  "keywords": [
+    "cli",
+    "llm",
+    "shell",
+    "commands",
+    "ai",
+    "natural-language",
+    "terminal"
+  ],
+  "author": "wildcard",
+  "bin": {
+    "caro": "bin/caro"
+  },
+  "files": [
+    "bin/",
+    "install.js",
+    "README.md"
+  ],
+  "scripts": {
+    "postinstall": "node install.js"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "public"
+  }
+}

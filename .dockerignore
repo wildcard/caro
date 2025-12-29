@@ -1,0 +1,60 @@
+# Build artifacts
+target/
+*.rs.bk
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Documentation and non-essential files
+*.md
+!README.crates.io.md
+docs/
+specs/
+kitty-specs/
+thoughts/
+exports/
+presentation/
+
+# Development tools
+.devcontainer/
+.claude/
+.codex/
+.cursor/
+.specify/
+.kittify/
+
+# Demos and examples
+demos/
+website/
+caro-voice/
+cmdai-validation/
+
+# Scripts not needed for build
+*.sh
+!install.sh
+Makefile
+
+# Configuration
+.actrc
+.crush.json
+.secrets*
+deny.toml
+clippy.toml
+rustfmt.toml
+
+# Package configurations
+npm/
+nuget/
+
+# Models (should be mounted at runtime)
+models/
+mlx-test/
