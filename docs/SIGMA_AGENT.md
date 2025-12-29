@@ -279,7 +279,7 @@ Before approving a feature for development:
 
 ## Roadmap Structure
 
-### Current Roadmap (Q1 2025)
+### Current Roadmap (Q1 2026)
 
 ```
 PHASE 1: Foundation (Complete)
