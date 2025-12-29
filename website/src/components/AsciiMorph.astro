@@ -1,0 +1,168 @@
+---
+/**
+ * AsciiMorph Component
+ * Displays animated ASCII art morphing between different Caro poses
+ */
+
+interface Props {
+  arts: string[][]; // Array of ASCII art frames to morph between
+  width?: number; // Canvas width in characters
+  height?: number; // Canvas height in lines
+  interval?: number; // Time between morphs in milliseconds
+  morphDelay?: number; // Animation speed (ms per frame)
+  className?: string;
+}
+
+const {
+  arts,
+  width = 100,
+  height = 45,
+  interval = 4000,
+  morphDelay = 50,
+  className = ''
+} = Astro.props;
+
+// Generate a unique ID for this instance
+const instanceId = `ascii-morph-${Math.random().toString(36).substr(2, 9)}`;
+
+// Serialize the arts data as JSON to pass to the client
+const artsJson = JSON.stringify(arts);
+---
+
+<div class={`ascii-morph-container ${className}`}>
+  <pre
+    id={instanceId}
+    class="ascii-canvas"
+    data-arts={artsJson}
+    data-width={width}
+    data-height={height}
+    data-interval={interval}
+    data-morph-delay={morphDelay}
+  ></pre>
+</div>
+
+<script>
+  // This script runs on every page load
+  function initializeAsciiMorphs() {
+    // Find all ASCII morph elements
+    const elements = document.querySelectorAll('.ascii-canvas[data-arts]');
+
+    elements.forEach((element) => {
+      try {
+        // Get configuration from data attributes
+        const arts = JSON.parse(element.getAttribute('data-arts') || '[]');
+        const width = parseInt(element.getAttribute('data-width') || '100');
+        const height = parseInt(element.getAttribute('data-height') || '45');
+        const interval = parseInt(element.getAttribute('data-interval') || '4000');
+        const morphDelay = parseInt(element.getAttribute('data-morph-delay') || '50');
+
+        // Check if createAsciiMorph is available
+        if (typeof window.createAsciiMorph === 'undefined') {
+          console.error('AsciiMorph library not loaded!');
+          element.textContent = 'ASCII Morph library not loaded';
+          return;
+        }
+
+        // Create an instance for this element
+        const morph = window.createAsciiMorph(element, { x: width, y: height });
+
+        // Render the first frame
+        if (arts.length > 0) {
+          morph.render(arts[0]);
+        }
+
+        // If there's more than one art, set up morphing
+        if (arts.length > 1) {
+          let currentIndex = 0;
+
+          setInterval(() => {
+            currentIndex = (currentIndex + 1) % arts.length;
+            morph.morph(arts[currentIndex], morphDelay);
+          }, interval);
+        }
+      } catch (error) {
+        console.error('Error initializing ASCII morph:', error);
+        element.textContent = 'Error loading ASCII art';
+      }
+    });
+  }
+
+  // Wait for both DOM and AsciiMorph library
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(initializeAsciiMorphs, 200);
+    });
+  } else {
+    setTimeout(initializeAsciiMorphs, 200);
+  }
+</script>
+
+<style>
+  .ascii-morph-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 2rem 0;
+  }
+
+  .ascii-canvas {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    line-height: 1.05;
+    letter-spacing: 0.5px;
+    color: var(--color-text-tertiary, #666);
+    background: transparent;
+    border: none;
+    padding: 0.5rem;
+    margin: 0;
+    overflow: hidden;
+    white-space: pre;
+    transition: color 0.3s ease, transform 0.2s ease;
+  }
+
+  /* Make it responsive on smaller screens */
+  @media (max-width: 768px) {
+    .ascii-canvas {
+      font-size: 8px;
+      line-height: 1.05;
+      letter-spacing: 0.3px;
+      padding: 0.25rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .ascii-canvas {
+      font-size: 6px;
+      line-height: 1.0;
+      letter-spacing: 0.2px;
+      padding: 0.125rem;
+    }
+  }
+
+  /* Theme support */
+  :global(.dark-mode) .ascii-canvas {
+    color: var(--color-text-tertiary, #999);
+  }
+
+  /* Hover effect */
+  .ascii-canvas:hover {
+    color: var(--color-accent, #ff8c42);
+    transform: scale(1.02);
+  }
+
+  /* Animation for smooth transitions */
+  .ascii-morph-container {
+    animation: fadeIn 0.5s ease-in;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
