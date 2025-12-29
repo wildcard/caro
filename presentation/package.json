@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "slidev slides.md",
-    "build": "slidev build slides.md",
+    "build": "slidev build slides.md --out dist",
+    "build:roadmap": "slidev build roadmap-slides.md --out dist-roadmap --base /roadmap/",
+    "build:all": "npm run build && npm run build:roadmap && mkdir -p dist/roadmap && cp -r dist-roadmap/* dist/roadmap/ && rm -rf dist-roadmap",
     "export": "slidev export slides.md",
     "roadmap": "slidev roadmap-slides.md",
     "roadmap:build": "slidev build roadmap-slides.md",
