@@ -114,26 +114,44 @@ install_binary() {
             ;;
     esac
 
-    # Construct versioned asset name
-    local asset_name="caro-${version}-${base_asset_name}"
-
-    # Construct download URLs
-    local binary_url="https://github.com/${REPO}/releases/download/v${version}/${asset_name}"
+    # Try versioned asset name first (v1.0.3+), fall back to non-versioned (v1.0.2)
+    local versioned_asset_name="caro-${version}-${base_asset_name}"
+    local legacy_asset_name="caro-${base_asset_name}"
+    local asset_name="$versioned_asset_name"
+    local binary_url="https://github.com/${REPO}/releases/download/v${version}/${versioned_asset_name}"
     local checksum_url="${binary_url}.sha256"
 
     echo -e "${BLUE}Downloading caro v${version} for ${platform}...${NC}"
 
-    # Download binary
+    # Try versioned name first, fall back to legacy name
+    local download_success=false
     if command_exists curl; then
-        curl -fsSL "$binary_url" -o "${INSTALL_DIR}/${BINARY_NAME}" || {
-            echo -e "${RED}Error: Failed to download binary${NC}"
-            exit 1
-        }
+        if curl -fsSL "$binary_url" -o "${INSTALL_DIR}/${BINARY_NAME}" 2>/dev/null; then
+            download_success=true
+        else
+            # Try legacy non-versioned name
+            asset_name="$legacy_asset_name"
+            binary_url="https://github.com/${REPO}/releases/download/v${version}/${legacy_asset_name}"
+            checksum_url="${binary_url}.sha256"
+            echo -e "${YELLOW}Versioned binary not found, trying legacy name...${NC}"
+            curl -fsSL "$binary_url" -o "${INSTALL_DIR}/${BINARY_NAME}" && download_success=true
+        fi
     elif command_exists wget; then
-        wget -qO "${INSTALL_DIR}/${BINARY_NAME}" "$binary_url" || {
-            echo -e "${RED}Error: Failed to download binary${NC}"
-            exit 1
-        }
+        if wget -qO "${INSTALL_DIR}/${BINARY_NAME}" "$binary_url" 2>/dev/null; then
+            download_success=true
+        else
+            # Try legacy non-versioned name
+            asset_name="$legacy_asset_name"
+            binary_url="https://github.com/${REPO}/releases/download/v${version}/${legacy_asset_name}"
+            checksum_url="${binary_url}.sha256"
+            echo -e "${YELLOW}Versioned binary not found, trying legacy name...${NC}"
+            wget -qO "${INSTALL_DIR}/${BINARY_NAME}" "$binary_url" && download_success=true
+        fi
+    fi
+
+    if [ "$download_success" = false ]; then
+        echo -e "${RED}Error: Failed to download binary${NC}"
+        exit 1
     fi
 
     # Make binary executable

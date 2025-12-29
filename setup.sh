@@ -165,21 +165,43 @@ install_via_binary() {
         *) err "Unsupported platform: $platform" ;;
     esac
 
-    # Construct versioned asset name
-    local asset_name="caro-${version}-${base_asset_name}"
+    # Try versioned asset name first (v1.0.3+), fall back to non-versioned (v1.0.2)
+    local versioned_asset_name="caro-${version}-${base_asset_name}"
+    local legacy_asset_name="caro-${base_asset_name}"
+    local asset_name="$versioned_asset_name"
+    local binary_url="https://github.com/${repo}/releases/download/v${version}/${versioned_asset_name}"
 
     # Create install directory
     mkdir -p "$install_dir"
 
-    # Download binary
-    local binary_url="https://github.com/${repo}/releases/download/v${version}/${asset_name}"
-
     say "Downloading caro v${version} for ${platform}..."
 
+    # Try versioned name first, fall back to legacy name
+    local download_success=false
     if check_cmd curl; then
-        curl -fsSL "$binary_url" -o "${install_dir}/${binary_name}" || err "Failed to download binary"
+        if curl -fsSL "$binary_url" -o "${install_dir}/${binary_name}" 2>/dev/null; then
+            download_success=true
+        else
+            # Try legacy non-versioned name
+            asset_name="$legacy_asset_name"
+            binary_url="https://github.com/${repo}/releases/download/v${version}/${legacy_asset_name}"
+            say_warn "Versioned binary not found, trying legacy name..."
+            curl -fsSL "$binary_url" -o "${install_dir}/${binary_name}" && download_success=true
+        fi
     elif check_cmd wget; then
-        wget -qO "${install_dir}/${binary_name}" "$binary_url" || err "Failed to download binary"
+        if wget -qO "${install_dir}/${binary_name}" "$binary_url" 2>/dev/null; then
+            download_success=true
+        else
+            # Try legacy non-versioned name
+            asset_name="$legacy_asset_name"
+            binary_url="https://github.com/${repo}/releases/download/v${version}/${legacy_asset_name}"
+            say_warn "Versioned binary not found, trying legacy name..."
+            wget -qO "${install_dir}/${binary_name}" "$binary_url" && download_success=true
+        fi
+    fi
+
+    if [ "$download_success" = false ]; then
+        err "Failed to download binary"
     fi
 
     # Make executable
