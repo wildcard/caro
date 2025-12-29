@@ -100,19 +100,22 @@ install_binary() {
         exit 1
     fi
 
-    # Map platform to asset name
-    local asset_name
+    # Map platform to base asset name
+    local base_asset_name
     case "$platform" in
-        linux-amd64)    asset_name="caro-linux-amd64" ;;
-        linux-arm64)    asset_name="caro-linux-arm64" ;;
-        macos-amd64)    asset_name="caro-macos-intel" ;;
-        macos-arm64)    asset_name="caro-macos-silicon" ;;
-        windows-amd64)  asset_name="caro-windows-amd64.exe" ;;
+        linux-amd64)    base_asset_name="linux-amd64" ;;
+        linux-arm64)    base_asset_name="linux-arm64" ;;
+        macos-amd64)    base_asset_name="macos-intel" ;;
+        macos-arm64)    base_asset_name="macos-silicon" ;;
+        windows-amd64)  base_asset_name="windows-amd64.exe" ;;
         *)
             echo -e "${RED}Unsupported platform: $platform${NC}"
             exit 1
             ;;
     esac
+
+    # Construct versioned asset name
+    local asset_name="caro-${version}-${base_asset_name}"
 
     # Construct download URLs
     local binary_url="https://github.com/${REPO}/releases/download/v${version}/${asset_name}"

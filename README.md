@@ -95,20 +95,22 @@ wget -qO- https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
 
 #### Option 2: Pre-built Binaries (Fast, No Compilation)
 
-Download the latest release for your platform:
+Download the latest release for your platform from [GitHub Releases](https://github.com/wildcard/caro/releases/latest):
 
-| Platform | Binary | Download |
-|----------|--------|----------|
-| Linux x86_64 | `caro-linux-amd64` | [Download](https://github.com/wildcard/caro/releases/latest/download/caro-linux-amd64) |
-| Linux ARM64 | `caro-linux-arm64` | [Download](https://github.com/wildcard/caro/releases/latest/download/caro-linux-arm64) |
-| macOS Intel | `caro-macos-intel` | [Download](https://github.com/wildcard/caro/releases/latest/download/caro-macos-intel) |
-| macOS Apple Silicon | `caro-macos-silicon` | [Download](https://github.com/wildcard/caro/releases/latest/download/caro-macos-silicon) |
-| Windows x64 | `caro-windows-amd64.exe` | [Download](https://github.com/wildcard/caro/releases/latest/download/caro-windows-amd64.exe) |
+| Platform | Binary Name | Direct Download |
+|----------|-------------|-----------------|
+| Linux x86_64 | `caro-1.0.2-linux-amd64` | [Download](https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-linux-amd64) |
+| Linux ARM64 | `caro-1.0.2-linux-arm64` | [Download](https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-linux-arm64) |
+| macOS Intel | `caro-1.0.2-macos-intel` | [Download](https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-macos-intel) |
+| macOS Apple Silicon | `caro-1.0.2-macos-silicon` | [Download](https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-macos-silicon) |
+| Windows x64 | `caro-1.0.2-windows-amd64.exe` | [Download](https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-windows-amd64.exe) |
+
+> 💡 **Tip**: Visit the [releases page](https://github.com/wildcard/caro/releases/latest) for the latest version.
 
 **Manual Installation:**
 ```bash
-# Example for macOS Apple Silicon
-curl -fsSL https://github.com/wildcard/caro/releases/latest/download/caro-macos-silicon -o caro
+# Example for macOS Apple Silicon (v1.0.2)
+curl -fsSL https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-macos-silicon -o caro
 chmod +x caro
 sudo mv caro /usr/local/bin/
 
@@ -119,9 +121,9 @@ caro --version
 **Checksum Verification:**
 Each binary includes a SHA256 checksum file (`.sha256`). Verify before installing:
 ```bash
-# Download binary and checksum
-curl -fsSL https://github.com/wildcard/caro/releases/latest/download/caro-macos-silicon -o caro
-curl -fsSL https://github.com/wildcard/caro/releases/latest/download/caro-macos-silicon.sha256 -o caro.sha256
+# Download binary and checksum (v1.0.2 example)
+curl -fsSL https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-macos-silicon -o caro
+curl -fsSL https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-macos-silicon.sha256 -o caro.sha256
 
 # Verify (macOS/Linux)
 shasum -a 256 -c caro.sha256

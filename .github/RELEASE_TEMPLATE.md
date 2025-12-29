@@ -8,15 +8,15 @@
 
 Download the appropriate binary for your platform from the release assets below:
 
-| Platform | Binary |
-|----------|--------|
-| Linux x86_64 | `caro-linux-amd64` |
-| Linux ARM64 | `caro-linux-arm64` |
-| macOS Intel | `caro-macos-intel` |
-| macOS Apple Silicon | `caro-macos-silicon` |
-| Windows x64 | `caro-windows-amd64.exe` |
+| Platform | Binary (versioned) |
+|----------|-------------------|
+| Linux x86_64 | `caro-VERSION-linux-amd64` |
+| Linux ARM64 | `caro-VERSION-linux-arm64` |
+| macOS Intel | `caro-VERSION-macos-intel` |
+| macOS Apple Silicon | `caro-VERSION-macos-silicon` |
+| Windows x64 | `caro-VERSION-windows-amd64.exe` |
 
-All binaries include SHA256 checksum files for verification.
+All binaries include SHA256 checksum files (`.sha256`) for verification.
 
 ### Quick Install
 

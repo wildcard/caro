@@ -155,15 +155,18 @@ install_via_binary() {
         err "Could not determine latest version"
     fi
 
-    # Map platform to asset name
-    local asset_name
+    # Map platform to base asset name
+    local base_asset_name
     case "$platform" in
-        linux-amd64)    asset_name="caro-linux-amd64" ;;
-        linux-arm64)    asset_name="caro-linux-arm64" ;;
-        macos-intel)    asset_name="caro-macos-intel" ;;
-        macos-silicon)  asset_name="caro-macos-silicon" ;;
+        linux-amd64)    base_asset_name="linux-amd64" ;;
+        linux-arm64)    base_asset_name="linux-arm64" ;;
+        macos-intel)    base_asset_name="macos-intel" ;;
+        macos-silicon)  base_asset_name="macos-silicon" ;;
         *) err "Unsupported platform: $platform" ;;
     esac
+
+    # Construct versioned asset name
+    local asset_name="caro-${version}-${base_asset_name}"
 
     # Create install directory
     mkdir -p "$install_dir"

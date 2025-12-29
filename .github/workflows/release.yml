@@ -253,16 +253,26 @@ jobs:
 
       - name: Prepare release artifact
         run: |
+          VERSION="${{ needs.prepare-release.outputs.version }}"
+          BASE_NAME=$(echo "${{ matrix.asset_name }}" | sed 's/^caro-//')
+          VERSIONED_NAME="caro-${VERSION}-${BASE_NAME}"
+
+          echo "Creating versioned asset: ${VERSIONED_NAME}"
+
           if [ "${{ runner.os }}" = "Windows" ]; then
-            cp target/${{ matrix.target }}/release/caro.exe ${{ matrix.asset_name }}
+            cp target/${{ matrix.target }}/release/caro.exe "${VERSIONED_NAME}"
             # certUtil output format differs from shasum, normalize to: <hash>  <filename>
-            HASH=$(certUtil -hashfile ${{ matrix.asset_name }} SHA256 | grep -v ":" | tr -d '[:space:]')
-            echo "$HASH  ${{ matrix.asset_name }}" > ${{ matrix.asset_name }}.sha256
+            HASH=$(certUtil -hashfile "${VERSIONED_NAME}" SHA256 | grep -v ":" | tr -d '[:space:]')
+            echo "$HASH  ${VERSIONED_NAME}" > "${VERSIONED_NAME}.sha256"
           else
-            cp target/${{ matrix.target }}/release/caro ${{ matrix.asset_name }}
-            chmod +x ${{ matrix.asset_name }}
-            shasum -a 256 ${{ matrix.asset_name }} > ${{ matrix.asset_name }}.sha256
+            cp target/${{ matrix.target }}/release/caro "${VERSIONED_NAME}"
+            chmod +x "${VERSIONED_NAME}"
+            shasum -a 256 "${VERSIONED_NAME}" > "${VERSIONED_NAME}.sha256"
           fi
+
+          # Save versioned name for upload step
+          echo "versioned_asset=${VERSIONED_NAME}" >> $GITHUB_OUTPUT
+        id: prepare_asset
         shell: bash
 
       - name: Upload Release Assets
@@ -270,7 +280,7 @@ jobs:
         with:
           tag_name: ${{ needs.prepare-release.outputs.tag }}
           files: |
-            ${{ matrix.asset_name }}
-            ${{ matrix.asset_name }}.sha256
+            ${{ steps.prepare_asset.outputs.versioned_asset }}
+            ${{ steps.prepare_asset.outputs.versioned_asset }}.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
