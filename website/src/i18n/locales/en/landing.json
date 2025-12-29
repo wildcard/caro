@@ -1,0 +1,17 @@
+{
+  "landing": {
+    "navigation": {},
+    "hero": {},
+    "features": {},
+    "scenarios": {},
+    "demo": {},
+    "useCases": {},
+    "differentiators": {},
+    "communityVoices": {},
+    "trust": {},
+    "faq": {},
+    "download": {},
+    "footer": {}
+  },
+  "_note": "TODO: Extract strings from LP* components in website/src/components/landing/"
+}

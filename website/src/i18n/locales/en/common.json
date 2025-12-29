@@ -1,0 +1,20 @@
+{
+  "common": {
+    "buttons": {
+      "copy": "Copy",
+      "copied": "Copied!",
+      "getStarted": "Get Started",
+      "watchDemo": "Watch Demo"
+    },
+    "status": {
+      "availableNow": "Available Now",
+      "inDevelopment": "In Development",
+      "planned": "Planned",
+      "comingSoon": "Coming Soon"
+    },
+    "aria": {
+      "toggleDarkMode": "Toggle dark mode",
+      "toggleHolidayTheme": "Toggle holiday theme menu"
+    }
+  }
+}

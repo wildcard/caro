@@ -141,13 +141,37 @@ export const languages: Record<Locale, LocaleConfig> = {
  * @param locale - Target locale code
  * @param key - Dot-notation key path (e.g., "navigation.links.features")
  * @returns Translated string, or English fallback if not found
- *
- * NOTE: This is a placeholder implementation for Phase 1.
- * Actual translation loading from JSON files happens in WP02.
  */
 export function t(locale: Locale, key: string): string {
-  // Placeholder: return key until JSON files are created in WP02
-  return key;
+  // Lazy import to avoid circular dependencies
+  const { translations } = require('./index');
+
+  // Get the translation object for the locale
+  const localeTranslations = translations[locale] || translations['en'];
+
+  // Split the key path and navigate the object
+  const keys = key.split('.');
+  let value: any = localeTranslations;
+
+  for (const k of keys) {
+    if (value && typeof value === 'object' && k in value) {
+      value = value[k];
+    } else {
+      // Fallback to English if key not found
+      value = translations['en'];
+      for (const fallbackKey of keys) {
+        if (value && typeof value === 'object' && fallbackKey in value) {
+          value = value[fallbackKey];
+        } else {
+          // Return the key itself if not found in English either
+          return key;
+        }
+      }
+      break;
+    }
+  }
+
+  return typeof value === 'string' ? value : key;
 }
 
 /**

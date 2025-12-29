@@ -1,0 +1,13 @@
+{
+  "hero": {
+    "badge": "🐕 Companion Agent",
+    "logo": "Caro",
+    "logoAlt": "Caro - 8-bit pixel art",
+    "tagline": "Your loyal shell companion",
+    "subtitle": "A specialized POSIX shell command agent with empathy and agency. Available as an MCP for Claude and as a dedicated Skill. She keeps you safe while helping Claude get the job done.",
+    "cta": {
+      "getStarted": "Get Started",
+      "watchDemo": "Watch Demo"
+    }
+  }
+}
