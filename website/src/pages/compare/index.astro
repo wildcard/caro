@@ -3,6 +3,8 @@ import Layout from '../../layouts/Layout.astro';
 import Navigation from '../../components/Navigation.astro';
 import Footer from '../../components/Footer.astro';
 
+const lang = 'en';
+
 // VS page data for SEO and internal linking
 const vsPages = [
   {
@@ -105,6 +107,7 @@ function renderValue(value: boolean | string) {
 <Layout
   title="Compare Caro - Shell AI Comparison | Caro vs Copilot, Warp, Amazon Q"
   description="See how Caro compares to GitHub Copilot CLI, Warp, Amazon Q, and other shell AI tools. Local-first, safety-focused, zero telemetry."
+  lang={lang}
 >
   <Navigation />
 
