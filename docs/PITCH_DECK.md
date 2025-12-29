@@ -99,7 +99,7 @@ Caro is a lightweight AI shell assistant that:
 ### 6-Month Roadmap
 
 * Enterprise deployment framework
-* Integration with MCP (Microsoft Copilot)
+* Integration with MCP (Model Context Protocol)
 * Expanded guardrails library
 * Custom model fine-tuning options
 
