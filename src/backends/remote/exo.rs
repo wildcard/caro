@@ -159,17 +159,21 @@ impl ExoBackend {
 
     /// List available models in the exo cluster
     pub async fn list_models(&self) -> Result<Vec<ExoModelInfo>, GeneratorError> {
-        let url = self.base_url.join("/v1/models").map_err(|e| {
-            GeneratorError::ConfigError {
+        let url = self
+            .base_url
+            .join("/v1/models")
+            .map_err(|e| GeneratorError::ConfigError {
                 message: format!("Invalid base URL: {}", e),
-            }
-        })?;
+            })?;
 
-        let response = self.client.get(url).send().await.map_err(|e| {
-            GeneratorError::BackendUnavailable {
-                reason: format!("Failed to list models: {}", e),
-            }
-        })?;
+        let response =
+            self.client
+                .get(url)
+                .send()
+                .await
+                .map_err(|e| GeneratorError::BackendUnavailable {
+                    reason: format!("Failed to list models: {}", e),
+                })?;
 
         if !response.status().is_success() {
             return Err(GeneratorError::BackendUnavailable {
@@ -333,10 +337,7 @@ Request: {}
         request: &CommandRequest,
     ) -> Result<GeneratedCommand, GeneratorError> {
         // Try exo cluster first
-        match self
-            .call_exo_api(&self.create_system_prompt(request))
-            .await
-        {
+        match self.call_exo_api(&self.create_system_prompt(request)).await {
             Ok(response) => {
                 match self.parse_command_response(&response) {
                     Ok(command) => {
