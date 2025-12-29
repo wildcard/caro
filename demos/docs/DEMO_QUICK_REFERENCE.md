@@ -25,7 +25,7 @@ python caro.py
 
 #### Command 1: System Info (proven ⭐)
 ```bash
-./target/release/cmdai "show system uptime and load average"
+./target/release/caro "show system uptime and load average"
 ```
 **Expected:** `uptime`  
 **Then run:** `uptime`  
@@ -35,7 +35,7 @@ python caro.py
 
 #### Command 2: Process Management (proven ⭐)
 ```bash
-./target/release/cmdai "show top 10 processes by CPU usage"
+./target/release/caro "show top 10 processes by CPU usage"
 ```
 **Expected:** `ps aux | sort -nr -k 3 | head -n 10`  
 **Then run:** `ps aux | sort -nr -k 3 | head -n 10 | head -3`  
@@ -45,7 +45,7 @@ python caro.py
 
 #### Command 3: File Operations (proven ⭐)
 ```bash
-./target/release/cmdai "find all rust files modified in the last 7 days"
+./target/release/caro "find all rust files modified in the last 7 days"
 ```
 **Expected:** `find / -type f -name '*.rs' -mtime -7`  
 **Say:** "Perfect for daily development workflow. I'd change / to . for current directory."
@@ -54,7 +54,7 @@ python caro.py
 
 #### Command 4: Archive (proven ⭐)
 ```bash
-./target/release/cmdai "archive current directory"
+./target/release/caro "archive current directory"
 ```
 **Expected:** `tar czvf archive.tar.gz *`  
 **Say:** "No more man page lookups for tar syntax."
@@ -63,7 +63,7 @@ python caro.py
 
 #### Command 5: Security Audit (proven ⭐)
 ```bash
-./target/release/cmdai "find files with setuid bit enabled"
+./target/release/caro "find files with setuid bit enabled"
 ```
 **Expected:** `find /bin -type f -perm u+s`  
 **Then run:** `find /usr/bin -type f -perm -u+s 2>/dev/null | head -3`  
@@ -73,7 +73,7 @@ python caro.py
 
 #### Command 6: User Activity (proven ⭐)
 ```bash
-./target/release/cmdai "show users who logged in today"
+./target/release/caro "show users who logged in today"
 ```
 **Expected:** `last`  
 **Then run:** `last | head -5`  
@@ -83,7 +83,7 @@ python caro.py
 
 #### Command 7: Network (proven ⭐)
 ```bash
-./target/release/cmdai "check DNS resolution for api.example.com"
+./target/release/caro "check DNS resolution for api.example.com"
 ```
 **Expected:** `dig api.example.com +short`  
 **Say:** "Even complex networking commands work."
@@ -106,7 +106,7 @@ Join us: github.com/[your-username]/caro.sh"
 
 ### Backup Plan 1: Show Help
 ```bash
-./target/release/cmdai --help
+./target/release/caro --help
 ```
 **Say:** "Live demos, right? But you can see the interface here..."
 
@@ -203,7 +203,7 @@ Join us: github.com/[your-username]/caro.sh"
 ## ✅ PRE-TALK CHECKLIST (Day Of)
 
 Technical:
-- [ ] Binary compiled: `./target/release/cmdai --version`
+- [ ] Binary compiled: `./target/release/caro --version`
 - [ ] Model cached: Run one command to warm up
 - [ ] Terminal font: Size 18+ (readable from back)
 - [ ] All 7 demo commands tested once

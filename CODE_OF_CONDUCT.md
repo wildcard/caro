@@ -28,9 +28,9 @@ Examples of unacceptable behavior include:
 - Conduct which could reasonably be considered inappropriate in a professional setting
 - Dismissing or attacking inclusion-focused requests or concerns
 
-## cmdai Community Values
+## caro Community Values
 
-In addition to the Contributor Covenant standards, the cmdai community emphasizes:
+In addition to the Contributor Covenant standards, the caro community emphasizes:
 
 ### Safety First
 
@@ -85,7 +85,7 @@ This Code of Conduct also applies when an individual is officially representing 
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the community leaders responsible for enforcement:
 
-**Primary reporting method**: [GitHub Issues](https://github.com/wildcard/cmdai/issues) with the label `conduct`
+**Primary reporting method**: [GitHub Issues](https://github.com/wildcard/caro/issues) with the label `conduct`
 
 For sensitive matters requiring privacy, you may contact maintainers directly via:
 - GitHub direct message to repository maintainers
@@ -158,13 +158,13 @@ For answers to common questions about this code of conduct, see the FAQ at [http
 ## Contact
 
 For questions about this Code of Conduct:
-- **General questions**: [GitHub Discussions](https://github.com/wildcard/cmdai/discussions)
-- **Specific concerns**: [GitHub Issues](https://github.com/wildcard/cmdai/issues) with `conduct` label
+- **General questions**: [GitHub Discussions](https://github.com/wildcard/caro/discussions)
+- **Specific concerns**: [GitHub Issues](https://github.com/wildcard/caro/issues) with `conduct` label
 - **Private matters**: Contact repository maintainers directly via GitHub
 
 ---
 
-**cmdai is committed to providing a welcoming and inspiring community for all.** Thank you for helping us maintain a positive, collaborative environment.
+**caro is committed to providing a welcoming and inspiring community for all.** Thank you for helping us maintain a positive, collaborative environment.
 
 ---
 

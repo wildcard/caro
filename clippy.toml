@@ -1,4 +1,4 @@
-# Clippy configuration for cmdai project
+# Clippy configuration for caro project
 
 # Set cognitive complexity threshold
 cognitive-complexity-threshold = 25

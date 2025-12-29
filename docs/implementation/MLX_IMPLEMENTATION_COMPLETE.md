@@ -14,7 +14,7 @@
 
 ### What Was Built
 
-We successfully implemented a **production-ready MLX backend** for cmdai that:
+We successfully implemented a **production-ready MLX backend** for caro that:
 
 1. **Loads GGUF models** using llama.cpp with Metal acceleration
 2. **Runs GPU-accelerated inference** on Apple Silicon
@@ -25,7 +25,7 @@ We successfully implemented a **production-ready MLX backend** for cmdai that:
 ### Technical Stack
 
 ```
-cmdai (Rust CLI)
+caro (Rust CLI)
     ↓
 llama_cpp v0.3 (Rust bindings)
     ↓
@@ -97,7 +97,7 @@ Metal Frameworks: 3 linked
 ### ✅ Model Verification
 
 ```
-Path: ~/Library/Caches/cmdai/models/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf
+Path: ~/Library/Caches/caro/models/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf
 Size: 1.1GB
 Format: GGUF (Q4_K_M quantization)
 ```
@@ -347,7 +347,7 @@ cargo clean
 cargo build --release --features embedded-mlx
 
 # Build time: ~3 minutes (first time)
-# Binary location: target/release/cmdai
+# Binary location: target/release/caro
 # Binary size: 3.8MB
 ```
 
@@ -355,13 +355,13 @@ cargo build --release --features embedded-mlx
 
 ```bash
 # Basic usage
-./target/release/cmdai "list all files"
+./target/release/caro "list all files"
 
 # With logging
-RUST_LOG=info ./target/release/cmdai "find python files"
+RUST_LOG=info ./target/release/caro "find python files"
 
 # Debug mode
-RUST_LOG=debug ./target/release/cmdai "show disk usage"
+RUST_LOG=debug ./target/release/caro "show disk usage"
 ```
 
 ---
@@ -471,7 +471,7 @@ This implementation benefited from:
 - llama.cpp project (Metal acceleration)
 - mlx-rs ecosystem (initial exploration)
 - Qwen 2.5 Coder model (instruction following)
-- cmdai project structure (clean architecture)
+- caro project structure (clean architecture)
 
 ---
 

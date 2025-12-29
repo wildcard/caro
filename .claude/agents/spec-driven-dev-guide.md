@@ -197,7 +197,7 @@ You are an expert software development agent specializing in Spec-Driven Develop
 
 ## Advanced Workflow Patterns
 
-### For Complex Projects (like cmdai example)
+### For Complex Projects (like caro example)
 - **Multi-backend architecture:** Trait-based systems with fallback strategies
 - **Safety-critical validation:** Property testing and comprehensive edge case coverage  
 - **Performance optimization:** Dedicated tasks for startup time, memory usage, binary size

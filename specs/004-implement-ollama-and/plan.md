@@ -2,12 +2,12 @@
 # Implementation Plan: Embedded Model + Remote Backend Support
 
 **Branch**: `004-implement-ollama-and` | **Date**: 2025-10-14 | **Spec**: [spec.md](./spec.md)
-**Input**: Feature specification from `/workspaces/cmdai/specs/004-implement-ollama-and/spec.md`
+**Input**: Feature specification from `/workspaces/caro/specs/004-implement-ollama-and/spec.md`
 
 ## Execution Flow (/plan command scope)
 ```
 1. Load feature spec from Input path ✅
-   → Loaded from /workspaces/cmdai/specs/004-implement-ollama-and/spec.md
+   → Loaded from /workspaces/caro/specs/004-implement-ollama-and/spec.md
 2. Fill Technical Context ✅
    → All technical decisions resolved via clarifications
 3. Fill Constitution Check ✅
@@ -26,7 +26,7 @@
 
 ## Summary
 
-cmdai will ship with an **embedded Qwen coding model** as the default backend, providing batteries-included, plug-and-play command generation that works offline out-of-box. Two build variants will be provided:
+caro will ship with an **embedded Qwen coding model** as the default backend, providing batteries-included, plug-and-play command generation that works offline out-of-box. Two build variants will be provided:
 
 1. **MLX GPU build** (primary for Apple Silicon): Optimized for M1/M2/M3/M4 MacBook Pro using MLX framework
 2. **CPU build** (cross-platform fallback): Using Burn or Candle inference runtime
@@ -51,7 +51,7 @@ Remote backends (Ollama and vLLM) are **optional enhancements** for power users 
 
 **Storage**:
   - Model weights embedded in binary or downloaded on first run (TBD in research)
-  - Configuration: `~/.cmdai/config.toml` (already implemented)
+  - Configuration: `~/.caro/config.toml` (already implemented)
   - Cache: HuggingFace cache directory for remote model downloads (Feature 003)
 
 **Testing**:
@@ -113,11 +113,11 @@ Remote backends (Ollama and vLLM) are **optional enhancements** for power users 
 
 ### II. Library-First Architecture ✅
 - **All features exported via `src/lib.rs`**:
-  - `cmdai::backends::embedded` - Embedded model with MLX and CPU variants
-  - `cmdai::backends::ollama` - Ollama HTTP API integration
-  - `cmdai::backends::vllm` - vLLM HTTP API integration
-  - `cmdai::backends::connection` - Shared HTTP connection logic
-  - `cmdai::backends::retry` - Retry policy for resilience
+  - `caro::backends::embedded` - Embedded model with MLX and CPU variants
+  - `caro::backends::ollama` - Ollama HTTP API integration
+  - `caro::backends::vllm` - vLLM HTTP API integration
+  - `caro::backends::connection` - Shared HTTP connection logic
+  - `caro::backends::retry` - Retry policy for resilience
 - **Self-contained libraries**: Each backend independently testable
 - **Clear public APIs**: `CommandGenerator` trait defines contract
 - **Binary orchestrates**: `main.rs` selects backend, no business logic
@@ -280,7 +280,7 @@ tests/
 
 ### Step 1: Data Model Design
 
-Generate `/workspaces/cmdai/specs/004-implement-ollama-and/data-model.md` with:
+Generate `/workspaces/caro/specs/004-implement-ollama-and/data-model.md` with:
 
 **New Entities**:
 - **E1: EmbeddedModelBackend** (implements `CommandGenerator`)
@@ -318,7 +318,7 @@ Generate `/workspaces/cmdai/specs/004-implement-ollama-and/data-model.md` with:
 
 ### Step 2: API Contracts
 
-Generate contracts in `/workspaces/cmdai/specs/004-implement-ollama-and/contracts/`:
+Generate contracts in `/workspaces/caro/specs/004-implement-ollama-and/contracts/`:
 
 **New Contracts**:
 1. **embedded-backend.md**: Contract for `EmbeddedModelBackend`
@@ -359,7 +359,7 @@ Each test file asserts:
 
 ### Step 4: Integration Test Scenarios
 
-Update `/workspaces/cmdai/specs/004-implement-ollama-and/quickstart.md` with new scenarios:
+Update `/workspaces/caro/specs/004-implement-ollama-and/quickstart.md` with new scenarios:
 
 **New Scenarios**:
 - **Scenario 1** (UPDATED): First-time user with embedded model (batteries-included experience)
@@ -437,7 +437,7 @@ Run `.specify/scripts/bash/update-agent-context.sh claude` to update project gui
      - Extend UserConfiguration with backend fields (T035)
      - Implement backend selection logic (CLI > Config > Auto) (T036)
      - Add `--backend` CLI flag (T037)
-     - Add `cmdai init` wizard for remote backend setup (T038)
+     - Add `caro init` wizard for remote backend setup (T038)
      - Update configuration documentation (T039)
 
    - **Multi-Platform Build** (Phase 4.7):
@@ -481,7 +481,7 @@ No constitutional violations - complexity is justified:
 
 | Added Complexity | Justification | Constitutional Alignment |
 |------------------|---------------|-------------------------|
-| Embedded model backend | **FR-001** requires batteries-included experience. Users must be able to use cmdai without external services. | ✅ Simplicity: Enables zero-config operation |
+| Embedded model backend | **FR-001** requires batteries-included experience. Users must be able to use caro without external services. | ✅ Simplicity: Enables zero-config operation |
 | Two build variants (MLX + CPU) | **FR-032-034** require optimal performance on Apple Silicon while maintaining cross-platform support. | ✅ Platform optimization justified by user base (macOS developers) |
 | Three backend implementations | **FR-002-003** specify optional remote backends. Trait-based design keeps complexity contained. | ✅ Library-First: All backends implement `CommandGenerator` trait |
 | CI/CD model benchmarking | **FR-036** requires testing Qwen vs Phi-3 vs StarCoder2 for optimal default model selection. | ✅ Test-First: Validates model performance before release |

@@ -79,4 +79,4 @@ Program is demo-ready:
 
 ## Note on Repo Rename
 
-Repo renamed from `cmdai` to `caro` - code still uses `cmdai` internally. Full rename will come later.
+Repo renamed from `caro` to `caro` - code still uses `caro` internally. Full rename will come later.

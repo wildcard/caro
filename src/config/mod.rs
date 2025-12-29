@@ -137,23 +137,23 @@ impl ConfigManager {
         let mut config = self.load()?;
 
         // Check for environment variable overrides
-        if let Ok(safety_str) = std::env::var("CMDAI_SAFETY_LEVEL") {
+        if let Ok(safety_str) = std::env::var("CARO_SAFETY_LEVEL") {
             config.safety_level = safety_str.parse().map_err(ConfigError::ValidationError)?;
         }
 
-        if let Ok(shell_str) = std::env::var("CMDAI_DEFAULT_SHELL") {
+        if let Ok(shell_str) = std::env::var("CARO_DEFAULT_SHELL") {
             config.default_shell = Some(shell_str.parse().map_err(ConfigError::ValidationError)?);
         }
 
-        if let Ok(log_str) = std::env::var("CMDAI_LOG_LEVEL") {
+        if let Ok(log_str) = std::env::var("CARO_LOG_LEVEL") {
             config.log_level = log_str.parse().map_err(ConfigError::ValidationError)?;
         }
 
-        if let Ok(model_str) = std::env::var("CMDAI_DEFAULT_MODEL") {
+        if let Ok(model_str) = std::env::var("CARO_DEFAULT_MODEL") {
             config.default_model = Some(model_str);
         }
 
-        if let Ok(cache_str) = std::env::var("CMDAI_CACHE_MAX_SIZE_GB") {
+        if let Ok(cache_str) = std::env::var("CARO_CACHE_MAX_SIZE_GB") {
             config.cache_max_size_gb = cache_str.parse().map_err(|_| {
                 ConfigError::ValidationError(format!("Invalid cache size: {}", cache_str))
             })?;

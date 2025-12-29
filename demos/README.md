@@ -217,9 +217,9 @@ cargo install agg
 ### Script can't find binary
 Scripts look in:
 1. `caro` command (if alias exists)
-2. `cmdai` command (if installed globally)
-3. `../target/release/cmdai`
-4. `../target/debug/cmdai`
+2. `caro` command (if installed globally)
+3. `../target/release/caro`
+4. `../target/debug/caro`
 
 ## Contributing
 

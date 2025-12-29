@@ -1,4 +1,4 @@
-# Nextest configuration for cmdai
+# Nextest configuration for caro
 # See https://nexte.st/book/configuration.html for more options
 
 [profile.default]

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `presentation_demo.py` script is a **live demonstration** tool designed for presenting cmdai during talks, conferences, or demos. It showcases the core functionality in a visually appealing, easy-to-follow format.
+The `presentation_demo.py` script is a **live demonstration** tool designed for presenting caro during talks, conferences, or demos. It showcases the core functionality in a visually appealing, easy-to-follow format.
 
 ## Features
 
@@ -217,7 +217,7 @@ Perfect narrative flow!
 
 ### Display Output
 ```
-🐕 cmdai Live Demo - Powered by Caro
+🐕 caro Live Demo - Powered by Caro
 ====================================
 
 💬 You: "list all files in current directory"

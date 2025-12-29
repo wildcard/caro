@@ -4,7 +4,7 @@
 - **Model**: Qwen/Qwen2.5-Coder-1.5B-Instruct
 - **Size**: ~1.5GB (full precision)
 - **Framework**: MLX on Apple Silicon
-- **Purpose**: Production model for cmdai (optimized for shell commands)
+- **Purpose**: Production model for caro (optimized for shell commands)
 
 ## Performance Metrics
 
@@ -80,7 +80,7 @@ generate(
 
 ## Recommendation
 
-✅ **Use Qwen2.5-Coder-1.5B for cmdai**
+✅ **Use Qwen2.5-Coder-1.5B for caro**
 
 **Reasons:**
 1. **Better command quality** - Trained specifically for code/shell
@@ -98,7 +98,7 @@ generate(
 
 Created `qwen_inference.py` with:
 - Proper model loading (Qwen2.5-Coder)
-- 5 test cases from cmdai specs
+- 5 test cases from caro specs
 - Performance timing
 - JSON-focused prompts
 
@@ -110,6 +110,6 @@ make run-qwen
 
 ## Conclusion
 
-Qwen2.5-Coder-1.5B is **production-ready** for cmdai with minor prompt engineering improvements. The command quality is excellent, and performance is within targets (<2s goal, 2.2s actual).
+Qwen2.5-Coder-1.5B is **production-ready** for caro with minor prompt engineering improvements. The command quality is excellent, and performance is within targets (<2s goal, 2.2s actual).
 
 The repetition issue is easily solved with stop sequences, which we'll implement in the Rust integration.

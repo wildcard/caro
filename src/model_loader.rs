@@ -94,12 +94,12 @@ impl ModelLoader {
             .cache_dir()
             .to_path_buf();
 
-        let cmdai_cache = cache_base.join("caro").join("models");
+        let caro_cache = cache_base.join("caro").join("models");
 
         // Create cache directory if it doesn't exist
-        std::fs::create_dir_all(&cmdai_cache).context("Failed to create model cache directory")?;
+        std::fs::create_dir_all(&caro_cache).context("Failed to create model cache directory")?;
 
-        Ok(cmdai_cache)
+        Ok(caro_cache)
     }
 
     /// Auto-detect the best available model variant for the current platform

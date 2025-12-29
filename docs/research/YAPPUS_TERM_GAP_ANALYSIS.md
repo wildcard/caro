@@ -1,4 +1,4 @@
-# Yappus-Term vs Caro (cmdai): Competitive Gap Analysis
+# Yappus-Term vs Caro (caro): Competitive Gap Analysis
 
 **Date:** December 2025
 **Purpose:** Deep competitive analysis to identify gaps, advantages, and strategic opportunities
@@ -7,7 +7,7 @@
 
 ## Executive Summary
 
-**Yappus-Term** is a Rust-based terminal interface for Google Gemini AI, focusing on conversational AI interaction with persistent chat history. **Caro (cmdai)** is a Rust-based CLI tool that converts natural language to safe POSIX shell commands using local LLMs, emphasizing safety-first design and Apple Silicon optimization.
+**Yappus-Term** is a Rust-based terminal interface for Google Gemini AI, focusing on conversational AI interaction with persistent chat history. **Caro (caro)** is a Rust-based CLI tool that converts natural language to safe POSIX shell commands using local LLMs, emphasizing safety-first design and Apple Silicon optimization.
 
 **Key Finding:** These projects have **fundamentally different goals** but occupy adjacent market spaces. Yappus-Term is a general-purpose AI chat interface for terminals, while Caro is a specialized command generator with safety validation. This creates both competitive overlap and unique opportunities for differentiation.
 
@@ -78,10 +78,10 @@ General-purpose terminal chat interface for Google Gemini AI with conversation p
 
 ---
 
-### Caro (cmdai)
+### Caro (caro)
 
-**Repository:** github.com/wildcard/cmdai
-**Crates.io:** [cmdai](https://crates.io/crates/cmdai)
+**Repository:** github.com/wildcard/caro
+**Crates.io:** [caro](https://crates.io/crates/caro)
 **Website:** [caro.sh](https://caro.sh)
 **License:** AGPL-3.0
 **Current Version:** 0.1.0 (published)
@@ -136,7 +136,7 @@ Convert natural language to safe POSIX shell commands using local LLMs, with com
 
 ### Feature Matrix
 
-| Feature | Yappus-Term | Caro (cmdai) | Winner |
+| Feature | Yappus-Term | Caro (caro) | Winner |
 |---------|-------------|--------------|--------|
 | **Core Use Case** | General AI chat | Command generation | Different goals |
 | **Model Support** | Gemini (cloud) | Local + Remote | **Caro** (privacy) |
@@ -163,7 +163,7 @@ Convert natural language to safe POSIX shell commands using local LLMs, with com
 
 ### Architecture Comparison
 
-| Aspect | Yappus-Term | Caro (cmdai) |
+| Aspect | Yappus-Term | Caro (caro) |
 |--------|-------------|--------------|
 | **Async Runtime** | Blocking (reqwest) | Tokio async |
 | **Backend Design** | Single API | Trait-based multi-backend |
@@ -266,7 +266,7 @@ Convert natural language to safe POSIX shell commands using local LLMs, with com
 #### 1.1 Add Interactive/REPL Mode
 **Gap:** Yappus offers continuous chat; Caro requires separate invocations
 **Implementation:**
-- Add `cmdai --interactive` or `cmdai chat` mode
+- Add `caro --interactive` or `caro chat` mode
 - Use `rustyline` for readline with history
 - Maintain session context across commands
 - Save command history for future reference
@@ -276,7 +276,7 @@ Convert natural language to safe POSIX shell commands using local LLMs, with com
 **Gap:** No persistence of generated commands across sessions
 **Implementation:**
 - Store generated commands with timestamps
-- Add `cmdai history` subcommand
+- Add `caro history` subcommand
 - Enable "recall" of previous successful commands
 - Track which commands were executed
 **Effort:** Medium | **Impact:** High
@@ -302,7 +302,7 @@ Convert natural language to safe POSIX shell commands using local LLMs, with com
 #### 2.2 Add File Context for Commands
 **Gap:** Cannot reference files when generating commands
 **Implementation:**
-- Add `cmdai "process this file" --context file.txt`
+- Add `caro "process this file" --context file.txt`
 - Integrate file content into generation prompt
 - Support directory context scanning
 **Effort:** Medium | **Impact:** Medium
@@ -416,7 +416,7 @@ Caro occupies a unique niche that no competitor fully addresses:
 ### Phase 2: Interactive Mode (2-4 Weeks)
 - [ ] Implement REPL mode with rustyline
 - [ ] Add session context persistence
-- [ ] Implement `cmdai history` command
+- [ ] Implement `caro history` command
 - [ ] Add syntax highlighting for output
 
 ### Phase 3: Context Awareness (4-6 Weeks)

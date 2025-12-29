@@ -1,6 +1,6 @@
 # Config Module API Contract
 
-**Module**: `cmdai::config`
+**Module**: `caro::config`
 **Purpose**: Configuration management with CLI integration and user preferences
 
 ## Public API
@@ -123,7 +123,7 @@ pub enum ConfigError {
 
 ### Contract: load Returns Defaults When Config Missing
 
-**Given**: No config file exists at `~/.config/cmdai/config.toml`
+**Given**: No config file exists at `~/.config/caro/config.toml`
 **When**: `config_manager.load()` is called
 **Then**:
 - Returns `Ok(UserConfiguration::default())`
@@ -171,7 +171,7 @@ pub enum ConfigError {
 **Given**: UserConfiguration with custom values
 **When**: `config_manager.save(&config)` is called
 **Then**:
-- Config file created at `~/.config/cmdai/config.toml`
+- Config file created at `~/.config/caro/config.toml`
 - TOML serialization matches expected format
 - File permissions set to 0600 (user read/write only)
 - Returns `Ok(())`
@@ -236,8 +236,8 @@ UserConfiguration::builder()
 **Given**: Standard XDG environment
 **When**: `ConfigManager::new()` is called
 **Then**:
-- Config path is `~/.config/cmdai/config.toml` (Linux/macOS)
-- Config path is `%APPDATA%\cmdai\config.toml` (Windows)
+- Config path is `~/.config/caro/config.toml` (Linux/macOS)
+- Config path is `%APPDATA%\caro\config.toml` (Windows)
 - Parent directory created if missing
 
 ## TOML Format Specification

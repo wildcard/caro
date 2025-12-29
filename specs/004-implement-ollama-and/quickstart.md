@@ -16,10 +16,10 @@ This document defines comprehensive integration test scenarios that validate the
 
 ## Scenario 1: First-Time User with Embedded Model (Batteries-Included Experience)
 
-**User Story**: As a first-time cmdai user, I want to generate my first command immediately without any setup so that I can start using cmdai right away.
+**User Story**: As a first-time caro user, I want to generate my first command immediately without any setup so that I can start using caro right away.
 
 **Preconditions**:
-- Fresh cmdai installation (embedded Qwen model included in binary)
+- Fresh caro installation (embedded Qwen model included in binary)
 - No remote backends installed (no Ollama, no vLLM)
 - No custom configuration file (using defaults)
 - Works completely offline (no network required)
@@ -101,11 +101,11 @@ Status: ✓ Offline, no network required
 
 ## Scenario 2: Switching to vLLM Backend
 
-**User Story**: As a cmdai user with vLLM configured, I want to use vLLM instead of Ollama so that I can leverage enterprise models.
+**User Story**: As a caro user with vLLM configured, I want to use vLLM instead of Ollama so that I can leverage enterprise models.
 
 **Preconditions**:
 - Both Ollama and vLLM available
-- vLLM configured in `~/.cmdai/config.toml`
+- vLLM configured in `~/.caro/config.toml`
 - User specifies `--backend vllm` flag
 
 **Test Steps**:
@@ -157,14 +157,14 @@ async fn test_scenario_2_vllm_backend_selection() {
 ```
 Generated command: find . -type f -size +100M
 Backend: vllm (meta-llama/Llama-2-7b-hf)
-Configuration: Loaded from ~/.cmdai/config.toml
+Configuration: Loaded from ~/.caro/config.toml
 ```
 
 ---
 
 ## Scenario 3: Automatic Fallback on Failure
 
-**User Story**: As a cmdai user, I want the tool to automatically try alternative backends if my primary choice fails so that I get results even with network issues.
+**User Story**: As a caro user, I want the tool to automatically try alternative backends if my primary choice fails so that I get results even with network issues.
 
 **Preconditions**:
 - Ollama configured but not running (simulate failure)
@@ -218,7 +218,7 @@ Backend: vllm (fallback)
 
 ## Scenario 4: No Backends Available (Error Handling)
 
-**User Story**: As a cmdai user with no backends available, I want clear guidance on how to fix the issue so that I can set up a backend correctly.
+**User Story**: As a caro user with no backends available, I want clear guidance on how to fix the issue so that I can set up a backend correctly.
 
 **Preconditions**:
 - No Ollama running
@@ -261,7 +261,7 @@ async fn test_scenario_4_no_backends_available() {
 ```
 Error: No LLM backends available
 
-cmdai requires either Ollama or vLLM to generate commands.
+caro requires either Ollama or vLLM to generate commands.
 
 To use Ollama (local):
   1. Install: curl -fsSL https://ollama.com/install.sh | sh
@@ -269,17 +269,17 @@ To use Ollama (local):
   3. Pull model: ollama pull codellama:7b
 
 To use vLLM (remote):
-  1. Configure URL in ~/.cmdai/config.toml
+  1. Configure URL in ~/.caro/config.toml
   2. Add API key if required
 
-For help: cmdai --help
+For help: caro --help
 ```
 
 ---
 
 ## Scenario 5: Configuration Persistence
 
-**User Story**: As a cmdai user, I want my backend preferences saved so that I don't have to specify them every time.
+**User Story**: As a caro user, I want my backend preferences saved so that I don't have to specify them every time.
 
 **Preconditions**:
 - First run: No config file exists
@@ -333,20 +333,20 @@ async fn test_scenario_5_configuration_persistence() {
 **Expected Output (Run 1)**:
 ```
 Backend: vllm
-Configuration saved to ~/.cmdai/config.toml
+Configuration saved to ~/.caro/config.toml
 ```
 
 **Expected Output (Run 2)**:
 ```
 Backend: vllm (from config)
-Configuration loaded from ~/.cmdai/config.toml
+Configuration loaded from ~/.caro/config.toml
 ```
 
 ---
 
 ## Scenario 6: Network Timeout with Retry
 
-**User Story**: As a cmdai user with slow network, I want automatic retries so that temporary issues don't cause immediate failures.
+**User Story**: As a caro user with slow network, I want automatic retries so that temporary issues don't cause immediate failures.
 
 **Preconditions**:
 - vLLM configured (remote backend)
@@ -415,7 +415,7 @@ Total time: 2.1s (including retry delay)
 
 ## Scenario 7: Malformed JSON Response
 
-**User Story**: As a cmdai user, I want the tool to handle backend errors gracefully so that I get useful results even with imperfect API responses.
+**User Story**: As a caro user, I want the tool to handle backend errors gracefully so that I get useful results even with imperfect API responses.
 
 **Preconditions**:
 - Ollama running
@@ -466,7 +466,7 @@ Generated command: pwd
 
 ## Scenario 8: Safety Validation Integration
 
-**User Story**: As a cmdai user, I want all generated commands validated for safety regardless of which backend generated them so that I'm protected from dangerous commands.
+**User Story**: As a caro user, I want all generated commands validated for safety regardless of which backend generated them so that I'm protected from dangerous commands.
 
 **Preconditions**:
 - Ollama backend available
@@ -528,7 +528,7 @@ Safer alternatives:
 
 ## Scenario 9: Performance Monitoring
 
-**User Story**: As a cmdai developer, I want detailed performance metrics so that I can identify bottlenecks and optimize the system.
+**User Story**: As a caro developer, I want detailed performance metrics so that I can identify bottlenecks and optimize the system.
 
 **Preconditions**:
 - Verbose mode enabled
@@ -644,7 +644,7 @@ async fn test_scenario_10_mlx_vs_cpu_performance() {
     assert!(duration_mlx < Duration::from_secs(2), "MLX should be <2s");
 
     // Force CPU variant (for comparison only)
-    std::env::set_var("CMDAI_FORCE_CPU", "1");
+    std::env::set_var("CARO_FORCE_CPU", "1");
     let cli_cpu = CliApp::new().await.unwrap();
 
     let args_cpu = TestArgs {
@@ -681,7 +681,7 @@ Speedup: 2.3x faster with MLX
 
 ## Scenario 11: Embedded Model Fallback from Ollama Failure
 
-**User Story**: As a user with Ollama configured, I want cmdai to automatically fallback to embedded model when Ollama fails, so my workflow isn't interrupted.
+**User Story**: As a user with Ollama configured, I want caro to automatically fallback to embedded model when Ollama fails, so my workflow isn't interrupted.
 
 **Preconditions**:
 - Config file with Ollama as preferred backend
@@ -754,12 +754,12 @@ Generation time: 1.9s
 
 ## Scenario 12: Complete Offline Operation
 
-**User Story**: As a user in an offline environment, I want cmdai to work without any network access, proving true batteries-included capability.
+**User Story**: As a user in an offline environment, I want caro to work without any network access, proving true batteries-included capability.
 
 **Preconditions**:
 - Network completely disabled (airplane mode)
 - No remote backends configured
-- Fresh cmdai installation with embedded model
+- Fresh caro installation with embedded model
 
 **Test Steps**:
 

@@ -1,8 +1,8 @@
-# cmdai Demo Cheatsheet for DevOps/SRE/SysAdmin
+# caro Demo Cheatsheet for DevOps/SRE/SysAdmin
 
 ## 🎯 Pitch: AI-Powered Command Generation for Infrastructure Teams
 
-**cmdai** converts natural language to safe, production-ready shell commands using local LLMs with Apple Silicon optimization. Built for DevOps engineers, SREs, and system administrators who need fast, reliable command generation without leaving the terminal.
+**caro** converts natural language to safe, production-ready shell commands using local LLMs with Apple Silicon optimization. Built for DevOps engineers, SREs, and system administrators who need fast, reliable command generation without leaving the terminal.
 
 ---
 
@@ -20,29 +20,29 @@
 
 ### Process & Resource Management
 ```bash
-cmdai "find processes using more than 1GB of memory"
-cmdai "show top 10 CPU consuming processes"
-cmdai "kill all zombie processes"
-cmdai "find process listening on port 8080"
-cmdai "show all processes owned by user nginx"
+caro "find processes using more than 1GB of memory"
+caro "show top 10 CPU consuming processes"
+caro "kill all zombie processes"
+caro "find process listening on port 8080"
+caro "show all processes owned by user nginx"
 ```
 
 ### Disk & Storage Operations
 ```bash
-cmdai "find directories larger than 10GB"
-cmdai "show disk usage by directory sorted by size"
-cmdai "find files modified in the last 24 hours"
-cmdai "delete log files older than 30 days"
-cmdai "find duplicate files in current directory"
+caro "find directories larger than 10GB"
+caro "show disk usage by directory sorted by size"
+caro "find files modified in the last 24 hours"
+caro "delete log files older than 30 days"
+caro "find duplicate files in current directory"
 ```
 
 ### System Health Checks
 ```bash
-cmdai "check if system needs reboot"
-cmdai "show system uptime and load average"
-cmdai "monitor memory usage every 5 seconds"
-cmdai "check filesystem usage above 80%"
-cmdai "show kernel version and OS details"
+caro "check if system needs reboot"
+caro "show system uptime and load average"
+caro "monitor memory usage every 5 seconds"
+caro "check filesystem usage above 80%"
+caro "show kernel version and OS details"
 ```
 
 ---
@@ -51,30 +51,30 @@ cmdai "show kernel version and OS details"
 
 ### Log Analysis
 ```bash
-cmdai "find all ERROR entries in syslog from last hour"
-cmdai "show nginx error log entries with 500 status"
-cmdai "count unique IP addresses in access log"
-cmdai "extract stack traces from application logs"
-cmdai "find log files containing 'connection timeout'"
+caro "find all ERROR entries in syslog from last hour"
+caro "show nginx error log entries with 500 status"
+caro "count unique IP addresses in access log"
+caro "extract stack traces from application logs"
+caro "find log files containing 'connection timeout'"
 ```
 
 ### Network Diagnostics
 ```bash
-cmdai "show all established TCP connections"
-cmdai "find which process is using port 443"
-cmdai "test connectivity to database server on port 5432"
-cmdai "show network interface statistics"
-cmdai "display routing table with gateway info"
-cmdai "check DNS resolution for api.example.com"
+caro "show all established TCP connections"
+caro "find which process is using port 443"
+caro "test connectivity to database server on port 5432"
+caro "show network interface statistics"
+caro "display routing table with gateway info"
+caro "check DNS resolution for api.example.com"
 ```
 
 ### Service Management
 ```bash
-cmdai "restart nginx service and check status"
-cmdai "show failed systemd services"
-cmdai "enable postgresql to start on boot"
-cmdai "check if redis is running and responsive"
-cmdai "reload docker daemon configuration"
+caro "restart nginx service and check status"
+caro "show failed systemd services"
+caro "enable postgresql to start on boot"
+caro "check if redis is running and responsive"
+caro "reload docker daemon configuration"
 ```
 
 ---
@@ -83,29 +83,29 @@ cmdai "reload docker daemon configuration"
 
 ### Docker & Container Operations
 ```bash
-cmdai "remove all stopped containers"
-cmdai "show container resource usage"
-cmdai "find images larger than 1GB"
-cmdai "inspect container logs from last 100 lines"
-cmdai "export container filesystem to tarball"
+caro "remove all stopped containers"
+caro "show container resource usage"
+caro "find images larger than 1GB"
+caro "inspect container logs from last 100 lines"
+caro "export container filesystem to tarball"
 ```
 
 ### File & Directory Operations
 ```bash
-cmdai "create timestamped backup of config directory"
-cmdai "find and replace text in all yaml files"
-cmdai "sync directory to remote server preserving permissions"
-cmdai "compress logs directory excluding current month"
-cmdai "find broken symbolic links"
+caro "create timestamped backup of config directory"
+caro "find and replace text in all yaml files"
+caro "sync directory to remote server preserving permissions"
+caro "compress logs directory excluding current month"
+caro "find broken symbolic links"
 ```
 
 ### User & Permission Management
 ```bash
-cmdai "show users who logged in today"
-cmdai "find files with world-writable permissions"
-cmdai "list sudo access for all users"
-cmdai "show failed login attempts"
-cmdai "find files owned by deleted users"
+caro "show users who logged in today"
+caro "find files with world-writable permissions"
+caro "list sudo access for all users"
+caro "show failed login attempts"
+caro "find files owned by deleted users"
 ```
 
 ---
@@ -114,29 +114,29 @@ cmdai "find files owned by deleted users"
 
 ### Performance Metrics
 ```bash
-cmdai "generate disk usage report for all mounted filesystems"
-cmdai "show network bandwidth usage per interface"
-cmdai "list services and their memory consumption"
-cmdai "export process tree with resource usage"
-cmdai "create CSV of top memory consumers"
+caro "generate disk usage report for all mounted filesystems"
+caro "show network bandwidth usage per interface"
+caro "list services and their memory consumption"
+caro "export process tree with resource usage"
+caro "create CSV of top memory consumers"
 ```
 
 ### Batch Operations
 ```bash
-cmdai "rename all txt files to add timestamp prefix"
-cmdai "change ownership of web files to www-data"
-cmdai "create directories for each month of 2024"
-cmdai "download list of URLs from file in parallel"
-cmdai "compress each subdirectory into separate archives"
+caro "rename all txt files to add timestamp prefix"
+caro "change ownership of web files to www-data"
+caro "create directories for each month of 2024"
+caro "download list of URLs from file in parallel"
+caro "compress each subdirectory into separate archives"
 ```
 
 ### Security Auditing
 ```bash
-cmdai "find files with setuid bit enabled"
-cmdai "show open network ports and listening services"
-cmdai "list cron jobs for all users"
-cmdai "find recently modified system binaries"
-cmdai "check for weak SSH configurations"
+caro "find files with setuid bit enabled"
+caro "show open network ports and listening services"
+caro "list cron jobs for all users"
+caro "find recently modified system binaries"
+caro "check for weak SSH configurations"
 ```
 
 ---
@@ -149,15 +149,15 @@ Show a typical day: googling syntax, checking man pages, asking ChatGPT for comm
 ### **Act 2: The Solution** (2 minutes)
 ```bash
 # Start with simple
-cmdai "list all files"
+caro "list all files"
 
 # Progress to real scenarios
-cmdai "find nginx error logs from last hour with 502 errors"
-cmdai "show processes using more than 2GB memory sorted by usage"
-cmdai "backup database with timestamp and compress"
+caro "find nginx error logs from last hour with 502 errors"
+caro "show processes using more than 2GB memory sorted by usage"
+caro "backup database with timestamp and compress"
 
 # Show safety validation
-cmdai "delete everything in root directory"  # Should block/warn
+caro "delete everything in root directory"  # Should block/warn
 ```
 
 ### **Act 3: The Impact** (1 minute)
@@ -194,7 +194,7 @@ cmdai "delete everything in root directory"  # Should block/warn
 
 ## 🎯 Closing Statements
 
-**"cmdai turns every engineer into a shell expert"**
+**"caro turns every engineer into a shell expert"**
 
 **"Stop googling bash syntax. Start shipping faster."**
 
@@ -220,7 +220,7 @@ cmdai "delete everything in root directory"  # Should block/warn
 
 ---
 
-**Live Demo**: `cmdai "your infrastructure challenge here"`
+**Live Demo**: `caro "your infrastructure challenge here"`
 
-**Website**: github.com/wildcard/cmdai  
+**Website**: github.com/wildcard/caro  
 **License**: AGPL-3.0 (Open Source)

@@ -2,7 +2,7 @@
 
 **Component**: `VllmBackend`
 **Trait**: `CommandGenerator`
-**Module**: `cmdai::backends::vllm`
+**Module**: `caro::backends::vllm`
 **Purpose**: Define behavioral contract for vLLM OpenAI-compatible API backend implementation
 
 ---
@@ -575,7 +575,7 @@ async fn test_vllm_retry_before_fallback() {
 **Update to `is_available()` behavior**:
 - Returns `false` when vLLM not configured or unreachable
 - System continues with embedded model (no blocking error)
-- Users can optionally configure vLLM via `cmdai init --backend vllm`
+- Users can optionally configure vLLM via `caro init --backend vllm`
 
 ### FR-NEW-005: HTTPS Enforcement
 **SHOULD** warn when using HTTP (not HTTPS) for remote vLLM servers.

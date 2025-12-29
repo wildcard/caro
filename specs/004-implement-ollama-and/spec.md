@@ -8,9 +8,9 @@
 ## Execution Flow (main)
 ```
 1. Parse user description from Input ✅
-   → Feature: Enable cmdai to use remote LLM services for command generation
+   → Feature: Enable caro to use remote LLM services for command generation
 2. Extract key concepts from description ✅
-   → Actors: cmdai users, remote LLM services (Ollama, vLLM)
+   → Actors: caro users, remote LLM services (Ollama, vLLM)
    → Actions: generate commands via HTTP APIs, fallback between backends
    → Data: HTTP requests/responses, model configurations
    → Constraints: Network availability, API compatibility, error handling
@@ -37,19 +37,19 @@
 ## User Scenarios & Testing *(mandatory)*
 
 ### Primary User Story
-As a cmdai user, I want to generate shell commands immediately without any setup, and optionally use more powerful remote LLM services (Ollama or vLLM) for enhanced quality.
+As a caro user, I want to generate shell commands immediately without any setup, and optionally use more powerful remote LLM services (Ollama or vLLM) for enhanced quality.
 
 ### Acceptance Scenarios
 
-1. **Given** user has Ollama running locally, **When** user runs `cmdai "list all files"`, **Then** cmdai sends the request to Ollama and returns a generated command
+1. **Given** user has Ollama running locally, **When** user runs `caro "list all files"`, **Then** caro sends the request to Ollama and returns a generated command
 
-2. **Given** user has vLLM service configured, **When** user specifies vLLM backend preference, **Then** cmdai uses vLLM for command generation
+2. **Given** user has vLLM service configured, **When** user specifies vLLM backend preference, **Then** caro uses vLLM for command generation
 
-3. **Given** user has both Ollama and vLLM available, **When** primary backend fails, **Then** cmdai automatically falls back to the secondary backend
+3. **Given** user has both Ollama and vLLM available, **When** primary backend fails, **Then** caro automatically falls back to the secondary backend
 
-4. **Given** no backends are available, **When** user attempts command generation, **Then** cmdai displays a clear error message explaining connectivity issues
+4. **Given** no backends are available, **When** user attempts command generation, **Then** caro displays a clear error message explaining connectivity issues
 
-5. **Given** user specifies an invalid backend URL, **When** cmdai attempts to connect, **Then** cmdai provides diagnostic information to help troubleshoot the issue
+5. **Given** user specifies an invalid backend URL, **When** caro attempts to connect, **Then** caro provides diagnostic information to help troubleshoot the issue
 
 ### Edge Cases
 - What happens when network connection is lost mid-request?
@@ -79,11 +79,11 @@ As a cmdai user, I want to generate shell commands immediately without any setup
 
 **Configuration**
 - **FR-010**: Users MUST be able to specify preferred backend via three methods: CLI flag (highest priority), configuration file, or auto-detection
-- **FR-011**: Users MUST be able to configure backend URLs and connection parameters in `~/.cmdai/config.toml`
+- **FR-011**: Users MUST be able to configure backend URLs and connection parameters in `~/.caro/config.toml`
 - **FR-012**: System MUST use embedded model as default when no configuration exists (zero-config first run)
 - **FR-013**: System MUST use sensible defaults for optional remote backends (localhost:11434 for Ollama)
-- **FR-014**: System MUST persist backend preferences in user configuration file at `~/.cmdai/config.toml`
-- **FR-023**: System MUST provide interactive configuration wizard (`cmdai init`) for optional remote backend setup
+- **FR-014**: System MUST persist backend preferences in user configuration file at `~/.caro/config.toml`
+- **FR-023**: System MUST provide interactive configuration wizard (`caro init`) for optional remote backend setup
 
 **Error Handling**
 - **FR-015**: System MUST detect and report remote backend connection failures with actionable error messages
@@ -149,8 +149,8 @@ As a cmdai user, I want to generate shell commands immediately without any setup
 
 ### Session 2025-10-13
 - Q: Which authentication approach should be implemented for vLLM remote backends? → A: Option D - Both no auth (start simple) and API key support via config file (Bearer tokens)
-- Q: How should users specify their preferred backend? → A: Option D - All three methods (CLI flag > Config file > Auto-detect) with init/config wizard similar to AWS CLI or Claude Code, saved in ~/.cmdai/
-- Q: What should happen when all backends are unavailable? → A: Use embedded model shipped with cmdai - batteries included, plug-and-play. Fast coding model compiled into binary as default fallback, making cmdai work offline out-of-box
+- Q: How should users specify their preferred backend? → A: Option D - All three methods (CLI flag > Config file > Auto-detect) with init/config wizard similar to AWS CLI or Claude Code, saved in ~/.caro/
+- Q: What should happen when all backends are unavailable? → A: Use embedded model shipped with caro - batteries included, plug-and-play. Fast coding model compiled into binary as default fallback, making caro work offline out-of-box
 
 ## Clarifications Needed
 
@@ -160,13 +160,13 @@ As a cmdai user, I want to generate shell commands immediately without any setup
 ### Backend Priority
 - **RESOLVED**: Three-tier priority system:
   1. CLI flag `--backend ollama|vllm` (highest priority, per-command override)
-  2. Configuration file `~/.cmdai/config.toml` with preferred_backend setting
+  2. Configuration file `~/.caro/config.toml` with preferred_backend setting
   3. Automatic selection (tries Ollama first, falls back to vLLM if configured)
-- **UX Enhancement**: Provide `cmdai init` wizard (similar to AWS CLI/Claude Code) for first-time configuration setup
+- **UX Enhancement**: Provide `caro init` wizard (similar to AWS CLI/Claude Code) for first-time configuration setup
 
 ### Offline Behavior
 - **RESOLVED**: Embedded model fallback strategy:
-  - cmdai ships with fast coding model compiled into binary (default backend)
+  - caro ships with fast coding model compiled into binary (default backend)
   - Remote backends (Ollama, vLLM) are optional enhancements for power users
   - When remote backends unavailable, automatically falls back to embedded model
   - No external dependencies required for basic operation (batteries included)
@@ -235,7 +235,7 @@ As a cmdai user, I want to generate shell commands immediately without any setup
 
 ### Assumptions
 - Embedded Qwen model sufficient for 80% of common shell command generation tasks
-- Users can operate cmdai completely offline with embedded model
+- Users can operate caro completely offline with embedded model
 - Apple Silicon users will download MLX GPU build for optimal performance
 - CPU build provides acceptable performance for non-Apple platforms
 - Remote backends (Ollama, vLLM) are optional upgrades for better quality
@@ -248,7 +248,7 @@ As a cmdai user, I want to generate shell commands immediately without any setup
 - Streaming response support (future enhancement)
 - User-provided custom model integration (beyond embedded/Ollama/vLLM)
 - Fine-tuning or model customization
-- Model updates separate from cmdai binary updates (embedded model versioned with cmdai releases)
+- Model updates separate from caro binary updates (embedded model versioned with caro releases)
 
 ---
 

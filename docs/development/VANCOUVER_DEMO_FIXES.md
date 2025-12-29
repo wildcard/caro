@@ -402,27 +402,27 @@ impl CommandHistory {
 ### Test Commands (macOS):
 ```bash
 # Demo 1: Git (fix JSON parsing)
-./target/release/cmdai "show git commits from last 2 weeks with author names"
+./target/release/caro "show git commits from last 2 weeks with author names"
 # Expected: git log --since='2 weeks ago' --pretty=format:'%an %s'
 
 # Demo 2: Processes (fix macOS ps)
-./target/release/cmdai "show top 5 processes by CPU usage"
+./target/release/caro "show top 5 processes by CPU usage"
 # Expected: ps aux | sort -nrk 3,3 | head -5
 
 # Demo 3: File search (fix path)
-./target/release/cmdai "find all Rust files in current directory modified in the last 7 days"
+./target/release/caro "find all Rust files in current directory modified in the last 7 days"
 # Expected: find . -name '*.rs' -mtime -7
 
 # Demo 4: Network (fix ss → lsof)
-./target/release/cmdai "show all listening TCP ports on this system"
+./target/release/caro "show all listening TCP ports on this system"
 # Expected: lsof -iTCP -sTCP:LISTEN -n -P
 
 # Demo 5: Disk (fix df flags)
-./target/release/cmdai "show disk usage sorted by size"
+./target/release/caro "show disk usage sorted by size"
 # Expected: df -h | tail -n +2 | sort -k5 -hr
 
 # Demo 6: Logs (fix path)
-./target/release/cmdai "find all log files in current directory and count total lines"
+./target/release/caro "find all log files in current directory and count total lines"
 # Expected: find . -name '*.log' -type f | xargs wc -l
 ```
 
@@ -455,31 +455,31 @@ impl CommandHistory {
 
 echo "Testing Demo Fixes..."
 
-cd /Users/kobi/personal/cmdai
+cd /Users/kobi/personal/caro
 
 # Test 1: JSON parsing
 echo "1. Testing JSON parsing..."
-./target/release/cmdai "show git commits from today" -x
+./target/release/caro "show git commits from today" -x
 
 # Test 2: macOS ps
 echo "2. Testing macOS process listing..."
-./target/release/cmdai "show top 5 processes by CPU" -x
+./target/release/caro "show top 5 processes by CPU" -x
 
 # Test 3: Relative path find
 echo "3. Testing file search..."
-./target/release/cmdai "find Rust files in current directory" -x
+./target/release/caro "find Rust files in current directory" -x
 
 # Test 4: macOS networking
 echo "4. Testing network ports..."
-./target/release/cmdai "show listening TCP ports" -x
+./target/release/caro "show listening TCP ports" -x
 
 # Test 5: macOS df
 echo "5. Testing disk usage..."
-./target/release/cmdai "show disk usage" -x
+./target/release/caro "show disk usage" -x
 
 # Test 6: Relative log search
 echo "6. Testing log analysis..."
-./target/release/cmdai "count log files in current directory" -x
+./target/release/caro "count log files in current directory" -x
 
 echo "All tests complete!"
 ```

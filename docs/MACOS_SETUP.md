@@ -1,6 +1,6 @@
-# macOS Setup Guide for cmdai
+# macOS Setup Guide for caro
 
-This guide covers setup for cmdai on macOS, with special attention to Apple Silicon (M1/M2/M3/M4) for GPU acceleration.
+This guide covers setup for caro on macOS, with special attention to Apple Silicon (M1/M2/M3/M4) for GPU acceleration.
 
 ## Prerequisites
 
@@ -46,8 +46,8 @@ cmake --version
 ### 4. Clone and Build
 
 ```bash
-git clone https://github.com/wildcard/cmdai.git
-cd cmdai
+git clone https://github.com/wildcard/caro.git
+cd caro
 
 # Build the project (uses CPU backend by default)
 cargo build --release
@@ -60,7 +60,7 @@ cargo install --path .
 
 ```bash
 # Run a test command
-cmdai "list all files"
+caro "list all files"
 
 # Or using cargo
 cargo run --release -- "find text files"
@@ -150,7 +150,7 @@ metal --version
 #### Step 3: Build with MLX Feature
 
 ```bash
-cd cmdai
+cd caro
 
 # Clean previous builds
 cargo clean
@@ -171,8 +171,8 @@ cargo build --release --features embedded-mlx
 RUST_LOG=info cargo run --release -- "list all files"
 
 # You should see:
-# INFO cmdai::backends::embedded::mlx: MLX GPU initialized
-# INFO cmdai::backends::embedded::mlx: Using Metal device
+# INFO caro::backends::embedded::mlx: MLX GPU initialized
+# INFO caro::backends::embedded::mlx: Using Metal device
 ```
 
 **Expected Performance (M4 Pro):**
@@ -238,8 +238,8 @@ cargo build --release  # Without embedded-mlx feature
 curl -I https://huggingface.co
 
 # Manually download model
-mkdir -p ~/.cache/cmdai/models
-cd ~/.cache/cmdai/models
+mkdir -p ~/.cache/caro/models
+cd ~/.cache/caro/models
 
 # Download from Hugging Face (1.1GB)
 curl -L -o qwen2.5-coder-1.5b-instruct-q4_k_m.gguf \
@@ -256,14 +256,14 @@ ls -lh qwen2.5-coder-1.5b-instruct-q4_k_m.gguf
 **Solution**:
 ```bash
 # Check model location
-ls -lh ~/Library/Caches/cmdai/models/
+ls -lh ~/Library/Caches/caro/models/
 # or
-ls -lh ~/.cache/cmdai/models/
+ls -lh ~/.cache/caro/models/
 
 # Remove corrupted model
-rm ~/Library/Caches/cmdai/models/*.gguf
+rm ~/Library/Caches/caro/models/*.gguf
 
-# Rerun cmdai to trigger re-download
+# Rerun caro to trigger re-download
 cargo run --release -- "test"
 ```
 
@@ -323,21 +323,21 @@ export RUST_LOG=info
 export NO_NETWORK=1
 
 # Custom model cache directory
-export CMDAI_CACHE_DIR=~/custom/cache/path
+export CARO_CACHE_DIR=~/custom/cache/path
 ```
 
 ## Uninstallation
 
 ```bash
 # Remove installed binary
-cargo uninstall cmdai
+cargo uninstall caro
 
 # Remove cache and models
-rm -rf ~/Library/Caches/cmdai
-rm -rf ~/.cache/cmdai
+rm -rf ~/Library/Caches/caro
+rm -rf ~/.cache/caro
 
 # Remove project directory
-cd .. && rm -rf cmdai
+cd .. && rm -rf caro
 ```
 
 ## System Requirements

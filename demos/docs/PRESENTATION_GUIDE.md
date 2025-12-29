@@ -213,7 +213,7 @@ Using open-source models from Hugging Face. Current model: MLX-optimized variant
 - Retry logic for edge cases
 
 ### "Can I customize the safety rules?"
-Yes! Configuration file at `~/.config/cmdai/config.toml`:
+Yes! Configuration file at `~/.config/caro/config.toml`:
 ```toml
 [safety]
 enabled = true

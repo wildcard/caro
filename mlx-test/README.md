@@ -1,6 +1,6 @@
 # MLX Inference Test Suite
 
-Comprehensive MLX testing project for cmdai command generation with structured outputs and safety assessment.
+Comprehensive MLX testing project for caro command generation with structured outputs and safety assessment.
 
 ## Setup
 
@@ -33,7 +33,7 @@ python presentation_demo.py
 - Performance metrics summary
 - Perfect for live demonstrations
 
-**Use this for:** Conference talks, demos, showing cmdai to others
+**Use this for:** Conference talks, demos, showing caro to others
 
 See **[DEMO_GUIDE.md](DEMO_GUIDE.md)** for full presentation guide!
 
@@ -86,7 +86,7 @@ python batch_inference.py
 2. **JSON Parsing**: Structured command output with multiple fallback strategies
 3. **Safety Assessment**: Pattern matching for dangerous commands
 4. **Risk Levels**: Safe → Moderate → High → Critical classification
-5. **Real Test Cases**: Examples from cmdai repository specs and tests
+5. **Real Test Cases**: Examples from caro repository specs and tests
 
 ## Test Results
 

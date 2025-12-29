@@ -50,8 +50,8 @@ impl CliTestRunner {
         };
 
         // Set clean environment
-        cmd.env("CMDAI_CONFIG_DIR", self.temp_dir.path());
-        cmd.env_remove("CMDAI_CACHE_DIR");
+        cmd.env("CARO_CONFIG_DIR", self.temp_dir.path());
+        cmd.env_remove("CARO_CACHE_DIR");
 
         let output = cmd
             .stdout(Stdio::piped())

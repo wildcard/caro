@@ -1,11 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: GitHub Discussions - Questions & Ideas
-    url: https://github.com/wildcard/cmdai/discussions
-    about: Ask questions, share ideas, or discuss cmdai with the community
+    url: https://github.com/wildcard/caro/discussions
+    about: Ask questions, share ideas, or discuss caro with the community
   - name: Security Vulnerabilities
-    url: https://github.com/wildcard/cmdai/security/advisories/new
+    url: https://github.com/wildcard/caro/security/advisories/new
     about: Report security vulnerabilities privately (DO NOT use public issues)
   - name: Documentation
-    url: https://github.com/wildcard/cmdai/tree/main/specs
+    url: https://github.com/wildcard/caro/tree/main/specs
     about: Read project specifications, contracts, and quickstart guides

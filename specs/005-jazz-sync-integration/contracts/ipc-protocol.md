@@ -9,8 +9,8 @@
 ## Connection Details
 
 ### Socket Paths
-- **Linux/macOS**: `~/.config/cmdai/sync.sock`
-- **Windows**: `\\.\pipe\cmdai-sync`
+- **Linux/macOS**: `~/.config/caro/sync.sock`
+- **Windows**: `\\.\pipe\caro-sync`
 
 ### Connection Lifecycle
 1. Rust CLI connects to socket

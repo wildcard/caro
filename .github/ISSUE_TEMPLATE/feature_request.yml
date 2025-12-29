@@ -1,23 +1,23 @@
 name: Feature Request
-description: Suggest a new feature or enhancement for cmdai
+description: Suggest a new feature or enhancement for caro
 title: "[Feature]: "
 labels: ["enhancement", "triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thank you for suggesting a feature! We welcome ideas that improve cmdai's safety, performance, or developer experience.
+        Thank you for suggesting a feature! We welcome ideas that improve caro's safety, performance, or developer experience.
 
         **Before submitting:**
         - Search existing issues and discussions to avoid duplicates
-        - Review the [project roadmap](https://github.com/wildcard/cmdai#-roadmap) to see if your feature is planned
-        - Check the [specs directory](https://github.com/wildcard/cmdai/tree/main/specs) for current architecture
+        - Review the [project roadmap](https://github.com/wildcard/caro#-roadmap) to see if your feature is planned
+        - Check the [specs directory](https://github.com/wildcard/caro/tree/main/specs) for current architecture
 
   - type: dropdown
     id: feature-area
     attributes:
       label: Feature Area
-      description: Which area of cmdai does this feature relate to?
+      description: Which area of caro does this feature relate to?
       options:
         - Backend Integration (MLX, vLLM, Ollama, new backends)
         - Safety Validation (dangerous pattern detection, risk assessment)
@@ -38,7 +38,7 @@ body:
       label: Problem Statement
       description: What problem does this feature solve? What's the pain point?
       placeholder: |
-        Currently, cmdai doesn't support streaming model output, so users have to wait
+        Currently, caro doesn't support streaming model output, so users have to wait
         for the entire inference to complete before seeing the command. For large models
         or complex prompts, this creates a poor UX with no feedback during generation.
     validations:
@@ -92,7 +92,7 @@ body:
         - Can see if the model is heading in the right direction
 
         **Use Case 2**: Users with slow hardware
-        - Provides assurance that cmdai hasn't frozen
+        - Provides assurance that caro hasn't frozen
         - Improves perceived performance
     validations:
       required: false
@@ -141,7 +141,7 @@ body:
       label: Priority
       description: How important is this feature to you?
       options:
-        - Critical (blocking my use of cmdai)
+        - Critical (blocking my use of caro)
         - High (significantly improves my workflow)
         - Medium (nice to have)
         - Low (minor improvement)
@@ -174,7 +174,7 @@ body:
 
         Mockup of desired output:
         ```
-        $ cmdai "list large files"
+        $ caro "list large files"
         Generating command... [████░░░░░░] 40%
         find . -type f -size +10M
         ```
@@ -189,7 +189,7 @@ body:
           required: true
         - label: I have reviewed the project roadmap and specs directory
           required: true
-        - label: This feature aligns with cmdai's safety-first, performance-focused goals
+        - label: This feature aligns with caro's safety-first, performance-focused goals
           required: true
         - label: I have considered backward compatibility and breaking changes
           required: true

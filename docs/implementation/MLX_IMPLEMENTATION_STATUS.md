@@ -112,7 +112,7 @@ The project uses Hugging Face Hub to download models automatically:
 ### Model Details
 - **Model**: `Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF`
 - **Quantization**: Q4_K_M (recommended) - ~1.1GB
-- **Cache Location**: `~/.cache/cmdai/models/`
+- **Cache Location**: `~/.cache/caro/models/`
 
 ### Automatic Download
 ```rust
@@ -127,7 +127,7 @@ backend.generate_command(&request).await?; // Downloads model if missing
 cargo run -- "list all files"
 
 # Check if model was downloaded
-ls -lh ~/.cache/cmdai/models/
+ls -lh ~/.cache/caro/models/
 ```
 
 ## Integration Test Loop
@@ -155,7 +155,7 @@ cargo test --lib model_loader
 cargo run -- "list files"
 
 # Verify download
-ls ~/.cache/cmdai/models/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf
+ls ~/.cache/caro/models/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf
 ```
 
 **Status**: Ready to test when needed

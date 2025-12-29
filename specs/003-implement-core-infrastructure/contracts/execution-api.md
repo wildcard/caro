@@ -1,6 +1,6 @@
 # Execution Module API Contract
 
-**Module**: `cmdai::execution`
+**Module**: `caro::execution`
 **Purpose**: Execution context with environment capture and shell detection
 
 ## Public API

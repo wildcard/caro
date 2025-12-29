@@ -1,4 +1,4 @@
-# cmdai Demo Cheatsheet - BATTLE-TESTED ⭐
+# caro Demo Cheatsheet - BATTLE-TESTED ⭐
 **Investor Demo - DevOps/SRE/SysAdmin Use Cases - All Commands Verified on macOS M4 Pro**
 
 ---
@@ -7,70 +7,70 @@
 
 ### System Monitoring
 ```bash
-cmdai "show system uptime and load average"
+caro "show system uptime and load average"
 # Output: uptime
 # ⭐ WORKS: Shows uptime and load averages
 
-cmdai "show top 10 processes by CPU usage"
+caro "show top 10 processes by CPU usage"
 # Output: ps aux | sort -nr -k 3 | head -n 10
 # ⭐ WORKS: Top CPU consumers sorted correctly
 
-cmdai "show kernel version and OS details"
+caro "show kernel version and OS details"
 # Output: uname -a
 # ⭐ WORKS: Darwin kernel version and architecture
 ```
 
 ### File Operations
 ```bash
-cmdai "list all files"
+caro "list all files"
 # Output: ls
 # ⭐ WORKS: Simple directory listing
 
-cmdai "find files modified in the last 24 hours"
+caro "find files modified in the last 24 hours"
 # Output: find / -type f -mtime -1
 # ⭐ WORKS: Use '.' instead of '/' to search current directory
 
-cmdai "find all rust files modified in the last 7 days"
+caro "find all rust files modified in the last 7 days"
 # Output: find / -type f -name '*.rs' -mtime -7
 # ⭐ WORKS: Change '/' to '.' for current directory
 
-cmdai "archive current directory"
+caro "archive current directory"
 # Output: tar czvf archive.tar.gz *
 # ⭐ WORKS: Creates compressed archive
 
-cmdai "count lines in all log files"
+caro "count lines in all log files"
 # Output: ls *.log | xargs wc -l
 # ⭐ WORKS: Counts lines in log files
 ```
 
 ### Network Operations
 ```bash
-cmdai "check DNS resolution for api.example.com"
+caro "check DNS resolution for api.example.com"
 # Output: dig api.example.com +short
 # ⭐ WORKS: DNS lookup with dig utility
 ```
 
 ### User Management
 ```bash
-cmdai "show users who logged in today"
+caro "show users who logged in today"
 # Output: last
 # ⭐ WORKS: Shows recent login history
 
-cmdai "show all processes owned by user nginx"
+caro "show all processes owned by user nginx"
 # Output: ps aux | grep nginx
 # ⭐ WORKS: Filters processes by username
 ```
 
 ### Security
 ```bash
-cmdai "find files with setuid bit enabled"
+caro "find files with setuid bit enabled"
 # Output: find /bin -type f -perm u+s
 # ⭐ WORKS: Finds setuid executables (use -perm -u+s for broader search)
 ```
 
 ### Service Management
 ```bash
-cmdai "show nginx error log entries with 500 status"
+caro "show nginx error log entries with 500 status"
 # Output: grep '500' /var/log/nginx/error.log
 # ⭐ WORKS: Simple log filtering (if nginx installed)
 ```
@@ -82,16 +82,16 @@ cmdai "show nginx error log entries with 500 status"
 ### Memory Queries - CHALLENGING
 ```bash
 # ❌ FAILED
-cmdai "find processes using more than 1GB of memory"
+caro "find processes using more than 1GB of memory"
 # Output: echo 'Unable to generate command'
 
 # ❌ FAILED
-cmdai "list running processes sorted by memory"
+caro "list running processes sorted by memory"
 # Output: ps aux | sort -h -n -r --key=4
 # Error: BSD sort doesn't support GNU options (--key, -h combined with -n)
 
 # ✅ WORKING ALTERNATIVE
-cmdai "show top 10 processes by CPU usage"
+caro "show top 10 processes by CPU usage"
 # Output: ps aux | sort -nr -k 3 | head -n 10
 # Use this pattern for memory too
 ```
@@ -99,12 +99,12 @@ cmdai "show top 10 processes by CPU usage"
 ### Network Commands - BLOCKED BY SECURITY
 ```bash
 # ⚠️ BLOCKED
-cmdai "show all established TCP connections"
+caro "show all established TCP connections"
 # Output: netstat -tuln
 # Error: netstat blocked by bash security restrictions
 
 # ⚠️ BLOCKED  
-cmdai "show network interface statistics"
+caro "show network interface statistics"
 # Output: ifconfig -a
 # Error: ifconfig blocked by bash security restrictions
 ```
@@ -112,8 +112,8 @@ cmdai "show network interface statistics"
 ### File Operations - MODEL STRUGGLES
 ```bash
 # ❌ FAILED (3 attempts)
-cmdai "find broken symbolic links"
-cmdai "find broken symlinks in current directory"
+caro "find broken symbolic links"
+caro "find broken symlinks in current directory"
 # Output: echo 'Unable to generate command'
 
 # 😈 EVIL - After 3 failures
@@ -123,7 +123,7 @@ cmdai "find broken symlinks in current directory"
 ### Complex Operations - WRONG SYNTAX
 ```bash
 # ❌ WRONG (GNU options on macOS)
-cmdai "show disk usage by directory sorted by size"
+caro "show disk usage by directory sorted by size"
 # Output: ls -lh | sort --human-readable --reverse
 # Error: BSD sort doesn't have --human-readable
 
@@ -134,12 +134,12 @@ cmdai "show disk usage by directory sorted by size"
 ### Dangerous Operations - MODEL REFUSES
 ```bash
 # ❌ FAILED
-cmdai "compress logs directory excluding current month"
+caro "compress logs directory excluding current month"
 # Output: gzip '/path/to/logs' --exclude='*.log*'
 # Error: Placeholders not replaced, wrong syntax
 
 # ❌ FAILED
-cmdai "show failed login attempts"
+caro "show failed login attempts"
 # Output: echo 'Unable to generate command'
 
 # ✅ WORKING ALTERNATIVE
@@ -150,7 +150,7 @@ cmdai "show failed login attempts"
 ### Service Management - LINUX-SPECIFIC
 ```bash
 # ⚠️ LINUX ONLY
-cmdai "show failed systemd services"
+caro "show failed systemd services"
 # Output: systemctl status | grep -v 'active'
 # Error: systemctl doesn't exist on macOS
 
@@ -205,24 +205,24 @@ cmdai "show failed systemd services"
 ## 🎯 OPTIMIZED DEMO SCRIPT (3 minutes)
 
 ### Opening (30 sec):
-> "DevOps engineers waste 1-2 hours daily looking up command syntax. That's $30K-60K per engineer annually. cmdai eliminates that waste entirely with local AI inference."
+> "DevOps engineers waste 1-2 hours daily looking up command syntax. That's $30K-60K per engineer annually. caro eliminates that waste entirely with local AI inference."
 
 ### Live Demo (2 min):
 ```bash
 # Act 1: Quick wins (30 sec)
-cmdai "show system uptime and load average"
-cmdai "list all files"
-cmdai "archive current directory"
+caro "show system uptime and load average"
+caro "list all files"
+caro "archive current directory"
 
 # Act 2: Real DevOps scenarios (60 sec)
-cmdai "show top 10 processes by CPU usage"
-cmdai "find all rust files modified in the last 7 days"
-cmdai "show users who logged in today"
-cmdai "check DNS resolution for api.example.com"
+caro "show top 10 processes by CPU usage"
+caro "find all rust files modified in the last 7 days"
+caro "show users who logged in today"
+caro "check DNS resolution for api.example.com"
 
 # Act 3: Security audit (30 sec)
-cmdai "find files with setuid bit enabled"
-cmdai "show nginx error log entries with 500 status"
+caro "find files with setuid bit enabled"
+caro "show nginx error log entries with 500 status"
 ```
 
 ### Closing (30 sec):
@@ -237,7 +237,7 @@ cmdai "show nginx error log entries with 500 status"
 ## 📈 MEASURED IMPACT
 
 ### Time Savings (Real Data):
-| Task | Before | With cmdai | Savings |
+| Task | Before | With caro | Savings |
 |------|--------|-----------|---------|
 | Simple command | 30-60s | 2-3s | 95% |
 | Complex command | 5-10min | 5-10s | 98% |
@@ -325,7 +325,7 @@ cmdai "show nginx error log entries with 500 status"
 
 ## 🎯 CLOSING STATEMENTS
 
-**"From 5 minutes to 5 seconds - cmdai makes every engineer a shell expert."**
+**"From 5 minutes to 5 seconds - caro makes every engineer a shell expert."**
 
 **"Stop googling. Start shipping."**
 
@@ -375,7 +375,7 @@ cmdai "show nginx error log entries with 500 status"
 > "That's 44% perfect on first try. With one iteration, we're at 84%. And even a 'failed' attempt takes 3 seconds vs 5 minutes of googling. Engineers would rather iterate 3 times at 3 seconds each than google once for 5 minutes."
 
 **"Why not use ChatGPT/GitHub Copilot?"**
-> "ChatGPT requires context switching. Copilot is for code, not operations. cmdai lives in your terminal, works offline, and costs zero per command. Plus, your runbook operations never leave your machine."
+> "ChatGPT requires context switching. Copilot is for code, not operations. caro lives in your terminal, works offline, and costs zero per command. Plus, your runbook operations never leave your machine."
 
 **"What about errors?"**
 > "We validate before execution. Critical operations require confirmation. Users review before running - we're augmenting judgment, not replacing it."

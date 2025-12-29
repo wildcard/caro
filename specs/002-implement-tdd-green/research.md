@@ -2,7 +2,7 @@
 
 **Feature**: 002-implement-tdd-green | **Date**: 2025-10-01 | **Phase**: 0
 
-This document captures the research findings and technical decisions made for implementing the GREEN phase of cmdai's TDD cycle.
+This document captures the research findings and technical decisions made for implementing the GREEN phase of caro's TDD cycle.
 
 ## Overview
 
@@ -204,7 +204,7 @@ CLI needs complex argument handling: nested commands, multiple output formats, e
 use clap::{Parser, Subcommand, ValueEnum};
 
 #[derive(Parser, Debug)]
-#[command(name = "cmdai")]
+#[command(name = "caro")]
 #[command(about = "AI-powered POSIX command generation")]
 #[command(version)]
 pub struct CliApp {
@@ -214,7 +214,7 @@ pub struct CliApp {
     #[arg(long, short, global = true, value_enum)]
     pub format: Option<OutputFormat>,
 
-    #[arg(long, global = true, env = "CMDAI_LOG_LEVEL")]
+    #[arg(long, global = true, env = "CARO_LOG_LEVEL")]
     pub log_level: Option<String>,
 }
 
@@ -248,8 +248,8 @@ pub enum OutputFormat {
 ```
 
 **Subcommand Structure**:
-- `cmdai generate <input>` - Primary command generation
-- `cmdai validate <command>` - Safety validation only
+- `caro generate <input>` - Primary command generation
+- `caro validate <command>` - Safety validation only
 - Global flags: `--format`, `--log-level`, `--version`, `--help`
 
 **Custom Value Parser**:

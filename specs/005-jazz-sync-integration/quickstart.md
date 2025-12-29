@@ -30,7 +30,7 @@ Sync Daemon Status
 ------------------
 Daemon version:     0.1.0
 Node.js version:    v20.10.0
-Socket path:        ~/.config/cmdai/sync.sock
+Socket path:        ~/.config/caro/sync.sock
 Status:             Not initialized
 
 All prerequisites met.

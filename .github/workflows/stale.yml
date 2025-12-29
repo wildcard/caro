@@ -32,7 +32,7 @@ jobs:
             - Add a comment with any updates or additional context
             - Or let us know if you're still interested in working on this
 
-            Thank you for your contributions to cmdai!
+            Thank you for your contributions to caro!
 
           stale-pr-message: |
             :wave: This pull request has been automatically marked as stale because it has not had recent activity.
@@ -55,7 +55,7 @@ jobs:
             - Comment on this issue with any updates
             - Open a new issue referencing this one
 
-            Thank you for helping improve cmdai!
+            Thank you for helping improve caro!
 
           close-pr-message: |
             :lock: This pull request has been automatically closed due to inactivity.

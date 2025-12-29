@@ -1,6 +1,6 @@
 # Cache Module API Contract
 
-**Module**: `cmdai::cache`
+**Module**: `caro::cache`
 **Purpose**: Model caching with Hugging Face integration and offline support
 
 ## Public API

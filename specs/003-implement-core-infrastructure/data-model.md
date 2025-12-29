@@ -60,7 +60,7 @@
 
 ### 3. UserConfiguration
 
-**Purpose**: User preferences and settings persisted across cmdai invocations
+**Purpose**: User preferences and settings persisted across caro invocations
 
 **Fields**:
 - `default_shell`: Option<ShellType> - Preferred shell (overrides auto-detection)
@@ -129,7 +129,7 @@ max_size_gb = 10
 
 ### 5. ExecutionContext
 
-**Purpose**: Environment state when cmdai is invoked for context-aware generation
+**Purpose**: Environment state when caro is invoked for context-aware generation
 
 **Fields**:
 - `current_dir`: PathBuf - Working directory at invocation time
@@ -164,7 +164,7 @@ max_size_gb = 10
 **Fields**:
 - `timestamp`: DateTime<Utc> - When event occurred
 - `level`: LogLevel - Severity (Debug, Info, Warn, Error)
-- `target`: String - Module/component that logged (e.g., "cmdai::cache")
+- `target`: String - Module/component that logged (e.g., "caro::cache")
 - `message`: String - Human-readable log message
 - `operation_id`: Option<String> - Correlation ID for multi-step operations
 - `metadata`: HashMap<String, serde_json::Value> - Additional structured context
@@ -181,7 +181,7 @@ max_size_gb = 10
 {
   "timestamp": "2025-10-02T12:34:56.789Z",
   "level": "INFO",
-  "target": "cmdai::cache",
+  "target": "caro::cache",
   "message": "Model cached successfully",
   "operation_id": "abc123",
   "metadata": {
@@ -276,7 +276,7 @@ LogEntry
 
 ### Configuration Loading Flow
 ```
-1. User invokes cmdai
+1. User invokes caro
 2. ConfigManager::load() checks for config file at XDG location
 3. If exists: Parse TOML → Validate → Deserialize to UserConfiguration
 4. If missing: Return UserConfiguration::default()
@@ -320,7 +320,7 @@ LogEntry
 ## File Formats
 
 ### Cache Manifest File
-**Location**: `~/.cache/cmdai/manifest.json`
+**Location**: `~/.cache/caro/manifest.json`
 
 ```json
 {
@@ -328,7 +328,7 @@ LogEntry
   "models": {
     "meta-llama/Llama-2-7b": {
       "model_id": "meta-llama/Llama-2-7b",
-      "path": "/home/user/.cache/cmdai/models/meta-llama_Llama-2-7b",
+      "path": "/home/user/.cache/caro/models/meta-llama_Llama-2-7b",
       "checksum": "a1b2c3d4...",
       "size_bytes": 13476234240,
       "downloaded_at": "2025-10-01T10:30:00Z",
@@ -343,7 +343,7 @@ LogEntry
 ```
 
 ### Configuration File
-**Location**: `~/.config/cmdai/config.toml`
+**Location**: `~/.config/caro/config.toml`
 
 ```toml
 [general]
@@ -360,11 +360,11 @@ max_size_gb = 10
 ```
 
 ### Log File
-**Location**: `~/.local/share/cmdai/logs/cmdai.2025-10-02.log`
+**Location**: `~/.local/share/caro/logs/caro.2025-10-02.log`
 
 ```json
-{"timestamp":"2025-10-02T12:34:56.789Z","level":"INFO","target":"cmdai::cache","message":"Model cached successfully","operation_id":"abc123","metadata":{"model_id":"meta-llama/Llama-2-7b","size_bytes":13476234240},"duration_ms":4523}
-{"timestamp":"2025-10-02T12:35:01.234Z","level":"WARN","target":"cmdai::config","message":"Unknown config key ignored","metadata":{"key":"experimental_feature","section":"general"}}
+{"timestamp":"2025-10-02T12:34:56.789Z","level":"INFO","target":"caro::cache","message":"Model cached successfully","operation_id":"abc123","metadata":{"model_id":"meta-llama/Llama-2-7b","size_bytes":13476234240},"duration_ms":4523}
+{"timestamp":"2025-10-02T12:35:01.234Z","level":"WARN","target":"caro::config","message":"Unknown config key ignored","metadata":{"key":"experimental_feature","section":"general"}}
 ```
 
 ---
@@ -393,5 +393,5 @@ All entities use serde with validation:
 
 Error messages are user-friendly and actionable:
 - "Invalid safety_level 'high'. Valid options: Strict, Moderate, Permissive"
-- "Cache directory not writable: /home/user/.cache/cmdai (Permission denied)"
+- "Cache directory not writable: /home/user/.cache/caro (Permission denied)"
 - "Model checksum mismatch for 'model-id'. Re-download recommended."

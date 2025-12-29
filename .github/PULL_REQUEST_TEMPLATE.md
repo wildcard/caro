@@ -136,14 +136,14 @@ After:  48.1 MB (+0.9 MB)
 ### Before
 
 ```bash
-$ cmdai "list files"
+$ caro "list files"
 Error: command generation failed
 ```
 
 ### After
 
 ```bash
-$ cmdai "list files"
+$ caro "list files"
 Generated command:
   find . -type f -name "*"
 
@@ -163,7 +163,7 @@ Execute this command? (y/N)
 ```
 $ cargo test
     Finished test [unoptimized + debuginfo] target(s) in 2.34s
-     Running unittests src/lib.rs (target/debug/deps/cmdai-...)
+     Running unittests src/lib.rs (target/debug/deps/caro-...)
 
 running 42 tests
 test cache::tests::test_cache_manager_retrieves_model ... ok
@@ -218,13 +218,13 @@ test result: ok. 42 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 **By submitting this PR, I confirm that:**
 
-- [ ] My code follows the style guidelines of this project (see [AGENTS.md](https://github.com/wildcard/cmdai/blob/main/AGENTS.md))
+- [ ] My code follows the style guidelines of this project (see [AGENTS.md](https://github.com/wildcard/caro/blob/main/AGENTS.md))
 - [ ] I have performed a self-review of my own code
 - [ ] I have commented my code, particularly in hard-to-understand areas
 - [ ] My changes generate no new warnings or errors
-- [ ] I have read and followed the [contributing guidelines](https://github.com/wildcard/cmdai/blob/main/CONTRIBUTING.md)
-- [ ] I agree to the [Code of Conduct](https://github.com/wildcard/cmdai/blob/main/CODE_OF_CONDUCT.md)
+- [ ] I have read and followed the [contributing guidelines](https://github.com/wildcard/caro/blob/main/CONTRIBUTING.md)
+- [ ] I agree to the [Code of Conduct](https://github.com/wildcard/caro/blob/main/CODE_OF_CONDUCT.md)
 
 ---
 
-<!-- Thank you for contributing to cmdai! 🚀 -->
+<!-- Thank you for contributing to caro! 🚀 -->

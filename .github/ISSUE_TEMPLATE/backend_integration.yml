@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thank you for proposing a backend integration! Backends enable cmdai to use different LLM inference engines.
+        Thank you for proposing a backend integration! Backends enable caro to use different LLM inference engines.
 
         **What qualifies as a backend?**
         - Local inference engines (Ollama, llama.cpp, MLX)
@@ -16,7 +16,7 @@ body:
         **Before submitting:**
         - Review existing backends in `src/backends/`
         - Check the `CommandGenerator` trait in `src/backends/mod.rs`
-        - Search for existing [backend-related issues](https://github.com/wildcard/cmdai/labels/backend)
+        - Search for existing [backend-related issues](https://github.com/wildcard/caro/labels/backend)
 
   - type: dropdown
     id: backend-type
@@ -45,10 +45,10 @@ body:
     id: description
     attributes:
       label: Backend Description
-      description: What is this backend? What makes it unique or valuable for cmdai?
+      description: What is this backend? What makes it unique or valuable for caro?
       placeholder: |
         **Candle** is a minimalist ML framework for Rust, designed for fast inference
-        on CPU and GPU. Key benefits for cmdai:
+        on CPU and GPU. Key benefits for caro:
 
         - Pure Rust implementation (no Python/C++ dependencies)
         - Excellent performance on consumer hardware
@@ -66,7 +66,7 @@ body:
       label: Is this an enhancement to an existing backend?
       description: Or are you proposing a completely new backend?
       options:
-        - New backend (not currently in cmdai)
+        - New backend (not currently in caro)
         - Enhancement to MLX backend
         - Enhancement to vLLM backend
         - Enhancement to Ollama backend
@@ -94,7 +94,7 @@ body:
 
         3. **Model loading**:
            - Load from Hugging Face Hub (GGUF files)
-           - Cache models in `~/.cache/cmdai/models/`
+           - Cache models in `~/.cache/caro/models/`
            - Auto-detect optimal quantization level
 
         4. **Inference**:
@@ -115,7 +115,7 @@ body:
         candle-core = "0.4"
         candle-transformers = "0.4"
         candle-nn = "0.4"
-        hf-hub = "0.3"  # Already used by cmdai
+        hf-hub = "0.3"  # Already used by caro
         ```
 
         **External dependencies**:
@@ -222,7 +222,7 @@ body:
       label: Configuration
       description: What configuration options would this backend expose?
       placeholder: |
-        **In `~/.config/cmdai/config.toml`**:
+        **In `~/.config/caro/config.toml`**:
 
         ```toml
         [backends.candle]
@@ -238,7 +238,7 @@ body:
 
         **CLI flags**:
         ```bash
-        cmdai --backend candle --model Qwen2.5-0.5B-GGUF "list files"
+        caro --backend candle --model Qwen2.5-0.5B-GGUF "list files"
         ```
     validations:
       required: false
@@ -344,7 +344,7 @@ body:
       placeholder: |
         **Proof of concept**:
         I've created a minimal Candle integration in a branch:
-        https://github.com/my-username/cmdai/tree/candle-backend
+        https://github.com/my-username/caro/tree/candle-backend
 
         **Performance benchmarks**:
         Candle vs MLX on M1 Mac (Qwen2.5-0.5B):
@@ -366,5 +366,5 @@ body:
           required: true
         - label: I have considered platform support and testing requirements
           required: true
-        - label: This backend aligns with cmdai's goals (safety, performance, local-first)
+        - label: This backend aligns with caro's goals (safety, performance, local-first)
           required: true

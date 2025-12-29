@@ -148,7 +148,7 @@ These tests spawn the actual binary and verify the complete user experience.
 ### 11. `test_e2e_version_flag`
 **What it tests**: `--version` flag
 - ✅ Version is displayed
-- ✅ Shows cmdai version number
+- ✅ Shows caro version number
 
 ### 12. `test_e2e_shell_selection`
 **What it tests**: Shell type selection

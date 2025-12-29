@@ -2,7 +2,7 @@
 
 **Feature**: 002-implement-tdd-green | **Date**: 2025-10-01 | **Phase**: 1
 
-This guide demonstrates the complete command generation and validation workflow using cmdai's core APIs.
+This guide demonstrates the complete command generation and validation workflow using caro's core APIs.
 
 ## Overview
 
@@ -19,15 +19,15 @@ This example uses the MockBackend for demonstration, but the workflow is identic
 **Dependencies**:
 ```toml
 [dependencies]
-cmdai = "0.1.0"
+caro = "0.1.0"
 tokio = { version = "1.35", features = ["full"] }
 ```
 
 **Imports**:
 ```rust
-use cmdai::models::{CommandRequest, ShellType, SafetyLevel, RiskLevel};
-use cmdai::backends::MockBackend;
-use cmdai::safety::SafetyValidator;
+use caro::models::{CommandRequest, ShellType, SafetyLevel, RiskLevel};
+use caro::backends::MockBackend;
+use caro::safety::SafetyValidator;
 ```
 
 ## Complete Workflow Example
@@ -345,13 +345,13 @@ Once implemented, the CLI workflow will match this pattern:
 
 ```bash
 # Basic command generation
-$ cmdai generate "list all files"
+$ caro generate "list all files"
 Generated: ls -la
 Safety: SAFE
 Explanation: Lists all files in long format
 
 # With output format
-$ cmdai generate "list all files" --format json
+$ caro generate "list all files" --format json
 {
   "command": "ls -la",
   "safety_level": "safe",
@@ -359,12 +359,12 @@ $ cmdai generate "list all files" --format json
 }
 
 # Validate existing command
-$ cmdai validate "rm -rf /"
+$ caro validate "rm -rf /"
 Safety: CRITICAL
 ⚠ BLOCKED: Recursive deletion of root filesystem
 
 # With custom safety level
-$ cmdai generate "move files" --safety strict
+$ caro generate "move files" --safety strict
 Generated: mv source dest
 Safety: MODERATE
 ⚠ Confirmation required
@@ -436,13 +436,13 @@ cargo test --test integration_tests -- --nocapture --test-threads=1
 cargo build --release
 
 # Test basic generation (once CLI implemented)
-./target/release/cmdai generate "list all files"
+./target/release/caro generate "list all files"
 
 # Test validation
-./target/release/cmdai validate "ls -la"
+./target/release/caro validate "ls -la"
 
 # Test dangerous command
-./target/release/cmdai validate "rm -rf /"
+./target/release/caro validate "rm -rf /"
 ```
 
 ## Next Steps
@@ -464,7 +464,7 @@ The quickstart workflow demonstrates:
 - Cross-platform support
 - User-friendly output formatting
 
-This workflow forms the foundation for all cmdai interactions and validates the core design decisions from the research phase.
+This workflow forms the foundation for all caro interactions and validates the core design decisions from the research phase.
 
 ---
 *Quickstart guide complete - Ready for implementation*

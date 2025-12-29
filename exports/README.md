@@ -1,6 +1,6 @@
 # Exports Directory
 
-This directory contains exported session logs and artifacts from the cmdai development process.
+This directory contains exported session logs and artifacts from the caro development process.
 
 ## Structure
 

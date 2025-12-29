@@ -1,10 +1,10 @@
-# Agent Guidelines for cmdai Development
+# Agent Guidelines for caro Development
 
-This file provides guidance for **all AI agents** (Claude Code, Cursor, Codex, Crush, etc.) working on the cmdai project.
+This file provides guidance for **all AI agents** (Claude Code, Cursor, Codex, Crush, etc.) working on the caro project.
 
 ## Project Context
 
-**cmdai** is a Rust CLI tool that converts natural language to safe POSIX shell commands using local LLMs. The project prioritizes safety, performance, and developer experience with Apple Silicon optimization.
+**caro** is a Rust CLI tool that converts natural language to safe POSIX shell commands using local LLMs. The project prioritizes safety, performance, and developer experience with Apple Silicon optimization.
 
 ## Workflow Selection: Spec-Kitty vs Spec-Kit
 
