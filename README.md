@@ -474,7 +474,7 @@ This project is licensed under the **GNU Affero General Public License v3.0 (AGP
 
 ### Kyaro Character Assets
 
-The Kyaro character artwork in `assets/kyaro/` is **NOT** covered by the AGPL license. These assets are separately licensed under a proprietary license that restricts their use to this project only. See [assets/kyaro/README.md](assets/kyaro/README.md) for full terms. If you fork or redistribute this project, you must exclude the Kyaro assets unless you have explicit permission from the copyright holders (Kobi Kadosh, Alrezky Caesaria, and Morning Moon Studios).
+The Kyaro character artwork in `assets/kyaro/` is **NOT** covered by the AGPL license. These assets are separately licensed under a proprietary license that restricts their use to this project only. See [assets/kyaro/README.md](assets/kyaro/README.md) for full terms. If you fork or redistribute this project, you must exclude the Kyaro assets unless you have explicit permission from the copyright holders (Kobi Kadosh and Alrezky Caesaria).
 
 ## 🙏 Acknowledgments
 
