@@ -185,7 +185,11 @@ async fn test_cli_argument_override() {
 #[tokio::test]
 async fn test_context_aware_generation() {
     // GIVEN: An execution context
+    #[cfg(unix)]
     let test_dir = PathBuf::from("/home/user/projects/myapp");
+    #[cfg(windows)]
+    let test_dir = PathBuf::from("C:\\Users\\user\\projects\\myapp");
+
     let context =
         ExecutionContext::new(test_dir.clone(), ShellType::Bash, Platform::Linux).unwrap();
 
@@ -203,8 +207,17 @@ async fn test_context_aware_generation() {
         "Prompt should include platform, got: {}",
         prompt_context
     );
+
+    #[cfg(unix)]
     assert!(
         prompt_context.contains("/home/user/projects/myapp"),
+        "Prompt should include current directory, got: {}",
+        prompt_context
+    );
+    #[cfg(windows)]
+    assert!(
+        prompt_context.contains("C:\\Users\\user\\projects\\myapp")
+            || prompt_context.contains("C:/Users/user/projects/myapp"),
         "Prompt should include current directory, got: {}",
         prompt_context
     );
@@ -328,16 +341,24 @@ async fn test_configuration_validation_migration() {
 /// Tests: Platform-specific context capture
 #[tokio::test]
 async fn test_multiplatform_execution_context() {
-    // GIVEN: Different platform configurations
+    // GIVEN: Different platform configurations with platform-appropriate paths
+    #[cfg(unix)]
     let test_cases = vec![
-        (Platform::Linux, ShellType::Bash),
-        (Platform::MacOS, ShellType::Zsh),
-        (Platform::Windows, ShellType::PowerShell),
+        (Platform::Linux, ShellType::Bash, PathBuf::from("/test/path")),
+        (Platform::MacOS, ShellType::Zsh, PathBuf::from("/test/path")),
+        (Platform::Windows, ShellType::PowerShell, PathBuf::from("C:\\test\\path")),
     ];
 
-    for (platform, shell) in test_cases {
+    #[cfg(windows)]
+    let test_cases = vec![
+        (Platform::Linux, ShellType::Bash, PathBuf::from("C:\\test\\path")),
+        (Platform::MacOS, ShellType::Zsh, PathBuf::from("C:\\test\\path")),
+        (Platform::Windows, ShellType::PowerShell, PathBuf::from("C:\\test\\path")),
+    ];
+
+    for (platform, shell, test_path) in test_cases {
         // WHEN: Creating context for specific platform
-        let context = ExecutionContext::new(PathBuf::from("/test/path"), shell, platform).unwrap();
+        let context = ExecutionContext::new(test_path, shell, platform).unwrap();
 
         // THEN: Context reflects platform-specific details
         assert_eq!(
