@@ -1,0 +1,211 @@
+# Content Generation Pipeline
+#
+# Automated content generation for Caro Learn using Claude API
+# Runs on schedule to generate Unix/shell educational content
+#
+# Schedule:
+# - Daily picks: Mon-Fri at 9 AM UTC
+# - Commands: Every other Monday at 10 AM UTC
+# - Stories: First day of month at 11 AM UTC
+
+name: Content Generation Pipeline
+
+on:
+  # Scheduled triggers
+  schedule:
+    # Daily picks - Mon-Fri at 9 AM UTC
+    - cron: '0 9 * * 1-5'
+    # Commands - Every other Monday at 10 AM UTC (weeks 1,3,5... of year)
+    - cron: '0 10 * * 1'
+    # Stories - First of month at 11 AM UTC
+    - cron: '0 11 1 * *'
+
+  # Manual trigger for testing
+  workflow_dispatch:
+    inputs:
+      content_type:
+        description: 'Type of content to generate'
+        required: true
+        default: 'daily-pick'
+        type: choice
+        options:
+          - daily-pick
+          - command
+          - story
+          - all
+      dry_run:
+        description: 'Dry run (no PR created)'
+        required: false
+        default: false
+        type: boolean
+      count:
+        description: 'Number of items to generate'
+        required: false
+        default: '1'
+        type: string
+
+env:
+  NODE_VERSION: '20'
+  CONTENT_DIR: 'website/src/content'
+
+jobs:
+  determine-content-type:
+    runs-on: ubuntu-latest
+    outputs:
+      content_type: ${{ steps.determine.outputs.type }}
+      should_run: ${{ steps.determine.outputs.should_run }}
+    steps:
+      - name: Determine content type from schedule
+        id: determine
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "type=${{ inputs.content_type }}" >> $GITHUB_OUTPUT
+            echo "should_run=true" >> $GITHUB_OUTPUT
+          else
+            # Determine type based on cron schedule
+            HOUR=$(date -u +%H)
+            DAY=$(date -u +%d)
+            WEEKDAY=$(date -u +%u)
+            WEEK=$(date -u +%V)
+
+            if [ "$HOUR" == "09" ]; then
+              echo "type=daily-pick" >> $GITHUB_OUTPUT
+              echo "should_run=true" >> $GITHUB_OUTPUT
+            elif [ "$HOUR" == "10" ] && [ $((WEEK % 2)) -eq 1 ]; then
+              # Only run commands on odd weeks
+              echo "type=command" >> $GITHUB_OUTPUT
+              echo "should_run=true" >> $GITHUB_OUTPUT
+            elif [ "$HOUR" == "10" ]; then
+              echo "type=none" >> $GITHUB_OUTPUT
+              echo "should_run=false" >> $GITHUB_OUTPUT
+            elif [ "$HOUR" == "11" ] && [ "$DAY" == "01" ]; then
+              echo "type=story" >> $GITHUB_OUTPUT
+              echo "should_run=true" >> $GITHUB_OUTPUT
+            else
+              echo "type=none" >> $GITHUB_OUTPUT
+              echo "should_run=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+  generate-content:
+    needs: determine-content-type
+    if: needs.determine-content-type.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: website/package-lock.json
+
+      - name: Install dependencies
+        working-directory: website
+        run: npm ci
+
+      - name: Install script dependencies
+        working-directory: website/scripts
+        run: npm install
+
+      - name: Run content generation
+        id: generate
+        working-directory: website
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CONTENT_TYPE: ${{ needs.determine-content-type.outputs.content_type }}
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+          ITEM_COUNT: ${{ inputs.count || '1' }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/generate-content.js
+
+      - name: Upload generation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: content-generation-report
+          path: website/scripts/output/
+          retention-days: 30
+
+  validate-and-pr:
+    needs: [determine-content-type, generate-content]
+    if: needs.determine-content-type.outputs.should_run == 'true' && inputs.dry_run != true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: website/package-lock.json
+
+      - name: Install dependencies
+        working-directory: website
+        run: npm ci
+
+      - name: Install script dependencies
+        working-directory: website/scripts
+        run: npm install
+
+      - name: Pull generated content
+        run: |
+          git pull origin ${{ github.ref_name }}
+
+      - name: Validate content
+        id: validate
+        working-directory: website
+        run: node scripts/validate-content.js
+
+      - name: Build site to verify
+        working-directory: website
+        run: npm run build
+
+      - name: Create Pull Request
+        if: steps.validate.outputs.has_content == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: ${{ steps.validate.outputs.commit_message }}
+          branch: ${{ steps.validate.outputs.branch_name }}
+          delete-branch: true
+          title: ${{ steps.validate.outputs.pr_title }}
+          body: ${{ steps.validate.outputs.pr_body }}
+          labels: |
+            content
+            automated
+            ${{ needs.determine-content-type.outputs.content_type }}
+          draft: ${{ steps.validate.outputs.has_warnings }}
+
+  # Auto-merge is handled by a separate workflow (content-auto-merge.yml)
+  # that runs on PR approval or after a review period.
+  # This avoids long-running jobs with sleep commands.
+  notify-complete:
+    needs: [determine-content-type, generate-content, validate-and-pr]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Summary
+        run: |
+          echo "## Content Generation Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Content Type:** ${{ needs.determine-content-type.outputs.content_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Generate Job:** ${{ needs.generate-content.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Validate Job:** ${{ needs.validate-and-pr.result }}" >> $GITHUB_STEP_SUMMARY
