@@ -39,7 +39,7 @@ gantt
 
 ### 🎯 v1.1.0 - Core Improvements
 **Due Date**: February 15, 2026 (48 days)
-**Status**: 0% Complete (15 items)
+**Status**: 7% Complete (1/15 items)
 **Focus**: Production-ready core functionality
 
 #### Key Deliverables
@@ -124,7 +124,7 @@ gantt
 
 ### 🚀 v2.0.0 - Advanced Features
 **Due Date**: June 30, 2026 (184 days)
-**Status**: 9% Complete (20 open, 1 closed)
+**Status**: 38% Complete (13 open, 8 closed)
 **Focus**: Innovation and advanced capabilities
 
 #### Key Deliverables
@@ -167,10 +167,10 @@ gantt
 
 | Milestone | Due Date | Items | Complete | Progress |
 |-----------|----------|-------|----------|----------|
-| **v1.1.0** | Feb 15, 2026 | 15 | 0 | 0% |
+| **v1.1.0** | Feb 15, 2026 | 15 | 1 | 7% |
 | **v1.2.0** | Mar 31, 2026 | 24 | 0 | 0% |
-| **v2.0.0** | Jun 30, 2026 | 21 | 1 | 9% |
-| **Total** | - | **60** | **1** | **2%** |
+| **v2.0.0** | Jun 30, 2026 | 21 | 8 | 38% |
+| **Total** | - | **60** | **9** | **15%** |
 
 ---
 
