@@ -1,0 +1,519 @@
+/*
+ * Caro Documentation - Custom Styles
+ * A distinctive, bold design system inspired by modern CLI aesthetics
+ * Color palette: Warm coral/salmon tones reflecting the "caro" name (dear/beloved)
+ */
+
+/* ============================================
+   CSS Custom Properties
+   ============================================ */
+
+:root {
+  /* Primary Colors - Warm coral palette */
+  --sl-color-accent-low: #2a1515;
+  --sl-color-accent: #e85d4c;
+  --sl-color-accent-high: #ff8a7a;
+
+  /* Background gradient for dark mode */
+  --sl-color-bg: #0d0d0d;
+  --sl-color-bg-nav: rgba(13, 13, 13, 0.85);
+  --sl-color-bg-sidebar: rgba(20, 20, 20, 0.8);
+
+  /* Typography */
+  --sl-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --sl-font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace;
+
+  /* Spacing refinements */
+  --sl-content-width: 55rem;
+  --sl-sidebar-width: 18rem;
+
+  /* Custom decorative variables */
+  --caro-glow: rgba(232, 93, 76, 0.15);
+  --caro-gradient: linear-gradient(135deg, #e85d4c 0%, #ff8a7a 50%, #ffb5a5 100%);
+  --caro-glass: rgba(255, 255, 255, 0.03);
+  --caro-border: rgba(255, 255, 255, 0.08);
+}
+
+/* Light mode overrides */
+:root[data-theme='light'] {
+  --sl-color-accent-low: #fff0ee;
+  --sl-color-accent: #d4463a;
+  --sl-color-accent-high: #c13a2e;
+
+  --sl-color-bg: #fafafa;
+  --sl-color-bg-nav: rgba(250, 250, 250, 0.9);
+  --sl-color-bg-sidebar: rgba(245, 245, 245, 0.9);
+
+  --caro-glow: rgba(212, 70, 58, 0.1);
+  --caro-glass: rgba(0, 0, 0, 0.02);
+  --caro-border: rgba(0, 0, 0, 0.06);
+}
+
+/* ============================================
+   Typography
+   ============================================ */
+
+/* Distinctive headings with Space Grotesk */
+h1, h2, h3, h4, h5, h6,
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3 {
+  font-family: 'Space Grotesk', var(--sl-font);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+h1, .sl-markdown-content h1 {
+  font-size: 2.75rem;
+  font-weight: 700;
+  background: var(--caro-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Code styling */
+code {
+  font-family: var(--sl-font-mono);
+  font-size: 0.9em;
+  padding: 0.15em 0.4em;
+  border-radius: 0.3em;
+  background: var(--caro-glass);
+  border: 1px solid var(--caro-border);
+}
+
+pre code {
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+/* ============================================
+   Navigation & Header
+   ============================================ */
+
+.header {
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border-bottom: 1px solid var(--caro-border);
+}
+
+/* Site title styling */
+.site-title {
+  font-family: 'Space Grotesk', var(--sl-font);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-size: 1.25rem !important;
+}
+
+.site-title::after {
+  content: '';
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  background: var(--sl-color-accent);
+  border-radius: 50%;
+  margin-left: 0.25rem;
+  vertical-align: middle;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.8); }
+}
+
+/* ============================================
+   Sidebar
+   ============================================ */
+
+.sidebar-pane {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Sidebar link hover states */
+nav.sidebar a:hover {
+  background: var(--caro-glow);
+  border-radius: 0.375rem;
+}
+
+nav.sidebar a[aria-current="page"] {
+  background: var(--caro-glow);
+  border-left: 3px solid var(--sl-color-accent);
+  border-radius: 0 0.375rem 0.375rem 0;
+  font-weight: 500;
+}
+
+/* Group labels */
+.sidebar-content .group-label {
+  font-family: 'Space Grotesk', var(--sl-font);
+  font-weight: 600;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sl-color-accent);
+  padding: 0.5rem 0;
+  margin-top: 1rem;
+}
+
+/* ============================================
+   Content Area
+   ============================================ */
+
+.content-panel {
+  background: transparent;
+}
+
+/* Blockquotes with accent styling */
+blockquote {
+  border-left: 4px solid var(--sl-color-accent);
+  background: var(--caro-glass);
+  padding: 1rem 1.25rem;
+  border-radius: 0 0.5rem 0.5rem 0;
+  margin: 1.5rem 0;
+}
+
+blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* Tables */
+table {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid var(--caro-border);
+}
+
+th {
+  background: var(--caro-glass);
+  font-family: 'Space Grotesk', var(--sl-font);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+tr:hover td {
+  background: var(--caro-glow);
+}
+
+/* ============================================
+   Code Blocks (Expressive Code override)
+   ============================================ */
+
+.expressive-code {
+  margin: 1.5rem 0;
+}
+
+.expressive-code pre {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid var(--caro-border);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+}
+
+:root[data-theme='light'] .expressive-code pre {
+  background: rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
+}
+
+/* File name tabs */
+.expressive-code .frame.has-title .header {
+  background: var(--caro-glass);
+  border-bottom: 1px solid var(--caro-border);
+}
+
+/* ============================================
+   Cards & Callouts
+   ============================================ */
+
+.card {
+  background: var(--caro-glass);
+  border: 1px solid var(--caro-border);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  border-color: var(--sl-color-accent);
+  box-shadow: 0 0 24px var(--caro-glow);
+  transform: translateY(-2px);
+}
+
+/* Starlight aside/callout styling */
+.starlight-aside {
+  border-radius: 0.75rem;
+  border-left-width: 4px;
+  backdrop-filter: blur(4px);
+}
+
+.starlight-aside--tip {
+  --sl-color-asides-text-accent: var(--sl-color-accent);
+  border-color: var(--sl-color-accent);
+  background: var(--caro-glow);
+}
+
+/* ============================================
+   Buttons & Links
+   ============================================ */
+
+a {
+  color: var(--sl-color-accent-high);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+a:hover {
+  color: var(--sl-color-accent);
+  text-decoration: underline;
+}
+
+/* Primary action buttons */
+.action.primary {
+  background: var(--caro-gradient) !important;
+  border: none !important;
+  color: white !important;
+  font-family: 'Space Grotesk', var(--sl-font);
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 14px rgba(232, 93, 76, 0.4);
+  transition: all 0.2s ease;
+}
+
+.action.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(232, 93, 76, 0.5);
+}
+
+/* Secondary buttons */
+.action.secondary,
+.action.minimal {
+  background: var(--caro-glass) !important;
+  border: 1px solid var(--caro-border) !important;
+  font-family: 'Space Grotesk', var(--sl-font);
+  font-weight: 500;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.action.secondary:hover,
+.action.minimal:hover {
+  background: var(--caro-glow) !important;
+  border-color: var(--sl-color-accent) !important;
+}
+
+/* ============================================
+   Hero Section (Custom Landing)
+   ============================================ */
+
+.hero {
+  padding: 4rem 0 6rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative background gradient */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 150%;
+  height: 100%;
+  background: radial-gradient(ellipse at center, var(--caro-glow) 0%, transparent 70%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.hero h1 {
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  margin-bottom: 1rem;
+  line-height: 1.1;
+}
+
+.hero .tagline {
+  font-size: 1.25rem;
+  color: var(--sl-color-gray-2);
+  max-width: 40rem;
+  margin: 0 auto 2rem;
+  line-height: 1.6;
+}
+
+.hero .actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Terminal preview in hero */
+.hero-terminal {
+  max-width: 36rem;
+  margin: 3rem auto 0;
+  text-align: left;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--caro-border);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+}
+
+.hero-terminal-header {
+  background: var(--caro-glass);
+  padding: 0.75rem 1rem;
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--caro-border);
+}
+
+.hero-terminal-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.hero-terminal-dot:nth-child(1) { background: #ff5f57; }
+.hero-terminal-dot:nth-child(2) { background: #febc2e; }
+.hero-terminal-dot:nth-child(3) { background: #28c840; }
+
+.hero-terminal-content {
+  padding: 1.25rem;
+  font-family: var(--sl-font-mono);
+  font-size: 0.875rem;
+  line-height: 1.8;
+}
+
+.hero-terminal-prompt {
+  color: var(--sl-color-accent);
+}
+
+.hero-terminal-command {
+  color: var(--sl-color-gray-2);
+}
+
+.hero-terminal-output {
+  color: var(--sl-color-gray-3);
+  opacity: 0.8;
+}
+
+/* ============================================
+   Features Grid
+   ============================================ */
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin: 3rem 0;
+}
+
+.feature-card {
+  background: var(--caro-glass);
+  border: 1px solid var(--caro-border);
+  border-radius: 0.75rem;
+  padding: 1.75rem;
+  transition: all 0.25s ease;
+}
+
+.feature-card:hover {
+  border-color: var(--sl-color-accent);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(232, 93, 76, 0.15);
+}
+
+.feature-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.feature-card h3 {
+  font-family: 'Space Grotesk', var(--sl-font);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.feature-card p {
+  color: var(--sl-color-gray-2);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+/* ============================================
+   Footer
+   ============================================ */
+
+footer {
+  border-top: 1px solid var(--caro-border);
+  background: var(--caro-glass);
+}
+
+/* ============================================
+   Animations
+   ============================================ */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero h1,
+.hero .tagline,
+.hero .actions,
+.hero-terminal {
+  animation: fadeIn 0.6s ease-out backwards;
+}
+
+.hero h1 { animation-delay: 0.1s; }
+.hero .tagline { animation-delay: 0.2s; }
+.hero .actions { animation-delay: 0.3s; }
+.hero-terminal { animation-delay: 0.4s; }
+
+/* Staggered feature cards */
+.feature-card:nth-child(1) { animation: fadeIn 0.5s ease-out 0.1s backwards; }
+.feature-card:nth-child(2) { animation: fadeIn 0.5s ease-out 0.2s backwards; }
+.feature-card:nth-child(3) { animation: fadeIn 0.5s ease-out 0.3s backwards; }
+.feature-card:nth-child(4) { animation: fadeIn 0.5s ease-out 0.4s backwards; }
+
+/* ============================================
+   Responsive Refinements
+   ============================================ */
+
+@media (max-width: 768px) {
+  h1, .sl-markdown-content h1 {
+    font-size: 2rem;
+  }
+
+  .hero {
+    padding: 2rem 0 4rem;
+  }
+
+  .hero-terminal {
+    margin: 2rem 1rem 0;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   Print Styles
+   ============================================ */
+
+@media print {
+  .header,
+  .sidebar-pane,
+  footer {
+    display: none;
+  }
+
+  .content-panel {
+    margin: 0;
+    padding: 0;
+  }
+}

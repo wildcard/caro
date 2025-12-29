@@ -1,0 +1,104 @@
+---
+title: Introduction to caro
+description: Learn what caro is and how it transforms natural language into shell commands
+---
+
+import { Aside, Badge, Card, CardGrid } from '@astrojs/starlight/components';
+
+# Introduction to caro
+
+**caro** is a Rust CLI tool that converts natural language descriptions into safe, POSIX-compliant shell commands using local LLMs.
+
+<Aside type="tip">
+  The name "caro" comes from Latin, meaning "dear" or "beloved" - a friendly companion for your terminal.
+</Aside>
+
+## What is caro?
+
+Instead of memorizing complex command syntax or searching Stack Overflow, simply describe what you want to do:
+
+```bash
+$ caro "find all log files larger than 100MB"
+find . -name "*.log" -size +100M
+
+$ caro "show processes using port 3000"
+lsof -i :3000
+
+$ caro "compress all jpg files in current directory"
+tar -czvf images.tar.gz *.jpg
+```
+
+## Key Features
+
+<CardGrid>
+  <Card title="Local LLM Inference" icon="laptop">
+    All processing happens on your machine. No cloud API, no data leaving your computer.
+  </Card>
+  <Card title="Safety Validation" icon="approve-check">
+    Dangerous commands are detected and blocked before you can execute them.
+  </Card>
+  <Card title="Apple Silicon Optimized" icon="apple">
+    GPU acceleration via MLX for fast inference on M1/M2/M3/M4 Macs.
+  </Card>
+  <Card title="Multi-Backend Support" icon="setting">
+    Works with MLX, Ollama, and vLLM for flexible deployment options.
+  </Card>
+</CardGrid>
+
+## How It Works
+
+1. **You describe** what you want to accomplish in plain English
+2. **caro sends** your description to a local LLM (no internet required)
+3. **The LLM generates** a POSIX-compliant shell command
+4. **Safety validation** checks for dangerous patterns
+5. **You review** the command before execution
+
+```
+┌─────────────────┐     ┌─────────────┐     ┌──────────────┐
+│  Natural        │────▶│  Local LLM  │────▶│   Safety     │
+│  Language       │     │  (MLX/etc)  │     │  Validation  │
+└─────────────────┘     └─────────────┘     └──────────────┘
+                                                   │
+                                                   ▼
+                                           ┌──────────────┐
+                                           │ Shell Command │
+                                           │  (reviewed)   │
+                                           └──────────────┘
+```
+
+## Safety First
+
+caro prioritizes safety with multiple layers of protection:
+
+| Risk Level | Color | Description |
+|------------|-------|-------------|
+| <Badge text="Safe" variant="success" /> | Green | Normal operations like listing files |
+| <Badge text="Moderate" variant="caution" /> | Yellow | Operations that modify files |
+| <Badge text="High" variant="danger" /> | Orange | System-level changes |
+| <Badge text="Critical" variant="danger" /> | Red | Blocked - dangerous commands |
+
+**Blocked patterns include:**
+- `rm -rf /` and variations
+- Fork bombs (`:(){:|:&};:`)
+- Disk destruction (`dd if=/dev/zero`)
+- System path modifications
+
+## Performance
+
+<Aside type="note">
+  Performance depends on your hardware and chosen backend.
+</Aside>
+
+| Backend | First Inference | Subsequent | Best For |
+|---------|----------------|------------|----------|
+| **MLX (GPU)** | < 2s | < 500ms | Apple Silicon Macs |
+| **Ollama** | ~3s | ~2s | Cross-platform |
+| **vLLM** | ~2s | ~1s | Server deployment |
+
+## Next Steps
+
+Ready to get started?
+
+- [**Installation**](/getting-started/installation/) - Install caro on your system
+- [**Quick Start**](/getting-started/quick-start/) - Learn the basics with examples
+- [**macOS Setup**](/guides/macos-setup/) - Optimize for Apple Silicon

@@ -1,0 +1,243 @@
+---
+title: Installation
+description: Install caro on macOS, Linux, or Windows
+---
+
+import { Tabs, TabItem, Aside, Steps, Badge } from '@astrojs/starlight/components';
+
+# Installation
+
+caro can be installed via Cargo (Rust's package manager), from source, or using pre-built binaries.
+
+## Requirements
+
+- **Rust 1.75+** (for building from source)
+- **CMake** (for MLX backend on macOS)
+- **4GB RAM** minimum, 8GB recommended
+- **2GB disk space** for model cache
+
+## Quick Install
+
+<Tabs>
+  <TabItem label="Cargo (Recommended)">
+    ```bash
+    # Install caro from crates.io
+    cargo install caro
+
+    # Verify installation
+    caro --version
+    ```
+  </TabItem>
+  <TabItem label="From Source">
+    ```bash
+    # Clone the repository
+    git clone https://github.com/wildcard/caro.git
+    cd caro
+
+    # Build and install
+    cargo install --path .
+
+    # Or build without installing
+    cargo build --release
+    ```
+  </TabItem>
+  <TabItem label="Pre-built Binary">
+    ```bash
+    # Download the latest release
+    curl -fsSL https://github.com/wildcard/caro/releases/latest/download/caro-$(uname -s)-$(uname -m) -o caro
+
+    # Make executable
+    chmod +x caro
+
+    # Move to your PATH
+    sudo mv caro /usr/local/bin/
+    ```
+  </TabItem>
+</Tabs>
+
+## Platform-Specific Instructions
+
+### macOS
+
+<Steps>
+1. **Install Rust** (if not already installed):
+   ```bash
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+   source "$HOME/.cargo/env"
+   ```
+
+2. **Install CMake** (required for MLX):
+   ```bash
+   brew install cmake
+   ```
+
+3. **Install caro**:
+   ```bash
+   cargo install caro
+   ```
+
+4. **Verify installation**:
+   ```bash
+   caro --version
+   caro "list files"
+   ```
+</Steps>
+
+<Aside type="tip" title="Apple Silicon GPU Acceleration">
+  For GPU acceleration on M1/M2/M3/M4 Macs, you'll need Xcode installed.
+  See the [macOS Setup Guide](/guides/macos-setup/) for detailed instructions.
+</Aside>
+
+### Linux
+
+<Tabs>
+  <TabItem label="Ubuntu/Debian">
+    ```bash
+    # Install dependencies
+    sudo apt update
+    sudo apt install -y build-essential cmake curl
+
+    # Install Rust
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    source "$HOME/.cargo/env"
+
+    # Install caro
+    cargo install caro
+    ```
+  </TabItem>
+  <TabItem label="Fedora/RHEL">
+    ```bash
+    # Install dependencies
+    sudo dnf install -y cmake gcc-c++ curl
+
+    # Install Rust
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    source "$HOME/.cargo/env"
+
+    # Install caro
+    cargo install caro
+    ```
+  </TabItem>
+  <TabItem label="Arch Linux">
+    ```bash
+    # Install dependencies
+    sudo pacman -S cmake base-devel curl
+
+    # Install Rust
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    source "$HOME/.cargo/env"
+
+    # Install caro
+    cargo install caro
+    ```
+  </TabItem>
+</Tabs>
+
+### Windows
+
+<Aside type="caution">
+  Windows support is experimental. WSL2 is recommended for the best experience.
+</Aside>
+
+```powershell
+# Using WSL2 (recommended)
+wsl --install
+# Then follow Linux instructions inside WSL
+
+# Native Windows (experimental)
+# Install Rust from https://rustup.rs
+cargo install caro
+```
+
+## Verifying Installation
+
+After installation, verify everything is working:
+
+```bash
+# Check version
+caro --version
+# Output: caro 0.1.0
+
+# Test basic functionality
+caro "show current directory"
+# Output: pwd
+
+# Test with a more complex query
+caro "find all markdown files"
+# Output: find . -name "*.md"
+```
+
+## First Run
+
+On first run, caro will download the required model (~1.1GB):
+
+```bash
+$ caro "list files"
+Downloading model... [====================] 100%
+Model cached at ~/.cache/caro/models/
+
+find . -type f
+```
+
+<Aside type="note">
+  The model is cached locally and won't be downloaded again unless you clear the cache or update to a new version.
+</Aside>
+
+## Configuration
+
+caro stores configuration in:
+- **macOS**: `~/Library/Application Support/caro/`
+- **Linux**: `~/.config/caro/`
+- **Windows**: `%APPDATA%\caro\`
+
+Model cache location:
+- **macOS**: `~/Library/Caches/caro/models/`
+- **Linux**: `~/.cache/caro/models/`
+- **Windows**: `%LOCALAPPDATA%\caro\cache\`
+
+## Troubleshooting
+
+### "command not found: caro"
+
+Ensure Cargo's bin directory is in your PATH:
+
+```bash
+# Add to ~/.bashrc or ~/.zshrc
+export PATH="$HOME/.cargo/bin:$PATH"
+
+# Reload shell
+source ~/.bashrc  # or ~/.zshrc
+```
+
+### Build fails with CMake error
+
+Install CMake:
+
+```bash
+# macOS
+brew install cmake
+
+# Ubuntu/Debian
+sudo apt install cmake
+
+# Fedora
+sudo dnf install cmake
+```
+
+### Model download fails
+
+Check your internet connection and try again:
+
+```bash
+# Clear partial download
+rm -rf ~/.cache/caro/models/
+
+# Retry
+caro "test"
+```
+
+## Next Steps
+
+- [**Quick Start**](/getting-started/quick-start/) - Learn the basics
+- [**macOS Setup**](/guides/macos-setup/) - Enable GPU acceleration
+- [**Configuration**](/reference/configuration/) - Customize caro
