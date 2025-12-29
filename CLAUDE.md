@@ -565,6 +565,112 @@ Commands will **REFUSE to proceed** if branch requirements aren't met, preventin
 
 See `docs/RELEASE_PROCESS.md` for complete release procedures and security requirements.
 
+## Session Continuity (Continuous-Claude)
+
+This project integrates **Continuous-Claude** for session state preservation across context clears. Instead of relying on lossy compaction (summarizing conversations repeatedly), we use a "clear, don't compact" philosophy.
+
+### The Problem
+
+When Claude Code runs low on context, it compacts (summarizes) conversations. Multiple compactions create "a summary of a summary of a summary," degrading quality and eventually producing hallucinations.
+
+### The Solution
+
+Save state to a **ledger**, clear context cleanly, and resume with full signal integrity.
+
+### Directory Structure
+
+```
+thoughts/
+├── ledgers/                    # In-session state files (survive /clear)
+│   └── CONTINUITY_CLAUDE-*.md  # Active session ledgers
+└── shared/
+    ├── handoffs/               # Cross-session transfer documents
+    ├── plans/                  # Implementation plans
+    └── research/               # Research documents
+```
+
+### Core Skills
+
+**Continuity Ledger** (`/continuity_ledger`)
+- Creates/updates ledgers for state preservation within a session
+- Use before running `/clear`
+- Use when context usage approaches 70%+
+- Ledgers survive `/clear` and reload automatically on resume
+
+**Create Handoff** (`/create_handoff`)
+- Creates end-of-session transfer documents
+- Includes task status, learnings, artifacts, and next steps
+- Perfect for handing off work to another session
+
+**Resume Handoff** (`/resume_handoff`)
+- Resumes work from a handoff document
+- Validates current state against handoff
+- Creates todo list from action items
+
+**Onboard** (`/onboard`)
+- Analyzes brownfield codebases
+- Creates initial continuity ledger
+- Use when first working in an existing project
+
+### Natural Language Triggers
+
+The system responds to conversational cues:
+
+| Phrase | Action |
+|--------|--------|
+| "save state", "update ledger" | Updates continuity ledger |
+| "done for today", "create handoff" | Creates handoff document |
+| "resume work", "continue from handoff" | Loads and continues |
+| "onboard", "analyze this project" | Runs codebase analysis |
+
+### When to Use Continuity
+
+**Use ledgers when:**
+- Context usage approaching 70%+
+- Multi-day implementations
+- Complex refactors you pick up/put down
+- Any session expected to hit 85%+ context
+
+**Use handoffs when:**
+- Ending a work session
+- Transferring work to another session/person
+- Need detailed context for future work
+
+**Don't use when:**
+- Quick tasks (< 30 min)
+- Simple bug fixes
+- Single-file changes
+
+### Quick Reference
+
+```bash
+# Save state before clearing context
+/continuity_ledger
+
+# Clear context (ledger reloads automatically)
+/clear
+
+# Create end-of-session handoff
+/create_handoff
+
+# Resume from a handoff
+/resume_handoff thoughts/shared/handoffs/feature-name/2025-01-15_14-30-00_description.md
+
+# Onboard to a new codebase
+/onboard
+```
+
+### Comparison with Other Tools
+
+| Tool | Scope | Fidelity |
+|------|-------|----------|
+| CLAUDE.md | Project | Always fresh, stable patterns |
+| TodoWrite | Turn | Survives compaction, but understanding degrades |
+| CONTINUITY_CLAUDE-*.md | Session | External file - never compressed, full fidelity |
+| Handoffs | Cross-session | External file - detailed context for new session |
+
+See `.claude/skills/` for detailed skill documentation.
+
 ## Multi-Agent Development Process
 
 This project follows spec-driven development with coordinated multi-agent teams:
