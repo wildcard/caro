@@ -101,7 +101,7 @@ layout: two-cols
 <v-clicks>
 
 📅 **Due**: February 15, 2026
-📊 **Progress**: 6% (1/15 complete)
+📊 **Progress**: 7% (1/15 complete)
 ⏰ **48 days away**
 
 **Key Deliverables:**
@@ -352,7 +352,7 @@ layout: two-cols
 <v-clicks>
 
 📅 **Due**: June 30, 2026
-📊 **Progress**: 28% (6/21 complete)
+📊 **Progress**: 38% (8/21 complete)
 ⏰ **184 days away**
 
 **Key Deliverables:**
@@ -513,7 +513,7 @@ layout: center
 <v-clicks>
 
 <div class="text-center p-6 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 bg-opacity-10">
-  <div class="text-5xl font-bold mb-2">6%</div>
+  <div class="text-5xl font-bold mb-2">7%</div>
   <div class="text-xl mb-4">v1.1.0</div>
   <div class="text-sm opacity-75">1/15 complete</div>
   <div class="text-xs mt-2 opacity-50">48 days remaining</div>
@@ -527,9 +527,9 @@ layout: center
 </div>
 
 <div class="text-center p-6 rounded-lg bg-gradient-to-br from-purple-500 to-purple-700 bg-opacity-10">
-  <div class="text-5xl font-bold mb-2">28%</div>
+  <div class="text-5xl font-bold mb-2">38%</div>
   <div class="text-xl mb-4">v2.0.0</div>
-  <div class="text-sm opacity-75">6/21 complete</div>
+  <div class="text-sm opacity-75">8/21 complete</div>
   <div class="text-xs mt-2 opacity-50">184 days remaining</div>
 </div>
 
@@ -541,7 +541,7 @@ layout: center
 
 <v-clicks>
 
-**Overall Progress**: 7/60 items complete (11%)
+**Overall Progress**: 9/60 items complete (15%)
 
 **No Release Blockers** 🎉
 
