@@ -56,13 +56,6 @@ const artsJson = JSON.stringify(arts);
         const interval = parseInt(element.getAttribute('data-interval') || '4000');
         const morphDelay = parseInt(element.getAttribute('data-morph-delay') || '50');
 
-        console.log('Initializing ASCII morph:', {
-          id: element.id,
-          arts: arts.length,
-          width,
-          height
-        });
-
         // Check if createAsciiMorph is available
         if (typeof window.createAsciiMorph === 'undefined') {
           console.error('AsciiMorph library not loaded!');
@@ -76,7 +69,6 @@ const artsJson = JSON.stringify(arts);
         // Render the first frame
         if (arts.length > 0) {
           morph.render(arts[0]);
-          console.log('✓ Rendered first frame for', element.id);
         }
 
         // If there's more than one art, set up morphing
@@ -85,7 +77,6 @@ const artsJson = JSON.stringify(arts);
 
           setInterval(() => {
             currentIndex = (currentIndex + 1) % arts.length;
-            console.log('→ Morphing to frame', currentIndex, 'for', element.id);
             morph.morph(arts[currentIndex], morphDelay);
           }, interval);
         }
@@ -155,7 +146,7 @@ const artsJson = JSON.stringify(arts);
 
   /* Hover effect */
   .ascii-canvas:hover {
-    color: #ff8c42;
+    color: var(--color-accent, #ff8c42);
     transform: scale(1.02);
   }
 
