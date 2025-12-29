@@ -165,10 +165,7 @@ fn test_shell_detector_uses_env_variable() {
         // Windows: Should detect PowerShell or Cmd
         let detected = detector.detect_from_env();
 
-        assert!(
-            detected.is_some(),
-            "Should detect a shell on Windows"
-        );
+        assert!(detected.is_some(), "Should detect a shell on Windows");
 
         let shell = detected.unwrap();
         assert!(
