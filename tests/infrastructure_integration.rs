@@ -341,12 +341,14 @@ async fn test_configuration_validation_migration() {
 /// Tests: Platform-specific context capture
 #[tokio::test]
 async fn test_multiplatform_execution_context() {
-    // GIVEN: Different platform configurations with platform-appropriate paths
+    // GIVEN: Different platform configurations with absolute paths
+    // NOTE: Paths must be absolute for the CURRENT platform where tests run,
+    // not for the platform being tested (ExecutionContext validates path absoluteness)
     #[cfg(unix)]
     let test_cases = vec![
         (Platform::Linux, ShellType::Bash, PathBuf::from("/test/path")),
         (Platform::MacOS, ShellType::Zsh, PathBuf::from("/test/path")),
-        (Platform::Windows, ShellType::PowerShell, PathBuf::from("C:\\test\\path")),
+        (Platform::Windows, ShellType::PowerShell, PathBuf::from("/test/path")),
     ];
 
     #[cfg(windows)]
