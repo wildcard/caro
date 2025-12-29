@@ -39,7 +39,7 @@ tracing-appender = "0.2"
 
 # User interface and interaction
 dialoguer = "0.12"
-colored = "2"
+colored = "3"
 indicatif = "0.18"
 
 # Cross-platform support
