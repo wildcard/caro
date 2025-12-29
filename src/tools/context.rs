@@ -106,11 +106,7 @@ impl ContextTool {
         let start = Instant::now();
 
         let shell_path = std::env::var("SHELL").unwrap_or_else(|_| "/bin/sh".to_string());
-        let shell_name = shell_path
-            .rsplit('/')
-            .next()
-            .unwrap_or("sh")
-            .to_string();
+        let shell_name = shell_path.rsplit('/').next().unwrap_or("sh").to_string();
 
         let mut data = StructuredData::new("shell_info")
             .with_field("path", shell_path)
@@ -348,7 +344,10 @@ impl ContextTool {
         let path = std::env::var("PATH").unwrap_or_default();
         let contains = path.split(':').any(|p| p == dir);
 
-        ToolResult::success(ToolData::Boolean(contains), start.elapsed().as_millis() as u64)
+        ToolResult::success(
+            ToolData::Boolean(contains),
+            start.elapsed().as_millis() as u64,
+        )
     }
 }
 
@@ -368,9 +367,21 @@ impl Tool for ContextTool {
 
     fn parameters(&self) -> ToolParameters {
         ToolParameters::new()
-            .with_required("operation", ParameterType::String, "Operation: os, shell, cwd, env, list_env, user, full, path_contains")
-            .with_optional("name", ParameterType::String, "Variable name for env operation")
-            .with_optional("filter", ParameterType::String, "Filter pattern for list_env")
+            .with_required(
+                "operation",
+                ParameterType::String,
+                "Operation: os, shell, cwd, env, list_env, user, full, path_contains",
+            )
+            .with_optional(
+                "name",
+                ParameterType::String,
+                "Variable name for env operation",
+            )
+            .with_optional(
+                "filter",
+                ParameterType::String,
+                "Filter pattern for list_env",
+            )
             .with_optional("dir", ParameterType::String, "Directory for path_contains")
     }
 

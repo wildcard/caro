@@ -68,8 +68,8 @@ pub use backends::{BackendInfo as BackendInfoTrait, CommandGenerator, GeneratorE
 
 // Re-export tools module types
 pub use tools::{
-    CommandTool, ContextSummary, ContextTool, EnhancedCommandResult, FileSystemTool,
-    ParameterType, PathCheckResult, PlatformFlags, Tool, ToolCall, ToolCallParams, ToolCategory,
-    ToolData, ToolEnhancedAgent, ToolError, ToolInfo, ToolParameters, ToolRegistry,
-    ToolRegistryBuilder, ToolResult, ValidationTool,
+    CommandTool, ContextSummary, ContextTool, EnhancedCommandResult, FileSystemTool, ParameterType,
+    PathCheckResult, PlatformFlags, Tool, ToolCall, ToolCallParams, ToolCategory, ToolData,
+    ToolEnhancedAgent, ToolError, ToolInfo, ToolParameters, ToolRegistry, ToolRegistryBuilder,
+    ToolResult, ValidationTool,
 };

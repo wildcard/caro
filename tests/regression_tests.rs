@@ -64,7 +64,10 @@ async fn test_safe_commands() {
             .with_param("operation", "risk_score")
             .with_param("command", &case.command);
 
-        let result = registry.invoke(&call).await.expect("Tool invocation failed");
+        let result = registry
+            .invoke(&call)
+            .await
+            .expect("Tool invocation failed");
 
         if let ToolData::Integer(score) = result.data {
             if score == 0 {
@@ -75,7 +78,11 @@ async fn test_safe_commands() {
         }
     }
 
-    println!("Safe commands: {}/{} passed", passed, suite.safe_commands.len());
+    println!(
+        "Safe commands: {}/{} passed",
+        passed,
+        suite.safe_commands.len()
+    );
 
     if !failed.is_empty() {
         for (cmd, score, expected) in &failed {
@@ -106,7 +113,10 @@ async fn test_warn_commands() {
             .with_param("operation", "risk_score")
             .with_param("command", &case.command);
 
-        let result = registry.invoke(&call).await.expect("Tool invocation failed");
+        let result = registry
+            .invoke(&call)
+            .await
+            .expect("Tool invocation failed");
 
         if let ToolData::Integer(score) = result.data {
             // Warn commands should have score > 0
@@ -118,7 +128,11 @@ async fn test_warn_commands() {
         }
     }
 
-    println!("Warn commands: {}/{} passed", passed, suite.warn_commands.len());
+    println!(
+        "Warn commands: {}/{} passed",
+        passed,
+        suite.warn_commands.len()
+    );
 
     if !failed.is_empty() {
         println!("FAILED warn commands:");
@@ -152,7 +166,10 @@ async fn test_block_commands() {
             .with_param("operation", "risk_score")
             .with_param("command", &case.command);
 
-        let result = registry.invoke(&call).await.expect("Tool invocation failed");
+        let result = registry
+            .invoke(&call)
+            .await
+            .expect("Tool invocation failed");
 
         if let ToolData::Integer(score) = result.data {
             // Block commands should have score > 50
@@ -164,7 +181,11 @@ async fn test_block_commands() {
         }
     }
 
-    println!("Block commands: {}/{} passed", passed, suite.block_commands.len());
+    println!(
+        "Block commands: {}/{} passed",
+        passed,
+        suite.block_commands.len()
+    );
 
     if !failed.is_empty() {
         println!("FAILED block commands:");
@@ -198,7 +219,10 @@ async fn test_edge_cases() {
             .with_param("operation", "risk_score")
             .with_param("command", &case.command);
 
-        let result = registry.invoke(&call).await.expect("Tool invocation failed");
+        let result = registry
+            .invoke(&call)
+            .await
+            .expect("Tool invocation failed");
 
         if let ToolData::Integer(score) = result.data {
             match case.expected_risk.as_str() {
@@ -209,11 +233,21 @@ async fn test_edge_cases() {
         }
     }
 
-    let block_expected = suite.edge_cases.iter().filter(|c| c.expected_risk == "block").count();
-    let warn_expected = suite.edge_cases.iter().filter(|c| c.expected_risk == "warn").count();
+    let block_expected = suite
+        .edge_cases
+        .iter()
+        .filter(|c| c.expected_risk == "block")
+        .count();
+    let warn_expected = suite
+        .edge_cases
+        .iter()
+        .filter(|c| c.expected_risk == "warn")
+        .count();
 
-    println!("Edge cases: {}/{} block detected, {}/{} warn detected",
-             block_detected, block_expected, warn_detected, warn_expected);
+    println!(
+        "Edge cases: {}/{} block detected, {}/{} warn detected",
+        block_detected, block_expected, warn_detected, warn_expected
+    );
 
     // At least 70% of edge cases should be caught
     let total_expected = block_expected + warn_expected;
@@ -242,7 +276,10 @@ async fn test_false_positive_avoidance() {
             .with_param("operation", "risk_score")
             .with_param("command", &case.command);
 
-        let result = registry.invoke(&call).await.expect("Tool invocation failed");
+        let result = registry
+            .invoke(&call)
+            .await
+            .expect("Tool invocation failed");
 
         if let ToolData::Integer(score) = result.data {
             if score == 0 {
@@ -253,8 +290,11 @@ async fn test_false_positive_avoidance() {
         }
     }
 
-    println!("False positive tests: {}/{} correctly identified as safe",
-             correctly_safe, suite.false_positive_tests.len());
+    println!(
+        "False positive tests: {}/{} correctly identified as safe",
+        correctly_safe,
+        suite.false_positive_tests.len()
+    );
 
     if !false_positives.is_empty() {
         println!("False positives:");
@@ -283,18 +323,37 @@ async fn test_batch_validation_performance() {
 
     // Collect first 10 commands from each category
     let mut test_commands: Vec<String> = Vec::new();
-    test_commands.extend(suite.safe_commands.iter().take(10).map(|c| c.command.clone()));
-    test_commands.extend(suite.block_commands.iter().take(10).map(|c| c.command.clone()));
+    test_commands.extend(
+        suite
+            .safe_commands
+            .iter()
+            .take(10)
+            .map(|c| c.command.clone()),
+    );
+    test_commands.extend(
+        suite
+            .block_commands
+            .iter()
+            .take(10)
+            .map(|c| c.command.clone()),
+    );
 
     let call = ToolCall::new("validation")
         .with_param("operation", "batch_validate")
         .with_string_array("commands", test_commands.clone());
 
     let start = std::time::Instant::now();
-    let result = registry.invoke(&call).await.expect("Batch validation failed");
+    let result = registry
+        .invoke(&call)
+        .await
+        .expect("Batch validation failed");
     let elapsed = start.elapsed();
 
-    println!("Batch validation of {} commands took {:?}", test_commands.len(), elapsed);
+    println!(
+        "Batch validation of {} commands took {:?}",
+        test_commands.len(),
+        elapsed
+    );
 
     // Should complete in under 1000ms for 20 commands
     assert!(
@@ -321,7 +380,10 @@ async fn test_platform_specific_commands() {
                 .with_param("operation", "risk_score")
                 .with_param("command", &case.command);
 
-            let result = registry.invoke(&call).await.expect("Tool invocation failed");
+            let result = registry
+                .invoke(&call)
+                .await
+                .expect("Tool invocation failed");
 
             if let ToolData::Integer(score) = result.data {
                 // All platform commands should be safe
@@ -342,7 +404,10 @@ async fn test_platform_specific_commands() {
                 .with_param("operation", "risk_score")
                 .with_param("command", &case.command);
 
-            let result = registry.invoke(&call).await.expect("Tool invocation failed");
+            let result = registry
+                .invoke(&call)
+                .await
+                .expect("Tool invocation failed");
 
             if let ToolData::Integer(score) = result.data {
                 assert!(
@@ -378,7 +443,10 @@ async fn test_critical_pattern_coverage() {
             .with_param("operation", "risk_score")
             .with_param("command", *cmd);
 
-        let result = registry.invoke(&call).await.expect("Tool invocation failed");
+        let result = registry
+            .invoke(&call)
+            .await
+            .expect("Tool invocation failed");
 
         if let ToolData::Integer(score) = result.data {
             assert!(
@@ -390,7 +458,10 @@ async fn test_critical_pattern_coverage() {
         }
     }
 
-    println!("All {} critical patterns properly blocked", critical_patterns.len());
+    println!(
+        "All {} critical patterns properly blocked",
+        critical_patterns.len()
+    );
 }
 
 #[tokio::test]
@@ -401,7 +472,10 @@ async fn test_validation_response_format() {
         .with_param("operation", "validate")
         .with_param("command", "rm -rf /");
 
-    let result = registry.invoke(&call).await.expect("Tool invocation failed");
+    let result = registry
+        .invoke(&call)
+        .await
+        .expect("Tool invocation failed");
     assert!(result.success);
 
     if let ToolData::Structured(data) = &result.data {
@@ -426,7 +500,11 @@ async fn test_total_command_count() {
         + suite.block_commands.len()
         + suite.edge_cases.len()
         + suite.false_positive_tests.len()
-        + suite.platform_specific.values().map(|v| v.len()).sum::<usize>();
+        + suite
+            .platform_specific
+            .values()
+            .map(|v| v.len())
+            .sum::<usize>();
 
     println!("Total test commands: {}", total);
 

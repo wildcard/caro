@@ -187,27 +187,32 @@ impl ToolCallParams {
     }
 
     pub fn with_string(mut self, key: &str, value: impl Into<String>) -> Self {
-        self.params.insert(key.to_string(), ParamValue::String(value.into()));
+        self.params
+            .insert(key.to_string(), ParamValue::String(value.into()));
         self
     }
 
     pub fn with_path(mut self, key: &str, value: impl Into<String>) -> Self {
-        self.params.insert(key.to_string(), ParamValue::Path(value.into()));
+        self.params
+            .insert(key.to_string(), ParamValue::Path(value.into()));
         self
     }
 
     pub fn with_bool(mut self, key: &str, value: bool) -> Self {
-        self.params.insert(key.to_string(), ParamValue::Boolean(value));
+        self.params
+            .insert(key.to_string(), ParamValue::Boolean(value));
         self
     }
 
     pub fn with_int(mut self, key: &str, value: i64) -> Self {
-        self.params.insert(key.to_string(), ParamValue::Integer(value));
+        self.params
+            .insert(key.to_string(), ParamValue::Integer(value));
         self
     }
 
     pub fn with_string_array(mut self, key: &str, values: Vec<String>) -> Self {
-        self.params.insert(key.to_string(), ParamValue::StringArray(values));
+        self.params
+            .insert(key.to_string(), ParamValue::StringArray(values));
         self
     }
 
@@ -465,7 +470,11 @@ mod tests {
     fn test_tool_parameters_builder() {
         let params = ToolParameters::new()
             .with_required("path", ParameterType::Path, "The file path")
-            .with_optional("recursive", ParameterType::Boolean, "Recurse into directories");
+            .with_optional(
+                "recursive",
+                ParameterType::Boolean,
+                "Recurse into directories",
+            );
 
         assert_eq!(params.required.len(), 1);
         assert_eq!(params.optional.len(), 1);

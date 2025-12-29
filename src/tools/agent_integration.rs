@@ -101,10 +101,7 @@ impl ToolEnhancedAgent {
         let validation = self.validate_command(&command.command).await;
         debug!("Validation result: {:?}", validation);
 
-        info!(
-            "Tool-enhanced generation complete in {:?}",
-            start.elapsed()
-        );
+        info!("Tool-enhanced generation complete in {:?}", start.elapsed());
 
         Ok(EnhancedCommandResult {
             command,
@@ -127,10 +124,8 @@ impl ToolEnhancedAgent {
                 // Extract OS info
                 if let Some(os) = data.fields.get("os") {
                     if let Some(os_map) = os.as_object() {
-                        summary.platform = os_map
-                            .get("os")
-                            .and_then(|v| v.as_str())
-                            .map(String::from);
+                        summary.platform =
+                            os_map.get("os").and_then(|v| v.as_str()).map(String::from);
                     }
                 }
 
@@ -189,9 +184,7 @@ impl ToolEnhancedAgent {
         let result = self.registry.validate_command(command).await;
 
         match result {
-            Ok(tool_result) if tool_result.success => {
-                self.parse_validation_result(&tool_result)
-            }
+            Ok(tool_result) if tool_result.success => self.parse_validation_result(&tool_result),
             _ => ValidationResult {
                 risk_score: 0,
                 risk_level: "UNKNOWN".to_string(),
@@ -356,7 +349,6 @@ pub struct PlatformFlags {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::backends::embedded::EmbeddedModelBackend;
 
     // Note: Most tests require a backend, so we test utility functions here
 

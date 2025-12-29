@@ -375,7 +375,10 @@ impl ValidationTool {
             .with_field("risk_score", max_risk_score as i64)
             .with_field("risk_level", risk_level.as_str())
             .with_field("is_safe", max_risk_score == 0)
-            .with_field("requires_confirmation", max_risk_score > 25 && max_risk_score <= 50)
+            .with_field(
+                "requires_confirmation",
+                max_risk_score > 25 && max_risk_score <= 50,
+            )
             .with_field("should_block", max_risk_score > 50);
 
         // Add matched patterns
@@ -394,10 +397,7 @@ impl ValidationTool {
         data = data.with_field("matched_patterns", serde_json::json!(matched_patterns));
 
         // Add safe alternatives if available
-        let alternatives: Vec<&str> = matches
-            .iter()
-            .filter_map(|p| p.safe_alternative)
-            .collect();
+        let alternatives: Vec<&str> = matches.iter().filter_map(|p| p.safe_alternative).collect();
         if !alternatives.is_empty() {
             data = data.with_field("safe_alternatives", serde_json::json!(alternatives));
         }
@@ -576,10 +576,22 @@ impl Tool for ValidationTool {
 
     fn parameters(&self) -> ToolParameters {
         ToolParameters::new()
-            .with_required("operation", ParameterType::String, "Operation: validate, risk_score, batch_validate, list_patterns, explain")
+            .with_required(
+                "operation",
+                ParameterType::String,
+                "Operation: validate, risk_score, batch_validate, list_patterns, explain",
+            )
             .with_optional("command", ParameterType::String, "Command to validate")
-            .with_optional("commands", ParameterType::StringArray, "Commands for batch validation")
-            .with_optional("category", ParameterType::String, "Pattern category: critical, high, moderate, low")
+            .with_optional(
+                "commands",
+                ParameterType::StringArray,
+                "Commands for batch validation",
+            )
+            .with_optional(
+                "category",
+                ParameterType::String,
+                "Pattern category: critical, high, moderate, low",
+            )
     }
 
     async fn execute(&self, params: &ToolCallParams) -> ToolResult {
@@ -664,8 +676,14 @@ mod tests {
         assert!(result.success);
 
         if let ToolData::Structured(data) = &result.data {
-            assert_eq!(data.fields.get("risk_level"), Some(&serde_json::json!("CRITICAL")));
-            assert_eq!(data.fields.get("should_block"), Some(&serde_json::json!(true)));
+            assert_eq!(
+                data.fields.get("risk_level"),
+                Some(&serde_json::json!("CRITICAL"))
+            );
+            assert_eq!(
+                data.fields.get("should_block"),
+                Some(&serde_json::json!(true))
+            );
         }
     }
 
@@ -680,7 +698,10 @@ mod tests {
         assert!(result.success);
 
         if let ToolData::Structured(data) = &result.data {
-            assert_eq!(data.fields.get("risk_level"), Some(&serde_json::json!("CRITICAL")));
+            assert_eq!(
+                data.fields.get("risk_level"),
+                Some(&serde_json::json!("CRITICAL"))
+            );
         }
     }
 
@@ -754,7 +775,10 @@ mod tests {
         assert!(result.success);
 
         if let ToolData::Structured(data) = &result.data {
-            assert_eq!(data.fields.get("is_dangerous"), Some(&serde_json::json!(true)));
+            assert_eq!(
+                data.fields.get("is_dangerous"),
+                Some(&serde_json::json!(true))
+            );
         }
     }
 
@@ -770,7 +794,10 @@ mod tests {
 
         if let ToolData::Structured(data) = &result.data {
             let risk_score = data.fields.get("risk_score").and_then(|v| v.as_i64());
-            assert!(risk_score.unwrap_or(0) >= 50, "curl | bash should have high risk");
+            assert!(
+                risk_score.unwrap_or(0) >= 50,
+                "curl | bash should have high risk"
+            );
         }
     }
 }
