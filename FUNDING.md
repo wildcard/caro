@@ -28,6 +28,17 @@ Open Collective offers:
 - Invoice/receipt generation for businesses
 - Expense tracking and reporting
 
+### Ko-fi
+
+For one-time contributions:
+
+**[Buy me a coffee on Ko-fi](https://ko-fi.com/kobikadosh)**
+
+Ko-fi offers:
+- Simple one-time donations
+- No platform fees on donations
+- Quick and easy checkout
+
 ## What Your Support Enables
 
 - Continued maintenance and bug fixes
