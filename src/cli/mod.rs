@@ -207,11 +207,26 @@ impl CliApp {
             // Try remote backends with embedded fallback based on configuration
             #[cfg(feature = "remote-backends")]
             {
-                use crate::backends::remote::{OllamaBackend, VllmBackend};
+                use crate::backends::remote::{ExoBackend, OllamaBackend, VllmBackend};
                 use reqwest::Url;
 
                 // TODO: Add backend preference to user configuration
-                // For now, try Ollama first, then vLLM, then embedded
+                // Priority: Exo cluster > Ollama > vLLM > Embedded
+                // Exo provides distributed inference across multiple devices
+
+                // Try Exo cluster first (distributed inference with RDMA support)
+                if let Ok(exo_url) = Url::parse("http://localhost:52415") {
+                    let exo_backend = ExoBackend::new(exo_url, "llama-3.2-3b".to_string())
+                        .map_err(|e| CliError::ConfigurationError {
+                            message: format!("Failed to create Exo backend: {}", e),
+                        })?
+                        .with_embedded_fallback(embedded_arc.clone());
+
+                    if exo_backend.is_available().await {
+                        tracing::info!("Using Exo cluster backend with embedded fallback");
+                        return Ok(Box::new(exo_backend));
+                    }
+                }
 
                 if let Ok(ollama_url) = Url::parse("http://localhost:11434") {
                     let ollama_backend = OllamaBackend::new(ollama_url, "codellama:7b".to_string())
