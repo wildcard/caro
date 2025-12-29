@@ -1,0 +1,20 @@
+{
+  "common": {
+    "buttons": {
+      "copy": "העתק",
+      "copied": "הועתק!",
+      "getStarted": "בואו נתחיל",
+      "watchDemo": "צפו בדמו"
+    },
+    "status": {
+      "availableNow": "זמין עכשיו",
+      "inDevelopment": "בפיתוח",
+      "planned": "מתוכנן",
+      "comingSoon": "בקרוב"
+    },
+    "aria": {
+      "toggleDarkMode": "החלף למצב כהה",
+      "toggleHolidayTheme": "החלף תפריט ערכות נושא לחגים"
+    }
+  }
+}
