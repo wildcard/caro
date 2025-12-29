@@ -7,8 +7,12 @@
   "framework": null,
   "rewrites": [
     {
-      "source": "/roadmap/:path*",
-      "destination": "/roadmap/:path*"
+      "source": "/roadmap/(.*)",
+      "destination": "/roadmap/index.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "headers": [
