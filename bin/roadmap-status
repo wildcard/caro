@@ -1,0 +1,80 @@
+#!/bin/bash
+# Quick roadmap status check for caro project
+# Part of the /caro.roadmap project management system
+
+set -e
+
+# Colors
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Check if gh CLI is installed
+if ! command -v gh &> /dev/null; then
+    echo -e "${RED}ERROR: GitHub CLI (gh) is not installed${NC}"
+    echo "Install: https://cli.github.com"
+    exit 1
+fi
+
+# Check if authenticated
+if ! gh auth status &> /dev/null; then
+    echo -e "${RED}ERROR: GitHub CLI is not authenticated${NC}"
+    echo "Run: gh auth login"
+    exit 1
+fi
+
+echo "================================================================================"
+echo "Caro Development Roadmap - Quick Status"
+echo "================================================================================"
+echo ""
+
+# Get milestone data
+echo -e "${BLUE}Fetching milestones...${NC}"
+MILESTONES=$(gh api repos/wildcard/caro/milestones 2>/dev/null || echo "[]")
+
+if [ "$MILESTONES" = "[]" ]; then
+    echo -e "${RED}No milestones found or API error${NC}"
+    exit 1
+fi
+
+# Parse and display milestones
+echo "$MILESTONES" | jq -r '.[] |
+    "\(.title):\n" +
+    "  Due: \(.due_on // "No due date")\n" +
+    "  Open: \(.open_issues)\n" +
+    "  Closed: \(.closed_issues)\n" +
+    "  Progress: \((.closed_issues * 100.0 / (.open_issues + .closed_issues) | floor))%\n"'
+
+echo "================================================================================"
+
+# Check for release blockers
+echo -e "${BLUE}Checking for release blockers...${NC}"
+BLOCKERS=$(gh issue list --label release-blocker --state open --json number,title 2>/dev/null || echo "[]")
+BLOCKER_COUNT=$(echo "$BLOCKERS" | jq 'length')
+
+if [ "$BLOCKER_COUNT" -gt 0 ]; then
+    echo -e "${RED}⚠️  $BLOCKER_COUNT release blocker(s) found!${NC}"
+    echo "$BLOCKERS" | jq -r '.[] | "  #\(.number): \(.title)"'
+else
+    echo -e "${GREEN}✓ No release blockers${NC}"
+fi
+
+echo "================================================================================"
+
+# Total stats
+TOTAL_OPEN=$(echo "$MILESTONES" | jq '[.[].open_issues] | add')
+TOTAL_CLOSED=$(echo "$MILESTONES" | jq '[.[].closed_issues] | add')
+TOTAL_ITEMS=$((TOTAL_OPEN + TOTAL_CLOSED))
+TOTAL_PROGRESS=$((TOTAL_CLOSED * 100 / TOTAL_ITEMS))
+
+echo -e "${BLUE}Overall Progress: $TOTAL_CLOSED/$TOTAL_ITEMS ($TOTAL_PROGRESS%)${NC}"
+echo ""
+
+# Suggest next steps
+echo "Next steps:"
+echo "  /caro.roadmap              → Full interactive status"
+echo "  /caro.roadmap next         → Get recommended work"
+echo "  /caro.roadmap blocked      → Detailed blocker analysis"
+echo "================================================================================"

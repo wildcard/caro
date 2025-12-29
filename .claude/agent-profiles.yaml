@@ -1,0 +1,140 @@
+# Agent Expertise Profiles
+# Used by /caro.roadmap for intelligent work matching
+
+# Current active profile
+current_profile: default
+
+# Profile definitions
+profiles:
+  # Default profile - no area preferences
+  default:
+    name: "General Agent"
+    description: "No specific area expertise, works on any task"
+    areas: []
+    strengths: []
+
+  # Rust CLI development specialist
+  rust:
+    name: "Rust CLI Expert"
+    description: "Expert in Rust systems programming, CLI tools, and performance optimization"
+    areas:
+      - "Core CLI"
+      - "Backends"
+      - "Safety"
+    strengths:
+      - "TDD and property-based testing"
+      - "Error handling and Result types"
+      - "Performance optimization"
+      - "Async/await patterns"
+      - "FFI and C++ integration"
+      - "POSIX compliance"
+
+  # Documentation and technical writing specialist
+  docs:
+    name: "Documentation Writer"
+    description: "Technical writing, tutorials, and developer experience"
+    areas:
+      - "DX"
+      - "Website"
+    strengths:
+      - "Technical writing"
+      - "API documentation"
+      - "User guides and tutorials"
+      - "Markdown and MDX"
+      - "Docusaurus and Starlight"
+      - "README optimization"
+
+  # DevOps and infrastructure specialist
+  devops:
+    name: "DevOps Engineer"
+    description: "CI/CD, releases, automation, and infrastructure"
+    areas:
+      - "DevOps"
+      - "Infrastructure"
+    strengths:
+      - "CI/CD pipelines"
+      - "GitHub Actions"
+      - "Release automation"
+      - "Docker and containers"
+      - "Security audits"
+      - "Dependency management"
+
+  # Frontend and web development specialist
+  web:
+    name: "Web Developer"
+    description: "Frontend development, web design, and user interfaces"
+    areas:
+      - "Website"
+      - "DX"
+    strengths:
+      - "React and TypeScript"
+      - "Astro and Starlight"
+      - "Responsive design"
+      - "Interactive UIs"
+      - "SEO optimization"
+      - "Accessibility (a11y)"
+
+  # Marketing and content specialist
+  marketing:
+    name: "Marketing Specialist"
+    description: "Content creation, community engagement, and product marketing"
+    areas:
+      - "Website"
+      - "DX"
+    strengths:
+      - "Content strategy"
+      - "Blog writing"
+      - "Social media"
+      - "Product positioning"
+      - "Community building"
+      - "User engagement"
+
+  # Security and safety specialist
+  security:
+    name: "Security Engineer"
+    description: "Security hardening, vulnerability assessment, and safety systems"
+    areas:
+      - "Safety"
+      - "Core CLI"
+    strengths:
+      - "Security audits"
+      - "Vulnerability remediation"
+      - "Command validation"
+      - "Input sanitization"
+      - "OWASP Top 10"
+      - "Penetration testing"
+
+  # Backend and ML/AI specialist
+  ai:
+    name: "AI/ML Engineer"
+    description: "LLM integration, model optimization, and AI backends"
+    areas:
+      - "Backends"
+      - "Core CLI"
+    strengths:
+      - "LLM integration"
+      - "Model quantization"
+      - "Inference optimization"
+      - "MLX and Apple Silicon"
+      - "Prompt engineering"
+      - "Evaluation harnesses"
+
+# Usage:
+# - Run `/caro.roadmap profile` to see current profile
+# - Run `/caro.roadmap profile <name>` to switch profiles
+# - The active profile influences work selection in `/caro.roadmap next`
+# - Issues matching your areas get a +25 bonus in the selection algorithm
+
+# How to add a new profile:
+# 1. Add a new entry under `profiles:`
+# 2. Specify `name`, `description`, `areas`, and `strengths`
+# 3. Areas should match GitHub label patterns: "Core CLI", "Backends", "Safety", etc.
+# 4. Save this file and run `/caro.roadmap profile <new-profile-name>`
+
+# Area Reference (from GitHub Projects):
+# - Core CLI: Main caro binary functionality
+# - Safety: Command validation, security
+# - Backends: LLM inference (MLX, Ollama, vLLM)
+# - DevOps: CI/CD, releases, automation
+# - DX: Developer experience, tooling
+# - Website: caro.sh website and landing pages

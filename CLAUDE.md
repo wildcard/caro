@@ -355,6 +355,116 @@ mkdir -p specs/005-new-feature/       # Create directory
 
 See `docs/SPEC_KITTY_GUIDE.md` for comprehensive spec-kitty documentation.
 
+## Project Management Workflow
+
+This project uses a structured project management system with GitHub Projects, milestones, and roadmap tracking. The `/caro.roadmap` skill helps agents select work aligned with project priorities.
+
+### Roadmap Structure
+
+**ROADMAP.md** defines three release milestones:
+- **v1.1.0** (Feb 15, 2025): Core improvements - production-ready functionality
+- **v1.2.0** (Mar 31, 2025): Website & docs launch - public marketing
+- **v2.0.0** (Jun 30, 2025): Advanced features - innovation and capabilities
+
+**GitHub Projects**:
+- [Caro Product Development](https://github.com/users/wildcard/projects/2) - Technical work (36 items)
+- [Caro Marketing & DevRel](https://github.com/users/wildcard/projects/3) - Content work (29 items)
+
+Each project uses custom fields:
+- **Status**: Todo, In Progress, Done
+- **Priority**: Critical, High, Medium, Low, Backlog
+- **Type**: Feature, Bug, Infrastructure, Research, Documentation, Marketing
+- **Area**: Core CLI, Safety, Backends, DevOps, DX, Website
+
+### The /caro.roadmap Skill
+
+Use `/caro.roadmap` to intelligently select and manage work:
+
+```bash
+/caro.roadmap              # Show roadmap status overview
+/caro.roadmap next         # Get next recommended work item
+/caro.roadmap select       # Interactive work selection
+/caro.roadmap start #123   # Begin work on issue (routes to spec-kitty or spec-kit)
+/caro.roadmap complete #123 # Mark issue as done
+/caro.roadmap blocked      # List all release blockers
+/caro.roadmap profile      # Show/set agent expertise
+```
+
+### Work Selection Algorithm
+
+The skill uses a weighted scoring system to recommend work:
+
+1. **Blocker Check** (+1000): Issues labeled `release-blocker` take absolute priority
+2. **Milestone Priority** (+100-300): Earlier milestones ranked higher (v1.1.0 > v1.2.0 > v2.0.0)
+3. **Priority Level** (+10-50): Critical > High > Medium > Low
+4. **Area Matching** (+25): Matches agent expertise to issue area
+5. **Status Filter**: Only suggests "Todo" items, skips "blocked" or assigned items
+
+### Agent Expertise Profiles
+
+Configure your expertise in `.claude/agent-profiles.yaml` to get better work matches:
+
+**Available profiles**:
+- `rust` - Rust CLI Expert (areas: Core CLI, Backends, Safety)
+- `docs` - Documentation Writer (areas: DX, Website)
+- `devops` - DevOps Engineer (areas: DevOps, Infrastructure)
+- `web` - Web Developer (areas: Website, DX)
+- `marketing` - Marketing Specialist (areas: Website, DX)
+- `security` - Security Engineer (areas: Safety, Core CLI)
+- `ai` - AI/ML Engineer (areas: Backends, Core CLI)
+
+Switch profiles with: `/caro.roadmap profile <name>`
+
+### Workflow Routing: Spec-Kitty vs Spec-Kit
+
+When starting work, the skill automatically routes to the appropriate workflow:
+
+| Criteria | Spec-Kitty | Spec-Kit |
+|----------|------------|----------|
+| **Scope** | < 2 weeks (small/medium) | > 2 weeks (large) |
+| **Complexity** | Low-Medium | High |
+| **Labels** | `quick-fix`, `enhancement`, `bug` | `architecture`, `research`, `major-refactor` |
+| **Workflow** | Worktree-based rapid iteration | Constitution-based manual process |
+
+**Spec-Kitty routing** (automatic):
+```bash
+/caro.roadmap start #123
+# → Creates .worktrees/NNN-feature/
+# → Suggests: /caro.feature
+```
+
+**Spec-Kit routing** (manual):
+```bash
+/caro.roadmap start #456
+# → Creates specs/NNN-feature/ directory
+# → Follow .specify/memory/constitution.md
+```
+
+### Integration with Development Workflow
+
+1. **Before starting work**: Check roadmap and select aligned issue
+   ```bash
+   /caro.roadmap              # View current status
+   /caro.roadmap next         # Get recommended work
+   ```
+
+2. **Start implementation**: Route to appropriate workflow
+   ```bash
+   /caro.roadmap start #123   # Auto-routes to spec-kitty or spec-kit
+   ```
+
+3. **Complete work**: Update status and get next task
+   ```bash
+   /caro.roadmap complete #123
+   ```
+
+4. **Check blockers**: Before releases, verify no blockers
+   ```bash
+   /caro.roadmap blocked
+   ```
+
+This ensures all work aligns with project milestones, priorities, and strategic themes documented in ROADMAP.md.
+
 ## Release Management Workflow
 
 This project enforces a **security-first release workflow** using Claude Code slash commands. All releases MUST go through feature branches and pull requests - direct commits to `main` for release-related changes are prohibited.
