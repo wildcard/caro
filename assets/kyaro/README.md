@@ -29,6 +29,6 @@ The Kyaro Assets are jointly owned by:
 All rights not expressly granted in this license are reserved.
 
 ## 4. No warranty
-The Kyaro Assets are provided “as is”, without warranty of any kind, express or implied.
+The Kyaro Assets are provided "as is", without warranty of any kind, express or implied.
+
 If you would like to use Kyaro or any of the Kyaro Assets outside the scope of this license, please contact the copyright holders to request permission.
-If you want, I can also draft a short snippet to add to the main README.md to clearly separate the GPL code license from the Kyaro asset license.
