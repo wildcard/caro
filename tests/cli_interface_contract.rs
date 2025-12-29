@@ -5,7 +5,7 @@ use std::time::Instant;
 
 // Import types that will be implemented later
 // NOTE: These imports will fail until we implement the actual CLI module
-use cmdai::{
+use caro::{
     cli::{CliApp, IntoCliArgs, OutputFormat},
     models::ShellType,
 };

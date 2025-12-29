@@ -4,7 +4,7 @@
 use std::time::Duration;
 
 // Import all major system components
-use cmdai::{
+use caro::{
     cli::CliApp,
     models::{RiskLevel, SafetyLevel, ShellType},
     safety::{SafetyConfig, SafetyValidator},

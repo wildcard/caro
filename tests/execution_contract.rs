@@ -7,8 +7,8 @@ use std::time::Instant;
 
 // Import types that will be implemented later
 // NOTE: These imports will fail until we implement the actual execution module
-use cmdai::execution::{ExecutionContext, ExecutionError, PlatformDetector, ShellDetector};
-use cmdai::models::{Platform, ShellType};
+use caro::execution::{ExecutionContext, ExecutionError, PlatformDetector, ShellDetector};
+use caro::models::{Platform, ShellType};
 
 #[test]
 fn test_execution_context_capture() {

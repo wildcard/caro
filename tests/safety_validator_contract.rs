@@ -3,7 +3,7 @@
 
 // Import types that will be implemented later
 // NOTE: These imports will fail until we implement the actual safety module
-use cmdai::{
+use caro::{
     models::{RiskLevel, ShellType},
     safety::{DangerPattern, SafetyConfig, SafetyValidator},
 };
