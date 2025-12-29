@@ -4,10 +4,10 @@ subtasks:
   - "T022"
 title: "Component Refactoring - Landing Pages"
 phase: "Phase 3 - Component Refactoring"
-lane: "planned"
+lane: "doing"
 assignee: ""
-agent: ""
-shell_pid: ""
+agent: "claude"
+shell_pid: "83593"
 review_status: ""
 reviewed_by: ""
 history:
@@ -57,3 +57,4 @@ grep -E '"[A-Z]' website/src/components/LP*.astro
 ## Activity Log
 
 - 2025-12-29T00:00:00Z – system – lane=planned – Prompt created
+- 2025-12-29T10:32:16Z – claude – shell_pid=83593 – lane=doing – Starting LP component refactoring
