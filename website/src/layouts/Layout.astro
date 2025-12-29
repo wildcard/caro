@@ -59,30 +59,9 @@ const { title, description } = Astro.props;
   </head>
   <body>
     <SnowEffect />
-    <!-- Overscroll Easter Egg -->
-    <img class="overscroll-easter-egg overscroll-top" src="/caro-pixel.png" alt="" width="80" height="80" />
-    <img class="overscroll-easter-egg overscroll-bottom" src="/caro-pixel.png" alt="" width="80" height="80" />
     <slot />
     <BackToTop />
     <Analytics />
-    <!-- Overscroll Library -->
-    <script is:inline src="/overscroll.min.js"></script>
-    <script is:inline>
-      window.addEventListener('load', function() {
-        if (typeof Overscroll !== 'undefined') {
-          const overscroll = new Overscroll();
-          const topEgg = document.querySelector('.overscroll-top');
-          const bottomEgg = document.querySelector('.overscroll-bottom');
-
-          if (topEgg) {
-            overscroll.bindElement(topEgg, 'top', 1);
-          }
-          if (bottomEgg) {
-            overscroll.bindElement(bottomEgg, 'bottom', 1);
-          }
-        }
-      });
-    </script>
   </body>
 </html>
 
@@ -420,44 +399,6 @@ const { title, description } = Astro.props;
     }
   }
 
-  /* ============================================
-     OVERSCROLL EASTER EGG
-     ============================================ */
-  .overscroll-easter-egg {
-    position: fixed;
-    left: 50%;
-    margin-left: -40px; /* Half of width to center */
-    width: 80px;
-    height: 80px;
-    z-index: 9999;
-    pointer-events: none;
-    opacity: 0.9;
-    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
-  }
-
-  .overscroll-top {
-    top: -80px; /* Hidden above viewport, equal to height */
-  }
-
-  .overscroll-bottom {
-    bottom: -80px; /* Hidden below viewport, equal to height */
-  }
-
-  @media (max-width: 768px) {
-    .overscroll-easter-egg {
-      margin-left: -30px; /* Half of mobile width */
-      width: 60px;
-      height: 60px;
-    }
-
-    .overscroll-top {
-      top: -60px;
-    }
-
-    .overscroll-bottom {
-      bottom: -60px;
-    }
-  }
 </style>
 
 <script>
