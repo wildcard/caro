@@ -1,6 +1,6 @@
-use clap::Parser;
 use caro::cli::{CliApp, CliError, IntoCliArgs};
 use caro::config::ConfigManager;
+use clap::Parser;
 use std::process;
 
 /// caro - Convert natural language to shell commands using local LLMs
@@ -246,10 +246,7 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
                 return Ok(());
             }
 
-            println!(
-                "{}",
-                "✓ Confirmed. Command is safe to execute.".green()
-            );
+            println!("{}", "✓ Confirmed. Command is safe to execute.".green());
         } else {
             // Non-interactive environment - show confirmation message and exit
             println!("{}", result.confirmation_prompt.yellow());
@@ -273,9 +270,15 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
     // Handle dry-run mode
     if cli.dry_run {
         println!("{}", "Dry Run Mode:".bold().cyan());
-        println!("  The command would be executed with shell: {:?}", result.shell_used);
+        println!(
+            "  The command would be executed with shell: {:?}",
+            result.shell_used
+        );
         if result.blocked_reason.is_some() || result.requires_confirmation {
-            println!("  {} This command would be blocked or require confirmation", "⚠".yellow());
+            println!(
+                "  {} This command would be blocked or require confirmation",
+                "⚠".yellow()
+            );
         } else {
             println!("  {} This command would execute successfully", "✓".green());
         }
@@ -310,7 +313,10 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
                         result.stdout = Some(exec_result.stdout);
                         result.stderr = Some(exec_result.stderr);
                         result.execution_error = if !exec_result.success {
-                            Some(format!("Command exited with code {}", exec_result.exit_code))
+                            Some(format!(
+                                "Command exited with code {}",
+                                exec_result.exit_code
+                            ))
                         } else {
                             None
                         };
@@ -327,7 +333,11 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
             }
         } else {
             // Non-interactive environment - show message
-            println!("{}", "Use --execute/-x flag to auto-execute commands in non-interactive environments.".dimmed());
+            println!(
+                "{}",
+                "Use --execute/-x flag to auto-execute commands in non-interactive environments."
+                    .dimmed()
+            );
             println!();
         }
     }
@@ -348,7 +358,10 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
 
         // Print execution time
         if result.timing_info.execution_time_ms > 0 {
-            println!("  Execution time: {}ms", result.timing_info.execution_time_ms);
+            println!(
+                "  Execution time: {}ms",
+                result.timing_info.execution_time_ms
+            );
         }
 
         // Print stdout if present
@@ -382,7 +395,10 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
         println!();
     } else if cli.execute || cli.interactive {
         // User requested execution but it didn't happen
-        println!("{}", "Command was not executed (blocked by safety checks or user cancelled).".yellow());
+        println!(
+            "{}",
+            "Command was not executed (blocked by safety checks or user cancelled).".yellow()
+        );
         println!();
     }
 
