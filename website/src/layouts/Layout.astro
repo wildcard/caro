@@ -9,7 +9,7 @@ import OmniSearch from '../components/OmniSearch.astro';
 import SearchHighlight from '../components/SearchHighlight.astro';
 import HolidayDebugPanel from '../components/HolidayDebugPanel.astro';
 import HumanityEventBanner from '../components/HumanityEventBanner.astro';
-import { isRtl, type Locale } from '../i18n/config';
+import { isRtl, getAllLocales, type Locale } from '../i18n/config';
 
 interface Props {
   title: string;
@@ -32,6 +32,15 @@ const dir = isRtl(lang) ? 'rtl' : 'ltr';
     <title>{title}</title>
     <!-- ASCII Morph Library (Multi-instance support) -->
     <script src="/ascii-morph-multi.js" is:inline></script>
+
+    <!-- Hreflang tags for all supported locales -->
+    {getAllLocales().map(locale => (
+      <link
+        rel="alternate"
+        hreflang={locale.code}
+        href={`https://caro.sh/${locale.code === 'en' ? '' : locale.code + '/'}`}
+      />
+    ))}
 
     <!-- Noto fonts for RTL languages -->
     {lang === 'he' && (
