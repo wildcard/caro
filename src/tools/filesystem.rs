@@ -484,12 +484,16 @@ mod tests {
     #[tokio::test]
     async fn test_filesystem_list() {
         let tool = FileSystemTool::new();
+        // Use current directory instead of /tmp to avoid permission issues
         let params = ToolCallParams::new()
             .with_string("operation", "list")
-            .with_path("path", "/tmp")
+            .with_path("path", ".")
             .with_int("depth", 1);
 
         let result = tool.execute(&params).await;
+        if !result.success {
+            eprintln!("Test failed with error: {:?}", result.error);
+        }
         assert!(result.success);
         assert!(result.as_list().is_some());
     }
