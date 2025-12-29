@@ -19,7 +19,7 @@ Execute this command? (y/N) y
 
 ## 📋 Project Status
 
-**Current Version:** 1.0.0 (Published on [crates.io](https://crates.io/crates/caro))
+**Current Version:** 1.0.2 (Published on [crates.io](https://crates.io/crates/caro))
 
 This project is in **active development** with core features implemented and working. The CLI is functional with embedded local inference and advanced platform-aware command generation.
 
@@ -27,6 +27,7 @@ This project is in **active development** with core features implemented and wor
 
 ### ✅ Completed & Published
 - ✨ **Published to crates.io** - Install via `cargo install caro`
+- 📦 **Pre-built binaries** - Download for Linux, macOS, Windows (all architectures)
 - 🎯 Core CLI structure with comprehensive argument parsing
 - 🏗️ Modular architecture with trait-based backends
 - 🧠 **Embedded model backend** with MLX (Apple Silicon) and CPU variants
@@ -40,8 +41,9 @@ This project is in **active development** with core features implemented and wor
 - 🎬 **Command execution engine** - Safe execution with shell detection
 - 📄 Multiple output formats (JSON, YAML, Plain)
 - 🧪 Contract-based test structure with TDD methodology
-- 🔄 Multi-platform CI/CD pipeline with automated publishing
-- 📦 Installation script with automatic `caro` alias setup
+- 🔄 Multi-platform CI/CD pipeline with automated binary builds
+- 🔐 **SHA256 checksum verification** for all binary downloads
+- 📥 **Smart install script** - Auto-downloads binaries or builds from source
 - 🖥️ Cross-platform detection and validation (macOS, Linux, Windows)
 - 🌐 **Official website** at [caro.sh](https://caro.sh)
 - 🎥 **Professional demos** with asciinema recordings
@@ -75,32 +77,67 @@ This project is in **active development** with core features implemented and wor
 
 ### Installation
 
-#### Option 1: One-Line Setup (Recommended)
+#### Option 1: Quick Install Script (Recommended)
 ```bash
-bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)
+curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
 ```
 
 Or with wget:
 ```bash
-bash <(wget -qO- https://setup.caro.sh)
+wget -qO- https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
 ```
 
-This will:
-- Install Rust (if not already installed)
-- Install cmdai via cargo with MLX optimization (Apple Silicon)
-- Set up the `caro` alias automatically
-- Configure your shell (bash, zsh, or fish)
+**What it does:**
+- **With Rust/Cargo**: Installs via cargo with MLX optimization on Apple Silicon
+- **Without Rust**: Downloads pre-built binary from GitHub releases (fast!)
+- Verifies SHA256 checksums for security
+- Configures your PATH automatically
 
-#### Option 2: Using Cargo
+#### Option 2: Pre-built Binaries (Fast, No Compilation)
+
+Download the latest release for your platform:
+
+| Platform | Binary | Download |
+|----------|--------|----------|
+| Linux x86_64 | `caro-linux-amd64` | [Download](https://github.com/wildcard/caro/releases/latest/download/caro-linux-amd64) |
+| Linux ARM64 | `caro-linux-arm64` | [Download](https://github.com/wildcard/caro/releases/latest/download/caro-linux-arm64) |
+| macOS Intel | `caro-macos-intel` | [Download](https://github.com/wildcard/caro/releases/latest/download/caro-macos-intel) |
+| macOS Apple Silicon | `caro-macos-silicon` | [Download](https://github.com/wildcard/caro/releases/latest/download/caro-macos-silicon) |
+| Windows x64 | `caro-windows-amd64.exe` | [Download](https://github.com/wildcard/caro/releases/latest/download/caro-windows-amd64.exe) |
+
+**Manual Installation:**
+```bash
+# Example for macOS Apple Silicon
+curl -fsSL https://github.com/wildcard/caro/releases/latest/download/caro-macos-silicon -o caro
+chmod +x caro
+sudo mv caro /usr/local/bin/
+
+# Verify installation
+caro --version
+```
+
+**Checksum Verification:**
+Each binary includes a SHA256 checksum file (`.sha256`). Verify before installing:
+```bash
+# Download binary and checksum
+curl -fsSL https://github.com/wildcard/caro/releases/latest/download/caro-macos-silicon -o caro
+curl -fsSL https://github.com/wildcard/caro/releases/latest/download/caro-macos-silicon.sha256 -o caro.sha256
+
+# Verify (macOS/Linux)
+shasum -a 256 -c caro.sha256
+```
+
+> 💡 **Note for Apple Silicon users**: Pre-built binaries work immediately, but for maximum performance with MLX GPU acceleration, install via cargo (Option 3).
+
+#### Option 3: Using Cargo (Full Features)
 ```bash
 cargo install caro
 ```
 
-#### Option 3: Pre-built Binaries
-Download the latest release from [GitHub Releases](https://github.com/wildcard/caro/releases/latest) for your platform:
-- Linux (x64, ARM64)
-- macOS (Intel, Apple Silicon)
-- Windows (x64)
+**For Apple Silicon with MLX optimization:**
+```bash
+cargo install caro --features embedded-mlx
+```
 
 ### Building from Source
 
@@ -515,15 +552,19 @@ This project is licensed under the **GNU Affero General Public License v3.0 (AGP
 - [x] Command info enrichment
 - [x] Shell-aware execution
 
-### Phase 5: Production Ready 🚧 In Progress
+### Phase 5: Production Ready ✅ Complete
 - [x] Published to crates.io
-- [x] Installation script with alias setup
+- [x] Installation script with binary fallback
 - [x] Multi-platform CI/CD
 - [x] Website and documentation
 - [x] Professional demos
+- [x] Binary distribution for all platforms (Linux x64/ARM64, macOS Intel/Apple Silicon, Windows x64)
+- [x] Automated release workflow with SHA256 checksums
+
+### Phase 6: Optimization & Expansion 🚧 In Progress
 - [ ] Extended test coverage
 - [ ] Performance benchmarking suite
-- [ ] Binary distribution optimization
+- [ ] Model downloading and caching optimization
 
 ---
 
