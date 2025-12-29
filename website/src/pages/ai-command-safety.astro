@@ -1,0 +1,50 @@
+---
+/**
+ * Landing Page: AI Command Safety
+ *
+ * Target Persona: Engineers concerned about AI tool safety
+ * Pain Point: AI hallucinations and flag failures in CLI tools
+ * Search Queries: "ai cli safety", "llm shell command safety", "ai hallucination prevention"
+ *
+ * Main Message: "AI tools will fail. Caro catches what flags can't."
+ *
+ * Based on real incidents:
+ * - Claude Code deleting home directories (HN Dec 2025)
+ * - Gemini CLI hallucinating file paths (HN Jul 2025)
+ */
+
+import LandingPage from '../layouts/LandingPage.astro';
+import LPNavigation from '../components/landing/LPNavigation.astro';
+import AICommandHero from '../components/landing/AICommandHero.astro';
+import AICommandDemo from '../components/landing/AICommandDemo.astro';
+import LPBestPractices from '../components/landing/LPBestPractices.astro';
+import LPScenarios from '../components/landing/LPScenarios.astro';
+import AICommandCommunityVoices from '../components/landing/AICommandCommunityVoices.astro';
+import LPTrust from '../components/landing/LPTrust.astro';
+import AICommandFeatures from '../components/landing/AICommandFeatures.astro';
+import AICommandDifferentiators from '../components/landing/AICommandDifferentiators.astro';
+import AICommandFAQ from '../components/landing/AICommandFAQ.astro';
+import LPDownload from '../components/landing/LPDownload.astro';
+import LPFooter from '../components/landing/LPFooter.astro';
+---
+
+<LandingPage
+  title="AI Command Safety | Caro - Hallucination-Resistant Shell Validation"
+  description="AI CLI tools have deleted user files in 2025. Flags like --dangerously-skip-permissions don't help. Caro blocks dangerous patterns BEFORE execution—even when AI hallucinates. Pattern-based safety that can't be bypassed."
+  slug="ai-command-safety"
+  persona="Engineers concerned about AI tool safety"
+  painPoint="AI hallucinations and flag failures in CLI tools"
+>
+  <LPNavigation />
+  <AICommandHero />
+  <AICommandDemo />
+  <LPBestPractices />
+  <LPScenarios />
+  <AICommandCommunityVoices />
+  <LPTrust />
+  <AICommandFeatures />
+  <AICommandDifferentiators />
+  <AICommandFAQ />
+  <LPDownload />
+  <LPFooter />
+</LandingPage>

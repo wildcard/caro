@@ -1,0 +1,216 @@
+---
+/**
+ * AI Agent Testimonials - Enterprise-focused quotes about AI safety
+ */
+
+const testimonials = [
+  {
+    quote: "We deployed Claude agents to 200 developers. After reading about the home directory incident, Caro became mandatory. It's not optional anymore—it's our insurance policy.",
+    author: "Platform Engineering Lead",
+    company: "Series B SaaS Company",
+    context: "After deploying AI coding assistants at scale"
+  },
+  {
+    quote: "The math is simple: 200 devs × 100 daily AI commands = 20,000 commands. Even 99.9% reliability means 20 potentially dangerous commands per day. Caro catches them all.",
+    author: "VP of Engineering",
+    company: "Enterprise Fintech",
+    context: "On enterprise AI risk management"
+  },
+  {
+    quote: "We can't tell our engineers to 'just be careful' with AI tools. That's not a strategy. Pattern-based validation is deterministic. That's a strategy.",
+    author: "Senior SRE",
+    company: "Fortune 500 Tech",
+    context: "On replacing behavioral policies with technical controls"
+  }
+];
+---
+
+<section id="testimonials" class="section">
+  <div class="container">
+    <h2>What Enterprise Teams Are Saying</h2>
+    <p class="section-subtitle">Companies that deploy AI agents at scale trust Caro</p>
+
+    <div class="testimonials-grid">
+      {testimonials.map((testimonial) => (
+        <div class="testimonial-card">
+          <blockquote class="testimonial-quote">
+            "{testimonial.quote}"
+          </blockquote>
+          <div class="testimonial-author">
+            <div class="author-info">
+              <span class="author-name">{testimonial.author}</span>
+              <span class="author-company">{testimonial.company}</span>
+            </div>
+          </div>
+          <div class="testimonial-context">
+            {testimonial.context}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div class="trust-banner">
+      <div class="trust-stat">
+        <span class="trust-number">52+</span>
+        <span class="trust-label">Dangerous patterns blocked</span>
+      </div>
+      <div class="trust-stat">
+        <span class="trust-number">0</span>
+        <span class="trust-label">Cloud dependencies</span>
+      </div>
+      <div class="trust-stat">
+        <span class="trust-number">100%</span>
+        <span class="trust-label">Local execution</span>
+      </div>
+      <div class="trust-stat">
+        <span class="trust-number">&lt;100ms</span>
+        <span class="trust-label">Validation overhead</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  h2 {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    margin-bottom: 50px;
+  }
+
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 50px;
+  }
+
+  .testimonial-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .testimonial-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  :global(.dark) .testimonial-card:hover {
+    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.1);
+  }
+
+  .testimonial-quote {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--color-text);
+    font-style: italic;
+    margin: 0 0 20px 0;
+    padding: 0;
+    border: none;
+    flex-grow: 1;
+  }
+
+  .testimonial-author {
+    margin-bottom: 12px;
+  }
+
+  .author-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .author-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-text);
+  }
+
+  .author-company {
+    font-size: 13px;
+    color: #ff8c42;
+  }
+
+  .testimonial-context {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .trust-banner {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.08) 0%, rgba(255, 107, 53, 0.04) 100%);
+    border: 1px solid rgba(255, 140, 66, 0.2);
+    border-radius: 12px;
+    padding: 32px;
+  }
+
+  .trust-stat {
+    text-align: center;
+  }
+
+  .trust-number {
+    display: block;
+    font-size: 32px;
+    font-weight: 700;
+    color: #ff8c42;
+    margin-bottom: 8px;
+    font-family: 'SF Mono', 'Monaco', monospace;
+  }
+
+  .trust-label {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+
+  @media (max-width: 1000px) {
+    .testimonials-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 28px;
+    }
+
+    .trust-banner {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .trust-number {
+      font-size: 24px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .trust-banner {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

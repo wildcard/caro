@@ -1,0 +1,301 @@
+---
+/**
+ * Real AI Incidents - Documented cases of AI tools causing damage
+ * Links to HN discussions for credibility
+ */
+
+const incidents = [
+  {
+    tool: "Claude Code",
+    date: "December 2025",
+    headline: "Deleted user's entire home directory",
+    description: "Despite using --dangerously-skip-permissions flag, Claude Code executed rm -rf ~/ when asked to 'clean up temp files'. The flag only controlled permission prompts—it didn't validate the actual commands.",
+    impact: "Complete loss of home directory including code, documents, and configuration files",
+    link: "https://news.ycombinator.com/item?id=42768072",
+    lessons: [
+      "Permission flags don't validate commands",
+      "AI can misinterpret 'cleanup' requests destructively",
+      "No backup strategy can help if deletion happens instantly"
+    ]
+  },
+  {
+    tool: "Gemini CLI",
+    date: "July 2025",
+    headline: "Hallucinated file paths and deleted real files",
+    description: "Gemini CLI confidently fabricated file paths that didn't exist, then 'cleaned up' by deleting actual files in similar locations. The AI showed no uncertainty about its hallucinated information.",
+    impact: "Deletion of project files and configuration that the user never intended to modify",
+    link: "https://news.ycombinator.com/item?id=44651485",
+    lessons: [
+      "LLMs hallucinate with high confidence",
+      "Safety checks can't catch made-up paths",
+      "Stochastic systems will eventually fail"
+    ]
+  }
+];
+---
+
+<section id="incidents" class="section">
+  <div class="container">
+    <h2>This Happened. It Will Happen Again.</h2>
+    <p class="section-subtitle">Documented incidents where AI tools caused real damage</p>
+
+    <div class="incidents-list">
+      {incidents.map((incident) => (
+        <article class="incident-card">
+          <header class="incident-header">
+            <div class="incident-meta">
+              <span class="tool-badge">{incident.tool}</span>
+              <span class="incident-date">{incident.date}</span>
+            </div>
+            <h3>{incident.headline}</h3>
+          </header>
+
+          <div class="incident-body">
+            <p class="incident-description">{incident.description}</p>
+
+            <div class="incident-impact">
+              <span class="impact-label">Impact:</span>
+              <span class="impact-text">{incident.impact}</span>
+            </div>
+
+            <div class="incident-lessons">
+              <span class="lessons-label">Key lessons:</span>
+              <ul>
+                {incident.lessons.map((lesson) => (
+                  <li>{lesson}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <footer class="incident-footer">
+            <a href={incident.link} target="_blank" rel="noopener noreferrer" class="source-link">
+              Read the HN discussion →
+            </a>
+          </footer>
+        </article>
+      ))}
+    </div>
+
+    <div class="timeline-note">
+      <div class="timeline-icon">📅</div>
+      <div class="timeline-content">
+        <strong>Two major incidents in 2025 alone.</strong>
+        As AI coding tools become more popular, these incidents will increase.
+        The question isn't <em>if</em> it will happen to your team—it's <em>when</em>.
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  h2 {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  h3 {
+    font-size: 22px;
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    margin-bottom: 50px;
+  }
+
+  .incidents-list {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    margin-bottom: 50px;
+  }
+
+  .incident-card {
+    background: var(--color-bg-secondary);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-left: 4px solid #ef4444;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .incident-header {
+    padding: 28px 28px 0;
+  }
+
+  .incident-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .tool-badge {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+
+  .incident-date {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .incident-body {
+    padding: 20px 28px;
+  }
+
+  .incident-description {
+    font-size: 16px;
+    color: var(--color-text);
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+
+  .incident-impact {
+    background: rgba(239, 68, 68, 0.08);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .impact-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #ef4444;
+    margin-bottom: 6px;
+  }
+
+  .impact-text {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .incident-lessons {
+    background: var(--color-bg);
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  .lessons-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-text-secondary);
+    margin-bottom: 10px;
+  }
+
+  .incident-lessons ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .incident-lessons li {
+    padding: 6px 0 6px 20px;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    position: relative;
+  }
+
+  .incident-lessons li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: #ff8c42;
+  }
+
+  .incident-footer {
+    padding: 16px 28px;
+    background: var(--color-bg);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .source-link {
+    color: #ff8c42;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .source-link:hover {
+    text-decoration: underline;
+  }
+
+  .timeline-note {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(239, 68, 68, 0.03) 100%);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 12px;
+    padding: 28px;
+  }
+
+  .timeline-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+  }
+
+  .timeline-content {
+    font-size: 16px;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+  }
+
+  .timeline-content strong {
+    color: var(--color-text);
+  }
+
+  .timeline-content em {
+    color: #ef4444;
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 28px;
+    }
+
+    .incident-header,
+    .incident-body {
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+
+    .incident-footer {
+      padding: 16px 20px;
+    }
+
+    .timeline-note {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+</style>

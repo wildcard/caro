@@ -8,21 +8,44 @@ This document outlines the landing page strategy for Caro, including existing pa
 website/src/
 ├── pages/
 │   ├── index.astro                    # Homepage (general audience)
-│   ├── safe-shell-commands.astro      # Landing page 1 (SRE/DevOps)
-│   ├── [future-slug].astro            # Future landing pages
+│   ├── safe-shell-commands.astro      # Landing page 1 (SRE/DevOps - original)
+│   ├── ai-command-safety.astro        # Landing page 2 (AI hallucination safety)
+│   ├── ai-agent-safety.astro          # Landing page 3 (Enterprise AI scale)
 │   └── ...
 ├── layouts/
 │   └── LandingPage.astro              # Shared layout for all landing pages
 └── components/
     └── landing/                       # Landing page components
-        ├── LPNavigation.astro
-        ├── LPHero.astro
-        ├── LPDemo.astro
-        ├── LPUseCases.astro
-        ├── LPFeatures.astro
-        ├── LPDifferentiators.astro
-        ├── LPDownload.astro
-        └── LPFooter.astro
+        # Shared components (used by multiple pages)
+        ├── LPNavigation.astro         # Shared navigation
+        ├── LPBestPractices.astro      # Defense in depth section
+        ├── LPScenarios.astro          # Role-based scenarios
+        ├── LPTrust.astro              # Trust badges
+        ├── LPDownload.astro           # Installation CTA
+        ├── LPFooter.astro             # Footer
+        #
+        # /safe-shell-commands components (original SRE/DevOps focus)
+        ├── LPHero.astro               # Safe shell commands hero
+        ├── LPDemo.astro               # Terminal demos (2 scenarios)
+        ├── LPCommunityVoices.astro    # Community quotes (general)
+        ├── LPFeatures.astro           # Feature cards (4 features)
+        ├── LPDifferentiators.astro    # Comparison section (3 points)
+        ├── LPFAQ.astro                # Common concerns (6 questions)
+        #
+        # /ai-command-safety components (AI hallucination focus)
+        ├── AICommandHero.astro        # Hero with incident warnings
+        ├── AICommandDemo.astro        # Terminal demos (3 scenarios incl. AI disaster)
+        ├── AICommandCommunityVoices.astro  # HN incident quotes
+        ├── AICommandFeatures.astro    # Features (6 incl. hallucination resistant)
+        ├── AICommandDifferentiators.astro  # Comparison (4 incl. flag vs pattern)
+        ├── AICommandFAQ.astro         # AI-focused FAQ (10 questions)
+        #
+        # /ai-agent-safety components (Enterprise scale focus)
+        ├── AIHero.astro               # Enterprise AI hero
+        ├── AIWhyFlagsFail.astro       # Flag vs pattern comparison
+        ├── AIRiskCalculator.astro     # Interactive risk calculator
+        ├── AIIncidents.astro          # Real incidents with HN links
+        └── AITestimonials.astro       # Enterprise testimonials
 ```
 
 ## URL Strategy
@@ -59,9 +82,79 @@ Examples:
 
 ---
 
+### 2. `/ai-command-safety`
+
+**Target Persona:** Engineers concerned about AI CLI tool safety
+**Pain Point:** AI hallucinations and permission flag failures in CLI tools
+**Main Message:** "AI tools will fail. Caro catches what flags can't."
+
+**Search Queries This Page Targets:**
+- "ai cli safety"
+- "llm shell command safety"
+- "ai hallucination prevention"
+- "claude code safety"
+- "gemini cli safety"
+- "ai terminal mistakes"
+
+**Key Differentiators:**
+- Real incident documentation (Claude Code, Gemini CLI deleting files)
+- Hallucination-resistant (pattern-based, not permission-based)
+- "The AI Disaster" demo scenario
+- Flags vs pattern matching comparison
+- Enhanced FAQ addressing AI-specific concerns
+
+**Components:**
+- AICommandHero (incident warning banner, hallucination focus)
+- AICommandDemo (3 scenarios including "The AI Disaster")
+- LPBestPractices (defense in depth)
+- LPScenarios (role-based)
+- AICommandCommunityVoices (HN incident quotes)
+- LPTrust (trust badges)
+- AICommandFeatures (6 features incl. hallucination resistant)
+- AICommandDifferentiators (4 points incl. flag vs pattern)
+- AICommandFAQ (10 AI-focused questions)
+- LPDownload, LPFooter
+
+**Status:** ✅ Live
+
+---
+
+### 3. `/ai-agent-safety`
+
+**Target Persona:** Enterprise teams deploying AI agents at scale
+**Pain Point:** AI hallucinations, flag failures, stochastic system risks
+**Main Message:** "AI Agents Run Dangerous Commands. Caro Catches Them."
+
+**Search Queries This Page Targets:**
+- "ai agent safety"
+- "llm hallucination prevention"
+- "ai coding tool safety"
+- "claude code safety"
+- "gemini cli safety"
+- "enterprise ai risk"
+
+**Key Differentiators:**
+- Hallucination-resistant (pattern-based, not permission-based)
+- Deterministic validation (not probabilistic)
+- Enterprise scale math (risk calculator)
+- Real incident documentation (Claude, Gemini)
+
+**Components:**
+- AIHero (incidents banner, hallucination focus)
+- AIWhyFlagsFail (flag vs pattern comparison)
+- AIRiskCalculator (interactive enterprise risk demo)
+- AIIncidents (documented incidents with HN links)
+- AITestimonials (enterprise-focused quotes)
+- LPBestPractices (defense in depth)
+- LPFAQ (AI-focused questions)
+
+**Status:** ✅ Live
+
+---
+
 ## Planned Landing Pages
 
-### 2. `/air-gapped-ai-terminal` (Priority: High)
+### 4. `/air-gapped-ai-terminal` (Priority: High)
 
 **Target Persona:** Security-Conscious Platform Engineer
 **Pain Point:** Need AI assistance but can't send data to cloud
@@ -86,7 +179,7 @@ Examples:
 
 ---
 
-### 3. `/cross-platform-shell-commands` (Priority: Medium)
+### 5. `/cross-platform-shell-commands` (Priority: Medium)
 
 **Target Persona:** Developer who works across Mac/Linux/BSD
 **Pain Point:** Commands work on Mac but fail on Linux server
@@ -111,7 +204,7 @@ Examples:
 
 ---
 
-### 4. `/natural-language-terminal` (Priority: Medium)
+### 6. `/natural-language-terminal` (Priority: Medium)
 
 **Target Persona:** Developer who struggles to remember command syntax
 **Pain Point:** Constantly looking up command syntax on Stack Overflow
@@ -131,7 +224,7 @@ Examples:
 
 ---
 
-### 5. `/junior-dev-safety-rails` (Priority: Low)
+### 7. `/junior-dev-safety-rails` (Priority: Low)
 
 **Target Persona:** Team Lead / Senior Engineer
 **Pain Point:** Junior devs running dangerous commands in production
@@ -151,7 +244,7 @@ Examples:
 
 ---
 
-### 6. `/claude-mcp-shell-agent` (Priority: Future)
+### 8. `/claude-mcp-shell-agent` (Priority: Future)
 
 **Target Persona:** Claude user who wants shell integration
 **Pain Point:** Claude can't safely execute shell commands

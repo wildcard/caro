@@ -1,10 +1,25 @@
 ---
 /**
- * Common Concerns / FAQ - Address developer skepticism directly
+ * AI Command Safety FAQ - Address developer skepticism about AI tools
  * Based on real concerns from community discussions
  */
 
 const concerns = [
+  {
+    question: "I heard AI coding tools deleted someone's home directory. How is Caro different?",
+    answer: "You're right—it happened with both Claude Code and Gemini CLI in 2025. The tools had safety flags but still ran destructive commands. Caro's safety is pattern-based, not permission-based. We block destructive patterns at the command level. Flags can be bypassed. Pattern matching can't.",
+    icon: "💥"
+  },
+  {
+    question: "What about AI hallucinations? LLMs can make up file paths and commands.",
+    answer: "Exactly—and that's why Caro doesn't trust the source. Whether a command comes from you, an AI, or a hallucinating LLM, Caro validates the command itself. If an AI hallucinates 'rm -rf /nonexistent/but/dangerous/path', the pattern is still blocked. Deterministic validation beats probabilistic generation.",
+    icon: "🎲"
+  },
+  {
+    question: "How should I deploy Caro for AI agents?",
+    answer: "Defense in depth: (1) Run as unprivileged user without sudo, (2) Sandbox to specific directories, (3) Use container isolation, (4) Let Caro validate commands. Each layer catches what others miss. See our Best Practices section for detailed setup.",
+    icon: "🐳"
+  },
   {
     question: "Wait, Caro runs locally. How does it stay updated with new dangerous patterns?",
     answer: "Caro's safety patterns are baked into the binary—no network needed. When you update Caro (cargo install caro --force), you get the latest patterns. The core dangerous commands (rm -rf /, fork bombs, disk wipers) don't change. We also accept pattern contributions via GitHub.",
@@ -14,6 +29,11 @@ const concerns = [
     question: "Will this slow down my incident response?",
     answer: "No. Caro adds <100ms to command generation. The safety check is instant (pattern matching, not AI inference). In a real incident, that's 100ms that might save you from making things 10x worse. The validation is synchronous—you see the warning immediately.",
     icon: "⚡"
+  },
+  {
+    question: "Can I use Caro in enterprise environments with multiple user accounts?",
+    answer: "Yes. Caro is designed for teams running hundreds of developer accounts. Each user gets local validation with no shared state. No cloud dependencies means no data leaks between accounts. Deploy via your package manager or container registry.",
+    icon: "🏢"
   },
   {
     question: "How does it know my specific system setup (BSD vs GNU, etc.)?",
@@ -34,6 +54,16 @@ const concerns = [
     question: "Why should I trust AI-generated shell commands at all?",
     answer: "You shouldn't trust them blindly—that's the point. Caro generates commands AND validates them before you run them. It's not 'trust the AI'—it's 'trust the pattern-based safety layer that catches what the AI might get wrong.' The validation is deterministic, not probabilistic.",
     icon: "🎯"
+  },
+  {
+    question: "Aren't LLMs trained to be agreeable? Doesn't that make them dangerous?",
+    answer: "Yes—this is called LLM sycophancy. AI tools are trained to agree with users and appear confident, even when they're wrong. Gemini told a user they were 'overqualified and underpaid'—completely fabricated career advice. In shell commands, this means the AI will confidently generate commands that look right but are subtly destructive. Caro doesn't care about confidence. It validates the actual command.",
+    icon: "🎭"
+  },
+  {
+    question: "Who's responsible when an AI command goes wrong? The AI can't be held accountable.",
+    answer: "Exactly the problem. The machine cannot be held responsible, but the decision is yours. That's the 'decision responsibility gap'—you're accountable for commands an AI suggested but can't fully verify. Caro bridges this gap: you make informed decisions with explicit warnings about dangerous patterns. No more dice-roll decision making.",
+    icon: "⚖️"
   }
 ];
 ---

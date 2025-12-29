@@ -1,0 +1,492 @@
+---
+/**
+ * AI Agent Deployment Best Practices - Based on HN feedback
+ * Addresses: least privilege, sandboxing, containers, permission audits, hallucinations
+ */
+
+const practices = [
+  {
+    icon: "👤",
+    title: "Run as Unprivileged User",
+    description: "Never run AI tools with sudo or as root. Create a dedicated user with minimal permissions.",
+    command: "useradd --no-create-home --shell /bin/false caro-agent",
+    caro: "Caro blocks sudo/su commands and warns when running as root"
+  },
+  {
+    icon: "📁",
+    title: "Sandbox to Specific Directories",
+    description: "Confine AI agents to specific directories. Protect /home, /etc, and system paths.",
+    command: "# Caro warns on operations outside working directory",
+    caro: "Detects and warns on /home, ~, /etc, /usr operations"
+  },
+  {
+    icon: "🐳",
+    title: "Container Isolation",
+    description: "Run AI tools in containers with no access to important data or host filesystem.",
+    command: "docker run --rm -v $(pwd):/workspace caro-sandbox",
+    caro: "Works in containers with zero host access needed"
+  },
+  {
+    icon: "🎲",
+    title: "Assume Hallucinations Will Happen",
+    description: "LLMs are probabilistic. Even with 99% accuracy, 1 in 100 commands could be dangerous.",
+    command: "# AI may fabricate paths: rm -rf /imaginary/but/destructive",
+    caro: "Pattern matching catches dangerous commands regardless of source"
+  },
+];
+
+const realIncidents = [
+  {
+    tool: "Claude Code",
+    headline: "Deleted entire home directory",
+    detail: "--dangerously-skip-permissions flag didn't help",
+    source: "HN, Dec 2025"
+  },
+  {
+    tool: "Gemini CLI",
+    headline: "Hallucinated file paths and deleted files",
+    detail: "AI confidently made up paths that didn't exist",
+    source: "HN, Jul 2025"
+  }
+];
+---
+
+<section id="best-practices" class="practices-section">
+  <div class="container">
+    <div class="incidents-grid">
+      {realIncidents.map((incident) => (
+        <div class="incident-card">
+          <div class="incident-badge">{incident.tool}</div>
+          <h3>{incident.headline}</h3>
+          <p class="incident-detail">{incident.detail}</p>
+          <p class="incident-source">— {incident.source}</p>
+        </div>
+      ))}
+    </div>
+    <p class="incidents-takeaway">
+      <strong>These aren't edge cases. LLMs are probabilistic systems—failures are inevitable at scale.</strong>
+    </p>
+
+    <h2>AI Agent Deployment Best Practices</h2>
+    <p class="section-subtitle">Defense in depth for AI-powered shell tools</p>
+
+    <div class="practices-grid">
+      {practices.map((practice) => (
+        <div class="practice-card">
+          <div class="practice-header">
+            <span class="practice-icon">{practice.icon}</span>
+            <h3>{practice.title}</h3>
+          </div>
+          <p class="practice-description">{practice.description}</p>
+          <div class="practice-command">
+            <code>{practice.command}</code>
+          </div>
+          <div class="caro-note">
+            <span class="caro-badge">Caro:</span>
+            <span>{practice.caro}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div class="defense-layers">
+      <h3>Defense in Depth: Don't Rely on Flags Alone</h3>
+      <div class="layers-diagram">
+        <div class="layer layer-1">
+          <span class="layer-num">1</span>
+          <span class="layer-text">Unprivileged User (no sudo)</span>
+        </div>
+        <div class="layer layer-2">
+          <span class="layer-num">2</span>
+          <span class="layer-text">Directory Sandboxing</span>
+        </div>
+        <div class="layer layer-3">
+          <span class="layer-num">3</span>
+          <span class="layer-text">Container Isolation</span>
+        </div>
+        <div class="layer layer-4">
+          <span class="layer-num">4</span>
+          <span class="layer-text">Caro Pre-Execution Validation</span>
+        </div>
+      </div>
+      <p class="layers-note">
+        Each layer catches what the others miss. Caro is your last line of defense—not your only one.
+      </p>
+    </div>
+
+    <div class="enterprise-scale">
+      <h3>The Math of AI Risk at Enterprise Scale</h3>
+      <div class="scale-stats">
+        <div class="scale-stat">
+          <span class="scale-number">1,000</span>
+          <span class="scale-label">developers</span>
+        </div>
+        <div class="scale-operator">×</div>
+        <div class="scale-stat">
+          <span class="scale-number">100</span>
+          <span class="scale-label">AI commands/day</span>
+        </div>
+        <div class="scale-operator">=</div>
+        <div class="scale-stat highlight">
+          <span class="scale-number">100,000</span>
+          <span class="scale-label">potential dangerous commands/day</span>
+        </div>
+      </div>
+      <p class="scale-note">
+        Even at 99.9% AI accuracy, that's <strong>100 potentially dangerous commands daily</strong>.
+        One bad hallucination without Caro = catastrophe.
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .practices-section {
+    padding: 80px 20px;
+    background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-secondary) 100%);
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .incidents-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  .incident-card {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(239, 68, 68, 0.03) 100%);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+  }
+
+  .incident-badge {
+    display: inline-block;
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+
+  .incident-card h3 {
+    font-size: 18px;
+    color: var(--color-text);
+    margin-bottom: 8px;
+  }
+
+  .incident-detail {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin-bottom: 8px;
+    font-style: italic;
+  }
+
+  .incident-source {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  .incidents-takeaway {
+    text-align: center;
+    font-size: 16px;
+    color: #ef4444;
+    margin-bottom: 50px;
+  }
+
+  h2 {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    margin-bottom: 50px;
+  }
+
+  .practices-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    margin-bottom: 60px;
+  }
+
+  .practice-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 28px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .practice-card:hover {
+    border-color: #ff8c42;
+    transform: translateY(-2px);
+  }
+
+  .practice-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .practice-icon {
+    font-size: 28px;
+  }
+
+  .practice-header h3 {
+    font-size: 18px;
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  .practice-description {
+    font-size: 15px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .practice-command {
+    background: #1a1a2e;
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+  }
+
+  .practice-command code {
+    font-family: 'SF Mono', 'Monaco', monospace;
+    font-size: 13px;
+    color: #9cdcfe;
+  }
+
+  .caro-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(34, 197, 94, 0.08);
+    border-radius: 6px;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .caro-badge {
+    flex-shrink: 0;
+    color: #ff8c42;
+    font-weight: 600;
+  }
+
+  .defense-layers {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+  }
+
+  .defense-layers h3 {
+    font-size: 22px;
+    color: var(--color-text);
+    margin-bottom: 32px;
+  }
+
+  .layers-diagram {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 500px;
+    margin: 0 auto 24px;
+  }
+
+  .layer {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 24px;
+    border-radius: 8px;
+    transition: transform 0.2s;
+  }
+
+  .layer:hover {
+    transform: translateX(8px);
+  }
+
+  .layer-1 {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
+  .layer-2 {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+  }
+
+  .layer-3 {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+  }
+
+  .layer-4 {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+
+  .layer-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--color-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--color-text);
+  }
+
+  .layer-text {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  .layers-note {
+    font-size: 15px;
+    color: var(--color-text-secondary);
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .enterprise-scale {
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.08) 0%, rgba(255, 107, 53, 0.04) 100%);
+    border: 1px solid rgba(255, 140, 66, 0.2);
+    border-radius: 12px;
+    padding: 40px;
+    margin-top: 40px;
+    text-align: center;
+  }
+
+  .enterprise-scale h3 {
+    font-size: 22px;
+    color: var(--color-text);
+    margin-bottom: 32px;
+  }
+
+  .scale-stats {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+
+  .scale-stat {
+    text-align: center;
+  }
+
+  .scale-stat.highlight {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+    padding: 16px 24px;
+  }
+
+  .scale-number {
+    display: block;
+    font-size: 32px;
+    font-weight: 700;
+    color: #ff8c42;
+  }
+
+  .scale-stat.highlight .scale-number {
+    color: #ef4444;
+  }
+
+  .scale-label {
+    display: block;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin-top: 4px;
+  }
+
+  .scale-operator {
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--color-text-secondary);
+  }
+
+  .scale-note {
+    font-size: 16px;
+    color: var(--color-text-secondary);
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .scale-note strong {
+    color: #ef4444;
+  }
+
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 28px;
+    }
+
+    .incidents-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .incident-card h3 {
+      font-size: 16px;
+    }
+
+    .practices-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .defense-layers {
+      padding: 28px 20px;
+    }
+
+    .layer {
+      padding: 12px 16px;
+    }
+
+    .enterprise-scale {
+      padding: 28px 20px;
+    }
+
+    .scale-stats {
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .scale-operator {
+      display: none;
+    }
+
+    .scale-number {
+      font-size: 28px;
+    }
+  }
+</style>

@@ -1,0 +1,46 @@
+---
+/**
+ * Landing Page: AI Agent Safety
+ *
+ * Target Persona: Enterprise teams deploying AI agents at scale
+ * Pain Point: AI hallucinations, flag failures, stochastic system risks
+ * Search Queries: "ai agent safety", "llm hallucination prevention", "ai coding tool safety"
+ *
+ * Main Message: "AI Agents Run Dangerous Commands. Caro Catches Them."
+ *
+ * Based on HN discussions about:
+ * - Claude Code deleting home directories (Dec 2025)
+ * - Gemini CLI hallucinating file paths (Jul 2025)
+ */
+
+import LandingPage from '../layouts/LandingPage.astro';
+import LPNavigation from '../components/landing/LPNavigation.astro';
+import AIHero from '../components/landing/AIHero.astro';
+import AIWhyFlagsFail from '../components/landing/AIWhyFlagsFail.astro';
+import AIRiskCalculator from '../components/landing/AIRiskCalculator.astro';
+import AIIncidents from '../components/landing/AIIncidents.astro';
+import AITestimonials from '../components/landing/AITestimonials.astro';
+import LPBestPractices from '../components/landing/LPBestPractices.astro';
+import LPFAQ from '../components/landing/LPFAQ.astro';
+import LPDownload from '../components/landing/LPDownload.astro';
+import LPFooter from '../components/landing/LPFooter.astro';
+---
+
+<LandingPage
+  title="AI Agent Safety | Caro - Hallucination-Resistant Command Validation"
+  description="Your LLMs will hallucinate. Your safety flags will fail. Caro provides pattern-based command validation that catches dangerous commands—whether from users or confused AI agents. Deterministic protection for enterprise AI deployments."
+  slug="ai-agent-safety"
+  persona="Enterprise AI Teams"
+  painPoint="AI hallucinations and flag failures at scale"
+>
+  <LPNavigation />
+  <AIHero />
+  <AIWhyFlagsFail />
+  <AIRiskCalculator />
+  <AIIncidents />
+  <AITestimonials />
+  <LPBestPractices />
+  <LPFAQ />
+  <LPDownload />
+  <LPFooter />
+</LandingPage>

@@ -13,6 +13,12 @@ const features = [
     highlight: true
   },
   {
+    icon: "👤",
+    title: "Built for Least Privilege",
+    description: "Warns when running as root. Blocks sudo escalation patterns. Flags operations on /home, ~, /etc. Defense in depth for AI agents that can't be trusted with full access.",
+    highlight: true
+  },
+  {
     icon: "✅",
     title: "Commands That Actually Work",
     description: "Generates commands that work on your Mac, your Linux server, and your coworker's BSD box. First time. Every time.",
@@ -23,6 +29,18 @@ const features = [
     title: "Fast Enough to Not Break Flow",
     description: "Sub-2s inference on Apple Silicon. No waiting for cloud APIs. No wondering if the server is down. Just answers.",
     highlight: false
+  },
+  {
+    icon: "🎲",
+    title: "Hallucination Resistant",
+    description: "LLMs are probabilistic—they will hallucinate commands. Caro doesn't care about the source. Pattern matching catches dangerous commands whether they came from you or a confused AI.",
+    highlight: true
+  },
+  {
+    icon: "⚖️",
+    title: "Your Decision, Your Responsibility",
+    description: "AI can't be held accountable—but you can. Caro bridges the decision responsibility gap: explicit warnings give you the information to make informed decisions, not dice rolls.",
+    highlight: true
   },
 ];
 ---
@@ -77,8 +95,8 @@ const features = [
 
   .features {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 30px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
   }
 
   .feature {
@@ -144,6 +162,12 @@ const features = [
 
   .cta-link:hover {
     opacity: 0.8;
+  }
+
+  @media (max-width: 1100px) {
+    .features {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 
   @media (max-width: 768px) {
