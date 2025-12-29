@@ -346,16 +346,36 @@ async fn test_multiplatform_execution_context() {
     // not for the platform being tested (ExecutionContext validates path absoluteness)
     #[cfg(unix)]
     let test_cases = vec![
-        (Platform::Linux, ShellType::Bash, PathBuf::from("/test/path")),
+        (
+            Platform::Linux,
+            ShellType::Bash,
+            PathBuf::from("/test/path"),
+        ),
         (Platform::MacOS, ShellType::Zsh, PathBuf::from("/test/path")),
-        (Platform::Windows, ShellType::PowerShell, PathBuf::from("/test/path")),
+        (
+            Platform::Windows,
+            ShellType::PowerShell,
+            PathBuf::from("/test/path"),
+        ),
     ];
 
     #[cfg(windows)]
     let test_cases = vec![
-        (Platform::Linux, ShellType::Bash, PathBuf::from("C:\\test\\path")),
-        (Platform::MacOS, ShellType::Zsh, PathBuf::from("C:\\test\\path")),
-        (Platform::Windows, ShellType::PowerShell, PathBuf::from("C:\\test\\path")),
+        (
+            Platform::Linux,
+            ShellType::Bash,
+            PathBuf::from("C:\\test\\path"),
+        ),
+        (
+            Platform::MacOS,
+            ShellType::Zsh,
+            PathBuf::from("C:\\test\\path"),
+        ),
+        (
+            Platform::Windows,
+            ShellType::PowerShell,
+            PathBuf::from("C:\\test\\path"),
+        ),
     ];
 
     for (platform, shell, test_path) in test_cases {
