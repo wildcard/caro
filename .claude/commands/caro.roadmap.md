@@ -141,17 +141,17 @@ Last Updated: [current date from ROADMAP.md]
 
 Milestones:
   [🎯] v1.1.0 - Core Improvements
-      Due: Feb 15, 2025 (XX days remaining)
+      Due: Feb 15, 2026 (XX days remaining)
       Status: [##########----------] 14 open, 1 closed (7%)
       Focus: Production-ready core functionality
 
   [🌐] v1.2.0 - Website & Documentation Launch
-      Due: Mar 31, 2025 (XX days remaining)
+      Due: Mar 31, 2026 (XX days remaining)
       Status: [--------------------] 24 open, 0 closed (0%)
       Focus: Public launch, marketing, and documentation
 
   [🚀] v2.0.0 - Advanced Features
-      Due: Jun 30, 2025 (XX days remaining)
+      Due: Jun 30, 2026 (XX days remaining)
       Status: [#-------------------] 19 open, 2 closed (9%)
       Focus: Innovation and advanced capabilities
 
@@ -497,13 +497,13 @@ gh issue list --label release-blocker --state open --json number,title,milestone
 Release Blockers
 ================================================================================
 
-v1.1.0 (Feb 15, 2025):
+v1.1.0 (Feb 15, 2026):
   [1] #150 - Fix error blocking release [CLOSED ✓]
 
-v1.2.0 (Mar 31, 2025):
+v1.2.0 (Mar 31, 2026):
   (no blockers)
 
-v2.0.0 (Jun 30, 2025):
+v2.0.0 (Jun 30, 2026):
   (no blockers)
 
 No Milestone:
@@ -638,9 +638,9 @@ Where:
     - Otherwise: 0
 
   MILESTONE_SCORE:
-    - v1.1.0 (Feb 15, 2025): 300
-    - v1.2.0 (Mar 31, 2025): 200
-    - v2.0.0 (Jun 30, 2025): 100
+    - v1.1.0 (Feb 15, 2026): 300
+    - v1.2.0 (Mar 31, 2026): 200
+    - v2.0.0 (Jun 30, 2026): 100
     - No milestone: 0
 
   PRIORITY_SCORE:

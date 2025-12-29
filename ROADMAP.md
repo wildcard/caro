@@ -6,31 +6,31 @@
 
 ```mermaid
 gantt
-    title Caro Release Timeline (2025)
+    title Caro Release Timeline (2026)
     dateFormat YYYY-MM-DD
     section v1.1.0 - Core Improvements
-    Hugging Face Model Download           :2025-01-01, 15d
-    Performance Analysis & Optimization   :2025-01-05, 20d
-    Safety Enhancements                   :2025-01-10, 15d
-    LLM Evaluation Harness               :2025-01-15, 20d
-    Benchmark Suite                       :2025-01-20, 10d
-    v1.1.0 Release                       :milestone, 2025-02-15, 0d
+    Hugging Face Model Download           :2026-01-01, 15d
+    Performance Analysis & Optimization   :2026-01-05, 20d
+    Safety Enhancements                   :2026-01-10, 15d
+    LLM Evaluation Harness               :2026-01-15, 20d
+    Benchmark Suite                       :2026-01-20, 10d
+    v1.1.0 Release                       :milestone, 2026-02-15, 0d
 
     section v1.2.0 - Website & Docs
-    Strategic Product Roadmap             :2025-02-16, 10d
-    Website Value Proposition             :2025-02-20, 15d
-    Astro Starlight Docs Site            :2025-02-25, 20d
-    Interactive Terminal Landing Page     :2025-03-01, 15d
-    Marketing Materials                   :2025-03-10, 15d
-    v1.2.0 Release                       :milestone, 2025-03-31, 0d
+    Strategic Product Roadmap             :2026-02-16, 10d
+    Website Value Proposition             :2026-02-20, 15d
+    Astro Starlight Docs Site            :2026-02-25, 20d
+    Interactive Terminal Landing Page     :2026-03-01, 15d
+    Marketing Materials                   :2026-03-10, 15d
+    v1.2.0 Release                       :milestone, 2026-03-31, 0d
 
     section v2.0.0 - Advanced Features
-    Karo Distributed Intelligence        :2025-04-01, 30d
-    Dogma Rule Engine Research           :2025-04-01, 25d
-    Voice Synthesis for Caro             :2025-04-15, 20d
-    Self-Healing Features                :2025-05-01, 25d
-    Local Context Indexing               :2025-05-15, 30d
-    v2.0.0 Release                       :milestone, 2025-06-30, 0d
+    Karo Distributed Intelligence        :2026-04-01, 30d
+    Dogma Rule Engine Research           :2026-04-01, 25d
+    Voice Synthesis for Caro             :2026-04-15, 20d
+    Self-Healing Features                :2026-05-01, 25d
+    Local Context Indexing               :2026-05-15, 30d
+    v2.0.0 Release                       :milestone, 2026-06-30, 0d
 ```
 
 ---
@@ -38,7 +38,7 @@ gantt
 ## Release Milestones
 
 ### 🎯 v1.1.0 - Core Improvements
-**Due Date**: February 15, 2025 (48 days)
+**Due Date**: February 15, 2026 (48 days)
 **Status**: 0% Complete (15 items)
 **Focus**: Production-ready core functionality
 
@@ -75,7 +75,7 @@ gantt
 ---
 
 ### 🌐 v1.2.0 - Website & Documentation Launch
-**Due Date**: March 31, 2025 (93 days)
+**Due Date**: March 31, 2026 (93 days)
 **Status**: 0% Complete (24 items)
 **Focus**: Public launch, marketing, and documentation
 
@@ -123,7 +123,7 @@ gantt
 ---
 
 ### 🚀 v2.0.0 - Advanced Features
-**Due Date**: June 30, 2025 (184 days)
+**Due Date**: June 30, 2026 (184 days)
 **Status**: 9% Complete (20 open, 1 closed)
 **Focus**: Innovation and advanced capabilities
 
@@ -167,9 +167,9 @@ gantt
 
 | Milestone | Due Date | Items | Complete | Progress |
 |-----------|----------|-------|----------|----------|
-| **v1.1.0** | Feb 15, 2025 | 15 | 0 | 0% |
-| **v1.2.0** | Mar 31, 2025 | 24 | 0 | 0% |
-| **v2.0.0** | Jun 30, 2025 | 21 | 1 | 9% |
+| **v1.1.0** | Feb 15, 2026 | 15 | 0 | 0% |
+| **v1.2.0** | Mar 31, 2026 | 24 | 0 | 0% |
+| **v2.0.0** | Jun 30, 2026 | 21 | 1 | 9% |
 | **Total** | - | **60** | **1** | **2%** |
 
 ---
@@ -196,18 +196,18 @@ All work is organized across two GitHub Projects:
 
 ## Strategic Themes
 
-### Q1 2025: Foundation
+### Q1 2026: Foundation
 - Establish production-ready core
 - Optimize performance
 - Build reliable infrastructure
 
-### Q2 2025: Launch
+### Q2 2026: Launch
 - Public website launch
 - Comprehensive documentation
 - Marketing and community building
 - Initial user adoption
 
-### Q3 2025: Innovation
+### Q3 2026: Innovation
 - Advanced AI features
 - Distributed intelligence
 - Voice interaction

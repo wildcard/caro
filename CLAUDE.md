@@ -403,9 +403,9 @@ This project uses a structured project management system with GitHub Projects, m
 ### Roadmap Structure
 
 **ROADMAP.md** defines three release milestones:
-- **v1.1.0** (Feb 15, 2025): Core improvements - production-ready functionality
-- **v1.2.0** (Mar 31, 2025): Website & docs launch - public marketing
-- **v2.0.0** (Jun 30, 2025): Advanced features - innovation and capabilities
+- **v1.1.0** (Feb 15, 2026): Core improvements - production-ready functionality
+- **v1.2.0** (Mar 31, 2026): Website & docs launch - public marketing
+- **v2.0.0** (Jun 30, 2026): Advanced features - innovation and capabilities
 
 **GitHub Projects**:
 - [Caro Product Development](https://github.com/users/wildcard/projects/2) - Technical work (36 items)
