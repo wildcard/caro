@@ -21,7 +21,7 @@ GitHub Sponsors offers:
 
 For organizations preferring transparent, accountable funding:
 
-**[Support on Open Collective](https://opencollective.com/kobi-kadosh)**
+**[Support on Open Collective](https://opencollective.com/carosh)**
 
 Open Collective offers:
 - Full transparency on how funds are used
