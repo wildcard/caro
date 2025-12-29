@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "slidev slides.md",
     "build": "slidev build slides.md",
-    "export": "slidev export slides.md"
+    "export": "slidev export slides.md",
+    "roadmap": "slidev roadmap-slides.md",
+    "roadmap:build": "slidev build roadmap-slides.md",
+    "roadmap:export": "slidev export roadmap-slides.md"
   },
   "dependencies": {
     "@slidev/cli": "^0.50.0",
