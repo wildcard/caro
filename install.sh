@@ -70,41 +70,131 @@ install_binary() {
         return 0
     fi
 
-    # Fallback: Check for pre-built binaries on GitHub releases
+    # Fallback: Download pre-built binary from GitHub releases
     local platform
     platform=$(detect_platform)
-    
-    echo -e "${YELLOW}Cargo not found. Checking for pre-built binaries...${NC}"
-    
-    # Try to get latest release from GitHub
+
+    echo -e "${YELLOW}Cargo not found. Downloading pre-built binary...${NC}"
+
+    # Try to get latest release tag from GitHub
     local latest_url="https://api.github.com/repos/${REPO}/releases/latest"
-    
+    local release_info
+
     if command_exists curl; then
-        local release_info
         release_info=$(curl -s "$latest_url")
     elif command_exists wget; then
-        local release_info
         release_info=$(wget -qO- "$latest_url")
     else
         echo -e "${RED}Error: Neither curl nor wget found. Please install one of them.${NC}"
         exit 1
     fi
 
-    # Check if we got a valid response
-    if echo "$release_info" | grep -q "Not Found"; then
-        echo -e "${YELLOW}No pre-built binaries available yet.${NC}"
+    # Extract tag name (version)
+    local version
+    version=$(echo "$release_info" | grep '"tag_name":' | sed -E 's/.*"tag_name": "v?([^"]+)".*/\1/')
+
+    if [ -z "$version" ]; then
+        echo -e "${RED}Error: Could not determine latest version.${NC}"
         echo -e "${YELLOW}Please install Rust and cargo: https://rustup.rs/${NC}"
-        echo -e "${YELLOW}Then run: cargo install cmdai${NC}"
+        echo -e "${YELLOW}Then run: cargo install caro${NC}"
         exit 1
     fi
 
-    # For now, since there are no pre-built binaries yet, we'll guide users to cargo
-    echo -e "${YELLOW}Pre-built binaries are not available yet.${NC}"
-    echo -e "${BLUE}Installing Rust and cargo is recommended:${NC}"
-    echo -e "  ${GREEN}curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh${NC}"
-    echo -e "${BLUE}Then run:${NC}"
-    echo -e "  ${GREEN}cargo install caro${NC}"
-    exit 1
+    # Map platform to asset name
+    local asset_name
+    case "$platform" in
+        linux-amd64)    asset_name="caro-linux-amd64" ;;
+        linux-arm64)    asset_name="caro-linux-arm64" ;;
+        macos-amd64)    asset_name="caro-macos-intel" ;;
+        macos-arm64)    asset_name="caro-macos-silicon" ;;
+        windows-amd64)  asset_name="caro-windows-amd64.exe" ;;
+        *)
+            echo -e "${RED}Unsupported platform: $platform${NC}"
+            exit 1
+            ;;
+    esac
+
+    # Construct download URLs
+    local binary_url="https://github.com/${REPO}/releases/download/v${version}/${asset_name}"
+    local checksum_url="${binary_url}.sha256"
+
+    echo -e "${BLUE}Downloading caro v${version} for ${platform}...${NC}"
+
+    # Download binary
+    if command_exists curl; then
+        curl -fsSL "$binary_url" -o "${INSTALL_DIR}/${BINARY_NAME}" || {
+            echo -e "${RED}Error: Failed to download binary${NC}"
+            exit 1
+        }
+    elif command_exists wget; then
+        wget -qO "${INSTALL_DIR}/${BINARY_NAME}" "$binary_url" || {
+            echo -e "${RED}Error: Failed to download binary${NC}"
+            exit 1
+        }
+    fi
+
+    # Make binary executable
+    chmod +x "${INSTALL_DIR}/${BINARY_NAME}"
+
+    # Download and verify checksum
+    local checksum_file
+    checksum_file=$(mktemp)
+
+    if command_exists curl; then
+        curl -fsSL "$checksum_url" -o "$checksum_file" 2>/dev/null || {
+            echo -e "${YELLOW}Warning: Could not download checksum file${NC}"
+            rm -f "$checksum_file"
+            return 0
+        }
+    elif command_exists wget; then
+        wget -qO "$checksum_file" "$checksum_url" 2>/dev/null || {
+            echo -e "${YELLOW}Warning: Could not download checksum file${NC}"
+            rm -f "$checksum_file"
+            return 0
+        }
+    fi
+
+    # Verify checksum if available
+    if [ -f "$checksum_file" ]; then
+        local expected_hash
+        expected_hash=$(awk '{print $1}' "$checksum_file")
+
+        if command_exists shasum; then
+            local actual_hash
+            actual_hash=$(shasum -a 256 "${INSTALL_DIR}/${BINARY_NAME}" | awk '{print $1}')
+
+            if [ "$expected_hash" = "$actual_hash" ]; then
+                echo -e "${GREEN}✓ Checksum verified${NC}"
+            else
+                echo -e "${YELLOW}Warning: Checksum mismatch (expected: $expected_hash, got: $actual_hash)${NC}"
+            fi
+        elif command_exists sha256sum; then
+            local actual_hash
+            actual_hash=$(sha256sum "${INSTALL_DIR}/${BINARY_NAME}" | awk '{print $1}')
+
+            if [ "$expected_hash" = "$actual_hash" ]; then
+                echo -e "${GREEN}✓ Checksum verified${NC}"
+            else
+                echo -e "${YELLOW}Warning: Checksum mismatch (expected: $expected_hash, got: $actual_hash)${NC}"
+            fi
+        else
+            echo -e "${YELLOW}Warning: No checksum tool available (shasum or sha256sum)${NC}"
+        fi
+
+        rm -f "$checksum_file"
+    fi
+
+    echo -e "${GREEN}✓ Binary installed to ${INSTALL_DIR}/${BINARY_NAME}${NC}"
+
+    # Note about MLX support for Apple Silicon
+    if [[ "$(uname -s)" == "Darwin" ]] && [[ "$(uname -m)" == "arm64" ]]; then
+        echo ""
+        echo -e "${BLUE}Note: You're on Apple Silicon!${NC}"
+        echo -e "${YELLOW}For MLX optimization, you can rebuild from source:${NC}"
+        echo -e "  ${GREEN}cargo install caro --features embedded-mlx${NC}"
+    fi
+
+    return 0
 }
 
 # Note: No alias setup needed anymore since the binary is now named 'caro'

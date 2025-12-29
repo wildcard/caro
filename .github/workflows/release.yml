@@ -106,14 +106,49 @@ jobs:
         with:
           ref: ${{ needs.prepare-release.outputs.tag }}
 
+      - name: Check if release exists
+        id: check_release
+        run: |
+          if gh release view ${{ needs.prepare-release.outputs.tag }} &>/dev/null; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Release ${{ needs.prepare-release.outputs.tag }} already exists"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Release ${{ needs.prepare-release.outputs.tag }} does not exist"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate changelog for template
+        if: steps.check_release.outputs.exists != 'true'
+        id: changelog
+        run: |
+          # Get auto-generated changelog from GitHub API
+          CHANGELOG=$(gh api repos/${{ github.repository }}/releases/generate-notes \
+            -f tag_name="${{ needs.prepare-release.outputs.tag }}" \
+            -f previous_tag_name="$(git describe --tags --abbrev=0 ${{ needs.prepare-release.outputs.tag }}^ 2>/dev/null || echo '')" \
+            --jq '.body')
+
+          # Create release notes by combining template with changelog
+          {
+            echo "## What's Changed"
+            echo ""
+            echo "$CHANGELOG"
+            echo ""
+            tail -n +3 .github/RELEASE_TEMPLATE.md
+          } > /tmp/release-notes.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create Release
+        if: steps.check_release.outputs.exists != 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.prepare-release.outputs.tag }}
           name: caro v${{ needs.prepare-release.outputs.version }}
           draft: false
           prerelease: ${{ contains(needs.prepare-release.outputs.version, 'alpha') || contains(needs.prepare-release.outputs.version, 'beta') || contains(needs.prepare-release.outputs.version, 'rc') }}
-          generate_release_notes: true
+          body_path: /tmp/release-notes.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

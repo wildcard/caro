@@ -89,20 +89,113 @@ detect_platform() {
 # Install via cargo
 install_via_cargo() {
     say "Installing via cargo..."
-    
+
     # Detect if on macOS with Apple Silicon for MLX optimization
     local cargo_features=""
     if [[ "$(uname -s)" == "Darwin" ]] && [[ "$(uname -m)" == "arm64" ]]; then
         say "Detected Apple Silicon - building with MLX optimization"
         cargo_features="--features embedded-mlx"
     fi
-    
+
     if cargo install caro $cargo_features; then
         say_success "Installed caro successfully"
         return 0
     else
         err "Failed to install via cargo"
     fi
+}
+
+# Install via pre-built binary
+install_via_binary() {
+    say "Downloading pre-built binary..."
+
+    local platform repo binary_name install_dir
+    repo="wildcard/caro"
+    binary_name="caro"
+    install_dir="${CARO_INSTALL_DIR:-$HOME/.local/bin}"
+
+    # Detect platform
+    case "$(uname -s)" in
+        Linux*)
+            case "$(uname -m)" in
+                x86_64|amd64)   platform="linux-amd64" ;;
+                aarch64|arm64)  platform="linux-arm64" ;;
+                *) err "Unsupported architecture: $(uname -m)" ;;
+            esac
+            ;;
+        Darwin*)
+            case "$(uname -m)" in
+                x86_64|amd64)   platform="macos-intel" ;;
+                aarch64|arm64)  platform="macos-silicon" ;;
+                *) err "Unsupported architecture: $(uname -m)" ;;
+            esac
+            ;;
+        *)
+            err "Unsupported operating system: $(uname -s)"
+            ;;
+    esac
+
+    # Get latest release
+    local latest_url="https://api.github.com/repos/${repo}/releases/latest"
+    local release_info
+
+    if check_cmd curl; then
+        release_info=$(curl -s "$latest_url")
+    elif check_cmd wget; then
+        release_info=$(wget -qO- "$latest_url")
+    else
+        err "Neither curl nor wget found"
+    fi
+
+    # Extract version
+    local version
+    version=$(echo "$release_info" | grep '"tag_name":' | sed -E 's/.*"tag_name": "v?([^"]+)".*/\1/')
+
+    if [ -z "$version" ]; then
+        err "Could not determine latest version"
+    fi
+
+    # Map platform to asset name
+    local asset_name
+    case "$platform" in
+        linux-amd64)    asset_name="caro-linux-amd64" ;;
+        linux-arm64)    asset_name="caro-linux-arm64" ;;
+        macos-intel)    asset_name="caro-macos-intel" ;;
+        macos-silicon)  asset_name="caro-macos-silicon" ;;
+        *) err "Unsupported platform: $platform" ;;
+    esac
+
+    # Create install directory
+    mkdir -p "$install_dir"
+
+    # Download binary
+    local binary_url="https://github.com/${repo}/releases/download/v${version}/${asset_name}"
+
+    say "Downloading caro v${version} for ${platform}..."
+
+    if check_cmd curl; then
+        curl -fsSL "$binary_url" -o "${install_dir}/${binary_name}" || err "Failed to download binary"
+    elif check_cmd wget; then
+        wget -qO "${install_dir}/${binary_name}" "$binary_url" || err "Failed to download binary"
+    fi
+
+    # Make executable
+    chmod +x "${install_dir}/${binary_name}"
+
+    # Verify with version check
+    if "${install_dir}/${binary_name}" --version >/dev/null 2>&1; then
+        say_success "Installed caro v${version} successfully"
+    else
+        err "Binary installed but failed version check"
+    fi
+
+    # Add to PATH if needed
+    if [[ ":$PATH:" != *":$install_dir:"* ]]; then
+        say_warn "$install_dir is not in your PATH"
+        say "You may need to restart your shell or add to PATH manually"
+    fi
+
+    return 0
 }
 
 # Setup shell alias
@@ -187,32 +280,51 @@ main() {
     fi
 
     # Check for cargo
-    if ! check_cmd cargo; then
-        say_warn "Cargo not found. Installing Rust..."
+    if check_cmd cargo; then
+        # Cargo is available - use it (especially important for Apple Silicon MLX support)
+        install_via_cargo
+    else
+        # No cargo - try binary installation first
+        say_warn "Cargo not found."
         echo ""
-        
-        if check_cmd curl; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-        elif check_cmd wget; then
-            wget -qO- https://sh.rustup.rs | sh -s -- -y
-        fi
-        
-        # Source cargo env
-        if [ -f "$HOME/.cargo/env" ]; then
-            # shellcheck source=/dev/null
-            . "$HOME/.cargo/env"
-        fi
-        
-        if ! check_cmd cargo; then
-            err "Failed to install Rust. Please install it manually from https://rustup.rs"
-        fi
-        
-        say_success "Rust installed successfully"
-        echo ""
-    fi
 
-    # Install caro
-    install_via_cargo
+        # Attempt binary installation
+        if install_via_binary 2>/dev/null; then
+            # Binary install succeeded
+            if [[ "$(uname -s)" == "Darwin" ]] && [[ "$(uname -m)" == "arm64" ]]; then
+                echo ""
+                say_warn "For Apple Silicon MLX optimization, consider installing Rust:"
+                say "  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
+                say "  cargo install caro --features embedded-mlx"
+            fi
+        else
+            # Binary install failed - install Rust as fallback
+            say "Pre-built binary not available. Installing Rust..."
+            echo ""
+
+            if check_cmd curl; then
+                curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+            elif check_cmd wget; then
+                wget -qO- https://sh.rustup.rs | sh -s -- -y
+            fi
+
+            # Source cargo env
+            if [ -f "$HOME/.cargo/env" ]; then
+                # shellcheck source=/dev/null
+                . "$HOME/.cargo/env"
+            fi
+
+            if ! check_cmd cargo; then
+                err "Failed to install Rust. Please install it manually from https://rustup.rs"
+            fi
+
+            say_success "Rust installed successfully"
+            echo ""
+
+            # Now install via cargo
+            install_via_cargo
+        fi
+    fi
     echo ""
 
     # Check for legacy alias
