@@ -1,0 +1,299 @@
+---
+// New Year Effect Component
+// Creates a beautiful confetti and fireworks animation
+// Triggered automatically on New Year's Day
+---
+
+<div id="new-year-effect-container" class="effect-container"></div>
+
+<style is:global>
+  .effect-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9998;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  .effect-container.active {
+    opacity: 1;
+  }
+
+  .confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #ffd700;
+    animation: fall linear, spin linear;
+    will-change: transform;
+  }
+
+  .firework {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    animation: fireworkExplosion 1.5s ease-out forwards;
+  }
+
+  .firework-particle {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    animation: particle-fade 1s ease-out forwards;
+  }
+
+  @keyframes fall {
+    0% {
+      transform: translateY(-10vh) rotate(0deg);
+    }
+    100% {
+      transform: translateY(110vh) rotate(720deg);
+    }
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotateZ(0deg);
+    }
+    100% {
+      transform: rotateZ(360deg);
+    }
+  }
+
+  @keyframes fireworkExplosion {
+    0% {
+      transform: translateY(100vh) scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: translateY(30vh) scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(30vh) scale(0);
+      opacity: 0;
+    }
+  }
+
+  @keyframes particle-fade {
+    0% {
+      opacity: 1;
+      transform: translate(0, 0);
+    }
+    100% {
+      opacity: 0;
+      transform: var(--particle-direction);
+    }
+  }
+
+  /* Reduce motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    .confetti,
+    .firework,
+    .firework-particle {
+      animation: none;
+      opacity: 0;
+    }
+  }
+</style>
+
+<script>
+  // New Year Effect Management
+  class NewYearEffect {
+    private container: HTMLElement | null;
+    private isActive: boolean = false;
+    private confettiCount: number = 100;
+    private fireworkIntervalId: number | null = null;
+    private confetti: HTMLElement[] = [];
+    private colors: string[] = ['#ffd700', '#ff6b35', '#ff8c42', '#4ecdc4', '#ff6b9d', '#c44569'];
+
+    constructor() {
+      this.container = document.getElementById('new-year-effect-container');
+      this.init();
+    }
+
+    private init(): void {
+      // Auto-start on New Year's Day
+      const now = new Date();
+      if (now.getMonth() === 0 && now.getDate() === 1) {
+        // Delay start by 1 second to let page load
+        setTimeout(() => this.start(), 1000);
+      }
+    }
+
+    private createConfetti(): HTMLElement {
+      const confetti = document.createElement('div');
+      confetti.className = 'confetti';
+
+      // Random color
+      confetti.style.background = this.colors[Math.floor(Math.random() * this.colors.length)];
+
+      // Random position
+      confetti.style.left = `${Math.random() * 100}%`;
+
+      // Random size
+      const size = 5 + Math.random() * 10;
+      confetti.style.width = `${size}px`;
+      confetti.style.height = `${size}px`;
+
+      // Random shape (rectangle or circle)
+      if (Math.random() > 0.5) {
+        confetti.style.borderRadius = '50%';
+      }
+
+      // Random animation duration
+      const duration = 3 + Math.random() * 4;
+      confetti.style.animationDuration = `${duration}s, ${duration * 0.5}s`;
+
+      // Random delay
+      confetti.style.animationDelay = `${Math.random() * 2}s`;
+
+      return confetti;
+    }
+
+    private createFirework(x: number, y: number): void {
+      if (!this.container) return;
+
+      const firework = document.createElement('div');
+      firework.className = 'firework';
+      firework.style.left = `${x}%`;
+      firework.style.top = '100%';
+
+      const color = this.colors[Math.floor(Math.random() * this.colors.length)];
+      firework.style.background = color;
+
+      this.container.appendChild(firework);
+
+      // Create explosion particles
+      setTimeout(() => {
+        this.createExplosion(x, y, color);
+        firework.remove();
+      }, 750);
+    }
+
+    private createExplosion(x: number, y: number, color: string): void {
+      if (!this.container) return;
+
+      const particleCount = 30;
+      const particles: HTMLElement[] = [];
+
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'firework-particle';
+        particle.style.left = `${x}%`;
+        particle.style.top = `${y}vh`;
+        particle.style.background = color;
+        particle.style.boxShadow = `0 0 10px ${color}`;
+
+        // Random direction
+        const angle = (Math.PI * 2 * i) / particleCount;
+        const velocity = 50 + Math.random() * 100;
+        const translateX = Math.cos(angle) * velocity;
+        const translateY = Math.sin(angle) * velocity;
+
+        particle.style.setProperty('--particle-direction', `translate(${translateX}px, ${translateY}px)`);
+
+        particles.push(particle);
+        this.container!.appendChild(particle);
+      }
+
+      // Clean up particles after animation
+      setTimeout(() => {
+        particles.forEach(p => p.remove());
+      }, 1000);
+    }
+
+    private generateConfetti(): void {
+      if (!this.container) return;
+
+      // Adjust count based on screen width
+      const screenWidth = window.innerWidth;
+      let count = this.confettiCount;
+      if (screenWidth < 768) {
+        count = 50; // Fewer on mobile
+      }
+
+      for (let i = 0; i < count; i++) {
+        const confetti = this.createConfetti();
+        this.confetti.push(confetti);
+        this.container.appendChild(confetti);
+      }
+    }
+
+    private startFireworks(): void {
+      // Launch fireworks at random intervals
+      const launchFirework = () => {
+        const x = 20 + Math.random() * 60; // Random x position (20-80%)
+        const y = 20 + Math.random() * 40; // Random y position (20-60vh)
+        this.createFirework(x, y);
+      };
+
+      // Initial burst
+      for (let i = 0; i < 3; i++) {
+        setTimeout(launchFirework, i * 300);
+      }
+
+      // Continue launching
+      this.fireworkIntervalId = window.setInterval(launchFirework, 1500);
+    }
+
+    private clearEffects(): void {
+      this.confetti.forEach(c => c.remove());
+      this.confetti = [];
+
+      if (this.container) {
+        this.container.querySelectorAll('.firework, .firework-particle').forEach(el => el.remove());
+      }
+    }
+
+    public start(): void {
+      if (this.isActive || !this.container) return;
+
+      this.isActive = true;
+      this.container.classList.add('active');
+
+      // Start both effects
+      this.generateConfetti();
+      this.startFireworks();
+
+      // Auto-stop after 30 seconds
+      setTimeout(() => this.stop(), 30000);
+    }
+
+    public stop(): void {
+      if (!this.isActive || !this.container) return;
+
+      this.isActive = false;
+      this.container.classList.remove('active');
+
+      // Stop fireworks
+      if (this.fireworkIntervalId) {
+        clearInterval(this.fireworkIntervalId);
+        this.fireworkIntervalId = null;
+      }
+
+      // Clear effects after fade out
+      setTimeout(() => {
+        if (!this.isActive) {
+          this.clearEffects();
+        }
+      }, 500);
+    }
+
+    public isRunning(): boolean {
+      return this.isActive;
+    }
+  }
+
+  // Initialize and expose globally
+  document.addEventListener('DOMContentLoaded', () => {
+    (window as any).newYearEffect = new NewYearEffect();
+  });
+</script>

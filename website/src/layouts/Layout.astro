@@ -2,6 +2,8 @@
 import Analytics from '@vercel/analytics/astro';
 import SnowEffect from '../components/SnowEffect.astro';
 import BackToTop from '../components/BackToTop.astro';
+import NewYearCountdown from '../components/NewYearCountdown.astro';
+import NewYearEffect from '../components/NewYearEffect.astro';
 
 interface Props {
   title: string;
@@ -45,9 +47,17 @@ const { title, description } = Astro.props;
         function isHolidaySeason() {
           const now = new Date();
           const month = now.getMonth(); // 0-indexed
+          // December 1-31 only (Christmas/Hanukkah season)
+          // January 1 is now handled separately as New Year
+          return (month === 11);
+        }
+
+        function isNewYearDay() {
+          const now = new Date();
+          const month = now.getMonth(); // 0-indexed
           const day = now.getDate();
-          // December 1 - January 1 (inclusive)
-          return (month === 11) || (month === 0 && day === 1);
+          // January 1st only
+          return (month === 0 && day === 1);
         }
 
         if (isHolidaySeason()) {
@@ -56,11 +66,18 @@ const { title, description } = Astro.props;
             document.documentElement.classList.add(savedHolidayTheme);
           }
         }
+
+        // New Year's Day gets its own theme
+        if (isNewYearDay()) {
+          document.documentElement.classList.add('new-year');
+        }
       })();
     </script>
   </head>
   <body>
     <SnowEffect />
+    <NewYearCountdown />
+    <NewYearEffect />
     <slot />
     <BackToTop />
     <Analytics />
@@ -257,6 +274,100 @@ const { title, description } = Astro.props;
   }
 
   /* ============================================
+     NEW YEAR THEME
+     Colors: Gold, Silver, Purple, Rainbow
+     ============================================ */
+  .new-year {
+    --color-accent: #ffd700;
+    --color-accent-secondary: #c44569;
+    --color-accent-tertiary: #4ecdc4;
+    --color-bg-tertiary: #fffef0;
+    --new-year-gold: #ffd700;
+    --new-year-silver: #c0c0c0;
+    --new-year-purple: #c44569;
+    --new-year-teal: #4ecdc4;
+  }
+
+  .new-year.dark {
+    --color-bg-tertiary: #1f1f1a;
+    --new-year-gold: #f1c40f;
+    --new-year-silver: #d4d4d4;
+    --new-year-purple: #e63946;
+    --new-year-teal: #4ecdc4;
+  }
+
+  /* New Year accents on UI elements */
+  .new-year .cta-button,
+  .new-year .companion-badge {
+    background: linear-gradient(135deg, var(--new-year-gold) 0%, var(--new-year-purple) 50%, var(--new-year-teal) 100%) !important;
+  }
+
+  .new-year .cta-button:hover {
+    box-shadow: 0 10px 25px rgba(255, 215, 0, 0.4) !important;
+  }
+
+  .new-year .cta-button.secondary {
+    background: transparent !important;
+    border-color: var(--new-year-gold) !important;
+    color: var(--new-year-gold) !important;
+  }
+
+  .new-year .cta-button.secondary:hover {
+    background: rgba(255, 215, 0, 0.1) !important;
+  }
+
+  .new-year .logo {
+    background: linear-gradient(135deg, var(--new-year-gold) 0%, var(--new-year-purple) 50%, var(--new-year-teal) 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    background-size: 200% 200%;
+    animation: rainbow-gradient 3s ease infinite;
+  }
+
+  .new-year .feature {
+    border-color: rgba(255, 215, 0, 0.2) !important;
+  }
+
+  .new-year .feature:hover {
+    border-color: var(--new-year-gold) !important;
+    box-shadow: 0 10px 30px rgba(255, 215, 0, 0.15) !important;
+  }
+
+  .new-year .status-implemented {
+    background: rgba(255, 215, 0, 0.2) !important;
+    color: var(--new-year-gold) !important;
+    border-color: rgba(255, 215, 0, 0.4) !important;
+  }
+
+  .new-year .status-in-progress {
+    background: rgba(196, 69, 105, 0.2) !important;
+    color: var(--new-year-purple) !important;
+    border-color: rgba(196, 69, 105, 0.4) !important;
+  }
+
+  .new-year .download-section {
+    background: linear-gradient(135deg, var(--new-year-gold) 0%, var(--new-year-purple) 50%, var(--new-year-teal) 100%) !important;
+  }
+
+  .new-year .alpha-notice {
+    background: rgba(255, 215, 0, 0.1) !important;
+    border-color: rgba(255, 215, 0, 0.3) !important;
+  }
+
+  /* New Year rainbow gradient animation */
+  @keyframes rainbow-gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  /* ============================================
      HOLIDAY DECORATIONS - HERO SECTION
      ============================================ */
 
@@ -302,6 +413,51 @@ const { title, description } = Astro.props;
     opacity: 0.7;
   }
 
+  /* New Year decorations */
+  .new-year .hero::before {
+    content: '🎊';
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 40px;
+    animation: celebratePulse 2s ease-in-out infinite;
+    opacity: 0.9;
+  }
+
+  .new-year .hero::after {
+    content: '🎆';
+    position: absolute;
+    top: 20px;
+    right: 80px;
+    font-size: 36px;
+    animation: sparkle 3s ease-in-out infinite;
+    opacity: 0.8;
+  }
+
+  @keyframes celebratePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+  }
+
+  @keyframes sparkle {
+    0%, 100% {
+      transform: rotate(0deg) scale(1);
+      filter: brightness(1);
+    }
+    25% {
+      transform: rotate(10deg) scale(1.1);
+      filter: brightness(1.3);
+    }
+    50% {
+      transform: rotate(-10deg) scale(1);
+      filter: brightness(1);
+    }
+    75% {
+      transform: rotate(10deg) scale(1.1);
+      filter: brightness(1.3);
+    }
+  }
+
   @keyframes gentleSway {
     0%, 100% { transform: rotate(-3deg); }
     50% { transform: rotate(3deg); }
@@ -324,7 +480,8 @@ const { title, description } = Astro.props;
 
   /* Add position relative to hero for decorations */
   .christmas .hero,
-  .hanukkah .hero {
+  .hanukkah .hero,
+  .new-year .hero {
     position: relative;
     overflow: hidden;
   }
@@ -334,18 +491,22 @@ const { title, description } = Astro.props;
     .christmas .hero::before,
     .christmas .hero::after,
     .hanukkah .hero::before,
-    .hanukkah .hero::after {
+    .hanukkah .hero::after,
+    .new-year .hero::before,
+    .new-year .hero::after {
       font-size: 24px;
       top: 10px;
     }
 
     .christmas .hero::before,
-    .hanukkah .hero::before {
+    .hanukkah .hero::before,
+    .new-year .hero::before {
       left: 10px;
     }
 
     .christmas .hero::after,
-    .hanukkah .hero::after {
+    .hanukkah .hero::after,
+    .new-year .hero::after {
       right: 60px;
     }
   }
