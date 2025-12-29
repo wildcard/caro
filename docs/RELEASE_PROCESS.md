@@ -202,6 +202,7 @@ The release workflow is divided into 6 distinct commands:
 ```
 - Extracts version from branch name
 - Updates `Cargo.toml` version
+- **Updates `website/src/config/site.ts` version** (centralized site config)
 - Updates `CHANGELOG.md` (moves [Unreleased] to [X.Y.Z])
 - Runs `cargo check` for verification
 - Creates commit with version bump
@@ -331,6 +332,69 @@ We follow [Semantic Versioning 2.0.0](https://semver.org/):
 - **PATCH** (x.y.Z): Bug fixes, security patches, dependency updates
 
 **Security patches** may warrant PATCH or MINOR bumps depending on severity.
+
+## Website Version Management
+
+### Centralized Configuration
+
+**IMPORTANT**: As of December 2025, the website uses a centralized configuration file to prevent version/name/URL mismatches.
+
+**File**: `website/src/config/site.ts`
+
+```typescript
+export const SITE_CONFIG = {
+  name: 'Caro',
+  tagline: 'Your loyal shell companion',
+  version: '1.0.2',           // ← Update this for releases
+  domain: 'caro.sh',
+  github: {
+    org: 'wildcard',
+    repo: 'caro',
+    url: 'https://github.com/wildcard/caro',
+  },
+  downloads: {
+    baseUrl: 'https://github.com/wildcard/caro/releases/download',
+  },
+} as const;
+```
+
+### What Uses This Config
+
+All website components import and use `SITE_CONFIG`:
+- **Download.astro**: Version text and download URLs (6 locations replaced)
+- **explore/index.astro**: Version badge, GitHub URLs (4 locations replaced)
+- Future pages should use this config for consistency
+
+### Version Update Process
+
+When releasing a new version:
+
+1. **Update `Cargo.toml`** (primary source of truth)
+   ```toml
+   [package]
+   version = "1.0.3"
+   ```
+
+2. **Update `website/src/config/site.ts`** (website source of truth)
+   ```typescript
+   version: '1.0.3',
+   ```
+
+3. **Verify changes**: Both files should have the same version
+
+**The `/caro.release.version` skill should automatically update both files.**
+
+### Why Centralized Config?
+
+**Before**: Version hardcoded in 6+ places across website
+- Risk of version mismatch (explore showed v0.1.0 when actual was v1.0.2)
+- GitHub URLs inconsistent (caro-sh vs wildcard)
+- Manual find-replace required for each release
+
+**After**: Single source of truth
+- Update once in `site.ts`, all components reflect change
+- Type-safe with TypeScript
+- No more version mismatches across pages
 
 ## Testing Requirements
 

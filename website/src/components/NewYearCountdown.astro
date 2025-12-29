@@ -1,0 +1,303 @@
+---
+// New Year Countdown Component
+// Shows a countdown timer to midnight on New Year's Eve
+// Displays celebration message on New Year's Day
+---
+
+<div id="new-year-countdown" class="countdown-container hidden">
+  <div class="countdown-content">
+    <div class="countdown-title">🎊 Happy New Year! 🎊</div>
+    <div class="countdown-message">Welcome to 2026!</div>
+    <div class="countdown-timer hidden">
+      <div class="time-unit">
+        <span class="time-value" id="days">00</span>
+        <span class="time-label">Days</span>
+      </div>
+      <div class="time-separator">:</div>
+      <div class="time-unit">
+        <span class="time-value" id="hours">00</span>
+        <span class="time-label">Hours</span>
+      </div>
+      <div class="time-separator">:</div>
+      <div class="time-unit">
+        <span class="time-value" id="minutes">00</span>
+        <span class="time-label">Minutes</span>
+      </div>
+      <div class="time-separator">:</div>
+      <div class="time-unit">
+        <span class="time-value" id="seconds">00</span>
+        <span class="time-label">Seconds</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .countdown-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10000;
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 215, 0, 0.5);
+    border-radius: 20px;
+    padding: 40px 60px;
+    box-shadow: 0 20px 60px rgba(255, 215, 0, 0.3);
+    animation: fadeInScale 0.8s ease-out;
+  }
+
+  .countdown-container.hidden {
+    display: none;
+  }
+
+  .countdown-content {
+    text-align: center;
+    color: white;
+  }
+
+  .countdown-title {
+    font-size: 48px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #ffd700 0%, #ff6b35 50%, #ffd700 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+
+  .countdown-message {
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 30px;
+  }
+
+  .countdown-timer {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .countdown-timer.hidden {
+    display: none;
+  }
+
+  .time-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 80px;
+  }
+
+  .time-value {
+    font-size: 48px;
+    font-weight: bold;
+    font-family: 'Monaco', 'Courier New', monospace;
+    background: linear-gradient(135deg, #ffd700 0%, #ff8c42 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .time-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 5px;
+  }
+
+  .time-separator {
+    font-size: 40px;
+    color: rgba(255, 215, 0, 0.8);
+    font-weight: bold;
+    margin: 0 5px;
+  }
+
+  @keyframes fadeInScale {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.8);
+    }
+    100% {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
+
+  @keyframes shimmer {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .countdown-container {
+      padding: 30px 40px;
+      max-width: 90%;
+    }
+
+    .countdown-title {
+      font-size: 32px;
+    }
+
+    .countdown-message {
+      font-size: 18px;
+    }
+
+    .time-unit {
+      min-width: 60px;
+    }
+
+    .time-value {
+      font-size: 36px;
+    }
+
+    .time-separator {
+      font-size: 30px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .countdown-container {
+      padding: 20px 30px;
+    }
+
+    .countdown-title {
+      font-size: 24px;
+    }
+
+    .countdown-message {
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+
+    .countdown-timer {
+      gap: 5px;
+    }
+
+    .time-unit {
+      min-width: 50px;
+    }
+
+    .time-value {
+      font-size: 28px;
+    }
+
+    .time-label {
+      font-size: 10px;
+    }
+
+    .time-separator {
+      font-size: 24px;
+      margin: 0 2px;
+    }
+  }
+</style>
+
+<script>
+  // New Year Countdown Logic
+  class NewYearCountdown {
+    private container: HTMLElement | null;
+    private timer: HTMLElement | null;
+    private title: HTMLElement | null;
+    private message: HTMLElement | null;
+    private intervalId: number | null = null;
+
+    constructor() {
+      this.container = document.getElementById('new-year-countdown');
+      this.timer = this.container?.querySelector('.countdown-timer') || null;
+      this.title = this.container?.querySelector('.countdown-title') || null;
+      this.message = this.container?.querySelector('.countdown-message') || null;
+
+      this.init();
+    }
+
+    private init(): void {
+      // Check if we should show countdown
+      const now = new Date();
+      const month = now.getMonth();
+      const day = now.getDate();
+
+      // Show countdown on December 31
+      if (month === 11 && day === 31) {
+        this.showCountdown();
+      }
+      // Show celebration on January 1
+      else if (month === 0 && day === 1) {
+        this.showCelebration();
+      }
+    }
+
+    private showCountdown(): void {
+      if (!this.container || !this.timer || !this.title || !this.message) return;
+
+      // Update title and message for countdown
+      this.title.textContent = '🎆 New Year Countdown 🎆';
+      this.message.textContent = 'Ring in 2026!';
+
+      // Show timer
+      this.timer.classList.remove('hidden');
+      this.container.classList.remove('hidden');
+
+      // Start countdown
+      this.updateCountdown();
+      this.intervalId = window.setInterval(() => this.updateCountdown(), 1000);
+    }
+
+    private showCelebration(): void {
+      if (!this.container || !this.timer) return;
+
+      // Hide timer, show celebration message
+      this.timer.classList.add('hidden');
+      this.container.classList.remove('hidden');
+
+      // Auto-hide after 10 seconds
+      setTimeout(() => {
+        this.container?.classList.add('hidden');
+      }, 10000);
+    }
+
+    private updateCountdown(): void {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const newYear = new Date(currentYear + 1, 0, 1, 0, 0, 0);
+      const diff = newYear.getTime() - now.getTime();
+
+      if (diff <= 0) {
+        // Countdown finished! Switch to celebration
+        if (this.intervalId) {
+          clearInterval(this.intervalId);
+          this.intervalId = null;
+        }
+        this.showCelebration();
+        // Trigger New Year effect
+        if ((window as any).newYearEffect) {
+          (window as any).newYearEffect.start();
+        }
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      document.getElementById('days')!.textContent = String(days).padStart(2, '0');
+      document.getElementById('hours')!.textContent = String(hours).padStart(2, '0');
+      document.getElementById('minutes')!.textContent = String(minutes).padStart(2, '0');
+      document.getElementById('seconds')!.textContent = String(seconds).padStart(2, '0');
+    }
+  }
+
+  // Initialize countdown when DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    new NewYearCountdown();
+  });
+</script>
