@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "_comment": "This file documents the Vercel dashboard configuration for Storybook. Vercel ignores this file - configure manually on the dashboard.",
+  "buildCommand": "npm run build-storybook",
+  "outputDirectory": "storybook-static",
+  "devCommand": "npm run storybook",
+  "installCommand": "npm install",
+  "framework": "storybook"
+}

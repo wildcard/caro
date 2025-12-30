@@ -1,0 +1,252 @@
+/**
+ * Dropdown Component Styles
+ * Matches Navigation.astro dropdown styling
+ */
+
+/* ============================================
+   DROPDOWN CONTAINER
+   ============================================ */
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* ============================================
+   TRIGGER
+   ============================================ */
+
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-text, #2c3e50);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.trigger:hover {
+  color: var(--color-primary, #ff8c42);
+  background: rgba(255, 140, 66, 0.08);
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--color-primary, #ff8c42);
+  outline-offset: 2px;
+}
+
+:global(.dark) .trigger {
+  color: var(--color-text, #f5f5f5);
+}
+
+:global(.dark) .trigger:hover {
+  background: rgba(255, 140, 66, 0.15);
+}
+
+/* ============================================
+   CHEVRON
+   ============================================ */
+
+.chevron {
+  transition: transform 0.2s;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+/* ============================================
+   PANEL
+   ============================================ */
+
+.panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  min-width: 280px;
+  background: var(--color-bg, #ffffff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+  padding: 8px;
+  z-index: 1000;
+  animation: dropdownOpen 0.2s ease;
+}
+
+@keyframes dropdownOpen {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Alignment */
+.align-left {
+  left: 0;
+}
+
+.align-center {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.align-right {
+  right: 0;
+}
+
+:global(.dark) .panel {
+  background: var(--color-bg, #1e1e1e);
+  border-color: var(--color-border, #333);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================
+   DROPDOWN ITEM
+   ============================================ */
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--color-text, #2c3e50);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.item:hover {
+  background: rgba(255, 140, 66, 0.08);
+}
+
+.item:focus-visible {
+  outline: 2px solid var(--color-primary, #ff8c42);
+  outline-offset: -2px;
+}
+
+:global(.dark) .item {
+  color: var(--color-text, #f5f5f5);
+}
+
+:global(.dark) .item:hover {
+  background: rgba(255, 140, 66, 0.15);
+}
+
+/* ============================================
+   ITEM PARTS
+   ============================================ */
+
+.itemIcon {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 24px;
+  text-align: center;
+}
+
+.itemContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.itemTitle {
+  font-weight: 500;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.itemDescription {
+  font-size: 13px;
+  color: var(--color-text-secondary, #6b7280);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:global(.dark) .itemDescription {
+  color: var(--color-text-secondary, #9ca3af);
+}
+
+/* ============================================
+   HEADER & DIVIDER
+   ============================================ */
+
+.header {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.divider {
+  height: 1px;
+  background: var(--color-border, #e5e7eb);
+  margin: 8px 0;
+}
+
+:global(.dark) .divider {
+  background: var(--color-border, #333);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .panel {
+    min-width: 260px;
+    max-width: calc(100vw - 32px);
+  }
+
+  .item {
+    padding: 10px;
+  }
+
+  .itemIcon {
+    font-size: 18px;
+  }
+
+  .itemTitle {
+    font-size: 13px;
+  }
+
+  .itemDescription {
+    font-size: 12px;
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron,
+  .panel,
+  .item {
+    transition: none;
+  }
+
+  .panel {
+    animation: none;
+  }
+}

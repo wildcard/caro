@@ -1,0 +1,247 @@
+/**
+ * Button Component Styles
+ * Following Caro design system with mobile-first approach
+ */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-normal),
+    background var(--transition-normal),
+    border-color var(--transition-normal);
+  user-select: none;
+  white-space: nowrap;
+
+  /* Minimum touch target */
+  min-height: var(--touch-target-min);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ============================================
+   SIZE VARIANTS
+   ============================================ */
+
+.sm {
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-sm);
+  min-height: 36px;
+}
+
+.md {
+  padding: 10px 20px;
+  font-size: var(--font-size-md);
+  min-height: var(--touch-target-min);
+}
+
+.lg {
+  padding: 14px 28px;
+  font-size: 17px;
+  min-height: var(--touch-target-recommended);
+}
+
+/* ============================================
+   VARIANT: PRIMARY
+   Orange gradient - main CTA
+   ============================================ */
+
+.primary {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: var(--color-text-on-primary);
+  border: none;
+}
+
+.primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-primary);
+}
+
+.primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* ============================================
+   VARIANT: SECONDARY
+   Outline style - secondary actions
+   ============================================ */
+
+.secondary {
+  background: transparent;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+}
+
+.secondary:hover:not(:disabled) {
+  background: var(--color-bg-hover);
+  transform: translateY(-2px);
+}
+
+.secondary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Dark mode adjustment */
+:global(.dark) .secondary {
+  color: var(--color-primary-light);
+  border-color: var(--color-primary-light);
+}
+
+/* ============================================
+   VARIANT: GHOST
+   Minimal - inline actions
+   ============================================ */
+
+.ghost {
+  background: transparent;
+  color: var(--color-text);
+  border: none;
+}
+
+.ghost:hover:not(:disabled) {
+  background: var(--color-bg-hover);
+  color: var(--color-primary);
+}
+
+/* ============================================
+   VARIANT: SUPPORT
+   Pink - sponsor/support CTAs
+   ============================================ */
+
+.support {
+  background: linear-gradient(135deg, var(--color-support) 0%, var(--color-support-dark) 100%);
+  color: var(--color-text-on-primary);
+  border: none;
+}
+
+.support:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-support);
+}
+
+.support:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* ============================================
+   FULL WIDTH
+   ============================================ */
+
+.fullWidth {
+  width: 100%;
+}
+
+/* ============================================
+   ICONS
+   ============================================ */
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon svg {
+  width: 1em;
+  height: 1em;
+}
+
+.content {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+
+.loading {
+  position: relative;
+  cursor: wait;
+}
+
+.loading .content {
+  opacity: 0.5;
+}
+
+.spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  animation: spin 1s linear infinite;
+}
+
+.spinner svg {
+  width: 1.2em;
+  height: 1.2em;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+
+@media (max-width: 600px) {
+  .md {
+    padding: 12px 20px;
+    font-size: var(--font-size-md);
+  }
+
+  .lg {
+    padding: 14px 24px;
+  }
+}
+
+@media (max-width: 360px) {
+  .button {
+    font-size: var(--font-size-sm);
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+
+  .button:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .spinner {
+    animation: none;
+  }
+}

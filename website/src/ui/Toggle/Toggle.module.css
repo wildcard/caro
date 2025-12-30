@@ -1,0 +1,239 @@
+/**
+ * Toggle Component Styles
+ * Matches Navigation.astro toggle styling exactly
+ * Following Caro design system with mobile-first approach
+ */
+
+.container {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  cursor: pointer;
+  user-select: none;
+}
+
+.container.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Hidden checkbox input */
+.input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ============================================
+   TRACK (background)
+   Matches .toggle-switch > .toggle-track
+   ============================================ */
+
+.track {
+  position: relative;
+  display: block;
+  border-radius: var(--radius-full);
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+}
+
+/* Size: Medium (default) - Desktop: 52×28 */
+.md .track {
+  width: 52px;
+  height: 28px;
+  border-radius: 14px;
+}
+
+/* Size: Small - Mobile: 44×24 */
+.sm .track {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+}
+
+/* Light mode off state */
+.track {
+  background: #ccc;
+  border: 2px solid #bbb;
+}
+
+/* Dark mode off state */
+:global(.dark) .track {
+  background: #4a4a4a;
+  border: 2px solid #555;
+}
+
+/* ============================================
+   CHECKED STATES
+   ============================================ */
+
+/* Default variant when checked (green) */
+.default .input:checked + .track {
+  background: var(--color-success, #22c55e);
+  border-color: var(--color-success, #22c55e);
+}
+
+/* Branded variant when checked (orange) */
+.branded .input:checked + .track {
+  background: var(--color-primary, #ff8c42);
+  border-color: var(--color-primary-dark, #ff6b35);
+}
+
+/* Focus state */
+.input:focus-visible + .track {
+  outline: 2px solid var(--color-primary, #ff8c42);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   THUMB (slider)
+   Matches .toggle-switch > .toggle-track > .toggle-thumb
+   ============================================ */
+
+.thumb {
+  display: block;
+  position: absolute;
+  border-radius: 50%;
+  transition: all 0.25s ease;
+}
+
+/* Size: Medium - 20×20 thumb */
+.md .thumb {
+  width: 20px;
+  height: 20px;
+  top: 2px;
+  left: 2px;
+}
+
+/* Size: Small - 20×20 thumb (same size, different track) */
+.sm .thumb {
+  width: 20px;
+  height: 20px;
+  top: 0px;
+  left: 0px;
+}
+
+/* Light mode off state - white thumb */
+.thumb {
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark mode off state - gray thumb */
+:global(.dark) .thumb {
+  background: #999;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Checked state - slide right and turn white */
+.md .input:checked + .track .thumb {
+  transform: translateX(24px);
+  background: #fff;
+}
+
+.sm .input:checked + .track .thumb {
+  transform: translateX(20px);
+  background: #fff;
+}
+
+/* Branded variant glow on checked */
+.branded .input:checked + .track .thumb {
+  box-shadow: 0 2px 8px rgba(255, 140, 66, 0.5);
+}
+
+/* Hover effect on thumb */
+.container:not(.disabled):hover .thumb {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+:global(.dark) .container:not(.disabled):hover .thumb {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Active/pressed effect */
+.container:not(.disabled):active .thumb {
+  transform: scale(0.95);
+}
+
+.md .container:not(.disabled):active .input:checked + .track .thumb {
+  transform: translateX(24px) scale(0.95);
+}
+
+.sm .container:not(.disabled):active .input:checked + .track .thumb {
+  transform: translateX(20px) scale(0.95);
+}
+
+/* ============================================
+   LABEL
+   ============================================ */
+
+.label {
+  font-size: var(--font-size-md, 16px);
+  color: var(--color-text, #2c3e50);
+  font-weight: var(--font-weight-medium, 500);
+}
+
+:global(.dark) .label {
+  color: var(--color-text, #f5f5f5);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ============================================
+   TOUCH TARGET
+   Ensure minimum 44px touch area
+   ============================================ */
+
+.container {
+  min-height: var(--touch-target-min, 44px);
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .track,
+  .thumb {
+    transition: none;
+  }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 600px) {
+  /* Use smaller proportions on mobile */
+  .md .track {
+    width: 48px;
+    height: 26px;
+  }
+
+  .md .thumb {
+    width: 18px;
+    height: 18px;
+    top: 2px;
+    left: 2px;
+  }
+
+  .md .input:checked + .track .thumb {
+    transform: translateX(22px);
+  }
+}

@@ -27,5 +27,9 @@ pnpm-debug.log*
 # Astro
 .astro/
 
+# Storybook
+storybook-static/
+
 # Dev/test files
 public/test-morph.html
+.vercel

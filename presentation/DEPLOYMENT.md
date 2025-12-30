@@ -6,21 +6,116 @@ This guide explains how to deploy the Caro Slidev presentations to Vercel.
 
 The project contains two Slidev presentations:
 - **Main Presentation** (`slides.md`) - Technical overview of Caro
+- **Pitch Presentation** (`pitch-slides.md`) - Investor/partner pitch deck
 - **Roadmap Presentation** (`roadmap-slides.md`) - 2026 development roadmap
 
-Both presentations are built and deployed together on Vercel.
+All presentations are built and deployed together on Vercel.
 
 ## Deployment URLs
 
 When deployed to Vercel:
 - Main presentation: `https://your-domain.vercel.app/`
+- Pitch presentation: `https://your-domain.vercel.app/pitch/`
 - Roadmap presentation: `https://your-domain.vercel.app/roadmap/`
+
+---
+
+## Vercel Dashboard Configuration
+
+> **IMPORTANT**: Vercel ignores `vercel.json` files when configured via the dashboard.
+> The `vercel.reference.json` file in this directory documents the configuration
+> that must be set manually in the Vercel dashboard.
+
+### Step 1: Create New Project
+
+1. Go to [vercel.com/new](https://vercel.com/new)
+2. Import the `wildcard/caro` repository
+3. Configure as follows:
+
+### Step 2: Build & Development Settings
+
+In **Project Settings → General → Build & Development Settings**:
+
+| Setting | Value |
+|---------|-------|
+| **Framework Preset** | Other |
+| **Root Directory** | `presentation` |
+| **Build Command** | `npm run build:all` |
+| **Output Directory** | `dist` |
+| **Install Command** | `npm install` |
+| **Development Command** | `npm run dev` |
+
+### Step 3: Rewrite Rules
+
+In **Project Settings → Functions → Rewrites**, add these rules in order:
+
+| Priority | Source | Destination | Purpose |
+|----------|--------|-------------|---------|
+| 1 | `/pitch/(.*)` | `/pitch/index.html` | SPA routing for pitch deck |
+| 2 | `/roadmap/(.*)` | `/roadmap/index.html` | SPA routing for roadmap |
+| 3 | `/(.*)` | `/index.html` | Fallback for main presentation |
+
+**Why Rewrites are Needed:**
+- Slidev presentations are Single Page Applications (SPAs)
+- Direct navigation to slides (e.g., `/3` or `/roadmap/5`) needs to serve the main HTML
+- Without rewrites, Vercel returns 404 for SPA routes
+
+### Step 4: Response Headers (Security)
+
+In **Project Settings → Functions → Headers**, add:
+
+| Source | Header | Value |
+|--------|--------|-------|
+| `/*` | `X-Content-Type-Options` | `nosniff` |
+| `/*` | `X-Frame-Options` | `DENY` |
+| `/*` | `X-XSS-Protection` | `1; mode=block` |
+
+These headers:
+- Prevent MIME type sniffing attacks
+- Block embedding in iframes (clickjacking protection)
+- Enable XSS filtering in older browsers
+
+---
+
+## Reference Configuration File
+
+The file `vercel.reference.json` contains the JSON representation of the above settings:
+
+```json
+{
+  "buildCommand": "npm run build:all",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "framework": null,
+  "rewrites": [
+    { "source": "/pitch/(.*)", "destination": "/pitch/index.html" },
+    { "source": "/roadmap/(.*)", "destination": "/roadmap/index.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" }
+      ]
+    }
+  ]
+}
+```
+
+> **Note**: This file is for documentation only. Vercel does NOT read this file
+> when the project is configured via the dashboard. All settings must be
+> configured manually in the Vercel dashboard as described above.
+
+---
 
 ## Build Process
 
 ### Local Build
 
-Build both presentations locally:
+Build all presentations locally:
 
 ```bash
 cd presentation
@@ -30,9 +125,8 @@ npm run build:all
 
 This will:
 1. Build the main presentation to `dist/`
-2. Build the roadmap presentation to `dist-roadmap/` with base path `/roadmap/`
-3. Copy roadmap build to `dist/roadmap/`
-4. Clean up temporary `dist-roadmap/` directory
+2. Build the pitch presentation to `dist/pitch/`
+3. Build the roadmap presentation to `dist/roadmap/`
 
 ### Output Structure
 
@@ -40,31 +134,18 @@ This will:
 dist/
 ├── index.html          # Main presentation
 ├── assets/             # Main presentation assets
+├── pitch/
+│   ├── index.html     # Pitch presentation
+│   └── assets/        # Pitch presentation assets
 ├── roadmap/
 │   ├── index.html     # Roadmap presentation
 │   └── assets/        # Roadmap presentation assets
 └── ...
 ```
 
-## Vercel Configuration
+---
 
-The project is configured via `vercel.json` at the repository root:
-
-```json
-{
-  "buildCommand": "cd presentation && npm install && npm run build:all",
-  "outputDirectory": "presentation/dist",
-  "installCommand": "cd presentation && npm install"
-}
-```
-
-### Key Configuration Details
-
-- **buildCommand**: Runs the `build:all` script to build both presentations
-- **outputDirectory**: Points to `presentation/dist` where the built files are
-- **installCommand**: Installs npm dependencies in the `presentation/` directory
-
-## Manual Deployment to Vercel
+## Manual Deployment via CLI
 
 ### First-Time Setup
 
@@ -80,24 +161,17 @@ The project is configured via `vercel.json` at the repository root:
 
 3. **Link Project**:
    ```bash
+   cd presentation
    vercel link
    ```
-   - Choose your team/account
-   - Confirm the project name
-   - Link to the repository
 
 ### Deploy to Production
 
-From the repository root:
+From the `presentation/` directory:
 
 ```bash
 vercel --prod
 ```
-
-This will:
-1. Build both presentations using the `build:all` script
-2. Deploy the `presentation/dist/` directory
-3. Provide deployment URLs
 
 ### Deploy to Preview
 
@@ -107,7 +181,7 @@ For testing before production:
 vercel
 ```
 
-This creates a preview deployment with a unique URL.
+---
 
 ## Continuous Deployment
 
@@ -117,10 +191,6 @@ When connected to GitHub, Vercel automatically:
 - Deploys **production** on pushes to `main` branch
 - Creates **preview deployments** for pull requests
 
-### Environment Variables
-
-No environment variables are required for the presentations.
-
 ### Custom Domain
 
 To add a custom domain:
@@ -129,17 +199,22 @@ To add a custom domain:
 2. Add your domain (e.g., `slides.caro.sh`)
 3. Configure DNS records as instructed
 
+---
+
 ## Build Scripts Reference
 
 | Script | Description |
 |--------|-------------|
 | `npm run dev` | Dev server for main presentation |
 | `npm run build` | Build main presentation only |
+| `npm run pitch` | Dev server for pitch presentation |
+| `npm run build:pitch` | Build pitch presentation only |
 | `npm run roadmap` | Dev server for roadmap presentation |
 | `npm run build:roadmap` | Build roadmap presentation only |
-| `npm run build:all` | Build both presentations (for deployment) |
+| `npm run build:all` | Build all presentations (for deployment) |
 | `npm run export` | Export main presentation to PDF |
-| `npm run roadmap:export` | Export roadmap to PDF |
+
+---
 
 ## Troubleshooting
 
@@ -153,20 +228,25 @@ Check the build logs:
 Common issues:
 - **Missing dependencies**: Run `npm install` locally to verify
 - **Build script fails**: Test `npm run build:all` locally
-- **Wrong output directory**: Verify `vercel.json` points to `presentation/dist`
+- **Wrong root directory**: Ensure Root Directory is set to `presentation`
+
+### 404 on Slide Navigation
+
+If navigating directly to `/3` or `/roadmap/5` returns 404:
+1. Verify rewrite rules are configured in Vercel dashboard
+2. Check the order of rewrite rules (more specific first)
+3. Ensure rewrites use `(.*)` pattern, not specific paths
 
 ### Presentations Not Loading
 
-1. Check that both presentations built successfully:
+1. Check that all presentations built successfully:
    ```bash
-   ls -la presentation/dist/
-   ls -la presentation/dist/roadmap/
+   ls -la dist/
+   ls -la dist/pitch/
+   ls -la dist/roadmap/
    ```
 
-2. Verify base paths:
-   - Main: No base path (root)
-   - Roadmap: `--base /roadmap/`
-
+2. Verify base paths in build scripts
 3. Check browser console for asset loading errors
 
 ### Local Build Issues
@@ -174,33 +254,16 @@ Common issues:
 Clean and rebuild:
 
 ```bash
-cd presentation
-rm -rf dist dist-roadmap node_modules
+rm -rf dist node_modules
 npm install
 npm run build:all
 ```
 
-## Development Workflow
-
-1. Make changes to `slides.md` or `roadmap-slides.md`
-2. Test locally with `npm run dev` or `npm run roadmap`
-3. Build and test with `npm run build:all`
-4. Commit to feature branch
-5. Create PR
-6. Vercel creates preview deployment automatically
-7. Review preview deployment
-8. Merge PR → Auto-deploy to production
+---
 
 ## Additional Resources
 
 - [Slidev Documentation](https://sli.dev/)
 - [Vercel Documentation](https://vercel.com/docs)
-- [Vercel CLI Reference](https://vercel.com/docs/cli)
-- [Slidev Theme: Seriph](https://github.com/slidevjs/themes/tree/main/packages/theme-seriph)
-
-## Notes
-
-- Both presentations use the `seriph` theme
-- Presentations include Mermaid diagrams for visualization
-- The Caro mascot (`mascot.gif`) is shared between both presentations
-- All presentations are static sites (no server-side rendering needed)
+- [Vercel Rewrites Guide](https://vercel.com/docs/edge-network/rewrites)
+- [Vercel Headers Guide](https://vercel.com/docs/edge-network/headers)

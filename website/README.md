@@ -216,13 +216,69 @@ jobs:
 
 ### Vercel
 
-1. Import your repository to Vercel
-2. Configure project:
-   - **Framework Preset**: Astro
-   - **Root Directory**: `website`
+Both the website and Storybook are deployed on Vercel as separate projects, configured manually via the Vercel dashboard.
+
+> **Note:** The `*.vercel.json` files in this directory are **not used by Vercel** (only `vercel.json` would be). They exist as documentation of the dashboard configuration for each project.
+
+#### Configuration Files (Reference Only)
+
+| File | Purpose | Live URL |
+|------|---------|----------|
+| `website.vercel.json` | Main website build config | https://caro.sh |
+| `storybook.vercel.json` | Storybook build config | https://storybook.caro.sh |
+
+#### Deploying the Website
+
+1. Go to [vercel.com/new](https://vercel.com/new)
+2. Import the `wildcard/caro` repository
+3. Set **Root Directory** to `website`
+4. Configure build settings (or let Vercel auto-detect Astro):
+   - **Framework**: Astro
    - **Build Command**: `npm run build`
    - **Output Directory**: `dist`
-3. Add custom domain: `caro.sh`
+5. Deploy
+
+#### Deploying Storybook
+
+1. Create a **new** project at [vercel.com/new](https://vercel.com/new)
+2. Import the same `wildcard/caro` repository
+3. Set **Root Directory** to `website`
+4. Configure build settings:
+   - **Framework**: Storybook (auto-detected)
+   - **Build Command**: `npm run build-storybook`
+   - **Output Directory**: `storybook-static`
+5. Deploy
+
+#### Custom Domains
+
+Configure in Vercel dashboard under Project → Settings → Domains:
+
+| Project | Domain |
+|---------|--------|
+| Website | `caro.sh` |
+| Storybook | `storybook.caro.sh` |
+
+DNS configuration at your registrar:
+```
+A     @     76.76.21.21
+CNAME www   cname.vercel-dns.com
+```
+
+#### Preview Deployments
+
+Every push creates preview deployments for both projects:
+```
+https://caro-git-<branch>-<team>.vercel.app
+https://storybook-caro-git-<branch>-<team>.vercel.app
+```
+
+#### Environment Variables
+
+No environment variables are required. If needed later:
+
+1. Go to Project Settings → Environment Variables
+2. Add variables for Production, Preview, and Development
+3. Redeploy for changes to take effect
 
 ### Cloudflare Pages
 
