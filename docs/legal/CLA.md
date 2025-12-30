@@ -16,7 +16,7 @@ By commenting **"I have read the CLA Document and I hereby sign the CLA"** on yo
 
 **"You"** (or **"Your"**) means the copyright owner or legal entity authorized by the copyright owner that is entering into this Agreement.
 
-**"Project"** (or **"We"** / **"Us"**) means the Caro open source project and its maintainers.
+**"Project"** (or **"We"** / **"Us"**) means the Caro Project, maintained by Wildcard (the core maintainer). This is a placeholder and will be replaced by the legal entity name when a company is established.
 
 **"Contribution"** means any original work of authorship, including any modifications or additions to existing work, that is intentionally submitted by You for inclusion in, or documentation of, Caro or any of the products owned or managed by the Project (the **"Work"**). For purposes of this definition, **"submitted"** means any form of electronic, verbal, or written communication sent to the project or its representatives, including but not limited to:
 - Code submitted via pull requests
@@ -239,7 +239,7 @@ A: If you created the contribution during work hours or using employer resources
 **Version**: 2.0
 **Last Updated**: December 30, 2025
 **License**: This CLA is based on industry-standard CLAs including Apache Foundation's ICLA
-**Managed by**: the Project
+**Managed by**: Caro Project / Wildcard (placeholder - will be replaced by legal entity)
 **Project**: Caro (https://github.com/wildcard/caro)
 
 ---

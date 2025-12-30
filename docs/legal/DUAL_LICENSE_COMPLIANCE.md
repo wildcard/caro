@@ -2,7 +2,7 @@
 
 **Date**: December 30, 2025
 **Project**: Caro (formerly cmdai)
-**Managed by**: the Project
+**Managed by**: Caro Project / Wildcard (placeholder until legal entity established)
 **Version**: 2.0
 
 ---
@@ -376,4 +376,4 @@ Caro is **fully compliant** with all requirements for a future-proof dual licens
 **Document Version**: 1.0
 **Last Updated**: December 30, 2025
 **Next Review**: Quarterly or upon legal counsel review
-**Maintained by**: the Project Legal Team
+**Maintained by**: Caro Project Legal Team / Wildcard (placeholder)
