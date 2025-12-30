@@ -1,16 +1,44 @@
 # Telemetry Implementation Specification
 
 > **Companion to:** TELEMETRY_STRATEGY.md
-> **Purpose:** Concrete implementation details for developers
+> **Purpose:** Concrete implementation using PostHog
 > **Target:** v1.1.0 Beta Release
 
 ## Overview
 
-This document provides implementable specifications for adding telemetry to Caro. It translates the strategy document into Rust code structures, configuration schema, and CLI commands.
+This document specifies telemetry implementation using [PostHog](https://posthog.com) - a product analytics platform that handles infrastructure, dashboards, and privacy compliance.
+
+**Why PostHog over custom infrastructure:**
+- No backend to build or maintain
+- Built-in dashboards, funnels, and cohorts
+- Privacy-compliant (GDPR, SOC2)
+- Feature flags for future A/B testing
+- Generous free tier (1M events/month)
 
 ---
 
-## 1. Configuration Schema
+## 1. PostHog Configuration
+
+### API Keys
+
+```bash
+# Production (US Cloud)
+POSTHOG_API_KEY=phc_zQioEeKLXat4tLnI6sb0yFLRti8nff4ALAkNQAfRhME
+POSTHOG_HOST=https://us.i.posthog.com
+```
+
+### Rust SDK Setup
+
+Add to `Cargo.toml`:
+
+```toml
+[dependencies]
+posthog-rs = "0.2"
+```
+
+---
+
+## 2. Configuration Schema
 
 ### Addition to `src/config/mod.rs`
 
@@ -25,62 +53,23 @@ pub struct TelemetryConfig {
     /// Default: true for beta, false for GA
     pub enabled: bool,
 
-    /// Collection level: minimal, standard, detailed
-    #[serde(default = "default_level")]
-    pub level: TelemetryLevel,
-
-    /// Hours between transmission attempts
-    #[serde(default = "default_batch_interval")]
-    pub batch_interval_hours: u32,
-
-    /// Maximum local spool size in MB
-    #[serde(default = "default_spool_size")]
-    pub offline_spool_max_mb: u32,
-
-    /// Air-gapped mode: collect but never transmit
+    /// Air-gapped mode: collect locally, export manually
     #[serde(default)]
     pub air_gapped: bool,
 
-    /// Endpoint for telemetry submission (internal use)
-    #[serde(skip_serializing)]
-    pub endpoint: Option<String>,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Default, PartialEq)]
-#[serde(rename_all = "lowercase")]
-pub enum TelemetryLevel {
-    /// Session start/end, errors only
-    Minimal,
-    /// + command events, safety events
-    #[default]
-    Standard,
-    /// + performance percentiles, retry patterns
-    Detailed,
+    /// Explicitly configured (set after first-run prompt)
+    #[serde(default)]
+    pub explicitly_configured: bool,
 }
 
 impl Default for TelemetryConfig {
     fn default() -> Self {
         Self {
             enabled: cfg!(feature = "beta"), // true for beta builds
-            level: TelemetryLevel::Standard,
-            batch_interval_hours: 24,
-            offline_spool_max_mb: 10,
             air_gapped: false,
-            endpoint: None,
+            explicitly_configured: false,
         }
     }
-}
-
-fn default_level() -> TelemetryLevel {
-    TelemetryLevel::Standard
-}
-
-fn default_batch_interval() -> u32 {
-    24
-}
-
-fn default_spool_size() -> u32 {
-    10
 }
 ```
 
@@ -91,9 +80,6 @@ fn default_spool_size() -> u32 {
 
 [telemetry]
 enabled = true
-level = "standard"
-batch_interval_hours = 24
-offline_spool_max_mb = 10
 air_gapped = false
 ```
 
@@ -102,916 +88,331 @@ air_gapped = false
 | Variable | Type | Description |
 |----------|------|-------------|
 | `CARO_TELEMETRY_ENABLED` | bool | Override enabled state |
-| `CARO_TELEMETRY_LEVEL` | string | Override collection level |
 | `CARO_TELEMETRY_AIR_GAPPED` | bool | Override air-gapped mode |
 
 ---
 
-## 2. Event Type Definitions
+## 3. PostHog Client Implementation
 
-### File: `src/telemetry/events.rs`
-
-```rust
-use serde::{Deserialize, Serialize};
-use std::time::SystemTime;
-use uuid::Uuid;
-
-/// All telemetry event types
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "event", rename_all = "snake_case")]
-pub enum TelemetryEvent {
-    SessionStart(SessionStartEvent),
-    SessionEnd(SessionEndEvent),
-    CommandGenerated(CommandGeneratedEvent),
-    CommandExecuted(CommandExecutedEvent),
-    SafetyTriggered(SafetyTriggeredEvent),
-    ErrorOccurred(ErrorOccurredEvent),
-}
-
-impl TelemetryEvent {
-    pub fn event_type(&self) -> &'static str {
-        match self {
-            Self::SessionStart(_) => "session.start",
-            Self::SessionEnd(_) => "session.end",
-            Self::CommandGenerated(_) => "command.generated",
-            Self::CommandExecuted(_) => "command.executed",
-            Self::SafetyTriggered(_) => "safety.triggered",
-            Self::ErrorOccurred(_) => "error.occurred",
-        }
-    }
-
-    pub fn timestamp(&self) -> SystemTime {
-        match self {
-            Self::SessionStart(e) => e.timestamp,
-            Self::SessionEnd(e) => e.timestamp,
-            Self::CommandGenerated(e) => e.timestamp,
-            Self::CommandExecuted(e) => e.timestamp,
-            Self::SafetyTriggered(e) => e.timestamp,
-            Self::ErrorOccurred(e) => e.timestamp,
-        }
-    }
-}
-
-/// Session start event
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SessionStartEvent {
-    pub timestamp: SystemTime,
-    pub session_id: String,
-    pub caro_version: String,
-    pub platform: PlatformInfo,
-    pub backend_config: BackendConfigInfo,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub safety_level: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub output_format: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub is_first_run: Option<bool>,
-}
-
-/// Platform information (safe metadata only)
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlatformInfo {
-    pub os: String,      // "macos", "linux", "windows"
-    pub arch: String,    // "aarch64", "x86_64"
-    pub shell: String,   // "zsh", "bash", "fish", etc.
-}
-
-/// Backend configuration (no secrets)
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackendConfigInfo {
-    pub primary: String,           // "embedded-mlx", "ollama", etc.
-    pub fallback_enabled: bool,
-}
-
-/// Session end event
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SessionEndEvent {
-    pub timestamp: SystemTime,
-    pub session_id: String,
-    pub session_duration_ms: u64,
-    pub commands_generated: u32,
-    pub commands_executed: u32,
-    pub errors_encountered: u32,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub exit_reason: Option<ExitReason>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub safety_blocks: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub retries: Option<u32>,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum ExitReason {
-    UserComplete,
-    UserAbort,
-    Error,
-    Timeout,
-}
-
-/// Command generated event
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CommandGeneratedEvent {
-    pub timestamp: SystemTime,
-    pub session_id: String,
-    pub generation_id: Uuid,
-    pub backend_used: String,
-    pub inference_time_ms: u64,
-    pub safety_result: SafetyResultInfo,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub model_name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub input_token_count: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub output_token_count: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub confidence_score: Option<f64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub retry_count: Option<u32>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SafetyResultInfo {
-    pub risk_level: RiskLevel,
-    pub patterns_matched: u32,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum RiskLevel {
-    Safe,
-    Moderate,
-    High,
-    Critical,
-}
-
-/// Command executed event
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CommandExecutedEvent {
-    pub timestamp: SystemTime,
-    pub session_id: String,
-    pub generation_id: Uuid,
-    pub execution_mode: ExecutionMode,
-    pub modified_before_execution: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub exit_code_category: Option<ExitCodeCategory>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub execution_time_ms: Option<u64>,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum ExecutionMode {
-    Confirmed,      // User confirmed execution
-    AutoConfirm,    // -y flag used
-    DryRun,         // --dry-run
-    Interactive,    // -i step-by-step
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum ExitCodeCategory {
-    Success,
-    Error,
-    Timeout,
-}
-
-/// Safety triggered event
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SafetyTriggeredEvent {
-    pub timestamp: SystemTime,
-    pub session_id: String,
-    pub generation_id: Uuid,
-    pub risk_level: RiskLevel,
-    pub pattern_category: PatternCategory,
-    pub action_taken: SafetyAction,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub user_override: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub safety_level_config: Option<String>,
-}
-
-/// High-level pattern categories (no specific patterns exposed)
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum PatternCategory {
-    FilesystemDestruction,
-    PrivilegeEscalation,
-    DiskOperation,
-    NetworkExfiltration,
-    SystemModification,
-    ServiceControl,
-    ConfigModification,
-    Other,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum SafetyAction {
-    Blocked,
-    Warned,
-    Allowed,
-}
-
-/// Error occurred event
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ErrorOccurredEvent {
-    pub timestamp: SystemTime,
-    pub session_id: String,
-    pub error_category: ErrorCategory,
-    pub error_code: String,
-    pub component: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub backend: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub recoverable: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub fallback_attempted: Option<bool>,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum ErrorCategory {
-    BackendTimeout,
-    BackendConnection,
-    BackendParse,
-    ModelLoad,
-    ConfigError,
-    ValidationError,
-    ExecutionError,
-    Unknown,
-}
-```
-
----
-
-## 3. Collector Implementation
-
-### File: `src/telemetry/collector.rs`
+### File: `src/telemetry/mod.rs`
 
 ```rust
-use crate::config::TelemetryConfig;
-use crate::telemetry::events::TelemetryEvent;
-use crate::telemetry::queue::EventQueue;
-use crate::telemetry::redaction::validate_event;
-use std::sync::Arc;
+use once_cell::sync::OnceCell;
+use posthog_rs::{Client, Event};
+use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
-use tokio::sync::mpsc;
 use tracing::{debug, warn};
 
-/// Global telemetry collector instance
-static COLLECTOR: once_cell::sync::OnceCell<TelemetryCollector> = once_cell::sync::OnceCell::new();
+static CLIENT: OnceCell<PostHogClient> = OnceCell::new();
 
-/// Initialize global telemetry collector
-pub fn init(config: TelemetryConfig) -> &'static TelemetryCollector {
-    COLLECTOR.get_or_init(|| TelemetryCollector::new(config))
-}
+const POSTHOG_API_KEY: &str = "phc_zQioEeKLXat4tLnI6sb0yFLRti8nff4ALAkNQAfRhME";
 
-/// Get global telemetry collector (panics if not initialized)
-pub fn get() -> &'static TelemetryCollector {
-    COLLECTOR.get().expect("Telemetry not initialized")
-}
-
-/// Try to get global telemetry collector
-pub fn try_get() -> Option<&'static TelemetryCollector> {
-    COLLECTOR.get()
-}
-
-/// Main telemetry collector
-pub struct TelemetryCollector {
-    config: TelemetryConfig,
+pub struct PostHogClient {
+    client: Client,
     enabled: AtomicBool,
-    queue: Arc<EventQueue>,
-    sender: mpsc::UnboundedSender<TelemetryEvent>,
+    distinct_id: String,
 }
 
-impl TelemetryCollector {
-    pub fn new(config: TelemetryConfig) -> Self {
-        let enabled = config.enabled;
-        let queue = Arc::new(EventQueue::new(&config).expect("Failed to create event queue"));
+impl PostHogClient {
+    pub fn new(enabled: bool) -> Self {
+        let client = posthog_rs::client(POSTHOG_API_KEY);
 
-        // Background task for async event processing
-        let (sender, mut receiver) = mpsc::unbounded_channel::<TelemetryEvent>();
-        let queue_clone = queue.clone();
-
-        tokio::spawn(async move {
-            while let Some(event) = receiver.recv().await {
-                if let Err(e) = queue_clone.enqueue(&event) {
-                    warn!("Failed to enqueue telemetry event: {:?}", e);
-                }
-            }
-        });
+        // Generate anonymous distinct_id (rotates daily for privacy)
+        let distinct_id = generate_anonymous_id();
 
         Self {
-            config,
+            client,
             enabled: AtomicBool::new(enabled),
-            queue,
-            sender,
+            distinct_id,
         }
     }
 
-    /// Record an event (non-blocking, never visibly fails)
-    pub fn record(&self, event: impl Into<TelemetryEvent>) {
-        // Fast path: check enabled flag
+    /// Capture an event (non-blocking, never fails visibly)
+    pub fn capture(&self, event_name: &str, properties: HashMap<String, serde_json::Value>) {
         if !self.enabled.load(Ordering::Relaxed) {
             return;
         }
 
-        let event = event.into();
-
-        // Validate event doesn't contain sensitive data
-        if let Err(e) = validate_event(&event) {
-            warn!("Telemetry event rejected (sensitive data): {:?}", e);
+        // Validate no sensitive data in properties
+        if let Err(e) = validate_properties(&properties) {
+            warn!("Telemetry blocked (sensitive data): {:?}", e);
             return;
         }
 
-        // Non-blocking send to background task
-        if let Err(e) = self.sender.send(event) {
-            debug!("Failed to send telemetry event: {:?}", e);
+        let event = Event::new(event_name, &self.distinct_id)
+            .insert_props(properties);
+
+        // Fire and forget - don't block CLI
+        if let Err(e) = self.client.capture(event) {
+            debug!("PostHog capture failed: {:?}", e);
         }
     }
 
-    /// Enable or disable telemetry at runtime
+    /// Identify user with properties (for cohort analysis)
+    pub fn identify(&self, properties: HashMap<String, serde_json::Value>) {
+        if !self.enabled.load(Ordering::Relaxed) {
+            return;
+        }
+
+        // PostHog identify call
+        let _ = self.client.identify(&self.distinct_id, properties);
+    }
+
     pub fn set_enabled(&self, enabled: bool) {
         self.enabled.store(enabled, Ordering::Relaxed);
     }
 
-    /// Check if telemetry is enabled
     pub fn is_enabled(&self) -> bool {
         self.enabled.load(Ordering::Relaxed)
     }
 
-    /// Get pending event count
-    pub fn pending_count(&self) -> usize {
-        self.queue.count().unwrap_or(0)
-    }
-
-    /// Get pending events for display
-    pub fn pending_events(&self) -> Vec<TelemetryEvent> {
-        self.queue.all_pending().unwrap_or_default()
-    }
-
-    /// Flush pending events (transmit or spool)
-    pub async fn flush(&self) -> Result<FlushResult, TelemetryError> {
-        if self.config.air_gapped {
-            return Ok(FlushResult::Spooled(self.pending_count()));
-        }
-
-        let batch = self.queue.pending_batch(1000)?;
-        if batch.is_empty() {
-            return Ok(FlushResult::Empty);
-        }
-
-        match self.transmit(&batch).await {
-            Ok(_) => {
-                self.queue.mark_transmitted(&batch)?;
-                Ok(FlushResult::Transmitted(batch.len()))
-            }
-            Err(e) => {
-                debug!("Telemetry transmission failed, will retry: {:?}", e);
-                Ok(FlushResult::Deferred(batch.len()))
-            }
-        }
-    }
-
-    /// Export events to file (for air-gapped environments)
-    pub fn export(&self, path: &std::path::Path) -> Result<ExportResult, TelemetryError> {
-        let events = self.queue.all_pending()?;
-        let export = TelemetryExport {
-            export_version: "1.0".to_string(),
-            exported_at: chrono::Utc::now(),
-            caro_version: env!("CARGO_PKG_VERSION").to_string(),
-            event_count: events.len(),
-            events,
-        };
-
-        let json = serde_json::to_string_pretty(&export)?;
-
-        // Compress with gzip
-        use flate2::write::GzEncoder;
-        use flate2::Compression;
-        use std::io::Write;
-
-        let file = std::fs::File::create(path)?;
-        let mut encoder = GzEncoder::new(file, Compression::default());
-        encoder.write_all(json.as_bytes())?;
-        encoder.finish()?;
-
-        Ok(ExportResult {
-            path: path.to_path_buf(),
-            event_count: export.event_count,
-            size_bytes: std::fs::metadata(path)?.len(),
-        })
-    }
-
-    /// Clear all pending events
-    pub fn clear(&self) -> Result<usize, TelemetryError> {
-        self.queue.clear()
-    }
-
-    async fn transmit(&self, batch: &[TelemetryEvent]) -> Result<(), TelemetryError> {
-        let endpoint = self.config.endpoint
-            .as_deref()
-            .unwrap_or("https://telemetry.caro.sh/v1/events");
-
-        let payload = TransmitPayload {
-            events: batch.to_vec(),
-            batch_id: uuid::Uuid::new_v4(),
-            client_timestamp: chrono::Utc::now(),
-        };
-
-        let client = reqwest::Client::new();
-        let response = client
-            .post(endpoint)
-            .header("Content-Type", "application/json")
-            .header("X-Caro-Version", env!("CARGO_PKG_VERSION"))
-            .json(&payload)
-            .timeout(std::time::Duration::from_secs(30))
-            .send()
-            .await?;
-
-        if response.status().is_success() {
-            Ok(())
-        } else {
-            Err(TelemetryError::TransmitFailed(response.status().as_u16()))
-        }
+    pub fn distinct_id(&self) -> &str {
+        &self.distinct_id
     }
 }
 
-#[derive(Debug)]
-pub enum FlushResult {
-    Empty,
-    Transmitted(usize),
-    Deferred(usize),
-    Spooled(usize),
+/// Initialize global PostHog client
+pub fn init(enabled: bool) -> &'static PostHogClient {
+    CLIENT.get_or_init(|| PostHogClient::new(enabled))
 }
 
-#[derive(Debug)]
-pub struct ExportResult {
-    pub path: std::path::PathBuf,
-    pub event_count: usize,
-    pub size_bytes: u64,
+/// Get global client (panics if not initialized)
+pub fn get() -> &'static PostHogClient {
+    CLIENT.get().expect("Telemetry not initialized")
 }
 
-#[derive(Debug, Serialize)]
-struct TransmitPayload {
-    events: Vec<TelemetryEvent>,
-    batch_id: uuid::Uuid,
-    client_timestamp: chrono::DateTime<chrono::Utc>,
+/// Try to get global client
+pub fn try_get() -> Option<&'static PostHogClient> {
+    CLIENT.get()
 }
 
-#[derive(Debug, Serialize)]
-struct TelemetryExport {
-    export_version: String,
-    exported_at: chrono::DateTime<chrono::Utc>,
-    caro_version: String,
-    event_count: usize,
-    events: Vec<TelemetryEvent>,
+/// Generate anonymous ID that rotates daily
+fn generate_anonymous_id() -> String {
+    use sha2::{Sha256, Digest};
+
+    // Get machine-specific identifier (stable across sessions)
+    let machine_id = machine_uid::get()
+        .unwrap_or_else(|_| "unknown".to_string());
+
+    // Add date for daily rotation (privacy)
+    let today = chrono::Local::now().format("%Y-%m-%d").to_string();
+
+    // Hash for anonymization
+    let mut hasher = Sha256::new();
+    hasher.update(format!("caro:{machine_id}:{today}"));
+    let result = hasher.finalize();
+
+    // Take first 16 chars of hex
+    format!("{:x}", result)[..16].to_string()
 }
 
-#[derive(Debug, thiserror::Error)]
-pub enum TelemetryError {
-    #[error("Queue error: {0}")]
-    Queue(#[from] rusqlite::Error),
-    #[error("Serialization error: {0}")]
-    Serialization(#[from] serde_json::Error),
-    #[error("IO error: {0}")]
-    Io(#[from] std::io::Error),
-    #[error("Network error: {0}")]
-    Network(#[from] reqwest::Error),
-    #[error("Transmission failed with status: {0}")]
-    TransmitFailed(u16),
-}
-```
-
----
-
-## 4. Redaction and Validation
-
-### File: `src/telemetry/redaction.rs`
-
-```rust
-use crate::telemetry::events::TelemetryEvent;
-use regex::Regex;
-use once_cell::sync::Lazy;
-
-/// Patterns that indicate sensitive data
-static SENSITIVE_PATTERNS: Lazy<Vec<Regex>> = Lazy::new(|| {
-    vec![
-        // File paths
-        Regex::new(r"^/[a-zA-Z]").unwrap(),
-        Regex::new(r"^~[/\\]").unwrap(),
-        Regex::new(r"^[A-Z]:\\").unwrap(),
-        Regex::new(r"/home/[^/]+").unwrap(),
-        Regex::new(r"/Users/[^/]+").unwrap(),
-
-        // Secrets
-        Regex::new(r"(?i)(password|secret|token|key|credential)").unwrap(),
-        Regex::new(r"(?i)(api[_-]?key|auth[_-]?token)").unwrap(),
-        Regex::new(r"[a-zA-Z0-9]{32,}").unwrap(), // Long random strings
-
-        // URLs with credentials
-        Regex::new(r"https?://[^:]+:[^@]+@").unwrap(),
-
-        // Commands
-        Regex::new(r"^\s*(rm|mv|cp|chmod|chown|sudo|dd|mkfs)").unwrap(),
-        Regex::new(r"[|;`$]").unwrap(), // Shell metacharacters
-    ]
-});
-
-/// Validation errors for telemetry events
-#[derive(Debug, Clone)]
-pub enum ValidationError {
-    PathDetected(String),
-    SecretDetected(String),
-    CommandDetected(String),
-    FieldTooLong(String, usize),
-}
-
-/// Validate that an event doesn't contain sensitive data
-pub fn validate_event(event: &TelemetryEvent) -> Result<(), ValidationError> {
-    // Serialize to JSON and check all string values
-    let json = serde_json::to_value(event)
-        .map_err(|_| ValidationError::CommandDetected("serialization failed".into()))?;
-
-    validate_value(&json)
-}
-
-fn validate_value(value: &serde_json::Value) -> Result<(), ValidationError> {
-    match value {
-        serde_json::Value::String(s) => validate_string(s),
-        serde_json::Value::Array(arr) => {
-            for item in arr {
-                validate_value(item)?;
-            }
-            Ok(())
-        }
-        serde_json::Value::Object(obj) => {
-            for (_, v) in obj {
-                validate_value(v)?;
-            }
-            Ok(())
-        }
-        _ => Ok(()),
-    }
-}
-
-fn validate_string(s: &str) -> Result<(), ValidationError> {
-    // Check length
-    if s.len() > 200 {
-        return Err(ValidationError::FieldTooLong(
-            s.chars().take(50).collect(),
-            s.len(),
-        ));
-    }
-
-    // Check against sensitive patterns
-    for pattern in SENSITIVE_PATTERNS.iter() {
-        if pattern.is_match(s) {
-            // Determine which type of sensitive data
+/// Validate properties don't contain sensitive data
+fn validate_properties(props: &HashMap<String, serde_json::Value>) -> Result<(), &'static str> {
+    for (key, value) in props {
+        if let serde_json::Value::String(s) = value {
+            // Check for file paths
             if s.starts_with('/') || s.starts_with('~') || s.contains(":\\") {
-                return Err(ValidationError::PathDetected(s.chars().take(20).collect()));
+                return Err("file path detected");
             }
+            // Check for secrets
             if s.contains("password") || s.contains("secret") || s.contains("token") {
-                return Err(ValidationError::SecretDetected("[redacted]".into()));
+                return Err("secret detected");
             }
+            // Check for commands
             if s.contains('|') || s.contains(';') || s.contains('`') {
-                return Err(ValidationError::CommandDetected("[redacted]".into()));
+                return Err("command detected");
+            }
+            // Length limit
+            if s.len() > 200 {
+                return Err("field too long");
             }
         }
     }
-
     Ok(())
 }
+```
 
-/// Allowlist of safe field values
-pub fn is_allowed_value(field: &str, value: &str) -> bool {
-    match field {
-        "os" => ["macos", "linux", "windows", "unknown"].contains(&value),
-        "arch" => ["aarch64", "x86_64", "arm", "unknown"].contains(&value),
-        "shell" => ["bash", "zsh", "fish", "sh", "powershell", "cmd", "unknown"].contains(&value),
-        "backend_used" | "primary" => {
-            ["embedded-mlx", "embedded-cpu", "ollama", "vllm", "exo", "mock"].contains(&value)
-        }
-        "risk_level" => ["safe", "moderate", "high", "critical"].contains(&value),
-        "event" => value.starts_with("session.")
-            || value.starts_with("command.")
-            || value.starts_with("safety.")
-            || value.starts_with("error."),
-        _ => true, // Other fields validated by pattern matching
+---
+
+## 4. Event Helpers
+
+### File: `src/telemetry/events.rs`
+
+```rust
+use crate::telemetry;
+use std::collections::HashMap;
+use serde_json::json;
+
+/// Capture session start
+pub fn session_start(
+    caro_version: &str,
+    os: &str,
+    arch: &str,
+    shell: &str,
+    backend: &str,
+) {
+    if let Some(client) = telemetry::try_get() {
+        let mut props = HashMap::new();
+        props.insert("caro_version".into(), json!(caro_version));
+        props.insert("os".into(), json!(os));
+        props.insert("arch".into(), json!(arch));
+        props.insert("shell".into(), json!(shell));
+        props.insert("backend".into(), json!(backend));
+        props.insert("$lib".into(), json!("caro-cli"));
+
+        client.capture("session_started", props);
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+/// Capture session end
+pub fn session_end(
+    duration_ms: u64,
+    commands_generated: u32,
+    commands_executed: u32,
+    errors: u32,
+) {
+    if let Some(client) = telemetry::try_get() {
+        let mut props = HashMap::new();
+        props.insert("duration_ms".into(), json!(duration_ms));
+        props.insert("commands_generated".into(), json!(commands_generated));
+        props.insert("commands_executed".into(), json!(commands_executed));
+        props.insert("errors".into(), json!(errors));
 
-    #[test]
-    fn test_rejects_file_paths() {
-        assert!(validate_string("/etc/passwd").is_err());
-        assert!(validate_string("~/Documents/secrets.txt").is_err());
-        assert!(validate_string("C:\\Users\\admin").is_err());
+        // Calculate success rate (north star metric)
+        let success_rate = if commands_generated > 0 {
+            (commands_executed as f64 / commands_generated as f64) * 100.0
+        } else {
+            0.0
+        };
+        props.insert("command_success_rate".into(), json!(success_rate));
+
+        client.capture("session_ended", props);
     }
+}
 
-    #[test]
-    fn test_rejects_secrets() {
-        assert!(validate_string("password=hunter2").is_err());
-        assert!(validate_string("API_KEY=abcd1234").is_err());
+/// Capture command generation
+pub fn command_generated(
+    backend: &str,
+    inference_time_ms: u64,
+    risk_level: &str,
+    patterns_matched: u32,
+    model_name: Option<&str>,
+) {
+    if let Some(client) = telemetry::try_get() {
+        let mut props = HashMap::new();
+        props.insert("backend".into(), json!(backend));
+        props.insert("inference_time_ms".into(), json!(inference_time_ms));
+        props.insert("risk_level".into(), json!(risk_level));
+        props.insert("patterns_matched".into(), json!(patterns_matched));
+
+        if let Some(model) = model_name {
+            props.insert("model_name".into(), json!(model));
+        }
+
+        client.capture("command_generated", props);
     }
+}
 
-    #[test]
-    fn test_rejects_commands() {
-        assert!(validate_string("rm -rf /").is_err());
-        assert!(validate_string("echo foo | grep bar").is_err());
+/// Capture command execution
+pub fn command_executed(
+    execution_mode: &str,
+    modified: bool,
+    exit_category: &str,
+    execution_time_ms: Option<u64>,
+) {
+    if let Some(client) = telemetry::try_get() {
+        let mut props = HashMap::new();
+        props.insert("execution_mode".into(), json!(execution_mode));
+        props.insert("modified_before_execution".into(), json!(modified));
+        props.insert("exit_category".into(), json!(exit_category));
+
+        if let Some(time) = execution_time_ms {
+            props.insert("execution_time_ms".into(), json!(time));
+        }
+
+        client.capture("command_executed", props);
     }
+}
 
-    #[test]
-    fn test_allows_safe_values() {
-        assert!(validate_string("macos").is_ok());
-        assert!(validate_string("embedded-mlx").is_ok());
-        assert!(validate_string("1.1.0").is_ok());
+/// Capture safety validation trigger
+pub fn safety_triggered(
+    risk_level: &str,
+    pattern_category: &str,
+    action: &str,
+    user_override: bool,
+) {
+    if let Some(client) = telemetry::try_get() {
+        let mut props = HashMap::new();
+        props.insert("risk_level".into(), json!(risk_level));
+        props.insert("pattern_category".into(), json!(pattern_category));
+        props.insert("action".into(), json!(action));
+        props.insert("user_override".into(), json!(user_override));
+
+        client.capture("safety_triggered", props);
+    }
+}
+
+/// Capture error
+pub fn error_occurred(
+    category: &str,
+    component: &str,
+    recoverable: bool,
+) {
+    if let Some(client) = telemetry::try_get() {
+        let mut props = HashMap::new();
+        props.insert("error_category".into(), json!(category));
+        props.insert("component".into(), json!(component));
+        props.insert("recoverable".into(), json!(recoverable));
+
+        client.capture("error_occurred", props);
     }
 }
 ```
 
 ---
 
-## 5. CLI Commands
-
-### Addition to `src/main.rs` (clap definitions)
-
-```rust
-#[derive(Subcommand)]
-pub enum Commands {
-    // ... existing commands ...
-
-    /// Manage telemetry settings
-    #[command(subcommand)]
-    Telemetry(TelemetryCommands),
-}
-
-#[derive(Subcommand)]
-pub enum TelemetryCommands {
-    /// Show pending telemetry events
-    Show {
-        /// Show detailed event payloads
-        #[arg(long)]
-        verbose: bool,
-
-        /// Output as JSON
-        #[arg(long)]
-        json: bool,
-    },
-
-    /// Export telemetry to file (for air-gapped environments)
-    Export {
-        /// Output file path
-        #[arg(short, long)]
-        output: Option<PathBuf>,
-
-        /// Clear local queue after export
-        #[arg(long)]
-        clear: bool,
-    },
-
-    /// Clear pending telemetry events
-    Clear,
-
-    /// Request deletion of remote data
-    DeleteRemote,
-
-    /// Show telemetry status
-    Status,
-}
-```
-
-### Implementation: `src/commands/telemetry.rs`
-
-```rust
-use crate::telemetry::{self, FlushResult};
-use crate::config::Config;
-use colored::Colorize;
-
-pub async fn handle_telemetry_command(cmd: TelemetryCommands) -> anyhow::Result<()> {
-    match cmd {
-        TelemetryCommands::Show { verbose, json } => show(verbose, json).await,
-        TelemetryCommands::Export { output, clear } => export(output, clear).await,
-        TelemetryCommands::Clear => clear().await,
-        TelemetryCommands::DeleteRemote => delete_remote().await,
-        TelemetryCommands::Status => status().await,
-    }
-}
-
-async fn status() -> anyhow::Result<()> {
-    let config = Config::load()?;
-    let collector = telemetry::try_get();
-
-    println!("{}", "Telemetry Status".bold());
-    println!();
-
-    if config.telemetry.enabled {
-        println!("  Status: {} (opt-out)", "ENABLED".green());
-    } else {
-        println!("  Status: {}", "DISABLED".yellow());
-    }
-
-    println!("  Collection Level: {}", format!("{:?}", config.telemetry.level).to_lowercase());
-    println!("  Air-Gapped Mode: {}", if config.telemetry.air_gapped { "enabled" } else { "disabled" });
-
-    if let Some(collector) = collector {
-        println!("  Pending Events: {}", collector.pending_count());
-    }
-
-    println!();
-    println!("{}", "Commands:".bold());
-    println!("  caro telemetry show        View pending events");
-    println!("  caro telemetry export      Export for air-gapped upload");
-    println!("  caro config set telemetry.enabled false   Disable telemetry");
-
-    Ok(())
-}
-
-async fn show(verbose: bool, json: bool) -> anyhow::Result<()> {
-    let collector = telemetry::try_get()
-        .ok_or_else(|| anyhow::anyhow!("Telemetry not initialized"))?;
-
-    let events = collector.pending_events();
-
-    if json {
-        println!("{}", serde_json::to_string_pretty(&events)?);
-        return Ok(());
-    }
-
-    if events.is_empty() {
-        println!("No pending telemetry events.");
-        return Ok(());
-    }
-
-    println!("{}", "Pending Telemetry Events".bold());
-    println!();
-
-    if verbose {
-        for event in &events {
-            println!("{}", serde_json::to_string_pretty(event)?);
-            println!("---");
-        }
-    } else {
-        println!("{:<20} {:<25} {:>10}", "Event", "Timestamp", "Size");
-        println!("{}", "-".repeat(57));
-
-        for event in &events {
-            let json = serde_json::to_string(event)?;
-            println!(
-                "{:<20} {:<25} {:>10}",
-                event.event_type(),
-                format_timestamp(event.timestamp()),
-                format!("{} bytes", json.len())
-            );
-        }
-    }
-
-    println!();
-    println!("Total: {} events", events.len());
-
-    Ok(())
-}
-
-async fn export(output: Option<PathBuf>, clear: bool) -> anyhow::Result<()> {
-    let collector = telemetry::try_get()
-        .ok_or_else(|| anyhow::anyhow!("Telemetry not initialized"))?;
-
-    let output_path = output.unwrap_or_else(|| {
-        let cache_dir = dirs::cache_dir().unwrap_or_else(|| PathBuf::from("."));
-        let filename = format!("telemetry-export-{}.json.gz",
-            chrono::Local::now().format("%Y-%m-%d"));
-        cache_dir.join("caro").join(filename)
-    });
-
-    // Ensure parent directory exists
-    if let Some(parent) = output_path.parent() {
-        std::fs::create_dir_all(parent)?;
-    }
-
-    let result = collector.export(&output_path)?;
-
-    println!("{}", "Telemetry Export Complete".green().bold());
-    println!();
-    println!("  File: {}", output_path.display());
-    println!("  Events: {}", result.event_count);
-    println!("  Size: {} (compressed)", format_bytes(result.size_bytes));
-    println!();
-    println!("To submit: Upload to https://caro.sh/telemetry/upload");
-    println!("Or email to: telemetry@caro.sh");
-
-    if clear {
-        let cleared = collector.clear()?;
-        println!();
-        println!("Cleared {} pending events.", cleared);
-    }
-
-    Ok(())
-}
-
-async fn clear() -> anyhow::Result<()> {
-    let collector = telemetry::try_get()
-        .ok_or_else(|| anyhow::anyhow!("Telemetry not initialized"))?;
-
-    let count = collector.clear()?;
-    println!("Cleared {} pending events.", count);
-
-    Ok(())
-}
-
-async fn delete_remote() -> anyhow::Result<()> {
-    let collector = telemetry::try_get()
-        .ok_or_else(|| anyhow::anyhow!("Telemetry not initialized"))?;
-
-    // Get session ID for display
-    println!("{}", "Remote Data Deletion Request".bold());
-    println!();
-    println!("This will request deletion of all data associated with your anonymous ID.");
-    println!();
-
-    print!("Proceed? [y/N] ");
-    std::io::Write::flush(&mut std::io::stdout())?;
-
-    let mut input = String::new();
-    std::io::stdin().read_line(&mut input)?;
-
-    if input.trim().to_lowercase() != "y" {
-        println!("Cancelled.");
-        return Ok(());
-    }
-
-    // Send deletion request
-    // TODO: Implement actual deletion request
-    println!("Deletion request submitted. Data will be purged within 72 hours.");
-
-    Ok(())
-}
-
-fn format_timestamp(time: std::time::SystemTime) -> String {
-    let datetime: chrono::DateTime<chrono::Local> = time.into();
-    datetime.format("%Y-%m-%d %H:%M:%S").to_string()
-}
-
-fn format_bytes(bytes: u64) -> String {
-    if bytes < 1024 {
-        format!("{} B", bytes)
-    } else if bytes < 1024 * 1024 {
-        format!("{:.1} KB", bytes as f64 / 1024.0)
-    } else {
-        format!("{:.1} MB", bytes as f64 / (1024.0 * 1024.0))
-    }
-}
-```
-
----
-
-## 6. First-Run Prompt
+## 5. First-Run Consent Prompt
 
 ### File: `src/telemetry/first_run.rs`
 
 ```rust
-use crate::config::{Config, TelemetryConfig};
+use crate::config::Config;
 use colored::Colorize;
 use std::io::{self, Write};
 
-/// Check if this is first run and show telemetry prompt if needed
-pub fn check_first_run() -> anyhow::Result<bool> {
-    let config_path = Config::default_path();
-
-    // If config file exists and has telemetry settings, skip prompt
-    if config_path.exists() {
-        let config = Config::load()?;
-        if config.telemetry_explicitly_configured() {
-            return Ok(config.telemetry.enabled);
-        }
+/// Check if first run and show consent prompt
+pub fn check_first_run(config: &mut Config) -> anyhow::Result<bool> {
+    // Skip if already configured
+    if config.telemetry.explicitly_configured {
+        return Ok(config.telemetry.enabled);
     }
 
-    // Show first-run prompt
-    show_telemetry_prompt()
-}
+    // Non-interactive mode: default to disabled
+    if !atty::is(atty::Stream::Stdin) {
+        config.telemetry.enabled = false;
+        config.telemetry.explicitly_configured = true;
+        config.save()?;
+        return Ok(false);
+    }
 
-fn show_telemetry_prompt() -> anyhow::Result<bool> {
+    // Show prompt
     println!();
     println!("{}", "Welcome to Caro!".bold().green());
     println!();
     println!("Caro collects anonymous usage metrics to improve the product.");
     println!();
     println!("{}", "What we collect:".bold());
-    println!("  {} Session timing and duration", "•".dimmed());
-    println!("  {} Backend performance (inference speed)", "•".dimmed());
+    println!("  {} Session timing and performance", "•".dimmed());
+    println!("  {} Feature usage (which backends, safety levels)", "•".dimmed());
     println!("  {} Error categories (not details)", "•".dimmed());
-    println!("  {} Platform info (OS, architecture, shell)", "•".dimmed());
+    println!("  {} Platform info (OS, architecture)", "•".dimmed());
     println!();
     println!("{}", "What we NEVER collect:".bold());
     println!("  {} Your commands or inputs", "✗".red());
     println!("  {} File paths or directories", "✗".red());
     println!("  {} Any identifying information", "✗".red());
     println!();
-    println!("View details: {}", "caro telemetry show".cyan());
-    println!("Disable later: {}", "caro config set telemetry.enabled false".cyan());
+    println!("Disable anytime: {}", "caro config set telemetry.enabled false".cyan());
     println!();
 
     print!("Enable telemetry to help improve Caro? [Y/n] ");
@@ -1022,17 +423,13 @@ fn show_telemetry_prompt() -> anyhow::Result<bool> {
 
     let enabled = input.trim().is_empty() || input.trim().to_lowercase() == "y";
 
-    // Save the choice
-    let mut config = Config::load().unwrap_or_default();
     config.telemetry.enabled = enabled;
-    config.set_telemetry_explicitly_configured(true);
+    config.telemetry.explicitly_configured = true;
     config.save()?;
 
     if enabled {
-        println!();
         println!("{} Telemetry enabled. Thank you!", "✓".green());
     } else {
-        println!();
         println!("{} Telemetry disabled.", "✓".yellow());
     }
     println!();
@@ -1043,74 +440,90 @@ fn show_telemetry_prompt() -> anyhow::Result<bool> {
 
 ---
 
-## 7. Integration Points
+## 6. CLI Integration
 
 ### In `src/main.rs`
 
 ```rust
+use crate::telemetry::{self, events};
+use std::time::Instant;
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    let session_start = Instant::now();
+    let mut session_stats = SessionStats::default();
+
     // Load config
-    let config = Config::load()?;
+    let mut config = Config::load()?;
 
-    // Initialize telemetry (if enabled)
-    if config.telemetry.enabled && !args.no_telemetry {
-        // Check first run
-        if telemetry::first_run::check_first_run()? {
-            telemetry::init(config.telemetry.clone());
+    // Check for --no-telemetry flag
+    let telemetry_enabled = if args.no_telemetry {
+        false
+    } else {
+        telemetry::first_run::check_first_run(&mut config)?
+    };
 
-            // Record session start
-            telemetry::get().record(SessionStartEvent::new(&config));
-        }
+    // Initialize PostHog
+    if telemetry_enabled && !config.telemetry.air_gapped {
+        telemetry::init(true);
+
+        // Capture session start
+        events::session_start(
+            env!("CARGO_PKG_VERSION"),
+            std::env::consts::OS,
+            std::env::consts::ARCH,
+            &detect_shell(),
+            &config.backend.primary,
+        );
     }
 
     // Run CLI
-    let result = run_cli(args).await;
+    let result = run_cli(args, &mut session_stats).await;
 
-    // Record session end (if telemetry enabled)
-    if let Some(collector) = telemetry::try_get() {
-        collector.record(SessionEndEvent::from_session(&session_stats));
-
-        // Attempt flush on clean exit
-        let _ = collector.flush().await;
+    // Capture session end
+    if let Some(_) = telemetry::try_get() {
+        events::session_end(
+            session_start.elapsed().as_millis() as u64,
+            session_stats.commands_generated,
+            session_stats.commands_executed,
+            session_stats.errors,
+        );
     }
 
     result
 }
+
+#[derive(Default)]
+struct SessionStats {
+    commands_generated: u32,
+    commands_executed: u32,
+    errors: u32,
+}
 ```
 
-### In command generation (e.g., `src/commands/generate.rs`)
+### In command generation
 
 ```rust
-pub async fn generate_command(input: &str, config: &Config) -> anyhow::Result<GeneratedCommand> {
-    let generation_id = Uuid::new_v4();
-    let start = std::time::Instant::now();
+use crate::telemetry::events;
 
-    // Generate command...
+pub async fn generate_command(input: &str, config: &Config) -> anyhow::Result<GeneratedCommand> {
+    let start = Instant::now();
+
     let result = backend.generate(input).await;
     let elapsed = start.elapsed();
 
-    // Record telemetry
-    if let Some(collector) = telemetry::try_get() {
-        match &result {
-            Ok(cmd) => {
-                collector.record(CommandGeneratedEvent {
-                    timestamp: SystemTime::now(),
-                    session_id: session_id(),
-                    generation_id,
-                    backend_used: backend.name().to_string(),
-                    inference_time_ms: elapsed.as_millis() as u64,
-                    safety_result: SafetyResultInfo {
-                        risk_level: cmd.safety_level.into(),
-                        patterns_matched: cmd.patterns_matched as u32,
-                    },
-                    model_name: Some(backend.model_name().to_string()),
-                    ..Default::default()
-                });
-            }
-            Err(e) => {
-                collector.record(ErrorOccurredEvent::from_error(e, "generation"));
-            }
+    match &result {
+        Ok(cmd) => {
+            events::command_generated(
+                backend.name(),
+                elapsed.as_millis() as u64,
+                &cmd.risk_level.to_string(),
+                cmd.patterns_matched as u32,
+                Some(backend.model_name()),
+            );
+        }
+        Err(_) => {
+            events::error_occurred("generation", "backend", true);
         }
     }
 
@@ -1120,63 +533,278 @@ pub async fn generate_command(input: &str, config: &Config) -> anyhow::Result<Ge
 
 ---
 
-## 8. Dependencies to Add
+## 7. Air-Gapped Mode
 
-### In `Cargo.toml`
+For users without network access, events are stored locally for manual export:
 
-```toml
-[dependencies]
-# ... existing ...
+### File: `src/telemetry/offline.rs`
 
-# Telemetry
-rusqlite = { version = "0.31", features = ["bundled"] }
-flate2 = "1.0"
-chrono = { version = "0.4", features = ["serde"] }
-once_cell = "1.19"  # If not already present
+```rust
+use std::fs::{self, File};
+use std::io::{BufWriter, Write};
+use std::path::PathBuf;
 
-[features]
-default = []
-beta = []  # Enables opt-out telemetry by default
+const MAX_OFFLINE_EVENTS: usize = 1000;
+
+/// Offline event queue for air-gapped environments
+pub struct OfflineQueue {
+    events: Vec<serde_json::Value>,
+    path: PathBuf,
+}
+
+impl OfflineQueue {
+    pub fn new() -> Self {
+        let path = dirs::cache_dir()
+            .unwrap_or_else(|| PathBuf::from("."))
+            .join("caro")
+            .join("telemetry-offline.json");
+
+        // Load existing events
+        let events = if path.exists() {
+            fs::read_to_string(&path)
+                .ok()
+                .and_then(|s| serde_json::from_str(&s).ok())
+                .unwrap_or_default()
+        } else {
+            Vec::new()
+        };
+
+        Self { events, path }
+    }
+
+    pub fn add(&mut self, event: serde_json::Value) {
+        if self.events.len() >= MAX_OFFLINE_EVENTS {
+            self.events.remove(0); // Drop oldest
+        }
+        self.events.push(event);
+        self.save();
+    }
+
+    pub fn export(&self, output: &PathBuf) -> anyhow::Result<usize> {
+        let count = self.events.len();
+
+        let file = File::create(output)?;
+        let mut writer = BufWriter::new(file);
+        serde_json::to_writer_pretty(&mut writer, &self.events)?;
+        writer.flush()?;
+
+        Ok(count)
+    }
+
+    pub fn clear(&mut self) {
+        self.events.clear();
+        let _ = fs::remove_file(&self.path);
+    }
+
+    fn save(&self) {
+        if let Some(parent) = self.path.parent() {
+            let _ = fs::create_dir_all(parent);
+        }
+        if let Ok(file) = File::create(&self.path) {
+            let _ = serde_json::to_writer(file, &self.events);
+        }
+    }
+}
+```
+
+### CLI Commands
+
+```bash
+# Export offline events
+caro telemetry export -o telemetry-export.json
+
+# Clear offline queue
+caro telemetry clear
+
+# Show status
+caro telemetry status
 ```
 
 ---
 
-## 9. Test Plan Summary
+## 8. PostHog Dashboard Setup
 
-| Test Category | Count | Coverage |
-|---------------|-------|----------|
-| Unit: Event validation | 15+ | Sensitive data rejection |
-| Unit: Redaction patterns | 20+ | All pattern categories |
-| Unit: Queue operations | 10+ | CRUD, size limits |
-| Integration: Full flow | 5+ | Collect → queue → export |
-| Integration: CLI commands | 8+ | All telemetry subcommands |
-| Privacy: Sensitive detection | 20+ | Paths, secrets, commands |
-| Performance: Overhead | 3+ | <5ms startup impact |
+### Events to Create
+
+| Event Name | Properties | Purpose |
+|------------|------------|---------|
+| `session_started` | version, os, arch, shell, backend | User journey start |
+| `session_ended` | duration_ms, commands_*, success_rate | Session summary |
+| `command_generated` | backend, inference_time_ms, risk_level | Core metric |
+| `command_executed` | execution_mode, modified, exit_category | Success tracking |
+| `safety_triggered` | risk_level, pattern_category, action | Safety calibration |
+| `error_occurred` | category, component, recoverable | Reliability |
+
+### Key Insights to Create
+
+1. **Command Success Rate (North Star)**
+   - Formula: `command_executed / command_generated`
+   - Trend over time
+
+2. **Inference Performance**
+   - P50, P95 of `inference_time_ms`
+   - By backend
+
+3. **Safety Effectiveness**
+   - Block rate = `safety_triggered` / `command_generated`
+   - False positive rate = `user_override=true` / `safety_triggered`
+
+4. **Platform Distribution**
+   - Breakdown by OS, arch, shell
+
+5. **Error Rate**
+   - By category and component
+
+### Funnels to Create
+
+1. **Command Flow**
+   - session_started → command_generated → command_executed
+
+2. **Safety Flow**
+   - command_generated → safety_triggered → (blocked | allowed)
 
 ---
 
-## 10. Rollout Checklist
+## 9. Website Integration (Astro)
+
+### Install PostHog
+
+```bash
+npm install posthog-js
+```
+
+### Create Component: `src/components/PostHog.astro`
+
+```astro
+---
+// PostHog analytics component
+---
+
+<script is:inline>
+  // Only run in browser
+  if (typeof window !== 'undefined') {
+    // Check if already initialized
+    if (!window.posthog) {
+      !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+
+      posthog.init('phc_zQioEeKLXat4tLnI6sb0yFLRti8nff4ALAkNQAfRhME', {
+        api_host: 'https://us.i.posthog.com',
+        person_profiles: 'identified_only',
+        capture_pageview: true,
+        capture_pageleave: true,
+      });
+    }
+  }
+</script>
+```
+
+### Add to Layout: `src/layouts/BaseLayout.astro`
+
+```astro
+---
+import PostHog from '../components/PostHog.astro';
+---
+
+<html>
+  <head>
+    <!-- ... other head content -->
+  </head>
+  <body>
+    <slot />
+    <PostHog />
+  </body>
+</html>
+```
+
+### Track Custom Events
+
+```astro
+<script>
+  // Track download clicks
+  document.querySelectorAll('[data-track-download]').forEach(el => {
+    el.addEventListener('click', () => {
+      posthog.capture('download_clicked', {
+        platform: el.dataset.platform,
+        version: el.dataset.version,
+      });
+    });
+  });
+
+  // Track CTA clicks
+  document.querySelectorAll('[data-track-cta]').forEach(el => {
+    el.addEventListener('click', () => {
+      posthog.capture('cta_clicked', {
+        cta_name: el.dataset.trackCta,
+        location: el.dataset.location,
+      });
+    });
+  });
+</script>
+```
+
+---
+
+## 10. Dependencies Summary
+
+### Rust CLI (`Cargo.toml`)
+
+```toml
+[dependencies]
+posthog-rs = "0.2"
+machine-uid = "0.3"
+sha2 = "0.10"
+chrono = { version = "0.4", features = ["serde"] }
+once_cell = "1.19"
+atty = "0.2"
+```
+
+### Website (`package.json`)
+
+```json
+{
+  "dependencies": {
+    "posthog-js": "^1.96.0"
+  }
+}
+```
+
+---
+
+## 11. Rollout Checklist
 
 ### Week 1: Core Implementation
-- [ ] Event types defined (`events.rs`)
-- [ ] Collector with queue (`collector.rs`, `queue.rs`)
-- [ ] Redaction/validation (`redaction.rs`)
-- [ ] Unit tests passing
+- [ ] Add `posthog-rs` to Cargo.toml
+- [ ] Implement `src/telemetry/mod.rs` with PostHog client
+- [ ] Implement event helpers (`events.rs`)
+- [ ] Implement first-run prompt (`first_run.rs`)
+- [ ] Add `--no-telemetry` CLI flag
+- [ ] Unit tests
 
-### Week 2: CLI Integration
-- [ ] CLI commands (`telemetry.rs`)
-- [ ] First-run prompt
-- [ ] Config integration
-- [ ] Integration tests passing
+### Week 2: Integration
+- [ ] Wire up session start/end in `main.rs`
+- [ ] Wire up command events in generation flow
+- [ ] Wire up safety events in validation
+- [ ] Wire up error events
+- [ ] Integration tests
 
-### Week 3: Polish & Backend
-- [ ] Backend ingest service (separate repo)
-- [ ] Export/import workflow tested
-- [ ] Air-gapped mode verified
-- [ ] Documentation complete
+### Week 3: Website + Polish
+- [ ] Add PostHog to Astro website
+- [ ] Set up PostHog dashboards
+- [ ] Create key insights and funnels
+- [ ] Documentation updates
+- [ ] Air-gapped mode testing
 
 ### Week 4: Beta Release
-- [ ] Feature flag enabled for beta
-- [ ] Release notes drafted
-- [ ] Privacy policy updated
-- [ ] Monitoring dashboards ready
+- [ ] Enable `beta` feature flag
+- [ ] Update privacy policy
+- [ ] Release notes with telemetry section
+- [ ] Monitor initial data
+
+---
+
+## Sources
+
+- [PostHog Rust SDK](https://posthog.com/docs/libraries/rust)
+- [PostHog Astro Integration](https://posthog.com/docs/libraries/astro)
+- [How to set up Rust analytics](https://posthog.com/tutorials/rust-analytics)
+- [GitHub: posthog-rs](https://github.com/PostHog/posthog-rs)
