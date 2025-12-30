@@ -1,0 +1,563 @@
+---
+/**
+ * OmniMenu - Cmd+K quick navigation menu
+ *
+ * Features:
+ * - Cmd+K / Ctrl+K to open
+ * - Search all pages by title, description, keywords
+ * - Keyboard navigation (up/down arrows, enter)
+ * - Escape or click outside to close
+ * - Category grouping
+ * - Dark/light mode support
+ *
+ * Feature flag: Enabled by default on Vercel preview deployments,
+ * disabled on production unless ENABLE_OMNI_MENU=true
+ */
+
+import { PAGES_INDEX, type PageEntry } from '../config/pages';
+
+// Feature flag check - enabled on preview, disabled on production by default
+const isVercelPreview = import.meta.env.VERCEL_ENV === 'preview';
+const isExplicitlyEnabled = import.meta.env.ENABLE_OMNI_MENU === 'true';
+const isProduction = import.meta.env.VERCEL_ENV === 'production';
+
+// Enable on preview OR if explicitly enabled, but not on production unless explicit
+const isEnabled = isVercelPreview || isExplicitlyEnabled || !isProduction;
+
+// Group pages by category for display
+const categories = {
+  main: { label: 'Pages', icon: '📄' },
+  'use-cases': { label: 'Use Cases', icon: '📋' },
+  compare: { label: 'Compare', icon: '⚖️' },
+  blog: { label: 'Blog', icon: '📝' },
+  docs: { label: 'Docs', icon: '📚' },
+};
+---
+
+{isEnabled && (
+  <div id="omni-menu-overlay" class="omni-overlay hidden" role="dialog" aria-modal="true" aria-label="Quick navigation">
+    <div class="omni-backdrop"></div>
+    <div class="omni-container">
+      <div class="omni-header">
+        <div class="omni-search-wrapper">
+          <svg class="omni-search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            type="text"
+            id="omni-search"
+            class="omni-search"
+            placeholder="Search pages..."
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+          />
+          <kbd class="omni-shortcut">esc</kbd>
+        </div>
+      </div>
+      <div class="omni-results" id="omni-results">
+        <div class="omni-loading">Type to search...</div>
+      </div>
+      <div class="omni-footer">
+        <div class="omni-hint">
+          <kbd>↑</kbd><kbd>↓</kbd> navigate
+          <kbd>↵</kbd> select
+          <kbd>esc</kbd> close
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+<style>
+  .omni-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 15vh;
+  }
+
+  .omni-overlay.hidden {
+    display: none;
+  }
+
+  .omni-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+  }
+
+  :global(.dark) .omni-backdrop {
+    background: rgba(0, 0, 0, 0.7);
+  }
+
+  .omni-container {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    margin: 0 20px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    animation: omniSlideIn 0.15s ease-out;
+  }
+
+  :global(.dark) .omni-container {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  @keyframes omniSlideIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  .omni-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .omni-search-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 12px 16px;
+  }
+
+  .omni-search-wrapper:focus-within {
+    border-color: #ff8c42;
+    box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.1);
+  }
+
+  .omni-search-icon {
+    flex-shrink: 0;
+    color: var(--color-text-secondary);
+  }
+
+  .omni-search {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    color: var(--color-text);
+    outline: none;
+  }
+
+  .omni-search::placeholder {
+    color: var(--color-text-secondary);
+  }
+
+  .omni-shortcut {
+    flex-shrink: 0;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-family: system-ui, sans-serif;
+    color: var(--color-text-secondary);
+  }
+
+  .omni-results {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 8px;
+  }
+
+  .omni-loading {
+    padding: 24px;
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+  }
+
+  .omni-category {
+    margin-bottom: 8px;
+  }
+
+  .omni-category-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-text-secondary);
+  }
+
+  .omni-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--color-text);
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+
+  .omni-item:hover,
+  .omni-item.selected {
+    background: var(--color-bg-secondary);
+  }
+
+  .omni-item.selected {
+    background: rgba(255, 140, 66, 0.1);
+  }
+
+  .omni-item-icon {
+    font-size: 20px;
+    width: 28px;
+    text-align: center;
+  }
+
+  .omni-item-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .omni-item-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  .omni-item.selected .omni-item-title {
+    color: #ff8c42;
+  }
+
+  .omni-item-description {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .omni-item-arrow {
+    flex-shrink: 0;
+    color: var(--color-text-secondary);
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+
+  .omni-item:hover .omni-item-arrow,
+  .omni-item.selected .omni-item-arrow {
+    opacity: 1;
+  }
+
+  .omni-no-results {
+    padding: 32px 24px;
+    text-align: center;
+    color: var(--color-text-secondary);
+  }
+
+  .omni-no-results-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+  }
+
+  .omni-no-results-text {
+    font-size: 14px;
+  }
+
+  .omni-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+  }
+
+  .omni-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+
+  .omni-hint kbd {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-family: system-ui, sans-serif;
+  }
+
+  /* Highlight matching text */
+  .omni-highlight {
+    background: rgba(255, 140, 66, 0.2);
+    color: #ff8c42;
+    border-radius: 2px;
+    padding: 0 2px;
+  }
+
+  /* Mobile adjustments */
+  @media (max-width: 640px) {
+    .omni-overlay {
+      padding-top: 10vh;
+    }
+
+    .omni-container {
+      margin: 0 12px;
+      border-radius: 12px;
+    }
+
+    .omni-hint {
+      display: none;
+    }
+  }
+</style>
+
+<script define:vars={{ pagesData: JSON.stringify(PAGES_INDEX) }}>
+  // Parse pages data
+  const pages = JSON.parse(pagesData);
+
+  // Category labels
+  const categoryLabels = {
+    main: { label: 'Pages', icon: '📄' },
+    'use-cases': { label: 'Use Cases', icon: '📋' },
+    compare: { label: 'Compare', icon: '⚖️' },
+    blog: { label: 'Blog', icon: '📝' },
+    docs: { label: 'Docs', icon: '📚' },
+  };
+
+  let selectedIndex = 0;
+  let currentResults = pages;
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function highlightMatch(text, query) {
+    if (!query) return escapeHtml(text);
+    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escapedQuery})`, 'gi');
+    return escapeHtml(text).replace(regex, '<span class="omni-highlight">$1</span>');
+  }
+
+  function searchPages(query) {
+    const normalizedQuery = query.toLowerCase().trim();
+
+    if (!normalizedQuery) {
+      return pages;
+    }
+
+    return pages.filter((page) => {
+      const titleMatch = page.title.toLowerCase().includes(normalizedQuery);
+      const descMatch = page.description?.toLowerCase().includes(normalizedQuery);
+      const pathMatch = page.path.toLowerCase().includes(normalizedQuery);
+      const keywordMatch = page.keywords?.some((k) =>
+        k.toLowerCase().includes(normalizedQuery)
+      );
+
+      return titleMatch || descMatch || pathMatch || keywordMatch;
+    }).sort((a, b) => {
+      // Prioritize exact title matches
+      const aExact = a.title.toLowerCase() === normalizedQuery;
+      const bExact = b.title.toLowerCase() === normalizedQuery;
+      if (aExact && !bExact) return -1;
+      if (bExact && !aExact) return 1;
+
+      // Then prioritize title starts with
+      const aStarts = a.title.toLowerCase().startsWith(normalizedQuery);
+      const bStarts = b.title.toLowerCase().startsWith(normalizedQuery);
+      if (aStarts && !bStarts) return -1;
+      if (bStarts && !aStarts) return 1;
+
+      return 0;
+    });
+  }
+
+  function renderResults(results, query) {
+    const container = document.getElementById('omni-results');
+    if (!container) return;
+
+    currentResults = results;
+    selectedIndex = 0;
+
+    if (results.length === 0) {
+      container.innerHTML = `
+        <div class="omni-no-results">
+          <div class="omni-no-results-icon">🔍</div>
+          <div class="omni-no-results-text">No pages found for "${escapeHtml(query)}"</div>
+        </div>
+      `;
+      return;
+    }
+
+    // Group by category
+    const grouped = {};
+    results.forEach((page) => {
+      if (!grouped[page.category]) {
+        grouped[page.category] = [];
+      }
+      grouped[page.category].push(page);
+    });
+
+    // Render categories in order
+    const categoryOrder = ['main', 'use-cases', 'compare', 'blog', 'docs'];
+    let html = '';
+    let globalIndex = 0;
+
+    categoryOrder.forEach((category) => {
+      if (!grouped[category]) return;
+
+      const cat = categoryLabels[category] || { label: category, icon: '📄' };
+      html += `<div class="omni-category">`;
+      html += `<div class="omni-category-label"><span>${cat.icon}</span> ${cat.label}</div>`;
+
+      grouped[category].forEach((page) => {
+        const isSelected = globalIndex === 0 ? 'selected' : '';
+        html += `
+          <a href="${page.path}" class="omni-item ${isSelected}" data-index="${globalIndex}">
+            <span class="omni-item-icon">${page.icon || '📄'}</span>
+            <div class="omni-item-content">
+              <div class="omni-item-title">${highlightMatch(page.title, query)}</div>
+              ${page.description ? `<div class="omni-item-description">${highlightMatch(page.description, query)}</div>` : ''}
+            </div>
+            <span class="omni-item-arrow">→</span>
+          </a>
+        `;
+        globalIndex++;
+      });
+
+      html += `</div>`;
+    });
+
+    container.innerHTML = html;
+
+    // Add click handlers
+    container.querySelectorAll('.omni-item').forEach((item) => {
+      item.addEventListener('click', () => {
+        closeMenu();
+      });
+    });
+  }
+
+  function updateSelection(newIndex) {
+    const items = document.querySelectorAll('.omni-item');
+    if (items.length === 0) return;
+
+    // Clamp index
+    newIndex = Math.max(0, Math.min(newIndex, items.length - 1));
+    selectedIndex = newIndex;
+
+    // Update visual selection
+    items.forEach((item, i) => {
+      item.classList.toggle('selected', i === selectedIndex);
+    });
+
+    // Scroll into view
+    items[selectedIndex]?.scrollIntoView({ block: 'nearest' });
+  }
+
+  function openMenu() {
+    const overlay = document.getElementById('omni-menu-overlay');
+    const search = document.getElementById('omni-search');
+    if (!overlay || !search) return;
+
+    overlay.classList.remove('hidden');
+    search.value = '';
+    search.focus();
+    renderResults(pages, '');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMenu() {
+    const overlay = document.getElementById('omni-menu-overlay');
+    if (!overlay) return;
+
+    overlay.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  function navigateToSelected() {
+    const items = document.querySelectorAll('.omni-item');
+    if (items[selectedIndex]) {
+      const href = items[selectedIndex].getAttribute('href');
+      if (href) {
+        closeMenu();
+        window.location.href = href;
+      }
+    }
+  }
+
+  // Initialize
+  document.addEventListener('DOMContentLoaded', () => {
+    const overlay = document.getElementById('omni-menu-overlay');
+    const search = document.getElementById('omni-search');
+    const backdrop = overlay?.querySelector('.omni-backdrop');
+
+    if (!overlay || !search) return;
+
+    // Keyboard shortcut: Cmd+K / Ctrl+K
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        if (overlay.classList.contains('hidden')) {
+          openMenu();
+        } else {
+          closeMenu();
+        }
+      }
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !overlay.classList.contains('hidden')) {
+        e.preventDefault();
+        closeMenu();
+      }
+    });
+
+    // Click backdrop to close
+    backdrop?.addEventListener('click', closeMenu);
+
+    // Search input handler
+    search.addEventListener('input', (e) => {
+      const query = e.target.value;
+      const results = searchPages(query);
+      renderResults(results, query);
+    });
+
+    // Keyboard navigation
+    search.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        updateSelection(selectedIndex + 1);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        updateSelection(selectedIndex - 1);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        navigateToSelected();
+      }
+    });
+
+    // Initial render
+    renderResults(pages, '');
+  });
+</script>
