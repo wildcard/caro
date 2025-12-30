@@ -513,9 +513,9 @@ const categories = {
 
     if (!overlay || !search) return;
 
-    // Keyboard shortcut: Cmd+K / Ctrl+K
+    // Keyboard shortcut: Cmd+/ / Ctrl+/
     document.addEventListener('keydown', (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      if ((e.metaKey || e.ctrlKey) && e.key === '/') {
         e.preventDefault();
         if (overlay.classList.contains('hidden')) {
           openMenu();
