@@ -77,9 +77,15 @@ import { SITE_CONFIG } from '../config/site';
           <li><a href="/support" class="support-link">♥ Sponsor</a></li>
           <li><a href="https://github.com/wildcard/caro/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">AGPL-3.0 License</a></li>
         </ul>
+      </div>
+    </div>
 
-        <div class="kyaro-section">
-          <p class="kyaro-title">Meet Kyaro! 🐕🖤</p>
+    <!-- Kyaro Mascot Section -->
+    <div class="kyaro-banner">
+      <div class="kyaro-content">
+        <span class="kyaro-emoji">🐕</span>
+        <div class="kyaro-info">
+          <p class="kyaro-title">Meet Kyaro!</p>
           <p class="kyaro-text">
             The real-life inspiration behind Caro.
             <a href="https://www.instagram.com/kyaroblackheart/" target="_blank" rel="noopener noreferrer">@kyaroblackheart</a>
@@ -242,24 +248,42 @@ import { SITE_CONFIG } from '../config/site';
     color: #d43d9a !important;
   }
 
-  /* Kyaro Section */
-  .kyaro-section {
-    margin-top: 24px;
-    padding-top: 16px;
-    border-top: 1px solid var(--color-border);
+  /* Kyaro Mascot Banner */
+  .kyaro-banner {
+    margin-top: 32px;
+    padding: 20px 24px;
+    background: var(--color-bg-secondary);
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+  }
+
+  .kyaro-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    justify-content: center;
+  }
+
+  .kyaro-emoji {
+    font-size: 32px;
+    line-height: 1;
+  }
+
+  .kyaro-info {
+    text-align: left;
   }
 
   .kyaro-title {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
     color: var(--color-text);
-    margin-bottom: 6px;
+    margin-bottom: 4px;
   }
 
   .kyaro-text {
     font-size: 13px;
     color: var(--color-text-secondary);
-    line-height: 1.5;
+    line-height: 1.4;
   }
 
   .kyaro-text a {
@@ -400,12 +424,19 @@ import { SITE_CONFIG } from '../config/site';
       padding: 4px 0;
     }
 
-    .kyaro-section {
-      grid-column: span 2;
+    .kyaro-banner {
+      margin-top: 24px;
+      padding: 16px;
+    }
+
+    .kyaro-content {
+      flex-direction: column;
       text-align: center;
-      border-top: 1px solid var(--color-border);
-      padding-top: 16px;
-      margin-top: 8px;
+      gap: 12px;
+    }
+
+    .kyaro-info {
+      text-align: center;
     }
 
     .footer-bottom {
@@ -450,8 +481,13 @@ import { SITE_CONFIG } from '../config/site';
       align-items: center;
     }
 
-    .kyaro-section {
-      grid-column: span 1;
+    .kyaro-banner {
+      margin-top: 20px;
+      padding: 14px;
+    }
+
+    .kyaro-emoji {
+      font-size: 28px;
     }
   }
 </style>

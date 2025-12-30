@@ -945,6 +945,7 @@
     font-size: 18px;
   }
 
+  /* Mobile Toggle Switch - self-contained styles */
   .toggle-switch {
     position: relative;
     width: 52px;
@@ -953,48 +954,52 @@
     border: none;
     cursor: pointer;
     padding: 0;
+    flex-shrink: 0;
   }
 
-  .toggle-switch .toggle-track {
+  .toggle-switch > .toggle-track {
+    display: block;
     position: relative;
-    width: 100%;
-    height: 100%;
+    width: 52px;
+    height: 28px;
     background: #4a4a4a;
-    border: 2px solid #5a5a5a;
+    border: 2px solid #555;
     border-radius: 14px;
     transition: all 0.25s ease;
   }
 
-  .toggle-switch .toggle-thumb {
+  .toggle-switch > .toggle-track > .toggle-thumb {
+    display: block;
     position: absolute;
     width: 20px;
     height: 20px;
     top: 2px;
     left: 2px;
-    background: #888;
+    background: #999;
     border-radius: 50%;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     transition: all 0.25s ease;
   }
 
-  .toggle-switch.active .toggle-track {
+  /* Active state */
+  .toggle-switch.active > .toggle-track {
     background: #ff8c42;
     border-color: #ff6b35;
   }
 
-  .toggle-switch.active .toggle-thumb {
+  .toggle-switch.active > .toggle-track > .toggle-thumb {
     transform: translateX(24px);
     background: #fff;
-    box-shadow: 0 2px 8px rgba(255, 140, 66, 0.4);
+    box-shadow: 0 2px 8px rgba(255, 140, 66, 0.5);
   }
 
-  /* Light mode adjustments */
-  :global(:not(.dark)) .toggle-switch .toggle-track {
-    background: #d0d0d0;
-    border-color: #c0c0c0;
+  /* Light mode */
+  :global(:not(.dark)) .toggle-switch > .toggle-track {
+    background: #ccc;
+    border-color: #bbb;
   }
 
-  :global(:not(.dark)) .toggle-switch .toggle-thumb {
+  :global(:not(.dark)) .toggle-switch > .toggle-track > .toggle-thumb {
     background: #fff;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
   }
