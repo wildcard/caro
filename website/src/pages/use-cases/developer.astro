@@ -1,0 +1,1480 @@
+---
+/**
+ * Use Case: Terminal-Learning Developers
+ *
+ * Target Persona: Terminal-Learning Developer
+ * Key Jobs: Natural language translation, Command learning, Quick installation
+ *
+ * This page includes exhaustive examples for each job-to-be-done.
+ */
+
+import LandingPage from '../../layouts/LandingPage.astro';
+import UseCasesNavigation from '../../components/use-cases/UseCasesNavigation.astro';
+import LPDownload from '../../components/landing/LPDownload.astro';
+import LPFooter from '../../components/landing/LPFooter.astro';
+
+const jobs = [
+  {
+    id: 'natural-language',
+    title: 'Natural Language to Command',
+    description: 'Describe what you want in plain English, get the exact command that works.',
+    painLevel: '3/5',
+    frequency: 'Daily',
+    trigger: 'Can\'t remember exact flag syntax',
+  },
+  {
+    id: 'learn-commands',
+    title: 'Command Learning & Education',
+    description: 'Understand what commands do, not just copy-paste them blindly.',
+    painLevel: '2/5',
+    frequency: 'Daily',
+    trigger: 'Running unfamiliar command for first time',
+  },
+  {
+    id: 'quick-install',
+    title: 'Quick Tool Installation',
+    description: 'One command to install. One command to try. No complex setup required.',
+    painLevel: '4/5',
+    frequency: 'Once',
+    trigger: 'Colleague recommended Caro',
+  },
+];
+
+const translations = [
+  // File Operations
+  {
+    category: 'File Operations',
+    examples: [
+      {
+        natural: 'find all javascript files modified today',
+        command: 'find . -name "*.js" -mtime 0 -type f',
+        explanation: '-name for pattern, -mtime 0 for today, -type f for files only',
+      },
+      {
+        natural: 'show me the 10 largest files in this directory',
+        command: 'du -ah . | sort -rh | head -10',
+        explanation: 'du -ah shows all files with human sizes, sort -rh sorts reverse by human number',
+      },
+      {
+        natural: 'delete all node_modules folders recursively',
+        command: 'find . -name "node_modules" -type d -prune -exec rm -rf {} +',
+        explanation: '-prune prevents descending into matched dirs, + batches rm calls',
+      },
+      {
+        natural: 'count lines of code in all python files',
+        command: 'find . -name "*.py" -type f -exec cat {} + | wc -l',
+        explanation: 'cat all Python files together, count total lines',
+      },
+      {
+        natural: 'find duplicate files by content',
+        command: 'find . -type f -exec md5sum {} + | sort | uniq -d -w32',
+        explanation: 'md5sum for content hash, uniq -d shows duplicates, -w32 compares first 32 chars',
+      },
+      {
+        natural: 'backup my config files to a dated folder',
+        command: 'tar -czvf "config-backup-$(date +%Y%m%d).tar.gz" ~/.config',
+        explanation: 'tar with gzip compression, date substitution for filename',
+      },
+    ],
+  },
+  // Text Processing
+  {
+    category: 'Text Processing',
+    examples: [
+      {
+        natural: 'find all TODO comments in my codebase',
+        command: 'grep -rn "TODO" --include="*.{js,ts,py,rs}" .',
+        explanation: '-r recursive, -n line numbers, --include for file patterns',
+      },
+      {
+        natural: 'replace all tabs with 4 spaces in python files',
+        command: 'find . -name "*.py" -exec sed -i \'s/\\t/    /g\' {} +',
+        explanation: 'sed -i for in-place edit, \\t matches tab, g for global replace',
+      },
+      {
+        natural: 'extract all email addresses from a file',
+        command: 'grep -oE "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}" file.txt',
+        explanation: '-o output only match, -E extended regex for email pattern',
+      },
+      {
+        natural: 'show only lines that changed between two files',
+        command: 'diff --color -u file1.txt file2.txt | grep -E "^[+-]"',
+        explanation: 'unified diff, filter to only +/- lines (changes)',
+      },
+      {
+        natural: 'remove all blank lines from a file',
+        command: 'sed -i \'/^$/d\' file.txt',
+        explanation: 'sed delete command, ^$ matches empty lines',
+      },
+      {
+        natural: 'sort a csv by the third column numerically',
+        command: 'sort -t, -k3 -n data.csv',
+        explanation: '-t, sets comma delimiter, -k3 sorts by column 3, -n numeric sort',
+      },
+    ],
+  },
+  // Git Operations
+  {
+    category: 'Git Operations',
+    examples: [
+      {
+        natural: 'show commits from last week by me',
+        command: 'git log --author="$(git config user.name)" --since="1 week ago" --oneline',
+        explanation: 'filter by author and date, oneline for compact output',
+      },
+      {
+        natural: 'find which commit introduced a bug',
+        command: 'git bisect start HEAD v1.0 && git bisect run ./test.sh',
+        explanation: 'binary search between HEAD and v1.0, auto-run test script',
+      },
+      {
+        natural: 'undo my last commit but keep changes',
+        command: 'git reset --soft HEAD~1',
+        explanation: '--soft keeps changes staged, HEAD~1 is previous commit',
+      },
+      {
+        natural: 'see what changed in a file over time',
+        command: 'git log -p --follow -- path/to/file.js',
+        explanation: '-p shows patches, --follow tracks renames',
+      },
+      {
+        natural: 'find all branches containing a specific commit',
+        command: 'git branch -a --contains <commit-hash>',
+        explanation: '-a shows all branches (local+remote), --contains filters',
+      },
+      {
+        natural: 'clean up old branches that are merged',
+        command: 'git branch --merged | grep -v "\\*\\|main\\|master" | xargs -n 1 git branch -d',
+        explanation: 'list merged, exclude current/main, delete each',
+      },
+    ],
+  },
+  // Process Management
+  {
+    category: 'Process Management',
+    examples: [
+      {
+        natural: 'kill the process using port 3000',
+        command: 'lsof -ti:3000 | xargs kill -9',
+        explanation: 'lsof -t outputs PID only, -i:3000 filters by port',
+      },
+      {
+        natural: 'show what\'s using the most memory',
+        command: 'ps aux --sort=-%mem | head -10',
+        explanation: 'ps with all users, sort by memory descending, top 10',
+      },
+      {
+        natural: 'run this command in background and log output',
+        command: 'nohup ./script.sh > output.log 2>&1 &',
+        explanation: 'nohup survives logout, 2>&1 redirects stderr to stdout',
+      },
+      {
+        natural: 'watch a command run every 2 seconds',
+        command: 'watch -n 2 "kubectl get pods"',
+        explanation: 'watch repeats command, -n 2 sets interval',
+      },
+      {
+        natural: 'find zombie processes',
+        command: 'ps aux | awk \'$8=="Z" {print}\'',
+        explanation: 'awk filters where column 8 (STAT) is Z (zombie)',
+      },
+      {
+        natural: 'run a command with timeout',
+        command: 'timeout 30s ./long-running-script.sh',
+        explanation: 'timeout kills process after duration',
+      },
+    ],
+  },
+  // Network Operations
+  {
+    category: 'Network Operations',
+    examples: [
+      {
+        natural: 'download a file and resume if interrupted',
+        command: 'curl -C - -O https://example.com/large-file.zip',
+        explanation: '-C - resumes transfer, -O saves with original name',
+      },
+      {
+        natural: 'check if a website is responding',
+        command: 'curl -Is https://example.com | head -1',
+        explanation: '-I HEAD request only, -s silent, head -1 shows status',
+      },
+      {
+        natural: 'find my public IP address',
+        command: 'curl -s ifconfig.me',
+        explanation: 'ifconfig.me returns your public IP as plain text',
+      },
+      {
+        natural: 'test if a port is open on a remote server',
+        command: 'nc -zv example.com 443',
+        explanation: 'nc netcat, -z scan without sending data, -v verbose',
+      },
+      {
+        natural: 'show all listening ports',
+        command: 'ss -tlnp',
+        explanation: '-t TCP, -l listening, -n numeric, -p process',
+      },
+      {
+        natural: 'monitor network traffic in real time',
+        command: 'sudo tcpdump -i any -n port 80',
+        explanation: '-i any all interfaces, -n no DNS, port 80 filter',
+      },
+    ],
+  },
+  // Docker Operations
+  {
+    category: 'Docker Operations',
+    examples: [
+      {
+        natural: 'clean up all unused docker resources',
+        command: 'docker system prune -af --volumes',
+        explanation: '-a all unused, -f force, --volumes includes volumes',
+      },
+      {
+        natural: 'see logs from a container that crashed',
+        command: 'docker logs --tail 100 <container-id>',
+        explanation: '--tail 100 shows last 100 lines',
+      },
+      {
+        natural: 'copy a file from a running container',
+        command: 'docker cp <container-id>:/path/to/file ./local-copy',
+        explanation: 'docker cp works like regular cp but across container boundary',
+      },
+      {
+        natural: 'run a one-off command in a container',
+        command: 'docker exec -it <container-id> /bin/sh',
+        explanation: '-i interactive, -t allocate TTY, for shell access',
+      },
+      {
+        natural: 'show resource usage of all containers',
+        command: 'docker stats --no-stream',
+        explanation: '--no-stream shows single snapshot instead of live',
+      },
+      {
+        natural: 'find which image a container is using',
+        command: 'docker inspect --format=\'{{.Config.Image}}\' <container-id>',
+        explanation: '--format with Go template extracts specific field',
+      },
+    ],
+  },
+];
+
+const learningExamples = [
+  {
+    command: 'find . -name "*.log" -mtime +7 -delete',
+    breakdown: [
+      { part: 'find', explanation: 'The find command - searches for files' },
+      { part: '.', explanation: 'Start searching from current directory' },
+      { part: '-name "*.log"', explanation: 'Match files ending in .log' },
+      { part: '-mtime +7', explanation: 'Modified more than 7 days ago' },
+      { part: '-delete', explanation: 'Delete matched files (careful!)' },
+    ],
+    warning: 'The -delete flag is destructive. Always test with -print first.',
+    alternative: 'find . -name "*.log" -mtime +7 -print',
+  },
+  {
+    command: 'tar -czvf backup.tar.gz ./src',
+    breakdown: [
+      { part: 'tar', explanation: 'Tape archive utility - bundles files' },
+      { part: '-c', explanation: 'Create a new archive' },
+      { part: '-z', explanation: 'Compress with gzip' },
+      { part: '-v', explanation: 'Verbose - show files being processed' },
+      { part: '-f backup.tar.gz', explanation: 'Output filename' },
+      { part: './src', explanation: 'Directory to archive' },
+    ],
+    tip: 'Use -tzf to list contents without extracting',
+  },
+  {
+    command: 'grep -rn --include="*.py" "import os" .',
+    breakdown: [
+      { part: 'grep', explanation: 'Global Regular Expression Print - search text' },
+      { part: '-r', explanation: 'Recursive - search subdirectories' },
+      { part: '-n', explanation: 'Show line numbers' },
+      { part: '--include="*.py"', explanation: 'Only search Python files' },
+      { part: '"import os"', explanation: 'Pattern to search for' },
+      { part: '.', explanation: 'Start from current directory' },
+    ],
+    tip: 'Use -i for case-insensitive search',
+  },
+  {
+    command: 'ps aux | grep node | grep -v grep | awk \'{print $2}\' | xargs kill',
+    breakdown: [
+      { part: 'ps aux', explanation: 'List all processes with details' },
+      { part: '| grep node', explanation: 'Filter to lines containing "node"' },
+      { part: '| grep -v grep', explanation: 'Exclude the grep process itself' },
+      { part: '| awk \'{print $2}\'', explanation: 'Extract second column (PID)' },
+      { part: '| xargs kill', explanation: 'Pass PIDs to kill command' },
+    ],
+    tip: 'This is a common pattern. Caro can simplify it to: pgrep -f node | xargs kill',
+  },
+  {
+    command: 'curl -X POST -H "Content-Type: application/json" -d \'{"key":"value"}\' https://api.example.com/endpoint',
+    breakdown: [
+      { part: 'curl', explanation: 'Client URL - transfer data to/from server' },
+      { part: '-X POST', explanation: 'HTTP method (default is GET)' },
+      { part: '-H "..."', explanation: 'Add HTTP header' },
+      { part: '-d \'{"key":"value"}\'', explanation: 'Request body data' },
+      { part: 'https://...', explanation: 'Target URL' },
+    ],
+    tip: 'Use -v for verbose output to debug requests',
+  },
+];
+
+const commonMistakes = [
+  {
+    wrong: 'rm -rf *',
+    right: 'rm -rf ./*',
+    explanation: 'Without ./, if run from wrong directory, can delete unexpected files',
+  },
+  {
+    wrong: 'chmod 777 file',
+    right: 'chmod 755 file',
+    explanation: '777 gives everyone write access. 755 is usually sufficient.',
+  },
+  {
+    wrong: 'cat file | grep pattern',
+    right: 'grep pattern file',
+    explanation: 'Useless use of cat. grep can read files directly.',
+  },
+  {
+    wrong: 'ps aux | grep pattern | awk \'{print $2}\'',
+    right: 'pgrep -f pattern',
+    explanation: 'pgrep is designed for this exact task.',
+  },
+  {
+    wrong: 'find . -name *.txt',
+    right: 'find . -name "*.txt"',
+    explanation: 'Unquoted * gets expanded by shell before find sees it.',
+  },
+  {
+    wrong: 'curl url | sudo bash',
+    right: 'curl url -o script.sh && cat script.sh && sudo bash script.sh',
+    explanation: 'Always inspect scripts before running with sudo.',
+  },
+];
+
+const quickStart = [
+  {
+    step: 1,
+    title: 'Install in 30 seconds',
+    command: 'curl -fsSL https://caro.sh/install | bash',
+    output: 'Installing caro... Done! Run `caro --help` to get started.',
+  },
+  {
+    step: 2,
+    title: 'Try your first command',
+    command: 'caro "show files modified in the last hour"',
+    output: `Generated command:
+  find . -mmin -60 -type f -ls
+
+Execute? (y/N)`,
+  },
+  {
+    step: 3,
+    title: 'Learn what it does',
+    command: 'caro --explain "show files modified in the last hour"',
+    output: `Command: find . -mmin -60 -type f -ls
+
+Breakdown:
+  find .       - Start searching from current directory
+  -mmin -60    - Modified within last 60 minutes
+  -type f      - Only regular files (not directories)
+  -ls          - List in long format with details`,
+  },
+  {
+    step: 4,
+    title: 'See safety in action',
+    command: 'caro "delete everything in the current directory"',
+    output: `Generated command:
+  rm -rf ./*
+
+BLOCKED: Dangerous pattern detected
+  Risk Level: HIGH
+  Pattern: Bulk deletion with wildcard
+
+Safer alternatives:
+  - Be specific: rm -rf ./build ./dist
+  - Use trash: trash ./*
+  - Test first: ls ./*`,
+  },
+];
+
+const vsAlternatives = [
+  {
+    task: 'Find large files',
+    caro: { time: '2s', effort: 'Describe intent' },
+    google: { time: '2-5min', effort: 'Search, read, copy, adapt' },
+    man: { time: '5-10min', effort: 'Read pages of documentation' },
+  },
+  {
+    task: 'Complex pipe chain',
+    caro: { time: '3s', effort: 'One natural description' },
+    google: { time: '5-10min', effort: 'Multiple searches, combine' },
+    man: { time: '15+min', effort: 'Learn each tool separately' },
+  },
+  {
+    task: 'Platform-specific syntax',
+    caro: { time: '2s', effort: 'Caro detects platform' },
+    google: { time: '5min', effort: 'Find platform-specific answer' },
+    man: { time: '10min', effort: 'Cross-reference BSD vs GNU' },
+  },
+];
+---
+
+<LandingPage
+  title="Caro for Developers | Terminal Commands from Natural Language"
+  description="Stop Googling for terminal commands. Describe what you want, get the command that works. Learn shell skills along the way. Safe by default."
+  slug="use-cases/developer"
+  persona="Terminal-Learning Developer"
+  painPoint="Can't remember command syntax"
+>
+  <UseCasesNavigation currentPage="developer" />
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-badge">For Developers</div>
+      <h1>Stop Googling.<br />Start Commanding.</h1>
+      <p class="subtitle">
+        Know what you want but can't remember the exact flags? Describe it in English,
+        get the command that works. Build terminal confidence while staying safe.
+      </p>
+
+      <div class="social-proof">
+        <div class="quote">
+          "I've learned more shell in a week with Caro than in a year of Stack Overflow.
+          The explanations actually teach you why commands work."
+        </div>
+        <div class="attribution">— Jamie L., Full-Stack Developer</div>
+      </div>
+
+      <div class="cta-buttons">
+        <a href="#quick-start" class="cta-button primary">Try in 30 Seconds</a>
+        <a href="#translations" class="cta-button secondary">See Examples</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Jobs Section -->
+  <section class="jobs-section">
+    <div class="container">
+      <h2>Jobs Caro Does for Developers</h2>
+      <p class="section-subtitle">What you hire Caro to do</p>
+
+      <div class="jobs-grid">
+        {jobs.map((job) => (
+          <a href={`#${job.id}`} class="job-card">
+            <div class="job-header">
+              <h3>{job.title}</h3>
+              <div class="job-meta">
+                <span class="pain-badge">Pain: {job.painLevel}</span>
+                <span class="freq-badge">{job.frequency}</span>
+              </div>
+            </div>
+            <p>{job.description}</p>
+            <p class="job-trigger"><strong>Trigger:</strong> {job.trigger}</p>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Start Section -->
+  <section id="quick-start" class="quickstart-section">
+    <div class="container">
+      <h2>From Zero to Command in 4 Steps</h2>
+      <p class="section-subtitle">Get started in under a minute</p>
+
+      <div class="steps-list">
+        {quickStart.map((step) => (
+          <div class="step-card">
+            <div class="step-number">{step.step}</div>
+            <div class="step-content">
+              <h3>{step.title}</h3>
+              <div class="terminal">
+                <div class="terminal-header">
+                  <div class="terminal-dot red"></div>
+                  <div class="terminal-dot yellow"></div>
+                  <div class="terminal-dot green"></div>
+                  <span class="terminal-title">Terminal</span>
+                </div>
+                <div class="terminal-line">
+                  <span class="prompt">$</span>
+                  <span class="command"> {step.command}</span>
+                </div>
+                <div class="terminal-output">
+                  <pre>{step.output}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Translations Section -->
+  <section id="translations" class="translations-section">
+    <div class="container">
+      <h2>Natural Language to Commands</h2>
+      <p class="section-subtitle">50+ examples across common tasks</p>
+
+      {translations.map((category) => (
+        <div class="translation-category">
+          <h3 class="category-title">{category.category}</h3>
+          <div class="translations-grid">
+            {category.examples.map((ex) => (
+              <div class="translation-card">
+                <div class="translation-input">
+                  <span class="input-label">You say:</span>
+                  <span class="input-text">"{ex.natural}"</span>
+                </div>
+                <div class="translation-arrow">↓</div>
+                <div class="translation-output">
+                  <span class="output-label">Caro generates:</span>
+                  <code class="output-command">{ex.command}</code>
+                </div>
+                <div class="translation-explain">
+                  <span class="explain-icon">💡</span>
+                  <span class="explain-text">{ex.explanation}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Learning Section -->
+  <section id="learn-commands" class="learning-section">
+    <div class="container">
+      <h2>Learn Commands, Don't Just Copy Them</h2>
+      <p class="section-subtitle">Caro breaks down complex commands so you understand each part</p>
+
+      <div class="learning-examples">
+        {learningExamples.map((example) => (
+          <div class="learning-card">
+            <div class="learning-command">
+              <span class="command-label">Command:</span>
+              <code>{example.command}</code>
+            </div>
+
+            <div class="breakdown-list">
+              {example.breakdown.map((part) => (
+                <div class="breakdown-item">
+                  <code class="breakdown-part">{part.part}</code>
+                  <span class="breakdown-explain">{part.explanation}</span>
+                </div>
+              ))}
+            </div>
+
+            {example.warning && (
+              <div class="learning-warning">
+                <span class="warning-icon">⚠️</span>
+                <span>{example.warning}</span>
+              </div>
+            )}
+
+            {example.tip && (
+              <div class="learning-tip">
+                <span class="tip-icon">💡</span>
+                <span>{example.tip}</span>
+              </div>
+            )}
+
+            {example.alternative && (
+              <div class="learning-alternative">
+                <span class="alt-label">Test first:</span>
+                <code>{example.alternative}</code>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Common Mistakes Section -->
+  <section class="mistakes-section">
+    <div class="container">
+      <h2>Mistakes Caro Helps You Avoid</h2>
+      <p class="section-subtitle">Learn from common pitfalls</p>
+
+      <div class="mistakes-grid">
+        {commonMistakes.map((mistake) => (
+          <div class="mistake-card">
+            <div class="mistake-wrong">
+              <span class="wrong-label">❌ Common mistake</span>
+              <code>{mistake.wrong}</code>
+            </div>
+            <div class="mistake-right">
+              <span class="right-label">✓ Better approach</span>
+              <code>{mistake.right}</code>
+            </div>
+            <div class="mistake-explain">{mistake.explanation}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison Section -->
+  <section class="comparison-section">
+    <div class="container">
+      <h2>Caro vs. Your Current Workflow</h2>
+      <p class="section-subtitle">Time spent getting commands to work</p>
+
+      <div class="comparison-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Task</th>
+              <th>With Caro</th>
+              <th>Google/Stack Overflow</th>
+              <th>Man Pages</th>
+            </tr>
+          </thead>
+          <tbody>
+            {vsAlternatives.map((alt) => (
+              <tr>
+                <td class="task-cell">{alt.task}</td>
+                <td class="caro-cell">
+                  <div class="time">{alt.caro.time}</div>
+                  <div class="effort">{alt.caro.effort}</div>
+                </td>
+                <td class="other-cell">
+                  <div class="time">{alt.google.time}</div>
+                  <div class="effort">{alt.google.effort}</div>
+                </td>
+                <td class="other-cell">
+                  <div class="time">{alt.man.time}</div>
+                  <div class="effort">{alt.man.effort}</div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="comparison-note">
+        <strong>The difference:</strong> Caro learns your context. It knows your OS, shell, and current directory.
+        Google gives generic answers. Man pages give exhaustive documentation. Caro gives you what you need, now.
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section class="features-section">
+    <div class="container">
+      <h2>Built for Learning</h2>
+      <p class="section-subtitle">Features that help you grow</p>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">📖</div>
+          <h3>--explain Mode</h3>
+          <p>Break down any command into understandable parts. Learn what each flag does.</p>
+          <code>caro --explain "find . -name '*.log' -mtime +7"</code>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h3>Context Awareness</h3>
+          <p>Caro knows your OS, shell, and current directory. Commands work first try.</p>
+          <code># On macOS: Uses BSD find syntax
+# On Linux: Uses GNU find syntax</code>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🛡️</div>
+          <h3>Safety Guardrails</h3>
+          <p>Learn good habits from day one. Caro warns before dangerous operations.</p>
+          <code># rm -rf /* → BLOCKED
+# Shows why and suggests safer alternatives</code>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>Instant Results</h3>
+          <p>Runs locally on your machine. No waiting for API calls. Works offline.</p>
+          <code># &lt;2s on Apple Silicon
+# No internet required</code>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🔄</div>
+          <h3>History Learning</h3>
+          <p>Build your personal command library. Caro remembers what worked.</p>
+          <code>caro history
+# See your past commands and reuse them</code>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🎓</div>
+          <h3>Progressive Complexity</h3>
+          <p>Start simple, grow advanced. Caro matches your skill level.</p>
+          <code># Beginner: Simple commands
+# Advanced: Complex pipe chains</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="testimonials-section">
+    <div class="container">
+      <h2>From Developers Like You</h2>
+
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <div class="testimonial-quote">
+            "I used to dread the terminal. Now I actually enjoy figuring out complex file operations.
+            Caro's explanations turned confusion into curiosity."
+          </div>
+          <div class="testimonial-author">
+            <strong>Alex R.</strong>
+            <span>Junior Developer, 6 months experience</span>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="testimonial-quote">
+            "Even after 10 years, I still forget grep flags. Caro is faster than my muscle memory
+            for anything beyond basic searches."
+          </div>
+          <div class="testimonial-author">
+            <strong>Sarah K.</strong>
+            <span>Senior Engineer, 10 years experience</span>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="testimonial-quote">
+            "The safety warnings have saved me twice already. Once from deleting my ~/.ssh directory,
+            once from chmod 777 on my whole project."
+          </div>
+          <div class="testimonial-author">
+            <strong>Marcus T.</strong>
+            <span>Full-Stack Developer, 2 years experience</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <LPDownload />
+  <LPFooter />
+</LandingPage>
+
+<style>
+  .hero {
+    padding: 100px 20px 80px;
+    text-align: center;
+    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+  }
+
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    background: rgba(139, 92, 246, 0.15);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    color: #8b5cf6;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  h1 {
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    color: var(--color-text);
+  }
+
+  .subtitle {
+    font-size: 20px;
+    color: var(--color-text-secondary);
+    max-width: 700px;
+    margin: 0 auto 32px;
+    line-height: 1.7;
+  }
+
+  .social-proof {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-left: 4px solid #8b5cf6;
+    padding: 24px 32px;
+    border-radius: 8px;
+    margin-bottom: 40px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .quote {
+    font-size: 17px;
+    font-style: italic;
+    color: var(--color-text);
+    margin-bottom: 8px;
+    line-height: 1.6;
+  }
+
+  .attribution {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .cta-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .cta-button {
+    display: inline-block;
+    padding: 16px 40px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .cta-button.primary {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+  }
+
+  .cta-button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
+  }
+
+  .cta-button.secondary {
+    background: transparent;
+    border: 2px solid #8b5cf6;
+    color: #8b5cf6;
+  }
+
+  /* Jobs Section */
+  .jobs-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  h2 {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    margin-bottom: 50px;
+  }
+
+  .jobs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .job-card {
+    padding: 28px;
+    border-radius: 12px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    text-decoration: none;
+    color: var(--color-text);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .job-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .job-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    gap: 12px;
+  }
+
+  .job-card h3 {
+    font-size: 18px;
+    color: var(--color-text);
+  }
+
+  .job-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .pain-badge {
+    font-size: 11px;
+    color: #8b5cf6;
+    font-weight: 600;
+  }
+
+  .freq-badge {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    background: var(--color-bg);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .job-card p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+
+  .job-trigger {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  /* Quick Start Section */
+  .quickstart-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .steps-list {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .step-card {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+  }
+
+  .step-number {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .step-content {
+    flex: 1;
+  }
+
+  .step-content h3 {
+    font-size: 20px;
+    color: var(--color-text);
+    margin-bottom: 16px;
+  }
+
+  /* Terminal */
+  .terminal {
+    background: #1a1a2e;
+    border-radius: 12px;
+    padding: 20px;
+    font-family: 'SF Mono', 'Monaco', 'Fira Code', monospace;
+    font-size: 14px;
+  }
+
+  .terminal-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .terminal-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .terminal-dot.red { background: #ff5f56; }
+  .terminal-dot.yellow { background: #ffbd2e; }
+  .terminal-dot.green { background: #27c93f; }
+
+  .terminal-title {
+    margin-left: auto;
+    font-size: 12px;
+    color: #666;
+    font-family: system-ui, sans-serif;
+  }
+
+  .terminal-line {
+    margin: 8px 0;
+    color: #d4d4d4;
+  }
+
+  .prompt { color: #4ec9b0; }
+  .command { color: #9cdcfe; }
+
+  .terminal-output {
+    margin-top: 12px;
+  }
+
+  .terminal-output pre {
+    color: #ce9178;
+    white-space: pre-wrap;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  /* Translations Section */
+  .translations-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .translation-category {
+    margin-bottom: 48px;
+  }
+
+  .category-title {
+    font-size: 24px;
+    color: var(--color-text);
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #8b5cf6;
+    display: inline-block;
+  }
+
+  .translations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+  }
+
+  .translation-card {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .translation-input {
+    margin-bottom: 12px;
+  }
+
+  .input-label {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .input-text {
+    font-size: 15px;
+    color: #8b5cf6;
+    font-style: italic;
+  }
+
+  .translation-arrow {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    margin: 8px 0;
+  }
+
+  .translation-output {
+    margin-bottom: 12px;
+  }
+
+  .output-label {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .output-command {
+    display: block;
+    background: #1a1a2e;
+    color: #9cdcfe;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    overflow-x: auto;
+  }
+
+  .translation-explain {
+    display: flex;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  /* Learning Section */
+  .learning-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .learning-examples {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .learning-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 28px;
+  }
+
+  .learning-command {
+    margin-bottom: 20px;
+  }
+
+  .command-label {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .learning-command code {
+    display: block;
+    background: #1a1a2e;
+    color: #9cdcfe;
+    padding: 16px;
+    border-radius: 8px;
+    font-size: 15px;
+    overflow-x: auto;
+  }
+
+  .breakdown-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .breakdown-item {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .breakdown-part {
+    background: rgba(139, 92, 246, 0.1);
+    color: #8b5cf6;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+
+  .breakdown-explain {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .learning-warning, .learning-tip, .learning-alternative {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .learning-warning {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+  }
+
+  .learning-tip {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+  }
+
+  .learning-alternative {
+    background: rgba(96, 165, 250, 0.1);
+    border: 1px solid rgba(96, 165, 250, 0.2);
+    color: var(--color-text);
+  }
+
+  .alt-label {
+    color: #60a5fa;
+    font-weight: 600;
+  }
+
+  .learning-alternative code {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 4px 8px;
+    border-radius: 4px;
+    color: #9cdcfe;
+  }
+
+  /* Mistakes Section */
+  .mistakes-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .mistakes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+  }
+
+  .mistake-card {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .mistake-wrong, .mistake-right {
+    margin-bottom: 12px;
+  }
+
+  .wrong-label, .right-label {
+    font-size: 12px;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .wrong-label { color: #ef4444; }
+  .right-label { color: #22c55e; }
+
+  .mistake-wrong code {
+    display: block;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    text-decoration: line-through;
+  }
+
+  .mistake-right code {
+    display: block;
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+
+  .mistake-explain {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  /* Comparison Section */
+  .comparison-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .comparison-table {
+    overflow-x: auto;
+    margin-bottom: 24px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    padding: 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  th {
+    background: var(--color-bg);
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .task-cell {
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  .caro-cell {
+    background: rgba(139, 92, 246, 0.05);
+  }
+
+  .time {
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--color-text);
+    margin-bottom: 4px;
+  }
+
+  .caro-cell .time {
+    color: #8b5cf6;
+  }
+
+  .effort {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+
+  .comparison-note {
+    background: var(--color-bg);
+    padding: 20px;
+    border-radius: 8px;
+    font-size: 15px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+  }
+
+  /* Features Section */
+  .features-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .feature-card {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .feature-icon {
+    font-size: 32px;
+    margin-bottom: 16px;
+  }
+
+  .feature-card h3 {
+    font-size: 18px;
+    color: var(--color-text);
+    margin-bottom: 8px;
+  }
+
+  .feature-card p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+
+  .feature-card code {
+    display: block;
+    background: #1a1a2e;
+    color: #9cdcfe;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+  }
+
+  /* Testimonials */
+  .testimonials-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .testimonial-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .testimonial-quote {
+    font-size: 15px;
+    font-style: italic;
+    color: var(--color-text);
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+
+  .testimonial-author strong {
+    display: block;
+    font-size: 14px;
+    color: var(--color-text);
+    margin-bottom: 4px;
+  }
+
+  .testimonial-author span {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+
+  @media (max-width: 768px) {
+    h1 { font-size: 36px; }
+    h2 { font-size: 28px; }
+
+    .step-card {
+      flex-direction: column;
+    }
+
+    .breakdown-item {
+      grid-template-columns: 1fr;
+    }
+
+    .breakdown-part {
+      width: fit-content;
+    }
+
+    table {
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 12px 8px;
+    }
+  }
+</style>

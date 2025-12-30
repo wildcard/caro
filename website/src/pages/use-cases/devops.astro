@@ -1,0 +1,847 @@
+---
+/**
+ * Use Case: DevOps & Platform Engineers
+ *
+ * Target Persona: Cross-Platform DevOps Engineer
+ * Key Jobs: Cross-platform commands, Automation scripts, Natural language translation
+ */
+
+import LandingPage from '../../layouts/LandingPage.astro';
+import UseCasesNavigation from '../../components/use-cases/UseCasesNavigation.astro';
+import LPDownload from '../../components/landing/LPDownload.astro';
+import LPFooter from '../../components/landing/LPFooter.astro';
+
+const platformDifferences = [
+  {
+    task: 'Find files modified in last hour',
+    mac: 'find . -mtime -1h -type f',
+    linux: 'find . -mmin -60 -type f',
+    note: 'BSD find uses -mtime -1h, GNU find uses -mmin',
+  },
+  {
+    task: 'Sort by column numerically',
+    mac: 'sort -t, -k2 -n',
+    linux: 'sort -t, -k2,2 -n',
+    note: 'BSD sort doesn\'t need field end specifier',
+  },
+  {
+    task: 'Extended regex in sed',
+    mac: 'sed -E \'s/pattern/replace/\'',
+    linux: 'sed -r \'s/pattern/replace/\'',
+    note: '-E (BSD) vs -r (GNU) for extended regex',
+  },
+  {
+    task: 'Get file modification time',
+    mac: 'stat -f %m file.txt',
+    linux: 'stat -c %Y file.txt',
+    note: 'Completely different format flags',
+  },
+  {
+    task: 'Watch command output',
+    mac: 'watch is not built-in',
+    linux: 'watch -n 1 command',
+    note: 'macOS needs brew install watch',
+  },
+  {
+    task: 'Check listening ports',
+    mac: 'lsof -i -P | grep LISTEN',
+    linux: 'ss -tlnp',
+    note: 'Different tools for same task',
+  },
+];
+
+const automationExamples = [
+  {
+    title: 'CI/CD Pipeline Health Check',
+    description: 'Check deployment status across services',
+    input: 'caro "check if all kubernetes deployments are ready in production"',
+    output: `kubectl get deployments -n production -o jsonpath='{range .items[*]}{.metadata.name}: {.status.readyReplicas}/{.status.replicas}{"\\n"}{end}'`,
+    safe: true,
+    platform: 'Cross-platform',
+  },
+  {
+    title: 'Log Aggregation',
+    description: 'Find error patterns across multiple log files',
+    input: 'caro "find all ERROR lines in logs from the last 24 hours"',
+    output: `find /var/log -name "*.log" -mtime -1 -exec grep -l "ERROR" {} \\; | xargs grep "ERROR" | tail -100`,
+    safe: true,
+    platform: 'POSIX compliant',
+  },
+  {
+    title: 'Docker Cleanup',
+    description: 'Remove unused Docker resources safely',
+    input: 'caro "clean up docker images and volumes that are not being used"',
+    output: `docker system prune -af --volumes`,
+    safe: false,
+    warning: 'This removes ALL unused images, containers, and volumes',
+    saferAlt: 'docker image prune -a --filter "until=168h"',
+    platform: 'Docker',
+  },
+  {
+    title: 'Service Dependency Check',
+    description: 'Verify all required services are running',
+    input: 'caro "check if redis, postgres, and nginx are running"',
+    output: `for svc in redis postgresql nginx; do systemctl is-active --quiet $svc && echo "$svc: running" || echo "$svc: stopped"; done`,
+    safe: true,
+    platform: 'Linux (systemd)',
+  },
+  {
+    title: 'Certificate Expiry Check',
+    description: 'Find certificates expiring soon',
+    input: 'caro "show SSL certificates expiring in the next 30 days"',
+    output: `find /etc/ssl/certs -name "*.pem" -exec openssl x509 -enddate -noout -in {} \\; 2>/dev/null | while read line; do date -d "${line#*=}" +%s | xargs -I{} sh -c 'if [ {} -lt $(date -d "+30 days" +%s) ]; then echo "Expiring: $line"; fi'; done`,
+    safe: true,
+    platform: 'Linux',
+  },
+  {
+    title: 'Terraform State Check',
+    description: 'List resources in Terraform state',
+    input: 'caro "show all AWS EC2 instances in terraform state"',
+    output: `terraform state list | grep aws_instance`,
+    safe: true,
+    platform: 'Terraform',
+  },
+];
+
+const naturalLanguageExamples = [
+  { intent: 'find large files', command: 'find . -type f -size +100M -exec ls -lh {} \\;' },
+  { intent: 'show disk usage by directory', command: 'du -sh */ | sort -rh | head -10' },
+  { intent: 'list all open ports', command: 'ss -tlnp' },
+  { intent: 'find processes using most memory', command: 'ps aux --sort=-%mem | head -10' },
+  { intent: 'compress old logs', command: 'find /var/log -name "*.log" -mtime +7 -exec gzip {} \\;' },
+  { intent: 'show git branches by last commit', command: 'git branch -a --sort=-committerdate | head -20' },
+  { intent: 'find duplicate files', command: 'find . -type f -exec md5sum {} \\; | sort | uniq -d -w32' },
+  { intent: 'monitor file changes', command: 'inotifywait -m -r -e modify,create,delete .' },
+  { intent: 'check DNS resolution', command: 'dig +short example.com && nslookup example.com' },
+  { intent: 'show network connections', command: 'netstat -ant | awk \'{print $6}\' | sort | uniq -c | sort -rn' },
+  { intent: 'find files changed today', command: 'find . -type f -mtime 0' },
+  { intent: 'list docker container IPs', command: 'docker inspect -f \'{{.Name}} - {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}\' $(docker ps -q)' },
+];
+
+const jobs = [
+  {
+    id: 'cross-platform',
+    title: 'Cross-Platform Command Generation',
+    description: 'Generate commands that work on Mac, Linux, and BSD without modification.',
+    painLevel: '4/5',
+    frequency: 'Weekly',
+    trigger: 'Writing CI pipeline or SSHing to different OS',
+  },
+  {
+    id: 'automation',
+    title: 'Safe Automation Scripts',
+    description: 'Generate multi-command sequences validated for safety before execution.',
+    painLevel: '3/5',
+    frequency: 'Weekly',
+    trigger: 'Creating deployment or maintenance scripts',
+  },
+  {
+    id: 'translation',
+    title: 'Natural Language Translation',
+    description: 'Describe what you want, get the exact command syntax instantly.',
+    painLevel: '3/5',
+    frequency: 'Daily',
+    trigger: 'Can\'t remember the exact flags for a command',
+  },
+];
+---
+
+<LandingPage
+  title="Caro for DevOps Engineers | Cross-Platform Shell Commands"
+  description="Commands that work everywhere—Mac, Linux, BSD—first time. Stop fighting platform differences. Generate POSIX-compliant commands for CI/CD pipelines and automation."
+  slug="use-cases/devops"
+  persona="Cross-Platform DevOps Engineer"
+  painPoint="Commands that work on Mac fail on Linux server"
+>
+  <UseCasesNavigation currentPage="devops" />
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-badge">DevOps & Platform</div>
+      <h1>Commands That Work<br />Everywhere, First Time</h1>
+      <p class="subtitle">
+        Stop fighting BSD vs GNU differences. Caro detects your target platform and generates
+        POSIX-compliant commands that work on Mac, Linux, and in CI pipelines—first time, every time.
+      </p>
+
+      <div class="platform-demo">
+        <div class="platform-select">
+          <span class="platform-label">Target:</span>
+          <span class="platform-tag mac">macOS (BSD)</span>
+          <span class="platform-tag linux">Linux (GNU)</span>
+          <span class="platform-tag posix">POSIX</span>
+        </div>
+      </div>
+
+      <div class="cta-buttons">
+        <a href="#download" class="cta-button primary">Get Started Free</a>
+        <a href="#platforms" class="cta-button secondary">See Platform Differences</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Jobs Section -->
+  <section class="jobs-section">
+    <div class="container">
+      <h2>Jobs Caro Does for DevOps</h2>
+      <p class="section-subtitle">What you hire Caro to do</p>
+
+      <div class="jobs-grid">
+        {jobs.map((job) => (
+          <a href={`#${job.id}`} class="job-card">
+            <div class="job-header">
+              <h3>{job.title}</h3>
+              <div class="job-meta">
+                <span class="pain-badge">Pain: {job.painLevel}</span>
+                <span class="freq-badge">{job.frequency}</span>
+              </div>
+            </div>
+            <p>{job.description}</p>
+            <p class="job-trigger"><strong>Trigger:</strong> {job.trigger}</p>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Platform Differences -->
+  <section id="platforms" class="platforms-section">
+    <div class="container">
+      <h2>The BSD vs GNU Problem</h2>
+      <p class="section-subtitle">Commands you write on Mac break on Linux servers</p>
+
+      <div class="diff-table-wrapper">
+        <table class="diff-table">
+          <thead>
+            <tr>
+              <th>Task</th>
+              <th class="mac-col">macOS (BSD)</th>
+              <th class="linux-col">Linux (GNU)</th>
+              <th>Gotcha</th>
+            </tr>
+          </thead>
+          <tbody>
+            {platformDifferences.map((diff) => (
+              <tr>
+                <td class="task-col">{diff.task}</td>
+                <td class="mac-col"><code>{diff.mac}</code></td>
+                <td class="linux-col"><code>{diff.linux}</code></td>
+                <td class="note-col">{diff.note}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="solution-box">
+        <h3>How Caro Solves This</h3>
+        <div class="solution-demo">
+          <div class="terminal">
+            <div class="terminal-header">
+              <div class="terminal-dot red"></div>
+              <div class="terminal-dot yellow"></div>
+              <div class="terminal-dot green"></div>
+              <span class="terminal-title">Your Mac</span>
+            </div>
+            <div class="terminal-line">
+              <span class="prompt">$</span>
+              <span class="command"> caro "find files changed in last hour"</span>
+            </div>
+            <div class="terminal-line">
+              <span class="caro-label">Caro (macOS detected):</span>
+            </div>
+            <div class="terminal-line">
+              <span class="output">find . -mtime -1h -type f</span>
+            </div>
+          </div>
+
+          <div class="arrow">↓</div>
+
+          <div class="terminal">
+            <div class="terminal-header">
+              <div class="terminal-dot red"></div>
+              <div class="terminal-dot yellow"></div>
+              <div class="terminal-dot green"></div>
+              <span class="terminal-title">For Linux Server</span>
+            </div>
+            <div class="terminal-line">
+              <span class="prompt">$</span>
+              <span class="command"> caro --target linux "find files changed in last hour"</span>
+            </div>
+            <div class="terminal-line">
+              <span class="caro-label">Caro (Linux target):</span>
+            </div>
+            <div class="terminal-line">
+              <span class="output">find . -mmin -60 -type f</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Automation Examples -->
+  <section id="automation" class="automation-section">
+    <div class="container">
+      <h2>Automation Script Examples</h2>
+      <p class="section-subtitle">Common DevOps tasks, generated and validated</p>
+
+      <div class="automation-grid">
+        {automationExamples.map((example) => (
+          <div class={`automation-card ${example.safe ? 'safe' : 'warning'}`}>
+            <div class="auto-header">
+              <h3>{example.title}</h3>
+              <span class="platform-badge">{example.platform}</span>
+            </div>
+            <p class="auto-desc">{example.description}</p>
+
+            <div class="terminal mini">
+              <div class="terminal-line">
+                <span class="prompt">$</span>
+                <span class="command"> {example.input}</span>
+              </div>
+              <div class="terminal-line">
+                <span class="caro-label">→</span>
+                <span class="output"> {example.output}</span>
+              </div>
+              {!example.safe && (
+                <div class="warning-box">
+                  <span class="warning-icon">⚠️</span>
+                  <span>{example.warning}</span>
+                </div>
+              )}
+              {example.saferAlt && (
+                <div class="safer-box">
+                  <span class="safer-icon">💡</span>
+                  <span>Safer: <code>{example.saferAlt}</code></span>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Natural Language Translation -->
+  <section id="translation" class="translation-section">
+    <div class="container">
+      <h2>Natural Language → Commands</h2>
+      <p class="section-subtitle">Stop Googling. Just describe what you want.</p>
+
+      <div class="translation-grid">
+        {naturalLanguageExamples.map((ex) => (
+          <div class="translation-card">
+            <div class="intent">"{ex.intent}"</div>
+            <div class="arrow-small">↓</div>
+            <code class="command">{ex.command}</code>
+          </div>
+        ))}
+      </div>
+
+      <div class="try-it-box">
+        <h3>Your Turn</h3>
+        <p>Install Caro and try:</p>
+        <div class="try-examples">
+          <code>caro "show me what's using port 8080"</code>
+          <code>caro "find all yaml files with 'production' in them"</code>
+          <code>caro "show docker containers by memory usage"</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CI/CD Integration -->
+  <section class="cicd-section">
+    <div class="container">
+      <h2>CI/CD Pipeline Integration</h2>
+      <p class="section-subtitle">Commands that work in GitHub Actions, GitLab CI, Jenkins</p>
+
+      <div class="cicd-tips">
+        <div class="tip-card">
+          <h3>Use POSIX Mode</h3>
+          <code>caro --posix "your task"</code>
+          <p>Forces POSIX-compliant output that works in any sh-compatible environment.</p>
+        </div>
+
+        <div class="tip-card">
+          <h3>Target Specific Platform</h3>
+          <code>caro --target linux "your task"</code>
+          <p>Generate commands for your CI runner's OS, not your dev machine.</p>
+        </div>
+
+        <div class="tip-card">
+          <h3>JSON Output for Scripts</h3>
+          <code>caro --output json "your task"</code>
+          <p>Machine-readable output for integration with other tools.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <LPDownload />
+  <LPFooter />
+</LandingPage>
+
+<style>
+  .hero {
+    padding: 100px 20px 80px;
+    text-align: center;
+    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+  }
+
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    background: rgba(6, 182, 212, 0.15);
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    color: #06b6d4;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    color: var(--color-text);
+  }
+
+  .subtitle {
+    font-size: 20px;
+    color: var(--color-text-secondary);
+    max-width: 700px;
+    margin: 0 auto 32px;
+    line-height: 1.7;
+  }
+
+  .platform-demo {
+    margin-bottom: 40px;
+  }
+
+  .platform-select {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 24px;
+    background: var(--color-bg-secondary);
+    border-radius: 50px;
+    border: 1px solid var(--color-border);
+  }
+
+  .platform-label {
+    color: var(--color-text-secondary);
+    font-size: 14px;
+  }
+
+  .platform-tag {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .platform-tag.mac { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+  .platform-tag.linux { background: rgba(249, 115, 22, 0.15); color: #f97316; }
+  .platform-tag.posix { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+
+  .cta-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .cta-button {
+    display: inline-block;
+    padding: 16px 40px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.2s;
+  }
+
+  .cta-button.primary {
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+    color: white;
+  }
+
+  .cta-button.secondary {
+    border: 2px solid #06b6d4;
+    color: #06b6d4;
+  }
+
+  /* Jobs Section */
+  .jobs-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  h2 {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    margin-bottom: 50px;
+  }
+
+  .jobs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .job-card {
+    padding: 28px;
+    border-radius: 12px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    text-decoration: none;
+    color: var(--color-text);
+    transition: transform 0.2s;
+  }
+
+  .job-card:hover {
+    transform: translateY(-4px);
+  }
+
+  .job-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+
+  .job-card h3 {
+    font-size: 18px;
+  }
+
+  .job-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .pain-badge { font-size: 11px; color: #ef4444; font-weight: 600; }
+  .freq-badge { font-size: 11px; color: var(--color-text-secondary); background: var(--color-bg); padding: 2px 8px; border-radius: 4px; }
+
+  .job-card p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin-bottom: 12px;
+  }
+
+  .job-trigger {
+    font-size: 13px;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  /* Platform Differences */
+  .platforms-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .diff-table-wrapper {
+    overflow-x: auto;
+    margin-bottom: 48px;
+  }
+
+  .diff-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--color-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    font-size: 14px;
+  }
+
+  .diff-table th,
+  .diff-table td {
+    padding: 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .diff-table th {
+    background: var(--color-bg-tertiary);
+    font-weight: 600;
+  }
+
+  .task-col { font-weight: 500; }
+  .mac-col { background: rgba(59, 130, 246, 0.05); }
+  .linux-col { background: rgba(249, 115, 22, 0.05); }
+  .note-col { font-size: 12px; color: var(--color-text-secondary); }
+
+  .diff-table code {
+    background: var(--color-bg-secondary);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  .solution-box {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 32px;
+  }
+
+  .solution-box h3 {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .solution-demo {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+  }
+
+  .arrow {
+    font-size: 32px;
+    color: #06b6d4;
+  }
+
+  /* Terminal */
+  .terminal {
+    background: #1a1a2e;
+    border-radius: 12px;
+    padding: 20px;
+    font-family: 'SF Mono', monospace;
+    font-size: 14px;
+    width: 100%;
+    max-width: 600px;
+  }
+
+  .terminal.mini {
+    padding: 16px;
+    font-size: 13px;
+  }
+
+  .terminal-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .terminal-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .terminal-dot.red { background: #ff5f56; }
+  .terminal-dot.yellow { background: #ffbd2e; }
+  .terminal-dot.green { background: #27c93f; }
+  .terminal-title { margin-left: auto; font-size: 12px; color: #666; font-family: system-ui; }
+
+  .terminal-line { margin: 8px 0; color: #d4d4d4; }
+  .prompt { color: #4ec9b0; }
+  .command { color: #9cdcfe; }
+  .output { color: #ce9178; }
+  .caro-label { color: #ff8c42; font-weight: 600; }
+
+  /* Automation */
+  .automation-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .automation-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 24px;
+  }
+
+  .automation-card {
+    padding: 24px;
+    border-radius: 12px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+  }
+
+  .automation-card.warning {
+    border-color: rgba(245, 158, 11, 0.3);
+  }
+
+  .auto-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .auto-header h3 { font-size: 16px; }
+
+  .platform-badge {
+    font-size: 11px;
+    padding: 4px 10px;
+    background: var(--color-bg);
+    border-radius: 20px;
+    color: var(--color-text-secondary);
+  }
+
+  .auto-desc {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin-bottom: 16px;
+  }
+
+  .warning-box, .safer-box {
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .warning-box {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+  }
+
+  .safer-box {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+  }
+
+  .safer-box code {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  /* Translation */
+  .translation-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .translation-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .translation-card {
+    padding: 20px;
+    border-radius: 12px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    text-align: center;
+  }
+
+  .intent {
+    color: var(--color-text-secondary);
+    font-style: italic;
+    margin-bottom: 8px;
+  }
+
+  .arrow-small {
+    color: #06b6d4;
+    margin-bottom: 8px;
+  }
+
+  .translation-card .command {
+    display: block;
+    background: #1a1a2e;
+    padding: 10px;
+    border-radius: 6px;
+    color: #9cdcfe;
+    font-size: 12px;
+    text-align: left;
+    word-break: break-all;
+  }
+
+  .try-it-box {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+  }
+
+  .try-it-box h3 { margin-bottom: 12px; }
+  .try-it-box p { color: var(--color-text-secondary); margin-bottom: 20px; }
+
+  .try-examples {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .try-examples code {
+    background: #1a1a2e;
+    padding: 12px 20px;
+    border-radius: 8px;
+    color: #9cdcfe;
+    font-size: 14px;
+  }
+
+  /* CI/CD */
+  .cicd-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .cicd-tips {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+
+  .tip-card {
+    padding: 28px;
+    border-radius: 12px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+  }
+
+  .tip-card h3 {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .tip-card code {
+    display: block;
+    background: #1a1a2e;
+    padding: 12px;
+    border-radius: 6px;
+    color: #9cdcfe;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  .tip-card p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  @media (max-width: 768px) {
+    h1 { font-size: 36px; }
+    h2 { font-size: 28px; }
+    .automation-grid { grid-template-columns: 1fr; }
+  }
+</style>

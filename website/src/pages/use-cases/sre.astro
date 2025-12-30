@@ -1,0 +1,1162 @@
+---
+/**
+ * Use Case: SRE & On-Call Engineers
+ *
+ * Target Persona: Production-Paranoid SRE
+ * Key Jobs: Safe production execution, Incident response, AI hallucination protection
+ *
+ * This page includes exhaustive examples for each job-to-be-done.
+ */
+
+import LandingPage from '../../layouts/LandingPage.astro';
+import UseCasesNavigation from '../../components/use-cases/UseCasesNavigation.astro';
+import LPDownload from '../../components/landing/LPDownload.astro';
+import LPFooter from '../../components/landing/LPFooter.astro';
+
+const jobs = [
+  {
+    id: 'safe-execution',
+    title: 'Safe Production Command Execution',
+    description: 'Validate commands against 52+ dangerous patterns before they can destroy production.',
+    painLevel: '5/5',
+    frequency: 'Daily',
+    trigger: 'Running any command on production systems',
+  },
+  {
+    id: 'incident-response',
+    title: 'Incident Response Acceleration',
+    description: 'Generate diagnostic commands instantly during high-pressure incidents.',
+    painLevel: '5/5',
+    frequency: 'Weekly',
+    trigger: 'PagerDuty alert at 3 AM',
+  },
+  {
+    id: 'ai-protection',
+    title: 'AI Hallucination Protection',
+    description: 'Catch when AI tools suggest dangerous commands with deterministic validation.',
+    painLevel: '5/5',
+    frequency: 'Daily',
+    trigger: 'Using any AI assistant for shell commands',
+  },
+];
+
+const scenarios = [
+  {
+    title: 'The 2 AM Log Cleanup',
+    context: 'Production server running out of disk space. You need to free space fast.',
+    dangerous: true,
+    input: 'caro "delete all log files to free disk space"',
+    output: `find /var/log -name "*.log" -type f -delete`,
+    warning: 'CRITICAL: Recursive delete in system directory without age filter',
+    suggestion: 'Use -mtime +7 to only remove logs older than 7 days',
+    safe_alternative: `find /var/log -name "*.log" -type f -mtime +7 -delete`,
+    lesson: 'Caro warns you before wiping logs you might need for post-incident analysis.',
+  },
+  {
+    title: 'The Database Cleanup',
+    context: 'Need to clean up old backup files from the database server.',
+    dangerous: true,
+    input: 'caro "remove all backup files from database directory"',
+    output: `rm -rf /var/lib/postgresql/backups/*`,
+    warning: 'HIGH RISK: Bulk deletion in database directory',
+    suggestion: 'Consider keeping recent backups, use --dry-run first',
+    safe_alternative: `find /var/lib/postgresql/backups -name "*.sql.gz" -mtime +30 -delete`,
+    lesson: 'Pattern matching catches operations in critical system paths.',
+  },
+  {
+    title: 'The Permission Fix',
+    context: 'Application can\'t write to its data directory after a botched deployment.',
+    dangerous: true,
+    input: 'caro "fix permissions on the app directory"',
+    output: `chmod -R 777 /opt/app`,
+    warning: 'HIGH RISK: chmod 777 creates security vulnerability',
+    suggestion: 'Use specific permissions (755 for dirs, 644 for files)',
+    safe_alternative: `chmod -R u=rwX,g=rX,o=rX /opt/app`,
+    lesson: 'Security anti-patterns are caught even when they "fix" the immediate problem.',
+  },
+  {
+    title: 'The Kubernetes Cleanup',
+    context: 'Evicted pods cluttering the cluster, need to clean them up.',
+    dangerous: false,
+    input: 'caro "delete all evicted pods in production"',
+    output: `kubectl get pods -n production --field-selector=status.phase=Failed -o name | xargs kubectl delete -n production`,
+    safe: true,
+    safe_message: 'Safe: Targets only failed pods with explicit namespace',
+    lesson: 'Complex k8s commands generated correctly with proper selectors.',
+  },
+  {
+    title: 'The Network Debug',
+    context: 'API latency issues, need to find which endpoints are slow.',
+    dangerous: false,
+    input: 'caro "show all established connections to port 443 with latency"',
+    output: `ss -tnp state established '( dport = :443 )' | awk '{print $4}' | sort | uniq -c | sort -rn`,
+    safe: true,
+    safe_message: 'Safe: Read-only network inspection',
+    lesson: 'Complex pipe chains generated correctly without memorizing ss/awk syntax.',
+  },
+];
+
+const incidentExamples = [
+  {
+    alert: 'CRITICAL: API Response Time > 5s',
+    commands: [
+      {
+        intent: 'Check current load',
+        command: 'uptime && free -h && df -h',
+        explanation: 'Quick system overview - load, memory, disk',
+      },
+      {
+        intent: 'Find slow processes',
+        command: 'ps aux --sort=-%cpu | head -20',
+        explanation: 'Top CPU consumers',
+      },
+      {
+        intent: 'Check connection counts',
+        command: 'ss -s && ss -tnp | wc -l',
+        explanation: 'Socket summary and total connections',
+      },
+      {
+        intent: 'Check recent logs for errors',
+        command: 'journalctl -u api-server --since "5 minutes ago" --priority=err',
+        explanation: 'Recent error-level logs from systemd',
+      },
+    ],
+  },
+  {
+    alert: 'CRITICAL: Disk Usage > 95%',
+    commands: [
+      {
+        intent: 'Find what\'s using space',
+        command: 'du -sh /* 2>/dev/null | sort -rh | head -10',
+        explanation: 'Top-level directory sizes',
+      },
+      {
+        intent: 'Find large files',
+        command: 'find / -type f -size +100M -exec ls -lh {} \\; 2>/dev/null | sort -k5 -rh | head -20',
+        explanation: 'Files larger than 100MB',
+      },
+      {
+        intent: 'Check log file sizes',
+        command: 'find /var/log -name "*.log" -size +50M -exec ls -lh {} \\;',
+        explanation: 'Log files that might need rotation',
+      },
+      {
+        intent: 'Find old files to clean',
+        command: 'find /tmp -type f -atime +7 -exec ls -lh {} \\;',
+        explanation: 'Temp files not accessed in 7 days',
+      },
+    ],
+  },
+  {
+    alert: 'CRITICAL: Pod CrashLoopBackOff',
+    commands: [
+      {
+        intent: 'Check pod status',
+        command: 'kubectl get pods -n production | grep -E "Error|CrashLoop|ImagePull"',
+        explanation: 'Find problematic pods',
+      },
+      {
+        intent: 'Get pod events',
+        command: 'kubectl describe pod <pod-name> -n production | tail -20',
+        explanation: 'Recent events (OOM, liveness failures, etc)',
+      },
+      {
+        intent: 'Check previous container logs',
+        command: 'kubectl logs <pod-name> -n production --previous --tail=100',
+        explanation: 'Logs from crashed container',
+      },
+      {
+        intent: 'Check resource usage',
+        command: 'kubectl top pods -n production --sort-by=memory | head -10',
+        explanation: 'Memory usage across pods',
+      },
+    ],
+  },
+];
+
+const aiProtectionExamples = [
+  {
+    scenario: 'AI Suggests Destructive Command',
+    context: 'You asked an AI: "Clean up the project directory"',
+    ai_suggestion: 'rm -rf ./*',
+    ai_marked: 'Safe',
+    caro_catches: true,
+    caro_warning: 'CRITICAL: rm -rf with wildcard - could delete entire directory contents',
+    caro_suggestion: 'Be specific about what to delete: rm -rf ./build ./node_modules',
+  },
+  {
+    scenario: 'AI Misses Context',
+    context: 'You asked: "Restart the service to apply changes"',
+    ai_suggestion: 'systemctl restart nginx && systemctl restart postgresql',
+    ai_marked: 'Safe',
+    caro_catches: true,
+    caro_warning: 'HIGH: Service restart affects production traffic. PostgreSQL restart causes connection drops.',
+    caro_suggestion: 'Consider graceful reload: systemctl reload nginx',
+  },
+  {
+    scenario: 'AI Uses Wrong Platform Syntax',
+    context: 'You asked: "Find files modified today" (on macOS)',
+    ai_suggestion: 'find . -mtime 0',
+    ai_marked: 'Safe',
+    caro_catches: true,
+    caro_warning: 'Platform mismatch: -mtime 0 behavior differs between BSD (macOS) and GNU (Linux)',
+    caro_suggestion: 'On macOS: find . -mtime -1 (within last 24h)',
+  },
+];
+
+const blockedPatterns = [
+  { pattern: 'rm -rf /', desc: 'System destruction' },
+  { pattern: 'rm -rf ~', desc: 'Home directory wipe' },
+  { pattern: ':(){:|:&};:', desc: 'Fork bomb' },
+  { pattern: 'dd if=/dev/zero of=/dev/sda', desc: 'Disk wipe' },
+  { pattern: 'chmod -R 777 /', desc: 'System-wide permission change' },
+  { pattern: 'mkfs.ext4 /dev/sda1', desc: 'Filesystem format' },
+  { pattern: '> /etc/passwd', desc: 'Critical file truncation' },
+  { pattern: 'mv /* /dev/null', desc: 'Mass file destruction' },
+  { pattern: 'wget -O- | sh', desc: 'Piped remote execution' },
+  { pattern: 'curl | bash', desc: 'Piped remote execution' },
+];
+---
+
+<LandingPage
+  title="Caro for SREs & On-Call Engineers | Safe Production Commands"
+  description="Your 3 AM incident companion. Validate dangerous commands before they touch production. Generate safe shell commands during high-pressure incidents. 52+ dangerous patterns blocked."
+  slug="use-cases/sre"
+  persona="Production-Paranoid SRE"
+  painPoint="Fear of catastrophic command mistakes"
+>
+  <UseCasesNavigation currentPage="sre" />
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-badge">SRE & On-Call</div>
+      <h1>Your 3 AM<br />Incident Companion</h1>
+      <p class="subtitle">
+        When you're sleep-deprived and production is on fire, Caro validates every command
+        before it can make things worse. Pattern-based safety that doesn't depend on AI judgement.
+      </p>
+
+      <div class="social-proof">
+        <div class="quote">
+          "Caught a recursive delete pattern I would have missed at 2 AM during an incident.
+          The warning was specific enough that I understood WHY it was dangerous."
+        </div>
+        <div class="attribution">— Michael T., Senior SRE (Series C Fintech)</div>
+      </div>
+
+      <div class="cta-buttons">
+        <a href="#download" class="cta-button primary">Get Started Free</a>
+        <a href="#scenarios" class="cta-button secondary">See Real Examples</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Jobs Section -->
+  <section class="jobs-section">
+    <div class="container">
+      <h2>Jobs Caro Does for SREs</h2>
+      <p class="section-subtitle">What you hire Caro to do</p>
+
+      <div class="jobs-grid">
+        {jobs.map((job) => (
+          <a href={`#${job.id}`} class="job-card">
+            <div class="job-header">
+              <h3>{job.title}</h3>
+              <div class="job-meta">
+                <span class="pain-badge">Pain: {job.painLevel}</span>
+                <span class="freq-badge">{job.frequency}</span>
+              </div>
+            </div>
+            <p>{job.description}</p>
+            <p class="job-trigger"><strong>Trigger:</strong> {job.trigger}</p>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Scenarios Section -->
+  <section id="scenarios" class="scenarios-section">
+    <div class="container">
+      <h2>Real Scenarios You'll Face</h2>
+      <p class="section-subtitle">See how Caro handles actual production situations</p>
+
+      <div class="scenarios-list">
+        {scenarios.map((scenario) => (
+          <div class={`scenario-card ${scenario.dangerous ? 'dangerous' : 'safe'}`}>
+            <div class="scenario-header">
+              <h3>{scenario.title}</h3>
+              {scenario.dangerous ? (
+                <span class="danger-badge">Caught by Caro</span>
+              ) : (
+                <span class="safe-badge">Safe to Run</span>
+              )}
+            </div>
+
+            <p class="scenario-context"><strong>Context:</strong> {scenario.context}</p>
+
+            <div class="terminal">
+              <div class="terminal-header">
+                <div class="terminal-dot red"></div>
+                <div class="terminal-dot yellow"></div>
+                <div class="terminal-dot green"></div>
+                <span class="terminal-title">Terminal</span>
+              </div>
+
+              <div class="terminal-line">
+                <span class="prompt">$</span>
+                <span class="command"> {scenario.input}</span>
+              </div>
+
+              <div class="terminal-line">
+                <span class="caro-label">Caro:</span>
+                <span class="output"> {scenario.output}</span>
+              </div>
+
+              {scenario.dangerous ? (
+                <>
+                  <div class="warning-line">
+                    <span class="warning-icon">⚠️</span>
+                    <span class="warning-text">{scenario.warning}</span>
+                  </div>
+                  <div class="suggestion-line">
+                    <span class="suggestion-icon">💡</span>
+                    <span class="suggestion-text">{scenario.suggestion}</span>
+                  </div>
+                  <div class="terminal-line">
+                    <span class="safe-label">Safer alternative:</span>
+                  </div>
+                  <div class="terminal-line">
+                    <span class="safe-command">{scenario.safe_alternative}</span>
+                  </div>
+                </>
+              ) : (
+                <div class="safe-line">
+                  <span class="safe-icon">✓</span>
+                  <span class="safe-text">{scenario.safe_message}</span>
+                </div>
+              )}
+            </div>
+
+            <p class="scenario-lesson"><strong>Lesson:</strong> {scenario.lesson}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Incident Response Section -->
+  <section id="incident-response" class="incident-section">
+    <div class="container">
+      <h2>Incident Response Runbooks</h2>
+      <p class="section-subtitle">Common alerts and the commands you need</p>
+
+      <div class="incidents-list">
+        {incidentExamples.map((incident) => (
+          <div class="incident-card">
+            <div class="incident-alert">
+              <span class="alert-icon">🚨</span>
+              <span class="alert-text">{incident.alert}</span>
+            </div>
+
+            <div class="incident-commands">
+              {incident.commands.map((cmd, i) => (
+                <div class="command-row">
+                  <div class="command-number">{i + 1}</div>
+                  <div class="command-content">
+                    <div class="command-intent">{cmd.intent}</div>
+                    <div class="command-code">
+                      <code>{cmd.command}</code>
+                      <button class="copy-btn" data-command={cmd.command}>Copy</button>
+                    </div>
+                    <div class="command-explain">{cmd.explanation}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div class="incident-tip">
+              <strong>With Caro:</strong> Just describe what you need. Example:
+              <code>caro "show me what's using the most CPU"</code>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- AI Protection Section -->
+  <section id="ai-protection" class="ai-section">
+    <div class="container">
+      <h2>When AI Gets It Wrong</h2>
+      <p class="section-subtitle">Real examples of AI hallucinations Caro catches</p>
+
+      <div class="ai-examples">
+        {aiProtectionExamples.map((example) => (
+          <div class="ai-example-card">
+            <h3>{example.scenario}</h3>
+            <p class="ai-context">{example.context}</p>
+
+            <div class="ai-comparison">
+              <div class="ai-side bad">
+                <div class="side-header">
+                  <span class="side-icon">🤖</span>
+                  <span class="side-label">AI Assistant</span>
+                </div>
+                <div class="side-content">
+                  <code class="side-command">{example.ai_suggestion}</code>
+                  <span class="ai-verdict safe-false">Marked as "Safe"</span>
+                </div>
+              </div>
+
+              <div class="ai-arrow">→</div>
+
+              <div class="ai-side good">
+                <div class="side-header">
+                  <span class="side-icon">🛡️</span>
+                  <span class="side-label">Caro Safety Layer</span>
+                </div>
+                <div class="side-content">
+                  <div class="caro-warning">{example.caro_warning}</div>
+                  <div class="caro-suggestion">💡 {example.caro_suggestion}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div class="ai-summary">
+        <h3>Why Pattern-Based Beats AI-Based</h3>
+        <div class="ai-summary-grid">
+          <div class="summary-item">
+            <strong>Deterministic</strong>
+            <p>Same input = same result. No randomness, no "sometimes catches it."</p>
+          </div>
+          <div class="summary-item">
+            <strong>Auditable</strong>
+            <p>You can see exactly which pattern triggered. Essential for post-incident review.</p>
+          </div>
+          <div class="summary-item">
+            <strong>Can't Hallucinate</strong>
+            <p>Regex patterns don't make things up. They match or they don't.</p>
+          </div>
+          <div class="summary-item">
+            <strong>Fast</strong>
+            <p>&lt;50ms validation. No API call, no waiting.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Blocked Patterns -->
+  <section class="patterns-section">
+    <div class="container">
+      <h2>52+ Patterns We Block</h2>
+      <p class="section-subtitle">A sample of what Caro catches</p>
+
+      <div class="patterns-grid">
+        {blockedPatterns.map((p) => (
+          <div class="pattern-card">
+            <code class="pattern-code">{p.pattern}</code>
+            <span class="pattern-desc">{p.desc}</span>
+          </div>
+        ))}
+      </div>
+
+      <p class="patterns-note">
+        Plus: privilege escalation, network backdoors, history clearing, and more.
+        <a href="https://github.com/wildcard/caro/blob/main/src/safety/patterns.rs">See full list →</a>
+      </p>
+    </div>
+  </section>
+
+  <LPDownload />
+  <LPFooter />
+</LandingPage>
+
+<style>
+  .hero {
+    padding: 100px 20px 80px;
+    text-align: center;
+    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+  }
+
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  h1 {
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    color: var(--color-text);
+  }
+
+  .subtitle {
+    font-size: 20px;
+    color: var(--color-text-secondary);
+    max-width: 700px;
+    margin: 0 auto 32px;
+    line-height: 1.7;
+  }
+
+  .social-proof {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-left: 4px solid #ef4444;
+    padding: 24px 32px;
+    border-radius: 8px;
+    margin-bottom: 40px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .quote {
+    font-size: 17px;
+    font-style: italic;
+    color: var(--color-text);
+    margin-bottom: 8px;
+    line-height: 1.6;
+  }
+
+  .attribution {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .cta-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .cta-button {
+    display: inline-block;
+    padding: 16px 40px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .cta-button.primary {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+  }
+
+  .cta-button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(255, 140, 66, 0.3);
+  }
+
+  .cta-button.secondary {
+    background: transparent;
+    border: 2px solid #ff8c42;
+    color: #ff8c42;
+  }
+
+  /* Jobs Section */
+  .jobs-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  h2 {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    margin-bottom: 50px;
+  }
+
+  .jobs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .job-card {
+    padding: 28px;
+    border-radius: 12px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    text-decoration: none;
+    color: var(--color-text);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .job-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .job-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    gap: 12px;
+  }
+
+  .job-card h3 {
+    font-size: 18px;
+    color: var(--color-text);
+  }
+
+  .job-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .pain-badge {
+    font-size: 11px;
+    color: #ef4444;
+    font-weight: 600;
+  }
+
+  .freq-badge {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    background: var(--color-bg);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .job-card p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+
+  .job-trigger {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  /* Scenarios Section */
+  .scenarios-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .scenarios-list {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .scenario-card {
+    padding: 32px;
+    border-radius: 16px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+  }
+
+  .scenario-card.dangerous {
+    border-color: rgba(239, 68, 68, 0.3);
+  }
+
+  .scenario-card.safe {
+    border-color: rgba(34, 197, 94, 0.3);
+  }
+
+  .scenario-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .scenario-header h3 {
+    font-size: 22px;
+    color: var(--color-text);
+  }
+
+  .danger-badge, .safe-badge {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .danger-badge {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+  }
+
+  .safe-badge {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+  }
+
+  .scenario-context {
+    font-size: 15px;
+    color: var(--color-text-secondary);
+    margin-bottom: 20px;
+  }
+
+  /* Terminal */
+  .terminal {
+    background: #1a1a2e;
+    border-radius: 12px;
+    padding: 20px;
+    font-family: 'SF Mono', 'Monaco', 'Fira Code', monospace;
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+
+  .terminal-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .terminal-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .terminal-dot.red { background: #ff5f56; }
+  .terminal-dot.yellow { background: #ffbd2e; }
+  .terminal-dot.green { background: #27c93f; }
+
+  .terminal-title {
+    margin-left: auto;
+    font-size: 12px;
+    color: #666;
+    font-family: system-ui, sans-serif;
+  }
+
+  .terminal-line {
+    margin: 8px 0;
+    color: #d4d4d4;
+  }
+
+  .prompt { color: #4ec9b0; }
+  .command { color: #9cdcfe; }
+  .output { color: #ce9178; }
+  .caro-label { color: #ff8c42; font-weight: 600; }
+  .safe-label { color: #22c55e; }
+  .safe-command { color: #22c55e; margin-left: 16px; }
+
+  .warning-line, .suggestion-line, .safe-line {
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin: 12px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .warning-line {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
+  .warning-text { color: #ef4444; }
+
+  .suggestion-line {
+    background: rgba(96, 165, 250, 0.1);
+    border: 1px solid rgba(96, 165, 250, 0.2);
+  }
+
+  .suggestion-text { color: #60a5fa; }
+
+  .safe-line {
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+
+  .safe-text { color: #22c55e; }
+
+  .scenario-lesson {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    padding: 12px 16px;
+    background: var(--color-bg-secondary);
+    border-radius: 8px;
+  }
+
+  /* Incident Response */
+  .incident-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .incidents-list {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .incident-card {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 32px;
+  }
+
+  .incident-alert {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: 8px;
+    margin-bottom: 24px;
+  }
+
+  .alert-icon { font-size: 20px; }
+
+  .alert-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ef4444;
+  }
+
+  .incident-commands {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .command-row {
+    display: flex;
+    gap: 16px;
+  }
+
+  .command-number {
+    width: 32px;
+    height: 32px;
+    background: #ff8c42;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .command-content {
+    flex: 1;
+  }
+
+  .command-intent {
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 8px;
+  }
+
+  .command-code {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #1a1a2e;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+
+  .command-code code {
+    flex: 1;
+    color: #9cdcfe;
+    font-family: 'SF Mono', monospace;
+    font-size: 13px;
+  }
+
+  .copy-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+
+  .command-explain {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+
+  .incident-tip {
+    margin-top: 20px;
+    padding: 16px;
+    background: rgba(255, 140, 66, 0.1);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--color-text);
+  }
+
+  .incident-tip code {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+
+  /* AI Protection */
+  .ai-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .ai-examples {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    margin-bottom: 48px;
+  }
+
+  .ai-example-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 32px;
+  }
+
+  .ai-example-card h3 {
+    font-size: 20px;
+    color: var(--color-text);
+    margin-bottom: 8px;
+  }
+
+  .ai-context {
+    font-size: 15px;
+    color: var(--color-text-secondary);
+    margin-bottom: 24px;
+  }
+
+  .ai-comparison {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 20px;
+    align-items: stretch;
+  }
+
+  .ai-side {
+    padding: 20px;
+    border-radius: 12px;
+  }
+
+  .ai-side.bad {
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+
+  .ai-side.good {
+    background: rgba(34, 197, 94, 0.05);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+  }
+
+  .side-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .side-icon { font-size: 20px; }
+
+  .side-label {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-text);
+  }
+
+  .side-command {
+    display: block;
+    background: #1a1a2e;
+    padding: 12px;
+    border-radius: 6px;
+    color: #9cdcfe;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  .ai-verdict {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+
+  .safe-false {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+  }
+
+  .ai-arrow {
+    display: flex;
+    align-items: center;
+    font-size: 24px;
+    color: var(--color-text-secondary);
+  }
+
+  .caro-warning {
+    background: rgba(239, 68, 68, 0.1);
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #ef4444;
+    margin-bottom: 12px;
+  }
+
+  .caro-suggestion {
+    font-size: 13px;
+    color: #22c55e;
+  }
+
+  .ai-summary {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 32px;
+  }
+
+  .ai-summary h3 {
+    font-size: 22px;
+    text-align: center;
+    margin-bottom: 24px;
+    color: var(--color-text);
+  }
+
+  .ai-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+  }
+
+  .summary-item {
+    text-align: center;
+  }
+
+  .summary-item strong {
+    display: block;
+    font-size: 16px;
+    color: #ff8c42;
+    margin-bottom: 8px;
+  }
+
+  .summary-item p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  /* Patterns Section */
+  .patterns-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .patterns-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .pattern-card {
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .pattern-code {
+    font-family: 'SF Mono', monospace;
+    font-size: 13px;
+    color: #ef4444;
+  }
+
+  .pattern-desc {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+
+  .patterns-note {
+    text-align: center;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .patterns-note a {
+    color: #ff8c42;
+    text-decoration: none;
+  }
+
+  @media (max-width: 768px) {
+    h1 { font-size: 36px; }
+    h2 { font-size: 28px; }
+
+    .ai-comparison {
+      grid-template-columns: 1fr;
+    }
+
+    .ai-arrow {
+      transform: rotate(90deg);
+      justify-content: center;
+    }
+
+    .command-row {
+      flex-direction: column;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const copyBtns = document.querySelectorAll('.copy-btn');
+    copyBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const cmd = btn.getAttribute('data-command') || '';
+        navigator.clipboard.writeText(cmd).then(() => {
+          const original = btn.textContent;
+          btn.textContent = 'Copied!';
+          setTimeout(() => btn.textContent = original, 2000);
+        });
+      });
+    });
+  });
+</script>

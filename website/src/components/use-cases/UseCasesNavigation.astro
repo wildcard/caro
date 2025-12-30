@@ -1,13 +1,41 @@
 ---
-// Minimal navigation for landing pages - focused on conversion
+// Navigation component for use-cases section with dropdown
+interface Props {
+  currentPage?: string;
+}
+
+const { currentPage } = Astro.props;
+
+const personas = [
+  { slug: 'sre', title: 'SRE & On-Call Engineers', icon: '🚨' },
+  { slug: 'air-gapped', title: 'Air-Gapped & Security', icon: '🔐' },
+  { slug: 'devops', title: 'DevOps & Platform', icon: '🔧' },
+  { slug: 'tech-lead', title: 'Tech Leads & Managers', icon: '👥' },
+  { slug: 'developer', title: 'Developers', icon: '💻' },
+];
 ---
 
-<nav class="lp-nav">
+<nav class="uc-nav">
   <div class="container">
     <a href="/" class="nav-brand">Caro</a>
-    <div class="nav-links">
-      <a href="/use-cases" class="nav-link">Use Cases</a>
-      <a href="/docs" class="nav-link">Docs</a>
+    <div class="nav-center">
+      <a href="/use-cases" class={`nav-link ${currentPage === 'index' ? 'active' : ''}`}>All Use Cases</a>
+      <div class="nav-dropdown">
+        <button class="nav-link dropdown-trigger">
+          By Role <span class="dropdown-arrow">▾</span>
+        </button>
+        <div class="dropdown-menu">
+          {personas.map((persona) => (
+            <a
+              href={`/use-cases/${persona.slug}`}
+              class={`dropdown-item ${currentPage === persona.slug ? 'active' : ''}`}
+            >
+              <span class="dropdown-icon">{persona.icon}</span>
+              {persona.title}
+            </a>
+          ))}
+        </div>
+      </div>
     </div>
     <div class="nav-right">
       <a href="#download" class="nav-cta">Get Started Free</a>
@@ -32,7 +60,7 @@
 </nav>
 
 <style>
-  .lp-nav {
+  .uc-nav {
     background: var(--color-bg);
     padding: 16px 0;
     position: sticky;
@@ -43,7 +71,7 @@
   }
 
   .container {
-    max-width: 1100px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
     display: flex;
@@ -58,22 +86,99 @@
     text-decoration: none;
   }
 
-  .nav-links {
+  .nav-center {
     display: flex;
     align-items: center;
-    gap: 24px;
+    gap: 8px;
   }
 
   .nav-link {
-    color: var(--color-text-secondary);
+    color: var(--color-text);
     text-decoration: none;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 500;
-    transition: color 0.2s;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: background 0.2s, color 0.2s;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
   }
 
   .nav-link:hover {
+    background: var(--color-bg-secondary);
+  }
+
+  .nav-link.active {
+    color: #ff8c42;
+    background: rgba(255, 140, 66, 0.1);
+  }
+
+  .nav-dropdown {
+    position: relative;
+  }
+
+  .dropdown-arrow {
+    font-size: 10px;
+    transition: transform 0.2s;
+  }
+
+  .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 8px;
+    min-width: 240px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+  }
+
+  :global(.dark) .dropdown-menu {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  }
+
+  .nav-dropdown:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(4px);
+  }
+
+  .nav-dropdown:hover .dropdown-arrow {
+    transform: rotate(180deg);
+  }
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 6px;
     color: var(--color-text);
+    text-decoration: none;
+    font-size: 14px;
+    transition: background 0.2s;
+  }
+
+  .dropdown-item:hover {
+    background: var(--color-bg-secondary);
+  }
+
+  .dropdown-item.active {
+    color: #ff8c42;
+    background: rgba(255, 140, 66, 0.1);
+  }
+
+  .dropdown-icon {
+    font-size: 18px;
   }
 
   .nav-right {
@@ -121,14 +226,9 @@
   :global(.dark) .sun-icon { display: block; }
   :global(.dark) .moon-icon { display: none; }
 
-  @media (max-width: 640px) {
-    .nav-links {
+  @media (max-width: 768px) {
+    .nav-center {
       display: none;
-    }
-
-    .nav-cta {
-      padding: 8px 16px;
-      font-size: 13px;
     }
   }
 </style>
