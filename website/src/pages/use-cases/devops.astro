@@ -89,7 +89,7 @@ const automationExamples = [
     title: 'Certificate Expiry Check',
     description: 'Find certificates expiring soon',
     input: 'caro "show SSL certificates expiring in the next 30 days"',
-    output: `find /etc/ssl/certs -name "*.pem" -exec openssl x509 -enddate -noout -in {} \\; 2>/dev/null | while read line; do date -d "${line#*=}" +%s | xargs -I{} sh -c 'if [ {} -lt $(date -d "+30 days" +%s) ]; then echo "Expiring: $line"; fi'; done`,
+    output: 'find /etc/ssl/certs -name "*.pem" -exec openssl x509 -enddate -noout -in {} \\; 2>/dev/null | grep -i "notafter"',
     safe: true,
     platform: 'Linux',
   },
