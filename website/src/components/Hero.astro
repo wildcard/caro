@@ -194,6 +194,7 @@ import TerminalShowcase from './TerminalShowcase.astro';
     }
   }
 
+  /* Tablet */
   @media (max-width: 768px) {
     .pixel-art {
       width: 70px;
@@ -210,6 +211,98 @@ import TerminalShowcase from './TerminalShowcase.astro';
 
     .subtitle {
       font-size: 18px;
+    }
+
+    .cta-button {
+      padding: 14px 32px;
+      font-size: 16px;
+    }
+  }
+
+  /* Mobile */
+  @media (max-width: 600px) {
+    .hero {
+      padding: 40px 16px;
+      min-height: auto;
+    }
+
+    .companion-badge {
+      font-size: 12px;
+      padding: 6px 14px;
+    }
+
+    .logo {
+      font-size: 42px;
+    }
+
+    .tagline {
+      font-size: 24px;
+      margin-bottom: 16px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .plugin-install {
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .install-label {
+      font-size: 14px;
+    }
+
+    .install-command {
+      font-size: 14px;
+      padding: 8px 14px;
+    }
+
+    .cta-buttons {
+      flex-direction: column;
+      width: 100%;
+      gap: 12px;
+    }
+
+    .cta-button {
+      width: 100%;
+      padding: 14px 24px;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    .github-star-wrapper {
+      margin-bottom: 24px;
+    }
+  }
+
+  /* Small mobile */
+  @media (max-width: 360px) {
+    .hero {
+      padding: 30px 14px;
+    }
+
+    .logo {
+      font-size: 36px;
+    }
+
+    .tagline {
+      font-size: 22px;
+    }
+
+    .subtitle {
+      font-size: 15px;
+    }
+
+    .pixel-art {
+      width: 60px;
+    }
+
+    .install-command {
+      font-size: 13px;
     }
   }
 </style>
