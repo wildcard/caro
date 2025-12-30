@@ -1,563 +1,369 @@
 ---
 /**
- * OmniMenu - Cmd+K quick navigation menu
+ * OmniMenu - Cmd+/ quick navigation menu
  *
- * Features:
- * - Cmd+K / Ctrl+K to open
- * - Search all pages by title, description, keywords
- * - Keyboard navigation (up/down arrows, enter)
- * - Escape or click outside to close
- * - Category grouping
- * - Dark/light mode support
- *
- * Feature flag: Enabled by default on Vercel preview deployments,
- * disabled on production unless ENABLE_OMNI_MENU=true
+ * Simple, fast page search with fuzzy matching.
+ * Built at compile time, no runtime dependencies.
  */
 
-import { PAGES_INDEX, type PageEntry } from '../config/pages';
+import { PAGES_INDEX } from '../config/pages';
 
-// Feature flag check - enabled on preview, disabled on production by default
-const isVercelPreview = import.meta.env.VERCEL_ENV === 'preview';
-const isExplicitlyEnabled = import.meta.env.ENABLE_OMNI_MENU === 'true';
-const isProduction = import.meta.env.VERCEL_ENV === 'production';
+// Feature flag: enabled on preview, disabled on production unless explicit
+const isPreview = import.meta.env.VERCEL_ENV === 'preview';
+const isExplicit = import.meta.env.ENABLE_OMNI_MENU === 'true';
+const isProd = import.meta.env.VERCEL_ENV === 'production';
+const isEnabled = isPreview || isExplicit || !isProd;
 
-// Enable on preview OR if explicitly enabled, but not on production unless explicit
-const isEnabled = isVercelPreview || isExplicitlyEnabled || !isProduction;
-
-// Group pages by category for display
-const categories = {
-  main: { label: 'Pages', icon: '📄' },
-  'use-cases': { label: 'Use Cases', icon: '📋' },
-  compare: { label: 'Compare', icon: '⚖️' },
-  blog: { label: 'Blog', icon: '📝' },
-  docs: { label: 'Docs', icon: '📚' },
-};
+// Pre-build search index at compile time
+const searchIndex = PAGES_INDEX.map(p => ({
+  ...p,
+  // Pre-compute searchable text (lowercase, combined)
+  _search: [p.title, p.description || '', p.path, ...(p.keywords || [])].join(' ').toLowerCase()
+}));
 ---
 
 {isEnabled && (
-  <div id="omni-menu-overlay" class="omni-overlay hidden" role="dialog" aria-modal="true" aria-label="Quick navigation">
+  <div id="omni-overlay" class="omni-overlay" data-pages={JSON.stringify(searchIndex)}>
     <div class="omni-backdrop"></div>
-    <div class="omni-container">
-      <div class="omni-header">
-        <div class="omni-search-wrapper">
-          <svg class="omni-search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input
-            type="text"
-            id="omni-search"
-            class="omni-search"
-            placeholder="Search pages..."
-            autocomplete="off"
-            autocorrect="off"
-            autocapitalize="off"
-            spellcheck="false"
-          />
-          <kbd class="omni-shortcut">esc</kbd>
-        </div>
+    <div class="omni-dialog">
+      <div class="omni-search-box">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" id="omni-input" placeholder="Search pages..." autocomplete="off" spellcheck="false" />
+        <kbd>esc</kbd>
       </div>
-      <div class="omni-results" id="omni-results">
-        <div class="omni-loading">Type to search...</div>
-      </div>
+      <div id="omni-list" class="omni-list"></div>
       <div class="omni-footer">
-        <div class="omni-hint">
-          <kbd>↑</kbd><kbd>↓</kbd> navigate
-          <kbd>↵</kbd> select
-          <kbd>esc</kbd> close
-        </div>
+        <span><kbd>↑↓</kbd> navigate</span>
+        <span><kbd>↵</kbd> open</span>
+        <span><kbd>esc</kbd> close</span>
       </div>
     </div>
   </div>
 )}
 
-<style>
+<style is:global>
   .omni-overlay {
+    display: none;
     position: fixed;
     inset: 0;
-    z-index: 10000;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding-top: 15vh;
+    z-index: 99999;
+    padding: 12vh 16px 16px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
   }
-
-  .omni-overlay.hidden {
-    display: none;
-  }
+  .omni-overlay.open { display: flex; justify-content: center; }
 
   .omni-backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
   }
 
-  :global(.dark) .omni-backdrop {
-    background: rgba(0, 0, 0, 0.7);
-  }
-
-  .omni-container {
+  .omni-dialog {
     position: relative;
     width: 100%;
-    max-width: 560px;
-    margin: 0 20px;
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: 16px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    max-width: 520px;
+    max-height: 70vh;
+    background: var(--color-bg, #fff);
+    border: 1px solid var(--color-border, #e0e0e0);
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
-    animation: omniSlideIn 0.15s ease-out;
+    animation: omni-in 0.15s ease-out;
   }
 
-  :global(.dark) .omni-container {
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  @keyframes omni-in {
+    from { opacity: 0; transform: scale(0.96) translateY(-8px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
   }
 
-  @keyframes omniSlideIn {
-    from {
-      opacity: 0;
-      transform: scale(0.95) translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1) translateY(0);
-    }
-  }
-
-  .omni-header {
-    padding: 16px;
-    border-bottom: 1px solid var(--color-border);
-  }
-
-  .omni-search-wrapper {
+  .omni-search-box {
     display: flex;
     align-items: center;
-    gap: 12px;
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: 10px;
-    padding: 12px 16px;
+    gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--color-border, #e0e0e0);
   }
-
-  .omni-search-wrapper:focus-within {
-    border-color: #ff8c42;
-    box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.1);
-  }
-
-  .omni-search-icon {
+  .omni-search-box svg {
     flex-shrink: 0;
-    color: var(--color-text-secondary);
+    color: var(--color-text-secondary, #666);
   }
-
-  .omni-search {
+  .omni-search-box input {
     flex: 1;
     border: none;
-    background: transparent;
+    background: none;
     font-size: 16px;
-    color: var(--color-text);
+    color: var(--color-text, #333);
     outline: none;
   }
-
-  .omni-search::placeholder {
-    color: var(--color-text-secondary);
+  .omni-search-box input::placeholder {
+    color: var(--color-text-secondary, #999);
   }
-
-  .omni-shortcut {
-    flex-shrink: 0;
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: 4px;
+  .omni-search-box kbd {
     padding: 2px 6px;
     font-size: 11px;
-    font-family: system-ui, sans-serif;
-    color: var(--color-text-secondary);
+    font-family: inherit;
+    background: var(--color-bg-secondary, #f5f5f5);
+    border: 1px solid var(--color-border, #ddd);
+    border-radius: 4px;
+    color: var(--color-text-secondary, #666);
   }
 
-  .omni-results {
-    max-height: 400px;
+  .omni-list {
+    flex: 1;
     overflow-y: auto;
     padding: 8px;
   }
 
-  .omni-loading {
-    padding: 24px;
-    text-align: center;
-    color: var(--color-text-secondary);
-    font-size: 14px;
-  }
-
-  .omni-category {
-    margin-bottom: 8px;
-  }
-
-  .omni-category-label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 12px;
+  .omni-group-label {
+    padding: 8px 10px 4px;
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: var(--color-text-secondary);
+    color: var(--color-text-secondary, #888);
   }
 
   .omni-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 16px;
+    padding: 10px 12px;
+    margin: 2px 0;
     border-radius: 8px;
     text-decoration: none;
-    color: var(--color-text);
+    color: var(--color-text, #333);
     cursor: pointer;
     transition: background 0.1s;
   }
-
-  .omni-item:hover,
-  .omni-item.selected {
-    background: var(--color-bg-secondary);
+  .omni-item:hover { background: var(--color-bg-secondary, #f5f5f5); }
+  .omni-item.active {
+    background: rgba(255,140,66,0.12);
   }
+  .omni-item.active .omni-title { color: #ff8c42; }
 
-  .omni-item.selected {
-    background: rgba(255, 140, 66, 0.1);
-  }
-
-  .omni-item-icon {
-    font-size: 20px;
-    width: 28px;
+  .omni-icon {
+    font-size: 18px;
+    width: 24px;
     text-align: center;
+    flex-shrink: 0;
   }
 
-  .omni-item-content {
-    flex: 1;
-    min-width: 0;
-  }
+  .omni-info { flex: 1; min-width: 0; }
 
-  .omni-item-title {
+  .omni-title {
     font-size: 14px;
     font-weight: 500;
-    color: var(--color-text);
-  }
-
-  .omni-item.selected .omni-item-title {
-    color: #ff8c42;
-  }
-
-  .omni-item-description {
-    font-size: 12px;
-    color: var(--color-text-secondary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  .omni-item-arrow {
-    flex-shrink: 0;
-    color: var(--color-text-secondary);
+  .omni-desc {
+    font-size: 12px;
+    color: var(--color-text-secondary, #888);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .omni-arrow {
+    color: var(--color-text-secondary, #aaa);
     opacity: 0;
     transition: opacity 0.1s;
   }
+  .omni-item:hover .omni-arrow,
+  .omni-item.active .omni-arrow { opacity: 1; }
 
-  .omni-item:hover .omni-item-arrow,
-  .omni-item.selected .omni-item-arrow {
-    opacity: 1;
-  }
-
-  .omni-no-results {
-    padding: 32px 24px;
+  .omni-empty {
+    padding: 32px 16px;
     text-align: center;
-    color: var(--color-text-secondary);
-  }
-
-  .omni-no-results-icon {
-    font-size: 32px;
-    margin-bottom: 12px;
-  }
-
-  .omni-no-results-text {
-    font-size: 14px;
+    color: var(--color-text-secondary, #888);
   }
 
   .omni-footer {
-    padding: 12px 16px;
-    border-top: 1px solid var(--color-border);
-    background: var(--color-bg-secondary);
-  }
-
-  .omni-hint {
     display: flex;
-    align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 16px;
+    padding: 10px 16px;
+    border-top: 1px solid var(--color-border, #e0e0e0);
+    background: var(--color-bg-secondary, #f9f9f9);
     font-size: 12px;
-    color: var(--color-text-secondary);
+    color: var(--color-text-secondary, #888);
+  }
+  .omni-footer kbd {
+    padding: 1px 5px;
+    font-size: 10px;
+    font-family: inherit;
+    background: var(--color-bg, #fff);
+    border: 1px solid var(--color-border, #ddd);
+    border-radius: 3px;
   }
 
-  .omni-hint kbd {
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: 4px;
-    padding: 2px 6px;
-    font-size: 11px;
-    font-family: system-ui, sans-serif;
-  }
-
-  /* Highlight matching text */
-  .omni-highlight {
-    background: rgba(255, 140, 66, 0.2);
-    color: #ff8c42;
+  .omni-match {
+    background: rgba(255,140,66,0.25);
     border-radius: 2px;
-    padding: 0 2px;
   }
 
-  /* Mobile adjustments */
-  @media (max-width: 640px) {
-    .omni-overlay {
-      padding-top: 10vh;
-    }
-
-    .omni-container {
-      margin: 0 12px;
-      border-radius: 12px;
-    }
-
-    .omni-hint {
-      display: none;
-    }
+  @media (max-width: 600px) {
+    .omni-overlay { padding: 8vh 12px 12px; }
+    .omni-footer { display: none; }
   }
 </style>
 
-<script define:vars={{ pagesData: JSON.stringify(PAGES_INDEX) }}>
-  // Parse pages data
-  const pages = JSON.parse(pagesData);
+<script>
+  const overlay = document.getElementById('omni-overlay');
+  if (!overlay) throw new Error('OmniMenu: overlay not found');
 
-  // Category labels
-  const categoryLabels = {
-    main: { label: 'Pages', icon: '📄' },
-    'use-cases': { label: 'Use Cases', icon: '📋' },
-    compare: { label: 'Compare', icon: '⚖️' },
-    blog: { label: 'Blog', icon: '📝' },
-    docs: { label: 'Docs', icon: '📚' },
-  };
+  const input = document.getElementById('omni-input') as HTMLInputElement;
+  const list = document.getElementById('omni-list')!;
+  const pages = JSON.parse(overlay.dataset.pages || '[]');
 
-  let selectedIndex = 0;
-  let currentResults = pages;
+  let activeIdx = 0;
+  let filtered = pages;
 
-  function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+  // Simple fuzzy search: all query tokens must appear in searchable text
+  function fuzzyMatch(text: string, query: string): boolean {
+    if (!query) return true;
+    const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
+    return tokens.every(t => text.includes(t));
   }
 
-  function highlightMatch(text, query) {
-    if (!query) return escapeHtml(text);
-    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(`(${escapedQuery})`, 'gi');
-    return escapeHtml(text).replace(regex, '<span class="omni-highlight">$1</span>');
-  }
+  function search(query: string) {
+    const q = query.trim().toLowerCase();
+    if (!q) return pages;
 
-  function searchPages(query) {
-    const normalizedQuery = query.toLowerCase().trim();
-
-    if (!normalizedQuery) {
-      return pages;
-    }
-
-    return pages.filter((page) => {
-      const titleMatch = page.title.toLowerCase().includes(normalizedQuery);
-      const descMatch = page.description?.toLowerCase().includes(normalizedQuery);
-      const pathMatch = page.path.toLowerCase().includes(normalizedQuery);
-      const keywordMatch = page.keywords?.some((k) =>
-        k.toLowerCase().includes(normalizedQuery)
-      );
-
-      return titleMatch || descMatch || pathMatch || keywordMatch;
-    }).sort((a, b) => {
-      // Prioritize exact title matches
-      const aExact = a.title.toLowerCase() === normalizedQuery;
-      const bExact = b.title.toLowerCase() === normalizedQuery;
-      if (aExact && !bExact) return -1;
-      if (bExact && !aExact) return 1;
-
-      // Then prioritize title starts with
-      const aStarts = a.title.toLowerCase().startsWith(normalizedQuery);
-      const bStarts = b.title.toLowerCase().startsWith(normalizedQuery);
-      if (aStarts && !bStarts) return -1;
-      if (bStarts && !aStarts) return 1;
-
+    return pages.filter((p: any) => fuzzyMatch(p._search, q)).sort((a: any, b: any) => {
+      const aTitle = a.title.toLowerCase();
+      const bTitle = b.title.toLowerCase();
+      // Exact title match first
+      if (aTitle === q && bTitle !== q) return -1;
+      if (bTitle === q && aTitle !== q) return 1;
+      // Title starts with query
+      if (aTitle.startsWith(q) && !bTitle.startsWith(q)) return -1;
+      if (bTitle.startsWith(q) && !aTitle.startsWith(q)) return 1;
+      // Title contains query
+      if (aTitle.includes(q) && !bTitle.includes(q)) return -1;
+      if (bTitle.includes(q) && !aTitle.includes(q)) return 1;
       return 0;
     });
   }
 
-  function renderResults(results, query) {
-    const container = document.getElementById('omni-results');
-    if (!container) return;
+  function highlight(text: string, query: string): string {
+    if (!query) return escHtml(text);
+    const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
+    let result = escHtml(text);
+    tokens.forEach(t => {
+      const re = new RegExp(`(${t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      result = result.replace(re, '<span class="omni-match">$1</span>');
+    });
+    return result;
+  }
 
-    currentResults = results;
-    selectedIndex = 0;
+  function escHtml(s: string): string {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
 
-    if (results.length === 0) {
-      container.innerHTML = `
-        <div class="omni-no-results">
-          <div class="omni-no-results-icon">🔍</div>
-          <div class="omni-no-results-text">No pages found for "${escapeHtml(query)}"</div>
-        </div>
-      `;
+  function render(query: string) {
+    filtered = search(query);
+    activeIdx = 0;
+
+    if (filtered.length === 0) {
+      list.innerHTML = `<div class="omni-empty">No results for "${escHtml(query)}"</div>`;
       return;
     }
 
     // Group by category
-    const grouped = {};
-    results.forEach((page) => {
-      if (!grouped[page.category]) {
-        grouped[page.category] = [];
-      }
-      grouped[page.category].push(page);
+    const groups: Record<string, any[]> = {};
+    const order = ['main', 'use-cases', 'compare', 'blog', 'docs'];
+    const labels: Record<string, string> = {
+      main: 'Pages', 'use-cases': 'Use Cases', compare: 'Compare', blog: 'Blog', docs: 'Docs'
+    };
+
+    filtered.forEach((p: any) => {
+      if (!groups[p.category]) groups[p.category] = [];
+      groups[p.category].push(p);
     });
 
-    // Render categories in order
-    const categoryOrder = ['main', 'use-cases', 'compare', 'blog', 'docs'];
     let html = '';
-    let globalIndex = 0;
+    let idx = 0;
 
-    categoryOrder.forEach((category) => {
-      if (!grouped[category]) return;
-
-      const cat = categoryLabels[category] || { label: category, icon: '📄' };
-      html += `<div class="omni-category">`;
-      html += `<div class="omni-category-label"><span>${cat.icon}</span> ${cat.label}</div>`;
-
-      grouped[category].forEach((page) => {
-        const isSelected = globalIndex === 0 ? 'selected' : '';
-        html += `
-          <a href="${page.path}" class="omni-item ${isSelected}" data-index="${globalIndex}">
-            <span class="omni-item-icon">${page.icon || '📄'}</span>
-            <div class="omni-item-content">
-              <div class="omni-item-title">${highlightMatch(page.title, query)}</div>
-              ${page.description ? `<div class="omni-item-description">${highlightMatch(page.description, query)}</div>` : ''}
-            </div>
-            <span class="omni-item-arrow">→</span>
-          </a>
-        `;
-        globalIndex++;
-      });
-
-      html += `</div>`;
-    });
-
-    container.innerHTML = html;
-
-    // Add click handlers
-    container.querySelectorAll('.omni-item').forEach((item) => {
-      item.addEventListener('click', () => {
-        closeMenu();
+    order.forEach(cat => {
+      if (!groups[cat]) return;
+      html += `<div class="omni-group-label">${labels[cat] || cat}</div>`;
+      groups[cat].forEach((p: any) => {
+        const cls = idx === 0 ? 'omni-item active' : 'omni-item';
+        html += `<a href="${p.path}" class="${cls}" data-idx="${idx}">
+          <span class="omni-icon">${p.icon || '📄'}</span>
+          <div class="omni-info">
+            <div class="omni-title">${highlight(p.title, query)}</div>
+            ${p.description ? `<div class="omni-desc">${highlight(p.description, query)}</div>` : ''}
+          </div>
+          <span class="omni-arrow">→</span>
+        </a>`;
+        idx++;
       });
     });
+
+    list.innerHTML = html;
   }
 
-  function updateSelection(newIndex) {
-    const items = document.querySelectorAll('.omni-item');
+  function setActive(idx: number) {
+    const items = list.querySelectorAll('.omni-item');
     if (items.length === 0) return;
-
-    // Clamp index
-    newIndex = Math.max(0, Math.min(newIndex, items.length - 1));
-    selectedIndex = newIndex;
-
-    // Update visual selection
-    items.forEach((item, i) => {
-      item.classList.toggle('selected', i === selectedIndex);
-    });
-
-    // Scroll into view
-    items[selectedIndex]?.scrollIntoView({ block: 'nearest' });
+    activeIdx = Math.max(0, Math.min(idx, items.length - 1));
+    items.forEach((el, i) => el.classList.toggle('active', i === activeIdx));
+    items[activeIdx]?.scrollIntoView({ block: 'nearest' });
   }
 
-  function openMenu() {
-    const overlay = document.getElementById('omni-menu-overlay');
-    const search = document.getElementById('omni-search');
-    if (!overlay || !search) return;
-
-    overlay.classList.remove('hidden');
-    search.value = '';
-    search.focus();
-    renderResults(pages, '');
+  function open() {
+    overlay.classList.add('open');
+    input.value = '';
+    render('');
+    input.focus();
     document.body.style.overflow = 'hidden';
   }
 
-  function closeMenu() {
-    const overlay = document.getElementById('omni-menu-overlay');
-    if (!overlay) return;
-
-    overlay.classList.add('hidden');
+  function close() {
+    overlay.classList.remove('open');
     document.body.style.overflow = '';
   }
 
-  function navigateToSelected() {
-    const items = document.querySelectorAll('.omni-item');
-    if (items[selectedIndex]) {
-      const href = items[selectedIndex].getAttribute('href');
-      if (href) {
-        closeMenu();
-        window.location.href = href;
-      }
+  function go() {
+    const item = list.querySelectorAll('.omni-item')[activeIdx] as HTMLAnchorElement;
+    if (item?.href) {
+      close();
+      window.location.href = item.href;
     }
   }
 
-  // Initialize
-  document.addEventListener('DOMContentLoaded', () => {
-    const overlay = document.getElementById('omni-menu-overlay');
-    const search = document.getElementById('omni-search');
-    const backdrop = overlay?.querySelector('.omni-backdrop');
+  // Event listeners
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key === '/') {
+      e.preventDefault();
+      overlay.classList.contains('open') ? close() : open();
+    }
+    if (e.key === 'Escape' && overlay.classList.contains('open')) {
+      e.preventDefault();
+      close();
+    }
+  });
 
-    if (!overlay || !search) return;
+  overlay.querySelector('.omni-backdrop')?.addEventListener('click', close);
 
-    // Keyboard shortcut: Cmd+/ / Ctrl+/
-    document.addEventListener('keydown', (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === '/') {
-        e.preventDefault();
-        if (overlay.classList.contains('hidden')) {
-          openMenu();
-        } else {
-          closeMenu();
-        }
-      }
-    });
+  input.addEventListener('input', () => render(input.value));
 
-    // Close on Escape
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && !overlay.classList.contains('hidden')) {
-        e.preventDefault();
-        closeMenu();
-      }
-    });
+  input.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); setActive(activeIdx + 1); }
+    if (e.key === 'ArrowUp') { e.preventDefault(); setActive(activeIdx - 1); }
+    if (e.key === 'Enter') { e.preventDefault(); go(); }
+  });
 
-    // Click backdrop to close
-    backdrop?.addEventListener('click', closeMenu);
-
-    // Search input handler
-    search.addEventListener('input', (e) => {
-      const query = e.target.value;
-      const results = searchPages(query);
-      renderResults(results, query);
-    });
-
-    // Keyboard navigation
-    search.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        updateSelection(selectedIndex + 1);
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        updateSelection(selectedIndex - 1);
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        navigateToSelected();
-      }
-    });
-
-    // Initial render
-    renderResults(pages, '');
+  list.addEventListener('click', e => {
+    const item = (e.target as HTMLElement).closest('.omni-item');
+    if (item) close();
   });
 </script>
