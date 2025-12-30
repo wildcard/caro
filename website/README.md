@@ -278,25 +278,14 @@ https://caro-git-<branch>-<team>.vercel.app
 
 #### Deploying Storybook
 
-To deploy Storybook as a separate project:
+Storybook is deployed as a separate Vercel project:
 
-1. Create a new Vercel project for Storybook
-2. Use these settings:
-   - **Root Directory**: `website`
-   - **Build Command**: `npm run build-storybook`
-   - **Output Directory**: `storybook-static`
+1. Create a new project at [vercel.com/new](https://vercel.com/new)
+2. Import this repository
+3. Set **Root Directory** to `website`
+4. Vercel auto-detects Storybook and configures the build
 
-3. Or add a `vercel.storybook.json` for local deploys:
-   ```json
-   {
-     "buildCommand": "npm run build-storybook",
-     "outputDirectory": "storybook-static"
-   }
-   ```
-
-4. Deploy with: `vercel --local-config vercel.storybook.json`
-
-5. Configure subdomain: `storybook.caro.sh`
+Live at: https://storybook.caro.sh
 
 #### Environment Variables
 
