@@ -216,13 +216,95 @@ jobs:
 
 ### Vercel
 
-1. Import your repository to Vercel
-2. Configure project:
-   - **Framework Preset**: Astro
+The website is configured for Vercel deployment via `vercel.json`.
+
+#### Quick Deploy
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/wildcard/caro&root-directory=website)
+
+#### Manual Setup
+
+1. Install Vercel CLI:
+   ```bash
+   npm i -g vercel
+   ```
+
+2. Deploy from the website directory:
+   ```bash
+   cd website
+   vercel
+   ```
+
+3. For production deployment:
+   ```bash
+   vercel --prod
+   ```
+
+#### Configuration
+
+The `vercel.json` file is pre-configured:
+```json
+{
+  "buildCommand": "npm install && npm run build",
+  "outputDirectory": "dist",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install"
+}
+```
+
+#### Via Vercel Dashboard
+
+1. Import your repository at [vercel.com/new](https://vercel.com/new)
+2. Select the `website` folder as Root Directory
+3. Vercel auto-detects settings from `vercel.json`
+4. Click Deploy
+
+#### Custom Domain
+
+1. Go to your Vercel project → Settings → Domains
+2. Add `caro.sh` as custom domain
+3. Configure DNS at your registrar:
+   ```
+   A     @     76.76.21.21
+   CNAME www   cname.vercel-dns.com
+   ```
+
+#### Preview Deployments
+
+Every push to a branch creates a preview deployment automatically. Preview URLs follow the pattern:
+```
+https://caro-git-<branch>-<team>.vercel.app
+```
+
+#### Deploying Storybook
+
+To deploy Storybook as a separate project:
+
+1. Create a new Vercel project for Storybook
+2. Use these settings:
    - **Root Directory**: `website`
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `dist`
-3. Add custom domain: `caro.sh`
+   - **Build Command**: `npm run build-storybook`
+   - **Output Directory**: `storybook-static`
+
+3. Or add a `vercel.storybook.json` for local deploys:
+   ```json
+   {
+     "buildCommand": "npm run build-storybook",
+     "outputDirectory": "storybook-static"
+   }
+   ```
+
+4. Deploy with: `vercel --local-config vercel.storybook.json`
+
+5. Configure subdomain: `storybook.caro.sh`
+
+#### Environment Variables
+
+No environment variables are required for the static site. If you add features that need them:
+
+1. Go to Project Settings → Environment Variables
+2. Add variables for Production, Preview, and Development
+3. Redeploy for changes to take effect
 
 ### Cloudflare Pages
 
