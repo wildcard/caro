@@ -104,12 +104,6 @@ import { SITE_CONFIG } from '../config/site';
     </div>
   </div>
 
-  <!-- Elevator Button -->
-  <button class="elevator-button" id="elevator-button" aria-label="Back to top" title="Back to top">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M18 15l-6-6-6 6"/>
-    </svg>
-  </button>
 </footer>
 
 <style>
@@ -319,45 +313,6 @@ import { SITE_CONFIG } from '../config/site';
     border-radius: 6px;
   }
 
-  /* Elevator Button */
-  .elevator-button {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    border: none;
-    border-radius: 50%;
-    color: white;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 20px rgba(255, 140, 66, 0.3);
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(20px);
-    transition: all 0.3s ease;
-    z-index: 50;
-  }
-
-  .elevator-button.visible {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-  }
-
-  .elevator-button:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 30px rgba(255, 140, 66, 0.4);
-  }
-
-  .elevator-button svg {
-    width: 24px;
-    height: 24px;
-  }
-
   /* Responsive */
   @media (max-width: 900px) {
     .footer-grid {
@@ -392,9 +347,91 @@ import { SITE_CONFIG } from '../config/site';
     }
 
     .footer-grid {
-      grid-template-columns: 1fr;
-      gap: 28px;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px 16px;
+      text-align: left;
+    }
+
+    .footer-brand {
+      grid-column: span 2;
       text-align: center;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--color-border);
+      margin-bottom: 8px;
+    }
+
+    .brand-link {
+      justify-content: center;
+    }
+
+    .social-links {
+      justify-content: center;
+    }
+
+    .brand-description {
+      text-align: center;
+      max-width: 280px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .footer-column {
+      padding: 0;
+    }
+
+    .column-title {
+      font-size: 12px;
+      margin-bottom: 12px;
+    }
+
+    .column-links {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .column-links li {
+      margin-bottom: 0;
+    }
+
+    .column-links a {
+      font-size: 13px;
+      display: block;
+      padding: 4px 0;
+    }
+
+    .kyaro-section {
+      grid-column: span 2;
+      text-align: center;
+      border-top: 1px solid var(--color-border);
+      padding-top: 16px;
+      margin-top: 8px;
+    }
+
+    .footer-bottom {
+      flex-direction: column;
+      text-align: center;
+      gap: 12px;
+    }
+
+    .bottom-left {
+      align-items: center;
+    }
+
+    .copyright {
+      font-size: 13px;
+    }
+
+    .inspiration {
+      font-size: 12px;
+    }
+  }
+
+  /* Extra small devices */
+  @media (max-width: 380px) {
+    .footer-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
     }
 
     .footer-brand {
@@ -402,80 +439,20 @@ import { SITE_CONFIG } from '../config/site';
     }
 
     .footer-column {
-      padding: 0 20px;
+      padding: 0 8px;
     }
 
-    .column-links {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 8px 16px;
-    }
-
-    .column-links li {
-      margin-bottom: 0;
-    }
-
-    .kyaro-section {
-      border-top: none;
-      padding-top: 0;
-      margin-top: 16px;
-    }
-
-    .footer-bottom {
-      flex-direction: column;
+    .column-title {
       text-align: center;
     }
 
-    .bottom-left {
+    .column-links {
       align-items: center;
     }
 
-    .elevator-button {
-      bottom: 16px;
-      right: 16px;
-      width: 44px;
-      height: 44px;
+    .kyaro-section {
+      grid-column: span 1;
     }
   }
 </style>
 
-<script>
-  // Elevator button scroll behavior
-  const elevatorButton = document.getElementById('elevator-button');
-
-  if (elevatorButton) {
-    // Show/hide based on scroll position
-    let lastScrollY = 0;
-    let ticking = false;
-
-    function updateElevatorVisibility() {
-      const scrollY = window.scrollY;
-      const viewportHeight = window.innerHeight;
-
-      if (scrollY > viewportHeight * 0.5) {
-        elevatorButton.classList.add('visible');
-      } else {
-        elevatorButton.classList.remove('visible');
-      }
-
-      lastScrollY = scrollY;
-      ticking = false;
-    }
-
-    window.addEventListener('scroll', () => {
-      if (!ticking) {
-        requestAnimationFrame(updateElevatorVisibility);
-        ticking = true;
-      }
-    });
-
-    // Scroll to top on click
-    elevatorButton.addEventListener('click', () => {
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
-    });
-  }
-</script>
