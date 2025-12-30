@@ -651,14 +651,38 @@ async fn test_cache_manager_handles_missing_model() {
 
 ### Why We Use a CLA
 
-caro is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**, a strong copyleft license that ensures the software and all contributions remain free and open source. To accept your contributions, we use a **Contributor License Agreement (CLA)** to:
+caro is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)** for community and open source use, with a **dual licensing strategy** to enable enterprise adoption and sustainable development.
+
+To accept your contributions, we use a **Contributor License Agreement (CLA)** to:
 
 - Confirm you have the legal right to contribute your code
-- Grant the project the necessary rights to distribute your contributions under AGPL-3.0
+- Grant the project the necessary rights to distribute your contributions under **both AGPL-3.0 and commercial licenses**
 - Protect contributors, users, and the project from legal uncertainty
-- Maintain the copyleft nature of the project
+- Enable sustainable development through enterprise revenue while keeping the core free and open source
 
-**Important**: Unlike some projects that use CLAs for dual licensing, caro commits to keeping all contributions under AGPL-3.0. We will not use your contributions under proprietary licenses.
+### Dual Licensing Model
+
+**What this means:**
+
+1. **Open Source (AGPL-3.0)**: The community version of caro will **always remain free and open source** under AGPL-3.0
+2. **Commercial Licensing**: the project may also distribute caro (including your contributions) under commercial/proprietary licenses to enterprise customers who need:
+   - Proprietary modifications
+   - Integration into closed-source products
+   - Enterprise support and SLAs
+   - Features that cannot be AGPL-compliant
+
+**Your contributions will be used in both versions**, but the open source version remains freely available to everyone.
+
+### Why Dual Licensing?
+
+To build a **sustainable, long-term project** that serves both community and enterprise needs:
+
+- **Free for community**: Individuals and open source projects use caro free under AGPL-3.0
+- **Revenue for development**: Enterprise licensing funds full-time development, security audits, and professional support
+- **Better for everyone**: Sustainable funding means faster development, better documentation, and more features
+- **Transparent separation**: Core safety and command generation remain open source; enterprise features (SSO, audit logging, centralized management) are commercial add-ons
+
+**Important**: By signing the CLA, you grant the project the right to use your contributions under **any license** (including proprietary), while the AGPL-3.0 version remains available.
 
 ### How to Sign the CLA
 
@@ -689,12 +713,26 @@ This adds a `Signed-off-by:` line to your commit message, indicating you agree t
 
 ### Questions About the CLA?
 
-- **"Why does an AGPL project need a CLA?"** - While AGPL-3.0 itself provides strong protections, the CLA ensures we have clear documentation that contributors have the right to submit their code and agree to its use under AGPL-3.0.
-- **"Will my code be used in proprietary software?"** - No. caro commits to maintaining AGPL-3.0 licensing for all contributions.
-- **"What if my employer owns my code?"** - You'll need employer permission to contribute. See section 4 of the CLA for details.
-- **"Can I submit third-party code?"** - Yes, but it must be clearly marked and comply with section 7 of the CLA.
+- **"Why does caro need a CLA that allows dual licensing?"** - To sustain long-term development and provide enterprise-grade support, we need a business model. Dual licensing lets us offer caro for free to the community while generating revenue from enterprise customers.
 
-For more questions, open an issue with the `question` label or start a discussion on GitHub.
+- **"Will my code be used in proprietary software?"** - Yes. Your contributions may be included in commercial/enterprise versions of caro distributed under proprietary licenses. However, the AGPL-3.0 version remains freely available to everyone.
+
+- **"Do I get paid if my code is used commercially?"** - No. All contributions are voluntary and unpaid. However, you receive attribution in both versions and the benefits of contributing to a professionally-maintained, widely-used project.
+
+- **"Can I revoke my contributions?"** - No. The license grant is irrevocable. Once contributed, the project has permanent rights to use your contribution under the CLA terms.
+
+- **"What if I don't want my code used commercially?"** - If you cannot agree to these terms, please do not contribute. We respect your choice, but we cannot accept contributions under different license terms.
+
+- **"Will the open source version be abandoned?"** - No. We commit to maintaining the AGPL-3.0 version and contributing core improvements back to it. The community version is central to our mission.
+
+- **"What if my employer owns my code?"** - You'll need employer permission to contribute. See section 5 of the CLA for details. Many employment contracts include IP clauses.
+
+- **"Can I submit third-party code?"** - Yes, but it must be clearly marked and comply with section 8 of the CLA.
+
+For more questions:
+- Legal concerns: Email [legal@wildcard.sh](mailto:legal@wildcard.sh)
+- CLA questions: Open an issue with the `cla` label
+- General questions: [GitHub Discussions](https://github.com/wildcard/caro/discussions)
 
 ---
 
