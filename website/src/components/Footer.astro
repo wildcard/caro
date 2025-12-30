@@ -1,112 +1,481 @@
 ---
+/**
+ * Footer Component
+ * Multi-column layout organizing site content into logical sections
+ */
+import { SITE_CONFIG } from '../config/site';
 ---
 
-<footer>
-  <div class="container">
-    <p>Built with Rust 🦀 | Open source on <a href="https://github.com/wildcard/caro">GitHub</a></p>
-    <p class="domain">
-      <strong>caro.sh</strong> 🧡 - Your loyal shell companion
-    </p>
-    <p class="links">
-      <a href="/explore">Explore</a> |
-      <a href="https://github.com/wildcard/caro/blob/main/LICENSE">AGPL-3.0</a> |
-      <a href="/credits">Credits & Attribution</a> |
-      <a href="https://github.com/wildcard/caro/contribute">Contributing</a> |
-      <a href="https://github.com/wildcard/caro/issues">Issues</a> |
-      <a href="/support" class="sponsor-link">Support</a>
-    </p>
-    <p class="kyaro-love">
-      Meet IRL Kyaro (Kyarorain Kadosh)! 🐕🖤<br>
-      Follow her adventures on <a href="https://www.instagram.com/kyaroblackheart/" target="_blank" rel="noopener noreferrer">Instagram @kyaroblackheart</a>
-    </p>
-    <p class="inspiration">
-      Inspired by Portal's Caroline—loyalty transformed into digital companionship
-    </p>
-    <p class="elevator-credit">
-      Scroll effect by <a href="https://tholman.com/elevator.js/" target="_blank" rel="noopener noreferrer">elevator.js</a>
-    </p>
+<footer class="footer">
+  <div class="footer-container">
+    <!-- Main Footer Grid -->
+    <div class="footer-grid">
+      <!-- Brand Column -->
+      <div class="footer-brand">
+        <a href="/" class="brand-link">
+          <span class="brand-icon">🐕</span>
+          <span class="brand-name">Caro</span>
+        </a>
+        <p class="brand-tagline">Your loyal shell companion</p>
+        <p class="brand-description">
+          AI-powered POSIX shell command generation with safety-first validation.
+        </p>
+        <div class="social-links">
+          <a href="https://github.com/wildcard/caro" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+            </svg>
+          </a>
+          <a href="https://www.instagram.com/kyaroblackheart/" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Product Column -->
+      <div class="footer-column">
+        <h3 class="column-title">Product</h3>
+        <ul class="column-links">
+          <li><a href="/#features">Features</a></li>
+          <li><a href="/#how-it-works">How It Works</a></li>
+          <li><a href="/explore">Explore</a></li>
+          <li><a href="/#download">Download</a></li>
+          <li><a href="/roadmap">Roadmap</a></li>
+        </ul>
+      </div>
+
+      <!-- Compare Column -->
+      <div class="footer-column">
+        <h3 class="column-title">Compare</h3>
+        <ul class="column-links">
+          <li><a href="/compare">Overview</a></li>
+          <li><a href="/compare/warp">vs Warp</a></li>
+          <li><a href="/compare/github-copilot-cli">vs GitHub Copilot CLI</a></li>
+          <li><a href="/compare/amazon-q-cli">vs Amazon Q CLI</a></li>
+          <li><a href="/compare/opencode">vs OpenCode</a></li>
+        </ul>
+      </div>
+
+      <!-- Resources Column -->
+      <div class="footer-column">
+        <h3 class="column-title">Resources</h3>
+        <ul class="column-links">
+          <li><a href="/#blog">Blog</a></li>
+          <li><a href="https://github.com/wildcard/caro" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+          <li><a href="https://github.com/wildcard/caro/issues" target="_blank" rel="noopener noreferrer">Issues</a></li>
+          <li><a href="https://github.com/wildcard/caro/contribute" target="_blank" rel="noopener noreferrer">Contributing</a></li>
+          <li><a href="/credits">Credits</a></li>
+        </ul>
+      </div>
+
+      <!-- Support Column -->
+      <div class="footer-column">
+        <h3 class="column-title">Support</h3>
+        <ul class="column-links">
+          <li><a href="/support" class="support-link">♥ Sponsor</a></li>
+          <li><a href="https://github.com/wildcard/caro/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">AGPL-3.0 License</a></li>
+        </ul>
+
+        <div class="kyaro-section">
+          <p class="kyaro-title">Meet Kyaro! 🐕🖤</p>
+          <p class="kyaro-text">
+            The real-life inspiration behind Caro.
+            <a href="https://www.instagram.com/kyaroblackheart/" target="_blank" rel="noopener noreferrer">@kyaroblackheart</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Bottom -->
+    <div class="footer-bottom">
+      <div class="bottom-left">
+        <p class="copyright">
+          Built with 🦀 Rust | <strong>caro.sh</strong> 🧡
+        </p>
+        <p class="inspiration">
+          Inspired by Portal's Caroline—loyalty transformed into digital companionship
+        </p>
+      </div>
+      <div class="bottom-right">
+        <p class="version">v{SITE_CONFIG.version}</p>
+      </div>
+    </div>
   </div>
+
+  <!-- Elevator Button -->
+  <button class="elevator-button" id="elevator-button" aria-label="Back to top" title="Back to top">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M18 15l-6-6-6 6"/>
+    </svg>
+  </button>
 </footer>
 
 <style>
-  footer {
-    text-align: center;
-    padding: 40px 20px;
+  .footer {
     background: var(--color-footer-bg);
     color: var(--color-footer-text);
+    padding: 60px 0 30px;
+    position: relative;
     transition: background 0.3s ease, color 0.3s ease;
   }
 
-  footer a {
-    color: #ff8c42;
-    text-decoration: none;
-    transition: color 0.3s ease;
+  .footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
   }
 
-  footer a:hover {
+  /* Footer Grid */
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1.5fr repeat(4, 1fr);
+    gap: 40px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  /* Brand Column */
+  .footer-brand {
+    padding-right: 20px;
+  }
+
+  .brand-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    margin-bottom: 12px;
+  }
+
+  .brand-icon {
+    font-size: 28px;
+  }
+
+  .brand-name {
+    font-size: 26px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .brand-tagline {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 8px;
+  }
+
+  .brand-description {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  .social-links {
+    display: flex;
+    gap: 12px;
+  }
+
+  .social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: var(--color-bg-secondary);
+    border-radius: 10px;
+    color: var(--color-text);
+    transition: all 0.2s;
+  }
+
+  .social-link:hover {
+    background: #ff8c42;
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  .social-link svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Footer Columns */
+  .footer-column {
+    min-width: 0;
+  }
+
+  .column-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .column-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .column-links li {
+    margin-bottom: 10px;
+  }
+
+  .column-links a {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .column-links a:hover {
+    color: #ff8c42;
+  }
+
+  .support-link {
+    color: #ea4aaa !important;
+    font-weight: 500;
+  }
+
+  .support-link:hover {
+    color: #d43d9a !important;
+  }
+
+  /* Kyaro Section */
+  .kyaro-section {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .kyaro-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 6px;
+  }
+
+  .kyaro-text {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+
+  .kyaro-text a {
+    color: #ff8c42;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .kyaro-text a:hover {
     text-decoration: underline;
   }
 
-  .domain {
-    margin-top: 15px;
-    font-size: 16px;
+  /* Footer Bottom */
+  .footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
   }
 
-  .links {
-    margin-top: 10px;
+  .bottom-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .copyright {
     font-size: 14px;
-    color: var(--color-links-muted);
-    transition: color 0.3s ease;
+    color: var(--color-text-secondary);
   }
 
-  .kyaro-love {
-    margin-top: 20px;
-    font-size: 15px;
-    color: var(--color-footer-text);
-    font-weight: 500;
-    transition: color 0.3s ease;
-  }
-
-  .kyaro-love a {
-    color: #ff8c42;
-    font-weight: 600;
+  .copyright strong {
+    color: var(--color-text);
   }
 
   .inspiration {
-    margin-top: 10px;
     font-size: 13px;
-    color: var(--color-footer-text-muted);
+    color: var(--color-text-secondary);
     font-style: italic;
-    transition: color 0.3s ease;
+    opacity: 0.8;
   }
 
-  .elevator-credit {
-    margin-top: 8px;
-    font-size: 12px;
-    color: var(--color-footer-text-muted);
-    opacity: 0.7;
-    transition: color 0.3s ease, opacity 0.3s ease;
+  .version {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    font-family: 'Monaco', 'Menlo', monospace;
+    background: var(--color-bg-secondary);
+    padding: 4px 10px;
+    border-radius: 6px;
   }
 
-  .elevator-credit:hover {
+  /* Elevator Button */
+  .elevator-button {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(255, 140, 66, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    z-index: 50;
+  }
+
+  .elevator-button.visible {
     opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
   }
 
-  .elevator-credit a {
-    color: var(--color-links-muted);
-    font-size: 12px;
+  .elevator-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(255, 140, 66, 0.4);
   }
 
-  .elevator-credit a:hover {
-    color: #ff8c42;
+  .elevator-button svg {
+    width: 24px;
+    height: 24px;
   }
 
-  .sponsor-link::before {
-    content: "♥ ";
-    color: #ea4aaa;
+  /* Responsive */
+  @media (max-width: 900px) {
+    .footer-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 32px;
+    }
+
+    .footer-brand {
+      grid-column: span 2;
+      padding-right: 0;
+      text-align: center;
+    }
+
+    .brand-link {
+      justify-content: center;
+    }
+
+    .social-links {
+      justify-content: center;
+    }
+
+    .brand-description {
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
   }
 
-  .sponsor-link:hover {
-    color: #ea4aaa !important;
+  @media (max-width: 600px) {
+    .footer {
+      padding: 40px 0 24px;
+    }
+
+    .footer-grid {
+      grid-template-columns: 1fr;
+      gap: 28px;
+      text-align: center;
+    }
+
+    .footer-brand {
+      grid-column: span 1;
+    }
+
+    .footer-column {
+      padding: 0 20px;
+    }
+
+    .column-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px 16px;
+    }
+
+    .column-links li {
+      margin-bottom: 0;
+    }
+
+    .kyaro-section {
+      border-top: none;
+      padding-top: 0;
+      margin-top: 16px;
+    }
+
+    .footer-bottom {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .bottom-left {
+      align-items: center;
+    }
+
+    .elevator-button {
+      bottom: 16px;
+      right: 16px;
+      width: 44px;
+      height: 44px;
+    }
   }
 </style>
+
+<script>
+  // Elevator button scroll behavior
+  const elevatorButton = document.getElementById('elevator-button');
+
+  if (elevatorButton) {
+    // Show/hide based on scroll position
+    let lastScrollY = 0;
+    let ticking = false;
+
+    function updateElevatorVisibility() {
+      const scrollY = window.scrollY;
+      const viewportHeight = window.innerHeight;
+
+      if (scrollY > viewportHeight * 0.5) {
+        elevatorButton.classList.add('visible');
+      } else {
+        elevatorButton.classList.remove('visible');
+      }
+
+      lastScrollY = scrollY;
+      ticking = false;
+    }
+
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(updateElevatorVisibility);
+        ticking = true;
+      }
+    });
+
+    // Scroll to top on click
+    elevatorButton.addEventListener('click', () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+  }
+</script>

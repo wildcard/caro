@@ -1,490 +1,660 @@
 ---
+/**
+ * Modern Navigation Component
+ * Features: Desktop dropdown menu, mobile slide-out drawer, theme toggles
+ */
 ---
 
-<nav class="navigation">
-  <div class="container">
-    <a href="/" class="nav-brand">🐕 Caro</a>
+<nav class="navigation" id="main-nav">
+  <div class="nav-container">
+    <!-- Logo -->
+    <a href="/" class="nav-brand">
+      <span class="brand-icon">🐕</span>
+      <span class="brand-text">Caro</span>
+    </a>
 
-    <!-- Mobile hamburger button -->
-    <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu" aria-expanded="false">
-      <span class="hamburger-line"></span>
-      <span class="hamburger-line"></span>
-      <span class="hamburger-line"></span>
-    </button>
-
-    <!-- Desktop navigation -->
-    <ul class="nav-links" id="nav-links">
-      <li class="nav-item">
-        <a href="/#features">Features</a>
-      </li>
-      <li class="nav-item has-dropdown">
-        <button class="dropdown-toggle" aria-expanded="false">
-          Resources
-          <svg class="dropdown-arrow" width="10" height="6" viewBox="0 0 10 6" fill="none">
-            <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-        <ul class="dropdown-menu">
-          <li><a href="/compare">Compare</a></li>
-          <li><a href="/#blog">Blog</a></li>
-          <li><a href="/support" class="support-link">Support</a></li>
-          <li><a href="https://github.com/wildcard/caro" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-        </ul>
-      </li>
-      <li class="nav-item cta-item">
-        <a href="/#download" class="nav-cta">Get Started</a>
-      </li>
-      <li class="nav-item toggle-item" id="holiday-theme-container">
-        <button id="holiday-toggle" class="holiday-toggle" aria-label="Toggle holiday theme menu" title="Holiday Theme">
-          <span class="holiday-icon christmas-icon">🎄</span>
-          <span class="holiday-icon hanukkah-icon">🕎</span>
-          <span class="holiday-icon default-icon">✨</span>
-        </button>
-        <div id="holiday-menu" class="holiday-menu hidden">
-          <div class="holiday-menu-header">Holiday Theme</div>
-          <button class="holiday-option" data-theme="christmas">
-            <span class="option-icon">🎄</span>
-            <span class="option-text">Christmas</span>
-            <span class="option-check">✓</span>
+    <!-- Desktop Navigation -->
+    <div class="nav-desktop">
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="/#features">Features</a>
+        </li>
+        <li class="nav-item has-dropdown">
+          <button class="dropdown-trigger" aria-expanded="false">
+            Compare
+            <svg class="chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </button>
-          <button class="holiday-option" data-theme="hanukkah">
-            <span class="option-icon">🕎</span>
-            <span class="option-text">Hanukkah</span>
-            <span class="option-check">✓</span>
-          </button>
-          <div class="holiday-menu-divider"></div>
-          <button class="holiday-option" data-theme="none">
-            <span class="option-icon">🚫</span>
-            <span class="option-text">No Theme</span>
-            <span class="option-check">✓</span>
-          </button>
-          <div class="holiday-menu-divider"></div>
-          <div class="snow-toggle-wrapper">
-            <label class="snow-toggle-label">
-              <span class="option-icon">❄️</span>
-              <span class="option-text">Snow Effect</span>
-              <input type="checkbox" id="snow-toggle-checkbox" class="snow-checkbox" />
-              <span class="snow-slider"></span>
-            </label>
+          <div class="dropdown-panel">
+            <a href="/compare" class="dropdown-item">
+              <span class="item-icon">📊</span>
+              <div class="item-content">
+                <span class="item-title">Overview</span>
+                <span class="item-desc">See all comparisons</span>
+              </div>
+            </a>
+            <a href="/compare/warp" class="dropdown-item">
+              <span class="item-icon">⚡</span>
+              <div class="item-content">
+                <span class="item-title">vs Warp</span>
+                <span class="item-desc">AI-native terminal</span>
+              </div>
+            </a>
+            <a href="/compare/github-copilot-cli" class="dropdown-item">
+              <span class="item-icon">🤖</span>
+              <div class="item-content">
+                <span class="item-title">vs GitHub Copilot CLI</span>
+                <span class="item-desc">AI pair programmer</span>
+              </div>
+            </a>
+            <a href="/compare/amazon-q-cli" class="dropdown-item">
+              <span class="item-icon">☁️</span>
+              <div class="item-content">
+                <span class="item-title">vs Amazon Q CLI</span>
+                <span class="item-desc">AWS AI assistant</span>
+              </div>
+            </a>
           </div>
-        </div>
-      </li>
-      <li class="nav-item toggle-item">
-        <button id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
-          <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="5"/>
-            <line x1="12" y1="1" x2="12" y2="3"/>
-            <line x1="12" y1="21" x2="12" y2="23"/>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-            <line x1="1" y1="12" x2="3" y2="12"/>
-            <line x1="21" y1="12" x2="23" y2="12"/>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-          </svg>
-          <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-          </svg>
-        </button>
-      </li>
-    </ul>
+        </li>
+        <li class="nav-item has-dropdown">
+          <button class="dropdown-trigger" aria-expanded="false">
+            Resources
+            <svg class="chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="dropdown-panel">
+            <a href="/#blog" class="dropdown-item">
+              <span class="item-icon">📝</span>
+              <div class="item-content">
+                <span class="item-title">Blog</span>
+                <span class="item-desc">News & tutorials</span>
+              </div>
+            </a>
+            <a href="/explore" class="dropdown-item">
+              <span class="item-icon">🔍</span>
+              <div class="item-content">
+                <span class="item-title">Explore</span>
+                <span class="item-desc">Interactive demo</span>
+              </div>
+            </a>
+            <a href="/roadmap" class="dropdown-item">
+              <span class="item-icon">🗺️</span>
+              <div class="item-content">
+                <span class="item-title">Roadmap</span>
+                <span class="item-desc">What's coming next</span>
+              </div>
+            </a>
+            <a href="https://github.com/wildcard/caro" class="dropdown-item" target="_blank" rel="noopener noreferrer">
+              <span class="item-icon">🐙</span>
+              <div class="item-content">
+                <span class="item-title">GitHub</span>
+                <span class="item-desc">Source code</span>
+              </div>
+            </a>
+          </div>
+        </li>
+        <li class="nav-item">
+          <a href="/support" class="support-link">
+            <span class="support-heart">♥</span> Support
+          </a>
+        </li>
+      </ul>
 
-    <!-- Mobile menu -->
-    <div class="mobile-menu" id="mobile-menu">
-      <div class="mobile-menu-content">
-        <a href="/#features" class="mobile-link">Features</a>
-        <a href="/compare" class="mobile-link">Compare</a>
-        <a href="/#blog" class="mobile-link">Blog</a>
-        <a href="/support" class="mobile-link support-link">Support</a>
-        <a href="https://github.com/wildcard/caro" class="mobile-link" target="_blank" rel="noopener noreferrer">GitHub</a>
-        <div class="mobile-divider"></div>
-        <a href="/#download" class="mobile-cta">Get Started</a>
+      <!-- Desktop Actions -->
+      <div class="nav-actions">
+        <div class="theme-toggles">
+          <!-- Holiday Toggle -->
+          <div id="holiday-container-desktop" class="holiday-wrapper hidden">
+            <button id="holiday-toggle-desktop" class="icon-button holiday-btn" aria-label="Holiday theme" title="Holiday Theme">
+              <span class="holiday-icon christmas">🎄</span>
+              <span class="holiday-icon hanukkah">🕎</span>
+              <span class="holiday-icon default">✨</span>
+            </button>
+            <div id="holiday-menu-desktop" class="holiday-dropdown hidden">
+              <div class="dropdown-header">Holiday Theme</div>
+              <button class="theme-option" data-theme="christmas">
+                <span>🎄</span> Christmas
+                <span class="check">✓</span>
+              </button>
+              <button class="theme-option" data-theme="hanukkah">
+                <span>🕎</span> Hanukkah
+                <span class="check">✓</span>
+              </button>
+              <button class="theme-option" data-theme="none">
+                <span>🚫</span> None
+                <span class="check">✓</span>
+              </button>
+              <div class="dropdown-divider"></div>
+              <label class="snow-toggle">
+                <span>❄️ Snow Effect</span>
+                <input type="checkbox" id="snow-checkbox-desktop" />
+                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Dark Mode Toggle -->
+          <button id="theme-toggle-desktop" class="icon-button" aria-label="Toggle dark mode" title="Toggle theme">
+            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"/>
+              <line x1="12" y1="1" x2="12" y2="3"/>
+              <line x1="12" y1="21" x2="12" y2="23"/>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+              <line x1="1" y1="12" x2="3" y2="12"/>
+              <line x1="21" y1="12" x2="23" y2="12"/>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            </svg>
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+          </button>
+        </div>
+
+        <a href="/#download" class="nav-cta">
+          Get Started
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
       </div>
     </div>
+
+    <!-- Mobile Menu Button -->
+    <button class="mobile-toggle" id="mobile-toggle" aria-label="Open menu" aria-expanded="false">
+      <span class="hamburger-box">
+        <span class="hamburger-inner"></span>
+      </span>
+    </button>
   </div>
 </nav>
 
+<!-- Mobile Drawer -->
+<div class="mobile-drawer" id="mobile-drawer">
+  <div class="drawer-backdrop" id="drawer-backdrop"></div>
+  <div class="drawer-panel">
+    <div class="drawer-header">
+      <a href="/" class="drawer-brand">
+        <span>🐕</span> Caro
+      </a>
+      <button class="drawer-close" id="drawer-close" aria-label="Close menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="drawer-content">
+      <!-- Main Links -->
+      <div class="drawer-section">
+        <a href="/#features" class="drawer-link">
+          <span class="link-icon">⭐</span>
+          <span class="link-text">Features</span>
+        </a>
+        <a href="/#how-it-works" class="drawer-link">
+          <span class="link-icon">🎬</span>
+          <span class="link-text">Watch Demo</span>
+        </a>
+      </div>
+
+      <!-- Compare Section -->
+      <div class="drawer-section">
+        <div class="section-header">Compare</div>
+        <a href="/compare" class="drawer-link">
+          <span class="link-icon">📊</span>
+          <span class="link-text">All Comparisons</span>
+        </a>
+        <a href="/compare/warp" class="drawer-link">
+          <span class="link-icon">⚡</span>
+          <span class="link-text">vs Warp</span>
+        </a>
+        <a href="/compare/github-copilot-cli" class="drawer-link">
+          <span class="link-icon">🤖</span>
+          <span class="link-text">vs GitHub Copilot</span>
+        </a>
+        <a href="/compare/amazon-q-cli" class="drawer-link">
+          <span class="link-icon">☁️</span>
+          <span class="link-text">vs Amazon Q</span>
+        </a>
+      </div>
+
+      <!-- Resources Section -->
+      <div class="drawer-section">
+        <div class="section-header">Resources</div>
+        <a href="/#blog" class="drawer-link">
+          <span class="link-icon">📝</span>
+          <span class="link-text">Blog</span>
+        </a>
+        <a href="/explore" class="drawer-link">
+          <span class="link-icon">🔍</span>
+          <span class="link-text">Explore</span>
+        </a>
+        <a href="/roadmap" class="drawer-link">
+          <span class="link-icon">🗺️</span>
+          <span class="link-text">Roadmap</span>
+        </a>
+        <a href="https://github.com/wildcard/caro" class="drawer-link" target="_blank" rel="noopener noreferrer">
+          <span class="link-icon">🐙</span>
+          <span class="link-text">GitHub</span>
+          <svg class="external-icon" width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M9 3L3 9M9 3H5M9 3V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+
+      <!-- Support -->
+      <div class="drawer-section">
+        <a href="/support" class="drawer-link support-link">
+          <span class="link-icon">💖</span>
+          <span class="link-text">Support Caro</span>
+        </a>
+      </div>
+
+      <!-- Theme Controls -->
+      <div class="drawer-section theme-section">
+        <div class="section-header">Appearance</div>
+
+        <!-- Dark Mode -->
+        <div class="theme-control">
+          <div class="control-label">
+            <span class="control-icon">🌓</span>
+            <span>Dark Mode</span>
+          </div>
+          <button id="theme-toggle-mobile" class="toggle-switch" aria-label="Toggle dark mode">
+            <span class="toggle-track">
+              <span class="toggle-thumb"></span>
+            </span>
+          </button>
+        </div>
+
+        <!-- Holiday Theme (shown during season) -->
+        <div id="holiday-controls-mobile" class="holiday-controls hidden">
+          <div class="theme-control">
+            <div class="control-label">
+              <span class="control-icon" id="holiday-icon-mobile">🎄</span>
+              <span>Holiday Theme</span>
+            </div>
+            <select id="holiday-select-mobile" class="theme-select">
+              <option value="christmas">Christmas 🎄</option>
+              <option value="hanukkah">Hanukkah 🕎</option>
+              <option value="none">None</option>
+            </select>
+          </div>
+
+          <div class="theme-control">
+            <div class="control-label">
+              <span class="control-icon">❄️</span>
+              <span>Snow Effect</span>
+            </div>
+            <button id="snow-toggle-mobile" class="toggle-switch" aria-label="Toggle snow effect">
+              <span class="toggle-track">
+                <span class="toggle-thumb"></span>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Drawer Footer -->
+    <div class="drawer-footer">
+      <a href="/#download" class="drawer-cta">
+        <span>Get Started</span>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+</div>
+
 <style>
+  /* ========================================
+     BASE NAVIGATION STYLES
+     ======================================== */
   .navigation {
-    background: var(--color-bg);
-    padding: 12px 0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     position: sticky;
     top: 0;
-    z-index: 999;
-    transition: background-color 0.3s ease;
+    z-index: 100;
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+    transition: all 0.3s ease;
   }
 
-  .container {
+  .nav-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
+    height: 64px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    position: relative;
+    justify-content: space-between;
   }
 
+  /* Brand */
   .nav-brand {
-    font-size: 24px;
-    font-weight: 700;
-    color: #ff8c42;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     text-decoration: none;
-    transition: color 0.2s;
-    z-index: 1001;
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--color-text);
+    transition: transform 0.2s;
   }
 
   .nav-brand:hover {
-    color: #ff6b35;
+    transform: scale(1.02);
   }
 
-  /* Hamburger button */
-  .hamburger {
-    display: none;
-    flex-direction: column;
-    justify-content: space-around;
-    width: 28px;
-    height: 24px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    z-index: 1001;
+  .brand-icon {
+    font-size: 24px;
   }
 
-  .hamburger-line {
-    width: 100%;
-    height: 3px;
-    background: var(--color-text);
-    border-radius: 2px;
-    transition: all 0.3s ease;
-    transform-origin: center;
+  .brand-text {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
-  .hamburger.active .hamburger-line:nth-child(1) {
-    transform: translateY(7.5px) rotate(45deg);
-  }
-
-  .hamburger.active .hamburger-line:nth-child(2) {
-    opacity: 0;
-  }
-
-  .hamburger.active .hamburger-line:nth-child(3) {
-    transform: translateY(-7.5px) rotate(-45deg);
-  }
-
-  /* Desktop navigation */
-  .nav-links {
+  /* ========================================
+     DESKTOP NAVIGATION
+     ======================================== */
+  .nav-desktop {
     display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+
+  .nav-menu {
+    display: flex;
+    align-items: center;
     gap: 8px;
     list-style: none;
     margin: 0;
     padding: 0;
-    align-items: center;
-  }
-
-  .nav-item {
-    display: flex;
-    align-items: center;
   }
 
   .nav-item > a,
-  .dropdown-toggle {
-    color: var(--color-text);
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 15px;
-    padding: 8px 12px;
-    border-radius: 6px;
-    transition: all 0.2s;
+  .dropdown-trigger {
     display: flex;
     align-items: center;
     gap: 4px;
+    padding: 8px 14px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--color-text);
+    text-decoration: none;
     background: none;
     border: none;
+    border-radius: 8px;
     cursor: pointer;
+    transition: all 0.2s;
   }
 
   .nav-item > a:hover,
-  .dropdown-toggle:hover {
+  .dropdown-trigger:hover {
     color: #ff8c42;
     background: rgba(255, 140, 66, 0.08);
   }
 
+  .chevron {
+    transition: transform 0.2s;
+  }
+
+  .has-dropdown:hover .chevron {
+    transform: rotate(180deg);
+  }
+
+  /* Support Link */
   .support-link {
     color: #ea4aaa !important;
   }
 
   .support-link:hover {
-    color: #d43d9a !important;
     background: rgba(234, 74, 170, 0.08) !important;
   }
 
-  /* Dropdown */
+  .support-heart {
+    animation: heartbeat 1.5s ease-in-out infinite;
+  }
+
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+
+  /* Dropdown Panel */
   .has-dropdown {
     position: relative;
   }
 
-  .dropdown-arrow {
-    transition: transform 0.2s;
-  }
-
-  .has-dropdown:hover .dropdown-arrow,
-  .dropdown-toggle[aria-expanded="true"] .dropdown-arrow {
-    transform: rotate(180deg);
-  }
-
-  .dropdown-menu {
+  .dropdown-panel {
     position: absolute;
-    top: 100%;
-    left: 0;
-    min-width: 180px;
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    padding: 8px 0;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: all 0.2s ease;
-    list-style: none;
-    z-index: 1000;
-  }
-
-  .has-dropdown:hover .dropdown-menu,
-  .dropdown-toggle[aria-expanded="true"] + .dropdown-menu {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-  }
-
-  .dropdown-menu li a {
-    display: block;
-    padding: 10px 16px;
-    color: var(--color-text);
-    text-decoration: none;
-    font-size: 14px;
-    transition: all 0.2s;
-  }
-
-  .dropdown-menu li a:hover {
-    background: rgba(255, 140, 66, 0.08);
-    color: #ff8c42;
-  }
-
-  .dropdown-menu li a.support-link {
-    color: #ea4aaa;
-  }
-
-  .dropdown-menu li a.support-link:hover {
-    background: rgba(234, 74, 170, 0.08);
-    color: #d43d9a;
-  }
-
-  /* CTA button in nav */
-  .nav-cta {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: white !important;
-    padding: 10px 20px !important;
-    border-radius: 8px !important;
-    font-weight: 600 !important;
-    transition: all 0.2s !important;
-  }
-
-  .nav-cta:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
-    background: linear-gradient(135deg, #ff9a54 0%, #ff7a47 100%) !important;
-  }
-
-  /* Toggle buttons */
-  .toggle-item button {
-    background: var(--color-bg-secondary);
-    border: 2px solid var(--color-border);
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--color-text);
-    transition: transform 0.2s, background-color 0.3s, border-color 0.3s;
-    padding: 0;
-  }
-
-  .toggle-item button:hover {
-    transform: scale(1.1);
-    background: var(--color-bg-tertiary);
-    border-color: #ff8c42;
-  }
-
-  .toggle-item button:active {
-    transform: scale(0.95);
-  }
-
-  #theme-toggle .sun-icon {
-    display: none;
-  }
-
-  #theme-toggle .moon-icon {
-    display: block;
-  }
-
-  :global(.dark) #theme-toggle .sun-icon {
-    display: block;
-  }
-
-  :global(.dark) #theme-toggle .moon-icon {
-    display: none;
-  }
-
-  /* Holiday theme toggle */
-  #holiday-theme-container {
-    position: relative;
-    display: none;
-  }
-
-  #holiday-theme-container.visible {
-    display: flex;
-  }
-
-  .holiday-toggle {
-    font-size: 18px;
-  }
-
-  :global(.christmas) .holiday-toggle {
-    border-color: #c41e3a;
-    background: linear-gradient(135deg, rgba(196, 30, 58, 0.1) 0%, rgba(34, 139, 34, 0.1) 100%);
-  }
-
-  :global(.hanukkah) .holiday-toggle {
-    border-color: #0038b8;
-    background: linear-gradient(135deg, rgba(0, 56, 184, 0.1) 0%, rgba(255, 215, 0, 0.1) 100%);
-  }
-
-  .holiday-icon {
-    display: none;
-  }
-
-  :global(.christmas) .christmas-icon {
-    display: block;
-  }
-
-  :global(.hanukkah) .hanukkah-icon {
-    display: block;
-  }
-
-  :global(:not(.christmas):not(.hanukkah)) .default-icon {
-    display: block;
-  }
-
-  .holiday-menu {
-    position: absolute;
-    top: 48px;
-    right: 0;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    min-width: 280px;
     background: var(--color-bg);
     border: 1px solid var(--color-border);
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    min-width: 200px;
-    padding: 8px 0;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+    padding: 8px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+  }
+
+  .has-dropdown:hover .dropdown-panel {
     opacity: 1;
-    transform: translateY(0);
-    transition: opacity 0.2s, transform 0.2s;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--color-text);
+    transition: all 0.2s;
+  }
+
+  .dropdown-item:hover {
+    background: rgba(255, 140, 66, 0.08);
+  }
+
+  .item-icon {
+    font-size: 20px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg-secondary);
+    border-radius: 8px;
+  }
+
+  .item-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .item-title {
+    font-weight: 500;
+    font-size: 14px;
+  }
+
+  .item-desc {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+
+  /* Nav Actions */
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .theme-toggles {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .icon-button {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    cursor: pointer;
+    color: var(--color-text);
+    transition: all 0.2s;
+  }
+
+  .icon-button:hover {
+    border-color: #ff8c42;
+    background: rgba(255, 140, 66, 0.08);
+  }
+
+  .icon-button svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Theme Toggle Icons */
+  #theme-toggle-desktop .icon-sun { display: none; }
+  #theme-toggle-desktop .icon-moon { display: block; }
+  :global(.dark) #theme-toggle-desktop .icon-sun { display: block; }
+  :global(.dark) #theme-toggle-desktop .icon-moon { display: none; }
+
+  /* Holiday Button */
+  .holiday-wrapper {
+    position: relative;
+  }
+
+  .holiday-wrapper.hidden {
+    display: none;
+  }
+
+  .holiday-btn .holiday-icon {
+    display: none;
+    font-size: 18px;
+  }
+
+  :global(.christmas) .holiday-btn .christmas { display: block; }
+  :global(.hanukkah) .holiday-btn .hanukkah { display: block; }
+  :global(:not(.christmas):not(.hanukkah)) .holiday-btn .default { display: block; }
+
+  :global(.christmas) .holiday-btn {
+    border-color: #c41e3a;
+    background: rgba(196, 30, 58, 0.1);
+  }
+
+  :global(.hanukkah) .holiday-btn {
+    border-color: #0038b8;
+    background: rgba(0, 56, 184, 0.1);
+  }
+
+  /* Holiday Dropdown */
+  .holiday-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 220px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+    padding: 8px;
     z-index: 1000;
   }
 
-  .holiday-menu.hidden {
-    opacity: 0;
-    transform: translateY(-10px);
-    pointer-events: none;
+  .holiday-dropdown.hidden {
+    display: none;
   }
 
-  .holiday-menu-header {
-    padding: 8px 16px;
-    font-size: 12px;
+  .dropdown-header {
+    padding: 8px 12px;
+    font-size: 11px;
     font-weight: 600;
-    color: var(--color-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    color: var(--color-text-secondary);
   }
 
-  .holiday-menu-divider {
+  .dropdown-divider {
     height: 1px;
     background: var(--color-border);
     margin: 8px 0;
   }
 
-  .holiday-option {
+  .theme-option {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     width: 100%;
-    padding: 10px 16px;
+    padding: 10px 12px;
     background: none;
     border: none;
-    cursor: pointer;
-    color: var(--color-text);
+    border-radius: 8px;
     font-size: 14px;
-    text-align: left;
-    transition: background-color 0.2s;
+    color: var(--color-text);
+    cursor: pointer;
+    transition: background 0.2s;
   }
 
-  .holiday-option:hover {
+  .theme-option:hover {
     background: var(--color-bg-secondary);
   }
 
-  .option-icon {
-    font-size: 18px;
-    width: 24px;
-    text-align: center;
-  }
-
-  .option-text {
-    flex: 1;
-  }
-
-  .option-check {
-    opacity: 0;
+  .theme-option .check {
+    margin-left: auto;
     color: #22c55e;
-    font-weight: bold;
+    opacity: 0;
     transition: opacity 0.2s;
   }
 
-  .holiday-option.active .option-check {
+  .theme-option.active .check {
     opacity: 1;
   }
 
-  .snow-toggle-wrapper {
-    padding: 8px 16px;
-  }
-
-  .snow-toggle-label {
+  .snow-toggle {
     display: flex;
     align-items: center;
-    gap: 12px;
-    cursor: pointer;
+    justify-content: space-between;
+    padding: 10px 12px;
     font-size: 14px;
-    color: var(--color-text);
+    cursor: pointer;
   }
 
-  .snow-checkbox {
+  .snow-toggle input {
     display: none;
   }
 
-  .snow-slider {
+  .toggle-track {
     position: relative;
     width: 44px;
     height: 24px;
     background: var(--color-border);
     border-radius: 12px;
-    transition: background-color 0.3s;
+    transition: background 0.2s;
   }
 
-  .snow-slider::before {
-    content: '';
+  .toggle-thumb {
     position: absolute;
     top: 2px;
     left: 2px;
@@ -492,277 +662,576 @@
     height: 20px;
     background: white;
     border-radius: 50%;
-    transition: transform 0.3s;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s;
   }
 
-  .snow-checkbox:checked + .snow-slider {
+  .snow-toggle input:checked + .toggle-track {
     background: #22c55e;
   }
 
-  .snow-checkbox:checked + .snow-slider::before {
+  .snow-toggle input:checked + .toggle-track .toggle-thumb {
     transform: translateX(20px);
   }
 
-  /* Mobile menu */
-  .mobile-menu {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100vh;
-    background: var(--color-bg);
-    z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-  }
-
-  .mobile-menu.active {
-    opacity: 1;
-    visibility: visible;
-  }
-
-  .mobile-menu-content {
+  /* CTA Button */
+  .nav-cta {
     display: flex;
-    flex-direction: column;
-    padding: 80px 24px 24px;
-    gap: 4px;
-  }
-
-  .mobile-link {
-    color: var(--color-text);
-    text-decoration: none;
-    font-size: 18px;
-    font-weight: 500;
-    padding: 16px 0;
-    border-bottom: 1px solid var(--color-border);
-    transition: color 0.2s;
-  }
-
-  .mobile-link:hover {
-    color: #ff8c42;
-  }
-
-  .mobile-link.support-link {
-    color: #ea4aaa;
-  }
-
-  .mobile-divider {
-    height: 1px;
-    background: var(--color-border);
-    margin: 16px 0;
-  }
-
-  .mobile-cta {
-    display: inline-block;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
     background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
     color: white;
     text-decoration: none;
-    padding: 16px 24px;
-    border-radius: 8px;
-    font-size: 18px;
     font-weight: 600;
-    text-align: center;
-    margin-top: 8px;
-    transition: transform 0.2s, box-shadow 0.2s;
+    font-size: 15px;
+    border-radius: 10px;
+    transition: all 0.2s;
   }
 
-  .mobile-cta:hover {
+  .nav-cta:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(255, 140, 66, 0.3);
   }
 
-  /* Responsive styles */
-  @media (max-width: 768px) {
-    .hamburger {
-      display: flex;
-    }
+  .nav-cta svg {
+    transition: transform 0.2s;
+  }
 
-    .nav-links {
+  .nav-cta:hover svg {
+    transform: translateX(3px);
+  }
+
+  /* ========================================
+     MOBILE TOGGLE BUTTON
+     ======================================== */
+  .mobile-toggle {
+    display: none;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }
+
+  .hamburger-box {
+    position: relative;
+    display: block;
+    width: 24px;
+    height: 18px;
+    margin: 0 auto;
+  }
+
+  .hamburger-inner,
+  .hamburger-inner::before,
+  .hamburger-inner::after {
+    position: absolute;
+    width: 24px;
+    height: 3px;
+    background: var(--color-text);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+  }
+
+  .hamburger-inner {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .hamburger-inner::before {
+    content: '';
+    top: -8px;
+  }
+
+  .hamburger-inner::after {
+    content: '';
+    top: 8px;
+  }
+
+  .mobile-toggle.active .hamburger-inner {
+    background: transparent;
+  }
+
+  .mobile-toggle.active .hamburger-inner::before {
+    top: 0;
+    transform: rotate(45deg);
+  }
+
+  .mobile-toggle.active .hamburger-inner::after {
+    top: 0;
+    transform: rotate(-45deg);
+  }
+
+  /* ========================================
+     MOBILE DRAWER
+     ======================================== */
+  .mobile-drawer {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    pointer-events: none;
+  }
+
+  .mobile-drawer.open {
+    pointer-events: auto;
+  }
+
+  .drawer-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .mobile-drawer.open .drawer-backdrop {
+    opacity: 1;
+  }
+
+  .drawer-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: min(85vw, 380px);
+    height: 100%;
+    background: var(--color-bg);
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.15);
+  }
+
+  .mobile-drawer.open .drawer-panel {
+    transform: translateX(0);
+  }
+
+  .drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .drawer-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #ff8c42;
+    text-decoration: none;
+  }
+
+  .drawer-close {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg-secondary);
+    border: none;
+    border-radius: 10px;
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .drawer-close:hover {
+    background: rgba(255, 107, 53, 0.1);
+    color: #ff6b35;
+  }
+
+  .drawer-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 0;
+  }
+
+  .drawer-section {
+    padding: 8px 20px;
+  }
+
+  .drawer-section + .drawer-section {
+    border-top: 1px solid var(--color-border);
+    margin-top: 8px;
+    padding-top: 16px;
+  }
+
+  .section-header {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-text-secondary);
+    margin-bottom: 8px;
+    padding: 0 4px;
+  }
+
+  .drawer-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 12px;
+    margin: 2px 0;
+    border-radius: 10px;
+    color: var(--color-text);
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+
+  .drawer-link:hover {
+    background: rgba(255, 140, 66, 0.08);
+    color: #ff8c42;
+  }
+
+  .link-icon {
+    font-size: 18px;
+    width: 28px;
+    text-align: center;
+  }
+
+  .link-text {
+    flex: 1;
+  }
+
+  .external-icon {
+    color: var(--color-text-secondary);
+    opacity: 0.5;
+  }
+
+  .support-link {
+    color: #ea4aaa !important;
+  }
+
+  .support-link:hover {
+    background: rgba(234, 74, 170, 0.08) !important;
+  }
+
+  /* Theme Section */
+  .theme-section {
+    background: var(--color-bg-secondary);
+    margin: 8px 12px;
+    padding: 16px !important;
+    border-radius: 12px;
+    border: none !important;
+  }
+
+  .theme-control {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+  }
+
+  .theme-control + .theme-control {
+    border-top: 1px solid var(--color-border);
+  }
+
+  .control-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .control-icon {
+    font-size: 18px;
+  }
+
+  .toggle-switch {
+    position: relative;
+    width: 50px;
+    height: 28px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .toggle-switch .toggle-track {
+    width: 100%;
+    height: 100%;
+    background: var(--color-border);
+    border-radius: 14px;
+    transition: background 0.2s;
+  }
+
+  .toggle-switch .toggle-thumb {
+    width: 24px;
+    height: 24px;
+    top: 2px;
+  }
+
+  .toggle-switch.active .toggle-track {
+    background: #ff8c42;
+  }
+
+  .toggle-switch.active .toggle-thumb {
+    transform: translateX(22px);
+  }
+
+  .theme-select {
+    padding: 8px 12px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--color-text);
+    cursor: pointer;
+  }
+
+  .holiday-controls.hidden {
+    display: none;
+  }
+
+  /* Drawer Footer */
+  .drawer-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .drawer-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 12px;
+    transition: all 0.2s;
+  }
+
+  .drawer-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.3);
+  }
+
+  /* ========================================
+     RESPONSIVE
+     ======================================== */
+  @media (max-width: 900px) {
+    .nav-desktop {
       display: none;
     }
 
-    .mobile-menu {
+    .mobile-toggle {
       display: block;
     }
 
-    .toggle-item {
-      display: none;
-    }
-  }
-
-  @media (min-width: 769px) {
-    .mobile-menu {
-      display: none !important;
+    .mobile-drawer {
+      display: block;
     }
   }
 </style>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // ============================================
-    // MOBILE MENU
-    // ============================================
-    const hamburger = document.getElementById('hamburger-btn');
-    const mobileMenu = document.getElementById('mobile-menu');
-    const mobileLinks = mobileMenu?.querySelectorAll('a');
+document.addEventListener('DOMContentLoaded', () => {
+  // ============================================
+  // MOBILE DRAWER
+  // ============================================
+  const mobileToggle = document.getElementById('mobile-toggle');
+  const mobileDrawer = document.getElementById('mobile-drawer');
+  const drawerBackdrop = document.getElementById('drawer-backdrop');
+  const drawerClose = document.getElementById('drawer-close');
+  const drawerLinks = mobileDrawer?.querySelectorAll('a');
 
-    function toggleMobileMenu() {
-      hamburger?.classList.toggle('active');
-      mobileMenu?.classList.toggle('active');
-      document.body.style.overflow = mobileMenu?.classList.contains('active') ? 'hidden' : '';
+  function openDrawer() {
+    mobileToggle?.classList.add('active');
+    mobileDrawer?.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDrawer() {
+    mobileToggle?.classList.remove('active');
+    mobileDrawer?.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  mobileToggle?.addEventListener('click', () => {
+    if (mobileDrawer?.classList.contains('open')) {
+      closeDrawer();
+    } else {
+      openDrawer();
     }
-
-    hamburger?.addEventListener('click', toggleMobileMenu);
-
-    mobileLinks?.forEach(link => {
-      link.addEventListener('click', () => {
-        if (mobileMenu?.classList.contains('active')) {
-          toggleMobileMenu();
-        }
-      });
-    });
-
-    // ============================================
-    // DROPDOWN MENU (Desktop)
-    // ============================================
-    const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
-
-    dropdownToggles.forEach(toggle => {
-      toggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
-        toggle.setAttribute('aria-expanded', (!isExpanded).toString());
-      });
-    });
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', () => {
-      dropdownToggles.forEach(toggle => {
-        toggle.setAttribute('aria-expanded', 'false');
-      });
-    });
-
-    // ============================================
-    // HOLIDAY THEME SYSTEM
-    // ============================================
-
-    function isHolidaySeason(): boolean {
-      const now = new Date();
-      const month = now.getMonth();
-      const day = now.getDate();
-      return (month === 11) || (month === 0 && day === 1);
-    }
-
-    function isFromIsrael(): boolean {
-      try {
-        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        return timezone === 'Asia/Jerusalem' || timezone === 'Asia/Tel_Aviv';
-      } catch {
-        return false;
-      }
-    }
-
-    function getDefaultHolidayTheme(): 'christmas' | 'hanukkah' {
-      return isFromIsrael() ? 'hanukkah' : 'christmas';
-    }
-
-    function applyHolidayTheme(theme: 'christmas' | 'hanukkah' | 'none'): void {
-      const html = document.documentElement;
-      html.classList.remove('christmas', 'hanukkah');
-
-      if (theme !== 'none') {
-        html.classList.add(theme);
-      }
-
-      localStorage.setItem('holidayTheme', theme);
-      updateHolidayMenuState(theme);
-    }
-
-    function updateHolidayMenuState(theme: string): void {
-      const options = document.querySelectorAll('.holiday-option');
-      options.forEach(option => {
-        const optionTheme = (option as HTMLElement).dataset.theme;
-        option.classList.toggle('active', optionTheme === theme);
-      });
-    }
-
-    function initSnowEffect(): void {
-      const snowEnabled = localStorage.getItem('snowEnabled');
-      const checkbox = document.getElementById('snow-toggle-checkbox') as HTMLInputElement;
-
-      if (checkbox) {
-        const shouldEnableSnow = snowEnabled === null ? true : snowEnabled === 'true';
-        checkbox.checked = shouldEnableSnow;
-
-        if (shouldEnableSnow && (window as any).snowEffect) {
-          (window as any).snowEffect.start();
-        }
-      }
-    }
-
-    function initHolidayTheme(): void {
-      const container = document.getElementById('holiday-theme-container');
-      const toggleBtn = document.getElementById('holiday-toggle');
-      const menu = document.getElementById('holiday-menu');
-      const snowCheckbox = document.getElementById('snow-toggle-checkbox') as HTMLInputElement;
-
-      if (!isHolidaySeason()) {
-        container?.classList.remove('visible');
-        return;
-      }
-
-      container?.classList.add('visible');
-
-      let savedTheme = localStorage.getItem('holidayTheme') as 'christmas' | 'hanukkah' | 'none' | null;
-
-      if (savedTheme === null) {
-        savedTheme = getDefaultHolidayTheme();
-      }
-
-      if (savedTheme !== 'none') {
-        applyHolidayTheme(savedTheme);
-      }
-      updateHolidayMenuState(savedTheme);
-
-      toggleBtn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        menu?.classList.toggle('hidden');
-      });
-
-      document.addEventListener('click', (e) => {
-        if (!container?.contains(e.target as Node)) {
-          menu?.classList.add('hidden');
-        }
-      });
-
-      const options = document.querySelectorAll('.holiday-option');
-      options.forEach(option => {
-        option.addEventListener('click', () => {
-          const theme = (option as HTMLElement).dataset.theme as 'christmas' | 'hanukkah' | 'none';
-          applyHolidayTheme(theme);
-          menu?.classList.add('hidden');
-        });
-      });
-
-      snowCheckbox?.addEventListener('change', () => {
-        const isEnabled = snowCheckbox.checked;
-        localStorage.setItem('snowEnabled', String(isEnabled));
-
-        if ((window as any).snowEffect) {
-          if (isEnabled) {
-            (window as any).snowEffect.start();
-          } else {
-            (window as any).snowEffect.stop();
-          }
-        }
-      });
-
-      setTimeout(initSnowEffect, 100);
-    }
-
-    initHolidayTheme();
   });
+
+  drawerBackdrop?.addEventListener('click', closeDrawer);
+  drawerClose?.addEventListener('click', closeDrawer);
+
+  drawerLinks?.forEach(link => {
+    link.addEventListener('click', closeDrawer);
+  });
+
+  // Close on escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && mobileDrawer?.classList.contains('open')) {
+      closeDrawer();
+    }
+  });
+
+  // ============================================
+  // DARK MODE TOGGLE
+  // ============================================
+  const themeToggleDesktop = document.getElementById('theme-toggle-desktop');
+  const themeToggleMobile = document.getElementById('theme-toggle-mobile');
+
+  function updateDarkModeToggles() {
+    const isDark = document.documentElement.classList.contains('dark');
+    themeToggleMobile?.classList.toggle('active', isDark);
+  }
+
+  function toggleDarkMode() {
+    document.documentElement.classList.toggle('dark');
+    const isDark = document.documentElement.classList.contains('dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    updateDarkModeToggles();
+  }
+
+  themeToggleDesktop?.addEventListener('click', toggleDarkMode);
+  themeToggleMobile?.addEventListener('click', toggleDarkMode);
+
+  updateDarkModeToggles();
+
+  // ============================================
+  // HOLIDAY THEME SYSTEM
+  // ============================================
+  function isHolidaySeason(): boolean {
+    const now = new Date();
+    const month = now.getMonth();
+    const day = now.getDate();
+    return (month === 11) || (month === 0 && day === 1);
+  }
+
+  function isFromIsrael(): boolean {
+    try {
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      return timezone === 'Asia/Jerusalem' || timezone === 'Asia/Tel_Aviv';
+    } catch {
+      return false;
+    }
+  }
+
+  function getDefaultHolidayTheme(): 'christmas' | 'hanukkah' {
+    return isFromIsrael() ? 'hanukkah' : 'christmas';
+  }
+
+  function applyHolidayTheme(theme: 'christmas' | 'hanukkah' | 'none') {
+    document.documentElement.classList.remove('christmas', 'hanukkah');
+    if (theme !== 'none') {
+      document.documentElement.classList.add(theme);
+    }
+    localStorage.setItem('holidayTheme', theme);
+    updateHolidayUI(theme);
+  }
+
+  function updateHolidayUI(theme: string) {
+    // Update desktop dropdown
+    document.querySelectorAll('.theme-option').forEach(opt => {
+      opt.classList.toggle('active', (opt as HTMLElement).dataset.theme === theme);
+    });
+
+    // Update mobile select
+    const mobileSelect = document.getElementById('holiday-select-mobile') as HTMLSelectElement;
+    if (mobileSelect) mobileSelect.value = theme;
+
+    // Update mobile icon
+    const mobileIcon = document.getElementById('holiday-icon-mobile');
+    if (mobileIcon) {
+      mobileIcon.textContent = theme === 'hanukkah' ? '🕎' : '🎄';
+    }
+  }
+
+  function initHolidayTheme() {
+    const desktopContainer = document.getElementById('holiday-container-desktop');
+    const mobileControls = document.getElementById('holiday-controls-mobile');
+
+    if (!isHolidaySeason()) {
+      desktopContainer?.classList.add('hidden');
+      mobileControls?.classList.add('hidden');
+      return;
+    }
+
+    desktopContainer?.classList.remove('hidden');
+    mobileControls?.classList.remove('hidden');
+
+    let savedTheme = localStorage.getItem('holidayTheme') as 'christmas' | 'hanukkah' | 'none' | null;
+    if (!savedTheme) {
+      savedTheme = getDefaultHolidayTheme();
+    }
+
+    applyHolidayTheme(savedTheme);
+
+    // Desktop holiday toggle
+    const holidayToggle = document.getElementById('holiday-toggle-desktop');
+    const holidayMenu = document.getElementById('holiday-menu-desktop');
+
+    holidayToggle?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      holidayMenu?.classList.toggle('hidden');
+    });
+
+    document.addEventListener('click', () => {
+      holidayMenu?.classList.add('hidden');
+    });
+
+    // Theme options
+    document.querySelectorAll('.theme-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        const theme = (opt as HTMLElement).dataset.theme as 'christmas' | 'hanukkah' | 'none';
+        applyHolidayTheme(theme);
+        holidayMenu?.classList.add('hidden');
+      });
+    });
+
+    // Mobile select
+    const mobileSelect = document.getElementById('holiday-select-mobile') as HTMLSelectElement;
+    mobileSelect?.addEventListener('change', () => {
+      applyHolidayTheme(mobileSelect.value as 'christmas' | 'hanukkah' | 'none');
+    });
+
+    // Snow toggles
+    const snowCheckboxDesktop = document.getElementById('snow-checkbox-desktop') as HTMLInputElement;
+    const snowToggleMobile = document.getElementById('snow-toggle-mobile');
+
+    const snowEnabled = localStorage.getItem('snowEnabled');
+    const shouldEnableSnow = snowEnabled === null ? true : snowEnabled === 'true';
+
+    if (snowCheckboxDesktop) snowCheckboxDesktop.checked = shouldEnableSnow;
+    snowToggleMobile?.classList.toggle('active', shouldEnableSnow);
+
+    if (shouldEnableSnow && (window as any).snowEffect) {
+      setTimeout(() => (window as any).snowEffect?.start(), 100);
+    }
+
+    function toggleSnow(enabled: boolean) {
+      localStorage.setItem('snowEnabled', String(enabled));
+      if (snowCheckboxDesktop) snowCheckboxDesktop.checked = enabled;
+      snowToggleMobile?.classList.toggle('active', enabled);
+
+      if ((window as any).snowEffect) {
+        enabled ? (window as any).snowEffect.start() : (window as any).snowEffect.stop();
+      }
+    }
+
+    snowCheckboxDesktop?.addEventListener('change', () => toggleSnow(snowCheckboxDesktop.checked));
+    snowToggleMobile?.addEventListener('click', () => {
+      const newState = !snowToggleMobile.classList.contains('active');
+      toggleSnow(newState);
+    });
+  }
+
+  initHolidayTheme();
+});
 </script>
