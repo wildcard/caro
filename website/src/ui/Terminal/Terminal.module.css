@@ -1,0 +1,275 @@
+/**
+ * Terminal Component Styles
+ * Matches Terminal.astro and TerminalShowcase.astro styling
+ */
+
+/* ============================================
+   TERMINAL CONTAINER
+   ============================================ */
+
+.terminal {
+  background: var(--terminal-bg, #1e1e1e);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  width: 100%;
+  max-width: 600px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.terminal:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.header {
+  background: #2d2d2d;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dots {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  opacity: 0.9;
+}
+
+.dot.red {
+  background: var(--terminal-dot-red, #ff5f56);
+}
+
+.dot.yellow {
+  background: var(--terminal-dot-yellow, #ffbd2e);
+}
+
+.dot.green {
+  background: var(--terminal-dot-green, #27c93f);
+}
+
+.title {
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  flex: 1;
+  text-align: center;
+  font-weight: 500;
+}
+
+.copyButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.copyButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.copyButton:active {
+  transform: scale(0.95);
+}
+
+/* ============================================
+   BODY
+   ============================================ */
+
+.body {
+  padding: 20px;
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 80px;
+}
+
+/* ============================================
+   TERMINAL LINES
+   ============================================ */
+
+.line {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.line:last-child {
+  margin-bottom: 0;
+}
+
+.prefix {
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.content {
+  word-break: break-word;
+}
+
+/* Line type: command */
+.command .prefix {
+  color: #4ec9b0;
+}
+
+.command .content {
+  color: #9cdcfe;
+}
+
+/* Line type: caro */
+.caro .prefix {
+  color: var(--color-primary, #ff8c42);
+}
+
+.caro .content {
+  color: #ce9178;
+}
+
+/* Line type: output */
+.output .content {
+  color: #d4d4d4;
+}
+
+/* Line type: status */
+.status .prefix {
+  color: #6a9955;
+}
+
+.status .content {
+  color: #6a9955;
+  font-size: 13px;
+}
+
+/* ============================================
+   ANIMATED VARIANT
+   ============================================ */
+
+.animated .body {
+  min-height: 110px;
+  position: relative;
+}
+
+.examples {
+  position: relative;
+}
+
+.example {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+  pointer-events: none;
+}
+
+.example.active {
+  opacity: 1;
+  pointer-events: auto;
+  position: relative;
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .terminal,
+  .example,
+  .copyButton {
+    transition: none;
+  }
+
+  .terminal:hover {
+    transform: none;
+  }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .terminal {
+    max-width: 100%;
+    border-radius: 8px;
+  }
+
+  .body {
+    padding: 16px;
+    font-size: 12px;
+    min-height: 70px;
+  }
+
+  .animated .body {
+    min-height: 95px;
+  }
+
+  .title {
+    font-size: 11px;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+  }
+
+  .status .content {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .body {
+    padding: 14px;
+    font-size: 11px;
+    line-height: 1.5;
+    min-height: 60px;
+  }
+
+  .animated .body {
+    min-height: 85px;
+  }
+
+  .header {
+    padding: 10px 12px;
+  }
+
+  .title {
+    font-size: 10px;
+  }
+
+  .status .content {
+    font-size: 10px;
+  }
+
+  .copyButton {
+    width: 24px;
+    height: 24px;
+  }
+}

@@ -20,6 +20,47 @@ export { Toggle, type ToggleProps } from './Toggle';
 
 // Display Components
 export { Badge, type BadgeProps } from './Badge';
+export {
+  Terminal,
+  TerminalLine,
+  type TerminalProps,
+  type TerminalLineProps,
+  type TerminalExample,
+  type LineType,
+} from './Terminal';
+export {
+  Card,
+  type CardProps,
+  type CardVariant,
+  type CardMetadata,
+  type FeatureStatus,
+} from './Card';
+export {
+  CopyCodeBlock,
+  type CopyCodeBlockProps,
+  type CopyCodeBlockVariant,
+  type CopyCodeBlockSize,
+} from './CopyCodeBlock';
+export {
+  IconButton,
+  type IconButtonProps,
+  type IconButtonSize,
+  type IconButtonVariant,
+} from './IconButton';
+export { Link, type LinkProps, type LinkVariant } from './Link';
+export {
+  Dropdown,
+  DropdownTrigger,
+  DropdownPanel,
+  DropdownItem,
+  DropdownDivider,
+  DropdownHeader,
+  type DropdownProps,
+  type DropdownTriggerProps,
+  type DropdownPanelProps,
+  type DropdownItemProps,
+  type DropdownHeaderProps,
+} from './Dropdown';
 
 // Design tokens are available via CSS import:
 // import '../ui/tokens.css';

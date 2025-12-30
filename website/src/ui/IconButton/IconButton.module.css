@@ -1,0 +1,221 @@
+/**
+ * IconButton Component Styles
+ * Matches Navigation.astro .icon-button styling
+ */
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-secondary, #f5f5f5);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--color-text, #2c3e50);
+  transition: all 0.2s;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.iconButton:hover:not(:disabled) {
+  border-color: var(--color-primary, #ff8c42);
+  background: rgba(255, 140, 66, 0.08);
+}
+
+.iconButton:focus-visible {
+  outline: 2px solid var(--color-primary, #ff8c42);
+  outline-offset: 2px;
+}
+
+.iconButton:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.iconButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Dark mode */
+:global(.dark) .iconButton {
+  background: var(--color-bg-secondary, #2d2d2d);
+  border-color: var(--color-border, #444);
+  color: var(--color-text, #f5f5f5);
+}
+
+:global(.dark) .iconButton:hover:not(:disabled) {
+  background: rgba(255, 140, 66, 0.15);
+}
+
+/* ============================================
+   SIZE VARIANTS
+   ============================================ */
+
+.sm {
+  width: 32px;
+  height: 32px;
+}
+
+.sm .iconWrapper,
+.sm .spinner {
+  width: 16px;
+  height: 16px;
+}
+
+.md {
+  width: 40px;
+  height: 40px;
+}
+
+.md .iconWrapper,
+.md .spinner {
+  width: 20px;
+  height: 20px;
+}
+
+.lg {
+  width: 48px;
+  height: 48px;
+}
+
+.lg .iconWrapper,
+.lg .spinner {
+  width: 24px;
+  height: 24px;
+}
+
+/* ============================================
+   VARIANT: GHOST
+   No background, border only on hover
+   ============================================ */
+
+.ghost {
+  background: transparent;
+  border-color: transparent;
+}
+
+.ghost:hover:not(:disabled) {
+  background: rgba(255, 140, 66, 0.08);
+  border-color: transparent;
+}
+
+:global(.dark) .ghost {
+  background: transparent;
+}
+
+:global(.dark) .ghost:hover:not(:disabled) {
+  background: rgba(255, 140, 66, 0.15);
+}
+
+/* ============================================
+   VARIANT: BRAND
+   Orange background
+   ============================================ */
+
+.brand {
+  background: var(--color-primary, #ff8c42);
+  border-color: var(--color-primary-dark, #ff6b35);
+  color: white;
+}
+
+.brand:hover:not(:disabled) {
+  background: var(--color-primary-dark, #ff6b35);
+  border-color: var(--color-primary-dark, #ff6b35);
+}
+
+:global(.dark) .brand {
+  background: var(--color-primary, #ff8c42);
+  border-color: var(--color-primary-dark, #ff6b35);
+  color: white;
+}
+
+/* ============================================
+   ACTIVE STATE
+   ============================================ */
+
+.active {
+  background: rgba(255, 140, 66, 0.15);
+  border-color: var(--color-primary, #ff8c42);
+  color: var(--color-primary, #ff8c42);
+}
+
+:global(.dark) .active {
+  background: rgba(255, 140, 66, 0.2);
+}
+
+/* ============================================
+   ICON WRAPPER
+   ============================================ */
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.iconWrapper svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+
+.loading {
+  pointer-events: none;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   TOUCH TARGETS
+   Ensure minimum 44px touch area
+   ============================================ */
+
+.sm {
+  min-width: var(--touch-target-min, 44px);
+  min-height: var(--touch-target-min, 44px);
+  /* Visual size is smaller, but touch area is 44px */
+  position: relative;
+}
+
+.sm::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .iconButton {
+    transition: none;
+  }
+
+  .spinner {
+    animation: none;
+  }
+}

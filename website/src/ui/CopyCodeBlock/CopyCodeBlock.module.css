@@ -1,0 +1,279 @@
+/**
+ * CopyCodeBlock Component Styles
+ * Matches Download.astro install-command styling
+ */
+
+/* ============================================
+   CONTAINER
+   ============================================ */
+
+.container {
+  border-radius: 8px;
+  overflow: hidden;
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  width: 100%;
+}
+
+/* ============================================
+   SIZE VARIANTS
+   ============================================ */
+
+.sm .codeWrapper {
+  padding: 12px 16px;
+  font-size: 13px;
+}
+
+.md .codeWrapper {
+  padding: 16px 20px;
+  font-size: 14px;
+}
+
+.lg .codeWrapper {
+  padding: 20px 30px;
+  font-size: 16px;
+}
+
+/* ============================================
+   VARIANT: DARK
+   ============================================ */
+
+.dark {
+  background: var(--terminal-bg, #1e1e1e);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .code {
+  color: #d4d4d4;
+}
+
+.dark .header {
+  background: #2d2d2d;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dark .language {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.dark .copyButton {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.dark .copyButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.dark .lineNumber {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* ============================================
+   VARIANT: LIGHT
+   ============================================ */
+
+.light {
+  background: var(--color-bg, #f5f5f5);
+  border: 1px solid var(--color-border, #e5e7eb);
+}
+
+.light .code {
+  color: var(--color-text, #2c3e50);
+}
+
+.light .header {
+  background: var(--color-bg-secondary, #eaeaea);
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+}
+
+.light .language {
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.light .copyButton {
+  background: transparent;
+  border: 1px solid var(--color-border, #d1d5db);
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.light .copyButton:hover {
+  background: var(--color-bg-tertiary, #e5e5e5);
+  color: var(--color-text, #2c3e50);
+}
+
+.light .lineNumber {
+  color: var(--color-text-muted, #9ca3af);
+}
+
+/* ============================================
+   VARIANT: BRAND
+   Used for prominent install commands
+   ============================================ */
+
+.brand {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.brand .code {
+  color: #fff;
+}
+
+.brand .header {
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.brand .language {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.brand .copyButton {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.brand .copyButton:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.brand .lineNumber {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  gap: 12px;
+}
+
+.language {
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ============================================
+   COPY BUTTON
+   ============================================ */
+
+.copyButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.copyButton:active {
+  transform: scale(0.98);
+}
+
+.copyButton:focus-visible {
+  outline: 2px solid var(--color-primary, #ff8c42);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   CODE CONTENT
+   ============================================ */
+
+.codeWrapper {
+  overflow-x: auto;
+}
+
+.code {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.5;
+}
+
+/* ============================================
+   LINE NUMBERS
+   ============================================ */
+
+.line {
+  display: flex;
+  gap: 16px;
+}
+
+.lineNumber {
+  user-select: none;
+  text-align: right;
+  min-width: 24px;
+  flex-shrink: 0;
+}
+
+.lineContent {
+  flex: 1;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 600px) {
+  .sm .codeWrapper,
+  .md .codeWrapper {
+    padding: 12px 14px;
+    font-size: 12px;
+  }
+
+  .lg .codeWrapper {
+    padding: 16px 20px;
+    font-size: 14px;
+  }
+
+  .header {
+    padding: 8px 14px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .copyButton {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .code {
+    word-break: break-all;
+  }
+}
+
+@media (max-width: 360px) {
+  .code {
+    font-size: 11px;
+  }
+
+  .copyButton {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .copyButton {
+    transition: none;
+  }
+}

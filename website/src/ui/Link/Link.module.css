@@ -1,0 +1,155 @@
+/**
+ * Link Component Styles
+ * Matches Navigation.astro and Footer.astro link styling
+ */
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  transition: color 0.2s, transform 0.2s;
+  font-weight: inherit;
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--color-primary, #ff8c42);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.content {
+  display: inline;
+}
+
+/* ============================================
+   VARIANT: DEFAULT
+   ============================================ */
+
+.default {
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.default:hover {
+  color: var(--color-primary, #ff8c42);
+}
+
+:global(.dark) .default {
+  color: var(--color-text-secondary, #9ca3af);
+}
+
+:global(.dark) .default:hover {
+  color: var(--color-primary, #ff8c42);
+}
+
+/* ============================================
+   VARIANT: SUPPORT (Pink)
+   ============================================ */
+
+.support {
+  color: var(--color-support, #ea4aaa);
+  font-weight: 500;
+}
+
+.support:hover {
+  color: #d43d9a;
+}
+
+/* ============================================
+   VARIANT: ARROW
+   ============================================ */
+
+.arrow {
+  color: var(--color-primary, #ff8c42);
+  font-weight: 600;
+}
+
+.arrow:hover {
+  color: var(--color-primary-dark, #ff6b35);
+}
+
+.arrow:hover .arrow {
+  transform: translateX(4px);
+}
+
+.arrow .arrow {
+  display: inline-flex;
+  transition: transform 0.2s;
+}
+
+/* ============================================
+   VARIANT: EXTERNAL
+   ============================================ */
+
+.external {
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.external:hover {
+  color: var(--color-primary, #ff8c42);
+}
+
+.externalIcon {
+  display: inline-flex;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.external:hover .externalIcon {
+  opacity: 1;
+}
+
+:global(.dark) .external {
+  color: var(--color-text-secondary, #9ca3af);
+}
+
+/* ============================================
+   VARIANT: NAV (Navigation links)
+   ============================================ */
+
+.nav {
+  color: var(--color-text, #2c3e50);
+  font-weight: 500;
+  font-size: 15px;
+  padding: 8px 0;
+}
+
+.nav:hover {
+  color: var(--color-primary, #ff8c42);
+}
+
+:global(.dark) .nav {
+  color: var(--color-text, #f5f5f5);
+}
+
+:global(.dark) .nav:hover {
+  color: var(--color-primary, #ff8c42);
+}
+
+/* ============================================
+   ICONS
+   ============================================ */
+
+.arrow svg,
+.externalIcon svg {
+  flex-shrink: 0;
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .link,
+  .arrow .arrow {
+    transition: none;
+  }
+
+  .arrow:hover .arrow {
+    transform: none;
+  }
+}
