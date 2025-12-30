@@ -4,15 +4,37 @@
 <nav class="navigation">
   <div class="container">
     <a href="/" class="nav-brand">🐕 Caro</a>
-    <ul class="nav-links">
-      <li><a href="/#features">Features</a></li>
-      <li><a href="/compare">Compare</a></li>
-      <li><a href="/#game">Play</a></li>
-      <li><a href="/#blog">Blog</a></li>
-      <li><a href="/support" class="support-link">Support</a></li>
-      <li><a href="/#download">Get Started</a></li>
-      <li><a href="https://github.com/wildcard/caro" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-      <li id="holiday-theme-container" class="holiday-theme-container hidden">
+
+    <!-- Mobile hamburger button -->
+    <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu" aria-expanded="false">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+
+    <!-- Desktop navigation -->
+    <ul class="nav-links" id="nav-links">
+      <li class="nav-item">
+        <a href="/#features">Features</a>
+      </li>
+      <li class="nav-item has-dropdown">
+        <button class="dropdown-toggle" aria-expanded="false">
+          Resources
+          <svg class="dropdown-arrow" width="10" height="6" viewBox="0 0 10 6" fill="none">
+            <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="/compare">Compare</a></li>
+          <li><a href="/#blog">Blog</a></li>
+          <li><a href="/support" class="support-link">Support</a></li>
+          <li><a href="https://github.com/wildcard/caro" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+        </ul>
+      </li>
+      <li class="nav-item cta-item">
+        <a href="/#download" class="nav-cta">Get Started</a>
+      </li>
+      <li class="nav-item toggle-item" id="holiday-theme-container">
         <button id="holiday-toggle" class="holiday-toggle" aria-label="Toggle holiday theme menu" title="Holiday Theme">
           <span class="holiday-icon christmas-icon">🎄</span>
           <span class="holiday-icon hanukkah-icon">🕎</span>
@@ -47,7 +69,7 @@
           </div>
         </div>
       </li>
-      <li>
+      <li class="nav-item toggle-item">
         <button id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
           <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="5"/>
@@ -66,13 +88,26 @@
         </button>
       </li>
     </ul>
+
+    <!-- Mobile menu -->
+    <div class="mobile-menu" id="mobile-menu">
+      <div class="mobile-menu-content">
+        <a href="/#features" class="mobile-link">Features</a>
+        <a href="/compare" class="mobile-link">Compare</a>
+        <a href="/#blog" class="mobile-link">Blog</a>
+        <a href="/support" class="mobile-link support-link">Support</a>
+        <a href="https://github.com/wildcard/caro" class="mobile-link" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <div class="mobile-divider"></div>
+        <a href="/#download" class="mobile-cta">Get Started</a>
+      </div>
+    </div>
   </div>
 </nav>
 
 <style>
   .navigation {
     background: var(--color-bg);
-    padding: 15px 0;
+    padding: 12px 0;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     position: sticky;
     top: 0;
@@ -87,6 +122,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative;
   }
 
   .nav-brand {
@@ -95,49 +131,175 @@
     color: #ff8c42;
     text-decoration: none;
     transition: color 0.2s;
+    z-index: 1001;
   }
 
   .nav-brand:hover {
     color: #ff6b35;
   }
 
+  /* Hamburger button */
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 28px;
+    height: 24px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 1001;
+  }
+
+  .hamburger-line {
+    width: 100%;
+    height: 3px;
+    background: var(--color-text);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+    transform-origin: center;
+  }
+
+  .hamburger.active .hamburger-line:nth-child(1) {
+    transform: translateY(7.5px) rotate(45deg);
+  }
+
+  .hamburger.active .hamburger-line:nth-child(2) {
+    opacity: 0;
+  }
+
+  .hamburger.active .hamburger-line:nth-child(3) {
+    transform: translateY(-7.5px) rotate(-45deg);
+  }
+
+  /* Desktop navigation */
   .nav-links {
     display: flex;
-    gap: 30px;
+    gap: 8px;
     list-style: none;
     margin: 0;
     padding: 0;
     align-items: center;
   }
 
-  .nav-links li {
+  .nav-item {
     display: flex;
     align-items: center;
   }
 
-  .nav-links a {
+  .nav-item > a,
+  .dropdown-toggle {
     color: var(--color-text);
     text-decoration: none;
     font-weight: 500;
-    transition: color 0.2s;
+    font-size: 15px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: all 0.2s;
     display: flex;
     align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
   }
 
-  .nav-links a:hover {
+  .nav-item > a:hover,
+  .dropdown-toggle:hover {
+    color: #ff8c42;
+    background: rgba(255, 140, 66, 0.08);
+  }
+
+  .support-link {
+    color: #ea4aaa !important;
+  }
+
+  .support-link:hover {
+    color: #d43d9a !important;
+    background: rgba(234, 74, 170, 0.08) !important;
+  }
+
+  /* Dropdown */
+  .has-dropdown {
+    position: relative;
+  }
+
+  .dropdown-arrow {
+    transition: transform 0.2s;
+  }
+
+  .has-dropdown:hover .dropdown-arrow,
+  .dropdown-toggle[aria-expanded="true"] .dropdown-arrow {
+    transform: rotate(180deg);
+  }
+
+  .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 180px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    padding: 8px 0;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+    list-style: none;
+    z-index: 1000;
+  }
+
+  .has-dropdown:hover .dropdown-menu,
+  .dropdown-toggle[aria-expanded="true"] + .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .dropdown-menu li a {
+    display: block;
+    padding: 10px 16px;
+    color: var(--color-text);
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+
+  .dropdown-menu li a:hover {
+    background: rgba(255, 140, 66, 0.08);
     color: #ff8c42;
   }
 
-  .nav-links .support-link {
+  .dropdown-menu li a.support-link {
     color: #ea4aaa;
   }
 
-  .nav-links .support-link:hover {
+  .dropdown-menu li a.support-link:hover {
+    background: rgba(234, 74, 170, 0.08);
     color: #d43d9a;
   }
 
-  /* Dark mode toggle button */
-  #theme-toggle {
+  /* CTA button in nav */
+  .nav-cta {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white !important;
+    padding: 10px 20px !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    transition: all 0.2s !important;
+  }
+
+  .nav-cta:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+    background: linear-gradient(135deg, #ff9a54 0%, #ff7a47 100%) !important;
+  }
+
+  /* Toggle buttons */
+  .toggle-item button {
     background: var(--color-bg-secondary);
     border: 2px solid var(--color-border);
     border-radius: 50%;
@@ -152,67 +314,46 @@
     padding: 0;
   }
 
-  #theme-toggle:hover {
+  .toggle-item button:hover {
     transform: scale(1.1);
     background: var(--color-bg-tertiary);
     border-color: #ff8c42;
   }
 
-  #theme-toggle:active {
+  .toggle-item button:active {
     transform: scale(0.95);
   }
 
-  .sun-icon {
+  #theme-toggle .sun-icon {
     display: none;
   }
 
-  .moon-icon {
+  #theme-toggle .moon-icon {
     display: block;
   }
 
-  :global(.dark) .sun-icon {
+  :global(.dark) #theme-toggle .sun-icon {
     display: block;
   }
 
-  :global(.dark) .moon-icon {
+  :global(.dark) #theme-toggle .moon-icon {
     display: none;
   }
 
   /* Holiday theme toggle */
-  .holiday-theme-container {
+  #holiday-theme-container {
     position: relative;
-  }
-
-  .holiday-theme-container.hidden {
     display: none;
   }
 
-  .holiday-toggle {
-    background: var(--color-bg-secondary);
-    border: 2px solid var(--color-border);
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
+  #holiday-theme-container.visible {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--color-text);
-    transition: transform 0.2s, background-color 0.3s, border-color 0.3s;
-    padding: 0;
+  }
+
+  .holiday-toggle {
     font-size: 18px;
   }
 
-  .holiday-toggle:hover {
-    transform: scale(1.1);
-    background: var(--color-bg-tertiary);
-  }
-
-  .holiday-toggle:active {
-    transform: scale(0.95);
-  }
-
-  /* Theme-specific button styling */
   :global(.christmas) .holiday-toggle {
     border-color: #c41e3a;
     background: linear-gradient(135deg, rgba(196, 30, 58, 0.1) 0%, rgba(34, 139, 34, 0.1) 100%);
@@ -316,7 +457,6 @@
     opacity: 1;
   }
 
-  /* Snow toggle styling */
   .snow-toggle-wrapper {
     padding: 8px 16px;
   }
@@ -364,25 +504,98 @@
     transform: translateX(20px);
   }
 
+  /* Mobile menu */
+  .mobile-menu {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: var(--color-bg);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+
+  .mobile-menu.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .mobile-menu-content {
+    display: flex;
+    flex-direction: column;
+    padding: 80px 24px 24px;
+    gap: 4px;
+  }
+
+  .mobile-link {
+    color: var(--color-text);
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: 500;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--color-border);
+    transition: color 0.2s;
+  }
+
+  .mobile-link:hover {
+    color: #ff8c42;
+  }
+
+  .mobile-link.support-link {
+    color: #ea4aaa;
+  }
+
+  .mobile-divider {
+    height: 1px;
+    background: var(--color-border);
+    margin: 16px 0;
+  }
+
+  .mobile-cta {
+    display: inline-block;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    text-decoration: none;
+    padding: 16px 24px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    margin-top: 8px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .mobile-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.3);
+  }
+
+  /* Responsive styles */
   @media (max-width: 768px) {
-    .nav-brand {
-      font-size: 20px;
+    .hamburger {
+      display: flex;
     }
 
     .nav-links {
-      gap: 15px;
-      font-size: 14px;
+      display: none;
+    }
+
+    .mobile-menu {
+      display: block;
+    }
+
+    .toggle-item {
+      display: none;
     }
   }
 
-  @media (max-width: 480px) {
-    .nav-links {
-      gap: 10px;
-      font-size: 12px;
-    }
-
-    .nav-links li:last-child {
-      display: none; /* Hide GitHub link on very small screens */
+  @media (min-width: 769px) {
+    .mobile-menu {
+      display: none !important;
     }
   }
 </style>
@@ -390,19 +603,59 @@
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     // ============================================
+    // MOBILE MENU
+    // ============================================
+    const hamburger = document.getElementById('hamburger-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const mobileLinks = mobileMenu?.querySelectorAll('a');
+
+    function toggleMobileMenu() {
+      hamburger?.classList.toggle('active');
+      mobileMenu?.classList.toggle('active');
+      document.body.style.overflow = mobileMenu?.classList.contains('active') ? 'hidden' : '';
+    }
+
+    hamburger?.addEventListener('click', toggleMobileMenu);
+
+    mobileLinks?.forEach(link => {
+      link.addEventListener('click', () => {
+        if (mobileMenu?.classList.contains('active')) {
+          toggleMobileMenu();
+        }
+      });
+    });
+
+    // ============================================
+    // DROPDOWN MENU (Desktop)
+    // ============================================
+    const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+
+    dropdownToggles.forEach(toggle => {
+      toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+        toggle.setAttribute('aria-expanded', (!isExpanded).toString());
+      });
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', () => {
+      dropdownToggles.forEach(toggle => {
+        toggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+
+    // ============================================
     // HOLIDAY THEME SYSTEM
     // ============================================
 
-    // Check if we're in the holiday season (December 1 - January 1)
     function isHolidaySeason(): boolean {
       const now = new Date();
-      const month = now.getMonth(); // 0-indexed (0 = Jan, 11 = Dec)
+      const month = now.getMonth();
       const day = now.getDate();
-      // December 1 through January 1 (inclusive)
       return (month === 11) || (month === 0 && day === 1);
     }
 
-    // Detect if user is from Israel using timezone
     function isFromIsrael(): boolean {
       try {
         const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -412,12 +665,10 @@
       }
     }
 
-    // Get the default holiday theme based on location
     function getDefaultHolidayTheme(): 'christmas' | 'hanukkah' {
       return isFromIsrael() ? 'hanukkah' : 'christmas';
     }
 
-    // Apply holiday theme
     function applyHolidayTheme(theme: 'christmas' | 'hanukkah' | 'none'): void {
       const html = document.documentElement;
       html.classList.remove('christmas', 'hanukkah');
@@ -430,7 +681,6 @@
       updateHolidayMenuState(theme);
     }
 
-    // Update the holiday menu to show which theme is active
     function updateHolidayMenuState(theme: string): void {
       const options = document.querySelectorAll('.holiday-option');
       options.forEach(option => {
@@ -439,13 +689,11 @@
       });
     }
 
-    // Initialize snow effect state
     function initSnowEffect(): void {
       const snowEnabled = localStorage.getItem('snowEnabled');
       const checkbox = document.getElementById('snow-toggle-checkbox') as HTMLInputElement;
 
       if (checkbox) {
-        // Default snow to ON for holiday themes
         const shouldEnableSnow = snowEnabled === null ? true : snowEnabled === 'true';
         checkbox.checked = shouldEnableSnow;
 
@@ -455,50 +703,41 @@
       }
     }
 
-    // Initialize holiday theme system
     function initHolidayTheme(): void {
       const container = document.getElementById('holiday-theme-container');
       const toggleBtn = document.getElementById('holiday-toggle');
       const menu = document.getElementById('holiday-menu');
       const snowCheckbox = document.getElementById('snow-toggle-checkbox') as HTMLInputElement;
 
-      // Only show during holiday season
       if (!isHolidaySeason()) {
-        container?.classList.add('hidden');
+        container?.classList.remove('visible');
         return;
       }
 
-      // Show the holiday toggle
-      container?.classList.remove('hidden');
+      container?.classList.add('visible');
 
-      // Get saved or default theme
       let savedTheme = localStorage.getItem('holidayTheme') as 'christmas' | 'hanukkah' | 'none' | null;
 
       if (savedTheme === null) {
-        // First visit during holiday season - use geolocation default
         savedTheme = getDefaultHolidayTheme();
       }
 
-      // Apply the theme
       if (savedTheme !== 'none') {
         applyHolidayTheme(savedTheme);
       }
       updateHolidayMenuState(savedTheme);
 
-      // Toggle menu visibility
       toggleBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
         menu?.classList.toggle('hidden');
       });
 
-      // Close menu when clicking outside
       document.addEventListener('click', (e) => {
         if (!container?.contains(e.target as Node)) {
           menu?.classList.add('hidden');
         }
       });
 
-      // Theme option clicks
       const options = document.querySelectorAll('.holiday-option');
       options.forEach(option => {
         option.addEventListener('click', () => {
@@ -508,7 +747,6 @@
         });
       });
 
-      // Snow toggle
       snowCheckbox?.addEventListener('change', () => {
         const isEnabled = snowCheckbox.checked;
         localStorage.setItem('snowEnabled', String(isEnabled));
@@ -522,11 +760,9 @@
         }
       });
 
-      // Initialize snow effect after a brief delay to ensure it's loaded
       setTimeout(initSnowEffect, 100);
     }
 
-    // Initialize holiday theme
     initHolidayTheme();
   });
 </script>
