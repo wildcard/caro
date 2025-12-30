@@ -205,7 +205,7 @@ All critical requirements for copyright control, dual licensing capability, and 
 - [x] **Employer IP addressed** with clear guidance
 - [x] **Third-party code provisions** for compliance
 - [x] **Legal review recommended** - CLA advises consulting counsel
-- [x] **Contact information** provided (legal@wildcard.sh)
+- [x] **Contact information** provided (legal@caro.sh)
 
 **Evidence**: `docs/legal/CLA.md` - "Legal Review" section
 

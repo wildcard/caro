@@ -730,7 +730,7 @@ This adds a `Signed-off-by:` line to your commit message, indicating you agree t
 - **"Can I submit third-party code?"** - Yes, but it must be clearly marked and comply with section 8 of the CLA.
 
 For more questions:
-- Legal concerns: Email [legal@wildcard.sh](mailto:legal@wildcard.sh)
+- Legal concerns: Email [legal@caro.sh](mailto:legal@caro.sh)
 - CLA questions: Open an issue with the `cla` label
 - General questions: [GitHub Discussions](https://github.com/wildcard/caro/discussions)
 

@@ -221,7 +221,7 @@ A: If you created the contribution during work hours or using employer resources
 ### Need More Information?
 
 - **General questions**: [GitHub Discussions](https://github.com/wildcard/caro/discussions)
-- **Legal concerns**: Email [legal@wildcard.sh](mailto:legal@wildcard.sh)
+- **Legal concerns**: Email [legal@caro.sh](mailto:legal@caro.sh)
 - **CLA-specific questions**: Open an issue with the `cla` label
 
 ---
