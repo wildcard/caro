@@ -216,80 +216,65 @@ jobs:
 
 ### Vercel
 
-The website is configured for Vercel deployment via `vercel.json`.
+Both the website and Storybook are deployed on Vercel as separate projects, configured manually via the Vercel dashboard.
 
-#### Quick Deploy
+> **Note:** The `*.vercel.json` files in this directory are **not used by Vercel** (only `vercel.json` would be). They exist as documentation of the dashboard configuration for each project.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/wildcard/caro&root-directory=website)
+#### Configuration Files (Reference Only)
 
-#### Manual Setup
+| File | Purpose | Live URL |
+|------|---------|----------|
+| `website.vercel.json` | Main website build config | https://caro.sh |
+| `storybook.vercel.json` | Storybook build config | https://storybook.caro.sh |
 
-1. Install Vercel CLI:
-   ```bash
-   npm i -g vercel
-   ```
+#### Deploying the Website
 
-2. Deploy from the website directory:
-   ```bash
-   cd website
-   vercel
-   ```
-
-3. For production deployment:
-   ```bash
-   vercel --prod
-   ```
-
-#### Configuration
-
-The `vercel.json` file is pre-configured:
-```json
-{
-  "buildCommand": "npm install && npm run build",
-  "outputDirectory": "dist",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install"
-}
-```
-
-#### Via Vercel Dashboard
-
-1. Import your repository at [vercel.com/new](https://vercel.com/new)
-2. Select the `website` folder as Root Directory
-3. Vercel auto-detects settings from `vercel.json`
-4. Click Deploy
-
-#### Custom Domain
-
-1. Go to your Vercel project → Settings → Domains
-2. Add `caro.sh` as custom domain
-3. Configure DNS at your registrar:
-   ```
-   A     @     76.76.21.21
-   CNAME www   cname.vercel-dns.com
-   ```
-
-#### Preview Deployments
-
-Every push to a branch creates a preview deployment automatically. Preview URLs follow the pattern:
-```
-https://caro-git-<branch>-<team>.vercel.app
-```
+1. Go to [vercel.com/new](https://vercel.com/new)
+2. Import the `wildcard/caro` repository
+3. Set **Root Directory** to `website`
+4. Configure build settings (or let Vercel auto-detect Astro):
+   - **Framework**: Astro
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+5. Deploy
 
 #### Deploying Storybook
 
-Storybook is deployed as a separate Vercel project:
-
-1. Create a new project at [vercel.com/new](https://vercel.com/new)
-2. Import this repository
+1. Create a **new** project at [vercel.com/new](https://vercel.com/new)
+2. Import the same `wildcard/caro` repository
 3. Set **Root Directory** to `website`
-4. Vercel auto-detects Storybook and configures the build
+4. Configure build settings:
+   - **Framework**: Storybook (auto-detected)
+   - **Build Command**: `npm run build-storybook`
+   - **Output Directory**: `storybook-static`
+5. Deploy
 
-Live at: https://storybook.caro.sh
+#### Custom Domains
+
+Configure in Vercel dashboard under Project → Settings → Domains:
+
+| Project | Domain |
+|---------|--------|
+| Website | `caro.sh` |
+| Storybook | `storybook.caro.sh` |
+
+DNS configuration at your registrar:
+```
+A     @     76.76.21.21
+CNAME www   cname.vercel-dns.com
+```
+
+#### Preview Deployments
+
+Every push creates preview deployments for both projects:
+```
+https://caro-git-<branch>-<team>.vercel.app
+https://storybook-caro-git-<branch>-<team>.vercel.app
+```
 
 #### Environment Variables
 
-No environment variables are required for the static site. If you add features that need them:
+No environment variables are required. If needed later:
 
 1. Go to Project Settings → Environment Variables
 2. Add variables for Production, Preview, and Development
