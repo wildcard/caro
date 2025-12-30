@@ -2,7 +2,7 @@
 /**
  * OmniMenu - Cmd+/ quick navigation menu
  *
- * Simple, fast page search with fuzzy matching.
+ * Simple, fast page search with fuzzy matching + typo tolerance.
  * Built at compile time, no runtime dependencies.
  */
 
@@ -17,8 +17,8 @@ const isEnabled = isPreview || isExplicit || !isProd;
 // Pre-build search index at compile time
 const searchIndex = PAGES_INDEX.map(p => ({
   ...p,
-  // Pre-compute searchable text (lowercase, combined)
-  _search: [p.title, p.description || '', p.path, ...(p.keywords || [])].join(' ').toLowerCase()
+  _search: [p.title, p.description || '', p.path, ...(p.keywords || [])].join(' ').toLowerCase(),
+  _words: [p.title, p.description || '', ...(p.keywords || [])].join(' ').toLowerCase().split(/\s+/).filter(w => w.length > 2)
 }));
 ---
 
@@ -55,10 +55,7 @@ const searchIndex = PAGES_INDEX.map(p => ({
   }
   .omni-overlay.open { display: flex; justify-content: center; }
 
-  .omni-backdrop {
-    position: absolute;
-    inset: 0;
-  }
+  .omni-backdrop { position: absolute; inset: 0; }
 
   .omni-dialog {
     position: relative;
@@ -87,10 +84,7 @@ const searchIndex = PAGES_INDEX.map(p => ({
     padding: 14px 16px;
     border-bottom: 1px solid var(--color-border, #e0e0e0);
   }
-  .omni-search-box svg {
-    flex-shrink: 0;
-    color: var(--color-text-secondary, #666);
-  }
+  .omni-search-box svg { flex-shrink: 0; color: var(--color-text-secondary, #666); }
   .omni-search-box input {
     flex: 1;
     border: none;
@@ -99,9 +93,7 @@ const searchIndex = PAGES_INDEX.map(p => ({
     color: var(--color-text, #333);
     outline: none;
   }
-  .omni-search-box input::placeholder {
-    color: var(--color-text-secondary, #999);
-  }
+  .omni-search-box input::placeholder { color: var(--color-text-secondary, #999); }
   .omni-search-box kbd {
     padding: 2px 6px;
     font-size: 11px;
@@ -112,11 +104,7 @@ const searchIndex = PAGES_INDEX.map(p => ({
     color: var(--color-text-secondary, #666);
   }
 
-  .omni-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 8px;
-  }
+  .omni-list { flex: 1; overflow-y: auto; padding: 8px; }
 
   .omni-group-label {
     padding: 8px 10px 4px;
@@ -125,6 +113,24 @@ const searchIndex = PAGES_INDEX.map(p => ({
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: var(--color-text-secondary, #888);
+  }
+
+  .omni-fuzzy-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    margin: 4px 0 8px;
+    background: rgba(255, 140, 66, 0.08);
+    border: 1px dashed rgba(255, 140, 66, 0.3);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--color-text-secondary, #666);
+  }
+  .omni-fuzzy-hint .omni-fuzzy-icon { font-size: 16px; }
+  .omni-fuzzy-hint .omni-fuzzy-correction {
+    color: #ff8c42;
+    font-weight: 500;
   }
 
   .omni-item {
@@ -140,20 +146,12 @@ const searchIndex = PAGES_INDEX.map(p => ({
     transition: background 0.1s;
   }
   .omni-item:hover { background: var(--color-bg-secondary, #f5f5f5); }
-  .omni-item.active {
-    background: rgba(255,140,66,0.12);
-  }
+  .omni-item.active { background: rgba(255,140,66,0.12); }
   .omni-item.active .omni-title { color: #ff8c42; }
+  .omni-item.fuzzy { opacity: 0.85; }
 
-  .omni-icon {
-    font-size: 18px;
-    width: 24px;
-    text-align: center;
-    flex-shrink: 0;
-  }
-
+  .omni-icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; }
   .omni-info { flex: 1; min-width: 0; }
-
   .omni-title {
     font-size: 14px;
     font-weight: 500;
@@ -161,7 +159,6 @@ const searchIndex = PAGES_INDEX.map(p => ({
     overflow: hidden;
     text-overflow: ellipsis;
   }
-
   .omni-desc {
     font-size: 12px;
     color: var(--color-text-secondary, #888);
@@ -169,7 +166,6 @@ const searchIndex = PAGES_INDEX.map(p => ({
     overflow: hidden;
     text-overflow: ellipsis;
   }
-
   .omni-arrow {
     color: var(--color-text-secondary, #aaa);
     opacity: 0;
@@ -203,10 +199,8 @@ const searchIndex = PAGES_INDEX.map(p => ({
     border-radius: 3px;
   }
 
-  .omni-match {
-    background: rgba(255,140,66,0.25);
-    border-radius: 2px;
-  }
+  .omni-match { background: rgba(255,140,66,0.25); border-radius: 2px; }
+  .omni-fuzzy-match { background: rgba(255,140,66,0.15); border-radius: 2px; text-decoration: underline; text-decoration-style: dotted; }
 
   @media (max-width: 600px) {
     .omni-overlay { padding: 8vh 12px 12px; }
@@ -220,96 +214,236 @@ const searchIndex = PAGES_INDEX.map(p => ({
 
   const input = document.getElementById('omni-input') as HTMLInputElement;
   const list = document.getElementById('omni-list')!;
-  const pages = JSON.parse(overlay.dataset.pages || '[]');
+  const pages: any[] = JSON.parse(overlay.dataset.pages || '[]');
 
   let activeIdx = 0;
-  let filtered = pages;
 
-  // Simple fuzzy search: all query tokens must appear in searchable text
-  function fuzzyMatch(text: string, query: string): boolean {
-    if (!query) return true;
-    const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
-    return tokens.every(t => text.includes(t));
+  // ============================================
+  // TYPO-TOLERANT FUZZY SEARCH
+  // ============================================
+
+  // Simple Levenshtein distance (edit distance)
+  function editDist(a: string, b: string): number {
+    if (a === b) return 0;
+    if (a.length === 0) return b.length;
+    if (b.length === 0) return a.length;
+    if (Math.abs(a.length - b.length) > 3) return 99; // Skip if too different
+
+    const matrix: number[][] = [];
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+
+    for (let i = 1; i <= b.length; i++) {
+      for (let j = 1; j <= a.length; j++) {
+        matrix[i][j] = b[i-1] === a[j-1]
+          ? matrix[i-1][j-1]
+          : Math.min(matrix[i-1][j-1], matrix[i][j-1], matrix[i-1][j]) + 1;
+      }
+    }
+    return matrix[b.length][a.length];
   }
 
-  function search(query: string) {
+  // Find best matching word for a token, returns { word, score, isTypo }
+  function findBestMatch(token: string, words: string[]): { word: string; score: number; isTypo: boolean } | null {
+    if (token.length < 2) return null;
+
+    let best: { word: string; score: number; isTypo: boolean } | null = null;
+
+    for (const word of words) {
+      if (word.length < 2) continue;
+
+      // Exact containment (score: 1.0)
+      if (word.includes(token)) {
+        if (!best || best.score < 1.0) best = { word, score: 1.0, isTypo: false };
+        continue;
+      }
+      if (token.includes(word) && word.length >= 3) {
+        if (!best || best.score < 0.95) best = { word, score: 0.95, isTypo: false };
+        continue;
+      }
+
+      // Starts with (score: 0.9)
+      if (word.startsWith(token) || token.startsWith(word)) {
+        if (!best || best.score < 0.9) best = { word, score: 0.9, isTypo: false };
+        continue;
+      }
+
+      // Edit distance for typo tolerance (score: 0.5-0.7)
+      const dist = editDist(token, word);
+      const maxLen = Math.max(token.length, word.length);
+      const threshold = maxLen <= 4 ? 1 : maxLen <= 7 ? 2 : 3;
+
+      if (dist <= threshold) {
+        const score = 0.7 - (dist * 0.1);
+        if (!best || best.score < score) best = { word, score, isTypo: true };
+      }
+    }
+
+    return best;
+  }
+
+  interface SearchResult {
+    page: any;
+    score: number;
+    isTypo: boolean;
+    corrections: { from: string; to: string }[];
+  }
+
+  function search(query: string): { exact: SearchResult[]; fuzzy: SearchResult[]; corrections: Map<string, string> } {
     const q = query.trim().toLowerCase();
-    if (!q) return pages;
+    if (!q) return { exact: pages.map(p => ({ page: p, score: 1, isTypo: false, corrections: [] })), fuzzy: [], corrections: new Map() };
 
-    return pages.filter((p: any) => fuzzyMatch(p._search, q)).sort((a: any, b: any) => {
-      const aTitle = a.title.toLowerCase();
-      const bTitle = b.title.toLowerCase();
-      // Exact title match first
-      if (aTitle === q && bTitle !== q) return -1;
-      if (bTitle === q && aTitle !== q) return 1;
-      // Title starts with query
-      if (aTitle.startsWith(q) && !bTitle.startsWith(q)) return -1;
-      if (bTitle.startsWith(q) && !aTitle.startsWith(q)) return 1;
-      // Title contains query
-      if (aTitle.includes(q) && !bTitle.includes(q)) return -1;
-      if (bTitle.includes(q) && !aTitle.includes(q)) return 1;
-      return 0;
-    });
+    const tokens = q.split(/\s+/).filter(t => t.length >= 2);
+    if (tokens.length === 0) return { exact: pages, fuzzy: [], corrections: new Map() };
+
+    const exact: SearchResult[] = [];
+    const fuzzy: SearchResult[] = [];
+    const allCorrections = new Map<string, string>();
+
+    for (const page of pages) {
+      let totalScore = 0;
+      let isTypo = false;
+      const corrections: { from: string; to: string }[] = [];
+
+      for (const token of tokens) {
+        // First try exact match in full search text
+        if (page._search.includes(token)) {
+          totalScore += 1.0;
+          continue;
+        }
+
+        // Try fuzzy match against individual words
+        const match = findBestMatch(token, page._words);
+        if (match) {
+          totalScore += match.score;
+          if (match.isTypo) {
+            isTypo = true;
+            corrections.push({ from: token, to: match.word });
+            allCorrections.set(token, match.word);
+          }
+        }
+      }
+
+      const avgScore = totalScore / tokens.length;
+
+      if (avgScore >= 0.9 && !isTypo) {
+        exact.push({ page, score: avgScore, isTypo: false, corrections: [] });
+      } else if (avgScore >= 0.5) {
+        fuzzy.push({ page, score: avgScore, isTypo, corrections });
+      }
+    }
+
+    // Sort by score
+    exact.sort((a, b) => b.score - a.score);
+    fuzzy.sort((a, b) => b.score - a.score);
+
+    return { exact, fuzzy: fuzzy.slice(0, 5), corrections: allCorrections };
   }
 
-  function highlight(text: string, query: string): string {
-    if (!query) return escHtml(text);
-    const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
-    let result = escHtml(text);
-    tokens.forEach(t => {
-      const re = new RegExp(`(${t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-      result = result.replace(re, '<span class="omni-match">$1</span>');
-    });
-    return result;
-  }
+  // ============================================
+  // RENDERING
+  // ============================================
 
   function escHtml(s: string): string {
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
+  function highlight(text: string, query: string, corrections: Map<string, string>): string {
+    if (!query) return escHtml(text);
+    const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
+    let result = escHtml(text);
+
+    tokens.forEach(t => {
+      const re = new RegExp(`(${t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      result = result.replace(re, '<span class="omni-match">$1</span>');
+
+      // Also highlight corrections
+      const corrected = corrections.get(t);
+      if (corrected) {
+        const reCorr = new RegExp(`(${corrected.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        result = result.replace(reCorr, '<span class="omni-fuzzy-match">$1</span>');
+      }
+    });
+
+    return result;
+  }
+
   function render(query: string) {
-    filtered = search(query);
+    const { exact, fuzzy, corrections } = search(query);
     activeIdx = 0;
 
-    if (filtered.length === 0) {
+    if (exact.length === 0 && fuzzy.length === 0) {
       list.innerHTML = `<div class="omni-empty">No results for "${escHtml(query)}"</div>`;
       return;
     }
 
-    // Group by category
-    const groups: Record<string, any[]> = {};
-    const order = ['main', 'use-cases', 'compare', 'blog', 'docs'];
     const labels: Record<string, string> = {
       main: 'Pages', 'use-cases': 'Use Cases', compare: 'Compare', blog: 'Blog', docs: 'Docs'
     };
-
-    filtered.forEach((p: any) => {
-      if (!groups[p.category]) groups[p.category] = [];
-      groups[p.category].push(p);
-    });
+    const order = ['main', 'use-cases', 'compare', 'blog', 'docs'];
 
     let html = '';
     let idx = 0;
 
-    order.forEach(cat => {
-      if (!groups[cat]) return;
-      html += `<div class="omni-group-label">${labels[cat] || cat}</div>`;
-      groups[cat].forEach((p: any) => {
-        const cls = idx === 0 ? 'omni-item active' : 'omni-item';
-        html += `<a href="${p.path}" class="${cls}" data-idx="${idx}">
-          <span class="omni-icon">${p.icon || '📄'}</span>
-          <div class="omni-info">
-            <div class="omni-title">${highlight(p.title, query)}</div>
-            ${p.description ? `<div class="omni-desc">${highlight(p.description, query)}</div>` : ''}
-          </div>
-          <span class="omni-arrow">→</span>
-        </a>`;
-        idx++;
+    // Render exact matches grouped by category
+    if (exact.length > 0) {
+      const groups: Record<string, SearchResult[]> = {};
+      exact.forEach(r => {
+        if (!groups[r.page.category]) groups[r.page.category] = [];
+        groups[r.page.category].push(r);
       });
-    });
+
+      order.forEach(cat => {
+        if (!groups[cat]) return;
+        html += `<div class="omni-group-label">${labels[cat] || cat}</div>`;
+        groups[cat].forEach(r => {
+          html += renderItem(r.page, idx++, query, corrections, false);
+        });
+      });
+    }
+
+    // Render fuzzy matches with "Did you mean?" hint
+    if (fuzzy.length > 0 && corrections.size > 0) {
+      const correctionText = Array.from(corrections.entries())
+        .map(([from, to]) => `<span class="omni-fuzzy-correction">${to}</span>`)
+        .join(', ');
+
+      html += `
+        <div class="omni-fuzzy-hint">
+          <span class="omni-fuzzy-icon">💡</span>
+          <span>Did you mean ${correctionText}?</span>
+        </div>
+      `;
+
+      fuzzy.forEach(r => {
+        html += renderItem(r.page, idx++, query, corrections, true);
+      });
+    } else if (fuzzy.length > 0 && exact.length === 0) {
+      // Fuzzy results without corrections (partial matches)
+      html += `<div class="omni-group-label">Similar Results</div>`;
+      fuzzy.forEach(r => {
+        html += renderItem(r.page, idx++, query, corrections, true);
+      });
+    }
 
     list.innerHTML = html;
   }
+
+  function renderItem(page: any, idx: number, query: string, corrections: Map<string, string>, isFuzzy: boolean): string {
+    const cls = `omni-item${idx === 0 ? ' active' : ''}${isFuzzy ? ' fuzzy' : ''}`;
+    return `<a href="${page.path}" class="${cls}" data-idx="${idx}">
+      <span class="omni-icon">${page.icon || '📄'}</span>
+      <div class="omni-info">
+        <div class="omni-title">${highlight(page.title, query, corrections)}</div>
+        ${page.description ? `<div class="omni-desc">${highlight(page.description, query, corrections)}</div>` : ''}
+      </div>
+      <span class="omni-arrow">→</span>
+    </a>`;
+  }
+
+  // ============================================
+  // INTERACTIONS
+  // ============================================
 
   function setActive(idx: number) {
     const items = list.querySelectorAll('.omni-item');
@@ -334,10 +468,7 @@ const searchIndex = PAGES_INDEX.map(p => ({
 
   function go() {
     const item = list.querySelectorAll('.omni-item')[activeIdx] as HTMLAnchorElement;
-    if (item?.href) {
-      close();
-      window.location.href = item.href;
-    }
+    if (item?.href) { close(); window.location.href = item.href; }
   }
 
   // Event listeners
@@ -353,17 +484,13 @@ const searchIndex = PAGES_INDEX.map(p => ({
   });
 
   overlay.querySelector('.omni-backdrop')?.addEventListener('click', close);
-
   input.addEventListener('input', () => render(input.value));
-
   input.addEventListener('keydown', e => {
     if (e.key === 'ArrowDown') { e.preventDefault(); setActive(activeIdx + 1); }
     if (e.key === 'ArrowUp') { e.preventDefault(); setActive(activeIdx - 1); }
     if (e.key === 'Enter') { e.preventDefault(); go(); }
   });
-
   list.addEventListener('click', e => {
-    const item = (e.target as HTMLElement).closest('.omni-item');
-    if (item) close();
+    if ((e.target as HTMLElement).closest('.omni-item')) close();
   });
 </script>
