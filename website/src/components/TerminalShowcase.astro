@@ -2,6 +2,7 @@
 /**
  * TerminalShowcase Component
  * Displays animated terminal window showing example caro commands
+ * with realistic Caro output formatting
  */
 ---
 
@@ -22,9 +23,13 @@
             <span class="prompt">$</span>
             <span class="command">caro "list all files modified today"</span>
           </div>
-          <div class="output">
-            <span class="arrow">→</span>
+          <div class="output-line">
+            <span class="caro-prefix">🐕 Caro:</span>
             <span class="result">find . -type f -mtime 0</span>
+          </div>
+          <div class="safety-line">
+            <span class="safety-check">✓</span>
+            <span class="safety-text">Safe to run on your system</span>
           </div>
         </div>
         <div class="example" data-example="1">
@@ -32,9 +37,13 @@
             <span class="prompt">$</span>
             <span class="command">caro "find large files over 100MB"</span>
           </div>
-          <div class="output">
-            <span class="arrow">→</span>
+          <div class="output-line">
+            <span class="caro-prefix">🐕 Caro:</span>
             <span class="result">find . -type f -size +100M</span>
+          </div>
+          <div class="safety-line">
+            <span class="safety-check">✓</span>
+            <span class="safety-text">Safe to run on your system</span>
           </div>
         </div>
         <div class="example" data-example="2">
@@ -42,19 +51,27 @@
             <span class="prompt">$</span>
             <span class="command">caro "show disk usage by folder"</span>
           </div>
-          <div class="output">
-            <span class="arrow">→</span>
+          <div class="output-line">
+            <span class="caro-prefix">🐕 Caro:</span>
             <span class="result">du -sh */ | sort -rh | head -10</span>
+          </div>
+          <div class="safety-line">
+            <span class="safety-check">✓</span>
+            <span class="safety-text">Safe to run on your system</span>
           </div>
         </div>
         <div class="example" data-example="3">
           <div class="command-line">
             <span class="prompt">$</span>
-            <span class="command">caro "count lines of code in this project"</span>
+            <span class="command">caro "find python files modified last week"</span>
           </div>
-          <div class="output">
-            <span class="arrow">→</span>
-            <span class="result">find . -name '*.rs' -exec wc -l {'{'} + | awk '{'{'}sum+=$1{'}'} END {'{'}print sum{'}'}'</span>
+          <div class="output-line">
+            <span class="caro-prefix">🐕 Caro:</span>
+            <span class="result">find . -name "*.py" -type f -mtime -7</span>
+          </div>
+          <div class="safety-line">
+            <span class="safety-check">✓</span>
+            <span class="safety-text">Safe to run on your system</span>
           </div>
         </div>
       </div>
@@ -115,28 +132,28 @@
   }
 
   .terminal-window {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    background: #1e1e1e;
     border-radius: 12px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
     overflow: hidden;
     width: 100%;
-    max-width: 700px;
-    border: 1px solid rgba(255, 140, 66, 0.1);
+    max-width: 600px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
 
   .terminal-window:hover {
     transform: translateY(-2px);
-    box-shadow: 0 15px 50px rgba(255, 140, 66, 0.2);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
   }
 
   .terminal-header {
-    background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
+    background: #2d2d2d;
     padding: 12px 16px;
     display: flex;
     align-items: center;
     gap: 12px;
-    border-bottom: 1px solid rgba(255, 140, 66, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
 
   .terminal-dots {
@@ -148,7 +165,7 @@
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    opacity: 0.8;
+    opacity: 0.9;
   }
 
   .dot.red {
@@ -166,19 +183,18 @@
   .terminal-title {
     font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
     font-size: 13px;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.5);
     flex: 1;
     text-align: center;
     font-weight: 500;
-    letter-spacing: 0.5px;
   }
 
   .terminal-body {
-    padding: 24px;
+    padding: 20px;
     font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
     font-size: 14px;
-    line-height: 1.8;
-    min-height: 120px;
+    line-height: 1.6;
+    min-height: 110px;
     position: relative;
   }
 
@@ -203,35 +219,55 @@
   }
 
   .command-line {
-    margin-bottom: 8px;
-  }
-
-  .prompt {
-    color: #ff8c42;
-    margin-right: 8px;
-    font-weight: 600;
-  }
-
-  .command {
-    color: #e0e0e0;
-  }
-
-  .output {
-    margin-left: 20px;
+    margin-bottom: 10px;
     display: flex;
     align-items: flex-start;
     gap: 8px;
   }
 
-  .arrow {
-    color: #27c93f;
+  .prompt {
+    color: #4ec9b0;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .command {
+    color: #9cdcfe;
+    word-break: break-word;
+  }
+
+  .output-line {
+    margin-bottom: 6px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .caro-prefix {
+    color: #ff8c42;
     font-weight: 600;
     flex-shrink: 0;
   }
 
   .result {
-    color: #b0b0b0;
-    word-break: break-all;
+    color: #ce9178;
+    word-break: break-word;
+  }
+
+  .safety-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .safety-check {
+    color: #6a9955;
+    font-weight: 600;
+  }
+
+  .safety-text {
+    color: #6a9955;
+    font-size: 13px;
   }
 
   /* Mobile responsiveness */
@@ -248,7 +284,7 @@
     .terminal-body {
       padding: 16px;
       font-size: 12px;
-      min-height: 100px;
+      min-height: 95px;
     }
 
     .terminal-title {
@@ -259,13 +295,18 @@
       width: 10px;
       height: 10px;
     }
+
+    .safety-text {
+      font-size: 11px;
+    }
   }
 
   @media (max-width: 480px) {
     .terminal-body {
-      padding: 12px;
-      font-size: 10px;
-      line-height: 1.6;
+      padding: 14px;
+      font-size: 11px;
+      line-height: 1.5;
+      min-height: 85px;
     }
 
     .terminal-header {
@@ -276,13 +317,8 @@
       font-size: 10px;
     }
 
-    .output {
-      margin-left: 12px;
+    .safety-text {
+      font-size: 10px;
     }
-  }
-
-  /* Dark mode adjustments */
-  :global(.dark) .terminal-window {
-    border-color: rgba(255, 140, 66, 0.15);
   }
 </style>

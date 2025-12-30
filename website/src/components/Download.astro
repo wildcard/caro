@@ -12,7 +12,7 @@ import { SITE_CONFIG } from '../config/site';
       <button class="copy-button" data-command="bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)">Copy</button>
     </div>
 
-    <p style="margin: 20px 0;">Or download pre-built binaries (v{SITE_CONFIG.version}):</p>
+    <p class="binary-intro">Or download pre-built binaries (v{SITE_CONFIG.version}):</p>
 
     <div class="download-options">
       <a href={`${SITE_CONFIG.downloads.baseUrl}/v${SITE_CONFIG.version}/caro-${SITE_CONFIG.version}-macos-silicon`} class="download-link">macOS (Apple Silicon)</a>
@@ -107,6 +107,11 @@ import { SITE_CONFIG } from '../config/site';
 
   .copy-button:hover {
     background: rgba(255, 255, 255, 0.3);
+  }
+
+  .binary-intro {
+    margin: 20px 0;
+    text-align: center;
   }
 
   .download-options {
@@ -254,6 +259,134 @@ import { SITE_CONFIG } from '../config/site';
     font-size: 0.9em;
     color: rgba(255, 255, 255, 0.95);
     white-space: nowrap;
+  }
+
+  /* Tablet breakpoint */
+  @media (max-width: 768px) {
+    .download-section h2 {
+      font-size: 28px;
+    }
+
+    .usage-modes h3 {
+      font-size: 24px;
+    }
+
+    .install-command {
+      padding: 16px 20px;
+      font-size: 14px;
+    }
+
+    .mode-card {
+      padding: 20px;
+    }
+
+    .mode-card h4 {
+      font-size: 18px;
+    }
+  }
+
+  /* Mobile breakpoint */
+  @media (max-width: 600px) {
+    .download-section {
+      text-align: left;
+    }
+
+    .download-section h2,
+    .usage-modes h3,
+    .quick-start h3 {
+      text-align: center;
+    }
+
+    .section-subtitle {
+      text-align: center;
+    }
+
+    .install-command {
+      flex-direction: column;
+      gap: 12px;
+      text-align: left;
+      padding: 16px;
+      max-width: 100%;
+    }
+
+    .install-command code {
+      font-size: 12px;
+      word-break: break-all;
+      line-height: 1.4;
+    }
+
+    .copy-button {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 15px;
+    }
+
+    .download-options {
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 30px;
+    }
+
+    .download-link {
+      width: 100%;
+      text-align: center;
+      padding: 14px 20px;
+    }
+
+    .modes-grid {
+      gap: 16px;
+    }
+
+    .mode-card {
+      padding: 16px;
+    }
+
+    .mode-card h4 {
+      font-size: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mode-card p {
+      font-size: 14px;
+    }
+
+    .quick-start {
+      max-width: 100%;
+      padding: 0;
+    }
+
+    .quick-start-steps {
+      font-size: 14px;
+    }
+
+    .usage-modes {
+      margin-top: 40px;
+      padding-top: 30px;
+    }
+
+    .coming-soon,
+    .available-now {
+      font-size: 11px;
+      padding: 2px 6px;
+    }
+  }
+
+  /* Small mobile */
+  @media (max-width: 360px) {
+    .download-section h2 {
+      font-size: 24px;
+    }
+
+    .install-command code {
+      font-size: 11px;
+    }
+
+    .mode-card {
+      padding: 14px;
+    }
   }
 </style>
 
