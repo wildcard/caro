@@ -208,6 +208,9 @@ cmdai-validation/
 # Spec-Kitty dashboard runtime
 .kittify/.dashboard
 
+# Git worktrees (local development, not shared)
+.worktrees/
+
 # Continuous-Claude session continuity
 # Ledgers are OPTIONAL to track (uncomment if you want to share session state)
 # thoughts/ledgers/CONTINUITY_CLAUDE-*.md
