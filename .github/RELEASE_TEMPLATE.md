@@ -1,7 +1,3 @@
-## What's Changed
-
-<!-- Auto-generated changelog will be inserted here -->
-
 ## Installation
 
 ### Pre-built Binaries
