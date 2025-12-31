@@ -402,7 +402,7 @@ async fn test_help_and_version_commands() {
     );
 
     // Test version equivalent
-    let version_result = cli.show_version().await;
+    let version_result = cli.show_version(false).await;
     assert!(version_result.is_ok(), "Version should work");
     assert!(
         !version_result.unwrap().is_empty(),
