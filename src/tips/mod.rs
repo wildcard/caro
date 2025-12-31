@@ -47,11 +47,18 @@
 
 pub mod config;
 pub mod engine;
+pub mod kb;
 pub mod shell;
 pub mod suggestions;
 
 // Re-export shell types
 pub use shell::{Alias, AliasParser, AliasSource, PluginDetector, PluginManager, ShellIntelligence, TipsShellType};
+
+// Re-export knowledge base types
+pub use kb::{
+    Cheatsheet, KbAlias, KbCache, KbCacheError, KbMatcher, KbPlugin, KbProcessor, KbTip,
+    KbTipCategory, KnowledgeBase, MatchResult, ProcessorError,
+};
 
 // Re-export config types
 pub use config::{TipCategories, TipFrequency, TipsConfig};

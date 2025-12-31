@@ -63,6 +63,9 @@ once_cell = "1.19"
 # Cryptography for checksums
 sha2 = "0.10"
 
+# MessagePack serialization for knowledge base
+rmp-serde = "1.3"
+
 # Async trait support
 async-trait = "0.1"
 futures = "0.3"
