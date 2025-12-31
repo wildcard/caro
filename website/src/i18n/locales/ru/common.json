@@ -1,0 +1,20 @@
+{
+  "common": {
+    "buttons": {
+      "copy": "Копировать",
+      "copied": "Скопировано!",
+      "getStarted": "Начать работу",
+      "watchDemo": "Смотреть демо"
+    },
+    "status": {
+      "availableNow": "Доступно сейчас",
+      "inDevelopment": "В разработке",
+      "planned": "Запланировано",
+      "comingSoon": "Скоро появится"
+    },
+    "aria": {
+      "toggleDarkMode": "Переключить тёмную тему",
+      "toggleHolidayTheme": "Открыть меню праздничных тем"
+    }
+  }
+}

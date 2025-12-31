@@ -1,0 +1,20 @@
+{
+  "common": {
+    "buttons": {
+      "copy": "Salin",
+      "copied": "Tersalin!",
+      "getStarted": "Mulai",
+      "watchDemo": "Lihat Demo"
+    },
+    "status": {
+      "availableNow": "Tersedia Sekarang",
+      "inDevelopment": "Dalam Pengembangan",
+      "planned": "Direncanakan",
+      "comingSoon": "Segera Hadir"
+    },
+    "aria": {
+      "toggleDarkMode": "Ubah mode gelap",
+      "toggleHolidayTheme": "Ubah menu tema liburan"
+    }
+  }
+}

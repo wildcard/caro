@@ -1,0 +1,20 @@
+{
+  "common": {
+    "buttons": {
+      "copy": "نسخ",
+      "copied": "تم النسخ!",
+      "getStarted": "ابدأ الآن",
+      "watchDemo": "شاهد العرض التوضيحي"
+    },
+    "status": {
+      "availableNow": "متاح الآن",
+      "inDevelopment": "قيد التطوير",
+      "planned": "مخطط له",
+      "comingSoon": "قريباً"
+    },
+    "aria": {
+      "toggleDarkMode": "تبديل الوضع الليلي",
+      "toggleHolidayTheme": "تبديل قائمة المظهر الاحتفالي"
+    }
+  }
+}

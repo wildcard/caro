@@ -1,0 +1,20 @@
+{
+  "common": {
+    "buttons": {
+      "copy": "Скопіювати",
+      "copied": "Скопійовано!",
+      "getStarted": "Почати",
+      "watchDemo": "Дивитись Demo"
+    },
+    "status": {
+      "availableNow": "Доступно зараз",
+      "inDevelopment": "В розробці",
+      "planned": "Заплановано",
+      "comingSoon": "Скоро"
+    },
+    "aria": {
+      "toggleDarkMode": "Переключити темний режим",
+      "toggleHolidayTheme": "Відкрити меню святкових тем"
+    }
+  }
+}
