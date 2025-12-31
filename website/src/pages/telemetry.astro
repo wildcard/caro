@@ -1,0 +1,665 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout
+  title="Telemetry & Privacy Policy - Caro"
+  description="Learn about Caro's privacy-first approach to telemetry. Understand what data we collect during beta, why, and how you can opt out."
+>
+  <Navigation />
+
+  <main class="telemetry-page">
+    <div class="container">
+      <header class="page-header">
+        <h1>Telemetry & Privacy</h1>
+        <p class="subtitle">Privacy-first by design. Transparent by choice.</p>
+      </header>
+
+      <section class="tldr-section">
+        <h2>TL;DR</h2>
+        <div class="tldr-grid">
+          <div class="tldr-card beta">
+            <div class="phase-badge">Beta (Current)</div>
+            <h3>Opt-Out</h3>
+            <p>Telemetry is <strong>enabled by default</strong> to help us improve the product. You can easily disable it.</p>
+            <code>caro config set telemetry.enabled false</code>
+          </div>
+          <div class="tldr-card ga">
+            <div class="phase-badge">General Availability</div>
+            <h3>Opt-In</h3>
+            <p>Telemetry will be <strong>disabled by default</strong>. We'll ask if you'd like to help by enabling it.</p>
+            <code>caro config set telemetry.enabled true</code>
+          </div>
+        </div>
+      </section>
+
+      <section class="why-section">
+        <h2>Why We Collect Telemetry</h2>
+        <p>We're building Caro to be the best AI shell assistant. During beta, anonymous usage data helps us:</p>
+        <ul class="benefits-list">
+          <li>
+            <span class="icon">📊</span>
+            <div>
+              <strong>Understand real-world usage</strong>
+              <p>Which commands are generated most? Which backends perform best? Where do users struggle?</p>
+            </div>
+          </li>
+          <li>
+            <span class="icon">🎯</span>
+            <div>
+              <strong>Prioritize our roadmap</strong>
+              <p>Focus engineering effort on features people actually use, not what we assume they want.</p>
+            </div>
+          </li>
+          <li>
+            <span class="icon">⚡</span>
+            <div>
+              <strong>Optimize performance</strong>
+              <p>Identify slow inference, errors, and bottlenecks across different platforms.</p>
+            </div>
+          </li>
+          <li>
+            <span class="icon">🛡️</span>
+            <div>
+              <strong>Calibrate safety</strong>
+              <p>Are we blocking too many safe commands? Missing dangerous ones? Data helps us tune.</p>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <section class="what-section">
+        <h2>What We Collect</h2>
+        <div class="collection-grid">
+          <div class="collect-card yes">
+            <h3>✓ What We Collect</h3>
+            <ul>
+              <li>Session timing (duration, commands generated/executed)</li>
+              <li>Performance metrics (inference time, backend used)</li>
+              <li>Platform info (OS, architecture, shell type)</li>
+              <li>Error categories (not details or stack traces)</li>
+              <li>Safety validation events (risk level, action taken)</li>
+              <li>Anonymous session ID (rotates daily)</li>
+            </ul>
+          </div>
+          <div class="collect-card no">
+            <h3>✗ What We NEVER Collect</h3>
+            <ul>
+              <li>Your commands or natural language inputs</li>
+              <li>File paths or directory structures</li>
+              <li>Environment variables or secrets</li>
+              <li>Hostnames, IPs, or usernames</li>
+              <li>Any personally identifiable information</li>
+              <li>Command output or execution results</li>
+            </ul>
+          </div>
+        </div>
+        <p class="verification">
+          <strong>Don't trust, verify:</strong> Caro is <a href="https://github.com/wildcard/caro">open source (AGPL-3.0)</a>.
+          Check the telemetry code yourself in <code>src/telemetry/</code>.
+        </p>
+      </section>
+
+      <section class="controls-section">
+        <h2>Your Controls</h2>
+        <div class="controls-grid">
+          <div class="control-card">
+            <h4>Disable Telemetry</h4>
+            <code>caro config set telemetry.enabled false</code>
+            <p>Permanently disable all telemetry collection.</p>
+          </div>
+          <div class="control-card">
+            <h4>Single Session</h4>
+            <code>caro --no-telemetry "your command"</code>
+            <p>Disable for just this invocation.</p>
+          </div>
+          <div class="control-card">
+            <h4>Environment Variable</h4>
+            <code>export CARO_TELEMETRY_ENABLED=false</code>
+            <p>Disable via environment (great for CI/CD).</p>
+          </div>
+          <div class="control-card">
+            <h4>View What's Collected</h4>
+            <code>caro telemetry show</code>
+            <p>See exactly what data is queued before sending.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="airgap-section">
+        <h2>Air-Gapped Environments</h2>
+        <p>
+          We understand many users work in environments without network access.
+          Caro works perfectly offline—that's a core feature.
+        </p>
+        <div class="airgap-options">
+          <div class="option">
+            <h4>Option 1: Disable Telemetry</h4>
+            <p>Simply disable telemetry and use Caro normally. No data is collected or stored.</p>
+            <code>caro config set telemetry.enabled false</code>
+          </div>
+          <div class="option">
+            <h4>Option 2: Air-Gapped Mode (Coming Soon)</h4>
+            <p>
+              Enable air-gapped mode to collect telemetry locally. When you're ready,
+              export the data and share it with us through our secure portal.
+            </p>
+            <code>caro config set telemetry.air_gapped true</code>
+            <code>caro telemetry export -o telemetry-data.json</code>
+            <p class="future-note">
+              <em>Manual export/upload workflow planned for future release.</em>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="commitment-section">
+        <h2>Our Commitment</h2>
+        <div class="commitment-list">
+          <div class="commitment">
+            <span class="number">1</span>
+            <div>
+              <h4>Transparency</h4>
+              <p>This page documents exactly what we collect. The code is open source for verification.</p>
+            </div>
+          </div>
+          <div class="commitment">
+            <span class="number">2</span>
+            <div>
+              <h4>Privacy-First</h4>
+              <p>We collect metadata, not content. Your commands and data never leave your machine.</p>
+            </div>
+          </div>
+          <div class="commitment">
+            <span class="number">3</span>
+            <div>
+              <h4>Respect</h4>
+              <p>If you disable telemetry, we respect that completely. No nagging, no degraded features.</p>
+            </div>
+          </div>
+          <div class="commitment">
+            <span class="number">4</span>
+            <div>
+              <h4>Evolution</h4>
+              <p>After beta, telemetry becomes opt-in. We'll ask nicely, but the default is off.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="faq-section">
+        <h2>Frequently Asked Questions</h2>
+
+        <details>
+          <summary>Why is telemetry on by default during beta?</summary>
+          <p>
+            Beta is specifically for gathering feedback to improve the product before general availability.
+            Anonymous usage data helps us understand how Caro is used in the real world, identify bugs,
+            and prioritize features. This is standard practice for beta software.
+          </p>
+        </details>
+
+        <details>
+          <summary>When will telemetry become opt-in?</summary>
+          <p>
+            At general availability (GA) release, telemetry will be disabled by default.
+            We'll prompt new users to optionally enable it, explaining the value exchange:
+            you help us improve the product, we make Caro better for everyone.
+          </p>
+        </details>
+
+        <details>
+          <summary>Can you identify me from the telemetry data?</summary>
+          <p>
+            No. We use an anonymous session ID that's generated from a hash of your machine ID
+            plus the current date. This means: (1) we can't identify who you are, and (2) the ID
+            rotates daily, so we can't even track the same anonymous user across days.
+          </p>
+        </details>
+
+        <details>
+          <summary>What happens to my data?</summary>
+          <p>
+            Telemetry is processed by <a href="https://posthog.com">PostHog</a>, a privacy-focused
+            analytics platform. Data is used only for product analytics and is retained for 90 days
+            (raw events) or 2 years (aggregated metrics). You can request deletion by contacting us.
+          </p>
+        </details>
+
+        <details>
+          <summary>Does disabling telemetry affect functionality?</summary>
+          <p>
+            No. Caro works identically with or without telemetry. All features, all backends,
+            full performance. We believe in earning telemetry through value, not coercing it
+            through feature gates.
+          </p>
+        </details>
+
+        <details>
+          <summary>I work in a regulated environment. Can I still use Caro?</summary>
+          <p>
+            Yes! Disable telemetry and use Caro with complete confidence. Nothing is sent anywhere.
+            All inference happens locally. You can audit the source code—it's AGPL-3.0 licensed.
+          </p>
+        </details>
+      </section>
+
+      <section class="cta-section">
+        <h2>Questions?</h2>
+        <p>
+          We're committed to being transparent about telemetry. If you have questions, concerns,
+          or suggestions about our approach, please reach out.
+        </p>
+        <div class="cta-buttons">
+          <a href="https://github.com/wildcard/caro/issues" class="cta-button">Open an Issue</a>
+          <a href="https://github.com/wildcard/caro/discussions" class="cta-button secondary">Join Discussion</a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .telemetry-page {
+    padding: 100px 20px 60px;
+    min-height: 100vh;
+    background: var(--color-bg);
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: 60px;
+  }
+
+  .page-header h1 {
+    font-size: 48px;
+    margin-bottom: 16px;
+    color: var(--color-text);
+  }
+
+  .page-header .subtitle {
+    font-size: 20px;
+    color: var(--color-text-secondary);
+  }
+
+  section {
+    margin-bottom: 60px;
+  }
+
+  section h2 {
+    font-size: 28px;
+    margin-bottom: 24px;
+    color: var(--color-text);
+  }
+
+  /* TL;DR Section */
+  .tldr-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .tldr-card {
+    padding: 24px;
+    border-radius: 12px;
+    border: 2px solid var(--color-border);
+  }
+
+  .tldr-card.beta {
+    border-color: #f39c12;
+    background: rgba(243, 156, 18, 0.05);
+  }
+
+  .tldr-card.ga {
+    border-color: #27ae60;
+    background: rgba(39, 174, 96, 0.05);
+  }
+
+  .phase-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .tldr-card.beta .phase-badge {
+    background: #f39c12;
+    color: white;
+  }
+
+  .tldr-card.ga .phase-badge {
+    background: #27ae60;
+    color: white;
+  }
+
+  .tldr-card h3 {
+    font-size: 24px;
+    margin-bottom: 8px;
+    color: var(--color-text);
+  }
+
+  .tldr-card code {
+    display: block;
+    margin-top: 16px;
+    padding: 12px;
+    background: var(--color-bg-secondary);
+    border-radius: 6px;
+    font-size: 14px;
+    color: var(--color-text);
+  }
+
+  /* Benefits List */
+  .benefits-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .benefits-list li {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 20px;
+    background: var(--color-bg-secondary);
+    border-radius: 12px;
+  }
+
+  .benefits-list .icon {
+    font-size: 32px;
+    flex-shrink: 0;
+  }
+
+  .benefits-list strong {
+    display: block;
+    font-size: 18px;
+    margin-bottom: 4px;
+    color: var(--color-text);
+  }
+
+  .benefits-list p {
+    margin: 0;
+    color: var(--color-text-secondary);
+  }
+
+  /* Collection Grid */
+  .collection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .collect-card {
+    padding: 24px;
+    border-radius: 12px;
+  }
+
+  .collect-card.yes {
+    background: rgba(39, 174, 96, 0.1);
+    border: 1px solid rgba(39, 174, 96, 0.3);
+  }
+
+  .collect-card.no {
+    background: rgba(231, 76, 60, 0.1);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+  }
+
+  .collect-card h3 {
+    font-size: 18px;
+    margin-bottom: 16px;
+    color: var(--color-text);
+  }
+
+  .collect-card ul {
+    margin: 0;
+    padding-left: 20px;
+    color: var(--color-text-secondary);
+  }
+
+  .collect-card li {
+    margin-bottom: 8px;
+  }
+
+  .verification {
+    padding: 16px;
+    background: var(--color-bg-secondary);
+    border-radius: 8px;
+    color: var(--color-text-secondary);
+  }
+
+  .verification code {
+    background: var(--color-bg-tertiary);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  /* Controls Grid */
+  .controls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+  }
+
+  .control-card {
+    padding: 20px;
+    background: var(--color-bg-secondary);
+    border-radius: 12px;
+  }
+
+  .control-card h4 {
+    font-size: 16px;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  .control-card code {
+    display: block;
+    padding: 10px;
+    background: var(--color-bg);
+    border-radius: 6px;
+    font-size: 13px;
+    margin-bottom: 8px;
+    color: #e74c3c;
+  }
+
+  .control-card p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  /* Air-gapped Section */
+  .airgap-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .airgap-options .option {
+    padding: 24px;
+    background: var(--color-bg-secondary);
+    border-radius: 12px;
+  }
+
+  .airgap-options h4 {
+    font-size: 18px;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  .airgap-options code {
+    display: block;
+    padding: 10px;
+    background: var(--color-bg);
+    border-radius: 6px;
+    font-size: 13px;
+    margin: 12px 0;
+    color: var(--color-text);
+  }
+
+  .future-note {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    padding: 8px 12px;
+    background: rgba(243, 156, 18, 0.1);
+    border-radius: 6px;
+  }
+
+  /* Commitment Section */
+  .commitment-list {
+    display: grid;
+    gap: 16px;
+  }
+
+  .commitment {
+    display: flex;
+    gap: 20px;
+    padding: 24px;
+    background: var(--color-bg-secondary);
+    border-radius: 12px;
+    align-items: flex-start;
+  }
+
+  .commitment .number {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #3498db;
+    color: white;
+    border-radius: 50%;
+    font-weight: bold;
+    flex-shrink: 0;
+  }
+
+  .commitment h4 {
+    font-size: 18px;
+    margin-bottom: 4px;
+    color: var(--color-text);
+  }
+
+  .commitment p {
+    margin: 0;
+    color: var(--color-text-secondary);
+  }
+
+  /* FAQ Section */
+  .faq-section details {
+    margin-bottom: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .faq-section summary {
+    padding: 16px 20px;
+    cursor: pointer;
+    font-weight: 600;
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+  }
+
+  .faq-section summary:hover {
+    background: var(--color-bg-tertiary);
+  }
+
+  .faq-section details[open] summary {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .faq-section details p {
+    padding: 16px 20px;
+    margin: 0;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+  }
+
+  /* CTA Section */
+  .cta-section {
+    text-align: center;
+    padding: 40px;
+    background: var(--color-bg-secondary);
+    border-radius: 16px;
+  }
+
+  .cta-section h2 {
+    margin-bottom: 12px;
+  }
+
+  .cta-section > p {
+    color: var(--color-text-secondary);
+    margin-bottom: 24px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .cta-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .cta-button {
+    display: inline-block;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    background: #3498db;
+    color: white;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+  }
+
+  .cta-button.secondary {
+    background: transparent;
+    border: 2px solid var(--color-border);
+    color: var(--color-text);
+  }
+
+  .cta-button.secondary:hover {
+    border-color: #3498db;
+    color: #3498db;
+  }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    .page-header h1 {
+      font-size: 36px;
+    }
+
+    .tldr-grid,
+    .collection-grid,
+    .controls-grid,
+    .airgap-options {
+      grid-template-columns: 1fr;
+    }
+
+    .benefits-list li {
+      flex-direction: column;
+    }
+
+    .commitment {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+</style>

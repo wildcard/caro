@@ -9,8 +9,9 @@ const features = [
   {
     icon: "🔒",
     title: "Your Data Stays Yours",
-    description: "Zero telemetry. Zero cloud API calls. Run in air-gapped networks. Pass any compliance audit. Your commands never leave your machine.",
-    highlight: true
+    description: "Privacy-first design. No cloud API calls. Run in air-gapped networks. Pass any compliance audit. Your commands never leave your machine.",
+    highlight: true,
+    privacyLink: true
   },
   {
     icon: "✅",
@@ -36,7 +37,7 @@ const features = [
       {features.map((feature) => (
         <div class={`feature ${feature.highlight ? 'feature-highlight' : ''}`}>
           <div class="feature-icon">{feature.icon}</div>
-          <h3>{feature.title}</h3>
+          <h3>{feature.title}{feature.privacyLink && <a href="/telemetry" class="privacy-asterisk">*</a>}</h3>
           <p>{feature.description}</p>
         </div>
       ))}
@@ -144,6 +145,17 @@ const features = [
 
   .cta-link:hover {
     opacity: 0.8;
+  }
+
+  .privacy-asterisk {
+    color: #ff8c42;
+    text-decoration: none;
+    font-size: 0.8em;
+    vertical-align: super;
+  }
+
+  .privacy-asterisk:hover {
+    text-decoration: underline;
   }
 
   @media (max-width: 768px) {

@@ -29,7 +29,7 @@ const testimonials = [
 
 const trustSignals = [
   { icon: "⭐", label: "Open Source", detail: "AGPL-3.0 licensed" },
-  { icon: "🔒", label: "Zero Telemetry", detail: "Verified in source" },
+  { icon: "🔒", label: "Privacy-First", detail: "See our policy", link: "/telemetry" },
   { icon: "🦀", label: "Built with Rust", detail: "Memory-safe, fast" },
   { icon: "📦", label: "Single Binary", detail: "No dependencies" },
 ];
@@ -57,13 +57,23 @@ const trustSignals = [
 
     <div class="trust-signals">
       {trustSignals.map((signal) => (
-        <div class="trust-signal">
-          <span class="signal-icon">{signal.icon}</span>
-          <div class="signal-content">
-            <div class="signal-label">{signal.label}</div>
-            <div class="signal-detail">{signal.detail}</div>
+        signal.link ? (
+          <a href={signal.link} class="trust-signal trust-signal-link">
+            <span class="signal-icon">{signal.icon}</span>
+            <div class="signal-content">
+              <div class="signal-label">{signal.label}</div>
+              <div class="signal-detail">{signal.detail}</div>
+            </div>
+          </a>
+        ) : (
+          <div class="trust-signal">
+            <span class="signal-icon">{signal.icon}</span>
+            <div class="signal-content">
+              <div class="signal-label">{signal.label}</div>
+              <div class="signal-detail">{signal.detail}</div>
+            </div>
           </div>
-        </div>
+        )
       ))}
     </div>
 
@@ -189,6 +199,19 @@ const trustSignals = [
   .signal-detail {
     font-size: 12px;
     color: var(--color-text-secondary);
+  }
+
+  .trust-signal-link {
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .trust-signal-link:hover {
+    border-color: #ff8c42;
+  }
+
+  .trust-signal-link:hover .signal-label {
+    color: #ff8c42;
   }
 
   .github-proof {

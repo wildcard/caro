@@ -27,8 +27,8 @@ const comparisonData: { category: string; icon: string; rows: ComparisonRow[] }[
         values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'amazon-q': 'no', 'opencode': 'partial' }
       },
       {
-        feature: 'Zero telemetry',
-        tooltip: 'No usage data sent anywhere',
+        feature: 'Privacy-first design',
+        tooltip: 'Minimal, anonymous telemetry with easy opt-out',
         values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'amazon-q': 'no', 'opencode': 'yes' }
       },
       {
@@ -149,11 +149,11 @@ function getCellDisplay(value: FeatureValue): { icon: string; class: string; lab
 
     <!-- Quick Summary Cards -->
     <div class="summary-cards">
-      <div class="summary-card highlight">
+      <a href="/telemetry" class="summary-card highlight summary-card-link">
         <span class="summary-icon">🔒</span>
-        <span class="summary-stat">Zero</span>
-        <span class="summary-label">Data Collection</span>
-      </div>
+        <span class="summary-stat">Privacy</span>
+        <span class="summary-label">First Design*</span>
+      </a>
       <div class="summary-card highlight">
         <span class="summary-icon">🛡️</span>
         <span class="summary-stat">52+</span>
@@ -290,6 +290,15 @@ function getCellDisplay(value: FeatureValue): { icon: string; class: string; lab
   .summary-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(255, 140, 66, 0.15);
+  }
+
+  .summary-card-link {
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .summary-card-link:hover .summary-stat {
+    text-decoration: underline;
   }
 
   .summary-icon {
