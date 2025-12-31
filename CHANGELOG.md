@@ -8,6 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Security
+
+## [1.0.3] - 2025-12-31
+
+### Added
+- **Version information display**: Comprehensive version output with build metadata
+  - Basic version: `caro --version` shows `caro 1.0.2 (abc1234 2025-01-15)` (scriptable, single-line)
+  - Verbose version: `caro --version --verbose` shows detailed build information with Caro's personality
+  - Build type detection: Distinguishes between dev builds, source installs, and official releases
+  - Compile-time metadata capture: Git commit hash, build date, rustc version, target platform
 - **Unquoted CLI prompts**: Natural language prompts without quotes (e.g., `caro list files`)
   - Maintains 100% backward compatibility with quoted prompts (e.g., `caro "list files"`)
   - Supports multi-word prompts: `caro find large files in current directory`

@@ -125,20 +125,23 @@ jobs:
         run: |
           # Get auto-generated changelog from GitHub API
           CHANGELOG=$(gh api repos/${{ github.repository }}/releases/generate-notes \
-            -f tag_name="${{ needs.prepare-release.outputs.tag }}" \
-            -f previous_tag_name="$(git describe --tags --abbrev=0 ${{ needs.prepare-release.outputs.tag }}^ 2>/dev/null || echo '')" \
+            -f tag_name="${RELEASE_TAG}" \
+            -f previous_tag_name="$(git describe --tags --abbrev=0 ${RELEASE_TAG}^ 2>/dev/null || echo '')" \
             --jq '.body')
 
-          # Create release notes by combining template with changelog
+          # Replace VERSION placeholder in template
+          sed "s/VERSION/${RELEASE_VERSION}/g" .github/RELEASE_TEMPLATE.md > /tmp/template-with-version.md
+
+          # Create release notes by combining changelog with template
           {
-            echo "## What's Changed"
-            echo ""
             echo "$CHANGELOG"
             echo ""
-            tail -n +3 .github/RELEASE_TEMPLATE.md
+            cat /tmp/template-with-version.md
           } > /tmp/release-notes.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.prepare-release.outputs.tag }}
+          RELEASE_VERSION: ${{ needs.prepare-release.outputs.version }}
 
       - name: Create Release
         if: steps.check_release.outputs.exists != 'true'

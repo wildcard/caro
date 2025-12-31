@@ -1,7 +1,9 @@
+import { CARO_VERSION } from './version';
+
 export const SITE_CONFIG = {
   name: 'Caro',
   tagline: 'Your loyal shell companion',
-  version: '1.0.2',
+  version: CARO_VERSION,
   domain: 'caro.sh',
   github: {
     org: 'wildcard',

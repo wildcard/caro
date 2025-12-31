@@ -27,6 +27,9 @@ pnpm-debug.log*
 # Astro
 .astro/
 
+# Auto-generated version file
+src/config/version.ts
+
 # Storybook
 storybook-static/
 
