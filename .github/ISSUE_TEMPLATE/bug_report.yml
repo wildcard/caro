@@ -72,6 +72,22 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: shell
+    attributes:
+      label: Shell Type
+      description: Which shell are you using? This is critical for reproducing command parsing issues.
+      options:
+        - bash
+        - zsh
+        - fish
+        - sh (POSIX)
+        - PowerShell
+        - cmd.exe
+        - Other (specify in Additional Context)
+    validations:
+      required: true
+
   - type: textarea
     id: description
     attributes:
@@ -103,6 +119,15 @@ body:
     validations:
       required: true
 
+  - type: input
+    id: exact-command
+    attributes:
+      label: Exact Command
+      description: The exact command that triggered the bug (copy-paste from your terminal)
+      placeholder: 'caro "list files"'
+    validations:
+      required: true
+
   - type: textarea
     id: reproduction
     attributes:
@@ -116,6 +141,21 @@ body:
         1.
         2.
         3.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: reproducibility
+    attributes:
+      label: Reproducibility
+      description: How reliably can you reproduce this bug?
+      options:
+        - Every time (100%)
+        - Usually (>75%)
+        - Sometimes (25-75%)
+        - Rarely (<25%)
+        - Only happened once
+        - Haven't retried yet
     validations:
       required: true
 
@@ -170,9 +210,11 @@ body:
       options:
         - label: I have searched existing issues to avoid duplicates
           required: true
-        - label: I am using the latest version of caro (or specified which version has the bug)
+        - label: I have verified this bug still occurs on the latest version (or specified the version where it occurs)
           required: true
-        - label: I have included debug logs (`RUST_LOG=debug` output)
+        - label: I have provided the exact command that triggers the bug
+          required: true
+        - label: I have included debug logs (`RUST_LOG=debug` output) OR explained why they're not available
           required: false
         - label: This is not a security vulnerability (if it is, I will use [private disclosure](https://github.com/wildcard/caro/security/advisories/new))
           required: true

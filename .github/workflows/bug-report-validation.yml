@@ -1,0 +1,252 @@
+name: Bug Report Validation
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  issues: write
+
+jobs:
+  validate-bug-report:
+    runs-on: ubuntu-latest
+    # Only run on bug issues
+    if: contains(github.event.issue.labels.*.name, 'bug')
+
+    steps:
+      - name: Validate bug report completeness
+        uses: actions/github-script@v8
+        with:
+          # SECURITY NOTE: This script uses context.payload.issue.body which is safe
+          # because github-script runs in a sandboxed JavaScript environment.
+          # We do NOT use ${{ github.event.issue.body }} in shell commands.
+          script: |
+            const issue = context.payload.issue;
+            const body = issue.body || '';
+
+            console.log('Validating bug report #' + issue.number);
+
+            // Helper function to extract field values from markdown template
+            function extractField(text, fieldName) {
+              const regex = new RegExp(`### ${fieldName}\\s*\\n\\s*([\\s\\S]*?)(?=\\n###|$)`, 'i');
+              const match = text.match(regex);
+              return match ? match[1].trim() : '';
+            }
+
+            // Parse template fields from issue body
+            const fields = {
+              caroVersion: extractField(body, 'caro Version'),
+              rustVersion: extractField(body, 'Rust Version'),
+              os: extractField(body, 'Operating System'),
+              osVersion: extractField(body, 'OS Version'),
+              backend: extractField(body, 'Backend'),
+              shell: extractField(body, 'Shell Type'),
+              description: extractField(body, 'Bug Description'),
+              expected: extractField(body, 'Expected Behavior'),
+              actual: extractField(body, 'Actual Behavior'),
+              exactCommand: extractField(body, 'Exact Command'),
+              reproduction: extractField(body, 'Steps to Reproduce'),
+              reproducibility: extractField(body, 'Reproducibility'),
+              logs: extractField(body, 'Debug Logs'),
+              config: extractField(body, 'Configuration'),
+              additional: extractField(body, 'Additional Context')
+            };
+
+            // Validation checks
+            const issues = [];
+            const warnings = [];
+
+            // Check required version fields
+            if (!fields.caroVersion || fields.caroVersion.match(/^(v\d|0\.|1\.)/)) {
+              // Empty or has version-like content - OK
+            } else if (fields.caroVersion.toLowerCase().includes('unknown') ||
+                       fields.caroVersion.toLowerCase().includes('n/a') ||
+                       fields.caroVersion.includes('v0.1.0')) {
+              issues.push('**Missing caro version**: Run `caro --version` to get your version');
+            }
+
+            if (!fields.rustVersion || fields.rustVersion.includes('rustc')) {
+              // Empty or has rustc in it - OK
+            } else if (fields.rustVersion.toLowerCase().includes('unknown') ||
+                       fields.rustVersion.toLowerCase().includes('n/a') ||
+                       fields.rustVersion.includes('(2024-01-15)')) {
+              issues.push('**Missing Rust version**: Run `rustc --version` to get your version');
+            }
+
+            // Check exact command is provided and meaningful
+            if (!fields.exactCommand || fields.exactCommand.length < 5) {
+              issues.push('**Missing exact command**: Please provide the exact command that triggered the bug');
+            } else if (fields.exactCommand.toLowerCase() === 'caro' ||
+                       fields.exactCommand.toLowerCase() === 'run caro' ||
+                       fields.exactCommand.includes('"your prompt"') ||
+                       fields.exactCommand.includes('caro "list files"')) {
+              issues.push('**Incomplete command**: Please replace the placeholder with your actual command');
+            }
+
+            // Check reproduction steps are meaningful
+            if (!fields.reproduction || fields.reproduction.trim() === '1.\n2.\n3.') {
+              issues.push('**Missing reproduction steps**: Please fill in the numbered steps with actual actions');
+            } else if (fields.reproduction.length < 30) {
+              warnings.push('Reproduction steps seem very short - please add more detail if possible');
+            }
+
+            // Check expected vs actual are different
+            if (fields.expected && fields.actual) {
+              const expectedLower = fields.expected.toLowerCase().trim();
+              const actualLower = fields.actual.toLowerCase().trim();
+              if (expectedLower === actualLower) {
+                warnings.push('Expected and Actual Behavior are identical - please clarify what the difference is');
+              }
+            }
+
+            // Check for some evidence (logs, config, or additional context)
+            const hasEvidence = (fields.logs && fields.logs.length > 50) ||
+                               (fields.config && fields.config.length > 20) ||
+                               (fields.additional && fields.additional.length > 50);
+
+            if (!hasEvidence) {
+              warnings.push('Consider adding debug logs (`RUST_LOG=debug`), configuration, or additional context to help us investigate');
+            }
+
+            // Determine if report is complete
+            const isComplete = issues.length === 0;
+
+            console.log('Validation result: ' + (isComplete ? 'COMPLETE' : 'INCOMPLETE'));
+            console.log('Issues: ' + issues.length);
+            console.log('Warnings: ' + warnings.length);
+
+            // Get current labels
+            const currentLabels = issue.labels.map(l => l.name);
+            const hasNeedsMoreInfo = currentLabels.includes('awaiting-response');
+
+            if (!isComplete) {
+              // Add awaiting-response label if not already present
+              if (!hasNeedsMoreInfo) {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  labels: ['awaiting-response']
+                });
+                console.log('Added awaiting-response label');
+              }
+
+              // Post feedback comment
+              const comment = createFeedbackComment(issues, warnings, true);
+
+              // Check if we already posted a validation comment
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number
+              });
+
+              const hasValidationComment = comments.some(c =>
+                c.body.includes('## 🔍 Bug Report Validation') &&
+                c.user.login === 'github-actions[bot]'
+              );
+
+              if (!hasValidationComment) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  body: comment
+                });
+                console.log('Posted feedback comment');
+              } else {
+                console.log('Validation comment already exists, skipping');
+              }
+            } else {
+              // Report is complete - remove awaiting-response if present
+              if (hasNeedsMoreInfo) {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  name: 'awaiting-response'
+                }).catch(err => {
+                  console.log('Label removal failed (may not exist): ' + err.message);
+                });
+                console.log('Removed awaiting-response label');
+              }
+
+              // Check if we already thanked the reporter
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number
+              });
+
+              const hasThanksComment = comments.some(c =>
+                c.body.includes('✅ Bug Report Validated') &&
+                c.user.login === 'github-actions[bot]'
+              );
+
+              if (!hasThanksComment) {
+                // Thank the reporter
+                const thankYouComment = '## ✅ Bug Report Validated\n\n' +
+                  'Thank you for providing a complete bug report! This includes all the information we need to investigate.\n\n' +
+                  'A maintainer will review this issue soon. In the meantime:\n' +
+                  '- Check if this is related to any [open issues](https://github.com/wildcard/caro/issues?q=is%3Aissue+is%3Aopen+label%3Abug)\n' +
+                  '- Consider if you can provide additional context (config, environment variables, etc.)\n' +
+                  '- Try the latest `main` branch to see if the issue is already fixed\n\n' +
+                  '*This is an automated validation. Thank you for helping improve caro! 🙏*';
+
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  body: thankYouComment
+                });
+                console.log('Posted thank you comment');
+              } else {
+                console.log('Thank you comment already exists, skipping');
+              }
+            }
+
+            // Helper function to create feedback comment
+            function createFeedbackComment(issuesList, warningsList, isIncomplete) {
+              let comment = '## 🔍 Bug Report Validation\n\n';
+
+              if (isIncomplete) {
+                comment += '**Status**: ⏳ Missing Information\n\n';
+                comment += 'Thank you for reporting this bug! To help us investigate effectively, we need a bit more information:\n\n';
+
+                if (issuesList.length > 0) {
+                  comment += '### Required Information\n\n';
+                  issuesList.forEach(issue => {
+                    comment += '- ' + issue + '\n';
+                  });
+                  comment += '\n';
+                }
+              } else {
+                comment += '**Status**: ℹ️ Suggestions\n\n';
+                comment += 'Your bug report looks good! Here are some optional suggestions to make investigation easier:\n\n';
+              }
+
+              if (warningsList.length > 0) {
+                comment += '### Suggestions\n\n';
+                warningsList.forEach(warning => {
+                  comment += '- ' + warning + '\n';
+                });
+                comment += '\n';
+              }
+
+              if (isIncomplete) {
+                comment += '### How to Update\n\n';
+                comment += '1. Click "Edit" on your original issue description\n';
+                comment += '2. Fill in the missing information\n';
+                comment += '3. Click "Update comment"\n\n';
+                comment += 'The `awaiting-response` label will be automatically removed once all required information is provided.\n\n';
+              }
+
+              comment += '### Need Help?\n\n';
+              comment += 'If you\'re unsure about any of these fields:\n';
+              comment += '- Check our [QA Process Guide](https://github.com/wildcard/caro/blob/main/docs/QA_PROCESS.md)\n';
+              comment += '- Ask in [GitHub Discussions](https://github.com/wildcard/caro/discussions)\n';
+              comment += '- See [example bug reports](https://github.com/wildcard/caro/issues?q=is%3Aissue+label%3Abug+is%3Aclosed)\n\n';
+              comment += '*This is an automated check to ensure we have the information needed for effective QA investigation. Thank you for helping improve caro! 🙏*';
+
+              return comment;
+            }
