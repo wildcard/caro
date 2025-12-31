@@ -183,7 +183,7 @@ POSIX-compliant shell commands...    Generates commands that work on your
                                      coworker's BSD box. First time.
 
 🔒 [NEW] Your Data Stays Yours
-                                     Zero telemetry. Zero cloud API calls.
+                                     Privacy-first design. No cloud API calls.
                                      Run in air-gapped networks.
                                      Pass any compliance audit.
 ```

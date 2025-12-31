@@ -235,7 +235,7 @@ This document outlines a comprehensive landing page expansion strategy for Caro,
 
 **Proof Points:**
 - 100% local inference (verifiable in open source code)
-- Zero telemetry (no analytics, no tracking, no phoning home)
+- Privacy-first design (minimal anonymous telemetry, easy opt-out, see /telemetry)
 - Works in air-gapped networks
 - AGPL-3.0 license for full transparency
 
@@ -251,8 +251,8 @@ This document outlines a comprehensive landing page expansion strategy for Caro,
 **Visual Language:**
 - Lock/vault iconography
 - "Local Only" badges
-- Network diagrams showing no external connections
-- Code snippets proving no telemetry
+- Network diagrams showing minimal external connections
+- Code snippets showing privacy-first design
 
 ---
 
@@ -414,7 +414,7 @@ Phase 3                         ████████████████
 ```
 1. HERO
    - Headline: "Your Commands Never Leave Your Machine"
-   - Subhead: "100% local inference. Zero telemetry. Open source.
+   - Subhead: "100% local inference. Privacy-first design. Open source.
               Verify it yourself."
    - CTA: "View Source Code" | "Download"
    - Visual: Network diagram with crossed-out cloud
@@ -422,7 +422,7 @@ Phase 3                         ████████████████
 2. ARCHITECTURE DIAGRAM
    - Show data flow staying entirely local
    - Highlight: "No external API calls"
-   - Code snippets from source proving no telemetry
+   - Code snippets showing privacy-first design
 
 3. COMPLIANCE CHECKLIST
    - ✅ Works in air-gapped networks
@@ -436,7 +436,7 @@ Phase 3                         ████████████████
    |---------|------|---------|---------|
    | Local processing | ✅ | ❌ | ❌ |
    | Open source | ✅ | ❌ | ❌ |
-   | Zero telemetry | ✅ | ❌ | ❌ |
+   | Privacy-first | ✅ | ❌ | ❌ |
    | Air-gapped support | ✅ | ❌ | ❌ |
 
 5. SECURITY FEATURES
