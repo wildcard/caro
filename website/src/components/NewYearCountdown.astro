@@ -1,13 +1,17 @@
 ---
 // New Year Countdown Component
-// Shows a countdown timer to midnight on New Year's Eve
+// Shows a minimized badge > 5 hours before midnight
+// Shows prominent countdown < 5 hours before midnight
 // Displays celebration message on New Year's Day
 ---
 
 <div id="new-year-countdown" class="countdown-container hidden">
+  <button id="countdown-close" class="close-button" aria-label="Close countdown" title="Close">✕</button>
+  <button id="countdown-minimize" class="minimize-button" aria-label="Minimize countdown" title="Minimize">−</button>
+
   <div class="countdown-content">
-    <div class="countdown-title">🎊 Happy New Year! 🎊</div>
-    <div class="countdown-message">Welcome to 2026!</div>
+    <div class="countdown-title">Happy New Year!</div>
+    <div class="countdown-subtitle">Ring in 2026</div>
     <div class="countdown-timer hidden">
       <div class="time-unit">
         <span class="time-value" id="days">00</span>
@@ -32,24 +36,82 @@
   </div>
 </div>
 
+<!-- Minimized badge (bottom right corner) -->
+<div id="countdown-badge" class="countdown-badge hidden">
+  <div class="badge-content">
+    <span class="badge-icon">🎊</span>
+    <span class="badge-text"><span id="badge-hours">00</span>:<span id="badge-minutes">00</span>:<span id="badge-seconds">00</span></span>
+  </div>
+</div>
+
 <style>
+  /* Main countdown (center modal) */
   .countdown-container {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 10000;
-    background: rgba(0, 0, 0, 0.9);
-    backdrop-filter: blur(10px);
-    border: 2px solid rgba(255, 215, 0, 0.5);
-    border-radius: 20px;
-    padding: 40px 60px;
-    box-shadow: 0 20px 60px rgba(255, 215, 0, 0.3);
-    animation: fadeInScale 0.8s ease-out;
+    background: linear-gradient(135deg, rgba(20, 20, 20, 0.98) 0%, rgba(30, 30, 30, 0.98) 100%);
+    backdrop-filter: blur(20px);
+    border: 2px solid transparent;
+    background-image:
+      linear-gradient(135deg, rgba(20, 20, 20, 0.98) 0%, rgba(30, 30, 30, 0.98) 100%),
+      linear-gradient(135deg, #ffd700 0%, #ff6b35 50%, #4ecdc4 100%);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    border-radius: 24px;
+    padding: 48px 64px;
+    box-shadow:
+      0 25px 50px -12px rgba(0, 0, 0, 0.5),
+      0 0 60px rgba(255, 215, 0, 0.2);
+    animation: fadeInScale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: all 0.3s ease;
   }
 
   .countdown-container.hidden {
     display: none;
+  }
+
+  .countdown-container.minimized {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+    pointer-events: none;
+  }
+
+  /* Close and minimize buttons */
+  .close-button,
+  .minimize-button {
+    position: absolute;
+    top: 16px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+
+  .close-button {
+    right: 16px;
+  }
+
+  .minimize-button {
+    right: 56px;
+  }
+
+  .close-button:hover,
+  .minimize-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    transform: scale(1.1);
   }
 
   .countdown-content {
@@ -58,25 +120,30 @@
   }
 
   .countdown-title {
-    font-size: 48px;
-    font-weight: bold;
-    margin-bottom: 20px;
-    background: linear-gradient(135deg, #ffd700 0%, #ff6b35 50%, #ffd700 100%);
+    font-size: 56px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #ffd700 0%, #ff6b35 50%, #4ecdc4 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    animation: shimmer 3s ease-in-out infinite;
+    background-size: 200% 200%;
+    animation: gradientShift 4s ease infinite;
+    letter-spacing: -1px;
   }
 
-  .countdown-message {
-    font-size: 24px;
-    color: rgba(255, 255, 255, 0.9);
-    margin-bottom: 30px;
+  .countdown-subtitle {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 32px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
   }
 
   .countdown-timer {
     display: flex;
-    gap: 10px;
+    gap: 16px;
     align-items: center;
     justify-content: center;
   }
@@ -89,38 +156,86 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-width: 80px;
+    min-width: 90px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .time-value {
-    font-size: 48px;
-    font-weight: bold;
-    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 56px;
+    font-weight: 700;
+    font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
     background: linear-gradient(135deg, #ffd700 0%, #ff8c42 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    line-height: 1;
   }
 
   .time-label {
-    font-size: 12px;
+    font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    color: rgba(255, 255, 255, 0.7);
-    margin-top: 5px;
+    letter-spacing: 1.5px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 8px;
+    font-weight: 600;
   }
 
   .time-separator {
-    font-size: 40px;
-    color: rgba(255, 215, 0, 0.8);
-    font-weight: bold;
-    margin: 0 5px;
+    font-size: 48px;
+    color: rgba(255, 215, 0, 0.6);
+    font-weight: 300;
+    margin: 0 8px;
   }
 
+  /* Minimized badge (bottom right) */
+  .countdown-badge {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    background: linear-gradient(135deg, #ffd700 0%, #ff6b35 50%, #4ecdc4 100%);
+    border-radius: 50px;
+    padding: 12px 20px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    animation: slideInBadge 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .countdown-badge.hidden {
+    display: none;
+  }
+
+  .countdown-badge:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 12px 32px rgba(255, 215, 0, 0.4);
+  }
+
+  .badge-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: white;
+  }
+
+  .badge-icon {
+    font-size: 20px;
+  }
+
+  .badge-text {
+    font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  /* Animations */
   @keyframes fadeInScale {
     0% {
       opacity: 0;
-      transform: translate(-50%, -50%) scale(0.8);
+      transform: translate(-50%, -50%) scale(0.9);
     }
     100% {
       opacity: 1;
@@ -128,7 +243,18 @@
     }
   }
 
-  @keyframes shimmer {
+  @keyframes slideInBadge {
+    0% {
+      opacity: 0;
+      transform: translateX(100px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes gradientShift {
     0%, 100% {
       background-position: 0% 50%;
     }
@@ -137,66 +263,90 @@
     }
   }
 
+  /* Mobile responsive */
   @media (max-width: 768px) {
     .countdown-container {
-      padding: 30px 40px;
+      padding: 36px 32px;
       max-width: 90%;
     }
 
     .countdown-title {
-      font-size: 32px;
+      font-size: 40px;
     }
 
-    .countdown-message {
-      font-size: 18px;
+    .countdown-subtitle {
+      font-size: 16px;
     }
 
     .time-unit {
-      min-width: 60px;
+      min-width: 70px;
+      padding: 12px;
     }
 
     .time-value {
-      font-size: 36px;
+      font-size: 42px;
     }
 
     .time-separator {
-      font-size: 30px;
+      font-size: 36px;
+    }
+
+    .countdown-badge {
+      bottom: 16px;
+      right: 16px;
     }
   }
 
   @media (max-width: 480px) {
     .countdown-container {
-      padding: 20px 30px;
+      padding: 24px 20px;
     }
 
     .countdown-title {
-      font-size: 24px;
-    }
-
-    .countdown-message {
-      font-size: 16px;
-      margin-bottom: 20px;
-    }
-
-    .countdown-timer {
-      gap: 5px;
-    }
-
-    .time-unit {
-      min-width: 50px;
-    }
-
-    .time-value {
       font-size: 28px;
     }
 
+    .countdown-subtitle {
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .countdown-timer {
+      gap: 8px;
+    }
+
+    .time-unit {
+      min-width: 60px;
+      padding: 8px;
+    }
+
+    .time-value {
+      font-size: 32px;
+    }
+
     .time-label {
-      font-size: 10px;
+      font-size: 9px;
     }
 
     .time-separator {
-      font-size: 24px;
-      margin: 0 2px;
+      font-size: 28px;
+      margin: 0 4px;
+    }
+
+    .badge-text {
+      font-size: 14px;
+    }
+  }
+
+  /* Reduce motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    .countdown-container,
+    .countdown-badge {
+      animation: none;
+    }
+
+    .countdown-title {
+      animation: none;
     }
   }
 </style>
@@ -205,23 +355,55 @@
   // New Year Countdown Logic
   class NewYearCountdown {
     private container: HTMLElement | null;
+    private badge: HTMLElement | null;
     private timer: HTMLElement | null;
     private title: HTMLElement | null;
-    private message: HTMLElement | null;
+    private subtitle: HTMLElement | null;
+    private closeButton: HTMLElement | null;
+    private minimizeButton: HTMLElement | null;
     private intervalId: number | null = null;
+    private isMinimized: boolean = false;
+    private isClosed: boolean = false;
+
+    private readonly URGENT_THRESHOLD_HOURS = 5; // Show prominent countdown when < 5 hours left
+    private readonly AUTO_MINIMIZE_DELAY = 8000; // Auto-minimize after 8 seconds
 
     constructor() {
       this.container = document.getElementById('new-year-countdown');
+      this.badge = document.getElementById('countdown-badge');
       this.timer = this.container?.querySelector('.countdown-timer') || null;
       this.title = this.container?.querySelector('.countdown-title') || null;
-      this.message = this.container?.querySelector('.countdown-message') || null;
+      this.subtitle = this.container?.querySelector('.countdown-subtitle') || null;
+      this.closeButton = document.getElementById('countdown-close');
+      this.minimizeButton = document.getElementById('countdown-minimize');
 
       this.init();
+      this.setupEventListeners();
     }
 
     private init(): void {
-      // Check if we should show countdown
-      const now = new Date();
+      // Check if effects are disabled
+      const effectsDisabled = localStorage.getItem('effectsDisabled') === 'true';
+      if (effectsDisabled) {
+        return;
+      }
+
+      // Check if user closed it
+      const closedToday = localStorage.getItem('countdownClosedDate');
+      const today = new Date().toDateString();
+      if (closedToday === today) {
+        this.isClosed = true;
+        return;
+      }
+
+      let now = new Date();
+
+      // Support test date override (localhost only)
+      if ((window as any).__CARO_TEST_DATE) {
+        now = new Date((window as any).__CARO_TEST_DATE);
+        console.log('🧪 Countdown using test date:', now.toDateString());
+      }
+
       const month = now.getMonth();
       const day = now.getDate();
 
@@ -235,37 +417,107 @@
       }
     }
 
-    private showCountdown(): void {
-      if (!this.container || !this.timer || !this.title || !this.message) return;
+    private setupEventListeners(): void {
+      // Close button
+      this.closeButton?.addEventListener('click', () => this.close());
 
-      // Update title and message for countdown
-      this.title.textContent = '🎆 New Year Countdown 🎆';
-      this.message.textContent = 'Ring in 2026!';
+      // Minimize button
+      this.minimizeButton?.addEventListener('click', () => this.minimize());
+
+      // Badge click - expand to full countdown
+      this.badge?.addEventListener('click', () => this.expand());
+
+      // Auto-minimize on scroll (only when not urgent)
+      let scrollTimeout: number;
+      window.addEventListener('scroll', () => {
+        if (!this.isMinimized && this.container && !this.container.classList.contains('hidden')) {
+          clearTimeout(scrollTimeout);
+          scrollTimeout = window.setTimeout(() => {
+            const hoursLeft = this.getHoursUntilMidnight();
+            if (hoursLeft > this.URGENT_THRESHOLD_HOURS) {
+              this.minimize();
+            }
+          }, 500);
+        }
+      }, { passive: true });
+    }
+
+    private getHoursUntilMidnight(): number {
+      let now = new Date();
+      if ((window as any).__CARO_TEST_DATE) {
+        now = new Date((window as any).__CARO_TEST_DATE);
+      }
+      const currentYear = now.getFullYear();
+      const newYear = new Date(currentYear + 1, 0, 1, 0, 0, 0);
+      const diff = newYear.getTime() - now.getTime();
+      return diff / (1000 * 60 * 60);
+    }
+
+    private showCountdown(): void {
+      if (!this.container || !this.timer || !this.title || !this.subtitle) return;
+
+      // Update title and subtitle for countdown
+      this.title.textContent = 'New Year Countdown';
+      this.subtitle.textContent = 'Ring in 2026';
 
       // Show timer
       this.timer.classList.remove('hidden');
-      this.container.classList.remove('hidden');
 
       // Start countdown
       this.updateCountdown();
       this.intervalId = window.setInterval(() => this.updateCountdown(), 1000);
+
+      // Decide whether to show full modal or just badge
+      const hoursLeft = this.getHoursUntilMidnight();
+
+      if (hoursLeft <= this.URGENT_THRESHOLD_HOURS) {
+        // < 5 hours: Show prominent countdown
+        this.container.classList.remove('hidden');
+
+        // Auto-minimize after delay (only if > 1 hour left)
+        if (hoursLeft > 1) {
+          setTimeout(() => {
+            if (!this.isClosed) {
+              this.minimize();
+            }
+          }, this.AUTO_MINIMIZE_DELAY);
+        }
+      } else {
+        // > 5 hours: Show only badge
+        this.badge?.classList.remove('hidden');
+      }
     }
 
     private showCelebration(): void {
-      if (!this.container || !this.timer) return;
+      if (!this.container || !this.timer || !this.title || !this.subtitle) return;
 
-      // Hide timer, show celebration message
+      // Update for celebration
+      this.title.textContent = 'Happy New Year!';
+      this.subtitle.textContent = 'Welcome to 2026!';
       this.timer.classList.add('hidden');
+
+      // Show celebration modal
       this.container.classList.remove('hidden');
 
       // Auto-hide after 10 seconds
       setTimeout(() => {
         this.container?.classList.add('hidden');
       }, 10000);
+
+      // Trigger fireworks effect
+      setTimeout(() => {
+        if ((window as any).newYearEffect) {
+          (window as any).newYearEffect.start();
+        }
+      }, 1000);
     }
 
     private updateCountdown(): void {
-      const now = new Date();
+      let now = new Date();
+      if ((window as any).__CARO_TEST_DATE) {
+        now = new Date((window as any).__CARO_TEST_DATE);
+      }
+
       const currentYear = now.getFullYear();
       const newYear = new Date(currentYear + 1, 0, 1, 0, 0, 0);
       const diff = newYear.getTime() - now.getTime();
@@ -277,10 +529,6 @@
           this.intervalId = null;
         }
         this.showCelebration();
-        // Trigger New Year effect
-        if ((window as any).newYearEffect) {
-          (window as any).newYearEffect.start();
-        }
         return;
       }
 
@@ -289,10 +537,60 @@
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-      document.getElementById('days')!.textContent = String(days).padStart(2, '0');
-      document.getElementById('hours')!.textContent = String(hours).padStart(2, '0');
-      document.getElementById('minutes')!.textContent = String(minutes).padStart(2, '0');
-      document.getElementById('seconds')!.textContent = String(seconds).padStart(2, '0');
+      // Update main timer
+      const daysEl = document.getElementById('days');
+      const hoursEl = document.getElementById('hours');
+      const minutesEl = document.getElementById('minutes');
+      const secondsEl = document.getElementById('seconds');
+
+      if (daysEl) daysEl.textContent = String(days).padStart(2, '0');
+      if (hoursEl) hoursEl.textContent = String(hours).padStart(2, '0');
+      if (minutesEl) minutesEl.textContent = String(minutes).padStart(2, '0');
+      if (secondsEl) secondsEl.textContent = String(seconds).padStart(2, '0');
+
+      // Update badge timer
+      const badgeHours = document.getElementById('badge-hours');
+      const badgeMinutes = document.getElementById('badge-minutes');
+      const badgeSeconds = document.getElementById('badge-seconds');
+
+      const totalHours = days * 24 + hours;
+      if (badgeHours) badgeHours.textContent = String(totalHours).padStart(2, '0');
+      if (badgeMinutes) badgeMinutes.textContent = String(minutes).padStart(2, '0');
+      if (badgeSeconds) badgeSeconds.textContent = String(seconds).padStart(2, '0');
+
+      // Check if we should switch to prominent mode
+      const hoursLeft = this.getHoursUntilMidnight();
+      if (hoursLeft <= this.URGENT_THRESHOLD_HOURS && this.isMinimized && !this.isClosed) {
+        this.expand();
+      }
+    }
+
+    private minimize(): void {
+      this.isMinimized = true;
+      this.container?.classList.add('minimized');
+      setTimeout(() => {
+        this.container?.classList.add('hidden');
+        this.badge?.classList.remove('hidden');
+      }, 300);
+    }
+
+    private expand(): void {
+      this.isMinimized = false;
+      this.badge?.classList.add('hidden');
+      this.container?.classList.remove('hidden', 'minimized');
+    }
+
+    private close(): void {
+      this.isClosed = true;
+      localStorage.setItem('countdownClosedDate', new Date().toDateString());
+
+      this.container?.classList.add('hidden');
+      this.badge?.classList.add('hidden');
+
+      if (this.intervalId) {
+        clearInterval(this.intervalId);
+        this.intervalId = null;
+      }
     }
   }
 
