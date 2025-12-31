@@ -1,9 +1,4 @@
 ---
-/**
- * Setup & Configuration Page
- * Post-install ergonomics and developer experience
- */
-
 import Layout from '../layouts/Layout.astro';
 import Navigation from '../components/Navigation.astro';
 import Footer from '../components/Footer.astro';
@@ -66,13 +61,13 @@ import ComingSoonBadge from '../components/docs/ComingSoonBadge.astro';
             <h3 class="example-title">Common workflows</h3>
             <CodeBlock
               code={`# Git-focused alias
-alias cgit='caro --shell bash "git command:"'
+alias cgit="caro --shell bash 'git command:'"
 
 # File operations
-alias cfiles='caro "find files"'
+alias cfiles="caro 'find files'"
 
 # System info
-alias csys='caro "show system"'`}
+alias csys="caro 'show system'"`}
               language="bash"
             />
           </div>
@@ -85,8 +80,8 @@ alias csys='caro "show system"'`}
               name: "bash",
               icon: "🐚",
               content: `# Add to ~/.bashrc or ~/.bash_profile
-echo 'alias c=\"caro\"' >> ~/.bashrc
-echo 'alias cv=\"caro --verbose\"' >> ~/.bashrc
+echo 'alias c="caro"' >> ~/.bashrc
+echo 'alias cv="caro --verbose"' >> ~/.bashrc
 
 # Reload shell
 source ~/.bashrc`
@@ -95,8 +90,8 @@ source ~/.bashrc`
               name: "zsh",
               icon: "⚡",
               content: `# Add to ~/.zshrc
-echo 'alias c=\"caro\"' >> ~/.zshrc
-echo 'alias cv=\"caro --verbose\"' >> ~/.zshrc
+echo 'alias c="caro"' >> ~/.zshrc
+echo 'alias cv="caro --verbose"' >> ~/.zshrc
 
 # Reload shell
 source ~/.zshrc`
@@ -215,8 +210,8 @@ export RUST_LOG="caro=debug"`}
               name: "bash",
               icon: "🐚",
               content: `# Add to ~/.bashrc or ~/.bash_profile
-echo 'export CARO_SAFETY_LEVEL=\"strict\"' >> ~/.bashrc
-echo 'export CARO_LOG_LEVEL=\"info\"' >> ~/.bashrc
+echo 'export CARO_SAFETY_LEVEL="strict"' >> ~/.bashrc
+echo 'export CARO_LOG_LEVEL="info"' >> ~/.bashrc
 
 # Reload shell
 source ~/.bashrc`
@@ -225,8 +220,8 @@ source ~/.bashrc`
               name: "zsh",
               icon: "⚡",
               content: `# Add to ~/.zshrc
-echo 'export CARO_SAFETY_LEVEL=\"strict\"' >> ~/.zshrc
-echo 'export CARO_LOG_LEVEL=\"info\"' >> ~/.zshrc
+echo 'export CARO_SAFETY_LEVEL="strict"' >> ~/.zshrc
+echo 'export CARO_LOG_LEVEL="info"' >> ~/.zshrc
 
 # Reload shell
 source ~/.zshrc`
@@ -301,7 +296,7 @@ source ~/.config/fish/config.fish`
             <h3 class="tip-title">🎯 Use verbose mode to learn</h3>
             <p class="tip-description">Run with <code>--verbose</code> flag to see how Caro interprets your prompts and generates commands:</p>
             <CodeBlock
-              code="caro --verbose \"find large files\""
+              code={`caro --verbose "find large files"`}
               language="bash"
             />
           </div>

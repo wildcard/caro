@@ -1,9 +1,4 @@
 ---
-/**
- * Installation Page
- * Comprehensive installation methods for power users
- */
-
 import Layout from '../layouts/Layout.astro';
 import Navigation from '../components/Navigation.astro';
 import Footer from '../components/Footer.astro';
@@ -76,13 +71,13 @@ import ComingSoonBadge from '../components/docs/ComingSoonBadge.astro';
           difficulty="easy"
           platforms={["macOS", "Linux", "Windows"]}
           status="available"
-          installCommand="# Example for macOS Apple Silicon
+          installCommand={`# Example for macOS Apple Silicon
 curl -fsSL https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-macos-silicon -o caro
 chmod +x caro
 sudo mv caro /usr/local/bin/
 
 # Verify installation
-caro --version"
+caro --version`}
           verificationCommand="caro --version"
           prerequisites={["curl or wget", "sudo access (for /usr/local/bin)"]}
         />
@@ -127,12 +122,12 @@ caro --version"
             <div class="checksum-content">
               <p>Each binary includes a SHA256 checksum file for security verification:</p>
               <CodeBlock
-                code="# Download binary and checksum
+                code={`# Download binary and checksum
 curl -fsSL https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-macos-silicon -o caro
 curl -fsSL https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-macos-silicon.sha256 -o caro.sha256
 
 # Verify (macOS/Linux)
-shasum -a 256 -c caro.sha256"
+shasum -a 256 -c caro.sha256`}
                 language="bash"
               />
             </div>
@@ -174,7 +169,7 @@ shasum -a 256 -c caro.sha256"
           difficulty="advanced"
           platforms={["macOS", "Linux", "Windows"]}
           status="available"
-          installCommand="# Clone the repository
+          installCommand={`# Clone the repository
 git clone https://github.com/wildcard/caro.git
 cd caro
 
@@ -185,7 +180,7 @@ cargo build --release
 sudo cp target/release/caro /usr/local/bin/
 
 # Verify installation
-caro --version"
+caro --version`}
           verificationCommand="caro --version"
           prerequisites={["Rust 1.75+", "Git", "CMake", "Build tools (gcc/clang)", "Xcode (optional, for Apple Silicon GPU)"]}
         />
@@ -197,35 +192,35 @@ caro --version"
               <div class="platform-build">
                 <h4>macOS (Apple Silicon)</h4>
                 <CodeBlock
-                  code="# Install dependencies
+                  code={`# Install dependencies
 brew install cmake
 
 # Build with GPU acceleration
 cargo build --release --features embedded-mlx
 
 # Or build with CPU backend only (no Xcode required)
-cargo build --release"
+cargo build --release`}
                   language="bash"
                 />
               </div>
               <div class="platform-build">
                 <h4>Linux (Ubuntu/Debian)</h4>
                 <CodeBlock
-                  code="# Install dependencies
+                  code={`# Install dependencies
 sudo apt-get update
 sudo apt-get install cmake build-essential
 
 # Build
-cargo build --release"
+cargo build --release`}
                   language="bash"
                 />
               </div>
               <div class="platform-build">
                 <h4>Windows</h4>
                 <CodeBlock
-                  code="# Install CMake from https://cmake.org/download/
+                  code={`# Install CMake from https://cmake.org/download/
 # Then build:
-cargo build --release"
+cargo build --release`}
                   language="bash"
                 />
               </div>
@@ -248,8 +243,8 @@ cargo build --release"
             </h3>
             <p class="package-description">Installation via Homebrew for macOS and Linux users.</p>
             <CodeBlock
-              code="# Coming soon
-brew install caro"
+              code={`# Coming soon
+brew install caro`}
               language="bash"
             />
           </div>
@@ -262,8 +257,8 @@ brew install caro"
             </h3>
             <p class="package-description">Installation via apt repository for Debian and Ubuntu users.</p>
             <CodeBlock
-              code="# Coming soon
-sudo apt-get install caro"
+              code={`# Coming soon
+sudo apt-get install caro`}
               language="bash"
             />
           </div>
@@ -276,8 +271,8 @@ sudo apt-get install caro"
             </h3>
             <p class="package-description">Installation via Arch User Repository for Arch Linux users.</p>
             <CodeBlock
-              code="# Coming soon
-yay -S caro"
+              code={`# Coming soon
+yay -S caro`}
               language="bash"
             />
           </div>
@@ -322,7 +317,7 @@ yay -S caro"
             <div class="solution-content">
               <p>If you don't have sudo access, install to a user directory:</p>
               <CodeBlock
-                code="# For cargo install
+                code={`# For cargo install
 cargo install caro --root ~/.local
 
 # For manual binary
@@ -330,7 +325,7 @@ mkdir -p ~/.local/bin
 mv caro ~/.local/bin/
 
 # Add to PATH
-echo 'export PATH=\"$HOME/.local/bin:$PATH\"' >> ~/.bashrc"
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc`}
                 language="bash"
               />
             </div>
@@ -364,7 +359,7 @@ echo 'export PATH=\"$HOME/.local/bin:$PATH\"' >> ~/.bashrc"
             <div class="solution-content">
               <p>If checksum doesn't match, the download may be corrupted. Try downloading again:</p>
               <CodeBlock
-                code="# Remove corrupted files
+                code={`# Remove corrupted files
 rm caro caro.sha256
 
 # Download again
@@ -372,7 +367,7 @@ curl -fsSL https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-
 curl -fsSL https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-macos-silicon.sha256 -o caro.sha256
 
 # Verify
-shasum -a 256 -c caro.sha256"
+shasum -a 256 -c caro.sha256`}
                 language="bash"
               />
               <p>If the issue persists, please <a href="https://github.com/wildcard/caro/issues" target="_blank" rel="noopener noreferrer">open an issue</a>.</p>
