@@ -46,6 +46,7 @@
 //! ```
 
 pub mod automation;
+pub mod community;
 pub mod config;
 pub mod engine;
 pub mod kb;
@@ -78,4 +79,10 @@ pub use automation::{
     ConfigEditor, InstallResult, InstallStep, InstallationError, InstallationPlan, Installer,
     Prerequisite, RollbackPlan, ShellReload, VerificationStep, ohmyzsh_install_plan,
     plugin_enable_plan,
+};
+
+// Re-export community types
+pub use community::{
+    CheatsheetExporter, Contributor, ContributorAttribution, ExportOptions, SchemaValidator,
+    Submission, SubmissionFormat, SubmissionStatus, ValidationError, ValidationResult,
 };

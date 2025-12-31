@@ -1,0 +1,174 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://caro.sh/schemas/cheatsheet.json",
+  "title": "Caro Cheatsheet",
+  "description": "A community-contributed cheatsheet for Caro tips and aliases",
+  "type": "object",
+  "required": ["name", "version"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the cheatsheet",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version of the cheatsheet",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of what this cheatsheet provides"
+    },
+    "authors": {
+      "type": "array",
+      "description": "List of contributors",
+      "items": {
+        "type": "string"
+      }
+    },
+    "shells": {
+      "type": "array",
+      "description": "Shell types this cheatsheet applies to",
+      "items": {
+        "type": "string",
+        "enum": ["zsh", "bash", "fish", "sh", "all"]
+      }
+    },
+    "aliases": {
+      "type": "array",
+      "description": "Aliases defined in this cheatsheet",
+      "items": {
+        "$ref": "#/definitions/alias"
+      },
+      "maxItems": 500
+    },
+    "tips": {
+      "type": "array",
+      "description": "Tips defined in this cheatsheet",
+      "items": {
+        "$ref": "#/definitions/tip"
+      },
+      "maxItems": 200
+    },
+    "plugins": {
+      "type": "array",
+      "description": "Plugins referenced in this cheatsheet",
+      "items": {
+        "$ref": "#/definitions/plugin"
+      }
+    }
+  },
+  "definitions": {
+    "alias": {
+      "type": "object",
+      "required": ["name", "expansion"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The alias name",
+          "pattern": "^[a-zA-Z_][a-zA-Z0-9_-]*$",
+          "maxLength": 50
+        },
+        "expansion": {
+          "type": "string",
+          "description": "The command the alias expands to",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of what this alias does"
+        },
+        "plugin": {
+          "type": "string",
+          "description": "Plugin that provides this alias"
+        }
+      }
+    },
+    "tip": {
+      "type": "object",
+      "required": ["id", "pattern", "message"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for this tip (kebab-case)",
+          "pattern": "^[a-z][a-z0-9-]*[a-z0-9]$|^[a-z]$",
+          "maxLength": 100
+        },
+        "pattern": {
+          "type": "string",
+          "description": "Pattern to match against commands",
+          "minLength": 1
+        },
+        "is_regex": {
+          "type": "boolean",
+          "description": "Whether the pattern is a regex",
+          "default": false
+        },
+        "message": {
+          "type": "string",
+          "description": "The tip message to display",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the tip",
+          "enum": ["alias_shortcut", "plugin_recommendation", "best_practice", "safety_tip", "performance", "general"],
+          "default": "general"
+        },
+        "shells": {
+          "type": "array",
+          "description": "Shells this tip applies to",
+          "items": {
+            "type": "string"
+          }
+        },
+        "requires_plugin": {
+          "type": "string",
+          "description": "Plugin required for this tip to apply"
+        },
+        "tags": {
+          "type": "array",
+          "description": "Tags for categorization",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "plugin": {
+      "type": "object",
+      "required": ["name", "description"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Plugin name",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the plugin",
+          "minLength": 1
+        },
+        "managers": {
+          "type": "array",
+          "description": "Plugin managers this plugin is for",
+          "items": {
+            "type": "string"
+          }
+        },
+        "install_command": {
+          "type": "string",
+          "description": "Command to install the plugin"
+        },
+        "url": {
+          "type": "string",
+          "description": "URL for more information",
+          "format": "uri"
+        }
+      }
+    }
+  }
+}
