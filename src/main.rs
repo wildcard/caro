@@ -269,6 +269,20 @@ impl IntoCliArgs for Cli {
 
 #[tokio::main]
 async fn main() {
+    // Check for --version (with or without --verbose) before clap parsing
+    // to provide custom version output instead of clap's default
+    let args: Vec<String> = std::env::args().collect();
+    if args.contains(&"--version".to_string()) || args.contains(&"-V".to_string()) {
+        // Show verbose version if --verbose flag is present
+        if args.contains(&"--verbose".to_string()) || args.contains(&"-v".to_string()) {
+            println!("{}", caro::version::long());
+        } else {
+            // Show short version (matches cargo/rustc format)
+            println!("{}", caro::version::short());
+        }
+        process::exit(0);
+    }
+
     let mut cli = Cli::parse();
 
     // Truncate trailing args at shell operators (handles edge cases)

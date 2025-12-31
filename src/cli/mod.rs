@@ -474,8 +474,16 @@ EXAMPLES:
     }
 
     /// Show version information
-    pub async fn show_version(&self) -> Result<String, CliError> {
-        Ok(format!("caro v{}", env!("CARGO_PKG_VERSION")))
+    ///
+    /// # Arguments
+    /// * `verbose` - If true, show detailed build information with Caro's personality
+    pub async fn show_version(&self, verbose: bool) -> Result<String, CliError> {
+        let info = crate::version::info();
+        Ok(if verbose {
+            info.long()
+        } else {
+            info.short()
+        })
     }
 }
 
