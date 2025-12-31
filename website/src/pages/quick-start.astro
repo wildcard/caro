@@ -1,0 +1,401 @@
+---
+/**
+ * Quick Start Guide
+ * Get started with Caro in under 5 minutes
+ */
+
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+import Footer from '../components/Footer.astro';
+import CodeBlock from '../components/docs/CodeBlock.astro';
+---
+
+<Layout
+  title="Quick Start Guide | Caro"
+  description="Get started with Caro in under 5 minutes. Install, verify, and generate your first shell command."
+>
+  <Navigation />
+
+  <main class="quick-start-page">
+    <div class="hero-section">
+      <h1 class="page-title">Quick Start Guide</h1>
+      <p class="page-subtitle">Get started with Caro in under 5 minutes</p>
+      <div class="time-estimate">
+        <span class="clock-icon">⏱️</span>
+        <span class="estimate-text">Estimated time: 3-5 minutes</span>
+      </div>
+    </div>
+
+    <div class="content-container">
+      <!-- Step 1: Install Caro -->
+      <section class="guide-step">
+        <div class="step-header">
+          <span class="step-number">1</span>
+          <h2 class="step-title">Install Caro</h2>
+        </div>
+        <p class="step-description">Install Caro using Cargo, Rust's package manager:</p>
+        <CodeBlock
+          code="cargo install caro"
+          language="bash"
+        />
+        <div class="step-note">
+          <span class="note-icon">ℹ️</span>
+          <span class="note-text">Don't have Rust? Install it from <a href="https://rustup.rs" target="_blank" rel="noopener noreferrer">rustup.rs</a></span>
+        </div>
+      </section>
+
+      <!-- Step 2: Verify Installation -->
+      <section class="guide-step">
+        <div class="step-header">
+          <span class="step-number">2</span>
+          <h2 class="step-title">Verify Installation</h2>
+        </div>
+        <p class="step-description">Check that Caro is installed correctly:</p>
+        <CodeBlock
+          code="caro --version"
+          language="bash"
+        />
+        <p class="expected-output-label">Expected output:</p>
+        <CodeBlock
+          code="caro 0.1.0"
+          language="text"
+        />
+      </section>
+
+      <!-- Step 3: Generate Your First Command -->
+      <section class="guide-step">
+        <div class="step-header">
+          <span class="step-number">3</span>
+          <h2 class="step-title">Generate Your First Command</h2>
+        </div>
+        <p class="step-description">Try generating a shell command from natural language:</p>
+        <CodeBlock
+          code='caro "list all files in this directory"'
+          language="bash"
+        />
+        <p class="step-description">Caro will generate a safe shell command for you to review and execute.</p>
+        <div class="step-note">
+          <span class="note-icon">🔒</span>
+          <span class="note-text">Caro validates all commands for safety before execution</span>
+        </div>
+      </section>
+
+      <!-- Step 4: Next Steps -->
+      <section class="guide-step next-steps">
+        <div class="step-header">
+          <span class="step-number">4</span>
+          <h2 class="step-title">Next Steps</h2>
+        </div>
+        <p class="step-description">Now that you're up and running, explore more:</p>
+        <div class="next-steps-grid">
+          <a href="/installation" class="next-step-card">
+            <span class="card-icon">📦</span>
+            <h3 class="card-title">Installation Options</h3>
+            <p class="card-desc">Explore all installation methods including pre-built binaries and build from source</p>
+          </a>
+          <a href="/setup" class="next-step-card">
+            <span class="card-icon">⚙️</span>
+            <h3 class="card-title">Setup & Configuration</h3>
+            <p class="card-desc">Configure shell completions, aliases, and backend preferences</p>
+          </a>
+          <a href="https://github.com/wildcard/caro" class="next-step-card" target="_blank" rel="noopener noreferrer">
+            <span class="card-icon">🐙</span>
+            <h3 class="card-title">View on GitHub</h3>
+            <p class="card-desc">Explore the source code, contribute, or report issues</p>
+          </a>
+        </div>
+      </section>
+
+      <!-- Help Section -->
+      <section class="help-section">
+        <div class="help-box">
+          <span class="help-icon">💬</span>
+          <div class="help-content">
+            <h3 class="help-title">Need Help?</h3>
+            <p class="help-text">If you run into issues, check our <a href="/support">support page</a> or <a href="https://github.com/wildcard/caro/issues" target="_blank" rel="noopener noreferrer">open an issue on GitHub</a>.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .quick-start-page {
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    background: var(--color-bg, #ffffff);
+  }
+
+  .hero-section {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .page-title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 0 0 1rem 0;
+    background: linear-gradient(135deg, #fd8c4e 0%, #ff6b35 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .page-subtitle {
+    font-size: 1.25rem;
+    color: var(--color-text-secondary, #57606a);
+    margin: 0 0 1.5rem 0;
+  }
+
+  .time-estimate {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--color-bg-secondary, #f6f8fa);
+    border: 1px solid var(--color-border, #d0d7de);
+    border-radius: 20px;
+    font-size: 0.9375rem;
+    color: var(--color-text-secondary, #57606a);
+  }
+
+  .clock-icon {
+    font-size: 1.125rem;
+  }
+
+  .content-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 0;
+  }
+
+  .guide-step {
+    margin: 3rem 0;
+    padding: 2rem;
+    background: var(--color-bg-secondary, #f6f8fa);
+    border: 1px solid var(--color-border, #d0d7de);
+    border-radius: 12px;
+  }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .step-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    background: linear-gradient(135deg, #fd8c4e 0%, #ff6b35 100%);
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 700;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .step-title {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--color-text, #24292f);
+  }
+
+  .step-description {
+    margin: 0 0 1rem 0;
+    line-height: 1.6;
+    color: var(--color-text, #24292f);
+  }
+
+  .expected-output-label {
+    margin: 1.5rem 0 0.5rem 0;
+    font-weight: 500;
+    color: var(--color-text-secondary, #57606a);
+  }
+
+  .step-note {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--color-bg-tertiary, #fff8f0);
+    border-left: 3px solid #fd8c4e;
+    border-radius: 6px;
+    font-size: 0.9375rem;
+    color: var(--color-text-secondary, #57606a);
+  }
+
+  .note-icon {
+    font-size: 1.125rem;
+    flex-shrink: 0;
+  }
+
+  .note-text a {
+    color: #fd8c4e;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .note-text a:hover {
+    text-decoration: underline;
+  }
+
+  .next-steps {
+    background: var(--color-bg, #ffffff);
+    border-color: var(--color-border, #d0d7de);
+  }
+
+  .next-steps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .next-step-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.5rem;
+    background: var(--color-bg-secondary, #f6f8fa);
+    border: 1px solid var(--color-border, #d0d7de);
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .next-step-card:hover {
+    border-color: #fd8c4e;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(253, 140, 78, 0.15);
+  }
+
+  .card-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .card-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-text, #24292f);
+  }
+
+  .card-desc {
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--color-text-secondary, #57606a);
+  }
+
+  .help-section {
+    margin-top: 4rem;
+  }
+
+  .help-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f6f8fa 0%, #ffffff 100%);
+    border: 2px solid #fd8c4e;
+    border-radius: 12px;
+  }
+
+  .help-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+  }
+
+  .help-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text, #24292f);
+  }
+
+  .help-text {
+    margin: 0;
+    line-height: 1.6;
+    color: var(--color-text-secondary, #57606a);
+  }
+
+  .help-text a {
+    color: #fd8c4e;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .help-text a:hover {
+    text-decoration: underline;
+  }
+
+  /* Mobile responsive */
+  @media (max-width: 768px) {
+    .page-title {
+      font-size: 2rem;
+    }
+
+    .page-subtitle {
+      font-size: 1.125rem;
+    }
+
+    .guide-step {
+      padding: 1.5rem;
+    }
+
+    .step-title {
+      font-size: 1.5rem;
+    }
+
+    .next-steps-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    .quick-start-page {
+      background: var(--color-bg, #0d1117);
+    }
+
+    .guide-step {
+      background: var(--color-bg-secondary, #161b22);
+      border-color: var(--color-border, #30363d);
+    }
+
+    .time-estimate {
+      background: var(--color-bg-tertiary, #1c2128);
+      border-color: var(--color-border, #30363d);
+    }
+
+    .next-steps {
+      background: var(--color-bg-secondary, #161b22);
+    }
+
+    .next-step-card {
+      background: var(--color-bg-tertiary, #1c2128);
+      border-color: var(--color-border, #30363d);
+    }
+
+    .help-box {
+      background: var(--color-bg-secondary, #161b22);
+      border-color: #fd8c4e;
+    }
+
+    .step-note {
+      background: var(--color-bg-tertiary, #1c2128);
+    }
+  }
+</style>

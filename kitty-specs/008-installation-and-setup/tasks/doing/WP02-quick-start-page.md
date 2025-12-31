@@ -8,10 +8,10 @@ subtasks:
   - "T010"
 title: "Quick Start Page - MVP"
 phase: "Phase 2 - User Story 1 (P1)"
-lane: "planned"
+lane: "doing"
 assignee: ""
-agent: ""
-shell_pid: ""
+agent: "claude"
+shell_pid: "8158"
 review_status: ""
 reviewed_by: ""
 history:
@@ -255,3 +255,4 @@ Create **Quick Start Guide** page enabling first-time users to install Caro and 
 ## Activity Log
 
 - 2025-12-31T00:00:00Z – system – lane=planned – Prompt created.
+- 2025-12-31T09:28:30Z – claude – shell_pid=8158 – lane=doing – Starting Quick Start page implementation
