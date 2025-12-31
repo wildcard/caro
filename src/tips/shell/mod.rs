@@ -33,13 +33,13 @@ use std::collections::HashMap;
 #[derive(Debug, Clone)]
 pub struct ShellIntelligence {
     /// The detected shell environment
-    environment: ShellEnvironment,
+    pub(crate) environment: ShellEnvironment,
 
     /// All parsed aliases (name -> Alias)
-    aliases: HashMap<String, Alias>,
+    pub(crate) aliases: HashMap<String, Alias>,
 
     /// Detected plugin managers
-    plugin_managers: Vec<PluginManager>,
+    pub(crate) plugin_managers: Vec<PluginManager>,
 }
 
 impl ShellIntelligence {

@@ -67,4 +67,9 @@ pub use backends::remote::{OllamaBackend, VllmBackend};
 pub use backends::{BackendInfo as BackendInfoTrait, CommandGenerator, GeneratorError};
 
 // Re-export tips module types
-pub use tips::{Alias, AliasParser, AliasSource, PluginDetector, PluginManager, ShellIntelligence, TipsShellType};
+pub use tips::{
+    Alias, AliasParser, AliasSource, AliasSuggester, DisplayStyle, PluginDetector, PluginManager,
+    SessionStats, ShellIntelligence, SuggestionResult, Tip, TipAction, TipCategories, TipCategory,
+    TipDisplay, TipFrequency, TipsConfig, TipsEngine, TipsSession, TipsShellType, print_tip,
+    print_tip_box,
+};
