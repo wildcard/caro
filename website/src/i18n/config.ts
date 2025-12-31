@@ -5,6 +5,8 @@
  * Implements the API contract defined in contracts/translation-api.ts
  */
 
+import { translations } from './index';
+
 export type Locale =
   | 'en' | 'es' | 'fr' | 'pt' | 'de'
   | 'he' | 'ar' | 'uk' | 'ru' | 'ja'
@@ -143,9 +145,6 @@ export const languages: Record<Locale, LocaleConfig> = {
  * @returns Translated string, or English fallback if not found
  */
 export function t(locale: Locale, key: string): string {
-  // Lazy import to avoid circular dependencies
-  const { translations } = require('./index');
-
   // Get the translation object for the locale
   const localeTranslations = translations[locale] || translations['en'];
 
