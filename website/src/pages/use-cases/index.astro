@@ -1,0 +1,683 @@
+---
+/**
+ * Use Cases Hub - Jobs To Be Done Overview
+ *
+ * Main landing page for all Caro use cases and personas.
+ * Organized by role and job-to-be-done for easy navigation.
+ */
+
+import LandingPage from '../../layouts/LandingPage.astro';
+import UseCasesNavigation from '../../components/use-cases/UseCasesNavigation.astro';
+import LPDownload from '../../components/landing/LPDownload.astro';
+import LPFooter from '../../components/landing/LPFooter.astro';
+
+const personas = [
+  {
+    slug: 'sre',
+    icon: '🚨',
+    title: 'SRE & On-Call Engineers',
+    tagline: 'Your 3 AM incident companion',
+    description: 'Validate dangerous commands before they destroy production. Get instant, safe command generation during high-pressure incidents.',
+    jobs: [
+      'Safe production command execution',
+      'Incident response acceleration',
+      'AI hallucination protection',
+    ],
+    highlight: true,
+    color: '#ef4444',
+  },
+  {
+    slug: 'air-gapped',
+    icon: '🔐',
+    title: 'Air-Gapped & Security Engineers',
+    tagline: 'AI where nothing else works',
+    description: 'The only AI shell assistant for restricted environments. Zero network calls, bundled model, designed for security audit.',
+    jobs: [
+      'Offline AI assistance',
+      'Compliance-ready tool approval',
+      'Team safety standardization',
+    ],
+    highlight: true,
+    color: '#8b5cf6',
+  },
+  {
+    slug: 'devops',
+    icon: '🔧',
+    title: 'DevOps & Platform Engineers',
+    tagline: 'Commands that work everywhere',
+    description: 'Stop fighting BSD vs GNU differences. Generate platform-aware commands that work on Mac, Linux, and in CI pipelines.',
+    jobs: [
+      'Cross-platform command generation',
+      'Safe automation script generation',
+      'Natural language to command translation',
+    ],
+    highlight: false,
+    color: '#06b6d4',
+  },
+  {
+    slug: 'tech-lead',
+    icon: '👥',
+    title: 'Tech Leads & Engineering Managers',
+    tagline: 'Safety rails for your team',
+    description: 'Protect your team from AI hallucinations and command mistakes. Deploy org-wide safety patterns without micromanaging.',
+    jobs: [
+      'Team safety standardization',
+      'AI hallucination protection',
+      'MCP integration for AI agents',
+    ],
+    highlight: false,
+    color: '#f59e0b',
+  },
+  {
+    slug: 'developer',
+    icon: '💻',
+    title: 'Developers',
+    tagline: 'Learn while you work',
+    description: 'Stop context-switching to Google. Get working commands instantly with explanations that help you learn terminal skills.',
+    jobs: [
+      'Natural language to command translation',
+      'Command learning and education',
+      'Quick tool installation',
+    ],
+    highlight: false,
+    color: '#22c55e',
+  },
+];
+
+const topJobs = [
+  {
+    title: 'Safe Production Execution',
+    icon: '🛡️',
+    description: 'Validate commands against 52+ dangerous patterns before they touch production.',
+    pain: '5/5',
+    frequency: 'Daily',
+  },
+  {
+    title: 'Offline AI Assistance',
+    icon: '✈️',
+    description: 'Work in air-gapped environments with bundled model. Zero network calls.',
+    pain: '5/5',
+    frequency: 'Daily',
+  },
+  {
+    title: 'AI Hallucination Defense',
+    icon: '🎯',
+    description: 'Pattern-based validation catches what AI gets wrong. Deterministic, not probabilistic.',
+    pain: '5/5',
+    frequency: 'Daily',
+  },
+  {
+    title: 'Cross-Platform Commands',
+    icon: '🌐',
+    description: 'BSD vs GNU awareness. Commands work on Mac, Linux, and in CI—first time.',
+    pain: '4/5',
+    frequency: 'Weekly',
+  },
+  {
+    title: 'Incident Response',
+    icon: '⚡',
+    description: 'Sub-2s inference when seconds matter. Works offline when the network is the problem.',
+    pain: '5/5',
+    frequency: 'Weekly',
+  },
+  {
+    title: 'Team Safety Standards',
+    icon: '👥',
+    description: 'Deploy custom safety patterns org-wide. No micromanagement required.',
+    pain: '4/5',
+    frequency: 'Monthly',
+  },
+];
+---
+
+<LandingPage
+  title="Use Cases & Solutions | Caro - AI Shell Commands"
+  description="Explore how Caro helps SREs, DevOps engineers, security professionals, and developers with safe, offline AI shell commands. Find your use case."
+  slug="use-cases"
+>
+  <UseCasesNavigation currentPage="index" />
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-badge">Jobs To Be Done</div>
+      <h1>What Do You Need<br />Caro To Do?</h1>
+      <p class="subtitle">
+        Caro isn't a general AI assistant—it's a specialized tool for people who run commands in production,
+        work in restricted environments, or just want commands that actually work.
+      </p>
+      <p class="subtitle-emphasis">
+        Find your role below, or explore the specific jobs Caro excels at.
+      </p>
+    </div>
+  </section>
+
+  <!-- Personas Grid -->
+  <section class="personas-section">
+    <div class="container">
+      <h2>Find Your Role</h2>
+      <p class="section-subtitle">Caro is designed for specific people with specific problems</p>
+
+      <div class="personas-grid">
+        {personas.map((persona) => (
+          <a href={`/use-cases/${persona.slug}`} class={`persona-card ${persona.highlight ? 'highlight' : ''}`} style={`--accent-color: ${persona.color}`}>
+            <div class="persona-icon">{persona.icon}</div>
+            <h3>{persona.title}</h3>
+            <p class="persona-tagline">{persona.tagline}</p>
+            <p class="persona-description">{persona.description}</p>
+            <div class="persona-jobs">
+              <span class="jobs-label">Jobs:</span>
+              <ul>
+                {persona.jobs.map((job) => (
+                  <li>{job}</li>
+                ))}
+              </ul>
+            </div>
+            <span class="persona-cta">See examples →</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Top Jobs Section -->
+  <section class="jobs-section">
+    <div class="container">
+      <h2>Jobs Caro Does Best</h2>
+      <p class="section-subtitle">Ranked by pain severity and frequency</p>
+
+      <div class="jobs-grid">
+        {topJobs.map((job) => (
+          <div class="job-card">
+            <div class="job-header">
+              <span class="job-icon">{job.icon}</span>
+              <div class="job-meta">
+                <span class="job-pain" title="Pain Severity">Pain: {job.pain}</span>
+                <span class="job-freq">{job.frequency}</span>
+              </div>
+            </div>
+            <h3>{job.title}</h3>
+            <p>{job.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Caro Section -->
+  <section class="why-section">
+    <div class="container">
+      <h2>Why Caro For These Jobs?</h2>
+
+      <div class="why-grid">
+        <div class="why-card">
+          <h3>🔒 Independent Safety Layer</h3>
+          <p>Unlike permission flags or AI-based safety, Caro uses <strong>deterministic pattern matching</strong> that can't hallucinate. When AI marks <code>rm -rf /</code> as "safe," Caro catches it.</p>
+        </div>
+        <div class="why-card">
+          <h3>✈️ True Offline Operation</h3>
+          <p>Bundled model. Zero network calls after install. Works in air-gapped environments where <strong>nothing else can</strong>. Designed for security audit from day one.</p>
+        </div>
+        <div class="why-card">
+          <h3>🌐 Platform Intelligence</h3>
+          <p>Detects your OS, shell, and available commands. Generates <strong>POSIX-compliant commands</strong> with BSD vs GNU awareness. Commands work everywhere, first time.</p>
+        </div>
+        <div class="why-card">
+          <h3>⚡ Fast When It Matters</h3>
+          <p><strong>&lt;100ms startup, &lt;2s inference</strong> on Apple Silicon. No waiting for cloud APIs during incidents. No wondering if the server is down.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Competitive Comparison -->
+  <section class="compare-section">
+    <div class="container">
+      <h2>How Caro Compares</h2>
+      <p class="section-subtitle">Purpose-built for these specific jobs</p>
+
+      <div class="compare-table-wrapper">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>Capability</th>
+              <th class="caro-col">Caro</th>
+              <th>GitHub Copilot CLI</th>
+              <th>Warp AI</th>
+              <th>Generic LLM</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Works Offline</td>
+              <td class="caro-col yes">✓ Full</td>
+              <td class="no">✗</td>
+              <td class="no">✗</td>
+              <td class="no">✗</td>
+            </tr>
+            <tr>
+              <td>Independent Safety Layer</td>
+              <td class="caro-col yes">✓ Pattern-based</td>
+              <td class="no">✗</td>
+              <td class="no">✗</td>
+              <td class="no">✗</td>
+            </tr>
+            <tr>
+              <td>Air-Gap Compatible</td>
+              <td class="caro-col yes">✓</td>
+              <td class="no">✗</td>
+              <td class="no">✗</td>
+              <td class="no">✗</td>
+            </tr>
+            <tr>
+              <td>BSD/GNU Awareness</td>
+              <td class="caro-col yes">✓</td>
+              <td class="partial">Partial</td>
+              <td class="no">✗</td>
+              <td class="partial">Limited</td>
+            </tr>
+            <tr>
+              <td>Platform Detection</td>
+              <td class="caro-col yes">✓</td>
+              <td class="partial">Partial</td>
+              <td class="no">✗</td>
+              <td class="no">✗</td>
+            </tr>
+            <tr>
+              <td>Single Binary Install</td>
+              <td class="caro-col yes">✓</td>
+              <td class="no">✗</td>
+              <td class="no">✗</td>
+              <td class="no">✗</td>
+            </tr>
+            <tr>
+              <td>Zero Telemetry</td>
+              <td class="caro-col yes">✓</td>
+              <td class="no">✗</td>
+              <td class="no">✗</td>
+              <td class="no">✗</td>
+            </tr>
+            <tr>
+              <td>Open Source</td>
+              <td class="caro-col yes">✓ AGPL-3.0</td>
+              <td class="no">✗</td>
+              <td class="no">✗</td>
+              <td class="partial">Varies</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="compare-note">
+        <a href="/compare">See detailed comparisons →</a>
+      </p>
+    </div>
+  </section>
+
+  <LPDownload />
+  <LPFooter />
+</LandingPage>
+
+<style>
+  .hero {
+    padding: 100px 20px 80px;
+    text-align: center;
+    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.15) 0%, rgba(255, 107, 53, 0.1) 100%);
+    border: 1px solid rgba(255, 140, 66, 0.3);
+    color: #ff8c42;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  h1 {
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    color: var(--color-text);
+  }
+
+  .subtitle {
+    font-size: 20px;
+    color: var(--color-text-secondary);
+    max-width: 700px;
+    margin: 0 auto 16px;
+    line-height: 1.7;
+  }
+
+  .subtitle-emphasis {
+    font-size: 18px;
+    color: #ff8c42;
+    font-weight: 500;
+  }
+
+  /* Personas Section */
+  .personas-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  h2 {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    margin-bottom: 50px;
+  }
+
+  .personas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+  }
+
+  .persona-card {
+    display: flex;
+    flex-direction: column;
+    padding: 32px;
+    border-radius: 16px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    text-decoration: none;
+    color: var(--color-text);
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  }
+
+  .persona-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+    border-color: var(--accent-color);
+  }
+
+  :global(.dark) .persona-card:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  }
+
+  .persona-card.highlight {
+    border-color: var(--accent-color);
+    background: linear-gradient(135deg, var(--color-bg-secondary) 0%, var(--color-bg) 100%);
+  }
+
+  .persona-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+
+  .persona-card h3 {
+    font-size: 22px;
+    margin-bottom: 8px;
+    color: var(--color-text);
+  }
+
+  .persona-tagline {
+    font-size: 14px;
+    color: var(--accent-color);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .persona-description {
+    font-size: 15px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin-bottom: 20px;
+    flex-grow: 1;
+  }
+
+  .persona-jobs {
+    margin-bottom: 20px;
+  }
+
+  .jobs-label {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .persona-jobs ul {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 0;
+  }
+
+  .persona-jobs li {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    padding: 4px 0;
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .persona-jobs li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent-color);
+  }
+
+  .persona-cta {
+    color: #ff8c42;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  /* Jobs Section */
+  .jobs-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .jobs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .job-card {
+    padding: 24px;
+    border-radius: 12px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+  }
+
+  .job-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+
+  .job-icon {
+    font-size: 32px;
+  }
+
+  .job-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+
+  .job-pain {
+    font-size: 12px;
+    color: #ef4444;
+    font-weight: 600;
+  }
+
+  .job-freq {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    background: var(--color-bg-secondary);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .job-card h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+    color: var(--color-text);
+  }
+
+  .job-card p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+  }
+
+  /* Why Section */
+  .why-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .why-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+
+  .why-card {
+    padding: 28px;
+    border-radius: 12px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+  }
+
+  .why-card h3 {
+    font-size: 18px;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  .why-card p {
+    font-size: 15px;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+  }
+
+  .why-card code {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+
+  .why-card strong {
+    color: var(--color-text);
+  }
+
+  /* Compare Section */
+  .compare-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .compare-table-wrapper {
+    overflow-x: auto;
+    margin-bottom: 24px;
+  }
+
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--color-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    font-size: 14px;
+  }
+
+  .compare-table th,
+  .compare-table td {
+    padding: 16px 20px;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .compare-table th {
+    background: var(--color-bg-tertiary);
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .compare-table td {
+    color: var(--color-text-secondary);
+  }
+
+  .compare-table .caro-col {
+    background: rgba(255, 140, 66, 0.05);
+    font-weight: 600;
+  }
+
+  .compare-table .yes {
+    color: #22c55e;
+  }
+
+  .compare-table .no {
+    color: #ef4444;
+  }
+
+  .compare-table .partial {
+    color: #f59e0b;
+  }
+
+  .compare-note {
+    text-align: center;
+  }
+
+  .compare-note a {
+    color: #ff8c42;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .compare-note a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 36px;
+    }
+
+    h2 {
+      font-size: 28px;
+    }
+
+    .personas-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .compare-table {
+      font-size: 12px;
+    }
+
+    .compare-table th,
+    .compare-table td {
+      padding: 12px 10px;
+    }
+  }
+</style>

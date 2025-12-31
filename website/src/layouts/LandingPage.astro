@@ -2,6 +2,8 @@
 // LandingPage.astro - Base layout for conversion-focused landing pages
 // These pages target specific pain points and personas
 
+import OmniMenu from '../components/OmniMenu.astro';
+
 interface Props {
   title: string;
   description: string;
@@ -109,6 +111,7 @@ const { title, description, slug, persona, painPoint } = Astro.props;
   </style>
 </head>
 <body>
+  <OmniMenu />
   <slot />
 
   <!-- Theme initialization (prevent flash) -->

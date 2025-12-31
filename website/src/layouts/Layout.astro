@@ -5,6 +5,7 @@ import SnowEffect from '../components/SnowEffect.astro';
 import BackToTop from '../components/BackToTop.astro';
 import NewYearCountdown from '../components/NewYearCountdown.astro';
 import NewYearEffect from '../components/NewYearEffect.astro';
+import OmniMenu from '../components/OmniMenu.astro';
 
 interface Props {
   title: string;
@@ -79,6 +80,7 @@ const { title, description } = Astro.props;
     <SnowEffect />
     <NewYearCountdown />
     <NewYearEffect />
+    <OmniMenu />
     <slot />
     <BackToTop />
     <Analytics />

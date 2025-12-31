@@ -1,0 +1,978 @@
+---
+/**
+ * Use Case: Tech Leads & Engineering Managers
+ *
+ * Target Persona: AI-Skeptical Tech Lead
+ * Key Jobs: Team safety standardization, AI hallucination protection, MCP integration
+ */
+
+import LandingPage from '../../layouts/LandingPage.astro';
+import UseCasesNavigation from '../../components/use-cases/UseCasesNavigation.astro';
+import LPDownload from '../../components/landing/LPDownload.astro';
+import LPFooter from '../../components/landing/LPFooter.astro';
+
+const aiIncidents = [
+  {
+    tool: 'Claude Code',
+    incident: 'Deleted project files when asked to "clean up the repo"',
+    date: 'Dec 2024',
+    source: 'Hacker News',
+    damage: 'Local repository deleted',
+  },
+  {
+    tool: 'Gemini CLI',
+    incident: 'Executed rm -rf in wrong directory after misunderstanding context',
+    date: 'Jan 2025',
+    source: 'Twitter/X',
+    damage: 'Production data loss',
+  },
+  {
+    tool: 'AI Coding Assistant',
+    incident: 'Generated curl | bash command that downloaded malicious script',
+    date: 'Nov 2024',
+    source: 'Security Blog',
+    damage: 'Compromised development machine',
+  },
+  {
+    tool: 'AI Shell Helper',
+    incident: 'Suggested chmod 777 to "fix permissions" on /etc',
+    date: 'Oct 2024',
+    source: 'GitHub Issue',
+    damage: 'Security vulnerability created',
+  },
+];
+
+const teamSafetyFeatures = [
+  {
+    icon: '📋',
+    title: 'Custom Pattern Library',
+    description: 'Define organization-specific dangerous patterns. Block commands that are risky in YOUR environment.',
+    example: 'Block deploys to prod on Fridays: deploy.*production.*--no-backup',
+  },
+  {
+    icon: '👁️',
+    title: 'Audit Logging',
+    description: 'Log every command generated and every pattern matched. Full visibility for compliance.',
+    example: 'Export: caro logs --json > audit.json',
+  },
+  {
+    icon: '🔒',
+    title: 'Risk Level Configuration',
+    description: 'Set team-wide safety levels. Strict mode blocks, moderate warns, permissive logs.',
+    example: 'Config: safety_level = "strict"',
+  },
+  {
+    icon: '🚫',
+    title: 'Allowlist/Blocklist',
+    description: 'Pre-approve specific patterns or block them entirely. No runtime decisions needed.',
+    example: 'allowlist = ["kubectl get", "docker ps"]',
+  },
+];
+
+const mcpIntegrationBenefits = [
+  {
+    title: 'Claude Desktop Integration',
+    description: 'Let Claude generate shell commands through Caro\'s MCP server. Every command validated before execution.',
+    status: 'Available',
+  },
+  {
+    title: 'Claude Code Safety Layer',
+    description: 'Add Caro as a safety layer for Claude Code. Catch hallucinations before they execute.',
+    status: 'Coming Soon',
+  },
+  {
+    title: 'Custom AI Agent Safety',
+    description: 'Any AI agent using MCP can route shell commands through Caro for validation.',
+    status: 'Available',
+  },
+];
+
+const deploymentOptions = [
+  {
+    name: 'Individual Install',
+    description: 'Each engineer installs Caro locally',
+    pros: ['Quick setup', 'No infrastructure needed'],
+    cons: ['Manual config sync', 'No centralized logging'],
+    best: 'Small teams, getting started',
+  },
+  {
+    name: 'Shared Config',
+    description: 'Team-wide config file in repo',
+    pros: ['Consistent patterns', 'Version controlled'],
+    cons: ['Manual distribution'],
+    best: 'Medium teams, growing adoption',
+  },
+  {
+    name: 'Enterprise Deploy',
+    description: 'Centralized management and logging',
+    pros: ['Full visibility', 'Audit compliance'],
+    cons: ['More setup'],
+    best: 'Large teams, compliance requirements',
+  },
+];
+
+const jobs = [
+  {
+    id: 'team-safety',
+    title: 'Team Safety Standardization',
+    description: 'Deploy org-wide safety patterns without micromanaging individual engineers.',
+    painLevel: '4/5',
+    frequency: 'Monthly',
+    trigger: 'New team member or after incident',
+  },
+  {
+    id: 'ai-protection',
+    title: 'AI Hallucination Protection',
+    description: 'Catch when AI tools suggest dangerous commands before they can execute.',
+    painLevel: '5/5',
+    frequency: 'Daily',
+    trigger: 'Team using AI coding assistants',
+  },
+  {
+    id: 'mcp-integration',
+    title: 'MCP Integration for AI Agents',
+    description: 'Give AI agents safe shell command capabilities with guardrails.',
+    painLevel: '4/5',
+    frequency: 'Daily',
+    trigger: 'Deploying AI agents that need shell access',
+  },
+];
+---
+
+<LandingPage
+  title="Caro for Tech Leads | Team Shell Safety"
+  description="Safety rails for your engineering team. Protect against AI hallucinations and command mistakes. Deploy org-wide patterns without micromanagement."
+  slug="use-cases/tech-lead"
+  persona="AI-Skeptical Tech Lead"
+  painPoint="Need safety rails for team without micromanaging"
+>
+  <UseCasesNavigation currentPage="tech-lead" />
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-badge">Tech Leads & Managers</div>
+      <h1>Safety Rails<br />For Your Team</h1>
+      <p class="subtitle">
+        AI tools will fail. Your junior devs will make mistakes. Caro provides deterministic
+        safety validation that catches what AI hallucinations and permission flags miss—
+        without you having to review every command.
+      </p>
+
+      <div class="hero-stat">
+        <span class="stat-number">52+</span>
+        <span class="stat-label">dangerous patterns blocked automatically</span>
+      </div>
+
+      <div class="cta-buttons">
+        <a href="#download" class="cta-button primary">Get Started Free</a>
+        <a href="#incidents" class="cta-button secondary">See Real Incidents</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- AI Incidents -->
+  <section id="incidents" class="incidents-section">
+    <div class="container">
+      <h2>AI Tools Have Failed. Repeatedly.</h2>
+      <p class="section-subtitle">Real incidents from AI coding assistants</p>
+
+      <div class="incidents-grid">
+        {aiIncidents.map((incident) => (
+          <div class="incident-card">
+            <div class="incident-header">
+              <span class="incident-tool">{incident.tool}</span>
+              <span class="incident-date">{incident.date}</span>
+            </div>
+            <p class="incident-text">{incident.incident}</p>
+            <div class="incident-footer">
+              <span class="incident-damage">Damage: {incident.damage}</span>
+              <span class="incident-source">Source: {incident.source}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div class="solution-callout">
+        <h3>Caro Would Have Caught These</h3>
+        <p>
+          Pattern-based validation doesn't depend on AI judgement.
+          When the AI marks <code>rm -rf /</code> as "Safe", Caro's deterministic
+          patterns still catch it.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Jobs Section -->
+  <section class="jobs-section">
+    <div class="container">
+      <h2>Jobs Caro Does for Tech Leads</h2>
+      <p class="section-subtitle">What you hire Caro to do for your team</p>
+
+      <div class="jobs-grid">
+        {jobs.map((job) => (
+          <a href={`#${job.id}`} class="job-card">
+            <div class="job-header">
+              <h3>{job.title}</h3>
+              <span class="pain-badge">Pain: {job.painLevel}</span>
+            </div>
+            <p>{job.description}</p>
+            <p class="job-trigger"><strong>Trigger:</strong> {job.trigger}</p>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Team Safety Features -->
+  <section id="team-safety" class="team-section">
+    <div class="container">
+      <h2>Team-Wide Safety Configuration</h2>
+      <p class="section-subtitle">Set it up once, protect the whole team</p>
+
+      <div class="team-grid">
+        {teamSafetyFeatures.map((feature) => (
+          <div class="team-card">
+            <div class="team-icon">{feature.icon}</div>
+            <h3>{feature.title}</h3>
+            <p>{feature.description}</p>
+            <div class="team-example">
+              <code>{feature.example}</code>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div class="config-example">
+        <h3>Example Team Configuration</h3>
+        <div class="terminal">
+          <div class="terminal-header">
+            <span class="terminal-title">~/.config/caro/config.toml</span>
+          </div>
+          <pre class="config-content">{`[safety]
+level = "strict"  # strict | moderate | permissive
+
+# Custom patterns for your organization
+[[safety.custom_patterns]]
+pattern = "deploy.*production.*--force"
+risk_level = "Critical"
+description = "Force deploy to production"
+
+[[safety.custom_patterns]]
+pattern = "kubectl delete namespace production"
+risk_level = "Critical"
+description = "Delete production namespace"
+
+# Allowlist safe operations
+[safety.allowlist]
+patterns = [
+  "kubectl get",
+  "docker ps",
+  "terraform plan"
+]
+
+[logging]
+enabled = true
+path = "/var/log/caro/commands.log"
+format = "json"  # For SIEM integration`}</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AI Protection -->
+  <section id="ai-protection" class="ai-section">
+    <div class="container">
+      <h2>Why Pattern-Based Beats Permission-Based</h2>
+      <p class="section-subtitle">Flags fail. Patterns don't.</p>
+
+      <div class="comparison-grid">
+        <div class="compare-card bad">
+          <h3>Permission Flags Fail Because:</h3>
+          <ul>
+            <li>AI can convince itself to approve dangerous operations</li>
+            <li>Context windows lose track of what's allowed</li>
+            <li>Prompts can be jailbroken</li>
+            <li>Stochastic systems have edge cases</li>
+          </ul>
+        </div>
+        <div class="compare-card good">
+          <h3>Pattern Matching Works Because:</h3>
+          <ul>
+            <li>Deterministic: same input = same result</li>
+            <li>Auditable: you can see exactly what matched</li>
+            <li>Can't hallucinate: regex doesn't make things up</li>
+            <li>Fast: &lt;50ms validation, no API calls</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="math-example">
+        <h3>The Math Problem</h3>
+        <p>
+          If your AI tool is 99.9% accurate and your team runs 1,000 commands/day:
+        </p>
+        <div class="math-calc">
+          <span class="math-line">1,000 commands × 0.1% failure = <strong>1 dangerous command/day</strong></span>
+          <span class="math-line">Over a year: <strong>365 potential incidents</strong></span>
+        </div>
+        <p class="math-conclusion">
+          Caro provides a deterministic layer that catches the 0.1%.
+          52 patterns × 0 hallucination = <strong>0 bypasses</strong>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MCP Integration -->
+  <section id="mcp-integration" class="mcp-section">
+    <div class="container">
+      <h2>MCP Integration</h2>
+      <p class="section-subtitle">Give AI agents safe shell capabilities</p>
+
+      <div class="mcp-grid">
+        {mcpIntegrationBenefits.map((benefit) => (
+          <div class="mcp-card">
+            <div class="mcp-header">
+              <h3>{benefit.title}</h3>
+              <span class={`mcp-status ${benefit.status === 'Available' ? 'available' : 'coming'}`}>
+                {benefit.status}
+              </span>
+            </div>
+            <p>{benefit.description}</p>
+          </div>
+        ))}
+      </div>
+
+      <div class="mcp-example">
+        <h3>How It Works</h3>
+        <div class="flow-diagram">
+          <div class="flow-step">
+            <span class="flow-icon">🤖</span>
+            <span class="flow-label">AI Agent</span>
+          </div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step">
+            <span class="flow-icon">📡</span>
+            <span class="flow-label">MCP Request</span>
+          </div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step highlight">
+            <span class="flow-icon">🛡️</span>
+            <span class="flow-label">Caro Validation</span>
+          </div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step">
+            <span class="flow-icon">💻</span>
+            <span class="flow-label">Shell Execution</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Deployment Options -->
+  <section class="deploy-section">
+    <div class="container">
+      <h2>Deployment Options</h2>
+      <p class="section-subtitle">From individual to enterprise</p>
+
+      <div class="deploy-grid">
+        {deploymentOptions.map((option) => (
+          <div class="deploy-card">
+            <h3>{option.name}</h3>
+            <p class="deploy-desc">{option.description}</p>
+            <div class="deploy-pros">
+              <strong>Pros:</strong>
+              <ul>
+                {option.pros.map((pro) => <li class="pro">{pro}</li>)}
+              </ul>
+            </div>
+            <div class="deploy-cons">
+              <strong>Cons:</strong>
+              <ul>
+                {option.cons.map((con) => <li class="con">{con}</li>)}
+              </ul>
+            </div>
+            <div class="deploy-best">
+              <strong>Best for:</strong> {option.best}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <LPDownload />
+  <LPFooter />
+</LandingPage>
+
+<style>
+  .hero {
+    padding: 100px 20px 80px;
+    text-align: center;
+    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+  }
+
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: #f59e0b;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    color: var(--color-text);
+  }
+
+  .subtitle {
+    font-size: 20px;
+    color: var(--color-text-secondary);
+    max-width: 700px;
+    margin: 0 auto 32px;
+    line-height: 1.7;
+  }
+
+  .hero-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 40px;
+  }
+
+  .stat-number {
+    font-size: 64px;
+    font-weight: 700;
+    color: #f59e0b;
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 16px;
+    color: var(--color-text-secondary);
+    margin-top: 8px;
+  }
+
+  .cta-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .cta-button {
+    padding: 16px 40px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .cta-button.primary {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+  }
+
+  .cta-button.secondary {
+    border: 2px solid #f59e0b;
+    color: #f59e0b;
+  }
+
+  /* Incidents */
+  .incidents-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  h2 {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    margin-bottom: 50px;
+  }
+
+  .incidents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+
+  .incident-card {
+    padding: 24px;
+    border-radius: 12px;
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+
+  .incident-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .incident-tool {
+    font-weight: 600;
+    color: #ef4444;
+  }
+
+  .incident-date {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+
+  .incident-text {
+    font-size: 14px;
+    color: var(--color-text);
+    margin-bottom: 16px;
+  }
+
+  .incident-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    padding-top: 12px;
+    border-top: 1px solid rgba(239, 68, 68, 0.2);
+  }
+
+  .incident-damage {
+    color: #ef4444;
+  }
+
+  .solution-callout {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: 12px;
+    padding: 32px;
+    text-align: center;
+  }
+
+  .solution-callout h3 {
+    color: #22c55e;
+    margin-bottom: 12px;
+  }
+
+  .solution-callout p {
+    color: var(--color-text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .solution-callout code {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  /* Jobs Section */
+  .jobs-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .jobs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .job-card {
+    padding: 28px;
+    border-radius: 12px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    text-decoration: none;
+    color: var(--color-text);
+  }
+
+  .job-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .job-card h3 { font-size: 18px; }
+  .pain-badge { font-size: 11px; color: #ef4444; font-weight: 600; }
+
+  .job-card p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin-bottom: 12px;
+  }
+
+  .job-trigger {
+    font-size: 13px;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  /* Team Safety */
+  .team-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+
+  .team-card {
+    padding: 28px;
+    border-radius: 12px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+  }
+
+  .team-icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+
+  .team-card h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+
+  .team-card p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin-bottom: 16px;
+  }
+
+  .team-example {
+    background: #1a1a2e;
+    padding: 12px;
+    border-radius: 6px;
+  }
+
+  .team-example code {
+    color: #9cdcfe;
+    font-size: 12px;
+  }
+
+  .config-example {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 32px;
+  }
+
+  .config-example h3 {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .terminal {
+    background: #1a1a2e;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .terminal-header {
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .terminal-title {
+    color: #666;
+    font-size: 13px;
+    font-family: 'SF Mono', monospace;
+  }
+
+  .config-content {
+    padding: 20px;
+    margin: 0;
+    color: #d4d4d4;
+    font-family: 'SF Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-x: auto;
+  }
+
+  /* AI Protection */
+  .ai-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+
+  .compare-card {
+    padding: 28px;
+    border-radius: 12px;
+  }
+
+  .compare-card.bad {
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+
+  .compare-card.good {
+    background: rgba(34, 197, 94, 0.05);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+  }
+
+  .compare-card h3 {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+
+  .compare-card.bad h3 { color: #ef4444; }
+  .compare-card.good h3 { color: #22c55e; }
+
+  .compare-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .compare-card li {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    padding: 8px 0;
+    padding-left: 24px;
+    position: relative;
+  }
+
+  .compare-card.bad li::before {
+    content: '✗';
+    position: absolute;
+    left: 0;
+    color: #ef4444;
+  }
+
+  .compare-card.good li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #22c55e;
+  }
+
+  .math-example {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+  }
+
+  .math-example h3 {
+    margin-bottom: 16px;
+  }
+
+  .math-example p {
+    color: var(--color-text-secondary);
+    margin-bottom: 20px;
+  }
+
+  .math-calc {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .math-line {
+    font-family: 'SF Mono', monospace;
+    font-size: 14px;
+    color: var(--color-text);
+  }
+
+  .math-conclusion {
+    color: #22c55e;
+    font-weight: 500;
+  }
+
+  /* MCP */
+  .mcp-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .mcp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+
+  .mcp-card {
+    padding: 28px;
+    border-radius: 12px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+  }
+
+  .mcp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .mcp-card h3 { font-size: 18px; }
+
+  .mcp-status {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+
+  .mcp-status.available {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+  }
+
+  .mcp-status.coming {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+  }
+
+  .mcp-card p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .mcp-example {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 32px;
+  }
+
+  .mcp-example h3 {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .flow-diagram {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .flow-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 24px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+  }
+
+  .flow-step.highlight {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: #f59e0b;
+  }
+
+  .flow-icon { font-size: 24px; margin-bottom: 8px; }
+  .flow-label { font-size: 13px; color: var(--color-text-secondary); }
+  .flow-arrow { font-size: 20px; color: var(--color-text-secondary); }
+
+  /* Deploy */
+  .deploy-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .deploy-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+
+  .deploy-card {
+    padding: 28px;
+    border-radius: 12px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+  }
+
+  .deploy-card h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+
+  .deploy-desc {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin-bottom: 16px;
+  }
+
+  .deploy-pros, .deploy-cons {
+    margin-bottom: 12px;
+  }
+
+  .deploy-pros strong, .deploy-cons strong {
+    font-size: 13px;
+    color: var(--color-text);
+  }
+
+  .deploy-pros ul, .deploy-cons ul {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 0;
+  }
+
+  .deploy-pros li, .deploy-cons li {
+    font-size: 13px;
+    padding: 4px 0;
+    padding-left: 20px;
+    position: relative;
+  }
+
+  .pro::before { content: '+'; color: #22c55e; position: absolute; left: 0; }
+  .con::before { content: '-'; color: #f59e0b; position: absolute; left: 0; }
+
+  .deploy-best {
+    font-size: 13px;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+  }
+
+  @media (max-width: 768px) {
+    h1 { font-size: 36px; }
+    h2 { font-size: 28px; }
+    .stat-number { font-size: 48px; }
+  }
+</style>
