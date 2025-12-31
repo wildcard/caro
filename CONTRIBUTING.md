@@ -21,6 +21,7 @@ All contributors must:
 - [Getting Started](#getting-started)
 - [Development Workflow](#development-workflow)
 - [Code Standards](#code-standards)
+- [Contributor License Agreement](#contributor-license-agreement)
 - [Pull Request Process](#pull-request-process)
 - [Areas for Contribution](#areas-for-contribution)
 - [Agent Collaboration](#agent-collaboration)
@@ -646,6 +647,95 @@ async fn test_cache_manager_handles_missing_model() {
 
 ---
 
+## Contributor License Agreement
+
+### Why We Use a CLA
+
+caro is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)** for community and open source use, with a **dual licensing strategy** to enable enterprise adoption and sustainable development.
+
+To accept your contributions, we use a **Contributor License Agreement (CLA)** to:
+
+- Confirm you have the legal right to contribute your code
+- Grant the project the necessary rights to distribute your contributions under **both AGPL-3.0 and commercial licenses**
+- Protect contributors, users, and the project from legal uncertainty
+- Enable sustainable development through enterprise revenue while keeping the core free and open source
+
+### Dual Licensing Model
+
+**What this means:**
+
+1. **Open Source (AGPL-3.0)**: The community version of caro will **always remain free and open source** under AGPL-3.0
+2. **Commercial Licensing**: the project may also distribute caro (including your contributions) under commercial/proprietary licenses to enterprise customers who need:
+   - Proprietary modifications
+   - Integration into closed-source products
+   - Enterprise support and SLAs
+   - Features that cannot be AGPL-compliant
+
+**Your contributions will be used in both versions**, but the open source version remains freely available to everyone.
+
+### Why Dual Licensing?
+
+To build a **sustainable, long-term project** that serves both community and enterprise needs:
+
+- **Free for community**: Individuals and open source projects use caro free under AGPL-3.0
+- **Revenue for development**: Enterprise licensing funds full-time development, security audits, and professional support
+- **Better for everyone**: Sustainable funding means faster development, better documentation, and more features
+- **Transparent separation**: Core safety and command generation remain open source; enterprise features (SSO, audit logging, centralized management) are commercial add-ons
+
+**Important**: By signing the CLA, you grant the project the right to use your contributions under **any license** (including proprietary), while the AGPL-3.0 version remains available.
+
+### How to Sign the CLA
+
+Signing the CLA is simple and happens directly on your pull request:
+
+1. **Read the CLA**: Review [CLA.md](docs/legal/CLA.md) to understand the terms
+2. **Comment on your PR**: Add this exact comment to your pull request:
+   ```
+   I have read the CLA Document and I hereby sign the CLA
+   ```
+3. **Continue**: Once signed, maintainers can proceed with reviewing your contribution
+
+**First-time contributors**: You only need to sign the CLA once. Your signature covers all future contributions to caro.
+
+### Alternative: Developer Certificate of Origin (DCO)
+
+We also provide a **Developer Certificate of Origin (DCO)** option as specified in [DCO.txt](docs/legal/DCO.txt). The DCO is a lighter-weight alternative used by projects like the Linux kernel, Node.js, and Spring Framework.
+
+If you prefer to use DCO instead of the CLA, you can sign off your commits using:
+
+```bash
+git commit -s -m "Your commit message"
+```
+
+This adds a `Signed-off-by:` line to your commit message, indicating you agree to the DCO terms.
+
+**Note**: You must use either CLA or DCO for your contributions to be accepted. Choose whichever you're more comfortable with.
+
+### Questions About the CLA?
+
+- **"Why does caro need a CLA that allows dual licensing?"** - To sustain long-term development and provide enterprise-grade support, we need a business model. Dual licensing lets us offer caro for free to the community while generating revenue from enterprise customers.
+
+- **"Will my code be used in proprietary software?"** - Yes. Your contributions may be included in commercial/enterprise versions of caro distributed under proprietary licenses. However, the AGPL-3.0 version remains freely available to everyone.
+
+- **"Do I get paid if my code is used commercially?"** - No. All contributions are voluntary and unpaid. However, you receive attribution in both versions and the benefits of contributing to a professionally-maintained, widely-used project.
+
+- **"Can I revoke my contributions?"** - No. The license grant is irrevocable. Once contributed, the project has permanent rights to use your contribution under the CLA terms.
+
+- **"What if I don't want my code used commercially?"** - If you cannot agree to these terms, please do not contribute. We respect your choice, but we cannot accept contributions under different license terms.
+
+- **"Will the open source version be abandoned?"** - No. We commit to maintaining the AGPL-3.0 version and contributing core improvements back to it. The community version is central to our mission.
+
+- **"What if my employer owns my code?"** - You'll need employer permission to contribute. See section 5 of the CLA for details. Many employment contracts include IP clauses.
+
+- **"Can I submit third-party code?"** - Yes, but it must be clearly marked and comply with section 8 of the CLA.
+
+For more questions:
+- Legal concerns: Email [legal@caro.sh](mailto:legal@caro.sh)
+- CLA questions: Open an issue with the `cla` label
+- General questions: [GitHub Discussions](https://github.com/wildcard/caro/discussions)
+
+---
+
 ## Pull Request Process
 
 ### Before Submitting
@@ -854,7 +944,7 @@ caro development leverages specialized AI agents for different tasks. When worki
 - Quality assurance processes
 - CI/CD improvements
 
-See [AGENTS.md](docs/development/AGENTS.md) for repository guidelines and [CLAUDE.md](CLAUDE.md) for agent usage details.
+See [AGENTS.md](docs/development/AGENTS.md) for repository guidelines and [CLAUDE.md](docs/development/CLAUDE.md) for agent usage details.
 
 ---
 
