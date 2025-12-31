@@ -38,6 +38,7 @@ pub mod model_loader;
 pub mod models;
 pub mod platform;
 pub mod safety;
+pub mod tips;
 
 // Re-export commonly used types for convenience
 pub use model_catalog::{ModelCatalog, ModelInfo, ModelSize};
@@ -64,3 +65,6 @@ pub use backends::embedded::{
 #[cfg(feature = "remote-backends")]
 pub use backends::remote::{OllamaBackend, VllmBackend};
 pub use backends::{BackendInfo as BackendInfoTrait, CommandGenerator, GeneratorError};
+
+// Re-export tips module types
+pub use tips::{Alias, AliasParser, AliasSource, PluginDetector, PluginManager, ShellIntelligence, TipsShellType};
