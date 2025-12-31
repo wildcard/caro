@@ -1,0 +1,160 @@
+# Docker Productivity Cheatsheet
+# Common Docker aliases and tips
+
+name: Docker Productivity
+version: 1.0.0
+authors:
+  - caro-team
+shells:
+  - zsh
+  - bash
+description: Docker aliases and productivity tips
+
+aliases:
+  # Basic commands
+  - name: d
+    expansion: docker
+    description: Docker shortcut
+    plugin: docker
+  - name: dps
+    expansion: docker ps
+    description: Docker list running containers
+    plugin: docker
+  - name: dpsa
+    expansion: docker ps -a
+    description: Docker list all containers
+    plugin: docker
+  - name: di
+    expansion: docker images
+    description: Docker list images
+    plugin: docker
+  - name: dex
+    expansion: docker exec -it
+    description: Docker exec interactive
+    plugin: docker
+  - name: dl
+    expansion: docker logs
+    description: Docker logs
+    plugin: docker
+  - name: dlf
+    expansion: docker logs -f
+    description: Docker logs follow
+    plugin: docker
+  - name: drm
+    expansion: docker rm
+    description: Docker remove container
+    plugin: docker
+  - name: drmi
+    expansion: docker rmi
+    description: Docker remove image
+    plugin: docker
+  - name: dstop
+    expansion: docker stop
+    description: Docker stop container
+    plugin: docker
+  - name: dstart
+    expansion: docker start
+    description: Docker start container
+    plugin: docker
+  - name: drun
+    expansion: docker run
+    description: Docker run container
+    plugin: docker
+  - name: dbuild
+    expansion: docker build
+    description: Docker build image
+    plugin: docker
+
+  # Docker Compose
+  - name: dc
+    expansion: docker-compose
+    description: Docker compose shortcut
+    plugin: docker-compose
+  - name: dcu
+    expansion: docker-compose up
+    description: Docker compose up
+    plugin: docker-compose
+  - name: dcud
+    expansion: docker-compose up -d
+    description: Docker compose up detached
+    plugin: docker-compose
+  - name: dcd
+    expansion: docker-compose down
+    description: Docker compose down
+    plugin: docker-compose
+  - name: dcl
+    expansion: docker-compose logs
+    description: Docker compose logs
+    plugin: docker-compose
+  - name: dclf
+    expansion: docker-compose logs -f
+    description: Docker compose logs follow
+    plugin: docker-compose
+
+tips:
+  - id: docker-ps-alias
+    pattern: docker ps
+    message: Use `dps` for docker ps, or `dpsa` for all containers
+    category: alias_shortcut
+    requires_plugin: docker
+
+  - id: docker-images-alias
+    pattern: docker images
+    message: Use `di` for docker images
+    category: alias_shortcut
+    requires_plugin: docker
+
+  - id: docker-exec-alias
+    pattern: ^docker exec -it
+    is_regex: true
+    message: Use `dex` for docker exec -it
+    category: alias_shortcut
+    requires_plugin: docker
+
+  - id: docker-logs-alias
+    pattern: docker logs
+    message: Use `dl` for docker logs, or `dlf` to follow
+    category: alias_shortcut
+    requires_plugin: docker
+
+  - id: docker-compose-alias
+    pattern: ^docker-compose
+    is_regex: true
+    message: Use `dc` shortcuts - `dcu` for up, `dcd` for down
+    category: alias_shortcut
+    requires_plugin: docker-compose
+
+  # Safety tips
+  - id: docker-rm-force
+    pattern: ^docker rm -f
+    is_regex: true
+    message: Warning: -f force removes running containers. Stop first with `dstop`
+    category: safety_tip
+
+  - id: docker-prune
+    pattern: ^docker system prune
+    is_regex: true
+    message: Warning: prune removes all unused data. Use --dry-run first to see what will be removed
+    category: safety_tip
+
+  # Best practices
+  - id: docker-run-name
+    pattern: ^docker run\s+(?!.*--name)
+    is_regex: true
+    message: Consider using --name to give containers meaningful names
+    category: best_practice
+
+plugins:
+  - name: docker
+    description: Docker aliases and completions for Oh My Zsh
+    managers:
+      - ohmyzsh
+    install_command: omz plugin enable docker
+    url: https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/docker
+
+  - name: docker-compose
+    description: Docker Compose aliases for Oh My Zsh
+    managers:
+      - ohmyzsh
+    install_command: omz plugin enable docker-compose
+    url: https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/docker-compose

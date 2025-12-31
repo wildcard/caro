@@ -1,0 +1,179 @@
+# Kubernetes kubectl Productivity Cheatsheet
+# Common kubectl aliases and tips
+
+name: Kubernetes kubectl
+version: 1.0.0
+authors:
+  - caro-team
+shells:
+  - zsh
+  - bash
+description: kubectl aliases and productivity tips
+
+aliases:
+  # Basic commands
+  - name: k
+    expansion: kubectl
+    description: kubectl shortcut
+    plugin: kubectl
+  - name: kg
+    expansion: kubectl get
+    description: kubectl get
+    plugin: kubectl
+  - name: kgp
+    expansion: kubectl get pods
+    description: kubectl get pods
+    plugin: kubectl
+  - name: kgpa
+    expansion: kubectl get pods --all-namespaces
+    description: kubectl get pods all namespaces
+    plugin: kubectl
+  - name: kgs
+    expansion: kubectl get services
+    description: kubectl get services
+    plugin: kubectl
+  - name: kgd
+    expansion: kubectl get deployments
+    description: kubectl get deployments
+    plugin: kubectl
+  - name: kgn
+    expansion: kubectl get nodes
+    description: kubectl get nodes
+    plugin: kubectl
+  - name: kd
+    expansion: kubectl describe
+    description: kubectl describe
+    plugin: kubectl
+  - name: kdp
+    expansion: kubectl describe pod
+    description: kubectl describe pod
+    plugin: kubectl
+  - name: kds
+    expansion: kubectl describe service
+    description: kubectl describe service
+    plugin: kubectl
+  - name: ka
+    expansion: kubectl apply -f
+    description: kubectl apply
+    plugin: kubectl
+  - name: kaf
+    expansion: kubectl apply -f
+    description: kubectl apply file
+    plugin: kubectl
+  - name: kl
+    expansion: kubectl logs
+    description: kubectl logs
+    plugin: kubectl
+  - name: klf
+    expansion: kubectl logs -f
+    description: kubectl logs follow
+    plugin: kubectl
+  - name: kex
+    expansion: kubectl exec -it
+    description: kubectl exec interactive
+    plugin: kubectl
+  - name: kpf
+    expansion: kubectl port-forward
+    description: kubectl port-forward
+    plugin: kubectl
+  - name: kdel
+    expansion: kubectl delete
+    description: kubectl delete
+    plugin: kubectl
+  - name: kns
+    expansion: kubectl config set-context --current --namespace
+    description: kubectl set namespace
+    plugin: kubectl
+  - name: kcn
+    expansion: kubectl config current-context
+    description: kubectl current context
+    plugin: kubectl
+  - name: kgc
+    expansion: kubectl config get-contexts
+    description: kubectl get contexts
+    plugin: kubectl
+  - name: ksc
+    expansion: kubectl config use-context
+    description: kubectl switch context
+    plugin: kubectl
+
+tips:
+  - id: kubectl-get-pods-alias
+    pattern: kubectl get pods
+    message: Use `kgp` for kubectl get pods, or `kgpa` for all namespaces
+    category: alias_shortcut
+    requires_plugin: kubectl
+
+  - id: kubectl-get-alias
+    pattern: ^kubectl get\s
+    is_regex: true
+    message: Use `kg` shortcuts - `kgs` for services, `kgd` for deployments
+    category: alias_shortcut
+    requires_plugin: kubectl
+
+  - id: kubectl-describe-alias
+    pattern: ^kubectl describe
+    is_regex: true
+    message: Use `kd` for describe, `kdp` for pods, `kds` for services
+    category: alias_shortcut
+    requires_plugin: kubectl
+
+  - id: kubectl-logs-alias
+    pattern: kubectl logs
+    message: Use `kl` for logs, `klf` to follow
+    category: alias_shortcut
+    requires_plugin: kubectl
+
+  - id: kubectl-exec-alias
+    pattern: ^kubectl exec -it
+    is_regex: true
+    message: Use `kex` for kubectl exec -it
+    category: alias_shortcut
+    requires_plugin: kubectl
+
+  - id: kubectl-apply-alias
+    pattern: ^kubectl apply -f
+    is_regex: true
+    message: Use `ka` or `kaf` for kubectl apply -f
+    category: alias_shortcut
+    requires_plugin: kubectl
+
+  # Safety tips
+  - id: kubectl-delete-all
+    pattern: ^kubectl delete.*--all
+    is_regex: true
+    message: Warning: Deleting all resources in a namespace. Use --dry-run=client first
+    category: safety_tip
+
+  - id: kubectl-delete-namespace
+    pattern: ^kubectl delete namespace
+    is_regex: true
+    message: Warning: Deleting entire namespace. This removes ALL resources in it
+    category: safety_tip
+
+  - id: kubectl-force
+    pattern: ^kubectl.*--force
+    is_regex: true
+    message: Warning: Force operations bypass safety checks. Use with caution
+    category: safety_tip
+
+  # Best practices
+  - id: kubectl-dry-run
+    pattern: ^kubectl (apply|create|delete)
+    is_regex: true
+    message: Consider using --dry-run=client to preview changes first
+    category: best_practice
+
+  - id: kubectl-namespace
+    pattern: ^kubectl (get|describe|logs)
+    is_regex: true
+    message: Use -n or `kns` to specify namespace, or -A for all namespaces
+    category: best_practice
+
+plugins:
+  - name: kubectl
+    description: kubectl aliases and completions for Oh My Zsh
+    managers:
+      - ohmyzsh
+    install_command: omz plugin enable kubectl
+    url: https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/kubectl

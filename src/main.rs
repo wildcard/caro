@@ -1,6 +1,8 @@
 use caro::cli::{CliApp, CliError, IntoCliArgs};
 use caro::config::ConfigManager;
-use clap::Parser;
+use caro::tips::{DisplayStyle, ShellIntelligence, SuggestionResult, TipDisplay, TipsEngine};
+use clap::{Parser, Subcommand};
+use colored::Colorize;
 use std::process;
 
 // =============================================================================
@@ -219,9 +221,64 @@ struct Cli {
     )]
     interactive: bool,
 
+    /// Subcommand to run
+    #[command(subcommand)]
+    command: Option<Commands>,
+
     /// Trailing unquoted arguments forming the prompt
     #[arg(trailing_var_arg = true, num_args = 0..)]
     trailing_args: Vec<String>,
+}
+
+/// Available subcommands
+#[derive(Subcommand, Clone, Debug)]
+enum Commands {
+    /// Show tips for shell commands based on your configuration
+    #[command(alias = "tip")]
+    Tips {
+        /// Command to get tips for (e.g., "git status")
+        #[arg(trailing_var_arg = true, num_args = 0..)]
+        command: Vec<String>,
+
+        /// Display style (inline, box, minimal)
+        #[arg(short, long, default_value = "inline")]
+        style: String,
+
+        /// Show tip source information
+        #[arg(long)]
+        show_source: bool,
+    },
+
+    /// List and manage shell aliases
+    Aliases {
+        /// Filter aliases by name or expansion
+        #[arg(short, long)]
+        filter: Option<String>,
+
+        /// Show only aliases from a specific source (user, plugin, system)
+        #[arg(long)]
+        source: Option<String>,
+
+        /// Output format (plain, json)
+        #[arg(short, long, default_value = "plain")]
+        output: String,
+    },
+
+    /// Show shell intelligence information
+    #[command(alias = "shell")]
+    Info {
+        /// Show detected aliases
+        #[arg(long)]
+        aliases: bool,
+
+        /// Show detected plugins
+        #[arg(long)]
+        plugins: bool,
+
+        /// Output format (plain, json)
+        #[arg(short, long, default_value = "plain")]
+        output: String,
+    },
 }
 
 impl IntoCliArgs for Cli {
@@ -271,6 +328,50 @@ impl IntoCliArgs for Cli {
 async fn main() {
     let mut cli = Cli::parse();
 
+    // Initialize tracing/logging
+    if cli.verbose {
+        tracing_subscriber::fmt()
+            .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+            .with_level(true)
+            .init();
+    } else {
+        // Hide all logs in non-verbose mode for clean output
+        tracing_subscriber::fmt()
+            .with_env_filter("caro=warn")
+            .without_time()
+            .init();
+    }
+
+    // Handle subcommands first
+    if let Some(command) = &cli.command {
+        match command {
+            Commands::Tips {
+                command,
+                style,
+                show_source,
+            } => {
+                run_tips_command(command.clone(), style, *show_source);
+                process::exit(0);
+            }
+            Commands::Aliases {
+                filter,
+                source,
+                output,
+            } => {
+                run_aliases_command(filter.as_deref(), source.as_deref(), output);
+                process::exit(0);
+            }
+            Commands::Info {
+                aliases,
+                plugins,
+                output,
+            } => {
+                run_info_command(*aliases, *plugins, output);
+                process::exit(0);
+            }
+        }
+    }
+
     // Truncate trailing args at shell operators (handles edge cases)
     cli.trailing_args = truncate_at_shell_operator(cli.trailing_args);
 
@@ -288,20 +389,6 @@ async fn main() {
 
     // Store resolved prompt back into cli for downstream usage
     cli.prompt = Some(resolved.text);
-
-    // Initialize tracing/logging
-    if cli.verbose {
-        tracing_subscriber::fmt()
-            .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
-            .with_level(true)
-            .init();
-    } else {
-        // Hide all logs in non-verbose mode for clean output
-        tracing_subscriber::fmt()
-            .with_env_filter("caro=warn")
-            .without_time()
-            .init();
-    }
 
     // Handle --show-config
     if cli.show_config {
@@ -325,12 +412,20 @@ async fn main() {
             println!("caro - Convert natural language to shell commands using local LLMs");
             println!();
             println!("Usage: caro [OPTIONS] <PROMPT>");
+            println!("       caro <COMMAND>");
+            println!();
+            println!("Commands:");
+            println!("  tips       Show tips for shell commands based on your configuration");
+            println!("  aliases    List and manage shell aliases");
+            println!("  info       Show shell intelligence information");
             println!();
             println!("Examples:");
             println!("  caro list files");
             println!("  caro -p \"list files\"");
             println!("  echo \"list files\" | caro");
             println!("  caro --shell zsh \"find large files\"");
+            println!("  caro tips git status");
+            println!("  caro aliases --filter git");
             println!();
             println!("Run 'caro --help' for more information.");
             process::exit(0);
@@ -648,6 +743,407 @@ async fn show_configuration(cli: &Cli) -> Result<String, CliError> {
     }
 
     Ok(output)
+}
+
+// =============================================================================
+// Tips Subcommand Handlers
+// =============================================================================
+
+/// Handle the `caro tips` subcommand
+fn run_tips_command(command: Vec<String>, style: &str, show_source: bool) {
+    let command_str = command.join(" ");
+
+    // Parse display style
+    let display_style = match style.to_lowercase().as_str() {
+        "box" => DisplayStyle::Box,
+        "minimal" => DisplayStyle::Minimal,
+        _ => DisplayStyle::Inline,
+    };
+
+    // Try to create tips engine
+    let mut engine = TipsEngine::new();
+
+    if command_str.is_empty() {
+        // No command provided - show usage
+        println!("{}", "caro tips - Get shell tips and alias suggestions".bold());
+        println!();
+        println!("Usage: caro tips <command>");
+        println!();
+        println!("Examples:");
+        println!("  caro tips git status");
+        println!("  caro tips docker ps");
+        println!("  caro tips kubectl get pods");
+        println!();
+        println!("Options:");
+        println!("  -s, --style <style>  Display style: inline, box, minimal");
+        println!("  --show-source        Show tip source information");
+        return;
+    }
+
+    // Configure display
+    let display = TipDisplay::new()
+        .with_style(display_style)
+        .with_source(show_source);
+
+    // Try to get a tip for the command
+    match engine.suggest(&command_str) {
+        SuggestionResult::Found(tip) => {
+            println!("{}", display.format(&tip));
+        }
+        SuggestionResult::Cooldown | SuggestionResult::SessionLimitReached => {
+            // Silently skip - rate limited
+            if show_source {
+                println!("{}", "Tip rate limited (shown recently)".dimmed());
+            }
+        }
+        SuggestionResult::Disabled => {
+            println!("{}", "Tips are currently disabled".dimmed());
+        }
+        SuggestionResult::NoMatch => {
+            println!(
+                "{} No tips available for '{}'",
+                "Info:".bright_blue().bold(),
+                command_str
+            );
+            println!();
+            println!("Try these commands to see tips:");
+            println!("  caro tips git status");
+            println!("  caro tips docker ps");
+            println!("  caro tips ls -la");
+        }
+    }
+}
+
+/// Handle the `caro aliases` subcommand
+fn run_aliases_command(filter: Option<&str>, source_filter: Option<&str>, output: &str) {
+    // Try to detect shell intelligence
+    let Some(intel) = ShellIntelligence::detect() else {
+        eprintln!("{}", "Could not detect shell configuration".red());
+        return;
+    };
+
+    let aliases = intel.aliases();
+
+    // Filter aliases
+    let filtered: Vec<_> = aliases
+        .values()
+        .filter(|alias| {
+            // Filter by name/expansion
+            if let Some(f) = filter {
+                let f_lower = f.to_lowercase();
+                if !alias.name.to_lowercase().contains(&f_lower)
+                    && !alias.expansion.to_lowercase().contains(&f_lower)
+                {
+                    return false;
+                }
+            }
+
+            // Filter by source
+            if let Some(src) = source_filter {
+                let src_lower = src.to_lowercase();
+                match &alias.source {
+                    caro::tips::AliasSource::UserConfig(_) => {
+                        if src_lower != "user" && src_lower != "config" {
+                            return false;
+                        }
+                    }
+                    caro::tips::AliasSource::Plugin(plugin) => {
+                        if src_lower != "plugin" && !plugin.to_lowercase().contains(&src_lower) {
+                            return false;
+                        }
+                    }
+                    caro::tips::AliasSource::System => {
+                        if src_lower != "system" {
+                            return false;
+                        }
+                    }
+                    caro::tips::AliasSource::Unknown => {
+                        if src_lower != "unknown" {
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            true
+        })
+        .collect();
+
+    if output == "json" {
+        // JSON output
+        let json_aliases: Vec<_> = filtered
+            .iter()
+            .map(|a| {
+                serde_json::json!({
+                    "name": a.name,
+                    "expansion": a.expansion,
+                    "source": format!("{:?}", a.source),
+                    "chars_saved": a.chars_saved()
+                })
+            })
+            .collect();
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&json_aliases).unwrap_or_default()
+        );
+    } else {
+        // Plain text output
+        println!(
+            "{} ({} aliases found)",
+            "Shell Aliases".bold().cyan(),
+            filtered.len()
+        );
+        println!();
+
+        if filtered.is_empty() {
+            println!("{}", "No aliases found matching your criteria.".dimmed());
+            return;
+        }
+
+        // Sort by name
+        let mut sorted: Vec<_> = filtered.into_iter().collect();
+        sorted.sort_by(|a, b| a.name.cmp(&b.name));
+
+        for alias in sorted {
+            let saved = alias.chars_saved();
+            let source_str = match &alias.source {
+                caro::tips::AliasSource::UserConfig(path) => {
+                    // Extract just the filename from the path string
+                    let filename = path.rsplit('/').next().unwrap_or(path);
+                    format!("~/{}", filename)
+                }
+                caro::tips::AliasSource::Plugin(name) => format!("plugin:{}", name),
+                caro::tips::AliasSource::System => "system".to_string(),
+                caro::tips::AliasSource::Unknown => "unknown".to_string(),
+            };
+
+            print!(
+                "  {} {} {}",
+                alias.name.bright_green().bold(),
+                "→".dimmed(),
+                alias.expansion.bright_white()
+            );
+
+            if saved > 0 {
+                print!(" {}", format!("(saves {})", saved).dimmed());
+            }
+
+            print!(" {}", format!("[{}]", source_str).dimmed());
+            println!();
+        }
+    }
+}
+
+/// Handle the `caro info` subcommand
+fn run_info_command(show_aliases: bool, show_plugins: bool, output: &str) {
+    let Some(intel) = ShellIntelligence::detect() else {
+        eprintln!("{}", "Could not detect shell configuration".red());
+        return;
+    };
+
+    let env = intel.environment();
+
+    if output == "json" {
+        let mut info = serde_json::json!({
+            "shell_type": format!("{:?}", env.shell_type),
+            "shell_path": env.shell_path.to_string_lossy(),
+            "config_paths": env.config_paths.iter().map(|p| p.to_string_lossy().to_string()).collect::<Vec<_>>(),
+            "is_interactive": env.is_interactive,
+            "is_login_shell": env.is_login_shell,
+            "alias_count": intel.aliases().len(),
+            "plugin_manager_count": intel.plugin_managers().len()
+        });
+
+        if show_aliases {
+            let aliases: Vec<_> = intel
+                .aliases()
+                .values()
+                .map(|a| {
+                    serde_json::json!({
+                        "name": a.name,
+                        "expansion": a.expansion,
+                        "source": format!("{:?}", a.source)
+                    })
+                })
+                .collect();
+            info["aliases"] = serde_json::json!(aliases);
+        }
+
+        if show_plugins {
+            let managers: Vec<_> = intel
+                .plugin_managers()
+                .iter()
+                .map(|m| format!("{:?}", m))
+                .collect();
+            info["plugin_managers"] = serde_json::json!(managers);
+        }
+
+        println!("{}", serde_json::to_string_pretty(&info).unwrap_or_default());
+    } else {
+        // Plain text output
+        println!("{}", "Shell Intelligence Report".bold().cyan());
+        println!("{}", "=".repeat(40));
+        println!();
+
+        println!("{}", "Environment:".bold());
+        println!("  Shell type:    {:?}", env.shell_type);
+        println!("  Shell path:    {}", env.shell_path.display());
+        println!("  Interactive:   {}", env.is_interactive);
+        println!("  Login shell:   {}", env.is_login_shell);
+        println!();
+
+        println!("{}", "Configuration files:".bold());
+        for path in &env.config_paths {
+            let exists = path.exists();
+            let status = if exists {
+                "✓".green()
+            } else {
+                "✗".red()
+            };
+            println!("  {} {}", status, path.display());
+        }
+        println!();
+
+        println!("{}", "Statistics:".bold());
+        println!("  Aliases detected:      {}", intel.aliases().len());
+        println!("  Plugin managers:       {}", intel.plugin_managers().len());
+        println!();
+
+        // Show plugin managers
+        if !intel.plugin_managers().is_empty() {
+            println!("{}", "Plugin Managers:".bold());
+            for manager in intel.plugin_managers() {
+                match manager {
+                    caro::tips::PluginManager::OhMyZsh {
+                        path,
+                        plugins,
+                        theme,
+                    } => {
+                        println!("  {} Oh My Zsh", "•".bright_magenta());
+                        println!("    Path: {}", path.display());
+                        if let Some(t) = theme {
+                            println!("    Theme: {}", t.bright_cyan());
+                        }
+                        if !plugins.is_empty() {
+                            println!("    Plugins ({}):", plugins.len());
+                            for plugin in plugins.iter().take(10) {
+                                println!("      - {}", plugin);
+                            }
+                            if plugins.len() > 10 {
+                                println!("      ... and {} more", plugins.len() - 10);
+                            }
+                        }
+                    }
+                    caro::tips::PluginManager::Prezto { path, modules } => {
+                        println!("  {} Prezto", "•".bright_magenta());
+                        println!("    Path: {}", path.display());
+                        if !modules.is_empty() {
+                            println!("    Modules ({}):", modules.len());
+                            for module in modules.iter().take(10) {
+                                println!("      - {}", module);
+                            }
+                            if modules.len() > 10 {
+                                println!("      ... and {} more", modules.len() - 10);
+                            }
+                        }
+                    }
+                    caro::tips::PluginManager::Zinit { path, plugins } => {
+                        println!("  {} Zinit", "•".bright_magenta());
+                        println!("    Path: {}", path.display());
+                        if !plugins.is_empty() {
+                            println!("    Plugins ({}):", plugins.len());
+                            for plugin in plugins.iter().take(10) {
+                                println!("      - {}", plugin);
+                            }
+                            if plugins.len() > 10 {
+                                println!("      ... and {} more", plugins.len() - 10);
+                            }
+                        }
+                    }
+                    caro::tips::PluginManager::Fisher { path, plugins } => {
+                        println!("  {} Fisher", "•".bright_magenta());
+                        println!("    Path: {}", path.display());
+                        if !plugins.is_empty() {
+                            println!("    Plugins ({}):", plugins.len());
+                            for plugin in plugins.iter().take(10) {
+                                println!("      - {}", plugin);
+                            }
+                            if plugins.len() > 10 {
+                                println!("      ... and {} more", plugins.len() - 10);
+                            }
+                        }
+                    }
+                    caro::tips::PluginManager::Antigen { plugins } => {
+                        println!("  {} Antigen", "•".bright_magenta());
+                        if !plugins.is_empty() {
+                            println!("    Plugins ({}):", plugins.len());
+                            for plugin in plugins.iter().take(10) {
+                                println!("      - {}", plugin);
+                            }
+                            if plugins.len() > 10 {
+                                println!("      ... and {} more", plugins.len() - 10);
+                            }
+                        }
+                    }
+                    caro::tips::PluginManager::Zplug { plugins } => {
+                        println!("  {} Zplug", "•".bright_magenta());
+                        if !plugins.is_empty() {
+                            println!("    Plugins ({}):", plugins.len());
+                            for plugin in plugins.iter().take(10) {
+                                println!("      - {}", plugin);
+                            }
+                            if plugins.len() > 10 {
+                                println!("      ... and {} more", plugins.len() - 10);
+                            }
+                        }
+                    }
+                }
+            }
+            println!();
+        }
+
+        // Show top aliases if requested
+        if show_aliases {
+            println!("{}", "Top Aliases (by chars saved):".bold());
+            let mut aliases: Vec<_> = intel.aliases().values().collect();
+            aliases.sort_by(|a, b| b.chars_saved().cmp(&a.chars_saved()));
+
+            for alias in aliases.iter().take(15) {
+                let saved = alias.chars_saved();
+                print!(
+                    "  {} {} {}",
+                    alias.name.bright_green(),
+                    "→".dimmed(),
+                    alias.expansion
+                );
+                if saved > 0 {
+                    print!(" {}", format!("(saves {})", saved).dimmed());
+                }
+                println!();
+            }
+
+            if aliases.len() > 15 {
+                println!("  {} more...", aliases.len() - 15);
+            }
+            println!();
+        }
+
+        // Show plugins if requested
+        if show_plugins && intel.has_ohmyzsh() {
+            if let Some(caro::tips::PluginManager::OhMyZsh { plugins, .. }) = intel.ohmyzsh() {
+                println!("{}", "Installed Oh My Zsh Plugins:".bold());
+                for plugin in plugins {
+                    println!("  - {}", plugin.bright_cyan());
+                }
+                println!();
+            }
+        }
+
+        println!(
+            "{}",
+            "Run 'caro aliases' for full alias list.".dimmed().italic()
+        );
+    }
 }
 
 // =============================================================================

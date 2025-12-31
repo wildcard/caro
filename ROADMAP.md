@@ -1,6 +1,6 @@
 # Caro Development Roadmap
 
-**Last Updated**: December 28, 2024
+**Last Updated**: December 31, 2025
 
 ## Timeline Overview
 
@@ -28,6 +28,7 @@ gantt
     Karo Distributed Intelligence        :2026-04-01, 30d
     Dogma Rule Engine Research           :2026-04-01, 25d
     Voice Synthesis for Caro             :2026-04-15, 20d
+    Command Alias Suggestions            :2026-04-20, 25d
     Self-Healing Features                :2026-05-01, 25d
     Local Context Indexing               :2026-05-15, 30d
     v2.0.0 Release                       :milestone, 2026-06-30, 0d
@@ -140,6 +141,12 @@ gantt
   - Research voice synthesis for Caro character (#160, #187)
   - Add Exo cluster connection support (#162)
   - Research Yappus-Term features (#153, #185)
+  - **Intelligent Command Alias Suggestions** (NEW)
+    - "Did you know?" tips based on shell commands
+    - Shell config inspection (.zshrc, plugins)
+    - Automated plugin installation (Oh My Zsh, etc.)
+    - Community knowledge base from cheatsheets
+    - User cheatsheet upload and alias sharing
 
 - **Developer Experience**
   - Create 12-month strategic roadmap (PR #169)
@@ -169,8 +176,8 @@ gantt
 |-----------|----------|-------|----------|----------|
 | **v1.1.0** | Feb 15, 2026 | 15 | 1 | 7% |
 | **v1.2.0** | Mar 31, 2026 | 24 | 0 | 0% |
-| **v2.0.0** | Jun 30, 2026 | 21 | 8 | 38% |
-| **Total** | - | **60** | **9** | **15%** |
+| **v2.0.0** | Jun 30, 2026 | 22 | 8 | 36% |
+| **Total** | - | **61** | **9** | **15%** |
 
 ---
 

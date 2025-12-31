@@ -1,0 +1,190 @@
+# Git Productivity Cheatsheet
+# Provides aliases and tips for git commands
+
+name: Git Productivity
+version: 1.0.0
+authors:
+  - caro-team
+shells:
+  - zsh
+  - bash
+description: Common git aliases and productivity tips from Oh My Zsh git plugin
+
+aliases:
+  # Basic commands
+  - name: g
+    expansion: git
+    description: Git shortcut
+    plugin: git
+  - name: gst
+    expansion: git status
+    description: Git status
+    plugin: git
+  - name: ga
+    expansion: git add
+    description: Git add
+    plugin: git
+  - name: gaa
+    expansion: git add --all
+    description: Git add all
+    plugin: git
+  - name: gc
+    expansion: git commit
+    description: Git commit
+    plugin: git
+  - name: gcmsg
+    expansion: git commit -m
+    description: Git commit with message
+    plugin: git
+  - name: gp
+    expansion: git push
+    description: Git push
+    plugin: git
+  - name: gl
+    expansion: git pull
+    description: Git pull
+    plugin: git
+  - name: gco
+    expansion: git checkout
+    description: Git checkout
+    plugin: git
+  - name: gcb
+    expansion: git checkout -b
+    description: Git checkout new branch
+    plugin: git
+  - name: gd
+    expansion: git diff
+    description: Git diff
+    plugin: git
+  - name: gds
+    expansion: git diff --staged
+    description: Git diff staged
+    plugin: git
+  - name: gb
+    expansion: git branch
+    description: Git branch
+    plugin: git
+  - name: gba
+    expansion: git branch -a
+    description: Git branch all
+    plugin: git
+  - name: gbd
+    expansion: git branch -d
+    description: Git branch delete
+    plugin: git
+  - name: gbD
+    expansion: git branch -D
+    description: Git branch force delete
+    plugin: git
+  - name: glog
+    expansion: git log --oneline --decorate --graph
+    description: Git log graph
+    plugin: git
+  - name: gsta
+    expansion: git stash
+    description: Git stash
+    plugin: git
+  - name: gstp
+    expansion: git stash pop
+    description: Git stash pop
+    plugin: git
+  - name: gm
+    expansion: git merge
+    description: Git merge
+    plugin: git
+  - name: grb
+    expansion: git rebase
+    description: Git rebase
+    plugin: git
+  - name: grbi
+    expansion: git rebase -i
+    description: Git interactive rebase
+    plugin: git
+  - name: gf
+    expansion: git fetch
+    description: Git fetch
+    plugin: git
+  - name: gfa
+    expansion: git fetch --all --prune
+    description: Git fetch all with prune
+    plugin: git
+
+tips:
+  # Alias suggestions
+  - id: git-status-alias
+    pattern: git status
+    message: Use `gst` for faster git status
+    category: alias_shortcut
+    requires_plugin: git
+
+  - id: git-add-all-alias
+    pattern: git add --all
+    message: Use `gaa` to add all files
+    category: alias_shortcut
+    requires_plugin: git
+
+  - id: git-add-alias
+    pattern: ^git add\s
+    is_regex: true
+    message: Use `ga` as a shortcut for git add
+    category: alias_shortcut
+    requires_plugin: git
+
+  - id: git-commit-message-alias
+    pattern: ^git commit -m
+    is_regex: true
+    message: Use `gcmsg` for git commit -m
+    category: alias_shortcut
+    requires_plugin: git
+
+  - id: git-checkout-alias
+    pattern: ^git checkout\s
+    is_regex: true
+    message: Use `gco` for git checkout, or `gcb` for new branches
+    category: alias_shortcut
+    requires_plugin: git
+
+  - id: git-branch-alias
+    pattern: git branch
+    message: Use `gb` for git branch, `gba` for all branches
+    category: alias_shortcut
+    requires_plugin: git
+
+  # Safety tips
+  - id: git-push-force
+    pattern: ^git push -f
+    is_regex: true
+    message: Consider using `git push --force-with-lease` instead of -f for safer force pushing
+    category: safety_tip
+
+  - id: git-reset-hard
+    pattern: ^git reset --hard
+    is_regex: true
+    message: Warning: --hard discards uncommitted changes. Consider stashing first with `gsta`
+    category: safety_tip
+
+  - id: git-branch-force-delete
+    pattern: ^git branch -D
+    is_regex: true
+    message: Warning: -D force deletes without merge check. Use -d to verify merge status first
+    category: safety_tip
+
+  # Best practices
+  - id: git-fetch-before-pull
+    pattern: git pull
+    message: Consider using `git fetch` first to review changes before pulling
+    category: best_practice
+
+  - id: git-diff-staged
+    pattern: git diff
+    message: Use `gds` (git diff --staged) to see what will be committed
+    category: best_practice
+
+plugins:
+  - name: git
+    description: Git integration plugin for Oh My Zsh with 100+ aliases
+    managers:
+      - ohmyzsh
+      - prezto
+    install_command: omz plugin enable git
+    url: https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/git

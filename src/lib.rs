@@ -38,6 +38,7 @@ pub mod model_loader;
 pub mod models;
 pub mod platform;
 pub mod safety;
+pub mod tips;
 
 // Re-export commonly used types for convenience
 pub use model_catalog::{ModelCatalog, ModelInfo, ModelSize};
@@ -64,3 +65,15 @@ pub use backends::embedded::{
 #[cfg(feature = "remote-backends")]
 pub use backends::remote::{OllamaBackend, VllmBackend};
 pub use backends::{BackendInfo as BackendInfoTrait, CommandGenerator, GeneratorError};
+
+// Re-export tips module types
+pub use tips::{
+    Alias, AliasParser, AliasSource, AliasSuggester, CheatsheetExporter, ConfigEditor,
+    Contributor, ContributorAttribution, DisplayStyle, ExportOptions, InstallResult, InstallStep,
+    InstallationError, InstallationPlan, Installer, PluginDetector, PluginManager, Prerequisite,
+    RollbackPlan, SchemaValidator, SessionStats, ShellIntelligence, ShellReload, Submission,
+    SubmissionFormat, SubmissionStatus, SuggestionResult, Tip, TipAction, TipCategories,
+    TipCategory, TipDisplay, TipFrequency, TipsConfig, TipsEngine, TipsSession, TipsShellType,
+    ValidationError, ValidationResult, VerificationStep, ohmyzsh_install_plan, plugin_enable_plan,
+    print_tip, print_tip_box,
+};
