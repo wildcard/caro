@@ -250,6 +250,8 @@ jobs:
             cargo build --release --target ${{ matrix.target }}
           fi
         shell: bash
+        env:
+          CARO_RELEASE: 1  # Mark as official release build for version info
 
       - name: Prepare release artifact
         run: |
