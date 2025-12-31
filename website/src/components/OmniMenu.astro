@@ -222,25 +222,41 @@ const searchIndex = PAGES_INDEX.map(p => ({
   // TYPO-TOLERANT FUZZY SEARCH
   // ============================================
 
-  // Simple Levenshtein distance (edit distance)
+  // Damerau-Levenshtein distance (counts transpositions as 1 edit)
+  // This handles "ser" → "sre" as 1 edit instead of 2
   function editDist(a: string, b: string): number {
     if (a === b) return 0;
     if (a.length === 0) return b.length;
     if (b.length === 0) return a.length;
     if (Math.abs(a.length - b.length) > 3) return 99; // Skip if too different
 
-    const matrix: number[][] = [];
-    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
-    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+    const lenA = a.length;
+    const lenB = b.length;
+    const d: number[][] = [];
 
-    for (let i = 1; i <= b.length; i++) {
-      for (let j = 1; j <= a.length; j++) {
-        matrix[i][j] = b[i-1] === a[j-1]
-          ? matrix[i-1][j-1]
-          : Math.min(matrix[i-1][j-1], matrix[i][j-1], matrix[i-1][j]) + 1;
+    for (let i = 0; i <= lenA; i++) {
+      d[i] = [];
+      d[i][0] = i;
+    }
+    for (let j = 0; j <= lenB; j++) {
+      d[0][j] = j;
+    }
+
+    for (let i = 1; i <= lenA; i++) {
+      for (let j = 1; j <= lenB; j++) {
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        d[i][j] = Math.min(
+          d[i - 1][j] + 1,      // deletion
+          d[i][j - 1] + 1,      // insertion
+          d[i - 1][j - 1] + cost // substitution
+        );
+        // Transposition: swap adjacent characters (Damerau extension)
+        if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+          d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + cost);
+        }
       }
     }
-    return matrix[b.length][a.length];
+    return d[lenA][lenB];
   }
 
   // Find best matching word for a token, returns { word, score, isTypo }
