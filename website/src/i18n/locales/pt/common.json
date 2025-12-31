@@ -1,0 +1,20 @@
+{
+  "common": {
+    "buttons": {
+      "copy": "Copiar",
+      "copied": "Copiado!",
+      "getStarted": "Começar",
+      "watchDemo": "Ver Demo"
+    },
+    "status": {
+      "availableNow": "Disponível Agora",
+      "inDevelopment": "Em Desenvolvimento",
+      "planned": "Planejado",
+      "comingSoon": "Em Breve"
+    },
+    "aria": {
+      "toggleDarkMode": "Alternar modo escuro",
+      "toggleHolidayTheme": "Alternar menu de tema festivo"
+    }
+  }
+}

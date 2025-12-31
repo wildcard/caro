@@ -1,0 +1,20 @@
+{
+  "common": {
+    "buttons": {
+      "copy": "복사",
+      "copied": "복사됨!",
+      "getStarted": "시작하기",
+      "watchDemo": "데모 보기"
+    },
+    "status": {
+      "availableNow": "사용 가능",
+      "inDevelopment": "개발 중",
+      "planned": "계획됨",
+      "comingSoon": "곧 출시"
+    },
+    "aria": {
+      "toggleDarkMode": "다크 모드 전환",
+      "toggleHolidayTheme": "홀리데이 테마 메뉴 전환"
+    }
+  }
+}

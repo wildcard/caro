@@ -1,0 +1,20 @@
+{
+  "common": {
+    "buttons": {
+      "copy": "Kopyahin",
+      "copied": "Nakopya na!",
+      "getStarted": "Magsimula",
+      "watchDemo": "Panoorin ang Demo"
+    },
+    "status": {
+      "availableNow": "Available na",
+      "inDevelopment": "Ginagawa pa",
+      "planned": "Nakaplanong Gawin",
+      "comingSoon": "Malapit na"
+    },
+    "aria": {
+      "toggleDarkMode": "I-toggle ang dark mode",
+      "toggleHolidayTheme": "I-toggle ang menu ng holiday theme"
+    }
+  }
+}

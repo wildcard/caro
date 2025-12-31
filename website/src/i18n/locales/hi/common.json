@@ -1,0 +1,20 @@
+{
+  "common": {
+    "buttons": {
+      "copy": "कॉपी करें",
+      "copied": "कॉपी हो गया!",
+      "getStarted": "शुरू करें",
+      "watchDemo": "Demo देखें"
+    },
+    "status": {
+      "availableNow": "अभी उपलब्ध है",
+      "inDevelopment": "विकास में है",
+      "planned": "योजनाबद्ध",
+      "comingSoon": "जल्द आ रहा है"
+    },
+    "aria": {
+      "toggleDarkMode": "डार्क मोड बदलें",
+      "toggleHolidayTheme": "त्यौहार थीम मेनू बदलें"
+    }
+  }
+}
