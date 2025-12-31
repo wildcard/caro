@@ -74,7 +74,8 @@ impl ConfigEditor {
 
         // Create timestamped backup filename
         let timestamp = chrono::Utc::now().format("%Y%m%d_%H%M%S");
-        let original_name = expanded_path.file_name()
+        let original_name = expanded_path
+            .file_name()
             .and_then(|n| n.to_str())
             .unwrap_or("unknown");
         let backup_name = format!("{}.{}.{}", label, original_name, timestamp);
@@ -91,8 +92,9 @@ impl ConfigEditor {
 
     /// Restore a backup
     pub fn restore_backup(&self, label: &str) -> Result<(), InstallationError> {
-        let backup_path = self.backups.get(label)
-            .ok_or_else(|| InstallationError::BackupFailed(format!("No backup with label '{}'", label)))?;
+        let backup_path = self.backups.get(label).ok_or_else(|| {
+            InstallationError::BackupFailed(format!("No backup with label '{}'", label))
+        })?;
 
         // If backup path is empty, the original file didn't exist
         if backup_path.as_os_str().is_empty() {
@@ -102,7 +104,7 @@ impl ConfigEditor {
         // Find the original path from the backup name
         // This is a simplification - in production we'd store this mapping
         Err(InstallationError::BackupFailed(
-            "Restore requires original path mapping".into()
+            "Restore requires original path mapping".into(),
         ))
     }
 
@@ -350,11 +352,15 @@ mod tests {
         fs::write(&test_file, "line1\n").unwrap();
 
         // Add new line
-        let added = editor.add_line_if_missing(&test_file, "line2", None).unwrap();
+        let added = editor
+            .add_line_if_missing(&test_file, "line2", None)
+            .unwrap();
         assert!(added);
 
         // Try to add same line again
-        let added_again = editor.add_line_if_missing(&test_file, "line2", None).unwrap();
+        let added_again = editor
+            .add_line_if_missing(&test_file, "line2", None)
+            .unwrap();
         assert!(!added_again);
 
         let content = fs::read_to_string(&test_file).unwrap();
@@ -370,11 +376,9 @@ mod tests {
         fs::write(&test_file, "export FOO=bar\n").unwrap();
 
         // Skip if pattern exists
-        let added = editor.add_line_if_missing(
-            &test_file,
-            "export FOO=baz",
-            Some("FOO="),
-        ).unwrap();
+        let added = editor
+            .add_line_if_missing(&test_file, "export FOO=baz", Some("FOO="))
+            .unwrap();
         assert!(!added);
     }
 

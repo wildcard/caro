@@ -203,11 +203,7 @@ pub struct KbCacheMetadata {
 
 /// Simple semver comparison (returns -1, 0, or 1)
 fn version_compare(v1: &str, v2: &str) -> i32 {
-    let parse = |v: &str| -> Vec<u32> {
-        v.split('.')
-            .filter_map(|s| s.parse().ok())
-            .collect()
-    };
+    let parse = |v: &str| -> Vec<u32> { v.split('.').filter_map(|s| s.parse().ok()).collect() };
 
     let v1_parts = parse(v1);
     let v2_parts = parse(v2);

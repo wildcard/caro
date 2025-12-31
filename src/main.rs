@@ -765,7 +765,10 @@ fn run_tips_command(command: Vec<String>, style: &str, show_source: bool) {
 
     if command_str.is_empty() {
         // No command provided - show usage
-        println!("{}", "caro tips - Get shell tips and alias suggestions".bold());
+        println!(
+            "{}",
+            "caro tips - Get shell tips and alias suggestions".bold()
+        );
         println!();
         println!("Usage: caro tips <command>");
         println!();
@@ -978,7 +981,10 @@ fn run_info_command(show_aliases: bool, show_plugins: bool, output: &str) {
             info["plugin_managers"] = serde_json::json!(managers);
         }
 
-        println!("{}", serde_json::to_string_pretty(&info).unwrap_or_default());
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&info).unwrap_or_default()
+        );
     } else {
         // Plain text output
         println!("{}", "Shell Intelligence Report".bold().cyan());
@@ -995,11 +1001,7 @@ fn run_info_command(show_aliases: bool, show_plugins: bool, output: &str) {
         println!("{}", "Configuration files:".bold());
         for path in &env.config_paths {
             let exists = path.exists();
-            let status = if exists {
-                "✓".green()
-            } else {
-                "✗".red()
-            };
+            let status = if exists { "✓".green() } else { "✗".red() };
             println!("  {} {}", status, path.display());
         }
         println!();

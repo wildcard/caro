@@ -83,7 +83,10 @@ impl Submission {
     }
 
     /// Transition to a new status
-    pub fn transition(&mut self, new_status: SubmissionStatus) -> Result<(), StatusTransitionError> {
+    pub fn transition(
+        &mut self,
+        new_status: SubmissionStatus,
+    ) -> Result<(), StatusTransitionError> {
         // Validate transition
         if !self.status.can_transition_to(&new_status) {
             return Err(StatusTransitionError {
@@ -99,7 +102,10 @@ impl Submission {
 
     /// Check if submission is actionable (pending review)
     pub fn is_pending(&self) -> bool {
-        matches!(self.status, SubmissionStatus::Pending | SubmissionStatus::InReview)
+        matches!(
+            self.status,
+            SubmissionStatus::Pending | SubmissionStatus::InReview
+        )
     }
 
     /// Get age in seconds
@@ -231,11 +237,7 @@ pub struct StatusTransitionError {
 
 impl std::fmt::Display for StatusTransitionError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Invalid status transition: {} -> {}",
-            self.from, self.to
-        )
+        write!(f, "Invalid status transition: {} -> {}", self.from, self.to)
     }
 }
 
@@ -292,10 +294,7 @@ impl SubmissionQueue {
 
     /// Get all pending submissions
     pub fn pending(&self) -> Vec<&Submission> {
-        self.submissions
-            .iter()
-            .filter(|s| s.is_pending())
-            .collect()
+        self.submissions.iter().filter(|s| s.is_pending()).collect()
     }
 
     /// Get submissions by status
@@ -320,11 +319,31 @@ impl SubmissionQueue {
     pub fn stats(&self) -> QueueStats {
         QueueStats {
             total: self.submissions.len(),
-            pending: self.submissions.iter().filter(|s| s.status == SubmissionStatus::Pending).count(),
-            in_review: self.submissions.iter().filter(|s| s.status == SubmissionStatus::InReview).count(),
-            approved: self.submissions.iter().filter(|s| s.status == SubmissionStatus::Approved).count(),
-            merged: self.submissions.iter().filter(|s| s.status == SubmissionStatus::Merged).count(),
-            rejected: self.submissions.iter().filter(|s| s.status == SubmissionStatus::Rejected).count(),
+            pending: self
+                .submissions
+                .iter()
+                .filter(|s| s.status == SubmissionStatus::Pending)
+                .count(),
+            in_review: self
+                .submissions
+                .iter()
+                .filter(|s| s.status == SubmissionStatus::InReview)
+                .count(),
+            approved: self
+                .submissions
+                .iter()
+                .filter(|s| s.status == SubmissionStatus::Approved)
+                .count(),
+            merged: self
+                .submissions
+                .iter()
+                .filter(|s| s.status == SubmissionStatus::Merged)
+                .count(),
+            rejected: self
+                .submissions
+                .iter()
+                .filter(|s| s.status == SubmissionStatus::Rejected)
+                .count(),
         }
     }
 }

@@ -70,22 +70,16 @@ impl ShellReload {
     /// Get all config files for this shell (in load order)
     pub fn config_files(&self) -> Vec<&'static str> {
         match self.shell {
-            TipsShellType::Zsh => vec![
-                "~/.zshenv",
-                "~/.zprofile",
-                "~/.zshrc",
-                "~/.zlogin",
-            ],
+            TipsShellType::Zsh => vec!["~/.zshenv", "~/.zprofile", "~/.zshrc", "~/.zlogin"],
             TipsShellType::Bash => vec![
                 "~/.bash_profile",
                 "~/.bashrc",
                 "~/.bash_login",
                 "~/.profile",
             ],
-            TipsShellType::Fish => vec![
-                "~/.config/fish/config.fish",
-                "~/.config/fish/conf.d/*.fish",
-            ],
+            TipsShellType::Fish => {
+                vec!["~/.config/fish/config.fish", "~/.config/fish/conf.d/*.fish"]
+            }
             TipsShellType::Sh => vec!["~/.profile"],
         }
     }
@@ -105,9 +99,7 @@ impl ShellReload {
                     || path_str.contains(".oh-my-zsh")
             }
             TipsShellType::Bash => {
-                filename.starts_with(".bash")
-                    || filename == ".bashrc"
-                    || filename == ".profile"
+                filename.starts_with(".bash") || filename == ".bashrc" || filename == ".profile"
             }
             TipsShellType::Fish => {
                 path_str.contains("fish/config.fish")
@@ -150,10 +142,7 @@ impl ShellReload {
                 )
             }
             TipsShellType::Fish => {
-                format!(
-                    "Run:\n  fish_add_path {}",
-                    dir
-                )
+                format!("Run:\n  fish_add_path {}", dir)
             }
             TipsShellType::Sh => {
                 format!(
@@ -167,42 +156,38 @@ impl ShellReload {
     /// Generate a script snippet to reload configuration
     pub fn generate_reload_script(&self) -> String {
         match self.shell {
-            TipsShellType::Zsh => {
-                r#"
+            TipsShellType::Zsh => r#"
 # Reload zsh configuration
 if [[ -f ~/.zshrc ]]; then
     source ~/.zshrc
     echo "Configuration reloaded!"
 fi
-"#.to_string()
-            }
-            TipsShellType::Bash => {
-                r#"
+"#
+            .to_string(),
+            TipsShellType::Bash => r#"
 # Reload bash configuration
 if [[ -f ~/.bashrc ]]; then
     source ~/.bashrc
     echo "Configuration reloaded!"
 fi
-"#.to_string()
-            }
-            TipsShellType::Fish => {
-                r#"
+"#
+            .to_string(),
+            TipsShellType::Fish => r#"
 # Reload fish configuration
 if test -f ~/.config/fish/config.fish
     source ~/.config/fish/config.fish
     echo "Configuration reloaded!"
 end
-"#.to_string()
-            }
-            TipsShellType::Sh => {
-                r#"
+"#
+            .to_string(),
+            TipsShellType::Sh => r#"
 # Reload shell configuration
 if [ -f ~/.profile ]; then
     . ~/.profile
     echo "Configuration reloaded!"
 fi
-"#.to_string()
-            }
+"#
+            .to_string(),
         }
     }
 }

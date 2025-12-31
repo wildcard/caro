@@ -68,12 +68,12 @@ pub use backends::{BackendInfo as BackendInfoTrait, CommandGenerator, GeneratorE
 
 // Re-export tips module types
 pub use tips::{
-    Alias, AliasParser, AliasSource, AliasSuggester, CheatsheetExporter, ConfigEditor,
-    Contributor, ContributorAttribution, DisplayStyle, ExportOptions, InstallResult, InstallStep,
+    ohmyzsh_install_plan, plugin_enable_plan, print_tip, print_tip_box, Alias, AliasParser,
+    AliasSource, AliasSuggester, CheatsheetExporter, ConfigEditor, Contributor,
+    ContributorAttribution, DisplayStyle, ExportOptions, InstallResult, InstallStep,
     InstallationError, InstallationPlan, Installer, PluginDetector, PluginManager, Prerequisite,
     RollbackPlan, SchemaValidator, SessionStats, ShellIntelligence, ShellReload, Submission,
     SubmissionFormat, SubmissionStatus, SuggestionResult, Tip, TipAction, TipCategories,
     TipCategory, TipDisplay, TipFrequency, TipsConfig, TipsEngine, TipsSession, TipsShellType,
-    ValidationError, ValidationResult, VerificationStep, ohmyzsh_install_plan, plugin_enable_plan,
-    print_tip, print_tip_box,
+    ValidationError, ValidationResult, VerificationStep,
 };

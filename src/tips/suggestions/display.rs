@@ -102,7 +102,10 @@ impl TipDisplay {
             if let Some(chars) = tip.chars_saved {
                 if chars > 0 {
                     lines.push(String::new());
-                    lines.push(format!("  {}", format!("Saves {} keystrokes!", chars).green()));
+                    lines.push(format!(
+                        "  {}",
+                        format!("Saves {} keystrokes!", chars).green()
+                    ));
                 }
             }
         }

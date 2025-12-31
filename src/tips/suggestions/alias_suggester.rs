@@ -81,11 +81,7 @@ impl<'a> AliasSuggester<'a> {
         }
 
         // Sort by chars saved (most savings first)
-        tips.sort_by(|a, b| {
-            b.chars_saved
-                .unwrap_or(0)
-                .cmp(&a.chars_saved.unwrap_or(0))
-        });
+        tips.sort_by(|a, b| b.chars_saved.unwrap_or(0).cmp(&a.chars_saved.unwrap_or(0)));
 
         tips
     }
@@ -140,7 +136,7 @@ impl<'a> AliasSuggester<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tips::shell::{AliasSource, TipsShellType, ShellEnvironment};
+    use crate::tips::shell::{AliasSource, ShellEnvironment, TipsShellType};
     use std::collections::HashMap;
 
     fn create_test_intelligence() -> ShellIntelligence {

@@ -106,12 +106,17 @@ impl CheatsheetExporter {
         }
 
         // Build cheatsheet
-        let name = options.name.clone().unwrap_or_else(|| {
-            format!("My {} Aliases", format!("{:?}", self.shell))
-        });
+        let name = options
+            .name
+            .clone()
+            .unwrap_or_else(|| format!("My {} Aliases", format!("{:?}", self.shell)));
 
         let description = options.description.clone();
-        let authors = options.author.as_ref().map(|a| vec![a.clone()]).unwrap_or_default();
+        let authors = options
+            .author
+            .as_ref()
+            .map(|a| vec![a.clone()])
+            .unwrap_or_default();
 
         let mut cheatsheet = Cheatsheet {
             name,
@@ -193,10 +198,7 @@ impl CheatsheetExporter {
 
             // Generate tip for significant aliases (save at least 3 chars)
             if alias.chars_saved() >= 3 {
-                let tip_id = format!(
-                    "use-{}-alias",
-                    alias.name.to_lowercase().replace('_', "-")
-                );
+                let tip_id = format!("use-{}-alias", alias.name.to_lowercase().replace('_', "-"));
 
                 tips.push(CheatsheetTip {
                     id: tip_id,
@@ -226,7 +228,8 @@ impl CheatsheetExporter {
     /// Export to YAML string
     pub fn to_yaml(&self, options: &ExportOptions) -> Result<String, ExportError> {
         let cheatsheet = self.export(options)?;
-        serde_yaml::to_string(&cheatsheet).map_err(|e| ExportError::SerializationError(e.to_string()))
+        serde_yaml::to_string(&cheatsheet)
+            .map_err(|e| ExportError::SerializationError(e.to_string()))
     }
 
     /// Export to file

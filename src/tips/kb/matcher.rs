@@ -118,7 +118,9 @@ impl KbMatcher {
             // Prefer alias shortcuts over general tips
             let a_score = self.tip_relevance_score(a, command);
             let b_score = self.tip_relevance_score(b, command);
-            b_score.partial_cmp(&a_score).unwrap_or(std::cmp::Ordering::Equal)
+            b_score
+                .partial_cmp(&a_score)
+                .unwrap_or(std::cmp::Ordering::Equal)
         });
 
         // Sort aliases by chars saved (most savings first)
@@ -128,7 +130,10 @@ impl KbMatcher {
         let score = if tips.is_empty() && aliases.is_empty() {
             0.0
         } else {
-            let tip_score = tips.first().map(|t| self.tip_relevance_score(t, command)).unwrap_or(0.0);
+            let tip_score = tips
+                .first()
+                .map(|t| self.tip_relevance_score(t, command))
+                .unwrap_or(0.0);
             let alias_score = if let Some(a) = aliases.first() {
                 (a.chars_saved() as f32 / command.len() as f32).min(1.0)
             } else {
@@ -137,7 +142,11 @@ impl KbMatcher {
             (tip_score + alias_score) / 2.0
         };
 
-        MatchResult { tips, aliases, score }
+        MatchResult {
+            tips,
+            aliases,
+            score,
+        }
     }
 
     /// Check if a tip matches a command
@@ -151,7 +160,11 @@ impl KbMatcher {
 
         // Check plugin requirement
         if let Some(ref required_plugin) = tip.requires_plugin {
-            if !self.installed_plugins.iter().any(|p| p.eq_ignore_ascii_case(required_plugin)) {
+            if !self
+                .installed_plugins
+                .iter()
+                .any(|p| p.eq_ignore_ascii_case(required_plugin))
+            {
                 return false;
             }
         }
@@ -164,8 +177,7 @@ impl KbMatcher {
             false
         } else {
             // Literal match
-            command == tip.pattern
-                || command.starts_with(&format!("{} ", tip.pattern))
+            command == tip.pattern || command.starts_with(&format!("{} ", tip.pattern))
         }
     }
 
@@ -181,8 +193,7 @@ impl KbMatcher {
         }
 
         // Check if the command starts with the alias expansion
-        command.starts_with(&alias.expansion)
-            || command == alias.expansion
+        command.starts_with(&alias.expansion) || command == alias.expansion
     }
 
     /// Calculate relevance score for a tip (0.0 - 1.0)
@@ -216,7 +227,9 @@ impl KbMatcher {
         self.kb
             .aliases
             .iter()
-            .filter(|a| a.expansion == expansion || expansion.starts_with(&format!("{} ", a.expansion)))
+            .filter(|a| {
+                a.expansion == expansion || expansion.starts_with(&format!("{} ", a.expansion))
+            })
             .collect()
     }
 
@@ -259,24 +272,21 @@ mod tests {
                 .with_required_plugin("git".to_string()),
         );
         kb.add_tip(
-            KbTip::new("git-push-force", "^git push -f", "Consider using --force-with-lease instead")
-                .with_regex()
-                .with_category(KbTipCategory::SafetyTip),
+            KbTip::new(
+                "git-push-force",
+                "^git push -f",
+                "Consider using --force-with-lease instead",
+            )
+            .with_regex()
+            .with_category(KbTipCategory::SafetyTip),
         );
         kb.add_tip(
-            KbTip::new("zsh-only", "zsh-cmd", "ZSH tip")
-                .with_shells(vec!["zsh".to_string()]),
+            KbTip::new("zsh-only", "zsh-cmd", "ZSH tip").with_shells(vec!["zsh".to_string()]),
         );
 
         // Add aliases
-        kb.add_alias(
-            KbAlias::new("gst", "git status")
-                .with_plugin("git".to_string()),
-        );
-        kb.add_alias(
-            KbAlias::new("gp", "git push")
-                .with_plugin("git".to_string()),
-        );
+        kb.add_alias(KbAlias::new("gst", "git status").with_plugin("git".to_string()));
+        kb.add_alias(KbAlias::new("gp", "git push").with_plugin("git".to_string()));
         kb.add_alias(KbAlias::new("ll", "ls -la"));
 
         kb

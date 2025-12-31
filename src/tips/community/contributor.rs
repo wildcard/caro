@@ -53,7 +53,9 @@ impl Contributor {
 
     /// Get the display name or github username
     pub fn name(&self) -> &str {
-        self.display_name.as_deref().unwrap_or(&self.github_username)
+        self.display_name
+            .as_deref()
+            .unwrap_or(&self.github_username)
     }
 
     /// Get GitHub profile URL
@@ -233,8 +235,7 @@ mod tests {
 
     #[test]
     fn test_attribution_format() {
-        let attribution = ContributorAttribution::new("testuser")
-            .with_source("git-cheatsheet");
+        let attribution = ContributorAttribution::new("testuser").with_source("git-cheatsheet");
 
         let formatted = attribution.format();
         assert!(formatted.contains("@testuser"));

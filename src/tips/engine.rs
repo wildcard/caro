@@ -127,7 +127,10 @@ impl TipsEngine {
             let suggester = AliasSuggester::new(intelligence);
             if let Some(tip) = suggester.suggest(command) {
                 // Check cooldown
-                if self.session.is_in_cooldown(&tip.id, self.config.tip_cooldown) {
+                if self
+                    .session
+                    .is_in_cooldown(&tip.id, self.config.tip_cooldown)
+                {
                     self.session.tick();
                     return SuggestionResult::Cooldown;
                 }
@@ -139,7 +142,10 @@ impl TipsEngine {
             // Try plugin suggestion
             if self.config.categories.plugin_recommendations {
                 if let Some(tip) = suggester.suggest_plugin(command) {
-                    if !self.session.is_in_cooldown(&tip.id, self.config.tip_cooldown * 2) {
+                    if !self
+                        .session
+                        .is_in_cooldown(&tip.id, self.config.tip_cooldown * 2)
+                    {
                         self.session.record_shown(&tip.id);
                         return SuggestionResult::Found(tip);
                     }
