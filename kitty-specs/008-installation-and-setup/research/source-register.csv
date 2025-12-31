@@ -1,0 +1,21 @@
+# Source Register: Master list of all research sources
+#
+# Column Definitions:
+# - source_id: Unique identifier (lowercase, no spaces, e.g., "smith2024")
+# - citation: Full citation (BibTeX or APA format)
+# - url: Direct link to source (DOI, arXiv, or web URL)
+# - accessed_date: Date source was accessed (YYYY-MM-DD)
+# - relevance: high | medium | low (to primary research question)
+# - status: reviewed | pending | archived
+#
+# Usage: Add sources when discovered, update status as research progresses
+# Validation: source_id must be unique
+source_id,citation,url,accessed_date,relevance,status
+astro_website,"Caro Website Structure. website/src/pages/index.astro",file://website/src/pages/index.astro,2025-12-31,high,reviewed
+nav_pattern,"Navigation Component. website/src/components/Navigation.astro",file://website/src/components/Navigation.astro,2025-12-31,high,reviewed
+landing_pattern,"Landing Page Pattern. website/src/pages/safe-shell-commands.astro",file://website/src/pages/safe-shell-commands.astro,2025-12-31,medium,reviewed
+astro_docs,"Astro Documentation. Astro Technology Inc.",https://docs.astro.build,2025-12-31,high,reviewed
+readme_install,"README Installation Instructions. Caro Project README",file://README.md,2025-12-31,high,pending
+homepage_download,"Download Component. website/src/components/Download.astro",file://website/src/components/Download.astro,2025-12-31,medium,pending
+component_reuse,"Website Components Directory. website/src/components/",file://website/src/components/,2025-12-31,medium,reviewed
+site_structure,"Website Pages Directory. website/src/pages/",file://website/src/pages/,2025-12-31,high,reviewed
