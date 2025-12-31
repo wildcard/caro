@@ -236,6 +236,8 @@ pub enum BackendType {
     Mlx,
     /// Exo distributed cluster backend
     Exo,
+    /// vLLM Jukebox multi-model server backend
+    VllmJukebox,
 }
 
 impl std::str::FromStr for BackendType {
@@ -249,6 +251,7 @@ impl std::str::FromStr for BackendType {
             "vllm" => Ok(Self::VLlm),
             "mlx" => Ok(Self::Mlx),
             "exo" => Ok(Self::Exo),
+            "vllm-jukebox" | "jukebox" => Ok(Self::VllmJukebox),
             _ => Err(format!("Unknown backend type: {}", s)),
         }
     }
@@ -263,6 +266,7 @@ impl std::fmt::Display for BackendType {
             Self::VLlm => write!(f, "vllm"),
             Self::Mlx => write!(f, "mlx"),
             Self::Exo => write!(f, "exo"),
+            Self::VllmJukebox => write!(f, "vllm-jukebox"),
         }
     }
 }
