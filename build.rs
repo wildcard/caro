@@ -64,9 +64,7 @@ fn main() {
         })
         .and_then(|s| {
             // Extract just the version number like "1.92.0"
-            s.split_whitespace()
-                .nth(1)
-                .map(|v| v.to_string())
+            s.split_whitespace().nth(1).map(|v| v.to_string())
         })
         .unwrap_or_else(|| "unknown".to_string());
 
@@ -87,7 +85,10 @@ fn main() {
     println!("cargo:rustc-env=CARO_RUSTC_VERSION={}", rustc_version);
     println!("cargo:rustc-env=CARO_TARGET={}", target);
     println!("cargo:rustc-env=CARO_BUILD_PROFILE={}", profile);
-    println!("cargo:rustc-env=CARO_RELEASE={}", if is_release { "1" } else { "0" });
+    println!(
+        "cargo:rustc-env=CARO_RELEASE={}",
+        if is_release { "1" } else { "0" }
+    );
 
     // Rebuild if git HEAD changes
     println!("cargo:rerun-if-changed=.git/HEAD");

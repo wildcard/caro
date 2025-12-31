@@ -29,7 +29,10 @@ impl VersionInfo {
     ///
     /// Format: `caro 1.0.2 (abc1234 2025-01-15)`
     pub fn short(&self) -> String {
-        format!("caro {} ({} {})", self.version, self.git_hash, self.git_date)
+        format!(
+            "caro {} ({} {})",
+            self.version, self.git_hash, self.git_date
+        )
     }
 
     /// Generate long version string (verbose, Caro's voice)
