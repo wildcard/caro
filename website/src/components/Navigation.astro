@@ -110,6 +110,7 @@
             <button id="holiday-toggle-desktop" class="icon-button holiday-btn" aria-label="Holiday theme" title="Holiday Theme">
               <span class="holiday-icon christmas">🎄</span>
               <span class="holiday-icon hanukkah">🕎</span>
+              <span class="holiday-icon newyear">🎊</span>
               <span class="holiday-icon default">✨</span>
             </button>
             <div id="holiday-menu-desktop" class="holiday-dropdown hidden">
@@ -122,6 +123,10 @@
                 <span>🕎</span> Hanukkah
                 <span class="check">✓</span>
               </button>
+              <button class="theme-option" data-theme="newyear">
+                <span>🎊</span> New Year
+                <span class="check">✓</span>
+              </button>
               <button class="theme-option" data-theme="none">
                 <span>🚫</span> None
                 <span class="check">✓</span>
@@ -130,6 +135,12 @@
               <label class="snow-toggle">
                 <span>❄️ Snow Effect</span>
                 <input type="checkbox" id="snow-checkbox-desktop" />
+                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+              </label>
+              <div class="dropdown-divider"></div>
+              <label class="snow-toggle">
+                <span>🎆 Disable All Effects</span>
+                <input type="checkbox" id="effects-checkbox-desktop" />
                 <span class="toggle-track"><span class="toggle-thumb"></span></span>
               </label>
             </div>
@@ -281,6 +292,7 @@
             <select id="holiday-select-mobile" class="theme-select">
               <option value="christmas">Christmas 🎄</option>
               <option value="hanukkah">Hanukkah 🕎</option>
+              <option value="newyear">New Year 🎊</option>
               <option value="none">None</option>
             </select>
           </div>
@@ -291,6 +303,18 @@
               <span>Snow Effect</span>
             </div>
             <button id="snow-toggle-mobile" class="toggle-switch" aria-label="Toggle snow effect">
+              <span class="toggle-track">
+                <span class="toggle-thumb"></span>
+              </span>
+            </button>
+          </div>
+
+          <div class="theme-control">
+            <div class="control-label">
+              <span class="control-icon">🎆</span>
+              <span>Disable All Effects</span>
+            </div>
+            <button id="effects-toggle-mobile" class="toggle-switch" aria-label="Toggle all effects">
               <span class="toggle-track">
                 <span class="toggle-thumb"></span>
               </span>
@@ -557,7 +581,8 @@
 
   :global(.christmas) .holiday-btn .christmas { display: block; }
   :global(.hanukkah) .holiday-btn .hanukkah { display: block; }
-  :global(:not(.christmas):not(.hanukkah)) .holiday-btn .default { display: block; }
+  :global(.newyear) .holiday-btn .newyear { display: block; }
+  :global(:not(.christmas):not(.hanukkah):not(.newyear)) .holiday-btn .default { display: block; }
 
   :global(.christmas) .holiday-btn {
     border-color: #c41e3a;
@@ -567,6 +592,11 @@
   :global(.hanukkah) .holiday-btn {
     border-color: #0038b8;
     background: rgba(0, 56, 184, 0.1);
+  }
+
+  :global(.newyear) .holiday-btn {
+    border-color: #ffd700;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(196, 69, 105, 0.1) 50%, rgba(78, 205, 196, 0.1) 100%);
   }
 
   /* Holiday Dropdown */
@@ -1154,8 +1184,8 @@ document.addEventListener('DOMContentLoaded', () => {
     return isFromIsrael() ? 'hanukkah' : 'christmas';
   }
 
-  function applyHolidayTheme(theme: 'christmas' | 'hanukkah' | 'none') {
-    document.documentElement.classList.remove('christmas', 'hanukkah');
+  function applyHolidayTheme(theme: 'christmas' | 'hanukkah' | 'newyear' | 'none') {
+    document.documentElement.classList.remove('christmas', 'hanukkah', 'newyear');
     if (theme !== 'none') {
       document.documentElement.classList.add(theme);
     }
@@ -1176,7 +1206,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update mobile icon
     const mobileIcon = document.getElementById('holiday-icon-mobile');
     if (mobileIcon) {
-      mobileIcon.textContent = theme === 'hanukkah' ? '🕎' : '🎄';
+      const icons = { christmas: '🎄', hanukkah: '🕎', newyear: '🎊', none: '✨' };
+      mobileIcon.textContent = icons[theme as keyof typeof icons] || '🎄';
     }
   }
 
@@ -1193,7 +1224,7 @@ document.addEventListener('DOMContentLoaded', () => {
     desktopContainer?.classList.remove('hidden');
     mobileControls?.classList.remove('hidden');
 
-    let savedTheme = localStorage.getItem('holidayTheme') as 'christmas' | 'hanukkah' | 'none' | null;
+    let savedTheme = localStorage.getItem('holidayTheme') as 'christmas' | 'hanukkah' | 'newyear' | 'none' | null;
     if (!savedTheme) {
       savedTheme = getDefaultHolidayTheme();
     }
@@ -1225,7 +1256,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mobile select
     const mobileSelect = document.getElementById('holiday-select-mobile') as HTMLSelectElement;
     mobileSelect?.addEventListener('change', () => {
-      applyHolidayTheme(mobileSelect.value as 'christmas' | 'hanukkah' | 'none');
+      applyHolidayTheme(mobileSelect.value as 'christmas' | 'hanukkah' | 'newyear' | 'none');
     });
 
     // Snow toggles
@@ -1256,6 +1287,42 @@ document.addEventListener('DOMContentLoaded', () => {
     snowToggleMobile?.addEventListener('click', () => {
       const newState = !snowToggleMobile.classList.contains('active');
       toggleSnow(newState);
+    });
+
+    // Disable All Effects toggles
+    const effectsCheckboxDesktop = document.getElementById('effects-checkbox-desktop') as HTMLInputElement;
+    const effectsToggleMobile = document.getElementById('effects-toggle-mobile');
+
+    const effectsDisabled = localStorage.getItem('effectsDisabled') === 'true';
+
+    if (effectsCheckboxDesktop) effectsCheckboxDesktop.checked = effectsDisabled;
+    effectsToggleMobile?.classList.toggle('active', effectsDisabled);
+
+    function toggleAllEffects(disabled: boolean) {
+      localStorage.setItem('effectsDisabled', String(disabled));
+      if (effectsCheckboxDesktop) effectsCheckboxDesktop.checked = disabled;
+      effectsToggleMobile?.classList.toggle('active', disabled);
+
+      // Stop all effects if disabled
+      if (disabled) {
+        if ((window as any).snowEffect) {
+          (window as any).snowEffect.stop();
+        }
+        if ((window as any).newYearEffect) {
+          (window as any).newYearEffect.stop();
+        }
+        // Hide countdown if visible
+        const countdown = document.getElementById('new-year-countdown');
+        if (countdown) {
+          countdown.classList.add('hidden');
+        }
+      }
+    }
+
+    effectsCheckboxDesktop?.addEventListener('change', () => toggleAllEffects(effectsCheckboxDesktop.checked));
+    effectsToggleMobile?.addEventListener('click', () => {
+      const newState = !effectsToggleMobile.classList.contains('active');
+      toggleAllEffects(newState);
     });
   }
 

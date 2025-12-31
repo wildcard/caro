@@ -44,10 +44,39 @@ const { title, description } = Astro.props;
         document.documentElement.classList.remove('dark');
       }
 
+      // Test date override (for development only - localhost only)
+      (function() {
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          const params = new URLSearchParams(window.location.search);
+          const testDate = params.get('testDate');
+
+          if (testDate) {
+            // Parse YYYY-MM-DD format
+            const match = testDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (match) {
+              const [_, year, month, day] = match;
+              const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+
+              if (!isNaN(date.getTime())) {
+                window.__CARO_TEST_DATE = date.toISOString();
+                console.log('🧪 Test date activated:', testDate, '→', date.toDateString());
+                console.log('🔬 Components will use this date for initialization');
+              }
+            }
+          }
+        }
+      })();
+
       // Holiday theme initialization (before render to prevent flash)
       (function() {
         function isHolidaySeason() {
-          const now = new Date();
+          let now = new Date();
+
+          // Support test date override (localhost only)
+          if (window.__CARO_TEST_DATE) {
+            now = new Date(window.__CARO_TEST_DATE);
+          }
+
           const month = now.getMonth(); // 0-indexed
           // December 1-31 only (Christmas/Hanukkah season)
           // January 1 is now handled separately as New Year
@@ -55,7 +84,13 @@ const { title, description } = Astro.props;
         }
 
         function isNewYearDay() {
-          const now = new Date();
+          let now = new Date();
+
+          // Support test date override (localhost only)
+          if (window.__CARO_TEST_DATE) {
+            now = new Date(window.__CARO_TEST_DATE);
+          }
+
           const month = now.getMonth(); // 0-indexed
           const day = now.getDate();
           // January 1st only
@@ -71,7 +106,7 @@ const { title, description } = Astro.props;
 
         // New Year's Day gets its own theme
         if (isNewYearDay()) {
-          document.documentElement.classList.add('new-year');
+          document.documentElement.classList.add('newyear');
         }
       })();
     </script>
