@@ -27,7 +27,7 @@ jobs:
           path-to-signatures: '.github/cla-signatures.json'
           path-to-document: 'https://github.com/wildcard/caro/blob/main/docs/legal/CLA.md'
           # Branch where signatures will be stored
-          branch: 'main'
+          branch: 'cla-signatures'
           # Allowlist for bots and specific users
           allowlist: bot*,dependabot*,github-actions*
 
