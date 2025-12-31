@@ -4,6 +4,8 @@
   "version": "1.0.0",
   "description": "Official website for Caro - Your loyal shell companion",
   "scripts": {
+    "prebuild": "node scripts/extract-version.mjs",
+    "predev": "node scripts/extract-version.mjs",
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",
