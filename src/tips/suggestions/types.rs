@@ -66,11 +66,7 @@ impl Tip {
     /// Create an alias suggestion tip
     pub fn alias_suggestion(alias: &Alias, original_command: &str) -> Self {
         let chars_saved = alias.chars_saved();
-        let message = format!(
-            "Use `{}` instead of `{}`",
-            alias.name,
-            original_command
-        );
+        let message = format!("Use `{}` instead of `{}`", alias.name, original_command);
 
         Self {
             id: format!("alias:{}", alias.name),
@@ -86,11 +82,7 @@ impl Tip {
     }
 
     /// Create a plugin recommendation tip
-    pub fn plugin_recommendation(
-        plugin_name: &str,
-        plugin_manager: &str,
-        reason: &str,
-    ) -> Self {
+    pub fn plugin_recommendation(plugin_name: &str, plugin_manager: &str, reason: &str) -> Self {
         let message = format!(
             "Install the {} plugin for {} - {}",
             plugin_name, plugin_manager, reason
@@ -120,19 +112,11 @@ impl Tip {
 #[derive(Debug, Clone)]
 pub enum TipAction {
     /// Suggest using an alias
-    UseAlias {
-        alias: String,
-        expansion: String,
-    },
+    UseAlias { alias: String, expansion: String },
     /// Suggest installing a plugin
-    InstallPlugin {
-        manager: String,
-        plugin: String,
-    },
+    InstallPlugin { manager: String, plugin: String },
     /// Open a URL for more information
-    OpenUrl {
-        url: String,
-    },
+    OpenUrl { url: String },
     /// Run a command
     RunCommand {
         command: String,

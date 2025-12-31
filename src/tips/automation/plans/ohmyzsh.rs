@@ -68,10 +68,7 @@ pub fn ohmyzsh_install_plan() -> InstallationPlan {
 }
 
 /// Create a plan to install Oh My Zsh with specific theme and plugins
-pub fn ohmyzsh_custom_install_plan(
-    theme: &str,
-    plugins: &[&str],
-) -> InstallationPlan {
+pub fn ohmyzsh_custom_install_plan(theme: &str, plugins: &[&str]) -> InstallationPlan {
     let mut plan = ohmyzsh_install_plan();
 
     // Add step to set theme
@@ -112,36 +109,37 @@ pub fn ohmyzsh_update_plan() -> InstallationPlan {
 
 /// Create a plan to uninstall Oh My Zsh
 pub fn ohmyzsh_uninstall_plan() -> InstallationPlan {
-    InstallationPlan::new("Uninstall Oh My Zsh", "Remove Oh My Zsh and restore original .zshrc")
-        .with_shells(vec![TipsShellType::Zsh])
-        .with_prerequisite(Prerequisite::PathExists(PathBuf::from("~/.oh-my-zsh")))
-        .with_step(InstallStep::Confirmation {
-            message: "This will remove Oh My Zsh. Are you sure?".to_string(),
-        })
-        .with_step(InstallStep::Backup {
-            path: PathBuf::from("~/.zshrc"),
-            label: "zshrc-pre-uninstall".to_string(),
-        })
-        .with_step(InstallStep::Run {
-            command: "uninstall_oh_my_zsh 2>/dev/null || rm -rf ~/.oh-my-zsh".to_string(),
-            description: "Remove Oh My Zsh".to_string(),
-            continue_on_error: true,
-        })
-        .with_step(InstallStep::Run {
-            command: r#"if [ -f ~/.zshrc.pre-oh-my-zsh ]; then mv ~/.zshrc.pre-oh-my-zsh ~/.zshrc; fi"#.to_string(),
-            description: "Restore original .zshrc".to_string(),
-            continue_on_error: true,
-        })
-        .with_verification(VerificationStep::PathNotExists(PathBuf::from(
-            "~/.oh-my-zsh",
-        )))
+    InstallationPlan::new(
+        "Uninstall Oh My Zsh",
+        "Remove Oh My Zsh and restore original .zshrc",
+    )
+    .with_shells(vec![TipsShellType::Zsh])
+    .with_prerequisite(Prerequisite::PathExists(PathBuf::from("~/.oh-my-zsh")))
+    .with_step(InstallStep::Confirmation {
+        message: "This will remove Oh My Zsh. Are you sure?".to_string(),
+    })
+    .with_step(InstallStep::Backup {
+        path: PathBuf::from("~/.zshrc"),
+        label: "zshrc-pre-uninstall".to_string(),
+    })
+    .with_step(InstallStep::Run {
+        command: "uninstall_oh_my_zsh 2>/dev/null || rm -rf ~/.oh-my-zsh".to_string(),
+        description: "Remove Oh My Zsh".to_string(),
+        continue_on_error: true,
+    })
+    .with_step(InstallStep::Run {
+        command: r#"if [ -f ~/.zshrc.pre-oh-my-zsh ]; then mv ~/.zshrc.pre-oh-my-zsh ~/.zshrc; fi"#
+            .to_string(),
+        description: "Restore original .zshrc".to_string(),
+        continue_on_error: true,
+    })
+    .with_verification(VerificationStep::PathNotExists(PathBuf::from(
+        "~/.oh-my-zsh",
+    )))
 }
 
 /// Create a plan to install a custom Oh My Zsh theme
-pub fn ohmyzsh_theme_install_plan(
-    theme_name: &str,
-    theme_repo: &str,
-) -> InstallationPlan {
+pub fn ohmyzsh_theme_install_plan(theme_name: &str, theme_repo: &str) -> InstallationPlan {
     let theme_path = format!("~/.oh-my-zsh/custom/themes/{}", theme_name);
 
     InstallationPlan::new(
@@ -152,10 +150,7 @@ pub fn ohmyzsh_theme_install_plan(
     .with_prerequisite(Prerequisite::PathExists(PathBuf::from("~/.oh-my-zsh")))
     .with_prerequisite(Prerequisite::CommandExists("git".to_string()))
     .with_step(InstallStep::Run {
-        command: format!(
-            "git clone --depth=1 {} {}",
-            theme_repo, theme_path
-        ),
+        command: format!("git clone --depth=1 {} {}", theme_repo, theme_path),
         description: format!("Clone {} theme", theme_name),
         continue_on_error: false,
     })
@@ -231,10 +226,9 @@ mod tests {
     fn test_update_plan() {
         let plan = ohmyzsh_update_plan();
         assert_eq!(plan.name, "Oh My Zsh Update");
-        assert!(plan
-            .steps
-            .iter()
-            .any(|s| matches!(s, InstallStep::Run { command, .. } if command.contains("git pull"))));
+        assert!(plan.steps.iter().any(
+            |s| matches!(s, InstallStep::Run { command, .. } if command.contains("git pull"))
+        ));
     }
 
     #[test]

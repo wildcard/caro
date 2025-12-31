@@ -51,7 +51,8 @@ pub fn plans_for_shell(shell: TipsShellType) -> Vec<InstallationPlan> {
 /// Find a plan by name
 pub fn find_plan(name: &str) -> Option<InstallationPlan> {
     all_plans().into_iter().find(|p| {
-        p.name.eq_ignore_ascii_case(name) || p.name.to_lowercase().replace(' ', "-") == name.to_lowercase()
+        p.name.eq_ignore_ascii_case(name)
+            || p.name.to_lowercase().replace(' ', "-") == name.to_lowercase()
     })
 }
 
@@ -64,15 +65,11 @@ pub fn check_plan_prerequisites(
         .iter()
         .map(|prereq| {
             let met = match prereq {
-                Prerequisite::ShellType(required) => {
-                    shell.map_or(true, |s| s == *required)
-                }
-                Prerequisite::CommandExists(cmd) => {
-                    std::process::Command::new("which")
-                        .arg(cmd)
-                        .output()
-                        .map_or(false, |o| o.status.success())
-                }
+                Prerequisite::ShellType(required) => shell.map_or(true, |s| s == *required),
+                Prerequisite::CommandExists(cmd) => std::process::Command::new("which")
+                    .arg(cmd)
+                    .output()
+                    .map_or(false, |o| o.status.success()),
                 Prerequisite::PathExists(path) => {
                     let expanded = expand_tilde(path);
                     expanded.exists()

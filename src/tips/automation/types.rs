@@ -148,10 +148,16 @@ pub enum Prerequisite {
     PathExists(PathBuf),
 
     /// A file must contain a pattern
-    FileContains { path: PathBuf, pattern: String },
+    FileContains {
+        path: PathBuf,
+        pattern: String,
+    },
 
     /// A file must NOT contain a pattern
-    FileNotContains { path: PathBuf, pattern: String },
+    FileNotContains {
+        path: PathBuf,
+        pattern: String,
+    },
 
     /// Internet connectivity required
     InternetAccess,
@@ -161,7 +167,10 @@ pub enum Prerequisite {
     MustBeRoot,
 
     /// Custom check with description
-    Custom { description: String, check_command: String },
+    Custom {
+        description: String,
+        check_command: String,
+    },
 }
 
 impl Prerequisite {
@@ -170,7 +179,9 @@ impl Prerequisite {
         match self {
             Self::ShellType(shell) => format!("Shell must be {:?}", shell),
             Self::CommandExists(cmd) => format!("Command '{}' must be in PATH", cmd),
-            Self::NotInstalled(path) => format!("Must not already be installed ({})", path.display()),
+            Self::NotInstalled(path) => {
+                format!("Must not already be installed ({})", path.display())
+            }
             Self::PathExists(path) => format!("Path must exist: {}", path.display()),
             Self::FileContains { path, pattern } => {
                 format!("File {} must contain: {}", path.display(), pattern)
@@ -193,7 +204,10 @@ pub enum InstallStep {
     Confirmation { message: String },
 
     /// Show informational message
-    Message { message: String, level: MessageLevel },
+    Message {
+        message: String,
+        level: MessageLevel,
+    },
 
     /// Create a backup of a file
     Backup { path: PathBuf, label: String },
@@ -293,7 +307,10 @@ pub enum VerificationStep {
     CommandSucceeds(String),
 
     /// Custom verification with description
-    Custom { description: String, command: String },
+    Custom {
+        description: String,
+        command: String,
+    },
 }
 
 impl VerificationStep {
@@ -409,8 +426,7 @@ mod tests {
 
     #[test]
     fn test_plan_applies_to_shell() {
-        let zsh_plan = InstallationPlan::new("Test", "Test")
-            .with_shells(vec![TipsShellType::Zsh]);
+        let zsh_plan = InstallationPlan::new("Test", "Test").with_shells(vec![TipsShellType::Zsh]);
 
         assert!(zsh_plan.applies_to_shell(TipsShellType::Zsh));
         assert!(!zsh_plan.applies_to_shell(TipsShellType::Bash));

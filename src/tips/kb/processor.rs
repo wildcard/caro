@@ -121,14 +121,21 @@ impl KbProcessor {
     }
 
     /// Validate a cheatsheet
-    fn validate_cheatsheet(&self, path: &Path, cheatsheet: &Cheatsheet) -> Result<(), ProcessorError> {
+    fn validate_cheatsheet(
+        &self,
+        path: &Path,
+        cheatsheet: &Cheatsheet,
+    ) -> Result<(), ProcessorError> {
         // Validate tip patterns
         for tip in &cheatsheet.tips {
             if tip.is_regex {
                 if let Err(e) = regex::Regex::new(&tip.pattern) {
                     return Err(ProcessorError::InvalidFormat {
                         path: path.to_path_buf(),
-                        message: format!("Invalid regex pattern '{}' in tip '{}': {}", tip.pattern, tip.id, e),
+                        message: format!(
+                            "Invalid regex pattern '{}' in tip '{}': {}",
+                            tip.pattern, tip.id, e
+                        ),
                     });
                 }
             }
@@ -199,7 +206,12 @@ impl KbProcessor {
     }
 
     /// Convert a cheatsheet alias to a KB alias
-    fn convert_alias(&self, alias: &CheatsheetAlias, source: &str, default_shells: &[String]) -> KbAlias {
+    fn convert_alias(
+        &self,
+        alias: &CheatsheetAlias,
+        source: &str,
+        default_shells: &[String],
+    ) -> KbAlias {
         let mut kb_alias = KbAlias::new(&alias.name, &alias.expansion);
         kb_alias.source = Some(source.to_string());
         kb_alias.shells = default_shells.to_vec();
@@ -217,8 +229,8 @@ impl KbProcessor {
 
     /// Convert a cheatsheet plugin to a KB plugin
     fn convert_plugin(&self, plugin: &CheatsheetPlugin, source: &str) -> KbPlugin {
-        let mut kb_plugin = KbPlugin::new(&plugin.name, &plugin.description)
-            .with_managers(plugin.managers.clone());
+        let mut kb_plugin =
+            KbPlugin::new(&plugin.name, &plugin.description).with_managers(plugin.managers.clone());
         kb_plugin.source = Some(source.to_string());
 
         if let Some(ref cmd) = plugin.install_command {

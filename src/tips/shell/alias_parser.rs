@@ -99,9 +99,8 @@ impl AliasParser {
             Regex::new(r#"^\s*alias\s+([a-zA-Z_][a-zA-Z0-9_!-]*)="([^"]*)"\s*$"#)
                 .expect("Invalid bash/zsh double quote regex");
 
-        let bash_zsh_unquoted =
-            Regex::new(r"^\s*alias\s+([a-zA-Z_][a-zA-Z0-9_!-]*)=(\S+)\s*$")
-                .expect("Invalid bash/zsh unquoted regex");
+        let bash_zsh_unquoted = Regex::new(r"^\s*alias\s+([a-zA-Z_][a-zA-Z0-9_!-]*)=(\S+)\s*$")
+            .expect("Invalid bash/zsh unquoted regex");
 
         // Separate regexes for fish with single and double quotes
         let fish_single_quote =

@@ -44,6 +44,5 @@ pub use installer::{InstallResult, Installer};
 pub use plans::{ohmyzsh_install_plan, plugin_enable_plan};
 pub use shell_reload::ShellReload;
 pub use types::{
-    InstallStep, InstallationError, InstallationPlan, Prerequisite, RollbackPlan,
-    VerificationStep,
+    InstallStep, InstallationError, InstallationPlan, Prerequisite, RollbackPlan, VerificationStep,
 };

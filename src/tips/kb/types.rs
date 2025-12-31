@@ -162,7 +162,11 @@ pub struct KbTip {
 
 impl KbTip {
     /// Create a new tip
-    pub fn new(id: impl Into<String>, pattern: impl Into<String>, message: impl Into<String>) -> Self {
+    pub fn new(
+        id: impl Into<String>,
+        pattern: impl Into<String>,
+        message: impl Into<String>,
+    ) -> Self {
         Self {
             id: id.into(),
             pattern: pattern.into(),

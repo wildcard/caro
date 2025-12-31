@@ -125,7 +125,12 @@ impl Installer {
         // Execute steps
         for (i, step) in plan.steps.iter().enumerate() {
             if self.verbose {
-                messages.push(format!("[{}/{}] {}", i + 1, plan.steps.len(), step.description()));
+                messages.push(format!(
+                    "[{}/{}] {}",
+                    i + 1,
+                    plan.steps.len(),
+                    step.description()
+                ));
             }
 
             match self.execute_step(step) {
@@ -446,7 +451,9 @@ impl Installer {
                 replacement,
             } => {
                 let expanded = expand_tilde(path);
-                let replaced = self.config_editor.replace_pattern(&expanded, pattern, replacement)?;
+                let replaced =
+                    self.config_editor
+                        .replace_pattern(&expanded, pattern, replacement)?;
 
                 Ok(StepResult {
                     message: if replaced {
@@ -605,7 +612,8 @@ impl Installer {
                 }
 
                 // Append to module list
-                let new_content = format!("{}\nzstyle ':prezto:load' pmodule '{}'\n", content, module);
+                let new_content =
+                    format!("{}\nzstyle ':prezto:load' pmodule '{}'\n", content, module);
                 self.config_editor.write(&zpreztorc, &new_content)?;
 
                 Ok(StepResult {
@@ -784,7 +792,9 @@ impl Installer {
             ),
             InstallStep::CreateDir { path } => format!("Create directory: {}", path.display()),
             InstallStep::WriteFile { path, .. } => format!("Write file: {}", path.display()),
-            InstallStep::Download { url, destination, .. } => {
+            InstallStep::Download {
+                url, destination, ..
+            } => {
                 format!("Download {} to {}", url, destination.display())
             }
             InstallStep::EnableOmzPlugin { plugin } => {
@@ -840,8 +850,8 @@ mod tests {
 
     fn create_test_installer() -> (Installer, TempDir) {
         let temp_dir = TempDir::new().unwrap();
-        let config_editor = ConfigEditor::with_backup_dir(temp_dir.path().join("backups"))
-            .without_atomic_writes();
+        let config_editor =
+            ConfigEditor::with_backup_dir(temp_dir.path().join("backups")).without_atomic_writes();
         let installer = Installer::with_config_editor(config_editor).non_interactive();
         (installer, temp_dir)
     }
@@ -850,8 +860,8 @@ mod tests {
     fn test_dry_run() {
         let (installer, _temp_dir) = create_test_installer();
 
-        let plan = InstallationPlan::new("Test", "Test installation")
-            .with_step(InstallStep::Message {
+        let plan =
+            InstallationPlan::new("Test", "Test installation").with_step(InstallStep::Message {
                 message: "Starting".into(),
                 level: MessageLevel::Info,
             });
@@ -869,10 +879,11 @@ mod tests {
     fn test_execute_message_step() {
         let (mut installer, _temp_dir) = create_test_installer();
 
-        let plan = InstallationPlan::new("Test", "Test installation").with_step(InstallStep::Message {
-            message: "Test message".into(),
-            level: MessageLevel::Success,
-        });
+        let plan =
+            InstallationPlan::new("Test", "Test installation").with_step(InstallStep::Message {
+                message: "Test message".into(),
+                level: MessageLevel::Success,
+            });
 
         let result = installer.execute(&plan);
         assert!(result.is_success());
@@ -886,12 +897,13 @@ mod tests {
         let config_path = temp_dir.path().join("test.conf");
         fs::write(&config_path, "# Test config\n").unwrap();
 
-        let plan =
-            InstallationPlan::new("Test", "Test installation").with_step(InstallStep::AddToConfig {
+        let plan = InstallationPlan::new("Test", "Test installation").with_step(
+            InstallStep::AddToConfig {
                 path: config_path.clone(),
                 content: "export FOO=bar".into(),
                 skip_if_contains: Some("FOO=".into()),
-            });
+            },
+        );
 
         let result = installer.execute(&plan);
         assert!(result.is_success());
@@ -953,8 +965,9 @@ mod tests {
         let (mut installer, temp_dir) = create_test_installer();
 
         let new_dir = temp_dir.path().join("new_dir");
-        let plan =
-            InstallationPlan::new("Test", "Test").with_step(InstallStep::CreateDir { path: new_dir.clone() });
+        let plan = InstallationPlan::new("Test", "Test").with_step(InstallStep::CreateDir {
+            path: new_dir.clone(),
+        });
 
         let result = installer.execute(&plan);
         assert!(result.is_success());

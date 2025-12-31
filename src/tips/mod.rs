@@ -54,7 +54,10 @@ pub mod shell;
 pub mod suggestions;
 
 // Re-export shell types
-pub use shell::{Alias, AliasParser, AliasSource, PluginDetector, PluginManager, ShellIntelligence, TipsShellType};
+pub use shell::{
+    Alias, AliasParser, AliasSource, PluginDetector, PluginManager, ShellIntelligence,
+    TipsShellType,
+};
 
 // Re-export knowledge base types
 pub use kb::{
@@ -70,15 +73,15 @@ pub use engine::{SessionStats, TipsEngine, TipsSession};
 
 // Re-export suggestion types
 pub use suggestions::{
-    AliasSuggester, DisplayStyle, SuggestionResult, Tip, TipAction, TipCategory, TipDisplay,
-    print_tip, print_tip_box,
+    print_tip, print_tip_box, AliasSuggester, DisplayStyle, SuggestionResult, Tip, TipAction,
+    TipCategory, TipDisplay,
 };
 
 // Re-export automation types
 pub use automation::{
-    ConfigEditor, InstallResult, InstallStep, InstallationError, InstallationPlan, Installer,
-    Prerequisite, RollbackPlan, ShellReload, VerificationStep, ohmyzsh_install_plan,
-    plugin_enable_plan,
+    ohmyzsh_install_plan, plugin_enable_plan, ConfigEditor, InstallResult, InstallStep,
+    InstallationError, InstallationPlan, Installer, Prerequisite, RollbackPlan, ShellReload,
+    VerificationStep,
 };
 
 // Re-export community types

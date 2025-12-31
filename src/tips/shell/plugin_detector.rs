@@ -17,20 +17,11 @@ pub enum PluginManager {
         theme: Option<String>,
     },
     /// Prezto framework
-    Prezto {
-        path: PathBuf,
-        modules: Vec<String>,
-    },
+    Prezto { path: PathBuf, modules: Vec<String> },
     /// Zinit plugin manager
-    Zinit {
-        path: PathBuf,
-        plugins: Vec<String>,
-    },
+    Zinit { path: PathBuf, plugins: Vec<String> },
     /// Fisher for Fish shell
-    Fisher {
-        path: PathBuf,
-        plugins: Vec<String>,
-    },
+    Fisher { path: PathBuf, plugins: Vec<String> },
     /// Antigen plugin manager
     Antigen { plugins: Vec<String> },
     /// Zplug plugin manager
@@ -258,8 +249,8 @@ impl PluginDetector {
         let mut plugins = HashSet::new();
 
         // Match zinit light/load commands
-        let zinit_re = Regex::new(r"zinit\s+(?:light|load)\s+([^\s]+)")
-            .expect("Invalid zinit regex");
+        let zinit_re =
+            Regex::new(r"zinit\s+(?:light|load)\s+([^\s]+)").expect("Invalid zinit regex");
 
         for caps in zinit_re.captures_iter(&content) {
             if let Some(plugin) = caps.get(1) {

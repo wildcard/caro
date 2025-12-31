@@ -224,10 +224,7 @@ impl SchemaValidator {
                     i
                 )));
             } else if tip.message.len() > 500 {
-                warnings.push(format!(
-                    "Tip '{}' message is over 500 characters",
-                    tip.id
-                ));
+                warnings.push(format!("Tip '{}' message is over 500 characters", tip.id));
             }
 
             // Validate category

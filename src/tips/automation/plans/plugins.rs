@@ -50,45 +50,45 @@ pub fn custom_plugin_install_plan(
 ) -> InstallationPlan {
     let plugin_path = format!("~/.oh-my-zsh/custom/plugins/{}", plugin_name);
 
-    InstallationPlan::new(
-        format!("{} Plugin", plugin_name),
-        description.to_string(),
-    )
-    .with_shells(vec![TipsShellType::Zsh])
-    .with_prerequisite(Prerequisite::PathExists(PathBuf::from("~/.oh-my-zsh")))
-    .with_prerequisite(Prerequisite::CommandExists("git".to_string()))
-    .with_prerequisite(Prerequisite::NotInstalled(PathBuf::from(&plugin_path)))
-    .with_step(InstallStep::Message {
-        message: format!("Installing {} plugin...", plugin_name),
-        level: MessageLevel::Info,
-    })
-    .with_step(InstallStep::Run {
-        command: format!("git clone --depth=1 {} {}", repo_url, plugin_path),
-        description: format!("Clone {} plugin", plugin_name),
-        continue_on_error: false,
-    })
-    .with_step(InstallStep::Backup {
-        path: PathBuf::from("~/.zshrc"),
-        label: format!("zshrc-pre-{}", plugin_name),
-    })
-    .with_step(InstallStep::EnableOmzPlugin {
-        plugin: plugin_name.to_string(),
-    })
-    .with_step(InstallStep::Message {
-        message: format!("{} plugin installed and enabled!", plugin_name),
-        level: MessageLevel::Success,
-    })
-    .with_verification(VerificationStep::PathExists(PathBuf::from(&plugin_path)))
-    .with_verification(VerificationStep::FileContains {
-        path: PathBuf::from("~/.zshrc"),
-        pattern: plugin_name.to_string(),
-    })
-    .with_rollback(
-        RollbackPlan::new()
-            .with_backup(format!("zshrc-pre-{}", plugin_name))
-            .with_remove(PathBuf::from(&plugin_path))
-            .with_message(format!("Removing {} plugin and restoring .zshrc", plugin_name)),
-    )
+    InstallationPlan::new(format!("{} Plugin", plugin_name), description.to_string())
+        .with_shells(vec![TipsShellType::Zsh])
+        .with_prerequisite(Prerequisite::PathExists(PathBuf::from("~/.oh-my-zsh")))
+        .with_prerequisite(Prerequisite::CommandExists("git".to_string()))
+        .with_prerequisite(Prerequisite::NotInstalled(PathBuf::from(&plugin_path)))
+        .with_step(InstallStep::Message {
+            message: format!("Installing {} plugin...", plugin_name),
+            level: MessageLevel::Info,
+        })
+        .with_step(InstallStep::Run {
+            command: format!("git clone --depth=1 {} {}", repo_url, plugin_path),
+            description: format!("Clone {} plugin", plugin_name),
+            continue_on_error: false,
+        })
+        .with_step(InstallStep::Backup {
+            path: PathBuf::from("~/.zshrc"),
+            label: format!("zshrc-pre-{}", plugin_name),
+        })
+        .with_step(InstallStep::EnableOmzPlugin {
+            plugin: plugin_name.to_string(),
+        })
+        .with_step(InstallStep::Message {
+            message: format!("{} plugin installed and enabled!", plugin_name),
+            level: MessageLevel::Success,
+        })
+        .with_verification(VerificationStep::PathExists(PathBuf::from(&plugin_path)))
+        .with_verification(VerificationStep::FileContains {
+            path: PathBuf::from("~/.zshrc"),
+            pattern: plugin_name.to_string(),
+        })
+        .with_rollback(
+            RollbackPlan::new()
+                .with_backup(format!("zshrc-pre-{}", plugin_name))
+                .with_remove(PathBuf::from(&plugin_path))
+                .with_message(format!(
+                    "Removing {} plugin and restoring .zshrc",
+                    plugin_name
+                )),
+        )
 }
 
 /// Popular third-party plugins with installation info
@@ -148,34 +148,130 @@ pub fn popular_third_party_plugins() -> Vec<PluginInfo> {
 /// Built-in Oh My Zsh plugins worth enabling
 pub fn recommended_builtin_plugins() -> Vec<(&'static str, &'static str, PluginCategory)> {
     vec![
-        ("git", "Git aliases and functions", PluginCategory::Development),
-        ("docker", "Docker command completions", PluginCategory::Development),
-        ("docker-compose", "Docker Compose completions", PluginCategory::Development),
-        ("kubectl", "Kubernetes command completions", PluginCategory::Development),
-        ("helm", "Helm command completions", PluginCategory::Development),
-        ("npm", "npm command completions", PluginCategory::Development),
-        ("yarn", "Yarn command completions", PluginCategory::Development),
-        ("rust", "Rust and Cargo completions", PluginCategory::Development),
+        (
+            "git",
+            "Git aliases and functions",
+            PluginCategory::Development,
+        ),
+        (
+            "docker",
+            "Docker command completions",
+            PluginCategory::Development,
+        ),
+        (
+            "docker-compose",
+            "Docker Compose completions",
+            PluginCategory::Development,
+        ),
+        (
+            "kubectl",
+            "Kubernetes command completions",
+            PluginCategory::Development,
+        ),
+        (
+            "helm",
+            "Helm command completions",
+            PluginCategory::Development,
+        ),
+        (
+            "npm",
+            "npm command completions",
+            PluginCategory::Development,
+        ),
+        (
+            "yarn",
+            "Yarn command completions",
+            PluginCategory::Development,
+        ),
+        (
+            "rust",
+            "Rust and Cargo completions",
+            PluginCategory::Development,
+        ),
         ("python", "Python aliases", PluginCategory::Development),
-        ("pip", "pip command completions", PluginCategory::Development),
-        ("golang", "Go development aliases", PluginCategory::Development),
+        (
+            "pip",
+            "pip command completions",
+            PluginCategory::Development,
+        ),
+        (
+            "golang",
+            "Go development aliases",
+            PluginCategory::Development,
+        ),
         ("aws", "AWS CLI completions", PluginCategory::Cloud),
         ("gcloud", "Google Cloud completions", PluginCategory::Cloud),
         ("terraform", "Terraform completions", PluginCategory::Cloud),
-        ("sudo", "Press ESC twice to prefix previous command with sudo", PluginCategory::Productivity),
-        ("copypath", "Copy current path to clipboard", PluginCategory::Productivity),
-        ("copyfile", "Copy file content to clipboard", PluginCategory::Productivity),
-        ("web-search", "Search engines from command line", PluginCategory::Productivity),
-        ("extract", "One command to extract any archive", PluginCategory::Utility),
-        ("z", "Jump to frequently used directories", PluginCategory::Navigation),
-        ("autojump", "Shell extension for quick navigation", PluginCategory::Navigation),
-        ("fzf", "Fuzzy finder integration", PluginCategory::Productivity),
-        ("thefuck", "Auto-correct mistyped commands", PluginCategory::Productivity),
-        ("colored-man-pages", "Colorized man pages", PluginCategory::Utility),
-        ("command-not-found", "Suggest package installation", PluginCategory::Utility),
-        ("safe-paste", "Prevent auto-execution on paste", PluginCategory::Safety),
-        ("history", "History command aliases", PluginCategory::Productivity),
-        ("dirhistory", "Navigate directories with alt+arrows", PluginCategory::Navigation),
+        (
+            "sudo",
+            "Press ESC twice to prefix previous command with sudo",
+            PluginCategory::Productivity,
+        ),
+        (
+            "copypath",
+            "Copy current path to clipboard",
+            PluginCategory::Productivity,
+        ),
+        (
+            "copyfile",
+            "Copy file content to clipboard",
+            PluginCategory::Productivity,
+        ),
+        (
+            "web-search",
+            "Search engines from command line",
+            PluginCategory::Productivity,
+        ),
+        (
+            "extract",
+            "One command to extract any archive",
+            PluginCategory::Utility,
+        ),
+        (
+            "z",
+            "Jump to frequently used directories",
+            PluginCategory::Navigation,
+        ),
+        (
+            "autojump",
+            "Shell extension for quick navigation",
+            PluginCategory::Navigation,
+        ),
+        (
+            "fzf",
+            "Fuzzy finder integration",
+            PluginCategory::Productivity,
+        ),
+        (
+            "thefuck",
+            "Auto-correct mistyped commands",
+            PluginCategory::Productivity,
+        ),
+        (
+            "colored-man-pages",
+            "Colorized man pages",
+            PluginCategory::Utility,
+        ),
+        (
+            "command-not-found",
+            "Suggest package installation",
+            PluginCategory::Utility,
+        ),
+        (
+            "safe-paste",
+            "Prevent auto-execution on paste",
+            PluginCategory::Safety,
+        ),
+        (
+            "history",
+            "History command aliases",
+            PluginCategory::Productivity,
+        ),
+        (
+            "dirhistory",
+            "Navigate directories with alt+arrows",
+            PluginCategory::Navigation,
+        ),
     ]
 }
 
@@ -328,7 +424,10 @@ mod tests {
             "Fish-like autosuggestions",
         );
         assert!(plan.name.contains("zsh-autosuggestions"));
-        assert!(plan.steps.iter().any(|s| matches!(s, InstallStep::Run { .. })));
+        assert!(plan
+            .steps
+            .iter()
+            .any(|s| matches!(s, InstallStep::Run { .. })));
     }
 
     #[test]

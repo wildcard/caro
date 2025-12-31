@@ -183,8 +183,14 @@ mod tests {
 
     #[test]
     fn test_tip_frequency_from_str() {
-        assert_eq!("always".parse::<TipFrequency>().unwrap(), TipFrequency::Always);
-        assert_eq!("never".parse::<TipFrequency>().unwrap(), TipFrequency::Never);
+        assert_eq!(
+            "always".parse::<TipFrequency>().unwrap(),
+            TipFrequency::Always
+        );
+        assert_eq!(
+            "never".parse::<TipFrequency>().unwrap(),
+            TipFrequency::Never
+        );
         assert!("invalid".parse::<TipFrequency>().is_err());
     }
 
