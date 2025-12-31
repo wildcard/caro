@@ -45,13 +45,14 @@
 </div>
 
 <style>
-  /* Main countdown (center modal) */
+  /* Main countdown (sticky top-left, below logo) */
   .countdown-container {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 10000;
+    top: 80px;
+    left: 20px;
+    z-index: 9999;
+    width: fit-content;
+    max-width: 380px;
     background: linear-gradient(135deg, rgba(20, 20, 20, 0.98) 0%, rgba(30, 30, 30, 0.98) 100%);
     backdrop-filter: blur(20px);
     border: 2px solid transparent;
@@ -60,12 +61,12 @@
       linear-gradient(135deg, #ffd700 0%, #ff6b35 50%, #4ecdc4 100%);
     background-origin: border-box;
     background-clip: padding-box, border-box;
-    border-radius: 24px;
-    padding: 48px 64px;
+    border-radius: 16px;
+    padding: 24px 32px;
     box-shadow:
-      0 25px 50px -12px rgba(0, 0, 0, 0.5),
-      0 0 60px rgba(255, 215, 0, 0.2);
-    animation: fadeInScale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      0 8px 24px rgba(0, 0, 0, 0.5),
+      0 0 40px rgba(255, 215, 0, 0.15);
+    animation: slideInFromLeft 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
     transition: all 0.3s ease;
   }
 
@@ -75,7 +76,7 @@
 
   .countdown-container.minimized {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.8);
+    transform: translateX(-120px) scale(0.9);
     pointer-events: none;
   }
 
@@ -120,30 +121,30 @@
   }
 
   .countdown-title {
-    font-size: 56px;
+    font-size: 28px;
     font-weight: 800;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     background: linear-gradient(135deg, #ffd700 0%, #ff6b35 50%, #4ecdc4 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     background-size: 200% 200%;
     animation: gradientShift 4s ease infinite;
-    letter-spacing: -1px;
+    letter-spacing: -0.5px;
   }
 
   .countdown-subtitle {
-    font-size: 20px;
+    font-size: 13px;
     color: rgba(255, 255, 255, 0.7);
-    margin-bottom: 32px;
+    margin-bottom: 14px;
     font-weight: 500;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
     text-transform: uppercase;
   }
 
   .countdown-timer {
     display: flex;
-    gap: 16px;
+    gap: 8px;
     align-items: center;
     justify-content: center;
   }
@@ -156,15 +157,15 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-width: 90px;
-    padding: 16px;
+    min-width: 58px;
+    padding: 10px 8px;
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
+    border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .time-value {
-    font-size: 56px;
+    font-size: 26px;
     font-weight: 700;
     font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
     background: linear-gradient(135deg, #ffd700 0%, #ff8c42 100%);
@@ -175,19 +176,19 @@
   }
 
   .time-label {
-    font-size: 11px;
+    font-size: 9px;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
+    letter-spacing: 0.5px;
     color: rgba(255, 255, 255, 0.6);
-    margin-top: 8px;
+    margin-top: 6px;
     font-weight: 600;
   }
 
   .time-separator {
-    font-size: 48px;
+    font-size: 22px;
     color: rgba(255, 215, 0, 0.6);
     font-weight: 300;
-    margin: 0 8px;
+    margin: 0 4px;
   }
 
   /* Minimized badge (bottom right) */
@@ -232,6 +233,17 @@
   }
 
   /* Animations */
+  @keyframes slideInFromLeft {
+    0% {
+      opacity: 0;
+      transform: translateX(-100px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
   @keyframes fadeInScale {
     0% {
       opacity: 0;
@@ -266,29 +278,31 @@
   /* Mobile responsive */
   @media (max-width: 768px) {
     .countdown-container {
-      padding: 36px 32px;
-      max-width: 90%;
+      padding: 18px 24px;
+      max-width: calc(100vw - 40px);
+      top: 72px;
+      left: 10px;
     }
 
     .countdown-title {
-      font-size: 40px;
+      font-size: 22px;
     }
 
     .countdown-subtitle {
-      font-size: 16px;
+      font-size: 11px;
     }
 
     .time-unit {
-      min-width: 70px;
-      padding: 12px;
+      min-width: 48px;
+      padding: 8px 6px;
     }
 
     .time-value {
-      font-size: 42px;
+      font-size: 20px;
     }
 
     .time-separator {
-      font-size: 36px;
+      font-size: 18px;
     }
 
     .countdown-badge {
@@ -299,38 +313,39 @@
 
   @media (max-width: 480px) {
     .countdown-container {
-      padding: 24px 20px;
+      padding: 14px 18px;
+      left: 5px;
     }
 
     .countdown-title {
-      font-size: 28px;
+      font-size: 18px;
     }
 
     .countdown-subtitle {
-      font-size: 14px;
-      margin-bottom: 24px;
+      font-size: 10px;
+      margin-bottom: 10px;
     }
 
     .countdown-timer {
-      gap: 8px;
+      gap: 6px;
     }
 
     .time-unit {
-      min-width: 60px;
-      padding: 8px;
+      min-width: 42px;
+      padding: 6px 4px;
     }
 
     .time-value {
-      font-size: 32px;
+      font-size: 16px;
     }
 
     .time-label {
-      font-size: 9px;
+      font-size: 8px;
     }
 
     .time-separator {
-      font-size: 28px;
-      margin: 0 4px;
+      font-size: 14px;
+      margin: 0 2px;
     }
 
     .badge-text {
