@@ -68,9 +68,5 @@ jobs:
           # Lock PR branch after merge to prevent signature removal
           lock-pullrequest-aftermerge: true
 
-          # Use remote signature storage (GitHub repo)
-          remote-organization-name: wildcard
-          remote-repository-name: caro
-
           # Signature verification
           use-dco-flag: false
