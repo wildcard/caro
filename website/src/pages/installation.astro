@@ -5,6 +5,7 @@ import Footer from '../components/Footer.astro';
 import CodeBlock from '../components/docs/CodeBlock.astro';
 import InstallMethod from '../components/docs/InstallMethod.astro';
 import ComingSoonBadge from '../components/docs/ComingSoonBadge.astro';
+import { INSTALL_CONFIG } from '../config/install';
 ---
 
 <Layout
@@ -30,7 +31,7 @@ import ComingSoonBadge from '../components/docs/ComingSoonBadge.astro';
 
         <div class="install-command">
           <CodeBlock
-            code="curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash"
+            code={INSTALL_CONFIG.commands.automated.curl}
             language="bash"
           />
         </div>
@@ -38,7 +39,7 @@ import ComingSoonBadge from '../components/docs/ComingSoonBadge.astro';
         <div class="alternative-command">
           <p class="alt-label">Or with wget:</p>
           <CodeBlock
-            code="wget -qO- https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash"
+            code={INSTALL_CONFIG.commands.automated.wget}
             language="bash"
           />
         </div>
@@ -46,10 +47,9 @@ import ComingSoonBadge from '../components/docs/ComingSoonBadge.astro';
         <div class="features-list">
           <h3 class="features-title">What this does:</h3>
           <ul>
-            <li><strong>With Rust/Cargo:</strong> Installs via cargo with MLX optimization on Apple Silicon</li>
-            <li><strong>Without Rust:</strong> Downloads pre-built binary from GitHub releases (fast!)</li>
-            <li><strong>Security:</strong> Verifies SHA256 checksums automatically</li>
-            <li><strong>PATH Setup:</strong> Configures your PATH automatically</li>
+            {INSTALL_CONFIG.features.map(feature => (
+              <li><strong>{feature.icon} {feature.title}:</strong> {feature.description}</li>
+            ))}
           </ul>
         </div>
 

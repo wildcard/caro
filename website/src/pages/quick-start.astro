@@ -1,13 +1,9 @@
 ---
-/**
- * Quick Start Guide
- * Get started with Caro in under 5 minutes
- */
-
 import Layout from '../layouts/Layout.astro';
 import Navigation from '../components/Navigation.astro';
 import Footer from '../components/Footer.astro';
 import CodeBlock from '../components/docs/CodeBlock.astro';
+import { INSTALL_CONFIG } from '../config/install';
 ---
 
 <Layout
@@ -33,14 +29,25 @@ import CodeBlock from '../components/docs/CodeBlock.astro';
           <span class="step-number">1</span>
           <h2 class="step-title">Install Caro</h2>
         </div>
-        <p class="step-description">Install Caro using Cargo, Rust's package manager:</p>
+        <p class="step-description">Run the automated installation script. It will detect your environment and install the best option:</p>
         <CodeBlock
-          code="cargo install caro"
+          code={INSTALL_CONFIG.commands.automated.curl}
           language="bash"
         />
+        <div class="alternative-command">
+          <p class="alt-label">Or with wget:</p>
+          <CodeBlock
+            code={INSTALL_CONFIG.commands.automated.wget}
+            language="bash"
+          />
+        </div>
+        <div class="step-note">
+          <span class="note-icon">🎯</span>
+          <span class="note-text">The script asks interactive questions to configure the installation for your environment</span>
+        </div>
         <div class="step-note">
           <span class="note-icon">ℹ️</span>
-          <span class="note-text">Don't have Rust? Install it from <a href="https://rustup.rs" target="_blank" rel="noopener noreferrer">rustup.rs</a></span>
+          <span class="note-text">Prefer manual installation? See the <a href="/installation/">full installation guide</a></span>
         </div>
       </section>
 
