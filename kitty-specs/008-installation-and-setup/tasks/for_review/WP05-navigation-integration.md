@@ -7,7 +7,7 @@ subtasks:
   - "T030"
 title: "Navigation Integration - Discoverability"
 phase: "Phase 2 - Integration (P1)"
-lane: "doing"
+lane: "for_review"
 assignee: ""
 agent: "claude"
 shell_pid: "40231"
@@ -267,3 +267,4 @@ Add **Docs dropdown** to Navigation component to make documentation pages discov
 
 - 2025-12-31T00:00:00Z – system – lane=planned – Prompt created.
 - 2025-12-31T09:43:06Z – claude – shell_pid=40231 – lane=doing – Starting Navigation Integration implementation
+- 2025-12-31T09:55:50Z – claude – shell_pid=40231 – lane=for_review – Completed Navigation Integration (T027-T030)
