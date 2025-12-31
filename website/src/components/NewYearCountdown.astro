@@ -191,12 +191,12 @@
     margin: 0 4px;
   }
 
-  /* Minimized badge (bottom right) */
+  /* Minimized badge (bottom right, above FABs) */
   .countdown-badge {
     position: fixed;
-    bottom: 24px;
+    bottom: 170px; /* Above mute toggle (100px) + back-to-top (40px) + gap */
     right: 24px;
-    z-index: 9999;
+    z-index: 999; /* Below FABs z-index of 1000 */
     background: linear-gradient(135deg, #ffd700 0%, #ff6b35 50%, #4ecdc4 100%);
     border-radius: 50px;
     padding: 12px 20px;
@@ -306,7 +306,7 @@
     }
 
     .countdown-badge {
-      bottom: 16px;
+      bottom: 140px; /* Above mobile FABs (75px mute + 20px back-to-top + gap) */
       right: 16px;
     }
   }
