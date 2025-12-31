@@ -45,10 +45,10 @@
 </div>
 
 <style>
-  /* Main countdown (sticky top-left, below logo) */
+  /* Main countdown (sticky top-left, below logo and banner) */
   .countdown-container {
     position: fixed;
-    top: 80px;
+    top: 130px;
     left: 20px;
     z-index: 9999;
     width: fit-content;
@@ -84,15 +84,15 @@
   .close-button,
   .minimize-button {
     position: absolute;
-    top: 16px;
-    width: 32px;
-    height: 32px;
+    top: 12px;
+    width: 28px;
+    height: 28px;
     border: none;
     background: rgba(255, 255, 255, 0.1);
     color: rgba(255, 255, 255, 0.7);
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
     display: flex;
     align-items: center;
@@ -101,11 +101,11 @@
   }
 
   .close-button {
-    right: 16px;
+    right: 12px;
   }
 
   .minimize-button {
-    right: 56px;
+    right: 52px;
   }
 
   .close-button:hover,
@@ -191,11 +191,11 @@
     margin: 0 4px;
   }
 
-  /* Minimized badge (bottom right) */
+  /* Minimized badge (top-left, same position as full countdown) */
   .countdown-badge {
     position: fixed;
-    bottom: 24px;
-    right: 24px;
+    top: 130px;
+    left: 20px;
     z-index: 9999;
     background: linear-gradient(135deg, #ffd700 0%, #ff6b35 50%, #4ecdc4 100%);
     border-radius: 50px;
@@ -258,7 +258,7 @@
   @keyframes slideInBadge {
     0% {
       opacity: 0;
-      transform: translateX(100px);
+      transform: translateX(-100px);
     }
     100% {
       opacity: 1;
@@ -280,7 +280,7 @@
     .countdown-container {
       padding: 18px 24px;
       max-width: calc(100vw - 40px);
-      top: 72px;
+      top: 120px;
       left: 10px;
     }
 
@@ -306,8 +306,8 @@
     }
 
     .countdown-badge {
-      bottom: 16px;
-      right: 16px;
+      top: 120px;
+      left: 10px;
     }
   }
 
