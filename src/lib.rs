@@ -38,6 +38,7 @@ pub mod model_loader;
 pub mod models;
 pub mod platform;
 pub mod safety;
+pub mod tools;
 
 // Re-export commonly used types for convenience
 pub use model_catalog::{ModelCatalog, ModelInfo, ModelSize};
@@ -64,3 +65,11 @@ pub use backends::embedded::{
 #[cfg(feature = "remote-backends")]
 pub use backends::remote::{OllamaBackend, VllmBackend};
 pub use backends::{BackendInfo as BackendInfoTrait, CommandGenerator, GeneratorError};
+
+// Re-export tools module types
+pub use tools::{
+    CommandTool, ContextSummary, ContextTool, EnhancedCommandResult, FileSystemTool, ParameterType,
+    PathCheckResult, PlatformFlags, Tool, ToolCall, ToolCallParams, ToolCategory, ToolData,
+    ToolEnhancedAgent, ToolError, ToolInfo, ToolParameters, ToolRegistry, ToolRegistryBuilder,
+    ToolResult, ValidationTool,
+};
