@@ -8,13 +8,20 @@
 gantt
     title Caro Release Timeline (2026)
     dateFormat YYYY-MM-DD
-    section v1.1.0 - Core Improvements
-    Hugging Face Model Download           :2026-01-01, 15d
-    Performance Analysis & Optimization   :2026-01-05, 20d
-    Safety Enhancements                   :2026-01-10, 15d
-    LLM Evaluation Harness               :2026-01-15, 20d
-    Benchmark Suite                       :2026-01-20, 10d
-    v1.1.0 Release                       :milestone, 2026-02-15, 0d
+    section v1.1.0-beta - Beta Release
+    Telemetry Infrastructure              :2026-01-01, 14d
+    User Controls & CLI Commands          :2026-01-08, 10d
+    Event Collection System               :2026-01-10, 12d
+    Privacy & Redaction Layer             :2026-01-15, 7d
+    Backend Ingest Service                :2026-01-20, 10d
+    v1.1.0-beta Release                  :milestone, 2026-01-31, 0d
+
+    section v1.1.0 - GA Release
+    Hugging Face Model Download           :2026-02-01, 10d
+    Performance Analysis & Optimization   :2026-02-01, 12d
+    Switch Telemetry to Opt-In           :2026-02-10, 3d
+    LLM Evaluation Harness               :2026-02-05, 10d
+    v1.1.0 GA Release                    :milestone, 2026-02-15, 0d
 
     section v1.2.0 - Website & Docs
     Strategic Product Roadmap             :2026-02-16, 10d
@@ -37,10 +44,65 @@ gantt
 
 ## Release Milestones
 
-### 🎯 v1.1.0 - Core Improvements
+### 🚀 v1.1.0-beta - Beta Release with Telemetry
+**Due Date**: January 31, 2026 (32 days)
+**Status**: 0% Complete (0/8 items)
+**Focus**: User feedback collection and usage analytics for product decisions
+
+> **Telemetry Philosophy**: Beta users get early access, we get usage data to improve the product.
+> - **Beta (v1.1.0-beta)**: Opt-out telemetry (ON by default)
+> - **GA (v1.1.0+)**: Opt-in telemetry (OFF by default)
+
+#### Key Deliverables
+- **Telemetry Infrastructure** (Critical)
+  - [ ] Implement telemetry collector with async non-blocking recording
+  - [ ] Create SQLite-based local event queue
+  - [ ] Add sensitive data redaction and validation
+  - [ ] Build first-run telemetry consent prompt
+
+- **User Controls** (High)
+  - [ ] Add `caro telemetry show` command
+  - [ ] Add `caro telemetry export` for air-gapped environments
+  - [ ] Add config options: `telemetry.enabled`, `telemetry.level`, `telemetry.air_gapped`
+  - [ ] Add `--no-telemetry` CLI flag
+
+- **Event Collection** (High)
+  - [ ] Session events (start, end, duration)
+  - [ ] Command generation events (success/failure, timing, backend)
+  - [ ] Safety validation events (risk level, pattern category)
+  - [ ] Error events (category, component, recoverable)
+
+- **Privacy Guarantees** (Critical)
+  - [ ] Never collect command content or natural language input
+  - [ ] Never collect file paths or environment variables
+  - [ ] Hash-based anonymous session IDs (rotate daily)
+  - [ ] Pre-transmission validation to catch sensitive data
+
+- **Backend Infrastructure**
+  - [ ] Deploy telemetry ingest service (telemetry.caro.sh)
+  - [ ] Set up Grafana dashboards for metrics
+  - [ ] Create weekly review process and templates
+
+**Success Criteria**:
+- Telemetry opt-out working with clear user consent
+- Air-gapped export/import workflow functional
+- <5ms startup overhead from telemetry
+- Zero sensitive data in collected events
+- Weekly beta review process operational
+
+**Metrics to Track**:
+- **North Star**: Command Success Rate (CSR) - target 80%+
+- Time to First Command (TTFC) - target <3s
+- Safety Block Rate - target 2-5%
+- Backend Success Rate - target >99%
+- Inference Latency P95 - target <2s (MLX)
+
+---
+
+### 🎯 v1.1.0 - Core Improvements (GA)
 **Due Date**: February 15, 2026 (48 days)
 **Status**: 7% Complete (1/15 items)
-**Focus**: Production-ready core functionality
+**Focus**: Production-ready core functionality with opt-in telemetry
 
 #### Key Deliverables
 - **Critical Priority**
@@ -167,10 +229,11 @@ gantt
 
 | Milestone | Due Date | Items | Complete | Progress |
 |-----------|----------|-------|----------|----------|
-| **v1.1.0** | Feb 15, 2026 | 15 | 1 | 7% |
+| **v1.1.0-beta** | Jan 31, 2026 | 8 | 0 | 0% |
+| **v1.1.0 (GA)** | Feb 15, 2026 | 15 | 1 | 7% |
 | **v1.2.0** | Mar 31, 2026 | 24 | 0 | 0% |
 | **v2.0.0** | Jun 30, 2026 | 21 | 8 | 38% |
-| **Total** | - | **60** | **9** | **15%** |
+| **Total** | - | **68** | **9** | **13%** |
 
 ---
 

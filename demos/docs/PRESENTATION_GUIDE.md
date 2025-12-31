@@ -166,10 +166,10 @@ clear && printf '\e[3J'
 - "POSIX-compliant for cross-platform ops"
 
 ### For Security-Conscious
-- "100% local - no data leaves your machine"
+- "100% local - your commands never leave your machine"
 - "Open source - full transparency"
 - "Safety patterns block dangerous operations"
-- "No telemetry, tracking, or cloud dependencies"
+- "Privacy-first design - minimal anonymous telemetry with easy opt-out"
 
 ### For Performance Enthusiasts
 - "Rust-powered for native speed"

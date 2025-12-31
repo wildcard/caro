@@ -10,7 +10,7 @@
     </h1>
     <p class="subtitle">
       Generate shell commands that work the first time—with pre-execution validation that catches
-      what AI gets wrong. 100% local. Zero telemetry. Your commands never leave your machine.
+      what AI gets wrong. 100% local. <a href="/telemetry" class="privacy-link">Privacy-first</a>. Your commands never leave your machine.
     </p>
 
     <div class="social-proof">
@@ -27,7 +27,7 @@
     </div>
 
     <div class="trust-badges">
-      <span class="badge"><span class="icon">🔒</span> Zero telemetry</span>
+      <a href="/telemetry" class="badge badge-link"><span class="icon">🔒</span> Privacy-first*</a>
       <span class="badge"><span class="icon">🛡️</span> Pre-execution validation</span>
       <span class="badge"><span class="icon">⚡</span> 100% local inference</span>
       <span class="badge"><span class="icon">📖</span> Open source (AGPL-3.0)</span>
@@ -177,6 +177,26 @@
 
   .badge .icon {
     font-size: 16px;
+  }
+
+  .badge-link {
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .badge-link:hover {
+    color: #ff8c42;
+  }
+
+  .privacy-link {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 2px;
+  }
+
+  .privacy-link:hover {
+    color: #ff8c42;
   }
 
   @media (max-width: 768px) {

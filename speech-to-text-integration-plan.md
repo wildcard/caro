@@ -365,7 +365,7 @@ Run 'cmdai --list-devices' to see available devices
 - **100% Offline**: All transcription happens locally
 - **No Network Calls**: Whisper models run on-device
 - **No Audio Storage**: Audio deleted after transcription
-- **No Telemetry**: No usage data sent anywhere
+- **Privacy-First**: Minimal anonymous telemetry with easy opt-out (see /telemetry)
 
 ### Security Considerations
 - Validate audio input buffer sizes (prevent overflow)

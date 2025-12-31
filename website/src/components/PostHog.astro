@@ -1,0 +1,104 @@
+---
+/**
+ * PostHog Analytics Component
+ *
+ * Integrates PostHog product analytics for tracking:
+ * - Page views and navigation
+ * - Download clicks
+ * - CTA interactions
+ * - Feature usage
+ *
+ * Privacy: Uses person_profiles: 'identified_only' to avoid
+ * creating person records for anonymous visitors.
+ */
+---
+
+<script is:inline>
+  // PostHog initialization - only run in browser
+  if (typeof window !== 'undefined' && !window.posthog) {
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+
+    posthog.init('phc_zQioEeKLXat4tLnI6sb0yFLRti8nff4ALAkNQAfRhME', {
+      api_host: 'https://us.i.posthog.com',
+      person_profiles: 'identified_only',
+      capture_pageview: true,
+      capture_pageleave: true,
+      autocapture: {
+        dom_event_allowlist: ['click'],
+        element_allowlist: ['a', 'button'],
+        css_selector_allowlist: ['.cta-button', '.download-button', '[data-track]'],
+      },
+      // Respect Do Not Track
+      respect_dnt: true,
+      // Disable session recording for privacy
+      disable_session_recording: true,
+    });
+  }
+</script>
+
+<script>
+  // Track custom events after DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    // Track download button clicks
+    document.querySelectorAll('.download-button, [data-track-download]').forEach(el => {
+      el.addEventListener('click', () => {
+        const platform = (el as HTMLElement).dataset.platform ||
+                         (el.textContent?.toLowerCase().includes('mac') ? 'macos' :
+                          el.textContent?.toLowerCase().includes('linux') ? 'linux' :
+                          el.textContent?.toLowerCase().includes('windows') ? 'windows' : 'unknown');
+
+        window.posthog?.capture('download_clicked', {
+          platform,
+          location: window.location.pathname,
+        });
+      });
+    });
+
+    // Track CTA button clicks
+    document.querySelectorAll('.cta-button, [data-track-cta]').forEach(el => {
+      el.addEventListener('click', () => {
+        const ctaName = (el as HTMLElement).dataset.trackCta ||
+                        el.textContent?.trim().substring(0, 50) || 'unknown';
+
+        window.posthog?.capture('cta_clicked', {
+          cta_name: ctaName,
+          location: window.location.pathname,
+        });
+      });
+    });
+
+    // Track GitHub star button clicks
+    document.querySelectorAll('.github-star-button, [data-track-github]').forEach(el => {
+      el.addEventListener('click', () => {
+        window.posthog?.capture('github_clicked', {
+          location: window.location.pathname,
+        });
+      });
+    });
+
+    // Track section visibility (scroll depth)
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const sectionId = entry.target.id;
+            if (sectionId) {
+              window.posthog?.capture('section_viewed', {
+                section: sectionId,
+                location: window.location.pathname,
+              });
+              // Unobserve after first view
+              observer.unobserve(entry.target);
+            }
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    // Observe major sections
+    document.querySelectorAll('section[id]').forEach((section) => {
+      observer.observe(section);
+    });
+  });
+</script>

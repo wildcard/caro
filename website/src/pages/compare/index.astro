@@ -48,7 +48,7 @@ const comparisonMatrix = {
       description: 'How your terminal activity is handled',
       features: [
         { name: 'Works 100% offline', caro: true, copilot: false, warp: false, amazon: false, opencode: 'partial' },
-        { name: 'Zero telemetry by default', caro: true, copilot: false, warp: false, amazon: false, opencode: true },
+        { name: 'Privacy-first design', caro: true, copilot: false, warp: false, amazon: false, opencode: true },
         { name: 'Commands never leave your machine', caro: true, copilot: false, warp: false, amazon: false, opencode: 'partial' },
         { name: 'Air-gapped environment support', caro: true, copilot: false, warp: false, amazon: false, opencode: 'partial' },
         { name: 'Full source code available', caro: true, copilot: 'partial', warp: false, amazon: false, opencode: true },
@@ -104,7 +104,7 @@ function renderValue(value: boolean | string) {
 
 <Layout
   title="Compare Caro - Shell AI Comparison | Caro vs Copilot, Warp, Amazon Q"
-  description="See how Caro compares to GitHub Copilot CLI, Warp, Amazon Q, and other shell AI tools. Local-first, safety-focused, zero telemetry."
+  description="See how Caro compares to GitHub Copilot CLI, Warp, Amazon Q, and other shell AI tools. Local-first, safety-focused, privacy-first."
 >
   <Navigation />
 
@@ -119,7 +119,7 @@ function renderValue(value: boolean | string) {
 
         <!-- Trust Badges -->
         <div class="trust-badges">
-          <span class="badge"><span class="badge-icon">🔒</span> Zero Data Collection</span>
+          <a href="/telemetry" class="badge badge-link"><span class="badge-icon">🔒</span> Privacy-First*</a>
           <span class="badge"><span class="badge-icon">🛡️</span> 52+ Safety Patterns</span>
           <span class="badge"><span class="badge-icon">📡</span> 100% Offline</span>
           <span class="badge"><span class="badge-icon">🦀</span> Open Source</span>
@@ -226,7 +226,7 @@ function renderValue(value: boolean | string) {
         <div class="reasons">
           <div class="reason">
             <h3>🏢 For Security-Conscious Orgs</h3>
-            <p>Air-gapped environments, compliance requirements, or simply not wanting shell commands to leave your network? Caro runs 100% locally with zero telemetry.</p>
+            <p>Air-gapped environments, compliance requirements, or simply not wanting shell commands to leave your network? Caro runs 100% locally with <a href="/telemetry" class="inline-link">privacy-first design</a>.</p>
           </div>
 
           <div class="reason">
@@ -258,7 +258,7 @@ function renderValue(value: boolean | string) {
             View on GitHub
           </a>
         </div>
-        <p class="cta-note">Open source. No account required. No data collected.</p>
+        <p class="cta-note">Open source. No account required. <a href="/telemetry" class="cta-note-link">Privacy-first.</a></p>
       </div>
     </section>
   </main>
@@ -667,6 +667,37 @@ function renderValue(value: boolean | string) {
   .cta-note {
     font-size: 14px;
     opacity: 0.8;
+  }
+
+  .cta-note-link {
+    color: white;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+  }
+
+  .cta-note-link:hover {
+    opacity: 1;
+  }
+
+  .badge-link {
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .badge-link:hover {
+    border-color: #ff8c42;
+    color: #ff8c42;
+  }
+
+  .inline-link {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+  }
+
+  .inline-link:hover {
+    color: #ff8c42;
   }
 
   /* Responsive */

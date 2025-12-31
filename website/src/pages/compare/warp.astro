@@ -12,7 +12,7 @@ const comparison = {
     points: [
       'Warp is a completely new terminal app; Caro works in YOUR existing terminal',
       'Warp requires cloud for AI features; Caro runs 100% offline with local models',
-      'Warp collects telemetry by default; Caro has zero data collection',
+      'Warp collects telemetry by default; Caro is privacy-first',
       'Both have AI command assistance, but Caro adds rule-based safety validation',
       'Warp has rich UI features; Caro is CLI-focused and lightweight'
     ]
@@ -20,7 +20,7 @@ const comparison = {
   headToHead: [
     { feature: 'Works in existing terminal', caro: true, competitor: false, winner: 'caro' },
     { feature: 'Works 100% offline', caro: true, competitor: false, winner: 'caro' },
-    { feature: 'Zero telemetry', caro: true, competitor: false, winner: 'caro' },
+    { feature: 'Privacy-first design', caro: true, competitor: false, winner: 'caro' },
     { feature: 'Rule-based safety checks', caro: true, competitor: false, winner: 'caro' },
     { feature: 'Cross-platform', caro: true, competitor: 'partial', winner: 'caro' },
     { feature: 'Modern UI/UX', caro: false, competitor: true, winner: 'competitor' },
@@ -41,7 +41,7 @@ const comparison = {
       icon: '🔒',
       content: `
         <p><strong>Warp</strong> requires cloud connectivity for its AI features. Your prompts are sent to Warp's servers for processing. Warp also collects telemetry data by default (though it can be disabled).</p>
-        <p><strong>Caro</strong> runs entirely locally. AI inference happens on your machine with local models. No internet required, no data collected, no telemetry sent anywhere. Perfect for air-gapped environments or privacy-conscious users.</p>
+        <p><strong>Caro</strong> runs entirely locally. AI inference happens on your machine with local models. No internet required, privacy-first design with minimal anonymous telemetry. Perfect for air-gapped environments or privacy-conscious users.</p>
       `
     },
     {
@@ -65,7 +65,7 @@ const comparison = {
     chooseCaro: [
       'You love your current terminal and don\'t want to switch',
       'You need offline functionality (flights, VPNs, air-gapped)',
-      'You require zero telemetry and complete privacy',
+      'You value privacy-first design',
       'You want rule-based safety guarantees',
       'You prefer lightweight, focused tools',
     ],

@@ -1,5 +1,6 @@
 ---
 import Analytics from '@vercel/analytics/astro';
+import PostHog from '../components/PostHog.astro';
 import SnowEffect from '../components/SnowEffect.astro';
 import BackToTop from '../components/BackToTop.astro';
 import NewYearCountdown from '../components/NewYearCountdown.astro';
@@ -81,6 +82,7 @@ const { title, description } = Astro.props;
     <slot />
     <BackToTop />
     <Analytics />
+    <PostHog />
   </body>
 </html>
 

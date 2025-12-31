@@ -167,7 +167,7 @@ Examples:
 - "no cloud ai cli"
 
 **Key Differentiators to Highlight:**
-- Zero telemetry
+- Privacy-first design (see /telemetry)
 - 100% local inference
 - Compliance-friendly
 - Self-hostable
