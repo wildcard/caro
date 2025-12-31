@@ -25,10 +25,7 @@ async fn get_users(data: web::Data<AppState>) -> impl Responder {
 }
 
 #[post("/users")]
-async fn create_user(
-    user: web::Json<User>,
-    data: web::Data<AppState>,
-) -> impl Responder {
+async fn create_user(user: web::Json<User>, data: web::Data<AppState>) -> impl Responder {
     let mut users = data.users.lock().unwrap();
     users.push(user.into_inner());
     HttpResponse::Created().body("User created")
