@@ -9,10 +9,10 @@ subtasks:
   - "T036"
 title: "Polish & Integration - Quality Assurance"
 phase: "Phase 3 - QA & Polish (P2)"
-lane: "planned"
+lane: "doing"
 assignee: ""
-agent: ""
-shell_pid: ""
+agent: "claude"
+shell_pid: "40231"
 review_status: ""
 reviewed_by: ""
 history:
@@ -371,3 +371,4 @@ Ensure **all documentation pages** work correctly, are accessible, responsive, a
 ## Activity Log
 
 - 2025-12-31T00:00:00Z – system – lane=planned – Prompt created.
+- 2025-12-31T09:56:38Z – claude – shell_pid=40231 – lane=doing – Starting Quality Assurance & Polish
