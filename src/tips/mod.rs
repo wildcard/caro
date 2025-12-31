@@ -45,6 +45,7 @@
 //! }
 //! ```
 
+pub mod automation;
 pub mod config;
 pub mod engine;
 pub mod kb;
@@ -70,4 +71,11 @@ pub use engine::{SessionStats, TipsEngine, TipsSession};
 pub use suggestions::{
     AliasSuggester, DisplayStyle, SuggestionResult, Tip, TipAction, TipCategory, TipDisplay,
     print_tip, print_tip_box,
+};
+
+// Re-export automation types
+pub use automation::{
+    ConfigEditor, InstallResult, InstallStep, InstallationError, InstallationPlan, Installer,
+    Prerequisite, RollbackPlan, ShellReload, VerificationStep, ohmyzsh_install_plan,
+    plugin_enable_plan,
 };
