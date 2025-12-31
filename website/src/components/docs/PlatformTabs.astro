@@ -1,0 +1,236 @@
+---
+/**
+ * PlatformTabs Component
+ * Tabbed interface for platform-specific instructions with localStorage persistence
+ */
+
+interface Platform {
+  name: string;
+  icon: string;
+  content: string;
+}
+
+interface Props {
+  platforms: Platform[];
+}
+
+const { platforms } = Astro.props;
+---
+
+<div class="platform-tabs" data-component="platform-tabs">
+  <div class="tabs-header" role="tablist" aria-label="Platform selection">
+    {platforms.map((platform, index) => (
+      <button
+        class={`tab-button ${index === 0 ? 'active' : ''}`}
+        role="tab"
+        aria-selected={index === 0 ? 'true' : 'false'}
+        aria-controls={`panel-${platform.name}`}
+        id={`tab-${platform.name}`}
+        data-platform={platform.name}
+      >
+        <span class="tab-icon">{platform.icon}</span>
+        <span class="tab-label">{platform.name}</span>
+      </button>
+    ))}
+  </div>
+
+  <div class="tabs-content">
+    {platforms.map((platform, index) => (
+      <div
+        class={`tab-panel ${index === 0 ? 'active' : ''}`}
+        role="tabpanel"
+        id={`panel-${platform.name}`}
+        aria-labelledby={`tab-${platform.name}`}
+        hidden={index !== 0}
+      >
+        <div class="panel-content" set:html={platform.content} />
+      </div>
+    ))}
+  </div>
+</div>
+
+<style>
+  .platform-tabs {
+    margin: 2rem 0;
+    border: 1px solid var(--color-border, #d0d7de);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--color-bg, #ffffff);
+  }
+
+  .tabs-header {
+    display: flex;
+    gap: 0;
+    background: var(--color-bg-secondary, #f6f8fa);
+    border-bottom: 1px solid var(--color-border, #d0d7de);
+    padding: 0.5rem;
+  }
+
+  .tab-button {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text-secondary, #57606a);
+    transition: all 0.2s ease;
+  }
+
+  .tab-button:hover {
+    background: var(--color-bg-tertiary, #f3f4f6);
+    color: var(--color-text, #24292f);
+  }
+
+  .tab-button.active {
+    background: var(--color-bg, #ffffff);
+    color: var(--color-accent, #fd8c4e);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .tab-button:focus-visible {
+    outline: 2px solid var(--color-accent, #fd8c4e);
+    outline-offset: 2px;
+  }
+
+  .tab-icon {
+    font-size: 1.125rem;
+  }
+
+  .tab-label {
+    text-transform: capitalize;
+  }
+
+  .tabs-content {
+    padding: 1.5rem;
+  }
+
+  .tab-panel {
+    display: none;
+  }
+
+  .tab-panel.active {
+    display: block;
+  }
+
+  .panel-content {
+    line-height: 1.6;
+  }
+
+  /* Mobile responsive - stack tabs vertically */
+  @media (max-width: 768px) {
+    .tabs-header {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .tab-button {
+      justify-content: flex-start;
+    }
+
+    .tabs-content {
+      padding: 1rem;
+    }
+  }
+
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    .platform-tabs {
+      background: var(--color-bg, #0d1117);
+      border-color: var(--color-border, #30363d);
+    }
+
+    .tabs-header {
+      background: var(--color-bg-secondary, #161b22);
+      border-color: var(--color-border, #30363d);
+    }
+
+    .tab-button.active {
+      background: var(--color-bg-tertiary, #1c2128);
+    }
+
+    .tab-button:hover {
+      background: var(--color-bg-tertiary, #21262d);
+    }
+  }
+</style>
+
+<script>
+  // Tab switching and localStorage persistence
+  document.addEventListener('DOMContentLoaded', () => {
+    const tabContainers = document.querySelectorAll('[data-component="platform-tabs"]');
+
+    tabContainers.forEach(container => {
+      const tabButtons = container.querySelectorAll('.tab-button');
+      const tabPanels = container.querySelectorAll('.tab-panel');
+
+      // Restore saved tab preference from localStorage
+      const savedPlatform = localStorage.getItem('preferredPlatform');
+      if (savedPlatform) {
+        tabButtons.forEach((button, index) => {
+          if (button.getAttribute('data-platform') === savedPlatform) {
+            activateTab(index);
+          }
+        });
+      }
+
+      // Handle tab clicks
+      tabButtons.forEach((button, index) => {
+        button.addEventListener('click', () => {
+          activateTab(index);
+          const platform = button.getAttribute('data-platform');
+          if (platform) {
+            localStorage.setItem('preferredPlatform', platform);
+          }
+        });
+
+        // Keyboard navigation
+        button.addEventListener('keydown', (e) => {
+          let newIndex = index;
+          if (e.key === 'ArrowRight') {
+            newIndex = (index + 1) % tabButtons.length;
+            e.preventDefault();
+          } else if (e.key === 'ArrowLeft') {
+            newIndex = (index - 1 + tabButtons.length) % tabButtons.length;
+            e.preventDefault();
+          } else if (e.key === 'Home') {
+            newIndex = 0;
+            e.preventDefault();
+          } else if (e.key === 'End') {
+            newIndex = tabButtons.length - 1;
+            e.preventDefault();
+          } else {
+            return;
+          }
+
+          tabButtons[newIndex].focus();
+          activateTab(newIndex);
+        });
+      });
+
+      function activateTab(index: number) {
+        // Deactivate all tabs
+        tabButtons.forEach(btn => {
+          btn.classList.remove('active');
+          btn.setAttribute('aria-selected', 'false');
+        });
+        tabPanels.forEach(panel => {
+          panel.classList.remove('active');
+          panel.setAttribute('hidden', '');
+        });
+
+        // Activate selected tab
+        tabButtons[index].classList.add('active');
+        tabButtons[index].setAttribute('aria-selected', 'true');
+        tabPanels[index].classList.add('active');
+        tabPanels[index].removeAttribute('hidden');
+      }
+    });
+  });
+</script>

@@ -1,0 +1,309 @@
+---
+/**
+ * InstallMethod Component
+ * Installation method card with difficulty badges, platform icons, and collapsible sections
+ */
+
+import CodeBlock from './CodeBlock.astro';
+import ComingSoonBadge from './ComingSoonBadge.astro';
+
+interface Props {
+  name: string;
+  description: string;
+  difficulty: 'easy' | 'intermediate' | 'advanced';
+  platforms: string[];
+  status: 'available' | 'coming_soon';
+  installCommand: string;
+  verificationCommand: string;
+  prerequisites?: string[];
+}
+
+const {
+  name,
+  description,
+  difficulty,
+  platforms,
+  status,
+  installCommand,
+  verificationCommand,
+  prerequisites = []
+} = Astro.props;
+
+const difficultyColors = {
+  easy: '#2da44e',
+  intermediate: '#fb8500',
+  advanced: '#cf222e'
+};
+
+const platformIcons: Record<string, string> = {
+  'macOS': '🍎',
+  'Linux': '🐧',
+  'Windows': '🪟',
+  'BSD': '👿'
+};
+---
+
+<div class="install-method">
+  <div class="method-header">
+    <div class="header-top">
+      <h3 class="method-name">{name}</h3>
+      <div class="method-badges">
+        <span class="difficulty-badge" data-difficulty={difficulty}>
+          {difficulty}
+        </span>
+        {status === 'coming_soon' && (
+          <ComingSoonBadge feature={name} />
+        )}
+      </div>
+    </div>
+    <p class="method-description">{description}</p>
+    <div class="platform-list">
+      {platforms.map(platform => (
+        <span class="platform-tag">
+          <span class="platform-icon">{platformIcons[platform] || '💻'}</span>
+          {platform}
+        </span>
+      ))}
+    </div>
+  </div>
+
+  <div class="method-content">
+    {prerequisites.length > 0 && (
+      <details class="prerequisites-section">
+        <summary>
+          <span class="summary-icon">📋</span>
+          <span class="summary-text">Prerequisites</span>
+          <svg class="chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </summary>
+        <div class="prerequisites-content">
+          <ul>
+            {prerequisites.map(prereq => (
+              <li>{prereq}</li>
+            ))}
+          </ul>
+        </div>
+      </details>
+    )}
+
+    <div class="command-section">
+      <h4 class="section-title">Installation</h4>
+      <CodeBlock code={installCommand} language="bash" />
+    </div>
+
+    <div class="command-section">
+      <h4 class="section-title">Verification</h4>
+      <CodeBlock code={verificationCommand} language="bash" />
+    </div>
+  </div>
+</div>
+
+<style define:vars={{ easyColor: difficultyColors.easy, intermediateColor: difficultyColors.intermediate, advancedColor: difficultyColors.advanced }}>
+  .install-method {
+    margin: 2rem 0;
+    border: 1px solid var(--color-border, #d0d7de);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--color-bg, #ffffff);
+    transition: all 0.3s ease;
+  }
+
+  .install-method:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: var(--color-accent, #fd8c4e);
+  }
+
+  .method-header {
+    padding: 1.5rem;
+    background: var(--color-bg-secondary, #f6f8fa);
+    border-bottom: 1px solid var(--color-border, #d0d7de);
+  }
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .method-name {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--color-text, #24292f);
+  }
+
+  .method-badges {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .difficulty-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: white;
+  }
+
+  .difficulty-badge[data-difficulty="easy"] {
+    background: var(--easyColor);
+  }
+
+  .difficulty-badge[data-difficulty="intermediate"] {
+    background: var(--intermediateColor);
+  }
+
+  .difficulty-badge[data-difficulty="advanced"] {
+    background: var(--advancedColor);
+  }
+
+  .method-description {
+    margin: 0 0 1rem 0;
+    color: var(--color-text-secondary, #57606a);
+    line-height: 1.6;
+  }
+
+  .platform-list {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .platform-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    background: var(--color-bg, #ffffff);
+    border: 1px solid var(--color-border, #d0d7de);
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .platform-icon {
+    font-size: 1rem;
+  }
+
+  .method-content {
+    padding: 1.5rem;
+  }
+
+  .prerequisites-section {
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--color-border, #d0d7de);
+    border-radius: 8px;
+    background: var(--color-bg-secondary, #f6f8fa);
+  }
+
+  .prerequisites-section summary {
+    padding: 0.875rem 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    color: var(--color-text, #24292f);
+    user-select: none;
+  }
+
+  .prerequisites-section summary:hover {
+    background: var(--color-bg-tertiary, #f1f3f5);
+  }
+
+  .summary-icon {
+    font-size: 1rem;
+  }
+
+  .summary-text {
+    flex: 1;
+  }
+
+  .chevron {
+    transition: transform 0.2s ease;
+  }
+
+  .prerequisites-section[open] .chevron {
+    transform: rotate(180deg);
+  }
+
+  .prerequisites-content {
+    padding: 0 1rem 1rem 1rem;
+    border-top: 1px solid var(--color-border, #d0d7de);
+  }
+
+  .prerequisites-content ul {
+    margin: 0.75rem 0 0 0;
+    padding-left: 1.5rem;
+  }
+
+  .prerequisites-content li {
+    margin: 0.5rem 0;
+    color: var(--color-text-secondary, #57606a);
+  }
+
+  .command-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .command-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .section-title {
+    margin: 0 0 0.75rem 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-text, #24292f);
+  }
+
+  /* Mobile responsive */
+  @media (max-width: 768px) {
+    .header-top {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .method-name {
+      font-size: 1.25rem;
+    }
+
+    .method-header,
+    .method-content {
+      padding: 1.25rem;
+    }
+  }
+
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    .install-method {
+      background: var(--color-bg, #0d1117);
+      border-color: var(--color-border, #30363d);
+    }
+
+    .method-header {
+      background: var(--color-bg-secondary, #161b22);
+      border-color: var(--color-border, #30363d);
+    }
+
+    .platform-tag {
+      background: var(--color-bg-tertiary, #1c2128);
+      border-color: var(--color-border, #30363d);
+    }
+
+    .prerequisites-section {
+      background: var(--color-bg-secondary, #161b22);
+      border-color: var(--color-border, #30363d);
+    }
+
+    .prerequisites-section summary:hover {
+      background: var(--color-bg-tertiary, #1c2128);
+    }
+  }
+</style>

@@ -1,0 +1,204 @@
+---
+/**
+ * CodeBlock Component
+ * Displays syntax-highlighted code snippets with copy-to-clipboard functionality
+ */
+
+interface Props {
+  code: string;
+  language: string;
+  filename?: string;
+}
+
+const { code, language, filename } = Astro.props;
+---
+
+<div class="code-block-wrapper">
+  {filename && (
+    <div class="code-filename">
+      <span class="filename-icon">📄</span>
+      <span class="filename-text">{filename}</span>
+    </div>
+  )}
+  <div class="code-block">
+    <pre class={`language-${language}`}><code>{code}</code></pre>
+    <button class="copy-button" aria-label="Copy code to clipboard" data-code={code}>
+      <svg class="copy-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <rect x="5" y="5" width="9" height="9" rx="1" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M3 11V3C3 2.44772 3.44772 2 4 2H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <svg class="check-icon hidden" width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M3 8L6.5 11.5L13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<style>
+  .code-block-wrapper {
+    margin: 1.5rem 0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--color-bg-secondary, #f8f9fa);
+    border: 1px solid var(--color-border, #e1e4e8);
+  }
+
+  .code-filename {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--color-bg-tertiary, #f1f3f5);
+    border-bottom: 1px solid var(--color-border, #e1e4e8);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-secondary, #57606a);
+  }
+
+  .filename-icon {
+    font-size: 1rem;
+  }
+
+  .code-block {
+    position: relative;
+  }
+
+  pre {
+    margin: 0;
+    padding: 1.25rem;
+    overflow-x: auto;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Courier New', monospace;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--color-text, #24292f);
+    tab-size: 2;
+  }
+
+  code {
+    font-family: inherit;
+    background: none;
+    padding: 0;
+  }
+
+  .copy-button {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    padding: 0.5rem;
+    background: var(--color-bg, #ffffff);
+    border: 1px solid var(--color-border, #d0d7de);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .copy-button:hover {
+    background: var(--color-bg-secondary, #f6f8fa);
+    border-color: var(--color-accent, #fd8c4e);
+  }
+
+  .copy-button:active {
+    transform: scale(0.95);
+  }
+
+  .copy-icon,
+  .check-icon {
+    color: var(--color-text-secondary, #57606a);
+  }
+
+  .check-icon {
+    color: #2da44e;
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    .code-block-wrapper {
+      background: var(--color-bg-secondary, #1c1f26);
+      border-color: var(--color-border, #30363d);
+    }
+
+    .code-filename {
+      background: var(--color-bg-tertiary, #22262e);
+      border-color: var(--color-border, #30363d);
+    }
+
+    pre {
+      color: var(--color-text, #e6edf3);
+    }
+
+    .copy-button {
+      background: var(--color-bg-secondary, #2d333b);
+      border-color: var(--color-border, #444c56);
+    }
+
+    .copy-button:hover {
+      background: var(--color-bg-tertiary, #373e47);
+    }
+  }
+
+  /* Mobile responsive */
+  @media (max-width: 768px) {
+    pre {
+      font-size: 0.8125rem;
+      padding: 1rem;
+    }
+
+    .code-filename {
+      font-size: 0.8125rem;
+      padding: 0.625rem 0.875rem;
+    }
+  }
+</style>
+
+<script>
+  // Copy functionality
+  document.addEventListener('DOMContentLoaded', () => {
+    const copyButtons = document.querySelectorAll('.copy-button');
+
+    copyButtons.forEach(button => {
+      button.addEventListener('click', async () => {
+        const code = button.getAttribute('data-code');
+        const copyIcon = button.querySelector('.copy-icon');
+        const checkIcon = button.querySelector('.check-icon');
+
+        if (!code) return;
+
+        try {
+          // Try modern clipboard API first
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(code);
+          } else {
+            // Fallback for older browsers or insecure contexts
+            const textarea = document.createElement('textarea');
+            textarea.value = code;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+          }
+
+          // Show success feedback
+          copyIcon?.classList.add('hidden');
+          checkIcon?.classList.remove('hidden');
+
+          setTimeout(() => {
+            copyIcon?.classList.remove('hidden');
+            checkIcon?.classList.add('hidden');
+          }, 2000);
+        } catch (err) {
+          console.error('Failed to copy code:', err);
+          // Could add user-visible error message here
+        }
+      });
+    });
+  });
+</script>
