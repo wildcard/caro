@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "generate-llm-txt": "node scripts/generate-llm-txt.mjs",
-    "prebuild": "node scripts/generate-llm-txt.mjs",
+    "sync-docs": "node scripts/sync-external-docs.mjs",
+    "predev": "npm run sync-docs",
+    "prebuild": "npm run generate-llm-txt && npm run sync-docs",
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",
