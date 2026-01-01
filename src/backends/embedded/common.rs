@@ -46,6 +46,9 @@ pub struct EmbeddedConfig {
     pub max_tokens: usize,
     pub top_p: f32,
     pub stop_tokens: Vec<String>,
+    /// Model ID for template selection (e.g., "glm-4.6v-flash-q4", "qwen-1.5b-q4")
+    #[serde(default)]
+    pub model_id: Option<String>,
 }
 
 impl Default for EmbeddedConfig {
@@ -55,6 +58,7 @@ impl Default for EmbeddedConfig {
             max_tokens: 100,
             top_p: 0.9,
             stop_tokens: vec!["\n\n".to_string(), "```".to_string()],
+            model_id: None,
         }
     }
 }
@@ -82,6 +86,20 @@ impl EmbeddedConfig {
     pub fn with_stop_tokens(mut self, stop_tokens: Vec<String>) -> Self {
         self.stop_tokens = stop_tokens;
         self
+    }
+
+    /// Builder: Set model ID for template selection
+    pub fn with_model_id(mut self, model_id: impl Into<String>) -> Self {
+        self.model_id = Some(model_id.into());
+        self
+    }
+
+    /// Check if this is a GLM model based on model_id
+    pub fn is_glm_model(&self) -> bool {
+        self.model_id
+            .as_ref()
+            .map(|id| id.to_lowercase().contains("glm"))
+            .unwrap_or(false)
     }
 }
 
@@ -142,5 +160,32 @@ mod tests {
 
         let config = EmbeddedConfig::default().with_temperature(-1.0);
         assert_eq!(config.temperature, 0.0); // Clamped to min
+    }
+
+    #[test]
+    fn test_is_glm_model() {
+        // GLM models should be detected
+        let config = EmbeddedConfig::default().with_model_id("glm-4.6v-flash-q4");
+        assert!(config.is_glm_model());
+
+        let config = EmbeddedConfig::default().with_model_id("GLM-4.6V-Flash");
+        assert!(config.is_glm_model());
+
+        // Non-GLM models should not be detected as GLM
+        let config = EmbeddedConfig::default().with_model_id("qwen-1.5b-q4");
+        assert!(!config.is_glm_model());
+
+        let config = EmbeddedConfig::default().with_model_id("mistral-7b");
+        assert!(!config.is_glm_model());
+
+        // No model_id should not be detected as GLM
+        let config = EmbeddedConfig::default();
+        assert!(!config.is_glm_model());
+    }
+
+    #[test]
+    fn test_with_model_id() {
+        let config = EmbeddedConfig::default().with_model_id("test-model");
+        assert_eq!(config.model_id, Some("test-model".to_string()));
     }
 }

@@ -208,6 +208,22 @@ pub static SMOLLM_135M_Q4: ModelInfo = ModelInfo {
     ci_suitable: true,
 };
 
+/// GLM-4.6V-Flash 9B Q4_K_M - Multimodal vision+text model (~6.2GB)
+/// Best for: High-quality command generation with vision capabilities
+/// Note: Requires --jinja flag for proper chat template handling
+/// May output in Chinese - use system prompt "Respond in English" if needed
+pub static GLM_4_6V_FLASH_Q4: ModelInfo = ModelInfo {
+    id: "glm-4.6v-flash-q4",
+    name: "GLM-4.6V-Flash 9B Q4",
+    hf_repo: "ggml-org/GLM-4.6V-Flash-GGUF",
+    filename: "GLM-4.6V-Flash-Q4_K_M.gguf",
+    size_mb: 6170,
+    size_category: ModelSize::Large,
+    description: "GLM-4.6V Flash multimodal, excellent reasoning and coding",
+    mlx_optimized: true,
+    ci_suitable: false,
+};
+
 // All models in order of size (smallest to largest)
 static ALL_MODELS: &[&ModelInfo] = &[
     &SMOLLM_135M_Q4,
@@ -217,6 +233,7 @@ static ALL_MODELS: &[&ModelInfo] = &[
     &QWEN_1_5B_Q4,
     &PHI_2_2_7B_Q4,
     &MISTRAL_7B_Q3,
+    &GLM_4_6V_FLASH_Q4,
 ];
 
 #[cfg(test)]

@@ -67,21 +67,50 @@ fn extract_json_command(text: &str) -> Result<String, GeneratorError> {
     Ok(r#"{"cmd": "echo 'Unable to generate command'"}"#.to_string())
 }
 
-#[cfg(feature = "embedded-mlx")]
-fn build_prompt(prompt: &str) -> String {
-    format!(
-        r#"<|im_start|>system
-You are a helpful assistant that converts natural language to POSIX shell commands.
-Respond ONLY with valid JSON in this exact format: {{"cmd": "command here"}}
+/// System prompt for command generation
+const SYSTEM_PROMPT: &str = r#"You are a helpful assistant that converts natural language to POSIX shell commands.
+Respond ONLY with valid JSON in this exact format: {"cmd": "command here"}
 Use only POSIX-compliant commands (ls, find, grep, awk, sed, etc.)
 Quote file paths properly. Never use destructive commands.
+Always respond in English."#;
+
+#[cfg(feature = "embedded-mlx")]
+fn build_prompt(prompt: &str, config: &EmbeddedConfig) -> String {
+    if config.is_glm_model() {
+        build_glm_prompt(prompt)
+    } else {
+        build_chatml_prompt(prompt)
+    }
+}
+
+/// Build prompt using ChatML format (default for most models)
+#[cfg(feature = "embedded-mlx")]
+fn build_chatml_prompt(prompt: &str) -> String {
+    format!(
+        r#"<|im_start|>system
+{}
 <|im_end|>
 <|im_start|>user
 {}
 <|im_end|>
 <|im_start|>assistant
 "#,
-        prompt
+        SYSTEM_PROMPT, prompt
+    )
+}
+
+/// Build prompt using GLM-4 chat format
+/// GLM-4.6V uses a specific template with [gMASK]<sop> tokens
+#[cfg(feature = "embedded-mlx")]
+fn build_glm_prompt(prompt: &str) -> String {
+    format!(
+        r#"[gMASK]<sop><|system|>
+{}
+<|user|>
+{}
+<|assistant|>
+"#,
+        SYSTEM_PROMPT, prompt
     )
 }
 
@@ -89,8 +118,8 @@ Quote file paths properly. Never use destructive commands.
 impl InferenceBackend for MlxBackend {
     #[cfg(feature = "embedded-mlx")]
     async fn infer(&self, prompt: &str, config: &EmbeddedConfig) -> Result<String, GeneratorError> {
-        // Build the full prompt with chat template
-        let full_prompt = build_prompt(prompt);
+        // Build the full prompt with chat template (model-aware)
+        let full_prompt = build_prompt(prompt, config);
 
         tracing::debug!(
             "Starting MLX inference (prompt: {} chars, max_tokens: {}, temperature: {})",
@@ -342,10 +371,36 @@ mod tests {
 
     #[cfg(feature = "embedded-mlx")]
     #[test]
-    fn test_build_prompt() {
-        let prompt = build_prompt("list files");
+    fn test_build_prompt_chatml() {
+        let config = EmbeddedConfig::default();
+        let prompt = build_prompt("list files", &config);
         assert!(prompt.contains("list files"));
         assert!(prompt.contains("<|im_start|>"));
         assert!(prompt.contains("POSIX"));
+    }
+
+    #[cfg(feature = "embedded-mlx")]
+    #[test]
+    fn test_build_prompt_glm() {
+        let config = EmbeddedConfig::default().with_model_id("glm-4.6v-flash-q4");
+        let prompt = build_prompt("list files", &config);
+        assert!(prompt.contains("list files"));
+        assert!(prompt.contains("[gMASK]<sop>"));
+        assert!(prompt.contains("<|system|>"));
+        assert!(prompt.contains("<|user|>"));
+        assert!(prompt.contains("<|assistant|>"));
+        assert!(prompt.contains("POSIX"));
+    }
+
+    #[test]
+    fn test_is_glm_model() {
+        let config = EmbeddedConfig::default().with_model_id("glm-4.6v-flash-q4");
+        assert!(config.is_glm_model());
+
+        let config = EmbeddedConfig::default().with_model_id("qwen-1.5b-q4");
+        assert!(!config.is_glm_model());
+
+        let config = EmbeddedConfig::default();
+        assert!(!config.is_glm_model());
     }
 }
