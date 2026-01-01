@@ -85,6 +85,40 @@ const { title, description, slug, persona, painPoint } = Astro.props;
       transition: background-color 0.3s ease, color 0.3s ease;
     }
 
+    /* ============================================
+       GLOBAL LINK STYLES
+       Brand-colored links for light/dark mode
+       ============================================ */
+    a {
+      color: #ff8c42;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    a:hover {
+      color: #ff6b35;
+      text-decoration: underline;
+    }
+
+    a:focus-visible {
+      outline: 2px solid #ff8c42;
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+
+    /* Dark mode link colors - slightly brighter for contrast */
+    .dark a {
+      color: #ffa76c;
+    }
+
+    .dark a:hover {
+      color: #ff8c42;
+    }
+
+    .dark a:focus-visible {
+      outline-color: #ffa76c;
+    }
+
     section {
       padding: 80px 20px;
     }
