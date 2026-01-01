@@ -3,7 +3,7 @@
  * Generate Search Index
  *
  * Scans all pages and resources to create a comprehensive search index
- * that includes every piece of content available on the website.
+ * that includes EVERY piece of text content available on the website.
  *
  * Usage: node scripts/generate-search-index.mjs
  *
@@ -17,6 +17,19 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const WEBSITE_ROOT = path.resolve(__dirname, '..');
+
+// Common stop words to exclude from keywords (but keep in full text)
+const STOP_WORDS = new Set([
+  'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+  'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'been',
+  'be', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
+  'should', 'may', 'might', 'must', 'shall', 'can', 'need', 'dare', 'ought',
+  'used', 'it', 'its', 'this', 'that', 'these', 'those', 'i', 'you', 'he',
+  'she', 'we', 'they', 'what', 'which', 'who', 'whom', 'whose', 'where',
+  'when', 'why', 'how', 'all', 'each', 'every', 'both', 'few', 'more',
+  'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own',
+  'same', 'so', 'than', 'too', 'very', 'just', 'also', 'now', 'here',
+]);
 
 // Categories based on path
 function getCategoryFromPath(filePath) {
@@ -58,47 +71,169 @@ function getIconFromPath(urlPath, category) {
   return iconMap[category] || '📄';
 }
 
-// Clean HTML and extract text
-function extractTextContent(content) {
+// Extract ALL text content from HTML/Astro content
+function extractAllTextContent(content) {
   let text = content
+    // Remove code blocks first (they contain non-searchable content)
+    .replace(/<code[\s\S]*?<\/code>/gi, ' ')
+    .replace(/<pre[\s\S]*?<\/pre>/gi, ' ')
+    // Remove script and style tags
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     .replace(/<style[\s\S]*?<\/style>/gi, '')
-    .replace(/---[\s\S]*?---/g, '') // Remove frontmatter
-    .replace(/<[^>]+>/g, ' ') // Remove HTML tags
-    .replace(/\{[^}]+\}/g, ' ') // Remove JSX expressions
-    .replace(/&[a-z]+;/gi, ' ') // Remove HTML entities
-    .replace(/\s+/g, ' ') // Normalize whitespace
+    // Remove frontmatter
+    .replace(/---[\s\S]*?---/g, '')
+    // Remove import statements
+    .replace(/import\s+.*?from\s+['"][^'"]+['"]\s*;?/g, '')
+    // Remove Astro/JSX expressions but keep text content
+    .replace(/\{`([^`]*)`\}/g, '$1') // Template literals
+    .replace(/\{['"]([^'"]*)['"]\}/g, '$1') // String literals
+    .replace(/\{[^}]+\}/g, ' ') // Other expressions
+    // Extract text from HTML tags
+    .replace(/<[^>]+>/g, ' ')
+    // Decode common HTML entities
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&[a-z]+;/gi, ' ')
+    // Normalize whitespace
+    .replace(/\s+/g, ' ')
     .trim();
 
   return text;
 }
 
-// Extract specific content sections
-function extractSections(content) {
-  const sections = [];
+// Extract text from specific elements for structured content
+function extractStructuredContent(content) {
+  const result = {
+    headings: [],
+    paragraphs: [],
+    listItems: [],
+    spans: [],
+    buttons: [],
+    links: [],
+    labels: [],
+    allText: [],
+  };
 
-  // Extract headings
+  // Extract headings (h1-h6)
   const headingMatches = content.matchAll(/<h[1-6][^>]*>([\s\S]*?)<\/h[1-6]>/gi);
   for (const match of headingMatches) {
-    const text = extractTextContent(match[1]);
-    if (text.length > 2) sections.push({ type: 'heading', text });
+    const text = extractAllTextContent(match[1]).trim();
+    if (text.length > 1) {
+      result.headings.push(text);
+      result.allText.push(text);
+    }
   }
 
   // Extract paragraphs
   const paragraphMatches = content.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi);
   for (const match of paragraphMatches) {
-    const text = extractTextContent(match[1]);
-    if (text.length > 10) sections.push({ type: 'paragraph', text });
+    const text = extractAllTextContent(match[1]).trim();
+    if (text.length > 3) {
+      result.paragraphs.push(text);
+      result.allText.push(text);
+    }
   }
 
   // Extract list items
   const listMatches = content.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi);
   for (const match of listMatches) {
-    const text = extractTextContent(match[1]);
-    if (text.length > 5) sections.push({ type: 'list', text });
+    const text = extractAllTextContent(match[1]).trim();
+    if (text.length > 2) {
+      result.listItems.push(text);
+      result.allText.push(text);
+    }
   }
 
-  return sections;
+  // Extract spans with text content
+  const spanMatches = content.matchAll(/<span[^>]*>([\s\S]*?)<\/span>/gi);
+  for (const match of spanMatches) {
+    const text = extractAllTextContent(match[1]).trim();
+    if (text.length > 2 && !text.match(/^[\d\s\-\+]+$/)) {
+      result.spans.push(text);
+      result.allText.push(text);
+    }
+  }
+
+  // Extract button text
+  const buttonMatches = content.matchAll(/<button[^>]*>([\s\S]*?)<\/button>/gi);
+  for (const match of buttonMatches) {
+    const text = extractAllTextContent(match[1]).trim();
+    if (text.length > 1) {
+      result.buttons.push(text);
+      result.allText.push(text);
+    }
+  }
+
+  // Extract link text
+  const linkMatches = content.matchAll(/<a[^>]*>([\s\S]*?)<\/a>/gi);
+  for (const match of linkMatches) {
+    const text = extractAllTextContent(match[1]).trim();
+    if (text.length > 1) {
+      result.links.push(text);
+      result.allText.push(text);
+    }
+  }
+
+  // Extract div text (for content divs)
+  const divMatches = content.matchAll(/<div[^>]*class="[^"]*(?:text|content|desc|title|label|message)[^"]*"[^>]*>([\s\S]*?)<\/div>/gi);
+  for (const match of divMatches) {
+    const text = extractAllTextContent(match[1]).trim();
+    if (text.length > 3) {
+      result.allText.push(text);
+    }
+  }
+
+  // Extract label text
+  const labelMatches = content.matchAll(/<label[^>]*>([\s\S]*?)<\/label>/gi);
+  for (const match of labelMatches) {
+    const text = extractAllTextContent(match[1]).trim();
+    if (text.length > 1) {
+      result.labels.push(text);
+      result.allText.push(text);
+    }
+  }
+
+  // Extract alt text from images
+  const altMatches = content.matchAll(/alt=["']([^"']+)["']/gi);
+  for (const match of altMatches) {
+    const text = match[1].trim();
+    if (text.length > 1) {
+      result.allText.push(text);
+    }
+  }
+
+  // Extract title attributes
+  const titleMatches = content.matchAll(/title=["']([^"']+)["']/gi);
+  for (const match of titleMatches) {
+    const text = match[1].trim();
+    if (text.length > 1) {
+      result.allText.push(text);
+    }
+  }
+
+  // Extract aria-label attributes
+  const ariaLabelMatches = content.matchAll(/aria-label=["']([^"']+)["']/gi);
+  for (const match of ariaLabelMatches) {
+    const text = match[1].trim();
+    if (text.length > 1) {
+      result.allText.push(text);
+    }
+  }
+
+  // Extract placeholder text
+  const placeholderMatches = content.matchAll(/placeholder=["']([^"']+)["']/gi);
+  for (const match of placeholderMatches) {
+    const text = match[1].trim();
+    if (text.length > 1) {
+      result.allText.push(text);
+    }
+  }
+
+  return result;
 }
 
 // Extract frontmatter metadata
@@ -141,40 +276,52 @@ function generateTitleFromPath(urlPath) {
     .join(' ');
 }
 
+// Extract unique meaningful words for keyword generation
+function extractKeywords(text, limit = 50) {
+  const words = text.toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length > 2 && !STOP_WORDS.has(w));
+
+  // Count word frequency
+  const wordCount = {};
+  for (const word of words) {
+    wordCount[word] = (wordCount[word] || 0) + 1;
+  }
+
+  // Sort by frequency and return top words
+  return Object.entries(wordCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([word]) => word);
+}
+
 // Scan a single page file
 function scanPage(filePath, pagesDir) {
   const content = fs.readFileSync(filePath, 'utf-8');
   const urlPath = filePathToUrl(filePath, pagesDir);
   const category = getCategoryFromPath(filePath);
   const frontmatter = extractFrontmatter(content);
-  const sections = extractSections(content);
-  const fullText = extractTextContent(content);
+  const structured = extractStructuredContent(content);
+  const fullText = extractAllTextContent(content);
 
-  // Generate keywords from content
-  const keywords = new Set();
-
-  // Add words from title
+  // Generate title
   const title = frontmatter.title || generateTitleFromPath(urlPath);
-  if (title) {
-    title.toLowerCase().split(/\s+/).forEach(w => {
-      if (w.length > 2) keywords.add(w);
-    });
-  }
 
-  // Add words from sections
-  sections.forEach(section => {
-    section.text.toLowerCase().split(/\s+/).forEach(w => {
-      if (w.length > 3 && !['the', 'and', 'for', 'with', 'that', 'this', 'from'].includes(w)) {
-        keywords.add(w);
-      }
-    });
-  });
+  // Combine all text for comprehensive search
+  const allTextContent = [
+    title,
+    frontmatter.description || '',
+    ...structured.allText,
+    fullText,
+  ].join(' ');
 
-  // Limit keywords
-  const keywordsArray = Array.from(keywords).slice(0, 20);
+  // Generate keywords from all content
+  const keywords = extractKeywords(allTextContent, 50);
 
+  // Get first paragraph for description if not in frontmatter
   const description = frontmatter.description ||
-    sections.find(s => s.type === 'paragraph')?.text?.slice(0, 150) ||
+    structured.paragraphs[0]?.slice(0, 200) ||
     '';
 
   return {
@@ -182,16 +329,16 @@ function scanPage(filePath, pagesDir) {
     path: urlPath,
     description,
     category,
-    keywords: keywordsArray,
+    keywords,
     icon: getIconFromPath(urlPath, category),
-    // Full content for deep search
+    // Structured content for display
     content: {
-      headings: sections.filter(s => s.type === 'heading').map(s => s.text),
-      paragraphs: sections.filter(s => s.type === 'paragraph').map(s => s.text).slice(0, 10),
-      listItems: sections.filter(s => s.type === 'list').map(s => s.text).slice(0, 20),
+      headings: structured.headings,
+      paragraphs: structured.paragraphs.slice(0, 20),
+      listItems: structured.listItems.slice(0, 30),
     },
-    // Full text for fuzzy search (limited for performance)
-    fullText: fullText.slice(0, 2000),
+    // FULL text content for comprehensive search - no limit!
+    fullText: fullText,
   };
 }
 
@@ -212,13 +359,16 @@ function scanComponents(componentsDir) {
       } else if (file.endsWith('.astro') || file.endsWith('.tsx')) {
         try {
           const content = fs.readFileSync(filePath, 'utf-8');
-          const sections = extractSections(content);
+          const structured = extractStructuredContent(content);
+          const fullText = extractAllTextContent(content);
 
           // Only include components with meaningful content
-          if (sections.length > 0) {
+          if (structured.allText.length > 0 || fullText.length > 50) {
             additionalContent.push({
               source: filePath.replace(componentsDir, ''),
-              sections,
+              headings: structured.headings,
+              paragraphs: structured.paragraphs.slice(0, 10),
+              fullText: fullText,
             });
           }
         } catch (e) {
@@ -255,7 +405,8 @@ function generateSearchIndex() {
         try {
           const pageData = scanPage(filePath, pagesDir);
           pages.push(pageData);
-          console.log(`  ✓ ${pageData.path} - ${pageData.title}`);
+          const textLength = pageData.fullText?.length || 0;
+          console.log(`  ✓ ${pageData.path} - ${pageData.title} (${textLength} chars)`);
         } catch (e) {
           console.error(`  ✗ Error scanning ${filePath}:`, e.message);
         }
@@ -270,40 +421,56 @@ function generateSearchIndex() {
   const componentContent = scanComponents(componentsDir);
   console.log(`  Found ${componentContent.length} components with content\n`);
 
-  // Create the search index
+  // Create the search index with FULL text content
   const searchIndex = {
-    version: '1.0.0',
+    version: '2.0.0', // Version bump for full-text search
     generated: new Date().toISOString(),
     totalPages: pages.length,
     pages: pages.map(p => ({
       ...p,
-      // Pre-compute search strings
+      // Pre-compute comprehensive search string including ALL text
       _searchText: [
         p.title || '',
         p.description || '',
         p.path || '',
         ...(p.keywords || []),
         ...(p.content?.headings || []),
-        ...(p.content?.paragraphs || []).slice(0, 3),
+        ...(p.content?.paragraphs || []),
+        ...(p.content?.listItems || []),
+        p.fullText || '',
       ].join(' ').toLowerCase(),
-      _words: [
+      // All unique words for fuzzy matching
+      _words: extractKeywords([
         p.title || '',
         p.description || '',
         ...(p.keywords || []),
         ...(p.content?.headings || []),
-      ].join(' ').toLowerCase().split(/\s+/).filter(w => w.length > 2),
+        p.fullText || '',
+      ].join(' '), 100),
     })),
     // Include component content for deep search
-    componentContent: componentContent.slice(0, 50), // Limit for performance
+    componentContent: componentContent.map(c => ({
+      ...c,
+      _searchText: [
+        ...c.headings,
+        ...c.paragraphs,
+        c.fullText,
+      ].join(' ').toLowerCase(),
+    })),
   };
 
   // Write the index
   fs.writeFileSync(outputPath, JSON.stringify(searchIndex, null, 2));
 
+  // Calculate total indexed content
+  const totalChars = pages.reduce((sum, p) => sum + (p.fullText?.length || 0), 0);
+  const totalWords = pages.reduce((sum, p) => sum + (p._searchText?.split(/\s+/).length || 0), 0);
+
   console.log('✅ Search index generated successfully!');
   console.log(`   Output: ${outputPath}`);
   console.log(`   Pages indexed: ${pages.length}`);
-  console.log(`   Components with content: ${componentContent.length}`);
+  console.log(`   Components indexed: ${componentContent.length}`);
+  console.log(`   Total content: ${totalChars.toLocaleString()} characters`);
 }
 
 // Run

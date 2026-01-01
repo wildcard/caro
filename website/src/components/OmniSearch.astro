@@ -15,6 +15,7 @@
  */
 
 import { PAGES_INDEX } from '../config/pages';
+import searchIndexData from '../config/search-index.json';
 
 // Feature flag: always enabled for search functionality
 const isPreview = import.meta.env.VERCEL_ENV === 'preview';
@@ -22,12 +23,20 @@ const isExplicit = import.meta.env.ENABLE_OMNI_SEARCH === 'true';
 const isProd = import.meta.env.VERCEL_ENV === 'production';
 const isEnabled = isPreview || isExplicit || !isProd;
 
-// Pre-build search index at compile time
-const searchIndex = PAGES_INDEX.map(p => ({
-  ...p,
-  _search: [p.title, p.description || '', p.path, ...(p.keywords || [])].join(' ').toLowerCase(),
-  _words: [p.title, p.description || '', ...(p.keywords || [])].join(' ').toLowerCase().split(/\s+/).filter(w => w.length > 2)
-}));
+// Use generated search index with full content, fallback to PAGES_INDEX
+const searchIndex = searchIndexData?.pages?.length > 0
+  ? searchIndexData.pages.map(p => ({
+      ...p,
+      // Use pre-computed _searchText which includes ALL page content
+      _search: p._searchText || [p.title, p.description || '', p.path, ...(p.keywords || [])].join(' ').toLowerCase(),
+      // Use pre-computed _words for fuzzy matching
+      _words: p._words || [p.title, p.description || '', ...(p.keywords || [])].join(' ').toLowerCase().split(/\s+/).filter(w => w.length > 2)
+    }))
+  : PAGES_INDEX.map(p => ({
+      ...p,
+      _search: [p.title, p.description || '', p.path, ...(p.keywords || [])].join(' ').toLowerCase(),
+      _words: [p.title, p.description || '', ...(p.keywords || [])].join(' ').toLowerCase().split(/\s+/).filter(w => w.length > 2)
+    }));
 ---
 
 {/* Search Trigger Button - Always visible */}
