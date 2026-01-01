@@ -65,6 +65,7 @@ function getIconFromPath(urlPath, category) {
   if (urlPath.includes('github') || urlPath.includes('copilot')) return '🐙';
   if (urlPath.includes('warp')) return '🚀';
   if (urlPath.includes('amazon')) return '📦';
+  if (urlPath.includes('opencode')) return '💡';
   if (urlPath.includes('claude')) return '🤖';
   if (urlPath === '/' || urlPath === '') return '🏠';
 
@@ -105,16 +106,76 @@ function extractAllTextContent(content) {
   return text;
 }
 
+// Extract all string values from JavaScript data in frontmatter
+function extractFrontmatterData(content) {
+  const frontmatterMatch = content.match(/---\n([\s\S]*?)\n---/);
+  if (!frontmatterMatch) return { strings: [], title: null, description: null };
+
+  const frontmatter = frontmatterMatch[1];
+  const strings = [];
+
+  // Extract title and description from frontmatter comments or data
+  let title = null;
+  let description = null;
+
+  // Look for title in page comment
+  const titleComment = frontmatter.match(/\*\s*(?:Use Case|Page|Blog):\s*([^\n*]+)/i);
+  if (titleComment) {
+    title = titleComment[1].trim();
+  }
+
+  // Look for competitor name in comparison pages
+  const competitorMatch = frontmatter.match(/name:\s*['"]([^'"]+)['"]/);
+  if (competitorMatch && frontmatter.includes('competitor')) {
+    title = `Caro vs ${competitorMatch[1]}`;
+  }
+
+  // Extract all string literals from the frontmatter data
+  // Match single-quoted strings
+  const singleQuoteStrings = frontmatter.matchAll(/'([^'\\]|\\.)*'/g);
+  for (const match of singleQuoteStrings) {
+    const str = match[0].slice(1, -1); // Remove quotes
+    if (str.length > 3 && !str.includes('/') && !str.includes('.astro')) {
+      strings.push(str);
+    }
+  }
+
+  // Match double-quoted strings
+  const doubleQuoteStrings = frontmatter.matchAll(/"([^"\\]|\\.)*"/g);
+  for (const match of doubleQuoteStrings) {
+    const str = match[0].slice(1, -1); // Remove quotes
+    if (str.length > 3 && !str.includes('/') && !str.includes('.astro')) {
+      strings.push(str);
+    }
+  }
+
+  // Match template literals with content
+  const templateStrings = frontmatter.matchAll(/`([^`]*)`/g);
+  for (const match of templateStrings) {
+    const str = match[1];
+    // Clean HTML from template strings
+    const cleaned = extractAllTextContent(str);
+    if (cleaned.length > 10) {
+      strings.push(cleaned);
+    }
+  }
+
+  // Look for explicit title/description props
+  const titleMatch = frontmatter.match(/title:\s*["']([^"']+)["']/i);
+  if (titleMatch) title = titleMatch[1];
+
+  const descMatch = frontmatter.match(/description:\s*["']([^"']+)["']/i);
+  if (descMatch) description = descMatch[1];
+
+  return { strings, title, description };
+}
+
 // Extract text from specific elements for structured content
 function extractStructuredContent(content) {
   const result = {
     headings: [],
     paragraphs: [],
     listItems: [],
-    spans: [],
-    buttons: [],
-    links: [],
-    labels: [],
     allText: [],
   };
 
@@ -153,7 +214,6 @@ function extractStructuredContent(content) {
   for (const match of spanMatches) {
     const text = extractAllTextContent(match[1]).trim();
     if (text.length > 2 && !text.match(/^[\d\s\-\+]+$/)) {
-      result.spans.push(text);
       result.allText.push(text);
     }
   }
@@ -163,7 +223,6 @@ function extractStructuredContent(content) {
   for (const match of buttonMatches) {
     const text = extractAllTextContent(match[1]).trim();
     if (text.length > 1) {
-      result.buttons.push(text);
       result.allText.push(text);
     }
   }
@@ -173,26 +232,6 @@ function extractStructuredContent(content) {
   for (const match of linkMatches) {
     const text = extractAllTextContent(match[1]).trim();
     if (text.length > 1) {
-      result.links.push(text);
-      result.allText.push(text);
-    }
-  }
-
-  // Extract div text (for content divs)
-  const divMatches = content.matchAll(/<div[^>]*class="[^"]*(?:text|content|desc|title|label|message)[^"]*"[^>]*>([\s\S]*?)<\/div>/gi);
-  for (const match of divMatches) {
-    const text = extractAllTextContent(match[1]).trim();
-    if (text.length > 3) {
-      result.allText.push(text);
-    }
-  }
-
-  // Extract label text
-  const labelMatches = content.matchAll(/<label[^>]*>([\s\S]*?)<\/label>/gi);
-  for (const match of labelMatches) {
-    const text = extractAllTextContent(match[1]).trim();
-    if (text.length > 1) {
-      result.labels.push(text);
       result.allText.push(text);
     }
   }
@@ -236,21 +275,6 @@ function extractStructuredContent(content) {
   return result;
 }
 
-// Extract frontmatter metadata
-function extractFrontmatter(content) {
-  const frontmatterMatch = content.match(/---\n([\s\S]*?)\n---/);
-  if (!frontmatterMatch) return {};
-
-  const frontmatter = frontmatterMatch[1];
-  const titleMatch = frontmatter.match(/title:\s*["']?([^"'\n]+)["']?/i);
-  const descriptionMatch = frontmatter.match(/description:\s*["']?([^"'\n]+)["']?/i);
-
-  return {
-    title: titleMatch ? titleMatch[1].trim() : null,
-    description: descriptionMatch ? descriptionMatch[1].trim() : null,
-  };
-}
-
 // Convert file path to URL path
 function filePathToUrl(filePath, pagesDir) {
   let url = filePath
@@ -274,6 +298,51 @@ function generateTitleFromPath(urlPath) {
     .split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
+}
+
+// Generate better title based on URL path for specific page types
+function generateSmartTitle(urlPath, frontmatterData, structured) {
+  // For compare pages, always use predefined titles (these take priority)
+  if (urlPath.includes('/compare/') && urlPath !== '/compare') {
+    const pageName = urlPath.split('/').pop();
+    const titleMap = {
+      'amazon-q-cli': 'Caro vs Amazon Q CLI',
+      'github-copilot-cli': 'Caro vs GitHub Copilot CLI',
+      'warp': 'Caro vs Warp',
+      'opencode': 'Caro vs OpenCode',
+    };
+    if (titleMap[pageName]) return titleMap[pageName];
+  }
+
+  // For use-cases pages, use predefined titles (these take priority)
+  if (urlPath.includes('/use-cases/') && urlPath !== '/use-cases') {
+    const pageName = urlPath.split('/').pop();
+    const titleMap = {
+      'sre': 'SRE & On-Call Engineers',
+      'air-gapped': 'Air-Gapped Security Environments',
+      'devops': 'DevOps & Platform Engineers',
+      'tech-lead': 'Tech Leads & Engineering Managers',
+      'developer': 'Developers',
+    };
+    if (titleMap[pageName]) return titleMap[pageName];
+  }
+
+  // Use frontmatter title if available (but not generic ones)
+  if (frontmatterData.title &&
+      !['TL;DR', 'Overview', 'Introduction'].includes(frontmatterData.title)) {
+    return frontmatterData.title;
+  }
+
+  // Use first heading if available and not generic
+  if (structured.headings.length > 0) {
+    const firstHeading = structured.headings[0];
+    if (!['TL;DR', 'Overview', 'Introduction'].includes(firstHeading)) {
+      return firstHeading;
+    }
+  }
+
+  // Fall back to path-based title
+  return generateTitleFromPath(urlPath);
 }
 
 // Extract unique meaningful words for keyword generation
@@ -301,17 +370,18 @@ function scanPage(filePath, pagesDir) {
   const content = fs.readFileSync(filePath, 'utf-8');
   const urlPath = filePathToUrl(filePath, pagesDir);
   const category = getCategoryFromPath(filePath);
-  const frontmatter = extractFrontmatter(content);
+  const frontmatterData = extractFrontmatterData(content);
   const structured = extractStructuredContent(content);
   const fullText = extractAllTextContent(content);
 
-  // Generate title
-  const title = frontmatter.title || generateTitleFromPath(urlPath);
+  // Generate title using smart detection
+  const title = generateSmartTitle(urlPath, frontmatterData, structured);
 
-  // Combine all text for comprehensive search
+  // Combine all text for comprehensive search including frontmatter data
   const allTextContent = [
     title,
-    frontmatter.description || '',
+    frontmatterData.description || '',
+    ...frontmatterData.strings, // Include all extracted string data
     ...structured.allText,
     fullText,
   ].join(' ');
@@ -320,8 +390,9 @@ function scanPage(filePath, pagesDir) {
   const keywords = extractKeywords(allTextContent, 50);
 
   // Get first paragraph for description if not in frontmatter
-  const description = frontmatter.description ||
+  const description = frontmatterData.description ||
     structured.paragraphs[0]?.slice(0, 200) ||
+    frontmatterData.strings.find(s => s.length > 30 && s.length < 200) ||
     '';
 
   return {
@@ -337,8 +408,8 @@ function scanPage(filePath, pagesDir) {
       paragraphs: structured.paragraphs.slice(0, 20),
       listItems: structured.listItems.slice(0, 30),
     },
-    // FULL text content for comprehensive search - no limit!
-    fullText: fullText,
+    // FULL text content for comprehensive search - includes frontmatter data
+    fullText: allTextContent,
   };
 }
 
@@ -423,7 +494,7 @@ function generateSearchIndex() {
 
   // Create the search index with FULL text content
   const searchIndex = {
-    version: '2.0.0', // Version bump for full-text search
+    version: '2.1.0', // Version bump for improved extraction
     generated: new Date().toISOString(),
     totalPages: pages.length,
     pages: pages.map(p => ({
@@ -464,7 +535,6 @@ function generateSearchIndex() {
 
   // Calculate total indexed content
   const totalChars = pages.reduce((sum, p) => sum + (p.fullText?.length || 0), 0);
-  const totalWords = pages.reduce((sum, p) => sum + (p._searchText?.split(/\s+/).length || 0), 0);
 
   console.log('✅ Search index generated successfully!');
   console.log(`   Output: ${outputPath}`);

@@ -6,6 +6,7 @@ import BackToTop from '../components/BackToTop.astro';
 import NewYearCountdown from '../components/NewYearCountdown.astro';
 import NewYearEffect from '../components/NewYearEffect.astro';
 import OmniSearch from '../components/OmniSearch.astro';
+import SearchHighlight from '../components/SearchHighlight.astro';
 import HolidayDebugPanel from '../components/HolidayDebugPanel.astro';
 
 interface Props {
@@ -101,6 +102,7 @@ const { title, description } = Astro.props;
     <NewYearEffect />
     <OmniSearch />
     <slot />
+    <SearchHighlight />
     <BackToTop />
     <HolidayDebugPanel />
     <Analytics />

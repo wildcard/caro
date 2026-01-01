@@ -1,0 +1,377 @@
+---
+/**
+ * SearchHighlight - Highlights search terms on destination pages
+ *
+ * When a user navigates from OmniSearch, this component:
+ * - Reads the search query from URL parameter (?q=search+term)
+ * - Highlights all matching text on the page
+ * - Shows a floating navigation bar with match count
+ * - Allows navigating between matches with up/down arrows
+ * - Scrolls to the first match automatically
+ */
+---
+
+<div id="search-highlight-bar" class="search-highlight-bar hidden">
+  <div class="highlight-content">
+    <span class="highlight-icon">🔍</span>
+    <span class="highlight-query"></span>
+    <span class="highlight-count"></span>
+  </div>
+  <div class="highlight-nav">
+    <button class="nav-btn prev" aria-label="Previous match" title="Previous (↑)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 15l-6-6-6 6"/>
+      </svg>
+    </button>
+    <button class="nav-btn next" aria-label="Next match" title="Next (↓)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M6 9l6 6 6-6"/>
+      </svg>
+    </button>
+    <button class="nav-btn close" aria-label="Close highlights" title="Close (Esc)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<style is:global>
+  .search-highlight-bar {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: var(--color-bg, #fff);
+    border: 1px solid var(--color-border, #e0e0e0);
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    z-index: 99990;
+    font-size: 14px;
+    animation: slideUp 0.2s ease-out;
+  }
+
+  .search-highlight-bar.hidden {
+    display: none;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  .highlight-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .highlight-icon {
+    font-size: 16px;
+  }
+
+  .highlight-query {
+    font-weight: 500;
+    color: var(--color-text, #333);
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .highlight-count {
+    color: var(--color-text-secondary, #666);
+    font-size: 13px;
+  }
+
+  .highlight-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding-left: 12px;
+    border-left: 1px solid var(--color-border, #e0e0e0);
+  }
+
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: var(--color-text-secondary, #666);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .nav-btn:hover {
+    background: var(--color-bg-secondary, #f5f5f5);
+    color: var(--color-text, #333);
+  }
+
+  .nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .nav-btn.close:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+  }
+
+  /* Highlight styles for matched text */
+  .search-match {
+    background: rgba(255, 200, 0, 0.4);
+    border-radius: 2px;
+    scroll-margin-top: 100px;
+  }
+
+  .search-match.current {
+    background: rgba(255, 140, 66, 0.6);
+    outline: 2px solid #ff8c42;
+    outline-offset: 1px;
+  }
+
+  /* Dark mode */
+  .dark .search-highlight-bar {
+    background: var(--color-bg, #1a1a1a);
+    border-color: var(--color-border, #444);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  }
+
+  .dark .search-match {
+    background: rgba(255, 200, 0, 0.3);
+  }
+
+  .dark .search-match.current {
+    background: rgba(255, 140, 66, 0.5);
+  }
+
+  @media (max-width: 600px) {
+    .search-highlight-bar {
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
+      transform: none;
+      width: auto;
+    }
+
+    .highlight-query {
+      max-width: 80px;
+    }
+  }
+</style>
+
+<script>
+  const bar = document.getElementById('search-highlight-bar');
+  const queryEl = bar?.querySelector('.highlight-query');
+  const countEl = bar?.querySelector('.highlight-count');
+  const prevBtn = bar?.querySelector('.nav-btn.prev') as HTMLButtonElement;
+  const nextBtn = bar?.querySelector('.nav-btn.next') as HTMLButtonElement;
+  const closeBtn = bar?.querySelector('.nav-btn.close');
+
+  let matches: Element[] = [];
+  let currentIndex = 0;
+  let originalContent: Map<Element, string> = new Map();
+
+  // Get search query from URL
+  function getSearchQuery(): string | null {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('q');
+  }
+
+  // Escape special regex characters
+  function escapeRegex(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  // Highlight all matches in the page
+  function highlightMatches(query: string) {
+    if (!query || query.length < 2) return;
+
+    const tokens = query.toLowerCase().split(/\s+/).filter(t => t.length >= 2);
+    if (tokens.length === 0) return;
+
+    // Create regex pattern for all tokens
+    const pattern = new RegExp(`(${tokens.map(escapeRegex).join('|')})`, 'gi');
+
+    // Find all text nodes in the main content
+    const walker = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode(node) {
+          // Skip script, style, and our own UI elements
+          const parent = node.parentElement;
+          if (!parent) return NodeFilter.FILTER_REJECT;
+          const tagName = parent.tagName.toLowerCase();
+          if (['script', 'style', 'noscript', 'textarea', 'input'].includes(tagName)) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          if (parent.closest('#search-highlight-bar, #omni-overlay, nav')) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          // Only accept nodes with matching text
+          if (pattern.test(node.textContent || '')) {
+            return NodeFilter.FILTER_ACCEPT;
+          }
+          return NodeFilter.FILTER_REJECT;
+        }
+      }
+    );
+
+    const textNodes: Text[] = [];
+    let node;
+    while (node = walker.nextNode()) {
+      textNodes.push(node as Text);
+    }
+
+    // Highlight each matching text node
+    for (const textNode of textNodes) {
+      const text = textNode.textContent || '';
+      const parts = text.split(pattern);
+
+      if (parts.length <= 1) continue;
+
+      const parent = textNode.parentNode;
+      if (!parent) continue;
+
+      // Store original content for cleanup
+      if (!originalContent.has(parent as Element)) {
+        originalContent.set(parent as Element, (parent as Element).innerHTML);
+      }
+
+      const fragment = document.createDocumentFragment();
+
+      for (const part of parts) {
+        if (pattern.test(part)) {
+          const mark = document.createElement('mark');
+          mark.className = 'search-match';
+          mark.textContent = part;
+          fragment.appendChild(mark);
+          matches.push(mark);
+        } else {
+          fragment.appendChild(document.createTextNode(part));
+        }
+      }
+
+      parent.replaceChild(fragment, textNode);
+    }
+
+    // Update UI
+    if (matches.length > 0 && bar && queryEl && countEl) {
+      queryEl.textContent = `"${query}"`;
+      updateCount();
+      bar.classList.remove('hidden');
+      goToMatch(0);
+    }
+  }
+
+  // Update match count display
+  function updateCount() {
+    if (countEl) {
+      countEl.textContent = matches.length > 0
+        ? `${currentIndex + 1} of ${matches.length}`
+        : 'No matches';
+    }
+    if (prevBtn) prevBtn.disabled = currentIndex <= 0;
+    if (nextBtn) nextBtn.disabled = currentIndex >= matches.length - 1;
+  }
+
+  // Navigate to a specific match
+  function goToMatch(index: number) {
+    if (index < 0 || index >= matches.length) return;
+
+    // Remove current highlight
+    matches.forEach(m => m.classList.remove('current'));
+
+    // Set new current
+    currentIndex = index;
+    const match = matches[currentIndex];
+    match.classList.add('current');
+
+    // Scroll into view
+    match.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+
+    updateCount();
+  }
+
+  // Clear all highlights
+  function clearHighlights() {
+    // Remove all highlight marks
+    matches.forEach(match => {
+      const parent = match.parentNode;
+      if (parent) {
+        parent.replaceChild(document.createTextNode(match.textContent || ''), match);
+        parent.normalize();
+      }
+    });
+
+    // Restore original content where possible
+    originalContent.forEach((html, element) => {
+      if (element.isConnected) {
+        element.innerHTML = html;
+      }
+    });
+
+    matches = [];
+    currentIndex = 0;
+    originalContent.clear();
+
+    // Hide bar
+    if (bar) bar.classList.add('hidden');
+
+    // Remove query from URL
+    const url = new URL(window.location.href);
+    url.searchParams.delete('q');
+    window.history.replaceState({}, '', url.toString());
+  }
+
+  // Event listeners
+  prevBtn?.addEventListener('click', () => goToMatch(currentIndex - 1));
+  nextBtn?.addEventListener('click', () => goToMatch(currentIndex + 1));
+  closeBtn?.addEventListener('click', clearHighlights);
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (matches.length === 0) return;
+
+    if (e.key === 'Escape') {
+      clearHighlights();
+    } else if (e.key === 'ArrowUp' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      goToMatch(currentIndex - 1);
+    } else if (e.key === 'ArrowDown' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      goToMatch(currentIndex + 1);
+    } else if (e.key === 'Enter' && bar && !bar.classList.contains('hidden')) {
+      e.preventDefault();
+      goToMatch(currentIndex + 1);
+    }
+  });
+
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', () => {
+    const query = getSearchQuery();
+    if (query) {
+      // Small delay to let page content load
+      setTimeout(() => highlightMatches(query), 100);
+    }
+  });
+
+  // Also try immediately in case DOMContentLoaded already fired
+  const query = getSearchQuery();
+  if (query && document.readyState !== 'loading') {
+    setTimeout(() => highlightMatches(query), 100);
+  }
+</script>

@@ -650,7 +650,18 @@ const searchIndex = searchIndexData?.pages?.length > 0
 
     function go() {
       const item = list.querySelectorAll('.omni-item')[activeIdx] as HTMLAnchorElement;
-      if (item?.href) { close(); window.location.href = item.href; }
+      if (item?.href) {
+        close();
+        // Append search query to URL for highlighting on destination page
+        const query = input.value.trim();
+        if (query) {
+          const url = new URL(item.href, window.location.origin);
+          url.searchParams.set('q', query);
+          window.location.href = url.toString();
+        } else {
+          window.location.href = item.href;
+        }
+      }
     }
 
     // Event listeners
@@ -676,7 +687,20 @@ const searchIndex = searchIndexData?.pages?.length > 0
       if (e.key === 'Enter') { e.preventDefault(); go(); }
     });
     list.addEventListener('click', e => {
-      if ((e.target as HTMLElement).closest('.omni-item')) close();
+      const item = (e.target as HTMLElement).closest('.omni-item') as HTMLAnchorElement;
+      if (item) {
+        e.preventDefault();
+        close();
+        // Append search query to URL for highlighting on destination page
+        const query = input.value.trim();
+        if (query && item.href) {
+          const url = new URL(item.href, window.location.origin);
+          url.searchParams.set('q', query);
+          window.location.href = url.toString();
+        } else if (item.href) {
+          window.location.href = item.href;
+        }
+      }
     });
   }
 </script>
