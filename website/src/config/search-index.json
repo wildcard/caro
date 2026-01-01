@@ -1,0 +1,3866 @@
+{
+  "version": "1.0.0",
+  "generated": "2026-01-01T09:11:25.059Z",
+  "totalPages": 26,
+  "pages": [
+    {
+      "title": "Ai Agent Safety",
+      "path": "/ai-agent-safety",
+      "description": "",
+      "category": "main",
+      "keywords": [
+        "agent",
+        "safety"
+      ],
+      "icon": "🛡️",
+      "content": {
+        "headings": [],
+        "paragraphs": [],
+        "listItems": []
+      },
+      "fullText": "",
+      "_searchText": "ai agent safety  /ai-agent-safety agent safety",
+      "_words": [
+        "agent",
+        "safety",
+        "agent",
+        "safety"
+      ]
+    },
+    {
+      "title": "Ai Command Safety",
+      "path": "/ai-command-safety",
+      "description": "",
+      "category": "main",
+      "keywords": [
+        "command",
+        "safety"
+      ],
+      "icon": "🛡️",
+      "content": {
+        "headings": [],
+        "paragraphs": [],
+        "listItems": []
+      },
+      "fullText": "",
+      "_searchText": "ai command safety  /ai-command-safety command safety",
+      "_words": [
+        "command",
+        "safety",
+        "command",
+        "safety"
+      ]
+    },
+    {
+      "title": "Announcing Caro",
+      "path": "/blog/announcing-caro",
+      "description": "We're excited to announce that cmdai has been renamed to caro ! 🎉",
+      "category": "blog",
+      "keywords": [
+        "announcing",
+        "caro",
+        "name,",
+        "same",
+        "mission",
+        "what",
+        "caro?",
+        "\"caro\"?",
+        "features",
+        "getting",
+        "started",
+        "quick",
+        "installation",
+        "first",
+        "command",
+        "what's",
+        "v0.1.0",
+        "migration",
+        "cmdai",
+        "thank"
+      ],
+      "icon": "📝",
+      "content": {
+        "headings": [
+          "A New Name, The Same Mission",
+          "What is Caro?",
+          "Why \"Caro\"?",
+          "Key Features",
+          "Getting Started",
+          "Quick Installation",
+          "First Command",
+          "What's New in v0.1.0",
+          "Migration from cmdai",
+          "Thank You, @aeplay",
+          "What's Next",
+          "Join the Community",
+          "Try It Today"
+        ],
+        "paragraphs": [
+          "We're excited to announce that cmdai has been renamed to caro ! 🎉",
+          "Thanks to the incredible generosity of @aeplay , who graciously transferred the caro crate name to our project, we now have a name that better reflects our vision: a friendly, approachable AI companion for your terminal.",
+          "caro is a single-binary Rust CLI tool that converts natural language descriptions into safe POSIX shell commands using local LLMs. Built with safety-first design and optimized for Apple Silicon via the MLX framework, caro makes complex command-line operations accessible to everyone.",
+          "$ caro \"find all PDF files larger than 10MB in Downloads\" Generated command: find ~/Downloads -name \"*.pdf\" -size +10M -ls Execute this command? (y/N) Why \"Caro\"? The name caro offers several advantages:",
+          "In Latin, caro means \"dear\" or \"beloved\"—fitting for a tool designed to make your terminal experience more friendly and approachable. And for those who know Kyaro's story , the connection runs even deeper.",
+          "# One-line setup (recommended) bash First Command $ caro \"show me the top 5 processes by CPU usage\" caro will generate the appropriate command for your platform, validate it for safety, and ask for confirmation before execution.",
+          "If you previously installed cmdai , migration is simple:",
+          "# Uninstall old version cargo uninstall cmdai # Install new version cargo install caro # Migrate config (if you have custom configuration) mv ~/.config/cmdai ~/.config/caro For detailed migration instructions, see our Naming History documentation.",
+          "We want to extend our heartfelt gratitude to @aeplay for:",
+          "This generosity has enabled us to have a better, more memorable name that will serve the project well as it grows."
+        ],
+        "listItems": [
+          "Brevity : Shorter and easier to type (4 characters)",
+          "Memorability : More distinctive and memorable as a brand",
+          "Pronounceability : Natural pronunciation in multiple languages",
+          "Brandability : Better suited for a product name",
+          "🚀 Fast startup - Single binary with quick initialization",
+          "🧠 Local LLM inference - Embedded models optimized for Apple Silicon (MLX) and CPU",
+          "🤖 Intelligent refinement - 2-iteration agentic loop for platform-specific commands",
+          "🌍 Platform-aware - Automatically detects OS, architecture, shell, and available commands",
+          "🛡️ Safety-first - Comprehensive validation with 52+ dangerous command patterns",
+          "📦 Self-contained - Single binary distribution",
+          "🎯 Multiple backends - Extensible system supporting MLX, CPU, vLLM, and Ollama",
+          "✅ Core CLI with comprehensive argument parsing",
+          "✅ Embedded model backend with MLX (Apple Silicon) and CPU variants",
+          "✅ Agentic context loop with iterative refinement",
+          "✅ Platform-aware command generation",
+          "✅ Safety validation with 52+ dangerous command patterns",
+          "✅ Remote backend support (Ollama, vLLM)",
+          "✅ Interactive execution with shell detection",
+          "✅ Multiple output formats (JSON, YAML, Plain)",
+          "Graciously transferring the caro crate name to this project"
+        ]
+      },
+      "fullText": "We're excited to announce that cmdai has been renamed to caro ! 🎉 A New Name, The Same Mission Thanks to the incredible generosity of @aeplay , who graciously transferred the caro crate name to our project, we now have a name that better reflects our vision: a friendly, approachable AI companion for your terminal. What is Caro? caro is a single-binary Rust CLI tool that converts natural language descriptions into safe POSIX shell commands using local LLMs. Built with safety-first design and optimized for Apple Silicon via the MLX framework, caro makes complex command-line operations accessible to everyone. $ caro \"find all PDF files larger than 10MB in Downloads\" Generated command: find ~/Downloads -name \"*.pdf\" -size +10M -ls Execute this command? (y/N) Why \"Caro\"? The name caro offers several advantages: Brevity : Shorter and easier to type (4 characters) Memorability : More distinctive and memorable as a brand Pronounceability : Natural pronunciation in multiple languages Brandability : Better suited for a product name In Latin, caro means \"dear\" or \"beloved\"—fitting for a tool designed to make your terminal experience more friendly and approachable. And for those who know Kyaro's story , the connection runs even deeper. Key Features 🚀 Fast startup - Single binary with quick initialization 🧠 Local LLM inference - Embedded models optimized for Apple Silicon (MLX) and CPU 🤖 Intelligent refinement - 2-iteration agentic loop for platform-specific commands 🌍 Platform-aware - Automatically detects OS, architecture, shell, and available commands 🛡️ Safety-first - Comprehensive validation with 52+ dangerous command patterns 📦 Self-contained - Single binary distribution 🎯 Multiple backends - Extensible system supporting MLX, CPU, vLLM, and Ollama Getting Started Quick Installation # One-line setup (recommended) bash First Command $ caro \"show me the top 5 processes by CPU usage\" caro will generate the appropriate command for your platform, validate it for safety, ",
+      "_searchText": "announcing caro we're excited to announce that cmdai has been renamed to caro ! 🎉 /blog/announcing-caro announcing caro name, same mission what caro? \"caro\"? features getting started quick installation first command what's v0.1.0 migration cmdai thank a new name, the same mission what is caro? why \"caro\"? key features getting started quick installation first command what's new in v0.1.0 migration from cmdai thank you, @aeplay what's next join the community try it today we're excited to announce that cmdai has been renamed to caro ! 🎉 thanks to the incredible generosity of @aeplay , who graciously transferred the caro crate name to our project, we now have a name that better reflects our vision: a friendly, approachable ai companion for your terminal. caro is a single-binary rust cli tool that converts natural language descriptions into safe posix shell commands using local llms. built with safety-first design and optimized for apple silicon via the mlx framework, caro makes complex command-line operations accessible to everyone.",
+      "_words": [
+        "announcing",
+        "caro",
+        "we're",
+        "excited",
+        "announce",
+        "that",
+        "cmdai",
+        "has",
+        "been",
+        "renamed",
+        "caro",
+        "announcing",
+        "caro",
+        "name,",
+        "same",
+        "mission",
+        "what",
+        "caro?",
+        "\"caro\"?",
+        "features",
+        "getting",
+        "started",
+        "quick",
+        "installation",
+        "first",
+        "command",
+        "what's",
+        "v0.1.0",
+        "migration",
+        "cmdai",
+        "thank",
+        "new",
+        "name,",
+        "the",
+        "same",
+        "mission",
+        "what",
+        "caro?",
+        "why",
+        "\"caro\"?",
+        "key",
+        "features",
+        "getting",
+        "started",
+        "quick",
+        "installation",
+        "first",
+        "command",
+        "what's",
+        "new",
+        "v0.1.0",
+        "migration",
+        "from",
+        "cmdai",
+        "thank",
+        "you,",
+        "@aeplay",
+        "what's",
+        "next",
+        "join",
+        "the",
+        "community",
+        "try",
+        "today"
+      ]
+    },
+    {
+      "title": "Batteries Included",
+      "path": "/blog/batteries-included",
+      "description": "What does \"batteries included\" mean for an AI-powered CLI tool? It means you don't need to be a machine learning expert, you don't need to pick models",
+      "category": "blog",
+      "keywords": [
+        "batteries",
+        "included",
+        "problem",
+        "tools",
+        "today",
+        "what",
+        "\"batteries",
+        "included\"",
+        "means",
+        "caro",
+        "magic:",
+        "qwen",
+        "coder",
+        "models",
+        "smaller",
+        "work",
+        "caro's",
+        "mission:",
+        "knowing",
+        "everything"
+      ],
+      "icon": "📝",
+      "content": {
+        "headings": [
+          "The Problem with AI Tools Today",
+          "What \"Batteries Included\" Means for Caro",
+          "The Magic: Qwen 2.5 Coder Models",
+          "Why Smaller Models Work for Caro",
+          "Caro's Mission: Knowing Everything About Your Environment",
+          "The Claude Code Secret: Comprehensive Context",
+          "Beyond Model Inference: The Tooling Ecosystem",
+          "The Frontier: Thinking, Reasoning, and Tool Calling",
+          "Why This Matters: Trust and Control",
+          "Not a Toy: A Real Tool from Day One",
+          "The Road Ahead",
+          "Try It Yourself",
+          "Thank You, Qwen Team"
+        ],
+        "paragraphs": [
+          "What does \"batteries included\" mean for an AI-powered CLI tool? It means you don't need to be a machine learning expert, you don't need to pick models, and you definitely don't need to trust a remote service with your commands. Caro just works—out of the box, on your machine.",
+          "Most AI-powered developer tools fall into one of two camps:",
+          "Both approaches have their place. But for Caro's ideal customer—developers who want local AI without the expertise tax—neither is quite right.",
+          "When we say Caro is \"batteries included,\" we mean:",
+          "The goal is simple: cargo install caro should be all it takes to get a working, intelligent command-line assistant. Not a toy demo—a real tool that understands your intent and keeps you safe.",
+          "Behind Caro's \"batteries included\" experience is a phenomenal piece of technology from the Qwen team at Alibaba Cloud : the Qwen 2.5 Coder models .",
+          "These models are special for what we're trying to achieve with Caro. They're:",
+          "We want to give massive props to the Qwen team for making these models available to the community. It's rare to find models that perform this well at smaller scales while scaling gracefully to larger sizes. This flexibility is exactly what \"batteries included\" needs—the right model for your hardware, automatically.",
+          "Here's a secret: you don't need frontier-scale models for command generation if you give them the right help. What does \"the right help\" mean?",
+          "Caro's agentic context loop provides this help. We don't just throw your prompt at a model and hope for the best. We collect system information, refine the request through iterative passes, and validate outputs for safety and correctness."
+        ],
+        "listItems": [
+          "DIY Everything : Tools that make you bring your own model, configure inference servers, tune parameters, and understand the ML stack just to get started. They're powerful but require expertise most developers don't have—and frankly, shouldn't need.",
+          "Remote Black Boxes : Tools that \"just work\" because they ship all the complexity to a remote API. Simple to use, but now you're in a trust relationship with someone else's infrastructure, sending your commands and context to external servers.",
+          "No model selection paralysis : You don't need to research which model works best for command generation, how big it should be, or what quantization to use.",
+          "No infrastructure setup : No need to install MLX, configure vLLM, or understand the difference between inference frameworks.",
+          "No remote dependencies : Everything runs on your machine. Your commands, your context, your data—all local.",
+          "Adaptive by default : Caro detects your hardware (Apple Silicon, x86 CPU, CUDA GPU) and automatically uses the optimal backend and model for your system.",
+          "Efficient at small scales : The 1.5B parameter variant runs fast on modest hardware—under 2 seconds for first inference on an M1 Mac.",
+          "Powerful at larger scales : The 7B and 14B variants provide significantly better reasoning when you have the resources.",
+          "Purpose-built for code : Trained specifically for programming tasks, including understanding natural language instructions and generating correct code.",
+          "Open and accessible : Released under permissive licenses, enabling local deployment without API costs or privacy concerns.",
+          "Clear intent : Understanding what the user actually wants to accomplish",
+          "Platform context : Knowing the OS, architecture, available commands, and shell environment",
+          "Iteration : Refining commands through multiple passes when needed",
+          "Safety constraints : Clear boundaries about what's allowed and what isn't",
+          "Vector-based tool documentation : Building a local vector database of your installed tools, distribution-specific utilities, and their usage patterns to provide the model with the right context and reduce hallucination",
+          "Environment fingerprinting : Understanding not just what tools you have, but how they're configured, what versions you're running, and what patterns you use",
+          "Iterative refinement : Multiple passes to collect data, validate assumptions, and improve command generation",
+          "Dry runs and sandboxing : Testing commands in safe environments before presenting them to you",
+          "Better context collection : More comprehensive system information, tool availability, and environment understanding",
+          "Deterministic safety tools : Pattern-based validation that doesn't rely on the model to catch dangerous operations"
+        ]
+      },
+      "fullText": "What does \"batteries included\" mean for an AI-powered CLI tool? It means you don't need to be a machine learning expert, you don't need to pick models, and you definitely don't need to trust a remote service with your commands. Caro just works—out of the box, on your machine. The Problem with AI Tools Today Most AI-powered developer tools fall into one of two camps: DIY Everything : Tools that make you bring your own model, configure inference servers, tune parameters, and understand the ML stack just to get started. They're powerful but require expertise most developers don't have—and frankly, shouldn't need. Remote Black Boxes : Tools that \"just work\" because they ship all the complexity to a remote API. Simple to use, but now you're in a trust relationship with someone else's infrastructure, sending your commands and context to external servers. Both approaches have their place. But for Caro's ideal customer—developers who want local AI without the expertise tax—neither is quite right. What \"Batteries Included\" Means for Caro When we say Caro is \"batteries included,\" we mean: No model selection paralysis : You don't need to research which model works best for command generation, how big it should be, or what quantization to use. No infrastructure setup : No need to install MLX, configure vLLM, or understand the difference between inference frameworks. No remote dependencies : Everything runs on your machine. Your commands, your context, your data—all local. Adaptive by default : Caro detects your hardware (Apple Silicon, x86 CPU, CUDA GPU) and automatically uses the optimal backend and model for your system. The goal is simple: cargo install caro should be all it takes to get a working, intelligent command-line assistant. Not a toy demo—a real tool that understands your intent and keeps you safe. The Magic: Qwen 2.5 Coder Models Behind Caro's \"batteries included\" experience is a phenomenal piece of technology from the Qwen team at Alibaba Cloud : the Qwen 2.5 Cod",
+      "_searchText": "batteries included what does \"batteries included\" mean for an ai-powered cli tool? it means you don't need to be a machine learning expert, you don't need to pick models /blog/batteries-included batteries included problem tools today what \"batteries included\" means caro magic: qwen coder models smaller work caro's mission: knowing everything the problem with ai tools today what \"batteries included\" means for caro the magic: qwen 2.5 coder models why smaller models work for caro caro's mission: knowing everything about your environment the claude code secret: comprehensive context beyond model inference: the tooling ecosystem the frontier: thinking, reasoning, and tool calling why this matters: trust and control not a toy: a real tool from day one the road ahead try it yourself thank you, qwen team what does \"batteries included\" mean for an ai-powered cli tool? it means you don't need to be a machine learning expert, you don't need to pick models, and you definitely don't need to trust a remote service with your commands. caro just works—out of the box, on your machine. most ai-powered developer tools fall into one of two camps: both approaches have their place. but for caro's ideal customer—developers who want local ai without the expertise tax—neither is quite right.",
+      "_words": [
+        "batteries",
+        "included",
+        "what",
+        "does",
+        "\"batteries",
+        "included\"",
+        "mean",
+        "for",
+        "ai-powered",
+        "cli",
+        "tool?",
+        "means",
+        "you",
+        "don't",
+        "need",
+        "machine",
+        "learning",
+        "expert,",
+        "you",
+        "don't",
+        "need",
+        "pick",
+        "models",
+        "batteries",
+        "included",
+        "problem",
+        "tools",
+        "today",
+        "what",
+        "\"batteries",
+        "included\"",
+        "means",
+        "caro",
+        "magic:",
+        "qwen",
+        "coder",
+        "models",
+        "smaller",
+        "work",
+        "caro's",
+        "mission:",
+        "knowing",
+        "everything",
+        "the",
+        "problem",
+        "with",
+        "tools",
+        "today",
+        "what",
+        "\"batteries",
+        "included\"",
+        "means",
+        "for",
+        "caro",
+        "the",
+        "magic:",
+        "qwen",
+        "2.5",
+        "coder",
+        "models",
+        "why",
+        "smaller",
+        "models",
+        "work",
+        "for",
+        "caro",
+        "caro's",
+        "mission:",
+        "knowing",
+        "everything",
+        "about",
+        "your",
+        "environment",
+        "the",
+        "claude",
+        "code",
+        "secret:",
+        "comprehensive",
+        "context",
+        "beyond",
+        "model",
+        "inference:",
+        "the",
+        "tooling",
+        "ecosystem",
+        "the",
+        "frontier:",
+        "thinking,",
+        "reasoning,",
+        "and",
+        "tool",
+        "calling",
+        "why",
+        "this",
+        "matters:",
+        "trust",
+        "and",
+        "control",
+        "not",
+        "toy:",
+        "real",
+        "tool",
+        "from",
+        "day",
+        "one",
+        "the",
+        "road",
+        "ahead",
+        "try",
+        "yourself",
+        "thank",
+        "you,",
+        "qwen",
+        "team"
+      ]
+    },
+    {
+      "title": "Claude Skill Launch",
+      "path": "/blog/claude-skill-launch",
+      "description": "Today, we're excited to announce the Caro Claude Skill —bringing safe, POSIX-compliant shell command generation directly into your Claude Code workflo",
+      "category": "blog",
+      "keywords": [
+        "claude",
+        "skill",
+        "launch",
+        "what",
+        "skill?",
+        "works",
+        "safety",
+        "first,",
+        "always",
+        "safe",
+        "(green)",
+        "moderate",
+        "(yellow)",
+        "high",
+        "(orange)",
+        "critical",
+        "(red)",
+        "posix",
+        "compliance",
+        "education"
+      ],
+      "icon": "🤖",
+      "content": {
+        "headings": [
+          "What is a Claude Skill?",
+          "How It Works",
+          "Safety First, Always",
+          "🟢 Safe (Green)",
+          "🟡 Moderate (Yellow)",
+          "🟠 High (Orange)",
+          "🔴 Critical (Red)",
+          "POSIX Compliance Education",
+          "Installation",
+          "What Makes This Special?",
+          "1. Educational, Not Just Transactional",
+          "2. Safety as a Core Value",
+          "3. Seamless Integration",
+          "4. POSIX-First Philosophy",
+          "Real-World Examples",
+          "Example 1: Safe File Cleanup",
+          "Example 2: System Monitoring",
+          "Example 3: Dangerous Request",
+          "What's Included",
+          "Try It Today",
+          "Looking Forward"
+        ],
+        "paragraphs": [
+          "Today, we're excited to announce the Caro Claude Skill —bringing safe, POSIX-compliant shell command generation directly into your Claude Code workflow. No more context-switching between Claude and your terminal. Caro is now your companion inside Claude.",
+          "A Claude skill is a specialized capability that Claude automatically activates based on context. Unlike slash commands that require explicit invocation, skills work seamlessly in the background—Claude knows when to use them, so you don't have to think about it.",
+          "The Caro skill detects when you need shell command help and springs into action, providing:",
+          "Here's a real example of the skill in action:",
+          "You: \"I need to find all PDF files larger than 10MB in my Downloads folder\"",
+          "Claude (with Caro skill):",
+          "I'll help you generate a safe command using Caro. $ caro \"find all PDF files larger than 10MB in Downloads\" Generated command: find ~/Downloads -name \"*.pdf\" -type f -size +10M Safety Assessment: ✅ Safe (Green) - Read-only operation - POSIX-compliant syntax - Properly quoted paths This command searches your Downloads directory for PDF files larger than 10MB using the standard POSIX find utility. Execute this command? (y/N) Notice how Claude doesn't just give you the command—it explains the safety level, validates POSIX compliance, and helps you understand what the command does. This is Caro's philosophy: educate, don't just execute.",
+          "Caro's four-tier safety system is built into the skill:",
+          "Read-only operations like ls , find , grep . These execute without confirmation—they can't harm your system.",
+          "File modifications, package operations. These require review in strict mode to ensure you understand the impact."
+        ],
+        "listItems": [
+          "Automatic activation when you ask \"how do I...?\" shell questions",
+          "4-tier safety validation (Safe, Moderate, High, Critical)",
+          "POSIX compliance education for portable scripts",
+          "Installation guidance if caro isn't installed yet",
+          "Best practices coaching for command safety",
+          "Generated command: find . -name \"*.log\" -type f -mtime +30 -delete",
+          "Safety assessment: 🟠 High (Orange) - deletion is irreversible",
+          "Recommendation: Preview files first with -ls instead of -delete",
+          "Safer alternative: Use -exec rm -i '} \\; for interactive deletion",
+          "POSIX-compliant command: ps aux --sort=-%mem | head -11",
+          "Safety: 🟢 Safe (Green) - read-only",
+          "Explanation of each flag",
+          "Platform note: Works on Linux; macOS equivalent provided if needed",
+          "🔴 CRITICAL WARNING: Operations on root directory are extremely dangerous",
+          "Blocks generation of rm -rf / or similar commands",
+          "Asks clarifying questions: \"What specifically are you trying to clean?\"",
+          "Suggests safer alternatives for common cleanup tasks",
+          "52+ dangerous command patterns with explanations",
+          "POSIX vs bash reference guide with examples",
+          "Safe alternatives for risky operations"
+        ]
+      },
+      "fullText": "Today, we're excited to announce the Caro Claude Skill —bringing safe, POSIX-compliant shell command generation directly into your Claude Code workflow. No more context-switching between Claude and your terminal. Caro is now your companion inside Claude. What is a Claude Skill? A Claude skill is a specialized capability that Claude automatically activates based on context. Unlike slash commands that require explicit invocation, skills work seamlessly in the background—Claude knows when to use them, so you don't have to think about it. The Caro skill detects when you need shell command help and springs into action, providing: Automatic activation when you ask \"how do I...?\" shell questions 4-tier safety validation (Safe, Moderate, High, Critical) POSIX compliance education for portable scripts Installation guidance if caro isn't installed yet Best practices coaching for command safety How It Works Here's a real example of the skill in action: You: \"I need to find all PDF files larger than 10MB in my Downloads folder\" Claude (with Caro skill): I'll help you generate a safe command using Caro. $ caro \"find all PDF files larger than 10MB in Downloads\" Generated command: find ~/Downloads -name \"*.pdf\" -type f -size +10M Safety Assessment: ✅ Safe (Green) - Read-only operation - POSIX-compliant syntax - Properly quoted paths This command searches your Downloads directory for PDF files larger than 10MB using the standard POSIX find utility. Execute this command? (y/N) Notice how Claude doesn't just give you the command—it explains the safety level, validates POSIX compliance, and helps you understand what the command does. This is Caro's philosophy: educate, don't just execute. Safety First, Always Caro's four-tier safety system is built into the skill: 🟢 Safe (Green) Read-only operations like ls , find , grep . These execute without confirmation—they can't harm your system. 🟡 Moderate (Yellow) File modifications, package operations. These require review in strict mode to",
+      "_searchText": "claude skill launch today, we're excited to announce the caro claude skill —bringing safe, posix-compliant shell command generation directly into your claude code workflo /blog/claude-skill-launch claude skill launch what skill? works safety first, always safe (green) moderate (yellow) high (orange) critical (red) posix compliance education what is a claude skill? how it works safety first, always 🟢 safe (green) 🟡 moderate (yellow) 🟠 high (orange) 🔴 critical (red) posix compliance education installation what makes this special? 1. educational, not just transactional 2. safety as a core value 3. seamless integration 4. posix-first philosophy real-world examples example 1: safe file cleanup example 2: system monitoring example 3: dangerous request what's included try it today looking forward today, we're excited to announce the caro claude skill —bringing safe, posix-compliant shell command generation directly into your claude code workflow. no more context-switching between claude and your terminal. caro is now your companion inside claude. a claude skill is a specialized capability that claude automatically activates based on context. unlike slash commands that require explicit invocation, skills work seamlessly in the background—claude knows when to use them, so you don't have to think about it. the caro skill detects when you need shell command help and springs into action, providing:",
+      "_words": [
+        "claude",
+        "skill",
+        "launch",
+        "today,",
+        "we're",
+        "excited",
+        "announce",
+        "the",
+        "caro",
+        "claude",
+        "skill",
+        "—bringing",
+        "safe,",
+        "posix-compliant",
+        "shell",
+        "command",
+        "generation",
+        "directly",
+        "into",
+        "your",
+        "claude",
+        "code",
+        "workflo",
+        "claude",
+        "skill",
+        "launch",
+        "what",
+        "skill?",
+        "works",
+        "safety",
+        "first,",
+        "always",
+        "safe",
+        "(green)",
+        "moderate",
+        "(yellow)",
+        "high",
+        "(orange)",
+        "critical",
+        "(red)",
+        "posix",
+        "compliance",
+        "education",
+        "what",
+        "claude",
+        "skill?",
+        "how",
+        "works",
+        "safety",
+        "first,",
+        "always",
+        "safe",
+        "(green)",
+        "moderate",
+        "(yellow)",
+        "high",
+        "(orange)",
+        "critical",
+        "(red)",
+        "posix",
+        "compliance",
+        "education",
+        "installation",
+        "what",
+        "makes",
+        "this",
+        "special?",
+        "educational,",
+        "not",
+        "just",
+        "transactional",
+        "safety",
+        "core",
+        "value",
+        "seamless",
+        "integration",
+        "posix-first",
+        "philosophy",
+        "real-world",
+        "examples",
+        "example",
+        "safe",
+        "file",
+        "cleanup",
+        "example",
+        "system",
+        "monitoring",
+        "example",
+        "dangerous",
+        "request",
+        "what's",
+        "included",
+        "try",
+        "today",
+        "looking",
+        "forward"
+      ]
+    },
+    {
+      "title": "Announcing Caro: Your Terminal",
+      "path": "/blog",
+      "description": "We",
+      "category": "blog",
+      "keywords": [
+        "announcing",
+        "caro:",
+        "your",
+        "terminal",
+        "pack",
+        "stories,",
+        "updates,",
+        "insights",
+        "caro's",
+        "journey"
+      ],
+      "icon": "📝",
+      "content": {
+        "headings": [
+          "From the Pack"
+        ],
+        "paragraphs": [
+          "Stories, updates, and insights from Caro's journey"
+        ],
+        "listItems": []
+      },
+      "fullText": "From the Pack Stories, updates, and insights from Caro's journey } • Read more ))}",
+      "_searchText": "announcing caro: your terminal we /blog announcing caro: your terminal pack stories, updates, insights caro's journey from the pack stories, updates, and insights from caro's journey",
+      "_words": [
+        "announcing",
+        "caro:",
+        "your",
+        "terminal",
+        "announcing",
+        "caro:",
+        "your",
+        "terminal",
+        "pack",
+        "stories,",
+        "updates,",
+        "insights",
+        "caro's",
+        "journey",
+        "from",
+        "the",
+        "pack"
+      ]
+    },
+    {
+      "title": "Security Practices",
+      "path": "/blog/security-practices",
+      "description": "Security isn't an afterthought at Caro—it's foundational to everything we build. As a CLI tool that generates and executes shell commands, we take our",
+      "category": "blog",
+      "keywords": [
+        "security",
+        "practices",
+        "matters",
+        "caro",
+        "github",
+        "features",
+        "dependabot:",
+        "automated",
+        "dependency",
+        "updates",
+        "review:",
+        "pr-level",
+        "checks",
+        "cargo-audit:",
+        "rust-specific",
+        "scanning",
+        "advisories",
+        "private",
+        "reporting",
+        "application-level"
+      ],
+      "icon": "🛡️",
+      "content": {
+        "headings": [
+          "Why Security Matters for Caro",
+          "GitHub Security Features We Use",
+          "Dependabot: Automated Dependency Updates",
+          "Dependency Review: PR-Level Security Checks",
+          "cargo-audit: Rust-Specific Security Scanning",
+          "Security Advisories and Private Reporting",
+          "Application-Level Security",
+          "Safety Validation: 52+ Dangerous Patterns",
+          "Defense in Depth",
+          "Development Practices",
+          "CI/CD Security Pipeline",
+          "Code Review Standards",
+          "Minimal Dependencies",
+          "Community and Transparency",
+          "Security Hall of Fame",
+          "Open Development",
+          "Best Practices for Users",
+          "Looking Ahead",
+          "Resources"
+        ],
+        "paragraphs": [
+          "Security isn't an afterthought at Caro—it's foundational to everything we build. As a CLI tool that generates and executes shell commands, we take our responsibility to protect users seriously.",
+          "Caro converts natural language into shell commands using AI. This power comes with significant responsibility: a malicious or buggy command could harm user systems. That's why we've built multiple layers of security into both the tool itself and our development practices.",
+          "This post walks through our security posture, the GitHub security features we use, and the practices that make Caro a security-conscious project.",
+          "Dependabot is GitHub's automated dependency update service. It monitors our dependencies for known vulnerabilities and outdated packages, automatically creating pull requests when updates are available.",
+          "Our Dependabot configuration monitors Cargo (Rust) dependencies and GitHub Actions weekly, with grouped updates to reduce PR noise.",
+          "When Dependabot finds a vulnerability, it creates a pull request with the fix, links to the security advisory, and shows us the severity level. This automation means we catch security issues quickly without manual monitoring.",
+          "Every pull request that modifies Cargo.toml , Cargo.lock , or package manifests triggers our Dependency Review workflow. This action:",
+          "This prevents vulnerable code from ever reaching our main branch. If a contributor adds a dependency with a known CVE, they'll see the failure immediately and can address it before merge.",
+          "We run cargo-audit on every push and pull request. This tool checks our Cargo.lock against the RustSec Advisory Database—a community-maintained database of security vulnerabilities in Rust crates. We also use cargo-deny for additional checks on licenses, duplicate dependencies, and source trust validation.",
+          "GitHub's Security Advisories feature allows security researchers to report vulnerabilities privately. We document our full vulnerability disclosure process in our SECURITY.md file."
+        ],
+        "listItems": [
+          "Scans new and updated dependencies for known vulnerabilities",
+          "Fails the PR if high or critical vulnerabilities are found",
+          "Validates licenses against our approved list (MIT, Apache-2.0, BSD, etc.)",
+          "Posts a summary comment on the PR with findings",
+          "48 hours : Acknowledgment of report",
+          "7 days : Initial assessment and severity classification",
+          "30 days : Target fix for critical vulnerabilities",
+          "90 days : Target fix for moderate vulnerabilities",
+          "Filesystem destruction : rm -rf / , mkfs , dd if=/dev/zero",
+          "Fork bombs : ;:`} and variants",
+          "Privilege escalation : sudo su , chmod 777 /",
+          "System path tampering : Operations on /bin , /usr , /etc",
+          "Device manipulation : Direct writes to block devices",
+          "Input sanitization : Prompts are validated before reaching the model",
+          "Output validation : Generated commands are checked against safety patterns",
+          "User confirmation : Commands require explicit approval before execution",
+          "Fail-safe defaults : Dangerous operations are blocked by default",
+          "Least privilege : We never encourage running as root",
+          "Clippy linting with -D warnings to catch common mistakes",
+          "cargo-audit for dependency vulnerabilities"
+        ]
+      },
+      "fullText": "Security isn't an afterthought at Caro—it's foundational to everything we build. As a CLI tool that generates and executes shell commands, we take our responsibility to protect users seriously. Why Security Matters for Caro Caro converts natural language into shell commands using AI. This power comes with significant responsibility: a malicious or buggy command could harm user systems. That's why we've built multiple layers of security into both the tool itself and our development practices. This post walks through our security posture, the GitHub security features we use, and the practices that make Caro a security-conscious project. GitHub Security Features We Use Dependabot: Automated Dependency Updates Dependabot is GitHub's automated dependency update service. It monitors our dependencies for known vulnerabilities and outdated packages, automatically creating pull requests when updates are available. Our Dependabot configuration monitors Cargo (Rust) dependencies and GitHub Actions weekly, with grouped updates to reduce PR noise. When Dependabot finds a vulnerability, it creates a pull request with the fix, links to the security advisory, and shows us the severity level. This automation means we catch security issues quickly without manual monitoring. Dependency Review: PR-Level Security Checks Every pull request that modifies Cargo.toml , Cargo.lock , or package manifests triggers our Dependency Review workflow. This action: Scans new and updated dependencies for known vulnerabilities Fails the PR if high or critical vulnerabilities are found Validates licenses against our approved list (MIT, Apache-2.0, BSD, etc.) Posts a summary comment on the PR with findings This prevents vulnerable code from ever reaching our main branch. If a contributor adds a dependency with a known CVE, they'll see the failure immediately and can address it before merge. cargo-audit: Rust-Specific Security Scanning We run cargo-audit on every push and pull request. This tool checks ou",
+      "_searchText": "security practices security isn't an afterthought at caro—it's foundational to everything we build. as a cli tool that generates and executes shell commands, we take our /blog/security-practices security practices matters caro github features dependabot: automated dependency updates review: pr-level checks cargo-audit: rust-specific scanning advisories private reporting application-level why security matters for caro github security features we use dependabot: automated dependency updates dependency review: pr-level security checks cargo-audit: rust-specific security scanning security advisories and private reporting application-level security safety validation: 52+ dangerous patterns defense in depth development practices ci/cd security pipeline code review standards minimal dependencies community and transparency security hall of fame open development best practices for users looking ahead resources security isn't an afterthought at caro—it's foundational to everything we build. as a cli tool that generates and executes shell commands, we take our responsibility to protect users seriously. caro converts natural language into shell commands using ai. this power comes with significant responsibility: a malicious or buggy command could harm user systems. that's why we've built multiple layers of security into both the tool itself and our development practices. this post walks through our security posture, the github security features we use, and the practices that make caro a security-conscious project.",
+      "_words": [
+        "security",
+        "practices",
+        "security",
+        "isn't",
+        "afterthought",
+        "caro—it's",
+        "foundational",
+        "everything",
+        "build.",
+        "cli",
+        "tool",
+        "that",
+        "generates",
+        "and",
+        "executes",
+        "shell",
+        "commands,",
+        "take",
+        "our",
+        "security",
+        "practices",
+        "matters",
+        "caro",
+        "github",
+        "features",
+        "dependabot:",
+        "automated",
+        "dependency",
+        "updates",
+        "review:",
+        "pr-level",
+        "checks",
+        "cargo-audit:",
+        "rust-specific",
+        "scanning",
+        "advisories",
+        "private",
+        "reporting",
+        "application-level",
+        "why",
+        "security",
+        "matters",
+        "for",
+        "caro",
+        "github",
+        "security",
+        "features",
+        "use",
+        "dependabot:",
+        "automated",
+        "dependency",
+        "updates",
+        "dependency",
+        "review:",
+        "pr-level",
+        "security",
+        "checks",
+        "cargo-audit:",
+        "rust-specific",
+        "security",
+        "scanning",
+        "security",
+        "advisories",
+        "and",
+        "private",
+        "reporting",
+        "application-level",
+        "security",
+        "safety",
+        "validation:",
+        "52+",
+        "dangerous",
+        "patterns",
+        "defense",
+        "depth",
+        "development",
+        "practices",
+        "ci/cd",
+        "security",
+        "pipeline",
+        "code",
+        "review",
+        "standards",
+        "minimal",
+        "dependencies",
+        "community",
+        "and",
+        "transparency",
+        "security",
+        "hall",
+        "fame",
+        "open",
+        "development",
+        "best",
+        "practices",
+        "for",
+        "users",
+        "looking",
+        "ahead",
+        "resources"
+      ]
+    },
+    {
+      "title": "Why Caro",
+      "path": "/blog/why-caro",
+      "description": "Why Caro? What makes Caro so special that she deserves to live forever in your terminal? Why should she be digitized for eternity as a command-line to",
+      "category": "blog",
+      "keywords": [
+        "why",
+        "caro",
+        "born",
+        "into",
+        "world",
+        "tech",
+        "socially",
+        "selective",
+        "shiba",
+        "life",
+        "lived",
+        "side-by-side",
+        "code",
+        "perfect",
+        "terminal",
+        "companion",
+        "kyaro",
+        "belongs",
+        "your",
+        "caro?"
+      ],
+      "icon": "📝",
+      "content": {
+        "headings": [
+          "Born into the World of Tech",
+          "The Socially Selective Shiba",
+          "A Life Lived Side-by-Side with Code",
+          "The Perfect Terminal Companion",
+          "From Kyaro to Caro",
+          "Why She Belongs in Your Terminal"
+        ],
+        "paragraphs": [
+          "Why Caro? What makes Caro so special that she deserves to live forever in your terminal? Why should she be digitized for eternity as a command-line tool that runs alongside you every day? The answer lies in the extraordinary story of Kyaro —a very special dog.",
+          "Caro is the digitalization of Kyaro (Kyarorain Kadosh), a Shiba Inu who has been living and breathing technology from day one. Born in 2020 during the midst of the COVID pandemic, Kyaro came into this world as a tiny puppy destined to become an office dog. She was brought home by what might be Israel's most workaholic software engineer—though perhaps I'm giving myself too much credit.",
+          "From her earliest days, Kyaro was a fixture in the office, visiting multiple days a week. She fell in love with Wix and its office spaces—first at Wix Academy, then at the Tel Aviv port location, later at Namaal, and finally at Wix HQ. But more importantly, she fell in love with the people: the geeks, the developers, the system administrators, and everyone in IT.",
+          "Kyaro was always the most friendly dog when it came to technical people. She follows in her owner's pawprints—I've always liked IT folks too, and my friendship with IT departments across every company I've worked for can attest to that. Same goes for Kyaro: she was universally adored by IT people.",
+          "Here's the funny thing about Kyaro: most dogs are friendly, but she's socially selective. She doesn't warm up to every dog she meets, and she's certainly not interested in playing with just any pup. I always thought she was into every Shiba Inu, mirroring my own appreciation for the breed. But after moving to Canada, I learned the truth—she's not into every dog, not even every Shiba.",
+          "Yet when it comes to humans, especially technical people, programmers, and IT professionals—you name it—Kyaro has always loved them. All of them. Every system department at Wix, all the developers, the DBAs especially—nobody liked her more than the database administrators at Wix. She was their best friend, and they were hers.",
+          "When Kyaro wasn't being an office dog, she was always by my side. And what do I do all day, every day? I'm on the computer—developing something, troubleshooting something, building something. She had to cope with that reality, and she did so with grace.",
+          "Some might say it's a good life, others might disagree. It's the only life I could give her, and I tried my best. But one thing is certain: Kyaro was universally loved by IT people, sysadmins, front-end engineers, back-end engineers, database administrators—everyone doing software work.",
+          "When my spouse was working in the office, we'd take Kyaro along, and she loved it. Everyone there loved her too. I can't speak to whether the IT people at my spouse's office were as smitten with her, but from my experience, she's always had a thing for geeks.",
+          "So it's only fitting that she'll be there with developers when they're working side-by-side in their terminals—keeping an eye on them, making sure they're not making mistakes, keeping them safe, giving them sound advice, and fetching those commands."
+        ],
+        "listItems": []
+      },
+      "fullText": "Why Caro? What makes Caro so special that she deserves to live forever in your terminal? Why should she be digitized for eternity as a command-line tool that runs alongside you every day? The answer lies in the extraordinary story of Kyaro —a very special dog. Born into the World of Tech Caro is the digitalization of Kyaro (Kyarorain Kadosh), a Shiba Inu who has been living and breathing technology from day one. Born in 2020 during the midst of the COVID pandemic, Kyaro came into this world as a tiny puppy destined to become an office dog. She was brought home by what might be Israel's most workaholic software engineer—though perhaps I'm giving myself too much credit. From her earliest days, Kyaro was a fixture in the office, visiting multiple days a week. She fell in love with Wix and its office spaces—first at Wix Academy, then at the Tel Aviv port location, later at Namaal, and finally at Wix HQ. But more importantly, she fell in love with the people: the geeks, the developers, the system administrators, and everyone in IT. Kyaro was always the most friendly dog when it came to technical people. She follows in her owner's pawprints—I've always liked IT folks too, and my friendship with IT departments across every company I've worked for can attest to that. Same goes for Kyaro: she was universally adored by IT people. The Socially Selective Shiba Here's the funny thing about Kyaro: most dogs are friendly, but she's socially selective. She doesn't warm up to every dog she meets, and she's certainly not interested in playing with just any pup. I always thought she was into every Shiba Inu, mirroring my own appreciation for the breed. But after moving to Canada, I learned the truth—she's not into every dog, not even every Shiba. Yet when it comes to humans, especially technical people, programmers, and IT professionals—you name it—Kyaro has always loved them. All of them. Every system department at Wix, all the developers, the DBAs especially—nobody liked her more th",
+      "_searchText": "why caro why caro? what makes caro so special that she deserves to live forever in your terminal? why should she be digitized for eternity as a command-line to /blog/why-caro why caro born into world tech socially selective shiba life lived side-by-side code perfect terminal companion kyaro belongs your caro? born into the world of tech the socially selective shiba a life lived side-by-side with code the perfect terminal companion from kyaro to caro why she belongs in your terminal why caro? what makes caro so special that she deserves to live forever in your terminal? why should she be digitized for eternity as a command-line tool that runs alongside you every day? the answer lies in the extraordinary story of kyaro —a very special dog. caro is the digitalization of kyaro (kyarorain kadosh), a shiba inu who has been living and breathing technology from day one. born in 2020 during the midst of the covid pandemic, kyaro came into this world as a tiny puppy destined to become an office dog. she was brought home by what might be israel's most workaholic software engineer—though perhaps i'm giving myself too much credit. from her earliest days, kyaro was a fixture in the office, visiting multiple days a week. she fell in love with wix and its office spaces—first at wix academy, then at the tel aviv port location, later at namaal, and finally at wix hq. but more importantly, she fell in love with the people: the geeks, the developers, the system administrators, and everyone in it.",
+      "_words": [
+        "why",
+        "caro",
+        "why",
+        "caro?",
+        "what",
+        "makes",
+        "caro",
+        "special",
+        "that",
+        "she",
+        "deserves",
+        "live",
+        "forever",
+        "your",
+        "terminal?",
+        "why",
+        "should",
+        "she",
+        "digitized",
+        "for",
+        "eternity",
+        "command-line",
+        "why",
+        "caro",
+        "born",
+        "into",
+        "world",
+        "tech",
+        "socially",
+        "selective",
+        "shiba",
+        "life",
+        "lived",
+        "side-by-side",
+        "code",
+        "perfect",
+        "terminal",
+        "companion",
+        "kyaro",
+        "belongs",
+        "your",
+        "caro?",
+        "born",
+        "into",
+        "the",
+        "world",
+        "tech",
+        "the",
+        "socially",
+        "selective",
+        "shiba",
+        "life",
+        "lived",
+        "side-by-side",
+        "with",
+        "code",
+        "the",
+        "perfect",
+        "terminal",
+        "companion",
+        "from",
+        "kyaro",
+        "caro",
+        "why",
+        "she",
+        "belongs",
+        "your",
+        "terminal"
+      ]
+    },
+    {
+      "title": "TL;DR",
+      "path": "/compare/amazon-q-cli",
+      "description": "Amazon Q CLI is built for AWS users and requires an AWS account. Your prompts and context are sent to AWS for processing, and the tool is optimized fo",
+      "category": "compare",
+      "keywords": [
+        "tl;dr",
+        "amazon",
+        "built",
+        "users",
+        "requires",
+        "account.",
+        "your",
+        "prompts",
+        "context",
+        "sent",
+        "processing,",
+        "tool",
+        "optimized",
+        "aws-specific",
+        "workflows.",
+        "caro",
+        "zero",
+        "cloud",
+        "dependency.",
+        "runs"
+      ],
+      "icon": "📦",
+      "content": {
+        "headings": [],
+        "paragraphs": [
+          "Amazon Q CLI is built for AWS users and requires an AWS account. Your prompts and context are sent to AWS for processing, and the tool is optimized for AWS-specific workflows.",
+          "Caro has zero cloud dependency. It runs entirely on your machine with local models. No accounts, no API keys, no internet required. This makes it suitable for any environment, not just AWS.",
+          "Amazon Q CLI sends your terminal context to AWS for processing. While AWS has enterprise security policies, your shell commands traverse their infrastructure.",
+          "Caro processes everything locally. Your commands, prompts, and terminal context never leave your machine. Perfect for organizations with strict data sovereignty requirements or developers who prefer to keep their workflow private.",
+          "Amazon Q CLI shines with AWS-specific tasks: understanding IAM policies, CloudWatch logs, ECS deployments, and other AWS services. If you're deep in the AWS ecosystem, it has context that general tools lack.",
+          "Caro specializes in general shell commands with POSIX compliance and cross-platform support. It's cloud-agnostic and works equally well whether you're on AWS, GCP, Azure, or bare metal.",
+          "Amazon Q CLI relies on its model to generate safe commands. There's no systematic pre-execution validation layer for dangerous patterns.",
+          "Caro validates every command against 52+ safety patterns before presenting it. Dangerous operations like rm -rf / , fork bombs, and privilege escalations are blocked independently of what the model suggests."
+        ],
+        "listItems": []
+      },
+      "fullText": "",
+      "_searchText": "tl;dr amazon q cli is built for aws users and requires an aws account. your prompts and context are sent to aws for processing, and the tool is optimized fo /compare/amazon-q-cli tl;dr amazon built users requires account. your prompts context sent processing, tool optimized aws-specific workflows. caro zero cloud dependency. runs amazon q cli is built for aws users and requires an aws account. your prompts and context are sent to aws for processing, and the tool is optimized for aws-specific workflows. caro has zero cloud dependency. it runs entirely on your machine with local models. no accounts, no api keys, no internet required. this makes it suitable for any environment, not just aws. amazon q cli sends your terminal context to aws for processing. while aws has enterprise security policies, your shell commands traverse their infrastructure.",
+      "_words": [
+        "tl;dr",
+        "amazon",
+        "cli",
+        "built",
+        "for",
+        "aws",
+        "users",
+        "and",
+        "requires",
+        "aws",
+        "account.",
+        "your",
+        "prompts",
+        "and",
+        "context",
+        "are",
+        "sent",
+        "aws",
+        "for",
+        "processing,",
+        "and",
+        "the",
+        "tool",
+        "optimized",
+        "tl;dr",
+        "amazon",
+        "built",
+        "users",
+        "requires",
+        "account.",
+        "your",
+        "prompts",
+        "context",
+        "sent",
+        "processing,",
+        "tool",
+        "optimized",
+        "aws-specific",
+        "workflows.",
+        "caro",
+        "zero",
+        "cloud",
+        "dependency.",
+        "runs"
+      ]
+    },
+    {
+      "title": "TL;DR",
+      "path": "/compare/github-copilot-cli",
+      "description": "GitHub Copilot CLI extends the popular Copilot experience to the command line, powered by OpenAI\\",
+      "category": "compare",
+      "keywords": [
+        "tl;dr",
+        "github",
+        "copilot",
+        "sends",
+        "your",
+        "prompts",
+        "github's",
+        "servers,",
+        "where",
+        "they're",
+        "processed",
+        "openai's",
+        "models.",
+        "while",
+        "privacy",
+        "policies",
+        "place,",
+        "shell",
+        "commands",
+        "including"
+      ],
+      "icon": "🐙",
+      "content": {
+        "headings": [],
+        "paragraphs": [
+          "GitHub Copilot CLI sends your prompts to GitHub's servers, where they're processed by OpenAI's models. While GitHub has privacy policies in place, your shell commands - including potentially sensitive paths, server names, and operations - traverse the internet.",
+          "Caro runs entirely on your machine. With local model inference, your commands, prompts, and terminal context never leave your computer. This makes Caro suitable for air-gapped environments, compliance-restricted organizations, and developers who simply prefer to keep their terminal activity private.",
+          "GitHub Copilot CLI relies on the underlying language model to generate \"safe\" suggestions. There's no systematic validation layer - the model might or might not catch dangerous patterns like rm -rf / .",
+          "Caro has 52+ predefined safety patterns that validate every command before presenting it to you. Dangerous operations like recursive deletions, fork bombs, and system-breaking commands are blocked at the validation layer - independent of what the model suggests.",
+          "GitHub Copilot CLI requires a GitHub Copilot subscription ($10-19/month for individuals, more for enterprises). You're also dependent on GitHub's service availability.",
+          "Caro is completely free and open source. You run it on your hardware with your own models. No accounts, no subscriptions, no vendor lock-in.",
+          "GitHub Copilot CLI has access to powerful OpenAI models (GPT-4 class) trained on massive datasets. For complex, novel commands, it may produce better suggestions.",
+          "Caro uses local models which, while improving rapidly, may not match the raw capability of cloud giants. However, for common shell operations (finding files, text processing, system administration), local models are often sufficient - and you get the benefit of privacy and speed.",
+          "Already using Copilot? You can still try Caro for offline scenarios."
+        ],
+        "listItems": []
+      },
+      "fullText": "Already using Copilot? You can still try Caro for offline scenarios.",
+      "_searchText": "tl;dr github copilot cli extends the popular copilot experience to the command line, powered by openai\\ /compare/github-copilot-cli tl;dr github copilot sends your prompts github's servers, where they're processed openai's models. while privacy policies place, shell commands including github copilot cli sends your prompts to github's servers, where they're processed by openai's models. while github has privacy policies in place, your shell commands - including potentially sensitive paths, server names, and operations - traverse the internet. caro runs entirely on your machine. with local model inference, your commands, prompts, and terminal context never leave your computer. this makes caro suitable for air-gapped environments, compliance-restricted organizations, and developers who simply prefer to keep their terminal activity private. github copilot cli relies on the underlying language model to generate \"safe\" suggestions. there's no systematic validation layer - the model might or might not catch dangerous patterns like rm -rf / .",
+      "_words": [
+        "tl;dr",
+        "github",
+        "copilot",
+        "cli",
+        "extends",
+        "the",
+        "popular",
+        "copilot",
+        "experience",
+        "the",
+        "command",
+        "line,",
+        "powered",
+        "openai\\",
+        "tl;dr",
+        "github",
+        "copilot",
+        "sends",
+        "your",
+        "prompts",
+        "github's",
+        "servers,",
+        "where",
+        "they're",
+        "processed",
+        "openai's",
+        "models.",
+        "while",
+        "privacy",
+        "policies",
+        "place,",
+        "shell",
+        "commands",
+        "including"
+      ]
+    },
+    {
+      "title": "Compare",
+      "path": "/compare",
+      "description": "Compare Caro\\",
+      "category": "compare",
+      "keywords": [
+        "compare",
+        "caro",
+        "alternatives",
+        "choose",
+        "comparison",
+        "complete",
+        "feature",
+        "teams",
+        "security-conscious",
+        "orgs",
+        "sres",
+        "can't",
+        "afford",
+        "mistakes",
+        "devops",
+        "live",
+        "terminal",
+        "developers",
+        "work",
+        "offline"
+      ],
+      "icon": "⚖️",
+      "content": {
+        "headings": [
+          "Compare Caro to Alternatives",
+          "Choose a Comparison",
+          "Complete Feature Comparison",
+          "Why Teams Choose Caro",
+          "🏢 For Security-Conscious Orgs",
+          "🛡️ For SREs Who Can't Afford Mistakes",
+          "🔧 For DevOps Who Live in the Terminal",
+          "🌐 For Developers Who Work Offline",
+          "Ready to Try Caro?"
+        ],
+        "paragraphs": [
+          "Make an informed decision. See exactly how Caro's local-first, safety-focused approach compares to cloud-based alternatives.",
+          "Deep-dive into how Caro stacks up against specific tools",
+          "Every feature, every tool. Make your own decision.",
+          "Air-gapped environments, compliance requirements, or simply not wanting shell commands to leave your network? Caro runs 100% locally with privacy-first design .",
+          "Rule-based safety checks catch dangerous commands before they execute. 52+ patterns block rm -rf /, fork bombs, and other destructive operations.",
+          "Works in YOUR terminal. No new apps, no context switching. Just shell commands that work across macOS, Linux, and BSD with POSIX compliance.",
+          "Airplanes, VPNs, restricted networks. When you can't phone home, Caro still works with local model inference.",
+          "Join developers who refuse to sacrifice privacy for productivity.",
+          "Open source. No account required. Privacy-first."
+        ],
+        "listItems": []
+      },
+      "fullText": "Compare Caro to Alternatives Make an informed decision. See exactly how Caro's local-first, safety-focused approach compares to cloud-based alternatives. 🔒 Privacy-First* 🛡️ 52+ Safety Patterns 📡 100% Offline 🦀 Open Source Choose a Comparison Deep-dive into how Caro stacks up against specific tools vs → ))} Complete Feature Comparison Every feature, every tool. Make your own decision. Feature Caro Copilot CLI Warp Amazon Q OpenCode ))} ))} ✓ Full support ◐ Partial/varies ✗ Not supported ◎ Planned Why Teams Choose Caro 🏢 For Security-Conscious Orgs Air-gapped environments, compliance requirements, or simply not wanting shell commands to leave your network? Caro runs 100% locally with privacy-first design . 🛡️ For SREs Who Can't Afford Mistakes Rule-based safety checks catch dangerous commands before they execute. 52+ patterns block rm -rf /, fork bombs, and other destructive operations. 🔧 For DevOps Who Live in the Terminal Works in YOUR terminal. No new apps, no context switching. Just shell commands that work across macOS, Linux, and BSD with POSIX compliance. 🌐 For Developers Who Work Offline Airplanes, VPNs, restricted networks. When you can't phone home, Caro still works with local model inference. Ready to Try Caro? Join developers who refuse to sacrifice privacy for productivity. Get Started Free View on GitHub Open source. No account required. Privacy-first.",
+      "_searchText": "compare compare caro\\ /compare compare caro alternatives choose comparison complete feature teams security-conscious orgs sres can't afford mistakes devops live terminal developers work offline compare caro to alternatives choose a comparison complete feature comparison why teams choose caro 🏢 for security-conscious orgs 🛡️ for sres who can't afford mistakes 🔧 for devops who live in the terminal 🌐 for developers who work offline ready to try caro? make an informed decision. see exactly how caro's local-first, safety-focused approach compares to cloud-based alternatives. deep-dive into how caro stacks up against specific tools every feature, every tool. make your own decision.",
+      "_words": [
+        "compare",
+        "compare",
+        "caro\\",
+        "compare",
+        "caro",
+        "alternatives",
+        "choose",
+        "comparison",
+        "complete",
+        "feature",
+        "teams",
+        "security-conscious",
+        "orgs",
+        "sres",
+        "can't",
+        "afford",
+        "mistakes",
+        "devops",
+        "live",
+        "terminal",
+        "developers",
+        "work",
+        "offline",
+        "compare",
+        "caro",
+        "alternatives",
+        "choose",
+        "comparison",
+        "complete",
+        "feature",
+        "comparison",
+        "why",
+        "teams",
+        "choose",
+        "caro",
+        "for",
+        "security-conscious",
+        "orgs",
+        "🛡️",
+        "for",
+        "sres",
+        "who",
+        "can't",
+        "afford",
+        "mistakes",
+        "for",
+        "devops",
+        "who",
+        "live",
+        "the",
+        "terminal",
+        "for",
+        "developers",
+        "who",
+        "work",
+        "offline",
+        "ready",
+        "try",
+        "caro?"
+      ]
+    },
+    {
+      "title": "TL;DR",
+      "path": "/compare/opencode",
+      "description": "OpenCode is a general-purpose AI coding agent. It can edit files, refactor code, explain codebases, and run terminal commands. It's designed to be a c",
+      "category": "compare",
+      "keywords": [
+        "tl;dr",
+        "opencode",
+        "general-purpose",
+        "coding",
+        "agent.",
+        "edit",
+        "files,",
+        "refactor",
+        "code,",
+        "explain",
+        "codebases,",
+        "terminal",
+        "commands.",
+        "it's",
+        "designed",
+        "comprehensive",
+        "assistant.",
+        "caro",
+        "intentionally",
+        "does"
+      ],
+      "icon": "⚖️",
+      "content": {
+        "headings": [],
+        "paragraphs": [
+          "OpenCode is a general-purpose AI coding agent. It can edit files, refactor code, explain codebases, and run terminal commands. It's designed to be a comprehensive coding assistant.",
+          "Caro intentionally does one thing well: helping you remember and safely execute shell commands. It's a specialized sub-agent, not a full coding assistant. This focus allows for deeper expertise in shell workflows and stronger safety guarantees.",
+          "OpenCode generates commands without systematic pre-execution validation. While you can review commands before running them, there's no dedicated layer that catches dangerous patterns.",
+          "Caro validates every command against 52+ predefined safety patterns. Commands like rm -rf / , fork bombs, and system-breaking operations are blocked before they're ever shown to you. Safety isn't optional—it's built into the core.",
+          "These tools can work together! Use OpenCode for general coding tasks—editing files, explaining code, refactoring. When you need shell command help with safety guarantees, reach for Caro .",
+          "Caro is designed to be a focused companion, not a replacement for broader tools. Its lightweight, specialized nature makes it easy to add to any workflow without overlap.",
+          "OpenCode supports local operation with various model backends, though some configurations may require internet for model downloads or API calls.",
+          "Caro is designed offline-first from the ground up. Once you have local models configured, it never needs internet. Perfect for air-gapped environments, flights, or restrictive networks."
+        ],
+        "listItems": []
+      },
+      "fullText": "",
+      "_searchText": "tl;dr opencode is a general-purpose ai coding agent. it can edit files, refactor code, explain codebases, and run terminal commands. it's designed to be a c /compare/opencode tl;dr opencode general-purpose coding agent. edit files, refactor code, explain codebases, terminal commands. it's designed comprehensive assistant. caro intentionally does opencode is a general-purpose ai coding agent. it can edit files, refactor code, explain codebases, and run terminal commands. it's designed to be a comprehensive coding assistant. caro intentionally does one thing well: helping you remember and safely execute shell commands. it's a specialized sub-agent, not a full coding assistant. this focus allows for deeper expertise in shell workflows and stronger safety guarantees. opencode generates commands without systematic pre-execution validation. while you can review commands before running them, there's no dedicated layer that catches dangerous patterns.",
+      "_words": [
+        "tl;dr",
+        "opencode",
+        "general-purpose",
+        "coding",
+        "agent.",
+        "can",
+        "edit",
+        "files,",
+        "refactor",
+        "code,",
+        "explain",
+        "codebases,",
+        "and",
+        "run",
+        "terminal",
+        "commands.",
+        "it's",
+        "designed",
+        "tl;dr",
+        "opencode",
+        "general-purpose",
+        "coding",
+        "agent.",
+        "edit",
+        "files,",
+        "refactor",
+        "code,",
+        "explain",
+        "codebases,",
+        "terminal",
+        "commands.",
+        "it's",
+        "designed",
+        "comprehensive",
+        "assistant.",
+        "caro",
+        "intentionally",
+        "does"
+      ]
+    },
+    {
+      "title": "TL;DR",
+      "path": "/compare/warp",
+      "description": "Warp is a completely new terminal emulator built from scratch with AI capabilities baked in. It requires you to switch from your current terminal (iTe",
+      "category": "compare",
+      "keywords": [
+        "tl;dr",
+        "warp",
+        "completely",
+        "terminal",
+        "emulator",
+        "built",
+        "scratch",
+        "capabilities",
+        "baked",
+        "requires",
+        "switch",
+        "your",
+        "current",
+        "(iterm2,",
+        "terminal.app,",
+        "alacritty,",
+        "etc.)",
+        "warp.",
+        "caro",
+        "companion"
+      ],
+      "icon": "🚀",
+      "content": {
+        "headings": [],
+        "paragraphs": [
+          "Warp is a completely new terminal emulator built from scratch with AI capabilities baked in. It requires you to switch from your current terminal (iTerm2, Terminal.app, Alacritty, etc.) to Warp.",
+          "Caro is a companion agent that works with your existing terminal. No app switching, no new UI to learn, no config migration. Just shell command assistance that integrates into your current workflow.",
+          "Warp requires cloud connectivity for its AI features. Your prompts are sent to Warp's servers for processing. Warp also collects telemetry data by default (though it can be disabled).",
+          "Caro runs entirely locally. AI inference happens on your machine with local models. No internet required, privacy-first design with minimal anonymous telemetry. Perfect for air-gapped environments or privacy-conscious users.",
+          "Warp offers a rich feature set: modern text editing in terminal, command blocks, notebook-style outputs, team workflows, and more. It's a full terminal replacement with many capabilities.",
+          "Caro intentionally does one thing well: help you remember shell commands safely. It's lightweight, focused, and doesn't try to reinvent the terminal. If you love your current terminal, Caro enhances it without replacing it.",
+          "Warp relies on AI to generate commands without systematic safety validation. Dangerous commands can still be suggested if the model doesn't catch them.",
+          "Caro validates every command against 52+ safety patterns before presenting it. Commands like rm -rf / , fork bombs, and system-breaking operations are blocked regardless of what the model suggests."
+        ],
+        "listItems": []
+      },
+      "fullText": "",
+      "_searchText": "tl;dr warp is a completely new terminal emulator built from scratch with ai capabilities baked in. it requires you to switch from your current terminal (ite /compare/warp tl;dr warp completely terminal emulator built scratch capabilities baked requires switch your current (iterm2, terminal.app, alacritty, etc.) warp. caro companion warp is a completely new terminal emulator built from scratch with ai capabilities baked in. it requires you to switch from your current terminal (iterm2, terminal.app, alacritty, etc.) to warp. caro is a companion agent that works with your existing terminal. no app switching, no new ui to learn, no config migration. just shell command assistance that integrates into your current workflow. warp requires cloud connectivity for its ai features. your prompts are sent to warp's servers for processing. warp also collects telemetry data by default (though it can be disabled).",
+      "_words": [
+        "tl;dr",
+        "warp",
+        "completely",
+        "new",
+        "terminal",
+        "emulator",
+        "built",
+        "from",
+        "scratch",
+        "with",
+        "capabilities",
+        "baked",
+        "in.",
+        "requires",
+        "you",
+        "switch",
+        "from",
+        "your",
+        "current",
+        "terminal",
+        "(ite",
+        "tl;dr",
+        "warp",
+        "completely",
+        "terminal",
+        "emulator",
+        "built",
+        "scratch",
+        "capabilities",
+        "baked",
+        "requires",
+        "switch",
+        "your",
+        "current",
+        "(iterm2,",
+        "terminal.app,",
+        "alacritty,",
+        "etc.)",
+        "warp.",
+        "caro",
+        "companion"
+      ]
+    },
+    {
+      "title": "Credits",
+      "path": "/credits",
+      "description": "A LONG TIME AGO IN AN OPEN SOURCE ECOSYSTEM FAR, FAR AWAY...",
+      "category": "main",
+      "keywords": [
+        "credits",
+        "special",
+        "thanks",
+        "anselm",
+        "eickhoff",
+        "anthropic",
+        "claude",
+        "code",
+        "machine",
+        "learning",
+        "llama.cpp",
+        "apple",
+        "qwen",
+        "hugging",
+        "face",
+        "candle",
+        "rust",
+        "ecosystem",
+        "tokio",
+        "serde"
+      ],
+      "icon": "🙏",
+      "content": {
+        "headings": [
+          "CREDITS",
+          "Special Thanks",
+          "Anselm Eickhoff",
+          "Anthropic & Claude Code",
+          "AI & Machine Learning",
+          "llama.cpp",
+          "Apple MLX",
+          "Qwen",
+          "Hugging Face",
+          "Candle",
+          "Rust Ecosystem",
+          "Tokio",
+          "Serde",
+          "Clap",
+          "Reqwest",
+          "Tracing",
+          "Indicatif",
+          "Also Powered By",
+          "Web Technologies",
+          "Astro",
+          "Vercel Analytics",
+          "canvas-confetti",
+          "elevator.js",
+          "Inspiration",
+          "Portal's Caroline",
+          "Kyaro (The Real One!)",
+          "Open Source Community",
+          "Open Source Licenses",
+          "MIT License",
+          "MIT OR Apache-2.0",
+          "Apache-2.0",
+          "MIT",
+          "Thank You"
+        ],
+        "paragraphs": [
+          "A LONG TIME AGO IN AN OPEN SOURCE ECOSYSTEM FAR, FAR AWAY...",
+          "Standing on the Shoulders of Giants",
+          "Caro is an open source project that would not exist without the incredible work of countless developers, maintainers, and communities who have built the foundations we rely on every day. This page is our way of saying thank you to everyone who has contributed to the tools, libraries, and resources that make Caro possible.",
+          "For the gift of a name",
+          "A heartfelt thank you to @aeplay for graciously transferring the caro crate name to this project. This act of generosity gave Caro its identity — a memorable, friendly name that embodies our mission. \"Work sucks. Play works.\" — We couldn't agree more.",
+          "GitHub 🤖 Anthropic & Claude Code The Maintainer's Co-Pilot",
+          "Caro was built with the help of Claude Code , Anthropic's agentic coding tool. From architecture decisions to code reviews, debugging sessions to documentation — Claude Code has been an indispensable collaborator in bringing Caro to life. A testament to how AI can augment human creativity in open source development.",
+          "GitHub Website 🧠 AI & Machine Learning The brilliant minds and teams building the models and frameworks that power local AI inference.",
+          "by Georgi Gerganov",
+          "The project that brought LLM inference to the masses. llama.cpp's pure C/C++ implementation enables Caro to run language models efficiently on any hardware. With 91k+ GitHub stars, it's the backbone of local AI inference."
+        ],
+        "listItems": []
+      },
+      "fullText": "A LONG TIME AGO IN AN OPEN SOURCE ECOSYSTEM FAR, FAR AWAY... CREDITS Standing on the Shoulders of Giants Caro is an open source project that would not exist without the incredible work of countless developers, maintainers, and communities who have built the foundations we rely on every day. This page is our way of saying thank you to everyone who has contributed to the tools, libraries, and resources that make Caro possible. &#10024; Special Thanks &#10024; 🎁 Anselm Eickhoff For the gift of a name A heartfelt thank you to @aeplay for graciously transferring the caro crate name to this project. This act of generosity gave Caro its identity — a memorable, friendly name that embodies our mission. \"Work sucks. Play works.\" — We couldn't agree more. GitHub 🤖 Anthropic & Claude Code The Maintainer's Co-Pilot Caro was built with the help of Claude Code , Anthropic's agentic coding tool. From architecture decisions to code reviews, debugging sessions to documentation — Claude Code has been an indispensable collaborator in bringing Caro to life. A testament to how AI can augment human creativity in open source development. GitHub Website 🧠 AI & Machine Learning The brilliant minds and teams building the models and frameworks that power local AI inference. 🦙 llama.cpp by Georgi Gerganov The project that brought LLM inference to the masses. llama.cpp's pure C/C++ implementation enables Caro to run language models efficiently on any hardware. With 91k+ GitHub stars, it's the backbone of local AI inference. GitHub X/Twitter Website 🍎 Apple MLX by Apple Machine Learning Research The array framework that makes Apple Silicon sing. Built by Awni Hannun, Jagrit Digani, Angelos Katharopoulos, and Ronan Collobert — MLX powers Caro's blazing-fast inference on M-series Macs. GitHub Docs ☁️ Qwen by Alibaba Cloud Qwen Team The magnificent Qwen2.5-Coder models that power Caro's shell command generation. With 100+ open weight models and 40M+ downloads, Qwen represents the best of open s",
+      "_searchText": "credits a long time ago in an open source ecosystem far, far away... /credits credits special thanks anselm eickhoff anthropic claude code machine learning llama.cpp apple qwen hugging face candle rust ecosystem tokio serde credits special thanks anselm eickhoff anthropic & claude code ai & machine learning llama.cpp apple mlx qwen hugging face candle rust ecosystem tokio serde clap reqwest tracing indicatif also powered by web technologies astro vercel analytics canvas-confetti elevator.js inspiration portal's caroline kyaro (the real one!) open source community open source licenses mit license mit or apache-2.0 apache-2.0 mit thank you a long time ago in an open source ecosystem far, far away... standing on the shoulders of giants caro is an open source project that would not exist without the incredible work of countless developers, maintainers, and communities who have built the foundations we rely on every day. this page is our way of saying thank you to everyone who has contributed to the tools, libraries, and resources that make caro possible.",
+      "_words": [
+        "credits",
+        "long",
+        "time",
+        "ago",
+        "open",
+        "source",
+        "ecosystem",
+        "far,",
+        "far",
+        "away...",
+        "credits",
+        "special",
+        "thanks",
+        "anselm",
+        "eickhoff",
+        "anthropic",
+        "claude",
+        "code",
+        "machine",
+        "learning",
+        "llama.cpp",
+        "apple",
+        "qwen",
+        "hugging",
+        "face",
+        "candle",
+        "rust",
+        "ecosystem",
+        "tokio",
+        "serde",
+        "credits",
+        "special",
+        "thanks",
+        "anselm",
+        "eickhoff",
+        "anthropic",
+        "claude",
+        "code",
+        "machine",
+        "learning",
+        "llama.cpp",
+        "apple",
+        "mlx",
+        "qwen",
+        "hugging",
+        "face",
+        "candle",
+        "rust",
+        "ecosystem",
+        "tokio",
+        "serde",
+        "clap",
+        "reqwest",
+        "tracing",
+        "indicatif",
+        "also",
+        "powered",
+        "web",
+        "technologies",
+        "astro",
+        "vercel",
+        "analytics",
+        "canvas-confetti",
+        "elevator.js",
+        "inspiration",
+        "portal's",
+        "caroline",
+        "kyaro",
+        "(the",
+        "real",
+        "one!)",
+        "open",
+        "source",
+        "community",
+        "open",
+        "source",
+        "licenses",
+        "mit",
+        "license",
+        "mit",
+        "apache-2.0",
+        "apache-2.0",
+        "mit",
+        "thank",
+        "you"
+      ]
+    },
+    {
+      "title": "Explore",
+      "path": "/explore",
+      "description": "Your loyal companion for safe shell command generation. Published on crates.io with core features working - advanced features in active development.",
+      "category": "explore",
+      "keywords": [
+        "explore",
+        "caro",
+        "join",
+        "pack",
+        "star",
+        "github",
+        "report",
+        "issues",
+        "contribute",
+        "read",
+        "blog",
+        "your",
+        "loyal",
+        "companion",
+        "safe",
+        "shell",
+        "command",
+        "generation.",
+        "published",
+        "crates.io"
+      ],
+      "icon": "🔍",
+      "content": {
+        "headings": [
+          "Explore Caro",
+          "Join the Pack",
+          "Star on GitHub",
+          "Report Issues",
+          "Contribute",
+          "Read the Blog"
+        ],
+        "paragraphs": [
+          "Your loyal companion for safe shell command generation. Published on crates.io with core features working - advanced features in active development.",
+          "Join the Pack Caro is open source and built with the community. Contribute, report issues, or join the conversation.",
+          "Show your support and stay updated with the latest releases",
+          "Found a bug or have a feature request? Let us know",
+          "Help make Caro better for everyone",
+          "Learn about the story and philosophy behind Caro"
+        ],
+        "listItems": []
+      },
+      "fullText": "v Explore Caro Your loyal companion for safe shell command generation. Published on crates.io with core features working - advanced features in active development. Get Started See Examples 🚀 Get Started 💻 Use Cases 🔌 Integration 🛡️ Safety ⚙️ Backends 📦 Install Join the Pack Caro is open source and built with the community. Contribute, report issues, or join the conversation. ⭐ Star on GitHub Show your support and stay updated with the latest releases 🐛 Report Issues Found a bug or have a feature request? Let us know 🤝 Contribute Help make Caro better for everyone 📚 Read the Blog Learn about the story and philosophy behind Caro",
+      "_searchText": "explore your loyal companion for safe shell command generation. published on crates.io with core features working - advanced features in active development. /explore explore caro join pack star github report issues contribute read blog your loyal companion safe shell command generation. published crates.io explore caro join the pack star on github report issues contribute read the blog your loyal companion for safe shell command generation. published on crates.io with core features working - advanced features in active development. join the pack caro is open source and built with the community. contribute, report issues, or join the conversation. show your support and stay updated with the latest releases",
+      "_words": [
+        "explore",
+        "your",
+        "loyal",
+        "companion",
+        "for",
+        "safe",
+        "shell",
+        "command",
+        "generation.",
+        "published",
+        "crates.io",
+        "with",
+        "core",
+        "features",
+        "working",
+        "advanced",
+        "features",
+        "active",
+        "development.",
+        "explore",
+        "caro",
+        "join",
+        "pack",
+        "star",
+        "github",
+        "report",
+        "issues",
+        "contribute",
+        "read",
+        "blog",
+        "your",
+        "loyal",
+        "companion",
+        "safe",
+        "shell",
+        "command",
+        "generation.",
+        "published",
+        "crates.io",
+        "explore",
+        "caro",
+        "join",
+        "the",
+        "pack",
+        "star",
+        "github",
+        "report",
+        "issues",
+        "contribute",
+        "read",
+        "the",
+        "blog"
+      ]
+    },
+    {
+      "title": "Home",
+      "path": "/",
+      "description": "",
+      "category": "main",
+      "keywords": [
+        "home"
+      ],
+      "icon": "🏠",
+      "content": {
+        "headings": [],
+        "paragraphs": [],
+        "listItems": []
+      },
+      "fullText": "",
+      "_searchText": "home  / home",
+      "_words": [
+        "home",
+        "home"
+      ]
+    },
+    {
+      "title": "Core Improvements",
+      "path": "/roadmap",
+      "description": "Establish production-ready core, optimize performance, build reliable infrastructure",
+      "category": "main",
+      "keywords": [
+        "core",
+        "improvements",
+        "caro",
+        "timeline",
+        "overview",
+        "success",
+        "criteria",
+        "strategic",
+        "themes",
+        "project",
+        "tracking",
+        "join",
+        "journey",
+        "slide",
+        "product",
+        "roadmap",
+        "2026",
+        "your",
+        "loyal",
+        "shell"
+      ],
+      "icon": "🗺️",
+      "content": {
+        "headings": [
+          "Caro",
+          "Timeline Overview",
+          "Success Criteria",
+          "Success Criteria",
+          "Success Criteria",
+          "Strategic Themes",
+          "Project Tracking",
+          "Join the Journey",
+          "Slide Overview"
+        ],
+        "paragraphs": [
+          "1 / 7 Product Roadmap 2026 Caro Your loyal shell companion",
+          "Our journey from foundation to innovation",
+          "% ))} ))} Presenter Notes: This timeline shows our three major release milestones. Q1 focuses on foundation work, Q2 on public launch, Q3 on advanced features. Current overall progress: %.",
+          "Our quarterly focus areas for 2026",
+          "Help us build the future of shell interaction",
+          "Star on GitHub Get Started 🐕 \"Every contribution makes Caro a better companion!\""
+        ],
+        "listItems": [
+          "Product Roadmap 2026 Caro Your loyal shell companion Planned Items 3 Milestones 6 Months Press → or Space to begin Presenter Notes: Welcome to the Caro Product Roadmap presentation. This deck covers our 6-month development plan across 3 major milestones. Use arrow keys or swipe to navigate. Timeline Overview Our journey from foundation to innovation % ))} ))} Presenter Notes: This timeline shows our three major release milestones. Q1 focuses on foundation work, Q2 on public launch, Q3 on advanced features. Current overall progress: %. 📅 Due: ⏳ days 📊 / items"
+        ]
+      },
+      "fullText": "1 / 7 Product Roadmap 2026 Caro Your loyal shell companion Planned Items 3 Milestones 6 Months Press → or Space to begin Presenter Notes: Welcome to the Caro Product Roadmap presentation. This deck covers our 6-month development plan across 3 major milestones. Use arrow keys or swipe to navigate. Timeline Overview Our journey from foundation to innovation % ))} ))} Presenter Notes: This timeline shows our three major release milestones. Q1 focuses on foundation work, Q2 on public launch, Q3 on advanced features. Current overall progress: %. 📅 Due: ⏳ days 📊 / items ))} ))} Success Criteria ))} Presenter Notes: v1.1.0 is our production-ready release. Critical bug fix is the top priority. HF model download and performance work follow. This milestone establishes our foundation for public launch. 📅 Due: ⏳ days 📊 / items ))} ))} Success Criteria ))} Presenter Notes: v1.2.0 is our public launch milestone. Website, documentation, and marketing are the focus. This is when we go from soft launch to full public availability. 📅 Due: ⏳ days 📊 / items ))} ))} Success Criteria ))} Presenter Notes: v2.0.0 is our innovation milestone. Karo distributed intelligence and voice synthesis are flagship features. This positions Caro as a next-generation AI shell companion. Strategic Themes Our quarterly focus areas for 2026 ))} Project Tracking 🔧 Product Development 36 items 📢 Marketing & DevRel 29 items Presenter Notes: Strategic themes guide our quarterly priorities. Foundation → Launch → Innovation is the natural progression. All work is tracked in GitHub Projects for transparency. Join the Journey Help us build the future of shell interaction Total Items % Complete 6 Months to v2.0 Star on GitHub Get Started 🐕 \"Every contribution makes Caro a better companion!\" Presenter Notes: Thank you for viewing the Caro Product Roadmap! We welcome contributions from the community. Star us on GitHub and join our journey to revolutionize shell interaction. Slide Overview Close ← → Navigate ",
+      "_searchText": "core improvements establish production-ready core, optimize performance, build reliable infrastructure /roadmap core improvements caro timeline overview success criteria strategic themes project tracking join journey slide product roadmap 2026 your loyal shell caro timeline overview success criteria success criteria success criteria strategic themes project tracking join the journey slide overview 1 / 7 product roadmap 2026 caro your loyal shell companion our journey from foundation to innovation % ))} ))} presenter notes: this timeline shows our three major release milestones. q1 focuses on foundation work, q2 on public launch, q3 on advanced features. current overall progress: %.",
+      "_words": [
+        "core",
+        "improvements",
+        "establish",
+        "production-ready",
+        "core,",
+        "optimize",
+        "performance,",
+        "build",
+        "reliable",
+        "infrastructure",
+        "core",
+        "improvements",
+        "caro",
+        "timeline",
+        "overview",
+        "success",
+        "criteria",
+        "strategic",
+        "themes",
+        "project",
+        "tracking",
+        "join",
+        "journey",
+        "slide",
+        "product",
+        "roadmap",
+        "2026",
+        "your",
+        "loyal",
+        "shell",
+        "caro",
+        "timeline",
+        "overview",
+        "success",
+        "criteria",
+        "success",
+        "criteria",
+        "success",
+        "criteria",
+        "strategic",
+        "themes",
+        "project",
+        "tracking",
+        "join",
+        "the",
+        "journey",
+        "slide",
+        "overview"
+      ]
+    },
+    {
+      "title": "Safe Shell Commands",
+      "path": "/safe-shell-commands",
+      "description": "",
+      "category": "main",
+      "keywords": [
+        "safe",
+        "shell",
+        "commands"
+      ],
+      "icon": "📄",
+      "content": {
+        "headings": [],
+        "paragraphs": [],
+        "listItems": []
+      },
+      "fullText": "",
+      "_searchText": "safe shell commands  /safe-shell-commands safe shell commands",
+      "_words": [
+        "safe",
+        "shell",
+        "commands",
+        "safe",
+        "shell",
+        "commands"
+      ]
+    },
+    {
+      "title": "Support",
+      "path": "/support",
+      "description": "Help sustain open source development",
+      "category": "main",
+      "keywords": [
+        "support",
+        "caro",
+        "ways",
+        "contribute",
+        "github",
+        "sponsors",
+        "open",
+        "collective",
+        "source",
+        "collective?",
+        "legal",
+        "structure",
+        "full",
+        "transparency",
+        "handles",
+        "administration",
+        "corporate",
+        "funding",
+        "employment",
+        "ready"
+      ],
+      "icon": "💬",
+      "content": {
+        "headings": [
+          "Support Caro",
+          "Ways to Contribute",
+          "GitHub Sponsors",
+          "Open Collective",
+          "Why Open Source Collective?",
+          "Legal Structure",
+          "Full Transparency",
+          "Handles Administration",
+          "Corporate Funding",
+          "Employment Ready",
+          "Asset Protection",
+          "How Funds Are Used",
+          "Development",
+          "Maintenance",
+          "Community",
+          "Infrastructure",
+          "Our Transparency Commitment",
+          "Other Ways to Help",
+          "Star on GitHub",
+          "Report Issues",
+          "Contribute Code",
+          "Spread the Word",
+          "Ready to Support?"
+        ],
+        "paragraphs": [
+          "Help sustain open source development",
+          "Caro is free, open source software maintained by a small team. Your financial support helps us dedicate time to maintenance, new features, and community support.",
+          "Recommended GitHub Sponsors The easiest way to support Caro. GitHub covers all platform fees, so 100% of your contribution goes directly to development.",
+          "Sponsor on GitHub Full Transparency Open Collective For organizations and individuals who value transparent, accountable funding. See exactly how every dollar is spent.",
+          "Support on Open Collective Why Open Source Collective? Caro is fiscally hosted by Open Source Collective , a 501(c)(6) nonprofit that provides financial and legal infrastructure for open source projects.",
+          "Legal Structure No need to create a nonprofit. Open Source Collective provides the legal entity to receive tax-deductible donations.",
+          "Full Transparency Every transaction is public. Anyone can see exactly how funds are received and spent on the project.",
+          "Handles Administration Taxes, accounting, contracts, and compliance are managed by professionals so we can focus on code.",
+          "Corporate Funding Companies can contribute with proper invoicing and receipts, making it easier to get budget approval.",
+          "Employment Ready Infrastructure for contractor payments and even full-time employment as the project grows."
+        ],
+        "listItems": [
+          "One-time or monthly donations",
+          "No platform fees",
+          "Direct support to maintainer",
+          "Sponsor badge on GitHub",
+          "Full financial transparency",
+          "Invoice generation for businesses",
+          "Fiscal sponsorship included",
+          "Expense tracking & reporting",
+          "Public ledger: Every transaction is visible on our Open Collective page",
+          "Expense transparency: All expenses are submitted with descriptions and receipts",
+          "Regular updates: We share progress reports on how funds support development",
+          "Community input: Contributors can see and comment on budget decisions"
+        ]
+      },
+      "fullText": "Support Caro Help sustain open source development Caro is free, open source software maintained by a small team. Your financial support helps us dedicate time to maintenance, new features, and community support. Ways to Contribute Recommended GitHub Sponsors The easiest way to support Caro. GitHub covers all platform fees, so 100% of your contribution goes directly to development. One-time or monthly donations No platform fees Direct support to maintainer Sponsor badge on GitHub Sponsor on GitHub Full Transparency Open Collective For organizations and individuals who value transparent, accountable funding. See exactly how every dollar is spent. Full financial transparency Invoice generation for businesses Fiscal sponsorship included Expense tracking & reporting Support on Open Collective Why Open Source Collective? Caro is fiscally hosted by Open Source Collective , a 501(c)(6) nonprofit that provides financial and legal infrastructure for open source projects. Legal Structure No need to create a nonprofit. Open Source Collective provides the legal entity to receive tax-deductible donations. Full Transparency Every transaction is public. Anyone can see exactly how funds are received and spent on the project. Handles Administration Taxes, accounting, contracts, and compliance are managed by professionals so we can focus on code. Corporate Funding Companies can contribute with proper invoicing and receipts, making it easier to get budget approval. Employment Ready Infrastructure for contractor payments and even full-time employment as the project grows. Asset Protection Trademark and domain management ensures the project's identity is protected long-term. How Funds Are Used Every dollar contributed goes toward making Caro better. Here's how we allocate funds: Development New features, performance improvements, and expanding backend support. Building the future of safe shell commands. Maintenance Bug fixes, dependency updates, security patches, and keeping Caro reliabl",
+      "_searchText": "support help sustain open source development /support support caro ways contribute github sponsors open collective source collective? legal structure full transparency handles administration corporate funding employment ready support caro ways to contribute github sponsors open collective why open source collective? legal structure full transparency handles administration corporate funding employment ready asset protection how funds are used development maintenance community infrastructure our transparency commitment other ways to help star on github report issues contribute code spread the word ready to support? help sustain open source development caro is free, open source software maintained by a small team. your financial support helps us dedicate time to maintenance, new features, and community support. recommended github sponsors the easiest way to support caro. github covers all platform fees, so 100% of your contribution goes directly to development.",
+      "_words": [
+        "support",
+        "help",
+        "sustain",
+        "open",
+        "source",
+        "development",
+        "support",
+        "caro",
+        "ways",
+        "contribute",
+        "github",
+        "sponsors",
+        "open",
+        "collective",
+        "source",
+        "collective?",
+        "legal",
+        "structure",
+        "full",
+        "transparency",
+        "handles",
+        "administration",
+        "corporate",
+        "funding",
+        "employment",
+        "ready",
+        "support",
+        "caro",
+        "ways",
+        "contribute",
+        "github",
+        "sponsors",
+        "open",
+        "collective",
+        "why",
+        "open",
+        "source",
+        "collective?",
+        "legal",
+        "structure",
+        "full",
+        "transparency",
+        "handles",
+        "administration",
+        "corporate",
+        "funding",
+        "employment",
+        "ready",
+        "asset",
+        "protection",
+        "how",
+        "funds",
+        "are",
+        "used",
+        "development",
+        "maintenance",
+        "community",
+        "infrastructure",
+        "our",
+        "transparency",
+        "commitment",
+        "other",
+        "ways",
+        "help",
+        "star",
+        "github",
+        "report",
+        "issues",
+        "contribute",
+        "code",
+        "spread",
+        "the",
+        "word",
+        "ready",
+        "support?"
+      ]
+    },
+    {
+      "title": "Telemetry",
+      "path": "/telemetry",
+      "description": "Privacy-first by design. Transparent by choice.",
+      "category": "main",
+      "keywords": [
+        "telemetry",
+        "privacy",
+        "tl;dr",
+        "opt-out",
+        "opt-in",
+        "collect",
+        "what",
+        "never",
+        "your",
+        "controls",
+        "disable",
+        "single",
+        "session",
+        "environment",
+        "variable",
+        "view",
+        "what's",
+        "collected",
+        "air-gapped",
+        "environments"
+      ],
+      "icon": "📄",
+      "content": {
+        "headings": [
+          "Telemetry & Privacy",
+          "TL;DR",
+          "Opt-Out",
+          "Opt-In",
+          "Why We Collect Telemetry",
+          "What We Collect",
+          "✓ What We Collect",
+          "✗ What We NEVER Collect",
+          "Your Controls",
+          "Disable Telemetry",
+          "Single Session",
+          "Environment Variable",
+          "View What's Collected",
+          "Air-Gapped Environments",
+          "Option 1: Disable Telemetry",
+          "Option 2: Air-Gapped Mode (Coming Soon)",
+          "Our Commitment",
+          "Transparency",
+          "Privacy-First",
+          "Respect",
+          "Evolution",
+          "Frequently Asked Questions",
+          "Questions?"
+        ],
+        "paragraphs": [
+          "Privacy-first by design. Transparent by choice.",
+          "Telemetry is enabled by default to help us improve the product. You can easily disable it.",
+          "Telemetry will be disabled by default . We'll ask if you'd like to help by enabling it.",
+          "We're building Caro to be the best AI shell assistant. During beta, anonymous usage data helps us:",
+          "Which commands are generated most? Which backends perform best? Where do users struggle?",
+          "Focus engineering effort on features people actually use, not what we assume they want.",
+          "Identify slow inference, errors, and bottlenecks across different platforms.",
+          "Are we blocking too many safe commands? Missing dangerous ones? Data helps us tune.",
+          "Don't trust, verify: Caro is open source (AGPL-3.0) . Check the telemetry code yourself in src/telemetry/ .",
+          "Permanently disable all telemetry collection."
+        ],
+        "listItems": [
+          "📊 Understand real-world usage Which commands are generated most? Which backends perform best? Where do users struggle?",
+          "🎯 Prioritize our roadmap Focus engineering effort on features people actually use, not what we assume they want.",
+          "⚡ Optimize performance Identify slow inference, errors, and bottlenecks across different platforms.",
+          "🛡️ Calibrate safety Are we blocking too many safe commands? Missing dangerous ones? Data helps us tune.",
+          "Session timing (duration, commands generated/executed)",
+          "Performance metrics (inference time, backend used)",
+          "Platform info (OS, architecture, shell type)",
+          "Error categories (not details or stack traces)",
+          "Safety validation events (risk level, action taken)",
+          "Anonymous session ID (rotates daily)",
+          "Your commands or natural language inputs",
+          "File paths or directory structures",
+          "Environment variables or secrets",
+          "Hostnames, IPs, or usernames",
+          "Any personally identifiable information",
+          "Command output or execution results"
+        ]
+      },
+      "fullText": "Telemetry & Privacy Privacy-first by design. Transparent by choice. TL;DR Beta (Current) Opt-Out Telemetry is enabled by default to help us improve the product. You can easily disable it. caro config set telemetry.enabled false General Availability Opt-In Telemetry will be disabled by default . We'll ask if you'd like to help by enabling it. caro config set telemetry.enabled true Why We Collect Telemetry We're building Caro to be the best AI shell assistant. During beta, anonymous usage data helps us: 📊 Understand real-world usage Which commands are generated most? Which backends perform best? Where do users struggle? 🎯 Prioritize our roadmap Focus engineering effort on features people actually use, not what we assume they want. ⚡ Optimize performance Identify slow inference, errors, and bottlenecks across different platforms. 🛡️ Calibrate safety Are we blocking too many safe commands? Missing dangerous ones? Data helps us tune. What We Collect ✓ What We Collect Session timing (duration, commands generated/executed) Performance metrics (inference time, backend used) Platform info (OS, architecture, shell type) Error categories (not details or stack traces) Safety validation events (risk level, action taken) Anonymous session ID (rotates daily) ✗ What We NEVER Collect Your commands or natural language inputs File paths or directory structures Environment variables or secrets Hostnames, IPs, or usernames Any personally identifiable information Command output or execution results Don't trust, verify: Caro is open source (AGPL-3.0) . Check the telemetry code yourself in src/telemetry/ . Your Controls Disable Telemetry caro config set telemetry.enabled false Permanently disable all telemetry collection. Single Session caro --no-telemetry \"your command\" Disable for just this invocation. Environment Variable export CARO_TELEMETRY_ENABLED=false Disable via environment (great for CI/CD). View What's Collected caro telemetry show See exactly what data is queued before send",
+      "_searchText": "telemetry privacy-first by design. transparent by choice. /telemetry telemetry privacy tl;dr opt-out opt-in collect what never your controls disable single session environment variable view what's collected air-gapped environments telemetry & privacy tl;dr opt-out opt-in why we collect telemetry what we collect ✓ what we collect ✗ what we never collect your controls disable telemetry single session environment variable view what's collected air-gapped environments option 1: disable telemetry option 2: air-gapped mode (coming soon) our commitment transparency privacy-first respect evolution frequently asked questions questions? privacy-first by design. transparent by choice. telemetry is enabled by default to help us improve the product. you can easily disable it. telemetry will be disabled by default . we'll ask if you'd like to help by enabling it.",
+      "_words": [
+        "telemetry",
+        "privacy-first",
+        "design.",
+        "transparent",
+        "choice.",
+        "telemetry",
+        "privacy",
+        "tl;dr",
+        "opt-out",
+        "opt-in",
+        "collect",
+        "what",
+        "never",
+        "your",
+        "controls",
+        "disable",
+        "single",
+        "session",
+        "environment",
+        "variable",
+        "view",
+        "what's",
+        "collected",
+        "air-gapped",
+        "environments",
+        "telemetry",
+        "privacy",
+        "tl;dr",
+        "opt-out",
+        "opt-in",
+        "why",
+        "collect",
+        "telemetry",
+        "what",
+        "collect",
+        "what",
+        "collect",
+        "what",
+        "never",
+        "collect",
+        "your",
+        "controls",
+        "disable",
+        "telemetry",
+        "single",
+        "session",
+        "environment",
+        "variable",
+        "view",
+        "what's",
+        "collected",
+        "air-gapped",
+        "environments",
+        "option",
+        "disable",
+        "telemetry",
+        "option",
+        "air-gapped",
+        "mode",
+        "(coming",
+        "soon)",
+        "our",
+        "commitment",
+        "transparency",
+        "privacy-first",
+        "respect",
+        "evolution",
+        "frequently",
+        "asked",
+        "questions",
+        "questions?"
+      ]
+    },
+    {
+      "title": "Offline AI Assistance",
+      "path": "/use-cases/air-gapped",
+      "description": "Get AI-powered command generation where no other AI tool can operate.",
+      "category": "use-cases",
+      "keywords": [
+        "offline",
+        "assistance",
+        "where",
+        "nothing",
+        "else",
+        "operate",
+        "built",
+        "these",
+        "environments",
+        "jobs",
+        "caro",
+        "does",
+        "secure",
+        "action",
+        "designed",
+        "security",
+        "audit",
+        "getting",
+        "approved",
+        "documentation"
+      ],
+      "icon": "🔐",
+      "content": {
+        "headings": [
+          "AI Where Nothing Else Can Operate",
+          "Built for These Environments",
+          "Jobs Caro Does in Secure Environments",
+          "Offline AI in Action",
+          "Designed for Security Audit",
+          "Getting Caro Approved",
+          "Security Documentation",
+          "Deployment Options",
+          "Verify It Yourself",
+          "Verify Zero Network Calls",
+          "Verify Binary Integrity",
+          "Verify No DNS Lookups",
+          "Verify Open Ports"
+        ],
+        "paragraphs": [
+          "8 million developers work in restricted environments where cloud AI is impossible. Caro is the only AI shell assistant that works with zero network connectivity— bundled model, single binary, designed for security audit.",
+          "Where cloud AI isn't an option",
+          "What you hire Caro to do when offline",
+          "Real scenarios where Caro shines",
+          "Why it matters:",
+          "Every feature built with compliance in mind",
+          "Answers to common security review questions",
+          "How to get Caro into your secure environment",
+          "Don't trust us—verify these claims",
+          "Run under strace. You'll see zero network-related syscalls."
+        ],
+        "listItems": []
+      },
+      "fullText": "Air-Gapped & Security AI Where Nothing Else Can Operate 8 million developers work in restricted environments where cloud AI is impossible. Caro is the only AI shell assistant that works with zero network connectivity— bundled model, single binary, designed for security audit. 0 Network calls 1 Binary file 100% Open source Get the Binary Security Documentation Built for These Environments Where cloud AI isn't an option ))} ))} Jobs Caro Does in Secure Environments What you hire Caro to do when offline Pain: Trigger: ))} Offline AI in Action Real scenarios where Caro shines Scenario: Air-Gapped Terminal $ Caro: ✈️ Running fully offline - no network required Why it matters: ))} Designed for Security Audit Every feature built with compliance in mind Audit: ))} Getting Caro Approved Answers to common security review questions ✅ ))} Security Documentation 📄 Security Policy 📜 License (AGPL-3.0) 💻 Full Source Code 📦 Releases + Checksums Deployment Options How to get Caro into your secure environment ))} ))} Verify It Yourself Don't trust us—verify these claims Verify Zero Network Calls strace -e network ./caro \"list files\" Run under strace. You'll see zero network-related syscalls. Verify Binary Integrity sha256sum caro && cat caro.sha256 Compare against published checksums on GitHub releases. Verify No DNS Lookups ltrace -e '*dns*' ./caro \"list files\" No DNS resolution functions called. Verify Open Ports ss -tlnp | grep caro Caro opens no listening sockets.",
+      "_searchText": "offline ai assistance get ai-powered command generation where no other ai tool can operate. /use-cases/air-gapped offline assistance where nothing else operate built these environments jobs caro does secure action designed security audit getting approved documentation ai where nothing else can operate built for these environments jobs caro does in secure environments offline ai in action designed for security audit getting caro approved security documentation deployment options verify it yourself verify zero network calls verify binary integrity verify no dns lookups verify open ports 8 million developers work in restricted environments where cloud ai is impossible. caro is the only ai shell assistant that works with zero network connectivity— bundled model, single binary, designed for security audit. where cloud ai isn't an option what you hire caro to do when offline",
+      "_words": [
+        "offline",
+        "assistance",
+        "get",
+        "ai-powered",
+        "command",
+        "generation",
+        "where",
+        "other",
+        "tool",
+        "can",
+        "operate.",
+        "offline",
+        "assistance",
+        "where",
+        "nothing",
+        "else",
+        "operate",
+        "built",
+        "these",
+        "environments",
+        "jobs",
+        "caro",
+        "does",
+        "secure",
+        "action",
+        "designed",
+        "security",
+        "audit",
+        "getting",
+        "approved",
+        "documentation",
+        "where",
+        "nothing",
+        "else",
+        "can",
+        "operate",
+        "built",
+        "for",
+        "these",
+        "environments",
+        "jobs",
+        "caro",
+        "does",
+        "secure",
+        "environments",
+        "offline",
+        "action",
+        "designed",
+        "for",
+        "security",
+        "audit",
+        "getting",
+        "caro",
+        "approved",
+        "security",
+        "documentation",
+        "deployment",
+        "options",
+        "verify",
+        "yourself",
+        "verify",
+        "zero",
+        "network",
+        "calls",
+        "verify",
+        "binary",
+        "integrity",
+        "verify",
+        "dns",
+        "lookups",
+        "verify",
+        "open",
+        "ports"
+      ]
+    },
+    {
+      "title": "Natural Language to Command",
+      "path": "/use-cases/developer",
+      "description": "Describe what you want in plain English, get the exact command that works.",
+      "category": "use-cases",
+      "keywords": [
+        "natural",
+        "language",
+        "command",
+        "stop",
+        "googling.",
+        "start",
+        "commanding.",
+        "jobs",
+        "caro",
+        "does",
+        "developers",
+        "zero",
+        "steps",
+        "commands",
+        "learn",
+        "commands,",
+        "don't",
+        "just",
+        "copy",
+        "them"
+      ],
+      "icon": "💻",
+      "content": {
+        "headings": [
+          "Stop Googling. Start Commanding.",
+          "Jobs Caro Does for Developers",
+          "From Zero to Command in 4 Steps",
+          "Natural Language to Commands",
+          "Learn Commands, Don't Just Copy Them",
+          "Mistakes Caro Helps You Avoid",
+          "Caro vs. Your Current Workflow",
+          "Built for Learning",
+          "--explain Mode",
+          "Context Awareness",
+          "Safety Guardrails",
+          "Instant Results",
+          "History Learning",
+          "Progressive Complexity",
+          "From Developers Like You"
+        ],
+        "paragraphs": [
+          "Know what you want but can't remember the exact flags? Describe it in English, get the command that works. Build terminal confidence while staying safe.",
+          "What you hire Caro to do",
+          "Get started in under a minute",
+          "))} Natural Language to Commands 50+ examples across common tasks",
+          "Caro breaks down complex commands so you understand each part",
+          "Learn from common pitfalls",
+          "Time spent getting commands to work",
+          "Features that help you grow",
+          "Break down any command into understandable parts. Learn what each flag does.",
+          "Caro knows your OS, shell, and current directory. Commands work first try."
+        ],
+        "listItems": []
+      },
+      "fullText": "For Developers Stop Googling. Start Commanding. Know what you want but can't remember the exact flags? Describe it in English, get the command that works. Build terminal confidence while staying safe. \"I've learned more shell in a week with Caro than in a year of Stack Overflow. The explanations actually teach you why commands work.\" — Jamie L., Full-Stack Developer Try in 30 Seconds See Examples Jobs Caro Does for Developers What you hire Caro to do Pain: Trigger: ))} From Zero to Command in 4 Steps Get started in under a minute Terminal $ ))} Natural Language to Commands 50+ examples across common tasks \" ↓ Caro generates: 💡 ))} ))} Learn Commands, Don't Just Copy Them Caro breaks down complex commands so you understand each part ))} )} )} )} ))} Mistakes Caro Helps You Avoid Learn from common pitfalls ✓ Better approach ))} Caro vs. Your Current Workflow Time spent getting commands to work Task With Caro Google/Stack Overflow Man Pages ))} The difference: Caro learns your context. It knows your OS, shell, and current directory. Google gives generic answers. Man pages give exhaustive documentation. Caro gives you what you need, now. Built for Learning Features that help you grow 📖 --explain Mode Break down any command into understandable parts. Learn what each flag does. caro --explain \"find . -name '*.log' -mtime +7\" 🎯 Context Awareness Caro knows your OS, shell, and current directory. Commands work first try. # On macOS: Uses BSD find syntax # On Linux: Uses GNU find syntax 🛡️ Safety Guardrails Learn good habits from day one. Caro warns before dangerous operations. # rm -rf /* → BLOCKED # Shows why and suggests safer alternatives ⚡ Instant Results Runs locally on your machine. No waiting for API calls. Works offline. # 2s on Apple Silicon # No internet required 🔄 History Learning Build your personal command library. Caro remembers what worked. caro history # See your past commands and reuse them 🎓 Progressive Complexity Start simple, grow advanced. Caro mat",
+      "_searchText": "natural language to command describe what you want in plain english, get the exact command that works. /use-cases/developer natural language command stop googling. start commanding. jobs caro does developers zero steps commands learn commands, don't just copy them stop googling. start commanding. jobs caro does for developers from zero to command in 4 steps natural language to commands learn commands, don't just copy them mistakes caro helps you avoid caro vs. your current workflow built for learning --explain mode context awareness safety guardrails instant results history learning progressive complexity from developers like you know what you want but can't remember the exact flags? describe it in english, get the command that works. build terminal confidence while staying safe. what you hire caro to do get started in under a minute",
+      "_words": [
+        "natural",
+        "language",
+        "command",
+        "describe",
+        "what",
+        "you",
+        "want",
+        "plain",
+        "english,",
+        "get",
+        "the",
+        "exact",
+        "command",
+        "that",
+        "works.",
+        "natural",
+        "language",
+        "command",
+        "stop",
+        "googling.",
+        "start",
+        "commanding.",
+        "jobs",
+        "caro",
+        "does",
+        "developers",
+        "zero",
+        "steps",
+        "commands",
+        "learn",
+        "commands,",
+        "don't",
+        "just",
+        "copy",
+        "them",
+        "stop",
+        "googling.",
+        "start",
+        "commanding.",
+        "jobs",
+        "caro",
+        "does",
+        "for",
+        "developers",
+        "from",
+        "zero",
+        "command",
+        "steps",
+        "natural",
+        "language",
+        "commands",
+        "learn",
+        "commands,",
+        "don't",
+        "just",
+        "copy",
+        "them",
+        "mistakes",
+        "caro",
+        "helps",
+        "you",
+        "avoid",
+        "caro",
+        "vs.",
+        "your",
+        "current",
+        "workflow",
+        "built",
+        "for",
+        "learning",
+        "--explain",
+        "mode",
+        "context",
+        "awareness",
+        "safety",
+        "guardrails",
+        "instant",
+        "results",
+        "history",
+        "learning",
+        "progressive",
+        "complexity",
+        "from",
+        "developers",
+        "like",
+        "you"
+      ]
+    },
+    {
+      "title": "CI/CD Pipeline Health Check",
+      "path": "/use-cases/devops",
+      "description": "Check deployment status across services",
+      "category": "use-cases",
+      "keywords": [
+        "ci/cd",
+        "pipeline",
+        "health",
+        "check",
+        "commands",
+        "work",
+        "everywhere,",
+        "first",
+        "time",
+        "jobs",
+        "caro",
+        "does",
+        "devops",
+        "problem",
+        "solves",
+        "automation",
+        "script",
+        "examples",
+        "natural",
+        "language"
+      ],
+      "icon": "🔧",
+      "content": {
+        "headings": [
+          "Commands That Work Everywhere, First Time",
+          "Jobs Caro Does for DevOps",
+          "The BSD vs GNU Problem",
+          "How Caro Solves This",
+          "Automation Script Examples",
+          "Natural Language → Commands",
+          "Your Turn",
+          "CI/CD Pipeline Integration",
+          "Use POSIX Mode",
+          "Target Specific Platform",
+          "JSON Output for Scripts"
+        ],
+        "paragraphs": [
+          "Stop fighting BSD vs GNU differences. Caro detects your target platform and generates POSIX-compliant commands that work on Mac, Linux, and in CI pipelines—first time, every time.",
+          "What you hire Caro to do",
+          "Commands you write on Mac break on Linux servers",
+          "Common DevOps tasks, generated and validated",
+          "Stop Googling. Just describe what you want.",
+          "Install Caro and try:",
+          "Commands that work in GitHub Actions, GitLab CI, Jenkins",
+          "Forces POSIX-compliant output that works in any sh-compatible environment.",
+          "Generate commands for your CI runner's OS, not your dev machine.",
+          "Machine-readable output for integration with other tools."
+        ],
+        "listItems": []
+      },
+      "fullText": "DevOps & Platform Commands That Work Everywhere, First Time Stop fighting BSD vs GNU differences. Caro detects your target platform and generates POSIX-compliant commands that work on Mac, Linux, and in CI pipelines—first time, every time. Target: macOS (BSD) Linux (GNU) POSIX Get Started Free See Platform Differences Jobs Caro Does for DevOps What you hire Caro to do Pain: Trigger: ))} The BSD vs GNU Problem Commands you write on Mac break on Linux servers Task macOS (BSD) Linux (GNU) Gotcha ))} How Caro Solves This Your Mac $ caro \"find files changed in last hour\" Caro (macOS detected): find . -mtime -1h -type f ↓ For Linux Server $ caro --target linux \"find files changed in last hour\" Caro (Linux target): find . -mmin -60 -type f Automation Script Examples Common DevOps tasks, generated and validated $ → )} )} ))} Natural Language → Commands Stop Googling. Just describe what you want. \" ↓ ))} Your Turn Install Caro and try: caro \"show me what's using port 8080\" caro \"find all yaml files with 'production' in them\" caro \"show docker containers by memory usage\" CI/CD Pipeline Integration Commands that work in GitHub Actions, GitLab CI, Jenkins Use POSIX Mode caro --posix \"your task\" Forces POSIX-compliant output that works in any sh-compatible environment. Target Specific Platform caro --target linux \"your task\" Generate commands for your CI runner's OS, not your dev machine. JSON Output for Scripts caro --output json \"your task\" Machine-readable output for integration with other tools.",
+      "_searchText": "ci/cd pipeline health check check deployment status across services /use-cases/devops ci/cd pipeline health check commands work everywhere, first time jobs caro does devops problem solves automation script examples natural language commands that work everywhere, first time jobs caro does for devops the bsd vs gnu problem how caro solves this automation script examples natural language → commands your turn ci/cd pipeline integration use posix mode target specific platform json output for scripts stop fighting bsd vs gnu differences. caro detects your target platform and generates posix-compliant commands that work on mac, linux, and in ci pipelines—first time, every time. what you hire caro to do commands you write on mac break on linux servers",
+      "_words": [
+        "ci/cd",
+        "pipeline",
+        "health",
+        "check",
+        "check",
+        "deployment",
+        "status",
+        "across",
+        "services",
+        "ci/cd",
+        "pipeline",
+        "health",
+        "check",
+        "commands",
+        "work",
+        "everywhere,",
+        "first",
+        "time",
+        "jobs",
+        "caro",
+        "does",
+        "devops",
+        "problem",
+        "solves",
+        "automation",
+        "script",
+        "examples",
+        "natural",
+        "language",
+        "commands",
+        "that",
+        "work",
+        "everywhere,",
+        "first",
+        "time",
+        "jobs",
+        "caro",
+        "does",
+        "for",
+        "devops",
+        "the",
+        "bsd",
+        "gnu",
+        "problem",
+        "how",
+        "caro",
+        "solves",
+        "this",
+        "automation",
+        "script",
+        "examples",
+        "natural",
+        "language",
+        "commands",
+        "your",
+        "turn",
+        "ci/cd",
+        "pipeline",
+        "integration",
+        "use",
+        "posix",
+        "mode",
+        "target",
+        "specific",
+        "platform",
+        "json",
+        "output",
+        "for",
+        "scripts"
+      ]
+    },
+    {
+      "title": "SRE & On-Call Engineers",
+      "path": "/use-cases",
+      "description": "Validate dangerous commands before they destroy production. Get instant, safe command generation during high-pressure incidents.",
+      "category": "use-cases",
+      "keywords": [
+        "sre",
+        "on-call",
+        "engineers",
+        "what",
+        "need",
+        "caro",
+        "find",
+        "your",
+        "role",
+        "jobs",
+        "does",
+        "best",
+        "these",
+        "jobs?",
+        "independent",
+        "safety",
+        "layer",
+        "true",
+        "offline",
+        "operation"
+      ],
+      "icon": "📋",
+      "content": {
+        "headings": [
+          "What Do You Need Caro To Do?",
+          "Find Your Role",
+          "Jobs Caro Does Best",
+          "Why Caro For These Jobs?",
+          "🔒 Independent Safety Layer",
+          "✈️ True Offline Operation",
+          "🌐 Platform Intelligence",
+          "⚡ Fast When It Matters",
+          "How Caro Compares"
+        ],
+        "paragraphs": [
+          "Caro isn't a general AI assistant—it's a specialized tool for people who run commands in production, work in restricted environments, or just want commands that actually work.",
+          "Find your role below, or explore the specific jobs Caro excels at.",
+          "Caro is designed for specific people with specific problems",
+          "Ranked by pain severity and frequency",
+          "Unlike permission flags or AI-based safety, Caro uses deterministic pattern matching that can't hallucinate. When AI marks rm -rf / as \"safe,\" Caro catches it.",
+          "Bundled model. Zero network calls after install. Works in air-gapped environments where nothing else can . Designed for security audit from day one.",
+          "Detects your OS, shell, and available commands. Generates POSIX-compliant commands with BSD vs GNU awareness. Commands work everywhere, first time.",
+          "100ms startup, 2s inference on Apple Silicon. No waiting for cloud APIs during incidents. No wondering if the server is down.",
+          "Purpose-built for these specific jobs",
+          "See detailed comparisons →"
+        ],
+        "listItems": []
+      },
+      "fullText": "Jobs To Be Done What Do You Need Caro To Do? Caro isn't a general AI assistant—it's a specialized tool for people who run commands in production, work in restricted environments, or just want commands that actually work. Find your role below, or explore the specific jobs Caro excels at. Find Your Role Caro is designed for specific people with specific problems Jobs: ))} See examples → ))} Jobs Caro Does Best Ranked by pain severity and frequency Pain: ))} Why Caro For These Jobs? 🔒 Independent Safety Layer Unlike permission flags or AI-based safety, Caro uses deterministic pattern matching that can't hallucinate. When AI marks rm -rf / as \"safe,\" Caro catches it. ✈️ True Offline Operation Bundled model. Zero network calls after install. Works in air-gapped environments where nothing else can . Designed for security audit from day one. 🌐 Platform Intelligence Detects your OS, shell, and available commands. Generates POSIX-compliant commands with BSD vs GNU awareness. Commands work everywhere, first time. ⚡ Fast When It Matters 100ms startup, 2s inference on Apple Silicon. No waiting for cloud APIs during incidents. No wondering if the server is down. How Caro Compares Purpose-built for these specific jobs Capability Caro GitHub Copilot CLI Warp AI Generic LLM Works Offline ✓ Full ✗ ✗ ✗ Independent Safety Layer ✓ Pattern-based ✗ ✗ ✗ Air-Gap Compatible ✓ ✗ ✗ ✗ BSD/GNU Awareness ✓ Partial ✗ Limited Platform Detection ✓ Partial ✗ ✗ Single Binary Install ✓ ✗ ✗ ✗ Zero Telemetry ✓ ✗ ✗ ✗ Open Source ✓ AGPL-3.0 ✗ ✗ Varies See detailed comparisons →",
+      "_searchText": "sre & on-call engineers validate dangerous commands before they destroy production. get instant, safe command generation during high-pressure incidents. /use-cases sre on-call engineers what need caro find your role jobs does best these jobs? independent safety layer true offline operation what do you need caro to do? find your role jobs caro does best why caro for these jobs? 🔒 independent safety layer ✈️ true offline operation 🌐 platform intelligence ⚡ fast when it matters how caro compares caro isn't a general ai assistant—it's a specialized tool for people who run commands in production, work in restricted environments, or just want commands that actually work. find your role below, or explore the specific jobs caro excels at. caro is designed for specific people with specific problems",
+      "_words": [
+        "sre",
+        "on-call",
+        "engineers",
+        "validate",
+        "dangerous",
+        "commands",
+        "before",
+        "they",
+        "destroy",
+        "production.",
+        "get",
+        "instant,",
+        "safe",
+        "command",
+        "generation",
+        "during",
+        "high-pressure",
+        "incidents.",
+        "sre",
+        "on-call",
+        "engineers",
+        "what",
+        "need",
+        "caro",
+        "find",
+        "your",
+        "role",
+        "jobs",
+        "does",
+        "best",
+        "these",
+        "jobs?",
+        "independent",
+        "safety",
+        "layer",
+        "true",
+        "offline",
+        "operation",
+        "what",
+        "you",
+        "need",
+        "caro",
+        "do?",
+        "find",
+        "your",
+        "role",
+        "jobs",
+        "caro",
+        "does",
+        "best",
+        "why",
+        "caro",
+        "for",
+        "these",
+        "jobs?",
+        "independent",
+        "safety",
+        "layer",
+        "true",
+        "offline",
+        "operation",
+        "platform",
+        "intelligence",
+        "fast",
+        "when",
+        "matters",
+        "how",
+        "caro",
+        "compares"
+      ]
+    },
+    {
+      "title": "Safe Production Command Execution",
+      "path": "/use-cases/sre",
+      "description": "Validate commands against 52+ dangerous patterns before they can destroy production.",
+      "category": "use-cases",
+      "keywords": [
+        "safe",
+        "production",
+        "command",
+        "execution",
+        "your",
+        "incident",
+        "companion",
+        "jobs",
+        "caro",
+        "does",
+        "sres",
+        "real",
+        "scenarios",
+        "you'll",
+        "face",
+        "response",
+        "runbooks",
+        "when",
+        "gets",
+        "wrong"
+      ],
+      "icon": "🚨",
+      "content": {
+        "headings": [
+          "Your 3 AM Incident Companion",
+          "Jobs Caro Does for SREs",
+          "Real Scenarios You'll Face",
+          "Incident Response Runbooks",
+          "When AI Gets It Wrong",
+          "Why Pattern-Based Beats AI-Based",
+          "52+ Patterns We Block"
+        ],
+        "paragraphs": [
+          "-n production | tail -20', explanation: 'Recent events (OOM, liveness failures, etc)', }, , , ], }, ]; const aiProtectionExamples = [ , , , ]; const blockedPatterns = [ , , ;:', desc: 'Fork bomb' }, , , , , , , , ]; --- SRE & On-Call Your 3 AM Incident Companion When you're sleep-deprived and production is on fire, Caro validates every command before it can make things worse. Pattern-based safety that doesn't depend on AI judgement.",
+          "What you hire Caro to do",
+          "See how Caro handles actual production situations",
+          "Common alerts and the commands you need",
+          "Real examples of AI hallucinations Caro catches",
+          "Same input = same result. No randomness, no \"sometimes catches it.\"",
+          "You can see exactly which pattern triggered. Essential for post-incident review.",
+          "Regex patterns don't make things up. They match or they don't.",
+          "50ms validation. No API call, no waiting.",
+          "A sample of what Caro catches"
+        ],
+        "listItems": []
+      },
+      "fullText": "SRE & On-Call Your 3 AM Incident Companion When you're sleep-deprived and production is on fire, Caro validates every command before it can make things worse. Pattern-based safety that doesn't depend on AI judgement. \"Caught a recursive delete pattern I would have missed at 2 AM during an incident. The warning was specific enough that I understood WHY it was dangerous.\" — Michael T., Senior SRE (Series C Fintech) Get Started Free See Real Examples Jobs Caro Does for SREs What you hire Caro to do Pain: Trigger: ))} Real Scenarios You'll Face See how Caro handles actual production situations Context: Terminal $ Caro: 💡 Safer alternative: ) : ( ✓ )} Lesson: ))} Incident Response Runbooks Common alerts and the commands you need Copy ))} With Caro: Just describe what you need. Example: caro \"show me what's using the most CPU\" ))} When AI Gets It Wrong Real examples of AI hallucinations Caro catches 🤖 AI Assistant Marked as \"Safe\" → 🛡️ Caro Safety Layer 💡 ))} Why Pattern-Based Beats AI-Based Deterministic Same input = same result. No randomness, no \"sometimes catches it.\" Auditable You can see exactly which pattern triggered. Essential for post-incident review. Can't Hallucinate Regex patterns don't make things up. They match or they don't. Fast 50ms validation. No API call, no waiting. 52+ Patterns We Block A sample of what Caro catches ))} Plus: privilege escalation, network backdoors, history clearing, and more. See full list →",
+      "_searchText": "safe production command execution validate commands against 52+ dangerous patterns before they can destroy production. /use-cases/sre safe production command execution your incident companion jobs caro does sres real scenarios you'll face response runbooks when gets wrong your 3 am incident companion jobs caro does for sres real scenarios you'll face incident response runbooks when ai gets it wrong why pattern-based beats ai-based 52+ patterns we block -n production | tail -20', explanation: 'recent events (oom, liveness failures, etc)', }, , , ], }, ]; const aiprotectionexamples = [ , , , ]; const blockedpatterns = [ , , ;:', desc: 'fork bomb' }, , , , , , , , ]; --- sre & on-call your 3 am incident companion when you're sleep-deprived and production is on fire, caro validates every command before it can make things worse. pattern-based safety that doesn't depend on ai judgement. what you hire caro to do see how caro handles actual production situations",
+      "_words": [
+        "safe",
+        "production",
+        "command",
+        "execution",
+        "validate",
+        "commands",
+        "against",
+        "52+",
+        "dangerous",
+        "patterns",
+        "before",
+        "they",
+        "can",
+        "destroy",
+        "production.",
+        "safe",
+        "production",
+        "command",
+        "execution",
+        "your",
+        "incident",
+        "companion",
+        "jobs",
+        "caro",
+        "does",
+        "sres",
+        "real",
+        "scenarios",
+        "you'll",
+        "face",
+        "response",
+        "runbooks",
+        "when",
+        "gets",
+        "wrong",
+        "your",
+        "incident",
+        "companion",
+        "jobs",
+        "caro",
+        "does",
+        "for",
+        "sres",
+        "real",
+        "scenarios",
+        "you'll",
+        "face",
+        "incident",
+        "response",
+        "runbooks",
+        "when",
+        "gets",
+        "wrong",
+        "why",
+        "pattern-based",
+        "beats",
+        "ai-based",
+        "52+",
+        "patterns",
+        "block"
+      ]
+    },
+    {
+      "title": "Custom Pattern Library",
+      "path": "/use-cases/tech-lead",
+      "description": "Define organization-specific dangerous patterns. Block commands that are risky in YOUR environment.",
+      "category": "use-cases",
+      "keywords": [
+        "custom",
+        "pattern",
+        "library",
+        "safety",
+        "rails",
+        "your",
+        "team",
+        "tools",
+        "have",
+        "failed.",
+        "repeatedly.",
+        "caro",
+        "would",
+        "caught",
+        "these",
+        "jobs",
+        "does",
+        "tech",
+        "leads",
+        "team-wide"
+      ],
+      "icon": "👥",
+      "content": {
+        "headings": [
+          "Safety Rails For Your Team",
+          "AI Tools Have Failed. Repeatedly.",
+          "Caro Would Have Caught These",
+          "Jobs Caro Does for Tech Leads",
+          "Team-Wide Safety Configuration",
+          "Example Team Configuration",
+          "Why Pattern-Based Beats Permission-Based",
+          "Permission Flags Fail Because:",
+          "Pattern Matching Works Because:",
+          "The Math Problem",
+          "MCP Integration",
+          "How It Works",
+          "Deployment Options"
+        ],
+        "paragraphs": [
+          "AI tools will fail. Your junior devs will make mistakes. Caro provides deterministic safety validation that catches what AI hallucinations and permission flags miss— without you having to review every command.",
+          "Real incidents from AI coding assistants",
+          "Pattern-based validation doesn't depend on AI judgement. When the AI marks rm -rf / as \"Safe\", Caro's deterministic patterns still catch it.",
+          "What you hire Caro to do for your team",
+          "Set it up once, protect the whole team",
+          "Why Pattern-Based Beats Permission-Based Flags fail. Patterns don't.",
+          "If your AI tool is 99.9% accurate and your team runs 1,000 commands/day:",
+          "Caro provides a deterministic layer that catches the 0.1%. 52 patterns × 0 hallucination = 0 bypasses .",
+          "Give AI agents safe shell capabilities",
+          "From individual to enterprise"
+        ],
+        "listItems": [
+          "AI can convince itself to approve dangerous operations",
+          "Context windows lose track of what's allowed",
+          "Prompts can be jailbroken",
+          "Stochastic systems have edge cases",
+          "Deterministic: same input = same result",
+          "Auditable: you can see exactly what matched",
+          "Can't hallucinate: regex doesn't make things up",
+          "Fast: 50ms validation, no API calls"
+        ]
+      },
+      "fullText": "Tech Leads & Managers Safety Rails For Your Team AI tools will fail. Your junior devs will make mistakes. Caro provides deterministic safety validation that catches what AI hallucinations and permission flags miss— without you having to review every command. 52+ dangerous patterns blocked automatically Get Started Free See Real Incidents AI Tools Have Failed. Repeatedly. Real incidents from AI coding assistants Damage: Source: ))} Caro Would Have Caught These Pattern-based validation doesn't depend on AI judgement. When the AI marks rm -rf / as \"Safe\", Caro's deterministic patterns still catch it. Jobs Caro Does for Tech Leads What you hire Caro to do for your team Pain: Trigger: ))} Team-Wide Safety Configuration Set it up once, protect the whole team ))} Example Team Configuration ~/.config/caro/config.toml Why Pattern-Based Beats Permission-Based Flags fail. Patterns don't. Permission Flags Fail Because: AI can convince itself to approve dangerous operations Context windows lose track of what's allowed Prompts can be jailbroken Stochastic systems have edge cases Pattern Matching Works Because: Deterministic: same input = same result Auditable: you can see exactly what matched Can't hallucinate: regex doesn't make things up Fast: 50ms validation, no API calls The Math Problem If your AI tool is 99.9% accurate and your team runs 1,000 commands/day: 1,000 commands × 0.1% failure = 1 dangerous command/day Over a year: 365 potential incidents Caro provides a deterministic layer that catches the 0.1%. 52 patterns × 0 hallucination = 0 bypasses . MCP Integration Give AI agents safe shell capabilities ))} How It Works 🤖 AI Agent → 📡 MCP Request → 🛡️ Caro Validation → 💻 Shell Execution Deployment Options From individual to enterprise Pros: )} Cons: )} Best for: ))}",
+      "_searchText": "custom pattern library define organization-specific dangerous patterns. block commands that are risky in your environment. /use-cases/tech-lead custom pattern library safety rails your team tools have failed. repeatedly. caro would caught these jobs does tech leads team-wide safety rails for your team ai tools have failed. repeatedly. caro would have caught these jobs caro does for tech leads team-wide safety configuration example team configuration why pattern-based beats permission-based permission flags fail because: pattern matching works because: the math problem mcp integration how it works deployment options ai tools will fail. your junior devs will make mistakes. caro provides deterministic safety validation that catches what ai hallucinations and permission flags miss— without you having to review every command. real incidents from ai coding assistants pattern-based validation doesn't depend on ai judgement. when the ai marks rm -rf / as \"safe\", caro's deterministic patterns still catch it.",
+      "_words": [
+        "custom",
+        "pattern",
+        "library",
+        "define",
+        "organization-specific",
+        "dangerous",
+        "patterns.",
+        "block",
+        "commands",
+        "that",
+        "are",
+        "risky",
+        "your",
+        "environment.",
+        "custom",
+        "pattern",
+        "library",
+        "safety",
+        "rails",
+        "your",
+        "team",
+        "tools",
+        "have",
+        "failed.",
+        "repeatedly.",
+        "caro",
+        "would",
+        "caught",
+        "these",
+        "jobs",
+        "does",
+        "tech",
+        "leads",
+        "team-wide",
+        "safety",
+        "rails",
+        "for",
+        "your",
+        "team",
+        "tools",
+        "have",
+        "failed.",
+        "repeatedly.",
+        "caro",
+        "would",
+        "have",
+        "caught",
+        "these",
+        "jobs",
+        "caro",
+        "does",
+        "for",
+        "tech",
+        "leads",
+        "team-wide",
+        "safety",
+        "configuration",
+        "example",
+        "team",
+        "configuration",
+        "why",
+        "pattern-based",
+        "beats",
+        "permission-based",
+        "permission",
+        "flags",
+        "fail",
+        "because:",
+        "pattern",
+        "matching",
+        "works",
+        "because:",
+        "the",
+        "math",
+        "problem",
+        "mcp",
+        "integration",
+        "how",
+        "works",
+        "deployment",
+        "options"
+      ]
+    }
+  ],
+  "componentContent": [
+    {
+      "source": "/Blog.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "From the Pack"
+        },
+        {
+          "type": "paragraph",
+          "text": "Stories, updates, and insights about Caro"
+        }
+      ]
+    },
+    {
+      "source": "/CaroGame.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "Play with Caro"
+        },
+        {
+          "type": "paragraph",
+          "text": "Test your shell command knowledge! Pick the safe commands, avoid the dangerous ones."
+        }
+      ]
+    },
+    {
+      "source": "/Comparison.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "How Caro Compares"
+        },
+        {
+          "type": "paragraph",
+          "text": "Built for DevOps engineers and SREs who refuse to sacrifice privacy for productivity"
+        },
+        {
+          "type": "paragraph",
+          "text": "Ready for a shell companion that respects your privacy?"
+        }
+      ]
+    },
+    {
+      "source": "/Download.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "Get Started with Caro"
+        },
+        {
+          "type": "heading",
+          "text": "Multiple Ways to Use Caro"
+        },
+        {
+          "type": "heading",
+          "text": "🔧 Standalone CLI"
+        },
+        {
+          "type": "heading",
+          "text": "🔌 MCP for Claude Coming Soon"
+        },
+        {
+          "type": "heading",
+          "text": "✨ Dedicated Skill Available Now"
+        },
+        {
+          "type": "heading",
+          "text": "Quick Start"
+        },
+        {
+          "type": "paragraph",
+          "text": "Bring your loyal shell companion to your terminal"
+        },
+        {
+          "type": "paragraph",
+          "text": "Or download pre-built binaries (v ):"
+        },
+        {
+          "type": "paragraph",
+          "text": "Add Caro as an MCP server to Claude Desktop and let her handle all shell commands seamlessly."
+        },
+        {
+          "type": "paragraph",
+          "text": "Use Caro as a Skill to offload shell command generation and execution while Claude focuses on your work. Install with /plugin install wildcard/caro"
+        },
+        {
+          "type": "paragraph",
+          "text": "After running the setup script above, just use Caro:"
+        },
+        {
+          "type": "paragraph",
+          "text": "Caro will generate the command and keep you safe. The setup script handles all prerequisites including Rust compilation."
+        }
+      ]
+    },
+    {
+      "source": "/Features.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "Why Caro?"
+        },
+        {
+          "type": "paragraph",
+          "text": "A companion agent built for safety, empathy, and expertise"
+        },
+        {
+          "type": "paragraph",
+          "text": "🚧 Soft Launch Alpha — We're actively building with our community. Join us to help shape Caro's future!"
+        }
+      ]
+    },
+    {
+      "source": "/Footer.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "Product"
+        },
+        {
+          "type": "heading",
+          "text": "Compare"
+        },
+        {
+          "type": "heading",
+          "text": "Resources"
+        },
+        {
+          "type": "heading",
+          "text": "Support"
+        },
+        {
+          "type": "paragraph",
+          "text": "Your loyal shell companion"
+        },
+        {
+          "type": "paragraph",
+          "text": "AI-powered POSIX shell command generation with safety-first validation."
+        },
+        {
+          "type": "paragraph",
+          "text": "Product Features How It Works Explore Download Roadmap Compare Overview vs Warp vs GitHub Copilot CLI vs Amazon Q CLI vs OpenCode Resources Blog GitHub Issues Contributing Credits Support ♥ Sponsor AGPL-3.0 License 🐕 Meet Kyaro!"
+        },
+        {
+          "type": "paragraph",
+          "text": "The real-life inspiration behind Caro. @kyaroblackheart"
+        },
+        {
+          "type": "paragraph",
+          "text": "Built with 🦀 Rust | caro.sh 🧡"
+        },
+        {
+          "type": "paragraph",
+          "text": "Inspired by Portal's Caroline—loyalty transformed into digital companionship"
+        },
+        {
+          "type": "list",
+          "text": "Features"
+        },
+        {
+          "type": "list",
+          "text": "How It Works"
+        },
+        {
+          "type": "list",
+          "text": "Explore"
+        },
+        {
+          "type": "list",
+          "text": "Download"
+        },
+        {
+          "type": "list",
+          "text": "Roadmap"
+        },
+        {
+          "type": "list",
+          "text": "Overview"
+        },
+        {
+          "type": "list",
+          "text": "vs Warp"
+        },
+        {
+          "type": "list",
+          "text": "vs GitHub Copilot CLI"
+        },
+        {
+          "type": "list",
+          "text": "vs Amazon Q CLI"
+        },
+        {
+          "type": "list",
+          "text": "vs OpenCode"
+        },
+        {
+          "type": "list",
+          "text": "GitHub"
+        },
+        {
+          "type": "list",
+          "text": "Issues"
+        },
+        {
+          "type": "list",
+          "text": "Contributing"
+        },
+        {
+          "type": "list",
+          "text": "Credits"
+        },
+        {
+          "type": "list",
+          "text": "♥ Sponsor"
+        },
+        {
+          "type": "list",
+          "text": "AGPL-3.0 License"
+        }
+      ]
+    },
+    {
+      "source": "/Hero.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "Your loyal shell companion"
+        },
+        {
+          "type": "paragraph",
+          "text": "A specialized POSIX shell command agent for Claude users. Validates AI-generated commands with safety-first design, detects dangerous patterns, and ensures POSIX compliance."
+        }
+      ]
+    },
+    {
+      "source": "/Navigation.astro",
+      "sections": [
+        {
+          "type": "list",
+          "text": "Features"
+        },
+        {
+          "type": "list",
+          "text": "Compare 📊 Overview See all comparisons ⚡ vs Warp AI-native terminal 🤖 vs GitHub Copilot CLI AI pair programmer ☁️ vs Amazon Q CLI AWS AI assistant"
+        },
+        {
+          "type": "list",
+          "text": "Resources 📝 Blog News & tutorials 🔍 Explore Interactive demo 🗺️ Roadmap What's coming next 🐙 GitHub Source code"
+        },
+        {
+          "type": "list",
+          "text": "♥ Support"
+        }
+      ]
+    },
+    {
+      "source": "/Story.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "Meet Caro"
+        },
+        {
+          "type": "paragraph",
+          "text": "A companion with a story of loyalty and transformation"
+        },
+        {
+          "type": "paragraph",
+          "text": "Caro is the digitalization of Kyaro (Kyarorain Kadosh), the maintainer's beloved dog. Just as a loyal companion stays by your side through every challenge, Caro is here to help you navigate the complexities of shell commands with safety and expertise."
+        },
+        {
+          "type": "paragraph",
+          "text": "She specializes in POSIX shell commands and understands the nuances of every platform—whether you're on macOS, Linux, Windows, GNU, or BSD. Caro brings your preferences with her wherever you deploy her, respecting your distribution of choice while keeping you safe from dangerous commands."
+        },
+        {
+          "type": "paragraph",
+          "text": "As Claude's loyal companion, Caro handles the shell-specific heavy lifting, allowing Claude to focus on the broader work while she ensures every command is safe, correct, and optimized for your platform."
+        }
+      ]
+    },
+    {
+      "source": "/Video.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "How Caro Works"
+        },
+        {
+          "type": "paragraph",
+          "text": "See Caro in action as your shell companion"
+        }
+      ]
+    },
+    {
+      "source": "/explore/BackendOptions.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "Choose Your Backend"
+        },
+        {
+          "type": "heading",
+          "text": "Key Features"
+        },
+        {
+          "type": "heading",
+          "text": "Performance"
+        },
+        {
+          "type": "heading",
+          "text": "Quick Setup"
+        },
+        {
+          "type": "heading",
+          "text": "Best For"
+        },
+        {
+          "type": "heading",
+          "text": "Which Backend Should I Choose?"
+        },
+        {
+          "type": "paragraph",
+          "text": "Flexible inference options from ultra-fast local to scalable cloud deployments"
+        },
+        {
+          "type": "paragraph",
+          "text": "Just getting started? The CPU backend works out of the box - no configuration needed. Want local models? Install Ollama for easy local inference with model flexibility. Have a team server? Connect to vLLM for centralized, high-performance inference. On Apple Silicon? MLX support is coming soon for ultra-fast local inference."
+        }
+      ]
+    },
+    {
+      "source": "/explore/GetStartedPaths.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "Choose Your Path"
+        },
+        {
+          "type": "paragraph",
+          "text": "Get started with Caro based on your workflow and goals"
+        }
+      ]
+    },
+    {
+      "source": "/explore/IntegrationMethods.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "Integration Methods"
+        },
+        {
+          "type": "heading",
+          "text": "Features"
+        },
+        {
+          "type": "heading",
+          "text": "Setup"
+        },
+        {
+          "type": "paragraph",
+          "text": "Choose how you want to work with Caro - standalone, with Claude, or both"
+        }
+      ]
+    },
+    {
+      "source": "/explore/PlatformGuides.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "Installation Guides"
+        },
+        {
+          "type": "heading",
+          "text": "Installation"
+        },
+        {
+          "type": "heading",
+          "text": "Post-Installation"
+        },
+        {
+          "type": "heading",
+          "text": "Platform-Specific Tips"
+        },
+        {
+          "type": "heading",
+          "text": "Universal Configuration"
+        },
+        {
+          "type": "paragraph",
+          "text": "Get Caro running on your preferred platform with step-by-step instructions"
+        },
+        {
+          "type": "paragraph",
+          "text": "Once installed, Caro's configuration is consistent across all platforms:"
+        }
+      ]
+    },
+    {
+      "source": "/explore/SafetyShowcase.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "Safety First"
+        },
+        {
+          "type": "heading",
+          "text": "How Safety Validation Works"
+        },
+        {
+          "type": "heading",
+          "text": "Example Blocked Patterns"
+        },
+        {
+          "type": "paragraph",
+          "text": "\"] }, ] }, ]; const validationFlow = [ , , , , ]; --- Safety First Caro's multi-layered safety validation protects you from dangerous commands"
+        }
+      ]
+    },
+    {
+      "source": "/explore/UseCaseGallery.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "Use Cases"
+        },
+        {
+          "type": "paragraph",
+          "text": "Real-world examples of safe, POSIX-compliant commands generated by Caro"
+        }
+      ]
+    },
+    {
+      "source": "/landing/AICommandCommunityVoices.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "What Developers Are Saying"
+        },
+        {
+          "type": "heading",
+          "text": "How Caro Addresses This"
+        },
+        {
+          "type": "paragraph",
+          "text": "Real concerns from the community that shaped Caro"
+        },
+        {
+          "type": "paragraph",
+          "text": "Caro doesn't just block dangerous commands—it explains why they're dangerous and suggests safer alternatives. You stay in control while learning from every interaction."
+        }
+      ]
+    },
+    {
+      "source": "/landing/AICommandDemo.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "See It In Action"
+        },
+        {
+          "type": "heading",
+          "text": "Commands Caro Blocks Before You Can Run Them"
+        },
+        {
+          "type": "paragraph",
+          "text": "Natural language in. Safe, working commands out."
+        },
+        {
+          "type": "paragraph",
+          "text": "Caro stops what permission flags can't"
+        },
+        {
+          "type": "paragraph",
+          "text": "Caro warns you before you wipe critical logs"
+        },
+        {
+          "type": "paragraph",
+          "text": "Platform-aware commands that work the first time"
+        },
+        {
+          "type": "paragraph",
+          "text": "52+ dangerous patterns detected and blocked automatically"
+        }
+      ]
+    },
+    {
+      "source": "/landing/AICommandDifferentiators.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "Why Engineers Choose Caro"
+        },
+        {
+          "type": "paragraph",
+          "text": "The differences that matter"
+        }
+      ]
+    },
+    {
+      "source": "/landing/AICommandFAQ.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "Common Concerns"
+        },
+        {
+          "type": "paragraph",
+          "text": "Real questions from skeptical engineers (we get it)"
+        },
+        {
+          "type": "paragraph",
+          "text": "Still skeptical? Good—you should be."
+        }
+      ]
+    },
+    {
+      "source": "/landing/AICommandFeatures.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "Commands That Work. Mistakes That Don't."
+        },
+        {
+          "type": "paragraph",
+          "text": "Built for engineers who can't afford to get it wrong"
+        },
+        {
+          "type": "paragraph",
+          "text": "See exactly what Caro blocks and why"
+        }
+      ]
+    },
+    {
+      "source": "/landing/AICommandHero.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "The last line of defense between you and rm -rf /"
+        },
+        {
+          "type": "paragraph",
+          "text": "Generate shell commands that work the first time—with pre-execution validation that catches what AI gets wrong. 100% local. Privacy-first . Your commands never leave your machine."
+        }
+      ]
+    },
+    {
+      "source": "/landing/AIHero.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "AI Agents Run Dangerous Commands. Caro Catches Them."
+        },
+        {
+          "type": "paragraph",
+          "text": "Your LLMs will hallucinate. Your flags will fail. Caro doesn't rely on either. Pattern-based validation that catches destructive commands—whether they came from a user or a confused AI."
+        }
+      ]
+    },
+    {
+      "source": "/landing/AIIncidents.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "This Happened. It Will Happen Again."
+        },
+        {
+          "type": "paragraph",
+          "text": "Documented incidents where AI tools caused real damage"
+        }
+      ]
+    },
+    {
+      "source": "/landing/AIRiskCalculator.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "Calculate Your AI Risk"
+        },
+        {
+          "type": "paragraph",
+          "text": "The math of probabilistic failures at enterprise scale"
+        },
+        {
+          "type": "paragraph",
+          "text": "One unlucky user getting rm -rf ~/ impacts your entire system"
+        },
+        {
+          "type": "paragraph",
+          "text": "Deterministic validation—no dice rolls, no \"demo gods\""
+        },
+        {
+          "type": "paragraph",
+          "text": "Hundreds of developers × probabilistic AI = guaranteed failures. Caro is your insurance policy."
+        }
+      ]
+    },
+    {
+      "source": "/landing/AITestimonials.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "What Enterprise Teams Are Saying"
+        },
+        {
+          "type": "paragraph",
+          "text": "Companies that deploy AI agents at scale trust Caro"
+        }
+      ]
+    },
+    {
+      "source": "/landing/AIWhyFlagsFail.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "Why Flags Aren't Enough"
+        },
+        {
+          "type": "heading",
+          "text": "Flag-Based Safety vs Pattern-Based Safety"
+        },
+        {
+          "type": "paragraph",
+          "text": "Real incidents from 2025 where safety measures failed"
+        },
+        {
+          "type": "list",
+          "text": "Trust the AI to remember the flag"
+        },
+        {
+          "type": "list",
+          "text": "Hope the flag covers all edge cases"
+        },
+        {
+          "type": "list",
+          "text": "Can't catch hallucinated commands"
+        },
+        {
+          "type": "list",
+          "text": "Probabilistic protection"
+        },
+        {
+          "type": "list",
+          "text": "Fails silently when AI gets creative"
+        },
+        {
+          "type": "list",
+          "text": "Validates every command, regardless of source"
+        },
+        {
+          "type": "list",
+          "text": "52+ dangerous patterns compiled in"
+        },
+        {
+          "type": "list",
+          "text": "Catches hallucinations—pattern is pattern"
+        },
+        {
+          "type": "list",
+          "text": "Deterministic protection"
+        },
+        {
+          "type": "list",
+          "text": "Explicit warnings before execution"
+        }
+      ]
+    },
+    {
+      "source": "/landing/LPBestPractices.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "AI Agent Deployment Best Practices"
+        },
+        {
+          "type": "heading",
+          "text": "Defense in Depth: Don't Rely on Flags Alone"
+        },
+        {
+          "type": "heading",
+          "text": "The Math of AI Risk at Enterprise Scale"
+        },
+        {
+          "type": "paragraph",
+          "text": "These aren't edge cases. LLMs are probabilistic systems—failures are inevitable at scale."
+        },
+        {
+          "type": "paragraph",
+          "text": "Defense in depth for AI-powered shell tools"
+        },
+        {
+          "type": "paragraph",
+          "text": "Each layer catches what the others miss. Caro is your last line of defense—not your only one."
+        },
+        {
+          "type": "paragraph",
+          "text": "Even at 99.9% AI accuracy, that's 100 potentially dangerous commands daily . One bad hallucination without Caro = catastrophe."
+        }
+      ]
+    },
+    {
+      "source": "/landing/LPCommunityVoices.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "What Developers Are Saying"
+        },
+        {
+          "type": "heading",
+          "text": "How Caro Addresses This"
+        },
+        {
+          "type": "paragraph",
+          "text": "Real concerns from the community that shaped Caro"
+        },
+        {
+          "type": "paragraph",
+          "text": "Caro doesn't just block dangerous commands—it explains why they're dangerous and suggests safer alternatives. You stay in control while learning from every interaction."
+        }
+      ]
+    },
+    {
+      "source": "/landing/LPDemo.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "See It In Action"
+        },
+        {
+          "type": "heading",
+          "text": "Commands Caro Blocks Before You Can Run Them"
+        },
+        {
+          "type": "paragraph",
+          "text": "Natural language in. Safe, working commands out."
+        },
+        {
+          "type": "paragraph",
+          "text": "Caro warns you before you wipe critical logs"
+        },
+        {
+          "type": "paragraph",
+          "text": "Platform-aware commands that work the first time"
+        },
+        {
+          "type": "paragraph",
+          "text": "52+ dangerous patterns detected and blocked automatically"
+        }
+      ]
+    },
+    {
+      "source": "/landing/LPDifferentiators.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "Why Engineers Choose Caro"
+        },
+        {
+          "type": "paragraph",
+          "text": "The differences that matter"
+        }
+      ]
+    },
+    {
+      "source": "/landing/LPDownload.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "Try Caro in 30 Seconds"
+        },
+        {
+          "type": "paragraph",
+          "text": "No account. No API key. No data collection. Just safer shell commands."
+        },
+        {
+          "type": "paragraph",
+          "text": "Prefer to build from source? See all installation options →"
+        }
+      ]
+    },
+    {
+      "source": "/landing/LPFAQ.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "Common Concerns"
+        },
+        {
+          "type": "paragraph",
+          "text": "Real questions from skeptical engineers (we get it)"
+        },
+        {
+          "type": "paragraph",
+          "text": "Still skeptical? Good—you should be."
+        }
+      ]
+    },
+    {
+      "source": "/landing/LPFeatures.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "Commands That Work. Mistakes That Don't."
+        },
+        {
+          "type": "paragraph",
+          "text": "Built for engineers who can't afford to get it wrong"
+        },
+        {
+          "type": "paragraph",
+          "text": "See exactly what Caro blocks and why"
+        }
+      ]
+    },
+    {
+      "source": "/landing/LPFooter.astro",
+      "sections": [
+        {
+          "type": "paragraph",
+          "text": "Built with Rust. Privacy-first."
+        },
+        {
+          "type": "paragraph",
+          "text": "Named after Kyaro , the goodest office dog. Read her story →"
+        }
+      ]
+    },
+    {
+      "source": "/landing/LPHero.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "The last line of defense between you and rm -rf /"
+        },
+        {
+          "type": "paragraph",
+          "text": "Generate shell commands that work the first time—with pre-execution validation that catches what AI gets wrong. 100% local. Privacy-first . Your commands never leave your machine."
+        }
+      ]
+    },
+    {
+      "source": "/landing/LPScenarios.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "Dangerous Commands by Role"
+        },
+        {
+          "type": "paragraph",
+          "text": "See the specific risks Caro catches for your workflow"
+        }
+      ]
+    },
+    {
+      "source": "/landing/LPTrust.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "Engineers Who've Been There"
+        },
+        {
+          "type": "paragraph",
+          "text": "Specific experiences, not generic praise"
+        },
+        {
+          "type": "paragraph",
+          "text": "Don't take our word for it—"
+        }
+      ]
+    },
+    {
+      "source": "/landing/LPUseCases.astro",
+      "sections": [
+        {
+          "type": "heading",
+          "text": "When You Need Caro"
+        },
+        {
+          "type": "paragraph",
+          "text": "Real scenarios. Real problems. Real solutions."
+        },
+        {
+          "type": "paragraph",
+          "text": "The problem:"
+        }
+      ]
+    }
+  ]
+}
