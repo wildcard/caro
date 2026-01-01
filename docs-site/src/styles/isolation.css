@@ -1,0 +1,206 @@
+/**
+ * CSS Isolation for caro Documentation Site
+ *
+ * This file ensures the docs site styles are completely isolated
+ * from the main website (caro.sh). All styles here are scoped
+ * to prevent any bleeding between sites.
+ */
+
+/* ============================================
+   Reset and Isolation
+   ============================================ */
+
+/*
+ * Override any potential inherited styles from parent sites.
+ * The docs site runs on docs.caro.sh (separate subdomain),
+ * but this ensures no shared stylesheets cause issues.
+ */
+
+/* Ensure clean slate for all Starlight components */
+.starlight-site,
+[data-theme] {
+  /* Reset potentially inherited properties */
+  all: revert;
+
+  /* Re-apply Starlight defaults */
+  font-family: var(--sl-font);
+  line-height: 1.6;
+  color: var(--sl-color-text);
+  background: var(--sl-color-bg);
+}
+
+/* ============================================
+   Prevent Common CSS Leaks
+   ============================================ */
+
+/* Reset any global resets that might bleed in */
+html.docs-site,
+body.docs-site {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* Ensure Starlight's own styles take precedence */
+.sl-container,
+.content-panel,
+.sidebar-pane,
+.header {
+  box-sizing: border-box;
+}
+
+/* ============================================
+   Block External Style Interference
+   ============================================ */
+
+/*
+ * The main caro.sh site uses classes like:
+ * - .hero, .feature, .cta-button, .companion-badge
+ * - .christmas, .hanukkah, .new-year themes
+ *
+ * We explicitly reset these if they somehow leak in.
+ */
+
+/* Reset hero class if it comes from main site */
+.sl-markdown-content .hero {
+  all: unset;
+}
+
+/* Ensure no holiday themes affect docs */
+.christmas .sl-container,
+.hanukkah .sl-container,
+.new-year .sl-container {
+  /* Override holiday theme variables */
+  --sl-color-accent: #e85d4c;
+  --sl-color-accent-high: #ff8a7a;
+  --sl-color-accent-low: #2a1515;
+}
+
+/* ============================================
+   Clean Typography Reset
+   ============================================ */
+
+/* Ensure heading styles are from Starlight, not main site */
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3,
+.sl-markdown-content h4,
+.sl-markdown-content h5,
+.sl-markdown-content h6 {
+  /* Use custom.css styles, but ensure isolation */
+  font-family: 'Space Grotesk', var(--sl-font);
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+/* Ensure code blocks are styled consistently */
+.sl-markdown-content pre,
+.sl-markdown-content code {
+  font-family: var(--sl-font-mono);
+}
+
+/* ============================================
+   Link Styling Isolation
+   ============================================ */
+
+/* Ensure all links in docs follow Starlight patterns */
+.sl-markdown-content a {
+  color: var(--sl-color-accent-high);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.sl-markdown-content a:hover {
+  color: var(--sl-color-accent);
+  text-decoration: underline;
+}
+
+/* External links indicator */
+.sl-markdown-content a[href^="http"]:not([href*="caro.sh"])::after {
+  content: ' ↗';
+  font-size: 0.8em;
+  opacity: 0.7;
+}
+
+/* ============================================
+   Component Isolation
+   ============================================ */
+
+/* Ensure Starlight cards don't inherit main site card styles */
+.card,
+.sl-card {
+  background: var(--caro-glass);
+  border: 1px solid var(--caro-border);
+  border-radius: 0.75rem;
+}
+
+/* Table isolation */
+.sl-markdown-content table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.sl-markdown-content th,
+.sl-markdown-content td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--caro-border);
+}
+
+/* ============================================
+   Navigation Isolation
+   ============================================ */
+
+/* Ensure docs navigation is independent */
+.sidebar-pane nav,
+.sl-sidebar {
+  /* Reset any inherited nav styles */
+  all: unset;
+  display: block;
+}
+
+/* Header isolation */
+header.header,
+.sl-header {
+  /* Ensure no main site header styles leak in */
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+/* ============================================
+   Print Isolation
+   ============================================ */
+
+@media print {
+  /* Ensure clean print output */
+  .sidebar-pane,
+  .header,
+  footer {
+    display: none !important;
+  }
+
+  .content-panel {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 1rem !important;
+  }
+}
+
+/* ============================================
+   Debug Mode (Development Only)
+   ============================================ */
+
+/*
+ * Uncomment the following to visually debug isolation:
+ *
+ * .sl-container {
+ *   outline: 2px solid red;
+ * }
+ * .sl-container * {
+ *   outline: 1px solid rgba(255, 0, 0, 0.3);
+ * }
+ */
