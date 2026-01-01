@@ -1,0 +1,66 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+
+type Props = {
+  release: CollectionEntry<'releases'>;
+};
+
+const { release } = Astro.props;
+const { title, description, versionNumber, date, breaking, security } = release.data;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <BaseHead title={`${versionNumber} - ${title}`} description={description} />
+  </head>
+  <body>
+    <div class="glow" aria-hidden="true"></div>
+    <Header />
+    <main>
+      <article class="release" transition:name="post">
+        <aside class="version-info" transition:persist>
+          <div class="version-number">v{versionNumber}</div>
+          <FormattedDate date={date} class="release-date" />
+          <div class="release-badges">
+            {breaking && <span class="badge breaking">Breaking</span>}
+            {security && <span class="badge security">Security</span>}
+          </div>
+        </aside>
+        <div class="release-content">
+          <h1>{title}</h1>
+          <slot />
+        </div>
+      </article>
+      <div class="back-link">
+        <a href="/">&larr; Back to all releases</a>
+      </div>
+    </main>
+    <Footer />
+  </body>
+</html>
+
+<style lang="scss">
+  @use '../styles/colors' as colors;
+
+  .back-link {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid colors.color(gray, 200);
+
+    @media (prefers-color-scheme: dark) {
+      border-top-color: colors.color(gray, 800);
+    }
+
+    a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 500;
+    }
+  }
+</style>

@@ -1,0 +1,15 @@
+---
+import '../styles/global.scss';
+import { MainSite, GitHubRepo } from '../consts';
+
+const currentYear = new Date().getFullYear();
+---
+
+<footer>
+  <span>&copy; {currentYear} Caro</span>
+  <div class="footer-links">
+    <a href={MainSite}>caro.sh</a>
+    <a href={GitHubRepo} target="_blank" rel="noopener">GitHub</a>
+    <a href={`${GitHubRepo}/blob/main/CHANGELOG.md`} target="_blank" rel="noopener">Raw Changelog</a>
+  </div>
+</footer>
