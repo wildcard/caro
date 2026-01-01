@@ -5,6 +5,9 @@
   "description": "Documentation site for caro - Natural language to shell commands",
   "type": "module",
   "scripts": {
+    "sync-docs": "node scripts/sync-external-docs.mjs",
+    "predev": "npm run sync-docs",
+    "prebuild": "npm run sync-docs",
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",
