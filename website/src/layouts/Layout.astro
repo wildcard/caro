@@ -98,10 +98,12 @@ const { title, description } = Astro.props;
         }
 
         if (isHolidaySeason()) {
+          // Holiday themes are opt-in only - only apply if user has explicitly chosen one
           const savedHolidayTheme = localStorage.getItem('holidayTheme');
           if (savedHolidayTheme && savedHolidayTheme !== 'none') {
             document.documentElement.classList.add(savedHolidayTheme);
           }
+          // Note: If no theme saved, we default to 'none' (no theme applied)
         }
 
         // New Year's Day gets its own theme

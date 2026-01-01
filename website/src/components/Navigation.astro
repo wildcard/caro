@@ -1225,8 +1225,11 @@ document.addEventListener('DOMContentLoaded', () => {
     mobileControls?.classList.remove('hidden');
 
     let savedTheme = localStorage.getItem('holidayTheme') as 'christmas' | 'hanukkah' | 'newyear' | 'none' | null;
+
+    // Default to 'none' - holiday themes are opt-in only
+    // Users can choose their preferred theme from the menu
     if (!savedTheme) {
-      savedTheme = getDefaultHolidayTheme();
+      savedTheme = 'none';
     }
 
     applyHolidayTheme(savedTheme);
