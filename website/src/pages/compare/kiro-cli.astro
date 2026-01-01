@@ -3,17 +3,17 @@ import ComparisonPageLayout from '../../layouts/ComparisonPageLayout.astro';
 
 const comparison = {
   competitor: {
-    name: 'Amazon Q CLI',
+    name: 'Kiro CLI',
     icon: '☁️',
   },
   tldr: {
     title: 'TL;DR',
     points: [
-      'Amazon Q CLI is deeply integrated with AWS; Caro is cloud-agnostic',
-      'Amazon Q requires AWS account and sends data to AWS; Caro runs 100% locally',
-      'Caro has rule-based safety validation; Amazon Q relies on model discretion',
-      'Amazon Q excels at AWS-specific tasks; Caro specializes in general shell commands',
-      'Caro is free and open source; Amazon Q has usage limits and pricing tiers'
+      'Kiro CLI (formerly Amazon Q CLI) is AWS-owned; Caro is cloud-agnostic',
+      'Kiro requires internet and sends data to AWS; Caro runs 100% locally',
+      'Caro has rule-based safety validation; Kiro relies on model discretion',
+      'Kiro excels at AWS-specific tasks; Caro specializes in general shell commands',
+      'Caro is free and open source; Kiro has usage limits and pricing tiers'
     ]
   },
   headToHead: [
@@ -23,15 +23,15 @@ const comparison = {
     { feature: 'Rule-based safety checks', caro: true, competitor: false, winner: 'caro' },
     { feature: 'Open source', caro: true, competitor: false, winner: 'caro' },
     { feature: 'AWS service integration', caro: false, competitor: true, winner: 'competitor' },
-    { feature: 'IAM/CloudWatch awareness', caro: false, competitor: true, winner: 'competitor' },
-    { feature: 'Enterprise support', caro: false, competitor: true, winner: 'competitor' },
+    { feature: 'MCP tool integration', caro: false, competitor: true, winner: 'competitor' },
+    { feature: 'Custom agents support', caro: false, competitor: true, winner: 'competitor' },
   ],
   sections: [
     {
       title: 'Cloud Dependency',
       icon: '☁️',
       content: `
-        <p><strong>Amazon Q CLI</strong> is built for AWS users and requires an AWS account. Your prompts and context are sent to AWS for processing, and the tool is optimized for AWS-specific workflows.</p>
+        <p><strong>Kiro CLI</strong> (formerly Amazon Q CLI) is built by AWS and requires an internet connection. Your prompts and context are sent to AWS for processing, and the tool is optimized for AWS-specific workflows.</p>
         <p><strong>Caro</strong> has zero cloud dependency. It runs entirely on your machine with local models. No accounts, no API keys, no internet required. This makes it suitable for any environment, not just AWS.</p>
       `
     },
@@ -39,15 +39,15 @@ const comparison = {
       title: 'Privacy & Data',
       icon: '🔒',
       content: `
-        <p><strong>Amazon Q CLI</strong> sends your terminal context to AWS for processing. While AWS has enterprise security policies, your shell commands traverse their infrastructure.</p>
+        <p><strong>Kiro CLI</strong> sends your terminal context to AWS for processing. While AWS has enterprise security policies, your shell commands traverse their infrastructure.</p>
         <p><strong>Caro</strong> processes everything locally. Your commands, prompts, and terminal context never leave your machine. Perfect for organizations with strict data sovereignty requirements or developers who prefer to keep their workflow private.</p>
       `
     },
     {
-      title: 'Specialization',
+      title: 'Features & Capabilities',
       icon: '🎯',
       content: `
-        <p><strong>Amazon Q CLI</strong> shines with AWS-specific tasks: understanding IAM policies, CloudWatch logs, ECS deployments, and other AWS services. If you're deep in the AWS ecosystem, it has context that general tools lack.</p>
+        <p><strong>Kiro CLI</strong> offers interactive chat, custom agents, MCP integration for external tools, smart hooks, and agent steering for team practices. It shines with AWS-specific tasks and enterprise workflows.</p>
         <p><strong>Caro</strong> specializes in general shell commands with POSIX compliance and cross-platform support. It's cloud-agnostic and works equally well whether you're on AWS, GCP, Azure, or bare metal.</p>
       `
     },
@@ -55,7 +55,7 @@ const comparison = {
       title: 'Safety Approach',
       icon: '🛡️',
       content: `
-        <p><strong>Amazon Q CLI</strong> relies on its model to generate safe commands. There's no systematic pre-execution validation layer for dangerous patterns.</p>
+        <p><strong>Kiro CLI</strong> relies on its model to generate safe commands. There's no systematic pre-execution validation layer for dangerous patterns.</p>
         <p><strong>Caro</strong> validates every command against 52+ safety patterns before presenting it. Dangerous operations like <code>rm -rf /</code>, fork bombs, and privilege escalations are blocked independently of what the model suggests.</p>
       `
     },
@@ -70,8 +70,8 @@ const comparison = {
     ],
     chooseCompetitor: [
       'You\'re deeply invested in the AWS ecosystem',
-      'You need AWS-specific context (IAM, CloudWatch, etc.)',
-      'Enterprise support and SLAs are important',
+      'You need MCP integration for external tools',
+      'Custom agents and team workflows are important',
       'You\'re already paying for AWS and want unified tooling',
     ]
   }
@@ -79,8 +79,8 @@ const comparison = {
 ---
 
 <ComparisonPageLayout
-  title="Caro vs Amazon Q CLI - Feature Comparison | Shell AI Tools"
-  description="Compare Caro and Amazon Q CLI. Local-first, cloud-agnostic shell companion vs AWS-integrated AI assistant."
+  title="Caro vs Kiro CLI - Feature Comparison | Shell AI Tools"
+  description="Compare Caro and Kiro CLI (formerly Amazon Q CLI). Local-first, cloud-agnostic shell companion vs AWS-integrated AI assistant."
   comparison={comparison}
   heroSubtitle="Cloud-agnostic local tool vs AWS-integrated assistant"
   finalCtaHeading="Cloud-Agnostic. Privacy-First."

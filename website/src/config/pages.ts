@@ -226,12 +226,12 @@ export const PAGES_INDEX: PageEntry[] = [
     keywords: ['warp', 'terminal', 'compare'],
     icon: '🚀',
   }),
-  getEntry('/compare/amazon-q-cli', {
-    title: 'vs Amazon Q CLI',
-    description: 'Caro vs Amazon Q CLI',
+  getEntry('/compare/kiro-cli', {
+    title: 'vs Kiro CLI',
+    description: 'Caro vs Kiro CLI (formerly Amazon Q CLI)',
     category: 'compare',
-    keywords: ['amazon', 'q', 'aws', 'compare'],
-    icon: '📦',
+    keywords: ['kiro', 'amazon', 'q', 'aws', 'compare'],
+    icon: '☁️',
   }),
   getEntry('/compare/opencode', {
     title: 'vs OpenCode',
