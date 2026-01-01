@@ -1,0 +1,13 @@
+{
+  "accept_commit": null,
+  "acceptance_history": [],
+  "acceptance_mode": null,
+  "accepted_at": null,
+  "accepted_by": null,
+  "accepted_from_commit": null,
+  "created_at": "2026-01-01T00:00:00Z",
+  "feature_number": "008",
+  "friendly_name": "Caro Web Hub - Privacy-First Social Platform",
+  "slug": "008-caro-web-hub",
+  "source_description": "Implement Caro Hub as a privacy-first social platform where developers share terminal expertise, runbooks, and workflows with professional guilds, built on Bluesky AT Protocol"
+}
