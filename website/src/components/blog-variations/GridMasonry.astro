@@ -1,0 +1,240 @@
+---
+// Grid Masonry variation - Pinterest-style masonry layout
+interface Props {
+  posts: Array<{
+    title: string;
+    slug: string;
+    date: string;
+    excerpt: string;
+    readTime: string;
+  }>;
+}
+
+const { posts } = Astro.props;
+---
+
+<div class="masonry-grid">
+  {posts.map((post, index) => {
+    // Alternate between different card heights for visual variety
+    const heightClass = index % 3 === 0 ? 'tall' : index % 2 === 0 ? 'medium' : 'short';
+
+    return (
+      <article class={`masonry-card ${heightClass}`}>
+        <a href={`/blog/${post.slug}`} class="masonry-link">
+          <div class="masonry-visual">
+            <div class="masonry-icon-container">
+              <span class="masonry-icon">🐕</span>
+            </div>
+            <div class="masonry-overlay">
+              <time datetime={post.date} class="masonry-date">
+                {new Date(post.date).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric'
+                })}
+              </time>
+            </div>
+          </div>
+
+          <div class="masonry-body">
+            <h3 class="masonry-title">{post.title}</h3>
+            <p class="masonry-excerpt">{post.excerpt}</p>
+
+            <div class="masonry-footer">
+              <span class="masonry-read-time">{post.readTime}</span>
+              <span class="masonry-arrow">→</span>
+            </div>
+          </div>
+        </a>
+      </article>
+    );
+  })}
+</div>
+
+<style>
+  .masonry-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-auto-rows: 120px;
+    gap: 20px;
+    margin-top: 40px;
+  }
+
+  .masonry-card {
+    background: var(--color-bg);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .masonry-card.short {
+    grid-row: span 3;
+  }
+
+  .masonry-card.medium {
+    grid-row: span 4;
+  }
+
+  .masonry-card.tall {
+    grid-row: span 5;
+  }
+
+  .masonry-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 16px 40px rgba(255, 140, 66, 0.15);
+    border-color: #ff8c42;
+    z-index: 10;
+  }
+
+  .masonry-link {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .masonry-visual {
+    position: relative;
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.8) 0%, rgba(255, 107, 53, 0.8) 100%);
+    min-height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .masonry-icon-container {
+    transform: rotate(-12deg);
+    transition: transform 0.3s;
+  }
+
+  .masonry-card:hover .masonry-icon-container {
+    transform: rotate(0deg) scale(1.1);
+  }
+
+  .masonry-icon {
+    font-size: 60px;
+    filter: brightness(1.3);
+  }
+
+  .masonry-overlay {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    padding: 8px 14px;
+    border-radius: 8px;
+  }
+
+  .masonry-date {
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .masonry-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+
+  .masonry-title {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 12px;
+    color: var(--color-text);
+    transition: color 0.2s;
+  }
+
+  .masonry-card:hover .masonry-title {
+    color: #ff8c42;
+  }
+
+  .masonry-excerpt {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--color-text-tertiary);
+    margin-bottom: 16px;
+    flex-grow: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .masonry-card.tall .masonry-excerpt {
+    -webkit-line-clamp: 5;
+  }
+
+  .masonry-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .masonry-read-time {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+  }
+
+  .masonry-arrow {
+    color: #ff8c42;
+    font-size: 20px;
+    font-weight: 700;
+    transition: transform 0.2s;
+  }
+
+  .masonry-card:hover .masonry-arrow {
+    transform: translateX(4px);
+  }
+
+  @media (max-width: 1024px) {
+    .masonry-grid {
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-auto-rows: 110px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .masonry-grid {
+      grid-template-columns: 1fr;
+      grid-auto-rows: auto;
+      gap: 24px;
+    }
+
+    .masonry-card.short,
+    .masonry-card.medium,
+    .masonry-card.tall {
+      grid-row: span 1;
+    }
+
+    .masonry-visual {
+      min-height: 180px;
+    }
+
+    .masonry-icon {
+      font-size: 70px;
+    }
+
+    .masonry-title {
+      font-size: 22px;
+    }
+
+    .masonry-excerpt {
+      -webkit-line-clamp: 4;
+    }
+  }
+</style>
