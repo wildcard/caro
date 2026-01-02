@@ -909,6 +909,48 @@ Improve development and deployment:
 
 ---
 
+## Contribution Lanes (Advanced Contributors)
+
+For experienced contributors, we organize work into **six contribution lanes** with clear ownership and success metrics:
+
+### The Six Lanes
+
+1. **Security Lane** (`lane/security`)
+   - Focus: Guardrails, policy engine, red-team testing
+   - Lead role: Red Team Captain
+   - First issues: Policy engine MVP, risk scoring, CWD hard-binding
+
+2. **Runtime Lane** (`lane/runtime`)
+   - Focus: Tokio, streaming, backend orchestration
+   - Lead role: Rust Architect
+   - First issues: Streaming responses, cancellation, capability probing
+
+3. **Inference Lane** (`lane/inference`)
+   - Focus: Performance, quantization, benchmarking
+   - Lead role: Performance Engineer
+   - First issues: Benchmark harness, quantization comparison, CPU features
+
+4. **UX Lane** (`lane/ux`)
+   - Focus: Ratatui, confirmations, plan/review/apply
+   - Lead role: TUI Designer
+   - First issues: Confirm UI, plan flow, syntax highlighting
+
+5. **Ecosystem Lane** (`lane/ecosystem`)
+   - Focus: MCP, IDE integration, plugins
+   - Lead role: Integration Engineer
+   - First issues: MCP server, VS Code extension, Claude Desktop
+
+6. **Distribution Lane** (`lane/distribution`)
+   - Focus: Packaging, signing, offline bundles
+   - Lead role: Packaging Maintainer
+   - First issues: Nix flake, artifact signing, bundle creator
+
+**See detailed lane information:** [HELP_WANTED.md](HELP_WANTED.md)
+
+**Looking to lead a lane?** We're recruiting lane leads - open an issue titled "Lane Lead Application: [lane name]"
+
+---
+
 ## Agent Collaboration
 
 caro development leverages specialized AI agents for different tasks. When working on contributions, you may benefit from:
