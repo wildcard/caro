@@ -136,6 +136,9 @@ const { title, description } = Astro.props;
     --color-footer-text: #ecf0f1;
     --color-footer-text-muted: #7f8c8d;
     --color-links-muted: #95a5a6;
+    /* Link colors - brand primary */
+    --color-link: #ff8c42;
+    --color-link-hover: #ff6b35;
   }
 
   .dark {
@@ -150,6 +153,9 @@ const { title, description } = Astro.props;
     --color-footer-text: #e0e0e0;
     --color-footer-text-muted: #888888;
     --color-links-muted: #a0a0a0;
+    /* Lighter link colors for dark mode contrast */
+    --color-link: #ffa76c;
+    --color-link-hover: #ff8c42;
   }
 
   /* ============================================
@@ -566,6 +572,27 @@ const { title, description } = Astro.props;
     color: var(--color-text);
     background: var(--color-bg);
     transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* ============================================
+     GLOBAL LINK STYLES
+     Uses CSS variables for theme support
+     ============================================ */
+  a {
+    color: var(--color-link);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  a:hover {
+    color: var(--color-link-hover);
+    text-decoration: underline;
+  }
+
+  a:focus-visible {
+    outline: 2px solid var(--color-link);
+    outline-offset: 2px;
+    border-radius: 2px;
   }
 
   .container {

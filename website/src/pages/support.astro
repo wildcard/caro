@@ -410,11 +410,12 @@ import Navigation from '../components/Navigation.astro';
   }
 
   .section-intro a {
-    color: #ff8c42;
+    color: var(--color-link, #ff8c42);
     text-decoration: none;
   }
 
   .section-intro a:hover {
+    color: var(--color-link-hover, #ff6b35);
     text-decoration: underline;
   }
 
@@ -667,12 +668,13 @@ import Navigation from '../components/Navigation.astro';
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    color: #ff8c42;
+    color: var(--color-link, #ff8c42);
     font-weight: 600;
     text-decoration: none;
   }
 
   .link-button:hover {
+    color: var(--color-link-hover, #ff6b35);
     text-decoration: underline;
   }
 
@@ -742,13 +744,14 @@ import Navigation from '../components/Navigation.astro';
   }
 
   .way-card a {
-    color: #ff8c42;
+    color: var(--color-link, #ff8c42);
     font-weight: 600;
     text-decoration: none;
     font-size: 14px;
   }
 
   .way-card a:hover {
+    color: var(--color-link-hover, #ff6b35);
     text-decoration: underline;
   }
 
