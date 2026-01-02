@@ -231,7 +231,7 @@ export const PAGES_INDEX: PageEntry[] = [
     description: 'Caro vs Kiro CLI (formerly Amazon Q CLI)',
     category: 'compare',
     keywords: ['kiro', 'amazon', 'q', 'aws', 'compare'],
-    icon: '☁️',
+    icon: '👻',
   }),
   getEntry('/compare/opencode', {
     title: 'vs OpenCode',
