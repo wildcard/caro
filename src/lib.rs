@@ -38,6 +38,7 @@ pub mod model_loader;
 pub mod models;
 pub mod platform;
 pub mod safety;
+pub mod starship_context;
 pub mod version;
 
 // Re-export commonly used types for convenience
@@ -55,6 +56,7 @@ pub use execution::{ExecutionError, PlatformDetector, ShellDetector};
 pub use logging::{LogConfig, LogConfigBuilder, LogError, LogFormat, LogOutput, Logger, Redaction};
 pub use model_loader::ModelLoader;
 pub use platform::{PlatformContext, PlatformContextBuilder, PlatformContextError, UtilityType};
+pub use starship_context::{EnhancedShellType, GitContext, ProjectType, StarshipContext};
 
 // Re-export backend types
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]

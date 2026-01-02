@@ -1,3 +1,4 @@
+use crate::starship_context::{GitContext, ProjectType, StarshipContext};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::process::Command;
@@ -28,11 +29,52 @@ pub struct ExecutionContext {
 
     /// Available commands on system
     pub available_commands: Vec<String>,
+
+    /// Git repository context (from starship)
+    #[serde(default)]
+    pub git: GitContext,
+
+    /// Detected project type (from starship)
+    #[serde(default = "default_project_type")]
+    pub project_type: ProjectType,
+
+    /// Notable files in current directory
+    #[serde(default)]
+    pub notable_files: Vec<String>,
+
+    /// Terminal width in columns
+    #[serde(default)]
+    pub terminal_width: usize,
+}
+
+fn default_project_type() -> ProjectType {
+    ProjectType::Generic
 }
 
 impl ExecutionContext {
-    /// Detect current execution context
+    /// Detect current execution context with enhanced starship integration
     pub fn detect() -> Self {
+        // Get enhanced context from starship
+        let starship_ctx = StarshipContext::detect();
+
+        Self {
+            os: std::env::consts::OS.to_string(),
+            arch: std::env::consts::ARCH.to_string(),
+            os_version: Self::get_os_version(),
+            distribution: Self::detect_distribution(),
+            cwd: starship_ctx.current_dir.clone(),
+            shell: starship_ctx.shell.to_string(),
+            user: std::env::var("USER").unwrap_or_else(|_| "user".to_string()),
+            available_commands: Self::scan_available_commands(),
+            git: starship_ctx.git,
+            project_type: starship_ctx.project_type,
+            notable_files: starship_ctx.notable_files,
+            terminal_width: starship_ctx.terminal_width,
+        }
+    }
+
+    /// Detect current execution context without starship (faster, for basic use)
+    pub fn detect_basic() -> Self {
         Self {
             os: std::env::consts::OS.to_string(),
             arch: std::env::consts::ARCH.to_string(),
@@ -42,6 +84,10 @@ impl ExecutionContext {
             shell: Self::detect_shell(),
             user: std::env::var("USER").unwrap_or_else(|_| "user".to_string()),
             available_commands: Self::scan_available_commands(),
+            git: GitContext::default(),
+            project_type: ProjectType::Generic,
+            notable_files: Vec::new(),
+            terminal_width: 0,
         }
     }
 
@@ -210,18 +256,14 @@ impl ExecutionContext {
 
     /// Get context summary for system prompt
     pub fn get_prompt_context(&self) -> String {
-        format!(
+        let mut context = format!(
             r#"EXECUTION ENVIRONMENT:
 - Platform: {} {} ({})
 - Architecture: {}
 - Shell: {}
 - Current Directory: {}
 - User: {}
-
-AVAILABLE COMMANDS: {}
-
-PLATFORM-SPECIFIC RULES:
-{}"#,
+- Terminal Width: {} columns"#,
             self.os,
             self.os_version,
             self.distribution.as_deref().unwrap_or("Unknown"),
@@ -229,9 +271,65 @@ PLATFORM-SPECIFIC RULES:
             self.shell,
             self.cwd.display(),
             self.user,
+            self.terminal_width
+        );
+
+        // Add git context if in a repository
+        if self.git.is_git_repo {
+            context.push_str("\n\nGIT REPOSITORY:");
+            if let Some(ref branch) = self.git.branch {
+                context.push_str(&format!("\n- Branch: {}", branch));
+            }
+            if let Some(ref state) = self.git.state {
+                if state != "Clean" {
+                    context.push_str(&format!("\n- State: {}", state));
+                }
+            }
+            if let Some(ref remote) = self.git.remote_name {
+                context.push_str(&format!("\n- Remote: {}", remote));
+            }
+            if let Some(ref root) = self.git.repo_root {
+                context.push_str(&format!("\n- Repo Root: {}", root.display()));
+            }
+        }
+
+        // Add project type context
+        if self.project_type != ProjectType::Generic {
+            context.push_str(&format!("\n\nPROJECT TYPE: {}", self.project_type));
+            let hints = self.project_type.command_hints();
+            if !hints.is_empty() {
+                context.push_str("\nCommon commands:");
+                for hint in hints.iter().take(3) {
+                    context.push_str(&format!("\n  - {}", hint));
+                }
+            }
+        }
+
+        // Add notable files
+        if !self.notable_files.is_empty() {
+            context.push_str(&format!(
+                "\n\nNOTABLE FILES: {}",
+                self.notable_files.join(", ")
+            ));
+        }
+
+        context.push_str(&format!(
+            "\n\nAVAILABLE COMMANDS: {}\n\nPLATFORM-SPECIFIC RULES:\n{}",
             self.available_commands.join(", "),
             self.get_platform_rules()
-        )
+        ));
+
+        context
+    }
+
+    /// Check if we're in a git repository
+    pub fn is_git_repo(&self) -> bool {
+        self.git.is_git_repo
+    }
+
+    /// Get the current git branch
+    pub fn git_branch(&self) -> Option<&str> {
+        self.git.branch.as_deref()
     }
 }
 

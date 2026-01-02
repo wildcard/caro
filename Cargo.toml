@@ -49,6 +49,9 @@ which = "8.0"
 os_info = "3.14"
 sysinfo = "0.37"
 
+# Enhanced context collection via starship prompt engine
+starship = "1.24"
+
 # Model integration (Hugging Face Hub)
 hf-hub = { version = "0.4", default-features = false, features = ["tokio", "rustls-tls"] }
 url = "2.5"
