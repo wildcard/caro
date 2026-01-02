@@ -1,10 +1,18 @@
 /**
- * Site pages index for OmniMenu navigation
- * Used by the Cmd+K omni menu to provide quick navigation
+ * Site pages index for OmniSearch navigation
  *
- * Search metadata is sourced from page frontmatter (searchMeta exports)
- * to keep data DRY and close to source. Fallback defaults are provided
- * for pages that don't yet have searchMeta defined.
+ * IMPORTANT: When adding new pages to the website, ensure they are added to this index.
+ * The OmniSearch feature (Cmd+/ or Ctrl+/) uses this index to provide site-wide search.
+ *
+ * Each page entry should include:
+ * - title: Display name of the page
+ * - path: URL path (e.g., '/blog/my-post')
+ * - description: Short description for search results
+ * - category: One of 'main', 'use-cases', 'compare', 'blog', 'docs'
+ * - keywords: Array of search terms
+ * - icon: Emoji icon for the search result
+ *
+ * @see scripts/generate-search-index.mjs for automated index generation
  */
 
 export interface PageEntry {
