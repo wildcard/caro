@@ -572,36 +572,6 @@ const { title, description } = Astro.props;
      GLOBAL LINK STYLES
      Brand-colored links for light/dark mode
      ============================================ */
-  a {
-    color: var(--color-primary);
-    text-decoration: none;
-    transition: color 0.2s ease;
-  }
-
-  a:hover {
-    color: var(--color-primary-dark);
-    text-decoration: underline;
-  }
-
-  a:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
-    border-radius: 2px;
-  }
-
-  /* Dark mode link colors - slightly brighter for contrast */
-  .dark a {
-    color: var(--color-primary-light);
-  }
-
-  .dark a:hover {
-    color: var(--color-primary);
-  }
-
-  .dark a:focus-visible {
-    outline-color: var(--color-primary-light);
-  }
-
   .container {
     max-width: 900px;
     margin: 0 auto;
