@@ -41,6 +41,9 @@ Example: `ADR-001-enterprise-community-architecture.md`
 | [ADR-002](./ADR-002-governance-provisioning-system.md) | Governance and Provisioning System | Proposed | 2025-11-29 |
 | [ADR-003](./ADR-003-monitoring-audit-trail.md) | Monitoring and Audit Trail System | Proposed | 2025-11-29 |
 | [ADR-004](./ADR-004-just-runbook-integration.md) | Just-Based Runbook Integration | Proposed | 2026-01-02 |
+| [ADR-005](./ADR-005-hayagriva-bibliography-integration.md) | Hayagriva Bibliography Integration | Proposed | 2026-01-02 |
+| [ADR-006](./ADR-006-olmo3-model-support.md) | OLMo 3 Model Support | Proposed | 2026-01-03 |
+| [ADR-007](./ADR-007-ast-parser-shell-validation.md) | AST Parser for Shell Command Validation | Proposed | 2026-01-02 |
 
 ## Contributing to ADRs
 
