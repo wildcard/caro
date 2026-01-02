@@ -180,6 +180,7 @@
   let matches: Element[] = [];
   let currentIndex = 0;
   let originalContent: Map<Element, string> = new Map();
+  let hasInitialized = false;
 
   // Get search query from URL
   function getSearchQuery(): string | null {
@@ -194,7 +195,9 @@
 
   // Highlight all matches in the page
   function highlightMatches(query: string) {
+    if (hasInitialized) return; // Prevent double initialization
     if (!query || query.length < 2) return;
+    hasInitialized = true;
 
     const tokens = query.toLowerCase().split(/\s+/).filter(t => t.length >= 2);
     if (tokens.length === 0) return;
@@ -219,6 +222,7 @@
             return NodeFilter.FILTER_REJECT;
           }
           // Only accept nodes with matching text
+          pattern.lastIndex = 0; // Reset stateful regex
           if (pattern.test(node.textContent || '')) {
             return NodeFilter.FILTER_ACCEPT;
           }
@@ -251,6 +255,7 @@
       const fragment = document.createDocumentFragment();
 
       for (const part of parts) {
+        pattern.lastIndex = 0; // Reset stateful regex
         if (pattern.test(part)) {
           const mark = document.createElement('mark');
           mark.className = 'search-match';
@@ -327,6 +332,7 @@
     matches = [];
     currentIndex = 0;
     originalContent.clear();
+    hasInitialized = false;
 
     // Hide bar
     if (bar) bar.classList.add('hidden');
