@@ -6,6 +6,7 @@ import BackToTop from '../components/BackToTop.astro';
 import NewYearCountdown from '../components/NewYearCountdown.astro';
 import NewYearEffect from '../components/NewYearEffect.astro';
 import OmniMenu from '../components/OmniMenu.astro';
+import HolidayDebugPanel from '../components/HolidayDebugPanel.astro';
 
 interface Props {
   title: string;
@@ -78,35 +79,18 @@ const { title, description } = Astro.props;
           }
 
           const month = now.getMonth(); // 0-indexed
-          // December 1-31 only (Christmas/Hanukkah season)
-          // January 1 is now handled separately as New Year
-          return (month === 11);
-        }
-
-        function isNewYearDay() {
-          let now = new Date();
-
-          // Support test date override (localhost only)
-          if (window.__CARO_TEST_DATE) {
-            now = new Date(window.__CARO_TEST_DATE);
-          }
-
-          const month = now.getMonth(); // 0-indexed
           const day = now.getDate();
-          // January 1st only
-          return (month === 0 && day === 1);
+          // December 1-31 (Christmas/Hanukkah season) OR January 1-3 (New Year)
+          return (month === 11) || (month === 0 && day <= 3);
         }
 
         if (isHolidaySeason()) {
+          // Holiday themes are opt-in only - only apply if user has explicitly chosen one
           const savedHolidayTheme = localStorage.getItem('holidayTheme');
           if (savedHolidayTheme && savedHolidayTheme !== 'none') {
             document.documentElement.classList.add(savedHolidayTheme);
           }
-        }
-
-        // New Year's Day gets its own theme
-        if (isNewYearDay()) {
-          document.documentElement.classList.add('newyear');
+          // Note: If no theme saved, we default to 'none' (no theme applied)
         }
       })();
     </script>
@@ -118,6 +102,7 @@ const { title, description } = Astro.props;
     <OmniMenu />
     <slot />
     <BackToTop />
+    <HolidayDebugPanel />
     <Analytics />
     <PostHog />
   </body>
@@ -413,6 +398,223 @@ const { title, description } = Astro.props;
   }
 
   /* ============================================
+     DIWALI THEME
+     Colors: Orange, Gold, Purple, Magenta
+     ============================================ */
+  .diwali {
+    --color-accent: #ff9933;
+    --color-accent-secondary: #800080;
+    --color-accent-tertiary: #ffd700;
+    --color-bg-tertiary: #fff8f0;
+    --diwali-orange: #ff9933;
+    --diwali-purple: #800080;
+    --diwali-gold: #ffd700;
+    --diwali-magenta: #ff1493;
+  }
+
+  .diwali.dark {
+    --color-bg-tertiary: #1f1a1a;
+    --diwali-orange: #ffa64d;
+    --diwali-purple: #9932cc;
+    --diwali-gold: #f1c40f;
+    --diwali-magenta: #ff69b4;
+  }
+
+  .diwali .cta-button,
+  .diwali .companion-badge {
+    background: linear-gradient(135deg, var(--diwali-orange) 0%, var(--diwali-purple) 100%) !important;
+  }
+
+  .diwali .cta-button:hover {
+    box-shadow: 0 10px 25px rgba(255, 153, 51, 0.4) !important;
+  }
+
+  .diwali .logo {
+    background: linear-gradient(135deg, var(--diwali-orange) 0%, var(--diwali-gold) 50%, var(--diwali-purple) 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+  }
+
+  .diwali .feature {
+    border-color: rgba(255, 153, 51, 0.2) !important;
+  }
+
+  .diwali .feature:hover {
+    border-color: var(--diwali-orange) !important;
+    box-shadow: 0 10px 30px rgba(255, 153, 51, 0.15) !important;
+  }
+
+  .diwali .download-section {
+    background: linear-gradient(135deg, var(--diwali-orange) 0%, var(--diwali-purple) 100%) !important;
+  }
+
+  /* ============================================
+     LUNAR NEW YEAR THEME
+     Colors: Red, Gold, Yellow
+     ============================================ */
+  .lunar-new-year {
+    --color-accent: #de2910;
+    --color-accent-secondary: #ffde00;
+    --color-accent-tertiary: #ffffff;
+    --color-bg-tertiary: #fff5f5;
+    --lunar-red: #de2910;
+    --lunar-gold: #ffde00;
+    --lunar-yellow: #ffd700;
+  }
+
+  .lunar-new-year.dark {
+    --color-bg-tertiary: #1f1a1a;
+    --lunar-red: #e63946;
+    --lunar-gold: #f1c40f;
+  }
+
+  .lunar-new-year .cta-button,
+  .lunar-new-year .companion-badge {
+    background: linear-gradient(135deg, var(--lunar-red) 0%, var(--lunar-gold) 100%) !important;
+  }
+
+  .lunar-new-year .cta-button:hover {
+    box-shadow: 0 10px 25px rgba(222, 41, 16, 0.4) !important;
+  }
+
+  .lunar-new-year .logo {
+    background: linear-gradient(135deg, var(--lunar-red) 0%, var(--lunar-gold) 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+  }
+
+  .lunar-new-year .feature {
+    border-color: rgba(222, 41, 16, 0.2) !important;
+  }
+
+  .lunar-new-year .feature:hover {
+    border-color: var(--lunar-red) !important;
+    box-shadow: 0 10px 30px rgba(222, 41, 16, 0.15) !important;
+  }
+
+  .lunar-new-year .download-section {
+    background: linear-gradient(135deg, var(--lunar-red) 0%, var(--lunar-gold) 100%) !important;
+  }
+
+  /* ============================================
+     EID THEME (Eid al-Fitr / Eid al-Adha)
+     Colors: Green, Gold, White
+     ============================================ */
+  .eid {
+    --color-accent: #009639;
+    --color-accent-secondary: #ffd700;
+    --color-accent-tertiary: #ffffff;
+    --color-bg-tertiary: #f0fff0;
+    --eid-green: #009639;
+    --eid-gold: #ffd700;
+    --eid-white: #ffffff;
+  }
+
+  .eid.dark {
+    --color-bg-tertiary: #1a1f1a;
+    --eid-green: #00b347;
+    --eid-gold: #f1c40f;
+  }
+
+  .eid .cta-button,
+  .eid .companion-badge {
+    background: linear-gradient(135deg, var(--eid-green) 0%, var(--eid-gold) 100%) !important;
+  }
+
+  .eid .logo {
+    background: linear-gradient(135deg, var(--eid-green) 0%, var(--eid-gold) 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+  }
+
+  .eid .download-section {
+    background: linear-gradient(135deg, var(--eid-green) 0%, var(--eid-gold) 100%) !important;
+  }
+
+  /* ============================================
+     HOLI THEME
+     Colors: Pink, Green, Yellow, Purple
+     ============================================ */
+  .holi {
+    --color-accent: #ff1493;
+    --color-accent-secondary: #00ff00;
+    --color-accent-tertiary: #ffff00;
+    --color-bg-tertiary: #fff0f5;
+  }
+
+  .holi .cta-button,
+  .holi .companion-badge {
+    background: linear-gradient(135deg, #ff1493 0%, #00ff00 50%, #ffff00 100%) !important;
+  }
+
+  .holi .logo {
+    background: linear-gradient(135deg, #ff1493 0%, #00ff00 50%, #ffff00 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    background-size: 200% 200%;
+    animation: rainbow-gradient 3s ease infinite;
+  }
+
+  .holi .download-section {
+    background: linear-gradient(135deg, #ff1493 0%, #00ff00 50%, #ffff00 100%) !important;
+  }
+
+  /* ============================================
+     NATIONAL HOLIDAY THEMES
+     ============================================ */
+
+  /* July 4th (USA) */
+  .july-4th {
+    --color-accent: #b22234;
+    --color-accent-secondary: #3c3b6e;
+    --color-bg-tertiary: #f8f9fa;
+  }
+
+  .july-4th .cta-button {
+    background: linear-gradient(135deg, #b22234 0%, #3c3b6e 100%) !important;
+  }
+
+  .july-4th .logo {
+    background: linear-gradient(135deg, #b22234 0%, #3c3b6e 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+  }
+
+  /* Bastille Day (France) */
+  .bastille-day {
+    --color-accent: #0055a4;
+    --color-accent-secondary: #ef4135;
+    --color-bg-tertiary: #f8f9ff;
+  }
+
+  .bastille-day .cta-button {
+    background: linear-gradient(135deg, #0055a4 0%, #ef4135 100%) !important;
+  }
+
+  .bastille-day .logo {
+    background: linear-gradient(135deg, #0055a4 0%, #ffffff 50%, #ef4135 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+  }
+
+  /* German Unity Day */
+  .german-unity {
+    --color-accent: #dd0000;
+    --color-accent-secondary: #ffcc00;
+    --color-bg-tertiary: #fffef0;
+  }
+
+  .german-unity .cta-button {
+    background: linear-gradient(135deg, #000000 0%, #dd0000 50%, #ffcc00 100%) !important;
+  }
+
+  .german-unity .logo {
+    background: linear-gradient(135deg, #000000 0%, #dd0000 50%, #ffcc00 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+  }
+
+  /* ============================================
      HOLIDAY DECORATIONS - HERO SECTION
      ============================================ */
 
@@ -523,10 +725,101 @@ const { title, description } = Astro.props;
     100% { transform: rotate(360deg); }
   }
 
+  /* Diwali decorations */
+  .diwali .hero::before {
+    content: '🪔';
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 40px;
+    animation: gentleGlow 2s ease-in-out infinite;
+    opacity: 0.9;
+  }
+
+  .diwali .hero::after {
+    content: '✨';
+    position: absolute;
+    top: 20px;
+    right: 80px;
+    font-size: 36px;
+    animation: sparkle 3s ease-in-out infinite;
+    opacity: 0.8;
+  }
+
+  /* Lunar New Year decorations */
+  .lunar-new-year .hero::before {
+    content: '🐉';
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 40px;
+    animation: gentleSway 3s ease-in-out infinite;
+    opacity: 0.9;
+  }
+
+  .lunar-new-year .hero::after {
+    content: '🧧';
+    position: absolute;
+    top: 20px;
+    right: 80px;
+    font-size: 36px;
+    animation: gentleBob 2s ease-in-out infinite;
+    opacity: 0.8;
+  }
+
+  /* Eid decorations */
+  .eid .hero::before {
+    content: '🌙';
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 40px;
+    animation: gentleGlow 2s ease-in-out infinite;
+    opacity: 0.9;
+  }
+
+  .eid .hero::after {
+    content: '⭐';
+    position: absolute;
+    top: 25px;
+    right: 80px;
+    font-size: 32px;
+    animation: gentleSpin 8s linear infinite;
+    opacity: 0.7;
+  }
+
+  /* Holi decorations */
+  .holi .hero::before {
+    content: '🎨';
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 40px;
+    animation: celebratePulse 2s ease-in-out infinite;
+    opacity: 0.9;
+  }
+
+  .holi .hero::after {
+    content: '💜';
+    position: absolute;
+    top: 20px;
+    right: 80px;
+    font-size: 36px;
+    animation: sparkle 3s ease-in-out infinite;
+    opacity: 0.8;
+  }
+
   /* Add position relative to hero for decorations */
   .christmas .hero,
   .hanukkah .hero,
-  .new-year .hero {
+  .new-year .hero,
+  .diwali .hero,
+  .lunar-new-year .hero,
+  .eid .hero,
+  .holi .hero,
+  .july-4th .hero,
+  .bastille-day .hero,
+  .german-unity .hero {
     position: relative;
     overflow: hidden;
   }
@@ -538,20 +831,36 @@ const { title, description } = Astro.props;
     .hanukkah .hero::before,
     .hanukkah .hero::after,
     .new-year .hero::before,
-    .new-year .hero::after {
+    .new-year .hero::after,
+    .diwali .hero::before,
+    .diwali .hero::after,
+    .lunar-new-year .hero::before,
+    .lunar-new-year .hero::after,
+    .eid .hero::before,
+    .eid .hero::after,
+    .holi .hero::before,
+    .holi .hero::after {
       font-size: 24px;
       top: 10px;
     }
 
     .christmas .hero::before,
     .hanukkah .hero::before,
-    .new-year .hero::before {
+    .new-year .hero::before,
+    .diwali .hero::before,
+    .lunar-new-year .hero::before,
+    .eid .hero::before,
+    .holi .hero::before {
       left: 10px;
     }
 
     .christmas .hero::after,
     .hanukkah .hero::after,
-    .new-year .hero::after {
+    .new-year .hero::after,
+    .diwali .hero::after,
+    .lunar-new-year .hero::after,
+    .eid .hero::after,
+    .holi .hero::after {
       right: 60px;
     }
   }

@@ -1171,19 +1171,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return (month === 11) || (month === 0 && day === 1);
   }
 
-  function isFromIsrael(): boolean {
-    try {
-      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      return timezone === 'Asia/Jerusalem' || timezone === 'Asia/Tel_Aviv';
-    } catch {
-      return false;
-    }
-  }
-
-  function getDefaultHolidayTheme(): 'christmas' | 'hanukkah' {
-    return isFromIsrael() ? 'hanukkah' : 'christmas';
-  }
-
   function applyHolidayTheme(theme: 'christmas' | 'hanukkah' | 'newyear' | 'none') {
     document.documentElement.classList.remove('christmas', 'hanukkah', 'newyear');
     if (theme !== 'none') {
@@ -1225,8 +1212,11 @@ document.addEventListener('DOMContentLoaded', () => {
     mobileControls?.classList.remove('hidden');
 
     let savedTheme = localStorage.getItem('holidayTheme') as 'christmas' | 'hanukkah' | 'newyear' | 'none' | null;
+
+    // Default to 'none' - holiday themes are opt-in only
+    // Users can choose their preferred theme from the menu
     if (!savedTheme) {
-      savedTheme = getDefaultHolidayTheme();
+      savedTheme = 'none';
     }
 
     applyHolidayTheme(savedTheme);
