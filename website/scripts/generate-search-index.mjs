@@ -76,11 +76,12 @@ function getIconFromPath(urlPath, category) {
 function extractAllTextContent(content) {
   let text = content
     // Remove code blocks first (they contain non-searchable content)
-    .replace(/<code[\s\S]*?<\/code>/gi, ' ')
-    .replace(/<pre[\s\S]*?<\/pre>/gi, ' ')
-    // Remove script and style tags
-    .replace(/<script[\s\S]*?<\/script>/gi, '')
-    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    // Use word boundary and flexible closing tags to handle </code > variants
+    .replace(/<code\b[^>]*>[\s\S]*?<\/code\b[^>]*>/gi, ' ')
+    .replace(/<pre\b[^>]*>[\s\S]*?<\/pre\b[^>]*>/gi, ' ')
+    // Remove script and style tags (handle forgiving end-tag syntax like </script >)
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script\b[^>]*>/gi, '')
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style\b[^>]*>/gi, '')
     // Remove frontmatter
     .replace(/---[\s\S]*?---/g, '')
     // Remove import statements
@@ -92,16 +93,31 @@ function extractAllTextContent(content) {
     // Extract text from HTML tags
     .replace(/<[^>]+>/g, ' ')
     // Decode common HTML entities
+    // IMPORTANT: Decode &amp; LAST to prevent double-unescaping
+    // (e.g., &amp;lt; -> &lt; -> < if &amp; is decoded first)
     .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/gi, '&')
     .replace(/&lt;/gi, '<')
     .replace(/&gt;/gi, '>')
     .replace(/&quot;/gi, '"')
     .replace(/&#39;/gi, "'")
+    .replace(/&amp;/gi, '&') // Decode &amp; LAST
     .replace(/&[a-z]+;/gi, ' ')
     // Normalize whitespace
     .replace(/\s+/g, ' ')
     .trim();
+
+  // Safety net: iteratively remove any remaining HTML-like tags
+  // in case earlier replacements (e.g., entity decoding) reintroduced them
+  let previous;
+  do {
+    previous = text;
+    text = text
+      .replace(/<script\b[^>]*>[\s\S]*?<\/script\b[^>]*>/gi, '')
+      .replace(/<style\b[^>]*>[\s\S]*?<\/style\b[^>]*>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  } while (text !== previous);
 
   return text;
 }
