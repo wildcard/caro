@@ -288,333 +288,354 @@
   }
 </style>
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const panel = document.getElementById('holiday-debug-panel');
-    const closeBtn = document.getElementById('debug-close');
-    const dateInput = document.getElementById('debug-date') as HTMLInputElement;
-    const applyDateBtn = document.getElementById('debug-apply-date');
-    const resetDateBtn = document.getElementById('debug-reset-date');
-    const localeSelect = document.getElementById('debug-locale') as HTMLSelectElement;
-    const stateDisplay = document.getElementById('debug-state');
+<script is:inline>
+  // Self-executing function to handle both DOM ready states
+  (function() {
+    function initDebugPanel() {
+      const panel = document.getElementById('holiday-debug-panel');
+      const closeBtn = document.getElementById('debug-close');
+      const dateInput = document.getElementById('debug-date');
+      const applyDateBtn = document.getElementById('debug-apply-date');
+      const resetDateBtn = document.getElementById('debug-reset-date');
+      const localeSelect = document.getElementById('debug-locale');
+      const stateDisplay = document.getElementById('debug-state');
 
-    // =========================================================================
-    // CONSTANTS - Must be defined before functions that use them
-    // =========================================================================
+      // =========================================================================
+      // CONSTANTS
+      // =========================================================================
 
-    // All possible theme classes
-    const ALL_THEMES = [
-      'christmas', 'hanukkah', 'newyear', 'diwali', 'lunar-new-year',
-      'holi', 'eid', 'july-4th', 'bastille-day', 'german-unity', 'yom-haatzmaut'
-    ];
+      const ALL_THEMES = [
+        'christmas', 'hanukkah', 'newyear', 'diwali', 'lunar-new-year',
+        'holi', 'eid', 'july-4th', 'bastille-day', 'german-unity', 'yom-haatzmaut'
+      ];
 
-    // Holiday definitions for client-side matching
-    // Month is 1-indexed for readability
-    const HOLIDAY_DATES: Array<{
-      id: string;
-      start: [number, number];
-      end: [number, number];
-      theme: string;
-      years?: number[];
-      locales?: string[];
-    }> = [
-      // Global holidays
-      { id: 'christmas', start: [12, 20], end: [12, 26], theme: 'christmas' },
-      { id: 'newyear', start: [1, 1], end: [1, 3], theme: 'newyear' },
+      const HOLIDAY_DATES = [
+        // Global holidays
+        { id: 'christmas', start: [12, 20], end: [12, 26], theme: 'christmas' },
+        { id: 'newyear', start: [1, 1], end: [1, 3], theme: 'newyear' },
 
-      // Year-specific holidays (lunar calendar based)
-      { id: 'hanukkah-2025', start: [12, 14], end: [12, 22], theme: 'hanukkah', years: [2025] },
-      { id: 'hanukkah-2026', start: [12, 5], end: [12, 13], theme: 'hanukkah', years: [2026] },
-      { id: 'diwali-2025', start: [10, 18], end: [10, 24], theme: 'diwali', years: [2025] },
-      { id: 'diwali-2026', start: [11, 7], end: [11, 13], theme: 'diwali', years: [2026] },
-      { id: 'lunar-ny-2025', start: [1, 26], end: [2, 9], theme: 'lunar-new-year', years: [2025] },
-      { id: 'lunar-ny-2026', start: [2, 14], end: [2, 28], theme: 'lunar-new-year', years: [2026] },
-      { id: 'holi-2025', start: [3, 12], end: [3, 16], theme: 'holi', years: [2025] },
-      { id: 'holi-2026', start: [3, 1], end: [3, 5], theme: 'holi', years: [2026] },
+        // Year-specific holidays
+        { id: 'hanukkah-2025', start: [12, 14], end: [12, 22], theme: 'hanukkah', years: [2025] },
+        { id: 'hanukkah-2026', start: [12, 5], end: [12, 13], theme: 'hanukkah', years: [2026] },
+        { id: 'diwali-2025', start: [10, 18], end: [10, 24], theme: 'diwali', years: [2025] },
+        { id: 'diwali-2026', start: [11, 7], end: [11, 13], theme: 'diwali', years: [2026] },
+        { id: 'lunar-ny-2025', start: [1, 26], end: [2, 9], theme: 'lunar-new-year', years: [2025] },
+        { id: 'lunar-ny-2026', start: [2, 14], end: [2, 28], theme: 'lunar-new-year', years: [2026] },
+        { id: 'holi-2025', start: [3, 12], end: [3, 16], theme: 'holi', years: [2025] },
+        { id: 'holi-2026', start: [3, 1], end: [3, 5], theme: 'holi', years: [2026] },
 
-      // Locale-specific holidays
-      { id: 'july-4th', start: [7, 1], end: [7, 7], theme: 'july-4th', locales: ['US'] },
-      { id: 'bastille', start: [7, 12], end: [7, 16], theme: 'bastille-day', locales: ['FR'] },
-      { id: 'german-unity', start: [10, 1], end: [10, 5], theme: 'german-unity', locales: ['DE'] },
-      { id: 'yom-haatzmaut', start: [5, 1], end: [5, 3], theme: 'yom-haatzmaut', locales: ['IL'] },
-    ];
+        // Locale-specific holidays
+        { id: 'july-4th', start: [7, 1], end: [7, 7], theme: 'july-4th', locales: ['US'] },
+        { id: 'bastille', start: [7, 12], end: [7, 16], theme: 'bastille-day', locales: ['FR'] },
+        { id: 'german-unity', start: [10, 1], end: [10, 5], theme: 'german-unity', locales: ['DE'] },
+        { id: 'yom-haatzmaut', start: [5, 1], end: [5, 3], theme: 'yom-haatzmaut', locales: ['IL'] },
+      ];
 
-    // =========================================================================
-    // HELPER FUNCTIONS - Defined before they're used
-    // =========================================================================
+      // =========================================================================
+      // HELPER FUNCTIONS
+      // =========================================================================
 
-    // Check if a date falls within a range (month is 1-indexed)
-    function isDateInRange(month: number, day: number, start: [number, number], end: [number, number]): boolean {
-      const [startMonth, startDay] = start;
-      const [endMonth, endDay] = end;
+      function isDateInRange(month, day, start, end) {
+        var startMonth = start[0], startDay = start[1];
+        var endMonth = end[0], endDay = end[1];
+        var dateVal = month * 100 + day;
+        var startVal = startMonth * 100 + startDay;
+        var endVal = endMonth * 100 + endDay;
 
-      // Create comparable numbers (month * 100 + day)
-      const dateVal = month * 100 + day;
-      const startVal = startMonth * 100 + startDay;
-      const endVal = endMonth * 100 + endDay;
-
-      if (startVal <= endVal) {
-        // Normal range within same year (e.g., Jan 1-3, Oct 1-5)
-        return dateVal >= startVal && dateVal <= endVal;
-      } else {
-        // Range crosses year boundary (e.g., Dec 20 - Jan 3)
-        return dateVal >= startVal || dateVal <= endVal;
+        if (startVal <= endVal) {
+          return dateVal >= startVal && dateVal <= endVal;
+        } else {
+          return dateVal >= startVal || dateVal <= endVal;
+        }
       }
-    }
 
-    // Determine which theme should be active for a given date
-    function getThemeForDate(date: Date, localeOverride?: string): string | null {
-      const month = date.getMonth() + 1; // Convert to 1-indexed
-      const day = date.getDate();
-      const year = date.getFullYear();
+      function getThemeForDate(date, localeOverride) {
+        var month = date.getMonth() + 1;
+        var day = date.getDate();
+        var year = date.getFullYear();
 
-      console.log(`🔍 Checking theme for: ${year}-${month}-${day}, locale: ${localeOverride || 'auto'}`);
+        console.log('🔍 Checking theme for: ' + year + '-' + month + '-' + day + ', locale: ' + (localeOverride || 'auto'));
 
-      for (const holiday of HOLIDAY_DATES) {
-        // Skip if year-specific and doesn't match
-        if (holiday.years && !holiday.years.includes(year)) {
-          continue;
-        }
+        for (var i = 0; i < HOLIDAY_DATES.length; i++) {
+          var holiday = HOLIDAY_DATES[i];
 
-        // Check if date is in range
-        if (!isDateInRange(month, day, holiday.start, holiday.end)) {
-          continue;
-        }
-
-        console.log(`📅 Date matches: ${holiday.id}`);
-
-        // Check locale restrictions
-        if (holiday.locales && holiday.locales.length > 0) {
-          if (!localeOverride || !holiday.locales.includes(localeOverride)) {
-            console.log(`🌍 Locale ${localeOverride} doesn't match required: ${holiday.locales.join(', ')}`);
+          // Skip if year-specific and doesn't match
+          if (holiday.years && holiday.years.indexOf(year) === -1) {
             continue;
+          }
+
+          // Check if date is in range
+          if (!isDateInRange(month, day, holiday.start, holiday.end)) {
+            continue;
+          }
+
+          console.log('📅 Date matches: ' + holiday.id);
+
+          // Check locale restrictions
+          if (holiday.locales && holiday.locales.length > 0) {
+            if (!localeOverride || holiday.locales.indexOf(localeOverride) === -1) {
+              console.log('🌍 Locale mismatch, skipping');
+              continue;
+            }
+          }
+
+          console.log('✅ Theme selected: ' + holiday.theme);
+          return holiday.theme;
+        }
+
+        console.log('❌ No matching theme found');
+        return null;
+      }
+
+      function applyTheme(theme) {
+        console.log('🎨 Applying theme: ' + (theme || 'none'));
+
+        // Remove all theme classes
+        for (var i = 0; i < ALL_THEMES.length; i++) {
+          document.documentElement.classList.remove(ALL_THEMES[i]);
+        }
+
+        // Apply new theme
+        if (theme && theme !== 'none') {
+          document.documentElement.classList.add(theme);
+          console.log('✓ Added class: ' + theme);
+        }
+
+        // Update preview button states
+        var buttons = document.querySelectorAll('.theme-preview-btn');
+        for (var i = 0; i < buttons.length; i++) {
+          var btn = buttons[i];
+          var btnTheme = btn.dataset.theme || 'none';
+          if (btnTheme === (theme || 'none')) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
           }
         }
 
-        console.log(`✅ Theme selected: ${holiday.theme}`);
-        return holiday.theme;
+        // Save to localStorage
+        localStorage.setItem('holidayTheme', theme || 'none');
       }
 
-      console.log('❌ No matching theme found');
-      return null;
-    }
+      function setTestDateAndApplyTheme(dateStr) {
+        console.log('📆 Setting test date: ' + dateStr);
 
-    // Apply a theme (removing all others first)
-    function applyTheme(theme: string | null): void {
-      console.log(`🎨 Applying theme: ${theme || 'none'}`);
-
-      // Remove all theme classes
-      ALL_THEMES.forEach(t => document.documentElement.classList.remove(t));
-
-      // Apply new theme
-      if (theme && theme !== 'none') {
-        document.documentElement.classList.add(theme);
-        console.log(`✓ Added class: ${theme}`);
-      }
-
-      // Update preview button states
-      document.querySelectorAll('.theme-preview-btn').forEach(btn => {
-        const btnTheme = (btn as HTMLElement).dataset.theme || 'none';
-        btn.classList.toggle('active', btnTheme === (theme || 'none'));
-      });
-
-      // Save to localStorage
-      localStorage.setItem('holidayTheme', theme || 'none');
-    }
-
-    // Set test date and apply appropriate theme
-    function setTestDateAndApplyTheme(dateStr: string): void {
-      console.log(`📆 Setting test date: ${dateStr}`);
-
-      const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      if (!match) {
-        console.error('Invalid date format:', dateStr);
-        return;
-      }
-
-      const [, yearStr, monthStr, dayStr] = match;
-      const date = new Date(parseInt(yearStr), parseInt(monthStr) - 1, parseInt(dayStr));
-
-      if (isNaN(date.getTime())) {
-        console.error('Invalid date:', dateStr);
-        return;
-      }
-
-      // Set the test date globally
-      (window as any).__CARO_TEST_DATE = date.toISOString();
-
-      // Update date input
-      if (dateInput) {
-        dateInput.value = dateStr;
-      }
-
-      // Determine and apply the appropriate theme
-      const localeOverride = localStorage.getItem('debug_locale_override') || undefined;
-      const theme = getThemeForDate(date, localeOverride);
-      applyTheme(theme);
-
-      // Update state display
-      updateDebugState();
-    }
-
-    // Update debug state display
-    function updateDebugState(): void {
-      if (!stateDisplay) return;
-
-      const now = (window as any).__CARO_TEST_DATE
-        ? new Date((window as any).__CARO_TEST_DATE)
-        : new Date();
-
-      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      const language = navigator.language;
-      const localeOverride = localStorage.getItem('debug_locale_override');
-      const detectedTheme = getThemeForDate(now, localeOverride || undefined);
-
-      const state = {
-        date: now.toISOString().split('T')[0],
-        timezone,
-        language,
-        localeOverride: localeOverride || 'none',
-        detectedTheme: detectedTheme || 'none',
-        savedTheme: localStorage.getItem('holidayTheme') || 'none',
-        appliedClasses: Array.from(document.documentElement.classList),
-      };
-
-      stateDisplay.textContent = JSON.stringify(state, null, 2);
-    }
-
-    // =========================================================================
-    // ACCESS CONTROL
-    // =========================================================================
-
-    function shouldShowDebug(): boolean {
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        return true;
-      }
-      const params = new URLSearchParams(window.location.search);
-      return params.has('holidayDebug');
-    }
-
-    if (!shouldShowDebug()) {
-      panel?.remove();
-      return;
-    }
-
-    // =========================================================================
-    // EVENT HANDLERS
-    // =========================================================================
-
-    // Toggle panel with hotkey (Cmd+Shift+\ or Ctrl+Shift+\)
-    document.addEventListener('keydown', (e) => {
-      const isBackslash = e.code === 'Backslash' || e.key === '|' || e.key === '\\';
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && isBackslash) {
-        e.preventDefault();
-        panel?.classList.toggle('hidden');
-        if (!panel?.classList.contains('hidden')) {
-          updateDebugState();
+        var match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (!match) {
+          console.error('Invalid date format:', dateStr);
+          return;
         }
-      }
-    });
 
-    // Close button
-    closeBtn?.addEventListener('click', () => {
-      panel?.classList.add('hidden');
-    });
+        var year = parseInt(match[1], 10);
+        var month = parseInt(match[2], 10);
+        var day = parseInt(match[3], 10);
+        var date = new Date(year, month - 1, day);
 
-    // Initialize date input with current or test date
-    if (dateInput) {
-      const testDate = (window as any).__CARO_TEST_DATE;
-      if (testDate) {
-        dateInput.value = new Date(testDate).toISOString().split('T')[0];
-      } else {
-        dateInput.value = new Date().toISOString().split('T')[0];
-      }
-    }
-
-    // Apply date button
-    applyDateBtn?.addEventListener('click', () => {
-      if (dateInput?.value) {
-        setTestDateAndApplyTheme(dateInput.value);
-      }
-    });
-
-    // Reset date button
-    resetDateBtn?.addEventListener('click', () => {
-      delete (window as any).__CARO_TEST_DATE;
-      const now = new Date();
-      if (dateInput) {
-        dateInput.value = now.toISOString().split('T')[0];
-      }
-      const localeOverride = localStorage.getItem('debug_locale_override') || undefined;
-      const theme = getThemeForDate(now, localeOverride);
-      applyTheme(theme);
-      updateDebugState();
-      console.log('🧪 Test date reset to today');
-    });
-
-    // Quick date presets
-    document.querySelectorAll('.preset-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const date = (btn as HTMLElement).dataset.date;
-        if (date) {
-          setTestDateAndApplyTheme(date);
+        if (isNaN(date.getTime())) {
+          console.error('Invalid date:', dateStr);
+          return;
         }
-      });
-    });
 
-    // Locale selector
-    localeSelect?.addEventListener('change', () => {
-      const locale = localeSelect.value;
-      if (locale) {
-        localStorage.setItem('debug_locale_override', locale);
-      } else {
-        localStorage.removeItem('debug_locale_override');
-      }
+        // Set the test date globally
+        window.__CARO_TEST_DATE = date.toISOString();
 
-      const now = (window as any).__CARO_TEST_DATE
-        ? new Date((window as any).__CARO_TEST_DATE)
-        : new Date();
-      const theme = getThemeForDate(now, locale || undefined);
-      applyTheme(theme);
-      updateDebugState();
-      console.log(`🌍 Locale set to: ${locale || 'auto-detect'}`);
-    });
+        // Update date input
+        if (dateInput) {
+          dateInput.value = dateStr;
+        }
 
-    // Restore saved locale override
-    const savedLocale = localStorage.getItem('debug_locale_override');
-    if (savedLocale && localeSelect) {
-      localeSelect.value = savedLocale;
-    }
+        // Determine and apply the appropriate theme
+        var localeOverride = localStorage.getItem('debug_locale_override') || null;
+        var theme = getThemeForDate(date, localeOverride);
+        applyTheme(theme);
 
-    // Theme preview buttons (manual override)
-    document.querySelectorAll('.theme-preview-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const theme = (btn as HTMLElement).dataset.theme || null;
-        applyTheme(theme === 'none' ? null : theme);
+        // Update state display
         updateDebugState();
-        console.log(`🎨 Theme manually set to: ${theme || 'none'}`);
+      }
+
+      function updateDebugState() {
+        if (!stateDisplay) return;
+
+        var now = window.__CARO_TEST_DATE
+          ? new Date(window.__CARO_TEST_DATE)
+          : new Date();
+
+        var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        var language = navigator.language;
+        var localeOverride = localStorage.getItem('debug_locale_override');
+        var detectedTheme = getThemeForDate(now, localeOverride);
+
+        var state = {
+          date: now.toISOString().split('T')[0],
+          timezone: timezone,
+          language: language,
+          localeOverride: localeOverride || 'none',
+          detectedTheme: detectedTheme || 'none',
+          savedTheme: localStorage.getItem('holidayTheme') || 'none',
+          appliedClasses: Array.from(document.documentElement.classList)
+        };
+
+        stateDisplay.textContent = JSON.stringify(state, null, 2);
+      }
+
+      // =========================================================================
+      // ACCESS CONTROL
+      // =========================================================================
+
+      function shouldShowDebug() {
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          return true;
+        }
+        var params = new URLSearchParams(window.location.search);
+        return params.has('holidayDebug');
+      }
+
+      if (!shouldShowDebug()) {
+        if (panel) panel.remove();
+        return;
+      }
+
+      // =========================================================================
+      // EVENT HANDLERS
+      // =========================================================================
+
+      // Toggle panel with hotkey
+      document.addEventListener('keydown', function(e) {
+        var isBackslash = e.code === 'Backslash' || e.key === '|' || e.key === '\\';
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && isBackslash) {
+          e.preventDefault();
+          if (panel) {
+            panel.classList.toggle('hidden');
+            if (!panel.classList.contains('hidden')) {
+              updateDebugState();
+            }
+          }
+        }
       });
-    });
 
-    // Initialize button states
-    const currentTheme = localStorage.getItem('holidayTheme') || 'none';
-    document.querySelectorAll('.theme-preview-btn').forEach(btn => {
-      btn.classList.toggle('active', (btn as HTMLElement).dataset.theme === currentTheme);
-    });
+      // Close button
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+          if (panel) panel.classList.add('hidden');
+        });
+      }
 
-    // =========================================================================
-    // INITIALIZATION
-    // =========================================================================
+      // Initialize date input
+      if (dateInput) {
+        var testDate = window.__CARO_TEST_DATE;
+        if (testDate) {
+          dateInput.value = new Date(testDate).toISOString().split('T')[0];
+        } else {
+          dateInput.value = new Date().toISOString().split('T')[0];
+        }
+      }
 
-    // Initial state update
-    updateDebugState();
+      // Apply date button
+      if (applyDateBtn) {
+        applyDateBtn.addEventListener('click', function() {
+          if (dateInput && dateInput.value) {
+            setTestDateAndApplyTheme(dateInput.value);
+          }
+        });
+      }
 
-    // Show panel if query param is set
-    const params = new URLSearchParams(window.location.search);
-    if (params.has('holidayDebug')) {
-      panel?.classList.remove('hidden');
+      // Reset date button
+      if (resetDateBtn) {
+        resetDateBtn.addEventListener('click', function() {
+          delete window.__CARO_TEST_DATE;
+          var now = new Date();
+          if (dateInput) {
+            dateInput.value = now.toISOString().split('T')[0];
+          }
+          var localeOverride = localStorage.getItem('debug_locale_override') || null;
+          var theme = getThemeForDate(now, localeOverride);
+          applyTheme(theme);
+          updateDebugState();
+          console.log('🧪 Test date reset to today');
+        });
+      }
+
+      // Quick date presets
+      var presetBtns = document.querySelectorAll('.preset-btn');
+      for (var i = 0; i < presetBtns.length; i++) {
+        (function(btn) {
+          btn.addEventListener('click', function() {
+            var date = btn.dataset.date;
+            if (date) {
+              setTestDateAndApplyTheme(date);
+            }
+          });
+        })(presetBtns[i]);
+      }
+
+      // Locale selector
+      if (localeSelect) {
+        localeSelect.addEventListener('change', function() {
+          var locale = localeSelect.value;
+          if (locale) {
+            localStorage.setItem('debug_locale_override', locale);
+          } else {
+            localStorage.removeItem('debug_locale_override');
+          }
+
+          var now = window.__CARO_TEST_DATE
+            ? new Date(window.__CARO_TEST_DATE)
+            : new Date();
+          var theme = getThemeForDate(now, locale || null);
+          applyTheme(theme);
+          updateDebugState();
+          console.log('🌍 Locale set to: ' + (locale || 'auto-detect'));
+        });
+
+        // Restore saved locale
+        var savedLocale = localStorage.getItem('debug_locale_override');
+        if (savedLocale) {
+          localeSelect.value = savedLocale;
+        }
+      }
+
+      // Theme preview buttons
+      var themeBtns = document.querySelectorAll('.theme-preview-btn');
+      for (var i = 0; i < themeBtns.length; i++) {
+        (function(btn) {
+          btn.addEventListener('click', function() {
+            var theme = btn.dataset.theme || null;
+            applyTheme(theme === 'none' ? null : theme);
+            updateDebugState();
+            console.log('🎨 Theme manually set to: ' + (theme || 'none'));
+          });
+        })(themeBtns[i]);
+      }
+
+      // Initialize button states
+      var currentTheme = localStorage.getItem('holidayTheme') || 'none';
+      for (var i = 0; i < themeBtns.length; i++) {
+        var btn = themeBtns[i];
+        if (btn.dataset.theme === currentTheme) {
+          btn.classList.add('active');
+        }
+      }
+
+      // =========================================================================
+      // INITIALIZATION
+      // =========================================================================
+
+      updateDebugState();
+
+      // Show panel if query param is set
+      var params = new URLSearchParams(window.location.search);
+      if (params.has('holidayDebug') && panel) {
+        panel.classList.remove('hidden');
+      }
+
+      console.log('🎄 Holiday Debug Panel loaded. Press Cmd+Shift+\\ to toggle.');
     }
 
-    console.log('🎄 Holiday Debug Panel loaded. Press Cmd+Shift+\\ to toggle.');
-  });
+    // Run immediately if DOM is ready, otherwise wait
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initDebugPanel);
+    } else {
+      initDebugPanel();
+    }
+  })();
 </script>
