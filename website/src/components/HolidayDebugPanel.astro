@@ -316,7 +316,9 @@
 
     // Toggle panel with hotkey (Cmd+Shift+\ or Ctrl+Shift+\)
     document.addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === '|' || e.key === '\\')) {
+      // Use e.code for reliability across keyboard layouts
+      const isBackslash = e.code === 'Backslash' || e.key === '|' || e.key === '\\';
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && isBackslash) {
         e.preventDefault();
         panel?.classList.toggle('hidden');
         if (!panel?.classList.contains('hidden')) {
@@ -340,35 +342,44 @@
       }
     }
 
-    // Apply date
+    // Apply date (instant, no reload)
     applyDateBtn?.addEventListener('click', () => {
       if (dateInput?.value) {
-        const url = new URL(window.location.href);
-        url.searchParams.set('testDate', dateInput.value);
-        window.location.href = url.toString();
+        setTestDateAndApplyTheme(dateInput.value);
       }
     });
 
     // Reset date
     resetDateBtn?.addEventListener('click', () => {
-      const url = new URL(window.location.href);
-      url.searchParams.delete('testDate');
-      window.location.href = url.toString();
+      // Clear test date
+      delete (window as any).__CARO_TEST_DATE;
+
+      // Reset to current date
+      const now = new Date();
+      if (dateInput) {
+        dateInput.value = now.toISOString().split('T')[0];
+      }
+
+      // Determine and apply theme for current date
+      const localeOverride = localStorage.getItem('debug_locale_override') || undefined;
+      const theme = getThemeForDate(now, localeOverride);
+      applyTheme(theme);
+
+      updateDebugState();
+      console.log('🧪 Test date reset to today');
     });
 
-    // Quick date presets
+    // Quick date presets (instant, no reload)
     document.querySelectorAll('.preset-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const date = (btn as HTMLElement).dataset.date;
         if (date) {
-          const url = new URL(window.location.href);
-          url.searchParams.set('testDate', date);
-          window.location.href = url.toString();
+          setTestDateAndApplyTheme(date);
         }
       });
     });
 
-    // Locale select
+    // Locale select (instant, no reload)
     localeSelect?.addEventListener('change', () => {
       const locale = localeSelect.value;
       if (locale) {
@@ -376,9 +387,16 @@
       } else {
         localStorage.removeItem('debug_locale_override');
       }
+
+      // Re-apply theme based on current date and new locale
+      const now = (window as any).__CARO_TEST_DATE
+        ? new Date((window as any).__CARO_TEST_DATE)
+        : new Date();
+      const theme = getThemeForDate(now, locale || undefined);
+      applyTheme(theme);
+
       updateDebugState();
-      // Trigger re-init of holiday theme
-      window.location.reload();
+      console.log(`🌍 Locale set to: ${locale || 'auto-detect'} → Theme: ${theme || 'none'}`);
     });
 
     // Restore locale override
@@ -387,33 +405,13 @@
       localeSelect.value = savedLocale;
     }
 
-    // Theme preview buttons
+    // Theme preview buttons (manual override)
     document.querySelectorAll('.theme-preview-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const theme = (btn as HTMLElement).dataset.theme;
-
-        // Remove all theme classes
-        document.documentElement.classList.remove(
-          'christmas', 'hanukkah', 'newyear', 'diwali', 'lunar-new-year',
-          'holi', 'eid', 'july-4th', 'bastille-day', 'german-unity'
-        );
-
-        // Apply new theme
-        if (theme && theme !== 'none') {
-          document.documentElement.classList.add(theme);
-        }
-
-        // Update button states
-        document.querySelectorAll('.theme-preview-btn').forEach(b => {
-          b.classList.toggle('active', (b as HTMLElement).dataset.theme === theme);
-        });
-
-        // Save to localStorage for persistence
-        if (theme) {
-          localStorage.setItem('holidayTheme', theme);
-        }
-
+        const theme = (btn as HTMLElement).dataset.theme || null;
+        applyTheme(theme === 'none' ? null : theme);
         updateDebugState();
+        console.log(`🎨 Theme manually set to: ${theme || 'none'}`);
       });
     });
 
@@ -422,6 +420,123 @@
     document.querySelectorAll('.theme-preview-btn').forEach(btn => {
       btn.classList.toggle('active', (btn as HTMLElement).dataset.theme === currentTheme);
     });
+
+    // Holiday definitions for client-side matching
+    const HOLIDAY_DATES: Record<string, { start: [number, number], end: [number, number], theme: string, locales?: string[] }> = {
+      // Fixed dates (month is 1-indexed here for readability)
+      'christmas': { start: [12, 20], end: [12, 26], theme: 'christmas' },
+      'hanukkah-2025': { start: [12, 14], end: [12, 22], theme: 'hanukkah' },
+      'hanukkah-2026': { start: [12, 5], end: [12, 13], theme: 'hanukkah' },
+      'newyear': { start: [1, 1], end: [1, 3], theme: 'newyear' },
+      'diwali-2025': { start: [10, 18], end: [10, 24], theme: 'diwali' },
+      'diwali-2026': { start: [11, 7], end: [11, 13], theme: 'diwali' },
+      'lunar-ny-2025': { start: [1, 26], end: [2, 9], theme: 'lunar-new-year' },
+      'lunar-ny-2026': { start: [2, 14], end: [2, 28], theme: 'lunar-new-year' },
+      'holi-2025': { start: [3, 12], end: [3, 16], theme: 'holi' },
+      'holi-2026': { start: [3, 1], end: [3, 5], theme: 'holi' },
+      'july-4th': { start: [7, 1], end: [7, 7], theme: 'july-4th', locales: ['US'] },
+      'bastille': { start: [7, 12], end: [7, 16], theme: 'bastille-day', locales: ['FR'] },
+      'german-unity': { start: [10, 1], end: [10, 5], theme: 'german-unity', locales: ['DE'] },
+      'yom-haatzmaut': { start: [5, 1], end: [5, 3], theme: 'yom-haatzmaut', locales: ['IL'] },
+    };
+
+    // Determine which theme should be active for a given date
+    function getThemeForDate(date: Date, localeOverride?: string): string | null {
+      const month = date.getMonth() + 1; // Convert to 1-indexed
+      const day = date.getDate();
+      const year = date.getFullYear();
+
+      // Check each holiday
+      for (const [id, holiday] of Object.entries(HOLIDAY_DATES)) {
+        // Skip year-specific holidays for wrong years
+        if (id.includes('-2025') && year !== 2025) continue;
+        if (id.includes('-2026') && year !== 2026) continue;
+
+        const [startMonth, startDay] = holiday.start;
+        const [endMonth, endDay] = holiday.end;
+
+        // Handle year boundary (e.g., Dec-Jan)
+        let inRange = false;
+        if (startMonth <= endMonth) {
+          // Same year range
+          inRange = (month > startMonth || (month === startMonth && day >= startDay)) &&
+                    (month < endMonth || (month === endMonth && day <= endDay));
+        } else {
+          // Crosses year boundary
+          inRange = (month > startMonth || (month === startMonth && day >= startDay)) ||
+                    (month < endMonth || (month === endMonth && day <= endDay));
+        }
+
+        if (inRange) {
+          // Check locale restrictions
+          if (holiday.locales && holiday.locales.length > 0) {
+            if (localeOverride && holiday.locales.includes(localeOverride)) {
+              return holiday.theme;
+            }
+            // Skip if locale-restricted and no match
+            continue;
+          }
+          return holiday.theme;
+        }
+      }
+
+      return null;
+    }
+
+    // All possible theme classes
+    const ALL_THEMES = [
+      'christmas', 'hanukkah', 'newyear', 'diwali', 'lunar-new-year',
+      'holi', 'eid', 'july-4th', 'bastille-day', 'german-unity', 'yom-haatzmaut'
+    ];
+
+    // Apply a theme (removing all others first)
+    function applyTheme(theme: string | null) {
+      // Remove all theme classes
+      document.documentElement.classList.remove(...ALL_THEMES);
+
+      // Apply new theme
+      if (theme && theme !== 'none') {
+        document.documentElement.classList.add(theme);
+      }
+
+      // Update preview button states
+      document.querySelectorAll('.theme-preview-btn').forEach(btn => {
+        const btnTheme = (btn as HTMLElement).dataset.theme || 'none';
+        btn.classList.toggle('active', btnTheme === (theme || 'none'));
+      });
+
+      // Save to localStorage
+      localStorage.setItem('holidayTheme', theme || 'none');
+    }
+
+    // Set test date and apply appropriate theme
+    function setTestDateAndApplyTheme(dateStr: string) {
+      const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!match) return;
+
+      const [_, year, month, day] = match;
+      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+
+      if (isNaN(date.getTime())) return;
+
+      // Set the test date
+      (window as any).__CARO_TEST_DATE = date.toISOString();
+
+      // Update date input
+      if (dateInput) {
+        dateInput.value = dateStr;
+      }
+
+      // Determine and apply the appropriate theme
+      const localeOverride = localStorage.getItem('debug_locale_override') || undefined;
+      const theme = getThemeForDate(date, localeOverride);
+      applyTheme(theme);
+
+      // Update state display
+      updateDebugState();
+
+      console.log(`🧪 Test date set: ${dateStr} → Theme: ${theme || 'none'}`);
+    }
 
     // Update debug state display
     function updateDebugState() {
@@ -434,12 +549,14 @@
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const language = navigator.language;
       const localeOverride = localStorage.getItem('debug_locale_override');
+      const detectedTheme = getThemeForDate(now, localeOverride || undefined);
 
       const state = {
         date: now.toISOString().split('T')[0],
         timezone,
         language,
         localeOverride: localeOverride || 'none',
+        detectedTheme: detectedTheme || 'none',
         savedTheme: localStorage.getItem('holidayTheme') || 'none',
         snowEnabled: localStorage.getItem('snowEnabled') !== 'false',
         effectsDisabled: localStorage.getItem('effectsDisabled') === 'true',
