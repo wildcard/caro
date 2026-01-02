@@ -10,6 +10,7 @@
       <a href="/docs" class="nav-link">Docs</a>
     </div>
     <div class="nav-right">
+      <div id="nav-search-slot"></div>
       <a href="#download" class="nav-cta">Get Started Free</a>
       <button id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
         <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -79,7 +80,13 @@
   .nav-right {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
+  }
+
+  /* Search slot styling for OmniSearch integration */
+  #nav-search-slot {
+    display: flex;
+    align-items: center;
   }
 
   .nav-cta {
