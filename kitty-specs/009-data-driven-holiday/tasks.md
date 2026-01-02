@@ -11,9 +11,9 @@
 | WP05 | Locale Detector | **completed** | lib/locale-detector.ts |
 | WP06 | Calendar Calculators | **completed** | lib/calendar/*.ts |
 | WP07 | Holiday Theme Engine | **completed** | lib/holiday-engine.ts |
-| WP08 | Layout Integration | pending | layouts/Layout.astro |
-| WP09 | Navigation Integration | pending | components/Navigation.astro |
-| WP10 | Testing & Validation | pending | (manual + automated) |
+| WP08 | Layout Integration | **completed** | layouts/Layout.astro |
+| WP09 | Theme CSS + Decorations | **completed** | layouts/Layout.astro |
+| WP10 | Debug Panel + Testing | **completed** | components/HolidayDebugPanel.astro |
 
 ---
 
