@@ -1,0 +1,463 @@
+---
+/**
+ * Holiday Debug Panel
+ *
+ * A developer panel for testing holiday themes. Accessible via:
+ * - Ctrl+Shift+H (Windows/Linux) or Cmd+Shift+H (Mac)
+ * - ?holidayDebug=true query parameter
+ *
+ * Features:
+ * - Test any date to see which themes would be active
+ * - Override locale for testing locale-specific themes
+ * - Preview all holiday themes instantly
+ * - View engine state and debug info
+ */
+---
+
+<div id="holiday-debug-panel" class="debug-panel hidden">
+  <div class="debug-header">
+    <h3>🎄 Holiday Theme Debug</h3>
+    <button id="debug-close" class="debug-close">×</button>
+  </div>
+
+  <div class="debug-content">
+    <!-- Date Override -->
+    <div class="debug-section">
+      <label class="debug-label">Test Date</label>
+      <div class="debug-row">
+        <input type="date" id="debug-date" class="debug-input" />
+        <button id="debug-apply-date" class="debug-btn">Apply</button>
+        <button id="debug-reset-date" class="debug-btn secondary">Reset</button>
+      </div>
+    </div>
+
+    <!-- Quick Date Presets -->
+    <div class="debug-section">
+      <label class="debug-label">Quick Dates</label>
+      <div class="debug-presets">
+        <button class="preset-btn" data-date="2025-12-24">Christmas Eve</button>
+        <button class="preset-btn" data-date="2025-12-15">Hanukkah '25</button>
+        <button class="preset-btn" data-date="2026-01-01">New Year</button>
+        <button class="preset-btn" data-date="2025-10-20">Diwali '25</button>
+        <button class="preset-btn" data-date="2025-01-29">Lunar NY '25</button>
+        <button class="preset-btn" data-date="2025-07-04">July 4th</button>
+        <button class="preset-btn" data-date="2025-07-14">Bastille Day</button>
+        <button class="preset-btn" data-date="2025-05-01">Yom Ha'atzmaut</button>
+      </div>
+    </div>
+
+    <!-- Locale Override -->
+    <div class="debug-section">
+      <label class="debug-label">Test Locale</label>
+      <select id="debug-locale" class="debug-select">
+        <option value="">Auto-detect</option>
+        <option value="US">🇺🇸 United States</option>
+        <option value="IL">🇮🇱 Israel</option>
+        <option value="FR">🇫🇷 France</option>
+        <option value="DE">🇩🇪 Germany</option>
+        <option value="IN">🇮🇳 India</option>
+        <option value="CN">🇨🇳 China</option>
+        <option value="JP">🇯🇵 Japan</option>
+        <option value="AE">🇦🇪 UAE</option>
+        <option value="ID">🇮🇩 Indonesia</option>
+        <option value="PH">🇵🇭 Philippines</option>
+      </select>
+    </div>
+
+    <!-- Theme Preview -->
+    <div class="debug-section">
+      <label class="debug-label">Preview Theme</label>
+      <div class="debug-themes">
+        <button class="theme-preview-btn" data-theme="none">None</button>
+        <button class="theme-preview-btn" data-theme="christmas">🎄 Christmas</button>
+        <button class="theme-preview-btn" data-theme="hanukkah">🕎 Hanukkah</button>
+        <button class="theme-preview-btn" data-theme="newyear">🎊 New Year</button>
+        <button class="theme-preview-btn" data-theme="diwali">🪔 Diwali</button>
+        <button class="theme-preview-btn" data-theme="lunar-new-year">🐉 Lunar NY</button>
+      </div>
+    </div>
+
+    <!-- Engine State -->
+    <div class="debug-section">
+      <label class="debug-label">Engine State</label>
+      <pre id="debug-state" class="debug-state"></pre>
+    </div>
+  </div>
+</div>
+
+<style>
+  .debug-panel {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 380px;
+    max-height: 80vh;
+    background: var(--color-bg);
+    border: 2px solid var(--color-border);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    z-index: 10000;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    overflow: hidden;
+  }
+
+  .debug-panel.hidden {
+    display: none;
+  }
+
+  .debug-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #c41e3a 0%, #228b22 100%);
+    color: white;
+  }
+
+  .debug-header h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .debug-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    opacity: 0.8;
+  }
+
+  .debug-close:hover {
+    opacity: 1;
+  }
+
+  .debug-content {
+    padding: 16px;
+    max-height: calc(80vh - 50px);
+    overflow-y: auto;
+  }
+
+  .debug-section {
+    margin-bottom: 16px;
+  }
+
+  .debug-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .debug-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+    margin-bottom: 8px;
+  }
+
+  .debug-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .debug-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 14px;
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  .debug-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 14px;
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  .debug-btn {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    background: #228b22;
+    color: white;
+    transition: all 0.2s;
+  }
+
+  .debug-btn:hover {
+    background: #1a6b1a;
+  }
+
+  .debug-btn.secondary {
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+  }
+
+  .debug-btn.secondary:hover {
+    background: var(--color-border);
+  }
+
+  .debug-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .preset-btn {
+    padding: 6px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-size: 11px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .preset-btn:hover {
+    background: var(--color-bg-secondary);
+    border-color: #c41e3a;
+  }
+
+  .debug-themes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .theme-preview-btn {
+    padding: 8px 12px;
+    border: 2px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 12px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .theme-preview-btn:hover {
+    border-color: #c41e3a;
+  }
+
+  .theme-preview-btn.active {
+    border-color: #228b22;
+    background: rgba(34, 139, 34, 0.1);
+  }
+
+  .debug-state {
+    padding: 12px;
+    background: var(--color-bg-secondary);
+    border-radius: 6px;
+    font-size: 11px;
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 200px;
+    margin: 0;
+    color: var(--color-text);
+  }
+
+  /* Dark mode adjustments */
+  .dark .debug-panel {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Hotkey hint */
+  .debug-panel::after {
+    content: 'Press Ctrl+Shift+H to toggle';
+    position: absolute;
+    bottom: -24px;
+    right: 0;
+    font-size: 10px;
+    color: var(--color-text-secondary);
+    opacity: 0.7;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const panel = document.getElementById('holiday-debug-panel');
+    const closeBtn = document.getElementById('debug-close');
+    const dateInput = document.getElementById('debug-date') as HTMLInputElement;
+    const applyDateBtn = document.getElementById('debug-apply-date');
+    const resetDateBtn = document.getElementById('debug-reset-date');
+    const localeSelect = document.getElementById('debug-locale') as HTMLSelectElement;
+    const stateDisplay = document.getElementById('debug-state');
+
+    // Check if debug mode should be enabled
+    function shouldShowDebug(): boolean {
+      // Allow on localhost
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return true;
+      }
+      // Allow with query param on preview deployments
+      const params = new URLSearchParams(window.location.search);
+      return params.has('holidayDebug');
+    }
+
+    if (!shouldShowDebug()) {
+      panel?.remove();
+      return;
+    }
+
+    // Toggle panel with hotkey (Ctrl+Shift+H or Cmd+Shift+H)
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'h') {
+        e.preventDefault();
+        panel?.classList.toggle('hidden');
+        if (!panel?.classList.contains('hidden')) {
+          updateDebugState();
+        }
+      }
+    });
+
+    // Close button
+    closeBtn?.addEventListener('click', () => {
+      panel?.classList.add('hidden');
+    });
+
+    // Date input
+    if (dateInput) {
+      const testDate = (window as any).__CARO_TEST_DATE;
+      if (testDate) {
+        dateInput.value = new Date(testDate).toISOString().split('T')[0];
+      } else {
+        dateInput.value = new Date().toISOString().split('T')[0];
+      }
+    }
+
+    // Apply date
+    applyDateBtn?.addEventListener('click', () => {
+      if (dateInput?.value) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('testDate', dateInput.value);
+        window.location.href = url.toString();
+      }
+    });
+
+    // Reset date
+    resetDateBtn?.addEventListener('click', () => {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('testDate');
+      window.location.href = url.toString();
+    });
+
+    // Quick date presets
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const date = (btn as HTMLElement).dataset.date;
+        if (date) {
+          const url = new URL(window.location.href);
+          url.searchParams.set('testDate', date);
+          window.location.href = url.toString();
+        }
+      });
+    });
+
+    // Locale select
+    localeSelect?.addEventListener('change', () => {
+      const locale = localeSelect.value;
+      if (locale) {
+        localStorage.setItem('debug_locale_override', locale);
+      } else {
+        localStorage.removeItem('debug_locale_override');
+      }
+      updateDebugState();
+      // Trigger re-init of holiday theme
+      window.location.reload();
+    });
+
+    // Restore locale override
+    const savedLocale = localStorage.getItem('debug_locale_override');
+    if (savedLocale && localeSelect) {
+      localeSelect.value = savedLocale;
+    }
+
+    // Theme preview buttons
+    document.querySelectorAll('.theme-preview-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const theme = (btn as HTMLElement).dataset.theme;
+
+        // Remove all theme classes
+        document.documentElement.classList.remove(
+          'christmas', 'hanukkah', 'newyear', 'diwali', 'lunar-new-year',
+          'holi', 'eid', 'july-4th', 'bastille-day', 'german-unity'
+        );
+
+        // Apply new theme
+        if (theme && theme !== 'none') {
+          document.documentElement.classList.add(theme);
+        }
+
+        // Update button states
+        document.querySelectorAll('.theme-preview-btn').forEach(b => {
+          b.classList.toggle('active', (b as HTMLElement).dataset.theme === theme);
+        });
+
+        // Save to localStorage for persistence
+        if (theme) {
+          localStorage.setItem('holidayTheme', theme);
+        }
+
+        updateDebugState();
+      });
+    });
+
+    // Update current theme button
+    const currentTheme = localStorage.getItem('holidayTheme') || 'none';
+    document.querySelectorAll('.theme-preview-btn').forEach(btn => {
+      btn.classList.toggle('active', (btn as HTMLElement).dataset.theme === currentTheme);
+    });
+
+    // Update debug state display
+    function updateDebugState() {
+      if (!stateDisplay) return;
+
+      const now = (window as any).__CARO_TEST_DATE
+        ? new Date((window as any).__CARO_TEST_DATE)
+        : new Date();
+
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const language = navigator.language;
+      const localeOverride = localStorage.getItem('debug_locale_override');
+
+      const state = {
+        date: now.toISOString().split('T')[0],
+        timezone,
+        language,
+        localeOverride: localeOverride || 'none',
+        savedTheme: localStorage.getItem('holidayTheme') || 'none',
+        snowEnabled: localStorage.getItem('snowEnabled') !== 'false',
+        effectsDisabled: localStorage.getItem('effectsDisabled') === 'true',
+        appliedClasses: Array.from(document.documentElement.classList),
+      };
+
+      stateDisplay.textContent = JSON.stringify(state, null, 2);
+    }
+
+    // Initial state update
+    updateDebugState();
+
+    // Show panel if query param is set
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('holidayDebug')) {
+      panel?.classList.remove('hidden');
+    }
+
+    console.log('🎄 Holiday Debug Panel loaded. Press Ctrl+Shift+H to toggle.');
+  });
+</script>
