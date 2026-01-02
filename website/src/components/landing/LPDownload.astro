@@ -1,4 +1,5 @@
 ---
+import { INSTALL_CONFIG } from '../../config/install';
 ---
 
 <section id="download" class="download-section">
@@ -6,9 +7,16 @@
     <h2>Try Caro in 30 Seconds</h2>
     <p class="section-subtitle">No account. No API key. No data collection. Just safer shell commands.</p>
 
-    <div class="install-command">
-      <code>bash &lt;(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)</code>
-      <button class="copy-button" data-command="bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)">Copy</button>
+    <div class="install-commands">
+      <div class="install-command">
+        <code>{INSTALL_CONFIG.commands.automated.curl}</code>
+        <button class="copy-button" data-command={INSTALL_CONFIG.commands.automated.curl}>Copy</button>
+      </div>
+      <p class="or-text">Or with wget:</p>
+      <div class="install-command">
+        <code>{INSTALL_CONFIG.commands.automated.wget}</code>
+        <button class="copy-button" data-command={INSTALL_CONFIG.commands.automated.wget}>Copy</button>
+      </div>
     </div>
 
     <div class="quick-start">
@@ -66,6 +74,19 @@
     font-size: 18px;
     color: rgba(255, 255, 255, 0.9);
     margin-bottom: 40px;
+  }
+
+  .install-commands {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .or-text {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+    margin: 4px 0;
   }
 
   .install-command {

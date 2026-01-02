@@ -1,0 +1,676 @@
+---
+import { INSTALL_CONFIG } from '../../config/install';
+import CodeBlock from './CodeBlock.astro';
+---
+
+<div class="install-wizard" id="install-wizard">
+  <!-- Step indicators -->
+  <div class="wizard-steps">
+    <div class="step active" data-step="1">
+      <span class="step-number">1</span>
+      <span class="step-label">Platform</span>
+    </div>
+    <div class="step" data-step="2">
+      <span class="step-number">2</span>
+      <span class="step-label">Rust</span>
+    </div>
+    <div class="step" data-step="3">
+      <span class="step-number">3</span>
+      <span class="step-label">Network</span>
+    </div>
+    <div class="step" data-step="4">
+      <span class="step-number">4</span>
+      <span class="step-label">Install</span>
+    </div>
+  </div>
+
+  <!-- Step 1: Platform Selection -->
+  <div class="wizard-panel active" id="step-platform">
+    <h3 class="panel-title">What is your operating system?</h3>
+    <div class="option-grid">
+      {INSTALL_CONFIG.wizard.platforms.map((platform) => (
+        <button class="option-btn" data-value={platform.value} data-step="platform">
+          <span class="option-icon">{platform.icon}</span>
+          <span class="option-label">{platform.label}</span>
+          <span class="option-sublabel">{platform.sublabel}</span>
+        </button>
+      ))}
+    </div>
+  </div>
+
+  <!-- Step 2: Rust Installation -->
+  <div class="wizard-panel" id="step-rust">
+    <h3 class="panel-title">Do you have Rust installed?</h3>
+    <div class="option-grid">
+      {INSTALL_CONFIG.wizard.rustOptions.map((option) => (
+        <button class="option-btn" data-value={option.value} data-step="rust">
+          <span class="option-label">{option.label}</span>
+          <span class="option-sublabel">{option.sublabel}</span>
+        </button>
+      ))}
+    </div>
+    <div class="step-note" id="rust-recommendation" style="display: none;">
+      <span class="note-icon">💡</span>
+      <span class="note-text"></span>
+    </div>
+  </div>
+
+  <!-- Step 3: Network Environment -->
+  <div class="wizard-panel" id="step-network">
+    <h3 class="panel-title">What is your network environment?</h3>
+    <div class="option-grid">
+      {INSTALL_CONFIG.wizard.networkOptions.map((option) => (
+        <button class="option-btn" data-value={option.value} data-step="network">
+          <span class="option-icon">{option.icon}</span>
+          <span class="option-label">{option.label}</span>
+          <span class="option-sublabel">{option.sublabel}</span>
+        </button>
+      ))}
+    </div>
+  </div>
+
+  <!-- Step 4: Generated Command -->
+  <div class="wizard-panel" id="step-result">
+    <h3 class="panel-title">Your Installation Commands</h3>
+
+    <div class="result-commands">
+      <div class="command-section">
+        <div class="command-header">
+          <span class="method-label">With curl:</span>
+        </div>
+        <pre class="code-block" id="result-curl"><code></code></pre>
+      </div>
+
+      <div class="command-section">
+        <div class="command-header">
+          <span class="method-label">With wget:</span>
+        </div>
+        <pre class="code-block" id="result-wget"><code></code></pre>
+      </div>
+    </div>
+
+    <!-- Platform-specific notes -->
+    <div id="platform-notes" class="notes-section" style="display: none;">
+      <h4 class="notes-title">Important Notes:</h4>
+      <ul class="notes-list" id="notes-list"></ul>
+    </div>
+
+    <!-- Next steps after installation -->
+    <div id="next-steps" class="next-steps-section" style="display: none;">
+      <h4 class="steps-title">After Installation:</h4>
+      <ul class="steps-list" id="steps-list"></ul>
+    </div>
+
+    <!-- Restart wizard button -->
+    <div class="wizard-actions">
+      <button id="restart-wizard" class="btn-secondary">
+        ← Start Over
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { generateInstallCommands, type WizardAnswers, type Platform, type RustChoice, type NetworkEnv } from '../../config/install';
+
+  interface Answers {
+    platform?: Platform;
+    rust?: RustChoice;
+    network?: NetworkEnv;
+  }
+
+  class InstallWizard {
+    private answers: Answers = {};
+    private currentStep = 1;
+
+    constructor() {
+      this.init();
+    }
+
+    private init() {
+      // Bind option button clicks
+      document.querySelectorAll('.option-btn').forEach((btn) => {
+        btn.addEventListener('click', (e) => this.handleSelection(e as MouseEvent));
+      });
+
+      // Bind restart button
+      const restartBtn = document.getElementById('restart-wizard');
+      if (restartBtn) {
+        restartBtn.addEventListener('click', () => this.restart());
+      }
+    }
+
+    private handleSelection(e: MouseEvent) {
+      const btn = e.currentTarget as HTMLButtonElement;
+      const step = btn.dataset.step as keyof Answers;
+      const value = btn.dataset.value;
+
+      if (!step || !value) return;
+
+      // Store answer
+      this.answers[step] = value as any;
+
+      // Highlight selected button
+      const panel = btn.closest('.wizard-panel');
+      if (panel) {
+        panel.querySelectorAll('.option-btn').forEach((b) => b.classList.remove('selected'));
+        btn.classList.add('selected');
+      }
+
+      // Special handling for platform step - show Rust recommendation
+      if (step === 'platform') {
+        this.updateRustRecommendation(value as Platform);
+      }
+
+      // Advance to next step after short delay
+      setTimeout(() => this.nextStep(), 300);
+    }
+
+    private updateRustRecommendation(platform: Platform) {
+      const recommendationDiv = document.getElementById('rust-recommendation');
+      if (!recommendationDiv) return;
+
+      const noteText = recommendationDiv.querySelector('.note-text');
+      if (!noteText) return;
+
+      if (platform === 'macos-silicon') {
+        noteText.textContent = 'Recommended: Build from source with cargo for MLX optimization (faster inference)';
+        recommendationDiv.style.display = 'flex';
+      } else {
+        recommendationDiv.style.display = 'none';
+      }
+    }
+
+    private nextStep() {
+      // Hide current panel
+      const currentPanel = document.querySelector(`.wizard-panel.active`);
+      if (currentPanel) {
+        currentPanel.classList.remove('active');
+      }
+
+      // Deactivate current step indicator
+      const currentStepIndicator = document.querySelector(`.wizard-steps .step[data-step="${this.currentStep}"]`);
+      if (currentStepIndicator) {
+        currentStepIndicator.classList.remove('active');
+        currentStepIndicator.classList.add('completed');
+      }
+
+      // Advance step counter
+      this.currentStep++;
+
+      // Show next panel or generate results
+      if (this.currentStep <= 3) {
+        const panels = ['step-platform', 'step-rust', 'step-network'];
+        const nextPanel = document.getElementById(panels[this.currentStep - 1]);
+        if (nextPanel) {
+          nextPanel.classList.add('active');
+        }
+
+        // Activate next step indicator
+        const nextStepIndicator = document.querySelector(`.wizard-steps .step[data-step="${this.currentStep}"]`);
+        if (nextStepIndicator) {
+          nextStepIndicator.classList.add('active');
+        }
+      } else {
+        // Generate final commands
+        this.generateCommands();
+      }
+    }
+
+    private generateCommands() {
+      const { platform, rust, network } = this.answers;
+
+      if (!platform || !rust || !network) {
+        console.error('Missing answers', this.answers);
+        return;
+      }
+
+      const wizardAnswers: WizardAnswers = { platform, rust, network };
+      const result = generateInstallCommands(wizardAnswers);
+
+      // Display curl command (safe: textContent)
+      const curlCode = document.querySelector('#result-curl code');
+      if (curlCode) {
+        curlCode.textContent = result.curl;
+      }
+
+      // Display wget command (safe: textContent)
+      const wgetCode = document.querySelector('#result-wget code');
+      if (wgetCode) {
+        wgetCode.textContent = result.wget;
+      }
+
+      // Display notes (safe: textContent for each item)
+      const notesSection = document.getElementById('platform-notes');
+      const notesList = document.getElementById('notes-list');
+      if (notesSection && notesList && result.notes.length > 0) {
+        // Clear existing notes
+        notesList.textContent = '';
+
+        // Add each note as list item
+        result.notes.forEach((note) => {
+          const li = document.createElement('li');
+          li.textContent = note;
+          notesList.appendChild(li);
+        });
+
+        notesSection.style.display = 'block';
+      }
+
+      // Display next steps (safe: textContent and createElement)
+      const stepsSection = document.getElementById('next-steps');
+      const stepsList = document.getElementById('steps-list');
+      if (stepsSection && stepsList && result.nextSteps.length > 0) {
+        // Clear existing steps
+        stepsList.textContent = '';
+
+        // Add each step as list item with code element
+        result.nextSteps.forEach((step) => {
+          const li = document.createElement('li');
+          const code = document.createElement('code');
+          code.textContent = step;
+          li.appendChild(code);
+          stepsList.appendChild(li);
+        });
+
+        stepsSection.style.display = 'block';
+      }
+
+      // Show result panel
+      const resultPanel = document.getElementById('step-result');
+      if (resultPanel) {
+        resultPanel.classList.add('active');
+      }
+
+      // Activate final step indicator
+      const finalStepIndicator = document.querySelector(`.wizard-steps .step[data-step="4"]`);
+      if (finalStepIndicator) {
+        finalStepIndicator.classList.add('active');
+      }
+    }
+
+    private restart() {
+      // Reset answers
+      this.answers = {};
+      this.currentStep = 1;
+
+      // Hide all panels
+      document.querySelectorAll('.wizard-panel').forEach((panel) => {
+        panel.classList.remove('active');
+      });
+
+      // Reset step indicators
+      document.querySelectorAll('.wizard-steps .step').forEach((step, index) => {
+        step.classList.remove('active', 'completed');
+        if (index === 0) {
+          step.classList.add('active');
+        }
+      });
+
+      // Clear selections
+      document.querySelectorAll('.option-btn').forEach((btn) => {
+        btn.classList.remove('selected');
+      });
+
+      // Hide notes and steps sections
+      const notesSection = document.getElementById('platform-notes');
+      const stepsSection = document.getElementById('next-steps');
+      if (notesSection) notesSection.style.display = 'none';
+      if (stepsSection) stepsSection.style.display = 'none';
+
+      // Show first panel
+      const firstPanel = document.getElementById('step-platform');
+      if (firstPanel) {
+        firstPanel.classList.add('active');
+      }
+    }
+  }
+
+  // Initialize wizard when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      new InstallWizard();
+    });
+  } else {
+    new InstallWizard();
+  }
+</script>
+
+<style>
+  .install-wizard {
+    background: var(--color-bg-secondary, #f6f8fa);
+    border: 2px solid var(--color-border, #d0d7de);
+    border-radius: 16px;
+    padding: 2rem;
+    margin: 2rem 0;
+  }
+
+  /* Step Indicators */
+  .wizard-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid var(--color-border, #d0d7de);
+  }
+
+  .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    position: relative;
+    opacity: 0.4;
+    transition: opacity 0.3s ease;
+  }
+
+  .step.active,
+  .step.completed {
+    opacity: 1;
+  }
+
+  .step-number {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: var(--color-bg, #ffffff);
+    border: 2px solid var(--color-border, #d0d7de);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: var(--color-text-secondary, #57606a);
+    transition: all 0.3s ease;
+  }
+
+  .step.active .step-number {
+    background: linear-gradient(135deg, #fd8c4e 0%, #ff6b35 100%);
+    border-color: #fd8c4e;
+    color: white;
+  }
+
+  .step.completed .step-number {
+    background: #22c55e;
+    border-color: #22c55e;
+    color: white;
+  }
+
+  .step.completed .step-number::before {
+    content: '✓';
+  }
+
+  .step-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-secondary, #57606a);
+  }
+
+  .step.active .step-label {
+    color: var(--color-text, #24292f);
+    font-weight: 600;
+  }
+
+  /* Panels */
+  .wizard-panel {
+    display: none;
+  }
+
+  .wizard-panel.active {
+    display: block;
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .panel-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0 0 1.5rem 0;
+    color: var(--color-text, #24292f);
+  }
+
+  /* Option Grid */
+  .option-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+  }
+
+  .option-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1.5rem 1rem;
+    background: var(--color-bg, #ffffff);
+    border: 2px solid var(--color-border, #d0d7de);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 120px;
+    text-align: center;
+  }
+
+  .option-btn:hover {
+    border-color: #fd8c4e;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(253, 140, 78, 0.15);
+  }
+
+  .option-btn.selected {
+    border-color: #fd8c4e;
+    background: linear-gradient(135deg, rgba(253, 140, 78, 0.1) 0%, rgba(255, 107, 53, 0.1) 100%);
+  }
+
+  .option-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .option-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text, #24292f);
+  }
+
+  .option-sublabel {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary, #57606a);
+  }
+
+  /* Step Note */
+  .step-note {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: var(--color-bg-tertiary, #fff8f0);
+    border-left: 3px solid #fd8c4e;
+    border-radius: 6px;
+  }
+
+  .note-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+
+  .note-text {
+    font-size: 0.9375rem;
+    color: var(--color-text, #24292f);
+    line-height: 1.5;
+  }
+
+  /* Result Display */
+  .result-commands {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .command-section {
+    background: var(--color-bg, #ffffff);
+    border: 1px solid var(--color-border, #d0d7de);
+    border-radius: 8px;
+    padding: 1rem;
+  }
+
+  .command-header {
+    margin-bottom: 0.75rem;
+  }
+
+  .method-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text-secondary, #57606a);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .code-block {
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .code-block code {
+    background: transparent;
+    color: inherit;
+  }
+
+  .notes-section,
+  .next-steps-section {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: var(--color-bg, #ffffff);
+    border: 1px solid var(--color-border, #d0d7de);
+    border-radius: 8px;
+  }
+
+  .notes-title,
+  .steps-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 0.75rem 0;
+    color: var(--color-text, #24292f);
+  }
+
+  .notes-list,
+  .steps-list {
+    margin: 0;
+    padding-left: 1.5rem;
+    list-style-type: disc;
+  }
+
+  .notes-list li,
+  .steps-list li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+    color: var(--color-text-secondary, #57606a);
+  }
+
+  .steps-list code {
+    background: var(--color-bg-secondary, #f6f8fa);
+    padding: 0.125rem 0.375rem;
+    border-radius: 3px;
+    font-size: 0.875rem;
+  }
+
+  /* Wizard Actions */
+  .wizard-actions {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-border, #d0d7de);
+  }
+
+  .btn-secondary {
+    padding: 0.75rem 1.5rem;
+    background: var(--color-bg, #ffffff);
+    border: 2px solid var(--color-border, #d0d7de);
+    border-radius: 8px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text, #24292f);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-secondary:hover {
+    border-color: #fd8c4e;
+    color: #fd8c4e;
+  }
+
+  /* Mobile responsive */
+  @media (max-width: 768px) {
+    .wizard-steps {
+      padding-bottom: 1rem;
+    }
+
+    .step-label {
+      font-size: 0.75rem;
+    }
+
+    .step-number {
+      width: 2rem;
+      height: 2rem;
+      font-size: 0.875rem;
+    }
+
+    .option-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .panel-title {
+      font-size: 1.25rem;
+    }
+  }
+
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    .install-wizard {
+      background: var(--color-bg-secondary, #161b22);
+      border-color: var(--color-border, #30363d);
+    }
+
+    .wizard-steps {
+      border-bottom-color: var(--color-border, #30363d);
+    }
+
+    .option-btn {
+      background: var(--color-bg-tertiary, #1c2128);
+      border-color: var(--color-border, #30363d);
+    }
+
+    .command-section,
+    .notes-section,
+    .next-steps-section {
+      background: var(--color-bg-tertiary, #1c2128);
+      border-color: var(--color-border, #30363d);
+    }
+
+    .step-note {
+      background: rgba(253, 140, 78, 0.1);
+    }
+
+    .btn-secondary {
+      background: var(--color-bg-tertiary, #1c2128);
+    }
+  }
+</style>

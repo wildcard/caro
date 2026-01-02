@@ -1,5 +1,6 @@
 ---
 import { SITE_CONFIG } from '../config/site';
+import { INSTALL_CONFIG } from '../config/install';
 ---
 
 <section id="download" class="download-section">
@@ -7,9 +8,16 @@ import { SITE_CONFIG } from '../config/site';
     <h2>Get Started with Caro</h2>
     <p class="section-subtitle">Bring your loyal shell companion to your terminal</p>
 
-    <div class="install-command">
-      <code>bash &lt;(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)</code>
-      <button class="copy-button" data-command="bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)">Copy</button>
+    <div class="install-commands-wrapper">
+      <div class="install-command">
+        <code>{INSTALL_CONFIG.commands.automated.curl}</code>
+        <button class="copy-button" data-command={INSTALL_CONFIG.commands.automated.curl}>Copy</button>
+      </div>
+      <p class="or-text">Or with wget:</p>
+      <div class="install-command">
+        <code>{INSTALL_CONFIG.commands.automated.wget}</code>
+        <button class="copy-button" data-command={INSTALL_CONFIG.commands.automated.wget}>Copy</button>
+      </div>
     </div>
 
     <p class="binary-intro">Or download pre-built binaries (v{SITE_CONFIG.version}):</p>
@@ -77,17 +85,32 @@ import { SITE_CONFIG } from '../config/site';
     color: rgba(255, 255, 255, 0.9);
   }
 
+  .install-commands-wrapper {
+    max-width: 600px;
+    margin: 30px auto;
+  }
+
+  .or-text {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+    margin: 12px 0;
+  }
+
   .install-command {
     background: rgba(0, 0, 0, 0.3);
     padding: 20px 30px;
     border-radius: 8px;
     font-family: 'Monaco', 'Courier New', monospace;
     font-size: 16px;
-    margin: 30px auto;
-    max-width: 600px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .install-command:last-of-type {
+    margin-bottom: 0;
   }
 
   .install-command code {

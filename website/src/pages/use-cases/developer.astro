@@ -12,6 +12,7 @@ import LandingPage from '../../layouts/LandingPage.astro';
 import UseCasesNavigation from '../../components/use-cases/UseCasesNavigation.astro';
 import LPDownload from '../../components/landing/LPDownload.astro';
 import LPFooter from '../../components/landing/LPFooter.astro';
+import { INSTALL_CONFIG } from '../../config/install';
 
 const jobs = [
   {
@@ -357,7 +358,7 @@ const quickStart = [
   {
     step: 1,
     title: 'Install in 30 seconds',
-    command: 'curl -fsSL https://caro.sh/install | bash',
+    command: INSTALL_CONFIG.commands.automated.curl,
     output: 'Installing caro... Done! Run `caro --help` to get started.',
   },
   {

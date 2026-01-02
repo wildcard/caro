@@ -5,7 +5,9 @@ import Footer from '../components/Footer.astro';
 import CodeBlock from '../components/docs/CodeBlock.astro';
 import InstallMethod from '../components/docs/InstallMethod.astro';
 import ComingSoonBadge from '../components/docs/ComingSoonBadge.astro';
+import InstallWizard from '../components/docs/InstallWizard.astro';
 import { INSTALL_CONFIG } from '../config/install';
+import { CARO_VERSION } from '../config/version';
 ---
 
 <Layout
@@ -21,11 +23,21 @@ import { INSTALL_CONFIG } from '../config/install';
     </div>
 
     <div class="content-container">
-      <!-- Automated Script (Featured) -->
+      <!-- Interactive Installation Wizard (New!) -->
       <section class="install-section featured-section">
         <div class="section-header">
-          <h2 class="section-title">Automated Installation</h2>
-          <span class="recommended-badge">Recommended</span>
+          <h2 class="section-title">Personalized Installation</h2>
+          <span class="recommended-badge">New!</span>
+        </div>
+        <p class="section-description">Answer a few questions to get the perfect installation command for your environment.</p>
+
+        <InstallWizard />
+      </section>
+
+      <!-- Automated Script (Quick Start) -->
+      <section class="install-section">
+        <div class="section-header">
+          <h2 class="section-title">Quick Start (One Command)</h2>
         </div>
         <p class="section-description">The fastest way to get started. Automatically downloads the best option for your system.</p>
 
@@ -72,7 +84,7 @@ import { INSTALL_CONFIG } from '../config/install';
           platforms={["macOS", "Linux", "Windows"]}
           status="available"
           installCommand={`# Example for macOS Apple Silicon
-curl -fsSL https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-macos-silicon -o caro
+curl -fsSL https://github.com/wildcard/caro/releases/download/v${CARO_VERSION}/caro-${CARO_VERSION}-macos-silicon -o caro
 chmod +x caro
 sudo mv caro /usr/local/bin/
 
@@ -85,27 +97,27 @@ caro --version`}
         <div class="binary-downloads">
           <h3 class="downloads-title">Available Downloads:</h3>
           <div class="download-grid">
-            <a href="https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-macos-silicon" class="download-card">
+            <a href={`https://github.com/wildcard/caro/releases/download/v${CARO_VERSION}/caro-${CARO_VERSION}-macos-silicon`} class="download-card">
               <span class="platform-icon">🍎</span>
               <span class="platform-name">macOS Apple Silicon</span>
               <span class="download-label">Download →</span>
             </a>
-            <a href="https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-macos-intel" class="download-card">
+            <a href={`https://github.com/wildcard/caro/releases/download/v${CARO_VERSION}/caro-${CARO_VERSION}-macos-intel`} class="download-card">
               <span class="platform-icon">🍎</span>
               <span class="platform-name">macOS Intel</span>
               <span class="download-label">Download →</span>
             </a>
-            <a href="https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-linux-amd64" class="download-card">
+            <a href={`https://github.com/wildcard/caro/releases/download/v${CARO_VERSION}/caro-${CARO_VERSION}-linux-amd64`} class="download-card">
               <span class="platform-icon">🐧</span>
               <span class="platform-name">Linux x86_64</span>
               <span class="download-label">Download →</span>
             </a>
-            <a href="https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-linux-arm64" class="download-card">
+            <a href={`https://github.com/wildcard/caro/releases/download/v${CARO_VERSION}/caro-${CARO_VERSION}-linux-arm64`} class="download-card">
               <span class="platform-icon">🐧</span>
               <span class="platform-name">Linux ARM64</span>
               <span class="download-label">Download →</span>
             </a>
-            <a href="https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-windows-amd64.exe" class="download-card">
+            <a href={`https://github.com/wildcard/caro/releases/download/v${CARO_VERSION}/caro-${CARO_VERSION}-windows-amd64.exe`} class="download-card">
               <span class="platform-icon">🪟</span>
               <span class="platform-name">Windows x64</span>
               <span class="download-label">Download →</span>
@@ -123,8 +135,8 @@ caro --version`}
               <p>Each binary includes a SHA256 checksum file for security verification:</p>
               <CodeBlock
                 code={`# Download binary and checksum
-curl -fsSL https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-macos-silicon -o caro
-curl -fsSL https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-macos-silicon.sha256 -o caro.sha256
+curl -fsSL https://github.com/wildcard/caro/releases/download/v${CARO_VERSION}/caro-${CARO_VERSION}-macos-silicon -o caro
+curl -fsSL https://github.com/wildcard/caro/releases/download/v${CARO_VERSION}/caro-${CARO_VERSION}-macos-silicon.sha256 -o caro.sha256
 
 # Verify (macOS/Linux)
 shasum -a 256 -c caro.sha256`}

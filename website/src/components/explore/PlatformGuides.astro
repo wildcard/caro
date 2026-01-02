@@ -1,4 +1,6 @@
 ---
+import { INSTALL_CONFIG } from '../../config/install';
+
 const platforms = [
   {
     name: "macOS",
@@ -9,13 +11,13 @@ const platforms = [
       {
         method: "One-Line Install (Recommended)",
         commands: [
-          "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)"
+          INSTALL_CONFIG.commands.automated.curl
         ]
       },
       {
         method: "Using Cargo",
         commands: [
-          "cargo install caro",
+          INSTALL_CONFIG.commands.cargo.standard,
           "# Add alias to ~/.zshrc or ~/.bashrc:",
           "alias ai='caro'"
         ]
@@ -50,13 +52,13 @@ const platforms = [
       {
         method: "One-Line Install (Recommended)",
         commands: [
-          "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)"
+          INSTALL_CONFIG.commands.automated.curl
         ]
       },
       {
         method: "Using Cargo",
         commands: [
-          "cargo install caro",
+          INSTALL_CONFIG.commands.cargo.standard,
           "alias ai='caro'  # Add to ~/.bashrc"
         ]
       },
@@ -92,13 +94,13 @@ const platforms = [
           "# In PowerShell (Admin):",
           "wsl --install",
           "# After restart, in WSL Ubuntu:",
-          "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)"
+          INSTALL_CONFIG.commands.automated.curl
         ]
       },
       {
         method: "Using Cargo in WSL",
         commands: [
-          "cargo install caro",
+          INSTALL_CONFIG.commands.cargo.standard,
           "alias ai='caro'"
         ]
       }
@@ -125,7 +127,7 @@ const platforms = [
         commands: [
           "# Install Rust if needed",
           "pkg install rust cargo",
-          "cargo install caro"
+          INSTALL_CONFIG.commands.cargo.standard
         ]
       },
       {
