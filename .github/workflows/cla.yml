@@ -16,6 +16,42 @@ jobs:
   cla-check:
     runs-on: ubuntu-latest
     steps:
+      # Check if user already signed before running CLA Assistant
+      - name: Checkout signatures branch
+        if: github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA'
+        uses: actions/checkout@v4
+        with:
+          ref: cla-signatures
+          path: signatures-check
+        continue-on-error: true
+
+      - name: Check if already signed or allowlisted
+        if: github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA'
+        id: check-signed
+        run: |
+          COMMENTER="${{ github.event.comment.user.login }}"
+
+          # Check allowlist patterns
+          if [[ "$COMMENTER" == bot* ]] || [[ "$COMMENTER" == dependabot* ]] || \
+             [[ "$COMMENTER" == github-actions* ]] || [[ "$COMMENTER" == "claude" ]] || \
+             [[ "$COMMENTER" == "wildcard" ]] || [[ "$COMMENTER" == "copilot" ]]; then
+            echo "skip-message=true" >> $GITHUB_OUTPUT
+            echo "User $COMMENTER is in allowlist"
+            exit 0
+          fi
+
+          # Check if already signed
+          if [ -f signatures-check/.github/cla-signatures.json ]; then
+            if jq -e --arg user "$COMMENTER" '.signedContributors[] | select(.name == $user)' signatures-check/.github/cla-signatures.json > /dev/null 2>&1; then
+              echo "skip-message=true" >> $GITHUB_OUTPUT
+              echo "User $COMMENTER already signed"
+              exit 0
+            fi
+          fi
+
+          echo "skip-message=false" >> $GITHUB_OUTPUT
+          echo "User $COMMENTER is signing for the first time"
+
       - name: "CLA Assistant"
         if: (github.event.comment.body == 'recheck' || github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA') || github.event_name == 'pull_request_target'
         uses: contributor-assistant/github-action@v2.4.0
@@ -59,14 +95,27 @@ jobs:
 
             *Note: You only need to sign once. Your signature will cover all future contributions to caro.*
 
-          # Message to post when CLA is signed
-          custom-allsigned-prcomment: |
-            **✅ CLA Signed!**
-
-            Thank you for signing the CLA! Your contribution can now be reviewed and merged. 🚀
+          # Disable automatic message - we handle this manually below
+          custom-allsigned-prcomment: ''
 
           # Lock PR branch after merge to prevent signature removal
           lock-pullrequest-aftermerge: true
 
           # Signature verification
           use-dco-flag: false
+
+      # Only post confirmation when user actually signs in this PR (not allowlisted, not already signed)
+      - name: Post CLA Signed Confirmation
+        if: |
+          github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA' &&
+          steps.check-signed.outputs.skip-message != 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `**✅ CLA Signed!**\n\nThank you for signing the CLA! Your contribution can now be reviewed and merged. 🚀`
+            });
