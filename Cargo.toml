@@ -60,6 +60,9 @@ chrono = { version = "0.4", features = ["serde"] }
 regex = "1"
 once_cell = "1.19"
 
+# Spell checking for input improvement
+harper-core = "1.2"
+
 # Cryptography for checksums
 sha2 = "0.10"
 

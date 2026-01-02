@@ -11,6 +11,7 @@ use crate::{
     context::ExecutionContext,
     models::{CommandRequest, SafetyLevel, ShellType},
     safety::SafetyValidator,
+    spellcheck::SpellChecker,
 };
 
 #[cfg(any(test, debug_assertions))]
@@ -31,6 +32,7 @@ pub struct CliApp {
     validator: SafetyValidator,
     #[allow(dead_code)]
     context: ExecutionContext,
+    spell_checker: SpellChecker,
 }
 
 impl std::fmt::Debug for CliApp {
@@ -40,6 +42,7 @@ impl std::fmt::Debug for CliApp {
             .field("backend", &"<CommandGenerator>")
             .field("validator", &self.validator)
             .field("context", &"<ExecutionContext>")
+            .field("spell_checker", &"<SpellChecker>")
             .finish()
     }
 }
@@ -171,12 +174,19 @@ impl CliApp {
         // Create agent loop with backend and context
         let agent_loop = AgentLoop::new(backend_arc.clone(), context.clone());
 
+        // Initialize spell checker for input improvement
+        let spell_checker =
+            SpellChecker::new().map_err(|e| CliError::ConfigurationError {
+                message: format!("Failed to initialize spell checker: {}", e),
+            })?;
+
         Ok(Self {
             config,
             backend: backend_arc,
             agent_loop,
             validator,
             context,
+            spell_checker,
         })
     }
 
@@ -304,11 +314,32 @@ impl CliApp {
         };
 
         // Get the prompt
-        let prompt = args.prompt().ok_or_else(|| CliError::InvalidArgument {
+        let original_prompt = args.prompt().ok_or_else(|| CliError::InvalidArgument {
             message: "No prompt provided".to_string(),
         })?;
 
-        // Create command request
+        // Apply spell checking to improve the prompt before LLM processing
+        let spell_result = self
+            .spell_checker
+            .check_and_correct(&original_prompt)
+            .map_err(|e| CliError::Internal {
+                message: format!("Spell check failed: {}", e),
+            })?;
+
+        // Use the corrected prompt for command generation
+        let prompt = spell_result.text.clone();
+
+        // Log corrections if any were made
+        if spell_result.was_corrected && args.verbose() {
+            for correction in &spell_result.corrections {
+                warnings_list.push(format!(
+                    "Corrected '{}' → '{}'",
+                    correction.original, correction.corrected
+                ));
+            }
+        }
+
+        // Create command request with corrected prompt
         let _request = CommandRequest {
             input: prompt.clone(),
             context: None,
