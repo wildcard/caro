@@ -125,14 +125,13 @@ function extractAllTextContent(content) {
   return text;
 }
 
-// Extract title and description from Layout or LandingPage component props
+// Extract title and description from Layout component props
 function extractComponentProps(content) {
   let title = null;
   let description = null;
 
-  // Match Layout or LandingPage component with props
-  // Handle multi-line props with various quote styles
-  const layoutMatch = content.match(/<(?:Layout|LandingPage)\s+([\s\S]*?)>/);
+  // Match Layout, LandingPage, ComparisonPageLayout, or BlogPost components with props
+  const layoutMatch = content.match(/<(?:Layout|LandingPage|ComparisonPageLayout|BlogPost)\s+([\s\S]*?)>/);
   if (layoutMatch) {
     const propsStr = layoutMatch[1];
 
@@ -146,10 +145,12 @@ function extractComponentProps(content) {
     }
 
     if (title) {
-      // Clean up title (remove "| Caro" and " - Caro" suffixes for cleaner display)
+      // Clean up title (remove common suffixes for cleaner display)
       title = title
         .replace(/\s*\|\s*Caro.*$/, '')
         .replace(/\s*-\s*Caro$/, '')
+        .replace(/\s*\|\s*Shell AI Tools$/, '')
+        .replace(/\s*-\s*Feature Comparison.*$/, '')
         .trim();
     }
 
