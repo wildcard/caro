@@ -3,7 +3,7 @@
  * Holiday Debug Panel
  *
  * A developer panel for testing holiday themes. Accessible via:
- * - Ctrl+Shift+H (Windows/Linux) or Cmd+Shift+H (Mac)
+ * - Cmd+Shift+\ (Mac) or Ctrl+Shift+\ (Windows/Linux)
  * - ?holidayDebug=true query parameter
  *
  * Features:
@@ -278,7 +278,7 @@
 
   /* Hotkey hint */
   .debug-panel::after {
-    content: 'Press Ctrl+Shift+H to toggle';
+    content: 'Press Cmd+Shift+\\ to toggle';
     position: absolute;
     bottom: -24px;
     right: 0;
@@ -314,9 +314,9 @@
       return;
     }
 
-    // Toggle panel with hotkey (Ctrl+Shift+H or Cmd+Shift+H)
+    // Toggle panel with hotkey (Cmd+Shift+\ or Ctrl+Shift+\)
     document.addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'h') {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === '|' || e.key === '\\')) {
         e.preventDefault();
         panel?.classList.toggle('hidden');
         if (!panel?.classList.contains('hidden')) {
@@ -458,6 +458,6 @@
       panel?.classList.remove('hidden');
     }
 
-    console.log('🎄 Holiday Debug Panel loaded. Press Ctrl+Shift+H to toggle.');
+    console.log('🎄 Holiday Debug Panel loaded. Press Cmd+Shift+\\ to toggle.');
   });
 </script>
