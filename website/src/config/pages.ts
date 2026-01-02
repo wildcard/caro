@@ -1,6 +1,10 @@
 /**
  * Site pages index for OmniMenu navigation
  * Used by the Cmd+K omni menu to provide quick navigation
+ *
+ * Search metadata is sourced from page frontmatter (searchMeta exports)
+ * to keep data DRY and close to source. Fallback defaults are provided
+ * for pages that don't yet have searchMeta defined.
  */
 
 export interface PageEntry {
@@ -12,214 +16,266 @@ export interface PageEntry {
   icon?: string;
 }
 
+export interface SearchMeta {
+  title: string;
+  description: string;
+  keywords?: string[];
+  icon?: string;
+  category?: PageEntry['category'];
+}
+
+// Import searchMeta from pages at build time
+// Pages can export: export const searchMeta = { title, description, keywords, icon }
+const pageModules = import.meta.glob<{ searchMeta?: SearchMeta }>(
+  '../pages/**/*.astro',
+  { eager: true }
+);
+
+// Extract path from module path (e.g., '../pages/support.astro' -> '/support')
+function modulePathToRoute(modulePath: string): string {
+  return modulePath
+    .replace('../pages', '')
+    .replace('/index.astro', '/')
+    .replace('.astro', '')
+    .replace(/\/+$/, '') || '/';
+}
+
+// Infer category from path
+function inferCategory(path: string): PageEntry['category'] {
+  if (path.startsWith('/use-cases')) return 'use-cases';
+  if (path.startsWith('/compare')) return 'compare';
+  if (path.startsWith('/blog')) return 'blog';
+  if (path.startsWith('/docs')) return 'docs';
+  return 'main';
+}
+
+// Build page entries from modules, with fallback defaults
+function buildPageEntries(): Map<string, Partial<PageEntry>> {
+  const entries = new Map<string, Partial<PageEntry>>();
+
+  for (const [modulePath, module] of Object.entries(pageModules)) {
+    const path = modulePathToRoute(modulePath);
+    const meta = module.searchMeta;
+
+    if (meta) {
+      entries.set(path, {
+        title: meta.title,
+        description: meta.description,
+        keywords: meta.keywords,
+        icon: meta.icon,
+        category: meta.category || inferCategory(path),
+      });
+    }
+  }
+
+  return entries;
+}
+
+// Page entries sourced from searchMeta exports
+const dynamicEntries = buildPageEntries();
+
+// Helper to get entry from dynamic source or use fallback
+function getEntry(
+  path: string,
+  fallback: Omit<PageEntry, 'path'>
+): PageEntry {
+  const dynamic = dynamicEntries.get(path);
+  if (dynamic) {
+    return {
+      path,
+      title: dynamic.title || fallback.title,
+      description: dynamic.description || fallback.description,
+      category: dynamic.category || fallback.category,
+      keywords: dynamic.keywords || fallback.keywords,
+      icon: dynamic.icon || fallback.icon,
+    };
+  }
+  return { path, ...fallback };
+}
+
 export const PAGES_INDEX: PageEntry[] = [
   // Main pages
-  {
+  getEntry('/', {
     title: 'Home',
-    path: '/',
     description: 'Caro - Your loyal shell companion',
     category: 'main',
     keywords: ['home', 'main', 'landing'],
     icon: '🏠',
-  },
-  {
+  }),
+  getEntry('/safe-shell-commands', {
     title: 'Safe Shell Commands',
-    path: '/safe-shell-commands',
     description: 'Generate safe shell commands with AI',
     category: 'main',
     keywords: ['safe', 'shell', 'commands', 'cli'],
     icon: '🛡️',
-  },
-  {
+  }),
+  getEntry('/ai-command-safety', {
     title: 'AI Command Safety',
-    path: '/ai-command-safety',
     description: 'How Caro validates AI-generated commands',
     category: 'main',
     keywords: ['ai', 'safety', 'validation', 'llm'],
     icon: '🔒',
-  },
-  {
+  }),
+  getEntry('/ai-agent-safety', {
     title: 'AI Agent Safety',
-    path: '/ai-agent-safety',
     description: 'MCP integration for AI agents',
     category: 'main',
     keywords: ['ai', 'agent', 'mcp', 'claude'],
     icon: '🤖',
-  },
-  {
+  }),
+  getEntry('/roadmap', {
     title: 'Roadmap',
-    path: '/roadmap',
     description: 'Product roadmap and upcoming features',
     category: 'main',
     keywords: ['roadmap', 'features', 'planned', 'future'],
     icon: '🗺️',
-  },
-  {
-    title: 'Support',
-    path: '/support',
-    description: 'Get help with Caro',
+  }),
+  getEntry('/support', {
+    title: 'Sponsor',
+    description: 'Fund Caro open source development',
     category: 'main',
-    keywords: ['support', 'help', 'contact'],
-    icon: '💬',
-  },
-  {
+    keywords: ['sponsor', 'donate', 'fund', 'github sponsors', 'open collective', 'support development'],
+    icon: '💖',
+  }),
+  getEntry('/credits', {
     title: 'Credits',
-    path: '/credits',
     description: 'Acknowledgments and credits',
     category: 'main',
     keywords: ['credits', 'thanks', 'acknowledgments'],
     icon: '🙏',
-  },
-  {
+  }),
+  getEntry('/explore', {
     title: 'Explore',
-    path: '/explore',
     description: 'Explore Caro features',
     category: 'main',
     keywords: ['explore', 'discover', 'features'],
     icon: '🔍',
-  },
+  }),
 
   // Use Cases
-  {
+  getEntry('/use-cases', {
     title: 'Use Cases',
-    path: '/use-cases',
     description: 'All use cases and personas',
     category: 'use-cases',
     keywords: ['use cases', 'personas', 'jtbd', 'jobs'],
     icon: '📋',
-  },
-  {
+  }),
+  getEntry('/use-cases/sre', {
     title: 'SRE & On-Call',
-    path: '/use-cases/sre',
     description: 'For Site Reliability Engineers',
     category: 'use-cases',
     keywords: ['sre', 'on-call', 'incident', 'production'],
     icon: '🚨',
-  },
-  {
+  }),
+  getEntry('/use-cases/air-gapped', {
     title: 'Air-Gapped Security',
-    path: '/use-cases/air-gapped',
     description: 'For air-gapped and secure environments',
     category: 'use-cases',
     keywords: ['air-gapped', 'security', 'offline', 'scif'],
     icon: '🔐',
-  },
-  {
+  }),
+  getEntry('/use-cases/devops', {
     title: 'DevOps & Platform',
-    path: '/use-cases/devops',
     description: 'For DevOps and Platform Engineers',
     category: 'use-cases',
     keywords: ['devops', 'platform', 'cross-platform', 'ci/cd'],
     icon: '🔧',
-  },
-  {
+  }),
+  getEntry('/use-cases/tech-lead', {
     title: 'Tech Leads',
-    path: '/use-cases/tech-lead',
     description: 'For Tech Leads and Engineering Managers',
     category: 'use-cases',
     keywords: ['tech lead', 'manager', 'team', 'safety'],
     icon: '👥',
-  },
-  {
+  }),
+  getEntry('/use-cases/developer', {
     title: 'Developers',
-    path: '/use-cases/developer',
     description: 'For developers learning the terminal',
     category: 'use-cases',
     keywords: ['developer', 'learning', 'terminal', 'beginner'],
     icon: '💻',
-  },
+  }),
 
   // Comparisons
-  {
+  getEntry('/compare', {
     title: 'Compare Tools',
-    path: '/compare',
     description: 'Compare Caro with alternatives',
     category: 'compare',
     keywords: ['compare', 'alternatives', 'vs'],
     icon: '⚖️',
-  },
-  {
+  }),
+  getEntry('/compare/github-copilot-cli', {
     title: 'vs GitHub Copilot CLI',
-    path: '/compare/github-copilot-cli',
     description: 'Caro vs GitHub Copilot CLI',
     category: 'compare',
     keywords: ['github', 'copilot', 'cli', 'compare'],
     icon: '🐙',
-  },
-  {
+  }),
+  getEntry('/compare/warp', {
     title: 'vs Warp AI',
-    path: '/compare/warp',
     description: 'Caro vs Warp AI',
     category: 'compare',
     keywords: ['warp', 'terminal', 'compare'],
     icon: '🚀',
-  },
-  {
+  }),
+  getEntry('/compare/amazon-q-cli', {
     title: 'vs Amazon Q CLI',
-    path: '/compare/amazon-q-cli',
     description: 'Caro vs Amazon Q CLI',
     category: 'compare',
     keywords: ['amazon', 'q', 'aws', 'compare'],
     icon: '📦',
-  },
-  {
+  }),
+  getEntry('/compare/opencode', {
     title: 'vs OpenCode',
-    path: '/compare/opencode',
     description: 'Caro vs OpenCode',
     category: 'compare',
     keywords: ['opencode', 'compare'],
     icon: '💡',
-  },
+  }),
 
   // Blog
-  {
+  getEntry('/blog', {
     title: 'Blog',
-    path: '/blog',
     description: 'Caro blog and updates',
     category: 'blog',
     keywords: ['blog', 'news', 'updates', 'articles'],
     icon: '📝',
-  },
-  {
+  }),
+  getEntry('/blog/announcing-caro', {
     title: 'Announcing Caro',
-    path: '/blog/announcing-caro',
     description: 'Introducing Caro to the world',
     category: 'blog',
     keywords: ['announcement', 'launch', 'intro'],
     icon: '🎉',
-  },
-  {
+  }),
+  getEntry('/blog/why-caro', {
     title: 'Why Caro?',
-    path: '/blog/why-caro',
     description: 'Why we built Caro',
     category: 'blog',
     keywords: ['why', 'motivation', 'story'],
     icon: '❓',
-  },
-  {
+  }),
+  getEntry('/blog/security-practices', {
     title: 'Security Practices',
-    path: '/blog/security-practices',
     description: 'Security best practices with Caro',
     category: 'blog',
     keywords: ['security', 'practices', 'safety'],
     icon: '🔐',
-  },
-  {
+  }),
+  getEntry('/blog/claude-skill-launch', {
     title: 'Claude Skill Launch',
-    path: '/blog/claude-skill-launch',
     description: 'Claude Code skill integration',
     category: 'blog',
     keywords: ['claude', 'skill', 'integration'],
     icon: '🤖',
-  },
-  {
+  }),
+  getEntry('/blog/batteries-included', {
     title: 'Batteries Included',
-    path: '/blog/batteries-included',
     description: 'Everything included out of the box',
     category: 'blog',
     keywords: ['batteries', 'included', 'features'],
     icon: '🔋',
-  },
+  }),
 ];
 
 /**
