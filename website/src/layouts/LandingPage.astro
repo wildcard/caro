@@ -96,27 +96,27 @@ const { title, description, slug, persona, painPoint } = Astro.props;
     }
 
     a:hover {
-      color: #ff6b35;
+      color: var(--color-primary-dark);
       text-decoration: underline;
     }
 
     a:focus-visible {
-      outline: 2px solid #ff8c42;
+      outline: 2px solid var(--color-primary);
       outline-offset: 2px;
       border-radius: 2px;
     }
 
     /* Dark mode link colors - slightly brighter for contrast */
     .dark a {
-      color: #ffa76c;
+      color: var(--color-primary-light);
     }
 
     .dark a:hover {
-      color: #ff8c42;
+      color: var(--color-primary);
     }
 
     .dark a:focus-visible {
-      outline-color: #ffa76c;
+      outline-color: var(--color-primary-light);
     }
 
     section {
