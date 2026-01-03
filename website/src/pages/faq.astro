@@ -1,0 +1,628 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+import Footer from '../components/Footer.astro';
+
+// Search metadata - used by OmniMenu
+export const searchMeta = {
+  title: 'FAQ',
+  description: 'Frequently asked questions about Caro',
+  keywords: ['faq', 'questions', 'help', 'support', 'installation', 'usage', 'safety', 'backends'],
+  icon: '?',
+};
+
+// FAQ categories with questions
+const faqCategories = [
+  {
+    title: "Getting Started",
+    icon: "rocket",
+    questions: [
+      {
+        question: "What is Caro?",
+        answer: "Caro is a privacy-first AI shell assistant that converts natural language into safe, validated shell commands. It runs 100% locally on your machine—your commands, file paths, and data never leave your computer."
+      },
+      {
+        question: "How do I install Caro?",
+        answer: "The easiest way is via cargo: <code>cargo install caro</code>. You can also use our install script: <code>curl -sSL https://caro.sh/install.sh | bash</code>. For other options, see our installation guide."
+      },
+      {
+        question: "What are the system requirements?",
+        answer: "Caro runs on macOS, Linux, and Windows (WSL). You need Rust 1.70+ for building from source. For local LLM inference, we recommend 8GB+ RAM. Apple Silicon Macs get hardware acceleration with MLX."
+      },
+      {
+        question: "Do I need an API key to use Caro?",
+        answer: "It depends on your backend choice. Local backends (Ollama, MLX, llama.cpp) require no API keys. Cloud backends (Anthropic, OpenAI) require API keys. Caro defaults to trying local inference first."
+      }
+    ]
+  },
+  {
+    title: "Safety & Security",
+    icon: "shield",
+    questions: [
+      {
+        question: "How does Caro's safety validation work?",
+        answer: "Caro uses pattern-based command validation, not AI-based filtering. Every generated command is checked against known dangerous patterns (rm -rf /, fork bombs, disk wipers) before you run it. This is deterministic, not probabilistic—the same command always gets the same safety assessment."
+      },
+      {
+        question: "What happens when Caro detects a dangerous command?",
+        answer: "Caro shows a clear warning explaining why the command is dangerous and what it would do. You can still proceed if you intend to run it—Caro is a seatbelt, not a straitjacket. For truly destructive commands, you'll need to explicitly confirm."
+      },
+      {
+        question: "Does Caro send my data to the cloud?",
+        answer: "No. Caro runs 100% locally by default. Your commands, file paths, server names, and directory structures never leave your machine. If you choose to use a cloud backend (like Anthropic or OpenAI), only the natural language prompt is sent—not your command history or file system data."
+      },
+      {
+        question: "Is Caro safe to use with AI agents?",
+        answer: "Yes—Caro is designed with AI agents in mind. We recommend defense in depth: run agents as unprivileged users, sandbox to specific directories, use container isolation, and let Caro validate commands. Each layer catches what others miss."
+      },
+      {
+        question: "How does Caro stay updated with new dangerous patterns?",
+        answer: "Safety patterns are baked into the binary. When you update Caro (cargo install caro --force), you get the latest patterns. The core dangerous commands don't change. We also accept pattern contributions via GitHub."
+      }
+    ]
+  },
+  {
+    title: "Backends & Models",
+    icon: "cpu",
+    questions: [
+      {
+        question: "What LLM backends does Caro support?",
+        answer: "Caro supports multiple backends: <strong>Local:</strong> Ollama, MLX (Apple Silicon), llama.cpp. <strong>Cloud:</strong> Anthropic Claude, OpenAI GPT. Caro automatically selects the best available backend or you can specify one explicitly."
+      },
+      {
+        question: "Which backend should I use?",
+        answer: "For privacy and offline use, choose local backends. On Apple Silicon Macs, MLX offers the best performance with hardware acceleration. Ollama is great cross-platform. For best quality responses, cloud backends like Claude typically perform better but require API keys."
+      },
+      {
+        question: "How do I set up Ollama with Caro?",
+        answer: "Install Ollama from ollama.ai, then run <code>ollama pull llama3</code> (or another model). Caro will automatically detect Ollama when it's running. You can verify with <code>caro --backend ollama \"list files\"</code>."
+      },
+      {
+        question: "How do I use MLX on my Mac?",
+        answer: "MLX is built into Caro for Apple Silicon Macs. Ensure you have the mlx Python package installed. Caro will automatically use MLX when available on M1/M2/M3 Macs for hardware-accelerated local inference."
+      },
+      {
+        question: "Can I use my own fine-tuned models?",
+        answer: "Yes! With Ollama, you can use any GGUF model. With MLX, you can use any MLX-compatible model. Point Caro to your model with the <code>--model</code> flag or set it in your config file."
+      }
+    ]
+  },
+  {
+    title: "Usage & Features",
+    icon: "terminal",
+    questions: [
+      {
+        question: "How do I use Caro?",
+        answer: "Simply run <code>caro \"your request in natural language\"</code>. For example: <code>caro \"find all Python files modified in the last week\"</code>. Caro generates the command, shows it to you with a safety assessment, and asks for confirmation before running."
+      },
+      {
+        question: "Can Caro execute commands automatically?",
+        answer: "By default, Caro shows you the command and waits for confirmation. You can use <code>--execute</code> or <code>-e</code> to auto-execute safe commands, but dangerous commands always require explicit confirmation."
+      },
+      {
+        question: "How does Caro handle different shells?",
+        answer: "Caro detects your shell ($SHELL) at runtime and generates appropriate syntax. It works with bash, zsh, fish, and POSIX sh. On macOS, it knows you're using BSD tools; on Linux, it adjusts for GNU syntax."
+      },
+      {
+        question: "Can I use Caro in scripts?",
+        answer: "Yes! Use <code>caro --quiet</code> for scripting. You can pipe output, use in CI/CD, or integrate with other tools. The <code>--json</code> flag outputs structured data for programmatic use."
+      },
+      {
+        question: "How do I configure Caro?",
+        answer: "Caro uses a config file at <code>~/.config/caro/config.toml</code>. You can set your preferred backend, default model, safety level, and other options. Run <code>caro --help</code> to see all configuration options."
+      }
+    ]
+  },
+  {
+    title: "Troubleshooting",
+    icon: "wrench",
+    questions: [
+      {
+        question: "Caro says 'no backend available'—what do I do?",
+        answer: "This means Caro couldn't find a local LLM or API key. Either: (1) Install and start Ollama with a model, (2) Set up MLX if on Apple Silicon, or (3) Set an API key for a cloud provider with <code>export ANTHROPIC_API_KEY=...</code>."
+      },
+      {
+        question: "Commands are generating slowly—how do I speed things up?",
+        answer: "Local inference speed depends on your hardware and model size. Try a smaller model (7B instead of 70B), use MLX on Apple Silicon for acceleration, or switch to a cloud backend for faster responses."
+      },
+      {
+        question: "The generated command is wrong—what should I do?",
+        answer: "You can: (1) Rephrase your request to be more specific, (2) Add context like \"on macOS\" or \"using find command\", (3) Try a different backend/model, or (4) Report the issue on GitHub so we can improve."
+      },
+      {
+        question: "How do I report a bug or request a feature?",
+        answer: "Open an issue on our GitHub repository at <a href=\"https://github.com/wildcard/caro/issues\" target=\"_blank\" rel=\"noopener\">github.com/wildcard/caro/issues</a>. Include your OS, Caro version (<code>caro --version</code>), backend, and steps to reproduce."
+      }
+    ]
+  },
+  {
+    title: "Privacy & Telemetry",
+    icon: "eye",
+    questions: [
+      {
+        question: "What data does Caro collect?",
+        answer: "By default, Caro collects minimal, anonymous usage metrics to help us improve the product—things like command success rates and which backends are used. No commands, file paths, or personal data are ever collected. See our <a href=\"/telemetry\">telemetry page</a> for details."
+      },
+      {
+        question: "Can I disable telemetry?",
+        answer: "Yes. Set <code>telemetry = false</code> in your config file or use <code>export CARO_TELEMETRY=false</code>. Caro will work exactly the same with telemetry disabled."
+      },
+      {
+        question: "Is Caro GDPR compliant?",
+        answer: "Yes. We don't collect personal data. All telemetry is anonymous and aggregated. You have full control over what data is sent (if any), and can disable telemetry entirely."
+      }
+    ]
+  },
+  {
+    title: "Contributing & Community",
+    icon: "users",
+    questions: [
+      {
+        question: "How can I contribute to Caro?",
+        answer: "We welcome contributions! You can: submit bug reports, propose features, contribute code (it's Rust!), add safety patterns, improve documentation, or help with translations. See our <a href=\"https://github.com/wildcard/caro/blob/main/CONTRIBUTING.md\" target=\"_blank\" rel=\"noopener\">contributing guide</a>."
+      },
+      {
+        question: "Is Caro open source?",
+        answer: "Yes! Caro is licensed under AGPL-3.0. You can read, modify, and distribute the source code. The full codebase is available on <a href=\"https://github.com/wildcard/caro\" target=\"_blank\" rel=\"noopener\">GitHub</a>."
+      },
+      {
+        question: "How can I support Caro's development?",
+        answer: "You can support us through <a href=\"https://github.com/sponsors/wildcard\" target=\"_blank\" rel=\"noopener\">GitHub Sponsors</a> or <a href=\"https://opencollective.com/carosh\" target=\"_blank\" rel=\"noopener\">Open Collective</a>. Every contribution helps us maintain and improve Caro. See our <a href=\"/support\">support page</a> for more details."
+      }
+    ]
+  }
+];
+
+// Icon SVG paths
+const iconPaths = {
+  rocket: "M9.315 7.584C12.195 3.883 16.695 1.5 21.75 1.5a.75.75 0 01.75.75c0 5.056-2.383 9.555-6.084 12.436A6.75 6.75 0 019.75 22.5a.75.75 0 01-.75-.75v-4.131A15.838 15.838 0 016.382 15H2.25a.75.75 0 01-.75-.75 6.75 6.75 0 017.815-6.666zM15 6.75a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5z M5.26 17.242a.75.75 0 10-.897 1.203 5.243 5.243 0 002.05 1.064c.205.06.42.115.64.164a.75.75 0 10.346-1.46 4.252 4.252 0 01-.519-.132 3.743 3.743 0 01-1.62-.84z",
+  shield: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
+  cpu: "M18 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2zM9 9h6v6H9V9zM9 1v2M15 1v2M9 21v2M15 21v2M21 9h2M21 15h2M1 9h2M1 15h2",
+  terminal: "M4 17l6-6-6-6M12 19h8",
+  wrench: "M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z",
+  eye: "M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 9a3 3 0 100 6 3 3 0 000-6z",
+  users: "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
+};
+---
+
+<Layout
+  title="FAQ - Caro Shell Assistant"
+  description="Frequently asked questions about Caro, the privacy-first AI shell assistant. Learn about installation, safety features, backends, usage, and more."
+>
+  <Navigation />
+
+  <main class="faq-page">
+    <!-- Hero Section -->
+    <section class="faq-hero">
+      <div class="container">
+        <h1>Frequently Asked Questions</h1>
+        <p class="hero-subtitle">Everything you need to know about Caro</p>
+      </div>
+    </section>
+
+    <!-- Quick Links -->
+    <section class="quick-links">
+      <div class="container">
+        <div class="links-grid">
+          {faqCategories.map((category) => (
+            <a href={`#${category.title.toLowerCase().replace(/\s+/g, '-')}`} class="quick-link">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d={iconPaths[category.icon as keyof typeof iconPaths]} />
+              </svg>
+              <span>{category.title}</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Categories -->
+    {faqCategories.map((category) => (
+      <section id={category.title.toLowerCase().replace(/\s+/g, '-')} class="faq-category">
+        <div class="container">
+          <div class="category-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d={iconPaths[category.icon as keyof typeof iconPaths]} />
+            </svg>
+            <h2>{category.title}</h2>
+          </div>
+
+          <div class="faq-grid">
+            {category.questions.map((item) => (
+              <details class="faq-item">
+                <summary class="faq-question">
+                  <span class="question-text">{item.question}</span>
+                  <span class="faq-toggle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
+                  </span>
+                </summary>
+                <div class="faq-answer">
+                  <p set:html={item.answer} />
+                </div>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+    ))}
+
+    <!-- Still Have Questions -->
+    <section class="still-questions">
+      <div class="container">
+        <div class="questions-card">
+          <h2>Still have questions?</h2>
+          <p>Can't find what you're looking for? We're here to help.</p>
+          <div class="questions-actions">
+            <a href="https://github.com/wildcard/caro/discussions" class="action-link" target="_blank" rel="noopener noreferrer">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+              </svg>
+              Ask in Discussions
+            </a>
+            <a href="https://github.com/wildcard/caro/issues" class="action-link" target="_blank" rel="noopener noreferrer">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 16v-4M12 8h.01" />
+              </svg>
+              Report an Issue
+            </a>
+            <a href="https://github.com/wildcard/caro" class="action-link" target="_blank" rel="noopener noreferrer">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              </svg>
+              View Source Code
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .faq-page {
+    min-height: 100vh;
+    background: var(--color-bg);
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  /* Hero Section */
+  .faq-hero {
+    text-align: center;
+    padding: 100px 20px 60px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: #fff;
+  }
+
+  .faq-hero h1 {
+    font-size: 48px;
+    font-weight: 800;
+    margin: 0 0 16px;
+    color: #fff;
+  }
+
+  .hero-subtitle {
+    font-size: 20px;
+    color: #ff8c42;
+    margin: 0;
+    font-weight: 500;
+  }
+
+  /* Quick Links */
+  .quick-links {
+    padding: 40px 20px;
+    background: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .links-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .quick-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    color: var(--color-text);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+
+  .quick-link:hover {
+    border-color: #ff8c42;
+    color: #ff8c42;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.15);
+  }
+
+  .quick-link svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* FAQ Category */
+  .faq-category {
+    padding: 60px 20px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .faq-category:nth-child(even) {
+    background: var(--color-bg-secondary);
+  }
+
+  .category-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+
+  .category-header svg {
+    width: 28px;
+    height: 28px;
+    color: #ff8c42;
+  }
+
+  .category-header h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--color-text);
+  }
+
+  /* FAQ Grid */
+  .faq-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .faq-item {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .faq-category:nth-child(even) .faq-item {
+    background: var(--color-bg);
+  }
+
+  .faq-item:hover {
+    border-color: rgba(255, 140, 66, 0.3);
+  }
+
+  .faq-item[open] {
+    border-color: #ff8c42;
+    box-shadow: 0 4px 20px rgba(255, 140, 66, 0.1);
+  }
+
+  .faq-question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 24px;
+    cursor: pointer;
+    list-style: none;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--color-text);
+  }
+
+  .faq-question::-webkit-details-marker {
+    display: none;
+  }
+
+  .question-text {
+    flex: 1;
+    line-height: 1.5;
+  }
+
+  .faq-toggle {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-secondary);
+    transition: transform 0.2s;
+  }
+
+  .faq-toggle svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .faq-item[open] .faq-toggle {
+    transform: rotate(180deg);
+    color: #ff8c42;
+  }
+
+  .faq-answer {
+    padding: 0 24px 24px;
+  }
+
+  .faq-answer p {
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  .faq-answer :global(code) {
+    background: var(--color-bg-secondary);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    color: #ff8c42;
+  }
+
+  .faq-answer :global(a) {
+    color: #ff8c42;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .faq-answer :global(a:hover) {
+    text-decoration: underline;
+  }
+
+  .faq-answer :global(strong) {
+    color: var(--color-text);
+    font-weight: 600;
+  }
+
+  /* Still Have Questions */
+  .still-questions {
+    padding: 80px 20px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  }
+
+  .questions-card {
+    text-align: center;
+    color: #fff;
+  }
+
+  .questions-card h2 {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 12px;
+  }
+
+  .questions-card > p {
+    font-size: 18px;
+    color: #b0b0b0;
+    margin: 0 0 32px;
+  }
+
+  .questions-actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .action-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 24px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    transition: all 0.2s;
+  }
+
+  .action-link:hover {
+    background: rgba(255, 140, 66, 0.2);
+    border-color: #ff8c42;
+    transform: translateY(-2px);
+  }
+
+  .action-link svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .faq-hero h1 {
+      font-size: 36px;
+    }
+
+    .hero-subtitle {
+      font-size: 18px;
+    }
+
+    .category-header h2 {
+      font-size: 24px;
+    }
+
+    .faq-question {
+      padding: 16px 18px;
+      font-size: 15px;
+    }
+
+    .faq-answer {
+      padding: 0 18px 20px;
+    }
+
+    .questions-card h2 {
+      font-size: 26px;
+    }
+
+    .questions-actions {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .action-link {
+      width: 100%;
+      max-width: 280px;
+      justify-content: center;
+    }
+  }
+</style>
+
+<script>
+  // Smooth scroll to category when clicking quick links
+  document.querySelectorAll('.quick-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const href = link.getAttribute('href');
+      if (!href) return;
+
+      const target = document.querySelector(href);
+      if (target) {
+        const nav = document.querySelector('.navigation') as HTMLElement;
+        const navHeight = nav?.offsetHeight || 64;
+        const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - navHeight - 20;
+
+        window.scrollTo({
+          top: targetPosition,
+          behavior: 'smooth'
+        });
+      }
+    });
+  });
+
+  // Open FAQ item if linked directly with hash
+  const hash = window.location.hash;
+  if (hash) {
+    const target = document.querySelector(hash);
+    if (target) {
+      setTimeout(() => {
+        const nav = document.querySelector('.navigation') as HTMLElement;
+        const navHeight = nav?.offsetHeight || 64;
+        const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - navHeight - 20;
+        window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+      }, 100);
+    }
+  }
+</script>
