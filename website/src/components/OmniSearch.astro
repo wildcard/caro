@@ -494,7 +494,7 @@ const searchIndex = searchIndexData?.pages?.length > 0
       if (!q) return { exact: pages.map(p => ({ page: p, score: 1, isTypo: false, corrections: [] })), fuzzy: [], corrections: new Map() };
 
       const tokens = q.split(/\s+/).filter(t => t.length >= 2);
-      if (tokens.length === 0) return { exact: pages, fuzzy: [], corrections: new Map() };
+      if (tokens.length === 0) return { exact: pages.map(p => ({ page: p, score: 1, isTypo: false, corrections: [] })), fuzzy: [], corrections: new Map() };
 
       const exact: SearchResult[] = [];
       const fuzzy: SearchResult[] = [];
