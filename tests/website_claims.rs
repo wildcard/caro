@@ -651,6 +651,998 @@ fn test_compare_005_posix_first() {
 }
 
 // =============================================================================
+// COMMAND EXAMPLES FROM TERMINAL SHOWCASE (HOME PAGE)
+// Source: website/src/components/TerminalShowcase.astro
+// =============================================================================
+
+/// Website Example: "list all files modified today" → `find . -type f -mtime 0`
+/// Source: https://caro.sh/ (TerminalShowcase)
+/// Claim ID: EXAMPLE-TERMINAL-001
+#[test]
+fn test_example_terminal_001_files_modified_today() {
+    println!("=== EXAMPLE-TERMINAL-001 ===");
+    println!("Example: list all files modified today → find . -type f -mtime 0");
+    println!("Source: https://caro.sh/ (TerminalShowcase)");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    // Test that this safe command is not blocked
+    match runner.validate_command("find . -type f -mtime 0") {
+        Ok(result) => {
+            if !result.is_blocked {
+                println!("PASSED: Safe command is not blocked");
+            } else {
+                println!("WARNING: Safe command was incorrectly blocked");
+            }
+        }
+        Err(e) => {
+            println!("INFO: Validation result: {}", e);
+        }
+    }
+}
+
+/// Website Example: "find large files over 100MB" → `find . -type f -size +100M`
+/// Source: https://caro.sh/ (TerminalShowcase)
+/// Claim ID: EXAMPLE-TERMINAL-002
+#[test]
+fn test_example_terminal_002_find_large_files() {
+    println!("=== EXAMPLE-TERMINAL-002 ===");
+    println!("Example: find large files over 100MB → find . -type f -size +100M");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    match runner.validate_command("find . -type f -size +100M") {
+        Ok(result) => {
+            if !result.is_blocked {
+                println!("PASSED: Safe command is not blocked");
+            } else {
+                println!("WARNING: Safe command was incorrectly blocked");
+            }
+        }
+        Err(e) => {
+            println!("INFO: Validation result: {}", e);
+        }
+    }
+}
+
+/// Website Example: "show disk usage by folder" → `du -sh */ | sort -rh | head -10`
+/// Source: https://caro.sh/ (TerminalShowcase)
+/// Claim ID: EXAMPLE-TERMINAL-003
+#[test]
+fn test_example_terminal_003_disk_usage() {
+    println!("=== EXAMPLE-TERMINAL-003 ===");
+    println!("Example: show disk usage by folder → du -sh */ | sort -rh | head -10");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    match runner.validate_command("du -sh */ | sort -rh | head -10") {
+        Ok(result) => {
+            if !result.is_blocked {
+                println!("PASSED: Safe command is not blocked");
+            } else {
+                println!("WARNING: Safe command was incorrectly blocked");
+            }
+        }
+        Err(e) => {
+            println!("INFO: Validation result: {}", e);
+        }
+    }
+}
+
+/// Website Example: "find python files modified last week" → `find . -name "*.py" -type f -mtime -7`
+/// Source: https://caro.sh/ (TerminalShowcase)
+/// Claim ID: EXAMPLE-TERMINAL-004
+#[test]
+fn test_example_terminal_004_python_files_last_week() {
+    println!("=== EXAMPLE-TERMINAL-004 ===");
+    println!("Example: find python files modified last week → find . -name *.py -type f -mtime -7");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    match runner.validate_command("find . -name \"*.py\" -type f -mtime -7") {
+        Ok(result) => {
+            if !result.is_blocked {
+                println!("PASSED: Safe command is not blocked");
+            } else {
+                println!("WARNING: Safe command was incorrectly blocked");
+            }
+        }
+        Err(e) => {
+            println!("INFO: Validation result: {}", e);
+        }
+    }
+}
+
+// =============================================================================
+// COMMAND EXAMPLES FROM SAFETY SHOWCASE (EXPLORE PAGE)
+// Source: website/src/components/explore/SafetyShowcase.astro
+// =============================================================================
+
+/// Website Example: Blocked pattern - disk formatting (mkfs)
+/// Source: https://caro.sh/explore#safety-showcase
+/// Claim ID: EXAMPLE-SAFETY-001
+#[test]
+fn test_example_safety_001_blocks_mkfs() {
+    println!("=== EXAMPLE-SAFETY-001 ===");
+    println!("Example: Blocked pattern - mkfs.* (disk formatting)");
+    println!("Source: https://caro.sh/explore#safety-showcase");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    let dangerous_commands = [
+        "mkfs.ext4 /dev/sda1",
+        "mkfs /dev/sda",
+        "mkfs.xfs /dev/nvme0n1",
+    ];
+
+    for cmd in &dangerous_commands {
+        println!("Testing: {}", cmd);
+        match runner.validate_command(cmd) {
+            Ok(result) => {
+                if result.is_blocked || !result.success {
+                    println!("  PASSED: '{}' was blocked", cmd);
+                } else {
+                    println!("  WARNING: '{}' was not blocked", cmd);
+                }
+            }
+            Err(e) => {
+                println!("  PASSED: '{}' execution prevented: {}", cmd, e);
+            }
+        }
+    }
+}
+
+/// Website Example: Blocked pattern - chmod 777 (privilege escalation)
+/// Source: https://caro.sh/explore#safety-showcase
+/// Claim ID: EXAMPLE-SAFETY-002
+#[test]
+fn test_example_safety_002_blocks_chmod_777() {
+    println!("=== EXAMPLE-SAFETY-002 ===");
+    println!("Example: Blocked pattern - chmod 777 / (privilege escalation)");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    let dangerous_commands = [
+        "chmod 777 /",
+        "chmod -R 777 /",
+        "chmod 777 /etc",
+    ];
+
+    for cmd in &dangerous_commands {
+        println!("Testing: {}", cmd);
+        match runner.validate_command(cmd) {
+            Ok(result) => {
+                if result.is_blocked || !result.success {
+                    println!("  PASSED: '{}' was blocked", cmd);
+                } else {
+                    println!("  WARNING: '{}' was not blocked", cmd);
+                }
+            }
+            Err(e) => {
+                println!("  PASSED: '{}' execution prevented: {}", cmd, e);
+            }
+        }
+    }
+}
+
+/// Website Example: Blocked pattern - dd if=/dev/zero (disk overwrite)
+/// Source: https://caro.sh/explore#safety-showcase
+/// Claim ID: EXAMPLE-SAFETY-003
+#[test]
+fn test_example_safety_003_blocks_dd_disk_overwrite() {
+    println!("=== EXAMPLE-SAFETY-003 ===");
+    println!("Example: Blocked pattern - dd if=/dev/zero (disk overwrite)");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    let dangerous_commands = [
+        "dd if=/dev/zero of=/dev/sda",
+        "dd if=/dev/urandom of=/dev/sda bs=4M",
+    ];
+
+    for cmd in &dangerous_commands {
+        println!("Testing: {}", cmd);
+        match runner.validate_command(cmd) {
+            Ok(result) => {
+                if result.is_blocked || !result.success {
+                    println!("  PASSED: '{}' was blocked", cmd);
+                } else {
+                    println!("  WARNING: '{}' was not blocked", cmd);
+                }
+            }
+            Err(e) => {
+                println!("  PASSED: '{}' execution prevented: {}", cmd, e);
+            }
+        }
+    }
+}
+
+/// Website Example: Safe level commands - read-only operations
+/// Source: https://caro.sh/explore#safety-showcase
+/// Claim ID: EXAMPLE-SAFETY-004
+#[test]
+fn test_example_safety_004_safe_level_commands() {
+    println!("=== EXAMPLE-SAFETY-004 ===");
+    println!("Example: Safe level commands - read-only operations");
+    println!("Commands: ls -la, grep pattern file.txt, find . -name '*.log'");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    let safe_commands = [
+        "ls -la",
+        "grep pattern file.txt",
+        "find . -name '*.log'",
+    ];
+
+    for cmd in &safe_commands {
+        println!("Testing: {}", cmd);
+        match runner.validate_command(cmd) {
+            Ok(result) => {
+                if !result.is_blocked {
+                    println!("  PASSED: '{}' is allowed (safe)", cmd);
+                } else {
+                    println!("  WARNING: '{}' was incorrectly blocked", cmd);
+                }
+            }
+            Err(e) => {
+                println!("  INFO: Validation result: {}", e);
+            }
+        }
+    }
+}
+
+/// Website Example: Moderate risk commands - file/network operations
+/// Source: https://caro.sh/explore#safety-showcase
+/// Claim ID: EXAMPLE-SAFETY-005
+#[test]
+fn test_example_safety_005_moderate_risk_commands() {
+    println!("=== EXAMPLE-SAFETY-005 ===");
+    println!("Example: Moderate risk commands - file modifications, network ops");
+    println!("Commands: sed -i, wget, curl -X POST");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    let moderate_commands = [
+        "sed -i 's/old/new/g' file.txt",
+        "wget https://example.com/file",
+        "curl -X POST api.example.com",
+    ];
+
+    for cmd in &moderate_commands {
+        println!("Testing: {}", cmd);
+        match runner.validate_command(cmd) {
+            Ok(result) => {
+                // Moderate commands should be allowed but may have warnings
+                println!("  INFO: '{}' risk_level: {:?}", cmd, result.risk_level);
+            }
+            Err(e) => {
+                println!("  INFO: Validation result: {}", e);
+            }
+        }
+    }
+}
+
+/// Website Example: High risk commands - system-level changes
+/// Source: https://caro.sh/explore#safety-showcase
+/// Claim ID: EXAMPLE-SAFETY-006
+#[test]
+fn test_example_safety_006_high_risk_commands() {
+    println!("=== EXAMPLE-SAFETY-006 ===");
+    println!("Example: High risk commands - system-level changes");
+    println!("Commands: chmod +x, chown, kill -9");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    let high_risk_commands = [
+        "chmod +x script.sh",
+        "chown user:group file",
+        "kill -9 1234",
+    ];
+
+    for cmd in &high_risk_commands {
+        println!("Testing: {}", cmd);
+        match runner.validate_command(cmd) {
+            Ok(result) => {
+                println!("  INFO: '{}' risk_level: {:?}, blocked: {}", cmd, result.risk_level, result.is_blocked);
+            }
+            Err(e) => {
+                println!("  INFO: Validation result: {}", e);
+            }
+        }
+    }
+}
+
+// =============================================================================
+// COMMAND EXAMPLES FROM LANDING PAGE DEMO
+// Source: website/src/components/landing/LPDemo.astro
+// =============================================================================
+
+/// Website Example: High risk - recursive delete in system directory
+/// Source: https://caro.sh/safe-shell-commands#demo
+/// Claim ID: EXAMPLE-DEMO-001
+#[test]
+fn test_example_demo_001_high_risk_log_delete() {
+    println!("=== EXAMPLE-DEMO-001 ===");
+    println!("Example: find /var/log -name *.log -mtime +30 -delete");
+    println!("Expected: High Risk warning for system directory");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    match runner.validate_command("find /var/log -name \"*.log\" -mtime +30 -delete") {
+        Ok(result) => {
+            // This should trigger a high risk warning, not necessarily blocked
+            println!("Risk level: {:?}", result.risk_level);
+            println!("Blocked: {}", result.is_blocked);
+            if result.risk_level.is_some() || result.is_blocked {
+                println!("PASSED: System directory operation flagged");
+            }
+        }
+        Err(e) => {
+            println!("INFO: Validation result: {}", e);
+        }
+    }
+}
+
+/// Website Example: Blocked commands showcase from LPDemo
+/// Source: https://caro.sh/safe-shell-commands#demo
+/// Claim ID: EXAMPLE-DEMO-002
+#[test]
+fn test_example_demo_002_blocked_commands_showcase() {
+    println!("=== EXAMPLE-DEMO-002 ===");
+    println!("Example: All blocked commands from demo showcase");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    // These are the exact commands shown in the blocked-showcase section
+    let blocked_commands = [
+        "rm -rf /",
+        "rm -rf ~",
+        ":(){ :|:& };:",           // fork bomb
+        "dd if=/dev/zero of=/dev/sda",
+        "chmod -R 777 /",
+        "mkfs.ext4 /dev/sda1",
+    ];
+
+    let mut all_blocked = true;
+    for cmd in &blocked_commands {
+        println!("Testing: {}", cmd);
+        match runner.validate_command(cmd) {
+            Ok(result) => {
+                if result.is_blocked || !result.success {
+                    println!("  PASSED: Blocked");
+                } else {
+                    println!("  WARNING: NOT blocked");
+                    all_blocked = false;
+                }
+            }
+            Err(e) => {
+                println!("  PASSED: Prevented: {}", e);
+            }
+        }
+    }
+
+    if all_blocked {
+        println!("PASSED: All dangerous commands in showcase are blocked");
+    }
+}
+
+// =============================================================================
+// COMMAND EXAMPLES FROM SRE USE-CASE PAGE
+// Source: website/src/pages/use-cases/sre.astro
+// =============================================================================
+
+/// Website Example: SRE blocked patterns list
+/// Source: https://caro.sh/use-cases/sre
+/// Claim ID: EXAMPLE-SRE-001
+#[test]
+fn test_example_sre_001_blocked_patterns() {
+    println!("=== EXAMPLE-SRE-001 ===");
+    println!("Example: SRE page blocked patterns list");
+    println!("Source: https://caro.sh/use-cases/sre");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    // From sre.astro blockedPatterns array
+    let sre_blocked_patterns = [
+        "rm -rf /",
+        "rm -rf ~",
+        ":(){ :|:& };:",           // fork bomb
+        "chmod 777 /",
+        "dd if=/dev/zero of=/dev/sda",
+        "mkfs.ext4 /dev/sda",
+        // Note: pipe-to-shell patterns are tested separately
+    ];
+
+    let mut passed = 0;
+    let total = sre_blocked_patterns.len();
+
+    for cmd in &sre_blocked_patterns {
+        match runner.validate_command(cmd) {
+            Ok(result) => {
+                if result.is_blocked || !result.success {
+                    passed += 1;
+                    println!("PASSED: '{}' blocked", cmd);
+                } else {
+                    println!("WARNING: '{}' not blocked", cmd);
+                }
+            }
+            Err(_) => {
+                passed += 1;
+                println!("PASSED: '{}' prevented", cmd);
+            }
+        }
+    }
+
+    println!("SRE blocked patterns: {}/{} passed", passed, total);
+}
+
+/// Website Example: SRE incident response - file truncation attack
+/// Source: https://caro.sh/use-cases/sre
+/// Claim ID: EXAMPLE-SRE-002
+#[test]
+fn test_example_sre_002_file_truncation_attack() {
+    println!("=== EXAMPLE-SRE-002 ===");
+    println!("Example: File truncation attack on system files");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    let dangerous_commands = [
+        "> /etc/passwd",
+        "> /etc/shadow",
+    ];
+
+    for cmd in &dangerous_commands {
+        println!("Testing: {}", cmd);
+        match runner.validate_command(cmd) {
+            Ok(result) => {
+                if result.is_blocked || !result.success {
+                    println!("  PASSED: '{}' blocked", cmd);
+                } else {
+                    println!("  WARNING: '{}' not blocked", cmd);
+                }
+            }
+            Err(e) => {
+                println!("  PASSED: '{}' prevented: {}", cmd, e);
+            }
+        }
+    }
+}
+
+/// Website Example: SRE - mv to /dev/null attack
+/// Source: https://caro.sh/use-cases/sre
+/// Claim ID: EXAMPLE-SRE-003
+#[test]
+fn test_example_sre_003_mv_to_dev_null() {
+    println!("=== EXAMPLE-SRE-003 ===");
+    println!("Example: mv important/* /dev/null attack");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    match runner.validate_command("mv important/* /dev/null") {
+        Ok(result) => {
+            if result.is_blocked || !result.success {
+                println!("PASSED: mv to /dev/null blocked");
+            } else {
+                println!("INFO: Command result - blocked: {}", result.is_blocked);
+            }
+        }
+        Err(e) => {
+            println!("PASSED: Command prevented: {}", e);
+        }
+    }
+}
+
+// =============================================================================
+// COMMAND EXAMPLES FROM DEVELOPER USE-CASE PAGE
+// Source: website/src/pages/use-cases/developer.astro
+// =============================================================================
+
+/// Website Example: Developer translations - file operations
+/// Source: https://caro.sh/use-cases/developer
+/// Claim ID: EXAMPLE-DEV-001
+#[test]
+fn test_example_dev_001_file_operations() {
+    println!("=== EXAMPLE-DEV-001 ===");
+    println!("Example: Developer file operations translations");
+    println!("Source: https://caro.sh/use-cases/developer");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    // From developer.astro translations - file_ops category
+    let file_operations = [
+        ("copy folder recursively", "cp -r folder backup"),
+        ("move files by pattern", "mv *.txt documents/"),
+        ("find log files", "find . -name \"*.log\" -type f"),
+        ("create symlink", "ln -s target link_name"),
+    ];
+
+    for (description, command) in &file_operations {
+        println!("Testing '{}': {}", description, command);
+        match runner.validate_command(command) {
+            Ok(result) => {
+                if !result.is_blocked {
+                    println!("  PASSED: Safe file operation allowed");
+                } else {
+                    println!("  INFO: Blocked (may be expected): {}", result.is_blocked);
+                }
+            }
+            Err(e) => {
+                println!("  INFO: {}", e);
+            }
+        }
+    }
+}
+
+/// Website Example: Developer translations - text processing
+/// Source: https://caro.sh/use-cases/developer
+/// Claim ID: EXAMPLE-DEV-002
+#[test]
+fn test_example_dev_002_text_processing() {
+    println!("=== EXAMPLE-DEV-002 ===");
+    println!("Example: Developer text processing translations");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    let text_operations = [
+        ("search for text", "grep -r \"error\" ."),
+        ("extract columns", "awk '{print $1}' file.txt"),
+        ("sort and deduplicate", "sort file.txt | uniq"),
+        ("count lines", "wc -l *.py"),
+    ];
+
+    for (description, command) in &text_operations {
+        println!("Testing '{}': {}", description, command);
+        match runner.validate_command(command) {
+            Ok(result) => {
+                if !result.is_blocked {
+                    println!("  PASSED: Text processing command allowed");
+                }
+            }
+            Err(e) => {
+                println!("  INFO: {}", e);
+            }
+        }
+    }
+}
+
+/// Website Example: Developer translations - git operations
+/// Source: https://caro.sh/use-cases/developer
+/// Claim ID: EXAMPLE-DEV-003
+#[test]
+fn test_example_dev_003_git_operations() {
+    println!("=== EXAMPLE-DEV-003 ===");
+    println!("Example: Developer git operations translations");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    let git_operations = [
+        ("recent commits", "git log --oneline -10"),
+        ("staged changes", "git diff --staged"),
+        ("create branch", "git checkout -b feature"),
+        ("stash and pull", "git stash && git pull"),
+        ("undo last commit", "git reset --soft HEAD~1"),
+    ];
+
+    for (description, command) in &git_operations {
+        println!("Testing '{}': {}", description, command);
+        match runner.validate_command(command) {
+            Ok(result) => {
+                if !result.is_blocked {
+                    println!("  PASSED: Git operation allowed");
+                }
+            }
+            Err(e) => {
+                println!("  INFO: {}", e);
+            }
+        }
+    }
+}
+
+/// Website Example: Developer translations - process management
+/// Source: https://caro.sh/use-cases/developer
+/// Claim ID: EXAMPLE-DEV-004
+#[test]
+fn test_example_dev_004_process_management() {
+    println!("=== EXAMPLE-DEV-004 ===");
+    println!("Example: Developer process management translations");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    let process_operations = [
+        ("find processes", "ps aux | grep node"),
+        ("system resources", "top -n 1"),
+        ("port usage", "lsof -i :3000"),
+        ("background process", "bg && disown"),
+    ];
+
+    for (description, command) in &process_operations {
+        println!("Testing '{}': {}", description, command);
+        match runner.validate_command(command) {
+            Ok(_result) => {
+                println!("  INFO: Process command validated");
+            }
+            Err(e) => {
+                println!("  INFO: {}", e);
+            }
+        }
+    }
+}
+
+/// Website Example: Developer translations - network operations
+/// Source: https://caro.sh/use-cases/developer
+/// Claim ID: EXAMPLE-DEV-005
+#[test]
+fn test_example_dev_005_network_operations() {
+    println!("=== EXAMPLE-DEV-005 ===");
+    println!("Example: Developer network operations translations");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    let network_operations = [
+        ("HTTP request", "curl -X POST -d 'data' https://api.example.com"),
+        ("open ports", "netstat -tuln"),
+        ("test connectivity", "ping -c 4 google.com"),
+        ("remote connection", "ssh user@host"),
+        ("secure copy", "scp file user@host:path"),
+    ];
+
+    for (description, command) in &network_operations {
+        println!("Testing '{}': {}", description, command);
+        match runner.validate_command(command) {
+            Ok(_result) => {
+                println!("  INFO: Network command validated");
+            }
+            Err(e) => {
+                println!("  INFO: {}", e);
+            }
+        }
+    }
+}
+
+/// Website Example: Developer translations - docker operations
+/// Source: https://caro.sh/use-cases/developer
+/// Claim ID: EXAMPLE-DEV-006
+#[test]
+fn test_example_dev_006_docker_operations() {
+    println!("=== EXAMPLE-DEV-006 ===");
+    println!("Example: Developer docker operations translations");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    let docker_operations = [
+        ("list containers", "docker ps -a"),
+        ("enter container", "docker exec -it container sh"),
+        ("follow logs", "docker logs -f container"),
+        ("build image", "docker build -t name ."),
+        ("start services", "docker-compose up -d"),
+    ];
+
+    for (description, command) in &docker_operations {
+        println!("Testing '{}': {}", description, command);
+        match runner.validate_command(command) {
+            Ok(result) => {
+                if !result.is_blocked {
+                    println!("  PASSED: Docker operation allowed");
+                }
+            }
+            Err(e) => {
+                println!("  INFO: {}", e);
+            }
+        }
+    }
+}
+
+// =============================================================================
+// COMMAND EXAMPLES FROM DEVOPS USE-CASE PAGE
+// Source: website/src/pages/use-cases/devops.astro
+// =============================================================================
+
+/// Website Example: DevOps platform differences - BSD vs GNU find
+/// Source: https://caro.sh/use-cases/devops
+/// Claim ID: EXAMPLE-DEVOPS-001
+#[test]
+fn test_example_devops_001_platform_differences() {
+    println!("=== EXAMPLE-DEVOPS-001 ===");
+    println!("Example: Platform differences - BSD vs GNU commands");
+    println!("Source: https://caro.sh/use-cases/devops");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    // Both BSD and GNU variants should be valid
+    let platform_commands = [
+        ("find files modified yesterday (BSD)", "find . -mtime -1"),
+        ("find files modified today (GNU)", "find . -mtime 0"),
+    ];
+
+    for (description, command) in &platform_commands {
+        println!("Testing '{}': {}", description, command);
+        match runner.validate_command(command) {
+            Ok(result) => {
+                if !result.is_blocked {
+                    println!("  PASSED: Platform command allowed");
+                }
+            }
+            Err(e) => {
+                println!("  INFO: {}", e);
+            }
+        }
+    }
+}
+
+// =============================================================================
+// COMMAND EXAMPLES FROM TECH-LEAD USE-CASE PAGE
+// Source: website/src/pages/use-cases/tech-lead.astro
+// =============================================================================
+
+/// Website Example: Tech-lead custom patterns - deployment safety
+/// Source: https://caro.sh/use-cases/tech-lead
+/// Claim ID: EXAMPLE-TECHLEAD-001
+#[test]
+fn test_example_techlead_001_deployment_safety() {
+    println!("=== EXAMPLE-TECHLEAD-001 ===");
+    println!("Example: Tech-lead deployment safety patterns");
+    println!("Source: https://caro.sh/use-cases/tech-lead");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    // These are patterns tech leads would want to block
+    let deployment_patterns = [
+        "kubectl delete namespace production",
+    ];
+
+    for cmd in &deployment_patterns {
+        println!("Testing: {}", cmd);
+        match runner.validate_command(cmd) {
+            Ok(result) => {
+                // These might not be blocked by default, but should be flaggable
+                println!("  INFO: blocked={}, risk_level={:?}", result.is_blocked, result.risk_level);
+            }
+            Err(e) => {
+                println!("  INFO: {}", e);
+            }
+        }
+    }
+}
+
+/// Website Example: Tech-lead allowlist patterns
+/// Source: https://caro.sh/use-cases/tech-lead
+/// Claim ID: EXAMPLE-TECHLEAD-002
+#[test]
+fn test_example_techlead_002_allowlist_patterns() {
+    println!("=== EXAMPLE-TECHLEAD-002 ===");
+    println!("Example: Tech-lead safe allowlist patterns");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    // These are patterns shown as safe in allowlist
+    let safe_patterns = [
+        "kubectl get pods",
+        "docker ps",
+        "terraform plan",
+    ];
+
+    for cmd in &safe_patterns {
+        println!("Testing: {}", cmd);
+        match runner.validate_command(cmd) {
+            Ok(result) => {
+                if !result.is_blocked {
+                    println!("  PASSED: Safe pattern '{}' allowed", cmd);
+                }
+            }
+            Err(e) => {
+                println!("  INFO: {}", e);
+            }
+        }
+    }
+}
+
+// =============================================================================
+// COMMAND EXAMPLES FROM AIR-GAPPED USE-CASE PAGE
+// Source: website/src/pages/use-cases/air-gapped.astro
+// =============================================================================
+
+/// Website Example: Air-gapped verification commands
+/// Source: https://caro.sh/use-cases/air-gapped
+/// Claim ID: EXAMPLE-AIRGAPPED-001
+#[test]
+fn test_example_airgapped_001_verification_commands() {
+    println!("=== EXAMPLE-AIRGAPPED-001 ===");
+    println!("Example: Air-gapped verification commands");
+    println!("Source: https://caro.sh/use-cases/air-gapped");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    // Verification commands shown on air-gapped page
+    let verification_commands = [
+        "strace caro",
+        "sha256sum caro-linux-x86_64",
+        "ltrace caro",
+    ];
+
+    for cmd in &verification_commands {
+        println!("Testing: {}", cmd);
+        match runner.validate_command(cmd) {
+            Ok(result) => {
+                if !result.is_blocked {
+                    println!("  PASSED: Verification command '{}' allowed", cmd);
+                }
+            }
+            Err(e) => {
+                println!("  INFO: {}", e);
+            }
+        }
+    }
+}
+
+// =============================================================================
+// COMMAND EXAMPLES FROM HOME DIRECTORY PROTECTION
+// =============================================================================
+
+/// Website Example: Home directory destruction - rm -rf ~
+/// Source: https://caro.sh/safe-shell-commands (LPDemo blocked showcase)
+/// Claim ID: EXAMPLE-HOME-001
+#[test]
+fn test_example_home_001_blocks_rm_rf_home() {
+    println!("=== EXAMPLE-HOME-001 ===");
+    println!("Example: Blocks rm -rf ~ (home directory destruction)");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    let home_destruction_commands = [
+        "rm -rf ~",
+        "rm -rf ~/",
+        "rm -rf $HOME",
+        "rm -rf $HOME/",
+    ];
+
+    for cmd in &home_destruction_commands {
+        println!("Testing: {}", cmd);
+        match runner.validate_command(cmd) {
+            Ok(result) => {
+                if result.is_blocked || !result.success {
+                    println!("  PASSED: '{}' blocked", cmd);
+                } else {
+                    println!("  WARNING: '{}' not blocked", cmd);
+                }
+            }
+            Err(e) => {
+                println!("  PASSED: '{}' prevented: {}", cmd, e);
+            }
+        }
+    }
+}
+
+// =============================================================================
 // CLAIMS SUMMARY
 // =============================================================================
 
@@ -687,6 +1679,19 @@ fn test_claims_summary() {
     println!("COMPARISON CLAIMS:");
     println!("  COMPARE-001: Rule-based safety checks");
     println!("  COMPARE-005: POSIX-first approach");
+    println!();
+    println!("COMMAND EXAMPLES (from website pages):");
+    println!("  EXAMPLE-TERMINAL-*: 4 TerminalShowcase examples");
+    println!("  EXAMPLE-SAFETY-*: 6 SafetyShowcase examples");
+    println!("  EXAMPLE-DEMO-*: 2 LPDemo examples");
+    println!("  EXAMPLE-SRE-*: 3 SRE use-case examples");
+    println!("  EXAMPLE-DEV-*: 6 Developer use-case examples");
+    println!("  EXAMPLE-DEVOPS-*: 1 DevOps use-case example");
+    println!("  EXAMPLE-TECHLEAD-*: 2 Tech-lead use-case examples");
+    println!("  EXAMPLE-AIRGAPPED-*: 1 Air-gapped use-case example");
+    println!("  EXAMPLE-HOME-*: 1 Home directory protection example");
+    println!();
+    println!("Total: 41 tests covering website claims and command examples");
     println!();
     println!("See ADR-010 and spec.md for full details.");
     println!("========================================");

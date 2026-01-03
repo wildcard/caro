@@ -109,6 +109,38 @@ Create a dedicated "Website Claims Verification" test suite that:
 | "Multi-backend support" | Compare | Yes |
 | "Self-hostable" | Compare | Yes |
 
+### Category 8: Documented Command Examples
+
+These are specific command translations documented on website pages.
+
+| Example | Source Page | Test ID |
+|---------|-------------|---------|
+| `find . -type f -mtime 0` (files modified today) | TerminalShowcase | EXAMPLE-TERMINAL-001 |
+| `find . -type f -size +100M` (large files) | TerminalShowcase | EXAMPLE-TERMINAL-002 |
+| `du -sh */ \| sort -rh \| head -10` (disk usage) | TerminalShowcase | EXAMPLE-TERMINAL-003 |
+| `find . -name "*.py" -type f -mtime -7` (python files) | TerminalShowcase | EXAMPLE-TERMINAL-004 |
+| Blocked: `mkfs.*` disk formatting | SafetyShowcase | EXAMPLE-SAFETY-001 |
+| Blocked: `chmod 777 /` privilege escalation | SafetyShowcase | EXAMPLE-SAFETY-002 |
+| Blocked: `dd if=/dev/zero` disk overwrite | SafetyShowcase | EXAMPLE-SAFETY-003 |
+| Safe: `ls -la`, `grep`, `find` | SafetyShowcase | EXAMPLE-SAFETY-004 |
+| Moderate: `sed -i`, `wget`, `curl -X POST` | SafetyShowcase | EXAMPLE-SAFETY-005 |
+| High: `chmod +x`, `chown`, `kill -9` | SafetyShowcase | EXAMPLE-SAFETY-006 |
+| File ops: `cp -r`, `mv`, `find`, `ln -s` | Developer Use-Case | EXAMPLE-DEV-001 |
+| Text processing: `grep -r`, `awk`, `sort \| uniq`, `wc -l` | Developer Use-Case | EXAMPLE-DEV-002 |
+| Git ops: `git log`, `git diff`, `git checkout -b` | Developer Use-Case | EXAMPLE-DEV-003 |
+| Process mgmt: `ps aux \| grep`, `top -n 1`, `lsof` | Developer Use-Case | EXAMPLE-DEV-004 |
+| Network: `curl -X POST`, `netstat`, `ping`, `ssh`, `scp` | Developer Use-Case | EXAMPLE-DEV-005 |
+| Docker: `docker ps -a`, `docker exec`, `docker logs` | Developer Use-Case | EXAMPLE-DEV-006 |
+| BSD vs GNU: `find . -mtime -1` vs `find . -mtime 0` | DevOps Use-Case | EXAMPLE-DEVOPS-001 |
+| Blocked patterns: SRE dangerous commands | SRE Use-Case | EXAMPLE-SRE-001 |
+| File truncation attack: `> /etc/passwd` | SRE Use-Case | EXAMPLE-SRE-002 |
+| Data destruction: `mv important/* /dev/null` | SRE Use-Case | EXAMPLE-SRE-003 |
+| Deployment safety patterns | Tech-Lead Use-Case | EXAMPLE-TECHLEAD-001 |
+| Allowlist: `kubectl get`, `docker ps`, `terraform plan` | Tech-Lead Use-Case | EXAMPLE-TECHLEAD-002 |
+| Verification: `strace`, `sha256sum`, `ltrace` | Air-Gapped Use-Case | EXAMPLE-AIRGAPPED-001 |
+| Home directory protection: `rm -rf ~` | LPDemo | EXAMPLE-HOME-001 |
+| Demo blocked showcase: 6 dangerous commands | LPDemo | EXAMPLE-DEMO-002 |
+
 ---
 
 ## Functional Requirements
