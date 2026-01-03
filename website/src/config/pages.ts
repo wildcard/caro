@@ -159,6 +159,20 @@ export const PAGES_INDEX: PageEntry[] = [
     keywords: ['explore', 'discover', 'features'],
     icon: '🔍',
   }),
+  getEntry('/faq', {
+    title: 'FAQ',
+    description: 'Frequently asked questions about Caro',
+    category: 'main',
+    keywords: ['faq', 'questions', 'help', 'support', 'how to', 'troubleshooting', 'installation', 'usage', 'safety', 'backends'],
+    icon: '❓',
+  }),
+  getEntry('/telemetry', {
+    title: 'Telemetry',
+    description: 'Privacy and telemetry information',
+    category: 'main',
+    keywords: ['telemetry', 'privacy', 'data', 'analytics'],
+    icon: '📊',
+  }),
 
   // Use Cases
   getEntry('/use-cases', {
