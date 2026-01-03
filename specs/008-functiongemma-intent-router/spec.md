@@ -1153,6 +1153,182 @@ When FunctionGemma is unavailable:
 
 ---
 
+## Parallel Pre-Processing Architecture
+
+### Core Philosophy: Protect the Inference
+
+The decoder model (Qwen2.5-Coder) is our bottleneck—every call costs ~1500ms. Our goal is to:
+
+1. **Prepare maximum context** before hitting the model
+2. **Hit the model once** with a high-quality, domain-specific prompt
+3. **Minimize post-processing** because needing it means we failed at pre-processing
+
+### Three-Phase Model
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           THE THREE PHASES                               │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  PHASE 1: PRE-PROCESSING              PHASE 2: INFERENCE                │
+│  (Parallelizable, <200ms)             (Protected, ~1500ms)              │
+│  ┌─────────────────────────┐          ┌──────────────────────┐          │
+│  │ • Intent Classification │          │ • Single LLM Call    │          │
+│  │ • Context Gathering     │    ──►   │ • Domain-Optimized   │          │
+│  │ • Rule Selection        │          │ • One-Shot Goal      │          │
+│  │ • Early Exit Check      │          └──────────────────────┘          │
+│  └─────────────────────────┘                    │                        │
+│          │                                      │                        │
+│          ▼                                      ▼                        │
+│  ┌─────────────────────────┐          ┌──────────────────────┐          │
+│  │ EARLY EXIT (if safe)    │          │  PHASE 3: POST       │          │
+│  │ • Block dangerous cmd   │          │  (Minimize This)     │          │
+│  │ • Cached response       │          │ • Safety validation  │          │
+│  │ • Clarification needed  │          │ • Format output      │          │
+│  └─────────────────────────┘          └──────────────────────┘          │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Tokio-Based Parallelization
+
+```rust
+use tokio::try_join;
+
+pub async fn pre_process(input: &str) -> Result<GenerationContext> {
+    // STAGE 1: Parallel analysis (all run concurrently)
+    let (intent_result, platform_context, early_safety) = try_join!(
+        intent_router.classify(input),
+        context_scanner.scan(),
+        async { Ok(early_safety_checker.check(input)) },
+    )?;
+
+    // STAGE 2: Early exit gate
+    match early_safety {
+        EarlySafetyResult::Block { reason, severity } => {
+            return Err(Error::SafetyBlock { reason, severity });
+        }
+        EarlySafetyResult::Continue => {}
+    }
+
+    // Check cache before context assembly
+    if let Some(cached) = cache.get(input, &intent_result.primary_domain) {
+        return Ok(cached);
+    }
+
+    // STAGE 3: Parallel context assembly (domain-aware)
+    let (prompt_template, safety_rules, examples) = try_join!(
+        domain_loader.load_prompt(&intent_result),
+        async { Ok(rule_selector.select(&intent_result)) },
+        example_selector.select(&intent_result),
+    )?;
+
+    Ok(GenerationContext { /* assembled context */ })
+}
+```
+
+### Lazy Rule Evaluation
+
+Good programs break early. If we can answer without full processing:
+
+- **Critical danger detected** → Block immediately, don't generate
+- **Cached response exists** → Return immediately, don't regenerate
+- **Clarification needed** → Ask user, don't guess
+
+```rust
+pub struct LazyRuleEngine {
+    // Rules organized by domain for fast lookup
+    domain_rules: HashMap<Domain, Vec<CompiledPattern>>,
+
+    // Global critical rules that always apply
+    global_critical: Vec<CompiledPattern>,
+}
+
+impl LazyRuleEngine {
+    /// Validate with early termination
+    pub fn validate(&self, command: &str, domain: Domain) -> ValidationResult {
+        // Level 1: Critical patterns only (very fast)
+        for pattern in &self.global_critical {
+            if pattern.is_match(command) {
+                return ValidationResult::critical_block(pattern);
+            }
+        }
+
+        // Level 2: Domain-specific patterns (if we know domain)
+        if let Some(rules) = self.domain_rules.get(&domain) {
+            for pattern in rules {
+                if pattern.is_match(command) {
+                    return ValidationResult::domain_match(pattern);
+                }
+            }
+        }
+
+        ValidationResult::safe()
+    }
+}
+```
+
+### Performance Budget
+
+| Phase | Budget | Components |
+|-------|--------|------------|
+| **Pre-Processing** | 200ms | Intent + Context + Safety (parallel) |
+| **Context Assembly** | 50ms | Domain loading + Rule selection |
+| **Inference** | 1500ms | Coder model generation |
+| **Post-Processing** | 50ms | Final safety + formatting |
+| **Total** | **1800ms** | End-to-end target |
+
+### Early Exit Performance
+
+| Scenario | Time | Savings |
+|----------|------|---------|
+| Critical safety block | <15ms | 1785ms (99%) |
+| Cache hit | <5ms | 1795ms (99.7%) |
+| Clarification prompt | <50ms | 1750ms (97%) |
+| Normal flow | 1800ms | 0ms |
+
+### Memory Model Integration
+
+The pre-processing pipeline integrates with Caro's planned memory model:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        MEMORY MODEL                              │
+├─────────────────────────────────────────────────────────────────┤
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │
+│  │ Session      │  │ Tool         │  │ Pattern              │  │
+│  │ Memory       │  │ Memory       │  │ Memory               │  │
+│  │              │  │              │  │                      │  │
+│  │ • Recent     │  │ • Which      │  │ • User's cmd prefs   │  │
+│  │   commands   │  │   tools work │  │ • Common tasks       │  │
+│  │ • Domain     │  │   for intent │  │ • Corrections        │  │
+│  │   preferences│  │ • Flags by   │  │                      │  │
+│  │              │  │   platform   │  │                      │  │
+│  └──────────────┘  └──────────────┘  └──────────────────────┘  │
+│         │                  │                    │               │
+│         └──────────────────┼────────────────────┘               │
+│                            ▼                                     │
+│              ┌─────────────────────────────┐                    │
+│              │   Pre-Processing Pipeline   │                    │
+│              │                             │                    │
+│              │  Uses memory for:           │                    │
+│              │  • Smarter routing          │                    │
+│              │  • Better context           │                    │
+│              │  • Personalized rules       │                    │
+│              └─────────────────────────────┘                    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Related Documents
+
+- [ADR-004: Pre-Processing Pipeline Architecture](../../docs/adr/ADR-004-pre-processing-pipeline.md)
+- [PRD: FunctionGemma Intent Router](./PRD.md)
+- [Research: FunctionGemma Integration](./research.md)
+
+---
+
 ## References
 
 - [FunctionGemma on Ollama](https://ollama.com/library/functiongemma)
