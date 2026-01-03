@@ -41,14 +41,14 @@ const searchIndex = searchIndexData?.pages?.length > 0
   id="omni-search-trigger"
   class="omni-search-trigger"
   aria-label="Search site (Ctrl+/ or Cmd+/)"
-  title="Search (⌘/)"
+  title="Search (Ctrl+/ or Cmd+/)"
 >
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
     <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
   </svg>
   <span class="omni-trigger-text">Search</span>
   <kbd class="omni-trigger-kbd">
-    <span class="omni-kbd-symbol">⌘</span><span class="omni-kbd-key">/</span>
+    <span id="omni-kbd-symbol" class="omni-kbd-symbol">Ctrl</span><span class="omni-kbd-key">+/</span>
   </kbd>
 </button>
 
@@ -362,13 +362,38 @@ const searchIndex = searchIndexData?.pages?.length > 0
 </style>
 
 <script>
+  // Platform detection: Update hotkey symbol for Mac users
+  const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+  const kbdSymbol = document.getElementById('omni-kbd-symbol');
+  if (kbdSymbol && isMac) {
+    kbdSymbol.textContent = '⌘';
+    // Update the sibling to remove the + for Mac style
+    const kbdKey = kbdSymbol.nextElementSibling;
+    if (kbdKey) kbdKey.textContent = '/';
+  }
+
   const overlay = document.getElementById('omni-overlay');
   const trigger = document.getElementById('omni-search-trigger');
 
-  // Move the search trigger into the navigation slot if available
+  // Move the search trigger into the navigation slot if available (desktop)
   const navSlot = document.getElementById('nav-search-slot');
   if (navSlot && trigger) {
     navSlot.appendChild(trigger);
+  }
+
+  // Also add a search trigger to the mobile navigation slot
+  const navSlotMobile = document.getElementById('nav-search-slot-mobile');
+  if (navSlotMobile && trigger) {
+    const mobileTrigger = trigger.cloneNode(true) as HTMLElement;
+    mobileTrigger.id = 'omni-search-trigger-mobile';
+    navSlotMobile.appendChild(mobileTrigger);
+    // Add click handler to the mobile trigger
+    mobileTrigger.addEventListener('click', () => {
+      overlay?.classList.add('open');
+      const input = document.getElementById('omni-input') as HTMLInputElement;
+      input?.focus();
+      document.body.style.overflow = 'hidden';
+    });
   }
 
   if (!overlay) {
