@@ -1,6 +1,6 @@
 {
   "version": "2.1.0",
-  "generated": "2026-01-02T16:08:36.197Z",
+  "generated": "2026-01-03T07:55:25.683Z",
   "totalPages": 26,
   "pages": [
     {
@@ -4767,8 +4767,8 @@
         "🎄 Holiday Theme Debug"
       ],
       "paragraphs": [],
-      "fullText": "🎄 Holiday Theme Debug × Test Date Apply Reset Quick Dates Christmas Eve Hanukkah '25 New Year Diwali '25 Lunar NY '25 July 4th Bastille Day Yom Ha'atzmaut Test Locale Auto-detect 🇺🇸 United States 🇮🇱 Israel 🇫🇷 France 🇩🇪 Germany 🇮🇳 India 🇨🇳 China 🇯🇵 Japan 🇦🇪 UAE 🇮🇩 Indonesia 🇵🇭 Philippines Preview Theme None 🎄 Christmas 🕎 Hanukkah 🎊 New Year 🪔 Diwali 🐉 Lunar NY Engine State",
-      "_searchText": "🎄 holiday theme debug 🎄 holiday theme debug × test date apply reset quick dates christmas eve hanukkah '25 new year diwali '25 lunar ny '25 july 4th bastille day yom ha'atzmaut test locale auto-detect 🇺🇸 united states 🇮🇱 israel 🇫🇷 france 🇩🇪 germany 🇮🇳 india 🇨🇳 china 🇯🇵 japan 🇦🇪 uae 🇮🇩 indonesia 🇵🇭 philippines preview theme none 🎄 christmas 🕎 hanukkah 🎊 new year 🪔 diwali 🐉 lunar ny engine state"
+      "fullText": "🎄 Holiday Theme Debug × Test Date Apply Reset Quick Dates - Holidays Christmas Eve Hanukkah '25 New Year Diwali '25 Lunar NY '25 July 4th Bastille Day Yom Ha'atzmaut Quick Dates - Humanity Events ✊🏿 Black History ♀️ Women's Day 🌍 Earth Day 🌸 AAPI Heritage 🏳️‍🌈 Pride Month ✊🏿 Juneteenth 🕊️ Peace Day 🎺 Hispanic Heritage 🪶 Native Heritage 🌐 Human Rights Test Locale Auto-detect 🇺🇸 United States 🇮🇱 Israel 🇫🇷 France 🇩🇪 Germany 🇮🇳 India 🇨🇳 China 🇯🇵 Japan 🇦🇪 UAE 🇮🇩 Indonesia 🇵🇭 Philippines Preview Theme - Holidays None 🎄 Christmas 🕎 Hanukkah 🎊 New Year 🪔 Diwali 🐉 Lunar NY Preview Theme - Humanity Events ✊🏿 Black History 💜 Women's 🌸 AAPI 🏳️‍🌈 Pride 🎺 Hispanic 🪶 Native Engine State",
+      "_searchText": "🎄 holiday theme debug 🎄 holiday theme debug × test date apply reset quick dates - holidays christmas eve hanukkah '25 new year diwali '25 lunar ny '25 july 4th bastille day yom ha'atzmaut quick dates - humanity events ✊🏿 black history ♀️ women's day 🌍 earth day 🌸 aapi heritage 🏳️‍🌈 pride month ✊🏿 juneteenth 🕊️ peace day 🎺 hispanic heritage 🪶 native heritage 🌐 human rights test locale auto-detect 🇺🇸 united states 🇮🇱 israel 🇫🇷 france 🇩🇪 germany 🇮🇳 india 🇨🇳 china 🇯🇵 japan 🇦🇪 uae 🇮🇩 indonesia 🇵🇭 philippines preview theme - holidays none 🎄 christmas 🕎 hanukkah 🎊 new year 🪔 diwali 🐉 lunar ny preview theme - humanity events ✊🏿 black history 💜 women's 🌸 aapi 🏳️‍🌈 pride 🎺 hispanic 🪶 native engine state"
     },
     {
       "source": "/HolidayThemeToggle.astro",
@@ -4778,11 +4778,18 @@
       "_searchText": "🎄 🕎 ✨ holiday theme 🎄 christmas ✓ 🕎 hanukkah ✓ 🚫 no theme ✓ ❄️ snow effect"
     },
     {
+      "source": "/HumanityEventBanner.astro",
+      "headings": [],
+      "paragraphs": [],
+      "fullText": "Learn more →",
+      "_searchText": "learn more →"
+    },
+    {
       "source": "/Navigation.astro",
       "headings": [],
       "paragraphs": [],
-      "fullText": "🐕 Caro Features Compare 📊 Overview See all comparisons ⚡ vs Warp AI-native terminal 🤖 vs GitHub Copilot CLI AI pair programmer 👻 vs Kiro CLI AWS AI assistant Resources 📝 Blog News & tutorials 🔍 Explore Interactive demo 🗺️ Roadmap What's coming next 🐙 GitHub Source code ♥ Support 🎄 🕎 🎊 ✨ Holiday Theme 🎄 Christmas ✓ 🕎 Hanukkah ✓ 🎊 New Year ✓ 🚫 None ✓ ❄️ Snow Effect 🎆 Disable All Effects Get Started 🐕 Caro ⭐ Features 🎬 Watch Demo Compare 📊 All Comparisons ⚡ vs Warp 🤖 vs GitHub Copilot 👻 vs Kiro CLI Resources 📝 Blog 🔍 Explore 🗺️ Roadmap 🐙 GitHub 💖 Support Caro Appearance 🌓 Dark Mode 🎄 Holiday Theme Christmas 🎄 Hanukkah 🕎 New Year 🎊 None ❄️ Snow Effect 🎆 Disable All Effects Get Started",
-      "_searchText": "🐕 caro features compare 📊 overview see all comparisons ⚡ vs warp ai-native terminal 🤖 vs github copilot cli ai pair programmer 👻 vs kiro cli aws ai assistant resources 📝 blog news & tutorials 🔍 explore interactive demo 🗺️ roadmap what's coming next 🐙 github source code ♥ support 🎄 🕎 🎊 ✨ holiday theme 🎄 christmas ✓ 🕎 hanukkah ✓ 🎊 new year ✓ 🚫 none ✓ ❄️ snow effect 🎆 disable all effects get started 🐕 caro ⭐ features 🎬 watch demo compare 📊 all comparisons ⚡ vs warp 🤖 vs github copilot 👻 vs kiro cli resources 📝 blog 🔍 explore 🗺️ roadmap 🐙 github 💖 support caro appearance 🌓 dark mode 🎄 holiday theme christmas 🎄 hanukkah 🕎 new year 🎊 none ❄️ snow effect 🎆 disable all effects get started"
+      "fullText": "🐕 Caro >All Use Cases By Role class=dropdown-item $ > ))} Back to Home ) : ( Features Compare 📊 Overview See all comparisons ⚡ vs Warp AI-native terminal 🤖 vs GitHub Copilot CLI AI pair programmer 👻 vs Kiro CLI AWS AI assistant Resources 📝 Blog News & tutorials 🔍 Explore Interactive demo 🗺️ Roadmap What's coming next 🐙 GitHub Source code ♥ Support )} 🎄 🕎 🎊 ✨ Holiday Theme 🎄 Christmas ✓ 🕎 Hanukkah ✓ 🎊 New Year ✓ 🚫 None ✓ ❄️ Snow Effect 🎆 Disable All Effects Get Started 🐕 Caro > 📋 All Use Cases By Role class=drawer-link $ > ))} 🏠 Back to Home ) : ( ⭐ Features 🎬 Watch Demo Compare 📊 All Comparisons ⚡ vs Warp 🤖 vs GitHub Copilot 👻 vs Kiro CLI Resources 📝 Blog 🔍 Explore 🗺️ Roadmap 🐙 GitHub 💖 Support Caro )} Appearance 🌓 Dark Mode 🎄 Holiday Theme Christmas 🎄 Hanukkah 🕎 New Year 🎊 None ❄️ Snow Effect 🎆 Disable All Effects Get Started",
+      "_searchText": "🐕 caro >all use cases by role class=dropdown-item $ > ))} back to home ) : ( features compare 📊 overview see all comparisons ⚡ vs warp ai-native terminal 🤖 vs github copilot cli ai pair programmer 👻 vs kiro cli aws ai assistant resources 📝 blog news & tutorials 🔍 explore interactive demo 🗺️ roadmap what's coming next 🐙 github source code ♥ support )} 🎄 🕎 🎊 ✨ holiday theme 🎄 christmas ✓ 🕎 hanukkah ✓ 🎊 new year ✓ 🚫 none ✓ ❄️ snow effect 🎆 disable all effects get started 🐕 caro > 📋 all use cases by role class=drawer-link $ > ))} 🏠 back to home ) : ( ⭐ features 🎬 watch demo compare 📊 all comparisons ⚡ vs warp 🤖 vs github copilot 👻 vs kiro cli resources 📝 blog 🔍 explore 🗺️ roadmap 🐙 github 💖 support caro )} appearance 🌓 dark mode 🎄 holiday theme christmas 🎄 hanukkah 🕎 new year 🎊 none ❄️ snow effect 🎆 disable all effects get started"
     },
     {
       "source": "/NewYearCountdown.astro",
@@ -4802,8 +4809,8 @@
       "source": "/OmniSearch.astro",
       "headings": [],
       "paragraphs": [],
-      "fullText": "Search ⌘ / > esc 💡 Tip: Use ⌘/ or Ctrl+/ anywhere to open search ↑↓ navigate ↵ open esc close )}",
-      "_searchText": "search ⌘ / > esc 💡 tip: use ⌘/ or ctrl+/ anywhere to open search ↑↓ navigate ↵ open esc close )}"
+      "fullText": "Search Ctrl +/ > esc 💡 Tip: Use ⌘/ or Ctrl+/ anywhere to open search ↑↓ navigate ↵ open esc close )}",
+      "_searchText": "search ctrl +/ > esc 💡 tip: use ⌘/ or ctrl+/ anywhere to open search ↑↓ navigate ↵ open esc close )}"
     },
     {
       "source": "/SearchHighlight.astro",
@@ -5221,13 +5228,6 @@
       ],
       "fullText": "When You Need Caro Real scenarios. Real problems. Real solutions. The problem: Caro: ))}",
       "_searchText": "when you need caro real scenarios. real problems. real solutions. the problem: caro: when you need caro real scenarios. real problems. real solutions. the problem: caro: ))}"
-    },
-    {
-      "source": "/use-cases/UseCasesNavigation.astro",
-      "headings": [],
-      "paragraphs": [],
-      "fullText": "Caro All Use Cases By Role ▾ class=dropdown-item $ > ))} Get Started Free",
-      "_searchText": "caro all use cases by role ▾ class=dropdown-item $ > ))} get started free"
     }
   ]
 }
