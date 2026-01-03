@@ -9,9 +9,48 @@ import { Aside, Steps, Tabs, TabItem, Card, CardGrid } from '@astrojs/starlight/
 
 This guide will get you productive with caro in just a few minutes.
 
+## Installation
+
+<Tabs>
+  <TabItem label="Quick Install (Recommended)">
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
+    ```
+
+    The install script will:
+    - Install via Cargo if Rust is available (with MLX optimization on Apple Silicon)
+    - Otherwise download a pre-built binary for your platform
+    - Verify SHA256 checksums for security
+    - Configure your PATH automatically
+  </TabItem>
+  <TabItem label="Cargo">
+    ```bash
+    # Standard install
+    cargo install caro
+
+    # Apple Silicon with MLX GPU acceleration
+    cargo install caro --features embedded-mlx
+    ```
+  </TabItem>
+  <TabItem label="Pre-built Binary">
+    ```bash
+    # Download for your platform from GitHub Releases
+    curl -fsSL https://github.com/wildcard/caro/releases/latest/download/caro-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m) -o caro
+    chmod +x caro
+    sudo mv caro /usr/local/bin/
+    ```
+  </TabItem>
+</Tabs>
+
+Verify installation:
+```bash
+caro --version
+# Output: caro 1.0.3
+```
+
 ## Basic Usage
 
-The simplest way to use caro is to describe what you want to do:
+Simply describe what you want to do in natural language:
 
 ```bash
 caro "your natural language description"
@@ -19,87 +58,123 @@ caro "your natural language description"
 
 <Steps>
 1. **Type your command description** in quotes
-2. **Review the generated command** shown in the terminal
-3. **Execute** by copying the command or piping it to your shell
+2. **Review the generated command** caro shows you
+3. **Confirm execution** by typing `y` or copy the command
 </Steps>
+
+## Interactive Confirmation
+
+When you run a command, caro shows the generated command and asks for confirmation:
+
+```bash
+$ caro "list all PDF files in Downloads folder larger than 10MB"
+
+Generated command:
+  find ~/Downloads -name "*.pdf" -size +10M -ls
+
+Execute this command? (y/N) y
+```
+
+This interactive flow ensures you always review commands before execution.
 
 ## Common Examples
 
 ### File Operations
 
 ```bash
-# Find files
-caro "find all python files"
-# Output: find . -name "*.py"
+$ caro "find all python files"
+Generated command:
+  find . -name "*.py"
 
-caro "find files larger than 100MB"
-# Output: find . -size +100M
+$ caro "find files larger than 100MB"
+Generated command:
+  find . -size +100M
 
-caro "find files modified in the last 24 hours"
-# Output: find . -mtime 0
+$ caro "find files modified in the last 24 hours"
+Generated command:
+  find . -mtime 0
 ```
 
 ### Text Search
 
 ```bash
-# Search content
-caro "search for TODO in all source files"
-# Output: grep -r "TODO" --include="*.{py,js,rs,go}"
+$ caro "search for TODO in all source files"
+Generated command:
+  grep -rn "TODO" --include="*.py" --include="*.js" --include="*.rs"
 
-caro "find lines containing error in log files"
-# Output: grep -i "error" *.log
+$ caro "find lines containing error in log files"
+Generated command:
+  grep -i "error" *.log
 
-caro "count occurrences of function in all rust files"
-# Output: grep -c "function" *.rs
+$ caro "count occurrences of function in all rust files"
+Generated command:
+  grep -c "fn " *.rs
 ```
 
 ### System Information
 
 ```bash
-# System commands
-caro "show disk usage"
-# Output: df -h
+$ caro "show disk usage"
+Generated command:
+  df -h
 
-caro "show running processes sorted by memory"
-# Output: ps aux --sort=-%mem | head -20
+$ caro "show running processes sorted by memory"
+Generated command:
+  ps aux --sort=-%mem | head -20
 
-caro "show network connections"
-# Output: netstat -an | grep ESTABLISHED
+$ caro "show network connections"
+Generated command:
+  netstat -an | grep ESTABLISHED
 ```
 
 ### Directory Operations
 
 ```bash
-# Directory management
-caro "show directory size"
-# Output: du -sh .
+$ caro "show directory size"
+Generated command:
+  du -sh .
 
-caro "list directories sorted by size"
-# Output: du -sh */ | sort -hr
+$ caro "list directories sorted by size"
+Generated command:
+  du -sh */ | sort -hr
 
-caro "create directory structure for a rust project"
-# Output: mkdir -p src/{bin,lib} tests docs
+$ caro "create directory structure for a rust project"
+Generated command:
+  mkdir -p src/{bin,lib} tests docs
 ```
 
 ## Understanding the Output
 
-caro provides colored output to help you understand the command:
+caro provides colored output with safety assessment:
 
 ```
 $ caro "find all rust files modified today"
 
-┌─────────────────────────────────────────┐
-│  find . -name "*.rs" -mtime 0           │
-└─────────────────────────────────────────┘
+Generated command:
+  find . -name "*.rs" -mtime 0
 
 Risk: Safe ✓
+
+Execute this command? (y/N)
 ```
 
 | Element | Description |
 |---------|-------------|
-| Command box | The generated shell command |
+| Generated command | The shell command caro created for your request |
 | Risk level | Safety assessment (Safe, Moderate, High, Critical) |
 | Checkmark | Indicates the command passed safety validation |
+| Confirmation | Interactive prompt to execute or decline |
+
+### Platform-Aware Generation
+
+caro automatically detects your environment and generates platform-appropriate commands:
+
+- **Operating system** (macOS, Linux, Windows)
+- **Architecture** (x86_64, ARM64/Apple Silicon)
+- **Shell type** (bash, zsh, fish)
+- **Available commands** on your system
+
+This means the same natural language prompt produces the correct command for your platform.
 
 ## Safety Features
 
@@ -123,30 +198,47 @@ Tip: Try "caro 'delete files in current directory'" for a safer approach
 
 ## Command Execution Options
 
-### Copy and Paste (Recommended)
+### Interactive Confirmation (Default)
 
-Review the command, then copy and paste to execute:
+The default behavior is to show the command and ask for confirmation:
 
 ```bash
 $ caro "find large log files"
-find . -name "*.log" -size +10M
+Generated command:
+  find . -name "*.log" -size +10M
 
-# Copy the command and paste to execute
-$ find . -name "*.log" -size +10M
+Execute this command? (y/N) y
+# Command executes...
 ```
 
-### Direct Execution (Use Carefully)
+### Auto-Confirmation with `--yes`
 
-For trusted commands, you can pipe directly to your shell:
+For scripting or when you trust the command, use `--yes` to skip confirmation:
 
 ```bash
-# ⚠️ Use with caution - only for well-understood commands
-caro "show current date" | sh
+# Skip confirmation prompt
+caro --yes "show current date"
+
+# Short form
+caro -y "list files"
 ```
 
-<Aside type="danger">
-  Piping to `sh` bypasses your ability to review the command. Only use this for simple, safe operations you fully understand.
+<Aside type="caution">
+  Using `--yes` executes commands immediately without review. Only use this for well-understood operations.
 </Aside>
+
+### Copy Without Execution
+
+Press `n` or Enter at the confirmation prompt to decline execution - the command remains visible for you to copy:
+
+```bash
+$ caro "find large log files"
+Generated command:
+  find . -name "*.log" -size +10M
+
+Execute this command? (y/N) n
+# Command not executed - copy it manually if desired
+```
 
 ## Tips for Better Results
 
@@ -180,47 +272,80 @@ caro "show current date" | sh
 
 ```bash
 # Find uncommitted changes
-caro "show git status with diff stats"
-# Output: git status -sb && git diff --stat
+$ caro "show git status with diff stats"
+Generated command:
+  git status -sb && git diff --stat
 
 # Find TODO comments
-caro "find TODO comments in src directory"
-# Output: grep -rn "TODO" src/
+$ caro "find TODO comments in src directory"
+Generated command:
+  grep -rn "TODO" src/
 
 # Count lines of code
-caro "count lines of rust code"
-# Output: find . -name "*.rs" -exec wc -l {} + | tail -1
+$ caro "count lines of rust code"
+Generated command:
+  find . -name "*.rs" -exec wc -l {} + | tail -1
 ```
 
 ### System Administration
 
 ```bash
 # Check system health
-caro "show system uptime and load average"
-# Output: uptime
+$ caro "show system uptime and load average"
+Generated command:
+  uptime
 
 # Find large files
-caro "find files larger than 1GB"
-# Output: find / -size +1G 2>/dev/null
+$ caro "find files larger than 1GB"
+Generated command:
+  find . -size +1G 2>/dev/null
 
 # Check disk space
-caro "show disk usage by directory sorted by size"
-# Output: du -sh */ | sort -hr
+$ caro "show disk usage by directory sorted by size"
+Generated command:
+  du -sh */ | sort -hr
 ```
 
 ### Data Processing
 
 ```bash
 # CSV operations
-caro "show first 10 lines of CSV file"
-# Output: head -10 file.csv
+$ caro "show first 10 lines of data.csv"
+Generated command:
+  head -10 data.csv
 
-caro "count unique values in second column of CSV"
-# Output: cut -d',' -f2 file.csv | sort | uniq -c | sort -rn
+$ caro "count unique values in second column of data.csv"
+Generated command:
+  cut -d',' -f2 data.csv | sort | uniq -c | sort -rn
 
 # JSON processing
-caro "extract name field from JSON"
-# Output: jq '.name' file.json
+$ caro "extract name field from config.json"
+Generated command:
+  jq '.name' config.json
+```
+
+## CLI Options
+
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--yes` | `-y` | Auto-confirm command execution |
+| `--shell <SHELL>` | `-s` | Target shell (bash, zsh, fish, sh) |
+| `--output <FORMAT>` | `-o` | Output format (json, yaml, plain) |
+| `--safety <LEVEL>` | | Safety level (strict, moderate, permissive) |
+| `--backend <NAME>` | | Backend to use (mlx, ollama, vllm) |
+| `--verbose` | `-v` | Enable verbose output with timing |
+| `--config <FILE>` | `-c` | Custom configuration file |
+
+Example with options:
+```bash
+# Use specific shell and backend
+caro --shell zsh --backend ollama "find python files"
+
+# JSON output for scripting
+caro --output json "show disk usage"
+
+# Verbose mode for debugging
+caro --verbose "search for errors in logs"
 ```
 
 ## Next Steps
