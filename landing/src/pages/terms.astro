@@ -1,0 +1,252 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Terms of Service - Caro" description="Caro Terms of Service - Terms for using Caro software">
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-slate-950/60 backdrop-blur-xl border-b border-slate-800/50">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="/" class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg"></div>
+        <span class="text-lg font-semibold">caro</span>
+      </a>
+      <div class="hidden md:flex items-center gap-8 text-sm">
+        <a href="/#features" class="text-slate-400 hover:text-slate-100 transition">Features</a>
+        <a href="https://github.com/wildcard/caro" class="text-slate-400 hover:text-slate-100 transition">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Content -->
+  <main class="pt-24 pb-16 px-6">
+    <article class="max-w-3xl mx-auto prose prose-invert prose-slate">
+      <h1 class="text-4xl font-bold mb-2">Terms of Service</h1>
+      <p class="text-slate-400 text-sm mb-8">Last Updated: January 2026</p>
+
+      <!-- TL;DR -->
+      <div class="bg-violet-950/30 border border-violet-800/30 rounded-xl p-6 mb-8">
+        <p class="text-lg text-slate-200 m-0">
+          Caro is free and open source software licensed under <strong>AGPL-3.0</strong>.
+          These terms supplement, but do not replace, the rights and obligations under that license.
+        </p>
+      </div>
+
+      <!-- Acceptance -->
+      <h2 class="text-2xl font-semibold mt-12 mb-4">1. Acceptance</h2>
+      <p>By using Caro, you agree to:</p>
+      <ol class="space-y-1 text-slate-300">
+        <li>The <a href="https://www.gnu.org/licenses/agpl-3.0.html" class="text-violet-400 hover:text-violet-300">AGPL-3.0 License</a></li>
+        <li>These Terms of Service</li>
+        <li>Our <a href="/privacy" class="text-violet-400 hover:text-violet-300">Privacy Policy</a></li>
+      </ol>
+      <p class="text-slate-400">If you disagree, don't use the software. Simple as that.</p>
+
+      <!-- What Caro Is -->
+      <h2 class="text-2xl font-semibold mt-12 mb-4">2. What Caro Is</h2>
+      <p>Caro is a command-line tool that converts natural language to shell commands using local AI inference. It is:</p>
+      <ul class="space-y-2 text-slate-300">
+        <li><strong>A tool, not a service</strong> - You run it; we don't run it for you</li>
+        <li><strong>Open source</strong> - Full source available at <a href="https://github.com/wildcard/caro" class="text-violet-400 hover:text-violet-300">github.com/wildcard/caro</a></li>
+        <li><strong>Local-first</strong> - Processes everything on your machine</li>
+        <li><strong>Safety-focused</strong> - Validates commands before execution, but <strong>you decide what runs</strong></li>
+      </ul>
+
+      <!-- Your Responsibilities -->
+      <h2 class="text-2xl font-semibold mt-12 mb-4">3. Your Responsibilities</h2>
+
+      <h3 class="text-xl font-medium mt-8 mb-4">3.1 Command Review</h3>
+      <div class="bg-amber-950/30 border border-amber-800/30 rounded-xl p-6 mb-4">
+        <p class="text-amber-200 m-0">
+          <strong>You are responsible for reviewing and understanding every command before execution.</strong>
+        </p>
+      </div>
+      <p>
+        Caro is an AI assistant that generates shell commands. AI can make mistakes. Before running any generated command:
+      </p>
+      <ul class="space-y-1 text-slate-300">
+        <li>Read the command carefully</li>
+        <li>Understand what it will do</li>
+        <li>Consider potential side effects</li>
+        <li>Use the safety level appropriate for your environment</li>
+      </ul>
+
+      <h3 class="text-xl font-medium mt-8 mb-4">3.2 System Access</h3>
+      <p>You are responsible for:</p>
+      <ul class="space-y-1 text-slate-300">
+        <li>Running Caro with appropriate system privileges</li>
+        <li>Understanding the commands you execute</li>
+        <li>Any consequences of executing generated commands</li>
+        <li>Maintaining backups of important data</li>
+      </ul>
+
+      <h3 class="text-xl font-medium mt-8 mb-4">3.3 Compliance</h3>
+      <p>You agree to use Caro in compliance with:</p>
+      <ul class="space-y-1 text-slate-300">
+        <li>All applicable laws and regulations</li>
+        <li>Your organization's policies (if applicable)</li>
+        <li>System administrator guidelines (if applicable)</li>
+      </ul>
+
+      <!-- What We Provide -->
+      <h2 class="text-2xl font-semibold mt-12 mb-4">4. What We Provide</h2>
+
+      <h3 class="text-xl font-medium mt-8 mb-4">4.1 The Software</h3>
+      <p>We provide Caro "as is" under AGPL-3.0. This includes:</p>
+      <ul class="space-y-1 text-slate-300">
+        <li>Source code on GitHub</li>
+        <li>Pre-built binaries via GitHub Releases</li>
+        <li>Documentation in the repository</li>
+      </ul>
+
+      <h3 class="text-xl font-medium mt-8 mb-4">4.2 Community Support</h3>
+      <p>Support is community-driven through:</p>
+      <ul class="space-y-1 text-slate-300">
+        <li>GitHub Issues for bug reports</li>
+        <li>GitHub Discussions for questions</li>
+        <li>Pull request reviews for contributions</li>
+      </ul>
+      <p class="text-slate-400">We do not guarantee response times or resolution of issues.</p>
+
+      <!-- What We Don't Provide -->
+      <h2 class="text-2xl font-semibold mt-12 mb-4">5. What We Don't Provide</h2>
+      <ul class="space-y-1 text-slate-300">
+        <li><strong>No warranty</strong> - See AGPL-3.0 Section 15</li>
+        <li><strong>No guaranteed uptime</strong> - It's local software on your machine</li>
+        <li><strong>No professional support</strong> - Unless separately arranged</li>
+        <li><strong>No liability for damages</strong> - See AGPL-3.0 Section 16</li>
+      </ul>
+
+      <!-- Disclaimer of Warranty -->
+      <h2 class="text-2xl font-semibold mt-12 mb-4">6. Disclaimer of Warranty</h2>
+      <div class="bg-slate-900 border border-slate-700 rounded-xl p-6 mb-4 font-mono text-sm">
+        <p class="text-slate-300 m-0">
+          THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+          INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+          PURPOSE AND NONINFRINGEMENT.
+        </p>
+      </div>
+      <p>In plain English:</p>
+      <ul class="space-y-1 text-slate-300">
+        <li>We don't guarantee Caro will work perfectly</li>
+        <li>We don't guarantee generated commands are correct or safe</li>
+        <li>We don't guarantee the software is free of bugs</li>
+        <li><strong>Always review commands before execution</strong></li>
+      </ul>
+
+      <!-- Limitation of Liability -->
+      <h2 class="text-2xl font-semibold mt-12 mb-4">7. Limitation of Liability</h2>
+      <div class="bg-slate-900 border border-slate-700 rounded-xl p-6 mb-4 font-mono text-sm">
+        <p class="text-slate-300 m-0">
+          IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+          OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+          OUT OF OR IN CONNECTION WITH THE SOFTWARE.
+        </p>
+      </div>
+      <p>In plain English:</p>
+      <ul class="space-y-1 text-slate-300">
+        <li>If a generated command damages your system, that's on you</li>
+        <li>If you lose data, we're not liable</li>
+        <li>You use this software at your own risk</li>
+        <li>This is why we emphasize reviewing commands before execution</li>
+      </ul>
+
+      <!-- Safety Features -->
+      <h2 class="text-2xl font-semibold mt-12 mb-4">8. Safety Features</h2>
+      <p>Caro includes safety validation features that:</p>
+      <ul class="space-y-1 text-slate-300">
+        <li>Detect potentially dangerous command patterns</li>
+        <li>Block known destructive operations in strict mode</li>
+        <li>Require confirmation for risky commands</li>
+        <li>Warn about privilege escalation</li>
+      </ul>
+      <div class="bg-amber-950/30 border border-amber-800/30 rounded-xl p-4 mt-4">
+        <p class="text-amber-200 m-0 text-sm">
+          <strong>These features are aids, not guarantees.</strong> They cannot catch every dangerous command.
+          You remain responsible for what you execute.
+        </p>
+      </div>
+
+      <!-- Intellectual Property -->
+      <h2 class="text-2xl font-semibold mt-12 mb-4">9. Intellectual Property</h2>
+
+      <h3 class="text-xl font-medium mt-8 mb-4">9.1 Caro Source Code</h3>
+      <p>Licensed under AGPL-3.0. You may:</p>
+      <ul class="space-y-1 text-slate-300">
+        <li>Use, copy, and modify the software</li>
+        <li>Distribute the software</li>
+        <li>Use it commercially</li>
+      </ul>
+      <p>You must:</p>
+      <ul class="space-y-1 text-slate-300">
+        <li>Preserve copyright notices</li>
+        <li>Provide source code when distributing</li>
+        <li>License modifications under AGPL-3.0</li>
+        <li>Disclose source for network-accessible modifications</li>
+      </ul>
+
+      <h3 class="text-xl font-medium mt-8 mb-4">9.2 Your Content</h3>
+      <p class="text-slate-300">Commands you generate and prompts you write remain yours. We don't collect or claim any rights to them.</p>
+
+      <!-- Quick Reference -->
+      <h2 class="text-2xl font-semibold mt-12 mb-4">Quick Reference</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-700">
+              <th class="text-left py-3 px-4">Can I...</th>
+              <th class="text-left py-3 px-4">Answer</th>
+            </tr>
+          </thead>
+          <tbody class="text-slate-300">
+            <tr class="border-b border-slate-800">
+              <td class="py-3 px-4">Use Caro for free?</td>
+              <td class="py-3 px-4 text-green-400">Yes</td>
+            </tr>
+            <tr class="border-b border-slate-800">
+              <td class="py-3 px-4">Use Caro commercially?</td>
+              <td class="py-3 px-4 text-green-400">Yes (AGPL-3.0 terms apply)</td>
+            </tr>
+            <tr class="border-b border-slate-800">
+              <td class="py-3 px-4">Modify Caro?</td>
+              <td class="py-3 px-4 text-green-400">Yes (share modifications under AGPL-3.0)</td>
+            </tr>
+            <tr class="border-b border-slate-800">
+              <td class="py-3 px-4">Use Caro offline?</td>
+              <td class="py-3 px-4 text-green-400">Yes</td>
+            </tr>
+            <tr class="border-b border-slate-800">
+              <td class="py-3 px-4">Blame you if I rm -rf /?</td>
+              <td class="py-3 px-4 text-red-400">No</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4">Contribute improvements?</td>
+              <td class="py-3 px-4 text-green-400">Yes, please!</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Contact -->
+      <h2 class="text-2xl font-semibold mt-12 mb-4">Contact</h2>
+      <ul class="space-y-1 text-slate-300">
+        <li><a href="https://github.com/wildcard/caro/issues" class="text-violet-400 hover:text-violet-300">GitHub Issues</a></li>
+        <li><a href="https://github.com/wildcard/caro/discussions" class="text-violet-400 hover:text-violet-300">GitHub Discussions</a></li>
+      </ul>
+
+      <p class="text-slate-500 text-sm mt-12 pt-8 border-t border-slate-800">
+        These terms are provided under <a href="https://creativecommons.org/licenses/by-sa/4.0/" class="text-slate-400 hover:text-slate-300">CC BY-SA 4.0</a>,
+        inspired by <a href="https://github.com/Automattic/legalmattic" class="text-slate-400 hover:text-slate-300">Automattic's Legalmattic</a>.
+      </p>
+    </article>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800 py-8 px-6">
+    <div class="max-w-3xl mx-auto flex flex-wrap justify-center gap-6 text-sm text-slate-400">
+      <a href="/privacy" class="hover:text-slate-100 transition">Privacy</a>
+      <a href="/terms" class="hover:text-slate-100 transition">Terms</a>
+      <a href="/cookies" class="hover:text-slate-100 transition">Cookies</a>
+      <a href="https://github.com/wildcard/caro" class="hover:text-slate-100 transition">GitHub</a>
+    </div>
+  </footer>
+</Layout>

@@ -1,0 +1,287 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Privacy Policy - Caro" description="Caro Privacy Policy - How we handle your data">
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-slate-950/60 backdrop-blur-xl border-b border-slate-800/50">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="/" class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg"></div>
+        <span class="text-lg font-semibold">caro</span>
+      </a>
+      <div class="hidden md:flex items-center gap-8 text-sm">
+        <a href="/#features" class="text-slate-400 hover:text-slate-100 transition">Features</a>
+        <a href="https://github.com/wildcard/caro" class="text-slate-400 hover:text-slate-100 transition">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Content -->
+  <main class="pt-24 pb-16 px-6">
+    <article class="max-w-3xl mx-auto prose prose-invert prose-slate">
+      <h1 class="text-4xl font-bold mb-2">Privacy Policy</h1>
+      <p class="text-slate-400 text-sm mb-8">Last Updated: January 2026</p>
+
+      <!-- TL;DR -->
+      <div class="bg-violet-950/30 border border-violet-800/30 rounded-xl p-6 mb-8">
+        <p class="text-lg text-slate-200 m-0">
+          <strong>Caro runs entirely on your machine.</strong> Your prompts and commands never leave your device.
+          We collect minimal, anonymized telemetry to improve the product—and you control whether to participate.
+        </p>
+      </div>
+
+      <!-- What Data Caro Processes -->
+      <h2 class="text-2xl font-semibold mt-12 mb-4">What Data Caro Processes</h2>
+      <p>Caro processes the following data <strong>locally on your device only</strong>:</p>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-700">
+              <th class="text-left py-3 px-4">Data Type</th>
+              <th class="text-left py-3 px-4">Purpose</th>
+              <th class="text-left py-3 px-4">Stored?</th>
+              <th class="text-left py-3 px-4">Transmitted?</th>
+            </tr>
+          </thead>
+          <tbody class="text-slate-300">
+            <tr class="border-b border-slate-800">
+              <td class="py-3 px-4">Your natural language prompts</td>
+              <td class="py-3 px-4">Generate shell commands</td>
+              <td class="py-3 px-4">No</td>
+              <td class="py-3 px-4">No</td>
+            </tr>
+            <tr class="border-b border-slate-800">
+              <td class="py-3 px-4">System environment info</td>
+              <td class="py-3 px-4">Platform-appropriate commands</td>
+              <td class="py-3 px-4">No</td>
+              <td class="py-3 px-4">No</td>
+            </tr>
+            <tr class="border-b border-slate-800">
+              <td class="py-3 px-4">Generated commands</td>
+              <td class="py-3 px-4">Display for your review</td>
+              <td class="py-3 px-4">No</td>
+              <td class="py-3 px-4">No</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4">Configuration preferences</td>
+              <td class="py-3 px-4">Customize behavior</td>
+              <td class="py-3 px-4">Yes (local file)</td>
+              <td class="py-3 px-4">No</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="text-slate-400 text-sm mt-4">
+        Configuration is stored in <code class="bg-slate-800 px-2 py-1 rounded">~/.config/caro/config.toml</code> on your local filesystem.
+      </p>
+
+      <!-- What We Don't Collect -->
+      <h2 class="text-2xl font-semibold mt-12 mb-4">What We Don't Collect</h2>
+      <ul class="space-y-2 text-slate-300">
+        <li class="flex items-start gap-2">
+          <span class="text-green-400 mt-1">&#10003;</span>
+          <span><strong>No prompts</strong> - Your natural language queries stay on your machine</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-green-400 mt-1">&#10003;</span>
+          <span><strong>No commands</strong> - Generated shell commands are never transmitted</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-green-400 mt-1">&#10003;</span>
+          <span><strong>No file contents</strong> - We never access or transmit your files</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-green-400 mt-1">&#10003;</span>
+          <span><strong>No accounts</strong> - No registration, no user database</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-green-400 mt-1">&#10003;</span>
+          <span><strong>No selling data</strong> - We will never sell or share your data with advertisers</span>
+        </li>
+      </ul>
+
+      <!-- Telemetry -->
+      <h2 class="text-2xl font-semibold mt-12 mb-4">Telemetry</h2>
+      <p>Caro includes optional, anonymized telemetry to help us understand how the tool is used and where to focus improvements.</p>
+
+      <h3 class="text-xl font-medium mt-8 mb-4">What Telemetry Collects</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-700">
+              <th class="text-left py-3 px-4">Data</th>
+              <th class="text-left py-3 px-4">Example</th>
+              <th class="text-left py-3 px-4">Purpose</th>
+            </tr>
+          </thead>
+          <tbody class="text-slate-300">
+            <tr class="border-b border-slate-800">
+              <td class="py-3 px-4">Feature usage</td>
+              <td class="py-3 px-4 text-slate-400">"safety validation triggered"</td>
+              <td class="py-3 px-4">Know which features matter</td>
+            </tr>
+            <tr class="border-b border-slate-800">
+              <td class="py-3 px-4">Error events</td>
+              <td class="py-3 px-4 text-slate-400">"backend timeout"</td>
+              <td class="py-3 px-4">Fix bugs faster</td>
+            </tr>
+            <tr class="border-b border-slate-800">
+              <td class="py-3 px-4">Performance metrics</td>
+              <td class="py-3 px-4 text-slate-400">"inference time: 1.2s"</td>
+              <td class="py-3 px-4">Optimize speed</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4">Platform info</td>
+              <td class="py-3 px-4 text-slate-400">"macOS 14, arm64, zsh"</td>
+              <td class="py-3 px-4">Prioritize platform support</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="text-xl font-medium mt-8 mb-4">What Telemetry Never Collects</h3>
+      <ul class="space-y-1 text-slate-300">
+        <li>Your prompts or natural language input</li>
+        <li>Generated commands</li>
+        <li>File paths, contents, or directory structures</li>
+        <li>Personal identifiers (name, email, IP address)</li>
+        <li>Keystrokes or clipboard contents</li>
+      </ul>
+
+      <h3 class="text-xl font-medium mt-8 mb-4">Your Control</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-700">
+              <th class="text-left py-3 px-4">Release Stage</th>
+              <th class="text-left py-3 px-4">Default</th>
+              <th class="text-left py-3 px-4">How to Change</th>
+            </tr>
+          </thead>
+          <tbody class="text-slate-300">
+            <tr class="border-b border-slate-800">
+              <td class="py-3 px-4 font-medium">Beta</td>
+              <td class="py-3 px-4">Enabled (opt-out)</td>
+              <td class="py-3 px-4"><code class="bg-slate-800 px-2 py-1 rounded text-xs">caro config set telemetry.enabled false</code></td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 font-medium">GA (Stable)</td>
+              <td class="py-3 px-4">Disabled (opt-in)</td>
+              <td class="py-3 px-4"><code class="bg-slate-800 px-2 py-1 rounded text-xs">caro config set telemetry.enabled true</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="mt-4">
+        We use <a href="https://posthog.com" class="text-violet-400 hover:text-violet-300">PostHog</a> for telemetry.
+        PostHog is privacy-focused and GDPR-compliant. You can review our telemetry implementation in the
+        <a href="https://github.com/wildcard/caro" class="text-violet-400 hover:text-violet-300">source code</a>—it's
+        fully auditable under AGPL-3.0.
+      </p>
+
+      <!-- Website Analytics -->
+      <h2 class="text-2xl font-semibold mt-12 mb-4">Website (caro.sh)</h2>
+      <p>This website uses <a href="https://posthog.com" class="text-violet-400 hover:text-violet-300">PostHog</a> for analytics to understand how visitors use the site.</p>
+
+      <h3 class="text-xl font-medium mt-8 mb-4">What Website Analytics Collects</h3>
+      <ul class="space-y-1 text-slate-300">
+        <li>Pages visited and time spent</li>
+        <li>Referral source (how you found us)</li>
+        <li>Browser and device type</li>
+        <li>Country (derived from IP, IP not stored)</li>
+        <li>Button clicks and form interactions</li>
+      </ul>
+
+      <h3 class="text-xl font-medium mt-8 mb-4">What Website Analytics Doesn't Collect</h3>
+      <ul class="space-y-1 text-slate-300">
+        <li>Personal identifiers</li>
+        <li>Cross-site tracking</li>
+        <li>Data sold to advertisers</li>
+      </ul>
+
+      <p class="mt-4">
+        PostHog sets cookies to distinguish unique visitors. See our <a href="/cookies" class="text-violet-400 hover:text-violet-300">Cookie Notice</a> for details.
+      </p>
+
+      <!-- Your Rights -->
+      <h2 class="text-2xl font-semibold mt-12 mb-4">Your Rights</h2>
+      <ul class="space-y-2 text-slate-300">
+        <li><strong>Opt-out of telemetry:</strong> <code class="bg-slate-800 px-2 py-1 rounded text-sm">caro config set telemetry.enabled false</code></li>
+        <li><strong>Full Transparency:</strong> This software is open source under AGPL-3.0. You can audit exactly what telemetry sends.</li>
+        <li><strong>Complete Control:</strong> Your prompts and commands never leave your machine.</li>
+        <li><strong>No Vendor Lock-in:</strong> Delete the binary and config file; you're done.</li>
+        <li><strong>GDPR/CCPA:</strong> PostHog is GDPR and CCPA compliant. For data requests, contact us via GitHub.</li>
+      </ul>
+
+      <!-- Summary -->
+      <h2 class="text-2xl font-semibold mt-12 mb-4">Summary</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-700">
+              <th class="text-left py-3 px-4">Question</th>
+              <th class="text-left py-3 px-4">Answer</th>
+            </tr>
+          </thead>
+          <tbody class="text-slate-300">
+            <tr class="border-b border-slate-800">
+              <td class="py-3 px-4">Do you collect my prompts?</td>
+              <td class="py-3 px-4 text-green-400">No, never</td>
+            </tr>
+            <tr class="border-b border-slate-800">
+              <td class="py-3 px-4">Do you collect my commands?</td>
+              <td class="py-3 px-4 text-green-400">No, never</td>
+            </tr>
+            <tr class="border-b border-slate-800">
+              <td class="py-3 px-4">Is there telemetry?</td>
+              <td class="py-3 px-4">Yes, anonymized (opt-out beta, opt-in GA)</td>
+            </tr>
+            <tr class="border-b border-slate-800">
+              <td class="py-3 px-4">Can I disable telemetry?</td>
+              <td class="py-3 px-4 text-green-400">Yes</td>
+            </tr>
+            <tr class="border-b border-slate-800">
+              <td class="py-3 px-4">Do you sell my data?</td>
+              <td class="py-3 px-4 text-green-400">No, never</td>
+            </tr>
+            <tr class="border-b border-slate-800">
+              <td class="py-3 px-4">Can I use this offline?</td>
+              <td class="py-3 px-4 text-green-400">Yes, fully functional</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4">Is this auditable?</td>
+              <td class="py-3 px-4 text-green-400">Yes (AGPL-3.0)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Contact -->
+      <h2 class="text-2xl font-semibold mt-12 mb-4">Contact</h2>
+      <p>For privacy questions:</p>
+      <ul class="space-y-1 text-slate-300">
+        <li><a href="https://github.com/wildcard/caro/issues" class="text-violet-400 hover:text-violet-300">GitHub Issues</a></li>
+        <li><a href="https://github.com/wildcard/caro/discussions" class="text-violet-400 hover:text-violet-300">GitHub Discussions</a></li>
+      </ul>
+
+      <p class="text-slate-500 text-sm mt-12 pt-8 border-t border-slate-800">
+        This privacy policy is provided under <a href="https://creativecommons.org/licenses/by-sa/4.0/" class="text-slate-400 hover:text-slate-300">CC BY-SA 4.0</a>,
+        inspired by <a href="https://github.com/Automattic/legalmattic" class="text-slate-400 hover:text-slate-300">Automattic's Legalmattic</a>.
+      </p>
+    </article>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800 py-8 px-6">
+    <div class="max-w-3xl mx-auto flex flex-wrap justify-center gap-6 text-sm text-slate-400">
+      <a href="/privacy" class="hover:text-slate-100 transition">Privacy</a>
+      <a href="/terms" class="hover:text-slate-100 transition">Terms</a>
+      <a href="/cookies" class="hover:text-slate-100 transition">Cookies</a>
+      <a href="https://github.com/wildcard/caro" class="hover:text-slate-100 transition">GitHub</a>
+    </div>
+  </footer>
+</Layout>

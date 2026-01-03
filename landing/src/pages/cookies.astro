@@ -1,0 +1,189 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Cookie Notice - Caro" description="Caro Cookie Notice - How we use cookies on this website">
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-slate-950/60 backdrop-blur-xl border-b border-slate-800/50">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="/" class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg"></div>
+        <span class="text-lg font-semibold">caro</span>
+      </a>
+      <div class="hidden md:flex items-center gap-8 text-sm">
+        <a href="/#features" class="text-slate-400 hover:text-slate-100 transition">Features</a>
+        <a href="https://github.com/wildcard/caro" class="text-slate-400 hover:text-slate-100 transition">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Content -->
+  <main class="pt-24 pb-16 px-6">
+    <article class="max-w-3xl mx-auto prose prose-invert prose-slate">
+      <h1 class="text-4xl font-bold mb-2">Cookie Notice</h1>
+      <p class="text-slate-400 text-sm mb-8">Last Updated: January 2026</p>
+
+      <!-- TL;DR -->
+      <div class="bg-violet-950/30 border border-violet-800/30 rounded-xl p-6 mb-8">
+        <p class="text-lg text-slate-200 m-0">
+          <strong>The CLI doesn't use cookies.</strong> This website uses PostHog for analytics with minimal, privacy-respecting cookies.
+        </p>
+      </div>
+
+      <!-- Caro CLI -->
+      <h2 class="text-2xl font-semibold mt-12 mb-4">Caro CLI</h2>
+      <p class="text-slate-300">
+        Caro is a terminal application. Terminal applications don't use cookies. There's nothing more to say here.
+      </p>
+
+      <!-- Website -->
+      <h2 class="text-2xl font-semibold mt-12 mb-4">Website (caro.sh)</h2>
+      <p>
+        This website uses <a href="https://posthog.com" class="text-violet-400 hover:text-violet-300">PostHog</a> for analytics.
+        PostHog sets cookies to understand how visitors use the site.
+      </p>
+
+      <h3 class="text-xl font-medium mt-8 mb-4">Cookies We Use</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-700">
+              <th class="text-left py-3 px-4">Cookie</th>
+              <th class="text-left py-3 px-4">Purpose</th>
+              <th class="text-left py-3 px-4">Duration</th>
+              <th class="text-left py-3 px-4">Type</th>
+            </tr>
+          </thead>
+          <tbody class="text-slate-300">
+            <tr class="border-b border-slate-800">
+              <td class="py-3 px-4 font-mono text-sm">ph_*</td>
+              <td class="py-3 px-4">PostHog analytics - distinguishes unique visitors</td>
+              <td class="py-3 px-4">1 year</td>
+              <td class="py-3 px-4">Analytics</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 font-mono text-sm">__ph_opt_in_out_*</td>
+              <td class="py-3 px-4">Remembers your cookie consent choice</td>
+              <td class="py-3 px-4">1 year</td>
+              <td class="py-3 px-4">Functional</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="text-xl font-medium mt-8 mb-4">What These Cookies Do</h3>
+      <ul class="space-y-2 text-slate-300">
+        <li class="flex items-start gap-2">
+          <span class="text-violet-400 mt-1">&#8226;</span>
+          <span><strong>Track page views</strong> - Which pages are visited</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-violet-400 mt-1">&#8226;</span>
+          <span><strong>Distinguish visitors</strong> - Anonymous visitor IDs (not personal identity)</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-violet-400 mt-1">&#8226;</span>
+          <span><strong>Measure engagement</strong> - Time on page, scroll depth, clicks</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-violet-400 mt-1">&#8226;</span>
+          <span><strong>Remember preferences</strong> - Your analytics opt-out choice</span>
+        </li>
+      </ul>
+
+      <h3 class="text-xl font-medium mt-8 mb-4">What These Cookies Don't Do</h3>
+      <ul class="space-y-2 text-slate-300">
+        <li class="flex items-start gap-2">
+          <span class="text-green-400 mt-1">&#10003;</span>
+          <span>Identify you personally</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-green-400 mt-1">&#10003;</span>
+          <span>Track you across other websites</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-green-400 mt-1">&#10003;</span>
+          <span>Share data with advertisers</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-green-400 mt-1">&#10003;</span>
+          <span>Build marketing profiles</span>
+        </li>
+      </ul>
+
+      <!-- Your Choices -->
+      <h2 class="text-2xl font-semibold mt-12 mb-4">Your Choices</h2>
+
+      <h3 class="text-xl font-medium mt-8 mb-4">Opting Out</h3>
+      <p>You can opt out of PostHog analytics:</p>
+      <ol class="space-y-2 text-slate-300">
+        <li><strong>Browser settings:</strong> Block third-party cookies or use private/incognito mode</li>
+        <li><strong>Do Not Track:</strong> We respect DNT signals</li>
+        <li><strong>Browser extensions:</strong> Privacy tools like uBlock Origin or Privacy Badger</li>
+      </ol>
+
+      <h3 class="text-xl font-medium mt-8 mb-4">What Happens If You Opt Out</h3>
+      <p class="text-slate-300">
+        The website works exactly the same. You just won't be counted in our anonymous analytics.
+      </p>
+
+      <!-- Third-Party Services -->
+      <h2 class="text-2xl font-semibold mt-12 mb-4">Third-Party Services</h2>
+
+      <h3 class="text-xl font-medium mt-8 mb-4">PostHog</h3>
+      <p>We use PostHog Cloud (EU hosting) for analytics. PostHog is:</p>
+      <ul class="space-y-1 text-slate-300">
+        <li>GDPR compliant</li>
+        <li>SOC 2 Type II certified</li>
+        <li>Privacy-focused by design</li>
+      </ul>
+      <p>
+        See <a href="https://posthog.com/privacy" class="text-violet-400 hover:text-violet-300">PostHog's Privacy Policy</a>.
+      </p>
+
+      <h3 class="text-xl font-medium mt-8 mb-4">GitHub</h3>
+      <p class="text-slate-300">
+        Our repository is hosted on GitHub. When you visit our GitHub page or download releases, GitHub's cookies apply.
+        See <a href="https://docs.github.com/en/site-policy/privacy-policies/github-cookies" class="text-violet-400 hover:text-violet-300">GitHub's Cookie Policy</a>.
+      </p>
+
+      <h3 class="text-xl font-medium mt-8 mb-4">crates.io</h3>
+      <p class="text-slate-300">
+        When you install Caro via <code class="bg-slate-800 px-2 py-1 rounded">cargo install caro</code>, crates.io's policies apply.
+        See <a href="https://crates.io/policies" class="text-violet-400 hover:text-violet-300">crates.io's policies</a>.
+      </p>
+
+      <!-- Why We Use Analytics -->
+      <h2 class="text-2xl font-semibold mt-12 mb-4">Why We Use Analytics</h2>
+      <p>We use PostHog to understand:</p>
+      <ul class="space-y-1 text-slate-300">
+        <li>Which documentation pages are most useful</li>
+        <li>Where visitors come from</li>
+        <li>What features generate interest</li>
+        <li>How to improve the site</li>
+      </ul>
+      <p class="text-slate-400 mt-4">We don't use this data to track individuals or serve ads.</p>
+
+      <!-- Contact -->
+      <h2 class="text-2xl font-semibold mt-12 mb-4">Questions?</h2>
+      <p>For cookie-related questions:</p>
+      <ul class="space-y-1 text-slate-300">
+        <li><a href="https://github.com/wildcard/caro/discussions" class="text-violet-400 hover:text-violet-300">GitHub Discussions</a></li>
+      </ul>
+
+      <p class="text-slate-500 text-sm mt-12 pt-8 border-t border-slate-800">
+        This notice is provided under <a href="https://creativecommons.org/licenses/by-sa/4.0/" class="text-slate-400 hover:text-slate-300">CC BY-SA 4.0</a>.
+      </p>
+    </article>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800 py-8 px-6">
+    <div class="max-w-3xl mx-auto flex flex-wrap justify-center gap-6 text-sm text-slate-400">
+      <a href="/privacy" class="hover:text-slate-100 transition">Privacy</a>
+      <a href="/terms" class="hover:text-slate-100 transition">Terms</a>
+      <a href="/cookies" class="hover:text-slate-100 transition">Cookies</a>
+      <a href="https://github.com/wildcard/caro" class="hover:text-slate-100 transition">GitHub</a>
+    </div>
+  </footer>
+</Layout>
