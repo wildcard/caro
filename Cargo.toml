@@ -67,6 +67,10 @@ sha2 = "0.10"
 async-trait = "0.1"
 futures = "0.3"
 
+# gRPC support (optional - for p2p-grpc feature)
+tonic = { version = "0.12", optional = true }
+prost = { version = "0.13", optional = true }
+
 # Optional MLX support for Apple Silicon (behind feature flag)
 cxx = { version = "1.0", optional = true }
 
@@ -99,7 +103,16 @@ remote-backends = ["reqwest", "tokio/net"]
 embedded-mlx = ["cxx", "llama_cpp"]
 embedded-cpu = ["candle-core", "candle-transformers"]
 embedded = ["embedded-cpu"]  # Alias for embedded model support
-full = ["remote-backends", "embedded-mlx", "embedded-cpu"]
+
+# P2P networking features
+p2p = ["p2p-gun"]  # Default P2P uses GUN
+p2p-gun = []  # GUN.js decentralized sync
+p2p-nostr = []  # Nostr protocol transport
+p2p-grpc = ["tonic", "prost"]  # gRPC transport (requires protobuf)
+p2p-sync = ["p2p"]  # Pattern sync functionality
+p2p-full = ["p2p-gun", "p2p-nostr", "p2p-grpc", "p2p-sync"]  # All P2P features
+
+full = ["remote-backends", "embedded-mlx", "embedded-cpu", "p2p-full"]
 
 [profile.release]
 # Optimize for binary size (<50MB target)

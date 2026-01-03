@@ -36,6 +36,8 @@ pub mod logging;
 pub mod model_catalog;
 pub mod model_loader;
 pub mod models;
+#[cfg(any(feature = "p2p", feature = "p2p-gun", feature = "p2p-nostr", feature = "p2p-grpc"))]
+pub mod p2p;
 pub mod platform;
 pub mod safety;
 pub mod version;
@@ -65,3 +67,13 @@ pub use backends::embedded::{
 #[cfg(feature = "remote-backends")]
 pub use backends::remote::{OllamaBackend, VllmBackend};
 pub use backends::{BackendInfo as BackendInfoTrait, CommandGenerator, GeneratorError};
+
+// Re-export P2P types when enabled
+#[cfg(any(feature = "p2p", feature = "p2p-gun", feature = "p2p-nostr", feature = "p2p-grpc"))]
+pub use p2p::{
+    crypto::{EncryptedPayload, SessionKey},
+    envelope::{MessageType, PatternMessage, SignedEnvelope},
+    identity::{AgentId, IdentityManager, KeyPair, RegisteredMember},
+    transport::{Transport, TransportConfig, TransportError, TransportFactory, TransportType},
+    NetworkStats, PeerInfo,
+};
