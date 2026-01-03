@@ -1,6 +1,7 @@
 use crate::backends::{CommandGenerator, GeneratorError};
 use crate::context::ExecutionContext;
 use crate::models::{CommandRequest, GeneratedCommand, SafetyLevel, ShellType};
+use crate::shellcheck::{AnalysisResult, ShellCheckAnalyzer, ShellDialect};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -15,6 +16,8 @@ pub struct AgentLoop {
     context: ExecutionContext,
     _max_iterations: usize,
     timeout: Duration,
+    /// ShellCheck analyzer for validating generated commands
+    shellcheck: ShellCheckAnalyzer,
 }
 
 /// Command information for context enrichment
@@ -42,7 +45,13 @@ impl AgentLoop {
             context,
             _max_iterations: 2,
             timeout: Duration::from_secs(15), // Allow enough time for 2 iterations
+            shellcheck: ShellCheckAnalyzer::new(),
         }
+    }
+
+    /// Check if ShellCheck is available for command validation
+    pub fn shellcheck_available(&self) -> bool {
+        self.shellcheck.is_available()
     }
 
     /// Generate command with iterative refinement
@@ -57,6 +66,9 @@ impl AgentLoop {
 
         debug!("Initial command: {}", initial.command);
 
+        // Run ShellCheck analysis on the initial command
+        let shellcheck_result = self.run_shellcheck_analysis(&initial.command).await;
+
         // Check if we have time and should refine
         let elapsed = start.elapsed();
         if elapsed > self.timeout / 2 {
@@ -64,23 +76,87 @@ impl AgentLoop {
             return Ok(initial);
         }
 
-        // Check if refinement is beneficial
-        if !self.should_refine(&initial) {
+        // Check if refinement is beneficial based on command patterns or ShellCheck issues
+        let needs_pattern_refinement = self.should_refine(&initial);
+        let needs_shellcheck_refinement = shellcheck_result
+            .as_ref()
+            .map(|r| r.needs_regeneration())
+            .unwrap_or(false);
+
+        if !needs_pattern_refinement && !needs_shellcheck_refinement {
             info!("Refinement not needed, returning initial command");
             return Ok(initial);
         }
 
-        // Iteration 2: Refine with command context
+        // Log why we're refining
+        if needs_shellcheck_refinement {
+            if let Some(ref result) = shellcheck_result {
+                let (errors, warnings, _, _) = result.count_by_severity();
+                info!(
+                    "ShellCheck found {} error(s) and {} warning(s), triggering refinement",
+                    errors, warnings
+                );
+            }
+        }
+
+        // Iteration 2: Refine with command context and ShellCheck feedback
         debug!("Iteration 2: Refining with command context");
         let commands = Self::extract_commands(&initial.command);
         let command_context = self.get_command_context(&commands).await;
 
         let refined = self
-            .refine_command(prompt, &initial, &command_context)
+            .refine_command_with_shellcheck(prompt, &initial, &command_context, &shellcheck_result)
             .await?;
+
+        // Optionally verify the refined command with ShellCheck
+        if self.shellcheck.is_available() {
+            let refined_check = self.run_shellcheck_analysis(&refined.command).await;
+            if let Some(ref result) = refined_check {
+                if result.needs_regeneration() {
+                    debug!(
+                        "Refined command still has ShellCheck issues: {}",
+                        result.to_prompt_feedback()
+                    );
+                } else {
+                    debug!("Refined command passed ShellCheck validation");
+                }
+            }
+        }
 
         info!("Command generation complete in {:?}", start.elapsed());
         Ok(refined)
+    }
+
+    /// Run ShellCheck analysis on a command
+    async fn run_shellcheck_analysis(&self, command: &str) -> Option<AnalysisResult> {
+        if !self.shellcheck.is_available() {
+            debug!("ShellCheck not available, skipping analysis");
+            return None;
+        }
+
+        let dialect = self.get_shell_dialect();
+
+        match self.shellcheck.analyze(command, dialect).await {
+            Ok(result) => {
+                if !result.issues.is_empty() {
+                    debug!(
+                        "ShellCheck found {} issue(s) in command",
+                        result.issues.len()
+                    );
+                }
+                Some(result)
+            }
+            Err(e) => {
+                warn!("ShellCheck analysis failed: {}", e);
+                None
+            }
+        }
+    }
+
+    /// Get the shell dialect for ShellCheck based on context
+    fn get_shell_dialect(&self) -> ShellDialect {
+        // Default to bash for now, could be enhanced to detect from context
+        ShellDialect::Bash
     }
 
     /// Generate initial command with platform context
@@ -105,13 +181,27 @@ impl AgentLoop {
     }
 
     /// Refine command with command-specific context
+    #[allow(dead_code)]
     async fn refine_command(
         &self,
         prompt: &str,
         initial: &GeneratedCommand,
         command_context: &HashMap<String, CommandInfo>,
     ) -> Result<GeneratedCommand, GeneratorError> {
-        let system_prompt = self.build_refinement_prompt(prompt, initial, command_context);
+        self.refine_command_with_shellcheck(prompt, initial, command_context, &None)
+            .await
+    }
+
+    /// Refine command with command-specific context and ShellCheck feedback
+    async fn refine_command_with_shellcheck(
+        &self,
+        prompt: &str,
+        initial: &GeneratedCommand,
+        command_context: &HashMap<String, CommandInfo>,
+        shellcheck_result: &Option<AnalysisResult>,
+    ) -> Result<GeneratedCommand, GeneratorError> {
+        let system_prompt =
+            self.build_refinement_prompt_with_shellcheck(prompt, initial, command_context, shellcheck_result);
 
         // Serialize context to string
         let context_str = serde_json::to_string(&self.context).unwrap_or_else(|_| "{}".to_string());
@@ -160,11 +250,23 @@ Generate a safe, platform-appropriate command."#,
     }
 
     /// Build refinement prompt with command context
+    #[allow(dead_code)]
     fn build_refinement_prompt(
         &self,
         prompt: &str,
         initial: &GeneratedCommand,
         command_context: &HashMap<String, CommandInfo>,
+    ) -> String {
+        self.build_refinement_prompt_with_shellcheck(prompt, initial, command_context, &None)
+    }
+
+    /// Build refinement prompt with command context and ShellCheck feedback
+    fn build_refinement_prompt_with_shellcheck(
+        &self,
+        prompt: &str,
+        initial: &GeneratedCommand,
+        command_context: &HashMap<String, CommandInfo>,
+        shellcheck_result: &Option<AnalysisResult>,
     ) -> String {
         let command_details = command_context
             .iter()
@@ -183,13 +285,38 @@ Generate a safe, platform-appropriate command."#,
             .collect::<Vec<_>>()
             .join("\n\n---\n\n");
 
+        // Build ShellCheck feedback section if available
+        let shellcheck_section = match shellcheck_result {
+            Some(result) if result.needs_regeneration() => {
+                format!(
+                    r#"
+SHELLCHECK ANALYSIS (CRITICAL - MUST FIX):
+{}
+You MUST address these ShellCheck issues in your refined command.
+ShellCheck errors and warnings indicate real problems that will cause issues.
+"#,
+                    result.to_prompt_feedback()
+                )
+            }
+            Some(result) if !result.issues.is_empty() => {
+                format!(
+                    r#"
+SHELLCHECK SUGGESTIONS (optional improvements):
+{}
+"#,
+                    result.to_prompt_feedback()
+                )
+            }
+            _ => String::new(),
+        };
+
         format!(
             r#"COMMAND REFINEMENT ITERATION
 
 ORIGINAL REQUEST: {}
 
 INITIAL COMMAND: {}
-
+{}
 COMMAND DETAILS FOR YOUR PLATFORM ({}):
 {}
 
@@ -199,8 +326,9 @@ COMMON ISSUES TO CHECK:
 1. Platform-specific flags (--sort vs pipe to sort)
 2. Command availability (ss vs lsof vs netstat)
 3. Correct syntax for version installed
-4. Proper quoting and escaping
+4. Proper quoting and escaping (ShellCheck SC2086: quote variables)
 5. Path assumptions (/ vs . vs ~/)
+6. Variable expansion safety (use "$var" not $var)
 
 OUTPUT FORMAT (JSON):
 {{
@@ -211,7 +339,7 @@ OUTPUT FORMAT (JSON):
 
 If the initial command is correct, return it with confidence > 0.9.
 If you made changes, explain what was fixed."#,
-            prompt, initial.command, self.context.os, command_details
+            prompt, initial.command, shellcheck_section, self.context.os, command_details
         )
     }
 

@@ -15,6 +15,7 @@
 //! - [`config`] - Configuration management with TOML support
 //! - [`execution`] - Execution context capture and shell detection
 //! - [`logging`] - Structured logging with sensitive data redaction
+//! - [`shellcheck`] - ShellCheck integration for command validation
 //!
 //! # Example
 //!
@@ -38,6 +39,7 @@ pub mod model_loader;
 pub mod models;
 pub mod platform;
 pub mod safety;
+pub mod shellcheck;
 pub mod version;
 
 // Re-export commonly used types for convenience
@@ -65,3 +67,9 @@ pub use backends::embedded::{
 #[cfg(feature = "remote-backends")]
 pub use backends::remote::{OllamaBackend, VllmBackend};
 pub use backends::{BackendInfo as BackendInfoTrait, CommandGenerator, GeneratorError};
+
+// Re-export shellcheck types
+pub use shellcheck::{
+    AnalysisResult as ShellCheckResult, Severity as ShellCheckSeverity,
+    ShellCheckAnalyzer, ShellCheckError, ShellCheckIssue, ShellDialect,
+};
