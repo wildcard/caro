@@ -2,7 +2,27 @@
 /**
  * Modern Navigation Component
  * Features: Desktop dropdown menu, mobile slide-out drawer, theme toggles
+ *
+ * Variants:
+ * - default: Main site navigation with Features, Compare, Resources
+ * - use-cases: Use cases section with All Use Cases, By Role dropdown
  */
+
+interface Props {
+  variant?: 'default' | 'use-cases';
+  currentPage?: string;
+}
+
+const { variant = 'default', currentPage } = Astro.props;
+
+// Use-cases personas for the dropdown
+const personas = [
+  { slug: 'sre', title: 'SRE & On-Call Engineers', icon: '🚨' },
+  { slug: 'air-gapped', title: 'Air-Gapped & Security', icon: '🔐' },
+  { slug: 'devops', title: 'DevOps & Platform', icon: '🔧' },
+  { slug: 'tech-lead', title: 'Tech Leads & Managers', icon: '👥' },
+  { slug: 'developer', title: 'Developers', icon: '💻' },
+];
 ---
 
 <nav class="navigation" id="main-nav">
@@ -15,92 +35,123 @@
 
     <!-- Desktop Navigation -->
     <div class="nav-desktop">
-      <ul class="nav-menu">
-        <li class="nav-item">
-          <a href="/#features">Features</a>
-        </li>
-        <li class="nav-item has-dropdown">
-          <button class="dropdown-trigger" aria-expanded="false">
-            Compare
-            <svg class="chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-          <div class="dropdown-panel">
-            <a href="/compare" class="dropdown-item">
-              <span class="item-icon">📊</span>
-              <div class="item-content">
-                <span class="item-title">Overview</span>
-                <span class="item-desc">See all comparisons</span>
-              </div>
+      {variant === 'use-cases' ? (
+        <!-- Use Cases Navigation -->
+        <ul class="nav-menu nav-menu-use-cases">
+          <li class="nav-item">
+            <a href="/use-cases" class={currentPage === 'index' ? 'active' : ''}>All Use Cases</a>
+          </li>
+          <li class="nav-item has-dropdown">
+            <button class="dropdown-trigger" aria-expanded="false">
+              By Role
+              <svg class="chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <div class="dropdown-panel">
+              {personas.map((persona) => (
+                <a href={`/use-cases/${persona.slug}`} class={`dropdown-item ${currentPage === persona.slug ? 'active' : ''}`}>
+                  <span class="item-icon">{persona.icon}</span>
+                  <div class="item-content">
+                    <span class="item-title">{persona.title}</span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </li>
+          <li class="nav-item">
+            <a href="/">Back to Home</a>
+          </li>
+        </ul>
+      ) : (
+        <!-- Default Navigation -->
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="/#features">Features</a>
+          </li>
+          <li class="nav-item has-dropdown">
+            <button class="dropdown-trigger" aria-expanded="false">
+              Compare
+              <svg class="chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <div class="dropdown-panel">
+              <a href="/compare" class="dropdown-item">
+                <span class="item-icon">📊</span>
+                <div class="item-content">
+                  <span class="item-title">Overview</span>
+                  <span class="item-desc">See all comparisons</span>
+                </div>
+              </a>
+              <a href="/compare/warp" class="dropdown-item">
+                <span class="item-icon">⚡</span>
+                <div class="item-content">
+                  <span class="item-title">vs Warp</span>
+                  <span class="item-desc">AI-native terminal</span>
+                </div>
+              </a>
+              <a href="/compare/github-copilot-cli" class="dropdown-item">
+                <span class="item-icon">🤖</span>
+                <div class="item-content">
+                  <span class="item-title">vs GitHub Copilot CLI</span>
+                  <span class="item-desc">AI pair programmer</span>
+                </div>
+              </a>
+              <a href="/compare/kiro-cli" class="dropdown-item">
+                <span class="item-icon">👻</span>
+                <div class="item-content">
+                  <span class="item-title">vs Kiro CLI</span>
+                  <span class="item-desc">AWS AI assistant</span>
+                </div>
+              </a>
+            </div>
+          </li>
+          <li class="nav-item has-dropdown">
+            <button class="dropdown-trigger" aria-expanded="false">
+              Resources
+              <svg class="chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <div class="dropdown-panel">
+              <a href="/#blog" class="dropdown-item">
+                <span class="item-icon">📝</span>
+                <div class="item-content">
+                  <span class="item-title">Blog</span>
+                  <span class="item-desc">News & tutorials</span>
+                </div>
+              </a>
+              <a href="/explore" class="dropdown-item">
+                <span class="item-icon">🔍</span>
+                <div class="item-content">
+                  <span class="item-title">Explore</span>
+                  <span class="item-desc">Interactive demo</span>
+                </div>
+              </a>
+              <a href="/roadmap" class="dropdown-item">
+                <span class="item-icon">🗺️</span>
+                <div class="item-content">
+                  <span class="item-title">Roadmap</span>
+                  <span class="item-desc">What's coming next</span>
+                </div>
+              </a>
+              <a href="https://github.com/wildcard/caro" class="dropdown-item" target="_blank" rel="noopener noreferrer">
+                <span class="item-icon">🐙</span>
+                <div class="item-content">
+                  <span class="item-title">GitHub</span>
+                  <span class="item-desc">Source code</span>
+                </div>
+              </a>
+            </div>
+          </li>
+          <li class="nav-item">
+            <a href="/support" class="support-link">
+              <span class="support-heart">♥</span> Support
             </a>
-            <a href="/compare/warp" class="dropdown-item">
-              <span class="item-icon">⚡</span>
-              <div class="item-content">
-                <span class="item-title">vs Warp</span>
-                <span class="item-desc">AI-native terminal</span>
-              </div>
-            </a>
-            <a href="/compare/github-copilot-cli" class="dropdown-item">
-              <span class="item-icon">🤖</span>
-              <div class="item-content">
-                <span class="item-title">vs GitHub Copilot CLI</span>
-                <span class="item-desc">AI pair programmer</span>
-              </div>
-            </a>
-            <a href="/compare/kiro-cli" class="dropdown-item">
-              <span class="item-icon">👻</span>
-              <div class="item-content">
-                <span class="item-title">vs Kiro CLI</span>
-                <span class="item-desc">AWS AI assistant</span>
-              </div>
-            </a>
-          </div>
-        </li>
-        <li class="nav-item has-dropdown">
-          <button class="dropdown-trigger" aria-expanded="false">
-            Resources
-            <svg class="chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-          <div class="dropdown-panel">
-            <a href="/#blog" class="dropdown-item">
-              <span class="item-icon">📝</span>
-              <div class="item-content">
-                <span class="item-title">Blog</span>
-                <span class="item-desc">News & tutorials</span>
-              </div>
-            </a>
-            <a href="/explore" class="dropdown-item">
-              <span class="item-icon">🔍</span>
-              <div class="item-content">
-                <span class="item-title">Explore</span>
-                <span class="item-desc">Interactive demo</span>
-              </div>
-            </a>
-            <a href="/roadmap" class="dropdown-item">
-              <span class="item-icon">🗺️</span>
-              <div class="item-content">
-                <span class="item-title">Roadmap</span>
-                <span class="item-desc">What's coming next</span>
-              </div>
-            </a>
-            <a href="https://github.com/wildcard/caro" class="dropdown-item" target="_blank" rel="noopener noreferrer">
-              <span class="item-icon">🐙</span>
-              <div class="item-content">
-                <span class="item-title">GitHub</span>
-                <span class="item-desc">Source code</span>
-              </div>
-            </a>
-          </div>
-        </li>
-        <li class="nav-item">
-          <a href="/support" class="support-link">
-            <span class="support-heart">♥</span> Support
-          </a>
-        </li>
-      </ul>
+          </li>
+        </ul>
+      )}
 
       <!-- Desktop Actions -->
       <div class="nav-actions">
@@ -206,70 +257,98 @@
     </div>
 
     <div class="drawer-content">
-      <!-- Main Links -->
-      <div class="drawer-section">
-        <a href="/#features" class="drawer-link">
-          <span class="link-icon">⭐</span>
-          <span class="link-text">Features</span>
-        </a>
-        <a href="/#how-it-works" class="drawer-link">
-          <span class="link-icon">🎬</span>
-          <span class="link-text">Watch Demo</span>
-        </a>
-      </div>
+      {variant === 'use-cases' ? (
+        <!-- Use Cases Mobile Navigation -->
+        <Fragment>
+          <div class="drawer-section">
+            <a href="/use-cases" class={`drawer-link ${currentPage === 'index' ? 'active' : ''}`}>
+              <span class="link-icon">📋</span>
+              <span class="link-text">All Use Cases</span>
+            </a>
+          </div>
 
-      <!-- Compare Section -->
-      <div class="drawer-section">
-        <div class="section-header">Compare</div>
-        <a href="/compare" class="drawer-link">
-          <span class="link-icon">📊</span>
-          <span class="link-text">All Comparisons</span>
-        </a>
-        <a href="/compare/warp" class="drawer-link">
-          <span class="link-icon">⚡</span>
-          <span class="link-text">vs Warp</span>
-        </a>
-        <a href="/compare/github-copilot-cli" class="drawer-link">
-          <span class="link-icon">🤖</span>
-          <span class="link-text">vs GitHub Copilot</span>
-        </a>
-        <a href="/compare/kiro-cli" class="drawer-link">
-          <span class="link-icon">👻</span>
-          <span class="link-text">vs Kiro CLI</span>
-        </a>
-      </div>
+          <div class="drawer-section">
+            <div class="section-header">By Role</div>
+            {personas.map((persona) => (
+              <a href={`/use-cases/${persona.slug}`} class={`drawer-link ${currentPage === persona.slug ? 'active' : ''}`}>
+                <span class="link-icon">{persona.icon}</span>
+                <span class="link-text">{persona.title}</span>
+              </a>
+            ))}
+          </div>
 
-      <!-- Resources Section -->
-      <div class="drawer-section">
-        <div class="section-header">Resources</div>
-        <a href="/#blog" class="drawer-link">
-          <span class="link-icon">📝</span>
-          <span class="link-text">Blog</span>
-        </a>
-        <a href="/explore" class="drawer-link">
-          <span class="link-icon">🔍</span>
-          <span class="link-text">Explore</span>
-        </a>
-        <a href="/roadmap" class="drawer-link">
-          <span class="link-icon">🗺️</span>
-          <span class="link-text">Roadmap</span>
-        </a>
-        <a href="https://github.com/wildcard/caro" class="drawer-link" target="_blank" rel="noopener noreferrer">
-          <span class="link-icon">🐙</span>
-          <span class="link-text">GitHub</span>
-          <svg class="external-icon" width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <path d="M9 3L3 9M9 3H5M9 3V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </a>
-      </div>
+          <div class="drawer-section">
+            <a href="/" class="drawer-link">
+              <span class="link-icon">🏠</span>
+              <span class="link-text">Back to Home</span>
+            </a>
+          </div>
+        </Fragment>
+      ) : (
+        <!-- Default Mobile Navigation -->
+        <Fragment>
+          <div class="drawer-section">
+            <a href="/#features" class="drawer-link">
+              <span class="link-icon">⭐</span>
+              <span class="link-text">Features</span>
+            </a>
+            <a href="/#how-it-works" class="drawer-link">
+              <span class="link-icon">🎬</span>
+              <span class="link-text">Watch Demo</span>
+            </a>
+          </div>
 
-      <!-- Support -->
-      <div class="drawer-section">
-        <a href="/support" class="drawer-link support-link">
-          <span class="link-icon">💖</span>
-          <span class="link-text">Support Caro</span>
-        </a>
-      </div>
+          <div class="drawer-section">
+            <div class="section-header">Compare</div>
+            <a href="/compare" class="drawer-link">
+              <span class="link-icon">📊</span>
+              <span class="link-text">All Comparisons</span>
+            </a>
+            <a href="/compare/warp" class="drawer-link">
+              <span class="link-icon">⚡</span>
+              <span class="link-text">vs Warp</span>
+            </a>
+            <a href="/compare/github-copilot-cli" class="drawer-link">
+              <span class="link-icon">🤖</span>
+              <span class="link-text">vs GitHub Copilot</span>
+            </a>
+            <a href="/compare/kiro-cli" class="drawer-link">
+              <span class="link-icon">👻</span>
+              <span class="link-text">vs Kiro CLI</span>
+            </a>
+          </div>
+
+          <div class="drawer-section">
+            <div class="section-header">Resources</div>
+            <a href="/#blog" class="drawer-link">
+              <span class="link-icon">📝</span>
+              <span class="link-text">Blog</span>
+            </a>
+            <a href="/explore" class="drawer-link">
+              <span class="link-icon">🔍</span>
+              <span class="link-text">Explore</span>
+            </a>
+            <a href="/roadmap" class="drawer-link">
+              <span class="link-icon">🗺️</span>
+              <span class="link-text">Roadmap</span>
+            </a>
+            <a href="https://github.com/wildcard/caro" class="drawer-link" target="_blank" rel="noopener noreferrer">
+              <span class="link-icon">🐙</span>
+              <span class="link-text">GitHub</span>
+              <svg class="external-icon" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M9 3L3 9M9 3H5M9 3V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </a>
+          </div>
+
+          <div class="drawer-section">
+            <a href="/support" class="drawer-link support-link">
+              <span class="link-icon">💖</span>
+              <span class="link-text">Support Caro</span>
+            </a>
+          </div>
+        </Fragment>
+      )}
 
       <!-- Theme Controls -->
       <div class="drawer-section theme-section">
@@ -934,6 +1013,11 @@
 
   .drawer-link:hover {
     background: rgba(255, 140, 66, 0.08);
+    color: #ff8c42;
+  }
+
+  .drawer-link.active {
+    background: rgba(255, 140, 66, 0.12);
     color: #ff8c42;
   }
 

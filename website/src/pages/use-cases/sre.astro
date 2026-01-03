@@ -9,7 +9,7 @@
  */
 
 import LandingPage from '../../layouts/LandingPage.astro';
-import UseCasesNavigation from '../../components/use-cases/UseCasesNavigation.astro';
+import Navigation from '../../components/Navigation.astro';
 import LPDownload from '../../components/landing/LPDownload.astro';
 import LPFooter from '../../components/landing/LPFooter.astro';
 
@@ -225,7 +225,7 @@ const blockedPatterns = [
   persona="Production-Paranoid SRE"
   painPoint="Fear of catastrophic command mistakes"
 >
-  <UseCasesNavigation currentPage="sre" />
+  <Navigation variant="use-cases" currentPage="sre" />
 
   <!-- Hero -->
   <section class="hero">

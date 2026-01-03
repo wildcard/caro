@@ -9,7 +9,7 @@
  */
 
 import LandingPage from '../../layouts/LandingPage.astro';
-import UseCasesNavigation from '../../components/use-cases/UseCasesNavigation.astro';
+import Navigation from '../../components/Navigation.astro';
 import LPDownload from '../../components/landing/LPDownload.astro';
 import LPFooter from '../../components/landing/LPFooter.astro';
 
@@ -428,7 +428,7 @@ const vsAlternatives = [
   persona="Terminal-Learning Developer"
   painPoint="Can't remember command syntax"
 >
-  <UseCasesNavigation currentPage="developer" />
+  <Navigation variant="use-cases" currentPage="developer" />
 
   <!-- Hero -->
   <section class="hero">
