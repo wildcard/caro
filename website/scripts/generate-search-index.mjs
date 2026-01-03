@@ -82,10 +82,13 @@ function extractAllTextContent(content) {
     // Remove script and style tags (handle forgiving end-tag syntax like </script >)
     .replace(/<script\b[^>]*>[\s\S]*?<\/script\b[^>]*>/gi, '')
     .replace(/<style\b[^>]*>[\s\S]*?<\/style\b[^>]*>/gi, '')
-    // Remove frontmatter
+    // Remove frontmatter completely (including its contents)
     .replace(/---[\s\S]*?---/g, '')
-    // Remove import statements
-    .replace(/import\s+.*?from\s+['"][^'"]+['"]\s*;?/g, '')
+    // Remove ALL import statements (various formats)
+    .replace(/^\s*import\s+.*$/gm, '')
+    .replace(/import\s+\{[^}]*\}\s+from\s+['"][^'"]+['"]\s*;?/g, '')
+    .replace(/import\s+[\w,\s{}*]+\s+from\s+['"][^'"]+['"]\s*;?/g, '')
+    .replace(/import\s+['"][^'"]+['"]\s*;?/g, '')
     // Remove Astro/JSX expressions but keep text content
     .replace(/\{`([^`]*)`\}/g, '$1') // Template literals
     .replace(/\{['"]([^'"]*)['"]\}/g, '$1') // String literals
@@ -122,6 +125,48 @@ function extractAllTextContent(content) {
   return text;
 }
 
+// Extract title and description from Layout component props
+function extractComponentProps(content) {
+  let title = null;
+  let description = null;
+
+  // Match Layout, LandingPage, ComparisonPageLayout, or BlogPost components with props
+  const layoutMatch = content.match(/<(?:Layout|LandingPage|ComparisonPageLayout|BlogPost)\s+([\s\S]*?)>/);
+  if (layoutMatch) {
+    const propsStr = layoutMatch[1];
+
+    // Extract title prop - handle double-quoted strings (may contain single quotes)
+    const titleMatchDouble = propsStr.match(/title\s*=\s*"([^"]+)"/);
+    const titleMatchSingle = propsStr.match(/title\s*=\s*'([^']+)'/);
+    if (titleMatchDouble) {
+      title = titleMatchDouble[1];
+    } else if (titleMatchSingle) {
+      title = titleMatchSingle[1];
+    }
+
+    if (title) {
+      // Clean up title (remove common suffixes for cleaner display)
+      title = title
+        .replace(/\s*\|\s*Caro.*$/, '')
+        .replace(/\s*-\s*Caro$/, '')
+        .replace(/\s*\|\s*Shell AI Tools$/, '')
+        .replace(/\s*-\s*Feature Comparison.*$/, '')
+        .trim();
+    }
+
+    // Extract description prop - handle double-quoted strings (may contain single quotes)
+    const descMatchDouble = propsStr.match(/description\s*=\s*"([^"]+)"/);
+    const descMatchSingle = propsStr.match(/description\s*=\s*'([^']+)'/);
+    if (descMatchDouble) {
+      description = descMatchDouble[1];
+    } else if (descMatchSingle) {
+      description = descMatchSingle[1];
+    }
+  }
+
+  return { title, description };
+}
+
 // Extract all string values from JavaScript data in frontmatter
 function extractFrontmatterData(content) {
   const frontmatterMatch = content.match(/---\n([\s\S]*?)\n---/);
@@ -147,20 +192,42 @@ function extractFrontmatterData(content) {
   }
 
   // Extract all string literals from the frontmatter data
-  // Match single-quoted strings
+  // Match single-quoted strings - but SKIP import paths and code artifacts
   const singleQuoteStrings = frontmatter.matchAll(/'([^'\\]|\\.)*'/g);
   for (const match of singleQuoteStrings) {
     const str = match[0].slice(1, -1); // Remove quotes
-    if (str.length > 3 && !str.includes('/') && !str.includes('.astro')) {
+    // Skip import paths, component names, code artifacts, and short strings
+    if (str.length > 3 &&
+        str.length < 300 && // Skip very long strings (likely malformed)
+        !str.includes('/') &&
+        !str.includes('.astro') &&
+        !str.includes('.tsx') &&
+        !str.includes('\n') && // Skip strings with newlines (likely code)
+        !str.includes('import ') && // Skip strings containing import statements
+        !str.includes('from ') && // Skip strings containing from clauses
+        !str.match(/^[A-Z][A-Za-z]+$/) && // Skip PascalCase component names
+        !str.startsWith('../') &&
+        !str.startsWith('./')) {
       strings.push(str);
     }
   }
 
-  // Match double-quoted strings
+  // Match double-quoted strings - but SKIP import paths and code artifacts
   const doubleQuoteStrings = frontmatter.matchAll(/"([^"\\]|\\.)*"/g);
   for (const match of doubleQuoteStrings) {
     const str = match[0].slice(1, -1); // Remove quotes
-    if (str.length > 3 && !str.includes('/') && !str.includes('.astro')) {
+    // Skip import paths, component names, code artifacts, and short strings
+    if (str.length > 3 &&
+        str.length < 300 && // Skip very long strings (likely malformed)
+        !str.includes('/') &&
+        !str.includes('.astro') &&
+        !str.includes('.tsx') &&
+        !str.includes('\n') && // Skip strings with newlines (likely code)
+        !str.includes('import ') && // Skip strings containing import statements
+        !str.includes('from ') && // Skip strings containing from clauses
+        !str.match(/^[A-Z][A-Za-z]+$/) && // Skip PascalCase component names
+        !str.startsWith('../') &&
+        !str.startsWith('./')) {
       strings.push(str);
     }
   }
@@ -386,17 +453,29 @@ function scanPage(filePath, pagesDir) {
   const content = fs.readFileSync(filePath, 'utf-8');
   const urlPath = filePathToUrl(filePath, pagesDir);
   const category = getCategoryFromPath(filePath);
+
+  // Extract from component props (Layout/LandingPage) - highest priority
+  const componentProps = extractComponentProps(content);
   const frontmatterData = extractFrontmatterData(content);
   const structured = extractStructuredContent(content);
   const fullText = extractAllTextContent(content);
 
-  // Generate title using smart detection
-  const title = generateSmartTitle(urlPath, frontmatterData, structured);
+  // Priority for title: component props > frontmatter > smart detection
+  const title = componentProps.title ||
+    frontmatterData.title ||
+    generateSmartTitle(urlPath, frontmatterData, structured);
+
+  // Priority for description: component props > frontmatter > first paragraph
+  const description = componentProps.description ||
+    frontmatterData.description ||
+    structured.paragraphs[0]?.slice(0, 200) ||
+    frontmatterData.strings.find(s => s.length > 30 && s.length < 200) ||
+    '';
 
   // Combine all text for comprehensive search including frontmatter data
   const allTextContent = [
     title,
-    frontmatterData.description || '',
+    description,
     ...frontmatterData.strings, // Include all extracted string data
     ...structured.allText,
     fullText,
@@ -404,12 +483,6 @@ function scanPage(filePath, pagesDir) {
 
   // Generate keywords from all content
   const keywords = extractKeywords(allTextContent, 50);
-
-  // Get first paragraph for description if not in frontmatter
-  const description = frontmatterData.description ||
-    structured.paragraphs[0]?.slice(0, 200) ||
-    frontmatterData.strings.find(s => s.length > 30 && s.length < 200) ||
-    '';
 
   return {
     title: title || 'Untitled',
