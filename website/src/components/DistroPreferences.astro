@@ -1,0 +1,137 @@
+---
+/**
+ * DistroPreferences Astro Component
+ *
+ * Wrapper for the React DistroSelector component that:
+ * - Initializes preferences on page load
+ * - Applies distro-based theme customizations to the page
+ * - Integrates with the existing theme system
+ *
+ * @example
+ * ```astro
+ * <DistroPreferences />
+ *
+ * // Compact mode for navigation bar
+ * <DistroPreferences compact />
+ *
+ * // Full mode with shell selector
+ * <DistroPreferences showShell />
+ * ```
+ */
+
+interface Props {
+  /** Compact mode - just shows icon + current selection */
+  compact?: boolean;
+  /** Show shell selector */
+  showShell?: boolean;
+  /** Additional class name */
+  class?: string;
+}
+
+const { compact = false, showShell = true, class: className = '' } = Astro.props;
+---
+
+<distro-preferences
+  class={className}
+  data-compact={compact}
+  data-show-shell={showShell}
+>
+  <div class="distro-selector-mount"></div>
+</distro-preferences>
+
+<script>
+  import { DistroSelector } from '../ui/DistroSelector';
+  import { createElement } from 'react';
+  import { createRoot } from 'react-dom/client';
+  import {
+    initializePreferences,
+    subscribeToChanges,
+  } from '../lib/distro-preferences';
+  import { getDistroTheme } from '../config/distros';
+
+  // Custom element for the distro preferences
+  class DistroPreferencesElement extends HTMLElement {
+    private root: ReturnType<typeof createRoot> | null = null;
+    private unsubscribe: (() => void) | null = null;
+
+    connectedCallback() {
+      // Initialize preferences
+      const prefs = initializePreferences();
+
+      // Apply initial theme
+      this.applyDistroTheme(prefs.osFamily, prefs.distro);
+
+      // Mount React component
+      const mountPoint = this.querySelector('.distro-selector-mount');
+      if (mountPoint) {
+        this.root = createRoot(mountPoint);
+        this.root.render(
+          createElement(DistroSelector, {
+            compact: this.dataset.compact === 'true',
+            showShell: this.dataset.showShell === 'true',
+            onPreferencesChange: (newPrefs) => {
+              this.applyDistroTheme(newPrefs.osFamily, newPrefs.distro);
+            },
+          })
+        );
+      }
+
+      // Subscribe to changes from other components
+      this.unsubscribe = subscribeToChanges((event) => {
+        const { osFamily, distro } = event.detail.preferences;
+        this.applyDistroTheme(osFamily, distro);
+      });
+    }
+
+    disconnectedCallback() {
+      if (this.root) {
+        this.root.unmount();
+        this.root = null;
+      }
+      if (this.unsubscribe) {
+        this.unsubscribe();
+        this.unsubscribe = null;
+      }
+    }
+
+    private applyDistroTheme(osFamily: string, distro: string | null) {
+      const theme = getDistroTheme(osFamily as any, distro);
+
+      // Apply CSS custom properties to the document
+      const root = document.documentElement;
+      root.style.setProperty('--distro-accent', theme.accentColor);
+      root.style.setProperty('--distro-secondary', theme.secondaryColor);
+      root.style.setProperty('--distro-terminal-bg', theme.terminalBg);
+      root.style.setProperty('--distro-terminal-text', theme.terminalText);
+
+      // Remove old distro class and add new one
+      const oldClasses = Array.from(root.classList).filter((c) =>
+        c.startsWith('distro-')
+      );
+      oldClasses.forEach((c) => root.classList.remove(c));
+      root.classList.add(theme.cssClass);
+
+      // Dispatch event for other components to react
+      window.dispatchEvent(
+        new CustomEvent('distro-theme-change', {
+          detail: { theme, osFamily, distro },
+        })
+      );
+    }
+  }
+
+  // Register the custom element
+  if (!customElements.get('distro-preferences')) {
+    customElements.define('distro-preferences', DistroPreferencesElement);
+  }
+</script>
+
+<style>
+  distro-preferences {
+    display: inline-block;
+  }
+
+  .distro-selector-mount {
+    display: contents;
+  }
+</style>

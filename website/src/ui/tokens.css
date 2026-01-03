@@ -138,6 +138,22 @@
   --z-modal: 300;
   --z-popover: 400;
   --z-toast: 500;
+
+  /* ============================================
+     DISTRO THEME DEFAULTS
+     These are overridden by the DistroPreferences component
+     based on the user's selected OS/distro
+     ============================================ */
+  --distro-accent: #ff8c42;
+  --distro-secondary: #ea4aaa;
+  --distro-terminal-bg: #1e1e2e;
+  --distro-terminal-text: #cdd6f4;
+
+  /* Muted variants */
+  --color-surface: #ffffff;
+  --color-surface-secondary: #f8f9fa;
+  --color-text-muted: #6b7280;
+  --color-info-light: #e0f2fe;
 }
 
 /* ============================================
@@ -164,6 +180,16 @@
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.25);
   --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.3);
   --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.4);
+
+  /* Dark mode surface variants */
+  --color-surface: #1e1e2e;
+  --color-surface-dark: #1e1e2e;
+  --color-surface-secondary: #16161e;
+  --color-surface-secondary-dark: #16161e;
+  --color-border-dark: #3a3a4a;
+  --color-text-dark: #f5f5f5;
+  --color-text-muted: #9ca3af;
+  --color-text-muted-dark: #9ca3af;
 }
 
 /* ============================================
