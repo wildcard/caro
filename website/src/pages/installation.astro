@@ -1,0 +1,1000 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+import Footer from '../components/Footer.astro';
+import CodeBlock from '../components/docs/CodeBlock.astro';
+import InstallMethod from '../components/docs/InstallMethod.astro';
+import ComingSoonBadge from '../components/docs/ComingSoonBadge.astro';
+import InstallWizard from '../components/docs/InstallWizard.astro';
+import { INSTALL_CONFIG } from '../config/install';
+import { CARO_VERSION } from '../config/version';
+---
+
+<Layout
+  title="Installation | Caro"
+  description="Install Caro using automated script, Cargo, pre-built binaries, or build from source. Multiple installation methods for all platforms."
+>
+  <Navigation />
+
+  <main class="installation-page">
+    <div class="hero-section">
+      <h1 class="page-title">Install Caro</h1>
+      <p class="page-subtitle">Choose the installation method that works best for you</p>
+    </div>
+
+    <div class="content-container">
+      <!-- Interactive Installation Wizard (New!) -->
+      <section class="install-section featured-section">
+        <div class="section-header">
+          <h2 class="section-title">Personalized Installation</h2>
+          <span class="recommended-badge">New!</span>
+        </div>
+        <p class="section-description">Answer a few questions to get the perfect installation command for your environment.</p>
+
+        <InstallWizard />
+      </section>
+
+      <!-- Automated Script (Quick Start) -->
+      <section class="install-section">
+        <div class="section-header">
+          <h2 class="section-title">Quick Start (One Command)</h2>
+        </div>
+        <p class="section-description">The fastest way to get started. Automatically downloads the best option for your system.</p>
+
+        <div class="install-command">
+          <CodeBlock
+            code={INSTALL_CONFIG.commands.automated.curl}
+            language="bash"
+          />
+        </div>
+
+        <div class="alternative-command">
+          <p class="alt-label">Or with wget:</p>
+          <CodeBlock
+            code={INSTALL_CONFIG.commands.automated.wget}
+            language="bash"
+          />
+        </div>
+
+        <div class="features-list">
+          <h3 class="features-title">What this does:</h3>
+          <ul>
+            {INSTALL_CONFIG.features.map(feature => (
+              <li><strong>{feature.icon} {feature.title}:</strong> {feature.description}</li>
+            ))}
+          </ul>
+        </div>
+
+        <div class="platform-note">
+          <span class="note-icon">🖥️</span>
+          <span class="note-text">Supports macOS, Linux, and Windows</span>
+        </div>
+      </section>
+
+      <!-- Manual Installation Methods -->
+      <section class="install-section">
+        <h2 class="methods-title">Manual Installation Methods</h2>
+        <p class="methods-subtitle">Choose your preferred method for more control</p>
+
+        <!-- Pre-built Binaries -->
+        <InstallMethod
+          name="Pre-built Binaries"
+          description="Download pre-compiled binaries for instant use. No compilation required - just download and run!"
+          difficulty="easy"
+          platforms={["macOS", "Linux", "Windows"]}
+          status="available"
+          installCommand={`# Example for macOS Apple Silicon
+curl -fsSL https://github.com/wildcard/caro/releases/download/v${CARO_VERSION}/caro-${CARO_VERSION}-macos-silicon -o caro
+chmod +x caro
+sudo mv caro /usr/local/bin/
+
+# Verify installation
+caro --version`}
+          verificationCommand="caro --version"
+          prerequisites={["curl or wget", "sudo access (for /usr/local/bin)"]}
+        />
+
+        <div class="binary-downloads">
+          <h3 class="downloads-title">Available Downloads:</h3>
+          <div class="download-grid">
+            <a href={`https://github.com/wildcard/caro/releases/download/v${CARO_VERSION}/caro-${CARO_VERSION}-macos-silicon`} class="download-card">
+              <span class="platform-icon">🍎</span>
+              <span class="platform-name">macOS Apple Silicon</span>
+              <span class="download-label">Download →</span>
+            </a>
+            <a href={`https://github.com/wildcard/caro/releases/download/v${CARO_VERSION}/caro-${CARO_VERSION}-macos-intel`} class="download-card">
+              <span class="platform-icon">🍎</span>
+              <span class="platform-name">macOS Intel</span>
+              <span class="download-label">Download →</span>
+            </a>
+            <a href={`https://github.com/wildcard/caro/releases/download/v${CARO_VERSION}/caro-${CARO_VERSION}-linux-amd64`} class="download-card">
+              <span class="platform-icon">🐧</span>
+              <span class="platform-name">Linux x86_64</span>
+              <span class="download-label">Download →</span>
+            </a>
+            <a href={`https://github.com/wildcard/caro/releases/download/v${CARO_VERSION}/caro-${CARO_VERSION}-linux-arm64`} class="download-card">
+              <span class="platform-icon">🐧</span>
+              <span class="platform-name">Linux ARM64</span>
+              <span class="download-label">Download →</span>
+            </a>
+            <a href={`https://github.com/wildcard/caro/releases/download/v${CARO_VERSION}/caro-${CARO_VERSION}-windows-amd64.exe`} class="download-card">
+              <span class="platform-icon">🪟</span>
+              <span class="platform-name">Windows x64</span>
+              <span class="download-label">Download →</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="checksum-info">
+          <details class="checksum-details">
+            <summary>
+              <span class="checksum-icon">🔒</span>
+              <span class="checksum-text">Verify checksum (recommended)</span>
+            </summary>
+            <div class="checksum-content">
+              <p>Each binary includes a SHA256 checksum file for security verification:</p>
+              <CodeBlock
+                code={`# Download binary and checksum
+curl -fsSL https://github.com/wildcard/caro/releases/download/v${CARO_VERSION}/caro-${CARO_VERSION}-macos-silicon -o caro
+curl -fsSL https://github.com/wildcard/caro/releases/download/v${CARO_VERSION}/caro-${CARO_VERSION}-macos-silicon.sha256 -o caro.sha256
+
+# Verify (macOS/Linux)
+shasum -a 256 -c caro.sha256`}
+                language="bash"
+              />
+            </div>
+          </details>
+        </div>
+
+        <!-- Cargo Install -->
+        <InstallMethod
+          name="Cargo Install"
+          description="Install from crates.io using Rust's package manager. Recommended for Apple Silicon users who want MLX GPU acceleration."
+          difficulty="easy"
+          platforms={["macOS", "Linux", "Windows"]}
+          status="available"
+          installCommand="cargo install caro"
+          verificationCommand="caro --version"
+          prerequisites={["Rust 1.75+", "Cargo"]}
+        />
+
+        <div class="cargo-features">
+          <h3 class="features-title">Advanced Cargo Options:</h3>
+          <div class="feature-option">
+            <h4 class="option-title">Apple Silicon with MLX GPU Acceleration</h4>
+            <CodeBlock
+              code="cargo install caro --features embedded-mlx"
+              language="bash"
+            />
+            <p class="option-note">Requires Xcode for Metal compiler. Provides maximum performance on M1/M2/M3 chips.</p>
+          </div>
+          <div class="feature-note">
+            <span class="note-icon">ℹ️</span>
+            <span class="note-text">Don't have Rust? Install from <a href="https://rustup.rs" target="_blank" rel="noopener noreferrer">rustup.rs</a></span>
+          </div>
+        </div>
+
+        <!-- Build from Source -->
+        <InstallMethod
+          name="Build from Source"
+          description="Compile Caro manually with full control over build options. For advanced users who want to customize the build or contribute to development."
+          difficulty="advanced"
+          platforms={["macOS", "Linux", "Windows"]}
+          status="available"
+          installCommand={`# Clone the repository
+git clone https://github.com/wildcard/caro.git
+cd caro
+
+# Build the project
+cargo build --release
+
+# Install binary
+sudo cp target/release/caro /usr/local/bin/
+
+# Verify installation
+caro --version`}
+          verificationCommand="caro --version"
+          prerequisites={["Rust 1.75+", "Git", "CMake", "Build tools (gcc/clang)", "Xcode (optional, for Apple Silicon GPU)"]}
+        />
+
+        <div class="build-features">
+          <details class="build-details">
+            <summary>Platform-Specific Build Instructions</summary>
+            <div class="platform-builds">
+              <div class="platform-build">
+                <h4>macOS (Apple Silicon)</h4>
+                <CodeBlock
+                  code={`# Install dependencies
+brew install cmake
+
+# Build with GPU acceleration
+cargo build --release --features embedded-mlx
+
+# Or build with CPU backend only (no Xcode required)
+cargo build --release`}
+                  language="bash"
+                />
+              </div>
+              <div class="platform-build">
+                <h4>Linux (Ubuntu/Debian)</h4>
+                <CodeBlock
+                  code={`# Install dependencies
+sudo apt-get update
+sudo apt-get install cmake build-essential
+
+# Build
+cargo build --release`}
+                  language="bash"
+                />
+              </div>
+              <div class="platform-build">
+                <h4>Windows</h4>
+                <CodeBlock
+                  code={`# Install CMake from https://cmake.org/download/
+# Then build:
+cargo build --release`}
+                  language="bash"
+                />
+              </div>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <!-- Package Managers -->
+      <section class="install-section coming-soon-section">
+        <h2 class="section-title">Package Managers</h2>
+        <p class="section-description">Support for popular package managers is coming soon!</p>
+
+        <div class="package-manager-grid">
+          <div class="package-manager">
+            <h3 class="package-title">
+              <span class="package-icon">🍺</span>
+              Homebrew
+              <ComingSoonBadge feature="Homebrew" />
+            </h3>
+            <p class="package-description">Installation via Homebrew for macOS and Linux users.</p>
+            <CodeBlock
+              code={`# Coming soon
+brew install caro`}
+              language="bash"
+            />
+          </div>
+
+          <div class="package-manager">
+            <h3 class="package-title">
+              <span class="package-icon">📦</span>
+              apt (Debian/Ubuntu)
+              <ComingSoonBadge feature="apt" />
+            </h3>
+            <p class="package-description">Installation via apt repository for Debian and Ubuntu users.</p>
+            <CodeBlock
+              code={`# Coming soon
+sudo apt-get install caro`}
+              language="bash"
+            />
+          </div>
+
+          <div class="package-manager">
+            <h3 class="package-title">
+              <span class="package-icon">🏛️</span>
+              AUR (Arch Linux)
+              <ComingSoonBadge feature="AUR" />
+            </h3>
+            <p class="package-description">Installation via Arch User Repository for Arch Linux users.</p>
+            <CodeBlock
+              code={`# Coming soon
+yay -S caro`}
+              language="bash"
+            />
+          </div>
+        </div>
+      </section>
+
+      <!-- Troubleshooting -->
+      <section class="install-section">
+        <h2 class="section-title">Troubleshooting</h2>
+        <p class="section-description">Common installation issues and solutions</p>
+
+        <div class="troubleshooting-list">
+          <details class="troubleshoot-item">
+            <summary>
+              <span class="issue-icon">❌</span>
+              <span class="issue-text">"command not found: caro"</span>
+            </summary>
+            <div class="solution-content">
+              <p>Make sure /usr/local/bin is in your PATH:</p>
+              <CodeBlock
+                code="echo $PATH | grep /usr/local/bin"
+                language="bash"
+              />
+              <p>If missing, add to your shell config (~/.bashrc, ~/.zshrc, or ~/.config/fish/config.fish):</p>
+              <CodeBlock
+                code='export PATH="/usr/local/bin:$PATH"'
+                language="bash"
+              />
+              <p>Then reload your shell:</p>
+              <CodeBlock
+                code="source ~/.bashrc  # or ~/.zshrc for zsh"
+                language="bash"
+              />
+            </div>
+          </details>
+
+          <details class="troubleshoot-item">
+            <summary>
+              <span class="issue-icon">🔒</span>
+              <span class="issue-text">"permission denied" errors</span>
+            </summary>
+            <div class="solution-content">
+              <p>If you don't have sudo access, install to a user directory:</p>
+              <CodeBlock
+                code={`# For cargo install
+cargo install caro --root ~/.local
+
+# For manual binary
+mkdir -p ~/.local/bin
+mv caro ~/.local/bin/
+
+# Add to PATH
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc`}
+                language="bash"
+              />
+            </div>
+          </details>
+
+          <details class="troubleshoot-item">
+            <summary>
+              <span class="issue-icon">🔧</span>
+              <span class="issue-text">Cargo build fails</span>
+            </summary>
+            <div class="solution-content">
+              <p>Ensure Rust toolchain is up to date:</p>
+              <CodeBlock
+                code="rustup update"
+                language="bash"
+              />
+              <p>If building from source on Apple Silicon without Xcode, use the default CPU backend:</p>
+              <CodeBlock
+                code="cargo build --release"
+                language="bash"
+              />
+              <p>For GPU acceleration, install Xcode from the App Store first.</p>
+            </div>
+          </details>
+
+          <details class="troubleshoot-item">
+            <summary>
+              <span class="issue-icon">🔐</span>
+              <span class="issue-text">Checksum verification fails</span>
+            </summary>
+            <div class="solution-content">
+              <p>If checksum doesn't match, the download may be corrupted. Try downloading again:</p>
+              <CodeBlock
+                code={`# Remove corrupted files
+rm caro caro.sha256
+
+# Download again
+curl -fsSL https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-macos-silicon -o caro
+curl -fsSL https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-macos-silicon.sha256 -o caro.sha256
+
+# Verify
+shasum -a 256 -c caro.sha256`}
+                language="bash"
+              />
+              <p>If the issue persists, please <a href="https://github.com/wildcard/caro/issues" target="_blank" rel="noopener noreferrer">open an issue</a>.</p>
+            </div>
+          </details>
+        </div>
+
+        <div class="help-note">
+          <span class="help-icon">💬</span>
+          <div class="help-content">
+            <h3 class="help-title">Still having issues?</h3>
+            <p class="help-text">Check our <a href="/support">support page</a> or <a href="https://github.com/wildcard/caro/issues" target="_blank" rel="noopener noreferrer">open an issue on GitHub</a>.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Uninstall -->
+      <section class="install-section">
+        <h2 class="section-title">Uninstall</h2>
+        <p class="section-description">Remove Caro from your system</p>
+
+        <div class="uninstall-methods">
+          <div class="uninstall-method">
+            <h3 class="method-title">Cargo Install</h3>
+            <CodeBlock
+              code="cargo uninstall caro"
+              language="bash"
+            />
+          </div>
+
+          <div class="uninstall-method">
+            <h3 class="method-title">Manual Binary or Build from Source</h3>
+            <CodeBlock
+              code="sudo rm /usr/local/bin/caro"
+              language="bash"
+            />
+          </div>
+
+          <div class="uninstall-method">
+            <h3 class="method-title">Remove Configuration Files (Optional)</h3>
+            <CodeBlock
+              code="rm -rf ~/.config/caro"
+              language="bash"
+            />
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .installation-page {
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    background: var(--color-bg, #ffffff);
+  }
+
+  .hero-section {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .page-title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 0 0 1rem 0;
+    background: linear-gradient(135deg, #fd8c4e 0%, #ff6b35 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .page-subtitle {
+    font-size: 1.25rem;
+    color: var(--color-text-secondary, #57606a);
+    margin: 0;
+  }
+
+  .content-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 0;
+  }
+
+  .install-section {
+    margin: 3rem 0;
+  }
+
+  .featured-section {
+    padding: 2.5rem;
+    background: linear-gradient(135deg, #fff8f0 0%, #ffffff 100%);
+    border: 2px solid #fd8c4e;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(253, 140, 78, 0.15);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .section-title {
+    font-size: 2rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--color-text, #24292f);
+  }
+
+  .recommended-badge {
+    display: inline-flex;
+    padding: 0.375rem 1rem;
+    background: linear-gradient(135deg, #fd8c4e 0%, #ff6b35 100%);
+    color: white;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .section-description {
+    font-size: 1.125rem;
+    color: var(--color-text-secondary, #57606a);
+    margin: 0 0 1.5rem 0;
+  }
+
+  .install-command {
+    margin: 2rem 0;
+  }
+
+  .alternative-command {
+    margin: 1.5rem 0;
+  }
+
+  .alt-label {
+    font-size: 0.9375rem;
+    color: var(--color-text-secondary, #57606a);
+    margin: 0 0 0.5rem 0;
+  }
+
+  .features-list {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: var(--color-bg-secondary, #f6f8fa);
+    border-radius: 12px;
+  }
+
+  .features-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    color: var(--color-text, #24292f);
+  }
+
+  .features-list ul {
+    margin: 0;
+    padding-left: 1.5rem;
+    list-style-type: disc;
+  }
+
+  .features-list li {
+    margin: 0.75rem 0;
+    line-height: 1.6;
+    color: var(--color-text, #24292f);
+  }
+
+  .platform-note {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: var(--color-bg, #ffffff);
+    border-left: 3px solid #fd8c4e;
+    border-radius: 6px;
+  }
+
+  .note-icon {
+    font-size: 1.25rem;
+  }
+
+  .note-text {
+    font-size: 0.9375rem;
+    color: var(--color-text-secondary, #57606a);
+  }
+
+  .note-text a {
+    color: #fd8c4e;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .note-text a:hover {
+    text-decoration: underline;
+  }
+
+  .methods-title {
+    font-size: 2rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+    color: var(--color-text, #24292f);
+  }
+
+  .methods-subtitle {
+    font-size: 1.125rem;
+    color: var(--color-text-secondary, #57606a);
+    margin: 0 0 2rem 0;
+  }
+
+  .binary-downloads {
+    margin: 2rem 0;
+  }
+
+  .downloads-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    color: var(--color-text, #24292f);
+  }
+
+  .download-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .download-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem;
+    background: var(--color-bg-secondary, #f6f8fa);
+    border: 1px solid var(--color-border, #d0d7de);
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .download-card:hover {
+    border-color: #fd8c4e;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(253, 140, 78, 0.15);
+  }
+
+  .platform-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .platform-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text, #24292f);
+    margin-bottom: 0.5rem;
+  }
+
+  .download-label {
+    font-size: 0.875rem;
+    color: #fd8c4e;
+    font-weight: 500;
+  }
+
+  .checksum-info {
+    margin: 2rem 0;
+  }
+
+  .checksum-details summary {
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 500;
+    color: var(--color-text, #24292f);
+    background: var(--color-bg-secondary, #f6f8fa);
+    border: 1px solid var(--color-border, #d0d7de);
+    border-radius: 8px;
+    user-select: none;
+    transition: all 0.2s ease;
+  }
+
+  .checksum-details summary:hover {
+    background: var(--color-bg-tertiary, #f1f3f5);
+    border-color: #fd8c4e;
+  }
+
+  .checksum-icon {
+    font-size: 1.25rem;
+  }
+
+  .checksum-content {
+    padding: 1.5rem;
+    border: 1px solid var(--color-border, #d0d7de);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    background: var(--color-bg, #ffffff);
+  }
+
+  .checksum-content p {
+    margin: 0 0 1rem 0;
+    color: var(--color-text, #24292f);
+  }
+
+  .cargo-features {
+    margin: 2rem 0;
+  }
+
+  .feature-option {
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+    background: var(--color-bg-secondary, #f6f8fa);
+    border-radius: 8px;
+  }
+
+  .option-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    color: var(--color-text, #24292f);
+  }
+
+  .option-note {
+    margin: 1rem 0 0 0;
+    font-size: 0.9375rem;
+    color: var(--color-text-secondary, #57606a);
+  }
+
+  .feature-note {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--color-bg-tertiary, #fff8f0);
+    border-left: 3px solid #fd8c4e;
+    border-radius: 6px;
+  }
+
+  .build-features {
+    margin: 2rem 0;
+  }
+
+  .build-details summary {
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 500;
+    color: var(--color-text, #24292f);
+    background: var(--color-bg-secondary, #f6f8fa);
+    border: 1px solid var(--color-border, #d0d7de);
+    border-radius: 8px;
+    user-select: none;
+  }
+
+  .build-details summary:hover {
+    background: var(--color-bg-tertiary, #f1f3f5);
+  }
+
+  .platform-builds {
+    padding: 1.5rem;
+    border: 1px solid var(--color-border, #d0d7de);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    background: var(--color-bg, #ffffff);
+  }
+
+  .platform-build {
+    margin: 2rem 0;
+  }
+
+  .platform-build:first-child {
+    margin-top: 0;
+  }
+
+  .platform-build h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    color: var(--color-text, #24292f);
+  }
+
+  .coming-soon-section {
+    background: var(--color-bg-secondary, #f6f8fa);
+    padding: 2rem;
+    border-radius: 12px;
+  }
+
+  .package-manager-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .package-manager {
+    padding: 1.5rem;
+    background: var(--color-bg, #ffffff);
+    border: 1px solid var(--color-border, #d0d7de);
+    border-radius: 8px;
+  }
+
+  .package-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 0.75rem 0;
+    color: var(--color-text, #24292f);
+  }
+
+  .package-icon {
+    font-size: 1.5rem;
+  }
+
+  .package-description {
+    margin: 0 0 1rem 0;
+    font-size: 0.9375rem;
+    color: var(--color-text-secondary, #57606a);
+  }
+
+  .troubleshooting-list {
+    margin-top: 1.5rem;
+  }
+
+  .troubleshoot-item {
+    margin: 1rem 0;
+    border: 1px solid var(--color-border, #d0d7de);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .troubleshoot-item summary {
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 500;
+    color: var(--color-text, #24292f);
+    background: var(--color-bg-secondary, #f6f8fa);
+    user-select: none;
+  }
+
+  .troubleshoot-item summary:hover {
+    background: var(--color-bg-tertiary, #f1f3f5);
+  }
+
+  .issue-icon {
+    font-size: 1.25rem;
+  }
+
+  .solution-content {
+    padding: 1.5rem;
+    background: var(--color-bg, #ffffff);
+  }
+
+  .solution-content p {
+    margin: 0 0 1rem 0;
+    line-height: 1.6;
+    color: var(--color-text, #24292f);
+  }
+
+  .solution-content a {
+    color: #fd8c4e;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .solution-content a:hover {
+    text-decoration: underline;
+  }
+
+  .help-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f6f8fa 0%, #ffffff 100%);
+    border: 2px solid #fd8c4e;
+    border-radius: 12px;
+  }
+
+  .help-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+  }
+
+  .help-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text, #24292f);
+  }
+
+  .help-text {
+    margin: 0;
+    line-height: 1.6;
+    color: var(--color-text-secondary, #57606a);
+  }
+
+  .help-text a {
+    color: #fd8c4e;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .help-text a:hover {
+    text-decoration: underline;
+  }
+
+  .uninstall-methods {
+    margin-top: 1.5rem;
+  }
+
+  .uninstall-method {
+    margin: 2rem 0;
+  }
+
+  .method-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0 0 0.75rem 0;
+    color: var(--color-text, #24292f);
+  }
+
+  /* Mobile responsive */
+  @media (max-width: 768px) {
+    .page-title {
+      font-size: 2rem;
+    }
+
+    .page-subtitle {
+      font-size: 1.125rem;
+    }
+
+    .featured-section {
+      padding: 1.5rem;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+    }
+
+    .download-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .package-manager-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    .installation-page {
+      background: var(--color-bg, #0d1117);
+    }
+
+    .featured-section {
+      background: linear-gradient(135deg, #1c2128 0%, #161b22 100%);
+    }
+
+    .features-list {
+      background: var(--color-bg-secondary, #161b22);
+    }
+
+    .platform-note {
+      background: var(--color-bg-tertiary, #1c2128);
+    }
+
+    .download-card {
+      background: var(--color-bg-tertiary, #1c2128);
+      border-color: var(--color-border, #30363d);
+    }
+
+    .checksum-details summary,
+    .build-details summary,
+    .troubleshoot-item summary {
+      background: var(--color-bg-secondary, #161b22);
+      border-color: var(--color-border, #30363d);
+    }
+
+    .checksum-content,
+    .platform-builds,
+    .solution-content {
+      background: var(--color-bg, #0d1117);
+      border-color: var(--color-border, #30363d);
+    }
+
+    .coming-soon-section {
+      background: var(--color-bg-secondary, #161b22);
+    }
+
+    .package-manager {
+      background: var(--color-bg-tertiary, #1c2128);
+      border-color: var(--color-border, #30363d);
+    }
+
+    .feature-option {
+      background: var(--color-bg-secondary, #161b22);
+    }
+
+    .help-note {
+      background: var(--color-bg-secondary, #161b22);
+    }
+  }
+</style>

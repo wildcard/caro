@@ -1,0 +1,771 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+import Footer from '../components/Footer.astro';
+import CodeBlock from '../components/docs/CodeBlock.astro';
+import PlatformTabs from '../components/docs/PlatformTabs.astro';
+import ComingSoonBadge from '../components/docs/ComingSoonBadge.astro';
+---
+
+<Layout
+  title="Setup & Configuration | Caro"
+  description="Configure Caro for optimal developer experience with shell completions, aliases, backend selection, and tool integrations."
+>
+  <Navigation />
+
+  <main class="setup-page">
+    <div class="hero-section">
+      <h1 class="page-title">Setup & Configuration</h1>
+      <p class="page-subtitle">Enhance your developer experience with Caro</p>
+    </div>
+
+    <div class="content-container">
+      <!-- Shell Completions -->
+      <section class="setup-section">
+        <div class="section-header">
+          <h2 class="section-title">Shell Completions</h2>
+          <ComingSoonBadge feature="Shell Completions" />
+        </div>
+        <p class="section-description">Tab completion for bash, zsh, and fish shells is planned for a future release.</p>
+        <div class="feature-note">
+          <span class="note-icon">💡</span>
+          <span class="note-text">Follow <a href="https://github.com/wildcard/caro/issues" target="_blank" rel="noopener noreferrer">GitHub</a> for updates on completion support</span>
+        </div>
+      </section>
+
+      <!-- Shell Aliases -->
+      <section class="setup-section">
+        <h2 class="section-title">Shell Aliases</h2>
+        <p class="section-description">Speed up your workflow with these useful aliases:</p>
+
+        <div class="alias-examples">
+          <div class="alias-example">
+            <h3 class="example-title">Quick command generation</h3>
+            <CodeBlock
+              code='alias c="caro"'
+              language="bash"
+            />
+            <p class="example-usage">Usage: <code>c "list all files"</code></p>
+          </div>
+
+          <div class="alias-example">
+            <h3 class="example-title">Verbose output for debugging</h3>
+            <CodeBlock
+              code='alias cv="caro --verbose"'
+              language="bash"
+            />
+            <p class="example-usage">Usage: <code>cv "find large files"</code> (shows timing and debug info)</p>
+          </div>
+
+          <div class="alias-example">
+            <h3 class="example-title">Common workflows</h3>
+            <CodeBlock
+              code={`# Git-focused alias
+alias cgit="caro --shell bash 'git command:'"
+
+# File operations
+alias cfiles="caro 'find files'"
+
+# System info
+alias csys="caro 'show system'"`}
+              language="bash"
+            />
+          </div>
+        </div>
+
+        <div class="alias-setup">
+          <h3 class="setup-title">Adding Aliases to Your Shell</h3>
+          <PlatformTabs platforms={[
+            {
+              name: "bash",
+              icon: "🐚",
+              content: `# Add to ~/.bashrc or ~/.bash_profile
+echo 'alias c="caro"' >> ~/.bashrc
+echo 'alias cv="caro --verbose"' >> ~/.bashrc
+
+# Reload shell
+source ~/.bashrc`
+            },
+            {
+              name: "zsh",
+              icon: "⚡",
+              content: `# Add to ~/.zshrc
+echo 'alias c="caro"' >> ~/.zshrc
+echo 'alias cv="caro --verbose"' >> ~/.zshrc
+
+# Reload shell
+source ~/.zshrc`
+            },
+            {
+              name: "fish",
+              icon: "🐠",
+              content: `# Add to ~/.config/fish/config.fish
+echo "alias c='caro'" >> ~/.config/fish/config.fish
+echo "alias cv='caro --verbose'" >> ~/.config/fish/config.fish
+
+# Reload shell
+source ~/.config/fish/config.fish`
+            }
+          ]} />
+        </div>
+      </section>
+
+      <!-- Configuration File -->
+      <section class="setup-section">
+        <h2 class="section-title">Configuration File</h2>
+        <p class="section-description">Create a configuration file at <code>~/.config/caro/config.toml</code> to set your preferences:</p>
+
+        <div class="config-example">
+          <CodeBlock
+            code={`# ~/.config/caro/config.toml
+
+# Default shell type (auto-detected if not set)
+# Options: "bash", "zsh", "fish", "sh", "powershell", "cmd"
+default_shell = "bash"
+
+# Safety level for command validation
+# Options: "strict", "moderate", "permissive"
+# Default: "moderate"
+safety_level = "moderate"
+
+# Model selection
+# default_model = "qwen2.5-coder:1.5b"
+
+# Logging level
+# Options: "debug", "info", "warn", "error"
+# Default: "info"
+log_level = "info"
+
+# Cache settings
+# Maximum cache size in GB (1-1000)
+# Default: 10
+cache_max_size_gb = 10
+
+# Log rotation in days (1-365)
+# Default: 7
+log_rotation_days = 7`}
+            language="toml"
+          />
+        </div>
+
+        <div class="config-notes">
+          <h3 class="notes-title">Configuration Options</h3>
+          <ul class="config-list">
+            <li><strong>default_shell</strong> - Sets your preferred shell type. Auto-detected if not specified.</li>
+            <li><strong>safety_level</strong> - Controls how strict command validation is. "moderate" provides a good balance.</li>
+            <li><strong>default_model</strong> - Specify which model to use for command generation (optional).</li>
+            <li><strong>log_level</strong> - Controls verbosity of logging output.</li>
+            <li><strong>cache_max_size_gb</strong> - Maximum size for model cache (1-1000 GB).</li>
+            <li><strong>log_rotation_days</strong> - How long to keep log files (1-365 days).</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Environment Variables -->
+      <section class="setup-section">
+        <h2 class="section-title">Environment Variables</h2>
+        <p class="section-description">Caro respects these environment variables for configuration:</p>
+
+        <div class="env-vars">
+          <CodeBlock
+            code={`# Override safety level
+export CARO_SAFETY_LEVEL="strict"
+
+# Override default shell
+export CARO_DEFAULT_SHELL="zsh"
+
+# Override log level
+export CARO_LOG_LEVEL="debug"
+
+# Set default model
+export CARO_DEFAULT_MODEL="qwen2.5-coder:1.5b"
+
+# Override model selection
+export CARO_MODEL="codellama:7b"
+
+# Set maximum cache size (in GB)
+export CARO_CACHE_MAX_SIZE_GB="20"
+
+# Enable Rust logging (for debugging)
+export RUST_LOG="caro=debug"`}
+            language="bash"
+          />
+        </div>
+
+        <div class="env-priority">
+          <h3 class="priority-title">Configuration Priority</h3>
+          <p class="priority-description">Settings are loaded in the following order (later sources override earlier ones):</p>
+          <ol class="priority-list">
+            <li><strong>Defaults</strong> - Built-in sensible defaults</li>
+            <li><strong>Config file</strong> - Settings from <code>~/.config/caro/config.toml</code></li>
+            <li><strong>Environment variables</strong> - Values from <code>CARO_*</code> env vars</li>
+            <li><strong>CLI flags</strong> - Command-line arguments (highest priority)</li>
+          </ol>
+        </div>
+
+        <div class="env-setup">
+          <h3 class="setup-title">Adding Environment Variables</h3>
+          <PlatformTabs platforms={[
+            {
+              name: "bash",
+              icon: "🐚",
+              content: `# Add to ~/.bashrc or ~/.bash_profile
+echo 'export CARO_SAFETY_LEVEL="strict"' >> ~/.bashrc
+echo 'export CARO_LOG_LEVEL="info"' >> ~/.bashrc
+
+# Reload shell
+source ~/.bashrc`
+            },
+            {
+              name: "zsh",
+              icon: "⚡",
+              content: `# Add to ~/.zshrc
+echo 'export CARO_SAFETY_LEVEL="strict"' >> ~/.zshrc
+echo 'export CARO_LOG_LEVEL="info"' >> ~/.zshrc
+
+# Reload shell
+source ~/.zshrc`
+            },
+            {
+              name: "fish",
+              icon: "🐠",
+              content: `# Add to ~/.config/fish/config.fish
+echo "set -x CARO_SAFETY_LEVEL strict" >> ~/.config/fish/config.fish
+echo "set -x CARO_LOG_LEVEL info" >> ~/.config/fish/config.fish
+
+# Reload shell
+source ~/.config/fish/config.fish`
+            }
+          ]} />
+        </div>
+      </section>
+
+      <!-- Tool Integrations -->
+      <section class="setup-section">
+        <h2 class="section-title">Tool Integrations</h2>
+        <p class="section-description">Caro works seamlessly with your existing development tools.</p>
+
+        <div class="integrations-grid">
+          <div class="integration-item">
+            <div class="integration-header">
+              <h3 class="integration-title">
+                <span class="integration-icon">🔧</span>
+                mise
+                <ComingSoonBadge feature="mise integration" />
+              </h3>
+            </div>
+            <p class="integration-description">Project-specific Caro configuration with mise is planned. This will allow you to set different backends and safety levels per project.</p>
+          </div>
+
+          <div class="integration-item">
+            <div class="integration-header">
+              <h3 class="integration-title">
+                <span class="integration-icon">📁</span>
+                direnv
+                <ComingSoonBadge feature="direnv integration" />
+              </h3>
+            </div>
+            <p class="integration-description">Automatic environment setup with direnv is planned. Navigate to a project and have Caro configuration automatically loaded.</p>
+          </div>
+
+          <div class="integration-item available">
+            <div class="integration-header">
+              <h3 class="integration-title">
+                <span class="integration-icon">🐚</span>
+                Shell Integration
+              </h3>
+              <span class="available-badge">Available Now</span>
+            </div>
+            <p class="integration-description">Current integrations:</p>
+            <ul class="integration-features">
+              <li>Works with any POSIX-compliant shell</li>
+              <li>Compatible with shell history (commands are saved)</li>
+              <li>Respects shell aliases and environment</li>
+              <li>Supports shell-specific syntax (bash, zsh, fish, etc.)</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tips & Tricks -->
+      <section class="setup-section">
+        <h2 class="section-title">Tips & Tricks</h2>
+
+        <div class="tips-grid">
+          <div class="tip-card">
+            <h3 class="tip-title">🎯 Use verbose mode to learn</h3>
+            <p class="tip-description">Run with <code>--verbose</code> flag to see how Caro interprets your prompts and generates commands:</p>
+            <CodeBlock
+              code={`caro --verbose "find large files"`}
+              language="bash"
+            />
+          </div>
+
+          <div class="tip-card">
+            <h3 class="tip-title">🔒 Start with strict safety</h3>
+            <p class="tip-description">When learning Caro, use strict safety mode to understand what's considered dangerous:</p>
+            <CodeBlock
+              code='export CARO_SAFETY_LEVEL="strict"'
+              language="bash"
+            />
+          </div>
+
+          <div class="tip-card">
+            <h3 class="tip-title">📝 Use descriptive prompts</h3>
+            <p class="tip-description">More context helps generate better commands:</p>
+            <div class="comparison">
+              <div class="comparison-bad">
+                <span class="comparison-label">❌ Less effective:</span>
+                <CodeBlock code='caro "delete files"' language="bash" />
+              </div>
+              <div class="comparison-good">
+                <span class="comparison-label">✅ More effective:</span>
+                <CodeBlock code='caro "delete log files older than 30 days in /var/log"' language="bash" />
+              </div>
+            </div>
+          </div>
+
+          <div class="tip-card">
+            <h3 class="tip-title">🔍 Check the config location</h3>
+            <p class="tip-description">Verify where your config file is located:</p>
+            <CodeBlock
+              code="ls -la ~/.config/caro/"
+              language="bash"
+            />
+          </div>
+        </div>
+      </section>
+
+      <!-- Help Section -->
+      <section class="help-section">
+        <div class="help-box">
+          <span class="help-icon">💬</span>
+          <div class="help-content">
+            <h3 class="help-title">Need more help?</h3>
+            <p class="help-text">Check our <a href="/support">support page</a> or <a href="https://github.com/wildcard/caro/issues" target="_blank" rel="noopener noreferrer">open an issue on GitHub</a>.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .setup-page {
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    background: var(--color-bg, #ffffff);
+  }
+
+  .hero-section {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .page-title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 0 0 1rem 0;
+    background: linear-gradient(135deg, #fd8c4e 0%, #ff6b35 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .page-subtitle {
+    font-size: 1.25rem;
+    color: var(--color-text-secondary, #57606a);
+    margin: 0;
+  }
+
+  .content-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem 0;
+  }
+
+  .setup-section {
+    margin: 3rem 0;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .section-title {
+    font-size: 2rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    color: var(--color-text, #24292f);
+  }
+
+  .section-description {
+    font-size: 1.125rem;
+    color: var(--color-text-secondary, #57606a);
+    margin: 0 0 1.5rem 0;
+    line-height: 1.6;
+  }
+
+  .section-description code,
+  .integration-description code,
+  .tip-description code {
+    padding: 0.125rem 0.375rem;
+    background: var(--color-bg-secondary, #f6f8fa);
+    border: 1px solid var(--color-border, #d0d7de);
+    border-radius: 4px;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 0.875em;
+  }
+
+  .feature-note {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--color-bg-tertiary, #fff8f0);
+    border-left: 3px solid #fd8c4e;
+    border-radius: 6px;
+  }
+
+  .note-icon {
+    font-size: 1.125rem;
+  }
+
+  .note-text {
+    font-size: 0.9375rem;
+    color: var(--color-text-secondary, #57606a);
+  }
+
+  .note-text a {
+    color: #fd8c4e;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .note-text a:hover {
+    text-decoration: underline;
+  }
+
+  .alias-examples {
+    margin: 2rem 0;
+  }
+
+  .alias-example {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: var(--color-bg-secondary, #f6f8fa);
+    border-radius: 8px;
+  }
+
+  .example-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    color: var(--color-text, #24292f);
+  }
+
+  .example-usage {
+    margin: 1rem 0 0 0;
+    font-size: 0.9375rem;
+    color: var(--color-text-secondary, #57606a);
+  }
+
+  .alias-setup {
+    margin: 2rem 0;
+  }
+
+  .setup-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    color: var(--color-text, #24292f);
+  }
+
+  .config-example {
+    margin: 1.5rem 0;
+  }
+
+  .config-notes {
+    margin: 2rem 0;
+  }
+
+  .notes-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    color: var(--color-text, #24292f);
+  }
+
+  .config-list {
+    margin: 0;
+    padding-left: 1.5rem;
+  }
+
+  .config-list li {
+    margin: 0.75rem 0;
+    line-height: 1.6;
+    color: var(--color-text, #24292f);
+  }
+
+  .env-vars {
+    margin: 1.5rem 0;
+  }
+
+  .env-priority {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: var(--color-bg-secondary, #f6f8fa);
+    border-radius: 8px;
+  }
+
+  .priority-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0 0 0.75rem 0;
+    color: var(--color-text, #24292f);
+  }
+
+  .priority-description {
+    margin: 0 0 1rem 0;
+    color: var(--color-text-secondary, #57606a);
+  }
+
+  .priority-list {
+    margin: 0;
+    padding-left: 1.5rem;
+  }
+
+  .priority-list li {
+    margin: 0.75rem 0;
+    line-height: 1.6;
+    color: var(--color-text, #24292f);
+  }
+
+  .env-setup {
+    margin: 2rem 0;
+  }
+
+  .integrations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .integration-item {
+    padding: 1.5rem;
+    background: var(--color-bg-secondary, #f6f8fa);
+    border: 1px solid var(--color-border, #d0d7de);
+    border-radius: 8px;
+  }
+
+  .integration-item.available {
+    border-color: #fd8c4e;
+    background: linear-gradient(135deg, #fff8f0 0%, #ffffff 100%);
+  }
+
+  .integration-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .integration-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--color-text, #24292f);
+    flex: 1;
+  }
+
+  .integration-icon {
+    font-size: 1.25rem;
+  }
+
+  .available-badge {
+    display: inline-flex;
+    padding: 0.25rem 0.75rem;
+    background: #fd8c4e;
+    color: white;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .integration-description {
+    margin: 0 0 0.75rem 0;
+    font-size: 0.9375rem;
+    color: var(--color-text-secondary, #57606a);
+    line-height: 1.6;
+  }
+
+  .integration-features {
+    margin: 0.5rem 0 0 0;
+    padding-left: 1.5rem;
+  }
+
+  .integration-features li {
+    margin: 0.5rem 0;
+    font-size: 0.9375rem;
+    color: var(--color-text, #24292f);
+  }
+
+  .tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .tip-card {
+    padding: 1.5rem;
+    background: var(--color-bg-secondary, #f6f8fa);
+    border: 1px solid var(--color-border, #d0d7de);
+    border-radius: 8px;
+  }
+
+  .tip-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0 0 0.75rem 0;
+    color: var(--color-text, #24292f);
+  }
+
+  .tip-description {
+    margin: 0 0 1rem 0;
+    font-size: 0.9375rem;
+    color: var(--color-text-secondary, #57606a);
+    line-height: 1.6;
+  }
+
+  .comparison {
+    margin-top: 1rem;
+  }
+
+  .comparison-bad,
+  .comparison-good {
+    margin: 0.75rem 0;
+  }
+
+  .comparison-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .help-section {
+    margin-top: 4rem;
+  }
+
+  .help-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f6f8fa 0%, #ffffff 100%);
+    border: 2px solid #fd8c4e;
+    border-radius: 12px;
+  }
+
+  .help-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+  }
+
+  .help-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text, #24292f);
+  }
+
+  .help-text {
+    margin: 0;
+    line-height: 1.6;
+    color: var(--color-text-secondary, #57606a);
+  }
+
+  .help-text a {
+    color: #fd8c4e;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .help-text a:hover {
+    text-decoration: underline;
+  }
+
+  /* Mobile responsive */
+  @media (max-width: 768px) {
+    .page-title {
+      font-size: 2rem;
+    }
+
+    .page-subtitle {
+      font-size: 1.125rem;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+    }
+
+    .integrations-grid,
+    .tips-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    .setup-page {
+      background: var(--color-bg, #0d1117);
+    }
+
+    .alias-example {
+      background: var(--color-bg-secondary, #161b22);
+    }
+
+    .env-priority {
+      background: var(--color-bg-secondary, #161b22);
+    }
+
+    .integration-item {
+      background: var(--color-bg-tertiary, #1c2128);
+      border-color: var(--color-border, #30363d);
+    }
+
+    .integration-item.available {
+      background: var(--color-bg-secondary, #161b22);
+    }
+
+    .tip-card {
+      background: var(--color-bg-secondary, #161b22);
+      border-color: var(--color-border, #30363d);
+    }
+
+    .help-box {
+      background: var(--color-bg-secondary, #161b22);
+    }
+
+    .section-description code,
+    .integration-description code,
+    .tip-description code {
+      background: var(--color-bg-tertiary, #1c2128);
+      border-color: var(--color-border, #30363d);
+    }
+  }
+</style>

@@ -1,0 +1,21 @@
+# Evidence Log: Track all research findings with citations
+#
+# Column Definitions:
+# - timestamp: When evidence was collected (ISO format: YYYY-MM-DDTHH:MM:SS)
+# - source_type: journal | conference | book | web | codebase
+# - citation: Full citation (BibTeX, APA, or Simple format)
+# - key_finding: Main takeaway from this source (1-2 sentences)
+# - confidence: high | medium | low (based on source quality and clarity)
+# - notes: Additional context, caveats, or methodological notes
+#
+# Validation: Citations must be non-empty, source_type must be valid
+# Format: BibTeX (@article{...}) or APA (Author (Year). Title.) recommended
+timestamp,source_type,citation,key_finding,confidence,notes
+2025-12-31T00:00:00,codebase,"Caro Website Structure. website/src/pages/index.astro",Website built with Astro using component-based architecture with Layout.astro pattern,high,Confirmed by reading index.astro imports and structure
+2025-12-31T00:05:00,codebase,"Navigation Component. website/src/components/Navigation.astro lines 22-97",Existing dropdown pattern for Compare and Resources sections provides template for Docs dropdown,high,Analyzed dropdown panel structure and hover behavior
+2025-12-31T00:10:00,codebase,"Landing Page Pattern. website/src/pages/safe-shell-commands.astro",Landing pages use LandingPage layout with LP-prefixed components; docs pages should use standard Layout,high,Shows alternative layout for marketing vs documentation content
+2025-12-31T00:15:00,codebase,"Navigation Links. website/src/components/Navigation.astro lines 68-95",Resources dropdown contains Blog, Explore, Roadmap, GitHub links with icons and descriptions,medium,Provides structure for new Docs dropdown with Quick Start, Installation, Setup links
+2025-12-31T00:20:00,codebase,"Mobile Navigation. website/src/components/Navigation.astro lines 226-247",Mobile drawer has separate section structure; docs should integrate as new drawer-section,high,Shows how to add mobile-friendly navigation for new docs
+2025-12-31T00:25:00,web,"Astro Documentation. https://docs.astro.build",Astro supports .astro files with component-based architecture and excellent DX,high,Official framework documentation confirms approach
+2025-12-31T00:30:00,codebase,"README Installation Sections. README.md (project root)",README contains current installation instructions that need extraction and enhancement,medium,Content source for installation page; needs verification of completeness
+2025-12-31T00:35:00,codebase,"Download Component. website/src/components/Download.astro",Homepage likely has installation script reference in Download component,medium,Should check this component for automated script details
