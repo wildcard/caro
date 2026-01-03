@@ -1,0 +1,136 @@
+# Verify the Nix build is working
+# Failures usually occur due to an out of date Rust version
+# Update with: nix flake update
+name: Nix
+
+on:
+  push:
+    branches: [main, develop]
+    paths-ignore:
+      - 'website/**'
+      - 'docs-site/**'
+      - 'docs/**'
+      - '*.md'
+      - 'LICENSE'
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - 'website/**'
+      - 'docs-site/**'
+      - 'docs/**'
+      - '*.md'
+      - 'LICENSE'
+
+jobs:
+  # Validate flake structure and evaluate outputs
+  flake-check:
+    name: Flake Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+
+      - name: Check flake
+        run: nix flake check --print-build-logs
+
+  # Build the package on multiple platforms
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+
+      # Optional: Setup Cachix for faster builds
+      # Uncomment and add CACHIX_AUTH_TOKEN secret to enable
+      # - name: Setup Cachix
+      #   uses: cachix/cachix-action@v17
+      #   with:
+      #     name: caro
+      #     authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+
+      - name: Build caro
+        run: nix build --print-build-logs
+
+      - name: Test binary
+        run: |
+          ./result/bin/caro --version
+          ./result/bin/caro --help
+
+      - name: Show binary info
+        run: |
+          echo "Binary size:"
+          ls -lh ./result/bin/caro
+          echo ""
+          echo "Binary dependencies:"
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            ldd ./result/bin/caro || true
+          else
+            otool -L ./result/bin/caro || true
+          fi
+
+  # Run format and clippy checks via Nix
+  checks:
+    name: Nix Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+
+      - name: Check formatting
+        run: nix build .#checks.x86_64-linux.fmt --print-build-logs
+
+      - name: Run clippy
+        run: nix build .#checks.x86_64-linux.clippy --print-build-logs
+
+      - name: Run tests
+        run: nix build .#checks.x86_64-linux.test --print-build-logs
+
+  # Verify development shell works
+  devshell:
+    name: Dev Shell
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+
+      - name: Enter dev shell and verify tools
+        run: |
+          nix develop --command bash -c "
+            echo '=== Verifying dev shell tools ==='
+            rustc --version
+            cargo --version
+            echo ''
+            echo '=== Building project ==='
+            cargo build --no-default-features --features embedded-cpu,remote-backends
+            echo ''
+            echo '=== Dev shell validated ==='
+          "

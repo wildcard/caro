@@ -1,0 +1,33 @@
+# Automatically update flake.lock monthly to keep Nix dependencies fresh
+# This ensures the Rust toolchain and other dependencies stay up to date
+name: Update Nix Dependencies
+
+on:
+  workflow_dispatch: # Allow manual triggering
+  schedule:
+    # Run on the first day of each month at midnight UTC
+    - cron: '0 0 1 * *'
+
+jobs:
+  update-flake-lock:
+    name: Update flake.lock
+    runs-on: ubuntu-latest
+    # Only run on the main repository, not forks
+    if: github.repository == 'wildcard/caro'
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Update flake.lock
+        uses: DeterminateSystems/update-flake-lock@main
+        with:
+          pr-title: 'chore(deps): update flake.lock'
+          pr-labels: |
+            dependencies
+            nix
+          commit-msg: 'chore(deps): update flake.lock'
+          # Optional: Assign PR to specific reviewers
+          # pr-assignees: maintainer-username
+          # pr-reviewers: maintainer-username

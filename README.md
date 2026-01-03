@@ -141,6 +141,52 @@ cargo install caro
 cargo install caro --features embedded-mlx
 ```
 
+#### Option 4: Nix (Reproducible)
+
+**With Flakes (recommended):**
+```bash
+# Run directly without installing
+nix run github:wildcard/caro -- "list files in current directory"
+
+# Install to your profile
+nix profile install github:wildcard/caro
+
+# Enter development shell with all dependencies
+nix develop github:wildcard/caro
+```
+
+**Traditional Nix (without flakes):**
+```bash
+nix-build https://github.com/wildcard/caro/archive/main.tar.gz
+./result/bin/caro --version
+```
+
+**NixOS Configuration:**
+```nix
+# In your flake.nix inputs
+inputs.caro.url = "github:wildcard/caro";
+
+# In your configuration
+environment.systemPackages = [ inputs.caro.packages.${system}.default ];
+
+# Or using the NixOS module
+imports = [ inputs.caro.nixosModules.default ];
+programs.caro.enable = true;
+```
+
+**Home Manager:**
+```nix
+imports = [ inputs.caro.homeManagerModules.default ];
+
+programs.caro = {
+  enable = true;
+  settings = {
+    backend = "ollama";
+    model = "qwen2.5-coder:7b";
+  };
+};
+```
+
 ### Building from Source
 
 #### Prerequisites
