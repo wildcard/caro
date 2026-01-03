@@ -4,7 +4,7 @@ interface Props {
   description?: string;
 }
 
-const { title, description = "CMDAI Enterprise - Transform your command line operations with secure, collaborative terminal intelligence" } = Astro.props;
+const { title, description = "Caro - Turn natural language into safe shell commands with local AI" } = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -20,6 +20,78 @@ const { title, description = "CMDAI Enterprise - Transform your command line ope
   </head>
   <body class="bg-slate-950 text-slate-100 font-sans">
     <slot />
+
+    <!-- Cookie Consent Banner (GDPR/CCPA Compliant) -->
+    <div id="cookie-banner" class="fixed bottom-0 left-0 right-0 z-50 hidden">
+      <div class="bg-slate-900/95 backdrop-blur-sm border-t border-slate-800">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p class="text-sm text-slate-400 text-center sm:text-left">
+            We use cookies for analytics.
+            <a href="/cookies" class="text-violet-400 hover:text-violet-300 underline">Learn more</a>
+          </p>
+          <div class="flex items-center gap-2">
+            <button id="cookie-reject" class="px-3 py-1.5 text-sm text-slate-400 hover:text-slate-200 transition">
+              Reject
+            </button>
+            <button id="cookie-accept" class="px-4 py-1.5 text-sm bg-violet-600 hover:bg-violet-700 rounded-lg transition font-medium">
+              Accept
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script is:inline>
+      (function() {
+        const COOKIE_CONSENT_KEY = 'caro_cookie_consent';
+        const banner = document.getElementById('cookie-banner');
+        const acceptBtn = document.getElementById('cookie-accept');
+        const rejectBtn = document.getElementById('cookie-reject');
+
+        // Check if user has already made a choice
+        const consent = localStorage.getItem(COOKIE_CONSENT_KEY);
+
+        if (consent === null) {
+          // No choice made yet, show banner
+          banner.classList.remove('hidden');
+        } else if (consent === 'accepted') {
+          // Load PostHog if accepted
+          loadPostHog();
+        }
+        // If rejected, do nothing (no tracking)
+
+        acceptBtn.addEventListener('click', function() {
+          localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
+          banner.classList.add('hidden');
+          loadPostHog();
+        });
+
+        rejectBtn.addEventListener('click', function() {
+          localStorage.setItem(COOKIE_CONSENT_KEY, 'rejected');
+          banner.classList.add('hidden');
+          // Optionally opt-out in PostHog if already loaded
+          if (window.posthog) {
+            window.posthog.opt_out_capturing();
+          }
+        });
+
+        function loadPostHog() {
+          // PostHog snippet - replace YOUR_PROJECT_API_KEY and YOUR_INSTANCE_URL
+          // with your actual PostHog credentials
+          !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+
+          // Initialize PostHog - UPDATE THESE VALUES
+          // posthog.init('YOUR_PROJECT_API_KEY', {
+          //   api_host: 'https://app.posthog.com', // or your self-hosted instance
+          //   persistence: 'localStorage',
+          //   autocapture: true,
+          //   capture_pageview: true,
+          //   capture_pageleave: true,
+          //   respect_dnt: true
+          // });
+        }
+      })();
+    </script>
   </body>
 </html>
 
