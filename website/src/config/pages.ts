@@ -298,6 +298,27 @@ export const PAGES_INDEX: PageEntry[] = [
     keywords: ['batteries', 'included', 'features'],
     icon: '🔋',
   }),
+  getEntry('/blog/rust-unix-tools', {
+    title: 'The Rust Revolution',
+    description: 'Modern Unix tools reimagined in Rust and Go',
+    category: 'blog',
+    keywords: ['rust', 'go', 'unix', 'modern', 'cli', 'tools', 'ripgrep', 'bat', 'eza', 'fd'],
+    icon: '🦀',
+  }),
+  getEntry('/modern-unix-tools', {
+    title: 'Modern Unix Tools',
+    description: 'Next-generation CLI tools written in Rust and Go',
+    category: 'main',
+    keywords: ['rust', 'go', 'modern', 'unix', 'cli', 'terminal', 'tools', 'ripgrep', 'bat', 'eza', 'fd', 'delta', 'dust', 'bottom', 'zoxide', 'starship', 'nushell', 'fzf'],
+    icon: '🦀',
+  }),
+  getEntry('/glossary', {
+    title: 'Glossary',
+    description: 'Terminal & Unix terminology explained',
+    category: 'main',
+    keywords: ['glossary', 'unix', 'posix', 'shell', 'terminal', 'commands', 'cli', 'bash', 'zsh', 'linux', 'macos', 'cheatsheet', 'reference', 'beginner', 'learn'],
+    icon: '📖',
+  }),
 ];
 
 /**
