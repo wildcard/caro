@@ -456,7 +456,7 @@ export const searchMeta = {
               and format output from structured data.
             </p>
             <div class="example">
-              <code>awk '{print $1}' file</code>
+              <code>awk '{"{"} print $1 {"}"}' file</code>
               <span class="example-desc">Print first column</span>
             </div>
           </div>
@@ -725,7 +725,7 @@ export const searchMeta = {
               Transfer data from or to a server. The Swiss Army knife of HTTP requests.
             </p>
             <div class="example">
-              <code>curl -X POST -d '{"key":"val"}' url</code>
+              <code>curl -X POST -d '{"{"}key":"val{"}"}' url</code>
               <span class="example-desc">Send JSON POST request</span>
             </div>
           </div>
