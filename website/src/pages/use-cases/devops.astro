@@ -7,7 +7,7 @@
  */
 
 import LandingPage from '../../layouts/LandingPage.astro';
-import UseCasesNavigation from '../../components/use-cases/UseCasesNavigation.astro';
+import Navigation from '../../components/Navigation.astro';
 import LPDownload from '../../components/landing/LPDownload.astro';
 import LPFooter from '../../components/landing/LPFooter.astro';
 
@@ -153,7 +153,7 @@ const jobs = [
   persona="Cross-Platform DevOps Engineer"
   painPoint="Commands that work on Mac fail on Linux server"
 >
-  <UseCasesNavigation currentPage="devops" />
+  <Navigation variant="use-cases" currentPage="devops" />
 
   <!-- Hero -->
   <section class="hero">
