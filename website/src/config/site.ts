@@ -13,7 +13,6 @@ export const SITE_CONFIG = {
   social: {
     x: 'https://x.com/CaroDaShellShib',
     bluesky: 'https://bsky.app/profile/caro-sh.bsky.social',
-    instagram: 'https://www.instagram.com/kyaroblackheart/',
   },
   downloads: {
     baseUrl: 'https://github.com/wildcard/caro/releases/download',
