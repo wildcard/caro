@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Harper spell check integration**: Auto-correct typos before LLM processing
+  - Integrated [harper-core](https://crates.io/crates/harper-core) for offline, privacy-first grammar checking
+  - Automatically corrects common spelling mistakes (e.g., "teh" → "the")
+  - User-friendly feedback: `✨ I understood what you meant: teh → the`
+  - Maintains ignore list for CLI/shell terms (sudo, chmod, grep, etc.)
+  - `--no-spellcheck` flag to disable when needed
+  - Improves command generation quality, especially for smaller LLMs
 
 ### Changed
 

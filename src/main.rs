@@ -219,6 +219,13 @@ struct Cli {
     )]
     interactive: bool,
 
+    /// Disable spell checking on input
+    #[arg(
+        long = "no-spellcheck",
+        help = "Disable automatic spell checking of input"
+    )]
+    no_spellcheck: bool,
+
     /// Trailing unquoted arguments forming the prompt
     #[arg(trailing_var_arg = true, num_args = 0..)]
     trailing_args: Vec<String>,
@@ -264,6 +271,10 @@ impl IntoCliArgs for Cli {
 
     fn interactive(&self) -> bool {
         self.interactive
+    }
+
+    fn no_spellcheck(&self) -> bool {
+        self.no_spellcheck
     }
 }
 
@@ -409,7 +420,17 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
     use colored::Colorize;
     use std::io::IsTerminal;
 
-    // Print warnings first
+    // Show friendly spell correction feedback - Caro got your back!
+    if !result.spell_corrections.is_empty() {
+        let corrections_text = result.spell_corrections.join(", ");
+        println!(
+            "{} {}",
+            "✨".dimmed(),
+            format!("I understood what you meant: {}", corrections_text).dimmed()
+        );
+    }
+
+    // Print warnings
     for warning in &result.warnings {
         eprintln!("{} {}", "Warning:".yellow().bold(), warning);
     }

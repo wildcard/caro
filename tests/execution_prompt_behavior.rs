@@ -62,6 +62,10 @@ impl IntoCliArgs for TestArgs {
     fn interactive(&self) -> bool {
         self.interactive
     }
+
+    fn no_spellcheck(&self) -> bool {
+        false
+    }
 }
 
 #[tokio::test]

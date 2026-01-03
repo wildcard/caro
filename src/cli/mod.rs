@@ -77,6 +77,8 @@ pub struct CliResult {
     pub stdout: Option<String>,
     pub stderr: Option<String>,
     pub execution_error: Option<String>,
+    /// Spell corrections that were applied to the input (e.g., "teh → the")
+    pub spell_corrections: Vec<String>,
 }
 
 /// Supported output formats
@@ -132,6 +134,7 @@ pub trait IntoCliArgs {
     fn execute(&self) -> bool;
     fn dry_run(&self) -> bool;
     fn interactive(&self) -> bool;
+    fn no_spellcheck(&self) -> bool;
 }
 
 impl CliApp {
@@ -319,27 +322,28 @@ impl CliApp {
         })?;
 
         // Apply spell checking to improve the prompt before LLM processing
-        let spell_result = self
-            .spell_checker
-            .check_and_correct(&original_prompt)
-            .map_err(|e| CliError::Internal {
-                message: format!("Spell check failed: {}", e),
-            })?;
+        // (unless --no-spellcheck is set)
+        let (prompt, spell_corrections) = if args.no_spellcheck() {
+            (original_prompt.clone(), Vec::new())
+        } else {
+            let spell_result = self
+                .spell_checker
+                .check_and_correct(&original_prompt)
+                .map_err(|e| CliError::Internal {
+                    message: format!("Spell check failed: {}", e),
+                })?;
 
-        // Use the corrected prompt for command generation
-        let prompt = spell_result.text.clone();
+            // Collect correction info for user feedback
+            let corrections: Vec<String> = spell_result
+                .corrections
+                .iter()
+                .map(|c| format!("{} → {}", c.original, c.corrected))
+                .collect();
 
-        // Log corrections if any were made
-        if spell_result.was_corrected && args.verbose() {
-            for correction in &spell_result.corrections {
-                warnings_list.push(format!(
-                    "Corrected '{}' → '{}'",
-                    correction.original, correction.corrected
-                ));
-            }
-        }
+            (spell_result.text, corrections)
+        };
 
-        // Create command request with corrected prompt
+        // Create command request with (possibly corrected) prompt
         let _request = CommandRequest {
             input: prompt.clone(),
             context: None,
@@ -476,6 +480,7 @@ impl CliApp {
             stdout,
             stderr,
             execution_error,
+            spell_corrections,
         })
     }
 

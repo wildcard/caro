@@ -101,7 +101,7 @@ gantt
 
 ### 🎯 v1.1.0 - Core Improvements (GA)
 **Due Date**: February 15, 2026 (48 days)
-**Status**: 7% Complete (1/15 items)
+**Status**: 13% Complete (2/15 items)
 **Focus**: Production-ready core functionality with opt-in telemetry
 
 #### Key Deliverables
@@ -112,6 +112,11 @@ gantt
   - Implement Hugging Face model download (#10)
   - Performance analysis and optimization (#132)
   - Build LLM evaluation harness (#135)
+
+- **Input Quality** (Completed)
+  - [x] Harper spell check integration - Auto-correct typos before LLM processing
+  - [x] `--no-spellcheck` flag for user control
+  - [ ] Eval comparison: with vs without spell checking
 
 - **Core Infrastructure**
   - Add benchmark suite (#9)
