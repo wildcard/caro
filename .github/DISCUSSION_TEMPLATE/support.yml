@@ -1,0 +1,128 @@
+title: "[Support] "
+labels:
+  - "support"
+  - "needs-triage"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Need Help? We're Here! 🤝
+
+        Having trouble with caro? Let's figure it out together. Before submitting, please:
+
+        1. Check the [documentation](https://github.com/wildcard/caro#readme)
+        2. Search existing [support discussions](https://github.com/wildcard/caro/discussions/categories/support)
+        3. Review [closed issues](https://github.com/wildcard/caro/issues?q=is%3Aissue+is%3Aclosed)
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      description: What operating system are you using?
+      placeholder: "Example: macOS 14.0 Sonoma / Ubuntu 22.04 / Windows 11"
+    validations:
+      required: true
+
+  - type: input
+    id: shell
+    attributes:
+      label: Shell
+      description: What shell are you using?
+      placeholder: "Example: zsh 5.9 / bash 5.2 / fish 3.6"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: version
+    attributes:
+      label: caro Version
+      description: What version of caro are you running? (run `caro --version`)
+      multiple: false
+      options:
+        - v1.0.3 (Latest)
+        - v1.0.2
+        - v1.0.1
+        - v1.0.0
+        - v0.x (Pre-release)
+        - Built from source
+      default: 0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: backend
+    attributes:
+      label: Backend
+      description: Which LLM backend are you using?
+      multiple: false
+      options:
+        - MLX (Apple Silicon)
+        - Ollama
+        - vLLM
+        - Other / Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: model
+    attributes:
+      label: Model
+      description: Which model are you using with the backend?
+      placeholder: "Example: llama3.2:3b / mistral:7b / qwen2.5:7b"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: search-confirmation
+    attributes:
+      label: Search Confirmation
+      description: Did you search existing issues and discussions for your problem?
+      options:
+        - label: I checked that someone hasn't already asked about the same issue
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Description
+      description: Please describe the issue - what you expected to happen vs what actually happened
+      placeholder: |
+        **What I tried:**
+        [Describe the command or action you performed]
+
+        **What I expected:**
+        [What should have happened]
+
+        **What happened instead:**
+        [What actually occurred]
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs & Error Messages
+      description: If possible, please include any error messages or logs. Use `RUST_LOG=debug caro <command>` for verbose output.
+      render: shell
+      placeholder: |
+        Paste any relevant error messages or debug output here.
+        The content will be automatically formatted as code.
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional Context
+      description: Anything else you'd like to add? (configuration, screenshots, related issues, etc.)
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: code-of-conduct
+    attributes:
+      label: Code of Conduct
+      description: The Code of Conduct helps create a safe space for everyone. We require that everyone agrees to it.
+      options:
+        - label: I agree to follow this project's [Code of Conduct](https://github.com/wildcard/caro/blob/main/CODE_OF_CONDUCT.md)
+          required: true
