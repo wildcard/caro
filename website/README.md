@@ -16,6 +16,41 @@ Caro is the digitalization of Kyaro (Kyarorain Kadosh), the maintainer's beloved
 - **Styling**: Scoped CSS in Astro components
 - **Deployment**: Static site generation (SSG)
 - **Integrations**: Sitemap generation
+- **Analytics**: [Vercel Analytics](https://vercel.com/docs/analytics) for privacy-friendly traffic insights
+
+## Analytics
+
+The website uses Vercel Analytics for privacy-friendly traffic monitoring. Analytics is integrated via the official `@vercel/analytics` package.
+
+### Setup
+
+In `src/layouts/Layout.astro`:
+
+```astro
+---
+import Analytics from '@vercel/analytics/astro';
+---
+
+<body>
+  <slot />
+  <Analytics />
+</body>
+```
+
+### Features
+
+- **Privacy-first**: No cookies, GDPR compliant by default
+- **Automatic tracking**: Page views tracked without additional configuration
+- **Web Vitals**: Core Web Vitals automatically collected
+- **Real-time**: View live traffic in Vercel dashboard
+
+### Viewing Analytics
+
+1. Go to your [Vercel dashboard](https://vercel.com/dashboard)
+2. Select the caro website project
+3. Click the "Analytics" tab
+
+Analytics are automatically enabled when deployed to Vercel. No additional configuration is required.
 
 ## Project Structure
 
