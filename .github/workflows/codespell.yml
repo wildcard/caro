@@ -1,0 +1,20 @@
+name: Codespell
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  codespell:
+    name: Check Spelling
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: codespell-project/actions-codespell@v2
+        with:
+          check_filenames: true
+          skip: "*.lock,./target,./Cargo.lock,./docs-site/node_modules,./website/node_modules,./landing/node_modules,./.git,./assets"
+          ignore_words_file: .codespellignore
