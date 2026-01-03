@@ -444,6 +444,36 @@ const realScenarios = [
         </div>
       </div>
     </section>
+
+    <!-- Learn More Section -->
+    <section class="learn-more-section">
+      <div class="container">
+        <h2>Dive Deeper</h2>
+        <div class="learn-more-grid">
+          <a href="/product/jobs-to-be-done" class="learn-more-card">
+            <span class="learn-icon" data-icon="briefcase"></span>
+            <div class="learn-content">
+              <h3>Jobs To Be Done</h3>
+              <p>Understand Caro through the canonical JTBD framework—functional, emotional, and social jobs.</p>
+            </div>
+          </a>
+          <a href="/use-cases" class="learn-more-card">
+            <span class="learn-icon" data-icon="users"></span>
+            <div class="learn-content">
+              <h3>Use Cases</h3>
+              <p>Explore detailed scenarios for SREs, DevOps engineers, security teams, and developers.</p>
+            </div>
+          </a>
+          <a href="/compare" class="learn-more-card">
+            <span class="learn-icon" data-icon="bar-chart"></span>
+            <div class="learn-content">
+              <h3>Comparisons</h3>
+              <p>See how Caro compares to Warp, GitHub Copilot CLI, and other AI terminal tools.</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
   </main>
 
   <Footer />
@@ -969,5 +999,64 @@ const realScenarios = [
     .cap-icon {
       font-size: 32px;
     }
+  }
+
+  /* Learn More Section */
+  .learn-more-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .learn-more-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-top: 40px;
+  }
+
+  .learn-more-card {
+    display: flex;
+    gap: 20px;
+    padding: 28px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--color-text);
+    transition: all 0.2s;
+  }
+
+  .learn-more-card:hover {
+    border-color: #ff8c42;
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  }
+
+  .learn-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 140, 66, 0.1);
+    border-radius: 12px;
+    flex-shrink: 0;
+    font-size: 24px;
+  }
+
+  .learn-icon[data-icon="briefcase"]::before { content: '\1F4BC'; }
+  .learn-icon[data-icon="users"]::before { content: '\1F465'; }
+  .learn-icon[data-icon="bar-chart"]::before { content: '\1F4CA'; }
+
+  .learn-content h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+    color: var(--color-text);
+  }
+
+  .learn-content p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
   }
 </style>
