@@ -3,8 +3,10 @@
 
 #![cfg(all(target_os = "macos", target_arch = "aarch64"))]
 
-use caro::backends::embedded::{InferenceBackend, MlxBackend, ModelVariant};
+use caro::backends::embedded::{EmbeddedConfig, InferenceBackend, MlxBackend, ModelVariant};
 use caro::backends::CommandGenerator;
+use caro::model_catalog::{ModelCatalog, GLM_4_6V_FLASH_Q4};
+use caro::model_loader::ModelLoader;
 use caro::models::{CommandRequest, ShellType};
 use caro::EmbeddedModelBackend;
 use std::path::PathBuf;
@@ -301,4 +303,177 @@ fn test_mlx_implementation_status() {
     println!("{}", "=".repeat(50));
 
     assert!(backend.is_ok(), "Backend should be functional");
+}
+
+// =============================================================================
+// GLM-4.6V-Flash Integration Tests
+// =============================================================================
+
+/// Test that GLM-4.6V-Flash model is in the catalog
+#[test]
+fn test_glm_model_in_catalog() {
+    let model = ModelCatalog::by_id("glm-4.6v-flash-q4");
+    assert!(model.is_some(), "GLM-4.6V-Flash should be in catalog");
+
+    let model = model.unwrap();
+    assert_eq!(model.id, "glm-4.6v-flash-q4");
+    assert_eq!(model.name, "GLM-4.6V-Flash 9B Q4");
+    assert_eq!(model.hf_repo, "ggml-org/GLM-4.6V-Flash-GGUF");
+    assert_eq!(model.filename, "GLM-4.6V-Flash-Q4_K_M.gguf");
+    assert_eq!(model.size_mb, 6170);
+    assert!(model.mlx_optimized, "GLM should be marked as MLX-optimized");
+
+    println!("✅ GLM-4.6V-Flash: Model catalog entry verified");
+    println!("   Repo: {}", model.hf_repo);
+    println!("   File: {}", model.filename);
+    println!("   Size: {}MB", model.size_mb);
+}
+
+/// Test that GLM model is detected correctly by EmbeddedConfig
+#[test]
+fn test_glm_model_detection() {
+    // GLM models should be detected
+    let config = EmbeddedConfig::default().with_model_id("glm-4.6v-flash-q4");
+    assert!(config.is_glm_model(), "Should detect GLM model");
+
+    let config = EmbeddedConfig::default().with_model_id("GLM-4.6V-Flash");
+    assert!(config.is_glm_model(), "Should detect GLM model (case insensitive)");
+
+    // Non-GLM models should not be detected
+    let config = EmbeddedConfig::default().with_model_id("qwen-1.5b-q4");
+    assert!(!config.is_glm_model(), "Should not detect Qwen as GLM");
+
+    let config = EmbeddedConfig::default();
+    assert!(!config.is_glm_model(), "Empty model_id should not be GLM");
+
+    println!("✅ GLM Model Detection: Working correctly");
+}
+
+/// Test that GLM is in the MLX-optimized models list
+#[test]
+fn test_glm_in_mlx_models() {
+    let mlx_models = ModelCatalog::mlx_models();
+    let has_glm = mlx_models.iter().any(|m| m.id == "glm-4.6v-flash-q4");
+
+    assert!(has_glm, "GLM-4.6V-Flash should be in MLX-optimized list");
+    println!("✅ GLM-4.6V-Flash: Listed as MLX-optimized model");
+}
+
+/// Test GLM model static reference
+#[test]
+fn test_glm_static_model_info() {
+    assert_eq!(GLM_4_6V_FLASH_Q4.id, "glm-4.6v-flash-q4");
+    assert_eq!(GLM_4_6V_FLASH_Q4.hf_repo, "ggml-org/GLM-4.6V-Flash-GGUF");
+    assert!(
+        GLM_4_6V_FLASH_Q4.description.contains("multimodal"),
+        "Description should mention multimodal"
+    );
+
+    println!("✅ GLM-4.6V-Flash: Static model info accessible");
+}
+
+/// Test GLM command generation workflow
+/// This test will download the GLM model if not cached (~6.2GB)
+/// Requires: macOS Apple Silicon with Metal support
+#[tokio::test]
+#[ignore = "Requires ~6.2GB model download - run with: cargo test test_glm_command_generation -- --ignored"]
+async fn test_glm_command_generation() {
+    println!("🔄 Testing GLM-4.6V-Flash command generation...");
+    println!("   Note: Will download model if not cached (~6.2GB)");
+
+    // Check if model is already downloaded
+    let cache_dir = dirs::cache_dir().unwrap().join("caro").join("models");
+    let model_file = cache_dir.join("GLM-4.6V-Flash-Q4_K_M.gguf");
+
+    if model_file.exists() {
+        let size_mb = std::fs::metadata(&model_file)
+            .map(|m| m.len() / 1_000_000)
+            .unwrap_or(0);
+        println!("   ✅ Model already cached ({}MB)", size_mb);
+    } else {
+        println!("   ⏳ Model will be downloaded from HuggingFace...");
+    }
+
+    // Create model loader with GLM model
+    let loader = ModelLoader::with_model("glm-4.6v-flash-q4")
+        .expect("Should create model loader for GLM");
+
+    // Get model path (will download if not cached)
+    let model_path = loader.get_embedded_model_path()
+        .expect("Should get GLM model path");
+
+    println!("   Model path: {}", model_path.display());
+
+    // Create backend with the model path
+    let backend = EmbeddedModelBackend::with_variant_and_path(ModelVariant::MLX, model_path)
+        .expect("Should create backend with GLM model");
+
+    let request = CommandRequest::new("list all PDF files in the current directory", ShellType::Bash);
+
+    println!("🔄 Running inference...");
+    let start = std::time::Instant::now();
+    let result = backend.generate_command(&request).await;
+    let elapsed = start.elapsed();
+
+    assert!(
+        result.is_ok(),
+        "GLM inference should succeed: {:?}",
+        result.err()
+    );
+
+    let command = result.unwrap();
+    println!("✅ GLM Command Generation Successful!");
+    println!("   Input: 'list all PDF files in the current directory'");
+    println!("   Output: {}", command.command);
+    println!("   Time: {:?}", elapsed);
+    println!("   Backend: {}", command.backend_used);
+    println!("   Confidence: {:.2}", command.confidence_score);
+
+    // Verify command looks reasonable
+    assert!(!command.command.is_empty(), "Command should not be empty");
+    assert!(
+        command.command.contains("pdf") || command.command.contains("PDF") || command.command.contains("find") || command.command.contains("ls"),
+        "Command should be related to finding PDF files"
+    );
+}
+
+/// GLM model status report
+#[test]
+fn test_glm_implementation_status() {
+    println!("\n📊 GLM-4.6V-Flash Implementation Status");
+    println!("{}", "=".repeat(50));
+
+    // Model info
+    println!("✅ Model: {}", GLM_4_6V_FLASH_Q4.name);
+    println!("   ID: {}", GLM_4_6V_FLASH_Q4.id);
+    println!("   Repo: {}", GLM_4_6V_FLASH_Q4.hf_repo);
+    println!("   Size: {}MB", GLM_4_6V_FLASH_Q4.size_mb);
+    println!("   MLX Optimized: {}", GLM_4_6V_FLASH_Q4.mlx_optimized);
+
+    // Check if model is cached
+    let cache_dir = dirs::cache_dir().unwrap().join("caro").join("models");
+    let model_file = cache_dir.join(&GLM_4_6V_FLASH_Q4.filename);
+
+    if model_file.exists() {
+        let size_mb = std::fs::metadata(&model_file)
+            .map(|m| m.len() / 1_000_000)
+            .unwrap_or(0);
+        println!("✅ Model Cache: Downloaded ({}MB)", size_mb);
+        println!("   Location: {}", model_file.display());
+    } else {
+        println!("ℹ️  Model Cache: Not downloaded");
+        println!("   Will auto-download on first use (~6.2GB)");
+        println!("   Manual download:");
+        println!("   huggingface-cli download {} --include \"{}\" --local-dir {:?}",
+            GLM_4_6V_FLASH_Q4.hf_repo,
+            GLM_4_6V_FLASH_Q4.filename,
+            cache_dir
+        );
+    }
+
+    // GLM detection test
+    let config = EmbeddedConfig::default().with_model_id("glm-4.6v-flash-q4");
+    println!("✅ GLM Detection: {}", if config.is_glm_model() { "Working" } else { "Failed" });
+
+    println!("{}", "=".repeat(50));
 }
