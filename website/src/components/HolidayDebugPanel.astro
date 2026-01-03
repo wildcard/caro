@@ -33,7 +33,7 @@
 
     <!-- Quick Date Presets -->
     <div class="debug-section">
-      <label class="debug-label">Quick Dates</label>
+      <label class="debug-label">Quick Dates - Holidays</label>
       <div class="debug-presets">
         <button class="preset-btn" data-date="2025-12-24">Christmas Eve</button>
         <button class="preset-btn" data-date="2025-12-15">Hanukkah '25</button>
@@ -43,6 +43,23 @@
         <button class="preset-btn" data-date="2025-07-04">July 4th</button>
         <button class="preset-btn" data-date="2025-07-14">Bastille Day</button>
         <button class="preset-btn" data-date="2025-05-01">Yom Ha'atzmaut</button>
+      </div>
+    </div>
+
+    <!-- Humanity Events Presets -->
+    <div class="debug-section">
+      <label class="debug-label">Quick Dates - Humanity Events</label>
+      <div class="debug-presets humanity-presets">
+        <button class="preset-btn humanity" data-date="2025-02-15">✊🏿 Black History</button>
+        <button class="preset-btn humanity" data-date="2025-03-08">♀️ Women's Day</button>
+        <button class="preset-btn humanity" data-date="2025-04-22">🌍 Earth Day</button>
+        <button class="preset-btn humanity" data-date="2025-05-15">🌸 AAPI Heritage</button>
+        <button class="preset-btn humanity" data-date="2025-06-15">🏳️‍🌈 Pride Month</button>
+        <button class="preset-btn humanity" data-date="2025-06-19">✊🏿 Juneteenth</button>
+        <button class="preset-btn humanity" data-date="2025-09-21">🕊️ Peace Day</button>
+        <button class="preset-btn humanity" data-date="2025-10-01">🎺 Hispanic Heritage</button>
+        <button class="preset-btn humanity" data-date="2025-11-15">🪶 Native Heritage</button>
+        <button class="preset-btn humanity" data-date="2025-12-10">🌐 Human Rights</button>
       </div>
     </div>
 
@@ -64,9 +81,9 @@
       </select>
     </div>
 
-    <!-- Theme Preview -->
+    <!-- Theme Preview - Holidays -->
     <div class="debug-section">
-      <label class="debug-label">Preview Theme</label>
+      <label class="debug-label">Preview Theme - Holidays</label>
       <div class="debug-themes">
         <button class="theme-preview-btn" data-theme="none">None</button>
         <button class="theme-preview-btn" data-theme="christmas">🎄 Christmas</button>
@@ -74,6 +91,19 @@
         <button class="theme-preview-btn" data-theme="newyear">🎊 New Year</button>
         <button class="theme-preview-btn" data-theme="diwali">🪔 Diwali</button>
         <button class="theme-preview-btn" data-theme="lunar-new-year">🐉 Lunar NY</button>
+      </div>
+    </div>
+
+    <!-- Theme Preview - Humanity Events -->
+    <div class="debug-section">
+      <label class="debug-label">Preview Theme - Humanity Events</label>
+      <div class="debug-themes humanity-themes">
+        <button class="theme-preview-btn humanity" data-theme="black-history-month">✊🏿 Black History</button>
+        <button class="theme-preview-btn humanity" data-theme="womens-history-month">💜 Women's</button>
+        <button class="theme-preview-btn humanity" data-theme="aapi-heritage-month">🌸 AAPI</button>
+        <button class="theme-preview-btn humanity" data-theme="pride-month">🏳️‍🌈 Pride</button>
+        <button class="theme-preview-btn humanity" data-theme="hispanic-heritage-month">🎺 Hispanic</button>
+        <button class="theme-preview-btn humanity" data-theme="native-american-heritage-month">🪶 Native</button>
       </div>
     </div>
 
@@ -231,6 +261,15 @@
     border-color: #c41e3a;
   }
 
+  .preset-btn.humanity {
+    border-color: rgba(124, 58, 237, 0.3);
+  }
+
+  .preset-btn.humanity:hover {
+    border-color: #7c3aed;
+    background: rgba(124, 58, 237, 0.1);
+  }
+
   .debug-themes {
     display: flex;
     flex-wrap: wrap;
@@ -255,6 +294,19 @@
   .theme-preview-btn.active {
     border-color: #228b22;
     background: rgba(34, 139, 34, 0.1);
+  }
+
+  .theme-preview-btn.humanity {
+    border-color: rgba(124, 58, 237, 0.3);
+  }
+
+  .theme-preview-btn.humanity:hover {
+    border-color: #7c3aed;
+  }
+
+  .theme-preview-btn.humanity.active {
+    border-color: #7c3aed;
+    background: rgba(124, 58, 237, 0.1);
   }
 
   .debug-state {
@@ -305,8 +357,12 @@
       // =========================================================================
 
       const ALL_THEMES = [
+        // Holidays
         'christmas', 'hanukkah', 'newyear', 'diwali', 'lunar-new-year',
-        'holi', 'eid', 'july-4th', 'bastille-day', 'german-unity', 'yom-haatzmaut'
+        'holi', 'eid', 'july-4th', 'bastille-day', 'german-unity', 'yom-haatzmaut',
+        // Humanity Events
+        'black-history-month', 'womens-history-month', 'aapi-heritage-month',
+        'pride-month', 'hispanic-heritage-month', 'native-american-heritage-month'
       ];
 
       const HOLIDAY_DATES = [
