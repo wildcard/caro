@@ -8,6 +8,7 @@ import NewYearEffect from '../components/NewYearEffect.astro';
 import OmniSearch from '../components/OmniSearch.astro';
 import SearchHighlight from '../components/SearchHighlight.astro';
 import HolidayDebugPanel from '../components/HolidayDebugPanel.astro';
+import HumanityEventBanner from '../components/HumanityEventBanner.astro';
 
 interface Props {
   title: string;
@@ -46,9 +47,14 @@ const { title, description } = Astro.props;
         document.documentElement.classList.remove('dark');
       }
 
-      // Test date override (for development only - localhost only)
+      // Test date override (for development and preview deployments)
       (function() {
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        const hostname = window.location.hostname;
+        const isDevOrPreview = hostname === 'localhost'
+          || hostname === '127.0.0.1'
+          || hostname.endsWith('.vercel.app');
+
+        if (isDevOrPreview) {
           const params = new URLSearchParams(window.location.search);
           const testDate = params.get('testDate');
 
@@ -97,6 +103,7 @@ const { title, description } = Astro.props;
     </script>
   </head>
   <body>
+    <HumanityEventBanner />
     <SnowEffect />
     <NewYearCountdown />
     <NewYearEffect />
@@ -614,6 +621,363 @@ const { title, description } = Astro.props;
     background: linear-gradient(135deg, #000000 0%, #dd0000 50%, #ffcc00 100%) !important;
     -webkit-background-clip: text !important;
     background-clip: text !important;
+  }
+
+  /* ============================================
+     HUMANITY EVENT THEMES
+     Caro celebrates humanity, diversity, and peace!
+     ============================================ */
+
+  /* Black History Month (February) */
+  .black-history-month {
+    --color-accent: #c41e3a;
+    --color-accent-secondary: #228b22;
+    --color-accent-tertiary: #ffd700;
+    --color-bg-tertiary: #fffaf0;
+    --humanity-gold: #b8860b;
+    --humanity-green: #228b22;
+    --humanity-red: #c41e3a;
+  }
+
+  .black-history-month.dark {
+    --color-bg-tertiary: #1f1a18;
+    --humanity-gold: #d4a017;
+    --humanity-green: #2ecc71;
+    --humanity-red: #e63946;
+  }
+
+  .black-history-month .cta-button,
+  .black-history-month .companion-badge {
+    background: linear-gradient(135deg, var(--humanity-red) 0%, var(--humanity-green) 100%) !important;
+  }
+
+  .black-history-month .logo {
+    background: linear-gradient(135deg, var(--humanity-red) 0%, var(--humanity-gold) 50%, var(--humanity-green) 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+  }
+
+  /* Women's History Month (March) */
+  .womens-history-month {
+    --color-accent: #7c3aed;
+    --color-accent-secondary: #c026d3;
+    --color-bg-tertiary: #fdf4ff;
+    --humanity-purple: #7c3aed;
+    --humanity-pink: #c026d3;
+  }
+
+  .womens-history-month.dark {
+    --color-bg-tertiary: #1f1a1f;
+    --humanity-purple: #a855f7;
+    --humanity-pink: #ec4899;
+  }
+
+  .womens-history-month .cta-button,
+  .womens-history-month .companion-badge {
+    background: linear-gradient(135deg, var(--humanity-purple) 0%, var(--humanity-pink) 100%) !important;
+  }
+
+  .womens-history-month .logo {
+    background: linear-gradient(135deg, var(--humanity-purple) 0%, var(--humanity-pink) 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+  }
+
+  /* Asian Pacific American Heritage Month (May) */
+  .aapi-heritage-month {
+    --color-accent: #db2777;
+    --color-accent-secondary: #dc2626;
+    --color-accent-tertiary: #eab308;
+    --color-bg-tertiary: #fdf2f8;
+    --humanity-pink: #db2777;
+    --humanity-red: #dc2626;
+    --humanity-gold: #eab308;
+  }
+
+  .aapi-heritage-month.dark {
+    --color-bg-tertiary: #1f1a1b;
+    --humanity-pink: #f472b6;
+    --humanity-red: #f87171;
+    --humanity-gold: #fbbf24;
+  }
+
+  .aapi-heritage-month .cta-button,
+  .aapi-heritage-month .companion-badge {
+    background: linear-gradient(135deg, var(--humanity-pink) 0%, var(--humanity-red) 100%) !important;
+  }
+
+  .aapi-heritage-month .logo {
+    background: linear-gradient(135deg, var(--humanity-pink) 0%, var(--humanity-gold) 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+  }
+
+  /* Pride Month (June) */
+  .pride-month {
+    --color-accent: #e40303;
+    --color-accent-secondary: #ff8c00;
+    --color-accent-tertiary: #008026;
+    --color-bg-tertiary: #fefce8;
+  }
+
+  .pride-month.dark {
+    --color-bg-tertiary: #1f1f1a;
+  }
+
+  .pride-month .cta-button,
+  .pride-month .companion-badge {
+    background: linear-gradient(135deg, #e40303 0%, #ff8c00 17%, #ffeb3b 33%, #008026 50%, #004dff 67%, #750787 100%) !important;
+    background-size: 200% 200%;
+    animation: rainbow-gradient 3s ease infinite;
+  }
+
+  .pride-month .logo {
+    background: linear-gradient(135deg, #e40303 0%, #ff8c00 17%, #ffeb3b 33%, #008026 50%, #004dff 67%, #750787 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    background-size: 200% 200%;
+    animation: rainbow-gradient 3s ease infinite;
+  }
+
+  /* Hispanic Heritage Month (Sept 15 - Oct 15) */
+  .hispanic-heritage-month {
+    --color-accent: #dc2626;
+    --color-accent-secondary: #ea580c;
+    --color-accent-tertiary: #16a34a;
+    --color-bg-tertiary: #fef2f2;
+    --humanity-red: #dc2626;
+    --humanity-orange: #ea580c;
+    --humanity-green: #16a34a;
+  }
+
+  .hispanic-heritage-month.dark {
+    --color-bg-tertiary: #1f1a18;
+    --humanity-red: #ef4444;
+    --humanity-orange: #f97316;
+    --humanity-green: #22c55e;
+  }
+
+  .hispanic-heritage-month .cta-button,
+  .hispanic-heritage-month .companion-badge {
+    background: linear-gradient(135deg, var(--humanity-red) 0%, var(--humanity-orange) 50%, var(--humanity-green) 100%) !important;
+  }
+
+  .hispanic-heritage-month .logo {
+    background: linear-gradient(135deg, var(--humanity-red) 0%, var(--humanity-orange) 50%, var(--humanity-green) 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+  }
+
+  /* Native American Heritage Month (November) */
+  .native-american-heritage-month {
+    --color-accent: #d97706;
+    --color-accent-secondary: #0d9488;
+    --color-accent-tertiary: #b45309;
+    --color-bg-tertiary: #fffbeb;
+    --humanity-amber: #d97706;
+    --humanity-turquoise: #0d9488;
+    --humanity-brown: #b45309;
+  }
+
+  .native-american-heritage-month.dark {
+    --color-bg-tertiary: #1f1c18;
+    --humanity-amber: #f59e0b;
+    --humanity-turquoise: #14b8a6;
+    --humanity-brown: #d97706;
+  }
+
+  .native-american-heritage-month .cta-button,
+  .native-american-heritage-month .companion-badge {
+    background: linear-gradient(135deg, var(--humanity-amber) 0%, var(--humanity-turquoise) 100%) !important;
+  }
+
+  .native-american-heritage-month .logo {
+    background: linear-gradient(135deg, var(--humanity-amber) 0%, var(--humanity-turquoise) 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+  }
+
+  /* ============================================
+     HUMANITY EVENT DECORATIONS - HERO SECTION
+     ============================================ */
+
+  /* Black History Month decorations */
+  .black-history-month .hero::before {
+    content: '✊🏿';
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 36px;
+    animation: gentlePulse 2s ease-in-out infinite;
+    opacity: 0.9;
+  }
+
+  .black-history-month .hero::after {
+    content: '🌍';
+    position: absolute;
+    top: 20px;
+    right: 80px;
+    font-size: 32px;
+    animation: gentleSpin 12s linear infinite;
+    opacity: 0.8;
+  }
+
+  /* Women's History Month decorations */
+  .womens-history-month .hero::before {
+    content: '💜';
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 36px;
+    animation: gentlePulse 2s ease-in-out infinite;
+    opacity: 0.9;
+  }
+
+  .womens-history-month .hero::after {
+    content: '🌸';
+    position: absolute;
+    top: 20px;
+    right: 80px;
+    font-size: 32px;
+    animation: gentleSway 3s ease-in-out infinite;
+    opacity: 0.8;
+  }
+
+  /* AAPI Heritage Month decorations */
+  .aapi-heritage-month .hero::before {
+    content: '🌸';
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 36px;
+    animation: gentleSway 3s ease-in-out infinite;
+    opacity: 0.9;
+  }
+
+  .aapi-heritage-month .hero::after {
+    content: '🏯';
+    position: absolute;
+    top: 20px;
+    right: 80px;
+    font-size: 32px;
+    opacity: 0.8;
+  }
+
+  /* Pride Month decorations */
+  .pride-month .hero::before {
+    content: '🏳️‍🌈';
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 36px;
+    animation: gentleSway 3s ease-in-out infinite;
+    opacity: 0.9;
+  }
+
+  .pride-month .hero::after {
+    content: '❤️';
+    position: absolute;
+    top: 20px;
+    right: 80px;
+    font-size: 32px;
+    animation: gentlePulse 2s ease-in-out infinite;
+    opacity: 0.8;
+  }
+
+  /* Hispanic Heritage Month decorations */
+  .hispanic-heritage-month .hero::before {
+    content: '💃';
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 36px;
+    animation: gentleSway 2s ease-in-out infinite;
+    opacity: 0.9;
+  }
+
+  .hispanic-heritage-month .hero::after {
+    content: '🎺';
+    position: absolute;
+    top: 20px;
+    right: 80px;
+    font-size: 32px;
+    animation: gentleBob 2s ease-in-out infinite;
+    opacity: 0.8;
+  }
+
+  /* Native American Heritage Month decorations */
+  .native-american-heritage-month .hero::before {
+    content: '🪶';
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 36px;
+    animation: gentleSway 3s ease-in-out infinite;
+    opacity: 0.9;
+  }
+
+  .native-american-heritage-month .hero::after {
+    content: '🦬';
+    position: absolute;
+    top: 20px;
+    right: 80px;
+    font-size: 32px;
+    animation: gentleBob 4s ease-in-out infinite;
+    opacity: 0.8;
+  }
+
+  /* Gentle pulse animation for humanity events */
+  @keyframes gentlePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+
+  /* Add humanity events to hero position list */
+  .black-history-month .hero,
+  .womens-history-month .hero,
+  .aapi-heritage-month .hero,
+  .pride-month .hero,
+  .hispanic-heritage-month .hero,
+  .native-american-heritage-month .hero {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Mobile adjustments for humanity event decorations */
+  @media (max-width: 768px) {
+    .black-history-month .hero::before,
+    .black-history-month .hero::after,
+    .womens-history-month .hero::before,
+    .womens-history-month .hero::after,
+    .aapi-heritage-month .hero::before,
+    .aapi-heritage-month .hero::after,
+    .pride-month .hero::before,
+    .pride-month .hero::after,
+    .hispanic-heritage-month .hero::before,
+    .hispanic-heritage-month .hero::after,
+    .native-american-heritage-month .hero::before,
+    .native-american-heritage-month .hero::after {
+      font-size: 24px;
+      top: 10px;
+    }
+
+    .black-history-month .hero::before,
+    .womens-history-month .hero::before,
+    .aapi-heritage-month .hero::before,
+    .pride-month .hero::before,
+    .hispanic-heritage-month .hero::before,
+    .native-american-heritage-month .hero::before {
+      left: 10px;
+    }
+
+    .black-history-month .hero::after,
+    .womens-history-month .hero::after,
+    .aapi-heritage-month .hero::after,
+    .pride-month .hero::after,
+    .hispanic-heritage-month .hero::after,
+    .native-american-heritage-month .hero::after {
+      right: 60px;
+    }
   }
 
   /* ============================================
