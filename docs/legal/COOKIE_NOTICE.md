@@ -4,7 +4,7 @@
 
 ## TL;DR
 
-**We don't use cookies.** This page exists for transparency.
+**The CLI doesn't use cookies.** The website uses PostHog for analytics with minimal, privacy-respecting cookies.
 
 ---
 
@@ -16,52 +16,87 @@ Caro is a terminal application. Terminal applications don't use cookies. There's
 
 ## Website (caro.sh)
 
-Our website at [caro.sh](https://caro.sh) does not use:
+Our website at [caro.sh](https://caro.sh) uses [PostHog](https://posthog.com) for analytics. PostHog sets cookies to understand how visitors use the site.
 
-- Tracking cookies
-- Analytics cookies (no Google Analytics, Plausible, etc.)
-- Advertising cookies
-- Third-party cookies
-- First-party cookies for tracking
+### Cookies We Use
 
-### What We Do Use
+| Cookie | Purpose | Duration | Type |
+|--------|---------|----------|------|
+| `ph_*` | PostHog analytics - distinguishes unique visitors | 1 year | Analytics |
+| `__ph_opt_in_out_*` | Remembers your cookie consent choice | 1 year | Functional |
 
-- **No cookies at all** - We're a static site with no user accounts
-- Standard web server logs (IP, user-agent) retained for max 30 days for security
+### What These Cookies Do
+
+- **Track page views** - Which pages are visited
+- **Distinguish visitors** - Anonymous visitor IDs (not personal identity)
+- **Measure engagement** - Time on page, scroll depth, clicks
+- **Remember preferences** - Your analytics opt-out choice
+
+### What These Cookies Don't Do
+
+- Identify you personally
+- Track you across other websites
+- Share data with advertisers
+- Build marketing profiles
 
 ---
 
-## Why This Document Exists
+## Your Choices
 
-In the spirit of GNU and BSD transparency, we believe in being explicit about what we *don't* do, not just what we do. Many users have been conditioned to expect invasive tracking. We want to be clear: that's not us.
+### Opting Out
+
+You can opt out of PostHog analytics:
+
+1. **Browser settings**: Block third-party cookies or use private/incognito mode
+2. **Do Not Track**: We respect DNT signals
+3. **Browser extensions**: Privacy tools like uBlock Origin or Privacy Badger
+
+### What Happens If You Opt Out
+
+The website works exactly the same. You just won't be counted in our anonymous analytics.
 
 ---
 
 ## Third-Party Services
 
+### PostHog
+
+We use PostHog Cloud (EU hosting) for analytics. PostHog is:
+- GDPR compliant
+- SOC 2 Type II certified
+- Privacy-focused by design
+
+See [PostHog's Privacy Policy](https://posthog.com/privacy).
+
 ### GitHub
 
-Our repository is hosted on GitHub. When you visit our GitHub page or download releases, GitHub's cookies and policies apply. See [GitHub's Cookie Policy](https://docs.github.com/en/site-policy/privacy-policies/github-cookies).
+Our repository is hosted on GitHub. When you visit our GitHub page or download releases, GitHub's cookies apply. See [GitHub's Cookie Policy](https://docs.github.com/en/site-policy/privacy-policies/github-cookies).
 
 ### crates.io
 
-When you install Caro via `cargo install caro`, you interact with crates.io. See [crates.io's policies](https://crates.io/policies).
+When you install Caro via `cargo install caro`, crates.io's policies apply. See [crates.io's policies](https://crates.io/policies).
 
 ### Hugging Face (Future)
 
-When model auto-download is implemented, you may interact with Hugging Face Hub. Their policies will apply to those interactions.
+When model auto-download is implemented, Hugging Face Hub policies will apply to those interactions.
 
 ---
 
-## Do Not Track
+## Why We Use Analytics
 
-We honor Do Not Track (DNT) signals by default because we don't track anything in the first place.
+We use PostHog to understand:
+- Which documentation pages are most useful
+- Where visitors come from
+- What features generate interest
+- How to improve the site
+
+We don't use this data to track individuals or serve ads.
 
 ---
 
 ## Questions?
 
-If you have questions about this (brief) policy:
+For cookie-related questions:
 - [GitHub Discussions](https://github.com/wildcard/caro/discussions)
 
 ---
