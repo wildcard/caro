@@ -140,6 +140,23 @@ These are specific command translations documented on website pages.
 | Verification: `strace`, `sha256sum`, `ltrace` | Air-Gapped Use-Case | EXAMPLE-AIRGAPPED-001 |
 | Home directory protection: `rm -rf ~` | LPDemo | EXAMPLE-HOME-001 |
 | Demo blocked showcase: 6 dangerous commands | LPDemo | EXAMPLE-DEMO-002 |
+| `find ~/Downloads -name "*.pdf" -size +10M` | Blog: announcing-caro | EXAMPLE-BLOG-001 |
+| `du -sh */ \| sort -rh` (disk usage) | Blog: batteries-included | EXAMPLE-BLOG-002 |
+| `ps aux --sort=-%mem \| head -11` (top processes) | Blog: claude-skill-launch | EXAMPLE-BLOG-003 |
+| `find . -name "*.log" -mtime +30 -delete` | Blog: claude-skill-launch | EXAMPLE-BLOG-004 |
+| AI Blocked: `rm -rf ~/*` (cleanup temp files) | AICommandDemo | EXAMPLE-AI-001 |
+| AI High Risk: log deletion in /var/log | AICommandDemo | EXAMPLE-AI-002 |
+| DevOps: `rm -rf /var/log/*` (3AM incident) | LPScenarios | EXAMPLE-ROLE-DEVOPS-001 |
+| DevOps: `docker system prune -a --volumes -f` | LPScenarios | EXAMPLE-ROLE-DEVOPS-002 |
+| DevOps: `chmod -R 777 /var/www` | LPScenarios | EXAMPLE-ROLE-DEVOPS-003 |
+| SRE: `systemctl restart *` (wildcard restart) | LPScenarios | EXAMPLE-ROLE-SRE-001 |
+| SRE: `find / -size +100M -delete` | LPScenarios | EXAMPLE-ROLE-SRE-002 |
+| SRE: `kubectl delete pods --all -n production` | LPScenarios | EXAMPLE-ROLE-SRE-003 |
+| Backend: `rm -rf ~/backups/db*` (glob pattern) | LPScenarios | EXAMPLE-ROLE-BACKEND-001 |
+| Backend: `pkill -9 -f java` | LPScenarios | EXAMPLE-ROLE-BACKEND-002 |
+| Backend: `git push --force origin main` | LPScenarios | EXAMPLE-ROLE-BACKEND-003 |
+| Data: `rm -rf /data/tmp/*` | LPScenarios | EXAMPLE-ROLE-DATA-001 |
+| Incident: Claude Code `rm -rf ~/` (Dec 2025) | AIIncidents | EXAMPLE-INCIDENT-001 |
 
 ---
 

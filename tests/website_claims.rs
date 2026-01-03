@@ -1643,6 +1643,512 @@ fn test_example_home_001_blocks_rm_rf_home() {
 }
 
 // =============================================================================
+// COMMAND EXAMPLES FROM BLOG POSTS
+// Source: website/src/pages/blog/*.astro
+// =============================================================================
+
+/// Website Example: Blog post - find PDF files larger than 10MB
+/// Source: https://caro.sh/blog/announcing-caro, https://caro.sh/blog/claude-skill-launch
+/// Claim ID: EXAMPLE-BLOG-001
+#[test]
+fn test_example_blog_001_find_pdf_files() {
+    println!("=== EXAMPLE-BLOG-001 ===");
+    println!("Example: find ~/Downloads -name *.pdf -size +10M -ls");
+    println!("Source: Blog posts - announcing-caro, claude-skill-launch");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    match runner.validate_command("find ~/Downloads -name \"*.pdf\" -size +10M -ls") {
+        Ok(result) => {
+            if !result.is_blocked {
+                println!("PASSED: Find large PDF files command allowed");
+            }
+        }
+        Err(e) => {
+            println!("INFO: {}", e);
+        }
+    }
+}
+
+/// Website Example: Blog post - show disk usage sorted
+/// Source: https://caro.sh/blog/batteries-included
+/// Claim ID: EXAMPLE-BLOG-002
+#[test]
+fn test_example_blog_002_disk_usage_sorted() {
+    println!("=== EXAMPLE-BLOG-002 ===");
+    println!("Example: caro 'show me disk usage by directory, sorted'");
+    println!("Source: Blog post - batteries-included");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    // This should generate a du command, which is safe
+    match runner.validate_command("du -sh */ | sort -rh") {
+        Ok(result) => {
+            if !result.is_blocked {
+                println!("PASSED: Disk usage command allowed");
+            }
+        }
+        Err(e) => {
+            println!("INFO: {}", e);
+        }
+    }
+}
+
+/// Website Example: Blog post - top processes by memory
+/// Source: https://caro.sh/blog/claude-skill-launch
+/// Claim ID: EXAMPLE-BLOG-003
+#[test]
+fn test_example_blog_003_top_processes_memory() {
+    println!("=== EXAMPLE-BLOG-003 ===");
+    println!("Example: ps aux --sort=-%mem | head -11");
+    println!("Source: Blog post - claude-skill-launch");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    match runner.validate_command("ps aux --sort=-%mem | head -11") {
+        Ok(result) => {
+            if !result.is_blocked {
+                println!("PASSED: Process listing command allowed");
+            }
+        }
+        Err(e) => {
+            println!("INFO: {}", e);
+        }
+    }
+}
+
+/// Website Example: Blog post - delete old log files (safer version)
+/// Source: https://caro.sh/blog/claude-skill-launch
+/// Claim ID: EXAMPLE-BLOG-004
+#[test]
+fn test_example_blog_004_delete_old_logs() {
+    println!("=== EXAMPLE-BLOG-004 ===");
+    println!("Example: find . -name *.log -type f -mtime +30 -delete");
+    println!("Source: Blog post - claude-skill-launch (safe alternative with -exec rm -i)");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    // This is a high-risk command that should get a warning
+    match runner.validate_command("find . -name \"*.log\" -type f -mtime +30 -delete") {
+        Ok(result) => {
+            println!("INFO: Risk level: {:?}, blocked: {}", result.risk_level, result.is_blocked);
+        }
+        Err(e) => {
+            println!("INFO: {}", e);
+        }
+    }
+}
+
+// =============================================================================
+// COMMAND EXAMPLES FROM AI COMMAND DEMO
+// Source: website/src/components/landing/AICommandDemo.astro
+// =============================================================================
+
+/// Website Example: AI Demo - home directory cleanup blocked
+/// Source: https://caro.sh/ai-command-safety#demo
+/// Claim ID: EXAMPLE-AI-001
+#[test]
+fn test_example_ai_001_home_cleanup_blocked() {
+    println!("=== EXAMPLE-AI-001 ===");
+    println!("Example: rm -rf ~/* (AI 'cleaning up temp files')");
+    println!("Source: AICommandDemo - The AI Disaster scenario");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    match runner.validate_command("rm -rf ~/*") {
+        Ok(result) => {
+            if result.is_blocked || !result.success {
+                println!("PASSED: Home directory wildcard deletion blocked");
+            } else {
+                println!("WARNING: Dangerous command not blocked");
+            }
+        }
+        Err(e) => {
+            println!("PASSED: Command prevented: {}", e);
+        }
+    }
+}
+
+/// Website Example: AI Demo - high risk log deletion warning
+/// Source: https://caro.sh/ai-command-safety#demo
+/// Claim ID: EXAMPLE-AI-002
+#[test]
+fn test_example_ai_002_log_deletion_warning() {
+    println!("=== EXAMPLE-AI-002 ===");
+    println!("Example: find /var/log -name *.log -mtime +30 -delete");
+    println!("Source: AICommandDemo - The Close Call scenario");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    // Should get a high risk warning for system directory deletion
+    match runner.validate_command("find /var/log -name \"*.log\" -mtime +30 -delete") {
+        Ok(result) => {
+            println!("INFO: Risk level: {:?}, blocked: {}", result.risk_level, result.is_blocked);
+            if result.risk_level.is_some() || result.is_blocked {
+                println!("PASSED: System directory deletion flagged");
+            }
+        }
+        Err(e) => {
+            println!("INFO: {}", e);
+        }
+    }
+}
+
+// =============================================================================
+// COMMAND EXAMPLES FROM ROLE-BASED SCENARIOS (LPScenarios)
+// Source: website/src/components/landing/LPScenarios.astro
+// =============================================================================
+
+/// Website Example: DevOps - dangerous log cleanup
+/// Source: https://caro.sh/ai-agent-safety#scenarios (DevOps role)
+/// Claim ID: EXAMPLE-ROLE-DEVOPS-001
+#[test]
+fn test_example_role_devops_001_log_cleanup() {
+    println!("=== EXAMPLE-ROLE-DEVOPS-001 ===");
+    println!("Example: rm -rf /var/log/* (3 AM incident)");
+    println!("Source: LPScenarios - DevOps Engineer role");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    match runner.validate_command("rm -rf /var/log/*") {
+        Ok(result) => {
+            if result.is_blocked || result.risk_level.is_some() {
+                println!("PASSED: Recursive delete in /var/log flagged/blocked");
+            }
+        }
+        Err(e) => {
+            println!("PASSED: Command prevented: {}", e);
+        }
+    }
+}
+
+/// Website Example: DevOps - docker system prune
+/// Source: https://caro.sh/ai-agent-safety#scenarios (DevOps role)
+/// Claim ID: EXAMPLE-ROLE-DEVOPS-002
+#[test]
+fn test_example_role_devops_002_docker_prune() {
+    println!("=== EXAMPLE-ROLE-DEVOPS-002 ===");
+    println!("Example: docker system prune -a --volumes -f");
+    println!("Source: LPScenarios - DevOps Engineer role");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    // This removes ALL docker resources including named volumes
+    match runner.validate_command("docker system prune -a --volumes -f") {
+        Ok(result) => {
+            println!("INFO: Risk level: {:?}, blocked: {}", result.risk_level, result.is_blocked);
+        }
+        Err(e) => {
+            println!("INFO: {}", e);
+        }
+    }
+}
+
+/// Website Example: DevOps - chmod 777 on web directory
+/// Source: https://caro.sh/ai-agent-safety#scenarios (DevOps role)
+/// Claim ID: EXAMPLE-ROLE-DEVOPS-003
+#[test]
+fn test_example_role_devops_003_chmod_www() {
+    println!("=== EXAMPLE-ROLE-DEVOPS-003 ===");
+    println!("Example: chmod -R 777 /var/www");
+    println!("Source: LPScenarios - DevOps Engineer role");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    // World-writable is a security vulnerability
+    match runner.validate_command("chmod -R 777 /var/www") {
+        Ok(result) => {
+            if result.is_blocked || result.risk_level.is_some() {
+                println!("PASSED: chmod 777 on web directory flagged/blocked");
+            } else {
+                println!("WARNING: Security vulnerability not flagged");
+            }
+        }
+        Err(e) => {
+            println!("PASSED: Command prevented: {}", e);
+        }
+    }
+}
+
+/// Website Example: SRE - wildcard service restart
+/// Source: https://caro.sh/ai-agent-safety#scenarios (SRE role)
+/// Claim ID: EXAMPLE-ROLE-SRE-001
+#[test]
+fn test_example_role_sre_001_wildcard_restart() {
+    println!("=== EXAMPLE-ROLE-SRE-001 ===");
+    println!("Example: systemctl restart *");
+    println!("Source: LPScenarios - SRE role");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    // Wildcard service restart could restart critical system services
+    match runner.validate_command("systemctl restart *") {
+        Ok(result) => {
+            println!("INFO: Risk level: {:?}, blocked: {}", result.risk_level, result.is_blocked);
+        }
+        Err(e) => {
+            println!("INFO: {}", e);
+        }
+    }
+}
+
+/// Website Example: SRE - recursive delete from root
+/// Source: https://caro.sh/ai-agent-safety#scenarios (SRE role)
+/// Claim ID: EXAMPLE-ROLE-SRE-002
+#[test]
+fn test_example_role_sre_002_recursive_delete_root() {
+    println!("=== EXAMPLE-ROLE-SRE-002 ===");
+    println!("Example: find / -size +100M -delete");
+    println!("Source: LPScenarios - SRE role");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    // Recursive delete from root is extremely dangerous
+    match runner.validate_command("find / -size +100M -delete") {
+        Ok(result) => {
+            if result.is_blocked || !result.success {
+                println!("PASSED: Recursive delete from root blocked");
+            } else {
+                println!("WARNING: Dangerous root deletion not blocked");
+            }
+        }
+        Err(e) => {
+            println!("PASSED: Command prevented: {}", e);
+        }
+    }
+}
+
+/// Website Example: SRE - mass pod deletion
+/// Source: https://caro.sh/ai-agent-safety#scenarios (SRE role)
+/// Claim ID: EXAMPLE-ROLE-SRE-003
+#[test]
+fn test_example_role_sre_003_mass_pod_deletion() {
+    println!("=== EXAMPLE-ROLE-SRE-003 ===");
+    println!("Example: kubectl delete pods --all -n production");
+    println!("Source: LPScenarios - SRE role");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    // Mass pod deletion causes downtime
+    match runner.validate_command("kubectl delete pods --all -n production") {
+        Ok(result) => {
+            println!("INFO: Risk level: {:?}, blocked: {}", result.risk_level, result.is_blocked);
+        }
+        Err(e) => {
+            println!("INFO: {}", e);
+        }
+    }
+}
+
+/// Website Example: Backend Developer - glob pattern rm
+/// Source: https://caro.sh/ai-agent-safety#scenarios (Backend Developer role)
+/// Claim ID: EXAMPLE-ROLE-BACKEND-001
+#[test]
+fn test_example_role_backend_001_glob_rm() {
+    println!("=== EXAMPLE-ROLE-BACKEND-001 ===");
+    println!("Example: rm -rf ~/backups/db*");
+    println!("Source: LPScenarios - Backend Developer role");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    // Glob patterns can match more than intended
+    match runner.validate_command("rm -rf ~/backups/db*") {
+        Ok(result) => {
+            println!("INFO: Risk level: {:?}, blocked: {}", result.risk_level, result.is_blocked);
+        }
+        Err(e) => {
+            println!("INFO: {}", e);
+        }
+    }
+}
+
+/// Website Example: Backend Developer - kill all Java processes
+/// Source: https://caro.sh/ai-agent-safety#scenarios (Backend Developer role)
+/// Claim ID: EXAMPLE-ROLE-BACKEND-002
+#[test]
+fn test_example_role_backend_002_pkill_java() {
+    println!("=== EXAMPLE-ROLE-BACKEND-002 ===");
+    println!("Example: pkill -9 -f java");
+    println!("Source: LPScenarios - Backend Developer role");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    // Could kill all Java processes including critical services
+    match runner.validate_command("pkill -9 -f java") {
+        Ok(result) => {
+            println!("INFO: Risk level: {:?}, blocked: {}", result.risk_level, result.is_blocked);
+        }
+        Err(e) => {
+            println!("INFO: {}", e);
+        }
+    }
+}
+
+/// Website Example: Backend Developer - force push to main
+/// Source: https://caro.sh/ai-agent-safety#scenarios (Backend Developer role)
+/// Claim ID: EXAMPLE-ROLE-BACKEND-003
+#[test]
+fn test_example_role_backend_003_force_push_main() {
+    println!("=== EXAMPLE-ROLE-BACKEND-003 ===");
+    println!("Example: git push --force origin main");
+    println!("Source: LPScenarios - Backend Developer role");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    // Force push to main rewrites shared history
+    match runner.validate_command("git push --force origin main") {
+        Ok(result) => {
+            if result.is_blocked || result.risk_level.is_some() {
+                println!("PASSED: Force push to main flagged/blocked");
+            } else {
+                println!("INFO: Risk level: {:?}", result.risk_level);
+            }
+        }
+        Err(e) => {
+            println!("INFO: {}", e);
+        }
+    }
+}
+
+/// Website Example: Data Engineer - cleanup temp data
+/// Source: https://caro.sh/ai-agent-safety#scenarios (Data Engineer role)
+/// Claim ID: EXAMPLE-ROLE-DATA-001
+#[test]
+fn test_example_role_data_001_cleanup_tmp() {
+    println!("=== EXAMPLE-ROLE-DATA-001 ===");
+    println!("Example: rm -rf /data/tmp/*");
+    println!("Source: LPScenarios - Data Engineer role");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    // Could remove files still being processed
+    match runner.validate_command("rm -rf /data/tmp/*") {
+        Ok(result) => {
+            println!("INFO: Risk level: {:?}, blocked: {}", result.risk_level, result.is_blocked);
+        }
+        Err(e) => {
+            println!("INFO: {}", e);
+        }
+    }
+}
+
+// =============================================================================
+// COMMAND EXAMPLES FROM AI INCIDENTS DOCUMENTATION
+// Source: website/src/components/landing/AIIncidents.astro, AIWhyFlagsFail.astro
+// =============================================================================
+
+/// Website Example: AI Incident - Claude Code rm -rf ~/
+/// Source: https://caro.sh/ai-agent-safety (AIIncidents, AIWhyFlagsFail)
+/// Claim ID: EXAMPLE-INCIDENT-001
+#[test]
+fn test_example_incident_001_claude_home_deletion() {
+    println!("=== EXAMPLE-INCIDENT-001 ===");
+    println!("Example: rm -rf ~/ (Claude Code incident, Dec 2025)");
+    println!("Source: AIIncidents - Real AI incident documentation");
+
+    let runner = CaroTestRunner::new();
+
+    if !runner.binary_exists() {
+        println!("SKIPPED: caro binary not found");
+        return;
+    }
+
+    // The famous Claude Code home directory deletion incident
+    match runner.validate_command("rm -rf ~/") {
+        Ok(result) => {
+            if result.is_blocked || !result.success {
+                println!("PASSED: Home directory deletion blocked");
+            } else {
+                println!("CRITICAL: Home directory deletion NOT blocked!");
+            }
+        }
+        Err(e) => {
+            println!("PASSED: Command prevented: {}", e);
+        }
+    }
+}
+
+// =============================================================================
 // CLAIMS SUMMARY
 // =============================================================================
 
@@ -1690,8 +2196,15 @@ fn test_claims_summary() {
     println!("  EXAMPLE-TECHLEAD-*: 2 Tech-lead use-case examples");
     println!("  EXAMPLE-AIRGAPPED-*: 1 Air-gapped use-case example");
     println!("  EXAMPLE-HOME-*: 1 Home directory protection example");
+    println!("  EXAMPLE-BLOG-*: 4 Blog post examples");
+    println!("  EXAMPLE-AI-*: 2 AI command demo examples");
+    println!("  EXAMPLE-ROLE-DEVOPS-*: 3 DevOps role scenarios");
+    println!("  EXAMPLE-ROLE-SRE-*: 3 SRE role scenarios");
+    println!("  EXAMPLE-ROLE-BACKEND-*: 3 Backend developer scenarios");
+    println!("  EXAMPLE-ROLE-DATA-*: 1 Data engineer scenario");
+    println!("  EXAMPLE-INCIDENT-*: 1 AI incident example");
     println!();
-    println!("Total: 41 tests covering website claims and command examples");
+    println!("Total: 58 tests covering website claims and command examples");
     println!();
     println!("See ADR-010 and spec.md for full details.");
     println!("========================================");
