@@ -236,6 +236,8 @@ pub enum BackendType {
     Mlx,
     /// Exo distributed cluster backend
     Exo,
+    /// Claude API backend (Anthropic)
+    Claude,
 }
 
 impl std::str::FromStr for BackendType {
@@ -249,6 +251,7 @@ impl std::str::FromStr for BackendType {
             "vllm" => Ok(Self::VLlm),
             "mlx" => Ok(Self::Mlx),
             "exo" => Ok(Self::Exo),
+            "claude" | "anthropic" => Ok(Self::Claude),
             _ => Err(format!("Unknown backend type: {}", s)),
         }
     }
@@ -263,6 +266,7 @@ impl std::fmt::Display for BackendType {
             Self::VLlm => write!(f, "vllm"),
             Self::Mlx => write!(f, "mlx"),
             Self::Exo => write!(f, "exo"),
+            Self::Claude => write!(f, "claude"),
         }
     }
 }

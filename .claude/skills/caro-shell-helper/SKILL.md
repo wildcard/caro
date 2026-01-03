@@ -197,9 +197,26 @@ find /tmp -type f -mtime +7 -user $(whoami) -delete
 
 Caro supports multiple inference backends. Help users choose:
 
-### Embedded Backend (Default)
-- **Best for**: Apple Silicon Macs (M1/M2/M3/M4)
-- **Advantages**: No external dependencies, fastest startup
+### Claude Backend (Default for Claude Code)
+- **Best for**: Running directly within Claude Code or with Anthropic API access
+- **Advantages**: Fastest, most accurate, uses Claude Haiku 4.5 by default
+- **Model**: claude-haiku-4-5-20251101 (default)
+- **Setup**:
+  ```toml
+  # ~/.config/caro/config.toml
+  [backend]
+  primary = "claude"
+
+  [backend.claude]
+  model_name = "claude-haiku-4-5-20251101"  # Fast and cost-effective
+  # API key read from ANTHROPIC_API_KEY environment variable
+  ```
+
+**When running in Claude Code**: The Claude backend is automatically preferred as it provides the best integration and fastest response times. No additional configuration is needed - Claude Code provides the API key automatically.
+
+### Embedded Backend (Default for Standalone)
+- **Best for**: Apple Silicon Macs (M1/M2/M3/M4), offline usage
+- **Advantages**: No external dependencies, works offline
 - **Model**: Qwen2.5-Coder-1.5B-Instruct (quantized)
 - **Setup**: Works out-of-the-box after installation
 
@@ -429,7 +446,21 @@ caro --version
 caro --verbose "your prompt here"
 
 # Try different backend
-caro --backend ollama "your prompt here"
+caro --backend claude "your prompt here"   # Use Claude Haiku 4.5 (fastest)
+caro --backend ollama "your prompt here"   # Use local Ollama
+caro --backend embedded "your prompt here" # Use embedded model
+```
+
+### Claude Backend Issues
+
+```bash
+# Check if API key is set
+echo $ANTHROPIC_API_KEY
+
+# Set API key if missing
+export ANTHROPIC_API_KEY="sk-ant-your-key-here"
+
+# When running in Claude Code, the API key is provided automatically
 ```
 
 ### Safety Validation Too Strict
