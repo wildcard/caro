@@ -1,0 +1,296 @@
+---
+/**
+ * Humanity Event Banner
+ *
+ * Displays a banner for active humanity events that Caro celebrates.
+ * - Automatically detects active events based on current date
+ * - Supports test date override for development (?testDate=YYYY-MM-DD)
+ * - Dismissible with localStorage persistence
+ * - Shows the most specific event (specific day > date range > full month)
+ *
+ * Usage: Include in Layout.astro before the navigation
+ */
+
+import { getActiveEvents, getPrimaryEvent } from '../utils/humanity-events';
+
+// Get active events at build time (will be re-evaluated client-side)
+const now = new Date();
+const activeEvents = getActiveEvents(now);
+
+// Serialize events data for client-side use
+const eventsJson = JSON.stringify(activeEvents.map(e => ({
+  id: e.id,
+  name: e.name,
+  category: e.category,
+  message: e.message,
+  emoji: e.emoji,
+  link: e.link,
+  theme: e.theme,
+})));
+---
+
+<div
+  id="humanity-event-banner"
+  class="humanity-event-banner"
+  data-events={eventsJson}
+  style="display: none;"
+>
+  <div class="humanity-event-content">
+    <span class="humanity-event-message">
+      <span class="humanity-event-emoji"></span>
+      <span class="humanity-event-text"></span>
+      <a class="humanity-event-link" href="#" target="_blank" rel="noopener noreferrer">
+        Learn more →
+      </a>
+    </span>
+    <button
+      id="humanity-event-dismiss"
+      class="humanity-event-dismiss"
+      aria-label="Dismiss event banner"
+      title="Dismiss"
+    >
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="4" y1="4" x2="12" y2="12"/>
+        <line x1="12" y1="4" x2="4" y2="12"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<script>
+  import { getActiveEvents, getEventThemeClasses } from '../utils/humanity-events';
+  import type { HumanityEvent } from '../data/humanity-events';
+
+  // =========================================================================
+  // Humanity Event Banner Controller
+  // =========================================================================
+
+  class HumanityEventBannerController {
+    private banner: HTMLElement;
+    private emojiEl: HTMLElement;
+    private textEl: HTMLElement;
+    private linkEl: HTMLAnchorElement;
+    private dismissBtn: HTMLElement;
+    private currentEvent: ReturnType<typeof import('../utils/humanity-events').getPrimaryEvent> = null;
+
+    constructor() {
+      this.banner = document.getElementById('humanity-event-banner')!;
+      this.emojiEl = this.banner.querySelector('.humanity-event-emoji')!;
+      this.textEl = this.banner.querySelector('.humanity-event-text')!;
+      this.linkEl = this.banner.querySelector('.humanity-event-link') as HTMLAnchorElement;
+      this.dismissBtn = document.getElementById('humanity-event-dismiss')!;
+
+      this.init();
+    }
+
+    private getTestDate(): Date {
+      // Support test date override (dev/preview only)
+      if ((window as any).__CARO_TEST_DATE) {
+        return new Date((window as any).__CARO_TEST_DATE);
+      }
+      return new Date();
+    }
+
+    private getStorageKey(eventId: string): string {
+      // Dismissal is per-event and per-year (events reset each year)
+      const year = this.getTestDate().getFullYear();
+      return `humanity-event-dismissed-${eventId}-${year}`;
+    }
+
+    private isDismissed(eventId: string): boolean {
+      return localStorage.getItem(this.getStorageKey(eventId)) === 'true';
+    }
+
+    private setDismissed(eventId: string): void {
+      localStorage.setItem(this.getStorageKey(eventId), 'true');
+    }
+
+    private init(): void {
+      const checkDate = this.getTestDate();
+      const events = getActiveEvents(checkDate);
+
+      // Find the first non-dismissed event
+      this.currentEvent = null;
+      for (const event of events) {
+        if (!this.isDismissed(event.id)) {
+          this.currentEvent = event;
+          break;
+        }
+      }
+
+      if (!this.currentEvent) {
+        // No active or non-dismissed events
+        this.hide();
+        return;
+      }
+
+      // Apply themed events to the document
+      this.applyThemeClasses(checkDate);
+
+      // Display the event
+      this.show(this.currentEvent);
+
+      // Set up dismiss handler
+      this.dismissBtn.addEventListener('click', () => {
+        if (this.currentEvent) {
+          this.setDismissed(this.currentEvent.id);
+          this.dismiss();
+        }
+      });
+    }
+
+    private applyThemeClasses(checkDate: Date): void {
+      const themeClasses = getEventThemeClasses(checkDate);
+      for (const className of themeClasses) {
+        document.documentElement.classList.add(className);
+      }
+    }
+
+    private show(event: NonNullable<typeof this.currentEvent>): void {
+      // Set content
+      this.emojiEl.textContent = event.emoji + ' ';
+      this.textEl.textContent = event.message;
+
+      // Set link
+      if (event.link) {
+        this.linkEl.href = event.link;
+        this.linkEl.style.display = 'inline';
+      } else {
+        this.linkEl.style.display = 'none';
+      }
+
+      // Apply theme colors
+      if (event.theme) {
+        this.banner.style.setProperty('--banner-accent', event.theme.accent);
+        if (event.theme.accentSecondary) {
+          this.banner.style.setProperty('--banner-accent-secondary', event.theme.accentSecondary);
+        }
+      }
+
+      // Show banner
+      this.banner.style.display = 'block';
+    }
+
+    private hide(): void {
+      this.banner.style.display = 'none';
+    }
+
+    private dismiss(): void {
+      this.banner.classList.add('dismissed');
+      setTimeout(() => {
+        this.banner.remove();
+        // Notify other components (like sticky headers)
+        window.dispatchEvent(new CustomEvent('humanity-event-dismissed'));
+      }, 300);
+    }
+  }
+
+  // Initialize when DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    const banner = document.getElementById('humanity-event-banner');
+    if (banner) {
+      new HumanityEventBannerController();
+    }
+  });
+</script>
+
+<style>
+  .humanity-event-banner {
+    --banner-accent: #ff8c42;
+    --banner-accent-secondary: #ff6b35;
+
+    background: linear-gradient(135deg, var(--banner-accent) 0%, var(--banner-accent-secondary, var(--banner-accent)) 100%);
+    color: white;
+    padding: 12px 20px;
+    text-align: center;
+    font-weight: 500;
+    font-size: 14px;
+    position: relative;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+
+  .humanity-event-banner.dismissed {
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .humanity-event-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .humanity-event-message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .humanity-event-emoji {
+    font-size: 18px;
+  }
+
+  .humanity-event-text {
+    line-height: 1.4;
+  }
+
+  .humanity-event-link {
+    color: white;
+    text-decoration: underline;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .humanity-event-link:hover {
+    text-decoration: none;
+  }
+
+  .humanity-event-dismiss {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    padding: 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+
+  .humanity-event-dismiss:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  /* Mobile responsive */
+  @media (max-width: 768px) {
+    .humanity-event-banner {
+      font-size: 13px;
+      padding: 10px 15px;
+    }
+
+    .humanity-event-content {
+      gap: 10px;
+    }
+
+    .humanity-event-emoji {
+      font-size: 16px;
+    }
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .humanity-event-banner {
+      transition: none;
+    }
+  }
+</style>
