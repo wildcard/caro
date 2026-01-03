@@ -14,6 +14,8 @@ export default defineConfig({
       },
       social: [
         { icon: 'github', label: 'GitHub', href: 'https://github.com/wildcard/caro' },
+        { icon: 'x.com', label: 'X', href: 'https://x.com/CaroDaShellShib' },
+        { icon: 'blueSky', label: 'Bluesky', href: 'https://bsky.app/profile/caro-sh.bsky.social' },
       ],
       editLink: {
         baseUrl: 'https://github.com/wildcard/caro/edit/main/docs-site/',
