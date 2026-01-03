@@ -22,7 +22,7 @@ const { title, description = "Caro - Turn natural language into safe shell comma
     <slot />
 
     <!-- Cookie Consent Banner (GDPR/CCPA Compliant) -->
-    <div id="cookie-banner" class="fixed bottom-0 left-0 right-0 z-50 hidden">
+    <div id="cookie-banner" class="fixed bottom-0 left-0 right-0 z-50" style="display: none;">
       <div class="bg-slate-900/95 backdrop-blur-sm border-t border-slate-800">
         <div class="max-w-6xl mx-auto px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p class="text-sm text-slate-400 text-center sm:text-left">
@@ -42,18 +42,20 @@ const { title, description = "Caro - Turn natural language into safe shell comma
     </div>
 
     <script is:inline>
-      (function() {
-        const COOKIE_CONSENT_KEY = 'caro_cookie_consent';
-        const banner = document.getElementById('cookie-banner');
-        const acceptBtn = document.getElementById('cookie-accept');
-        const rejectBtn = document.getElementById('cookie-reject');
+      document.addEventListener('DOMContentLoaded', function() {
+        var COOKIE_CONSENT_KEY = 'caro_cookie_consent';
+        var banner = document.getElementById('cookie-banner');
+        var acceptBtn = document.getElementById('cookie-accept');
+        var rejectBtn = document.getElementById('cookie-reject');
+
+        if (!banner || !acceptBtn || !rejectBtn) return;
 
         // Check if user has already made a choice
-        const consent = localStorage.getItem(COOKIE_CONSENT_KEY);
+        var consent = localStorage.getItem(COOKIE_CONSENT_KEY);
 
         if (consent === null) {
           // No choice made yet, show banner
-          banner.classList.remove('hidden');
+          banner.style.display = 'block';
         } else if (consent === 'accepted') {
           // Load PostHog if accepted
           loadPostHog();
@@ -62,13 +64,13 @@ const { title, description = "Caro - Turn natural language into safe shell comma
 
         acceptBtn.addEventListener('click', function() {
           localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
-          banner.classList.add('hidden');
+          banner.style.display = 'none';
           loadPostHog();
         });
 
         rejectBtn.addEventListener('click', function() {
           localStorage.setItem(COOKIE_CONSENT_KEY, 'rejected');
-          banner.classList.add('hidden');
+          banner.style.display = 'none';
           // Optionally opt-out in PostHog if already loaded
           if (window.posthog) {
             window.posthog.opt_out_capturing();
@@ -90,7 +92,7 @@ const { title, description = "Caro - Turn natural language into safe shell comma
           //   respect_dnt: true
           // });
         }
-      })();
+      });
     </script>
   </body>
 </html>
