@@ -163,9 +163,49 @@ RATIFICATION CONTEXT:
 ### Constitution Supersedes All Other Practices
 When conflicts arise between this constitution and other documentation, practices, or conventions, **the constitution takes precedence**. Update conflicting documentation to align with constitutional principles.
 
+## Consolidated Knowledge Rules
+
+### VI. Documentation & Installation Standards
+**Consistent messaging and secure installation patterns are mandatory.**
+
+#### Canonical Installation Command
+The ONLY authorized installation command is:
+```bash
+bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)
+```
+
+**Forbidden Patterns:**
+- `curl ... | bash` or `curl ... | sh` (pipe-to-shell)
+- References to `caro.sh/install.sh`
+- Any non-canonical installation URLs
+
+**Rationale:** Process substitution is more secure than pipe (no SIGPIPE issues). The canonical command enforces HTTPS-only, TLS 1.2 minimum, and proper error handling.
+
+#### Internal Page Linking
+When referencing other pages within documentation or website content, proper links are required:
+
+| Reference | Must Link To |
+|-----------|-------------|
+| "installation guide" | `/#download` |
+| "FAQ" | `/faq` |
+| "telemetry"/"privacy" | `/telemetry` |
+| "support" | `/support` |
+| "roadmap" | `/roadmap` |
+
+**Rationale:** Proper linking improves user experience and SEO. References without links are confusing and unprofessional.
+
+#### Configuration Consistency
+Single source of truth for all configuration:
+- Site config: `website/src/config/site.ts`
+- CLI version: `Cargo.toml`
+- Install URL: `https://setup.caro.sh` only
+
+**Enforcement:** Git pre-push hook validates these rules. Violations block push until fixed.
+
 ### Version History
+- **v1.1.0** (2026-01-04): Added consolidated knowledge rules (installation, linking, configuration)
 - **v1.0.0** (2025-10-02): Initial ratification with 5 core principles, safety-first development, TDD enforcement
 
 ---
 
-**Version**: 1.0.0 | **Ratified**: 2025-10-02 | **Last Amended**: 2025-10-02
+**Version**: 1.1.0 | **Ratified**: 2025-10-02 | **Last Amended**: 2026-01-04
