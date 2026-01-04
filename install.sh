@@ -7,6 +7,17 @@
 #   bash <(wget -qO- https://setup.caro.sh)
 #   curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
 #   wget -qO- https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
+#
+# Environment Variables:
+#   CARO_INTERACTIVE     Set to "false" for non-interactive installation (default: true)
+#   CARO_INSTALL_METHOD  Force installation method: "binary" or "cargo" (default: auto-detect)
+#   CARO_INSTALL_DIR     Installation directory (default: ~/.local/bin)
+#   CARO_SHELL_COMPLETION Enable shell completion setup (default: true)
+#   CARO_PATH_AUTO       Auto-add install dir to PATH (default: true)
+#   CARO_SAFETY_CONFIG   Configure safety level interactively (default: true)
+#
+# Quick binary-only install (no compilation):
+#   CARO_INTERACTIVE=false CARO_INSTALL_METHOD=binary curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
 
 set -e
 
@@ -24,12 +35,12 @@ REPO="wildcard/caro"
 BINARY_NAME="caro"
 INSTALL_DIR="${CARO_INSTALL_DIR:-$HOME/.local/bin}"
 
-# Installation preferences (set by interactive prompts)
+# Installation preferences (set by interactive prompts or environment variables)
 INTERACTIVE_MODE="${CARO_INTERACTIVE:-true}"
-INSTALL_METHOD=""  # "cargo" or "binary"
-SETUP_SHELL_COMPLETION="true"
-SETUP_PATH_AUTO="true"
-CONFIGURE_SAFETY_LEVEL="true"
+INSTALL_METHOD="${CARO_INSTALL_METHOD:-}"  # "cargo" or "binary" (empty = auto-detect)
+SETUP_SHELL_COMPLETION="${CARO_SHELL_COMPLETION:-true}"
+SETUP_PATH_AUTO="${CARO_PATH_AUTO:-true}"
+CONFIGURE_SAFETY_LEVEL="${CARO_SAFETY_CONFIG:-true}"
 
 # Detect OS and architecture
 detect_platform() {
@@ -66,8 +77,8 @@ command_exists() {
 install_binary() {
     echo -e "${BLUE}Installing caro...${NC}"
 
-    # Use cargo if explicitly chosen or if no method specified and cargo exists
-    if [ "$INSTALL_METHOD" = "cargo" ] || { [ -z "$INSTALL_METHOD" ] && command_exists cargo; }; then
+    # Use cargo if explicitly chosen or if no method specified and cargo exists (and not forced to binary)
+    if [ "$INSTALL_METHOD" = "cargo" ] || { [ "$INSTALL_METHOD" != "binary" ] && [ -z "$INSTALL_METHOD" ] && command_exists cargo; }; then
         echo -e "${BLUE}Installing via cargo...${NC}"
 
         # Detect if on macOS with Apple Silicon for MLX optimization
@@ -81,11 +92,15 @@ install_binary() {
         return 0
     fi
 
-    # Fallback: Download pre-built binary from GitHub releases
+    # Download pre-built binary from GitHub releases
     local platform
     platform=$(detect_platform)
 
-    echo -e "${YELLOW}Cargo not found. Downloading pre-built binary...${NC}"
+    if [ "$INSTALL_METHOD" = "binary" ]; then
+        echo -e "${BLUE}Downloading pre-built binary (forced via CARO_INSTALL_METHOD)...${NC}"
+    else
+        echo -e "${YELLOW}Cargo not found. Downloading pre-built binary...${NC}"
+    fi
 
     # Try to get latest release tag from GitHub
     local latest_url="https://api.github.com/repos/${REPO}/releases/latest"

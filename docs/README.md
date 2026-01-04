@@ -21,6 +21,12 @@ docs/
 
 ## Quick Links
 
+### Installation Guides
+
+- **Quick Start**: [README.md](../README.md#-quick-start) in project root
+- **Binary Installation**: [BINARY_INSTALL.md](BINARY_INSTALL.md) - Pre-built binary installation guide
+- **macOS Setup**: [MACOS_SETUP.md](MACOS_SETUP.md) - macOS and Apple Silicon GPU acceleration
+
 ### For Contributors
 
 - **Start Here**: [CONTRIBUTING.md](../CONTRIBUTING.md) in project root
