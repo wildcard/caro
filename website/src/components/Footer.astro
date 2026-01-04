@@ -115,6 +115,9 @@ import { SITE_CONFIG } from '../config/site';
         <p class="inspiration">
           Inspired by Portal's Caroline—loyalty transformed into digital companionship
         </p>
+        <p class="heritage-tribute">
+          Proudly built on the foundations laid by <a href="https://www.gnu.org/" target="_blank" rel="noopener noreferrer">GNU</a>, <a href="https://www.fsf.org/" target="_blank" rel="noopener noreferrer">FSF</a> & <a href="https://www.freebsd.org/" target="_blank" rel="noopener noreferrer">FreeBSD</a>
+        </p>
       </div>
       <div class="bottom-right">
         <p class="version">v{SITE_CONFIG.version}</p>
@@ -338,6 +341,23 @@ import { SITE_CONFIG } from '../config/site';
     color: var(--color-text-secondary);
     font-style: italic;
     opacity: 0.8;
+  }
+
+  .heritage-tribute {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    opacity: 0.7;
+    margin-top: 4px;
+  }
+
+  .heritage-tribute a {
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .heritage-tribute a:hover {
+    color: #ff8c42;
   }
 
   .version {
