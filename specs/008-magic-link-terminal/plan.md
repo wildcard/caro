@@ -88,9 +88,30 @@ Enable basic `caro://` URL handling on macOS and Linux with terminal launching a
 **Key Files**:
 - `src/magic_link/audit.rs` - Audit logging
 
+#### 1.8 caro.to Redirect Service (MVP)
+- Deploy basic redirect service at `caro.to` domain
+- Implement short link generation (`caro.to/r/<id>`)
+- Capture HTTP Referer for source tracking
+- Basic landing page with "Open in Caro" redirect
+- Installation detection (timeout-based)
+- Show install instructions when Caro not detected
+
+**Key Files** (separate web repository):
+- `caro.to/` - Web service codebase
+- `caro.to/src/routes/redirect.ts` - Redirect logic
+- `caro.to/src/pages/install.tsx` - Installation page
+
+**Infrastructure**:
+- Edge deployment (Vercel/Cloudflare)
+- Analytics database for click tracking
+- No command storage (privacy by design)
+
 ### Exit Criteria
 - [ ] `caro://run?cmd=echo%20hello` opens terminal on macOS
 - [ ] `caro://run?cmd=echo%20hello` opens terminal on Linux
+- [ ] `caro.to/r/test#echo%20hello` redirects to `caro://` protocol
+- [ ] Referrer domain captured and passed to Caro CLI
+- [ ] Installation page shown when Caro not installed
 - [ ] Safety validation runs on magic link commands
 - [ ] User confirmation required before execution
 - [ ] Audit log captures all magic link usage
@@ -145,7 +166,26 @@ preferred_terminal = "iterm2"  # or "auto"
 custom_terminal_command = ""
 ```
 
-#### 2.5 First-Run Onboarding
+#### 2.5 WebAssembly Preflight Safety Check
+- Compile Caro's safety validator to WebAssembly
+- Integrate WASM module into caro.to landing page
+- Display safety analysis before user opens terminal
+- Show risk level with visual indicators (green/yellow/red)
+- Display command explanation in plain language
+- Detect and display prerequisites
+- Allow users to cancel before terminal opens
+
+**Key Files**:
+- `src/safety/wasm.rs` - WASM bindings for safety validator
+- `caro.to/src/lib/safety-wasm/` - WASM module integration
+- `caro.to/src/components/PreflightCheck.tsx` - Safety UI
+
+**Build Process**:
+```bash
+wasm-pack build --target web --features wasm -d caro.to/public/wasm
+```
+
+#### 2.6 First-Run Onboarding
 - Detect first magic link usage
 - Show brief explanation of feature
 - Explain safety guarantees
@@ -154,7 +194,7 @@ custom_terminal_command = ""
 **Key Files**:
 - `src/magic_link/onboarding.rs` - Onboarding flow
 
-#### 2.6 Improved Error Handling
+#### 2.7 Improved Error Handling
 - Better error messages for common failures
 - Terminal not found guidance
 - Protocol not registered guidance
@@ -166,6 +206,9 @@ custom_terminal_command = ""
 - [ ] Users can configure preferred terminal
 - [ ] First-time users see onboarding
 - [ ] All error states have helpful messages
+- [ ] WebAssembly preflight shows safety analysis on caro.to
+- [ ] Users see risk level before opening terminal
+- [ ] Preflight detects and displays command prerequisites
 
 ---
 

@@ -352,7 +352,311 @@ Similar architecture with WebExtension APIs (compatible with Manifest V3 subset)
 
 ---
 
-## 6. Vendor Security Integration (Phase 5)
+## 6. caro.to Redirect Service Architecture
+
+### Purpose
+
+The `caro.to` redirect service solves critical problems that direct `caro://` links cannot:
+
+1. **Installation Detection**: Direct protocol links fail silently if Caro isn't installed
+2. **Referrer Tracking**: Custom protocols don't receive HTTP Referer headers
+3. **Preflight Safety**: Show users safety analysis before touching their system
+4. **Analytics**: Understand usage patterns and conversion rates
+
+### URL Structure
+
+**Short Link Format**:
+```
+https://caro.to/r/<link_id>#<url-encoded-command>
+```
+
+Example:
+```
+https://caro.to/r/abc123#brew%20install%20jq
+```
+
+**Why URL Fragment (#)?**
+- Fragment is never sent to server (privacy by design)
+- Command stays client-side only
+- Server only sees link_id, not the command content
+- JavaScript extracts command for preflight and redirect
+
+### Installation Detection
+
+Detecting if `caro://` protocol is registered is challenging. Approaches:
+
+**Option A: Timeout-based Detection**
+```javascript
+// Try to open caro:// and detect if it worked
+const timeout = setTimeout(() => {
+  // Protocol not registered - show install page
+  showInstallPage();
+}, 2000);
+
+window.addEventListener('blur', () => {
+  // Browser lost focus = app opened = protocol works
+  clearTimeout(timeout);
+});
+
+window.location.href = 'caro://ping';
+```
+
+**Option B: Local Storage Flag**
+- After successful Caro installation, have CLI call back to caro.to to set a cookie/flag
+- Check flag on subsequent visits
+- Less reliable but simpler
+
+**Option C: Browser Extension Bridge**
+- If browser extension is installed, it can reliably detect CLI installation
+- Extension communicates installation status to caro.to
+
+**Recommendation**: Combine Option A (timeout) with Option C (extension enhancement)
+
+### Referrer Capture
+
+The HTTP Referer header provides source context:
+
+```javascript
+// Server-side (Node.js example)
+app.get('/r/:linkId', (req, res) => {
+  const referer = req.headers.referer || req.headers.referrer;
+  const linkId = req.params.linkId;
+
+  // Log for analytics (without command content)
+  logClick({
+    linkId,
+    refererDomain: referer ? new URL(referer).hostname : null,
+    timestamp: Date.now(),
+    userAgent: req.headers['user-agent']
+  });
+
+  // Render preflight page (client extracts command from fragment)
+  res.render('preflight', { linkId, refererDomain });
+});
+```
+
+### Data Flow
+
+```
+User clicks caro.to/r/abc123#brew%20install%20jq
+           │
+           ▼
+   ┌───────────────────────────────────────┐
+   │  Server receives /r/abc123            │
+   │  • Captures HTTP Referer              │
+   │  • Logs click analytics               │
+   │  • Returns preflight HTML + WASM      │
+   │  • Does NOT see command (in fragment) │
+   └───────────────────────────────────────┘
+           │
+           ▼
+   ┌───────────────────────────────────────┐
+   │  Client-side JavaScript               │
+   │  • Extracts command from fragment     │
+   │  • Loads WASM safety validator        │
+   │  • Runs preflight check               │
+   │  • Renders safety UI                  │
+   └───────────────────────────────────────┘
+           │
+           ▼
+   User sees preflight results, clicks "Open in Caro"
+           │
+           ▼
+   Redirect to caro://run?cmd=...&ref=...&link_id=...
+```
+
+### Privacy Architecture
+
+**What server sees**:
+- Link ID
+- Referrer domain (where user came from)
+- Timestamp
+- User agent (for platform detection)
+- IP address (can be anonymized)
+
+**What server NEVER sees**:
+- The actual command (stays in URL fragment)
+- Any user data
+- Command execution results
+
+---
+
+## 7. WebAssembly Preflight Safety Check
+
+### Architecture
+
+Compile Caro's safety validation module to WebAssembly for browser execution:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Rust Safety Validator                                   │
+│  (src/safety/mod.rs, src/safety/patterns.rs)            │
+│                                                          │
+│  Compile with wasm-pack:                                │
+│  wasm-pack build --target web --features wasm           │
+└─────────────────────────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────┐
+│  WASM Module (caro_safety.wasm)                         │
+│  • Pattern matching                                      │
+│  • Risk level calculation                                │
+│  • Explanation generation                                │
+│  • ~200-500KB gzipped                                   │
+└─────────────────────────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────┐
+│  JavaScript Wrapper                                      │
+│                                                          │
+│  import init, { validate_command } from './caro_safety';│
+│                                                          │
+│  await init();                                           │
+│  const result = validate_command(command);              │
+│  // { risk_level, warnings, explanation, allowed }      │
+└─────────────────────────────────────────────────────────┘
+```
+
+### WASM Module Interface
+
+```rust
+// src/safety/wasm.rs
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+pub struct PreflightResult {
+    pub risk_level: String,      // "safe", "moderate", "high", "critical"
+    pub allowed: bool,
+    pub explanation: String,
+    pub warnings: Vec<String>,
+    pub matched_patterns: Vec<String>,
+    pub prerequisites: Vec<String>,
+}
+
+#[wasm_bindgen]
+pub fn validate_command(command: &str) -> PreflightResult {
+    let validator = SafetyValidator::new();
+    let result = validator.validate(command);
+
+    PreflightResult {
+        risk_level: result.risk_level.to_string(),
+        allowed: result.allowed,
+        explanation: result.explanation,
+        warnings: result.warnings,
+        matched_patterns: result.matched_patterns,
+        prerequisites: detect_prerequisites(command),
+    }
+}
+```
+
+### Prerequisite Detection in Browser
+
+Limited compared to CLI (no PATH access), but can detect:
+
+1. **Common program patterns**:
+   ```javascript
+   const KNOWN_PROGRAMS = {
+     'brew': { name: 'Homebrew', platforms: ['macos'] },
+     'apt': { name: 'APT', platforms: ['linux-debian'] },
+     'npm': { name: 'Node.js', platforms: ['all'] },
+     'cargo': { name: 'Rust', platforms: ['all'] },
+     'docker': { name: 'Docker', platforms: ['all'] },
+   };
+
+   function detectPrerequisites(command) {
+     const programs = parseCommandPrograms(command);
+     return programs.map(p => KNOWN_PROGRAMS[p]).filter(Boolean);
+   }
+   ```
+
+2. **Display as informational** (can't verify installation from browser):
+   ```
+   ℹ️ This command uses: brew (Homebrew - macOS package manager)
+   Caro will verify this is installed when you run the command.
+   ```
+
+### UI Components
+
+**Preflight Landing Page Structure**:
+
+```html
+<div class="preflight-container">
+  <!-- Header -->
+  <header>
+    <img src="caro-logo.svg" alt="Caro">
+    <h1>Command Safety Check</h1>
+    <p class="source">From: <strong>tutorial-site.com</strong></p>
+  </header>
+
+  <!-- Command Display -->
+  <div class="command-block">
+    <code>brew install jq</code>
+    <button class="copy-btn">Copy</button>
+  </div>
+
+  <!-- Safety Analysis -->
+  <div class="safety-result safe"> <!-- or: moderate, high, critical -->
+    <div class="risk-badge">✅ Safe</div>
+    <p class="explanation">
+      This command installs jq, a command-line JSON processor,
+      using the Homebrew package manager.
+    </p>
+  </div>
+
+  <!-- Prerequisites -->
+  <div class="prerequisites">
+    <h3>Requirements</h3>
+    <ul>
+      <li>
+        <span class="icon">📦</span>
+        Homebrew (macOS package manager)
+        <span class="note">Caro will check this when you proceed</span>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Warnings (if any) -->
+  <div class="warnings" style="display: none;">
+    <h3>⚠️ Warnings</h3>
+    <ul id="warning-list"></ul>
+  </div>
+
+  <!-- Actions -->
+  <div class="actions">
+    <button class="primary" id="open-caro">Open in Caro</button>
+    <button class="secondary" id="cancel">Cancel</button>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>
+      Caro will run additional safety checks locally before executing.
+      <a href="/learn-more">Learn how Caro keeps you safe</a>
+    </p>
+  </footer>
+</div>
+```
+
+### Performance Considerations
+
+| Metric | Target | Notes |
+|--------|--------|-------|
+| WASM load time | < 500ms | Lazy load after page render |
+| Validation time | < 100ms | Pattern matching is fast |
+| Total preflight | < 1s | Including UI render |
+| WASM bundle size | < 500KB gzipped | Tree-shake unused code |
+
+### Graceful Degradation
+
+If WASM fails to load:
+1. Show command without safety analysis
+2. Display warning: "Safety check unavailable - Caro will validate locally"
+3. Still allow proceeding to Caro
+4. Log failure for debugging
+
+---
+
+## 8. Vendor Security Integration (Phase 5+)
 
 ### Potential Integration Partners
 
@@ -389,7 +693,7 @@ pub struct ThreatAssessment {
 
 ---
 
-## 7. Cross-Platform Considerations
+## 9. Cross-Platform Considerations
 
 ### Feature Matrix
 
@@ -417,7 +721,7 @@ pub struct ThreatAssessment {
 
 ---
 
-## 8. Performance Benchmarks (Targets)
+## 10. Performance Benchmarks (Targets)
 
 | Operation | Target | Notes |
 |-----------|--------|-------|
@@ -430,7 +734,7 @@ pub struct ThreatAssessment {
 
 ---
 
-## 9. Open Research Questions
+## 11. Open Research Questions
 
 1. **Sandboxed Browsers**: How do Safari's restrictions on protocol handlers affect functionality?
 2. **WSL Integration**: Can magic links open commands in WSL on Windows?
@@ -440,7 +744,7 @@ pub struct ThreatAssessment {
 
 ---
 
-## 10. Prior Art & References
+## 12. Prior Art & References
 
 ### Similar Projects
 
@@ -466,5 +770,18 @@ The Magic Link Terminal feature is technically feasible across all major platfor
 1. **Cross-platform URL protocol registration** - Requires different approaches per OS
 2. **Terminal detection and launching** - Many terminals, varying APIs
 3. **Security at the URL parsing layer** - Critical to prevent injection
+4. **caro.to redirect service** - Requires web infrastructure for referrer tracking and installation detection
+5. **WebAssembly preflight** - Requires compiling safety validator to WASM
 
-The phased approach in the spec allows for iterative development, starting with macOS/Linux MVP and expanding to full cross-platform support with browser extension in later phases.
+The `caro.to` redirect service is a critical component that enables:
+- **Installation onboarding**: Users without Caro see install instructions instead of broken links
+- **Referrer tracking**: We know where users are coming from for analytics and trust assessment
+- **Preflight safety**: Users see safety analysis in the browser before their terminal opens
+- **Privacy by design**: Commands stay in URL fragments, never sent to server
+
+The phased approach in the spec allows for iterative development:
+1. **Phase 1**: Core protocol + basic caro.to redirect
+2. **Phase 2**: Enhanced UX + preflight WebAssembly
+3. **Phase 3**: Web integration tools
+4. **Phase 4**: Browser extension
+5. **Phase 5**: Vendor security integration

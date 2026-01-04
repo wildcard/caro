@@ -40,6 +40,11 @@ Magic Link Terminal transforms this experience by providing one-click execution 
 4. **Offline Safety**: Core safety validation works without network access
 5. **Vendor Security Integration**: Optional integration with security vendor APIs for additional threat analysis
 
+### Secondary Goals (continued)
+
+6. **Context Collection**: Capture referrer information to understand where users are coming from
+7. **Installation Onboarding**: Guide users without Caro installed through the installation process
+
 ### Non-Goals
 
 1. **Automatic Execution**: Commands will never run without user confirmation
@@ -66,6 +71,18 @@ A developer clicks a magic link from an untrusted source containing `curl | bash
 #### Story 4: Browser Extension Use
 A developer browses Stack Overflow and sees a command snippet. The Caro browser extension adds a "Run safely in Caro" button next to the code block. Clicking opens their terminal with the command pre-loaded and ready for safety validation.
 
+#### Story 5: New User Installation Flow
+A new developer without Caro clicks a magic link on a tutorial website. Instead of seeing a broken link error, they're redirected through `caro.to` which detects Caro isn't installed, shows installation instructions for their platform, and after installation, automatically continues to execute the original command.
+
+#### Story 6: Referrer Context Tracking
+A developer clicks a magic link from a popular tutorial site. The link goes through `caro.to/r/abc123` which captures that the user came from that tutorial. When Caro opens, it displays "Command from: tutorial-site.com" giving the user context about the source, and this information is logged for analytics.
+
+#### Story 7: Web Preflight Safety Preview
+A user clicks a caro.to link and lands on the preflight page. Before their terminal even opens, they see: the exact command that will run, a green "Safe" indicator, an explanation like "This will install the jq JSON processor using Homebrew", and a prominent "Open in Caro" button. They feel confident proceeding because they've already seen the safety analysis.
+
+#### Story 8: Dangerous Command Blocked at Preflight
+A user clicks a suspicious magic link. The caro.to preflight page immediately shows a red "Critical Risk" warning, explains "This command attempts to download and execute an unknown script", and prominently displays "We recommend NOT running this command." The user can still proceed, but they've been clearly warned before anything touches their system.
+
 ### Acceptance Scenarios
 
 1. **Given** a website has a magic link `caro://run?cmd=brew%20install%20jq`, **When** the user clicks it, **Then** their default terminal opens, Caro starts with the command pre-loaded, displays safety analysis, and awaits user confirmation.
@@ -79,6 +96,12 @@ A developer browses Stack Overflow and sees a command snippet. The Caro browser 
 5. **Given** a magic link is clicked while the terminal is already running Caro, **When** this occurs, **Then** the system either opens a new terminal session or queues the command appropriately.
 
 6. **Given** a website attempts to craft a malicious magic link with shell injection, **When** Caro parses the link, **Then** the injection is sanitized and the command is safely handled.
+
+7. **Given** a user without Caro installed clicks a `caro.to` short link, **When** the redirect service detects no protocol handler, **Then** it displays platform-specific installation instructions and stores the pending command for post-install execution.
+
+8. **Given** a website author creates a magic link via the `caro.to` link generator, **When** users click that link, **Then** the referrer (original website) is captured and displayed to the user in Caro's confirmation UI.
+
+9. **Given** a user clicks a `caro.to/r/xyz123` short link, **When** Caro opens, **Then** it receives the referrer domain, link ID, and any metadata associated with that short link.
 
 ### Edge Cases
 
@@ -139,12 +162,36 @@ A developer browses Stack Overflow and sees a command snippet. The Caro browser 
 - **FR-031**: System SHOULD provide a link generator tool for creating properly-formatted magic links
 - **FR-032**: System MAY provide copy-paste HTML snippets for common button styles
 
+#### Redirect Service (caro.to)
+- **FR-033**: System MUST provide a redirect service at `caro.to` domain for magic link hosting
+- **FR-034**: Redirect service MUST capture HTTP referrer when users click links from external websites
+- **FR-035**: Redirect service MUST detect whether the `caro://` protocol handler is registered on user's system
+- **FR-036**: Redirect service MUST display platform-specific installation instructions when Caro is not installed
+- **FR-037**: Redirect service MUST store pending commands and allow continuation after Caro installation
+- **FR-038**: Redirect service MUST generate short links (e.g., `caro.to/r/abc123`) for easy sharing
+- **FR-039**: Redirect service MUST pass referrer information to Caro via URL parameters
+- **FR-040**: Redirect service MUST provide analytics on link usage (clicks, conversions, sources)
+- **FR-041**: Redirect service MUST NOT store or log the actual command content server-side (privacy)
+- **FR-042**: Redirect service SHOULD provide a link generator UI for website authors
+
+#### Web Preflight Safety Check (caro.to)
+- **FR-043**: Redirect service MUST run client-side preflight safety validation using WebAssembly
+- **FR-044**: Preflight check MUST display safety analysis results (risk level, warnings) before redirect
+- **FR-045**: Preflight check MUST show command explanation in plain language on the landing page
+- **FR-046**: Preflight check MUST display visual safety indicators (green/yellow/red) matching Caro's CLI
+- **FR-047**: Preflight check MUST allow users to cancel before opening their terminal
+- **FR-048**: Preflight check MUST detect and warn about CRITICAL risk commands with prominent alerts
+- **FR-049**: Preflight check MUST run entirely client-side (WebAssembly) - no command sent to server
+- **FR-050**: Preflight check SHOULD show prerequisite detection (e.g., "This command requires `brew`")
+- **FR-051**: Preflight check MUST provide "Learn more" links explaining each warning
+- **FR-052**: Preflight check MUST clearly indicate this is a preview and Caro will run full validation locally
+
 #### Browser Extension (Phase 2)
-- **FR-033**: Extension MUST detect code blocks containing shell commands on web pages
-- **FR-034**: Extension MUST add a "Run in Caro" button adjacent to detected code blocks
-- **FR-035**: Extension MAY use local WebAssembly model for preliminary command classification
-- **FR-036**: Extension MUST respect user privacy and not send code to external servers without consent
-- **FR-037**: Extension MUST work offline for basic functionality
+- **FR-053**: Extension MUST detect code blocks containing shell commands on web pages
+- **FR-054**: Extension MUST add a "Run in Caro" button adjacent to detected code blocks
+- **FR-055**: Extension MAY use local WebAssembly model for preliminary command classification
+- **FR-056**: Extension MUST respect user privacy and not send code to external servers without consent
+- **FR-057**: Extension MUST work offline for basic functionality
 
 ### Non-Functional Requirements
 
@@ -192,20 +239,110 @@ Optional component for:
 - Checking URLs against known malicious sources
 - Providing additional confidence scores for unknown commands
 
+### RedirectService (caro.to)
+Web service that acts as an intermediary for magic links:
+- **short_link_id**: Unique identifier for the short link (e.g., `abc123`)
+- **command_hash**: Hash of the command (command not stored server-side for privacy)
+- **encoded_command**: URL-safe encoded command passed via URL fragment (client-side only)
+- **referrer_domain**: The domain where the link was originally placed
+- **referrer_url**: Full URL of the referring page (optional, for analytics)
+- **created_at**: Timestamp of link creation
+- **click_count**: Number of times the link was clicked
+- **conversion_count**: Number of successful Caro executions
+
+### LinkContext
+Context information passed from caro.to to the Caro CLI:
+- **referrer**: Domain or URL where the user clicked the link
+- **link_id**: Short link identifier for tracking
+- **created_by**: Optional publisher identity
+- **metadata**: Optional title, description, tags from link creator
+
 ---
 
 ## Architecture Overview
+
+### Primary Flow: caro.to Redirect Service
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                         Web Browser                                  │
 │  ┌─────────────────────────────────────────────────────────────┐   │
-│  │  Website with Magic Link                                     │   │
-│  │  <a href="caro://run?cmd=brew%20install%20jq">Install jq</a>│   │
+│  │  Website with Magic Link (Recommended)                       │   │
+│  │  <a href="https://caro.to/r/abc123#brew%20install%20jq">    │   │
+│  │      Install jq                                              │   │
+│  │  </a>                                                        │   │
 │  └─────────────────────────────────────────────────────────────┘   │
 │                              │                                       │
 │                              │ User clicks link                      │
 │                              ▼                                       │
+└─────────────────────────────────────────────────────────────────────┘
+                               │
+                               │ HTTPS request to caro.to
+                               ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                    caro.to Redirect Service                          │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │  1. Capture HTTP Referer header (source website)            │   │
+│  │  2. Log click analytics (link_id, referrer, timestamp)      │   │
+│  │  3. Extract command from URL fragment (client-side only)    │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                              │                                       │
+│                              ▼                                       │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │  PREFLIGHT SAFETY CHECK (WebAssembly - runs in browser)     │   │
+│  │  ───────────────────────────────────────────────────────    │   │
+│  │  • Run Caro's safety validator compiled to WASM             │   │
+│  │  • Display risk level: ✅ Safe | ⚠️ Moderate | 🛑 Critical   │   │
+│  │  • Show command explanation in plain language               │   │
+│  │  • Detect prerequisites (e.g., "requires brew")             │   │
+│  │  • Provide "Learn more" for each warning                    │   │
+│  │  • User sees full safety analysis BEFORE opening terminal   │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                              │                                       │
+│              User clicks "Open in Caro" or "Cancel"                 │
+│                              │                                       │
+│              ┌───────────────┴───────────────┐                      │
+│              │                               │                       │
+│              ▼                               ▼                       │
+│  ┌─────────────────────┐      ┌─────────────────────────────────┐  │
+│  │  Caro Installed     │      │  Caro NOT Installed             │  │
+│  │  ───────────────    │      │  ───────────────────            │  │
+│  │  Redirect to:       │      │  Show installation page:        │  │
+│  │  caro://run?cmd=... │      │  • Platform detection           │  │
+│  │  &ref=tutorial.com  │      │  • Install instructions         │  │
+│  │  &link_id=abc123    │      │  • Store pending command        │  │
+│  │  &preflight=passed  │      │  • "Continue after install"     │  │
+│  └─────────────────────┘      └─────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────┘
+                               │
+                               │ caro:// URL activated (if installed)
+                               ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                    Operating System                                  │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │  Protocol Handler (registered at install/first-run)         │   │
+│  │  • Receives caro:// URLs                                     │   │
+│  │  • Validates URL structure                                   │   │
+│  │  • Launches Caro with --magic-link flag                     │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Alternative Flow: Direct caro:// Links
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                         Web Browser                                  │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │  Website with Direct Magic Link (Advanced)                   │   │
+│  │  <a href="caro://run?cmd=brew%20install%20jq">Install jq</a>│   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                              │                                       │
+│  Note: Direct links skip caro.to but:                               │
+│  • No referrer tracking                                              │
+│  • No installation fallback (broken link if Caro not installed)    │
+│  • No analytics                                                      │
+│                              │                                       │
 │  ┌─────────────────────────────────────────────────────────────┐   │
 │  │  Browser Extension (Phase 2)                                 │   │
 │  │  • Detects code snippets                                     │   │
@@ -219,10 +356,7 @@ Optional component for:
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    Operating System                                  │
 │  ┌─────────────────────────────────────────────────────────────┐   │
-│  │  Protocol Handler (registered at install/first-run)         │   │
-│  │  • Receives caro:// URLs                                     │   │
-│  │  • Validates URL structure                                   │   │
-│  │  • Launches Caro with --magic-link flag                     │   │
+│  │  Protocol Handler                                            │   │
 │  └─────────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────┘
                                │
@@ -455,11 +589,21 @@ All magic link executions are logged with:
 
 ## Open Questions
 
-1. **[NEEDS CLARIFICATION]**: Should magic links work if Caro is not installed? (Install prompt flow?)
+1. **[RESOLVED]**: Should magic links work if Caro is not installed?
+   - **Answer**: Yes, via caro.to redirect service which detects missing installation and guides users through setup, then continues with the original command.
+
 2. **[NEEDS CLARIFICATION]**: What is the maximum command length we should support?
+
 3. **[NEEDS CLARIFICATION]**: Should we support batch/multiple commands in a single magic link?
+
 4. **[NEEDS CLARIFICATION]**: How should we handle magic links clicked on mobile devices?
+   - Consider: Show command for reference, offer to copy, explain that execution requires desktop?
+
 5. **[NEEDS CLARIFICATION]**: Should there be a "remember trust for this domain" feature?
+
+6. **[NEEDS CLARIFICATION]**: Should caro.to offer different preflight check levels (quick vs thorough)?
+
+7. **[NEEDS CLARIFICATION]**: How do we handle commands that require user-specific values (e.g., API keys, paths)?
 
 ---
 
