@@ -4,6 +4,7 @@
  * Multi-column layout organizing site content into logical sections
  */
 import { SITE_CONFIG } from '../config/site';
+import InstagramFeed from './InstagramFeed.astro';
 ---
 
 <footer class="footer">
@@ -26,7 +27,7 @@ import { SITE_CONFIG } from '../config/site';
               <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
             </svg>
           </a>
-          <a href="https://www.instagram.com/kyaroblackheart/" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+          <a href={SITE_CONFIG.social.instagram.url} class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
             </svg>
@@ -92,16 +93,20 @@ import { SITE_CONFIG } from '../config/site';
       </div>
     </div>
 
-    <!-- Kyaro Mascot Section -->
+    <!-- Kyaro Mascot Section with Instagram Feed -->
     <div class="kyaro-banner">
-      <div class="kyaro-content">
-        <span class="kyaro-emoji">🐕</span>
-        <div class="kyaro-info">
-          <p class="kyaro-title">Meet Kyaro!</p>
-          <p class="kyaro-text">
-            The real-life inspiration behind Caro.
-            <a href="https://www.instagram.com/kyaroblackheart/" target="_blank" rel="noopener noreferrer">@kyaroblackheart</a>
-          </p>
+      <div class="kyaro-banner-content">
+        <div class="kyaro-intro">
+          <span class="kyaro-emoji">🐕</span>
+          <div class="kyaro-info">
+            <p class="kyaro-title">Meet Kyaro!</p>
+            <p class="kyaro-text">
+              The real-life inspiration behind Caro — a loyal Shiba Inu whose adventures inspired this shell companion.
+            </p>
+          </div>
+        </div>
+        <div class="kyaro-instagram">
+          <InstagramFeed maxPosts={4} />
         </div>
       </div>
     </div>
@@ -260,25 +265,32 @@ import { SITE_CONFIG } from '../config/site';
     color: #d43d9a !important;
   }
 
-  /* Kyaro Mascot Banner */
+  /* Kyaro Mascot Banner with Instagram */
   .kyaro-banner {
     margin-top: 32px;
-    padding: 20px 24px;
+    padding: 24px;
     background: var(--color-bg-secondary);
     border-radius: 12px;
     border: 1px solid var(--color-border);
   }
 
-  .kyaro-content {
-    display: flex;
+  .kyaro-banner-content {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 32px;
     align-items: center;
+  }
+
+  .kyaro-intro {
+    display: flex;
+    align-items: flex-start;
     gap: 16px;
-    justify-content: center;
   }
 
   .kyaro-emoji {
-    font-size: 32px;
+    font-size: 48px;
     line-height: 1;
+    flex-shrink: 0;
   }
 
   .kyaro-info {
@@ -286,26 +298,21 @@ import { SITE_CONFIG } from '../config/site';
   }
 
   .kyaro-title {
-    font-size: 15px;
+    font-size: 18px;
     font-weight: 600;
     color: var(--color-text);
-    margin-bottom: 4px;
+    margin-bottom: 8px;
   }
 
   .kyaro-text {
-    font-size: 13px;
+    font-size: 14px;
     color: var(--color-text-secondary);
-    line-height: 1.4;
+    line-height: 1.6;
   }
 
-  .kyaro-text a {
-    color: #ff8c42;
-    text-decoration: none;
-    font-weight: 500;
-  }
-
-  .kyaro-text a:hover {
-    text-decoration: underline;
+  .kyaro-instagram {
+    border-left: 1px solid var(--color-border);
+    padding-left: 32px;
   }
 
   /* Footer Bottom */
@@ -375,6 +382,22 @@ import { SITE_CONFIG } from '../config/site';
       margin-left: auto;
       margin-right: auto;
     }
+
+    .kyaro-banner-content {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    .kyaro-intro {
+      justify-content: center;
+    }
+
+    .kyaro-instagram {
+      border-left: none;
+      border-top: 1px solid var(--color-border);
+      padding-left: 0;
+      padding-top: 24px;
+    }
   }
 
   @media (max-width: 600px) {
@@ -438,17 +461,42 @@ import { SITE_CONFIG } from '../config/site';
 
     .kyaro-banner {
       margin-top: 24px;
-      padding: 16px;
+      padding: 20px;
     }
 
-    .kyaro-content {
+    .kyaro-banner-content {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    .kyaro-intro {
       flex-direction: column;
+      align-items: center;
       text-align: center;
       gap: 12px;
     }
 
     .kyaro-info {
       text-align: center;
+    }
+
+    .kyaro-emoji {
+      font-size: 40px;
+    }
+
+    .kyaro-title {
+      font-size: 16px;
+    }
+
+    .kyaro-text {
+      font-size: 13px;
+    }
+
+    .kyaro-instagram {
+      border-left: none;
+      border-top: 1px solid var(--color-border);
+      padding-left: 0;
+      padding-top: 20px;
     }
 
     .footer-bottom {
@@ -495,11 +543,19 @@ import { SITE_CONFIG } from '../config/site';
 
     .kyaro-banner {
       margin-top: 20px;
-      padding: 14px;
+      padding: 16px;
     }
 
     .kyaro-emoji {
-      font-size: 28px;
+      font-size: 32px;
+    }
+
+    .kyaro-title {
+      font-size: 15px;
+    }
+
+    .kyaro-instagram {
+      padding-top: 16px;
     }
   }
 </style>

@@ -1,0 +1,277 @@
+---
+/**
+ * Instagram Feed Component
+ * Displays recent Instagram posts from Kyaro's account (@kyaroblackheart)
+ * in a responsive grid layout for the footer banner.
+ */
+import { SITE_CONFIG } from '../config/site';
+
+interface Props {
+  maxPosts?: number;
+}
+
+const { maxPosts = 4 } = Astro.props;
+const instagramUrl = SITE_CONFIG.social.instagram.url;
+const instagramHandle = SITE_CONFIG.social.instagram.handle;
+
+// Instagram post placeholders - these represent the latest posts
+// In production, these could be fetched from an API endpoint or CDN
+const posts = [
+  {
+    id: '1',
+    thumbnail: '/images/instagram/kyaro-1.jpg',
+    alt: 'Kyaro the Shiba Inu',
+    caption: 'Adventures of Kyaro',
+  },
+  {
+    id: '2',
+    thumbnail: '/images/instagram/kyaro-2.jpg',
+    alt: 'Kyaro exploring',
+    caption: 'Exploring new territories',
+  },
+  {
+    id: '3',
+    thumbnail: '/images/instagram/kyaro-3.jpg',
+    alt: 'Kyaro resting',
+    caption: 'Rest time',
+  },
+  {
+    id: '4',
+    thumbnail: '/images/instagram/kyaro-4.jpg',
+    alt: 'Kyaro being cute',
+    caption: 'Being adorable',
+  },
+].slice(0, maxPosts);
+---
+
+<div class="instagram-feed">
+  <div class="instagram-header">
+    <div class="instagram-icon">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+      </svg>
+    </div>
+    <div class="instagram-title">
+      <span class="title-text">Follow Kyaro's Adventures</span>
+      <a href={instagramUrl} target="_blank" rel="noopener noreferrer" class="instagram-handle">
+        {instagramHandle}
+      </a>
+    </div>
+  </div>
+
+  <div class="instagram-grid">
+    {posts.map((post) => (
+      <a
+        href={instagramUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="instagram-post"
+        title={post.caption}
+      >
+        <div class="post-placeholder">
+          <span class="paw-icon">🐾</span>
+        </div>
+        <div class="post-overlay">
+          <svg class="instagram-logo" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+          </svg>
+        </div>
+      </a>
+    ))}
+  </div>
+
+  <a href={instagramUrl} target="_blank" rel="noopener noreferrer" class="view-more">
+    View all on Instagram
+    <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M7 17L17 7M17 7H7M17 7V17"/>
+    </svg>
+  </a>
+</div>
+
+<style>
+  .instagram-feed {
+    width: 100%;
+  }
+
+  .instagram-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .instagram-icon {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .instagram-icon svg {
+    width: 18px;
+    height: 18px;
+    color: white;
+  }
+
+  .instagram-title {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .title-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .instagram-handle {
+    font-size: 13px;
+    color: #e1306c;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .instagram-handle:hover {
+    text-decoration: underline;
+  }
+
+  .instagram-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .instagram-post {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--color-bg-tertiary, #2a2a2a);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .instagram-post:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .post-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--color-bg-secondary) 0%, var(--color-bg-tertiary, #333) 100%);
+  }
+
+  .paw-icon {
+    font-size: 24px;
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+  }
+
+  .instagram-post:hover .paw-icon {
+    opacity: 0.3;
+  }
+
+  .post-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    opacity: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s ease;
+  }
+
+  .instagram-post:hover .post-overlay {
+    opacity: 0.9;
+  }
+
+  .instagram-logo {
+    width: 28px;
+    height: 28px;
+    color: white;
+  }
+
+  .view-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #e1306c;
+    text-decoration: none;
+    transition: gap 0.2s ease;
+  }
+
+  .view-more:hover {
+    gap: 10px;
+    text-decoration: underline;
+  }
+
+  .arrow-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .instagram-grid {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .instagram-icon {
+      width: 28px;
+      height: 28px;
+    }
+
+    .instagram-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .title-text {
+      font-size: 13px;
+    }
+
+    .instagram-handle {
+      font-size: 12px;
+    }
+
+    .paw-icon {
+      font-size: 18px;
+    }
+
+    .instagram-logo {
+      width: 22px;
+      height: 22px;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .instagram-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .instagram-header {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .instagram-title {
+      align-items: center;
+    }
+  }
+</style>
