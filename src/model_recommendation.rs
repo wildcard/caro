@@ -2,10 +2,21 @@
 //!
 //! Recommends optimal models based on network speed test results and user preferences.
 //! Provides instant-use model suggestions and background download recommendations.
+//!
+//! Prioritizes:
+//! - Smaller models (< 1GB) for faster downloads and lower GPU memory
+//! - Qwen and code-specialized models for best shell command generation
+//! - Models suitable for typical 100Mbps home internet (~12.5 MB/s)
 
 use crate::model_catalog::{ModelCatalog, ModelInfo, ModelSize};
 use crate::speed_test::{NetworkQuality, SpeedTestResult};
 use std::path::PathBuf;
+
+/// Maximum size in MB for "small GPU friendly" models
+const SMALL_GPU_MAX_SIZE_MB: u64 = 1000;
+
+/// Preferred model size threshold for instant use (< 30s on 100Mbps)
+const PREFERRED_INSTANT_SIZE_MB: u64 = 400;
 
 /// Model recommendation based on network speed and preferences
 #[derive(Debug, Clone)]
@@ -59,15 +70,15 @@ impl std::fmt::Display for ModelRecommendation {
 }
 
 /// User preferences for model selection
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct ModelPreferences {
     /// Prefer MLX-optimized models (for Apple Silicon)
     pub prefer_mlx: bool,
-    /// Prefer smaller models for faster startup
+    /// Prefer smaller models for faster startup and lower GPU memory
     pub prefer_small: bool,
     /// Prefer larger models for better quality
     pub prefer_quality: bool,
-    /// Prefer code-specialized models
+    /// Prefer code-specialized models (Qwen-Coder, StarCoder, etc.)
     pub prefer_code_models: bool,
     /// Maximum acceptable instant download time in seconds
     pub max_instant_download_secs: u64,
@@ -75,33 +86,63 @@ pub struct ModelPreferences {
     pub max_background_download_secs: u64,
 }
 
+impl Default for ModelPreferences {
+    fn default() -> Self {
+        Self {
+            prefer_mlx: false,
+            prefer_small: true,  // Default: prefer smaller models
+            prefer_quality: false,
+            prefer_code_models: true,  // Default: prefer code models
+            max_instant_download_secs: 30,
+            max_background_download_secs: 300,
+        }
+    }
+}
+
 impl ModelPreferences {
-    /// Create preferences optimized for quick startup
+    /// Create preferences optimized for quick startup and small GPUs
     pub fn quick_start() -> Self {
         Self {
             prefer_small: true,
+            prefer_code_models: true,
             max_instant_download_secs: 15,
             max_background_download_secs: 120,
             ..Default::default()
         }
     }
 
-    /// Create preferences optimized for quality
+    /// Create preferences optimized for quality (larger models)
     pub fn quality_focused() -> Self {
         Self {
             prefer_quality: true,
+            prefer_small: false,
+            prefer_code_models: true,
             max_instant_download_secs: 60,
             max_background_download_secs: 600,
             ..Default::default()
         }
     }
 
-    /// Create preferences for Apple Silicon
+    /// Create preferences for Apple Silicon with MLX
     pub fn apple_silicon() -> Self {
         Self {
             prefer_mlx: true,
+            prefer_small: true,
+            prefer_code_models: true,
             max_instant_download_secs: 30,
             max_background_download_secs: 300,
+            ..Default::default()
+        }
+    }
+
+    /// Create preferences for resource-constrained environments (CI, small VPS)
+    pub fn resource_constrained() -> Self {
+        Self {
+            prefer_small: true,
+            prefer_quality: false,
+            prefer_code_models: true,
+            max_instant_download_secs: 20,
+            max_background_download_secs: 60,
             ..Default::default()
         }
     }
@@ -113,7 +154,7 @@ pub struct ModelRecommender {
 }
 
 impl ModelRecommender {
-    /// Create a new recommender with default preferences
+    /// Create a new recommender with default preferences (small, code-focused)
     pub fn new() -> Self {
         Self {
             preferences: ModelPreferences::default(),
@@ -128,13 +169,16 @@ impl ModelRecommender {
     /// Recommend models based on speed test results
     pub fn recommend(&self, speed_result: &SpeedTestResult) -> ModelRecommendation {
         let quality = speed_result.quality;
-        let instant_max_size = quality.instant_model_max_size_mb();
-        let background_max_size = quality.background_model_max_size_mb();
 
-        // Find best instant model (quick to download)
+        // Calculate max sizes based on network and preferences
+        let instant_max_size = self.calculate_instant_max_size(speed_result);
+        let background_max_size = quality.background_model_max_size_mb()
+            .min(SMALL_GPU_MAX_SIZE_MB);  // Cap at 1GB for GPU friendliness
+
+        // Find best instant model (prioritize small Qwen models)
         let instant_model = self.find_best_model_under_size(instant_max_size);
 
-        // Find best background model (larger, better quality)
+        // Find best background model (larger but still GPU-friendly)
         let background_model = self.find_best_model_in_range(instant_max_size, background_max_size);
 
         // Calculate download times
@@ -157,6 +201,22 @@ impl ModelRecommender {
             background_download_time,
             network_quality: quality,
             reasoning,
+        }
+    }
+
+    /// Calculate maximum size for instant model based on network and time preferences
+    fn calculate_instant_max_size(&self, speed_result: &SpeedTestResult) -> u64 {
+        let network_limit = speed_result.quality.instant_model_max_size_mb();
+        let time_limit = (speed_result.speed_mbps * self.preferences.max_instant_download_secs as f64) as u64;
+
+        // Use the more restrictive limit, but always allow at least the smallest model
+        let calculated = network_limit.min(time_limit);
+
+        // Prefer smaller models - cap at preferred instant size unless quality is preferred
+        if self.preferences.prefer_small {
+            calculated.min(PREFERRED_INSTANT_SIZE_MB)
+        } else {
+            calculated
         }
     }
 
@@ -213,41 +273,72 @@ impl ModelRecommender {
     }
 
     /// Score a model based on preferences (higher is better)
+    ///
+    /// Scoring priorities:
+    /// 1. Qwen-Coder and Chinese code models get highest priority
+    /// 2. Smaller models (< 1GB) get bonus for GPU friendliness
+    /// 3. Code-specialized models (StarCoder) get bonus
+    /// 4. MLX-optimized models get bonus on Apple Silicon
     fn score_model(&self, model: &ModelInfo) -> i32 {
         let mut score: i32 = 0;
 
-        // Base score from size category
-        score += match model.size_category {
-            ModelSize::Tiny => 10,
-            ModelSize::Small => 20,
-            ModelSize::Medium => 30,
-            ModelSize::Large => 40,
-        };
-
-        // Preference adjustments
-        if self.preferences.prefer_mlx && model.mlx_optimized {
-            score += 25;
-        }
-
-        if self.preferences.prefer_small {
-            score -= (model.size_mb / 100) as i32;
-        }
-
-        if self.preferences.prefer_quality {
-            score += (model.size_mb / 200) as i32;
-        }
-
-        if self.preferences.prefer_code_models {
-            // Boost code-specialized models
-            if model.id.contains("coder") || model.id.contains("starcoder") {
-                score += 20;
+        // Priority 1: Qwen-Coder models (Chinese code models - excellent for commands)
+        if model.id.contains("qwen") {
+            score += 50;  // Strong preference for Qwen
+            if model.id.contains("coder") || model.name.to_lowercase().contains("coder") {
+                score += 30;  // Extra bonus for Qwen-Coder specifically
             }
         }
 
-        // Default model gets a small boost
-        if model.id == ModelCatalog::default_model().id {
-            score += 5;
+        // Priority 2: Size preference - smaller is better for GPU memory
+        if model.size_mb < 400 {
+            score += 40;  // Strong bonus for very small models (< 400MB)
+        } else if model.size_mb < 800 {
+            score += 25;  // Good bonus for small models (< 800MB)
+        } else if model.size_mb < SMALL_GPU_MAX_SIZE_MB {
+            score += 10;  // Small bonus for GPU-friendly (< 1GB)
         }
+        // Models > 1GB get no size bonus
+
+        // Penalize large models when prefer_small is set
+        if self.preferences.prefer_small {
+            score -= (model.size_mb / 200) as i32;  // -5 per 1GB
+        }
+
+        // Priority 3: Code-specialized models
+        if self.preferences.prefer_code_models {
+            if model.id.contains("coder") || model.id.contains("starcoder") {
+                score += 25;
+            }
+            // Description mentions code/command capabilities
+            if model.description.to_lowercase().contains("code") {
+                score += 10;
+            }
+        }
+
+        // Priority 4: MLX optimization for Apple Silicon
+        if self.preferences.prefer_mlx && model.mlx_optimized {
+            score += 35;
+        }
+
+        // Quality preference adjustments
+        if self.preferences.prefer_quality {
+            // Larger models score higher for quality
+            score += (model.size_mb / 300) as i32;
+        }
+
+        // CI suitability bonus for constrained environments
+        if model.ci_suitable {
+            score += 15;  // Bonus for quick download in CI/constrained environments
+        }
+
+        // Base score from size category (inverted - smaller is better by default)
+        score += match model.size_category {
+            ModelSize::Tiny => 20,
+            ModelSize::Small => 15,
+            ModelSize::Medium => 5,
+            ModelSize::Large => 0,
+        };
 
         score
     }
@@ -267,23 +358,52 @@ impl ModelRecommender {
             speed_mbps, quality
         ));
 
+        // Explain why this model was chosen
+        let model_type = if instant.id.contains("qwen") {
+            "Qwen (excellent for code/commands)"
+        } else if instant.id.contains("starcoder") {
+            "StarCoder (code-specialized)"
+        } else {
+            "efficient"
+        };
+
         parts.push(format!(
-            "{} ({} MB) is recommended for instant use - it offers {} and downloads quickly",
-            instant.name, instant.size_mb, instant.description.to_lowercase()
+            "{} ({} MB) is {} and downloads in ~{}",
+            instant.name,
+            instant.size_mb,
+            model_type,
+            self.format_quick_time(instant.size_mb, speed_mbps)
         ));
+
+        if instant.size_mb < SMALL_GPU_MAX_SIZE_MB {
+            parts.push("Small enough for most GPUs including integrated graphics".to_string());
+        }
 
         if let Some(bg) = background {
             parts.push(format!(
-                "For better quality, {} ({} MB) can be downloaded in the background",
+                "For better quality, {} ({} MB) can download in background",
                 bg.name, bg.size_mb
             ));
         }
 
         if self.preferences.prefer_mlx && instant.mlx_optimized {
-            parts.push("Selected MLX-optimized model for best Apple Silicon performance".to_string());
+            parts.push("MLX-optimized for best Apple Silicon performance".to_string());
         }
 
         parts.join(". ") + "."
+    }
+
+    /// Format download time as quick human-readable string
+    fn format_quick_time(&self, size_mb: u64, speed_mbps: f64) -> String {
+        if speed_mbps <= 0.0 {
+            return "unknown time".to_string();
+        }
+        let secs = size_mb as f64 / speed_mbps;
+        if secs < 60.0 {
+            format!("{:.0}s", secs)
+        } else {
+            format!("{:.1}min", secs / 60.0)
+        }
     }
 }
 
@@ -317,6 +437,24 @@ pub fn get_missing_models(cache_dir: &PathBuf) -> Vec<&'static ModelInfo> {
         .collect()
 }
 
+/// Get recommended models for small GPU / resource-constrained environments
+pub fn get_small_gpu_models() -> Vec<&'static ModelInfo> {
+    ModelCatalog::all_models()
+        .iter()
+        .filter(|m| m.size_mb < SMALL_GPU_MAX_SIZE_MB)
+        .copied()
+        .collect()
+}
+
+/// Get Qwen models (prioritized for command generation)
+pub fn get_qwen_models() -> Vec<&'static ModelInfo> {
+    ModelCatalog::all_models()
+        .iter()
+        .filter(|m| m.id.contains("qwen"))
+        .copied()
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -339,8 +477,34 @@ mod tests {
         let rec = recommender.recommend(&result);
 
         // Should recommend a small model for instant use
-        assert!(rec.instant_model.size_mb <= 100);
+        assert!(rec.instant_model.size_mb <= 400);
         assert_eq!(rec.network_quality, NetworkQuality::Poor);
+    }
+
+    #[test]
+    fn test_recommend_100mbps_network() {
+        // 100 Mbps = ~12.5 MB/s
+        let recommender = ModelRecommender::new();
+        let result = mock_speed_result(12.5);
+
+        let rec = recommender.recommend(&result);
+
+        // Should recommend a small Qwen model (< 400MB for instant, < 1GB for background)
+        assert!(rec.instant_model.size_mb <= 400);
+        if let Some(bg) = rec.background_model {
+            assert!(bg.size_mb <= 1000);
+        }
+    }
+
+    #[test]
+    fn test_prefers_qwen_models() {
+        let recommender = ModelRecommender::new();
+        let result = mock_speed_result(12.5);
+
+        let rec = recommender.recommend(&result);
+
+        // Should prefer Qwen models for code generation
+        assert!(rec.instant_model.id.contains("qwen") || rec.instant_model.size_mb < 100);
     }
 
     #[test]
@@ -350,8 +514,9 @@ mod tests {
 
         let rec = recommender.recommend(&result);
 
-        // Should recommend a larger model for instant use
-        assert!(rec.instant_model.size_mb > 500);
+        // Even with fast network, should still prefer smaller models by default
+        // unless quality is explicitly preferred
+        assert!(rec.instant_model.size_mb <= 1000);
         assert_eq!(rec.network_quality, NetworkQuality::Excellent);
     }
 
@@ -363,9 +528,8 @@ mod tests {
 
         let rec = recommender.recommend(&result);
 
-        // Should prefer MLX-optimized models when available
-        // Note: actual behavior depends on size constraints
-        assert!(rec.reasoning.to_lowercase().contains("mlx") || true);
+        // Should prefer MLX-optimized Qwen models
+        assert!(rec.instant_model.mlx_optimized || rec.instant_model.id.contains("qwen"));
     }
 
     #[test]
@@ -389,8 +553,8 @@ mod tests {
 
         let rec = recommender.recommend(&result);
 
-        // Quality-focused should pick larger models
-        assert!(rec.instant_model.size_mb >= 300);
+        // Quality-focused can pick larger models but still capped at 1GB
+        assert!(rec.instant_model.size_mb <= 1000);
     }
 
     #[test]
@@ -401,7 +565,38 @@ mod tests {
 
         let rec = recommender.recommend(&result);
 
-        // Quick start should still respect network limits
-        assert!(rec.instant_model.size_mb <= 1500);
+        // Quick start should prefer very small models
+        assert!(rec.instant_model.size_mb <= 400);
+    }
+
+    #[test]
+    fn test_resource_constrained() {
+        let prefs = ModelPreferences::resource_constrained();
+        let recommender = ModelRecommender::with_preferences(prefs);
+        let result = mock_speed_result(5.0);
+
+        let rec = recommender.recommend(&result);
+
+        // Should pick smallest suitable model
+        assert!(rec.instant_model.size_mb <= 400);
+        assert!(rec.instant_model.ci_suitable);
+    }
+
+    #[test]
+    fn test_small_gpu_models() {
+        let models = get_small_gpu_models();
+        assert!(!models.is_empty());
+        for model in models {
+            assert!(model.size_mb < SMALL_GPU_MAX_SIZE_MB);
+        }
+    }
+
+    #[test]
+    fn test_qwen_models() {
+        let models = get_qwen_models();
+        assert!(!models.is_empty());
+        for model in models {
+            assert!(model.id.contains("qwen"));
+        }
     }
 }

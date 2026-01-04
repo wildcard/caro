@@ -53,7 +53,9 @@ pub use models::{
 
 // Re-export speed test and model recommendation types
 pub use model_manager::{BackgroundDownload, DownloadStatus, ModelCliHandler, ModelManager};
-pub use model_recommendation::{ModelPreferences, ModelRecommendation, ModelRecommender};
+pub use model_recommendation::{
+    get_qwen_models, get_small_gpu_models, ModelPreferences, ModelRecommendation, ModelRecommender,
+};
 pub use speed_test::{NetworkQuality, SpeedTestResult, SpeedTester};
 
 // Re-export infrastructure module types and errors
