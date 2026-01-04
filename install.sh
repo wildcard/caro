@@ -77,10 +77,23 @@ install_binary() {
             cargo_features="--features embedded-mlx"
         fi
 
-        # Capture cargo output to detect specific errors
+        # Run cargo install and capture output while showing progress
+        echo -e "${BLUE}Building from source (this may take several minutes)...${NC}"
+        echo ""
+
         local cargo_output
         local cargo_exit_code
-        cargo_output=$(cargo install caro $cargo_features 2>&1) && cargo_exit_code=0 || cargo_exit_code=$?
+        local temp_output
+        temp_output=$(mktemp)
+
+        # Run cargo and tee output to both terminal and temp file for error detection
+        # Use pipefail to get cargo's exit code, not tee's
+        set +e
+        (set -o pipefail; cargo install caro $cargo_features 2>&1 | tee "$temp_output")
+        cargo_exit_code=$?
+        set -e
+        cargo_output=$(cat "$temp_output")
+        rm -f "$temp_output"
 
         if [ $cargo_exit_code -eq 0 ]; then
             echo -e "${GREEN}✓ Installed caro successfully via cargo${NC}"
