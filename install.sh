@@ -17,7 +17,14 @@
 #   CARO_SAFETY_CONFIG   Configure safety level interactively (default: true)
 #
 # Quick binary-only install (no compilation):
-#   CARO_INTERACTIVE=false CARO_INSTALL_METHOD=binary curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash -s -- --binary
+#
+# Command-line Arguments:
+#   --binary           Force binary download (no cargo build)
+#   --cargo            Force cargo install
+#   --non-interactive  Skip all interactive prompts
+#   --no-modify-path   Don't modify shell PATH
+#   --help             Show help message
 
 set -e
 
@@ -41,6 +48,77 @@ INSTALL_METHOD="${CARO_INSTALL_METHOD:-}"  # "cargo" or "binary" (empty = auto-d
 SETUP_SHELL_COMPLETION="${CARO_SHELL_COMPLETION:-true}"
 SETUP_PATH_AUTO="${CARO_PATH_AUTO:-true}"
 CONFIGURE_SAFETY_LEVEL="${CARO_SAFETY_CONFIG:-true}"
+
+# Show help message
+show_help() {
+    cat << 'HELP'
+Caro Installer
+
+Usage:
+  curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
+  curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash -s -- [OPTIONS]
+
+Options:
+  --binary           Force binary download (skip cargo even if available)
+  --cargo            Force cargo install (fail if cargo not available)
+  --non-interactive  Skip all interactive prompts (use defaults)
+  --no-modify-path   Don't add install directory to PATH
+  --help             Show this help message
+
+Environment Variables:
+  CARO_INSTALL_DIR       Installation directory (default: ~/.local/bin)
+  CARO_INTERACTIVE       Set to "false" for non-interactive mode
+  CARO_INSTALL_METHOD    Force "binary" or "cargo"
+  CARO_SHELL_COMPLETION  Enable shell completion (default: true)
+  CARO_PATH_AUTO         Auto-add to PATH (default: true)
+  CARO_SAFETY_CONFIG     Configure safety level (default: true)
+
+Examples:
+  # Quick binary install (no compilation)
+  curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash -s -- --binary
+
+  # Non-interactive binary install
+  curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash -s -- --binary --non-interactive
+
+  # Install to custom directory
+  CARO_INSTALL_DIR=/usr/local/bin curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash -s -- --binary
+HELP
+    exit 0
+}
+
+# Parse command-line arguments
+parse_args() {
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --binary)
+                INSTALL_METHOD="binary"
+                shift
+                ;;
+            --cargo)
+                INSTALL_METHOD="cargo"
+                shift
+                ;;
+            --non-interactive)
+                INTERACTIVE_MODE="false"
+                shift
+                ;;
+            --no-modify-path)
+                SETUP_PATH_AUTO="false"
+                shift
+                ;;
+            --help|-h)
+                show_help
+                ;;
+            *)
+                echo -e "${YELLOW}Warning: Unknown option '$1'${NC}"
+                shift
+                ;;
+        esac
+    done
+}
+
+# Parse arguments if any were provided
+parse_args "$@"
 
 # Detect OS and architecture
 detect_platform() {

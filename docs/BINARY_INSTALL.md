@@ -7,11 +7,11 @@ This guide covers installing caro from pre-built binaries. Binary installation i
 Use the setup script to automatically download and install the correct binary for your platform:
 
 ```bash
-# Using curl
-curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | CARO_INTERACTIVE=false bash
+# Using curl (binary-only, no compilation)
+curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash -s -- --binary
 
 # Using wget
-wget -qO- https://raw.githubusercontent.com/wildcard/caro/main/install.sh | CARO_INTERACTIVE=false bash
+wget -qO- https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash -s -- --binary
 ```
 
 The script will:
@@ -21,15 +21,23 @@ The script will:
 - Install to `~/.local/bin` (configurable via `CARO_INSTALL_DIR`)
 - Make the binary executable
 
-### Environment Variables
+### Command-line Options
 
-Customize the installation with these environment variables:
+| Option | Description |
+|--------|-------------|
+| `--binary` | Force binary download (skip cargo even if available) |
+| `--cargo` | Force cargo install |
+| `--non-interactive` | Skip all interactive prompts |
+| `--no-modify-path` | Don't add install directory to PATH |
+| `--help` | Show help message |
+
+### Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `CARO_INTERACTIVE` | `true` | Set to `false` for non-interactive installation |
-| `CARO_INSTALL_METHOD` | auto | Force `binary` or `cargo` installation |
 | `CARO_INSTALL_DIR` | `~/.local/bin` | Installation directory |
+| `CARO_INTERACTIVE` | `true` | Set to `false` for non-interactive mode |
+| `CARO_INSTALL_METHOD` | auto | Force `binary` or `cargo` |
 | `CARO_SHELL_COMPLETION` | `true` | Enable shell completion setup |
 | `CARO_PATH_AUTO` | `true` | Auto-add install dir to PATH |
 | `CARO_SAFETY_CONFIG` | `true` | Configure safety level |
@@ -37,17 +45,20 @@ Customize the installation with these environment variables:
 **Examples:**
 
 ```bash
-# Quick binary-only install (even if cargo is available)
-CARO_INTERACTIVE=false CARO_INSTALL_METHOD=binary curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
+# Quick binary-only install
+curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash -s -- --binary
 
-# Non-interactive install to /usr/local/bin
-CARO_INTERACTIVE=false CARO_INSTALL_METHOD=binary CARO_INSTALL_DIR=/usr/local/bin curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
+# Non-interactive binary install (no prompts)
+curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash -s -- --binary --non-interactive
+
+# Install to /usr/local/bin
+CARO_INSTALL_DIR=/usr/local/bin curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash -s -- --binary
 
 # Install to home bin directory
-CARO_INSTALL_DIR=~/bin CARO_INSTALL_METHOD=binary curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
+CARO_INSTALL_DIR=~/bin curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash -s -- --binary
 
-# Minimal install (no shell modifications)
-CARO_INTERACTIVE=false CARO_INSTALL_METHOD=binary CARO_SHELL_COMPLETION=false CARO_PATH_AUTO=false curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
+# Minimal install (no PATH or shell modifications)
+curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash -s -- --binary --non-interactive --no-modify-path
 ```
 
 ## Manual Installation
