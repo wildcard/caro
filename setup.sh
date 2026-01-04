@@ -118,6 +118,21 @@ install_via_cargo() {
         return 1
     fi
 
+    # Check for missing C++ standard library headers (common on macOS)
+    if echo "$cargo_output" | grep -q "fatal error:.*file not found\|'algorithm' file not found\|'cstdint' file not found\|'vector' file not found"; then
+        say_error "Cargo install failed due to missing C++ headers"
+        say_warn "This usually means Xcode Command Line Tools need to be installed or updated"
+        say "To fix this, run:"
+        say "  xcode-select --install"
+        say ""
+        say "If already installed, try resetting:"
+        say "  sudo xcode-select --reset"
+        say ""
+        say "Falling back to pre-built binary..."
+        echo ""
+        return 1
+    fi
+
     # For other errors, show the output and return failure
     say_error "Failed to install via cargo"
     echo "$cargo_output" | tail -20

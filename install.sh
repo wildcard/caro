@@ -96,6 +96,19 @@ install_binary() {
             echo -e "  ${GREEN}2. Use the pre-built binary (attempting now...)${NC}"
             echo ""
             # Fall through to binary download
+        # Check for missing C++ standard library headers (common on macOS)
+        elif echo "$cargo_output" | grep -q "fatal error:.*file not found\|'algorithm' file not found\|'cstdint' file not found\|'vector' file not found"; then
+            echo -e "${RED}✗ Cargo install failed due to missing C++ headers${NC}"
+            echo -e "${YELLOW}This usually means Xcode Command Line Tools need to be installed or updated${NC}"
+            echo -e "${BLUE}To fix this, run:${NC}"
+            echo -e "  ${GREEN}xcode-select --install${NC}"
+            echo ""
+            echo -e "${BLUE}If already installed, try resetting:${NC}"
+            echo -e "  ${GREEN}sudo xcode-select --reset${NC}"
+            echo ""
+            echo -e "${YELLOW}Falling back to pre-built binary...${NC}"
+            echo ""
+            # Fall through to binary download
         else
             # For other errors, show the output
             echo -e "${RED}✗ Failed to install via cargo${NC}"
