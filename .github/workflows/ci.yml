@@ -46,6 +46,24 @@ jobs:
     - name: Run clippy
       run: cargo clippy --all-targets --all-features -- -D warnings
 
+  shell-scripts:
+    name: Shell Script Tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Validate script syntax
+      run: |
+        bash -n setup.sh
+        bash -n install.sh
+
+    - name: Run setup script tests
+      run: bash tests/test_setup.sh
+
   # ============================================================================
   # Tier A: PR Smoke Tests (Required, Fast, Minimal Models)
   # ============================================================================

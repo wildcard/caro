@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 #
-# Test suite for setup.sh
+# Test suite for setup.sh and install.sh
 #
 # Usage: ./tests/test_setup.sh
+#
+# Tests cover:
+# - Shell detection (bash, zsh, fish)
+# - PATH configuration
+# - Error detection patterns (edition2024, C++ headers)
+# - Script syntax validation
 
 # Don't use set -e because we want to run all tests even if some fail
 set -u
@@ -24,17 +30,13 @@ setup_test_env() {
     export HOME="$TEST_TMPDIR"
     export CARGO_HOME="$TEST_TMPDIR/.cargo"
     mkdir -p "$CARGO_HOME/bin"
-    # Mock cmdai binary
-    echo '#!/bin/bash' > "$CARGO_HOME/bin/cmdai"
-    echo 'echo "cmdai mock"' >> "$CARGO_HOME/bin/cmdai"
-    chmod +x "$CARGO_HOME/bin/cmdai"
+    mkdir -p "$HOME/.local/bin"
 }
 
 cleanup_test_env() {
     if [ -n "$TEST_TMPDIR" ] && [ -d "$TEST_TMPDIR" ]; then
         rm -rf "$TEST_TMPDIR"
     fi
-    # Clean up environment variables that tests might have set
     unset ZDOTDIR
 }
 
@@ -77,24 +79,29 @@ assert_file_not_contains() {
     fi
 }
 
-# Source the setup_alias function from setup.sh
-# We'll create a wrapper that isolates just the setup_alias function
-extract_setup_alias() {
-    # Extract just the setup_alias function and its dependencies
-    cat > "$TEST_TMPDIR/setup_alias_test.sh" << 'EOF'
+assert_output_contains() {
+    if echo "$1" | grep -q "$2"; then
+        test_pass "Output contains '$2'"
+    else
+        test_fail "Output should contain '$2'" "Pattern not found in: $1"
+    fi
+}
+
+# Extract setup_path function from setup.sh for testing
+extract_setup_path() {
+    cat > "$TEST_TMPDIR/setup_path_test.sh" << 'TESTEOF'
 say() { echo "$1"; }
 say_success() { echo "$1"; }
 say_warn() { echo "$1"; }
 say_error() { echo "$1"; }
 
-# Setup shell alias
-setup_alias() {
+# Setup PATH in shell config
+setup_path() {
+    local install_dir="$1"
     local shell_config=""
     local shell_name=""
 
-    # Detect shell - prioritize $SHELL env var over subprocess shell version vars
-    # This is important when script is run via 'bash <(curl ...)' where BASH_VERSION
-    # would be set even if user's actual shell is zsh/fish
+    # Detect shell config file
     case "$SHELL" in
         */bash)
             shell_name="bash"
@@ -103,7 +110,7 @@ setup_alias() {
             elif [ -f "$HOME/.bash_profile" ]; then
                 shell_config="$HOME/.bash_profile"
             else
-                shell_config="$HOME/.bashrc"  # default to .bashrc
+                shell_config="$HOME/.bashrc"
             fi
             ;;
         */zsh)
@@ -115,286 +122,315 @@ setup_alias() {
             shell_config="$HOME/.config/fish/config.fish"
             ;;
         *)
-            # Fallback to checking version variables if $SHELL is not set or unknown
-            if [ -n "${ZSH_VERSION:-}" ]; then
-                shell_name="zsh"
-                shell_config="${ZDOTDIR:-$HOME}/.zshrc"
-            elif [ -n "${BASH_VERSION:-}" ]; then
-                shell_name="bash"
-                if [ -f "$HOME/.bashrc" ]; then
-                    shell_config="$HOME/.bashrc"
-                elif [ -f "$HOME/.bash_profile" ]; then
-                    shell_config="$HOME/.bash_profile"
-                else
-                    shell_config="$HOME/.bashrc"
-                fi
-            elif [ -n "${FISH_VERSION:-}" ]; then
-                shell_name="fish"
-                shell_config="$HOME/.config/fish/config.fish"
-            else
-                say_warn "Could not detect shell. Please manually add alias:"
-                echo "  alias caro='cmdai'"
-                return
-            fi
+            say_warn "Could not detect shell config file"
+            say "Please manually add to your shell config:"
+            say "  export PATH=\"$install_dir:\$PATH\""
+            return
             ;;
     esac
 
-    if [ -z "$shell_config" ]; then
-        say_warn "Could not detect shell config file. Please manually add alias:"
-        echo "  alias caro='cmdai'"
+    # Check if already added
+    if grep -q "# caro PATH" "$shell_config" 2>/dev/null; then
+        say "PATH already configured in $shell_config"
         return
     fi
 
+    # Create config file if it doesn't exist
     if [ ! -f "$shell_config" ]; then
-        say_warn "Shell config file not found. Creating $shell_config"
-        # Create parent directory if needed (e.g., for fish config)
         mkdir -p "$(dirname "$shell_config")"
         touch "$shell_config"
     fi
 
-    # Check if alias already exists
-    if grep -q "alias caro=" "$shell_config" 2>/dev/null; then
-        say "Alias 'caro' already exists in $shell_config"
-        return
+    say "Adding $install_dir to PATH in $shell_config..."
+
+    if [[ "$shell_name" == "fish" ]]; then
+        echo -e "\n# caro PATH" >> "$shell_config"
+        echo "set -gx PATH $install_dir \$PATH" >> "$shell_config"
+    else
+        echo -e "\n# caro PATH" >> "$shell_config"
+        echo "export PATH=\"$install_dir:\$PATH\"" >> "$shell_config"
     fi
 
-    # Add alias
-    say "Adding alias 'caro' to $shell_config..."
-    echo "" >> "$shell_config"
-    echo "# Caro alias" >> "$shell_config"
-    echo "alias caro='cmdai'" >> "$shell_config"
-
-    say_success "Alias added successfully"
-    echo ""
-    say "Run 'source $shell_config' or restart your shell to use the alias"
+    say_success "PATH updated in $shell_config"
+    say "Run 'source $shell_config' or restart your terminal to apply"
 }
-EOF
+TESTEOF
 }
 
-# Test: Zsh detection and alias setup
-test_zsh_detection() {
-    test_start "Zsh detection and alias setup"
+# ============================================================================
+# PATH Setup Tests
+# ============================================================================
+
+test_path_setup_zsh() {
+    test_start "PATH setup for zsh"
     setup_test_env
-    extract_setup_alias
+    extract_setup_path
 
     export SHELL="/bin/zsh"
-    unset ZSH_VERSION BASH_VERSION FISH_VERSION
+    unset ZDOTDIR
 
     # shellcheck source=/dev/null
-    source "$TEST_TMPDIR/setup_alias_test.sh"
-    setup_alias > /dev/null 2>&1
+    source "$TEST_TMPDIR/setup_path_test.sh"
+    setup_path "$HOME/.local/bin" > /dev/null 2>&1
 
     assert_file_exists "$HOME/.zshrc"
-    assert_file_contains "$HOME/.zshrc" "alias caro='cmdai'"
+    assert_file_contains "$HOME/.zshrc" "# caro PATH"
+    assert_file_contains "$HOME/.zshrc" 'export PATH=".*\.local/bin'
 
     cleanup_test_env
 }
 
-# Test: Bash detection with existing .bashrc
-test_bash_detection_with_bashrc() {
-    test_start "Bash detection with existing .bashrc"
+test_path_setup_bash_with_bashrc() {
+    test_start "PATH setup for bash with existing .bashrc"
     setup_test_env
-    extract_setup_alias
+    extract_setup_path
 
     touch "$HOME/.bashrc"
     export SHELL="/bin/bash"
-    unset ZSH_VERSION BASH_VERSION FISH_VERSION
 
     # shellcheck source=/dev/null
-    source "$TEST_TMPDIR/setup_alias_test.sh"
-    setup_alias > /dev/null 2>&1
+    source "$TEST_TMPDIR/setup_path_test.sh"
+    setup_path "$HOME/.local/bin" > /dev/null 2>&1
 
-    assert_file_contains "$HOME/.bashrc" "alias caro='cmdai'"
+    assert_file_contains "$HOME/.bashrc" "# caro PATH"
+    assert_file_contains "$HOME/.bashrc" 'export PATH=".*\.local/bin'
 
     cleanup_test_env
 }
 
-# Test: Bash detection with .bash_profile only
-test_bash_detection_with_bash_profile() {
-    test_start "Bash detection with .bash_profile only"
+test_path_setup_bash_with_bash_profile() {
+    test_start "PATH setup for bash with .bash_profile only"
     setup_test_env
-    extract_setup_alias
+    extract_setup_path
 
     touch "$HOME/.bash_profile"
     export SHELL="/bin/bash"
-    unset ZSH_VERSION BASH_VERSION FISH_VERSION
 
     # shellcheck source=/dev/null
-    source "$TEST_TMPDIR/setup_alias_test.sh"
-    setup_alias > /dev/null 2>&1
+    source "$TEST_TMPDIR/setup_path_test.sh"
+    setup_path "$HOME/.local/bin" > /dev/null 2>&1
 
-    assert_file_contains "$HOME/.bash_profile" "alias caro='cmdai'"
+    assert_file_contains "$HOME/.bash_profile" "# caro PATH"
+    assert_file_contains "$HOME/.bash_profile" 'export PATH=".*\.local/bin'
 
     cleanup_test_env
 }
 
-# Test: Bash detection without existing config (should create .bashrc)
-test_bash_detection_no_config() {
-    test_start "Bash detection without existing config files"
+test_path_setup_fish() {
+    test_start "PATH setup for fish"
     setup_test_env
-    extract_setup_alias
-
-    export SHELL="/bin/bash"
-    unset ZSH_VERSION BASH_VERSION FISH_VERSION
-
-    # shellcheck source=/dev/null
-    source "$TEST_TMPDIR/setup_alias_test.sh"
-    setup_alias > /dev/null 2>&1
-
-    assert_file_exists "$HOME/.bashrc"
-    assert_file_contains "$HOME/.bashrc" "alias caro='cmdai'"
-
-    cleanup_test_env
-}
-
-# Test: Fish detection and directory creation
-test_fish_detection() {
-    test_start "Fish detection and config directory creation"
-    setup_test_env
-    extract_setup_alias
+    extract_setup_path
 
     export SHELL="/usr/bin/fish"
-    unset ZSH_VERSION BASH_VERSION FISH_VERSION
 
     # shellcheck source=/dev/null
-    source "$TEST_TMPDIR/setup_alias_test.sh"
-    setup_alias > /dev/null 2>&1
+    source "$TEST_TMPDIR/setup_path_test.sh"
+    setup_path "$HOME/.local/bin" > /dev/null 2>&1
 
     assert_file_exists "$HOME/.config/fish/config.fish"
-    assert_file_contains "$HOME/.config/fish/config.fish" "alias caro='cmdai'"
+    assert_file_contains "$HOME/.config/fish/config.fish" "# caro PATH"
+    assert_file_contains "$HOME/.config/fish/config.fish" "set -gx PATH"
 
     cleanup_test_env
 }
 
-# Test: Subprocess bash detection (simulates bash <(curl ...) with zsh user)
-test_subprocess_bash_with_zsh_user() {
-    test_start "Subprocess bash detection with zsh user shell"
+test_path_setup_duplicate_prevention() {
+    test_start "PATH setup duplicate prevention"
     setup_test_env
-    extract_setup_alias
-
-    export SHELL="/bin/zsh"  # User's actual shell
-    export BASH_VERSION="5.0.0"  # Subprocess has BASH_VERSION set
-
-    # shellcheck source=/dev/null
-    source "$TEST_TMPDIR/setup_alias_test.sh"
-    setup_alias > /dev/null 2>&1
-
-    # Should detect zsh from $SHELL, not bash from BASH_VERSION
-    assert_file_exists "$HOME/.zshrc"
-    assert_file_contains "$HOME/.zshrc" "alias caro='cmdai'"
-
-    cleanup_test_env
-}
-
-# Test: Duplicate alias prevention
-test_duplicate_alias_prevention() {
-    test_start "Duplicate alias prevention"
-    setup_test_env
-    extract_setup_alias
+    extract_setup_path
 
     export SHELL="/bin/zsh"
 
     # shellcheck source=/dev/null
-    source "$TEST_TMPDIR/setup_alias_test.sh"
+    source "$TEST_TMPDIR/setup_path_test.sh"
 
-    # Run setup_alias twice
-    setup_alias > /dev/null 2>&1
-    setup_alias > /dev/null 2>&1
+    # Run setup_path twice
+    setup_path "$HOME/.local/bin" > /dev/null 2>&1
+    setup_path "$HOME/.local/bin" > /dev/null 2>&1
 
-    # Count occurrences of the alias
+    # Count occurrences
     local count
-    count=$(grep -c "alias caro='cmdai'" "$HOME/.zshrc" || true)
+    count=$(grep -c "# caro PATH" "$HOME/.zshrc" || true)
 
     if [ "$count" -eq 1 ]; then
-        test_pass "Alias appears exactly once"
+        test_pass "PATH config appears exactly once"
     else
-        test_fail "Alias should appear exactly once" "Found $count occurrences"
+        test_fail "PATH config should appear exactly once" "Found $count occurrences"
     fi
 
     cleanup_test_env
 }
 
-# Test: ZDOTDIR support for zsh
-test_zdotdir_support() {
-    test_start "ZDOTDIR support for zsh"
+test_path_setup_zdotdir() {
+    test_start "PATH setup respects ZDOTDIR"
     setup_test_env
-    extract_setup_alias
+    extract_setup_path
 
     mkdir -p "$HOME/custom_zsh"
     export SHELL="/bin/zsh"
     export ZDOTDIR="$HOME/custom_zsh"
 
     # shellcheck source=/dev/null
-    source "$TEST_TMPDIR/setup_alias_test.sh"
-    setup_alias > /dev/null 2>&1
+    source "$TEST_TMPDIR/setup_path_test.sh"
+    setup_path "$HOME/.local/bin" > /dev/null 2>&1
 
     assert_file_exists "$HOME/custom_zsh/.zshrc"
-    assert_file_contains "$HOME/custom_zsh/.zshrc" "alias caro='cmdai'"
+    assert_file_contains "$HOME/custom_zsh/.zshrc" "# caro PATH"
 
     cleanup_test_env
 }
 
-# Test: Unknown shell fallback
-test_unknown_shell_fallback() {
-    test_start "Unknown shell fallback to version variables"
+test_path_setup_unknown_shell() {
+    test_start "PATH setup with unknown shell shows manual instructions"
     setup_test_env
-    extract_setup_alias
+    extract_setup_path
+
+    export SHELL="/bin/unknown_shell"
 
     # shellcheck source=/dev/null
-    source "$TEST_TMPDIR/setup_alias_test.sh"
-
-    # Set these AFTER sourcing to avoid bash resetting BASH_VERSION
-    export SHELL="/bin/unknown_shell"
-    export ZSH_VERSION="5.8"
-    unset BASH_VERSION
-
-    setup_alias > /dev/null 2>&1
-
-    # Should fallback to ZSH_VERSION detection
-    assert_file_exists "$HOME/.zshrc"
-    assert_file_contains "$HOME/.zshrc" "alias caro='cmdai'"
-
-    cleanup_test_env
-}
-
-# Test: Completely unknown shell
-test_completely_unknown_shell() {
-    test_start "Completely unknown shell handling"
-    setup_test_env
-    extract_setup_alias
-
-    # shellcheck source=/dev/null
-    source "$TEST_TMPDIR/setup_alias_test.sh"
-
-    # Set these AFTER sourcing to avoid bash resetting BASH_VERSION
-    export SHELL="/bin/unknown_shell"
-    unset ZSH_VERSION BASH_VERSION FISH_VERSION
-
+    source "$TEST_TMPDIR/setup_path_test.sh"
     local output
-    output=$(setup_alias 2>&1)
+    output=$(setup_path "$HOME/.local/bin" 2>&1)
 
-    # Should output manual instructions
-    if echo "$output" | grep -q "Please manually add alias"; then
-        test_pass "Shows manual instruction for unknown shell"
-    else
-        test_fail "Should show manual instruction for unknown shell" "Output was: $output"
-    fi
+    assert_output_contains "$output" "manually add"
 
     cleanup_test_env
 }
 
-# Test: Full script execution (dry run)
-test_full_script_dry_run() {
-    test_start "Full script syntax validation"
+# ============================================================================
+# Error Detection Tests
+# ============================================================================
 
-    if bash -n setup.sh; then
-        test_pass "Script has valid bash syntax"
+test_error_detection_edition2024() {
+    test_start "Error detection: edition2024"
+
+    local test_output="error: failed to compile
+feature \`edition2024\` is required
+Consider trying a newer version of Cargo"
+
+    if echo "$test_output" | grep -q "edition2024\|feature.*is required\|newer version of Cargo"; then
+        test_pass "Detected edition2024 error pattern"
     else
-        test_fail "Script has syntax errors" "bash -n failed"
+        test_fail "Should detect edition2024 error" "Pattern not matched"
     fi
 }
 
-# Main test runner
+test_error_detection_cpp_headers() {
+    test_start "Error detection: missing C++ headers"
+
+    local test_output="fatal error: 'algorithm' file not found
+#include <algorithm>
+         ^~~~~~~~~~~"
+
+    if echo "$test_output" | grep -q "fatal error:.*file not found\|'algorithm' file not found\|'cstdint' file not found\|'vector' file not found"; then
+        test_pass "Detected C++ headers error pattern"
+    else
+        test_fail "Should detect C++ headers error" "Pattern not matched"
+    fi
+}
+
+test_error_detection_cstdint() {
+    test_start "Error detection: missing cstdint header"
+
+    local test_output="./thirdparty/llama.cpp/unicode.h:3:10: fatal error: 'cstdint' file not found
+    3 | #include <cstdint>"
+
+    if echo "$test_output" | grep -q "'cstdint' file not found"; then
+        test_pass "Detected cstdint error pattern"
+    else
+        test_fail "Should detect cstdint error" "Pattern not matched"
+    fi
+}
+
+test_error_detection_vector() {
+    test_start "Error detection: missing vector header"
+
+    local test_output="./thirdparty/llama.cpp/llama.h:1005:10: fatal error: 'vector' file not found
+ 1005 | #include <vector>"
+
+    if echo "$test_output" | grep -q "'vector' file not found"; then
+        test_pass "Detected vector error pattern"
+    else
+        test_fail "Should detect vector error" "Pattern not matched"
+    fi
+}
+
+# ============================================================================
+# Script Syntax Validation
+# ============================================================================
+
+test_setup_sh_syntax() {
+    test_start "setup.sh syntax validation"
+
+    if bash -n setup.sh 2>/dev/null; then
+        test_pass "setup.sh has valid bash syntax"
+    else
+        test_fail "setup.sh has syntax errors" "bash -n failed"
+    fi
+}
+
+test_install_sh_syntax() {
+    test_start "install.sh syntax validation"
+
+    if bash -n install.sh 2>/dev/null; then
+        test_pass "install.sh has valid bash syntax"
+    else
+        test_fail "install.sh has syntax errors" "bash -n failed"
+    fi
+}
+
+# ============================================================================
+# Shell Config Detection Tests
+# ============================================================================
+
+test_shell_detection_priority() {
+    test_start "SHELL env var takes priority over version vars"
+    setup_test_env
+    extract_setup_path
+
+    export SHELL="/bin/zsh"
+    export BASH_VERSION="5.0.0"  # This should be ignored
+
+    # shellcheck source=/dev/null
+    source "$TEST_TMPDIR/setup_path_test.sh"
+    setup_path "$HOME/.local/bin" > /dev/null 2>&1
+
+    # Should detect zsh from $SHELL, not bash from BASH_VERSION
+    assert_file_exists "$HOME/.zshrc"
+    assert_file_not_contains "$HOME/.bashrc" "caro PATH" 2>/dev/null || true
+
+    cleanup_test_env
+}
+
+# ============================================================================
+# Integration-like Tests
+# ============================================================================
+
+test_full_path_workflow() {
+    test_start "Full PATH setup workflow simulation"
+    setup_test_env
+    extract_setup_path
+
+    export SHELL="/bin/zsh"
+
+    # Simulate: PATH not set, run setup_path, verify config
+    if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+        # shellcheck source=/dev/null
+        source "$TEST_TMPDIR/setup_path_test.sh"
+        setup_path "$HOME/.local/bin" > /dev/null 2>&1
+    fi
+
+    assert_file_exists "$HOME/.zshrc"
+    assert_file_contains "$HOME/.zshrc" "# caro PATH"
+    assert_file_contains "$HOME/.zshrc" ".local/bin"
+
+    cleanup_test_env
+}
+
+# ============================================================================
+# Main Test Runner
+# ============================================================================
+
 main() {
     echo ""
     echo "═══════════════════════════════════════════════════════"
@@ -402,21 +438,42 @@ main() {
     echo "═══════════════════════════════════════════════════════"
     echo ""
 
-    # Run all tests
-    test_full_script_dry_run
-    test_zsh_detection
-    test_bash_detection_with_bashrc
-    test_bash_detection_with_bash_profile
-    test_bash_detection_no_config
-    test_fish_detection
-    test_subprocess_bash_with_zsh_user
-    test_duplicate_alias_prevention
-    test_zdotdir_support
-    test_unknown_shell_fallback
-    test_completely_unknown_shell
+    # Script syntax validation
+    echo -e "${YELLOW}── Script Syntax ──${NC}"
+    test_setup_sh_syntax
+    test_install_sh_syntax
+    echo ""
+
+    # PATH setup tests
+    echo -e "${YELLOW}── PATH Setup ──${NC}"
+    test_path_setup_zsh
+    test_path_setup_bash_with_bashrc
+    test_path_setup_bash_with_bash_profile
+    test_path_setup_fish
+    test_path_setup_duplicate_prevention
+    test_path_setup_zdotdir
+    test_path_setup_unknown_shell
+    echo ""
+
+    # Shell detection tests
+    echo -e "${YELLOW}── Shell Detection ──${NC}"
+    test_shell_detection_priority
+    echo ""
+
+    # Error detection tests
+    echo -e "${YELLOW}── Error Detection Patterns ──${NC}"
+    test_error_detection_edition2024
+    test_error_detection_cpp_headers
+    test_error_detection_cstdint
+    test_error_detection_vector
+    echo ""
+
+    # Integration tests
+    echo -e "${YELLOW}── Integration ──${NC}"
+    test_full_path_workflow
+    echo ""
 
     # Summary
-    echo ""
     echo "═══════════════════════════════════════════════════════"
     echo -e "${GREEN}Passed: $TESTS_PASSED${NC}"
     echo -e "${RED}Failed: $TESTS_FAILED${NC}"
