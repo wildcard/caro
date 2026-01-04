@@ -264,10 +264,70 @@ install_via_binary() {
     # Add to PATH if needed
     if [[ ":$PATH:" != *":$install_dir:"* ]]; then
         say_warn "$install_dir is not in your PATH"
-        say "You may need to restart your shell or add to PATH manually"
+        setup_path "$install_dir"
     fi
 
     return 0
+}
+
+# Setup PATH in shell config
+setup_path() {
+    local install_dir="$1"
+    local shell_config=""
+    local shell_name=""
+
+    # Detect shell config file
+    case "$SHELL" in
+        */bash)
+            shell_name="bash"
+            if [ -f "$HOME/.bashrc" ]; then
+                shell_config="$HOME/.bashrc"
+            elif [ -f "$HOME/.bash_profile" ]; then
+                shell_config="$HOME/.bash_profile"
+            else
+                shell_config="$HOME/.bashrc"
+            fi
+            ;;
+        */zsh)
+            shell_name="zsh"
+            shell_config="${ZDOTDIR:-$HOME}/.zshrc"
+            ;;
+        */fish)
+            shell_name="fish"
+            shell_config="$HOME/.config/fish/config.fish"
+            ;;
+        *)
+            say_warn "Could not detect shell config file"
+            say "Please manually add to your shell config:"
+            say "  export PATH=\"$install_dir:\$PATH\""
+            return
+            ;;
+    esac
+
+    # Check if already added
+    if grep -q "# caro PATH" "$shell_config" 2>/dev/null; then
+        say "PATH already configured in $shell_config"
+        return
+    fi
+
+    # Create config file if it doesn't exist
+    if [ ! -f "$shell_config" ]; then
+        mkdir -p "$(dirname "$shell_config")"
+        touch "$shell_config"
+    fi
+
+    say "Adding $install_dir to PATH in $shell_config..."
+
+    if [[ "$shell_name" == "fish" ]]; then
+        echo -e "\n# caro PATH" >> "$shell_config"
+        echo "set -gx PATH $install_dir \$PATH" >> "$shell_config"
+    else
+        echo -e "\n# caro PATH" >> "$shell_config"
+        echo "export PATH=\"$install_dir:\$PATH\"" >> "$shell_config"
+    fi
+
+    say_success "PATH updated in $shell_config"
+    say "Run 'source $shell_config' or restart your terminal to apply"
 }
 
 # Setup shell alias
@@ -432,8 +492,29 @@ main() {
     setup_alias
     echo ""
 
+    # Determine shell config for final message
+    local shell_config_msg=""
+    case "$SHELL" in
+        */bash)
+            if [ -f "$HOME/.bash_profile" ]; then
+                shell_config_msg="source ~/.bash_profile"
+            else
+                shell_config_msg="source ~/.bashrc"
+            fi
+            ;;
+        */zsh)
+            shell_config_msg="source ~/.zshrc"
+            ;;
+        */fish)
+            shell_config_msg="source ~/.config/fish/config.fish"
+            ;;
+        *)
+            shell_config_msg="source your shell config file"
+            ;;
+    esac
+
     # Success message
-    cat << 'EOF'
+    cat << EOF
 ═══════════════════════════════════════════════════════════
   Installation Complete! 🎉
 ═══════════════════════════════════════════════════════════
@@ -460,7 +541,7 @@ Documentation:
 
 To start using caro:
   • Restart your shell, or
-  • Run: source ~/.bashrc (or ~/.zshrc, etc.)
+  • Run: $shell_config_msg
 
 EOF
 }
