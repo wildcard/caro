@@ -12,7 +12,7 @@
 
 Caro is the **only production-ready AI shell assistant** that works in air-gapped environments with **independent, pattern-based safety validation**. We serve the 8 million developers who cannot use cloud-based AI tools due to security policies.
 
-**Core Innovation:** While AI tools like Claude Code and GitHub Copilot CLI generate commands using probabilistic models, Caro adds a **deterministic safety layer** that operates independently of AI inference. This catches dangerous commands that AI models approve, including `rm -rf /` (which Claude marked as "Safe" in our testing).
+**Core Innovation:** While AI tools like Claude Code and GitHub Copilot CLI generate commands using probabilistic models, Caro adds a **deterministic safety layer** that operates independently of AI inference. This catches dangerous commands that AI models may approve—including patterns like `rm -rf /` that probabilistic systems can miss.
 
 **Market Opportunity:** $1.44B serviceable market of enterprise developers in restricted environments, with a clear path to $2M ARR in 18 months.
 
@@ -34,7 +34,7 @@ Caro is the **only production-ready AI shell assistant** that works in air-gappe
 
 1. **AI adoption is accelerating** - Enterprise AI spend: $50B (2024) to $150B (2027)
 2. **Security concerns persist** - 73% of enterprises cannot use cloud-based AI coding assistants
-3. **AI tools are failing** - Documented incidents of Claude Code, Gemini CLI deleting files
+3. **AI tools lack safety layers** - Probabilistic models can approve dangerous commands
 4. **Local AI is production-ready** - 1.5B parameter models achieve 87% task accuracy
 5. **Terminal usage is increasing** - 78% of developers use terminal daily (vs 71% in 2020)
 
@@ -178,7 +178,7 @@ Caro is the **only production-ready AI shell assistant** that works in air-gappe
 If AI is 99.9% accurate and team runs 1,000 commands/day:
 - 1,000 commands x 0.1% failure = **1 dangerous command/day**
 - Over a year: **365 potential incidents**
-- Caro provides deterministic layer: 52 patterns x 0 hallucination = **0 bypasses**
+- Caro provides deterministic layer: 50 patterns x 0 hallucination = **0 bypasses**
 
 ---
 
@@ -236,7 +236,7 @@ If AI is 99.9% accurate and team runs 1,000 commands/day:
 **Risk Level:** High (production impact)
 
 **Product Solution:**
-- 52+ pre-compiled dangerous patterns with <50ms validation
+- 50 predefined dangerous patterns with <50ms validation
 - Risk level gradation: Critical (red), High (orange), Moderate (yellow), Safe (green)
 - Bypass option with explicit confirmation for legitimate use
 - Clear explanation of why command was flagged
@@ -403,13 +403,13 @@ Note: Using GNU find syntax for Linux compatibility
 | Hallucination risk | Can be jailbroken | Regex doesn't make things up |
 | Speed | API round-trip | <50ms local validation |
 
-**Documented Incidents Caro Would Catch:**
+**Command Patterns Caro Catches:**
 
-| Tool | Incident | Date | Caro Pattern |
-|------|----------|------|--------------|
-| Claude Code | Deleted project files on "clean up repo" | Dec 2024 | `rm -rf` in project dir |
-| Gemini CLI | Executed rm -rf in wrong directory | Jan 2025 | Recursive delete pattern |
-| AI Assistant | curl \| bash from malicious URL | Nov 2024 | Piped remote execution |
+| Risk Category | Example Pattern | Caro Response |
+|---------------|-----------------|---------------|
+| Recursive deletion | `rm -rf` in project/system dirs | Block + suggest safer alternative |
+| Piped remote execution | `curl \| bash` from URLs | Block + warn about untrusted sources |
+| Privilege escalation | `chmod -R 777 /` | Block + require explicit confirmation |
 
 ---
 
@@ -572,7 +572,7 @@ find /tmp -type f -atime +7 -exec ls -lh {} \;
 | CLI with flexible argument parsing | SHIPPED | `-p/--prompt`, stdin, trailing args |
 | Natural language to shell commands | SHIPPED | 2-iteration agentic loop |
 | Platform detection | SHIPPED | OS, arch, shell, distribution |
-| Safety validation | SHIPPED | 52+ patterns, 4 risk levels |
+| Safety validation | SHIPPED | 50 patterns, 4 risk levels |
 | Embedded MLX backend | SHIPPED | Apple Silicon GPU acceleration |
 | Embedded CPU backend | SHIPPED | Cross-platform via Candle |
 | Ollama backend | SHIPPED | Remote inference support |
@@ -595,7 +595,7 @@ find /tmp -type f -atime +7 -exec ls -lh {} \;
 | Phi-2 2.7B | 1.5GB | Higher quality | 2-3s |
 | Mistral 7B | 3.5GB | Maximum quality | 3-5s |
 
-### Safety Patterns (52+)
+### Safety Patterns (50)
 
 **Critical (Red) - Blocked by Default:**
 - `rm -rf /` - System destruction
@@ -633,7 +633,7 @@ find /tmp -type f -atime +7 -exec ls -lh {} \;
 
 **Key Differentiators:**
 
-1. **Only Offline AI CLI Tool** - Competitive moat of 12-18 months
+1. **Only Offline AI CLI Tool** - First-mover advantage in local inference CLI space
 2. **Deterministic Safety Layer** - Pattern-based, not AI-based validation
 3. **Cross-Platform Intelligence** - BSD vs GNU awareness unique in market
 4. **Enterprise Distribution** - Single binary, no dependencies, audit-ready
