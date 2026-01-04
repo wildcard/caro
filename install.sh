@@ -77,8 +77,33 @@ install_binary() {
             cargo_features="--features embedded-mlx"
         fi
 
-        cargo install caro $cargo_features
-        return 0
+        # Capture cargo output to detect specific errors
+        local cargo_output
+        local cargo_exit_code
+        cargo_output=$(cargo install caro $cargo_features 2>&1) && cargo_exit_code=0 || cargo_exit_code=$?
+
+        if [ $cargo_exit_code -eq 0 ]; then
+            echo -e "${GREEN}✓ Installed caro successfully via cargo${NC}"
+            return 0
+        fi
+
+        # Check for edition2024 or Rust version compatibility issues
+        if echo "$cargo_output" | grep -q "edition2024\|feature.*is required\|newer version of Cargo"; then
+            echo -e "${RED}✗ Cargo install failed due to Rust version incompatibility${NC}"
+            echo -e "${YELLOW}A dependency requires a newer version of Rust${NC}"
+            echo -e "${BLUE}You can either:${NC}"
+            echo -e "  ${GREEN}1. Update Rust: rustup update${NC}"
+            echo -e "  ${GREEN}2. Use the pre-built binary (attempting now...)${NC}"
+            echo ""
+            # Fall through to binary download
+        else
+            # For other errors, show the output
+            echo -e "${RED}✗ Failed to install via cargo${NC}"
+            echo "$cargo_output" | tail -20
+            echo ""
+            echo -e "${YELLOW}Attempting to download pre-built binary as fallback...${NC}"
+            echo ""
+        fi
     fi
 
     # Fallback: Download pre-built binary from GitHub releases
@@ -222,8 +247,9 @@ install_binary() {
     if [[ "$(uname -s)" == "Darwin" ]] && [[ "$(uname -m)" == "arm64" ]]; then
         echo ""
         echo -e "${BLUE}Note: You're on Apple Silicon!${NC}"
-        echo -e "${YELLOW}For MLX optimization, you can rebuild from source:${NC}"
-        echo -e "  ${GREEN}cargo install caro --features embedded-mlx${NC}"
+        echo -e "${YELLOW}For MLX optimization, update Rust and rebuild from source:${NC}"
+        echo -e "  ${GREEN}rustup update${NC}"
+        echo -e "  ${GREEN}cargo install caro --features embedded-mlx --force${NC}"
     fi
 
     return 0

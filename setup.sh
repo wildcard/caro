@@ -97,12 +97,31 @@ install_via_cargo() {
         cargo_features="--features embedded-mlx"
     fi
 
-    if cargo install caro $cargo_features; then
+    # Capture cargo output to detect specific errors
+    local cargo_output
+    local cargo_exit_code
+    cargo_output=$(cargo install caro $cargo_features 2>&1) && cargo_exit_code=0 || cargo_exit_code=$?
+
+    if [ $cargo_exit_code -eq 0 ]; then
         say_success "Installed caro successfully"
         return 0
-    else
-        err "Failed to install via cargo"
     fi
+
+    # Check for edition2024 or Rust version compatibility issues
+    if echo "$cargo_output" | grep -q "edition2024\|feature.*is required\|newer version of Cargo"; then
+        say_error "Cargo install failed due to Rust version incompatibility"
+        say_warn "A dependency requires a newer version of Rust"
+        say "You can either:"
+        say "  1. Update Rust: rustup update"
+        say "  2. Use the pre-built binary (attempting now...)"
+        echo ""
+        return 1
+    fi
+
+    # For other errors, show the output and return failure
+    say_error "Failed to install via cargo"
+    echo "$cargo_output" | tail -20
+    return 1
 }
 
 # Install via pre-built binary
@@ -304,17 +323,38 @@ main() {
         err "Neither curl nor wget found. Please install one of them."
     fi
 
+    local install_success=false
+
     # Check for cargo
     if check_cmd cargo; then
-        # Cargo is available - use it (especially important for Apple Silicon MLX support)
-        install_via_cargo
+        # Cargo is available - try it first (especially important for Apple Silicon MLX support)
+        if install_via_cargo; then
+            install_success=true
+        else
+            # Cargo install failed - try binary as fallback
+            say "Attempting to install pre-built binary as fallback..."
+            echo ""
+            if install_via_binary; then
+                install_success=true
+                if [[ "$(uname -s)" == "Darwin" ]] && [[ "$(uname -m)" == "arm64" ]]; then
+                    echo ""
+                    say_warn "Note: Pre-built binary installed without MLX optimization"
+                    say "For MLX support, update Rust and rebuild:"
+                    say "  rustup update"
+                    say "  cargo install caro --features embedded-mlx --force"
+                fi
+            else
+                err "Both cargo and binary installation failed. Please update Rust (rustup update) and try again."
+            fi
+        fi
     else
         # No cargo - try binary installation first
         say_warn "Cargo not found."
         echo ""
 
         # Attempt binary installation
-        if install_via_binary 2>/dev/null; then
+        if install_via_binary; then
+            install_success=true
             # Binary install succeeded
             if [[ "$(uname -s)" == "Darwin" ]] && [[ "$(uname -m)" == "arm64" ]]; then
                 echo ""
@@ -347,8 +387,16 @@ main() {
             echo ""
 
             # Now install via cargo
-            install_via_cargo
+            if install_via_cargo; then
+                install_success=true
+            else
+                err "Installation failed. Please update Rust (rustup update) and try again."
+            fi
         fi
+    fi
+
+    if [ "$install_success" != "true" ]; then
+        err "Installation failed"
     fi
     echo ""
 
