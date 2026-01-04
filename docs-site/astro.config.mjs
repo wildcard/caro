@@ -60,6 +60,12 @@ export default defineConfig({
           ],
         },
         {
+          label: 'Product',
+          items: [
+            { label: 'Jobs To Be Done', slug: 'product/jobs-to-be-done' },
+          ],
+        },
+        {
           label: 'Guides',
           autogenerate: { directory: 'guides' },
         },
