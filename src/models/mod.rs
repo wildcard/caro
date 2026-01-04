@@ -616,7 +616,7 @@ impl CacheManifest {
 }
 
 /// User configuration with preferences
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct UserConfiguration {
     pub default_shell: Option<ShellType>,
     pub safety_level: SafetyLevel,
@@ -624,6 +624,61 @@ pub struct UserConfiguration {
     pub log_level: LogLevel,
     pub cache_max_size_gb: u64,
     pub log_rotation_days: u32,
+    /// Model selection preferences
+    #[serde(default)]
+    pub model_preferences: ModelPreferencesConfig,
+}
+
+/// Model selection preferences stored in configuration
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ModelPreferencesConfig {
+    /// Prefer MLX-optimized models (for Apple Silicon)
+    #[serde(default)]
+    pub prefer_mlx: bool,
+    /// Prefer smaller models for faster startup
+    #[serde(default)]
+    pub prefer_small: bool,
+    /// Prefer larger models for better quality
+    #[serde(default)]
+    pub prefer_quality: bool,
+    /// Prefer code-specialized models
+    #[serde(default)]
+    pub prefer_code_models: bool,
+    /// Maximum acceptable instant download time in seconds (default: 30)
+    #[serde(default = "default_instant_download_secs")]
+    pub max_instant_download_secs: u64,
+    /// Maximum acceptable background download time in seconds (default: 300)
+    #[serde(default = "default_background_download_secs")]
+    pub max_background_download_secs: u64,
+    /// Last measured network speed in MB/s (cached for quick recommendations)
+    #[serde(default)]
+    pub cached_network_speed_mbps: Option<f64>,
+    /// Auto-download recommended models in background
+    #[serde(default)]
+    pub auto_background_download: bool,
+}
+
+fn default_instant_download_secs() -> u64 {
+    30
+}
+
+fn default_background_download_secs() -> u64 {
+    300
+}
+
+impl Default for ModelPreferencesConfig {
+    fn default() -> Self {
+        Self {
+            prefer_mlx: false,
+            prefer_small: false,
+            prefer_quality: false,
+            prefer_code_models: true, // Default to code models for CLI tool
+            max_instant_download_secs: 30,
+            max_background_download_secs: 300,
+            cached_network_speed_mbps: None,
+            auto_background_download: false,
+        }
+    }
 }
 
 impl Default for UserConfiguration {
@@ -635,6 +690,7 @@ impl Default for UserConfiguration {
             log_level: LogLevel::Info,
             cache_max_size_gb: 10,
             log_rotation_days: 7,
+            model_preferences: ModelPreferencesConfig::default(),
         }
     }
 }
@@ -671,6 +727,7 @@ pub struct UserConfigurationBuilder {
     log_level: LogLevel,
     cache_max_size_gb: u64,
     log_rotation_days: u32,
+    model_preferences: ModelPreferencesConfig,
 }
 
 impl Default for UserConfigurationBuilder {
@@ -689,6 +746,7 @@ impl UserConfigurationBuilder {
             log_level: defaults.log_level,
             cache_max_size_gb: defaults.cache_max_size_gb,
             log_rotation_days: defaults.log_rotation_days,
+            model_preferences: defaults.model_preferences,
         }
     }
 
@@ -722,6 +780,11 @@ impl UserConfigurationBuilder {
         self
     }
 
+    pub fn model_preferences(mut self, prefs: ModelPreferencesConfig) -> Self {
+        self.model_preferences = prefs;
+        self
+    }
+
     pub fn build(self) -> Result<UserConfiguration, String> {
         let config = UserConfiguration {
             default_shell: self.default_shell,
@@ -730,6 +793,7 @@ impl UserConfigurationBuilder {
             log_level: self.log_level,
             cache_max_size_gb: self.cache_max_size_gb,
             log_rotation_days: self.log_rotation_days,
+            model_preferences: self.model_preferences,
         };
         config.validate()?;
         Ok(config)

@@ -1,5 +1,6 @@
 use caro::cli::{CliApp, CliError, IntoCliArgs};
 use caro::config::ConfigManager;
+use caro::model_manager::ModelCliHandler;
 use clap::Parser;
 use std::process;
 
@@ -281,6 +282,17 @@ async fn main() {
             println!("{}", caro::version::short());
         }
         process::exit(0);
+    }
+
+    // Handle 'model' subcommand before clap parsing
+    if args.len() >= 2 && args[1] == "model" {
+        match handle_model_command(&args[2..]).await {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        }
     }
 
     let mut cli = Cli::parse();
@@ -615,6 +627,20 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
     }
 
     Ok(())
+}
+
+/// Handle the 'model' subcommand
+async fn handle_model_command(args: &[String]) -> Result<(), anyhow::Error> {
+    let handler = ModelCliHandler::new()?;
+
+    if args.is_empty() {
+        // Default to showing help
+        handler.handle("help", &[]).await
+    } else {
+        let subcommand = &args[0];
+        let sub_args: Vec<String> = args.iter().skip(1).cloned().collect();
+        handler.handle(subcommand, &sub_args).await
+    }
 }
 
 async fn show_configuration(cli: &Cli) -> Result<String, CliError> {

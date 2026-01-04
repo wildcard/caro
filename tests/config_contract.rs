@@ -215,6 +215,7 @@ fn test_save_persists_configuration() {
         log_level: LogLevel::Warn,
         cache_max_size_gb: 20,
         log_rotation_days: 14,
+        model_preferences: Default::default(),
     };
 
     let save_result = config_manager.save(&config);
@@ -355,6 +356,7 @@ fn test_validate_accepts_valid_config() {
         log_level: LogLevel::Info,
         cache_max_size_gb: 10,
         log_rotation_days: 7,
+        model_preferences: Default::default(),
     };
 
     // UserConfiguration has its own validate() method

@@ -93,6 +93,7 @@ async fn test_returning_user_with_cache() {
         default_model: Some("custom-model-id".to_string()),
         cache_max_size_gb: 5,
         log_rotation_days: 3,
+        model_preferences: Default::default(),
     };
 
     // Save custom config

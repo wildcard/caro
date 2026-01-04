@@ -35,18 +35,26 @@ pub mod execution;
 pub mod logging;
 pub mod model_catalog;
 pub mod model_loader;
+pub mod model_manager;
+pub mod model_recommendation;
 pub mod models;
 pub mod platform;
 pub mod safety;
+pub mod speed_test;
 pub mod version;
 
 // Re-export commonly used types for convenience
 pub use model_catalog::{ModelCatalog, ModelInfo, ModelSize};
 pub use models::{
     BackendInfo, BackendType, CacheManifest, CachedModel, CommandRequest, ConfigSchema,
-    ExecutionContext, GeneratedCommand, LogEntry, LogLevel, Platform, RiskLevel, SafetyLevel,
-    ShellType, UserConfiguration, UserConfigurationBuilder,
+    ExecutionContext, GeneratedCommand, LogEntry, LogLevel, ModelPreferencesConfig, Platform,
+    RiskLevel, SafetyLevel, ShellType, UserConfiguration, UserConfigurationBuilder,
 };
+
+// Re-export speed test and model recommendation types
+pub use model_manager::{BackgroundDownload, DownloadStatus, ModelCliHandler, ModelManager};
+pub use model_recommendation::{ModelPreferences, ModelRecommendation, ModelRecommender};
+pub use speed_test::{NetworkQuality, SpeedTestResult, SpeedTester};
 
 // Re-export infrastructure module types and errors
 pub use cache::{CacheError, CacheManager, CacheStats, IntegrityReport};
