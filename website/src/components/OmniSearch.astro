@@ -91,7 +91,8 @@ const searchIndex = searchIndexData?.pages?.length > 0
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 12px;
+    padding: 0 12px;
+    height: var(--control-height-md, 40px);
     background: var(--color-bg-secondary, #f5f5f5);
     border: 1px solid var(--color-border, #e0e0e0);
     border-radius: 8px;
@@ -101,6 +102,7 @@ const searchIndex = searchIndexData?.pages?.length > 0
     cursor: pointer;
     transition: all 0.15s ease;
     white-space: nowrap;
+    box-sizing: border-box;
   }
 
   .omni-search-trigger:hover {
@@ -155,13 +157,18 @@ const searchIndex = searchIndexData?.pages?.length > 0
     border-color: var(--color-border, #555);
   }
 
-  /* Mobile: Hide text, show icon only */
+  /* Mobile: Hide text, show icon only - maintain consistent height */
   @media (max-width: 600px) {
     .omni-trigger-text {
       display: none;
     }
     .omni-search-trigger {
-      padding: 8px;
+      width: var(--control-height-md, 40px);
+      padding: 0;
+      justify-content: center;
+    }
+    .omni-trigger-kbd {
+      display: none;
     }
   }
 

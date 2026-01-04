@@ -20,7 +20,8 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 8px 14px;
+  padding: 0 14px;
+  height: var(--control-height-md, 40px);
   font-size: 15px;
   font-weight: 500;
   color: var(--color-text, #2c3e50);
@@ -29,6 +30,7 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
+  box-sizing: border-box;
 }
 
 .trigger:hover {
