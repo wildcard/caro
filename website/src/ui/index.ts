@@ -42,6 +42,11 @@ export {
   type CopyCodeBlockSize,
 } from './CopyCodeBlock';
 export {
+  CodeBlock,
+  type CodeBlockProps,
+  type CodeBlockVariant,
+} from './CodeBlock';
+export {
   IconButton,
   type IconButtonProps,
   type IconButtonSize,

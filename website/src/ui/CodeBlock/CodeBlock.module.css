@@ -1,0 +1,215 @@
+/**
+ * CodeBlock Component Styles
+ * Low-profile design optimized for usability
+ */
+
+/* ============================================
+   SHARED STYLES
+   ============================================ */
+
+.code {
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+.copyBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity var(--transition-fast),
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.copyBtn:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-primary);
+}
+
+.copyBtn:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.copyBtn:active {
+  transform: scale(0.95);
+}
+
+/* ============================================
+   INLINE CODE (single line)
+   ============================================ */
+
+.inline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 2px var(--space-sm);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-secondary);
+  vertical-align: baseline;
+}
+
+.inline:hover .copyBtn,
+.inline:focus-within .copyBtn {
+  opacity: 1;
+}
+
+.inline .copyBtn {
+  width: 22px;
+  height: 22px;
+  margin-right: -4px;
+}
+
+.inline .copyBtn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ============================================
+   BLOCK CODE (multiline)
+   ============================================ */
+
+.block {
+  position: relative;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+  overflow: hidden;
+}
+
+.block:hover .copyBtn,
+.block:focus-within .copyBtn {
+  opacity: 1;
+}
+
+.block .copyBtn {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  z-index: 1;
+}
+
+.pre {
+  margin: 0;
+  padding: var(--space-md);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ============================================
+   LINE NUMBERS
+   ============================================ */
+
+.line {
+  display: block;
+}
+
+.lineNum {
+  display: inline-block;
+  width: 2ch;
+  margin-right: var(--space-md);
+  color: var(--color-text-secondary);
+  text-align: right;
+  user-select: none;
+  opacity: 0.5;
+}
+
+.lineContent {
+  /* Allows line content to be selected independently */
+}
+
+/* ============================================
+   VARIANT: DEFAULT
+   ============================================ */
+
+.default {
+  background: var(--color-bg-secondary);
+}
+
+.default .code {
+  color: var(--color-text);
+}
+
+/* ============================================
+   VARIANT: MUTED
+   ============================================ */
+
+.muted {
+  background: var(--color-bg-tertiary);
+}
+
+.muted .code {
+  color: var(--color-text-tertiary);
+}
+
+/* ============================================
+   DARK MODE
+   ============================================ */
+
+:global(.dark) .inline,
+:global(.dark) .block {
+  background: var(--color-bg-secondary);
+}
+
+:global(.dark) .code {
+  color: var(--color-text);
+}
+
+:global(.dark) .copyBtn {
+  color: var(--color-text-secondary);
+}
+
+:global(.dark) .copyBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-primary-light);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 600px) {
+  .block .copyBtn {
+    opacity: 0.7;
+  }
+
+  .inline .copyBtn {
+    opacity: 0.7;
+  }
+
+  .pre {
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .copyBtn {
+    transition: none;
+  }
+}
+
+/* ============================================
+   PRINT
+   ============================================ */
+
+@media print {
+  .copyBtn {
+    display: none;
+  }
+}
