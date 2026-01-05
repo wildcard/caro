@@ -2,10 +2,47 @@
 
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 use tracing::{debug, info, warn};
 
 use crate::backends::embedded::ModelVariant;
 use crate::model_catalog::{ModelCatalog, ModelInfo};
+
+/// Errors that can occur during model download
+#[derive(Debug, thiserror::Error)]
+pub enum ModelDownloadError {
+    #[error("Network error: {message}\n\nPossible solutions:\n  1. Check your internet connection\n  2. Try again later (Hugging Face may be rate-limiting)\n  3. Use Ollama backend: export CARO_BACKEND=ollama\n  4. See: https://caro.sh/docs/troubleshooting#download-issues")]
+    Network { message: String },
+
+    #[error("SSL/TLS error: {message}\n\nPossible solutions:\n  1. Check your system's SSL certificates\n  2. Ensure your clock is set correctly\n  3. Try: export SSL_CERT_FILE=/path/to/ca-bundle.crt")]
+    SslError { message: String },
+
+    #[error("Disk space error: {message}\n\nThe model requires approximately {required_mb} MB of disk space.\nFree up space in your cache directory: {cache_dir}")]
+    DiskSpace {
+        message: String,
+        required_mb: u64,
+        cache_dir: String,
+    },
+
+    #[error("Rate limited by Hugging Face Hub\n\nPossible solutions:\n  1. Wait a few minutes and try again\n  2. Set HF_TOKEN environment variable for authenticated access\n  3. Use a smaller model: export CARO_MODEL=smollm-135m-q4")]
+    RateLimited,
+
+    #[error("Model not found: {model_id}\n\nThe model may have been moved or deleted from Hugging Face Hub.\nCheck available models at: https://huggingface.co/{repo}")]
+    ModelNotFound { model_id: String, repo: String },
+
+    #[error("Download failed after {attempts} attempts: {message}\n\nLast error: {last_error}\n\nPossible solutions:\n  1. Check your internet connection\n  2. Use Ollama backend: export CARO_BACKEND=ollama\n  3. Pre-download model: caro --download-model\n  4. Use smaller model for testing: export CARO_MODEL=smollm-135m-q4")]
+    RetryExhausted {
+        attempts: u32,
+        message: String,
+        last_error: String,
+    },
+
+    #[error("File system error: {0}")]
+    FileSystem(#[from] std::io::Error),
+
+    #[error("Internal error: {0}")]
+    Internal(String),
+}
 
 /// Model loader for managing embedded model distribution and caching
 #[derive(Clone)]
@@ -140,7 +177,8 @@ impl ModelLoader {
     /// Download model from Hugging Face Hub if missing
     ///
     /// This will download the selected model from Hugging Face
-    /// and save it to the cache directory.
+    /// and save it to the cache directory. Includes retry logic with
+    /// exponential backoff for transient network failures.
     pub async fn download_model_if_missing(&self, variant: ModelVariant) -> Result<PathBuf> {
         let model_path = self.get_embedded_model_path()?;
 
@@ -149,41 +187,244 @@ impl ModelLoader {
             return Ok(model_path);
         }
 
-        info!(
-            "Downloading {} ({} MB) from Hugging Face Hub...",
-            self.selected_model.name, self.selected_model.size_mb
-        );
-        self.download_model(&model_path, variant).await?;
+        // Check available disk space before download
+        self.check_disk_space()?;
 
-        Ok(model_path)
+        // Show download information with progress
+        self.show_download_info();
+
+        // Attempt download with retry logic
+        match self.download_model_with_retry(&model_path, variant).await {
+            Ok(()) => {
+                info!("Model downloaded successfully to: {}", model_path.display());
+                Ok(model_path)
+            }
+            Err(e) => {
+                // Clean up partial download if exists
+                if model_path.exists() {
+                    let _ = std::fs::remove_file(&model_path);
+                }
+                Err(e.into())
+            }
+        }
     }
 
-    /// Download the model from Hugging Face Hub
-    async fn download_model(&self, dest_path: &Path, _variant: ModelVariant) -> Result<()> {
-        use hf_hub::api::tokio::Api;
+    /// Show download information to user
+    fn show_download_info(&self) {
+        use colored::Colorize;
 
-        let api = Api::new().context("Failed to initialize Hugging Face API")?;
-        let repo = api.model(self.selected_model.hf_repo.to_string());
-
-        info!(
-            "Downloading {} from {}...",
-            self.selected_model.filename, self.selected_model.hf_repo
-        );
-        info!(
-            "This may take a few minutes (~{}MB)...",
+        eprintln!(
+            "\n{} Downloading {} ({} MB)",
+            "→".cyan().bold(),
+            self.selected_model.name.bold(),
             self.selected_model.size_mb
         );
+        eprintln!(
+            "  {} {}",
+            "Source:".dimmed(),
+            format!("huggingface.co/{}", self.selected_model.hf_repo).dimmed()
+        );
+        eprintln!(
+            "  {} {}\n",
+            "Cache:".dimmed(),
+            self.cache_dir.display().to_string().dimmed()
+        );
+        eprintln!(
+            "{}",
+            "  This is a one-time download. Future runs will use the cached model.".dimmed()
+        );
+        eprintln!();
+    }
+
+    /// Check if there's sufficient disk space for the model
+    fn check_disk_space(&self) -> Result<()> {
+        // Try to get available space, but don't fail if we can't determine it
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::MetadataExt;
+
+            if let Ok(metadata) = std::fs::metadata(&self.cache_dir) {
+                // Get filesystem stats using statvfs
+                let path_cstr =
+                    std::ffi::CString::new(self.cache_dir.to_string_lossy().as_bytes())
+                        .map_err(|_| anyhow::anyhow!("Invalid path"))?;
+
+                unsafe {
+                    let mut stat: libc::statvfs = std::mem::zeroed();
+                    if libc::statvfs(path_cstr.as_ptr(), &mut stat) == 0 {
+                        let available_bytes = stat.f_bavail as u64 * stat.f_bsize as u64;
+                        let available_mb = available_bytes / (1024 * 1024);
+                        let required_mb = self.selected_model.size_mb + 100; // Extra buffer
+
+                        if available_mb < required_mb {
+                            return Err(ModelDownloadError::DiskSpace {
+                                message: format!(
+                                    "Only {} MB available, need {} MB",
+                                    available_mb, required_mb
+                                ),
+                                required_mb,
+                                cache_dir: self.cache_dir.display().to_string(),
+                            }
+                            .into());
+                        }
+
+                        debug!(
+                            "Disk space check passed: {} MB available, {} MB required",
+                            available_mb, required_mb
+                        );
+                    }
+                }
+                // Suppress unused variable warning
+                let _ = metadata.dev();
+            }
+        }
+        Ok(())
+    }
+
+    /// Download the model with retry logic and exponential backoff
+    async fn download_model_with_retry(
+        &self,
+        dest_path: &Path,
+        _variant: ModelVariant,
+    ) -> Result<(), ModelDownloadError> {
+        const MAX_ATTEMPTS: u32 = 3;
+        const INITIAL_BACKOFF_MS: u64 = 2000;
+
+        let mut last_error = String::new();
+
+        for attempt in 1..=MAX_ATTEMPTS {
+            match self.download_model_attempt(dest_path).await {
+                Ok(()) => return Ok(()),
+                Err(e) => {
+                    last_error = e.to_string();
+
+                    // Don't retry for non-transient errors
+                    if Self::is_non_retryable_error(&e) {
+                        return Err(e);
+                    }
+
+                    if attempt < MAX_ATTEMPTS {
+                        let backoff_ms = INITIAL_BACKOFF_MS * (1 << (attempt - 1));
+                        warn!(
+                            "Download attempt {} failed: {}. Retrying in {}ms...",
+                            attempt, e, backoff_ms
+                        );
+                        eprintln!(
+                            "  Download attempt {} failed. Retrying in {}s...",
+                            attempt,
+                            backoff_ms / 1000
+                        );
+                        tokio::time::sleep(Duration::from_millis(backoff_ms)).await;
+                    }
+                }
+            }
+        }
+
+        Err(ModelDownloadError::RetryExhausted {
+            attempts: MAX_ATTEMPTS,
+            message: format!("Failed to download {}", self.selected_model.name),
+            last_error,
+        })
+    }
+
+    /// Check if an error is non-retryable (e.g., model not found, disk full)
+    fn is_non_retryable_error(error: &ModelDownloadError) -> bool {
+        matches!(
+            error,
+            ModelDownloadError::ModelNotFound { .. }
+                | ModelDownloadError::DiskSpace { .. }
+                | ModelDownloadError::SslError { .. }
+        )
+    }
+
+    /// Single download attempt
+    async fn download_model_attempt(&self, dest_path: &Path) -> Result<(), ModelDownloadError> {
+        use hf_hub::api::tokio::Api;
+        use indicatif::{ProgressBar, ProgressStyle};
+
+        // Create progress bar
+        let pb = ProgressBar::new_spinner();
+        pb.set_style(
+            ProgressStyle::default_spinner()
+                .template("{spinner:.cyan} {msg}")
+                .unwrap(),
+        );
+        pb.set_message(format!(
+            "Connecting to Hugging Face Hub for {}...",
+            self.selected_model.filename
+        ));
+        pb.enable_steady_tick(Duration::from_millis(100));
+
+        // Initialize HF API
+        let api = Api::new().map_err(|e| {
+            let error_msg = e.to_string().to_lowercase();
+            if error_msg.contains("ssl") || error_msg.contains("certificate") {
+                ModelDownloadError::SslError {
+                    message: e.to_string(),
+                }
+            } else {
+                ModelDownloadError::Network {
+                    message: format!("Failed to initialize Hugging Face API: {}", e),
+                }
+            }
+        })?;
+
+        let repo = api.model(self.selected_model.hf_repo.to_string());
+
+        pb.set_message(format!(
+            "Downloading {} (~{} MB)...",
+            self.selected_model.filename, self.selected_model.size_mb
+        ));
 
         // Download the model file
-        let downloaded = repo
-            .get(self.selected_model.filename)
-            .await
-            .context("Failed to download model from Hugging Face Hub")?;
+        let downloaded = repo.get(self.selected_model.filename).await.map_err(|e| {
+            let error_msg = e.to_string().to_lowercase();
+
+            if error_msg.contains("rate") || error_msg.contains("429") {
+                ModelDownloadError::RateLimited
+            } else if error_msg.contains("not found") || error_msg.contains("404") {
+                ModelDownloadError::ModelNotFound {
+                    model_id: self.selected_model.id.to_string(),
+                    repo: self.selected_model.hf_repo.to_string(),
+                }
+            } else if error_msg.contains("ssl")
+                || error_msg.contains("certificate")
+                || error_msg.contains("tls")
+            {
+                ModelDownloadError::SslError {
+                    message: e.to_string(),
+                }
+            } else if error_msg.contains("timeout")
+                || error_msg.contains("connection")
+                || error_msg.contains("network")
+            {
+                ModelDownloadError::Network {
+                    message: e.to_string(),
+                }
+            } else {
+                ModelDownloadError::Network {
+                    message: format!("Download failed: {}", e),
+                }
+            }
+        })?;
+
+        pb.set_message("Copying model to cache...");
 
         // Copy to cache directory
-        std::fs::copy(&downloaded, dest_path).context("Failed to copy model to cache directory")?;
+        std::fs::copy(&downloaded, dest_path).map_err(|e| {
+            let error_msg = e.to_string().to_lowercase();
+            if error_msg.contains("space") || error_msg.contains("quota") {
+                ModelDownloadError::DiskSpace {
+                    message: e.to_string(),
+                    required_mb: self.selected_model.size_mb,
+                    cache_dir: self.cache_dir.display().to_string(),
+                }
+            } else {
+                ModelDownloadError::FileSystem(e)
+            }
+        })?;
 
-        info!("Model downloaded successfully to: {}", dest_path.display());
+        pb.finish_with_message(format!("✓ Downloaded {}", self.selected_model.name));
 
         Ok(())
     }
@@ -339,5 +580,80 @@ mod tests {
         let result = loader.verify_model(Path::new("/nonexistent/model.gguf"));
         assert!(result.is_ok());
         assert!(!result.unwrap());
+    }
+
+    #[test]
+    fn test_model_download_error_display() {
+        // Test Network error
+        let err = ModelDownloadError::Network {
+            message: "Connection refused".to_string(),
+        };
+        let display = err.to_string();
+        assert!(display.contains("Network error"));
+        assert!(display.contains("Connection refused"));
+        assert!(display.contains("Possible solutions"));
+
+        // Test RateLimited error
+        let err = ModelDownloadError::RateLimited;
+        let display = err.to_string();
+        assert!(display.contains("Rate limited"));
+        assert!(display.contains("HF_TOKEN"));
+
+        // Test ModelNotFound error
+        let err = ModelDownloadError::ModelNotFound {
+            model_id: "test-model".to_string(),
+            repo: "test-org/test-repo".to_string(),
+        };
+        let display = err.to_string();
+        assert!(display.contains("Model not found"));
+        assert!(display.contains("test-model"));
+
+        // Test DiskSpace error
+        let err = ModelDownloadError::DiskSpace {
+            message: "No space left".to_string(),
+            required_mb: 1000,
+            cache_dir: "/home/user/.cache/caro/models".to_string(),
+        };
+        let display = err.to_string();
+        assert!(display.contains("Disk space"));
+        assert!(display.contains("1000 MB"));
+
+        // Test RetryExhausted error
+        let err = ModelDownloadError::RetryExhausted {
+            attempts: 3,
+            message: "Download failed".to_string(),
+            last_error: "Connection timeout".to_string(),
+        };
+        let display = err.to_string();
+        assert!(display.contains("3 attempts"));
+        assert!(display.contains("Connection timeout"));
+    }
+
+    #[test]
+    fn test_is_non_retryable_error() {
+        // ModelNotFound should not be retried
+        let err = ModelDownloadError::ModelNotFound {
+            model_id: "test".to_string(),
+            repo: "test".to_string(),
+        };
+        assert!(ModelLoader::is_non_retryable_error(&err));
+
+        // DiskSpace should not be retried
+        let err = ModelDownloadError::DiskSpace {
+            message: "No space".to_string(),
+            required_mb: 1000,
+            cache_dir: "/tmp".to_string(),
+        };
+        assert!(ModelLoader::is_non_retryable_error(&err));
+
+        // Network errors should be retried
+        let err = ModelDownloadError::Network {
+            message: "Connection refused".to_string(),
+        };
+        assert!(!ModelLoader::is_non_retryable_error(&err));
+
+        // RateLimited can be retried (after waiting)
+        let err = ModelDownloadError::RateLimited;
+        assert!(!ModelLoader::is_non_retryable_error(&err));
     }
 }

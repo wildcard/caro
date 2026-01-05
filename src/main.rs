@@ -358,18 +358,51 @@ async fn main() {
     match run_cli(&cli).await {
         Ok(()) => process::exit(0),
         Err(e) => {
-            eprintln!("Error: {}", e);
-            match e {
-                CliError::NotImplemented => {
-                    eprintln!();
-                    eprintln!("This functionality is not yet implemented.");
-                    eprintln!("caro is currently in development.");
+            use colored::Colorize;
+
+            // Check if this is a model download error for better messaging
+            let error_str = e.to_string();
+            if error_str.contains("Failed to download model")
+                || error_str.contains("download")
+                    && (error_str.contains("Hugging Face") || error_str.contains("network"))
+            {
+                eprintln!("{} Model download failed\n", "Error:".red().bold());
+                eprintln!("{}", error_str);
+                eprintln!();
+                eprintln!("{}", "Quick fixes:".yellow().bold());
+                eprintln!(
+                    "  {} Check your internet connection",
+                    "1.".cyan()
+                );
+                eprintln!(
+                    "  {} Use a smaller model for testing:",
+                    "2.".cyan()
+                );
+                eprintln!("     export CARO_MODEL=smollm-135m-q4  # Only 82 MB");
+                eprintln!(
+                    "  {} Use Ollama backend (if installed):",
+                    "3.".cyan()
+                );
+                eprintln!("     export CARO_BACKEND=ollama");
+                eprintln!();
+                eprintln!(
+                    "{}",
+                    "For more help: https://caro.sh/docs/troubleshooting".dimmed()
+                );
+            } else {
+                eprintln!("{} {}", "Error:".red().bold(), e);
+                match e {
+                    CliError::NotImplemented => {
+                        eprintln!();
+                        eprintln!("This functionality is not yet implemented.");
+                        eprintln!("caro is currently in development.");
+                    }
+                    CliError::ConfigurationError { .. } => {
+                        eprintln!();
+                        eprintln!("Please check your configuration and try again.");
+                    }
+                    _ => {}
                 }
-                CliError::ConfigurationError { .. } => {
-                    eprintln!();
-                    eprintln!("Please check your configuration and try again.");
-                }
-                _ => {}
             }
             process::exit(1);
         }

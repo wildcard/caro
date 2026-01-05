@@ -49,6 +49,10 @@ which = "8.0"
 os_info = "3.14"
 sysinfo = "0.37"
 
+# POSIX system calls (for disk space checks on Unix)
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
 # Model integration (Hugging Face Hub)
 hf-hub = { version = "0.4", default-features = false, features = ["tokio", "rustls-tls"] }
 url = "2.5"

@@ -53,7 +53,7 @@ pub use cache::{CacheError, CacheManager, CacheStats, IntegrityReport};
 pub use config::{ConfigError, ConfigManager};
 pub use execution::{ExecutionError, PlatformDetector, ShellDetector};
 pub use logging::{LogConfig, LogConfigBuilder, LogError, LogFormat, LogOutput, Logger, Redaction};
-pub use model_loader::ModelLoader;
+pub use model_loader::{ModelDownloadError, ModelLoader};
 pub use platform::{PlatformContext, PlatformContextBuilder, PlatformContextError, UtilityType};
 
 // Re-export backend types
