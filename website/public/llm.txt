@@ -1,0 +1,82 @@
+# Caro
+
+> Your loyal shell companion - A privacy-first AI CLI assistant that converts natural language to safe shell commands
+
+Caro is an open-source Rust CLI tool that helps you generate POSIX-compliant shell commands from natural language descriptions. It runs 100% locally, validates commands for safety before execution, and supports multiple LLM backends including Ollama, MLX (Apple Silicon), and cloud providers.
+
+## Quick Start
+
+Install via cargo:
+```bash
+cargo install caro
+```
+
+Or use the install script:
+```bash
+curl -sSL https://caro.sh/install.sh | bash
+```
+
+Basic usage:
+```bash
+caro "find all Python files modified in the last week"
+```
+
+## Key Features
+
+- **Privacy-First**: Runs 100% locally - commands never leave your machine
+- **Safety Validation**: Pattern-based detection of dangerous commands before execution
+- **Multiple Backends**: Supports Ollama, MLX, llama.cpp, Anthropic Claude, OpenAI GPT
+- **Cross-Platform**: Works on macOS, Linux, and Windows (WSL)
+- **POSIX Compliant**: Generates shell-agnostic commands that work everywhere
+
+## Documentation
+
+- [Homepage](https://caro.sh/)
+- [FAQ](https://caro.sh/faq)
+- [AI Command Safety](https://caro.sh/ai-command-safety)
+- [Safe Shell Commands](https://caro.sh/safe-shell-commands)
+- [Roadmap](https://caro.sh/roadmap)
+- [Telemetry](https://caro.sh/telemetry)
+- [Credits](https://caro.sh/credits)
+
+## Use Cases
+
+- [SRE & On-Call Engineers](https://caro.sh/use-cases/sre)
+- [Air-Gapped Security Environments](https://caro.sh/use-cases/air-gapped)
+- [DevOps & Platform Engineers](https://caro.sh/use-cases/devops)
+- [Tech Leads](https://caro.sh/use-cases/tech-lead)
+- [Developers](https://caro.sh/use-cases/developer)
+
+## Comparisons
+
+- [Caro vs GitHub Copilot CLI](https://caro.sh/compare/github-copilot-cli)
+- [Caro vs Warp AI](https://caro.sh/compare/warp)
+- [Caro vs Kiro CLI](https://caro.sh/compare/kiro-cli)
+- [Caro vs OpenCode](https://caro.sh/compare/opencode)
+
+## Blog
+
+- [Announcing Caro](https://caro.sh/blog/announcing-caro)
+- [Why Caro?](https://caro.sh/blog/why-caro)
+- [Security Practices](https://caro.sh/blog/security-practices)
+- [Batteries Included](https://caro.sh/blog/batteries-included)
+- [Claude Skill Launch](https://caro.sh/blog/claude-skill-launch)
+- [Modern Unix Tools in Rust](https://caro.sh/blog/rust-unix-tools)
+
+## Resources
+
+- [GitHub Repository](https://github.com/wildcard/caro)
+- [Full Documentation](https://caro.sh/llm-full.txt)
+- [Modern Unix Tools Reference](https://caro.sh/modern-unix-tools)
+- [Terminal Glossary](https://caro.sh/glossary)
+
+## Project Info
+
+- **Version**: 1.0.3
+- **License**: AGPL-3.0
+- **Language**: Rust
+- **Minimum Rust Version**: 1.70+
+
+## Optional
+
+For comprehensive documentation including full page content, see: https://caro.sh/llm-full.txt

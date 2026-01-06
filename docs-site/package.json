@@ -5,6 +5,8 @@
   "description": "Documentation site for caro - Natural language to shell commands",
   "type": "module",
   "scripts": {
+    "generate-llm-txt": "node scripts/generate-llm-txt.mjs",
+    "prebuild": "node scripts/generate-llm-txt.mjs",
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",

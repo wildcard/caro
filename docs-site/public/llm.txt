@@ -1,0 +1,46 @@
+# Caro Documentation
+
+> Technical documentation for Caro - Natural language to shell commands CLI
+
+Caro is an open-source Rust CLI tool that transforms natural language into safe, POSIX-compliant shell commands. This documentation covers installation, configuration, safety features, and development.
+
+## Quick Links
+
+- [Main Docs Site](https://docs.caro.sh/)
+- [Main Website](https://caro.sh/)
+- [GitHub Repository](https://github.com/wildcard/caro)
+
+## Getting Started
+
+- [Installation](https://docs.caro.sh/getting-started/installation/) - Install caro on macOS, Linux, or Windows
+- [Introduction to caro](https://docs.caro.sh/getting-started/introduction/) - Learn what caro is and how it transforms natural language into shell commands
+- [Quick Start](https://docs.caro.sh/getting-started/quick-start/) - Get up and running with caro in minutes
+
+## Guides
+
+- [macOS Setup Guide](https://docs.caro.sh/guides/macos-setup/) - Set up caro on macOS with optional GPU acceleration for Apple Silicon
+- [Spec-Kitty Development Guide](https://docs.caro.sh/guides/spec-kitty/) - Use Spec-Kitty for rapid, multi-branch feature development with caro
+
+## Reference
+
+- [Backend Reference](https://docs.caro.sh/reference/backends/) - Complete reference for caro inference backends
+- [Configuration Reference](https://docs.caro.sh/reference/configuration/) - Complete configuration options for caro
+- [Naming History](https://docs.caro.sh/reference/naming-history/) - The evolution from cmdai to caro
+- [Safety Validation](https://docs.caro.sh/reference/safety/) - How caro validates commands for safety before execution
+
+## Development
+
+- [AI Agent Guidelines](https://docs.caro.sh/development/agents/) - Guidelines for AI agents working on the caro codebase
+- [Test-Driven Development](https://docs.caro.sh/development/tdd-workflow/) - How caro uses TDD for reliable, well-tested code
+- [Website Development](https://docs.caro.sh/development/website/) - Development guide for the caro.sh website
+
+## Project Info
+
+- **Version**: 1.0.3
+- **License**: AGPL-3.0
+- **Language**: Rust
+- **Minimum Rust Version**: 1.75+
+
+## Optional
+
+For comprehensive documentation including full page content, see: https://docs.caro.sh/llm-full.txt

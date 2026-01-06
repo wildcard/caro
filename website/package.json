@@ -5,7 +5,8 @@
   "description": "Official website for Caro - Your loyal shell companion",
   "scripts": {
     "generate-search-index": "node scripts/generate-search-index.mjs",
-    "prebuild": "node scripts/extract-version.mjs && node scripts/generate-search-index.mjs",
+    "generate-llm-txt": "node scripts/generate-llm-txt.mjs",
+    "prebuild": "node scripts/extract-version.mjs && node scripts/generate-search-index.mjs && node scripts/generate-llm-txt.mjs",
     "predev": "node scripts/extract-version.mjs",
     "dev": "astro dev",
     "start": "astro dev",
