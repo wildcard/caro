@@ -1,0 +1,59 @@
+name: Sync CLA Signatures to Main
+
+on:
+  # Trigger when PR is merged to main
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+  # Allow manual sync
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync-signatures:
+    # Only run if PR was merged (not just closed)
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Sync CLA signatures from cla-signatures branch
+        run: |
+          # Fetch the cla-signatures branch
+          git fetch origin cla-signatures:cla-signatures
+
+          # Check if signatures file differs
+          if git diff --quiet main cla-signatures -- .github/cla-signatures.json 2>/dev/null; then
+            echo "No new signatures to sync"
+            exit 0
+          fi
+
+          # Copy the signatures file from cla-signatures branch
+          git checkout cla-signatures -- .github/cla-signatures.json
+
+          # Check if there are actual changes
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          # Commit and push
+          git commit -m "chore: Sync CLA signatures from cla-signatures branch [skip ci]"
+          git push origin main
+
+          echo "Successfully synced CLA signatures to main"

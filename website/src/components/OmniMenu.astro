@@ -8,11 +8,8 @@
 
 import { PAGES_INDEX } from '../config/pages';
 
-// Feature flag: enabled on preview, disabled on production unless explicit
-const isPreview = import.meta.env.VERCEL_ENV === 'preview';
-const isExplicit = import.meta.env.ENABLE_OMNI_MENU === 'true';
-const isProd = import.meta.env.VERCEL_ENV === 'production';
-const isEnabled = isPreview || isExplicit || !isProd;
+// Menu is always enabled - no feature flag needed
+const isEnabled = true;
 
 // Pre-build search index at compile time
 const searchIndex = PAGES_INDEX.map(p => ({

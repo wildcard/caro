@@ -1,0 +1,1464 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+import Footer from '../components/Footer.astro';
+
+// Search metadata - used by OmniMenu
+export const searchMeta = {
+  title: 'Glossary',
+  description: 'Terminal & Unix terminology explained',
+  keywords: ['glossary', 'unix', 'posix', 'shell', 'terminal', 'commands', 'cli', 'bash', 'zsh', 'linux', 'macos', 'cheatsheet', 'reference', 'beginner', 'learn'],
+  icon: '📖',
+};
+---
+
+<Layout
+  title="Glossary - Terminal & Unix Terms Explained | Caro"
+  description="Your friendly guide to terminal, shell, and Unix terminology. Bite-sized explanations of POSIX commands, shell concepts, and Caro features for everyone."
+>
+  <Navigation />
+
+  <div class="glossary-page">
+    <!-- Hero Section -->
+    <section class="glossary-hero">
+      <div class="container">
+        <span class="hero-badge">Terminal Galore</span>
+        <h1>The Friendly Terminal Glossary</h1>
+        <p class="tagline">Unix & shell concepts made simple</p>
+        <p class="intro">
+          Whether you're just starting your terminal journey or brushing up on fundamentals,
+          this glossary breaks down commands, concepts, and Caro features into easy-to-digest bites.
+          <strong>Terminal knowledge for everyone.</strong>
+        </p>
+      </div>
+    </section>
+
+    <!-- Quick Jump Navigation -->
+    <section class="quick-nav">
+      <div class="container">
+        <div class="nav-pills">
+          <a href="#caro-terms" class="nav-pill">Caro</a>
+          <a href="#shell-basics" class="nav-pill">Shell Basics</a>
+          <a href="#file-commands" class="nav-pill">Files & Dirs</a>
+          <a href="#text-processing" class="nav-pill">Text Processing</a>
+          <a href="#permissions" class="nav-pill">Permissions</a>
+          <a href="#processes" class="nav-pill">Processes</a>
+          <a href="#networking" class="nav-pill">Networking</a>
+          <a href="#shortcuts" class="nav-pill">Shortcuts</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Caro Terms Section -->
+    <section id="caro-terms" class="glossary-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-icon">🥕</span>
+          <h2>Caro Terms</h2>
+          <p class="section-subtitle">Understanding your AI shell companion</p>
+        </div>
+
+        <div class="terms-grid">
+          <div class="term-card featured">
+            <div class="term-header">
+              <h3>Caro</h3>
+              <span class="badge">Core</span>
+            </div>
+            <p class="definition">
+              Your AI-powered shell command assistant. Caro translates natural language into safe,
+              executable shell commands. Think of it as having a Unix expert by your side.
+            </p>
+            <div class="example">
+              <code>caro "find all large files over 100MB"</code>
+            </div>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>Safety Validation</h3>
+              <span class="badge safety">Safety</span>
+            </div>
+            <p class="definition">
+              Caro's built-in protection that analyzes commands before execution. It catches dangerous
+              patterns like <code>rm -rf /</code> and asks for confirmation on risky operations.
+            </p>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>Backend</h3>
+              <span class="badge">Config</span>
+            </div>
+            <p class="definition">
+              The AI engine powering Caro's language understanding. Options include local models
+              (Ollama, MLX) for privacy or cloud APIs (Claude, OpenAI) for power.
+            </p>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>Dry Run</h3>
+              <span class="badge safety">Safety</span>
+            </div>
+            <p class="definition">
+              Preview mode that shows what a command would do without actually executing it.
+              Perfect for learning or verifying complex operations.
+            </p>
+            <div class="example">
+              <code>caro --dry-run "delete all temp files"</code>
+            </div>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>Interactive Mode</h3>
+              <span class="badge">Feature</span>
+            </div>
+            <p class="definition">
+              A conversational shell session where you can ask follow-up questions, refine commands,
+              and explore options naturally.
+            </p>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>Local Inference</h3>
+              <span class="badge privacy">Privacy</span>
+            </div>
+            <p class="definition">
+              Running AI models directly on your machine. Your commands and data never leave
+              your computer—perfect for sensitive work environments.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Shell Basics Section -->
+    <section id="shell-basics" class="glossary-section alt-bg">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-icon">🐚</span>
+          <h2>Shell Basics</h2>
+          <p class="section-subtitle">The foundation of command-line mastery</p>
+        </div>
+
+        <div class="terms-grid">
+          <div class="term-card">
+            <div class="term-header">
+              <h3>Shell</h3>
+              <span class="badge">Essential</span>
+            </div>
+            <p class="definition">
+              The program that interprets your commands. Common shells include
+              <strong>bash</strong>, <strong>zsh</strong>, and <strong>fish</strong>.
+              It's the interface between you and the operating system.
+            </p>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>Terminal</h3>
+              <span class="badge">Essential</span>
+            </div>
+            <p class="definition">
+              The window application that displays your shell. Examples: Terminal.app, iTerm2,
+              Windows Terminal, or Alacritty. The terminal is the container; the shell runs inside it.
+            </p>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>CLI</h3>
+              <span class="badge">Acronym</span>
+            </div>
+            <p class="definition">
+              <strong>Command Line Interface</strong>. Any program you interact with by typing
+              commands rather than clicking. Git, npm, docker—all CLIs.
+            </p>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>POSIX</h3>
+              <span class="badge">Standard</span>
+            </div>
+            <p class="definition">
+              <strong>Portable Operating System Interface</strong>. A set of standards ensuring
+              commands work consistently across Unix-like systems (Linux, macOS, BSD).
+            </p>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>Prompt</h3>
+              <span class="badge">UI</span>
+            </div>
+            <p class="definition">
+              The text that appears before your cursor, indicating the shell is ready for input.
+              Often shows username, hostname, and current directory: <code>user@host:~$</code>
+            </p>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>PATH</h3>
+              <span class="badge">Environment</span>
+            </div>
+            <p class="definition">
+              An environment variable listing directories where the shell looks for executable programs.
+              When you type <code>git</code>, the shell searches PATH to find it.
+            </p>
+            <div class="example">
+              <code>echo $PATH</code>
+            </div>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>Environment Variable</h3>
+              <span class="badge">Concept</span>
+            </div>
+            <p class="definition">
+              Named values available to all programs. Used for configuration like API keys,
+              paths, and preferences. Access with <code>$VARIABLE_NAME</code>.
+            </p>
+            <div class="example">
+              <code>export MY_VAR="hello"</code>
+            </div>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>Alias</h3>
+              <span class="badge">Shortcut</span>
+            </div>
+            <p class="definition">
+              A custom shortcut for a longer command. Define frequently used commands once,
+              use a short name forever.
+            </p>
+            <div class="example">
+              <code>alias ll="ls -la"</code>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- File & Directory Commands Section -->
+    <section id="file-commands" class="glossary-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-icon">📁</span>
+          <h2>Files & Directories</h2>
+          <p class="section-subtitle">Navigate and manage your filesystem</p>
+        </div>
+
+        <div class="terms-grid three-col">
+          <div class="term-card compact">
+            <div class="term-header">
+              <h3>ls</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              <strong>List</strong> directory contents. The first command everyone learns.
+            </p>
+            <div class="example">
+              <code>ls -la</code>
+              <span class="example-desc">List all files with details</span>
+            </div>
+          </div>
+
+          <div class="term-card compact">
+            <div class="term-header">
+              <h3>cd</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              <strong>Change Directory</strong>. Navigate between folders.
+            </p>
+            <div class="example">
+              <code>cd ~/Documents</code>
+              <span class="example-desc">Go to Documents folder</span>
+            </div>
+          </div>
+
+          <div class="term-card compact">
+            <div class="term-header">
+              <h3>pwd</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              <strong>Print Working Directory</strong>. Shows your current location.
+            </p>
+            <div class="example">
+              <code>pwd</code>
+              <span class="example-desc">Output: /home/user/projects</span>
+            </div>
+          </div>
+
+          <div class="term-card compact">
+            <div class="term-header">
+              <h3>mkdir</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              <strong>Make Directory</strong>. Create new folders.
+            </p>
+            <div class="example">
+              <code>mkdir -p path/to/new</code>
+              <span class="example-desc">Create nested directories</span>
+            </div>
+          </div>
+
+          <div class="term-card compact">
+            <div class="term-header">
+              <h3>rm</h3>
+              <span class="badge cmd danger">Command</span>
+            </div>
+            <p class="definition">
+              <strong>Remove</strong>. Delete files or directories. <em>Use with caution!</em>
+            </p>
+            <div class="example">
+              <code>rm -i file.txt</code>
+              <span class="example-desc">Delete with confirmation</span>
+            </div>
+          </div>
+
+          <div class="term-card compact">
+            <div class="term-header">
+              <h3>cp</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              <strong>Copy</strong>. Duplicate files or directories.
+            </p>
+            <div class="example">
+              <code>cp -r src/ dest/</code>
+              <span class="example-desc">Copy directory recursively</span>
+            </div>
+          </div>
+
+          <div class="term-card compact">
+            <div class="term-header">
+              <h3>mv</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              <strong>Move</strong>. Relocate or rename files/directories.
+            </p>
+            <div class="example">
+              <code>mv old.txt new.txt</code>
+              <span class="example-desc">Rename a file</span>
+            </div>
+          </div>
+
+          <div class="term-card compact">
+            <div class="term-header">
+              <h3>touch</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              Create empty files or update timestamps.
+            </p>
+            <div class="example">
+              <code>touch newfile.txt</code>
+              <span class="example-desc">Create empty file</span>
+            </div>
+          </div>
+
+          <div class="term-card compact">
+            <div class="term-header">
+              <h3>find</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              Search for files by name, type, size, date, and more.
+            </p>
+            <div class="example">
+              <code>find . -name "*.js"</code>
+              <span class="example-desc">Find all JavaScript files</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pro-tip">
+          <span class="tip-icon">💡</span>
+          <div class="tip-content">
+            <strong>Pro Tip:</strong> Use <code>~</code> for home directory, <code>.</code> for current,
+            <code>..</code> for parent, and <code>-</code> for previous directory.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Text Processing Section -->
+    <section id="text-processing" class="glossary-section alt-bg">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-icon">📝</span>
+          <h2>Text Processing</h2>
+          <p class="section-subtitle">Search, filter, and transform text like a pro</p>
+        </div>
+
+        <div class="terms-grid">
+          <div class="term-card">
+            <div class="term-header">
+              <h3>cat</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              <strong>Concatenate</strong>. Display file contents or combine multiple files.
+            </p>
+            <div class="example">
+              <code>cat file.txt</code>
+              <span class="example-desc">Show file contents</span>
+            </div>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>grep</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              <strong>Global Regular Expression Print</strong>. Search text using patterns.
+              One of the most powerful Unix tools.
+            </p>
+            <div class="example">
+              <code>grep -r "TODO" ./src</code>
+              <span class="example-desc">Find all TODOs in source code</span>
+            </div>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>sed</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              <strong>Stream Editor</strong>. Find and replace text, or transform streams
+              with powerful pattern matching.
+            </p>
+            <div class="example">
+              <code>sed 's/old/new/g' file</code>
+              <span class="example-desc">Replace all occurrences</span>
+            </div>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>awk</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              A complete text-processing language. Extract columns, compute values,
+              and format output from structured data.
+            </p>
+            <div class="example">
+              <code>awk '{"{"} print $1 {"}"}' file</code>
+              <span class="example-desc">Print first column</span>
+            </div>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>head / tail</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              View the beginning or end of files. Great for logs and large files.
+            </p>
+            <div class="example">
+              <code>tail -f app.log</code>
+              <span class="example-desc">Follow log in real-time</span>
+            </div>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>sort / uniq</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              Sort lines and filter duplicates. Often used together in pipelines.
+            </p>
+            <div class="example">
+              <code>sort file | uniq -c</code>
+              <span class="example-desc">Count unique lines</span>
+            </div>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>wc</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              <strong>Word Count</strong>. Count lines, words, and bytes in files.
+            </p>
+            <div class="example">
+              <code>wc -l *.txt</code>
+              <span class="example-desc">Count lines in all text files</span>
+            </div>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>Pipe ( | )</h3>
+              <span class="badge operator">Operator</span>
+            </div>
+            <p class="definition">
+              Connect commands together. Output of one command becomes input to the next.
+              The secret sauce of Unix philosophy.
+            </p>
+            <div class="example">
+              <code>cat log | grep error | wc -l</code>
+              <span class="example-desc">Count error lines in log</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Permissions Section -->
+    <section id="permissions" class="glossary-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-icon">🔐</span>
+          <h2>Permissions & Ownership</h2>
+          <p class="section-subtitle">Control who can do what with your files</p>
+        </div>
+
+        <div class="terms-grid">
+          <div class="term-card">
+            <div class="term-header">
+              <h3>chmod</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              <strong>Change Mode</strong>. Modify file permissions (read, write, execute)
+              for owner, group, and others.
+            </p>
+            <div class="example">
+              <code>chmod +x script.sh</code>
+              <span class="example-desc">Make script executable</span>
+            </div>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>chown</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              <strong>Change Owner</strong>. Transfer file ownership to another user or group.
+            </p>
+            <div class="example">
+              <code>chown user:group file</code>
+              <span class="example-desc">Change owner and group</span>
+            </div>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>sudo</h3>
+              <span class="badge cmd danger">Command</span>
+            </div>
+            <p class="definition">
+              <strong>Superuser Do</strong>. Run commands with administrator privileges.
+              With great power comes great responsibility.
+            </p>
+            <div class="example">
+              <code>sudo apt update</code>
+              <span class="example-desc">Update as administrator</span>
+            </div>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>Permission Numbers</h3>
+              <span class="badge">Concept</span>
+            </div>
+            <p class="definition">
+              Octal notation for permissions: <strong>4</strong>=read, <strong>2</strong>=write,
+              <strong>1</strong>=execute. Combine for each group (owner/group/others).
+            </p>
+            <div class="example">
+              <code>chmod 755 script.sh</code>
+              <span class="example-desc">rwxr-xr-x (owner all, others read+execute)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="permissions-chart">
+          <h4>Quick Permission Reference</h4>
+          <div class="chart-grid">
+            <div class="chart-item">
+              <span class="perm-num">777</span>
+              <span class="perm-desc">Everyone can do everything (rarely safe)</span>
+            </div>
+            <div class="chart-item">
+              <span class="perm-num">755</span>
+              <span class="perm-desc">Owner all, others read & execute (executables)</span>
+            </div>
+            <div class="chart-item">
+              <span class="perm-num">644</span>
+              <span class="perm-desc">Owner read & write, others read (files)</span>
+            </div>
+            <div class="chart-item">
+              <span class="perm-num">600</span>
+              <span class="perm-desc">Owner only read & write (private files)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Processes Section -->
+    <section id="processes" class="glossary-section alt-bg">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-icon">⚙️</span>
+          <h2>Processes & Jobs</h2>
+          <p class="section-subtitle">Manage running programs and background tasks</p>
+        </div>
+
+        <div class="terms-grid">
+          <div class="term-card">
+            <div class="term-header">
+              <h3>ps</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              <strong>Process Status</strong>. List running processes and their details.
+            </p>
+            <div class="example">
+              <code>ps aux | grep node</code>
+              <span class="example-desc">Find all Node.js processes</span>
+            </div>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>top / htop</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              Real-time process monitor. See CPU, memory usage, and manage processes
+              interactively. htop is the colorful modern version.
+            </p>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>kill</h3>
+              <span class="badge cmd danger">Command</span>
+            </div>
+            <p class="definition">
+              Send signals to processes. Commonly used to terminate misbehaving programs.
+            </p>
+            <div class="example">
+              <code>kill -9 12345</code>
+              <span class="example-desc">Force kill process 12345</span>
+            </div>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>Background (&)</h3>
+              <span class="badge operator">Operator</span>
+            </div>
+            <p class="definition">
+              Run a command in the background, freeing up your terminal for other work.
+            </p>
+            <div class="example">
+              <code>npm run dev &</code>
+              <span class="example-desc">Start server in background</span>
+            </div>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>Ctrl+Z / fg / bg</h3>
+              <span class="badge">Shortcuts</span>
+            </div>
+            <p class="definition">
+              <strong>Ctrl+Z</strong> suspends current process. <strong>fg</strong> brings it
+              back to foreground. <strong>bg</strong> resumes it in background.
+            </p>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>nohup</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              <strong>No Hangup</strong>. Keep process running after you close the terminal.
+            </p>
+            <div class="example">
+              <code>nohup ./server &</code>
+              <span class="example-desc">Run server persistently</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Networking Section -->
+    <section id="networking" class="glossary-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-icon">🌐</span>
+          <h2>Networking</h2>
+          <p class="section-subtitle">Connect, transfer, and debug network operations</p>
+        </div>
+
+        <div class="terms-grid">
+          <div class="term-card">
+            <div class="term-header">
+              <h3>curl</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              Transfer data from or to a server. The Swiss Army knife of HTTP requests.
+            </p>
+            <div class="example">
+              <code>curl -X POST -d '{"{"}key":"val{"}"}' url</code>
+              <span class="example-desc">Send JSON POST request</span>
+            </div>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>wget</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              Download files from the web. Great for fetching resources and mirroring sites.
+            </p>
+            <div class="example">
+              <code>wget -O file.zip url</code>
+              <span class="example-desc">Download with custom filename</span>
+            </div>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>ssh</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              <strong>Secure Shell</strong>. Connect to remote machines securely.
+              The backbone of server administration.
+            </p>
+            <div class="example">
+              <code>ssh user@hostname</code>
+              <span class="example-desc">Connect to remote server</span>
+            </div>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>scp</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              <strong>Secure Copy</strong>. Transfer files between machines over SSH.
+            </p>
+            <div class="example">
+              <code>scp file.txt user@host:/path</code>
+              <span class="example-desc">Copy file to remote server</span>
+            </div>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>ping</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              Test network connectivity to a host. Sends packets and measures response time.
+            </p>
+            <div class="example">
+              <code>ping google.com</code>
+              <span class="example-desc">Check internet connectivity</span>
+            </div>
+          </div>
+
+          <div class="term-card">
+            <div class="term-header">
+              <h3>netstat / ss</h3>
+              <span class="badge cmd">Command</span>
+            </div>
+            <p class="definition">
+              Display network connections, routing tables, and port usage.
+              <code>ss</code> is the modern replacement for <code>netstat</code>.
+            </p>
+            <div class="example">
+              <code>ss -tulpn</code>
+              <span class="example-desc">Show listening ports</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Keyboard Shortcuts Section -->
+    <section id="shortcuts" class="glossary-section alt-bg">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-icon">⌨️</span>
+          <h2>Keyboard Shortcuts</h2>
+          <p class="section-subtitle">Speed up your terminal workflow</p>
+        </div>
+
+        <div class="shortcuts-grid">
+          <div class="shortcut-category">
+            <h3>Navigation</h3>
+            <div class="shortcut-list">
+              <div class="shortcut">
+                <kbd>Ctrl</kbd> + <kbd>A</kbd>
+                <span>Move to beginning of line</span>
+              </div>
+              <div class="shortcut">
+                <kbd>Ctrl</kbd> + <kbd>E</kbd>
+                <span>Move to end of line</span>
+              </div>
+              <div class="shortcut">
+                <kbd>Alt</kbd> + <kbd>B</kbd>
+                <span>Move back one word</span>
+              </div>
+              <div class="shortcut">
+                <kbd>Alt</kbd> + <kbd>F</kbd>
+                <span>Move forward one word</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="shortcut-category">
+            <h3>Editing</h3>
+            <div class="shortcut-list">
+              <div class="shortcut">
+                <kbd>Ctrl</kbd> + <kbd>U</kbd>
+                <span>Delete to beginning of line</span>
+              </div>
+              <div class="shortcut">
+                <kbd>Ctrl</kbd> + <kbd>K</kbd>
+                <span>Delete to end of line</span>
+              </div>
+              <div class="shortcut">
+                <kbd>Ctrl</kbd> + <kbd>W</kbd>
+                <span>Delete previous word</span>
+              </div>
+              <div class="shortcut">
+                <kbd>Ctrl</kbd> + <kbd>Y</kbd>
+                <span>Paste deleted text (yank)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="shortcut-category">
+            <h3>Control</h3>
+            <div class="shortcut-list">
+              <div class="shortcut">
+                <kbd>Ctrl</kbd> + <kbd>C</kbd>
+                <span>Cancel current command</span>
+              </div>
+              <div class="shortcut">
+                <kbd>Ctrl</kbd> + <kbd>D</kbd>
+                <span>Exit shell / End of input</span>
+              </div>
+              <div class="shortcut">
+                <kbd>Ctrl</kbd> + <kbd>L</kbd>
+                <span>Clear screen</span>
+              </div>
+              <div class="shortcut">
+                <kbd>Ctrl</kbd> + <kbd>Z</kbd>
+                <span>Suspend process</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="shortcut-category">
+            <h3>History</h3>
+            <div class="shortcut-list">
+              <div class="shortcut">
+                <kbd>↑</kbd> / <kbd>↓</kbd>
+                <span>Previous / Next command</span>
+              </div>
+              <div class="shortcut">
+                <kbd>Ctrl</kbd> + <kbd>R</kbd>
+                <span>Search command history</span>
+              </div>
+              <div class="shortcut">
+                <kbd>!!</kbd>
+                <span>Repeat last command</span>
+              </div>
+              <div class="shortcut">
+                <kbd>!$</kbd>
+                <span>Last argument of previous command</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cheatsheet CTA Section -->
+    <section class="glossary-cta">
+      <div class="container">
+        <div class="cta-content">
+          <h2>Ready to Put This Knowledge to Use?</h2>
+          <p>
+            Let Caro translate your natural language into perfectly crafted shell commands.
+            No more memorizing syntax—just describe what you want to do.
+          </p>
+          <div class="cta-buttons">
+            <a href="/" class="cta-button primary">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                <path d="M13 3v18l-6-6H3V9h4l6-6z"/>
+              </svg>
+              Try Caro
+            </a>
+            <a href="/explore" class="cta-button secondary">
+              Explore Features
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <Footer />
+</Layout>
+
+<style>
+  .glossary-page {
+    min-height: 100vh;
+    background: var(--color-bg);
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  /* Hero Section */
+  .glossary-hero {
+    text-align: center;
+    padding: 100px 20px 70px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: #fff;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    background: rgba(255, 140, 66, 0.2);
+    color: #ff8c42;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  .glossary-hero h1 {
+    font-size: 52px;
+    font-weight: 800;
+    margin: 0 0 16px;
+    color: #fff;
+  }
+
+  .glossary-hero .tagline {
+    font-size: 24px;
+    color: #ff8c42;
+    margin: 0 0 24px;
+    font-weight: 500;
+  }
+
+  .glossary-hero .intro {
+    font-size: 18px;
+    line-height: 1.7;
+    color: #e0e0e0;
+    max-width: 650px;
+    margin: 0 auto;
+  }
+
+  .glossary-hero .intro strong {
+    color: #fff;
+  }
+
+  /* Quick Navigation */
+  .quick-nav {
+    background: var(--color-bg-secondary);
+    padding: 20px;
+    border-bottom: 1px solid var(--color-border);
+    position: sticky;
+    top: 60px;
+    z-index: 50;
+  }
+
+  .nav-pills {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .nav-pill {
+    display: inline-block;
+    padding: 8px 16px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    color: var(--color-text);
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .nav-pill:hover {
+    background: #ff8c42;
+    border-color: #ff8c42;
+    color: #fff;
+    text-decoration: none;
+  }
+
+  /* Section Styles */
+  .glossary-section {
+    padding: 80px 20px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .glossary-section:last-of-type {
+    border-bottom: none;
+  }
+
+  .glossary-section.alt-bg {
+    background: var(--color-bg-secondary);
+  }
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+
+  .section-icon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  .section-header h2 {
+    font-size: 36px;
+    font-weight: 700;
+    margin: 0 0 12px;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    font-size: 18px;
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  /* Terms Grid */
+  .terms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+  }
+
+  .terms-grid.three-col {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  /* Term Cards */
+  .term-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.2s ease;
+  }
+
+  .term-card:hover {
+    border-color: #ff8c42;
+    box-shadow: 0 8px 24px rgba(255, 140, 66, 0.1);
+  }
+
+  .term-card.featured {
+    border-color: #ff8c42;
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.05) 0%, var(--color-bg) 100%);
+  }
+
+  .term-card.compact {
+    padding: 20px;
+  }
+
+  .term-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .term-card h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--color-text);
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  }
+
+  .term-card.compact h3 {
+    font-size: 18px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: rgba(255, 140, 66, 0.1);
+    color: #ff8c42;
+  }
+
+  .badge.cmd {
+    background: rgba(52, 152, 219, 0.1);
+    color: #3498db;
+  }
+
+  .badge.cmd.danger {
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+  }
+
+  .badge.operator {
+    background: rgba(155, 89, 182, 0.1);
+    color: #9b59b6;
+  }
+
+  .badge.safety {
+    background: rgba(46, 204, 113, 0.1);
+    color: #27ae60;
+  }
+
+  .badge.privacy {
+    background: rgba(26, 188, 156, 0.1);
+    color: #16a085;
+  }
+
+  .definition {
+    font-size: 15px;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin: 0 0 16px;
+  }
+
+  .definition code {
+    background: var(--color-bg-secondary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #e74c3c;
+  }
+
+  .definition strong {
+    color: var(--color-text);
+  }
+
+  .definition em {
+    color: #e74c3c;
+    font-style: normal;
+    font-weight: 500;
+  }
+
+  .example {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 12px;
+  }
+
+  .example code {
+    display: block;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 14px;
+    color: #ff8c42;
+    margin-bottom: 4px;
+  }
+
+  .example-desc {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+
+  /* Pro Tip */
+  .pro-tip {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    background: rgba(255, 140, 66, 0.08);
+    border: 1px solid rgba(255, 140, 66, 0.2);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-top: 40px;
+  }
+
+  .tip-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+
+  .tip-content {
+    font-size: 15px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+  }
+
+  .tip-content strong {
+    color: var(--color-text);
+  }
+
+  .tip-content code {
+    background: var(--color-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #ff8c42;
+  }
+
+  /* Permissions Chart */
+  .permissions-chart {
+    margin-top: 40px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .permissions-chart h4 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 20px;
+    color: var(--color-text);
+    text-align: center;
+  }
+
+  .chart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .chart-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--color-bg-secondary);
+    border-radius: 8px;
+  }
+
+  .perm-num {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: #ff8c42;
+    min-width: 40px;
+  }
+
+  .perm-desc {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+  }
+
+  /* Shortcuts Grid */
+  .shortcuts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 30px;
+  }
+
+  .shortcut-category h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 16px;
+    color: var(--color-text);
+    padding-bottom: 8px;
+    border-bottom: 2px solid #ff8c42;
+    display: inline-block;
+  }
+
+  .shortcut-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .shortcut {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  kbd {
+    display: inline-block;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text);
+    box-shadow: 0 2px 0 var(--color-border);
+  }
+
+  .shortcut span {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  /* CTA Section */
+  .glossary-cta {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 80px 20px;
+    text-align: center;
+  }
+
+  .cta-content h2 {
+    font-size: 32px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 16px;
+  }
+
+  .cta-content p {
+    font-size: 18px;
+    color: #e0e0e0;
+    max-width: 600px;
+    margin: 0 auto 32px;
+    line-height: 1.7;
+  }
+
+  .cta-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .cta-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .cta-button.primary {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: #fff;
+  }
+
+  .cta-button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.4);
+    text-decoration: none;
+  }
+
+  .cta-button.secondary {
+    background: transparent;
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .cta-button.secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
+    text-decoration: none;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .glossary-hero h1 {
+      font-size: 36px;
+    }
+
+    .glossary-hero .tagline {
+      font-size: 20px;
+    }
+
+    .section-header h2 {
+      font-size: 28px;
+    }
+
+    .section-icon {
+      font-size: 36px;
+    }
+
+    .terms-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .shortcuts-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .quick-nav {
+      top: 50px;
+    }
+
+    .nav-pill {
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+
+    .cta-content h2 {
+      font-size: 26px;
+    }
+  }
+
+  /* Dark mode enhancements */
+  .dark .term-card {
+    background: var(--color-bg-secondary);
+  }
+
+  .dark .term-card.featured {
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.08) 0%, var(--color-bg-secondary) 100%);
+  }
+
+  .dark .example {
+    background: var(--color-bg);
+  }
+
+  .dark kbd {
+    background: var(--color-bg-secondary);
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
+  }
+
+  .dark .permissions-chart {
+    background: var(--color-bg-secondary);
+  }
+
+  .dark .chart-item {
+    background: var(--color-bg);
+  }
+</style>

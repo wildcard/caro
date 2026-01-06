@@ -1,0 +1,1062 @@
+---
+/**
+ * Product Overview - What Caro Does
+ *
+ * User-friendly overview of Caro's capabilities organized by user needs.
+ * No business jargon - focuses on practical benefits and real scenarios.
+ */
+
+import Layout from '../../layouts/Layout.astro';
+import Navigation from '../../components/Navigation.astro';
+import Footer from '../../components/Footer.astro';
+
+// Search metadata for OmniMenu
+export const searchMeta = {
+  title: 'What Caro Does',
+  description: 'See what problems Caro solves and how it helps you work with the terminal',
+  keywords: ['product', 'features', 'capabilities', 'what caro does', 'use cases', 'benefits'],
+  icon: 'box',
+};
+
+const coreCapabilities = [
+  {
+    icon: 'terminal',
+    title: 'Turn Plain English into Shell Commands',
+    description: 'Describe what you want to do, get the exact command. No more Googling syntax.',
+    examples: [
+      { input: '"find all large log files"', output: 'find /var/log -name "*.log" -size +100M' },
+      { input: '"show what\'s using port 8080"', output: 'lsof -i :8080' },
+      { input: '"compress this folder for sharing"', output: 'tar -czvf folder.tar.gz ./folder' },
+    ],
+  },
+  {
+    icon: 'shield',
+    title: 'Catch Dangerous Commands Before They Run',
+    description: 'Caro validates every command against 52+ dangerous patterns. Works even when AI gets it wrong.',
+    examples: [
+      { input: 'rm -rf /', output: 'BLOCKED: System destruction pattern detected' },
+      { input: 'chmod 777 /etc', output: 'WARNING: Dangerous permission change on system directory' },
+      { input: 'dd if=/dev/zero of=/dev/sda', output: 'BLOCKED: Disk wipe pattern detected' },
+    ],
+  },
+  {
+    icon: 'wifi-off',
+    title: 'Work Completely Offline',
+    description: 'Everything runs on your machine. No internet required after install. No data ever leaves your computer.',
+    benefits: [
+      'Works on planes, in remote areas, during outages',
+      'Works in air-gapped secure environments',
+      'No API keys or cloud accounts needed',
+      'Your commands stay private',
+    ],
+  },
+  {
+    icon: 'globe',
+    title: 'Commands That Work on Any Platform',
+    description: 'Mac and Linux use different command syntax. Caro knows the difference and generates the right command for your system.',
+    platforms: [
+      { task: 'Find recent files', mac: 'find . -mtime -1h', linux: 'find . -mmin -60' },
+      { task: 'Extended regex', mac: 'sed -E \'...\'', linux: 'sed -r \'...\'' },
+      { task: 'Check ports', mac: 'lsof -i -P', linux: 'ss -tlnp' },
+    ],
+  },
+];
+
+const whoUsesIt = [
+  {
+    icon: 'alert',
+    role: 'On-Call Engineers',
+    tagline: 'Your 3 AM companion',
+    problems: [
+      'Need to run diagnostic commands quickly during incidents',
+      'Can\'t afford to make mistakes on production systems',
+      'Too tired to remember exact syntax at 3 AM',
+    ],
+    howCaroHelps: [
+      'Generates commands instantly without searching',
+      'Validates commands before they touch production',
+      'Works even when the network is down',
+    ],
+    link: '/use-cases/sre',
+  },
+  {
+    icon: 'lock',
+    role: 'Security Engineers',
+    tagline: 'AI that works in locked-down environments',
+    problems: [
+      'Work in air-gapped environments with no internet',
+      'Need to get new tools approved by security team',
+      'Can\'t use cloud-based AI assistants',
+    ],
+    howCaroHelps: [
+      'Zero network calls - works completely offline',
+      'Single file, open source, easy to audit',
+      'No telemetry, no data collection',
+    ],
+    link: '/use-cases/air-gapped',
+  },
+  {
+    icon: 'settings',
+    role: 'DevOps Engineers',
+    tagline: 'Commands that work everywhere',
+    problems: [
+      'Commands work on Mac but break on Linux servers',
+      'Constant context-switching to look up syntax',
+      'CI pipelines fail due to platform differences',
+    ],
+    howCaroHelps: [
+      'Detects your platform and generates the right syntax',
+      'Knows BSD vs GNU differences',
+      'POSIX mode for maximum compatibility',
+    ],
+    link: '/use-cases/devops',
+  },
+  {
+    icon: 'users',
+    role: 'Team Leads',
+    tagline: 'Safety rails for your team',
+    problems: [
+      'Junior devs running dangerous commands in production',
+      'AI tools suggesting commands that cause outages',
+      'Need visibility into what commands are being run',
+    ],
+    howCaroHelps: [
+      'Deploy custom safety patterns team-wide',
+      'Pattern-based validation that can\'t hallucinate',
+      'Audit logs for compliance',
+    ],
+    link: '/use-cases/tech-lead',
+  },
+  {
+    icon: 'code',
+    role: 'Developers',
+    tagline: 'Learn while you work',
+    problems: [
+      'Can\'t remember command flags',
+      'Constantly Googling basic tasks',
+      'Want to get better at the terminal',
+    ],
+    howCaroHelps: [
+      'Natural language to command translation',
+      'Explanations of what commands do',
+      'Safe environment to experiment',
+    ],
+    link: '/use-cases/developer',
+  },
+];
+
+const whatMakesItDifferent = [
+  {
+    icon: 'check-circle',
+    title: 'Safety That Actually Works',
+    description: 'Other tools use AI to check if commands are safe. The problem? AI can hallucinate. Caro uses pattern matching - the same command always gets the same safety result. No surprises.',
+  },
+  {
+    icon: 'wifi-off',
+    title: 'Actually Offline',
+    description: 'Most "local" AI tools still phone home. Caro never makes network calls after install. Verify it yourself: run strace and see zero network syscalls.',
+  },
+  {
+    icon: 'cpu',
+    title: 'Platform Aware',
+    description: 'Caro knows you\'re on Mac and generates BSD-style commands. Tell it you\'re targeting Linux, and it switches to GNU syntax. Other tools just guess.',
+  },
+  {
+    icon: 'zap',
+    title: 'Built for Production',
+    description: 'Startup in under 100ms. Command generation in under 2 seconds. No spinning up containers or waiting for cloud APIs.',
+  },
+];
+
+const realScenarios = [
+  {
+    title: 'The 3 AM Incident',
+    scenario: 'You get paged. Production is down. You SSH into the server.',
+    withoutCaro: 'Frantically Google "check disk space linux" while your brain is foggy. Hope you get the flags right.',
+    withCaro: 'Type: caro "what\'s using disk space". Get: du -sh /* | sort -rh | head -10. Done.',
+  },
+  {
+    title: 'The Cross-Platform Script',
+    scenario: 'You write a deployment script on your Mac. Push to CI. It fails on the Linux runner.',
+    withoutCaro: 'Debug for an hour. Realize find -mtime works differently. Look up the Linux version.',
+    withCaro: 'Use caro --target linux "find files from last hour". Get the right syntax the first time.',
+  },
+  {
+    title: 'The AI Disaster',
+    scenario: 'Claude suggests rm -rf to clean up a directory. It hallucinates the path.',
+    withoutCaro: 'If you run it without checking, you delete the wrong thing. Hope you have backups.',
+    withCaro: 'Caro blocks it with a warning. You see the exact pattern that matched. Crisis averted.',
+  },
+  {
+    title: 'The Secure Environment',
+    scenario: 'You work in a SCIF. No internet. Your colleagues use AI assistants. You don\'t.',
+    withoutCaro: 'Maintain printed cheat sheets. Fall behind on productivity.',
+    withCaro: 'Copy the binary via USB. Same AI assistance as everyone else, zero security risk.',
+  },
+];
+---
+
+<Layout
+  title="What Caro Does | AI Shell Assistant"
+  description="Caro turns natural language into safe shell commands, works offline, and catches dangerous patterns. See how it helps engineers work safely and efficiently."
+>
+  <Navigation />
+
+  <main class="product-page">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container">
+        <h1>What Caro Does</h1>
+        <p class="subtitle">
+          Caro is an AI assistant for the terminal that actually understands your environment,
+          validates commands before they run, and works without internet. Here's what that means for you.
+        </p>
+      </div>
+    </section>
+
+    <!-- Core Capabilities -->
+    <section class="capabilities-section">
+      <div class="container">
+        <h2>Core Capabilities</h2>
+
+        {coreCapabilities.map((cap) => (
+          <div class="capability-block">
+            <div class="capability-header">
+              <span class="cap-icon" data-icon={cap.icon}></span>
+              <div>
+                <h3>{cap.title}</h3>
+                <p>{cap.description}</p>
+              </div>
+            </div>
+
+            {cap.examples && (
+              <div class="examples-grid">
+                {cap.examples.map((ex) => (
+                  <div class="example-card">
+                    <div class="example-input">{ex.input}</div>
+                    <div class="example-arrow">&#8595;</div>
+                    <div class="example-output"><code>{ex.output}</code></div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {cap.benefits && (
+              <ul class="benefits-list">
+                {cap.benefits.map((b) => (
+                  <li>{b}</li>
+                ))}
+              </ul>
+            )}
+
+            {cap.platforms && (
+              <div class="platform-table-wrapper">
+                <table class="platform-table">
+                  <thead>
+                    <tr>
+                      <th>Task</th>
+                      <th>macOS</th>
+                      <th>Linux</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cap.platforms.map((p) => (
+                      <tr>
+                        <td>{p.task}</td>
+                        <td><code>{p.mac}</code></td>
+                        <td><code>{p.linux}</code></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Who Uses It -->
+    <section class="users-section">
+      <div class="container">
+        <h2>Who Uses Caro</h2>
+        <p class="section-subtitle">Real problems, real solutions</p>
+
+        <div class="users-grid">
+          {whoUsesIt.map((user) => (
+            <a href={user.link} class="user-card">
+              <div class="user-header">
+                <span class="user-icon" data-icon={user.icon}></span>
+                <div>
+                  <h3>{user.role}</h3>
+                  <span class="user-tagline">{user.tagline}</span>
+                </div>
+              </div>
+
+              <div class="user-section">
+                <h4>The Problem</h4>
+                <ul>
+                  {user.problems.map((p) => (
+                    <li class="problem">{p}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div class="user-section">
+                <h4>How Caro Helps</h4>
+                <ul>
+                  {user.howCaroHelps.map((h) => (
+                    <li class="solution">{h}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <span class="user-cta">See examples &#8594;</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- What Makes It Different -->
+    <section class="different-section">
+      <div class="container">
+        <h2>What Makes Caro Different</h2>
+
+        <div class="different-grid">
+          {whatMakesItDifferent.map((item) => (
+            <div class="different-card">
+              <span class="diff-icon" data-icon={item.icon}></span>
+              <h3>{item.title}</h3>
+              <p>{item.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Real Scenarios -->
+    <section class="scenarios-section">
+      <div class="container">
+        <h2>Real Scenarios</h2>
+        <p class="section-subtitle">See the difference in action</p>
+
+        <div class="scenarios-list">
+          {realScenarios.map((scenario) => (
+            <div class="scenario-card">
+              <h3>{scenario.title}</h3>
+              <p class="scenario-setup"><strong>Scenario:</strong> {scenario.scenario}</p>
+
+              <div class="scenario-comparison">
+                <div class="scenario-without">
+                  <span class="scenario-label">Without Caro</span>
+                  <p>{scenario.withoutCaro}</p>
+                </div>
+                <div class="scenario-with">
+                  <span class="scenario-label">With Caro</span>
+                  <p>{scenario.withCaro}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Start -->
+    <section class="quickstart-section">
+      <div class="container">
+        <h2>Try It Now</h2>
+
+        <div class="quickstart-box">
+          <div class="install-step">
+            <span class="step-number">1</span>
+            <div class="step-content">
+              <h3>Install</h3>
+              <code>cargo install caro</code>
+              <p class="alt-install">Or download a <a href="https://github.com/wildcard/caro/releases">pre-built binary</a></p>
+            </div>
+          </div>
+
+          <div class="install-step">
+            <span class="step-number">2</span>
+            <div class="step-content">
+              <h3>Try it</h3>
+              <code>caro "list all files larger than 10MB"</code>
+            </div>
+          </div>
+
+          <div class="install-step">
+            <span class="step-number">3</span>
+            <div class="step-content">
+              <h3>Review & run</h3>
+              <p>Caro shows you the command, explains any risks, and asks before running.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Technical Details -->
+    <section class="technical-section">
+      <div class="container">
+        <h2>Technical Details</h2>
+
+        <div class="tech-grid">
+          <div class="tech-card">
+            <h3>Supported Platforms</h3>
+            <ul>
+              <li>macOS (Intel & Apple Silicon)</li>
+              <li>Linux (x64 & ARM64)</li>
+              <li>Windows (WSL)</li>
+            </ul>
+          </div>
+
+          <div class="tech-card">
+            <h3>Inference Backends</h3>
+            <ul>
+              <li>Embedded (MLX for Apple Silicon)</li>
+              <li>Embedded (CPU via Candle)</li>
+              <li>Ollama (local)</li>
+              <li>vLLM (self-hosted)</li>
+            </ul>
+          </div>
+
+          <div class="tech-card">
+            <h3>Safety Patterns</h3>
+            <ul>
+              <li>52+ dangerous command patterns</li>
+              <li>4 risk levels (Safe to Critical)</li>
+              <li>Custom patterns via config</li>
+              <li>Pattern-based, not AI-based</li>
+            </ul>
+          </div>
+
+          <div class="tech-card">
+            <h3>Performance</h3>
+            <ul>
+              <li>&lt;100ms startup time</li>
+              <li>&lt;2s inference (Apple Silicon)</li>
+              <li>&lt;50ms safety validation</li>
+              <li>Single binary, no dependencies</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Learn More Section -->
+    <section class="learn-more-section">
+      <div class="container">
+        <h2>Dive Deeper</h2>
+        <div class="learn-more-grid">
+          <a href="/product/jobs-to-be-done" class="learn-more-card">
+            <span class="learn-icon" data-icon="briefcase"></span>
+            <div class="learn-content">
+              <h3>Jobs To Be Done</h3>
+              <p>Understand Caro through the canonical JTBD framework—functional, emotional, and social jobs.</p>
+            </div>
+          </a>
+          <a href="/use-cases" class="learn-more-card">
+            <span class="learn-icon" data-icon="users"></span>
+            <div class="learn-content">
+              <h3>Use Cases</h3>
+              <p>Explore detailed scenarios for SREs, DevOps engineers, security teams, and developers.</p>
+            </div>
+          </a>
+          <a href="/compare" class="learn-more-card">
+            <span class="learn-icon" data-icon="bar-chart"></span>
+            <div class="learn-content">
+              <h3>Comparisons</h3>
+              <p>See how Caro compares to Warp, GitHub Copilot CLI, and other AI terminal tools.</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .product-page {
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  /* Hero */
+  .hero {
+    padding: 100px 20px 60px;
+    text-align: center;
+    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+  }
+
+  h1 {
+    font-size: 48px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--color-text);
+  }
+
+  .subtitle {
+    font-size: 20px;
+    color: var(--color-text-secondary);
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  /* Section styling */
+  section {
+    padding: 80px 20px;
+  }
+
+  section:nth-child(even) {
+    background: var(--color-bg-secondary);
+  }
+
+  h2 {
+    font-size: 32px;
+    text-align: center;
+    margin-bottom: 16px;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    margin-bottom: 48px;
+  }
+
+  /* Icons */
+  .cap-icon::before,
+  .user-icon::before,
+  .diff-icon::before {
+    font-size: 32px;
+  }
+
+  .cap-icon[data-icon="terminal"]::before { content: '>_'; font-family: monospace; font-weight: bold; }
+  .cap-icon[data-icon="shield"]::before { content: '🛡'; }
+  .cap-icon[data-icon="wifi-off"]::before { content: '✈'; }
+  .cap-icon[data-icon="globe"]::before { content: '🌐'; }
+
+  .user-icon[data-icon="alert"]::before { content: '🚨'; }
+  .user-icon[data-icon="lock"]::before { content: '🔐'; }
+  .user-icon[data-icon="settings"]::before { content: '🔧'; }
+  .user-icon[data-icon="users"]::before { content: '👥'; }
+  .user-icon[data-icon="code"]::before { content: '💻'; }
+
+  .diff-icon[data-icon="check-circle"]::before { content: '✓'; color: #22c55e; }
+  .diff-icon[data-icon="wifi-off"]::before { content: '✈'; }
+  .diff-icon[data-icon="cpu"]::before { content: '⚙'; }
+  .diff-icon[data-icon="zap"]::before { content: '⚡'; }
+
+  /* Capabilities */
+  .capability-block {
+    margin-bottom: 48px;
+    padding: 32px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+  }
+
+  .capability-header {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .cap-icon {
+    font-size: 40px;
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .capability-header h3 {
+    font-size: 22px;
+    margin-bottom: 8px;
+    color: var(--color-text);
+  }
+
+  .capability-header p {
+    color: var(--color-text-secondary);
+    font-size: 16px;
+  }
+
+  .examples-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .example-card {
+    background: var(--color-bg-secondary);
+    padding: 16px;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .example-input {
+    color: var(--color-text-secondary);
+    font-style: italic;
+    margin-bottom: 8px;
+  }
+
+  .example-arrow {
+    color: #ff8c42;
+    margin-bottom: 8px;
+    font-size: 18px;
+  }
+
+  .example-output code {
+    background: #1a1a2e;
+    color: #9cdcfe;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    display: inline-block;
+    word-break: break-all;
+  }
+
+  .benefits-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+  }
+
+  .benefits-list li {
+    padding: 12px 16px;
+    padding-left: 36px;
+    background: var(--color-bg-secondary);
+    border-radius: 8px;
+    position: relative;
+    color: var(--color-text-secondary);
+  }
+
+  .benefits-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 12px;
+    color: #22c55e;
+  }
+
+  .platform-table-wrapper {
+    overflow-x: auto;
+  }
+
+  .platform-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .platform-table th,
+  .platform-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .platform-table th {
+    background: var(--color-bg-tertiary);
+    font-weight: 600;
+  }
+
+  .platform-table code {
+    background: #1a1a2e;
+    color: #9cdcfe;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  /* Users Section */
+  .users-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .user-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 28px;
+    text-decoration: none;
+    color: var(--color-text);
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .user-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+  }
+
+  .user-header {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .user-icon {
+    font-size: 36px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .user-header h3 {
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+
+  .user-tagline {
+    font-size: 14px;
+    color: #ff8c42;
+    font-weight: 500;
+  }
+
+  .user-section {
+    margin-bottom: 16px;
+  }
+
+  .user-section h4 {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+
+  .user-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .user-section li {
+    font-size: 14px;
+    padding: 4px 0;
+    padding-left: 20px;
+    position: relative;
+    color: var(--color-text-secondary);
+  }
+
+  .user-section li.problem::before {
+    content: '✗';
+    position: absolute;
+    left: 0;
+    color: #ef4444;
+  }
+
+  .user-section li.solution::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #22c55e;
+  }
+
+  .user-cta {
+    margin-top: auto;
+    color: #ff8c42;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  /* Different Section */
+  .different-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+  }
+
+  .different-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .diff-icon {
+    font-size: 32px;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  .different-card h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+    color: var(--color-text);
+  }
+
+  .different-card p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+  }
+
+  /* Scenarios */
+  .scenarios-list {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .scenario-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 28px;
+  }
+
+  .scenario-card h3 {
+    font-size: 20px;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  .scenario-setup {
+    color: var(--color-text-secondary);
+    margin-bottom: 20px;
+    font-size: 15px;
+  }
+
+  .scenario-comparison {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  .scenario-without,
+  .scenario-with {
+    padding: 20px;
+    border-radius: 12px;
+  }
+
+  .scenario-without {
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+
+  .scenario-with {
+    background: rgba(34, 197, 94, 0.05);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+  }
+
+  .scenario-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .scenario-without .scenario-label {
+    color: #ef4444;
+  }
+
+  .scenario-with .scenario-label {
+    color: #22c55e;
+  }
+
+  .scenario-without p,
+  .scenario-with p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+  }
+
+  /* Quick Start */
+  .quickstart-section {
+    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+  }
+
+  .quickstart-box {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .install-step {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+
+  .step-number {
+    width: 40px;
+    height: 40px;
+    background: #ff8c42;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .step-content h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+    color: var(--color-text);
+  }
+
+  .step-content code {
+    display: block;
+    background: #1a1a2e;
+    color: #9cdcfe;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  .step-content p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .alt-install {
+    font-size: 13px;
+  }
+
+  .alt-install a {
+    color: #ff8c42;
+  }
+
+  /* Technical */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+  }
+
+  .tech-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .tech-card h3 {
+    font-size: 16px;
+    margin-bottom: 16px;
+    color: var(--color-text);
+  }
+
+  .tech-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .tech-card li {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    padding: 6px 0;
+    padding-left: 20px;
+    position: relative;
+  }
+
+  .tech-card li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: #22c55e;
+  }
+
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 36px;
+    }
+
+    h2 {
+      font-size: 28px;
+    }
+
+    .capability-header {
+      flex-direction: column;
+    }
+
+    .cap-icon {
+      font-size: 32px;
+    }
+  }
+
+  /* Learn More Section */
+  .learn-more-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .learn-more-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-top: 40px;
+  }
+
+  .learn-more-card {
+    display: flex;
+    gap: 20px;
+    padding: 28px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--color-text);
+    transition: all 0.2s;
+  }
+
+  .learn-more-card:hover {
+    border-color: #ff8c42;
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  }
+
+  .learn-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 140, 66, 0.1);
+    border-radius: 12px;
+    flex-shrink: 0;
+    font-size: 24px;
+  }
+
+  .learn-icon[data-icon="briefcase"]::before { content: '\1F4BC'; }
+  .learn-icon[data-icon="users"]::before { content: '\1F465'; }
+  .learn-icon[data-icon="bar-chart"]::before { content: '\1F4CA'; }
+
+  .learn-content h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+    color: var(--color-text);
+  }
+
+  .learn-content p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+  }
+</style>

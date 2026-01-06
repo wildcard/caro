@@ -27,9 +27,9 @@ jobs:
           path-to-signatures: '.github/cla-signatures.json'
           path-to-document: 'https://github.com/wildcard/caro/blob/main/docs/legal/CLA.md'
           # Branch where signatures will be stored
-          branch: 'main'
+          branch: 'cla-signatures'
           # Allowlist for bots and specific users
-          allowlist: bot*,dependabot*,github-actions*
+          allowlist: bot*,dependabot*,github-actions*,claude,wildcard,copilot
 
           # Message to post on PR when CLA is not signed
           custom-pr-sign-comment: |
@@ -67,10 +67,6 @@ jobs:
 
           # Lock PR branch after merge to prevent signature removal
           lock-pullrequest-aftermerge: true
-
-          # Use remote signature storage (GitHub repo)
-          remote-organization-name: wildcard
-          remote-repository-name: caro
 
           # Signature verification
           use-dco-flag: false

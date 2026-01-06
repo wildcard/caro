@@ -1,0 +1,10 @@
+{
+  "feature_number": "009",
+  "slug": "009-data-driven-holiday",
+  "friendly_name": "Data-driven holiday theme configuration system",
+  "source_description": "Data-driven holiday theme configuration system",
+  "created_at": "2026-01-01T09:19:42Z",
+  "status": "completed",
+  "completed_at": "2026-01-02T00:00:00Z",
+  "notes": "Debug panel date selection issue parked - see docs/development/TECH_DEBT.md"
+}

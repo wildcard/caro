@@ -1,11 +1,19 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Navigation from '../components/Navigation.astro';
+
+// Search metadata - used by OmniMenu
+export const searchMeta = {
+  title: 'Sponsor',
+  description: 'Fund Caro open source development',
+  keywords: ['sponsor', 'donate', 'fund', 'github sponsors', 'open collective', 'support development'],
+  icon: '💖',
+};
 ---
 
 <Layout
-  title="Support Caro - Fund Open Source Development"
-  description="Support Caro's development through GitHub Sponsors or Open Collective. Your contributions help maintain and improve this open source shell command assistant."
+  title="Sponsor Caro - Fund Open Source Development"
+  description="Sponsor Caro's development through GitHub Sponsors or Open Collective. Your contributions help maintain and improve this open source shell command assistant."
 >
   <Navigation />
 
@@ -13,10 +21,10 @@ import Navigation from '../components/Navigation.astro';
     <!-- Hero Section -->
     <section class="support-hero">
       <div class="container">
-        <h1>Support Caro</h1>
-        <p class="tagline">Help sustain open source development</p>
+        <h1>Sponsor Caro</h1>
+        <p class="tagline">Fund open source development</p>
         <p class="intro">
-          Caro is free, open source software maintained by a small team. Your financial support
+          Caro is free, open source software maintained by a small team. Your sponsorship
           helps us dedicate time to maintenance, new features, and community support.
         </p>
       </div>
@@ -75,88 +83,15 @@ import Navigation from '../components/Navigation.astro';
             <ul class="features">
               <li>Full financial transparency</li>
               <li>Invoice generation for businesses</li>
-              <li>Fiscal sponsorship included</li>
+              <li>One-time or recurring contributions</li>
               <li>Expense tracking & reporting</li>
             </ul>
             <a href="https://opencollective.com/carosh" class="cta-button open-collective" target="_blank" rel="noopener noreferrer">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
               </svg>
-              Support on Open Collective
+              Sponsor on Open Collective
             </a>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Why Open Collective -->
-    <section class="support-section why-oc">
-      <div class="container">
-        <h2>Why Open Source Collective?</h2>
-        <p class="section-intro">
-          Caro is fiscally hosted by <a href="https://oscollective.org" target="_blank" rel="noopener noreferrer">Open Source Collective</a>,
-          a 501(c)(6) nonprofit that provides financial and legal infrastructure for open source projects.
-        </p>
-
-        <div class="benefits-grid">
-          <div class="benefit-card">
-            <div class="benefit-icon">
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
-              </svg>
-            </div>
-            <h3>Legal Structure</h3>
-            <p>No need to create a nonprofit. Open Source Collective provides the legal entity to receive tax-deductible donations.</p>
-          </div>
-
-          <div class="benefit-card">
-            <div class="benefit-icon">
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-              </svg>
-            </div>
-            <h3>Full Transparency</h3>
-            <p>Every transaction is public. Anyone can see exactly how funds are received and spent on the project.</p>
-          </div>
-
-          <div class="benefit-card">
-            <div class="benefit-icon">
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/>
-              </svg>
-            </div>
-            <h3>Handles Administration</h3>
-            <p>Taxes, accounting, contracts, and compliance are managed by professionals so we can focus on code.</p>
-          </div>
-
-          <div class="benefit-card">
-            <div class="benefit-icon">
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
-              </svg>
-            </div>
-            <h3>Corporate Funding</h3>
-            <p>Companies can contribute with proper invoicing and receipts, making it easier to get budget approval.</p>
-          </div>
-
-          <div class="benefit-card">
-            <div class="benefit-icon">
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-              </svg>
-            </div>
-            <h3>Employment Ready</h3>
-            <p>Infrastructure for contractor payments and even full-time employment as the project grows.</p>
-          </div>
-
-          <div class="benefit-card">
-            <div class="benefit-icon">
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-              </svg>
-            </div>
-            <h3>Asset Protection</h3>
-            <p>Trademark and domain management ensures the project's identity is protected long-term.</p>
           </div>
         </div>
       </div>
@@ -229,17 +164,16 @@ import Navigation from '../components/Navigation.astro';
         <div class="transparency-content">
           <div class="transparency-text">
             <p>
-              We believe open source funding should be as transparent as open source code. That's why we chose
-              Open Collective as our fiscal host.
+              We believe open source funding should be as transparent as open source code.
             </p>
             <ul>
-              <li><strong>Public ledger:</strong> Every transaction is visible on our Open Collective page</li>
-              <li><strong>Expense transparency:</strong> All expenses are submitted with descriptions and receipts</li>
+              <li><strong>Open source:</strong> All code is publicly available on GitHub</li>
               <li><strong>Regular updates:</strong> We share progress reports on how funds support development</li>
-              <li><strong>Community input:</strong> Contributors can see and comment on budget decisions</li>
+              <li><strong>Community input:</strong> Contributors can see and discuss project direction</li>
+              <li><strong>Public roadmap:</strong> Our roadmap and priorities are openly documented</li>
             </ul>
-            <a href="https://opencollective.com/carosh" class="link-button" target="_blank" rel="noopener noreferrer">
-              View Our Finances
+            <a href="https://github.com/wildcard/caro" class="link-button" target="_blank" rel="noopener noreferrer">
+              View on GitHub
               <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                 <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
               </svg>
@@ -252,7 +186,7 @@ import Navigation from '../components/Navigation.astro';
                   <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
                 </svg>
               </span>
-              <span class="badge-text">100% Transparent</span>
+              <span class="badge-text">100% Open Source</span>
             </div>
           </div>
         </div>
@@ -293,6 +227,17 @@ import Navigation from '../components/Navigation.astro';
           <div class="way-card">
             <span class="way-icon">
               <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
+              </svg>
+            </span>
+            <h3>Check the FAQ</h3>
+            <p>Have a question? Our FAQ covers installation, usage, safety, and more.</p>
+            <a href="/faq">View FAQ</a>
+          </div>
+
+          <div class="way-card">
+            <span class="way-icon">
+              <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
                 <path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/>
               </svg>
             </span>
@@ -318,8 +263,8 @@ import Navigation from '../components/Navigation.astro';
     <!-- Final CTA -->
     <section class="support-section final-cta">
       <div class="container">
-        <h2>Ready to Support?</h2>
-        <p>Every contribution, big or small, helps keep Caro free and actively maintained.</p>
+        <h2>Ready to Sponsor?</h2>
+        <p>Every sponsorship, big or small, helps keep Caro free and actively maintained.</p>
         <div class="cta-buttons">
           <a href="https://github.com/sponsors/wildcard" class="cta-button primary" target="_blank" rel="noopener noreferrer">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
@@ -410,11 +355,12 @@ import Navigation from '../components/Navigation.astro';
   }
 
   .section-intro a {
-    color: #ff8c42;
+    color: var(--color-link, #ff8c42);
     text-decoration: none;
   }
 
   .section-intro a:hover {
+    color: var(--color-link-hover, #ff6b35);
     text-decoration: underline;
   }
 
@@ -667,12 +613,13 @@ import Navigation from '../components/Navigation.astro';
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    color: #ff8c42;
+    color: var(--color-link, #ff8c42);
     font-weight: 600;
     text-decoration: none;
   }
 
   .link-button:hover {
+    color: var(--color-link-hover, #ff6b35);
     text-decoration: underline;
   }
 
@@ -742,13 +689,14 @@ import Navigation from '../components/Navigation.astro';
   }
 
   .way-card a {
-    color: #ff8c42;
+    color: var(--color-link, #ff8c42);
     font-weight: 600;
     text-decoration: none;
     font-size: 14px;
   }
 
   .way-card a:hover {
+    color: var(--color-link-hover, #ff6b35);
     text-decoration: underline;
   }
 

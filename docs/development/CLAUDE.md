@@ -721,3 +721,54 @@ This project follows spec-driven development with coordinated multi-agent teams:
 4. Quality assurance and documentation
 
 Each phase includes specific agent coordination for optimal development flow and maintains alignment with project constitution and safety standards.
+
+## PRD-First Feature Development
+
+**Rule**: All new features with cultural, regional, or significant user-facing impact MUST follow PRD-first development.
+
+### When to Create a PRD
+
+Create a PRD before implementation when:
+- Adding holiday themes or cultural features
+- Building features that affect users from specific regions/cultures
+- Implementing accessibility-sensitive features
+- Adding features with localization requirements
+- Creating features that require cultural research or sensitivity review
+
+### PRD Workflow
+
+1. **Create PRD** in appropriate directory:
+   - Holiday themes: `docs/prds/holidays/`
+   - Localization: `docs/prds/i18n/`
+   - Accessibility: `docs/prds/a11y/`
+   - General features: `docs/prds/features/`
+
+2. **PRD Approval**: Get stakeholder review before implementation
+
+3. **Route to Spec Workflow**:
+   - Small/medium features (< 2 weeks): Use Spec-Kitty (`/caro.feature`)
+   - Large features (> 2 weeks): Use Spec-Kit (`specs/` directory)
+
+4. **Implementation**: Follow the chosen spec workflow
+
+5. **Cultural Review** (if applicable): Verify cultural accuracy before launch
+
+### PRD Template Location
+
+See `website/GLOBAL_HOLIDAY_THEMES_PLAN.md` for the holiday theme PRD template.
+
+### Example: Adding a New Holiday Theme
+
+```bash
+# 1. Create PRD
+mkdir -p docs/prds/holidays
+# Write PRD based on template in GLOBAL_HOLIDAY_THEMES_PLAN.md
+
+# 2. After PRD approval, start implementation
+/caro.feature  # For spec-kitty workflow
+
+# 3. Follow cultural sensitivity guidelines
+# 4. Get cultural review before merge
+```
+
+This ensures cultural sensitivity, user experience quality, and proper documentation for all culturally-significant features.

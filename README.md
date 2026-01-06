@@ -17,6 +17,14 @@ Generated command:
 Execute this command? (y/N) y
 ```
 
+
+## 💬 Community & Support
+
+Have questions or want to discuss caro with other users? Join the community!
+
+- **[Discussions](https://github.com/wildcard/caro/discussions)** - Ask questions, share ideas, and get support from the community
+- - **[Issues](https://github.com/wildcard/caro/issues)** - Report bugs or request features
+  - - **[Documentation](https://caro.sh)** - Check out our comprehensive docs
 ## 📋 Project Status
 
 **Current Version:** 1.0.2 (Published on [crates.io](https://crates.io/crates/caro))

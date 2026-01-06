@@ -1,0 +1,1969 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+import Footer from '../components/Footer.astro';
+
+// Search metadata - used by OmniMenu
+export const searchMeta = {
+  title: 'Modern Unix Tools',
+  description: 'Next-generation CLI tools written in Rust and Go',
+  keywords: ['rust', 'go', 'modern', 'unix', 'cli', 'terminal', 'tools', 'ripgrep', 'bat', 'eza', 'fd', 'delta', 'dust', 'bottom', 'zoxide', 'starship', 'nushell', 'fzf', 'performance'],
+  icon: '🦀',
+};
+---
+
+<Layout
+  title="Modern Unix Tools - Next-Gen CLI Tools in Rust & Go | Caro"
+  description="Discover modern replacements for classic Unix commands. Faster, safer, and more ergonomic tools written in Rust and Go for the contemporary developer."
+>
+  <Navigation />
+
+  <div class="modern-tools-page">
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container">
+        <span class="hero-badge">The New Terminal</span>
+        <h1>Modern Unix Tools</h1>
+        <p class="tagline">Classic commands, reimagined in Rust & Go</p>
+        <p class="intro">
+          The beloved Unix toolkit is being rewritten for the modern era. These tools honor the
+          Unix philosophy while delivering <strong>blazing performance</strong>, <strong>beautiful output</strong>,
+          and <strong>sensible defaults</strong>. Welcome to the future of the terminal.
+        </p>
+      </div>
+    </section>
+
+    <!-- Quick Jump Navigation -->
+    <section class="quick-nav">
+      <div class="container">
+        <div class="nav-pills">
+          <a href="#file-navigation" class="nav-pill">Files & Navigation</a>
+          <a href="#text-search" class="nav-pill">Search & Text</a>
+          <a href="#system-monitoring" class="nav-pill">System</a>
+          <a href="#git-tools" class="nav-pill">Git & Diff</a>
+          <a href="#shell-prompt" class="nav-pill">Shell & Prompt</a>
+          <a href="#utilities" class="nav-pill">Utilities</a>
+          <a href="#networking" class="nav-pill">Networking</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Why Modern Tools Section -->
+    <section class="intro-section">
+      <div class="container">
+        <div class="intro-grid">
+          <div class="intro-card">
+            <span class="intro-icon">🚀</span>
+            <h3>10x Faster</h3>
+            <p>Written in Rust and Go, these tools leverage parallelism, SIMD, and modern hardware to dramatically outperform their predecessors.</p>
+          </div>
+          <div class="intro-card">
+            <span class="intro-icon">🎨</span>
+            <h3>Beautiful Output</h3>
+            <p>Syntax highlighting, colors, icons, and thoughtful formatting make output instantly readable and a joy to work with.</p>
+          </div>
+          <div class="intro-card">
+            <span class="intro-icon">🔒</span>
+            <h3>Memory Safe</h3>
+            <p>Rust's ownership model eliminates buffer overflows, use-after-free, and data races at compile time.</p>
+          </div>
+          <div class="intro-card">
+            <span class="intro-icon">⚡</span>
+            <h3>Smart Defaults</h3>
+            <p>Sensible behavior out of the box. Respects .gitignore, human-readable sizes, and modern conventions.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- File Navigation Section -->
+    <section id="file-navigation" class="tools-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-icon">📁</span>
+          <h2>Files & Navigation</h2>
+          <p class="section-subtitle">List, find, and navigate your filesystem</p>
+        </div>
+
+        <div class="tools-grid">
+          <div class="tool-card featured">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>eza</h3>
+                <span class="replaces">replaces <code>ls</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+                <span class="badge popular">Popular</span>
+              </div>
+            </div>
+            <p class="description">
+              A modern replacement for <code>ls</code> with colors, icons, Git integration, and tree view built-in.
+              Formerly known as <code>exa</code>.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># List with icons and git status
+eza -la --icons --git
+
+# Tree view with git ignore
+eza --tree --git-ignore
+
+# Long format with header
+eza -lh --header</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install eza</code> or <code>cargo install eza</code>
+            </div>
+            <a href="https://github.com/eza-community/eza" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card featured">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>fd</h3>
+                <span class="replaces">replaces <code>find</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+                <span class="badge popular">Popular</span>
+              </div>
+            </div>
+            <p class="description">
+              A simple, fast, and user-friendly alternative to <code>find</code>. Smart case sensitivity,
+              regex by default, respects .gitignore.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Find files by pattern
+fd "\.rs$"
+
+# Find and execute
+fd -e js -x prettier -w
+
+# Include hidden files
+fd -H config</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install fd</code> or <code>cargo install fd-find</code>
+            </div>
+            <a href="https://github.com/sharkdp/fd" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>zoxide</h3>
+                <span class="replaces">replaces <code>cd</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+              </div>
+            </div>
+            <p class="description">
+              A smarter <code>cd</code> command that learns your habits. Jump to frequently used directories
+              with partial matches.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Jump to best match
+z projects
+
+# Interactive selection
+zi
+
+# Add to shell
+eval "$(zoxide init zsh)"</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install zoxide</code> or <code>cargo install zoxide</code>
+            </div>
+            <a href="https://github.com/ajeetdsouza/zoxide" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>broot</h3>
+                <span class="replaces">replaces <code>tree</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+              </div>
+            </div>
+            <p class="description">
+              An interactive tree view with fuzzy search. Navigate large directories, preview files,
+              and perform operations without leaving.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Launch interactive tree
+br
+
+# Show sizes
+br -s
+
+# Search files
+br -f pattern</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install broot</code> or <code>cargo install broot</code>
+            </div>
+            <a href="https://github.com/Canop/broot" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>dust</h3>
+                <span class="replaces">replaces <code>du</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+              </div>
+            </div>
+            <p class="description">
+              A more intuitive <code>du</code>. Visual representation of disk usage with colors and
+              automatic depth limiting.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Analyze current directory
+dust
+
+# Limit depth
+dust -d 2
+
+# Reverse order
+dust -r</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install dust</code> or <code>cargo install du-dust</code>
+            </div>
+            <a href="https://github.com/bootandy/dust" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>lsd</h3>
+                <span class="replaces">replaces <code>ls</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+              </div>
+            </div>
+            <p class="description">
+              LSDeluxe—another modern <code>ls</code> with colors, icons, tree view, and more.
+              Alternative to eza with slightly different aesthetics.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># List with all features
+lsd -la
+
+# Tree view
+lsd --tree
+
+# Sort by size
+lsd -lS</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install lsd</code> or <code>cargo install lsd</code>
+            </div>
+            <a href="https://github.com/lsd-rs/lsd" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Text & Search Section -->
+    <section id="text-search" class="tools-section alt-bg">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-icon">🔍</span>
+          <h2>Search & Text Processing</h2>
+          <p class="section-subtitle">Find, view, and transform text at lightning speed</p>
+        </div>
+
+        <div class="tools-grid">
+          <div class="tool-card featured">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>ripgrep (rg)</h3>
+                <span class="replaces">replaces <code>grep</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+                <span class="badge popular">Essential</span>
+              </div>
+            </div>
+            <p class="description">
+              The fastest grep around. Respects .gitignore, searches recursively by default, and uses
+              smart case sensitivity. A must-have for any developer.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Search recursively
+rg "pattern"
+
+# Search specific file types
+rg -t rust "fn main"
+
+# Show context lines
+rg -C 3 "TODO"</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install ripgrep</code> or <code>cargo install ripgrep</code>
+            </div>
+            <a href="https://github.com/BurntSushi/ripgrep" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card featured">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>bat</h3>
+                <span class="replaces">replaces <code>cat</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+                <span class="badge popular">Essential</span>
+              </div>
+            </div>
+            <p class="description">
+              A <code>cat</code> clone with wings. Syntax highlighting, line numbers, Git integration,
+              and automatic paging. Makes reading code a pleasure.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># View with syntax highlighting
+bat file.rs
+
+# Show line numbers only
+bat -n file.py
+
+# Plain output (for piping)
+bat -p file.json</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install bat</code> or <code>cargo install bat</code>
+            </div>
+            <a href="https://github.com/sharkdp/bat" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>sd</h3>
+                <span class="replaces">replaces <code>sed</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+              </div>
+            </div>
+            <p class="description">
+              An intuitive find & replace CLI. Uses regex syntax you already know (not sed's arcane syntax),
+              and supports replacements across multiple files.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Simple replacement
+sd 'before' 'after' file.txt
+
+# Regex capture groups
+sd '(\d+)' '$1.0' data.txt
+
+# In-place on multiple files
+sd -i 'old' 'new' *.md</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install sd</code> or <code>cargo install sd</code>
+            </div>
+            <a href="https://github.com/chmln/sd" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>fzf</h3>
+                <span class="replaces">enhances everything</span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge go">Go</span>
+                <span class="badge popular">Essential</span>
+              </div>
+            </div>
+            <p class="description">
+              A general-purpose fuzzy finder. Enhances shell history, file finding, and virtually any
+              list-based selection. Integrates beautifully with other tools.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Fuzzy find files
+fzf
+
+# With preview
+fzf --preview 'bat --color=always {}'
+
+# Search history (Ctrl+R)
+# Kill process (Ctrl+T)</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install fzf</code>
+            </div>
+            <a href="https://github.com/junegunn/fzf" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>jq</h3>
+                <span class="replaces">JSON processor</span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge">C</span>
+              </div>
+            </div>
+            <p class="description">
+              The essential JSON processor. Filter, transform, and query JSON data from the command line.
+              Indispensable for API work and configuration.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Pretty print JSON
+cat data.json | jq '.'
+
+# Extract field
+jq '.name' package.json
+
+# Filter array
+jq '.[] | select(.active)' users.json</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install jq</code>
+            </div>
+            <a href="https://github.com/jqlang/jq" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>hexyl</h3>
+                <span class="replaces">replaces <code>hexdump</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+              </div>
+            </div>
+            <p class="description">
+              A colorful hex viewer. Displays binary files with byte categories highlighted in different colors.
+              Much more readable than traditional hex dumps.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># View binary file
+hexyl binary.exe
+
+# Limit bytes shown
+hexyl -n 256 file.bin
+
+# Skip to offset
+hexyl --skip 512 file.dat</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install hexyl</code> or <code>cargo install hexyl</code>
+            </div>
+            <a href="https://github.com/sharkdp/hexyl" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- System Monitoring Section -->
+    <section id="system-monitoring" class="tools-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-icon">📊</span>
+          <h2>System Monitoring</h2>
+          <p class="section-subtitle">Watch your system resources in style</p>
+        </div>
+
+        <div class="tools-grid">
+          <div class="tool-card featured">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>bottom (btm)</h3>
+                <span class="replaces">replaces <code>top</code>/<code>htop</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+                <span class="badge popular">Popular</span>
+              </div>
+            </div>
+            <p class="description">
+              A cross-platform graphical process/system monitor. Beautiful TUI with CPU, memory, disk,
+              network, and process views. Vim keybindings available.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Launch bottom
+btm
+
+# Basic mode
+btm -b
+
+# With custom config
+btm --config ~/.config/bottom/bottom.toml</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install bottom</code> or <code>cargo install bottom</code>
+            </div>
+            <a href="https://github.com/ClementTsang/bottom" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>procs</h3>
+                <span class="replaces">replaces <code>ps</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+              </div>
+            </div>
+            <p class="description">
+              A modern replacement for <code>ps</code>. Colorful output, tree view, Docker awareness,
+              and pager support by default.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># List all processes
+procs
+
+# Tree view
+procs --tree
+
+# Watch mode
+procs --watch</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install procs</code> or <code>cargo install procs</code>
+            </div>
+            <a href="https://github.com/dalance/procs" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>bandwhich</h3>
+                <span class="replaces">replaces <code>nethogs</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+              </div>
+            </div>
+            <p class="description">
+              Network utilization by process. See which processes are consuming bandwidth,
+              with remote addresses and connection information.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Monitor bandwidth (needs sudo)
+sudo bandwhich
+
+# Show raw mode
+sudo bandwhich --raw</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install bandwhich</code> or <code>cargo install bandwhich</code>
+            </div>
+            <a href="https://github.com/imsnif/bandwhich" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>hyperfine</h3>
+                <span class="replaces">replaces <code>time</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+              </div>
+            </div>
+            <p class="description">
+              A command-line benchmarking tool. Statistical analysis, warmup runs, export to various formats,
+              and comparison between multiple commands.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Benchmark a command
+hyperfine 'rg pattern'
+
+# Compare commands
+hyperfine 'grep -r pattern' 'rg pattern'
+
+# With warmup
+hyperfine --warmup 3 'cargo build'</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install hyperfine</code> or <code>cargo install hyperfine</code>
+            </div>
+            <a href="https://github.com/sharkdp/hyperfine" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>tokei</h3>
+                <span class="replaces">replaces <code>cloc</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+              </div>
+            </div>
+            <p class="description">
+              Count lines of code quickly. Extremely fast, supports many languages, and provides
+              detailed breakdowns by file type.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Count lines in current dir
+tokei
+
+# Specific directory
+tokei src/
+
+# Exclude directories
+tokei --exclude node_modules</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install tokei</code> or <code>cargo install tokei</code>
+            </div>
+            <a href="https://github.com/XAMPPRocky/tokei" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Git & Diff Section -->
+    <section id="git-tools" class="tools-section alt-bg">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-icon">🌿</span>
+          <h2>Git & Diff Tools</h2>
+          <p class="section-subtitle">Better diffs and Git workflows</p>
+        </div>
+
+        <div class="tools-grid">
+          <div class="tool-card featured">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>delta</h3>
+                <span class="replaces">replaces <code>diff</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+                <span class="badge popular">Essential</span>
+              </div>
+            </div>
+            <p class="description">
+              A syntax-highlighting pager for git, diff, and grep output. Side-by-side view, line numbers,
+              and beautiful themes. Makes reviewing changes a pleasure.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Configure as git pager
+[core]
+    pager = delta
+
+[interactive]
+    diffFilter = delta --color-only
+
+# Or use directly
+diff file1 file2 | delta</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install git-delta</code> or <code>cargo install git-delta</code>
+            </div>
+            <a href="https://github.com/dandavison/delta" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>lazygit</h3>
+                <span class="replaces">enhances <code>git</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge go">Go</span>
+                <span class="badge popular">Popular</span>
+              </div>
+            </div>
+            <p class="description">
+              A simple terminal UI for Git. Stage chunks interactively, browse history, manage branches,
+              and handle conflicts visually. Git without memorizing flags.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Launch lazygit
+lazygit
+
+# In a specific repo
+lazygit -p /path/to/repo
+
+# With custom config
+lazygit -ucf ~/.config/lazygit/config.yml</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install lazygit</code> or <code>go install github.com/jesseduffield/lazygit@latest</code>
+            </div>
+            <a href="https://github.com/jesseduffield/lazygit" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>gitui</h3>
+                <span class="replaces">enhances <code>git</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+              </div>
+            </div>
+            <p class="description">
+              Blazing fast terminal UI for Git. Similar to lazygit but written in Rust for maximum
+              performance. Excellent for large repositories.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Launch gitui
+gitui
+
+# With custom key bindings
+gitui -t ~/.config/gitui/theme.ron</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install gitui</code> or <code>cargo install gitui</code>
+            </div>
+            <a href="https://github.com/extrawurst/gitui" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>gh</h3>
+                <span class="replaces">GitHub CLI</span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge go">Go</span>
+                <span class="badge popular">Official</span>
+              </div>
+            </div>
+            <p class="description">
+              GitHub's official CLI. Create PRs, manage issues, trigger workflows, and browse repos
+              without leaving the terminal. Essential for GitHub users.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Create a PR
+gh pr create
+
+# View PR status
+gh pr status
+
+# Clone and enter repo
+gh repo clone owner/repo</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install gh</code>
+            </div>
+            <a href="https://github.com/cli/cli" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>difftastic</h3>
+                <span class="replaces">replaces <code>diff</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+              </div>
+            </div>
+            <p class="description">
+              A structural diff tool that understands syntax. Compares files based on their AST,
+              not just text, leading to more meaningful diffs for code.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Compare files
+difft old.rs new.rs
+
+# Use as git diff
+git config --global diff.external difft
+
+# Side by side
+difft --display side-by-side old.py new.py</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install difftastic</code> or <code>cargo install difftastic</code>
+            </div>
+            <a href="https://github.com/Wilfred/difftastic" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Shell & Prompt Section -->
+    <section id="shell-prompt" class="tools-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-icon">🐚</span>
+          <h2>Shell & Prompt</h2>
+          <p class="section-subtitle">Modern shells and beautiful prompts</p>
+        </div>
+
+        <div class="tools-grid">
+          <div class="tool-card featured">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>Starship</h3>
+                <span class="replaces">cross-shell prompt</span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+                <span class="badge popular">Essential</span>
+              </div>
+            </div>
+            <p class="description">
+              A minimal, fast, and customizable prompt for any shell. Shows git status, language versions,
+              container info, and more. One config works everywhere.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Add to .zshrc
+eval "$(starship init zsh)"
+
+# Add to .bashrc
+eval "$(starship init bash)"
+
+# Configure in starship.toml
+[git_branch]
+symbol = "🌿 "</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install starship</code> or <code>cargo install starship</code>
+            </div>
+            <a href="https://github.com/starship/starship" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card featured">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>Nushell</h3>
+                <span class="replaces">replaces <code>bash</code>/<code>zsh</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+              </div>
+            </div>
+            <p class="description">
+              A new type of shell. Everything is structured data, not just text. Built-in data manipulation,
+              modern syntax, and cross-platform consistency.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># List files as table
+ls | where size > 1mb
+
+# Parse JSON directly
+open package.json | get dependencies
+
+# System info as data
+sys | get host.name</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install nushell</code> or <code>cargo install nu</code>
+            </div>
+            <a href="https://github.com/nushell/nushell" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>Zellij</h3>
+                <span class="replaces">replaces <code>tmux</code>/<code>screen</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+              </div>
+            </div>
+            <p class="description">
+              A modern terminal multiplexer. Intuitive UI, WebAssembly plugin system, and sensible defaults.
+              No more memorizing obscure key combinations.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Start zellij
+zellij
+
+# With layout
+zellij --layout default
+
+# Attach to session
+zellij attach my-session</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install zellij</code> or <code>cargo install zellij</code>
+            </div>
+            <a href="https://github.com/zellij-org/zellij" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>Atuin</h3>
+                <span class="replaces">replaces shell history</span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+              </div>
+            </div>
+            <p class="description">
+              Magical shell history. Sync history across machines, full-text search with fuzzy finding,
+              and analytics on your command usage. Never lose a command again.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Search history
+atuin search docker
+
+# Interactive history (Ctrl+R)
+# Syncs automatically
+
+# Stats about your usage
+atuin stats</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install atuin</code> or <code>cargo install atuin</code>
+            </div>
+            <a href="https://github.com/atuinsh/atuin" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Utilities Section -->
+    <section id="utilities" class="tools-section alt-bg">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-icon">🧰</span>
+          <h2>Utilities</h2>
+          <p class="section-subtitle">Helpful tools for everyday tasks</p>
+        </div>
+
+        <div class="tools-grid">
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>tldr</h3>
+                <span class="replaces">replaces <code>man</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust (tealdeer)</span>
+              </div>
+            </div>
+            <p class="description">
+              Simplified, community-driven man pages. See practical examples immediately instead of
+              wading through verbose documentation. The <code>tealdeer</code> client is written in Rust.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Quick help for tar
+tldr tar
+
+# Update local cache
+tldr --update
+
+# List all pages
+tldr --list</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install tealdeer</code> or <code>cargo install tealdeer</code>
+            </div>
+            <a href="https://github.com/dbrgn/tealdeer" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>just</h3>
+                <span class="replaces">replaces <code>make</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+              </div>
+            </div>
+            <p class="description">
+              A handy command runner. Like <code>make</code> but focused on running commands rather than building.
+              No tabs-vs-spaces issues, better syntax, and cross-platform.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># justfile
+build:
+    cargo build --release
+
+test:
+    cargo test
+
+deploy: build test
+    ./deploy.sh</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install just</code> or <code>cargo install just</code>
+            </div>
+            <a href="https://github.com/casey/just" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>xh</h3>
+                <span class="replaces">replaces <code>curl</code>/<code>httpie</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+              </div>
+            </div>
+            <p class="description">
+              Friendly HTTP client. HTTPie-compatible syntax with Rust performance. Colorized output,
+              intuitive syntax for headers and data, and built-in JSON support.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># GET request
+xh httpbin.org/get
+
+# POST JSON
+xh POST api.example.com/users name=John
+
+# With headers
+xh GET api.example.com Authorization:token</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install xh</code> or <code>cargo install xh</code>
+            </div>
+            <a href="https://github.com/ducaale/xh" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>yazi</h3>
+                <span class="replaces">replaces file managers</span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+              </div>
+            </div>
+            <p class="description">
+              Blazing fast terminal file manager. Async I/O, image preview, extensive customization,
+              and Vim-like keybindings. Navigate your filesystem at the speed of thought.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Launch yazi
+yazi
+
+# Start in directory
+yazi /path/to/dir
+
+# With custom config
+yazi --config ~/.config/yazi</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install yazi</code> or <code>cargo install yazi-fm</code>
+            </div>
+            <a href="https://github.com/sxyazi/yazi" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Networking Section -->
+    <section id="networking" class="tools-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-icon">🌐</span>
+          <h2>Networking</h2>
+          <p class="section-subtitle">Modern network tools and diagnostics</p>
+        </div>
+
+        <div class="tools-grid">
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>dog</h3>
+                <span class="replaces">replaces <code>dig</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+              </div>
+            </div>
+            <p class="description">
+              A command-line DNS client. Colorful output, supports DNS-over-TLS and DNS-over-HTTPS,
+              and provides modern formatting for DNS queries.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Query A records
+dog example.com
+
+# Query MX records
+dog example.com MX
+
+# Use DoH
+dog example.com --https @cloudflare</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install dog</code> or <code>cargo install dog</code>
+            </div>
+            <a href="https://github.com/ogham/dog" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>gping</h3>
+                <span class="replaces">replaces <code>ping</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+              </div>
+            </div>
+            <p class="description">
+              Ping with a graph. Visualize ping times over time in your terminal. Great for monitoring
+              network stability and comparing multiple hosts.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Ping with graph
+gping google.com
+
+# Multiple hosts
+gping google.com cloudflare.com
+
+# Custom interval
+gping -n 0.5 8.8.8.8</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install gping</code> or <code>cargo install gping</code>
+            </div>
+            <a href="https://github.com/orf/gping" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-header">
+              <div class="tool-title">
+                <h3>miniserve</h3>
+                <span class="replaces">replaces <code>python -m http.server</code></span>
+              </div>
+              <div class="tool-badges">
+                <span class="badge rust">Rust</span>
+              </div>
+            </div>
+            <p class="description">
+              A tiny HTTP server for quick file sharing. Colored output, QR code for mobile access,
+              upload support, and directory listings. Zero config needed.
+            </p>
+            <div class="example">
+              <div class="example-header">
+                <span>Example</span>
+              </div>
+              <pre><code># Serve current directory
+miniserve .
+
+# With upload support
+miniserve --upload-files .
+
+# Show QR code
+miniserve --qrcode .</code></pre>
+            </div>
+            <div class="install">
+              <code>brew install miniserve</code> or <code>cargo install miniserve</code>
+            </div>
+            <a href="https://github.com/svenstaro/miniserve" target="_blank" rel="noopener noreferrer" class="tool-link">
+              View on GitHub →
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Install Section -->
+    <section class="quick-install">
+      <div class="container">
+        <h2>Quick Install All Essentials</h2>
+        <p>Get started with the most popular modern tools in one command:</p>
+        <div class="install-block">
+          <div class="install-tabs">
+            <button class="install-tab active" data-target="macos">macOS</button>
+            <button class="install-tab" data-target="cargo">Cargo</button>
+          </div>
+          <div class="install-content" id="macos">
+            <pre><code># Install via Homebrew
+brew install eza bat ripgrep fd dust bottom sd git-delta fzf zoxide starship</code></pre>
+          </div>
+          <div class="install-content hidden" id="cargo">
+            <pre><code># Install via Cargo (requires Rust)
+cargo install eza bat ripgrep fd-find du-dust bottom sd git-delta zoxide starship</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+      <div class="container">
+        <div class="cta-content">
+          <h2>Let Caro Help You Navigate</h2>
+          <p>
+            Not sure which command to use? Caro understands both classic Unix and modern tools.
+            Ask in natural language and get the right command—whether it's <code>grep</code> or <code>ripgrep</code>.
+          </p>
+          <div class="cta-buttons">
+            <a href="/" class="cta-button primary">Try Caro</a>
+            <a href="/blog/rust-unix-tools" class="cta-button secondary">Read the Blog Post</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <Footer />
+</Layout>
+
+<style>
+  .modern-tools-page {
+    min-height: 100vh;
+    background: var(--color-bg);
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  /* Hero Section */
+  .hero {
+    text-align: center;
+    padding: 100px 20px 70px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: #fff;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    background: rgba(255, 140, 66, 0.2);
+    color: #ff8c42;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  .hero h1 {
+    font-size: 52px;
+    font-weight: 800;
+    margin: 0 0 16px;
+    color: #fff;
+  }
+
+  .hero .tagline {
+    font-size: 24px;
+    color: #ff8c42;
+    margin: 0 0 24px;
+    font-weight: 500;
+  }
+
+  .hero .intro {
+    font-size: 18px;
+    line-height: 1.7;
+    color: #e0e0e0;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .hero .intro strong {
+    color: #fff;
+  }
+
+  /* Quick Navigation */
+  .quick-nav {
+    background: var(--color-bg-secondary);
+    padding: 20px;
+    border-bottom: 1px solid var(--color-border);
+    position: sticky;
+    top: 60px;
+    z-index: 50;
+  }
+
+  .nav-pills {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .nav-pill {
+    display: inline-block;
+    padding: 8px 16px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    color: var(--color-text);
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .nav-pill:hover {
+    background: #ff8c42;
+    border-color: #ff8c42;
+    color: #fff;
+    text-decoration: none;
+  }
+
+  /* Intro Section */
+  .intro-section {
+    padding: 60px 20px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .intro-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+  }
+
+  .intro-card {
+    text-align: center;
+    padding: 32px 24px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+  }
+
+  .intro-card:hover {
+    border-color: #ff8c42;
+    transform: translateY(-4px);
+  }
+
+  .intro-icon {
+    font-size: 40px;
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  .intro-card h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 12px;
+    color: var(--color-text);
+  }
+
+  .intro-card p {
+    font-size: 15px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* Section Styles */
+  .tools-section {
+    padding: 80px 20px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .tools-section.alt-bg {
+    background: var(--color-bg-secondary);
+  }
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+
+  .section-icon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  .section-header h2 {
+    font-size: 36px;
+    font-weight: 700;
+    margin: 0 0 12px;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    font-size: 18px;
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  /* Tools Grid */
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 24px;
+  }
+
+  /* Tool Cards */
+  .tool-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .tool-card:hover {
+    border-color: #ff8c42;
+    box-shadow: 0 8px 24px rgba(255, 140, 66, 0.1);
+  }
+
+  .tool-card.featured {
+    border-color: rgba(255, 140, 66, 0.3);
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.03) 0%, var(--color-bg) 100%);
+  }
+
+  .tool-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tool-title {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .tool-card h3 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--color-text);
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  }
+
+  .replaces {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+
+  .replaces code {
+    background: var(--color-bg-secondary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #e74c3c;
+  }
+
+  .tool-badges {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .badge.rust {
+    background: rgba(222, 165, 132, 0.15);
+    color: #dea584;
+  }
+
+  .badge.go {
+    background: rgba(0, 173, 216, 0.15);
+    color: #00add8;
+  }
+
+  .badge.popular {
+    background: rgba(255, 140, 66, 0.15);
+    color: #ff8c42;
+  }
+
+  .description {
+    font-size: 15px;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin: 0 0 16px;
+    flex-grow: 1;
+  }
+
+  .description code {
+    background: var(--color-bg-secondary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #ff8c42;
+  }
+
+  .example {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .example-header {
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .example pre {
+    margin: 0;
+    padding: 12px;
+    overflow-x: auto;
+  }
+
+  .example code {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--color-text);
+    background: none;
+    padding: 0;
+  }
+
+  .install {
+    margin-bottom: 12px;
+  }
+
+  .install code {
+    display: inline-block;
+    background: var(--color-bg-secondary);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 12px;
+    color: #27ae60;
+    margin-right: 8px;
+    margin-bottom: 4px;
+  }
+
+  .tool-link {
+    font-size: 14px;
+    color: #ff8c42;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+  }
+
+  .tool-link:hover {
+    color: #ff6b35;
+    text-decoration: underline;
+  }
+
+  /* Quick Install Section */
+  .quick-install {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+    text-align: center;
+  }
+
+  .quick-install h2 {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 12px;
+    color: var(--color-text);
+  }
+
+  .quick-install > .container > p {
+    font-size: 18px;
+    color: var(--color-text-secondary);
+    margin: 0 0 32px;
+  }
+
+  .install-block {
+    max-width: 700px;
+    margin: 0 auto;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .install-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .install-tab {
+    flex: 1;
+    padding: 12px 16px;
+    background: transparent;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .install-tab:hover {
+    background: var(--color-bg-secondary);
+  }
+
+  .install-tab.active {
+    background: var(--color-bg-secondary);
+    color: #ff8c42;
+    border-bottom: 2px solid #ff8c42;
+    margin-bottom: -1px;
+  }
+
+  .install-content {
+    padding: 16px;
+    text-align: left;
+  }
+
+  .install-content.hidden {
+    display: none;
+  }
+
+  .install-content pre {
+    margin: 0;
+    overflow-x: auto;
+  }
+
+  .install-content code {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 14px;
+    color: #27ae60;
+  }
+
+  /* CTA Section */
+  .cta {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 80px 20px;
+    text-align: center;
+  }
+
+  .cta-content h2 {
+    font-size: 32px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 16px;
+  }
+
+  .cta-content p {
+    font-size: 18px;
+    color: #e0e0e0;
+    max-width: 600px;
+    margin: 0 auto 32px;
+    line-height: 1.7;
+  }
+
+  .cta-content p code {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #ff8c42;
+  }
+
+  .cta-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .cta-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .cta-button.primary {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: #fff;
+  }
+
+  .cta-button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.4);
+    text-decoration: none;
+  }
+
+  .cta-button.secondary {
+    background: transparent;
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .cta-button.secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
+    text-decoration: none;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero h1 {
+      font-size: 36px;
+    }
+
+    .hero .tagline {
+      font-size: 20px;
+    }
+
+    .section-header h2 {
+      font-size: 28px;
+    }
+
+    .section-icon {
+      font-size: 36px;
+    }
+
+    .tools-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .intro-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .quick-nav {
+      top: 50px;
+    }
+
+    .nav-pill {
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+
+    .cta-content h2 {
+      font-size: 26px;
+    }
+
+    .quick-install h2 {
+      font-size: 26px;
+    }
+  }
+
+  /* Dark mode enhancements */
+  .dark .tool-card {
+    background: var(--color-bg-secondary);
+  }
+
+  .dark .tool-card.featured {
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.05) 0%, var(--color-bg-secondary) 100%);
+  }
+
+  .dark .example {
+    background: var(--color-bg);
+  }
+
+  .dark .example-header {
+    background: var(--color-bg-secondary);
+  }
+
+  .dark .intro-card {
+    background: var(--color-bg);
+  }
+
+  .dark .install-block {
+    background: var(--color-bg-secondary);
+  }
+
+  .dark .install-content {
+    background: var(--color-bg);
+  }
+</style>
+
+<script>
+  // Tab switching for install instructions
+  document.addEventListener('DOMContentLoaded', () => {
+    const tabs = document.querySelectorAll('.install-tab');
+    const contents = document.querySelectorAll('.install-content');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const target = tab.getAttribute('data-target');
+
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        contents.forEach(c => {
+          if (c.id === target) {
+            c.classList.remove('hidden');
+          } else {
+            c.classList.add('hidden');
+          }
+        });
+      });
+    });
+  });
+</script>
