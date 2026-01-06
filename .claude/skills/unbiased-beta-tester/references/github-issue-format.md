@@ -37,7 +37,7 @@ title: "[Bug]: Installation fails on [OS] via [method]"
 labels: ["bug", "installation", "triage"]
 ---
 
-**caro Version:** Unable to install (attempting v1.0.2)
+**caro Version:** Unable to install (attempting vX.Y.Z)
 
 **Rust Version:** [version or "not installed"]
 
@@ -274,7 +274,7 @@ Always include at the start of bug reports:
 
 ```markdown
 **Environment:**
-- caro: 1.0.2
+- caro: X.Y.Z
 - Rust: 1.75.0 (if applicable)
 - OS: macOS 14.5 (arm64)
 - Shell: zsh 5.9
@@ -394,7 +394,7 @@ labels: ["bug", "installation", "linux", "triage"]
 ---
 
 ## Environment
-- **caro Version:** Unable to install (attempting v1.0.2)
+- **caro Version:** Unable to install (attempting vX.Y.Z)
 - **Rust Version:** rustc 1.75.0 (82e1608df 2023-12-21)
 - **Operating System:** Linux (Ubuntu/Debian)
 - **OS Version:** Ubuntu 22.04 LTS
@@ -434,7 +434,7 @@ Every time (100%)
 ```
 $ cargo install caro
     Updating crates.io index
-  Downloaded caro v1.0.2
+  Downloaded caro vX.Y.Z
   ...
    Compiling mlx-sys v0.1.0
 error[E0433]: failed to resolve: use of undeclared crate or module `mlx_sys`

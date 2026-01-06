@@ -181,13 +181,16 @@ fi
 ### Permission Checks
 
 ```bash
-# Check sudo access
+# Check sudo access (note: uses portable approach for macOS/Linux compatibility)
 if sudo -n true 2>/dev/null; then
     echo "sudo: available without password"
-elif timeout 1 sudo -v 2>/dev/null; then
+elif command -v timeout >/dev/null 2>&1 && timeout 1 sudo -v 2>/dev/null; then
+    echo "sudo: available with password"
+elif command -v gtimeout >/dev/null 2>&1 && gtimeout 1 sudo -v 2>/dev/null; then
+    # macOS with GNU coreutils installed via Homebrew
     echo "sudo: available with password"
 else
-    echo "sudo: not available"
+    echo "sudo: status unknown (run 'sudo -v' manually to check)"
 fi
 
 # Check write permissions

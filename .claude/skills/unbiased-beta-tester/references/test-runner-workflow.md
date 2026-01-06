@@ -180,7 +180,7 @@ $ curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | b
 100  4523  100  4523    0     0  12345      0 --:--:-- --:--:-- --:--:-- 12345
 
 Detected: macOS (Apple Silicon)
-Downloading caro v1.0.2 for macos-silicon...
+Downloading caro vX.Y.Z for macos-silicon...
 Installing to /usr/local/bin...
 Installation complete!
 
@@ -189,7 +189,7 @@ Run 'caro --version' to verify.
 ### Verification
 
 $ caro --version
-caro 1.0.2
+caro vX.Y.Z  # example version
 
 ### Result
 Installation succeeded! The command is now available.
@@ -231,7 +231,7 @@ caro "list files"
 
 ### Test 1: Version
 $ caro --version
-caro 1.0.2
+caro vX.Y.Z  # example version; actual output may differ
 
 Result: PASS - Version displayed correctly
 
@@ -454,20 +454,20 @@ Each state should collect:
 
 ## Patience Tracking
 
-Track frustration throughout:
+Track frustration throughout (illustrative pseudocode, not executable):
 
-```javascript
-let frustration = 0;
-let patience = profile.patience.max_failed_attempts_per_step;
+```
+// Pseudocode - conceptual logic for patience tracking
+frustration = 0
+patience = profile.patience.max_failed_attempts_per_step
 
-// On each failure:
-frustration++;
-if (frustration >= patience) {
-    transition_to("REPORT", "patience_exhausted");
-}
+On each failure:
+    frustration = frustration + 1
+    if frustration >= patience:
+        transition_to("REPORT", "patience_exhausted")
 
-// On success:
-frustration = Math.max(0, frustration - 1);
+On success:
+    frustration = max(0, frustration - 1)
 ```
 
 ## Human-Like Behavior Patterns

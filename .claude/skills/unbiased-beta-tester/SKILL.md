@@ -1,6 +1,6 @@
 ---
 name: "unbiased-beta-tester"
-description: "Use when users need help generating safe, tested POSIX shell commands from natural language descriptions. Guides users through command generation, safety validation, and execution workflows using Caro best practices"
+description: "Use when users need to simulate unbiased beta testers for CLI tools. Creates tester personas, models their environment, and runs terminal-first exploratory testing based only on documentation and observed terminal output."
 version: "1.0.0"
 allowed-tools: "Bash, Read, Write, Edit, Grep, Glob, Task, WebFetch, WebSearch"
 license: "AGPL-3.0"
@@ -207,7 +207,7 @@ error: Could not load model
 ### Environment
 - OS: macOS 14.5 (arm64)
 - Shell: zsh 5.9
-- caro version: 1.0.2
+- caro version: X.Y.Z
 ```
 
 ### Phase 5: Issue Composition
@@ -419,7 +419,7 @@ Following the README "Option 3: Using Cargo":
 $ cargo install caro
     Updating crates.io index
     ...
-error: failed to compile `caro v1.0.2`, intermediate artifacts can be found...
+error: failed to compile `caro vX.Y.Z`, intermediate artifacts can be found...
 error[E0433]: failed to resolve: use of undeclared crate or module `mlx_sys`
 
 ## Observation
@@ -435,7 +435,7 @@ doesn't seem to handle this gracefully.
 
 **Title:** [Bug]: cargo install fails on Linux with MLX dependency error
 
-**caro Version:** 1.0.2
+**caro Version:** X.Y.Z
 **Rust Version:** rustc 1.75.0
 **Operating System:** Linux (Ubuntu/Debian)
 **OS Version:** Ubuntu 22.04
