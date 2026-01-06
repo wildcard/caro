@@ -455,6 +455,102 @@ Safety Approach
 
 ---
 
+## Installation
+
+**URL**: https://caro.sh/installation
+
+Install Caro using automated script, Cargo, pre-built binaries, or build from source. Multiple installation methods for all platforms.
+
+---
+
+## What Caro Does | AI Shell Assistant
+
+**URL**: https://caro.sh/product
+
+Caro turns natural language into safe shell commands, works offline, and catches dangerous patterns. See how it helps engineers work safely and efficiently.
+
+What Caro Does
+
+Turn Plain English into Shell Commands
+
+Catch Dangerous Commands Before They Run
+
+Work Completely Offline
+
+Commands That Work on Any Platform
+
+Safety That Actually Works
+
+Actually Offline
+
+Platform Aware
+
+Built for Production
+
+The 3 AM Incident
+
+The Cross-Platform Script
+
+The AI Disaster
+
+The Secure Environment
+
+See what problems Caro solves and how it helps you work with the terminal
+
+Describe what you want to do, get the exact command. No more Googling syntax.
+
+Caro validates every command against 52+ dangerous patterns. Works even when AI gets it wrong.
+
+Everything runs on your machine. No internet required after install. No data ever leaves your computer.
+
+Mac and Linux use different command syntax. Caro knows the difference and generates the right command for your system.
+
+Other tools use AI to check if commands are safe. The problem? AI can hallucinate. Caro uses pattern matching - the same command always gets the same safety result. No surprises.
+
+Most 
+
+Caro knows you\
+
+Startup in under 100ms. Command generation in under 2 seconds. No spinning up containers or waiting for cloud APIs.
+
+---
+
+## Jobs To Be Done Framework
+
+**URL**: https://caro.sh/product/jobs-to-be-done
+
+Understanding Caro through the canonical Jobs To Be Done framework. Discover the functional, emotional, and social jobs Caro performs.
+
+Almost ran a dangerous command, caught it just in time
+
+Production outage from typo or wrong flags
+
+Moved to restricted environment, existing tools don
+
+Moving from Mac to Linux or vice versa, commands breaking
+
+New engineers joining who might make dangerous mistakes
+
+Need to document and enforce command-line safety standards
+
+---
+
+## Quick Start Guide
+
+**URL**: https://caro.sh/quick-start
+
+Get started with Caro in under 5 minutes. Install, verify, and generate your first shell command.
+
+---
+
+## Setup & Configuration
+
+**URL**: https://caro.sh/setup
+
+Configure Caro for optimal developer experience with shell completions, aliases, backend selection, and tool integrations.
+
+---
+
 ## Sponsor Caro - Fund Open Source Development
 
 **URL**: https://caro.sh/support
@@ -847,4 +943,4 @@ Yes! Caro is licensed under AGPL-3.0. You can read, modify, and distribute the s
 
 ---
 
-*Generated on 2026-01-04*
+*Generated on 2026-01-06*
