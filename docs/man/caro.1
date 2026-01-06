@@ -1,0 +1,594 @@
+.\" Caro Man Page
+.\" Copyright (C) 2024-2025 Wildcard
+.\" Licensed under AGPL-3.0
+.\"
+.\" To view: man ./caro.1
+.\" To install: sudo cp caro.1 /usr/local/share/man/man1/
+.\"
+.TH CARO 1 "December 2024" "caro 0.1.0" "Caro User Manual"
+.\"
+.\" ===== NAME =====
+.SH NAME
+caro, cmdai \- convert natural language to safe POSIX shell commands using local LLMs
+.\"
+.\" ===== SYNOPSIS =====
+.SH SYNOPSIS
+.B caro
+.RI [ OPTIONS ]
+.I PROMPT
+.br
+.B cmdai
+.RI [ OPTIONS ]
+.I PROMPT
+.\"
+.\" ===== DESCRIPTION =====
+.SH DESCRIPTION
+.B Caro
+(also known as
+.BR cmdai )
+is a command-line tool that transforms natural language descriptions into
+safe, executable shell commands using local Large Language Models (LLMs).
+Built with Rust for performance and safety, Caro provides intelligent
+platform-aware command generation with comprehensive safety validation.
+.PP
+Caro uses a sophisticated
+.B 2-iteration agentic loop
+that detects your operating system, architecture, shell environment, and
+available commands to generate appropriate POSIX-compliant shell commands.
+The tool prioritizes safety through 52+ pre-compiled dangerous command
+patterns and a risk assessment system that prevents accidental execution
+of destructive operations.
+.SS "Design Philosophy"
+.TP
+.B Safety-First
+Every generated command undergoes comprehensive validation against dangerous
+patterns before presentation to the user. Critical operations require
+explicit confirmation.
+.TP
+.B Platform-Aware
+Caro automatically detects GNU vs BSD utilities, shell-specific syntax, and
+platform constraints to generate commands that work on your specific system.
+.TP
+.B Self-Contained
+Single-binary distribution with embedded local inference capability. No
+external API keys or cloud services required for core functionality.
+.TP
+.B Extensible
+Modular backend architecture supporting MLX (Apple Silicon), CPU inference,
+Ollama, and vLLM for flexible deployment scenarios.
+.\"
+.\" ===== OPTIONS =====
+.SH OPTIONS
+.SS "General Options"
+.TP
+.I PROMPT
+Natural language description of the desired shell command.
+This is the only required argument.
+.TP
+.BR \-h ", " \-\-help
+Display help information and exit.
+.TP
+.BR \-V ", " \-\-version
+Display version information and exit.
+.TP
+.B \-\-show\-config
+Display current configuration settings and exit.
+Useful for debugging configuration issues.
+.\"
+.SS "Shell and Output Options"
+.TP
+.BR \-s ", " \-\-shell " " \fISHELL\fR
+Specify the target shell for command generation.
+Supported values:
+.RS
+.TP
+.B bash
+Bourne Again Shell (default on Linux)
+.TP
+.B zsh
+Z Shell (default on macOS)
+.TP
+.B fish
+Friendly Interactive Shell
+.TP
+.B sh
+POSIX shell
+.TP
+.B powershell
+Windows PowerShell
+.TP
+.B cmd
+Windows Command Prompt
+.RE
+.IP
+If not specified, Caro auto-detects the current shell from the
+.B SHELL
+environment variable.
+.TP
+.BR \-o ", " \-\-output " " \fIFORMAT\fR
+Set output format for command results.
+Supported values:
+.RS
+.TP
+.B plain
+Human-readable colored output (default)
+.TP
+.B json
+Machine-readable JSON format with full metadata
+.TP
+.B yaml
+Structured YAML format
+.RE
+.\"
+.SS "Safety and Execution Options"
+.TP
+.BR \-\-safety " " \fILEVEL\fR
+Set the safety validation level. Controls how strictly dangerous commands
+are handled:
+.RS
+.TP
+.B strict
+Block high and critical risk commands; confirm moderate risk
+.TP
+.B moderate
+Block critical risk commands; confirm high risk (default)
+.TP
+.B permissive
+Allow all commands with warnings; user confirmation available
+.RE
+.IP
+See
+.B SAFETY LEVELS
+section for detailed behavior.
+.TP
+.BR \-y ", " \-\-confirm
+Auto-confirm dangerous commands without interactive prompting.
+Use with caution. This flag is useful for scripting scenarios where
+user interaction is not possible.
+.TP
+.BR \-x ", " \-\-execute
+Execute the generated command immediately after validation and user
+confirmation. The command runs in a subshell appropriate for your platform.
+.TP
+.BR \-i ", " \-\-interactive
+Enable interactive mode with step-by-step confirmation.
+In this mode, each stage of command generation and validation is
+presented to the user before proceeding.
+.TP
+.B \-\-dry\-run
+Show the execution plan without actually running the command.
+Displays what would happen if
+.B \-\-execute
+were used.
+.\"
+.SS "Configuration Options"
+.TP
+.BR \-c ", " \-\-config " " \fIFILE\fR
+Use a custom configuration file instead of the default location.
+The file must be in TOML format.
+.TP
+.BR \-v ", " \-\-verbose
+Enable verbose output with timing information, debug messages,
+and detailed progress updates.
+.TP
+.BR \-\-completions " " \fISHELL\fR
+Generate shell completion scripts for the specified shell and print to stdout.
+Supported shells:
+.RS
+.TP
+.B bash
+Bash completions
+.TP
+.B zsh
+Zsh completions
+.TP
+.B fish
+Fish completions
+.TP
+.B powershell
+PowerShell completions
+.TP
+.B elvish
+Elvish completions
+.RE
+.IP
+Example:
+.RS
+.nf
+cmdai --completions bash > ~/.local/share/bash-completion/completions/cmdai
+cmdai --completions zsh > ~/.local/share/zsh/site-functions/_cmdai
+cmdai --completions fish > ~/.config/fish/completions/cmdai.fish
+.fi
+.RE
+.\"
+.\" ===== CONFIGURATION =====
+.SH CONFIGURATION
+.SS "Configuration File Location"
+Caro reads its configuration from a TOML file located at:
+.TP
+.B macOS, Linux
+~/.config/cmdai/config.toml
+.TP
+.B Windows
+%APPDATA%\\cmdai\\config.toml
+.PP
+The configuration file is created automatically on first run with default values.
+.\"
+.SS "Configuration Priority"
+Settings are applied in the following order (highest priority first):
+.IP 1. 3
+Command-line flags and arguments
+.IP 2. 3
+Environment variables
+.IP 3. 3
+Configuration file
+.IP 4. 3
+Built-in defaults
+.\"
+.SS "Configuration File Example"
+.PP
+.nf
+.RS
+# ~/.config/cmdai/config.toml
+[general]
+safety_level = "moderate"
+default_shell = "bash"
+
+[logging]
+log_level = "info"
+log_rotation_days = 7
+
+[cache]
+max_size_gb = 10
+
+[backend]
+primary = "embedded"
+enable_fallback = true
+
+[backend.ollama]
+base_url = "http://localhost:11434"
+model_name = "codellama:7b"
+
+[backend.vllm]
+base_url = "http://localhost:8000"
+model_name = "codellama/CodeLlama-7b-hf"
+api_key = ""
+.RE
+.fi
+.\"
+.\" ===== SAFETY LEVELS =====
+.SH SAFETY LEVELS
+Caro implements a three-tier safety system to prevent accidental execution
+of dangerous commands.
+.\"
+.SS "Strict Mode"
+The most restrictive safety mode, recommended for production systems.
+.PP
+.RS
+.IP \(bu 2
+Critical risk commands: Blocked entirely
+.IP \(bu 2
+High risk commands: Blocked entirely
+.IP \(bu 2
+Moderate risk commands: Require user confirmation
+.IP \(bu 2
+Safe commands: Execute normally
+.RE
+.\"
+.SS "Moderate Mode (Default)"
+The default safety mode, balancing safety with usability.
+.PP
+.RS
+.IP \(bu 2
+Critical risk commands: Blocked entirely
+.IP \(bu 2
+High risk commands: Require user confirmation
+.IP \(bu 2
+Moderate risk commands: Execute with warning
+.IP \(bu 2
+Safe commands: Execute normally
+.RE
+.\"
+.SS "Permissive Mode"
+The least restrictive mode, for trusted environments.
+.PP
+.RS
+.IP \(bu 2
+Critical risk commands: Require user confirmation
+.IP \(bu 2
+High risk commands: Execute with warning
+.IP \(bu 2
+Moderate risk commands: Execute with warning
+.IP \(bu 2
+Safe commands: Execute normally
+.RE
+.\"
+.SS "Risk Level Classifications"
+.TP
+.B Critical Risk (Red)
+Operations that can cause irreversible system damage:
+.RS
+.IP \(bu 2
+Recursive deletion of root: rm -rf /
+.IP \(bu 2
+Home directory destruction: rm -rf ~
+.IP \(bu 2
+Disk formatting: mkfs.* /dev/*
+.IP \(bu 2
+Fork bombs: :(){ :|:& };:
+.RE
+.TP
+.B High Risk (Orange)
+Operations requiring careful consideration:
+.RS
+.IP \(bu 2
+System directory modification: /bin, /sbin, /usr, /etc
+.IP \(bu 2
+Root permission changes: chmod 777 /
+.IP \(bu 2
+Privilege escalation: sudo su
+.RE
+.TP
+.B Moderate Risk (Yellow)
+Operations that may have unintended side effects:
+.RS
+.IP \(bu 2
+Package management with force flags
+.IP \(bu 2
+Process termination: kill -9
+.IP \(bu 2
+File deletion operations
+.RE
+.TP
+.B Safe (Green)
+Normal operations with no confirmation needed:
+.RS
+.IP \(bu 2
+Directory listing and navigation
+.IP \(bu 2
+File reading and searching
+.IP \(bu 2
+Text processing
+.RE
+.\"
+.\" ===== BACKENDS =====
+.SH BACKENDS
+.SS "Embedded Backend (Default)"
+The embedded backend provides local inference without external dependencies.
+.TP
+.B MLX Variant (Apple Silicon)
+Optimized for Apple M1, M2, M3, and M4 chips using Metal Performance Shaders.
+First inference: < 2 seconds.
+.TP
+.B CPU Variant (Cross-Platform)
+Uses the Candle ML framework. First inference: 3-5 seconds.
+.TP
+.B Model
+Qwen2.5-Coder-1.5B-Instruct (quantized, ~1.5 GB)
+.\"
+.SS "Ollama Backend"
+Connect to a local or remote Ollama instance.
+.PP
+Configuration in config.toml:
+.PP
+.RS
+.nf
+[backend.ollama]
+base_url = "http://localhost:11434"
+model_name = "codellama:7b"
+.fi
+.RE
+.\"
+.SS "vLLM Backend"
+Connect to a vLLM server for high-performance inference.
+.PP
+Configuration in config.toml:
+.PP
+.RS
+.nf
+[backend.vllm]
+base_url = "http://localhost:8000"
+model_name = "codellama/CodeLlama-7b-hf"
+api_key = "your-api-key"
+.fi
+.RE
+.\"
+.\" ===== EXAMPLES =====
+.SH EXAMPLES
+.SS "Basic Usage"
+Generate a simple command:
+.PP
+.RS
+.nf
+$ caro "list all files in the current directory"
+
+Generated command:
+  ls -la
+
+Execute this command? (y/N)
+.fi
+.RE
+.\"
+.SS "Specifying Target Shell"
+Generate a zsh-specific command:
+.PP
+.RS
+.nf
+$ caro --shell zsh "show last 10 commands from history"
+
+Generated command:
+  fc -l -10
+.fi
+.RE
+.\"
+.SS "JSON Output for Scripting"
+Get machine-readable output:
+.PP
+.RS
+.nf
+$ caro --output json "find all Python files"
+{
+  "command": "find . -name '*.py' -type f",
+  "shell": "bash",
+  "risk_level": "safe",
+  "confidence": 0.95
+}
+.fi
+.RE
+.\"
+.SS "Automatic Execution"
+Generate and execute a command:
+.PP
+.RS
+.nf
+$ caro --execute "show disk usage sorted by size"
+
+Generated command:
+  du -sh * | sort -hr | head -20
+
+Execute this command? (y/N) y
+
+4.2G    node_modules
+1.1G    target
+.fi
+.RE
+.\"
+.SS "Verbose Mode"
+Enable detailed output:
+.PP
+.RS
+.nf
+$ caro --verbose "compress all images"
+
+[DEBUG] Platform detection: macOS 14.2, arm64, zsh
+[INFO] Starting inference...
+[INFO] Generation complete in 1.23s
+
+Generated command:
+  find ~/photos -type f \\( -name '*.jpg' -o -name '*.png' \\) -exec gzip {} \\;
+.fi
+.RE
+.\"
+.\" ===== ENVIRONMENT =====
+.SH ENVIRONMENT
+.TP
+.B SHELL
+Current shell, used for auto-detection when
+.B \-\-shell
+is not specified.
+.TP
+.B CMDAI_SAFETY_LEVEL
+Override safety level. Values: strict, moderate, permissive.
+.TP
+.B CMDAI_DEFAULT_SHELL
+Override default shell when not specified.
+.TP
+.B CMDAI_LOG_LEVEL
+Override log verbosity. Values: debug, info, warn, error.
+.TP
+.B CMDAI_CONFIG
+Path to configuration file.
+.TP
+.B HOME
+User home directory, used for configuration and cache locations.
+.TP
+.B XDG_CONFIG_HOME
+Override configuration directory location (Linux/macOS).
+.TP
+.B APPDATA
+Configuration directory location (Windows).
+.\"
+.\" ===== FILES =====
+.SH FILES
+.TP
+.I ~/.config/cmdai/config.toml
+User configuration file (macOS/Linux).
+.TP
+.I %APPDATA%\\cmdai\\config.toml
+User configuration file (Windows).
+.TP
+.I ~/.cache/huggingface/
+Model cache directory for embedded backend.
+.TP
+.I ~/.config/cmdai/logs/
+Log file directory.
+.\"
+.\" ===== EXIT STATUS =====
+.SH EXIT STATUS
+.TP
+.B 0
+Success
+.TP
+.B 1
+General error
+.TP
+.B 2
+Invalid arguments or configuration
+.TP
+.B 3
+Safety validation blocked command
+.TP
+.B 4
+User cancelled execution
+.TP
+.B 5
+Backend unavailable
+.TP
+.B 6
+Inference timeout
+.TP
+.B 7
+Command execution failed
+.\"
+.\" ===== REPORTING BUGS =====
+.SH REPORTING BUGS
+Report bugs at: https://github.com/wildcard/cmdai/issues
+.PP
+When reporting, please include:
+.IP \(bu 2
+Caro version (caro --version)
+.IP \(bu 2
+Operating system and version
+.IP \(bu 2
+Shell type and version
+.IP \(bu 2
+Full command used
+.IP \(bu 2
+Error message or unexpected behavior
+.IP \(bu 2
+Debug output (--verbose)
+.\"
+.\" ===== AUTHORS =====
+.SH AUTHORS
+Caro is developed and maintained by the Wildcard team.
+.PP
+Website: https://caro.sh
+.br
+Repository: https://github.com/wildcard/cmdai
+.\"
+.\" ===== COPYRIGHT =====
+.SH COPYRIGHT
+Copyright (C) 2024-2025 Wildcard
+.PP
+Caro is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0).
+.PP
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+.PP
+See the LICENSE file or https://www.gnu.org/licenses/agpl-3.0.html
+for full license terms.
+.\"
+.\" ===== SEE ALSO =====
+.SH SEE ALSO
+.BR bash (1),
+.BR zsh (1),
+.BR fish (1),
+.BR sh (1)
+.PP
+Ollama: https://ollama.ai
+.br
+vLLM: https://github.com/vllm-project/vllm
+.br
+MLX: https://github.com/ml-explore/mlx
+.br
+Hugging Face: https://huggingface.co

@@ -1,6 +1,8 @@
 use caro::cli::{CliApp, CliError, IntoCliArgs};
 use caro::config::ConfigManager;
-use clap::Parser;
+use clap::{CommandFactory, Parser};
+use clap_complete::{generate, Shell};
+use std::io;
 use std::process;
 
 // =============================================================================
@@ -219,6 +221,14 @@ struct Cli {
     )]
     interactive: bool,
 
+    /// Generate shell completions
+    #[arg(
+        long,
+        value_name = "SHELL",
+        help = "Generate shell completions for the specified shell (bash, zsh, fish, powershell, elvish)"
+    )]
+    completions: Option<Shell>,
+
     /// Trailing unquoted arguments forming the prompt
     #[arg(trailing_var_arg = true, num_args = 0..)]
     trailing_args: Vec<String>,
@@ -284,6 +294,13 @@ async fn main() {
     }
 
     let mut cli = Cli::parse();
+
+    // Handle --completions early (before prompt resolution)
+    if let Some(shell) = cli.completions {
+        let mut cmd = Cli::command();
+        generate(shell, &mut cmd, "caro", &mut io::stdout());
+        process::exit(0);
+    }
 
     // Truncate trailing args at shell operators (handles edge cases)
     cli.trailing_args = truncate_at_shell_operator(cli.trailing_args);
