@@ -47,7 +47,7 @@ directories = "6"
 dirs = "6"
 which = "8.0"
 os_info = "3.14"
-sysinfo = "0.37"
+sysinfo = "0.33"
 
 # Model integration (Hugging Face Hub)
 hf-hub = { version = "0.4", default-features = false, features = ["tokio", "rustls-tls"] }
