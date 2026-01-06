@@ -8,7 +8,8 @@
 #   curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
 #   wget -qO- https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
 
-set -e
+# Don't use set -e - we handle errors explicitly for better resilience
+set -u
 
 # Colors for output
 RED='\033[0;31m'
@@ -62,42 +63,132 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-# Download and install binary
-install_binary() {
-    echo -e "${BLUE}Installing caro...${NC}"
+# Check network connectivity to GitHub
+check_network_connectivity() {
+    echo -e "${BLUE}Checking network connectivity...${NC}"
 
-    # Use cargo if explicitly chosen or if no method specified and cargo exists
-    if [ "$INSTALL_METHOD" = "cargo" ] || { [ -z "$INSTALL_METHOD" ] && command_exists cargo; }; then
-        echo -e "${BLUE}Installing via cargo...${NC}"
-
-        # Detect if on macOS with Apple Silicon for MLX optimization
-        local cargo_features=""
-        if [[ "$(uname -s)" == "Darwin" ]] && [[ "$(uname -m)" == "arm64" ]]; then
-            echo -e "${GREEN}Building with MLX optimization for Apple Silicon...${NC}"
-            cargo_features="--features embedded-mlx"
+    # Try to reach GitHub with a timeout
+    if command_exists curl; then
+        if curl -fsSL --connect-timeout 5 --max-time 10 https://github.com >/dev/null 2>&1; then
+            echo -e "${GREEN}✓ Network connection OK${NC}"
+            return 0
         fi
-
-        cargo install caro $cargo_features
-        return 0
+    elif command_exists wget; then
+        if wget --timeout=10 --tries=1 -q --spider https://github.com 2>/dev/null; then
+            echo -e "${GREEN}✓ Network connection OK${NC}"
+            return 0
+        fi
     fi
 
-    # Fallback: Download pre-built binary from GitHub releases
-    local platform
-    platform=$(detect_platform)
+    echo -e "${RED}✗ Cannot reach GitHub${NC}"
+    echo -e "${YELLOW}Please check your internet connection and proxy settings:${NC}"
+    echo -e "  echo \$HTTP_PROXY"
+    echo -e "  echo \$HTTPS_PROXY"
+    echo -e "  ping github.com"
+    return 1
+}
 
-    echo -e "${YELLOW}Cargo not found. Downloading pre-built binary...${NC}"
+# Try to install via cargo with error handling
+try_cargo_install() {
+    if ! command_exists cargo; then
+        echo -e "${YELLOW}Cargo not found - skipping cargo installation${NC}"
+        return 1
+    fi
+
+    echo -e "${BLUE}Attempting installation via cargo...${NC}"
+
+    # Detect if on macOS with Apple Silicon for MLX optimization
+    local cargo_features=""
+    if [[ "$(uname -s)" == "Darwin" ]] && [[ "$(uname -m)" == "arm64" ]]; then
+        echo -e "${GREEN}Building with MLX optimization for Apple Silicon...${NC}"
+        cargo_features="--features embedded-mlx"
+    fi
+
+    # Capture both stdout and stderr
+    local install_output
+    local install_exit_code
+
+    install_output=$(cargo install caro $cargo_features 2>&1)
+    install_exit_code=$?
+
+    if [ $install_exit_code -eq 0 ]; then
+        echo -e "${GREEN}✓ Successfully installed via cargo${NC}"
+        return 0
+    else
+        echo -e "${RED}✗ Cargo installation failed${NC}"
+        echo -e "${YELLOW}Error output:${NC}"
+        echo "$install_output" | tail -10
+        echo ""
+        echo -e "${BLUE}Will try binary installation instead...${NC}"
+        return 1
+    fi
+}
+
+# Download file with retry logic
+download_with_retry() {
+    local url="$1"
+    local output_path="$2"
+    local max_retries=3
+    local retry_delay=2
+
+    for attempt in $(seq 1 $max_retries); do
+        echo -e "${BLUE}Download attempt $attempt/$max_retries...${NC}"
+
+        local download_success=false
+        if command_exists curl; then
+            if curl -fsSL "$url" -o "$output_path" 2>/dev/null; then
+                download_success=true
+            fi
+        elif command_exists wget; then
+            if wget -qO "$output_path" "$url" 2>/dev/null; then
+                download_success=true
+            fi
+        fi
+
+        if [ "$download_success" = true ]; then
+            echo -e "${GREEN}✓ Download successful${NC}"
+            return 0
+        fi
+
+        if [ $attempt -lt $max_retries ]; then
+            echo -e "${YELLOW}Download failed, retrying in ${retry_delay}s...${NC}"
+            sleep $retry_delay
+            retry_delay=$((retry_delay * 2))  # Exponential backoff
+        fi
+    done
+
+    echo -e "${RED}✗ Download failed after $max_retries attempts${NC}"
+    return 1
+}
+
+# Try to install pre-built binary with error handling
+try_binary_install() {
+    echo -e "${BLUE}Attempting installation via pre-built binary...${NC}"
+
+    # Check network connectivity first
+    if ! check_network_connectivity; then
+        return 1
+    fi
+
+    local platform
+    platform=$(detect_platform) || return 1
 
     # Try to get latest release tag from GitHub
     local latest_url="https://api.github.com/repos/${REPO}/releases/latest"
     local release_info
 
     if command_exists curl; then
-        release_info=$(curl -s "$latest_url")
+        release_info=$(curl -s "$latest_url" 2>/dev/null)
     elif command_exists wget; then
-        release_info=$(wget -qO- "$latest_url")
+        release_info=$(wget -qO- "$latest_url" 2>/dev/null)
     else
         echo -e "${RED}Error: Neither curl nor wget found. Please install one of them.${NC}"
-        exit 1
+        return 1
+    fi
+
+    if [ -z "$release_info" ]; then
+        echo -e "${RED}✗ Could not fetch release information from GitHub${NC}"
+        return 1
     fi
 
     # Extract tag name (version)
@@ -105,11 +196,11 @@ install_binary() {
     version=$(echo "$release_info" | grep '"tag_name":' | sed -E 's/.*"tag_name": "v?([^"]+)".*/\1/')
 
     if [ -z "$version" ]; then
-        echo -e "${RED}Error: Could not determine latest version.${NC}"
-        echo -e "${YELLOW}Please install Rust and cargo: https://rustup.rs/${NC}"
-        echo -e "${YELLOW}Then run: cargo install caro${NC}"
-        exit 1
+        echo -e "${RED}✗ Could not determine latest version${NC}"
+        return 1
     fi
+
+    echo -e "${BLUE}Latest version: v${version}${NC}"
 
     # Map platform to base asset name
     local base_asset_name
@@ -120,8 +211,8 @@ install_binary() {
         macos-arm64)    base_asset_name="macos-silicon" ;;
         windows-amd64)  base_asset_name="windows-amd64.exe" ;;
         *)
-            echo -e "${RED}Unsupported platform: $platform${NC}"
-            exit 1
+            echo -e "${RED}✗ Unsupported platform: $platform${NC}"
+            return 1
             ;;
     esac
 
@@ -134,60 +225,43 @@ install_binary() {
 
     echo -e "${BLUE}Downloading caro v${version} for ${platform}...${NC}"
 
+    # Create temp file for download
+    local temp_binary
+    temp_binary=$(mktemp)
+
     # Try versioned name first, fall back to legacy name
-    local download_success=false
-    if command_exists curl; then
-        if curl -fsSL "$binary_url" -o "${INSTALL_DIR}/${BINARY_NAME}" 2>/dev/null; then
-            download_success=true
-        else
-            # Try legacy non-versioned name
-            asset_name="$legacy_asset_name"
-            binary_url="https://github.com/${REPO}/releases/download/v${version}/${legacy_asset_name}"
-            checksum_url="${binary_url}.sha256"
-            echo -e "${YELLOW}Versioned binary not found, trying legacy name...${NC}"
-            curl -fsSL "$binary_url" -o "${INSTALL_DIR}/${BINARY_NAME}" && download_success=true
-        fi
-    elif command_exists wget; then
-        if wget -qO "${INSTALL_DIR}/${BINARY_NAME}" "$binary_url" 2>/dev/null; then
-            download_success=true
-        else
-            # Try legacy non-versioned name
-            asset_name="$legacy_asset_name"
-            binary_url="https://github.com/${REPO}/releases/download/v${version}/${legacy_asset_name}"
-            checksum_url="${binary_url}.sha256"
-            echo -e "${YELLOW}Versioned binary not found, trying legacy name...${NC}"
-            wget -qO "${INSTALL_DIR}/${BINARY_NAME}" "$binary_url" && download_success=true
+    if download_with_retry "$binary_url" "$temp_binary"; then
+        # Success with versioned name
+        true
+    else
+        echo -e "${YELLOW}Versioned binary not found, trying legacy name...${NC}"
+        asset_name="$legacy_asset_name"
+        binary_url="https://github.com/${REPO}/releases/download/v${version}/${legacy_asset_name}"
+        checksum_url="${binary_url}.sha256"
+
+        if ! download_with_retry "$binary_url" "$temp_binary"; then
+            rm -f "$temp_binary"
+            echo -e "${RED}✗ Could not download binary for your platform${NC}"
+            return 1
         fi
     fi
 
-    if [ "$download_success" = false ]; then
-        echo -e "${RED}Error: Failed to download binary${NC}"
-        exit 1
-    fi
-
-    # Make binary executable
+    # Move to final location
+    mv "$temp_binary" "${INSTALL_DIR}/${BINARY_NAME}"
     chmod +x "${INSTALL_DIR}/${BINARY_NAME}"
 
-    # Download and verify checksum
+    # Download and verify checksum (optional - don't fail if checksum unavailable)
     local checksum_file
     checksum_file=$(mktemp)
 
     if command_exists curl; then
-        curl -fsSL "$checksum_url" -o "$checksum_file" 2>/dev/null || {
-            echo -e "${YELLOW}Warning: Could not download checksum file${NC}"
-            rm -f "$checksum_file"
-            return 0
-        }
+        curl -fsSL "$checksum_url" -o "$checksum_file" 2>/dev/null || true
     elif command_exists wget; then
-        wget -qO "$checksum_file" "$checksum_url" 2>/dev/null || {
-            echo -e "${YELLOW}Warning: Could not download checksum file${NC}"
-            rm -f "$checksum_file"
-            return 0
-        }
+        wget -qO "$checksum_file" "$checksum_url" 2>/dev/null || true
     fi
 
     # Verify checksum if available
-    if [ -f "$checksum_file" ]; then
+    if [ -f "$checksum_file" ] && [ -s "$checksum_file" ]; then
         local expected_hash
         expected_hash=$(awk '{print $1}' "$checksum_file")
 
@@ -209,12 +283,10 @@ install_binary() {
             else
                 echo -e "${YELLOW}Warning: Checksum mismatch (expected: $expected_hash, got: $actual_hash)${NC}"
             fi
-        else
-            echo -e "${YELLOW}Warning: No checksum tool available (shasum or sha256sum)${NC}"
         fi
-
-        rm -f "$checksum_file"
     fi
+
+    rm -f "$checksum_file"
 
     echo -e "${GREEN}✓ Binary installed to ${INSTALL_DIR}/${BINARY_NAME}${NC}"
 
@@ -228,6 +300,63 @@ install_binary() {
 
     return 0
 }
+
+# Download and install binary with fallback chain
+install_binary() {
+    echo -e "${BLUE}Installing caro...${NC}"
+
+    # Fallback chain: cargo -> binary -> guided manual
+
+    # Try cargo installation if explicitly chosen or available
+    if [ "$INSTALL_METHOD" = "cargo" ] || { [ -z "$INSTALL_METHOD" ] && command_exists cargo; }; then
+        if try_cargo_install; then
+            return 0
+        fi
+        echo -e "${YELLOW}Cargo installation failed, falling back to binary...${NC}"
+        echo ""
+    fi
+
+    # Try binary installation
+    if try_binary_install; then
+        return 0
+    fi
+
+    # All methods failed - provide guided manual installation
+    echo ""
+    echo -e "${RED}═══════════════════════════════════════════════════════${NC}"
+    echo -e "${RED}     All automatic installation methods failed         ${NC}"
+    echo -e "${RED}═══════════════════════════════════════════════════════${NC}"
+    echo ""
+    echo -e "${BOLD}${YELLOW}Manual installation options:${NC}"
+    echo ""
+
+    echo -e "${CYAN}Option 1: Install Rust and use cargo${NC}"
+    echo -e "  1. Install Rust from: ${BOLD}https://rustup.rs${NC}"
+    echo -e "  2. Run: ${GREEN}cargo install caro${NC}"
+    echo ""
+
+    echo -e "${CYAN}Option 2: Download binary manually${NC}"
+    echo -e "  1. Visit: ${BOLD}https://github.com/${REPO}/releases/latest${NC}"
+    echo -e "  2. Download the binary for your platform"
+    echo -e "  3. Move it to ${INSTALL_DIR}"
+    echo -e "  4. Run: ${GREEN}chmod +x ${INSTALL_DIR}/caro${NC}"
+    echo ""
+
+    echo -e "${CYAN}Option 3: Check network connectivity${NC}"
+    echo -e "  ${YELLOW}Test your connection:${NC}"
+    echo -e "    ping github.com"
+    echo -e "    curl -I https://github.com"
+    echo -e "  ${YELLOW}Check proxy settings:${NC}"
+    echo -e "    echo \$HTTP_PROXY"
+    echo -e "    echo \$HTTPS_PROXY"
+    echo ""
+
+    echo -e "${BLUE}Need help? Visit: ${BOLD}https://github.com/${REPO}/issues${NC}"
+    echo ""
+
+    exit 1
+}
+
 
 # Note: No alias setup needed anymore since the binary is now named 'caro'
 # This function is kept for backward compatibility and information
