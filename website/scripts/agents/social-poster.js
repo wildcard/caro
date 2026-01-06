@@ -1,276 +1,254 @@
 /**
- * Social Media Poster Agent
+ * Social Content Generator
  *
- * Handles automated social media posting for generated content.
- * Supports Twitter/X and can be extended for other platforms.
+ * Generates and caches social media content for manual sharing.
+ * No automated posting - maintainers share via dashboard.
  */
 
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const SOCIAL_CACHE_PATH = join(__dirname, '../../src/data/social-queue.json');
+
 /**
- * Post content to social media
+ * Platform configurations
  */
-export async function postToSocial({ content, platforms, config }) {
-  const results = {
-    success: [],
-    errors: [],
+const PLATFORMS = {
+  twitter: {
+    name: 'Twitter / X',
+    maxLength: 280,
+    icon: 'twitter',
+    shareUrl: (text, url) =>
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+  },
+  mastodon: {
+    name: 'Mastodon',
+    maxLength: 500,
+    icon: 'mastodon',
+    shareUrl: (text) => `https://mastodon.social/share?text=${encodeURIComponent(text)}`,
+  },
+  linkedin: {
+    name: 'LinkedIn',
+    maxLength: 3000,
+    icon: 'linkedin',
+    shareUrl: (text, url) =>
+      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
+  },
+  bluesky: {
+    name: 'Bluesky',
+    maxLength: 300,
+    icon: 'bluesky',
+    shareUrl: (text) =>
+      `https://bsky.app/intent/compose?text=${encodeURIComponent(text)}`,
+  },
+  hackernews: {
+    name: 'Hacker News',
+    maxLength: null,
+    icon: 'hackernews',
+    shareUrl: (text, url) =>
+      `https://news.ycombinator.com/submitlink?u=${encodeURIComponent(url)}&t=${encodeURIComponent(text)}`,
+  },
+  reddit: {
+    name: 'Reddit',
+    maxLength: 300,
+    icon: 'reddit',
+    shareUrl: (text, url) =>
+      `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(text)}`,
+  },
+};
+
+/**
+ * Generate social content for all platforms and cache it
+ */
+export async function cacheSocialContent(content) {
+  const queue = loadSocialQueue();
+
+  const socialItem = {
+    id: generateId(),
+    createdAt: new Date().toISOString(),
+    contentType: content.contentType,
+    title: content.title,
+    slug: content.slug,
+    url: content.url || `https://caro.sh/learn/${content.contentType}s/${content.slug}`,
+    shared: {},
+    platforms: {},
   };
 
-  for (const platform of platforms) {
-    try {
-      const result = await postToPlatform(content, platform, config);
-      results.success.push({ platform, ...result });
-    } catch (error) {
-      results.errors.push({ platform, error: error.message });
-    }
+  // Generate text for each platform
+  for (const [platformId, platform] of Object.entries(PLATFORMS)) {
+    const text = generatePlatformText(content, platformId, platform.maxLength);
+    socialItem.platforms[platformId] = {
+      text,
+      length: text.length,
+      maxLength: platform.maxLength,
+      shareUrl: platform.shareUrl(text, socialItem.url),
+    };
   }
 
-  return results;
+  // Add to queue
+  queue.pending.unshift(socialItem);
+
+  // Keep queue manageable (max 50 pending items)
+  if (queue.pending.length > 50) {
+    queue.pending = queue.pending.slice(0, 50);
+  }
+
+  saveSocialQueue(queue);
+
+  return socialItem;
 }
 
 /**
- * Post to specific platform
+ * Generate platform-specific text
  */
-async function postToPlatform(content, platform, config) {
-  switch (platform) {
-    case 'twitter':
-      return await postToTwitter(content, config);
-    case 'mastodon':
-      return await postToMastodon(content, config);
-    case 'linkedin':
-      return await postToLinkedIn(content, config);
-    default:
-      throw new Error(`Unsupported platform: ${platform}`);
-  }
-}
+function generatePlatformText(content, platform, maxLength) {
+  const title = content.title;
+  const description = content.description || '';
+  const command = content.command;
+  const hashtags = content.hashtags || ['unix', 'cli', 'terminal', 'caro'];
 
-/**
- * Post to Twitter/X
- */
-async function postToTwitter(content, config) {
-  const { socialText, hashtags, url } = content;
-
-  // Build tweet text
-  let tweetText = socialText || content.title;
-
-  // Add hashtags if not already included
-  if (hashtags && !tweetText.includes('#')) {
-    const hashtagText = hashtags.map((h) => `#${h}`).join(' ');
-    if (tweetText.length + hashtagText.length + 1 <= 280) {
-      tweetText = `${tweetText}\n\n${hashtagText}`;
-    }
-  }
-
-  // Add URL if provided and space permits
-  if (url && tweetText.length + url.length + 1 <= 280) {
-    tweetText = `${tweetText}\n${url}`;
-  }
-
-  // Truncate if necessary
-  if (tweetText.length > 280) {
-    tweetText = tweetText.slice(0, 277) + '...';
-  }
-
-  // Check for Twitter API credentials
-  const apiKey = process.env.TWITTER_API_KEY;
-  const apiSecret = process.env.TWITTER_API_SECRET;
-  const accessToken = process.env.TWITTER_ACCESS_TOKEN;
-  const accessSecret = process.env.TWITTER_ACCESS_SECRET;
-
-  if (!apiKey || !apiSecret || !accessToken || !accessSecret) {
-    console.log('Twitter credentials not configured. Tweet preview:');
-    console.log('---');
-    console.log(tweetText);
-    console.log('---');
-    return { preview: true, text: tweetText, length: tweetText.length };
-  }
-
-  // Post using Twitter API v2
-  const response = await fetch('https://api.twitter.com/2/tweets', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ text: tweetText }),
-  });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Twitter API error: ${error}`);
-  }
-
-  const data = await response.json();
-  return {
-    posted: true,
-    tweetId: data.data?.id,
-    text: tweetText,
-    url: `https://twitter.com/i/status/${data.data?.id}`,
-  };
-}
-
-/**
- * Post to Mastodon
- */
-async function postToMastodon(content, config) {
-  const { socialText, hashtags, url } = content;
-
-  // Build toot text (500 char limit)
-  let tootText = socialText || content.title;
-
-  if (hashtags && !tootText.includes('#')) {
-    const hashtagText = hashtags.map((h) => `#${h}`).join(' ');
-    tootText = `${tootText}\n\n${hashtagText}`;
-  }
-
-  if (url) {
-    tootText = `${tootText}\n\n${url}`;
-  }
-
-  // Truncate if necessary
-  if (tootText.length > 500) {
-    tootText = tootText.slice(0, 497) + '...';
-  }
-
-  const instanceUrl = process.env.MASTODON_INSTANCE_URL;
-  const accessToken = process.env.MASTODON_ACCESS_TOKEN;
-
-  if (!instanceUrl || !accessToken) {
-    console.log('Mastodon credentials not configured. Toot preview:');
-    console.log('---');
-    console.log(tootText);
-    console.log('---');
-    return { preview: true, text: tootText, length: tootText.length };
-  }
-
-  const response = await fetch(`${instanceUrl}/api/v1/statuses`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ status: tootText }),
-  });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Mastodon API error: ${error}`);
-  }
-
-  const data = await response.json();
-  return {
-    posted: true,
-    statusId: data.id,
-    text: tootText,
-    url: data.url,
-  };
-}
-
-/**
- * Post to LinkedIn
- */
-async function postToLinkedIn(content, config) {
-  const { socialText, url } = content;
-
-  // Build LinkedIn post
-  let postText = socialText || content.title;
-
-  if (url) {
-    postText = `${postText}\n\n${url}`;
-  }
-
-  const accessToken = process.env.LINKEDIN_ACCESS_TOKEN;
-
-  if (!accessToken) {
-    console.log('LinkedIn credentials not configured. Post preview:');
-    console.log('---');
-    console.log(postText);
-    console.log('---');
-    return { preview: true, text: postText, length: postText.length };
-  }
-
-  // Note: LinkedIn API requires OAuth 2.0 and user/organization ID
-  // This is a placeholder for the actual implementation
-  throw new Error('LinkedIn posting not yet implemented');
-}
-
-/**
- * Generate social media text from content
- */
-export function generateSocialText(content, platform) {
-  const maxLength = {
-    twitter: 280,
-    mastodon: 500,
-    linkedin: 3000,
-  };
-
-  const limit = maxLength[platform] || 280;
-
-  // Extract key info
-  const title = content.title || content.brief?.title;
-  const description = content.description || content.brief?.description;
-  const command = content.command || content.brief?.command;
-  const hashtags = content.hashtags || content.brief?.hashtags || ['unix', 'cli', 'caro'];
-
-  // Build text based on content type
   let text = '';
 
+  // Build text based on content type
   if (command) {
-    text = `Today's Unix command: ${command}\n\n${description || title}`;
+    text = `🖥️ Unix command of the day: ${command}\n\n${description || title}`;
+  } else if (content.contentType === 'story') {
+    text = `📜 ${title}\n\n${description}`;
   } else {
-    text = title;
-    if (description && text.length + description.length < limit - 50) {
-      text = `${text}\n\n${description}`;
-    }
+    text = `💡 ${title}\n\n${description}`;
   }
 
-  // Add hashtags
-  const hashtagText = hashtags.slice(0, 5).map((h) => `#${h}`).join(' ');
-  if (text.length + hashtagText.length + 2 < limit) {
-    text = `${text}\n\n${hashtagText}`;
+  // Add hashtags for platforms that use them
+  if (platform === 'twitter' || platform === 'mastodon' || platform === 'bluesky') {
+    const hashtagText = hashtags
+      .slice(0, 4)
+      .map((h) => `#${h}`)
+      .join(' ');
+
+    if (!maxLength || text.length + hashtagText.length + 2 <= maxLength - 30) {
+      text = `${text}\n\n${hashtagText}`;
+    }
   }
 
   // Truncate if needed
-  if (text.length > limit) {
-    text = text.slice(0, limit - 3) + '...';
+  if (maxLength && text.length > maxLength - 25) {
+    // Leave room for URL
+    text = text.slice(0, maxLength - 28) + '...';
   }
 
   return text;
 }
 
 /**
- * Schedule post for later
+ * Mark content as shared on a platform
  */
-export async function schedulePost({ content, platform, scheduledTime, config }) {
-  // This would integrate with a scheduling service
-  // For now, return scheduled info for manual posting
+export function markAsShared(itemId, platform) {
+  const queue = loadSocialQueue();
+
+  const itemIndex = queue.pending.findIndex((item) => item.id === itemId);
+  if (itemIndex === -1) return false;
+
+  const item = queue.pending[itemIndex];
+  item.shared[platform] = new Date().toISOString();
+
+  // Check if shared on all major platforms
+  const majorPlatforms = ['twitter', 'linkedin'];
+  const allShared = majorPlatforms.every((p) => item.shared[p]);
+
+  if (allShared) {
+    // Move to completed
+    queue.pending.splice(itemIndex, 1);
+    queue.completed.unshift(item);
+
+    // Keep completed list manageable
+    if (queue.completed.length > 100) {
+      queue.completed = queue.completed.slice(0, 100);
+    }
+  }
+
+  saveSocialQueue(queue);
+  return true;
+}
+
+/**
+ * Get pending social content
+ */
+export function getPendingSocial() {
+  const queue = loadSocialQueue();
+  return queue.pending;
+}
+
+/**
+ * Get social queue stats
+ */
+export function getSocialStats() {
+  const queue = loadSocialQueue();
+
   return {
-    scheduled: true,
-    platform,
-    scheduledTime,
-    content: generateSocialText(content, platform),
+    pendingCount: queue.pending.length,
+    completedCount: queue.completed.length,
+    oldestPending: queue.pending.length > 0 ? queue.pending[queue.pending.length - 1].createdAt : null,
+    recentlyShared: queue.completed.slice(0, 5),
   };
 }
 
 /**
- * Get optimal posting times
+ * Load social queue from file
  */
-export function getOptimalPostingTime(platform, timezone = 'America/Los_Angeles') {
-  // Best times based on general social media research
-  const optimalTimes = {
-    twitter: { hour: 9, minute: 0 }, // 9 AM
-    mastodon: { hour: 10, minute: 0 }, // 10 AM
-    linkedin: { hour: 8, minute: 30 }, // 8:30 AM
-  };
-
-  const time = optimalTimes[platform] || { hour: 9, minute: 0 };
-
-  const now = new Date();
-  const scheduled = new Date(now);
-  scheduled.setHours(time.hour, time.minute, 0, 0);
-
-  // If time has passed today, schedule for tomorrow
-  if (scheduled < now) {
-    scheduled.setDate(scheduled.getDate() + 1);
+function loadSocialQueue() {
+  if (!existsSync(SOCIAL_CACHE_PATH)) {
+    return { pending: [], completed: [] };
   }
 
-  return scheduled;
+  try {
+    const data = readFileSync(SOCIAL_CACHE_PATH, 'utf-8');
+    return JSON.parse(data);
+  } catch {
+    return { pending: [], completed: [] };
+  }
 }
+
+/**
+ * Save social queue to file
+ */
+function saveSocialQueue(queue) {
+  const dir = dirname(SOCIAL_CACHE_PATH);
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true });
+  }
+  writeFileSync(SOCIAL_CACHE_PATH, JSON.stringify(queue, null, 2));
+}
+
+/**
+ * Generate unique ID
+ */
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+/**
+ * Get share URLs for an item
+ */
+export function getShareUrls(itemId) {
+  const queue = loadSocialQueue();
+  const item = queue.pending.find((i) => i.id === itemId);
+
+  if (!item) return null;
+
+  const urls = {};
+  for (const [platformId, platform] of Object.entries(PLATFORMS)) {
+    urls[platformId] = {
+      name: platform.name,
+      url: item.platforms[platformId].shareUrl,
+      text: item.platforms[platformId].text,
+    };
+  }
+
+  return urls;
+}
+
+export { PLATFORMS };

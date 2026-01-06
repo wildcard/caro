@@ -1,0 +1,454 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+// Load social queue data
+let socialQueue = { pending: [], completed: [] };
+try {
+  const data = await import('../data/social-queue.json');
+  socialQueue = data.default || data;
+} catch {
+  // No queue yet
+}
+
+const pending = socialQueue.pending || [];
+const completed = socialQueue.completed || [];
+
+// Platform info for display
+const platforms = {
+  twitter: { name: 'Twitter / X', icon: '𝕏', color: '#000' },
+  mastodon: { name: 'Mastodon', icon: '🐘', color: '#6364FF' },
+  linkedin: { name: 'LinkedIn', icon: '💼', color: '#0077B5' },
+  bluesky: { name: 'Bluesky', icon: '🦋', color: '#1DA1F2' },
+  hackernews: { name: 'Hacker News', icon: '🟧', color: '#FF6600' },
+  reddit: { name: 'Reddit', icon: '🤖', color: '#FF4500' },
+};
+---
+
+<Layout title="Social Media Dashboard - Caro">
+  <main class="dashboard">
+    <header class="header">
+      <h1>Social Media Dashboard</h1>
+      <p class="subtitle">Share Caro Learn content across social platforms</p>
+    </header>
+
+    <section class="stats">
+      <div class="stat-card">
+        <span class="stat-value">{pending.length}</span>
+        <span class="stat-label">Pending</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">{completed.length}</span>
+        <span class="stat-label">Shared</span>
+      </div>
+    </section>
+
+    {pending.length === 0 ? (
+      <section class="empty-state">
+        <p>No content pending to share.</p>
+        <p class="hint">New content will appear here after generation.</p>
+      </section>
+    ) : (
+      <section class="queue">
+        <h2>Ready to Share</h2>
+        {pending.map((item) => (
+          <article class="content-card">
+            <header class="content-header">
+              <span class={`content-type type-${item.contentType}`}>
+                {item.contentType}
+              </span>
+              <h3>{item.title}</h3>
+              <time datetime={item.createdAt}>
+                {new Date(item.createdAt).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric'
+                })}
+              </time>
+            </header>
+
+            <div class="content-url">
+              <a href={item.url} target="_blank" rel="noopener">{item.url}</a>
+            </div>
+
+            <div class="platforms">
+              {Object.entries(item.platforms || {}).map(([platformId, platform]) => {
+                const info = platforms[platformId];
+                const isShared = item.shared?.[platformId];
+                return (
+                  <div class={`platform-row ${isShared ? 'shared' : ''}`}>
+                    <div class="platform-info">
+                      <span class="platform-icon" style={`color: ${info?.color}`}>
+                        {info?.icon}
+                      </span>
+                      <span class="platform-name">{info?.name}</span>
+                      {isShared && <span class="shared-badge">Shared</span>}
+                    </div>
+
+                    <div class="platform-text">
+                      <textarea readonly rows="3">{platform.text}</textarea>
+                      <span class="char-count">
+                        {platform.length}/{platform.maxLength || '∞'}
+                      </span>
+                    </div>
+
+                    <div class="platform-actions">
+                      <button
+                        class="copy-btn"
+                        data-text={platform.text}
+                        title="Copy text"
+                      >
+                        Copy
+                      </button>
+                      <a
+                        href={platform.shareUrl}
+                        target="_blank"
+                        rel="noopener"
+                        class="share-btn"
+                        style={`background: ${info?.color}`}
+                      >
+                        Share
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </article>
+        ))}
+      </section>
+    )}
+
+    {completed.length > 0 && (
+      <section class="completed">
+        <h2>Recently Shared</h2>
+        <ul class="completed-list">
+          {completed.slice(0, 10).map((item) => (
+            <li class="completed-item">
+              <span class="completed-title">{item.title}</span>
+              <span class="completed-platforms">
+                {Object.keys(item.shared || {}).map((p) => (
+                  <span class="platform-badge" title={platforms[p]?.name}>
+                    {platforms[p]?.icon}
+                  </span>
+                ))}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+  </main>
+</Layout>
+
+<script>
+  // Copy button functionality
+  document.querySelectorAll('.copy-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const text = btn.dataset.text;
+      try {
+        await navigator.clipboard.writeText(text);
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.classList.remove('copied');
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
+    });
+  });
+</script>
+
+<style>
+  .dashboard {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .header h1 {
+    font-size: 2.5rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+  }
+
+  .subtitle {
+    color: #7f8c8d;
+    font-size: 1.1rem;
+  }
+
+  .stats {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: linear-gradient(135deg, #ff8c42, #ff6b35);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 0.75rem;
+    text-align: center;
+    min-width: 120px;
+  }
+
+  .stat-value {
+    display: block;
+    font-size: 2.5rem;
+    font-weight: 700;
+  }
+
+  .stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    background: #f8f9fa;
+    border-radius: 1rem;
+    color: #7f8c8d;
+  }
+
+  .empty-state p {
+    margin: 0.5rem 0;
+  }
+
+  .hint {
+    font-size: 0.9rem;
+  }
+
+  .queue h2,
+  .completed h2 {
+    font-size: 1.5rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+  }
+
+  .content-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .content-header {
+    margin-bottom: 1rem;
+  }
+
+  .content-type {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .type-command {
+    background: #e8f5e9;
+    color: #27ae60;
+  }
+
+  .type-story {
+    background: #e3f2fd;
+    color: #1976d2;
+  }
+
+  .type-daily-pick {
+    background: #fff3e0;
+    color: #ff6b35;
+  }
+
+  .content-header h3 {
+    margin: 0.5rem 0;
+    color: #2c3e50;
+    font-size: 1.3rem;
+  }
+
+  .content-header time {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+  }
+
+  .content-url {
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+  }
+
+  .content-url a {
+    color: #ff6b35;
+    word-break: break-all;
+  }
+
+  .platforms {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .platform-row {
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    border-left: 3px solid transparent;
+  }
+
+  .platform-row.shared {
+    border-left-color: #27ae60;
+    opacity: 0.7;
+  }
+
+  .platform-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .platform-icon {
+    font-size: 1.5rem;
+  }
+
+  .platform-name {
+    font-weight: 600;
+    color: #2c3e50;
+  }
+
+  .shared-badge {
+    background: #27ae60;
+    color: white;
+    padding: 0.2rem 0.5rem;
+    border-radius: 1rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+
+  .platform-text {
+    position: relative;
+    margin-bottom: 0.75rem;
+  }
+
+  .platform-text textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 0.5rem;
+    font-family: inherit;
+    font-size: 0.9rem;
+    resize: none;
+    background: white;
+  }
+
+  .char-count {
+    position: absolute;
+    bottom: 0.5rem;
+    right: 0.75rem;
+    font-size: 0.75rem;
+    color: #7f8c8d;
+  }
+
+  .platform-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .copy-btn,
+  .share-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.2s;
+  }
+
+  .copy-btn {
+    background: white;
+    border: 1px solid #e0e0e0;
+    color: #2c3e50;
+  }
+
+  .copy-btn:hover {
+    background: #f8f9fa;
+  }
+
+  .copy-btn.copied {
+    background: #27ae60;
+    color: white;
+    border-color: #27ae60;
+  }
+
+  .share-btn {
+    color: white;
+    border: none;
+  }
+
+  .share-btn:hover {
+    transform: scale(1.05);
+  }
+
+  .completed {
+    margin-top: 3rem;
+  }
+
+  .completed-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .completed-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .completed-title {
+    color: #2c3e50;
+  }
+
+  .completed-platforms {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .platform-badge {
+    font-size: 1rem;
+  }
+
+  @media (max-width: 600px) {
+    .dashboard {
+      padding: 1rem;
+    }
+
+    .header h1 {
+      font-size: 1.8rem;
+    }
+
+    .stats {
+      flex-direction: column;
+    }
+
+    .platform-actions {
+      flex-direction: column;
+    }
+  }
+</style>

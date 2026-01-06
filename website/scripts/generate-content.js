@@ -29,6 +29,7 @@ const __dirname = dirname(__filename);
 import { planContent } from './agents/content-planner.js';
 import { writeContent } from './agents/content-writer.js';
 import { validateContent } from './agents/qa-validator.js';
+import { cacheSocialContent } from './agents/social-poster.js';
 import { loadConfig, getContentQuota, determineContentType } from './lib/config.js';
 import { createBranch, commitChanges, getExistingContent } from './lib/git-utils.js';
 import { generateReport } from './lib/reporter.js';
@@ -174,6 +175,20 @@ async function main() {
           filename,
           filepath,
         });
+      }
+
+      // Cache social content for dashboard
+      console.log(`\n📱 Caching social content...`);
+      for (const item of generatedContent) {
+        await cacheSocialContent({
+          contentType,
+          title: item.brief.title,
+          description: item.brief.description,
+          command: item.brief.command,
+          slug: item.content.filename.replace(/\.mdx?$/, ''),
+          hashtags: item.brief.hashtags || ['unix', 'cli', 'terminal', 'caro'],
+        });
+        console.log(`   Cached: ${item.brief.title}`);
       }
 
       // Commit changes
