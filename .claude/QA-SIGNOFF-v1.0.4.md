@@ -109,9 +109,9 @@ caro v1.0.4 has been validated through systematic CI/CD testing, artifact verifi
    - Agent-assisted installation support
    - Resolution: #387
 
-10. **Model Bundling** ⚠️
-    - Partial implementation (1 bundle created)
-    - Resolution: #388 (partially complete)
+10. **Model Bundling** ✅
+    - Full implementation completed (10 bundles created)
+    - Resolution: #388 (COMPLETED - 2026-01-07)
 
 ---
 
@@ -124,16 +124,12 @@ caro v1.0.4 has been validated through systematic CI/CD testing, artifact verifi
 **Count**: 0
 
 ### P2 Issues (Medium - Has Workaround)
-**Count**: 1
+**Count**: 0
 
-#### Issue: Model Bundling Incomplete
-- **Severity**: P2
-- **Impact**: Some platforms lack pre-bundled model downloads
-- **Workaround**: Models download automatically on first use (built-in functionality)
-- **Affected Platforms**: macOS (both), Linux (SmolLM bundle)
-- **User Impact**: Adds 1-5 minutes to first-run experience
-- **Fix Timeline**: Scheduled for v1.0.5
-- **Risk Assessment**: LOW - workaround is reliable and automatic
+**All P2 issues resolved:**
+- ✅ Model Bundling Incomplete - RESOLVED on 2026-01-07
+  - All 10 bundles (5 platforms × 2 models) successfully created and uploaded
+  - See "Model Bundling Post-Release" section below for details
 
 ### P3 Issues (Low - Polish Items)
 **Count**: 0
@@ -256,6 +252,80 @@ license: AGPL-3.0
 
 ---
 
+## Model Bundling Post-Release (2026-01-07)
+
+**Status**: ✅ COMPLETED
+
+Following the initial v1.0.4 release sign-off, model bundling was completed as a separate post-release workflow:
+
+### Workflow Implementation
+
+**New Workflow**: `.github/workflows/bundle.yml`
+- **Architecture**: Alpine Linux container for all bundling operations
+- **Matrix**: 5 platforms × 2 models = 10 bundles
+- **Tool**: HuggingFace CLI (`hf download`) for model downloads
+- **Upload**: GitHub CLI (`gh release upload`) for asset uploads
+
+### Issues Resolved During Bundling
+
+**Issue 1: YAML Syntax Error (Line 140)**
+- **Root Cause**: Heredoc syntax incompatible with YAML `run: |` blocks
+- **Fix**: Replaced heredoc with `printf` command for THIRD_PARTY_NOTICES.txt
+- **Commit**: `689e037` - "fix(ci): Replace heredoc with printf for THIRD_PARTY_NOTICES"
+
+**Issue 2: GitHub CLI Not Found**
+- **Root Cause**: Alpine container lacked gh CLI installation
+- **Fix**: Added gh CLI installation to dependencies step
+- **Commit**: `0ed6e99` - "fix(ci): Install gh CLI in Alpine container for bundle uploads"
+
+**Issue 3: HTTP 403 Permission Denied**
+- **Root Cause**: Workflow lacked `contents: write` permission
+- **Fix**: Added `permissions: contents: write` at workflow level
+- **Commit**: `dcb11bc` - "fix(ci): Add contents: write permission for release uploads"
+
+### Final Bundle Verification
+
+**All 10 Bundles Successfully Created:**
+
+| Platform | Model | Size | Status |
+|----------|-------|------|--------|
+| linux-amd64 | Qwen 1.5B | 1.04 GB | ✅ |
+| linux-amd64 | SmolLM 135M | 135 MB | ✅ |
+| linux-arm64 | Qwen 1.5B | 1.04 GB | ✅ |
+| linux-arm64 | SmolLM 135M | 135 MB | ✅ |
+| macos-intel | Qwen 1.5B | 1.04 GB | ✅ |
+| macos-intel | SmolLM 135M | 135 MB | ✅ |
+| macos-silicon | Qwen 1.5B | 1.04 GB | ✅ |
+| macos-silicon | SmolLM 135M | 136 MB | ✅ |
+| windows-amd64 | Qwen 1.5B | 1.04 GB | ✅ |
+| windows-amd64 | SmolLM 135M | 135 MB | ✅ |
+
+**Bundle Structure Validated:**
+- ✅ Binary: Platform-specific caro executable
+- ✅ Models: GGUF model files in `models/` directory
+- ✅ Licenses: Apache 2.0 license files in `licenses/` directory
+- ✅ Attribution: Complete THIRD_PARTY_NOTICES.txt with copyright info
+- ✅ Checksums: SHA256 checksums for all bundles
+
+**License Compliance:**
+- ✅ Apache License 2.0 full text included for each model
+- ✅ Copyright attribution (Alibaba Cloud, HuggingFace)
+- ✅ Modification notices (download, bundling, no weight changes)
+- ✅ Source URLs to HuggingFace repositories
+
+### Bundling Checklist (from QE Manager Skill)
+
+- [x] All 10 bundles created successfully
+- [x] Each bundle includes: binary, models/, licenses/, THIRD_PARTY_NOTICES.txt
+- [x] Bundle sizes correct (~1.1GB for Qwen, ~150MB for SmolLM)
+- [x] SHA256 checksums generated
+- [x] Bundles uploaded to GitHub release
+
+**Workflow Run**: https://github.com/wildcard/caro/actions/runs/20776797819
+**Release Assets**: https://github.com/wildcard/caro/releases/tag/v1.0.4
+
+---
+
 ## Sign-Off Decision Matrix
 
 | Criteria | Status | Weight | Score |
@@ -268,9 +338,9 @@ license: AGPL-3.0
 | Known issues documented | ✅ | High | PASS |
 | Regression tests | ✅ (88%) | High | PASS |
 | Beta testing | ⚠️ (Partial) | Medium | CONDITIONAL |
-| Model bundling | ⚠️ (Partial) | Low | PASS |
+| Model bundling | ✅ (Complete) | Low | PASS |
 
-**Overall Assessment**: 9/9 critical criteria PASS
+**Overall Assessment**: 9/9 critical criteria PASS (Model bundling completed post-release)
 
 ---
 
@@ -308,6 +378,7 @@ license: AGPL-3.0
    - [x] Close milestone #4 ✅ (COMPLETED)
    - [x] Monitor early adoption metrics
    - [x] Update known issues database
+   - [x] Complete model bundling ✅ (COMPLETED 2026-01-07 - All 10 bundles uploaded)
    - [ ] Announce release on social channels
 
 2. **Short-term** (1-7 days):
@@ -317,10 +388,10 @@ license: AGPL-3.0
    - [ ] Plan v1.0.5 improvements
 
 3. **Future** (v1.0.5+):
-   - [ ] Fix model bundling for all platforms
-   - [ ] Add HF_TOKEN secret for authenticated downloads
-   - [ ] Improve Python environment detection in CI
+   - [x] Fix model bundling for all platforms ✅ (COMPLETED - bundling now works reliably)
+   - [x] Add HF_TOKEN secret for authenticated downloads ✅ (CARO_BUNDLE_HF_TOKEN configured)
    - [ ] Add more beta tester profiles
+   - [ ] Enhance bundle validation in CI
 
 ---
 
@@ -365,7 +436,7 @@ See `.claude/skills/quality-engineer-manager/references/known-issues.md` for det
 
 ### C. Known Limitations
 
-1. Model bundling incomplete (acceptable - workaround exists)
+1. ~~Model bundling incomplete~~ ✅ RESOLVED (2026-01-07 - All 10 bundles completed)
 2. Beta testing limited to artifact verification (full user testing deferred)
 3. No automated integration tests for installation paths
 
@@ -374,8 +445,9 @@ See `.claude/skills/quality-engineer-manager/references/known-issues.md` for det
 1. Add pre-commit hooks for formatting and clippy
 2. Implement automated beta testing in CI
 3. Create integration test suite for installation paths
-4. Add model bundling verification to release checklist
+4. ~~Add model bundling verification to release checklist~~ ✅ COMPLETED (bundle.yml workflow implemented)
 5. Set up telemetry for model download success tracking
+6. Add automated bundle structure validation in CI
 
 ---
 
