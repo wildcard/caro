@@ -248,7 +248,10 @@ Working Directory: {}
         section.push_str(&format!("GREP_R={}\n", self.profile.grep_r));
         section.push_str(&format!("GREP_P={}\n", self.profile.grep_p));
         section.push_str(&format!("STAT_FORMAT={}\n", self.profile.stat_format));
-        section.push_str(&format!("SED_INPLACE_GNU={}\n", self.profile.sed_inplace_gnu));
+        section.push_str(&format!(
+            "SED_INPLACE_GNU={}\n",
+            self.profile.sed_inplace_gnu
+        ));
         section.push_str(&format!("DU_MAX_DEPTH={}\n", self.profile.du_max_depth));
         section.push_str(&format!("DATE_GNU={}\n", self.profile.date_gnu_format));
         section.push_str(&format!("PS_SORT={}\n", self.profile.ps_sort));
@@ -445,10 +448,19 @@ Working Directory: {}
     fn gnu_examples(&self) -> Vec<(&'static str, &'static str)> {
         vec![
             ("list all files", "ls -a"),
-            ("list files larger than 100MB", "find . -type f -size +100M -print"),
-            ("20 most recently modified files", "find . -type f -printf '%T@ %p\\n' | sort -nr | head -n 20 | cut -d' ' -f2-"),
+            (
+                "list files larger than 100MB",
+                "find . -type f -size +100M -print",
+            ),
+            (
+                "20 most recently modified files",
+                "find . -type f -printf '%T@ %p\\n' | sort -nr | head -n 20 | cut -d' ' -f2-",
+            ),
             ("find files containing TODO", "grep -R -n 'TODO' ."),
-            ("count lines of code in python files", "find . -name '*.py' -type f | xargs wc -l"),
+            (
+                "count lines of code in python files",
+                "find . -name '*.py' -type f | xargs wc -l",
+            ),
             ("disk usage by directory", "du -h --max-depth=1 | sort -hr"),
         ]
     }
@@ -524,10 +536,7 @@ ERROR: {}
 <|im_end|>
 <|im_start|>assistant
 "#,
-            self.profile.profile_type,
-            self.original_query,
-            self.failed_command,
-            self.error_message
+            self.profile.profile_type, self.original_query, self.failed_command, self.error_message
         )
     }
 }
@@ -652,7 +661,8 @@ mod tests {
         }
 
         // JSON with extra content
-        let response = PromptResponse::parse(r#"Here's the command: {"cmd": "find . -name '*.txt'"}"#);
+        let response =
+            PromptResponse::parse(r#"Here's the command: {"cmd": "find . -name '*.txt'"}"#);
         match response {
             PromptResponse::Command(cmd) => assert_eq!(cmd.cmd, "find . -name '*.txt'"),
             _ => panic!("Expected Command"),

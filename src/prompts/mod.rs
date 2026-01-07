@@ -86,13 +86,9 @@ mod smollm_prompt;
 mod validation;
 
 // Re-export main types for convenient access
-pub use capability_profile::{
-    AwkType, CapabilityProfile, DetectedShell, ProfileType, StatFormat,
-};
+pub use capability_profile::{AwkType, CapabilityProfile, DetectedShell, ProfileType, StatFormat};
 pub use command_templates::{CommandTemplate, TemplateLibrary};
-pub use smollm_prompt::{
-    CommandOutput, PromptResponse, RepairPromptBuilder, SmolLMPromptBuilder,
-};
+pub use smollm_prompt::{CommandOutput, PromptResponse, RepairPromptBuilder, SmolLMPromptBuilder};
 pub use validation::{
     CommandValidator, RiskLevel, ValidationError, ValidationErrorCode, ValidationResult,
     ValidationWarning,

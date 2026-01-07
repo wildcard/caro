@@ -132,9 +132,9 @@ impl TemplateLibrary {
     /// Find template matching an intent pattern
     pub fn find_template(&self, intent: &str) -> Option<&CommandTemplate> {
         let intent_lower = intent.to_lowercase();
-        self.templates.iter().find(|t| {
-            intent_lower.contains(&t.intent_pattern.to_lowercase())
-        })
+        self.templates
+            .iter()
+            .find(|t| intent_lower.contains(&t.intent_pattern.to_lowercase()))
     }
 
     fn template_compatible(template: &CommandTemplate, profile: &CapabilityProfile) -> bool {
@@ -274,19 +274,9 @@ impl TemplateLibrary {
                 "du -sh .",
                 "Show disk usage of current directory",
             ),
-            CommandTemplate::new(
-                "disk",
-                "disk free space",
-                "df -h",
-                "Show disk free space",
-            ),
+            CommandTemplate::new("disk", "disk free space", "df -h", "Show disk free space"),
             // Process
-            CommandTemplate::new(
-                "process",
-                "list processes",
-                "ps aux",
-                "List all processes",
-            ),
+            CommandTemplate::new("process", "list processes", "ps aux", "List all processes"),
             CommandTemplate::new(
                 "process",
                 "find process by name",
@@ -332,12 +322,7 @@ impl TemplateLibrary {
                 "curl -O {url}",
                 "Download file from URL",
             ),
-            CommandTemplate::new(
-                "network",
-                "fetch url",
-                "curl -s {url}",
-                "Fetch URL content",
-            ),
+            CommandTemplate::new("network", "fetch url", "curl -s {url}", "Fetch URL content"),
             // Permissions (destructive)
             CommandTemplate::new(
                 "permissions",
@@ -660,12 +645,7 @@ impl TemplateLibrary {
     /// POSIX-compliant templates for unknown environments
     fn posix_templates() -> Vec<CommandTemplate> {
         vec![
-            CommandTemplate::new(
-                "listing",
-                "list files",
-                "ls -la",
-                "List files",
-            ),
+            CommandTemplate::new("listing", "list files", "ls -la", "List files"),
             CommandTemplate::new(
                 "filtering",
                 "find files",
@@ -678,18 +658,8 @@ impl TemplateLibrary {
                 "grep '{pattern}' {file}",
                 "Search for pattern",
             ),
-            CommandTemplate::new(
-                "counting",
-                "count lines",
-                "wc -l {file}",
-                "Count lines",
-            ),
-            CommandTemplate::new(
-                "disk",
-                "disk usage",
-                "du -s",
-                "Show disk usage",
-            ),
+            CommandTemplate::new("counting", "count lines", "wc -l {file}", "Count lines"),
+            CommandTemplate::new("disk", "disk usage", "du -s", "Show disk usage"),
         ]
     }
 }
@@ -706,7 +676,9 @@ mod tests {
         // Should have find_printf templates
         let ranking = library.templates_for_category("ranking");
         assert!(!ranking.is_empty());
-        assert!(ranking.iter().any(|t| t.command_template.contains("-printf")));
+        assert!(ranking
+            .iter()
+            .any(|t| t.command_template.contains("-printf")));
     }
 
     #[test]
@@ -717,7 +689,9 @@ mod tests {
         // Should NOT have find_printf templates
         let ranking = library.templates_for_category("ranking");
         assert!(!ranking.is_empty());
-        assert!(ranking.iter().all(|t| !t.command_template.contains("-printf")));
+        assert!(ranking
+            .iter()
+            .all(|t| !t.command_template.contains("-printf")));
     }
 
     #[test]
@@ -731,7 +705,9 @@ mod tests {
         let ranking = library.templates_for_category("ranking");
         for template in ranking {
             assert!(
-                !template.required_features.contains(&"find_printf".to_string()),
+                !template
+                    .required_features
+                    .contains(&"find_printf".to_string()),
                 "Should not include find_printf template"
             );
         }

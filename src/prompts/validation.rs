@@ -597,11 +597,10 @@ impl CommandValidator {
     fn default_tool_allowlist() -> HashSet<String> {
         [
             "ls", "find", "grep", "awk", "sed", "sort", "head", "tail", "xargs", "cat", "wc",
-            "cut", "tr", "uniq", "tee", "diff", "stat", "du", "df", "file", "readlink",
-            "basename", "dirname", "realpath", "date", "ps", "lsof", "netstat", "ss",
-            "tar", "gzip", "gunzip", "bzip2", "curl", "wget", "nc", "jq", "yq",
-            "echo", "printf", "test", "true", "false", "pwd", "env", "which",
-            "mkdir", "touch", "cp", "mv", "rm", "chmod", "chown", "ln",
+            "cut", "tr", "uniq", "tee", "diff", "stat", "du", "df", "file", "readlink", "basename",
+            "dirname", "realpath", "date", "ps", "lsof", "netstat", "ss", "tar", "gzip", "gunzip",
+            "bzip2", "curl", "wget", "nc", "jq", "yq", "echo", "printf", "test", "true", "false",
+            "pwd", "env", "which", "mkdir", "touch", "cp", "mv", "rm", "chmod", "chown", "ln",
             "sh", "bash", "zsh",
         ]
         .into_iter()
@@ -828,7 +827,10 @@ mod tests {
         // find -printf not available on BSD
         let result = validator.validate("find . -printf '%s %p\\n'");
         assert!(!result.is_valid());
-        assert!(result.errors.iter().any(|e| e.code == ValidationErrorCode::FlagNotSupported));
+        assert!(result
+            .errors
+            .iter()
+            .any(|e| e.code == ValidationErrorCode::FlagNotSupported));
     }
 
     #[test]
@@ -848,15 +850,17 @@ mod tests {
     #[test]
     fn test_tool_allowlist() {
         let profile = CapabilityProfile::ubuntu();
-        let validator = CommandValidator::new(profile)
-            .with_tools(["ls", "cat"]);
+        let validator = CommandValidator::new(profile).with_tools(["ls", "cat"]);
 
         let result = validator.validate("ls -la");
         assert!(result.is_valid());
 
         let result = validator.validate("find . -type f");
         assert!(!result.is_valid());
-        assert!(result.errors.iter().any(|e| e.code == ValidationErrorCode::ToolNotAllowed));
+        assert!(result
+            .errors
+            .iter()
+            .any(|e| e.code == ValidationErrorCode::ToolNotAllowed));
     }
 
     #[test]
@@ -867,7 +871,10 @@ mod tests {
         // This looks like command output, not a command
         let result = validator.validate("total 12\ndrwxr-xr-x 2 user user 4096 Jan 1 12:00 .");
         assert!(!result.is_valid());
-        assert!(result.errors.iter().any(|e| e.code == ValidationErrorCode::OutputHallucination));
+        assert!(result
+            .errors
+            .iter()
+            .any(|e| e.code == ValidationErrorCode::OutputHallucination));
     }
 
     #[test]
@@ -896,7 +903,10 @@ mod tests {
         // rm should be allowed when destructive is enabled
         let result = validator.validate("rm file.txt");
         // Risk level should still be High, but no dangerous pattern error
-        assert!(result.errors.iter().all(|e| e.code != ValidationErrorCode::DangerousCommand));
+        assert!(result
+            .errors
+            .iter()
+            .all(|e| e.code != ValidationErrorCode::DangerousCommand));
     }
 
     #[test]
@@ -905,7 +915,13 @@ mod tests {
         let validator = CommandValidator::new(profile).allow_destructive(true);
 
         assert_eq!(validator.validate("ls -la").risk_level, RiskLevel::Safe);
-        assert_eq!(validator.validate("chmod 644 file.txt").risk_level, RiskLevel::Moderate);
-        assert_eq!(validator.validate("rm file.txt").risk_level, RiskLevel::High);
+        assert_eq!(
+            validator.validate("chmod 644 file.txt").risk_level,
+            RiskLevel::Moderate
+        );
+        assert_eq!(
+            validator.validate("rm file.txt").risk_level,
+            RiskLevel::High
+        );
     }
 }

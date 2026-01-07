@@ -118,7 +118,6 @@ pub struct CapabilityProfile {
     pub tools: Vec<String>,
 
     // Feature flags - these determine which command patterns can be used
-
     /// Whether `find -printf` is supported (GNU findutils)
     pub find_printf: bool,
 
@@ -325,10 +324,13 @@ impl CapabilityProfile {
         profile.shell_sh = "/bin/dash".to_string();
         profile.awk_type = AwkType::Mawk; // Ubuntu uses mawk by default
         profile.tools = vec![
-            "ls", "find", "grep", "awk", "sed", "sort", "head", "tail",
-            "xargs", "stat", "du", "wc", "cat", "tar", "gzip", "curl",
-            "cut", "tr", "uniq", "tee", "diff", "patch", "chmod", "chown",
-        ].into_iter().map(String::from).collect();
+            "ls", "find", "grep", "awk", "sed", "sort", "head", "tail", "xargs", "stat", "du",
+            "wc", "cat", "tar", "gzip", "curl", "cut", "tr", "uniq", "tee", "diff", "patch",
+            "chmod", "chown",
+        ]
+        .into_iter()
+        .map(String::from)
+        .collect();
         profile
     }
 
@@ -405,12 +407,11 @@ impl CapabilityProfile {
 
     async fn detect_tools(&mut self) {
         let tool_candidates = [
-            "ls", "find", "grep", "awk", "sed", "sort", "head", "tail",
-            "xargs", "stat", "du", "wc", "cat", "tar", "gzip", "curl",
-            "cut", "tr", "uniq", "tee", "diff", "patch", "chmod", "chown",
-            "mkdir", "rm", "cp", "mv", "touch", "file", "readlink", "basename",
-            "dirname", "realpath", "date", "df", "ps", "kill", "top",
-            "wget", "jq", "yq", "nc", "netstat", "ss", "lsof",
+            "ls", "find", "grep", "awk", "sed", "sort", "head", "tail", "xargs", "stat", "du",
+            "wc", "cat", "tar", "gzip", "curl", "cut", "tr", "uniq", "tee", "diff", "patch",
+            "chmod", "chown", "mkdir", "rm", "cp", "mv", "touch", "file", "readlink", "basename",
+            "dirname", "realpath", "date", "df", "ps", "kill", "top", "wget", "jq", "yq", "nc",
+            "netstat", "ss", "lsof",
         ];
 
         let mut tools = Vec::new();
@@ -632,11 +633,7 @@ async fn run_command(cmd: &str, args: &[&str]) -> Result<String, String> {
         tokio::task::spawn_blocking({
             let cmd = cmd.to_string();
             let args: Vec<String> = args.iter().map(|s| s.to_string()).collect();
-            move || {
-                Command::new(&cmd)
-                    .args(&args)
-                    .output()
-            }
+            move || Command::new(&cmd).args(&args).output()
         })
         .await
     })
