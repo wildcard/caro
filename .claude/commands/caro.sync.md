@@ -20,6 +20,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 |---------|--------|
 | `/caro.sync` | Show available sync modules and status |
 | `/caro.sync roadmap` | Sync roadmap across ROADMAP.md, website, and GitHub |
+| `/caro.sync installation` | Sync installation instructions across all docs |
 | `/caro.sync docs` | Sync documentation (future) |
 | `/caro.sync instructions` | Sync user instructions (future) |
 | `/caro.sync --check <module>` | Check for drift without making changes |
@@ -30,6 +31,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 `/caro.sync` keeps related content synchronized across different parts of the codebase:
 - **Roadmap sync**: ROADMAP.md ↔ website/roadmap.astro ↔ GitHub milestones/issues
+- **Installation sync**: README.md ↔ package READMEs ↔ website ↔ skill docs (version, curl commands, script URLs)
 - **Docs sync** (future): Website docs ↔ README.md ↔ CLAUDE.md ↔ inline docs
 - **Instructions sync** (future): CLAUDE.md ↔ README.md ↔ CONTRIBUTING.md ↔ website
 
@@ -67,9 +69,11 @@ Parse `$ARGUMENTS` to determine the operation mode:
 ARGUMENTS patterns:
 - Empty/whitespace only → STATUS_MODE (show available modules)
 - "roadmap" (case-insensitive) → ROADMAP_SYNC (sync roadmap)
+- "installation" (case-insensitive) → INSTALLATION_SYNC (sync installation docs)
 - "docs" → DOCS_SYNC (future - show placeholder)
 - "instructions" → INSTRUCTIONS_SYNC (future - show placeholder)
 - "--check roadmap" → CHECK_MODE (drift detection only)
+- "--check installation" → CHECK_MODE (drift detection for installation)
 - "--check docs" → CHECK_MODE (future)
 - "--check instructions" → CHECK_MODE (future)
 ```
@@ -92,6 +96,11 @@ Sync Modules:
                                 GitHub milestones, GitHub issues
                         Status: Fully functional
 
+  [✓] installation    - Sync installation instructions across all docs
+                        Sources: website (ground truth), README.md, package READMEs,
+                                skill docs, release templates
+                        Status: Fully functional
+
   [⋯] docs            - Sync documentation across sources (PLANNED)
                         Sources: website/docs, README.md, CLAUDE.md, inline docs
                         Status: Placeholder - not implemented yet
@@ -103,9 +112,11 @@ Sync Modules:
 ================================================================================
 
 Usage:
-  /caro.sync roadmap        → Sync roadmap now
-  /caro.sync --check roadmap → Check for drift (dry run)
-  /caro.sync docs            → View docs sync (future)
+  /caro.sync roadmap             → Sync roadmap now
+  /caro.sync installation        → Sync installation instructions
+  /caro.sync --check roadmap     → Check for drift (dry run)
+  /caro.sync --check installation → Check installation drift
+  /caro.sync docs                → View docs sync (future)
 
 ================================================================================
 ```
@@ -132,7 +143,27 @@ The module is self-contained and can be executed independently.
 
 EXIT
 
-#### 2.3 DOCS_SYNC Mode (Placeholder)
+#### 2.3 INSTALLATION_SYNC Mode
+
+**Load installation sync module**:
+
+Read and execute the instructions in:
+```
+.claude/skills/code-parts-syncer/installation-sync.md
+```
+
+This module contains the full logic for:
+1. Fetching ground truth from website (Download.astro + version.ts)
+2. Reading installation instructions from all target files
+3. Detecting drift in version numbers, script URLs, curl options
+4. Reporting drift with detailed comparison
+5. Applying updates to align all files with website ground truth
+
+The module is self-contained and can be executed independently.
+
+EXIT
+
+#### 2.4 DOCS_SYNC Mode (Placeholder)
 
 **Show planned functionality**:
 
@@ -173,7 +204,7 @@ Would you like to help implement this module?
 
 EXIT
 
-#### 2.4 INSTRUCTIONS_SYNC Mode (Placeholder)
+#### 2.5 INSTRUCTIONS_SYNC Mode (Placeholder)
 
 **Show planned functionality**:
 
@@ -215,7 +246,7 @@ Would you like to help implement this module?
 
 EXIT
 
-#### 2.5 CHECK_MODE (Drift Detection Only)
+#### 2.6 CHECK_MODE (Drift Detection Only)
 
 **Extract module name** from arguments (e.g., "--check roadmap" → roadmap)
 
@@ -223,6 +254,12 @@ If module is "roadmap":
 - Load `.claude/skills/code-parts-syncer/roadmap-sync.md`
 - Execute drift detection only (steps 1-4)
 - DO NOT apply changes (skip step 5)
+- Show drift report to user
+
+If module is "installation":
+- Load `.claude/skills/code-parts-syncer/installation-sync.md`
+- Execute drift detection only (steps 1-3)
+- DO NOT apply changes (skip step 4)
 - Show drift report to user
 
 If module is "docs" or "instructions":
@@ -291,6 +328,7 @@ Continuing with limited functionality (no GitHub data)...
 
 **Module locations**:
 - Roadmap: `.claude/skills/code-parts-syncer/roadmap-sync.md`
+- Installation: `.claude/skills/code-parts-syncer/installation-sync.md`
 - Docs: `.claude/skills/code-parts-syncer/docs-sync.md` (placeholder)
 - Instructions: `.claude/skills/code-parts-syncer/instructions-sync.md` (placeholder)
 - Overview: `.claude/skills/code-parts-syncer/README.md`

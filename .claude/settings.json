@@ -52,5 +52,10 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "accessibility-compliance@claude-code-workflows": true,
+    "c4-architecture@claude-code-workflows": true,
+    "ralph-loop@claude-plugins-official": true
   }
 }

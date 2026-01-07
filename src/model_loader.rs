@@ -159,7 +159,11 @@ impl ModelLoader {
     }
 
     /// Download the model from Hugging Face Hub with retry logic
-    async fn download_model_with_retry(&self, dest_path: &Path, variant: ModelVariant) -> Result<()> {
+    async fn download_model_with_retry(
+        &self,
+        dest_path: &Path,
+        variant: ModelVariant,
+    ) -> Result<()> {
         const MAX_RETRIES: u32 = 3;
         const INITIAL_DELAY_SECS: u64 = 2;
 

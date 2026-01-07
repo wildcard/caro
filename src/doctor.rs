@@ -213,7 +213,8 @@ impl SystemInfo {
             .to_string();
 
         // Get shell version
-        let shell_version = Self::get_shell_version(&shell).unwrap_or_else(|| "unknown".to_string());
+        let shell_version =
+            Self::get_shell_version(&shell).unwrap_or_else(|| "unknown".to_string());
 
         Ok(Self {
             os_name,
@@ -228,23 +229,17 @@ impl SystemInfo {
     fn get_shell_version(shell: &str) -> Option<String> {
         use std::process::Command;
 
-        let output = Command::new(shell)
-            .arg("--version")
-            .output()
-            .ok()?;
+        let output = Command::new(shell).arg("--version").output().ok()?;
 
         if output.status.success() {
             let version_str = String::from_utf8_lossy(&output.stdout);
             // Extract version number from first line
-            version_str
-                .lines()
-                .next()
-                .and_then(|line| {
-                    // Try to extract version number (e.g., "5.9" from "zsh 5.9 (x86_64-apple-darwin23.0)")
-                    line.split_whitespace()
-                        .find(|word| word.chars().next().map(|c| c.is_numeric()).unwrap_or(false))
-                        .map(|v| v.to_string())
-                })
+            version_str.lines().next().and_then(|line| {
+                // Try to extract version number (e.g., "5.9" from "zsh 5.9 (x86_64-apple-darwin23.0)")
+                line.split_whitespace()
+                    .find(|word| word.chars().next().map(|c| c.is_numeric()).unwrap_or(false))
+                    .map(|v| v.to_string())
+            })
         } else {
             None
         }
@@ -256,8 +251,12 @@ impl NetworkStatus {
     async fn check() -> Self {
         let huggingface_reachable = Self::check_huggingface_connectivity().await;
 
-        let http_proxy = std::env::var("HTTP_PROXY").ok().or_else(|| std::env::var("http_proxy").ok());
-        let https_proxy = std::env::var("HTTPS_PROXY").ok().or_else(|| std::env::var("https_proxy").ok());
+        let http_proxy = std::env::var("HTTP_PROXY")
+            .ok()
+            .or_else(|| std::env::var("http_proxy").ok());
+        let https_proxy = std::env::var("HTTPS_PROXY")
+            .ok()
+            .or_else(|| std::env::var("https_proxy").ok());
 
         let proxy_detected = http_proxy.is_some() || https_proxy.is_some();
         let proxy_settings = https_proxy.or(http_proxy);
