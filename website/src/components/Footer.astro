@@ -108,7 +108,7 @@ import { SITE_CONFIG } from '../config/site';
 
     <!-- Footer Bottom -->
     <div class="footer-bottom">
-      <div class="bottom-left">
+      <div class="bottom-content">
         <p class="copyright">
           Built with 🦀 Rust | <strong>caro.sh</strong> 🧡
         </p>
@@ -118,8 +118,6 @@ import { SITE_CONFIG } from '../config/site';
         <p class="heritage-tribute">
           Proudly built on the foundations laid by <a href="https://www.gnu.org/" target="_blank" rel="noopener noreferrer">GNU</a>, <a href="https://www.fsf.org/" target="_blank" rel="noopener noreferrer">FSF</a> & <a href="https://www.freebsd.org/" target="_blank" rel="noopener noreferrer">FreeBSD</a>
         </p>
-      </div>
-      <div class="bottom-right">
         <p class="version">v{SITE_CONFIG.version}</p>
       </div>
     </div>
@@ -314,17 +312,18 @@ import { SITE_CONFIG } from '../config/site';
   /* Footer Bottom */
   .footer-bottom {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
     padding-top: 24px;
-    flex-wrap: wrap;
-    gap: 16px;
+    padding-bottom: 80px; /* Safe gap for FABs */
+    text-align: center;
   }
 
-  .bottom-left {
+  .bottom-content {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    align-items: center;
+    gap: 8px;
   }
 
   .copyright {
@@ -367,6 +366,7 @@ import { SITE_CONFIG } from '../config/site';
     background: var(--color-bg-secondary);
     padding: 4px 10px;
     border-radius: 6px;
+    margin-top: 8px;
   }
 
   /* Responsive */
@@ -472,13 +472,7 @@ import { SITE_CONFIG } from '../config/site';
     }
 
     .footer-bottom {
-      flex-direction: column;
-      text-align: center;
-      gap: 12px;
-    }
-
-    .bottom-left {
-      align-items: center;
+      padding-bottom: 60px; /* Smaller safe gap on mobile */
     }
 
     .copyright {
