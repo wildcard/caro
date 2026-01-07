@@ -487,6 +487,21 @@ custom_patterns = ["additional", "dangerous", "patterns"]
 
 cmdai is more than a CLI tool - it's a collective knowledge base of terminal expertise. Every safety pattern you contribute, every edge case you document, every test you write helps make the terminal safer and more accessible for everyone.
 
+### 🌟 **First-Time Contributors Welcome!**
+
+**New to open source?** We want to be your first project!
+
+👉 **Start here:** [FIRST_TIME_CONTRIBUTORS.md](FIRST_TIME_CONTRIBUTORS.md)
+
+We've created **10 fabulous first-time issues** designed for newcomers:
+- 🐕 Fun issues (ASCII art, animations)
+- 🛡️ Safety issues (PowerShell patterns, tutorials)
+- 🤖 Agent issues (decision trees, similarity detection)
+- ⚡ Integration issues (MCP/Claude Code)
+- 🛠️ Curation issues (tool library)
+
+See all issues in [.github/first-time-issues/](.github/first-time-issues/README.md)
+
 ### Why Contribute?
 
 **Your expertise matters:**

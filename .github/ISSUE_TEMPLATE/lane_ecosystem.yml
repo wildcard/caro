@@ -1,0 +1,189 @@
+name: "⚡ Ecosystem Lane Issue"
+description: Submit an ecosystem integration issue (MCP, IDE plugins, etc.)
+title: "[Ecosystem] "
+labels: ["lane/ecosystem", "help-wanted"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Ecosystem Lane Issue
+
+        Issues in this lane focus on:
+        - MCP (Model Context Protocol) integration
+        - IDE plugins (VS Code, Neovim, JetBrains)
+        - Desktop agent integration (Claude Desktop)
+        - Shell integrations
+
+        **See:** [HELP_WANTED.md - Ecosystem Lane](https://github.com/wildcard/caro/blob/main/HELP_WANTED.md#ecosystem-lane)
+
+  - type: dropdown
+    id: ecosystem-category
+    attributes:
+      label: Integration Type
+      description: What type of integration is this?
+      options:
+        - MCP Server
+        - VS Code Extension
+        - Claude Desktop Integration
+        - Neovim Plugin
+        - Emacs Integration
+        - JetBrains Plugin
+        - Shell Integration (bash/zsh/fish)
+        - Other IDE/Editor
+    validations:
+      required: true
+
+  - type: dropdown
+    id: difficulty
+    attributes:
+      label: Difficulty Level
+      description: How complex is this integration?
+      options:
+        - Good First Issue (Documentation/examples)
+        - Advanced (Requires IDE/MCP knowledge)
+        - Expert (Deep integration architecture)
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: What workflow does this enable?
+      placeholder: |
+        Example: As a VS Code user, I want to generate shell commands from
+        a comment in my code, so I can quickly run terminal operations without
+        leaving my editor.
+
+        User flow:
+        1. Write comment: "// list all python files"
+        2. Right-click → "Generate with Caro"
+        3. Command appears in integrated terminal
+        4. User confirms and executes
+    validations:
+      required: true
+
+  - type: textarea
+    id: integration-details
+    attributes:
+      label: Integration Details
+      description: Technical details of the integration
+      placeholder: |
+        For MCP:
+        - Tools to expose: generate_command, validate_command
+        - Resources: command history, safety stats
+        - Protocol version: MCP 1.0
+
+        For IDE Plugin:
+        - Language: TypeScript (VS Code) / Lua (Neovim) / etc.
+        - API used: VS Code Extension API / Neovim Lua API
+        - Communication: Stdio with caro binary
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies / Prerequisites
+      description: What needs to exist first?
+      placeholder: |
+        - caro binary must be installed
+        - User must have IDE version X.Y+
+        - Requires MCP protocol support
+        - Optional: specific IDE extensions
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: How do we know this integration works?
+      placeholder: |
+        - [ ] Integration code compiles/loads without errors
+        - [ ] User can trigger caro from within IDE
+        - [ ] Generated commands appear in correct location
+        - [ ] Safety warnings display properly
+        - [ ] Works on macOS, Linux, Windows (where applicable)
+        - [ ] Documentation/README for installation
+        - [ ] Example workflow demonstrated
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platforms
+    attributes:
+      label: Target Platforms
+      description: Which platforms should this support?
+      multiple: true
+      options:
+        - macOS
+        - Linux
+        - Windows
+        - All platforms
+    validations:
+      required: true
+
+  - type: textarea
+    id: design-mockup
+    attributes:
+      label: Design / UX Mockup
+      description: How should this look to users?
+      placeholder: |
+        ASCII mockup of the IDE integration:
+
+        ```
+        ┌─ VS Code ─────────────────────────┐
+        │ file.py                            │
+        │ # list all python files            │
+        │   ↓ [Generate Command with Caro]   │
+        │                                    │
+        │ Terminal:                          │
+        │ $ find . -name "*.py"              │
+        │ Execute? (y/N)                     │
+        └────────────────────────────────────┘
+        ```
+
+        Or link to screenshot/diagram
+    validations:
+      required: false
+
+  - type: textarea
+    id: existing-examples
+    attributes:
+      label: Existing Examples
+      description: Similar integrations to reference
+      placeholder: |
+        - GitHub Copilot VS Code extension
+        - Codeium IDE plugins
+        - Other MCP examples in anthropics/mcp repo
+        - Similar terminal-based IDE integrations
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Contributor Checklist
+      description: Before starting work
+      options:
+        - label: I have read the Ecosystem Lane documentation
+        - label: I have experience with the target platform/IDE
+        - label: I will provide installation documentation
+        - label: I will include usage examples
+        - label: I will test on all target platforms
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Anything else about this integration
+      placeholder: |
+        - Related IDE extension examples
+        - MCP protocol documentation links
+        - User feedback on desired workflows
+        - Technical constraints or limitations
+    validations:
+      required: false
