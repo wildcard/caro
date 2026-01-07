@@ -103,7 +103,17 @@ impl StaticMatcher {
                 description: "Find files larger than 10MB".to_string(),
             },
 
-            // Pattern 6: "find files larger than 1GB"
+            // Pattern 6: "Find all files larger than 1GB" with -exec ls -lh (SPECIFIC - moved from Pattern 40)
+            PatternEntry {
+                required_keywords: vec!["file".to_string(), "larger".to_string(), "1gb".to_string()],
+                optional_keywords: vec!["find".to_string(), "all".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|locate|list).*(all)?.*(files?).*(larger|bigger|over|above|greater).*(1gb?|1g\b)").unwrap()),
+                gnu_command: "find . -type f -size +1G -exec ls -lh {} \\;".to_string(),
+                bsd_command: Some("find . -type f -size +1G -exec ls -lh {} \\;".to_string()),
+                description: "Find files larger than 1GB with exec".to_string(),
+            },
+
+            // Pattern 7: "find files larger than 1GB" (GENERAL - was Pattern 6)
             PatternEntry {
                 required_keywords: vec!["file".to_string(), "1".to_string()],
                 optional_keywords: vec!["find".to_string(), "larger".to_string(), "gb".to_string()],
@@ -113,7 +123,7 @@ impl StaticMatcher {
                 description: "Find files larger than 1GB".to_string(),
             },
 
-            // Pattern 7: "find files larger than 50MB"
+            // Pattern 8: "find files larger than 50MB" (was Pattern 7)
             PatternEntry {
                 required_keywords: vec!["file".to_string(), "50".to_string()],
                 optional_keywords: vec!["find".to_string(), "larger".to_string(), "mb".to_string()],
@@ -275,7 +285,17 @@ impl StaticMatcher {
                 description: "Test connection to a remote server".to_string(),
             },
 
-            // Pattern 22: "Show all listening TCP ports"
+            // Pattern 22: "show all established connections to port 443" (SPECIFIC - moved from Pattern 49)
+            PatternEntry {
+                required_keywords: vec!["established".to_string(), "connections".to_string(), "443".to_string()],
+                optional_keywords: vec!["show".to_string(), "all".to_string(), "port".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|display|list).*(all)?.*(established|active).*(connections?|sockets?).*(to|on)?.*(port)?.*\b443\b").unwrap()),
+                gnu_command: "ss -tn state established '( dport = :443 )'".to_string(),
+                bsd_command: Some("netstat -an | grep ESTABLISHED | grep :443".to_string()),
+                description: "Show established connections to port 443".to_string(),
+            },
+
+            // Pattern 23: "Show all listening TCP ports" (GENERAL - was Pattern 22)
             PatternEntry {
                 required_keywords: vec!["listening".to_string(), "port".to_string()],
                 optional_keywords: vec!["show".to_string(), "all".to_string(), "tcp".to_string()],
@@ -317,7 +337,17 @@ impl StaticMatcher {
 
             // ===== SYSTEM MONITORING PATTERNS (Cycle 3) =====
 
-            // Pattern 26: "Monitor CPU usage in real-time"
+            // Pattern 26: "show me the top 5 processes by CPU usage" (SPECIFIC - moved from Pattern 47)
+            PatternEntry {
+                required_keywords: vec!["top".to_string(), "5".to_string(), "cpu".to_string()],
+                optional_keywords: vec!["show".to_string(), "processes".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|display|list).*(me)?.*(top).*(5|\bfive\b).*(processes?).*(by)?.*(cpu|processor)").unwrap()),
+                gnu_command: "ps aux --sort=-%cpu | head -n 6".to_string(),
+                bsd_command: Some("ps aux -r | head -n 6".to_string()),
+                description: "Show top 5 processes by CPU usage".to_string(),
+            },
+
+            // Pattern 27: "Monitor CPU usage in real-time" (GENERAL - was Pattern 26)
             PatternEntry {
                 required_keywords: vec!["cpu".to_string(), "usage".to_string()],
                 optional_keywords: vec!["monitor".to_string(), "real-time".to_string(), "top".to_string()],
@@ -465,16 +495,6 @@ impl StaticMatcher {
 
             // ===== FILE MANAGEMENT REFINED PATTERNS (Cycle 4) =====
 
-            // Pattern 40: "Find all files larger than 1GB" with -exec ls -lh
-            PatternEntry {
-                required_keywords: vec!["file".to_string(), "larger".to_string(), "1gb".to_string()],
-                optional_keywords: vec!["find".to_string(), "all".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(find|locate|list).*(all)?.*(files?).*(larger|bigger|over|above|greater).*(1gb?|1g\b)").unwrap()),
-                gnu_command: "find . -type f -size +1G -exec ls -lh {} \\;".to_string(),
-                bsd_command: Some("find . -type f -size +1G -exec ls -lh {} \\;".to_string()),
-                description: "Find files larger than 1GB with exec".to_string(),
-            },
-
             // Pattern 41: "find all PDF files larger than 10MB in Downloads"
             PatternEntry {
                 required_keywords: vec!["pdf".to_string(), "10mb".to_string(), "downloads".to_string()],
@@ -537,16 +557,6 @@ impl StaticMatcher {
 
             // ===== SYSTEM MONITORING FINE-TUNED PATTERNS (Cycle 4) =====
 
-            // Pattern 47: "show me the top 5 processes by CPU usage"
-            PatternEntry {
-                required_keywords: vec!["top".to_string(), "5".to_string(), "cpu".to_string()],
-                optional_keywords: vec!["show".to_string(), "processes".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(show|display|list).*(me)?.*(top).*(5|\bfive\b).*(processes?).*(by)?.*(cpu|processor)").unwrap()),
-                gnu_command: "ps aux --sort=-%cpu | head -n 6".to_string(),
-                bsd_command: Some("ps aux -r | head -n 6".to_string()),
-                description: "Show top 5 processes by CPU usage".to_string(),
-            },
-
             // Pattern 48: "show me disk usage by directory, sorted"
             PatternEntry {
                 required_keywords: vec!["disk".to_string(), "usage".to_string(), "directory".to_string(), "sorted".to_string()],
@@ -557,17 +567,28 @@ impl StaticMatcher {
                 description: "Show disk usage by directory, sorted".to_string(),
             },
 
-            // ===== NETWORK OPERATIONS FINE-TUNED PATTERNS (Cycle 4) =====
+            // ===== ADDITIONAL PATTERNS (Cycle 5) =====
 
-            // Pattern 49: "show all established connections to port 443"
+            // Pattern 49: "check disk health on all drives"
             PatternEntry {
-                required_keywords: vec!["established".to_string(), "connections".to_string(), "443".to_string()],
-                optional_keywords: vec!["show".to_string(), "all".to_string(), "port".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(show|display|list).*(all)?.*(established|active).*(connections?|sockets?).*(to|on)?.*(port)?.*\b443\b").unwrap()),
-                gnu_command: "ss -tn state established '( dport = :443 )'".to_string(),
-                bsd_command: Some("netstat -an | grep ESTABLISHED | grep :443".to_string()),
-                description: "Show established connections to port 443".to_string(),
+                required_keywords: vec!["check".to_string(), "disk".to_string(), "health".to_string()],
+                optional_keywords: vec!["all".to_string(), "drives".to_string(), "smart".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(check|test|verify|show).*(disk|drive|hdd|ssd).*(health|status|smart)").unwrap()),
+                gnu_command: "smartctl -a /dev/sda".to_string(),
+                bsd_command: Some("smartctl -a /dev/sda".to_string()),
+                description: "Check disk health with smartctl".to_string(),
             },
+
+            // Pattern 50: "日本語のファイルを検索" (Find Japanese filename files)
+            PatternEntry {
+                required_keywords: vec!["find".to_string()],
+                optional_keywords: vec!["files".to_string(), "search".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|search|locate|list).*[ぁ-んァ-ヶー一-龯]").unwrap()),
+                gnu_command: "find . -name '*日本語*' -type f".to_string(),
+                bsd_command: Some("find . -name '*日本語*' -type f".to_string()),
+                description: "Find files with Japanese characters in name".to_string(),
+            },
+
         ]
     }
 
