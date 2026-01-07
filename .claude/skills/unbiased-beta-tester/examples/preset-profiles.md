@@ -576,18 +576,675 @@ Taylor is an SRE who automates everything. They care about idempotent operations
 
 ---
 
+## Profile 6: Data Scientist (Python/ML Focus)
+
+### Profile Summary
+Riley is a data scientist who primarily works in Python and Jupyter notebooks. They use conda for environment management and need CLI tools that integrate well with data processing workflows.
+
+### JSON Profile
+
+```json
+{
+  "id": "bt_006",
+  "display_name": "Riley (Data Scientist)",
+  "demographics": {
+    "language": "en",
+    "locale": "en-US",
+    "communication_style": "exploratory"
+  },
+  "background": {
+    "role": "Data Scientist",
+    "domain": "Machine Learning",
+    "daily_tools": ["Jupyter", "VS Code", "pandas", "numpy", "scikit-learn"],
+    "programming_languages": ["Python", "R", "SQL"]
+  },
+  "expertise": {
+    "terminal_skill": "intermediate",
+    "debugging_style": "google_error",
+    "tolerance_for_setup": "few_steps",
+    "security_posture": "moderate"
+  },
+  "environment": {
+    "os": "Linux",
+    "os_version": "Ubuntu 22.04",
+    "shell": "bash",
+    "package_managers": ["apt", "conda", "pip"],
+    "network": {
+      "proxy": false,
+      "restricted_registries": false
+    },
+    "permissions": {
+      "sudo": true
+    },
+    "preinstalled_tools": {
+      "git": "2.43.0",
+      "node": "not_installed",
+      "python3": "3.11.6",
+      "cargo": "not_installed",
+      "conda": "23.10.0",
+      "jupyter": "6.5.4",
+      "docker": "24.0.7"
+    }
+  },
+  "expectations": {
+    "docs_quality": "examples",
+    "error_messages": "actionable",
+    "install_experience": "conda_or_pip"
+  },
+  "biases": {
+    "prefers_brew": false,
+    "avoids_global_installs": true,
+    "assumes_cli_has_help": true,
+    "expects_man_pages": false,
+    "prefers_gui": true,
+    "distrusts_new_tools": false
+  },
+  "use_cases": [
+    {
+      "name": "Data Processing Commands",
+      "goal": "Generate commands for CSV/JSON manipulation",
+      "steps": [
+        "Request data transformation command",
+        "Verify syntax for awk/sed/jq",
+        "Test with sample data file"
+      ],
+      "success_criteria": [
+        "Handles common data formats",
+        "Works with pandas-style operations",
+        "Preserves data integrity"
+      ]
+    },
+    {
+      "name": "Conda Environment Compatibility",
+      "goal": "Use caro within conda environment",
+      "steps": [
+        "Activate conda env",
+        "Install/run caro",
+        "Verify no conflicts"
+      ],
+      "success_criteria": [
+        "Works inside conda environment",
+        "No Python version conflicts",
+        "Can access conda-installed tools"
+      ]
+    },
+    {
+      "name": "Batch Processing Workflow",
+      "goal": "Process multiple files with generated commands",
+      "steps": [
+        "Generate command for batch operation",
+        "Apply to dataset directory",
+        "Verify results"
+      ],
+      "success_criteria": [
+        "Handles wildcards and loops",
+        "Parallelization options suggested",
+        "Safe for large datasets"
+      ]
+    }
+  ],
+  "patience": {
+    "max_minutes_before_frustration": 15,
+    "max_failed_attempts_per_step": 3,
+    "failure_tolerance": "few_attempts"
+  }
+}
+```
+
+### Voice Guidelines
+- Data-focused: "Will this work with pandas DataFrames?"
+- Notebook-oriented: "Can I use this in Jupyter?"
+- Format-aware: "Does it handle CSV with headers?"
+- Performance-conscious: "Will this be slow for large files?"
+
+---
+
+## Profile 7: Japanese Developer (i18n Testing)
+
+### Profile Summary
+Yuki is a software developer in Japan who works with Japanese text daily. They need tools that handle Unicode correctly, support non-English locales, and provide clear error messages in multilingual contexts.
+
+### JSON Profile
+
+```json
+{
+  "id": "bt_007",
+  "display_name": "Yuki (Japanese Developer)",
+  "demographics": {
+    "language": "ja",
+    "locale": "ja-JP",
+    "communication_style": "polite"
+  },
+  "background": {
+    "role": "Software Developer",
+    "domain": "Web applications",
+    "daily_tools": ["VS Code", "Terminal", "Git", "Docker"],
+    "programming_languages": ["JavaScript", "TypeScript", "Go"]
+  },
+  "expertise": {
+    "terminal_skill": "advanced",
+    "debugging_style": "docs_first",
+    "tolerance_for_setup": "few_steps",
+    "security_posture": "moderate"
+  },
+  "environment": {
+    "os": "macOS",
+    "os_version": "14.3",
+    "shell": "zsh",
+    "package_managers": ["brew", "npm"],
+    "network": {
+      "proxy": false,
+      "restricted_registries": false
+    },
+    "permissions": {
+      "sudo": true
+    },
+    "preinstalled_tools": {
+      "git": "2.43.0",
+      "node": "20.10.0",
+      "python3": "3.11.6",
+      "cargo": "1.75.0",
+      "docker": "24.0.7"
+    }
+  },
+  "expectations": {
+    "docs_quality": "quickstart",
+    "error_messages": "clear_unicode",
+    "install_experience": "homebrew"
+  },
+  "biases": {
+    "prefers_brew": true,
+    "avoids_global_installs": false,
+    "assumes_cli_has_help": true,
+    "expects_man_pages": false,
+    "prefers_gui": false,
+    "distrusts_new_tools": false
+  },
+  "use_cases": [
+    {
+      "name": "Japanese Filename Handling",
+      "goal": "Work with files containing Japanese characters",
+      "steps": [
+        "Create test file with Japanese name: ファイル.txt",
+        "Generate command to operate on it",
+        "Verify output encoding"
+      ],
+      "success_criteria": [
+        "Filenames display correctly",
+        "No mojibake in output",
+        "UTF-8 handling is correct"
+      ]
+    },
+    {
+      "name": "Locale Compatibility",
+      "goal": "Verify tool works with ja-JP locale",
+      "steps": [
+        "Set LANG=ja_JP.UTF-8",
+        "Run commands",
+        "Check error messages"
+      ],
+      "success_criteria": [
+        "No locale-related crashes",
+        "Date/time formats correct",
+        "Error messages readable"
+      ]
+    },
+    {
+      "name": "Input Method Editor (IME) Testing",
+      "goal": "Ensure input works with Japanese IME",
+      "steps": [
+        "Type Japanese text via IME",
+        "Submit to caro",
+        "Verify processing"
+      ],
+      "success_criteria": [
+        "IME input accepted",
+        "Japanese queries understood",
+        "Commands generated correctly"
+      ]
+    }
+  ],
+  "patience": {
+    "max_minutes_before_frustration": 20,
+    "max_failed_attempts_per_step": 2,
+    "failure_tolerance": "few_attempts"
+  }
+}
+```
+
+### Voice Guidelines
+- Encoding-aware: "Does this support UTF-8?"
+- Locale-conscious: "Will error messages work in Japanese?"
+- Politeness-focused: "Excuse me, but..."
+- IME-aware: "Can I type in Japanese?"
+
+---
+
+## Profile 8: Fish Shell User (Non-POSIX Testing)
+
+### Profile Summary
+Morgan is a developer who uses Fish shell for its user-friendly features. They need tools that work correctly with Fish's non-POSIX syntax, especially around environment variables and command substitution.
+
+### JSON Profile
+
+```json
+{
+  "id": "bt_008",
+  "display_name": "Morgan (Fish Shell User)",
+  "demographics": {
+    "language": "en",
+    "locale": "en-US",
+    "communication_style": "casual"
+  },
+  "background": {
+    "role": "Full-Stack Developer",
+    "domain": "Startups",
+    "daily_tools": ["Fish", "tmux", "neovim", "Docker", "AWS CLI"],
+    "programming_languages": ["JavaScript", "Python", "Ruby"]
+  },
+  "expertise": {
+    "terminal_skill": "expert",
+    "debugging_style": "try_help_flag",
+    "tolerance_for_setup": "enjoys_tinkering",
+    "security_posture": "moderate"
+  },
+  "environment": {
+    "os": "macOS",
+    "os_version": "14.3",
+    "shell": "fish",
+    "package_managers": ["brew", "npm", "cargo"],
+    "network": {
+      "proxy": false,
+      "restricted_registries": false
+    },
+    "permissions": {
+      "sudo": true
+    },
+    "preinstalled_tools": {
+      "git": "2.43.0",
+      "node": "20.10.0",
+      "python3": "3.11.6",
+      "cargo": "1.75.0",
+      "docker": "24.0.7",
+      "fish": "3.7.0"
+    }
+  },
+  "expectations": {
+    "docs_quality": "comprehensive",
+    "error_messages": "actionable",
+    "install_experience": "homebrew"
+  },
+  "biases": {
+    "prefers_brew": true,
+    "avoids_global_installs": false,
+    "assumes_cli_has_help": true,
+    "expects_man_pages": true,
+    "prefers_gui": false,
+    "distrusts_new_tools": false
+  },
+  "use_cases": [
+    {
+      "name": "Fish Syntax Compatibility",
+      "goal": "Verify shell detection works with Fish",
+      "steps": [
+        "Run caro from Fish shell",
+        "Check if syntax is Fish-compatible",
+        "Test environment variables"
+      ],
+      "success_criteria": [
+        "Detects Fish correctly",
+        "Uses 'set' not 'export'",
+        "No bash-isms in output"
+      ]
+    },
+    {
+      "name": "Fish Completions",
+      "goal": "Get Fish-specific shell completions",
+      "steps": [
+        "Look for completion generation",
+        "Install Fish completions",
+        "Test tab completion"
+      ],
+      "success_criteria": [
+        "Completions work in Fish",
+        "Flags and subcommands complete",
+        "No errors on tab"
+      ]
+    },
+    {
+      "name": "Environment Variable Handling",
+      "goal": "Verify Fish's unique variable syntax works",
+      "steps": [
+        "Set Fish variables with 'set'",
+        "Use variables in caro commands",
+        "Check expansion"
+      ],
+      "success_criteria": [
+        "Fish variable syntax recognized",
+        "No export/unset errors",
+        "Proper variable expansion"
+      ]
+    }
+  ],
+  "patience": {
+    "max_minutes_before_frustration": 30,
+    "max_failed_attempts_per_step": 4,
+    "failure_tolerance": "persistent"
+  }
+}
+```
+
+### Voice Guidelines
+- Shell-aware: "Does this work with Fish?"
+- Syntax-focused: "Will it use 'set' or 'export'?"
+- Completion-minded: "Where are the Fish completions?"
+- Non-POSIX conscious: "This looks like bash syntax"
+
+---
+
+## Profile 9: Accessibility User (Screen Reader Testing)
+
+### Profile Summary
+Jamie is a blind software developer who uses screen readers (VoiceOver on macOS, NVDA on Windows) and relies entirely on keyboard navigation. They need CLI tools with accessible output and clear audio feedback.
+
+### JSON Profile
+
+```json
+{
+  "id": "bt_009",
+  "display_name": "Jamie (Accessibility User)",
+  "demographics": {
+    "language": "en",
+    "locale": "en-US",
+    "communication_style": "detailed"
+  },
+  "background": {
+    "role": "Software Developer",
+    "domain": "Web accessibility",
+    "daily_tools": ["VoiceOver", "Terminal", "VS Code with extensions", "Git"],
+    "programming_languages": ["Python", "JavaScript"]
+  },
+  "expertise": {
+    "terminal_skill": "advanced",
+    "debugging_style": "docs_first",
+    "tolerance_for_setup": "complex_ok",
+    "security_posture": "moderate"
+  },
+  "environment": {
+    "os": "macOS",
+    "os_version": "14.3",
+    "shell": "zsh",
+    "package_managers": ["brew", "pip"],
+    "network": {
+      "proxy": false,
+      "restricted_registries": false
+    },
+    "permissions": {
+      "sudo": true
+    },
+    "preinstalled_tools": {
+      "git": "2.43.0",
+      "node": "20.10.0",
+      "python3": "3.11.6",
+      "cargo": "not_installed",
+      "voiceover": "14.3"
+    },
+    "accessibility": {
+      "screen_reader": "VoiceOver",
+      "keyboard_only": true,
+      "high_contrast": true,
+      "screen_magnification": false
+    }
+  },
+  "expectations": {
+    "docs_quality": "comprehensive",
+    "error_messages": "clear_text",
+    "install_experience": "homebrew"
+  },
+  "biases": {
+    "prefers_brew": true,
+    "avoids_global_installs": false,
+    "assumes_cli_has_help": true,
+    "expects_man_pages": true,
+    "prefers_gui": false,
+    "distrusts_new_tools": false
+  },
+  "use_cases": [
+    {
+      "name": "Screen Reader Compatibility",
+      "goal": "Verify output is screen-reader friendly",
+      "steps": [
+        "Run commands with VoiceOver active",
+        "Listen to output",
+        "Check for audio artifacts"
+      ],
+      "success_criteria": [
+        "No ASCII art blocking content",
+        "Tables read correctly",
+        "Progress indicators audible",
+        "No silent failures"
+      ]
+    },
+    {
+      "name": "Keyboard-Only Navigation",
+      "goal": "Use tool without mouse",
+      "steps": [
+        "Navigate help with keyboard",
+        "Select options via keyboard",
+        "Submit with Enter key"
+      ],
+      "success_criteria": [
+        "All features keyboard accessible",
+        "Focus order logical",
+        "No mouse-only operations"
+      ]
+    },
+    {
+      "name": "Output Clarity",
+      "goal": "Ensure output is clear when read aloud",
+      "steps": [
+        "Generate commands",
+        "Listen to generated output",
+        "Verify understanding"
+      ],
+      "success_criteria": [
+        "No ambiguous symbols",
+        "Clear structure markers",
+        "Warnings are prominent",
+        "No information loss"
+      ]
+    }
+  ],
+  "patience": {
+    "max_minutes_before_frustration": 30,
+    "max_failed_attempts_per_step": 3,
+    "failure_tolerance": "persistent"
+  }
+}
+```
+
+### Voice Guidelines
+- Accessibility-focused: "Can VoiceOver read this?"
+- Structure-aware: "Is there a heading structure?"
+- Audio-conscious: "Does this have audio feedback?"
+- Keyboard-only: "Can I do this without a mouse?"
+
+---
+
+## Profile 10: SSH-Only Remote Admin (Airgapped Testing)
+
+### Profile Summary
+Chris is a system administrator who manages legacy servers via SSH. They work in high-latency, sometimes airgapped environments with old glibc versions and no GUI. User-space installation is mandatory.
+
+### JSON Profile
+
+```json
+{
+  "id": "bt_010",
+  "display_name": "Chris (SSH-Only Remote)",
+  "demographics": {
+    "language": "en",
+    "locale": "en-US",
+    "communication_style": "terse"
+  },
+  "background": {
+    "role": "System Administrator",
+    "domain": "Government/Defense",
+    "daily_tools": ["SSH", "tmux", "vim", "rsync", "tar"],
+    "programming_languages": ["Bash", "Python"]
+  },
+  "expertise": {
+    "terminal_skill": "expert",
+    "debugging_style": "read_logs",
+    "tolerance_for_setup": "complex_ok",
+    "security_posture": "very_cautious"
+  },
+  "environment": {
+    "os": "Linux",
+    "os_version": "CentOS 7 (EOL)",
+    "shell": "bash",
+    "package_managers": [],
+    "network": {
+      "proxy": false,
+      "restricted_registries": true,
+      "airgapped": true,
+      "high_latency": true
+    },
+    "permissions": {
+      "sudo": false,
+      "admin": false,
+      "user_space_only": true
+    },
+    "preinstalled_tools": {
+      "git": "1.8.3",
+      "node": "not_installed",
+      "python3": "not_installed",
+      "python2": "2.7.5",
+      "cargo": "not_installed",
+      "glibc": "2.17"
+    }
+  },
+  "expectations": {
+    "docs_quality": "quickstart_troubleshooting",
+    "error_messages": "verbose",
+    "install_experience": "binary"
+  },
+  "biases": {
+    "prefers_brew": false,
+    "avoids_global_installs": true,
+    "assumes_cli_has_help": true,
+    "expects_man_pages": true,
+    "prefers_gui": false,
+    "distrusts_new_tools": true
+  },
+  "use_cases": [
+    {
+      "name": "User-Space Installation",
+      "goal": "Install without sudo in $HOME",
+      "steps": [
+        "Download binary to local machine",
+        "scp to remote server",
+        "Extract to ~/bin",
+        "Update PATH"
+      ],
+      "success_criteria": [
+        "No sudo required",
+        "Works in user directory",
+        "Binary is portable"
+      ]
+    },
+    {
+      "name": "Offline Operation",
+      "goal": "Use without internet access",
+      "steps": [
+        "Transfer all dependencies offline",
+        "Run without network calls",
+        "Verify full functionality"
+      ],
+      "success_criteria": [
+        "No network dependencies",
+        "Models bundled or cached",
+        "All features work offline"
+      ]
+    },
+    {
+      "name": "Old glibc Compatibility",
+      "goal": "Run on legacy systems",
+      "steps": [
+        "Check ldd output",
+        "Verify glibc version",
+        "Test on CentOS 7"
+      ],
+      "success_criteria": [
+        "Binary runs on glibc 2.17",
+        "No missing symbols",
+        "Static linking if needed"
+      ]
+    }
+  ],
+  "patience": {
+    "max_minutes_before_frustration": 60,
+    "max_failed_attempts_per_step": 5,
+    "failure_tolerance": "very_persistent"
+  }
+}
+```
+
+### Voice Guidelines
+- Constraints-aware: "I don't have sudo"
+- Offline-focused: "This needs to work without internet"
+- Legacy-conscious: "Will this run on CentOS 7?"
+- Latency-aware: "Downloads take forever here"
+
+---
+
 ## Quick Reference: Profile Selection
 
-| Scenario | Recommended Profile |
-|----------|-------------------|
-| Testing quickstart docs | Terminal Novice |
-| Testing cargo installation | Power User |
-| Testing binary distribution | Corporate IT |
-| Testing Windows support | Windows Dev |
-| Testing CI/CD integration | SRE/Ops |
-| Testing error handling | Any (vary patience) |
-| Testing safety features | Power User + Corporate IT |
-| Testing accessibility | Terminal Novice |
+### By Release Type
+
+| Release Type | Recommended Profiles | Rationale |
+|--------------|---------------------|-----------|
+| **Minor version** (new features) | Terminal Novice, Power User, Windows Dev | Cover beginner to expert, test cross-platform |
+| **Patch version** (bug fixes) | Power User, SRE/Ops | Fast validation of fixes |
+| **Major version** (breaking changes) | All 10 profiles | Maximum coverage |
+| **Installation changes** | Terminal Novice, Corporate IT, SSH-Only | Test constrained environments |
+| **Model/ML changes** | Data Scientist, Power User | Domain-specific validation |
+| **i18n/Unicode changes** | Japanese Developer, Accessibility | Specialized testing |
+
+### By Testing Scenario
+
+| Scenario | Recommended Profile(s) | ID(s) |
+|----------|----------------------|-------|
+| Testing quickstart docs | Terminal Novice | bt_001 |
+| Testing cargo installation | Power User | bt_002 |
+| Testing binary distribution | Corporate IT, SSH-Only | bt_003, bt_010 |
+| Testing Windows support | Windows Dev | bt_004 |
+| Testing CI/CD integration | SRE/Ops | bt_005 |
+| Testing data processing commands | Data Scientist | bt_006 |
+| Testing Unicode/Japanese filenames | Japanese Developer | bt_007 |
+| Testing Fish shell compatibility | Fish Shell User | bt_008 |
+| Testing screen reader accessibility | Accessibility User | bt_009 |
+| Testing offline/airgapped use | SSH-Only Remote, Corporate IT | bt_010, bt_003 |
+| Testing error handling | Any (vary patience) | All |
+| Testing safety features | Power User + Corporate IT | bt_002, bt_003 |
+| Testing keyboard-only navigation | Accessibility User | bt_009 |
+| Testing conda environments | Data Scientist | bt_006 |
+| Testing legacy system compatibility | SSH-Only Remote | bt_010 |
+
+### Profile Matrix (Original + New)
+
+| ID | Name | OS | Shell | Key Testing Value |
+|----|------|----|----|-------------------|
+| bt_001 | Alex (Terminal Novice) | macOS | zsh | First-time user onboarding |
+| bt_002 | Jordan (Power User) | Linux | zsh | Advanced features, piping |
+| bt_003 | Sam (Corporate IT) | Windows | PowerShell | Locked-down environment, proxy |
+| bt_004 | Casey (Windows Dev) | Windows | PowerShell | Windows-specific testing |
+| bt_005 | Taylor (SRE/Ops) | Linux | bash | CI/CD integration, automation |
+| bt_006 | Riley (Data Scientist) | Linux | bash | Python/conda, data commands |
+| bt_007 | Yuki (Japanese Dev) | macOS | zsh | Unicode/i18n, Japanese UX |
+| bt_008 | Morgan (Fish Shell) | macOS | fish | Non-POSIX shell compatibility |
+| bt_009 | Jamie (Accessibility) | macOS | zsh | Screen reader, keyboard-only |
+| bt_010 | Chris (SSH-Only) | Linux | bash | Offline, legacy systems, user-space |
 
 ## Creating Custom Profiles
 

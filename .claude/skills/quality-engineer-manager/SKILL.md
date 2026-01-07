@@ -104,6 +104,43 @@ After release artifacts are available:
    - Identify patterns across testers
    - Check against known issues database
 
+#### Bundle Validation (Optional)
+
+For releases with model bundles, use the systematic bundle validation command:
+
+```bash
+# Minimal validation (3 profiles, 2 bundles)
+/qa-bundle-validation version=vX.Y.Z profiles=minimal bundles=sample
+
+# Standard validation (5 original profiles)
+/qa-bundle-validation version=vX.Y.Z profiles=original bundles=all
+
+# Comprehensive validation (all 10 profiles)
+/qa-bundle-validation version=vX.Y.Z profiles=all bundles=all
+```
+
+**When to Use Bundle Validation:**
+- After Phase 6 (Model Bundling) completes
+- When bundles are critical for user experience
+- For minor/major version releases
+- When bundle structure has changed
+
+**Bundle Validation Process:**
+1. Verifies all bundle assets exist on GitHub release
+2. Dispatches selected beta testers with specific bundles
+3. Tests offline installation and model loading
+4. Validates license compliance
+5. Collects structured results
+6. Generates bundle-specific QA sign-off report
+
+**Output:**
+- Coverage matrix showing which bundles were tested
+- Issue breakdown by severity
+- Bundle-specific sign-off decision
+- Documentation updates for known issues
+
+See `.claude/commands/qa-bundle-validation.md` for complete workflow details.
+
 ### Phase 3: Issue Triage & Development Dispatch
 
 For each identified issue:
@@ -223,6 +260,110 @@ caro-VERSION-PLATFORM-with-MODEL.tar.gz.sha256
 - Verify binary names match release artifacts
 - Check workflow logs for model download failures
 - Non-critical: Can defer to next release if needed
+
+## CI/CD Troubleshooting Reference
+
+When debugging CI/CD failures, consult these common patterns from known issues:
+
+### GitHub Actions YAML Gotchas
+
+**Issue #7: Heredoc Syntax Incompatibility**
+- **Problem**: YAML `run: |` blocks conflict with shell heredoc (`<<EOF`) syntax
+- **Symptoms**: "Mapping values are not allowed in this context" parse error
+- **Solution**: Use `printf '%s\n'` instead of heredocs for multi-line file creation
+- **Prevention**: Never use heredocs (`<<EOF`, `<<'EOF'`, `<<-EOF`) in GitHub Actions `run: |` blocks
+
+```yaml
+# Bad - causes YAML parse error
+- run: |
+    cat <<EOF > file.txt
+    Line 1: content
+    EOF
+
+# Good - use printf instead
+- run: |
+    printf '%s\n' \
+      "Line 1: content" \
+      > file.txt
+```
+
+**Issue #8: Alpine Containers Lack Tools**
+- **Problem**: Alpine Linux minimal images don't include gh CLI, curl, etc.
+- **Symptoms**: `gh: command not found` or `curl: not found`
+- **Solution**: Manually install tools from official sources
+- **Prevention**: Always verify tool availability in container images before use
+
+```yaml
+- name: Install dependencies
+  run: |
+    apk add --no-cache curl tar gzip bash
+    # Install gh CLI for Alpine
+    curl -fsSL https://github.com/cli/cli/releases/download/v2.63.2/gh_2.63.2_linux_amd64.tar.gz -o gh.tar.gz
+    tar -xzf gh.tar.gz
+    mv gh_2.63.2_linux_amd64/bin/gh /usr/local/bin/
+```
+
+**Issue #9: GitHub Permissions Too Restrictive**
+- **Problem**: Default GITHUB_TOKEN is read-only, release uploads fail
+- **Symptoms**: `HTTP 403: Resource not accessible by integration`
+- **Solution**: Add explicit `contents: write` permission at workflow level
+- **Prevention**: Always audit required permissions before adding new workflow functionality
+
+```yaml
+name: Bundle Models
+
+on:
+  workflow_dispatch:
+    # ...
+
+permissions:
+  contents: write  # Required for gh release upload
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    # ...
+```
+
+### Quick Debugging Commands
+
+```bash
+# View failed workflow logs
+gh run list --workflow=<workflow-name> --limit 1
+gh run view <run-id> --log-failed
+
+# Re-run failed jobs only
+gh run rerun <run-id> --failed
+
+# Validate workflow YAML syntax locally
+python3 -c "import yaml; yaml.safe_load(open('.github/workflows/bundle.yml'))"
+
+# Check release assets
+gh release view vX.Y.Z --json assets -q '.assets[] | .name'
+
+# Verify crates.io publication
+curl -s https://crates.io/api/v1/crates/caro/X.Y.Z | jq -r '.version.num'
+```
+
+### When to Consult Known Issues Database
+
+Before debugging any CI/CD failure:
+1. Check `references/known-issues.md` for similar symptoms
+2. Look for issue numbers mentioned in error logs
+3. Review prevention strategies from resolved issues
+4. Update database with any new issues discovered
+
+### Debugging Decision Tree
+
+```
+CI/CD Failure Detected
+    |
+    ├─> YAML syntax error? → See Issue #7 (heredoc)
+    ├─> Tool not found? → See Issue #8 (Alpine containers)
+    ├─> Permission denied? → See Issue #9 (GITHUB_TOKEN)
+    ├─> Test failure? → See known-issues.md for test-specific issues
+    └─> Unknown? → Check workflow logs, consult known-issues.md
+```
 
 ## Today's Successful Process (v1.0.4 Example)
 
