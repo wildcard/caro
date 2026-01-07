@@ -1,0 +1,1469 @@
+# Caro Documentation - Complete Reference
+
+> Technical documentation for Caro - Natural language to shell commands CLI
+
+**Version**: 1.0.3
+**License**: AGPL-3.0
+**Repository**: https://github.com/wildcard/caro
+**Docs Site**: https://docs.caro.sh
+**Main Website**: https://caro.sh
+
+---
+
+## Overview
+
+Caro is an open-source Rust CLI tool that transforms natural language into safe, POSIX-compliant shell commands. It runs 100% locally by default, validates commands for safety before execution, and supports multiple LLM backends.
+
+### Key Features
+
+- **Privacy-First**: All inference runs locally on your machine
+- **Safety Validation**: Pattern-based detection blocks dangerous commands (rm -rf /, fork bombs, etc.)
+- **Multiple Backends**: Supports MLX (Apple Silicon), Ollama, vLLM
+- **Cross-Platform**: Works on macOS, Linux, and Windows (WSL)
+- **POSIX Compliant**: Generated commands work across all Unix systems
+
+### Quick Start
+
+```bash
+# Install caro
+cargo install caro
+
+# Convert natural language to shell commands
+caro "find all rust files modified in the last week"
+# Output: find . -name "*.rs" -mtime -7
+
+caro "show disk usage sorted by size"
+# Output: du -sh * | sort -hr
+```
+
+---
+
+## caro
+
+**URL**: https://docs.caro.sh//
+**Category**: main
+
+Transform natural language into safe, POSIX-compliant shell commands using local LLMs
+
+Safety First
+    Comprehensive validation blocks dangerous commands before execution. Pattern matching for rm -rf, fork bombs, and more.
+  
+
+  
+    Blazingly Fast
+    Optimized for Apple Silicon with MLX. Sub-2-second inference on M1/M2/M3/M4 chips with GPU acceleration.
+  
+
+  
+    Privacy First
+    All inference runs locally on your machine. Your commands and data never leave your computer.
+  
+
+  
+    POSIX Compliant
+    Generated commands work across all Unix systems. Standard utilities like find, grep, awk, and sed.
+  
+
+## Quick Example
+
+[Code block (bash)]
+
+## Why caro?
+
+  
+  
+  
+
+## Get Started
+
+---
+
+## Installation
+
+**URL**: https://docs.caro.sh/getting-started/installation/
+**Category**: getting-started
+
+Install caro on macOS, Linux, or Windows
+
+# Installation
+
+caro can be installed via Cargo (Rust's package manager), from source, or using pre-built binaries.
+
+## Requirements
+
+- **Rust 1.75+** (for building from source)
+- **CMake** (for MLX backend on macOS)
+- **4GB RAM** minimum, 8GB recommended
+- **2GB disk space** for model cache
+
+## Quick Install
+
+  
+  
+
+## Platform-Specific Instructions
+
+### macOS
+
+### Linux
+
+  
+  
+
+### Windows
+
+[Code block (powershell)]
+
+## Verifying Installation
+
+After installation, verify everything is working:
+
+[Code block (bash)]
+
+## First Run
+
+On first run, caro will download the required model (~1.1GB):
+
+[Code block (bash)]
+
+## Configuration
+
+caro stores configuration in:
+- **macOS**: `~/Library/Application Support/caro/`
+- **Linux**: `~/.config/caro/`
+- **Windows**: `%APPDATA%\caro\`
+
+Model cache location:
+- **macOS**: `~/Library/Caches/caro/models/`
+- **Linux**: `~/.cache/caro/models/`
+- **Windows**: `%LOCALAPPDATA%\caro\cache\`
+
+## Troubleshooting
+
+### "command not found: caro"
+
+Ensure Cargo's bin directory is in your PATH:
+
+[Code block (bash)]
+
+### Build fails with CMake error
+
+Install CMake:
+
+[Code block (bash)]
+
+### Model download fails
+
+Check your internet connection and try again:
+
+[Code block (bash)]
+
+## Next Steps
+
+- [**Quick Start**](/getting-started/quick-start/) - Learn the basics
+- [**macOS Setup**](/guides/macos-setup/) - Enable GPU acceleration
+- [**Configuration**](/reference/configuration/) - Customize caro
+
+---
+
+## Introduction to caro
+
+**URL**: https://docs.caro.sh/getting-started/introduction/
+**Category**: getting-started
+
+Learn what caro is and how it transforms natural language into shell commands
+
+# Introduction to caro
+
+**caro** is a Rust CLI tool that converts natural language descriptions into safe, POSIX-compliant shell commands using local LLMs.
+
+## What is caro?
+
+Instead of memorizing complex command syntax or searching Stack Overflow, simply describe what you want to do:
+
+[Code block (bash)]
+
+## Key Features
+
+  
+  
+  
+
+## How It Works
+
+1. **You describe** what you want to accomplish in plain English
+2. **caro sends** your description to a local LLM (no internet required)
+3. **The LLM generates** a POSIX-compliant shell command
+4. **Safety validation** checks for dangerous patterns
+5. **You review** the command before execution
+
+[Code block]
+
+## Safety First
+
+caro prioritizes safety with multiple layers of protection:
+
+| Risk Level | Color | Description |
+|------------|-------|-------------|
+| 
+
+| Backend | First Inference | Subsequent | Best For |
+|---------|----------------|------------|----------|
+| **MLX (GPU)** | < 2s | < 500ms | Apple Silicon Macs |
+| **Ollama** | ~3s | ~2s | Cross-platform |
+| **vLLM** | ~2s | ~1s | Server deployment |
+
+## Next Steps
+
+Ready to get started?
+
+- [**Installation**](/getting-started/installation/) - Install caro on your system
+- [**Quick Start**](/getting-started/quick-start/) - Learn the basics with examples
+- [**macOS Setup**](/guides/macos-setup/) - Optimize for Apple Silicon
+
+---
+
+## Quick Start
+
+**URL**: https://docs.caro.sh/getting-started/quick-start/
+**Category**: getting-started
+
+Get up and running with caro in minutes
+
+# Quick Start
+
+This guide will get you productive with caro in just a few minutes.
+
+## Installation
+
+  
+  
+
+Verify installation:
+
+[Code block (bash)]
+
+## Basic Usage
+
+Simply describe what you want to do in natural language:
+
+[Code block (bash)]
+
+## Interactive Confirmation
+
+When you run a command, caro shows the generated command and asks for confirmation:
+
+[Code block (bash)]
+
+This interactive flow ensures you always review commands before execution.
+
+## Common Examples
+
+### File Operations
+
+[Code block (bash)]
+
+### Text Search
+
+[Code block (bash)]
+
+### System Information
+
+[Code block (bash)]
+
+### Directory Operations
+
+[Code block (bash)]
+
+## Understanding the Output
+
+caro provides clear, colored output:
+
+[Code block]
+
+| Element | Description |
+|---------|-------------|
+| Command | The shell command caro generated for your request |
+| Confirmation | Interactive prompt to execute or decline |
+
+When a command is potentially dangerous, caro will show a warning and require explicit confirmation before proceeding.
+
+### Platform-Aware Generation
+
+caro automatically detects your environment and generates platform-appropriate commands:
+
+- **Operating system** (macOS, Linux, Windows)
+- **Architecture** (x86_64, ARM64/Apple Silicon)
+- **Shell type** (bash, zsh, fish)
+- **Available commands** on your system
+
+This means the same natural language prompt produces the correct command for your platform.
+
+## Safety Features
+
+caro automatically validates commands for safety:
+
+[Code block (bash)]
+
+## Command Execution Options
+
+### Interactive Confirmation (Default)
+
+The default behavior is to show the command and ask for confirmation:
+
+[Code block (bash)]
+
+### Auto-Confirmation with `--confirm`
+
+For scripting or when you trust the command, use `--confirm` (or `-y`) to skip the confirmation prompt:
+
+[Code block (bash)]
+
+### Copy Without Execution
+
+Press `n` at the confirmation prompt to decline execution - the command remains visible for you to copy:
+
+[Code block (bash)]
+
+## Tips for Better Results
+
+  
+  
+  
+
+### Good vs. Bad Prompts
+
+| Bad Prompt | Good Prompt |
+|------------|-------------|
+| "files" | "find all PDF files in the downloads folder" |
+| "search" | "search for 'TODO' comments in python files" |
+| "compress" | "compress all jpg files to 80% quality" |
+| "ports" | "show which process is using port 8080" |
+
+## Workflow Examples
+
+### Development Workflow
+
+[Code block (bash)]
+
+### System Administration
+
+[Code block (bash)]
+
+### Data Processing
+
+[Code block (bash)]
+
+## CLI Options
+
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--confirm` | `-y` | Auto-confirm dangerous commands without prompting |
+| `--shell ` | `-s` | Target shell (bash, zsh, fish, sh) |
+| `--output ` | `-o` | Output format (json, yaml, plain) |
+| `--safety ` | | Safety level (strict, moderate, permissive) |
+| `--verbose` | `-v` | Enable verbose output with timing |
+| `--config ` | `-c` | Custom configuration file |
+
+Example with options:
+
+[Code block (bash)]
+
+## Next Steps
+
+Now that you know the basics:
+
+- [**macOS Setup**](/guides/macos-setup/) - Enable GPU acceleration for faster inference
+- [**Safety Validation**](/guides/safety/) - Learn about the safety system
+- [**Configuration**](/reference/configuration/) - Customize caro's behavior
+- [**Backend Options**](/reference/backends/) - Explore different inference backends
+
+---
+
+## macOS Setup Guide
+
+**URL**: https://docs.caro.sh/guides/macos-setup/
+**Category**: guides
+
+Set up caro on macOS with optional GPU acceleration for Apple Silicon
+
+This guide covers setup for caro on macOS, with special attention to Apple Silicon (M1/M2/M3/M4) for GPU acceleration.
+
+## Prerequisites
+
+### Required
+- **macOS**: 10.15 (Catalina) or later
+- **Rust**: 1.75 or later
+- **Homebrew**: Package manager for macOS
+
+### Optional (for GPU acceleration)
+- **Xcode**: Full Xcode installation for Metal compiler (Apple Silicon only)
+
+## Quick Start (All Macs)
+
+### 1. Install Rust
+
+[Code block (bash)]
+
+### 2. Install Homebrew (if not already installed)
+
+[Code block (bash)]
+
+### 3. Install CMake
+
+[Code block (bash)]
+
+### 4. Clone and Build
+
+[Code block (bash)]
+
+### 5. Test Installation
+
+[Code block (bash)]
+
+## Apple Silicon GPU Acceleration
+
+Apple Silicon (M1/M2/M3/M4) chips support GPU-accelerated inference via the MLX framework, providing ~4x faster inference compared to CPU-only mode.
+
+### Current Status
+
+The project includes a **fully functional stub implementation** that:
+- Correctly detects Apple Silicon hardware
+- Downloads and loads the 1.1GB Qwen model
+- Provides instant responses for testing and development
+- Works without any additional dependencies
+
+**For real GPU acceleration**, you need the Metal compiler from Xcode.
+
+### Option 1: Stub Implementation (Recommended for Development)
+
+**No additional setup required!** The default build works immediately:
+
+[Code block (bash)]
+
+**When to use:**
+- Quick testing and development
+- You don't want to install multi-GB Xcode
+- You're developing non-inference features
+- You want instant responses for integration testing
+
+**Performance:**
+- Model load: ~500ms (from disk)
+- Response time: ~100ms (simulated inference)
+- Memory: ~1.1GB (model file)
+
+### Option 2: Full GPU Acceleration with Xcode
+
+**For production use with real GPU-accelerated inference:**
+
+#### Step 1: Install Xcode
+
+Choose one of these methods:
+
+**Method A: App Store (Recommended)**
+1. Open App Store
+2. Search for "Xcode"
+3. Click "Get" or "Install"
+4. Wait for download (~15GB) and installation
+5. Open Xcode once to accept license
+
+**Method B: Command Line**
+
+[Code block (bash)]
+
+#### Step 2: Configure Xcode
+
+[Code block (bash)]
+
+#### Step 3: Build with MLX Feature
+
+[Code block (bash)]
+
+#### Step 4: Verify GPU Acceleration
+
+[Code block (bash)]
+
+**Expected Performance (M4 Pro):**
+- Model load: < 2s (MLX optimization)
+- First inference: < 2s
+- Subsequent inference: < 500ms
+- First token latency: < 200ms
+- Memory: ~1.2GB (unified memory)
+
+## Troubleshooting
+
+### "metal: command not found"
+
+**Problem**: Metal compiler not found when building with `embedded-mlx` feature.
+
+**Solution**: Install full Xcode (not just Command Line Tools):
+
+[Code block (bash)]
+
+### "xcrun: error: unable to find utility 'metal'"
+
+**Problem**: Xcode is installed but not configured as active developer directory.
+
+**Solution**:
+
+[Code block (bash)]
+
+### "mlx-sys build failed"
+
+**Problem**: CMake or Metal compiler issues during mlx-rs compilation.
+
+**Solution**:
+
+[Code block (bash)]
+
+### Model Download Issues
+
+**Problem**: Model fails to download from Hugging Face.
+
+**Solution**:
+
+[Code block (bash)]
+
+### "Failed to load model"
+
+**Problem**: Model file corrupted or not found.
+
+**Solution**:
+
+[Code block (bash)]
+
+## Platform Detection
+
+The project automatically detects your platform:
+
+[Code block (bash)]
+
+## Performance Comparison
+
+### Apple Silicon M4 Pro
+
+| Backend | First Inference | Subsequent | Model Load | Memory |
+|---------|----------------|------------|------------|--------|
+| **Stub** | ~100ms | ~100ms | ~500ms | ~1.1GB |
+| **MLX (GPU)** | < 2s | < 500ms | < 2s | ~1.2GB |
+| **CPU** | ~4s | ~3s | ~3s | ~1.5GB |
+
+### Intel Mac
+
+| Backend | First Inference | Subsequent | Model Load | Memory |
+|---------|----------------|------------|------------|--------|
+| **CPU** | ~5s | ~4s | ~4s | ~1.5GB |
+
+## System Requirements
+
+### Minimum
+- macOS 10.15+
+- 4GB RAM
+- 2GB free disk space (for model cache)
+- Internet connection (first run only)
+
+### Recommended for GPU Acceleration
+- Apple Silicon Mac (M1/M2/M3/M4)
+- 8GB+ RAM
+- macOS 12.0+
+- Xcode 14+ installed
+- 5GB free disk space (includes Xcode)
+
+## Summary
+
+**For quick start**: Just install Rust, CMake, and build. Works immediately with stub implementation.
+
+**For production GPU acceleration**: Install Xcode, verify Metal compiler, and build with `--features embedded-mlx`.
+
+Both modes are fully functional - the stub provides instant responses for development, while MLX provides real GPU-accelerated inference for production use.
+
+---
+
+## Spec-Kitty Development Guide
+
+**URL**: https://docs.caro.sh/guides/spec-kitty/
+**Category**: guides
+
+Use Spec-Kitty for rapid, multi-branch feature development with caro
+
+This guide explains how to use Spec-Kitty in the caro project for rapid, multi-branch feature development.
+
+## Overview
+
+**Spec-Kitty** is integrated into caro to enable:
+- **Worktree-based development**: Work on multiple features simultaneously without branch switching
+- **Real-time dashboard**: Visual kanban board showing all features and their status
+- **Multi-agent coordination**: Collaborate with multiple AI agents (Claude Code, Codex, etc.)
+- **Spec-driven workflows**: Systematic approach to features, enhancements, and bug fixes
+
+## Quick Start
+
+### 1. Create a New Feature
+
+[Code block (bash)]
+
+This creates:
+- A new git worktree in `kitty-specs/001-add-caching/`
+- A feature branch `feature/001-add-caching`
+- Initial directory structure with `tasks/` folders
+
+### 2. View All Features
+
+[Code block (bash)]
+
+Dashboard URL: http://127.0.0.1:9237
+
+### 3. Work on a Feature
+
+[Code block (bash)]
+
+## Workflow Commands
+
+Use these slash commands in Claude Code **from within the feature worktree**:
+
+### Phase 1: Specification
+
+[Code block]
+
+Creates `spec.md` with feature requirements, scope, and acceptance criteria.
+
+### Phase 2: Planning (Optional Enhancement)
+
+[Code block]
+
+Asks targeted questions to de-risk ambiguous areas before planning.
+
+### Phase 3: Architecture
+
+[Code block]
+
+Creates `plan.md` with technical design, architecture, and implementation approach.
+
+### Phase 4: Task Generation
+
+[Code block]
+
+Generates work packages in `tasks/planned/WP01.md`, `WP02.md`, etc.
+
+### Phase 5: Implementation
+
+[Code block]
+
+Processes tasks from `tasks/doing/` one by one with confirmation prompts.
+
+Tasks move through lanes:
+- `tasks/planned/` - Initial work packages
+- `tasks/doing/` - Currently working on
+- `tasks/review/` - Pending review
+- `tasks/done/` - Completed
+
+### Phase 6: Quality Checks (Optional)
+
+[Code block]
+
+Cross-artifact consistency check across spec, plan, and tasks.
+
+[Code block]
+
+Generate quality checklists for requirements validation.
+
+### Phase 7: Review and Accept
+
+[Code block]
+
+Review prompts and move them to `tasks/done/`.
+
+[Code block]
+
+Run acceptance checks to verify feature is complete and ready to merge.
+
+### Phase 8: Merge
+
+[Code block]
+
+Merge feature branch to main and clean up the worktree.
+
+Or from project root:
+
+[Code block (bash)]
+
+## Workflow Examples
+
+### Example 1: Small Bug Fix with Multiple Changes
+
+[Code block (bash)]
+
+### Example 2: Parallel Development of Two Features
+
+[Code block (bash)]
+
+Each feature is isolated in its own git worktree, so no conflicts!
+
+## Best Practices
+
+1. **One feature per worktree**: Keep features isolated for clarity
+2. **Use descriptive feature descriptions**: Helps with auto-generated IDs
+3. **Complete `/spec-kitty.specify` first**: Good specs lead to better plans
+4. **Review tasks before `/spec-kitty.implement`**: Adjust work packages if needed
+5. **Commit frequently**: Each worktree is a full git repo
+6. **Use the dashboard**: Visual feedback helps track progress
+7. **Clean up merged features**: Run `/spec-kitty.merge` to remove worktrees
+8. **Follow UTF-8 encoding rules**: See `.kittify/AGENTS.md`
+
+## Summary
+
+Spec-Kitty enables rapid, systematic feature development with:
+- Worktree-based isolation
+- Real-time visual dashboard
+- Multi-agent coordination
+- Automated task management
+- Parallel development workflows
+
+Use it for small/medium features and bugs, while keeping the existing `.specify/` workflow for large architectural work.
+
+---
+
+## Backend Reference
+
+**URL**: https://docs.caro.sh/reference/backends/
+**Category**: reference
+
+Complete reference for caro inference backends
+
+caro supports multiple inference backends for flexibility across different platforms and use cases.
+
+## Backend Overview
+
+| Backend | Platform | GPU Support | Best For |
+|---------|----------|-------------|----------|
+| **MLX** | Apple Silicon | Yes | Macs with M1/M2/M3/M4 |
+| **Ollama** | All | Varies | Cross-platform, easy setup |
+| **vLLM** | Linux/Server | Yes (CUDA) | High-performance serving |
+
+## MLX Backend
+
+The MLX backend provides GPU-accelerated inference on Apple Silicon.
+
+### Requirements
+
+- Apple Silicon Mac (M1/M2/M3/M4)
+- macOS 12.0+
+- Xcode with Metal compiler
+
+### Configuration
+
+[Code block (toml)]
+
+### Performance
+
+| Metric | M1 | M1 Pro | M2 Pro | M4 Pro |
+|--------|-----|--------|--------|--------|
+| First inference | 2.5s | 2.0s | 1.8s | 1.5s |
+| Subsequent | 800ms | 600ms | 500ms | 400ms |
+| Memory | 1.2GB | 1.2GB | 1.2GB | 1.2GB |
+
+### Troubleshooting
+
+**Metal compiler not found:**
+
+[Code block (bash)]
+
+**Build failure:**
+
+[Code block (bash)]
+
+## Ollama Backend
+
+Ollama provides easy local model serving across all platforms.
+
+### Setup
+
+1. Install Ollama:
+
+[Code block (bash)]
+
+2. Start Ollama:
+
+[Code block (bash)]
+
+3. Pull a model:
+
+[Code block (bash)]
+
+### Configuration
+
+[Code block (toml)]
+
+### Available Models
+
+| Model | Size | Speed | Quality |
+|-------|------|-------|---------|
+| `qwen2.5-coder:0.5b` | 0.5GB | Fast | Good |
+| `qwen2.5-coder:1.5b` | 1.1GB | Medium | Better |
+| `qwen2.5-coder:7b` | 4.5GB | Slower | Best |
+| `codellama:7b` | 4GB | Medium | Good |
+
+### Performance Tips
+
+- Keep Ollama running in background
+- Use smaller models for faster responses
+- Increase timeout for larger models
+
+## vLLM Backend
+
+vLLM provides high-performance serving for production deployments.
+
+### Setup
+
+1. Install vLLM:
+
+[Code block (bash)]
+
+2. Start server:
+
+[Code block (bash)]
+
+### Configuration
+
+[Code block (toml)]
+
+### Docker Deployment
+
+[Code block (yaml)]
+
+### Performance
+
+| GPUs | Throughput | Latency |
+|------|------------|---------|
+| 1x A100 | 100+ req/s | <500ms |
+| 1x RTX 4090 | 50+ req/s | <800ms |
+| 1x RTX 3090 | 30+ req/s | <1200ms |
+
+## Backend Selection
+
+### Automatic Selection
+
+caro automatically selects the best available backend:
+
+1. **MLX** - If on Apple Silicon with MLX support
+2. **Ollama** - If Ollama is running locally
+3. **vLLM** - If vLLM server is configured
+
+### Manual Selection
+
+Override via command line:
+
+[Code block (bash)]
+
+Or via environment:
+
+[Code block (bash)]
+
+## Custom Backend
+
+Implement the `ModelBackend` trait for custom backends:
+
+[Code block (rust)]
+
+See the source code for implementation examples.
+
+---
+
+## Configuration Reference
+
+**URL**: https://docs.caro.sh/reference/configuration/
+**Category**: reference
+
+Complete configuration options for caro
+
+This document covers all configuration options available in caro.
+
+## Configuration Location
+
+caro stores configuration in platform-specific locations:
+
+| Platform | Config Path |
+|----------|-------------|
+| **macOS** | `~/Library/Application Support/caro/config.toml` |
+| **Linux** | `~/.config/caro/config.toml` |
+| **Windows** | `%APPDATA%\caro\config.toml` |
+
+## Configuration File Format
+
+Configuration uses TOML format:
+
+[Code block (toml)]
+
+## Configuration Options
+
+### General Settings
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `backend` | string | `"mlx"` | Default inference backend |
+| `color` | bool | `true` | Enable colored terminal output |
+| `safety_warnings` | bool | `true` | Show safety level warnings |
+| `confirm_execution` | bool | `true` | Require confirmation before execution |
+
+### Model Settings
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `name` | string | `"qwen2.5-coder-1.5b-instruct"` | Model name |
+| `format` | string | `"gguf"` | Model file format |
+| `quantization` | string | `"q4_k_m"` | Quantization level |
+| `cache_dir` | string | (auto) | Custom model cache directory |
+
+### Backend: MLX
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `enabled` | bool | `true` | Enable MLX backend |
+| `threads` | int | `4` | Number of CPU threads |
+| `gpu` | bool | `true` | Use GPU acceleration |
+
+### Backend: Ollama
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `enabled` | bool | `false` | Enable Ollama backend |
+| `host` | string | `"http://localhost:11434"` | Ollama server URL |
+| `model` | string | `"qwen2.5-coder:latest"` | Ollama model name |
+| `timeout` | int | `30` | Request timeout in seconds |
+
+### Backend: vLLM
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `enabled` | bool | `false` | Enable vLLM backend |
+| `url` | string | `"http://localhost:8000"` | vLLM server URL |
+| `timeout` | int | `30` | Request timeout in seconds |
+
+## Environment Variables
+
+Configuration can also be set via environment variables:
+
+[Code block (bash)]
+
+## Command-Line Overrides
+
+Command-line flags override configuration file settings:
+
+[Code block (bash)]
+
+## Cache Directory
+
+Model cache location:
+
+| Platform | Cache Path |
+|----------|------------|
+| **macOS** | `~/Library/Caches/caro/models/` |
+| **Linux** | `~/.cache/caro/models/` |
+| **Windows** | `%LOCALAPPDATA%\caro\cache\` |
+
+### Managing Cache
+
+[Code block (bash)]
+
+## Example Configurations
+
+### Development Setup
+
+[Code block (toml)]
+
+### Server Deployment
+
+[Code block (toml)]
+
+### Multi-Backend Setup
+
+[Code block (toml)]
+
+---
+
+## Naming History
+
+**URL**: https://docs.caro.sh/reference/naming-history/
+**Category**: reference
+
+The evolution from cmdai to caro
+
+This document explains the naming evolution of the project and the reasoning behind the change.
+
+## Timeline
+
+### Before 20 December 2025: The cmdai Era
+
+The project was initially developed and published under the name **cmdai** (short for "command AI"). The name reflected the tool's purpose: using AI to generate commands.
+
+### 20 December 2025: The Caro Transition
+
+After initial development and testing, the project was renamed to **caro** thanks to the generosity of [@aeplay](https://github.com/aeplay), who graciously transferred the `caro` crate name to the project.
+
+## Why "caro"?
+
+The name **caro** offers several advantages over the original **cmdai**:
+
+1. **Brevity**: Shorter and easier to type (4 characters vs 5)
+2. **Memorability**: More distinctive and memorable as a brand name
+3. **Pronounceability**: Natural pronunciation in multiple languages
+4. **Brandability**: Better suited for a product name and domain (caro.sh)
+5. **Community**: Reflects the open-source nature with a friendly, approachable name
+
+### Etymology
+
+**caro** can be interpreted multiple ways:
+- Latin: "dear" or "beloved" (feminine form of *carus*)
+- A friendly, approachable name that's easy to remember
+- Short enough to type quickly in terminal commands
+
+## Migration Guide
+
+### For Users
+
+If you previously installed **cmdai**, you can migrate to **caro** easily:
+
+[Code block (bash)]
+
+### For Developers
+
+The package name change affects:
+- Crate name: `cmdai` -> `caro`
+- Binary name: `cmdai` -> `caro`
+- Repository URL: `github.com/wildcard/cmdai` -> `github.com/wildcard/caro`
+- Config directory: `~/.config/cmdai/` -> `~/.config/caro/`
+- Documentation URLs and references
+
+### Configuration Migration
+
+Your configuration will need to be migrated:
+
+[Code block (bash)]
+
+The configuration file format remains the same - only the directory location has changed.
+
+## Acknowledgments
+
+Special thanks to **[@aeplay](https://github.com/aeplay)** for:
+- Graciously transferring the `caro` crate name to this project
+- Believing in the project's future and potential
+- Supporting the open-source Rust community
+
+This generosity enabled the project to have a better, more memorable name that will serve it well as it grows.
+
+## FAQ
+
+### Will cmdai continue to exist?
+
+No. The **cmdai** crate name will be deprecated in favor of **caro**. We recommend all users migrate to the new name.
+
+### What about the cmdai repository?
+
+The repository has been renamed from `wildcard/cmdai` to `wildcard/caro`. GitHub automatically redirects old URLs to the new location.
+
+### Do I need to update my scripts?
+
+If your scripts reference the `cmdai` binary, you'll need to update them to use `caro` instead. The command-line interface and all flags remain identical.
+
+### Will my old configuration work?
+
+Yes, but you'll need to move it from `~/.config/cmdai/` to `~/.config/caro/`. The configuration file format has not changed.
+
+---
+
+## Safety Validation
+
+**URL**: https://docs.caro.sh/reference/safety/
+**Category**: reference
+
+How caro validates commands for safety before execution
+
+caro includes a comprehensive safety validation system to prevent dangerous command execution.
+
+## Risk Levels
+
+Commands are categorized into four risk levels:
+
+| Level | Color | Description | Examples |
+|-------|-------|-------------|----------|
+| **Safe** | Green | Normal read operations | `ls`, `cat`, `find`, `grep` |
+| **Moderate** | Yellow | File modifications | `mv`, `cp`, `chmod` (non-system) |
+| **High** | Orange | System-level changes | `sudo`, `chown`, system paths |
+| **Critical** | Red | Blocked - dangerous | `rm -rf /`, fork bombs |
+
+## Dangerous Pattern Detection
+
+### Filesystem Destruction
+
+[Code block (bash)]
+
+### Disk Operations
+
+[Code block (bash)]
+
+### Fork Bombs
+
+[Code block (bash)]
+
+### Privilege Escalation
+
+[Code block (bash)]
+
+### System Path Modifications
+
+[Code block (bash)]
+
+## Validation Pipeline
+
+[Code block]
+
+## POSIX Compliance
+
+caro validates commands for POSIX compliance:
+
+### Allowed Utilities
+
+Standard POSIX utilities are preferred:
+
+[Code block (bash)]
+
+### Bash-Specific Avoidance
+
+When possible, bash-specific features are avoided for portability:
+
+[Code block (bash)]
+
+## Path Quoting
+
+caro automatically quotes paths with special characters:
+
+[Code block (bash)]
+
+## Override Safety (Not Recommended)
+
+For advanced users who understand the risks:
+
+[Code block (bash)]
+
+These flags require explicit confirmation and are logged.
+
+## Configuration
+
+Customize safety behavior in `config.toml`:
+
+[Code block (toml)]
+
+## Reporting Security Issues
+
+If you find a way to bypass safety validation:
+
+1. **Do not** disclose publicly
+2. **Email** security@caro.sh with details
+3. **Include** the command that bypassed validation
+4. **Wait** for confirmation before public disclosure
+
+We take security seriously and will respond within 48 hours.
+
+---
+
+## AI Agent Guidelines
+
+**URL**: https://docs.caro.sh/development/agents/
+**Category**: development
+
+Guidelines for AI agents working on the caro codebase
+
+This document provides guidelines for AI agents (Claude Code, Cursor, Copilot, etc.) working on the caro codebase.
+
+## Code Style
+
+### Rust Conventions
+
+- Follow Rust 2021 edition idioms
+- Use `rustfmt` formatting
+- Pass all `clippy` lints
+- Prefer `Result` over panics
+- Use meaningful variable names
+
+### Documentation
+
+- Add doc comments to all public APIs
+- Use `///` for function documentation
+- Include examples in doc comments
+- Keep comments up-to-date with code
+
+## Safety Requirements
+
+### Critical Rules
+
+1. **Never bypass safety validation** in production code
+2. **Test dangerous patterns** only in controlled test environments
+3. **Document all security-relevant changes** thoroughly
+4. **Review generated commands** before suggesting execution
+
+### Dangerous Patterns to Block
+
+[Code block (rust)]
+
+## Testing Requirements
+
+### Test Coverage
+
+- All new features require tests
+- Bug fixes must include regression tests
+- Safety validation requires property tests
+- Integration tests for CLI workflows
+
+### Test Quality
+
+- Tests should be deterministic
+- Avoid flaky tests
+- Mock external dependencies
+- Use descriptive test names
+
+## Git Workflow
+
+### Commit Messages
+
+[Code block]
+
+### Branch Naming
+
+- `feature/description` - New features
+- `fix/description` - Bug fixes
+- `docs/description` - Documentation
+- `refactor/description` - Code improvements
+
+## Performance Considerations
+
+### Startup Time
+
+- Target: < 100ms cold start
+- Lazy load dependencies
+- Avoid blocking I/O on startup
+
+### Inference Time
+
+- Target: < 2s on Apple Silicon
+- Cache model weights
+- Use streaming where beneficial
+
+## Error Handling
+
+### Do
+
+[Code block (rust)]
+
+### Don't
+
+[Code block (rust)]
+
+## Encoding Rules
+
+### UTF-8 Compliance
+
+- All source files must be UTF-8
+- Use ASCII for identifiers
+- Avoid smart quotes in strings
+- Use standard ASCII punctuation
+
+### Avoid
+
+- Em-dashes (use `--` instead)
+- Smart quotes (use `"` and `'`)
+- Non-breaking spaces
+- Invisible Unicode characters
+
+---
+
+## Test-Driven Development
+
+**URL**: https://docs.caro.sh/development/tdd-workflow/
+**Category**: development
+
+How caro uses TDD for reliable, well-tested code
+
+This guide covers the Test-Driven Development (TDD) workflow used in caro development.
+
+## TDD Principles
+
+caro follows strict TDD principles:
+
+1. **Red**: Write a failing test first
+2. **Green**: Write minimal code to pass the test
+3. **Refactor**: Clean up while keeping tests green
+
+## Running Tests
+
+[Code block (bash)]
+
+## Test Categories
+
+### Unit Tests
+
+Located alongside source code in `src/`:
+
+[Code block (rust)]
+
+### Integration Tests
+
+Located in `tests/`:
+
+[Code block (bash)]
+
+### Property Tests
+
+Using `proptest` for fuzzing:
+
+[Code block (rust)]
+
+## Test Coverage
+
+Run coverage reports:
+
+[Code block (bash)]
+
+## Writing Good Tests
+
+### Test Naming
+
+Use descriptive names:
+
+[Code block (rust)]
+
+### Arrange-Act-Assert
+
+Structure tests clearly:
+
+[Code block (rust)]
+
+## Mocking
+
+Use trait objects for testability:
+
+[Code block (rust)]
+
+## CI Integration
+
+Tests run automatically on every PR:
+
+[Code block (yaml)]
+
+---
+
+## Website Development
+
+**URL**: https://docs.caro.sh/development/website/
+**Category**: development
+
+Development guide for the caro.sh website
+
+This document covers development of the caro.sh marketing website built with Astro.
+
+## Project Location
+
+The website source is in the `website/` directory of the monorepo.
+
+## Tech Stack
+
+- **Framework**: [Astro](https://astro.build) v4
+- **Styling**: Scoped CSS in Astro components
+- **Deployment**: Vercel (static site generation)
+- **Analytics**: Vercel Analytics
+
+## Analytics
+
+The website uses Vercel Analytics for privacy-friendly traffic monitoring.
+
+### Setup
+
+In `src/layouts/Layout.astro`:
+
+[Code block (astro)]
+
+### Features
+
+- **Privacy-first**: No cookies, GDPR compliant by default
+- **Automatic tracking**: Page views tracked without additional configuration
+- **Web Vitals**: Core Web Vitals automatically collected
+- **Real-time**: View live traffic in Vercel dashboard
+
+### Viewing Analytics
+
+1. Go to your [Vercel dashboard](https://vercel.com/dashboard)
+2. Select the caro website project
+3. Click the "Analytics" tab
+
+## Local Development
+
+[Code block (bash)]
+
+Visit `http://localhost:4321` to see the site.
+
+## Building
+
+[Code block (bash)]
+
+## Deployment
+
+The website auto-deploys to Vercel on push to main. Preview deployments are created for all pull requests.
+
+### Custom Domain
+
+The production site is available at `caro.sh`.
+
+---
+
+## Quick Reference
+
+### Installation
+
+```bash
+# Via Cargo (recommended)
+cargo install caro
+
+# From source
+git clone https://github.com/wildcard/caro.git
+cd caro && cargo install --path .
+```
+
+### Configuration Location
+
+| Platform | Config Path |
+|----------|-------------|
+| macOS | ~/Library/Application Support/caro/config.toml |
+| Linux | ~/.config/caro/config.toml |
+| Windows | %APPDATA%\caro\config.toml |
+
+### Common Commands
+
+```bash
+caro "your natural language query"    # Generate command
+caro --backend ollama "query"          # Use specific backend
+caro --yes "query"                     # Skip confirmation
+caro --verbose "query"                 # Verbose output
+caro cache info                        # Show cache info
+caro cache clear                       # Clear model cache
+```
+
+### Risk Levels
+
+| Level | Description | Examples |
+|-------|-------------|----------|
+| Safe | Normal read operations | ls, cat, find, grep |
+| Moderate | File modifications | mv, cp, chmod |
+| High | System-level changes | sudo, chown |
+| Critical | Blocked - dangerous | rm -rf /, fork bombs |
+
+---
+
+## Links
+
+- [GitHub Repository](https://github.com/wildcard/caro)
+- [Issue Tracker](https://github.com/wildcard/caro/issues)
+- [Discussions](https://github.com/wildcard/caro/discussions)
+- [Main Website](https://caro.sh/)
+
+---
+
+*Generated on 2026-01-04*

@@ -1,0 +1,1127 @@
+---
+/**
+ * Jobs To Be Done - Canonical Framework Documentation
+ *
+ * Based on Anthony Ulwick's Outcome-Driven Innovation (ODI)
+ * and Clayton Christensen's JTBD theory.
+ *
+ * This page documents Caro's JTBD using the canonical format:
+ * - Job statements: "When [situation], I want to [motivation], so I can [expected outcome]"
+ * - Functional, emotional, and social jobs
+ * - Desired outcomes and success metrics
+ * - Job triggers and context switches
+ */
+
+import LandingPage from '../../layouts/LandingPage.astro';
+import Navigation from '../../components/Navigation.astro';
+import LPDownload from '../../components/landing/LPDownload.astro';
+import LPFooter from '../../components/landing/LPFooter.astro';
+
+// Core Jobs following canonical JTBD format
+const coreJobs = [
+  {
+    id: 'safe-execution',
+    situation: "I'm about to run a command in production",
+    motivation: "validate it won't cause damage",
+    outcome: "prevent outages and keep my systems running",
+    type: 'functional',
+    frequency: 'Daily',
+    importance: 'Critical',
+    satisfaction_gap: 'High',
+  },
+  {
+    id: 'offline-assistance',
+    situation: "I'm working in an air-gapped or restricted environment",
+    motivation: "get AI assistance without network access",
+    outcome: "be productive even when isolated from the internet",
+    type: 'functional',
+    frequency: 'Daily',
+    importance: 'Critical',
+    satisfaction_gap: 'Very High',
+  },
+  {
+    id: 'nl-to-command',
+    situation: "I know what I want to do but not the exact command syntax",
+    motivation: "describe my intent in plain English",
+    outcome: "get a working command without searching documentation",
+    type: 'functional',
+    frequency: 'Daily',
+    importance: 'High',
+    satisfaction_gap: 'Medium',
+  },
+  {
+    id: 'cross-platform',
+    situation: "I'm writing commands that need to work on Mac, Linux, and CI",
+    motivation: "generate platform-aware commands automatically",
+    outcome: "stop debugging BSD vs GNU flag differences",
+    type: 'functional',
+    frequency: 'Weekly',
+    importance: 'High',
+    satisfaction_gap: 'High',
+  },
+  {
+    id: 'incident-response',
+    situation: "I'm troubleshooting an incident at 3 AM",
+    motivation: "get commands quickly without making mistakes",
+    outcome: "resolve incidents faster without causing additional damage",
+    type: 'functional',
+    frequency: 'Weekly',
+    importance: 'Critical',
+    satisfaction_gap: 'High',
+  },
+  {
+    id: 'team-standards',
+    situation: "I'm responsible for my team's command-line safety",
+    motivation: "deploy safety standards without micromanaging",
+    outcome: "protect my team from dangerous commands automatically",
+    type: 'functional',
+    frequency: 'Monthly',
+    importance: 'High',
+    satisfaction_gap: 'Very High',
+  },
+];
+
+// Emotional jobs - how users want to feel
+const emotionalJobs = [
+  {
+    job: "Feel confident when running production commands",
+    painPoint: "Anxiety about accidentally breaking things",
+    caroSolution: "Deterministic safety validation provides certainty before execution",
+  },
+  {
+    job: "Feel in control during high-pressure incidents",
+    painPoint: "Stress leads to mistakes, mistakes make incidents worse",
+    caroSolution: "Fast, offline-capable assistance when you need it most",
+  },
+  {
+    job: "Feel competent despite not memorizing every flag",
+    painPoint: "Imposter syndrome when forgetting basic commands",
+    caroSolution: "Natural language interface lets you focus on intent, not syntax",
+  },
+  {
+    job: "Feel secure working in restricted environments",
+    painPoint: "Other tools require internet, leaving you stranded",
+    caroSolution: "Bundled model works where nothing else can",
+  },
+];
+
+// Social jobs - how users want to be perceived
+const socialJobs = [
+  {
+    job: "Be seen as careful and professional",
+    context: "Team environments where mistakes are visible",
+    caroSolution: "Visible safety validation shows diligence to colleagues",
+  },
+  {
+    job: "Be seen as the person who prevents incidents",
+    context: "Engineering teams that value reliability",
+    caroSolution: "Catches dangerous commands before they cause problems",
+  },
+  {
+    job: "Be seen as security-conscious",
+    context: "Organizations with compliance requirements",
+    caroSolution: "Offline operation and zero telemetry satisfy security teams",
+  },
+];
+
+// Job triggers - what causes users to seek a solution
+const jobTriggers = [
+  {
+    trigger: "Near-miss incident",
+    description: "Almost ran a dangerous command, caught it just in time",
+    urgency: "Immediate",
+  },
+  {
+    trigger: "Actual incident caused by command error",
+    description: "Production outage from typo or wrong flags",
+    urgency: "Immediate",
+  },
+  {
+    trigger: "New air-gapped deployment",
+    description: "Moved to restricted environment, existing tools don't work",
+    urgency: "High",
+  },
+  {
+    trigger: "Cross-platform migration",
+    description: "Moving from Mac to Linux or vice versa, commands breaking",
+    urgency: "Medium",
+  },
+  {
+    trigger: "Team growth",
+    description: "New engineers joining who might make dangerous mistakes",
+    urgency: "Medium",
+  },
+  {
+    trigger: "Security audit",
+    description: "Need to document and enforce command-line safety standards",
+    urgency: "High",
+  },
+];
+
+// Desired outcomes (ODI format) - what users measure success by
+const desiredOutcomes = [
+  {
+    outcome: "Minimize the time it takes to validate a command is safe",
+    metric: "Seconds from command to safety verdict",
+    current: "Manual review: 30-60 seconds",
+    withCaro: "Instant: <100ms",
+  },
+  {
+    outcome: "Minimize the likelihood of running a destructive command",
+    metric: "Dangerous commands executed per month",
+    current: "Varies, depends on vigilance",
+    withCaro: "Zero (blocked before execution)",
+  },
+  {
+    outcome: "Minimize the time it takes to get a working command",
+    metric: "Seconds from intent to executable command",
+    current: "Google + trial/error: 2-5 minutes",
+    withCaro: "<2 seconds inference",
+  },
+  {
+    outcome: "Minimize dependency on network connectivity",
+    metric: "Percentage of functionality available offline",
+    current: "0% (cloud AI tools)",
+    withCaro: "100% (bundled model)",
+  },
+  {
+    outcome: "Minimize cross-platform debugging time",
+    metric: "Time debugging BSD vs GNU differences",
+    current: "15-30 minutes per issue",
+    withCaro: "Zero (platform-aware generation)",
+  },
+];
+
+// Hiring/firing metaphor - what products are hired/fired
+const hiringFiring = [
+  {
+    context: "Command validation",
+    fires: ["Manual review", "Hope and prayer", "Bash aliases with safety checks"],
+    hires: "Caro's deterministic pattern matching",
+    reason: "Can't hallucinate, doesn't require vigilance",
+  },
+  {
+    context: "AI shell assistance",
+    fires: ["ChatGPT (requires network)", "Copilot CLI (requires network)", "Stack Overflow searches"],
+    hires: "Caro's offline-first AI",
+    reason: "Works in restricted environments, no dependency on cloud",
+  },
+  {
+    context: "Command learning",
+    fires: ["Man pages", "TLDR pages", "Google searches"],
+    hires: "Caro's natural language interface",
+    reason: "Describe intent, get working commands instantly",
+  },
+  {
+    context: "Cross-platform scripting",
+    fires: ["Trial and error", "Maintaining separate scripts", "Conditional shell logic"],
+    hires: "Caro's platform detection",
+    reason: "Generates correct flags for current platform",
+  },
+];
+
+// Job map for core job: Safe command execution
+const jobMap = [
+  {
+    step: "Define",
+    action: "Decide what action to take",
+    example: "I need to delete old log files",
+    caroRole: "Understands natural language intent",
+  },
+  {
+    step: "Locate",
+    action: "Identify what to operate on",
+    example: "Files older than 30 days in /var/log",
+    caroRole: "Generates correct find/date syntax",
+  },
+  {
+    step: "Prepare",
+    action: "Formulate the command",
+    example: "find /var/log -mtime +30 -delete",
+    caroRole: "Creates platform-correct command",
+  },
+  {
+    step: "Validate",
+    action: "Check command is safe",
+    example: "Is this going to delete something important?",
+    caroRole: "Matches against 52+ dangerous patterns",
+  },
+  {
+    step: "Confirm",
+    action: "Make go/no-go decision",
+    example: "Safe verdict gives confidence to proceed",
+    caroRole: "Clear safety status with explanations",
+  },
+  {
+    step: "Execute",
+    action: "Run the command",
+    example: "Press enter with confidence",
+    caroRole: "Optional: direct execution with safety gate",
+  },
+  {
+    step: "Verify",
+    action: "Confirm expected result",
+    example: "Check files were deleted correctly",
+    caroRole: "Can generate verification commands",
+  },
+];
+---
+
+<LandingPage
+  title="Jobs To Be Done Framework | Caro"
+  description="Understanding Caro through the canonical Jobs To Be Done framework. Discover the functional, emotional, and social jobs Caro performs."
+  slug="product/jobs-to-be-done"
+>
+  <Navigation variant="default" />
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-badge">Jobs To Be Done Framework</div>
+      <h1>Understanding Why<br />People Hire Caro</h1>
+      <p class="subtitle">
+        People don't buy products—they hire them to get jobs done. This page documents the specific jobs
+        users hire Caro to perform, using the canonical JTBD framework.
+      </p>
+      <p class="framework-credit">
+        Based on Anthony Ulwick's Outcome-Driven Innovation and Clayton Christensen's JTBD theory
+      </p>
+    </div>
+  </section>
+
+  <!-- What is JTBD Section -->
+  <section class="jtbd-intro">
+    <div class="container">
+      <h2>The JTBD Lens</h2>
+      <div class="intro-grid">
+        <div class="intro-card">
+          <h3>Jobs, Not Features</h3>
+          <p>Users don't care about Caro's 50 safety patterns or bundled Qwen model.
+             They care about <strong>not breaking production</strong> and <strong>getting work done</strong>
+             even when offline.</p>
+        </div>
+        <div class="intro-card">
+          <h3>Hiring and Firing</h3>
+          <p>When users "hire" Caro, they're "firing" something else—manual review, Google searches,
+             or cloud-dependent AI tools. Understanding what gets fired reveals the real job.</p>
+        </div>
+        <div class="intro-card">
+          <h3>Three Job Types</h3>
+          <p><strong>Functional:</strong> Tasks to accomplish. <strong>Emotional:</strong> How users
+             want to feel. <strong>Social:</strong> How users want to be perceived.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Core Functional Jobs Section -->
+  <section class="jobs-section">
+    <div class="container">
+      <h2>Core Jobs (Functional)</h2>
+      <p class="section-subtitle">The practical tasks users hire Caro to accomplish</p>
+
+      <div class="job-statements">
+        {coreJobs.map((job) => (
+          <div class="job-statement-card" data-type={job.type}>
+            <div class="job-header">
+              <span class={`importance-badge ${job.importance.toLowerCase()}`}>{job.importance}</span>
+              <span class="frequency-badge">{job.frequency}</span>
+              <span class={`gap-badge ${job.satisfaction_gap.toLowerCase().replace(' ', '-')}`}>
+                Gap: {job.satisfaction_gap}
+              </span>
+            </div>
+            <div class="job-statement">
+              <span class="statement-part situation">When</span> {job.situation},
+              <span class="statement-part motivation">I want to</span> {job.motivation},
+              <span class="statement-part outcome">so I can</span> {job.outcome}.
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Emotional Jobs Section -->
+  <section class="emotional-section">
+    <div class="container">
+      <h2>Emotional Jobs</h2>
+      <p class="section-subtitle">How users want to feel when doing their work</p>
+
+      <div class="emotional-grid">
+        {emotionalJobs.map((ej) => (
+          <div class="emotional-card">
+            <div class="emotional-job">{ej.job}</div>
+            <div class="pain-point">
+              <span class="label">Pain Point:</span>
+              {ej.painPoint}
+            </div>
+            <div class="solution">
+              <span class="label">How Caro Helps:</span>
+              {ej.caroSolution}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Social Jobs Section -->
+  <section class="social-section">
+    <div class="container">
+      <h2>Social Jobs</h2>
+      <p class="section-subtitle">How users want to be perceived by others</p>
+
+      <div class="social-grid">
+        {socialJobs.map((sj) => (
+          <div class="social-card">
+            <div class="social-job">{sj.job}</div>
+            <div class="social-context">
+              <span class="label">Context:</span>
+              {sj.context}
+            </div>
+            <div class="social-solution">
+              <span class="label">How Caro Helps:</span>
+              {sj.caroSolution}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Job Triggers Section -->
+  <section class="triggers-section">
+    <div class="container">
+      <h2>Job Triggers</h2>
+      <p class="section-subtitle">Events that cause users to seek a solution</p>
+
+      <div class="triggers-grid">
+        {jobTriggers.map((t) => (
+          <div class="trigger-card">
+            <div class="trigger-header">
+              <span class="trigger-name">{t.trigger}</span>
+              <span class={`urgency-badge ${t.urgency.toLowerCase()}`}>{t.urgency}</span>
+            </div>
+            <p>{t.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Desired Outcomes Section (ODI) -->
+  <section class="outcomes-section">
+    <div class="container">
+      <h2>Desired Outcomes</h2>
+      <p class="section-subtitle">What users measure success by (Outcome-Driven Innovation format)</p>
+
+      <div class="outcomes-table-wrapper">
+        <table class="outcomes-table">
+          <thead>
+            <tr>
+              <th>Outcome Statement</th>
+              <th>Metric</th>
+              <th>Without Caro</th>
+              <th>With Caro</th>
+            </tr>
+          </thead>
+          <tbody>
+            {desiredOutcomes.map((o) => (
+              <tr>
+                <td class="outcome-statement">{o.outcome}</td>
+                <td class="metric">{o.metric}</td>
+                <td class="current">{o.current}</td>
+                <td class="with-caro">{o.withCaro}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hiring/Firing Section -->
+  <section class="hiring-section">
+    <div class="container">
+      <h2>Hiring and Firing</h2>
+      <p class="section-subtitle">What solutions users fire when they hire Caro</p>
+
+      <div class="hiring-grid">
+        {hiringFiring.map((hf) => (
+          <div class="hiring-card">
+            <div class="hiring-context">{hf.context}</div>
+            <div class="fires">
+              <span class="label">Fires:</span>
+              <ul>
+                {hf.fires.map((f) => (
+                  <li>{f}</li>
+                ))}
+              </ul>
+            </div>
+            <div class="hires">
+              <span class="label">Hires:</span>
+              {hf.hires}
+            </div>
+            <div class="reason">
+              <span class="label">Because:</span>
+              {hf.reason}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Job Map Section -->
+  <section class="jobmap-section">
+    <div class="container">
+      <h2>Job Map: Safe Command Execution</h2>
+      <p class="section-subtitle">Step-by-step breakdown of the core job</p>
+
+      <div class="jobmap-timeline">
+        {jobMap.map((step, index) => (
+          <div class="jobmap-step">
+            <div class="step-number">{index + 1}</div>
+            <div class="step-content">
+              <div class="step-name">{step.step}</div>
+              <div class="step-action">{step.action}</div>
+              <div class="step-example">
+                <span class="label">Example:</span>
+                "{step.example}"
+              </div>
+              <div class="step-caro">
+                <span class="label">Caro's Role:</span>
+                {step.caroRole}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Summary Section -->
+  <section class="summary-section">
+    <div class="container">
+      <h2>The Core Insight</h2>
+      <div class="insight-box">
+        <p class="insight-text">
+          Users don't hire Caro because it has a bundled AI model or 50 safety patterns.
+          They hire Caro because they want to <strong>feel confident running commands</strong>,
+          <strong>get work done in any environment</strong>, and <strong>protect their systems
+          from their own mistakes</strong>.
+        </p>
+        <p class="insight-subtext">
+          The functional job is command safety. The emotional job is peace of mind.
+          The social job is being seen as careful and professional.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <LPDownload />
+  <LPFooter />
+</LandingPage>
+
+<style>
+  .hero {
+    padding: 100px 20px 80px;
+    text-align: center;
+    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    color: #8b5cf6;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  h1 {
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    color: var(--color-text);
+  }
+
+  .subtitle {
+    font-size: 20px;
+    color: var(--color-text-secondary);
+    max-width: 700px;
+    margin: 0 auto 16px;
+    line-height: 1.7;
+  }
+
+  .framework-credit {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    opacity: 0.7;
+    font-style: italic;
+  }
+
+  h2 {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    margin-bottom: 50px;
+  }
+
+  /* JTBD Intro Section */
+  .jtbd-intro {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .intro-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .intro-card {
+    padding: 28px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+  }
+
+  .intro-card h3 {
+    font-size: 20px;
+    color: var(--color-text);
+    margin-bottom: 12px;
+  }
+
+  .intro-card p {
+    font-size: 15px;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+  }
+
+  .intro-card strong {
+    color: var(--color-text);
+  }
+
+  /* Core Jobs Section */
+  .jobs-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .job-statements {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .job-statement-card {
+    padding: 28px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    border-left: 4px solid #8b5cf6;
+  }
+
+  .job-header {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .importance-badge,
+  .frequency-badge,
+  .gap-badge,
+  .urgency-badge {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .importance-badge.critical {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+  }
+
+  .importance-badge.high {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+  }
+
+  .frequency-badge {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+  }
+
+  .gap-badge {
+    background: rgba(139, 92, 246, 0.15);
+    color: #8b5cf6;
+  }
+
+  .gap-badge.very-high {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+  }
+
+  .job-statement {
+    font-size: 18px;
+    line-height: 1.8;
+    color: var(--color-text);
+  }
+
+  .statement-part {
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-right: 2px;
+  }
+
+  .statement-part.situation {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+  }
+
+  .statement-part.motivation {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+  }
+
+  .statement-part.outcome {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+  }
+
+  /* Emotional Jobs Section */
+  .emotional-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .emotional-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+
+  .emotional-card {
+    padding: 24px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+  }
+
+  .emotional-job {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .pain-point,
+  .solution {
+    margin-bottom: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .pain-point {
+    color: #ef4444;
+  }
+
+  .solution {
+    color: #22c55e;
+  }
+
+  .label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.8;
+  }
+
+  /* Social Jobs Section */
+  .social-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .social-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .social-card {
+    padding: 24px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+  }
+
+  .social-job {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 16px;
+  }
+
+  .social-context,
+  .social-solution {
+    margin-bottom: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+  }
+
+  /* Triggers Section */
+  .triggers-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .triggers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  .trigger-card {
+    padding: 20px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+  }
+
+  .trigger-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .trigger-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .urgency-badge.immediate {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+  }
+
+  .urgency-badge.high {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+  }
+
+  .urgency-badge.medium {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+  }
+
+  .trigger-card p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+  }
+
+  /* Outcomes Section */
+  .outcomes-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .outcomes-table-wrapper {
+    overflow-x: auto;
+  }
+
+  .outcomes-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--color-bg-secondary);
+    border-radius: 12px;
+    overflow: hidden;
+    font-size: 14px;
+  }
+
+  .outcomes-table th,
+  .outcomes-table td {
+    padding: 16px 20px;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .outcomes-table th {
+    background: var(--color-bg-tertiary);
+    font-weight: 600;
+    color: var(--color-text);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .outcomes-table td {
+    color: var(--color-text-secondary);
+  }
+
+  .outcomes-table .outcome-statement {
+    color: var(--color-text);
+    font-weight: 500;
+    max-width: 300px;
+  }
+
+  .outcomes-table .metric {
+    font-size: 13px;
+    opacity: 0.8;
+  }
+
+  .outcomes-table .current {
+    color: #ef4444;
+  }
+
+  .outcomes-table .with-caro {
+    color: #22c55e;
+    font-weight: 600;
+  }
+
+  /* Hiring Section */
+  .hiring-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .hiring-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+
+  .hiring-card {
+    padding: 24px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+  }
+
+  .hiring-context {
+    font-size: 18px;
+    font-weight: 600;
+    color: #8b5cf6;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .fires,
+  .hires,
+  .reason {
+    margin-bottom: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .fires {
+    color: #ef4444;
+  }
+
+  .fires ul {
+    margin: 8px 0 0 20px;
+    padding: 0;
+  }
+
+  .fires li {
+    margin-bottom: 4px;
+  }
+
+  .hires {
+    color: #22c55e;
+  }
+
+  .reason {
+    color: var(--color-text-secondary);
+    font-style: italic;
+  }
+
+  /* Job Map Section */
+  .jobmap-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .jobmap-timeline {
+    position: relative;
+    padding-left: 40px;
+  }
+
+  .jobmap-timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, #8b5cf6, #06b6d4);
+  }
+
+  .jobmap-step {
+    position: relative;
+    margin-bottom: 32px;
+    display: flex;
+    gap: 24px;
+  }
+
+  .jobmap-step:last-child {
+    margin-bottom: 0;
+  }
+
+  .step-number {
+    position: absolute;
+    left: -40px;
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .step-content {
+    flex: 1;
+    padding: 20px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+  }
+
+  .step-name {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #8b5cf6;
+    margin-bottom: 4px;
+  }
+
+  .step-action {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 12px;
+  }
+
+  .step-example,
+  .step-caro {
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 8px;
+  }
+
+  .step-example {
+    color: var(--color-text-secondary);
+  }
+
+  .step-caro {
+    color: #22c55e;
+  }
+
+  /* Summary Section */
+  .summary-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .insight-box {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 16px;
+    text-align: center;
+  }
+
+  .insight-text {
+    font-size: 20px;
+    line-height: 1.8;
+    color: var(--color-text);
+    margin-bottom: 16px;
+  }
+
+  .insight-text strong {
+    color: #8b5cf6;
+  }
+
+  .insight-subtext {
+    font-size: 16px;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 36px;
+    }
+
+    h2 {
+      font-size: 28px;
+    }
+
+    .job-statement {
+      font-size: 16px;
+    }
+
+    .jobmap-timeline {
+      padding-left: 30px;
+    }
+
+    .step-number {
+      left: -30px;
+      width: 26px;
+      height: 26px;
+      font-size: 12px;
+    }
+
+    .outcomes-table {
+      font-size: 12px;
+    }
+
+    .outcomes-table th,
+    .outcomes-table td {
+      padding: 12px 10px;
+    }
+  }
+</style>

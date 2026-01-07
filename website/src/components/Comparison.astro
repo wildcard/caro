@@ -4,7 +4,7 @@ const competitors = [
   { id: 'caro', name: 'Caro', highlight: true },
   { id: 'copilot-cli', name: 'GitHub Copilot CLI' },
   { id: 'warp', name: 'Warp AI' },
-  { id: 'amazon-q', name: 'Amazon Q CLI' },
+  { id: 'kiro', name: 'Kiro CLI' },
   { id: 'opencode', name: 'OpenCode' },
 ];
 
@@ -24,22 +24,22 @@ const comparisonData: { category: string; icon: string; rows: ComparisonRow[] }[
       {
         feature: 'Works 100% offline',
         tooltip: 'No internet required for core functionality',
-        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'amazon-q': 'no', 'opencode': 'partial' }
+        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'partial' }
       },
       {
         feature: 'Privacy-first design',
         tooltip: 'Minimal, anonymous telemetry with easy opt-out',
-        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'amazon-q': 'no', 'opencode': 'yes' }
+        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' }
       },
       {
         feature: 'Air-gapped friendly',
         tooltip: 'Can run in isolated environments',
-        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'amazon-q': 'no', 'opencode': 'partial' }
+        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'partial' }
       },
       {
         feature: 'Open source',
         tooltip: 'Full source code available',
-        values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'no', 'amazon-q': 'no', 'opencode': 'yes' }
+        values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' }
       },
     ]
   },
@@ -50,22 +50,22 @@ const comparisonData: { category: string; icon: string; rows: ComparisonRow[] }[
       {
         feature: 'Rule-based safety checks',
         tooltip: 'Pre-execution validation with defined patterns',
-        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'amazon-q': 'no', 'opencode': 'no' }
+        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'no' }
       },
       {
         feature: 'Explicit confirmation required',
         tooltip: 'Commands never run without your approval',
-        values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'amazon-q': 'partial', 'opencode': 'partial' }
+        values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'partial', 'opencode': 'partial' }
       },
       {
         feature: 'Blocks dangerous commands',
         tooltip: 'Prevents rm -rf /, fork bombs, etc.',
-        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'amazon-q': 'no', 'opencode': 'no' }
+        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'no' }
       },
       {
         feature: 'Risk level assessment',
         tooltip: 'Commands rated by potential impact',
-        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'amazon-q': 'no', 'opencode': 'no' }
+        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'no' }
       },
     ]
   },
@@ -76,22 +76,22 @@ const comparisonData: { category: string; icon: string; rows: ComparisonRow[] }[
       {
         feature: 'POSIX-first approach',
         tooltip: 'Portable commands that work everywhere',
-        values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'amazon-q': 'partial', 'opencode': 'partial' }
+        values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'partial', 'opencode': 'partial' }
       },
       {
         feature: 'Cross-platform (macOS/Linux/BSD)',
         tooltip: 'Works across Unix-like systems',
-        values: { 'caro': 'yes', 'copilot-cli': 'yes', 'warp': 'macOS/Linux', 'amazon-q': 'yes', 'opencode': 'yes' }
+        values: { 'caro': 'yes', 'copilot-cli': 'yes', 'warp': 'macOS/Linux', 'kiro': 'yes', 'opencode': 'yes' }
       },
       {
         feature: 'Uses your existing terminal',
         tooltip: 'No new terminal emulator required',
-        values: { 'caro': 'yes', 'copilot-cli': 'yes', 'warp': 'no', 'amazon-q': 'yes', 'opencode': 'yes' }
+        values: { 'caro': 'yes', 'copilot-cli': 'yes', 'warp': 'no', 'kiro': 'yes', 'opencode': 'yes' }
       },
       {
         feature: 'Platform-aware commands',
         tooltip: 'Adjusts for GNU vs BSD syntax',
-        values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'amazon-q': 'partial', 'opencode': 'partial' }
+        values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'partial', 'opencode': 'partial' }
       },
     ]
   },
@@ -102,22 +102,22 @@ const comparisonData: { category: string; icon: string; rows: ComparisonRow[] }[
       {
         feature: 'Local inference',
         tooltip: 'Models run on your machine',
-        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'amazon-q': 'no', 'opencode': 'partial' }
+        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'partial' }
       },
       {
         feature: 'Multi-backend support',
         tooltip: 'Choose your inference engine',
-        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'amazon-q': 'no', 'opencode': 'yes' }
+        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' }
       },
       {
         feature: 'Apple Silicon optimized',
         tooltip: 'MLX framework for M-series Macs',
-        values: { 'caro': 'partial', 'copilot-cli': 'no', 'warp': 'partial', 'amazon-q': 'no', 'opencode': 'no' }
+        values: { 'caro': 'partial', 'copilot-cli': 'no', 'warp': 'partial', 'kiro': 'no', 'opencode': 'no' }
       },
       {
         feature: 'Self-hostable',
         tooltip: 'Full control over infrastructure',
-        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'amazon-q': 'no', 'opencode': 'yes' }
+        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' }
       },
     ]
   },

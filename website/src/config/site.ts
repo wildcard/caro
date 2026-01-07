@@ -10,6 +10,10 @@ export const SITE_CONFIG = {
     repo: 'caro',
     url: 'https://github.com/wildcard/caro',
   },
+  social: {
+    x: 'https://x.com/CaroDaShellShib',
+    bluesky: 'https://bsky.app/profile/caro-sh.bsky.social',
+  },
   downloads: {
     baseUrl: 'https://github.com/wildcard/caro/releases/download',
   },

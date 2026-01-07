@@ -5,6 +5,8 @@
   "description": "Documentation site for caro - Natural language to shell commands",
   "type": "module",
   "scripts": {
+    "generate-llm-txt": "node scripts/generate-llm-txt.mjs",
+    "prebuild": "node scripts/generate-llm-txt.mjs",
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",
@@ -13,6 +15,7 @@
   },
   "dependencies": {
     "@astrojs/starlight": "^0.37.1",
+    "@vercel/analytics": "^1.4.1",
     "astro": "^5.16.6",
     "sharp": "^0.34.5"
   }

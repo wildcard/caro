@@ -22,11 +22,11 @@ const vsPages = [
     keyDiff: 'No App Switch'
   },
   {
-    slug: 'amazon-q-cli',
-    name: 'Amazon Q CLI',
+    slug: 'kiro-cli',
+    name: 'Kiro CLI',
     tagline: 'Enterprise cloud vs local control',
-    description: 'Compare Amazon Q\'s AWS-integrated approach with Caro\'s self-contained, privacy-first design.',
-    icon: '☁️',
+    description: 'Compare Kiro CLI\'s (formerly Amazon Q) AWS-integrated approach with Caro\'s self-contained, privacy-first design.',
+    icon: '👻',
     keyDiff: 'Self-Contained'
   },
   {
@@ -47,11 +47,11 @@ const comparisonMatrix = {
       icon: '🔒',
       description: 'How your terminal activity is handled',
       features: [
-        { name: 'Works 100% offline', caro: true, copilot: false, warp: false, amazon: false, opencode: 'partial' },
-        { name: 'Privacy-first design', caro: true, copilot: false, warp: false, amazon: false, opencode: true },
-        { name: 'Commands never leave your machine', caro: true, copilot: false, warp: false, amazon: false, opencode: 'partial' },
-        { name: 'Air-gapped environment support', caro: true, copilot: false, warp: false, amazon: false, opencode: 'partial' },
-        { name: 'Full source code available', caro: true, copilot: 'partial', warp: false, amazon: false, opencode: true },
+        { name: 'Works 100% offline', caro: true, copilot: false, warp: false, kiro: false, opencode: 'partial' },
+        { name: 'Privacy-first design', caro: true, copilot: false, warp: false, kiro: false, opencode: true },
+        { name: 'Commands never leave your machine', caro: true, copilot: false, warp: false, kiro: false, opencode: 'partial' },
+        { name: 'Air-gapped environment support', caro: true, copilot: false, warp: false, kiro: false, opencode: 'partial' },
+        { name: 'Full source code available', caro: true, copilot: 'partial', warp: false, kiro: false, opencode: true },
       ]
     },
     {
@@ -59,11 +59,11 @@ const comparisonMatrix = {
       icon: '🛡️',
       description: 'What happens before a command runs',
       features: [
-        { name: 'Rule-based safety validation', caro: true, copilot: false, warp: false, amazon: false, opencode: false },
-        { name: 'Blocks destructive patterns (rm -rf /, fork bombs)', caro: true, copilot: false, warp: false, amazon: false, opencode: false },
-        { name: 'Explicit confirmation always required', caro: true, copilot: 'partial', warp: 'partial', amazon: 'partial', opencode: 'partial' },
-        { name: 'Risk level assessment', caro: true, copilot: false, warp: false, amazon: false, opencode: false },
-        { name: 'Customizable safety rules', caro: true, copilot: false, warp: false, amazon: false, opencode: false },
+        { name: 'Rule-based safety validation', caro: true, copilot: false, warp: false, kiro: false, opencode: false },
+        { name: 'Blocks destructive patterns (rm -rf /, fork bombs)', caro: true, copilot: false, warp: false, kiro: false, opencode: false },
+        { name: 'Explicit confirmation always required', caro: true, copilot: 'partial', warp: 'partial', kiro: 'partial', opencode: 'partial' },
+        { name: 'Risk level assessment', caro: true, copilot: false, warp: false, kiro: false, opencode: false },
+        { name: 'Customizable safety rules', caro: true, copilot: false, warp: false, kiro: false, opencode: false },
       ]
     },
     {
@@ -71,11 +71,11 @@ const comparisonMatrix = {
       icon: '🖥️',
       description: 'Specialized for terminal workflows',
       features: [
-        { name: 'POSIX-first command generation', caro: true, copilot: 'partial', warp: 'partial', amazon: 'partial', opencode: 'partial' },
-        { name: 'GNU vs BSD syntax awareness', caro: true, copilot: 'partial', warp: 'partial', amazon: 'partial', opencode: 'partial' },
-        { name: 'Uses your existing terminal', caro: true, copilot: true, warp: false, amazon: true, opencode: true },
-        { name: 'Cross-platform (macOS, Linux, BSD)', caro: true, copilot: true, warp: 'partial', amazon: true, opencode: true },
-        { name: 'Shell-specific optimizations', caro: true, copilot: 'partial', warp: 'partial', amazon: 'partial', opencode: 'partial' },
+        { name: 'POSIX-first command generation', caro: true, copilot: 'partial', warp: 'partial', kiro: 'partial', opencode: 'partial' },
+        { name: 'GNU vs BSD syntax awareness', caro: true, copilot: 'partial', warp: 'partial', kiro: 'partial', opencode: 'partial' },
+        { name: 'Uses your existing terminal', caro: true, copilot: true, warp: false, kiro: true, opencode: true },
+        { name: 'Cross-platform (macOS, Linux, BSD)', caro: true, copilot: true, warp: 'partial', kiro: true, opencode: true },
+        { name: 'Shell-specific optimizations', caro: true, copilot: 'partial', warp: 'partial', kiro: 'partial', opencode: 'partial' },
       ]
     },
     {
@@ -83,11 +83,11 @@ const comparisonMatrix = {
       icon: '🧠',
       description: 'Technical foundation and flexibility',
       features: [
-        { name: 'Local model inference', caro: true, copilot: false, warp: false, amazon: false, opencode: 'partial' },
-        { name: 'Multi-backend support (MLX, Ollama, vLLM)', caro: true, copilot: false, warp: false, amazon: false, opencode: true },
-        { name: 'Single binary distribution', caro: true, copilot: true, warp: false, amazon: false, opencode: 'partial' },
-        { name: 'Model-agnostic design', caro: true, copilot: false, warp: false, amazon: false, opencode: true },
-        { name: 'Apple Silicon optimized (MLX)', caro: 'partial', copilot: false, warp: 'partial', amazon: false, opencode: false },
+        { name: 'Local model inference', caro: true, copilot: false, warp: false, kiro: false, opencode: 'partial' },
+        { name: 'Multi-backend support (MLX, Ollama, vLLM)', caro: true, copilot: false, warp: false, kiro: false, opencode: true },
+        { name: 'Single binary distribution', caro: true, copilot: true, warp: false, kiro: false, opencode: 'partial' },
+        { name: 'Model-agnostic design', caro: true, copilot: false, warp: false, kiro: false, opencode: true },
+        { name: 'Apple Silicon optimized (MLX)', caro: 'partial', copilot: false, warp: 'partial', kiro: false, opencode: false },
       ]
     },
   ]
@@ -103,8 +103,8 @@ function renderValue(value: boolean | string) {
 ---
 
 <Layout
-  title="Compare Caro - Shell AI Comparison | Caro vs Copilot, Warp, Amazon Q"
-  description="See how Caro compares to GitHub Copilot CLI, Warp, Amazon Q, and other shell AI tools. Local-first, safety-focused, privacy-first."
+  title="Compare Caro - Shell AI Comparison | Caro vs Copilot, Warp, Kiro CLI"
+  description="See how Caro compares to GitHub Copilot CLI, Warp, Kiro CLI, and other shell AI tools. Local-first, safety-focused, privacy-first."
 >
   <Navigation />
 
@@ -177,7 +177,7 @@ function renderValue(value: boolean | string) {
                     <th class="tool-col highlight">Caro</th>
                     <th class="tool-col">Copilot CLI</th>
                     <th class="tool-col">Warp</th>
-                    <th class="tool-col">Amazon Q</th>
+                    <th class="tool-col">Kiro CLI</th>
                     <th class="tool-col">OpenCode</th>
                   </tr>
                 </thead>
@@ -194,8 +194,8 @@ function renderValue(value: boolean | string) {
                       <td class={`value ${renderValue(feature.warp).class}`}>
                         <span class="value-icon">{renderValue(feature.warp).icon}</span>
                       </td>
-                      <td class={`value ${renderValue(feature.amazon).class}`}>
-                        <span class="value-icon">{renderValue(feature.amazon).icon}</span>
+                      <td class={`value ${renderValue(feature.kiro).class}`}>
+                        <span class="value-icon">{renderValue(feature.kiro).icon}</span>
                       </td>
                       <td class={`value ${renderValue(feature.opencode).class}`}>
                         <span class="value-icon">{renderValue(feature.opencode).icon}</span>

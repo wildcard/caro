@@ -7,7 +7,7 @@
  */
 
 import LandingPage from '../../layouts/LandingPage.astro';
-import UseCasesNavigation from '../../components/use-cases/UseCasesNavigation.astro';
+import Navigation from '../../components/Navigation.astro';
 import LPDownload from '../../components/landing/LPDownload.astro';
 import LPFooter from '../../components/landing/LPFooter.astro';
 
@@ -135,7 +135,7 @@ const topJobs = [
   description="Explore how Caro helps SREs, DevOps engineers, security professionals, and developers with safe, offline AI shell commands. Find your use case."
   slug="use-cases"
 >
-  <UseCasesNavigation currentPage="index" />
+  <Navigation variant="use-cases" currentPage="index" />
 
   <!-- Hero Section -->
   <section class="hero">

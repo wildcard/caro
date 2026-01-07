@@ -1,0 +1,946 @@
+# Caro - Complete Documentation
+
+> Your loyal shell companion - A privacy-first AI CLI assistant that converts natural language to safe shell commands
+
+**Version**: 1.0.3
+**License**: AGPL-3.0
+**Repository**: https://github.com/wildcard/caro
+**Website**: https://caro.sh
+
+---
+
+## Overview
+
+Caro is an open-source Rust CLI tool that helps you generate POSIX-compliant shell commands from natural language descriptions. It runs 100% locally by default, validates commands for safety before execution, and supports multiple LLM backends.
+
+### Key Features
+
+- **Privacy-First**: Runs 100% locally - your commands, file paths, and data never leave your machine
+- **Safety Validation**: Pattern-based detection of dangerous commands (rm -rf /, fork bombs, disk wipers) before execution
+- **Multiple Backends**: Supports Ollama, MLX (Apple Silicon), llama.cpp, Anthropic Claude, OpenAI GPT
+- **Cross-Platform**: Works on macOS, Linux, and Windows (WSL)
+- **POSIX Compliant**: Generates shell-agnostic commands that work everywhere
+- **AI Agent Integration**: Available as MCP server for Claude and other AI agents
+
+### Installation
+
+Install via cargo:
+```bash
+cargo install caro
+```
+
+Or use the install script:
+```bash
+curl -sSL https://caro.sh/install.sh | bash
+```
+
+### Basic Usage
+
+```bash
+# Generate a command from natural language
+caro "find all Python files modified in the last week"
+
+# Auto-execute safe commands
+caro -e "list files sorted by size"
+
+# Use a specific backend
+caro --backend ollama "compress all logs older than 30 days"
+
+# JSON output for scripting
+caro --json "find large files"
+```
+
+### Configuration
+
+Caro uses a config file at `~/.config/caro/config.toml`:
+
+```toml
+# Default backend (ollama, mlx, anthropic, openai)
+backend = "ollama"
+
+# Default model for the backend
+model = "llama3"
+
+# Safety validation level (strict, normal, permissive)
+safety_level = "normal"
+
+# Enable/disable telemetry
+telemetry = false
+```
+
+### System Requirements
+
+- macOS, Linux, or Windows (WSL)
+- Rust 1.70+ for building from source
+- 8GB+ RAM recommended for local LLM inference
+- Apple Silicon Macs get hardware acceleration with MLX
+
+---
+
+## Caro - Your loyal shell companion
+
+**URL**: https://caro.sh/
+
+Caro is a companion agent that helps you with POSIX shell commands. Available as an MCP for Claude and as a dedicated Skill.
+
+---
+
+## FAQ - Caro Shell Assistant
+
+**URL**: https://caro.sh/faq
+
+Frequently asked questions about Caro, the privacy-first AI shell assistant. Learn about installation, safety features, backends, usage, and more.
+
+Q: What is Caro?
+
+Q: How do I install Caro?
+
+Q: What are the system requirements?
+
+Q: Do I need an API key to use Caro?
+
+Q: How does Caro
+
+Q: What happens when Caro detects a dangerous command?
+
+Q: Does Caro send my data to the cloud?
+
+Q: Is Caro safe to use with AI agents?
+
+Q: How does Caro stay updated with new dangerous patterns?
+
+Q: What LLM backends does Caro support?
+
+Q: Which backend should I use?
+
+Q: How do I set up Ollama with Caro?
+
+Q: How do I use MLX on my Mac?
+
+Q: Can I use my own fine-tuned models?
+
+Q: How do I use Caro?
+
+Q: Can Caro execute commands automatically?
+
+Q: How does Caro handle different shells?
+
+Q: Can I use Caro in scripts?
+
+Q: How do I configure Caro?
+
+Q: Caro says 
+
+Q: Commands are generating slowly—how do I speed things up?
+
+Q: The generated command is wrong—what should I do?
+
+Q: How do I report a bug or request a feature?
+
+Q: What data does Caro collect?
+
+Q: Can I disable telemetry?
+
+Q: Is Caro GDPR compliant?
+
+Q: How can I contribute to Caro?
+
+Q: Is Caro open source?
+
+Q: How can I support Caro
+
+A: Caro is a privacy-first AI shell assistant that converts natural language into safe, validated shell commands. It runs 100% locally on your machine—your commands, file paths, and data never leave your computer.
+
+A: The easiest way is via cargo: cargo install caro. You can also use our install script: curl -sSL https://caro.sh/install.sh | bash. For other options, see our installation guide.
+
+A: Caro runs on macOS, Linux, and Windows (WSL). You need Rust 1.70+ for building from source. For local LLM inference, we recommend 8GB+ RAM. Apple Silicon Macs get hardware acceleration with MLX.
+
+A: It depends on your backend choice. Local backends (Ollama, MLX, llama.cpp) require no API keys. Cloud backends (Anthropic, OpenAI) require API keys. Caro defaults to trying local inference first.
+
+A: Caro uses pattern-based command validation, not AI-based filtering. Every generated command is checked against known dangerous patterns (rm -rf /, fork bombs, disk wipers) before you run it. This is deterministic, not probabilistic—the same command always gets the same safety assessment.
+
+A: Caro shows a clear warning explaining why the command is dangerous and what it would do. You can still proceed if you intend to run it—Caro is a seatbelt, not a straitjacket. For truly destructive commands, you
+
+A: No. Caro runs 100% locally by default. Your commands, file paths, server names, and directory structures never leave your machine. If you choose to use a cloud backend (like Anthropic or OpenAI), only the natural language prompt is sent—not your command history or file system data.
+
+A: Yes—Caro is designed with AI agents in mind. We recommend defense in depth: run agents as unprivileged users, sandbox to specific directories, use container isolation, and let Caro validate commands. Each layer catches what others miss.
+
+A: Safety patterns are baked into the binary. When you update Caro (cargo install caro --force), you get the latest patterns. The core dangerous commands don
+
+A: Caro supports multiple backends: Local: Ollama, MLX (Apple Silicon), llama.cpp. Cloud: Anthropic Claude, OpenAI GPT. Caro automatically selects the best available backend or you can specify one explicitly.
+
+A: For privacy and offline use, choose local backends. On Apple Silicon Macs, MLX offers the best performance with hardware acceleration. Ollama is great cross-platform. For best quality responses, cloud backends like Claude typically perform better but require API keys.
+
+A: Install Ollama from ollama.ai, then run ollama pull llama3 (or another model). Caro will automatically detect Ollama when it
+
+A: MLX is built into Caro for Apple Silicon Macs. Ensure you have the mlx Python package installed. Caro will automatically use MLX when available on M1/M2/M3 Macs for hardware-accelerated local inference.
+
+A: Yes! With Ollama, you can use any GGUF model. With MLX, you can use any MLX-compatible model. Point Caro to your model with the --model flag or set it in your config file.
+
+A: Simply run caro \
+
+A: By default, Caro shows you the command and waits for confirmation. You can use --execute or -e to auto-execute safe commands, but dangerous commands always require explicit confirmation.
+
+A: Caro detects your shell ($SHELL) at runtime and generates appropriate syntax. It works with bash, zsh, fish, and POSIX sh. On macOS, it knows you
+
+A: Yes! Use caro --quiet for scripting. You can pipe output, use in CI/CD, or integrate with other tools. The --json flag outputs structured data for programmatic use.
+
+A: Caro uses a config file at ~/.config/caro/config.toml. You can set your preferred backend, default model, safety level, and other options. Run caro --help to see all configuration options.
+
+A: This means Caro couldn
+
+A: Local inference speed depends on your hardware and model size. Try a smaller model (7B instead of 70B), use MLX on Apple Silicon for acceleration, or switch to a cloud backend for faster responses.
+
+---
+
+## AI Command Safety
+
+**URL**: https://caro.sh/ai-command-safety
+
+AI CLI tools have deleted user files in 2025. Flags like --dangerously-skip-permissions don't help. Caro blocks dangerous patterns BEFORE execution—even when AI hallucinates. Pattern-based safety that can't be bypassed.
+
+---
+
+## Safe Shell Commands with AI
+
+**URL**: https://caro.sh/safe-shell-commands
+
+Generate safe shell commands with AI that runs 100% locally. Caro validates commands BEFORE execution, catching dangerous patterns like rm -rf. Zero telemetry, zero cloud APIs, open source.
+
+---
+
+## AI Agent Safety
+
+**URL**: https://caro.sh/ai-agent-safety
+
+Your LLMs will hallucinate. Your safety flags will fail. Caro provides pattern-based command validation that catches dangerous commands—whether from users or confused AI agents. Deterministic protection for enterprise AI deployments.
+
+---
+
+## Product Roadmap
+
+**URL**: https://caro.sh/roadmap
+
+Explore Caro's product roadmap: milestones, timeline, and strategic vision for your loyal shell companion.
+
+Core Improvements
+
+Website & Documentation
+
+Advanced Features
+
+Establish production-ready core, optimize performance, build reliable infrastructure
+
+Public website launch, comprehensive documentation, marketing and community building
+
+Advanced AI features, distributed intelligence, voice interaction, next-gen capabilities
+
+---
+
+## Telemetry & Privacy Policy
+
+**URL**: https://caro.sh/telemetry
+
+Learn about Caro's privacy-first approach to telemetry. Understand what data we collect during beta, why, and how you can opt out.
+
+Telemetry
+
+Privacy and telemetry information
+
+---
+
+## Credits & Attribution
+
+**URL**: https://caro.sh/credits
+
+Caro stands on the shoulders of giants. This page honors the open source projects, maintainers, and communities that make Caro possible.
+
+---
+
+## Glossary - Terminal & Unix Terms Explained
+
+**URL**: https://caro.sh/glossary
+
+Your friendly guide to terminal, shell, and Unix terminology. Bite-sized explanations of POSIX commands, shell concepts, and Caro features for everyone.
+
+Glossary
+
+Terminal & Unix terminology explained
+
+---
+
+## Modern Unix Tools - Next-Gen CLI Tools in Rust & Go
+
+**URL**: https://caro.sh/modern-unix-tools
+
+Discover modern replacements for classic Unix commands. Faster, safer, and more ergonomic tools written in Rust and Go for the contemporary developer.
+
+Modern Unix Tools
+
+Next-generation CLI tools written in Rust and Go
+
+---
+
+## Blog
+
+**URL**: https://caro.sh/blog
+
+Stories, updates, and insights from Caro's journey - your loyal shell companion
+
+The Rust Revolution: How Modern Tools Are Reimagining Unix
+
+Announcing Caro: Your Terminal
+
+Building Caro with Security in Mind
+
+Batteries Included: Caro
+
+Why Caro? The Story Behind Your Terminal Companion
+
+Classic Unix commands are being rewritten in Rust and Go, bringing blazing performance, modern ergonomics, and thoughtful defaults to your terminal. Here
+
+We
+
+Explore how the Caro project implements security-first practices from dependency management to code review, creating a security-conscious open source community.
+
+Why Caro ships with everything you need to run AI-powered command generation locally, without the expertise tax or remote dependencies.
+
+Discover the heartwarming story of how Kyaro, an office-loving Shiba Inu who grew up among developers and system administrators, became Caro—your eternal companion in the terminal.
+
+---
+
+## Announcing Caro: Your Terminal's AI Companion
+
+**URL**: https://caro.sh/blog/announcing-caro
+
+We're excited to announce that cmdai has been renamed to caro! Thanks to @aeplay for graciously transferring the crate name, enabling us to have a more memorable and brandable identity.
+
+---
+
+## Batteries Included: Caro's Philosophy on Local AI
+
+**URL**: https://caro.sh/blog/batteries-included
+
+Why Caro ships with everything you need to run AI-powered command generation locally, without the expertise tax or remote dependencies.
+
+---
+
+## Introducing the Caro Claude Skill: Safe Shell Commands in Your AI Workflow
+
+**URL**: https://caro.sh/blog/claude-skill-launch
+
+Caro comes to Claude Code! Generate safe, POSIX-compliant shell commands directly in your Claude sessions with comprehensive safety validation and educational guidance.
+
+---
+
+## The Rust Revolution: How Modern Tools Are Reimagining Unix
+
+**URL**: https://caro.sh/blog/rust-unix-tools
+
+Classic Unix commands are being rewritten in Rust and Go, bringing blazing performance, modern ergonomics, and thoughtful defaults to your terminal. Here's why this matters.
+
+---
+
+## Building Caro with Security in Mind
+
+**URL**: https://caro.sh/blog/security-practices
+
+Explore how the Caro project implements security-first practices from dependency management to code review, creating a security-conscious open source community.
+
+---
+
+## Why Caro? The Story Behind Your Terminal Companion
+
+**URL**: https://caro.sh/blog/why-caro
+
+Discover the heartwarming story of how Kyaro, an office-loving Shiba Inu who grew up among developers and system administrators, became Caro—your eternal companion in the terminal.
+
+---
+
+## Compare Caro - Shell AI Comparison
+
+**URL**: https://caro.sh/compare
+
+See how Caro compares to GitHub Copilot CLI, Warp, Kiro CLI, and other shell AI tools. Local-first, safety-focused, privacy-first.
+
+Compare Caro\
+
+Caro works in your existing terminal. Warp requires switching to a new AI-native terminal emulator.
+
+Compare Kiro CLI\
+
+Both are open-source and local-first. Caro specializes in shell commands with unique safety guardrails.
+
+How your terminal activity is handled
+
+What happens before a command runs
+
+Specialized for terminal workflows
+
+Technical foundation and flexibility
+
+---
+
+## Caro vs GitHub Copilot CLI
+
+**URL**: https://caro.sh/compare/github-copilot-cli
+
+Compare Caro and GitHub Copilot CLI. See how Caro's offline-first, safety-focused approach differs from Copilot's cloud-powered convenience.
+
+TL;DR
+
+Privacy & Data
+
+Safety Approach
+
+Cost & Access
+
+Model Quality
+
+GitHub Copilot CLI extends the popular Copilot experience to the command line, powered by OpenAI\
+
+---
+
+## Caro vs Kiro CLI
+
+**URL**: https://caro.sh/compare/kiro-cli
+
+Compare Caro and Kiro CLI (formerly Amazon Q CLI). Local-first, cloud-agnostic shell companion vs AWS-integrated AI assistant.
+
+TL;DR
+
+Cloud Dependency
+
+Privacy & Data
+
+Features & Capabilities
+
+Safety Approach
+
+---
+
+## Caro vs OpenCode
+
+**URL**: https://caro.sh/compare/opencode
+
+Compare Caro and OpenCode. Specialized shell companion with safety guardrails vs general-purpose AI coding agent.
+
+TL;DR
+
+Scope & Focus
+
+Safety Philosophy
+
+Complementary Use
+
+Local Operation
+
+---
+
+## Caro vs Warp
+
+**URL**: https://caro.sh/compare/warp
+
+Compare Caro and Warp. Work in your existing terminal vs switching to a new AI-native terminal emulator.
+
+TL;DR
+
+Terminal Philosophy
+
+Privacy & Connectivity
+
+Features vs Focus
+
+Safety Approach
+
+---
+
+## Installation
+
+**URL**: https://caro.sh/installation
+
+Install Caro using automated script, Cargo, pre-built binaries, or build from source. Multiple installation methods for all platforms.
+
+---
+
+## What Caro Does | AI Shell Assistant
+
+**URL**: https://caro.sh/product
+
+Caro turns natural language into safe shell commands, works offline, and catches dangerous patterns. See how it helps engineers work safely and efficiently.
+
+What Caro Does
+
+Turn Plain English into Shell Commands
+
+Catch Dangerous Commands Before They Run
+
+Work Completely Offline
+
+Commands That Work on Any Platform
+
+Safety That Actually Works
+
+Actually Offline
+
+Platform Aware
+
+Built for Production
+
+The 3 AM Incident
+
+The Cross-Platform Script
+
+The AI Disaster
+
+The Secure Environment
+
+See what problems Caro solves and how it helps you work with the terminal
+
+Describe what you want to do, get the exact command. No more Googling syntax.
+
+Caro validates every command against 52+ dangerous patterns. Works even when AI gets it wrong.
+
+Everything runs on your machine. No internet required after install. No data ever leaves your computer.
+
+Mac and Linux use different command syntax. Caro knows the difference and generates the right command for your system.
+
+Other tools use AI to check if commands are safe. The problem? AI can hallucinate. Caro uses pattern matching - the same command always gets the same safety result. No surprises.
+
+Most 
+
+Caro knows you\
+
+Startup in under 100ms. Command generation in under 2 seconds. No spinning up containers or waiting for cloud APIs.
+
+---
+
+## Jobs To Be Done Framework
+
+**URL**: https://caro.sh/product/jobs-to-be-done
+
+Understanding Caro through the canonical Jobs To Be Done framework. Discover the functional, emotional, and social jobs Caro performs.
+
+Almost ran a dangerous command, caught it just in time
+
+Production outage from typo or wrong flags
+
+Moved to restricted environment, existing tools don
+
+Moving from Mac to Linux or vice versa, commands breaking
+
+New engineers joining who might make dangerous mistakes
+
+Need to document and enforce command-line safety standards
+
+---
+
+## Quick Start Guide
+
+**URL**: https://caro.sh/quick-start
+
+Get started with Caro in under 5 minutes. Install, verify, and generate your first shell command.
+
+---
+
+## Setup & Configuration
+
+**URL**: https://caro.sh/setup
+
+Configure Caro for optimal developer experience with shell completions, aliases, backend selection, and tool integrations.
+
+---
+
+## Sponsor Caro - Fund Open Source Development
+
+**URL**: https://caro.sh/support
+
+Sponsor Caro's development through GitHub Sponsors or Open Collective. Your contributions help maintain and improve this open source shell command assistant.
+
+Sponsor
+
+Fund Caro open source development
+
+---
+
+## Use Cases & Solutions
+
+**URL**: https://caro.sh/use-cases
+
+Explore how Caro helps SREs, DevOps engineers, security professionals, and developers with safe, offline AI shell commands. Find your use case.
+
+SRE & On-Call Engineers
+
+Air-Gapped & Security Engineers
+
+DevOps & Platform Engineers
+
+Tech Leads & Engineering Managers
+
+Developers
+
+Safe Production Execution
+
+Offline AI Assistance
+
+AI Hallucination Defense
+
+Cross-Platform Commands
+
+Incident Response
+
+Team Safety Standards
+
+Validate dangerous commands before they destroy production. Get instant, safe command generation during high-pressure incidents.
+
+The only AI shell assistant for restricted environments. Zero network calls, bundled model, designed for security audit.
+
+Stop fighting BSD vs GNU differences. Generate platform-aware commands that work on Mac, Linux, and in CI pipelines.
+
+Protect your team from AI hallucinations and command mistakes. Deploy org-wide safety patterns without micromanaging.
+
+Stop context-switching to Google. Get working commands instantly with explanations that help you learn terminal skills.
+
+Validate commands against 52+ dangerous patterns before they touch production.
+
+Work in air-gapped environments with bundled model. Zero network calls.
+
+Pattern-based validation catches what AI gets wrong. Deterministic, not probabilistic.
+
+BSD vs GNU awareness. Commands work on Mac, Linux, and in CI—first time.
+
+Sub-2s inference when seconds matter. Works offline when the network is the problem.
+
+Deploy custom safety patterns org-wide. No micromanagement required.
+
+---
+
+## Caro for Air-Gapped & Secure Environments | Offline AI Commands
+
+**URL**: https://caro.sh/use-cases/air-gapped
+
+The only AI shell assistant for air-gapped environments. Zero network calls, bundled model, single binary. Designed for SCIFs, trading floors, and classified systems.
+
+Offline AI Assistance
+
+Compliance-Ready Tool Approval
+
+Organization-Wide Safety
+
+Network Is Down
+
+Classified Development
+
+Secure Data Center
+
+Traveling Without Internet
+
+Single Binary
+
+Zero Telemetry
+
+Open Source
+
+Bundled Model
+
+SHA256 Verified
+
+Audit Logging
+
+Get AI-powered command generation where no other AI tool can operate.
+
+Single binary, zero telemetry, open source—designed for security audit.
+
+Deploy custom safety patterns across your team without network dependency.
+
+Government classified development environments
+
+Systems where millisecond latency matters
+
+Patient data systems with strict compliance
+
+Critical infrastructure control systems
+
+Export-controlled development environments
+
+IP-sensitive research environments
+
+One file, no dependencies. Copy it to any machine.
+
+No analytics, no usage tracking, no phone home—ever.
+
+AGPL-3.0 licensed. Read every line of code.
+
+AI model embedded in binary. No download required.
+
+Every release includes cryptographic checksums.
+
+Log every command generated and validated.
+
+---
+
+## Caro for Developers | Terminal Commands from Natural Language
+
+**URL**: https://caro.sh/use-cases/developer
+
+Stop Googling for terminal commands. Describe what you want, get the command that works. Learn shell skills along the way. Safe by default.
+
+Natural Language to Command
+
+Command Learning & Education
+
+Quick Tool Installation
+
+Install in 30 seconds
+
+Try your first command
+
+Learn what it does
+
+See safety in action
+
+Describe what you want in plain English, get the exact command that works.
+
+Understand what commands do, not just copy-paste them blindly.
+
+One command to install. One command to try. No complex setup required.
+
+---
+
+## Caro for DevOps Engineers | Cross-Platform Shell Commands
+
+**URL**: https://caro.sh/use-cases/devops
+
+Commands that work everywhere—Mac, Linux, BSD—first time. Stop fighting platform differences. Generate POSIX-compliant commands for CI/CD pipelines and automation.
+
+CI/CD Pipeline Health Check
+
+Log Aggregation
+
+Docker Cleanup
+
+Service Dependency Check
+
+Certificate Expiry Check
+
+Terraform State Check
+
+Cross-Platform Command Generation
+
+Safe Automation Scripts
+
+Natural Language Translation
+
+Check deployment status across services
+
+Find error patterns across multiple log files
+
+Remove unused Docker resources safely
+
+Verify all required services are running
+
+Find certificates expiring soon
+
+List resources in Terraform state
+
+Generate commands that work on Mac, Linux, and BSD without modification.
+
+Generate multi-command sequences validated for safety before execution.
+
+Describe what you want, get the exact command syntax instantly.
+
+---
+
+## Caro for SREs & On-Call Engineers | Safe Production Commands
+
+**URL**: https://caro.sh/use-cases/sre
+
+Your 3 AM incident companion. Validate dangerous commands before they touch production. Generate safe shell commands during high-pressure incidents. 52+ dangerous patterns blocked.
+
+Safe Production Command Execution
+
+Incident Response Acceleration
+
+AI Hallucination Protection
+
+The 2 AM Log Cleanup
+
+The Database Cleanup
+
+The Permission Fix
+
+The Kubernetes Cleanup
+
+The Network Debug
+
+Validate commands against 52+ dangerous patterns before they can destroy production.
+
+Generate diagnostic commands instantly during high-pressure incidents.
+
+Catch when AI tools suggest dangerous commands with deterministic validation.
+
+---
+
+## Caro for Tech Leads | Team Shell Safety
+
+**URL**: https://caro.sh/use-cases/tech-lead
+
+Safety rails for your engineering team. Protect against AI hallucinations and command mistakes. Deploy org-wide patterns without micromanagement.
+
+Custom Pattern Library
+
+Audit Logging
+
+Risk Level Configuration
+
+Allowlist/Blocklist
+
+Claude Desktop Integration
+
+Claude Code Safety Layer
+
+Custom AI Agent Safety
+
+Team Safety Standardization
+
+AI Hallucination Protection
+
+MCP Integration for AI Agents
+
+Define organization-specific dangerous patterns. Block commands that are risky in YOUR environment.
+
+Log every command generated and every pattern matched. Full visibility for compliance.
+
+Set team-wide safety levels. Strict mode blocks, moderate warns, permissive logs.
+
+Pre-approve specific patterns or block them entirely. No runtime decisions needed.
+
+Let Claude generate shell commands through Caro\
+
+Add Caro as a safety layer for Claude Code. Catch hallucinations before they execute.
+
+Any AI agent using MCP can route shell commands through Caro for validation.
+
+Each engineer installs Caro locally
+
+Team-wide config file in repo
+
+Centralized management and logging
+
+Deploy org-wide safety patterns without micromanaging individual engineers.
+
+Catch when AI tools suggest dangerous commands before they can execute.
+
+Give AI agents safe shell command capabilities with guardrails.
+
+---
+
+## Frequently Asked Questions
+
+### Getting Started
+
+**What is Caro?**
+Caro is a privacy-first AI shell assistant that converts natural language into safe, validated shell commands. It runs 100% locally on your machine - your commands, file paths, and data never leave your computer.
+
+**How do I install Caro?**
+The easiest way is via cargo: `cargo install caro`. You can also use the install script: `curl -sSL https://caro.sh/install.sh | bash`. For other options, see our installation guide.
+
+**What are the system requirements?**
+Caro runs on macOS, Linux, and Windows (WSL). You need Rust 1.70+ for building from source. For local LLM inference, we recommend 8GB+ RAM. Apple Silicon Macs get hardware acceleration with MLX.
+
+**Do I need an API key to use Caro?**
+It depends on your backend choice. Local backends (Ollama, MLX, llama.cpp) require no API keys. Cloud backends (Anthropic, OpenAI) require API keys. Caro defaults to trying local inference first.
+
+### Safety & Security
+
+**How does Caro's safety validation work?**
+Caro uses pattern-based command validation, not AI-based filtering. Every generated command is checked against known dangerous patterns (rm -rf /, fork bombs, disk wipers) before you run it. This is deterministic, not probabilistic - the same command always gets the same safety assessment.
+
+**What happens when Caro detects a dangerous command?**
+Caro shows a clear warning explaining why the command is dangerous and what it would do. You can still proceed if you intend to run it - Caro is a seatbelt, not a straitjacket. For truly destructive commands, you'll need to explicitly confirm.
+
+**Does Caro send my data to the cloud?**
+No. Caro runs 100% locally by default. Your commands, file paths, server names, and directory structures never leave your machine. If you choose to use a cloud backend (like Anthropic or OpenAI), only the natural language prompt is sent - not your command history or file system data.
+
+**Is Caro safe to use with AI agents?**
+Yes - Caro is designed with AI agents in mind. We recommend defense in depth: run agents as unprivileged users, sandbox to specific directories, use container isolation, and let Caro validate commands. Each layer catches what others miss.
+
+### Backends & Models
+
+**What LLM backends does Caro support?**
+Caro supports multiple backends:
+- **Local**: Ollama, MLX (Apple Silicon), llama.cpp
+- **Cloud**: Anthropic Claude, OpenAI GPT
+Caro automatically selects the best available backend or you can specify one explicitly.
+
+**Which backend should I use?**
+For privacy and offline use, choose local backends. On Apple Silicon Macs, MLX offers the best performance with hardware acceleration. Ollama is great cross-platform. For best quality responses, cloud backends like Claude typically perform better but require API keys.
+
+**How do I set up Ollama with Caro?**
+Install Ollama from ollama.ai, then run `ollama pull llama3` (or another model). Caro will automatically detect Ollama when it's running. You can verify with `caro --backend ollama "list files"`.
+
+**How do I use MLX on my Mac?**
+MLX is built into Caro for Apple Silicon Macs. Ensure you have the mlx Python package installed. Caro will automatically use MLX when available on M1/M2/M3 Macs for hardware-accelerated local inference.
+
+**Can I use my own fine-tuned models?**
+Yes! With Ollama, you can use any GGUF model. With MLX, you can use any MLX-compatible model. Point Caro to your model with the `--model` flag or set it in your config file.
+
+### Usage & Features
+
+**How do I use Caro?**
+Simply run `caro "your request in natural language"`. For example: `caro "find all Python files modified in the last week"`. Caro generates the command, shows it to you with a safety assessment, and asks for confirmation before running.
+
+**Can Caro execute commands automatically?**
+By default, Caro shows you the command and waits for confirmation. You can use `--execute` or `-e` to auto-execute safe commands, but dangerous commands always require explicit confirmation.
+
+**How does Caro handle different shells?**
+Caro detects your shell ($SHELL) at runtime and generates appropriate syntax. It works with bash, zsh, fish, and POSIX sh. On macOS, it knows you're using BSD tools; on Linux, it adjusts for GNU syntax.
+
+**Can I use Caro in scripts?**
+Yes! Use `caro --quiet` for scripting. You can pipe output, use in CI/CD, or integrate with other tools. The `--json` flag outputs structured data for programmatic use.
+
+### Troubleshooting
+
+**Caro says 'no backend available' - what do I do?**
+This means Caro couldn't find a local LLM or API key. Either: (1) Install and start Ollama with a model, (2) Set up MLX if on Apple Silicon, or (3) Set an API key for a cloud provider with `export ANTHROPIC_API_KEY=...`.
+
+**Commands are generating slowly - how do I speed things up?**
+Local inference speed depends on your hardware and model size. Try a smaller model (7B instead of 70B), use MLX on Apple Silicon for acceleration, or switch to a cloud backend for faster responses.
+
+**The generated command is wrong - what should I do?**
+You can: (1) Rephrase your request to be more specific, (2) Add context like "on macOS" or "using find command", (3) Try a different backend/model, or (4) Report the issue on GitHub so we can improve.
+
+**How do I report a bug or request a feature?**
+Open an issue on our GitHub repository at github.com/wildcard/caro/issues. Include your OS, Caro version (`caro --version`), backend, and steps to reproduce.
+
+### Privacy & Telemetry
+
+**What data does Caro collect?**
+By default, Caro collects minimal, anonymous usage metrics to help us improve the product - things like command success rates and which backends are used. No commands, file paths, or personal data are ever collected.
+
+**Can I disable telemetry?**
+Yes. Set `telemetry = false` in your config file or use `export CARO_TELEMETRY=false`. Caro will work exactly the same with telemetry disabled.
+
+**Is Caro GDPR compliant?**
+Yes. We don't collect personal data. All telemetry is anonymous and aggregated. You have full control over what data is sent (if any), and can disable telemetry entirely.
+
+### Contributing & Community
+
+**How can I contribute to Caro?**
+We welcome contributions! You can: submit bug reports, propose features, contribute code (it's Rust!), add safety patterns, improve documentation, or help with translations. See our contributing guide on GitHub.
+
+**Is Caro open source?**
+Yes! Caro is licensed under AGPL-3.0. You can read, modify, and distribute the source code. The full codebase is available on GitHub.
+
+---
+
+## Links
+
+- [GitHub Repository](https://github.com/wildcard/caro)
+- [Issue Tracker](https://github.com/wildcard/caro/issues)
+- [Discussions](https://github.com/wildcard/caro/discussions)
+- [Contributing Guide](https://github.com/wildcard/caro/blob/main/CONTRIBUTING.md)
+
+---
+
+*Generated on 2026-01-06*

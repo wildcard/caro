@@ -2,6 +2,14 @@
 import Layout from '../layouts/Layout.astro';
 import Navigation from '../components/Navigation.astro';
 import Footer from '../components/Footer.astro';
+
+// Search metadata - used by OmniMenu
+export const searchMeta = {
+  title: 'Telemetry',
+  description: 'Privacy and telemetry information',
+  keywords: ['telemetry', 'privacy', 'data', 'analytics', 'opt-out', 'opt-in'],
+  icon: '📊',
+};
 ---
 
 <Layout
@@ -253,7 +261,8 @@ import Footer from '../components/Footer.astro';
           or suggestions about our approach, please reach out.
         </p>
         <div class="cta-buttons">
-          <a href="https://github.com/wildcard/caro/issues" class="cta-button">Open an Issue</a>
+          <a href="/faq#privacy-&-telemetry" class="cta-button">View Full FAQ</a>
+          <a href="https://github.com/wildcard/caro/issues" class="cta-button secondary">Open an Issue</a>
           <a href="https://github.com/wildcard/caro/discussions" class="cta-button secondary">Join Discussion</a>
         </div>
       </section>

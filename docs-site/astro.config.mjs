@@ -14,6 +14,8 @@ export default defineConfig({
       },
       social: [
         { icon: 'github', label: 'GitHub', href: 'https://github.com/wildcard/caro' },
+        { icon: 'x.com', label: 'X', href: 'https://x.com/CaroDaShellShib' },
+        { icon: 'blueSky', label: 'Bluesky', href: 'https://bsky.app/profile/caro-sh.bsky.social' },
       ],
       editLink: {
         baseUrl: 'https://github.com/wildcard/caro/edit/main/docs-site/',
@@ -21,6 +23,9 @@ export default defineConfig({
       customCss: [
         './src/styles/custom.css',
       ],
+      components: {
+        Head: './src/components/Head.astro',
+      },
       head: [
         {
           tag: 'link',
@@ -52,6 +57,12 @@ export default defineConfig({
             { label: 'Introduction', slug: 'getting-started/introduction' },
             { label: 'Installation', slug: 'getting-started/installation' },
             { label: 'Quick Start', slug: 'getting-started/quick-start' },
+          ],
+        },
+        {
+          label: 'Product',
+          items: [
+            { label: 'Jobs To Be Done', slug: 'product/jobs-to-be-done' },
           ],
         },
         {
