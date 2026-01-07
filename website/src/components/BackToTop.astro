@@ -213,6 +213,12 @@
 </style>
 
 <script>
+  // Preload elevator music immediately for instant playback (no delay on first click)
+  const elevatorAudio = new Audio('/elevator-music.mp3');
+  elevatorAudio.preload = 'auto';
+  // Trigger actual loading by setting src and calling load()
+  elevatorAudio.load();
+
   // Import elevator.js
   const script = document.createElement('script');
   script.src = '/elevator.js';
@@ -223,6 +229,7 @@
 
     // Check localStorage for mute preference (default: unmuted)
     let isMuted = localStorage.getItem('elevatorMuted') === 'true';
+    let isRiding = false;
 
     // Update mute button visual state
     const updateMuteButtonState = () => {
@@ -235,33 +242,26 @@
 
     updateMuteButtonState();
 
-    // Initialize elevator.js once without audio - we'll handle audio manually
-    let elevatorDuration = 3000; // 3 seconds
-    let currentAudio: HTMLAudioElement | null = null;
-
+    // Initialize elevator.js with callbacks for proper audio synchronization
+    // Using callbacks instead of setTimeout ensures audio is perfectly synced with scroll animation
     // @ts-ignore - Elevator is loaded from external script
     const elevator = new Elevator({
       element: button,
-      duration: elevatorDuration,
-    });
-
-    // Handle audio manually on button click
-    button?.addEventListener('click', () => {
-      if (!isMuted) {
-        // Create and play audio
-        currentAudio = new Audio('/elevator-music.mp3');
-        currentAudio.play().catch(() => {
-          // Ignore errors if user hasn't interacted yet
-        });
-
-        // Stop audio after elevator ride
-        setTimeout(() => {
-          if (currentAudio) {
-            currentAudio.pause();
-            currentAudio.currentTime = 0;
-            currentAudio = null;
-          }
-        }, elevatorDuration);
+      startCallback: () => {
+        isRiding = true;
+        if (!isMuted) {
+          // Reset and play preloaded audio - no loading delay!
+          elevatorAudio.currentTime = 0;
+          elevatorAudio.play().catch(() => {
+            // Ignore errors if user hasn't interacted yet
+          });
+        }
+      },
+      endCallback: () => {
+        isRiding = false;
+        // Stop audio exactly when elevator finishes - perfectly synced!
+        elevatorAudio.pause();
+        elevatorAudio.currentTime = 0;
       }
     });
 
@@ -273,11 +273,10 @@
       isMuted = !isMuted;
       localStorage.setItem('elevatorMuted', isMuted.toString());
 
-      // Stop currently playing audio immediately
-      if (currentAudio) {
-        currentAudio.pause();
-        currentAudio.currentTime = 0;
-        currentAudio = null;
+      // Stop currently playing audio immediately if riding
+      if (isRiding) {
+        elevatorAudio.pause();
+        elevatorAudio.currentTime = 0;
       }
 
       // Update visual state
