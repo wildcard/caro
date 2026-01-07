@@ -420,6 +420,154 @@ impl StaticMatcher {
                 bsd_command: Some(r#"echo "Hello, World!""#.to_string()),
                 description: "First command - Hello World".to_string(),
             },
+
+            // ===== LOG ANALYSIS PATTERNS (Cycle 4) =====
+
+            // Pattern 36: "Find all ERROR entries in application logs"
+            PatternEntry {
+                required_keywords: vec!["error".to_string(), "log".to_string()],
+                optional_keywords: vec!["find".to_string(), "all".to_string(), "entries".to_string(), "application".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|show|search|grep).*(all)?.*(error|errors).*(entries?|lines?|messages?).*(in)?.*(application|app)?.*logs?").unwrap()),
+                gnu_command: "grep -i 'error' /var/log/app.log | tail -n 50".to_string(),
+                bsd_command: Some("grep -i 'error' /var/log/app.log | tail -n 50".to_string()),
+                description: "Find ERROR entries in application logs".to_string(),
+            },
+
+            // Pattern 37: "Count HTTP status codes in access log"
+            PatternEntry {
+                required_keywords: vec!["count".to_string(), "status".to_string(), "code".to_string()],
+                optional_keywords: vec!["http".to_string(), "access".to_string(), "log".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(count|show|display|analyze).*(http)?.*(status|response)?.*(codes?|responses?).*(in)?.*(access|nginx)?.*logs?").unwrap()),
+                gnu_command: "awk '{print $9}' /var/log/nginx/access.log | sort | uniq -c | sort -rn".to_string(),
+                bsd_command: Some("awk '{print $9}' /var/log/nginx/access.log | sort | uniq -c | sort -rn".to_string()),
+                description: "Count HTTP status codes in access log".to_string(),
+            },
+
+            // Pattern 38: "Show last 100 system errors"
+            PatternEntry {
+                required_keywords: vec!["last".to_string(), "system".to_string(), "error".to_string()],
+                optional_keywords: vec!["show".to_string(), "100".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|display|list|get).*(last|recent).*(100|\d+)?.*(system|systemd)?.*errors?").unwrap()),
+                gnu_command: "journalctl -p err -n 100".to_string(),
+                bsd_command: Some("grep -i error /var/log/messages | tail -n 100".to_string()),
+                description: "Show last N system errors".to_string(),
+            },
+
+            // Pattern 39: "find all ERROR lines in logs from the last 24 hours"
+            PatternEntry {
+                required_keywords: vec!["error".to_string(), "log".to_string(), "last".to_string()],
+                optional_keywords: vec!["find".to_string(), "all".to_string(), "24".to_string(), "hours".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|search|grep).*(all)?.*(error|errors).*(lines?|entries?).*(in)?.*(logs?).*(from|in)?.*(last|past).*(24|1440)?.*(hours?|day)").unwrap()),
+                gnu_command: r#"find /var/log -name "*.log" -mmin -1440 -exec grep -l "ERROR" {} \;"#.to_string(),
+                bsd_command: Some(r#"find /var/log -name "*.log" -mmin -1440 -exec grep -l "ERROR" {} \;"#.to_string()),
+                description: "Find ERROR lines in logs from last 24 hours".to_string(),
+            },
+
+            // ===== FILE MANAGEMENT REFINED PATTERNS (Cycle 4) =====
+
+            // Pattern 40: "Find all files larger than 1GB" with -exec ls -lh
+            PatternEntry {
+                required_keywords: vec!["file".to_string(), "larger".to_string(), "1gb".to_string()],
+                optional_keywords: vec!["find".to_string(), "all".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|locate|list).*(all)?.*(files?).*(larger|bigger|over|above|greater).*(1gb?|1g\b)").unwrap()),
+                gnu_command: "find . -type f -size +1G -exec ls -lh {} \\;".to_string(),
+                bsd_command: Some("find . -type f -size +1G -exec ls -lh {} \\;".to_string()),
+                description: "Find files larger than 1GB with exec".to_string(),
+            },
+
+            // Pattern 41: "find all PDF files larger than 10MB in Downloads"
+            PatternEntry {
+                required_keywords: vec!["pdf".to_string(), "10mb".to_string(), "downloads".to_string()],
+                optional_keywords: vec!["find".to_string(), "all".to_string(), "files".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|locate|search).*(all)?.*(pdf).*(files?).*(larger|bigger|over).*(10|10mb|10m).*(in|from)?.*(downloads|~/downloads)").unwrap()),
+                gnu_command: r#"find ~/Downloads -name "*.pdf" -size +10M -ls"#.to_string(),
+                bsd_command: Some(r#"find ~/Downloads -name "*.pdf" -size +10M -ls"#.to_string()),
+                description: "Find PDF files larger than 10MB in Downloads".to_string(),
+            },
+
+            // Pattern 42: "find python files modified in the last 7 days"
+            PatternEntry {
+                required_keywords: vec!["python".to_string(), "modified".to_string(), "7".to_string()],
+                optional_keywords: vec!["find".to_string(), "files".to_string(), "last".to_string(), "days".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|locate|search).*(python|\.py).*(files?).*(modified|changed).*(in)?.*(last)?.*(7).*(days?)").unwrap()),
+                gnu_command: r#"find . -name "*.py" -type f -mtime -7"#.to_string(),
+                bsd_command: Some(r#"find . -name "*.py" -type f -mtime -7"#.to_string()),
+                description: "Find Python files modified in last 7 days".to_string(),
+            },
+
+            // Pattern 43: "find python files" (simple variant)
+            PatternEntry {
+                required_keywords: vec!["find".to_string(), "python".to_string()],
+                optional_keywords: vec!["files".to_string(), "all".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)^(find|locate|search).*(python|\.py).*(files?)?\s*$").unwrap()),
+                gnu_command: r#"find . -name "*.py" -type f"#.to_string(),
+                bsd_command: Some(r#"find . -name "*.py" -type f"#.to_string()),
+                description: "Find Python files (simple)".to_string(),
+            },
+
+            // Pattern 44: "list files" (very simple variant)
+            PatternEntry {
+                required_keywords: vec!["list".to_string(), "files".to_string()],
+                optional_keywords: vec!["all".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show).*(all)?.*(files?)\s*$").unwrap()),
+                gnu_command: "ls -la".to_string(),
+                bsd_command: Some("ls -la".to_string()),
+                description: "List files (simple)".to_string(),
+            },
+
+            // Pattern 45: "find large files" (simple variant without size specified)
+            PatternEntry {
+                required_keywords: vec!["find".to_string(), "large".to_string()],
+                optional_keywords: vec!["files".to_string(), "big".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)^(find|locate|search).*(large|big).*(files?)?\s*$").unwrap()),
+                gnu_command: "find . -type f -size +100M".to_string(),
+                bsd_command: Some("find . -type f -size +100M".to_string()),
+                description: "Find large files (default 100MB)".to_string(),
+            },
+
+            // Pattern 46: "find all Python files modified today"
+            PatternEntry {
+                required_keywords: vec!["python".to_string(), "modified".to_string(), "today".to_string()],
+                optional_keywords: vec!["find".to_string(), "all".to_string(), "files".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|locate|search).*(all)?.*(python|\.py).*(files?).*(modified|changed).*(today)").unwrap()),
+                gnu_command: r#"find . -name "*.py" -type f -mtime 0"#.to_string(),
+                bsd_command: Some(r#"find . -name "*.py" -type f -mtime 0"#.to_string()),
+                description: "Find Python files modified today".to_string(),
+            },
+
+            // ===== SYSTEM MONITORING FINE-TUNED PATTERNS (Cycle 4) =====
+
+            // Pattern 47: "show me the top 5 processes by CPU usage"
+            PatternEntry {
+                required_keywords: vec!["top".to_string(), "5".to_string(), "cpu".to_string()],
+                optional_keywords: vec!["show".to_string(), "processes".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|display|list).*(me)?.*(top).*(5|\bfive\b).*(processes?).*(by)?.*(cpu|processor)").unwrap()),
+                gnu_command: "ps aux --sort=-%cpu | head -n 6".to_string(),
+                bsd_command: Some("ps aux -r | head -n 6".to_string()),
+                description: "Show top 5 processes by CPU usage".to_string(),
+            },
+
+            // Pattern 48: "show me disk usage by directory, sorted"
+            PatternEntry {
+                required_keywords: vec!["disk".to_string(), "usage".to_string(), "directory".to_string(), "sorted".to_string()],
+                optional_keywords: vec!["show".to_string(), "by".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|display|list).*(me)?.*(disk|space).*(usage|use).*(by)?.*(directory|dir|folder).*(sorted|sort)").unwrap()),
+                gnu_command: "du -h --max-depth=1 | sort -hr".to_string(),
+                bsd_command: Some("du -h -d 1 | sort -hr".to_string()),
+                description: "Show disk usage by directory, sorted".to_string(),
+            },
+
+            // ===== NETWORK OPERATIONS FINE-TUNED PATTERNS (Cycle 4) =====
+
+            // Pattern 49: "show all established connections to port 443"
+            PatternEntry {
+                required_keywords: vec!["established".to_string(), "connections".to_string(), "443".to_string()],
+                optional_keywords: vec!["show".to_string(), "all".to_string(), "port".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|display|list).*(all)?.*(established|active).*(connections?|sockets?).*(to|on)?.*(port)?.*\b443\b").unwrap()),
+                gnu_command: "ss -tn state established '( dport = :443 )'".to_string(),
+                bsd_command: Some("netstat -an | grep ESTABLISHED | grep :443".to_string()),
+                description: "Show established connections to port 443".to_string(),
+            },
         ]
     }
 
