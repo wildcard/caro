@@ -1,0 +1,44 @@
+{
+  "name": "devrel",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:all": "npm run test && npm run test:e2e",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "^16.0.7",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "zod": "^4.3.4"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^5.1.2",
+    "@vitest/ui": "^4.0.16",
+    "axe-core": "^4.11.0",
+    "eslint": "^9",
+    "eslint-config-next": "^16.0.7",
+    "jsdom": "^27.4.0",
+    "msw": "^2.12.7",
+    "playwright": "^1.57.0",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vitest": "^4.0.16"
+  }
+}
