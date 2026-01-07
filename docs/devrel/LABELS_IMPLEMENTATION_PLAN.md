@@ -415,7 +415,7 @@ Create `website/src/pages/blog/contribution-lanes.astro`:
 # Check for issues without lane labels
 
 echo "Issues without lane labels:"
-gh issue list --label "!lane/security,!lane/runtime,!lane/inference,!lane/ux,!lane/ecosystem,!lane/distribution" --limit 50
+gh issue list --search "-label:lane/security -label:lane/runtime -label:lane/inference -label:lane/ux -label:lane/ecosystem -label:lane/distribution" --limit 50
 
 echo "\nIssues with multiple lane labels (should investigate):"
 # TODO: Script to detect multiple lane/* labels

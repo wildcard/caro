@@ -390,9 +390,9 @@ if (validation.safety_level === "dangerous") {
    cargo run --bin cmdai-mcp-server
    ```
 
-2. **Send test request** (in another terminal):
+2. **Send test request** (the server reads from stdin):
    ```bash
-   echo '{"id":"1","method":"generate_command","params":{"prompt":"list files"}}' | nc localhost 8080
+   echo '{"id":"1","method":"generate_command","params":{"prompt":"list files"}}' | cargo run --bin cmdai-mcp-server
    ```
 
 3. **Verify response**:

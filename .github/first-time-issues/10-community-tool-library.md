@@ -276,7 +276,7 @@ pub struct Tool {
     pub safer_alternatives: Option<Vec<SafeAlternative>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub enum SafetyRating {
     Safe,
     Moderate,
@@ -291,6 +291,12 @@ pub struct Alternative {
     pub example: Option<String>,
 }
 
+#[derive(Debug, Deserialize)]
+struct Catalog {
+    version: String,
+    tools: Vec<Tool>,
+}
+
 pub struct ToolLibrary {
     tools: HashMap<String, Tool>,
 }
@@ -298,9 +304,9 @@ pub struct ToolLibrary {
 impl ToolLibrary {
     pub fn load() -> Result<Self, LibraryError> {
         let catalog_yaml = include_str!("../../data/tools/catalog.yaml");
-        let tools: Vec<Tool> = serde_yaml::from_str(catalog_yaml)?;
+        let catalog: Catalog = serde_yaml::from_str(catalog_yaml)?;
 
-        let tools_map = tools
+        let tools_map = catalog.tools
             .into_iter()
             .map(|t| (t.name.clone(), t))
             .collect();

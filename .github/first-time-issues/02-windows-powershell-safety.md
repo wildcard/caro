@@ -86,11 +86,13 @@ pub fn validate_command(&self, command: &str) -> ValidationResult {
 
     // Add PowerShell validation
     for pattern in POWERSHELL_DANGEROUS_PATTERNS {
-        if Regex::new(pattern.pattern)?.is_match(command) {
-            return ValidationResult::Dangerous {
-                severity: pattern.severity,
-                reason: pattern.description.to_string(),
-            };
+        if let Ok(regex) = Regex::new(pattern.pattern) {
+            if regex.is_match(command) {
+                return ValidationResult::Dangerous {
+                    severity: pattern.severity,
+                    reason: pattern.description.to_string(),
+                };
+            }
         }
     }
 
