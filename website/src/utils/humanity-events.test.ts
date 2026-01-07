@@ -14,10 +14,12 @@ import type { HumanityEvent } from '../data/humanity-events';
 // ============================================================================
 
 /**
- * Create a date from a string for easier testing
+ * Create a date from a string for easier testing.
+ * Parses YYYY-MM-DD format and creates a local date (not UTC).
  */
 function date(str: string): Date {
-  return new Date(str);
+  const [year, month, day] = str.split('-').map(Number);
+  return new Date(year, month - 1, day);
 }
 
 /**
