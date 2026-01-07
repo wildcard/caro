@@ -34,11 +34,13 @@ use std::time::{Duration, Instant};
 #[derive(Debug)]
 struct ValidationResult {
     success: bool,
+    #[allow(dead_code)]
     exit_code: Option<i32>,
     stdout: String,
     stderr: String,
     is_blocked: bool,
     risk_level: Option<String>,
+    #[allow(dead_code)]
     duration: Duration,
 }
 
