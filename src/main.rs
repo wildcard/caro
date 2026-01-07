@@ -166,6 +166,14 @@ enum Commands {
         /// Show verbose output including all test cases
         #[arg(short, long)]
         verbose: bool,
+
+        /// Path to YAML test suite file
+        #[arg(long)]
+        suite: Option<String>,
+
+        /// Filter tests by profile ID (e.g., bt_001)
+        #[arg(long)]
+        profile: Option<String>,
     },
 }
 
@@ -299,7 +307,12 @@ impl IntoCliArgs for Cli {
 // =============================================================================
 
 /// Run evaluation tests on command generation
-async fn run_evaluation_tests(backend_name: &str, verbose: bool) -> Result<(), String> {
+async fn run_evaluation_tests(
+    backend_name: &str,
+    verbose: bool,
+    suite_path: Option<&str>,
+    profile_id: Option<&str>,
+) -> Result<(), String> {
     println!("Running evaluation tests with backend: {}", backend_name);
     println!();
 
@@ -315,7 +328,20 @@ async fn run_evaluation_tests(backend_name: &str, verbose: bool) -> Result<(), S
     };
 
     // Load test suite
-    let suite = EvalSuite::default_suite();
+    let mut suite = if let Some(path) = suite_path {
+        println!("Loading test suite from: {}", path);
+        EvalSuite::from_yaml(path)
+            .map_err(|e| format!("Failed to load test suite from {}: {}", path, e))?
+    } else {
+        EvalSuite::default_suite()
+    };
+
+    // Filter by profile if specified
+    if let Some(profile) = profile_id {
+        println!("Filtering tests for profile: {}", profile);
+        suite = suite.filter_by_profile(profile);
+    }
+
     println!("Loaded test suite: {}", suite.name);
     println!("Description: {}", suite.description);
     println!("Total test cases: {}", suite.test_cases.len());
@@ -425,8 +451,8 @@ async fn main() {
                 }
             }
         }
-        Some(Commands::Test { backend, verbose }) => {
-            match run_evaluation_tests(&backend, verbose).await {
+        Some(Commands::Test { backend, verbose, suite, profile }) => {
+            match run_evaluation_tests(&backend, verbose, suite.as_deref(), profile.as_deref()).await {
                 Ok(()) => process::exit(0),
                 Err(e) => {
                     eprintln!("Error running tests: {}", e);
