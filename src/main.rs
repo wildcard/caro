@@ -1,6 +1,11 @@
 use caro::cli::{CliApp, CliError, IntoCliArgs};
 use caro::config::ConfigManager;
+use caro::eval::{EvalResults, EvalSuite, CategoryResults, IndividualResult};
+use caro::backends::{CommandGenerator, StaticMatcher};
+use caro::prompts::CapabilityProfile;
+use caro::models::{CommandRequest, ShellType};
 use clap::Parser;
+use std::collections::HashMap;
 use std::process;
 
 // =============================================================================
@@ -151,6 +156,17 @@ pub fn truncate_at_shell_operator(args: Vec<String>) -> Vec<String> {
 enum Commands {
     /// Run system diagnostics and health checks
     Doctor,
+
+    /// Run evaluation tests on command generation quality
+    Test {
+        /// Backend to test (static, mlx, ollama, or embedded)
+        #[arg(short, long, default_value = "static")]
+        backend: String,
+
+        /// Show verbose output including all test cases
+        #[arg(short, long)]
+        verbose: bool,
+    },
 }
 
 /// caro - Convert natural language to shell commands using local LLMs
@@ -278,6 +294,108 @@ impl IntoCliArgs for Cli {
     }
 }
 
+// =============================================================================
+// Evaluation Tests
+// =============================================================================
+
+/// Run evaluation tests on command generation
+async fn run_evaluation_tests(backend_name: &str, verbose: bool) -> Result<(), String> {
+    println!("Running evaluation tests with backend: {}", backend_name);
+    println!();
+
+    // Create backend
+    let backend = match backend_name {
+        "static" => {
+            let profile = CapabilityProfile::ubuntu();
+            StaticMatcher::new(profile)
+        }
+        _ => {
+            return Err(format!("Unknown backend: {}. Supported: static", backend_name));
+        }
+    };
+
+    // Load test suite
+    let suite = EvalSuite::default_suite();
+    println!("Loaded test suite: {}", suite.name);
+    println!("Description: {}", suite.description);
+    println!("Total test cases: {}", suite.test_cases.len());
+    println!();
+
+    // Run tests
+    let mut results = EvalResults {
+        suite_name: suite.name.clone(),
+        backend: backend_name.to_string(),
+        total_cases: suite.test_cases.len(),
+        passed: 0,
+        failed: 0,
+        results_by_category: HashMap::new(),
+        individual_results: Vec::new(),
+    };
+
+    for test_case in &suite.test_cases {
+        let request = CommandRequest::new(&test_case.input, ShellType::Bash);
+
+        let result = backend.generate_command(&request).await;
+
+        let (passed, actual, error) = match result {
+            Ok(cmd) => {
+                let matches = test_case.expected_outputs.iter()
+                    .any(|expected| cmd.command == *expected);
+                (matches, Some(cmd.command), None)
+            }
+            Err(e) => (false, None, Some(e.to_string())),
+        };
+
+        if passed {
+            results.passed += 1;
+        } else {
+            results.failed += 1;
+        }
+
+        results.individual_results.push(IndividualResult {
+            input: test_case.input.clone(),
+            expected: test_case.expected_outputs.clone(),
+            actual,
+            passed,
+            category: test_case.category,
+            error,
+        });
+
+        // Update category stats
+        let category_key = format!("{}", test_case.category);
+        let cat_stats = results.results_by_category
+            .entry(category_key)
+            .or_insert(CategoryResults {
+                total: 0,
+                passed: 0,
+                pass_rate: 0.0,
+            });
+        cat_stats.total += 1;
+        if passed {
+            cat_stats.passed += 1;
+        }
+    }
+
+    // Calculate pass rates
+    for cat_stats in results.results_by_category.values_mut() {
+        cat_stats.pass_rate = if cat_stats.total > 0 {
+            (cat_stats.passed as f64 / cat_stats.total as f64) * 100.0
+        } else {
+            0.0
+        };
+    }
+
+    // Print results
+    results.print_summary();
+
+    // Exit with error if tests failed
+    if results.failed > 0 {
+        Err(format!("{} tests failed", results.failed))
+    } else {
+        Ok(())
+    }
+}
+
 #[tokio::main]
 async fn main() {
     // Check for --version (with or without --verbose) before clap parsing
@@ -296,14 +414,28 @@ async fn main() {
 
     let mut cli = Cli::parse();
 
-    // Handle doctor subcommand first
-    if let Some(Commands::Doctor) = cli.command {
-        match caro::doctor::run_diagnostics().await {
-            Ok(()) => process::exit(0),
-            Err(e) => {
-                eprintln!("Error running diagnostics: {}", e);
-                process::exit(1);
+    // Handle subcommands first
+    match cli.command {
+        Some(Commands::Doctor) => {
+            match caro::doctor::run_diagnostics().await {
+                Ok(()) => process::exit(0),
+                Err(e) => {
+                    eprintln!("Error running diagnostics: {}", e);
+                    process::exit(1);
+                }
             }
+        }
+        Some(Commands::Test { backend, verbose }) => {
+            match run_evaluation_tests(&backend, verbose).await {
+                Ok(()) => process::exit(0),
+                Err(e) => {
+                    eprintln!("Error running tests: {}", e);
+                    process::exit(1);
+                }
+            }
+        }
+        None => {
+            // Continue to regular command generation
         }
     }
 
