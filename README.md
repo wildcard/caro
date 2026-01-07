@@ -8,13 +8,71 @@
 
 **caro** (formerly **cmdai**) converts natural language descriptions into safe POSIX shell commands using local LLMs. Built with Rust for blazing-fast performance, single-binary distribution, and safety-first design with intelligent platform detection.
 
-```bash
-$ caro "list all PDF files in Downloads folder larger than 10MB"
+<div align="center">
 
-Generated command:
-  find ~/Downloads -name "*.pdf" -size +10M -ls
+```
+╭──────────────────────────────────────────────────────────────────────────────╮
+│  ● ● ●                                                              terminal │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  $ caro "find python files modified in the last 7 days"                      │
+│                                                                              │
+│  Command:                                                                    │
+│    find . -name "*.py" -type f -mtime -7                                     │
+│                                                                              │
+│  ✓ Safe to run on your macOS system                                         │
+│                                                                              │
+│  Execute this command? (y/N) y                                               │
+│                                                                              │
+│  Execution Results:                                                          │
+│    ✓ Success (exit code: 0)                                                  │
+│    Execution time: 12ms                                                      │
+│                                                                              │
+│  Standard Output:                                                            │
+│    ./src/utils.py                                                            │
+│    ./tests/test_api.py                                                       │
+│    ./scripts/deploy.py                                                       │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+```
 
-Execute this command? (y/N) y
+</div>
+
+### More Examples
+
+```
+╭──────────────────────────────────────────────────────────────────────────────╮
+│  ● ● ●                                                    safety validation  │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  $ caro "delete all log files"                                               │
+│                                                                              │
+│  Command:                                                                    │
+│    find /var/log -name "*.log" -mtime +30 -delete                            │
+│                                                                              │
+│  ⚠ High Risk: Recursive delete in system directory                          │
+│                                                                              │
+│  Suggestion: The -mtime +30 flag was added to only remove logs               │
+│  older than 30 days. Review the command before execution.                    │
+│                                                                              │
+│  Execute this command? (y/N)                                                 │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+╭──────────────────────────────────────────────────────────────────────────────╮
+│  ● ● ●                                                    dangerous blocked  │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  [AI Agent] rm -rf ~/* # cleaning up temp files                              │
+│                                                                              │
+│  ✖ BLOCKED: Recursive delete of home directory                              │
+│                                                                              │
+│  This command would delete your entire home directory.                       │
+│  Even with --dangerously-skip-permissions, this is blocked.                  │
+│                                                                              │
+│  # Suggestion: Specify the exact path to clean up                            │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 
 
