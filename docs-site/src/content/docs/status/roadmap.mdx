@@ -1,0 +1,163 @@
+---
+title: Project Roadmap
+description: Current development status and future plans for caro
+---
+
+import { Badge, Card, CardGrid, Aside } from '@astrojs/starlight/components';
+
+This page shows the current development status of caro, what's working, what's in progress, and what's planned for the future.
+
+<Aside type="tip" title="Current Version">
+  **caro v1.0.2** is published on [crates.io](https://crates.io/crates/caro) and available for installation.
+</Aside>
+
+## Completed Features
+
+These features are fully implemented and working:
+
+<CardGrid>
+  <Card title="Core CLI" icon="terminal">
+    Comprehensive argument parsing, colored output, and interactive confirmation flows.
+  </Card>
+  <Card title="Embedded LLM" icon="laptop">
+    Local inference with Qwen 2.5 Coder 1.5B, no external dependencies required.
+  </Card>
+  <Card title="Safety Validation" icon="approve-check">
+    52+ dangerous command patterns detected and blocked before execution.
+  </Card>
+  <Card title="Multi-Platform" icon="rocket">
+    Pre-built binaries for Linux (x64/ARM64), macOS (Intel/Silicon), and Windows.
+  </Card>
+</CardGrid>
+
+### Phase 1: Core Structure <Badge text="Complete" variant="success" />
+
+| Feature | Status |
+|---------|--------|
+| CLI argument parsing | <Badge text="Done" variant="success" /> |
+| Module architecture | <Badge text="Done" variant="success" /> |
+| Backend trait system | <Badge text="Done" variant="success" /> |
+| Configuration management (TOML) | <Badge text="Done" variant="success" /> |
+| Multiple output formats (JSON, YAML, Plain) | <Badge text="Done" variant="success" /> |
+
+### Phase 2: Safety & Validation <Badge text="Complete" variant="success" />
+
+| Feature | Status |
+|---------|--------|
+| Dangerous pattern detection (52+ patterns) | <Badge text="Done" variant="success" /> |
+| POSIX compliance checking | <Badge text="Done" variant="success" /> |
+| User confirmation workflows | <Badge text="Done" variant="success" /> |
+| Risk assessment with color coding | <Badge text="Done" variant="success" /> |
+| Critical path protection | <Badge text="Done" variant="success" /> |
+
+### Phase 3: Backend Integration <Badge text="Complete" variant="success" />
+
+| Feature | Status |
+|---------|--------|
+| Embedded MLX backend (Apple Silicon) | <Badge text="Done" variant="success" /> |
+| Embedded CPU backend (cross-platform) | <Badge text="Done" variant="success" /> |
+| Ollama local backend | <Badge text="Done" variant="success" /> |
+| vLLM HTTP API support | <Badge text="Done" variant="success" /> |
+| Response parsing with fallback | <Badge text="Done" variant="success" /> |
+| Automatic backend selection | <Badge text="Done" variant="success" /> |
+
+### Phase 4: Platform Intelligence <Badge text="Complete" variant="success" />
+
+| Feature | Status |
+|---------|--------|
+| OS/architecture detection | <Badge text="Done" variant="success" /> |
+| Shell type detection | <Badge text="Done" variant="success" /> |
+| Available command detection | <Badge text="Done" variant="success" /> |
+| Platform-specific rules (BSD vs GNU) | <Badge text="Done" variant="success" /> |
+| 2-iteration agentic refinement loop | <Badge text="Done" variant="success" /> |
+| Command execution engine | <Badge text="Done" variant="success" /> |
+
+### Phase 5: Production Ready <Badge text="Complete" variant="success" />
+
+| Feature | Status |
+|---------|--------|
+| Published to crates.io | <Badge text="Done" variant="success" /> |
+| Install script with binary fallback | <Badge text="Done" variant="success" /> |
+| Multi-platform CI/CD | <Badge text="Done" variant="success" /> |
+| SHA256 checksum verification | <Badge text="Done" variant="success" /> |
+| Official website (caro.sh) | <Badge text="Done" variant="success" /> |
+| Documentation site | <Badge text="Done" variant="success" /> |
+
+## In Progress
+
+Currently under active development:
+
+### Phase 6: Optimization & Expansion <Badge text="In Progress" variant="caution" />
+
+| Feature | Status |
+|---------|--------|
+| Model downloading optimization | <Badge text="In Progress" variant="caution" /> |
+| Performance benchmarking suite | <Badge text="In Progress" variant="caution" /> |
+| Extended test coverage | <Badge text="In Progress" variant="caution" /> |
+| Command history tracking | <Badge text="In Progress" variant="caution" /> |
+| Learning from user feedback | <Badge text="Planned" variant="note" /> |
+
+## Planned Features
+
+Features on the roadmap for future releases:
+
+### Phase 7: Advanced Features <Badge text="Planned" variant="note" />
+
+| Feature | Description |
+|---------|-------------|
+| Multi-step goal completion | Execute complex workflows with dependency resolution |
+| Shell script generation | Generate reusable scripts for complex workflows |
+| Interactive refinement | Iteratively refine commands with explanations |
+| Plugin system | Custom backends, validators, and extensions |
+| Command templates | Save and reuse common command patterns |
+
+### Phase 8: Enterprise Features <Badge text="Planned" variant="note" />
+
+| Feature | Description |
+|---------|-------------|
+| Team configurations | Shared safety policies and backends |
+| Audit logging | Track all generated commands |
+| Custom model support | Bring your own fine-tuned models |
+| Air-gapped deployment | Fully offline installation packages |
+| SSO integration | Enterprise authentication support |
+
+## Technical Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        caro CLI                              │
+├─────────────────────────────────────────────────────────────┤
+│  Input Layer                                                 │
+│  ├── Argument Parser (clap)                                  │
+│  ├── Configuration Loader (TOML)                             │
+│  └── Platform Detector                                       │
+├─────────────────────────────────────────────────────────────┤
+│  Processing Layer                                            │
+│  ├── Agentic Loop (2-iteration refinement)                   │
+│  ├── Context Enrichment                                      │
+│  └── Backend Router                                          │
+├─────────────────────────────────────────────────────────────┤
+│  Backend Layer                                               │
+│  ├── Embedded (MLX/CPU)                                      │
+│  ├── Ollama                                                  │
+│  └── vLLM                                                    │
+├─────────────────────────────────────────────────────────────┤
+│  Safety Layer                                                │
+│  ├── Pattern Matcher (52+ patterns)                          │
+│  ├── Risk Assessor                                           │
+│  └── Confirmation Flow                                       │
+├─────────────────────────────────────────────────────────────┤
+│  Output Layer                                                │
+│  ├── Formatter (JSON/YAML/Plain)                             │
+│  ├── Execution Engine                                        │
+│  └── Shell Integration                                       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Contributing
+
+Want to help build these features? Check out:
+
+- [Contributing Guide](https://github.com/wildcard/caro/blob/main/CONTRIBUTING.md)
+- [Good First Issues](https://github.com/wildcard/caro/labels/good-first-issue)
+- [Development Guidelines](/development/agents/)

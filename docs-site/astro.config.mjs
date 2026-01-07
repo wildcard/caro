@@ -2,10 +2,10 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
 export default defineConfig({
-  site: 'https://caro.sh',
+  site: 'https://docs.caro.sh',
   integrations: [
     starlight({
-      title: 'caro',
+      title: 'caro docs',
       description: 'Natural language to shell commands - A Rust CLI powered by local LLMs',
       logo: {
         light: './src/assets/logo-light.svg',
@@ -22,6 +22,7 @@ export default defineConfig({
       },
       customCss: [
         './src/styles/custom.css',
+        './src/styles/isolation.css',
       ],
       components: {
         Head: './src/components/Head.astro',
@@ -74,15 +75,40 @@ export default defineConfig({
         },
         {
           label: 'Guides',
-          autogenerate: { directory: 'guides' },
-        },
-        {
-          label: 'Development',
-          autogenerate: { directory: 'development' },
+          items: [
+            { label: 'macOS Setup', slug: 'guides/macos-setup' },
+            { label: 'Spec-Kitty Workflow', slug: 'guides/spec-kitty' },
+          ],
         },
         {
           label: 'Reference',
-          autogenerate: { directory: 'reference' },
+          items: [
+            { label: 'Backends', slug: 'reference/backends' },
+            { label: 'Configuration', slug: 'reference/configuration' },
+            { label: 'Safety Patterns', slug: 'reference/safety' },
+            { label: 'Naming History', slug: 'reference/naming-history' },
+          ],
+        },
+        {
+          label: 'Project Status',
+          collapsed: false,
+          items: [
+            { label: 'Roadmap', slug: 'status/roadmap' },
+            { label: 'Backend Status', slug: 'status/backends' },
+          ],
+        },
+        {
+          label: 'Development',
+          collapsed: true,
+          items: [
+            { label: 'TDD Workflow', slug: 'development/tdd-workflow' },
+            { label: 'Agent Guidelines', slug: 'development/agents' },
+          ],
+        },
+        {
+          label: 'External Docs',
+          collapsed: true,
+          autogenerate: { directory: 'external' },
         },
       ],
       expressiveCode: {
