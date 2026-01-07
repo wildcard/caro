@@ -447,11 +447,14 @@ Working Directory: {}
 
     fn gnu_examples(&self) -> Vec<(&'static str, &'static str)> {
         vec![
+            // PRIORITY: Website-advertised examples (must match exactly)
+            ("list all files modified today", "find . -type f -mtime 0"),
+            ("find large files over 100MB", "find . -type f -size +100M"),
+            ("show disk usage by folder", "du -sh */ | sort -rh | head -10"),
+            ("find python files modified last week", "find . -name \"*.py\" -type f -mtime -7"),
+
+            // Additional training examples
             ("list all files", "ls -a"),
-            (
-                "list files larger than 100MB",
-                "find . -type f -size +100M -print",
-            ),
             (
                 "20 most recently modified files",
                 "find . -type f -printf '%T@ %p\\n' | sort -nr | head -n 20 | cut -d' ' -f2-",
@@ -461,18 +464,22 @@ Working Directory: {}
                 "count lines of code in python files",
                 "find . -name '*.py' -type f | xargs wc -l",
             ),
-            ("disk usage by directory", "du -h --max-depth=1 | sort -hr"),
         ]
     }
 
     fn bsd_examples(&self) -> Vec<(&'static str, &'static str)> {
         vec![
+            // PRIORITY: Website-advertised examples (must match exactly)
+            ("list all files modified today", "find . -type f -mtime 0"),
+            ("find large files over 100MB", "find . -type f -size +100M"),
+            ("show disk usage by folder", "du -sh */ | sort -rh | head -10"),
+            ("find python files modified last week", "find . -name \"*.py\" -type f -mtime -7"),
+
+            // Additional training examples
             ("list all files", "ls -a"),
-            ("list files larger than 100MB", "find . -type f -size +100M -print"),
             ("20 most recently modified files", "find . -type f -exec stat -f '%m %N' {} + | sort -nr | head -n 20 | cut -d' ' -f2-"),
             ("find files containing TODO", "grep -R -n 'TODO' ."),
             ("count lines of code in python files", "find . -name '*.py' -type f | xargs wc -l"),
-            ("disk usage by directory", "du -h -d 1 | sort -nr"),
         ]
     }
 
