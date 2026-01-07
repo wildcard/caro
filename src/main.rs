@@ -146,6 +146,13 @@ pub fn truncate_at_shell_operator(args: Vec<String>) -> Vec<String> {
 // CLI Argument Parsing
 // =============================================================================
 
+/// Subcommands for caro
+#[derive(Parser, Clone)]
+enum Commands {
+    /// Run system diagnostics and health checks
+    Doctor,
+}
+
 /// caro - Convert natural language to shell commands using local LLMs
 #[derive(Parser, Clone)]
 #[command(name = "caro")]
@@ -155,6 +162,10 @@ pub fn truncate_at_shell_operator(args: Vec<String>) -> Vec<String> {
 )]
 #[command(version)]
 struct Cli {
+    /// Subcommand to run
+    #[command(subcommand)]
+    command: Option<Commands>,
+
     /// Explicit prompt via -p/--prompt flag (highest priority)
     #[arg(
         short = 'p',
@@ -284,6 +295,17 @@ async fn main() {
     }
 
     let mut cli = Cli::parse();
+
+    // Handle doctor subcommand first
+    if let Some(Commands::Doctor) = cli.command {
+        match caro::doctor::run_diagnostics().await {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("Error running diagnostics: {}", e);
+                process::exit(1);
+            }
+        }
+    }
 
     // Truncate trailing args at shell operators (handles edge cases)
     cli.trailing_args = truncate_at_shell_operator(cli.trailing_args);
