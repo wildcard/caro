@@ -51,7 +51,17 @@ impl StaticMatcher {
     /// Build the pattern library from website-advertised examples
     fn build_patterns() -> Vec<PatternEntry> {
         vec![
-            // Pattern 1: "list all files modified today"
+            // Pattern 1: "find all Python files modified today" (SPECIFIC - moved from Pattern 46)
+            PatternEntry {
+                required_keywords: vec!["python".to_string(), "modified".to_string(), "today".to_string()],
+                optional_keywords: vec!["find".to_string(), "all".to_string(), "files".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|locate|search).*(all)?.*(python|\.py).*(files?).*(modified|changed).*(today)").unwrap()),
+                gnu_command: r#"find . -name "*.py" -type f -mtime 0"#.to_string(),
+                bsd_command: Some(r#"find . -name "*.py" -type f -mtime 0"#.to_string()),
+                description: "Find Python files modified today".to_string(),
+            },
+
+            // Pattern 2: "list all files modified today" (GENERAL - was Pattern 1)
             PatternEntry {
                 required_keywords: vec!["file".to_string(), "modified".to_string(), "today".to_string()],
                 optional_keywords: vec!["list".to_string(), "all".to_string()],
@@ -93,7 +103,17 @@ impl StaticMatcher {
 
             // ===== FILE SIZE PATTERNS (Cycle 1 Priority 1) =====
 
-            // Pattern 5: "find files larger than 10MB"
+            // Pattern 5: "find all PDF files larger than 10MB in Downloads" (SPECIFIC - moved from Pattern 41)
+            PatternEntry {
+                required_keywords: vec!["pdf".to_string(), "downloads".to_string()],
+                optional_keywords: vec!["find".to_string(), "all".to_string(), "files".to_string(), "10".to_string(), "mb".to_string(), "larger".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|locate|search).*(all)?.*(pdf).*(files?).*(larger|bigger|over).*(10|10mb|10m).*(in|from)?.*(downloads|~/downloads)").unwrap()),
+                gnu_command: r#"find ~/Downloads -name "*.pdf" -size +10M -ls"#.to_string(),
+                bsd_command: Some(r#"find ~/Downloads -name "*.pdf" -size +10M -ls"#.to_string()),
+                description: "Find PDF files larger than 10MB in Downloads".to_string(),
+            },
+
+            // Pattern 6: "find files larger than 10MB" (GENERAL - was Pattern 5)
             PatternEntry {
                 required_keywords: vec!["file".to_string(), "10".to_string()],
                 optional_keywords: vec!["find".to_string(), "larger".to_string(), "bigger".to_string(), "mb".to_string()],
@@ -103,11 +123,11 @@ impl StaticMatcher {
                 description: "Find files larger than 10MB".to_string(),
             },
 
-            // Pattern 6: "Find all files larger than 1GB" with -exec ls -lh (SPECIFIC - moved from Pattern 40)
+            // Pattern 6: "Find all files larger than 1GB" with exec (SPECIFIC - moved from Pattern 40)
             PatternEntry {
-                required_keywords: vec!["file".to_string(), "larger".to_string(), "1gb".to_string()],
-                optional_keywords: vec!["find".to_string(), "all".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(find|locate|list).*(all)?.*(files?).*(larger|bigger|over|above|greater).*(1gb?|1g\b)").unwrap()),
+                required_keywords: vec!["find".to_string(), "all".to_string(), "file".to_string(), "larger".to_string(), "1gb".to_string()],
+                optional_keywords: vec![],
+                regex_pattern: Some(Regex::new(r"(?i)^find\s+all\s+files?\s+(larger|bigger|over|above|greater).*1\s*(gb?|g)").unwrap()),
                 gnu_command: "find . -type f -size +1G -exec ls -lh {} \\;".to_string(),
                 bsd_command: Some("find . -type f -size +1G -exec ls -lh {} \\;".to_string()),
                 description: "Find files larger than 1GB with exec".to_string(),
@@ -155,7 +175,17 @@ impl StaticMatcher {
                 description: "Find files modified in the last hour".to_string(),
             },
 
-            // Pattern 10: "find files modified in last 7 days"
+            // Pattern 10: "find python files modified in the last 7 days" (SPECIFIC - moved from Pattern 42)
+            PatternEntry {
+                required_keywords: vec!["python".to_string(), "modified".to_string(), "last".to_string()],
+                optional_keywords: vec!["find".to_string(), "files".to_string(), "7".to_string(), "days".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|locate|search).*(python|\.py).*(files?).*(modified|changed).*(in)?.*(last)?.*(7).*(days?)").unwrap()),
+                gnu_command: r#"find . -name "*.py" -type f -mtime -7"#.to_string(),
+                bsd_command: Some(r#"find . -name "*.py" -type f -mtime -7"#.to_string()),
+                description: "Find Python files modified in last 7 days".to_string(),
+            },
+
+            // Pattern 11: "find files modified in last 7 days" (GENERAL - was Pattern 10)
             PatternEntry {
                 required_keywords: vec!["file".to_string(), "7".to_string()],
                 optional_keywords: vec!["find".to_string(), "modified".to_string(), "days".to_string()],
@@ -495,27 +525,7 @@ impl StaticMatcher {
 
             // ===== FILE MANAGEMENT REFINED PATTERNS (Cycle 4) =====
 
-            // Pattern 41: "find all PDF files larger than 10MB in Downloads"
-            PatternEntry {
-                required_keywords: vec!["pdf".to_string(), "downloads".to_string()],
-                optional_keywords: vec!["find".to_string(), "all".to_string(), "files".to_string(), "10".to_string(), "mb".to_string(), "larger".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(find|locate|search).*(all)?.*(pdf).*(files?).*(larger|bigger|over).*(10|10mb|10m).*(in|from)?.*(downloads|~/downloads)").unwrap()),
-                gnu_command: r#"find ~/Downloads -name "*.pdf" -size +10M -ls"#.to_string(),
-                bsd_command: Some(r#"find ~/Downloads -name "*.pdf" -size +10M -ls"#.to_string()),
-                description: "Find PDF files larger than 10MB in Downloads".to_string(),
-            },
-
-            // Pattern 42: "find python files modified in the last 7 days"
-            PatternEntry {
-                required_keywords: vec!["python".to_string(), "modified".to_string(), "last".to_string()],
-                optional_keywords: vec!["find".to_string(), "files".to_string(), "7".to_string(), "days".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(find|locate|search).*(python|\.py).*(files?).*(modified|changed).*(in)?.*(last)?.*(7).*(days?)").unwrap()),
-                gnu_command: r#"find . -name "*.py" -type f -mtime -7"#.to_string(),
-                bsd_command: Some(r#"find . -name "*.py" -type f -mtime -7"#.to_string()),
-                description: "Find Python files modified in last 7 days".to_string(),
-            },
-
-            // Pattern 43: "find python files" (simple variant)
+            // Pattern 41: "find python files" (simple variant - was Pattern 43)
             PatternEntry {
                 required_keywords: vec!["find".to_string(), "python".to_string()],
                 optional_keywords: vec!["files".to_string(), "all".to_string()],
@@ -525,7 +535,7 @@ impl StaticMatcher {
                 description: "Find Python files (simple)".to_string(),
             },
 
-            // Pattern 44: "list files" (very simple variant)
+            // Pattern 42: "list files" (very simple variant - was Pattern 44)
             PatternEntry {
                 required_keywords: vec!["list".to_string(), "files".to_string()],
                 optional_keywords: vec!["all".to_string()],
@@ -535,7 +545,7 @@ impl StaticMatcher {
                 description: "List files (simple)".to_string(),
             },
 
-            // Pattern 45: "find large files" (simple variant without size specified)
+            // Pattern 43: "find large files" (simple variant without size specified - was Pattern 45)
             PatternEntry {
                 required_keywords: vec!["find".to_string(), "large".to_string()],
                 optional_keywords: vec!["files".to_string(), "big".to_string()],
@@ -543,16 +553,6 @@ impl StaticMatcher {
                 gnu_command: "find . -type f -size +100M".to_string(),
                 bsd_command: Some("find . -type f -size +100M".to_string()),
                 description: "Find large files (default 100MB)".to_string(),
-            },
-
-            // Pattern 46: "find all Python files modified today"
-            PatternEntry {
-                required_keywords: vec!["python".to_string(), "modified".to_string(), "today".to_string()],
-                optional_keywords: vec!["find".to_string(), "all".to_string(), "files".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(find|locate|search).*(all)?.*(python|\.py).*(files?).*(modified|changed).*(today)").unwrap()),
-                gnu_command: r#"find . -name "*.py" -type f -mtime 0"#.to_string(),
-                bsd_command: Some(r#"find . -name "*.py" -type f -mtime 0"#.to_string()),
-                description: "Find Python files modified today".to_string(),
             },
 
             // ===== SYSTEM MONITORING FINE-TUNED PATTERNS (Cycle 4) =====
