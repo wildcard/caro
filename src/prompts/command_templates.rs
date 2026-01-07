@@ -108,10 +108,7 @@ impl TemplateLibrary {
         }
 
         // Filter templates based on available features
-        templates = templates
-            .into_iter()
-            .filter(|t| Self::template_compatible(t, profile))
-            .collect();
+        templates.retain(|t| Self::template_compatible(t, profile));
 
         Self { templates }
     }

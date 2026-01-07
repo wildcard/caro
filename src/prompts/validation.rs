@@ -361,19 +361,17 @@ impl CommandValidator {
 
         // Check flag compatibility
         for flag_rule in &self.flag_rules {
-            if flag_rule.tool == tool && parts.iter().any(|p| *p == flag_rule.flag) {
-                if !flag_rule.supported {
-                    result.add_error(
-                        ValidationError::new(
-                            ValidationErrorCode::FlagNotSupported,
-                            format!(
-                                "Flag '{}' for '{}' is not supported on {} ({})",
-                                flag_rule.flag, tool, self.profile.profile_type, flag_rule.reason
-                            ),
-                        )
-                        .with_context(command.to_string()),
-                    );
-                }
+            if flag_rule.tool == tool && parts.iter().any(|p| *p == flag_rule.flag) && !flag_rule.supported {
+                result.add_error(
+                    ValidationError::new(
+                        ValidationErrorCode::FlagNotSupported,
+                        format!(
+                            "Flag '{}' for '{}' is not supported on {} ({})",
+                            flag_rule.flag, tool, self.profile.profile_type, flag_rule.reason
+                        ),
+                    )
+                    .with_context(command.to_string()),
+                );
             }
         }
     }

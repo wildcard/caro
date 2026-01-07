@@ -254,8 +254,10 @@ impl CapabilityProfile {
 
     /// Create a profile for a specific platform (useful for testing or cross-compilation)
     pub fn for_platform(platform: ProfileType) -> Self {
-        let mut profile = CapabilityProfile::default();
-        profile.profile_type = platform;
+        let mut profile = CapabilityProfile {
+            profile_type: platform,
+            ..Default::default()
+        };
 
         match platform {
             ProfileType::GnuLinux => {
@@ -821,11 +823,13 @@ mod tests {
 
     #[test]
     fn test_capability_notes() {
-        let mut profile = CapabilityProfile::default();
-        profile.profile_type = ProfileType::Bsd;
-        profile.find_printf = false;
-        profile.sort_h = false;
-        profile.sed_inplace_gnu = false;
+        let mut profile = CapabilityProfile {
+            profile_type: ProfileType::Bsd,
+            find_printf: false,
+            sort_h: false,
+            sed_inplace_gnu: false,
+            ..Default::default()
+        };
 
         let notes = profile.capability_notes();
 
