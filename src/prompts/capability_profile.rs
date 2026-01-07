@@ -823,7 +823,7 @@ mod tests {
 
     #[test]
     fn test_capability_notes() {
-        let mut profile = CapabilityProfile {
+        let profile = CapabilityProfile {
             profile_type: ProfileType::Bsd,
             find_printf: false,
             sort_h: false,
