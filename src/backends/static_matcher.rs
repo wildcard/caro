@@ -304,6 +304,122 @@ impl StaticMatcher {
                 bsd_command: Some("ifconfig".to_string()),
                 description: "Show network interfaces and status".to_string(),
             },
+
+            // Pattern 25: "show all established connections to port 443"
+            PatternEntry {
+                required_keywords: vec!["established".to_string(), "connections".to_string(), "port".to_string()],
+                optional_keywords: vec!["show".to_string(), "all".to_string(), "443".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|list|display|get).*(all|established).*(connections?|sockets?).*(to|on)?.*(port|:)\s*\d+").unwrap()),
+                gnu_command: "ss -tn state established '( dport = :443 )'".to_string(),
+                bsd_command: Some("netstat -an | grep ESTABLISHED | grep :443".to_string()),
+                description: "Show established connections to a port".to_string(),
+            },
+
+            // ===== SYSTEM MONITORING PATTERNS (Cycle 3) =====
+
+            // Pattern 26: "Monitor CPU usage in real-time"
+            PatternEntry {
+                required_keywords: vec!["cpu".to_string(), "usage".to_string()],
+                optional_keywords: vec!["monitor".to_string(), "real-time".to_string(), "top".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(monitor|watch|show|display).*(cpu|processor).*(usage|utilization|consumption).*(real-time|realtime|live)?").unwrap()),
+                gnu_command: "top -b -n 1 | head -n 20".to_string(),
+                bsd_command: Some("top -l 1 | head -n 20".to_string()),
+                description: "Monitor CPU usage in real-time".to_string(),
+            },
+
+            // Pattern 27: "what's using disk space"
+            PatternEntry {
+                required_keywords: vec!["using".to_string(), "disk".to_string(), "space".to_string()],
+                optional_keywords: vec!["what".to_string(), "show".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(what|which|show).*(using|consuming|taking).*(disk|storage).*(space|usage)").unwrap()),
+                gnu_command: "du -sh /* | sort -rh | head -10".to_string(),
+                bsd_command: Some("du -sh /* | sort -rh | head -10".to_string()),
+                description: "Show what's using disk space".to_string(),
+            },
+
+            // Pattern 28: "show me the top 5 processes by CPU usage"
+            PatternEntry {
+                required_keywords: vec!["top".to_string(), "processes".to_string(), "cpu".to_string()],
+                optional_keywords: vec!["show".to_string(), "5".to_string(), "usage".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|list|display|find).*(top|most).*(processes?).*(by|using).*(cpu|processor)").unwrap()),
+                gnu_command: "ps aux --sort=-%cpu | head -n 6".to_string(),
+                bsd_command: Some("ps aux -r | head -n 6".to_string()),
+                description: "Show top processes by CPU usage".to_string(),
+            },
+
+            // ===== DEVOPS/KUBERNETES PATTERNS (Cycle 3 Priority 2) =====
+
+            // Pattern 29: "check if all kubernetes deployments are ready"
+            PatternEntry {
+                required_keywords: vec!["kubernetes".to_string(), "deployments".to_string(), "ready".to_string()],
+                optional_keywords: vec!["check".to_string(), "all".to_string(), "production".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(check|verify|show).*(all|kubernetes|k8s)?.*(deployments?|deploy).*(ready|status|health)").unwrap()),
+                gnu_command: r#"kubectl get deployments -n production -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.readyReplicas}/{.status.replicas}{"\n"}{end}'"#.to_string(),
+                bsd_command: Some(r#"kubectl get deployments -n production -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.readyReplicas}/{.status.replicas}{"\n"}{end}'"#.to_string()),
+                description: "Check Kubernetes deployment readiness".to_string(),
+            },
+
+            // Pattern 30: "clean up docker images and volumes"
+            PatternEntry {
+                required_keywords: vec!["clean".to_string(), "docker".to_string()],
+                optional_keywords: vec!["up".to_string(), "images".to_string(), "volumes".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(clean|cleanup|remove|prune).*(up)?.*(docker|container).*(images?|volumes?|unused|not being used)").unwrap()),
+                gnu_command: "docker system prune -f && docker volume prune -f".to_string(),
+                bsd_command: Some("docker system prune -f && docker volume prune -f".to_string()),
+                description: "Clean up unused Docker resources".to_string(),
+            },
+
+            // Pattern 31: "check if redis, postgres, and nginx are running"
+            PatternEntry {
+                required_keywords: vec!["check".to_string(), "running".to_string()],
+                optional_keywords: vec!["redis".to_string(), "postgres".to_string(), "nginx".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(check|verify|see).*(if|whether).*(redis|postgres|postgresql|nginx|mysql|mongodb).*(running|active|up|status)").unwrap()),
+                gnu_command: r#"for svc in redis postgres nginx; do systemctl is-active "$svc"; done"#.to_string(),
+                bsd_command: Some(r#"for svc in redis postgres nginx; do service "$svc" status; done"#.to_string()),
+                description: "Check if services are running".to_string(),
+            },
+
+            // Pattern 32: "show SSL certificates expiring in the next 30 days"
+            PatternEntry {
+                required_keywords: vec!["ssl".to_string(), "certificates".to_string(), "expiring".to_string()],
+                optional_keywords: vec!["show".to_string(), "30".to_string(), "days".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|list|find|check).*(ssl|tls).*(certificates?|certs?).*(expiring|expire|expiration).*(next|in)?.*(30|days?)").unwrap()),
+                gnu_command: r#"find /etc/ssl -name "*.pem" -exec sh -c 'openssl x509 -enddate -noout -in "{}" 2>/dev/null' \;"#.to_string(),
+                bsd_command: Some(r#"find /etc/ssl -name "*.pem" -exec sh -c 'openssl x509 -enddate -noout -in "{}" 2>/dev/null' \;"#.to_string()),
+                description: "Show SSL certificates expiring soon".to_string(),
+            },
+
+            // Pattern 33: "show all AWS EC2 instances in terraform state"
+            PatternEntry {
+                required_keywords: vec!["terraform".to_string(), "state".to_string()],
+                optional_keywords: vec!["show".to_string(), "aws".to_string(), "ec2".to_string(), "instances".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|list|display).*(all|aws)?.*(ec2|instances?).*(terraform|tf).*(state)").unwrap()),
+                gnu_command: "terraform state list | grep aws_instance".to_string(),
+                bsd_command: Some("terraform state list | grep aws_instance".to_string()),
+                description: "Show AWS EC2 instances in Terraform state".to_string(),
+            },
+
+            // ===== TEXT PROCESSING PATTERNS (Cycle 3 Remaining) =====
+
+            // Pattern 34: "Count lines, words, and characters in all .txt files"
+            PatternEntry {
+                required_keywords: vec!["count".to_string(), "lines".to_string(), "txt".to_string()],
+                optional_keywords: vec!["words".to_string(), "characters".to_string(), "files".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(count|calculate|show).*(lines?|words?|characters?).*(in|of).*(all|txt|\.txt).*(files?)").unwrap()),
+                gnu_command: "wc $(find . -name '*.txt')".to_string(),
+                bsd_command: Some("find . -name '*.txt' -exec wc {} +".to_string()),
+                description: "Count lines, words, and characters in text files".to_string(),
+            },
+
+            // Pattern 35: "your first command" / "hello world"
+            PatternEntry {
+                required_keywords: vec!["first".to_string(), "command".to_string()],
+                optional_keywords: vec!["your".to_string(), "hello".to_string(), "world".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(your|my|the)?.*(first|hello|hi).*(command|world)").unwrap()),
+                gnu_command: r#"echo "Hello, World!""#.to_string(),
+                bsd_command: Some(r#"echo "Hello, World!""#.to_string()),
+                description: "First command - Hello World".to_string(),
+            },
         ]
     }
 
