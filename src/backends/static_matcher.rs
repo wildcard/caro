@@ -453,7 +453,17 @@ impl StaticMatcher {
 
             // ===== LOG ANALYSIS PATTERNS (Cycle 4) =====
 
-            // Pattern 36: "Find all ERROR entries in application logs"
+            // Pattern 36: "find all ERROR lines in logs from the last 24 hours" (SPECIFIC - moved from Pattern 39)
+            PatternEntry {
+                required_keywords: vec!["error".to_string(), "log".to_string(), "last".to_string()],
+                optional_keywords: vec!["find".to_string(), "all".to_string(), "24".to_string(), "hours".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|search|grep).*(all)?.*(error|errors).*(lines?|entries?).*(in)?.*(logs?).*(from|in)?.*(last|past).*(24|1440)?.*(hours?|day)").unwrap()),
+                gnu_command: r#"find /var/log -name "*.log" -mmin -1440 -exec grep -l "ERROR" {} \;"#.to_string(),
+                bsd_command: Some(r#"find /var/log -name "*.log" -mmin -1440 -exec grep -l "ERROR" {} \;"#.to_string()),
+                description: "Find ERROR lines in logs from last 24 hours".to_string(),
+            },
+
+            // Pattern 37: "Find all ERROR entries in application logs" (GENERAL - was Pattern 36)
             PatternEntry {
                 required_keywords: vec!["error".to_string(), "log".to_string()],
                 optional_keywords: vec!["find".to_string(), "all".to_string(), "entries".to_string(), "application".to_string()],
@@ -483,22 +493,12 @@ impl StaticMatcher {
                 description: "Show last N system errors".to_string(),
             },
 
-            // Pattern 39: "find all ERROR lines in logs from the last 24 hours"
-            PatternEntry {
-                required_keywords: vec!["error".to_string(), "log".to_string(), "last".to_string()],
-                optional_keywords: vec!["find".to_string(), "all".to_string(), "24".to_string(), "hours".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(find|search|grep).*(all)?.*(error|errors).*(lines?|entries?).*(in)?.*(logs?).*(from|in)?.*(last|past).*(24|1440)?.*(hours?|day)").unwrap()),
-                gnu_command: r#"find /var/log -name "*.log" -mmin -1440 -exec grep -l "ERROR" {} \;"#.to_string(),
-                bsd_command: Some(r#"find /var/log -name "*.log" -mmin -1440 -exec grep -l "ERROR" {} \;"#.to_string()),
-                description: "Find ERROR lines in logs from last 24 hours".to_string(),
-            },
-
             // ===== FILE MANAGEMENT REFINED PATTERNS (Cycle 4) =====
 
             // Pattern 41: "find all PDF files larger than 10MB in Downloads"
             PatternEntry {
-                required_keywords: vec!["pdf".to_string(), "10mb".to_string(), "downloads".to_string()],
-                optional_keywords: vec!["find".to_string(), "all".to_string(), "files".to_string()],
+                required_keywords: vec!["pdf".to_string(), "downloads".to_string()],
+                optional_keywords: vec!["find".to_string(), "all".to_string(), "files".to_string(), "10".to_string(), "mb".to_string(), "larger".to_string()],
                 regex_pattern: Some(Regex::new(r"(?i)(find|locate|search).*(all)?.*(pdf).*(files?).*(larger|bigger|over).*(10|10mb|10m).*(in|from)?.*(downloads|~/downloads)").unwrap()),
                 gnu_command: r#"find ~/Downloads -name "*.pdf" -size +10M -ls"#.to_string(),
                 bsd_command: Some(r#"find ~/Downloads -name "*.pdf" -size +10M -ls"#.to_string()),
@@ -507,8 +507,8 @@ impl StaticMatcher {
 
             // Pattern 42: "find python files modified in the last 7 days"
             PatternEntry {
-                required_keywords: vec!["python".to_string(), "modified".to_string(), "7".to_string()],
-                optional_keywords: vec!["find".to_string(), "files".to_string(), "last".to_string(), "days".to_string()],
+                required_keywords: vec!["python".to_string(), "modified".to_string(), "last".to_string()],
+                optional_keywords: vec!["find".to_string(), "files".to_string(), "7".to_string(), "days".to_string()],
                 regex_pattern: Some(Regex::new(r"(?i)(find|locate|search).*(python|\.py).*(files?).*(modified|changed).*(in)?.*(last)?.*(7).*(days?)").unwrap()),
                 gnu_command: r#"find . -name "*.py" -type f -mtime -7"#.to_string(),
                 bsd_command: Some(r#"find . -name "*.py" -type f -mtime -7"#.to_string()),
