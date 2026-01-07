@@ -1,4 +1,5 @@
 name: Bundle Models
+# Force workflow indexing for manual dispatch
 
 on:
   workflow_dispatch:
