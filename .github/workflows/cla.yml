@@ -28,13 +28,14 @@ jobs:
       - name: Check if already signed or allowlisted
         if: github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA'
         id: check-signed
+        env:
+          COMMENTER: ${{ github.event.comment.user.login }}
         run: |
-          COMMENTER="${{ github.event.comment.user.login }}"
-
-          # Check allowlist patterns
+          # Check allowlist patterns (case-insensitive for PR commenters)
+          COMMENTER_LOWER=$(echo "$COMMENTER" | tr '[:upper:]' '[:lower:]')
           if [[ "$COMMENTER" == bot* ]] || [[ "$COMMENTER" == dependabot* ]] || \
-             [[ "$COMMENTER" == github-actions* ]] || [[ "$COMMENTER" == "claude" ]] || \
-             [[ "$COMMENTER" == "wildcard" ]] || [[ "$COMMENTER" == "copilot" ]]; then
+             [[ "$COMMENTER" == github-actions* ]] || [[ "$COMMENTER_LOWER" == "claude" ]] || \
+             [[ "$COMMENTER_LOWER" == "wildcard" ]] || [[ "$COMMENTER_LOWER" == "copilot" ]]; then
             echo "skip-message=true" >> $GITHUB_OUTPUT
             echo "User $COMMENTER is in allowlist"
             exit 0
@@ -64,8 +65,8 @@ jobs:
           path-to-document: 'https://github.com/wildcard/caro/blob/main/docs/legal/CLA.md'
           # Branch where signatures will be stored
           branch: 'cla-signatures'
-          # Allowlist for bots and specific users
-          allowlist: bot*,dependabot*,github-actions*,claude,wildcard,copilot
+          # Allowlist for bots and specific users (case-sensitive for commit authors)
+          allowlist: bot*,dependabot*,github-actions*,claude,Claude,wildcard,copilot,Copilot
 
           # Message to post on PR when CLA is not signed
           custom-pr-sign-comment: |
