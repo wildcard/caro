@@ -14,6 +14,9 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: write  # Required for gh release upload
+
 jobs:
   verify-release:
     runs-on: ubuntu-latest
