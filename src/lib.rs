@@ -33,6 +33,7 @@ pub mod cli;
 pub mod config;
 pub mod context;
 pub mod doctor;
+pub mod eval;
 pub mod execution;
 pub mod logging;
 pub mod model_catalog;
