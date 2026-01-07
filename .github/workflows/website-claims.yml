@@ -1,0 +1,285 @@
+name: Website Claims Verification
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      blocking:
+        description: 'Run as blocking check'
+        required: false
+        default: 'false'
+        type: boolean
+
+env:
+  CARGO_TERM_COLOR: always
+  CARO_CLAIMS_TEST: "1"
+
+# This is a business-critical test suite that verifies all claims on caro.sh
+# are accurate and the product behaves as documented.
+
+jobs:
+  # =============================================================================
+  # Website Claims Verification - Non-Blocking
+  # =============================================================================
+
+  website-claims:
+    name: Verify Website Claims (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true  # Non-blocking - informational only
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        include:
+          - os: macos-latest
+            run_performance_tests: true
+            features: "embedded-mlx,embedded-cpu,remote-backends"
+          - os: ubuntu-latest
+            run_performance_tests: false
+            features: "embedded-cpu,remote-backends"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-claims-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-claims-cargo-
+
+      - name: Build caro
+        run: cargo build --release --features ${{ matrix.features }}
+
+      - name: Set binary path
+        run: |
+          echo "CARO_TEST_BINARY=$(pwd)/target/release/caro" >> $GITHUB_ENV
+
+      - name: Run website claims tests
+        id: claims-tests
+        run: |
+          echo "=========================================="
+          echo "Website Claims Verification"
+          echo "Platform: ${{ matrix.os }}"
+          echo "=========================================="
+
+          cargo test --test website_claims -- --test-threads=1 --nocapture 2>&1 | tee claims-output.txt
+
+          # Count results
+          PASSED=$(grep -c "PASSED:" claims-output.txt || echo "0")
+          SKIPPED=$(grep -c "SKIPPED:" claims-output.txt || echo "0")
+          WARNING=$(grep -c "WARNING:" claims-output.txt || echo "0")
+
+          echo "=========================================="
+          echo "Results Summary"
+          echo "  Passed:  $PASSED"
+          echo "  Skipped: $SKIPPED"
+          echo "  Warning: $WARNING"
+          echo "=========================================="
+
+          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+          echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
+          echo "warnings=$WARNING" >> $GITHUB_OUTPUT
+        env:
+          RUST_BACKTRACE: 1
+          RUST_LOG: info
+
+      - name: Generate claims report
+        if: always()
+        run: |
+          # Create JSON report
+          cat > claims-report-${{ matrix.os }}.json << EOF
+          {
+            "suite": "website-claims",
+            "platform": "${{ matrix.os }}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "passed": ${{ steps.claims-tests.outputs.passed || 0 }},
+            "skipped": ${{ steps.claims-tests.outputs.skipped || 0 }},
+            "warnings": ${{ steps.claims-tests.outputs.warnings || 0 }},
+            "run_id": "${{ github.run_id }}",
+            "sha": "${{ github.sha }}"
+          }
+          EOF
+
+          cat claims-report-${{ matrix.os }}.json
+
+      - name: Upload test output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: claims-output-${{ matrix.os }}
+          path: |
+            claims-output.txt
+            claims-report-${{ matrix.os }}.json
+          retention-days: 30
+
+      - name: Create check summary
+        if: always()
+        run: |
+          echo "## Website Claims Verification - ${{ matrix.os }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Passed | ${{ steps.claims-tests.outputs.passed || 0 }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Skipped | ${{ steps.claims-tests.outputs.skipped || 0 }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Warnings | ${{ steps.claims-tests.outputs.warnings || 0 }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "These tests verify that claims made on [caro.sh](https://caro.sh) are accurate." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "See [ADR-010](./docs/adr/ADR-010-website-claims-verification.md) for details." >> $GITHUB_STEP_SUMMARY
+
+  # =============================================================================
+  # Windows Claims (Separate due to different setup)
+  # =============================================================================
+
+  windows-claims:
+    name: Verify Website Claims (Windows)
+    runs-on: windows-latest
+    continue-on-error: true  # Non-blocking
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: windows-claims-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build caro
+        run: cargo build --release --features embedded-cpu,remote-backends
+
+      - name: Run platform claims tests
+        run: |
+          $env:CARO_TEST_BINARY = "$(Get-Location)\target\release\caro.exe"
+          $env:CARO_CLAIMS_TEST = "1"
+          cargo test --test website_claims platform_claims -- --test-threads=1 --nocapture
+        env:
+          RUST_BACKTRACE: 1
+
+  # =============================================================================
+  # Claims Coverage Report
+  # =============================================================================
+
+  claims-report:
+    name: Claims Coverage Report
+    runs-on: ubuntu-latest
+    needs: [website-claims, windows-claims]
+    if: always()
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Generate coverage report
+        run: |
+          echo "# Website Claims Verification Report" > CLAIMS_REPORT.md
+          echo "" >> CLAIMS_REPORT.md
+          echo "**Run ID:** ${{ github.run_id }}" >> CLAIMS_REPORT.md
+          echo "**SHA:** ${{ github.sha }}" >> CLAIMS_REPORT.md
+          echo "**Date:** $(date -u +%Y-%m-%d)" >> CLAIMS_REPORT.md
+          echo "" >> CLAIMS_REPORT.md
+          echo "## Platform Results" >> CLAIMS_REPORT.md
+          echo "" >> CLAIMS_REPORT.md
+
+          for report in artifacts/claims-report-*.json; do
+            if [ -f "$report" ]; then
+              echo "### $(basename $report .json)" >> CLAIMS_REPORT.md
+              echo '```json' >> CLAIMS_REPORT.md
+              cat "$report" >> CLAIMS_REPORT.md
+              echo '```' >> CLAIMS_REPORT.md
+              echo "" >> CLAIMS_REPORT.md
+            fi
+          done
+
+          echo "## Documentation" >> CLAIMS_REPORT.md
+          echo "" >> CLAIMS_REPORT.md
+          echo "- [PRD: Website Claims Test Suite](kitty-specs/010-website-claims-qa/spec.md)" >> CLAIMS_REPORT.md
+          echo "- [ADR: Website Claims Verification](docs/adr/ADR-010-website-claims-verification.md)" >> CLAIMS_REPORT.md
+          echo "" >> CLAIMS_REPORT.md
+          echo "## Next Steps" >> CLAIMS_REPORT.md
+          echo "" >> CLAIMS_REPORT.md
+          echo "1. Review warnings and address any gaps" >> CLAIMS_REPORT.md
+          echo "2. Update website if claims are inaccurate" >> CLAIMS_REPORT.md
+          echo "3. Implement missing features if claims are aspirational" >> CLAIMS_REPORT.md
+
+          cat CLAIMS_REPORT.md
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: claims-coverage-report
+          path: CLAIMS_REPORT.md
+          retention-days: 90
+
+      - name: Post to PR (if applicable)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('CLAIMS_REPORT.md', 'utf8');
+
+            // Truncate if too long
+            const maxLength = 60000;
+            const truncatedReport = report.length > maxLength
+              ? report.substring(0, maxLength) + '\n\n... (truncated)'
+              : report;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('Website Claims Verification Report')
+            );
+
+            const body = `<!-- website-claims-bot -->\n${truncatedReport}`;
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body,
+              });
+            }
