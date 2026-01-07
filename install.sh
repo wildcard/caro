@@ -24,8 +24,16 @@ REPO="wildcard/caro"
 BINARY_NAME="caro"
 INSTALL_DIR="${CARO_INSTALL_DIR:-$HOME/.local/bin}"
 
+# Auto-detect non-interactive mode (piped execution)
+if [ ! -t 0 ]; then
+    # stdin is not a terminal (piped or redirected)
+    INTERACTIVE_MODE="false"
+else
+    # stdin is a terminal, check env var or default to true
+    INTERACTIVE_MODE="${CARO_INTERACTIVE:-true}"
+fi
+
 # Installation preferences (set by interactive prompts)
-INTERACTIVE_MODE="${CARO_INTERACTIVE:-true}"
 INSTALL_METHOD=""  # "cargo" or "binary"
 SETUP_SHELL_COMPLETION="true"
 SETUP_PATH_AUTO="true"
@@ -516,6 +524,13 @@ main() {
     echo -e "${CYAN}Welcome to the Caro installer!${NC}"
     echo -e "${CYAN}This will install caro - your AI-powered shell command assistant.${NC}"
     echo ""
+
+    # Show mode indicator
+    if [ "$INTERACTIVE_MODE" != "true" ]; then
+        echo -e "${YELLOW}Running in non-interactive mode (piped execution detected)${NC}"
+        echo -e "${YELLOW}Using default settings for automated installation${NC}"
+        echo ""
+    fi
 
     # Run interactive setup (asks configuration questions)
     run_interactive_setup
