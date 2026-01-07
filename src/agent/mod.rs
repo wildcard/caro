@@ -1,6 +1,7 @@
-use crate::backends::{CommandGenerator, GeneratorError};
+use crate::backends::{CommandGenerator, GeneratorError, StaticMatcher};
 use crate::context::ExecutionContext;
 use crate::models::{CommandRequest, GeneratedCommand, SafetyLevel, ShellType};
+use crate::prompts::CapabilityProfile;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -12,6 +13,7 @@ use tracing::{debug, info, warn};
 /// Agent loop for iterative command refinement
 pub struct AgentLoop {
     backend: Arc<dyn CommandGenerator>,
+    static_matcher: Option<StaticMatcher>,
     context: ExecutionContext,
     _max_iterations: usize,
     timeout: Duration,
@@ -37,12 +39,24 @@ pub struct CommandResponse {
 
 impl AgentLoop {
     pub fn new(backend: Arc<dyn CommandGenerator>, context: ExecutionContext) -> Self {
+        // Create static matcher with detected capabilities
+        let profile = CapabilityProfile::ubuntu(); // TODO: detect from system
+        let static_matcher = Some(StaticMatcher::new(profile));
+
         Self {
             backend,
+            static_matcher,
             context,
             _max_iterations: 2,
             timeout: Duration::from_secs(15), // Allow enough time for 2 iterations
         }
+    }
+
+    pub fn with_static_matcher(mut self, enabled: bool) -> Self {
+        if !enabled {
+            self.static_matcher = None;
+        }
+        self
     }
 
     /// Generate command with iterative refinement
@@ -51,7 +65,27 @@ impl AgentLoop {
 
         info!("Starting agent loop for: {}", prompt);
 
-        // Iteration 1: Initial generation with platform context
+        // Try static matcher first (instant, deterministic)
+        if let Some(ref matcher) = self.static_matcher {
+            debug!("Trying static pattern matcher");
+            let request = CommandRequest::new(prompt, ShellType::Bash);
+
+            match matcher.generate_command(&request).await {
+                Ok(command) => {
+                    info!(
+                        "Static matcher found match in {:?}: {}",
+                        start.elapsed(),
+                        command.command
+                    );
+                    return Ok(command);
+                }
+                Err(e) => {
+                    debug!("Static matcher: no match ({}), falling back to LLM", e);
+                }
+            }
+        }
+
+        // Iteration 1: Initial generation with platform context (LLM fallback)
         debug!("Iteration 1: Generating initial command");
         let initial = self.generate_initial(prompt).await?;
 

@@ -4,6 +4,7 @@
 pub mod embedded;
 #[cfg(feature = "remote-backends")]
 pub mod remote;
+pub mod static_matcher;
 
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
@@ -68,3 +69,6 @@ pub enum GeneratorError {
 }
 
 // Types are already public, no re-export needed
+
+// Re-export static matcher
+pub use static_matcher::StaticMatcher;
