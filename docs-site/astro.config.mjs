@@ -66,6 +66,13 @@ export default defineConfig({
           ],
         },
         {
+          label: 'Contributing',
+          items: [
+            { label: 'Beta Testing', slug: 'contributing/beta-testing' },
+            { label: 'Testing Profiles', slug: 'contributing/testing-profiles' },
+          ],
+        },
+        {
           label: 'Guides',
           autogenerate: { directory: 'guides' },
         },

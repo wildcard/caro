@@ -278,6 +278,40 @@ All work is organized across two GitHub Projects:
 
 ---
 
+## Beta Testing Cycles
+
+We conduct systematic beta testing for each release using diverse user profiles to validate functionality and documentation.
+
+### Cycle 1: v1.0.4 Website Claims Validation
+**Date**: January 7, 2026
+**Profiles Used**: bt_001 (Terminal Novice), bt_004 (Corporate), bt_006 (Data Scientist), bt_008 (Fish Shell), bt_010 (SSH-Only)
+**Claims Tested**: 13 website/documentation claims
+**Issues Found**: 2
+**Issues Resolved**: 1 (P1)
+
+| Category | Tests | Pass | Issues |
+|----------|-------|------|--------|
+| Installation | 2 | 2 | None |
+| CLI Usage | 3 | 2 | #395 (P2) |
+| Safety Features | 2 | 2 | None |
+| Backend Detection | 2 | 2 | None |
+| CLI Flags | 3 | 2 | #394 (P1) |
+| Platform Support | 1 | 1 | None |
+
+**Key Findings**:
+- ✅ Installation works across different environments
+- ✅ Safety blocking functioning correctly
+- ✅ Backend detection working as advertised
+- ⚠️ Documentation error: Website showed `--json` instead of `--output json` (fixed)
+- ℹ️ Command generation varies but remains functional
+
+**Beta Testing Methodology**:
+For complete methodology and profile details, see:
+- `.claude/skills/quality-engineer-manager/references/beta-testing-playbook.md`
+- `.claude/skills/unbiased-beta-tester/examples/preset-profiles.md`
+
+---
+
 ## How to Contribute
 
 1. Check the [Product Development Project](https://github.com/users/wildcard/projects/2) for technical work
