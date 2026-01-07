@@ -443,6 +443,18 @@ import Navigation from '../components/Navigation.astro';
               </p>
             </div>
 
+            <div class="inspiration-card heritage-card">
+              <h3>The Unix Heritage</h3>
+              <p>
+                Caro stands on the shoulders of giants. We honor the
+                <a href="https://www.gnu.org/" target="_blank" rel="noopener noreferrer">GNU Project</a>,
+                the <a href="https://www.fsf.org/" target="_blank" rel="noopener noreferrer">Free Software Foundation</a>,
+                and the <a href="https://www.freebsd.org/" target="_blank" rel="noopener noreferrer">FreeBSD</a> community —
+                pioneers who proved that software freedom and collaboration create better tools for everyone.
+                Their vision of a world where users control their computing is woven into everything we build.
+              </p>
+            </div>
+
             <div class="inspiration-card">
               <h3>Open Source Community</h3>
               <p>
@@ -856,6 +868,15 @@ import Navigation from '../components/Navigation.astro';
   .inspiration-card a:hover {
     color: var(--color-link-hover, #ff6b35);
     text-decoration: underline;
+  }
+
+  .inspiration-card.heritage-card {
+    border-left: 3px solid #a07850;
+    background: linear-gradient(135deg, var(--color-bg) 0%, rgba(160, 120, 80, 0.05) 100%);
+  }
+
+  :global(.dark) .inspiration-card.heritage-card {
+    background: linear-gradient(135deg, var(--color-bg-secondary) 0%, rgba(160, 120, 80, 0.08) 100%);
   }
 
   /* Licenses Section */

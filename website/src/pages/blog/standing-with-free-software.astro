@@ -1,0 +1,139 @@
+---
+import BlogPost from '../../layouts/BlogPost.astro';
+---
+
+<BlogPost
+  title="Standing With Free Software: Our Debt to GNU, FSF, and FreeBSD"
+  description="Caro wouldn't exist without the pioneering work of the free software movement. Here's why we honor GNU, the FSF, and FreeBSD—and what their vision means for AI tools."
+  date="2026-01-04"
+  readTime="6 min read"
+>
+
+<p>
+  When you run Caro in your terminal, you're standing on four decades of revolutionary work. The shell you're using, the compiler that built Caro, the kernel running your system—all of it traces back to a radical idea: that software should be free. Not free as in price, but free as in freedom.
+</p>
+
+<div class="highlight">
+  <p>
+    We believe that the best tools respect their users. That philosophy didn't originate with us—it came from the GNU Project, the Free Software Foundation, and communities like FreeBSD who proved that openness and excellence aren't opposites.
+  </p>
+</div>
+
+<h2>The Giants We Stand Upon</h2>
+
+<p>
+  In 1983, Richard Stallman launched the GNU Project with an audacious goal: create a complete, free operating system. The Free Software Foundation, founded in 1985, gave that vision institutional backing. They didn't just write code—they articulated why software freedom matters.
+</p>
+
+<p>
+  The <a href="https://www.gnu.org/philosophy/free-sw.html" target="_blank" rel="noopener noreferrer">four essential freedoms</a> they defined aren't abstract principles. They're practical guarantees:
+</p>
+
+<ul>
+  <li><strong>Freedom 0</strong> — Run the program as you wish, for any purpose</li>
+  <li><strong>Freedom 1</strong> — Study how it works and change it to do what you want</li>
+  <li><strong>Freedom 2</strong> — Redistribute copies to help others</li>
+  <li><strong>Freedom 3</strong> — Distribute your modified versions to the community</li>
+</ul>
+
+<p>
+  These freedoms matter especially for AI tools. When software can generate and execute commands on your system, you need to trust it. That trust is built through transparency—the ability to inspect, verify, and modify the code yourself.
+</p>
+
+<h2>The BSD Legacy</h2>
+
+<p>
+  Parallel to GNU, the Berkeley Software Distribution created another pillar of free software. <a href="https://www.freebsd.org/" target="_blank" rel="noopener noreferrer">FreeBSD</a> and its siblings carried forward the Unix tradition with a different license philosophy but the same commitment to openness.
+</p>
+
+<p>
+  FreeBSD's influence is everywhere. The network stack in your router, the kernel in your PlayStation, the foundation of macOS—all trace lineage to BSD. Their engineering rigor and "do one thing well" philosophy shaped how we think about system software.
+</p>
+
+<p>
+  When we built Caro's safety validation system, we drew on BSD's tradition of careful, defensive programming. When we designed our command generation, we honored the Unix philosophy of composable tools. These aren't just technical choices—they're cultural inheritances.
+</p>
+
+<h2>Why This Matters for AI</h2>
+
+<p>
+  As AI becomes more capable, the free software principles become more urgent, not less. Consider what an AI command-line tool does: it interprets your intent and translates it into system actions. That's an enormous amount of trust to place in software.
+</p>
+
+<p>
+  Closed-source AI tools are black boxes. You can't see how they make decisions. You can't verify they're not logging your commands. You can't modify them to respect your privacy preferences. You're dependent on a company's continued goodwill.
+</p>
+
+<p>
+  Caro is licensed under AGPL-3.0—one of the strongest copyleft licenses available. This isn't accidental. We believe AI tools should be auditable, modifiable, and community-controlled. When you use Caro, you're not just a user; you're a potential contributor to a shared resource.
+</p>
+
+<h2>Local-First Is Freedom-First</h2>
+
+<p>
+  Our commitment to local-first AI isn't just about privacy or performance—it's about freedom. When models run on your machine, you control them. No API keys to revoke. No usage limits to hit. No terms of service to violate.
+</p>
+
+<p>
+  The FSF has been warning about "Software as a Service Substitute" (SaaSS) for years—the way cloud services can strip away the freedoms you'd have with local software. By shipping Caro with local inference capabilities, we're applying those lessons to the AI era.
+</p>
+
+<h2>Carrying the Torch</h2>
+
+<p>
+  We're not claiming to be heroes. The real heroes are the maintainers of GCC and Clang, the FreeBSD port maintainers, the documentation writers, the bug reporters—the vast community that keeps free software alive.
+</p>
+
+<p>
+  What we can do is acknowledge our debts and try to pay them forward:
+</p>
+
+<ul>
+  <li><strong>Open by default</strong> — Every line of Caro's code is public</li>
+  <li><strong>Welcoming contributions</strong> — Clear guidelines, friendly reviews</li>
+  <li><strong>Respecting upstream</strong> — Contributing back when we find issues</li>
+  <li><strong>Documenting thoroughly</strong> — Because freedom requires understanding</li>
+</ul>
+
+<h2>A Note of Gratitude</h2>
+
+<p>
+  To the <a href="https://www.gnu.org/" target="_blank" rel="noopener noreferrer">GNU Project</a>: thank you for GCC, for Bash, for Emacs, for the audacity to imagine a free operating system and the persistence to build it.
+</p>
+
+<p>
+  To the <a href="https://www.fsf.org/" target="_blank" rel="noopener noreferrer">Free Software Foundation</a>: thank you for defining what software freedom means and defending it when it's inconvenient.
+</p>
+
+<p>
+  To <a href="https://www.freebsd.org/" target="_blank" rel="noopener noreferrer">FreeBSD</a> and the BSD community: thank you for proving that permissive licenses can still build thriving communities, and for engineering excellence that continues to inspire.
+</p>
+
+<p>
+  To every contributor who has written a line of free software, filed a bug, answered a question, or simply used and shared these tools: you're part of something remarkable.
+</p>
+
+<div class="highlight">
+  <p>
+    Caro exists because thousands of people believed that software should serve its users, not the other way around. We're honored to continue that tradition.
+  </p>
+</div>
+
+<h2>Get Involved</h2>
+
+<p>
+  Want to learn more about free software? Here are some starting points:
+</p>
+
+<ul>
+  <li><a href="https://www.gnu.org/philosophy/" target="_blank" rel="noopener noreferrer">GNU Philosophy</a> — The foundational texts of the free software movement</li>
+  <li><a href="https://www.fsf.org/about/" target="_blank" rel="noopener noreferrer">About the FSF</a> — Learn about the foundation's ongoing work</li>
+  <li><a href="https://docs.freebsd.org/en/books/handbook/" target="_blank" rel="noopener noreferrer">FreeBSD Handbook</a> — An excellent introduction to BSD</li>
+  <li><a href="https://github.com/wildcard/caro" target="_blank" rel="noopener noreferrer">Caro on GitHub</a> — See how we're trying to live these values</li>
+</ul>
+
+<p>
+  The best way to honor free software is to use it, contribute to it, and help others understand why it matters. We hope Caro can be one small part of that larger movement.
+</p>
+
+</BlogPost>
