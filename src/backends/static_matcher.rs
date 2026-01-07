@@ -81,7 +81,17 @@ impl StaticMatcher {
                 description: "Find large files over 100MB".to_string(),
             },
 
-            // Pattern 3: "show disk usage by folder"
+            // Pattern 3: "show me disk usage by directory, sorted" (SPECIFIC - moved from Pattern 48)
+            PatternEntry {
+                required_keywords: vec!["disk".to_string(), "usage".to_string(), "directory".to_string(), "sorted".to_string()],
+                optional_keywords: vec!["show".to_string(), "by".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|display|list).*(me)?.*(disk|space).*(usage|use).*(by)?.*(directory|dir|folder).*(sorted|sort)").unwrap()),
+                gnu_command: "du -h --max-depth=1 | sort -hr".to_string(),
+                bsd_command: Some("du -h -d 1 | sort -hr".to_string()),
+                description: "Show disk usage by directory, sorted".to_string(),
+            },
+
+            // Pattern 4: "show disk usage by folder" (GENERAL - was Pattern 3)
             PatternEntry {
                 required_keywords: vec!["disk".to_string(), "usage".to_string(), "folder".to_string()],
                 optional_keywords: vec!["show".to_string(), "display".to_string(), "by".to_string()],
@@ -555,18 +565,6 @@ impl StaticMatcher {
                 description: "Find large files (default 100MB)".to_string(),
             },
 
-            // ===== SYSTEM MONITORING FINE-TUNED PATTERNS (Cycle 4) =====
-
-            // Pattern 48: "show me disk usage by directory, sorted"
-            PatternEntry {
-                required_keywords: vec!["disk".to_string(), "usage".to_string(), "directory".to_string(), "sorted".to_string()],
-                optional_keywords: vec!["show".to_string(), "by".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(show|display|list).*(me)?.*(disk|space).*(usage|use).*(by)?.*(directory|dir|folder).*(sorted|sort)").unwrap()),
-                gnu_command: "du -h --max-depth=1 | sort -hr".to_string(),
-                bsd_command: Some("du -h -d 1 | sort -hr".to_string()),
-                description: "Show disk usage by directory, sorted".to_string(),
-            },
-
             // ===== ADDITIONAL PATTERNS (Cycle 5) =====
 
             // Pattern 49: "check disk health on all drives"
@@ -580,10 +578,11 @@ impl StaticMatcher {
             },
 
             // Pattern 50: "日本語のファイルを検索" (Find Japanese filename files)
+            // Note: No keywords - matches ONLY via regex to avoid false positives
             PatternEntry {
-                required_keywords: vec!["find".to_string()],
-                optional_keywords: vec!["files".to_string(), "search".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(find|search|locate|list).*[ぁ-んァ-ヶー一-龯]").unwrap()),
+                required_keywords: vec![],
+                optional_keywords: vec![],  // Empty to force regex-only matching
+                regex_pattern: Some(Regex::new(r"[ぁ-んァ-ヶー一-龯]").unwrap()),
                 gnu_command: "find . -name '*日本語*' -type f".to_string(),
                 bsd_command: Some("find . -name '*日本語*' -type f".to_string()),
                 description: "Find files with Japanese characters in name".to_string(),
