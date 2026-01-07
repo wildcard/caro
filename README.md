@@ -144,7 +144,7 @@ cargo install caro --features embedded-mlx
 ### Building from Source
 
 #### Prerequisites
-- **Rust 1.75+** with Cargo
+- **Rust 1.83+** with Cargo (or latest stable recommended)
 - **CMake** (for model inference backends)
 - **macOS with Apple Silicon** (optional, for GPU acceleration)
 - **Xcode** (optional, for full MLX GPU support on Apple Silicon)
@@ -375,7 +375,7 @@ trait CommandGenerator {
 ## 🔧 Development
 
 ### Prerequisites
-- Rust 1.75+ 
+- Rust 1.83+ (latest stable recommended)
 - Cargo
 - Make (optional, for convenience commands)
 - Docker (optional, for development container)
