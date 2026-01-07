@@ -289,3 +289,187 @@ jobs:
             ${{ steps.prepare_asset.outputs.versioned_asset }}.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  bundle-with-models:
+    name: Bundle with Models (${{ matrix.platform }}, ${{ matrix.model.name }})
+    needs: [prepare-release, build-and-upload]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux AMD64 with both models
+          - os: ubuntu-latest
+            platform: linux-amd64
+            model_id: smollm-135m-q4
+            model_name: SmolLM 135M
+            model_repo: HuggingFaceTB/SmolLM-135M-Instruct-GGUF
+            model_filename: smollm-135m-instruct-q4_k_m.gguf
+            model_size_suffix: smollm-135m
+          - os: ubuntu-latest
+            platform: linux-amd64
+            model_id: qwen-1.5b-q4
+            model_name: Qwen 1.5B
+            model_repo: Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF
+            model_filename: qwen2.5-coder-1.5b-instruct-q4_k_m.gguf
+            model_size_suffix: qwen-1.5b
+          # macOS Apple Silicon with both models
+          - os: macos-latest
+            platform: macos-silicon
+            model_id: smollm-135m-q4
+            model_name: SmolLM 135M
+            model_repo: HuggingFaceTB/SmolLM-135M-Instruct-GGUF
+            model_filename: smollm-135m-instruct-q4_k_m.gguf
+            model_size_suffix: smollm-135m
+          - os: macos-latest
+            platform: macos-silicon
+            model_id: qwen-1.5b-q4
+            model_name: Qwen 1.5B
+            model_repo: Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF
+            model_filename: qwen2.5-coder-1.5b-instruct-q4_k_m.gguf
+            model_size_suffix: qwen-1.5b
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare-release.outputs.tag }}
+
+      - name: Download binary from release
+        run: |
+          VERSION="${{ needs.prepare-release.outputs.version }}"
+          PLATFORM="${{ matrix.platform }}"
+          BINARY_NAME="caro-${VERSION}-${PLATFORM}"
+
+          echo "Downloading ${BINARY_NAME} from release..."
+          gh release download "${{ needs.prepare-release.outputs.tag }}" \
+            --pattern "${BINARY_NAME}" \
+            --dir ./bundle
+
+          chmod +x "./bundle/${BINARY_NAME}"
+          echo "binary_name=${BINARY_NAME}" >> $GITHUB_OUTPUT
+        id: download_binary
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download model from Hugging Face
+        run: |
+          echo "Downloading ${{ matrix.model_name }} from Hugging Face..."
+          mkdir -p ./bundle/models
+
+          # Install huggingface_hub for downloading
+          pip install -q huggingface_hub
+
+          python3 << 'DOWNLOAD_SCRIPT'
+          from huggingface_hub import hf_hub_download
+          import os
+          import shutil
+
+          repo_id = "${{ matrix.model_repo }}"
+          filename = "${{ matrix.model_filename }}"
+
+          print(f"Downloading {filename} from {repo_id}...")
+          model_path = hf_hub_download(
+              repo_id=repo_id,
+              filename=filename,
+              cache_dir="./hf_cache"
+          )
+
+          # Copy to bundle directory
+          dest = os.path.join("./bundle/models", filename)
+          shutil.copy(model_path, dest)
+          print(f"Model downloaded to {dest}")
+          DOWNLOAD_SCRIPT
+
+          ls -lh ./bundle/models/
+
+      - name: Create bundled tarball
+        run: |
+          VERSION="${{ needs.prepare-release.outputs.version }}"
+          BINARY_NAME="${{ steps.download_binary.outputs.binary_name }}"
+          MODEL_SIZE="${{ matrix.model_size_suffix }}"
+          PLATFORM="${{ matrix.platform }}"
+          MODEL_NAME="${{ matrix.model_name }}"
+          MODEL_FILENAME="${{ matrix.model_filename }}"
+
+          # Create bundle structure
+          BUNDLE_DIR="caro-${VERSION}-${PLATFORM}-with-${MODEL_SIZE}"
+          mkdir -p "${BUNDLE_DIR}"
+
+          # Copy binary
+          cp "./bundle/${BINARY_NAME}" "${BUNDLE_DIR}/caro"
+          chmod +x "${BUNDLE_DIR}/caro"
+
+          # Copy model
+          mkdir -p "${BUNDLE_DIR}/models"
+          cp "./bundle/models/${MODEL_FILENAME}" "${BUNDLE_DIR}/models/"
+
+          # Create README
+          cat > "${BUNDLE_DIR}/README.txt" << README_CONTENT
+          Caro ${VERSION} - Bundled with ${MODEL_NAME}
+          ================================================================
+
+          This package contains:
+          - caro binary (pre-built for ${PLATFORM})
+          - ${MODEL_NAME} model (pre-downloaded)
+
+          Installation:
+          1. Extract this archive:
+             tar xzf caro-${VERSION}-${PLATFORM}-with-${MODEL_SIZE}.tar.gz
+             cd ${BUNDLE_DIR}
+
+          2. Move the 'caro' binary to your PATH:
+             sudo mv caro /usr/local/bin/
+             # OR
+             mkdir -p ~/.local/bin && mv caro ~/.local/bin/
+
+          3. Set the model path:
+             export CARO_MODEL_PATH="\$(pwd)/models/${MODEL_FILENAME}"
+             # Add to your shell rc file (~/.bashrc, ~/.zshrc) for persistence
+
+          4. Verify installation:
+             caro --version
+             caro doctor
+
+          5. Try it out:
+             caro "list all files in this directory"
+
+          Benefits of this bundle:
+          - No internet connection needed for first run
+          - ${MODEL_NAME} ready to use immediately
+          - Perfect for offline or restricted environments
+
+          For more information:
+          - Documentation: https://caro.sh
+          - Repository: https://github.com/wildcard/caro
+          - Report issues: https://github.com/wildcard/caro/issues
+
+          README_CONTENT
+
+          # Create tarball
+          TARBALL_NAME="${BUNDLE_DIR}.tar.gz"
+          tar czf "${TARBALL_NAME}" "${BUNDLE_DIR}"
+
+          # Create checksum
+          if [ "${{ runner.os }}" = "macOS" ]; then
+            shasum -a 256 "${TARBALL_NAME}" > "${TARBALL_NAME}.sha256"
+          else
+            sha256sum "${TARBALL_NAME}" > "${TARBALL_NAME}.sha256"
+          fi
+
+          # Display info
+          echo "Created bundle: ${TARBALL_NAME}"
+          ls -lh "${TARBALL_NAME}"
+
+          echo "tarball_name=${TARBALL_NAME}" >> $GITHUB_OUTPUT
+        id: create_bundle
+        shell: bash
+
+      - name: Upload bundled tarball to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare-release.outputs.tag }}
+          files: |
+            ${{ steps.create_bundle.outputs.tarball_name }}
+            ${{ steps.create_bundle.outputs.tarball_name }}.sha256
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
