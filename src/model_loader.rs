@@ -225,7 +225,7 @@ impl ModelLoader {
         );
 
         // Create progress bar
-        let pb = ProgressBar::new(self.selected_model.size_mb as u64 * 1024 * 1024);
+        let pb = ProgressBar::new(self.selected_model.size_mb * 1024 * 1024);
         pb.set_style(
             ProgressStyle::default_bar()
                 .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {bytes}/{total_bytes} ({eta})")

@@ -3,7 +3,7 @@
 //! The `caro doctor` command provides comprehensive system diagnostics to help users
 //! identify and resolve issues with their caro installation.
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use colored::Colorize;
 use std::path::PathBuf;
 use std::time::Duration;
@@ -208,7 +208,7 @@ impl SystemInfo {
         let shell = std::env::var("SHELL")
             .unwrap_or_else(|_| "unknown".to_string())
             .split('/')
-            .last()
+            .next_back()
             .unwrap_or("unknown")
             .to_string();
 
@@ -274,15 +274,14 @@ impl NetworkStatus {
         use tokio::net::TcpStream;
         use tokio::time::timeout;
 
-        match timeout(
-            Duration::from_secs(5),
-            TcpStream::connect("huggingface.co:443"),
+        matches!(
+            timeout(
+                Duration::from_secs(5),
+                TcpStream::connect("huggingface.co:443"),
+            )
+            .await,
+            Ok(Ok(_))
         )
-        .await
-        {
-            Ok(Ok(_)) => true,
-            _ => false,
-        }
     }
 }
 
