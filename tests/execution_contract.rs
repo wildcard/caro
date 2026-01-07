@@ -149,14 +149,31 @@ fn test_shell_detector_uses_env_variable() {
         if let Ok(shell_path) = env::var("SHELL") {
             let detected = detector.detect_from_env();
 
-            if shell_path.contains("bash") {
-                assert_eq!(detected, Some(ShellType::Bash));
+            // Verify that detection returns a value when SHELL is set
+            assert!(
+                detected.is_some(),
+                "Should detect a shell when SHELL env var is set to: {}",
+                shell_path
+            );
+
+            // Mirror the exact detection logic from ShellType::detect()
+            let expected = if shell_path.contains("bash") {
+                Some(ShellType::Bash)
             } else if shell_path.contains("zsh") {
-                assert_eq!(detected, Some(ShellType::Zsh));
+                Some(ShellType::Zsh)
             } else if shell_path.contains("fish") {
-                assert_eq!(detected, Some(ShellType::Fish));
-            }
-            // Other shells or None if not recognized
+                Some(ShellType::Fish)
+            } else if shell_path.ends_with("/sh") {
+                Some(ShellType::Sh)
+            } else {
+                None // Unknown shell
+            };
+
+            assert_eq!(
+                detected, expected,
+                "Shell detection mismatch for SHELL={}",
+                shell_path
+            );
         }
     }
 
