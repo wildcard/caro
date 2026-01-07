@@ -170,6 +170,60 @@ Final decision matrix:
 - [ ] CHANGELOG updated
 - [ ] Release notes reviewed
 
+### Phase 6: Model Bundling (Post-Release)
+
+**IMPORTANT**: Model bundling runs AFTER release sign-off, as a separate workflow.
+
+#### When to Trigger Bundling
+
+Only trigger model bundling when:
+1. Release has been signed off (✅ SHIP IT decision)
+2. All platform binaries are available on GitHub release
+3. No P0/P1 issues blocking the release
+
+#### Bundling Workflow
+
+The `bundle.yml` workflow creates 10 bundles (5 platforms × 2 models):
+- Platforms: linux-amd64, linux-arm64, macos-intel, macos-silicon, windows-amd64
+- Models: Qwen 1.5B (~1.1GB), SmolLM 135M (~145MB)
+
+**Trigger Command:**
+```bash
+# From GitHub UI (recommended until workflow is indexed):
+# https://github.com/wildcard/caro/actions/workflows/bundle.yml
+# Click "Run workflow", enter version (e.g., v1.0.4)
+
+# Or via CLI (after workflow is indexed):
+gh workflow run bundle.yml -f version=v1.0.4 -f skip_verification=false
+```
+
+**What the Workflow Does:**
+1. Verifies release exists on GitHub
+2. Downloads pre-built binaries from release (5 platforms)
+3. Downloads models from HuggingFace using `hf` CLI
+4. Creates license files and THIRD_PARTY_NOTICES.txt (Apache 2.0 compliance)
+5. Bundles: binary + model + licenses into tar.gz
+6. Uploads 10 bundles to the GitHub release
+
+**Expected Artifacts:**
+```
+caro-VERSION-PLATFORM-with-MODEL.tar.gz
+caro-VERSION-PLATFORM-with-MODEL.tar.gz.sha256
+```
+
+**Bundling Validation Checklist:**
+- [ ] All 10 bundles created successfully
+- [ ] Each bundle includes: binary, models/, licenses/, THIRD_PARTY_NOTICES.txt
+- [ ] Bundle sizes correct (~1.1GB for Qwen, ~150MB for SmolLM)
+- [ ] SHA256 checksums generated
+- [ ] Bundles uploaded to GitHub release
+
+**If Bundling Fails:**
+- Check HuggingFace token (CARO_BUNDLE_HF_TOKEN secret)
+- Verify binary names match release artifacts
+- Check workflow logs for model download failures
+- Non-critical: Can defer to next release if needed
+
 ## Today's Successful Process (v1.0.4 Example)
 
 Here's what we did to successfully release v1.0.4:
