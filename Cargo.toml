@@ -2,13 +2,25 @@
 name = "caro"
 version = "1.0.3"
 edition = "2021"
+rust-version = "1.88"
 description = "Convert natural language to shell commands using local LLMs"
 license = "AGPL-3.0"
+authors = ["Wildcard <kobi@caro.sh>", "Claude Code <noreply@anthropic.com>"]
+homepage = "https://caro.sh"
+documentation = "https://docs.caro.sh"
 repository = "https://github.com/wildcard/caro"
 readme = "README.crates.io.md"
-authors = ["Claude Code <noreply@anthropic.com>"]
 keywords = ["cli", "llm", "shell", "commands", "ai"]
 categories = ["command-line-utilities", "development-tools"]
+include = [
+    "src/**/*",
+    "benches/**/*",
+    "build.rs",
+    "Cargo.toml",
+    "LICENSE",
+    "README.crates.io.md",
+    "CHANGELOG.md",
+]
 
 # Binary target
 [[bin]]
@@ -125,3 +137,12 @@ lto = true
 inherits = "release"
 debug = true
 strip = false
+
+# Metadata for docs.rs
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+# Badges for crates.io
+[badges]
+maintenance = { status = "actively-developed" }
