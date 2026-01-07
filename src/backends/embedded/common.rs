@@ -51,7 +51,9 @@ pub struct EmbeddedConfig {
 impl Default for EmbeddedConfig {
     fn default() -> Self {
         Self {
-            temperature: 0.7,
+            // Lower temperature (0.1) for more deterministic command generation
+            // Previous value (0.7) was too high, causing variability in output
+            temperature: 0.1,
             max_tokens: 100,
             top_p: 0.9,
             stop_tokens: vec!["\n\n".to_string(), "```".to_string()],
@@ -117,7 +119,7 @@ mod tests {
     #[test]
     fn test_embedded_config_default() {
         let config = EmbeddedConfig::default();
-        assert_eq!(config.temperature, 0.7);
+        assert_eq!(config.temperature, 0.1);  // Updated for deterministic command generation
         assert_eq!(config.max_tokens, 100);
         assert_eq!(config.top_p, 0.9);
         assert_eq!(config.stop_tokens.len(), 2);
