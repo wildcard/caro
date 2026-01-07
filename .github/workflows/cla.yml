@@ -19,7 +19,7 @@ jobs:
       # Check if user already signed before running CLA Assistant
       - name: Checkout signatures branch
         if: github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: cla-signatures
           path: signatures-check
@@ -54,7 +54,7 @@ jobs:
 
       - name: "CLA Assistant"
         if: (github.event.comment.body == 'recheck' || github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA') || github.event_name == 'pull_request_target'
-        uses: contributor-assistant/github-action@v2.4.0
+        uses: contributor-assistant/github-action@v2.6.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Use a Personal Access Token with 'repo' scope for private repos
@@ -109,7 +109,7 @@ jobs:
         if: |
           github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA' &&
           steps.check-signed.outputs.skip-message != 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
