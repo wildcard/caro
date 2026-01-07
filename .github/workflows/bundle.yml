@@ -69,6 +69,13 @@ jobs:
           apk add --no-cache python3 py3-pip curl tar gzip bash
           pip install --no-cache-dir --break-system-packages huggingface_hub
 
+          # Install gh CLI for Alpine Linux
+          curl -fsSL https://github.com/cli/cli/releases/download/v2.63.2/gh_2.63.2_linux_amd64.tar.gz -o gh.tar.gz
+          tar -xzf gh.tar.gz
+          mv gh_2.63.2_linux_amd64/bin/gh /usr/local/bin/
+          rm -rf gh.tar.gz gh_2.63.2_linux_amd64
+          gh --version
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
