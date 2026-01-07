@@ -136,29 +136,25 @@ jobs:
           mkdir -p licenses
           curl -fsSL -o "licenses/${MODEL_NAME}-LICENSE.txt" "$LICENSE_URL"
 
-          cat > THIRD_PARTY_NOTICES.txt <<'EOF'
-THIRD PARTY NOTICES
-====================
-
-This caro bundle includes the following third-party model:
-
-Model: ${MODEL_NAME}
-Source: https://huggingface.co/${MODEL_REPO}
-License: Apache License 2.0
-${MODEL_COPYRIGHT}
-Revision: ${MODEL_REVISION}
-
-MODIFICATIONS:
-- Downloaded from HuggingFace Hub
-- Bundled with caro binary for offline use
-- No model weights were modified
-
-See licenses/${MODEL_NAME}-LICENSE.txt for the full license text.
-EOF
-
-          # Expand environment variables in the file
-          envsubst < THIRD_PARTY_NOTICES.txt > THIRD_PARTY_NOTICES.tmp
-          mv THIRD_PARTY_NOTICES.tmp THIRD_PARTY_NOTICES.txt
+          printf '%s\n' \
+            "THIRD PARTY NOTICES" \
+            "====================" \
+            "" \
+            "This caro bundle includes the following third-party model:" \
+            "" \
+            "Model: ${MODEL_NAME}" \
+            "Source: https://huggingface.co/${MODEL_REPO}" \
+            "License: Apache License 2.0" \
+            "${MODEL_COPYRIGHT}" \
+            "Revision: ${MODEL_REVISION}" \
+            "" \
+            "MODIFICATIONS:" \
+            "- Downloaded from HuggingFace Hub" \
+            "- Bundled with caro binary for offline use" \
+            "- No model weights were modified" \
+            "" \
+            "See licenses/${MODEL_NAME}-LICENSE.txt for the full license text." \
+            > THIRD_PARTY_NOTICES.txt
 
           echo "License files created successfully"
 
