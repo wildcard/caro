@@ -140,7 +140,7 @@ impl ModelLoader {
     /// Download model from Hugging Face Hub if missing
     ///
     /// This will download the selected model from Hugging Face
-    /// and save it to the cache directory.
+    /// and save it to the cache directory with retry logic.
     pub async fn download_model_if_missing(&self, variant: ModelVariant) -> Result<PathBuf> {
         let model_path = self.get_embedded_model_path()?;
 
@@ -153,14 +153,64 @@ impl ModelLoader {
             "Downloading {} ({} MB) from Hugging Face Hub...",
             self.selected_model.name, self.selected_model.size_mb
         );
-        self.download_model(&model_path, variant).await?;
+        self.download_model_with_retry(&model_path, variant).await?;
 
         Ok(model_path)
     }
 
-    /// Download the model from Hugging Face Hub
-    async fn download_model(&self, dest_path: &Path, _variant: ModelVariant) -> Result<()> {
+    /// Download the model from Hugging Face Hub with retry logic
+    async fn download_model_with_retry(&self, dest_path: &Path, variant: ModelVariant) -> Result<()> {
+        const MAX_RETRIES: u32 = 3;
+        const INITIAL_DELAY_SECS: u64 = 2;
+
+        let mut last_error = None;
+
+        for attempt in 1..=MAX_RETRIES {
+            if attempt > 1 {
+                let delay = INITIAL_DELAY_SECS * 2u64.pow(attempt - 2);
+                warn!(
+                    "Download attempt {}/{} failed, retrying in {}s...",
+                    attempt - 1,
+                    MAX_RETRIES,
+                    delay
+                );
+                tokio::time::sleep(std::time::Duration::from_secs(delay)).await;
+            }
+
+            match self.download_model_attempt(dest_path, variant).await {
+                Ok(_) => {
+                    info!("Model downloaded successfully to: {}", dest_path.display());
+                    return Ok(());
+                }
+                Err(e) => {
+                    last_error = Some(e);
+                }
+            }
+        }
+
+        // All retries exhausted - provide helpful error message
+        Err(anyhow::anyhow!(
+            "Failed to download model after {} attempts.\n\n\
+            Troubleshooting:\n\
+            1. Check internet connection:\n\
+               ping huggingface.co\n\
+            2. Check proxy settings:\n\
+               echo $HTTP_PROXY\n\
+               echo $HTTPS_PROXY\n\
+            3. Try a smaller model:\n\
+               export CARO_MODEL=smollm-135m-q4\n\
+            4. Run diagnostics (if available):\n\
+               caro doctor\n\n\
+            Last error: {}",
+            MAX_RETRIES,
+            last_error.unwrap()
+        ))
+    }
+
+    /// Single download attempt from Hugging Face Hub
+    async fn download_model_attempt(&self, dest_path: &Path, _variant: ModelVariant) -> Result<()> {
         use hf_hub::api::tokio::Api;
+        use indicatif::{ProgressBar, ProgressStyle};
 
         let api = Api::new().context("Failed to initialize Hugging Face API")?;
         let repo = api.model(self.selected_model.hf_repo.to_string());
@@ -169,9 +219,14 @@ impl ModelLoader {
             "Downloading {} from {}...",
             self.selected_model.filename, self.selected_model.hf_repo
         );
-        info!(
-            "This may take a few minutes (~{}MB)...",
-            self.selected_model.size_mb
+
+        // Create progress bar
+        let pb = ProgressBar::new(self.selected_model.size_mb as u64 * 1024 * 1024);
+        pb.set_style(
+            ProgressStyle::default_bar()
+                .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {bytes}/{total_bytes} ({eta})")
+                .expect("Failed to create progress bar template")
+                .progress_chars("#>-"),
         );
 
         // Download the model file
@@ -180,10 +235,17 @@ impl ModelLoader {
             .await
             .context("Failed to download model from Hugging Face Hub")?;
 
-        // Copy to cache directory
+        pb.finish_with_message("Download complete");
+
+        // Copy to cache directory with progress
+        let file_size = std::fs::metadata(&downloaded)?.len();
+        pb.set_length(file_size);
+        pb.set_position(0);
+        pb.set_message("Copying to cache...");
+
         std::fs::copy(&downloaded, dest_path).context("Failed to copy model to cache directory")?;
 
-        info!("Model downloaded successfully to: {}", dest_path.display());
+        pb.finish_and_clear();
 
         Ok(())
     }
