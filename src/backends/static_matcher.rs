@@ -188,6 +188,122 @@ impl StaticMatcher {
                 bsd_command: Some("lsof -i :8080".to_string()),
                 description: "Check which process is using a port".to_string(),
             },
+
+            // ===== TEXT PROCESSING PATTERNS (Cycle 2 Priority 1) =====
+
+            // Pattern 14: "find all python files that import requests library"
+            PatternEntry {
+                required_keywords: vec!["python".to_string(), "import".to_string()],
+                optional_keywords: vec!["find".to_string(), "files".to_string(), "requests".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|search|grep|locate).*(python|\.py).*(files?).*(import|importing).*requests").unwrap()),
+                gnu_command: "grep -r 'import requests' --include='*.py'".to_string(),
+                bsd_command: Some("grep -r 'import requests' --include='*.py'".to_string()),
+                description: "Find Python files importing requests library".to_string(),
+            },
+
+            // Pattern 15: "Extract unique email addresses from a file"
+            PatternEntry {
+                required_keywords: vec!["email".to_string(), "extract".to_string()],
+                optional_keywords: vec!["addresses".to_string(), "unique".to_string(), "file".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(extract|find|get|list).*(unique|all)?.*(email|e-mail).*(addresses?|addrs?)").unwrap()),
+                gnu_command: r#"grep -Eo '\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b' file.txt | sort -u"#.to_string(),
+                bsd_command: Some(r#"grep -Eo '\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b' file.txt | sort -u"#.to_string()),
+                description: "Extract unique email addresses from a file".to_string(),
+            },
+
+            // Pattern 16: "Replace all occurrences in multiple files"
+            PatternEntry {
+                required_keywords: vec!["replace".to_string(), "files".to_string()],
+                optional_keywords: vec!["all".to_string(), "occurrences".to_string(), "multiple".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(replace|substitute|change).*(all|every).*(occurrences?|instances?).*(multiple|many|several).*(files?)").unwrap()),
+                gnu_command: "sed -i 's/old_text/new_text/g' *.txt".to_string(),
+                bsd_command: Some("sed -i '' 's/old_text/new_text/g' *.txt".to_string()),
+                description: "Replace text in multiple files".to_string(),
+            },
+
+            // Pattern 17: "compress this directory for transfer"
+            PatternEntry {
+                required_keywords: vec!["compress".to_string(), "directory".to_string()],
+                optional_keywords: vec!["tar".to_string(), "transfer".to_string(), "archive".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(compress|archive|tar|zip).*(this|the)?.*(directory|folder|dir)").unwrap()),
+                gnu_command: "tar -czf archive.tar.gz directory/".to_string(),
+                bsd_command: Some("tar -czf archive.tar.gz directory/".to_string()),
+                description: "Compress directory for transfer".to_string(),
+            },
+
+            // ===== GIT VERSION CONTROL PATTERNS (Cycle 2 Priority 2) =====
+
+            // Pattern 18: "Show commits from the last week"
+            PatternEntry {
+                required_keywords: vec!["commits".to_string(), "week".to_string()],
+                optional_keywords: vec!["show".to_string(), "last".to_string(), "git".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|list|display|get|find).*(commits?|changes?).*(from|in|during).*(last|past).*(week|7 days?)").unwrap()),
+                gnu_command: "git log --since='1 week ago' --oneline".to_string(),
+                bsd_command: Some("git log --since='1 week ago' --oneline".to_string()),
+                description: "Show commits from the last week".to_string(),
+            },
+
+            // Pattern 19: "List all branches sorted by last commit date"
+            PatternEntry {
+                required_keywords: vec!["branches".to_string(), "sorted".to_string()],
+                optional_keywords: vec!["list".to_string(), "all".to_string(), "commit".to_string(), "date".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(list|show|display).*(all|every)?.*(branches?).*(sorted|ordered|by).*(last|recent)?.*(commit|date)").unwrap()),
+                gnu_command: "git for-each-ref --sort=-committerdate refs/heads/ --format='%(committerdate:short) %(refname:short)'".to_string(),
+                bsd_command: Some("git for-each-ref --sort=-committerdate refs/heads/ --format='%(committerdate:short) %(refname:short)'".to_string()),
+                description: "List branches sorted by commit date".to_string(),
+            },
+
+            // Pattern 20: "Find who changed a specific file"
+            PatternEntry {
+                required_keywords: vec!["who".to_string(), "changed".to_string(), "file".to_string()],
+                optional_keywords: vec!["find".to_string(), "specific".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|show|who|which|see).*(who|author|user).*(changed|modified|edited).*(specific|this|a)?.*(file)").unwrap()),
+                gnu_command: "git log --follow -p -- <filename>".to_string(),
+                bsd_command: Some("git log --follow -p -- <filename>".to_string()),
+                description: "Find who changed a specific file".to_string(),
+            },
+
+            // ===== NETWORK OPERATIONS PATTERNS (Cycle 2 Priority 3) =====
+
+            // Pattern 21: "Test connection to a remote server"
+            PatternEntry {
+                required_keywords: vec!["test".to_string(), "connection".to_string()],
+                optional_keywords: vec!["remote".to_string(), "server".to_string(), "ping".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(test|check|verify|ping).*(connection|connectivity|network).*(to|with)?.*(remote|external)?.*(server|host|machine)").unwrap()),
+                gnu_command: "ping -c 4 example.com".to_string(),
+                bsd_command: Some("ping -c 4 example.com".to_string()),
+                description: "Test connection to a remote server".to_string(),
+            },
+
+            // Pattern 22: "Show all listening TCP ports"
+            PatternEntry {
+                required_keywords: vec!["listening".to_string(), "port".to_string()],
+                optional_keywords: vec!["show".to_string(), "all".to_string(), "tcp".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|list|display|find).*(all|listening|open).*(tcp|network)?.*(ports?|sockets?)").unwrap()),
+                gnu_command: "ss -tlnp".to_string(),
+                bsd_command: Some("netstat -an | grep LISTEN".to_string()),
+                description: "Show all listening TCP ports".to_string(),
+            },
+
+            // Pattern 23: "Download a file with resume support"
+            PatternEntry {
+                required_keywords: vec!["download".to_string(), "file".to_string()],
+                optional_keywords: vec!["resume".to_string(), "support".to_string(), "wget".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(download|fetch|get).*(file|url).*(with|using)?.*(resume|continue|restart)").unwrap()),
+                gnu_command: "wget -c https://example.com/file.tar.gz".to_string(),
+                bsd_command: Some("curl -C - -O https://example.com/file.tar.gz".to_string()),
+                description: "Download file with resume support".to_string(),
+            },
+
+            // Pattern 24: "show all network interfaces and their status"
+            PatternEntry {
+                required_keywords: vec!["network".to_string(), "interface".to_string()],
+                optional_keywords: vec!["show".to_string(), "all".to_string(), "status".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|list|display|get).*(all|network)?.*(interfaces?|adapters?|nics?).*(and|with)?.*(status|info|information)").unwrap()),
+                gnu_command: "ip addr show".to_string(),
+                bsd_command: Some("ifconfig".to_string()),
+                description: "Show network interfaces and status".to_string(),
+            },
         ]
     }
 
