@@ -15,6 +15,7 @@
 //! - [`config`] - Configuration management with TOML support
 //! - [`execution`] - Execution context capture and shell detection
 //! - [`logging`] - Structured logging with sensitive data redaction
+//! - [`prompts`] - Shell command prompt system optimized for small LLMs
 //!
 //! # Example
 //!
@@ -38,6 +39,7 @@ pub mod model_catalog;
 pub mod model_loader;
 pub mod models;
 pub mod platform;
+pub mod prompts;
 pub mod safety;
 pub mod version;
 
@@ -66,3 +68,11 @@ pub use backends::embedded::{
 #[cfg(feature = "remote-backends")]
 pub use backends::remote::{OllamaBackend, VllmBackend};
 pub use backends::{BackendInfo as BackendInfoTrait, CommandGenerator, GeneratorError};
+
+// Re-export prompt system types
+pub use prompts::{
+    AwkType, CapabilityProfile, CommandOutput, CommandTemplate, CommandValidator, DetectedShell,
+    ProfileType, PromptResponse, RepairPromptBuilder, RiskLevel as PromptRiskLevel,
+    SmolLMPromptBuilder, StatFormat, TemplateLibrary, ValidationError, ValidationErrorCode,
+    ValidationResult, ValidationWarning,
+};
