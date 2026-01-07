@@ -1,8 +1,8 @@
 [package]
 name = "caro"
-version = "1.0.3"
+version = "1.0.4"
 edition = "2021"
-rust-version = "1.88"
+rust-version = "1.83"
 description = "Convert natural language to shell commands using local LLMs"
 license = "AGPL-3.0"
 authors = ["Wildcard <kobi@caro.sh>", "Claude Code <noreply@anthropic.com>"]
