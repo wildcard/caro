@@ -1,0 +1,202 @@
+name: Bundle Models
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.5)'
+        required: true
+        type: string
+      skip_verification:
+        description: 'Skip QE sign-off verification'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  verify-release:
+    runs-on: ubuntu-latest
+    outputs:
+      release_exists: ${{ steps.check.outputs.exists }}
+    steps:
+      - name: Verify release exists
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ inputs.version }}
+          SKIP_VERIFICATION: ${{ inputs.skip_verification }}
+        run: |
+          RELEASE=$(gh release view "$VERSION" --repo ${{ github.repository }} --json tagName -q '.tagName' 2>/dev/null || echo "")
+          if [ -z "$RELEASE" ] && [ "$SKIP_VERIFICATION" != "true" ]; then
+            echo "ERROR: Release $VERSION not found"
+            exit 1
+          fi
+          echo "exists=true" >> $GITHUB_OUTPUT
+
+  bundle:
+    needs: verify-release
+    runs-on: ubuntu-latest
+    container:
+      image: alpine:latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # All bundles created on Alpine Linux - download pre-built binaries
+        platform:
+          - name: linux-amd64
+          - name: linux-arm64
+          - name: macos-intel
+          - name: macos-silicon
+          - name: windows-amd64
+        model:
+          - name: qwen-1.5b
+            repo: Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF
+            filename: qwen2.5-coder-1.5b-instruct-q4_k_m.gguf
+            revision: main
+            license_url: https://huggingface.co/Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF/raw/main/LICENSE
+            copyright: "Copyright 2024 Alibaba Cloud"
+          - name: smollm-135m
+            repo: HuggingFaceTB/smollm-135M-instruct-v0.2-Q8_0-GGUF
+            filename: smollm-135m-instruct-add-basics-q8_0.gguf
+            revision: main
+            license_url: https://www.apache.org/licenses/LICENSE-2.0.txt
+            copyright: "Copyright 2024 HuggingFace"
+
+    steps:
+      - name: Install dependencies
+        run: |
+          apk add --no-cache python3 py3-pip curl tar gzip bash
+          pip install --no-cache-dir --break-system-packages huggingface_hub
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download caro binary from release
+        env:
+          VERSION: ${{ inputs.version }}
+          PLATFORM_NAME: ${{ matrix.platform.name }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Binary name pattern: caro-1.0.4-linux-amd64 (no 'v' prefix in filename)
+          VERSION_NO_V="${VERSION#v}"
+          BINARY_NAME="caro-${VERSION_NO_V}-${PLATFORM_NAME}"
+
+          # Windows has .exe extension
+          if [ "$PLATFORM_NAME" = "windows-amd64" ]; then
+            BINARY_NAME="${BINARY_NAME}.exe"
+          fi
+
+          echo "Downloading ${BINARY_NAME} from release ${VERSION}..."
+          curl -fsSL -o caro \
+            "https://github.com/${{ github.repository }}/releases/download/${VERSION}/${BINARY_NAME}"
+          chmod +x caro
+          echo "Binary downloaded successfully"
+
+      - name: Download model from HuggingFace
+        env:
+          HF_TOKEN: ${{ secrets.CARO_BUNDLE_HF_TOKEN }}
+          HF_HUB_DISABLE_PROGRESS_BARS: "1"
+          MODEL_REPO: ${{ matrix.model.repo }}
+          MODEL_FILENAME: ${{ matrix.model.filename }}
+          MODEL_REVISION: ${{ matrix.model.revision }}
+        run: |
+          mkdir -p models
+          echo "Downloading ${MODEL_FILENAME} from ${MODEL_REPO}..."
+          hf download "$MODEL_REPO" "$MODEL_FILENAME" \
+            --revision "$MODEL_REVISION" \
+            --local-dir ./models \
+            --quiet
+          echo "Model downloaded successfully"
+
+      - name: Validate model file
+        env:
+          MODEL_FILENAME: ${{ matrix.model.filename }}
+        run: |
+          MODEL_FILE="./models/${MODEL_FILENAME}"
+          if [ ! -f "$MODEL_FILE" ]; then
+            echo "ERROR: Model file not found: $MODEL_FILE"
+            exit 1
+          fi
+          SIZE=$(stat -c%s "$MODEL_FILE")
+          echo "Model validated: $MODEL_FILE ($SIZE bytes)"
+          if [ "$SIZE" -lt 1000000 ]; then
+            echo "ERROR: Model file too small (< 1MB)"
+            exit 1
+          fi
+
+      - name: Create license and attribution files
+        env:
+          MODEL_NAME: ${{ matrix.model.name }}
+          MODEL_REPO: ${{ matrix.model.repo }}
+          MODEL_COPYRIGHT: ${{ matrix.model.copyright }}
+          MODEL_REVISION: ${{ matrix.model.revision }}
+          LICENSE_URL: ${{ matrix.model.license_url }}
+        run: |
+          mkdir -p licenses
+          curl -fsSL -o "licenses/${MODEL_NAME}-LICENSE.txt" "$LICENSE_URL"
+
+          cat > THIRD_PARTY_NOTICES.txt << 'EOF'
+THIRD PARTY NOTICES
+====================
+
+This caro bundle includes the following third-party model:
+
+Model: ${MODEL_NAME}
+Source: https://huggingface.co/${MODEL_REPO}
+License: Apache License 2.0
+${MODEL_COPYRIGHT}
+Revision: ${MODEL_REVISION}
+
+MODIFICATIONS:
+- Downloaded from HuggingFace Hub
+- Bundled with caro binary for offline use
+- No model weights were modified
+
+See licenses/${MODEL_NAME}-LICENSE.txt for the full license text.
+EOF
+
+          # Expand environment variables in the file
+          envsubst < THIRD_PARTY_NOTICES.txt > THIRD_PARTY_NOTICES.tmp
+          mv THIRD_PARTY_NOTICES.tmp THIRD_PARTY_NOTICES.txt
+
+          echo "License files created successfully"
+
+      - name: Create bundle archive
+        env:
+          VERSION: ${{ inputs.version }}
+          PLATFORM_NAME: ${{ matrix.platform.name }}
+          MODEL_NAME: ${{ matrix.model.name }}
+        run: |
+          VERSION_NO_V="${VERSION#v}"
+          # Bundle name: caro-1.0.4-linux-amd64-with-qwen-1.5b.tar.gz
+          BUNDLE_NAME="caro-${VERSION_NO_V}-${PLATFORM_NAME}-with-${MODEL_NAME}"
+
+          mkdir -p bundle
+          mv caro bundle/
+          mv models bundle/
+          mv licenses bundle/
+          mv THIRD_PARTY_NOTICES.txt bundle/
+
+          tar -czvf "${BUNDLE_NAME}.tar.gz" -C bundle .
+
+          # Create checksum
+          sha256sum "${BUNDLE_NAME}.tar.gz" > "${BUNDLE_NAME}.tar.gz.sha256"
+
+          echo "Bundle created: ${BUNDLE_NAME}.tar.gz"
+          ls -lh "${BUNDLE_NAME}.tar.gz"
+          echo "bundle_name=${BUNDLE_NAME}" >> $GITHUB_OUTPUT
+        id: create_bundle
+
+      - name: Upload bundle to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ inputs.version }}
+          BUNDLE_NAME: ${{ steps.create_bundle.outputs.bundle_name }}
+        run: |
+          echo "Uploading ${BUNDLE_NAME}.tar.gz to release ${VERSION}..."
+          gh release upload "$VERSION" \
+            "${BUNDLE_NAME}.tar.gz" \
+            "${BUNDLE_NAME}.tar.gz.sha256" \
+            --repo ${{ github.repository }} \
+            --clobber
+          echo "Bundle uploaded successfully"
