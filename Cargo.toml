@@ -47,7 +47,8 @@ directories = "6"
 dirs = "6"
 which = "8.0"
 os_info = "3.14"
-sysinfo = "0.37"
+sysinfo = "0.33"
+home = "=0.5.9"  # Pin to avoid edition2024 requirement in 0.5.11+
 
 # Model integration (Hugging Face Hub)
 hf-hub = { version = "0.4", default-features = false, features = ["tokio", "rustls-tls"] }
@@ -98,8 +99,6 @@ mock-backend = []
 remote-backends = ["reqwest", "tokio/net"]
 embedded-mlx = ["cxx", "llama_cpp"]
 embedded-cpu = ["candle-core", "candle-transformers"]
-embedded = ["embedded-cpu"]  # Alias for embedded model support
-full = ["remote-backends", "embedded-mlx", "embedded-cpu"]
 
 [profile.release]
 # Optimize for binary size (<50MB target)
