@@ -3,10 +3,10 @@ work_package_id: "WP03"
 subtasks: ["T014", "T015", "T016", "T017", "T018", "T019", "T020", "T021"]
 title: "Config Benchmarks"
 phase: "Phase 1 - Benchmark Implementation"
-lane: "planned"
+lane: "doing"
 assignee: ""
-agent: ""
-shell_pid: ""
+agent: "claude"
+shell_pid: "1505"
 review_status: ""
 reviewed_by: ""
 history:
@@ -52,3 +52,4 @@ Key implementation points:
 ## Activity Log
 
 - 2026-01-08T00:00:00Z – system – lane=planned – Prompt created
+- 2026-01-08T13:39:55Z – claude – shell_pid=1505 – lane=doing – Started WP03 implementation
