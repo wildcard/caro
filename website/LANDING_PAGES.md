@@ -11,6 +11,7 @@ website/src/
 │   ├── safe-shell-commands.astro      # Landing page 1 (SRE/DevOps - original)
 │   ├── ai-command-safety.astro        # Landing page 2 (AI hallucination safety)
 │   ├── ai-agent-safety.astro          # Landing page 3 (Enterprise AI scale)
+│   ├── try-caro.astro                 # Landing page 4 (Interactive Ratzilla demo)
 │   └── ...
 ├── layouts/
 │   └── LandingPage.astro              # Shared layout for all landing pages
@@ -152,9 +153,43 @@ Examples:
 
 ---
 
+### 4. `/try-caro`
+
+**Target Persona:** Developers curious about Caro's capabilities
+**Pain Point:** Want to experience Caro before installing
+**Main Message:** "Experience Caro's safety-first shell companion in your browser"
+
+**Search Queries This Page Targets:**
+- "try caro online"
+- "caro demo"
+- "shell command generator demo"
+- "ai terminal demo"
+- "caro playground"
+
+**Key Differentiators:**
+- Interactive WebAssembly-powered terminal demo
+- Ratzilla framework (Rust + WASM + Ratatui)
+- Real-time safety validation demonstration
+- No installation required
+
+**Components:**
+- RatzillaDemo (interactive WASM terminal UI)
+- Technology showcase (Rust, WASM, Ratzilla, Safety Patterns)
+- Quick install CTAs
+- Ratzilla attribution section
+
+**Technology:**
+- Powered by [Ratzilla](https://github.com/orhun/ratzilla) by @orhun
+- Compiled Rust to WebAssembly using Trunk
+- WebGL2 rendering for authentic terminal aesthetics
+
+**Status:** ✅ Live
+
+---
+
 ## Planned Landing Pages
 
-### 4. `/air-gapped-ai-terminal` (Priority: High)
+### 5. `/air-gapped-ai-terminal` (Priority: High)
 
 **Target Persona:** Security-Conscious Platform Engineer
 **Pain Point:** Need AI assistance but can't send data to cloud
@@ -179,7 +214,7 @@ Examples:
 
 ---
 
-### 5. `/cross-platform-shell-commands` (Priority: Medium)
+### 6. `/cross-platform-shell-commands` (Priority: Medium)
 
 **Target Persona:** Developer who works across Mac/Linux/BSD
 **Pain Point:** Commands work on Mac but fail on Linux server
@@ -204,7 +239,7 @@ Examples:
 
 ---
 
-### 6. `/natural-language-terminal` (Priority: Medium)
+### 7. `/natural-language-terminal` (Priority: Medium)
 
 **Target Persona:** Developer who struggles to remember command syntax
 **Pain Point:** Constantly looking up command syntax on Stack Overflow
@@ -224,7 +259,7 @@ Examples:
 
 ---
 
-### 7. `/junior-dev-safety-rails` (Priority: Low)
+### 8. `/junior-dev-safety-rails` (Priority: Low)
 
 **Target Persona:** Team Lead / Senior Engineer
 **Pain Point:** Junior devs running dangerous commands in production
@@ -244,7 +279,7 @@ Examples:
 
 ---
 
-### 8. `/claude-mcp-shell-agent` (Priority: Future)
+### 9. `/claude-mcp-shell-agent` (Priority: Future)
 
 **Target Persona:** Claude user who wants shell integration
 **Pain Point:** Claude can't safely execute shell commands
