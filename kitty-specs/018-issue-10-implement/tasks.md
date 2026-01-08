@@ -104,12 +104,12 @@ This document breaks down the implementation into executable work packages. Each
 **Objective**: Create HTTP client wrapper for Hugging Face Hub API with authentication support.
 
 **Subtasks**:
-- [ ] T007: Create src/cache/http_client.rs skeleton with module structure
-- [ ] T008: Implement HfHubClient struct with reqwest::Client field
-- [ ] T009: Implement get_file_url() method (format HF Hub URLs)
-- [ ] T010: Implement download_stream() method (GET with auth header from HF_TOKEN)
-- [ ] T011: Implement head_request() method (for file size/resume support)
-- [ ] T012: Add unit tests with wiremock (auth, URL formatting, stream handling)
+- [x] T007: Create src/cache/http_client.rs skeleton with module structure
+- [x] T008: Implement HfHubClient struct with reqwest::Client field
+- [x] T009: Implement get_file_url() method (format HF Hub URLs)
+- [x] T010: Implement download_stream() method (GET with auth header from HF_TOKEN)
+- [x] T011: Implement head_request() method (for file size/resume support)
+- [x] T012: Add unit tests with wiremock (auth, URL formatting, stream handling)
 
 **Success Criteria**:
 - HTTP client constructs correct HF Hub URLs
