@@ -3,10 +3,10 @@ work_package_id: "WP01"
 subtasks: ["T001", "T002", "T003", "T004", "T005", "T006"]
 title: "Setup & Dependencies"
 phase: "Phase 1 - Foundation"
-lane: "planned"
+lane: "doing"
 assignee: ""
-agent: ""
-shell_pid: ""
+agent: "claude"
+shell_pid: "13317"
 review_status: ""
 reviewed_by: ""
 history:
@@ -132,3 +132,4 @@ Expected output: No errors, all existing tests pass.
 ## Activity Log
 
 - 2026-01-08T00:00:00Z – system – lane=planned – Prompt created
+- 2026-01-08T15:46:47Z – claude – shell_pid=13317 – lane=doing – Started WP01: Setup & Dependencies
