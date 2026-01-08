@@ -4,7 +4,7 @@ subtasks: ["T045", "T046", "T047", "T048", "T049", "T050", "T051", "T052", "T053
 title: "Claude Skill Integration"
 phase: "Phase 2 - Developer Tools"
 lane: "done"
-assignee: ""
+assignee: "claude"
 agent: "claude"
 shell_pid: "54050"
 review_status: ""

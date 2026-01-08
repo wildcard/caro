@@ -9,7 +9,7 @@ subtasks:
 title: "Setup & Dependencies"
 phase: "Phase 0 - Foundation"
 lane: "done"
-assignee: ""
+assignee: "claude"
 agent: "claude-reviewer"
 shell_pid: "5230"
 review_status: ""

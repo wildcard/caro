@@ -8,8 +8,9 @@
 //! - context_capture_baseline: ~11.4 μs ✅ (87x faster than target)
 //! - context_capture_large_env: ~8.1 μs ✅ (123x faster than target)
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
 use std::env;
+use std::hint::black_box;
 
 /// Benchmark context capture with baseline environment
 ///
@@ -59,5 +60,9 @@ fn bench_context_capture_large_env(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, bench_context_capture_baseline, bench_context_capture_large_env);
+criterion_group!(
+    benches,
+    bench_context_capture_baseline,
+    bench_context_capture_large_env
+);
 criterion_main!(benches);

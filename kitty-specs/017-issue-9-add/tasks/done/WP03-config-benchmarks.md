@@ -4,7 +4,7 @@ subtasks: ["T014", "T015", "T016", "T017", "T018", "T019", "T020", "T021"]
 title: "Config Benchmarks"
 phase: "Phase 1 - Benchmark Implementation"
 lane: "done"
-assignee: ""
+assignee: "claude"
 agent: "claude"
 shell_pid: "1505"
 review_status: ""

@@ -4,7 +4,7 @@ subtasks: ["T006", "T007", "T008", "T009", "T010", "T011", "T012", "T013"]
 title: "Cache Benchmarks"
 phase: "Phase 1 - Benchmark Implementation"
 lane: "done"
-assignee: ""
+assignee: "claude"
 agent: "claude"
 shell_pid: "1505"
 review_status: ""

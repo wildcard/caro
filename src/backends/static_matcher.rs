@@ -16,6 +16,11 @@ use crate::models::{BackendType, CommandRequest, GeneratedCommand};
 use crate::prompts::CapabilityProfile;
 use crate::safety::{SafetyConfig, SafetyValidator};
 
+#[cfg(test)]
+use crate::models::RiskLevel;
+#[cfg(test)]
+use crate::ShellType;
+
 /// Static pattern matcher for deterministic command generation
 #[derive(Clone)]
 pub struct StaticMatcher {

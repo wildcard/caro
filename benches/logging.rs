@@ -13,9 +13,10 @@
 //! - logging_concurrent/4_threads: ~60.5 μs (400 messages)
 //! - logging_concurrent/8_threads: ~99.5 μs (800 messages)
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
-use std::sync::Arc;
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use std::hint::black_box;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 
 /// Benchmark logging throughput (messages/sec)
 ///

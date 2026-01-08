@@ -4,7 +4,7 @@ subtasks: ["T032", "T033", "T034", "T035", "T036", "T037", "T038", "T039", "T040
 title: "CI Workflow & Regression Detection"
 phase: "Phase 2 - CI Integration"
 lane: "done"
-assignee: ""
+assignee: "claude"
 agent: "claude"
 shell_pid: "50418"
 review_status: ""
