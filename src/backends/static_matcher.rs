@@ -93,9 +93,9 @@ impl StaticMatcher {
 
             // Pattern 2: "find large files over 100MB"
             PatternEntry {
-                required_keywords: vec!["large".to_string(), "file".to_string(), "100".to_string()],
-                optional_keywords: vec!["find".to_string(), "over".to_string(), "mb".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(find|locate|show|list).*(large|big).*(files?).*(over|above|bigger|greater).*(100|100mb|100m)").unwrap()),
+                required_keywords: vec!["file".to_string(), "100".to_string()],
+                optional_keywords: vec!["find".to_string(), "over".to_string(), "mb".to_string(), "large".to_string(), "big".to_string(), "bigger".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|locate|show|list).*(large|big|bigger).*(files?).*(over|above|bigger|greater|than).*(100|100mb|100m|megabyte)").unwrap()),
                 gnu_command: "find . -type f -size +100M".to_string(),
                 bsd_command: Some("find . -type f -size +100M".to_string()),
                 description: "Find large files over 100MB".to_string(),
@@ -113,9 +113,9 @@ impl StaticMatcher {
 
             // Pattern 4: "show disk usage by folder" (GENERAL - was Pattern 3)
             PatternEntry {
-                required_keywords: vec!["disk".to_string(), "usage".to_string(), "folder".to_string()],
-                optional_keywords: vec!["show".to_string(), "display".to_string(), "by".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(show|display|list|get).*(disk|space).*(usage|size).*(by |per )?(folder|director)").unwrap()),
+                required_keywords: vec!["disk".to_string(), "folder".to_string()],
+                optional_keywords: vec!["show".to_string(), "display".to_string(), "by".to_string(), "usage".to_string(), "space".to_string(), "used".to_string(), "each".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|display|list|get|disk).*(disk|space).*(usage|size|used).*(by |per |each )?(folder|director)").unwrap()),
                 gnu_command: "du -sh */ | sort -rh | head -10".to_string(),
                 bsd_command: Some("du -sh */ | sort -rh | head -10".to_string()),
                 description: "Show disk usage by folder".to_string(),
@@ -173,7 +173,17 @@ impl StaticMatcher {
                 description: "Find files larger than 1GB".to_string(),
             },
 
-            // Pattern 8: "find files larger than 50MB" (was Pattern 7)
+            // Pattern 7a: "large javascript files over 50MB" (SPECIFIC - Cycle 1)
+            PatternEntry {
+                required_keywords: vec!["javascript".to_string(), "50".to_string()],
+                optional_keywords: vec!["large".to_string(), "files".to_string(), "over".to_string(), "mb".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|locate|list|show).*(large|big)?.*(javascript|\.js|js).*(files?).*(over|above|bigger|greater).*(50|50mb|50m)").unwrap()),
+                gnu_command: r#"find . -name "*.js" -type f -size +50M"#.to_string(),
+                bsd_command: Some(r#"find . -name "*.js" -type f -size +50M"#.to_string()),
+                description: "Find large JavaScript files over 50MB".to_string(),
+            },
+
+            // Pattern 8: "find files larger than 50MB" (GENERAL - was Pattern 7)
             PatternEntry {
                 required_keywords: vec!["file".to_string(), "50".to_string()],
                 optional_keywords: vec!["find".to_string(), "larger".to_string(), "mb".to_string()],
@@ -207,9 +217,9 @@ impl StaticMatcher {
 
             // Pattern 10: "find python files modified in the last 7 days" (SPECIFIC - moved from Pattern 42)
             PatternEntry {
-                required_keywords: vec!["python".to_string(), "modified".to_string(), "last".to_string()],
-                optional_keywords: vec!["find".to_string(), "files".to_string(), "7".to_string(), "days".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(find|locate|search).*(python|\.py).*(files?).*(modified|changed).*(in)?.*(last)?.*(7).*(days?)").unwrap()),
+                required_keywords: vec!["python".to_string(), "7".to_string()],
+                optional_keywords: vec!["find".to_string(), "files".to_string(), "last".to_string(), "days".to_string(), "modified".to_string(), "from".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|locate|search|python).*(python|py|\.py).*(files?).*(modified|changed|from).*(in)?.*(the)?.*(last)?.*(7|seven).*(days?)").unwrap(),),
                 gnu_command: r#"find . -name "*.py" -type f -mtime -7"#.to_string(),
                 bsd_command: Some(r#"find . -name "*.py" -type f -mtime -7"#.to_string()),
                 description: "Find Python files modified in last 7 days".to_string(),
@@ -235,18 +245,6 @@ impl StaticMatcher {
                 gnu_command: "find . -name '*.png' -type f -mtime -7".to_string(),
                 bsd_command: Some("find . -name '*.png' -type f -mtime -7".to_string()),
                 description: "Find PNG images modified in the last 7 days".to_string(),
-            },
-
-            // ===== EXTENSION + SIZE PATTERNS (Cycle 1 - Compound Queries) =====
-
-            // Pattern 11a: "large javascript files over 50MB" (Cycle 1 - Edge Case)
-            PatternEntry {
-                required_keywords: vec!["javascript".to_string(), "50".to_string()],
-                optional_keywords: vec!["large".to_string(), "files".to_string(), "over".to_string(), "mb".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(find|locate|list|show).*(large|big)?.*(javascript|\.js|js).*(files?).*(over|above|bigger|greater).*(50|50mb|50m)").unwrap()),
-                gnu_command: r#"find . -name "*.js" -type f -size +50M"#.to_string(),
-                bsd_command: Some(r#"find . -name "*.js" -type f -size +50M"#.to_string()),
-                description: "Find large JavaScript files over 50MB".to_string(),
             },
 
             // ===== PROCESS MONITORING PATTERNS (Cycle 1 Priority 4) =====
