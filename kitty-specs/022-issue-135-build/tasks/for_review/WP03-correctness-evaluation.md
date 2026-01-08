@@ -12,10 +12,10 @@ subtasks:
   - "T021"
 title: "Command Correctness Evaluation"
 phase: "Phase 2 - MVP Evaluation"
-lane: "doing"
+lane: "for_review"
 assignee: ""
 agent: "claude"
-shell_pid: "5881"
+shell_pid: "12556"
 review_status: ""
 reviewed_by: ""
 history:
@@ -540,3 +540,4 @@ history:
 
 - 2026-01-08T00:00:00Z – system – lane=planned – Prompt created.
 - 2026-01-08T23:06:34Z – claude – shell_pid=5881 – lane=doing – Started WP03: Command Correctness Evaluation - MVP
+- 2026-01-08T23:14:37Z – claude – shell_pid=12556 – lane=for_review – Implementation complete - all tests passing
