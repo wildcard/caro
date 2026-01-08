@@ -20,6 +20,7 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
+    "@astrojs/db": "^0.14.1",
     "@astrojs/react": "^4.4.2",
     "@vercel/analytics": "^1.6.1",
     "astro": "^5.16.6",

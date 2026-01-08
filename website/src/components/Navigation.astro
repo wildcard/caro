@@ -160,6 +160,11 @@ const personas = [
             </div>
           </li>
           <li class="nav-item">
+            <a href="/#community" class="community-link">
+              <span class="community-icon">🐺</span> Community
+            </a>
+          </li>
+          <li class="nav-item">
             <a href="/support" class="support-link">
               <span class="support-heart">♥</span> Support
             </a>
@@ -364,6 +369,10 @@ const personas = [
           </div>
 
           <div class="drawer-section">
+            <a href="/#community" class="drawer-link community-link">
+              <span class="link-icon">🐺</span>
+              <span class="link-text">Join the Pack</span>
+            </a>
             <a href="/support" class="drawer-link support-link">
               <span class="link-icon">💖</span>
               <span class="link-text">Support Caro</span>
@@ -540,6 +549,23 @@ const personas = [
 
   .has-dropdown:hover .chevron {
     transform: rotate(180deg);
+  }
+
+  /* Community Link */
+  .community-link {
+    color: #6366f1 !important;
+  }
+
+  .community-link:hover {
+    background: rgba(99, 102, 241, 0.08) !important;
+  }
+
+  .community-icon {
+    transition: transform 0.3s ease;
+  }
+
+  .community-link:hover .community-icon {
+    transform: scale(1.1);
   }
 
   /* Support Link */

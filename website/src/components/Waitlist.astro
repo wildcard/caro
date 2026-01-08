@@ -1,0 +1,397 @@
+---
+import { db, Waitlist, WaitlistStats, count } from 'astro:db';
+
+// Get current waitlist count
+let waitlistCount = 247; // Default starting count
+
+try {
+  const stats = await db.select().from(WaitlistStats).limit(1);
+  if (stats.length > 0) {
+    waitlistCount = stats[0].totalCount;
+  } else {
+    // Fallback: count actual signups + baseline
+    const signupCount = await db.select({ count: count() }).from(Waitlist);
+    waitlistCount = 247 + (signupCount[0]?.count || 0);
+  }
+} catch (e) {
+  // In case of error, use default
+  console.error('Error fetching waitlist count:', e);
+}
+---
+
+<section id="community" class="waitlist-section">
+  <div class="waitlist-content">
+    <div class="waitlist-badge">Coming Soon</div>
+    <h2>Join the Pack</h2>
+    <p class="section-subtitle">
+      Be among the first to experience Caro's community platform—a privacy-first social network
+      built on the AT Protocol where developers share terminal expertise, build runbooks together,
+      and help each other master the command line.
+    </p>
+
+    <div class="waitlist-features">
+      <div class="waitlist-feature">
+        <div class="waitlist-feature-icon">🏰</div>
+        <h4>Professional Guilds</h4>
+        <p>Join SRE, DevOps, AppSec, and more specialized communities</p>
+      </div>
+      <div class="waitlist-feature">
+        <div class="waitlist-feature-icon">📚</div>
+        <h4>Shared Runbooks</h4>
+        <p>Build and fork operational workflows with your team</p>
+      </div>
+      <div class="waitlist-feature">
+        <div class="waitlist-feature-icon">🔒</div>
+        <h4>Privacy First</h4>
+        <p>Auto-redaction of secrets, full control over your data</p>
+      </div>
+    </div>
+
+    <div id="waitlist-success" class="waitlist-success">
+      <h4>Welcome to the Pack!</h4>
+      <p>You're on the list. We'll notify you when the community platform launches.</p>
+    </div>
+
+    <form id="waitlist-form" class="waitlist-form">
+      <input
+        type="email"
+        id="waitlist-email"
+        name="email"
+        placeholder="Enter your email"
+        required
+        autocomplete="email"
+      />
+      <button type="submit" id="waitlist-button">Join Waitlist</button>
+    </form>
+
+    <p class="waitlist-privacy">
+      No spam, ever. Unsubscribe anytime.<br>
+      <a href="/telemetry">Privacy Policy</a>
+    </p>
+
+    <div class="waitlist-counter">
+      <p><strong id="waitlist-count">{waitlistCount}</strong> developers already on the waitlist</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .waitlist-section {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: white;
+    padding: 100px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .waitlist-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      radial-gradient(circle at 20% 80%, rgba(255, 140, 66, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 107, 53, 0.15) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .waitlist-content {
+    position: relative;
+    z-index: 1;
+    max-width: 700px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .waitlist-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 15px rgba(255, 140, 66, 0.4);
+  }
+
+  .waitlist-section h2 {
+    font-size: 42px;
+    margin-bottom: 20px;
+    color: white;
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .waitlist-section .section-subtitle {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 18px;
+    line-height: 1.7;
+    margin-bottom: 40px;
+  }
+
+  .waitlist-features {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+    margin-bottom: 50px;
+  }
+
+  .waitlist-feature {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 25px 15px;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+
+  .waitlist-feature:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 140, 66, 0.4);
+  }
+
+  .waitlist-feature-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+  }
+
+  .waitlist-feature h4 {
+    font-size: 16px;
+    margin-bottom: 8px;
+    color: #ff8c42;
+  }
+
+  .waitlist-feature p {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.5;
+  }
+
+  .waitlist-form {
+    display: flex;
+    gap: 12px;
+    max-width: 500px;
+    margin: 0 auto 25px;
+  }
+
+  .waitlist-form input[type="email"] {
+    flex: 1;
+    padding: 16px 20px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 16px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .waitlist-form input[type="email"]::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .waitlist-form input[type="email"]:focus {
+    outline: none;
+    border-color: #ff8c42;
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .waitlist-form button {
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    white-space: nowrap;
+  }
+
+  .waitlist-form button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 140, 66, 0.4);
+  }
+
+  .waitlist-form button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .waitlist-privacy {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 15px;
+  }
+
+  .waitlist-privacy a {
+    color: #ff8c42;
+    text-decoration: none;
+  }
+
+  .waitlist-success {
+    background: rgba(39, 201, 63, 0.15);
+    border: 1px solid rgba(39, 201, 63, 0.3);
+    border-radius: 12px;
+    padding: 25px;
+    margin: 0 auto 25px;
+    max-width: 500px;
+    display: none;
+  }
+
+  .waitlist-success.show {
+    display: block;
+  }
+
+  .waitlist-success h4 {
+    color: #27c93f;
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .waitlist-success p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+  }
+
+  .waitlist-counter {
+    margin-top: 30px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .waitlist-counter p {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .waitlist-counter strong {
+    color: #ff8c42;
+    font-size: 18px;
+  }
+
+  .waitlist-error {
+    color: #ff5f56;
+    font-size: 14px;
+    margin-top: 10px;
+    display: none;
+  }
+
+  .waitlist-error.show {
+    display: block;
+  }
+
+  @media (max-width: 768px) {
+    .waitlist-features {
+      grid-template-columns: 1fr;
+    }
+
+    .waitlist-form {
+      flex-direction: column;
+    }
+
+    .waitlist-section h2 {
+      font-size: 32px;
+    }
+
+    .waitlist-section {
+      padding: 60px 20px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .waitlist-section h2 {
+      font-size: 28px;
+    }
+
+    .waitlist-section .section-subtitle {
+      font-size: 16px;
+    }
+
+    .waitlist-feature {
+      padding: 20px 12px;
+    }
+
+    .waitlist-feature-icon {
+      font-size: 28px;
+    }
+
+    .waitlist-feature h4 {
+      font-size: 14px;
+    }
+
+    .waitlist-feature p {
+      font-size: 12px;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('waitlist-form') as HTMLFormElement;
+    const emailInput = document.getElementById('waitlist-email') as HTMLInputElement;
+    const button = document.getElementById('waitlist-button') as HTMLButtonElement;
+    const successMessage = document.getElementById('waitlist-success');
+    const countElement = document.getElementById('waitlist-count');
+
+    if (!form || !emailInput || !button) return;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = emailInput.value.trim();
+
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email || !emailRegex.test(email)) {
+        emailInput.style.borderColor = '#ff5f56';
+        emailInput.focus();
+        return;
+      }
+
+      // Reset border color
+      emailInput.style.borderColor = '';
+
+      // Disable button during submission
+      button.disabled = true;
+      button.textContent = 'Joining...';
+
+      try {
+        const response = await fetch('/api/waitlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // Show success
+          form.style.display = 'none';
+          successMessage?.classList.add('show');
+
+          // Update counter if provided
+          if (data.count && countElement) {
+            countElement.textContent = data.count.toString();
+          }
+        } else {
+          // Handle error
+          if (data.error === 'already_subscribed') {
+            form.style.display = 'none';
+            successMessage?.classList.add('show');
+          } else {
+            throw new Error(data.error || 'Failed to join waitlist');
+          }
+        }
+      } catch (error) {
+        console.error('Waitlist submission error:', error);
+        button.textContent = 'Try Again';
+        button.disabled = false;
+      }
+    });
+  });
+</script>
