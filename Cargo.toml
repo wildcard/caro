@@ -109,6 +109,10 @@ wiremock = "0.5"
 name = "performance"
 harness = false
 
+[[bench]]
+name = "cache_config_benchmarks"
+harness = false
+
 [features]
 default = ["embedded-mlx", "embedded-cpu"]  # Always build with MLX on macOS
 mock-backend = []
