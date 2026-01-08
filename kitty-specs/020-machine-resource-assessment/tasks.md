@@ -37,14 +37,14 @@ This feature adds a `caro assess` command that detects system resources (CPU, GP
 **Independent Test**: Can verify CPU/memory detection works independently on all platforms
 
 **Subtasks**:
-- [ ] T001: Add `sysinfo` dependency to Cargo.toml (v0.30+)
-- [ ] T002 [P]: Create `src/assessment/mod.rs` module structure
-- [ ] T003: Implement `SystemProfile` struct in `src/assessment/profile.rs`
-- [ ] T004 [P]: Implement `CPUInfo` struct and detection in `src/assessment/cpu.rs`
-- [ ] T005 [P]: Implement `MemoryInfo` struct and detection in `src/assessment/memory.rs`
-- [ ] T006: Create `src/cli/commands/assess.rs` CLI command handler
-- [ ] T007: Register `assess` command in `src/cli/mod.rs`
-- [ ] T008: Implement basic human-readable output formatter
+- [x] T001: Add `sysinfo` dependency to Cargo.toml (v0.30+)
+- [x] T002 [P]: Create `src/assessment/mod.rs` module structure
+- [x] T003: Implement `SystemProfile` struct in `src/assessment/profile.rs`
+- [x] T004 [P]: Implement `CPUInfo` struct and detection in `src/assessment/cpu.rs`
+- [x] T005 [P]: Implement `MemoryInfo` struct and detection in `src/assessment/memory.rs`
+- [x] T006: Create `src/cli/commands/assess.rs` CLI command handler
+- [x] T007: Register `assess` command in `src/cli/mod.rs`
+- [x] T008: Implement basic human-readable output formatter
 
 **Implementation Sketch**:
 1. Add dependencies (T001)
@@ -78,12 +78,12 @@ This feature adds a `caro assess` command that detects system resources (CPU, GP
 **Independent Test**: Can verify GPU detection works on systems with and without GPUs
 
 **Subtasks**:
-- [ ] T009: Implement `GPUInfo` struct in `src/assessment/gpu.rs`
-- [ ] T010: Add macOS GPU detection (Metal framework or system_profiler)
-- [ ] T011: Add Linux GPU detection (NVIDIA focus with nvml-wrapper)
-- [ ] T012: Add Windows GPU detection (WMI queries)
-- [ ] T013: Implement graceful fallback for missing/unsupported GPUs
-- [ ] T014: Update `SystemProfile` to include GPU info
+- [x] T009: Implement `GPUInfo` struct in `src/assessment/gpu.rs`
+- [x] T010: Add macOS GPU detection (Metal framework or system_profiler)
+- [x] T011: Add Linux GPU detection (NVIDIA focus with nvml-wrapper)
+- [x] T012: Add Windows GPU detection (WMI queries)
+- [x] T013: Implement graceful fallback for missing/unsupported GPUs
+- [x] T014: Update `SystemProfile` to include GPU info
 
 **Implementation Sketch**:
 1. Define GPU data structures (T009, T014)
@@ -117,11 +117,11 @@ This feature adds a `caro assess` command that detects system resources (CPU, GP
 **Independent Test**: Can verify recommendations match expected models for hardware tiers
 
 **Subtasks**:
-- [ ] T015: Define hardware profile tiers (low/mid/high-end) with thresholds
-- [ ] T016: Create `ModelRecommendation` struct in `src/assessment/recommender.rs`
-- [ ] T017: Implement recommendation algorithm with rule-based logic
-- [ ] T018: Add model catalog data (Phi, Llama, Mistral families)
-- [ ] T019: Generate reasoning text for each recommendation
+- [x] T015: Define hardware profile tiers (low/mid/high-end) with thresholds
+- [x] T016: Create `ModelRecommendation` struct in `src/assessment/recommender.rs`
+- [x] T017: Implement recommendation algorithm with rule-based logic
+- [x] T018: Add model catalog data (Phi, Llama, Mistral families)
+- [x] T019: Generate reasoning text for each recommendation
 
 **Implementation Sketch**:
 1. Define tiers and thresholds (T015)
@@ -156,13 +156,13 @@ This feature adds a `caro assess` command that detects system resources (CPU, GP
 **Independent Test**: Can verify output formats are complete and well-formatted
 
 **Subtasks**:
-- [ ] T020: Create `AssessmentResult` wrapper struct
-- [ ] T021: Implement human-readable formatter with ASCII borders
-- [ ] T022: Add JSON export with `--export json` flag
-- [ ] T023: Add Markdown export with `--export markdown` flag
-- [ ] T024: Implement `--recommendations-only` flag
-- [ ] T025: Add CLI argument parsing for export options
-- [ ] T026: Handle file writing with error handling
+- [x] T020: Create `AssessmentResult` wrapper struct
+- [x] T021: Implement human-readable formatter with ASCII borders
+- [x] T022: Add JSON export with `--export json` flag
+- [x] T023: Add Markdown export with `--export markdown` flag
+- [x] T024: Implement `--recommendations-only` flag
+- [x] T025: Add CLI argument parsing for export options
+- [x] T026: Handle file writing with error handling
 
 **Implementation Sketch**:
 1. Create result wrapper (T020)
@@ -196,12 +196,12 @@ This feature adds a `caro assess` command that detects system resources (CPU, GP
 **Independent Test**: Can verify all tests pass on CI/CD pipeline
 
 **Subtasks**:
-- [ ] T027: Create mock system profiles in `tests/fixtures/mock_profiles.rs`
-- [ ] T028: Write unit tests for CPU detection (`tests/assessment_tests.rs`)
-- [ ] T029: Write unit tests for memory detection
-- [ ] T030: Write unit tests for recommendation algorithm
-- [ ] T031: Write integration test for end-to-end assessment command
-- [ ] T032: Add documentation to README.md for `caro assess` command
+- [x] T027: Create mock system profiles in `tests/fixtures/mock_profiles.rs`
+- [x] T028: Write unit tests for CPU detection (`tests/assessment_tests.rs`)
+- [x] T029: Write unit tests for memory detection
+- [x] T030: Write unit tests for recommendation algorithm
+- [x] T031: Write integration test for end-to-end assessment command
+- [x] T032: Add documentation to README.md for `caro assess` command
 
 **Implementation Sketch**:
 1. Create test fixtures (T027)
