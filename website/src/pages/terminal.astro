@@ -2,13 +2,8 @@
 /**
  * Terminal-Centric Landing Page (Buildkite-inspired)
  *
- * Design Philosophy:
- * - CLI-first interface with REAL command-based navigation
- * - Dark terminal aesthetic as default
- * - Trust and reliability focused messaging
- * - Interactive terminal where users can TYPE commands
- *
- * STYLE ISOLATION: All styles are scoped to .terminal-page
+ * All content displayed INSIDE the terminal
+ * Proper shell UX with clear input/output distinction
  */
 import { SITE_CONFIG } from '../config/site';
 ---
@@ -18,22 +13,12 @@ import { SITE_CONFIG } from '../config/site';
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Caro - Safe shell commands you can trust. Convert natural language to validated POSIX commands with local AI inference." />
-  <meta name="robots" content="index, follow" />
-
-  <!-- Open Graph -->
-  <meta property="og:title" content="Caro | Safe Shell Commands You Can Trust" />
-  <meta property="og:description" content="Convert natural language to validated POSIX shell commands. Safety-first design with 52+ dangerous pattern detection." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://caro.sh/terminal" />
-
+  <meta name="description" content="Caro - Safe shell commands you can trust." />
   <link rel="icon" type="image/png" href="/caro-pixel.png" />
   <title>Caro | Your Tools Should Earn Your Trust</title>
 </head>
 <body>
   <div class="terminal-page" data-theme="dark">
-
-    <!-- Header with logo and theme switcher -->
     <header class="tp-header">
       <div class="tp-header-content">
         <div class="tp-logo-section">
@@ -41,7 +26,6 @@ import { SITE_CONFIG } from '../config/site';
           <span class="tp-logo-text">caro</span>
           <span class="tp-version">v{SITE_CONFIG.version}</span>
         </div>
-
         <div class="tp-header-right">
           <nav class="tp-nav">
             <a href="/" class="tp-nav-link">Main Site</a>
@@ -57,15 +41,12 @@ import { SITE_CONFIG } from '../config/site';
       </div>
     </header>
 
-    <!-- Hero Section -->
     <section class="tp-hero">
       <div class="tp-container">
         <h1 class="tp-headline">
-          Your tools should <strong>earn your trust</strong>,<br/>
-          not ask for it.
+          Your tools should <strong>earn your trust</strong>,<br/>not ask for it.
         </h1>
 
-        <!-- Interactive Terminal -->
         <div class="tp-terminal" id="terminal">
           <div class="tp-terminal-header">
             <div class="tp-dots">
@@ -73,99 +54,18 @@ import { SITE_CONFIG } from '../config/site';
               <span class="tp-dot tp-dot-yellow"></span>
               <span class="tp-dot tp-dot-green"></span>
             </div>
-            <span class="tp-terminal-title">~/caro</span>
+            <span class="tp-terminal-title">caro — bash</span>
             <div class="tp-terminal-spacer"></div>
           </div>
-
           <div class="tp-terminal-body" id="terminal-body">
             <div id="terminal-output"></div>
-            <div class="tp-input-line">
-              <span class="tp-prompt">$</span>
-              <input
-                type="text"
-                id="terminal-input"
-                class="tp-input"
-                autocomplete="off"
-                autocapitalize="off"
-                spellcheck="false"
-                placeholder="Type 'help' for commands..."
-              />
+            <div class="tp-input-line" id="input-line">
+              <span class="tp-prompt"><span class="tp-user">guest</span>@<span class="tp-host">caro.sh</span>:<span class="tp-path">~</span>$ </span>
+              <input type="text" id="terminal-input" class="tp-input" autocomplete="off" autocapitalize="off" spellcheck="false" />
             </div>
           </div>
         </div>
-
-        <p class="tp-hint">Click the terminal and start typing. Try <code>help</code> to see available commands.</p>
-      </div>
-    </section>
-
-    <!-- Hidden sections shown via commands -->
-    <section class="tp-section" id="section-capabilities" style="display: none;">
-      <div class="tp-container">
-        <h2 class="tp-section-title">Capabilities</h2>
-        <div class="tp-grid">
-          <div class="tp-card">
-            <h3>🛡️ Pattern-Based Safety</h3>
-            <p>52+ pre-compiled dangerous command patterns. Blocks rm -rf /, fork bombs, disk wipers.</p>
-          </div>
-          <div class="tp-card">
-            <h3>🔒 100% Local Inference</h3>
-            <p>Your commands never leave your machine. Air-gapped environments supported.</p>
-          </div>
-          <div class="tp-card">
-            <h3>🌍 Platform Aware</h3>
-            <p>Detects OS, shell type, and available commands. Generates platform-specific commands.</p>
-          </div>
-          <div class="tp-card">
-            <h3>⚡ Single Binary</h3>
-            <p>No dependencies. No runtime. Install and run in seconds.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="tp-section" id="section-install" style="display: none;">
-      <div class="tp-container">
-        <h2 class="tp-section-title">Install Caro</h2>
-        <div class="tp-install-box">
-          <div class="tp-install-method">
-            <h3>Quick Install</h3>
-            <div class="tp-install-command">
-              <code>curl -fsSL https://caro.sh/install | bash</code>
-              <button class="tp-copy-btn" data-copy="curl -fsSL https://caro.sh/install | bash">Copy</button>
-            </div>
-          </div>
-          <div class="tp-install-method">
-            <h3>Via Cargo</h3>
-            <div class="tp-install-command">
-              <code>cargo install caro</code>
-              <button class="tp-copy-btn" data-copy="cargo install caro">Copy</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="tp-section" id="section-stats" style="display: none;">
-      <div class="tp-container">
-        <h2 class="tp-section-title">By The Numbers</h2>
-        <div class="tp-stats-grid">
-          <div class="tp-stat">
-            <div class="tp-stat-value">52+</div>
-            <div class="tp-stat-label">Safety Patterns</div>
-          </div>
-          <div class="tp-stat">
-            <div class="tp-stat-value">100%</div>
-            <div class="tp-stat-label">Local</div>
-          </div>
-          <div class="tp-stat">
-            <div class="tp-stat-value">0</div>
-            <div class="tp-stat-label">Cloud Deps</div>
-          </div>
-          <div class="tp-stat">
-            <div class="tp-stat-value">3</div>
-            <div class="tp-stat-label">Platforms</div>
-          </div>
-        </div>
+        <p class="tp-hint">Click terminal and type <code>help</code> • Try <code>caro "list large files"</code></p>
       </div>
     </section>
 
@@ -175,10 +75,6 @@ import { SITE_CONFIG } from '../config/site';
   </div>
 
   <style>
-    /* ===========================================
-       TERMINAL PAGE - FULLY SCOPED STYLES
-       =========================================== */
-
     .terminal-page {
       --tp-bg: #0d1117;
       --tp-bg-secondary: #161b22;
@@ -187,18 +83,17 @@ import { SITE_CONFIG } from '../config/site';
       --tp-text-muted: #8b949e;
       --tp-text-dim: #484f58;
       --tp-accent: #ff8c42;
-      --tp-accent-hover: #ff6b35;
       --tp-success: #3fb950;
       --tp-error: #f85149;
+      --tp-warning: #d29922;
       --tp-info: #58a6ff;
+      --tp-cyan: #56d4dd;
+      --tp-magenta: #db61a2;
       --tp-border: #30363d;
-      --tp-cursor: #ff8c42;
       --tp-font: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
-
       font-family: var(--tp-font);
       background: var(--tp-bg);
       color: var(--tp-text);
-      line-height: 1.5;
       min-height: 100vh;
       margin: 0;
       padding: 0;
@@ -225,7 +120,9 @@ import { SITE_CONFIG } from '../config/site';
       --tp-text-dim: #806000;
       --tp-accent: #ffcc00;
       --tp-success: #44ff44;
-      --tp-cursor: #ffb000;
+      --tp-error: #ff4444;
+      --tp-info: #ffcc00;
+      --tp-cyan: #ffcc00;
       --tp-border: #3a2800;
     }
 
@@ -238,36 +135,26 @@ import { SITE_CONFIG } from '../config/site';
       --tp-text-dim: #008000;
       --tp-accent: #00ff88;
       --tp-success: #00ff00;
-      --tp-cursor: #00ff00;
+      --tp-error: #ff4444;
+      --tp-info: #00ffff;
+      --tp-cyan: #00ffff;
       --tp-border: #004400;
     }
 
-    /* CRT Scanline effect */
     .terminal-page[data-theme="amber"]::after,
     .terminal-page[data-theme="green"]::after {
       content: '';
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      inset: 0;
       pointer-events: none;
-      background: repeating-linear-gradient(
-        0deg,
-        rgba(0, 0, 0, 0.1) 0px,
-        rgba(0, 0, 0, 0.1) 1px,
-        transparent 1px,
-        transparent 2px
-      );
+      background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 1px, transparent 1px, transparent 2px);
       z-index: 9999;
     }
 
-    /* Header */
     .terminal-page .tp-header {
-      padding: 12px 24px;
+      padding: 10px 20px;
       border-bottom: 1px solid var(--tp-border);
       background: var(--tp-bg-secondary);
-      flex-shrink: 0;
     }
 
     .terminal-page .tp-header-content {
@@ -281,104 +168,94 @@ import { SITE_CONFIG } from '../config/site';
     .terminal-page .tp-logo-section {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
     .terminal-page .tp-logo-img {
-      width: 28px;
-      height: 28px;
+      width: 24px;
+      height: 24px;
       image-rendering: pixelated;
     }
 
     .terminal-page .tp-logo-text {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 700;
       color: var(--tp-accent);
     }
 
     .terminal-page .tp-version {
-      font-size: 11px;
+      font-size: 10px;
       color: var(--tp-text-dim);
       background: var(--tp-bg-tertiary);
-      padding: 2px 6px;
+      padding: 2px 5px;
       border-radius: 3px;
     }
 
     .terminal-page .tp-header-right {
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 16px;
     }
 
     .terminal-page .tp-nav {
       display: flex;
-      gap: 16px;
+      gap: 12px;
     }
 
     .terminal-page .tp-nav-link {
       color: var(--tp-text-muted);
       text-decoration: none;
-      font-size: 13px;
-      transition: color 0.2s;
+      font-size: 12px;
     }
 
     .terminal-page .tp-nav-link:hover {
       color: var(--tp-accent);
     }
 
-    /* Theme Switcher - colored buttons */
     .terminal-page .tp-theme-switcher {
       display: flex;
-      gap: 6px;
-      padding: 4px;
+      gap: 4px;
+      padding: 3px;
       background: var(--tp-bg);
-      border-radius: 6px;
+      border-radius: 5px;
       border: 1px solid var(--tp-border);
     }
 
     .terminal-page .tp-theme-btn {
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
       border-radius: 50%;
       border: 2px solid transparent;
       cursor: pointer;
-      transition: transform 0.15s, border-color 0.15s;
     }
 
-    .terminal-page .tp-theme-btn:hover {
-      transform: scale(1.15);
-    }
-
-    .terminal-page .tp-theme-btn.active {
-      border-color: var(--tp-text);
-    }
-
+    .terminal-page .tp-theme-btn:hover { transform: scale(1.1); }
+    .terminal-page .tp-theme-btn.active { border-color: var(--tp-text); }
     .terminal-page .tp-theme-dark { background: #21262d; }
     .terminal-page .tp-theme-light { background: #f0f0f0; }
     .terminal-page .tp-theme-amber { background: linear-gradient(135deg, #ffb000, #ff8800); }
     .terminal-page .tp-theme-green { background: linear-gradient(135deg, #00ff00, #00aa00); }
 
-    /* Hero */
     .terminal-page .tp-hero {
       flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 16px;
     }
 
     .terminal-page .tp-container {
       width: 100%;
-      max-width: 750px;
+      max-width: 800px;
     }
 
     .terminal-page .tp-headline {
-      font-size: clamp(22px, 4vw, 36px);
+      font-size: clamp(20px, 3.5vw, 32px);
       font-weight: 400;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       color: var(--tp-text);
-      line-height: 1.35;
       text-align: center;
+      line-height: 1.3;
     }
 
     .terminal-page .tp-headline strong {
@@ -386,154 +263,128 @@ import { SITE_CONFIG } from '../config/site';
       font-weight: 600;
     }
 
-    /* Terminal */
     .terminal-page .tp-terminal {
       background: var(--tp-bg-secondary);
       border: 1px solid var(--tp-border);
       border-radius: 8px;
       overflow: hidden;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
     }
 
     .terminal-page .tp-terminal-header {
       display: flex;
       align-items: center;
-      padding: 10px 14px;
+      padding: 8px 12px;
       background: var(--tp-bg-tertiary);
       border-bottom: 1px solid var(--tp-border);
     }
 
-    .terminal-page .tp-dots {
-      display: flex;
-      gap: 6px;
-    }
-
-    .terminal-page .tp-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-    }
-
+    .terminal-page .tp-dots { display: flex; gap: 6px; }
+    .terminal-page .tp-dot { width: 10px; height: 10px; border-radius: 50%; }
     .terminal-page .tp-dot-red { background: #ff5f56; }
     .terminal-page .tp-dot-yellow { background: #ffbd2e; }
     .terminal-page .tp-dot-green { background: #27c93f; }
-
-    .terminal-page .tp-terminal-title {
-      flex: 1;
-      text-align: center;
-      font-size: 12px;
-      color: var(--tp-text-dim);
-    }
-
-    .terminal-page .tp-terminal-spacer {
-      width: 52px;
-    }
+    .terminal-page .tp-terminal-title { flex: 1; text-align: center; font-size: 11px; color: var(--tp-text-dim); }
+    .terminal-page .tp-terminal-spacer { width: 52px; }
 
     .terminal-page .tp-terminal-body {
-      padding: 16px;
-      min-height: 220px;
-      max-height: 320px;
+      padding: 12px 14px;
+      min-height: 340px;
+      max-height: 420px;
       overflow-y: auto;
-      text-align: left;
-    }
-
-    /* Terminal Output - LEFT ALIGNED */
-    .terminal-page .tp-output-line {
-      margin-bottom: 4px;
-      white-space: pre-wrap;
-      word-break: break-word;
       font-size: 13px;
-      text-align: left;
+      line-height: 1.4;
     }
 
-    .terminal-page .tp-output-line.tp-cmd {
-      color: var(--tp-text-muted);
-    }
+    /* Terminal output styling */
+    .terminal-page .tp-line { margin-bottom: 2px; white-space: pre-wrap; word-break: break-word; }
+    .terminal-page .tp-prompt-line { color: var(--tp-text); }
+    .terminal-page .tp-user { color: var(--tp-success); font-weight: 600; }
+    .terminal-page .tp-host { color: var(--tp-cyan); }
+    .terminal-page .tp-path { color: var(--tp-info); }
+    .terminal-page .tp-cmd-text { color: var(--tp-text); }
 
-    .terminal-page .tp-output-line.tp-cmd::before {
-      content: '$ ';
-      color: var(--tp-success);
-    }
+    .terminal-page .tp-output { color: var(--tp-text-muted); margin-left: 0; }
+    .terminal-page .tp-output-success { color: var(--tp-success); }
+    .terminal-page .tp-output-error { color: var(--tp-error); }
+    .terminal-page .tp-output-warning { color: var(--tp-warning); }
+    .terminal-page .tp-output-info { color: var(--tp-info); }
+    .terminal-page .tp-output-accent { color: var(--tp-accent); }
+    .terminal-page .tp-output-dim { color: var(--tp-text-dim); }
+    .terminal-page .tp-output-cyan { color: var(--tp-cyan); }
+    .terminal-page .tp-output-magenta { color: var(--tp-magenta); }
 
-    .terminal-page .tp-output-line.tp-result {
-      color: var(--tp-text);
-      padding-left: 12px;
-    }
-
-    .terminal-page .tp-output-line.tp-error {
-      color: var(--tp-error);
-    }
-
-    .terminal-page .tp-output-line.tp-accent {
-      color: var(--tp-accent);
-    }
-
-    .terminal-page .tp-output-line.tp-info {
-      color: var(--tp-info);
-    }
-
-    .terminal-page .tp-output-line.tp-dim {
-      color: var(--tp-text-dim);
-    }
-
-    .terminal-page .tp-output-line.tp-success {
-      color: var(--tp-success);
-    }
-
-    /* ASCII art container */
-    .terminal-page .tp-ascii {
-      font-size: 10px;
-      line-height: 1.1;
-      color: var(--tp-accent);
-      margin-bottom: 8px;
-    }
-
-    /* Help box */
-    .terminal-page .tp-help-box {
+    /* Caro output box */
+    .terminal-page .tp-caro-box {
+      margin: 8px 0;
       border: 1px solid var(--tp-border);
       border-radius: 4px;
-      padding: 12px;
-      margin: 8px 0;
+      overflow: hidden;
       background: var(--tp-bg);
-      text-align: left;
     }
 
-    .terminal-page .tp-help-title {
-      color: var(--tp-accent);
-      font-weight: 600;
-      margin-bottom: 8px;
-      font-size: 13px;
-    }
-
-    .terminal-page .tp-help-item {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 4px;
-      font-size: 12px;
-    }
-
-    .terminal-page .tp-help-cmd {
-      color: var(--tp-info);
-      min-width: 110px;
-    }
-
-    .terminal-page .tp-help-desc {
-      color: var(--tp-text-muted);
-    }
-
-    /* Input line */
-    .terminal-page .tp-input-line {
+    .terminal-page .tp-caro-header {
+      padding: 6px 10px;
+      background: var(--tp-bg-tertiary);
+      border-bottom: 1px solid var(--tp-border);
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-top: 8px;
+      font-size: 11px;
     }
 
-    .terminal-page .tp-prompt {
-      color: var(--tp-success);
-      font-weight: 500;
+    .terminal-page .tp-caro-icon { font-size: 14px; }
+    .terminal-page .tp-caro-title { color: var(--tp-accent); font-weight: 600; }
+    .terminal-page .tp-caro-badge {
+      margin-left: auto;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+    .terminal-page .tp-caro-badge.safe { background: rgba(63,185,80,0.15); color: var(--tp-success); }
+    .terminal-page .tp-caro-badge.blocked { background: rgba(248,81,73,0.15); color: var(--tp-error); }
+
+    .terminal-page .tp-caro-body { padding: 10px; }
+    .terminal-page .tp-caro-label { font-size: 10px; color: var(--tp-text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .terminal-page .tp-caro-command { font-size: 13px; color: var(--tp-info); background: var(--tp-bg-secondary); padding: 8px 10px; border-radius: 3px; margin-bottom: 8px; font-family: var(--tp-font); }
+    .terminal-page .tp-caro-meta { font-size: 11px; color: var(--tp-text-dim); display: flex; gap: 12px; flex-wrap: wrap; }
+    .terminal-page .tp-caro-meta span { display: flex; align-items: center; gap: 4px; }
+
+    /* Help box */
+    .terminal-page .tp-help-box {
+      margin: 8px 0;
+      border: 1px solid var(--tp-border);
+      border-radius: 4px;
+      background: var(--tp-bg);
+      padding: 10px;
     }
 
+    .terminal-page .tp-help-title { color: var(--tp-accent); font-weight: 600; margin-bottom: 8px; font-size: 12px; }
+    .terminal-page .tp-help-section { margin-bottom: 10px; }
+    .terminal-page .tp-help-section:last-child { margin-bottom: 0; }
+    .terminal-page .tp-help-section-title { color: var(--tp-text-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .terminal-page .tp-help-row { display: flex; font-size: 12px; margin-bottom: 2px; }
+    .terminal-page .tp-help-cmd { color: var(--tp-cyan); min-width: 140px; }
+    .terminal-page .tp-help-desc { color: var(--tp-text-muted); }
+
+    /* Stats box */
+    .terminal-page .tp-stats-box {
+      margin: 8px 0;
+      border: 1px solid var(--tp-border);
+      border-radius: 4px;
+      background: var(--tp-bg);
+      padding: 10px;
+    }
+
+    .terminal-page .tp-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .terminal-page .tp-stats-item { text-align: center; padding: 8px; background: var(--tp-bg-secondary); border-radius: 3px; }
+    .terminal-page .tp-stats-value { font-size: 20px; font-weight: 700; color: var(--tp-accent); }
+    .terminal-page .tp-stats-label { font-size: 10px; color: var(--tp-text-dim); text-transform: uppercase; }
+
+    /* Input line */
+    .terminal-page .tp-input-line { display: flex; align-items: center; margin-top: 4px; }
+    .terminal-page .tp-prompt { white-space: nowrap; }
     .terminal-page .tp-input {
       flex: 1;
       background: transparent;
@@ -542,16 +393,13 @@ import { SITE_CONFIG } from '../config/site';
       font-family: var(--tp-font);
       font-size: 13px;
       outline: none;
-      caret-color: var(--tp-cursor);
-    }
-
-    .terminal-page .tp-input::placeholder {
-      color: var(--tp-text-dim);
+      caret-color: var(--tp-accent);
+      margin-left: 0;
     }
 
     .terminal-page .tp-hint {
-      margin-top: 16px;
-      font-size: 12px;
+      margin-top: 12px;
+      font-size: 11px;
       color: var(--tp-text-dim);
       text-align: center;
     }
@@ -559,145 +407,22 @@ import { SITE_CONFIG } from '../config/site';
     .terminal-page .tp-hint code {
       color: var(--tp-info);
       background: var(--tp-bg-tertiary);
-      padding: 1px 5px;
-      border-radius: 3px;
+      padding: 1px 4px;
+      border-radius: 2px;
     }
 
-    /* Sections */
-    .terminal-page .tp-section {
-      padding: 40px 24px;
-      border-top: 1px solid var(--tp-border);
-    }
-
-    .terminal-page .tp-section-title {
-      font-size: 22px;
-      font-weight: 600;
-      margin-bottom: 20px;
-      color: var(--tp-text);
-    }
-
-    .terminal-page .tp-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-    }
-
-    .terminal-page .tp-card {
-      background: var(--tp-bg-secondary);
-      border: 1px solid var(--tp-border);
-      border-radius: 6px;
-      padding: 16px;
-    }
-
-    .terminal-page .tp-card h3 {
-      font-size: 14px;
-      margin-bottom: 6px;
-      color: var(--tp-text);
-    }
-
-    .terminal-page .tp-card p {
-      font-size: 12px;
-      color: var(--tp-text-muted);
-    }
-
-    /* Install */
-    .terminal-page .tp-install-box {
-      max-width: 450px;
-    }
-
-    .terminal-page .tp-install-method {
-      margin-bottom: 16px;
-    }
-
-    .terminal-page .tp-install-method h3 {
-      font-size: 13px;
-      color: var(--tp-text);
-      margin-bottom: 8px;
-    }
-
-    .terminal-page .tp-install-command {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: var(--tp-bg-secondary);
-      border: 1px solid var(--tp-border);
-      padding: 10px 12px;
-      border-radius: 4px;
-    }
-
-    .terminal-page .tp-install-command code {
-      flex: 1;
-      color: var(--tp-text);
-      font-size: 12px;
-    }
-
-    .terminal-page .tp-copy-btn {
-      background: var(--tp-accent);
-      color: var(--tp-bg);
-      border: none;
-      padding: 4px 10px;
-      border-radius: 3px;
-      font-family: var(--tp-font);
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .terminal-page .tp-copy-btn:hover {
-      background: var(--tp-accent-hover);
-    }
-
-    /* Stats */
-    .terminal-page .tp-stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-    }
-
-    .terminal-page .tp-stat {
-      text-align: center;
-      padding: 16px;
-      background: var(--tp-bg-secondary);
-      border: 1px solid var(--tp-border);
-      border-radius: 6px;
-    }
-
-    .terminal-page .tp-stat-value {
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--tp-accent);
-    }
-
-    .terminal-page .tp-stat-label {
-      font-size: 11px;
-      color: var(--tp-text-muted);
-      text-transform: uppercase;
-    }
-
-    /* Footer */
     .terminal-page .tp-footer {
-      padding: 16px 24px;
+      padding: 12px 20px;
       border-top: 1px solid var(--tp-border);
       text-align: center;
-      font-size: 12px;
+      font-size: 11px;
       color: var(--tp-text-dim);
-      flex-shrink: 0;
     }
 
-    /* Mobile */
     @media (max-width: 600px) {
-      .terminal-page .tp-header-content {
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      .terminal-page .tp-stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .terminal-page .tp-terminal-body {
-        min-height: 180px;
-      }
+      .terminal-page .tp-header-content { flex-direction: column; gap: 10px; }
+      .terminal-page .tp-terminal-body { min-height: 280px; }
+      .terminal-page .tp-stats-grid { grid-template-columns: 1fr 1fr; }
     }
   </style>
 
@@ -712,121 +437,134 @@ import { SITE_CONFIG } from '../config/site';
       let history = [];
       let historyIndex = -1;
 
+      // Command handlers
       const commands = {
-        help: showHelp,
-        h: showHelp,
-        capabilities: () => showSection('capabilities'),
-        cap: () => showSection('capabilities'),
-        install: () => showSection('install'),
-        i: () => showSection('install'),
-        stats: () => showSection('stats'),
-        s: () => showSection('stats'),
-        clear: clearTerminal,
-        cls: clearTerminal,
+        help: showHelp, h: showHelp,
+        clear: clearTerminal, cls: clearTerminal,
         demo: runDemo,
-        examples: runDemo,
-        github: () => { window.open('https://github.com/wildcard/caro', '_blank'); addOutput('Opening GitHub...', 'info'); },
-        home: () => { window.location.href = '/'; },
-        exit: () => { window.location.href = '/'; },
-        e: () => { window.location.href = '/'; },
-        version: () => addOutput(`caro v${version}`, 'accent'),
-        v: () => addOutput(`caro v${version}`, 'accent'),
+        stats: showStats, s: showStats,
+        install: showInstall, i: showInstall,
+        features: showFeatures, f: showFeatures,
+        github: () => { window.open('https://github.com/wildcard/caro', '_blank'); output('Opening github.com/wildcard/caro...', 'info'); },
+        exit: () => window.location.href = '/',
+        version: () => output(`caro ${version}`, 'accent'),
+        v: () => output(`caro ${version}`, 'accent'),
+        whoami: () => output('guest', 'output'),
+        pwd: () => output('/home/guest', 'output'),
+        date: () => output(new Date().toString(), 'output'),
+        echo: (args) => output(args || '', 'output'),
+      };
+
+      // Caro command database - realistic responses
+      const caroCommands = {
+        'find python files': { cmd: 'find . -name "*.py" -type f', safe: true, time: '0.023s' },
+        'find large files': { cmd: 'find . -type f -size +100M', safe: true, time: '0.156s' },
+        'list large files': { cmd: 'find . -type f -size +100M -exec ls -lh {} \\;', safe: true, time: '0.089s' },
+        'show disk usage': { cmd: 'du -sh * | sort -rh | head -10', safe: true, time: '0.034s' },
+        'disk usage': { cmd: 'df -h', safe: true, time: '0.012s' },
+        'memory usage': { cmd: 'free -h', safe: true, time: '0.008s' },
+        'running processes': { cmd: 'ps aux --sort=-%cpu | head -10', safe: true, time: '0.021s' },
+        'network connections': { cmd: 'netstat -tuln', safe: true, time: '0.045s' },
+        'find text in files': { cmd: 'grep -r "pattern" . --include="*.txt"', safe: true, time: '0.067s' },
+        'compress folder': { cmd: 'tar -czvf archive.tar.gz folder/', safe: true, time: '0.034s' },
+        'delete everything': { cmd: 'rm -rf /', safe: false, reason: 'System destruction: recursive delete from root' },
+        'rm -rf': { cmd: 'rm -rf /', safe: false, reason: 'System destruction: recursive force delete' },
+        'format disk': { cmd: 'mkfs.ext4 /dev/sda', safe: false, reason: 'Disk destruction: filesystem format' },
+        'fork bomb': { cmd: ':(){ :|:& };:', safe: false, reason: 'Resource exhaustion: fork bomb detected' },
+        'delete system': { cmd: 'rm -rf /usr /bin /etc', safe: false, reason: 'System destruction: critical directory deletion' },
       };
 
       showWelcome();
 
-      document.getElementById('terminal').addEventListener('click', () => {
-        terminalInput.focus();
-      });
+      // Event listeners
+      document.getElementById('terminal').addEventListener('click', () => terminalInput.focus());
 
       terminalInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
-          const cmd = terminalInput.value.trim().toLowerCase();
-          if (cmd) {
-            processCommand(cmd);
-            history.push(cmd);
+          const input = terminalInput.value.trim();
+          if (input) {
+            processInput(input);
+            history.push(input);
             historyIndex = history.length;
           }
           terminalInput.value = '';
         } else if (e.key === 'ArrowUp') {
           e.preventDefault();
-          if (historyIndex > 0) {
-            historyIndex--;
-            terminalInput.value = history[historyIndex];
-          }
+          if (historyIndex > 0) terminalInput.value = history[--historyIndex];
         } else if (e.key === 'ArrowDown') {
           e.preventDefault();
-          if (historyIndex < history.length - 1) {
-            historyIndex++;
-            terminalInput.value = history[historyIndex];
-          } else {
-            historyIndex = history.length;
-            terminalInput.value = '';
-          }
+          if (historyIndex < history.length - 1) terminalInput.value = history[++historyIndex];
+          else { historyIndex = history.length; terminalInput.value = ''; }
+        } else if (e.key === 'Tab') {
+          e.preventDefault();
+          const val = terminalInput.value.toLowerCase();
+          const cmds = Object.keys(commands);
+          const match = cmds.find(c => c.startsWith(val));
+          if (match) terminalInput.value = match;
         }
       });
 
       themeBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-          const theme = btn.dataset.theme;
-          page.dataset.theme = theme;
+          page.dataset.theme = btn.dataset.theme;
           themeBtns.forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
-          localStorage.setItem('terminal-page-theme', theme);
+          localStorage.setItem('terminal-page-theme', btn.dataset.theme);
         });
       });
 
       const savedTheme = localStorage.getItem('terminal-page-theme');
       if (savedTheme) {
         page.dataset.theme = savedTheme;
-        themeBtns.forEach(btn => {
-          btn.classList.toggle('active', btn.dataset.theme === savedTheme);
-        });
+        themeBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.theme === savedTheme));
       }
 
-      document.querySelectorAll('.tp-copy-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          const text = btn.dataset.copy;
-          try {
-            await navigator.clipboard.writeText(text);
-            btn.textContent = 'Copied!';
-            setTimeout(() => btn.textContent = 'Copy', 2000);
-          } catch (err) {
-            console.error('Copy failed:', err);
-          }
-        });
-      });
+      function processInput(input) {
+        showPrompt(input);
 
-      function processCommand(cmd) {
-        addOutput(cmd, 'cmd');
+        const lower = input.toLowerCase();
+        const parts = input.split(' ');
+        const cmd = parts[0].toLowerCase();
+        const args = parts.slice(1).join(' ');
 
-        if (cmd.startsWith('caro ')) {
-          simulateCaroCommand(cmd);
+        // Handle caro commands
+        if (cmd === 'caro' || lower.startsWith('caro ')) {
+          const query = input.replace(/^caro\s*/i, '').replace(/^["']|["']$/g, '');
+          simulateCaro(query);
           return;
         }
 
-        const handler = commands[cmd];
-        if (handler) {
-          handler();
+        // Handle built-in commands
+        if (commands[cmd]) {
+          if (typeof commands[cmd] === 'function') {
+            commands[cmd](args);
+          }
         } else {
-          addOutput(`Command not found: ${cmd}. Type 'help' for commands.`, 'error');
+          output(`bash: ${cmd}: command not found`, 'error');
         }
 
         scrollToBottom();
       }
 
-      function addOutput(text, className = '') {
+      function showPrompt(cmd) {
         const line = document.createElement('div');
-        line.className = 'tp-output-line' + (className ? ' tp-' + className : '');
+        line.className = 'tp-line tp-prompt-line';
+        line.innerHTML = `<span class="tp-user">guest</span>@<span class="tp-host">caro.sh</span>:<span class="tp-path">~</span>$ <span class="tp-cmd-text">${escapeHtml(cmd)}</span>`;
+        terminalOutput.appendChild(line);
+      }
+
+      function output(text, type = 'output') {
+        const line = document.createElement('div');
+        line.className = `tp-line tp-output tp-output-${type}`;
         line.textContent = text;
         terminalOutput.appendChild(line);
         scrollToBottom();
       }
 
-      function addHTML(html) {
-        const container = document.createElement('div');
-        container.innerHTML = html;
-        terminalOutput.appendChild(container);
+      function outputHTML(html) {
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        terminalOutput.appendChild(div);
         scrollToBottom();
       }
 
@@ -838,98 +576,192 @@ import { SITE_CONFIG } from '../config/site';
         terminalOutput.innerHTML = '';
       }
 
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
       function showWelcome() {
-        // Simple text-based welcome - no ASCII art issues
-        addHTML(`<pre class="tp-ascii">
+        outputHTML(`
+<pre style="color: var(--tp-accent); font-size: 9px; line-height: 1.15; margin: 4px 0;">
  ██████╗ █████╗ ██████╗  ██████╗
 ██╔════╝██╔══██╗██╔══██╗██╔═══██╗
 ██║     ███████║██████╔╝██║   ██║
 ██║     ██╔══██║██╔══██╗██║   ██║
 ╚██████╗██║  ██║██║  ██║╚██████╔╝
- ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝</pre>`);
-        addOutput(`v${version} - Safe Shell Commands You Can Trust`, 'dim');
-        addOutput('');
-        addOutput("Type 'help' for commands, or try: caro \"find python files\"", 'info');
+ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ </pre>`);
+        output(`caro ${version} — Safe Shell Commands You Can Trust`, 'dim');
+        output('');
+        output('Type "help" for commands, or try: caro "find large files"', 'info');
+        output('');
       }
 
       function showHelp() {
-        addHTML(`
-          <div class="tp-help-box">
-            <div class="tp-help-title">Available Commands</div>
-            <div class="tp-help-item"><span class="tp-help-cmd">help, h</span><span class="tp-help-desc">Show this help</span></div>
-            <div class="tp-help-item"><span class="tp-help-cmd">capabilities, cap</span><span class="tp-help-desc">View features</span></div>
-            <div class="tp-help-item"><span class="tp-help-cmd">install, i</span><span class="tp-help-desc">Installation</span></div>
-            <div class="tp-help-item"><span class="tp-help-cmd">stats, s</span><span class="tp-help-desc">Statistics</span></div>
-            <div class="tp-help-item"><span class="tp-help-cmd">demo, examples</span><span class="tp-help-desc">Run demo</span></div>
-            <div class="tp-help-item"><span class="tp-help-cmd">github</span><span class="tp-help-desc">Open GitHub</span></div>
-            <div class="tp-help-item"><span class="tp-help-cmd">clear, cls</span><span class="tp-help-desc">Clear terminal</span></div>
-            <div class="tp-help-item"><span class="tp-help-cmd">exit, e</span><span class="tp-help-desc">Go to main site</span></div>
-            <div class="tp-help-item"><span class="tp-help-cmd">caro "..."</span><span class="tp-help-desc">Try a command</span></div>
-          </div>
-        `);
+        outputHTML(`
+<div class="tp-help-box">
+  <div class="tp-help-title">🐕 Caro Interactive Terminal</div>
+
+  <div class="tp-help-section">
+    <div class="tp-help-section-title">Caro Commands</div>
+    <div class="tp-help-row"><span class="tp-help-cmd">caro "query"</span><span class="tp-help-desc">Convert natural language to shell command</span></div>
+    <div class="tp-help-row"><span class="tp-help-cmd">demo</span><span class="tp-help-desc">Run interactive demonstration</span></div>
+  </div>
+
+  <div class="tp-help-section">
+    <div class="tp-help-section-title">Information</div>
+    <div class="tp-help-row"><span class="tp-help-cmd">features, f</span><span class="tp-help-desc">View caro capabilities</span></div>
+    <div class="tp-help-row"><span class="tp-help-cmd">stats, s</span><span class="tp-help-desc">Show project statistics</span></div>
+    <div class="tp-help-row"><span class="tp-help-cmd">install, i</span><span class="tp-help-desc">Installation instructions</span></div>
+  </div>
+
+  <div class="tp-help-section">
+    <div class="tp-help-section-title">Shell</div>
+    <div class="tp-help-row"><span class="tp-help-cmd">clear, cls</span><span class="tp-help-desc">Clear terminal</span></div>
+    <div class="tp-help-row"><span class="tp-help-cmd">github</span><span class="tp-help-desc">Open repository</span></div>
+    <div class="tp-help-row"><span class="tp-help-cmd">exit</span><span class="tp-help-desc">Return to main site</span></div>
+  </div>
+</div>`);
       }
 
-      function showSection(sectionId) {
-        const section = document.getElementById('section-' + sectionId);
-        if (section) {
-          document.querySelectorAll('.tp-section').forEach(s => s.style.display = 'none');
-          section.style.display = 'block';
-          section.scrollIntoView({ behavior: 'smooth' });
-          addOutput(`Showing ${sectionId}...`, 'info');
+      function showStats() {
+        outputHTML(`
+<div class="tp-stats-box">
+  <div class="tp-help-title">📊 Project Statistics</div>
+  <div class="tp-stats-grid">
+    <div class="tp-stats-item"><div class="tp-stats-value">52+</div><div class="tp-stats-label">Safety Patterns</div></div>
+    <div class="tp-stats-item"><div class="tp-stats-value">100%</div><div class="tp-stats-label">Local Inference</div></div>
+    <div class="tp-stats-item"><div class="tp-stats-value">0</div><div class="tp-stats-label">Cloud Dependencies</div></div>
+    <div class="tp-stats-item"><div class="tp-stats-value">3</div><div class="tp-stats-label">Platforms</div></div>
+  </div>
+</div>`);
+      }
+
+      function showInstall() {
+        output('', '');
+        output('# Quick Install (recommended)', 'dim');
+        output('curl -fsSL https://caro.sh/install | bash', 'cyan');
+        output('', '');
+        output('# Via Cargo', 'dim');
+        output('cargo install caro', 'cyan');
+        output('', '');
+        output('# Or download from GitHub Releases', 'dim');
+        output('https://github.com/wildcard/caro/releases', 'info');
+        output('', '');
+      }
+
+      function showFeatures() {
+        outputHTML(`
+<div class="tp-help-box">
+  <div class="tp-help-title">⚡ Caro Features</div>
+
+  <div class="tp-help-section">
+    <div class="tp-help-row"><span class="tp-help-cmd">🛡️ Safety First</span><span class="tp-help-desc">52+ dangerous patterns blocked automatically</span></div>
+    <div class="tp-help-row"><span class="tp-help-cmd">🔒 100% Local</span><span class="tp-help-desc">All inference runs on your machine</span></div>
+    <div class="tp-help-row"><span class="tp-help-cmd">🌍 Platform Aware</span><span class="tp-help-desc">Detects OS, shell, and available commands</span></div>
+    <div class="tp-help-row"><span class="tp-help-cmd">⚡ Single Binary</span><span class="tp-help-desc">No dependencies, instant startup</span></div>
+    <div class="tp-help-row"><span class="tp-help-cmd">🎯 Deterministic</span><span class="tp-help-desc">Same input = same safety verdict</span></div>
+    <div class="tp-help-row"><span class="tp-help-cmd">🔄 Refinement</span><span class="tp-help-desc">Auto-refines commands for compatibility</span></div>
+  </div>
+</div>`);
+      }
+
+      function simulateCaro(query) {
+        if (!query) {
+          output('Usage: caro "your natural language query"', 'warning');
+          return;
         }
+
+        // Find matching response
+        let response = null;
+        const lowerQuery = query.toLowerCase();
+
+        for (const [key, val] of Object.entries(caroCommands)) {
+          if (lowerQuery.includes(key)) {
+            response = val;
+            break;
+          }
+        }
+
+        // Default response for unknown queries
+        if (!response) {
+          response = {
+            cmd: `# Generated command for: ${query}`,
+            safe: true,
+            time: '0.042s'
+          };
+        }
+
+        // Simulate thinking delay
+        output('', '');
+        setTimeout(() => {
+          if (response.safe) {
+            outputHTML(`
+<div class="tp-caro-box">
+  <div class="tp-caro-header">
+    <span class="tp-caro-icon">🐕</span>
+    <span class="tp-caro-title">Caro</span>
+    <span class="tp-caro-badge safe">✓ SAFE</span>
+  </div>
+  <div class="tp-caro-body">
+    <div class="tp-caro-label">Generated Command</div>
+    <div class="tp-caro-command">${escapeHtml(response.cmd)}</div>
+    <div class="tp-caro-meta">
+      <span>⏱ ${response.time || '0.031s'}</span>
+      <span>🖥 ${navigator.platform.includes('Mac') ? 'macOS' : navigator.platform.includes('Win') ? 'Windows' : 'Linux'}</span>
+      <span>✓ Ready to execute</span>
+    </div>
+  </div>
+</div>`);
+          } else {
+            outputHTML(`
+<div class="tp-caro-box">
+  <div class="tp-caro-header">
+    <span class="tp-caro-icon">🐕</span>
+    <span class="tp-caro-title">Caro</span>
+    <span class="tp-caro-badge blocked">✕ BLOCKED</span>
+  </div>
+  <div class="tp-caro-body">
+    <div class="tp-caro-label">Blocked Command</div>
+    <div class="tp-caro-command" style="color: var(--tp-error);">${escapeHtml(response.cmd)}</div>
+    <div class="tp-caro-meta">
+      <span style="color: var(--tp-error);">⚠ ${response.reason}</span>
+    </div>
+  </div>
+</div>`);
+          }
+          scrollToBottom();
+        }, 150);
       }
 
       function runDemo() {
-        addOutput('Running demo...', 'info');
-        addOutput('');
+        output('Running demo...', 'info');
+        output('', '');
 
         const demos = [
-          { prompt: 'find all PDF files larger than 10MB', result: 'find . -name "*.pdf" -type f -size +10M', safe: true },
-          { prompt: 'delete everything in root', result: 'rm -rf /', safe: false },
-          { prompt: 'show disk usage by folder', result: 'du -sh */ | sort -rh | head -10', safe: true },
+          { q: 'find large files', delay: 800 },
+          { q: 'show disk usage', delay: 1200 },
+          { q: 'delete everything', delay: 1200 },
         ];
 
         let i = 0;
-        function showNext() {
-          if (i >= demos.length) return;
+        function next() {
+          if (i >= demos.length) {
+            output('', '');
+            output('Demo complete! Try your own queries.', 'success');
+            return;
+          }
           const demo = demos[i];
-          addOutput(`caro "${demo.prompt}"`, 'cmd');
+          showPrompt(`caro "${demo.q}"`);
           setTimeout(() => {
-            addOutput(`  → ${demo.result}`, 'result');
-            addOutput(demo.safe ? '  ✓ Safe to run' : '  ✕ BLOCKED: Dangerous pattern', demo.safe ? 'success' : 'error');
-            addOutput('');
+            simulateCaro(demo.q);
             i++;
-            setTimeout(showNext, 1200);
-          }, 400);
+            setTimeout(next, demo.delay);
+          }, 200);
         }
-        setTimeout(showNext, 300);
+        setTimeout(next, 300);
       }
 
-      function simulateCaroCommand(cmd) {
-        const prompt = cmd.replace(/^caro\s+["']?|["']?$/g, '');
-        const responses = {
-          'find python files': { result: 'find . -name "*.py" -type f', safe: true },
-          'find all python files': { result: 'find . -name "*.py" -type f', safe: true },
-          'list files': { result: 'ls -la', safe: true },
-          'disk usage': { result: 'df -h', safe: true },
-          'delete everything': { result: 'rm -rf /', safe: false },
-        };
-
-        setTimeout(() => {
-          let response = null;
-          for (const [key, val] of Object.entries(responses)) {
-            if (prompt.toLowerCase().includes(key)) {
-              response = val;
-              break;
-            }
-          }
-          if (!response) {
-            response = { result: `echo "Command for: ${prompt}"`, safe: true };
-          }
-          addOutput(`  → ${response.result}`, 'result');
-          addOutput(response.safe ? '  ✓ Safe to run' : '  ✕ BLOCKED: Dangerous pattern', response.safe ? 'success' : 'error');
-        }, 250);
-      }
     })();
   </script>
 </body>
