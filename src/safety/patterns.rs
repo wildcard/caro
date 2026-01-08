@@ -13,9 +13,9 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
     vec![
         // CRITICAL: Filesystem destruction
         DangerPattern {
-            pattern: r"rm\s+(-[rfRF]*\s+)*(/|~|\$HOME|/\*|~/\*|\*|\.|\.\/|\.\/\*|\.\*)".to_string(),
+            pattern: r"rm\s+(-[rfRF]*\s+)*(/|~|\$HOME|/\*|~/\*|\*|\.\.?/?|\.\./\*|\.\*)".to_string(),
             risk_level: RiskLevel::Critical,
-            description: "Recursive deletion of root, home, or current directory".to_string(),
+            description: "Recursive deletion of root, home, current, or parent directory".to_string(),
             shell_specific: None,
         },
         DangerPattern {
@@ -35,6 +35,12 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
             pattern: r"dd\s+.*if=/dev/(zero|random|urandom).*of=/dev/(sd|hd|nvme)".to_string(),
             risk_level: RiskLevel::Critical,
             description: "Overwrite disk with random data".to_string(),
+            shell_specific: None,
+        },
+        DangerPattern {
+            pattern: r"dd\s+.*of=/dev/(sd|hd|nvme).*if=/dev/(zero|random|urandom)".to_string(),
+            risk_level: RiskLevel::Critical,
+            description: "Overwrite disk with random data (reverse arg order)".to_string(),
             shell_specific: None,
         },
         DangerPattern {
@@ -184,6 +190,12 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
             pattern: r"Remove-Item\s+-Recurse\s+-Force\s+[A-Z]:\\".to_string(),
             risk_level: RiskLevel::Critical,
             description: "Recursive deletion of Windows drive root".to_string(),
+            shell_specific: Some(ShellType::PowerShell),
+        },
+        DangerPattern {
+            pattern: r"Remove-Item\s+(\*|\*\.\*)\s+(.*-Force.*-Recurse|.*-Recurse.*-Force)".to_string(),
+            risk_level: RiskLevel::Critical,
+            description: "PowerShell recursive deletion of current directory wildcard".to_string(),
             shell_specific: Some(ShellType::PowerShell),
         },
         // HIGH: PowerShell dangerous operations
