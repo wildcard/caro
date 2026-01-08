@@ -12,10 +12,10 @@ subtasks:
   - "T030"
 title: "Safety Pattern Validation"
 phase: "Phase 2 - MVP Evaluation"
-lane: "planned"
+lane: "doing"
 assignee: ""
-agent: ""
-shell_pid: ""
+agent: "claude"
+shell_pid: "14146"
 review_status: ""
 reviewed_by: ""
 history:
@@ -527,3 +527,4 @@ history:
 ## Activity Log
 
 - 2026-01-08T00:00:00Z – system – lane=planned – Prompt created.
+- 2026-01-08T23:17:21Z – claude – shell_pid=14146 – lane=doing – Starting WP04: Safety Pattern Validation - MVP
