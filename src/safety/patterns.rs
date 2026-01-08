@@ -13,9 +13,9 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
     vec![
         // CRITICAL: Filesystem destruction
         DangerPattern {
-            pattern: r"rm\s+(-[rfRF]*\s+)*(/|~|\$HOME|/\*|~/\*)".to_string(),
+            pattern: r"rm\s+(-[rfRF]*\s+)*(/|~|\$HOME|/\*|~/\*|\*|\.|\.\/|\.\/\*|\.\*)".to_string(),
             risk_level: RiskLevel::Critical,
-            description: "Recursive deletion of root or home directory".to_string(),
+            description: "Recursive deletion of root, home, or current directory".to_string(),
             shell_specific: None,
         },
         DangerPattern {
