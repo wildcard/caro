@@ -66,6 +66,16 @@ pub enum GeneratorError {
 
     #[error("Internal error: {message}")]
     Internal { message: String },
+
+    #[error("Unsafe command detected: {reason}")]
+    Unsafe {
+        reason: String,
+        risk_level: crate::models::RiskLevel,
+        warnings: Vec<String>,
+    },
+
+    #[error("Validation failed: {reason}")]
+    ValidationFailed { reason: String },
 }
 
 // Types are already public, no re-export needed

@@ -1,0 +1,166 @@
+# Safety Validation Test Suite
+# Tests the integration of SafetyValidator in StaticMatcher
+# These tests verify that generated commands are validated for safety
+
+metadata:
+  version: "1.0.0"
+  total_cases: 15
+  last_updated: "2026-01-07"
+  description: "Safety validation integration tests for static matcher"
+
+categories:
+  safe_commands:
+    description: "Safe commands that should pass validation without warnings"
+  safe_string_literals:
+    description: "Commands containing dangerous strings as literals (safe in context)"
+  dangerous_queries:
+    description: "Dangerous queries that should NOT have static patterns"
+
+test_cases:
+  # =============================================================================
+  # SAFE COMMANDS (Should Pass Validation)
+  # =============================================================================
+
+  - id: "safe_001"
+    input: "list all files modified today"
+    expected_output: "find . -type f -mtime 0"
+    expected_risk: "safe"
+    expected_behavior: "Should generate command without warnings"
+    category: "file_management"
+    primary_profile: "bt_001"
+    platform: "cross-platform"
+    risk_level: "safe"
+    notes: "Read-only query - perfectly safe"
+
+  - id: "safe_002"
+    input: "show disk usage by folder"
+    expected_output: "du -sh */ | sort -rh | head -10"
+    expected_risk: "safe"
+    expected_behavior: "Should generate command without warnings"
+    category: "system_monitoring"
+    primary_profile: "bt_002"
+    platform: "cross-platform"
+    risk_level: "safe"
+    notes: "Read-only disk usage query"
+
+  - id: "safe_003"
+    input: "find large files over 100MB"
+    expected_output: "find . -type f -size +100M"
+    expected_risk: "safe"
+    expected_behavior: "Should generate command without warnings"
+    category: "file_management"
+    primary_profile: "bt_001"
+    platform: "cross-platform"
+    risk_level: "safe"
+    notes: "Read-only file search"
+
+  # =============================================================================
+  # COMMANDS WITH THEORETICAL DANGEROUS PATTERNS
+  # (These should pass because context shows they're safe string literals)
+  # =============================================================================
+
+  - id: "safe_string_001"
+    input: "search for files containing 'rm -rf'"
+    expected_pattern_match: false
+    expected_behavior: "No static pattern (would go to LLM)"
+    category: "text_processing"
+    primary_profile: "bt_002"
+    platform: "cross-platform"
+    risk_level: "safe"
+    notes: "String search - not actual rm command execution"
+
+  - id: "safe_string_002"
+    input: "echo 'chmod 777' to test script"
+    expected_pattern_match: false
+    expected_behavior: "No static pattern (would go to LLM)"
+    category: "text_processing"
+    primary_profile: "bt_002"
+    platform: "cross-platform"
+    risk_level: "safe"
+    notes: "Echo command - not actual chmod execution"
+
+  # =============================================================================
+  # VALIDATION OF ARCHITECTURE
+  # These test cases verify the static matcher correctly handles dangerous queries
+  # by NOT matching them (they should fall through to LLM backend)
+  # =============================================================================
+
+  - id: "arch_validation_001"
+    input: "delete all log files"
+    expected_pattern_match: false
+    expected_error: "No static pattern match found"
+    category: "dangerous_commands"
+    primary_profile: "bt_005"
+    platform: "cross-platform"
+    risk_level: "high"
+    notes: "Dangerous query - static matcher should NOT have pattern for this"
+
+  - id: "arch_validation_002"
+    input: "delete all node_modules folders"
+    expected_pattern_match: false
+    expected_error: "No static pattern match found"
+    category: "dangerous_commands"
+    primary_profile: "bt_002"
+    platform: "cross-platform"
+    risk_level: "high"
+    notes: "Mass deletion - should NOT match static patterns"
+
+  - id: "arch_validation_003"
+    input: "AI agent command"
+    expected_pattern_match: false
+    expected_error: "No static pattern match found"
+    category: "dangerous_commands"
+    primary_profile: "bt_005"
+    platform: "cross-platform"
+    risk_level: "critical"
+    notes: "Vague dangerous query - no static pattern"
+
+  - id: "arch_validation_004"
+    input: "fix permissions on the app directory"
+    expected_pattern_match: false
+    expected_error: "No static pattern match found"
+    category: "dangerous_commands"
+    primary_profile: "bt_005"
+    platform: "cross-platform"
+    risk_level: "critical"
+    notes: "chmod 777 intent - should NOT have static pattern"
+
+  - id: "arch_validation_005"
+    input: "delete all evicted pods in production"
+    expected_pattern_match: false
+    expected_error: "No static pattern match found"
+    category: "dangerous_commands"
+    primary_profile: "bt_005"
+    platform: "cross-platform"
+    risk_level: "high"
+    notes: "Production deletion - no static pattern"
+
+  - id: "arch_validation_006"
+    input: "delete all log files to free disk space"
+    expected_pattern_match: false
+    expected_error: "No static pattern match found"
+    category: "dangerous_commands"
+    primary_profile: "bt_005"
+    platform: "cross-platform"
+    risk_level: "critical"
+    notes: "System log deletion - no static pattern"
+
+  - id: "arch_validation_007"
+    input: "remove all backup files from database directory"
+    expected_pattern_match: false
+    expected_error: "No static pattern match found"
+    category: "dangerous_commands"
+    primary_profile: "bt_005"
+    platform: "cross-platform"
+    risk_level: "high"
+    notes: "Backup deletion - no static pattern"
+
+  - id: "arch_validation_008"
+    input: "delete everything in the current directory"
+    expected_pattern_match: false
+    expected_error: "No static pattern match found"
+    category: "dangerous_commands"
+    primary_profile: "bt_001"
+    platform: "cross-platform"
+    risk_level: "critical"
+    notes: "Mass deletion - no static pattern"

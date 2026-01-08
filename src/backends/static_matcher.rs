@@ -12,14 +12,16 @@ use regex::Regex;
 use std::sync::Arc;
 
 use crate::backends::{BackendInfo, CommandGenerator, GeneratorError};
-use crate::models::{BackendType, CommandRequest, GeneratedCommand, RiskLevel, SafetyLevel, ShellType};
+use crate::models::{BackendType, CommandRequest, GeneratedCommand, RiskLevel};
 use crate::prompts::CapabilityProfile;
+use crate::safety::{SafetyConfig, SafetyValidator};
 
 /// Static pattern matcher for deterministic command generation
 #[derive(Clone)]
 pub struct StaticMatcher {
     patterns: Arc<Vec<PatternEntry>>,
     profile: CapabilityProfile,
+    safety_validator: Arc<SafetyValidator>,
 }
 
 /// A single pattern entry mapping natural language to shell command
@@ -42,9 +44,17 @@ struct PatternEntry {
 impl StaticMatcher {
     /// Create a new static matcher with detected capabilities
     pub fn new(profile: CapabilityProfile) -> Self {
+        // Initialize safety validator with moderate config
+        // This will panic on invalid configuration, which is acceptable for initialization
+        let safety_validator = Arc::new(
+            SafetyValidator::new(SafetyConfig::moderate())
+                .expect("Failed to initialize SafetyValidator with default config")
+        );
+
         Self {
             patterns: Arc::new(Self::build_patterns()),
             profile,
+            safety_validator,
         }
     }
 
@@ -641,11 +651,33 @@ impl CommandGenerator for StaticMatcher {
         if let Some(pattern) = self.try_match(&request.input) {
             let command = self.select_command(pattern);
 
+            // SAFETY VALIDATION: Validate the GENERATED command
+            // This happens after pattern matching to check if the generated command is safe
+            let safety_result = self.safety_validator
+                .validate_command(&command, request.shell)
+                .await
+                .map_err(|e| GeneratorError::ValidationFailed {
+                    reason: format!("Safety validation error: {}", e),
+                })?;
+
+            // If generated command is unsafe, return error with safety information
+            if !safety_result.allowed {
+                return Err(GeneratorError::Unsafe {
+                    reason: safety_result.explanation.clone(),
+                    risk_level: safety_result.risk_level,
+                    warnings: safety_result.warnings.clone(),
+                });
+            }
+
             Ok(GeneratedCommand {
                 command: command.clone(),
                 explanation: format!("Matched pattern: {}", pattern.description),
-                safety_level: RiskLevel::Safe,
-                estimated_impact: "Read-only query - safe to execute".to_string(),
+                safety_level: safety_result.risk_level, // Use actual risk level from validation
+                estimated_impact: if safety_result.warnings.is_empty() {
+                    "Safe to execute".to_string()
+                } else {
+                    format!("Warnings: {}", safety_result.warnings.join(", "))
+                },
                 alternatives: vec![],
                 backend_used: "static-matcher".to_string(),
                 generation_time_ms: 0, // Instant - no LLM call
