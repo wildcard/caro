@@ -3,10 +3,10 @@ work_package_id: "WP02"
 subtasks: ["T006", "T007", "T008", "T009", "T010", "T011", "T012", "T013"]
 title: "Cache Benchmarks"
 phase: "Phase 1 - Benchmark Implementation"
-lane: "planned"
+lane: "doing"
 assignee: ""
-agent: ""
-shell_pid: ""
+agent: "claude"
+shell_pid: "1505"
 review_status: ""
 reviewed_by: ""
 history:
@@ -84,3 +84,4 @@ Add comments with expected performance from research.md.
 
 ## Activity Log
 - 2026-01-08T00:00:00Z – system – lane=planned – Prompt created
+- 2026-01-08T13:32:42Z – claude – shell_pid=1505 – lane=doing – Started WP02 implementation
