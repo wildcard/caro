@@ -13,6 +13,7 @@ import downloadEn from './locales/en/download.json';
 import commonEn from './locales/en/common.json';
 import landingEn from './locales/en/landing.json';
 import compareEn from './locales/en/compare.json';
+import waitlistEn from './locales/en/waitlist.json';
 
 // Localized common translations (partial - falls back to English for missing keys)
 import commonEs from './locales/es/common.json';
@@ -55,7 +56,8 @@ export const en = {
   ...downloadEn,
   ...commonEn,
   ...landingEn,
-  ...compareEn
+  ...compareEn,
+  ...waitlistEn
 };
 
 /**

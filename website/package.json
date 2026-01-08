@@ -20,14 +20,12 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
+    "@astrojs/db": "^0.14.1",
     "@astrojs/react": "^4.4.2",
-    "@upstash/ratelimit": "^2.0.5",
-    "@upstash/redis": "^1.34.0",
     "@vercel/analytics": "^1.6.1",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/xterm": "^6.0.0",
     "astro": "^5.16.6",
-    "botid": "^1.5.0",
     "canvas-confetti": "^1.9.4"
   },
   "devDependencies": {
