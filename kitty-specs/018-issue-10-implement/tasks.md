@@ -133,13 +133,13 @@ This document breaks down the implementation into executable work packages. Each
 **Objective**: Implement main download orchestration logic with streaming file writes.
 
 **Subtasks**:
-- [ ] T013: Create src/cache/download.rs skeleton
-- [ ] T014: Implement download_file() function signature and basic flow
-- [ ] T015: Implement file streaming logic (write chunks to disk)
-- [ ] T016: Integrate progress bar updates per chunk
-- [ ] T017: Handle temporary .part files during download
-- [ ] T018: Implement atomic file rename on completion (.part → final)
-- [ ] T019: Add unit tests for download orchestration
+- [x] T013: Create src/cache/download.rs skeleton
+- [x] T014: Implement download_file() function signature and basic flow
+- [x] T015: Implement file streaming logic (write chunks to disk)
+- [x] T016: Integrate progress bar updates per chunk
+- [x] T017: Handle temporary .part files during download
+- [x] T018: Implement atomic file rename on completion (.part → final)
+- [x] T019: Add unit tests for download orchestration
 
 **Success Criteria**:
 - Files downloaded successfully to cache directory
