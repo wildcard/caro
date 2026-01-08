@@ -3,7 +3,7 @@ work_package_id: "WP01"
 subtasks: ["T001", "T002", "T003", "T004", "T005", "T006"]
 title: "Setup & Dependencies"
 phase: "Phase 1 - Foundation"
-lane: "doing"
+lane: "for_review"
 assignee: ""
 agent: "claude"
 shell_pid: "13317"
@@ -133,3 +133,5 @@ Expected output: No errors, all existing tests pass.
 
 - 2026-01-08T00:00:00Z – system – lane=planned – Prompt created
 - 2026-01-08T15:46:47Z – claude – shell_pid=13317 – lane=doing – Started WP01: Setup & Dependencies
+- 2026-01-08T15:51:32Z – claude – shell_pid=13317 – lane=doing – Completed implementation: All dependencies added, tests passing
+- 2026-01-08T15:52:30Z – claude – shell_pid=13317 – lane=for_review – Ready for review: All dependencies added, builds clean, tests pass
