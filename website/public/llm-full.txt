@@ -2,7 +2,7 @@
 
 > Your loyal shell companion - A privacy-first AI CLI assistant that converts natural language to safe shell commands
 
-**Version**: 1.0.3
+**Version**: 1.0.4
 **License**: AGPL-3.0
 **Repository**: https://github.com/wildcard/caro
 **Website**: https://caro.sh
@@ -151,7 +151,7 @@ Q: How can I support Caro
 
 A: Caro is a privacy-first AI shell assistant that converts natural language into safe, validated shell commands. It runs 100% locally on your machine—your commands, file paths, and data never leave your computer.
 
-A: The easiest way is via cargo: cargo install caro. You can also use our install script: curl -sSL https://caro.sh/install.sh | bash. For other options, see our installation guide.
+A: The easiest way is via cargo: cargo install caro. You can also use our install script: bash  (curl --proto 
 
 A: Caro runs on macOS, Linux, and Windows (WSL). You need Rust 1.70+ for building from source. For local LLM inference, we recommend 8GB+ RAM. Apple Silicon Macs get hardware acceleration with MLX.
 
@@ -183,7 +183,7 @@ A: By default, Caro shows you the command and waits for confirmation. You can us
 
 A: Caro detects your shell ($SHELL) at runtime and generates appropriate syntax. It works with bash, zsh, fish, and POSIX sh. On macOS, it knows you
 
-A: Yes! Use caro --quiet for scripting. You can pipe output, use in CI/CD, or integrate with other tools. The --json flag outputs structured data for programmatic use.
+A: Yes! Use caro --quiet for scripting. You can pipe output, use in CI/CD, or integrate with other tools. The --output json flag outputs structured data for programmatic use.
 
 A: Caro uses a config file at ~/.config/caro/config.toml. You can set your preferred backend, default model, safety level, and other options. Run caro --help to see all configuration options.
 
@@ -287,6 +287,8 @@ Next-generation CLI tools written in Rust and Go
 
 Stories, updates, and insights from Caro's journey - your loyal shell companion
 
+Standing With Free Software: Our Debt to GNU, FSF, and FreeBSD
+
 The Rust Revolution: How Modern Tools Are Reimagining Unix
 
 Announcing Caro: Your Terminal
@@ -296,6 +298,8 @@ Building Caro with Security in Mind
 Batteries Included: Caro
 
 Why Caro? The Story Behind Your Terminal Companion
+
+Caro wouldn
 
 Classic Unix commands are being rewritten in Rust and Go, bringing blazing performance, modern ergonomics, and thoughtful defaults to your terminal. Here
 
@@ -346,6 +350,14 @@ Classic Unix commands are being rewritten in Rust and Go, bringing blazing perfo
 **URL**: https://caro.sh/blog/security-practices
 
 Explore how the Caro project implements security-first practices from dependency management to code review, creating a security-conscious open source community.
+
+---
+
+## Standing With Free Software: Our Debt to GNU, FSF, and FreeBSD
+
+**URL**: https://caro.sh/blog/standing-with-free-software
+
+Caro wouldn't exist without the pioneering work of the free software movement. Here's why we honor GNU, the FSF, and FreeBSD—and what their vision means for AI tools.
 
 ---
 
@@ -452,6 +464,78 @@ Privacy & Connectivity
 Features vs Focus
 
 Safety Approach
+
+---
+
+## What Caro Does | AI Shell Assistant
+
+**URL**: https://caro.sh/product
+
+Caro turns natural language into safe shell commands, works offline, and catches dangerous patterns. See how it helps engineers work safely and efficiently.
+
+What Caro Does
+
+Turn Plain English into Shell Commands
+
+Catch Dangerous Commands Before They Run
+
+Work Completely Offline
+
+Commands That Work on Any Platform
+
+Safety That Actually Works
+
+Actually Offline
+
+Platform Aware
+
+Built for Production
+
+The 3 AM Incident
+
+The Cross-Platform Script
+
+The AI Disaster
+
+The Secure Environment
+
+See what problems Caro solves and how it helps you work with the terminal
+
+Describe what you want to do, get the exact command. No more Googling syntax.
+
+Caro validates every command against 52+ dangerous patterns. Works even when AI gets it wrong.
+
+Everything runs on your machine. No internet required after install. No data ever leaves your computer.
+
+Mac and Linux use different command syntax. Caro knows the difference and generates the right command for your system.
+
+Other tools use AI to check if commands are safe. The problem? AI can hallucinate. Caro uses pattern matching - the same command always gets the same safety result. No surprises.
+
+Most 
+
+Caro knows you\
+
+Startup in under 100ms. Command generation in under 2 seconds. No spinning up containers or waiting for cloud APIs.
+
+---
+
+## Jobs To Be Done Framework
+
+**URL**: https://caro.sh/product/jobs-to-be-done
+
+Understanding Caro through the canonical Jobs To Be Done framework. Discover the functional, emotional, and social jobs Caro performs.
+
+Almost ran a dangerous command, caught it just in time
+
+Production outage from typo or wrong flags
+
+Moved to restricted environment, existing tools don
+
+Moving from Mac to Linux or vice versa, commands breaking
+
+New engineers joining who might make dangerous mistakes
+
+Need to document and enforce command-line safety standards
 
 ---
 
@@ -847,4 +931,4 @@ Yes! Caro is licensed under AGPL-3.0. You can read, modify, and distribute the s
 
 ---
 
-*Generated on 2026-01-04*
+*Generated on 2026-01-08*

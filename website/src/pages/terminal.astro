@@ -1,0 +1,1219 @@
+---
+/**
+ * Terminal-Centric Landing Page (Buildkite-inspired)
+ *
+ * Design Philosophy:
+ * - CLI-first interface with command-based navigation
+ * - Dark terminal aesthetic as default
+ * - Trust and reliability focused messaging
+ * - Interactive terminal with blinking cursor
+ * - Real-time statistics display
+ *
+ * Inspired by: buildkite.com's retro-tech terminal aesthetic
+ */
+import { SITE_CONFIG } from '../config/site';
+---
+
+<!DOCTYPE html>
+<html lang="en" class="terminal-dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Caro - Safe shell commands you can trust. Convert natural language to validated POSIX commands with local AI inference." />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Caro | Safe Shell Commands You Can Trust" />
+  <meta property="og:description" content="Convert natural language to validated POSIX shell commands. Safety-first design with 52+ dangerous pattern detection." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://caro.sh/terminal" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Caro | Safe Shell Commands You Can Trust" />
+  <meta name="twitter:description" content="Convert natural language to validated POSIX shell commands. Safety-first design." />
+
+  <link rel="icon" type="image/png" href="/caro-pixel.png" />
+  <title>Caro | Your Tools Should Earn Your Trust</title>
+
+  <style>
+    /* CSS Custom Properties for Theme Support */
+    :root {
+      --term-bg: #0a0a0a;
+      --term-bg-secondary: #111111;
+      --term-bg-tertiary: #1a1a1a;
+      --term-text: #e0e0e0;
+      --term-text-muted: #888888;
+      --term-text-dim: #555555;
+      --term-accent: #ff8c42;
+      --term-accent-hover: #ff6b35;
+      --term-success: #4ade80;
+      --term-warning: #fbbf24;
+      --term-error: #f87171;
+      --term-info: #60a5fa;
+      --term-border: #2a2a2a;
+      --term-cursor: #ff8c42;
+      --term-selection: rgba(255, 140, 66, 0.3);
+      --term-glow: rgba(255, 140, 66, 0.1);
+      --font-mono: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', 'Liberation Mono', monospace;
+    }
+
+    /* Light Theme */
+    .terminal-light {
+      --term-bg: #fafafa;
+      --term-bg-secondary: #f0f0f0;
+      --term-bg-tertiary: #e5e5e5;
+      --term-text: #1a1a1a;
+      --term-text-muted: #666666;
+      --term-text-dim: #999999;
+      --term-border: #d0d0d0;
+      --term-glow: rgba(255, 140, 66, 0.05);
+    }
+
+    /* CRT Amber Theme */
+    .terminal-crt-amber {
+      --term-bg: #0a0800;
+      --term-bg-secondary: #141000;
+      --term-bg-tertiary: #1e1800;
+      --term-text: #ffb000;
+      --term-text-muted: #b07800;
+      --term-text-dim: #704e00;
+      --term-accent: #ffcc00;
+      --term-accent-hover: #ffdd44;
+      --term-success: #44ff44;
+      --term-cursor: #ffb000;
+      --term-border: #3a2800;
+      --term-glow: rgba(255, 176, 0, 0.15);
+    }
+
+    /* CRT Green Theme */
+    .terminal-crt-green {
+      --term-bg: #000a00;
+      --term-bg-secondary: #001400;
+      --term-bg-tertiary: #001e00;
+      --term-text: #00ff00;
+      --term-text-muted: #00aa00;
+      --term-text-dim: #006600;
+      --term-accent: #00ff88;
+      --term-accent-hover: #44ffaa;
+      --term-success: #00ff00;
+      --term-cursor: #00ff00;
+      --term-border: #003300;
+      --term-glow: rgba(0, 255, 0, 0.1);
+    }
+
+    /* Vaporwave Theme */
+    .terminal-vaporwave {
+      --term-bg: #1a0a2e;
+      --term-bg-secondary: #2d1b4e;
+      --term-bg-tertiary: #3d2b5e;
+      --term-text: #ff71ce;
+      --term-text-muted: #b967ff;
+      --term-text-dim: #7b5ea7;
+      --term-accent: #01cdfe;
+      --term-accent-hover: #41edfe;
+      --term-success: #05ffa1;
+      --term-cursor: #ff71ce;
+      --term-border: #4a3a6e;
+      --term-glow: rgba(255, 113, 206, 0.15);
+    }
+
+    /* Global Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-mono);
+      background: var(--term-bg);
+      color: var(--term-text);
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Scanline effect for CRT themes */
+    .terminal-crt-amber body::after,
+    .terminal-crt-green body::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.1) 0px,
+        rgba(0, 0, 0, 0.1) 1px,
+        transparent 1px,
+        transparent 2px
+      );
+      z-index: 9999;
+    }
+
+    ::selection {
+      background: var(--term-selection);
+      color: var(--term-text);
+    }
+
+    /* Container */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Header / Navigation */
+    .terminal-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--term-bg);
+      border-bottom: 1px solid var(--term-border);
+      padding: 16px 0;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-img {
+      width: 32px;
+      height: 32px;
+      image-rendering: pixelated;
+    }
+
+    .logo-text {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--term-accent);
+      letter-spacing: -0.5px;
+    }
+
+    .version-badge {
+      font-size: 11px;
+      color: var(--term-text-dim);
+      background: var(--term-bg-tertiary);
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--term-border);
+    }
+
+    .nav-commands {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .nav-cmd {
+      font-size: 13px;
+      color: var(--term-text-muted);
+      background: transparent;
+      border: 1px solid var(--term-border);
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .nav-cmd:hover {
+      color: var(--term-accent);
+      border-color: var(--term-accent);
+      background: var(--term-glow);
+    }
+
+    .nav-cmd::before {
+      content: '> ';
+      color: var(--term-text-dim);
+    }
+
+    /* Theme Switcher */
+    .theme-switcher {
+      display: flex;
+      gap: 4px;
+      background: var(--term-bg-secondary);
+      padding: 4px;
+      border-radius: 6px;
+      border: 1px solid var(--term-border);
+    }
+
+    .theme-btn {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .theme-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .theme-btn.active {
+      box-shadow: 0 0 0 2px var(--term-text);
+    }
+
+    .theme-btn.dark { background: #1a1a1a; }
+    .theme-btn.light { background: #f0f0f0; }
+    .theme-btn.amber { background: linear-gradient(135deg, #ffb000, #ff8800); }
+    .theme-btn.green { background: linear-gradient(135deg, #00ff00, #00aa00); }
+    .theme-btn.vapor { background: linear-gradient(135deg, #ff71ce, #01cdfe); }
+
+    /* Hero Section */
+    .hero {
+      padding: 80px 0 60px;
+      text-align: center;
+    }
+
+    .hero-tagline {
+      font-size: 14px;
+      color: var(--term-accent);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 20px;
+    }
+
+    .hero-title {
+      font-size: clamp(28px, 5vw, 48px);
+      font-weight: 400;
+      line-height: 1.3;
+      margin-bottom: 24px;
+      color: var(--term-text);
+    }
+
+    .hero-title strong {
+      color: var(--term-accent);
+      font-weight: 700;
+    }
+
+    .hero-subtitle {
+      font-size: 16px;
+      color: var(--term-text-muted);
+      max-width: 600px;
+      margin: 0 auto 40px;
+    }
+
+    /* Interactive CLI */
+    .cli-container {
+      background: var(--term-bg-secondary);
+      border: 1px solid var(--term-border);
+      border-radius: 12px;
+      overflow: hidden;
+      max-width: 700px;
+      margin: 0 auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .cli-header {
+      background: var(--term-bg-tertiary);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--term-border);
+    }
+
+    .cli-dots {
+      display: flex;
+      gap: 8px;
+    }
+
+    .cli-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .cli-dot.red { background: #ff5f56; }
+    .cli-dot.yellow { background: #ffbd2e; }
+    .cli-dot.green { background: #27c93f; }
+
+    .cli-title {
+      font-size: 13px;
+      color: var(--term-text-dim);
+    }
+
+    .cli-body {
+      padding: 24px;
+      min-height: 180px;
+    }
+
+    .cli-prompt {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .prompt-symbol {
+      color: var(--term-success);
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .prompt-input {
+      flex: 1;
+      color: var(--term-text);
+      position: relative;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 10px;
+      height: 18px;
+      background: var(--term-cursor);
+      margin-left: 2px;
+      animation: blink 1s step-end infinite;
+      vertical-align: text-bottom;
+    }
+
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+
+    .cli-output {
+      margin-top: 20px;
+    }
+
+    .output-line {
+      margin-bottom: 8px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .output-prefix {
+      color: var(--term-accent);
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .output-command {
+      color: var(--term-info);
+      font-family: var(--font-mono);
+      background: var(--term-bg);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .output-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--term-success);
+      font-size: 13px;
+    }
+
+    .status-icon {
+      font-size: 14px;
+    }
+
+    /* Command options hint */
+    .cli-hints {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px dashed var(--term-border);
+      font-size: 12px;
+      color: var(--term-text-dim);
+    }
+
+    .cli-hints code {
+      color: var(--term-text-muted);
+      background: var(--term-bg);
+      padding: 2px 6px;
+      border-radius: 3px;
+      margin: 0 4px;
+    }
+
+    /* Stats Section */
+    .stats-section {
+      padding: 60px 0;
+      border-top: 1px solid var(--term-border);
+      border-bottom: 1px solid var(--term-border);
+      background: var(--term-bg-secondary);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 30px;
+      text-align: center;
+    }
+
+    .stat-item {
+      padding: 20px;
+    }
+
+    .stat-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--term-accent);
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--term-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Trust Section */
+    .trust-section {
+      padding: 80px 0;
+    }
+
+    .trust-section h2 {
+      text-align: center;
+      font-size: 28px;
+      font-weight: 400;
+      margin-bottom: 16px;
+      color: var(--term-text);
+    }
+
+    .trust-section h2 strong {
+      color: var(--term-accent);
+    }
+
+    .trust-subtitle {
+      text-align: center;
+      color: var(--term-text-muted);
+      margin-bottom: 50px;
+      font-size: 15px;
+    }
+
+    .trust-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .trust-card {
+      background: var(--term-bg-secondary);
+      border: 1px solid var(--term-border);
+      border-radius: 8px;
+      padding: 24px;
+      transition: all 0.2s ease;
+    }
+
+    .trust-card:hover {
+      border-color: var(--term-accent);
+      box-shadow: 0 0 20px var(--term-glow);
+    }
+
+    .trust-icon {
+      font-size: 28px;
+      margin-bottom: 16px;
+    }
+
+    .trust-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--term-text);
+    }
+
+    .trust-card p {
+      font-size: 14px;
+      color: var(--term-text-muted);
+      line-height: 1.6;
+    }
+
+    /* Proof Section */
+    .proof-section {
+      padding: 80px 0;
+      background: var(--term-bg-secondary);
+      border-top: 1px solid var(--term-border);
+    }
+
+    .proof-section h2 {
+      text-align: center;
+      font-size: 28px;
+      font-weight: 400;
+      margin-bottom: 50px;
+    }
+
+    .proof-demo {
+      background: var(--term-bg);
+      border: 1px solid var(--term-border);
+      border-radius: 8px;
+      overflow: hidden;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .proof-header {
+      background: var(--term-bg-tertiary);
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--term-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .proof-title {
+      font-size: 14px;
+      color: var(--term-text-muted);
+    }
+
+    .proof-badge {
+      font-size: 11px;
+      color: var(--term-success);
+      background: rgba(74, 222, 128, 0.1);
+      padding: 4px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(74, 222, 128, 0.3);
+    }
+
+    .proof-body {
+      padding: 20px;
+    }
+
+    .proof-example {
+      margin-bottom: 24px;
+      padding-bottom: 24px;
+      border-bottom: 1px dashed var(--term-border);
+    }
+
+    .proof-example:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .proof-label {
+      font-size: 11px;
+      color: var(--term-text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .proof-input {
+      color: var(--term-text);
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+
+    .proof-input::before {
+      content: '> ';
+      color: var(--term-success);
+    }
+
+    .proof-output {
+      background: var(--term-bg-secondary);
+      padding: 12px 16px;
+      border-radius: 6px;
+      border-left: 3px solid var(--term-accent);
+    }
+
+    .proof-output .command {
+      color: var(--term-info);
+      font-size: 13px;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .proof-output .validation {
+      font-size: 12px;
+      color: var(--term-success);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .danger-blocked {
+      color: var(--term-error) !important;
+    }
+
+    .danger-blocked .validation {
+      color: var(--term-error);
+    }
+
+    /* CTA Section */
+    .cta-section {
+      padding: 80px 0;
+      text-align: center;
+      border-top: 1px solid var(--term-border);
+    }
+
+    .cta-section h2 {
+      font-size: 28px;
+      font-weight: 400;
+      margin-bottom: 16px;
+    }
+
+    .cta-section h2 strong {
+      color: var(--term-accent);
+    }
+
+    .cta-subtitle {
+      color: var(--term-text-muted);
+      margin-bottom: 40px;
+      font-size: 15px;
+    }
+
+    .install-block {
+      background: var(--term-bg-secondary);
+      border: 1px solid var(--term-border);
+      border-radius: 8px;
+      padding: 24px;
+      max-width: 500px;
+      margin: 0 auto 30px;
+    }
+
+    .install-label {
+      font-size: 12px;
+      color: var(--term-text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+
+    .install-command {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--term-bg);
+      padding: 16px;
+      border-radius: 6px;
+      border: 1px solid var(--term-border);
+    }
+
+    .install-command code {
+      flex: 1;
+      color: var(--term-text);
+      font-size: 14px;
+    }
+
+    .copy-btn {
+      background: var(--term-accent);
+      color: var(--term-bg);
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .copy-btn:hover {
+      background: var(--term-accent-hover);
+    }
+
+    .cta-links {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .cta-link {
+      color: var(--term-text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s ease;
+    }
+
+    .cta-link:hover {
+      color: var(--term-accent);
+    }
+
+    .cta-link::before {
+      content: '[ ';
+      color: var(--term-text-dim);
+    }
+
+    .cta-link::after {
+      content: ' ]';
+      color: var(--term-text-dim);
+    }
+
+    /* Footer */
+    .terminal-footer {
+      padding: 40px 0;
+      border-top: 1px solid var(--term-border);
+      background: var(--term-bg-secondary);
+    }
+
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .footer-info {
+      font-size: 13px;
+      color: var(--term-text-dim);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 20px;
+    }
+
+    .footer-link {
+      color: var(--term-text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      transition: color 0.2s ease;
+    }
+
+    .footer-link:hover {
+      color: var(--term-accent);
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      .header-content {
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .nav-commands {
+        justify-content: center;
+      }
+
+      .hero {
+        padding: 60px 0 40px;
+      }
+
+      .cli-body {
+        padding: 16px;
+        min-height: 150px;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+      }
+
+      .stat-value {
+        font-size: 28px;
+      }
+
+      .trust-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-content {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 0 16px;
+      }
+
+      .logo-text {
+        font-size: 20px;
+      }
+
+      .nav-commands {
+        gap: 6px;
+      }
+
+      .nav-cmd {
+        font-size: 12px;
+        padding: 5px 10px;
+      }
+
+      .hero-title {
+        font-size: 24px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .stat-value {
+        font-size: 24px;
+      }
+
+      .stat-label {
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="terminal-header">
+    <div class="container">
+      <div class="header-content">
+        <div class="logo-section">
+          <img src="/caro-pixel.png" alt="Caro" class="logo-img" />
+          <span class="logo-text">caro</span>
+          <span class="version-badge">v{SITE_CONFIG.version}</span>
+        </div>
+
+        <nav class="nav-commands">
+          <a href="#capabilities" class="nav-cmd">capabilities</a>
+          <a href="#proof" class="nav-cmd">proof</a>
+          <a href="#install" class="nav-cmd">install</a>
+          <a href="https://github.com/wildcard/caro" class="nav-cmd" target="_blank">github</a>
+        </nav>
+
+        <div class="theme-switcher">
+          <button class="theme-btn dark active" data-theme="terminal-dark" title="Dark"></button>
+          <button class="theme-btn light" data-theme="terminal-light" title="Light"></button>
+          <button class="theme-btn amber" data-theme="terminal-crt-amber" title="CRT Amber"></button>
+          <button class="theme-btn green" data-theme="terminal-crt-green" title="CRT Green"></button>
+          <button class="theme-btn vapor" data-theme="terminal-vaporwave" title="Vaporwave"></button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <p class="hero-tagline">Safety-First Shell Companion</p>
+      <h1 class="hero-title">
+        Your tools should <strong>earn your trust</strong>,<br />
+        not ask for it.
+      </h1>
+      <p class="hero-subtitle">
+        Caro converts natural language to validated POSIX shell commands.
+        Local AI inference. 52+ dangerous pattern detection. No cloud required.
+      </p>
+
+      <!-- Interactive CLI Terminal -->
+      <div class="cli-container">
+        <div class="cli-header">
+          <div class="cli-dots">
+            <span class="cli-dot red"></span>
+            <span class="cli-dot yellow"></span>
+            <span class="cli-dot green"></span>
+          </div>
+          <span class="cli-title">caro - shell companion</span>
+        </div>
+        <div class="cli-body">
+          <div class="cli-prompt">
+            <span class="prompt-symbol">$</span>
+            <span class="prompt-input">
+              <span id="typed-text"></span><span class="cursor"></span>
+            </span>
+          </div>
+          <div class="cli-output" id="cli-output">
+            <!-- Output populated by JS -->
+          </div>
+          <div class="cli-hints">
+            Type <code>help</code> for commands or <code>examples</code> to see more demos
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="stats-section">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-value">52+</div>
+          <div class="stat-label">Safety Patterns</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">100%</div>
+          <div class="stat-label">Local Inference</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">0</div>
+          <div class="stat-label">Cloud Dependencies</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">3</div>
+          <div class="stat-label">Platforms</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trust/Capabilities Section -->
+  <section class="trust-section" id="capabilities">
+    <div class="container">
+      <h2>Dependable signals built on a foundation <strong>you can trust</strong></h2>
+      <p class="trust-subtitle">Control and reliability over convenience. Transparency over magic.</p>
+
+      <div class="trust-grid">
+        <div class="trust-card">
+          <div class="trust-icon">🛡️</div>
+          <h3>Pattern-Based Safety</h3>
+          <p>52+ pre-compiled dangerous command patterns. Blocks rm -rf /, fork bombs, disk wipers, and more. No AI hallucinations in safety checks.</p>
+        </div>
+        <div class="trust-card">
+          <div class="trust-icon">🔒</div>
+          <h3>100% Local Inference</h3>
+          <p>Your commands never leave your machine. Embedded LLM runs entirely locally. Air-gapped environments supported.</p>
+        </div>
+        <div class="trust-card">
+          <div class="trust-icon">🌍</div>
+          <h3>Platform Aware</h3>
+          <p>Detects OS, architecture, shell type, and available commands. Generates platform-specific POSIX-compliant commands.</p>
+        </div>
+        <div class="trust-card">
+          <div class="trust-icon">⚡</div>
+          <h3>Single Binary</h3>
+          <p>No dependencies. No runtime. Just one binary. Install and run in seconds on Linux, macOS, or Windows.</p>
+        </div>
+        <div class="trust-card">
+          <div class="trust-icon">🎯</div>
+          <h3>Deterministic Validation</h3>
+          <p>Safety checks are pattern-based, not probabilistic. Same input = same safety verdict. Every time.</p>
+        </div>
+        <div class="trust-card">
+          <div class="trust-icon">🔄</div>
+          <h3>Agentic Refinement</h3>
+          <p>2-iteration loop that detects platform compatibility issues and refines complex commands automatically.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Proof Section -->
+  <section class="proof-section" id="proof">
+    <div class="container">
+      <h2>See it in action</h2>
+
+      <div class="proof-demo">
+        <div class="proof-header">
+          <span class="proof-title">Safety Validation Demo</span>
+          <span class="proof-badge">Real Examples</span>
+        </div>
+        <div class="proof-body">
+          <div class="proof-example">
+            <div class="proof-label">Safe Command</div>
+            <div class="proof-input">caro "find all python files modified today"</div>
+            <div class="proof-output">
+              <code class="command">find . -name "*.py" -type f -mtime 0</code>
+              <div class="validation">
+                <span class="status-icon">✓</span>
+                Safe to run on your system
+              </div>
+            </div>
+          </div>
+
+          <div class="proof-example">
+            <div class="proof-label">Dangerous Command Blocked</div>
+            <div class="proof-input danger-blocked">caro "delete everything recursively"</div>
+            <div class="proof-output danger-blocked">
+              <code class="command">rm -rf /</code>
+              <div class="validation">
+                <span class="status-icon">✕</span>
+                BLOCKED: System destruction pattern detected
+              </div>
+            </div>
+          </div>
+
+          <div class="proof-example">
+            <div class="proof-label">Platform-Aware Output</div>
+            <div class="proof-input">caro "show top 5 processes by CPU"</div>
+            <div class="proof-output">
+              <code class="command">ps aux | sort -nrk 3,3 | head -6</code>
+              <div class="validation">
+                <span class="status-icon">✓</span>
+                Optimized for macOS (BSD sort syntax)
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section" id="install">
+    <div class="container">
+      <h2>Ready to <strong>trust your shell</strong>?</h2>
+      <p class="cta-subtitle">Install caro in seconds. No configuration required.</p>
+
+      <div class="install-block">
+        <div class="install-label">Quick Install</div>
+        <div class="install-command">
+          <code>curl -fsSL https://caro.sh/install | bash</code>
+          <button class="copy-btn" id="copy-install">Copy</button>
+        </div>
+      </div>
+
+      <div class="cta-links">
+        <a href="https://github.com/wildcard/caro" class="cta-link" target="_blank">GitHub</a>
+        <a href="https://crates.io/crates/caro" class="cta-link" target="_blank">crates.io</a>
+        <a href="/" class="cta-link">Main Site</a>
+        <a href="/faq" class="cta-link">FAQ</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="terminal-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-info">
+          <span>caro v{SITE_CONFIG.version}</span> •
+          <span>AGPL-3.0 License</span> •
+          <span>Built with Rust</span>
+        </div>
+        <div class="footer-links">
+          <a href="/telemetry" class="footer-link">Privacy</a>
+          <a href="/credits" class="footer-link">Credits</a>
+          <a href="https://github.com/wildcard/caro/issues" class="footer-link" target="_blank">Report Issue</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Theme switching
+    const themes = ['terminal-dark', 'terminal-light', 'terminal-crt-amber', 'terminal-crt-green', 'terminal-vaporwave'];
+
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const theme = btn.dataset.theme;
+        const html = document.documentElement;
+
+        // Remove all theme classes
+        themes.forEach(t => html.classList.remove(t));
+
+        // Add selected theme
+        html.classList.add(theme);
+
+        // Update active button
+        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Save preference
+        localStorage.setItem('terminal-theme', theme);
+      });
+    });
+
+    // Restore saved theme
+    const savedTheme = localStorage.getItem('terminal-theme');
+    if (savedTheme && themes.includes(savedTheme)) {
+      document.documentElement.classList.remove('terminal-dark');
+      document.documentElement.classList.add(savedTheme);
+      document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.theme === savedTheme);
+      });
+    }
+
+    // Typing animation for CLI
+    const commands = [
+      {
+        input: 'caro "find all PDF files larger than 10MB"',
+        output: 'find . -name "*.pdf" -type f -size +10M',
+        status: 'Safe to run on your system'
+      },
+      {
+        input: 'caro "show disk usage sorted by size"',
+        output: 'du -sh */ | sort -rh | head -10',
+        status: 'Safe to run on your system'
+      },
+      {
+        input: 'caro "list files modified in the last week"',
+        output: 'find . -type f -mtime -7',
+        status: 'Safe to run on your system'
+      },
+      {
+        input: 'caro "compress all images to a zip file"',
+        output: 'find . -name "*.jpg" -o -name "*.png" | zip images.zip -@',
+        status: 'Safe to run on your system'
+      }
+    ];
+
+    let commandIndex = 0;
+    const typedText = document.getElementById('typed-text');
+    const cliOutput = document.getElementById('cli-output');
+
+    function typeCommand(command, callback) {
+      let charIndex = 0;
+      typedText.textContent = '';
+      cliOutput.innerHTML = '';
+
+      const typeInterval = setInterval(() => {
+        if (charIndex < command.input.length) {
+          typedText.textContent += command.input[charIndex];
+          charIndex++;
+        } else {
+          clearInterval(typeInterval);
+          setTimeout(() => showOutput(command, callback), 400);
+        }
+      }, 40);
+    }
+
+    function showOutput(command, callback) {
+      cliOutput.innerHTML = `
+        <div class="output-line">
+          <span class="output-prefix">🐕 Caro:</span>
+          <span class="output-command">${command.output}</span>
+        </div>
+        <div class="output-status">
+          <span class="status-icon">✓</span>
+          ${command.status}
+        </div>
+      `;
+
+      setTimeout(callback, 3000);
+    }
+
+    function runDemo() {
+      typeCommand(commands[commandIndex], () => {
+        commandIndex = (commandIndex + 1) % commands.length;
+        runDemo();
+      });
+    }
+
+    // Start the demo after page load
+    setTimeout(runDemo, 500);
+
+    // Copy install command
+    document.getElementById('copy-install')?.addEventListener('click', async () => {
+      const command = 'curl -fsSL https://caro.sh/install | bash';
+      try {
+        await navigator.clipboard.writeText(command);
+        const btn = document.getElementById('copy-install');
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy', 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
+    });
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
