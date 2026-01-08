@@ -42,6 +42,7 @@ pub mod models;
 pub mod platform;
 pub mod prompts;
 pub mod safety;
+pub mod telemetry;
 pub mod version;
 
 // Re-export commonly used types for convenience
@@ -76,4 +77,11 @@ pub use prompts::{
     ProfileType, PromptResponse, RepairPromptBuilder, RiskLevel as PromptRiskLevel,
     SmolLMPromptBuilder, StatFormat, TemplateLibrary, ValidationError, ValidationErrorCode,
     ValidationResult, ValidationWarning,
+};
+
+// Re-export telemetry types
+pub use telemetry::{
+    TelemetryCollector, TelemetryConfig, Event as TelemetryEvent,
+    EventType as TelemetryEventType, SessionId as TelemetrySessionId,
+    TelemetryStorage,
 };

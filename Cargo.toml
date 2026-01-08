@@ -76,6 +76,11 @@ once_cell = "1.19"
 # Cryptography for checksums
 sha2 = "0.10"
 
+# Telemetry
+uuid = { version = "1", features = ["v4", "serde"] }
+rusqlite = { version = "0.34", features = ["bundled"] }
+machine-uid = "0.5"
+
 # Async trait support
 async-trait = "0.1"
 futures = "0.3"
