@@ -12,7 +12,7 @@ phase: "Phase 1 - Foundation"
 lane: "doing"
 assignee: ""
 agent: "claude"
-shell_pid: "94491"
+shell_pid: "95319"
 review_status: ""
 reviewed_by: ""
 history:
@@ -304,4 +304,4 @@ Results are written to `results/run_YYYY-MM-DD_HHMMSS.{json,md}`
 3. Add an entry to the **Activity Log** describing the transition.
 4. Run `.kittify/scripts/bash/tasks-move-to-lane.sh <FEATURE> <WPID> <lane>` (PowerShell variant available) to move the prompt, update metadata, and append history in one step.
 5. Commit or stage the change, preserving history.
-- 2026-01-08T22:53:05Z – claude – shell_pid=94491 – lane=doing – Starting WP01: Setup & Infrastructure
+- 2026-01-08T22:53:46Z – claude – shell_pid=95319 – lane=doing – Starting WP01: Setup & Infrastructure
