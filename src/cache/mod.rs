@@ -11,6 +11,9 @@ pub use manifest::ManifestManager;
 mod http_client;
 pub use http_client::{HfHubClient, HttpClientError};
 
+mod download;
+pub use download::download_file;
+
 /// Cache-related errors
 #[derive(Debug, thiserror::Error)]
 pub enum CacheError {
