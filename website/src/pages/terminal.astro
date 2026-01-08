@@ -3,19 +3,21 @@
  * Terminal-Centric Landing Page (Buildkite-inspired)
  *
  * Design Philosophy:
- * - CLI-first interface with command-based navigation
+ * - CLI-first interface with REAL command-based navigation
  * - Dark terminal aesthetic as default
  * - Trust and reliability focused messaging
- * - Interactive terminal with blinking cursor
- * - Real-time statistics display
+ * - Interactive terminal where users can TYPE commands
  *
- * Inspired by: buildkite.com's retro-tech terminal aesthetic
+ * Inspired by: buildkite.com's interactive terminal
+ *
+ * STYLE ISOLATION: All styles are scoped to .terminal-page to prevent
+ * bleeding into other pages. No global selectors used.
  */
 import { SITE_CONFIG } from '../config/site';
 ---
 
 <!DOCTYPE html>
-<html lang="en" class="terminal-dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -35,112 +37,288 @@ import { SITE_CONFIG } from '../config/site';
 
   <link rel="icon" type="image/png" href="/caro-pixel.png" />
   <title>Caro | Your Tools Should Earn Your Trust</title>
+</head>
+<body>
+  <!-- Main wrapper with scoped class for style isolation -->
+  <div class="terminal-page" data-theme="dark">
+
+    <!-- Hero Section with Interactive CLI -->
+    <section class="tp-hero">
+      <div class="tp-container">
+        <!-- Logo -->
+        <div class="tp-logo-section">
+          <img src="/caro-pixel.png" alt="Caro" class="tp-logo-img" />
+          <span class="tp-logo-text">caro</span>
+          <span class="tp-version">v{SITE_CONFIG.version}</span>
+        </div>
+
+        <!-- Main Headline -->
+        <h1 class="tp-headline">
+          Your tools should <strong>earn your trust</strong>,<br/>
+          not ask for it.
+        </h1>
+
+        <!-- Interactive Terminal -->
+        <div class="tp-terminal" id="terminal">
+          <div class="tp-terminal-header">
+            <div class="tp-dots">
+              <span class="tp-dot tp-dot-red"></span>
+              <span class="tp-dot tp-dot-yellow"></span>
+              <span class="tp-dot tp-dot-green"></span>
+            </div>
+            <span class="tp-terminal-title">~/caro</span>
+            <div class="tp-theme-switcher">
+              <button class="tp-theme-btn active" data-theme="dark" title="Dark">●</button>
+              <button class="tp-theme-btn" data-theme="light" title="Light">○</button>
+              <button class="tp-theme-btn" data-theme="amber" title="CRT Amber">◐</button>
+              <button class="tp-theme-btn" data-theme="green" title="CRT Green">◑</button>
+            </div>
+          </div>
+
+          <div class="tp-terminal-body" id="terminal-body">
+            <!-- Terminal output will be rendered here -->
+            <div id="terminal-output"></div>
+
+            <!-- Input line -->
+            <div class="tp-input-line">
+              <span class="tp-prompt">~/caro $</span>
+              <input
+                type="text"
+                id="terminal-input"
+                class="tp-input"
+                autocomplete="off"
+                autocapitalize="off"
+                spellcheck="false"
+                placeholder="Type 'help' for commands..."
+              />
+            </div>
+          </div>
+        </div>
+
+        <p class="tp-hint">Click the terminal and start typing. Try <code>help</code> to see available commands.</p>
+      </div>
+    </section>
+
+    <!-- Content Sections (hidden by default, shown via commands) -->
+    <section class="tp-section" id="section-capabilities" style="display: none;">
+      <div class="tp-container">
+        <h2 class="tp-section-title">Capabilities</h2>
+        <p class="tp-section-subtitle">Dependable signals built on a foundation you can trust.</p>
+
+        <div class="tp-grid">
+          <div class="tp-card">
+            <div class="tp-card-icon">🛡️</div>
+            <h3>Pattern-Based Safety</h3>
+            <p>52+ pre-compiled dangerous command patterns. Blocks rm -rf /, fork bombs, disk wipers. No AI hallucinations in safety checks.</p>
+          </div>
+          <div class="tp-card">
+            <div class="tp-card-icon">🔒</div>
+            <h3>100% Local Inference</h3>
+            <p>Your commands never leave your machine. Embedded LLM runs entirely locally. Air-gapped environments supported.</p>
+          </div>
+          <div class="tp-card">
+            <div class="tp-card-icon">🌍</div>
+            <h3>Platform Aware</h3>
+            <p>Detects OS, architecture, shell type, and available commands. Generates platform-specific POSIX-compliant commands.</p>
+          </div>
+          <div class="tp-card">
+            <div class="tp-card-icon">⚡</div>
+            <h3>Single Binary</h3>
+            <p>No dependencies. No runtime. Just one binary. Install and run in seconds on Linux, macOS, or Windows.</p>
+          </div>
+          <div class="tp-card">
+            <div class="tp-card-icon">🎯</div>
+            <h3>Deterministic Validation</h3>
+            <p>Safety checks are pattern-based, not probabilistic. Same input = same safety verdict. Every time.</p>
+          </div>
+          <div class="tp-card">
+            <div class="tp-card-icon">🔄</div>
+            <h3>Agentic Refinement</h3>
+            <p>2-iteration loop that detects platform compatibility issues and refines complex commands automatically.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tp-section" id="section-proof" style="display: none;">
+      <div class="tp-container">
+        <h2 class="tp-section-title">See It In Action</h2>
+
+        <div class="tp-demo-box">
+          <div class="tp-demo-example">
+            <div class="tp-demo-label">Safe Command</div>
+            <div class="tp-demo-input">$ caro "find all python files modified today"</div>
+            <div class="tp-demo-output">
+              <code>find . -name "*.py" -type f -mtime 0</code>
+              <span class="tp-demo-status tp-safe">✓ Safe to run</span>
+            </div>
+          </div>
+
+          <div class="tp-demo-example">
+            <div class="tp-demo-label">Dangerous Command Blocked</div>
+            <div class="tp-demo-input tp-danger">$ caro "delete everything recursively"</div>
+            <div class="tp-demo-output">
+              <code>rm -rf /</code>
+              <span class="tp-demo-status tp-blocked">✕ BLOCKED: System destruction pattern</span>
+            </div>
+          </div>
+
+          <div class="tp-demo-example">
+            <div class="tp-demo-label">Platform-Aware Output</div>
+            <div class="tp-demo-input">$ caro "show top 5 processes by CPU"</div>
+            <div class="tp-demo-output">
+              <code>ps aux | sort -nrk 3,3 | head -6</code>
+              <span class="tp-demo-status tp-safe">✓ Optimized for macOS (BSD syntax)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tp-section" id="section-install" style="display: none;">
+      <div class="tp-container">
+        <h2 class="tp-section-title">Install Caro</h2>
+        <p class="tp-section-subtitle">Get started in seconds. No configuration required.</p>
+
+        <div class="tp-install-box">
+          <div class="tp-install-method">
+            <h3>Quick Install (Recommended)</h3>
+            <div class="tp-install-command">
+              <code>curl -fsSL https://caro.sh/install | bash</code>
+              <button class="tp-copy-btn" data-copy="curl -fsSL https://caro.sh/install | bash">Copy</button>
+            </div>
+          </div>
+
+          <div class="tp-install-method">
+            <h3>Via Cargo</h3>
+            <div class="tp-install-command">
+              <code>cargo install caro</code>
+              <button class="tp-copy-btn" data-copy="cargo install caro">Copy</button>
+            </div>
+          </div>
+
+          <div class="tp-install-method">
+            <h3>Pre-built Binaries</h3>
+            <p class="tp-install-note">Download from <a href="https://github.com/wildcard/caro/releases" target="_blank">GitHub Releases</a></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tp-section" id="section-stats" style="display: none;">
+      <div class="tp-container">
+        <h2 class="tp-section-title">By The Numbers</h2>
+
+        <div class="tp-stats-grid">
+          <div class="tp-stat">
+            <div class="tp-stat-value">52+</div>
+            <div class="tp-stat-label">Safety Patterns</div>
+          </div>
+          <div class="tp-stat">
+            <div class="tp-stat-value">100%</div>
+            <div class="tp-stat-label">Local Inference</div>
+          </div>
+          <div class="tp-stat">
+            <div class="tp-stat-value">0</div>
+            <div class="tp-stat-label">Cloud Dependencies</div>
+          </div>
+          <div class="tp-stat">
+            <div class="tp-stat-value">3</div>
+            <div class="tp-stat-label">Platforms</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="tp-footer">
+      <div class="tp-container">
+        <div class="tp-footer-content">
+          <span>caro v{SITE_CONFIG.version} • AGPL-3.0 • Built with Rust</span>
+          <div class="tp-footer-links">
+            <a href="/">Main Site</a>
+            <a href="https://github.com/wildcard/caro" target="_blank">GitHub</a>
+            <a href="/faq">FAQ</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
 
   <style>
-    /* CSS Custom Properties for Theme Support */
-    :root {
-      --term-bg: #0a0a0a;
-      --term-bg-secondary: #111111;
-      --term-bg-tertiary: #1a1a1a;
-      --term-text: #e0e0e0;
-      --term-text-muted: #888888;
-      --term-text-dim: #555555;
-      --term-accent: #ff8c42;
-      --term-accent-hover: #ff6b35;
-      --term-success: #4ade80;
-      --term-warning: #fbbf24;
-      --term-error: #f87171;
-      --term-info: #60a5fa;
-      --term-border: #2a2a2a;
-      --term-cursor: #ff8c42;
-      --term-selection: rgba(255, 140, 66, 0.3);
-      --term-glow: rgba(255, 140, 66, 0.1);
-      --font-mono: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', 'Liberation Mono', monospace;
-    }
+    /* ===========================================
+       TERMINAL PAGE STYLES - FULLY SCOPED
+       All styles prefixed with .terminal-page
+       to prevent bleeding to other pages
+       =========================================== */
 
-    /* Light Theme */
-    .terminal-light {
-      --term-bg: #fafafa;
-      --term-bg-secondary: #f0f0f0;
-      --term-bg-tertiary: #e5e5e5;
-      --term-text: #1a1a1a;
-      --term-text-muted: #666666;
-      --term-text-dim: #999999;
-      --term-border: #d0d0d0;
-      --term-glow: rgba(255, 140, 66, 0.05);
-    }
+    /* CSS Variables scoped to terminal page */
+    .terminal-page {
+      --tp-bg: #0d1117;
+      --tp-bg-secondary: #161b22;
+      --tp-bg-tertiary: #21262d;
+      --tp-text: #e6edf3;
+      --tp-text-muted: #8b949e;
+      --tp-text-dim: #484f58;
+      --tp-accent: #ff8c42;
+      --tp-accent-hover: #ff6b35;
+      --tp-success: #3fb950;
+      --tp-error: #f85149;
+      --tp-info: #58a6ff;
+      --tp-border: #30363d;
+      --tp-cursor: #ff8c42;
+      --tp-font: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
 
-    /* CRT Amber Theme */
-    .terminal-crt-amber {
-      --term-bg: #0a0800;
-      --term-bg-secondary: #141000;
-      --term-bg-tertiary: #1e1800;
-      --term-text: #ffb000;
-      --term-text-muted: #b07800;
-      --term-text-dim: #704e00;
-      --term-accent: #ffcc00;
-      --term-accent-hover: #ffdd44;
-      --term-success: #44ff44;
-      --term-cursor: #ffb000;
-      --term-border: #3a2800;
-      --term-glow: rgba(255, 176, 0, 0.15);
-    }
-
-    /* CRT Green Theme */
-    .terminal-crt-green {
-      --term-bg: #000a00;
-      --term-bg-secondary: #001400;
-      --term-bg-tertiary: #001e00;
-      --term-text: #00ff00;
-      --term-text-muted: #00aa00;
-      --term-text-dim: #006600;
-      --term-accent: #00ff88;
-      --term-accent-hover: #44ffaa;
-      --term-success: #00ff00;
-      --term-cursor: #00ff00;
-      --term-border: #003300;
-      --term-glow: rgba(0, 255, 0, 0.1);
-    }
-
-    /* Vaporwave Theme */
-    .terminal-vaporwave {
-      --term-bg: #1a0a2e;
-      --term-bg-secondary: #2d1b4e;
-      --term-bg-tertiary: #3d2b5e;
-      --term-text: #ff71ce;
-      --term-text-muted: #b967ff;
-      --term-text-dim: #7b5ea7;
-      --term-accent: #01cdfe;
-      --term-accent-hover: #41edfe;
-      --term-success: #05ffa1;
-      --term-cursor: #ff71ce;
-      --term-border: #4a3a6e;
-      --term-glow: rgba(255, 113, 206, 0.15);
-    }
-
-    /* Global Reset */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
-    body {
-      font-family: var(--font-mono);
-      background: var(--term-bg);
-      color: var(--term-text);
+      /* Base styles for the page */
+      font-family: var(--tp-font);
+      background: var(--tp-bg);
+      color: var(--tp-text);
       line-height: 1.6;
       min-height: 100vh;
-      overflow-x: hidden;
+      margin: 0;
+      padding: 0;
     }
 
-    /* Scanline effect for CRT themes */
-    .terminal-crt-amber body::after,
-    .terminal-crt-green body::after {
+    /* Theme variations */
+    .terminal-page[data-theme="light"] {
+      --tp-bg: #ffffff;
+      --tp-bg-secondary: #f6f8fa;
+      --tp-bg-tertiary: #eaeef2;
+      --tp-text: #1f2328;
+      --tp-text-muted: #656d76;
+      --tp-text-dim: #8c959f;
+      --tp-border: #d0d7de;
+    }
+
+    .terminal-page[data-theme="amber"] {
+      --tp-bg: #0a0800;
+      --tp-bg-secondary: #141000;
+      --tp-bg-tertiary: #1e1800;
+      --tp-text: #ffb000;
+      --tp-text-muted: #cc8c00;
+      --tp-text-dim: #806000;
+      --tp-accent: #ffcc00;
+      --tp-success: #44ff44;
+      --tp-cursor: #ffb000;
+      --tp-border: #3a2800;
+    }
+
+    .terminal-page[data-theme="green"] {
+      --tp-bg: #001200;
+      --tp-bg-secondary: #001a00;
+      --tp-bg-tertiary: #002200;
+      --tp-text: #00ff00;
+      --tp-text-muted: #00cc00;
+      --tp-text-dim: #008000;
+      --tp-accent: #00ff88;
+      --tp-success: #00ff00;
+      --tp-cursor: #00ff00;
+      --tp-border: #004400;
+    }
+
+    /* CRT Scanline effect for retro themes */
+    .terminal-page[data-theme="amber"]::after,
+    .terminal-page[data-theme="green"]::after {
       content: '';
       position: fixed;
       top: 0;
@@ -158,1062 +336,810 @@ import { SITE_CONFIG } from '../config/site';
       z-index: 9999;
     }
 
-    ::selection {
-      background: var(--term-selection);
-      color: var(--term-text);
-    }
-
     /* Container */
-    .container {
-      max-width: 900px;
+    .terminal-page .tp-container {
+      max-width: 800px;
       margin: 0 auto;
       padding: 0 24px;
     }
 
-    /* Header / Navigation */
-    .terminal-header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: var(--term-bg);
-      border-bottom: 1px solid var(--term-border);
-      padding: 16px 0;
-    }
-
-    .header-content {
+    /* Hero Section */
+    .terminal-page .tp-hero {
+      min-height: 100vh;
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
+      justify-content: center;
       align-items: center;
-      gap: 20px;
+      text-align: center;
+      padding: 40px 0;
     }
 
-    .logo-section {
+    .terminal-page .tp-logo-section {
       display: flex;
       align-items: center;
       gap: 12px;
+      margin-bottom: 40px;
     }
 
-    .logo-img {
-      width: 32px;
-      height: 32px;
+    .terminal-page .tp-logo-img {
+      width: 48px;
+      height: 48px;
       image-rendering: pixelated;
     }
 
-    .logo-text {
-      font-size: 24px;
+    .terminal-page .tp-logo-text {
+      font-size: 36px;
       font-weight: 700;
-      color: var(--term-accent);
-      letter-spacing: -0.5px;
+      color: var(--tp-accent);
     }
 
-    .version-badge {
-      font-size: 11px;
-      color: var(--term-text-dim);
-      background: var(--term-bg-tertiary);
-      padding: 2px 8px;
+    .terminal-page .tp-version {
+      font-size: 12px;
+      color: var(--tp-text-dim);
+      background: var(--tp-bg-tertiary);
+      padding: 4px 8px;
       border-radius: 4px;
-      border: 1px solid var(--term-border);
     }
 
-    .nav-commands {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .nav-cmd {
-      font-size: 13px;
-      color: var(--term-text-muted);
-      background: transparent;
-      border: 1px solid var(--term-border);
-      padding: 6px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      text-decoration: none;
-    }
-
-    .nav-cmd:hover {
-      color: var(--term-accent);
-      border-color: var(--term-accent);
-      background: var(--term-glow);
-    }
-
-    .nav-cmd::before {
-      content: '> ';
-      color: var(--term-text-dim);
-    }
-
-    /* Theme Switcher */
-    .theme-switcher {
-      display: flex;
-      gap: 4px;
-      background: var(--term-bg-secondary);
-      padding: 4px;
-      border-radius: 6px;
-      border: 1px solid var(--term-border);
-    }
-
-    .theme-btn {
-      width: 20px;
-      height: 20px;
-      border-radius: 4px;
-      border: none;
-      cursor: pointer;
-      transition: transform 0.2s ease;
-    }
-
-    .theme-btn:hover {
-      transform: scale(1.1);
-    }
-
-    .theme-btn.active {
-      box-shadow: 0 0 0 2px var(--term-text);
-    }
-
-    .theme-btn.dark { background: #1a1a1a; }
-    .theme-btn.light { background: #f0f0f0; }
-    .theme-btn.amber { background: linear-gradient(135deg, #ffb000, #ff8800); }
-    .theme-btn.green { background: linear-gradient(135deg, #00ff00, #00aa00); }
-    .theme-btn.vapor { background: linear-gradient(135deg, #ff71ce, #01cdfe); }
-
-    /* Hero Section */
-    .hero {
-      padding: 80px 0 60px;
-      text-align: center;
-    }
-
-    .hero-tagline {
-      font-size: 14px;
-      color: var(--term-accent);
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-bottom: 20px;
-    }
-
-    .hero-title {
-      font-size: clamp(28px, 5vw, 48px);
+    .terminal-page .tp-headline {
+      font-size: clamp(24px, 4vw, 40px);
       font-weight: 400;
-      line-height: 1.3;
-      margin-bottom: 24px;
-      color: var(--term-text);
+      margin-bottom: 40px;
+      color: var(--tp-text);
+      line-height: 1.4;
     }
 
-    .hero-title strong {
-      color: var(--term-accent);
-      font-weight: 700;
+    .terminal-page .tp-headline strong {
+      color: var(--tp-accent);
+      font-weight: 600;
     }
 
-    .hero-subtitle {
-      font-size: 16px;
-      color: var(--term-text-muted);
-      max-width: 600px;
-      margin: 0 auto 40px;
-    }
-
-    /* Interactive CLI */
-    .cli-container {
-      background: var(--term-bg-secondary);
-      border: 1px solid var(--term-border);
+    /* Interactive Terminal */
+    .terminal-page .tp-terminal {
+      width: 100%;
+      max-width: 700px;
+      background: var(--tp-bg-secondary);
+      border: 1px solid var(--tp-border);
       border-radius: 12px;
       overflow: hidden;
-      max-width: 700px;
-      margin: 0 auto;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
     }
 
-    .cli-header {
-      background: var(--term-bg-tertiary);
-      padding: 12px 16px;
+    .terminal-page .tp-terminal-header {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--term-border);
+      padding: 12px 16px;
+      background: var(--tp-bg-tertiary);
+      border-bottom: 1px solid var(--tp-border);
     }
 
-    .cli-dots {
+    .terminal-page .tp-dots {
       display: flex;
       gap: 8px;
     }
 
-    .cli-dot {
+    .terminal-page .tp-dot {
       width: 12px;
       height: 12px;
       border-radius: 50%;
     }
 
-    .cli-dot.red { background: #ff5f56; }
-    .cli-dot.yellow { background: #ffbd2e; }
-    .cli-dot.green { background: #27c93f; }
+    .terminal-page .tp-dot-red { background: #ff5f56; }
+    .terminal-page .tp-dot-yellow { background: #ffbd2e; }
+    .terminal-page .tp-dot-green { background: #27c93f; }
 
-    .cli-title {
-      font-size: 13px;
-      color: var(--term-text-dim);
-    }
-
-    .cli-body {
-      padding: 24px;
-      min-height: 180px;
-    }
-
-    .cli-prompt {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .prompt-symbol {
-      color: var(--term-success);
-      font-weight: 600;
-      flex-shrink: 0;
-    }
-
-    .prompt-input {
+    .terminal-page .tp-terminal-title {
       flex: 1;
-      color: var(--term-text);
-      position: relative;
+      text-align: center;
+      font-size: 13px;
+      color: var(--tp-text-dim);
     }
 
-    .cursor {
-      display: inline-block;
-      width: 10px;
-      height: 18px;
-      background: var(--term-cursor);
-      margin-left: 2px;
-      animation: blink 1s step-end infinite;
-      vertical-align: text-bottom;
-    }
-
-    @keyframes blink {
-      0%, 50% { opacity: 1; }
-      51%, 100% { opacity: 0; }
-    }
-
-    .cli-output {
-      margin-top: 20px;
-    }
-
-    .output-line {
-      margin-bottom: 8px;
+    .terminal-page .tp-theme-switcher {
       display: flex;
-      align-items: flex-start;
-      gap: 8px;
+      gap: 4px;
     }
 
-    .output-prefix {
-      color: var(--term-accent);
-      font-weight: 600;
-      flex-shrink: 0;
-    }
-
-    .output-command {
-      color: var(--term-info);
-      font-family: var(--font-mono);
-      background: var(--term-bg);
-      padding: 2px 8px;
+    .terminal-page .tp-theme-btn {
+      width: 20px;
+      height: 20px;
+      border: 1px solid var(--tp-border);
+      background: transparent;
+      color: var(--tp-text-muted);
       border-radius: 4px;
+      cursor: pointer;
+      font-size: 10px;
+      transition: all 0.2s;
     }
 
-    .output-status {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--term-success);
-      font-size: 13px;
+    .terminal-page .tp-theme-btn:hover {
+      border-color: var(--tp-accent);
+      color: var(--tp-accent);
     }
 
-    .status-icon {
-      font-size: 14px;
+    .terminal-page .tp-theme-btn.active {
+      background: var(--tp-accent);
+      border-color: var(--tp-accent);
+      color: var(--tp-bg);
     }
 
-    /* Command options hint */
-    .cli-hints {
-      margin-top: 20px;
-      padding-top: 16px;
-      border-top: 1px dashed var(--term-border);
-      font-size: 12px;
-      color: var(--term-text-dim);
-    }
-
-    .cli-hints code {
-      color: var(--term-text-muted);
-      background: var(--term-bg);
-      padding: 2px 6px;
-      border-radius: 3px;
-      margin: 0 4px;
-    }
-
-    /* Stats Section */
-    .stats-section {
-      padding: 60px 0;
-      border-top: 1px solid var(--term-border);
-      border-bottom: 1px solid var(--term-border);
-      background: var(--term-bg-secondary);
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 30px;
-      text-align: center;
-    }
-
-    .stat-item {
+    .terminal-page .tp-terminal-body {
       padding: 20px;
+      min-height: 300px;
+      max-height: 400px;
+      overflow-y: auto;
     }
 
-    .stat-value {
-      font-size: 36px;
-      font-weight: 700;
-      color: var(--term-accent);
+    /* Terminal Output */
+    .terminal-page .tp-output-line {
       margin-bottom: 8px;
+      white-space: pre-wrap;
+      word-break: break-word;
     }
 
-    .stat-label {
-      font-size: 13px;
-      color: var(--term-text-muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
+    .terminal-page .tp-output-line.tp-cmd {
+      color: var(--tp-text-muted);
     }
 
-    /* Trust Section */
-    .trust-section {
-      padding: 80px 0;
+    .terminal-page .tp-output-line.tp-cmd::before {
+      content: '~/caro $ ';
+      color: var(--tp-success);
     }
 
-    .trust-section h2 {
-      text-align: center;
-      font-size: 28px;
-      font-weight: 400;
-      margin-bottom: 16px;
-      color: var(--term-text);
+    .terminal-page .tp-output-line.tp-result {
+      color: var(--tp-text);
+      padding-left: 16px;
     }
 
-    .trust-section h2 strong {
-      color: var(--term-accent);
+    .terminal-page .tp-output-line.tp-error {
+      color: var(--tp-error);
     }
 
-    .trust-subtitle {
-      text-align: center;
-      color: var(--term-text-muted);
-      margin-bottom: 50px;
-      font-size: 15px;
+    .terminal-page .tp-output-line.tp-accent {
+      color: var(--tp-accent);
     }
 
-    .trust-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 24px;
+    .terminal-page .tp-output-line.tp-info {
+      color: var(--tp-info);
     }
 
-    .trust-card {
-      background: var(--term-bg-secondary);
-      border: 1px solid var(--term-border);
-      border-radius: 8px;
-      padding: 24px;
-      transition: all 0.2s ease;
+    .terminal-page .tp-output-line.tp-dim {
+      color: var(--tp-text-dim);
     }
 
-    .trust-card:hover {
-      border-color: var(--term-accent);
-      box-shadow: 0 0 20px var(--term-glow);
+    /* Help menu box */
+    .terminal-page .tp-help-box {
+      border: 1px solid var(--tp-border);
+      border-radius: 6px;
+      padding: 16px;
+      margin: 12px 0;
+      background: var(--tp-bg);
     }
 
-    .trust-icon {
-      font-size: 28px;
-      margin-bottom: 16px;
-    }
-
-    .trust-card h3 {
-      font-size: 16px;
+    .terminal-page .tp-help-title {
+      color: var(--tp-accent);
       font-weight: 600;
       margin-bottom: 12px;
-      color: var(--term-text);
-    }
-
-    .trust-card p {
       font-size: 14px;
-      color: var(--term-text-muted);
-      line-height: 1.6;
     }
 
-    /* Proof Section */
-    .proof-section {
+    .terminal-page .tp-help-item {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .terminal-page .tp-help-cmd {
+      color: var(--tp-info);
+      min-width: 120px;
+      font-weight: 500;
+    }
+
+    .terminal-page .tp-help-desc {
+      color: var(--tp-text-muted);
+    }
+
+    /* Input line */
+    .terminal-page .tp-input-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .terminal-page .tp-prompt {
+      color: var(--tp-success);
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+
+    .terminal-page .tp-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--tp-text);
+      font-family: var(--tp-font);
+      font-size: 14px;
+      outline: none;
+      caret-color: var(--tp-cursor);
+    }
+
+    .terminal-page .tp-input::placeholder {
+      color: var(--tp-text-dim);
+    }
+
+    .terminal-page .tp-hint {
+      margin-top: 20px;
+      font-size: 13px;
+      color: var(--tp-text-dim);
+    }
+
+    .terminal-page .tp-hint code {
+      color: var(--tp-info);
+      background: var(--tp-bg-tertiary);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    /* Content Sections */
+    .terminal-page .tp-section {
       padding: 80px 0;
-      background: var(--term-bg-secondary);
-      border-top: 1px solid var(--term-border);
+      border-top: 1px solid var(--tp-border);
     }
 
-    .proof-section h2 {
-      text-align: center;
+    .terminal-page .tp-section-title {
       font-size: 28px;
-      font-weight: 400;
-      margin-bottom: 50px;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 16px;
+      color: var(--tp-text);
     }
 
-    .proof-demo {
-      background: var(--term-bg);
-      border: 1px solid var(--term-border);
+    .terminal-page .tp-section-subtitle {
+      text-align: center;
+      color: var(--tp-text-muted);
+      margin-bottom: 40px;
+    }
+
+    /* Card Grid */
+    .terminal-page .tp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .terminal-page .tp-card {
+      background: var(--tp-bg-secondary);
+      border: 1px solid var(--tp-border);
+      border-radius: 8px;
+      padding: 24px;
+      transition: all 0.2s;
+    }
+
+    .terminal-page .tp-card:hover {
+      border-color: var(--tp-accent);
+      transform: translateY(-2px);
+    }
+
+    .terminal-page .tp-card-icon {
+      font-size: 28px;
+      margin-bottom: 12px;
+    }
+
+    .terminal-page .tp-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--tp-text);
+    }
+
+    .terminal-page .tp-card p {
+      font-size: 14px;
+      color: var(--tp-text-muted);
+      line-height: 1.5;
+    }
+
+    /* Demo Box */
+    .terminal-page .tp-demo-box {
+      background: var(--tp-bg-secondary);
+      border: 1px solid var(--tp-border);
       border-radius: 8px;
       overflow: hidden;
-      max-width: 700px;
-      margin: 0 auto;
     }
 
-    .proof-header {
-      background: var(--term-bg-tertiary);
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--term-border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .proof-title {
-      font-size: 14px;
-      color: var(--term-text-muted);
-    }
-
-    .proof-badge {
-      font-size: 11px;
-      color: var(--term-success);
-      background: rgba(74, 222, 128, 0.1);
-      padding: 4px 10px;
-      border-radius: 12px;
-      border: 1px solid rgba(74, 222, 128, 0.3);
-    }
-
-    .proof-body {
+    .terminal-page .tp-demo-example {
       padding: 20px;
+      border-bottom: 1px solid var(--tp-border);
     }
 
-    .proof-example {
-      margin-bottom: 24px;
-      padding-bottom: 24px;
-      border-bottom: 1px dashed var(--term-border);
-    }
-
-    .proof-example:last-child {
-      margin-bottom: 0;
-      padding-bottom: 0;
+    .terminal-page .tp-demo-example:last-child {
       border-bottom: none;
     }
 
-    .proof-label {
+    .terminal-page .tp-demo-label {
       font-size: 11px;
-      color: var(--term-text-dim);
       text-transform: uppercase;
       letter-spacing: 1px;
+      color: var(--tp-text-dim);
       margin-bottom: 8px;
     }
 
-    .proof-input {
-      color: var(--term-text);
-      margin-bottom: 12px;
+    .terminal-page .tp-demo-input {
       font-size: 14px;
+      color: var(--tp-text);
+      margin-bottom: 12px;
     }
 
-    .proof-input::before {
-      content: '> ';
-      color: var(--term-success);
+    .terminal-page .tp-demo-input.tp-danger {
+      color: var(--tp-error);
     }
 
-    .proof-output {
-      background: var(--term-bg-secondary);
+    .terminal-page .tp-demo-output {
+      background: var(--tp-bg);
       padding: 12px 16px;
       border-radius: 6px;
-      border-left: 3px solid var(--term-accent);
+      border-left: 3px solid var(--tp-accent);
     }
 
-    .proof-output .command {
-      color: var(--term-info);
-      font-size: 13px;
+    .terminal-page .tp-demo-output code {
       display: block;
+      color: var(--tp-info);
       margin-bottom: 8px;
     }
 
-    .proof-output .validation {
+    .terminal-page .tp-demo-status {
       font-size: 12px;
-      color: var(--term-success);
-      display: flex;
-      align-items: center;
-      gap: 6px;
     }
 
-    .danger-blocked {
-      color: var(--term-error) !important;
+    .terminal-page .tp-demo-status.tp-safe {
+      color: var(--tp-success);
     }
 
-    .danger-blocked .validation {
-      color: var(--term-error);
+    .terminal-page .tp-demo-status.tp-blocked {
+      color: var(--tp-error);
     }
 
-    /* CTA Section */
-    .cta-section {
-      padding: 80px 0;
-      text-align: center;
-      border-top: 1px solid var(--term-border);
-    }
-
-    .cta-section h2 {
-      font-size: 28px;
-      font-weight: 400;
-      margin-bottom: 16px;
-    }
-
-    .cta-section h2 strong {
-      color: var(--term-accent);
-    }
-
-    .cta-subtitle {
-      color: var(--term-text-muted);
-      margin-bottom: 40px;
-      font-size: 15px;
-    }
-
-    .install-block {
-      background: var(--term-bg-secondary);
-      border: 1px solid var(--term-border);
-      border-radius: 8px;
-      padding: 24px;
+    /* Install Box */
+    .terminal-page .tp-install-box {
       max-width: 500px;
-      margin: 0 auto 30px;
+      margin: 0 auto;
     }
 
-    .install-label {
-      font-size: 12px;
-      color: var(--term-text-dim);
-      text-transform: uppercase;
-      letter-spacing: 1px;
+    .terminal-page .tp-install-method {
+      margin-bottom: 24px;
+    }
+
+    .terminal-page .tp-install-method h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--tp-text);
       margin-bottom: 12px;
     }
 
-    .install-command {
+    .terminal-page .tp-install-command {
       display: flex;
       align-items: center;
       gap: 12px;
-      background: var(--term-bg);
-      padding: 16px;
+      background: var(--tp-bg-secondary);
+      border: 1px solid var(--tp-border);
+      padding: 12px 16px;
       border-radius: 6px;
-      border: 1px solid var(--term-border);
     }
 
-    .install-command code {
+    .terminal-page .tp-install-command code {
       flex: 1;
-      color: var(--term-text);
-      font-size: 14px;
+      color: var(--tp-text);
     }
 
-    .copy-btn {
-      background: var(--term-accent);
-      color: var(--term-bg);
+    .terminal-page .tp-copy-btn {
+      background: var(--tp-accent);
+      color: var(--tp-bg);
       border: none;
-      padding: 8px 16px;
+      padding: 6px 12px;
       border-radius: 4px;
-      cursor: pointer;
-      font-family: var(--font-mono);
+      font-family: var(--tp-font);
       font-size: 12px;
       font-weight: 600;
-      transition: all 0.2s ease;
+      cursor: pointer;
+      transition: background 0.2s;
     }
 
-    .copy-btn:hover {
-      background: var(--term-accent-hover);
+    .terminal-page .tp-copy-btn:hover {
+      background: var(--tp-accent-hover);
     }
 
-    .cta-links {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      flex-wrap: wrap;
-    }
-
-    .cta-link {
-      color: var(--term-text-muted);
-      text-decoration: none;
+    .terminal-page .tp-install-note {
+      color: var(--tp-text-muted);
       font-size: 14px;
-      transition: color 0.2s ease;
     }
 
-    .cta-link:hover {
-      color: var(--term-accent);
+    .terminal-page .tp-install-note a {
+      color: var(--tp-info);
+      text-decoration: none;
     }
 
-    .cta-link::before {
-      content: '[ ';
-      color: var(--term-text-dim);
+    .terminal-page .tp-install-note a:hover {
+      text-decoration: underline;
     }
 
-    .cta-link::after {
-      content: ' ]';
-      color: var(--term-text-dim);
+    /* Stats Grid */
+    .terminal-page .tp-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 24px;
+      text-align: center;
+    }
+
+    .terminal-page .tp-stat {
+      padding: 24px;
+      background: var(--tp-bg-secondary);
+      border: 1px solid var(--tp-border);
+      border-radius: 8px;
+    }
+
+    .terminal-page .tp-stat-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--tp-accent);
+      margin-bottom: 8px;
+    }
+
+    .terminal-page .tp-stat-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--tp-text-muted);
     }
 
     /* Footer */
-    .terminal-footer {
-      padding: 40px 0;
-      border-top: 1px solid var(--term-border);
-      background: var(--term-bg-secondary);
+    .terminal-page .tp-footer {
+      padding: 30px 0;
+      border-top: 1px solid var(--tp-border);
+      background: var(--tp-bg-secondary);
     }
 
-    .footer-content {
+    .terminal-page .tp-footer-content {
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 20px;
-    }
-
-    .footer-info {
+      gap: 16px;
       font-size: 13px;
-      color: var(--term-text-dim);
+      color: var(--tp-text-dim);
     }
 
-    .footer-links {
+    .terminal-page .tp-footer-links {
       display: flex;
       gap: 20px;
     }
 
-    .footer-link {
-      color: var(--term-text-muted);
+    .terminal-page .tp-footer-links a {
+      color: var(--tp-text-muted);
       text-decoration: none;
-      font-size: 13px;
-      transition: color 0.2s ease;
+      transition: color 0.2s;
     }
 
-    .footer-link:hover {
-      color: var(--term-accent);
+    .terminal-page .tp-footer-links a:hover {
+      color: var(--tp-accent);
     }
 
-    /* Mobile Responsiveness */
-    @media (max-width: 768px) {
-      .header-content {
-        flex-direction: column;
-        gap: 16px;
+    /* Mobile */
+    @media (max-width: 600px) {
+      .terminal-page .tp-container {
+        padding: 0 16px;
       }
 
-      .nav-commands {
-        justify-content: center;
-      }
-
-      .hero {
-        padding: 60px 0 40px;
-      }
-
-      .cli-body {
-        padding: 16px;
-        min-height: 150px;
-      }
-
-      .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-      }
-
-      .stat-value {
+      .terminal-page .tp-logo-text {
         font-size: 28px;
       }
 
-      .trust-grid {
-        grid-template-columns: 1fr;
+      .terminal-page .tp-terminal-body {
+        min-height: 250px;
       }
 
-      .footer-content {
+      .terminal-page .tp-footer-content {
         flex-direction: column;
         text-align: center;
       }
     }
-
-    @media (max-width: 480px) {
-      .container {
-        padding: 0 16px;
-      }
-
-      .logo-text {
-        font-size: 20px;
-      }
-
-      .nav-commands {
-        gap: 6px;
-      }
-
-      .nav-cmd {
-        font-size: 12px;
-        padding: 5px 10px;
-      }
-
-      .hero-title {
-        font-size: 24px;
-      }
-
-      .stats-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .stat-value {
-        font-size: 24px;
-      }
-
-      .stat-label {
-        font-size: 11px;
-      }
-    }
   </style>
-</head>
-<body>
-  <!-- Header -->
-  <header class="terminal-header">
-    <div class="container">
-      <div class="header-content">
-        <div class="logo-section">
-          <img src="/caro-pixel.png" alt="Caro" class="logo-img" />
-          <span class="logo-text">caro</span>
-          <span class="version-badge">v{SITE_CONFIG.version}</span>
-        </div>
 
-        <nav class="nav-commands">
-          <a href="#capabilities" class="nav-cmd">capabilities</a>
-          <a href="#proof" class="nav-cmd">proof</a>
-          <a href="#install" class="nav-cmd">install</a>
-          <a href="https://github.com/wildcard/caro" class="nav-cmd" target="_blank">github</a>
-        </nav>
+  <script define:vars={{ version: SITE_CONFIG.version }}>
+    // Interactive Terminal Logic
+    (function() {
+      const page = document.querySelector('.terminal-page');
+      const terminalBody = document.getElementById('terminal-body');
+      const terminalOutput = document.getElementById('terminal-output');
+      const terminalInput = document.getElementById('terminal-input');
+      const themeBtns = document.querySelectorAll('.tp-theme-btn');
 
-        <div class="theme-switcher">
-          <button class="theme-btn dark active" data-theme="terminal-dark" title="Dark"></button>
-          <button class="theme-btn light" data-theme="terminal-light" title="Light"></button>
-          <button class="theme-btn amber" data-theme="terminal-crt-amber" title="CRT Amber"></button>
-          <button class="theme-btn green" data-theme="terminal-crt-green" title="CRT Green"></button>
-          <button class="theme-btn vapor" data-theme="terminal-vaporwave" title="Vaporwave"></button>
-        </div>
-      </div>
-    </div>
-  </header>
+      // Command history
+      let history = [];
+      let historyIndex = -1;
 
-  <!-- Hero Section -->
-  <section class="hero">
-    <div class="container">
-      <p class="hero-tagline">Safety-First Shell Companion</p>
-      <h1 class="hero-title">
-        Your tools should <strong>earn your trust</strong>,<br />
-        not ask for it.
-      </h1>
-      <p class="hero-subtitle">
-        Caro converts natural language to validated POSIX shell commands.
-        Local AI inference. 52+ dangerous pattern detection. No cloud required.
-      </p>
+      // Available commands
+      const commands = {
+        help: showHelp,
+        h: showHelp,
+        capabilities: () => showSection('capabilities'),
+        cap: () => showSection('capabilities'),
+        proof: () => showSection('proof'),
+        p: () => showSection('proof'),
+        install: () => showSection('install'),
+        i: () => showSection('install'),
+        stats: () => showSection('stats'),
+        s: () => showSection('stats'),
+        clear: clearTerminal,
+        cls: clearTerminal,
+        demo: runDemo,
+        examples: runDemo,
+        github: () => { window.open('https://github.com/wildcard/caro', '_blank'); addOutput('Opening GitHub...', 'info'); },
+        home: () => { window.location.href = '/'; },
+        exit: () => { window.location.href = '/'; },
+        e: () => { window.location.href = '/'; },
+        version: () => addOutput(`caro v${version}`, 'accent'),
+        v: () => addOutput(`caro v${version}`, 'accent'),
+      };
 
-      <!-- Interactive CLI Terminal -->
-      <div class="cli-container">
-        <div class="cli-header">
-          <div class="cli-dots">
-            <span class="cli-dot red"></span>
-            <span class="cli-dot yellow"></span>
-            <span class="cli-dot green"></span>
-          </div>
-          <span class="cli-title">caro - shell companion</span>
-        </div>
-        <div class="cli-body">
-          <div class="cli-prompt">
-            <span class="prompt-symbol">$</span>
-            <span class="prompt-input">
-              <span id="typed-text"></span><span class="cursor"></span>
-            </span>
-          </div>
-          <div class="cli-output" id="cli-output">
-            <!-- Output populated by JS -->
-          </div>
-          <div class="cli-hints">
-            Type <code>help</code> for commands or <code>examples</code> to see more demos
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+      // Initialize with welcome message
+      showWelcome();
 
-  <!-- Stats Section -->
-  <section class="stats-section">
-    <div class="container">
-      <div class="stats-grid">
-        <div class="stat-item">
-          <div class="stat-value">52+</div>
-          <div class="stat-label">Safety Patterns</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value">100%</div>
-          <div class="stat-label">Local Inference</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value">0</div>
-          <div class="stat-label">Cloud Dependencies</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value">3</div>
-          <div class="stat-label">Platforms</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Trust/Capabilities Section -->
-  <section class="trust-section" id="capabilities">
-    <div class="container">
-      <h2>Dependable signals built on a foundation <strong>you can trust</strong></h2>
-      <p class="trust-subtitle">Control and reliability over convenience. Transparency over magic.</p>
-
-      <div class="trust-grid">
-        <div class="trust-card">
-          <div class="trust-icon">🛡️</div>
-          <h3>Pattern-Based Safety</h3>
-          <p>52+ pre-compiled dangerous command patterns. Blocks rm -rf /, fork bombs, disk wipers, and more. No AI hallucinations in safety checks.</p>
-        </div>
-        <div class="trust-card">
-          <div class="trust-icon">🔒</div>
-          <h3>100% Local Inference</h3>
-          <p>Your commands never leave your machine. Embedded LLM runs entirely locally. Air-gapped environments supported.</p>
-        </div>
-        <div class="trust-card">
-          <div class="trust-icon">🌍</div>
-          <h3>Platform Aware</h3>
-          <p>Detects OS, architecture, shell type, and available commands. Generates platform-specific POSIX-compliant commands.</p>
-        </div>
-        <div class="trust-card">
-          <div class="trust-icon">⚡</div>
-          <h3>Single Binary</h3>
-          <p>No dependencies. No runtime. Just one binary. Install and run in seconds on Linux, macOS, or Windows.</p>
-        </div>
-        <div class="trust-card">
-          <div class="trust-icon">🎯</div>
-          <h3>Deterministic Validation</h3>
-          <p>Safety checks are pattern-based, not probabilistic. Same input = same safety verdict. Every time.</p>
-        </div>
-        <div class="trust-card">
-          <div class="trust-icon">🔄</div>
-          <h3>Agentic Refinement</h3>
-          <p>2-iteration loop that detects platform compatibility issues and refines complex commands automatically.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Proof Section -->
-  <section class="proof-section" id="proof">
-    <div class="container">
-      <h2>See it in action</h2>
-
-      <div class="proof-demo">
-        <div class="proof-header">
-          <span class="proof-title">Safety Validation Demo</span>
-          <span class="proof-badge">Real Examples</span>
-        </div>
-        <div class="proof-body">
-          <div class="proof-example">
-            <div class="proof-label">Safe Command</div>
-            <div class="proof-input">caro "find all python files modified today"</div>
-            <div class="proof-output">
-              <code class="command">find . -name "*.py" -type f -mtime 0</code>
-              <div class="validation">
-                <span class="status-icon">✓</span>
-                Safe to run on your system
-              </div>
-            </div>
-          </div>
-
-          <div class="proof-example">
-            <div class="proof-label">Dangerous Command Blocked</div>
-            <div class="proof-input danger-blocked">caro "delete everything recursively"</div>
-            <div class="proof-output danger-blocked">
-              <code class="command">rm -rf /</code>
-              <div class="validation">
-                <span class="status-icon">✕</span>
-                BLOCKED: System destruction pattern detected
-              </div>
-            </div>
-          </div>
-
-          <div class="proof-example">
-            <div class="proof-label">Platform-Aware Output</div>
-            <div class="proof-input">caro "show top 5 processes by CPU"</div>
-            <div class="proof-output">
-              <code class="command">ps aux | sort -nrk 3,3 | head -6</code>
-              <div class="validation">
-                <span class="status-icon">✓</span>
-                Optimized for macOS (BSD sort syntax)
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CTA Section -->
-  <section class="cta-section" id="install">
-    <div class="container">
-      <h2>Ready to <strong>trust your shell</strong>?</h2>
-      <p class="cta-subtitle">Install caro in seconds. No configuration required.</p>
-
-      <div class="install-block">
-        <div class="install-label">Quick Install</div>
-        <div class="install-command">
-          <code>curl -fsSL https://caro.sh/install | bash</code>
-          <button class="copy-btn" id="copy-install">Copy</button>
-        </div>
-      </div>
-
-      <div class="cta-links">
-        <a href="https://github.com/wildcard/caro" class="cta-link" target="_blank">GitHub</a>
-        <a href="https://crates.io/crates/caro" class="cta-link" target="_blank">crates.io</a>
-        <a href="/" class="cta-link">Main Site</a>
-        <a href="/faq" class="cta-link">FAQ</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer class="terminal-footer">
-    <div class="container">
-      <div class="footer-content">
-        <div class="footer-info">
-          <span>caro v{SITE_CONFIG.version}</span> •
-          <span>AGPL-3.0 License</span> •
-          <span>Built with Rust</span>
-        </div>
-        <div class="footer-links">
-          <a href="/telemetry" class="footer-link">Privacy</a>
-          <a href="/credits" class="footer-link">Credits</a>
-          <a href="https://github.com/wildcard/caro/issues" class="footer-link" target="_blank">Report Issue</a>
-        </div>
-      </div>
-    </div>
-  </footer>
-
-  <script>
-    // Theme switching
-    const themes = ['terminal-dark', 'terminal-light', 'terminal-crt-amber', 'terminal-crt-green', 'terminal-vaporwave'];
-
-    document.querySelectorAll('.theme-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const theme = btn.dataset.theme;
-        const html = document.documentElement;
-
-        // Remove all theme classes
-        themes.forEach(t => html.classList.remove(t));
-
-        // Add selected theme
-        html.classList.add(theme);
-
-        // Update active button
-        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
-        // Save preference
-        localStorage.setItem('terminal-theme', theme);
+      // Focus input when clicking terminal
+      document.getElementById('terminal').addEventListener('click', () => {
+        terminalInput.focus();
       });
-    });
 
-    // Restore saved theme
-    const savedTheme = localStorage.getItem('terminal-theme');
-    if (savedTheme && themes.includes(savedTheme)) {
-      document.documentElement.classList.remove('terminal-dark');
-      document.documentElement.classList.add(savedTheme);
-      document.querySelectorAll('.theme-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.theme === savedTheme);
+      // Handle input
+      terminalInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          const cmd = terminalInput.value.trim().toLowerCase();
+          if (cmd) {
+            processCommand(cmd);
+            history.push(cmd);
+            historyIndex = history.length;
+          }
+          terminalInput.value = '';
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (historyIndex > 0) {
+            historyIndex--;
+            terminalInput.value = history[historyIndex];
+          }
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          if (historyIndex < history.length - 1) {
+            historyIndex++;
+            terminalInput.value = history[historyIndex];
+          } else {
+            historyIndex = history.length;
+            terminalInput.value = '';
+          }
+        }
       });
-    }
 
-    // Typing animation for CLI
-    const commands = [
-      {
-        input: 'caro "find all PDF files larger than 10MB"',
-        output: 'find . -name "*.pdf" -type f -size +10M',
-        status: 'Safe to run on your system'
-      },
-      {
-        input: 'caro "show disk usage sorted by size"',
-        output: 'du -sh */ | sort -rh | head -10',
-        status: 'Safe to run on your system'
-      },
-      {
-        input: 'caro "list files modified in the last week"',
-        output: 'find . -type f -mtime -7',
-        status: 'Safe to run on your system'
-      },
-      {
-        input: 'caro "compress all images to a zip file"',
-        output: 'find . -name "*.jpg" -o -name "*.png" | zip images.zip -@',
-        status: 'Safe to run on your system'
+      // Theme switching
+      themeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const theme = btn.dataset.theme;
+          page.dataset.theme = theme;
+          themeBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          localStorage.setItem('terminal-page-theme', theme);
+        });
+      });
+
+      // Restore theme
+      const savedTheme = localStorage.getItem('terminal-page-theme');
+      if (savedTheme) {
+        page.dataset.theme = savedTheme;
+        themeBtns.forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.theme === savedTheme);
+        });
       }
-    ];
 
-    let commandIndex = 0;
-    const typedText = document.getElementById('typed-text');
-    const cliOutput = document.getElementById('cli-output');
+      // Copy buttons
+      document.querySelectorAll('.tp-copy-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const text = btn.dataset.copy;
+          try {
+            await navigator.clipboard.writeText(text);
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = 'Copy', 2000);
+          } catch (err) {
+            console.error('Copy failed:', err);
+          }
+        });
+      });
 
-    function typeCommand(command, callback) {
-      let charIndex = 0;
-      typedText.textContent = '';
-      cliOutput.innerHTML = '';
+      function processCommand(cmd) {
+        addOutput(cmd, 'cmd');
 
-      const typeInterval = setInterval(() => {
-        if (charIndex < command.input.length) {
-          typedText.textContent += command.input[charIndex];
-          charIndex++;
+        // Check for caro command simulation
+        if (cmd.startsWith('caro ')) {
+          simulateCaroCommand(cmd);
+          return;
+        }
+
+        const handler = commands[cmd];
+        if (handler) {
+          handler();
         } else {
-          clearInterval(typeInterval);
-          setTimeout(() => showOutput(command, callback), 400);
+          addOutput(`Command not found: ${cmd}. Type 'help' for available commands.`, 'error');
         }
-      }, 40);
-    }
 
-    function showOutput(command, callback) {
-      cliOutput.innerHTML = `
-        <div class="output-line">
-          <span class="output-prefix">🐕 Caro:</span>
-          <span class="output-command">${command.output}</span>
-        </div>
-        <div class="output-status">
-          <span class="status-icon">✓</span>
-          ${command.status}
-        </div>
-      `;
-
-      setTimeout(callback, 3000);
-    }
-
-    function runDemo() {
-      typeCommand(commands[commandIndex], () => {
-        commandIndex = (commandIndex + 1) % commands.length;
-        runDemo();
-      });
-    }
-
-    // Start the demo after page load
-    setTimeout(runDemo, 500);
-
-    // Copy install command
-    document.getElementById('copy-install')?.addEventListener('click', async () => {
-      const command = 'curl -fsSL https://caro.sh/install | bash';
-      try {
-        await navigator.clipboard.writeText(command);
-        const btn = document.getElementById('copy-install');
-        btn.textContent = 'Copied!';
-        setTimeout(() => btn.textContent = 'Copy', 2000);
-      } catch (err) {
-        console.error('Failed to copy:', err);
+        scrollToBottom();
       }
-    });
 
-    // Smooth scroll for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      function addOutput(text, className = '') {
+        const line = document.createElement('div');
+        line.className = 'tp-output-line' + (className ? ' tp-' + className : '');
+        line.textContent = text;
+        terminalOutput.appendChild(line);
+        scrollToBottom();
+      }
+
+      function addHTML(html) {
+        const container = document.createElement('div');
+        container.innerHTML = html;
+        terminalOutput.appendChild(container);
+        scrollToBottom();
+      }
+
+      function scrollToBottom() {
+        terminalBody.scrollTop = terminalBody.scrollHeight;
+      }
+
+      function clearTerminal() {
+        terminalOutput.innerHTML = '';
+      }
+
+      function showWelcome() {
+        addHTML(`
+          <div class="tp-output-line tp-accent">
+ ██████╗ █████╗ ██████╗  ██████╗
+██╔════╝██╔══██╗██╔══██╗██╔═══██╗
+██║     ███████║██████╔╝██║   ██║
+██║     ██╔══██║██╔══██╗██║   ██║
+╚██████╗██║  ██║██║  ██║╚██████╔╝
+ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ </div>
+        `);
+        addOutput(`v${version} - Safe Shell Commands You Can Trust`, 'dim');
+        addOutput('', '');
+        addOutput("Type 'help' to see available commands", 'info');
+        addOutput("Try: caro \"find all python files\"", 'dim');
+      }
+
+      function showHelp() {
+        addHTML(`
+          <div class="tp-help-box">
+            <div class="tp-help-title">Available Commands</div>
+            <div class="tp-help-item">
+              <span class="tp-help-cmd">help, h</span>
+              <span class="tp-help-desc">Show this help menu</span>
+            </div>
+            <div class="tp-help-item">
+              <span class="tp-help-cmd">capabilities, cap</span>
+              <span class="tp-help-desc">Discover what caro can do</span>
+            </div>
+            <div class="tp-help-item">
+              <span class="tp-help-cmd">proof, p</span>
+              <span class="tp-help-desc">See safety validation in action</span>
+            </div>
+            <div class="tp-help-item">
+              <span class="tp-help-cmd">install, i</span>
+              <span class="tp-help-desc">Installation instructions</span>
+            </div>
+            <div class="tp-help-item">
+              <span class="tp-help-cmd">stats, s</span>
+              <span class="tp-help-desc">View project statistics</span>
+            </div>
+            <div class="tp-help-item">
+              <span class="tp-help-cmd">demo, examples</span>
+              <span class="tp-help-desc">Run interactive demo</span>
+            </div>
+            <div class="tp-help-item">
+              <span class="tp-help-cmd">github</span>
+              <span class="tp-help-desc">Open GitHub repository</span>
+            </div>
+            <div class="tp-help-item">
+              <span class="tp-help-cmd">home, exit, e</span>
+              <span class="tp-help-desc">Go to main site</span>
+            </div>
+            <div class="tp-help-item">
+              <span class="tp-help-cmd">clear, cls</span>
+              <span class="tp-help-desc">Clear terminal</span>
+            </div>
+            <div class="tp-help-item">
+              <span class="tp-help-cmd">caro "..."</span>
+              <span class="tp-help-desc">Try a sample command</span>
+            </div>
+          </div>
+        `);
+      }
+
+      function showSection(sectionId) {
+        const section = document.getElementById('section-' + sectionId);
+        if (section) {
+          // Hide all sections first
+          document.querySelectorAll('.tp-section').forEach(s => s.style.display = 'none');
+          // Show the requested section
+          section.style.display = 'block';
+          // Scroll to it
+          section.scrollIntoView({ behavior: 'smooth' });
+          addOutput(`Showing ${sectionId}...`, 'info');
         }
-      });
-    });
+      }
+
+      function runDemo() {
+        addOutput('Running interactive demo...', 'info');
+        addOutput('', '');
+
+        const demos = [
+          { prompt: 'find all PDF files larger than 10MB', result: 'find . -name "*.pdf" -type f -size +10M', safe: true },
+          { prompt: 'delete everything in system root', result: 'rm -rf /', safe: false },
+          { prompt: 'show disk usage sorted by size', result: 'du -sh */ | sort -rh | head -10', safe: true },
+        ];
+
+        let i = 0;
+        function showNext() {
+          if (i >= demos.length) return;
+
+          const demo = demos[i];
+          addOutput(`$ caro "${demo.prompt}"`, 'cmd');
+
+          setTimeout(() => {
+            addOutput(`🐕 Caro: ${demo.result}`, 'result');
+            if (demo.safe) {
+              addOutput('✓ Safe to run on your system', 'info');
+            } else {
+              addOutput('✕ BLOCKED: Dangerous pattern detected', 'error');
+            }
+            addOutput('', '');
+            i++;
+            setTimeout(showNext, 1500);
+          }, 500);
+        }
+
+        setTimeout(showNext, 500);
+      }
+
+      function simulateCaroCommand(cmd) {
+        const prompt = cmd.replace(/^caro\s+["']?|["']?$/g, '');
+
+        // Simulate some responses
+        const responses = {
+          'find all python files': { result: 'find . -name "*.py" -type f', safe: true },
+          'find python files': { result: 'find . -name "*.py" -type f', safe: true },
+          'list files': { result: 'ls -la', safe: true },
+          'show disk usage': { result: 'df -h', safe: true },
+          'delete everything': { result: 'rm -rf /', safe: false },
+          'rm -rf': { result: 'rm -rf /', safe: false },
+        };
+
+        setTimeout(() => {
+          // Find a matching response or generate a generic one
+          let response = null;
+          for (const [key, val] of Object.entries(responses)) {
+            if (prompt.toLowerCase().includes(key)) {
+              response = val;
+              break;
+            }
+          }
+
+          if (!response) {
+            response = { result: `# Command for: ${prompt}`, safe: true };
+          }
+
+          addOutput(`🐕 Caro: ${response.result}`, 'result');
+          if (response.safe) {
+            addOutput('✓ Safe to run on your system', 'info');
+          } else {
+            addOutput('✕ BLOCKED: Dangerous pattern detected', 'error');
+          }
+        }, 300);
+      }
+    })();
   </script>
 </body>
 </html>
