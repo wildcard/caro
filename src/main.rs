@@ -1,10 +1,10 @@
+use caro::backends::embedded::EmbeddedModelBackend;
+use caro::backends::{CommandGenerator, StaticMatcher};
 use caro::cli::{CliApp, CliError, IntoCliArgs};
 use caro::config::ConfigManager;
-use caro::eval::{EvalResults, EvalSuite, CategoryResults, IndividualResult};
-use caro::backends::{CommandGenerator, StaticMatcher};
-use caro::backends::embedded::EmbeddedModelBackend;
-use caro::prompts::CapabilityProfile;
+use caro::eval::{CategoryResults, EvalResults, EvalSuite, IndividualResult};
 use caro::models::{CommandRequest, ShellType};
+use caro::prompts::CapabilityProfile;
 use clap::Parser;
 use std::collections::HashMap;
 use std::process;
@@ -323,13 +323,15 @@ async fn run_evaluation_tests(
             let profile = CapabilityProfile::ubuntu();
             Box::new(StaticMatcher::new(profile))
         }
-        "embedded" => {
-            Box::new(EmbeddedModelBackend::new().map_err(|e| {
-                format!("Failed to create embedded backend: {}", e)
-            })?)
-        }
+        "embedded" => Box::new(
+            EmbeddedModelBackend::new()
+                .map_err(|e| format!("Failed to create embedded backend: {}", e))?,
+        ),
         _ => {
-            return Err(format!("Unknown backend: {}. Supported: static, embedded", backend_name));
+            return Err(format!(
+                "Unknown backend: {}. Supported: static, embedded",
+                backend_name
+            ));
         }
     };
 
@@ -371,7 +373,9 @@ async fn run_evaluation_tests(
 
         let (passed, actual, error) = match result {
             Ok(cmd) => {
-                let matches = test_case.expected_outputs.iter()
+                let matches = test_case
+                    .expected_outputs
+                    .iter()
                     .any(|expected| cmd.command == *expected);
                 (matches, Some(cmd.command), None)
             }
@@ -395,13 +399,15 @@ async fn run_evaluation_tests(
 
         // Update category stats
         let category_key = format!("{}", test_case.category);
-        let cat_stats = results.results_by_category
-            .entry(category_key)
-            .or_insert(CategoryResults {
-                total: 0,
-                passed: 0,
-                pass_rate: 0.0,
-            });
+        let cat_stats =
+            results
+                .results_by_category
+                .entry(category_key)
+                .or_insert(CategoryResults {
+                    total: 0,
+                    passed: 0,
+                    pass_rate: 0.0,
+                });
         cat_stats.total += 1;
         if passed {
             cat_stats.passed += 1;
@@ -448,17 +454,22 @@ async fn main() {
 
     // Handle subcommands first
     match cli.command {
-        Some(Commands::Doctor) => {
-            match caro::doctor::run_diagnostics().await {
-                Ok(()) => process::exit(0),
-                Err(e) => {
-                    eprintln!("Error running diagnostics: {}", e);
-                    process::exit(1);
-                }
+        Some(Commands::Doctor) => match caro::doctor::run_diagnostics().await {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("Error running diagnostics: {}", e);
+                process::exit(1);
             }
-        }
-        Some(Commands::Test { backend, verbose, suite, profile }) => {
-            match run_evaluation_tests(&backend, verbose, suite.as_deref(), profile.as_deref()).await {
+        },
+        Some(Commands::Test {
+            backend,
+            verbose,
+            suite,
+            profile,
+        }) => {
+            match run_evaluation_tests(&backend, verbose, suite.as_deref(), profile.as_deref())
+                .await
+            {
                 Ok(()) => process::exit(0),
                 Err(e) => {
                     eprintln!("Error running tests: {}", e);

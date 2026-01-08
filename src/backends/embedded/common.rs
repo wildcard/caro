@@ -119,7 +119,7 @@ mod tests {
     #[test]
     fn test_embedded_config_default() {
         let config = EmbeddedConfig::default();
-        assert_eq!(config.temperature, 0.1);  // Updated for deterministic command generation
+        assert_eq!(config.temperature, 0.1); // Updated for deterministic command generation
         assert_eq!(config.max_tokens, 100);
         assert_eq!(config.top_p, 0.9);
         assert_eq!(config.stop_tokens.len(), 2);

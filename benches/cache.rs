@@ -12,8 +12,8 @@
 //! - cache_remove_model: 100ns-1μs (hash map remove + file I/O)
 //! - cache_lru_eviction_full: <1μs per eviction (iterate + remove)
 
-use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion};
-use std::path::PathBuf;
+use criterion::{criterion_group, criterion_main, BatchSize, Criterion};
+use std::hint::black_box;
 use tempfile::TempDir;
 
 use caro::cache::ManifestManager;

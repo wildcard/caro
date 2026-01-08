@@ -4,7 +4,7 @@ subtasks: ["T022", "T023", "T024", "T025", "T026", "T027", "T028", "T029", "T030
 title: "Context & Logging Benchmarks"
 phase: "Phase 1 - Benchmark Implementation"
 lane: "done"
-assignee: ""
+assignee: "claude"
 agent: "claude"
 shell_pid: "39241"
 review_status: ""

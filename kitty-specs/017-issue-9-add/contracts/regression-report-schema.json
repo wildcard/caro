@@ -1,0 +1,262 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/wildcard/caro/schemas/regression-report.json",
+  "title": "Benchmark Regression Report",
+  "description": "Schema for CI-generated performance regression reports (FR2.1)",
+  "type": "object",
+  "required": [
+    "pr_number",
+    "baseline_commit",
+    "current_commit",
+    "regressions",
+    "improvements",
+    "threshold",
+    "status"
+  ],
+  "properties": {
+    "pr_number": {
+      "description": "GitHub PR number (null for non-PR runs)",
+      "oneOf": [
+        { "type": "integer", "minimum": 1 },
+        { "type": "null" }
+      ]
+    },
+    "baseline_commit": {
+      "description": "Git commit SHA used as baseline (typically main branch)",
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "current_commit": {
+      "description": "Git commit SHA of current changes",
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "regressions": {
+      "description": "List of detected performance regressions",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/regression"
+      }
+    },
+    "improvements": {
+      "description": "List of performance improvements (for context)",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/improvement"
+      }
+    },
+    "threshold": {
+      "description": "Regression thresholds used for detection",
+      "$ref": "#/definitions/threshold"
+    },
+    "status": {
+      "description": "Overall report status",
+      "type": "string",
+      "enum": ["pass", "fail", "warning"]
+    },
+    "timestamp": {
+      "description": "Report generation timestamp (ISO 8601)",
+      "type": "string",
+      "format": "date-time"
+    },
+    "environment": {
+      "description": "Execution environment metadata",
+      "$ref": "#/definitions/environment"
+    }
+  },
+  "definitions": {
+    "regression": {
+      "type": "object",
+      "required": [
+        "benchmark_id",
+        "baseline_mean",
+        "current_mean",
+        "delta_percent",
+        "statistical_significance",
+        "severity"
+      ],
+      "properties": {
+        "benchmark_id": {
+          "description": "Benchmark identifier (e.g., 'cache/get_model')",
+          "type": "string",
+          "pattern": "^[a-z_]+/[a-z_]+$"
+        },
+        "baseline_mean": {
+          "description": "Baseline mean execution time",
+          "$ref": "#/definitions/duration"
+        },
+        "current_mean": {
+          "description": "Current mean execution time",
+          "$ref": "#/definitions/duration"
+        },
+        "delta_percent": {
+          "description": "Performance change percentage (positive = regression)",
+          "type": "number",
+          "minimum": 0
+        },
+        "statistical_significance": {
+          "description": "P-value from statistical test (< 0.05 = significant)",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "severity": {
+          "description": "Regression severity classification",
+          "type": "string",
+          "enum": ["critical", "high", "medium"]
+        },
+        "affected_files": {
+          "description": "Source files potentially causing regression",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "improvement": {
+      "type": "object",
+      "required": [
+        "benchmark_id",
+        "baseline_mean",
+        "current_mean",
+        "delta_percent"
+      ],
+      "properties": {
+        "benchmark_id": {
+          "description": "Benchmark identifier",
+          "type": "string"
+        },
+        "baseline_mean": {
+          "description": "Baseline mean execution time",
+          "$ref": "#/definitions/duration"
+        },
+        "current_mean": {
+          "description": "Current mean execution time (faster)",
+          "$ref": "#/definitions/duration"
+        },
+        "delta_percent": {
+          "description": "Performance change percentage (negative = improvement)",
+          "type": "number",
+          "maximum": 0
+        }
+      }
+    },
+    "duration": {
+      "type": "object",
+      "required": ["value", "unit"],
+      "properties": {
+        "value": {
+          "description": "Numeric duration value",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "unit": {
+          "description": "Time unit",
+          "type": "string",
+          "enum": ["ns", "us", "ms", "s"]
+        }
+      }
+    },
+    "threshold": {
+      "type": "object",
+      "required": ["time_percent", "memory_percent"],
+      "properties": {
+        "time_percent": {
+          "description": "Time regression threshold percentage (default: 15)",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "memory_percent": {
+          "description": "Memory regression threshold percentage (default: 20)",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "properties": {
+        "os": {
+          "type": "string",
+          "enum": ["ubuntu", "macos", "windows"]
+        },
+        "os_version": {
+          "type": "string"
+        },
+        "cpu": {
+          "type": "string"
+        },
+        "cpu_cores": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "memory_gb": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "rust_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "pr_number": 123,
+      "baseline_commit": "abc123def456789012345678901234567890abcd",
+      "current_commit": "def456abc789012345678901234567890abcdef12",
+      "regressions": [
+        {
+          "benchmark_id": "config/load_large",
+          "baseline_mean": {
+            "value": 12.5,
+            "unit": "ms"
+          },
+          "current_mean": {
+            "value": 18.3,
+            "unit": "ms"
+          },
+          "delta_percent": 46.4,
+          "statistical_significance": 0.001,
+          "severity": "critical",
+          "affected_files": [
+            "src/config/loader.rs",
+            "src/config/parser.rs"
+          ]
+        }
+      ],
+      "improvements": [
+        {
+          "benchmark_id": "cache/get_model",
+          "baseline_mean": {
+            "value": 50.2,
+            "unit": "ns"
+          },
+          "current_mean": {
+            "value": 45.2,
+            "unit": "ns"
+          },
+          "delta_percent": -9.96
+        }
+      ],
+      "threshold": {
+        "time_percent": 15.0,
+        "memory_percent": 20.0
+      },
+      "status": "fail",
+      "timestamp": "2026-01-08T15:30:00Z",
+      "environment": {
+        "os": "ubuntu",
+        "os_version": "22.04",
+        "cpu": "Intel Xeon",
+        "cpu_cores": 4,
+        "memory_gb": 16,
+        "rust_version": "1.75.0"
+      }
+    }
+  ]
+}
