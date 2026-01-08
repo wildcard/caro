@@ -2,9 +2,8 @@
 //!
 //! Manages streaming downloads with progress bars, .part file handling, and atomic completion.
 
-use crate::cache::{CacheError, HfHubClient, StreamingHasher};
+use crate::cache::{CacheError, DownloadProgress, HfHubClient, StreamingHasher};
 use futures::StreamExt;
-use indicatif::{ProgressBar, ProgressStyle};
 use std::path::{Path, PathBuf};
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
@@ -102,8 +101,8 @@ pub async fn download_file(
         content_length
     };
 
-    // Create progress bar
-    let progress = create_progress_bar(total_size);
+    // Create progress tracker
+    let mut progress = DownloadProgress::new(total_size);
 
     // Set initial progress if resuming
     if let Some(resume) = resume_from {
@@ -122,7 +121,6 @@ pub async fn download_file(
 
     // Stream chunks to disk
     let mut stream = response.bytes_stream();
-    let mut downloaded: u64 = resume_from.unwrap_or(0);
 
     while let Some(chunk_result) = stream.next().await {
         let chunk = chunk_result.map_err(|e| {
@@ -131,15 +129,14 @@ pub async fn download_file(
 
         file.write_all(&chunk).await?;
         hasher.update(&chunk); // Update checksum as we go
-        downloaded += chunk.len() as u64;
-        progress.set_position(downloaded);
+        progress.update(chunk.len() as u64); // Update progress with chunk size
     }
 
     // Ensure all data is written
     file.flush().await?;
     drop(file);
 
-    progress.finish_with_message("Download complete");
+    progress.finish();
 
     // Finalize checksum
     let actual_checksum = hasher.finalize();
@@ -147,7 +144,8 @@ pub async fn download_file(
     // Validate checksum if expected value provided
     if let Some(expected) = expected_checksum {
         if actual_checksum != expected {
-            // Delete the invalid file
+            // Mark progress as failed and delete the invalid file
+            progress.finish_with_error("Checksum mismatch");
             let _ = tokio::fs::remove_file(&part_path).await;
             return Err(CacheError::ChecksumMismatch {
                 model_id: url.to_string(), // Use URL as identifier
@@ -161,31 +159,6 @@ pub async fn download_file(
     tokio::fs::rename(&part_path, dest_path).await?;
 
     Ok((dest_path.to_path_buf(), actual_checksum))
-}
-
-/// Create a progress bar for downloads
-fn create_progress_bar(content_length: Option<u64>) -> ProgressBar {
-    match content_length {
-        Some(len) => {
-            let pb = ProgressBar::new(len);
-            pb.set_style(
-                ProgressStyle::default_bar()
-                    .template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({bytes_per_sec}, {eta})")
-                    .expect("Failed to create progress bar template")
-                    .progress_chars("#>-"),
-            );
-            pb
-        }
-        None => {
-            let pb = ProgressBar::new_spinner();
-            pb.set_style(
-                ProgressStyle::default_spinner()
-                    .template("{spinner:.green} [{elapsed_precise}] {bytes} ({bytes_per_sec})")
-                    .expect("Failed to create spinner template"),
-            );
-            pb
-        }
-    }
 }
 
 #[cfg(test)]
@@ -318,18 +291,6 @@ mod tests {
         let (path, _checksum) = result.unwrap();
         assert_eq!(path, dest_path);
         assert!(dest_path.exists());
-    }
-
-    #[test]
-    fn test_create_progress_bar_with_size() {
-        let pb = create_progress_bar(Some(1024));
-        assert_eq!(pb.length(), Some(1024));
-    }
-
-    #[test]
-    fn test_create_progress_bar_without_size() {
-        let pb = create_progress_bar(None);
-        assert!(pb.is_finished() == false);
     }
 
     #[tokio::test]

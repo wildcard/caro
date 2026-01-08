@@ -223,12 +223,12 @@ This document breaks down the implementation into executable work packages. Each
 **Objective**: Integrate download with cache manifest using atomic updates and file locking.
 
 **Subtasks**:
-- [ ] T032: Enhance src/cache/manifest.rs with fd-lock dependency
-- [ ] T033: Implement atomic manifest updates (read → modify → write with lock)
-- [ ] T034: Add model entry to manifest after successful download
-- [ ] T035: Update CacheManager::download_model() to call download logic
-- [ ] T036: Handle manifest lock contention gracefully (fail fast)
-- [ ] T037: Add unit tests for concurrent manifest updates
+- [x] T032: Enhance src/cache/manifest.rs with fd-lock dependency
+- [x] T033: Implement atomic manifest updates (read → modify → write with lock)
+- [x] T034: Add model entry to manifest after successful download
+- [x] T035: Update CacheManager::download_model() to call download logic
+- [x] T036: Handle manifest lock contention gracefully (fail fast)
+- [x] T037: Add unit tests for concurrent manifest updates
 
 **Success Criteria**:
 - Manifest updates are atomic (no partial writes)

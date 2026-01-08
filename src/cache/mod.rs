@@ -18,6 +18,9 @@ pub use download::download_file;
 mod checksum;
 pub use checksum::StreamingHasher;
 
+mod progress;
+pub use progress::DownloadProgress;
+
 /// Cache-related errors
 #[derive(Debug, thiserror::Error)]
 pub enum CacheError {
