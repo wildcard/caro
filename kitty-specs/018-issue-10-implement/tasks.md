@@ -11,13 +11,13 @@ This document breaks down the implementation into executable work packages. Each
 
 | ID | Title | Subtasks | Status | Prompt |
 |----|-------|----------|--------|--------|
-| WP01 | Setup & Dependencies | 6 | ⬜ Planned | [WP01-setup-dependencies.md](tasks/planned/WP01-setup-dependencies.md) |
-| WP02 | HTTP Client Module | 6 | ⬜ Planned | [WP02-http-client.md](tasks/planned/WP02-http-client.md) |
-| WP03 | Download Orchestrator | 7 | ⬜ Planned | [WP03-download-orchestrator.md](tasks/planned/WP03-download-orchestrator.md) |
-| WP04 | Checksum Validation | 6 | ⬜ Planned | [WP04-checksum-validation.md](tasks/planned/WP04-checksum-validation.md) |
-| WP05 | Resume Logic | 6 | ⬜ Planned | [WP05-resume-logic.md](tasks/planned/WP05-resume-logic.md) |
-| WP06 | Manifest Integration | 6 | ⬜ Planned | [WP06-manifest-integration.md](tasks/planned/WP06-manifest-integration.md) |
-| WP07 | Progress UI | 7 | ⬜ Planned | [WP07-progress-ui.md](tasks/planned/WP07-progress-ui.md) |
+| WP01 | Setup & Dependencies | 6 | ✅ Complete | [WP01-setup-dependencies.md](tasks/planned/WP01-setup-dependencies.md) |
+| WP02 | HTTP Client Module | 6 | ✅ Complete | [WP02-http-client.md](tasks/planned/WP02-http-client.md) |
+| WP03 | Download Orchestrator | 7 | ✅ Complete | [WP03-download-orchestrator.md](tasks/planned/WP03-download-orchestrator.md) |
+| WP04 | Checksum Validation | 6 | ✅ Complete | [WP04-checksum-validation.md](tasks/planned/WP04-checksum-validation.md) |
+| WP05 | Resume Logic | 6 | ✅ Complete | [WP05-resume-logic.md](tasks/planned/WP05-resume-logic.md) |
+| WP06 | Manifest Integration | 6 | ✅ Complete | [WP06-manifest-integration.md](tasks/planned/WP06-manifest-integration.md) |
+| WP07 | Progress UI | 7 | ✅ Complete | [WP07-progress-ui.md](tasks/planned/WP07-progress-ui.md) |
 | WP08 | Error Handling | 6 | ⬜ Planned | [WP08-error-handling.md](tasks/planned/WP08-error-handling.md) |
 | WP09 | Unit Tests | 8 | ⬜ Planned | [WP09-unit-tests.md](tasks/planned/WP09-unit-tests.md) |
 | WP10 | Integration Tests | 7 | ⬜ Planned | [WP10-integration-tests.md](tasks/planned/WP10-integration-tests.md) |
@@ -252,13 +252,13 @@ This document breaks down the implementation into executable work packages. Each
 **Objective**: Implement progress bar with download speed and ETA using indicatif.
 
 **Subtasks**:
-- [ ] T038: Create src/cache/progress.rs module
-- [ ] T039: Implement DownloadProgress struct (bytes, speed, ETA)
-- [ ] T040: Configure indicatif ProgressBar with template from plan
-- [ ] T041: Integrate progress bar with download_file
-- [ ] T042: Calculate download speed and ETA (rolling average)
-- [ ] T043: Handle progress bar cleanup on completion/error
-- [ ] T044: Manual testing for visual verification
+- [x] T038: Create src/cache/progress.rs module
+- [x] T039: Implement DownloadProgress struct (bytes, speed, ETA)
+- [x] T040: Configure indicatif ProgressBar with template from plan
+- [x] T041: Integrate progress bar with download_file
+- [x] T042: Calculate download speed and ETA (rolling average)
+- [x] T043: Handle progress bar cleanup on completion/error
+- [x] T044: Manual testing for visual verification
 
 **Success Criteria**:
 - Progress bar displays bytes downloaded / total bytes
