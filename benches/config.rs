@@ -92,7 +92,7 @@ fn bench_config_merge_with_cli(c: &mut Criterion) {
             |(temp_dir, config_path)| {
                 let manager = ConfigManager::with_config_path(config_path).unwrap();
                 let _config = manager
-                    .merge_with_cli(Some("high"), Some("zsh"), Some("debug"))
+                    .merge_with_cli(Some("strict"), Some("zsh"), Some("debug"))
                     .unwrap();
                 drop(temp_dir);
             },
