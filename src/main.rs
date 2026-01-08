@@ -152,6 +152,13 @@ pub fn truncate_at_shell_operator(args: Vec<String>) -> Vec<String> {
 // CLI Argument Parsing
 // =============================================================================
 
+/// Export format for assessment results
+#[derive(Debug, Clone, clap::ValueEnum)]
+enum ExportFormat {
+    Json,
+    Markdown,
+}
+
 /// Subcommands for caro
 #[derive(Parser, Clone)]
 enum Commands {
@@ -159,7 +166,15 @@ enum Commands {
     Doctor,
 
     /// Assess system resources and get model recommendations
-    Assess,
+    Assess {
+        /// Export format (json, markdown)
+        #[arg(long, value_enum)]
+        export: Option<ExportFormat>,
+
+        /// Output file path
+        #[arg(long, short = 'o')]
+        output: Option<String>,
+    },
 
     /// Run evaluation tests on command generation quality
     Test {
@@ -310,6 +325,48 @@ impl IntoCliArgs for Cli {
     fn interactive(&self) -> bool {
         self.interactive
     }
+}
+
+// =============================================================================
+// Assessment Command
+// =============================================================================
+
+/// Run assessment command with optional export
+async fn run_assessment_command(
+    export_format: Option<ExportFormat>,
+    output_path: Option<String>,
+) -> Result<(), String> {
+    use caro::assessment::{AssessmentResult, Recommender, SystemProfile, formatters};
+
+    let profile = SystemProfile::detect()
+        .map_err(|e| format!("Assessment failed: {}", e))?;
+
+    let recommendations = Recommender::recommend(&profile);
+    let warnings = vec![]; // Collect any warnings during detection
+
+    let result = AssessmentResult::new(profile, recommendations, warnings);
+
+    if let Some(format) = export_format {
+        let content = match format {
+            ExportFormat::Json => formatters::json::format(&result)
+                .map_err(|e| format!("JSON serialization failed: {}", e))?,
+            ExportFormat::Markdown => formatters::markdown::format(&result),
+        };
+
+        if let Some(path) = output_path {
+            std::fs::write(&path, &content)
+                .map_err(|e| format!("Failed to write to {}: {}", path, e))?;
+            println!("Assessment exported to: {}", path);
+        } else {
+            println!("{}", content);
+        }
+    } else {
+        // Default: human-readable format
+        let formatted = formatters::human::format(&result);
+        println!("{}", formatted);
+    }
+
+    Ok(())
 }
 
 // =============================================================================
@@ -466,8 +523,8 @@ async fn main() {
                 }
             }
         }
-        Some(Commands::Assess) => {
-            match caro::assessment::run_assessment().await {
+        Some(Commands::Assess { export, output }) => {
+            match run_assessment_command(export, output).await {
                 Ok(()) => process::exit(0),
                 Err(e) => {
                     eprintln!("Error running assessment: {}", e);
