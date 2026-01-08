@@ -2,6 +2,7 @@ use caro::cli::{CliApp, CliError, IntoCliArgs};
 use caro::config::ConfigManager;
 use caro::eval::{EvalResults, EvalSuite, CategoryResults, IndividualResult};
 use caro::backends::{CommandGenerator, StaticMatcher};
+use caro::backends::embedded::EmbeddedModelBackend;
 use caro::prompts::CapabilityProfile;
 use caro::models::{CommandRequest, ShellType};
 use clap::Parser;
@@ -316,14 +317,19 @@ async fn run_evaluation_tests(
     println!("Running evaluation tests with backend: {}", backend_name);
     println!();
 
-    // Create backend
-    let backend = match backend_name {
+    // Create backend (boxed to allow different types)
+    let backend: Box<dyn CommandGenerator> = match backend_name {
         "static" => {
             let profile = CapabilityProfile::ubuntu();
-            StaticMatcher::new(profile)
+            Box::new(StaticMatcher::new(profile))
+        }
+        "embedded" => {
+            Box::new(EmbeddedModelBackend::new().map_err(|e| {
+                format!("Failed to create embedded backend: {}", e)
+            })?)
         }
         _ => {
-            return Err(format!("Unknown backend: {}. Supported: static", backend_name));
+            return Err(format!("Unknown backend: {}. Supported: static, embedded", backend_name));
         }
     };
 

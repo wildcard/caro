@@ -9,6 +9,7 @@ use async_trait::async_trait;
 use crate::backends::embedded::{CpuBackend, EmbeddedConfig, InferenceBackend, ModelVariant};
 use crate::backends::{BackendInfo, CommandGenerator, GeneratorError};
 use crate::models::{BackendType, CommandRequest, GeneratedCommand, RiskLevel};
+use crate::safety::{SafetyConfig, SafetyValidator};
 use crate::ModelLoader;
 
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
@@ -22,6 +23,7 @@ pub struct EmbeddedModelBackend {
     backend: Arc<Mutex<Box<dyn InferenceBackend>>>,
     config: EmbeddedConfig,
     model_loader: ModelLoader,
+    safety_validator: Arc<SafetyValidator>,
 }
 
 impl EmbeddedModelBackend {
@@ -65,12 +67,19 @@ impl EmbeddedModelBackend {
             message: format!("Failed to initialize model loader: {}", e),
         })?;
 
+        // Initialize safety validator with moderate config
+        let safety_validator = Arc::new(
+            SafetyValidator::new(SafetyConfig::moderate())
+                .expect("Failed to initialize SafetyValidator with default config")
+        );
+
         Ok(Self {
             model_variant: variant,
             model_path,
             backend: Arc::new(Mutex::new(backend)),
             config: EmbeddedConfig::default(),
             model_loader,
+            safety_validator,
         })
     }
 
@@ -237,13 +246,34 @@ impl CommandGenerator for EmbeddedModelBackend {
         // Parse the response
         let command = self.parse_command_response(&raw_response)?;
 
+        // SAFETY VALIDATION: Validate the GENERATED command
+        let safety_result = self.safety_validator
+            .validate_command(&command, request.shell)
+            .await
+            .map_err(|e| GeneratorError::ValidationFailed {
+                reason: format!("Safety validation error: {}", e),
+            })?;
+
+        // If generated command is unsafe, return error
+        if !safety_result.allowed {
+            return Err(GeneratorError::Unsafe {
+                reason: safety_result.explanation.clone(),
+                risk_level: safety_result.risk_level,
+                warnings: safety_result.warnings.clone(),
+            });
+        }
+
         let generation_time = start_time.elapsed().as_millis() as u64;
 
         Ok(GeneratedCommand {
             command,
             explanation: format!("Generated using {} backend", self.model_variant),
-            safety_level: RiskLevel::Safe, // Default to safe - safety validation happens later
-            estimated_impact: "Minimal system impact".to_string(),
+            safety_level: safety_result.risk_level, // Use actual risk level from validation
+            estimated_impact: if safety_result.warnings.is_empty() {
+                "Minimal system impact".to_string()
+            } else {
+                format!("Warnings: {}", safety_result.warnings.join(", "))
+            },
             alternatives: vec![], // Embedded model generates single command
             backend_used: "embedded".to_string(),
             generation_time_ms: generation_time,
