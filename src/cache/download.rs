@@ -2,26 +2,31 @@
 //!
 //! Manages streaming downloads with progress bars, .part file handling, and atomic completion.
 
-use crate::cache::{CacheError, HfHubClient};
+use crate::cache::{CacheError, HfHubClient, StreamingHasher};
 use futures::StreamExt;
 use indicatif::{ProgressBar, ProgressStyle};
 use std::path::{Path, PathBuf};
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 
-/// Download a file from Hugging Face Hub
+/// Download a file from Hugging Face Hub with optional checksum validation
 ///
 /// Downloads the file in a streaming fashion, writing chunks to disk as they arrive.
 /// Uses a temporary .part file during download, then renames atomically on completion.
+/// Optionally validates the downloaded file's SHA256 checksum.
 ///
 /// # Arguments
 /// * `client` - HTTP client for HF Hub
 /// * `url` - Full URL to download
 /// * `dest_path` - Final destination path
 /// * `expected_size` - Expected file size in bytes (for progress bar)
+/// * `expected_checksum` - Optional SHA256 checksum to validate against
 ///
 /// # Returns
-/// Path to the downloaded file
+/// Tuple of (path to downloaded file, computed checksum)
+///
+/// # Errors
+/// Returns `CacheError::ChecksumMismatch` if expected_checksum is provided and doesn't match
 ///
 /// # Example
 /// ```no_run
@@ -33,7 +38,8 @@ use tokio::io::AsyncWriteExt;
 /// let url = client.get_file_url("meta-llama/Llama-2-7b-hf", "config.json", None)?;
 /// let dest = PathBuf::from("/tmp/config.json");
 ///
-/// download_file(&client, &url, &dest, Some(1024)).await?;
+/// let (path, checksum) = download_file(&client, &url, &dest, Some(1024), None).await?;
+/// println!("Downloaded to {:?} with checksum {}", path, checksum);
 /// # Ok(())
 /// # }
 /// ```
@@ -42,7 +48,8 @@ pub async fn download_file(
     url: &str,
     dest_path: &Path,
     expected_size: Option<u64>,
-) -> Result<PathBuf, CacheError> {
+    expected_checksum: Option<&str>,
+) -> Result<(PathBuf, String), CacheError> {
     // Create .part file path
     let part_path = dest_path.with_extension("part");
 
@@ -72,6 +79,9 @@ pub async fn download_file(
     // Open .part file for writing
     let mut file = File::create(&part_path).await?;
 
+    // Create streaming hasher for checksum validation
+    let mut hasher = StreamingHasher::new();
+
     // Stream chunks to disk
     let mut stream = response.bytes_stream();
     let mut downloaded: u64 = 0;
@@ -82,6 +92,7 @@ pub async fn download_file(
         })?;
 
         file.write_all(&chunk).await?;
+        hasher.update(&chunk); // Update checksum as we go
         downloaded += chunk.len() as u64;
         progress.set_position(downloaded);
     }
@@ -92,10 +103,26 @@ pub async fn download_file(
 
     progress.finish_with_message("Download complete");
 
+    // Finalize checksum
+    let actual_checksum = hasher.finalize();
+
+    // Validate checksum if expected value provided
+    if let Some(expected) = expected_checksum {
+        if actual_checksum != expected {
+            // Delete the invalid file
+            let _ = tokio::fs::remove_file(&part_path).await;
+            return Err(CacheError::ChecksumMismatch {
+                model_id: url.to_string(), // Use URL as identifier
+                expected: expected.to_string(),
+                actual: actual_checksum,
+            });
+        }
+    }
+
     // Atomically rename .part -> final
     tokio::fs::rename(&part_path, dest_path).await?;
 
-    Ok(dest_path.to_path_buf())
+    Ok((dest_path.to_path_buf(), actual_checksum))
 }
 
 /// Create a progress bar for downloads
@@ -153,13 +180,20 @@ mod tests {
         let client = HfHubClient::new().unwrap();
         let url = format!("{}/test-model/resolve/main/file.bin", mock_server.uri());
 
-        let result = download_file(&client, &url, &dest_path, Some(17)).await;
+        let result = download_file(&client, &url, &dest_path, Some(17), None).await;
         assert!(result.is_ok());
 
+        let (path, checksum) = result.unwrap();
+
         // Verify file was downloaded
+        assert_eq!(path, dest_path);
         assert!(dest_path.exists());
         let content = tokio::fs::read_to_string(&dest_path).await.unwrap();
         assert_eq!(content, "test file content");
+
+        // Verify checksum is valid hex string
+        assert_eq!(checksum.len(), 64);
+        assert!(checksum.chars().all(|c| c.is_ascii_hexdigit()));
 
         // Verify .part file was removed
         let part_path = dest_path.with_extension("part");
@@ -181,8 +215,11 @@ mod tests {
         let client = HfHubClient::new().unwrap();
         let url = format!("{}/test-model/resolve/main/file.bin", mock_server.uri());
 
-        let result = download_file(&client, &url, &dest_path, None).await;
+        let result = download_file(&client, &url, &dest_path, None, None).await;
         assert!(result.is_ok());
+
+        let (path, _checksum) = result.unwrap();
+        assert_eq!(path, dest_path);
         assert!(dest_path.exists());
         assert!(dest_path.parent().unwrap().exists());
     }
@@ -209,12 +246,17 @@ mod tests {
         let client = HfHubClient::new().unwrap();
         let url = format!("{}/test-model/resolve/main/large.bin", mock_server.uri());
 
-        let result = download_file(&client, &url, &dest_path, Some(1024 * 1024)).await;
+        let result = download_file(&client, &url, &dest_path, Some(1024 * 1024), None).await;
         assert!(result.is_ok());
+
+        let (_path, checksum) = result.unwrap();
 
         // Verify file size
         let metadata = tokio::fs::metadata(&dest_path).await.unwrap();
         assert_eq!(metadata.len(), 1024 * 1024);
+
+        // Verify checksum was computed
+        assert_eq!(checksum.len(), 64);
     }
 
     #[tokio::test]
@@ -232,8 +274,11 @@ mod tests {
         let client = HfHubClient::new().unwrap();
         let url = format!("{}/test-model/resolve/main/file.bin", mock_server.uri());
 
-        let result = download_file(&client, &url, &dest_path, None).await;
+        let result = download_file(&client, &url, &dest_path, None, None).await;
         assert!(result.is_ok());
+
+        let (path, _checksum) = result.unwrap();
+        assert_eq!(path, dest_path);
         assert!(dest_path.exists());
     }
 
@@ -247,5 +292,76 @@ mod tests {
     fn test_create_progress_bar_without_size() {
         let pb = create_progress_bar(None);
         assert!(pb.is_finished() == false);
+    }
+
+    #[tokio::test]
+    async fn test_download_with_valid_checksum() {
+        let mock_server = MockServer::start().await;
+        let temp_dir = TempDir::new().unwrap();
+        let dest_path = temp_dir.path().join("checksum_test.bin");
+
+        let test_content = b"test content for checksum validation";
+
+        // Pre-compute the expected checksum
+        let mut hasher = StreamingHasher::new();
+        hasher.update(test_content);
+        let expected_checksum = hasher.finalize();
+
+        Mock::given(method("GET"))
+            .and(path("/test-model/resolve/main/file.bin"))
+            .respond_with(ResponseTemplate::new(200).set_body_bytes(test_content))
+            .mount(&mock_server)
+            .await;
+
+        let client = HfHubClient::new().unwrap();
+        let url = format!("{}/test-model/resolve/main/file.bin", mock_server.uri());
+
+        let result = download_file(&client, &url, &dest_path, None, Some(&expected_checksum)).await;
+        assert!(result.is_ok());
+
+        let (path, actual_checksum) = result.unwrap();
+        assert_eq!(path, dest_path);
+        assert_eq!(actual_checksum, expected_checksum);
+        assert!(dest_path.exists());
+    }
+
+    #[tokio::test]
+    async fn test_download_with_invalid_checksum() {
+        let mock_server = MockServer::start().await;
+        let temp_dir = TempDir::new().unwrap();
+        let dest_path = temp_dir.path().join("checksum_mismatch.bin");
+
+        let test_content = b"test content";
+        let wrong_checksum = "0000000000000000000000000000000000000000000000000000000000000000";
+
+        Mock::given(method("GET"))
+            .and(path("/test-model/resolve/main/file.bin"))
+            .respond_with(ResponseTemplate::new(200).set_body_bytes(test_content))
+            .mount(&mock_server)
+            .await;
+
+        let client = HfHubClient::new().unwrap();
+        let url = format!("{}/test-model/resolve/main/file.bin", mock_server.uri());
+
+        let result = download_file(&client, &url, &dest_path, None, Some(wrong_checksum)).await;
+        assert!(result.is_err());
+
+        match result.unwrap_err() {
+            CacheError::ChecksumMismatch {
+                model_id,
+                expected,
+                actual,
+            } => {
+                assert!(model_id.contains("test-model"));
+                assert_eq!(expected, wrong_checksum);
+                assert_ne!(actual, wrong_checksum);
+            }
+            _ => panic!("Expected ChecksumMismatch error"),
+        }
+
+        // Verify file was NOT created (cleaned up on failure)
+        assert!(!dest_path.exists());
+        let part_path = dest_path.with_extension("part");
+        assert!(!part_path.exists());
     }
 }

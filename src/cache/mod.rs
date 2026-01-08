@@ -14,6 +14,9 @@ pub use http_client::{HfHubClient, HttpClientError};
 mod download;
 pub use download::download_file;
 
+mod checksum;
+pub use checksum::StreamingHasher;
+
 /// Cache-related errors
 #[derive(Debug, thiserror::Error)]
 pub enum CacheError {
