@@ -8,10 +8,7 @@
  * - Trust and reliability focused messaging
  * - Interactive terminal where users can TYPE commands
  *
- * Inspired by: buildkite.com's interactive terminal
- *
- * STYLE ISOLATION: All styles are scoped to .terminal-page to prevent
- * bleeding into other pages. No global selectors used.
+ * STYLE ISOLATION: All styles are scoped to .terminal-page
  */
 import { SITE_CONFIG } from '../config/site';
 ---
@@ -30,29 +27,39 @@ import { SITE_CONFIG } from '../config/site';
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://caro.sh/terminal" />
 
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Caro | Safe Shell Commands You Can Trust" />
-  <meta name="twitter:description" content="Convert natural language to validated POSIX shell commands. Safety-first design." />
-
   <link rel="icon" type="image/png" href="/caro-pixel.png" />
   <title>Caro | Your Tools Should Earn Your Trust</title>
 </head>
 <body>
-  <!-- Main wrapper with scoped class for style isolation -->
   <div class="terminal-page" data-theme="dark">
 
-    <!-- Hero Section with Interactive CLI -->
-    <section class="tp-hero">
-      <div class="tp-container">
-        <!-- Logo -->
+    <!-- Header with logo and theme switcher -->
+    <header class="tp-header">
+      <div class="tp-header-content">
         <div class="tp-logo-section">
           <img src="/caro-pixel.png" alt="Caro" class="tp-logo-img" />
           <span class="tp-logo-text">caro</span>
           <span class="tp-version">v{SITE_CONFIG.version}</span>
         </div>
 
-        <!-- Main Headline -->
+        <div class="tp-header-right">
+          <nav class="tp-nav">
+            <a href="/" class="tp-nav-link">Main Site</a>
+            <a href="https://github.com/wildcard/caro" class="tp-nav-link" target="_blank">GitHub</a>
+          </nav>
+          <div class="tp-theme-switcher">
+            <button class="tp-theme-btn tp-theme-dark active" data-theme="dark" title="Dark"></button>
+            <button class="tp-theme-btn tp-theme-light" data-theme="light" title="Light"></button>
+            <button class="tp-theme-btn tp-theme-amber" data-theme="amber" title="CRT Amber"></button>
+            <button class="tp-theme-btn tp-theme-green" data-theme="green" title="CRT Green"></button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="tp-hero">
+      <div class="tp-container">
         <h1 class="tp-headline">
           Your tools should <strong>earn your trust</strong>,<br/>
           not ask for it.
@@ -67,21 +74,13 @@ import { SITE_CONFIG } from '../config/site';
               <span class="tp-dot tp-dot-green"></span>
             </div>
             <span class="tp-terminal-title">~/caro</span>
-            <div class="tp-theme-switcher">
-              <button class="tp-theme-btn active" data-theme="dark" title="Dark">●</button>
-              <button class="tp-theme-btn" data-theme="light" title="Light">○</button>
-              <button class="tp-theme-btn" data-theme="amber" title="CRT Amber">◐</button>
-              <button class="tp-theme-btn" data-theme="green" title="CRT Green">◑</button>
-            </div>
+            <div class="tp-terminal-spacer"></div>
           </div>
 
           <div class="tp-terminal-body" id="terminal-body">
-            <!-- Terminal output will be rendered here -->
             <div id="terminal-output"></div>
-
-            <!-- Input line -->
             <div class="tp-input-line">
-              <span class="tp-prompt">~/caro $</span>
+              <span class="tp-prompt">$</span>
               <input
                 type="text"
                 id="terminal-input"
@@ -99,77 +98,26 @@ import { SITE_CONFIG } from '../config/site';
       </div>
     </section>
 
-    <!-- Content Sections (hidden by default, shown via commands) -->
+    <!-- Hidden sections shown via commands -->
     <section class="tp-section" id="section-capabilities" style="display: none;">
       <div class="tp-container">
         <h2 class="tp-section-title">Capabilities</h2>
-        <p class="tp-section-subtitle">Dependable signals built on a foundation you can trust.</p>
-
         <div class="tp-grid">
           <div class="tp-card">
-            <div class="tp-card-icon">🛡️</div>
-            <h3>Pattern-Based Safety</h3>
-            <p>52+ pre-compiled dangerous command patterns. Blocks rm -rf /, fork bombs, disk wipers. No AI hallucinations in safety checks.</p>
+            <h3>🛡️ Pattern-Based Safety</h3>
+            <p>52+ pre-compiled dangerous command patterns. Blocks rm -rf /, fork bombs, disk wipers.</p>
           </div>
           <div class="tp-card">
-            <div class="tp-card-icon">🔒</div>
-            <h3>100% Local Inference</h3>
-            <p>Your commands never leave your machine. Embedded LLM runs entirely locally. Air-gapped environments supported.</p>
+            <h3>🔒 100% Local Inference</h3>
+            <p>Your commands never leave your machine. Air-gapped environments supported.</p>
           </div>
           <div class="tp-card">
-            <div class="tp-card-icon">🌍</div>
-            <h3>Platform Aware</h3>
-            <p>Detects OS, architecture, shell type, and available commands. Generates platform-specific POSIX-compliant commands.</p>
+            <h3>🌍 Platform Aware</h3>
+            <p>Detects OS, shell type, and available commands. Generates platform-specific commands.</p>
           </div>
           <div class="tp-card">
-            <div class="tp-card-icon">⚡</div>
-            <h3>Single Binary</h3>
-            <p>No dependencies. No runtime. Just one binary. Install and run in seconds on Linux, macOS, or Windows.</p>
-          </div>
-          <div class="tp-card">
-            <div class="tp-card-icon">🎯</div>
-            <h3>Deterministic Validation</h3>
-            <p>Safety checks are pattern-based, not probabilistic. Same input = same safety verdict. Every time.</p>
-          </div>
-          <div class="tp-card">
-            <div class="tp-card-icon">🔄</div>
-            <h3>Agentic Refinement</h3>
-            <p>2-iteration loop that detects platform compatibility issues and refines complex commands automatically.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="tp-section" id="section-proof" style="display: none;">
-      <div class="tp-container">
-        <h2 class="tp-section-title">See It In Action</h2>
-
-        <div class="tp-demo-box">
-          <div class="tp-demo-example">
-            <div class="tp-demo-label">Safe Command</div>
-            <div class="tp-demo-input">$ caro "find all python files modified today"</div>
-            <div class="tp-demo-output">
-              <code>find . -name "*.py" -type f -mtime 0</code>
-              <span class="tp-demo-status tp-safe">✓ Safe to run</span>
-            </div>
-          </div>
-
-          <div class="tp-demo-example">
-            <div class="tp-demo-label">Dangerous Command Blocked</div>
-            <div class="tp-demo-input tp-danger">$ caro "delete everything recursively"</div>
-            <div class="tp-demo-output">
-              <code>rm -rf /</code>
-              <span class="tp-demo-status tp-blocked">✕ BLOCKED: System destruction pattern</span>
-            </div>
-          </div>
-
-          <div class="tp-demo-example">
-            <div class="tp-demo-label">Platform-Aware Output</div>
-            <div class="tp-demo-input">$ caro "show top 5 processes by CPU"</div>
-            <div class="tp-demo-output">
-              <code>ps aux | sort -nrk 3,3 | head -6</code>
-              <span class="tp-demo-status tp-safe">✓ Optimized for macOS (BSD syntax)</span>
-            </div>
+            <h3>⚡ Single Binary</h3>
+            <p>No dependencies. No runtime. Install and run in seconds.</p>
           </div>
         </div>
       </div>
@@ -178,28 +126,20 @@ import { SITE_CONFIG } from '../config/site';
     <section class="tp-section" id="section-install" style="display: none;">
       <div class="tp-container">
         <h2 class="tp-section-title">Install Caro</h2>
-        <p class="tp-section-subtitle">Get started in seconds. No configuration required.</p>
-
         <div class="tp-install-box">
           <div class="tp-install-method">
-            <h3>Quick Install (Recommended)</h3>
+            <h3>Quick Install</h3>
             <div class="tp-install-command">
               <code>curl -fsSL https://caro.sh/install | bash</code>
               <button class="tp-copy-btn" data-copy="curl -fsSL https://caro.sh/install | bash">Copy</button>
             </div>
           </div>
-
           <div class="tp-install-method">
             <h3>Via Cargo</h3>
             <div class="tp-install-command">
               <code>cargo install caro</code>
               <button class="tp-copy-btn" data-copy="cargo install caro">Copy</button>
             </div>
-          </div>
-
-          <div class="tp-install-method">
-            <h3>Pre-built Binaries</h3>
-            <p class="tp-install-note">Download from <a href="https://github.com/wildcard/caro/releases" target="_blank">GitHub Releases</a></p>
           </div>
         </div>
       </div>
@@ -208,7 +148,6 @@ import { SITE_CONFIG } from '../config/site';
     <section class="tp-section" id="section-stats" style="display: none;">
       <div class="tp-container">
         <h2 class="tp-section-title">By The Numbers</h2>
-
         <div class="tp-stats-grid">
           <div class="tp-stat">
             <div class="tp-stat-value">52+</div>
@@ -216,11 +155,11 @@ import { SITE_CONFIG } from '../config/site';
           </div>
           <div class="tp-stat">
             <div class="tp-stat-value">100%</div>
-            <div class="tp-stat-label">Local Inference</div>
+            <div class="tp-stat-label">Local</div>
           </div>
           <div class="tp-stat">
             <div class="tp-stat-value">0</div>
-            <div class="tp-stat-label">Cloud Dependencies</div>
+            <div class="tp-stat-label">Cloud Deps</div>
           </div>
           <div class="tp-stat">
             <div class="tp-stat-value">3</div>
@@ -230,34 +169,21 @@ import { SITE_CONFIG } from '../config/site';
       </div>
     </section>
 
-    <!-- Footer -->
     <footer class="tp-footer">
-      <div class="tp-container">
-        <div class="tp-footer-content">
-          <span>caro v{SITE_CONFIG.version} • AGPL-3.0 • Built with Rust</span>
-          <div class="tp-footer-links">
-            <a href="/">Main Site</a>
-            <a href="https://github.com/wildcard/caro" target="_blank">GitHub</a>
-            <a href="/faq">FAQ</a>
-          </div>
-        </div>
-      </div>
+      <span>caro v{SITE_CONFIG.version} • AGPL-3.0 • Built with Rust</span>
     </footer>
   </div>
 
   <style>
     /* ===========================================
-       TERMINAL PAGE STYLES - FULLY SCOPED
-       All styles prefixed with .terminal-page
-       to prevent bleeding to other pages
+       TERMINAL PAGE - FULLY SCOPED STYLES
        =========================================== */
 
-    /* CSS Variables scoped to terminal page */
     .terminal-page {
       --tp-bg: #0d1117;
       --tp-bg-secondary: #161b22;
       --tp-bg-tertiary: #21262d;
-      --tp-text: #e6edf3;
+      --tp-text: #c9d1d9;
       --tp-text-muted: #8b949e;
       --tp-text-dim: #484f58;
       --tp-accent: #ff8c42;
@@ -269,17 +195,17 @@ import { SITE_CONFIG } from '../config/site';
       --tp-cursor: #ff8c42;
       --tp-font: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
 
-      /* Base styles for the page */
       font-family: var(--tp-font);
       background: var(--tp-bg);
       color: var(--tp-text);
-      line-height: 1.6;
+      line-height: 1.5;
       min-height: 100vh;
       margin: 0;
       padding: 0;
+      display: flex;
+      flex-direction: column;
     }
 
-    /* Theme variations */
     .terminal-page[data-theme="light"] {
       --tp-bg: #ffffff;
       --tp-bg-secondary: #f6f8fa;
@@ -316,7 +242,7 @@ import { SITE_CONFIG } from '../config/site';
       --tp-border: #004400;
     }
 
-    /* CRT Scanline effect for retro themes */
+    /* CRT Scanline effect */
     .terminal-page[data-theme="amber"]::after,
     .terminal-page[data-theme="green"]::after {
       content: '';
@@ -336,57 +262,123 @@ import { SITE_CONFIG } from '../config/site';
       z-index: 9999;
     }
 
-    /* Container */
-    .terminal-page .tp-container {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 0 24px;
+    /* Header */
+    .terminal-page .tp-header {
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--tp-border);
+      background: var(--tp-bg-secondary);
+      flex-shrink: 0;
     }
 
-    /* Hero Section */
-    .terminal-page .tp-hero {
-      min-height: 100vh;
+    .terminal-page .tp-header-content {
+      max-width: 900px;
+      margin: 0 auto;
       display: flex;
-      flex-direction: column;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
-      text-align: center;
-      padding: 40px 0;
     }
 
     .terminal-page .tp-logo-section {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 40px;
+      gap: 10px;
     }
 
     .terminal-page .tp-logo-img {
-      width: 48px;
-      height: 48px;
+      width: 28px;
+      height: 28px;
       image-rendering: pixelated;
     }
 
     .terminal-page .tp-logo-text {
-      font-size: 36px;
+      font-size: 20px;
       font-weight: 700;
       color: var(--tp-accent);
     }
 
     .terminal-page .tp-version {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--tp-text-dim);
       background: var(--tp-bg-tertiary);
-      padding: 4px 8px;
-      border-radius: 4px;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .terminal-page .tp-header-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .terminal-page .tp-nav {
+      display: flex;
+      gap: 16px;
+    }
+
+    .terminal-page .tp-nav-link {
+      color: var(--tp-text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      transition: color 0.2s;
+    }
+
+    .terminal-page .tp-nav-link:hover {
+      color: var(--tp-accent);
+    }
+
+    /* Theme Switcher - colored buttons */
+    .terminal-page .tp-theme-switcher {
+      display: flex;
+      gap: 6px;
+      padding: 4px;
+      background: var(--tp-bg);
+      border-radius: 6px;
+      border: 1px solid var(--tp-border);
+    }
+
+    .terminal-page .tp-theme-btn {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+
+    .terminal-page .tp-theme-btn:hover {
+      transform: scale(1.15);
+    }
+
+    .terminal-page .tp-theme-btn.active {
+      border-color: var(--tp-text);
+    }
+
+    .terminal-page .tp-theme-dark { background: #21262d; }
+    .terminal-page .tp-theme-light { background: #f0f0f0; }
+    .terminal-page .tp-theme-amber { background: linear-gradient(135deg, #ffb000, #ff8800); }
+    .terminal-page .tp-theme-green { background: linear-gradient(135deg, #00ff00, #00aa00); }
+
+    /* Hero */
+    .terminal-page .tp-hero {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .terminal-page .tp-container {
+      width: 100%;
+      max-width: 750px;
     }
 
     .terminal-page .tp-headline {
-      font-size: clamp(24px, 4vw, 40px);
+      font-size: clamp(22px, 4vw, 36px);
       font-weight: 400;
-      margin-bottom: 40px;
+      margin-bottom: 24px;
       color: var(--tp-text);
-      line-height: 1.4;
+      line-height: 1.35;
+      text-align: center;
     }
 
     .terminal-page .tp-headline strong {
@@ -394,33 +386,31 @@ import { SITE_CONFIG } from '../config/site';
       font-weight: 600;
     }
 
-    /* Interactive Terminal */
+    /* Terminal */
     .terminal-page .tp-terminal {
-      width: 100%;
-      max-width: 700px;
       background: var(--tp-bg-secondary);
       border: 1px solid var(--tp-border);
-      border-radius: 12px;
+      border-radius: 8px;
       overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
 
     .terminal-page .tp-terminal-header {
       display: flex;
       align-items: center;
-      padding: 12px 16px;
+      padding: 10px 14px;
       background: var(--tp-bg-tertiary);
       border-bottom: 1px solid var(--tp-border);
     }
 
     .terminal-page .tp-dots {
       display: flex;
-      gap: 8px;
+      gap: 6px;
     }
 
     .terminal-page .tp-dot {
-      width: 12px;
-      height: 12px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
     }
 
@@ -431,50 +421,29 @@ import { SITE_CONFIG } from '../config/site';
     .terminal-page .tp-terminal-title {
       flex: 1;
       text-align: center;
-      font-size: 13px;
+      font-size: 12px;
       color: var(--tp-text-dim);
     }
 
-    .terminal-page .tp-theme-switcher {
-      display: flex;
-      gap: 4px;
-    }
-
-    .terminal-page .tp-theme-btn {
-      width: 20px;
-      height: 20px;
-      border: 1px solid var(--tp-border);
-      background: transparent;
-      color: var(--tp-text-muted);
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 10px;
-      transition: all 0.2s;
-    }
-
-    .terminal-page .tp-theme-btn:hover {
-      border-color: var(--tp-accent);
-      color: var(--tp-accent);
-    }
-
-    .terminal-page .tp-theme-btn.active {
-      background: var(--tp-accent);
-      border-color: var(--tp-accent);
-      color: var(--tp-bg);
+    .terminal-page .tp-terminal-spacer {
+      width: 52px;
     }
 
     .terminal-page .tp-terminal-body {
-      padding: 20px;
-      min-height: 300px;
-      max-height: 400px;
+      padding: 16px;
+      min-height: 220px;
+      max-height: 320px;
       overflow-y: auto;
+      text-align: left;
     }
 
-    /* Terminal Output */
+    /* Terminal Output - LEFT ALIGNED */
     .terminal-page .tp-output-line {
-      margin-bottom: 8px;
+      margin-bottom: 4px;
       white-space: pre-wrap;
       word-break: break-word;
+      font-size: 13px;
+      text-align: left;
     }
 
     .terminal-page .tp-output-line.tp-cmd {
@@ -482,13 +451,13 @@ import { SITE_CONFIG } from '../config/site';
     }
 
     .terminal-page .tp-output-line.tp-cmd::before {
-      content: '~/caro $ ';
+      content: '$ ';
       color: var(--tp-success);
     }
 
     .terminal-page .tp-output-line.tp-result {
       color: var(--tp-text);
-      padding-left: 16px;
+      padding-left: 12px;
     }
 
     .terminal-page .tp-output-line.tp-error {
@@ -507,33 +476,45 @@ import { SITE_CONFIG } from '../config/site';
       color: var(--tp-text-dim);
     }
 
-    /* Help menu box */
+    .terminal-page .tp-output-line.tp-success {
+      color: var(--tp-success);
+    }
+
+    /* ASCII art container */
+    .terminal-page .tp-ascii {
+      font-size: 10px;
+      line-height: 1.1;
+      color: var(--tp-accent);
+      margin-bottom: 8px;
+    }
+
+    /* Help box */
     .terminal-page .tp-help-box {
       border: 1px solid var(--tp-border);
-      border-radius: 6px;
-      padding: 16px;
-      margin: 12px 0;
+      border-radius: 4px;
+      padding: 12px;
+      margin: 8px 0;
       background: var(--tp-bg);
+      text-align: left;
     }
 
     .terminal-page .tp-help-title {
       color: var(--tp-accent);
       font-weight: 600;
-      margin-bottom: 12px;
-      font-size: 14px;
+      margin-bottom: 8px;
+      font-size: 13px;
     }
 
     .terminal-page .tp-help-item {
       display: flex;
-      gap: 16px;
-      margin-bottom: 6px;
-      font-size: 13px;
+      gap: 12px;
+      margin-bottom: 4px;
+      font-size: 12px;
     }
 
     .terminal-page .tp-help-cmd {
       color: var(--tp-info);
-      min-width: 120px;
-      font-weight: 500;
+      min-width: 110px;
     }
 
     .terminal-page .tp-help-desc {
@@ -545,13 +526,12 @@ import { SITE_CONFIG } from '../config/site';
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-top: 12px;
+      margin-top: 8px;
     }
 
     .terminal-page .tp-prompt {
       color: var(--tp-success);
       font-weight: 500;
-      flex-shrink: 0;
     }
 
     .terminal-page .tp-input {
@@ -560,7 +540,7 @@ import { SITE_CONFIG } from '../config/site';
       border: none;
       color: var(--tp-text);
       font-family: var(--tp-font);
-      font-size: 14px;
+      font-size: 13px;
       outline: none;
       caret-color: var(--tp-cursor);
     }
@@ -570,283 +550,158 @@ import { SITE_CONFIG } from '../config/site';
     }
 
     .terminal-page .tp-hint {
-      margin-top: 20px;
-      font-size: 13px;
+      margin-top: 16px;
+      font-size: 12px;
       color: var(--tp-text-dim);
+      text-align: center;
     }
 
     .terminal-page .tp-hint code {
       color: var(--tp-info);
       background: var(--tp-bg-tertiary);
-      padding: 2px 6px;
+      padding: 1px 5px;
       border-radius: 3px;
     }
 
-    /* Content Sections */
+    /* Sections */
     .terminal-page .tp-section {
-      padding: 80px 0;
+      padding: 40px 24px;
       border-top: 1px solid var(--tp-border);
     }
 
     .terminal-page .tp-section-title {
-      font-size: 28px;
+      font-size: 22px;
       font-weight: 600;
-      text-align: center;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
       color: var(--tp-text);
     }
 
-    .terminal-page .tp-section-subtitle {
-      text-align: center;
-      color: var(--tp-text-muted);
-      margin-bottom: 40px;
-    }
-
-    /* Card Grid */
     .terminal-page .tp-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
     }
 
     .terminal-page .tp-card {
       background: var(--tp-bg-secondary);
       border: 1px solid var(--tp-border);
-      border-radius: 8px;
-      padding: 24px;
-      transition: all 0.2s;
-    }
-
-    .terminal-page .tp-card:hover {
-      border-color: var(--tp-accent);
-      transform: translateY(-2px);
-    }
-
-    .terminal-page .tp-card-icon {
-      font-size: 28px;
-      margin-bottom: 12px;
+      border-radius: 6px;
+      padding: 16px;
     }
 
     .terminal-page .tp-card h3 {
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 8px;
+      font-size: 14px;
+      margin-bottom: 6px;
       color: var(--tp-text);
     }
 
     .terminal-page .tp-card p {
-      font-size: 14px;
-      color: var(--tp-text-muted);
-      line-height: 1.5;
-    }
-
-    /* Demo Box */
-    .terminal-page .tp-demo-box {
-      background: var(--tp-bg-secondary);
-      border: 1px solid var(--tp-border);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .terminal-page .tp-demo-example {
-      padding: 20px;
-      border-bottom: 1px solid var(--tp-border);
-    }
-
-    .terminal-page .tp-demo-example:last-child {
-      border-bottom: none;
-    }
-
-    .terminal-page .tp-demo-label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--tp-text-dim);
-      margin-bottom: 8px;
-    }
-
-    .terminal-page .tp-demo-input {
-      font-size: 14px;
-      color: var(--tp-text);
-      margin-bottom: 12px;
-    }
-
-    .terminal-page .tp-demo-input.tp-danger {
-      color: var(--tp-error);
-    }
-
-    .terminal-page .tp-demo-output {
-      background: var(--tp-bg);
-      padding: 12px 16px;
-      border-radius: 6px;
-      border-left: 3px solid var(--tp-accent);
-    }
-
-    .terminal-page .tp-demo-output code {
-      display: block;
-      color: var(--tp-info);
-      margin-bottom: 8px;
-    }
-
-    .terminal-page .tp-demo-status {
       font-size: 12px;
+      color: var(--tp-text-muted);
     }
 
-    .terminal-page .tp-demo-status.tp-safe {
-      color: var(--tp-success);
-    }
-
-    .terminal-page .tp-demo-status.tp-blocked {
-      color: var(--tp-error);
-    }
-
-    /* Install Box */
+    /* Install */
     .terminal-page .tp-install-box {
-      max-width: 500px;
-      margin: 0 auto;
+      max-width: 450px;
     }
 
     .terminal-page .tp-install-method {
-      margin-bottom: 24px;
+      margin-bottom: 16px;
     }
 
     .terminal-page .tp-install-method h3 {
-      font-size: 14px;
-      font-weight: 600;
+      font-size: 13px;
       color: var(--tp-text);
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
 
     .terminal-page .tp-install-command {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       background: var(--tp-bg-secondary);
       border: 1px solid var(--tp-border);
-      padding: 12px 16px;
-      border-radius: 6px;
+      padding: 10px 12px;
+      border-radius: 4px;
     }
 
     .terminal-page .tp-install-command code {
       flex: 1;
       color: var(--tp-text);
+      font-size: 12px;
     }
 
     .terminal-page .tp-copy-btn {
       background: var(--tp-accent);
       color: var(--tp-bg);
       border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
+      padding: 4px 10px;
+      border-radius: 3px;
       font-family: var(--tp-font);
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s;
     }
 
     .terminal-page .tp-copy-btn:hover {
       background: var(--tp-accent-hover);
     }
 
-    .terminal-page .tp-install-note {
-      color: var(--tp-text-muted);
-      font-size: 14px;
-    }
-
-    .terminal-page .tp-install-note a {
-      color: var(--tp-info);
-      text-decoration: none;
-    }
-
-    .terminal-page .tp-install-note a:hover {
-      text-decoration: underline;
-    }
-
-    /* Stats Grid */
+    /* Stats */
     .terminal-page .tp-stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 24px;
-      text-align: center;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
     }
 
     .terminal-page .tp-stat {
-      padding: 24px;
+      text-align: center;
+      padding: 16px;
       background: var(--tp-bg-secondary);
       border: 1px solid var(--tp-border);
-      border-radius: 8px;
+      border-radius: 6px;
     }
 
     .terminal-page .tp-stat-value {
-      font-size: 36px;
+      font-size: 28px;
       font-weight: 700;
       color: var(--tp-accent);
-      margin-bottom: 8px;
     }
 
     .terminal-page .tp-stat-label {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      font-size: 11px;
       color: var(--tp-text-muted);
+      text-transform: uppercase;
     }
 
     /* Footer */
     .terminal-page .tp-footer {
-      padding: 30px 0;
+      padding: 16px 24px;
       border-top: 1px solid var(--tp-border);
-      background: var(--tp-bg-secondary);
-    }
-
-    .terminal-page .tp-footer-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
-      font-size: 13px;
+      text-align: center;
+      font-size: 12px;
       color: var(--tp-text-dim);
-    }
-
-    .terminal-page .tp-footer-links {
-      display: flex;
-      gap: 20px;
-    }
-
-    .terminal-page .tp-footer-links a {
-      color: var(--tp-text-muted);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-
-    .terminal-page .tp-footer-links a:hover {
-      color: var(--tp-accent);
+      flex-shrink: 0;
     }
 
     /* Mobile */
     @media (max-width: 600px) {
-      .terminal-page .tp-container {
-        padding: 0 16px;
+      .terminal-page .tp-header-content {
+        flex-direction: column;
+        gap: 12px;
       }
 
-      .terminal-page .tp-logo-text {
-        font-size: 28px;
+      .terminal-page .tp-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
       }
 
       .terminal-page .tp-terminal-body {
-        min-height: 250px;
-      }
-
-      .terminal-page .tp-footer-content {
-        flex-direction: column;
-        text-align: center;
+        min-height: 180px;
       }
     }
   </style>
 
   <script define:vars={{ version: SITE_CONFIG.version }}>
-    // Interactive Terminal Logic
     (function() {
       const page = document.querySelector('.terminal-page');
       const terminalBody = document.getElementById('terminal-body');
@@ -854,18 +709,14 @@ import { SITE_CONFIG } from '../config/site';
       const terminalInput = document.getElementById('terminal-input');
       const themeBtns = document.querySelectorAll('.tp-theme-btn');
 
-      // Command history
       let history = [];
       let historyIndex = -1;
 
-      // Available commands
       const commands = {
         help: showHelp,
         h: showHelp,
         capabilities: () => showSection('capabilities'),
         cap: () => showSection('capabilities'),
-        proof: () => showSection('proof'),
-        p: () => showSection('proof'),
         install: () => showSection('install'),
         i: () => showSection('install'),
         stats: () => showSection('stats'),
@@ -882,15 +733,12 @@ import { SITE_CONFIG } from '../config/site';
         v: () => addOutput(`caro v${version}`, 'accent'),
       };
 
-      // Initialize with welcome message
       showWelcome();
 
-      // Focus input when clicking terminal
       document.getElementById('terminal').addEventListener('click', () => {
         terminalInput.focus();
       });
 
-      // Handle input
       terminalInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           const cmd = terminalInput.value.trim().toLowerCase();
@@ -918,7 +766,6 @@ import { SITE_CONFIG } from '../config/site';
         }
       });
 
-      // Theme switching
       themeBtns.forEach(btn => {
         btn.addEventListener('click', () => {
           const theme = btn.dataset.theme;
@@ -929,7 +776,6 @@ import { SITE_CONFIG } from '../config/site';
         });
       });
 
-      // Restore theme
       const savedTheme = localStorage.getItem('terminal-page-theme');
       if (savedTheme) {
         page.dataset.theme = savedTheme;
@@ -938,7 +784,6 @@ import { SITE_CONFIG } from '../config/site';
         });
       }
 
-      // Copy buttons
       document.querySelectorAll('.tp-copy-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
           const text = btn.dataset.copy;
@@ -955,7 +800,6 @@ import { SITE_CONFIG } from '../config/site';
       function processCommand(cmd) {
         addOutput(cmd, 'cmd');
 
-        // Check for caro command simulation
         if (cmd.startsWith('caro ')) {
           simulateCaroCommand(cmd);
           return;
@@ -965,7 +809,7 @@ import { SITE_CONFIG } from '../config/site';
         if (handler) {
           handler();
         } else {
-          addOutput(`Command not found: ${cmd}. Type 'help' for available commands.`, 'error');
+          addOutput(`Command not found: ${cmd}. Type 'help' for commands.`, 'error');
         }
 
         scrollToBottom();
@@ -995,65 +839,32 @@ import { SITE_CONFIG } from '../config/site';
       }
 
       function showWelcome() {
-        addHTML(`
-          <div class="tp-output-line tp-accent">
+        // Simple text-based welcome - no ASCII art issues
+        addHTML(`<pre class="tp-ascii">
  ██████╗ █████╗ ██████╗  ██████╗
 ██╔════╝██╔══██╗██╔══██╗██╔═══██╗
 ██║     ███████║██████╔╝██║   ██║
 ██║     ██╔══██║██╔══██╗██║   ██║
 ╚██████╗██║  ██║██║  ██║╚██████╔╝
- ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ </div>
-        `);
+ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝</pre>`);
         addOutput(`v${version} - Safe Shell Commands You Can Trust`, 'dim');
-        addOutput('', '');
-        addOutput("Type 'help' to see available commands", 'info');
-        addOutput("Try: caro \"find all python files\"", 'dim');
+        addOutput('');
+        addOutput("Type 'help' for commands, or try: caro \"find python files\"", 'info');
       }
 
       function showHelp() {
         addHTML(`
           <div class="tp-help-box">
             <div class="tp-help-title">Available Commands</div>
-            <div class="tp-help-item">
-              <span class="tp-help-cmd">help, h</span>
-              <span class="tp-help-desc">Show this help menu</span>
-            </div>
-            <div class="tp-help-item">
-              <span class="tp-help-cmd">capabilities, cap</span>
-              <span class="tp-help-desc">Discover what caro can do</span>
-            </div>
-            <div class="tp-help-item">
-              <span class="tp-help-cmd">proof, p</span>
-              <span class="tp-help-desc">See safety validation in action</span>
-            </div>
-            <div class="tp-help-item">
-              <span class="tp-help-cmd">install, i</span>
-              <span class="tp-help-desc">Installation instructions</span>
-            </div>
-            <div class="tp-help-item">
-              <span class="tp-help-cmd">stats, s</span>
-              <span class="tp-help-desc">View project statistics</span>
-            </div>
-            <div class="tp-help-item">
-              <span class="tp-help-cmd">demo, examples</span>
-              <span class="tp-help-desc">Run interactive demo</span>
-            </div>
-            <div class="tp-help-item">
-              <span class="tp-help-cmd">github</span>
-              <span class="tp-help-desc">Open GitHub repository</span>
-            </div>
-            <div class="tp-help-item">
-              <span class="tp-help-cmd">home, exit, e</span>
-              <span class="tp-help-desc">Go to main site</span>
-            </div>
-            <div class="tp-help-item">
-              <span class="tp-help-cmd">clear, cls</span>
-              <span class="tp-help-desc">Clear terminal</span>
-            </div>
-            <div class="tp-help-item">
-              <span class="tp-help-cmd">caro "..."</span>
-              <span class="tp-help-desc">Try a sample command</span>
-            </div>
+            <div class="tp-help-item"><span class="tp-help-cmd">help, h</span><span class="tp-help-desc">Show this help</span></div>
+            <div class="tp-help-item"><span class="tp-help-cmd">capabilities, cap</span><span class="tp-help-desc">View features</span></div>
+            <div class="tp-help-item"><span class="tp-help-cmd">install, i</span><span class="tp-help-desc">Installation</span></div>
+            <div class="tp-help-item"><span class="tp-help-cmd">stats, s</span><span class="tp-help-desc">Statistics</span></div>
+            <div class="tp-help-item"><span class="tp-help-cmd">demo, examples</span><span class="tp-help-desc">Run demo</span></div>
+            <div class="tp-help-item"><span class="tp-help-cmd">github</span><span class="tp-help-desc">Open GitHub</span></div>
+            <div class="tp-help-item"><span class="tp-help-cmd">clear, cls</span><span class="tp-help-desc">Clear terminal</span></div>
+            <div class="tp-help-item"><span class="tp-help-cmd">exit, e</span><span class="tp-help-desc">Go to main site</span></div>
+            <div class="tp-help-item"><span class="tp-help-cmd">caro "..."</span><span class="tp-help-desc">Try a command</span></div>
           </div>
         `);
       }
@@ -1061,64 +872,50 @@ import { SITE_CONFIG } from '../config/site';
       function showSection(sectionId) {
         const section = document.getElementById('section-' + sectionId);
         if (section) {
-          // Hide all sections first
           document.querySelectorAll('.tp-section').forEach(s => s.style.display = 'none');
-          // Show the requested section
           section.style.display = 'block';
-          // Scroll to it
           section.scrollIntoView({ behavior: 'smooth' });
           addOutput(`Showing ${sectionId}...`, 'info');
         }
       }
 
       function runDemo() {
-        addOutput('Running interactive demo...', 'info');
-        addOutput('', '');
+        addOutput('Running demo...', 'info');
+        addOutput('');
 
         const demos = [
           { prompt: 'find all PDF files larger than 10MB', result: 'find . -name "*.pdf" -type f -size +10M', safe: true },
-          { prompt: 'delete everything in system root', result: 'rm -rf /', safe: false },
-          { prompt: 'show disk usage sorted by size', result: 'du -sh */ | sort -rh | head -10', safe: true },
+          { prompt: 'delete everything in root', result: 'rm -rf /', safe: false },
+          { prompt: 'show disk usage by folder', result: 'du -sh */ | sort -rh | head -10', safe: true },
         ];
 
         let i = 0;
         function showNext() {
           if (i >= demos.length) return;
-
           const demo = demos[i];
-          addOutput(`$ caro "${demo.prompt}"`, 'cmd');
-
+          addOutput(`caro "${demo.prompt}"`, 'cmd');
           setTimeout(() => {
-            addOutput(`🐕 Caro: ${demo.result}`, 'result');
-            if (demo.safe) {
-              addOutput('✓ Safe to run on your system', 'info');
-            } else {
-              addOutput('✕ BLOCKED: Dangerous pattern detected', 'error');
-            }
-            addOutput('', '');
+            addOutput(`  → ${demo.result}`, 'result');
+            addOutput(demo.safe ? '  ✓ Safe to run' : '  ✕ BLOCKED: Dangerous pattern', demo.safe ? 'success' : 'error');
+            addOutput('');
             i++;
-            setTimeout(showNext, 1500);
-          }, 500);
+            setTimeout(showNext, 1200);
+          }, 400);
         }
-
-        setTimeout(showNext, 500);
+        setTimeout(showNext, 300);
       }
 
       function simulateCaroCommand(cmd) {
         const prompt = cmd.replace(/^caro\s+["']?|["']?$/g, '');
-
-        // Simulate some responses
         const responses = {
-          'find all python files': { result: 'find . -name "*.py" -type f', safe: true },
           'find python files': { result: 'find . -name "*.py" -type f', safe: true },
+          'find all python files': { result: 'find . -name "*.py" -type f', safe: true },
           'list files': { result: 'ls -la', safe: true },
-          'show disk usage': { result: 'df -h', safe: true },
+          'disk usage': { result: 'df -h', safe: true },
           'delete everything': { result: 'rm -rf /', safe: false },
-          'rm -rf': { result: 'rm -rf /', safe: false },
         };
 
         setTimeout(() => {
-          // Find a matching response or generate a generic one
           let response = null;
           for (const [key, val] of Object.entries(responses)) {
             if (prompt.toLowerCase().includes(key)) {
@@ -1126,18 +923,12 @@ import { SITE_CONFIG } from '../config/site';
               break;
             }
           }
-
           if (!response) {
-            response = { result: `# Command for: ${prompt}`, safe: true };
+            response = { result: `echo "Command for: ${prompt}"`, safe: true };
           }
-
-          addOutput(`🐕 Caro: ${response.result}`, 'result');
-          if (response.safe) {
-            addOutput('✓ Safe to run on your system', 'info');
-          } else {
-            addOutput('✕ BLOCKED: Dangerous pattern detected', 'error');
-          }
-        }, 300);
+          addOutput(`  → ${response.result}`, 'result');
+          addOutput(response.safe ? '  ✓ Safe to run' : '  ✕ BLOCKED: Dangerous pattern', response.safe ? 'success' : 'error');
+        }, 250);
       }
     })();
   </script>
