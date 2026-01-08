@@ -125,6 +125,10 @@ impl SmolLMPromptBuilder {
         prompt.push_str(&self.build_safety_section());
         prompt.push('\n');
 
+        // Negative examples (what NOT to do)
+        prompt.push_str(&self.build_negative_examples());
+        prompt.push('\n');
+
         // Few-shot examples
         prompt.push_str(&self.build_examples_section());
 
@@ -181,10 +185,12 @@ OUTPUT: The command itself IS the answer. Focus on WHAT the user wants done."#
     }
 
     fn build_decision_procedure(&self) -> String {
-        let mut procedure = String::from("DECISION PROCEDURE:\n");
+        let mut procedure = String::from("DECISION PROCEDURE (THINK step by step):\n");
 
         procedure.push_str(
-            r#"1. Parse intent -> determine category:
+            r#"THINK through these steps mentally BEFORE generating output:
+
+STEP 1: CATEGORIZE the user intent
    - "list/show files" -> LISTING
    - "find files with condition" -> FILTERING (use find)
    - "search for text/pattern" -> TEXT_SEARCH (use grep)
@@ -192,10 +198,25 @@ OUTPUT: The command itself IS the answer. Focus on WHAT the user wants done."#
    - "count" -> COUNTING (pipe to wc -l)
    - "change/modify/delete" -> MUTATING (confirm if destructive)
 
-2. Select template from TEMPLATES section matching category + profile
-3. Fill template with user's parameters
-4. Verify all flags are in CAPABILITY_PROFILE
-5. Output JSON"#,
+STEP 2: CHECK platform constraints
+   - What OS am I running on? (see CAPABILITY_PROFILE)
+   - Which flags are supported? (FIND_PRINTF, SORT_H, etc.)
+   - GNU, BSD, or POSIX mode?
+
+STEP 3: SELECT appropriate template
+   - Find matching template in TEMPLATES section
+   - Ensure template uses only supported flags
+   - Check for platform-specific alternatives
+
+STEP 4: FILL template with user parameters
+   - Extract file patterns, size constraints, time ranges
+   - Substitute into template command
+   - Verify syntax correctness
+
+STEP 5: VALIDATE then OUTPUT
+   - All flags in CAPABILITY_PROFILE? If no -> adapt
+   - Command safe or needs confirmation?
+   - Then output ONLY: {"cmd": "final_command"}"#,
         );
 
         procedure
@@ -424,6 +445,81 @@ Working Directory: {}
         section
     }
 
+    fn build_negative_examples(&self) -> String {
+        let mut section = String::from("[NEGATIVE EXAMPLES - DO NOT DO THIS]\n");
+        section.push_str("Learn from these INCORRECT examples:\n\n");
+
+        // Platform-specific mistakes
+        match self.profile.profile_type {
+            ProfileType::Bsd => {
+                section.push_str(
+                    r#"❌ BAD (GNU flags on BSD): {"cmd": "ps aux --sort=-%mem"}
+✅ GOOD (BSD compatible): {"cmd": "ps aux | sort -k4 -rn | head -10"}
+Why: BSD ps doesn't support --sort flag
+
+❌ BAD (GNU find printf): {"cmd": "find . -printf '%T@ %p\n' | sort -nr"}
+✅ GOOD (BSD compatible): {"cmd": "find . -exec stat -f '%m %N' {} + | sort -nr"}
+Why: BSD find doesn't support -printf
+
+❌ BAD (GNU date): {"cmd": "find . -newermt '2024-01-01'"}
+✅ GOOD (BSD compatible): {"cmd": "find . -newer /tmp/ref_$(date +%s)"}
+Why: BSD find doesn't support -newermt
+
+"#,
+                );
+            }
+            ProfileType::GnuLinux => {
+                section.push_str(
+                    r#"❌ BAD (missing -h flag): {"cmd": "du -s */ | sort -rn"}
+✅ GOOD (human readable): {"cmd": "du -sh */ | sort -rh"}
+Why: Always use human-readable sizes with -h when available
+
+❌ BAD (inefficient nested loops): {"cmd": "for f in $(find .); do wc -l $f; done"}
+✅ GOOD (use xargs): {"cmd": "find . -type f | xargs wc -l"}
+Why: xargs is much faster for bulk operations
+
+❌ BAD (unquoted variables): {"cmd": "rm $file"}
+✅ GOOD (quoted variables): {"cmd": "rm \"$file\""}
+Why: Protects against spaces in filenames
+
+"#,
+                );
+            }
+            _ => {
+                section.push_str(
+                    r#"❌ BAD (non-portable flags): {"cmd": "ls --color=auto -lah"}
+✅ GOOD (POSIX portable): {"cmd": "ls -la"}
+Why: --color is GNU-specific
+
+❌ BAD (bash-specific syntax): {"cmd": "echo {1..10}"}
+✅ GOOD (POSIX compatible): {"cmd": "seq 1 10"}
+Why: Brace expansion not in POSIX sh
+
+"#,
+                );
+            }
+        }
+
+        // Common mistakes across all platforms
+        section.push_str(
+            r#"❌ BAD (multiple commands in JSON): {"cmd": "ls -la\ncd ..\nls"}
+✅ GOOD (single command or pipeline): {"cmd": "ls -la"}
+Why: Output must be ONE command or pipeline
+
+❌ BAD (command with explanation): {"cmd": "find . -name '*.log' # finds log files"}
+✅ GOOD (command only): {"cmd": "find . -name '*.log'"}
+Why: No comments in JSON output
+
+❌ BAD (unsafe rm without confirmation): {"cmd": "rm -rf /"}
+✅ GOOD (ask first): QUESTION: Delete root directory? This is dangerous!
+Why: Destructive commands need user confirmation
+
+"#,
+        );
+
+        section
+    }
+
     fn build_examples_section(&self) -> String {
         let mut section = String::from("[EXAMPLES]\n");
 
@@ -453,17 +549,40 @@ Working Directory: {}
             ("show disk usage by folder", "du -sh */ | sort -rh | head -10"),
             ("find python files modified last week", "find . -name \"*.py\" -type f -mtime -7"),
 
-            // Additional training examples
+            // File management examples
             ("list all files", "ls -a"),
+            ("find files modified yesterday", "find . -type f -mtime 1"),
+            ("find files larger than 50MB", "find . -type f -size +50M"),
+            ("find javascript files", "find . -name \"*.js\" -type f"),
             (
                 "20 most recently modified files",
                 "find . -type f -printf '%T@ %p\\n' | sort -nr | head -n 20 | cut -d' ' -f2-",
             ),
+
+            // Process monitoring examples
+            ("show top 10 memory-consuming processes", "ps aux | sort -k4 -rn | head -10"),
+            ("show top 10 CPU-consuming processes", "ps aux | sort -k3 -rn | head -10"),
+            ("find all running python processes", "ps aux | grep python"),
+
+            // Text search examples
             ("find files containing TODO", "grep -R -n 'TODO' ."),
+            ("find files containing error in logs", "grep -R -i 'error' /var/log/"),
+            ("search for pattern in all js files", "grep -r 'pattern' --include='*.js' ."),
+
+            // Network operations examples
+            ("show all listening ports", "netstat -tuln | grep LISTEN"),
+            ("find process using port 8080", "lsof -i :8080"),
+
+            // Counting and statistics
             (
                 "count lines of code in python files",
                 "find . -name '*.py' -type f | xargs wc -l",
             ),
+            ("count number of log files", "find . -name '*.log' -type f | wc -l"),
+
+            // Git operations
+            ("show recent commits", "git log --oneline -10"),
+            ("show uncommitted changes", "git diff"),
         ]
     }
 
@@ -475,11 +594,34 @@ Working Directory: {}
             ("show disk usage by folder", "du -sh */ | sort -rh | head -10"),
             ("find python files modified last week", "find . -name \"*.py\" -type f -mtime -7"),
 
-            // Additional training examples
+            // File management examples (BSD-specific)
             ("list all files", "ls -a"),
+            ("find files modified yesterday", "find . -type f -mtime 1"),
+            ("find files larger than 50MB", "find . -type f -size +50M"),
+            ("find javascript files", "find . -name \"*.js\" -type f"),
             ("20 most recently modified files", "find . -type f -exec stat -f '%m %N' {} + | sort -nr | head -n 20 | cut -d' ' -f2-"),
+
+            // Process monitoring examples (BSD ps)
+            ("show top 10 memory-consuming processes", "ps aux | sort -k4 -rn | head -10"),
+            ("show top 10 CPU-consuming processes", "ps aux | sort -k3 -rn | head -10"),
+            ("find all running python processes", "ps aux | grep python"),
+
+            // Text search examples
             ("find files containing TODO", "grep -R -n 'TODO' ."),
+            ("find files containing error in logs", "grep -R -i 'error' /var/log/"),
+            ("search for pattern in all js files", "grep -r 'pattern' --include='*.js' ."),
+
+            // Network operations examples (BSD-specific)
+            ("show all listening ports", "netstat -an | grep LISTEN"),
+            ("find process using port 8080", "lsof -i :8080"),
+
+            // Counting and statistics
             ("count lines of code in python files", "find . -name '*.py' -type f | xargs wc -l"),
+            ("count number of log files", "find . -name '*.log' -type f | wc -l"),
+
+            // Git operations
+            ("show recent commits", "git log --oneline -10"),
+            ("show uncommitted changes", "git diff"),
         ]
     }
 
