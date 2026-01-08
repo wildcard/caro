@@ -7,7 +7,7 @@ subtasks: [T001, T002, T003, T004, T005, T006, T007, T008]
 lane: "done"
 review_status: ""
 reviewed_by: ""
-assignee: ""
+assignee: "claude"
 agent: "claude"
 shell_pid: "88455"
 history:
