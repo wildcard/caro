@@ -2,16 +2,22 @@ pub mod cpu;
 pub mod gpu;
 pub mod memory;
 pub mod profile;
+pub mod recommender;
 
 pub use cpu::CPUInfo;
 pub use gpu::{GPUInfo, GPUVendor};
 pub use memory::MemoryInfo;
 pub use profile::{AssessmentError, PlatformInfo, SystemProfile};
+pub use recommender::{Backend, ModelRecommendation, Recommender};
 
 /// Run system resource assessment and display recommendations
 pub async fn run_assessment() -> Result<(), AssessmentError> {
     let profile = SystemProfile::detect()?;
+    let recommendations = Recommender::recommend(&profile);
+
     print_profile(&profile);
+    print_recommendations(&recommendations);
+
     Ok(())
 }
 
@@ -47,5 +53,26 @@ fn print_profile(profile: &SystemProfile) {
         profile.platform.os, profile.platform.arch
     );
     println!();
+    println!("═══════════════════════════════════════════════════");
+}
+
+/// Print model recommendations to stdout
+fn print_recommendations(recommendations: &[ModelRecommendation]) {
+    println!();
+    println!("Recommended Models:");
+    println!("═══════════════════════════════════════════════════");
+    println!();
+
+    for (i, rec) in recommendations.iter().enumerate() {
+        println!("{}. {} ({})", i + 1, rec.model_name, rec.model_size);
+        println!("   Backend: {}", rec.backend);
+        if let Some(quant) = &rec.quantization {
+            println!("   Quantization: {}", quant);
+        }
+        println!("   Estimated Memory: {} MB", rec.estimated_memory_mb);
+        println!("   Reason: {}", rec.reasoning);
+        println!();
+    }
+
     println!("═══════════════════════════════════════════════════");
 }

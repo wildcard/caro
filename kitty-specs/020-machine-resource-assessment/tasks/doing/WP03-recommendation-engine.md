@@ -4,12 +4,12 @@ title: "Recommendation Engine"
 priority: P2
 phase: "core"
 subtasks: [T015, T016, T017, T018, T019]
-lane: "planned"
+lane: "doing"
 review_status: ""
 reviewed_by: ""
 assignee: ""
-agent: ""
-shell_pid: ""
+agent: "claude"
+shell_pid: "71871"
 history:
   - 2026-01-08T00:00:00Z – spec-kitty-tasks – Generated work package prompt
 ---
@@ -263,3 +263,4 @@ Verify:
 ## Activity Log
 
 - 2026-01-08T00:00:00Z – spec-kitty-tasks – Generated initial work package prompt
+- 2026-01-08T18:40:45Z – claude – shell_pid=71871 – lane=doing – Starting recommendation engine implementation
