@@ -73,12 +73,22 @@ impl StaticMatcher {
 
             // Pattern 2: "list all files modified today" (GENERAL - was Pattern 1)
             PatternEntry {
-                required_keywords: vec!["file".to_string(), "modified".to_string(), "today".to_string()],
-                optional_keywords: vec!["list".to_string(), "all".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(list|show|find|get).*(files?|file).*(modified|changed|updated).*(today|last 24 hours?)").unwrap()),
+                required_keywords: vec!["file".to_string(), "today".to_string()],
+                optional_keywords: vec!["list".to_string(), "all".to_string(), "modified".to_string(), "changed".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(list|show|find|get|files?).*(modified|changed|updated).*(today|last 24 hours?)").unwrap()),
                 gnu_command: "find . -type f -mtime 0".to_string(),
                 bsd_command: Some("find . -type f -mtime 0".to_string()),
                 description: "List files modified today".to_string(),
+            },
+
+            // Pattern 2a: "files modified yesterday" (Cycle 1 - Edge Case)
+            PatternEntry {
+                required_keywords: vec!["file".to_string(), "yesterday".to_string()],
+                optional_keywords: vec!["list".to_string(), "all".to_string(), "find".to_string(), "modified".to_string(), "changed".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(list|show|find|get|files?).*(modified|changed|updated).*(yesterday)").unwrap()),
+                gnu_command: "find . -type f -mtime 1".to_string(),
+                bsd_command: Some("find . -type f -mtime 1".to_string()),
+                description: "List files modified yesterday".to_string(),
             },
 
             // Pattern 2: "find large files over 100MB"
@@ -225,6 +235,18 @@ impl StaticMatcher {
                 gnu_command: "find . -name '*.png' -type f -mtime -7".to_string(),
                 bsd_command: Some("find . -name '*.png' -type f -mtime -7".to_string()),
                 description: "Find PNG images modified in the last 7 days".to_string(),
+            },
+
+            // ===== EXTENSION + SIZE PATTERNS (Cycle 1 - Compound Queries) =====
+
+            // Pattern 11a: "large javascript files over 50MB" (Cycle 1 - Edge Case)
+            PatternEntry {
+                required_keywords: vec!["javascript".to_string(), "50".to_string()],
+                optional_keywords: vec!["large".to_string(), "files".to_string(), "over".to_string(), "mb".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|locate|list|show).*(large|big)?.*(javascript|\.js|js).*(files?).*(over|above|bigger|greater).*(50|50mb|50m)").unwrap()),
+                gnu_command: r#"find . -name "*.js" -type f -size +50M"#.to_string(),
+                bsd_command: Some(r#"find . -name "*.js" -type f -size +50M"#.to_string()),
+                description: "Find large JavaScript files over 50MB".to_string(),
             },
 
             // ===== PROCESS MONITORING PATTERNS (Cycle 1 Priority 4) =====
