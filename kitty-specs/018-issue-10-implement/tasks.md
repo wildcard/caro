@@ -194,12 +194,12 @@ This document breaks down the implementation into executable work packages. Each
 **Objective**: Implement download resume capability using HTTP Range requests.
 
 **Subtasks**:
-- [ ] T026: Implement resume_download() function in download.rs
-- [ ] T027: Check for existing .part files and get current size
-- [ ] T028: Send HTTP Range header with starting byte offset
-- [ ] T029: Append new bytes to existing .part file (don't truncate)
-- [ ] T030: Validate checksum of complete file after resume
-- [ ] T031: Add unit tests for resume scenarios (wiremock 206 responses)
+- [x] T026: Implement resume_download() function in download.rs
+- [x] T027: Check for existing .part files and get current size
+- [x] T028: Send HTTP Range header with starting byte offset
+- [x] T029: Append new bytes to existing .part file (don't truncate)
+- [x] T030: Validate checksum of complete file after resume
+- [x] T031: Add unit tests for resume scenarios (wiremock 206 responses)
 
 **Success Criteria**:
 - Downloads resume from interruption point
