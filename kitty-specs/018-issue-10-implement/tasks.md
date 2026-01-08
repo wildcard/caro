@@ -18,7 +18,7 @@ This document breaks down the implementation into executable work packages. Each
 | WP05 | Resume Logic | 6 | ✅ Complete | [WP05-resume-logic.md](tasks/planned/WP05-resume-logic.md) |
 | WP06 | Manifest Integration | 6 | ✅ Complete | [WP06-manifest-integration.md](tasks/planned/WP06-manifest-integration.md) |
 | WP07 | Progress UI | 7 | ✅ Complete | [WP07-progress-ui.md](tasks/planned/WP07-progress-ui.md) |
-| WP08 | Error Handling | 6 | ⬜ Planned | [WP08-error-handling.md](tasks/planned/WP08-error-handling.md) |
+| WP08 | Error Handling | 6 | ✅ Complete | [WP08-error-handling.md](tasks/planned/WP08-error-handling.md) |
 | WP09 | Unit Tests | 8 | ⬜ Planned | [WP09-unit-tests.md](tasks/planned/WP09-unit-tests.md) |
 | WP10 | Integration Tests | 7 | ⬜ Planned | [WP10-integration-tests.md](tasks/planned/WP10-integration-tests.md) |
 | WP11 | Documentation | 6 | ⬜ Planned | [WP11-documentation.md](tasks/planned/WP11-documentation.md) |
@@ -283,12 +283,12 @@ This document breaks down the implementation into executable work packages. Each
 **Objective**: Implement comprehensive error handling with user-friendly messages.
 
 **Subtasks**:
-- [ ] T045: Add CacheError variants (DownloadFailed, NetworkError, ChecksumMismatch, ResumeNotSupported, AuthenticationRequired)
-- [ ] T046: Implement From<reqwest::Error> for CacheError
-- [ ] T047: Implement From<std::io::Error> for CacheError
-- [ ] T048: Add user-friendly error messages for each variant
-- [ ] T049: Implement error logging with context (tracing)
-- [ ] T050: Add unit tests for error conversions and messages
+- [x] T045: Add CacheError variants (DownloadFailed, NetworkError, ChecksumMismatch, ResumeNotSupported, AuthenticationRequired)
+- [x] T046: Implement From<reqwest::Error> for CacheError
+- [x] T047: Implement From<std::io::Error> for CacheError
+- [x] T048: Add user-friendly error messages for each variant
+- [x] T049: Implement error logging with context (tracing)
+- [x] T050: Add unit tests for error conversions and messages
 
 **Success Criteria**:
 - All error types have CacheError variants
