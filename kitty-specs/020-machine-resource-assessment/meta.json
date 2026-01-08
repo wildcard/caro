@@ -1,7 +1,25 @@
 {
+  "accept_commit": null,
+  "acceptance_history": [
+    {
+      "accepted_at": "2026-01-08T19:01:23Z",
+      "accepted_by": "claude",
+      "accepted_from_commit": "0399e6cb9f7301df6794fecaa3d1fd2cdb291614",
+      "branch": "020-machine-resource-assessment",
+      "mode": "local",
+      "validation_commands": [
+        "cargo test --test assessment_tests",
+        "cargo test --test assess_integration_test"
+      ]
+    }
+  ],
+  "acceptance_mode": "local",
+  "accepted_at": "2026-01-08T19:01:23Z",
+  "accepted_by": "claude",
+  "accepted_from_commit": "0399e6cb9f7301df6794fecaa3d1fd2cdb291614",
+  "created_at": "2026-01-08T18:15:14Z",
   "feature_number": "020",
-  "slug": "020-machine-resource-assessment",
   "friendly_name": "Machine Resource Assessment",
-  "source_description": "Issue #147: Add machine resource assessment and model recommendations\n\n## Description\n\nAdd system resource assessment to recommend optimal model configurations.\n\n**Features:**\n- CPU/GPU detection\n- Memory assessment  \n- Model recommendations based on system capabilities\n\n**Source:** Claude Code session (Sun)",
-  "created_at": "2026-01-08T18:15:14Z"
+  "slug": "020-machine-resource-assessment",
+  "source_description": "Issue #147: Add machine resource assessment and model recommendations\n\n## Description\n\nAdd system resource assessment to recommend optimal model configurations.\n\n**Features:**\n- CPU/GPU detection\n- Memory assessment  \n- Model recommendations based on system capabilities\n\n**Source:** Claude Code session (Sun)"
 }
