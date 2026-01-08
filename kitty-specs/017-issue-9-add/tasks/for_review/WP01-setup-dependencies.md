@@ -8,7 +8,7 @@ subtasks:
   - "T005"
 title: "Setup & Dependencies"
 phase: "Phase 0 - Foundation"
-lane: "doing"
+lane: "for_review"
 assignee: ""
 agent: "claude"
 shell_pid: "90455"
@@ -315,3 +315,4 @@ cargo 1.75.0 (or matching version)
 
 - 2026-01-08T00:00:00Z – system – lane=planned – Prompt created by /spec-kitty.tasks
 - 2026-01-08T13:24:43Z – claude – shell_pid=90455 – lane=doing – Started WP01 implementation
+- 2026-01-08T13:31:40Z – claude – shell_pid=90455 – lane=for_review – Completed implementation - all 5 subtasks done
