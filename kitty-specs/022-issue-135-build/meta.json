@@ -1,0 +1,7 @@
+{
+  "feature_number": "022",
+  "slug": "022-issue-135-build",
+  "friendly_name": "Issue #135: Build LLM evaluation harness for shell commands\n\nCreate comprehensive evaluation framework to test LLM-generated shell command quality, safety, and correctness.\n\n**Test Categories:**\n- Command correctness validation\n- Safety pattern detection accuracy\n- POSIX compliance verification\n- Multi-backend consistency testing\n\n**Deliverables:**\n- Test dataset with labeled examples\n- Automated evaluation pipeline\n- Benchmark results across backends\n- Quality metrics dashboard\n\n**Skills:** Rust, Testing Frameworks, LLM Evaluation, Benchmarking\n**Effort:** 10 days\n**Priority:** High (v1.1.0 milestone)",
+  "source_description": "Issue #135: Build LLM evaluation harness for shell commands\n\nCreate comprehensive evaluation framework to test LLM-generated shell command quality, safety, and correctness.\n\n**Test Categories:**\n- Command correctness validation\n- Safety pattern detection accuracy\n- POSIX compliance verification\n- Multi-backend consistency testing\n\n**Deliverables:**\n- Test dataset with labeled examples\n- Automated evaluation pipeline\n- Benchmark results across backends\n- Quality metrics dashboard\n\n**Skills:** Rust, Testing Frameworks, LLM Evaluation, Benchmarking\n**Effort:** 10 days\n**Priority:** High (v1.1.0 milestone)",
+  "created_at": "2026-01-08T22:25:16Z"
+}
