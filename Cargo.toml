@@ -111,7 +111,19 @@ serde_yaml = "0.9"
 env_logger = "0.11"
 
 [[bench]]
-name = "performance"
+name = "cache"
+harness = false
+
+[[bench]]
+name = "config"
+harness = false
+
+[[bench]]
+name = "context"
+harness = false
+
+[[bench]]
+name = "logging"
 harness = false
 
 # Custom test harness for evaluation
