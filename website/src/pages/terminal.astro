@@ -299,26 +299,62 @@ import { SITE_CONFIG } from '../config/site';
     /* Terminal output styling */
     .terminal-page .tp-line { margin-bottom: 2px; white-space: pre-wrap; word-break: break-word; }
 
-    /* Command line - both past and active should look identical */
+    /* Command entry group - wraps command + output */
+    .terminal-page .tp-entry {
+      margin-bottom: 20px;
+      padding-left: 12px;
+      border-left: 2px solid transparent;
+      animation: fadeIn 0.2s ease-out;
+      transition: border-color 0.15s ease;
+    }
+
+    .terminal-page .tp-entry:hover {
+      border-left-color: var(--tp-border);
+    }
+
+    .terminal-page .tp-entry:last-child {
+      margin-bottom: 8px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Command line - executed commands */
     .terminal-page .tp-command-line {
       display: flex;
       align-items: center;
-      margin: 4px 0;
+      padding: 8px 0;
+      margin-bottom: 10px;
+      position: relative;
     }
-    .terminal-page .tp-prompt { white-space: nowrap; }
+    .terminal-page .tp-command-line::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(to right, var(--tp-border), transparent 80%);
+    }
+    .terminal-page .tp-prompt { white-space: nowrap; opacity: 0.8; }
+    .terminal-page .tp-prompt-symbol { color: var(--tp-text-dim); margin-right: 8px; }
     .terminal-page .tp-user { color: var(--tp-success); font-weight: 600; }
     .terminal-page .tp-host { color: var(--tp-cyan); }
     .terminal-page .tp-path { color: var(--tp-info); }
-    .terminal-page .tp-cmd-text { color: var(--tp-text); }
+    .terminal-page .tp-cmd-text { color: var(--tp-text); font-weight: 500; margin-left: 2px; }
+    .terminal-page .tp-cmd-arrow { color: var(--tp-accent); margin-left: auto; font-size: 10px; opacity: 0.5; }
 
     /* Stdout output block - structured and readable */
     .terminal-page .tp-stdout {
-      margin: 4px 0 8px 0;
-      padding: 8px 12px;
+      margin: 0 0 4px 0;
+      padding: 10px 14px;
       background: var(--tp-bg);
-      border-left: 2px solid var(--tp-border);
+      border: 1px solid var(--tp-border);
+      border-radius: 6px;
       font-size: 12px;
-      line-height: 1.5;
+      line-height: 1.6;
     }
     .terminal-page .tp-stdout-line { color: var(--tp-text-muted); }
     .terminal-page .tp-stdout-line.success { color: var(--tp-success); }
@@ -341,80 +377,151 @@ import { SITE_CONFIG } from '../config/site';
     .terminal-page .tp-output-cyan { color: var(--tp-cyan); }
     .terminal-page .tp-output-magenta { color: var(--tp-magenta); }
 
-    /* Caro output box */
+    /* Caro output box - enhanced design */
     .terminal-page .tp-caro-box {
-      margin: 8px 0;
+      margin: 0;
       border: 1px solid var(--tp-border);
-      border-radius: 4px;
+      border-radius: 8px;
       overflow: hidden;
       background: var(--tp-bg);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     }
 
     .terminal-page .tp-caro-header {
-      padding: 6px 10px;
+      padding: 10px 14px;
       background: var(--tp-bg-tertiary);
       border-bottom: 1px solid var(--tp-border);
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 11px;
+      gap: 10px;
+      font-size: 12px;
     }
 
-    .terminal-page .tp-caro-icon { font-size: 14px; }
-    .terminal-page .tp-caro-title { color: var(--tp-accent); font-weight: 600; }
+    .terminal-page .tp-caro-icon { font-size: 16px; }
+    .terminal-page .tp-caro-title { color: var(--tp-accent); font-weight: 600; font-size: 13px; }
     .terminal-page .tp-caro-badge {
       margin-left: auto;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-size: 10px;
-      font-weight: 600;
-    }
-    .terminal-page .tp-caro-badge.safe { background: rgba(63,185,80,0.15); color: var(--tp-success); }
-    .terminal-page .tp-caro-badge.blocked { background: rgba(248,81,73,0.15); color: var(--tp-error); }
-
-    .terminal-page .tp-caro-body { padding: 10px; }
-    .terminal-page .tp-caro-label { font-size: 10px; color: var(--tp-text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-    .terminal-page .tp-caro-command { font-size: 13px; color: var(--tp-info); background: var(--tp-bg-secondary); padding: 8px 10px; border-radius: 3px; margin-bottom: 8px; font-family: var(--tp-font); }
-    .terminal-page .tp-caro-meta { font-size: 11px; color: var(--tp-text-dim); display: flex; gap: 12px; flex-wrap: wrap; }
-    .terminal-page .tp-caro-meta span { display: flex; align-items: center; gap: 4px; }
-
-    /* Help box */
-    .terminal-page .tp-help-box {
-      margin: 8px 0;
-      border: 1px solid var(--tp-border);
+      padding: 4px 10px;
       border-radius: 4px;
-      background: var(--tp-bg);
-      padding: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .terminal-page .tp-caro-badge.safe {
+      background: rgba(63,185,80,0.2);
+      color: var(--tp-success);
+      border: 1px solid rgba(63,185,80,0.3);
+    }
+    .terminal-page .tp-caro-badge.blocked {
+      background: rgba(248,81,73,0.2);
+      color: var(--tp-error);
+      border: 1px solid rgba(248,81,73,0.3);
     }
 
-    .terminal-page .tp-help-title { color: var(--tp-accent); font-weight: 600; margin-bottom: 8px; font-size: 12px; }
-    .terminal-page .tp-help-section { margin-bottom: 10px; }
+    .terminal-page .tp-caro-body { padding: 14px; }
+    .terminal-page .tp-caro-label {
+      font-size: 10px;
+      color: var(--tp-text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    .terminal-page .tp-caro-command {
+      font-size: 14px;
+      color: var(--tp-cyan);
+      background: var(--tp-bg-secondary);
+      padding: 12px 14px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      font-family: var(--tp-font);
+      border: 1px solid var(--tp-border);
+    }
+    .terminal-page .tp-caro-meta {
+      font-size: 11px;
+      color: var(--tp-text-muted);
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding-top: 8px;
+      border-top: 1px solid var(--tp-border);
+    }
+    .terminal-page .tp-caro-meta span { display: flex; align-items: center; gap: 6px; }
+
+    /* Help box - enhanced */
+    .terminal-page .tp-help-box {
+      margin: 0;
+      border: 1px solid var(--tp-border);
+      border-radius: 8px;
+      background: var(--tp-bg);
+      padding: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .terminal-page .tp-help-title {
+      color: var(--tp-accent);
+      font-weight: 600;
+      margin-bottom: 12px;
+      font-size: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--tp-border);
+    }
+    .terminal-page .tp-help-section { margin-bottom: 14px; }
     .terminal-page .tp-help-section:last-child { margin-bottom: 0; }
-    .terminal-page .tp-help-section-title { color: var(--tp-text-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-    .terminal-page .tp-help-row { display: flex; font-size: 12px; margin-bottom: 2px; }
-    .terminal-page .tp-help-cmd { color: var(--tp-cyan); min-width: 140px; }
+    .terminal-page .tp-help-section-title {
+      color: var(--tp-text-dim);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    .terminal-page .tp-help-row {
+      display: flex;
+      font-size: 12px;
+      margin-bottom: 4px;
+      padding: 4px 0;
+    }
+    .terminal-page .tp-help-cmd { color: var(--tp-cyan); min-width: 150px; font-weight: 500; }
     .terminal-page .tp-help-desc { color: var(--tp-text-muted); }
 
-    /* Stats box */
+    /* Stats box - enhanced */
     .terminal-page .tp-stats-box {
-      margin: 8px 0;
+      margin: 0;
       border: 1px solid var(--tp-border);
-      border-radius: 4px;
+      border-radius: 8px;
       background: var(--tp-bg);
-      padding: 10px;
+      padding: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     }
 
-    .terminal-page .tp-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-    .terminal-page .tp-stats-item { text-align: center; padding: 8px; background: var(--tp-bg-secondary); border-radius: 3px; }
-    .terminal-page .tp-stats-value { font-size: 20px; font-weight: 700; color: var(--tp-accent); }
-    .terminal-page .tp-stats-label { font-size: 10px; color: var(--tp-text-dim); text-transform: uppercase; }
+    .terminal-page .tp-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .terminal-page .tp-stats-item {
+      text-align: center;
+      padding: 12px;
+      background: var(--tp-bg-secondary);
+      border-radius: 6px;
+      border: 1px solid var(--tp-border);
+    }
+    .terminal-page .tp-stats-value { font-size: 22px; font-weight: 700; color: var(--tp-accent); }
+    .terminal-page .tp-stats-label { font-size: 10px; color: var(--tp-text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
 
-    /* Input line - identical structure to past command lines */
+    /* Input line - active command input with cursor */
     .terminal-page .tp-input-line {
       display: flex;
       align-items: center;
-      margin: 4px 0;
+      margin: 12px 0 0 0;
+      padding: 10px 12px;
+      background: var(--tp-bg);
+      border: 1px solid var(--tp-border);
+      border-radius: 6px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
+    .terminal-page .tp-input-line:focus-within {
+      border-color: var(--tp-accent);
+      box-shadow: 0 0 0 2px rgba(255,140,66,0.15);
+    }
+    .terminal-page .tp-input-line .tp-prompt { opacity: 1; }
     .terminal-page .tp-input {
       flex: 1;
       background: transparent;
@@ -425,6 +532,43 @@ import { SITE_CONFIG } from '../config/site';
       outline: none;
       caret-color: var(--tp-accent);
       margin-left: 0;
+    }
+
+    /* Blinking cursor indicator */
+    .terminal-page .tp-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 16px;
+      background: var(--tp-accent);
+      animation: blink 1s step-end infinite;
+      vertical-align: middle;
+      margin-left: 2px;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    /* Loading spinner */
+    .terminal-page .tp-loading {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--tp-text-muted);
+      font-size: 12px;
+      padding: 8px 0;
+    }
+    .terminal-page .tp-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--tp-border);
+      border-top-color: var(--tp-accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
     .terminal-page .tp-hint {
@@ -563,13 +707,30 @@ import { SITE_CONFIG } from '../config/site';
         }
       }
 
-      // Create or get current stdout block - must be defined before showWelcome
+      // Entry system: wraps command + output together for visual grouping
+      let currentEntry = null;
       let currentStdout = null;
+
+      function startEntry() {
+        endEntry(); // Close any previous entry
+        currentEntry = document.createElement('div');
+        currentEntry.className = 'tp-entry';
+        terminalOutput.appendChild(currentEntry);
+      }
+
+      function endEntry() {
+        currentStdout = null;
+        currentEntry = null;
+      }
 
       function startStdout() {
         currentStdout = document.createElement('div');
         currentStdout.className = 'tp-stdout';
-        terminalOutput.appendChild(currentStdout);
+        if (currentEntry) {
+          currentEntry.appendChild(currentStdout);
+        } else {
+          terminalOutput.appendChild(currentStdout);
+        }
       }
 
       function endStdout() {
@@ -594,7 +755,11 @@ import { SITE_CONFIG } from '../config/site';
         endStdout();
         const div = document.createElement('div');
         div.innerHTML = html;
-        terminalOutput.appendChild(div);
+        if (currentEntry) {
+          currentEntry.appendChild(div);
+        } else {
+          terminalOutput.appendChild(div);
+        }
         scrollToBottom();
       }
 
@@ -654,8 +819,8 @@ import { SITE_CONFIG } from '../config/site';
       }
 
       function processInput(input) {
-        // End any previous stdout block
-        endStdout();
+        // Start a new entry group for this command
+        startEntry();
 
         showPrompt(input);
 
@@ -668,7 +833,6 @@ import { SITE_CONFIG } from '../config/site';
         if (cmd === 'caro' || lower.startsWith('caro ')) {
           const query = input.replace(/^caro\s*/i, '').replace(/^["']|["']$/g, '');
           simulateCaro(query);
-          endStdout();
           return;
         }
 
@@ -688,7 +852,11 @@ import { SITE_CONFIG } from '../config/site';
         const line = document.createElement('div');
         line.className = 'tp-command-line';
         line.innerHTML = `<span class="tp-prompt"><span class="tp-user">guest</span>@<span class="tp-host">caro.sh</span>:<span class="tp-path">~</span>$ </span><span class="tp-cmd-text">${escapeHtml(cmd)}</span>`;
-        terminalOutput.appendChild(line);
+        if (currentEntry) {
+          currentEntry.appendChild(line);
+        } else {
+          terminalOutput.appendChild(line);
+        }
       }
 
       function showWelcome() {
@@ -889,12 +1057,13 @@ import { SITE_CONFIG } from '../config/site';
         let i = 0;
         function next() {
           if (i >= demos.length) {
+            startEntry();
             outputHTML(`<div class="tp-stdout"><div class="tp-stdout-line success">Demo complete! Try your own queries.</div></div>`);
             scrollToBottom();
             return;
           }
           const demo = demos[i];
-          endStdout();
+          startEntry();
           showPrompt(`caro "${demo.q}"`);
           setTimeout(() => {
             simulateCaro(demo.q);
