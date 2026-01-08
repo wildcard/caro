@@ -1,8 +1,10 @@
 pub mod cpu;
+pub mod gpu;
 pub mod memory;
 pub mod profile;
 
 pub use cpu::CPUInfo;
+pub use gpu::{GPUInfo, GPUVendor};
 pub use memory::MemoryInfo;
 pub use profile::{AssessmentError, PlatformInfo, SystemProfile};
 
@@ -31,6 +33,15 @@ fn print_profile(profile: &SystemProfile) {
         "  Memory: {} MB total, {} MB available",
         profile.memory.total_mb, profile.memory.available_mb
     );
+    if let Some(gpu) = &profile.gpu {
+        if let Some(vram) = gpu.vram_mb {
+            println!("  GPU: {} {} ({} MB VRAM)", gpu.vendor, gpu.model, vram);
+        } else {
+            println!("  GPU: {} {}", gpu.vendor, gpu.model);
+        }
+    } else {
+        println!("  GPU: No GPU detected");
+    }
     println!(
         "  Platform: {} ({})",
         profile.platform.os, profile.platform.arch
