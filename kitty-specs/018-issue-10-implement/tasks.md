@@ -165,12 +165,12 @@ This document breaks down the implementation into executable work packages. Each
 **Objective**: Implement streaming SHA256 checksum validation during download.
 
 **Subtasks**:
-- [ ] T020: Create src/cache/checksum.rs module
-- [ ] T021: Implement StreamingHasher struct with Sha256
-- [ ] T022: Integrate hasher with download_file (update per chunk)
-- [ ] T023: Implement checksum validation after download complete
-- [ ] T024: Add CacheError::ChecksumMismatch variant
-- [ ] T025: Add unit tests for checksum validation (including mismatch scenarios)
+- [x] T020: Create src/cache/checksum.rs module
+- [x] T021: Implement StreamingHasher struct with Sha256
+- [x] T022: Integrate hasher with download_file (update per chunk)
+- [x] T023: Implement checksum validation after download complete
+- [x] T024: Add CacheError::ChecksumMismatch variant (already existed)
+- [x] T025: Add unit tests for checksum validation (including mismatch scenarios)
 
 **Success Criteria**:
 - Checksum computed during download (single pass)
