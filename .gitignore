@@ -175,6 +175,10 @@ nuget/*.nupkg
 # Test directories
 cmdai-validation/
 
+# Evaluation harness results
+tests/evaluation/results/*.json
+tests/evaluation/results/*.md
+
 # Spec-Kitty worktrees and agent directories
 # Keep command files in git, exclude agent session data
 # kitty-specs/
