@@ -973,4 +973,108 @@ mod tests {
             }
         }
     }
+
+    // Error handling tests for WP08
+    mod error_handling_tests {
+        use super::*;
+
+        #[test]
+        fn test_io_error_conversion() {
+            let io_err = std::io::Error::new(std::io::ErrorKind::PermissionDenied, "Access denied");
+            let cache_err: CacheError = io_err.into();
+
+            match cache_err {
+                CacheError::IoError(_) => (),
+                _ => panic!("Expected IoError variant"),
+            }
+
+            let err_msg = cache_err.to_string();
+            assert!(err_msg.contains("File system error"));
+        }
+
+        #[test]
+        fn test_download_failed_message() {
+            let err = CacheError::DownloadFailed("Connection reset".to_string());
+            let err_msg = err.to_string();
+
+            assert!(err_msg.contains("Download failed"));
+            assert!(err_msg.contains("check your internet connection"));
+            assert!(err_msg.contains("Connection reset"));
+        }
+
+        #[test]
+        fn test_network_error_message() {
+            let err = CacheError::NetworkError("Timeout after 30s".to_string());
+            let err_msg = err.to_string();
+
+            assert!(err_msg.contains("Network error"));
+            assert!(err_msg.contains("connectivity issues"));
+            assert!(err_msg.contains("Timeout after 30s"));
+        }
+
+        #[test]
+        fn test_checksum_mismatch_message() {
+            let err = CacheError::ChecksumMismatch {
+                model_id: "test-model".to_string(),
+                expected: "abc123".to_string(),
+                actual: "def456".to_string(),
+            };
+            let err_msg = err.to_string();
+
+            assert!(err_msg.contains("File integrity check failed"));
+            assert!(err_msg.contains("test-model"));
+            assert!(err_msg.contains("Expected checksum: abc123"));
+            assert!(err_msg.contains("Actual checksum: def456"));
+            assert!(err_msg.contains("corrupted"));
+        }
+
+        #[test]
+        fn test_resume_not_supported_message() {
+            let err = CacheError::ResumeNotSupported;
+            let err_msg = err.to_string();
+
+            assert!(err_msg.contains("Resume not supported"));
+            assert!(err_msg.contains("server does not support"));
+            assert!(err_msg.contains("from the beginning"));
+        }
+
+        #[test]
+        fn test_authentication_required_message() {
+            let err = CacheError::AuthenticationRequired;
+            let err_msg = err.to_string();
+
+            assert!(err_msg.contains("Authentication required"));
+            assert!(err_msg.contains("HF_TOKEN"));
+            assert!(err_msg.contains("huggingface.co/settings/tokens"));
+        }
+
+        #[test]
+        fn test_model_not_found_message() {
+            let err = CacheError::ModelNotFound("my-model".to_string());
+            let err_msg = err.to_string();
+
+            assert!(err_msg.contains("Model 'my-model' not found"));
+            assert!(err_msg.contains("download command"));
+        }
+
+        #[test]
+        fn test_manifest_error_message() {
+            let err = CacheError::ManifestError("Parse error".to_string());
+            let err_msg = err.to_string();
+
+            assert!(err_msg.contains("Cache manifest error"));
+            assert!(err_msg.contains("Parse error"));
+            assert!(err_msg.contains("inconsistent state"));
+        }
+
+        #[test]
+        fn test_directory_error_message() {
+            let err = CacheError::DirectoryError("Not writable".to_string());
+            let err_msg = err.to_string();
+
+            assert!(err_msg.contains("Cache directory error"));
+            assert!(err_msg.contains("Not writable"));
+            assert!(err_msg.contains("writable"));
+        }
+    }
 }
