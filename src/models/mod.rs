@@ -624,6 +624,7 @@ pub struct UserConfiguration {
     pub log_level: LogLevel,
     pub cache_max_size_gb: u64,
     pub log_rotation_days: u32,
+    pub telemetry: crate::telemetry::TelemetryConfig,
 }
 
 impl Default for UserConfiguration {
@@ -635,6 +636,7 @@ impl Default for UserConfiguration {
             log_level: LogLevel::Info,
             cache_max_size_gb: 10,
             log_rotation_days: 7,
+            telemetry: crate::telemetry::TelemetryConfig::default(),
         }
     }
 }
@@ -671,6 +673,7 @@ pub struct UserConfigurationBuilder {
     log_level: LogLevel,
     cache_max_size_gb: u64,
     log_rotation_days: u32,
+    telemetry: crate::telemetry::TelemetryConfig,
 }
 
 impl Default for UserConfigurationBuilder {
@@ -689,6 +692,7 @@ impl UserConfigurationBuilder {
             log_level: defaults.log_level,
             cache_max_size_gb: defaults.cache_max_size_gb,
             log_rotation_days: defaults.log_rotation_days,
+            telemetry: defaults.telemetry,
         }
     }
 
@@ -722,6 +726,11 @@ impl UserConfigurationBuilder {
         self
     }
 
+    pub fn telemetry(mut self, telemetry: crate::telemetry::TelemetryConfig) -> Self {
+        self.telemetry = telemetry;
+        self
+    }
+
     pub fn build(self) -> Result<UserConfiguration, String> {
         let config = UserConfiguration {
             default_shell: self.default_shell,
@@ -730,6 +739,7 @@ impl UserConfigurationBuilder {
             log_level: self.log_level,
             cache_max_size_gb: self.cache_max_size_gb,
             log_rotation_days: self.log_rotation_days,
+            telemetry: self.telemetry,
         };
         config.validate()?;
         Ok(config)
@@ -758,12 +768,18 @@ impl ConfigSchema {
         known_keys.insert("logging.log_level".to_string(), "LogLevel enum".to_string());
         known_keys.insert("logging.log_rotation_days".to_string(), "u32".to_string());
         known_keys.insert("cache.max_size_gb".to_string(), "u64".to_string());
+        known_keys.insert("telemetry.enabled".to_string(), "bool".to_string());
+        known_keys.insert("telemetry.level".to_string(), "TelemetryLevel enum".to_string());
+        known_keys.insert("telemetry.air_gapped".to_string(), "bool".to_string());
+        known_keys.insert("telemetry.endpoint".to_string(), "String".to_string());
+        known_keys.insert("telemetry.first_run".to_string(), "bool".to_string());
 
         Self {
             known_sections: vec![
                 "general".to_string(),
                 "logging".to_string(),
                 "cache".to_string(),
+                "telemetry".to_string(),
             ],
             known_keys,
             deprecated_keys: HashMap::new(),

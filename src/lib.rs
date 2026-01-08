@@ -81,7 +81,7 @@ pub use prompts::{
 
 // Re-export telemetry types
 pub use telemetry::{
-    TelemetryCollector, TelemetryConfig, Event as TelemetryEvent,
-    EventType as TelemetryEventType, SessionId as TelemetrySessionId,
-    TelemetryStorage,
+    emit_event, set_global_collector, Event as TelemetryEvent,
+    EventType as TelemetryEventType, SessionId as TelemetrySessionId, TelemetryCollector,
+    TelemetryConfig, TelemetryStorage,
 };

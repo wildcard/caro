@@ -62,6 +62,35 @@ impl AgentLoop {
     /// Generate command with iterative refinement
     pub async fn generate_command(&self, prompt: &str) -> Result<GeneratedCommand, GeneratorError> {
         let start = Instant::now();
+        let result = self.generate_command_impl(prompt, start).await;
+
+        // Emit telemetry on error
+        if let Err(ref e) = result {
+            let error_category = match e {
+                GeneratorError::Timeout { .. } => "timeout",
+                GeneratorError::ParseError { .. } => "parse_error",
+                GeneratorError::GenerationFailed { .. } => "generation_failed",
+                GeneratorError::BackendUnavailable { .. } => "backend_unavailable",
+                GeneratorError::InvalidRequest { .. } => "invalid_request",
+                GeneratorError::ConfigError { .. } => "config_error",
+                GeneratorError::Internal { .. } => "internal_error",
+                GeneratorError::Unsafe { .. } => "unsafe_command",
+                GeneratorError::ValidationFailed { .. } => "validation_failed",
+            };
+
+            crate::telemetry::emit_event(crate::telemetry::events::EventType::CommandGeneration {
+                backend: "embedded".to_string(),
+                duration_ms: start.elapsed().as_millis() as u64,
+                success: false,
+                error_category: Some(error_category.to_string()),
+            });
+        }
+
+        result
+    }
+
+    /// Internal implementation of command generation
+    async fn generate_command_impl(&self, prompt: &str, start: Instant) -> Result<GeneratedCommand, GeneratorError> {
 
         info!("Starting agent loop for: {}", prompt);
 
@@ -77,6 +106,15 @@ impl AgentLoop {
                         start.elapsed(),
                         command.command
                     );
+
+                    // Emit telemetry event for successful static match
+                    crate::telemetry::emit_event(crate::telemetry::events::EventType::CommandGeneration {
+                        backend: "static".to_string(),
+                        duration_ms: start.elapsed().as_millis() as u64,
+                        success: true,
+                        error_category: None,
+                    });
+
                     return Ok(command);
                 }
                 Err(e) => {
@@ -114,6 +152,15 @@ impl AgentLoop {
             .await?;
 
         info!("Command generation complete in {:?}", start.elapsed());
+
+        // Emit telemetry event for successful LLM generation
+        crate::telemetry::emit_event(crate::telemetry::events::EventType::CommandGeneration {
+            backend: "embedded".to_string(),
+            duration_ms: start.elapsed().as_millis() as u64,
+            success: true,
+            error_category: None,
+        });
+
         Ok(refined)
     }
 

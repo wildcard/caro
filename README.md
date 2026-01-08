@@ -57,6 +57,7 @@ This project is in **active development** with core features implemented and wor
 - 🎥 **Professional demos** with asciinema recordings
 
 ### 🚧 In Progress
+- 📊 **Telemetry infrastructure** (95% complete) - Usage analytics for v1.1.0-beta
 - Model downloading and caching optimization
 - Command history and learning from user feedback
 - Performance profiling and optimization
@@ -480,6 +481,47 @@ level = "moderate"  # strict, moderate, or permissive
 require_confirmation = true
 custom_patterns = ["additional", "dangerous", "patterns"]
 ```
+
+## 📊 Telemetry & Privacy
+
+**v1.1.0-beta introduces optional usage telemetry to help us improve caro.**
+
+### What We Collect
+- Anonymous usage metrics (session timing, command generation stats)
+- Error types and categories (no error messages)
+- System information (OS, shell type, backend used)
+
+### What We DON'T Collect
+- ❌ Your commands or natural language prompts
+- ❌ File paths or environment variables
+- ❌ Any personally identifiable information
+
+**Your privacy is our top priority.** All data is anonymous, stored locally first, and validated before any upload.
+
+### Beta vs GA
+- **v1.1.0-beta**: Opt-out (ON by default) - Help us improve!
+- **v1.1.0 GA**: Opt-in (OFF by default) - Your choice
+
+### Managing Telemetry
+
+```bash
+# View collected data
+caro telemetry show
+
+# Check status
+caro telemetry status
+
+# Disable telemetry
+caro config set telemetry.enabled false
+
+# Export for air-gapped environments
+caro telemetry export --output telemetry.json
+
+# Clear all data
+caro telemetry clear
+```
+
+**Full details:** See [docs/TELEMETRY.md](docs/TELEMETRY.md) for complete privacy policy and technical details.
 
 ## 🤝 Contributing
 

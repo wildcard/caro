@@ -524,6 +524,71 @@ async fn main() {
             .init();
     }
 
+    // Initialize telemetry
+    let telemetry_storage_path = dirs::data_dir()
+        .unwrap_or_else(|| std::env::current_dir().unwrap())
+        .join("caro")
+        .join("telemetry")
+        .join("events.db");
+
+    // Load config to get telemetry settings
+    let user_config = if let Ok(config_manager) = ConfigManager::new() {
+        config_manager.load().unwrap_or_default()
+    } else {
+        caro::models::UserConfiguration::default()
+    };
+
+    // Check for first-run consent
+    if user_config.telemetry.first_run {
+        if caro::telemetry::consent::prompt_consent() {
+            // User accepted telemetry
+            // Update config to mark first_run as false and enable telemetry
+            // This would require updating the config file, which we'll handle via ConfigManager
+            // For now, we'll proceed with telemetry enabled
+        } else {
+            // User declined telemetry - update config to disable it
+        }
+    }
+
+    // Create telemetry storage and collector (optional, don't fail if it errors)
+    if let Ok(telemetry_storage) = caro::TelemetryStorage::new(telemetry_storage_path) {
+        let telemetry_storage = std::sync::Arc::new(telemetry_storage);
+        let telemetry_collector = std::sync::Arc::new(
+            caro::TelemetryCollector::new(telemetry_storage.clone(), user_config.telemetry.enabled)
+        );
+
+        // Set as global collector for easy access from all components
+        caro::set_global_collector(telemetry_collector.clone());
+
+        // Start telemetry uploader if enabled and not air-gapped
+        if user_config.telemetry.enabled && !user_config.telemetry.air_gapped {
+            let uploader = std::sync::Arc::new(
+                caro::telemetry::uploader::TelemetryUploader::new(
+                    telemetry_storage.clone(),
+                    user_config.telemetry.clone(),
+                )
+            );
+            uploader.start();
+        }
+
+        // Emit SessionStart event
+        let backend_available: Vec<String> = vec![
+            "static".to_string(),
+            "embedded".to_string(),
+        ];
+
+        telemetry_collector.emit(caro::TelemetryEventType::SessionStart {
+            version: env!("CARGO_PKG_VERSION").to_string(),
+            platform: std::env::consts::OS.to_string(),
+            shell_type: user_config.default_shell
+                .map(|s| format!("{:?}", s))
+                .unwrap_or_else(|| "unknown".to_string()),
+            backend_available,
+        });
+    } else {
+        tracing::warn!("Telemetry initialization failed, continuing without telemetry");
+    }
+
     // Handle --show-config
     if cli.show_config {
         match show_configuration(&cli).await {

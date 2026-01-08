@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 /// Telemetry configuration
 ///
 /// Controls telemetry behavior including enable/disable, level, and air-gapped mode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TelemetryConfig {
     /// Telemetry enabled
     ///

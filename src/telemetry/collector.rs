@@ -174,8 +174,8 @@ mod tests {
         ));
     }
 
-    #[test]
-    fn test_collector_clone() {
+    #[tokio::test]
+    async fn test_collector_clone() {
         let temp_dir = TempDir::new().unwrap();
         let db_path = temp_dir.path().join("test.db");
         let storage = Arc::new(TelemetryStorage::new(db_path).unwrap());

@@ -252,17 +252,17 @@ mod tests {
             session_id,
             EventType::BackendError {
                 backend: "embedded".to_string(),
-                error_category: "PATH=/usr/bin:/bin".to_string(), // Hidden env var
+                error_category: "Environment: USER=admin".to_string(), // Hidden env var without file paths
                 recoverable: false,
             },
         );
 
         let result = validate_event(&event);
-        assert!(result.is_err());
+        assert!(result.is_err(), "Event should fail validation");
         assert!(matches!(
             result,
             Err(ValidationError::ContainsEnvironmentVariable(_))
-        ));
+        ), "Expected ContainsEnvironmentVariable error, got: {:?}", result);
     }
 
     #[test]
