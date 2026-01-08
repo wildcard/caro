@@ -105,6 +105,7 @@ serial_test = "3"
 proptest = "1"
 criterion = { version = "=0.7.0", features = ["html_reports"] }
 futures = "0.3"
+serde_yaml = "0.9"
 
 [[bench]]
 name = "performance"
