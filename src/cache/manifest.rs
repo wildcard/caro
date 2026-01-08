@@ -51,6 +51,18 @@ impl ManifestManager {
     /// Load manifest from disk
     fn load_manifest(path: &PathBuf) -> Result<CacheManifest, CacheError> {
         let contents = std::fs::read_to_string(path)?;
+
+        // Handle empty file (can happen in concurrent scenarios)
+        if contents.trim().is_empty() {
+            return Ok(CacheManifest {
+                version: "1.0".to_string(),
+                models: std::collections::HashMap::new(),
+                total_size_bytes: 0,
+                max_cache_size_bytes: 10 * 1024 * 1024 * 1024, // 10GB default
+                last_updated: Utc::now(),
+            });
+        }
+
         serde_json::from_str(&contents)
             .map_err(|e| CacheError::ManifestError(format!("Failed to parse manifest: {}", e)))
     }

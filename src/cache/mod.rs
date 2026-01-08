@@ -22,29 +22,75 @@ mod progress;
 pub use progress::DownloadProgress;
 
 /// Cache-related errors
+///
+/// Provides comprehensive error handling for cache operations with user-friendly messages
+/// and proper error chaining for debugging.
 #[derive(Debug, thiserror::Error)]
 pub enum CacheError {
-    #[error("Failed to download model: {0}")]
+    /// Download operation failed
+    #[error("Download failed: {0}. Please check your internet connection and try again.")]
     DownloadFailed(String),
 
-    #[error("Checksum mismatch for model {model_id}: expected {expected}, got {actual}")]
+    /// Network error during HTTP request
+    #[error("Network error: {0}. This may be due to connectivity issues or server unavailability.")]
+    NetworkError(String),
+
+    /// File checksum mismatch indicating corruption
+    #[error("File integrity check failed for {model_id}.\nExpected checksum: {expected}\nActual checksum: {actual}\nThe downloaded file may be corrupted. Please try downloading again.")]
     ChecksumMismatch {
         model_id: String,
         expected: String,
         actual: String,
     },
 
-    #[error("Model not found: {0}")]
+    /// Server does not support resume (HTTP Range requests)
+    #[error("Resume not supported: The server does not support resuming downloads.\nYou'll need to download the complete file from the beginning.")]
+    ResumeNotSupported,
+
+    /// Authentication required but token not provided
+    #[error("Authentication required: Please set the HF_TOKEN environment variable.\nYou can obtain a token from https://huggingface.co/settings/tokens")]
+    AuthenticationRequired,
+
+    /// Requested model not found in cache
+    #[error("Model '{0}' not found in cache. Use the download command to fetch it first.")]
     ModelNotFound(String),
 
-    #[error("I/O error: {0}")]
+    /// I/O operation failed
+    #[error("File system error: {0}")]
     IoError(#[from] std::io::Error),
 
-    #[error("Manifest error: {0}")]
+    /// Cache manifest operation failed
+    #[error("Cache manifest error: {0}. The cache may be in an inconsistent state.")]
     ManifestError(String),
 
-    #[error("Cache directory error: {0}")]
+    /// Cache directory issue
+    #[error("Cache directory error: {0}. Please ensure the cache directory is writable.")]
     DirectoryError(String),
+}
+
+impl From<reqwest::Error> for CacheError {
+    fn from(err: reqwest::Error) -> Self {
+        if err.is_connect() || err.is_timeout() {
+            CacheError::NetworkError(format!(
+                "Failed to connect to server: {}. Check your internet connection.",
+                err
+            ))
+        } else if err.is_status() {
+            let status = err.status().map(|s| s.as_u16()).unwrap_or(0);
+            match status {
+                401 | 403 => CacheError::AuthenticationRequired,
+                404 => CacheError::DownloadFailed("Resource not found on server".to_string()),
+                416 => CacheError::ResumeNotSupported,
+                500..=599 => CacheError::NetworkError(format!(
+                    "Server error ({}). The server may be experiencing issues. Please try again later.",
+                    status
+                )),
+                _ => CacheError::NetworkError(format!("HTTP error: {}", err)),
+            }
+        } else {
+            CacheError::DownloadFailed(err.to_string())
+        }
+    }
 }
 
 /// Statistics about the cache
@@ -412,5 +458,109 @@ mod tests {
         let cache_manager = CacheManager::with_cache_dir(temp_dir.path().to_path_buf()).unwrap();
 
         assert!(!cache_manager.is_cached("nonexistent-model"));
+    }
+
+    // Error handling tests for WP08
+    mod error_handling_tests {
+        use super::*;
+
+        #[test]
+        fn test_io_error_conversion() {
+            let io_err = std::io::Error::new(std::io::ErrorKind::PermissionDenied, "Access denied");
+            let cache_err: CacheError = io_err.into();
+
+            match cache_err {
+                CacheError::IoError(_) => (),
+                _ => panic!("Expected IoError variant"),
+            }
+
+            let err_msg = cache_err.to_string();
+            assert!(err_msg.contains("File system error"));
+        }
+
+        #[test]
+        fn test_download_failed_message() {
+            let err = CacheError::DownloadFailed("Connection reset".to_string());
+            let err_msg = err.to_string();
+
+            assert!(err_msg.contains("Download failed"));
+            assert!(err_msg.contains("check your internet connection"));
+            assert!(err_msg.contains("Connection reset"));
+        }
+
+        #[test]
+        fn test_network_error_message() {
+            let err = CacheError::NetworkError("Timeout after 30s".to_string());
+            let err_msg = err.to_string();
+
+            assert!(err_msg.contains("Network error"));
+            assert!(err_msg.contains("connectivity issues"));
+            assert!(err_msg.contains("Timeout after 30s"));
+        }
+
+        #[test]
+        fn test_checksum_mismatch_message() {
+            let err = CacheError::ChecksumMismatch {
+                model_id: "test-model".to_string(),
+                expected: "abc123".to_string(),
+                actual: "def456".to_string(),
+            };
+            let err_msg = err.to_string();
+
+            assert!(err_msg.contains("File integrity check failed"));
+            assert!(err_msg.contains("test-model"));
+            assert!(err_msg.contains("Expected checksum: abc123"));
+            assert!(err_msg.contains("Actual checksum: def456"));
+            assert!(err_msg.contains("corrupted"));
+        }
+
+        #[test]
+        fn test_resume_not_supported_message() {
+            let err = CacheError::ResumeNotSupported;
+            let err_msg = err.to_string();
+
+            assert!(err_msg.contains("Resume not supported"));
+            assert!(err_msg.contains("server does not support"));
+            assert!(err_msg.contains("from the beginning"));
+        }
+
+        #[test]
+        fn test_authentication_required_message() {
+            let err = CacheError::AuthenticationRequired;
+            let err_msg = err.to_string();
+
+            assert!(err_msg.contains("Authentication required"));
+            assert!(err_msg.contains("HF_TOKEN"));
+            assert!(err_msg.contains("huggingface.co/settings/tokens"));
+        }
+
+        #[test]
+        fn test_model_not_found_message() {
+            let err = CacheError::ModelNotFound("my-model".to_string());
+            let err_msg = err.to_string();
+
+            assert!(err_msg.contains("Model 'my-model' not found"));
+            assert!(err_msg.contains("download command"));
+        }
+
+        #[test]
+        fn test_manifest_error_message() {
+            let err = CacheError::ManifestError("Parse error".to_string());
+            let err_msg = err.to_string();
+
+            assert!(err_msg.contains("Cache manifest error"));
+            assert!(err_msg.contains("Parse error"));
+            assert!(err_msg.contains("inconsistent state"));
+        }
+
+        #[test]
+        fn test_directory_error_message() {
+            let err = CacheError::DirectoryError("Not writable".to_string());
+            let err_msg = err.to_string();
+
+            assert!(err_msg.contains("Cache directory error"));
+            assert!(err_msg.contains("Not writable"));
+            assert!(err_msg.contains("writable"));
+        }
     }
 }
