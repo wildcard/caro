@@ -9,10 +9,10 @@ subtasks:
   - "T012"
 title: "Test Dataset Structure & Loader"
 phase: "Phase 1 - Foundation"
-lane: "planned"
+lane: "doing"
 assignee: ""
-agent: ""
-shell_pid: ""
+agent: "claude"
+shell_pid: "700"
 review_status: ""
 reviewed_by: ""
 history:
@@ -384,3 +384,4 @@ history:
 ## Activity Log
 
 - 2026-01-08T00:00:00Z – system – lane=planned – Prompt created.
+- 2026-01-08T22:59:52Z – claude – shell_pid=700 – lane=doing – Started WP02: Test Dataset Structure & Loader
