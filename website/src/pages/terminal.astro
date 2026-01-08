@@ -65,7 +65,7 @@ import { SITE_CONFIG } from '../config/site';
             </div>
           </div>
         </div>
-        <p class="tp-hint">Click terminal and type <code>help</code> • Try <code>caro "list large files"</code></p>
+        <p class="tp-hint">Click terminal and type <code>help</code> • Try <code>caro "find large files"</code> • Test <code>validate "rm -rf /"</code></p>
       </div>
     </section>
 
@@ -456,7 +456,28 @@ import { SITE_CONFIG } from '../config/site';
     }
   </style>
 
-  <script define:vars={{ version: SITE_CONFIG.version }}>
+  <script type="module" define:vars={{ version: SITE_CONFIG.version }}>
+    // WASM module state (module-scoped)
+    let caroWasm = null;
+    let wasmReady = false;
+
+    // Initialize WASM module
+    async function initWasm() {
+      try {
+        const wasm = await import('/wasm/caro_wasm.js');
+        await wasm.default();
+        caroWasm = wasm;
+        wasmReady = true;
+        console.log('Caro WASM loaded successfully, version:', wasm.get_version());
+      } catch (e) {
+        console.warn('WASM not available, using fallback:', e);
+      }
+    }
+
+    // Start loading WASM immediately
+    initWasm();
+
+    // Main terminal logic
     (function() {
       const page = document.querySelector('.terminal-page');
       const terminalBody = document.getElementById('terminal-body');
@@ -475,6 +496,7 @@ import { SITE_CONFIG } from '../config/site';
         stats: showStats, s: showStats,
         install: showInstall, i: showInstall,
         features: showFeatures, f: showFeatures,
+        validate: validateDirectCommand,
         github: () => { window.open('https://github.com/wildcard/caro', '_blank'); outputHTML('<div class="tp-stdout"><div class="tp-stdout-line info">Opening github.com/wildcard/caro...</div></div>'); },
         exit: () => window.location.href = '/',
         version: () => outputHTML(`<div class="tp-stdout"><div class="tp-stdout-line accent">caro ${version}</div></div>`),
@@ -485,24 +507,61 @@ import { SITE_CONFIG } from '../config/site';
         echo: (args) => outputHTML(`<div class="tp-stdout"><div class="tp-stdout-line">${escapeHtml(args || '')}</div></div>`),
       };
 
-      // Caro command database - realistic responses
-      const caroCommands = {
-        'find python files': { cmd: 'find . -name "*.py" -type f', safe: true, time: '0.023s' },
-        'find large files': { cmd: 'find . -type f -size +100M', safe: true, time: '0.156s' },
-        'list large files': { cmd: 'find . -type f -size +100M -exec ls -lh {} \\;', safe: true, time: '0.089s' },
-        'show disk usage': { cmd: 'du -sh * | sort -rh | head -10', safe: true, time: '0.034s' },
-        'disk usage': { cmd: 'df -h', safe: true, time: '0.012s' },
-        'memory usage': { cmd: 'free -h', safe: true, time: '0.008s' },
-        'running processes': { cmd: 'ps aux --sort=-%cpu | head -10', safe: true, time: '0.021s' },
-        'network connections': { cmd: 'netstat -tuln', safe: true, time: '0.045s' },
-        'find text in files': { cmd: 'grep -r "pattern" . --include="*.txt"', safe: true, time: '0.067s' },
-        'compress folder': { cmd: 'tar -czvf archive.tar.gz folder/', safe: true, time: '0.034s' },
-        'delete everything': { cmd: 'rm -rf /', safe: false, reason: 'System destruction: recursive delete from root' },
-        'rm -rf': { cmd: 'rm -rf /', safe: false, reason: 'System destruction: recursive force delete' },
-        'format disk': { cmd: 'mkfs.ext4 /dev/sda', safe: false, reason: 'Disk destruction: filesystem format' },
-        'fork bomb': { cmd: ':(){ :|:& };:', safe: false, reason: 'Resource exhaustion: fork bomb detected' },
-        'delete system': { cmd: 'rm -rf /usr /bin /etc', safe: false, reason: 'System destruction: critical directory deletion' },
-      };
+      // Direct command validation function
+      function validateDirectCommand(args) {
+        if (!args) {
+          outputHTML('<div class="tp-stdout"><div class="tp-stdout-line warning">Usage: validate "rm -rf /"</div></div>');
+          return;
+        }
+
+        const command = args.replace(/^["']|["']$/g, '');
+
+        if (!wasmReady || !caroWasm) {
+          outputHTML('<div class="tp-stdout"><div class="tp-stdout-line warning">WASM module loading... Try again.</div></div>');
+          return;
+        }
+
+        const result = caroWasm.validate_command(command);
+        const isSafe = result.is_safe;
+        const riskLevel = result.risk_level;
+
+        if (isSafe) {
+          outputHTML(`
+<div class="tp-caro-box">
+  <div class="tp-caro-header">
+    <span class="tp-caro-icon">🛡️</span>
+    <span class="tp-caro-title">Safety Check</span>
+    <span class="tp-caro-badge safe">✓ SAFE</span>
+  </div>
+  <div class="tp-caro-body">
+    <div class="tp-caro-label">Command</div>
+    <div class="tp-caro-command">${escapeHtml(command)}</div>
+    <div class="tp-caro-meta">
+      <span>Risk: ${riskLevel}</span>
+      <span>✓ ${result.explanation}</span>
+    </div>
+  </div>
+</div>`);
+        } else {
+          outputHTML(`
+<div class="tp-caro-box">
+  <div class="tp-caro-header">
+    <span class="tp-caro-icon">🛡️</span>
+    <span class="tp-caro-title">Safety Check</span>
+    <span class="tp-caro-badge blocked">✕ BLOCKED</span>
+  </div>
+  <div class="tp-caro-body">
+    <div class="tp-caro-label">Dangerous Command</div>
+    <div class="tp-caro-command" style="color: var(--tp-error);">${escapeHtml(command)}</div>
+    <div class="tp-caro-meta">
+      <span style="color: var(--tp-error);">Risk: ${riskLevel.toUpperCase()}</span>
+      <span style="color: var(--tp-error);">⚠ ${result.explanation}</span>
+    </div>
+    ${result.matched_patterns.length > 0 ? `<div class="tp-caro-meta" style="margin-top: 4px;"><span style="color: var(--tp-text-dim);">Patterns: ${result.matched_patterns.join(', ')}</span></div>` : ''}
+  </div>
+</div>`);
+        }
+      }
 
       // Create or get current stdout block - must be defined before showWelcome
       let currentStdout = null;
@@ -651,11 +710,12 @@ import { SITE_CONFIG } from '../config/site';
       function showHelp() {
         outputHTML(`
 <div class="tp-help-box">
-  <div class="tp-help-title">🐕 Caro Interactive Terminal</div>
+  <div class="tp-help-title">🐕 Caro Interactive Terminal (WASM)</div>
 
   <div class="tp-help-section">
     <div class="tp-help-section-title">Caro Commands</div>
     <div class="tp-help-row"><span class="tp-help-cmd">caro "query"</span><span class="tp-help-desc">Convert natural language to shell command</span></div>
+    <div class="tp-help-row"><span class="tp-help-cmd">validate "cmd"</span><span class="tp-help-desc">Check if a command is safe to run</span></div>
     <div class="tp-help-row"><span class="tp-help-cmd">demo</span><span class="tp-help-desc">Run interactive demonstration</span></div>
   </div>
 
@@ -676,14 +736,15 @@ import { SITE_CONFIG } from '../config/site';
       }
 
       function showStats() {
+        const wasmStatus = wasmReady ? '✓ Loaded' : '⏳ Loading';
         outputHTML(`
 <div class="tp-stats-box">
   <div class="tp-help-title">📊 Project Statistics</div>
   <div class="tp-stats-grid">
-    <div class="tp-stats-item"><div class="tp-stats-value">52+</div><div class="tp-stats-label">Safety Patterns</div></div>
-    <div class="tp-stats-item"><div class="tp-stats-value">100%</div><div class="tp-stats-label">Local Inference</div></div>
-    <div class="tp-stats-item"><div class="tp-stats-value">0</div><div class="tp-stats-label">Cloud Dependencies</div></div>
-    <div class="tp-stats-item"><div class="tp-stats-value">3</div><div class="tp-stats-label">Platforms</div></div>
+    <div class="tp-stats-item"><div class="tp-stats-value">34+</div><div class="tp-stats-label">Safety Patterns</div></div>
+    <div class="tp-stats-item"><div class="tp-stats-value">20+</div><div class="tp-stats-label">Command Patterns</div></div>
+    <div class="tp-stats-item"><div class="tp-stats-value">WASM</div><div class="tp-stats-label">${wasmStatus}</div></div>
+    <div class="tp-stats-item"><div class="tp-stats-value">100%</div><div class="tp-stats-label">Client-Side</div></div>
   </div>
 </div>`);
       }
@@ -724,30 +785,23 @@ import { SITE_CONFIG } from '../config/site';
           return;
         }
 
-        // Find matching response
-        let response = null;
-        const lowerQuery = query.toLowerCase();
+        const startTime = performance.now();
 
-        for (const [key, val] of Object.entries(caroCommands)) {
-          if (lowerQuery.includes(key)) {
-            response = val;
-            break;
-          }
-        }
+        // Try to use WASM module if available
+        if (wasmReady && caroWasm) {
+          // Use WASM for command generation
+          const result = caroWasm.generate_command(query);
+          const elapsed = ((performance.now() - startTime) / 1000).toFixed(3);
 
-        // Default response for unknown queries
-        if (!response) {
-          response = {
-            cmd: `# Generated command for: ${query}`,
-            safe: true,
-            time: '0.042s'
-          };
-        }
+          if (result) {
+            // Generated a command - now validate it
+            const validation = caroWasm.validate_command(result.command);
+            const isSafe = validation.is_safe;
+            const riskLevel = validation.risk_level;
 
-        // Simulate thinking delay
-        setTimeout(() => {
-          if (response.safe) {
-            outputHTML(`
+            setTimeout(() => {
+              if (isSafe) {
+                outputHTML(`
 <div class="tp-caro-box">
   <div class="tp-caro-header">
     <span class="tp-caro-icon">🐕</span>
@@ -756,16 +810,16 @@ import { SITE_CONFIG } from '../config/site';
   </div>
   <div class="tp-caro-body">
     <div class="tp-caro-label">Generated Command</div>
-    <div class="tp-caro-command">${escapeHtml(response.cmd)}</div>
+    <div class="tp-caro-command">${escapeHtml(result.command)}</div>
     <div class="tp-caro-meta">
-      <span>⏱ ${response.time || '0.031s'}</span>
+      <span>⏱ ${elapsed}s</span>
       <span>🖥 ${navigator.platform.includes('Mac') ? 'macOS' : navigator.platform.includes('Win') ? 'Windows' : 'Linux'}</span>
-      <span>✓ Ready to execute</span>
+      <span>✓ ${result.description}</span>
     </div>
   </div>
 </div>`);
-          } else {
-            outputHTML(`
+              } else {
+                outputHTML(`
 <div class="tp-caro-box">
   <div class="tp-caro-header">
     <span class="tp-caro-icon">🐕</span>
@@ -774,15 +828,53 @@ import { SITE_CONFIG } from '../config/site';
   </div>
   <div class="tp-caro-body">
     <div class="tp-caro-label">Blocked Command</div>
-    <div class="tp-caro-command" style="color: var(--tp-error);">${escapeHtml(response.cmd)}</div>
+    <div class="tp-caro-command" style="color: var(--tp-error);">${escapeHtml(result.command)}</div>
     <div class="tp-caro-meta">
-      <span style="color: var(--tp-error);">⚠ ${response.reason}</span>
+      <span style="color: var(--tp-error);">⚠ ${validation.explanation}</span>
     </div>
   </div>
 </div>`);
+              }
+              scrollToBottom();
+            }, 50);
+          } else {
+            // No pattern match - show not found message
+            setTimeout(() => {
+              outputHTML(`
+<div class="tp-caro-box">
+  <div class="tp-caro-header">
+    <span class="tp-caro-icon">🐕</span>
+    <span class="tp-caro-title">Caro</span>
+    <span class="tp-caro-badge" style="background: rgba(139,148,158,0.15); color: var(--tp-text-muted);">NO MATCH</span>
+  </div>
+  <div class="tp-caro-body">
+    <div class="tp-caro-label">No Pattern Match</div>
+    <div class="tp-caro-command" style="color: var(--tp-text-muted);"># Could not find matching pattern for: ${escapeHtml(query)}</div>
+    <div class="tp-caro-meta">
+      <span>💡 Try: "find large files", "disk usage", "memory usage"</span>
+    </div>
+  </div>
+</div>`);
+              scrollToBottom();
+            }, 50);
           }
-          scrollToBottom();
-        }, 150);
+          return;
+        }
+
+        // Fallback when WASM not available
+        outputHTML(`
+<div class="tp-stdout">
+  <div class="tp-stdout-line warning">WASM module loading... Try again in a moment.</div>
+</div>`);
+        scrollToBottom();
+      }
+
+      // Direct command validation (for testing dangerous commands)
+      function validateCommand(command) {
+        if (!wasmReady || !caroWasm) {
+          return { is_safe: true, explanation: 'WASM not loaded' };
+        }
+        return caroWasm.validate_command(command);
       }
 
       function runDemo() {
