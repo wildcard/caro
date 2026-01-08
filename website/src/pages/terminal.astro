@@ -504,6 +504,51 @@ import { SITE_CONFIG } from '../config/site';
         'delete system': { cmd: 'rm -rf /usr /bin /etc', safe: false, reason: 'System destruction: critical directory deletion' },
       };
 
+      // Create or get current stdout block - must be defined before showWelcome
+      let currentStdout = null;
+
+      function startStdout() {
+        currentStdout = document.createElement('div');
+        currentStdout.className = 'tp-stdout';
+        terminalOutput.appendChild(currentStdout);
+      }
+
+      function endStdout() {
+        currentStdout = null;
+      }
+
+      function scrollToBottom() {
+        terminalBody.scrollTop = terminalBody.scrollHeight;
+      }
+
+      function output(text, type = '') {
+        if (!currentStdout) {
+          startStdout();
+        }
+        const line = document.createElement('div');
+        line.className = `tp-stdout-line${type ? ' ' + type : ''}`;
+        line.textContent = text;
+        currentStdout.appendChild(line);
+      }
+
+      function outputHTML(html) {
+        endStdout();
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        terminalOutput.appendChild(div);
+        scrollToBottom();
+      }
+
+      function clearTerminal() {
+        terminalOutput.innerHTML = '';
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
       showWelcome();
 
       // Event listeners
@@ -585,54 +630,6 @@ import { SITE_CONFIG } from '../config/site';
         line.className = 'tp-command-line';
         line.innerHTML = `<span class="tp-prompt"><span class="tp-user">guest</span>@<span class="tp-host">caro.sh</span>:<span class="tp-path">~</span>$ </span><span class="tp-cmd-text">${escapeHtml(cmd)}</span>`;
         terminalOutput.appendChild(line);
-      }
-
-      // Create or get current stdout block
-      let currentStdout = null;
-
-      function startStdout() {
-        currentStdout = document.createElement('div');
-        currentStdout.className = 'tp-stdout';
-        terminalOutput.appendChild(currentStdout);
-      }
-
-      function endStdout() {
-        currentStdout = null;
-        scrollToBottom();
-      }
-
-      function output(text, type = '') {
-        // If no stdout block, create one
-        if (!currentStdout) {
-          startStdout();
-        }
-        const line = document.createElement('div');
-        line.className = `tp-stdout-line${type ? ' ' + type : ''}`;
-        line.textContent = text;
-        currentStdout.appendChild(line);
-      }
-
-      function outputHTML(html) {
-        // End any current stdout block first
-        endStdout();
-        const div = document.createElement('div');
-        div.innerHTML = html;
-        terminalOutput.appendChild(div);
-        scrollToBottom();
-      }
-
-      function scrollToBottom() {
-        terminalBody.scrollTop = terminalBody.scrollHeight;
-      }
-
-      function clearTerminal() {
-        terminalOutput.innerHTML = '';
-      }
-
-      function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
       }
 
       function showWelcome() {
