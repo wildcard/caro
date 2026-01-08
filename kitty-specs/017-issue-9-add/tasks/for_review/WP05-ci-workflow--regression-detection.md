@@ -3,10 +3,10 @@ work_package_id: "WP05"
 subtasks: ["T032", "T033", "T034", "T035", "T036", "T037", "T038", "T039", "T040", "T041", "T042", "T043", "T044"]
 title: "CI Workflow & Regression Detection"
 phase: "Phase 2 - CI Integration"
-lane: "doing"
+lane: "for_review"
 assignee: ""
 agent: "claude"
-shell_pid: "42155"
+shell_pid: "50418"
 review_status: ""
 reviewed_by: ""
 history:
@@ -53,3 +53,4 @@ Key implementation points:
 
 - 2026-01-08T00:00:00Z – system – lane=planned – Prompt created
 - 2026-01-08T14:17:09Z – claude – shell_pid=42155 – lane=doing – Started CI workflow and regression detection implementation
+- 2026-01-08T14:24:52Z – claude – shell_pid=50418 – lane=for_review – CI workflow and regression detection scripts complete. Live testing deferred to PR phase.
