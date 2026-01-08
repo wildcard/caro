@@ -1202,6 +1202,193 @@ Expand test coverage:
 
 **Good first issues**: Search for `label:testing` and `label:good-first-issue`
 
+#### Download Testing
+
+The Hugging Face model download system has comprehensive test coverage using `wiremock` for HTTP mocking:
+
+**Unit Tests** (`tests/download_unit_tests.rs`):
+- Test successful downloads (200 OK responses)
+- Test resume from partial downloads (206 Partial Content)
+- Test authentication failures (401, 403)
+- Test server errors (500, 503)
+- Test network errors (timeouts, connection refused)
+- Test checksum validation (match and mismatch scenarios)
+- Test edge cases (404, 416 Range Not Satisfiable)
+
+**Integration Tests** (`tests/download_integration_tests.rs`):
+- End-to-end download with test fixtures
+- Resume after simulated interruption
+- Checksum validation with known good files
+- Error recovery scenarios
+- Concurrent downloads without corruption
+
+**Authentication Testing**:
+
+Downloads from Hugging Face Hub support authentication via the `HF_TOKEN` environment variable:
+
+```bash
+# Set your Hugging Face token for testing
+export HF_TOKEN=hf_your_token_here
+
+# Run tests that require authentication
+cargo test --test download_unit_tests test_authentication
+```
+
+**Note**: Most tests use mocked HTTP responses and don't require a real token.
+
+**Resume Capability**:
+
+The download system automatically detects and resumes interrupted downloads:
+
+- Uses `.part` files to track partial downloads
+- Sends HTTP Range headers for resume requests
+- Validates checksums after resume to ensure integrity
+- Falls back to full re-download if server doesn't support Range
+- Cleans up `.part` files on successful completion or checksum failure
+
+**Limitations**:
+- Resume only works if the `.part` file exists at the download location
+- Server must support HTTP Range requests (most do, including HF Hub)
+- Checksum validation requires the full file to be downloaded (no incremental validation)
+
+**Example: Writing Tests with wiremock**:
+
+```rust
+use wiremock::{MockServer, Mock, ResponseTemplate};
+use wiremock::matchers::{method, path, header};
+
+#[tokio::test]
+async fn test_download_with_auth() {
+    let mock_server = MockServer::start().await;
+
+    // Setup mock to expect Bearer token
+    Mock::given(method("GET"))
+        .and(path("/model/file.bin"))
+        .and(header("Authorization", "Bearer test_token"))
+        .respond_with(ResponseTemplate::new(200)
+            .set_body_bytes(b"model data"))
+        .mount(&mock_server)
+        .await;
+
+    let client = HfHubClient::with_token("test_token".to_string()).unwrap();
+    let url = format!("{}/model/file.bin", mock_server.uri());
+
+    let result = download_file(&client, &url, &dest, None, None).await;
+    assert!(result.is_ok());
+}
+```
+
+#### LRU Cache Property-Based Testing
+
+The LRU (Least Recently Used) cache eviction system uses property-based testing with `proptest` to verify correctness under randomized inputs (`tests/cache_lru_property_tests.rs`):
+
+**Invariants Tested**:
+
+1. **Size Constraint Invariant** - Cache never exceeds max_cache_size_bytes after cleanup
+2. **Eviction Order Invariant** - Least recently accessed models are evicted first
+3. **Completeness Invariant** - total_size_bytes always equals sum of individual model sizes
+4. **Chronological Ordering Invariant** - Access time updates work correctly
+5. **Minimal Eviction** - Cleanup removes only as many models as necessary
+6. **No Duplicate Removals** - Each model ID appears at most once in removed list
+
+**Property Test Example**:
+
+```rust
+proptest! {
+    /// Property: After cleanup_lru(), total_size_bytes never exceeds max_cache_size_bytes
+    #[test]
+    fn prop_size_constraint_invariant(
+        models in prop::collection::vec(model_strategy(), 1..20),
+        max_size_gb in 1u64..5,
+    ) {
+        let mut manifest = CacheManifest::new(max_size_gb);
+
+        // Add all models
+        for (id, size_mb, offset_secs) in models {
+            let model = create_test_model(&id, size_mb, offset_secs);
+            manifest.add_model(model);
+        }
+
+        // Run cleanup
+        let _removed = manifest.cleanup_lru();
+
+        // INVARIANT: Cache size never exceeds limit after cleanup
+        prop_assert!(
+            manifest.total_size_bytes <= manifest.max_cache_size_bytes,
+            "Cache size {} exceeds limit {} after cleanup",
+            manifest.total_size_bytes,
+            manifest.max_cache_size_bytes
+        );
+    }
+}
+```
+
+**Running Property Tests**:
+
+```bash
+# Run all LRU property tests (generates 100+ random test cases)
+cargo test --test cache_lru_property_tests
+
+# Run specific property test
+cargo test --test cache_lru_property_tests prop_eviction_order_invariant
+
+# Run with verbose output to see generated test cases
+cargo test --test cache_lru_property_tests -- --nocapture
+```
+
+**Test Coverage**:
+- 7 property-based tests (each generates 100+ randomized test cases)
+- 5 deterministic unit tests for specific edge cases
+- All tests verify core LRU cache invariants hold under various scenarios
+
+**Example: Testing Resume Functionality**:
+
+```rust
+#[tokio::test]
+async fn test_resume_download() {
+    let full_data = b"complete file content";
+    let partial_data = &full_data[..10];
+    let remaining_data = &full_data[10..];
+
+    // Simulate interrupted download
+    let part_path = dest_path.with_extension("part");
+    tokio::fs::write(&part_path, partial_data).await.unwrap();
+
+    // Mock expects Range header and returns 206
+    Mock::given(method("GET"))
+        .and(path("/model/file.bin"))
+        .and(header("Range", "bytes=10-"))
+        .respond_with(ResponseTemplate::new(206)
+            .set_body_bytes(remaining_data.to_vec()))
+        .mount(&mock_server)
+        .await;
+
+    // Download resumes automatically
+    let result = download_file(&client, &url, &dest_path, None, None).await;
+    assert!(result.is_ok());
+
+    // Verify complete file
+    let content = tokio::fs::read(&dest_path).await.unwrap();
+    assert_eq!(content, full_data);
+}
+```
+
+**Running Download Tests**:
+
+```bash
+# Run all download tests
+cargo test download
+
+# Run only unit tests
+cargo test --test download_unit_tests
+
+# Run only integration tests
+cargo test --test download_integration_tests
+
+# Run with output for debugging
+cargo test download -- --nocapture
+```
+
 ### Infrastructure
 
 Improve development and deployment:
