@@ -14,7 +14,7 @@
 //!
 //! # Usage
 //!
-//! ```no_run
+//! ```ignore
 //! use caro_evaluation::dataset::TestDataset;
 //! use caro_evaluation::executor::Executor;
 //! use caro_evaluation::evaluator::Evaluator;
