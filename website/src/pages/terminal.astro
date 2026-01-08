@@ -298,12 +298,39 @@ import { SITE_CONFIG } from '../config/site';
 
     /* Terminal output styling */
     .terminal-page .tp-line { margin-bottom: 2px; white-space: pre-wrap; word-break: break-word; }
-    .terminal-page .tp-prompt-line { color: var(--tp-text); }
+
+    /* Command line - both past and active should look identical */
+    .terminal-page .tp-command-line {
+      display: flex;
+      align-items: center;
+      margin: 4px 0;
+    }
+    .terminal-page .tp-prompt { white-space: nowrap; }
     .terminal-page .tp-user { color: var(--tp-success); font-weight: 600; }
     .terminal-page .tp-host { color: var(--tp-cyan); }
     .terminal-page .tp-path { color: var(--tp-info); }
     .terminal-page .tp-cmd-text { color: var(--tp-text); }
 
+    /* Stdout output block - structured and readable */
+    .terminal-page .tp-stdout {
+      margin: 4px 0 8px 0;
+      padding: 8px 12px;
+      background: var(--tp-bg);
+      border-left: 2px solid var(--tp-border);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .terminal-page .tp-stdout-line { color: var(--tp-text-muted); }
+    .terminal-page .tp-stdout-line.success { color: var(--tp-success); }
+    .terminal-page .tp-stdout-line.error { color: var(--tp-error); }
+    .terminal-page .tp-stdout-line.warning { color: var(--tp-warning); }
+    .terminal-page .tp-stdout-line.info { color: var(--tp-info); }
+    .terminal-page .tp-stdout-line.accent { color: var(--tp-accent); }
+    .terminal-page .tp-stdout-line.dim { color: var(--tp-text-dim); }
+    .terminal-page .tp-stdout-line.cyan { color: var(--tp-cyan); }
+    .terminal-page .tp-stdout-line.magenta { color: var(--tp-magenta); }
+
+    /* Legacy output classes for compatibility */
     .terminal-page .tp-output { color: var(--tp-text-muted); margin-left: 0; }
     .terminal-page .tp-output-success { color: var(--tp-success); }
     .terminal-page .tp-output-error { color: var(--tp-error); }
@@ -382,9 +409,12 @@ import { SITE_CONFIG } from '../config/site';
     .terminal-page .tp-stats-value { font-size: 20px; font-weight: 700; color: var(--tp-accent); }
     .terminal-page .tp-stats-label { font-size: 10px; color: var(--tp-text-dim); text-transform: uppercase; }
 
-    /* Input line */
-    .terminal-page .tp-input-line { display: flex; align-items: center; margin-top: 4px; }
-    .terminal-page .tp-prompt { white-space: nowrap; }
+    /* Input line - identical structure to past command lines */
+    .terminal-page .tp-input-line {
+      display: flex;
+      align-items: center;
+      margin: 4px 0;
+    }
     .terminal-page .tp-input {
       flex: 1;
       background: transparent;
@@ -445,14 +475,14 @@ import { SITE_CONFIG } from '../config/site';
         stats: showStats, s: showStats,
         install: showInstall, i: showInstall,
         features: showFeatures, f: showFeatures,
-        github: () => { window.open('https://github.com/wildcard/caro', '_blank'); output('Opening github.com/wildcard/caro...', 'info'); },
+        github: () => { window.open('https://github.com/wildcard/caro', '_blank'); outputHTML('<div class="tp-stdout"><div class="tp-stdout-line info">Opening github.com/wildcard/caro...</div></div>'); },
         exit: () => window.location.href = '/',
-        version: () => output(`caro ${version}`, 'accent'),
-        v: () => output(`caro ${version}`, 'accent'),
-        whoami: () => output('guest', 'output'),
-        pwd: () => output('/home/guest', 'output'),
-        date: () => output(new Date().toString(), 'output'),
-        echo: (args) => output(args || '', 'output'),
+        version: () => outputHTML(`<div class="tp-stdout"><div class="tp-stdout-line accent">caro ${version}</div></div>`),
+        v: () => outputHTML(`<div class="tp-stdout"><div class="tp-stdout-line accent">caro ${version}</div></div>`),
+        whoami: () => outputHTML('<div class="tp-stdout"><div class="tp-stdout-line">guest</div></div>'),
+        pwd: () => outputHTML('<div class="tp-stdout"><div class="tp-stdout-line">/home/guest</div></div>'),
+        date: () => outputHTML(`<div class="tp-stdout"><div class="tp-stdout-line">${new Date().toString()}</div></div>`),
+        echo: (args) => outputHTML(`<div class="tp-stdout"><div class="tp-stdout-line">${escapeHtml(args || '')}</div></div>`),
       };
 
       // Caro command database - realistic responses
@@ -520,6 +550,9 @@ import { SITE_CONFIG } from '../config/site';
       }
 
       function processInput(input) {
+        // End any previous stdout block
+        endStdout();
+
         showPrompt(input);
 
         const lower = input.toLowerCase();
@@ -531,6 +564,7 @@ import { SITE_CONFIG } from '../config/site';
         if (cmd === 'caro' || lower.startsWith('caro ')) {
           const query = input.replace(/^caro\s*/i, '').replace(/^["']|["']$/g, '');
           simulateCaro(query);
+          endStdout();
           return;
         }
 
@@ -540,7 +574,7 @@ import { SITE_CONFIG } from '../config/site';
             commands[cmd](args);
           }
         } else {
-          output(`bash: ${cmd}: command not found`, 'error');
+          outputHTML(`<div class="tp-stdout"><div class="tp-stdout-line error">bash: ${escapeHtml(cmd)}: command not found</div></div>`);
         }
 
         scrollToBottom();
@@ -548,20 +582,39 @@ import { SITE_CONFIG } from '../config/site';
 
       function showPrompt(cmd) {
         const line = document.createElement('div');
-        line.className = 'tp-line tp-prompt-line';
-        line.innerHTML = `<span class="tp-user">guest</span>@<span class="tp-host">caro.sh</span>:<span class="tp-path">~</span>$ <span class="tp-cmd-text">${escapeHtml(cmd)}</span>`;
+        line.className = 'tp-command-line';
+        line.innerHTML = `<span class="tp-prompt"><span class="tp-user">guest</span>@<span class="tp-host">caro.sh</span>:<span class="tp-path">~</span>$ </span><span class="tp-cmd-text">${escapeHtml(cmd)}</span>`;
         terminalOutput.appendChild(line);
       }
 
-      function output(text, type = 'output') {
-        const line = document.createElement('div');
-        line.className = `tp-line tp-output tp-output-${type}`;
-        line.textContent = text;
-        terminalOutput.appendChild(line);
+      // Create or get current stdout block
+      let currentStdout = null;
+
+      function startStdout() {
+        currentStdout = document.createElement('div');
+        currentStdout.className = 'tp-stdout';
+        terminalOutput.appendChild(currentStdout);
+      }
+
+      function endStdout() {
+        currentStdout = null;
         scrollToBottom();
       }
 
+      function output(text, type = '') {
+        // If no stdout block, create one
+        if (!currentStdout) {
+          startStdout();
+        }
+        const line = document.createElement('div');
+        line.className = `tp-stdout-line${type ? ' ' + type : ''}`;
+        line.textContent = text;
+        currentStdout.appendChild(line);
+      }
+
       function outputHTML(html) {
+        // End any current stdout block first
+        endStdout();
         const div = document.createElement('div');
         div.innerHTML = html;
         terminalOutput.appendChild(div);
@@ -590,11 +643,12 @@ import { SITE_CONFIG } from '../config/site';
 ██║     ███████║██████╔╝██║   ██║
 ██║     ██╔══██║██╔══██╗██║   ██║
 ╚██████╗██║  ██║██║  ██║╚██████╔╝
- ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ </pre>`);
-        output(`caro ${version} — Safe Shell Commands You Can Trust`, 'dim');
-        output('');
-        output('Type "help" for commands, or try: caro "find large files"', 'info');
-        output('');
+ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ </pre>
+<div class="tp-stdout" style="margin-top: 8px;">
+  <div class="tp-stdout-line dim">caro ${version} — Safe Shell Commands You Can Trust</div>
+  <div class="tp-stdout-line">&nbsp;</div>
+  <div class="tp-stdout-line info">Type "help" for commands, or try: caro "find large files"</div>
+</div>`);
       }
 
       function showHelp() {
@@ -638,16 +692,17 @@ import { SITE_CONFIG } from '../config/site';
       }
 
       function showInstall() {
-        output('', '');
-        output('# Quick Install (recommended)', 'dim');
-        output('curl -fsSL https://caro.sh/install | bash', 'cyan');
-        output('', '');
-        output('# Via Cargo', 'dim');
-        output('cargo install caro', 'cyan');
-        output('', '');
-        output('# Or download from GitHub Releases', 'dim');
-        output('https://github.com/wildcard/caro/releases', 'info');
-        output('', '');
+        outputHTML(`
+<div class="tp-stdout">
+  <div class="tp-stdout-line dim"># Quick Install (recommended)</div>
+  <div class="tp-stdout-line cyan">curl -fsSL https://caro.sh/install | bash</div>
+  <div class="tp-stdout-line">&nbsp;</div>
+  <div class="tp-stdout-line dim"># Via Cargo</div>
+  <div class="tp-stdout-line cyan">cargo install caro</div>
+  <div class="tp-stdout-line">&nbsp;</div>
+  <div class="tp-stdout-line dim"># Or download from GitHub Releases</div>
+  <div class="tp-stdout-line info">https://github.com/wildcard/caro/releases</div>
+</div>`);
       }
 
       function showFeatures() {
@@ -668,7 +723,7 @@ import { SITE_CONFIG } from '../config/site';
 
       function simulateCaro(query) {
         if (!query) {
-          output('Usage: caro "your natural language query"', 'warning');
+          outputHTML('<div class="tp-stdout"><div class="tp-stdout-line warning">Usage: caro "your natural language query"</div></div>');
           return;
         }
 
@@ -693,7 +748,6 @@ import { SITE_CONFIG } from '../config/site';
         }
 
         // Simulate thinking delay
-        output('', '');
         setTimeout(() => {
           if (response.safe) {
             outputHTML(`
@@ -735,8 +789,7 @@ import { SITE_CONFIG } from '../config/site';
       }
 
       function runDemo() {
-        output('Running demo...', 'info');
-        output('', '');
+        outputHTML(`<div class="tp-stdout"><div class="tp-stdout-line info">Running demo...</div></div>`);
 
         const demos = [
           { q: 'find large files', delay: 800 },
@@ -747,11 +800,12 @@ import { SITE_CONFIG } from '../config/site';
         let i = 0;
         function next() {
           if (i >= demos.length) {
-            output('', '');
-            output('Demo complete! Try your own queries.', 'success');
+            outputHTML(`<div class="tp-stdout"><div class="tp-stdout-line success">Demo complete! Try your own queries.</div></div>`);
+            scrollToBottom();
             return;
           }
           const demo = demos[i];
+          endStdout();
           showPrompt(`caro "${demo.q}"`);
           setTimeout(() => {
             simulateCaro(demo.q);
