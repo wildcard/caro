@@ -15,7 +15,6 @@ use caro::config::ConfigManager;
 /// T017: Create small config fixture (<1KB)
 fn create_small_config() -> String {
     r#"
-[settings]
 safety_level = "moderate"
 default_shell = "bash"
 log_level = "info"
@@ -27,7 +26,7 @@ log_rotation_days = 30
 
 /// T017: Create large config fixture (>100KB)
 fn create_large_config() -> String {
-    let mut config = String::from("[settings]\n");
+    let mut config = String::new();
     // Add lots of comments to make it >100KB
     for i in 0..5000 {
         config.push_str(&format!("# Comment line {}\n", i));
@@ -35,6 +34,8 @@ fn create_large_config() -> String {
     config.push_str("safety_level = \"moderate\"\n");
     config.push_str("default_shell = \"bash\"\n");
     config.push_str("log_level = \"info\"\n");
+    config.push_str("cache_max_size_gb = 10\n");
+    config.push_str("log_rotation_days = 30\n");
     config
 }
 
