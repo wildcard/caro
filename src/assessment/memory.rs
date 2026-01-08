@@ -15,7 +15,15 @@ impl MemoryInfo {
         sys.refresh_memory();
 
         let total_mb = sys.total_memory() / 1024 / 1024;
-        let available_mb = sys.available_memory() / 1024 / 1024;
+        // Use free_memory as fallback if available_memory is 0
+        let available_mb = {
+            let available = sys.available_memory() / 1024 / 1024;
+            if available == 0 {
+                sys.free_memory() / 1024 / 1024
+            } else {
+                available
+            }
+        };
 
         if total_mb == 0 {
             return Err(AssessmentError::DetectionFailed(

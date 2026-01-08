@@ -4,12 +4,12 @@ title: "Testing & Integration"
 priority: P3
 phase: "polish"
 subtasks: [T027, T028, T029, T030, T031, T032]
-lane: "planned"
+lane: "doing"
 review_status: ""
 reviewed_by: ""
 assignee: ""
-agent: ""
-shell_pid: ""
+agent: "claude"
+shell_pid: "80573"
 history:
   - 2026-01-08T00:00:00Z – spec-kitty-tasks – Generated initial work package prompt
 ---
@@ -392,3 +392,4 @@ Verify:
 ## Activity Log
 
 - 2026-01-08T00:00:00Z – spec-kitty-tasks – Generated initial work package prompt
+- 2026-01-08T18:51:37Z – claude – shell_pid=80573 – lane=doing – Started implementation

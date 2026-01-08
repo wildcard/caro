@@ -307,6 +307,33 @@ caro --backend mlx "find large log files"
 caro --verbose "show disk usage"
 ```
 
+### System Assessment
+
+Caro can assess your system's hardware capabilities and recommend optimal model configurations:
+
+```bash
+# Basic assessment
+caro assess
+
+# Export to JSON
+caro assess --export json --output assessment.json
+
+# Export to Markdown
+caro assess --export markdown --output assessment.md
+```
+
+The assessment command detects:
+- CPU architecture, cores, and model
+- Total and available memory (RAM)
+- GPU vendor, model, and VRAM (if available)
+- Recommended models and backends based on your hardware
+
+**Supported Platforms**: macOS, Linux, Windows
+
+**Backends**: MLX (Apple Silicon), CUDA (NVIDIA), CPU-only
+
+For more details, run `caro assess --help`.
+
 ## 🏗️ Architecture
 
 ### Module Structure

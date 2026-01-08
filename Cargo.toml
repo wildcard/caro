@@ -99,6 +99,7 @@ candle-transformers = { version = "0.9", optional = true }
 tokenizers = { version = "0.22", default-features = false, features = ["http", "rustls-tls", "onig"] }
 
 [dev-dependencies]
+assert_cmd = "2"
 tokio-test = "0.4"
 tempfile = "3"
 serial_test = "3"
