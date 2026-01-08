@@ -8,6 +8,9 @@ use std::sync::{Arc, RwLock};
 mod manifest;
 pub use manifest::ManifestManager;
 
+mod http_client;
+pub use http_client::{HfHubClient, HttpClientError};
+
 /// Cache-related errors
 #[derive(Debug, thiserror::Error)]
 pub enum CacheError {
