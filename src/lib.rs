@@ -27,6 +27,7 @@
 //! ```
 
 pub mod agent;
+pub mod assessment;
 pub mod backends;
 pub mod cache;
 pub mod cli;

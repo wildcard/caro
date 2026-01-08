@@ -1,0 +1,7 @@
+{
+  "feature_number": "020",
+  "slug": "020-machine-resource-assessment",
+  "friendly_name": "Machine Resource Assessment",
+  "source_description": "Issue #147: Add machine resource assessment and model recommendations\n\n## Description\n\nAdd system resource assessment to recommend optimal model configurations.\n\n**Features:**\n- CPU/GPU detection\n- Memory assessment  \n- Model recommendations based on system capabilities\n\n**Source:** Claude Code session (Sun)",
+  "created_at": "2026-01-08T18:15:14Z"
+}

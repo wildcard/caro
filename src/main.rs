@@ -158,6 +158,9 @@ enum Commands {
     /// Run system diagnostics and health checks
     Doctor,
 
+    /// Assess system resources and get model recommendations
+    Assess,
+
     /// Run evaluation tests on command generation quality
     Test {
         /// Backend to test (static, mlx, ollama, or embedded)
@@ -459,6 +462,15 @@ async fn main() {
                 Ok(()) => process::exit(0),
                 Err(e) => {
                     eprintln!("Error running diagnostics: {}", e);
+                    process::exit(1);
+                }
+            }
+        }
+        Some(Commands::Assess) => {
+            match caro::assessment::run_assessment().await {
+                Ok(()) => process::exit(0),
+                Err(e) => {
+                    eprintln!("Error running assessment: {}", e);
                     process::exit(1);
                 }
             }
