@@ -1,5 +1,7 @@
 // CLI module - Command-line interface and user interaction
 
+pub mod telemetry;
+
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use std::sync::Arc;

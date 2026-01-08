@@ -176,6 +176,12 @@ enum Commands {
         #[arg(long)]
         profile: Option<String>,
     },
+
+    /// Manage telemetry data and settings
+    Telemetry {
+        #[command(subcommand)]
+        command: caro::cli::telemetry::TelemetryCommands,
+    },
 }
 
 /// caro - Convert natural language to shell commands using local LLMs
@@ -462,6 +468,21 @@ async fn main() {
                 Ok(()) => process::exit(0),
                 Err(e) => {
                     eprintln!("Error running tests: {}", e);
+                    process::exit(1);
+                }
+            }
+        }
+        Some(Commands::Telemetry { command }) => {
+            let storage_path = dirs::data_dir()
+                .unwrap_or_else(|| std::env::current_dir().unwrap())
+                .join("caro")
+                .join("telemetry")
+                .join("events.db");
+
+            match caro::cli::telemetry::handle_telemetry(command, storage_path).await {
+                Ok(()) => process::exit(0),
+                Err(e) => {
+                    eprintln!("Error: {}", e);
                     process::exit(1);
                 }
             }
