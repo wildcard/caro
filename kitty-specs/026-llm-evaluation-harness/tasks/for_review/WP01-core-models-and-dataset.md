@@ -11,10 +11,10 @@ subtasks:
   - "T008"
 title: "Core Models & Dataset Infrastructure"
 phase: "Phase 1 - Foundation"
-lane: "planned"
+lane: "for_review"
 assignee: ""
-agent: ""
-shell_pid: ""
+agent: "claude"
+shell_pid: "41860"
 review_status: ""
 reviewed_by: ""
 history:
@@ -876,3 +876,5 @@ cargo test --package caro --lib evaluation -- --nocapture
 ## Activity Log
 
 - 2026-01-09T11:00:00Z – system – lane=planned – Prompt created via /spec-kitty.tasks
+- 2026-01-09T09:59:01Z – claude – shell_pid=27500 – lane=doing – Started implementation of Core Models & Dataset
+- 2026-01-09T10:10:42Z – claude – shell_pid=41860 – lane=for_review – Completed all 8 subtasks: module structure, models, errors, dataset, loading, validation, tests
