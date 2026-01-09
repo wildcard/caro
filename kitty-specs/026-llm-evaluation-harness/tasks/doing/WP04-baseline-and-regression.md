@@ -3,7 +3,9 @@ work_package_id: "WP04"
 subtasks: ["T029", "T030", "T031", "T032", "T033", "T034", "T035", "T036"]
 title: "Baseline Storage & Regression Detection"
 phase: "Phase 2 - Quality Gate"
-lane: "planned"
+lane: "doing"
+agent: "claude"
+shell_pid: "62373"
 history:
   - timestamp: "2026-01-09T11:00:00Z"
     lane: "planned"
@@ -60,3 +62,4 @@ cargo test --package caro --lib evaluation::baseline
 ## Activity Log
 
 - 2026-01-09T11:00:00Z – system – lane=planned – Prompt created
+- 2026-01-09T10:38:55Z – claude – shell_pid=62373 – lane=doing – Starting baseline storage and regression detection
