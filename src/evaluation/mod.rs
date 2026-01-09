@@ -58,12 +58,13 @@
 // Sub-modules
 pub mod dataset;
 pub mod errors;
+pub mod evaluators;
 pub mod models;
-// pub mod evaluators;
 // pub mod harness;
 // pub mod baseline;
 
 // Re-exports for public API
 pub use dataset::*;
 pub use errors::*;
+pub use evaluators::{CommandResult, Evaluator};
 pub use models::*;
