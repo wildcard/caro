@@ -72,9 +72,8 @@ impl BaselineStore {
         let file_path = self.baseline_dir.join(&filename);
 
         // Serialize to pretty JSON
-        let json = serde_json::to_string_pretty(report).map_err(|e| {
-            crate::evaluation::DatasetError::JsonParse { source: e }
-        })?;
+        let json = serde_json::to_string_pretty(report)
+            .map_err(|e| crate::evaluation::DatasetError::JsonParse { source: e })?;
 
         // Write to file
         fs::write(&file_path, json).map_err(|e| {
@@ -84,7 +83,9 @@ impl BaselineStore {
         })?;
 
         // Create/update symlink: {branch}-latest.json
-        let latest_link = self.baseline_dir.join(format!("{}-latest.json", report.branch));
+        let latest_link = self
+            .baseline_dir
+            .join(format!("{}-latest.json", report.branch));
 
         // Remove existing symlink if present
         if latest_link.exists() || latest_link.symlink_metadata().is_ok() {
@@ -145,9 +146,8 @@ impl BaselineStore {
             }
         })?;
 
-        let report: BenchmarkReport = serde_json::from_str(&content).map_err(|e| {
-            crate::evaluation::DatasetError::JsonParse { source: e }
-        })?;
+        let report: BenchmarkReport = serde_json::from_str(&content)
+            .map_err(|e| crate::evaluation::DatasetError::JsonParse { source: e })?;
 
         Ok(report)
     }
@@ -174,10 +174,8 @@ impl BaselineStore {
                 reason: format!("Failed to read baseline directory: {}", e),
             }
         })? {
-            let entry = entry.map_err(|e| {
-                crate::evaluation::DatasetError::InvalidStructure {
-                    reason: format!("Failed to read directory entry: {}", e),
-                }
+            let entry = entry.map_err(|e| crate::evaluation::DatasetError::InvalidStructure {
+                reason: format!("Failed to read directory entry: {}", e),
             })?;
 
             let filename = entry.file_name().to_string_lossy().to_string();

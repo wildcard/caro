@@ -3,13 +3,11 @@
 //! Validates that different LLM backends produce consistent (functionally
 //! equivalent) commands for the same natural language input.
 
-use async_trait::async_trait;
-use chrono::Utc;
-use crate::evaluation::{
-    CommandResult, EvaluationResult, Evaluator, TestCase, TestCategory,
-};
 use crate::evaluation::errors::Result;
 use crate::evaluation::evaluators::utils;
+use crate::evaluation::{CommandResult, EvaluationResult, Evaluator, TestCase, TestCategory};
+use async_trait::async_trait;
+use chrono::Utc;
 
 /// Evaluator for multi-backend consistency test cases
 ///
@@ -69,65 +67,63 @@ impl ConsistencyEvaluator {
         }
 
         // Separate successful command generations from failures/blocks
-        let successful: Vec<_> = results
-            .iter()
-            .filter(|r| r.command.is_some())
-            .collect();
+        let successful: Vec<_> = results.iter().filter(|r| r.command.is_some()).collect();
 
         let failed: Vec<_> = results
             .iter()
             .filter(|r| r.command.is_none() && !r.blocked)
             .collect();
 
-        let blocked: Vec<_> = results
-            .iter()
-            .filter(|r| r.blocked)
-            .collect();
+        let blocked: Vec<_> = results.iter().filter(|r| r.blocked).collect();
 
         // All backends should behave similarly (all succeed, all fail, or all block)
-        let (passed, failure_reason, error_type) = if !successful.is_empty() && successful.len() == results.len() {
-            // All backends generated commands - check for equivalence
-            self.check_command_equivalence(&successful)
-        } else if blocked.len() == results.len() {
-            // All backends blocked - consistent behavior
-            (true, None, None)
-        } else if failed.len() == results.len() {
-            // All backends failed - consistent behavior (but not ideal)
-            (
-                true,
-                Some("All backends failed to generate commands".to_string()),
-                Some(crate::evaluation::ErrorType::GenerationFailure),
-            )
-        } else {
-            // Inconsistent behavior across backends
-            let behavior_summary = format!(
-                "Inconsistent backend behavior: {} succeeded, {} failed, {} blocked",
-                successful.len(),
-                failed.len(),
-                blocked.len()
-            );
+        let (passed, failure_reason, error_type) =
+            if !successful.is_empty() && successful.len() == results.len() {
+                // All backends generated commands - check for equivalence
+                self.check_command_equivalence(&successful)
+            } else if blocked.len() == results.len() {
+                // All backends blocked - consistent behavior
+                (true, None, None)
+            } else if failed.len() == results.len() {
+                // All backends failed - consistent behavior (but not ideal)
+                (
+                    true,
+                    Some("All backends failed to generate commands".to_string()),
+                    Some(crate::evaluation::ErrorType::GenerationFailure),
+                )
+            } else {
+                // Inconsistent behavior across backends
+                let behavior_summary = format!(
+                    "Inconsistent backend behavior: {} succeeded, {} failed, {} blocked",
+                    successful.len(),
+                    failed.len(),
+                    blocked.len()
+                );
 
-            let backend_details = results
-                .iter()
-                .map(|r| {
-                    let status = if r.blocked {
-                        "blocked"
-                    } else if r.command.is_some() {
-                        "success"
-                    } else {
-                        "failed"
-                    };
-                    format!("{}: {}", r.backend_name, status)
-                })
-                .collect::<Vec<_>>()
-                .join(", ");
+                let backend_details = results
+                    .iter()
+                    .map(|r| {
+                        let status = if r.blocked {
+                            "blocked"
+                        } else if r.command.is_some() {
+                            "success"
+                        } else {
+                            "failed"
+                        };
+                        format!("{}: {}", r.backend_name, status)
+                    })
+                    .collect::<Vec<_>>()
+                    .join(", ");
 
-            (
-                false,
-                Some(format!("{}. Details: {}", behavior_summary, backend_details)),
-                Some(crate::evaluation::ErrorType::BackendInconsistency),
-            )
-        };
+                (
+                    false,
+                    Some(format!(
+                        "{}. Details: {}",
+                        behavior_summary, backend_details
+                    )),
+                    Some(crate::evaluation::ErrorType::BackendInconsistency),
+                )
+            };
 
         // Aggregate execution time
         let total_execution_time: u64 = results.iter().map(|r| r.execution_time_ms).sum();
@@ -160,10 +156,7 @@ impl ConsistencyEvaluator {
             backend_name,
             passed,
             actual_command,
-            actual_behavior: Some(format!(
-                "{} backends compared",
-                results.len()
-            )),
+            actual_behavior: Some(format!("{} backends compared", results.len())),
             failure_reason,
             execution_time_ms: total_execution_time,
             timestamp: Utc::now(),
@@ -303,7 +296,10 @@ mod tests {
             CommandResult::success("ls -l -a".to_string(), 105, "backend-3".to_string()),
         ];
 
-        let eval_result = evaluator.evaluate_multiple(&test_case, &results).await.unwrap();
+        let eval_result = evaluator
+            .evaluate_multiple(&test_case, &results)
+            .await
+            .unwrap();
         assert!(
             eval_result.passed,
             "Equivalent commands should pass: {:?}",
@@ -334,7 +330,10 @@ mod tests {
             CommandResult::success("find . -type f".to_string(), 110, "backend-2".to_string()),
         ];
 
-        let eval_result = evaluator.evaluate_multiple(&test_case, &results).await.unwrap();
+        let eval_result = evaluator
+            .evaluate_multiple(&test_case, &results)
+            .await
+            .unwrap();
         assert!(
             !eval_result.passed,
             "Different commands should fail consistency check"
@@ -368,7 +367,10 @@ mod tests {
             CommandResult::blocked(105, "backend-2".to_string()),
         ];
 
-        let eval_result = evaluator.evaluate_multiple(&test_case, &results).await.unwrap();
+        let eval_result = evaluator
+            .evaluate_multiple(&test_case, &results)
+            .await
+            .unwrap();
         assert!(
             eval_result.passed,
             "All backends blocking should be consistent"
@@ -393,11 +395,18 @@ mod tests {
         };
 
         let results = vec![
-            CommandResult::success("find . -mtime +30 -delete".to_string(), 100, "backend-1".to_string()),
+            CommandResult::success(
+                "find . -mtime +30 -delete".to_string(),
+                100,
+                "backend-1".to_string(),
+            ),
             CommandResult::blocked(105, "backend-2".to_string()),
         ];
 
-        let eval_result = evaluator.evaluate_multiple(&test_case, &results).await.unwrap();
+        let eval_result = evaluator
+            .evaluate_multiple(&test_case, &results)
+            .await
+            .unwrap();
         assert!(
             !eval_result.passed,
             "Mixed behavior (success/blocked) should be inconsistent"
@@ -426,11 +435,16 @@ mod tests {
             notes: None,
         };
 
-        let results = vec![
-            CommandResult::success("ls -la".to_string(), 100, "backend-1".to_string()),
-        ];
+        let results = vec![CommandResult::success(
+            "ls -la".to_string(),
+            100,
+            "backend-1".to_string(),
+        )];
 
-        let eval_result = evaluator.evaluate_multiple(&test_case, &results).await.unwrap();
+        let eval_result = evaluator
+            .evaluate_multiple(&test_case, &results)
+            .await
+            .unwrap();
         assert!(!eval_result.passed, "Single backend should fail validation");
         assert!(eval_result
             .failure_reason
@@ -486,7 +500,10 @@ mod tests {
             CommandResult::failed("Parse error".to_string(), 5000, "backend-2".to_string()),
         ];
 
-        let eval_result = evaluator.evaluate_multiple(&test_case, &results).await.unwrap();
+        let eval_result = evaluator
+            .evaluate_multiple(&test_case, &results)
+            .await
+            .unwrap();
         assert!(
             eval_result.passed,
             "All backends failing is consistent behavior"

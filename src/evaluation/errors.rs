@@ -151,7 +151,9 @@ pub enum BaselineError {
     NoBaseline,
 
     /// Invalid comparison (different test sets)
-    #[error("Cannot compare: baseline has {baseline_tests} tests, current has {current_tests} tests")]
+    #[error(
+        "Cannot compare: baseline has {baseline_tests} tests, current has {current_tests} tests"
+    )]
     IncompatibleTestSets {
         baseline_tests: usize,
         current_tests: usize,

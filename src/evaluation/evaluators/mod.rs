@@ -3,9 +3,9 @@
 //! This module contains the core Evaluator trait and implementations
 //! for each test category: Correctness, Safety, POSIX, and Multi-backend.
 
-use async_trait::async_trait;
-use crate::evaluation::{EvaluationResult, TestCase, TestCategory};
 use crate::evaluation::errors::Result;
+use crate::evaluation::{EvaluationResult, TestCase, TestCategory};
+use async_trait::async_trait;
 
 /// Result of a backend command generation attempt
 #[derive(Debug, Clone)]
@@ -94,14 +94,14 @@ pub trait Evaluator: Send + Sync {
 }
 
 // Sub-modules for specific evaluator implementations
-pub mod correctness;
-pub mod safety;
-pub mod posix;
 pub mod consistency;
+pub mod correctness;
+pub mod posix;
+pub mod safety;
 pub mod utils;
 
 // Re-exports for public API
-pub use correctness::CorrectnessEvaluator;
-pub use safety::SafetyEvaluator;
-pub use posix::POSIXEvaluator;
 pub use consistency::ConsistencyEvaluator;
+pub use correctness::CorrectnessEvaluator;
+pub use posix::POSIXEvaluator;
+pub use safety::SafetyEvaluator;

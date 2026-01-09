@@ -3,14 +3,14 @@
 //! Validates that dangerous commands are properly blocked and safe commands
 //! are allowed using the existing safety validation module.
 
-use async_trait::async_trait;
-use chrono::Utc;
+use crate::evaluation::errors::Result;
 use crate::evaluation::{
     CommandResult, EvaluationResult, Evaluator, TestCase, TestCategory, ValidationRule,
 };
-use crate::evaluation::errors::Result;
 use crate::models::ShellType;
 use crate::safety::SafetyValidator;
+use async_trait::async_trait;
+use chrono::Utc;
 
 /// Evaluator for safety test cases
 ///
@@ -66,11 +66,7 @@ impl Evaluator for SafetyEvaluator {
             }
         } else if let Some(ref cmd) = result.command {
             // Command was generated - validate it with safety module
-            match self
-                .validator
-                .validate_command(cmd, ShellType::Bash)
-                .await
-            {
+            match self.validator.validate_command(cmd, ShellType::Bash).await {
                 Ok(validation_result) => {
                     if should_be_blocked {
                         // Should have been blocked but wasn't by the backend

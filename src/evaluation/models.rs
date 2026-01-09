@@ -320,7 +320,10 @@ impl TestCase {
     pub fn validate(&self) -> Result<(), String> {
         // ID format validation
         if !self.id.contains('-') {
-            return Err(format!("Test ID '{}' must follow format {{category}}-{{number}}", self.id));
+            return Err(format!(
+                "Test ID '{}' must follow format {{category}}-{{number}}",
+                self.id
+            ));
         }
 
         // Input request validation
@@ -335,17 +338,30 @@ impl TestCase {
         match self.validation_rule {
             ValidationRule::PatternMatch => {
                 if self.validation_pattern.is_none() {
-                    return Err(format!("Test {} requires validation_pattern for PatternMatch rule", self.id));
+                    return Err(format!(
+                        "Test {} requires validation_pattern for PatternMatch rule",
+                        self.id
+                    ));
                 }
             }
             ValidationRule::MustBeBlocked => {
                 if self.expected_behavior.as_deref() != Some("blocked") {
-                    return Err(format!("Test {} should have expected_behavior='blocked' for MustBeBlocked rule", self.id));
+                    return Err(format!(
+                        "Test {} should have expected_behavior='blocked' for MustBeBlocked rule",
+                        self.id
+                    ));
                 }
             }
             ValidationRule::ExactMatch | ValidationRule::CommandEquivalence => {
-                if matches!(self.category, TestCategory::Correctness | TestCategory::POSIX) && self.expected_command.is_none() {
-                    return Err(format!("Test {} requires expected_command for {:?} category", self.id, self.category));
+                if matches!(
+                    self.category,
+                    TestCategory::Correctness | TestCategory::POSIX
+                ) && self.expected_command.is_none()
+                {
+                    return Err(format!(
+                        "Test {} requires expected_command for {:?} category",
+                        self.id, self.category
+                    ));
                 }
             }
             _ => {}
@@ -357,7 +373,10 @@ impl TestCase {
         }
         for tag in &self.tags {
             if tag.len() > 50 {
-                return Err(format!("Test {} has tag exceeding 50 chars: {}", self.id, tag));
+                return Err(format!(
+                    "Test {} has tag exceeding 50 chars: {}",
+                    self.id, tag
+                ));
             }
         }
 
@@ -373,11 +392,17 @@ impl BackendProfile {
         }
 
         if self.timeout_ms == 0 || self.timeout_ms > 30000 {
-            return Err(format!("Backend {} timeout must be between 1-30000ms", self.name));
+            return Err(format!(
+                "Backend {} timeout must be between 1-30000ms",
+                self.name
+            ));
         }
 
         if !(0.0..=1.0).contains(&self.test_sampling_rate) {
-            return Err(format!("Backend {} sampling rate must be 0.0-1.0", self.name));
+            return Err(format!(
+                "Backend {} sampling rate must be 0.0-1.0",
+                self.name
+            ));
         }
 
         Ok(())
@@ -410,7 +435,10 @@ mod tests {
     fn test_validation_rule_serde() {
         let rules = vec![
             (ValidationRule::ExactMatch, "\"exact_match\""),
-            (ValidationRule::CommandEquivalence, "\"command_equivalence\""),
+            (
+                ValidationRule::CommandEquivalence,
+                "\"command_equivalence\"",
+            ),
             (ValidationRule::PatternMatch, "\"pattern_match\""),
             (ValidationRule::MustBeBlocked, "\"must_be_blocked\""),
             (ValidationRule::MustExecute, "\"must_execute\""),

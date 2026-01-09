@@ -252,7 +252,10 @@ mod tests {
     #[test]
     fn test_command_equivalence_exact_match() {
         assert!(command_equivalence("ls -la", "ls -la"));
-        assert!(command_equivalence("find . -name '*.py'", "find . -name '*.py'"));
+        assert!(command_equivalence(
+            "find . -name '*.py'",
+            "find . -name '*.py'"
+        ));
     }
 
     #[test]

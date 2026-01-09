@@ -3,13 +3,13 @@
 //! Validates that generated commands match expected functionality using
 //! ExactMatch, CommandEquivalence, or PatternMatch rules.
 
-use async_trait::async_trait;
-use chrono::Utc;
+use crate::evaluation::errors::Result;
+use crate::evaluation::evaluators::utils;
 use crate::evaluation::{
     CommandResult, EvaluationResult, Evaluator, TestCase, TestCategory, ValidationRule,
 };
-use crate::evaluation::errors::Result;
-use crate::evaluation::evaluators::utils;
+use async_trait::async_trait;
+use chrono::Utc;
 
 /// Evaluator for correctness test cases
 pub struct CorrectnessEvaluator;
@@ -63,10 +63,9 @@ impl Evaluator for CorrectnessEvaluator {
             ValidationRule::CommandEquivalence => {
                 evaluate_command_equivalence(&actual_command, &test_case.expected_command)
             }
-            ValidationRule::PatternMatch => evaluate_pattern_match(
-                &actual_command,
-                &test_case.validation_pattern,
-            ),
+            ValidationRule::PatternMatch => {
+                evaluate_pattern_match(&actual_command, &test_case.validation_pattern)
+            }
             _ => (
                 false,
                 Some(format!(
@@ -94,10 +93,7 @@ impl Evaluator for CorrectnessEvaluator {
     }
 }
 
-fn evaluate_exact_match(
-    actual: &str,
-    expected: &Option<String>,
-) -> (bool, Option<String>) {
+fn evaluate_exact_match(actual: &str, expected: &Option<String>) -> (bool, Option<String>) {
     match expected {
         Some(exp) => {
             if actual == exp {
@@ -116,10 +112,7 @@ fn evaluate_exact_match(
     }
 }
 
-fn evaluate_command_equivalence(
-    actual: &str,
-    expected: &Option<String>,
-) -> (bool, Option<String>) {
+fn evaluate_command_equivalence(actual: &str, expected: &Option<String>) -> (bool, Option<String>) {
     match expected {
         Some(exp) => {
             if utils::command_equivalence(actual, exp) {
@@ -141,10 +134,7 @@ fn evaluate_command_equivalence(
     }
 }
 
-fn evaluate_pattern_match(
-    actual: &str,
-    pattern: &Option<String>,
-) -> (bool, Option<String>) {
+fn evaluate_pattern_match(actual: &str, pattern: &Option<String>) -> (bool, Option<String>) {
     match pattern {
         Some(pat) => {
             if utils::matches_pattern(actual, pat) {
@@ -152,7 +142,10 @@ fn evaluate_pattern_match(
             } else {
                 (
                     false,
-                    Some(format!("Command '{}' does not match pattern '{}'", actual, pat)),
+                    Some(format!(
+                        "Command '{}' does not match pattern '{}'",
+                        actual, pat
+                    )),
                 )
             }
         }
@@ -257,11 +250,8 @@ mod tests {
             notes: None,
         };
 
-        let result = CommandResult::success(
-            "find . -name '*.py'".to_string(),
-            100,
-            "test".to_string(),
-        );
+        let result =
+            CommandResult::success("find . -name '*.py'".to_string(), 100, "test".to_string());
 
         let eval_result = evaluator.evaluate(&test_case, &result).await.unwrap();
         assert!(eval_result.passed);
