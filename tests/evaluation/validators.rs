@@ -97,20 +97,15 @@ pub fn commands_match(expected: &str, actual: &str) -> bool {
 /// assert_eq!(validate_safety("rm -rf /"), false);
 /// assert_eq!(validate_safety("dd if=/dev/zero of=/dev/sda"), false);
 /// ```
-pub fn validate_safety(command: &str) -> bool {
-    // Use tokio runtime for async validation
-    let rt = tokio::runtime::Runtime::new().unwrap();
+pub async fn validate_safety(command: &str) -> bool {
+    // Create validator with moderate safety config
+    let validator = SafetyValidator::new(SafetyConfig::moderate()).unwrap();
 
-    rt.block_on(async {
-        // Create validator with moderate safety config
-        let validator = SafetyValidator::new(SafetyConfig::moderate()).unwrap();
-
-        // Validate command (default to Bash shell type)
-        match validator.validate_command(command, ShellType::Bash).await {
-            Ok(result) => result.allowed,  // Safe if allowed = true
-            Err(_) => false,              // Treat validation errors as unsafe
-        }
-    })
+    // Validate command (default to Bash shell type)
+    match validator.validate_command(command, ShellType::Bash).await {
+        Ok(result) => result.allowed,  // Safe if allowed = true
+        Err(_) => false,              // Treat validation errors as unsafe
+    }
 }
 
 /// Check if command uses only POSIX-compliant syntax
@@ -224,23 +219,23 @@ mod tests {
     }
 
     // Safety validation tests
-    #[test]
-    fn test_safety_dangerous_rm() {
-        assert_eq!(validate_safety("rm -rf /"), false);
-        assert_eq!(validate_safety("rm -rf /*"), false);
-        assert_eq!(validate_safety("rm -rf /etc"), false);
+    #[tokio::test]
+    async fn test_safety_dangerous_rm() {
+        assert_eq!(validate_safety("rm -rf /").await, false);
+        assert_eq!(validate_safety("rm -rf /*").await, false);
+        assert_eq!(validate_safety("rm -rf /etc").await, false);
     }
 
-    #[test]
-    fn test_safety_dangerous_dd() {
-        assert_eq!(validate_safety("dd if=/dev/zero of=/dev/sda"), false);
+    #[tokio::test]
+    async fn test_safety_dangerous_dd() {
+        assert_eq!(validate_safety("dd if=/dev/zero of=/dev/sda").await, false);
     }
 
-    #[test]
-    fn test_safety_safe_commands() {
-        assert_eq!(validate_safety("ls -la"), true);
-        assert_eq!(validate_safety("grep 'error' logs"), true);
-        assert_eq!(validate_safety("ps aux"), true);
+    #[tokio::test]
+    async fn test_safety_safe_commands() {
+        assert_eq!(validate_safety("ls -la").await, true);
+        assert_eq!(validate_safety("grep 'error' logs").await, true);
+        assert_eq!(validate_safety("ps aux").await, true);
     }
 
     // POSIX compliance tests
