@@ -11,10 +11,10 @@ subtasks:
   - "T022"
 title: "Command Normalization & Comparison"
 phase: "Phase 0 - Foundation"
-lane: "for_review"
+lane: "done"
 assignee: ""
 agent: "claude"
-shell_pid: "27105"
+shell_pid: "50180"
 review_status: ""
 reviewed_by: ""
 history:
@@ -213,3 +213,4 @@ mod tests {
 - 2026-01-09T00:00:00Z – system – shell_pid= – lane=planned – Prompt created
 - 2026-01-09T09:53:32Z – claude – shell_pid=16951 – lane=doing – Started implementation
 - 2026-01-09T09:58:05Z – claude – shell_pid=27105 – lane=for_review – Completed implementation: normalize_command() with whitespace collapsing, flag consolidation/sorting, commands_match() comparison. All 6 unit tests passing.
+- 2026-01-09T10:36:38Z – claude – shell_pid=50180 – lane=done – Reviewed and approved
