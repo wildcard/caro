@@ -12,10 +12,10 @@ subtasks:
   - "T014"
 title: "Test Dataset Infrastructure"
 phase: "Phase 0 - Foundation"
-lane: "planned"
+lane: "doing"
 assignee: ""
-agent: ""
-shell_pid: ""
+agent: "claude"
+shell_pid: "16951"
 review_status: ""
 reviewed_by: ""
 history:
@@ -24,6 +24,16 @@ history:
     agent: "system"
     shell_pid: ""
     action: "Prompt generated via /spec-kitty.tasks"
+  - timestamp: "2026-01-09T21:50:00Z"
+    lane: "doing"
+    agent: "claude"
+    shell_pid: "16951"
+    action: "Started implementation"
+  - timestamp: "2026-01-09T21:55:00Z"
+    lane: "doing"
+    agent: "claude"
+    shell_pid: "16951"
+    action: "Completed implementation: Implemented TestCase, Category, TestDataset structs with serde. Created from_toml() loader with validation (duplicate IDs, empty fields). Created test_cases.toml with 10 examples (6 correctness, 2 safety, 2 POSIX). Added 3 unit tests (load valid, duplicate ID error, empty dataset error). All 4 tests pass (3 unit + 1 integration)."
 ---
 
 # Work Package Prompt: WP02 – Test Dataset Infrastructure
@@ -306,3 +316,4 @@ posix_compliant = true
 ## Activity Log
 
 - 2026-01-09T00:00:00Z – system – shell_pid= – lane=planned – Prompt created
+- 2026-01-09T09:49:58Z – claude – shell_pid=16951 – lane=doing – Started implementation
