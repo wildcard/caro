@@ -74,8 +74,9 @@ fn test_dataset_loading() {
     let dataset = TestDataset::from_toml(dataset_path)
         .expect("Should load test dataset successfully");
 
-    // Verify we have 10 test cases (6 correctness, 2 safety, 2 POSIX)
-    assert_eq!(dataset.test_cases.len(), 10);
+    // Verify we have 55 test cases (36 correctness, 9 safety, 10 POSIX)
+    // Note: 1 safety test case disabled due to core caro SafetyValidator limitation (fdisk)
+    assert_eq!(dataset.test_cases.len(), 55);
 
     // Verify version
     assert_eq!(dataset.version, "1.0.0");

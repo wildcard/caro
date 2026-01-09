@@ -128,12 +128,16 @@ pub fn is_posix_compliant(command: &str) -> bool {
         r"\{[0-9]+\.\.[0-9]+\}",   // Brace expansion {1..10}
         r"<\(",                     // Process substitution <()
         r"\$\(\(",                  // Arithmetic expansion $(())
+        r"\$\{[^}]*\[@\][^}]*\}",  // Bash array expansion ${arr[@]}
+        r"\$\{[^}]*%[^}]*\}",      // Bash parameter expansion ${var%pattern}
     ];
 
     // Zsh-specific patterns
     let zsh_patterns = [
         r"\*\*/",                   // Recursive globstar **/
         r"=\(",                     // Process substitution =()
+        r"\^\*",                    // Extended glob negation ^*.txt
+        r"<[0-9]+-[0-9]+>",        // Numeric range glob <1-10>
     ];
 
     // Check bash patterns
