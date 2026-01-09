@@ -15,15 +15,17 @@ This document provides complete instructions for:
 **Duration**: 5 days (starting from day you receive this)
 **Your Mission**:
 - Use caro in your daily terminal workflow
-- Test new features (assess, doctor, telemetry)
+- Test new features (`doctor` diagnostics)
 - Report bugs and unexpected behavior
 - Provide feedback on user experience
 - Help us reach 95%+ quality before GA release
 
+> **Note**: Some features documented (like `assess` and `telemetry` commands) are not available in beta.1. See known issues document for details.
+
 **What We're Testing**:
 - ✅ Command generation quality across diverse use cases
 - ✅ Safety validation (no false positives)
-- ✅ System assessment accuracy
+- ✅ System diagnostics (`doctor` command)
 - ✅ Privacy guarantees (zero PII collection)
 - ✅ Performance and resource usage
 - ✅ Installation and onboarding experience
@@ -111,13 +113,15 @@ We NEVER collect:
 
 Learn more: https://caro.sh/telemetry
 You can disable telemetry anytime with:
-  caro telemetry disable
+  caro config set telemetry.enabled false
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
 **Telemetry Default**: Enabled for beta testing (helps us improve quality)
-**To Disable**: Run `caro telemetry disable`
+**To Disable**: Run `caro config set telemetry.enabled false`
+
+> **⚠️ Note for Beta.1**: The `caro telemetry` subcommand does not exist in v1.1.0-beta.1. Use `caro config set telemetry.enabled false` instead.
 
 ---
 
@@ -139,41 +143,37 @@ You can disable telemetry anytime with:
 - [ ] `caro "show running processes"` → Should generate `ps` command
 - [ ] Commands execute successfully when you run them
 
-**System Assessment** (New Feature):
-```bash
-caro assess
-```
-- [ ] Shows your CPU information correctly
-- [ ] Shows your GPU information (if available)
-- [ ] Shows memory information correctly
-- [ ] Provides backend recommendations
-- [ ] Output is formatted clearly
+**~~System Assessment~~** (NOT AVAILABLE IN BETA.1):
+> **⚠️ Note**: The `caro assess` subcommand does not exist in v1.1.0-beta.1.
+> **Use `caro doctor` instead** for system diagnostics.
 
-**Health Diagnostics** (New Feature):
+**System Diagnostics** (New Feature - Use `doctor`):
 ```bash
 caro doctor
 ```
-- [ ] Shows platform detection
+- [ ] Shows platform detection (OS, architecture)
 - [ ] Shows backend availability
-- [ ] Shows configuration status
+- [ ] Shows model cache status
+- [ ] Shows network connectivity
 - [ ] Provides helpful diagnostics
-- [ ] Identifies any issues
+- [ ] Output is formatted clearly
 
-**Telemetry Controls**:
-```bash
-# View telemetry status
-caro telemetry status
-
-# View collected events
-caro telemetry show
-
-# Export telemetry (for privacy review)
-caro telemetry export day1-telemetry.json
-```
-- [ ] Telemetry status shows configuration
-- [ ] Can view collected events
-- [ ] Can export telemetry to JSON
-- [ ] No PII visible in exported data (verify manually)
+**~~Telemetry Controls~~** (NOT AVAILABLE IN BETA.1):
+> **⚠️ Note**: The `caro telemetry` subcommands do not exist in v1.1.0-beta.1.
+> **SKIP** all telemetry-related test cases for beta.1.
+>
+> These commands will be added in a future beta iteration:
+> ```bash
+> # These DO NOT WORK in beta.1:
+> caro telemetry status   ❌
+> caro telemetry show     ❌
+> caro telemetry export   ❌
+> ```
+>
+> Telemetry is enabled by default in beta.1. To disable:
+> ```bash
+> caro config set telemetry.enabled false
+> ```
 
 ### Day 2-3: Daily Workflow Integration
 
@@ -270,11 +270,13 @@ caro "search for pattern"
 - [ ] No crashes or hangs
 
 **Final Checks**:
-- [ ] Export final telemetry: `caro telemetry export day5-telemetry.json`
-- [ ] Review exported telemetry for any PII (should be NONE)
+- [ ] ~~Export final telemetry~~ (NOT AVAILABLE IN BETA.1)
+- [ ] ~~Review exported telemetry for PII~~ (NOT AVAILABLE IN BETA.1)
 - [ ] Note overall satisfaction (1-5 scale)
 - [ ] List top 3 bugs or issues
 - [ ] List top 3 feature requests
+
+> **Note**: Telemetry export is not available in beta.1. Privacy verification will be done in future beta iterations.
 
 ---
 
@@ -353,7 +355,7 @@ Day X/5 Check-In:
 1. **Overall Satisfaction**: 1-5 (1=Poor, 5=Excellent)
 2. **Command Generation Quality**: 1-5
 3. **Safety Validation Quality**: 1-5
-4. **New Features (assess, doctor)**: 1-5
+4. **System Diagnostics (`doctor`)**: 1-5
 5. **Installation Experience**: 1-5
 6. **Documentation Quality**: 1-5
 
@@ -374,39 +376,28 @@ Day X/5 Check-In:
 
 ## 🔍 Privacy Review
 
-**IMPORTANT**: Please review your telemetry exports for PII.
+> **⚠️ NOT AVAILABLE IN BETA.1**: Telemetry export functionality does not exist in v1.1.0-beta.1.
+>
+> **SKIP** privacy review for beta.1. This will be tested in future beta iterations.
 
-### How to Review
+### Privacy Guarantees (For Reference)
 
-```bash
-# Export your telemetry
-caro telemetry export my-telemetry-review.json
+Even though you cannot review telemetry exports in beta.1, caro's privacy guarantees are:
 
-# Review the JSON file
-cat my-telemetry-review.json | jq '.'
+**What is NEVER collected**:
+- Your actual commands or natural language queries
+- File paths or directory names
+- Email addresses or usernames
+- IP addresses
+- Environment variables
+- Any personally identifiable information (PII)
 
-# Look for:
-# - Your commands or queries (should NOT be there)
-# - File paths (should NOT be there)
-# - Email addresses (should NOT be there)
-# - IP addresses (should NOT be there)
-# - Any personal information (should NOT be there)
-```
-
-**What SHOULD be in telemetry**:
+**What IS collected** (when telemetry is enabled):
 - Session IDs (anonymous hashes)
 - Platform info (OS type, shell type)
 - Performance metrics (timing)
 - Error categories (generic error types)
 - Backend usage (static vs LLM)
-
-**What should NOT be in telemetry**:
-- Your actual commands
-- File paths or directory names
-- Email addresses or usernames
-- IP addresses
-- Environment variables
-- Any PII
 
 **If you find PII**:
 1. STOP using caro immediately
@@ -496,28 +487,27 @@ caro --version
 # Help
 caro --help
 
-# System assessment
-caro assess
+# System diagnostics (assess command NOT IN BETA.1)
+caro doctor  # Use 'doctor' instead of 'assess'
 
-# Health check
-caro doctor
-
-# Telemetry management
-caro telemetry status
-caro telemetry show
-caro telemetry export filename.json
-caro telemetry clear
-caro telemetry disable
+# ~~Telemetry management~~ (NOT IN BETA.1)
+# These commands DO NOT EXIST in beta.1:
+# caro telemetry status   ❌
+# caro telemetry show     ❌
+# caro telemetry export   ❌
+#
+# To disable telemetry:
+caro config set telemetry.enabled false
 ```
 
 ### Beta Testing Schedule
 
 | Day | Focus | Deliverable |
 |-----|-------|-------------|
-| 1 | Installation, basic features | Day 1 check-in + telemetry export |
+| 1 | Installation, basic features | Day 1 check-in |
 | 2-3 | Daily workflow integration | Daily check-ins + bug reports |
 | 4 | Safety validation testing | Safety test results + reports |
-| 5 | Edge cases, final testing | Final check-in + survey + telemetry |
+| 5 | Edge cases, final testing | Final check-in + survey |
 
 ### Success Criteria
 
@@ -526,7 +516,7 @@ caro telemetry disable
 - [ ] <3 P1 (high) bugs found
 - [ ] 90%+ command generation accuracy (your assessment)
 - [ ] 0% false positives on safety validation
-- [ ] Zero PII found in telemetry
+- [ ] ~~Zero PII found in telemetry~~ (NOT TESTABLE IN BETA.1)
 - [ ] Average satisfaction ≥4.0/5.0
 - [ ] You would use this daily
 

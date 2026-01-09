@@ -88,36 +88,50 @@ Either add `assess` subcommand in beta.2 OR update documentation to use `doctor`
 
 ---
 
-### Issue #3: No First-Run Telemetry Notice
+### Issue #3: Telemetry Notice Behavior Inconsistent
 
-**Status**: CONFIRMED - Do Not Report Again
-**Discovered By**: Terminal Novice tester (Day 1)
-**Severity**: P2 (Medium - Expected UX missing)
+**Status**: PARTIALLY CONFIRMED - Mixed Results
+**Discovered By**: Terminal Novice (Day 1), Power User (Day 2)
+**Severity**: P2 (Medium - Inconsistent UX)
 
 **Description**:
-The testing instructions show a large telemetry privacy notice should appear on first run, but it doesn't appear when running caro for the first time.
+Telemetry notice behavior is inconsistent between test sessions:
+- **Day 1 (Terminal Novice)**: No notice appeared on first run
+- **Day 2 (Power User)**: Notice appeared on EVERY command
 
-**Expected (from docs)**:
+**Expected**:
+Notice should appear once per session (or first run only)
+
+**Actual Behavior - Scenario A (Day 1)**:
+First run shows command output directly without any telemetry notice.
+
+**Actual Behavior - Scenario B (Day 2)**:
+Notice appears on EVERY single command invocation:
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📊  Telemetry & Privacy
+[Full notice repeated every time]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[Large privacy notice]
+Command: [generated command]
 ```
 
-**Actual Behavior**:
-First run shows command output directly without any telemetry notice.
+**Impact**:
+- Notice repetition is extremely annoying for power users
+- Clutters output, breaks workflows
+- Makes tool unusable for frequent use
 
 **Workaround**:
-None - notice doesn't appear
+None - behavior cannot be controlled
 
 **Fix Plan**:
-Add first-run telemetry notice in beta.2 (if telemetry is implemented)
+- Implement proper first-run detection
+- Show notice ONCE per session maximum
+- Add flag to suppress notice after acknowledgment
 
 **Testing Impact**:
-- **SKIP** first-run notice verification
-- Cannot test telemetry opt-out flow
-- Cannot verify privacy messaging
+- Note whether notice appears for you
+- Count how many times it repeats
+- Test if it persists across shell sessions
 
 ---
 
@@ -159,6 +173,192 @@ Update INSTALL-BETA.md to document both approaches (sudo and user-local installa
 - Note if you encounter sudo issues during installation
 - Try the workaround above
 - Continue testing normally once installed
+
+---
+
+### Issue #5: Telemetry Notice Pollutes JSON Output
+
+**Status**: CONFIRMED - Do Not Report Again
+**Discovered By**: SRE/DevOps tester (Day 4)
+**Severity**: P2 (Medium - Breaks scripting)
+
+**Description**:
+When using `--output json`, the telemetry notice is printed to stdout along with the JSON output, making the output unparseable without filtering.
+
+```bash
+# This fails to parse:
+caro --output json "list files" | jq
+# jq: parse error: Invalid numeric literal at line 3, column 0
+```
+
+**Expected**:
+- Telemetry notice should go to stderr
+- JSON output should go to stdout (clean, parseable)
+
+**Actual**:
+Both telemetry notice and JSON are written to stdout, requiring filtering:
+```bash
+caro --output json "list files" 2>&1 | grep -A100 "^{" | jq
+```
+
+**Impact**:
+- Breaks CI/CD pipelines expecting clean JSON
+- Prevents direct piping to jq/other JSON tools
+- Forces complex filtering workarounds
+
+**Workaround**:
+```bash
+# Filter to extract JSON only
+caro --output json "query" 2>&1 | grep -A100 "^{" | jq -r '.generated_command'
+```
+
+**Fix Plan**:
+Redirect telemetry notice to stderr, keep JSON on stdout
+
+**Testing Impact**:
+- Use workaround for JSON parsing in scripts
+- All JSON tests require filtering
+
+---
+
+### Issue #6: Inconsistent Exit Codes for Safety Violations
+
+**Status**: CONFIRMED - Do Not Report Again
+**Discovered By**: SRE/DevOps tester (Day 4)
+**Severity**: P2 (Medium - Inconsistent behavior)
+
+**Description**:
+Different dangerous commands return different exit codes, making it impossible to reliably detect safety violations in scripts.
+
+**Test Results**:
+| Query | Behavior | Exit Code | Expected |
+|-------|----------|-----------|----------|
+| "delete everything" | Blocked with error | 1 | ✅ Correct |
+| "remove all files recursively" | Refused (echo message) | 0 | ❌ Should be 1 |
+| "kill all processes" | Blocked with error | 1 | ✅ Correct |
+
+**Expected**:
+All safety violations should return non-zero exit code (1)
+
+**Actual**:
+Some refusals return exit code 0, preventing detection in scripts
+
+**Impact**:
+- Scripts cannot reliably detect command generation failures
+- CI/CD pipelines may proceed with unsafe commands
+- False sense of success when command was refused
+
+**Workaround**:
+Parse JSON output for `blocked_reason` field instead of relying on exit codes
+
+**Fix Plan**:
+Standardize all safety violations to return exit code 1
+
+**Testing Impact**:
+- Check exit codes for all safety tests
+- Use JSON parsing for reliable detection
+
+---
+
+### Issue #7: Complex Multi-Step Queries Simplified
+
+**Status**: CONFIRMED - Do Not Report Again
+**Discovered By**: SRE/DevOps tester (Day 5)
+**Severity**: P3 (Low - Model limitation)
+
+**Description**:
+Long queries with multiple requirements (filter + count + sort + exclude) are simplified to only handle the first requirement.
+
+**Example**:
+Query (75 words):
+```
+"I need to find all Python files that were modified in the last 7 days
+and contain the word 'import requests' somewhere in their content, then
+I want to count how many such files exist and list their full paths
+sorted by modification time with the newest first, excluding any files
+in the __pycache__ or .venv directories"
+```
+
+Generated command:
+```bash
+find . -name "*.py" -type f -mtime -7
+```
+
+**Missing**: grep filter, count, sort, exclusions
+
+**Expected**:
+Generate multi-step pipeline or prompt user to break into steps
+
+**Actual**:
+Simplified to first requirement only
+
+**Impact**:
+- Users must manually break complex requests into multiple commands
+- May give impression that tool "didn't understand" the full request
+
+**Workaround**:
+Break complex queries into sequential simple queries
+
+**Fix Plan**:
+- Add multi-step command generation
+- OR provide feedback: "Query too complex, try breaking into steps"
+
+**Testing Impact**:
+- Expect simple command output for complex queries
+- Break workflows into multiple queries
+
+---
+
+### Issue #8: Help Output Lists Non-Existent Subcommands
+
+**Status**: CONFIRMED - Do Not Report Again
+**Discovered By**: Terminal Novice tester (Cycle 3)
+**Severity**: P2 (Medium - Minor confusion)
+
+**Description**:
+The `caro --help` output lists `assess` and `telemetry` as available subcommands, but they don't function as subcommands in v1.1.0-beta.1. Instead, they are interpreted as natural language prompts and generate shell commands.
+
+**Example**:
+```bash
+# Help output shows:
+$ caro --help
+Commands:
+  doctor      Show system diagnostics
+  assess      Assess system capabilities
+  test        Run test suite
+  telemetry   Manage telemetry settings
+
+# But running them:
+$ caro assess
+Command: ps aux | sort -nrk 3,3
+
+$ caro telemetry status
+Command: systemctl status telemetry
+```
+
+**Expected**:
+Either:
+- Option A: Subcommands work as documented in help output
+- Option B: Help output doesn't list non-functional subcommands
+
+**Actual**:
+Help lists subcommands but they generate shell commands instead
+
+**Impact**:
+- Users checking `--help` before reading docs get confused
+- Creates mismatch between help output and actual behavior
+- Documentation warns not to use these commands, but help suggests they exist
+
+**Workaround**:
+Read the beta testing instructions which correctly document that these commands don't exist
+
+**Fix Plan**:
+- Option A: Implement `assess` and `telemetry` as proper subcommands (higher effort)
+- Option B: Remove from help output until implemented (lower effort)
+
+**Testing Impact**:
+- Users should follow documentation instead of help output
+- Help output may not reflect actual available features in beta.1
 
 ---
 
@@ -288,10 +488,13 @@ Before filing, search existing issues: https://github.com/wildcard/caro/issues?q
 This document will be updated as new issues are discovered and confirmed.
 
 **Beta.1 → Beta.2 Fix Plan**:
-1. Add telemetry subcommands OR remove from docs
-2. Add `assess` subcommand OR update docs to use `doctor`
-3. Add first-run telemetry notice (if telemetry implemented)
-4. Update installation guide with sudo-free option
+1. Add telemetry subcommands OR remove from docs (Issue #1)
+2. Add `assess` subcommand OR update docs to use `doctor` (Issue #2)
+3. Fix telemetry notice first-run detection (Issue #3)
+4. Update installation guide with sudo-free option (Issue #4)
+5. Redirect telemetry notice to stderr for clean JSON output (Issue #5)
+6. Standardize exit codes for all safety violations (Issue #6)
+7. Add multi-step command generation OR complexity feedback (Issue #7)
 
 ---
 
