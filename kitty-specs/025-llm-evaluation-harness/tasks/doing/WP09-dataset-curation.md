@@ -11,10 +11,10 @@ subtasks:
   - "T078"
 title: "Test Dataset Curation"
 phase: "Phase 2 - Integration"
-lane: "planned"
+lane: "doing"
 assignee: ""
-agent: ""
-shell_pid: ""
+agent: "claude"
+shell_pid: "50180"
 review_status: ""
 reviewed_by: ""
 history:
@@ -520,3 +520,4 @@ cargo test --test evaluation -- --nocapture
 ## Activity Log
 
 - 2026-01-09T00:00:00Z – system – shell_pid= – lane=planned – Prompt created
+- 2026-01-09T10:25:19Z – claude – shell_pid=50180 – lane=doing – Started implementation
