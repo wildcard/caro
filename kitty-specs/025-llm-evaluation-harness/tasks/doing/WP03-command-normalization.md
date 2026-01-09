@@ -11,10 +11,10 @@ subtasks:
   - "T022"
 title: "Command Normalization & Comparison"
 phase: "Phase 0 - Foundation"
-lane: "planned"
+lane: "doing"
 assignee: ""
-agent: ""
-shell_pid: ""
+agent: "claude"
+shell_pid: "16951"
 review_status: ""
 reviewed_by: ""
 history:
@@ -211,3 +211,4 @@ mod tests {
 ## Activity Log
 
 - 2026-01-09T00:00:00Z – system – shell_pid= – lane=planned – Prompt created
+- 2026-01-09T09:53:32Z – claude – shell_pid=16951 – lane=doing – Started implementation
