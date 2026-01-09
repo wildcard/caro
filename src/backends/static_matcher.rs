@@ -695,9 +695,20 @@ impl StaticMatcher {
 
     /// Select the appropriate command based on platform
     fn select_command(&self, pattern: &PatternEntry) -> String {
-        // For now, use GNU commands as default
-        // In the future, we can use self.profile to detect platform
-        pattern.gnu_command.clone()
+        use crate::prompts::ProfileType;
+
+        match self.profile.profile_type {
+            ProfileType::Bsd => {
+                // Use BSD command if available, otherwise fall back to GNU
+                pattern.bsd_command.as_ref()
+                    .map(|cmd| cmd.clone())
+                    .unwrap_or_else(|| pattern.gnu_command.clone())
+            }
+            _ => {
+                // GNU/Linux and other platforms use GNU commands
+                pattern.gnu_command.clone()
+            }
+        }
     }
 }
 
@@ -893,5 +904,121 @@ mod tests {
         assert!(result.is_ok());
         let cmd = result.unwrap();
         assert_eq!(cmd.command, "ls -d .*", "Command should be 'ls -d .*'");
+    }
+
+    /// Issue #411: Test GNU platform generates GNU syntax (du --max-depth)
+    #[tokio::test]
+    async fn test_platform_gnu_du_command() {
+        use crate::prompts::ProfileType;
+
+        let profile = CapabilityProfile::for_platform(ProfileType::GnuLinux);
+        let matcher = StaticMatcher::new(profile);
+
+        let request = CommandRequest::new("show disk space by directory", ShellType::Bash);
+
+        let result = matcher.generate_command(&request).await;
+        assert!(result.is_ok(), "Command generation should succeed");
+
+        let cmd = result.unwrap();
+        assert!(
+            cmd.command.contains("du -h --max-depth=1"),
+            "GNU platform should use --max-depth flag, got: {}",
+            cmd.command
+        );
+    }
+
+    /// Issue #411: Test BSD platform generates BSD syntax (du -d)
+    #[tokio::test]
+    async fn test_platform_bsd_du_command() {
+        use crate::prompts::ProfileType;
+
+        let profile = CapabilityProfile::for_platform(ProfileType::Bsd);
+        let matcher = StaticMatcher::new(profile);
+
+        let request = CommandRequest::new("show disk space by directory", ShellType::Bash);
+
+        let result = matcher.generate_command(&request).await;
+        assert!(result.is_ok(), "Command generation should succeed");
+
+        let cmd = result.unwrap();
+        assert!(
+            cmd.command.contains("du -h -d 1"),
+            "BSD platform should use -d flag, got: {}",
+            cmd.command
+        );
+        assert!(
+            !cmd.command.contains("--max-depth"),
+            "BSD platform should NOT use --max-depth flag, got: {}",
+            cmd.command
+        );
+    }
+
+    /// Issue #411: Test GNU platform generates GNU syntax with sorted output
+    #[tokio::test]
+    async fn test_platform_gnu_du_sorted() {
+        use crate::prompts::ProfileType;
+
+        let profile = CapabilityProfile::for_platform(ProfileType::GnuLinux);
+        let matcher = StaticMatcher::new(profile);
+
+        let request = CommandRequest::new("show disk usage by directory, sorted", ShellType::Bash);
+
+        let result = matcher.generate_command(&request).await;
+        assert!(result.is_ok(), "Command generation should succeed");
+
+        let cmd = result.unwrap();
+        assert!(
+            cmd.command.contains("du -h --max-depth=1 | sort -hr"),
+            "GNU platform should use --max-depth with sort, got: {}",
+            cmd.command
+        );
+    }
+
+    /// Issue #411: Test BSD platform generates BSD syntax with sorted output
+    #[tokio::test]
+    async fn test_platform_bsd_du_sorted() {
+        use crate::prompts::ProfileType;
+
+        let profile = CapabilityProfile::for_platform(ProfileType::Bsd);
+        let matcher = StaticMatcher::new(profile);
+
+        let request = CommandRequest::new("show disk usage by directory, sorted", ShellType::Bash);
+
+        let result = matcher.generate_command(&request).await;
+        assert!(result.is_ok(), "Command generation should succeed");
+
+        let cmd = result.unwrap();
+        assert!(
+            cmd.command.contains("du -h -d 1 | sort -hr"),
+            "BSD platform should use -d with sort, got: {}",
+            cmd.command
+        );
+        assert!(
+            !cmd.command.contains("--max-depth"),
+            "BSD platform should NOT use --max-depth flag, got: {}",
+            cmd.command
+        );
+    }
+
+    /// Issue #411: Test that patterns without BSD variants fall back to GNU
+    #[tokio::test]
+    async fn test_platform_bsd_fallback_to_gnu() {
+        use crate::prompts::ProfileType;
+
+        let profile = CapabilityProfile::for_platform(ProfileType::Bsd);
+        let matcher = StaticMatcher::new(profile);
+
+        // Use a pattern that has the same command for both platforms (find with -mtime)
+        let request = CommandRequest::new("list all files modified today", ShellType::Bash);
+
+        let result = matcher.generate_command(&request).await;
+        assert!(result.is_ok(), "Command generation should succeed");
+
+        let cmd = result.unwrap();
+        assert_eq!(
+            cmd.command, "find . -type f -mtime 0",
+            "BSD platform should use same command as GNU for find, got: {}",
+            cmd.command
+        );
     }
 }

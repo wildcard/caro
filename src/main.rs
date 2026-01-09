@@ -389,7 +389,7 @@ async fn run_evaluation_tests(
     // Create backend (boxed to allow different types)
     let backend: Box<dyn CommandGenerator> = match backend_name {
         "static" => {
-            let profile = CapabilityProfile::ubuntu();
+            let profile = CapabilityProfile::detect().await;
             Box::new(StaticMatcher::new(profile))
         }
         "embedded" => Box::new(

@@ -40,9 +40,12 @@ pub struct CommandResponse {
 }
 
 impl AgentLoop {
-    pub fn new(backend: Arc<dyn CommandGenerator>, context: ExecutionContext) -> Self {
+    pub fn new(
+        backend: Arc<dyn CommandGenerator>,
+        context: ExecutionContext,
+        profile: CapabilityProfile,
+    ) -> Self {
         // Create static matcher with detected capabilities
-        let profile = CapabilityProfile::ubuntu(); // TODO: detect from system
         let static_matcher = Some(StaticMatcher::new(profile.clone()));
         let validator = CommandValidator::new(profile);
 

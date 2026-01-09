@@ -12,6 +12,7 @@ use crate::{
     backends::CommandGenerator,
     context::ExecutionContext,
     models::{CommandRequest, SafetyLevel, ShellType},
+    prompts::CapabilityProfile,
     safety::SafetyValidator,
 };
 
@@ -170,8 +171,11 @@ impl CliApp {
         // Detect execution context
         let context = ExecutionContext::detect();
 
-        // Create agent loop with backend and context
-        let agent_loop = AgentLoop::new(backend_arc.clone(), context.clone());
+        // Detect platform capabilities for command generation
+        let profile = CapabilityProfile::detect().await;
+
+        // Create agent loop with backend, context, and profile
+        let agent_loop = AgentLoop::new(backend_arc.clone(), context.clone(), profile);
 
         Ok(Self {
             config,
