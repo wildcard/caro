@@ -8,7 +8,7 @@ subtasks:
   - "T005"
 title: "Project Setup & Directory Structure"
 phase: "Phase 0 - Setup"
-lane: "doing"
+lane: "for_review"
 assignee: ""
 agent: "claude"
 shell_pid: "16951"
@@ -20,6 +20,11 @@ history:
     agent: "system"
     shell_pid: ""
     action: "Prompt generated via /spec-kitty.tasks"
+  - timestamp: "2026-01-09T21:45:00Z"
+    lane: "doing"
+    agent: "claude"
+    shell_pid: "16951"
+    action: "Completed implementation: Created tests/evaluation/ directory structure, mod.rs with module declarations, stub files (dataset.rs, harness.rs, validators.rs, reporter.rs), verified cargo build succeeds. toml dependency already present at v0.9."
 ---
 
 # Work Package Prompt: WP01 – Project Setup & Directory Structure
@@ -228,3 +233,4 @@ history:
 
 - 2026-01-09T00:00:00Z – system – shell_pid= – lane=planned – Prompt created via /spec-kitty.tasks
 - 2026-01-09T09:41:56Z – claude – shell_pid=16951 – lane=doing – Started implementation
+- 2026-01-09T09:47:15Z – claude – shell_pid=16951 – lane=for_review – Ready for review
