@@ -336,6 +336,7 @@ impl IntoCliArgs for Cli {
 // =============================================================================
 
 /// Run assessment command with optional export
+#[allow(dead_code)]
 async fn run_assessment_command(
     export_format: Option<ExportFormat>,
     output_path: Option<String>,
@@ -379,7 +380,7 @@ async fn run_assessment_command(
 /// Run evaluation tests on command generation
 async fn run_evaluation_tests(
     backend_name: &str,
-    verbose: bool,
+    _verbose: bool,
     suite_path: Option<&str>,
     profile_id: Option<&str>,
 ) -> Result<(), String> {
@@ -442,10 +443,7 @@ async fn run_evaluation_tests(
 
         let (passed, actual, error) = match result {
             Ok(cmd) => {
-                let matches = test_case
-                    .expected_outputs
-                    .iter()
-                    .any(|expected| cmd.command == *expected);
+                let matches = test_case.expected_outputs.contains(&cmd.command);
                 (matches, Some(cmd.command), None)
             }
             Err(e) => (false, None, Some(e.to_string())),
@@ -629,7 +627,7 @@ async fn main() {
     let is_interactive_output = cli
         .output
         .as_deref()
-        .map_or(true, |format| format != "json" && format != "yaml");
+        .is_none_or(|format| format != "json" && format != "yaml");
 
     if user_config.telemetry.first_run && is_interactive_output {
         // Prompt user for consent

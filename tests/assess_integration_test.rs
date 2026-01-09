@@ -1,15 +1,16 @@
 use assert_cmd::prelude::*;
+use std::process::Command;
 
 #[test]
 fn test_assess_command_runs() {
-    let mut cmd = assert_cmd::cargo::cargo_bin!("caro");
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("caro"));
 
     cmd.arg("assess").assert().success();
 }
 
 #[test]
 fn test_assess_command_output() {
-    let mut cmd = assert_cmd::cargo::cargo_bin!("caro");
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("caro"));
 
     let output = cmd
         .arg("assess")
@@ -32,7 +33,7 @@ fn test_assess_json_export() {
     let temp_file = NamedTempFile::new().unwrap();
     let path = temp_file.path();
 
-    let mut cmd = assert_cmd::cargo::cargo_bin!("caro");
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("caro"));
 
     cmd.arg("assess")
         .arg("--export")
@@ -51,7 +52,7 @@ fn test_assess_json_export() {
 fn test_assess_completes_quickly() {
     use std::time::Instant;
 
-    let mut cmd = assert_cmd::cargo::cargo_bin!("caro");
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("caro"));
 
     let start = Instant::now();
     cmd.arg("assess").assert().success();
