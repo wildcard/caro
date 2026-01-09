@@ -13,6 +13,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #411**: Platform-specific command syntax incompatibility (P2 Blocker)
+  - Root cause: Platform profile hardcoded to Ubuntu instead of detecting actual platform
+  - Fix:
+    - Updated `AgentLoop::new()` to accept detected `CapabilityProfile` parameter
+    - Added `CapabilityProfile::detect().await` in `CliApp::with_config()` and `run_evaluation_tests`
+    - Enhanced `select_command()` to check `profile_type` and return BSD commands on BSD platforms
+  - Impact: Commands now use correct syntax for each platform:
+    - BSD syntax on macOS/FreeBSD (`du -h -d 1`)
+    - GNU syntax on Linux (`du -h --max-depth=1`)
+  - Testing: Added 5 platform-specific tests; File Management pass rate: 80% → 100%
+  - Verification: Runtime tested on macOS, all 153 unit tests passing
+
 ### Security
 
 ## [1.1.0-beta.2] - 2026-01-09
