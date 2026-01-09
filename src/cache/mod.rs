@@ -338,12 +338,61 @@ mod tests {
 
     /// Property-based tests for LRU cache eviction algorithm.
     ///
-    /// These tests verify:
-    /// - Eviction order follows LRU semantics
-    /// - Cache size never exceeds max_size
-    /// - Access operations update item recency
+    /// # Overview
     ///
-    /// Each property runs 100+ random test cases to explore edge cases.
+    /// These tests use PropTest to verify cache behavior across randomized scenarios,
+    /// providing stronger guarantees than example-based unit tests alone.
+    ///
+    /// # Properties Verified
+    ///
+    /// ## Eviction Order (WP02)
+    /// - **LRU First**: Least recently accessed models evicted before more recent ones
+    /// - **Access Updates Position**: Accessing a model refreshes its recency timestamp
+    /// - **Chronological Sequence**: Multiple evictions follow strict access history order
+    ///
+    /// ## Size Constraints (WP03)
+    /// - **Size Limit Respected**: Cache never exceeds `max_cache_size_bytes` after cleanup
+    /// - **Eviction Before Overflow**: Adding models beyond capacity triggers eviction
+    /// - **Timestamp Updates**: Access operations update `last_accessed` correctly
+    ///
+    /// ## Edge Cases (WP04)
+    /// - **Single-Item Cache**: Correctly handles max_size fitting only one model
+    /// - **Empty Operations**: Safe handling of cleanup/get/remove on empty cache
+    /// - **Duplicate IDs**: Adding existing model ID replaces (not duplicates)
+    /// - **Zero-Sized Models**: Correctly handles models with 0 bytes
+    ///
+    /// # Test Execution
+    ///
+    /// Each property test runs 100 iterations with randomized inputs:
+    /// - Cache sizes: 1GB to 10GB
+    /// - Model counts: 2 to 20 models
+    /// - Model sizes: 50MB to 500MB
+    /// - Access patterns: Random sequences with 5-15 operations
+    ///
+    /// Run with: `cargo test prop_`
+    ///
+    /// # Implementation Notes
+    ///
+    /// Tests use `CacheManifest` directly and explicitly call `cleanup_lru()` after
+    /// `add_model()` to mimic `ManifestManager`'s behavior. This pattern reflects
+    /// the production code's design where cleanup is explicit, not automatic.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// // Property: Cache respects size limit
+    /// let mut manifest = CacheManifest::new(1); // 1GB
+    /// manifest.add_model(model_a); // 600MB
+    /// manifest.add_model(model_b); // 600MB - exceeds limit
+    ///
+    /// // Explicit cleanup (mimics ManifestManager)
+    /// if manifest.total_size_bytes > manifest.max_cache_size_bytes {
+    ///     manifest.cleanup_lru(); // Evicts model_a (older)
+    /// }
+    ///
+    /// assert!(manifest.total_size_bytes <= manifest.max_cache_size_bytes);
+    /// assert!(manifest.get_model("model_b").is_some()); // Newer model kept
+    /// ```
     mod property_tests {
         use super::*;
         use proptest::prelude::*;
@@ -684,6 +733,165 @@ mod tests {
                         );
                     }
                 }
+            }
+
+            /// T009: Edge case - Single item cache
+            /// Tests LRU behavior when max size allows only one model
+            #[test]
+            fn prop_single_item_cache(
+                model_sizes_mb in prop::collection::vec(100u64..500, 1..10)
+            ) {
+                let max_size_mb = 100; // Small cache that fits only one model
+                let mut manifest = CacheManifest::new(1);
+                manifest.max_cache_size_bytes = max_size_mb * 1024 * 1024;
+                let now = Utc::now();
+
+                // Add models one by one
+                for (i, size_mb) in model_sizes_mb.iter().enumerate() {
+                    let model = create_test_model(
+                        format!("model_{}", i),
+                        size_mb * 1024 * 1024,
+                        now + Duration::seconds(i as i64),
+                    );
+                    manifest.add_model(model);
+
+                    // Trigger cleanup
+                    if manifest.total_size_bytes > manifest.max_cache_size_bytes {
+                        manifest.cleanup_lru();
+                    }
+
+                    // Cache should contain at most 1 model
+                    prop_assert!(
+                        manifest.models.len() <= 1,
+                        "Single-item cache should contain at most 1 model, found {}",
+                        manifest.models.len()
+                    );
+
+                    // Size should be within limit
+                    prop_assert!(
+                        manifest.total_size_bytes <= manifest.max_cache_size_bytes,
+                        "Single-item cache exceeded size limit"
+                    );
+                }
+            }
+
+            /// T009: Edge case - Empty cache operations
+            /// Tests that operations on empty cache handle correctly
+            #[test]
+            fn prop_empty_cache_operations(max_size_gb in 1u64..5) {
+                let mut manifest = CacheManifest::new(max_size_gb);
+
+                // Cleanup on empty cache should not panic
+                let removed = manifest.cleanup_lru();
+                prop_assert!(
+                    removed.is_empty(),
+                    "Cleanup on empty cache should return empty vector"
+                );
+
+                // Get non-existent model
+                prop_assert!(
+                    manifest.get_model("nonexistent").is_none(),
+                    "Getting non-existent model should return None"
+                );
+
+                // Remove non-existent model
+                let removed_model = manifest.remove_model("nonexistent");
+                prop_assert!(
+                    removed_model.is_none(),
+                    "Removing non-existent model should return None"
+                );
+
+                // Verify manifest state is still valid
+                prop_assert_eq!(manifest.models.len(), 0);
+                prop_assert_eq!(manifest.total_size_bytes, 0);
+            }
+
+            /// T009: Edge case - Duplicate model IDs
+            /// Tests that adding model with existing ID replaces the old one
+            #[test]
+            fn prop_duplicate_model_ids(
+                model_count in 2usize..6,
+                duplicate_index in 0usize..5
+            ) {
+                let mut manifest = CacheManifest::new(10);
+                let now = Utc::now();
+
+                // Add initial models
+                for i in 0..model_count {
+                    let model = create_test_model(
+                        format!("model_{}", i),
+                        100 * 1024 * 1024,
+                        now + Duration::seconds(i as i64),
+                    );
+                    manifest.add_model(model);
+                }
+
+                let initial_count = manifest.models.len();
+
+                // Add duplicate model (if index valid)
+                if duplicate_index < model_count {
+                    let duplicate_model = create_test_model(
+                        format!("model_{}", duplicate_index),
+                        200 * 1024 * 1024, // Different size
+                        now + Duration::hours(1),
+                    );
+                    manifest.add_model(duplicate_model);
+
+                    // Count should remain same (replaced, not added)
+                    prop_assert_eq!(
+                        manifest.models.len(),
+                        initial_count,
+                        "Duplicate model ID should replace existing, not add new"
+                    );
+
+                    // Verify updated size
+                    if let Some(model) = manifest.get_model(&format!("model_{}", duplicate_index)) {
+                        prop_assert_eq!(
+                            model.size_bytes,
+                            200 * 1024 * 1024,
+                            "Duplicate model should have new size"
+                        );
+                    }
+                }
+            }
+
+            /// T009: Edge case - Zero-sized models
+            /// Tests that zero-sized models are handled correctly
+            #[test]
+            fn prop_zero_sized_models(model_count in 1usize..8) {
+                let mut manifest = CacheManifest::new(1);
+                let now = Utc::now();
+
+                // Add zero-sized models
+                for i in 0..model_count {
+                    let model = create_test_model(
+                        format!("model_{}", i),
+                        0, // Zero bytes
+                        now + Duration::seconds(i as i64),
+                    );
+                    manifest.add_model(model);
+                }
+
+                // All zero-sized models should be added
+                prop_assert_eq!(
+                    manifest.models.len(),
+                    model_count,
+                    "Zero-sized models should be added to cache"
+                );
+
+                // Total size should still be zero
+                prop_assert_eq!(
+                    manifest.total_size_bytes,
+                    0,
+                    "Total size should be zero for zero-sized models"
+                );
+
+                // Cleanup should not remove any (none exceed limit)
+                let removed = manifest.cleanup_lru();
+                prop_assert!(
+                    removed.is_empty(),
+                    "Zero-sized models should not be evicted"
+                );
             }
         }
     }
