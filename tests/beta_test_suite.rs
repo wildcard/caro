@@ -383,6 +383,7 @@ fn print_report(report: &BetaTestReport) {
 // =============================================================================
 
 #[test]
+#[ignore = "Requires release binary to be built first - run manually with `cargo test --test beta_test_suite --release -- --ignored`"]
 fn beta_test_comprehensive_cycle_0_baseline() {
     // Load test suite
     let suite = load_test_suite();
