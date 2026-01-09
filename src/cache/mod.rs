@@ -24,27 +24,74 @@ pub use progress::DownloadProgress;
 /// Cache-related errors
 #[derive(Debug, thiserror::Error)]
 pub enum CacheError {
-    #[error("Failed to download model: {0}")]
+    #[error("File system error: {0}")]
+    IoError(#[from] std::io::Error),
+
+    #[error("Download failed: {0}. Please check your internet connection and try again.")]
     DownloadFailed(String),
 
-    #[error("Checksum mismatch for model {model_id}: expected {expected}, got {actual}")]
+    #[error("Network error: {0}. This may indicate connectivity issues or server problems.")]
+    NetworkError(String),
+
+    #[error("File integrity check failed for model {model_id}. Expected checksum: {expected}, Actual checksum: {actual}. The file may be corrupted.")]
     ChecksumMismatch {
         model_id: String,
         expected: String,
         actual: String,
     },
 
-    #[error("Model not found: {0}")]
+    #[error("Resume not supported. The server does not support resumable downloads. Will restart from the beginning.")]
+    ResumeNotSupported,
+
+    #[error("Authentication required. Set HF_TOKEN environment variable with your Hugging Face token. Get one at https://huggingface.co/settings/tokens")]
+    AuthenticationRequired,
+
+    #[error("Model '{0}' not found in cache. Use the download command to fetch it first.")]
     ModelNotFound(String),
 
-    #[error("I/O error: {0}")]
-    IoError(#[from] std::io::Error),
-
-    #[error("Manifest error: {0}")]
+    #[error("Cache manifest error: {0}. The cache may be in an inconsistent state.")]
     ManifestError(String),
 
-    #[error("Cache directory error: {0}")]
+    #[error("Cache directory error: {0}. Please ensure the cache directory exists and is writable.")]
     DirectoryError(String),
+}
+
+impl From<reqwest::Error> for CacheError {
+    fn from(err: reqwest::Error) -> Self {
+        if err.is_connect() || err.is_timeout() {
+            CacheError::NetworkError(format!(
+                "Failed to connect to server: {}. Check your internet connection.",
+                err
+            ))
+        } else if err.is_status() {
+            let status = err.status().map(|s| s.as_u16()).unwrap_or(0);
+            match status {
+                401 | 403 => CacheError::AuthenticationRequired,
+                404 => CacheError::DownloadFailed("Resource not found on server".to_string()),
+                416 => CacheError::ResumeNotSupported,
+                500..=599 => CacheError::NetworkError(format!(
+                    "Server error ({}). The server may be experiencing issues. Please try again later.",
+                    status
+                )),
+                _ => CacheError::NetworkError(format!("HTTP error: {}", err)),
+            }
+        } else {
+            CacheError::DownloadFailed(err.to_string())
+        }
+    }
+}
+
+impl From<HttpClientError> for CacheError {
+    fn from(err: HttpClientError) -> Self {
+        match err {
+            HttpClientError::RequestFailed(req_err) => {
+                // Delegate to the reqwest::Error conversion
+                CacheError::from(req_err)
+            }
+            HttpClientError::InvalidUrl(msg) => CacheError::DownloadFailed(format!("Invalid URL: {}", msg)),
+            HttpClientError::AuthError(_msg) => CacheError::AuthenticationRequired,
+        }
+    }
 }
 
 /// Statistics about the cache

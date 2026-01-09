@@ -116,10 +116,12 @@ impl ManifestManager {
         F: FnOnce(&mut CacheManifest) -> Result<(), CacheError>,
     {
         // Open file for read/write to acquire lock
+        // We don't truncate on open - we read first, then truncate before write
         let file = OpenOptions::new()
             .read(true)
             .write(true)
             .create(true)
+            .truncate(false)
             .open(&self.manifest_path)?;
 
         // Acquire exclusive write lock FIRST (before reading)

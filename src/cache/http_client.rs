@@ -3,7 +3,7 @@
 //! Handles authentication, URL formatting, and streaming downloads from HF Hub.
 
 use reqwest::{
-    header::{HeaderMap, HeaderValue, AUTHORIZATION},
+    header::AUTHORIZATION,
     Client, Response,
 };
 use std::env;
@@ -105,14 +105,11 @@ impl HfHubClient {
             request = request.header(AUTHORIZATION, format!("Bearer {}", token));
         }
 
+        // Send request and convert HTTP error statuses to reqwest::Error
         let response = request.send().await?;
 
-        if !response.status().is_success() {
-            return Err(HttpClientError::InvalidUrl(format!(
-                "HEAD request failed with status: {}",
-                response.status()
-            )));
-        }
+        // Use error_for_status to convert non-success statuses to errors
+        let response = response.error_for_status()?;
 
         Ok(response)
     }
@@ -144,17 +141,18 @@ impl HfHubClient {
             request = request.header("Range", format!("bytes={}-", start));
         }
 
+        // Send request and convert HTTP error statuses to reqwest::Error
+        // This allows our From<reqwest::Error> implementation to handle status codes properly
         let response = request.send().await?;
 
-        if !response.status().is_success() && response.status().as_u16() != 206 {
-            // 206 = Partial Content (valid for Range requests)
-            return Err(HttpClientError::InvalidUrl(format!(
-                "Download request failed with status: {}",
-                response.status()
-            )));
+        // Use error_for_status to convert non-success statuses to errors
+        // Exception: 206 Partial Content is valid for Range requests
+        if response.status().as_u16() != 206 {
+            let response = response.error_for_status()?;
+            Ok(response)
+        } else {
+            Ok(response)
         }
-
-        Ok(response)
     }
 }
 

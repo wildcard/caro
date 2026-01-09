@@ -80,10 +80,7 @@ pub async fn download_file(
     };
 
     // Start streaming download (with Range header if resuming)
-    let response = client
-        .download_stream(url, resume_from)
-        .await
-        .map_err(|e| CacheError::DownloadFailed(e.to_string()))?;
+    let response = client.download_stream(url, resume_from).await?;
 
     // Get actual content length if not provided
     let content_length = expected_size.or_else(|| {
