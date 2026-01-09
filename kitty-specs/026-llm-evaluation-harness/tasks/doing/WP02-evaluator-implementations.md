@@ -3,7 +3,9 @@ work_package_id: "WP02"
 subtasks: ["T009", "T010", "T011", "T012", "T013", "T014", "T015", "T016", "T017", "T018"]
 title: "Evaluator Trait & Implementations"
 phase: "Phase 1 - Core Logic"
-lane: "planned"
+lane: "doing"
+agent: "claude"
+shell_pid: "43803"
 history:
   - timestamp: "2026-01-09T11:00:00Z"
     lane: "planned"
@@ -94,3 +96,4 @@ cargo test --package caro --lib evaluation::evaluators
 ## Activity Log
 
 - 2026-01-09T11:00:00Z – system – lane=planned – Prompt created
+- 2026-01-09T10:13:00Z – claude – shell_pid=43803 – lane=doing – Starting evaluator implementations
