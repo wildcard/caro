@@ -1,7 +1,24 @@
 {
+  "accept_commit": null,
+  "acceptance_history": [
+    {
+      "accepted_at": "2026-01-09T10:48:46Z",
+      "accepted_by": "claude",
+      "accepted_from_commit": "32b4cbdf1b99e8e2c3795b84a702a523bf91b118",
+      "branch": "025-llm-evaluation-harness",
+      "mode": "local",
+      "validation_commands": [
+        "cargo test --test evaluation"
+      ]
+    }
+  ],
+  "acceptance_mode": "local",
+  "accepted_at": "2026-01-09T10:48:46Z",
+  "accepted_by": "claude",
+  "accepted_from_commit": "32b4cbdf1b99e8e2c3795b84a702a523bf91b118",
+  "created_at": "2026-01-09T09:09:21Z",
   "feature_number": "025",
-  "slug": "025-llm-evaluation-harness",
   "friendly_name": "LLM Evaluation Harness",
-  "source_description": "Issue #135: Build LLM evaluation harness for shell commands\n\nCreate comprehensive evaluation framework to test LLM-generated shell command quality, safety, and correctness.\n\n**Test Categories:**\n- Command correctness validation\n- Safety pattern detection accuracy\n- POSIX compliance verification\n- Multi-backend consistency testing\n\n**Deliverables:**\n- Test dataset with labeled examples\n- Automated evaluation pipeline\n- Benchmark results across backends\n- Quality metrics dashboard\n\n**Skills:** Rust, Testing Frameworks, LLM Evaluation, Benchmarking\n**Effort:** 10 days\n**Priority:** High (v1.1.0 milestone)",
-  "created_at": "2026-01-09T09:09:21Z"
+  "slug": "025-llm-evaluation-harness",
+  "source_description": "Issue #135: Build LLM evaluation harness for shell commands\n\nCreate comprehensive evaluation framework to test LLM-generated shell command quality, safety, and correctness.\n\n**Test Categories:**\n- Command correctness validation\n- Safety pattern detection accuracy\n- POSIX compliance verification\n- Multi-backend consistency testing\n\n**Deliverables:**\n- Test dataset with labeled examples\n- Automated evaluation pipeline\n- Benchmark results across backends\n- Quality metrics dashboard\n\n**Skills:** Rust, Testing Frameworks, LLM Evaluation, Benchmarking\n**Effort:** 10 days\n**Priority:** High (v1.1.0 milestone)"
 }
