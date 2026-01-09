@@ -17,8 +17,10 @@ use tempfile::TempDir;
 #[derive(Debug, Deserialize)]
 struct TestSuite {
     metadata: Metadata,
+    #[allow(dead_code)]
     categories: HashMap<String, Category>,
     test_cases: Vec<TestCase>,
+    #[allow(dead_code)]
     profiles: HashMap<String, Profile>,
 }
 
