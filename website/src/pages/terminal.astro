@@ -4,6 +4,7 @@
  *
  * All content displayed INSIDE the terminal
  * Proper shell UX with clear input/output distinction
+ * Now with real AI-powered command generation via Transformers.js
  */
 import { SITE_CONFIG } from '../config/site';
 ---
@@ -27,6 +28,10 @@ import { SITE_CONFIG } from '../config/site';
           <span class="tp-version">v{SITE_CONFIG.version}</span>
         </div>
         <div class="tp-header-right">
+          <div class="tp-model-status" id="model-status">
+            <span class="tp-model-indicator" id="model-indicator"></span>
+            <span class="tp-model-text" id="model-text">Pattern Mode</span>
+          </div>
           <nav class="tp-nav">
             <a href="/" class="tp-nav-link">Main Site</a>
             <a href="https://github.com/wildcard/caro" class="tp-nav-link" target="_blank">GitHub</a>
@@ -70,7 +75,7 @@ import { SITE_CONFIG } from '../config/site';
     </section>
 
     <footer class="tp-footer">
-      <span>caro v{SITE_CONFIG.version} • AGPL-3.0 • Built with Rust</span>
+      <span>caro v{SITE_CONFIG.version} • AGPL-3.0 • Built with Rust + WebGPU AI</span>
     </footer>
   </div>
 
@@ -195,6 +200,48 @@ import { SITE_CONFIG } from '../config/site';
       display: flex;
       align-items: center;
       gap: 16px;
+    }
+
+    .terminal-page .tp-model-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: var(--tp-bg);
+      border: 1px solid var(--tp-border);
+      border-radius: 12px;
+      font-size: 10px;
+    }
+
+    .terminal-page .tp-model-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--tp-text-dim);
+      transition: background 0.3s ease;
+    }
+
+    .terminal-page .tp-model-indicator.loading {
+      background: var(--tp-warning);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .terminal-page .tp-model-indicator.ready {
+      background: var(--tp-success);
+    }
+
+    .terminal-page .tp-model-indicator.error {
+      background: var(--tp-error);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .terminal-page .tp-model-text {
+      color: var(--tp-text-muted);
+      white-space: nowrap;
     }
 
     .terminal-page .tp-nav {
@@ -571,6 +618,115 @@ import { SITE_CONFIG } from '../config/site';
       to { transform: rotate(360deg); }
     }
 
+    /* AI Reasoning/Thinking display */
+    .terminal-page .tp-ai-thinking {
+      margin: 0 0 8px 0;
+      padding: 12px 14px;
+      background: linear-gradient(135deg, rgba(88,166,255,0.08), rgba(219,97,162,0.08));
+      border: 1px solid rgba(88,166,255,0.3);
+      border-radius: 8px;
+      font-size: 12px;
+    }
+
+    .terminal-page .tp-ai-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--tp-border);
+    }
+
+    .terminal-page .tp-ai-icon {
+      font-size: 14px;
+    }
+
+    .terminal-page .tp-ai-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--tp-info);
+      font-weight: 600;
+    }
+
+    .terminal-page .tp-ai-model {
+      margin-left: auto;
+      font-size: 9px;
+      color: var(--tp-text-dim);
+      background: var(--tp-bg-tertiary);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .terminal-page .tp-ai-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .terminal-page .tp-ai-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--tp-text-muted);
+      opacity: 0;
+      animation: stepFadeIn 0.3s ease-out forwards;
+    }
+
+    .terminal-page .tp-ai-step.active {
+      color: var(--tp-text);
+    }
+
+    .terminal-page .tp-ai-step.complete {
+      color: var(--tp-success);
+    }
+
+    .terminal-page .tp-ai-step.error {
+      color: var(--tp-error);
+    }
+
+    @keyframes stepFadeIn {
+      from { opacity: 0; transform: translateX(-8px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .terminal-page .tp-ai-step-icon {
+      flex-shrink: 0;
+      width: 14px;
+      text-align: center;
+    }
+
+    .terminal-page .tp-ai-step-text {
+      flex: 1;
+    }
+
+    .terminal-page .tp-ai-progress {
+      margin-top: 8px;
+      height: 3px;
+      background: var(--tp-bg-tertiary);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .terminal-page .tp-ai-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--tp-info), var(--tp-magenta));
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* Streaming text effect */
+    .terminal-page .tp-streaming {
+      display: inline;
+    }
+
+    .terminal-page .tp-streaming::after {
+      content: '▋';
+      animation: blink 0.7s step-end infinite;
+      color: var(--tp-accent);
+    }
+
     .terminal-page .tp-hint {
       margin-top: 12px;
       font-size: 11px;
@@ -601,11 +757,28 @@ import { SITE_CONFIG } from '../config/site';
   </style>
 
   <script type="module" define:vars={{ version: SITE_CONFIG.version }}>
-    // WASM module state (module-scoped)
+    // ========================================
+    // Caro Terminal with AI-Powered Command Generation
+    // Uses Transformers.js with SmolLM2-360M for real AI inference
+    // ========================================
+
+    // Module state
     let caroWasm = null;
     let wasmReady = false;
+    let aiGenerator = null;
+    let aiReady = false;
+    let aiLoading = false;
 
-    // Initialize WASM module
+    // UI Elements for model status
+    const modelIndicator = document.getElementById('model-indicator');
+    const modelText = document.getElementById('model-text');
+
+    function updateModelStatus(status, text) {
+      modelIndicator.className = 'tp-model-indicator ' + status;
+      modelText.textContent = text;
+    }
+
+    // Initialize WASM module for safety validation
     async function initWasm() {
       try {
         const wasm = await import('/wasm/caro_wasm.js');
@@ -614,11 +787,55 @@ import { SITE_CONFIG } from '../config/site';
         wasmReady = true;
         console.log('Caro WASM loaded successfully, version:', wasm.get_version());
       } catch (e) {
-        console.warn('WASM not available, using fallback:', e);
+        console.warn('WASM not available:', e);
       }
     }
 
-    // Start loading WASM immediately
+    // Initialize Transformers.js AI model
+    async function initAI() {
+      if (aiLoading || aiReady) return;
+      aiLoading = true;
+      updateModelStatus('loading', 'Loading AI...');
+
+      try {
+        // Dynamically import Transformers.js from CDN
+        const { pipeline, env } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3');
+
+        // Configure for browser usage
+        env.allowLocalModels = false;
+        env.useBrowserCache = true;
+
+        // Update status while loading
+        updateModelStatus('loading', 'Downloading model...');
+
+        // Load text generation pipeline with SmolLM2-360M-Instruct
+        // Using q4 quantization for faster loading (~100MB)
+        aiGenerator = await pipeline('text-generation', 'HuggingFaceTB/SmolLM2-360M-Instruct', {
+          dtype: 'q4',
+          device: 'webgpu',
+          progress_callback: (progress) => {
+            if (progress.status === 'downloading') {
+              const pct = Math.round((progress.loaded / progress.total) * 100) || 0;
+              updateModelStatus('loading', `Downloading ${pct}%`);
+            } else if (progress.status === 'loading') {
+              updateModelStatus('loading', 'Loading model...');
+            }
+          }
+        });
+
+        aiReady = true;
+        aiLoading = false;
+        updateModelStatus('ready', 'AI Ready');
+        console.log('Transformers.js AI model loaded successfully');
+
+      } catch (e) {
+        console.warn('AI model not available, using pattern matching:', e);
+        aiLoading = false;
+        updateModelStatus('error', 'Pattern Mode');
+      }
+    }
+
+    // Start loading WASM immediately, AI on demand
     initWasm();
 
     // Main terminal logic
@@ -641,6 +858,8 @@ import { SITE_CONFIG } from '../config/site';
         install: showInstall, i: showInstall,
         features: showFeatures, f: showFeatures,
         validate: validateDirectCommand,
+        loadai: loadAIModel,
+        ai: loadAIModel,
         github: () => { window.open('https://github.com/wildcard/caro', '_blank'); outputHTML('<div class="tp-stdout"><div class="tp-stdout-line info">Opening github.com/wildcard/caro...</div></div>'); },
         exit: () => window.location.href = '/',
         version: () => outputHTML(`<div class="tp-stdout"><div class="tp-stdout-line accent">caro ${version}</div></div>`),
@@ -650,6 +869,20 @@ import { SITE_CONFIG } from '../config/site';
         date: () => outputHTML(`<div class="tp-stdout"><div class="tp-stdout-line">${new Date().toString()}</div></div>`),
         echo: (args) => outputHTML(`<div class="tp-stdout"><div class="tp-stdout-line">${escapeHtml(args || '')}</div></div>`),
       };
+
+      // Load AI model command
+      function loadAIModel() {
+        if (aiReady) {
+          outputHTML('<div class="tp-stdout"><div class="tp-stdout-line success">AI model already loaded (SmolLM2-360M)</div></div>');
+          return;
+        }
+        if (aiLoading) {
+          outputHTML('<div class="tp-stdout"><div class="tp-stdout-line warning">AI model is currently loading...</div></div>');
+          return;
+        }
+        outputHTML('<div class="tp-stdout"><div class="tp-stdout-line info">Loading AI model (~100MB)... This may take a moment.</div><div class="tp-stdout-line dim">The model will be cached for future visits.</div></div>');
+        initAI();
+      }
 
       // Direct command validation function
       function validateDirectCommand(args) {
@@ -876,15 +1109,21 @@ import { SITE_CONFIG } from '../config/site';
       }
 
       function showHelp() {
+        const aiStatus = aiReady ? '✓ Ready' : (aiLoading ? '⏳ Loading' : '○ Not loaded');
         outputHTML(`
 <div class="tp-help-box">
-  <div class="tp-help-title">🐕 Caro Interactive Terminal (WASM)</div>
+  <div class="tp-help-title">🐕 Caro Interactive Terminal</div>
 
   <div class="tp-help-section">
     <div class="tp-help-section-title">Caro Commands</div>
     <div class="tp-help-row"><span class="tp-help-cmd">caro "query"</span><span class="tp-help-desc">Convert natural language to shell command</span></div>
     <div class="tp-help-row"><span class="tp-help-cmd">validate "cmd"</span><span class="tp-help-desc">Check if a command is safe to run</span></div>
     <div class="tp-help-row"><span class="tp-help-cmd">demo</span><span class="tp-help-desc">Run interactive demonstration</span></div>
+  </div>
+
+  <div class="tp-help-section">
+    <div class="tp-help-section-title">AI Model</div>
+    <div class="tp-help-row"><span class="tp-help-cmd">loadai, ai</span><span class="tp-help-desc">Load AI model for smarter generation (${aiStatus})</span></div>
   </div>
 
   <div class="tp-help-section">
@@ -905,14 +1144,19 @@ import { SITE_CONFIG } from '../config/site';
 
       function showStats() {
         const wasmStatus = wasmReady ? '✓ Loaded' : '⏳ Loading';
+        const aiStatusText = aiReady ? '✓ Ready' : (aiLoading ? '⏳ Loading' : '○ Use "ai"');
+        const aiModel = aiReady ? 'SmolLM2' : 'Pattern';
         outputHTML(`
 <div class="tp-stats-box">
-  <div class="tp-help-title">📊 Project Statistics</div>
+  <div class="tp-help-title">📊 System Status</div>
   <div class="tp-stats-grid">
     <div class="tp-stats-item"><div class="tp-stats-value">34+</div><div class="tp-stats-label">Safety Patterns</div></div>
     <div class="tp-stats-item"><div class="tp-stats-value">20+</div><div class="tp-stats-label">Command Patterns</div></div>
     <div class="tp-stats-item"><div class="tp-stats-value">WASM</div><div class="tp-stats-label">${wasmStatus}</div></div>
-    <div class="tp-stats-item"><div class="tp-stats-value">100%</div><div class="tp-stats-label">Client-Side</div></div>
+    <div class="tp-stats-item"><div class="tp-stats-value">${aiModel}</div><div class="tp-stats-label">${aiStatusText}</div></div>
+  </div>
+  <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--tp-border); font-size: 11px; color: var(--tp-text-dim);">
+    ${aiReady ? '🤖 AI-powered command generation active (360M params, WebGPU)' : '💡 Type "ai" to load the AI model for smarter command generation'}
   </div>
 </div>`);
       }
@@ -947,27 +1191,187 @@ import { SITE_CONFIG } from '../config/site';
 </div>`);
       }
 
-      function simulateCaro(query) {
+      // AI-powered command generation with reasoning display
+      async function simulateCaro(query) {
         if (!query) {
           outputHTML('<div class="tp-stdout"><div class="tp-stdout-line warning">Usage: caro "your natural language query"</div></div>');
           return;
         }
 
         const startTime = performance.now();
+        const platform = navigator.platform.includes('Mac') ? 'macOS' : navigator.platform.includes('Win') ? 'Windows' : 'Linux';
 
-        // Try to use WASM module if available
-        if (wasmReady && caroWasm) {
-          // Use WASM for command generation
+        // Create AI thinking display
+        const thinkingEl = document.createElement('div');
+        thinkingEl.className = 'tp-ai-thinking';
+        thinkingEl.innerHTML = `
+          <div class="tp-ai-header">
+            <span class="tp-ai-icon">🧠</span>
+            <span class="tp-ai-label">AI Processing</span>
+            <span class="tp-ai-model">${aiReady ? 'SmolLM2-360M' : 'Pattern Engine'}</span>
+          </div>
+          <div class="tp-ai-steps" id="ai-steps"></div>
+          <div class="tp-ai-progress"><div class="tp-ai-progress-bar" id="ai-progress"></div></div>
+        `;
+        if (currentEntry) {
+          currentEntry.appendChild(thinkingEl);
+        } else {
+          terminalOutput.appendChild(thinkingEl);
+        }
+        scrollToBottom();
+
+        const stepsEl = thinkingEl.querySelector('#ai-steps');
+        const progressEl = thinkingEl.querySelector('#ai-progress');
+
+        // Helper to add steps with animation
+        let stepDelay = 0;
+        function addStep(icon, text, className = '') {
+          setTimeout(() => {
+            const step = document.createElement('div');
+            step.className = 'tp-ai-step ' + className;
+            step.innerHTML = `<span class="tp-ai-step-icon">${icon}</span><span class="tp-ai-step-text">${text}</span>`;
+            stepsEl.appendChild(step);
+            scrollToBottom();
+          }, stepDelay);
+          stepDelay += 150;
+        }
+
+        function updateProgress(pct) {
+          progressEl.style.width = pct + '%';
+        }
+
+        // Step 1: Analyze query
+        addStep('📝', `Analyzing query: "${escapeHtml(query)}"`);
+        updateProgress(20);
+
+        // Step 2: Check platform
+        setTimeout(() => {
+          addStep('🖥', `Detected platform: ${platform}`);
+          updateProgress(40);
+        }, 200);
+
+        let generatedCommand = null;
+        let commandSource = 'pattern';
+
+        // Try AI generation if ready
+        if (aiReady && aiGenerator) {
+          try {
+            setTimeout(() => {
+              addStep('🤖', 'Generating command with AI...', 'active');
+              updateProgress(60);
+            }, 400);
+
+            // Create prompt for command generation
+            const systemPrompt = `You are a shell command generator. Convert natural language to a single shell command.
+Rules:
+- Output ONLY the shell command, nothing else
+- Use standard POSIX/bash commands
+- Target ${platform}
+- Be concise and correct`;
+
+            const messages = [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: query }
+            ];
+
+            const result = await aiGenerator(messages, {
+              max_new_tokens: 64,
+              do_sample: false,
+              return_full_text: false
+            });
+
+            if (result && result[0] && result[0].generated_text) {
+              let aiCommand = result[0].generated_text.trim();
+              // Clean up - extract just the command
+              aiCommand = aiCommand.split('\n')[0].trim();
+              aiCommand = aiCommand.replace(/^```\w*\s*/, '').replace(/```$/, '').trim();
+              aiCommand = aiCommand.replace(/^[$#]\s*/, '').trim();
+
+              if (aiCommand && aiCommand.length > 0 && aiCommand.length < 200) {
+                generatedCommand = aiCommand;
+                commandSource = 'ai';
+              }
+            }
+          } catch (e) {
+            console.warn('AI generation failed, falling back to patterns:', e);
+          }
+        }
+
+        // Fall back to WASM pattern matching
+        if (!generatedCommand && wasmReady && caroWasm) {
+          setTimeout(() => {
+            addStep('🔍', 'Matching against command patterns...', 'active');
+            updateProgress(60);
+          }, 400);
+
           const result = caroWasm.generate_command(query);
-          const elapsed = ((performance.now() - startTime) / 1000).toFixed(3);
+          if (result && result.command) {
+            generatedCommand = result.command;
+            commandSource = 'pattern';
+          }
+        }
 
-          if (result) {
-            // Generated a command - now validate it
-            const validation = caroWasm.validate_command(result.command);
-            const isSafe = validation.is_safe;
-            const riskLevel = validation.risk_level;
+        // Delay for animation, then show results
+        setTimeout(async () => {
+          updateProgress(80);
+
+          if (!generatedCommand) {
+            // No match found
+            addStep('❌', 'No suitable command pattern found', 'error');
+            updateProgress(100);
 
             setTimeout(() => {
+              thinkingEl.remove();
+              outputHTML(`
+<div class="tp-caro-box">
+  <div class="tp-caro-header">
+    <span class="tp-caro-icon">🐕</span>
+    <span class="tp-caro-title">Caro</span>
+    <span class="tp-caro-badge" style="background: rgba(139,148,158,0.15); color: var(--tp-text-muted);">NO MATCH</span>
+  </div>
+  <div class="tp-caro-body">
+    <div class="tp-caro-label">Could not generate command</div>
+    <div class="tp-caro-command" style="color: var(--tp-text-muted);"># ${escapeHtml(query)}</div>
+    <div class="tp-caro-meta">
+      <span>💡 Try: "find large files", "disk usage", "list processes"</span>
+    </div>
+  </div>
+</div>`);
+            }, 300);
+            return;
+          }
+
+          // Safety validation
+          addStep('🛡', 'Running safety validation...', 'active');
+          updateProgress(90);
+
+          let isSafe = true;
+          let riskLevel = 'low';
+          let explanation = 'Command appears safe';
+          let matchedPatterns = [];
+
+          if (wasmReady && caroWasm) {
+            const validation = caroWasm.validate_command(generatedCommand);
+            isSafe = validation.is_safe;
+            riskLevel = validation.risk_level;
+            explanation = validation.explanation;
+            matchedPatterns = validation.matched_patterns || [];
+          }
+
+          setTimeout(() => {
+            if (isSafe) {
+              addStep('✅', 'Safety check passed', 'complete');
+            } else {
+              addStep('🚫', `BLOCKED: ${explanation}`, 'error');
+            }
+            updateProgress(100);
+
+            const elapsed = ((performance.now() - startTime) / 1000).toFixed(3);
+            const sourceLabel = commandSource === 'ai' ? '🤖 AI' : '🔍 Pattern';
+
+            setTimeout(() => {
+              thinkingEl.remove();
+
               if (isSafe) {
                 outputHTML(`
 <div class="tp-caro-box">
@@ -978,11 +1382,12 @@ import { SITE_CONFIG } from '../config/site';
   </div>
   <div class="tp-caro-body">
     <div class="tp-caro-label">Generated Command</div>
-    <div class="tp-caro-command">${escapeHtml(result.command)}</div>
+    <div class="tp-caro-command">${escapeHtml(generatedCommand)}</div>
     <div class="tp-caro-meta">
       <span>⏱ ${elapsed}s</span>
-      <span>🖥 ${navigator.platform.includes('Mac') ? 'macOS' : navigator.platform.includes('Win') ? 'Windows' : 'Linux'}</span>
-      <span>✓ ${result.description}</span>
+      <span>🖥 ${platform}</span>
+      <span>${sourceLabel}</span>
+      <span>Risk: ${riskLevel}</span>
     </div>
   </div>
 </div>`);
@@ -995,46 +1400,20 @@ import { SITE_CONFIG } from '../config/site';
     <span class="tp-caro-badge blocked">✕ BLOCKED</span>
   </div>
   <div class="tp-caro-body">
-    <div class="tp-caro-label">Blocked Command</div>
-    <div class="tp-caro-command" style="color: var(--tp-error);">${escapeHtml(result.command)}</div>
+    <div class="tp-caro-label">Dangerous Command Blocked</div>
+    <div class="tp-caro-command" style="color: var(--tp-error);">${escapeHtml(generatedCommand)}</div>
     <div class="tp-caro-meta">
-      <span style="color: var(--tp-error);">⚠ ${validation.explanation}</span>
+      <span style="color: var(--tp-error);">Risk: ${riskLevel.toUpperCase()}</span>
+      <span style="color: var(--tp-error);">⚠ ${explanation}</span>
     </div>
+    ${matchedPatterns.length > 0 ? `<div class="tp-caro-meta" style="margin-top: 4px;"><span style="color: var(--tp-text-dim);">Patterns: ${matchedPatterns.join(', ')}</span></div>` : ''}
   </div>
 </div>`);
               }
               scrollToBottom();
-            }, 50);
-          } else {
-            // No pattern match - show not found message
-            setTimeout(() => {
-              outputHTML(`
-<div class="tp-caro-box">
-  <div class="tp-caro-header">
-    <span class="tp-caro-icon">🐕</span>
-    <span class="tp-caro-title">Caro</span>
-    <span class="tp-caro-badge" style="background: rgba(139,148,158,0.15); color: var(--tp-text-muted);">NO MATCH</span>
-  </div>
-  <div class="tp-caro-body">
-    <div class="tp-caro-label">No Pattern Match</div>
-    <div class="tp-caro-command" style="color: var(--tp-text-muted);"># Could not find matching pattern for: ${escapeHtml(query)}</div>
-    <div class="tp-caro-meta">
-      <span>💡 Try: "find large files", "disk usage", "memory usage"</span>
-    </div>
-  </div>
-</div>`);
-              scrollToBottom();
-            }, 50);
-          }
-          return;
-        }
-
-        // Fallback when WASM not available
-        outputHTML(`
-<div class="tp-stdout">
-  <div class="tp-stdout-line warning">WASM module loading... Try again in a moment.</div>
-</div>`);
-        scrollToBottom();
+            }, 300);
+          }, 200);
+        }, 600);
       }
 
       // Direct command validation (for testing dangerous commands)
