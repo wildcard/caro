@@ -10,69 +10,21 @@
 
 <div align="center">
 
-```
-╭──────────────────────────────────────────────────────────────────────────────╮
-│  ● ● ●                                                              terminal │
-├──────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  $ caro "find python files modified in the last 7 days"                      │
-│                                                                              │
-│  Command:                                                                    │
-│    find . -name "*.py" -type f -mtime -7                                     │
-│                                                                              │
-│  ✓ Safe to run on your macOS system                                         │
-│                                                                              │
-│  Execute this command? (y/N) y                                               │
-│                                                                              │
-│  Execution Results:                                                          │
-│    ✓ Success (exit code: 0)                                                  │
-│    Execution time: 12ms                                                      │
-│                                                                              │
-│  Standard Output:                                                            │
-│    ./src/utils.py                                                            │
-│    ./tests/test_api.py                                                       │
-│    ./scripts/deploy.py                                                       │
-│                                                                              │
-╰──────────────────────────────────────────────────────────────────────────────╯
-```
+[![asciicast](https://asciinema.org/a/FOxFkOjVHmYSB0S2I2xaZsaX0.svg)](https://asciinema.org/a/FOxFkOjVHmYSB0S2I2xaZsaX0)
+
+*Click to watch the demo on asciinema*
 
 </div>
 
-### More Examples
+```bash
+$ caro "find python files modified in the last 7 days"
 
-```
-╭──────────────────────────────────────────────────────────────────────────────╮
-│  ● ● ●                                                    safety validation  │
-├──────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  $ caro "delete all log files"                                               │
-│                                                                              │
-│  Command:                                                                    │
-│    find /var/log -name "*.log" -mtime +30 -delete                            │
-│                                                                              │
-│  ⚠ High Risk: Recursive delete in system directory                          │
-│                                                                              │
-│  Suggestion: The -mtime +30 flag was added to only remove logs               │
-│  older than 30 days. Review the command before execution.                    │
-│                                                                              │
-│  Execute this command? (y/N)                                                 │
-│                                                                              │
-╰──────────────────────────────────────────────────────────────────────────────╯
+Command:
+  find . -name "*.py" -type f -mtime -7
 
-╭──────────────────────────────────────────────────────────────────────────────╮
-│  ● ● ●                                                    dangerous blocked  │
-├──────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  [AI Agent] rm -rf ~/* # cleaning up temp files                              │
-│                                                                              │
-│  ✖ BLOCKED: Recursive delete of home directory                              │
-│                                                                              │
-│  This command would delete your entire home directory.                       │
-│  Even with --dangerously-skip-permissions, this is blocked.                  │
-│                                                                              │
-│  # Suggestion: Specify the exact path to clean up                            │
-│                                                                              │
-╰──────────────────────────────────────────────────────────────────────────────╯
+✓ Safe to run on your macOS system
+
+Execute this command? (y/N) y
 ```
 
 
