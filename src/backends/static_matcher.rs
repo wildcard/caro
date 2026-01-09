@@ -101,14 +101,29 @@ impl StaticMatcher {
                 description: "Find large files over 100MB".to_string(),
             },
 
-            // Pattern 3: "show me disk usage by directory, sorted" (SPECIFIC - moved from Pattern 48)
+            // Pattern 3: "show me disk usage/space by directory, sorted" (SPECIFIC - moved from Pattern 48)
+            // Must come BEFORE Pattern 2a to match first when "sorted" is present
+            // "usage" is optional to also match "disk space" phrasing
             PatternEntry {
-                required_keywords: vec!["disk".to_string(), "usage".to_string(), "directory".to_string(), "sorted".to_string()],
-                optional_keywords: vec!["show".to_string(), "by".to_string()],
+                required_keywords: vec!["disk".to_string(), "directory".to_string(), "sorted".to_string()],
+                optional_keywords: vec!["show".to_string(), "by".to_string(), "usage".to_string(), "space".to_string()],
                 regex_pattern: Some(Regex::new(r"(?i)(show|display|list).*(me)?.*(disk|space).*(usage|use).*(by)?.*(directory|dir|folder).*(sorted|sort)").unwrap()),
                 gnu_command: "du -h --max-depth=1 | sort -hr".to_string(),
                 bsd_command: Some("du -h -d 1 | sort -hr".to_string()),
                 description: "Show disk usage by directory, sorted".to_string(),
+            },
+
+            // Pattern 2a: "show disk space by directory" (SIMPLE - without "sorted" requirement)
+            // Fixes Issue #406 - handles common query without requiring "sorted" keyword
+            // Placed AFTER Pattern 3 so specific "sorted" pattern matches first
+            // Regex only matches "directory|dir" (NOT "folder") to avoid conflicting with Pattern 4
+            PatternEntry {
+                required_keywords: vec!["disk".to_string(), "space".to_string(), "directory".to_string()],
+                optional_keywords: vec!["show".to_string(), "by".to_string(), "usage".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|display|list|get).*(disk|storage).*(space|usage).*(by)?.*(directory|directories|dir)").unwrap()),
+                gnu_command: "du -h --max-depth=1".to_string(),
+                bsd_command: Some("du -h -d 1".to_string()),
+                description: "Show disk space by directory".to_string(),
             },
 
             // Pattern 4: "show disk usage by folder" (GENERAL - was Pattern 3)
@@ -121,11 +136,12 @@ impl StaticMatcher {
                 description: "Show disk usage by folder".to_string(),
             },
 
-            // Pattern 4: "find python files modified last week"
+            // Pattern 4: "find python files modified/from last week"
+            // Fixes Issue #406 - updated regex to handle "from" in addition to "modified"
             PatternEntry {
-                required_keywords: vec!["python".to_string(), "file".to_string(), "modified".to_string(), "week".to_string()],
-                optional_keywords: vec!["find".to_string(), "last".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(find|locate|list|show).*(python|\.py).*(files?).*(modified|changed|updated).*(last week|past week)").unwrap()),
+                required_keywords: vec!["python".to_string(), "file".to_string(), "week".to_string()],
+                optional_keywords: vec!["find".to_string(), "last".to_string(), "modified".to_string(), "from".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|locate|list|show).*(python|\.py).*(files?).*(modified|changed|updated|from).*(last week|past week)").unwrap()),
                 gnu_command: "find . -name \"*.py\" -type f -mtime -7".to_string(),
                 bsd_command: Some("find . -name \"*.py\" -type f -mtime -7".to_string()),
                 description: "Find Python files modified last week".to_string(),
@@ -553,7 +569,17 @@ impl StaticMatcher {
                 description: "Count HTTP status codes in access log".to_string(),
             },
 
-            // Pattern 38: "Show last 100 system errors"
+            // Pattern 38: "Search for TODO/FIXME comments in code" - Issue #10 fix
+            PatternEntry {
+                required_keywords: vec!["todo".to_string()],
+                optional_keywords: vec!["search".to_string(), "find".to_string(), "code".to_string(), "for".to_string(), "fixme".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(search|find|look|grep).*(for)?.*(TODO|FIXME|HACK|XXX|NOTE).*(in)?.*(code|files?)").unwrap()),
+                gnu_command: "grep -rn 'TODO' .".to_string(),
+                bsd_command: Some("grep -rn 'TODO' .".to_string()),
+                description: "Search for TODO/FIXME comments in code".to_string(),
+            },
+
+            // Pattern 39: "Show last 100 system errors"
             PatternEntry {
                 required_keywords: vec!["last".to_string(), "system".to_string(), "error".to_string()],
                 optional_keywords: vec!["show".to_string(), "100".to_string()],
@@ -575,7 +601,17 @@ impl StaticMatcher {
                 description: "Find Python files (simple)".to_string(),
             },
 
-            // Pattern 42: "list files" (very simple variant - was Pattern 44)
+            // Pattern 42: "list hidden files" - Issue #11 fix (MOVED BEFORE "list files" for priority)
+            PatternEntry {
+                required_keywords: vec!["hidden".to_string()],
+                optional_keywords: vec!["list".to_string(), "show".to_string(), "files".to_string(), "dot".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(list|show|display|find).*(hidden|dot).*(files?)?").unwrap()),
+                gnu_command: "ls -d .*".to_string(),
+                bsd_command: Some("ls -d .*".to_string()),
+                description: "List hidden files".to_string(),
+            },
+
+            // Pattern 43: "list files" (very simple variant - was Pattern 44)
             PatternEntry {
                 required_keywords: vec!["list".to_string(), "files".to_string()],
                 optional_keywords: vec!["all".to_string()],
@@ -585,7 +621,7 @@ impl StaticMatcher {
                 description: "List files (simple)".to_string(),
             },
 
-            // Pattern 43: "find large files" (simple variant without size specified - was Pattern 45)
+            // Pattern 44: "find large files" (simple variant without size specified - was Pattern 45)
             PatternEntry {
                 required_keywords: vec!["find".to_string(), "large".to_string()],
                 optional_keywords: vec!["files".to_string(), "big".to_string()],
@@ -824,5 +860,38 @@ mod tests {
 
         let result = matcher.generate_command(&request).await;
         assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_search_todo_in_code() {
+        let profile = CapabilityProfile::ubuntu();
+        let matcher = StaticMatcher::new(profile);
+
+        let request = CommandRequest::new("search for TODO in code", ShellType::Bash);
+
+        let result = matcher.generate_command(&request).await;
+        assert!(result.is_ok());
+        let cmd = result.unwrap();
+        assert!(
+            cmd.command.contains("-rn"),
+            "Command should include -rn flag"
+        );
+        assert!(
+            cmd.command.contains("TODO"),
+            "Command should search for TODO"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_list_hidden_files() {
+        let profile = CapabilityProfile::ubuntu();
+        let matcher = StaticMatcher::new(profile);
+
+        let request = CommandRequest::new("list hidden files", ShellType::Bash);
+
+        let result = matcher.generate_command(&request).await;
+        assert!(result.is_ok());
+        let cmd = result.unwrap();
+        assert_eq!(cmd.command, "ls -d .*", "Command should be 'ls -d .*'");
     }
 }

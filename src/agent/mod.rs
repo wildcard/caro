@@ -53,7 +53,7 @@ impl AgentLoop {
             context,
             _max_iterations: 2,
             timeout: Duration::from_secs(15), // Allow enough time for 2 iterations
-            confidence_threshold: 0.8, // Default: refine if confidence < 80%
+            confidence_threshold: 0.8,        // Default: refine if confidence < 80%
         }
     }
 
@@ -167,9 +167,7 @@ impl AgentLoop {
 
             // Attempt to repair the command
             debug!("Attempting to repair command with validation feedback");
-            let repaired = self
-                .repair_command(prompt, &initial, &validation)
-                .await?;
+            let repaired = self.repair_command(prompt, &initial, &validation).await?;
 
             // Validate the repaired command
             let repaired_validation = self.validator.validate(&repaired.command);
