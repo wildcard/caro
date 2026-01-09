@@ -311,7 +311,7 @@ async fn show_status(storage_path: PathBuf) -> Result<()> {
     println!("  {} {}", "Status:".bright_white(), status);
 
     // Level
-    println!("  {} {}", "Level:".bright_white(), config.level.to_string());
+    println!("  {} {}", "Level:".bright_white(), config.level);
 
     // Air-gapped mode
     let air_gapped = if config.air_gapped {

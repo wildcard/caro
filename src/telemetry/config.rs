@@ -74,6 +74,7 @@ fn default_first_run() -> bool {
 /// Telemetry collection level
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
+#[derive(Default)]
 pub enum TelemetryLevel {
     /// Minimal telemetry - only critical events
     ///
@@ -90,6 +91,7 @@ pub enum TelemetryLevel {
     /// - Session start/end
     /// - Command generation success/failure
     /// - Non-fatal errors
+    #[default]
     Normal,
 
     /// Verbose telemetry - detailed debug events
@@ -102,11 +104,6 @@ pub enum TelemetryLevel {
     Verbose,
 }
 
-impl Default for TelemetryLevel {
-    fn default() -> Self {
-        Self::Normal
-    }
-}
 
 impl std::fmt::Display for TelemetryLevel {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
