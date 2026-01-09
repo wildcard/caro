@@ -1,0 +1,9 @@
+source_id,source_type,title,location,access_date,reliability,notes
+SRC-001,github_issue,Build LLM evaluation harness for shell commands,https://github.com/anthropics/caro/issues/135,2026-01-09,primary,Original feature request with detailed architecture proposal
+SRC-002,internal_doc,Beta Testing QA Report,.claude/releases/BETA-1-QA-REPORT.md,2026-01-09,primary,Beta testing findings showing StaticMatcher/MLX usage patterns
+SRC-003,codebase,Caro backend implementations,src/backends/,2026-01-09,primary,Existing trait patterns and async runtime usage
+SRC-004,codebase,GitHub Actions CI configuration,.github/workflows/,2026-01-09,primary,Current CI infrastructure and matrix strategy support
+SRC-005,industry_practice,Rust testing best practices,rust-lang.org/docs + cargo book,2026-01-09,secondary,Industry standards for test fixtures and benchmarks
+DISCOVERY,planning_session,Planning interrogation answers,Planning session 2026-01-09,2026-01-09,primary,Confirmed architectural decisions and priorities
+SPEC,internal_doc,Feature specification,kitty-specs/026-llm-evaluation-harness/spec.md,2026-01-09,primary,Approved specification with requirements and success criteria
+MATH,calculation,Performance analysis,Research calculations,2026-01-09,primary,Sequential vs parallel execution time analysis

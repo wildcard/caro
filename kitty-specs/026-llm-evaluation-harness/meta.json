@@ -1,0 +1,7 @@
+{
+  "feature_number": "026",
+  "slug": "026-llm-evaluation-harness",
+  "friendly_name": "LLM Evaluation Harness",
+  "source_description": "Build comprehensive LLM evaluation harness for testing shell command generation quality, safety, and correctness. Test categories include: command correctness validation, safety pattern detection accuracy, POSIX compliance verification, and multi-backend consistency testing. Deliverables: test dataset with labeled examples, automated evaluation pipeline, benchmark results across backends, and quality metrics dashboard.",
+  "created_at": "2026-01-09T09:21:37Z"
+}

@@ -1,0 +1,18 @@
+evidence_id,source_id,finding,impact,confidence,date_captured,researcher
+EV-001,SRC-001,Proposed EvaluationHarness struct with trait-based evaluators,Provides architectural foundation for implementation,high,2026-01-09,claude
+EV-002,SRC-001,Test categories defined: correctness/safety/POSIX/multi-backend,Establishes comprehensive quality dimensions,high,2026-01-09,claude
+EV-003,SRC-001,Deliverables specified: test dataset (100+ examples) + evaluation pipeline + benchmark results + dashboard,Clear scope and acceptance criteria,high,2026-01-09,claude
+EV-004,SRC-002,StaticMatcher and MLX are most-used backends in beta,Justifies prioritization for deep testing,high,2026-01-09,claude
+EV-005,SRC-002,Safety validation is critical beta concern,Confirms importance of safety test category,high,2026-01-09,claude
+EV-006,SRC-003,Existing Backend trait pattern in caro,Enables consistent evaluator integration,medium,2026-01-09,claude
+EV-007,SRC-003,Tokio async runtime already in use,Supports parallel execution strategy,high,2026-01-09,claude
+EV-008,SRC-003,Safety validation module exists in src/safety/,Can reuse existing patterns for consistency,medium,2026-01-09,claude
+EV-009,SRC-004,GitHub Actions supports matrix strategy,Enables parallel CI execution across backends,high,2026-01-09,claude
+EV-010,SRC-005,YAML test fixtures common in Rust ecosystem,Validates format choice for dataset,medium,2026-01-09,claude
+EV-011,SRC-005,JSON baselines standard for benchmark storage,Validates format choice for baselines,medium,2026-01-09,claude
+EV-012,DISCOVERY,Balanced 25/25/25/25 test distribution agreed,Provides comprehensive coverage strategy,high,2026-01-09,claude
+EV-013,DISCOVERY,MLX + StaticMatcher prioritization confirmed,Deep testing on primary backends,high,2026-01-09,claude
+EV-014,SPEC,<5min CI execution constraint defined,Sets performance target for parallel execution,high,2026-01-09,claude
+EV-015,SPEC,95%+ regression detection accuracy required,Defines quality bar for evaluation system,high,2026-01-09,claude
+EV-016,MATH,Sequential execution would take 20min (100*4*3sec),Justifies need for parallel execution,high,2026-01-09,claude
+EV-017,MATH,Parallel execution achieves ~5min (100*3sec max),Confirms feasibility of performance target,high,2026-01-09,claude
