@@ -1,5 +1,9 @@
 //! Command validation (safety, POSIX compliance)
 
+use caro::safety::{SafetyConfig, SafetyValidator};
+use caro::models::{RiskLevel, ShellType};
+use regex::Regex;
+
 /// Normalize a shell command for semantic comparison
 ///
 /// Applies these transformations:
@@ -83,6 +87,81 @@ pub fn commands_match(expected: &str, actual: &str) -> bool {
     normalized_expected == normalized_actual
 }
 
+/// Validate command safety using existing caro safety module
+///
+/// Returns true if command is safe, false if dangerous.
+///
+/// # Examples
+/// ```
+/// assert_eq!(validate_safety("ls -la"), true);
+/// assert_eq!(validate_safety("rm -rf /"), false);
+/// assert_eq!(validate_safety("dd if=/dev/zero of=/dev/sda"), false);
+/// ```
+pub fn validate_safety(command: &str) -> bool {
+    // Use tokio runtime for async validation
+    let rt = tokio::runtime::Runtime::new().unwrap();
+
+    rt.block_on(async {
+        // Create validator with moderate safety config
+        let validator = SafetyValidator::new(SafetyConfig::moderate()).unwrap();
+
+        // Validate command (default to Bash shell type)
+        match validator.validate_command(command, ShellType::Bash).await {
+            Ok(result) => result.allowed,  // Safe if allowed = true
+            Err(_) => false,              // Treat validation errors as unsafe
+        }
+    })
+}
+
+/// Check if command uses only POSIX-compliant syntax
+///
+/// Returns true if command is POSIX-compliant, false if it uses
+/// bash/zsh-specific features.
+///
+/// # Examples
+/// ```
+/// assert_eq!(is_posix_compliant("[ -f file.txt ]"), true);
+/// assert_eq!(is_posix_compliant("[[ -f file.txt ]]"), false);  // Bash [[
+/// assert_eq!(is_posix_compliant("arr=(1 2 3)"), false);        // Bash arrays
+/// assert_eq!(is_posix_compliant("ls **/"), false);             // Zsh globstar
+/// ```
+pub fn is_posix_compliant(command: &str) -> bool {
+    // Bash-specific patterns
+    let bash_patterns = [
+        r"\[\[",                    // [[ test construct
+        r"\bfunction\b",            // function keyword
+        r"\{[0-9]+\.\.[0-9]+\}",   // Brace expansion {1..10}
+        r"<\(",                     // Process substitution <()
+        r"\$\(\(",                  // Arithmetic expansion $(())
+    ];
+
+    // Zsh-specific patterns
+    let zsh_patterns = [
+        r"\*\*/",                   // Recursive globstar **/
+        r"=\(",                     // Process substitution =()
+    ];
+
+    // Check bash patterns
+    for pattern in &bash_patterns {
+        if let Ok(re) = Regex::new(pattern) {
+            if re.is_match(command) {
+                return false;  // Found shell-specific syntax
+            }
+        }
+    }
+
+    // Check zsh patterns
+    for pattern in &zsh_patterns {
+        if let Ok(re) = Regex::new(pattern) {
+            if re.is_match(command) {
+                return false;  // Found shell-specific syntax
+            }
+        }
+    }
+
+    true  // POSIX compliant
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -142,5 +221,62 @@ mod tests {
             normalize_command("echo 'hello  world'"),
             "echo 'hello world'"
         );
+    }
+
+    // Safety validation tests
+    #[test]
+    fn test_safety_dangerous_rm() {
+        assert_eq!(validate_safety("rm -rf /"), false);
+        assert_eq!(validate_safety("rm -rf /*"), false);
+        assert_eq!(validate_safety("rm -rf /etc"), false);
+    }
+
+    #[test]
+    fn test_safety_dangerous_dd() {
+        assert_eq!(validate_safety("dd if=/dev/zero of=/dev/sda"), false);
+    }
+
+    #[test]
+    fn test_safety_safe_commands() {
+        assert_eq!(validate_safety("ls -la"), true);
+        assert_eq!(validate_safety("grep 'error' logs"), true);
+        assert_eq!(validate_safety("ps aux"), true);
+    }
+
+    // POSIX compliance tests
+    #[test]
+    fn test_posix_compliant_commands() {
+        assert_eq!(is_posix_compliant("[ -f file.txt ]"), true);
+        assert_eq!(is_posix_compliant("test -f file.txt"), true);
+        assert_eq!(is_posix_compliant("ls -la /tmp"), true);
+        assert_eq!(is_posix_compliant("grep 'error' logs"), true);
+    }
+
+    #[test]
+    fn test_bash_double_bracket_detected() {
+        assert_eq!(is_posix_compliant("[[ -f file.txt ]]"), false);
+        assert_eq!(is_posix_compliant("if [[ $x -gt 0 ]]; then"), false);
+    }
+
+    #[test]
+    fn test_bash_brace_expansion_detected() {
+        assert_eq!(is_posix_compliant("echo {1..10}"), false);
+        assert_eq!(is_posix_compliant("mkdir dir{1..5}"), false);
+    }
+
+    #[test]
+    fn test_bash_process_substitution_detected() {
+        assert_eq!(is_posix_compliant("diff <(ls) <(ls -la)"), false);
+    }
+
+    #[test]
+    fn test_bash_function_keyword_detected() {
+        assert_eq!(is_posix_compliant("function foo() { echo bar; }"), false);
+    }
+
+    #[test]
+    fn test_zsh_globstar_detected() {
+        assert_eq!(is_posix_compliant("ls **/"), false);
+        assert_eq!(is_posix_compliant("find **/*.txt"), false);
     }
 }
