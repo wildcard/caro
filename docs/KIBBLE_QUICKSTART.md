@@ -1,10 +1,10 @@
-# Keeble Quickstart Guide
+# Kibble Quickstart Guide
 
 > Get started with dogfooding Caro in your daily development workflow.
 
-## What is Keeble?
+## What is Kibble?
 
-Keeble is our internal dogfooding program where we use Caro to build Caro. By being our own first users, we:
+Kibble is our internal dogfooding program where we use Caro to build Caro. By being our own first users, we:
 
 - Discover issues before they reach end users
 - Build features that solve real developer needs
@@ -102,7 +102,7 @@ Let the issue be captured. The friction is valuable data.
 
 ### 2. Add to Friction Log
 
-Edit `.claude/keeble/friction-log.yaml`:
+Edit `.claude/kibble/friction-log.yaml`:
 
 ```yaml
 entries:
@@ -131,7 +131,7 @@ When Caro generates an excellent command:
 
 ### 1. Note It
 
-Edit `.claude/keeble/success-log.yaml`:
+Edit `.claude/kibble/success-log.yaml`:
 
 ```yaml
 entries:
@@ -215,9 +215,9 @@ Wrong commands are learning opportunities. Log them!
 
 ## Resources
 
-- [Full Keeble Strategy](./KEEBLE_DOGFOODING.md) - Complete dogfooding plan
-- [Friction Log](./.claude/keeble/friction-log.yaml) - Report issues
-- [Success Log](./.claude/keeble/success-log.yaml) - Celebrate wins
+- [Full Kibble Strategy](./KEEBLE_DOGFOODING.md) - Complete dogfooding plan
+- [Friction Log](./.claude/kibble/friction-log.yaml) - Report issues
+- [Success Log](./.claude/kibble/success-log.yaml) - Celebrate wins
 - [Beta Testing Framework](./.claude/beta-testing/) - Structured testing
 
 ## FAQ

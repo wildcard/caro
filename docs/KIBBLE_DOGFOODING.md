@@ -1,10 +1,10 @@
-# Keeble: Caro Dogfooding Strategy
+# Kibble: Caro Dogfooding Strategy
 
 > **"Using Caro to build Caro"** - A comprehensive dogfooding framework that positions our team as the primary users, testers, and feedback source for continuous improvement.
 
 ## Executive Summary
 
-**Keeble** is our internal codename for the systematic dogfooding of Caro throughout our development lifecycle. By integrating Caro into every phase of building Caro itself, we:
+**Kibble** is our internal codename for the systematic dogfooding of Caro throughout our development lifecycle. By integrating Caro into every phase of building Caro itself, we:
 
 1. **Become our own first users** - Experiencing the product as end-users do
 2. **Discover issues before release** - Fast-feedback loops catch bugs early
@@ -14,7 +14,7 @@
 
 ---
 
-## 1. Philosophy: The Keeble Principles
+## 1. Philosophy: The Kibble Principles
 
 ### 1.1 Genetic Development
 
@@ -158,10 +158,10 @@ Our own development commands test safety patterns:
 
 #### Friction Log
 
-Developers maintain a friction log for every Keeble usage issue:
+Developers maintain a friction log for every Kibble usage issue:
 
 ```yaml
-# .claude/keeble/friction-log.yaml
+# .claude/kibble/friction-log.yaml
 entries:
   - date: 2025-01-09
     developer: jg
@@ -186,7 +186,7 @@ entries:
 Track patterns that work well for expansion:
 
 ```yaml
-# .claude/keeble/success-log.yaml
+# .claude/kibble/success-log.yaml
 entries:
   - date: 2025-01-09
     intent: "find all unsafe blocks in codebase"
@@ -206,7 +206,7 @@ entries:
 
 ---
 
-## 4. Keeble Integration Tiers
+## 4. Kibble Integration Tiers
 
 ### Tier 1: Essential (Day 1)
 
@@ -280,11 +280,11 @@ Complex multi-step operations:
 
 ### 5.3 Dogfooding Dashboard
 
-Track Keeble health with key indicators:
+Track Kibble health with key indicators:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    KEEBLE HEALTH DASHBOARD                  │
+│                    KIBBLE HEALTH DASHBOARD                  │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │   Daily Usage:        ████████████████░░░░ 156 commands     │
@@ -308,20 +308,20 @@ Track Keeble health with key indicators:
 
 | Task | Deliverable |
 |------|-------------|
-| Create friction log template | `.claude/keeble/friction-log.yaml` |
-| Create success log template | `.claude/keeble/success-log.yaml` |
+| Create friction log template | `.claude/kibble/friction-log.yaml` |
+| Create success log template | `.claude/kibble/success-log.yaml` |
 | Document Tier 1 commands | Integration test suite |
 | Set up daily usage tracking | Logging configuration |
-| Create developer onboarding guide | `docs/KEEBLE_QUICKSTART.md` |
+| Create developer onboarding guide | `docs/KIBBLE_QUICKSTART.md` |
 
 ### Phase 2: Integration (Week 3-4)
 
-**Goal:** Embed Keeble into development workflows
+**Goal:** Embed Kibble into development workflows
 
 | Task | Deliverable |
 |------|-------------|
-| Integrate with Makefile targets | `make keeble-*` commands |
-| Add CI/CD Keeble validation | GitHub Action workflow |
+| Integrate with Makefile targets | `make kibble-*` commands |
+| Add CI/CD Kibble validation | GitHub Action workflow |
 | Create weekly review ritual | Calendar event + template |
 | Expand to Tier 2 commands | Static pattern additions |
 | First dogfooding retrospective | Improvement backlog |
@@ -366,7 +366,7 @@ Track Keeble health with key indicators:
 
 ### 7.2 Circuit Breakers
 
-Conditions that pause Keeble expansion:
+Conditions that pause Kibble expansion:
 
 - Friction log > 10 unresolved entries
 - Success rate < 80% for any tier
@@ -377,7 +377,7 @@ Conditions that pause Keeble expansion:
 
 ## 8. Developer Quick Reference
 
-### 8.1 Daily Keeble Workflow
+### 8.1 Daily Kibble Workflow
 
 ```bash
 # Morning: Build and test
@@ -403,7 +403,7 @@ caro "list uncommitted changes"
 When Caro generates a suboptimal command:
 
 1. **Don't fix manually** - Let the wrong command run (safely) or note the issue
-2. **Log it** - Add entry to `.claude/keeble/friction-log.yaml`
+2. **Log it** - Add entry to `.claude/kibble/friction-log.yaml`
 3. **Continue** - Use the correct command for now
 4. **Review** - Weekly review will prioritize fixes
 
@@ -411,7 +411,7 @@ When Caro generates a suboptimal command:
 
 When Caro generates an excellent command:
 
-1. **Note the pattern** - Add to `.claude/keeble/success-log.yaml`
+1. **Note the pattern** - Add to `.claude/kibble/success-log.yaml`
 2. **Consider expansion** - Could this pattern help others?
 3. **Share** - Mention in weekly review for pattern adoption
 
@@ -493,7 +493,7 @@ high_warnings:
 
 | Date | Version | Changes |
 |------|---------|---------|
-| 2025-01-09 | 1.0.0 | Initial Keeble dogfooding plan |
+| 2025-01-09 | 1.0.0 | Initial Kibble dogfooding plan |
 
 ---
 

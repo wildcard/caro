@@ -1,6 +1,6 @@
-# Keeble: Caro Dogfooding Framework
+# Kibble: Caro Dogfooding Framework
 
-This directory contains the infrastructure for Keeble - our internal dogfooding program where we use Caro to build Caro.
+This directory contains the infrastructure for Kibble - our internal dogfooding program where we use Caro to build Caro.
 
 ## Directory Contents
 
@@ -12,8 +12,8 @@ This directory contains the infrastructure for Keeble - our internal dogfooding 
 
 ## Quick Links
 
-- [Full Keeble Strategy](/docs/KEEBLE_DOGFOODING.md) - Comprehensive dogfooding plan
-- [Quickstart Guide](/docs/KEEBLE_QUICKSTART.md) - Get started with dogfooding
+- [Full Kibble Strategy](/docs/KIBBLE_DOGFOODING.md) - Comprehensive dogfooding plan
+- [Quickstart Guide](/docs/KIBBLE_QUICKSTART.md) - Get started with dogfooding
 
 ## How to Use
 
