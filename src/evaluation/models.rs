@@ -389,6 +389,127 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_test_category_serde() {
+        let categories = vec![
+            (TestCategory::Correctness, "\"correctness\""),
+            (TestCategory::Safety, "\"safety\""),
+            (TestCategory::POSIX, "\"posix\""),
+            (TestCategory::MultiBackend, "\"multi_backend\""),
+        ];
+
+        for (category, expected_json) in categories {
+            let json = serde_json::to_string(&category).unwrap();
+            assert_eq!(json, expected_json);
+
+            let deserialized: TestCategory = serde_json::from_str(&json).unwrap();
+            assert_eq!(deserialized, category);
+        }
+    }
+
+    #[test]
+    fn test_validation_rule_serde() {
+        let rules = vec![
+            (ValidationRule::ExactMatch, "\"exact_match\""),
+            (ValidationRule::CommandEquivalence, "\"command_equivalence\""),
+            (ValidationRule::PatternMatch, "\"pattern_match\""),
+            (ValidationRule::MustBeBlocked, "\"must_be_blocked\""),
+            (ValidationRule::MustExecute, "\"must_execute\""),
+        ];
+
+        for (rule, expected_json) in rules {
+            let json = serde_json::to_string(&rule).unwrap();
+            assert_eq!(json, expected_json);
+
+            let deserialized: ValidationRule = serde_json::from_str(&json).unwrap();
+            assert_eq!(deserialized, rule);
+        }
+    }
+
+    #[test]
+    fn test_difficulty_serde() {
+        let difficulties = vec![
+            (Difficulty::Easy, "\"easy\""),
+            (Difficulty::Medium, "\"medium\""),
+            (Difficulty::Hard, "\"hard\""),
+        ];
+
+        for (diff, expected_json) in difficulties {
+            let json = serde_json::to_string(&diff).unwrap();
+            assert_eq!(json, expected_json);
+
+            let deserialized: Difficulty = serde_json::from_str(&json).unwrap();
+            assert_eq!(deserialized, diff);
+        }
+    }
+
+    #[test]
+    fn test_evaluation_priority_serde() {
+        let priorities = vec![
+            (EvaluationPriority::Deep, "\"deep\""),
+            (EvaluationPriority::Basic, "\"basic\""),
+            (EvaluationPriority::Minimal, "\"minimal\""),
+        ];
+
+        for (priority, expected_json) in priorities {
+            let json = serde_json::to_string(&priority).unwrap();
+            assert_eq!(json, expected_json);
+
+            let deserialized: EvaluationPriority = serde_json::from_str(&json).unwrap();
+            assert_eq!(deserialized, priority);
+        }
+    }
+
+    #[test]
+    fn test_error_type_serde() {
+        let error_types = vec![
+            (ErrorType::GenerationFailure, "\"generation_failure\""),
+            (ErrorType::Timeout, "\"timeout\""),
+            (ErrorType::ValidationFailure, "\"validation_failure\""),
+            (ErrorType::SafetyViolation, "\"safety_violation\""),
+            (ErrorType::IncorrectOutput, "\"incorrect_output\""),
+            (ErrorType::POSIXViolation, "\"posix_violation\""),
+            (ErrorType::BackendInconsistency, "\"backend_inconsistency\""),
+        ];
+
+        for (error_type, expected_json) in error_types {
+            let json = serde_json::to_string(&error_type).unwrap();
+            assert_eq!(json, expected_json);
+
+            let deserialized: ErrorType = serde_json::from_str(&json).unwrap();
+            assert_eq!(deserialized, error_type);
+        }
+    }
+
+    #[test]
+    fn test_test_case_full_serialization() {
+        let test_case = TestCase {
+            id: "correctness-001".to_string(),
+            category: TestCategory::Correctness,
+            input_request: "list all files".to_string(),
+            expected_command: Some("ls -la".to_string()),
+            expected_behavior: None,
+            validation_rule: ValidationRule::ExactMatch,
+            validation_pattern: None,
+            tags: vec!["common".to_string()],
+            difficulty: Some(Difficulty::Easy),
+            source: Some("manual".to_string()),
+            notes: None,
+        };
+
+        // Serialize to JSON
+        let json = serde_json::to_string(&test_case).unwrap();
+
+        // Deserialize back
+        let deserialized: TestCase = serde_json::from_str(&json).unwrap();
+
+        // Verify fields match
+        assert_eq!(deserialized.id, test_case.id);
+        assert_eq!(deserialized.category, test_case.category);
+        assert_eq!(deserialized.input_request, test_case.input_request);
+        assert_eq!(deserialized.validation_rule, test_case.validation_rule);
+    }
+
+    #[test]
     fn test_case_validation_passes() {
         let test_case = TestCase {
             id: "correctness-001".to_string(),
