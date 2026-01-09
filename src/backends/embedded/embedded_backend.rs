@@ -8,7 +8,7 @@ use async_trait::async_trait;
 
 use crate::backends::embedded::{CpuBackend, EmbeddedConfig, InferenceBackend, ModelVariant};
 use crate::backends::{BackendInfo, CommandGenerator, GeneratorError};
-use crate::models::{BackendType, CommandRequest, GeneratedCommand, RiskLevel};
+use crate::models::{BackendType, CommandRequest, GeneratedCommand};
 use crate::safety::{SafetyConfig, SafetyValidator};
 use crate::ModelLoader;
 
