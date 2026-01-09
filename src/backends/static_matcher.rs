@@ -701,7 +701,8 @@ impl StaticMatcher {
             ProfileType::Bsd => {
                 // Use BSD command if available, otherwise fall back to GNU
                 pattern
-                    .bsd_command.clone()
+                    .bsd_command
+                    .clone()
                     .unwrap_or_else(|| pattern.gnu_command.clone())
             }
             _ => {

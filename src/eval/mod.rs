@@ -431,22 +431,22 @@ impl EvalSuite {
     /// Filter test cases by profile ID
     pub fn filter_by_profile(mut self, profile_id: &str) -> Self {
         self.test_cases.retain(|case| {
-                // Match primary profile
-                if let Some(ref primary) = case.primary_profile {
-                    if primary == profile_id {
-                        return true;
-                    }
+            // Match primary profile
+            if let Some(ref primary) = case.primary_profile {
+                if primary == profile_id {
+                    return true;
                 }
+            }
 
-                // Match secondary profiles
-                if let Some(ref secondaries) = case.secondary_profiles {
-                    if secondaries.iter().any(|p| p == profile_id) {
-                        return true;
-                    }
+            // Match secondary profiles
+            if let Some(ref secondaries) = case.secondary_profiles {
+                if secondaries.iter().any(|p| p == profile_id) {
+                    return true;
                 }
+            }
 
-                false
-            });
+            false
+        });
 
         self
     }
