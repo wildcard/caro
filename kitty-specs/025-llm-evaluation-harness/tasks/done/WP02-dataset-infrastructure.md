@@ -13,7 +13,7 @@ subtasks:
 title: "Test Dataset Infrastructure"
 phase: "Phase 0 - Foundation"
 lane: "done"
-assignee: ""
+assignee: "claude"
 agent: "claude"
 shell_pid: "50180"
 review_status: ""

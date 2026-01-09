@@ -26,11 +26,11 @@
 **Prompt**: `/tasks/planned/WP01-project-setup.md`
 
 ### Included Subtasks
-- [ ] T001 Add `toml = "0.8"` dependency to `Cargo.toml` under `[dev-dependencies]`
-- [ ] T002 Create `tests/evaluation/` directory structure
-- [ ] T003 Create `tests/evaluation/mod.rs` with module declarations
-- [ ] T004 Create empty stub files: `dataset.rs`, `harness.rs`, `validators.rs`, `reporter.rs`
-- [ ] T005 Verify `cargo build` succeeds and can import new modules
+- [x] T001 Add `toml = "0.8"` dependency to `Cargo.toml` under `[dev-dependencies]`
+- [x] T002 Create `tests/evaluation/` directory structure
+- [x] T003 Create `tests/evaluation/mod.rs` with module declarations
+- [x] T004 Create empty stub files: `dataset.rs`, `harness.rs`, `validators.rs`, `reporter.rs`
+- [x] T005 Verify `cargo build` succeeds and can import new modules
 
 ### Implementation Notes
 1. Edit `Cargo.toml` to add toml crate (dev dependency only)
@@ -58,15 +58,15 @@
 **Prompt**: `/tasks/planned/WP02-dataset-infrastructure.md`
 
 ### Included Subtasks
-- [ ] T006 Define `TestCase` struct in `dataset.rs` matching data-model.md
-- [ ] T007 Define `Category` enum (Correctness, Safety, Posix) with serde annotations
-- [ ] T008 Define `TestDataset` struct with version and test_cases Vec
-- [ ] T009 Implement `TestDataset::from_toml()` with error handling
-- [ ] T010 Add validation logic: unique IDs, non-empty required fields
-- [ ] T011 Create `tests/evaluation/test_cases.toml` with 10 initial examples
-- [ ] T012 Write unit test for dataset loading success case
-- [ ] T013 Write unit test for duplicate ID detection
-- [ ] T014 Write unit test for malformed TOML error handling
+- [x] T006 Define `TestCase` struct in `dataset.rs` matching data-model.md
+- [x] T007 Define `Category` enum (Correctness, Safety, Posix) with serde annotations
+- [x] T008 Define `TestDataset` struct with version and test_cases Vec
+- [x] T009 Implement `TestDataset::from_toml()` with error handling
+- [x] T010 Add validation logic: unique IDs, non-empty required fields
+- [x] T011 Create `tests/evaluation/test_cases.toml` with 10 initial examples
+- [x] T012 Write unit test for dataset loading success case
+- [x] T013 Write unit test for duplicate ID detection
+- [x] T014 Write unit test for malformed TOML error handling
 
 ### Implementation Notes
 - Use `serde::Deserialize` for automatic TOML parsing
@@ -93,14 +93,14 @@
 **Prompt**: `/tasks/planned/WP03-command-normalization.md`
 
 ### Included Subtasks
-- [ ] T015 Implement `normalize_command()` function in `validators.rs`
-- [ ] T016 Add whitespace normalization (multiple spaces → single)
-- [ ] T017 Add flag consolidation and sorting (`ls -l -a` → `ls -al`)
-- [ ] T018 Implement `commands_match()` comparison function
-- [ ] T019 Write unit test: whitespace normalization
-- [ ] T020 Write unit test: flag order equivalence (`ls -la` == `ls -al`)
-- [ ] T021 Write unit test: flag consolidation (`ls -l -a` == `ls -la`)
-- [ ] T022 Write unit test: exact match after normalization
+- [x] T015 Implement `normalize_command()` function in `validators.rs`
+- [x] T016 Add whitespace normalization (multiple spaces → single)
+- [x] T017 Add flag consolidation and sorting (`ls -l -a` → `ls -al`)
+- [x] T018 Implement `commands_match()` comparison function
+- [x] T019 Write unit test: whitespace normalization
+- [x] T020 Write unit test: flag order equivalence (`ls -la` == `ls -al`)
+- [x] T021 Write unit test: flag consolidation (`ls -l -a` == `ls -la`)
+- [x] T022 Write unit test: exact match after normalization
 
 ### Implementation Notes
 - Normalization strategy from research.md Task 2
@@ -127,16 +127,16 @@
 **Prompt**: `/tasks/planned/WP04-safety-posix-validators.md`
 
 ### Included Subtasks
-- [ ] T023 Import `caro::safety::SafetyValidator` in `validators.rs`
-- [ ] T024 Create `validate_safety()` wrapper function
-- [ ] T025 Implement `is_posix_compliant()` function with regex patterns
-- [ ] T026 Add bash-specific pattern detection (`[[`, `function`, `{1..10}`, `<()`)
-- [ ] T027 Add zsh-specific pattern detection (`**/`, `=()`)
-- [ ] T028 Write unit test: safety detection for `rm -rf /`
-- [ ] T029 Write unit test: safety detection for safe command `ls -la`
-- [ ] T030 Write unit test: POSIX compliant command `[ -f file ]`
-- [ ] T031 Write unit test: bash-specific `[[ -f file ]]` detected
-- [ ] T032 Write unit test: brace expansion `{1..10}` detected
+- [x] T023 Import `caro::safety::SafetyValidator` in `validators.rs`
+- [x] T024 Create `validate_safety()` wrapper function
+- [x] T025 Implement `is_posix_compliant()` function with regex patterns
+- [x] T026 Add bash-specific pattern detection (`[[`, `function`, `{1..10}`, `<()`)
+- [x] T027 Add zsh-specific pattern detection (`**/`, `=()`)
+- [x] T028 Write unit test: safety detection for `rm -rf /`
+- [x] T029 Write unit test: safety detection for safe command `ls -la`
+- [x] T030 Write unit test: POSIX compliant command `[ -f file ]`
+- [x] T031 Write unit test: bash-specific `[[ -f file ]]` detected
+- [x] T032 Write unit test: brace expansion `{1..10}` detected
 
 ### Implementation Notes
 - Reuse existing `caro::safety` module (no changes to production code)
@@ -163,16 +163,16 @@
 **Prompt**: `/tasks/planned/WP05-evaluation-runner.md`
 
 ### Included Subtasks
-- [ ] T033 Define `run_evaluation()` function signature in `harness.rs`
-- [ ] T034 Implement backend initialization (MLX primary)
-- [ ] T035 Create test case execution loop
-- [ ] T036 Integrate `caro::backends::BackendTrait` for command generation
-- [ ] T037 Call validators (normalization, safety, POSIX) on generated command
-- [ ] T038 Collect pass/fail results per test case
-- [ ] T039 Handle backend timeout errors gracefully
-- [ ] T040 Handle malformed backend responses
-- [ ] T041 Write integration test: run single test case
-- [ ] T042 Write integration test: handle backend timeout
+- [x] T033 Define `run_evaluation()` function signature in `harness.rs`
+- [x] T034 Implement backend initialization (MLX primary)
+- [x] T035 Create test case execution loop
+- [x] T036 Integrate `caro::backends::BackendTrait` for command generation
+- [x] T037 Call validators (normalization, safety, POSIX) on generated command
+- [x] T038 Collect pass/fail results per test case
+- [x] T039 Handle backend timeout errors gracefully
+- [x] T040 Handle malformed backend responses
+- [x] T041 Write integration test: run single test case
+- [x] T042 Write integration test: handle backend timeout
 
 ### Implementation Notes
 - Use `tokio` for async backend calls (existing dependency)
@@ -199,17 +199,17 @@
 **Prompt**: `/tasks/planned/WP06-metrics-calculation.md`
 
 ### Included Subtasks
-- [ ] T043 Define `EvaluationResult` struct in `harness.rs` (from data-model.md)
-- [ ] T044 Define `CategoryResult` and `FailedCase` structs
-- [ ] T045 Define `FailureReason` enum with all variants
-- [ ] T046 Implement `calculate_csr()` function
-- [ ] T047 Implement `calculate_safety_accuracy()` function
-- [ ] T048 Implement `calculate_posix_compliance_rate()` function
-- [ ] T049 Implement per-category breakdown logic
-- [ ] T050 Collect failed_cases with detailed information
-- [ ] T051 Write unit test: CSR calculation (47/50 = 0.948)
-- [ ] T052 Write unit test: safety accuracy (8/8 = 1.0)
-- [ ] T053 Write unit test: per-category breakdown validation
+- [x] T043 Define `EvaluationResult` struct in `harness.rs` (from data-model.md)
+- [x] T044 Define `CategoryResult` and `FailedCase` structs
+- [x] T045 Define `FailureReason` enum with all variants
+- [x] T046 Implement `calculate_csr()` function
+- [x] T047 Implement `calculate_safety_accuracy()` function
+- [x] T048 Implement `calculate_posix_compliance_rate()` function
+- [x] T049 Implement per-category breakdown logic
+- [x] T050 Collect failed_cases with detailed information
+- [x] T051 Write unit test: CSR calculation (47/50 = 0.948)
+- [x] T052 Write unit test: safety accuracy (8/8 = 1.0)
+- [x] T053 Write unit test: per-category breakdown validation
 
 ### Implementation Notes
 - CSR formula: `passed / total` (baseline: 0.948 from ROADMAP.md)
@@ -237,14 +237,14 @@
 **Prompt**: `/tasks/planned/WP07-output-formatting.md`
 
 ### Included Subtasks
-- [ ] T054 Add serde Serialize derive to all result structs
-- [ ] T055 Implement `output_json()` function in `reporter.rs`
-- [ ] T056 Implement `output_console()` function with formatted display
-- [ ] T057 Add CSR threshold indicators (✅ ≥94.8%, ⚠️ 90-94.7%, ❌ <90%)
-- [ ] T058 Format failed cases with clear diff-style output
-- [ ] T059 Write unit test: JSON serialization produces valid schema
-- [ ] T060 Write unit test: console output includes all required sections
-- [ ] T061 Validate JSON against contracts/evaluation_result_schema.json
+- [x] T054 Add serde Serialize derive to all result structs
+- [x] T055 Implement `output_json()` function in `reporter.rs`
+- [x] T056 Implement `output_console()` function with formatted display
+- [x] T057 Add CSR threshold indicators (✅ ≥94.8%, ⚠️ 90-94.7%, ❌ <90%)
+- [x] T058 Format failed cases with clear diff-style output
+- [x] T059 Write unit test: JSON serialization produces valid schema
+- [x] T060 Write unit test: console output includes all required sections
+- [x] T061 Validate JSON against contracts/evaluation_result_schema.json
 
 ### Implementation Notes
 - JSON output uses `serde_json::to_string_pretty()`
@@ -271,15 +271,15 @@
 **Prompt**: `/tasks/planned/WP08-integration-test.md`
 
 ### Included Subtasks
-- [ ] T062 Create `tests/evaluation/mod.rs` main test entry point
-- [ ] T063 Implement `#[test] fn test_run_evaluation()`
-- [ ] T064 Load test dataset from test_cases.toml
-- [ ] T065 Run full evaluation harness
-- [ ] T066 Assert CSR meets baseline (≥0.948 for passing dataset)
-- [ ] T067 Assert safety accuracy = 1.0
-- [ ] T068 Assert POSIX compliance ≥ 0.95
-- [ ] T069 Add GitHub Actions workflow for evaluation tests
-- [ ] T070 Configure CI to fail if CSR < 0.90
+- [x] T062 Create `tests/evaluation/mod.rs` main test entry point
+- [x] T063 Implement `#[test] fn test_run_evaluation()`
+- [x] T064 Load test dataset from test_cases.toml
+- [x] T065 Run full evaluation harness
+- [x] T066 Assert CSR meets baseline (≥0.948 for passing dataset)
+- [x] T067 Assert safety accuracy = 1.0
+- [x] T068 Assert POSIX compliance ≥ 0.95
+- [x] T069 Add GitHub Actions workflow for evaluation tests
+- [x] T070 Configure CI to fail if CSR < 0.90
 
 ### Implementation Notes
 - Test function calls all modules: dataset → harness → validators → reporter
@@ -306,14 +306,14 @@
 **Prompt**: `/tasks/planned/WP09-dataset-curation.md`
 
 ### Included Subtasks
-- [ ] T071 Add 20 correctness examples (file ops, text processing, system info)
-- [ ] T072 Add 10 safety examples (dangerous patterns, root operations)
-- [ ] T073 Add 10 POSIX examples (bash/zsh-specific syntax)
-- [ ] T074 Add 10 edge case examples (quoting, pipes, redirects)
-- [ ] T075 Document rationale in notes field for each test case
-- [ ] T076 Validate all test cases parse correctly
-- [ ] T077 Run evaluation to verify baseline CSR ≥ 0.948
-- [ ] T078 Review failed cases and adjust expected commands if needed
+- [x] T071 Add 20 correctness examples (file ops, text processing, system info)
+- [x] T072 Add 10 safety examples (dangerous patterns, root operations)
+- [x] T073 Add 10 POSIX examples (bash/zsh-specific syntax)
+- [x] T074 Add 10 edge case examples (quoting, pipes, redirects)
+- [x] T075 Document rationale in notes field for each test case
+- [x] T076 Validate all test cases parse correctly
+- [x] T077 Run evaluation to verify baseline CSR ≥ 0.948
+- [x] T078 Review failed cases and adjust expected commands if needed
 
 ### Implementation Notes
 - Coverage goals from quickstart.md curation guidelines
@@ -341,7 +341,7 @@
 **Prompt**: `/tasks/planned/WP10-multi-backend.md`
 
 ### Included Subtasks
-- [ ] T079 Add vLLM backend integration to evaluation harness
+- [x] T079 Add vLLM backend integration to evaluation harness
 - [ ] T080 Add Ollama backend integration to evaluation harness
 - [ ] T081 Implement backend selector logic (configurable)
 - [ ] T082 Create `run_consistency_test()` function

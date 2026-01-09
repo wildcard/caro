@@ -9,7 +9,7 @@ subtasks:
 title: "Project Setup & Directory Structure"
 phase: "Phase 0 - Setup"
 lane: "done"
-assignee: ""
+assignee: "claude"
 agent: "claude"
 shell_pid: "50180"
 review_status: ""

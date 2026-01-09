@@ -13,7 +13,7 @@ subtasks:
 title: "Integration Test & Cargo Test Integration"
 phase: "Phase 2 - Integration"
 lane: "done"
-assignee: ""
+assignee: "claude"
 agent: "claude"
 shell_pid: "50180"
 review_status: ""

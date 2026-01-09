@@ -14,7 +14,7 @@ subtasks:
 title: "Evaluation Runner Core Logic"
 phase: "Phase 1 - Core Implementation"
 lane: "done"
-assignee: ""
+assignee: "claude"
 agent: "claude"
 shell_pid: "50180"
 review_status: ""
