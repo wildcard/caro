@@ -56,14 +56,15 @@
 //! ```
 
 // Sub-modules
+pub mod baseline;
 pub mod dataset;
 pub mod errors;
 pub mod evaluators;
 pub mod harness;
 pub mod models;
-// pub mod baseline;
 
 // Re-exports for public API
+pub use baseline::BaselineStore;
 pub use dataset::*;
 pub use errors::*;
 pub use evaluators::{CommandResult, Evaluator};
