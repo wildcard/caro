@@ -378,7 +378,7 @@ async fn run_assessment_command(
 /// Run evaluation tests on command generation
 async fn run_evaluation_tests(
     backend_name: &str,
-    verbose: bool,
+    _verbose: bool,
     suite_path: Option<&str>,
     profile_id: Option<&str>,
 ) -> Result<(), String> {

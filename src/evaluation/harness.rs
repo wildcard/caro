@@ -310,8 +310,6 @@ impl EvaluationHarness {
 
                 // Spawn parallel task for this backend
                 let task = tokio::spawn(async move {
-                    let start = Instant::now();
-
                     // Run backend with timeout
                     let command_result = match timeout(
                         Duration::from_millis(timeout_ms),

@@ -22,6 +22,7 @@ use tokio::time::{interval, Duration};
 /// When `config.air_gapped` is true, the uploader is disabled and events
 /// remain in local storage until manually exported via `caro telemetry export`.
 pub struct TelemetryUploader {
+    #[allow(dead_code)] // Will be used when background upload is implemented
     storage: Arc<TelemetryStorage>,
     config: TelemetryConfig,
 }

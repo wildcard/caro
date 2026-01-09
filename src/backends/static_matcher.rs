@@ -12,7 +12,7 @@ use regex::Regex;
 use std::sync::Arc;
 
 use crate::backends::{BackendInfo, CommandGenerator, GeneratorError};
-use crate::models::{BackendType, CommandRequest, GeneratedCommand, RiskLevel, ShellType};
+use crate::models::{BackendType, CommandRequest, GeneratedCommand};
 use crate::prompts::CapabilityProfile;
 use crate::safety::{SafetyConfig, SafetyValidator};
 
@@ -20,6 +20,7 @@ use crate::safety::{SafetyConfig, SafetyValidator};
 #[derive(Clone)]
 pub struct StaticMatcher {
     patterns: Arc<Vec<PatternEntry>>,
+    #[allow(dead_code)] // Will be used for platform-specific command selection
     profile: CapabilityProfile,
     safety_validator: Arc<SafetyValidator>,
 }
@@ -36,6 +37,7 @@ struct PatternEntry {
     /// Command for GNU/Linux systems
     gnu_command: String,
     /// Command for BSD systems (macOS)
+    #[allow(dead_code)] // Will be used when platform-specific command selection is implemented
     bsd_command: Option<String>,
     /// Description for debugging
     description: String,

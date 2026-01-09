@@ -6,7 +6,7 @@
 //! - Comparing current results against baselines
 //! - Detecting regressions based on configurable thresholds
 
-use crate::evaluation::{BaselineDelta, BenchmarkReport, DatasetResult, TestCategory};
+use crate::evaluation::{BaselineDelta, BenchmarkReport, DatasetResult};
 use std::fs;
 use std::path::{Path, PathBuf};
 

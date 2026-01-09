@@ -523,6 +523,7 @@ impl CapabilityProfile {
         }
 
         // If ls --version fails but ls works, likely BSD
+        #[allow(unreachable_code)] // Reachable on non-macOS platforms
         if run_command("ls", &["--version"]).await.is_err()
             && run_command("ls", &["-d", "."]).await.is_ok()
         {
