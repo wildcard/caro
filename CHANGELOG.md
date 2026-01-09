@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Security
+
+## [1.1.0] - 2026-01-09
+
+### Fixed
+
 - **Issue #411**: Platform-specific command syntax incompatibility (P2 Blocker)
   - Root cause: Platform profile hardcoded to Ubuntu instead of detecting actual platform
   - Fix:
@@ -24,8 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - GNU syntax on Linux (`du -h --max-depth=1`)
   - Testing: Added 5 platform-specific tests; File Management pass rate: 80% → 100%
   - Verification: Runtime tested on macOS, all 153 unit tests passing
-
-### Security
 
 ## [1.1.0-beta.2] - 2026-01-09
 
