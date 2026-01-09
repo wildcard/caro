@@ -28,7 +28,8 @@ async fn test_disk_space_by_directory() {
 
     let cmd = result.unwrap();
     assert!(
-        cmd.command.contains("du") && (cmd.command.contains("-d 1") || cmd.command.contains("--max-depth=1")),
+        cmd.command.contains("du")
+            && (cmd.command.contains("-d 1") || cmd.command.contains("--max-depth=1")),
         "Command should be 'du -h -d 1' or 'du -h --max-depth=1', got: {}",
         cmd.command
     );

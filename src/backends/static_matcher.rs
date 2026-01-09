@@ -700,7 +700,9 @@ impl StaticMatcher {
         match self.profile.profile_type {
             ProfileType::Bsd => {
                 // Use BSD command if available, otherwise fall back to GNU
-                pattern.bsd_command.as_ref()
+                pattern
+                    .bsd_command
+                    .as_ref()
                     .map(|cmd| cmd.clone())
                     .unwrap_or_else(|| pattern.gnu_command.clone())
             }

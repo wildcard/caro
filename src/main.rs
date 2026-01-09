@@ -626,9 +626,10 @@ async fn main() {
 
     // Check for first-run consent
     // Skip interactive consent for non-human output formats (json, yaml)
-    let is_interactive_output = cli.output.as_deref().map_or(true, |format| {
-        format != "json" && format != "yaml"
-    });
+    let is_interactive_output = cli
+        .output
+        .as_deref()
+        .map_or(true, |format| format != "json" && format != "yaml");
 
     if user_config.telemetry.first_run && is_interactive_output {
         // Prompt user for consent
