@@ -769,7 +769,10 @@ impl ConfigSchema {
         known_keys.insert("logging.log_rotation_days".to_string(), "u32".to_string());
         known_keys.insert("cache.max_size_gb".to_string(), "u64".to_string());
         known_keys.insert("telemetry.enabled".to_string(), "bool".to_string());
-        known_keys.insert("telemetry.level".to_string(), "TelemetryLevel enum".to_string());
+        known_keys.insert(
+            "telemetry.level".to_string(),
+            "TelemetryLevel enum".to_string(),
+        );
         known_keys.insert("telemetry.air_gapped".to_string(), "bool".to_string());
         known_keys.insert("telemetry.endpoint".to_string(), "String".to_string());
         known_keys.insert("telemetry.first_run".to_string(), "bool".to_string());

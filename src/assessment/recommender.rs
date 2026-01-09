@@ -89,7 +89,10 @@ impl Recommender {
         }
     }
 
-    fn low_end_recommendations(profile: &SystemProfile, backend: Backend) -> Vec<ModelRecommendation> {
+    fn low_end_recommendations(
+        profile: &SystemProfile,
+        backend: Backend,
+    ) -> Vec<ModelRecommendation> {
         vec![
             Self::create_recommendation(
                 "Phi-2",
@@ -110,7 +113,10 @@ impl Recommender {
         ]
     }
 
-    fn mid_range_recommendations(profile: &SystemProfile, backend: Backend) -> Vec<ModelRecommendation> {
+    fn mid_range_recommendations(
+        profile: &SystemProfile,
+        backend: Backend,
+    ) -> Vec<ModelRecommendation> {
         vec![
             Self::create_recommendation(
                 "Phi-2",
@@ -131,7 +137,10 @@ impl Recommender {
         ]
     }
 
-    fn high_end_recommendations(profile: &SystemProfile, backend: Backend) -> Vec<ModelRecommendation> {
+    fn high_end_recommendations(
+        profile: &SystemProfile,
+        backend: Backend,
+    ) -> Vec<ModelRecommendation> {
         let mut recs = vec![Self::create_recommendation(
             "Mistral 7B",
             "7B",

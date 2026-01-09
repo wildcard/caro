@@ -69,10 +69,7 @@ pub fn format(result: &AssessmentResult) -> String {
                 }
             ));
             output.push_str(&format!("     Reasoning: {}\n", rec.reasoning));
-            output.push_str(&format!(
-                "     Memory: ~{} MB",
-                rec.estimated_memory_mb
-            ));
+            output.push_str(&format!("     Memory: ~{} MB", rec.estimated_memory_mb));
             if let Some(quant) = &rec.quantization {
                 output.push_str(&format!(", Quantization: {}", quant));
             }

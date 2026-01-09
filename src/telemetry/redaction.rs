@@ -8,21 +8,17 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 
 // Compile regex patterns once at startup
-static PATH_PATTERN: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"(/[\w/.-]+|[A-Z]:\\[\w\\.-]+)").unwrap()
-});
+static PATH_PATTERN: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"(/[\w/.-]+|[A-Z]:\\[\w\\.-]+)").unwrap());
 
-static EMAIL_PATTERN: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b").unwrap()
-});
+static EMAIL_PATTERN: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b").unwrap());
 
-static IP_PATTERN: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b").unwrap()
-});
+static IP_PATTERN: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b").unwrap());
 
-static ENV_VAR_PATTERN: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"\b(PATH|HOME|USER|SHELL|PWD|OLDPWD|HOSTNAME)=").unwrap()
-});
+static ENV_VAR_PATTERN: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"\b(PATH|HOME|USER|SHELL|PWD|OLDPWD|HOSTNAME)=").unwrap());
 
 static API_KEY_PATTERN: Lazy<Regex> = Lazy::new(|| {
     // Detect common API key patterns
@@ -98,10 +94,7 @@ pub fn validate_event(event: &Event) -> Result<(), ValidationError> {
         if let Some(ip) = captures.get(0) {
             // Filter out version numbers like "1.2.3.4"
             let ip_str = ip.as_str();
-            let parts: Vec<u32> = ip_str
-                .split('.')
-                .filter_map(|s| s.parse().ok())
-                .collect();
+            let parts: Vec<u32> = ip_str.split('.').filter_map(|s| s.parse().ok()).collect();
 
             // Valid IP addresses have all parts <= 255
             if parts.len() == 4 && parts.iter().all(|&p| p <= 255) {
@@ -259,10 +252,11 @@ mod tests {
 
         let result = validate_event(&event);
         assert!(result.is_err(), "Event should fail validation");
-        assert!(matches!(
-            result,
-            Err(ValidationError::ContainsEnvironmentVariable(_))
-        ), "Expected ContainsEnvironmentVariable error, got: {:?}", result);
+        assert!(
+            matches!(result, Err(ValidationError::ContainsEnvironmentVariable(_))),
+            "Expected ContainsEnvironmentVariable error, got: {:?}",
+            result
+        );
     }
 
     #[test]

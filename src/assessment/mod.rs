@@ -12,4 +12,3 @@ pub use memory::MemoryInfo;
 pub use profile::{AssessmentError, PlatformInfo, SystemProfile};
 pub use recommender::{Backend, ModelRecommendation, Recommender};
 pub use result::AssessmentResult;
-

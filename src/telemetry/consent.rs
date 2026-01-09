@@ -15,17 +15,13 @@ use dialoguer::{theme::ColorfulTheme, Confirm};
 pub fn prompt_consent() -> bool {
     println!();
     println!("{}", "━".repeat(70).bright_blue());
-    println!(
-        "{}",
-        "📊  Telemetry & Privacy".bright_white().bold()
-    );
+    println!("{}", "📊  Telemetry & Privacy".bright_white().bold());
     println!("{}", "━".repeat(70).bright_blue());
     println!();
 
     println!(
         "{}",
-        "Caro is in beta and collects anonymous usage data to improve the product."
-            .bright_white()
+        "Caro is in beta and collects anonymous usage data to improve the product.".bright_white()
     );
     println!();
 
@@ -88,8 +84,7 @@ pub fn show_enabled_message() {
     );
     println!(
         "{}",
-        "  Disable anytime: caro config set telemetry.enabled false"
-            .bright_black()
+        "  Disable anytime: caro config set telemetry.enabled false".bright_black()
     );
     println!();
 }

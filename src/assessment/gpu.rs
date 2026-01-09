@@ -77,10 +77,7 @@ impl GPUInfo {
 
         // Parse JSON to extract GPU info
         if let Ok(json) = serde_json::from_str::<serde_json::Value>(&json_str) {
-            if let Some(displays) = json
-                .get("SPDisplaysDataType")
-                .and_then(|d| d.as_array())
-            {
+            if let Some(displays) = json.get("SPDisplaysDataType").and_then(|d| d.as_array()) {
                 for display in displays {
                     if let Some(model) = display.get("sppci_model").and_then(|m| m.as_str()) {
                         let vendor = Self::detect_vendor_from_name(model);
@@ -219,7 +216,12 @@ impl GPUInfo {
             GPUVendor::AMD
         } else if lower.contains("intel") {
             GPUVendor::Intel
-        } else if lower.contains("apple") || lower.starts_with("m1") || lower.starts_with("m2") || lower.starts_with("m3") || lower.starts_with("m4") {
+        } else if lower.contains("apple")
+            || lower.starts_with("m1")
+            || lower.starts_with("m2")
+            || lower.starts_with("m3")
+            || lower.starts_with("m4")
+        {
             GPUVendor::Apple
         } else {
             GPUVendor::Unknown

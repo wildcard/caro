@@ -48,7 +48,7 @@ impl StaticMatcher {
         // This will panic on invalid configuration, which is acceptable for initialization
         let safety_validator = Arc::new(
             SafetyValidator::new(SafetyConfig::moderate())
-                .expect("Failed to initialize SafetyValidator with default config")
+                .expect("Failed to initialize SafetyValidator with default config"),
         );
 
         Self {
@@ -634,12 +634,16 @@ impl StaticMatcher {
             }
 
             // Fallback to keyword matching
-            let all_required = pattern.required_keywords.iter()
+            let all_required = pattern
+                .required_keywords
+                .iter()
                 .all(|kw| query_lower.contains(kw));
 
             if all_required {
                 // Count optional keywords for confidence boost
-                let optional_count = pattern.optional_keywords.iter()
+                let optional_count = pattern
+                    .optional_keywords
+                    .iter()
                     .filter(|kw| query_lower.contains(*kw))
                     .count();
 
@@ -673,7 +677,8 @@ impl CommandGenerator for StaticMatcher {
 
             // SAFETY VALIDATION: Validate the GENERATED command
             // This happens after pattern matching to check if the generated command is safe
-            let safety_result = self.safety_validator
+            let safety_result = self
+                .safety_validator
                 .validate_command(&command, request.shell)
                 .await
                 .map_err(|e| GeneratorError::ValidationFailed {
@@ -701,7 +706,7 @@ impl CommandGenerator for StaticMatcher {
                 alternatives: vec![],
                 backend_used: "static-matcher".to_string(),
                 generation_time_ms: 0, // Instant - no LLM call
-                confidence_score: 1.0,  // Deterministic match
+                confidence_score: 1.0, // Deterministic match
             })
         } else {
             // No match - return error so we can fall through to LLM
@@ -801,7 +806,10 @@ mod tests {
         let matcher = StaticMatcher::new(profile);
 
         // Should still match with different phrasing
-        let request = CommandRequest::new("show me all files that were modified today", ShellType::Bash);
+        let request = CommandRequest::new(
+            "show me all files that were modified today",
+            ShellType::Bash,
+        );
 
         let result = matcher.generate_command(&request).await;
         assert!(result.is_ok());

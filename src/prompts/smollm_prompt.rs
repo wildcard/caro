@@ -546,9 +546,14 @@ Why: Destructive commands need user confirmation
             // PRIORITY: Website-advertised examples (must match exactly)
             ("list all files modified today", "find . -type f -mtime 0"),
             ("find large files over 100MB", "find . -type f -size +100M"),
-            ("show disk usage by folder", "du -sh */ | sort -rh | head -10"),
-            ("find python files modified last week", "find . -name \"*.py\" -type f -mtime -7"),
-
+            (
+                "show disk usage by folder",
+                "du -sh */ | sort -rh | head -10",
+            ),
+            (
+                "find python files modified last week",
+                "find . -name \"*.py\" -type f -mtime -7",
+            ),
             // File management examples
             ("list all files", "ls -a"),
             ("find files modified yesterday", "find . -type f -mtime 1"),
@@ -558,28 +563,38 @@ Why: Destructive commands need user confirmation
                 "20 most recently modified files",
                 "find . -type f -printf '%T@ %p\\n' | sort -nr | head -n 20 | cut -d' ' -f2-",
             ),
-
             // Process monitoring examples
-            ("show top 10 memory-consuming processes", "ps aux | sort -k4 -rn | head -10"),
-            ("show top 10 CPU-consuming processes", "ps aux | sort -k3 -rn | head -10"),
+            (
+                "show top 10 memory-consuming processes",
+                "ps aux | sort -k4 -rn | head -10",
+            ),
+            (
+                "show top 10 CPU-consuming processes",
+                "ps aux | sort -k3 -rn | head -10",
+            ),
             ("find all running python processes", "ps aux | grep python"),
-
             // Text search examples
             ("find files containing TODO", "grep -R -n 'TODO' ."),
-            ("find files containing error in logs", "grep -R -i 'error' /var/log/"),
-            ("search for pattern in all js files", "grep -r 'pattern' --include='*.js' ."),
-
+            (
+                "find files containing error in logs",
+                "grep -R -i 'error' /var/log/",
+            ),
+            (
+                "search for pattern in all js files",
+                "grep -r 'pattern' --include='*.js' .",
+            ),
             // Network operations examples
             ("show all listening ports", "netstat -tuln | grep LISTEN"),
             ("find process using port 8080", "lsof -i :8080"),
-
             // Counting and statistics
             (
                 "count lines of code in python files",
                 "find . -name '*.py' -type f | xargs wc -l",
             ),
-            ("count number of log files", "find . -name '*.log' -type f | wc -l"),
-
+            (
+                "count number of log files",
+                "find . -name '*.log' -type f | wc -l",
+            ),
             // Git operations
             ("show recent commits", "git log --oneline -10"),
             ("show uncommitted changes", "git diff"),

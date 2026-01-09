@@ -154,10 +154,22 @@ mod tests {
 
     #[test]
     fn test_telemetry_level_parsing() {
-        assert_eq!("minimal".parse::<TelemetryLevel>().unwrap(), TelemetryLevel::Minimal);
-        assert_eq!("normal".parse::<TelemetryLevel>().unwrap(), TelemetryLevel::Normal);
-        assert_eq!("verbose".parse::<TelemetryLevel>().unwrap(), TelemetryLevel::Verbose);
-        assert_eq!("MINIMAL".parse::<TelemetryLevel>().unwrap(), TelemetryLevel::Minimal);
+        assert_eq!(
+            "minimal".parse::<TelemetryLevel>().unwrap(),
+            TelemetryLevel::Minimal
+        );
+        assert_eq!(
+            "normal".parse::<TelemetryLevel>().unwrap(),
+            TelemetryLevel::Normal
+        );
+        assert_eq!(
+            "verbose".parse::<TelemetryLevel>().unwrap(),
+            TelemetryLevel::Verbose
+        );
+        assert_eq!(
+            "MINIMAL".parse::<TelemetryLevel>().unwrap(),
+            TelemetryLevel::Minimal
+        );
 
         assert!("invalid".parse::<TelemetryLevel>().is_err());
     }

@@ -71,7 +71,9 @@ impl TelemetryUploader {
         #[cfg(not(feature = "remote-backends"))]
         {
             // Without reqwest, we can't upload - events stay in local storage
-            tracing::debug!("Telemetry upload skipped: reqwest not available (enable remote-backends feature)");
+            tracing::debug!(
+                "Telemetry upload skipped: reqwest not available (enable remote-backends feature)"
+            );
             return Ok(());
         }
 
@@ -118,11 +120,7 @@ impl TelemetryUploader {
                     .await
                     .unwrap_or_else(|_| "Unable to read response body".to_string());
 
-                anyhow::bail!(
-                    "Telemetry upload failed with status {}: {}",
-                    status,
-                    body
-                );
+                anyhow::bail!("Telemetry upload failed with status {}: {}", status, body);
             }
 
             Ok(())

@@ -327,10 +327,7 @@ async fn test_issue_161_edge_cases() {
     };
 
     let result = cli.run_with_args(args).await;
-    assert!(
-        result.is_ok(),
-        "Issue #161: Single word 'list' should work"
-    );
+    assert!(result.is_ok(), "Issue #161: Single word 'list' should work");
 
     // Whitespace should be normalized
     let args = TestArgs {

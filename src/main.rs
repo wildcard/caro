@@ -1,10 +1,10 @@
+use caro::backends::embedded::EmbeddedModelBackend;
+use caro::backends::{CommandGenerator, StaticMatcher};
 use caro::cli::{CliApp, CliError, IntoCliArgs};
 use caro::config::ConfigManager;
-use caro::eval::{EvalResults, EvalSuite, CategoryResults, IndividualResult};
-use caro::backends::{CommandGenerator, StaticMatcher};
-use caro::backends::embedded::EmbeddedModelBackend;
-use caro::prompts::CapabilityProfile;
+use caro::eval::{CategoryResults, EvalResults, EvalSuite, IndividualResult};
 use caro::models::{CommandRequest, ShellType};
+use caro::prompts::CapabilityProfile;
 use clap::Parser;
 use std::collections::HashMap;
 use std::process;
@@ -210,6 +210,9 @@ enum Commands {
     long_about = "caro converts natural language descriptions into safe POSIX shell commands using local language models. Features safety validation, multiple output formats, and configurable backends."
 )]
 #[command(version)]
+#[command(args_conflicts_with_subcommands = true)]
+#[command(subcommand_required = false)]
+#[command(arg_required_else_help = false)]
 struct Cli {
     /// Subcommand to run
     #[command(subcommand)]
@@ -336,10 +339,9 @@ async fn run_assessment_command(
     export_format: Option<ExportFormat>,
     output_path: Option<String>,
 ) -> Result<(), String> {
-    use caro::assessment::{AssessmentResult, Recommender, SystemProfile, formatters};
+    use caro::assessment::{formatters, AssessmentResult, Recommender, SystemProfile};
 
-    let profile = SystemProfile::detect()
-        .map_err(|e| format!("Assessment failed: {}", e))?;
+    let profile = SystemProfile::detect().map_err(|e| format!("Assessment failed: {}", e))?;
 
     let recommendations = Recommender::recommend(&profile);
     let warnings = vec![]; // Collect any warnings during detection
@@ -389,13 +391,15 @@ async fn run_evaluation_tests(
             let profile = CapabilityProfile::ubuntu();
             Box::new(StaticMatcher::new(profile))
         }
-        "embedded" => {
-            Box::new(EmbeddedModelBackend::new().map_err(|e| {
-                format!("Failed to create embedded backend: {}", e)
-            })?)
-        }
+        "embedded" => Box::new(
+            EmbeddedModelBackend::new()
+                .map_err(|e| format!("Failed to create embedded backend: {}", e))?,
+        ),
         _ => {
-            return Err(format!("Unknown backend: {}. Supported: static, embedded", backend_name));
+            return Err(format!(
+                "Unknown backend: {}. Supported: static, embedded",
+                backend_name
+            ));
         }
     };
 
@@ -437,7 +441,9 @@ async fn run_evaluation_tests(
 
         let (passed, actual, error) = match result {
             Ok(cmd) => {
-                let matches = test_case.expected_outputs.iter()
+                let matches = test_case
+                    .expected_outputs
+                    .iter()
                     .any(|expected| cmd.command == *expected);
                 (matches, Some(cmd.command), None)
             }
@@ -461,13 +467,15 @@ async fn run_evaluation_tests(
 
         // Update category stats
         let category_key = format!("{}", test_case.category);
-        let cat_stats = results.results_by_category
-            .entry(category_key)
-            .or_insert(CategoryResults {
-                total: 0,
-                passed: 0,
-                pass_rate: 0.0,
-            });
+        let cat_stats =
+            results
+                .results_by_category
+                .entry(category_key)
+                .or_insert(CategoryResults {
+                    total: 0,
+                    passed: 0,
+                    pass_rate: 0.0,
+                });
         cat_stats.total += 1;
         if passed {
             cat_stats.passed += 1;
@@ -514,15 +522,13 @@ async fn main() {
 
     // Handle subcommands first
     match cli.command {
-        Some(Commands::Doctor) => {
-            match caro::doctor::run_diagnostics().await {
-                Ok(()) => process::exit(0),
-                Err(e) => {
-                    eprintln!("Error running diagnostics: {}", e);
-                    process::exit(1);
-                }
+        Some(Commands::Doctor) => match caro::doctor::run_diagnostics().await {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("Error running diagnostics: {}", e);
+                process::exit(1);
             }
-        }
+        },
         Some(Commands::Assess { export, output }) => {
             match run_assessment_command(export, output).await {
                 Ok(()) => process::exit(0),
@@ -532,8 +538,15 @@ async fn main() {
                 }
             }
         }
-        Some(Commands::Test { backend, verbose, suite, profile }) => {
-            match run_evaluation_tests(&backend, verbose, suite.as_deref(), profile.as_deref()).await {
+        Some(Commands::Test {
+            backend,
+            verbose,
+            suite,
+            profile,
+        }) => {
+            match run_evaluation_tests(&backend, verbose, suite.as_deref(), profile.as_deref())
+                .await
+            {
                 Ok(()) => process::exit(0),
                 Err(e) => {
                     eprintln!("Error running tests: {}", e);
@@ -622,34 +635,31 @@ async fn main() {
     // Create telemetry storage and collector (optional, don't fail if it errors)
     if let Ok(telemetry_storage) = caro::TelemetryStorage::new(telemetry_storage_path) {
         let telemetry_storage = std::sync::Arc::new(telemetry_storage);
-        let telemetry_collector = std::sync::Arc::new(
-            caro::TelemetryCollector::new(telemetry_storage.clone(), user_config.telemetry.enabled)
-        );
+        let telemetry_collector = std::sync::Arc::new(caro::TelemetryCollector::new(
+            telemetry_storage.clone(),
+            user_config.telemetry.enabled,
+        ));
 
         // Set as global collector for easy access from all components
         caro::set_global_collector(telemetry_collector.clone());
 
         // Start telemetry uploader if enabled and not air-gapped
         if user_config.telemetry.enabled && !user_config.telemetry.air_gapped {
-            let uploader = std::sync::Arc::new(
-                caro::telemetry::uploader::TelemetryUploader::new(
-                    telemetry_storage.clone(),
-                    user_config.telemetry.clone(),
-                )
-            );
+            let uploader = std::sync::Arc::new(caro::telemetry::uploader::TelemetryUploader::new(
+                telemetry_storage.clone(),
+                user_config.telemetry.clone(),
+            ));
             uploader.start();
         }
 
         // Emit SessionStart event
-        let backend_available: Vec<String> = vec![
-            "static".to_string(),
-            "embedded".to_string(),
-        ];
+        let backend_available: Vec<String> = vec!["static".to_string(), "embedded".to_string()];
 
         telemetry_collector.emit(caro::TelemetryEventType::SessionStart {
             version: env!("CARGO_PKG_VERSION").to_string(),
             platform: std::env::consts::OS.to_string(),
-            shell_type: user_config.default_shell
+            shell_type: user_config
+                .default_shell
                 .map(|s| format!("{:?}", s))
                 .unwrap_or_else(|| "unknown".to_string()),
             backend_available,
@@ -1044,6 +1054,23 @@ mod tests {
     fn test_empty_trailing_args() {
         let resolved = resolve_prompt(None, None, vec![]);
         assert_eq!(resolved.text, "");
+        assert_eq!(resolved.source, PromptSource::TrailingArgs);
+    }
+
+    #[test]
+    fn test_quoted_trailing_args_backward_compat() {
+        // Shell passes quoted args as single string (e.g., caro "list files" → ["list files"])
+        // Verify backward compatibility with quoted prompts
+        let resolved = resolve_prompt(None, None, vec!["list files".into()]);
+        assert_eq!(resolved.text, "list files");
+        assert_eq!(resolved.source, PromptSource::TrailingArgs);
+    }
+
+    #[test]
+    fn test_single_word_trailing_arg() {
+        // Single-word prompts (e.g., caro version → ["version"])
+        let resolved = resolve_prompt(None, None, vec!["version".into()]);
+        assert_eq!(resolved.text, "version");
         assert_eq!(resolved.source, PromptSource::TrailingArgs);
     }
 

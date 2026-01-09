@@ -3,7 +3,6 @@
 /// This test suite loads all 75 test cases from `.claude/beta-testing/test-cases.yaml`
 /// and runs them against the caro binary. Results are used for beta testing cycles
 /// to measure command generation quality across all categories.
-
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
@@ -263,8 +262,7 @@ fn load_test_suite() -> TestSuite {
     let yaml_content = fs::read_to_string(yaml_path)
         .unwrap_or_else(|e| panic!("Failed to read {}: {}", yaml_path, e));
 
-    serde_yaml::from_str(&yaml_content)
-        .unwrap_or_else(|e| panic!("Failed to parse YAML: {}", e))
+    serde_yaml::from_str(&yaml_content).unwrap_or_else(|e| panic!("Failed to parse YAML: {}", e))
 }
 
 fn run_all_tests(suite: &TestSuite) -> BetaTestReport {
@@ -303,11 +301,7 @@ fn run_all_tests(suite: &TestSuite) -> BetaTestReport {
         let failed = total - passed;
         let pass_rate = (passed as f64 / total as f64) * 100.0;
 
-        let failures: Vec<TestResult> = results
-            .iter()
-            .filter(|r| !r.passed)
-            .cloned()
-            .collect();
+        let failures: Vec<TestResult> = results.iter().filter(|r| !r.passed).cloned().collect();
 
         categories.push(CategoryResults {
             category: cat_name,
@@ -350,7 +344,10 @@ fn print_report(report: &BetaTestReport) {
 
     println!("By Category:");
     println!("{:-<80}", "");
-    println!("{:<30} {:>10} {:>10} {:>10} {:>15}", "Category", "Passed", "Failed", "Total", "Pass Rate");
+    println!(
+        "{:<30} {:>10} {:>10} {:>10} {:>15}",
+        "Category", "Passed", "Failed", "Total", "Pass Rate"
+    );
     println!("{:-<80}", "");
 
     for cat in &report.categories {
@@ -387,7 +384,10 @@ fn beta_test_comprehensive_cycle_0_baseline() {
     // Load test suite
     let suite = load_test_suite();
 
-    println!("\n📋 Loaded {} test cases from YAML", suite.metadata.total_cases);
+    println!(
+        "\n📋 Loaded {} test cases from YAML",
+        suite.metadata.total_cases
+    );
     println!("Version: {}", suite.metadata.version);
     println!("Last Updated: {}", suite.metadata.last_updated);
     println!();
@@ -400,10 +400,15 @@ fn beta_test_comprehensive_cycle_0_baseline() {
 
     // Save report to file
     let report_json = serde_json::to_string_pretty(&report).unwrap();
-    fs::write(".claude/beta-testing/cycles/cycle-0-comprehensive-baseline.json", &report_json)
-        .expect("Failed to write report");
+    fs::write(
+        ".claude/beta-testing/cycles/cycle-0-comprehensive-baseline.json",
+        &report_json,
+    )
+    .expect("Failed to write report");
 
-    println!("📊 Full report saved to: .claude/beta-testing/cycles/cycle-0-comprehensive-baseline.json");
+    println!(
+        "📊 Full report saved to: .claude/beta-testing/cycles/cycle-0-comprehensive-baseline.json"
+    );
 
     // Fail test if overall pass rate < 50%
     // (This is just for CI purposes - we expect failures in baseline)

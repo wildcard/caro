@@ -43,10 +43,7 @@ pub fn format(result: &AssessmentResult) -> String {
     if !result.recommendations.is_empty() {
         output.push_str("## Model Recommendations\n\n");
         for rec in &result.recommendations {
-            output.push_str(&format!(
-                "### {} ({})\n\n",
-                rec.model_name, rec.model_size
-            ));
+            output.push_str(&format!("### {} ({})\n\n", rec.model_name, rec.model_size));
             output.push_str(&format!("- **Backend**: {}\n", rec.backend));
             if let Some(quant) = &rec.quantization {
                 output.push_str(&format!("- **Quantization**: {}\n", quant));

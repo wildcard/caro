@@ -8,7 +8,10 @@ mod cpu_tests {
     fn test_cpu_detection() {
         let cpu = CPUInfo::detect().expect("CPU detection should succeed");
 
-        assert!(!cpu.architecture.is_empty(), "Architecture should be detected");
+        assert!(
+            !cpu.architecture.is_empty(),
+            "Architecture should be detected"
+        );
         assert!(cpu.cores > 0, "Core count should be positive");
         assert!(!cpu.model_name.is_empty(), "Model name should be detected");
     }
@@ -35,7 +38,10 @@ mod memory_tests {
         let memory = MemoryInfo::detect().expect("Memory detection should succeed");
 
         assert!(memory.total_mb > 0, "Total memory should be positive");
-        assert!(memory.available_mb > 0, "Available memory should be positive");
+        assert!(
+            memory.available_mb > 0,
+            "Available memory should be positive"
+        );
         assert!(
             memory.available_mb <= memory.total_mb,
             "Available memory should not exceed total"
@@ -59,8 +65,8 @@ mod memory_tests {
 
 #[cfg(test)]
 mod recommendation_tests {
-    use caro::assessment::{Backend, Recommender};
     use crate::fixtures::mock_profiles::*;
+    use caro::assessment::{Backend, Recommender};
 
     #[test]
     fn test_apple_silicon_recommendations() {

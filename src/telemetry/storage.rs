@@ -43,8 +43,7 @@ impl TelemetryStorage {
             std::fs::create_dir_all(parent).context("Failed to create telemetry directory")?;
         }
 
-        let conn =
-            Connection::open(&db_path).context("Failed to open telemetry database")?;
+        let conn = Connection::open(&db_path).context("Failed to open telemetry database")?;
 
         // Create schema
         conn.execute(
@@ -176,8 +175,10 @@ impl TelemetryStorage {
 
         let mut stmt = conn.prepare(&query).context("Failed to prepare delete")?;
 
-        let params: Vec<&dyn rusqlite::ToSql> =
-            event_ids.iter().map(|id| id as &dyn rusqlite::ToSql).collect();
+        let params: Vec<&dyn rusqlite::ToSql> = event_ids
+            .iter()
+            .map(|id| id as &dyn rusqlite::ToSql)
+            .collect();
 
         stmt.execute(params.as_slice())
             .context("Failed to delete events")?;

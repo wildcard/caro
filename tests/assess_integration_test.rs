@@ -44,8 +44,7 @@ fn test_assess_json_export() {
 
     // Verify JSON file was created and is valid
     let content = std::fs::read_to_string(path).unwrap();
-    let _: serde_json::Value =
-        serde_json::from_str(&content).expect("Output should be valid JSON");
+    let _: serde_json::Value = serde_json::from_str(&content).expect("Output should be valid JSON");
 }
 
 #[test]
