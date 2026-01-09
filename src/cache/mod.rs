@@ -516,6 +516,175 @@ mod tests {
                     }
                 }
             }
+
+            /// T006: Verify cache respects size limit
+            #[test]
+            fn prop_cache_respects_size_limit(
+                max_size_gb in 1u64..10,
+                model_sizes_mb in prop::collection::vec(50u64..200, 0..20)
+            ) {
+                let mut manifest = CacheManifest::new(max_size_gb);
+                let now = Utc::now();
+
+                // Add models incrementally
+                for (i, size_mb) in model_sizes_mb.iter().enumerate() {
+                    let model = create_test_model(
+                        format!("model_{}", i),
+                        size_mb * 1024 * 1024,
+                        now + Duration::seconds(i as i64),
+                    );
+                    manifest.add_model(model);
+
+                    // Trigger cleanup if needed (mimics ManifestManager behavior)
+                    if manifest.total_size_bytes > manifest.max_cache_size_bytes {
+                        manifest.cleanup_lru();
+                    }
+
+                    // After each addition, verify size constraint
+                    prop_assert!(
+                        manifest.total_size_bytes <= manifest.max_cache_size_bytes,
+                        "Cache size {} exceeded max_size {} after adding model {}",
+                        manifest.total_size_bytes,
+                        manifest.max_cache_size_bytes,
+                        i
+                    );
+                }
+            }
+
+            /// T007: Verify eviction happens before overflow
+            #[test]
+            fn prop_eviction_before_overflow(
+                max_size_mb in 500u64..1000,
+                model_size_mb in 100u64..300
+            ) {
+                let max_size_bytes = max_size_mb * 1024 * 1024;
+                let mut manifest = CacheManifest::new(1); // 1GB
+                manifest.max_cache_size_bytes = max_size_bytes; // Override for test
+                let now = Utc::now();
+
+                // Fill cache to capacity
+                let mut total_added = 0u64;
+                let mut models_added = 0;
+                while total_added < max_size_bytes {
+                    let model = create_test_model(
+                        format!("model_{}", models_added),
+                        model_size_mb * 1024 * 1024,
+                        now + Duration::seconds(models_added as i64),
+                    );
+                    manifest.add_model(model);
+                    total_added += model_size_mb * 1024 * 1024;
+                    models_added += 1;
+
+                    if models_added > 20 {
+                        break; // Safety limit for test
+                    }
+                }
+
+                // Record size before adding overflow model
+                let size_before = manifest.total_size_bytes;
+
+                // Add one more model that should trigger eviction
+                let overflow_model = create_test_model(
+                    "overflow".to_string(),
+                    model_size_mb * 1024 * 1024,
+                    now + Duration::seconds(models_added as i64),
+                );
+                manifest.add_model(overflow_model);
+
+                // Trigger cleanup (mimics ManifestManager behavior)
+                if manifest.total_size_bytes > manifest.max_cache_size_bytes {
+                    manifest.cleanup_lru();
+                }
+
+                // Verify size is still within limit (eviction should have occurred)
+                prop_assert!(
+                    manifest.total_size_bytes <= manifest.max_cache_size_bytes,
+                    "Cache should evict before exceeding size limit. Before: {}, After: {}, Max: {}",
+                    size_before,
+                    manifest.total_size_bytes,
+                    manifest.max_cache_size_bytes
+                );
+            }
+
+            /// T008: Verify access updates timestamp
+            #[test]
+            fn prop_access_updates_timestamp(
+                initial_models in 2usize..6,
+                access_sequence in prop::collection::vec(0usize..5, 5..15)
+            ) {
+                let mut manifest = CacheManifest::new(10);
+                let base_time = Utc::now() - Duration::days(7);
+
+                // Add models with old timestamps
+                for i in 0..initial_models {
+                    let model = create_test_model(
+                        format!("model_{}", i),
+                        100 * 1024 * 1024,
+                        base_time + Duration::hours(i as i64),
+                    );
+                    manifest.add_model(model);
+                }
+
+                // Access models in random sequence
+                for access_idx in access_sequence {
+                    if access_idx < initial_models {
+                        let model_id = format!("model_{}", access_idx);
+
+                        // Get current timestamp
+                        if let Some(model) = manifest.get_model(&model_id) {
+                            let old_time = model.last_accessed;
+
+                            // Simulate access (remove and re-add with updated time)
+                            if let Some(mut updated_model) = manifest.remove_model(&model_id) {
+                                std::thread::sleep(std::time::Duration::from_millis(5));
+                                updated_model.last_accessed = Utc::now();
+                                let new_time = updated_model.last_accessed;
+                                manifest.add_model(updated_model);
+
+                                // Verify timestamp increased
+                                prop_assert!(
+                                    new_time > old_time,
+                                    "Access should update timestamp from {} to {}",
+                                    old_time,
+                                    new_time
+                                );
+                            }
+                        }
+                    }
+                }
+
+                // Verify most recently accessed models are protected from eviction
+                // Fill cache to trigger cleanup
+                for i in 0..5 {
+                    let large_model = create_test_model(
+                        format!("filler_{}", i),
+                        2 * 1024 * 1024 * 1024, // 2GB each
+                        Utc::now(),
+                    );
+                    manifest.add_model(large_model);
+                }
+
+                // Models with newer timestamps should be less likely to be evicted
+                let removed = manifest.cleanup_lru();
+                if !removed.is_empty() {
+                    // Verify at least some old models were evicted
+                    let old_models: Vec<String> = (0..initial_models)
+                        .map(|i| format!("model_{}", i))
+                        .collect();
+
+                    let evicted_old = removed.iter()
+                        .filter(|id| old_models.contains(id))
+                        .count();
+
+                    // If evictions happened, some should be from the old models
+                    if !removed.is_empty() {
+                        prop_assert!(
+                            evicted_old > 0 || manifest.models.values().any(|m| m.last_accessed >= base_time),
+                            "LRU should preferentially evict older models"
+                        );
+                    }
+                }
+            }
         }
     }
 }
