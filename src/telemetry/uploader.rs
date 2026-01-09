@@ -74,7 +74,7 @@ impl TelemetryUploader {
             tracing::debug!(
                 "Telemetry upload skipped: reqwest not available (enable remote-backends feature)"
             );
-            return Ok(());
+            Ok(())
         }
 
         #[cfg(feature = "remote-backends")]

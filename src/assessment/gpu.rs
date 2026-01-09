@@ -84,7 +84,7 @@ impl GPUInfo {
                         let vram_mb = display
                             .get("spdisplays_vram")
                             .and_then(|v| v.as_str())
-                            .and_then(|s| Self::parse_vram_mb(s));
+                            .and_then(Self::parse_vram_mb);
 
                         return Some(GPUInfo {
                             vendor,

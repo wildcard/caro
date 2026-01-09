@@ -12,7 +12,7 @@ use regex::Regex;
 use std::sync::Arc;
 
 use crate::backends::{BackendInfo, CommandGenerator, GeneratorError};
-use crate::models::{BackendType, CommandRequest, GeneratedCommand, RiskLevel, ShellType};
+use crate::models::{BackendType, CommandRequest, GeneratedCommand};
 use crate::prompts::CapabilityProfile;
 use crate::safety::{SafetyConfig, SafetyValidator};
 
@@ -701,9 +701,7 @@ impl StaticMatcher {
             ProfileType::Bsd => {
                 // Use BSD command if available, otherwise fall back to GNU
                 pattern
-                    .bsd_command
-                    .as_ref()
-                    .map(|cmd| cmd.clone())
+                    .bsd_command.clone()
                     .unwrap_or_else(|| pattern.gnu_command.clone())
             }
             _ => {
