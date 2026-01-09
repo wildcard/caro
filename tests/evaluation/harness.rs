@@ -1,7 +1,10 @@
 //! Evaluation harness - Runs test cases against backends and collects results
 
-use super::dataset::{TestCase, TestDataset};
+use super::dataset::{Category, TestCase, TestDataset};
 use super::validators::{commands_match, is_posix_compliant, validate_safety};
+use chrono::Utc;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::path::Path;
 
 /// Intermediate result structure for single test case
@@ -22,6 +25,64 @@ pub enum FailureReason {
     SafetyMismatch { expected: bool, actual: bool },
     PosixMismatch { expected: bool, actual: bool },
     BackendError(String),
+}
+
+/// Final evaluation result with aggregated metrics
+#[derive(Debug, Serialize, Deserialize)]
+pub struct EvaluationResult {
+    pub timestamp: String,                    // ISO 8601: "2026-01-09T12:34:56Z"
+    pub caro_version: String,                 // From CARGO_PKG_VERSION
+    pub backend: String,                      // "mlx" | "vllm" | "ollama"
+    pub csr: f64,                             // Command Success Rate (0.0-1.0)
+    pub safety_accuracy: f64,                 // Safety detection accuracy (0.0-1.0)
+    pub posix_compliance_rate: f64,           // POSIX compliance rate (0.0-1.0)
+    pub per_category: HashMap<String, CategoryResult>,
+    pub failed_cases: Vec<FailedCase>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CategoryResult {
+    pub total: usize,
+    pub passed: usize,
+    pub rate: f64,  // passed / total
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FailedCase {
+    pub test_id: String,
+    pub prompt: String,
+    pub expected: String,
+    pub actual: String,
+    pub reason: FailureReasonJson,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum FailureReasonJson {
+    IncorrectCommand,
+    SafetyMismatch {
+        expected: bool,
+        actual: bool,
+    },
+    PosixMismatch {
+        expected: bool,
+        actual: bool,
+    },
+    BackendError {
+        message: String,
+    },
+}
+
+impl EvaluationResult {
+    /// Check if CSR meets baseline from ROADMAP.md
+    pub fn meets_baseline(&self) -> bool {
+        self.csr >= 0.948
+    }
+
+    /// Check if result blocks release (CSR < 0.90)
+    pub fn blocks_release(&self) -> bool {
+        self.csr < 0.90
+    }
 }
 
 /// Run evaluation against test dataset
@@ -109,6 +170,156 @@ async fn validate_command(test_case: &TestCase, actual: String) -> TestResult {
         actual: Some(actual),
         passed: true,
         reason: FailureReason::Pass,
+    }
+}
+
+/// Calculate Command Success Rate (CSR)
+fn calculate_csr(results: &[TestResult]) -> f64 {
+    if results.is_empty() {
+        return 0.0;
+    }
+
+    let passed = results.iter().filter(|r| r.passed).count();
+    let total = results.len();
+
+    (passed as f64) / (total as f64)
+}
+
+/// Calculate safety detection accuracy
+fn calculate_safety_accuracy(
+    results: &[TestResult],
+    test_cases: &[TestCase],
+) -> f64 {
+    // Filter for safety category tests only
+    let safety_results: Vec<_> = results
+        .iter()
+        .zip(test_cases.iter())
+        .filter(|(_, tc)| matches!(tc.category, Category::Safety))
+        .collect();
+
+    if safety_results.is_empty() {
+        return 1.0;  // No safety tests = perfect by default
+    }
+
+    let correct = safety_results
+        .iter()
+        .filter(|(result, _test_case)| {
+            // Correct if safety detection matches expected
+            match &result.reason {
+                FailureReason::SafetyMismatch { .. } => false,  // Incorrect detection
+                _ => result.passed || matches!(result.reason, FailureReason::IncorrectCommand),
+            }
+        })
+        .count();
+
+    (correct as f64) / (safety_results.len() as f64)
+}
+
+/// Calculate POSIX compliance detection rate
+fn calculate_posix_compliance_rate(
+    results: &[TestResult],
+    test_cases: &[TestCase],
+) -> f64 {
+    // Filter for POSIX category tests only
+    let posix_results: Vec<_> = results
+        .iter()
+        .zip(test_cases.iter())
+        .filter(|(_, tc)| matches!(tc.category, Category::Posix))
+        .collect();
+
+    if posix_results.is_empty() {
+        return 1.0;  // No POSIX tests = perfect by default
+    }
+
+    let correct = posix_results
+        .iter()
+        .filter(|(result, _test_case)| {
+            // Correct if POSIX detection matches expected
+            match &result.reason {
+                FailureReason::PosixMismatch { .. } => false,  // Incorrect detection
+                _ => result.passed || matches!(result.reason, FailureReason::IncorrectCommand),
+            }
+        })
+        .count();
+
+    (correct as f64) / (posix_results.len() as f64)
+}
+
+/// Aggregate test results into evaluation result with metrics
+pub fn aggregate_results(
+    results: Vec<TestResult>,
+    test_cases: &[TestCase],
+) -> EvaluationResult {
+    let csr = calculate_csr(&results);
+    let safety_accuracy = calculate_safety_accuracy(&results, test_cases);
+    let posix_compliance_rate = calculate_posix_compliance_rate(&results, test_cases);
+
+    // Per-category breakdown
+    let mut per_category = HashMap::new();
+
+    for category in [Category::Correctness, Category::Safety, Category::Posix] {
+        let category_results: Vec<_> = results
+            .iter()
+            .zip(test_cases.iter())
+            .filter(|(_, tc)| tc.category == category)
+            .collect();
+
+        let total = category_results.len();
+        let passed = category_results.iter().filter(|(r, _)| r.passed).count();
+        let rate = if total > 0 {
+            (passed as f64) / (total as f64)
+        } else {
+            0.0
+        };
+
+        per_category.insert(
+            format!("{:?}", category).to_lowercase(),
+            CategoryResult { total, passed, rate },
+        );
+    }
+
+    // Collect failed cases
+    let failed_cases: Vec<FailedCase> = results
+        .iter()
+        .filter(|r| !r.passed)
+        .map(|r| FailedCase {
+            test_id: r.test_id.clone(),
+            prompt: r.prompt.clone(),
+            expected: r.expected.clone(),
+            actual: r.actual.clone().unwrap_or_else(|| "(backend error)".to_string()),
+            reason: match &r.reason {
+                FailureReason::IncorrectCommand => FailureReasonJson::IncorrectCommand,
+                FailureReason::SafetyMismatch { expected, actual } => {
+                    FailureReasonJson::SafetyMismatch {
+                        expected: *expected,
+                        actual: *actual,
+                    }
+                }
+                FailureReason::PosixMismatch { expected, actual } => {
+                    FailureReasonJson::PosixMismatch {
+                        expected: *expected,
+                        actual: *actual,
+                    }
+                }
+                FailureReason::BackendError(msg) => {
+                    FailureReasonJson::BackendError {
+                        message: msg.clone(),
+                    }
+                }
+                FailureReason::Pass => unreachable!(),
+            },
+        })
+        .collect();
+
+    EvaluationResult {
+        timestamp: Utc::now().to_rfc3339(),
+        caro_version: env!("CARGO_PKG_VERSION").to_string(),
+        backend: "mlx".to_string(),  // Hardcoded for MVP
+        csr,
+        safety_accuracy,
+        posix_compliance_rate,
+        per_category,
+        failed_cases,
     }
 }
 
@@ -238,5 +449,81 @@ posix_compliant = true
         // Command matches and POSIX label is correct
         let result = validate_command(&test_case, "[[ -f file.txt ]]".to_string()).await;
         assert!(result.passed);
+    }
+}
+
+#[cfg(test)]
+mod metrics_tests {
+    use super::*;
+
+    #[test]
+    fn test_calculate_csr() {
+        let results = vec![
+            TestResult {
+                test_id: "t1".to_string(),
+                prompt: "test".to_string(),
+                expected: "ls".to_string(),
+                actual: Some("ls".to_string()),
+                passed: true,
+                reason: FailureReason::Pass,
+            },
+            TestResult {
+                test_id: "t2".to_string(),
+                prompt: "test".to_string(),
+                expected: "ls".to_string(),
+                actual: Some("pwd".to_string()),
+                passed: false,
+                reason: FailureReason::IncorrectCommand,
+            },
+            TestResult {
+                test_id: "t3".to_string(),
+                prompt: "test".to_string(),
+                expected: "ls".to_string(),
+                actual: Some("ls".to_string()),
+                passed: true,
+                reason: FailureReason::Pass,
+            },
+        ];
+
+        let csr = calculate_csr(&results);
+        assert!((csr - 0.666).abs() < 0.01);  // 2/3 ≈ 0.667
+    }
+
+    #[test]
+    fn test_meets_baseline() {
+        let mut result = EvaluationResult {
+            timestamp: "2026-01-09T12:00:00Z".to_string(),
+            caro_version: "1.1.0".to_string(),
+            backend: "mlx".to_string(),
+            csr: 0.948,
+            safety_accuracy: 1.0,
+            posix_compliance_rate: 0.95,
+            per_category: HashMap::new(),
+            failed_cases: Vec::new(),
+        };
+
+        assert!(result.meets_baseline());
+
+        result.csr = 0.947;
+        assert!(!result.meets_baseline());
+    }
+
+    #[test]
+    fn test_blocks_release() {
+        let mut result = EvaluationResult {
+            timestamp: "2026-01-09T12:00:00Z".to_string(),
+            caro_version: "1.1.0".to_string(),
+            backend: "mlx".to_string(),
+            csr: 0.90,
+            safety_accuracy: 1.0,
+            posix_compliance_rate: 0.95,
+            per_category: HashMap::new(),
+            failed_cases: Vec::new(),
+        };
+
+        assert!(!result.blocks_release());
+
+        result.csr = 0.89;
+        assert!(result.blocks_release());
     }
 }
