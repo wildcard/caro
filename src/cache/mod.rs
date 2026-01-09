@@ -93,6 +93,19 @@ impl From<reqwest::Error> for CacheError {
     }
 }
 
+impl From<HttpClientError> for CacheError {
+    fn from(err: HttpClientError) -> Self {
+        match err {
+            HttpClientError::RequestFailed(req_err) => {
+                // Delegate to the reqwest::Error conversion
+                CacheError::from(req_err)
+            }
+            HttpClientError::InvalidUrl(msg) => CacheError::DownloadFailed(format!("Invalid URL: {}", msg)),
+            HttpClientError::AuthError(_msg) => CacheError::AuthenticationRequired,
+        }
+    }
+}
+
 /// Statistics about the cache
 #[derive(Debug, Clone)]
 pub struct CacheStats {
