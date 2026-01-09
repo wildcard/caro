@@ -1,0 +1,54 @@
+name: LLM Evaluation Harness
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  evaluate:
+    runs-on: macos-latest  # For MLX backend support
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Run Evaluation Harness
+        id: evaluation
+        run: |
+          # Run evaluation and capture output
+          cargo test --test evaluation -- --nocapture 2>&1 | tee evaluation.log
+
+          # Extract CSR from output
+          CSR=$(grep "CSR:" evaluation.log | awk '{print $2}' | tr -d '%')
+          echo "csr=$CSR" >> $GITHUB_OUTPUT
+
+      - name: Check CSR Threshold
+        env:
+          CSR: ${{ steps.evaluation.outputs.csr }}
+        run: |
+          echo "CSR: $CSR%"
+
+          # Block release if CSR < 90%
+          if (( $(echo "$CSR < 90.0" | bc -l) )); then
+            echo "❌ CSR below 90% threshold: $CSR%"
+            echo "RELEASE BLOCKED - Critical regression detected"
+            exit 1
+          elif (( $(echo "$CSR < 94.8" | bc -l) )); then
+            echo "⚠️  CSR below baseline: $CSR% (baseline: 94.8%)"
+            echo "Warning: Performance regression detected"
+            exit 0  # Warning but don't block
+          else
+            echo "✅ CSR meets baseline: $CSR%"
+          fi
+
+      - name: Upload Evaluation Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evaluation-results
+          path: evaluation.log
+          retention-days: 30
