@@ -1,0 +1,52 @@
+# Kibble Friction Log
+# Track suboptimal command generations for continuous improvement
+#
+# Usage: Add entries when Caro generates a command that is:
+#   - Incorrect (wrong command entirely)
+#   - Suboptimal (works but not the best approach)
+#   - Missing flags (e.g., missing -h for human-readable)
+#   - Wrong syntax for platform (BSD vs GNU)
+#
+# Severity levels:
+#   - critical: Command would cause harm or data loss
+#   - major: Command doesn't work at all
+#   - minor: Command works but suboptimal
+#   - trivial: Cosmetic or preference issues
+
+schema_version: "1.0"
+
+# Weekly review summary
+last_review:
+  date: null
+  reviewer: null
+  actions_taken: []
+
+# Friction entries
+entries:
+  # Example entry (remove or replace with real entries):
+  # - id: F001
+  #   date: 2025-01-09
+  #   developer: initials
+  #   category: build  # build|test|git|search|file|system|safety
+  #   intent: "Natural language description of what I wanted"
+  #   expected: "command I expected to be generated"
+  #   actual: "command that was actually generated"
+  #   severity: minor  # critical|major|minor|trivial
+  #   platform: linux  # linux|macos|windows
+  #   shell: bash  # bash|zsh|fish|powershell
+  #   backend: static  # static|embedded|remote
+  #   status: pending  # pending|investigating|fixed|wontfix
+  #   fix_commit: null
+  #   notes: "Additional context"
+  []
+
+# Patterns identified from friction analysis
+patterns:
+  # Recurring issues that need systematic fixes
+  recurring: []
+
+  # Platform-specific gaps
+  platform_gaps: []
+
+  # Shell-specific gaps
+  shell_gaps: []
