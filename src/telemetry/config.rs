@@ -104,7 +104,6 @@ pub enum TelemetryLevel {
     Verbose,
 }
 
-
 impl std::fmt::Display for TelemetryLevel {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
