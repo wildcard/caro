@@ -108,9 +108,16 @@ proptest = "1"
 criterion = { version = "=0.7.0", features = ["html_reports"] }
 futures = "0.3"
 serde_yaml = "0.9"
+env_logger = "0.11"
 
 [[bench]]
 name = "performance"
+harness = false
+
+# Custom test harness for evaluation
+[[test]]
+name = "evaluation"
+path = "tests/evaluation/main.rs"
 harness = false
 
 [features]
