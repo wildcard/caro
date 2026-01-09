@@ -4,10 +4,10 @@
 //! Tests cover website claims, natural language variants, edge cases, and
 //! platform-specific differences.
 
+use colored::Colorize;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::Path;
-use colored::Colorize;
 
 /// Test suite containing multiple evaluation cases
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -390,19 +390,23 @@ impl EvalSuite {
         let yaml: serde_yaml::Value = serde_yaml::from_str(&content)?;
 
         // Extract metadata
-        let metadata = yaml.get("metadata")
+        let metadata = yaml
+            .get("metadata")
             .ok_or("Missing 'metadata' field in YAML")?;
-        let name = metadata.get("name")
+        let name = metadata
+            .get("name")
             .and_then(|v| v.as_str())
             .unwrap_or("YAML Test Suite")
             .to_string();
-        let description = metadata.get("description")
+        let description = metadata
+            .get("description")
             .and_then(|v| v.as_str())
             .unwrap_or("Test cases loaded from YAML")
             .to_string();
 
         // Extract test cases
-        let test_cases_yaml = yaml.get("test_cases")
+        let test_cases_yaml = yaml
+            .get("test_cases")
             .ok_or("Missing 'test_cases' field in YAML")?;
 
         let mut test_cases: Vec<EvalCase> = serde_yaml::from_value(test_cases_yaml.clone())?;
@@ -426,7 +430,8 @@ impl EvalSuite {
 
     /// Filter test cases by profile ID
     pub fn filter_by_profile(mut self, profile_id: &str) -> Self {
-        self.test_cases = self.test_cases
+        self.test_cases = self
+            .test_cases
             .into_iter()
             .filter(|case| {
                 // Match primary profile
@@ -473,11 +478,7 @@ mod tests {
     fn test_category_grouping() {
         let suite = EvalSuite::default_suite();
 
-        let categories: Vec<_> = suite
-            .test_cases
-            .iter()
-            .map(|c| c.category)
-            .collect();
+        let categories: Vec<_> = suite.test_cases.iter().map(|c| c.category).collect();
 
         assert!(categories.contains(&EvalCategory::WebsiteClaim));
         assert!(categories.contains(&EvalCategory::Variant));

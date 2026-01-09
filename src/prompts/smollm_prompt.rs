@@ -450,9 +450,14 @@ Working Directory: {}
             // PRIORITY: Website-advertised examples (must match exactly)
             ("list all files modified today", "find . -type f -mtime 0"),
             ("find large files over 100MB", "find . -type f -size +100M"),
-            ("show disk usage by folder", "du -sh */ | sort -rh | head -10"),
-            ("find python files modified last week", "find . -name \"*.py\" -type f -mtime -7"),
-
+            (
+                "show disk usage by folder",
+                "du -sh */ | sort -rh | head -10",
+            ),
+            (
+                "find python files modified last week",
+                "find . -name \"*.py\" -type f -mtime -7",
+            ),
             // Additional training examples
             ("list all files", "ls -a"),
             (

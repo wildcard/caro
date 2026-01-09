@@ -102,7 +102,19 @@ criterion = { version = "=0.7.0", features = ["html_reports"] }
 futures = "0.3"
 
 [[bench]]
-name = "performance"
+name = "cache"
+harness = false
+
+[[bench]]
+name = "config"
+harness = false
+
+[[bench]]
+name = "context"
+harness = false
+
+[[bench]]
+name = "logging"
 harness = false
 
 [features]

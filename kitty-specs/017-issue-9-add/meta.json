@@ -1,0 +1,27 @@
+{
+  "accept_commit": null,
+  "acceptance_history": [
+    {
+      "accepted_at": "2026-01-08T15:42:55Z",
+      "accepted_by": "claude",
+      "accepted_from_commit": "3dc6ea70d9ce695c54266baac83cfa93c6348fc4",
+      "branch": "017-issue-9-add",
+      "mode": "pr",
+      "validation_commands": [
+        "cargo test",
+        "cargo bench --quiet",
+        "cargo check",
+        "cargo fmt -- --check"
+      ]
+    }
+  ],
+  "acceptance_mode": "pr",
+  "accepted_at": "2026-01-08T15:42:55Z",
+  "accepted_by": "claude",
+  "accepted_from_commit": "3dc6ea70d9ce695c54266baac83cfa93c6348fc4",
+  "created_at": "2026-01-08T10:22:03Z",
+  "feature_number": "017",
+  "friendly_name": "Issue #9: Add benchmark suite for performance",
+  "slug": "017-issue-9-add",
+  "source_description": "Issue #9: Add benchmark suite for performance"
+}

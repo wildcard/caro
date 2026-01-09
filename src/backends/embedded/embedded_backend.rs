@@ -8,7 +8,7 @@ use async_trait::async_trait;
 
 use crate::backends::embedded::{CpuBackend, EmbeddedConfig, InferenceBackend, ModelVariant};
 use crate::backends::{BackendInfo, CommandGenerator, GeneratorError};
-use crate::models::{BackendType, CommandRequest, GeneratedCommand, RiskLevel};
+use crate::models::{BackendType, CommandRequest, GeneratedCommand};
 use crate::safety::{SafetyConfig, SafetyValidator};
 use crate::ModelLoader;
 
@@ -70,7 +70,7 @@ impl EmbeddedModelBackend {
         // Initialize safety validator with moderate config
         let safety_validator = Arc::new(
             SafetyValidator::new(SafetyConfig::moderate())
-                .expect("Failed to initialize SafetyValidator with default config")
+                .expect("Failed to initialize SafetyValidator with default config"),
         );
 
         Ok(Self {
@@ -247,7 +247,8 @@ impl CommandGenerator for EmbeddedModelBackend {
         let command = self.parse_command_response(&raw_response)?;
 
         // SAFETY VALIDATION: Validate the GENERATED command
-        let safety_result = self.safety_validator
+        let safety_result = self
+            .safety_validator
             .validate_command(&command, request.shell)
             .await
             .map_err(|e| GeneratorError::ValidationFailed {
