@@ -581,7 +581,7 @@ Why: Destructive commands need user confirmation
             ),
             (
                 "search for pattern in all js files",
-                "grep -r 'pattern' --include='*.js' .",
+                "grep -rn 'pattern' --include='*.js' .",
             ),
             // Network operations examples
             ("show all listening ports", "netstat -tuln | grep LISTEN"),
@@ -624,7 +624,7 @@ Why: Destructive commands need user confirmation
             // Text search examples
             ("find files containing TODO", "grep -R -n 'TODO' ."),
             ("find files containing error in logs", "grep -R -i 'error' /var/log/"),
-            ("search for pattern in all js files", "grep -r 'pattern' --include='*.js' ."),
+            ("search for pattern in all js files", "grep -rn 'pattern' --include='*.js' ."),
 
             // Network operations examples (BSD-specific)
             ("show all listening ports", "netstat -an | grep LISTEN"),
@@ -644,7 +644,7 @@ Why: Destructive commands need user confirmation
         vec![
             ("list all files", "ls -a"),
             ("list files larger than 100MB", "find . -type f -size +100M"),
-            ("find files containing TODO", "grep -r 'TODO' ."),
+            ("find files containing TODO", "grep -rn 'TODO' ."),
             ("count lines in file", "wc -l file.txt"),
         ]
     }
