@@ -790,6 +790,7 @@ impl CommandGenerator for StaticMatcher {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{RiskLevel, ShellType};
 
     #[tokio::test]
     async fn test_website_example_1() {

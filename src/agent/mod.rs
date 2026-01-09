@@ -420,9 +420,9 @@ If you made changes, explain what was fixed."#,
             .enumerate()
             .map(|(i, err)| {
                 format!(
-                    "{}. [{}] {}\n   Context: {}",
+                    "{}. [{:?}] {}\n   Context: {}",
                     i + 1,
-                    format!("{:?}", err.code),
+                    err.code,
                     err.message,
                     err.context.as_deref().unwrap_or("N/A")
                 )
