@@ -11,7 +11,7 @@ subtasks:
   - "T078"
 title: "Test Dataset Curation"
 phase: "Phase 2 - Integration"
-lane: "doing"
+lane: "for_review"
 assignee: ""
 agent: "claude"
 shell_pid: "50180"
@@ -521,3 +521,4 @@ cargo test --test evaluation -- --nocapture
 
 - 2026-01-09T00:00:00Z – system – shell_pid= – lane=planned – Prompt created
 - 2026-01-09T10:25:19Z – claude – shell_pid=50180 – lane=doing – Started implementation
+- 2026-01-09T10:33:20Z – claude – shell_pid=50180 – lane=for_review – Completed dataset curation: 55 test cases, 100% CSR achieved
