@@ -56,12 +56,13 @@
 //! ```
 
 // Sub-modules
+pub mod errors;
 pub mod models;
 // pub mod dataset;
 // pub mod evaluators;
 // pub mod harness;
 // pub mod baseline;
-// pub mod errors;
 
 // Re-exports for public API
+pub use errors::*;
 pub use models::*;
