@@ -3,7 +3,9 @@ work_package_id: "WP05"
 subtasks: ["T037", "T038", "T039", "T040", "T041", "T042", "T043"]
 title: "Test Dataset Creation"
 phase: "Phase 2 - Content"
-lane: "planned"
+lane: "doing"
+agent: "claude"
+shell_pid: "66326"
 history:
   - timestamp: "2026-01-09T11:00:00Z"
     lane: "planned"
@@ -71,3 +73,4 @@ Validation ensures all 100 tests load without errors.
 ## Activity Log
 
 - 2026-01-09T11:00:00Z – system – lane=planned – Prompt created
+- 2026-01-09T10:47:04Z – claude – shell_pid=66326 – lane=doing – Starting test dataset creation - expanding to 100+ test cases
