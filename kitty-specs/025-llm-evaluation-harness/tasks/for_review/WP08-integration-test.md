@@ -12,7 +12,7 @@ subtasks:
   - "T070"
 title: "Integration Test & Cargo Test Integration"
 phase: "Phase 2 - Integration"
-lane: "doing"
+lane: "for_review"
 assignee: ""
 agent: "claude"
 shell_pid: "50180"
@@ -259,3 +259,4 @@ test test_run_evaluation ... ok
 
 - 2026-01-09T00:00:00Z – system – shell_pid= – lane=planned – Prompt created
 - 2026-01-09T10:22:31Z – claude – shell_pid=50180 – lane=doing – Started implementation
+- 2026-01-09T10:24:37Z – claude – shell_pid=50180 – lane=for_review – Completed implementation: Integration test and CI workflow. All 31 tests passing.
