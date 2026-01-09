@@ -18,6 +18,7 @@ pub struct AgentLoop {
     context: ExecutionContext,
     _max_iterations: usize,
     timeout: Duration,
+    confidence_threshold: f64,
 }
 
 /// Command information for context enrichment
@@ -52,7 +53,14 @@ impl AgentLoop {
             context,
             _max_iterations: 2,
             timeout: Duration::from_secs(15), // Allow enough time for 2 iterations
+            confidence_threshold: 0.8, // Default: refine if confidence < 80%
         }
+    }
+
+    /// Set the confidence threshold for triggering refinement
+    pub fn with_confidence_threshold(mut self, threshold: f64) -> Self {
+        self.confidence_threshold = threshold;
+        self
     }
 
     pub fn with_static_matcher(mut self, enabled: bool) -> Self {
@@ -190,14 +198,36 @@ impl AgentLoop {
             return Ok(initial);
         }
 
+        // Check confidence score - trigger refinement if low
+        let low_confidence = initial.confidence_score < self.confidence_threshold;
+
+        if low_confidence {
+            info!(
+                "Low confidence ({:.2}), triggering refinement",
+                initial.confidence_score
+            );
+        }
+
         // Check if refinement is beneficial
-        if !self.should_refine(&initial) {
-            info!("Refinement not needed, returning initial command");
+        let needs_platform_fix = self.should_refine(&initial);
+
+        if !low_confidence && !needs_platform_fix {
+            info!(
+                "Refinement not needed (confidence: {:.2}, no platform issues)",
+                initial.confidence_score
+            );
             return Ok(initial);
         }
 
         // Iteration 2: Refine with command context
-        debug!("Iteration 2: Refining with command context");
+        if low_confidence {
+            debug!(
+                "Iteration 2: Refining due to low confidence ({:.2})",
+                initial.confidence_score
+            );
+        } else {
+            debug!("Iteration 2: Refining due to platform issues");
+        }
         let commands = Self::extract_commands(&initial.command);
         let command_context = self.get_command_context(&commands).await;
 
