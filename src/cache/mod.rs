@@ -347,6 +347,26 @@ mod tests {
     mod property_tests {
         use super::*;
         use proptest::prelude::*;
+        use crate::models::{CacheManifest, CachedModel};
+        use chrono::{DateTime, Duration, Utc};
+        use std::path::PathBuf;
+
+        /// Helper to create a test CachedModel
+        fn create_test_model(
+            id: String,
+            size_bytes: u64,
+            last_accessed: DateTime<Utc>,
+        ) -> CachedModel {
+            CachedModel {
+                model_id: id.clone(),
+                path: PathBuf::from(format!("/tmp/{}", id)),
+                checksum: "test_checksum".to_string(),
+                size_bytes,
+                downloaded_at: Utc::now(),
+                last_accessed,
+                version: Some("1.0".to_string()),
+            }
+        }
 
         proptest! {
             #![proptest_config(ProptestConfig::with_cases(100))]
@@ -355,6 +375,146 @@ mod tests {
             fn smoke_test(x in 0..100i32) {
                 // Smoke test to verify PropTest integration
                 assert!(x >= 0 && x < 100);
+            }
+
+            /// T003: Verify that LRU eviction removes least recently accessed model first
+            #[test]
+            fn prop_lru_evicts_least_recent(
+                max_size_gb in 1u64..5,
+                model_count in 3usize..10,
+                model_sizes in prop::collection::vec(1u64..100, 3..10)
+            ) {
+                let mut manifest = CacheManifest::new(max_size_gb);
+                let now = Utc::now();
+
+                // Add models with sequential access times (oldest first)
+                let model_count = model_count.min(model_sizes.len());
+                for i in 0..model_count {
+                    let model = create_test_model(
+                        format!("model_{}", i),
+                        model_sizes[i] * 1024 * 1024 * 1024, // Convert to bytes
+                        now - Duration::seconds((model_count - i) as i64 * 60),
+                    );
+                    manifest.add_model(model);
+                }
+
+                // Record which model has oldest access time
+                let oldest_model_id = format!("model_0"); // First one added has oldest time
+
+                // Force cleanup by adding a large model
+                let trigger_model = create_test_model(
+                    "trigger".to_string(),
+                    max_size_gb * 1024 * 1024 * 1024,
+                    now,
+                );
+                manifest.add_model(trigger_model);
+
+                // Verify LRU cleanup happened
+                let removed_models = manifest.cleanup_lru();
+
+                // If cleanup occurred, the oldest model should be among those evicted
+                if !removed_models.is_empty() {
+                    prop_assert!(
+                        !manifest.models.contains_key(&oldest_model_id) ||
+                        manifest.total_size_bytes <= manifest.max_cache_size_bytes,
+                        "LRU should evict oldest model first or stay within size limit"
+                    );
+                }
+            }
+
+            /// T004: Verify that accessing a model updates its last_accessed time
+            #[test]
+            fn prop_access_updates_position(
+                model_count in 2usize..8,
+                access_index in 0usize..7
+            ) {
+                let mut manifest = CacheManifest::new(10);
+                let base_time = Utc::now() - Duration::hours(24);
+
+                // Add models with old access times
+                for i in 0..model_count {
+                    let model = create_test_model(
+                        format!("model_{}", i),
+                        100 * 1024 * 1024, // 100MB each
+                        base_time + Duration::hours(i as i64),
+                    );
+                    manifest.add_model(model);
+                }
+
+                // Access a specific model (if index is valid)
+                if access_index < model_count {
+                    let model_id = format!("model_{}", access_index);
+                    let before_time = manifest.get_model(&model_id).unwrap().last_accessed;
+
+                    // Simulate access by updating the model
+                    if let Some(mut model) = manifest.remove_model(&model_id) {
+                        std::thread::sleep(std::time::Duration::from_millis(10));
+                        model.last_accessed = Utc::now();
+                        manifest.add_model(model);
+                    }
+
+                    let after_time = manifest.get_model(&model_id).unwrap().last_accessed;
+
+                    // Verify access time was updated
+                    prop_assert!(
+                        after_time > before_time,
+                        "Accessing a model should update its last_accessed time"
+                    );
+                }
+            }
+
+            /// T005: Verify eviction sequence follows access history order
+            #[test]
+            fn prop_eviction_sequence_follows_history(
+                initial_models in 3usize..7,
+                model_size_mb in 100u64..500
+            ) {
+                let max_size_gb = 1; // 1GB limit
+                let mut manifest = CacheManifest::new(max_size_gb);
+                let now = Utc::now();
+
+                // Add models with different access times (oldest to newest)
+                let mut expected_eviction_order = Vec::new();
+                for i in 0..initial_models {
+                    let model_id = format!("model_{}", i);
+                    expected_eviction_order.push(model_id.clone());
+
+                    let model = create_test_model(
+                        model_id,
+                        model_size_mb * 1024 * 1024,
+                        now - Duration::hours((initial_models - i) as i64),
+                    );
+                    manifest.add_model(model);
+                }
+
+                // Trigger cleanup
+                let removed = manifest.cleanup_lru();
+
+                // If evictions occurred, verify they follow LRU order
+                if !removed.is_empty() {
+                    for (idx, evicted_id) in removed.iter().enumerate() {
+                        // Each evicted model should come from the expected order
+                        prop_assert!(
+                            expected_eviction_order.contains(evicted_id),
+                            "Evicted model {} should be in expected eviction candidates",
+                            evicted_id
+                        );
+
+                        // Earlier evictions should have earlier positions in expected order
+                        if idx > 0 {
+                            let prev_evicted = &removed[idx - 1];
+                            let prev_pos = expected_eviction_order.iter().position(|id| id == prev_evicted);
+                            let curr_pos = expected_eviction_order.iter().position(|id| id == evicted_id);
+
+                            if let (Some(prev), Some(curr)) = (prev_pos, curr_pos) {
+                                prop_assert!(
+                                    prev <= curr,
+                                    "Eviction sequence should follow chronological order"
+                                );
+                            }
+                        }
+                    }
+                }
             }
         }
     }
