@@ -1,0 +1,55 @@
+# Keeble Success Log
+# Track excellent command generations for pattern harvesting
+#
+# Usage: Add entries when Caro generates a command that is:
+#   - Exactly right on first try
+#   - Better than what you would have typed
+#   - Demonstrates good platform/shell awareness
+#   - Handles edge cases well
+#
+# Quality levels:
+#   - excellent: Perfect command, consider for documentation
+#   - good: Correct and efficient
+#   - acceptable: Works but could be slightly better
+
+schema_version: "1.0"
+
+# Pattern harvesting summary
+last_harvest:
+  date: null
+  harvester: null
+  patterns_added: 0
+
+# Success entries
+entries:
+  # Example entry (remove or replace with real entries):
+  # - id: S001
+  #   date: 2025-01-09
+  #   developer: initials
+  #   category: test  # build|test|git|search|file|system
+  #   intent: "Natural language description"
+  #   generated: "the command that was generated"
+  #   quality: excellent  # excellent|good|acceptable
+  #   platform: linux
+  #   shell: bash
+  #   backend: static
+  #   harvested: false  # true if added to static patterns
+  #   notes: "Why this was particularly good"
+  []
+
+# Harvested patterns ready for static matcher
+harvest_candidates:
+  # Patterns that should be added to static matcher
+  ready: []
+
+  # Patterns under consideration
+  evaluating: []
+
+# Success metrics by category
+metrics:
+  build: { attempts: 0, successes: 0 }
+  test: { attempts: 0, successes: 0 }
+  git: { attempts: 0, successes: 0 }
+  search: { attempts: 0, successes: 0 }
+  file: { attempts: 0, successes: 0 }
+  system: { attempts: 0, successes: 0 }
