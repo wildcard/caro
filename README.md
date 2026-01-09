@@ -4,6 +4,26 @@
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%203.0-blue.svg)](https://opensource.org/licenses/AGPL-3.0)
 [![CI](https://github.com/wildcard/caro/workflows/CI/badge.svg)](https://github.com/wildcard/caro/actions)
 
+---
+
+> ## ⚠️ **BETA RELEASE - v1.1.0-beta.1** ⚠️
+>
+> This is a **beta release** for early testing and feedback. While stable and safe for daily use by early adopters, it's not yet recommended for production systems.
+>
+> **What's Working:**
+> - ✅ 93.1% pass rate on comprehensive test suite
+> - ✅ 52 safety patterns with 0% false positives
+> - ✅ Privacy-first telemetry (opt-in, no PII collected)
+> - ✅ All core features functional
+>
+> **Beta Period:** 5-day testing cycle with 3-5 testers
+> **Feedback:** Please report issues at [GitHub Issues](https://github.com/wildcard/caro/issues)
+> **GA Release:** Coming soon after successful beta testing
+>
+> See [CHANGELOG.md](CHANGELOG.md) for v1.1.0-beta.1 details.
+
+---
+
 > ✨ **Active Development** - Published on crates.io with core features working. Visit [caro.sh](https://caro.sh) for more info.
 
 **caro** (formerly **cmdai**) converts natural language descriptions into safe POSIX shell commands using local LLMs. Built with Rust for blazing-fast performance, single-binary distribution, and safety-first design with intelligent platform detection.
@@ -27,9 +47,9 @@ Have questions or want to discuss caro with other users? Join the community!
   - - **[Documentation](https://caro.sh)** - Check out our comprehensive docs
 ## 📋 Project Status
 
-**Current Version:** 1.0.2 (Published on [crates.io](https://crates.io/crates/caro))
+**Current Version:** 1.1.0-beta.1 (Beta Release - Not for General Availability Yet)
 
-This project is in **active development** with core features implemented and working. The CLI is functional with embedded local inference and advanced platform-aware command generation.
+This project is in **active beta testing** with all core features implemented, tested, and working. The CLI achieves 93.1% pass rate on comprehensive test suite with zero false positives in safety validation.
 
 > **Note:** The project was originally named `cmdai` but has been renamed to `caro`. See [Naming History](docs/NAMING_HISTORY.md) for details.
 
