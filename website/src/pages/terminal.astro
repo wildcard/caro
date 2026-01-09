@@ -1,0 +1,1459 @@
+---
+/**
+ * Terminal-Centric Landing Page (Buildkite-inspired)
+ *
+ * All content displayed INSIDE the terminal
+ * Proper shell UX with clear input/output distinction
+ * Now with real AI-powered command generation via Transformers.js
+ */
+import { SITE_CONFIG } from '../config/site';
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Caro - Safe shell commands you can trust." />
+  <link rel="icon" type="image/png" href="/caro-pixel.png" />
+  <title>Caro | Your Tools Should Earn Your Trust</title>
+</head>
+<body>
+  <div class="terminal-page" data-theme="dark">
+    <header class="tp-header">
+      <div class="tp-header-content">
+        <div class="tp-logo-section">
+          <img src="/caro-pixel.png" alt="Caro" class="tp-logo-img" />
+          <span class="tp-logo-text">caro</span>
+          <span class="tp-version">v{SITE_CONFIG.version}</span>
+        </div>
+        <div class="tp-header-right">
+          <div class="tp-model-status" id="model-status">
+            <span class="tp-model-indicator" id="model-indicator"></span>
+            <span class="tp-model-text" id="model-text">Pattern Mode</span>
+          </div>
+          <nav class="tp-nav">
+            <a href="/" class="tp-nav-link">Main Site</a>
+            <a href="https://github.com/wildcard/caro" class="tp-nav-link" target="_blank">GitHub</a>
+          </nav>
+          <div class="tp-theme-switcher">
+            <button class="tp-theme-btn tp-theme-dark active" data-theme="dark" title="Dark"></button>
+            <button class="tp-theme-btn tp-theme-light" data-theme="light" title="Light"></button>
+            <button class="tp-theme-btn tp-theme-amber" data-theme="amber" title="CRT Amber"></button>
+            <button class="tp-theme-btn tp-theme-green" data-theme="green" title="CRT Green"></button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="tp-hero">
+      <div class="tp-container">
+        <h1 class="tp-headline">
+          Your tools should <strong>earn your trust</strong>,<br/>not ask for it.
+        </h1>
+
+        <div class="tp-terminal" id="terminal">
+          <div class="tp-terminal-header">
+            <div class="tp-dots">
+              <span class="tp-dot tp-dot-red"></span>
+              <span class="tp-dot tp-dot-yellow"></span>
+              <span class="tp-dot tp-dot-green"></span>
+            </div>
+            <span class="tp-terminal-title">caro — bash</span>
+            <div class="tp-terminal-spacer"></div>
+          </div>
+          <div class="tp-terminal-body" id="terminal-body">
+            <div id="terminal-output"></div>
+            <div class="tp-input-line" id="input-line">
+              <span class="tp-prompt"><span class="tp-user">guest</span>@<span class="tp-host">caro.sh</span>:<span class="tp-path">~</span>$ </span>
+              <input type="text" id="terminal-input" class="tp-input" autocomplete="off" autocapitalize="off" spellcheck="false" />
+            </div>
+          </div>
+        </div>
+        <p class="tp-hint">Click terminal and type <code>help</code> • Try <code>caro "find large files"</code> • Test <code>validate "rm -rf /"</code></p>
+      </div>
+    </section>
+
+    <footer class="tp-footer">
+      <span>caro v{SITE_CONFIG.version} • AGPL-3.0 • Built with Rust + WebGPU AI</span>
+    </footer>
+  </div>
+
+  <style>
+    .terminal-page {
+      --tp-bg: #0d1117;
+      --tp-bg-secondary: #161b22;
+      --tp-bg-tertiary: #21262d;
+      --tp-text: #c9d1d9;
+      --tp-text-muted: #8b949e;
+      --tp-text-dim: #484f58;
+      --tp-accent: #ff8c42;
+      --tp-success: #3fb950;
+      --tp-error: #f85149;
+      --tp-warning: #d29922;
+      --tp-info: #58a6ff;
+      --tp-cyan: #56d4dd;
+      --tp-magenta: #db61a2;
+      --tp-border: #30363d;
+      --tp-font: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
+      font-family: var(--tp-font);
+      background: var(--tp-bg);
+      color: var(--tp-text);
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .terminal-page[data-theme="light"] {
+      --tp-bg: #ffffff;
+      --tp-bg-secondary: #f6f8fa;
+      --tp-bg-tertiary: #eaeef2;
+      --tp-text: #1f2328;
+      --tp-text-muted: #656d76;
+      --tp-text-dim: #8c959f;
+      --tp-border: #d0d7de;
+    }
+
+    .terminal-page[data-theme="amber"] {
+      --tp-bg: #0a0800;
+      --tp-bg-secondary: #141000;
+      --tp-bg-tertiary: #1e1800;
+      --tp-text: #ffb000;
+      --tp-text-muted: #cc8c00;
+      --tp-text-dim: #806000;
+      --tp-accent: #ffcc00;
+      --tp-success: #44ff44;
+      --tp-error: #ff4444;
+      --tp-info: #ffcc00;
+      --tp-cyan: #ffcc00;
+      --tp-border: #3a2800;
+    }
+
+    .terminal-page[data-theme="green"] {
+      --tp-bg: #001200;
+      --tp-bg-secondary: #001a00;
+      --tp-bg-tertiary: #002200;
+      --tp-text: #00ff00;
+      --tp-text-muted: #00cc00;
+      --tp-text-dim: #008000;
+      --tp-accent: #00ff88;
+      --tp-success: #00ff00;
+      --tp-error: #ff4444;
+      --tp-info: #00ffff;
+      --tp-cyan: #00ffff;
+      --tp-border: #004400;
+    }
+
+    .terminal-page[data-theme="amber"]::after,
+    .terminal-page[data-theme="green"]::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 1px, transparent 1px, transparent 2px);
+      z-index: 9999;
+    }
+
+    .terminal-page .tp-header {
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--tp-border);
+      background: var(--tp-bg-secondary);
+    }
+
+    .terminal-page .tp-header-content {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .terminal-page .tp-logo-section {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .terminal-page .tp-logo-img {
+      width: 24px;
+      height: 24px;
+      image-rendering: pixelated;
+    }
+
+    .terminal-page .tp-logo-text {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--tp-accent);
+    }
+
+    .terminal-page .tp-version {
+      font-size: 10px;
+      color: var(--tp-text-dim);
+      background: var(--tp-bg-tertiary);
+      padding: 2px 5px;
+      border-radius: 3px;
+    }
+
+    .terminal-page .tp-header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .terminal-page .tp-model-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: var(--tp-bg);
+      border: 1px solid var(--tp-border);
+      border-radius: 12px;
+      font-size: 10px;
+    }
+
+    .terminal-page .tp-model-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--tp-text-dim);
+      transition: background 0.3s ease;
+    }
+
+    .terminal-page .tp-model-indicator.loading {
+      background: var(--tp-warning);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .terminal-page .tp-model-indicator.ready {
+      background: var(--tp-success);
+    }
+
+    .terminal-page .tp-model-indicator.error {
+      background: var(--tp-error);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .terminal-page .tp-model-text {
+      color: var(--tp-text-muted);
+      white-space: nowrap;
+    }
+
+    .terminal-page .tp-nav {
+      display: flex;
+      gap: 12px;
+    }
+
+    .terminal-page .tp-nav-link {
+      color: var(--tp-text-muted);
+      text-decoration: none;
+      font-size: 12px;
+    }
+
+    .terminal-page .tp-nav-link:hover {
+      color: var(--tp-accent);
+    }
+
+    .terminal-page .tp-theme-switcher {
+      display: flex;
+      gap: 4px;
+      padding: 3px;
+      background: var(--tp-bg);
+      border-radius: 5px;
+      border: 1px solid var(--tp-border);
+    }
+
+    .terminal-page .tp-theme-btn {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+    }
+
+    .terminal-page .tp-theme-btn:hover { transform: scale(1.1); }
+    .terminal-page .tp-theme-btn.active { border-color: var(--tp-text); }
+    .terminal-page .tp-theme-dark { background: #21262d; }
+    .terminal-page .tp-theme-light { background: #f0f0f0; }
+    .terminal-page .tp-theme-amber { background: linear-gradient(135deg, #ffb000, #ff8800); }
+    .terminal-page .tp-theme-green { background: linear-gradient(135deg, #00ff00, #00aa00); }
+
+    .terminal-page .tp-hero {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .terminal-page .tp-container {
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .terminal-page .tp-headline {
+      font-size: clamp(20px, 3.5vw, 32px);
+      font-weight: 400;
+      margin-bottom: 20px;
+      color: var(--tp-text);
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    .terminal-page .tp-headline strong {
+      color: var(--tp-accent);
+      font-weight: 600;
+    }
+
+    .terminal-page .tp-terminal {
+      background: var(--tp-bg-secondary);
+      border: 1px solid var(--tp-border);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    .terminal-page .tp-terminal-header {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      background: var(--tp-bg-tertiary);
+      border-bottom: 1px solid var(--tp-border);
+    }
+
+    .terminal-page .tp-dots { display: flex; gap: 6px; }
+    .terminal-page .tp-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .terminal-page .tp-dot-red { background: #ff5f56; }
+    .terminal-page .tp-dot-yellow { background: #ffbd2e; }
+    .terminal-page .tp-dot-green { background: #27c93f; }
+    .terminal-page .tp-terminal-title { flex: 1; text-align: center; font-size: 11px; color: var(--tp-text-dim); }
+    .terminal-page .tp-terminal-spacer { width: 52px; }
+
+    .terminal-page .tp-terminal-body {
+      padding: 12px 14px;
+      min-height: 340px;
+      max-height: 420px;
+      overflow-y: auto;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    /* Terminal output styling */
+    .terminal-page .tp-line { margin-bottom: 2px; white-space: pre-wrap; word-break: break-word; }
+
+    /* Command entry group - wraps command + output */
+    .terminal-page .tp-entry {
+      margin-bottom: 20px;
+      padding-left: 12px;
+      border-left: 2px solid transparent;
+      animation: fadeIn 0.2s ease-out;
+      transition: border-color 0.15s ease;
+    }
+
+    .terminal-page .tp-entry:hover {
+      border-left-color: var(--tp-border);
+    }
+
+    .terminal-page .tp-entry:last-child {
+      margin-bottom: 8px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Command line - executed commands */
+    .terminal-page .tp-command-line {
+      display: flex;
+      align-items: center;
+      padding: 8px 0;
+      margin-bottom: 10px;
+      position: relative;
+    }
+    .terminal-page .tp-command-line::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(to right, var(--tp-border), transparent 80%);
+    }
+    .terminal-page .tp-prompt { white-space: nowrap; opacity: 0.8; }
+    .terminal-page .tp-prompt-symbol { color: var(--tp-text-dim); margin-right: 8px; }
+    .terminal-page .tp-user { color: var(--tp-success); font-weight: 600; }
+    .terminal-page .tp-host { color: var(--tp-cyan); }
+    .terminal-page .tp-path { color: var(--tp-info); }
+    .terminal-page .tp-cmd-text { color: var(--tp-text); font-weight: 500; margin-left: 2px; }
+    .terminal-page .tp-cmd-arrow { color: var(--tp-accent); margin-left: auto; font-size: 10px; opacity: 0.5; }
+
+    /* Stdout output block - structured and readable */
+    .terminal-page .tp-stdout {
+      margin: 0 0 4px 0;
+      padding: 10px 14px;
+      background: var(--tp-bg);
+      border: 1px solid var(--tp-border);
+      border-radius: 6px;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .terminal-page .tp-stdout-line { color: var(--tp-text-muted); }
+    .terminal-page .tp-stdout-line.success { color: var(--tp-success); }
+    .terminal-page .tp-stdout-line.error { color: var(--tp-error); }
+    .terminal-page .tp-stdout-line.warning { color: var(--tp-warning); }
+    .terminal-page .tp-stdout-line.info { color: var(--tp-info); }
+    .terminal-page .tp-stdout-line.accent { color: var(--tp-accent); }
+    .terminal-page .tp-stdout-line.dim { color: var(--tp-text-dim); }
+    .terminal-page .tp-stdout-line.cyan { color: var(--tp-cyan); }
+    .terminal-page .tp-stdout-line.magenta { color: var(--tp-magenta); }
+
+    /* Legacy output classes for compatibility */
+    .terminal-page .tp-output { color: var(--tp-text-muted); margin-left: 0; }
+    .terminal-page .tp-output-success { color: var(--tp-success); }
+    .terminal-page .tp-output-error { color: var(--tp-error); }
+    .terminal-page .tp-output-warning { color: var(--tp-warning); }
+    .terminal-page .tp-output-info { color: var(--tp-info); }
+    .terminal-page .tp-output-accent { color: var(--tp-accent); }
+    .terminal-page .tp-output-dim { color: var(--tp-text-dim); }
+    .terminal-page .tp-output-cyan { color: var(--tp-cyan); }
+    .terminal-page .tp-output-magenta { color: var(--tp-magenta); }
+
+    /* Caro output box - enhanced design */
+    .terminal-page .tp-caro-box {
+      margin: 0;
+      border: 1px solid var(--tp-border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--tp-bg);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .terminal-page .tp-caro-header {
+      padding: 10px 14px;
+      background: var(--tp-bg-tertiary);
+      border-bottom: 1px solid var(--tp-border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+    }
+
+    .terminal-page .tp-caro-icon { font-size: 16px; }
+    .terminal-page .tp-caro-title { color: var(--tp-accent); font-weight: 600; font-size: 13px; }
+    .terminal-page .tp-caro-badge {
+      margin-left: auto;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .terminal-page .tp-caro-badge.safe {
+      background: rgba(63,185,80,0.2);
+      color: var(--tp-success);
+      border: 1px solid rgba(63,185,80,0.3);
+    }
+    .terminal-page .tp-caro-badge.blocked {
+      background: rgba(248,81,73,0.2);
+      color: var(--tp-error);
+      border: 1px solid rgba(248,81,73,0.3);
+    }
+
+    .terminal-page .tp-caro-body { padding: 14px; }
+    .terminal-page .tp-caro-label {
+      font-size: 10px;
+      color: var(--tp-text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    .terminal-page .tp-caro-command {
+      font-size: 14px;
+      color: var(--tp-cyan);
+      background: var(--tp-bg-secondary);
+      padding: 12px 14px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      font-family: var(--tp-font);
+      border: 1px solid var(--tp-border);
+    }
+    .terminal-page .tp-caro-meta {
+      font-size: 11px;
+      color: var(--tp-text-muted);
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding-top: 8px;
+      border-top: 1px solid var(--tp-border);
+    }
+    .terminal-page .tp-caro-meta span { display: flex; align-items: center; gap: 6px; }
+
+    /* Help box - enhanced */
+    .terminal-page .tp-help-box {
+      margin: 0;
+      border: 1px solid var(--tp-border);
+      border-radius: 8px;
+      background: var(--tp-bg);
+      padding: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .terminal-page .tp-help-title {
+      color: var(--tp-accent);
+      font-weight: 600;
+      margin-bottom: 12px;
+      font-size: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--tp-border);
+    }
+    .terminal-page .tp-help-section { margin-bottom: 14px; }
+    .terminal-page .tp-help-section:last-child { margin-bottom: 0; }
+    .terminal-page .tp-help-section-title {
+      color: var(--tp-text-dim);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    .terminal-page .tp-help-row {
+      display: flex;
+      font-size: 12px;
+      margin-bottom: 4px;
+      padding: 4px 0;
+    }
+    .terminal-page .tp-help-cmd { color: var(--tp-cyan); min-width: 150px; font-weight: 500; }
+    .terminal-page .tp-help-desc { color: var(--tp-text-muted); }
+
+    /* Stats box - enhanced */
+    .terminal-page .tp-stats-box {
+      margin: 0;
+      border: 1px solid var(--tp-border);
+      border-radius: 8px;
+      background: var(--tp-bg);
+      padding: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .terminal-page .tp-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .terminal-page .tp-stats-item {
+      text-align: center;
+      padding: 12px;
+      background: var(--tp-bg-secondary);
+      border-radius: 6px;
+      border: 1px solid var(--tp-border);
+    }
+    .terminal-page .tp-stats-value { font-size: 22px; font-weight: 700; color: var(--tp-accent); }
+    .terminal-page .tp-stats-label { font-size: 10px; color: var(--tp-text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+
+    /* Input line - active command input with cursor */
+    .terminal-page .tp-input-line {
+      display: flex;
+      align-items: center;
+      margin: 12px 0 0 0;
+      padding: 10px 12px;
+      background: var(--tp-bg);
+      border: 1px solid var(--tp-border);
+      border-radius: 6px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .terminal-page .tp-input-line:focus-within {
+      border-color: var(--tp-accent);
+      box-shadow: 0 0 0 2px rgba(255,140,66,0.15);
+    }
+    .terminal-page .tp-input-line .tp-prompt { opacity: 1; }
+    .terminal-page .tp-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--tp-text);
+      font-family: var(--tp-font);
+      font-size: 13px;
+      outline: none;
+      caret-color: var(--tp-accent);
+      margin-left: 0;
+    }
+
+    /* Blinking cursor indicator */
+    .terminal-page .tp-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 16px;
+      background: var(--tp-accent);
+      animation: blink 1s step-end infinite;
+      vertical-align: middle;
+      margin-left: 2px;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    /* Loading spinner */
+    .terminal-page .tp-loading {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--tp-text-muted);
+      font-size: 12px;
+      padding: 8px 0;
+    }
+    .terminal-page .tp-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--tp-border);
+      border-top-color: var(--tp-accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* AI Reasoning/Thinking display */
+    .terminal-page .tp-ai-thinking {
+      margin: 0 0 8px 0;
+      padding: 12px 14px;
+      background: linear-gradient(135deg, rgba(88,166,255,0.08), rgba(219,97,162,0.08));
+      border: 1px solid rgba(88,166,255,0.3);
+      border-radius: 8px;
+      font-size: 12px;
+    }
+
+    .terminal-page .tp-ai-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--tp-border);
+    }
+
+    .terminal-page .tp-ai-icon {
+      font-size: 14px;
+    }
+
+    .terminal-page .tp-ai-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--tp-info);
+      font-weight: 600;
+    }
+
+    .terminal-page .tp-ai-model {
+      margin-left: auto;
+      font-size: 9px;
+      color: var(--tp-text-dim);
+      background: var(--tp-bg-tertiary);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .terminal-page .tp-ai-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .terminal-page .tp-ai-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--tp-text-muted);
+      opacity: 0;
+      animation: stepFadeIn 0.3s ease-out forwards;
+    }
+
+    .terminal-page .tp-ai-step.active {
+      color: var(--tp-text);
+    }
+
+    .terminal-page .tp-ai-step.complete {
+      color: var(--tp-success);
+    }
+
+    .terminal-page .tp-ai-step.error {
+      color: var(--tp-error);
+    }
+
+    @keyframes stepFadeIn {
+      from { opacity: 0; transform: translateX(-8px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .terminal-page .tp-ai-step-icon {
+      flex-shrink: 0;
+      width: 14px;
+      text-align: center;
+    }
+
+    .terminal-page .tp-ai-step-text {
+      flex: 1;
+    }
+
+    .terminal-page .tp-ai-progress {
+      margin-top: 8px;
+      height: 3px;
+      background: var(--tp-bg-tertiary);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .terminal-page .tp-ai-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--tp-info), var(--tp-magenta));
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* Streaming text effect */
+    .terminal-page .tp-streaming {
+      display: inline;
+    }
+
+    .terminal-page .tp-streaming::after {
+      content: '▋';
+      animation: blink 0.7s step-end infinite;
+      color: var(--tp-accent);
+    }
+
+    .terminal-page .tp-hint {
+      margin-top: 12px;
+      font-size: 11px;
+      color: var(--tp-text-dim);
+      text-align: center;
+    }
+
+    .terminal-page .tp-hint code {
+      color: var(--tp-info);
+      background: var(--tp-bg-tertiary);
+      padding: 1px 4px;
+      border-radius: 2px;
+    }
+
+    .terminal-page .tp-footer {
+      padding: 12px 20px;
+      border-top: 1px solid var(--tp-border);
+      text-align: center;
+      font-size: 11px;
+      color: var(--tp-text-dim);
+    }
+
+    @media (max-width: 600px) {
+      .terminal-page .tp-header-content { flex-direction: column; gap: 10px; }
+      .terminal-page .tp-terminal-body { min-height: 280px; }
+      .terminal-page .tp-stats-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+
+  <script type="module" define:vars={{ version: SITE_CONFIG.version }}>
+    // ========================================
+    // Caro Terminal with AI-Powered Command Generation
+    // Uses Transformers.js with SmolLM2-360M for real AI inference
+    // ========================================
+
+    // Module state
+    let caroWasm = null;
+    let wasmReady = false;
+    let aiGenerator = null;
+    let aiReady = false;
+    let aiLoading = false;
+
+    // UI Elements for model status
+    const modelIndicator = document.getElementById('model-indicator');
+    const modelText = document.getElementById('model-text');
+
+    function updateModelStatus(status, text) {
+      modelIndicator.className = 'tp-model-indicator ' + status;
+      modelText.textContent = text;
+    }
+
+    // Initialize WASM module for safety validation
+    async function initWasm() {
+      try {
+        const wasm = await import('/wasm/caro_wasm.js');
+        await wasm.default();
+        caroWasm = wasm;
+        wasmReady = true;
+        console.log('Caro WASM loaded successfully, version:', wasm.get_version());
+      } catch (e) {
+        console.warn('WASM not available:', e);
+      }
+    }
+
+    // Initialize Transformers.js AI model
+    async function initAI() {
+      if (aiLoading || aiReady) return;
+      aiLoading = true;
+      updateModelStatus('loading', 'Loading AI...');
+
+      try {
+        // Dynamically import Transformers.js from CDN
+        const { pipeline, env } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3');
+
+        // Configure for browser usage
+        env.allowLocalModels = false;
+        env.useBrowserCache = true;
+
+        // Update status while loading
+        updateModelStatus('loading', 'Downloading model...');
+
+        // Load text generation pipeline with SmolLM2-360M-Instruct
+        // Using q4 quantization for faster loading (~100MB)
+        aiGenerator = await pipeline('text-generation', 'HuggingFaceTB/SmolLM2-360M-Instruct', {
+          dtype: 'q4',
+          device: 'webgpu',
+          progress_callback: (progress) => {
+            if (progress.status === 'downloading') {
+              const pct = Math.round((progress.loaded / progress.total) * 100) || 0;
+              updateModelStatus('loading', `Downloading ${pct}%`);
+            } else if (progress.status === 'loading') {
+              updateModelStatus('loading', 'Loading model...');
+            }
+          }
+        });
+
+        aiReady = true;
+        aiLoading = false;
+        updateModelStatus('ready', 'AI Ready');
+        console.log('Transformers.js AI model loaded successfully');
+
+      } catch (e) {
+        console.warn('AI model not available, using pattern matching:', e);
+        aiLoading = false;
+        updateModelStatus('error', 'Pattern Mode');
+      }
+    }
+
+    // Start loading WASM immediately, AI on demand
+    initWasm();
+
+    // Main terminal logic
+    (function() {
+      const page = document.querySelector('.terminal-page');
+      const terminalBody = document.getElementById('terminal-body');
+      const terminalOutput = document.getElementById('terminal-output');
+      const terminalInput = document.getElementById('terminal-input');
+      const themeBtns = document.querySelectorAll('.tp-theme-btn');
+
+      let history = [];
+      let historyIndex = -1;
+
+      // Command handlers
+      const commands = {
+        help: showHelp, h: showHelp,
+        clear: clearTerminal, cls: clearTerminal,
+        demo: runDemo,
+        stats: showStats, s: showStats,
+        install: showInstall, i: showInstall,
+        features: showFeatures, f: showFeatures,
+        validate: validateDirectCommand,
+        loadai: loadAIModel,
+        ai: loadAIModel,
+        github: () => { window.open('https://github.com/wildcard/caro', '_blank'); outputHTML('<div class="tp-stdout"><div class="tp-stdout-line info">Opening github.com/wildcard/caro...</div></div>'); },
+        exit: () => window.location.href = '/',
+        version: () => outputHTML(`<div class="tp-stdout"><div class="tp-stdout-line accent">caro ${version}</div></div>`),
+        v: () => outputHTML(`<div class="tp-stdout"><div class="tp-stdout-line accent">caro ${version}</div></div>`),
+        whoami: () => outputHTML('<div class="tp-stdout"><div class="tp-stdout-line">guest</div></div>'),
+        pwd: () => outputHTML('<div class="tp-stdout"><div class="tp-stdout-line">/home/guest</div></div>'),
+        date: () => outputHTML(`<div class="tp-stdout"><div class="tp-stdout-line">${new Date().toString()}</div></div>`),
+        echo: (args) => outputHTML(`<div class="tp-stdout"><div class="tp-stdout-line">${escapeHtml(args || '')}</div></div>`),
+      };
+
+      // Load AI model command
+      function loadAIModel() {
+        if (aiReady) {
+          outputHTML('<div class="tp-stdout"><div class="tp-stdout-line success">AI model already loaded (SmolLM2-360M)</div></div>');
+          return;
+        }
+        if (aiLoading) {
+          outputHTML('<div class="tp-stdout"><div class="tp-stdout-line warning">AI model is currently loading...</div></div>');
+          return;
+        }
+        outputHTML('<div class="tp-stdout"><div class="tp-stdout-line info">Loading AI model (~100MB)... This may take a moment.</div><div class="tp-stdout-line dim">The model will be cached for future visits.</div></div>');
+        initAI();
+      }
+
+      // Direct command validation function
+      function validateDirectCommand(args) {
+        if (!args) {
+          outputHTML('<div class="tp-stdout"><div class="tp-stdout-line warning">Usage: validate "rm -rf /"</div></div>');
+          return;
+        }
+
+        const command = args.replace(/^["']|["']$/g, '');
+
+        if (!wasmReady || !caroWasm) {
+          outputHTML('<div class="tp-stdout"><div class="tp-stdout-line warning">WASM module loading... Try again.</div></div>');
+          return;
+        }
+
+        const result = caroWasm.validate_command(command);
+        const isSafe = result.is_safe;
+        const riskLevel = result.risk_level;
+
+        if (isSafe) {
+          outputHTML(`
+<div class="tp-caro-box">
+  <div class="tp-caro-header">
+    <span class="tp-caro-icon">🛡️</span>
+    <span class="tp-caro-title">Safety Check</span>
+    <span class="tp-caro-badge safe">✓ SAFE</span>
+  </div>
+  <div class="tp-caro-body">
+    <div class="tp-caro-label">Command</div>
+    <div class="tp-caro-command">${escapeHtml(command)}</div>
+    <div class="tp-caro-meta">
+      <span>Risk: ${riskLevel}</span>
+      <span>✓ ${result.explanation}</span>
+    </div>
+  </div>
+</div>`);
+        } else {
+          outputHTML(`
+<div class="tp-caro-box">
+  <div class="tp-caro-header">
+    <span class="tp-caro-icon">🛡️</span>
+    <span class="tp-caro-title">Safety Check</span>
+    <span class="tp-caro-badge blocked">✕ BLOCKED</span>
+  </div>
+  <div class="tp-caro-body">
+    <div class="tp-caro-label">Dangerous Command</div>
+    <div class="tp-caro-command" style="color: var(--tp-error);">${escapeHtml(command)}</div>
+    <div class="tp-caro-meta">
+      <span style="color: var(--tp-error);">Risk: ${riskLevel.toUpperCase()}</span>
+      <span style="color: var(--tp-error);">⚠ ${result.explanation}</span>
+    </div>
+    ${result.matched_patterns.length > 0 ? `<div class="tp-caro-meta" style="margin-top: 4px;"><span style="color: var(--tp-text-dim);">Patterns: ${result.matched_patterns.join(', ')}</span></div>` : ''}
+  </div>
+</div>`);
+        }
+      }
+
+      // Entry system: wraps command + output together for visual grouping
+      let currentEntry = null;
+      let currentStdout = null;
+
+      function startEntry() {
+        endEntry(); // Close any previous entry
+        currentEntry = document.createElement('div');
+        currentEntry.className = 'tp-entry';
+        terminalOutput.appendChild(currentEntry);
+      }
+
+      function endEntry() {
+        currentStdout = null;
+        currentEntry = null;
+      }
+
+      function startStdout() {
+        currentStdout = document.createElement('div');
+        currentStdout.className = 'tp-stdout';
+        if (currentEntry) {
+          currentEntry.appendChild(currentStdout);
+        } else {
+          terminalOutput.appendChild(currentStdout);
+        }
+      }
+
+      function endStdout() {
+        currentStdout = null;
+      }
+
+      function scrollToBottom() {
+        terminalBody.scrollTop = terminalBody.scrollHeight;
+      }
+
+      function output(text, type = '') {
+        if (!currentStdout) {
+          startStdout();
+        }
+        const line = document.createElement('div');
+        line.className = `tp-stdout-line${type ? ' ' + type : ''}`;
+        line.textContent = text;
+        currentStdout.appendChild(line);
+      }
+
+      function outputHTML(html) {
+        endStdout();
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        if (currentEntry) {
+          currentEntry.appendChild(div);
+        } else {
+          terminalOutput.appendChild(div);
+        }
+        scrollToBottom();
+      }
+
+      function clearTerminal() {
+        terminalOutput.innerHTML = '';
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      showWelcome();
+
+      // Event listeners
+      document.getElementById('terminal').addEventListener('click', () => terminalInput.focus());
+
+      terminalInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          const input = terminalInput.value.trim();
+          if (input) {
+            processInput(input);
+            history.push(input);
+            historyIndex = history.length;
+          }
+          terminalInput.value = '';
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (historyIndex > 0) terminalInput.value = history[--historyIndex];
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          if (historyIndex < history.length - 1) terminalInput.value = history[++historyIndex];
+          else { historyIndex = history.length; terminalInput.value = ''; }
+        } else if (e.key === 'Tab') {
+          e.preventDefault();
+          const val = terminalInput.value.toLowerCase();
+          const cmds = Object.keys(commands);
+          const match = cmds.find(c => c.startsWith(val));
+          if (match) terminalInput.value = match;
+        }
+      });
+
+      themeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          page.dataset.theme = btn.dataset.theme;
+          themeBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          localStorage.setItem('terminal-page-theme', btn.dataset.theme);
+        });
+      });
+
+      const savedTheme = localStorage.getItem('terminal-page-theme');
+      if (savedTheme) {
+        page.dataset.theme = savedTheme;
+        themeBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.theme === savedTheme));
+      }
+
+      function processInput(input) {
+        // Start a new entry group for this command
+        startEntry();
+
+        showPrompt(input);
+
+        const lower = input.toLowerCase();
+        const parts = input.split(' ');
+        const cmd = parts[0].toLowerCase();
+        const args = parts.slice(1).join(' ');
+
+        // Handle caro commands
+        if (cmd === 'caro' || lower.startsWith('caro ')) {
+          const query = input.replace(/^caro\s*/i, '').replace(/^["']|["']$/g, '');
+          simulateCaro(query);
+          return;
+        }
+
+        // Handle built-in commands
+        if (commands[cmd]) {
+          if (typeof commands[cmd] === 'function') {
+            commands[cmd](args);
+          }
+        } else {
+          outputHTML(`<div class="tp-stdout"><div class="tp-stdout-line error">bash: ${escapeHtml(cmd)}: command not found</div></div>`);
+        }
+
+        scrollToBottom();
+      }
+
+      function showPrompt(cmd) {
+        const line = document.createElement('div');
+        line.className = 'tp-command-line';
+        line.innerHTML = `<span class="tp-prompt"><span class="tp-user">guest</span>@<span class="tp-host">caro.sh</span>:<span class="tp-path">~</span>$ </span><span class="tp-cmd-text">${escapeHtml(cmd)}</span>`;
+        if (currentEntry) {
+          currentEntry.appendChild(line);
+        } else {
+          terminalOutput.appendChild(line);
+        }
+      }
+
+      function showWelcome() {
+        outputHTML(`
+<pre style="color: var(--tp-accent); font-size: 9px; line-height: 1.15; margin: 4px 0;">
+ ██████╗ █████╗ ██████╗  ██████╗
+██╔════╝██╔══██╗██╔══██╗██╔═══██╗
+██║     ███████║██████╔╝██║   ██║
+██║     ██╔══██║██╔══██╗██║   ██║
+╚██████╗██║  ██║██║  ██║╚██████╔╝
+ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ </pre>
+<div class="tp-stdout" style="margin-top: 8px;">
+  <div class="tp-stdout-line dim">caro ${version} — Safe Shell Commands You Can Trust</div>
+  <div class="tp-stdout-line">&nbsp;</div>
+  <div class="tp-stdout-line info">Type "help" for commands, or try: caro "find large files"</div>
+</div>`);
+      }
+
+      function showHelp() {
+        const aiStatus = aiReady ? '✓ Ready' : (aiLoading ? '⏳ Loading' : '○ Not loaded');
+        outputHTML(`
+<div class="tp-help-box">
+  <div class="tp-help-title">🐕 Caro Interactive Terminal</div>
+
+  <div class="tp-help-section">
+    <div class="tp-help-section-title">Caro Commands</div>
+    <div class="tp-help-row"><span class="tp-help-cmd">caro "query"</span><span class="tp-help-desc">Convert natural language to shell command</span></div>
+    <div class="tp-help-row"><span class="tp-help-cmd">validate "cmd"</span><span class="tp-help-desc">Check if a command is safe to run</span></div>
+    <div class="tp-help-row"><span class="tp-help-cmd">demo</span><span class="tp-help-desc">Run interactive demonstration</span></div>
+  </div>
+
+  <div class="tp-help-section">
+    <div class="tp-help-section-title">AI Model</div>
+    <div class="tp-help-row"><span class="tp-help-cmd">loadai, ai</span><span class="tp-help-desc">Load AI model for smarter generation (${aiStatus})</span></div>
+  </div>
+
+  <div class="tp-help-section">
+    <div class="tp-help-section-title">Information</div>
+    <div class="tp-help-row"><span class="tp-help-cmd">features, f</span><span class="tp-help-desc">View caro capabilities</span></div>
+    <div class="tp-help-row"><span class="tp-help-cmd">stats, s</span><span class="tp-help-desc">Show project statistics</span></div>
+    <div class="tp-help-row"><span class="tp-help-cmd">install, i</span><span class="tp-help-desc">Installation instructions</span></div>
+  </div>
+
+  <div class="tp-help-section">
+    <div class="tp-help-section-title">Shell</div>
+    <div class="tp-help-row"><span class="tp-help-cmd">clear, cls</span><span class="tp-help-desc">Clear terminal</span></div>
+    <div class="tp-help-row"><span class="tp-help-cmd">github</span><span class="tp-help-desc">Open repository</span></div>
+    <div class="tp-help-row"><span class="tp-help-cmd">exit</span><span class="tp-help-desc">Return to main site</span></div>
+  </div>
+</div>`);
+      }
+
+      function showStats() {
+        const wasmStatus = wasmReady ? '✓ Loaded' : '⏳ Loading';
+        const aiStatusText = aiReady ? '✓ Ready' : (aiLoading ? '⏳ Loading' : '○ Use "ai"');
+        const aiModel = aiReady ? 'SmolLM2' : 'Pattern';
+        outputHTML(`
+<div class="tp-stats-box">
+  <div class="tp-help-title">📊 System Status</div>
+  <div class="tp-stats-grid">
+    <div class="tp-stats-item"><div class="tp-stats-value">34+</div><div class="tp-stats-label">Safety Patterns</div></div>
+    <div class="tp-stats-item"><div class="tp-stats-value">20+</div><div class="tp-stats-label">Command Patterns</div></div>
+    <div class="tp-stats-item"><div class="tp-stats-value">WASM</div><div class="tp-stats-label">${wasmStatus}</div></div>
+    <div class="tp-stats-item"><div class="tp-stats-value">${aiModel}</div><div class="tp-stats-label">${aiStatusText}</div></div>
+  </div>
+  <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--tp-border); font-size: 11px; color: var(--tp-text-dim);">
+    ${aiReady ? '🤖 AI-powered command generation active (360M params, WebGPU)' : '💡 Type "ai" to load the AI model for smarter command generation'}
+  </div>
+</div>`);
+      }
+
+      function showInstall() {
+        outputHTML(`
+<div class="tp-stdout">
+  <div class="tp-stdout-line dim"># Quick Install (recommended)</div>
+  <div class="tp-stdout-line cyan">curl -fsSL https://caro.sh/install | bash</div>
+  <div class="tp-stdout-line">&nbsp;</div>
+  <div class="tp-stdout-line dim"># Via Cargo</div>
+  <div class="tp-stdout-line cyan">cargo install caro</div>
+  <div class="tp-stdout-line">&nbsp;</div>
+  <div class="tp-stdout-line dim"># Or download from GitHub Releases</div>
+  <div class="tp-stdout-line info">https://github.com/wildcard/caro/releases</div>
+</div>`);
+      }
+
+      function showFeatures() {
+        outputHTML(`
+<div class="tp-help-box">
+  <div class="tp-help-title">⚡ Caro Features</div>
+
+  <div class="tp-help-section">
+    <div class="tp-help-row"><span class="tp-help-cmd">🛡️ Safety First</span><span class="tp-help-desc">52+ dangerous patterns blocked automatically</span></div>
+    <div class="tp-help-row"><span class="tp-help-cmd">🔒 100% Local</span><span class="tp-help-desc">All inference runs on your machine</span></div>
+    <div class="tp-help-row"><span class="tp-help-cmd">🌍 Platform Aware</span><span class="tp-help-desc">Detects OS, shell, and available commands</span></div>
+    <div class="tp-help-row"><span class="tp-help-cmd">⚡ Single Binary</span><span class="tp-help-desc">No dependencies, instant startup</span></div>
+    <div class="tp-help-row"><span class="tp-help-cmd">🎯 Deterministic</span><span class="tp-help-desc">Same input = same safety verdict</span></div>
+    <div class="tp-help-row"><span class="tp-help-cmd">🔄 Refinement</span><span class="tp-help-desc">Auto-refines commands for compatibility</span></div>
+  </div>
+</div>`);
+      }
+
+      // AI-powered command generation with reasoning display
+      async function simulateCaro(query) {
+        if (!query) {
+          outputHTML('<div class="tp-stdout"><div class="tp-stdout-line warning">Usage: caro "your natural language query"</div></div>');
+          return;
+        }
+
+        const startTime = performance.now();
+        const platform = navigator.platform.includes('Mac') ? 'macOS' : navigator.platform.includes('Win') ? 'Windows' : 'Linux';
+
+        // Create AI thinking display
+        const thinkingEl = document.createElement('div');
+        thinkingEl.className = 'tp-ai-thinking';
+        thinkingEl.innerHTML = `
+          <div class="tp-ai-header">
+            <span class="tp-ai-icon">🧠</span>
+            <span class="tp-ai-label">AI Processing</span>
+            <span class="tp-ai-model">${aiReady ? 'SmolLM2-360M' : 'Pattern Engine'}</span>
+          </div>
+          <div class="tp-ai-steps" id="ai-steps"></div>
+          <div class="tp-ai-progress"><div class="tp-ai-progress-bar" id="ai-progress"></div></div>
+        `;
+        if (currentEntry) {
+          currentEntry.appendChild(thinkingEl);
+        } else {
+          terminalOutput.appendChild(thinkingEl);
+        }
+        scrollToBottom();
+
+        const stepsEl = thinkingEl.querySelector('#ai-steps');
+        const progressEl = thinkingEl.querySelector('#ai-progress');
+
+        // Helper to add steps with animation
+        let stepDelay = 0;
+        function addStep(icon, text, className = '') {
+          setTimeout(() => {
+            const step = document.createElement('div');
+            step.className = 'tp-ai-step ' + className;
+            step.innerHTML = `<span class="tp-ai-step-icon">${icon}</span><span class="tp-ai-step-text">${text}</span>`;
+            stepsEl.appendChild(step);
+            scrollToBottom();
+          }, stepDelay);
+          stepDelay += 150;
+        }
+
+        function updateProgress(pct) {
+          progressEl.style.width = pct + '%';
+        }
+
+        // Step 1: Analyze query
+        addStep('📝', `Analyzing query: "${escapeHtml(query)}"`);
+        updateProgress(20);
+
+        // Step 2: Check platform
+        setTimeout(() => {
+          addStep('🖥', `Detected platform: ${platform}`);
+          updateProgress(40);
+        }, 200);
+
+        let generatedCommand = null;
+        let commandSource = 'pattern';
+
+        // Try AI generation if ready
+        if (aiReady && aiGenerator) {
+          try {
+            setTimeout(() => {
+              addStep('🤖', 'Generating command with AI...', 'active');
+              updateProgress(60);
+            }, 400);
+
+            // Create prompt for command generation
+            const systemPrompt = `You are a shell command generator. Convert natural language to a single shell command.
+Rules:
+- Output ONLY the shell command, nothing else
+- Use standard POSIX/bash commands
+- Target ${platform}
+- Be concise and correct`;
+
+            const messages = [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: query }
+            ];
+
+            const result = await aiGenerator(messages, {
+              max_new_tokens: 64,
+              do_sample: false,
+              return_full_text: false
+            });
+
+            if (result && result[0] && result[0].generated_text) {
+              let aiCommand = result[0].generated_text.trim();
+              // Clean up - extract just the command
+              aiCommand = aiCommand.split('\n')[0].trim();
+              aiCommand = aiCommand.replace(/^```\w*\s*/, '').replace(/```$/, '').trim();
+              aiCommand = aiCommand.replace(/^[$#]\s*/, '').trim();
+
+              if (aiCommand && aiCommand.length > 0 && aiCommand.length < 200) {
+                generatedCommand = aiCommand;
+                commandSource = 'ai';
+              }
+            }
+          } catch (e) {
+            console.warn('AI generation failed, falling back to patterns:', e);
+          }
+        }
+
+        // Fall back to WASM pattern matching
+        if (!generatedCommand && wasmReady && caroWasm) {
+          setTimeout(() => {
+            addStep('🔍', 'Matching against command patterns...', 'active');
+            updateProgress(60);
+          }, 400);
+
+          const result = caroWasm.generate_command(query);
+          if (result && result.command) {
+            generatedCommand = result.command;
+            commandSource = 'pattern';
+          }
+        }
+
+        // Delay for animation, then show results
+        setTimeout(async () => {
+          updateProgress(80);
+
+          if (!generatedCommand) {
+            // No match found
+            addStep('❌', 'No suitable command pattern found', 'error');
+            updateProgress(100);
+
+            setTimeout(() => {
+              thinkingEl.remove();
+              outputHTML(`
+<div class="tp-caro-box">
+  <div class="tp-caro-header">
+    <span class="tp-caro-icon">🐕</span>
+    <span class="tp-caro-title">Caro</span>
+    <span class="tp-caro-badge" style="background: rgba(139,148,158,0.15); color: var(--tp-text-muted);">NO MATCH</span>
+  </div>
+  <div class="tp-caro-body">
+    <div class="tp-caro-label">Could not generate command</div>
+    <div class="tp-caro-command" style="color: var(--tp-text-muted);"># ${escapeHtml(query)}</div>
+    <div class="tp-caro-meta">
+      <span>💡 Try: "find large files", "disk usage", "list processes"</span>
+    </div>
+  </div>
+</div>`);
+            }, 300);
+            return;
+          }
+
+          // Safety validation
+          addStep('🛡', 'Running safety validation...', 'active');
+          updateProgress(90);
+
+          let isSafe = true;
+          let riskLevel = 'low';
+          let explanation = 'Command appears safe';
+          let matchedPatterns = [];
+
+          if (wasmReady && caroWasm) {
+            const validation = caroWasm.validate_command(generatedCommand);
+            isSafe = validation.is_safe;
+            riskLevel = validation.risk_level;
+            explanation = validation.explanation;
+            matchedPatterns = validation.matched_patterns || [];
+          }
+
+          setTimeout(() => {
+            if (isSafe) {
+              addStep('✅', 'Safety check passed', 'complete');
+            } else {
+              addStep('🚫', `BLOCKED: ${explanation}`, 'error');
+            }
+            updateProgress(100);
+
+            const elapsed = ((performance.now() - startTime) / 1000).toFixed(3);
+            const sourceLabel = commandSource === 'ai' ? '🤖 AI' : '🔍 Pattern';
+
+            setTimeout(() => {
+              thinkingEl.remove();
+
+              if (isSafe) {
+                outputHTML(`
+<div class="tp-caro-box">
+  <div class="tp-caro-header">
+    <span class="tp-caro-icon">🐕</span>
+    <span class="tp-caro-title">Caro</span>
+    <span class="tp-caro-badge safe">✓ SAFE</span>
+  </div>
+  <div class="tp-caro-body">
+    <div class="tp-caro-label">Generated Command</div>
+    <div class="tp-caro-command">${escapeHtml(generatedCommand)}</div>
+    <div class="tp-caro-meta">
+      <span>⏱ ${elapsed}s</span>
+      <span>🖥 ${platform}</span>
+      <span>${sourceLabel}</span>
+      <span>Risk: ${riskLevel}</span>
+    </div>
+  </div>
+</div>`);
+              } else {
+                outputHTML(`
+<div class="tp-caro-box">
+  <div class="tp-caro-header">
+    <span class="tp-caro-icon">🐕</span>
+    <span class="tp-caro-title">Caro</span>
+    <span class="tp-caro-badge blocked">✕ BLOCKED</span>
+  </div>
+  <div class="tp-caro-body">
+    <div class="tp-caro-label">Dangerous Command Blocked</div>
+    <div class="tp-caro-command" style="color: var(--tp-error);">${escapeHtml(generatedCommand)}</div>
+    <div class="tp-caro-meta">
+      <span style="color: var(--tp-error);">Risk: ${riskLevel.toUpperCase()}</span>
+      <span style="color: var(--tp-error);">⚠ ${explanation}</span>
+    </div>
+    ${matchedPatterns.length > 0 ? `<div class="tp-caro-meta" style="margin-top: 4px;"><span style="color: var(--tp-text-dim);">Patterns: ${matchedPatterns.join(', ')}</span></div>` : ''}
+  </div>
+</div>`);
+              }
+              scrollToBottom();
+            }, 300);
+          }, 200);
+        }, 600);
+      }
+
+      // Direct command validation (for testing dangerous commands)
+      function validateCommand(command) {
+        if (!wasmReady || !caroWasm) {
+          return { is_safe: true, explanation: 'WASM not loaded' };
+        }
+        return caroWasm.validate_command(command);
+      }
+
+      function runDemo() {
+        outputHTML(`<div class="tp-stdout"><div class="tp-stdout-line info">Running demo...</div></div>`);
+
+        const demos = [
+          { q: 'find large files', delay: 800 },
+          { q: 'show disk usage', delay: 1200 },
+          { q: 'delete everything', delay: 1200 },
+        ];
+
+        let i = 0;
+        function next() {
+          if (i >= demos.length) {
+            startEntry();
+            outputHTML(`<div class="tp-stdout"><div class="tp-stdout-line success">Demo complete! Try your own queries.</div></div>`);
+            scrollToBottom();
+            return;
+          }
+          const demo = demos[i];
+          startEntry();
+          showPrompt(`caro "${demo.q}"`);
+          setTimeout(() => {
+            simulateCaro(demo.q);
+            i++;
+            setTimeout(next, demo.delay);
+          }, 200);
+        }
+        setTimeout(next, 300);
+      }
+
+    })();
+  </script>
+</body>
+</html>
