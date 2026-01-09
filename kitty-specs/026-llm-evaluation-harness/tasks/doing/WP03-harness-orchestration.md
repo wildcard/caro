@@ -3,7 +3,9 @@ work_package_id: "WP03"
 subtasks: ["T019", "T020", "T021", "T022", "T023", "T024", "T025", "T026", "T027", "T028"]
 title: "Harness Orchestration & Parallel Execution"
 phase: "Phase 2 - Integration"
-lane: "planned"
+lane: "doing"
+agent: "claude"
+shell_pid: "51970"
 history:
   - timestamp: "2026-01-09T11:00:00Z"
     lane: "planned"
@@ -80,3 +82,4 @@ Integration tests with mock backends verify orchestration logic without real inf
 ## Activity Log
 
 - 2026-01-09T11:00:00Z – system – lane=planned – Prompt created
+- 2026-01-09T10:23:59Z – claude – shell_pid=51970 – lane=doing – Starting harness orchestration implementation

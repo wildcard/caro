@@ -45,6 +45,18 @@ impl Dataset {
     /// # Ok(())
     /// # }
     /// ```
+    pub fn from_tests(test_cases: Vec<TestCase>) -> Self {
+        let mut id_index = HashMap::new();
+        for (idx, test_case) in test_cases.iter().enumerate() {
+            id_index.insert(test_case.id.clone(), idx);
+        }
+
+        Self {
+            test_cases,
+            id_index,
+        }
+    }
+
     pub fn load<P: AsRef<Path>>(path: P) -> DatasetResult<Self> {
         let path = path.as_ref();
 
