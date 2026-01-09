@@ -334,40 +334,26 @@
 
 ---
 
-## Work Package WP10: Multi-Backend Consistency (Priority: P2)
+## Work Package WP10: Multi-Backend Consistency (DEFERRED)
 
-**Goal**: Add vLLM and Ollama backend support; implement consistency testing.
-**Independent Test**: Same prompt generates consistent commands across MLX, vLLM, Ollama (≥95% similarity).
-**Prompt**: `/tasks/planned/WP10-multi-backend.md`
+**Status**: ⏸️ **DEFERRED TO FUTURE RELEASE** (v1.2.0 or later)
 
-### Included Subtasks
-- [x] T079 Add vLLM backend integration to evaluation harness
-- [ ] T080 Add Ollama backend integration to evaluation harness
-- [ ] T081 Implement backend selector logic (configurable)
-- [ ] T082 Create `run_consistency_test()` function
-- [ ] T083 Run same test case across all 3 backends
-- [ ] T084 Calculate command similarity score
-- [ ] T085 Report divergence when similarity < 95%
-- [ ] T086 Handle unavailable backends gracefully (skip, report)
-- [ ] T087 Write integration test: multi-backend consistency
-- [ ] T088 Add consistency metrics to EvaluationResult
+**Reason**: MVP (v1.1.0) focuses on MLX backend only for Apple Silicon. Multi-backend support (vLLM, Ollama) is Phase 3 - P2 Features work.
 
-### Implementation Notes
-- User Story 2 (P2 priority) - can be deferred after MVP
-- Similarity score: normalized edit distance or semantic equivalence check
-- Backend availability check before running consistency test
-- Report backend availability in evaluation output
+**Original Goal**: Add vLLM and Ollama backend support; implement cross-backend consistency testing.
 
-### Parallel Opportunities
-- T079 (vLLM) and T080 (Ollama) can proceed in parallel
-- Can proceed in parallel with WP09 (dataset curation)
+**Location**: Moved to `/future_work/WP10-multi-backend.md`
 
-### Dependencies
-- Depends on WP05 (evaluation runner core)
+**Prerequisites**: WP01-WP09 complete ✅
 
-### Risks & Mitigations
-- **Risk**: Backend availability varies across environments
-- **Mitigation**: Make multi-backend testing optional; default to MLX-only
+**Future Scope** (when resumed):
+- Add vLLM and Ollama backend integration
+- Implement backend selector logic (configurable)
+- Create cross-backend consistency tests
+- Calculate command similarity scores
+- Report divergence when similarity < 95%
+
+See `/future_work/README.md` for full details and rationale.
 
 ---
 
