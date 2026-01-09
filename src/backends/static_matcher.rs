@@ -12,7 +12,7 @@ use regex::Regex;
 use std::sync::Arc;
 
 use crate::backends::{BackendInfo, CommandGenerator, GeneratorError};
-use crate::models::{BackendType, CommandRequest, GeneratedCommand, RiskLevel};
+use crate::models::{BackendType, CommandRequest, GeneratedCommand, RiskLevel, ShellType};
 use crate::prompts::CapabilityProfile;
 use crate::safety::{SafetyConfig, SafetyValidator};
 
