@@ -23,8 +23,8 @@ jobs:
           # Exit code 0 = all pass, 1 = failures or regressions
           cargo test --test evaluation 2>&1 | tee evaluation.log || true
 
-          # Extract pass rate from output
-          PASS_RATE=$(grep "Passed:" evaluation.log | awk '{print $4}' | tr -d '()%')
+          # Extract pass rate from output (handling extra whitespace in table format)
+          PASS_RATE=$(grep "Passed:" evaluation.log | grep -o '( *[0-9.]*%)' | tr -d '()% ')
           echo "pass_rate=$PASS_RATE" >> $GITHUB_OUTPUT
 
           # Check if evaluation passed
