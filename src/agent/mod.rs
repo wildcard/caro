@@ -1,7 +1,7 @@
 use crate::backends::{CommandGenerator, GeneratorError, StaticMatcher};
 use crate::context::ExecutionContext;
 use crate::models::{CommandRequest, GeneratedCommand, SafetyLevel, ShellType};
-use crate::prompts::CapabilityProfile;
+use crate::prompts::{CapabilityProfile, CommandValidator, ValidationResult};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -14,6 +14,7 @@ use tracing::{debug, info, warn};
 pub struct AgentLoop {
     backend: Arc<dyn CommandGenerator>,
     static_matcher: Option<StaticMatcher>,
+    validator: CommandValidator,
     context: ExecutionContext,
     _max_iterations: usize,
     timeout: Duration,
@@ -41,11 +42,13 @@ impl AgentLoop {
     pub fn new(backend: Arc<dyn CommandGenerator>, context: ExecutionContext) -> Self {
         // Create static matcher with detected capabilities
         let profile = CapabilityProfile::ubuntu(); // TODO: detect from system
-        let static_matcher = Some(StaticMatcher::new(profile));
+        let static_matcher = Some(StaticMatcher::new(profile.clone()));
+        let validator = CommandValidator::new(profile);
 
         Self {
             backend,
             static_matcher,
+            validator,
             context,
             _max_iterations: 2,
             timeout: Duration::from_secs(15), // Allow enough time for 2 iterations
@@ -90,8 +93,11 @@ impl AgentLoop {
     }
 
     /// Internal implementation of command generation
-    async fn generate_command_impl(&self, prompt: &str, start: Instant) -> Result<GeneratedCommand, GeneratorError> {
-
+    async fn generate_command_impl(
+        &self,
+        prompt: &str,
+        start: Instant,
+    ) -> Result<GeneratedCommand, GeneratorError> {
         info!("Starting agent loop for: {}", prompt);
 
         // Try static matcher first (instant, deterministic)
@@ -108,12 +114,14 @@ impl AgentLoop {
                     );
 
                     // Emit telemetry event for successful static match
-                    crate::telemetry::emit_event(crate::telemetry::events::EventType::CommandGeneration {
-                        backend: "static".to_string(),
-                        duration_ms: start.elapsed().as_millis() as u64,
-                        success: true,
-                        error_category: None,
-                    });
+                    crate::telemetry::emit_event(
+                        crate::telemetry::events::EventType::CommandGeneration {
+                            backend: "static".to_string(),
+                            duration_ms: start.elapsed().as_millis() as u64,
+                            success: true,
+                            error_category: None,
+                        },
+                    );
 
                     return Ok(command);
                 }
@@ -128,6 +136,52 @@ impl AgentLoop {
         let initial = self.generate_initial(prompt).await?;
 
         debug!("Initial command: {}", initial.command);
+
+        // Validate the generated command
+        let validation = self.validator.validate(&initial.command);
+
+        // If validation fails, attempt to repair
+        if !validation.is_valid() {
+            warn!(
+                "Initial command failed validation: {}",
+                validation.error_message()
+            );
+
+            // Check if we have time for repair
+            let elapsed = start.elapsed();
+            if elapsed > self.timeout / 2 {
+                warn!("Timeout approaching, skipping repair");
+                // Return error with validation details
+                return Err(GeneratorError::ValidationFailed {
+                    reason: validation.error_message(),
+                });
+            }
+
+            // Attempt to repair the command
+            debug!("Attempting to repair command with validation feedback");
+            let repaired = self
+                .repair_command(prompt, &initial, &validation)
+                .await?;
+
+            // Validate the repaired command
+            let repaired_validation = self.validator.validate(&repaired.command);
+            if !repaired_validation.is_valid() {
+                warn!(
+                    "Repaired command still invalid: {}",
+                    repaired_validation.error_message()
+                );
+                return Err(GeneratorError::ValidationFailed {
+                    reason: format!(
+                        "Initial: {}; After repair: {}",
+                        validation.error_message(),
+                        repaired_validation.error_message()
+                    ),
+                });
+            }
+
+            info!("Command repaired successfully");
+            return Ok(repaired);
+        }
 
         // Check if we have time and should refine
         let elapsed = start.elapsed();
@@ -199,6 +253,32 @@ impl AgentLoop {
 
         let request = CommandRequest {
             input: format!("REFINE: {}", prompt),
+            shell: ShellType::Bash,
+            safety_level: SafetyLevel::Moderate,
+            context: Some(format!(
+                "{}\n\nSYSTEM_PROMPT:\n{}",
+                context_str, system_prompt
+            )),
+            backend_preference: None,
+        };
+
+        self.backend.generate_command(&request).await
+    }
+
+    /// Repair command based on validation errors
+    async fn repair_command(
+        &self,
+        prompt: &str,
+        initial: &GeneratedCommand,
+        validation: &ValidationResult,
+    ) -> Result<GeneratedCommand, GeneratorError> {
+        let system_prompt = self.build_repair_prompt(prompt, initial, validation);
+
+        // Serialize context to string
+        let context_str = serde_json::to_string(&self.context).unwrap_or_else(|_| "{}".to_string());
+
+        let request = CommandRequest {
+            input: format!("REPAIR: {}", prompt),
             shell: ShellType::Bash,
             safety_level: SafetyLevel::Moderate,
             context: Some(format!(
@@ -293,6 +373,111 @@ OUTPUT FORMAT (JSON):
 If the initial command is correct, return it with confidence > 0.9.
 If you made changes, explain what was fixed."#,
             prompt, initial.command, self.context.os, command_details
+        )
+    }
+
+    /// Build repair prompt with validation error feedback
+    fn build_repair_prompt(
+        &self,
+        prompt: &str,
+        initial: &GeneratedCommand,
+        validation: &ValidationResult,
+    ) -> String {
+        let error_details = validation
+            .errors
+            .iter()
+            .enumerate()
+            .map(|(i, err)| {
+                format!(
+                    "{}. [{}] {}\n   Context: {}",
+                    i + 1,
+                    format!("{:?}", err.code),
+                    err.message,
+                    err.context.as_deref().unwrap_or("N/A")
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        let warning_details = if !validation.warnings.is_empty() {
+            format!(
+                "\n\nWARNINGS (non-fatal):\n{}",
+                validation
+                    .warnings
+                    .iter()
+                    .enumerate()
+                    .map(|(i, warn)| {
+                        format!(
+                            "{}. {}\n   Suggestion: {}",
+                            i + 1,
+                            warn.message,
+                            warn.suggestion.as_deref().unwrap_or("N/A")
+                        )
+                    })
+                    .collect::<Vec<_>>()
+                    .join("\n")
+            )
+        } else {
+            String::new()
+        };
+
+        format!(
+            r#"COMMAND REPAIR ITERATION
+
+ORIGINAL REQUEST: {}
+
+GENERATED COMMAND: {}
+
+VALIDATION ERRORS:
+{}{}
+
+PLATFORM: {}
+RISK LEVEL: {:?}
+
+YOUR TASK: Fix the command to resolve ALL validation errors.
+
+REPAIR GUIDELINES:
+
+1. **Tool Allowlist Errors**: Only use allowed tools (ls, find, grep, awk, sed, sort, head, tail, xargs, cat, wc, cut, tr, uniq, diff, stat, du, df, ps, lsof, netstat, ss, etc.)
+
+2. **Flag Compatibility Errors**:
+   - BSD (macOS): NO GNU flags like --sort, --max-depth, -printf
+   - Use: ps aux | sort, find . -exec stat, du -d
+   - GNU (Linux): Can use GNU flags
+   - Check CAPABILITY_PROFILE for supported flags
+
+3. **Dangerous Command Errors**:
+   - NEVER generate: rm -rf /, dd of=/dev/, fork bombs, curl | sh
+   - For destructive operations, use safer alternatives or require confirmation
+
+4. **Platform-Specific Fixes**:
+{}
+
+5. **Syntax Errors**:
+   - Properly quote paths with spaces
+   - Balance quotes
+   - Use single command or pipeline (no multiple commands)
+
+OUTPUT FORMAT (JSON):
+{{
+  "cmd": "fixed command that resolves all errors"
+}}
+
+CRITICAL: Your repaired command MUST:
+- Resolve ALL listed validation errors
+- Be platform-compatible ({})
+- Use only allowed tools
+- Follow proper shell syntax
+
+DO NOT include explanations, comments, or multiple commands - just ONE valid command in JSON format."#,
+            prompt,
+            initial.command,
+            error_details,
+            warning_details,
+            self.context.os,
+            validation.risk_level,
+            self.get_os_specific_notes(),
+            self.context.os
         )
     }
 
