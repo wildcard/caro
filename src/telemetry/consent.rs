@@ -37,10 +37,7 @@ pub fn prompt_consent() -> bool {
     eprintln!("  {} Any personally identifiable information", "✗".red());
     eprintln!();
 
-    eprintln!(
-        "{}",
-        format!("Learn more: {}", "https://caro.sh/telemetry".cyan())
-    );
+    eprintln!("Learn more: {}", "https://caro.sh/telemetry".cyan());
     eprintln!(
         "{}",
         "You can disable telemetry anytime with:".bright_black()

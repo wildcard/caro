@@ -150,7 +150,7 @@ impl GPUInfo {
     fn detect_nvidia_proc() -> Option<Self> {
         use std::fs;
 
-        let version = fs::read_to_string("/proc/driver/nvidia/version").ok()?;
+        let _version = fs::read_to_string("/proc/driver/nvidia/version").ok()?;
 
         // File exists, so NVIDIA driver is present
         // We can infer a GPU exists but don't have model/VRAM details
@@ -208,6 +208,7 @@ impl GPUInfo {
         None
     }
 
+    #[allow(dead_code)]
     fn detect_vendor_from_name(name: &str) -> GPUVendor {
         let lower = name.to_lowercase();
         if lower.contains("nvidia") || lower.contains("geforce") || lower.contains("quadro") {
