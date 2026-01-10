@@ -1,0 +1,233 @@
+---
+/**
+ * FAQAccordion Component
+ *
+ * Expandable FAQ section with Schema.org FAQPage markup
+ * for SEO and accessibility.
+ */
+
+import type { FAQItem } from '../../types/competitor-alternative';
+
+interface Props {
+  title: string;
+  items: FAQItem[];
+}
+
+const { title, items } = Astro.props;
+
+// Generate Schema.org FAQPage JSON-LD
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: items.map((item) => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: item.answer.replace(/<[^>]*>/g, '') // Strip HTML for schema
+    }
+  }))
+};
+---
+
+<section class="faq-section">
+  <div class="container">
+    <h2>{title}</h2>
+
+    <div class="faq-list">
+      {items.map((item, index) => (
+        <details class="faq-item" data-index={index}>
+          <summary class="faq-question">
+            <span class="question-text">{item.question}</span>
+            <span class="accordion-icon">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </summary>
+          <div class="faq-answer">
+            <div class="answer-content" set:html={item.answer} />
+            {item.learnMoreUrl && (
+              <a href={item.learnMoreUrl} class="learn-more">
+                Learn more &rarr;
+              </a>
+            )}
+          </div>
+        </details>
+      ))}
+    </div>
+  </div>
+
+  <!-- Schema.org FAQPage markup -->
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+</section>
+
+<style>
+  .faq-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  h2 {
+    font-size: 32px;
+    text-align: center;
+    margin-bottom: 48px;
+    color: var(--color-text);
+  }
+
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .faq-item {
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--color-bg);
+    transition: box-shadow 0.2s;
+  }
+
+  .faq-item[open] {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  .faq-question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    cursor: pointer;
+    list-style: none;
+    gap: 16px;
+  }
+
+  .faq-question::-webkit-details-marker {
+    display: none;
+  }
+
+  .question-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text);
+    line-height: 1.4;
+  }
+
+  .accordion-icon {
+    flex-shrink: 0;
+    color: var(--color-text-secondary);
+    transition: transform 0.2s;
+  }
+
+  .faq-item[open] .accordion-icon {
+    transform: rotate(180deg);
+  }
+
+  .faq-answer {
+    padding: 0 24px 24px;
+    border-top: 1px solid var(--color-border);
+    margin-top: -1px;
+  }
+
+  .answer-content {
+    padding-top: 20px;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    font-size: 15px;
+  }
+
+  .answer-content :global(p) {
+    margin-bottom: 12px;
+  }
+
+  .answer-content :global(p:last-child) {
+    margin-bottom: 0;
+  }
+
+  .answer-content :global(strong) {
+    color: var(--color-text);
+  }
+
+  .answer-content :global(code) {
+    background: var(--color-bg-secondary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+
+  .answer-content :global(ul),
+  .answer-content :global(ol) {
+    padding-left: 20px;
+    margin: 12px 0;
+  }
+
+  .answer-content :global(li) {
+    margin-bottom: 8px;
+  }
+
+  .answer-content :global(a) {
+    color: #ff8c42;
+    text-decoration: none;
+  }
+
+  .answer-content :global(a:hover) {
+    text-decoration: underline;
+  }
+
+  .learn-more {
+    display: inline-block;
+    margin-top: 16px;
+    color: #ff8c42;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .learn-more:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 24px;
+    }
+
+    .faq-question {
+      padding: 16px 20px;
+    }
+
+    .question-text {
+      font-size: 15px;
+    }
+
+    .faq-answer {
+      padding: 0 20px 20px;
+    }
+  }
+</style>
+
+<script>
+  // Track FAQ expansions
+  document.querySelectorAll('.faq-item').forEach((item) => {
+    item.addEventListener('toggle', (e) => {
+      const target = e.target as HTMLDetailsElement;
+      if (target.open) {
+        const index = target.dataset.index;
+        const question = target.querySelector('.question-text')?.textContent;
+        if (typeof window !== 'undefined' && (window as any).posthog) {
+          (window as any).posthog.capture('faq_expand', {
+            faq_index: index,
+            question: question?.substring(0, 100)
+          });
+        }
+      }
+    });
+  });
+</script>

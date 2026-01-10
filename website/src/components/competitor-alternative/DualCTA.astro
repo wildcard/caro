@@ -1,0 +1,433 @@
+---
+/**
+ * DualCTA Component
+ *
+ * Dual-path conversion section with high-commitment (demo/sales)
+ * and low-friction (free trial) options side by side.
+ */
+
+import type { DualCTASection } from '../../types/competitor-alternative';
+
+interface Props {
+  config: DualCTASection;
+}
+
+const { config } = Astro.props;
+const { highCommitment, lowFriction, tertiary } = config;
+---
+
+<section class="dual-cta-section">
+  <div class="container">
+    <div class="cta-grid">
+      <!-- High Commitment Side -->
+      <div class="cta-card high-commitment">
+        <div class="card-content">
+          <h3>{highCommitment.title}</h3>
+          {highCommitment.subtitle && <p class="subtitle">{highCommitment.subtitle}</p>}
+
+          {highCommitment.formFields && highCommitment.formFields.length > 0 ? (
+            <form class="inline-form" data-tracking="high_commitment_form">
+              {highCommitment.formFields.map((field) => (
+                <div class="form-field">
+                  <label for={field.name}>{field.label}</label>
+                  {field.type === 'select' ? (
+                    <select
+                      id={field.name}
+                      name={field.name}
+                      required={field.required}
+                    >
+                      <option value="">{field.placeholder || 'Select...'}</option>
+                      {field.options?.map((opt) => (
+                        <option value={opt}>{opt}</option>
+                      ))}
+                    </select>
+                  ) : field.type === 'textarea' ? (
+                    <textarea
+                      id={field.name}
+                      name={field.name}
+                      placeholder={field.placeholder}
+                      required={field.required}
+                      rows="3"
+                    />
+                  ) : (
+                    <input
+                      type={field.type}
+                      id={field.name}
+                      name={field.name}
+                      placeholder={field.placeholder}
+                      required={field.required}
+                    />
+                  )}
+                </div>
+              ))}
+              <button type="submit" class="submit-btn primary">
+                {highCommitment.buttonText}
+              </button>
+            </form>
+          ) : (
+            <a
+              href={highCommitment.href}
+              class="cta-button primary"
+              data-tracking="high_commitment_cta"
+              data-position="bottom"
+            >
+              {highCommitment.buttonText}
+            </a>
+          )}
+
+          {highCommitment.showCalendar && (
+            <div class="calendar-hint">
+              <span class="calendar-icon">📅</span>
+              <span>Pick a time that works for you</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <!-- Low Friction Side -->
+      <div class="cta-card low-friction">
+        <div class="card-content">
+          <h3>{lowFriction.title}</h3>
+          {lowFriction.subtitle && <p class="subtitle">{lowFriction.subtitle}</p>}
+
+          <a
+            href={lowFriction.href}
+            class="cta-button secondary"
+            data-tracking="low_friction_cta"
+            data-position="bottom"
+          >
+            {lowFriction.buttonText}
+          </a>
+
+          {lowFriction.showOAuth && lowFriction.oauthProviders && (
+            <div class="oauth-options">
+              <span class="oauth-label">Or continue with</span>
+              <div class="oauth-buttons">
+                {lowFriction.oauthProviders.includes('github') && (
+                  <button class="oauth-btn github">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                    </svg>
+                    GitHub
+                  </button>
+                )}
+                {lowFriction.oauthProviders.includes('google') && (
+                  <button class="oauth-btn google">
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Google
+                  </button>
+                )}
+                {lowFriction.oauthProviders.includes('microsoft') && (
+                  <button class="oauth-btn microsoft">
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                      <path fill="#F25022" d="M1 1h10v10H1z"/>
+                      <path fill="#00A4EF" d="M1 13h10v10H1z"/>
+                      <path fill="#7FBA00" d="M13 1h10v10H13z"/>
+                      <path fill="#FFB900" d="M13 13h10v10H13z"/>
+                    </svg>
+                    Microsoft
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+
+    <!-- Tertiary CTAs -->
+    {tertiary && (tertiary.liveChat || tertiary.community) && (
+      <div class="tertiary-ctas">
+        {tertiary.liveChat && (
+          <button
+            class="tertiary-btn live-chat"
+            data-widget-id={tertiary.liveChat.widgetId}
+          >
+            <span class="tertiary-icon">💬</span>
+            {tertiary.liveChat.text}
+          </button>
+        )}
+        {tertiary.community && (
+          <a
+            href={tertiary.community.href}
+            class="tertiary-btn community"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span class="tertiary-icon">
+              {tertiary.community.platform === 'slack' && '📱'}
+              {tertiary.community.platform === 'discord' && '🎮'}
+              {tertiary.community.platform === 'other' && '👥'}
+            </span>
+            {tertiary.community.text}
+          </a>
+        )}
+      </div>
+    )}
+  </div>
+</section>
+
+<style>
+  .dual-cta-section {
+    padding: 80px 20px;
+    background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-tertiary) 100%);
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .cta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+
+  .cta-card {
+    padding: 32px;
+    border-radius: 16px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+  }
+
+  .cta-card.high-commitment {
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.08) 0%, rgba(255, 140, 66, 0.02) 100%);
+    border-color: rgba(255, 140, 66, 0.3);
+  }
+
+  .cta-card.low-friction {
+    background: var(--color-bg);
+  }
+
+  .card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  h3 {
+    font-size: 22px;
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  .subtitle {
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* Form Styles */
+  .inline-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-field label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  .form-field input,
+  .form-field select,
+  .form-field textarea {
+    padding: 12px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    font-size: 14px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .form-field input:focus,
+  .form-field select:focus,
+  .form-field textarea:focus {
+    outline: none;
+    border-color: #ff8c42;
+    box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.1);
+  }
+
+  .form-field input::placeholder,
+  .form-field textarea::placeholder {
+    color: var(--color-text-secondary);
+  }
+
+  .submit-btn {
+    cursor: pointer;
+    border: none;
+  }
+
+  .calendar-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    margin-top: 8px;
+  }
+
+  /* CTA Buttons */
+  .cta-button,
+  .submit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    text-decoration: none;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .cta-button.primary,
+  .submit-btn.primary {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+  }
+
+  .cta-button.primary:hover,
+  .submit-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.3);
+  }
+
+  .cta-button.secondary {
+    background: var(--color-bg);
+    color: #ff8c42;
+    border: 2px solid #ff8c42;
+  }
+
+  .cta-button.secondary:hover {
+    background: rgba(255, 140, 66, 0.1);
+  }
+
+  /* OAuth Options */
+  .oauth-options {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .oauth-label {
+    display: block;
+    text-align: center;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin-bottom: 12px;
+  }
+
+  .oauth-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .oauth-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .oauth-btn:hover {
+    background: var(--color-bg-secondary);
+    border-color: var(--color-text-secondary);
+  }
+
+  /* Tertiary CTAs */
+  .tertiary-ctas {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .tertiary-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: transparent;
+    border: none;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    cursor: pointer;
+    transition: color 0.2s;
+    text-decoration: none;
+  }
+
+  .tertiary-btn:hover {
+    color: var(--color-text);
+  }
+
+  .tertiary-icon {
+    font-size: 16px;
+  }
+
+  @media (max-width: 768px) {
+    .cta-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .cta-card {
+      padding: 24px;
+    }
+
+    h3 {
+      font-size: 20px;
+    }
+  }
+</style>
+
+<script>
+  // Track CTA clicks
+  document.querySelectorAll('[data-tracking]').forEach((el) => {
+    el.addEventListener('click', () => {
+      const trackingEvent = el.getAttribute('data-tracking');
+      const position = el.getAttribute('data-position');
+      if (typeof window !== 'undefined' && (window as any).posthog && trackingEvent) {
+        (window as any).posthog.capture('cta_click', {
+          event_type: trackingEvent,
+          position: position
+        });
+      }
+    });
+  });
+
+  // Live chat trigger
+  document.querySelectorAll('.live-chat').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const widgetId = btn.getAttribute('data-widget-id');
+      // Placeholder for live chat widget integration
+      console.log('Live chat triggered with widget ID:', widgetId);
+      // Example: window.Intercom('show') or similar
+    });
+  });
+</script>

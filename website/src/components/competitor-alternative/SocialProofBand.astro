@@ -1,0 +1,198 @@
+---
+/**
+ * SocialProofBand Component
+ *
+ * Displays customer logos and optional micro-stats
+ * for trust building immediately after the hero.
+ */
+
+import type { CustomerLogo } from '../../types/competitor-alternative';
+
+interface Props {
+  title?: string;
+  logos: CustomerLogo[];
+  microStat?: string;
+}
+
+const { title, logos, microStat } = Astro.props;
+---
+
+<section class="social-proof-band">
+  <div class="container">
+    {title && <p class="band-title">{title}</p>}
+    {microStat && <p class="micro-stat">{microStat}</p>}
+
+    <div class="logos-wrapper">
+      <div class="logos-track">
+        {logos.map((logo) => (
+          logo.caseStudyUrl ? (
+            <a href={logo.caseStudyUrl} class="logo-item" title={`${logo.name} case study`}>
+              <img src={logo.logo} alt={logo.alt} loading="lazy" />
+            </a>
+          ) : (
+            <div class="logo-item">
+              <img src={logo.logo} alt={logo.alt} loading="lazy" />
+            </div>
+          )
+        ))}
+        <!-- Duplicate for seamless scroll animation -->
+        {logos.map((logo) => (
+          logo.caseStudyUrl ? (
+            <a href={logo.caseStudyUrl} class="logo-item" title={`${logo.name} case study`} aria-hidden="true">
+              <img src={logo.logo} alt="" loading="lazy" />
+            </a>
+          ) : (
+            <div class="logo-item" aria-hidden="true">
+              <img src={logo.logo} alt="" loading="lazy" />
+            </div>
+          )
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .social-proof-band {
+    padding: 40px 20px;
+    background: var(--color-bg-secondary);
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+    overflow: hidden;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .band-title {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .micro-stat {
+    text-align: center;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin-bottom: 24px;
+  }
+
+  .logos-wrapper {
+    position: relative;
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 10%,
+      black 90%,
+      transparent
+    );
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 10%,
+      black 90%,
+      transparent
+    );
+  }
+
+  .logos-track {
+    display: flex;
+    align-items: center;
+    gap: 48px;
+    width: fit-content;
+    animation: scroll 30s linear infinite;
+  }
+
+  .logos-track:hover {
+    animation-play-state: paused;
+  }
+
+  @keyframes scroll {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  .logo-item {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+    height: 48px;
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+
+  .logo-item img {
+    max-width: 120px;
+    max-height: 40px;
+    object-fit: contain;
+    filter: grayscale(100%);
+    opacity: 0.6;
+    transition: filter 0.3s, opacity 0.3s;
+  }
+
+  .logo-item:hover img {
+    filter: grayscale(0%);
+    opacity: 1;
+  }
+
+  /* For logos that are SVGs or need color adjustment in dark mode */
+  :global(.dark) .logo-item img {
+    filter: grayscale(100%) invert(1);
+    opacity: 0.5;
+  }
+
+  :global(.dark) .logo-item:hover img {
+    filter: grayscale(0%) invert(0);
+    opacity: 1;
+  }
+
+  /* Static layout for smaller number of logos or reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    .logos-track {
+      animation: none;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* Hide duplicate logos when animation is disabled */
+    .logo-item[aria-hidden="true"] {
+      display: none;
+    }
+
+    .logos-wrapper {
+      mask-image: none;
+      -webkit-mask-image: none;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .social-proof-band {
+      padding: 32px 20px;
+    }
+
+    .logos-track {
+      gap: 32px;
+    }
+
+    .logo-item {
+      min-width: 100px;
+    }
+
+    .logo-item img {
+      max-width: 100px;
+      max-height: 32px;
+    }
+  }
+</style>

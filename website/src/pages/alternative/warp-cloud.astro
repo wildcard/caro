@@ -1,0 +1,374 @@
+---
+/**
+ * Warp Cloud Alternative Landing Page
+ *
+ * Example competitor alternative page demonstrating all components.
+ * This page targets users searching for "Warp alternative" after
+ * concerns about cloud dependency.
+ */
+
+import CompetitorAlternativeLayout from '../../layouts/CompetitorAlternativeLayout.astro';
+import type { CompetitorAlternativePageConfig } from '../../types/competitor-alternative';
+
+const pageConfig: CompetitorAlternativePageConfig = {
+  competitor: {
+    name: 'Warp',
+    icon: '🚀',
+    tagline: 'AI-native terminal emulator',
+    description: 'Cloud-connected AI terminal with modern UX'
+  },
+
+  marketEvent: {
+    title: 'Cloud Dependency Concerns',
+    description: 'Growing concerns about AI terminal tools requiring constant cloud connectivity for core features.',
+    date: 'January 2026',
+    sourceName: 'User Feedback',
+  },
+
+  hero: {
+    headline: 'Warp Cloud + Your Data = Privacy Risk',
+    subheadline: 'Get the same AI-powered shell assistance without sending your commands to the cloud. Caro runs 100% locally.',
+    primaryCta: {
+      text: 'Download Caro Free',
+      href: '/#download',
+      trackingEvent: 'hero_download'
+    },
+    secondaryCta: {
+      text: 'See How It Works',
+      href: '/compare/warp',
+      trackingEvent: 'hero_compare'
+    }
+  },
+
+  socialProof: {
+    title: 'Trusted by privacy-conscious engineers',
+    microStat: 'Used in air-gapped environments worldwide',
+    logos: [
+      { name: 'Example Corp', logo: '/logos/placeholder-1.svg', alt: 'Example Corp logo' },
+      { name: 'Tech Startup', logo: '/logos/placeholder-2.svg', alt: 'Tech Startup logo' },
+      { name: 'Security Firm', logo: '/logos/placeholder-3.svg', alt: 'Security Firm logo' },
+      { name: 'Enterprise Co', logo: '/logos/placeholder-4.svg', alt: 'Enterprise Co logo' },
+      { name: 'Data Company', logo: '/logos/placeholder-5.svg', alt: 'Data Company logo' },
+      { name: 'Cloud Provider', logo: '/logos/placeholder-6.svg', alt: 'Cloud Provider logo' },
+    ]
+  },
+
+  problemSection: {
+    title: 'The Risk of Cloud-Dependent AI',
+    subtitle: 'When your terminal AI requires the cloud, you inherit these concerns.',
+    painPoints: [
+      {
+        icon: '🔒',
+        title: 'Privacy Exposure',
+        description: 'Every command you type is sent to cloud servers for AI processing. Your workflow, file paths, and sensitive data leave your machine.'
+      },
+      {
+        icon: '✈️',
+        title: 'Offline Dependency',
+        description: 'No internet? No AI assistance. Cloud-dependent tools fail you exactly when you might need them most—on planes, VPNs, or air-gapped networks.'
+      },
+      {
+        icon: '💰',
+        title: 'Subscription Creep',
+        description: 'Cloud infrastructure costs money. Today\'s free tier becomes tomorrow\'s premium subscription as AI usage scales.'
+      },
+      {
+        icon: '🐌',
+        title: 'Latency Tax',
+        description: 'Every AI request round-trips to the cloud. Local models provide instant responses without network delays.'
+      }
+    ]
+  },
+
+  comparisonTable: {
+    title: 'Caro vs Warp: Head-to-Head',
+    subtitle: 'A fact-based comparison of features that matter for privacy and productivity.',
+    rows: [
+      {
+        feature: 'Works 100% Offline',
+        caro: true,
+        competitor: false,
+        winner: 'caro',
+        migrationDifficulty: 'easy',
+        tooltip: 'Caro uses local LLMs that run entirely on your machine',
+        category: 'Privacy & Security'
+      },
+      {
+        feature: 'No Cloud Data Transmission',
+        caro: true,
+        competitor: false,
+        winner: 'caro',
+        migrationDifficulty: 'easy',
+        category: 'Privacy & Security'
+      },
+      {
+        feature: 'Air-Gapped Environment Support',
+        caro: true,
+        competitor: false,
+        winner: 'caro',
+        migrationDifficulty: 'easy',
+        category: 'Privacy & Security'
+      },
+      {
+        feature: 'Rule-Based Safety Validation',
+        caro: true,
+        competitor: false,
+        winner: 'caro',
+        tooltip: 'Caro validates every command against 52+ safety patterns',
+        category: 'Safety'
+      },
+      {
+        feature: 'Works in Existing Terminal',
+        caro: true,
+        competitor: false,
+        winner: 'caro',
+        migrationDifficulty: 'easy',
+        tooltip: 'No need to switch terminals—Caro works in iTerm, Terminal.app, etc.',
+        category: 'Integration'
+      },
+      {
+        feature: 'Cross-Platform (macOS/Linux/Windows)',
+        caro: true,
+        competitor: 'partial',
+        winner: 'caro',
+        category: 'Integration'
+      },
+      {
+        feature: 'Modern Terminal UI',
+        caro: false,
+        competitor: true,
+        winner: 'competitor',
+        tooltip: 'Warp offers a fully redesigned terminal experience',
+        category: 'UX'
+      },
+      {
+        feature: 'Team Collaboration Features',
+        caro: false,
+        competitor: true,
+        winner: 'competitor',
+        category: 'UX'
+      },
+      {
+        feature: 'Cost',
+        caro: 'Free & Open Source',
+        competitor: 'Free tier + Paid plans',
+        winner: 'caro',
+        category: 'Pricing'
+      }
+    ],
+    footnotes: [
+      {
+        marker: '*',
+        text: 'Warp requires macOS 12+ or Linux. Windows support is limited.',
+        date: 'Jan 2026'
+      }
+    ]
+  },
+
+  solutionSection: {
+    title: 'Why Engineers Choose Caro',
+    subtitle: 'Local-first AI that respects your privacy and workflow.',
+    capabilities: [
+      {
+        icon: '🔐',
+        title: 'Privacy by Design',
+        bullets: [
+          'All AI inference happens on your local machine',
+          'No commands or context ever leave your computer',
+          'Anonymous, minimal telemetry (opt-out available)'
+        ],
+        learnMoreUrl: '/telemetry'
+      },
+      {
+        icon: '✈️',
+        title: 'Works Everywhere',
+        bullets: [
+          '100% offline operation—planes, VPNs, air-gapped',
+          'No internet required for AI features',
+          'Fast local inference without network latency'
+        ],
+        learnMoreUrl: '/#features'
+      },
+      {
+        icon: '🛡️',
+        title: '52+ Safety Patterns',
+        bullets: [
+          'Every command validated before execution',
+          'Blocks dangerous operations like rm -rf /',
+          'Protection works regardless of AI model behavior'
+        ],
+        learnMoreUrl: '/safe-shell-commands'
+      },
+      {
+        icon: '🔧',
+        title: 'Your Terminal, Enhanced',
+        bullets: [
+          'Works in iTerm, Terminal.app, Alacritty, etc.',
+          'No app switching or new UI to learn',
+          'Simple CLI that fits your existing workflow'
+        ],
+        learnMoreUrl: '/#download'
+      }
+    ]
+  },
+
+  migrationSection: {
+    title: 'Switch in Minutes',
+    timeEstimate: '5 minutes',
+    steps: [
+      {
+        step: 1,
+        title: 'Install Caro',
+        content: '<p>One command to install Caro on macOS or Linux. No account required.</p>',
+        code: 'curl -sSfL https://caro.sh/install.sh | sh',
+        docsUrl: '/#download'
+      },
+      {
+        step: 2,
+        title: 'Try Your First Command',
+        content: '<p>Just type a natural language description of what you want to do. Caro will generate and validate the shell command.</p>',
+        code: 'caro "find all files modified in the last 24 hours"',
+        items: [
+          'Commands are validated against safety patterns',
+          'Review the generated command before execution',
+          'Press Enter to run or Ctrl+C to cancel'
+        ]
+      },
+      {
+        step: 3,
+        title: 'Set Up Local Model (Optional)',
+        content: '<p>For best results, configure a local LLM. Caro works with Ollama, LM Studio, and other local inference engines.</p>',
+        code: 'caro config set backend ollama',
+        docsUrl: '/docs/configuration'
+      }
+    ],
+    gotchas: [
+      {
+        title: 'Model Download Size',
+        description: 'Local models require disk space (2-8GB typical).',
+        solution: 'Start with smaller models like Llama 3.1 8B for faster setup.'
+      },
+      {
+        title: 'First Run Performance',
+        description: 'Initial model loading may take a few seconds.',
+        solution: 'Subsequent commands are fast after the model is loaded in memory.'
+      }
+    ],
+    checklistCta: {
+      text: 'Get Quick Start Guide',
+      href: '/#download'
+    },
+    fullGuideUrl: '/docs/getting-started'
+  },
+
+  caseStudies: {
+    title: 'Success Stories',
+    subtitle: 'Engineers who made the switch to privacy-first AI.',
+    studies: [
+      {
+        customer: 'Security Consultant',
+        industry: 'Cybersecurity',
+        challenge: 'Needed AI shell assistance for client environments where cloud tools were prohibited.',
+        metrics: [
+          { value: '100%', label: 'Offline Operation' },
+          { value: '0', label: 'Data Leaked to Cloud' }
+        ],
+        quote: {
+          text: 'Caro is the only AI terminal tool I can use in sensitive client environments. It just works without any cloud dependency.',
+          author: 'Anonymous',
+          title: 'Senior Security Consultant'
+        }
+      },
+      {
+        customer: 'DevOps Engineer',
+        industry: 'FinTech',
+        challenge: 'Compliance requirements prevented use of cloud-based AI tools for production systems.',
+        metrics: [
+          { value: '50%', label: 'Time Saved on Commands' },
+          { value: 'Zero', label: 'Compliance Issues' }
+        ],
+        quote: {
+          text: 'Our compliance team approved Caro immediately because all data stays local. No other AI tool passed that bar.',
+          author: 'Anonymous',
+          title: 'DevOps Lead'
+        }
+      }
+    ]
+  },
+
+  dualCta: {
+    highCommitment: {
+      title: 'Have Questions?',
+      subtitle: 'Chat with us about Caro for your team or enterprise.',
+      buttonText: 'Contact Us',
+      href: 'mailto:hello@caro.sh'
+    },
+    lowFriction: {
+      title: 'Ready to Try?',
+      subtitle: 'Install Caro in seconds. Free and open source.',
+      buttonText: 'Download Now',
+      href: '/#download'
+    },
+    tertiary: {
+      community: {
+        text: 'Join our community',
+        href: 'https://github.com/caro-sh/caro/discussions',
+        platform: 'other'
+      }
+    }
+  },
+
+  faq: {
+    title: 'Frequently Asked Questions',
+    items: [
+      {
+        question: 'Does Caro really work 100% offline?',
+        answer: '<p>Yes. Caro uses local LLMs for AI inference. Once you have a model downloaded, no internet connection is required for any features.</p>'
+      },
+      {
+        question: 'What models does Caro support?',
+        answer: '<p>Caro works with any local LLM backend including <strong>Ollama</strong>, <strong>LM Studio</strong>, and direct <strong>MLX</strong> models on Apple Silicon. Popular models include Llama 3.1, Mistral, and Qwen.</p>',
+        learnMoreUrl: '/docs/configuration'
+      },
+      {
+        question: 'Can I use Caro in my existing terminal?',
+        answer: '<p>Absolutely. Unlike Warp which requires you to switch terminals, Caro is a CLI tool that works inside your existing terminal—iTerm2, Terminal.app, Alacritty, or any other terminal emulator.</p>'
+      },
+      {
+        question: 'How does Caro\'s safety validation work?',
+        answer: '<p>Every generated command is validated against 52+ rule-based safety patterns before being presented to you. This catches dangerous operations like <code>rm -rf /</code>, fork bombs, and other system-breaking commands regardless of what the AI model suggests.</p>',
+        learnMoreUrl: '/safe-shell-commands'
+      },
+      {
+        question: 'Is Caro really free?',
+        answer: '<p>Yes. Caro is free and open source (AGPL-3.0 license). There are no premium tiers, subscriptions, or cloud costs. You can also self-host the entire stack.</p>'
+      },
+      {
+        question: 'What\'s the performance like compared to cloud AI?',
+        answer: '<p>Local inference is typically faster than cloud because there\'s no network round-trip. On Apple Silicon Macs with MLX, responses are nearly instant. Performance depends on your hardware and model choice.</p>'
+      }
+    ]
+  },
+
+  seo: {
+    title: 'Warp Alternative: Local AI Terminal | Caro',
+    description: 'Looking for a Warp alternative that works offline? Caro offers AI-powered shell commands with 100% local inference. No cloud, no data sharing, no subscriptions.',
+    ogTitle: 'Caro: The Privacy-First Warp Alternative',
+    ogDescription: 'AI shell assistance that runs locally. No cloud dependency, no data sharing.',
+  },
+
+  analytics: {
+    pageId: 'warp-alternative',
+    events: {
+      ctaClick: 'cta_click',
+      comparisonInteraction: 'comparison_interaction',
+      faqExpand: 'faq_expand',
+      migrationDownload: 'migration_download',
+      scrollDepth: 'scroll_depth',
+      exitIntent: 'exit_intent'
+    }
+  }
+};
+---
+
+<CompetitorAlternativeLayout config={pageConfig} />

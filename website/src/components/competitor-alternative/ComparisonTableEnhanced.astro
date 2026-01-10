@@ -1,0 +1,598 @@
+---
+/**
+ * ComparisonTableEnhanced Component
+ *
+ * A fact-based comparison table with migration difficulty indicators,
+ * tooltips, and responsive mobile design (collapses to accordion).
+ */
+
+import type { ComparisonRow, Footnote } from '../../types/competitor-alternative';
+
+interface Props {
+  title: string;
+  subtitle?: string;
+  productName?: string;
+  competitorName: string;
+  rows: ComparisonRow[];
+  footnotes?: Footnote[];
+}
+
+const {
+  title,
+  subtitle,
+  productName = 'Caro',
+  competitorName,
+  rows,
+  footnotes = []
+} = Astro.props;
+
+// Group rows by category if categories are provided
+const groupedRows = rows.reduce((acc, row) => {
+  const category = row.category || 'General';
+  if (!acc[category]) {
+    acc[category] = [];
+  }
+  acc[category].push(row);
+  return acc;
+}, {} as Record<string, ComparisonRow[]>);
+
+const hasCategories = Object.keys(groupedRows).length > 1 || !groupedRows['General'];
+
+function renderValue(value: boolean | string | 'partial') {
+  if (value === true) return { icon: '✓', class: 'yes', label: 'Yes' };
+  if (value === false) return { icon: '✗', class: 'no', label: 'No' };
+  if (value === 'partial') return { icon: '◐', class: 'partial', label: 'Partial' };
+  return { icon: value, class: 'text', label: value };
+}
+
+function getMigrationBadge(difficulty: 'easy' | 'medium' | 'complex' | undefined) {
+  if (!difficulty) return null;
+  const badges = {
+    easy: { text: 'Easy', class: 'migration-easy' },
+    medium: { text: 'Medium', class: 'migration-medium' },
+    complex: { text: 'Complex', class: 'migration-complex' }
+  };
+  return badges[difficulty];
+}
+---
+
+<section class="comparison-section">
+  <div class="container">
+    <h2>{title}</h2>
+    {subtitle && <p class="section-subtitle">{subtitle}</p>}
+
+    <!-- Desktop Table View -->
+    <div class="table-wrapper desktop-only">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th class="feature-col">Feature</th>
+            <th class="tool-col highlight">{productName}</th>
+            <th class="tool-col">{competitorName}</th>
+            <th class="migration-col">Migration</th>
+          </tr>
+        </thead>
+        <tbody>
+          {hasCategories ? (
+            Object.entries(groupedRows).map(([category, categoryRows]) => (
+              <>
+                <tr class="category-row">
+                  <td colspan="4" class="category-header">{category}</td>
+                </tr>
+                {categoryRows.map((row) => {
+                  const caroValue = renderValue(row.caro);
+                  const competitorValue = renderValue(row.competitor);
+                  const migrationBadge = getMigrationBadge(row.migrationDifficulty);
+                  return (
+                    <tr class="data-row">
+                      <td class="feature-name">
+                        {row.feature}
+                        {row.tooltip && (
+                          <span class="tooltip-trigger" data-tooltip={row.tooltip}>ⓘ</span>
+                        )}
+                      </td>
+                      <td class={`value ${caroValue.class} ${row.winner === 'caro' ? 'winner' : ''}`}>
+                        <span class="value-icon" aria-label={caroValue.label}>{caroValue.icon}</span>
+                      </td>
+                      <td class={`value ${competitorValue.class} ${row.winner === 'competitor' ? 'winner' : ''}`}>
+                        <span class="value-icon" aria-label={competitorValue.label}>{competitorValue.icon}</span>
+                      </td>
+                      <td class="migration-cell">
+                        {migrationBadge && (
+                          <span class={`migration-badge ${migrationBadge.class}`}>
+                            {migrationBadge.text}
+                          </span>
+                        )}
+                        {row.learnMoreUrl && (
+                          <a href={row.learnMoreUrl} class="learn-more-link">Learn more</a>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </>
+            ))
+          ) : (
+            rows.map((row) => {
+              const caroValue = renderValue(row.caro);
+              const competitorValue = renderValue(row.competitor);
+              const migrationBadge = getMigrationBadge(row.migrationDifficulty);
+              return (
+                <tr class="data-row">
+                  <td class="feature-name">
+                    {row.feature}
+                    {row.tooltip && (
+                      <span class="tooltip-trigger" data-tooltip={row.tooltip}>ⓘ</span>
+                    )}
+                  </td>
+                  <td class={`value ${caroValue.class} ${row.winner === 'caro' ? 'winner' : ''}`}>
+                    <span class="value-icon" aria-label={caroValue.label}>{caroValue.icon}</span>
+                  </td>
+                  <td class={`value ${competitorValue.class} ${row.winner === 'competitor' ? 'winner' : ''}`}>
+                    <span class="value-icon" aria-label={competitorValue.label}>{competitorValue.icon}</span>
+                  </td>
+                  <td class="migration-cell">
+                    {migrationBadge && (
+                      <span class={`migration-badge ${migrationBadge.class}`}>
+                        {migrationBadge.text}
+                      </span>
+                    )}
+                    {row.learnMoreUrl && (
+                      <a href={row.learnMoreUrl} class="learn-more-link">Learn more</a>
+                    )}
+                  </td>
+                </tr>
+              );
+            })
+          )}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile Accordion View -->
+    <div class="accordion-wrapper mobile-only">
+      {rows.map((row, index) => {
+        const caroValue = renderValue(row.caro);
+        const competitorValue = renderValue(row.competitor);
+        const migrationBadge = getMigrationBadge(row.migrationDifficulty);
+        return (
+          <details class="comparison-accordion" data-index={index}>
+            <summary class="accordion-header">
+              <span class="feature-title">{row.feature}</span>
+              <span class="winner-indicator">
+                {row.winner === 'caro' && <span class="winner-badge caro">{productName} wins</span>}
+                {row.winner === 'competitor' && <span class="winner-badge competitor">{competitorName} wins</span>}
+                {row.winner === 'tie' && <span class="winner-badge tie">Tie</span>}
+              </span>
+              <span class="accordion-icon">+</span>
+            </summary>
+            <div class="accordion-content">
+              <div class="comparison-row-mobile">
+                <div class="product-compare">
+                  <span class="product-name caro">{productName}</span>
+                  <span class={`value ${caroValue.class}`}>{caroValue.icon}</span>
+                </div>
+                <div class="product-compare">
+                  <span class="product-name">{competitorName}</span>
+                  <span class={`value ${competitorValue.class}`}>{competitorValue.icon}</span>
+                </div>
+              </div>
+              {migrationBadge && (
+                <div class="migration-info">
+                  <span class="migration-label">Migration:</span>
+                  <span class={`migration-badge ${migrationBadge.class}`}>{migrationBadge.text}</span>
+                </div>
+              )}
+              {row.tooltip && <p class="tooltip-content">{row.tooltip}</p>}
+              {row.learnMoreUrl && (
+                <a href={row.learnMoreUrl} class="learn-more-link">Learn more &rarr;</a>
+              )}
+            </div>
+          </details>
+        );
+      })}
+    </div>
+
+    <!-- Footnotes -->
+    {footnotes.length > 0 && (
+      <div class="footnotes">
+        {footnotes.map((footnote) => (
+          <p class="footnote">
+            <sup>{footnote.marker}</sup>
+            {footnote.text}
+            {footnote.sourceUrl && (
+              <a href={footnote.sourceUrl} target="_blank" rel="noopener noreferrer">
+                [Source{footnote.date && `, ${footnote.date}`}]
+              </a>
+            )}
+          </p>
+        ))}
+      </div>
+    )}
+  </div>
+</section>
+
+<style>
+  .comparison-section {
+    padding: 60px 20px;
+    background: var(--color-bg);
+  }
+
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  h2 {
+    font-size: 32px;
+    text-align: center;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    margin-bottom: 40px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Desktop Table */
+  .table-wrapper {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+  }
+
+  .comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 700px;
+  }
+
+  .comparison-table th,
+  .comparison-table td {
+    padding: 16px 20px;
+    text-align: center;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .comparison-table th {
+    background: var(--color-bg-tertiary);
+    font-weight: 600;
+    color: var(--color-text);
+    position: sticky;
+    top: 0;
+  }
+
+  .comparison-table th.highlight {
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.15) 0%, rgba(255, 140, 66, 0.05) 100%);
+    color: #ff8c42;
+  }
+
+  .feature-col {
+    text-align: left !important;
+    min-width: 250px;
+  }
+
+  .tool-col {
+    min-width: 120px;
+  }
+
+  .migration-col {
+    min-width: 140px;
+  }
+
+  .category-header {
+    background: var(--color-bg-secondary) !important;
+    font-weight: 600;
+    text-align: left !important;
+    color: var(--color-text);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .feature-name {
+    text-align: left !important;
+    color: var(--color-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tooltip-trigger {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    cursor: help;
+    position: relative;
+  }
+
+  .tooltip-trigger:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 100%;
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    background: var(--color-text);
+    color: var(--color-bg);
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    max-width: 300px;
+    white-space: normal;
+    z-index: 100;
+  }
+
+  .data-row:last-child td {
+    border-bottom: none;
+  }
+
+  .data-row:hover {
+    background: var(--color-bg-tertiary);
+  }
+
+  .value {
+    font-size: 18px;
+  }
+
+  .value-icon {
+    font-weight: 600;
+  }
+
+  .value.yes .value-icon {
+    color: #22c55e;
+  }
+
+  .value.no .value-icon {
+    color: #ef4444;
+  }
+
+  .value.partial .value-icon {
+    color: #f59e0b;
+  }
+
+  .value.text .value-icon {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--color-text);
+  }
+
+  .value.winner {
+    background: rgba(34, 197, 94, 0.1);
+  }
+
+  .migration-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .migration-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .migration-easy {
+    background: rgba(34, 197, 94, 0.15);
+    color: #16a34a;
+  }
+
+  .migration-medium {
+    background: rgba(245, 158, 11, 0.15);
+    color: #d97706;
+  }
+
+  .migration-complex {
+    background: rgba(239, 68, 68, 0.15);
+    color: #dc2626;
+  }
+
+  .learn-more-link {
+    font-size: 12px;
+    color: #ff8c42;
+    text-decoration: none;
+  }
+
+  .learn-more-link:hover {
+    text-decoration: underline;
+  }
+
+  /* Footnotes */
+  .footnotes {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .footnote {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin-bottom: 4px;
+  }
+
+  .footnote sup {
+    color: #ff8c42;
+    font-weight: 600;
+    margin-right: 4px;
+  }
+
+  .footnote a {
+    color: var(--color-text-secondary);
+    text-decoration: underline;
+    margin-left: 4px;
+  }
+
+  /* Mobile Accordion */
+  .accordion-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .comparison-accordion {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--color-bg);
+  }
+
+  .accordion-header {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    cursor: pointer;
+    list-style: none;
+    gap: 12px;
+  }
+
+  .accordion-header::-webkit-details-marker {
+    display: none;
+  }
+
+  .feature-title {
+    flex: 1;
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  .winner-badge {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .winner-badge.caro {
+    background: rgba(255, 140, 66, 0.15);
+    color: #ff8c42;
+  }
+
+  .winner-badge.competitor {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-secondary);
+  }
+
+  .winner-badge.tie {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-secondary);
+  }
+
+  .accordion-icon {
+    font-size: 20px;
+    color: var(--color-text-secondary);
+    transition: transform 0.2s;
+  }
+
+  .comparison-accordion[open] .accordion-icon {
+    transform: rotate(45deg);
+  }
+
+  .accordion-content {
+    padding: 0 16px 16px;
+    border-top: 1px solid var(--color-border);
+    margin-top: -1px;
+  }
+
+  .comparison-row-mobile {
+    display: flex;
+    gap: 16px;
+    margin: 16px 0;
+  }
+
+  .product-compare {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: var(--color-bg-secondary);
+    border-radius: 8px;
+  }
+
+  .product-name {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .product-name.caro {
+    color: #ff8c42;
+  }
+
+  .migration-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .migration-label {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+
+  .tooltip-content {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+
+  /* Responsive visibility */
+  .desktop-only {
+    display: block;
+  }
+
+  .mobile-only {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    .desktop-only {
+      display: none;
+    }
+
+    .mobile-only {
+      display: flex;
+    }
+
+    h2 {
+      font-size: 24px;
+    }
+
+    .section-subtitle {
+      font-size: 16px;
+    }
+  }
+</style>
+
+<script>
+  // Track comparison table interactions
+  document.querySelectorAll('.comparison-accordion').forEach((accordion) => {
+    accordion.addEventListener('toggle', (e) => {
+      const target = e.target as HTMLDetailsElement;
+      if (target.open) {
+        const index = target.dataset.index;
+        // Analytics tracking placeholder
+        if (typeof window !== 'undefined' && (window as any).posthog) {
+          (window as any).posthog.capture('comparison_table_expand', {
+            row_index: index
+          });
+        }
+      }
+    });
+  });
+</script>

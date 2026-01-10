@@ -1,0 +1,245 @@
+---
+/**
+ * CompetitorAlternativeLayout
+ *
+ * A comprehensive layout for conversion-optimized competitor alternative
+ * landing pages. Includes all sections from hero to final CTA with
+ * optional section visibility controls.
+ */
+
+import Layout from './Layout.astro';
+import Navigation from '../components/Navigation.astro';
+import Footer from '../components/Footer.astro';
+
+// Import competitor alternative components
+import HeroSection from '../components/competitor-alternative/HeroSection.astro';
+import SocialProofBand from '../components/competitor-alternative/SocialProofBand.astro';
+import ProblemSection from '../components/competitor-alternative/ProblemSection.astro';
+import ComparisonTableEnhanced from '../components/competitor-alternative/ComparisonTableEnhanced.astro';
+import SolutionSection from '../components/competitor-alternative/SolutionSection.astro';
+import MigrationAccordion from '../components/competitor-alternative/MigrationAccordion.astro';
+import CaseStudiesSection from '../components/competitor-alternative/CaseStudiesSection.astro';
+import DualCTA from '../components/competitor-alternative/DualCTA.astro';
+import FAQAccordion from '../components/competitor-alternative/FAQAccordion.astro';
+
+// Import types
+import type { CompetitorAlternativePageConfig, SectionVisibility } from '../types/competitor-alternative';
+
+interface Props {
+  config: CompetitorAlternativePageConfig;
+  sectionVisibility?: Partial<SectionVisibility>;
+}
+
+const { config, sectionVisibility = {} } = Astro.props;
+
+// Default all sections to visible
+const visibility: SectionVisibility = {
+  socialProof: sectionVisibility.socialProof ?? true,
+  problemSection: sectionVisibility.problemSection ?? true,
+  comparisonTable: sectionVisibility.comparisonTable ?? true,
+  solutionSection: sectionVisibility.solutionSection ?? true,
+  migrationSection: sectionVisibility.migrationSection ?? !!config.migrationSection,
+  caseStudies: sectionVisibility.caseStudies ?? !!config.caseStudies,
+  dualCta: sectionVisibility.dualCta ?? true,
+  faq: sectionVisibility.faq ?? true,
+};
+
+// Generate Schema.org Product markup
+const productSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: 'Caro',
+  description: config.seo.description,
+  brand: {
+    '@type': 'Brand',
+    name: 'Caro'
+  },
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+    availability: 'https://schema.org/InStock'
+  }
+};
+---
+
+<Layout title={config.seo.title} description={config.seo.description}>
+  <Navigation />
+
+  <main class="competitor-alternative-page">
+    <!-- Hero Section -->
+    <HeroSection
+      config={config.hero}
+      competitor={config.competitor}
+      marketEvent={config.marketEvent}
+    />
+
+    <!-- Social Proof Band -->
+    {visibility.socialProof && config.socialProof && (
+      <SocialProofBand
+        title={config.socialProof.title}
+        logos={config.socialProof.logos}
+        microStat={config.socialProof.microStat}
+      />
+    )}
+
+    <!-- Problem Framing Section -->
+    {visibility.problemSection && (
+      <ProblemSection
+        title={config.problemSection.title}
+        subtitle={config.problemSection.subtitle}
+        painPoints={config.problemSection.painPoints}
+      />
+    )}
+
+    <!-- Comparison Table -->
+    {visibility.comparisonTable && (
+      <ComparisonTableEnhanced
+        title={config.comparisonTable.title}
+        subtitle={config.comparisonTable.subtitle}
+        competitorName={config.competitor.name}
+        rows={config.comparisonTable.rows}
+        footnotes={config.comparisonTable.footnotes}
+      />
+    )}
+
+    <!-- Solution Positioning -->
+    {visibility.solutionSection && (
+      <SolutionSection
+        title={config.solutionSection.title}
+        subtitle={config.solutionSection.subtitle}
+        capabilities={config.solutionSection.capabilities}
+      />
+    )}
+
+    <!-- Migration Quickstart -->
+    {visibility.migrationSection && config.migrationSection && (
+      <MigrationAccordion
+        title={config.migrationSection.title}
+        timeEstimate={config.migrationSection.timeEstimate}
+        steps={config.migrationSection.steps}
+        gotchas={config.migrationSection.gotchas}
+        checklistCta={config.migrationSection.checklistCta}
+        fullGuideUrl={config.migrationSection.fullGuideUrl}
+      />
+    )}
+
+    <!-- Case Studies -->
+    {visibility.caseStudies && config.caseStudies && (
+      <CaseStudiesSection
+        title={config.caseStudies.title}
+        subtitle={config.caseStudies.subtitle}
+        studies={config.caseStudies.studies}
+      />
+    )}
+
+    <!-- Dual CTA Section -->
+    {visibility.dualCta && (
+      <DualCTA config={config.dualCta} />
+    )}
+
+    <!-- FAQ Section -->
+    {visibility.faq && (
+      <FAQAccordion
+        title={config.faq.title}
+        items={config.faq.items}
+      />
+    )}
+
+    <!-- Additional slot for custom content -->
+    <slot />
+  </main>
+
+  <Footer />
+
+  <!-- Schema.org Product markup -->
+  <script type="application/ld+json" set:html={JSON.stringify(productSchema)} />
+
+  <!-- Open Graph meta tags -->
+  <Fragment slot="head">
+    {config.seo.ogTitle && <meta property="og:title" content={config.seo.ogTitle} />}
+    {config.seo.ogDescription && <meta property="og:description" content={config.seo.ogDescription} />}
+    {config.seo.ogImage && <meta property="og:image" content={config.seo.ogImage} />}
+    {config.seo.canonical && <link rel="canonical" href={config.seo.canonical} />}
+    <meta property="og:type" content="website" />
+  </Fragment>
+</Layout>
+
+<style is:global>
+  .competitor-alternative-page {
+    /* Page-specific styles */
+  }
+
+  /* Smooth scroll behavior for anchor links */
+  .competitor-alternative-page {
+    scroll-behavior: smooth;
+  }
+
+  /* Ensure sections have proper scroll margin for sticky header */
+  .competitor-alternative-page section {
+    scroll-margin-top: 80px;
+  }
+</style>
+
+<script>
+  // Analytics: Track scroll depth
+  let maxScrollDepth = 0;
+  const sections = ['hero', 'social-proof', 'problem', 'comparison', 'solution', 'migration', 'case-studies', 'dual-cta', 'faq'];
+
+  function trackScrollDepth() {
+    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const scrolled = window.scrollY;
+    const percentage = Math.round((scrolled / scrollHeight) * 100);
+
+    if (percentage > maxScrollDepth) {
+      maxScrollDepth = percentage;
+
+      // Track at 25%, 50%, 75%, and 100% thresholds
+      const thresholds = [25, 50, 75, 100];
+      thresholds.forEach((threshold) => {
+        if (percentage >= threshold && maxScrollDepth - percentage < 5) {
+          if (typeof window !== 'undefined' && (window as any).posthog) {
+            (window as any).posthog.capture('scroll_depth', {
+              depth_percentage: threshold,
+              page_type: 'competitor_alternative'
+            });
+          }
+        }
+      });
+    }
+  }
+
+  // Throttle scroll tracking
+  let scrollTimeout: NodeJS.Timeout;
+  window.addEventListener('scroll', () => {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(trackScrollDepth, 100);
+  });
+
+  // Track time on page
+  const startTime = Date.now();
+  window.addEventListener('beforeunload', () => {
+    const timeOnPage = Math.round((Date.now() - startTime) / 1000);
+    if (typeof window !== 'undefined' && (window as any).posthog) {
+      (window as any).posthog.capture('time_on_page', {
+        seconds: timeOnPage,
+        page_type: 'competitor_alternative'
+      });
+    }
+  });
+
+  // Exit intent detection (desktop only)
+  let exitIntentShown = false;
+  document.addEventListener('mouseleave', (e) => {
+    if (e.clientY < 10 && !exitIntentShown && window.innerWidth > 768) {
+      exitIntentShown = true;
+      if (typeof window !== 'undefined' && (window as any).posthog) {
+        (window as any).posthog.capture('exit_intent', {
+          page_type: 'competitor_alternative',
+          scroll_depth: maxScrollDepth
+        });
+      }
+      // Could trigger exit intent popup here
+    }
+  });
+</script>
