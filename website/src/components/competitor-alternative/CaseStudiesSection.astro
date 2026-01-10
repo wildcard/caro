@@ -1,0 +1,85 @@
+---
+/**
+ * CaseStudiesSection Component
+ *
+ * Container section for displaying multiple case study cards
+ * with proper layout and section styling.
+ */
+
+import type { CaseStudy } from '../../types/competitor-alternative';
+import CaseStudyCard from './CaseStudyCard.astro';
+
+interface Props {
+  title: string;
+  subtitle?: string;
+  studies: CaseStudy[];
+}
+
+const { title, subtitle, studies } = Astro.props;
+---
+
+<section class="case-studies-section">
+  <div class="container">
+    <header class="section-header">
+      <h2>{title}</h2>
+      {subtitle && <p class="section-subtitle">{subtitle}</p>}
+    </header>
+
+    <div class="studies-grid">
+      {studies.map((study) => (
+        <CaseStudyCard study={study} />
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .case-studies-section {
+    padding: 80px 20px;
+    background: var(--color-bg-tertiary);
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  h2 {
+    font-size: 32px;
+    color: var(--color-text);
+    margin-bottom: 12px;
+  }
+
+  .section-subtitle {
+    font-size: 18px;
+    color: var(--color-text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .studies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+  }
+
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 24px;
+    }
+
+    .section-subtitle {
+      font-size: 16px;
+    }
+
+    .studies-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
