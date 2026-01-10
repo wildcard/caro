@@ -2,191 +2,173 @@
 
 import React from 'react';
 
-const timelineItems = [
+const advantages = [
   {
-    date: 'Now - March 31',
-    title: 'Applications Open',
-    description: 'Submit your application through our online form. Early applications are encouraged as we review on a rolling basis.',
-    status: 'active',
+    title: 'vs Cloud AI Tools',
+    competitor: 'ChatGPT, Claude, GitHub Copilot',
+    caroAdvantage: [
+      '100% local - no data leaves your machine',
+      'Works in air-gapped networks',
+      'No API costs or rate limits',
+      'No internet dependency',
+    ],
     icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
       </svg>
     ),
   },
   {
-    date: 'April 1 - April 30',
-    title: 'Application Review',
-    description: 'Our selection committee reviews all applications. We may reach out for additional information or clarification.',
-    status: 'upcoming',
+    title: 'vs Shell Wrappers',
+    competitor: 'thefuck, tldr, explainshell',
+    caroAdvantage: [
+      'AI-powered natural language understanding',
+      'Generates commands, not just corrections',
+      'Platform-aware generation',
+      'Comprehensive safety validation',
+    ],
     icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
       </svg>
     ),
   },
   {
-    date: 'May 1',
-    title: 'Selection Notifications',
-    description: 'Selected startups receive confirmation emails with demo slot assignments, guidelines, and preparation materials.',
-    status: 'upcoming',
+    title: 'vs Other AI CLIs',
+    competitor: 'aichat, shell-gpt, ask-cli',
+    caroAdvantage: [
+      '52+ safety patterns (most have zero)',
+      'Embedded model - no setup required',
+      'Single binary distribution',
+      'Multi-backend architecture',
+    ],
     icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-      </svg>
-    ),
-  },
-  {
-    date: 'May 1 - June 14',
-    title: 'Demo Preparation',
-    description: 'Work with our team to polish your presentation. Includes optional coaching sessions and tech checks.',
-    status: 'upcoming',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-      </svg>
-    ),
-  },
-  {
-    date: 'June 15-16, 2026',
-    title: 'Summit Demo Day',
-    description: 'Present your AI startup to 500+ attendees including Fortune 500 executives, investors, and media.',
-    status: 'upcoming',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
       </svg>
     ),
   },
 ];
 
-const demoFormat = [
-  { label: 'Demo Duration', value: '10 minutes' },
-  { label: 'Q&A Session', value: '5 minutes' },
-  { label: 'Audience Size', value: '500+ attendees' },
-  { label: 'Live Stream', value: 'Yes (optional)' },
+const techStack = [
+  { name: 'Rust', description: 'Systems language for performance & safety', color: 'orange' },
+  { name: 'MLX', description: 'Apple Silicon optimization', color: 'blue' },
+  { name: 'GGUF', description: 'Quantized model format', color: 'purple' },
+  { name: 'AGPL-3.0', description: 'Open source license', color: 'teal' },
+];
+
+const safetyLevels = [
+  { level: 'Safe', color: 'green', description: 'Normal operations, no confirmation needed', example: 'ls, pwd, echo' },
+  { level: 'Moderate', color: 'yellow', description: 'Requires confirmation in strict mode', example: 'cp, mv, chmod' },
+  { level: 'High', color: 'orange', description: 'Requires confirmation in moderate mode', example: 'rm, kill, sudo' },
+  { level: 'Critical', color: 'red', description: 'Blocked in strict mode', example: 'rm -rf /, :(){ :|:& };:' },
 ];
 
 export const TimelineProcess: React.FC = () => {
   return (
-    <section id="timeline" className="summit-section py-20 md:py-32">
+    <section id="advantages" className="summit-section py-20 md:py-32 bg-summit-secondary/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="summit-badge summit-badge-purple mb-4 inline-block">
-            Selection Process
+            Competitive Edge
           </span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-summit-text-primary mb-6">
-            Timeline & Process
+            Why Caro Wins
           </h2>
           <p className="text-lg text-summit-text-secondary">
-            From application to demo day, here&apos;s what to expect throughout the selection process.
+            The only AI CLI tool that combines local inference, comprehensive safety,
+            and multi-platform support in a single binary.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-16">
-          {/* Timeline */}
-          <div className="lg:col-span-2">
-            <div className="summit-timeline">
-              {timelineItems.map((item, index) => (
-                <div
-                  key={index}
-                  className="summit-timeline-item"
-                  style={{
-                    opacity: item.status === 'active' ? 1 : 0.7,
-                  }}
-                >
-                  <div className="flex items-start gap-4">
-                    <div
-                      className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${
-                        item.status === 'active'
-                          ? 'bg-summit-accent-teal text-white'
-                          : 'bg-summit-tertiary text-summit-text-muted'
-                      }`}
-                    >
-                      {item.icon}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-                        <h3 className="text-lg font-semibold text-summit-text-primary">
-                          {item.title}
-                        </h3>
-                        {item.status === 'active' && (
-                          <span className="summit-badge summit-badge-teal text-xs">
-                            Current Phase
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-summit-accent-teal font-medium mb-2">
-                        {item.date}
-                      </p>
-                      <p className="text-summit-text-secondary leading-relaxed">
-                        {item.description}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
+        {/* Competitive Comparison */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+          {advantages.map((adv, index) => (
+            <div key={index} className="summit-card">
+              <div className="w-12 h-12 rounded-xl bg-summit-accent-purple/10 flex items-center justify-center text-summit-accent-purple mb-4">
+                {adv.icon}
+              </div>
+              <h3 className="text-lg font-semibold text-summit-text-primary mb-2">
+                {adv.title}
+              </h3>
+              <p className="text-sm text-summit-text-muted mb-4">
+                Compared to: {adv.competitor}
+              </p>
+              <ul className="space-y-2">
+                {adv.caroAdvantage.map((point, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-summit-text-secondary">
+                    <svg className="w-4 h-4 text-summit-success flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    {point}
+                  </li>
+                ))}
+              </ul>
             </div>
+          ))}
+        </div>
+
+        {/* Safety Levels Visualization */}
+        <div className="mb-20">
+          <div className="text-center mb-12">
+            <h3 className="text-2xl md:text-3xl font-bold text-summit-text-primary mb-4">
+              Multi-Level Safety System
+            </h3>
+            <p className="text-summit-text-secondary max-w-2xl mx-auto">
+              Every command is classified and handled according to its risk level.
+            </p>
           </div>
 
-          {/* Demo Format Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="summit-card sticky top-24">
-              <h3 className="text-xl font-semibold text-summit-text-primary mb-6">
-                Demo Day Format
-              </h3>
-
-              <div className="space-y-4 mb-8">
-                {demoFormat.map((item) => (
-                  <div
-                    key={item.label}
-                    className="flex items-center justify-between py-3 border-b border-summit-tertiary/30 last:border-0"
-                  >
-                    <span className="text-summit-text-secondary">{item.label}</span>
-                    <span className="text-summit-text-primary font-medium">{item.value}</span>
-                  </div>
-                ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {safetyLevels.map((level) => (
+              <div
+                key={level.level}
+                className={`p-6 rounded-xl border-2 ${
+                  level.color === 'green' ? 'border-green-500/30 bg-green-500/5' :
+                  level.color === 'yellow' ? 'border-yellow-500/30 bg-yellow-500/5' :
+                  level.color === 'orange' ? 'border-orange-500/30 bg-orange-500/5' :
+                  'border-red-500/30 bg-red-500/5'
+                }`}
+              >
+                <div className={`text-lg font-bold mb-2 ${
+                  level.color === 'green' ? 'text-green-400' :
+                  level.color === 'yellow' ? 'text-yellow-400' :
+                  level.color === 'orange' ? 'text-orange-400' :
+                  'text-red-400'
+                }`}>
+                  {level.level}
+                </div>
+                <p className="text-sm text-summit-text-secondary mb-3">
+                  {level.description}
+                </p>
+                <div className="font-mono text-xs text-summit-text-muted">
+                  {level.example}
+                </div>
               </div>
+            ))}
+          </div>
+        </div>
 
-              <div className="bg-summit-primary/50 rounded-lg p-4">
-                <h4 className="text-summit-text-primary font-medium mb-2">
-                  What&apos;s Included
-                </h4>
-                <ul className="text-sm text-summit-text-secondary space-y-2">
-                  <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-summit-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    Professional AV setup
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-summit-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    2 presenter badges
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-summit-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    Investor meetup access
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-summit-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    Media kit inclusion
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-summit-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    Recording of your demo
-                  </li>
-                </ul>
+        {/* Tech Stack */}
+        <div>
+          <div className="text-center mb-12">
+            <h3 className="text-2xl md:text-3xl font-bold text-summit-text-primary mb-4">
+              Built With
+            </h3>
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-4">
+            {techStack.map((tech) => (
+              <div
+                key={tech.name}
+                className={`summit-badge summit-badge-${tech.color} text-base px-6 py-3`}
+              >
+                <span className="font-semibold">{tech.name}</span>
+                <span className="mx-2">•</span>
+                <span className="opacity-80">{tech.description}</span>
               </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>

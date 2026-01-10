@@ -1,39 +1,44 @@
 import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
-  title: "Seattle AI Startup Summit 2026 | Demo Day Applications",
-  description: "Showcase your AI startup to Fortune 500 leaders at the Seattle AI Startup Summit 2026. Apply for demo day, connect with investors, and get media coverage.",
+  title: "Caro | Natural Language to Safe Shell Commands",
+  description: "Transform natural language into safe, POSIX-compliant shell commands using local AI. Built with Rust for blazing-fast performance and safety-first design.",
   keywords: [
-    "Seattle AI Summit",
-    "AI startup demo day",
-    "AI investors",
-    "startup pitch",
-    "AI conference Seattle",
-    "Fortune 500",
-    "startup funding",
-    "AI demo",
-    "tech conference 2026"
+    "Caro",
+    "CLI",
+    "shell commands",
+    "AI",
+    "LLM",
+    "Rust",
+    "terminal",
+    "POSIX",
+    "safety",
+    "local AI",
+    "natural language",
+    "command line",
+    "DevOps",
+    "SRE"
   ],
-  authors: [{ name: "Seattle AI Startup Summit" }],
+  authors: [{ name: "Caro Team" }],
   openGraph: {
-    title: "Seattle AI Startup Summit 2026 | Demo Day Applications",
-    description: "Showcase your AI startup to Fortune 500 leaders. Apply for demo day, connect with investors, and get media coverage.",
+    title: "Caro | Natural Language to Safe Shell Commands",
+    description: "Transform natural language into safe shell commands using local AI. 100% private, 52+ safety patterns.",
     type: "website",
-    url: "https://cmdai.dev/summit",
-    siteName: "Seattle AI Startup Summit 2026",
+    url: "https://caro.sh/summit",
+    siteName: "Caro",
     images: [
       {
         url: "/summit/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Seattle AI Startup Summit 2026",
+        alt: "Caro - Natural Language to Safe Shell Commands",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Seattle AI Startup Summit 2026 | Demo Day Applications",
-    description: "Showcase your AI startup to Fortune 500 leaders. Apply now!",
+    title: "Caro | Natural Language to Safe Shell Commands",
+    description: "Transform natural language into safe shell commands using local AI.",
     images: ["/summit/og-image.png"],
   },
   robots: {
@@ -55,43 +60,41 @@ export const viewport: Viewport = {
   themeColor: "#0f172a",
 };
 
-// JSON-LD structured data for the event
+// JSON-LD structured data for the software application
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "Event",
-  name: "Seattle AI Startup Summit 2026",
-  description: "The premier event for AI startups to showcase their innovations to Fortune 500 leaders, investors, and media.",
-  startDate: "2026-06-15T09:00:00-07:00",
-  endDate: "2026-06-16T18:00:00-07:00",
-  eventStatus: "https://schema.org/EventScheduled",
-  eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-  location: {
-    "@type": "Place",
-    name: "Washington State Convention Center",
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: "705 Pike St",
-      addressLocality: "Seattle",
-      addressRegion: "WA",
-      postalCode: "98101",
-      addressCountry: "US",
-    },
-  },
-  image: ["/summit/og-image.png"],
-  organizer: {
-    "@type": "Organization",
-    name: "Seattle AI Startup Summit",
-    url: "https://cmdai.dev/summit",
-  },
+  "@type": "SoftwareApplication",
+  name: "Caro",
+  description: "AI-powered CLI tool that converts natural language into safe, POSIX-compliant shell commands using local LLMs.",
+  applicationCategory: "DeveloperApplication",
+  operatingSystem: ["macOS", "Linux", "Windows"],
   offers: {
     "@type": "Offer",
-    name: "Demo Day Application",
-    url: "https://cmdai.dev/summit#apply",
-    availability: "https://schema.org/InStock",
-    validFrom: "2026-01-01T00:00:00-08:00",
-    priceCurrency: "USD",
     price: "0",
+    priceCurrency: "USD",
   },
+  author: {
+    "@type": "Organization",
+    name: "Caro Team",
+    url: "https://caro.sh",
+  },
+  license: "https://www.gnu.org/licenses/agpl-3.0.html",
+  programmingLanguage: "Rust",
+  softwareVersion: "0.1.0",
+  downloadUrl: "https://github.com/anthropics/caro/releases",
+  sameAs: [
+    "https://github.com/anthropics/caro",
+    "https://crates.io/crates/caro"
+  ],
+  featureList: [
+    "Natural language to shell commands",
+    "52+ safety patterns for dangerous command detection",
+    "100% local inference - no cloud dependencies",
+    "Multi-backend support (MLX, Ollama, vLLM)",
+    "Cross-platform (macOS, Linux, Windows)",
+    "Platform-aware command generation",
+    "Sub-2-second inference on Apple Silicon"
+  ],
 };
 
 export default function SummitLayout({

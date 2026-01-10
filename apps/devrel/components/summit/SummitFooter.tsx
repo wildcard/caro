@@ -4,30 +4,30 @@ import React from 'react';
 
 const footerLinks = [
   {
-    title: 'Event',
+    title: 'Product',
     links: [
-      { label: 'About', href: '#criteria' },
-      { label: 'Timeline', href: '#timeline' },
-      { label: 'FAQ', href: '#faq' },
-      { label: 'Apply', href: '#apply' },
+      { label: 'Features', href: '#solution' },
+      { label: 'Safety', href: '#advantages' },
+      { label: 'Roadmap', href: '#vision' },
+      { label: 'Changelog', href: 'https://github.com/anthropics/caro/releases' },
     ],
   },
   {
     title: 'Resources',
     links: [
-      { label: 'Success Stories', href: '#success-stories' },
-      { label: 'Checklist', href: '#checklist' },
-      { label: 'Past Events', href: '#' },
-      { label: 'Media Kit', href: '#' },
+      { label: 'Documentation', href: 'https://caro.sh/docs' },
+      { label: 'Getting Started', href: '#get-started' },
+      { label: 'API Reference', href: 'https://caro.sh/docs/api' },
+      { label: 'Examples', href: 'https://github.com/anthropics/caro/tree/main/examples' },
     ],
   },
   {
-    title: 'Connect',
+    title: 'Community',
     links: [
-      { label: 'Twitter', href: 'https://twitter.com/seattleaisummit' },
-      { label: 'LinkedIn', href: 'https://linkedin.com/company/seattleaisummit' },
-      { label: 'Contact', href: 'mailto:summit@cmdai.dev' },
-      { label: 'Newsletter', href: '#' },
+      { label: 'GitHub', href: 'https://github.com/anthropics/caro' },
+      { label: 'Discussions', href: 'https://github.com/anthropics/caro/discussions' },
+      { label: 'Twitter', href: 'https://twitter.com/caro_cli' },
+      { label: 'Discord', href: 'https://discord.gg/caro' },
     ],
   },
 ];
@@ -44,32 +44,31 @@ export const SummitFooter: React.FC = () => {
           <div className="lg:col-span-1">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-summit-accent-teal to-summit-accent-blue flex items-center justify-center">
-                <span className="text-white font-bold">AI</span>
+                <span className="text-white font-bold">C</span>
               </div>
               <div>
                 <div className="text-summit-text-primary font-semibold">
-                  Seattle AI Summit
+                  Caro
                 </div>
-                <div className="text-xs text-summit-text-muted">2026</div>
+                <div className="text-xs text-summit-text-muted">Your loyal shell companion</div>
               </div>
             </div>
             <p className="text-sm text-summit-text-secondary leading-relaxed mb-4">
-              The premier event connecting AI startups with Fortune 500 leaders,
-              investors, and media in the Pacific Northwest.
+              Transform natural language into safe, POSIX-compliant shell commands
+              using local AI. Built with Rust for safety and performance.
             </p>
             <div className="text-sm text-summit-text-muted">
               <div className="flex items-center gap-2 mb-1">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
-                Seattle, WA
+                52+ safety patterns
               </div>
               <div className="flex items-center gap-2">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
-                June 15-16, 2026
+                100% local inference
               </div>
             </div>
           </div>
@@ -104,16 +103,16 @@ export const SummitFooter: React.FC = () => {
         {/* Bottom Bar */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-sm text-summit-text-muted">
-            &copy; {currentYear} Seattle AI Startup Summit. All rights reserved.
+            &copy; {currentYear} Caro. AGPL-3.0 License. Made with Rust.
           </div>
           <div className="flex items-center gap-6">
-            <a href="#" className="text-sm text-summit-text-secondary hover:text-summit-accent-teal transition-colors">
-              Privacy Policy
+            <a href="https://github.com/anthropics/caro/blob/main/LICENSE" className="text-sm text-summit-text-secondary hover:text-summit-accent-teal transition-colors">
+              License
             </a>
-            <a href="#" className="text-sm text-summit-text-secondary hover:text-summit-accent-teal transition-colors">
-              Terms of Service
+            <a href="https://github.com/anthropics/caro/blob/main/CONTRIBUTING.md" className="text-sm text-summit-text-secondary hover:text-summit-accent-teal transition-colors">
+              Contributing
             </a>
-            <a href="#" className="text-sm text-summit-text-secondary hover:text-summit-accent-teal transition-colors">
+            <a href="https://github.com/anthropics/caro/blob/main/CODE_OF_CONDUCT.md" className="text-sm text-summit-text-secondary hover:text-summit-accent-teal transition-colors">
               Code of Conduct
             </a>
           </div>

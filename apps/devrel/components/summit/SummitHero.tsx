@@ -1,43 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 const stats = [
-  { value: '500+', label: 'Attendees' },
-  { value: '50', label: 'Demo Slots' },
-  { value: '$10M+', label: 'Funding Raised' },
-  { value: '30+', label: 'Investors' },
+  { value: '52+', label: 'Safety Patterns' },
+  { value: '<2s', label: 'Inference Time' },
+  { value: '100%', label: 'Local & Private' },
+  { value: '6', label: 'Backends Supported' },
 ];
 
-// Calculate days until June 15, 2026
-const calculateTimeLeft = () => {
-  const deadline = new Date('2026-06-15T09:00:00-07:00');
-  const now = new Date();
-  const difference = deadline.getTime() - now.getTime();
-
-  if (difference <= 0) {
-    return { days: 0, hours: 0, minutes: 0, seconds: 0 };
-  }
-
-  return {
-    days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-    hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-    minutes: Math.floor((difference / 1000 / 60) % 60),
-    seconds: Math.floor((difference / 1000) % 60),
-  };
-};
-
 export const SummitHero: React.FC = () => {
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(calculateTimeLeft());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
   return (
     <section className="relative min-h-screen flex items-center pt-16 overflow-hidden">
       {/* Background decorations */}
@@ -49,77 +21,83 @@ export const SummitHero: React.FC = () => {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 summit-badge summit-badge-teal mb-8">
             <span className="w-2 h-2 bg-summit-accent-teal rounded-full animate-pulse" />
-            Applications Open - Limited Slots Available
+            Seattle AI Startup Summit 2026 - Demo Showcase
           </div>
 
           {/* Main Headline */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-            <span className="text-summit-text-primary">Showcase Your AI Startup to</span>
+            <span className="text-summit-text-primary">Natural Language to</span>
             <br />
-            <span className="summit-gradient-text">Fortune 500 Leaders</span>
+            <span className="summit-gradient-text">Safe Shell Commands</span>
           </h1>
 
           {/* Subheadline */}
           <p className="text-lg md:text-xl text-summit-text-secondary max-w-2xl mx-auto mb-8 leading-relaxed">
-            Present your AI innovation to enterprise decision-makers, connect with
-            top-tier investors, and gain media coverage at Seattle&apos;s premier AI startup event.
+            Caro is an AI-powered CLI tool that converts plain English into validated,
+            platform-aware shell commands. Built with Rust. Runs 100% locally.
+            Never sends your data to the cloud.
           </p>
 
           {/* Value Props */}
           <div className="flex flex-wrap justify-center gap-4 mb-10">
             <span className="summit-badge summit-badge-blue">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
-              10-Min Demo Opportunity
+              Safety-First AI
             </span>
             <span className="summit-badge summit-badge-purple">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
-              Investment Connections
+              100% Local & Private
             </span>
             <span className="summit-badge summit-badge-orange">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              Media Coverage
+              Rust-Powered Performance
             </span>
+          </div>
+
+          {/* Terminal Demo Preview */}
+          <div className="max-w-2xl mx-auto mb-12 text-left">
+            <div className="bg-summit-primary border border-summit-tertiary rounded-xl overflow-hidden shadow-2xl">
+              <div className="flex items-center gap-2 px-4 py-3 bg-summit-secondary border-b border-summit-tertiary">
+                <div className="w-3 h-3 rounded-full bg-red-500" />
+                <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                <div className="w-3 h-3 rounded-full bg-green-500" />
+                <span className="ml-2 text-sm text-summit-text-muted font-mono">Terminal</span>
+              </div>
+              <div className="p-6 font-mono text-sm">
+                <div className="text-summit-text-muted mb-2">$ caro &quot;list all PDF files larger than 10MB&quot;</div>
+                <div className="text-summit-text-secondary mb-4">
+                  <span className="text-summit-accent-teal">Generated command:</span>
+                  <br />
+                  <span className="text-summit-text-primary ml-2">find ~/Downloads -name &quot;*.pdf&quot; -size +10M -ls</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-green-500/20 text-green-400 text-xs">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    SAFE
+                  </span>
+                  <span className="text-summit-text-muted">Execute this command? (y/N)</span>
+                  <span className="text-summit-accent-teal animate-pulse">▌</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
-            <a href="#apply" className="summit-btn-primary text-lg">
-              Apply for Demo Day
+            <a href="#problem" className="summit-btn-primary text-lg">
+              See the Problem We Solve
             </a>
-            <a href="#criteria" className="summit-btn-secondary text-lg">
-              View Requirements
+            <a href="https://github.com/anthropics/caro" target="_blank" rel="noopener noreferrer" className="summit-btn-secondary text-lg">
+              View on GitHub
             </a>
-          </div>
-
-          {/* Countdown */}
-          <div className="mb-16">
-            <p className="text-summit-text-muted text-sm mb-4 uppercase tracking-wider">
-              Event Date: June 15-16, 2026
-            </p>
-            <div className="summit-countdown">
-              <div className="summit-countdown-unit">
-                <div className="summit-countdown-value">{timeLeft.days}</div>
-                <div className="summit-countdown-label">Days</div>
-              </div>
-              <div className="summit-countdown-unit">
-                <div className="summit-countdown-value">{timeLeft.hours}</div>
-                <div className="summit-countdown-label">Hours</div>
-              </div>
-              <div className="summit-countdown-unit">
-                <div className="summit-countdown-value">{timeLeft.minutes}</div>
-                <div className="summit-countdown-label">Minutes</div>
-              </div>
-              <div className="summit-countdown-unit">
-                <div className="summit-countdown-value">{timeLeft.seconds}</div>
-                <div className="summit-countdown-label">Seconds</div>
-              </div>
-            </div>
           </div>
 
           {/* Stats */}
