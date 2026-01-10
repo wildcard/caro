@@ -110,7 +110,25 @@ irm https://raw.githubusercontent.com/wildcard/caro/main/install.ps1 | iex
 - Verifies SHA256 checksums for security
 - On Apple Silicon: builds with MLX optimization if Cargo is available
 
-#### Option 2: Pre-built Binaries (Fast, No Compilation)
+#### Option 2: Homebrew (macOS/Linux)
+
+```bash
+# Add the tap and install
+brew tap wildcard/caro https://github.com/wildcard/caro.git
+brew install wildcard/caro/caro
+```
+
+Or install directly without adding the tap:
+```bash
+brew install wildcard/caro/caro
+```
+
+**Upgrade:**
+```bash
+brew update && brew upgrade caro
+```
+
+#### Option 3: Pre-built Binaries (Fast, No Compilation)
 
 Download the latest release for your platform from [GitHub Releases](https://github.com/wildcard/caro/releases/latest):
 
@@ -166,9 +184,9 @@ curl -fsSL https://github.com/wildcard/caro/releases/download/v1.1.1/caro-1.1.1-
 shasum -a 256 -c caro.sha256
 ```
 
-> 💡 **Note for Apple Silicon users**: Pre-built binaries work immediately, but for maximum performance with MLX GPU acceleration, install via cargo (Option 3).
+> 💡 **Note for Apple Silicon users**: Pre-built binaries work immediately, but for maximum performance with MLX GPU acceleration, install via cargo (Option 4).
 
-#### Option 3: Using Cargo (Full Features)
+#### Option 4: Using Cargo (Full Features)
 ```bash
 cargo install caro
 ```
