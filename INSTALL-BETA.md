@@ -24,8 +24,12 @@ curl -L https://github.com/wildcard/caro/releases/download/v1.1.0-beta.1/caro-ma
 # Make executable
 chmod +x caro
 
-# Move to PATH
-sudo mv caro /usr/local/bin/caro
+# Install to user directory (no sudo required)
+mkdir -p ~/.local/bin
+mv caro ~/.local/bin/
+
+# Add to PATH (add to ~/.zshrc or ~/.bashrc for persistence)
+export PATH="$HOME/.local/bin:$PATH"
 
 # Verify installation
 caro --version
@@ -37,9 +41,13 @@ caro --version
 # Download beta binary
 curl -L https://github.com/wildcard/caro/releases/download/v1.1.0-beta.1/caro-macos-x86_64 -o caro
 
-# Make executable and install
+# Make executable and install to user directory
 chmod +x caro
-sudo mv caro /usr/local/bin/caro
+mkdir -p ~/.local/bin
+mv caro ~/.local/bin/
+
+# Add to PATH (add to ~/.zshrc or ~/.bashrc for persistence)
+export PATH="$HOME/.local/bin:$PATH"
 
 # Verify
 caro --version
@@ -50,9 +58,13 @@ caro --version
 # Download beta binary
 curl -L https://github.com/wildcard/caro/releases/download/v1.1.0-beta.1/caro-linux-x86_64 -o caro
 
-# Make executable and install
+# Make executable and install to user directory
 chmod +x caro
-sudo mv caro /usr/local/bin/caro
+mkdir -p ~/.local/bin
+mv caro ~/.local/bin/
+
+# Add to PATH (add to ~/.bashrc for persistence)
+export PATH="$HOME/.local/bin:$PATH"
 
 # Verify
 caro --version
@@ -63,9 +75,13 @@ caro --version
 # Download beta binary
 curl -L https://github.com/wildcard/caro/releases/download/v1.1.0-beta.1/caro-linux-aarch64 -o caro
 
-# Make executable and install
+# Make executable and install to user directory
 chmod +x caro
-sudo mv caro /usr/local/bin/caro
+mkdir -p ~/.local/bin
+mv caro ~/.local/bin/
+
+# Add to PATH (add to ~/.bashrc for persistence)
+export PATH="$HOME/.local/bin:$PATH"
 
 # Verify
 caro --version
@@ -195,7 +211,7 @@ caro telemetry disable
 ### Binary Not Executable
 ```bash
 # Fix permissions
-chmod +x /usr/local/bin/caro
+chmod +x ~/.local/bin/caro
 ```
 
 ### Command Not Found
@@ -204,15 +220,15 @@ chmod +x /usr/local/bin/caro
 which caro
 
 # If not, add to PATH (bash/zsh)
-echo 'export PATH="/usr/local/bin:$PATH"' >> ~/.zshrc
-source ~/.zshrc
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc  # or ~/.bashrc
+source ~/.zshrc  # or ~/.bashrc
 ```
 
 ### Version Shows Wrong Number
 ```bash
 # Remove old version
 which caro  # Find location
-sudo rm $(which caro)
+rm $(which caro)
 
 # Reinstall beta version (see methods above)
 ```
@@ -288,9 +304,7 @@ See [CHANGELOG.md](CHANGELOG.md) for complete details.
 To remove caro:
 
 ```bash
-# Remove binary
-sudo rm /usr/local/bin/caro
-# Or if installed to ~/.local/bin:
+# Remove binary (user directory - no sudo needed)
 rm ~/.local/bin/caro
 
 # Remove configuration and data

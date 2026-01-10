@@ -39,6 +39,7 @@ INSTALL_METHOD=""  # "cargo" or "binary"
 SETUP_SHELL_COMPLETION="true"
 SETUP_PATH_AUTO="true"
 CONFIGURE_SAFETY_LEVEL="true"
+SAFETY_LEVEL="strict"  # Default safety level
 
 # Detect OS and architecture
 detect_platform() {
@@ -441,6 +442,10 @@ ask_choice() {
 # Interactive configuration prompts
 run_interactive_setup() {
     if [ "$INTERACTIVE_MODE" != "true" ]; then
+        # In non-interactive mode, use sensible defaults and skip configuration
+        CONFIGURE_SAFETY_LEVEL="false"
+        SETUP_SHELL_COMPLETION="false"
+        SETUP_PATH_AUTO="false"
         return 0
     fi
 
