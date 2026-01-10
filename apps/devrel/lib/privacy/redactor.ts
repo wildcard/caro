@@ -255,8 +255,7 @@ export function registerCustomPattern(
   name: string,
   pattern: RedactionPattern
 ): void {
-  // @ts-expect-error - Allow runtime extension of patterns
-  REDACTION_PATTERNS[name] = pattern;
+  (REDACTION_PATTERNS as Record<string, RedactionPattern>)[name] = pattern;
 }
 
 /**
