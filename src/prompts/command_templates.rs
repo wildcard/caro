@@ -619,8 +619,8 @@ impl TemplateLibrary {
             CommandTemplate::new(
                 "text_search",
                 "search recursively",
-                "grep -r '{pattern}' .",
-                "Recursive search",
+                "grep -rn '{pattern}' .",
+                "Recursive search with line numbers",
             ),
             // Disk usage (simple)
             CommandTemplate::new(

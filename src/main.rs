@@ -165,17 +165,19 @@ enum Commands {
     /// Run system diagnostics and health checks
     Doctor,
 
-    /// Assess system resources and get model recommendations
-    Assess {
-        /// Export format (json, markdown)
-        #[arg(long, value_enum)]
-        export: Option<ExportFormat>,
-
-        /// Output file path
-        #[arg(long, short = 'o')]
-        output: Option<String>,
-    },
-
+    // NOTE: Assess and Telemetry subcommands are disabled in v1.1.0-beta.1
+    // They will be implemented in a future release
+    //
+    // /// Assess system resources and get model recommendations
+    // Assess {
+    //     /// Export format (json, markdown)
+    //     #[arg(long, value_enum)]
+    //     export: Option<ExportFormat>,
+    //
+    //     /// Output file path
+    //     #[arg(long, short = 'o')]
+    //     output: Option<String>,
+    // },
     /// Run evaluation tests on command generation quality
     Test {
         /// Backend to test (static, mlx, ollama, or embedded)
@@ -194,12 +196,11 @@ enum Commands {
         #[arg(long)]
         profile: Option<String>,
     },
-
-    /// Manage telemetry data and settings
-    Telemetry {
-        #[command(subcommand)]
-        command: caro::cli::telemetry::TelemetryCommands,
-    },
+    // /// Manage telemetry data and settings
+    // Telemetry {
+    //     #[command(subcommand)]
+    //     command: caro::cli::telemetry::TelemetryCommands,
+    // },
 }
 
 /// caro - Convert natural language to shell commands using local LLMs
@@ -335,6 +336,7 @@ impl IntoCliArgs for Cli {
 // =============================================================================
 
 /// Run assessment command with optional export
+#[allow(dead_code)]
 async fn run_assessment_command(
     export_format: Option<ExportFormat>,
     output_path: Option<String>,
@@ -378,7 +380,7 @@ async fn run_assessment_command(
 /// Run evaluation tests on command generation
 async fn run_evaluation_tests(
     backend_name: &str,
-    verbose: bool,
+    _verbose: bool,
     suite_path: Option<&str>,
     profile_id: Option<&str>,
 ) -> Result<(), String> {
@@ -388,7 +390,7 @@ async fn run_evaluation_tests(
     // Create backend (boxed to allow different types)
     let backend: Box<dyn CommandGenerator> = match backend_name {
         "static" => {
-            let profile = CapabilityProfile::ubuntu();
+            let profile = CapabilityProfile::detect().await;
             Box::new(StaticMatcher::new(profile))
         }
         "embedded" => Box::new(
@@ -441,10 +443,7 @@ async fn run_evaluation_tests(
 
         let (passed, actual, error) = match result {
             Ok(cmd) => {
-                let matches = test_case
-                    .expected_outputs
-                    .iter()
-                    .any(|expected| cmd.command == *expected);
+                let matches = test_case.expected_outputs.contains(&cmd.command);
                 (matches, Some(cmd.command), None)
             }
             Err(e) => (false, None, Some(e.to_string())),
@@ -529,15 +528,16 @@ async fn main() {
                 process::exit(1);
             }
         },
-        Some(Commands::Assess { export, output }) => {
-            match run_assessment_command(export, output).await {
-                Ok(()) => process::exit(0),
-                Err(e) => {
-                    eprintln!("Error running assessment: {}", e);
-                    process::exit(1);
-                }
-            }
-        }
+        // NOTE: Assess subcommand disabled in v1.1.0-beta.1
+        // Some(Commands::Assess { export, output }) => {
+        //     match run_assessment_command(export, output).await {
+        //         Ok(()) => process::exit(0),
+        //         Err(e) => {
+        //             eprintln!("Error running assessment: {}", e);
+        //             process::exit(1);
+        //         }
+        //     }
+        // }
         Some(Commands::Test {
             backend,
             verbose,
@@ -554,21 +554,22 @@ async fn main() {
                 }
             }
         }
-        Some(Commands::Telemetry { command }) => {
-            let storage_path = dirs::data_dir()
-                .unwrap_or_else(|| std::env::current_dir().unwrap())
-                .join("caro")
-                .join("telemetry")
-                .join("events.db");
-
-            match caro::cli::telemetry::handle_telemetry(command, storage_path).await {
-                Ok(()) => process::exit(0),
-                Err(e) => {
-                    eprintln!("Error: {}", e);
-                    process::exit(1);
-                }
-            }
-        }
+        // NOTE: Telemetry subcommand disabled in v1.1.0-beta.1
+        // Some(Commands::Telemetry { command }) => {
+        //     let storage_path = dirs::data_dir()
+        //         .unwrap_or_else(|| std::env::current_dir().unwrap())
+        //         .join("caro")
+        //         .join("telemetry")
+        //         .join("events.db");
+        //
+        //     match caro::cli::telemetry::handle_telemetry(command, storage_path).await {
+        //         Ok(()) => process::exit(0),
+        //         Err(e) => {
+        //             eprintln!("Error: {}", e);
+        //             process::exit(1);
+        //         }
+        //     }
+        // }
         None => {
             // Continue to regular command generation
         }
@@ -614,21 +615,49 @@ async fn main() {
         .join("events.db");
 
     // Load config to get telemetry settings
-    let user_config = if let Ok(config_manager) = ConfigManager::new() {
-        config_manager.load().unwrap_or_default()
-    } else {
-        caro::models::UserConfiguration::default()
-    };
+    // Keep ConfigManager reference to save changes later
+    let config_manager = ConfigManager::new().ok();
+    let mut user_config = config_manager
+        .as_ref()
+        .and_then(|cm| cm.load().ok())
+        .unwrap_or_default();
 
     // Check for first-run consent
-    if user_config.telemetry.first_run {
-        if caro::telemetry::consent::prompt_consent() {
-            // User accepted telemetry
-            // Update config to mark first_run as false and enable telemetry
-            // This would require updating the config file, which we'll handle via ConfigManager
-            // For now, we'll proceed with telemetry enabled
+    // Skip interactive consent for non-human output formats (json, yaml)
+    let is_interactive_output = cli
+        .output
+        .as_deref()
+        .is_none_or(|format| format != "json" && format != "yaml");
+
+    if user_config.telemetry.first_run && is_interactive_output {
+        // Prompt user for consent
+        let consent = caro::telemetry::consent::prompt_consent();
+
+        // Update config with consent result
+        user_config.telemetry.first_run = false;
+        user_config.telemetry.enabled = consent;
+
+        // Show confirmation message
+        if consent {
+            caro::telemetry::consent::show_enabled_message();
         } else {
-            // User declined telemetry - update config to disable it
+            caro::telemetry::consent::show_disabled_message();
+        }
+
+        // Persist config to disk
+        if let Some(ref cm) = config_manager {
+            if let Err(e) = cm.save(&user_config) {
+                tracing::warn!("Failed to save telemetry preferences: {}", e);
+            }
+        }
+    } else if user_config.telemetry.first_run && !is_interactive_output {
+        // Non-interactive mode (JSON/YAML output): use default setting without prompting
+        // Mark first_run as false to prevent future prompts
+        user_config.telemetry.first_run = false;
+
+        // Save the updated config silently
+        if let Some(ref cm) = config_manager {
+            let _ = cm.save(&user_config);
         }
     }
 
@@ -707,7 +736,11 @@ async fn main() {
 
     // Run the CLI application
     match run_cli(&cli).await {
-        Ok(()) => process::exit(0),
+        Ok(was_blocked) => {
+            // Exit with code 1 if command was blocked by safety validation
+            // Exit with code 0 for successful or safe commands
+            process::exit(if was_blocked { 1 } else { 0 })
+        }
         Err(e) => {
             eprintln!("Error: {}", e);
             match e {
@@ -727,12 +760,15 @@ async fn main() {
     }
 }
 
-async fn run_cli(cli: &Cli) -> Result<(), CliError> {
+async fn run_cli(cli: &Cli) -> Result<bool, CliError> {
     // Create CLI application
     let app = CliApp::new().await?;
 
     // Run command generation
     let mut result = app.run_with_args(cli.clone()).await?;
+
+    // Check if command was blocked by safety validation
+    let was_blocked = result.blocked_reason.is_some();
 
     // Display result
     match result.output_format {
@@ -753,7 +789,7 @@ async fn run_cli(cli: &Cli) -> Result<(), CliError> {
         }
     }
 
-    Ok(())
+    Ok(was_blocked)
 }
 
 async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Result<(), CliError> {
@@ -768,7 +804,7 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
     // Handle blocked commands
     if let Some(blocked_reason) = &result.blocked_reason {
         eprintln!("{} {}", "Blocked:".red().bold(), blocked_reason);
-        return Ok(());
+        std::process::exit(1);
     }
 
     // Handle confirmation required for dangerous commands
@@ -787,7 +823,7 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
 
             if !confirmed {
                 println!("{}", "Operation cancelled by user.".yellow());
-                return Ok(());
+                std::process::exit(1);
             }
 
             println!("{}", "✓ Confirmed. Command is safe to execute.".green());
@@ -795,7 +831,7 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
             // Non-interactive environment - show confirmation message and exit
             println!("{}", result.confirmation_prompt.yellow());
             println!("{}", "Use --confirm/-y flag to auto-confirm dangerous commands in non-interactive environments.".dimmed());
-            return Ok(());
+            std::process::exit(1);
         }
     }
 

@@ -40,9 +40,12 @@ pub struct CommandResponse {
 }
 
 impl AgentLoop {
-    pub fn new(backend: Arc<dyn CommandGenerator>, context: ExecutionContext) -> Self {
+    pub fn new(
+        backend: Arc<dyn CommandGenerator>,
+        context: ExecutionContext,
+        profile: CapabilityProfile,
+    ) -> Self {
         // Create static matcher with detected capabilities
-        let profile = CapabilityProfile::ubuntu(); // TODO: detect from system
         let static_matcher = Some(StaticMatcher::new(profile.clone()));
         let validator = CommandValidator::new(profile);
 
@@ -53,7 +56,7 @@ impl AgentLoop {
             context,
             _max_iterations: 2,
             timeout: Duration::from_secs(15), // Allow enough time for 2 iterations
-            confidence_threshold: 0.8, // Default: refine if confidence < 80%
+            confidence_threshold: 0.8,        // Default: refine if confidence < 80%
         }
     }
 
@@ -167,9 +170,7 @@ impl AgentLoop {
 
             // Attempt to repair the command
             debug!("Attempting to repair command with validation feedback");
-            let repaired = self
-                .repair_command(prompt, &initial, &validation)
-                .await?;
+            let repaired = self.repair_command(prompt, &initial, &validation).await?;
 
             // Validate the repaired command
             let repaired_validation = self.validator.validate(&repaired.command);
@@ -419,9 +420,9 @@ If you made changes, explain what was fixed."#,
             .enumerate()
             .map(|(i, err)| {
                 format!(
-                    "{}. [{}] {}\n   Context: {}",
+                    "{}. [{:?}] {}\n   Context: {}",
                     i + 1,
-                    format!("{:?}", err.code),
+                    err.code,
                     err.message,
                     err.context.as_deref().unwrap_or("N/A")
                 )

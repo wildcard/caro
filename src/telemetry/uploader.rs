@@ -1,7 +1,7 @@
 //! Batch telemetry uploader
 
 use super::{config::TelemetryConfig, storage::TelemetryStorage};
-use anyhow::Result;
+use anyhow::{Context, Result};
 use std::sync::Arc;
 use tokio::time::{interval, Duration};
 
@@ -74,7 +74,7 @@ impl TelemetryUploader {
             tracing::debug!(
                 "Telemetry upload skipped: reqwest not available (enable remote-backends feature)"
             );
-            return Ok(());
+            Ok(())
         }
 
         #[cfg(feature = "remote-backends")]

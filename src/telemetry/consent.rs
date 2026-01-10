@@ -13,46 +13,43 @@ use dialoguer::{theme::ColorfulTheme, Confirm};
 ///
 /// Returns `true` if user consents, `false` otherwise.
 pub fn prompt_consent() -> bool {
-    println!();
-    println!("{}", "━".repeat(70).bright_blue());
-    println!("{}", "📊  Telemetry & Privacy".bright_white().bold());
-    println!("{}", "━".repeat(70).bright_blue());
-    println!();
+    eprintln!();
+    eprintln!("{}", "━".repeat(70).bright_blue());
+    eprintln!("{}", "📊  Telemetry & Privacy".bright_white().bold());
+    eprintln!("{}", "━".repeat(70).bright_blue());
+    eprintln!();
 
-    println!(
+    eprintln!(
         "{}",
         "Caro is in beta and collects anonymous usage data to improve the product.".bright_white()
     );
-    println!();
+    eprintln!();
 
-    println!("{}", "We collect:".bright_white().bold());
-    println!("  {} Session timing and performance metrics", "✓".green());
-    println!("  {} Platform info (OS, shell type)", "✓".green());
-    println!("  {} Error categories and safety events", "✓".green());
-    println!();
+    eprintln!("{}", "We collect:".bright_white().bold());
+    eprintln!("  {} Session timing and performance metrics", "✓".green());
+    eprintln!("  {} Platform info (OS, shell type)", "✓".green());
+    eprintln!("  {} Error categories and safety events", "✓".green());
+    eprintln!();
 
-    println!("{}", "We NEVER collect:".bright_white().bold());
-    println!("  {} Your commands or natural language input", "✗".red());
-    println!("  {} File paths or environment variables", "✗".red());
-    println!("  {} Any personally identifiable information", "✗".red());
-    println!();
+    eprintln!("{}", "We NEVER collect:".bright_white().bold());
+    eprintln!("  {} Your commands or natural language input", "✗".red());
+    eprintln!("  {} File paths or environment variables", "✗".red());
+    eprintln!("  {} Any personally identifiable information", "✗".red());
+    eprintln!();
 
-    println!(
-        "{}",
-        format!("Learn more: {}", "https://caro.sh/telemetry".cyan())
-    );
-    println!(
+    eprintln!("Learn more: {}", "https://caro.sh/telemetry".cyan());
+    eprintln!(
         "{}",
         "You can disable telemetry anytime with:".bright_black()
     );
-    println!(
+    eprintln!(
         "{}",
         "  caro config set telemetry.enabled false".bright_black()
     );
-    println!();
+    eprintln!();
 
-    println!("{}", "━".repeat(70).bright_blue());
-    println!();
+    eprintln!("{}", "━".repeat(70).bright_blue());
+    eprintln!();
 
     Confirm::with_theme(&ColorfulTheme::default())
         .with_prompt("Enable telemetry to help improve Caro?")
@@ -63,30 +60,30 @@ pub fn prompt_consent() -> bool {
 
 /// Show telemetry disabled confirmation
 pub fn show_disabled_message() {
-    println!();
-    println!(
+    eprintln!();
+    eprintln!(
         "{}",
         "✓ Telemetry disabled. No data will be collected.".green()
     );
-    println!();
+    eprintln!();
 }
 
 /// Show telemetry enabled confirmation
 pub fn show_enabled_message() {
-    println!();
-    println!(
+    eprintln!();
+    eprintln!(
         "{}",
         "✓ Telemetry enabled. Thank you for helping improve Caro!".green()
     );
-    println!(
+    eprintln!(
         "{}",
         "  View what's collected: caro telemetry show".bright_black()
     );
-    println!(
+    eprintln!(
         "{}",
         "  Disable anytime: caro config set telemetry.enabled false".bright_black()
     );
-    println!();
+    eprintln!();
 }
 
 #[cfg(test)]

@@ -17,12 +17,15 @@ use tempfile::TempDir;
 #[derive(Debug, Deserialize)]
 struct TestSuite {
     metadata: Metadata,
+    #[allow(dead_code)]
     categories: HashMap<String, Category>,
     test_cases: Vec<TestCase>,
+    #[allow(dead_code)]
     profiles: HashMap<String, Profile>,
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct Metadata {
     version: String,
     compiled_from: String,
@@ -32,6 +35,7 @@ struct Metadata {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct Category {
     description: String,
     primary_profile: String,
@@ -39,6 +43,7 @@ struct Category {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct TestCase {
     id: String,
     input: String,
@@ -57,6 +62,7 @@ struct TestCase {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct Profile {
     name: String,
     skill: String,
@@ -204,10 +210,7 @@ default_shell = "bash"
     fn run_test(&self, test: &TestCase) -> TestResult {
         let start = std::time::Instant::now();
 
-        let actual = match self.run_command_generation(&test.input) {
-            Ok(cmd) => Some(cmd),
-            Err(e) => None,
-        };
+        let actual = self.run_command_generation(&test.input).ok();
 
         let execution_time_ms = start.elapsed().as_millis();
 
@@ -290,7 +293,7 @@ fn run_all_tests(suite: &TestSuite) -> BetaTestReport {
     for result in &all_results {
         category_map
             .entry(result.category.clone())
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(result.clone());
     }
 
@@ -380,6 +383,7 @@ fn print_report(report: &BetaTestReport) {
 // =============================================================================
 
 #[test]
+#[ignore = "Requires release binary to be built first - run manually with `cargo test --test beta_test_suite --release -- --ignored`"]
 fn beta_test_comprehensive_cycle_0_baseline() {
     // Load test suite
     let suite = load_test_suite();

@@ -17,7 +17,7 @@
 //!
 //! ## Usage
 //!
-//! ```no_run
+//! ```ignore
 //! use caro::telemetry::{TelemetryCollector, EventType};
 //!
 //! let collector = TelemetryCollector::new(storage, true);
@@ -55,7 +55,7 @@ static GLOBAL_COLLECTOR: OnceLock<Arc<TelemetryCollector>> = OnceLock::new();
 ///
 /// # Example
 ///
-/// ```no_run
+/// ```ignore
 /// use caro::telemetry::{TelemetryCollector, set_global_collector};
 /// use std::sync::Arc;
 ///

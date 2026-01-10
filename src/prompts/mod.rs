@@ -80,10 +80,10 @@
 //! - Use the template-based approach
 //! - Validate all outputs
 
-mod capability_profile;
-mod command_templates;
-mod smollm_prompt;
-mod validation;
+pub mod capability_profile;
+pub mod command_templates;
+pub mod smollm_prompt;
+pub mod validation;
 
 // Re-export main types for convenient access
 pub use capability_profile::{AwkType, CapabilityProfile, DetectedShell, ProfileType, StatFormat};
