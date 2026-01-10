@@ -283,6 +283,14 @@ struct Cli {
     )]
     interactive: bool,
 
+    /// Explain mode - show detailed explanations of commands and outputs
+    #[arg(
+        short = 'E',
+        long,
+        help = "Explain the generated command and executed output in detail"
+    )]
+    explain: bool,
+
     /// Trailing unquoted arguments forming the prompt
     #[arg(trailing_var_arg = true, num_args = 0..)]
     trailing_args: Vec<String>,
@@ -328,6 +336,10 @@ impl IntoCliArgs for Cli {
 
     fn interactive(&self) -> bool {
         self.interactive
+    }
+
+    fn explain(&self) -> bool {
+        self.explain
     }
 }
 
@@ -840,8 +852,49 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
     println!("  {}", result.generated_command.bright_cyan().bold());
     println!();
 
-    // Print explanation only in verbose mode
-    if cli.verbose && !result.explanation.is_empty() {
+    // Print detailed command explanation in explain mode
+    if cli.explain {
+        use caro::explain::ExplainService;
+
+        let explain_service = ExplainService::new();
+        let cmd_explanation = explain_service.explain_command(&result.generated_command, result.shell_used);
+
+        println!("{}", "Command Explanation:".bold().magenta());
+        println!("  {}", cmd_explanation.summary);
+
+        // Show flag explanations
+        if !cmd_explanation.flags_explained.is_empty() {
+            println!();
+            println!("  {}", "Flags:".dimmed());
+            for flag_exp in &cmd_explanation.flags_explained {
+                println!("    {} - {}", flag_exp.flag.cyan(), flag_exp.description);
+            }
+        }
+
+        // Show pipeline stages
+        if !cmd_explanation.pipeline_stages.is_empty() {
+            println!();
+            println!("  {}", "Pipeline stages:".dimmed());
+            for stage in &cmd_explanation.pipeline_stages {
+                println!("    {}. {} - {}", stage.stage, stage.command.cyan(), stage.purpose);
+            }
+        }
+
+        // Show safety notes
+        if !cmd_explanation.safety_notes.is_empty() {
+            println!();
+            for note in &cmd_explanation.safety_notes {
+                if note.starts_with("WARNING") {
+                    println!("  {}", note.red().bold());
+                } else {
+                    println!("  {}", note.yellow());
+                }
+            }
+        }
+
+        println!();
+    } else if cli.verbose && !result.explanation.is_empty() {
+        // Print brief explanation only in verbose mode (existing behavior)
         println!("{}", "Explanation:".bold());
         println!("  {}", result.explanation);
         println!();
@@ -970,6 +1023,51 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
         if let Some(error) = &result.execution_error {
             println!();
             println!("{} {}", "Execution Error:".red().bold(), error.red());
+        }
+
+        // Print output explanation in explain mode
+        if cli.explain {
+            use caro::explain::ExplainService;
+
+            let explain_service = ExplainService::new();
+            let output_explanation = explain_service.explain_output(
+                &result.generated_command,
+                result.stdout.as_deref(),
+                result.stderr.as_deref(),
+                result.exit_code,
+            ).await;
+
+            println!("{}", "Output Explanation:".bold().magenta());
+            println!("  {}", output_explanation.summary);
+
+            // Show stdout analysis insights
+            if let Some(stdout_analysis) = &output_explanation.stdout_analysis {
+                if !stdout_analysis.insights.is_empty() {
+                    println!();
+                    println!("  {}", "Output insights:".dimmed());
+                    for insight in &stdout_analysis.insights {
+                        println!("    • {}", insight);
+                    }
+                }
+            }
+
+            // Show stderr analysis if there was an error
+            if let Some(stderr_analysis) = &output_explanation.stderr_analysis {
+                println!();
+                println!("  {} {}", "Error type:".red(), format!("{:?}", stderr_analysis.error_type));
+                println!("  {}", stderr_analysis.explanation);
+            }
+
+            // Show suggestions for fixing errors
+            if !output_explanation.suggestions.is_empty() {
+                println!();
+                println!("  {}", "Suggestions:".green().bold());
+                for suggestion in &output_explanation.suggestions {
+                    println!("    • {}", suggestion);
+                }
+            }
+
+            println!();
         }
 
         println!();

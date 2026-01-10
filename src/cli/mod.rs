@@ -77,6 +77,8 @@ pub struct CliResult {
     pub stdout: Option<String>,
     pub stderr: Option<String>,
     pub execution_error: Option<String>,
+    /// Detailed explanation of the executed output (when explain mode is enabled)
+    pub output_explanation: Option<String>,
 }
 
 /// Supported output formats
@@ -132,6 +134,7 @@ pub trait IntoCliArgs {
     fn execute(&self) -> bool;
     fn dry_run(&self) -> bool;
     fn interactive(&self) -> bool;
+    fn explain(&self) -> bool;
 }
 
 impl CliApp {
@@ -451,6 +454,7 @@ impl CliApp {
             stdout,
             stderr,
             execution_error,
+            output_explanation: None, // Will be populated in print_plain_output when explain mode is enabled
         })
     }
 
