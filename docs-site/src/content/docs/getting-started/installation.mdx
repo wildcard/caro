@@ -5,7 +5,7 @@ description: Install caro on macOS, Linux, or Windows
 
 import { Tabs, TabItem, Aside, Steps, Badge } from '@astrojs/starlight/components';
 
-caro can be installed via Cargo (Rust's package manager), from source, or using pre-built binaries.
+caro can be installed via Homebrew, Cargo, from source, or using pre-built binaries.
 
 ## Requirements
 
@@ -17,7 +17,22 @@ caro can be installed via Cargo (Rust's package manager), from source, or using 
 ## Quick Install
 
 <Tabs>
-  <TabItem label="Cargo (Recommended)">
+  <TabItem label="Homebrew (Recommended)">
+    ```bash
+    # Add the tap and install
+    brew tap wildcard/caro https://github.com/wildcard/caro.git
+    brew install wildcard/caro/caro
+
+    # Verify installation
+    caro --version
+    ```
+
+    Or install directly without adding the tap:
+    ```bash
+    brew install wildcard/caro/caro
+    ```
+  </TabItem>
+  <TabItem label="Cargo">
     ```bash
     # Install caro from crates.io
     cargo install caro
