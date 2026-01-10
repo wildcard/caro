@@ -155,13 +155,27 @@ const searchIndex = searchIndexData?.pages?.length > 0
     border-color: var(--color-border, #555);
   }
 
-  /* Mobile: Hide text, show icon only */
+  /* Mobile: Hide text, show icon only when inside nav slot */
   @media (max-width: 600px) {
     .omni-trigger-text {
       display: none;
     }
     .omni-search-trigger {
       padding: 8px;
+    }
+  }
+
+  /* Hide trigger by default on mobile - only show when inside navigation slots */
+  @media (max-width: 900px) {
+    /* Hide trigger when not inside a nav slot (prevents floating at top of page) */
+    body > .omni-search-trigger,
+    body > #omni-search-trigger {
+      display: none !important;
+    }
+    /* Show trigger when inside navigation slots */
+    #nav-search-slot .omni-search-trigger,
+    #nav-search-slot-mobile .omni-search-trigger {
+      display: flex;
     }
   }
 
@@ -375,25 +389,22 @@ const searchIndex = searchIndexData?.pages?.length > 0
   const overlay = document.getElementById('omni-overlay');
   const trigger = document.getElementById('omni-search-trigger');
 
-  // Move the search trigger into the navigation slot if available (desktop)
-  const navSlot = document.getElementById('nav-search-slot');
-  if (navSlot && trigger) {
-    navSlot.appendChild(trigger);
+  // Function to set up navigation slot integration
+  // This needs to run after Navigation component is in the DOM
+  function setupNavSlots() {
+    // Move the search trigger into the navigation slot if available (desktop)
+    const navSlot = document.getElementById('nav-search-slot');
+    if (navSlot && trigger && !navSlot.contains(trigger)) {
+      navSlot.appendChild(trigger);
+    }
   }
 
-  // Also add a search trigger to the mobile navigation slot
-  const navSlotMobile = document.getElementById('nav-search-slot-mobile');
-  if (navSlotMobile && trigger) {
-    const mobileTrigger = trigger.cloneNode(true) as HTMLElement;
-    mobileTrigger.id = 'omni-search-trigger-mobile';
-    navSlotMobile.appendChild(mobileTrigger);
-    // Add click handler to the mobile trigger
-    mobileTrigger.addEventListener('click', () => {
-      overlay?.classList.add('open');
-      const input = document.getElementById('omni-input') as HTMLInputElement;
-      input?.focus();
-      document.body.style.overflow = 'hidden';
-    });
+  // Try immediately (works if Navigation is already in DOM)
+  setupNavSlots();
+
+  // Also try after DOM is fully loaded (handles any timing edge cases)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupNavSlots);
   }
 
   if (!overlay) {
@@ -401,6 +412,8 @@ const searchIndex = searchIndexData?.pages?.length > 0
   }
 
   if (overlay) {
+    // Reference to open function - will be set after function is defined
+    let openSearchFn: ((viaHotkey?: boolean) => void) | null = null;
     const input = document.getElementById('omni-input') as HTMLInputElement;
     const list = document.getElementById('omni-list')!;
     const hotkeyHint = overlay.querySelector('.omni-hotkey-hint');
@@ -663,6 +676,30 @@ const searchIndex = searchIndexData?.pages?.length > 0
       if (hotkeyHint && (hasUsedHotkey || localStorage.getItem('omni-search-hotkey-used'))) {
         hotkeyHint.classList.add('hidden');
       }
+    }
+
+    // Store reference for mobile trigger
+    openSearchFn = open;
+
+    // Set up mobile search trigger (needs to be after open() is defined)
+    function setupMobileTrigger() {
+      const navSlotMobile = document.getElementById('nav-search-slot-mobile');
+      // Check if mobile trigger already exists to avoid duplicates
+      if (navSlotMobile && trigger && !document.getElementById('omni-search-trigger-mobile')) {
+        const mobileTrigger = trigger.cloneNode(true) as HTMLElement;
+        mobileTrigger.id = 'omni-search-trigger-mobile';
+        navSlotMobile.appendChild(mobileTrigger);
+        // Add click handler to the mobile trigger - uses the same open function
+        mobileTrigger.addEventListener('click', () => open(false));
+      }
+    }
+
+    // Try immediately
+    setupMobileTrigger();
+
+    // Also try after DOM is fully loaded
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupMobileTrigger);
     }
 
     function close() {
