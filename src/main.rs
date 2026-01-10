@@ -726,15 +726,33 @@ async fn main() {
             println!("  echo \"list files\" | caro");
             println!("  caro --shell zsh \"find large files\"");
             println!();
+            println!("Ask Mode (auto-detected for questions):");
+            println!("  caro \"what is grep?\"");
+            println!("  caro \"how does find work?\"");
+            println!("  caro \"explain pipes\"");
+            println!();
             println!("Run 'caro --help' for more information.");
             process::exit(0);
         }
         ValidationAction::ProceedWithPrompt => {
-            // Continue with command generation
+            // Continue with command generation or ask mode
         }
     }
 
-    // Run the CLI application
+    // Ask Mode: Detect if user is asking a question rather than requesting a command
+    let ask_service = caro::AskService::new();
+    if let caro::InputType::Question(topic) = ask_service.detect_input_type(prompt_text) {
+        // User is asking a question - enter ask mode
+        match run_ask_mode(&ask_service, &topic, &cli).await {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("Error in ask mode: {}", e);
+                process::exit(1);
+            }
+        }
+    }
+
+    // Run the CLI application (command generation mode)
     match run_cli(&cli).await {
         Ok(was_blocked) => {
             // Exit with code 1 if command was blocked by safety validation
@@ -1002,6 +1020,261 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
     }
 
     Ok(())
+}
+
+/// Run ask mode - display informational response for questions
+async fn run_ask_mode(
+    ask_service: &caro::AskService,
+    topic: &caro::QuestionTopic,
+    cli: &Cli,
+) -> Result<(), CliError> {
+    // Generate response
+    let response = ask_service.generate_response(topic);
+
+    // Output based on format
+    let output_format = cli
+        .output
+        .as_ref()
+        .map(|s| s.to_lowercase())
+        .unwrap_or_else(|| "plain".to_string());
+
+    match output_format.as_str() {
+        "json" => {
+            // JSON output for programmatic use
+            let json_response = serde_json::json!({
+                "mode": "ask",
+                "question": topic.original_input,
+                "subject": topic.subject,
+                "question_type": format!("{:?}", topic.question_type),
+                "summary": response.summary,
+                "content": response.markdown,
+                "related_topics": response.related_topics,
+                "confidence": format!("{:?}", response.confidence),
+            });
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&json_response).map_err(|e| CliError::Internal {
+                    message: format!("JSON serialization failed: {}", e),
+                })?
+            );
+        }
+        "yaml" => {
+            // YAML output
+            let yaml_response = serde_json::json!({
+                "mode": "ask",
+                "question": topic.original_input,
+                "subject": topic.subject,
+                "question_type": format!("{:?}", topic.question_type),
+                "summary": response.summary,
+                "content": response.markdown,
+                "related_topics": response.related_topics,
+                "confidence": format!("{:?}", response.confidence),
+            });
+            println!(
+                "{}",
+                serde_yaml::to_string(&yaml_response).map_err(|e| CliError::Internal {
+                    message: format!("YAML serialization failed: {}", e),
+                })?
+            );
+        }
+        _ => {
+            // Plain text output with terminal-friendly Markdown rendering
+            print_ask_response(&response, topic, cli.verbose)?;
+        }
+    }
+
+    Ok(())
+}
+
+/// Print ask mode response with terminal-friendly formatting
+fn print_ask_response(
+    response: &caro::AskResponse,
+    topic: &caro::QuestionTopic,
+    verbose: bool,
+) -> Result<(), CliError> {
+    use colored::Colorize;
+
+    // Show confidence indicator for verbose mode
+    if verbose {
+        let confidence_label = match response.confidence {
+            caro::ResponseConfidence::High => "High confidence".green(),
+            caro::ResponseConfidence::Medium => "Medium confidence".yellow(),
+            caro::ResponseConfidence::Low => "Limited knowledge".red(),
+        };
+        eprintln!("{}", format!("[{}]", confidence_label).dimmed());
+        eprintln!();
+    }
+
+    // Render Markdown for terminal
+    render_markdown_to_terminal(&response.markdown)?;
+
+    // Show related topics
+    if !response.related_topics.is_empty() && verbose {
+        println!();
+        println!("{}", "Related:".dimmed());
+        println!(
+            "  {}",
+            response
+                .related_topics
+                .iter()
+                .map(|t| format!("`{}`", t))
+                .collect::<Vec<_>>()
+                .join(", ")
+                .dimmed()
+        );
+    }
+
+    // Hint about command generation
+    println!();
+    println!(
+        "{}",
+        format!(
+            "Tip: To generate a command, try: caro \"{}\"",
+            suggest_command_prompt(topic)
+        )
+        .dimmed()
+    );
+
+    Ok(())
+}
+
+/// Suggest a command prompt based on the question topic
+fn suggest_command_prompt(topic: &caro::QuestionTopic) -> String {
+    match topic.subject.as_str() {
+        "grep" => "find lines containing error in log.txt".to_string(),
+        "find" => "find all .txt files".to_string(),
+        "ls" => "list all files with details".to_string(),
+        "cat" => "show contents of file.txt".to_string(),
+        "chmod" => "make script.sh executable".to_string(),
+        "ps" => "show running processes".to_string(),
+        "kill" => "stop process 1234".to_string(),
+        "du" => "show disk usage of current directory".to_string(),
+        "df" => "show available disk space".to_string(),
+        "tar" => "create archive of folder".to_string(),
+        "ssh" => "connect to server.example.com".to_string(),
+        "curl" => "download file from URL".to_string(),
+        "docker" => "list running containers".to_string(),
+        "git" => "show git status".to_string(),
+        _ => format!("use {} to ...", topic.subject),
+    }
+}
+
+/// Render Markdown content to the terminal with colors
+fn render_markdown_to_terminal(markdown: &str) -> Result<(), CliError> {
+    use colored::Colorize;
+
+    let mut in_code_block = false;
+    let mut code_lang = String::new();
+
+    for line in markdown.lines() {
+        // Handle code blocks
+        if line.starts_with("```") {
+            if in_code_block {
+                // End of code block
+                in_code_block = false;
+                code_lang.clear();
+            } else {
+                // Start of code block
+                in_code_block = true;
+                code_lang = line.trim_start_matches('`').to_string();
+            }
+            continue;
+        }
+
+        if in_code_block {
+            // Inside code block - show with background color hint
+            println!("  {}", line.bright_cyan());
+            continue;
+        }
+
+        // Handle headers
+        if line.starts_with("### ") {
+            println!("{}", line.trim_start_matches("### ").bold());
+            continue;
+        }
+        if line.starts_with("## ") {
+            println!();
+            println!("{}", line.trim_start_matches("## ").bold().magenta());
+            continue;
+        }
+        if line.starts_with("# ") {
+            println!();
+            println!("{}", line.trim_start_matches("# ").bold().bright_magenta());
+            continue;
+        }
+
+        // Handle list items
+        if line.starts_with("- ") {
+            let content = line.trim_start_matches("- ");
+            // Check for inline code in list items
+            let formatted = format_inline_elements(content);
+            println!("  {} {}", "•".dimmed(), formatted);
+            continue;
+        }
+
+        // Handle bold text and inline code
+        let formatted = format_inline_elements(line);
+        println!("{}", formatted);
+    }
+
+    Ok(())
+}
+
+/// Format inline Markdown elements (bold, code, etc.)
+fn format_inline_elements(text: &str) -> String {
+    use colored::Colorize;
+
+    let mut result = String::new();
+    let mut chars = text.chars().peekable();
+    let mut in_code = false;
+    let mut in_bold = false;
+    let mut buffer = String::new();
+
+    while let Some(c) = chars.next() {
+        if c == '`' && !in_bold {
+            if in_code {
+                // End of inline code
+                result.push_str(&buffer.cyan().to_string());
+                buffer.clear();
+                in_code = false;
+            } else {
+                // Start of inline code
+                if !buffer.is_empty() {
+                    result.push_str(&buffer);
+                    buffer.clear();
+                }
+                in_code = true;
+            }
+        } else if c == '*' && chars.peek() == Some(&'*') && !in_code {
+            chars.next(); // consume second *
+            if in_bold {
+                // End of bold
+                result.push_str(&buffer.bold().to_string());
+                buffer.clear();
+                in_bold = false;
+            } else {
+                // Start of bold
+                if !buffer.is_empty() {
+                    result.push_str(&buffer);
+                    buffer.clear();
+                }
+                in_bold = true;
+            }
+        } else {
+            buffer.push(c);
+        }
+    }
+
+    // Flush remaining buffer
+    if in_code {
+        result.push_str(&buffer.cyan().to_string());
+    } else if in_bold {
+        result.push_str(&buffer.bold().to_string());
+    } else {
+        result.push_str(&buffer);
+    }
+
+    result
 }
 
 async fn show_configuration(cli: &Cli) -> Result<String, CliError> {

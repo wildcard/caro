@@ -27,6 +27,7 @@
 //! ```
 
 pub mod agent;
+pub mod ask;
 pub mod assessment;
 pub mod backends;
 pub mod cache;
@@ -86,3 +87,6 @@ pub use telemetry::{
     emit_event, set_global_collector, Event as TelemetryEvent, EventType as TelemetryEventType,
     SessionId as TelemetrySessionId, TelemetryCollector, TelemetryConfig, TelemetryStorage,
 };
+
+// Re-export ask mode types
+pub use ask::{AskResponse, AskService, InputType, QuestionTopic, QuestionType, ResponseConfidence};
