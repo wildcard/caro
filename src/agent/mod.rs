@@ -2,6 +2,9 @@ use crate::backends::{CommandGenerator, GeneratorError, StaticMatcher};
 use crate::context::ExecutionContext;
 use crate::models::{CommandRequest, GeneratedCommand, SafetyLevel, ShellType};
 use crate::prompts::{CapabilityProfile, CommandValidator, ValidationResult};
+use crate::reasoning::{
+    ClarificationQuestion, ReasoningConfig, ReasoningEngine, ReasoningResult,
+};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -10,7 +13,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tracing::{debug, info, warn};
 
-/// Agent loop for iterative command refinement
+/// Agent loop for iterative command refinement with optional reasoning mode
 pub struct AgentLoop {
     backend: Arc<dyn CommandGenerator>,
     static_matcher: Option<StaticMatcher>,
@@ -19,6 +22,10 @@ pub struct AgentLoop {
     _max_iterations: usize,
     timeout: Duration,
     confidence_threshold: f64,
+    /// Optional reasoning engine for query pre-processing
+    reasoning_engine: Option<ReasoningEngine>,
+    /// Last reasoning result (for inspection)
+    last_reasoning_result: Option<ReasoningResult>,
 }
 
 /// Command information for context enrichment
@@ -57,6 +64,8 @@ impl AgentLoop {
             _max_iterations: 2,
             timeout: Duration::from_secs(15), // Allow enough time for 2 iterations
             confidence_threshold: 0.8,        // Default: refine if confidence < 80%
+            reasoning_engine: None,
+            last_reasoning_result: None,
         }
     }
 
@@ -71,6 +80,56 @@ impl AgentLoop {
             self.static_matcher = None;
         }
         self
+    }
+
+    /// Enable reasoning mode with the given configuration
+    pub fn with_reasoning(mut self, config: ReasoningConfig) -> Self {
+        if config.enabled {
+            self.reasoning_engine = Some(ReasoningEngine::new(config));
+        }
+        self
+    }
+
+    /// Enable reasoning mode with default configuration
+    pub fn with_default_reasoning(mut self) -> Self {
+        self.reasoning_engine = Some(ReasoningEngine::with_defaults());
+        self
+    }
+
+    /// Check if reasoning mode is enabled
+    pub fn has_reasoning(&self) -> bool {
+        self.reasoning_engine.is_some()
+    }
+
+    /// Get the last reasoning result (if any)
+    pub fn last_reasoning(&self) -> Option<&ReasoningResult> {
+        self.last_reasoning_result.as_ref()
+    }
+
+    /// Analyze a query using the reasoning engine (if enabled)
+    ///
+    /// Returns the reasoning result which includes:
+    /// - Query classification and analysis
+    /// - Context needs
+    /// - Enriched context (if gathered)
+    /// - Clarification questions (if needed)
+    pub async fn analyze_query(&self, prompt: &str) -> Option<ReasoningResult> {
+        let engine = self.reasoning_engine.as_ref()?;
+        Some(engine.analyze(prompt, &self.context).await)
+    }
+
+    /// Check if a query needs clarification before generation
+    ///
+    /// Returns clarification questions if the query is too ambiguous
+    pub async fn needs_clarification(&self, prompt: &str) -> Option<Vec<ClarificationQuestion>> {
+        let engine = self.reasoning_engine.as_ref()?;
+        let result = engine.analyze(prompt, &self.context).await;
+
+        if !result.ready_to_generate && !result.clarifications_needed.is_empty() {
+            Some(result.clarifications_needed)
+        } else {
+            None
+        }
     }
 
     /// Generate command with iterative refinement
@@ -101,6 +160,51 @@ impl AgentLoop {
         }
 
         result
+    }
+
+    /// Generate command with reasoning pre-processing
+    ///
+    /// This method applies reasoning to analyze the query first, then generates
+    /// the command with enriched context if available.
+    pub async fn generate_with_reasoning(
+        &self,
+        prompt: &str,
+    ) -> Result<(GeneratedCommand, Option<ReasoningResult>), GeneratorError> {
+        let start = Instant::now();
+
+        // Apply reasoning if enabled
+        let reasoning_result = if let Some(ref engine) = self.reasoning_engine {
+            if engine.should_apply_reasoning(prompt) {
+                debug!("Applying reasoning to query: {}", prompt);
+                let result = engine.analyze(prompt, &self.context).await;
+
+                // Check if we need clarification
+                if !result.ready_to_generate {
+                    debug!("Query requires clarification, {} questions pending", result.clarifications_needed.len());
+                    // For now, we'll proceed anyway but log the issue
+                    // In a full implementation, we'd return early and ask the user
+                }
+
+                Some(result)
+            } else {
+                debug!("Skipping reasoning for simple query");
+                None
+            }
+        } else {
+            None
+        };
+
+        // Use enhanced prompt if available
+        let effective_prompt = reasoning_result
+            .as_ref()
+            .and_then(|r| r.enhanced_prompt.as_ref())
+            .map(|p| p.as_str())
+            .unwrap_or(prompt);
+
+        // Generate the command
+        let command = self.generate_command_impl(effective_prompt, start).await?;
+
+        Ok((command, reasoning_result))
     }
 
     /// Internal implementation of command generation

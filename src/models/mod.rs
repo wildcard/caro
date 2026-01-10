@@ -616,7 +616,7 @@ impl CacheManifest {
 }
 
 /// User configuration with preferences
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct UserConfiguration {
     pub default_shell: Option<ShellType>,
     pub safety_level: SafetyLevel,
@@ -625,6 +625,53 @@ pub struct UserConfiguration {
     pub cache_max_size_gb: u64,
     pub log_rotation_days: u32,
     pub telemetry: crate::telemetry::TelemetryConfig,
+    /// Reasoning mode configuration
+    #[serde(default)]
+    pub reasoning: ReasoningSettings,
+}
+
+/// Settings for the reasoning mode
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ReasoningSettings {
+    /// Whether reasoning mode is enabled
+    #[serde(default = "default_true")]
+    pub enabled: bool,
+    /// The reasoning mode to use (off, fast, auto, thorough, interactive)
+    #[serde(default)]
+    pub mode: String,
+    /// Whether to show reasoning steps in output
+    #[serde(default)]
+    pub show_reasoning: bool,
+    /// Context fetch policy (auto, safe, passive, ask, none)
+    #[serde(default = "default_safe")]
+    pub context_policy: String,
+    /// Maximum depth for file tree exploration
+    #[serde(default = "default_tree_depth")]
+    pub max_tree_depth: usize,
+}
+
+fn default_true() -> bool {
+    true
+}
+
+fn default_safe() -> String {
+    "safe".to_string()
+}
+
+fn default_tree_depth() -> usize {
+    3
+}
+
+impl Default for ReasoningSettings {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            mode: "auto".to_string(),
+            show_reasoning: false,
+            context_policy: "safe".to_string(),
+            max_tree_depth: 3,
+        }
+    }
 }
 
 impl Default for UserConfiguration {
@@ -637,6 +684,7 @@ impl Default for UserConfiguration {
             cache_max_size_gb: 10,
             log_rotation_days: 7,
             telemetry: crate::telemetry::TelemetryConfig::default(),
+            reasoning: ReasoningSettings::default(),
         }
     }
 }
@@ -674,6 +722,7 @@ pub struct UserConfigurationBuilder {
     cache_max_size_gb: u64,
     log_rotation_days: u32,
     telemetry: crate::telemetry::TelemetryConfig,
+    reasoning: ReasoningSettings,
 }
 
 impl Default for UserConfigurationBuilder {
@@ -693,6 +742,7 @@ impl UserConfigurationBuilder {
             cache_max_size_gb: defaults.cache_max_size_gb,
             log_rotation_days: defaults.log_rotation_days,
             telemetry: defaults.telemetry,
+            reasoning: defaults.reasoning,
         }
     }
 
@@ -731,6 +781,26 @@ impl UserConfigurationBuilder {
         self
     }
 
+    pub fn reasoning(mut self, reasoning: ReasoningSettings) -> Self {
+        self.reasoning = reasoning;
+        self
+    }
+
+    pub fn reasoning_enabled(mut self, enabled: bool) -> Self {
+        self.reasoning.enabled = enabled;
+        self
+    }
+
+    pub fn reasoning_mode(mut self, mode: impl Into<String>) -> Self {
+        self.reasoning.mode = mode.into();
+        self
+    }
+
+    pub fn show_reasoning(mut self, show: bool) -> Self {
+        self.reasoning.show_reasoning = show;
+        self
+    }
+
     pub fn build(self) -> Result<UserConfiguration, String> {
         let config = UserConfiguration {
             default_shell: self.default_shell,
@@ -740,6 +810,7 @@ impl UserConfigurationBuilder {
             cache_max_size_gb: self.cache_max_size_gb,
             log_rotation_days: self.log_rotation_days,
             telemetry: self.telemetry,
+            reasoning: self.reasoning,
         };
         config.validate()?;
         Ok(config)
@@ -777,12 +848,20 @@ impl ConfigSchema {
         known_keys.insert("telemetry.endpoint".to_string(), "String".to_string());
         known_keys.insert("telemetry.first_run".to_string(), "bool".to_string());
 
+        // Reasoning mode settings
+        known_keys.insert("reasoning.enabled".to_string(), "bool".to_string());
+        known_keys.insert("reasoning.mode".to_string(), "String (off, fast, auto, thorough, interactive)".to_string());
+        known_keys.insert("reasoning.show_reasoning".to_string(), "bool".to_string());
+        known_keys.insert("reasoning.context_policy".to_string(), "String (auto, safe, passive, ask, none)".to_string());
+        known_keys.insert("reasoning.max_tree_depth".to_string(), "usize".to_string());
+
         Self {
             known_sections: vec![
                 "general".to_string(),
                 "logging".to_string(),
                 "cache".to_string(),
                 "telemetry".to_string(),
+                "reasoning".to_string(),
             ],
             known_keys,
             deprecated_keys: HashMap::new(),

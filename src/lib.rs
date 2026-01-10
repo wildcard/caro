@@ -43,6 +43,7 @@ pub mod model_loader;
 pub mod models;
 pub mod platform;
 pub mod prompts;
+pub mod reasoning;
 pub mod safety;
 pub mod telemetry;
 pub mod version;
@@ -85,4 +86,12 @@ pub use prompts::{
 pub use telemetry::{
     emit_event, set_global_collector, Event as TelemetryEvent, EventType as TelemetryEventType,
     SessionId as TelemetrySessionId, TelemetryCollector, TelemetryConfig, TelemetryStorage,
+};
+
+// Re-export reasoning types
+pub use reasoning::{
+    ClarificationQuestion, ClarificationResult, ClarificationStrategy, ContextEnricher,
+    ContextFetchPolicy, ContextNeed, EnrichedContext, ProjectContext, ProjectDetector,
+    ProjectType, QueryAnalysis, QueryAnalyzer, QueryClassification, ReasoningConfig,
+    ReasoningEngine, ReasoningMode, ReasoningResult, ToolchainInfo,
 };

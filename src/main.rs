@@ -283,6 +283,27 @@ struct Cli {
     )]
     interactive: bool,
 
+    /// Reasoning mode (off, fast, auto, thorough)
+    #[arg(
+        long,
+        help = "Reasoning mode: off (disabled), fast (minimal), auto (default), thorough (full analysis)"
+    )]
+    reasoning: Option<String>,
+
+    /// Show reasoning chain in output
+    #[arg(
+        long = "show-reasoning",
+        help = "Display the reasoning chain used to analyze the query"
+    )]
+    show_reasoning: bool,
+
+    /// Enable clarification questions for ambiguous queries
+    #[arg(
+        long,
+        help = "Ask clarifying questions for ambiguous queries instead of best-guessing"
+    )]
+    clarify: bool,
+
     /// Trailing unquoted arguments forming the prompt
     #[arg(trailing_var_arg = true, num_args = 0..)]
     trailing_args: Vec<String>,
