@@ -40,9 +40,20 @@ pub struct CommandResponse {
 }
 
 impl AgentLoop {
+    /// Create a new AgentLoop with automatic profile detection.
+    /// Note: This uses a default Ubuntu profile. For proper system detection,
+    /// use `with_profile()` with a detected `CapabilityProfile`.
     pub fn new(backend: Arc<dyn CommandGenerator>, context: ExecutionContext) -> Self {
-        // Create static matcher with detected capabilities
-        let profile = CapabilityProfile::ubuntu(); // TODO: detect from system
+        Self::with_profile(backend, context, CapabilityProfile::ubuntu())
+    }
+
+    /// Create a new AgentLoop with a specific capability profile.
+    /// Use `CapabilityProfile::detect().await` to detect the current system's capabilities.
+    pub fn with_profile(
+        backend: Arc<dyn CommandGenerator>,
+        context: ExecutionContext,
+        profile: CapabilityProfile,
+    ) -> Self {
         let static_matcher = Some(StaticMatcher::new(profile.clone()));
         let validator = CommandValidator::new(profile);
 
