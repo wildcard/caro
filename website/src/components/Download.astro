@@ -7,9 +7,36 @@ import { SITE_CONFIG } from '../config/site';
     <h2>Get Started with Caro</h2>
     <p class="section-subtitle">Bring your loyal shell companion to your terminal</p>
 
-    <div class="install-command">
-      <code>bash &lt;(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)</code>
-      <button class="copy-button" data-command="bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)">Copy</button>
+    <div class="install-tabs">
+      <button class="tab-button active" data-tab="homebrew">Homebrew</button>
+      <button class="tab-button" data-tab="script">Install Script</button>
+      <button class="tab-button" data-tab="cargo">Cargo</button>
+    </div>
+
+    <div class="install-panels">
+      <div class="install-panel active" id="panel-homebrew">
+        <div class="install-command">
+          <code>brew install wildcard/caro/caro</code>
+          <button class="copy-button" data-command="brew install wildcard/caro/caro">Copy</button>
+        </div>
+        <p class="install-note">Recommended for macOS and Linux with Homebrew</p>
+      </div>
+
+      <div class="install-panel" id="panel-script">
+        <div class="install-command">
+          <code>bash &lt;(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)</code>
+          <button class="copy-button" data-command="bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)">Copy</button>
+        </div>
+        <p class="install-note">Auto-detects platform and installs the best option</p>
+      </div>
+
+      <div class="install-panel" id="panel-cargo">
+        <div class="install-command">
+          <code>cargo install caro</code>
+          <button class="copy-button" data-command="cargo install caro">Copy</button>
+        </div>
+        <p class="install-note">Requires Rust. Use <code>--features embedded-mlx</code> for Apple Silicon GPU.</p>
+      </div>
     </div>
 
     <p class="binary-intro">Or download pre-built binaries (v{SITE_CONFIG.version}):</p>
@@ -51,11 +78,11 @@ import { SITE_CONFIG } from '../config/site';
       <div class="quick-start">
         <h3>Quick Start</h3>
         <div class="quick-start-steps">
-          <p>After running the setup script above, just use Caro:</p>
+          <p>After installing, just use Caro:</p>
           <div class="quick-start-command">
             caro "find all python files modified in the last 7 days"
           </div>
-          <p>Caro will generate the command and keep you safe. The setup script handles all prerequisites including Rust compilation.</p>
+          <p>Caro will generate the command and keep you safe. All installation methods handle prerequisites automatically.</p>
         </div>
       </div>
     </div>
@@ -107,6 +134,64 @@ import { SITE_CONFIG } from '../config/site';
 
   .copy-button:hover {
     background: rgba(255, 255, 255, 0.3);
+  }
+
+  .install-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 30px auto 0;
+    max-width: 600px;
+  }
+
+  .tab-button {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.8);
+    padding: 10px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .tab-button:hover {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+  }
+
+  .tab-button.active {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+
+  .install-panels {
+    margin-top: 20px;
+  }
+
+  .install-panel {
+    display: none;
+  }
+
+  .install-panel.active {
+    display: block;
+  }
+
+  .install-note {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-top: 10px;
+    text-align: center;
+  }
+
+  .install-note code {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 0.9em;
   }
 
   .binary-intro {
@@ -301,6 +386,18 @@ import { SITE_CONFIG } from '../config/site';
       text-align: center;
     }
 
+    .install-tabs {
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tab-button {
+      padding: 8px 16px;
+      font-size: 13px;
+      flex: 1;
+      min-width: 100px;
+    }
+
     .install-command {
       flex-direction: column;
       gap: 12px;
@@ -392,6 +489,7 @@ import { SITE_CONFIG } from '../config/site';
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    // Copy button functionality
     const copyButtons = document.querySelectorAll('.copy-button');
     copyButtons.forEach(button => {
       button.addEventListener('click', () => {
@@ -403,6 +501,27 @@ import { SITE_CONFIG } from '../config/site';
             button.textContent = originalText;
           }, 2000);
         });
+      });
+    });
+
+    // Tab switching functionality
+    const tabButtons = document.querySelectorAll('.tab-button');
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tabId = button.getAttribute('data-tab');
+
+        // Update active tab button
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+
+        // Update active panel
+        document.querySelectorAll('.install-panel').forEach(panel => {
+          panel.classList.remove('active');
+        });
+        const targetPanel = document.getElementById(`panel-${tabId}`);
+        if (targetPanel) {
+          targetPanel.classList.add('active');
+        }
       });
     });
   });
