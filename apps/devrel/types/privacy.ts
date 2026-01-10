@@ -4,6 +4,9 @@
 
 import type { Redaction, SafetyLevel } from './artifacts';
 
+// Re-export for consumers
+export type { Redaction } from './artifacts';
+
 /**
  * Detected sensitive item before redaction
  */
