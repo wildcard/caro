@@ -4,14 +4,69 @@ import AnnouncementBanner from '../../components/AnnouncementBanner.astro';
 import Navigation from '../../components/Navigation.astro';
 import Footer from '../../components/Footer.astro';
 
-const posts = [
+// Draft posts are visible in dev/preview but hidden in production
+// Set draft: true to hide a post in production builds
+const allPosts = [
+  // ============================================
+  // DRAFT POSTS (visible in dev/preview only)
+  // Publishing cadence: Bi-weekly on Tuesdays
+  // ============================================
+  {
+    title: "The AI Command Line Safety Paradox",
+    description: "LLMs can generate shell commands in milliseconds. But should they? Why the rush to ship AI CLI tools without safety creates real risks—and how we built 52 patterns to prevent disaster.",
+    date: "January 21, 2026",
+    readTime: "8 min read",
+    slug: "ai-safety-paradox",
+    badge: "DRAFT",
+    draft: true
+  },
+  {
+    title: "Zero Cloud Dependencies: Building Offline-First AI",
+    description: "Your AI assistant shouldn't need an internet connection to help you. How Caro runs Qwen2.5-Coder locally in under 2 seconds—and why offline-first matters more than ever.",
+    date: "February 4, 2026",
+    readTime: "7 min read",
+    slug: "zero-cloud-dependencies",
+    badge: "DRAFT",
+    draft: true
+  },
+  {
+    title: "Platform-Aware AI: Teaching LLMs the Difference Between BSD and GNU",
+    description: "Why does sed -i work on Linux but break on macOS? Your AI should know. How Caro's 2-iteration agentic loop detects and fixes cross-platform compatibility issues.",
+    date: "February 18, 2026",
+    readTime: "9 min read",
+    slug: "platform-aware-ai",
+    badge: "DRAFT",
+    draft: true
+  },
+  {
+    title: "52 Regex Patterns That Could Save Your Server",
+    description: "We compiled every dangerous shell pattern so you don't have to learn them the hard way. From fork bombs to privilege escalation—a complete guide to command safety.",
+    date: "March 4, 2026",
+    readTime: "10 min read",
+    slug: "52-safety-patterns",
+    badge: "DRAFT",
+    draft: true
+  },
+  {
+    title: "Privacy-First Telemetry: How We Track Usage Without Tracking Users",
+    description: "We know how many commands succeed. We don't know what those commands are. Building ethical analytics that respects privacy while providing actionable insights.",
+    date: "March 18, 2026",
+    readTime: "6 min read",
+    slug: "privacy-first-telemetry",
+    badge: "DRAFT",
+    draft: true
+  },
+  // ============================================
+  // PUBLISHED POSTS
+  // ============================================
   {
     title: "Standing With Free Software: Our Debt to GNU, FSF, and FreeBSD",
     description: "Caro wouldn't exist without the pioneering work of the free software movement. Here's why we honor GNU, the FSF, and FreeBSD—and what their vision means for AI tools.",
     date: "January 4, 2026",
     readTime: "6 min read",
     slug: "standing-with-free-software",
-    badge: "NEW"
+    badge: "NEW",
+    draft: false
   },
   {
     title: "The Rust Revolution: How Modern Tools Are Reimagining Unix",
@@ -19,7 +74,8 @@ const posts = [
     date: "January 3, 2026",
     readTime: "7 min read",
     slug: "rust-unix-tools",
-    badge: null
+    badge: null,
+    draft: false
   },
   {
     title: "Announcing Caro: Your Terminal's AI Companion",
@@ -27,7 +83,8 @@ const posts = [
     date: "December 20, 2025",
     readTime: "5 min read",
     slug: "announcing-caro",
-    badge: null
+    badge: null,
+    draft: false
   },
   {
     title: "Building Caro with Security in Mind",
@@ -35,7 +92,8 @@ const posts = [
     date: "December 22, 2025",
     readTime: "7 min read",
     slug: "security-practices",
-    badge: null
+    badge: null,
+    draft: false
   },
   {
     title: "Batteries Included: Caro's Philosophy on Local AI",
@@ -43,7 +101,8 @@ const posts = [
     date: "December 19, 2025",
     readTime: "6 min read",
     slug: "batteries-included",
-    badge: null
+    badge: null,
+    draft: false
   },
   {
     title: "Why Caro? The Story Behind Your Terminal Companion",
@@ -51,9 +110,15 @@ const posts = [
     date: "December 17, 2025",
     readTime: "8 min read",
     slug: "why-caro",
-    badge: null
+    badge: null,
+    draft: false
   }
 ];
+
+// Filter drafts in production, show all in dev/preview
+const posts = import.meta.env.PROD
+  ? allPosts.filter(post => !post.draft)
+  : allPosts;
 ---
 
 <Layout

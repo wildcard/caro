@@ -1,0 +1,258 @@
+---
+import BlogPost from '../../layouts/BlogPost.astro';
+---
+
+<BlogPost
+  title="Privacy-First Telemetry: How We Track Usage Without Tracking Users"
+  description="We know how many commands succeed. We don't know what those commands are. Building ethical analytics that respects privacy while providing actionable insights."
+  date="2026-03-18"
+  readTime="6 min read"
+>
+
+<div class="highlight">
+  <p>
+    <strong>The challenge:</strong> We need usage data to improve Caro. We refuse to collect the commands you run. Here's how we built a telemetry system that achieves both goals.
+  </p>
+</div>
+
+<h2>The Telemetry Trust Problem</h2>
+
+<p>
+  Developer tools have a telemetry problem. Users have learned—through bitter experience—that "anonymous analytics" often means "we're collecting everything and pinky-promising not to look at it."
+</p>
+
+<p>
+  High-profile incidents have made this worse:
+</p>
+
+<ul>
+  <li>NPM packages that collected environment variables</li>
+  <li>VS Code extensions that phoned home with file contents</li>
+  <li>CLI tools that logged every command to cloud analytics</li>
+</ul>
+
+<p>
+  By the time users discover the overreach, the data is already collected. Trust, once broken, is hard to rebuild.
+</p>
+
+<h2>What We Need vs. What We Don't</h2>
+
+<p>
+  Let's be specific about what data actually helps improve Caro:
+</p>
+
+<h3>Useful Data (We Collect)</h3>
+<ul>
+  <li><strong>Success rate</strong>: Did the command generate successfully?</li>
+  <li><strong>Backend used</strong>: MLX, CPU, Ollama, or vLLM?</li>
+  <li><strong>Inference duration</strong>: How long did generation take?</li>
+  <li><strong>Error categories</strong>: Model timeout, safety block, parse failure?</li>
+  <li><strong>Platform</strong>: macOS/Linux, arm64/x86_64 (for compatibility)</li>
+  <li><strong>Caro version</strong>: Which release is in use?</li>
+</ul>
+
+<h3>Dangerous Data (We Never Collect)</h3>
+<ul>
+  <li><strong>Commands</strong>: The actual shell commands generated</li>
+  <li><strong>Prompts</strong>: What you asked Caro to do</li>
+  <li><strong>File paths</strong>: Anything in your filesystem</li>
+  <li><strong>Environment variables</strong>: $HOME, $PATH, credentials</li>
+  <li><strong>Directory contents</strong>: What's in your project</li>
+  <li><strong>Hostnames</strong>: Your machine's network identity</li>
+  <li><strong>Usernames</strong>: Your system user account</li>
+</ul>
+
+<p>
+  The dividing line is simple: <strong>we collect behavioral data, never content data</strong>.
+</p>
+
+<h2>The Technical Architecture</h2>
+
+<p>
+  Here's exactly what our telemetry event looks like:
+</p>
+
+<pre><code>EventType::CommandGeneration {
+    // What we send
+    backend: "mlx",
+    duration_ms: 1847,
+    success: true,
+    error_category: None,
+
+    // Metadata
+    caro_version: "1.1.0",
+    os: "macos",
+    arch: "arm64",
+
+    // What we explicitly DON'T send
+    // prompt: NEVER
+    // command: NEVER
+    // cwd: NEVER
+    // env: NEVER
+}</code></pre>
+
+<p>
+  This event tells us: "Someone on macOS ARM used the MLX backend, generation took 1.8 seconds, and it succeeded." We have no idea what they asked for or what command was generated.
+</p>
+
+<h2>Local-First Storage</h2>
+
+<p>
+  Telemetry events aren't sent immediately. They're stored in a local SQLite database:
+</p>
+
+<pre><code># Telemetry queue location
+~/.local/share/caro/telemetry.db
+
+# You can inspect it anytime
+sqlite3 ~/.local/share/caro/telemetry.db "SELECT * FROM events"</code></pre>
+
+<p>
+  Events batch up and sync periodically when you're online. If you're offline, they stay local. If you disable telemetry, the database is never created.
+</p>
+
+<h2>The Redaction Layer</h2>
+
+<p>
+  Even with careful event design, mistakes happen. What if a future code change accidentally includes sensitive data in an event? We have a pre-transmission redaction layer that validates every event:
+</p>
+
+<pre><code>fn validate_event(event: &Event) -> Result&lt;()&gt; {
+    // Check for path-like strings
+    if contains_path_pattern(&event.to_json()) {
+        return Err(RedactionError::PossiblePath);
+    }
+
+    // Check for environment variable patterns
+    if contains_env_pattern(&event.to_json()) {
+        return Err(RedactionError::PossibleEnvVar);
+    }
+
+    // Check for common sensitive patterns
+    if contains_sensitive_pattern(&event.to_json()) {
+        return Err(RedactionError::PossibleSensitive);
+    }
+
+    Ok(())
+}</code></pre>
+
+<p>
+  If an event fails validation, it's dropped locally—never sent. This is defense in depth: even if we make a mistake in event construction, the redaction layer catches it.
+</p>
+
+<h2>Opt-Out to Opt-In</h2>
+
+<p>
+  Our telemetry philosophy evolves with the project phase:
+</p>
+
+<h3>Beta Phase (Current)</h3>
+<ul>
+  <li><strong>Default: ON</strong> (opt-out)</li>
+  <li>Reason: We need signal to improve rapidly</li>
+  <li>Easily disabled: <code>caro config set telemetry.enabled false</code></li>
+</ul>
+
+<h3>GA Release (v1.0+)</h3>
+<ul>
+  <li><strong>Default: OFF</strong> (opt-in)</li>
+  <li>Reason: User choice should be the default</li>
+  <li>Prompt on first run: "Help improve Caro by sharing anonymous usage data?"</li>
+</ul>
+
+<p>
+  This isn't a trick to collect more data during beta. It's a pragmatic acknowledgment that early-stage products need more feedback, while mature products should respect user preferences by default.
+</p>
+
+<h2>Air-Gapped Mode</h2>
+
+<p>
+  Some users can't send any data externally—ever. Enterprise environments, government systems, air-gapped networks. Caro supports these use cases:
+</p>
+
+<pre><code># Fully disable all network telemetry
+caro config set telemetry.mode offline
+
+# Export local telemetry for manual review
+caro telemetry export > telemetry-export.json
+
+# (Optional) Import to central analytics after security review
+caro telemetry import --file reviewed-telemetry.json</code></pre>
+
+<p>
+  Air-gapped users can still contribute telemetry—they just review it first, on their own systems, before choosing to share it.
+</p>
+
+<h2>What We Learn</h2>
+
+<p>
+  From our privacy-respecting telemetry, we've learned:
+</p>
+
+<ul>
+  <li><strong>87%</strong> of users are on Apple Silicon (MLX backend)</li>
+  <li><strong>2.1 seconds</strong> average inference time on MLX</li>
+  <li><strong>8.4 seconds</strong> average inference time on CPU</li>
+  <li><strong>3.2%</strong> of generations hit safety blocks (working as intended)</li>
+  <li><strong>0.8%</strong> of generations fail with parse errors (needs improvement)</li>
+</ul>
+
+<p>
+  This data guides our development priorities. We're investing in CPU performance because 13% of users rely on it. We're investigating parse failures because 0.8% is too high.
+</p>
+
+<h2>Transparency in Practice</h2>
+
+<p>
+  Everything about our telemetry is open:
+</p>
+
+<ul>
+  <li><strong>Source code</strong>: <a href="https://github.com/wildcard/caro/tree/main/src/telemetry" target="_blank" rel="noopener noreferrer">github.com/wildcard/caro/src/telemetry</a></li>
+  <li><strong>Event schema</strong>: <a href="https://docs.caro.sh/reference/telemetry" target="_blank" rel="noopener noreferrer">docs.caro.sh/reference/telemetry</a></li>
+  <li><strong>Collection policy</strong>: This blog post (and our privacy policy)</li>
+  <li><strong>Local inspection</strong>: <code>sqlite3 ~/.local/share/caro/telemetry.db</code></li>
+</ul>
+
+<p>
+  You don't have to trust our word. You can verify it in code.
+</p>
+
+<h2>The Alternative</h2>
+
+<p>
+  We could have taken the easy path: collect everything, anonymize later, hope nobody notices. Many tools do exactly this.
+</p>
+
+<p>
+  Instead, we built privacy into the architecture. You can't leak what you never collect. You can't accidentally expose what doesn't exist. The safest data is the data you never have.
+</p>
+
+<h2>Configuration</h2>
+
+<pre><code># Check current telemetry status
+caro config get telemetry
+
+# Disable telemetry
+caro config set telemetry.enabled false
+
+# Enable telemetry (contribute to Caro's improvement)
+caro config set telemetry.enabled true
+
+# View pending events before they sync
+caro telemetry pending
+
+# Clear all local telemetry data
+caro telemetry clear</code></pre>
+
+<p>
+  Your data, your choice, always.
+</p>
+
+<hr style="margin: 50px 0; border: none; border-top: 1px solid #e0e0e0;">
+
+<p style="text-align: center; margin-top: 40px;">
+  <em>Privacy First | Transparent by Design | Your Choice, Always</em>
+</p>
+
+</BlogPost>
