@@ -1,0 +1,70 @@
+# Social Content Queue
+# Posts pending approval and scheduled for publishing
+# Managed by /social-queue skill
+
+metadata:
+  created: "2026-01-11T00:00:00Z"
+  last_updated: "2026-01-11T00:00:00Z"
+  pending_approval: 0
+  scheduled: 0
+  posted_today: 0
+
+# Post statuses:
+#   draft            - Being composed
+#   pending_approval - Awaiting admin approval
+#   approved         - Approved, pending scheduling
+#   scheduled        - Scheduled for posting
+#   posting          - Currently being posted
+#   posted           - Successfully posted
+#   failed           - Posting failed (will retry)
+
+queue: []
+  # Example post:
+  # - id: "post-2026-01-11-001"
+  #   type: "release_announcement"
+  #   created: "2026-01-11T14:00:00Z"
+  #   created_by: "release_pipeline"  # or "manual", "idea_sourcing"
+  #   trigger_source: "v1.1.0 release"
+  #
+  #   status: "pending_approval"
+  #
+  #   content:
+  #     twitter:
+  #       text: |
+  #         🚀 Caro v1.1.0 is here!
+  #
+  #         ✅ Fish shell support
+  #         ✅ 25% faster inference
+  #
+  #         Install: curl -sSL https://setup.caro.sh | bash
+  #
+  #         #CLI #Rust #AI
+  #       media: []
+  #       scheduled_for: "2026-01-13T09:00:00Z"
+  #
+  #     linkedin:
+  #       text: |
+  #         Excited to announce Caro v1.1.0!
+  #         ...
+  #       media: []
+  #       scheduled_for: "2026-01-13T09:30:00Z"
+  #
+  #     bluesky:
+  #       text: |
+  #         Caro v1.1.0 just dropped!
+  #         ...
+  #       scheduled_for: "2026-01-13T10:00:00Z"
+  #
+  #   approval:
+  #     required: true
+  #     approved_by: null
+  #     approved_at: null
+  #     rejection_reason: null
+  #
+  #   engagement: null  # Filled after posting
+  #     # twitter:
+  #     #   posted_at: "2026-01-13T09:00:00Z"
+  #     #   url: "https://twitter.com/..."
+  #     #   metrics_24h:
+  #     #     impressions: 1234
+  #     #     engagements: 89

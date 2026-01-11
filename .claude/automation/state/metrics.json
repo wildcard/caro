@@ -1,0 +1,46 @@
+{
+  "created": "2026-01-11T00:00:00Z",
+  "last_updated": "2026-01-11T00:00:00Z",
+  "summary": {
+    "total_runs": 0,
+    "successful_runs": 0,
+    "failed_runs": 0,
+    "success_rate": 0
+  },
+  "by_loop": {
+    "qa_automation_loop": {
+      "runs": 0,
+      "avg_duration_seconds": 0,
+      "issues_created": 0,
+      "pass_rate": 0
+    },
+    "visual_regression": {
+      "runs": 0,
+      "avg_duration_seconds": 0,
+      "screenshots_captured": 0,
+      "failures": 0
+    },
+    "idea_sourcing": {
+      "runs": 0,
+      "ideas_sourced": 0,
+      "ideas_approved": 0,
+      "ideas_rejected": 0
+    },
+    "pr_management": {
+      "runs": 0,
+      "prs_processed": 0,
+      "rebases": 0,
+      "reviews_requested": 0
+    },
+    "social_queue": {
+      "posts_created": 0,
+      "posts_approved": 0,
+      "posts_published": 0,
+      "avg_engagement_rate": 0
+    }
+  },
+  "trends": {
+    "weekly": [],
+    "monthly": []
+  }
+}

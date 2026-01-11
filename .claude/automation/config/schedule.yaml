@@ -1,0 +1,112 @@
+# Automation Schedule Configuration
+# This file defines when each automation loop runs
+
+timezone: "America/Los_Angeles"
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TECHNICAL PACK - Fully Automated
+# ═══════════════════════════════════════════════════════════════════════════
+
+technical:
+  qa_automation_loop:
+    description: "Run unbiased beta testers and create issues"
+    schedule: "0 9 * * *"           # Daily 9 AM
+    skill: "/qa-automation-loop"
+    enabled: true
+    timeout_minutes: 30
+    notify_on_failure: true
+
+  visual_regression:
+    description: "Capture and compare website screenshots"
+    schedule: "0 2 * * *"           # Nightly 2 AM
+    skill: "/visual-regression-test"
+    enabled: true
+    timeout_minutes: 15
+    notify_on_failure: true
+
+  sync_engine:
+    description: "Sync content across docs, roadmap, installation"
+    schedule: "0 18 * * *"          # Daily 6 PM
+    skill: "/caro.sync all"
+    enabled: true
+    timeout_minutes: 10
+    notify_on_failure: false
+
+# ═══════════════════════════════════════════════════════════════════════════
+# CONTENT PACK - Semi-Automated (requires approval)
+# ═══════════════════════════════════════════════════════════════════════════
+
+content:
+  idea_sourcing:
+    description: "Source ideas from HN, Reddit, GitHub, etc."
+    schedule: "0 8 * * *"           # Daily 8 AM
+    skill: "/idea-sourcing-loop"
+    enabled: true
+    timeout_minutes: 20
+    notify_on_completion: true
+
+  content_digest:
+    description: "Weekly content ideas summary"
+    schedule: "0 9 * * 1"           # Weekly Monday 9 AM
+    skill: "/content-digest"
+    enabled: false  # Not yet implemented
+    timeout_minutes: 15
+
+# ═══════════════════════════════════════════════════════════════════════════
+# MANAGEMENT PACK - Automated with oversight
+# ═══════════════════════════════════════════════════════════════════════════
+
+management:
+  pr_management:
+    description: "Review PRs, rebase stale, respond to agents"
+    schedule: "0 */4 * * *"         # Every 4 hours
+    skill: "/pr-management-loop"
+    enabled: true
+    timeout_minutes: 20
+    notify_on_issues: true
+
+  stale_revival:
+    description: "Weekly revival of stale PRs and issues"
+    schedule: "0 10 * * 1"          # Weekly Monday 10 AM
+    skill: "/stale-revival-loop"
+    enabled: true
+    timeout_minutes: 30
+
+  metrics_collection:
+    description: "Collect and aggregate automation metrics"
+    schedule: "0 0 * * *"           # Daily midnight
+    skill: "/metrics-collection"
+    enabled: true
+    timeout_minutes: 10
+
+  roadmap_status:
+    description: "Update roadmap progress from GitHub"
+    schedule: "0 6 * * *"           # Daily 6 AM
+    skill: "/caro.sync roadmap"
+    enabled: true
+    timeout_minutes: 10
+
+# ═══════════════════════════════════════════════════════════════════════════
+# GLOBAL SETTINGS
+# ═══════════════════════════════════════════════════════════════════════════
+
+settings:
+  # Default notification channels
+  notifications:
+    slack_webhook: null  # Set in environment: AUTOMATION_SLACK_WEBHOOK
+    email: null          # Set in environment: AUTOMATION_EMAIL
+
+  # Retry behavior
+  retry:
+    max_attempts: 2
+    delay_minutes: 5
+
+  # Logging
+  logging:
+    level: "info"  # debug, info, warn, error
+    keep_days: 30
+
+  # Feature flags
+  features:
+    dry_run: false        # Set to true to disable actual actions
+    parallel_runs: false  # Allow multiple loops to run simultaneously
