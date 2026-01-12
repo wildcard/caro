@@ -190,15 +190,20 @@ impl CliApp {
     async fn create_backend(
         _user_config: &crate::models::UserConfiguration,
     ) -> Result<Box<dyn CommandGenerator>, CliError> {
-        // For test builds, use mock backend
-        #[cfg(any(test, debug_assertions))]
+        // For test builds only, use mock backend
+        #[cfg(test)]
         {
             Ok(Box::new(MockCommandGenerator::new()))
         }
 
-        // Production backend selection
-        #[cfg(not(any(test, debug_assertions)))]
+        // Real backend selection (debug and release builds)
+        #[cfg(not(test))]
         {
+            // Allow explicit mock backend via environment variable for testing
+            if std::env::var("CARO_MOCK_BACKEND").is_ok() {
+                tracing::info!("Using mock backend (CARO_MOCK_BACKEND set)");
+                return Ok(Box::new(MockCommandGenerator::new()));
+            }
             use crate::backends::embedded::EmbeddedModelBackend;
             use std::sync::Arc;
 

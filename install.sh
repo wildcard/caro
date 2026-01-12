@@ -4,12 +4,32 @@
 #
 # Usage:
 #   bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)
+#   bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh) -- --force
 #   bash <(wget -qO- https://setup.caro.sh)
 #   curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash -s -- --force
 #   wget -qO- https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
+#
+# Options:
+#   --force    Force reinstall even if same version is already installed
 
 # Don't use set -e - we handle errors explicitly for better resilience
 set -u
+
+# Parse command line arguments
+FORCE_INSTALL="false"
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --force|-f)
+            FORCE_INSTALL="true"
+            shift
+            ;;
+        *)
+            # Unknown option, ignore
+            shift
+            ;;
+    esac
+done
 
 # Colors for output
 RED='\033[0;31m'
@@ -112,12 +132,26 @@ try_cargo_install() {
         cargo_features="--features embedded-mlx"
     fi
 
+    # Build cargo install command
+    local cargo_cmd="cargo install caro $cargo_features"
+    if [ "$FORCE_INSTALL" = "true" ]; then
+        cargo_cmd="$cargo_cmd --force"
+        echo -e "${YELLOW}Force install requested${NC}"
+    fi
+
     # Capture both stdout and stderr
     local install_output
     local install_exit_code
 
-    install_output=$(cargo install caro $cargo_features 2>&1)
+    install_output=$($cargo_cmd 2>&1)
     install_exit_code=$?
+
+    # Check if package was ignored (already installed) and force wasn't specified
+    if echo "$install_output" | grep -q "is already installed"; then
+        echo -e "${YELLOW}Caro is already installed. Reinstalling with --force...${NC}"
+        install_output=$(cargo install caro $cargo_features --force 2>&1)
+        install_exit_code=$?
+    fi
 
     if [ $install_exit_code -eq 0 ]; then
         echo -e "${GREEN}✓ Successfully installed via cargo${NC}"
