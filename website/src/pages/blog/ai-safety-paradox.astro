@@ -81,7 +81,7 @@ rm -rf ~/*</code></pre>
 
 <pre><code>// Example patterns (simplified)
 "rm\\s+-rf\\s+/"           // Recursive force delete from root
-":.*\\(.*\\).*\\{.*:\\|.*&" // Fork bomb detection
+":.*\\(.*\\).*\\&#123;.*:\\|.*&" // Fork bomb detection
 "chmod\\s+777\\s+/"        // World-writable root
 "dd\\s+if=/dev/zero"       // Disk wipe operations</code></pre>
 
