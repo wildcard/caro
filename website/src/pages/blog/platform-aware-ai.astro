@@ -67,7 +67,7 @@ find . -delete -name "*.tmp"  # Also works on GNU, fails on BSD</code></pre>
 
 <h3>xargs (Build Command Lines)</h3>
 <pre><code># GNU (Linux) - replacement string
-xargs -I{} cp {} /dest
+xargs -I&#123;&#125; cp &#123;&#125; /dest
 
 # BSD (macOS) - same, but -J for multiple replacements
 xargs -J% mv % /dest</code></pre>
@@ -120,7 +120,7 @@ date -v-1d</code></pre>
 
 Context: macOS arm64, zsh, BSD tools
 
-Generated: find . -name "*.py" -exec sed -i '' 's/\t/  /g' {} +
+Generated: find . -name "*.py" -exec sed -i '' 's/\t/  /g' &#123;&#125; +
 
 Confidence: 85%</code></pre>
 
@@ -159,7 +159,7 @@ available_commands: ["rg", "fd", "bat", "exa", ...]
 $ fd -e py -x rg "pattern"
 
 # Instead of:
-$ find . -name "*.py" -exec grep "pattern" {} +</code></pre>
+$ find . -name "*.py" -exec grep "pattern" &#123;&#125; +</code></pre>
 
 <p>
   If you've installed <code>ripgrep</code>, Caro knows to use <code>rg</code> instead of <code>grep</code>. If you have <code>fd</code>, it'll prefer that over <code>find</code>. Your tools, your preferences.
@@ -222,12 +222,12 @@ Confidence: 72%
 # Issue detected: BSD sort doesn't support -h for human-readable
 
 # Step 5: Refined output
-du -sk * | sort -rn | head -10 | awk '{printf "%.1fM\t%s\n", $1/1024, $2}'
+du -sk * | sort -rn | head -10 | awk '&#123;printf "%.1fM\t%s\n", $1/1024, $2&#125;'
 Confidence: 94%
 
 # Step 6: Present to user
 Generated command:
-  du -sk * | sort -rn | head -10 | awk '{printf "%.1fM\t%s\n", $1/1024, $2}'
+  du -sk * | sort -rn | head -10 | awk '&#123;printf "%.1fM\t%s\n", $1/1024, $2&#125;'
 
 Execute this command? (y/N)</code></pre>
 

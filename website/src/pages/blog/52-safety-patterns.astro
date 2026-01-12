@@ -93,15 +93,15 @@ mkfs(\.[a-z0-9]+)?\s+/dev/
 </p>
 
 <h3>Pattern 8: Classic Fork Bomb</h3>
-<pre><code># BLOCKED: :(){ :|:& };:
-:.*\(\).*\{.*:\|.*&
+<pre><code># BLOCKED: :()&#123; :|:& &#125;;:
+:.*\(\).*&#123;.*:\|.*&
 
 # Why: Exponentially spawns processes until system crashes
 # Explanation: Function : calls itself twice, backgrounded</code></pre>
 
 <h3>Pattern 9: Bash Fork Bomb</h3>
-<pre><code># BLOCKED: bomb() { bomb | bomb & }; bomb
-\w+\(\)\s*\{\s*\w+\s*\|\s*\w+\s*&
+<pre><code># BLOCKED: bomb() &#123; bomb | bomb & &#125;; bomb
+\w+\(\)\s*&#123;\s*\w+\s*\|\s*\w+\s*&
 
 # Why: Same as above, just more readable
 # Both are equally devastating</code></pre>
@@ -244,8 +244,8 @@ tar\s+-[xz]+f\s+.*\.(tar\.gz|tgz)\s*$
 
 <h3>Resource Exhaustion (11-18)</h3>
 <ol start="11">
-  <li><code>:(){ :|:& };:</code> - Classic fork bomb</li>
-  <li><code>bomb() { bomb | bomb & }</code> - Named fork bomb</li>
+  <li><code>:()&#123; :|:& &#125;;:</code> - Classic fork bomb</li>
+  <li><code>bomb() &#123; bomb | bomb & &#125;</code> - Named fork bomb</li>
   <li><code>cat /dev/zero > /dev/shm</code> - Memory fill</li>
   <li><code>yes > /dev/null &</code> (repeated) - CPU exhaustion</li>
   <li><code>while true; do</code> (no sleep) - Infinite loop</li>
@@ -313,15 +313,15 @@ tar\s+-[xz]+f\s+.*\.(tar\.gz|tgz)\s*$
 <pre><code>use once_cell::sync::Lazy;
 use regex::Regex;
 
-static DANGEROUS_PATTERNS: Lazy&lt;Vec&lt;CompiledPattern&gt;&gt; = Lazy::new(|| {
+static DANGEROUS_PATTERNS: Lazy&lt;Vec&lt;CompiledPattern&gt;&gt; = Lazy::new(|| &#123;
     PATTERNS.iter()
-        .map(|p| CompiledPattern {
+        .map(|p| CompiledPattern &#123;
             regex: Regex::new(p.pattern).unwrap(),
             severity: p.severity,
             description: p.description,
-        })
+        &#125;)
         .collect()
-});</code></pre>
+&#125;);</code></pre>
 
 <p>
   Validation runs in under 1ms for any command length.
