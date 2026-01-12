@@ -124,6 +124,7 @@ pub struct ParsedArgs {
 pub trait IntoCliArgs {
     fn prompt(&self) -> Option<String>;
     fn shell(&self) -> Option<String>;
+    fn model(&self) -> Option<String>;
     fn safety(&self) -> Option<String>;
     fn output(&self) -> Option<String>;
     fn confirm(&self) -> bool;
@@ -140,22 +141,30 @@ impl CliApp {
     /// Uses configuration-driven backend selection with embedded model as primary
     /// and optional remote backend fallbacks.
     pub async fn new() -> Result<Self, CliError> {
-        Self::with_config(CliConfig::default()).await
+        Self::with_model_override(CliConfig::default(), None).await
     }
 
-    /// Create CLI application with custom configuration
-    pub async fn with_config(config: CliConfig) -> Result<Self, CliError> {
+    /// Create CLI application with model override from CLI args
+    pub async fn with_model_override(
+        config: CliConfig,
+        model_override: Option<String>,
+    ) -> Result<Self, CliError> {
         // Load user configuration to determine backend preferences
         let config_manager =
             crate::config::ConfigManager::new().map_err(|e| CliError::ConfigurationError {
                 message: format!("Failed to create config manager: {}", e),
             })?;
 
-        let user_config = config_manager
+        let mut user_config = config_manager
             .load()
             .map_err(|e| CliError::ConfigurationError {
                 message: format!("Failed to load configuration: {}", e),
             })?;
+
+        // CLI model override takes precedence over config file
+        if let Some(model) = model_override {
+            user_config.default_model = Some(model);
+        }
 
         // Create backend based on configuration
         let backend = Self::create_backend(&user_config).await?;
@@ -188,11 +197,12 @@ impl CliApp {
 
     /// Create appropriate backend based on user configuration
     async fn create_backend(
-        _user_config: &crate::models::UserConfiguration,
+        user_config: &crate::models::UserConfiguration,
     ) -> Result<Box<dyn CommandGenerator>, CliError> {
         // For test builds only, use mock backend
         #[cfg(test)]
         {
+            let _ = user_config; // Suppress unused warning in test builds
             Ok(Box::new(MockCommandGenerator::new()))
         }
 
@@ -204,10 +214,11 @@ impl CliApp {
                 tracing::info!("Using mock backend (CARO_MOCK_BACKEND set)");
                 return Ok(Box::new(MockCommandGenerator::new()));
             }
+
             use crate::backends::embedded::EmbeddedModelBackend;
             use std::sync::Arc;
 
-            // Create embedded backend as fallback
+            // Create embedded backend (used as fallback or primary)
             let embedded_backend =
                 EmbeddedModelBackend::new().map_err(|e| CliError::ConfigurationError {
                     message: format!("Failed to create embedded backend: {}", e),
@@ -215,17 +226,109 @@ impl CliApp {
 
             let embedded_arc: Arc<EmbeddedModelBackend> = Arc::new(embedded_backend);
 
-            // Try remote backends with embedded fallback based on configuration
+            // Check for user-specified model preference
+            let model_preference = user_config.default_model.as_deref();
+
+            // If user explicitly specified a model, try that first
+            if let Some(model) = model_preference {
+                tracing::info!("User requested backend: {}", model);
+
+                match model {
+                    "embedded" => {
+                        tracing::info!("Using embedded backend (user preference)");
+                        return match std::sync::Arc::try_unwrap(embedded_arc) {
+                            Ok(backend) => Ok(Box::new(backend)),
+                            Err(arc) => Ok(Box::new((*arc).clone())),
+                        };
+                    }
+                    #[cfg(feature = "remote-backends")]
+                    "ollama" => {
+                        use crate::backends::remote::OllamaBackend;
+                        use reqwest::Url;
+
+                        if let Ok(ollama_url) = Url::parse("http://localhost:11434") {
+                            let ollama_backend =
+                                OllamaBackend::new(ollama_url, "codellama:7b".to_string())
+                                    .map_err(|e| CliError::ConfigurationError {
+                                        message: format!("Failed to create Ollama backend: {}", e),
+                                    })?
+                                    .with_embedded_fallback(embedded_arc.clone());
+
+                            if ollama_backend.is_available().await {
+                                tracing::info!("Using Ollama backend (user preference)");
+                                return Ok(Box::new(ollama_backend));
+                            } else {
+                                tracing::warn!(
+                                    "Ollama backend not available, falling back to embedded"
+                                );
+                            }
+                        }
+                    }
+                    #[cfg(feature = "remote-backends")]
+                    "exo" => {
+                        use crate::backends::remote::ExoBackend;
+                        use reqwest::Url;
+
+                        if let Ok(exo_url) = Url::parse("http://localhost:52415") {
+                            let exo_backend =
+                                ExoBackend::new(exo_url, "llama-3.2-3b".to_string())
+                                    .map_err(|e| CliError::ConfigurationError {
+                                        message: format!("Failed to create Exo backend: {}", e),
+                                    })?
+                                    .with_embedded_fallback(embedded_arc.clone());
+
+                            if exo_backend.is_available().await {
+                                tracing::info!("Using Exo backend (user preference)");
+                                return Ok(Box::new(exo_backend));
+                            } else {
+                                tracing::warn!(
+                                    "Exo backend not available, falling back to embedded"
+                                );
+                            }
+                        }
+                    }
+                    #[cfg(feature = "remote-backends")]
+                    "vllm" => {
+                        use crate::backends::remote::VllmBackend;
+                        use reqwest::Url;
+
+                        if let Ok(vllm_url) = Url::parse("http://localhost:8000") {
+                            let vllm_backend =
+                                VllmBackend::new(vllm_url, "codellama/CodeLlama-7b-hf".to_string())
+                                    .map_err(|e| CliError::ConfigurationError {
+                                        message: format!("Failed to create vLLM backend: {}", e),
+                                    })?
+                                    .with_embedded_fallback(embedded_arc.clone());
+
+                            if vllm_backend.is_available().await {
+                                tracing::info!("Using vLLM backend (user preference)");
+                                return Ok(Box::new(vllm_backend));
+                            } else {
+                                tracing::warn!(
+                                    "vLLM backend not available, falling back to embedded"
+                                );
+                            }
+                        }
+                    }
+                    #[cfg(not(feature = "remote-backends"))]
+                    "ollama" | "exo" | "vllm" => {
+                        tracing::warn!(
+                            "Remote backends not compiled in. Build with --features remote-backends"
+                        );
+                    }
+                    _ => {
+                        tracing::warn!("Unknown backend '{}', using auto-detect", model);
+                    }
+                }
+            }
+
+            // Auto-detect: try remote backends with embedded fallback
             #[cfg(feature = "remote-backends")]
             {
                 use crate::backends::remote::{ExoBackend, OllamaBackend, VllmBackend};
                 use reqwest::Url;
 
-                // TODO: Add backend preference to user configuration
                 // Priority: Exo cluster > Ollama > vLLM > Embedded
-                // Exo provides distributed inference across multiple devices
-
-                // Try Exo cluster first (distributed inference with RDMA support)
                 if let Ok(exo_url) = Url::parse("http://localhost:52415") {
                     let exo_backend = ExoBackend::new(exo_url, "llama-3.2-3b".to_string())
                         .map_err(|e| CliError::ConfigurationError {
@@ -234,7 +337,7 @@ impl CliApp {
                         .with_embedded_fallback(embedded_arc.clone());
 
                     if exo_backend.is_available().await {
-                        tracing::info!("Using Exo cluster backend with embedded fallback");
+                        tracing::info!("Using Exo cluster backend (auto-detected)");
                         return Ok(Box::new(exo_backend));
                     }
                 }
@@ -247,7 +350,7 @@ impl CliApp {
                         .with_embedded_fallback(embedded_arc.clone());
 
                     if ollama_backend.is_available().await {
-                        tracing::info!("Using Ollama backend with embedded fallback");
+                        tracing::info!("Using Ollama backend (auto-detected)");
                         return Ok(Box::new(ollama_backend));
                     }
                 }
@@ -261,7 +364,7 @@ impl CliApp {
                             .with_embedded_fallback(embedded_arc.clone());
 
                     if vllm_backend.is_available().await {
-                        tracing::info!("Using vLLM backend with embedded fallback");
+                        tracing::info!("Using vLLM backend (auto-detected)");
                         return Ok(Box::new(vllm_backend));
                     }
                 }

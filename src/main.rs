@@ -159,11 +159,38 @@ enum ExportFormat {
     Markdown,
 }
 
+/// Config subcommands
+#[derive(Parser, Clone)]
+enum ConfigCommands {
+    /// Set a configuration value
+    Set {
+        /// Configuration key (model, shell, safety)
+        key: String,
+        /// Value to set
+        value: String,
+    },
+    /// Get a configuration value
+    Get {
+        /// Configuration key (model, shell, safety)
+        key: String,
+    },
+    /// Show all configuration
+    Show,
+    /// Reset configuration to defaults
+    Reset,
+}
+
 /// Subcommands for caro
 #[derive(Parser, Clone)]
 enum Commands {
     /// Run system diagnostics and health checks
     Doctor,
+
+    /// Manage configuration settings
+    Config {
+        #[command(subcommand)]
+        command: ConfigCommands,
+    },
 
     // NOTE: Assess and Telemetry subcommands are disabled in v1.1.0-beta.1
     // They will be implemented in a future release
@@ -235,6 +262,14 @@ struct Cli {
     )]
     shell: Option<String>,
 
+    /// Model/backend to use for inference
+    #[arg(
+        short = 'm',
+        long,
+        help = "Model backend (embedded, ollama, exo, vllm)"
+    )]
+    model: Option<String>,
+
     /// Safety level for command validation
     #[arg(long, help = "Safety level (strict, moderate, permissive)")]
     safety: Option<String>,
@@ -296,6 +331,10 @@ impl IntoCliArgs for Cli {
 
     fn shell(&self) -> Option<String> {
         self.shell.clone()
+    }
+
+    fn model(&self) -> Option<String> {
+        self.model.clone()
     }
 
     fn safety(&self) -> Option<String> {
@@ -368,6 +407,159 @@ async fn run_assessment_command(
         // Default: human-readable format
         let formatted = formatters::human::format(&result);
         println!("{}", formatted);
+    }
+
+    Ok(())
+}
+
+// =============================================================================
+// Configuration Commands
+// =============================================================================
+
+/// Handle configuration subcommands
+fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
+    use colored::Colorize;
+
+    let config_manager =
+        ConfigManager::new().map_err(|e| format!("Failed to access config: {}", e))?;
+
+    match command {
+        ConfigCommands::Set { key, value } => {
+            let mut config = config_manager
+                .load()
+                .map_err(|e| format!("Failed to load config: {}", e))?;
+
+            match key.to_lowercase().as_str() {
+                "model" => {
+                    // Validate model name
+                    let valid_models = ["embedded", "ollama", "exo", "vllm"];
+                    if !valid_models.contains(&value.to_lowercase().as_str()) {
+                        return Err(format!(
+                            "Invalid model '{}'. Valid options: {}",
+                            value,
+                            valid_models.join(", ")
+                        ));
+                    }
+                    config.default_model = Some(value.to_lowercase());
+                    println!(
+                        "{} Set default model to '{}'",
+                        "✓".green(),
+                        config.default_model.as_ref().unwrap()
+                    );
+                }
+                "shell" => {
+                    let shell: caro::models::ShellType = value
+                        .parse()
+                        .map_err(|e| format!("Invalid shell '{}': {}", value, e))?;
+                    config.default_shell = Some(shell);
+                    println!("{} Set default shell to '{:?}'", "✓".green(), shell);
+                }
+                "safety" => {
+                    let level: caro::models::SafetyLevel = value
+                        .parse()
+                        .map_err(|e| format!("Invalid safety level '{}': {}", value, e))?;
+                    config.safety_level = level;
+                    println!("{} Set safety level to '{:?}'", "✓".green(), level);
+                }
+                _ => {
+                    return Err(format!(
+                        "Unknown config key '{}'. Valid keys: model, shell, safety",
+                        key
+                    ));
+                }
+            }
+
+            config_manager
+                .save(&config)
+                .map_err(|e| format!("Failed to save config: {}", e))?;
+
+            println!(
+                "{}",
+                format!("Config saved to: {}", config_manager.config_path().display()).dimmed()
+            );
+        }
+        ConfigCommands::Get { key } => {
+            let config = config_manager
+                .load()
+                .map_err(|e| format!("Failed to load config: {}", e))?;
+
+            match key.to_lowercase().as_str() {
+                "model" => {
+                    let value = config.default_model.as_deref().unwrap_or("(auto-detect)");
+                    println!("{}: {}", "model".bold(), value);
+                }
+                "shell" => {
+                    let value = config
+                        .default_shell
+                        .map(|s| format!("{:?}", s))
+                        .unwrap_or_else(|| "(auto-detect)".to_string());
+                    println!("{}: {}", "shell".bold(), value);
+                }
+                "safety" => {
+                    println!("{}: {:?}", "safety".bold(), config.safety_level);
+                }
+                _ => {
+                    return Err(format!(
+                        "Unknown config key '{}'. Valid keys: model, shell, safety",
+                        key
+                    ));
+                }
+            }
+        }
+        ConfigCommands::Show => {
+            let config = config_manager
+                .load()
+                .map_err(|e| format!("Failed to load config: {}", e))?;
+
+            println!("{}", "Current Configuration:".bold());
+            println!();
+            println!(
+                "  {}: {}",
+                "model".cyan(),
+                config.default_model.as_deref().unwrap_or("(auto-detect)")
+            );
+            println!(
+                "  {}: {}",
+                "shell".cyan(),
+                config
+                    .default_shell
+                    .map(|s| format!("{:?}", s))
+                    .unwrap_or_else(|| "(auto-detect)".to_string())
+            );
+            println!("  {}: {:?}", "safety".cyan(), config.safety_level);
+            println!("  {}: {:?}", "log_level".cyan(), config.log_level);
+            println!(
+                "  {}: {} GB",
+                "cache_max_size".cyan(),
+                config.cache_max_size_gb
+            );
+            println!(
+                "  {}: {} days",
+                "log_rotation".cyan(),
+                config.log_rotation_days
+            );
+            println!(
+                "  {}: {}",
+                "telemetry".cyan(),
+                if config.telemetry.enabled {
+                    "enabled"
+                } else {
+                    "disabled"
+                }
+            );
+            println!();
+            println!(
+                "{}",
+                format!("Config file: {}", config_manager.config_path().display()).dimmed()
+            );
+        }
+        ConfigCommands::Reset => {
+            let config = caro::models::UserConfiguration::default();
+            config_manager
+                .save(&config)
+                .map_err(|e| format!("Failed to save config: {}", e))?;
+            println!("{} Configuration reset to defaults", "✓".green());
+        }
     }
 
     Ok(())
@@ -526,6 +718,15 @@ async fn main() {
             Err(e) => {
                 eprintln!("Error running diagnostics: {}", e);
                 process::exit(1);
+            }
+        },
+        Some(Commands::Config { command }) => {
+            match handle_config_command(command) {
+                Ok(()) => process::exit(0),
+                Err(e) => {
+                    eprintln!("Error: {}", e);
+                    process::exit(1);
+                }
             }
         },
         // NOTE: Assess subcommand disabled in v1.1.0-beta.1
@@ -761,8 +962,12 @@ async fn main() {
 }
 
 async fn run_cli(cli: &Cli) -> Result<bool, CliError> {
-    // Create CLI application
-    let app = CliApp::new().await?;
+    // Create CLI application with optional model override from --model flag
+    let app = CliApp::with_model_override(
+        caro::cli::CliConfig::default(),
+        cli.model.clone(),
+    )
+    .await?;
 
     // Run command generation
     let mut result = app.run_with_args(cli.clone()).await?;
