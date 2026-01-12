@@ -679,6 +679,53 @@ setup_path() {
     fi
 }
 
+# Check for conflicting caro installations in PATH
+check_conflicting_installations() {
+    # Find all caro binaries in PATH
+    local caro_locations
+    caro_locations=$(which -a caro 2>/dev/null || true)
+
+    if [ -z "$caro_locations" ]; then
+        return 0
+    fi
+
+    # Count installations
+    local count
+    count=$(echo "$caro_locations" | wc -l | tr -d ' ')
+
+    if [ "$count" -gt 1 ]; then
+        echo ""
+        echo -e "${YELLOW}═══════════════════════════════════════════════════════${NC}"
+        echo -e "${YELLOW}     ⚠️  Multiple caro installations detected!         ${NC}"
+        echo -e "${YELLOW}═══════════════════════════════════════════════════════${NC}"
+        echo ""
+        echo -e "${CYAN}Found caro in these locations:${NC}"
+        echo "$caro_locations" | while read -r loc; do
+            if [ -x "$loc" ]; then
+                local ver
+                ver=$("$loc" --version 2>/dev/null | head -1 || echo "unknown version")
+                echo -e "  ${BLUE}$loc${NC} → $ver"
+            fi
+        done
+        echo ""
+
+        # Show which one will be used
+        local active_caro
+        active_caro=$(which caro 2>/dev/null)
+        echo -e "${GREEN}Active (first in PATH):${NC} $active_caro"
+        echo ""
+
+        # Suggest cleanup
+        echo -e "${YELLOW}To use the newly installed version, remove old installations:${NC}"
+        echo "$caro_locations" | while read -r loc; do
+            if [ "$loc" != "$HOME/.cargo/bin/caro" ] && [ "$loc" != "$INSTALL_DIR/caro" ]; then
+                echo -e "  ${RED}sudo rm $loc${NC}"
+            fi
+        done
+        echo ""
+    fi
+}
+
 # Main installation flow
 main() {
     echo -e "${BOLD}${BLUE}╔═══════════════════════════════════════╗${NC}"
@@ -719,6 +766,9 @@ main() {
 
     # Check for legacy alias
     check_legacy_alias
+
+    # Check for conflicting installations
+    check_conflicting_installations
 
     echo ""
     echo -e "${BOLD}${GREEN}╔═══════════════════════════════════════╗${NC}"

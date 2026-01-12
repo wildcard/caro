@@ -1,12 +1,30 @@
 #!/usr/bin/env bash
 #
 # Caro Setup Script
-# 
+#
 # Usage:
 #   bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)
+#   bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh) -- --force
 #   bash <(wget -qO- https://setup.caro.sh)
+#
+# Options:
+#   --force    Force reinstall even if same version is already installed
 
 set -e
+
+# Parse command line arguments
+FORCE_INSTALL="false"
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --force|-f)
+            FORCE_INSTALL="true"
+            shift
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
 
 cat << 'EOF'
    ____                   
@@ -97,7 +115,14 @@ install_via_cargo() {
         cargo_features="--features embedded-mlx"
     fi
 
-    if cargo install caro $cargo_features; then
+    # Build cargo install command
+    local cargo_cmd="cargo install caro $cargo_features"
+    if [ "$FORCE_INSTALL" = "true" ]; then
+        cargo_cmd="$cargo_cmd --force"
+        say "Force install requested"
+    fi
+
+    if $cargo_cmd; then
         say_success "Installed caro successfully"
         return 0
     else
@@ -294,6 +319,53 @@ setup_alias() {
     fi
 }
 
+# Check for conflicting caro installations in PATH
+check_conflicting_installations() {
+    # Find all caro binaries in PATH
+    local caro_locations
+    caro_locations=$(which -a caro 2>/dev/null || true)
+
+    if [ -z "$caro_locations" ]; then
+        return 0
+    fi
+
+    # Count installations
+    local count
+    count=$(echo "$caro_locations" | wc -l | tr -d ' ')
+
+    if [ "$count" -gt 1 ]; then
+        echo ""
+        say_warn "═══════════════════════════════════════════════════════"
+        say_warn "     Multiple caro installations detected!              "
+        say_warn "═══════════════════════════════════════════════════════"
+        echo ""
+        say "Found caro in these locations:"
+        echo "$caro_locations" | while read -r loc; do
+            if [ -x "$loc" ]; then
+                local ver
+                ver=$("$loc" --version 2>/dev/null | head -1 || echo "unknown version")
+                echo "  $loc → $ver"
+            fi
+        done
+        echo ""
+
+        # Show which one will be used
+        local active_caro
+        active_caro=$(which caro 2>/dev/null)
+        say_success "Active (first in PATH): $active_caro"
+        echo ""
+
+        # Suggest cleanup
+        say_warn "To use the newly installed version, remove old installations:"
+        echo "$caro_locations" | while read -r loc; do
+            if [ "$loc" != "$HOME/.cargo/bin/caro" ] && [ "$loc" != "${CARO_INSTALL_DIR:-$HOME/.local/bin}/caro" ]; then
+                echo "  sudo rm $loc"
+            fi
+        done
+        echo ""
+    fi
+}
+
 # Main installation
 main() {
     say "Starting Caro installation..."
@@ -354,6 +426,9 @@ main() {
 
     # Check for legacy alias
     setup_alias
+
+    # Check for conflicting installations
+    check_conflicting_installations
     echo ""
 
     # Success message
