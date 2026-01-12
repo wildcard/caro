@@ -92,10 +92,12 @@ fn validate_args(args: &Args) -> Result<(), String> {
     if let Some(ref category) = args.category {
         match category.as_str() {
             "correctness" | "safety" | "posix" | "multi_backend" => {}
-            _ => return Err(format!(
+            _ => {
+                return Err(format!(
                 "Invalid category: {}. Must be one of: correctness, safety, posix, multi_backend",
                 category
-            )),
+            ))
+            }
         }
     }
 
