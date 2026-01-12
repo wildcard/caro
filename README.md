@@ -304,6 +304,7 @@ caro --verbose "search for Python files"
 | Option | Description | Status |
 |--------|-------------|--------|
 | `-s, --shell <SHELL>` | Target shell (bash, zsh, fish, sh, powershell, cmd) | ✅ Implemented |
+| `-m, --model <MODEL>` | Model backend (embedded, ollama, exo, vllm) | ✅ Implemented |
 | `--safety <LEVEL>` | Safety level (strict, moderate, permissive) | ✅ Implemented |
 | `-o, --output <FORMAT>` | Output format (json, yaml, plain) | ✅ Implemented |
 | `-y, --confirm` | Auto-confirm dangerous commands | ✅ Implemented |
@@ -321,11 +322,46 @@ caro --verbose "search for Python files"
 caro "compress all images in current directory"
 
 # With specific backend
-caro --backend mlx "find large log files"
+caro --model ollama "find large log files"
 
 # Verbose mode for debugging
 caro --verbose "show disk usage"
 ```
+
+### Configuration Management
+
+Caro provides a `config` subcommand for managing persistent settings:
+
+```bash
+# Show all configuration
+caro config show
+
+# Set default model backend
+caro config set model ollama
+
+# Set default shell
+caro config set shell zsh
+
+# Set safety level
+caro config set safety strict
+
+# Get a specific setting
+caro config get model
+
+# Reset to defaults
+caro config reset
+```
+
+**Available config keys:**
+| Key | Values | Description |
+|-----|--------|-------------|
+| `model` | `embedded`, `ollama`, `exo`, `vllm` | Default inference backend |
+| `shell` | `bash`, `zsh`, `fish`, `sh`, `powershell`, `cmd` | Default target shell |
+| `safety` | `strict`, `moderate`, `permissive` | Safety validation level |
+
+**Config file location:** `~/.config/caro/config.toml` (Linux/macOS)
+
+**Priority order:** CLI flags (`--model`) > Environment variables (`CARO_DEFAULT_MODEL`) > Config file > Auto-detect
 
 ### System Assessment
 
