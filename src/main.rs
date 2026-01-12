@@ -467,8 +467,8 @@ caro() {
     local output exit_code
     local tmpfile=$(mktemp)
 
-    # Run caro with wrapper flag and capture output
-    CARO_WRAPPER=1 command caro "$@" > "$tmpfile" 2>&1
+    # Run caro with wrapper flag, capture stdout only (stderr goes to terminal for display)
+    CARO_WRAPPER=1 command caro "$@" > "$tmpfile"
     exit_code=$?
     output=$(cat "$tmpfile")
     rm -f "$tmpfile"
@@ -477,8 +477,8 @@ caro() {
         # Edit mode: put command in buffer for user to edit
         print -z "$output"
     else
-        # Normal mode: print output
-        echo "$output"
+        # Normal mode: print stdout (display already shown via stderr)
+        [[ -n "$output" ]] && echo "$output"
     fi
     return $exit_code
 }
@@ -492,8 +492,8 @@ caro() {
     local output exit_code
     local tmpfile=$(mktemp)
 
-    # Run caro with wrapper flag and capture output
-    CARO_WRAPPER=1 command caro "$@" > "$tmpfile" 2>&1
+    # Run caro with wrapper flag, capture stdout only (stderr goes to terminal for display)
+    CARO_WRAPPER=1 command caro "$@" > "$tmpfile"
     exit_code=$?
     output=$(cat "$tmpfile")
     rm -f "$tmpfile"
@@ -506,8 +506,8 @@ caro() {
             eval "$edited_cmd"
         fi
     else
-        # Normal mode: print output
-        echo "$output"
+        # Normal mode: print stdout (display already shown via stderr)
+        [[ -n "$output" ]] && echo "$output"
     fi
     return $exit_code
 }
@@ -520,9 +520,9 @@ caro() {
 function caro
     set -l tmpfile (mktemp)
 
-    # Run caro with wrapper flag and capture output
+    # Run caro with wrapper flag, capture stdout only (stderr goes to terminal for display)
     set -x CARO_WRAPPER 1
-    command caro $argv > $tmpfile 2>&1
+    command caro $argv > $tmpfile
     set -l exit_code $status
     set -l output (cat $tmpfile)
     rm -f $tmpfile
@@ -532,8 +532,8 @@ function caro
         # Edit mode: put command in buffer
         commandline -r "$output"
     else
-        # Normal mode: print output
-        echo "$output"
+        # Normal mode: print stdout (display already shown via stderr)
+        test -n "$output"; and echo "$output"
     end
     return $exit_code
 end
@@ -1203,6 +1203,21 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
     use colored::Colorize;
     use std::io::IsTerminal;
 
+    // When running through shell wrapper, use stderr for display output
+    // so stdout is reserved for the command in edit mode
+    let in_wrapper = std::env::var("CARO_WRAPPER").is_ok();
+
+    // Helper macro to print to stderr when in wrapper mode
+    macro_rules! display {
+        ($($arg:tt)*) => {
+            if in_wrapper {
+                eprintln!($($arg)*);
+            } else {
+                println!($($arg)*);
+            }
+        };
+    }
+
     // Print warnings first
     for warning in &result.warnings {
         eprintln!("{} {}", "Warning:".yellow().bold(), warning);
@@ -1229,47 +1244,47 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
                 })?;
 
             if !confirmed {
-                println!("{}", "Operation cancelled by user.".yellow());
+                display!("{}", "Operation cancelled by user.".yellow());
                 std::process::exit(1);
             }
 
-            println!("{}", "✓ Confirmed. Command is safe to execute.".green());
+            display!("{}", "✓ Confirmed. Command is safe to execute.".green());
         } else {
             // Non-interactive environment - show confirmation message and exit
-            println!("{}", result.confirmation_prompt.yellow());
-            println!("{}", "Use --confirm/-y flag to auto-confirm dangerous commands in non-interactive environments.".dimmed());
+            display!("{}", result.confirmation_prompt.yellow());
+            display!("{}", "Use --confirm/-y flag to auto-confirm dangerous commands in non-interactive environments.".dimmed());
             std::process::exit(1);
         }
     }
 
     // Print the main command
-    println!("{}", "Command:".bold());
-    println!("  {}", result.generated_command.bright_cyan().bold());
-    println!();
+    display!("{}", "Command:".bold());
+    display!("  {}", result.generated_command.bright_cyan().bold());
+    display!("");
 
     // Print explanation only in verbose mode
     if cli.verbose && !result.explanation.is_empty() {
-        println!("{}", "Explanation:".bold());
-        println!("  {}", result.explanation);
-        println!();
+        display!("{}", "Explanation:".bold());
+        display!("  {}", result.explanation);
+        display!("");
     }
 
     // Handle dry-run mode
     if cli.dry_run {
-        println!("{}", "Dry Run Mode:".bold().cyan());
-        println!(
+        display!("{}", "Dry Run Mode:".bold().cyan());
+        display!(
             "  The command would be executed with shell: {:?}",
             result.shell_used
         );
         if result.blocked_reason.is_some() || result.requires_confirmation {
-            println!(
+            display!(
                 "  {} This command would be blocked or require confirmation",
                 "⚠".yellow()
             );
         } else {
-            println!("  {} This command would execute successfully", "✓".green());
+            display!("  {} This command would execute successfully", "✓".green());
         }
-        println!();
+        display!("");
     }
     // If command wasn't executed yet and passes safety checks, ask user if they want to execute
     else if result.exit_code.is_none() && result.executed && !cli.execute && !cli.interactive {
@@ -1290,8 +1305,8 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
             match selection {
                 0 => {
                     // Yes - execute
-                    println!();
-                    println!("{}", "Executing command...".dimmed());
+                    display!("");
+                    display!("{}", "Executing command...".dimmed());
 
                     // Execute the command
                     use caro::execution::CommandExecutor;
@@ -1317,13 +1332,13 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
                             result.execution_error = Some(format!("Execution failed: {}", e));
                         }
                     }
-                    println!();
+                    display!("");
                 }
                 2 => {
                     // Edit mode
-                    if std::env::var("CARO_WRAPPER").is_ok() {
-                        // Running through shell wrapper - output command and exit with code 201
-                        // The wrapper will capture this and put it in the readline buffer
+                    if in_wrapper {
+                        // Running through shell wrapper - output command to stdout and exit with code 201
+                        // The wrapper will capture stdout and put it in the readline buffer
                         println!("{}", result.generated_command);
                         std::process::exit(EXIT_CODE_EDIT);
                     } else {
@@ -1355,24 +1370,24 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
                 }
                 _ => {
                     // No - skip
-                    println!("{}", "Execution skipped.".yellow());
-                    println!();
+                    display!("{}", "Execution skipped.".yellow());
+                    display!("");
                 }
             }
         } else {
             // Non-interactive environment - show message
-            println!(
+            display!(
                 "{}",
                 "Use --execute/-x flag to auto-execute commands in non-interactive environments."
                     .dimmed()
             );
-            println!();
+            display!("");
         }
     }
 
     // Print execution results if command was actually executed
     if result.exit_code.is_some() {
-        println!("{}", "Execution Results:".bold().green());
+        display!("{}", "Execution Results:".bold().green());
 
         // Print exit code
         if let Some(exit_code) = result.exit_code {
@@ -1381,12 +1396,12 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
             } else {
                 format!("✗ Failed (exit code: {})", exit_code).red()
             };
-            println!("  {}", status_msg);
+            display!("  {}", status_msg);
         }
 
         // Print execution time
         if result.timing_info.execution_time_ms > 0 {
-            println!(
+            display!(
                 "  Execution time: {}ms",
                 result.timing_info.execution_time_ms
             );
@@ -1395,10 +1410,10 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
         // Print stdout if present
         if let Some(stdout) = &result.stdout {
             if !stdout.trim().is_empty() {
-                println!();
-                println!("{}", "Standard Output:".bold());
+                display!("");
+                display!("{}", "Standard Output:".bold());
                 for line in stdout.lines() {
-                    println!("  {}", line);
+                    display!("  {}", line);
                 }
             }
         }
@@ -1406,47 +1421,47 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
         // Print stderr if present
         if let Some(stderr) = &result.stderr {
             if !stderr.trim().is_empty() {
-                println!();
-                println!("{}", "Standard Error:".bold().yellow());
+                display!("");
+                display!("{}", "Standard Error:".bold().yellow());
                 for line in stderr.lines() {
-                    println!("  {}", line.yellow());
+                    display!("  {}", line.yellow());
                 }
             }
         }
 
         // Print execution error if present
         if let Some(error) = &result.execution_error {
-            println!();
-            println!("{} {}", "Execution Error:".red().bold(), error.red());
+            display!("");
+            display!("{} {}", "Execution Error:".red().bold(), error.red());
         }
 
-        println!();
+        display!("");
     } else if cli.execute || cli.interactive {
         // User requested execution but it didn't happen
-        println!(
+        display!(
             "{}",
             "Command was not executed (blocked by safety checks or user cancelled).".yellow()
         );
-        println!();
+        display!("");
     }
 
     // Print alternatives if available
     if !result.alternatives.is_empty() {
-        println!("{}", "Alternatives:".bold());
+        display!("{}", "Alternatives:".bold());
         for alt in &result.alternatives {
-            println!("  • {}", alt.dimmed());
+            display!("  • {}", alt.dimmed());
         }
-        println!();
+        display!("");
     }
 
     // Print debug information if verbose
     if let Some(debug_info) = &result.debug_info {
-        println!("{}", "Debug Info:".dimmed());
-        println!("  {}", debug_info.dimmed());
+        display!("{}", "Debug Info:".dimmed());
+        display!("  {}", debug_info.dimmed());
     }
 
     if !result.generation_details.is_empty() {
-        println!("  {}", result.generation_details.dimmed());
+        display!("  {}", result.generation_details.dimmed());
     }
 
     Ok(())
