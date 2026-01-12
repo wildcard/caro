@@ -187,6 +187,12 @@ enum Commands {
     /// Run system diagnostics and health checks
     Doctor,
 
+    /// Generate shell integration script for edit mode support
+    Init {
+        /// Shell to generate init script for (zsh, bash, fish)
+        shell: String,
+    },
+
     /// Manage configuration settings
     Config {
         #[command(subcommand)]
@@ -391,6 +397,69 @@ impl IntoCliArgs for Cli {
 
     fn force_llm(&self) -> bool {
         self.force_llm
+    }
+}
+
+// =============================================================================
+// Shell Init Script
+// =============================================================================
+
+/// Print shell integration script for the specified shell
+fn print_shell_init_script(shell: &str) {
+    match shell.to_lowercase().as_str() {
+        "zsh" => {
+            println!(
+                r#"# Caro shell integration for zsh
+# Add this to your ~/.zshrc
+
+caro_widget() {{
+    local cmd=$(caro --no-confirm "$BUFFER" 2>/dev/null)
+    if [[ -n "$cmd" ]]; then
+        BUFFER="$cmd"
+        CURSOR=$#BUFFER
+    fi
+}}
+zle -N caro_widget
+bindkey '^G' caro_widget  # Ctrl+G to invoke caro"#
+            );
+        }
+        "bash" => {
+            println!(
+                r#"# Caro shell integration for bash
+# Add this to your ~/.bashrc
+
+caro_widget() {{
+    local cmd=$(caro --no-confirm "$READLINE_LINE" 2>/dev/null)
+    if [[ -n "$cmd" ]]; then
+        READLINE_LINE="$cmd"
+        READLINE_POINT=${{#READLINE_LINE}}
+    fi
+}}
+bind -x '"\C-g": caro_widget'  # Ctrl+G to invoke caro"#
+            );
+        }
+        "fish" => {
+            println!(
+                r#"# Caro shell integration for fish
+# Add this to your ~/.config/fish/config.fish
+
+function caro_widget
+    set -l cmd (caro --no-confirm (commandline) 2>/dev/null)
+    if test -n "$cmd"
+        commandline -r "$cmd"
+        commandline -f end-of-line
+    end
+end
+bind \cg caro_widget  # Ctrl+G to invoke caro"#
+            );
+        }
+        _ => {
+            eprintln!(
+                "Unsupported shell: {}. Supported shells: zsh, bash, fish",
+                shell
+            );
+            std::process::exit(1);
+        }
     }
 }
 
@@ -768,6 +837,10 @@ async fn main() {
                 process::exit(1);
             }
         },
+        Some(Commands::Init { shell }) => {
+            print_shell_init_script(&shell);
+            process::exit(0);
+        }
         // NOTE: Assess subcommand disabled in v1.1.0-beta.1
         // Some(Commands::Assess { export, output }) => {
         //     match run_assessment_command(export, output).await {
