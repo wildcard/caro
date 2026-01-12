@@ -134,6 +134,7 @@ pub trait IntoCliArgs {
     fn execute(&self) -> bool;
     fn dry_run(&self) -> bool;
     fn interactive(&self) -> bool;
+    fn force_llm(&self) -> bool;
 }
 
 impl CliApp {
@@ -142,7 +143,7 @@ impl CliApp {
     /// Uses configuration-driven backend selection with embedded model as primary
     /// and optional remote backend fallbacks.
     pub async fn new() -> Result<Self, CliError> {
-        Self::with_overrides(CliConfig::default(), None, None).await
+        Self::with_overrides(CliConfig::default(), None, None, false).await
     }
 
     /// Create CLI application with backend and model overrides from CLI args
@@ -150,6 +151,7 @@ impl CliApp {
         config: CliConfig,
         backend_override: Option<String>,
         model_name_override: Option<String>,
+        force_llm: bool,
     ) -> Result<Self, CliError> {
         // Load user configuration to determine backend preferences
         let config_manager =
@@ -189,7 +191,9 @@ impl CliApp {
         let profile = CapabilityProfile::detect().await;
 
         // Create agent loop with backend, context, and profile
-        let agent_loop = AgentLoop::new(backend_arc.clone(), context.clone(), profile);
+        // If force_llm is true, disable the static matcher
+        let agent_loop = AgentLoop::new(backend_arc.clone(), context.clone(), profile)
+            .with_static_matcher(!force_llm);
 
         Ok(Self {
             config,
@@ -520,9 +524,10 @@ impl CliApp {
 
         // Collect debug info if verbose
         let debug_info = if args.verbose() {
+            let backend_info = self.backend.backend_info();
             Some(format!(
                 "Backend: {}, Model: {}, Confidence: {:.2}, Safety: {:?}",
-                generated.backend_used, "mock-model", generated.confidence_score, safety_level
+                generated.backend_used, backend_info.model_name, generated.confidence_score, safety_level
             ))
         } else {
             None

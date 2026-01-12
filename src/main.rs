@@ -327,6 +327,13 @@ struct Cli {
     )]
     interactive: bool,
 
+    /// Force LLM inference (bypass static pattern matcher)
+    #[arg(
+        long,
+        help = "Force LLM inference, bypassing the static pattern matcher"
+    )]
+    force_llm: bool,
+
     /// Trailing unquoted arguments forming the prompt
     #[arg(trailing_var_arg = true, num_args = 0..)]
     trailing_args: Vec<String>,
@@ -380,6 +387,10 @@ impl IntoCliArgs for Cli {
 
     fn interactive(&self) -> bool {
         self.interactive
+    }
+
+    fn force_llm(&self) -> bool {
+        self.force_llm
     }
 }
 
@@ -997,6 +1008,7 @@ async fn run_cli(cli: &Cli) -> Result<bool, CliError> {
         caro::cli::CliConfig::default(),
         cli.backend.clone(),
         cli.model_name.clone(),
+        cli.force_llm,
     )
     .await?;
 
