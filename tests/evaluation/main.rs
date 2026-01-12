@@ -23,9 +23,7 @@
 //! cargo test --test evaluation -- --threshold 0.10
 //! ```
 
-use caro::evaluation::{
-    BaselineStore, Dataset, EvaluationHarness, HarnessConfig, TestCategory,
-};
+use caro::evaluation::{BaselineStore, Dataset, EvaluationHarness, HarnessConfig, TestCategory};
 use clap::Parser;
 use std::path::PathBuf;
 use std::process;
@@ -69,8 +67,7 @@ async fn main() {
 
     // Configure logging
     if args.verbose {
-        env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("debug"))
-            .init();
+        env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("debug")).init();
     }
 
     // Validate arguments
@@ -95,12 +92,10 @@ fn validate_args(args: &Args) -> Result<(), String> {
     if let Some(ref category) = args.category {
         match category.as_str() {
             "correctness" | "safety" | "posix" | "multi_backend" => {}
-            _ => {
-                return Err(format!(
-                    "Invalid category: {}. Must be one of: correctness, safety, posix, multi_backend",
-                    category
-                ))
-            }
+            _ => return Err(format!(
+                "Invalid category: {}. Must be one of: correctness, safety, posix, multi_backend",
+                category
+            )),
         }
     }
 
@@ -139,10 +134,7 @@ fn validate_args(args: &Args) -> Result<(), String> {
     // Validate baseline path exists if provided
     if let Some(ref baseline) = args.baseline {
         if !baseline.exists() {
-            return Err(format!(
-                "Baseline file not found: {}",
-                baseline.display()
-            ));
+            return Err(format!("Baseline file not found: {}", baseline.display()));
         }
     }
 
@@ -182,9 +174,9 @@ async fn run_evaluation(args: Args) -> Result<i32, Box<dyn std::error::Error>> {
 
     // Register backends
     // Always register static_matcher as it's always available
-    let static_matcher = Arc::new(
-        caro::backends::StaticMatcher::new(caro::prompts::CapabilityProfile::ubuntu())
-    );
+    let static_matcher = Arc::new(caro::backends::StaticMatcher::new(
+        caro::prompts::CapabilityProfile::ubuntu(),
+    ));
     harness.add_backend("static_matcher".to_string(), static_matcher);
 
     // TODO: Add other backends (MLX, Ollama, etc.) when available
@@ -246,14 +238,18 @@ fn parse_category(s: &str) -> Result<TestCategory, String> {
 }
 
 /// Output results as JSON
-fn output_json(report: &caro::evaluation::BenchmarkReport) -> Result<(), Box<dyn std::error::Error>> {
+fn output_json(
+    report: &caro::evaluation::BenchmarkReport,
+) -> Result<(), Box<dyn std::error::Error>> {
     let json = serde_json::to_string_pretty(report)?;
     println!("{}", json);
     Ok(())
 }
 
 /// Output results as human-readable table
-fn output_table(report: &caro::evaluation::BenchmarkReport) -> Result<(), Box<dyn std::error::Error>> {
+fn output_table(
+    report: &caro::evaluation::BenchmarkReport,
+) -> Result<(), Box<dyn std::error::Error>> {
     println!("\n╔═══════════════════════════════════════════════════════════════════╗");
     println!("║              LLM Evaluation Harness - Results                    ║");
     println!("╚═══════════════════════════════════════════════════════════════════╝");
@@ -261,20 +257,33 @@ fn output_table(report: &caro::evaluation::BenchmarkReport) -> Result<(), Box<dy
     println!("Run ID: {}", report.run_id);
     println!("Branch: {}", report.branch);
     println!("Commit: {}", report.commit_sha);
-    println!("Timestamp: {}", report.timestamp.format("%Y-%m-%d %H:%M:%S"));
+    println!(
+        "Timestamp: {}",
+        report.timestamp.format("%Y-%m-%d %H:%M:%S")
+    );
     println!();
 
     // Overall results
     println!("┌─────────────────────────────────────────────────────────────────┐");
     println!("│ Overall Results                                                 │");
     println!("├─────────────────────────────────────────────────────────────────┤");
-    println!("│ Total Tests:    {:>4}                                           │", report.total_tests);
-    println!("│ Passed:         {:>4} ({:>5.1}%)                                  │",
+    println!(
+        "│ Total Tests:    {:>4}                                           │",
+        report.total_tests
+    );
+    println!(
+        "│ Passed:         {:>4} ({:>5.1}%)                                  │",
         report.total_passed,
         report.overall_pass_rate * 100.0
     );
-    println!("│ Failed:         {:>4}                                           │", report.total_failed);
-    println!("│ Execution Time: {:>4}ms                                         │", report.execution_time_ms);
+    println!(
+        "│ Failed:         {:>4}                                           │",
+        report.total_failed
+    );
+    println!(
+        "│ Execution Time: {:>4}ms                                         │",
+        report.execution_time_ms
+    );
     println!("└─────────────────────────────────────────────────────────────────┘");
     println!();
 
@@ -335,16 +344,24 @@ fn output_table(report: &caro::evaluation::BenchmarkReport) -> Result<(), Box<dy
         println!("┌─────────────────────────────────────────────────────────────────┐");
         println!("│ Baseline Comparison                                             │");
         println!("├─────────────────────────────────────────────────────────────────┤");
-        println!("│ Baseline Run:   {}                                      │",
+        println!(
+            "│ Baseline Run:   {}                                      │",
             delta.baseline_run_id.chars().take(24).collect::<String>()
         );
-        println!("│ Baseline Commit: {}                                    │",
-            delta.baseline_commit_sha.chars().take(7).collect::<String>()
+        println!(
+            "│ Baseline Commit: {}                                    │",
+            delta
+                .baseline_commit_sha
+                .chars()
+                .take(7)
+                .collect::<String>()
         );
-        println!("│ Threshold:      {:>5.1}%                                        │",
+        println!(
+            "│ Threshold:      {:>5.1}%                                        │",
             delta.regression_threshold * 100.0
         );
-        println!("│ Overall Delta:  {:>+6.1}%                                       │",
+        println!(
+            "│ Overall Delta:  {:>+6.1}%                                       │",
             delta.overall_delta * 100.0
         );
         println!("├─────────────────────────────────────────────────────────────────┤");

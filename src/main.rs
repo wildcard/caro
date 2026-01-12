@@ -473,11 +473,7 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                 }
                 "model-name" | "model_name" => {
                     config.model_name = Some(value.clone());
-                    println!(
-                        "{} Set model name to '{}'",
-                        "✓".green(),
-                        value
-                    );
+                    println!("{} Set model name to '{}'", "✓".green(), value);
                 }
                 "shell" => {
                     let shell: caro::models::ShellType = value
@@ -507,7 +503,11 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
 
             println!(
                 "{}",
-                format!("Config saved to: {}", config_manager.config_path().display()).dimmed()
+                format!(
+                    "Config saved to: {}",
+                    config_manager.config_path().display()
+                )
+                .dimmed()
             );
         }
         ConfigCommands::Get { key } => {
@@ -761,13 +761,11 @@ async fn main() {
                 process::exit(1);
             }
         },
-        Some(Commands::Config { command }) => {
-            match handle_config_command(command) {
-                Ok(()) => process::exit(0),
-                Err(e) => {
-                    eprintln!("Error: {}", e);
-                    process::exit(1);
-                }
+        Some(Commands::Config { command }) => match handle_config_command(command) {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
             }
         },
         // NOTE: Assess subcommand disabled in v1.1.0-beta.1

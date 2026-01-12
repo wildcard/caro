@@ -280,12 +280,11 @@ impl CliApp {
                         use reqwest::Url;
 
                         if let Ok(exo_url) = Url::parse("http://localhost:52415") {
-                            let exo_backend =
-                                ExoBackend::new(exo_url, "llama-3.2-3b".to_string())
-                                    .map_err(|e| CliError::ConfigurationError {
-                                        message: format!("Failed to create Exo backend: {}", e),
-                                    })?
-                                    .with_embedded_fallback(embedded_arc.clone());
+                            let exo_backend = ExoBackend::new(exo_url, "llama-3.2-3b".to_string())
+                                .map_err(|e| CliError::ConfigurationError {
+                                    message: format!("Failed to create Exo backend: {}", e),
+                                })?
+                                .with_embedded_fallback(embedded_arc.clone());
 
                             if exo_backend.is_available().await {
                                 tracing::info!("Using Exo backend (user preference)");
@@ -527,7 +526,10 @@ impl CliApp {
             let backend_info = self.backend.backend_info();
             Some(format!(
                 "Backend: {}, Model: {}, Confidence: {:.2}, Safety: {:?}",
-                generated.backend_used, backend_info.model_name, generated.confidence_score, safety_level
+                generated.backend_used,
+                backend_info.model_name,
+                generated.confidence_score,
+                safety_level
             ))
         } else {
             None

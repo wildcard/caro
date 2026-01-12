@@ -10,11 +10,11 @@ use std::time::{Duration, Instant};
 use tokio::time::timeout;
 
 use crate::backends::{CommandGenerator, GeneratorError};
-use crate::evaluation::{
-    BenchmarkReport, CategoryResult, BackendResult, CommandResult, Dataset,
-    ErrorType, Evaluator, EvaluationResult, TestCase, TestCategory,
-};
 use crate::evaluation::errors::Result;
+use crate::evaluation::{
+    BackendResult, BenchmarkReport, CategoryResult, CommandResult, Dataset, ErrorType,
+    EvaluationResult, Evaluator, TestCase, TestCategory,
+};
 use crate::models::{CommandRequest, ShellType};
 
 /// Configuration for the evaluation harness
@@ -91,15 +91,9 @@ impl EvaluationHarness {
             Arc::new(CorrectnessEvaluator::new()),
         );
 
-        evaluators.insert(
-            TestCategory::Safety,
-            Arc::new(SafetyEvaluator::new()?),
-        );
+        evaluators.insert(TestCategory::Safety, Arc::new(SafetyEvaluator::new()?));
 
-        evaluators.insert(
-            TestCategory::POSIX,
-            Arc::new(POSIXEvaluator::new()),
-        );
+        evaluators.insert(TestCategory::POSIX, Arc::new(POSIXEvaluator::new()));
 
         evaluators.insert(
             TestCategory::MultiBackend,
@@ -146,9 +140,7 @@ impl EvaluationHarness {
         }
 
         // Run evaluations in parallel
-        let all_results = self
-            .run_all_tests(&available_backends)
-            .await?;
+        let all_results = self.run_all_tests(&available_backends).await?;
 
         // Aggregate results
         let execution_time_ms = start_time.elapsed().as_millis() as u64;
@@ -205,10 +197,7 @@ impl EvaluationHarness {
             passed,
             failed,
             pass_rate,
-            avg_execution_time_ms: all_results
-                .iter()
-                .map(|r| r.execution_time_ms)
-                .sum::<u64>()
+            avg_execution_time_ms: all_results.iter().map(|r| r.execution_time_ms).sum::<u64>()
                 / total.max(1) as u64,
         })
     }
@@ -272,10 +261,7 @@ impl EvaluationHarness {
                 .iter()
                 .filter(|r| r.error_type == Some(ErrorType::Timeout))
                 .count(),
-            avg_execution_time_ms: all_results
-                .iter()
-                .map(|r| r.execution_time_ms)
-                .sum::<u64>()
+            avg_execution_time_ms: all_results.iter().map(|r| r.execution_time_ms).sum::<u64>()
                 / total.max(1) as u64,
             category_breakdown: HashMap::new(), // TODO: Calculate per-category breakdown
         })
@@ -616,9 +602,9 @@ impl EvaluationHarness {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use async_trait::async_trait;
     use crate::backends::BackendInfo;
     use crate::models::{BackendType, GeneratedCommand};
+    use async_trait::async_trait;
 
     /// Mock backend for testing
     struct MockBackend {
@@ -799,12 +785,12 @@ mod tests {
         let config = HarnessConfig::default();
 
         let mut harness = EvaluationHarness::new(dataset, config).unwrap();
-        harness.add_backend(
-            "mock".to_string(),
-            Arc::new(MockBackend::new("mock")),
-        );
+        harness.add_backend("mock".to_string(), Arc::new(MockBackend::new("mock")));
 
-        let result = harness.run_category(TestCategory::Correctness).await.unwrap();
+        let result = harness
+            .run_category(TestCategory::Correctness)
+            .await
+            .unwrap();
 
         assert_eq!(result.category, TestCategory::Correctness);
         assert_eq!(result.total_tests, 1); // 1 correctness test × 1 backend

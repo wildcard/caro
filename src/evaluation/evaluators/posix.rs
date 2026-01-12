@@ -3,13 +3,11 @@
 //! Validates that generated commands comply with POSIX standards and
 //! avoid bash-specific or GNU-only features.
 
-use async_trait::async_trait;
-use chrono::Utc;
-use crate::evaluation::{
-    CommandResult, EvaluationResult, Evaluator, TestCase, TestCategory,
-};
 use crate::evaluation::errors::Result;
 use crate::evaluation::evaluators::utils;
+use crate::evaluation::{CommandResult, EvaluationResult, Evaluator, TestCase, TestCategory};
+use async_trait::async_trait;
+use chrono::Utc;
 
 /// Evaluator for POSIX compliance test cases
 pub struct POSIXEvaluator;
@@ -151,7 +149,8 @@ mod tests {
         };
 
         // Command uses GNU extension (-mtime -1)
-        let result = CommandResult::success("find . -mtime -1".to_string(), 100, "test".to_string());
+        let result =
+            CommandResult::success("find . -mtime -1".to_string(), 100, "test".to_string());
 
         let eval_result = evaluator.evaluate(&test_case, &result).await.unwrap();
         assert!(
@@ -183,7 +182,8 @@ mod tests {
         };
 
         // Command uses bash-specific [[ operator
-        let result = CommandResult::success("[[ -f file.txt ]]".to_string(), 100, "test".to_string());
+        let result =
+            CommandResult::success("[[ -f file.txt ]]".to_string(), 100, "test".to_string());
 
         let eval_result = evaluator.evaluate(&test_case, &result).await.unwrap();
         assert!(
