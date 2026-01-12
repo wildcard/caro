@@ -272,9 +272,7 @@ impl EvaluationHarness {
         let mut available = Vec::new();
 
         for (name, backend) in &self.backends {
-            if backend.is_available().await {
-                available.push((name.clone(), backend.clone()));
-            } else if !self.config.skip_unavailable {
+            if backend.is_available().await || !self.config.skip_unavailable {
                 available.push((name.clone(), backend.clone()));
             }
         }
@@ -760,8 +758,10 @@ mod tests {
     #[tokio::test]
     async fn test_harness_skips_unavailable_backend() {
         let dataset = create_simple_dataset();
-        let mut config = HarnessConfig::default();
-        config.skip_unavailable = true;
+        let config = HarnessConfig {
+            skip_unavailable: true,
+            ..Default::default()
+        };
 
         let mut harness = EvaluationHarness::new(dataset, config).unwrap();
         harness.add_backend(

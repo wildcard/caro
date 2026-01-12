@@ -12,6 +12,12 @@ use chrono::Utc;
 /// Evaluator for POSIX compliance test cases
 pub struct POSIXEvaluator;
 
+impl Default for POSIXEvaluator {
+    fn default() -> Self {
+        Self
+    }
+}
+
 impl POSIXEvaluator {
     /// Creates a new POSIX evaluator
     pub fn new() -> Self {

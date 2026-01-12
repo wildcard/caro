@@ -228,6 +228,7 @@ impl<'a> IntoIterator for &'a Dataset {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[allow(unused_imports)]
     use crate::evaluation::{Difficulty, ValidationRule};
     use std::io::Write;
     use tempfile::NamedTempFile;

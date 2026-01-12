@@ -16,6 +16,12 @@ use chrono::Utc;
 /// it requires multiple CommandResults to perform meaningful evaluation.
 pub struct ConsistencyEvaluator;
 
+impl Default for ConsistencyEvaluator {
+    fn default() -> Self {
+        Self
+    }
+}
+
 impl ConsistencyEvaluator {
     /// Creates a new consistency evaluator
     pub fn new() -> Self {

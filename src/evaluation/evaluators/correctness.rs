@@ -14,6 +14,12 @@ use chrono::Utc;
 /// Evaluator for correctness test cases
 pub struct CorrectnessEvaluator;
 
+impl Default for CorrectnessEvaluator {
+    fn default() -> Self {
+        Self
+    }
+}
+
 impl CorrectnessEvaluator {
     /// Creates a new correctness evaluator
     pub fn new() -> Self {

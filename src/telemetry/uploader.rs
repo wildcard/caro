@@ -1,6 +1,7 @@
 //! Batch telemetry uploader
 
 use super::{config::TelemetryConfig, storage::TelemetryStorage};
+#[allow(unused_imports)]
 use anyhow::{Context, Result};
 use std::sync::Arc;
 use tokio::time::{interval, Duration};
@@ -21,6 +22,7 @@ use tokio::time::{interval, Duration};
 ///
 /// When `config.air_gapped` is true, the uploader is disabled and events
 /// remain in local storage until manually exported via `caro telemetry export`.
+#[allow(dead_code)]
 pub struct TelemetryUploader {
     storage: Arc<TelemetryStorage>,
     config: TelemetryConfig,

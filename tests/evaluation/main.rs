@@ -217,10 +217,8 @@ async fn run_evaluation(args: Args) -> Result<i32, Box<dyn std::error::Error>> {
     }
 
     // Determine exit code
-    let exit_code = if regression_detected {
-        1 // Regression detected
-    } else if report.overall_pass_rate < 1.0 {
-        1 // Some tests failed
+    let exit_code = if regression_detected || report.overall_pass_rate < 1.0 {
+        1 // Regression detected or some tests failed
     } else {
         0 // All tests passed
     };

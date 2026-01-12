@@ -515,14 +515,18 @@ impl CapabilityProfile {
             }
         }
 
-        // macOS / BSD detection
+        // macOS / BSD detection - on macOS, we immediately know it's BSD
         #[cfg(target_os = "macos")]
         {
             self.profile_type = ProfileType::Bsd;
-            return;
         }
 
-        // If ls --version fails but ls works, likely BSD
+        // Return early on macOS to avoid unreachable code
+        #[cfg(target_os = "macos")]
+        return;
+
+        // If ls --version fails but ls works, likely BSD (non-macOS platforms)
+        #[cfg(not(target_os = "macos"))]
         if run_command("ls", &["--version"]).await.is_err()
             && run_command("ls", &["-d", "."]).await.is_ok()
         {
@@ -531,16 +535,20 @@ impl CapabilityProfile {
         }
 
         // Check for hybrid environments (Git Bash, MSYS2, Cygwin)
-        if std::env::var("MSYSTEM").is_ok()
-            || std::env::var("CYGWIN").is_ok()
-            || self.uname.to_lowercase().contains("mingw")
-            || self.uname.to_lowercase().contains("cygwin")
+        // Only check on non-macOS platforms since macOS already returned above
+        #[cfg(not(target_os = "macos"))]
         {
-            self.profile_type = ProfileType::Hybrid;
-            return;
-        }
+            if std::env::var("MSYSTEM").is_ok()
+                || std::env::var("CYGWIN").is_ok()
+                || self.uname.to_lowercase().contains("mingw")
+                || self.uname.to_lowercase().contains("cygwin")
+            {
+                self.profile_type = ProfileType::Hybrid;
+                return;
+            }
 
-        self.profile_type = ProfileType::Unknown;
+            self.profile_type = ProfileType::Unknown;
+        }
     }
 
     /// Convert profile to a format string for embedding in prompts

@@ -656,9 +656,11 @@ pub enum CliError {
 /// which would be a security risk if used in production.
 /// Production (release) builds will not include this code.
 #[cfg(any(test, debug_assertions))]
+#[allow(dead_code)]
 struct MockCommandGenerator;
 
 #[cfg(any(test, debug_assertions))]
+#[allow(dead_code)]
 impl MockCommandGenerator {
     fn new() -> Self {
         Self
