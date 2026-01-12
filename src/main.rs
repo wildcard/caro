@@ -161,6 +161,7 @@ enum ExportFormat {
 
 /// Config subcommands
 #[derive(Parser, Clone)]
+#[command(arg_required_else_help = true)]
 enum ConfigCommands {
     /// Set a configuration value
     Set {
