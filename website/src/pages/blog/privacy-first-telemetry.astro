@@ -72,7 +72,7 @@ import BlogPost from '../../layouts/BlogPost.astro';
   Here's exactly what our telemetry event looks like:
 </p>
 
-<pre><code>EventType::CommandGeneration {
+<pre><code>EventType::CommandGeneration &#123;
     // What we send
     backend: "mlx",
     duration_ms: 1847,
@@ -89,7 +89,7 @@ import BlogPost from '../../layouts/BlogPost.astro';
     // command: NEVER
     // cwd: NEVER
     // env: NEVER
-}</code></pre>
+&#125;</code></pre>
 
 <p>
   This event tells us: "Someone on macOS ARM used the MLX backend, generation took 1.8 seconds, and it succeeded." We have no idea what they asked for or what command was generated.
@@ -117,24 +117,24 @@ sqlite3 ~/.local/share/caro/telemetry.db "SELECT * FROM events"</code></pre>
   Even with careful event design, mistakes happen. What if a future code change accidentally includes sensitive data in an event? We have a pre-transmission redaction layer that validates every event:
 </p>
 
-<pre><code>fn validate_event(event: &Event) -> Result&lt;()&gt; {
+<pre><code>fn validate_event(event: &amp;Event) -&gt; Result&lt;()&gt; &#123;
     // Check for path-like strings
-    if contains_path_pattern(&event.to_json()) {
+    if contains_path_pattern(&amp;event.to_json()) &#123;
         return Err(RedactionError::PossiblePath);
-    }
+    &#125;
 
     // Check for environment variable patterns
-    if contains_env_pattern(&event.to_json()) {
+    if contains_env_pattern(&amp;event.to_json()) &#123;
         return Err(RedactionError::PossibleEnvVar);
-    }
+    &#125;
 
     // Check for common sensitive patterns
-    if contains_sensitive_pattern(&event.to_json()) {
+    if contains_sensitive_pattern(&amp;event.to_json()) &#123;
         return Err(RedactionError::PossibleSensitive);
-    }
+    &#125;
 
     Ok(())
-}</code></pre>
+&#125;</code></pre>
 
 <p>
   If an event fails validation, it's dropped locally—never sent. This is defense in depth: even if we make a mistake in event construction, the redaction layer catches it.

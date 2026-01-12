@@ -89,7 +89,7 @@ date -v-1d</code></pre>
   Before generating any command, Caro builds an <code>ExecutionContext</code> that captures everything relevant about your system:
 </p>
 
-<pre><code>ExecutionContext {
+<pre><code>ExecutionContext &#123;
     os: "macos",
     os_version: "14.0",
     arch: "arm64",
@@ -98,7 +98,7 @@ date -v-1d</code></pre>
     cwd: "/Users/dev/project",
     user: "dev",
     available_commands: ["sed", "awk", "find", ...]
-}</code></pre>
+&#125;</code></pre>
 
 <p>
   This context is included in every prompt to the LLM. The model knows it's generating commands for BSD-based macOS, not GNU-based Linux.

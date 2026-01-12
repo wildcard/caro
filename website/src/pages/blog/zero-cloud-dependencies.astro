@@ -158,11 +158,11 @@ $ caro --backend vllm --vllm-url http://internal-server:8000 "query"</code></pre
   Caro's backend system is designed around a simple trait:
 </p>
 
-<pre><code>pub trait InferenceBackend {
-    async fn generate(&self, prompt: &str) -> Result&lt;String&gt;;
-    fn name(&self) -> &str;
-    fn is_available(&self) -> bool;
-}</code></pre>
+<pre><code>pub trait InferenceBackend &#123;
+    async fn generate(&amp;self, prompt: &amp;str) -&gt; Result&lt;String&gt;;
+    fn name(&amp;self) -&gt; &amp;str;
+    fn is_available(&amp;self) -&gt; bool;
+&#125;</code></pre>
 
 <p>
   Every backend—MLX, CPU, Ollama, vLLM—implements this trait. The orchestrator selects the best available backend automatically, falling back gracefully when preferred options aren't available.
