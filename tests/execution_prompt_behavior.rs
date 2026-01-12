@@ -12,6 +12,8 @@ use caro::cli::{CliApp, IntoCliArgs};
 struct TestArgs {
     prompt: Option<String>,
     shell: Option<String>,
+    backend: Option<String>,
+    model_name: Option<String>,
     safety: Option<String>,
     output: Option<String>,
     confirm: bool,
@@ -20,6 +22,7 @@ struct TestArgs {
     execute: bool,
     dry_run: bool,
     interactive: bool,
+    force_llm: bool,
 }
 
 impl IntoCliArgs for TestArgs {
@@ -29,6 +32,14 @@ impl IntoCliArgs for TestArgs {
 
     fn shell(&self) -> Option<String> {
         self.shell.clone()
+    }
+
+    fn backend(&self) -> Option<String> {
+        self.backend.clone()
+    }
+
+    fn model_name(&self) -> Option<String> {
+        self.model_name.clone()
     }
 
     fn safety(&self) -> Option<String> {
@@ -61,6 +72,10 @@ impl IntoCliArgs for TestArgs {
 
     fn interactive(&self) -> bool {
         self.interactive
+    }
+
+    fn force_llm(&self) -> bool {
+        self.force_llm
     }
 }
 

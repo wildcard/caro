@@ -401,57 +401,143 @@ impl IntoCliArgs for Cli {
 }
 
 // =============================================================================
-// Shell Init Script
+// Shell Integration
 // =============================================================================
+
+/// Exit code indicating edit mode - shell wrapper should capture command
+pub const EXIT_CODE_EDIT: i32 = 201;
+
+/// Copy text to system clipboard
+/// Returns true if successful, false if clipboard is unavailable
+fn copy_to_clipboard(text: &str) -> bool {
+    use std::process::{Command, Stdio};
+
+    #[cfg(target_os = "macos")]
+    {
+        if let Ok(mut child) = Command::new("pbcopy").stdin(Stdio::piped()).spawn() {
+            if let Some(stdin) = child.stdin.as_mut() {
+                use std::io::Write;
+                if stdin.write_all(text.as_bytes()).is_ok() {
+                    return child.wait().map(|s| s.success()).unwrap_or(false);
+                }
+            }
+        }
+        false
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        // Try xclip first, then xsel
+        for cmd in &["xclip", "xsel"] {
+            let args: &[&str] = if *cmd == "xclip" {
+                &["-selection", "clipboard"]
+            } else {
+                &["--clipboard", "--input"]
+            };
+
+            if let Ok(mut child) = Command::new(cmd).args(args).stdin(Stdio::piped()).spawn() {
+                if let Some(stdin) = child.stdin.as_mut() {
+                    use std::io::Write;
+                    if stdin.write_all(text.as_bytes()).is_ok() {
+                        if child.wait().map(|s| s.success()).unwrap_or(false) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        false
+    }
+
+    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
+    {
+        let _ = text;
+        false
+    }
+}
 
 /// Print shell integration script for the specified shell
 fn print_shell_init_script(shell: &str) {
-    match shell.to_lowercase().as_str() {
+    let script = match shell.to_lowercase().as_str() {
         "zsh" => {
-            println!(
-                r#"# Caro shell integration for zsh
-# Add this to your ~/.zshrc
+            r#"# Caro shell integration for zsh
+# Add to ~/.zshrc: eval "$(caro init zsh)"
 
-caro_widget() {{
-    local cmd=$(caro --no-confirm "$BUFFER" 2>/dev/null)
-    if [[ -n "$cmd" ]]; then
-        BUFFER="$cmd"
-        CURSOR=$#BUFFER
+caro() {
+    local output exit_code
+    local tmpfile=$(mktemp)
+
+    # Run caro with wrapper flag and capture output
+    CARO_WRAPPER=1 command caro "$@" > "$tmpfile" 2>&1
+    exit_code=$?
+    output=$(cat "$tmpfile")
+    rm -f "$tmpfile"
+
+    if [[ $exit_code -eq 201 ]]; then
+        # Edit mode: put command in buffer for user to edit
+        print -z "$output"
+    else
+        # Normal mode: print output
+        echo "$output"
     fi
-}}
-zle -N caro_widget
-bindkey '^G' caro_widget  # Ctrl+G to invoke caro"#
-            );
+    return $exit_code
+}
+"#
         }
         "bash" => {
-            println!(
-                r#"# Caro shell integration for bash
-# Add this to your ~/.bashrc
+            r#"# Caro shell integration for bash
+# Add to ~/.bashrc: eval "$(caro init bash)"
 
-caro_widget() {{
-    local cmd=$(caro --no-confirm "$READLINE_LINE" 2>/dev/null)
-    if [[ -n "$cmd" ]]; then
-        READLINE_LINE="$cmd"
-        READLINE_POINT=${{#READLINE_LINE}}
+caro() {
+    local output exit_code
+    local tmpfile=$(mktemp)
+
+    # Run caro with wrapper flag and capture output
+    CARO_WRAPPER=1 command caro "$@" > "$tmpfile" 2>&1
+    exit_code=$?
+    output=$(cat "$tmpfile")
+    rm -f "$tmpfile"
+
+    if [[ $exit_code -eq 201 ]]; then
+        # Edit mode: use readline to pre-fill command
+        # This requires bash 4.0+ with readline support
+        read -e -i "$output" -p "" edited_cmd
+        if [[ -n "$edited_cmd" ]]; then
+            eval "$edited_cmd"
+        fi
+    else
+        # Normal mode: print output
+        echo "$output"
     fi
-}}
-bind -x '"\C-g": caro_widget'  # Ctrl+G to invoke caro"#
-            );
+    return $exit_code
+}
+"#
         }
         "fish" => {
-            println!(
-                r#"# Caro shell integration for fish
-# Add this to your ~/.config/fish/config.fish
+            r#"# Caro shell integration for fish
+# Add to ~/.config/fish/config.fish: caro init fish | source
 
-function caro_widget
-    set -l cmd (caro --no-confirm (commandline) 2>/dev/null)
-    if test -n "$cmd"
-        commandline -r "$cmd"
-        commandline -f end-of-line
+function caro
+    set -l tmpfile (mktemp)
+
+    # Run caro with wrapper flag and capture output
+    set -x CARO_WRAPPER 1
+    command caro $argv > $tmpfile 2>&1
+    set -l exit_code $status
+    set -l output (cat $tmpfile)
+    rm -f $tmpfile
+    set -e CARO_WRAPPER
+
+    if test $exit_code -eq 201
+        # Edit mode: put command in buffer
+        commandline -r "$output"
+    else
+        # Normal mode: print output
+        echo "$output"
     end
+    return $exit_code
 end
-bind \cg caro_widget  # Ctrl+G to invoke caro"#
-            );
+"#
         }
         _ => {
             eprintln!(
@@ -460,7 +546,9 @@ bind \cg caro_widget  # Ctrl+G to invoke caro"#
             );
             std::process::exit(1);
         }
-    }
+    };
+
+    print!("{}", script);
 }
 
 // =============================================================================
@@ -1185,50 +1273,91 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
     }
     // If command wasn't executed yet and passes safety checks, ask user if they want to execute
     else if result.exit_code.is_none() && result.executed && !cli.execute && !cli.interactive {
-        use dialoguer::Confirm;
+        use dialoguer::Select;
 
         // Check if we're in a terminal environment
         if std::io::stdin().is_terminal() {
-            let should_execute = Confirm::new()
+            let options = &["Yes - execute", "No - skip", "Edit - modify in shell"];
+            let selection = Select::new()
                 .with_prompt("Execute this command?")
-                .default(false)
+                .items(options)
+                .default(1) // Default to "No"
                 .interact()
                 .map_err(|e| CliError::Internal {
-                    message: format!("Failed to get user confirmation: {}", e),
+                    message: format!("Failed to get user selection: {}", e),
                 })?;
 
-            if should_execute {
-                println!();
-                println!("{}", "Executing command...".dimmed());
+            match selection {
+                0 => {
+                    // Yes - execute
+                    println!();
+                    println!("{}", "Executing command...".dimmed());
 
-                // Execute the command
-                use caro::execution::CommandExecutor;
+                    // Execute the command
+                    use caro::execution::CommandExecutor;
 
-                let executor = CommandExecutor::new(result.shell_used);
+                    let executor = CommandExecutor::new(result.shell_used);
 
-                match executor.execute(&result.generated_command) {
-                    Ok(exec_result) => {
-                        result.exit_code = Some(exec_result.exit_code);
-                        result.stdout = Some(exec_result.stdout);
-                        result.stderr = Some(exec_result.stderr);
-                        result.execution_error = if !exec_result.success {
-                            Some(format!(
-                                "Command exited with code {}",
-                                exec_result.exit_code
-                            ))
-                        } else {
-                            None
-                        };
-                        result.timing_info.execution_time_ms = exec_result.execution_time_ms;
+                    match executor.execute(&result.generated_command) {
+                        Ok(exec_result) => {
+                            result.exit_code = Some(exec_result.exit_code);
+                            result.stdout = Some(exec_result.stdout);
+                            result.stderr = Some(exec_result.stderr);
+                            result.execution_error = if !exec_result.success {
+                                Some(format!(
+                                    "Command exited with code {}",
+                                    exec_result.exit_code
+                                ))
+                            } else {
+                                None
+                            };
+                            result.timing_info.execution_time_ms = exec_result.execution_time_ms;
+                        }
+                        Err(e) => {
+                            result.execution_error = Some(format!("Execution failed: {}", e));
+                        }
                     }
-                    Err(e) => {
-                        result.execution_error = Some(format!("Execution failed: {}", e));
+                    println!();
+                }
+                2 => {
+                    // Edit mode
+                    if std::env::var("CARO_WRAPPER").is_ok() {
+                        // Running through shell wrapper - output command and exit with code 201
+                        // The wrapper will capture this and put it in the readline buffer
+                        println!("{}", result.generated_command);
+                        std::process::exit(EXIT_CODE_EDIT);
+                    } else {
+                        // Not running through wrapper - copy to clipboard as fallback
+                        let cmd = &result.generated_command;
+                        if copy_to_clipboard(cmd) {
+                            println!(
+                                "{} Command copied to clipboard. Paste with {} to edit.",
+                                "✓".green(),
+                                if cfg!(target_os = "macos") {
+                                    "Cmd+V"
+                                } else {
+                                    "Ctrl+V"
+                                }
+                            );
+                        } else {
+                            // Clipboard copy failed - just print the command
+                            println!("{}", "Command (copy manually):".yellow());
+                            println!("  {}", cmd);
+                        }
+                        println!();
+                        println!(
+                            "{}",
+                            "Tip: Add shell integration for seamless editing:".dimmed()
+                        );
+                        println!("  {}", "eval \"$(caro init zsh)\"  # or bash/fish".dimmed());
+                        println!();
                     }
                 }
-                println!();
-            } else {
-                println!("{}", "Execution skipped.".yellow());
-                println!();
+                _ => {
+                    // No - skip
+                    println!("{}", "Execution skipped.".yellow());
+                    println!();
+                }
             }
         } else {
             // Non-interactive environment - show message

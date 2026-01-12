@@ -299,7 +299,7 @@ impl BaselineStore {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::evaluation::{BackendResult, BenchmarkReport, CategoryResult};
+    use crate::evaluation::{BackendResult, BenchmarkReport, CategoryResult, TestCategory};
     use chrono::Utc;
     use std::collections::HashMap;
     use tempfile::TempDir;
