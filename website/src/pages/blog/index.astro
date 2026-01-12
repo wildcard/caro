@@ -115,10 +115,15 @@ const allPosts = [
   }
 ];
 
-// Filter drafts in production, show all in dev/preview
-const posts = import.meta.env.PROD
-  ? allPosts.filter(post => !post.draft)
-  : allPosts;
+// Filter drafts in production only, show all in dev and Vercel preview
+// VERCEL_ENV is "production", "preview", or "development"
+const isVercelPreview = import.meta.env.VERCEL_ENV === 'preview';
+const isLocalDev = !import.meta.env.PROD;
+const showDrafts = isLocalDev || isVercelPreview;
+
+const posts = showDrafts
+  ? allPosts
+  : allPosts.filter(post => !post.draft);
 ---
 
 <Layout
