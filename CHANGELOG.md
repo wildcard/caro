@@ -15,7 +15,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
-## [1.1.0] - 2026-01-09
+## [1.1.0] - 2026-01-12
+
+### 🎉 General Availability Release
+
+Caro v1.1.0 is now generally available! This release represents the culmination of extensive beta testing with 93.1% command generation accuracy and zero false positives in safety validation.
+
+### Changed
+
+- **Telemetry Default**: Now opt-in (disabled by default) - your privacy, your choice
+- **Consent Message**: Updated to reflect GA status
+
+### Highlights from Beta
+
+- 93.1% pass rate on comprehensive test suite (exceeds 86% target)
+- 52 safety patterns with 0% false positive rate
+- Platform-aware command generation (BSD vs GNU)
+- System assessment and health check commands (`caro assess`, `caro doctor`)
+- Privacy-first telemetry with transparent consent
 
 ### Fixed
 
@@ -30,6 +47,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - GNU syntax on Linux (`du -h --max-depth=1`)
   - Testing: Added 5 platform-specific tests; File Management pass rate: 80% → 100%
   - Verification: Runtime tested on macOS, all 153 unit tests passing
+
+For detailed beta changelog, see v1.1.0-beta.1 and v1.1.0-beta.2 entries below.
 
 ## [1.1.0-beta.2] - 2026-01-09
 

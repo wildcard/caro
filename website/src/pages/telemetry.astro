@@ -14,7 +14,7 @@ export const searchMeta = {
 
 <Layout
   title="Telemetry & Privacy Policy - Caro"
-  description="Learn about Caro's privacy-first approach to telemetry. Understand what data we collect during beta, why, and how you can opt out."
+  description="Learn about Caro's privacy-first approach to telemetry. Understand what data we collect, why, and how to control your privacy settings."
 >
   <Navigation />
 
@@ -28,24 +28,24 @@ export const searchMeta = {
       <section class="tldr-section">
         <h2>TL;DR</h2>
         <div class="tldr-grid">
-          <div class="tldr-card beta">
-            <div class="phase-badge">Beta (Current)</div>
-            <h3>Opt-Out</h3>
-            <p>Telemetry is <strong>enabled by default</strong> to help us improve the product. You can easily disable it.</p>
-            <code>caro config set telemetry.enabled false</code>
-          </div>
           <div class="tldr-card ga">
-            <div class="phase-badge">General Availability</div>
+            <div class="phase-badge">General Availability (Current)</div>
             <h3>Opt-In</h3>
-            <p>Telemetry will be <strong>disabled by default</strong>. We'll ask if you'd like to help by enabling it.</p>
+            <p>Telemetry is <strong>disabled by default</strong>. Enable it to help improve Caro.</p>
             <code>caro config set telemetry.enabled true</code>
+          </div>
+          <div class="tldr-card beta">
+            <div class="phase-badge">Beta (Previous)</div>
+            <h3>Opt-Out</h3>
+            <p>During beta, telemetry was <strong>enabled by default</strong>.</p>
+            <code>caro config set telemetry.enabled false</code>
           </div>
         </div>
       </section>
 
       <section class="why-section">
         <h2>Why We Collect Telemetry</h2>
-        <p>We're building Caro to be the best AI shell assistant. During beta, anonymous usage data helps us:</p>
+        <p>We're building Caro to be the best AI shell assistant. Anonymous usage data helps us:</p>
         <ul class="benefits-list">
           <li>
             <span class="icon">📊</span>
@@ -190,8 +190,8 @@ export const searchMeta = {
           <div class="commitment">
             <span class="number">4</span>
             <div>
-              <h4>Evolution</h4>
-              <p>After beta, telemetry becomes opt-in. We'll ask nicely, but the default is off.</p>
+              <h4>Privacy by Default</h4>
+              <p>Telemetry is opt-in. We ask nicely, but the default is off.</p>
             </div>
           </div>
         </div>
@@ -201,19 +201,19 @@ export const searchMeta = {
         <h2>Frequently Asked Questions</h2>
 
         <details>
-          <summary>Why is telemetry on by default during beta?</summary>
+          <summary>Why was telemetry on by default during beta?</summary>
           <p>
-            Beta is specifically for gathering feedback to improve the product before general availability.
-            Anonymous usage data helps us understand how Caro is used in the real world, identify bugs,
-            and prioritize features. This is standard practice for beta software.
+            During beta, telemetry was enabled by default to gather feedback before general availability.
+            Now that Caro is GA, telemetry is disabled by default and opt-in only. We believe in
+            earning your trust through value, not requiring it.
           </p>
         </details>
 
         <details>
-          <summary>When will telemetry become opt-in?</summary>
+          <summary>Is telemetry opt-in now?</summary>
           <p>
-            At general availability (GA) release, telemetry will be disabled by default.
-            We'll prompt new users to optionally enable it, explaining the value exchange:
+            Yes! With the general availability (GA) release, telemetry is disabled by default.
+            We prompt new users to optionally enable it, explaining the value exchange:
             you help us improve the product, we make Caro better for everyone.
           </p>
         </details>

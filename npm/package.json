@@ -1,6 +1,6 @@
 {
   "name": "@wildcard/caro",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Convert natural language to shell commands using local LLMs",
   "license": "AGPL-3.0",
   "repository": {

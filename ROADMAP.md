@@ -47,14 +47,13 @@ gantt
 
 ## Release Milestones
 
-### 🚀 v1.1.0-beta - Beta Release with Telemetry
-**Due Date**: January 24, 2026 (16 days) - **ON TRACK** ✅
-**Status**: 95% Complete (18/19 items) - **READY FOR BETA**
-**Focus**: User feedback collection and usage analytics for product decisions
+### 🚀 v1.1.0 - General Availability Release
+**Released**: January 12, 2026 ✅
+**Status**: 100% Complete - **GA RELEASED**
+**Focus**: Production-ready release with opt-in telemetry
 
-> **Telemetry Philosophy**: Beta users get early access, we get usage data to improve the product.
-> - **Beta (v1.1.0-beta)**: Opt-out telemetry (ON by default)
-> - **GA (v1.1.0+)**: Opt-in telemetry (OFF by default)
+> **Telemetry Philosophy**: Privacy by default.
+> - **GA (v1.1.0)**: Opt-in telemetry (OFF by default)
 
 #### Key Deliverables
 - **Telemetry Infrastructure** (Critical) ✅ **COMPLETE**
@@ -238,8 +237,8 @@ gantt
 
 | Milestone | Due Date | Items | Complete | Progress | Status |
 |-----------|----------|-------|----------|----------|---------|
-| **v1.1.0-beta** | Jan 24, 2026 | 19 | 18 | 95% | ✅ **READY FOR BETA** |
-| **v1.1.0 (GA)** | Feb 15, 2026 | 15 | 1 | 7% | 🔄 In Planning |
+| **v1.1.0** | Jan 12, 2026 | 19 | 19 | 100% | ✅ **GA RELEASED** |
+| **v1.2.0** | Feb 15, 2026 | 15 | 1 | 7% | 🔄 In Progress |
 | **v1.2.0** | Mar 31, 2026 | 24 | 0 | 0% | ⏸️ Backlog |
 | **v2.0.0** | Jun 30, 2026 | 21 | 8 | 38% | 🔄 Research Phase |
 | **Total** | - | **79** | **27** | **34%** | 🚀 On Track |

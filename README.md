@@ -4,27 +4,7 @@
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%203.0-blue.svg)](https://opensource.org/licenses/AGPL-3.0)
 [![CI](https://github.com/wildcard/caro/workflows/CI/badge.svg)](https://github.com/wildcard/caro/actions)
 
----
-
-> ## ⚠️ **BETA RELEASE - v1.1.0-beta.1** ⚠️
->
-> This is a **beta release** for early testing and feedback. While stable and safe for daily use by early adopters, it's not yet recommended for production systems.
->
-> **What's Working:**
-> - ✅ 93.1% pass rate on comprehensive test suite
-> - ✅ 52 safety patterns with 0% false positives
-> - ✅ Privacy-first telemetry (opt-in, no PII collected)
-> - ✅ All core features functional
->
-> **Beta Period:** 5-day testing cycle with 3-5 testers
-> **Feedback:** Please report issues at [GitHub Issues](https://github.com/wildcard/caro/issues)
-> **GA Release:** Coming soon after successful beta testing
->
-> See [CHANGELOG.md](CHANGELOG.md) for v1.1.0-beta.1 details.
-
----
-
-> ✨ **Active Development** - Published on crates.io with core features working. Visit [caro.sh](https://caro.sh) for more info.
+> ✨ **Now Generally Available!** - Published on crates.io with all core features working. Visit [caro.sh](https://caro.sh) for more info.
 
 **caro** (formerly **cmdai**) converts natural language descriptions into safe POSIX shell commands using local LLMs. Built with Rust for blazing-fast performance, single-binary distribution, and safety-first design with intelligent platform detection.
 
@@ -47,9 +27,9 @@ Have questions or want to discuss caro with other users? Join the community!
   - - **[Documentation](https://caro.sh)** - Check out our comprehensive docs
 ## 📋 Project Status
 
-**Current Version:** 1.1.0-beta.1 (Beta Release - Not for General Availability Yet)
+**Current Version:** 1.1.0 (General Availability)
 
-This project is in **active beta testing** with all core features implemented, tested, and working. The CLI achieves 93.1% pass rate on comprehensive test suite with zero false positives in safety validation.
+This project is **generally available** with all core features implemented, tested, and working. The CLI achieves 93.1% pass rate on comprehensive test suite with zero false positives in safety validation.
 
 > **Note:** The project was originally named `cmdai` but has been renamed to `caro`. See [Naming History](docs/NAMING_HISTORY.md) for details.
 
@@ -77,7 +57,7 @@ This project is in **active beta testing** with all core features implemented, t
 - 🎥 **Professional demos** with asciinema recordings
 
 ### 🚧 In Progress
-- 📊 **Telemetry infrastructure** (95% complete) - Usage analytics for v1.1.0-beta
+- 📊 **Telemetry infrastructure** - Privacy-first usage analytics (opt-in)
 - Model downloading and caching optimization
 - Command history and learning from user feedback
 - Performance profiling and optimization
@@ -128,18 +108,18 @@ Download the latest release for your platform from [GitHub Releases](https://git
 
 | Platform | Binary Name | Direct Download |
 |----------|-------------|-----------------|
-| Linux x86_64 | `caro-1.0.2-linux-amd64` | [Download](https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-linux-amd64) |
-| Linux ARM64 | `caro-1.0.2-linux-arm64` | [Download](https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-linux-arm64) |
-| macOS Intel | `caro-1.0.2-macos-intel` | [Download](https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-macos-intel) |
-| macOS Apple Silicon | `caro-1.0.2-macos-silicon` | [Download](https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-macos-silicon) |
-| Windows x64 | `caro-1.0.2-windows-amd64.exe` | [Download](https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-windows-amd64.exe) |
+| Linux x86_64 | `caro-1.1.0-linux-amd64` | [Download](https://github.com/wildcard/caro/releases/download/v1.1.0/caro-1.1.0-linux-amd64) |
+| Linux ARM64 | `caro-1.1.0-linux-arm64` | [Download](https://github.com/wildcard/caro/releases/download/v1.1.0/caro-1.1.0-linux-arm64) |
+| macOS Intel | `caro-1.1.0-macos-intel` | [Download](https://github.com/wildcard/caro/releases/download/v1.1.0/caro-1.1.0-macos-intel) |
+| macOS Apple Silicon | `caro-1.1.0-macos-silicon` | [Download](https://github.com/wildcard/caro/releases/download/v1.1.0/caro-1.1.0-macos-silicon) |
+| Windows x64 | `caro-1.1.0-windows-amd64.exe` | [Download](https://github.com/wildcard/caro/releases/download/v1.1.0/caro-1.1.0-windows-amd64.exe) |
 
 > 💡 **Tip**: Visit the [releases page](https://github.com/wildcard/caro/releases/latest) for the latest version.
 
 **Manual Installation:**
 ```bash
-# Example for macOS Apple Silicon (v1.0.2)
-curl -fsSL https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-macos-silicon -o caro
+# Example for macOS Apple Silicon (v1.1.0)
+curl -fsSL https://github.com/wildcard/caro/releases/download/v1.1.0/caro-1.1.0-macos-silicon -o caro
 chmod +x caro
 sudo mv caro /usr/local/bin/
 
@@ -150,9 +130,9 @@ caro --version
 **Checksum Verification:**
 Each binary includes a SHA256 checksum file (`.sha256`). Verify before installing:
 ```bash
-# Download binary and checksum (v1.0.2 example)
-curl -fsSL https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-macos-silicon -o caro
-curl -fsSL https://github.com/wildcard/caro/releases/download/v1.0.2/caro-1.0.2-macos-silicon.sha256 -o caro.sha256
+# Download binary and checksum (v1.1.0 example)
+curl -fsSL https://github.com/wildcard/caro/releases/download/v1.1.0/caro-1.1.0-macos-silicon -o caro
+curl -fsSL https://github.com/wildcard/caro/releases/download/v1.1.0/caro-1.1.0-macos-silicon.sha256 -o caro.sha256
 
 # Verify (macOS/Linux)
 shasum -a 256 -c caro.sha256
@@ -572,7 +552,13 @@ custom_patterns = ["additional", "dangerous", "patterns"]
 
 ## 📊 Telemetry & Privacy
 
-**v1.1.0-beta introduces optional usage telemetry to help us improve caro.**
+**Caro includes optional usage telemetry to help us improve the product.**
+
+### Privacy Default
+Telemetry is **disabled by default**. Enable it to help improve Caro:
+```bash
+caro config set telemetry.enabled true
+```
 
 ### What We Collect
 - Anonymous usage metrics (session timing, command generation stats)
@@ -585,10 +571,6 @@ custom_patterns = ["additional", "dangerous", "patterns"]
 - ❌ Any personally identifiable information
 
 **Your privacy is our top priority.** All data is anonymous, stored locally first, and validated before any upload.
-
-### Beta vs GA
-- **v1.1.0-beta**: Opt-out (ON by default) - Help us improve!
-- **v1.1.0 GA**: Opt-in (OFF by default) - Your choice
 
 ### Managing Telemetry
 

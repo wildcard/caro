@@ -21,7 +21,7 @@ pub fn prompt_consent() -> bool {
 
     eprintln!(
         "{}",
-        "Caro is in beta and collects anonymous usage data to improve the product.".bright_white()
+        "Caro can collect anonymous usage data to help improve the product.".bright_white()
     );
     eprintln!();
 

@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>caro</id>
-    <version>1.0.2</version>
+    <version>1.1.0</version>
     <title>caro - Natural Language to Shell Commands</title>
     <authors>wildcard</authors>
     <owners>wildcard</owners>
