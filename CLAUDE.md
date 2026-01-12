@@ -12,9 +12,6 @@
 - `<` → `&lt;` (for generics)
 - `>` → `&gt;` (for generics)
 
-**Before committing blog changes, always run:**
-```bash
-cd website && npm run build
-```
+**Pre-commit hook (husky)** automatically runs `npm run build` when website files are staged. If the build fails, the commit is blocked with helpful error messages.
 
-The website has a pre-commit hook that enforces this automatically.
+To manually verify: `cd website && npm run build`
