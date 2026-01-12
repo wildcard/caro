@@ -163,6 +163,33 @@ EXAMPLES:
 - "large files over 100MB" -> find . -type f -size +100M
 - "disk usage by folder" -> du -sh */ | sort -rh | head -10
 
+IMPORTANT TOOL SELECTION RULES:
+- If request mentions "docker" or "container" (but NOT "pod"): use docker command
+- If request mentions "k8s", "kubernetes", "pod", "deployment", or "service" (k8s context): use kubectl command
+- "containers" alone = docker ps
+- "pods" alone = kubectl get pods
+
+DOCKER COMMANDS (for containers):
+- "list docker containers" -> docker ps
+- "list all docker containers" -> docker ps -a
+- "list running containers" -> docker ps
+- "list docker images" -> docker images
+- "show docker logs" -> docker logs <container>
+- "stop all containers" -> docker stop $(docker ps -q)
+
+KUBERNETES COMMANDS (for pods, k8s, kubernetes):
+- "list k8s pods" -> kubectl get pods
+- "list kubernetes pods" -> kubectl get pods
+- "list pods" -> kubectl get pods
+- "list all pods" -> kubectl get pods -A
+- "list pods in namespace" -> kubectl get pods -n <namespace>
+- "list k8s services" -> kubectl get services
+- "list services" -> kubectl get services
+- "list k8s deployments" -> kubectl get deployments
+- "list deployments" -> kubectl get deployments
+- "describe pod" -> kubectl describe pod <pod-name>
+- "get pod logs" -> kubectl logs <pod-name>
+
 Request: {}
 "#,
             request.shell, request.input

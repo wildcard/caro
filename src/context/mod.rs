@@ -68,6 +68,8 @@ impl ExecutionContext {
 - readlink: Use 'readlink' (no -f flag), use 'greadlink -f' if available
 - stat: Use 'stat -f %s' not 'stat --format'
 - xargs: Works same as Linux
+- docker: Use 'docker ps' for containers, 'docker images' for images
+- kubectl: Use 'kubectl get pods' for pods, 'kubectl get services' for services
 - Current directory: {}"#,
             self.os_version,
             self.cwd.display()
@@ -87,6 +89,8 @@ impl ExecutionContext {
 - date: GNU date, use 'date --date="7 days ago"'
 - readlink: Use 'readlink -f' for canonical path
 - stat: Use 'stat --format=%s'
+- docker: Use 'docker ps' for containers, 'docker images' for images
+- kubectl: Use 'kubectl get pods' for pods, 'kubectl get services' for services
 - Current directory: {}"#,
             dist,
             self.cwd.display()
@@ -185,12 +189,71 @@ impl ExecutionContext {
 
     fn scan_available_commands() -> Vec<String> {
         let common_commands = vec![
-            "ps", "top", "kill", "killall", "find", "grep", "egrep", "fgrep", "sed", "awk", "sort",
-            "head", "tail", "cut", "tr", "wc", "xargs", "uniq", "ls", "cat", "less", "more",
-            "file", "df", "du", "lsof", "netstat", "ss", "ifconfig", "ip", "git", "curl", "wget",
-            "nc", "telnet", "tar", "gzip", "gunzip", "zip", "unzip", "bzip2", "chmod", "chown",
-            "chgrp", "umask", "date", "cal", "uptime", "w", "who", "whoami", "env", "export",
-            "echo", "printf", "jq", "yq", "xmllint",
+            // System utilities
+            "ps",
+            "top",
+            "kill",
+            "killall",
+            "find",
+            "grep",
+            "egrep",
+            "fgrep",
+            "sed",
+            "awk",
+            "sort",
+            "head",
+            "tail",
+            "cut",
+            "tr",
+            "wc",
+            "xargs",
+            "uniq",
+            "ls",
+            "cat",
+            "less",
+            "more",
+            "file",
+            "df",
+            "du",
+            "lsof",
+            "netstat",
+            "ss",
+            "ifconfig",
+            "ip",
+            "git",
+            "curl",
+            "wget",
+            "nc",
+            "telnet",
+            "tar",
+            "gzip",
+            "gunzip",
+            "zip",
+            "unzip",
+            "bzip2",
+            "chmod",
+            "chown",
+            "chgrp",
+            "umask",
+            "date",
+            "cal",
+            "uptime",
+            "w",
+            "who",
+            "whoami",
+            "env",
+            "export",
+            "echo",
+            "printf",
+            "jq",
+            "yq",
+            "xmllint",
+            // Container and orchestration tools
+            "docker",
+            "docker-compose",
+            "kubectl",
+            "helm",
+            "podman",
         ];
 
         common_commands

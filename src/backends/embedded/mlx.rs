@@ -25,6 +25,7 @@ struct MlxModelState {
 }
 
 /// MLX backend for Apple Silicon GPU acceleration
+#[allow(dead_code)]
 pub struct MlxBackend {
     model_path: PathBuf,
     // Model will be loaded lazily
@@ -68,20 +69,18 @@ fn extract_json_command(text: &str) -> Result<String, GeneratorError> {
 }
 
 #[cfg(feature = "embedded-mlx")]
-fn build_prompt(prompt: &str) -> String {
+fn build_prompt(system_prompt: &str) -> String {
+    // The system_prompt from embedded_backend already contains:
+    // - Detailed system instructions with examples
+    // - The user's request embedded as "Request: {input}"
+    // We format it as a ChatML conversation using the passed prompt as the system message
     format!(
         r#"<|im_start|>system
-You are a helpful assistant that converts natural language to POSIX shell commands.
-Respond ONLY with valid JSON in this exact format: {{"cmd": "command here"}}
-Use only POSIX-compliant commands (ls, find, grep, awk, sed, etc.)
-Quote file paths properly. Never use destructive commands.
-<|im_end|>
-<|im_start|>user
 {}
 <|im_end|>
 <|im_start|>assistant
 "#,
-        prompt
+        system_prompt
     )
 }
 
@@ -343,9 +342,11 @@ mod tests {
     #[cfg(feature = "embedded-mlx")]
     #[test]
     fn test_build_prompt() {
-        let prompt = build_prompt("list files");
+        let system_prompt = "You are a shell command generator.\nRequest: list files";
+        let prompt = build_prompt(system_prompt);
         assert!(prompt.contains("list files"));
-        assert!(prompt.contains("<|im_start|>"));
-        assert!(prompt.contains("POSIX"));
+        assert!(prompt.contains("<|im_start|>system"));
+        assert!(prompt.contains("<|im_start|>assistant"));
+        assert!(prompt.contains("shell command generator"));
     }
 }
