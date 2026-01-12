@@ -165,14 +165,14 @@ enum ExportFormat {
 enum ConfigCommands {
     /// Set a configuration value
     Set {
-        /// Configuration key (model, shell, safety)
+        /// Configuration key (backend, model-name, shell, safety)
         key: String,
         /// Value to set
         value: String,
     },
     /// Get a configuration value
     Get {
-        /// Configuration key (model, shell, safety)
+        /// Configuration key (backend, model-name, shell, safety)
         key: String,
     },
     /// Show all configuration
@@ -263,13 +263,21 @@ struct Cli {
     )]
     shell: Option<String>,
 
-    /// Model/backend to use for inference
+    /// Backend to use for inference
+    #[arg(
+        short = 'b',
+        long,
+        help = "Inference backend (embedded, ollama, exo, vllm)"
+    )]
+    backend: Option<String>,
+
+    /// Model name to use with the backend
     #[arg(
         short = 'm',
-        long,
-        help = "Model backend (embedded, ollama, exo, vllm)"
+        long = "model-name",
+        help = "Model name for the backend (e.g., codellama:7b for ollama)"
     )]
-    model: Option<String>,
+    model_name: Option<String>,
 
     /// Safety level for command validation
     #[arg(long, help = "Safety level (strict, moderate, permissive)")]
@@ -334,8 +342,12 @@ impl IntoCliArgs for Cli {
         self.shell.clone()
     }
 
-    fn model(&self) -> Option<String> {
-        self.model.clone()
+    fn backend(&self) -> Option<String> {
+        self.backend.clone()
+    }
+
+    fn model_name(&self) -> Option<String> {
+        self.model_name.clone()
     }
 
     fn safety(&self) -> Option<String> {
@@ -431,21 +443,29 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                 .map_err(|e| format!("Failed to load config: {}", e))?;
 
             match key.to_lowercase().as_str() {
-                "model" => {
-                    // Validate model name
-                    let valid_models = ["embedded", "ollama", "exo", "vllm"];
-                    if !valid_models.contains(&value.to_lowercase().as_str()) {
+                "backend" => {
+                    // Validate backend name
+                    let valid_backends = ["embedded", "ollama", "exo", "vllm"];
+                    if !valid_backends.contains(&value.to_lowercase().as_str()) {
                         return Err(format!(
-                            "Invalid model '{}'. Valid options: {}",
+                            "Invalid backend '{}'. Valid options: {}",
                             value,
-                            valid_models.join(", ")
+                            valid_backends.join(", ")
                         ));
                     }
                     config.default_model = Some(value.to_lowercase());
                     println!(
-                        "{} Set default model to '{}'",
+                        "{} Set default backend to '{}'",
                         "✓".green(),
                         config.default_model.as_ref().unwrap()
+                    );
+                }
+                "model-name" | "model_name" => {
+                    config.model_name = Some(value.clone());
+                    println!(
+                        "{} Set model name to '{}'",
+                        "✓".green(),
+                        value
                     );
                 }
                 "shell" => {
@@ -464,7 +484,7 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                 }
                 _ => {
                     return Err(format!(
-                        "Unknown config key '{}'. Valid keys: model, shell, safety",
+                        "Unknown config key '{}'. Valid keys: backend, model-name, shell, safety",
                         key
                     ));
                 }
@@ -485,9 +505,13 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                 .map_err(|e| format!("Failed to load config: {}", e))?;
 
             match key.to_lowercase().as_str() {
-                "model" => {
+                "backend" => {
                     let value = config.default_model.as_deref().unwrap_or("(auto-detect)");
-                    println!("{}: {}", "model".bold(), value);
+                    println!("{}: {}", "backend".bold(), value);
+                }
+                "model-name" | "model_name" => {
+                    let value = config.model_name.as_deref().unwrap_or("(default)");
+                    println!("{}: {}", "model-name".bold(), value);
                 }
                 "shell" => {
                     let value = config
@@ -501,7 +525,7 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                 }
                 _ => {
                     return Err(format!(
-                        "Unknown config key '{}'. Valid keys: model, shell, safety",
+                        "Unknown config key '{}'. Valid keys: backend, model-name, shell, safety",
                         key
                     ));
                 }
@@ -516,8 +540,13 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
             println!();
             println!(
                 "  {}: {}",
-                "model".cyan(),
+                "backend".cyan(),
                 config.default_model.as_deref().unwrap_or("(auto-detect)")
+            );
+            println!(
+                "  {}: {}",
+                "model-name".cyan(),
+                config.model_name.as_deref().unwrap_or("(default)")
             );
             println!(
                 "  {}: {}",
@@ -963,10 +992,11 @@ async fn main() {
 }
 
 async fn run_cli(cli: &Cli) -> Result<bool, CliError> {
-    // Create CLI application with optional model override from --model flag
-    let app = CliApp::with_model_override(
+    // Create CLI application with optional backend and model overrides
+    let app = CliApp::with_overrides(
         caro::cli::CliConfig::default(),
-        cli.model.clone(),
+        cli.backend.clone(),
+        cli.model_name.clone(),
     )
     .await?;
 

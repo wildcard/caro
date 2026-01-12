@@ -124,7 +124,8 @@ pub struct ParsedArgs {
 pub trait IntoCliArgs {
     fn prompt(&self) -> Option<String>;
     fn shell(&self) -> Option<String>;
-    fn model(&self) -> Option<String>;
+    fn backend(&self) -> Option<String>;
+    fn model_name(&self) -> Option<String>;
     fn safety(&self) -> Option<String>;
     fn output(&self) -> Option<String>;
     fn confirm(&self) -> bool;
@@ -141,13 +142,14 @@ impl CliApp {
     /// Uses configuration-driven backend selection with embedded model as primary
     /// and optional remote backend fallbacks.
     pub async fn new() -> Result<Self, CliError> {
-        Self::with_model_override(CliConfig::default(), None).await
+        Self::with_overrides(CliConfig::default(), None, None).await
     }
 
-    /// Create CLI application with model override from CLI args
-    pub async fn with_model_override(
+    /// Create CLI application with backend and model overrides from CLI args
+    pub async fn with_overrides(
         config: CliConfig,
-        model_override: Option<String>,
+        backend_override: Option<String>,
+        model_name_override: Option<String>,
     ) -> Result<Self, CliError> {
         // Load user configuration to determine backend preferences
         let config_manager =
@@ -161,9 +163,12 @@ impl CliApp {
                 message: format!("Failed to load configuration: {}", e),
             })?;
 
-        // CLI model override takes precedence over config file
-        if let Some(model) = model_override {
-            user_config.default_model = Some(model);
+        // CLI overrides take precedence over config file
+        if let Some(backend) = backend_override {
+            user_config.default_model = Some(backend);
+        }
+        if let Some(model_name) = model_name_override {
+            user_config.model_name = Some(model_name);
         }
 
         // Create backend based on configuration
@@ -210,6 +215,7 @@ impl CliApp {
         #[cfg(not(test))]
         {
             // Allow explicit mock backend via environment variable for testing
+            #[cfg(feature = "mock-backend")]
             if std::env::var("CARO_MOCK_BACKEND").is_ok() {
                 tracing::info!("Using mock backend (CARO_MOCK_BACKEND set)");
                 return Ok(Box::new(MockCommandGenerator::new()));

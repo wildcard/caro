@@ -59,6 +59,7 @@ INSTALL_METHOD=""  # "cargo" or "binary"
 SETUP_SHELL_COMPLETION="true"
 SETUP_PATH_AUTO="true"
 CONFIGURE_SAFETY_LEVEL="true"
+SAFETY_LEVEL="strict"  # Default safety level
 
 # Detect OS and architecture
 detect_platform() {

@@ -1,7 +1,7 @@
 //! Batch telemetry uploader
 
 use super::{config::TelemetryConfig, storage::TelemetryStorage};
-use anyhow::{Context, Result};
+use anyhow::Result;
 use std::sync::Arc;
 use tokio::time::{interval, Duration};
 

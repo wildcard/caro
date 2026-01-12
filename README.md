@@ -304,7 +304,8 @@ caro --verbose "search for Python files"
 | Option | Description | Status |
 |--------|-------------|--------|
 | `-s, --shell <SHELL>` | Target shell (bash, zsh, fish, sh, powershell, cmd) | ✅ Implemented |
-| `-m, --model <MODEL>` | Model backend (embedded, ollama, exo, vllm) | ✅ Implemented |
+| `-b, --backend <BACKEND>` | Inference backend (embedded, ollama, exo, vllm) | ✅ Implemented |
+| `-m, --model-name <NAME>` | Model name for the backend (e.g., codellama:7b) | ✅ Implemented |
 | `--safety <LEVEL>` | Safety level (strict, moderate, permissive) | ✅ Implemented |
 | `-o, --output <FORMAT>` | Output format (json, yaml, plain) | ✅ Implemented |
 | `-y, --confirm` | Auto-confirm dangerous commands | ✅ Implemented |
@@ -336,8 +337,11 @@ Caro provides a `config` subcommand for managing persistent settings:
 # Show all configuration
 caro config show
 
-# Set default model backend
-caro config set model ollama
+# Set inference backend
+caro config set backend ollama
+
+# Set model name for the backend
+caro config set model-name codellama:7b
 
 # Set default shell
 caro config set shell zsh
@@ -346,7 +350,7 @@ caro config set shell zsh
 caro config set safety strict
 
 # Get a specific setting
-caro config get model
+caro config get backend
 
 # Reset to defaults
 caro config reset
@@ -355,13 +359,14 @@ caro config reset
 **Available config keys:**
 | Key | Values | Description |
 |-----|--------|-------------|
-| `model` | `embedded`, `ollama`, `exo`, `vllm` | Default inference backend |
+| `backend` | `embedded`, `ollama`, `exo`, `vllm` | Inference backend |
+| `model-name` | Any valid model name | Model for the backend (e.g., `codellama:7b`) |
 | `shell` | `bash`, `zsh`, `fish`, `sh`, `powershell`, `cmd` | Default target shell |
 | `safety` | `strict`, `moderate`, `permissive` | Safety validation level |
 
 **Config file location:** `~/.config/caro/config.toml` (Linux/macOS)
 
-**Priority order:** CLI flags (`--model`) > Environment variables (`CARO_DEFAULT_MODEL`) > Config file > Auto-detect
+**Priority order:** CLI flags (`--backend`, `--model-name`) > Environment variables > Config file > Auto-detect
 
 ### System Assessment
 

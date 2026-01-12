@@ -620,7 +620,11 @@ impl CacheManifest {
 pub struct UserConfiguration {
     pub default_shell: Option<ShellType>,
     pub safety_level: SafetyLevel,
+    /// Default backend type (embedded, ollama, exo, vllm)
     pub default_model: Option<String>,
+    /// Model name for the backend (e.g., codellama:7b for ollama)
+    #[serde(default)]
+    pub model_name: Option<String>,
     pub log_level: LogLevel,
     pub cache_max_size_gb: u64,
     pub log_rotation_days: u32,
@@ -633,6 +637,7 @@ impl Default for UserConfiguration {
             default_shell: None, // Auto-detect
             safety_level: SafetyLevel::Moderate,
             default_model: None,
+            model_name: None,
             log_level: LogLevel::Info,
             cache_max_size_gb: 10,
             log_rotation_days: 7,
@@ -670,6 +675,7 @@ pub struct UserConfigurationBuilder {
     default_shell: Option<ShellType>,
     safety_level: SafetyLevel,
     default_model: Option<String>,
+    model_name: Option<String>,
     log_level: LogLevel,
     cache_max_size_gb: u64,
     log_rotation_days: u32,
@@ -689,6 +695,7 @@ impl UserConfigurationBuilder {
             default_shell: defaults.default_shell,
             safety_level: defaults.safety_level,
             default_model: defaults.default_model,
+            model_name: defaults.model_name,
             log_level: defaults.log_level,
             cache_max_size_gb: defaults.cache_max_size_gb,
             log_rotation_days: defaults.log_rotation_days,
@@ -708,6 +715,11 @@ impl UserConfigurationBuilder {
 
     pub fn default_model(mut self, model: impl Into<String>) -> Self {
         self.default_model = Some(model.into());
+        self
+    }
+
+    pub fn model_name(mut self, name: impl Into<String>) -> Self {
+        self.model_name = Some(name.into());
         self
     }
 
@@ -736,6 +748,7 @@ impl UserConfigurationBuilder {
             default_shell: self.default_shell,
             safety_level: self.safety_level,
             default_model: self.default_model,
+            model_name: self.model_name,
             log_level: self.log_level,
             cache_max_size_gb: self.cache_max_size_gb,
             log_rotation_days: self.log_rotation_days,
