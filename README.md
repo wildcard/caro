@@ -292,9 +292,10 @@ caro --verbose "search for Python files"
 | `-v, --verbose` | Enable verbose output with timing | ✅ Implemented |
 | `-c, --config <FILE>` | Custom configuration file | ✅ Implemented |
 | `--show-config` | Display current configuration | ✅ Implemented |
-| `--auto` | Execute without confirmation | 📅 Planned |
-| `--allow-dangerous` | Allow potentially dangerous commands | 📅 Planned |
-| `--verbose` | Enable verbose logging | ✅ Available |
+| `-x, --execute` | Execute the generated command after validation | ✅ Implemented |
+| `-i, --interactive` | Interactive mode with step-by-step confirmation | ✅ Implemented |
+| `--dry-run` | Show execution plan without running | ✅ Implemented |
+| `--force-llm` | Force LLM inference, bypass static pattern matcher | ✅ Implemented |
 
 ### Examples (Target Functionality)
 
@@ -303,7 +304,10 @@ caro --verbose "search for Python files"
 caro "compress all images in current directory"
 
 # With specific backend
-caro --model ollama "find large log files"
+caro --backend ollama "find large log files"
+
+# Force LLM inference (bypass cached patterns)
+caro --backend embedded --force-llm "list files"
 
 # Verbose mode for debugging
 caro --verbose "show disk usage"
