@@ -8,11 +8,21 @@
 
 **caro** (formerly **cmdai**) converts natural language descriptions into safe POSIX shell commands using local LLMs. Built with Rust for blazing-fast performance, single-binary distribution, and safety-first design with intelligent platform detection.
 
-```bash
-$ caro "list all PDF files in Downloads folder larger than 10MB"
+<div align="center">
 
-Generated command:
-  find ~/Downloads -name "*.pdf" -size +10M -ls
+[![asciicast](https://asciinema.org/a/FOxFkOjVHmYSB0S2I2xaZsaX0.svg)](https://asciinema.org/a/FOxFkOjVHmYSB0S2I2xaZsaX0)
+
+*Click to watch the demo on asciinema*
+
+</div>
+
+```bash
+$ caro "find python files modified in the last 7 days"
+
+Command:
+  find . -name "*.py" -type f -mtime -7
+
+✓ Safe to run on your macOS system
 
 Execute this command? (y/N) y
 ```
