@@ -1,0 +1,312 @@
+---
+/**
+ * HeroSection Component
+ *
+ * Conversion-optimized hero for competitor alternative pages.
+ * Hooks visitors immediately with their pain point and offers
+ * dual CTAs for different commitment levels.
+ */
+
+import type { HeroSection as HeroConfig, CompetitorInfo, MarketEvent } from '../../types/competitor-alternative';
+
+interface Props {
+  config: HeroConfig;
+  competitor: CompetitorInfo;
+  marketEvent?: MarketEvent;
+}
+
+const { config, competitor, marketEvent } = Astro.props;
+---
+
+<section class="hero-section">
+  <div class="container">
+    {marketEvent?.date && (
+      <div class="event-badge">
+        <span class="event-date">{marketEvent.date}</span>
+        <span class="event-title">{marketEvent.title}</span>
+      </div>
+    )}
+
+    <h1>{config.headline}</h1>
+    <p class="subheadline">{config.subheadline}</p>
+
+    <div class="cta-buttons">
+      <a
+        href={config.primaryCta.href}
+        class="cta-button primary"
+        data-tracking={config.primaryCta.trackingEvent || 'hero_primary_cta'}
+        data-position="hero"
+      >
+        {config.primaryCta.text}
+      </a>
+      <a
+        href={config.secondaryCta.href}
+        class="cta-button secondary"
+        data-tracking={config.secondaryCta.trackingEvent || 'hero_secondary_cta'}
+        data-position="hero"
+      >
+        {config.secondaryCta.text}
+      </a>
+    </div>
+
+    {marketEvent?.sourceUrl && marketEvent?.sourceName && (
+      <p class="source-citation">
+        Source: <a href={marketEvent.sourceUrl} target="_blank" rel="noopener noreferrer">
+          {marketEvent.sourceName}
+        </a>
+      </p>
+    )}
+  </div>
+
+  <div class="hero-visual">
+    <div class="competitor-badge">
+      <span class="badge-icon">{competitor.icon}</span>
+      <span class="badge-text">{competitor.name}</span>
+    </div>
+    <div class="arrow">➔</div>
+    <div class="caro-badge">
+      <span class="badge-icon">🐕</span>
+      <span class="badge-text">Caro</span>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero-section {
+    padding: 100px 20px 80px;
+    text-align: center;
+    background: linear-gradient(180deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .event-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 20px;
+    background: rgba(255, 140, 66, 0.1);
+    border: 1px solid rgba(255, 140, 66, 0.3);
+    border-radius: 24px;
+    margin-bottom: 24px;
+  }
+
+  .event-date {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+  }
+
+  .event-title {
+    font-size: 13px;
+    color: #ff8c42;
+    font-weight: 600;
+  }
+
+  h1 {
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1.15;
+    color: var(--color-text);
+    margin-bottom: 20px;
+    letter-spacing: -0.02em;
+  }
+
+  .subheadline {
+    font-size: 20px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 0 auto 32px;
+  }
+
+  .cta-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+
+  .cta-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 32px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    text-decoration: none;
+    transition: all 0.2s;
+    min-width: 180px;
+  }
+
+  .cta-button.primary {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    box-shadow: 0 4px 14px rgba(255, 140, 66, 0.3);
+  }
+
+  .cta-button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 140, 66, 0.4);
+  }
+
+  .cta-button.secondary {
+    background: var(--color-bg);
+    color: #ff8c42;
+    border: 2px solid #ff8c42;
+  }
+
+  .cta-button.secondary:hover {
+    background: rgba(255, 140, 66, 0.1);
+  }
+
+  .source-citation {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+
+  .source-citation a {
+    color: var(--color-text-secondary);
+    text-decoration: underline;
+  }
+
+  .source-citation a:hover {
+    color: #ff8c42;
+  }
+
+  /* Hero Visual */
+  .hero-visual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 48px;
+    padding: 24px;
+  }
+
+  .competitor-badge,
+  .caro-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 20px 32px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .competitor-badge {
+    opacity: 0.7;
+  }
+
+  .caro-badge {
+    border-color: rgba(255, 140, 66, 0.4);
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.08) 0%, rgba(255, 140, 66, 0.02) 100%);
+  }
+
+  .caro-badge:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(255, 140, 66, 0.2);
+  }
+
+  .badge-icon {
+    font-size: 40px;
+  }
+
+  .badge-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .caro-badge .badge-text {
+    color: #ff8c42;
+  }
+
+  .arrow {
+    font-size: 32px;
+    color: #22c55e;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    50% {
+      opacity: 0.5;
+      transform: translateX(4px);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .hero-section {
+      padding: 80px 20px 60px;
+    }
+
+    h1 {
+      font-size: 32px;
+    }
+
+    .subheadline {
+      font-size: 17px;
+    }
+
+    .cta-buttons {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .cta-button {
+      min-width: unset;
+    }
+
+    .hero-visual {
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .arrow {
+      transform: rotate(90deg);
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+        transform: translateX(0) rotate(90deg);
+      }
+      50% {
+        opacity: 0.5;
+        transform: translateY(4px) rotate(90deg);
+      }
+    }
+  }
+</style>
+
+<script>
+  // Track hero CTA clicks
+  document.querySelectorAll('.hero-section [data-tracking]').forEach((el) => {
+    el.addEventListener('click', () => {
+      const trackingEvent = el.getAttribute('data-tracking');
+      const position = el.getAttribute('data-position');
+      if (typeof window !== 'undefined' && (window as any).posthog && trackingEvent) {
+        (window as any).posthog.capture('cta_click', {
+          event_type: trackingEvent,
+          position: position
+        });
+      }
+    });
+  });
+</script>

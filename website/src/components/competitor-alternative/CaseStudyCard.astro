@@ -1,0 +1,241 @@
+---
+/**
+ * CaseStudyCard Component
+ *
+ * Displays customer success stories with measurable outcomes,
+ * quotes, and visual metrics.
+ */
+
+import type { CaseStudy } from '../../types/competitor-alternative';
+
+interface Props {
+  study: CaseStudy;
+}
+
+const { study } = Astro.props;
+---
+
+<article class="case-study-card">
+  <header class="card-header">
+    {study.logo ? (
+      <img src={study.logo} alt={`${study.customer} logo`} class="customer-logo" />
+    ) : (
+      <div class="customer-placeholder">
+        <span>{study.customer.charAt(0)}</span>
+      </div>
+    )}
+    <div class="customer-info">
+      <h3 class="customer-name">{study.customer}</h3>
+      <span class="customer-industry">{study.industry}</span>
+    </div>
+  </header>
+
+  <div class="challenge">
+    <span class="challenge-label">The Challenge</span>
+    <p>{study.challenge}</p>
+  </div>
+
+  <div class="metrics-grid">
+    {study.metrics.map((metric) => (
+      <div class="metric">
+        <span class="metric-value">{metric.value}</span>
+        <span class="metric-label">{metric.label}</span>
+      </div>
+    ))}
+  </div>
+
+  {study.quote && (
+    <blockquote class="customer-quote">
+      <p>"{study.quote.text}"</p>
+      <footer>
+        <span class="quote-author">{study.quote.author}</span>
+        <span class="quote-title">{study.quote.title}</span>
+      </footer>
+    </blockquote>
+  )}
+
+  {study.fullStudyUrl && (
+    <a href={study.fullStudyUrl} class="read-more">
+      Read full case study &rarr;
+    </a>
+  )}
+</article>
+
+<style>
+  .case-study-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+
+  .case-study-card:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .customer-logo {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    border-radius: 8px;
+  }
+
+  .customer-placeholder {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .customer-placeholder span {
+    color: white;
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  .customer-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .customer-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  .customer-industry {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .challenge {
+    padding: 16px;
+    background: var(--color-bg-secondary);
+    border-radius: 10px;
+  }
+
+  .challenge-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+
+  .challenge p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--color-text);
+    line-height: 1.6;
+  }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 16px;
+  }
+
+  .metric {
+    text-align: center;
+    padding: 16px 12px;
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.08) 0%, rgba(255, 140, 66, 0.02) 100%);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 140, 66, 0.15);
+  }
+
+  .metric-value {
+    display: block;
+    font-size: 28px;
+    font-weight: 700;
+    color: #ff8c42;
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+
+  .metric-label {
+    display: block;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    line-height: 1.3;
+  }
+
+  .customer-quote {
+    margin: 0;
+    padding: 20px;
+    background: var(--color-bg-tertiary);
+    border-radius: 10px;
+    border-left: 3px solid #ff8c42;
+  }
+
+  .customer-quote p {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: var(--color-text);
+    line-height: 1.7;
+    font-style: italic;
+  }
+
+  .customer-quote footer {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .quote-author {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text);
+    font-style: normal;
+  }
+
+  .quote-title {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    font-style: normal;
+  }
+
+  .read-more {
+    display: inline-flex;
+    align-items: center;
+    color: #ff8c42;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    margin-top: auto;
+  }
+
+  .read-more:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 480px) {
+    .case-study-card {
+      padding: 20px;
+    }
+
+    .metric-value {
+      font-size: 24px;
+    }
+  }
+</style>

@@ -1,0 +1,144 @@
+---
+/**
+ * ProblemSection Component
+ *
+ * Amplifies visitor concerns about staying with the competitor.
+ * Presents pain points in a factual, empathetic manner.
+ */
+
+import type { PainPoint } from '../../types/competitor-alternative';
+
+interface Props {
+  title: string;
+  subtitle?: string;
+  painPoints: PainPoint[];
+}
+
+const { title, subtitle, painPoints } = Astro.props;
+---
+
+<section class="problem-section">
+  <div class="container">
+    <header class="section-header">
+      <h2>{title}</h2>
+      {subtitle && <p class="section-subtitle">{subtitle}</p>}
+    </header>
+
+    <div class="pain-points-grid">
+      {painPoints.map((point) => (
+        <article class="pain-point-card">
+          <div class="pain-icon">{point.icon}</div>
+          <h3>{point.title}</h3>
+          <p>{point.description}</p>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .problem-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  h2 {
+    font-size: 32px;
+    color: var(--color-text);
+    margin-bottom: 12px;
+  }
+
+  .section-subtitle {
+    font-size: 18px;
+    color: var(--color-text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .pain-points-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+
+  .pain-point-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 28px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .pain-point-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #f59e0b 0%, #ef4444 100%);
+    opacity: 0.7;
+  }
+
+  .pain-point-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+  }
+
+  .pain-icon {
+    font-size: 36px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 12px;
+  }
+
+  p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin: 0;
+  }
+
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 24px;
+    }
+
+    .section-subtitle {
+      font-size: 16px;
+    }
+
+    .pain-points-grid {
+      gap: 16px;
+    }
+
+    .pain-point-card {
+      padding: 24px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .pain-points-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
