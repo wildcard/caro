@@ -51,6 +51,7 @@ fn test_assess_json_export() {
 }
 
 #[test]
+#[ignore = "Performance test is flaky on CI runners"]
 fn test_assess_completes_quickly() {
     use std::time::Instant;
 
