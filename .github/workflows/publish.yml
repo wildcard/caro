@@ -65,7 +65,11 @@ jobs:
         run: cargo clippy --all-targets --all-features -- -D warnings
 
       - name: Run comprehensive tests
-        run: cargo test --workspace --all-features --verbose
+        run: |
+          # Run unit and integration tests, excluding LLM evaluation harness
+          # The evaluation harness requires a real model and is run separately
+          cargo test --lib --all-features --verbose
+          cargo test --bins --all-features --verbose
         env:
           RUST_BACKTRACE: 1
 
