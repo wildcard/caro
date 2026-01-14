@@ -313,6 +313,42 @@ caro --backend embedded --force-llm "list files"
 caro --verbose "show disk usage"
 ```
 
+### Shell Integration (Optional)
+
+For the best experience, add caro's shell integration to your shell configuration. This enables the **Edit** feature, which lets you modify generated commands directly in your shell before executing them.
+
+**zsh** - Add to `~/.zshrc`:
+```bash
+eval "$(caro init zsh)"
+```
+
+**bash** - Add to `~/.bashrc`:
+```bash
+eval "$(caro init bash)"
+```
+
+**fish** - Add to `~/.config/fish/config.fish`:
+```fish
+caro init fish | source
+```
+
+After adding the integration, restart your shell or run `source ~/.zshrc` (or equivalent).
+
+#### Using the Edit Feature
+
+When caro generates a command, you'll see three options:
+
+```
+Generated command:
+  find ~/Downloads -name "*.pdf" -size +10M
+
+Execute this command? (Y)es / (n)o / (e)dit: e
+```
+
+Selecting **(e)dit** places the command directly into your shell prompt for editing before execution - just like if you had typed it yourself.
+
+> **Note:** Without shell integration, selecting Edit will copy the command to your clipboard instead.
+
 ### Configuration Management
 
 Caro provides a `config` subcommand for managing persistent settings:
