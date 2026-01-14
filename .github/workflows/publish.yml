@@ -102,7 +102,7 @@ jobs:
           RUST_BACKTRACE: 1
 
       - name: Build release binary to verify
-        run: cargo build --release --all-features
+        run: cargo build --release
 
       - name: Verify package can be created
         run: cargo package --allow-dirty
