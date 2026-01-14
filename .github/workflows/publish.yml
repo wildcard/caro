@@ -81,21 +81,13 @@ jobs:
         env:
           RUST_BACKTRACE: 1
 
-      - name: Run E2E tests
-        run: |
-          echo "Running comprehensive E2E tests before publish"
-          cargo test --test e2e_cli_tests --verbose
-          cargo test --test e2e_interactive_execution --verbose
-          cargo test --test embedded_integration --verbose
-          cargo test --test system_integration --verbose
-        env:
-          RUST_BACKTRACE: 1
+      # Note: E2E tests that require LLM model are skipped in CI
+      # They are run locally and in dedicated evaluation workflows
 
-      - name: Run integration tests
+      - name: Run integration tests (non-LLM)
         run: |
-          cargo test --test integration_tests --verbose
-          cargo test --test infrastructure_integration --verbose
           cargo test --test error_handling_tests --verbose
+          cargo test --test infrastructure_integration --verbose
         env:
           RUST_BACKTRACE: 1
 
