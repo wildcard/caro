@@ -340,6 +340,13 @@ struct Cli {
     )]
     force_llm: bool,
 
+    /// Enable explanation mode with detailed command explanations
+    #[arg(
+        long,
+        help = "Enable explanation mode: shows detailed breakdowns of commands and options"
+    )]
+    explain: bool,
+
     /// Trailing unquoted arguments forming the prompt
     #[arg(trailing_var_arg = true, num_args = 0..)]
     trailing_args: Vec<String>,
@@ -397,6 +404,10 @@ impl IntoCliArgs for Cli {
 
     fn force_llm(&self) -> bool {
         self.force_llm
+    }
+
+    fn explain(&self) -> bool {
+        self.explain
     }
 }
 
@@ -1257,16 +1268,85 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
         }
     }
 
-    // Print the main command
-    display!("{}", "Command:".bold());
-    display!("  {}", result.generated_command.bright_cyan().bold());
-    display!("");
+    // Handle explain mode output (educational format like crush)
+    if result.explain_mode {
+        if let Some(ref explanation) = result.detailed_explanation {
+            // Print tool identification and summary
+            display!(
+                "Use `{}` {}:",
+                explanation.tool_used.bright_cyan().bold(),
+                if explanation.summary.is_empty() {
+                    "for this task".to_string()
+                } else {
+                    explanation.summary.clone()
+                }
+            );
+            display!("");
 
-    // Print explanation only in verbose mode
-    if cli.verbose && !result.explanation.is_empty() {
-        display!("{}", "Explanation:".bold());
-        display!("  {}", result.explanation);
+            // Print the main command with comment
+            display!("  {} Primary command", "#".dimmed());
+            display!("  {}", result.generated_command.bright_cyan().bold());
+            display!("");
+
+            // Print usage examples
+            if !explanation.examples.is_empty() {
+                for example in &explanation.examples {
+                    display!("  {} {}", "#".dimmed(), example.description.dimmed());
+                    display!("  {}", example.command);
+                    display!("");
+                }
+            }
+
+            // Print option breakdown
+            if !explanation.option_breakdown.is_empty() {
+                display!("{}", "Options explained:".bold());
+                for opt in &explanation.option_breakdown {
+                    let example_str = opt
+                        .example_value
+                        .as_ref()
+                        .map(|v| format!(" (e.g., {})", v))
+                        .unwrap_or_default();
+                    display!(
+                        "  {}: {}{}",
+                        opt.option.cyan(),
+                        opt.description,
+                        example_str.dimmed()
+                    );
+                }
+                display!("");
+            }
+
+            // Print alternatives if available
+            if !explanation.alternatives.is_empty() {
+                display!("{}", "Alternatives:".bold());
+                for alt in &explanation.alternatives {
+                    display!("  {} - {}", alt.command.yellow(), alt.reason.dimmed());
+                }
+                display!("");
+            }
+        } else {
+            // Fallback if detailed explanation not available
+            display!("{}", "Command:".bold());
+            display!("  {}", result.generated_command.bright_cyan().bold());
+            display!("");
+            if !result.explanation.is_empty() {
+                display!("{}", "Explanation:".bold());
+                display!("  {}", result.explanation);
+                display!("");
+            }
+        }
+    } else {
+        // Standard output (non-explain mode)
+        display!("{}", "Command:".bold());
+        display!("  {}", result.generated_command.bright_cyan().bold());
         display!("");
+
+        // Print explanation only in verbose mode
+        if cli.verbose && !result.explanation.is_empty() {
+            display!("{}", "Explanation:".bold());
+            display!("  {}", result.explanation);
+            display!("");
+        }
     }
 
     // Handle dry-run mode

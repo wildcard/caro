@@ -77,6 +77,12 @@ pub struct CliResult {
     pub stdout: Option<String>,
     pub stderr: Option<String>,
     pub execution_error: Option<String>,
+    /// Whether explanation mode is enabled
+    #[serde(default)]
+    pub explain_mode: bool,
+    /// Detailed explanation for explain mode
+    #[serde(default)]
+    pub detailed_explanation: Option<crate::prompts::CommandExplanation>,
 }
 
 /// Supported output formats
@@ -135,6 +141,7 @@ pub trait IntoCliArgs {
     fn dry_run(&self) -> bool;
     fn interactive(&self) -> bool;
     fn force_llm(&self) -> bool;
+    fn explain(&self) -> bool;
 }
 
 impl CliApp {
@@ -537,6 +544,16 @@ impl CliApp {
 
         let total_time = start_time.elapsed();
 
+        // Generate detailed explanation if explain mode is enabled
+        let explain_mode = args.explain();
+        let detailed_explanation = if explain_mode {
+            use crate::prompts::ExplainerPromptBuilder;
+            let explainer = ExplainerPromptBuilder::new(CapabilityProfile::detect().await);
+            Some(explainer.create_explanation(&generated.command, &prompt))
+        } else {
+            None
+        };
+
         Ok(CliResult {
             generated_command: generated.command,
             explanation: generated.explanation,
@@ -572,6 +589,8 @@ impl CliApp {
             stdout,
             stderr,
             execution_error,
+            explain_mode,
+            detailed_explanation,
         })
     }
 

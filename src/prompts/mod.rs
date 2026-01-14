@@ -82,12 +82,19 @@
 
 pub mod capability_profile;
 pub mod command_templates;
+pub mod explainer_prompt;
+pub mod profiles;
 pub mod smollm_prompt;
 pub mod validation;
 
 // Re-export main types for convenient access
 pub use capability_profile::{AwkType, CapabilityProfile, DetectedShell, ProfileType, StatFormat};
 pub use command_templates::{CommandTemplate, TemplateLibrary};
+pub use explainer_prompt::ExplainerPromptBuilder;
+pub use profiles::{
+    AlternativeCommand, CommandExplanation, GenerationProfile, OptionExplanation, ProfileConfig,
+    UsageExample,
+};
 pub use smollm_prompt::{CommandOutput, PromptResponse, RepairPromptBuilder, SmolLMPromptBuilder};
 pub use validation::{
     CommandValidator, RiskLevel, ValidationError, ValidationErrorCode, ValidationResult,
