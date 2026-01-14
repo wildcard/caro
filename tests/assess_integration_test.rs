@@ -2,6 +2,7 @@ use assert_cmd::prelude::*;
 use std::process::Command;
 
 #[test]
+#[ignore = "LLM-dependent test - requires MLX model on CI"]
 fn test_assess_command_runs() {
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("caro"));
 

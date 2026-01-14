@@ -1,0 +1,142 @@
+name: LLM-Dependent Tests
+
+# Non-blocking workflow for tests that require LLM model inference
+# Runs in parallel with release, provides quality indicators without blocking
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  llm-tests:
+    name: LLM Integration Tests
+    runs-on: macos-latest  # For MLX backend support
+    continue-on-error: true  # Non-blocking - don't fail the workflow
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-llm-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build release binary
+        run: cargo build --release
+
+      - name: Run E2E CLI tests
+        id: e2e_cli
+        continue-on-error: true
+        run: |
+          echo "Running E2E CLI tests..."
+          cargo test --test e2e_cli_tests --release -- --nocapture 2>&1 | tee e2e_cli.log
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+
+      - name: Run E2E interactive execution tests
+        id: e2e_interactive
+        continue-on-error: true
+        run: |
+          echo "Running E2E interactive tests..."
+          cargo test --test e2e_interactive_execution --release -- --nocapture 2>&1 | tee e2e_interactive.log
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+
+      - name: Run CLI interface contract tests
+        id: cli_contract
+        continue-on-error: true
+        run: |
+          echo "Running CLI contract tests..."
+          cargo test --test cli_interface_contract --release -- --nocapture 2>&1 | tee cli_contract.log
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+
+      - name: Run system integration tests
+        id: system_integration
+        continue-on-error: true
+        run: |
+          echo "Running system integration tests..."
+          cargo test --test system_integration --release -- --nocapture 2>&1 | tee system_integration.log
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+
+      - name: Run assess integration tests
+        id: assess
+        continue-on-error: true
+        run: |
+          echo "Running assess integration tests..."
+          cargo test --test assess_integration_test --release -- --nocapture 2>&1 | tee assess.log
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+
+      - name: Generate summary
+        if: always()
+        run: |
+          echo "## LLM-Dependent Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Suite | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
+
+          # Check each test result
+          if [ -f e2e_cli.log ]; then
+            if grep -q "test result: ok" e2e_cli.log; then
+              echo "| E2E CLI Tests | :white_check_mark: Passed |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| E2E CLI Tests | :x: Failed |" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+          if [ -f e2e_interactive.log ]; then
+            if grep -q "test result: ok" e2e_interactive.log; then
+              echo "| E2E Interactive Tests | :white_check_mark: Passed |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| E2E Interactive Tests | :x: Failed |" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+          if [ -f cli_contract.log ]; then
+            if grep -q "test result: ok" cli_contract.log; then
+              echo "| CLI Contract Tests | :white_check_mark: Passed |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| CLI Contract Tests | :x: Failed |" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+          if [ -f system_integration.log ]; then
+            if grep -q "test result: ok" system_integration.log; then
+              echo "| System Integration | :white_check_mark: Passed |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| System Integration | :x: Failed |" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+          if [ -f assess.log ]; then
+            if grep -q "test result: ok" assess.log; then
+              echo "| Assess Integration | :white_check_mark: Passed |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| Assess Integration | :x: Failed |" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> **Note:** These tests require LLM model inference and may have variable results." >> $GITHUB_STEP_SUMMARY
+          echo "> This workflow is non-blocking and provides quality indicators only." >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: llm-test-logs
+          path: |
+            *.log
+          retention-days: 14
