@@ -438,10 +438,10 @@ fn copy_to_clipboard(text: &str) -> bool {
             if let Ok(mut child) = Command::new(cmd).args(args).stdin(Stdio::piped()).spawn() {
                 if let Some(stdin) = child.stdin.as_mut() {
                     use std::io::Write;
-                    if stdin.write_all(text.as_bytes()).is_ok() {
-                        if child.wait().map(|s| s.success()).unwrap_or(false) {
-                            return true;
-                        }
+                    if stdin.write_all(text.as_bytes()).is_ok()
+                        && child.wait().map(|s| s.success()).unwrap_or(false)
+                    {
+                        return true;
                     }
                 }
             }
