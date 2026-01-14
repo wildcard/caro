@@ -212,27 +212,10 @@ jobs:
 
       - name: Run comprehensive tests per platform
         if: matrix.target != 'aarch64-unknown-linux-gnu'
-        run: cargo test --workspace --all-features --verbose
-        env:
-          RUST_BACKTRACE: 1
-
-      - name: Run MLX backend tests (macOS Apple Silicon only)
-        if: matrix.target == 'aarch64-apple-darwin'
         run: |
-          echo "Running MLX-specific tests for Apple Silicon"
-          cargo test --test mlx_backend_contract --verbose
-          cargo test --test mlx_integration_test --verbose
-        env:
-          RUST_BACKTRACE: 1
-
-      - name: Run E2E tests per platform
-        if: matrix.target != 'aarch64-unknown-linux-gnu'
-        run: |
-          echo "Running E2E tests on ${{ matrix.os }} for ${{ matrix.target }}"
-          cargo test --test e2e_cli_tests --verbose
-          cargo test --test e2e_interactive_execution --verbose
-          cargo test --test embedded_integration --verbose
-          cargo test --test system_integration --verbose
+          # Run lib and bin tests (excludes LLM-dependent integration tests)
+          cargo test --lib --verbose
+          cargo test --bins --verbose
         env:
           RUST_BACKTRACE: 1
 
@@ -242,8 +225,22 @@ jobs:
           cargo test --test backend_trait_contract --verbose
           cargo test --test safety_validator_contract --verbose
           cargo test --test platform_detection_contract --verbose
+          cargo test --test config_contract --verbose
+          cargo test --test execution_contract --verbose
         env:
           RUST_BACKTRACE: 1
+
+      - name: Run non-LLM integration tests per platform
+        if: matrix.target != 'aarch64-unknown-linux-gnu'
+        run: |
+          cargo test --test error_handling_tests --verbose
+          cargo test --test infrastructure_integration --verbose
+          cargo test --test embedded_integration --verbose
+        env:
+          RUST_BACKTRACE: 1
+
+      # Note: LLM-dependent tests (E2E CLI, assess, MLX tests) are run in
+      # the separate llm-tests.yml workflow and don't block releases
 
       - name: Build release binary
         run: |
