@@ -15,6 +15,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [1.1.1] - 2026-01-14
+
+### Added
+
+- **Edit Option in Confirmation Prompt**: New `(e)dit` option alongside Yes/No when confirming commands
+  - Selecting Edit places the generated command directly into your shell's readline buffer for editing
+  - Works like atuin/zoxide - command appears as if you typed it, ready to modify and execute
+  - Requires shell integration: `eval "$(caro init <shell>)"` (zsh, bash, fish supported)
+  - Fallback: Without shell integration, copies command to clipboard
+
+- **Shell Integration Command**: `caro init <shell>` generates shell wrapper functions
+  - Supports zsh, bash, and fish shells
+  - Enables the Edit feature by properly routing stdout/stderr
+  - Uses exit code 201 to signal edit mode to the wrapper
+
+### Changed
+
+- **Confirmation Prompt**: Changed from `[y/N]` to `(Y)es / (n)o / (e)dit` using `dialoguer::Select`
+- **Output Routing**: Display output now goes to stderr when running through shell wrapper (`CARO_WRAPPER=1`), keeping stdout clean for edit mode
+
 ## [1.1.0] - 2026-01-12
 
 ### 🎉 General Availability Release

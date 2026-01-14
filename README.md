@@ -27,7 +27,7 @@ Have questions or want to discuss caro with other users? Join the community!
   - - **[Documentation](https://caro.sh)** - Check out our comprehensive docs
 ## 📋 Project Status
 
-**Current Version:** 1.1.0 (General Availability)
+**Current Version:** 1.1.1 (General Availability)
 
 This project is **generally available** with all core features implemented, tested, and working. The CLI achieves 93.1% pass rate on comprehensive test suite with zero false positives in safety validation.
 
@@ -108,18 +108,18 @@ Download the latest release for your platform from [GitHub Releases](https://git
 
 | Platform | Binary Name | Direct Download |
 |----------|-------------|-----------------|
-| Linux x86_64 | `caro-1.1.0-linux-amd64` | [Download](https://github.com/wildcard/caro/releases/download/v1.1.0/caro-1.1.0-linux-amd64) |
-| Linux ARM64 | `caro-1.1.0-linux-arm64` | [Download](https://github.com/wildcard/caro/releases/download/v1.1.0/caro-1.1.0-linux-arm64) |
-| macOS Intel | `caro-1.1.0-macos-intel` | [Download](https://github.com/wildcard/caro/releases/download/v1.1.0/caro-1.1.0-macos-intel) |
-| macOS Apple Silicon | `caro-1.1.0-macos-silicon` | [Download](https://github.com/wildcard/caro/releases/download/v1.1.0/caro-1.1.0-macos-silicon) |
-| Windows x64 | `caro-1.1.0-windows-amd64.exe` | [Download](https://github.com/wildcard/caro/releases/download/v1.1.0/caro-1.1.0-windows-amd64.exe) |
+| Linux x86_64 | `caro-1.1.1-linux-amd64` | [Download](https://github.com/wildcard/caro/releases/download/v1.1.1/caro-1.1.1-linux-amd64) |
+| Linux ARM64 | `caro-1.1.1-linux-arm64` | [Download](https://github.com/wildcard/caro/releases/download/v1.1.1/caro-1.1.1-linux-arm64) |
+| macOS Intel | `caro-1.1.1-macos-intel` | [Download](https://github.com/wildcard/caro/releases/download/v1.1.1/caro-1.1.1-macos-intel) |
+| macOS Apple Silicon | `caro-1.1.1-macos-silicon` | [Download](https://github.com/wildcard/caro/releases/download/v1.1.1/caro-1.1.1-macos-silicon) |
+| Windows x64 | `caro-1.1.1-windows-amd64.exe` | [Download](https://github.com/wildcard/caro/releases/download/v1.1.1/caro-1.1.1-windows-amd64.exe) |
 
 > 💡 **Tip**: Visit the [releases page](https://github.com/wildcard/caro/releases/latest) for the latest version.
 
 **Manual Installation:**
 ```bash
-# Example for macOS Apple Silicon (v1.1.0)
-curl -fsSL https://github.com/wildcard/caro/releases/download/v1.1.0/caro-1.1.0-macos-silicon -o caro
+# Example for macOS Apple Silicon (v1.1.1)
+curl -fsSL https://github.com/wildcard/caro/releases/download/v1.1.1/caro-1.1.1-macos-silicon -o caro
 chmod +x caro
 sudo mv caro /usr/local/bin/
 
@@ -130,9 +130,9 @@ caro --version
 **Checksum Verification:**
 Each binary includes a SHA256 checksum file (`.sha256`). Verify before installing:
 ```bash
-# Download binary and checksum (v1.1.0 example)
-curl -fsSL https://github.com/wildcard/caro/releases/download/v1.1.0/caro-1.1.0-macos-silicon -o caro
-curl -fsSL https://github.com/wildcard/caro/releases/download/v1.1.0/caro-1.1.0-macos-silicon.sha256 -o caro.sha256
+# Download binary and checksum (v1.1.1 example)
+curl -fsSL https://github.com/wildcard/caro/releases/download/v1.1.1/caro-1.1.1-macos-silicon -o caro
+curl -fsSL https://github.com/wildcard/caro/releases/download/v1.1.1/caro-1.1.1-macos-silicon.sha256 -o caro.sha256
 
 # Verify (macOS/Linux)
 shasum -a 256 -c caro.sha256
