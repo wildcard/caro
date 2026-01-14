@@ -7,7 +7,14 @@ import TerminalShowcase from './TerminalShowcase.astro';
   <div class="container">
     <div class="companion-badge">🐕 Companion Agent</div>
     <img src="/caro-prompting.gif" alt="Caro - 8-bit pixel art" class="pixel-art" />
-    <div class="logo">Caro</div>
+    <pre class="ascii-logo" aria-label="Caro">
+ ██████╗ █████╗ ██████╗  ██████╗
+██╔════╝██╔══██╗██╔══██╗██╔═══██╗
+██║     ███████║██████╔╝██║   ██║
+██║     ██╔══██║██╔══██╗██║   ██║
+╚██████╗██║  ██║██║  ██║╚██████╔╝
+ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝
+    </pre>
     <h1 class="tagline">Your loyal shell companion</h1>
     <p class="subtitle">
       A specialized POSIX shell command agent for Claude users. Validates AI-generated commands with safety-first design, detects dangerous patterns, and ensures POSIX compliance.
@@ -42,14 +49,20 @@ import TerminalShowcase from './TerminalShowcase.astro';
     transition: background 0.3s ease;
   }
 
-  .logo {
-    font-size: 72px;
+  .ascii-logo {
+    font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.1;
     margin-bottom: 20px;
     font-weight: 700;
     background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    color: transparent;
+    white-space: pre;
+    text-align: center;
+    letter-spacing: 0;
   }
 
   .companion-badge {
@@ -201,8 +214,8 @@ import TerminalShowcase from './TerminalShowcase.astro';
       height: auto;
     }
 
-    .logo {
-      font-size: 48px;
+    .ascii-logo {
+      font-size: 10px;
     }
 
     .tagline {
@@ -231,8 +244,8 @@ import TerminalShowcase from './TerminalShowcase.astro';
       padding: 6px 14px;
     }
 
-    .logo {
-      font-size: 42px;
+    .ascii-logo {
+      font-size: 10px;
     }
 
     .tagline {
@@ -285,8 +298,8 @@ import TerminalShowcase from './TerminalShowcase.astro';
       padding: 30px 14px;
     }
 
-    .logo {
-      font-size: 36px;
+    .ascii-logo {
+      font-size: 10px;
     }
 
     .tagline {
