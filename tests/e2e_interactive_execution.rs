@@ -53,6 +53,7 @@ fn run_caro(args: &[&str]) -> (String, String, i32) {
 
 #[test]
 #[cfg(not(target_os = "windows"))] // Requires bash/POSIX commands not available on Windows by default
+#[ignore = "LLM-dependent test - flaky on CI without proper model"]
 fn test_e2e_execute_flag_runs_command() {
     // Test: --execute flag should auto-execute the command
     let (stdout, _stderr, exit_code) = run_caro(&["--execute", "current directory"]);
