@@ -1,6 +1,7 @@
 use crate::backends::{CommandGenerator, GeneratorError};
 use crate::context::ExecutionContext;
 use crate::models::{CommandRequest, GeneratedCommand, SafetyLevel, ShellType};
+use crate::tldr::{TldrClient, TldrClientBuilder};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -15,6 +16,7 @@ pub struct AgentLoop {
     context: ExecutionContext,
     _max_iterations: usize,
     timeout: Duration,
+    tldr_client: Option<TldrClient>,
 }
 
 /// Command information for context enrichment
@@ -23,6 +25,9 @@ pub struct CommandInfo {
     pub name: String,
     pub version: Option<String>,
     pub help_text: Option<String>,
+    /// TLDR page content (concise examples and description)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tldr: Option<String>,
 }
 
 /// Response from backend with confidence score
@@ -37,11 +42,34 @@ pub struct CommandResponse {
 
 impl AgentLoop {
     pub fn new(backend: Arc<dyn CommandGenerator>, context: ExecutionContext) -> Self {
+        // Initialize TLDR client (optional, will be None if initialization fails)
+        let tldr_client = TldrClientBuilder::new()
+            .prefer_cli(true) // Use system tldr if available
+            .auto_update(false) // Don't block on updates during command generation
+            .build()
+            .ok();
+
+        if let Some(ref client) = tldr_client {
+            debug!("TLDR client initialized with source: {:?}", client.source());
+        }
+
         Self {
             backend,
             context,
             _max_iterations: 2,
             timeout: Duration::from_secs(15), // Allow enough time for 2 iterations
+            tldr_client,
+        }
+    }
+
+    /// Create agent loop without TLDR support (for testing or minimal mode)
+    pub fn new_minimal(backend: Arc<dyn CommandGenerator>, context: ExecutionContext) -> Self {
+        Self {
+            backend,
+            context,
+            _max_iterations: 2,
+            timeout: Duration::from_secs(15),
+            tldr_client: None,
         }
     }
 
@@ -169,7 +197,7 @@ Generate a safe, platform-appropriate command."#,
         let command_details = command_context
             .iter()
             .map(|(name, info)| {
-                format!(
+                let mut details = format!(
                     "Command: {}\nVersion: {}\nKey Options:\n{}",
                     name,
                     info.version.as_deref().unwrap_or("unknown"),
@@ -178,7 +206,15 @@ Generate a safe, platform-appropriate command."#,
                         .take(15)  // First 15 lines of help
                         .collect::<Vec<_>>()
                         .join("\n")
-                )
+                );
+
+                // Add TLDR context if available (concise examples)
+                if let Some(ref tldr) = info.tldr {
+                    details.push_str("\n\n");
+                    details.push_str(tldr);
+                }
+
+                details
             })
             .collect::<Vec<_>>()
             .join("\n\n---\n\n");
@@ -292,10 +328,27 @@ If you made changes, explain what was fixed."#,
     async fn get_command_context(&self, commands: &[String]) -> HashMap<String, CommandInfo> {
         let mut context = HashMap::new();
 
+        // Fetch TLDR pages for all commands (if client is available)
+        let tldr_pages = if let Some(ref client) = self.tldr_client {
+            client.get_pages(commands).await
+        } else {
+            HashMap::new()
+        };
+
         for cmd in commands {
-            if let Ok(info) = Self::get_command_info(cmd).await {
-                context.insert(cmd.clone(), info);
+            let mut info = Self::get_command_info(cmd).await.unwrap_or_else(|_| CommandInfo {
+                name: cmd.clone(),
+                version: None,
+                help_text: None,
+                tldr: None,
+            });
+
+            // Add TLDR context if available
+            if let Some(page) = tldr_pages.get(cmd) {
+                info.tldr = Some(page.as_context());
             }
+
+            context.insert(cmd.clone(), info);
         }
 
         context
@@ -323,7 +376,18 @@ If you made changes, explain what was fixed."#,
             name: command.to_string(),
             version,
             help_text,
+            tldr: None, // Will be filled by get_command_context
         })
+    }
+
+    /// Check if TLDR support is available
+    pub fn has_tldr(&self) -> bool {
+        self.tldr_client.is_some()
+    }
+
+    /// Get the TLDR client (if available)
+    pub fn tldr_client(&self) -> Option<&TldrClient> {
+        self.tldr_client.as_ref()
     }
 }
 

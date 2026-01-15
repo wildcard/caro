@@ -63,6 +63,9 @@ once_cell = "1.19"
 # Cryptography for checksums
 sha2 = "0.10"
 
+# Zip archive handling for TLDR cache
+zip = { version = "2.1", default-features = false, features = ["deflate"] }
+
 # Async trait support
 async-trait = "0.1"
 futures = "0.3"
