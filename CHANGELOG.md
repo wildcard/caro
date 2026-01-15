@@ -15,6 +15,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [1.1.3] - 2026-01-15
+
+### Fixed
+
+- **Safety Flag Wiring** (#461): The `--safety` CLI flag now properly configures backend validators
+  - Added `SafetyConfig::from_level()` to convert CLI SafetyLevel to backend SafetyConfig
+  - Added `with_safety_config()` builder methods to `StaticMatcher` and `EmbeddedModelBackend`
+  - Safety level priority: CLI flag → config file → default (moderate)
+  - `--safety strict` blocks High and Critical risk commands
+  - `--safety moderate` blocks Critical only (default)
+  - `--safety permissive` warns but allows all
+
 ## [1.1.2] - 2026-01-15
 
 ### Added
