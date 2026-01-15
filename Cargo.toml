@@ -39,8 +39,8 @@ serde_yaml = "0.9"
 toml = "0.9"
 config = "0.15"
 
-# HTTP client for remote backends (optional - feature-gated)
-reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false, optional = true }
+# HTTP client for remote backends and Hugging Face Hub downloads
+reqwest = { version = "0.11", features = ["stream", "json", "rustls-tls"], default-features = false }
 
 # Error handling and logging
 anyhow = "1"
@@ -52,7 +52,7 @@ tracing-appender = "0.2"
 # User interface and interaction
 dialoguer = "0.12"
 colored = "3"
-indicatif = "0.18"
+indicatif = "0.17"
 
 # Cross-platform support
 directories = "6"
@@ -80,6 +80,9 @@ sha2 = "0.10"
 uuid = { version = "1", features = ["v4", "serde"] }
 rusqlite = { version = "0.34", features = ["bundled"] }
 machine-uid = "0.5"
+
+# File locking for atomic operations
+fd-lock = "4.0"
 
 # Async trait support
 async-trait = "0.1"
@@ -109,6 +112,7 @@ criterion = { version = "=0.7.0", features = ["html_reports"] }
 futures = "0.3"
 serde_yaml = "0.9"
 env_logger = "0.11"
+wiremock = "0.5"
 
 [[bench]]
 name = "cache"
@@ -135,7 +139,7 @@ harness = false
 [features]
 default = ["embedded-mlx", "embedded-cpu"]  # Always build with MLX on macOS
 mock-backend = []
-remote-backends = ["reqwest", "tokio/net"]
+remote-backends = ["tokio/net"]
 embedded-mlx = ["cxx", "llama_cpp"]
 embedded-cpu = ["candle-core", "candle-transformers"]
 

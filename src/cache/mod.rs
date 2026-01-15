@@ -2,36 +2,100 @@
 //!
 //! Provides LRU cache management, integrity validation, and offline support.
 
+use crate::models::CachedModel;
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
 
 mod manifest;
 pub use manifest::ManifestManager;
 
+mod http_client;
+pub use http_client::{HfHubClient, HttpClientError};
+
+mod download;
+pub use download::download_file;
+
+mod checksum;
+pub use checksum::StreamingHasher;
+
+mod progress;
+pub use progress::DownloadProgress;
+
 /// Cache-related errors
 #[derive(Debug, thiserror::Error)]
 pub enum CacheError {
-    #[error("Failed to download model: {0}")]
+    #[error("File system error: {0}")]
+    IoError(#[from] std::io::Error),
+
+    #[error("Download failed: {0}. Please check your internet connection and try again.")]
     DownloadFailed(String),
 
-    #[error("Checksum mismatch for model {model_id}: expected {expected}, got {actual}")]
+    #[error("Network error: {0}. This may indicate connectivity issues or server problems.")]
+    NetworkError(String),
+
+    #[error("File integrity check failed for model {model_id}. Expected checksum: {expected}, Actual checksum: {actual}. The file may be corrupted.")]
     ChecksumMismatch {
         model_id: String,
         expected: String,
         actual: String,
     },
 
-    #[error("Model not found: {0}")]
+    #[error("Resume not supported. The server does not support resumable downloads. Will restart from the beginning.")]
+    ResumeNotSupported,
+
+    #[error("Authentication required. Set HF_TOKEN environment variable with your Hugging Face token. Get one at https://huggingface.co/settings/tokens")]
+    AuthenticationRequired,
+
+    #[error("Model '{0}' not found in cache. Use the download command to fetch it first.")]
     ModelNotFound(String),
 
-    #[error("I/O error: {0}")]
-    IoError(#[from] std::io::Error),
-
-    #[error("Manifest error: {0}")]
+    #[error("Cache manifest error: {0}. The cache may be in an inconsistent state.")]
     ManifestError(String),
 
-    #[error("Cache directory error: {0}")]
+    #[error(
+        "Cache directory error: {0}. Please ensure the cache directory exists and is writable."
+    )]
     DirectoryError(String),
+}
+
+impl From<reqwest::Error> for CacheError {
+    fn from(err: reqwest::Error) -> Self {
+        if err.is_connect() || err.is_timeout() {
+            CacheError::NetworkError(format!(
+                "Failed to connect to server: {}. Check your internet connection.",
+                err
+            ))
+        } else if err.is_status() {
+            let status = err.status().map(|s| s.as_u16()).unwrap_or(0);
+            match status {
+                401 | 403 => CacheError::AuthenticationRequired,
+                404 => CacheError::DownloadFailed("Resource not found on server".to_string()),
+                416 => CacheError::ResumeNotSupported,
+                500..=599 => CacheError::NetworkError(format!(
+                    "Server error ({}). The server may be experiencing issues. Please try again later.",
+                    status
+                )),
+                _ => CacheError::NetworkError(format!("HTTP error: {}", err)),
+            }
+        } else {
+            CacheError::DownloadFailed(err.to_string())
+        }
+    }
+}
+
+impl From<HttpClientError> for CacheError {
+    fn from(err: HttpClientError) -> Self {
+        match err {
+            HttpClientError::RequestFailed(req_err) => {
+                // Delegate to the reqwest::Error conversion
+                CacheError::from(req_err)
+            }
+            HttpClientError::InvalidUrl(msg) => {
+                CacheError::DownloadFailed(format!("Invalid URL: {}", msg))
+            }
+            HttpClientError::AuthError(_msg) => CacheError::AuthenticationRequired,
+        }
+    }
 }
 
 /// Statistics about the cache
@@ -277,20 +341,88 @@ impl CacheManager {
         })
     }
 
-    /// Download a model from Hugging Face (placeholder implementation)
+    /// Download a model from Hugging Face Hub
+    ///
+    /// This method:
+    /// 1. Creates an HTTP client
+    /// 2. Gets file metadata from HF Hub
+    /// 3. Downloads the file with progress tracking and resume support
+    /// 4. Validates checksum
+    /// 5. Adds model to manifest atomically
+    /// 6. Returns the cached file path
     async fn download_model(&self, model_id: &str) -> Result<PathBuf, CacheError> {
-        // Placeholder: In real implementation, this would:
-        // 1. Connect to Hugging Face API
-        // 2. Download model files
-        // 3. Calculate checksum
-        // 4. Add to manifest
-        // 5. Return path
+        // Create HTTP client
+        let client = HfHubClient::new().map_err(|e| {
+            CacheError::DownloadFailed(format!("Failed to create HTTP client: {}", e))
+        })?;
 
-        // For now, return a DownloadFailed error indicating network requirement
-        Err(CacheError::DownloadFailed(format!(
-            "Model '{}' not cached and download requires network connection (not implemented yet)",
-            model_id
-        )))
+        // For now, assume the model filename is pytorch_model.bin
+        // TODO: In a full implementation, we would:
+        // 1. Query the model repo to get the list of files
+        // 2. Download all necessary files (config.json, tokenizer, weights, etc.)
+        // For this MVP, we'll just download a single file
+        let filename = "pytorch_model.bin";
+
+        // Get file URL
+        let url = client
+            .get_file_url(model_id, filename, None)
+            .map_err(|e| CacheError::DownloadFailed(format!("Failed to get file URL: {}", e)))?;
+
+        // Get file metadata (size) using HEAD request
+        let response = client.head_request(&url).await.map_err(|e| {
+            CacheError::DownloadFailed(format!("Failed to get file metadata: {}", e))
+        })?;
+
+        let file_size = response
+            .headers()
+            .get(reqwest::header::CONTENT_LENGTH)
+            .and_then(|v| v.to_str().ok())
+            .and_then(|s| s.parse::<u64>().ok());
+
+        // Create destination path: cache_dir/model_id/filename
+        let model_dir = self.cache_dir.join(model_id);
+        let dest_path = model_dir.join(filename);
+
+        // Download file with progress, checksum, and resume support
+        let (final_path, checksum) =
+            download_file(&client, &url, &dest_path, file_size, None).await?;
+
+        // Add model to manifest atomically
+        let model_id_owned = model_id.to_string();
+        let manifest_result = {
+            let mut manifest = self
+                .manifest
+                .write()
+                .map_err(|e| CacheError::ManifestError(format!("Lock error: {}", e)))?;
+
+            manifest.atomic_update(|manifest_data| {
+                let cached_model = CachedModel {
+                    model_id: model_id_owned.clone(),
+                    path: final_path.clone(),
+                    size_bytes: file_size.unwrap_or(0),
+                    checksum: checksum.clone(),
+                    downloaded_at: chrono::Utc::now(),
+                    last_accessed: chrono::Utc::now(),
+                    version: None, // TODO: Extract version from model_id or metadata
+                };
+
+                manifest_data
+                    .models
+                    .insert(model_id_owned.clone(), cached_model);
+                manifest_data.total_size_bytes += file_size.unwrap_or(0);
+
+                // Check if we need LRU cleanup
+                if manifest_data.total_size_bytes > manifest_data.max_cache_size_bytes {
+                    manifest_data.cleanup_lru();
+                }
+
+                Ok(())
+            })
+        };
+
+        manifest_result?;
+
+        Ok(final_path)
     }
 
     /// Calculate SHA256 checksum of a file
@@ -893,6 +1025,110 @@ mod tests {
                     "Zero-sized models should not be evicted"
                 );
             }
+        }
+    }
+
+    // Error handling tests for WP08
+    mod error_handling_tests {
+        use super::*;
+
+        #[test]
+        fn test_io_error_conversion() {
+            let io_err = std::io::Error::new(std::io::ErrorKind::PermissionDenied, "Access denied");
+            let cache_err: CacheError = io_err.into();
+
+            match cache_err {
+                CacheError::IoError(_) => (),
+                _ => panic!("Expected IoError variant"),
+            }
+
+            let err_msg = cache_err.to_string();
+            assert!(err_msg.contains("File system error"));
+        }
+
+        #[test]
+        fn test_download_failed_message() {
+            let err = CacheError::DownloadFailed("Connection reset".to_string());
+            let err_msg = err.to_string();
+
+            assert!(err_msg.contains("Download failed"));
+            assert!(err_msg.contains("check your internet connection"));
+            assert!(err_msg.contains("Connection reset"));
+        }
+
+        #[test]
+        fn test_network_error_message() {
+            let err = CacheError::NetworkError("Timeout after 30s".to_string());
+            let err_msg = err.to_string();
+
+            assert!(err_msg.contains("Network error"));
+            assert!(err_msg.contains("connectivity issues"));
+            assert!(err_msg.contains("Timeout after 30s"));
+        }
+
+        #[test]
+        fn test_checksum_mismatch_message() {
+            let err = CacheError::ChecksumMismatch {
+                model_id: "test-model".to_string(),
+                expected: "abc123".to_string(),
+                actual: "def456".to_string(),
+            };
+            let err_msg = err.to_string();
+
+            assert!(err_msg.contains("File integrity check failed"));
+            assert!(err_msg.contains("test-model"));
+            assert!(err_msg.contains("Expected checksum: abc123"));
+            assert!(err_msg.contains("Actual checksum: def456"));
+            assert!(err_msg.contains("corrupted"));
+        }
+
+        #[test]
+        fn test_resume_not_supported_message() {
+            let err = CacheError::ResumeNotSupported;
+            let err_msg = err.to_string();
+
+            assert!(err_msg.contains("Resume not supported"));
+            assert!(err_msg.contains("server does not support"));
+            assert!(err_msg.contains("from the beginning"));
+        }
+
+        #[test]
+        fn test_authentication_required_message() {
+            let err = CacheError::AuthenticationRequired;
+            let err_msg = err.to_string();
+
+            assert!(err_msg.contains("Authentication required"));
+            assert!(err_msg.contains("HF_TOKEN"));
+            assert!(err_msg.contains("huggingface.co/settings/tokens"));
+        }
+
+        #[test]
+        fn test_model_not_found_message() {
+            let err = CacheError::ModelNotFound("my-model".to_string());
+            let err_msg = err.to_string();
+
+            assert!(err_msg.contains("Model 'my-model' not found"));
+            assert!(err_msg.contains("download command"));
+        }
+
+        #[test]
+        fn test_manifest_error_message() {
+            let err = CacheError::ManifestError("Parse error".to_string());
+            let err_msg = err.to_string();
+
+            assert!(err_msg.contains("Cache manifest error"));
+            assert!(err_msg.contains("Parse error"));
+            assert!(err_msg.contains("inconsistent state"));
+        }
+
+        #[test]
+        fn test_directory_error_message() {
+            let err = CacheError::DirectoryError("Not writable".to_string());
+            let err_msg = err.to_string();
+
+            assert!(err_msg.contains("Cache directory error"));
+            assert!(err_msg.contains("Not writable"));
+            assert!(err_msg.contains("writable"));
         }
     }
 }
