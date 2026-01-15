@@ -780,7 +780,7 @@ async fn run_evaluation_tests(
     // Create backend (boxed to allow different types)
     let backend: Box<dyn CommandGenerator> = match backend_name {
         "static" => {
-            let profile = CapabilityProfile::detect().await;
+            let profile = CapabilityProfile::detect_or_cached().await;
             Box::new(StaticMatcher::new(profile))
         }
         "embedded" => Box::new(

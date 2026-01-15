@@ -187,8 +187,8 @@ impl CliApp {
         // Detect execution context
         let context = ExecutionContext::detect();
 
-        // Detect platform capabilities for command generation
-        let profile = CapabilityProfile::detect().await;
+        // Detect platform capabilities for command generation (uses cache for fast startup)
+        let profile = CapabilityProfile::detect_or_cached().await;
 
         // Create agent loop with backend, context, and profile
         // If force_llm is true, disable the static matcher
