@@ -147,6 +147,12 @@ impl CliApp {
     }
 
     /// Create CLI application with backend and model overrides from CLI args
+    ///
+    /// Backend selection priority (highest to lowest):
+    /// 1. CLI flag (`--backend`)
+    /// 2. Environment variable (`CARO_BACKEND`)
+    /// 3. Config file (`~/.config/caro/config.toml`)
+    /// 4. Auto-detect (default: embedded)
     pub async fn with_overrides(
         config: CliConfig,
         backend_override: Option<String>,
@@ -165,11 +171,39 @@ impl CliApp {
                 message: format!("Failed to load configuration: {}", e),
             })?;
 
-        // CLI overrides take precedence over config file
-        if let Some(backend) = backend_override {
-            user_config.default_model = Some(backend);
+        // Backend selection priority: CLI flag > env var > config file
+        let env_backend = std::env::var("CARO_BACKEND").ok();
+        let backend_source = if backend_override.is_some() {
+            "CLI flag"
+        } else if env_backend.is_some() {
+            "CARO_BACKEND env"
+        } else if user_config.default_model.is_some() {
+            "config file"
+        } else {
+            "auto-detect"
+        };
+
+        let effective_backend = backend_override
+            .or(env_backend)
+            .or_else(|| user_config.default_model.clone());
+
+        // Validate backend name if specified
+        if let Some(ref backend) = effective_backend {
+            Self::validate_backend_name(backend)?;
+            user_config.default_model = Some(backend.clone());
+            tracing::debug!(
+                "Backend preference: {} (source: {})",
+                backend,
+                backend_source
+            );
         }
-        if let Some(model_name) = model_name_override {
+
+        // Model name: CLI flag > env var > config file
+        let effective_model_name = model_name_override
+            .or_else(|| std::env::var("CARO_MODEL").ok())
+            .or_else(|| user_config.model_name.clone());
+
+        if let Some(model_name) = effective_model_name {
             user_config.model_name = Some(model_name);
         }
 
@@ -386,6 +420,42 @@ impl CliApp {
                 Err(arc) => Ok(Box::new((*arc).clone())),
             }
         }
+    }
+
+    /// Validate that the backend name is valid
+    ///
+    /// Returns Ok(()) if valid, or a helpful error message if not.
+    fn validate_backend_name(backend: &str) -> Result<(), CliError> {
+        const VALID_BACKENDS: &[&str] = &["embedded", "ollama", "exo", "vllm"];
+
+        let normalized = backend.to_lowercase();
+        if VALID_BACKENDS.contains(&normalized.as_str()) {
+            return Ok(());
+        }
+
+        // Provide helpful error with suggestions
+        let suggestion = VALID_BACKENDS
+            .iter()
+            .find(|&&v| v.starts_with(&normalized) || normalized.starts_with(v))
+            .map(|&v| format!(". Did you mean '{}'?", v))
+            .unwrap_or_default();
+
+        Err(CliError::InvalidArgument {
+            message: format!(
+                "Unknown backend '{}'{}\n\nAvailable backends:\n  \
+                 - embedded: Local Qwen model (default, no setup required)\n  \
+                 - ollama: Ollama server (requires: ollama serve)\n  \
+                 - exo: Exo distributed cluster (requires: exo cluster)\n  \
+                 - vllm: vLLM HTTP API (requires: vllm server)\n\n\
+                 Set via: --backend <name>, CARO_BACKEND env var, or config file",
+                backend, suggestion
+            ),
+        })
+    }
+
+    /// Get list of available backend names
+    pub fn available_backends() -> &'static [&'static str] {
+        &["embedded", "ollama", "exo", "vllm"]
     }
 
     /// Run CLI with provided arguments
@@ -731,3 +801,51 @@ impl CommandGenerator for MockCommandGenerator {
 }
 
 // Types are already public, no re-export needed
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_validate_backend_name_valid() {
+        assert!(CliApp::validate_backend_name("embedded").is_ok());
+        assert!(CliApp::validate_backend_name("ollama").is_ok());
+        assert!(CliApp::validate_backend_name("exo").is_ok());
+        assert!(CliApp::validate_backend_name("vllm").is_ok());
+    }
+
+    #[test]
+    fn test_validate_backend_name_case_insensitive() {
+        assert!(CliApp::validate_backend_name("EMBEDDED").is_ok());
+        assert!(CliApp::validate_backend_name("Ollama").is_ok());
+        assert!(CliApp::validate_backend_name("EXO").is_ok());
+        assert!(CliApp::validate_backend_name("VLLM").is_ok());
+    }
+
+    #[test]
+    fn test_validate_backend_name_invalid() {
+        let result = CliApp::validate_backend_name("unknown");
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.to_string().contains("Unknown backend 'unknown'"));
+        assert!(err.to_string().contains("Available backends:"));
+    }
+
+    #[test]
+    fn test_validate_backend_name_suggestion() {
+        // Should suggest "ollama" for "olla"
+        let result = CliApp::validate_backend_name("olla");
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.to_string().contains("Did you mean 'ollama'?"));
+    }
+
+    #[test]
+    fn test_available_backends() {
+        let backends = CliApp::available_backends();
+        assert!(backends.contains(&"embedded"));
+        assert!(backends.contains(&"ollama"));
+        assert!(backends.contains(&"exo"));
+        assert!(backends.contains(&"vllm"));
+    }
+}
