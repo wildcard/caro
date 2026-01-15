@@ -161,7 +161,7 @@ pub fn validate_ubuntu_command(command: &str) -> ValidationResult {
 /// }
 /// ```
 pub async fn detect_capabilities() -> CapabilityProfile {
-    CapabilityProfile::detect().await
+    CapabilityProfile::detect_or_cached().await
 }
 
 /// Generate a shell script that outputs a capability profile
