@@ -615,11 +615,219 @@ impl StaticMatcher {
                 description: "List hidden files".to_string(),
             },
 
-            // Pattern 43: "list files" (very simple variant - was Pattern 44)
+            // ===== FILE TYPE SEARCH PATTERNS (Issue: "list md files" fix) =====
+            // These patterns MUST come BEFORE the generic "list files" pattern
+            // because the matcher uses first-match-wins ordering.
+            // NOTE: Using empty keywords forces regex-only matching (no fallback)
+
+            // Pattern 43: "list/show/find markdown files"
+            PatternEntry {
+                required_keywords: vec![],
+                optional_keywords: vec![],
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show|find|get|search)\s+(all\s+)?(md|markdown)\s+(files?)\s*$").unwrap()),
+                gnu_command: r#"find . -type f -name "*.md""#.to_string(),
+                bsd_command: Some(r#"find . -type f -name "*.md""#.to_string()),
+                description: "Find markdown files".to_string(),
+            },
+
+            // Pattern 44: "list/show/find text files"
+            PatternEntry {
+                required_keywords: vec![],
+                optional_keywords: vec![],
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show|find|get|search)\s+(all\s+)?(text|txt)\s+(files?)\s*$").unwrap()),
+                gnu_command: r#"find . -type f -name "*.txt""#.to_string(),
+                bsd_command: Some(r#"find . -type f -name "*.txt""#.to_string()),
+                description: "Find text files".to_string(),
+            },
+
+            // Pattern 45: "list/show/find json files"
+            PatternEntry {
+                required_keywords: vec![],
+                optional_keywords: vec![],
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show|find|get|search)\s+(all\s+)?(json)\s+(files?)\s*$").unwrap()),
+                gnu_command: r#"find . -type f -name "*.json""#.to_string(),
+                bsd_command: Some(r#"find . -type f -name "*.json""#.to_string()),
+                description: "Find JSON files".to_string(),
+            },
+
+            // Pattern 46: "list/show/find yaml files"
+            PatternEntry {
+                required_keywords: vec![],
+                optional_keywords: vec![],
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show|find|get|search)\s+(all\s+)?(yaml|yml)\s+(files?)\s*$").unwrap()),
+                gnu_command: r#"find . -type f \( -name "*.yaml" -o -name "*.yml" \)"#.to_string(),
+                bsd_command: Some(r#"find . -type f \( -name "*.yaml" -o -name "*.yml" \)"#.to_string()),
+                description: "Find YAML files".to_string(),
+            },
+
+            // Pattern 47: "list/show/find toml files"
+            PatternEntry {
+                required_keywords: vec![],
+                optional_keywords: vec![],
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show|find|get|search)\s+(all\s+)?(toml)\s+(files?)\s*$").unwrap()),
+                gnu_command: r#"find . -type f -name "*.toml""#.to_string(),
+                bsd_command: Some(r#"find . -type f -name "*.toml""#.to_string()),
+                description: "Find TOML files".to_string(),
+            },
+
+            // Pattern 48: "list/show/find html files"
+            PatternEntry {
+                required_keywords: vec![],
+                optional_keywords: vec![],
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show|find|get|search)\s+(all\s+)?(html)\s+(files?)\s*$").unwrap()),
+                gnu_command: r#"find . -type f -name "*.html""#.to_string(),
+                bsd_command: Some(r#"find . -type f -name "*.html""#.to_string()),
+                description: "Find HTML files".to_string(),
+            },
+
+            // Pattern 49: "list/show/find css files"
+            PatternEntry {
+                required_keywords: vec![],
+                optional_keywords: vec![],
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show|find|get|search)\s+(all\s+)?(css)\s+(files?)\s*$").unwrap()),
+                gnu_command: r#"find . -type f -name "*.css""#.to_string(),
+                bsd_command: Some(r#"find . -type f -name "*.css""#.to_string()),
+                description: "Find CSS files".to_string(),
+            },
+
+            // Pattern 50: "list/show/find sql files"
+            PatternEntry {
+                required_keywords: vec![],
+                optional_keywords: vec![],
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show|find|get|search)\s+(all\s+)?(sql)\s+(files?)\s*$").unwrap()),
+                gnu_command: r#"find . -type f -name "*.sql""#.to_string(),
+                bsd_command: Some(r#"find . -type f -name "*.sql""#.to_string()),
+                description: "Find SQL files".to_string(),
+            },
+
+            // Pattern 51: "list/show python files" (extends existing "find python" pattern)
+            PatternEntry {
+                required_keywords: vec![],
+                optional_keywords: vec![],
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show|find|get|search)\s+(all\s+)?(python|py)\s+(files?)\s*$").unwrap()),
+                gnu_command: r#"find . -type f -name "*.py""#.to_string(),
+                bsd_command: Some(r#"find . -type f -name "*.py""#.to_string()),
+                description: "Find Python files".to_string(),
+            },
+
+            // Pattern 52: "list/show/find rust files"
+            PatternEntry {
+                required_keywords: vec![],
+                optional_keywords: vec![],
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show|find|get|search)\s+(all\s+)?(rust|rs)\s+(files?)\s*$").unwrap()),
+                gnu_command: r#"find . -type f -name "*.rs""#.to_string(),
+                bsd_command: Some(r#"find . -type f -name "*.rs""#.to_string()),
+                description: "Find Rust files".to_string(),
+            },
+
+            // Pattern 52: "list/show/find javascript files"
+            PatternEntry {
+                required_keywords: vec![],
+                optional_keywords: vec![],
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show|find|get|search)\s+(all\s+)?(javascript|js)\s+(files?)\s*$").unwrap()),
+                gnu_command: r#"find . -type f -name "*.js""#.to_string(),
+                bsd_command: Some(r#"find . -type f -name "*.js""#.to_string()),
+                description: "Find JavaScript files".to_string(),
+            },
+
+            // Pattern 53: "list/show/find typescript files"
+            PatternEntry {
+                required_keywords: vec![],
+                optional_keywords: vec![],
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show|find|get|search)\s+(all\s+)?(typescript|ts)\s+(files?)\s*$").unwrap()),
+                gnu_command: r#"find . -type f -name "*.ts""#.to_string(),
+                bsd_command: Some(r#"find . -type f -name "*.ts""#.to_string()),
+                description: "Find TypeScript files".to_string(),
+            },
+
+            // Pattern 54: "list/show/find go files"
+            PatternEntry {
+                required_keywords: vec![],
+                optional_keywords: vec![],
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show|find|get|search)\s+(all\s+)?(go|golang)\s+(files?)\s*$").unwrap()),
+                gnu_command: r#"find . -type f -name "*.go""#.to_string(),
+                bsd_command: Some(r#"find . -type f -name "*.go""#.to_string()),
+                description: "Find Go files".to_string(),
+            },
+
+            // Pattern 55: "list/show/find ruby files"
+            PatternEntry {
+                required_keywords: vec![],
+                optional_keywords: vec![],
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show|find|get|search)\s+(all\s+)?(ruby|rb)\s+(files?)\s*$").unwrap()),
+                gnu_command: r#"find . -type f -name "*.rb""#.to_string(),
+                bsd_command: Some(r#"find . -type f -name "*.rb""#.to_string()),
+                description: "Find Ruby files".to_string(),
+            },
+
+            // Pattern 56: "list/show/find java files"
+            PatternEntry {
+                required_keywords: vec![],
+                optional_keywords: vec![],
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show|find|get|search)\s+(all\s+)?(java)\s+(files?)\s*$").unwrap()),
+                gnu_command: r#"find . -type f -name "*.java""#.to_string(),
+                bsd_command: Some(r#"find . -type f -name "*.java""#.to_string()),
+                description: "Find Java files".to_string(),
+            },
+
+            // Pattern 57: "list/show/find c files"
+            PatternEntry {
+                required_keywords: vec![],
+                optional_keywords: vec![],
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show|find|get|search)\s+(all\s+)?c\s+(files?)\s*$").unwrap()),
+                gnu_command: r#"find . -type f -name "*.c""#.to_string(),
+                bsd_command: Some(r#"find . -type f -name "*.c""#.to_string()),
+                description: "Find C files".to_string(),
+            },
+
+            // Pattern 58: "list/show/find cpp/c++ files"
+            PatternEntry {
+                required_keywords: vec![],
+                optional_keywords: vec![],
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show|find|get|search)\s+(all\s+)?(cpp|c\+\+)\s+(files?)\s*$").unwrap()),
+                gnu_command: r#"find . -type f \( -name "*.cpp" -o -name "*.cc" -o -name "*.cxx" \)"#.to_string(),
+                bsd_command: Some(r#"find . -type f \( -name "*.cpp" -o -name "*.cc" -o -name "*.cxx" \)"#.to_string()),
+                description: "Find C++ files".to_string(),
+            },
+
+            // Pattern 59: "list/show/find shell/sh/bash files"
+            PatternEntry {
+                required_keywords: vec![],
+                optional_keywords: vec![],
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show|find|get|search)\s+(all\s+)?(shell|sh|bash)\s+(files?|scripts?)\s*$").unwrap()),
+                gnu_command: r#"find . -type f \( -name "*.sh" -o -name "*.bash" \)"#.to_string(),
+                bsd_command: Some(r#"find . -type f \( -name "*.sh" -o -name "*.bash" \)"#.to_string()),
+                description: "Find shell script files".to_string(),
+            },
+
+            // Pattern 60: "list/show/find xml files"
+            PatternEntry {
+                required_keywords: vec![],
+                optional_keywords: vec![],
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show|find|get|search)\s+(all\s+)?(xml)\s+(files?)\s*$").unwrap()),
+                gnu_command: r#"find . -type f -name "*.xml""#.to_string(),
+                bsd_command: Some(r#"find . -type f -name "*.xml""#.to_string()),
+                description: "Find XML files".to_string(),
+            },
+
+            // Pattern 61: "list/show/find csv files"
+            PatternEntry {
+                required_keywords: vec![],
+                optional_keywords: vec![],
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show|find|get|search)\s+(all\s+)?(csv)\s+(files?)\s*$").unwrap()),
+                gnu_command: r#"find . -type f -name "*.csv""#.to_string(),
+                bsd_command: Some(r#"find . -type f -name "*.csv""#.to_string()),
+                description: "Find CSV files".to_string(),
+            },
+
+            // ===== END FILE TYPE SEARCH PATTERNS =====
+
+            // Pattern 62: "list files" (very simple variant)
+            // NOTE: Tightened regex to avoid matching "list md files" etc.
             PatternEntry {
                 required_keywords: vec!["list".to_string(), "files".to_string()],
                 optional_keywords: vec!["all".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)^(list|show).*(all)?.*(files?)\s*$").unwrap()),
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show)(\s+all)?\s+(files?)\s*$").unwrap()),
                 gnu_command: "ls -la".to_string(),
                 bsd_command: Some("ls -la".to_string()),
                 description: "List files (simple)".to_string(),
@@ -1024,6 +1232,115 @@ mod tests {
         assert_eq!(
             cmd.command, "find . -type f -mtime 0",
             "BSD platform should use same command as GNU for find, got: {}",
+            cmd.command
+        );
+    }
+
+    // ===== FILE TYPE SEARCH PATTERN TESTS =====
+    // Tests for Issue: "list md files" incorrectly matching "list files" pattern
+
+    /// Test that "list md files" generates find command, NOT ls -la
+    #[tokio::test]
+    async fn test_list_md_files_uses_find() {
+        let profile = CapabilityProfile::ubuntu();
+        let matcher = StaticMatcher::new(profile);
+
+        let request = CommandRequest::new("list md files", ShellType::Bash);
+
+        let result = matcher.generate_command(&request).await;
+        assert!(result.is_ok(), "Should match file type pattern");
+
+        let cmd = result.unwrap();
+        assert!(
+            cmd.command.contains("find") && cmd.command.contains("*.md"),
+            "Query 'list md files' should use find with *.md, got: {}",
+            cmd.command
+        );
+        assert!(
+            !cmd.command.contains("ls -la"),
+            "Query 'list md files' should NOT be ls -la, got: {}",
+            cmd.command
+        );
+    }
+
+    /// Test various file type search patterns
+    #[tokio::test]
+    async fn test_file_type_search_patterns() {
+        let profile = CapabilityProfile::ubuntu();
+        let matcher = StaticMatcher::new(profile);
+
+        let test_cases = vec![
+            ("list python files", "*.py"),
+            ("show rust files", "*.rs"),
+            ("find json files", "*.json"),
+            ("list yaml files", "*.yaml"),
+            ("find typescript files", "*.ts"),
+            ("show javascript files", "*.js"),
+            ("list go files", "*.go"),
+            ("find html files", "*.html"),
+            ("list css files", "*.css"),
+            ("show txt files", "*.txt"),
+        ];
+
+        for (query, expected_ext) in test_cases {
+            let request = CommandRequest::new(query, ShellType::Bash);
+            let result = matcher.generate_command(&request).await;
+
+            assert!(
+                result.is_ok(),
+                "Query '{}' should match a file type pattern",
+                query
+            );
+
+            let cmd = result.unwrap();
+            assert!(
+                cmd.command.contains("find") && cmd.command.contains(expected_ext),
+                "Query '{}' should generate find with {}, got: {}",
+                query,
+                expected_ext,
+                cmd.command
+            );
+        }
+    }
+
+    /// Test that generic "list files" still works correctly
+    #[tokio::test]
+    async fn test_generic_list_files_unchanged() {
+        let profile = CapabilityProfile::ubuntu();
+        let matcher = StaticMatcher::new(profile);
+
+        let queries = vec!["list files", "list all files", "show files"];
+
+        for query in queries {
+            let request = CommandRequest::new(query, ShellType::Bash);
+            let result = matcher.generate_command(&request).await;
+
+            assert!(result.is_ok(), "Query '{}' should still match", query);
+
+            let cmd = result.unwrap();
+            assert_eq!(
+                cmd.command, "ls -la",
+                "Query '{}' should be ls -la, got: {}",
+                query, cmd.command
+            );
+        }
+    }
+
+    /// Test "list all md files" variant
+    #[tokio::test]
+    async fn test_list_all_type_files() {
+        let profile = CapabilityProfile::ubuntu();
+        let matcher = StaticMatcher::new(profile);
+
+        let request = CommandRequest::new("list all md files", ShellType::Bash);
+
+        let result = matcher.generate_command(&request).await;
+        assert!(result.is_ok(), "Should match 'list all md files'");
+
+        let cmd = result.unwrap();
+        assert!(
+            cmd.command.contains("find") && cmd.command.contains("*.md"),
+            "Query 'list all md files' should use find with *.md, got: {}",
             cmd.command
         );
     }
