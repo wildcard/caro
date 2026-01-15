@@ -1,6 +1,6 @@
 # Caro Development Roadmap
 
-**Last Updated**: January 8, 2026
+**Last Updated**: January 14, 2026
 
 ## Timeline Overview
 
@@ -46,6 +46,25 @@ gantt
 ---
 
 ## Release Milestones
+
+### 🎉 v1.1.1 - Edit Feature Release
+**Released**: January 14, 2026 ✅
+**Status**: 100% Complete - **RELEASED**
+**Focus**: Enhanced command confirmation UX with edit option
+
+#### Key Deliverables
+- **Edit Option** ✅ **COMPLETE**
+  - [x] Add edit option (e) to command confirmation prompt
+  - [x] Shell integration via `caro init <shell>` (zsh, bash, fish)
+  - [x] Clipboard fallback when shell wrapper not installed
+  - [x] Exit code 201 signaling for shell wrappers
+
+- **CI Improvements** ✅ **COMPLETE**
+  - [x] Separate LLM-dependent tests to non-blocking workflow
+  - [x] Add llm-tests.yml for quality indicators
+  - [x] Fix release workflow to exclude assess tests
+
+---
 
 ### 🚀 v1.1.0 - General Availability Release
 **Released**: January 12, 2026 ✅
@@ -237,11 +256,12 @@ gantt
 
 | Milestone | Due Date | Items | Complete | Progress | Status |
 |-----------|----------|-------|----------|----------|---------|
+| **v1.1.1** | Jan 14, 2026 | 7 | 7 | 100% | ✅ **RELEASED** |
 | **v1.1.0** | Jan 12, 2026 | 19 | 19 | 100% | ✅ **GA RELEASED** |
 | **v1.2.0** | Feb 15, 2026 | 15 | 1 | 7% | 🔄 In Progress |
-| **v1.2.0** | Mar 31, 2026 | 24 | 0 | 0% | ⏸️ Backlog |
+| **v1.3.0** | Mar 31, 2026 | 24 | 0 | 0% | ⏸️ Backlog |
 | **v2.0.0** | Jun 30, 2026 | 21 | 8 | 38% | 🔄 Research Phase |
-| **Total** | - | **79** | **27** | **34%** | 🚀 On Track |
+| **Total** | - | **86** | **35** | **41%** | 🚀 On Track |
 
 ---
 
