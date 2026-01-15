@@ -15,6 +15,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [1.1.2] - 2026-01-15
+
+### Added
+
+- **Hugging Face Model Download** (#399): Full-featured model download with resumable downloads, checksum validation, and progress tracking
+  - Streaming downloads with automatic retry on network failures
+  - Resume interrupted downloads from where they left off
+  - SHA256 checksum validation ensures file integrity
+  - File locking for concurrent download safety
+  - Comprehensive integration tests with mock HTTP server
+
+- **Benchmark Suite** (#397): Performance validation and regression testing infrastructure
+  - Comprehensive benchmark suite for command generation performance
+  - `benchmark-compare.py` script for comparing results across runs
+  - Integration with CI for automated performance tracking
+  - Baseline measurements for all major operations
+
+- **Backend Preference Configuration** (#455): Environment variable support for backend selection
+  - New `CARO_BACKEND` environment variable to specify preferred backend
+  - Priority order: CLI flag > env var > config file > auto-detect
+  - Supports: `embedded`, `mlx`, `ollama`, `exo`, `vllm`
+  - Example: `CARO_BACKEND=mlx caro "list files"`
+
+- **CLI Startup Optimization** (#454): CapabilityProfile caching for 99.9% faster startup
+  - Cache detected capabilities to `~/.cache/caro/capabilities-{version}.json`
+  - First run: ~650ms detection, subsequent runs: <1ms cache hit
+  - Cache automatically invalidates on version change
+  - Benchmark shows 650x improvement in startup time
+
+- **Property-Based Tests for LRU Cache** (#398): Comprehensive test coverage
+  - QuickCheck property tests for cache eviction behavior
+  - Tests verify: FIFO order, capacity limits, update semantics
+  - Increases confidence in cache correctness under edge cases
+
+### Fixed
+
+- **Issue #275**: Unquoted CLI argument handling verified working
+  - All 45 subtasks from spec 002-unquoted-cli-arguments complete
+  - Tests pass: `e2e_unquoted_prompt_basic`, `e2e_multi_word_unquoted_prompt`
+
 ## [1.1.1] - 2026-01-14
 
 ### Added
