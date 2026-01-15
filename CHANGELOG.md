@@ -51,6 +51,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Install Script Improvements**: Better handling of existing installations
+  - Detect and warn about multiple caro binaries in PATH
+  - Add `--force` flag to setup.sh for reinstallation
+  - Fix SAFETY_LEVEL unbound variable in non-interactive mode
+  - Show git hash when installed from crates.io (reads .cargo_vcs_info.json)
+
 - **Issue #275**: Unquoted CLI argument handling verified working
   - All 45 subtasks from spec 002-unquoted-cli-arguments complete
   - Tests pass: `e2e_unquoted_prompt_basic`, `e2e_multi_word_unquoted_prompt`
