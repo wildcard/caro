@@ -1,0 +1,30 @@
+#!/bin/sh
+
+# Check if any website files are staged
+STAGED_WEBSITE=$(git diff --cached --name-only --diff-filter=ACM | grep "^website/src/" || true)
+
+if [ -n "$STAGED_WEBSITE" ]; then
+    echo "Website files staged - running build verification..."
+    cd website
+
+    # Install deps if needed
+    if [ ! -d "node_modules" ]; then
+        npm install --silent
+    fi
+
+    # Run build
+    if ! npm run build > /tmp/website-build.log 2>&1; then
+        echo ""
+        echo "BUILD FAILED! Fix errors before committing."
+        echo ""
+        echo "Common .astro issues:"
+        echo "  - Escape { } as &#123; &#125;"
+        echo "  - Escape < > as &lt; &gt;"
+        echo "  - Escape & as &amp;"
+        echo ""
+        tail -20 /tmp/website-build.log
+        exit 1
+    fi
+
+    echo "Build passed!"
+fi

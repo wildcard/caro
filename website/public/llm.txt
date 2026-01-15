@@ -72,7 +72,7 @@ caro "find all Python files modified in the last week"
 
 ## Project Info
 
-- **Version**: 1.0.3
+- **Version**: 1.1.0
 - **License**: AGPL-3.0
 - **Language**: Rust
 - **Minimum Rust Version**: 1.70+

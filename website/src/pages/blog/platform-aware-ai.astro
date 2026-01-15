@@ -1,0 +1,295 @@
+---
+import BlogPost from '../../layouts/BlogPost.astro';
+---
+
+<BlogPost
+  title="Platform-Aware AI: Teaching LLMs the Difference Between BSD and GNU"
+  description="Why does sed -i work on Linux but break on macOS? Your AI should know. How Caro's 2-iteration agentic loop detects and fixes cross-platform compatibility issues."
+  date="2026-02-18"
+  readTime="9 min read"
+>
+
+<div class="highlight">
+  <p>
+    <strong>The problem:</strong> The same command that works perfectly on Linux might fail silently on macOS—or worse, do something completely different. AI command generators need to understand the platform they're targeting.
+  </p>
+</div>
+
+<h2>The Cross-Platform Trap</h2>
+
+<p>
+  Quick quiz: What does this command do?
+</p>
+
+<pre><code>sed -i 's/foo/bar/g' file.txt</code></pre>
+
+<p>
+  If you answered "replace foo with bar in file.txt," you're half right. On Linux, that's exactly what happens. On macOS, you get an error:
+</p>
+
+<pre><code>sed: 1: "file.txt": invalid command code f</code></pre>
+
+<p>
+  That's because macOS uses BSD sed, which requires an argument after <code>-i</code> (even if it's just an empty string). The Linux version uses GNU sed, which doesn't.
+</p>
+
+<p>
+  This is just one example. There are dozens of common commands with subtle differences between BSD and GNU implementations.
+</p>
+
+<h2>The GNU vs BSD Divide</h2>
+
+<p>
+  Here's a sampling of commands that behave differently across platforms:
+</p>
+
+<h3>sed (Stream Editor)</h3>
+<pre><code># GNU (Linux)
+sed -i 's/old/new/g' file.txt
+
+# BSD (macOS)
+sed -i '' 's/old/new/g' file.txt</code></pre>
+
+<h3>ps (Process Status)</h3>
+<pre><code># GNU (Linux) - sort by CPU
+ps aux --sort=-pcpu
+
+# BSD (macOS) - different syntax
+ps aux -r</code></pre>
+
+<h3>find (File Search)</h3>
+<pre><code># GNU (Linux) - delete matching files
+find . -name "*.tmp" -delete
+
+# BSD (macOS) - same syntax, but order matters more
+find . -name "*.tmp" -delete  # Works
+find . -delete -name "*.tmp"  # Also works on GNU, fails on BSD</code></pre>
+
+<h3>xargs (Build Command Lines)</h3>
+<pre><code># GNU (Linux) - replacement string
+xargs -I&#123;&#125; cp &#123;&#125; /dest
+
+# BSD (macOS) - same, but -J for multiple replacements
+xargs -J% mv % /dest</code></pre>
+
+<h3>date (Date Formatting)</h3>
+<pre><code># GNU (Linux) - relative dates
+date -d "yesterday"
+
+# BSD (macOS) - different flag
+date -v-1d</code></pre>
+
+<p>
+  A naive AI that generates commands from Stack Overflow answers will get these wrong roughly 50% of the time—depending on whether the answer came from a Linux or macOS user.
+</p>
+
+<h2>Caro's Solution: Platform Detection</h2>
+
+<p>
+  Before generating any command, Caro builds an <code>ExecutionContext</code> that captures everything relevant about your system:
+</p>
+
+<pre><code>ExecutionContext &#123;
+    os: "macos",
+    os_version: "14.0",
+    arch: "arm64",
+    distribution: None,
+    shell: "zsh",
+    cwd: "/Users/dev/project",
+    user: "dev",
+    available_commands: ["sed", "awk", "find", ...]
+&#125;</code></pre>
+
+<p>
+  This context is included in every prompt to the LLM. The model knows it's generating commands for BSD-based macOS, not GNU-based Linux.
+</p>
+
+<h2>The 2-Iteration Agentic Loop</h2>
+
+<p>
+  Platform awareness alone isn't enough. Complex commands need verification. That's where Caro's agentic loop comes in:
+</p>
+
+<h3>Iteration 1: Platform-Aware Generation</h3>
+
+<p>
+  The first pass generates a command with platform-specific rules applied:
+</p>
+
+<pre><code>User: "Replace all tabs with spaces in Python files"
+
+Context: macOS arm64, zsh, BSD tools
+
+Generated: find . -name "*.py" -exec sed -i '' 's/\t/  /g' &#123;&#125; +
+
+Confidence: 85%</code></pre>
+
+<h3>Iteration 2: Smart Refinement</h3>
+
+<p>
+  If confidence is below 80%, or if the command is complex, Caro runs a second iteration. This phase:
+</p>
+
+<ul>
+  <li>Extracts individual commands from pipes and chains</li>
+  <li>Fetches <code>--help</code> output for unfamiliar commands</li>
+  <li>Detects potential compatibility issues</li>
+  <li>Refines complex patterns (awk, sed, find predicates)</li>
+</ul>
+
+<pre><code># Refinement detected issue:
+# BSD sed on macOS requires backup extension or empty string
+
+# Original (would fail):
+sed -i 's/old/new/' file.txt
+
+# Refined (works on macOS):
+sed -i '' 's/old/new/' file.txt</code></pre>
+
+<h2>Available Command Detection</h2>
+
+<p>
+  Caro doesn't just detect the OS—it scans your <code>$PATH</code> to find which commands are actually available:
+</p>
+
+<pre><code># User has modern replacements installed
+available_commands: ["rg", "fd", "bat", "exa", ...]
+
+# Caro might suggest:
+$ fd -e py -x rg "pattern"
+
+# Instead of:
+$ find . -name "*.py" -exec grep "pattern" &#123;&#125; +</code></pre>
+
+<p>
+  If you've installed <code>ripgrep</code>, Caro knows to use <code>rg</code> instead of <code>grep</code>. If you have <code>fd</code>, it'll prefer that over <code>find</code>. Your tools, your preferences.
+</p>
+
+<h2>Shell-Specific Syntax</h2>
+
+<p>
+  Shells have their own quirks too. Caro detects your shell and adapts:
+</p>
+
+<h3>Array Syntax</h3>
+<pre><code># bash
+files=(*.txt)
+
+# zsh
+files=(*.txt)  # Same, but globbing behavior differs
+
+# fish
+set files *.txt</code></pre>
+
+<h3>Process Substitution</h3>
+<pre><code># bash/zsh
+diff <(command1) <(command2)
+
+# fish
+diff (command1 | psub) (command2 | psub)</code></pre>
+
+<h3>Variable Expansion</h3>
+<pre><code># bash - needs quotes to preserve spaces
+cp "$file" /dest/
+
+# zsh - splits on spaces unless quoted
+cp "$file" /dest/
+
+# fish - doesn't split on spaces by default
+cp $file /dest/</code></pre>
+
+<h2>Real-World Example</h2>
+
+<p>
+  Let's trace a real query through the system:
+</p>
+
+<pre><code>$ caro "show me the 10 largest files in this directory"
+
+# Step 1: Build execution context
+OS: macOS 14.2, arm64
+Shell: zsh
+Available: du, sort, head, find, ls
+
+# Step 2: Generate with platform rules
+# Note: BSD 'du' uses -h differently than GNU
+
+# Step 3: First iteration output
+du -sh * | sort -rh | head -10
+Confidence: 72%
+
+# Step 4: Refinement triggered (confidence < 80%)
+# Issue detected: BSD sort doesn't support -h for human-readable
+
+# Step 5: Refined output
+du -sk * | sort -rn | head -10 | awk '&#123;printf "%.1fM\t%s\n", $1/1024, $2&#125;'
+Confidence: 94%
+
+# Step 6: Present to user
+Generated command:
+  du -sk * | sort -rn | head -10 | awk '&#123;printf "%.1fM\t%s\n", $1/1024, $2&#125;'
+
+Execute this command? (y/N)</code></pre>
+
+<p>
+  The refinement caught a subtle issue: BSD sort's <code>-h</code> flag doesn't exist. The refined command uses <code>-k</code> for kilobytes and formats the output with awk.
+</p>
+
+<h2>Why This Matters</h2>
+
+<p>
+  Cross-platform compatibility issues are insidious because they often fail silently or produce subtly wrong results. A command that "works" might:
+</p>
+
+<ul>
+  <li>Create backup files you didn't want (<code>sed -i</code> on BSD)</li>
+  <li>Process files in a different order</li>
+  <li>Miss files due to different globbing behavior</li>
+  <li>Hang waiting for input that GNU versions don't require</li>
+</ul>
+
+<p>
+  By understanding the platform before generating commands, Caro prevents these issues before they occur.
+</p>
+
+<h2>Contributing Platform Knowledge</h2>
+
+<p>
+  Our platform-specific rules are open source and community-maintained. Found a difference we missed? Contributions are welcome:
+</p>
+
+<pre><code># Platform rules live in:
+src/platform/rules/
+
+# Each rule includes:
+- Pattern to match
+- BSD-specific variant
+- GNU-specific variant
+- Test cases for both</code></pre>
+
+<p>
+  The goal is comprehensive coverage of every meaningful difference between BSD and GNU tools.
+</p>
+
+<h2>Try Platform-Aware Generation</h2>
+
+<pre><code># Install Caro
+bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)
+
+# See your execution context
+$ caro assess
+
+# Try a cross-platform command
+$ caro "replace text in all markdown files"</code></pre>
+
+<p>
+  Watch as Caro generates the right command for <em>your</em> platform, not some generic Linux answer from the internet.
+</p>
+
+<hr style="margin: 50px 0; border: none; border-top: 1px solid #e0e0e0;">
+
+<p style="text-align: center; margin-top: 40px;">
+  <em>Platform Aware | BSD & GNU Compatible | Works Everywhere</em>
+</p>
+
+</BlogPost>

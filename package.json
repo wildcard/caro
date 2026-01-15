@@ -1,0 +1,16 @@
+{
+  "name": "caro-monorepo",
+  "private": true,
+  "scripts": {
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.0"
+  },
+  "lint-staged": {
+    "website/src/**/*.astro": [
+      "bash -c 'cd website && npm run build'"
+    ]
+  }
+}
