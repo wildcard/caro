@@ -320,7 +320,7 @@ async fn test_concurrent_downloads_no_corruption() {
     let temp_cache = TempDir::new().unwrap();
 
     // Create 3 different model fixtures
-    let fixtures = vec![
+    let fixtures = [
         create_model_fixture(64 * 1024),  // 64KB
         create_model_fixture(96 * 1024),  // 96KB
         create_model_fixture(128 * 1024), // 128KB

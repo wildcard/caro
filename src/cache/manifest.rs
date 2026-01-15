@@ -354,7 +354,6 @@ mod tests {
 
     #[test]
     fn test_concurrent_updates_with_atomic_update() {
-        use std::sync::Arc;
         use std::thread;
 
         let temp_dir = TempDir::new().unwrap();
