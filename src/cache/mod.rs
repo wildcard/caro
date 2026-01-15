@@ -394,10 +394,10 @@ mod tests {
     /// assert!(manifest.get_model("model_b").is_some()); // Newer model kept
     /// ```
     mod property_tests {
-        use super::*;
-        use proptest::prelude::*;
+
         use crate::models::{CacheManifest, CachedModel};
         use chrono::{DateTime, Duration, Utc};
+        use proptest::prelude::*;
         use std::path::PathBuf;
 
         /// Helper to create a test CachedModel
@@ -423,7 +423,7 @@ mod tests {
             #[test]
             fn smoke_test(x in 0..100i32) {
                 // Smoke test to verify PropTest integration
-                assert!(x >= 0 && x < 100);
+                assert!((0..100).contains(&x));
             }
 
             /// T003: Verify that LRU eviction removes least recently accessed model first
@@ -438,17 +438,17 @@ mod tests {
 
                 // Add models with sequential access times (oldest first)
                 let model_count = model_count.min(model_sizes.len());
-                for i in 0..model_count {
+                for (i, &size_gb) in model_sizes.iter().enumerate().take(model_count) {
                     let model = create_test_model(
                         format!("model_{}", i),
-                        model_sizes[i] * 1024 * 1024 * 1024, // Convert to bytes
+                        size_gb * 1024 * 1024 * 1024, // Convert to bytes
                         now - Duration::seconds((model_count - i) as i64 * 60),
                     );
                     manifest.add_model(model);
                 }
 
                 // Record which model has oldest access time
-                let oldest_model_id = format!("model_0"); // First one added has oldest time
+                let oldest_model_id = "model_0".to_string(); // First one added has oldest time
 
                 // Force cleanup by adding a large model
                 let trigger_model = create_test_model(
