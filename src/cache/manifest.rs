@@ -143,8 +143,9 @@ impl ManifestManager {
 
         // Parse manifest if file has content
         if !contents.is_empty() {
-            self.manifest = serde_json::from_str(&contents)
-                .map_err(|e| CacheError::ManifestError(format!("Failed to parse manifest: {}", e)))?;
+            self.manifest = serde_json::from_str(&contents).map_err(|e| {
+                CacheError::ManifestError(format!("Failed to parse manifest: {}", e))
+            })?;
         }
 
         // Apply update function
@@ -372,21 +373,25 @@ mod tests {
                     let mut manifest = ManifestManager::new(cache_dir).unwrap();
 
                     // Each thread adds a unique model
-                    manifest.atomic_update(|manifest_data| {
-                        let cached_model = CachedModel {
-                            model_id: format!("model-{}", i),
-                            path: PathBuf::from(format!("/fake/path/model-{}.bin", i)),
-                            size_bytes: 1000,
-                            checksum: format!("checksum-{}", i),
-                            downloaded_at: Utc::now(),
-                            last_accessed: Utc::now(),
-                            version: None,
-                        };
+                    manifest
+                        .atomic_update(|manifest_data| {
+                            let cached_model = CachedModel {
+                                model_id: format!("model-{}", i),
+                                path: PathBuf::from(format!("/fake/path/model-{}.bin", i)),
+                                size_bytes: 1000,
+                                checksum: format!("checksum-{}", i),
+                                downloaded_at: Utc::now(),
+                                last_accessed: Utc::now(),
+                                version: None,
+                            };
 
-                        manifest_data.models.insert(format!("model-{}", i), cached_model);
-                        manifest_data.total_size_bytes += 1000;
-                        Ok(())
-                    }).unwrap();
+                            manifest_data
+                                .models
+                                .insert(format!("model-{}", i), cached_model);
+                            manifest_data.total_size_bytes += 1000;
+                            Ok(())
+                        })
+                        .unwrap();
                 })
             })
             .collect();
@@ -424,12 +429,14 @@ mod tests {
         manifest2.manifest.total_size_bytes = 999; // Local modification (not saved)
 
         // Atomic update should reload from disk (getting 100) and then apply update
-        manifest2.atomic_update(|manifest_data| {
-            // Should see the reloaded value (100), not the local value (999)
-            assert_eq!(manifest_data.total_size_bytes, 100);
-            manifest_data.total_size_bytes += 50;
-            Ok(())
-        }).unwrap();
+        manifest2
+            .atomic_update(|manifest_data| {
+                // Should see the reloaded value (100), not the local value (999)
+                assert_eq!(manifest_data.total_size_bytes, 100);
+                manifest_data.total_size_bytes += 50;
+                Ok(())
+            })
+            .unwrap();
 
         // Verify final value
         assert_eq!(manifest2.manifest.total_size_bytes, 150);

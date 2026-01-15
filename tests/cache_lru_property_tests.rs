@@ -4,18 +4,14 @@
 //! Property-based testing generates many random test cases to ensure correctness across
 //! a wide range of inputs and edge cases.
 
-use caro::models::{CachedModel, CacheManifest};
+use caro::models::{CacheManifest, CachedModel};
 use chrono::{Duration, Utc};
 use proptest::prelude::*;
 use std::collections::HashSet;
 use std::path::PathBuf;
 
 // Helper to create a test model with specific parameters
-fn create_test_model(
-    id: &str,
-    size_mb: u64,
-    last_accessed_offset_secs: i64,
-) -> CachedModel {
+fn create_test_model(id: &str, size_mb: u64, last_accessed_offset_secs: i64) -> CachedModel {
     CachedModel {
         model_id: id.to_string(),
         path: PathBuf::from(format!("/tmp/cache/{}", id)),
@@ -30,9 +26,9 @@ fn create_test_model(
 // Property test strategy: Generate a list of models with varying sizes and access times
 fn model_strategy() -> impl Strategy<Value = (String, u64, i64)> {
     (
-        "[a-z]{3,10}",  // model_id: 3-10 lowercase letters
-        1u64..100,      // size_mb: 1-100 MB
-        0i64..10000,    // last_accessed_offset_secs: 0-10000 seconds ago
+        "[a-z]{3,10}", // model_id: 3-10 lowercase letters
+        1u64..100,     // size_mb: 1-100 MB
+        0i64..10000,   // last_accessed_offset_secs: 0-10000 seconds ago
     )
 }
 
@@ -330,7 +326,10 @@ mod deterministic_tests {
         let removed = manifest.cleanup_lru();
 
         // No models should be removed
-        assert!(removed.is_empty(), "No models should be removed when under limit");
+        assert!(
+            removed.is_empty(),
+            "No models should be removed when under limit"
+        );
         assert_eq!(manifest.models.len(), 3);
     }
 
@@ -350,7 +349,11 @@ mod deterministic_tests {
         let removed = manifest.cleanup_lru();
 
         // Should remove exactly 3 models
-        assert_eq!(removed.len(), 3, "Should remove 3 models to get under 80MB limit");
+        assert_eq!(
+            removed.len(),
+            3,
+            "Should remove 3 models to get under 80MB limit"
+        );
 
         // Remaining size should be under limit
         assert!(manifest.total_size_bytes <= manifest.max_cache_size_bytes);
@@ -373,13 +376,10 @@ mod deterministic_tests {
         manifest.cleanup_lru();
 
         // Verify total_size_bytes matches sum
-        let actual_total: u64 = manifest.models.values()
-            .map(|m| m.size_bytes)
-            .sum();
+        let actual_total: u64 = manifest.models.values().map(|m| m.size_bytes).sum();
 
         assert_eq!(
-            manifest.total_size_bytes,
-            actual_total,
+            manifest.total_size_bytes, actual_total,
             "total_size_bytes should match sum of remaining models"
         );
     }

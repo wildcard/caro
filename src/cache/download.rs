@@ -120,9 +120,8 @@ pub async fn download_file(
     let mut stream = response.bytes_stream();
 
     while let Some(chunk_result) = stream.next().await {
-        let chunk = chunk_result.map_err(|e| {
-            CacheError::DownloadFailed(format!("Failed to read chunk: {}", e))
-        })?;
+        let chunk = chunk_result
+            .map_err(|e| CacheError::DownloadFailed(format!("Failed to read chunk: {}", e)))?;
 
         file.write_all(&chunk).await?;
         hasher.update(&chunk); // Update checksum as we go
@@ -446,8 +445,7 @@ mod tests {
         let url = format!("{}/test-model/resolve/main/file.bin", mock_server.uri());
 
         // Download with checksum validation
-        let result =
-            download_file(&client, &url, &dest_path, None, Some(&expected_checksum)).await;
+        let result = download_file(&client, &url, &dest_path, None, Some(&expected_checksum)).await;
         assert!(result.is_ok());
 
         let (path, checksum) = result.unwrap();

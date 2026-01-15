@@ -59,7 +59,11 @@ async fn test_successful_download_200_ok() {
     .await;
 
     // Verify success
-    assert!(result.is_ok(), "Download should succeed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "Download should succeed: {:?}",
+        result.err()
+    );
     let (path, checksum) = result.unwrap();
 
     // Verify path and checksum
@@ -108,7 +112,16 @@ async fn test_resume_from_partial_download_206() {
         .respond_with(
             ResponseTemplate::new(206)
                 .set_body_bytes(remaining_data.to_vec())
-                .insert_header("content-range", format!("bytes {}-{}/{}", partial_size, test_data_len - 1, test_data_len).as_str())
+                .insert_header(
+                    "content-range",
+                    format!(
+                        "bytes {}-{}/{}",
+                        partial_size,
+                        test_data_len - 1,
+                        test_data_len
+                    )
+                    .as_str(),
+                )
                 .insert_header("content-length", remaining_data.len().to_string().as_str()),
         )
         .mount(&mock_server)
@@ -136,7 +149,11 @@ async fn test_resume_from_partial_download_206() {
     .await;
 
     // Verify success
-    assert!(result.is_ok(), "Resume download should succeed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "Resume download should succeed: {:?}",
+        result.err()
+    );
     let (path, checksum) = result.unwrap();
 
     // Verify path and checksum
@@ -148,7 +165,10 @@ async fn test_resume_from_partial_download_206() {
     assert_eq!(downloaded_data, test_data);
 
     // Verify .part file was cleaned up
-    assert!(!part_path.exists(), ".part file should be removed after completion");
+    assert!(
+        !part_path.exists(),
+        ".part file should be removed after completion"
+    );
 }
 
 #[tokio::test]
@@ -168,13 +188,20 @@ async fn test_network_timeout_error() {
     assert!(result.is_err(), "Should fail with network error");
     match result.unwrap_err() {
         CacheError::NetworkError(msg) => {
-            assert!(msg.contains("connect") || msg.contains("connection"), "Error should mention connection issue: {}", msg);
+            assert!(
+                msg.contains("connect") || msg.contains("connection"),
+                "Error should mention connection issue: {}",
+                msg
+            );
         }
         other => panic!("Expected NetworkError, got: {:?}", other),
     }
 
     // Verify no file was created
-    assert!(!dest_path.exists(), "File should not exist after network error");
+    assert!(
+        !dest_path.exists(),
+        "File should not exist after network error"
+    );
 }
 
 #[tokio::test]
@@ -231,7 +258,10 @@ async fn test_authentication_failure_401() {
     }
 
     // Verify no file was created
-    assert!(!dest_path.exists(), "File should not exist after auth failure");
+    assert!(
+        !dest_path.exists(),
+        "File should not exist after auth failure"
+    );
 }
 
 #[tokio::test]
@@ -319,11 +349,17 @@ async fn test_checksum_mismatch_detection() {
     }
 
     // Verify file was NOT created (implementation deletes invalid file)
-    assert!(!dest_path.exists(), "File should not exist after checksum mismatch");
+    assert!(
+        !dest_path.exists(),
+        "File should not exist after checksum mismatch"
+    );
 
     // Verify .part file was also cleaned up
     let part_path = dest_path.with_extension("part");
-    assert!(!part_path.exists(), ".part file should be removed after checksum mismatch");
+    assert!(
+        !part_path.exists(),
+        ".part file should be removed after checksum mismatch"
+    );
 }
 
 #[tokio::test]
@@ -351,13 +387,20 @@ async fn test_server_error_500() {
     assert!(result.is_err(), "Should fail with server error");
     match result.unwrap_err() {
         CacheError::NetworkError(msg) => {
-            assert!(msg.contains("500") || msg.contains("Server error"), "Error should mention server error: {}", msg);
+            assert!(
+                msg.contains("500") || msg.contains("Server error"),
+                "Error should mention server error: {}",
+                msg
+            );
         }
         other => panic!("Expected NetworkError for 500 status, got: {:?}", other),
     }
 
     // Verify no file was created
-    assert!(!dest_path.exists(), "File should not exist after server error");
+    assert!(
+        !dest_path.exists(),
+        "File should not exist after server error"
+    );
 }
 
 #[tokio::test]
@@ -385,7 +428,11 @@ async fn test_server_error_503() {
     assert!(result.is_err(), "Should fail with server error");
     match result.unwrap_err() {
         CacheError::NetworkError(msg) => {
-            assert!(msg.contains("503") || msg.contains("Server error"), "Error should mention server error: {}", msg);
+            assert!(
+                msg.contains("503") || msg.contains("Server error"),
+                "Error should mention server error: {}",
+                msg
+            );
         }
         other => panic!("Expected NetworkError for 503 status, got: {:?}", other),
     }
@@ -416,7 +463,11 @@ async fn test_404_not_found() {
     assert!(result.is_err(), "Should fail with download failed");
     match result.unwrap_err() {
         CacheError::DownloadFailed(msg) => {
-            assert!(msg.contains("not found"), "Error should mention not found: {}", msg);
+            assert!(
+                msg.contains("not found"),
+                "Error should mention not found: {}",
+                msg
+            );
         }
         other => panic!("Expected DownloadFailed for 404 status, got: {:?}", other),
     }
@@ -449,7 +500,10 @@ async fn test_resume_not_supported_416() {
         CacheError::ResumeNotSupported => {
             // Success - got the expected error type
         }
-        other => panic!("Expected ResumeNotSupported for 416 status, got: {:?}", other),
+        other => panic!(
+            "Expected ResumeNotSupported for 416 status, got: {:?}",
+            other
+        ),
     }
 }
 
@@ -482,7 +536,11 @@ async fn test_download_without_checksum_validation() {
     let result = download_file(&client, &url, &dest_path, Some(test_data_len as u64), None).await;
 
     // Verify success
-    assert!(result.is_ok(), "Download without checksum should succeed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "Download without checksum should succeed: {:?}",
+        result.err()
+    );
     let (path, computed_checksum) = result.unwrap();
 
     // Verify path
@@ -522,7 +580,11 @@ async fn test_download_with_unknown_size() {
     let result = download_file(&client, &url, &dest_path, None, Some(&expected_checksum)).await;
 
     // Verify success
-    assert!(result.is_ok(), "Download with unknown size should succeed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "Download with unknown size should succeed: {:?}",
+        result.err()
+    );
     let (path, checksum) = result.unwrap();
 
     // Verify path and checksum

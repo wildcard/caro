@@ -2,10 +2,7 @@
 //!
 //! Handles authentication, URL formatting, and streaming downloads from HF Hub.
 
-use reqwest::{
-    header::AUTHORIZATION,
-    Client, Response,
-};
+use reqwest::{header::AUTHORIZATION, Client, Response};
 use std::env;
 
 /// Error types for HTTP operations
@@ -35,23 +32,16 @@ impl HfHubClient {
     ///
     /// Automatically reads HF_TOKEN environment variable for authentication.
     pub fn new() -> Result<Self, HttpClientError> {
-        let client = Client::builder()
-            .user_agent("caro/1.0")
-            .build()?;
+        let client = Client::builder().user_agent("caro/1.0").build()?;
 
         let auth_token = env::var("HF_TOKEN").ok();
 
-        Ok(Self {
-            client,
-            auth_token,
-        })
+        Ok(Self { client, auth_token })
     }
 
     /// Create a new HfHubClient with custom auth token
     pub fn with_token(token: String) -> Result<Self, HttpClientError> {
-        let client = Client::builder()
-            .user_agent("caro/1.0")
-            .build()?;
+        let client = Client::builder().user_agent("caro/1.0").build()?;
 
         Ok(Self {
             client,
@@ -215,9 +205,7 @@ mod tests {
 
             Mock::given(method("HEAD"))
                 .and(path("/test-model/resolve/main/file.bin"))
-                .respond_with(
-                    ResponseTemplate::new(200).insert_header("Content-Length", "1024"),
-                )
+                .respond_with(ResponseTemplate::new(200).insert_header("Content-Length", "1024"))
                 .mount(&mock_server)
                 .await;
 

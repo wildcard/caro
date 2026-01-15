@@ -20,9 +20,7 @@ fn compute_checksum(data: &[u8]) -> String {
 /// This simulates a small model file from Hugging Face Hub
 fn create_model_fixture(size: usize) -> (Vec<u8>, String) {
     // Create pseudo-random but deterministic data
-    let data: Vec<u8> = (0..size)
-        .map(|i| ((i * 17 + 42) % 256) as u8)
-        .collect();
+    let data: Vec<u8> = (0..size).map(|i| ((i * 17 + 42) % 256) as u8).collect();
     let checksum = compute_checksum(&data);
     (data, checksum)
 }
@@ -50,7 +48,11 @@ async fn test_end_to_end_download_with_fixture() {
 
     // Create temporary cache directory
     let temp_cache = TempDir::new().unwrap();
-    let dest_path = temp_cache.path().join("models").join("test-model").join("pytorch_model.bin");
+    let dest_path = temp_cache
+        .path()
+        .join("models")
+        .join("test-model")
+        .join("pytorch_model.bin");
 
     // Execute end-to-end download
     let client = HfHubClient::new().unwrap();
@@ -66,7 +68,11 @@ async fn test_end_to_end_download_with_fixture() {
     .await;
 
     // Verify success
-    assert!(result.is_ok(), "End-to-end download should succeed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "End-to-end download should succeed: {:?}",
+        result.err()
+    );
     let (path, checksum) = result.unwrap();
 
     // Verify file was created at correct location
@@ -82,11 +88,17 @@ async fn test_end_to_end_download_with_fixture() {
 
     // Verify .part file was cleaned up
     let part_path = dest_path.with_extension("part");
-    assert!(!part_path.exists(), ".part file should be removed after completion");
+    assert!(
+        !part_path.exists(),
+        ".part file should be removed after completion"
+    );
 
     // Verify downloaded content
     let downloaded_data = tokio::fs::read(&dest_path).await.unwrap();
-    assert_eq!(downloaded_data, model_data, "Downloaded content should match fixture");
+    assert_eq!(
+        downloaded_data, model_data,
+        "Downloaded content should match fixture"
+    );
 }
 
 #[tokio::test]
@@ -114,7 +126,10 @@ async fn test_resume_after_simulated_interruption() {
         .respond_with(
             ResponseTemplate::new(206)
                 .set_body_bytes(second_half.to_vec())
-                .insert_header("content-range", format!("bytes {}-{}/{}", partial_size, full_size - 1, full_size).as_str())
+                .insert_header(
+                    "content-range",
+                    format!("bytes {}-{}/{}", partial_size, full_size - 1, full_size).as_str(),
+                )
                 .insert_header("content-length", second_half.len().to_string().as_str()),
         )
         .mount(&mock_server)
@@ -138,7 +153,10 @@ async fn test_resume_after_simulated_interruption() {
     let (path, checksum) = result.unwrap();
 
     assert_eq!(path, dest_path);
-    assert_eq!(checksum, expected_checksum, "Checksum should match after resume");
+    assert_eq!(
+        checksum, expected_checksum,
+        "Checksum should match after resume"
+    );
 
     // Verify complete file
     let final_data = tokio::fs::read(&dest_path).await.unwrap();
@@ -182,8 +200,14 @@ async fn test_checksum_validation_with_fixture() {
     )
     .await;
 
-    assert!(result_good.is_ok(), "Download with correct checksum should succeed");
-    assert!(dest_success.exists(), "File should exist with correct checksum");
+    assert!(
+        result_good.is_ok(),
+        "Download with correct checksum should succeed"
+    );
+    assert!(
+        dest_success.exists(),
+        "File should exist with correct checksum"
+    );
 
     // Test 2: Download with wrong checksum should fail and clean up
     let dest_fail = temp_cache.path().join("model_bad.bin");
@@ -196,11 +220,20 @@ async fn test_checksum_validation_with_fixture() {
     )
     .await;
 
-    assert!(result_bad.is_err(), "Download with wrong checksum should fail");
-    assert!(!dest_fail.exists(), "File should not exist after checksum failure");
+    assert!(
+        result_bad.is_err(),
+        "Download with wrong checksum should fail"
+    );
+    assert!(
+        !dest_fail.exists(),
+        "File should not exist after checksum failure"
+    );
 
     let part_path = dest_fail.with_extension("part");
-    assert!(!part_path.exists(), ".part file should be cleaned up after checksum failure");
+    assert!(
+        !part_path.exists(),
+        ".part file should be cleaned up after checksum failure"
+    );
 }
 
 #[tokio::test]
@@ -243,7 +276,10 @@ async fn test_error_recovery_network_timeout() {
     if part_path.exists() {
         // If .part file exists, it should contain some data (interrupted download)
         let metadata = tokio::fs::metadata(&part_path).await.unwrap();
-        assert!(metadata.len() > 0 || metadata.len() == 0, "Partial file may exist after timeout");
+        assert!(
+            metadata.len() > 0 || metadata.len() == 0,
+            "Partial file may exist after timeout"
+        );
     }
 }
 
@@ -293,7 +329,9 @@ async fn test_concurrent_downloads_no_corruption() {
     // Setup mocks for each model
     for (i, (data, _)) in fixtures.iter().enumerate() {
         Mock::given(method("GET"))
-            .and(path(format!("/model/resolve/main/model_{}.bin", i).as_str()))
+            .and(path(
+                format!("/model/resolve/main/model_{}.bin", i).as_str(),
+            ))
             .respond_with(
                 ResponseTemplate::new(200)
                     .set_body_bytes(data.clone())
@@ -335,7 +373,12 @@ async fn test_concurrent_downloads_no_corruption() {
         assert!(result.is_ok(), "Concurrent download {} should succeed", i);
 
         let download_result = result.as_ref().unwrap();
-        assert!(download_result.is_ok(), "Download {} should succeed: {:?}", i, download_result.as_ref().err());
+        assert!(
+            download_result.is_ok(),
+            "Download {} should succeed: {:?}",
+            i,
+            download_result.as_ref().err()
+        );
     }
 
     // Verify each file independently
@@ -347,7 +390,11 @@ async fn test_concurrent_downloads_no_corruption() {
         assert_eq!(downloaded, *data, "Model {} content should match", i);
 
         let actual_checksum = compute_checksum(&downloaded);
-        assert_eq!(&actual_checksum, checksum, "Model {} checksum should match", i);
+        assert_eq!(
+            &actual_checksum, checksum,
+            "Model {} checksum should match",
+            i
+        );
     }
 }
 
@@ -387,5 +434,9 @@ async fn test_large_file_streaming() {
     assert!(result.is_ok(), "Large file download should succeed");
 
     let metadata = tokio::fs::metadata(&dest_path).await.unwrap();
-    assert_eq!(metadata.len(), data_size as u64, "Large file size should match");
+    assert_eq!(
+        metadata.len(),
+        data_size as u64,
+        "Large file size should match"
+    );
 }

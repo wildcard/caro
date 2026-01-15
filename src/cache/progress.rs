@@ -105,7 +105,8 @@ impl DownloadProgress {
     /// # Arguments
     /// * `message` - Error message to display
     pub fn finish_with_error(&self, message: &str) {
-        self.bar.finish_with_message(format!("Download failed: {}", message));
+        self.bar
+            .finish_with_message(format!("Download failed: {}", message));
     }
 
     /// Get the underlying progress bar for custom operations
@@ -196,7 +197,10 @@ mod tests {
         progress.update(500);
 
         let eta = progress.eta(1000);
-        assert!(eta.is_some(), "ETA should be Some when download is in progress");
+        assert!(
+            eta.is_some(),
+            "ETA should be Some when download is in progress"
+        );
     }
 
     #[test]
@@ -205,7 +209,10 @@ mod tests {
         progress.update(1000);
 
         let eta = progress.eta(1000);
-        assert!(eta.is_none(), "ETA should be None when download is complete");
+        assert!(
+            eta.is_none(),
+            "ETA should be None when download is complete"
+        );
     }
 
     #[test]

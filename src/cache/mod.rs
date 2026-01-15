@@ -52,7 +52,9 @@ pub enum CacheError {
     #[error("Cache manifest error: {0}. The cache may be in an inconsistent state.")]
     ManifestError(String),
 
-    #[error("Cache directory error: {0}. Please ensure the cache directory exists and is writable.")]
+    #[error(
+        "Cache directory error: {0}. Please ensure the cache directory exists and is writable."
+    )]
     DirectoryError(String),
 }
 
@@ -88,7 +90,9 @@ impl From<HttpClientError> for CacheError {
                 // Delegate to the reqwest::Error conversion
                 CacheError::from(req_err)
             }
-            HttpClientError::InvalidUrl(msg) => CacheError::DownloadFailed(format!("Invalid URL: {}", msg)),
+            HttpClientError::InvalidUrl(msg) => {
+                CacheError::DownloadFailed(format!("Invalid URL: {}", msg))
+            }
             HttpClientError::AuthError(_msg) => CacheError::AuthenticationRequired,
         }
     }
@@ -348,8 +352,9 @@ impl CacheManager {
     /// 6. Returns the cached file path
     async fn download_model(&self, model_id: &str) -> Result<PathBuf, CacheError> {
         // Create HTTP client
-        let client = HfHubClient::new()
-            .map_err(|e| CacheError::DownloadFailed(format!("Failed to create HTTP client: {}", e)))?;
+        let client = HfHubClient::new().map_err(|e| {
+            CacheError::DownloadFailed(format!("Failed to create HTTP client: {}", e))
+        })?;
 
         // For now, assume the model filename is pytorch_model.bin
         // TODO: In a full implementation, we would:
@@ -364,10 +369,9 @@ impl CacheManager {
             .map_err(|e| CacheError::DownloadFailed(format!("Failed to get file URL: {}", e)))?;
 
         // Get file metadata (size) using HEAD request
-        let response = client
-            .head_request(&url)
-            .await
-            .map_err(|e| CacheError::DownloadFailed(format!("Failed to get file metadata: {}", e)))?;
+        let response = client.head_request(&url).await.map_err(|e| {
+            CacheError::DownloadFailed(format!("Failed to get file metadata: {}", e))
+        })?;
 
         let file_size = response
             .headers()
@@ -380,7 +384,8 @@ impl CacheManager {
         let dest_path = model_dir.join(filename);
 
         // Download file with progress, checksum, and resume support
-        let (final_path, checksum) = download_file(&client, &url, &dest_path, file_size, None).await?;
+        let (final_path, checksum) =
+            download_file(&client, &url, &dest_path, file_size, None).await?;
 
         // Add model to manifest atomically
         let model_id_owned = model_id.to_string();
@@ -401,7 +406,9 @@ impl CacheManager {
                     version: None, // TODO: Extract version from model_id or metadata
                 };
 
-                manifest_data.models.insert(model_id_owned.clone(), cached_model);
+                manifest_data
+                    .models
+                    .insert(model_id_owned.clone(), cached_model);
                 manifest_data.total_size_bytes += file_size.unwrap_or(0);
 
                 // Check if we need LRU cleanup
