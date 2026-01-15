@@ -1,6 +1,6 @@
 # Caro Development Roadmap
 
-**Last Updated**: January 14, 2026
+**Last Updated**: January 15, 2026
 
 ## Timeline Overview
 
@@ -46,6 +46,23 @@ gantt
 ---
 
 ## Release Milestones
+
+### 🎉 v1.1.2 - Performance & Infrastructure
+**Released**: January 15, 2026 ✅
+**Status**: 100% Complete - **RELEASED**
+**Focus**: Performance optimization and infrastructure improvements
+
+#### Key Deliverables
+- **Performance Optimization** ✅ **COMPLETE**
+  - [x] CapabilityProfile caching (650ms → <1ms startup)
+  - [x] Backend preference via CARO_BACKEND env var
+
+- **Infrastructure** ✅ **COMPLETE**
+  - [x] Hugging Face model download with resume support (#10)
+  - [x] Benchmark suite for performance validation (#9)
+  - [x] Property-based tests for LRU cache (#8)
+
+---
 
 ### 🎉 v1.1.1 - Edit Feature Release
 **Released**: January 14, 2026 ✅
@@ -136,13 +153,13 @@ gantt
   - Fix error blocking release (#150)
 
 - **High Priority**
-  - Implement Hugging Face model download (#10)
-  - Performance analysis and optimization (#132)
+  - ~~Implement Hugging Face model download (#10)~~ ✅ v1.1.2
+  - Performance analysis and optimization (#132) - Partially done (CapabilityProfile caching in v1.1.2)
   - Build LLM evaluation harness (#135)
 
 - **Core Infrastructure**
-  - Add benchmark suite (#9)
-  - Property-based tests for LRU cache (#8)
+  - ~~Add benchmark suite (#9)~~ ✅ v1.1.2
+  - ~~Property-based tests for LRU cache (#8)~~ ✅ v1.1.2
   - Automated GitHub releases (#157)
   - Fix list command argument parsing (#161)
 
@@ -256,12 +273,13 @@ gantt
 
 | Milestone | Due Date | Items | Complete | Progress | Status |
 |-----------|----------|-------|----------|----------|---------|
+| **v1.1.2** | Jan 15, 2026 | 5 | 5 | 100% | ✅ **RELEASED** |
 | **v1.1.1** | Jan 14, 2026 | 7 | 7 | 100% | ✅ **RELEASED** |
 | **v1.1.0** | Jan 12, 2026 | 19 | 19 | 100% | ✅ **GA RELEASED** |
-| **v1.2.0** | Feb 15, 2026 | 15 | 1 | 7% | 🔄 In Progress |
+| **v1.2.0** | Feb 15, 2026 | 13 | 4 | 31% | 🔄 In Progress |
 | **v1.3.0** | Mar 31, 2026 | 24 | 0 | 0% | ⏸️ Backlog |
-| **v2.0.0** | Jun 30, 2026 | 21 | 8 | 38% | 🔄 Research Phase |
-| **Total** | - | **86** | **35** | **41%** | 🚀 On Track |
+| **v2.0.0** | Jun 30, 2026 | 21 | 10 | 48% | 🔄 Research Phase |
+| **Total** | - | **89** | **45** | **51%** | 🚀 On Track |
 
 ---
 
