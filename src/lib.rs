@@ -31,6 +31,7 @@ pub mod assessment;
 pub mod backends;
 pub mod cache;
 pub mod cli;
+pub mod completion;
 pub mod config;
 pub mod context;
 pub mod doctor;
@@ -86,3 +87,6 @@ pub use telemetry::{
     emit_event, set_global_collector, Event as TelemetryEvent, EventType as TelemetryEventType,
     SessionId as TelemetrySessionId, TelemetryCollector, TelemetryConfig, TelemetryStorage,
 };
+
+// Re-export completion types
+pub use completion::{generate_completions, suggest_commands, CommandSuggestion};
