@@ -230,6 +230,22 @@ enum Commands {
         #[arg(long)]
         profile: Option<String>,
     },
+
+    /// Generate shell completion scripts
+    Completion {
+        /// Shell to generate completions for (bash, zsh, fish)
+        shell: String,
+    },
+
+    /// Suggest commands matching a natural language description
+    Suggest {
+        /// Partial command description
+        query: String,
+
+        /// Maximum number of suggestions
+        #[arg(short, long, default_value = "5")]
+        limit: usize,
+    },
     // /// Manage telemetry data and settings
     // Telemetry {
     //     #[command(subcommand)]
@@ -954,6 +970,26 @@ async fn main() {
                     process::exit(1);
                 }
             }
+        }
+        Some(Commands::Completion { shell }) => {
+            use std::str::FromStr;
+            let shell_type = caro::ShellType::from_str(&shell).unwrap_or(caro::ShellType::Bash);
+            let script = caro::generate_completions(shell_type);
+            print!("{}", script);
+            process::exit(0);
+        }
+        Some(Commands::Suggest { query, limit }) => {
+            let suggestions = caro::suggest_commands(&query, limit);
+            if suggestions.is_empty() {
+                eprintln!("No suggestions found for '{}'", query);
+                process::exit(1);
+            }
+            for s in suggestions {
+                println!("{}", s.description);
+                println!("  {}", s.command);
+                println!();
+            }
+            process::exit(0);
         }
         // NOTE: Telemetry subcommand disabled in v1.1.0-beta.1
         // Some(Commands::Telemetry { command }) => {
