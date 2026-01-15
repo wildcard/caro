@@ -61,7 +61,7 @@ dirs = "6"
 which = "8.0"
 os_info = "3.14"
 sysinfo = "0.33"
-home = "=0.5.9"  # Pin to avoid edition2024 requirement in 0.5.11+
+home = "=0.5.12"  # Pin to avoid edition2024 requirement in 0.5.11+
 
 # Model integration (Hugging Face Hub)
 hf-hub = { version = "0.4", default-features = false, features = ["tokio", "rustls-tls"] }
