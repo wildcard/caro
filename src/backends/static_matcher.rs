@@ -52,8 +52,7 @@ impl StaticMatcher {
         // Initialize safety validator with provided config
         // This will panic on invalid configuration, which is acceptable for initialization
         let safety_validator = Arc::new(
-            SafetyValidator::new(safety_config)
-                .expect("Failed to initialize SafetyValidator"),
+            SafetyValidator::new(safety_config).expect("Failed to initialize SafetyValidator"),
         );
 
         Self {

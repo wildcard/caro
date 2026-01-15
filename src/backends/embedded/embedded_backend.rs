@@ -92,8 +92,7 @@ impl EmbeddedModelBackend {
     /// Update the safety configuration
     pub fn with_safety_config(mut self, safety_config: SafetyConfig) -> Self {
         self.safety_validator = Arc::new(
-            SafetyValidator::new(safety_config)
-                .expect("Failed to initialize SafetyValidator"),
+            SafetyValidator::new(safety_config).expect("Failed to initialize SafetyValidator"),
         );
         self
     }
