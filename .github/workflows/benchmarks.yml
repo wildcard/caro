@@ -1,0 +1,259 @@
+# GitHub Actions Workflow: Benchmark Suite
+#
+# Automated performance regression detection for Caro CLI tool.
+# Implements FR2 from Issue #9 benchmark suite specification.
+#
+# Triggers:
+#   - Pull requests to release/* branches (regression detection)
+#   - Weekly schedule on main (historical data collection)
+#   - Manual dispatch (on-demand testing)
+
+name: Benchmark Suite
+
+on:
+  # FR2.1: Run on all PRs targeting release/* branches
+  pull_request:
+    branches:
+      - 'release/**'
+
+  # FR2.2: Weekly monitoring on main branch (Sunday 00:00 UTC)
+  schedule:
+    - cron: '0 0 * * 0'  # Every Sunday at midnight UTC
+
+  # Manual trigger for on-demand runs
+  workflow_dispatch:
+    inputs:
+      baseline_ref:
+        description: 'Git ref to use as baseline (default: main)'
+        required: false
+        default: 'main'
+      threshold_time:
+        description: 'Time regression threshold % (default: 15)'
+        required: false
+        default: '15'
+      threshold_memory:
+        description: 'Memory regression threshold % (default: 20)'
+        required: false
+        default: '20'
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  benchmark:
+    name: Run Benchmark Suite
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]  # FR2.3: Multiple platforms
+      fail-fast: false  # Continue other OS if one fails
+
+    # FR2.3: Timeout to prevent hanging (10 minute target + buffer)
+    timeout-minutes: 15
+
+    steps:
+      # 1. Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history for baseline comparison
+
+      # 2. Setup Rust toolchain
+      - name: Install Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      # 3. Cache Criterion artifacts (FR2.3)
+      - name: Cache Criterion results
+        uses: actions/cache@v3
+        with:
+          path: target/criterion
+          key: ${{ runner.os }}-criterion-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-criterion-
+
+      # 4. Run baseline benchmarks (on main branch)
+      - name: Run baseline benchmarks
+        if: github.event_name == 'pull_request'
+        env:
+          BASELINE_REF: ${{ github.event.inputs.baseline_ref || 'main' }}
+          PR_HEAD_REF: ${{ github.head_ref }}
+        run: |
+          # Checkout baseline ref (main or user-specified)
+          git checkout "$BASELINE_REF"
+
+          # Run benchmarks and save as baseline
+          cargo bench -- --save-baseline baseline
+
+          # Return to PR branch
+          git checkout "$PR_HEAD_REF"
+
+      # 5. Run current benchmarks
+      - name: Run current benchmarks
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            # Compare against baseline for PRs
+            cargo bench -- --baseline baseline
+          else
+            # Just run benchmarks for scheduled/manual runs
+            cargo bench
+          fi
+
+      # 6. Parse Criterion output and detect regressions
+      - name: Analyze benchmark results
+        id: analyze
+        env:
+          THRESHOLD_TIME: ${{ github.event.inputs.threshold_time || '15' }}
+          THRESHOLD_MEMORY: ${{ github.event.inputs.threshold_memory || '20' }}
+        run: |
+          # Run custom script to parse Criterion JSON output
+          python3 scripts/benchmark-compare.py \
+            --criterion-dir target/criterion \
+            --threshold-time "$THRESHOLD_TIME" \
+            --threshold-memory "$THRESHOLD_MEMORY" \
+            --output regression-report.json
+
+          # Set outputs for later steps
+          HAS_REGRESSION=$(jq -r '.status == "fail"' regression-report.json)
+          echo "has_regression=$HAS_REGRESSION" >> $GITHUB_OUTPUT
+
+      # 7. Post PR comment with results (PR only)
+      - name: Comment on PR with regression report
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync('regression-report.json', 'utf8'));
+
+            // Generate markdown comment from template
+            const comment = generateRegressionComment(report);
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+            // Helper function (inline)
+            function generateRegressionComment(report) {
+              let md = `## 🔍 Benchmark Regression Report\n\n`;
+              md += `**Status**: ${report.status === 'fail' ? '⚠️ FAIL' : '✅ PASS'} | `;
+              md += `**Baseline**: ${report.baseline_commit.substring(0, 7)} | `;
+              md += `**Current**: ${report.current_commit.substring(0, 7)}\n\n`;
+
+              if (report.regressions.length > 0) {
+                md += `### ⚠️ Regressions Detected\n\n`;
+                md += `| Benchmark | Baseline | Current | Change | Severity | p-value |\n`;
+                md += `|-----------|----------|---------|--------|----------|---------|\\n`;
+                for (const r of report.regressions) {
+                  md += `| ${r.benchmark_id} | ${r.baseline_mean.value} ${r.baseline_mean.unit} | `;
+                  md += `${r.current_mean.value} ${r.current_mean.unit} | `;
+                  md += `+${r.delta_percent.toFixed(1)}% | ${r.severity} | ${r.statistical_significance.toFixed(3)} |\n`;
+                }
+                md += `\n`;
+              }
+
+              if (report.improvements.length > 0) {
+                md += `### ✅ Improvements\n\n`;
+                md += `| Benchmark | Baseline | Current | Change |\n`;
+                md += `|-----------|----------|---------|--------|\n`;
+                for (const i of report.improvements) {
+                  md += `| ${i.benchmark_id} | ${i.baseline_mean.value} ${i.baseline_mean.unit} | `;
+                  md += `${i.current_mean.value} ${i.current_mean.unit} | `;
+                  md += `${i.delta_percent.toFixed(1)}% |\n`;
+                }
+                md += `\n`;
+              }
+
+              md += `### 📊 Threshold Configuration\n\n`;
+              md += `- Time regression threshold: ${report.threshold.time_percent}%\n`;
+              md += `- Memory regression threshold: ${report.threshold.memory_percent}%\n\n`;
+
+              md += `---\n`;
+              md += `Generated by Criterion Benchmark Suite • [View artifacts](https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID})\n`;
+
+              return md;
+            }
+
+      # 8. Fail build if regressions detected (FR2.1)
+      - name: Fail on regression
+        if: steps.analyze.outputs.has_regression == 'true'
+        run: |
+          echo "❌ Performance regressions detected above threshold!"
+          echo "Review the regression report in the PR comment."
+          exit 1
+
+      # 9. Store historical data (FR2.2)
+      - name: Store benchmark results
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        env:
+          GIT_SHA: ${{ github.sha }}
+          BRANCH_NAME: ${{ github.ref_name }}
+        run: |
+          # Generate daily artifact filename
+          DATE=$(date +%Y-%m-%d)
+          ARTIFACT_NAME="benchmarks-$DATE.json"
+
+          # Aggregate Criterion results into single JSON
+          python3 scripts/benchmark-aggregate.py \
+            --criterion-dir target/criterion \
+            --output "$ARTIFACT_NAME" \
+            --commit "$GIT_SHA" \
+            --branch "$BRANCH_NAME"
+
+          echo "Generated artifact: $ARTIFACT_NAME"
+
+      # 10. Upload daily artifact (FR2.2)
+      - name: Upload daily benchmark artifact
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmarks-${{ matrix.os }}-${{ github.run_id }}
+          path: benchmarks-*.json
+          retention-days: 90  # Daily artifacts kept for 90 days
+
+      # 11. Update monthly aggregate (main only)
+      - name: Update monthly aggregate
+        if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        run: |
+          # Download previous month's aggregate (if exists)
+          MONTH=$(date +%Y-%m)
+          MONTHLY_ARTIFACT="benchmark-history-$MONTH.json"
+
+          # Aggregate with previous data
+          python3 scripts/benchmark-monthly-aggregate.py \
+            --daily-data benchmarks-*.json \
+            --output "$MONTHLY_ARTIFACT"
+
+      # 12. Upload monthly artifact (FR2.2)
+      - name: Upload monthly aggregate
+        if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-history-${{ matrix.os }}-${{ github.run_id }}
+          path: benchmark-history-*.json
+          retention-days: 0  # Keep indefinitely (GitHub default for 0)
+
+      # 13. Upload regression report (PR only)
+      - name: Upload regression report
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-report-${{ matrix.os }}-${{ github.run_id }}
+          path: regression-report.json
+          retention-days: 30
+
+      # 14. Upload Criterion HTML reports (always)
+      - name: Upload Criterion HTML reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: criterion-reports-${{ matrix.os }}-${{ github.run_id }}
+          path: target/criterion/
+          retention-days: 30

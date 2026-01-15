@@ -1355,6 +1355,132 @@ vim src/backends/vllm.rs
 # (cargo-watch running in background)
 ```
 
+### Benchmark Workflow
+
+caro uses **Criterion benchmarks** to validate performance requirements and track regressions. All performance-critical code should be benchmarked regularly.
+
+#### When to Run Benchmarks
+
+Run benchmarks in these situations:
+
+1. **Before optimization PRs**: Establish a baseline before performance work
+   ```bash
+   cargo bench -- --save-baseline before
+   ```
+
+2. **After optimization PRs**: Measure improvement against baseline
+   ```bash
+   cargo bench -- --baseline before
+   ```
+
+3. **After large refactors**: Ensure performance hasn't regressed
+   ```bash
+   cargo bench
+   ```
+
+4. **Before release PRs**: Validate all performance targets are met
+   ```bash
+   cargo bench
+   ```
+
+5. **When modifying performance-critical code**:
+   - Cache operations (`src/cache/**/*.rs`) → `cargo bench --bench cache`
+   - Config loading (`src/config/**/*.rs`) → `cargo bench --bench config`
+   - Context capture (`src/context/**/*.rs`) → `cargo bench --bench context`
+   - Logging system (`src/logging/**/*.rs`) → `cargo bench --bench logging`
+
+Use the **benchmark-advisor Claude skill** for intelligent suggestions:
+```
+User: "What benchmarks should I run?"
+Claude: [analyzes git diff and suggests relevant benchmarks]
+```
+
+#### Running Benchmarks
+
+```bash
+# Run all benchmarks
+cargo bench
+
+# Run specific benchmark suite
+cargo bench --bench cache
+
+# Run specific benchmark
+cargo bench --bench cache -- get_model
+
+# Compare against baseline
+cargo bench -- --baseline before
+```
+
+See [docs/BENCHMARKING.md](docs/BENCHMARKING.md) for detailed guide on interpreting results.
+
+#### Understanding Results
+
+Criterion provides statistical analysis with:
+- **Mean**: Average execution time
+- **95% CI**: Confidence interval for the mean
+- **Change %**: Performance change from baseline
+- **p-value**: Statistical significance (p < 0.05 = significant change)
+
+Example output:
+```
+cache/get_model         time:   [50.2 ns 51.5 ns 52.8 ns]
+                        change: [-2.3% +0.5% +3.1%] (p = 0.42 > 0.05)
+                        No change in performance detected.
+```
+
+**Interpretation**: Mean is 51.5 ns, change is not statistically significant.
+
+#### Troubleshooting Benchmarks
+
+**Noisy Results** (large variance, inconsistent measurements):
+```bash
+# Close resource-intensive applications
+# Run multiple times to verify
+cargo bench --bench cache
+cargo bench --bench cache  # Repeat to confirm
+
+# Check system load
+top  # or htop
+```
+
+**Long Execution Time** (benchmarks take > 10 minutes):
+```bash
+# Run specific suites instead of full suite
+cargo bench --bench cache
+cargo bench --bench config
+
+# Check for infinite loops in benchmark code
+# Review benchmark sample size in benches/*.rs
+```
+
+**Baseline Not Found**:
+```bash
+# Error: "Baseline 'X' not found"
+# Solution: Save baseline first
+cargo bench -- --save-baseline X
+```
+
+**Regression Failures in CI**:
+- CI fails if benchmarks regress beyond thresholds (15% time, 20% memory)
+- Review the regression report in PR comments
+- Investigate why performance degraded
+- Optimize or justify the regression
+
+#### CI Integration
+
+Benchmarks run automatically in CI on:
+- PRs to `release/*` branches (with regression detection)
+- Weekly schedule (for historical tracking)
+- Manual workflow dispatch
+
+CI will:
+1. Compare against baseline from main branch
+2. Detect regressions beyond thresholds
+3. Post regression report as PR comment
+4. Fail build if critical regressions detected
+
+See [docs/PERFORMANCE.md](docs/PERFORMANCE.md) for current performance baselines.
+
 ---
 
 ## Recognition
