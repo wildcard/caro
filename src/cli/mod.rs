@@ -13,7 +13,7 @@ use crate::{
     context::ExecutionContext,
     models::{CommandRequest, SafetyLevel, ShellType},
     prompts::CapabilityProfile,
-    safety::SafetyValidator,
+    safety::{SafetyConfig, SafetyValidator},
 };
 
 #[cfg(any(test, debug_assertions))]
@@ -262,11 +262,15 @@ impl CliApp {
             use crate::backends::embedded::EmbeddedModelBackend;
             use std::sync::Arc;
 
+            // Create safety config from user's safety level preference
+            let safety_config = SafetyConfig::from_level(user_config.safety_level);
+
             // Create embedded backend (used as fallback or primary)
-            let embedded_backend =
-                EmbeddedModelBackend::new().map_err(|e| CliError::ConfigurationError {
+            let embedded_backend = EmbeddedModelBackend::new()
+                .map_err(|e| CliError::ConfigurationError {
                     message: format!("Failed to create embedded backend: {}", e),
-                })?;
+                })?
+                .with_safety_config(safety_config);
 
             let embedded_arc: Arc<EmbeddedModelBackend> = Arc::new(embedded_backend);
 

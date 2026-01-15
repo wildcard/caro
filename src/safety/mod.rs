@@ -387,6 +387,17 @@ impl SafetyConfig {
         }
     }
 
+    /// Create safety configuration from a SafetyLevel
+    ///
+    /// This is the primary way to convert CLI safety level to backend config.
+    pub fn from_level(level: SafetyLevel) -> Self {
+        match level {
+            SafetyLevel::Strict => Self::strict(),
+            SafetyLevel::Moderate => Self::moderate(),
+            SafetyLevel::Permissive => Self::permissive(),
+        }
+    }
+
     /// Add custom dangerous pattern with deferred validation
     ///
     /// This method adds a pattern to the config but performs full validation

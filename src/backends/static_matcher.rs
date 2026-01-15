@@ -42,13 +42,18 @@ struct PatternEntry {
 }
 
 impl StaticMatcher {
-    /// Create a new static matcher with detected capabilities
+    /// Create a new static matcher with detected capabilities and default safety config
     pub fn new(profile: CapabilityProfile) -> Self {
-        // Initialize safety validator with moderate config
+        Self::with_safety_config(profile, SafetyConfig::moderate())
+    }
+
+    /// Create a new static matcher with custom safety configuration
+    pub fn with_safety_config(profile: CapabilityProfile, safety_config: SafetyConfig) -> Self {
+        // Initialize safety validator with provided config
         // This will panic on invalid configuration, which is acceptable for initialization
         let safety_validator = Arc::new(
-            SafetyValidator::new(SafetyConfig::moderate())
-                .expect("Failed to initialize SafetyValidator with default config"),
+            SafetyValidator::new(safety_config)
+                .expect("Failed to initialize SafetyValidator"),
         );
 
         Self {
