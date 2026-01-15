@@ -32,11 +32,11 @@ jobs:
         locale: [es, fr, pt, de, he, ar, uk, ru, ja, ko, hi, ur, fil, id]
       max-parallel: 3
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 20
 
