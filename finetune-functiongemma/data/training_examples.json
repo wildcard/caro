@@ -1,0 +1,239 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "description": "Training examples for FunctionGemma CLI tool recommendation fine-tuning",
+    "format": "FunctionGemma chat format with thinking blocks"
+  },
+  "examples": [
+    {
+      "id": "001",
+      "context": {
+        "os": "darwin",
+        "shell": "zsh",
+        "user_preferences": {"prefer_modern_tools": true}
+      },
+      "user_query": "find all python files in the current directory",
+      "conversation": [
+        {
+          "role": "developer",
+          "content": "You are a CLI tool recommendation assistant. Given the user's query, OS, shell, and preferences, recommend the most appropriate CLI tools. Always prefer tools that are likely installed by default, but suggest modern alternatives when beneficial. Format your response as a function call to recommend_tools."
+        },
+        {
+          "role": "user",
+          "content": "OS: darwin (macOS), Shell: zsh, Preferences: prefer modern tools\nQuery: find all python files in the current directory"
+        },
+        {
+          "role": "model",
+          "content": "<think>\nThe user wants to find Python files. On macOS with zsh:\n1. `find` is installed by default (BSD version) - high confidence\n2. `fd` is a modern alternative but not installed by default\n3. The glob pattern `**/*.py` works in zsh with extended_glob\n\nSince they prefer modern tools and `fd` is much faster and user-friendly, I'll recommend both.\n</think>\n<start_function_call>call:recommend_tools{\n  \"primary_tools\": [\n    {\n      \"name\": \"find\",\n      \"category\": \"file_management\",\n      \"confidence\": 1.0,\n      \"version_hint\": \"BSD find\",\n      \"reason\": \"Standard POSIX tool installed by default on macOS\"\n    }\n  ],\n  \"alternative_tools\": [\n    {\n      \"name\": \"fd\",\n      \"category\": \"file_management\",\n      \"install_cmd\": \"brew install fd\",\n      \"reason\": \"Modern find alternative with better defaults\",\n      \"improvements\": [\"faster\", \"simpler syntax\", \"colored output\", \"respects gitignore\"]\n    }\n  ],\n  \"task_category\": \"file_management\"\n}<end_function_call>"
+        }
+      ]
+    },
+    {
+      "id": "002",
+      "context": {
+        "os": "ubuntu",
+        "shell": "bash",
+        "user_preferences": {"network_enabled": false}
+      },
+      "user_query": "search for the word 'error' in all log files",
+      "conversation": [
+        {
+          "role": "developer",
+          "content": "You are a CLI tool recommendation assistant. Given the user's query, OS, shell, and preferences, recommend the most appropriate CLI tools. Always prefer tools that are likely installed by default, but suggest modern alternatives when beneficial. Format your response as a function call to recommend_tools."
+        },
+        {
+          "role": "user",
+          "content": "OS: ubuntu (GNU/Linux), Shell: bash, Preferences: network disabled\nQuery: search for the word 'error' in all log files"
+        },
+        {
+          "role": "model",
+          "content": "<think>\nThe user wants to search for text in log files. On Ubuntu with bash:\n1. `grep` is installed by default (GNU grep) - high confidence\n2. Network is disabled, so I should only recommend installed tools\n3. `rg` (ripgrep) and `ag` would be faster but require installation\n\nSince network is disabled, I'll focus on grep which is definitely available.\n</think>\n<start_function_call>call:recommend_tools{\n  \"primary_tools\": [\n    {\n      \"name\": \"grep\",\n      \"category\": \"search\",\n      \"confidence\": 1.0,\n      \"version_hint\": \"GNU grep 3.x+\",\n      \"reason\": \"Standard GNU tool installed by default, supports recursive search with -r flag\"\n    }\n  ],\n  \"task_category\": \"search\"\n}<end_function_call>"
+        }
+      ]
+    },
+    {
+      "id": "003",
+      "context": {
+        "os": "darwin",
+        "shell": "zsh",
+        "user_preferences": {"network_enabled": true, "prefer_modern_tools": true}
+      },
+      "user_query": "I need to view a JSON API response and extract specific fields",
+      "conversation": [
+        {
+          "role": "developer",
+          "content": "You are a CLI tool recommendation assistant. Given the user's query, OS, shell, and preferences, recommend the most appropriate CLI tools. Always prefer tools that are likely installed by default, but suggest modern alternatives when beneficial. Format your response as a function call to recommend_tools."
+        },
+        {
+          "role": "user",
+          "content": "OS: darwin (macOS), Shell: zsh, Preferences: network enabled, prefer modern tools\nQuery: I need to view a JSON API response and extract specific fields"
+        },
+        {
+          "role": "model",
+          "content": "<think>\nThe user needs to:\n1. Make an API request (curl is on macOS by default)\n2. Parse/view JSON (need jq or similar)\n3. Extract specific fields (jq is ideal)\n\nOn macOS:\n- curl: installed by default (confidence 1.0)\n- jq: NOT installed by default, but very common among devs (~50% confidence)\n- python with json module: likely available\n\nSince they prefer modern tools and network is enabled, recommend jq installation.\n</think>\n<start_function_call>call:recommend_tools{\n  \"primary_tools\": [\n    {\n      \"name\": \"curl\",\n      \"category\": \"network\",\n      \"confidence\": 1.0,\n      \"reason\": \"Standard HTTP client installed by default on macOS, use for API requests\"\n    }\n  ],\n  \"alternative_tools\": [\n    {\n      \"name\": \"jq\",\n      \"category\": \"json_processing\",\n      \"install_cmd\": \"brew install jq\",\n      \"reason\": \"Powerful JSON processor for parsing and extracting fields\",\n      \"improvements\": [\"query syntax\", \"filtering\", \"transformation\", \"colored output\"]\n    }\n  ],\n  \"task_category\": \"json_processing\"\n}<end_function_call>"
+        }
+      ]
+    },
+    {
+      "id": "004",
+      "context": {
+        "os": "linux",
+        "shell": "bash",
+        "user_preferences": {}
+      },
+      "user_query": "show me the disk usage of my home directory",
+      "conversation": [
+        {
+          "role": "developer",
+          "content": "You are a CLI tool recommendation assistant. Given the user's query, OS, shell, and preferences, recommend the most appropriate CLI tools. Always prefer tools that are likely installed by default, but suggest modern alternatives when beneficial. Format your response as a function call to recommend_tools."
+        },
+        {
+          "role": "user",
+          "content": "OS: linux, Shell: bash, Preferences: none specified\nQuery: show me the disk usage of my home directory"
+        },
+        {
+          "role": "model",
+          "content": "<think>\nUser wants to see disk usage. On Linux:\n1. `du` - standard POSIX tool, definitely available\n2. `df` - for filesystem-level view, also available\n3. `ncdu` - interactive alternative, requires installation\n\nFor directory-specific usage, `du` is the right tool.\n</think>\n<start_function_call>call:recommend_tools{\n  \"primary_tools\": [\n    {\n      \"name\": \"du\",\n      \"category\": \"disk\",\n      \"confidence\": 1.0,\n      \"version_hint\": \"GNU coreutils\",\n      \"reason\": \"Standard POSIX tool for directory space usage, use -h for human readable\"\n    },\n    {\n      \"name\": \"df\",\n      \"category\": \"disk\",\n      \"confidence\": 1.0,\n      \"reason\": \"Shows filesystem-level disk space, complements du for overall view\"\n    }\n  ],\n  \"alternative_tools\": [\n    {\n      \"name\": \"ncdu\",\n      \"category\": \"disk\",\n      \"install_cmd\": \"apt install ncdu\",\n      \"reason\": \"Interactive disk usage analyzer with visual browsing\",\n      \"improvements\": [\"interactive UI\", \"easy navigation\", \"visual hierarchy\"]\n    }\n  ],\n  \"task_category\": \"disk\"\n}<end_function_call>"
+        }
+      ]
+    },
+    {
+      "id": "005",
+      "context": {
+        "os": "ubuntu",
+        "shell": "zsh",
+        "user_preferences": {"prefer_modern_tools": true}
+      },
+      "user_query": "replace all occurrences of 'foo' with 'bar' in multiple files",
+      "conversation": [
+        {
+          "role": "developer",
+          "content": "You are a CLI tool recommendation assistant. Given the user's query, OS, shell, and preferences, recommend the most appropriate CLI tools. Always prefer tools that are likely installed by default, but suggest modern alternatives when beneficial. Format your response as a function call to recommend_tools."
+        },
+        {
+          "role": "user",
+          "content": "OS: ubuntu (GNU/Linux), Shell: zsh, Preferences: prefer modern tools\nQuery: replace all occurrences of 'foo' with 'bar' in multiple files"
+        },
+        {
+          "role": "model",
+          "content": "<think>\nUser wants text replacement across files. This needs:\n1. A way to find files: find or fd\n2. A way to replace text: sed, perl, or sd\n\nOn Ubuntu:\n- `sed` is installed (GNU sed with -i flag)\n- `find` is installed\n- `perl` is usually installed\n- `sd` is a modern alternative to sed (not installed)\n\nFor this task, sed + find is the classic approach, but sd is simpler for simple replacements.\n</think>\n<start_function_call>call:recommend_tools{\n  \"primary_tools\": [\n    {\n      \"name\": \"sed\",\n      \"category\": \"text_processing\",\n      \"confidence\": 1.0,\n      \"version_hint\": \"GNU sed 4.x+\",\n      \"reason\": \"Stream editor with in-place editing (-i flag) for text replacement\"\n    },\n    {\n      \"name\": \"find\",\n      \"category\": \"file_management\",\n      \"confidence\": 1.0,\n      \"reason\": \"Locate files to process, combine with -exec or xargs\"\n    }\n  ],\n  \"alternative_tools\": [\n    {\n      \"name\": \"sd\",\n      \"category\": \"text_processing\",\n      \"install_cmd\": \"apt install sd || cargo install sd\",\n      \"reason\": \"Modern sed alternative with intuitive regex syntax\",\n      \"improvements\": [\"simpler syntax\", \"no escaping needed\", \"preview mode\"]\n    },\n    {\n      \"name\": \"rg\",\n      \"category\": \"search\",\n      \"install_cmd\": \"apt install ripgrep\",\n      \"reason\": \"Can be combined with sed for finding files to modify\",\n      \"improvements\": [\"faster file discovery\", \"respects gitignore\"]\n    }\n  ],\n  \"task_category\": \"text_processing\"\n}<end_function_call>"
+        }
+      ]
+    },
+    {
+      "id": "006",
+      "context": {
+        "os": "darwin",
+        "shell": "fish",
+        "user_preferences": {"network_enabled": true}
+      },
+      "user_query": "monitor my system processes and CPU usage",
+      "conversation": [
+        {
+          "role": "developer",
+          "content": "You are a CLI tool recommendation assistant. Given the user's query, OS, shell, and preferences, recommend the most appropriate CLI tools. Always prefer tools that are likely installed by default, but suggest modern alternatives when beneficial. Format your response as a function call to recommend_tools."
+        },
+        {
+          "role": "user",
+          "content": "OS: darwin (macOS), Shell: fish, Preferences: network enabled\nQuery: monitor my system processes and CPU usage"
+        },
+        {
+          "role": "model",
+          "content": "<think>\nUser wants process monitoring on macOS with fish shell:\n1. `top` - always available on macOS\n2. `ps` - always available\n3. `htop` - better interactive UI, requires brew\n4. `btop` - even more modern alternative\n\nmacOS also has Activity Monitor GUI, but user is asking for CLI.\nFish shell doesn't affect tool availability, just syntax.\n</think>\n<start_function_call>call:recommend_tools{\n  \"primary_tools\": [\n    {\n      \"name\": \"top\",\n      \"category\": \"process\",\n      \"confidence\": 1.0,\n      \"reason\": \"Built-in process monitor, shows CPU, memory, and process list\"\n    },\n    {\n      \"name\": \"ps\",\n      \"category\": \"process\",\n      \"confidence\": 1.0,\n      \"reason\": \"Process snapshot tool, use 'ps aux' for detailed view\"\n    }\n  ],\n  \"alternative_tools\": [\n    {\n      \"name\": \"htop\",\n      \"category\": \"process\",\n      \"install_cmd\": \"brew install htop\",\n      \"reason\": \"Interactive process viewer with better UI\",\n      \"improvements\": [\"colored output\", \"mouse support\", \"tree view\", \"easy process killing\"]\n    },\n    {\n      \"name\": \"btop\",\n      \"category\": \"process\",\n      \"install_cmd\": \"brew install btop\",\n      \"reason\": \"Modern resource monitor with beautiful interface\",\n      \"improvements\": [\"GPU monitoring\", \"themes\", \"network graphs\", \"disk I/O\"]\n    }\n  ],\n  \"task_category\": \"process\"\n}<end_function_call>"
+        }
+      ]
+    },
+    {
+      "id": "007",
+      "context": {
+        "os": "arch",
+        "shell": "zsh",
+        "user_preferences": {"prefer_modern_tools": true, "network_enabled": true}
+      },
+      "user_query": "clone a git repository and check the status",
+      "conversation": [
+        {
+          "role": "developer",
+          "content": "You are a CLI tool recommendation assistant. Given the user's query, OS, shell, and preferences, recommend the most appropriate CLI tools. Always prefer tools that are likely installed by default, but suggest modern alternatives when beneficial. Format your response as a function call to recommend_tools."
+        },
+        {
+          "role": "user",
+          "content": "OS: arch (Arch Linux), Shell: zsh, Preferences: prefer modern tools, network enabled\nQuery: clone a git repository and check the status"
+        },
+        {
+          "role": "model",
+          "content": "<think>\nUser wants to work with git on Arch Linux:\n1. `git` - may or may not be installed, but very common\n2. `gh` - GitHub CLI, optional but useful\n\nArch users tend to be more technical, higher chance of git being installed.\nThey also often have modern tools installed.\n</think>\n<start_function_call>call:recommend_tools{\n  \"primary_tools\": [\n    {\n      \"name\": \"git\",\n      \"category\": \"version_control\",\n      \"confidence\": 0.85,\n      \"version_hint\": \"2.x+\",\n      \"reason\": \"Standard version control, likely installed on developer systems\"\n    }\n  ],\n  \"alternative_tools\": [\n    {\n      \"name\": \"gh\",\n      \"category\": \"version_control\",\n      \"install_cmd\": \"pacman -S github-cli\",\n      \"reason\": \"GitHub CLI for enhanced GitHub integration\",\n      \"improvements\": [\"PR management\", \"issue tracking\", \"repo creation\", \"authentication\"]\n    },\n    {\n      \"name\": \"lazygit\",\n      \"category\": \"version_control\",\n      \"install_cmd\": \"pacman -S lazygit\",\n      \"reason\": \"Terminal UI for git with visual staging\",\n      \"improvements\": [\"interactive staging\", \"visual diffs\", \"branch management\"]\n    }\n  ],\n  \"task_category\": \"version_control\"\n}<end_function_call>"
+        }
+      ]
+    },
+    {
+      "id": "008",
+      "context": {
+        "os": "ubuntu",
+        "shell": "bash",
+        "user_preferences": {}
+      },
+      "user_query": "compress a folder into a zip file",
+      "conversation": [
+        {
+          "role": "developer",
+          "content": "You are a CLI tool recommendation assistant. Given the user's query, OS, shell, and preferences, recommend the most appropriate CLI tools. Always prefer tools that are likely installed by default, but suggest modern alternatives when beneficial. Format your response as a function call to recommend_tools."
+        },
+        {
+          "role": "user",
+          "content": "OS: ubuntu (GNU/Linux), Shell: bash, Preferences: none\nQuery: compress a folder into a zip file"
+        },
+        {
+          "role": "model",
+          "content": "<think>\nUser wants to create a zip archive. On Ubuntu:\n1. `zip` - may or may not be installed by default\n2. `tar` - always available, can create .tar.gz\n3. `7z` - not installed by default\n\nFor zip specifically, the `zip` command is needed. On many Ubuntu installs it's there, but not guaranteed.\n</think>\n<start_function_call>call:recommend_tools{\n  \"primary_tools\": [\n    {\n      \"name\": \"zip\",\n      \"category\": \"archive\",\n      \"confidence\": 0.7,\n      \"reason\": \"Standard zip utility, may need installation\"\n    },\n    {\n      \"name\": \"tar\",\n      \"category\": \"archive\",\n      \"confidence\": 1.0,\n      \"reason\": \"Alternative: use tar -czvf for .tar.gz compression, always available\"\n    }\n  ],\n  \"alternative_tools\": [\n    {\n      \"name\": \"7z\",\n      \"category\": \"archive\",\n      \"install_cmd\": \"apt install p7zip-full\",\n      \"reason\": \"Powerful archiver with better compression ratios\",\n      \"improvements\": [\"better compression\", \"multiple formats\", \"encryption support\"]\n    }\n  ],\n  \"task_category\": \"archive\"\n}<end_function_call>"
+        }
+      ]
+    },
+    {
+      "id": "009",
+      "context": {
+        "os": "darwin",
+        "shell": "bash",
+        "user_preferences": {"network_enabled": true}
+      },
+      "user_query": "download a file from a URL",
+      "conversation": [
+        {
+          "role": "developer",
+          "content": "You are a CLI tool recommendation assistant. Given the user's query, OS, shell, and preferences, recommend the most appropriate CLI tools. Always prefer tools that are likely installed by default, but suggest modern alternatives when beneficial. Format your response as a function call to recommend_tools."
+        },
+        {
+          "role": "user",
+          "content": "OS: darwin (macOS), Shell: bash, Preferences: network enabled\nQuery: download a file from a URL"
+        },
+        {
+          "role": "model",
+          "content": "<think>\nUser wants to download a file on macOS:\n1. `curl` - installed by default, use -o or -O flag\n2. `wget` - NOT installed by default on macOS\n\ncurl is the go-to on macOS.\n</think>\n<start_function_call>call:recommend_tools{\n  \"primary_tools\": [\n    {\n      \"name\": \"curl\",\n      \"category\": \"network\",\n      \"confidence\": 1.0,\n      \"reason\": \"Built-in on macOS, use -o to save to file or -O to keep original filename\"\n    }\n  ],\n  \"alternative_tools\": [\n    {\n      \"name\": \"wget\",\n      \"category\": \"network\",\n      \"install_cmd\": \"brew install wget\",\n      \"reason\": \"Simpler syntax for downloads, supports recursive fetching\",\n      \"improvements\": [\"simpler for downloads\", \"recursive support\", \"resume interrupted downloads\"]\n    }\n  ],\n  \"task_category\": \"network\"\n}<end_function_call>"
+        }
+      ]
+    },
+    {
+      "id": "010",
+      "context": {
+        "os": "linux",
+        "shell": "zsh",
+        "user_preferences": {"prefer_modern_tools": true}
+      },
+      "user_query": "view the contents of a config file with syntax highlighting",
+      "conversation": [
+        {
+          "role": "developer",
+          "content": "You are a CLI tool recommendation assistant. Given the user's query, OS, shell, and preferences, recommend the most appropriate CLI tools. Always prefer tools that are likely installed by default, but suggest modern alternatives when beneficial. Format your response as a function call to recommend_tools."
+        },
+        {
+          "role": "user",
+          "content": "OS: linux, Shell: zsh, Preferences: prefer modern tools\nQuery: view the contents of a config file with syntax highlighting"
+        },
+        {
+          "role": "model",
+          "content": "<think>\nUser wants syntax-highlighted file viewing:\n1. `cat` - always available but NO syntax highlighting\n2. `less` - available, some syntax highlight with lesspipe\n3. `bat` - modern cat alternative WITH syntax highlighting\n4. `pygmentize` - Python-based, if pygments installed\n\nFor syntax highlighting, `bat` is the clear winner but needs installation.\n</think>\n<start_function_call>call:recommend_tools{\n  \"primary_tools\": [\n    {\n      \"name\": \"cat\",\n      \"category\": \"file_viewing\",\n      \"confidence\": 1.0,\n      \"reason\": \"Basic file viewing, no syntax highlighting but always available\"\n    },\n    {\n      \"name\": \"less\",\n      \"category\": \"file_viewing\",\n      \"confidence\": 1.0,\n      \"reason\": \"Pager with limited highlighting support via lesspipe\"\n    }\n  ],\n  \"alternative_tools\": [\n    {\n      \"name\": \"bat\",\n      \"category\": \"file_viewing\",\n      \"install_cmd\": \"apt install bat\",\n      \"reason\": \"cat clone with syntax highlighting and Git integration\",\n      \"improvements\": [\"syntax highlighting\", \"line numbers\", \"git diff markers\", \"themes\"]\n    }\n  ],\n  \"task_category\": \"file_viewing\"\n}<end_function_call>"
+        }
+      ]
+    }
+  ]
+}

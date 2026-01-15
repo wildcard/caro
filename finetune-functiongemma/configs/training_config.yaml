@@ -1,0 +1,68 @@
+# FunctionGemma CLI Tool Recommender - Training Configuration
+# Copy and modify this file for custom training runs
+
+# Model configuration
+model:
+  name: "unsloth/functiongemma-270m-it"
+  max_seq_length: 4096
+  load_in_16bit: true
+  full_finetuning: false
+
+# LoRA configuration for efficient fine-tuning
+lora:
+  r: 16                    # LoRA rank
+  lora_alpha: 16           # LoRA scaling factor
+  lora_dropout: 0.0        # Dropout for LoRA layers
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+  bias: "none"
+  use_gradient_checkpointing: "unsloth"
+  use_rslora: false
+  random_state: 42
+
+# Training configuration
+training:
+  output_dir: "./output"
+  num_train_epochs: 3
+  per_device_train_batch_size: 2
+  gradient_accumulation_steps: 4
+  warmup_steps: 5
+  learning_rate: 0.0002
+  weight_decay: 0.01
+  lr_scheduler_type: "linear"
+  optim: "adamw_8bit"
+  logging_steps: 1
+  seed: 42
+
+  # Mixed precision (auto-detect best for your hardware)
+  # fp16: auto  # True for older GPUs
+  # bf16: auto  # True for newer GPUs (A100, H100, RTX 30xx+)
+
+# Data configuration
+data:
+  train_path: "./data/training_data.json"
+  validation_split: 0.1
+  shuffle: true
+
+# Generation settings (Google's recommendations for FunctionGemma)
+generation:
+  max_new_tokens: 512
+  temperature: 1.0
+  top_k: 64
+  top_p: 0.95
+  do_sample: true
+
+# Export configuration
+export:
+  # Options: lora, merged_16bit, gguf
+  method: "lora"
+
+  # GGUF settings (if method is gguf)
+  gguf:
+    quantization: "q4_k_m"  # Options: q4_0, q4_k_m, q5_k_m, q8_0, f16

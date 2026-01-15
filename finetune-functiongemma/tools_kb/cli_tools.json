@@ -1,0 +1,622 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "description": "CLI tools knowledge base for FunctionGemma fine-tuning",
+    "last_updated": "2025-01-15"
+  },
+  "tools": {
+    "ls": {
+      "name": "ls",
+      "category": "file_management",
+      "description": "List directory contents",
+      "posix_standard": true,
+      "availability": {
+        "darwin": {"installed_by_default": true, "version": "BSD", "confidence": 1.0},
+        "linux": {"installed_by_default": true, "version": "GNU coreutils", "confidence": 1.0},
+        "ubuntu": {"installed_by_default": true, "version": "GNU coreutils 8.x+", "confidence": 1.0},
+        "bsd": {"installed_by_default": true, "version": "BSD", "confidence": 1.0},
+        "windows": {"installed_by_default": false, "alternative": "dir", "confidence": 0.0}
+      },
+      "common_flags": ["-l", "-a", "-h", "-R", "-t", "-S"],
+      "use_cases": ["list files", "show directory", "view folder contents"]
+    },
+    "find": {
+      "name": "find",
+      "category": "file_management",
+      "description": "Search for files in a directory hierarchy",
+      "posix_standard": true,
+      "availability": {
+        "darwin": {"installed_by_default": true, "version": "BSD", "confidence": 1.0},
+        "linux": {"installed_by_default": true, "version": "GNU findutils", "confidence": 1.0},
+        "ubuntu": {"installed_by_default": true, "version": "GNU findutils 4.x+", "confidence": 1.0},
+        "bsd": {"installed_by_default": true, "version": "BSD", "confidence": 1.0},
+        "windows": {"installed_by_default": false, "confidence": 0.0}
+      },
+      "common_flags": ["-name", "-type", "-exec", "-mtime", "-size", "-iname"],
+      "use_cases": ["find files", "search directory", "locate by name", "find by pattern"]
+    },
+    "fd": {
+      "name": "fd",
+      "category": "file_management",
+      "description": "Simple, fast and user-friendly alternative to find",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": false, "install_cmd": "brew install fd", "confidence": 0.3},
+        "linux": {"installed_by_default": false, "confidence": 0.2},
+        "ubuntu": {"installed_by_default": false, "install_cmd": "apt install fd-find", "confidence": 0.2},
+        "arch": {"installed_by_default": false, "install_cmd": "pacman -S fd", "confidence": 0.3}
+      },
+      "improvements_over": ["find"],
+      "improvements": ["faster", "better defaults", "colored output", "regex support"],
+      "use_cases": ["find files fast", "search with regex"]
+    },
+    "grep": {
+      "name": "grep",
+      "category": "search",
+      "description": "Search text using patterns",
+      "posix_standard": true,
+      "availability": {
+        "darwin": {"installed_by_default": true, "version": "BSD", "confidence": 1.0},
+        "linux": {"installed_by_default": true, "version": "GNU grep", "confidence": 1.0},
+        "ubuntu": {"installed_by_default": true, "version": "GNU grep 3.x+", "confidence": 1.0},
+        "bsd": {"installed_by_default": true, "version": "BSD", "confidence": 1.0},
+        "windows": {"installed_by_default": false, "confidence": 0.0}
+      },
+      "common_flags": ["-r", "-i", "-n", "-l", "-v", "-E", "-P"],
+      "use_cases": ["search text", "find in files", "pattern match", "filter output"]
+    },
+    "rg": {
+      "name": "rg",
+      "full_name": "ripgrep",
+      "category": "search",
+      "description": "Recursively search directories for a regex pattern",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": false, "install_cmd": "brew install ripgrep", "confidence": 0.4},
+        "linux": {"installed_by_default": false, "confidence": 0.2},
+        "ubuntu": {"installed_by_default": false, "install_cmd": "apt install ripgrep", "confidence": 0.2},
+        "arch": {"installed_by_default": false, "install_cmd": "pacman -S ripgrep", "confidence": 0.3}
+      },
+      "improvements_over": ["grep", "ag", "ack"],
+      "improvements": ["fastest grep alternative", "respects gitignore", "better defaults"],
+      "use_cases": ["fast search", "code search", "regex search"]
+    },
+    "ag": {
+      "name": "ag",
+      "full_name": "the_silver_searcher",
+      "category": "search",
+      "description": "Code-searching tool similar to ack, but faster",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": false, "install_cmd": "brew install the_silver_searcher", "confidence": 0.3},
+        "linux": {"installed_by_default": false, "confidence": 0.15},
+        "ubuntu": {"installed_by_default": false, "install_cmd": "apt install silversearcher-ag", "confidence": 0.15}
+      },
+      "improvements_over": ["grep", "ack"],
+      "improvements": ["faster than ack", "respects gitignore"],
+      "use_cases": ["code search", "fast grep"]
+    },
+    "ack": {
+      "name": "ack",
+      "category": "search",
+      "description": "grep-like source code search tool",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": false, "install_cmd": "brew install ack", "confidence": 0.2},
+        "linux": {"installed_by_default": false, "confidence": 0.1},
+        "ubuntu": {"installed_by_default": false, "install_cmd": "apt install ack", "confidence": 0.1}
+      },
+      "improvements_over": ["grep"],
+      "improvements": ["designed for code", "perl regex"],
+      "use_cases": ["code search", "developer grep"]
+    },
+    "fzf": {
+      "name": "fzf",
+      "category": "search",
+      "description": "Command-line fuzzy finder",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": false, "install_cmd": "brew install fzf", "confidence": 0.4},
+        "linux": {"installed_by_default": false, "confidence": 0.2},
+        "ubuntu": {"installed_by_default": false, "install_cmd": "apt install fzf", "confidence": 0.2}
+      },
+      "improvements": ["interactive selection", "fuzzy matching", "shell integration"],
+      "use_cases": ["interactive search", "fuzzy find", "select from list", "history search"]
+    },
+    "sed": {
+      "name": "sed",
+      "category": "text_processing",
+      "description": "Stream editor for filtering and transforming text",
+      "posix_standard": true,
+      "availability": {
+        "darwin": {"installed_by_default": true, "version": "BSD", "confidence": 1.0, "note": "BSD sed differs from GNU"},
+        "linux": {"installed_by_default": true, "version": "GNU sed", "confidence": 1.0},
+        "ubuntu": {"installed_by_default": true, "version": "GNU sed 4.x+", "confidence": 1.0},
+        "bsd": {"installed_by_default": true, "version": "BSD", "confidence": 1.0}
+      },
+      "common_flags": ["-i", "-e", "-n", "-E"],
+      "use_cases": ["replace text", "transform text", "edit stream", "substitute pattern"]
+    },
+    "awk": {
+      "name": "awk",
+      "category": "text_processing",
+      "description": "Pattern scanning and processing language",
+      "posix_standard": true,
+      "availability": {
+        "darwin": {"installed_by_default": true, "version": "BSD awk", "confidence": 1.0},
+        "linux": {"installed_by_default": true, "version": "gawk", "confidence": 1.0},
+        "ubuntu": {"installed_by_default": true, "version": "gawk 5.x+", "confidence": 1.0},
+        "bsd": {"installed_by_default": true, "version": "nawk", "confidence": 1.0}
+      },
+      "use_cases": ["process columns", "text processing", "field extraction", "data transformation"]
+    },
+    "jq": {
+      "name": "jq",
+      "category": "json_processing",
+      "description": "Command-line JSON processor",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": false, "install_cmd": "brew install jq", "confidence": 0.5},
+        "linux": {"installed_by_default": false, "confidence": 0.3},
+        "ubuntu": {"installed_by_default": false, "install_cmd": "apt install jq", "confidence": 0.3}
+      },
+      "use_cases": ["parse json", "filter json", "transform json", "query json"]
+    },
+    "cat": {
+      "name": "cat",
+      "category": "file_viewing",
+      "description": "Concatenate and display files",
+      "posix_standard": true,
+      "availability": {
+        "darwin": {"installed_by_default": true, "confidence": 1.0},
+        "linux": {"installed_by_default": true, "confidence": 1.0},
+        "ubuntu": {"installed_by_default": true, "confidence": 1.0},
+        "bsd": {"installed_by_default": true, "confidence": 1.0}
+      },
+      "use_cases": ["view file", "display content", "concatenate files"]
+    },
+    "bat": {
+      "name": "bat",
+      "category": "file_viewing",
+      "description": "A cat clone with syntax highlighting and Git integration",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": false, "install_cmd": "brew install bat", "confidence": 0.3},
+        "linux": {"installed_by_default": false, "confidence": 0.15},
+        "ubuntu": {"installed_by_default": false, "install_cmd": "apt install bat", "confidence": 0.15}
+      },
+      "improvements_over": ["cat"],
+      "improvements": ["syntax highlighting", "git integration", "line numbers", "paging"],
+      "use_cases": ["view file with highlighting", "read code", "pretty print"]
+    },
+    "less": {
+      "name": "less",
+      "category": "file_viewing",
+      "description": "View file contents with paging",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": true, "confidence": 1.0},
+        "linux": {"installed_by_default": true, "confidence": 1.0},
+        "ubuntu": {"installed_by_default": true, "confidence": 1.0},
+        "bsd": {"installed_by_default": true, "confidence": 0.95}
+      },
+      "use_cases": ["view large file", "page through file", "scroll file"]
+    },
+    "head": {
+      "name": "head",
+      "category": "file_viewing",
+      "description": "Output the first part of files",
+      "posix_standard": true,
+      "availability": {
+        "darwin": {"installed_by_default": true, "confidence": 1.0},
+        "linux": {"installed_by_default": true, "confidence": 1.0},
+        "ubuntu": {"installed_by_default": true, "confidence": 1.0},
+        "bsd": {"installed_by_default": true, "confidence": 1.0}
+      },
+      "common_flags": ["-n"],
+      "use_cases": ["view first lines", "preview file", "top of file"]
+    },
+    "tail": {
+      "name": "tail",
+      "category": "file_viewing",
+      "description": "Output the last part of files",
+      "posix_standard": true,
+      "availability": {
+        "darwin": {"installed_by_default": true, "confidence": 1.0},
+        "linux": {"installed_by_default": true, "confidence": 1.0},
+        "ubuntu": {"installed_by_default": true, "confidence": 1.0},
+        "bsd": {"installed_by_default": true, "confidence": 1.0}
+      },
+      "common_flags": ["-n", "-f"],
+      "use_cases": ["view last lines", "follow log", "watch file", "end of file"]
+    },
+    "curl": {
+      "name": "curl",
+      "category": "network",
+      "description": "Transfer data from or to a server",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": true, "confidence": 1.0},
+        "linux": {"installed_by_default": false, "confidence": 0.8},
+        "ubuntu": {"installed_by_default": true, "confidence": 0.95},
+        "bsd": {"installed_by_default": false, "confidence": 0.6}
+      },
+      "common_flags": ["-X", "-H", "-d", "-o", "-L", "-s", "-v"],
+      "use_cases": ["http request", "download file", "api call", "fetch url"]
+    },
+    "wget": {
+      "name": "wget",
+      "category": "network",
+      "description": "Non-interactive network downloader",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": false, "install_cmd": "brew install wget", "confidence": 0.4},
+        "linux": {"installed_by_default": true, "confidence": 0.9},
+        "ubuntu": {"installed_by_default": true, "confidence": 0.95},
+        "bsd": {"installed_by_default": false, "confidence": 0.3}
+      },
+      "use_cases": ["download file", "fetch url", "mirror site", "recursive download"]
+    },
+    "tar": {
+      "name": "tar",
+      "category": "archive",
+      "description": "Tape archive utility",
+      "posix_standard": true,
+      "availability": {
+        "darwin": {"installed_by_default": true, "version": "BSD", "confidence": 1.0},
+        "linux": {"installed_by_default": true, "version": "GNU tar", "confidence": 1.0},
+        "ubuntu": {"installed_by_default": true, "confidence": 1.0},
+        "bsd": {"installed_by_default": true, "confidence": 1.0}
+      },
+      "common_flags": ["-x", "-c", "-v", "-f", "-z", "-j"],
+      "use_cases": ["extract archive", "create archive", "compress files", "unpack tarball"]
+    },
+    "git": {
+      "name": "git",
+      "category": "version_control",
+      "description": "Distributed version control system",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": false, "install_cmd": "xcode-select --install", "confidence": 0.85},
+        "linux": {"installed_by_default": false, "confidence": 0.7},
+        "ubuntu": {"installed_by_default": false, "install_cmd": "apt install git", "confidence": 0.8}
+      },
+      "use_cases": ["version control", "commit changes", "clone repo", "branch management"]
+    },
+    "docker": {
+      "name": "docker",
+      "category": "containers",
+      "description": "Container runtime and management",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": false, "install_cmd": "brew install --cask docker", "confidence": 0.4},
+        "linux": {"installed_by_default": false, "confidence": 0.3},
+        "ubuntu": {"installed_by_default": false, "install_cmd": "apt install docker.io", "confidence": 0.3}
+      },
+      "use_cases": ["run container", "build image", "container management"]
+    },
+    "npm": {
+      "name": "npm",
+      "category": "package_manager",
+      "description": "Node.js package manager",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": false, "install_cmd": "brew install node", "confidence": 0.5},
+        "linux": {"installed_by_default": false, "confidence": 0.4},
+        "ubuntu": {"installed_by_default": false, "install_cmd": "apt install npm", "confidence": 0.4}
+      },
+      "use_cases": ["install package", "manage dependencies", "run scripts", "node development"]
+    },
+    "brew": {
+      "name": "brew",
+      "full_name": "homebrew",
+      "category": "package_manager",
+      "description": "macOS/Linux package manager",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": false, "install_cmd": "/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"", "confidence": 0.7},
+        "linux": {"installed_by_default": false, "confidence": 0.15}
+      },
+      "use_cases": ["install software", "manage packages", "update tools"]
+    },
+    "apt": {
+      "name": "apt",
+      "category": "package_manager",
+      "description": "Debian/Ubuntu package manager",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": false, "confidence": 0.0},
+        "ubuntu": {"installed_by_default": true, "confidence": 1.0},
+        "debian": {"installed_by_default": true, "confidence": 1.0},
+        "linux": {"installed_by_default": false, "confidence": 0.4}
+      },
+      "use_cases": ["install package", "update system", "manage software"]
+    },
+    "htop": {
+      "name": "htop",
+      "category": "process",
+      "description": "Interactive process viewer",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": false, "install_cmd": "brew install htop", "confidence": 0.4},
+        "linux": {"installed_by_default": false, "confidence": 0.4},
+        "ubuntu": {"installed_by_default": false, "install_cmd": "apt install htop", "confidence": 0.5}
+      },
+      "improvements_over": ["top"],
+      "improvements": ["better ui", "interactive", "colored output", "mouse support"],
+      "use_cases": ["monitor processes", "view resources", "kill process"]
+    },
+    "top": {
+      "name": "top",
+      "category": "process",
+      "description": "Display system processes",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": true, "confidence": 1.0},
+        "linux": {"installed_by_default": true, "confidence": 1.0},
+        "ubuntu": {"installed_by_default": true, "confidence": 1.0},
+        "bsd": {"installed_by_default": true, "confidence": 1.0}
+      },
+      "use_cases": ["monitor processes", "view cpu", "system resources"]
+    },
+    "ps": {
+      "name": "ps",
+      "category": "process",
+      "description": "Report process status",
+      "posix_standard": true,
+      "availability": {
+        "darwin": {"installed_by_default": true, "confidence": 1.0},
+        "linux": {"installed_by_default": true, "confidence": 1.0},
+        "ubuntu": {"installed_by_default": true, "confidence": 1.0},
+        "bsd": {"installed_by_default": true, "confidence": 1.0}
+      },
+      "common_flags": ["aux", "-ef", "-p"],
+      "use_cases": ["list processes", "find process", "view running programs"]
+    },
+    "tree": {
+      "name": "tree",
+      "category": "file_management",
+      "description": "Display directory tree structure",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": false, "install_cmd": "brew install tree", "confidence": 0.4},
+        "linux": {"installed_by_default": false, "confidence": 0.4},
+        "ubuntu": {"installed_by_default": false, "install_cmd": "apt install tree", "confidence": 0.4}
+      },
+      "improvements_over": ["ls"],
+      "improvements": ["hierarchical view", "visual tree", "depth control"],
+      "use_cases": ["show directory structure", "visualize folders", "tree view"]
+    },
+    "tmux": {
+      "name": "tmux",
+      "category": "multiplexer",
+      "description": "Terminal multiplexer",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": false, "install_cmd": "brew install tmux", "confidence": 0.4},
+        "linux": {"installed_by_default": false, "confidence": 0.3},
+        "ubuntu": {"installed_by_default": false, "install_cmd": "apt install tmux", "confidence": 0.3}
+      },
+      "use_cases": ["split terminal", "session management", "remote work", "multiple windows"]
+    },
+    "rsync": {
+      "name": "rsync",
+      "category": "network",
+      "description": "Fast, versatile file copying tool",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": true, "confidence": 0.95},
+        "linux": {"installed_by_default": true, "confidence": 0.9},
+        "ubuntu": {"installed_by_default": true, "confidence": 0.95}
+      },
+      "common_flags": ["-a", "-v", "-z", "--progress", "--delete"],
+      "use_cases": ["sync files", "backup", "copy with progress", "remote sync"]
+    },
+    "ssh": {
+      "name": "ssh",
+      "category": "network",
+      "description": "Secure shell remote login",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": true, "confidence": 1.0},
+        "linux": {"installed_by_default": true, "confidence": 1.0},
+        "ubuntu": {"installed_by_default": true, "confidence": 1.0},
+        "bsd": {"installed_by_default": true, "confidence": 1.0}
+      },
+      "use_cases": ["remote login", "secure connection", "tunnel", "remote command"]
+    },
+    "xargs": {
+      "name": "xargs",
+      "category": "shell_utils",
+      "description": "Build and execute commands from standard input",
+      "posix_standard": true,
+      "availability": {
+        "darwin": {"installed_by_default": true, "confidence": 1.0},
+        "linux": {"installed_by_default": true, "confidence": 1.0},
+        "ubuntu": {"installed_by_default": true, "confidence": 1.0},
+        "bsd": {"installed_by_default": true, "confidence": 1.0}
+      },
+      "use_cases": ["pipe to command", "batch operations", "parallel execution"]
+    },
+    "sort": {
+      "name": "sort",
+      "category": "text_processing",
+      "description": "Sort lines of text files",
+      "posix_standard": true,
+      "availability": {
+        "darwin": {"installed_by_default": true, "confidence": 1.0},
+        "linux": {"installed_by_default": true, "confidence": 1.0},
+        "ubuntu": {"installed_by_default": true, "confidence": 1.0},
+        "bsd": {"installed_by_default": true, "confidence": 1.0}
+      },
+      "common_flags": ["-n", "-r", "-k", "-u", "-t"],
+      "use_cases": ["sort lines", "order output", "alphabetize"]
+    },
+    "uniq": {
+      "name": "uniq",
+      "category": "text_processing",
+      "description": "Report or omit repeated lines",
+      "posix_standard": true,
+      "availability": {
+        "darwin": {"installed_by_default": true, "confidence": 1.0},
+        "linux": {"installed_by_default": true, "confidence": 1.0},
+        "ubuntu": {"installed_by_default": true, "confidence": 1.0},
+        "bsd": {"installed_by_default": true, "confidence": 1.0}
+      },
+      "common_flags": ["-c", "-d", "-u"],
+      "use_cases": ["remove duplicates", "count occurrences", "unique lines"]
+    },
+    "cut": {
+      "name": "cut",
+      "category": "text_processing",
+      "description": "Remove sections from lines of files",
+      "posix_standard": true,
+      "availability": {
+        "darwin": {"installed_by_default": true, "confidence": 1.0},
+        "linux": {"installed_by_default": true, "confidence": 1.0},
+        "ubuntu": {"installed_by_default": true, "confidence": 1.0},
+        "bsd": {"installed_by_default": true, "confidence": 1.0}
+      },
+      "common_flags": ["-d", "-f", "-c"],
+      "use_cases": ["extract columns", "split fields", "cut text"]
+    },
+    "wc": {
+      "name": "wc",
+      "category": "text_processing",
+      "description": "Word, line, character, and byte count",
+      "posix_standard": true,
+      "availability": {
+        "darwin": {"installed_by_default": true, "confidence": 1.0},
+        "linux": {"installed_by_default": true, "confidence": 1.0},
+        "ubuntu": {"installed_by_default": true, "confidence": 1.0},
+        "bsd": {"installed_by_default": true, "confidence": 1.0}
+      },
+      "common_flags": ["-l", "-w", "-c"],
+      "use_cases": ["count lines", "count words", "count characters"]
+    },
+    "df": {
+      "name": "df",
+      "category": "disk",
+      "description": "Report filesystem disk space usage",
+      "posix_standard": true,
+      "availability": {
+        "darwin": {"installed_by_default": true, "confidence": 1.0},
+        "linux": {"installed_by_default": true, "confidence": 1.0},
+        "ubuntu": {"installed_by_default": true, "confidence": 1.0},
+        "bsd": {"installed_by_default": true, "confidence": 1.0}
+      },
+      "common_flags": ["-h", "-T"],
+      "use_cases": ["disk space", "filesystem usage", "available space"]
+    },
+    "du": {
+      "name": "du",
+      "category": "disk",
+      "description": "Estimate file space usage",
+      "posix_standard": true,
+      "availability": {
+        "darwin": {"installed_by_default": true, "confidence": 1.0},
+        "linux": {"installed_by_default": true, "confidence": 1.0},
+        "ubuntu": {"installed_by_default": true, "confidence": 1.0},
+        "bsd": {"installed_by_default": true, "confidence": 1.0}
+      },
+      "common_flags": ["-h", "-s", "-d"],
+      "use_cases": ["directory size", "file size", "disk usage"]
+    },
+    "ncdu": {
+      "name": "ncdu",
+      "category": "disk",
+      "description": "NCurses disk usage analyzer",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": false, "install_cmd": "brew install ncdu", "confidence": 0.3},
+        "linux": {"installed_by_default": false, "confidence": 0.2},
+        "ubuntu": {"installed_by_default": false, "install_cmd": "apt install ncdu", "confidence": 0.2}
+      },
+      "improvements_over": ["du"],
+      "improvements": ["interactive ui", "visual browsing", "easy navigation"],
+      "use_cases": ["analyze disk usage", "find large files", "interactive disk explorer"]
+    },
+    "chmod": {
+      "name": "chmod",
+      "category": "permissions",
+      "description": "Change file mode bits",
+      "posix_standard": true,
+      "availability": {
+        "darwin": {"installed_by_default": true, "confidence": 1.0},
+        "linux": {"installed_by_default": true, "confidence": 1.0},
+        "ubuntu": {"installed_by_default": true, "confidence": 1.0},
+        "bsd": {"installed_by_default": true, "confidence": 1.0}
+      },
+      "use_cases": ["change permissions", "make executable", "set file mode"]
+    },
+    "chown": {
+      "name": "chown",
+      "category": "permissions",
+      "description": "Change file owner and group",
+      "posix_standard": true,
+      "availability": {
+        "darwin": {"installed_by_default": true, "confidence": 1.0},
+        "linux": {"installed_by_default": true, "confidence": 1.0},
+        "ubuntu": {"installed_by_default": true, "confidence": 1.0},
+        "bsd": {"installed_by_default": true, "confidence": 1.0}
+      },
+      "use_cases": ["change owner", "change group", "fix ownership"]
+    },
+    "lsof": {
+      "name": "lsof",
+      "category": "process",
+      "description": "List open files",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": true, "confidence": 1.0},
+        "linux": {"installed_by_default": true, "confidence": 0.9},
+        "ubuntu": {"installed_by_default": true, "confidence": 0.9}
+      },
+      "use_cases": ["find open files", "check port usage", "list file handles"]
+    },
+    "netstat": {
+      "name": "netstat",
+      "category": "network",
+      "description": "Network statistics",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": true, "confidence": 1.0},
+        "linux": {"installed_by_default": true, "confidence": 0.8},
+        "ubuntu": {"installed_by_default": true, "confidence": 0.8}
+      },
+      "use_cases": ["network connections", "listening ports", "routing table"]
+    },
+    "ss": {
+      "name": "ss",
+      "category": "network",
+      "description": "Socket statistics (modern netstat replacement)",
+      "posix_standard": false,
+      "availability": {
+        "darwin": {"installed_by_default": false, "confidence": 0.0},
+        "linux": {"installed_by_default": true, "confidence": 0.95},
+        "ubuntu": {"installed_by_default": true, "confidence": 0.95}
+      },
+      "improvements_over": ["netstat"],
+      "improvements": ["faster", "more information", "modern replacement"],
+      "use_cases": ["socket info", "network connections", "port usage"]
+    }
+  },
+  "shell_builtins": {
+    "sh": ["cd", "echo", "export", "alias", "unset", "set", "read", "exit", "exec", "eval", "test", "[", "pwd", "umask"],
+    "bash": ["cd", "echo", "export", "alias", "unset", "set", "read", "exit", "exec", "eval", "test", "[", "[[", "pwd", "umask", "source", ".", "declare", "local", "readonly", "type", "hash", "history", "dirs", "pushd", "popd", "shopt"],
+    "zsh": ["cd", "echo", "export", "alias", "unset", "set", "read", "exit", "exec", "eval", "test", "[", "[[", "pwd", "umask", "source", ".", "declare", "local", "readonly", "type", "hash", "history", "dirs", "pushd", "popd", "setopt", "autoload", "compdef", "zstyle"],
+    "fish": ["cd", "echo", "set", "read", "exit", "exec", "eval", "test", "[", "pwd", "umask", "source", ".", "function", "alias", "abbr", "bind", "complete", "contains", "count", "emit", "end"]
+  },
+  "package_managers": {
+    "darwin": ["brew", "port"],
+    "ubuntu": ["apt", "apt-get", "snap", "flatpak"],
+    "debian": ["apt", "apt-get", "snap", "flatpak"],
+    "fedora": ["dnf", "yum", "flatpak"],
+    "arch": ["pacman", "yay", "paru"],
+    "alpine": ["apk"],
+    "bsd": ["pkg"],
+    "freebsd": ["pkg"],
+    "openbsd": ["pkg_add"],
+    "windows": ["choco", "winget", "scoop"]
+  }
+}

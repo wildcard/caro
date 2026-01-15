@@ -1,0 +1,32 @@
+# FunctionGemma CLI Tool Recommender - Dependencies
+# Install with: pip install -r requirements.txt
+
+# Unsloth for efficient fine-tuning
+unsloth>=2024.1
+
+# Hugging Face ecosystem
+transformers>=4.36.0
+datasets>=2.16.0
+trl>=0.7.0
+
+# PyTorch (install appropriate version for your system)
+# For CUDA: pip install torch --index-url https://download.pytorch.org/whl/cu121
+# For CPU: pip install torch --index-url https://download.pytorch.org/whl/cpu
+torch>=2.1.0
+
+# Accelerate for distributed training
+accelerate>=0.25.0
+
+# PEFT for LoRA
+peft>=0.7.0
+
+# Utility packages
+bitsandbytes>=0.41.0  # 8-bit optimizers
+sentencepiece>=0.1.99
+protobuf>=4.25.0
+
+# Optional: for GGUF export
+# llama-cpp-python>=0.2.0
+
+# Development
+tqdm>=4.66.0
