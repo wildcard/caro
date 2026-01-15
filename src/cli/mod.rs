@@ -13,8 +13,11 @@ use crate::{
     context::ExecutionContext,
     models::{CommandRequest, SafetyLevel, ShellType},
     prompts::CapabilityProfile,
-    safety::{SafetyConfig, SafetyValidator},
+    safety::SafetyValidator,
 };
+
+#[cfg(not(test))]
+use crate::safety::SafetyConfig;
 
 #[cfg(any(test, debug_assertions))]
 use async_trait::async_trait;
