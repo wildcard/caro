@@ -8,26 +8,13 @@
       }
     },
     "hero": {
-      "badge": "AI Shell Commands You Can Actually Trust",
-      "headline": {
-        "line1": "The last line of defense",
-        "line2": "between you and",
-        "dangerCmd": "rm -rf /"
-      },
-      "subtitle": "Generate shell commands that work the first time—with pre-execution validation that catches what AI gets wrong. 100% local. Zero telemetry. Your commands never leave your machine.",
-      "socialProof": {
-        "quote": "Caught a recursive delete pattern I would have missed at 2 AM during an incident. The warning was specific enough that I understood WHY it was dangerous.",
-        "attribution": "— Michael T., Senior SRE (Series C Fintech)"
-      },
+      "badge": "Companion Agent",
+      "tagline": "Your loyal shell companion",
+      "subtitle": "A specialized POSIX shell command agent for Claude users. Validates AI-generated commands with safety-first design, detects dangerous patterns, and ensures POSIX compliance.",
+      "installLabel": "Available as a Claude Skill:",
       "cta": {
-        "primary": "Get Started Free",
-        "secondary": "See Your Risks"
-      },
-      "trustBadges": {
-        "zeroTelemetry": "Zero telemetry",
-        "validation": "Pre-execution validation",
-        "local": "100% local inference",
-        "openSource": "Open source (AGPL-3.0)"
+        "getStarted": "Get Started",
+        "watchDemo": "Watch Demo"
       }
     },
     "features": {

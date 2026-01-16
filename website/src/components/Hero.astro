@@ -1,11 +1,20 @@
 ---
 import GitHubStarButton from './GitHubStarButton.astro';
 import TerminalShowcase from './TerminalShowcase.astro';
+import { t, type Locale } from '../i18n/config';
+
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = 'en' } = Astro.props;
+const downloadHref = lang === 'en' ? '#download' : `/${lang}/#download`;
+const demoHref = lang === 'en' ? '#how-it-works' : `/${lang}/#how-it-works`;
 ---
 
 <div class="hero">
   <div class="container">
-    <div class="companion-badge">🐕 Companion Agent</div>
+    <div class="companion-badge">🐕 {t(lang, 'landing.hero.badge')}</div>
     <img src="/caro-prompting.gif" alt="Caro - 8-bit pixel art" class="pixel-art" />
     <pre class="ascii-logo" aria-label="Caro">
  ██████╗ █████╗ ██████╗  ██████╗
@@ -15,20 +24,20 @@ import TerminalShowcase from './TerminalShowcase.astro';
 ╚██████╗██║  ██║██║  ██║╚██████╔╝
  ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝
     </pre>
-    <h1 class="tagline">Your loyal shell companion</h1>
+    <h1 class="tagline">{t(lang, 'landing.hero.tagline')}</h1>
     <p class="subtitle">
-      A specialized POSIX shell command agent for Claude users. Validates AI-generated commands with safety-first design, detects dangerous patterns, and ensures POSIX compliance.
+      {t(lang, 'landing.hero.subtitle')}
     </p>
     <div class="plugin-install">
-      <span class="install-label">Available as a Claude Skill:</span>
+      <span class="install-label">{t(lang, 'landing.hero.installLabel')}</span>
       <code class="install-command">/plugin install wildcard/caro</code>
     </div>
     <div class="github-star-wrapper">
       <GitHubStarButton />
     </div>
     <div class="cta-buttons">
-      <a href="#download" class="cta-button">Get Started</a>
-      <a href="#how-it-works" class="cta-button secondary">Watch Demo</a>
+      <a href={downloadHref} class="cta-button">{t(lang, 'landing.hero.cta.getStarted')}</a>
+      <a href={demoHref} class="cta-button secondary">{t(lang, 'landing.hero.cta.watchDemo')}</a>
     </div>
 
     <!-- Terminal Showcase -->

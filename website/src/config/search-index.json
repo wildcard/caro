@@ -1,6 +1,6 @@
 {
   "version": "2.1.0",
-  "generated": "2026-01-16T03:04:08.688Z",
+  "generated": "2026-01-16T03:31:31.902Z",
   "totalPages": 36,
   "pages": [
     {
@@ -6608,14 +6608,12 @@
     },
     {
       "source": "/Hero.astro",
-      "headings": [
-        "Your loyal shell companion"
-      ],
+      "headings": [],
       "paragraphs": [
-        "██████╗ █████╗ ██████╗ ██████╗ ██╔════╝██╔══██╗██╔══██╗██╔═══██╗ ██║ ███████║██████╔╝██║ ██║ ██║ ██╔══██║██╔══██╗██║ ██║ ╚██████╗██║ ██║██║ ██║╚██████╔╝ ╚═════╝╚═╝ ╚═╝╚═╝ ╚═╝ ╚═════╝ Your loyal shell companion A specialized POSIX shell command agent for Claude users. Validates AI-generated commands with safety-first design, detects dangerous patterns, and ensures POSIX compliance."
+        "██████╗ █████╗ ██████╗ ██████╗ ██╔════╝██╔══██╗██╔══██╗██╔═══██╗ ██║ ███████║██████╔╝██║ ██║ ██║ ██╔══██║██╔══██╗██║ ██║ ╚██████╗██║ ██║██║ ██║╚██████╔╝ ╚═════╝╚═╝ ╚═╝╚═╝ ╚═╝ ╚═════╝"
       ],
-      "fullText": "🐕 Companion Agent Your loyal shell companion A specialized POSIX shell command agent for Claude users. Validates AI-generated commands with safety-first design, detects dangerous patterns, and ensures POSIX compliance. Available as a Claude Skill: Get Started Watch Demo",
-      "_searchText": "your loyal shell companion ██████╗ █████╗ ██████╗ ██████╗ ██╔════╝██╔══██╗██╔══██╗██╔═══██╗ ██║ ███████║██████╔╝██║ ██║ ██║ ██╔══██║██╔══██╗██║ ██║ ╚██████╗██║ ██║██║ ██║╚██████╔╝ ╚═════╝╚═╝ ╚═╝╚═╝ ╚═╝ ╚═════╝ your loyal shell companion a specialized posix shell command agent for claude users. validates ai-generated commands with safety-first design, detects dangerous patterns, and ensures posix compliance. 🐕 companion agent your loyal shell companion a specialized posix shell command agent for claude users. validates ai-generated commands with safety-first design, detects dangerous patterns, and ensures posix compliance. available as a claude skill: get started watch demo"
+      "fullText": "🐕",
+      "_searchText": "██████╗ █████╗ ██████╗ ██████╗ ██╔════╝██╔══██╗██╔══██╗██╔═══██╗ ██║ ███████║██████╔╝██║ ██║ ██║ ██╔══██║██╔══██╗██║ ██║ ╚██████╗██║ ██║██║ ██║╚██████╔╝ ╚═════╝╚═╝ ╚═╝╚═╝ ╚═╝ ╚═════╝ 🐕"
     },
     {
       "source": "/HolidayDebugPanel.astro",
