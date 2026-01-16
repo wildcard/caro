@@ -191,6 +191,94 @@ add_to_path() {
     say "Restart your terminal or run: source $shell_config"
 }
 
+# Detect and install shell plugin manager integration
+# Returns 0 if plugin was installed, 1 if no plugin manager found
+install_shell_plugin() {
+    local plugin_installed=false
+    local repo="wildcard/caro"
+    local branch="main"
+
+    # Check for Oh My Zsh
+    if [ -d "${ZSH:-$HOME/.oh-my-zsh}" ]; then
+        local omz_custom="${ZSH_CUSTOM:-${ZSH:-$HOME/.oh-my-zsh}/custom}"
+        local plugin_dir="$omz_custom/plugins/caro"
+
+        say "Detected Oh My Zsh"
+
+        # Create plugin directory
+        mkdir -p "$plugin_dir"
+
+        # Download plugin file
+        local plugin_url="https://raw.githubusercontent.com/${repo}/${branch}/plugins/oh-my-zsh/caro.plugin.zsh"
+        if check_cmd curl; then
+            curl -fsSL "$plugin_url" -o "$plugin_dir/caro.plugin.zsh" 2>/dev/null
+        elif check_cmd wget; then
+            wget -qO "$plugin_dir/caro.plugin.zsh" "$plugin_url" 2>/dev/null
+        fi
+
+        if [ -f "$plugin_dir/caro.plugin.zsh" ]; then
+            say_success "Installed caro plugin to $plugin_dir"
+
+            # Check if plugin is already enabled in .zshrc
+            local zshrc="${ZDOTDIR:-$HOME}/.zshrc"
+            if [ -f "$zshrc" ]; then
+                if grep -q "plugins=.*caro" "$zshrc" 2>/dev/null; then
+                    say "Plugin already enabled in .zshrc"
+                else
+                    say_warn "Add 'caro' to your plugins in ~/.zshrc:"
+                    say "  plugins=(... caro)"
+                fi
+            fi
+            plugin_installed=true
+        else
+            say_warn "Failed to download Oh My Zsh plugin"
+        fi
+    fi
+
+    # Check for Oh My Bash
+    if [ -d "${OSH:-$HOME/.oh-my-bash}" ]; then
+        local osh_custom="${OSH_CUSTOM:-${OSH:-$HOME/.oh-my-bash}/custom}"
+        local plugin_dir="$osh_custom/plugins/caro"
+
+        say "Detected Oh My Bash"
+
+        # Create plugin directory
+        mkdir -p "$plugin_dir"
+
+        # Download plugin file
+        local plugin_url="https://raw.githubusercontent.com/${repo}/${branch}/plugins/oh-my-bash/caro.plugin.sh"
+        if check_cmd curl; then
+            curl -fsSL "$plugin_url" -o "$plugin_dir/caro.plugin.sh" 2>/dev/null
+        elif check_cmd wget; then
+            wget -qO "$plugin_dir/caro.plugin.sh" "$plugin_url" 2>/dev/null
+        fi
+
+        if [ -f "$plugin_dir/caro.plugin.sh" ]; then
+            say_success "Installed caro plugin to $plugin_dir"
+
+            # Check if plugin is already enabled
+            local bashrc="$HOME/.bashrc"
+            if [ -f "$bashrc" ]; then
+                if grep -q "plugins=.*caro" "$bashrc" 2>/dev/null; then
+                    say "Plugin already enabled in .bashrc"
+                else
+                    say_warn "Add 'caro' to your plugins in ~/.bashrc:"
+                    say "  plugins=(... caro)"
+                fi
+            fi
+            plugin_installed=true
+        else
+            say_warn "Failed to download Oh My Bash plugin"
+        fi
+    fi
+
+    if [ "$plugin_installed" = true ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 # Install via pre-built binary
 install_via_binary() {
     say "Downloading pre-built binary..."
@@ -300,10 +388,21 @@ install_via_binary() {
         err "Binary installed but failed version check"
     fi
 
-    # Add to PATH if needed
+    # Configure shell integration
     if [[ ":$PATH:" != *":$install_dir:"* ]]; then
         say_warn "$install_dir is not in your PATH"
-        add_to_path "$install_dir"
+        echo ""
+
+        # Try to install shell plugin (Oh My Zsh, Oh My Bash, etc.)
+        if install_shell_plugin; then
+            say "Shell plugin installed - it will handle PATH configuration"
+        else
+            # No plugin manager found, configure PATH directly
+            add_to_path "$install_dir"
+        fi
+    else
+        # PATH is OK, but still try to install plugin for extra features
+        install_shell_plugin 2>/dev/null || true
     fi
 
     return 0
