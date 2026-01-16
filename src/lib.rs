@@ -16,6 +16,7 @@
 //! - [`execution`] - Execution context capture and shell detection
 //! - [`logging`] - Structured logging with sensitive data redaction
 //! - [`prompts`] - Shell command prompt system optimized for small LLMs
+//! - [`knowledge`] - Local knowledge index for command patterns (requires `knowledge` feature)
 //!
 //! # Example
 //!
@@ -47,6 +48,9 @@ pub mod prompts;
 pub mod safety;
 pub mod telemetry;
 pub mod version;
+
+#[cfg(feature = "knowledge")]
+pub mod knowledge;
 
 // Re-export commonly used types for convenience
 pub use model_catalog::{ModelCatalog, ModelInfo, ModelSize};
@@ -93,3 +97,7 @@ pub use telemetry::{
 
 // Re-export completion types
 pub use completion::{generate_completions, suggest_commands, CommandSuggestion};
+
+// Re-export knowledge types (when feature enabled)
+#[cfg(feature = "knowledge")]
+pub use knowledge::{Embedder, KnowledgeEntry, KnowledgeError, KnowledgeIndex};

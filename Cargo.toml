@@ -89,6 +89,12 @@ fd-lock = "4.0"
 async-trait = "0.1"
 futures = "0.3"
 
+# Knowledge index (local vector database)
+lancedb = { version = "0.23", optional = true }
+fastembed = { version = "4", optional = true }
+arrow-array = { version = "56.2", optional = true }
+arrow-schema = { version = "56.2", optional = true }
+
 # Optional MLX support for Apple Silicon (behind feature flag)
 cxx = { version = "1.0", optional = true }
 
@@ -138,11 +144,12 @@ path = "tests/evaluation/main.rs"
 harness = false
 
 [features]
-default = ["embedded-mlx", "embedded-cpu"]  # Always build with MLX on macOS
+default = ["embedded-mlx", "embedded-cpu", "knowledge"]  # Always build with MLX on macOS
 mock-backend = []
 remote-backends = ["tokio/net"]
 embedded-mlx = ["cxx", "llama_cpp"]
 embedded-cpu = ["candle-core", "candle-transformers"]
+knowledge = ["lancedb", "fastembed", "arrow-array", "arrow-schema"]
 
 [profile.release]
 # Optimize for binary size (<50MB target)
