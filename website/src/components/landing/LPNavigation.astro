@@ -1,18 +1,24 @@
 ---
-// Minimal navigation for landing pages - focused on conversion
+import { t, type Locale } from '../../i18n/config';
+
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = 'en' } = Astro.props;
 ---
 
 <nav class="lp-nav">
   <div class="container">
-    <a href="/" class="nav-brand">Caro</a>
+<a href="/" class="nav-brand">{t(lang, 'landing.navigation.brand')}</a>
     <div class="nav-links">
       <a href="/use-cases" class="nav-link">Use Cases</a>
       <a href="/docs" class="nav-link">Docs</a>
     </div>
     <div class="nav-right">
       <div id="nav-search-slot"></div>
-      <a href="#download" class="nav-cta">Get Started Free</a>
-      <button id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+      <a href="#download" class="nav-cta">{t(lang, 'landing.navigation.cta')}</a>
+      <button id="theme-toggle" aria-label={t(lang, 'landing.navigation.darkMode.toggle')} title={t(lang, 'landing.navigation.darkMode.toggle')}>
         <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="5"/>
           <line x1="12" y1="1" x2="12" y2="3"/>

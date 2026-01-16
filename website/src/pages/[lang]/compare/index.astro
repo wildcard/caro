@@ -1,0 +1,233 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import Navigation from '../../../components/Navigation.astro';
+import Footer from '../../../components/Footer.astro';
+import { languages, type Locale } from '../../../i18n/config';
+
+export function getStaticPaths() {
+  return Object.keys(languages)
+    .filter(lang => lang !== 'en')  // English stays at /compare
+    .map(lang => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Locale };
+
+// VS page data for SEO and internal linking
+const vsPages = [
+  {
+    slug: 'github-copilot-cli',
+    name: 'GitHub Copilot CLI',
+    tagline: 'Cloud-dependent vs local-first',
+    description: 'Compare Caro\'s offline-first, safety-focused approach with GitHub Copilot CLI\'s cloud-powered convenience.',
+    icon: '🐙',
+    keyDiff: 'Privacy & Offline'
+  },
+  {
+    slug: 'warp',
+    name: 'Warp',
+    tagline: 'New terminal vs your terminal',
+    description: 'Caro works in your existing terminal. Warp requires switching to a new AI-native terminal emulator.',
+    icon: '🚀',
+    keyDiff: 'No App Switch'
+  },
+  {
+    slug: 'amazon-q-cli',
+    name: 'Amazon Q CLI',
+    tagline: 'Enterprise cloud vs local control',
+    description: 'Compare Amazon Q\'s AWS-integrated approach with Caro\'s self-contained, privacy-first design.',
+    icon: '☁️',
+    keyDiff: 'Self-Contained'
+  },
+  {
+    slug: 'opencode',
+    name: 'OpenCode',
+    tagline: 'Chat-first vs command-first',
+    description: 'Caro focuses on single-shot commands. OpenCode prioritizes conversational exploration.',
+    icon: '💬',
+    keyDiff: 'Task-Optimized'
+  }
+];
+---
+
+<Layout
+  title="Compare Caro - AI Shell Command Tools"
+  description="See how Caro compares to other AI shell command tools. Offline-first, safety-focused, and built for your existing terminal."
+  lang={lang}
+>
+  <Navigation lang={lang} />
+
+  <div class="compare-hub">
+    <section class="hero">
+      <div class="container">
+        <h1>How Caro Compares</h1>
+        <p class="subtitle">
+          Caro isn't the only AI shell tool—but it's the only one that runs 100% locally with
+          pre-execution safety validation. Here's how we stack up against the alternatives.
+        </p>
+      </div>
+    </section>
+
+    <section class="comparisons">
+      <div class="container">
+        <div class="comparison-grid">
+          {vsPages.map((page) => (
+            <a href={`/${lang}/compare/${page.slug}`} class="comparison-card">
+              <div class="card-icon">{page.icon}</div>
+              <h3>{page.name}</h3>
+              <p class="tagline">{page.tagline}</p>
+              <p class="description">{page.description}</p>
+              <div class="key-diff">
+                <span class="badge">{page.keyDiff}</span>
+              </div>
+            </a>
+          ))}
+        </div>
+
+        <div class="cta">
+          <p>Want to try Caro yourself?</p>
+          <a href={`/${lang}#download`} class="cta-button">Get Started Free</a>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <Footer lang={lang} />
+</Layout>
+
+<style>
+  .compare-hub {
+    min-height: 100vh;
+    background: var(--color-bg);
+  }
+
+  .hero {
+    padding: 120px 20px 60px;
+    text-align: center;
+    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 52px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--color-text);
+  }
+
+  .subtitle {
+    font-size: 20px;
+    color: var(--color-text-secondary);
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  .comparisons {
+    padding: 60px 20px;
+  }
+
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-bottom: 60px;
+  }
+
+  .comparison-card {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 30px;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  }
+
+  .comparison-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.1);
+    border-color: #ff8c42;
+  }
+
+  .card-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+  }
+
+  .comparison-card h3 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: var(--color-text);
+  }
+
+  .comparison-card .tagline {
+    font-size: 14px;
+    color: #ff8c42;
+    font-weight: 600;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .comparison-card .description {
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+    margin-bottom: 15px;
+  }
+
+  .key-diff {
+    margin-top: 15px;
+  }
+
+  .badge {
+    display: inline-block;
+    background: rgba(255, 140, 66, 0.1);
+    border: 1px solid rgba(255, 140, 66, 0.3);
+    color: #ff8c42;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .cta {
+    text-align: center;
+    padding: 40px 20px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+  }
+
+  .cta p {
+    font-size: 20px;
+    color: var(--color-text);
+    margin-bottom: 20px;
+  }
+
+  .cta-button {
+    display: inline-block;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    padding: 16px 40px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(255, 140, 66, 0.3);
+  }
+
+  @media (max-width: 768px) {
+    h1 { font-size: 36px; }
+    .subtitle { font-size: 18px; }
+    .comparison-grid { grid-template-columns: 1fr; }
+  }
+</style>

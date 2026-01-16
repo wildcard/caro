@@ -9,17 +9,20 @@ import OmniSearch from '../components/OmniSearch.astro';
 import SearchHighlight from '../components/SearchHighlight.astro';
 import HolidayDebugPanel from '../components/HolidayDebugPanel.astro';
 import HumanityEventBanner from '../components/HumanityEventBanner.astro';
+import { isRtl, getAllLocales, type Locale } from '../i18n/config';
 
 interface Props {
   title: string;
   description: string;
+  lang?: Locale;
 }
 
-const { title, description } = Astro.props;
+const { title, description, lang = 'en' } = Astro.props;
+const dir = isRtl(lang) ? 'rtl' : 'ltr';
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={lang} dir={dir}>
   <head>
     <meta charset="UTF-8" />
     <meta name="description" content={description} />
@@ -29,6 +32,38 @@ const { title, description } = Astro.props;
     <title>{title}</title>
     <!-- ASCII Morph Library (Multi-instance support) -->
     <script src="/ascii-morph-multi.js" is:inline></script>
+
+    <!-- Hreflang tags for all supported locales -->
+    {getAllLocales().map(locale => (
+      <link
+        rel="alternate"
+        hreflang={locale.code}
+        href={`https://caro.sh/${locale.code === 'en' ? '' : locale.code + '/'}`}
+      />
+    ))}
+
+    <!-- Noto fonts for RTL languages -->
+    {lang === 'he' && (
+      <>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Hebrew:wght@400;700&display=swap" rel="stylesheet" />
+      </>
+    )}
+    {lang === 'ar' && (
+      <>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet" />
+      </>
+    )}
+    {lang === 'ur' && (
+      <>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet" />
+      </>
+    )}
     <script is:inline>
       // Dark mode initialization (before render to prevent flash)
       const theme = (() => {
@@ -1273,7 +1308,7 @@ const { title, description } = Astro.props;
   .container {
     max-width: 900px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding-inline: 20px;
   }
 
   section {
@@ -1293,8 +1328,7 @@ const { title, description } = Astro.props;
     font-size: 18px;
     margin-bottom: 50px;
     max-width: 700px;
-    margin-left: auto;
-    margin-right: auto;
+    margin-inline: auto;
   }
 
   @media (max-width: 768px) {
@@ -1303,6 +1337,62 @@ const { title, description } = Astro.props;
     }
   }
 
+  /* ============================================
+     RTL LANGUAGE SUPPORT
+     ============================================ */
+
+  /* RTL font stacks */
+  :lang(he) {
+    font-family: 'Noto Sans Hebrew', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  :lang(ar) {
+    font-family: 'Noto Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    letter-spacing: 0; /* Arabic requires no letter spacing (connected script) */
+  }
+
+  :lang(ur) {
+    font-family: 'Noto Nastaliq Urdu', serif;
+  }
+
+  /* ============================================
+     OVERSCROLL EASTER EGG
+     ============================================ */
+  .overscroll-easter-egg {
+    position: fixed;
+    left: 50%;
+    margin-inline-start: -40px; /* Half of width to center */
+    width: 80px;
+    height: 80px;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.9;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+  }
+
+  .overscroll-top {
+    top: -80px; /* Hidden above viewport, equal to height */
+  }
+
+  .overscroll-bottom {
+    bottom: -80px; /* Hidden below viewport, equal to height */
+  }
+
+  @media (max-width: 768px) {
+    .overscroll-easter-egg {
+      margin-inline-start: -30px; /* Half of mobile width */
+      width: 60px;
+      height: 60px;
+    }
+
+    .overscroll-top {
+      top: -60px;
+    }
+
+    .overscroll-bottom {
+      bottom: -60px;
+    }
+  }
 </style>
 
 <script>

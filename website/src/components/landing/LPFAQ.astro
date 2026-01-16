@@ -1,47 +1,21 @@
 ---
-/**
- * Common Concerns / FAQ - Address developer skepticism directly
- * Based on real concerns from community discussions
- */
+import { t, type Locale } from '../../i18n/config';
+import { translations } from '../../i18n/index';
 
-const concerns = [
-  {
-    question: "Wait, Caro runs locally. How does it stay updated with new dangerous patterns?",
-    answer: "Caro's safety patterns are baked into the binary—no network needed. When you update Caro (cargo install caro --force), you get the latest patterns. The core dangerous commands (rm -rf /, fork bombs, disk wipers) don't change. We also accept pattern contributions via GitHub.",
-    icon: "🔄"
-  },
-  {
-    question: "Will this slow down my incident response?",
-    answer: "No. Caro adds <100ms to command generation. The safety check is instant (pattern matching, not AI inference). In a real incident, that's 100ms that might save you from making things 10x worse. The validation is synchronous—you see the warning immediately.",
-    icon: "⚡"
-  },
-  {
-    question: "How does it know my specific system setup (BSD vs GNU, etc.)?",
-    answer: "Caro detects your OS and shell at runtime. On macOS, it knows you're using BSD tools. On Linux, it adjusts for GNU syntax. It reads your $SHELL and adjusts accordingly. No configuration needed—it just works.",
-    icon: "🖥️"
-  },
-  {
-    question: "What if I actually NEED to run a dangerous command?",
-    answer: "Caro warns, it doesn't jail. When you see a warning, you can still proceed—we just make sure you're doing it intentionally. For truly destructive commands (rm -rf /), you'll need to confirm. This is your seatbelt, not a straitjacket.",
-    icon: "🔓"
-  },
-  {
-    question: "Is this just another AI wrapper that sends my commands to the cloud?",
-    answer: "No. Caro runs 100% locally. Your commands, file paths, server names, and directory structures never leave your machine. The inference happens on your hardware. We collect minimal, anonymous usage metrics to improve the product—see our telemetry page for details. Check the source code—it's AGPL-3.0 licensed.",
-    icon: "🔒"
-  },
-  {
-    question: "Why should I trust AI-generated shell commands at all?",
-    answer: "You shouldn't trust them blindly—that's the point. Caro generates commands AND validates them before you run them. It's not 'trust the AI'—it's 'trust the pattern-based safety layer that catches what the AI might get wrong.' The validation is deterministic, not probabilistic.",
-    icon: "🎯"
-  }
-];
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = 'en' } = Astro.props;
+
+// Load concerns from translation file
+const concerns = translations[lang].landing.faq.concerns;
 ---
 
 <section id="faq" class="faq-section">
   <div class="container">
-    <h2>Common Concerns</h2>
-    <p class="section-subtitle">Real questions from skeptical engineers (we get it)</p>
+    <h2>{t(lang, 'landing.faq.title')}</h2>
+    <p class="section-subtitle">{t(lang, 'landing.faq.subtitle')}</p>
 
     <div class="faq-grid">
       {concerns.map((item) => (

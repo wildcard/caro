@@ -1,0 +1,20 @@
+{
+  "common": {
+    "buttons": {
+      "copy": "コピー",
+      "copied": "コピーしました！",
+      "getStarted": "はじめる",
+      "watchDemo": "デモを見る"
+    },
+    "status": {
+      "availableNow": "利用可能",
+      "inDevelopment": "開発中",
+      "planned": "予定",
+      "comingSoon": "近日公開"
+    },
+    "aria": {
+      "toggleDarkMode": "ダークモードを切り替え",
+      "toggleHolidayTheme": "ホリデーテーマメニューを切り替え"
+    }
+  }
+}

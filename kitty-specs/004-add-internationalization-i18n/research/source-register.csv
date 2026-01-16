@@ -1,0 +1,13 @@
+SourceID,Title,Type,URL,Access Date,Reliability,Notes
+S001,Astro Internationalization Guide,Official Documentation,https://docs.astro.build/en/guides/internationalization/,2025-12-28,High,Official Astro framework documentation - authoritative source for i18n implementation
+S002,W3C Choosing Language Tags,W3C Guideline,https://www.w3.org/International/questions/qa-choosing-language-tags,2025-12-28,High,W3C internationalization working group - standards body for web i18n
+S003,RTL Styling 101,Technical Guide,https://rtlstyling.com/,2025-12-28,High,Comprehensive guide to RTL CSS best practices - industry standard reference
+S004,Google Fonts Documentation,Official Documentation,https://fonts.google.com/,2025-12-28,High,Google Fonts CDN - primary source for Noto font family information
+S005,OpenAI API Pricing,Pricing Page,https://openai.com/api/pricing/,2025-12-28,High,Official OpenAI pricing - accurate cost estimates for GPT-4 API usage
+S006,OpenAI Node.js SDK,GitHub Repository,https://github.com/openai/openai-node,2025-12-28,High,Official SDK repository - source of truth for SDK capabilities and patterns
+S007,React i18next Documentation,Library Documentation,https://react.i18next.com/,2025-12-28,Medium,Industry-standard i18n library - patterns applicable to Astro implementation
+S008,GitHub Actions Matrix Strategy,GitHub Docs,https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs,2025-12-28,High,Official GitHub Actions documentation - authoritative for workflow design
+S009,Arabic Typography Guidelines,Typography Guide,https://www.w3.org/International/articles/typography/arabic,2025-12-28,High,W3C guide to Arabic typography - authoritative for RTL text rendering
+S010,MDN CSS Logical Properties,Web Standards,https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Logical_Properties,2025-12-28,High,Mozilla Developer Network - definitive reference for CSS logical properties
+S011,Astro Package.json,Project File,/Users/kobik-private/workspace/caro/website/package.json,2025-12-28,High,Project dependency file - confirms Astro version 4.16.17 (supports native i18n)
+S012,Project CLAUDE.md,Project Documentation,/Users/kobik-private/workspace/caro/CLAUDE.md,2025-12-28,High,Project constitution - defines quality standards and architectural principles

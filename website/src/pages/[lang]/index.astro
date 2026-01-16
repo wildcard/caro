@@ -1,0 +1,43 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import AnnouncementBanner from '../../components/AnnouncementBanner.astro';
+import Navigation from '../../components/Navigation.astro';
+import Hero from '../../components/Hero.astro';
+import Terminal from '../../components/Terminal.astro';
+import Story from '../../components/Story.astro';
+import Video from '../../components/Video.astro';
+import Features from '../../components/Features.astro';
+import Comparison from '../../components/Comparison.astro';
+import CaroGame from '../../components/CaroGame.astro';
+import Blog from '../../components/Blog.astro';
+import Download from '../../components/Download.astro';
+import Footer from '../../components/Footer.astro';
+import { languages, type Locale } from '../../i18n/config';
+
+export function getStaticPaths() {
+  return Object.keys(languages)
+    .filter(lang => lang !== 'en')  // English stays at /
+    .map(lang => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Locale };
+---
+
+<Layout
+  title="Caro - Your loyal shell companion"
+  description="Caro is a companion agent that helps you with POSIX shell commands. Available as an MCP for Claude and as a dedicated Skill."
+  lang={lang}
+>
+  <AnnouncementBanner lang={lang} />
+  <Navigation lang={lang} />
+  <Hero lang={lang} />
+  <Terminal lang={lang} />
+  <Story lang={lang} />
+  <Video lang={lang} />
+  <Features lang={lang} />
+  <Comparison lang={lang} />
+  <CaroGame lang={lang} />
+  <Blog lang={lang} />
+  <Download lang={lang} />
+  <Footer lang={lang} />
+</Layout>
