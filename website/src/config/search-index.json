@@ -1,6 +1,6 @@
 {
   "version": "2.1.0",
-  "generated": "2026-01-16T04:22:46.505Z",
+  "generated": "2026-01-16T04:37:10.588Z",
   "totalPages": 36,
   "pages": [
     {
@@ -6537,14 +6537,11 @@
     {
       "source": "/Comparison.astro",
       "headings": [
-        "How Caro Compares"
+        ".title`)}"
       ],
-      "paragraphs": [
-        "Built for DevOps engineers and SREs who refuse to sacrifice privacy for productivity",
-        "Ready for a shell companion that respects your privacy?"
-      ],
-      "fullText": "How Caro Compares Built for DevOps engineers and SREs who refuse to sacrifice privacy for productivity 🔒 Privacy First Design* 🛡️ 52+ Safety Patterns 📡 100% Offline Capable 🦀 Rust Built for Speed Feature > ))} > >? } $ > } ); })} ))} ))} Ready for a shell companion that respects your privacy? Get Started Free See Full Comparison ✓ Full support ◐ Partial/configurable ✗ Not supported ◎ Planned",
-      "_searchText": "how caro compares built for devops engineers and sres who refuse to sacrifice privacy for productivity ready for a shell companion that respects your privacy? how caro compares built for devops engineers and sres who refuse to sacrifice privacy for productivity 🔒 privacy first design* 🛡️ 52+ safety patterns 📡 100% offline capable 🦀 rust built for speed feature > ))} > >? } $ > } ); })} ))} ))} ready for a shell companion that respects your privacy? get started free see full comparison ✓ full support ◐ partial/configurable ✗ not supported ◎ planned"
+      "paragraphs": [],
+      "fullText": "🔒 🛡️ 📡 🦀 .title`)} > } `)} ))} .features.$ .name`); const featureTooltip = t(lang, `landing.comparison.categories.$ .features.$ .tooltip`); return ( >? } `); return ( } ); })} ); })} ))} ✓ ◐ ✗ ◎",
+      "_searchText": ".title`)} 🔒 🛡️ 📡 🦀 .title`)} > } `)} ))} .features.$ .name`); const featuretooltip = t(lang, `landing.comparison.categories.$ .features.$ .tooltip`); return ( >? } `); return ( } ); })} ); })} ))} ✓ ◐ ✗ ◎"
     },
     {
       "source": "/Download.astro",

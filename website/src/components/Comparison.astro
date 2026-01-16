@@ -1,173 +1,122 @@
 ---
+import { t, type Locale } from '../i18n/config';
+
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = 'en' } = Astro.props;
+
 // Comparison table data structured for growth-hacking SEO and conversion
 const competitors = [
-  { id: 'caro', name: 'Caro', highlight: true },
-  { id: 'copilot-cli', name: 'GitHub Copilot CLI' },
-  { id: 'warp', name: 'Warp AI' },
-  { id: 'kiro', name: 'Kiro CLI' },
-  { id: 'opencode', name: 'OpenCode' },
+  { id: 'caro', nameKey: 'caro', highlight: true },
+  { id: 'copilot-cli', nameKey: 'copilotCli' },
+  { id: 'warp', nameKey: 'warp' },
+  { id: 'kiro', nameKey: 'kiro' },
+  { id: 'opencode', nameKey: 'opencode' },
 ];
 
 type FeatureValue = 'yes' | 'no' | 'partial' | string;
 
 interface ComparisonRow {
-  feature: string;
-  tooltip?: string;
+  featureKey: string;
   values: Record<string, FeatureValue>;
 }
 
-const comparisonData: { category: string; icon: string; rows: ComparisonRow[] }[] = [
+// Category and feature keys for translation lookup
+const comparisonData: { categoryKey: string; icon: string; rows: ComparisonRow[] }[] = [
   {
-    category: 'Privacy & Data',
+    categoryKey: 'privacyData',
     icon: '🔒',
     rows: [
-      {
-        feature: 'Works 100% offline',
-        tooltip: 'No internet required for core functionality',
-        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'partial' }
-      },
-      {
-        feature: 'Privacy-first design',
-        tooltip: 'Minimal, anonymous telemetry with easy opt-out',
-        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' }
-      },
-      {
-        feature: 'Air-gapped friendly',
-        tooltip: 'Can run in isolated environments',
-        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'partial' }
-      },
-      {
-        feature: 'Open source',
-        tooltip: 'Full source code available',
-        values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' }
-      },
+      { featureKey: 'worksOffline', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'partial' } },
+      { featureKey: 'privacyFirst', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' } },
+      { featureKey: 'airGapped', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'partial' } },
+      { featureKey: 'openSource', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' } },
     ]
   },
   {
-    category: 'Safety & Control',
+    categoryKey: 'safetyControl',
     icon: '🛡️',
     rows: [
-      {
-        feature: 'Rule-based safety checks',
-        tooltip: 'Pre-execution validation with defined patterns',
-        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'no' }
-      },
-      {
-        feature: 'Explicit confirmation required',
-        tooltip: 'Commands never run without your approval',
-        values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'partial', 'opencode': 'partial' }
-      },
-      {
-        feature: 'Blocks dangerous commands',
-        tooltip: 'Prevents rm -rf /, fork bombs, etc.',
-        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'no' }
-      },
-      {
-        feature: 'Risk level assessment',
-        tooltip: 'Commands rated by potential impact',
-        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'no' }
-      },
+      { featureKey: 'ruleBasedSafety', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'no' } },
+      { featureKey: 'explicitConfirmation', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'partial', 'opencode': 'partial' } },
+      { featureKey: 'blocksDangerous', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'no' } },
+      { featureKey: 'riskLevel', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'no' } },
     ]
   },
   {
-    category: 'Shell Expertise',
+    categoryKey: 'shellExpertise',
     icon: '🖥️',
     rows: [
-      {
-        feature: 'POSIX-first approach',
-        tooltip: 'Portable commands that work everywhere',
-        values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'partial', 'opencode': 'partial' }
-      },
-      {
-        feature: 'Cross-platform (macOS/Linux/BSD)',
-        tooltip: 'Works across Unix-like systems',
-        values: { 'caro': 'yes', 'copilot-cli': 'yes', 'warp': 'macOS/Linux', 'kiro': 'yes', 'opencode': 'yes' }
-      },
-      {
-        feature: 'Uses your existing terminal',
-        tooltip: 'No new terminal emulator required',
-        values: { 'caro': 'yes', 'copilot-cli': 'yes', 'warp': 'no', 'kiro': 'yes', 'opencode': 'yes' }
-      },
-      {
-        feature: 'Platform-aware commands',
-        tooltip: 'Adjusts for GNU vs BSD syntax',
-        values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'partial', 'opencode': 'partial' }
-      },
+      { featureKey: 'posixFirst', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'partial', 'opencode': 'partial' } },
+      { featureKey: 'crossPlatform', values: { 'caro': 'yes', 'copilot-cli': 'yes', 'warp': 'macOS/Linux', 'kiro': 'yes', 'opencode': 'yes' } },
+      { featureKey: 'existingTerminal', values: { 'caro': 'yes', 'copilot-cli': 'yes', 'warp': 'no', 'kiro': 'yes', 'opencode': 'yes' } },
+      { featureKey: 'platformAware', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'partial', 'opencode': 'partial' } },
     ]
   },
   {
-    category: 'Model & Backend',
+    categoryKey: 'modelBackend',
     icon: '🧠',
     rows: [
-      {
-        feature: 'Local inference',
-        tooltip: 'Models run on your machine',
-        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'partial' }
-      },
-      {
-        feature: 'Multi-backend support',
-        tooltip: 'Choose your inference engine',
-        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' }
-      },
-      {
-        feature: 'Apple Silicon optimized',
-        tooltip: 'MLX framework for M-series Macs',
-        values: { 'caro': 'partial', 'copilot-cli': 'no', 'warp': 'partial', 'kiro': 'no', 'opencode': 'no' }
-      },
-      {
-        feature: 'Self-hostable',
-        tooltip: 'Full control over infrastructure',
-        values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' }
-      },
+      { featureKey: 'localInference', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'partial' } },
+      { featureKey: 'multiBackend', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' } },
+      { featureKey: 'appleSilicon', values: { 'caro': 'partial', 'copilot-cli': 'no', 'warp': 'partial', 'kiro': 'no', 'opencode': 'no' } },
+      { featureKey: 'selfHostable', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' } },
     ]
   },
 ];
 
-// Helper to render cell value
-function getCellDisplay(value: FeatureValue): { icon: string; class: string; label: string } {
+// Helper to render cell value - returns key for translation
+function getCellDisplay(value: FeatureValue): { icon: string; class: string; labelKey: string; isCustom: boolean; customLabel?: string } {
   switch (value) {
     case 'yes':
-      return { icon: '✓', class: 'cell-yes', label: 'Yes' };
+      return { icon: '✓', class: 'cell-yes', labelKey: 'yes', isCustom: false };
     case 'no':
-      return { icon: '✗', class: 'cell-no', label: 'No' };
+      return { icon: '✗', class: 'cell-no', labelKey: 'no', isCustom: false };
     case 'partial':
-      return { icon: '◐', class: 'cell-partial', label: 'Partial' };
+      return { icon: '◐', class: 'cell-partial', labelKey: 'partial', isCustom: false };
     case 'planned':
-      return { icon: '◎', class: 'cell-planned', label: 'Planned' };
+      return { icon: '◎', class: 'cell-planned', labelKey: 'planned', isCustom: false };
     default:
-      return { icon: '', class: 'cell-text', label: value };
+      return { icon: '', class: 'cell-text', labelKey: '', isCustom: true, customLabel: value };
   }
 }
+
+// Link helpers
+const telemetryHref = lang === 'en' ? '/telemetry' : `/${lang}/telemetry`;
+const downloadHref = lang === 'en' ? '#download' : `/${lang}/#download`;
+const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
 ---
 
 <section id="compare" class="comparison-section">
   <div class="container">
-    <h2>How Caro Compares</h2>
+    <h2>{t(lang, 'landing.comparison.title')}</h2>
     <p class="section-subtitle">
-      Built for DevOps engineers and SREs who refuse to sacrifice privacy for productivity
+      {t(lang, 'landing.comparison.subtitle')}
     </p>
 
     <!-- Quick Summary Cards -->
     <div class="summary-cards">
-      <a href="/telemetry" class="summary-card highlight summary-card-link">
+      <a href={telemetryHref} class="summary-card highlight summary-card-link">
         <span class="summary-icon">🔒</span>
-        <span class="summary-stat">Privacy</span>
-        <span class="summary-label">First Design*</span>
+        <span class="summary-stat">{t(lang, 'landing.comparison.summary.privacy.stat')}</span>
+        <span class="summary-label">{t(lang, 'landing.comparison.summary.privacy.label')}</span>
       </a>
       <div class="summary-card highlight">
         <span class="summary-icon">🛡️</span>
-        <span class="summary-stat">52+</span>
-        <span class="summary-label">Safety Patterns</span>
+        <span class="summary-stat">{t(lang, 'landing.comparison.summary.safety.stat')}</span>
+        <span class="summary-label">{t(lang, 'landing.comparison.summary.safety.label')}</span>
       </div>
       <div class="summary-card highlight">
         <span class="summary-icon">📡</span>
-        <span class="summary-stat">100%</span>
-        <span class="summary-label">Offline Capable</span>
+        <span class="summary-stat">{t(lang, 'landing.comparison.summary.offline.stat')}</span>
+        <span class="summary-label">{t(lang, 'landing.comparison.summary.offline.label')}</span>
       </div>
       <div class="summary-card highlight">
         <span class="summary-icon">🦀</span>
-        <span class="summary-stat">Rust</span>
-        <span class="summary-label">Built for Speed</span>
+        <span class="summary-stat">{t(lang, 'landing.comparison.summary.speed.stat')}</span>
+        <span class="summary-label">{t(lang, 'landing.comparison.summary.speed.label')}</span>
       </div>
     </div>
 
@@ -176,39 +125,44 @@ function getCellDisplay(value: FeatureValue): { icon: string; class: string; lab
       <div class="comparison-category">
         <h3 class="category-title">
           <span class="category-icon">{category.icon}</span>
-          {category.category}
+          {t(lang, `landing.comparison.categories.${category.categoryKey}.title`)}
         </h3>
         <div class="table-wrapper">
           <table class="comparison-table">
             <thead>
               <tr>
-                <th class="feature-header">Feature</th>
+                <th class="feature-header">{t(lang, 'landing.comparison.table.feature')}</th>
                 {competitors.map((comp) => (
                   <th class={comp.highlight ? 'competitor-header highlight' : 'competitor-header'}>
-                    {comp.highlight && <span class="highlight-badge">You're here</span>}
-                    {comp.name}
+                    {comp.highlight && <span class="highlight-badge">{t(lang, 'landing.comparison.table.youreHere')}</span>}
+                    {t(lang, `landing.comparison.competitors.${comp.nameKey}`)}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {category.rows.map((row) => (
-                <tr>
-                  <td class="feature-cell" title={row.tooltip}>
-                    {row.feature}
-                    {row.tooltip && <span class="tooltip-icon" aria-label={row.tooltip}>?</span>}
-                  </td>
-                  {competitors.map((comp) => {
-                    const display = getCellDisplay(row.values[comp.id]);
-                    return (
-                      <td class={`value-cell ${display.class} ${comp.highlight ? 'highlight-col' : ''}`}>
-                        <span class="cell-icon" aria-label={display.label}>{display.icon}</span>
-                        {display.icon === '' && <span class="cell-text-value">{display.label}</span>}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
+              {category.rows.map((row) => {
+                const featureName = t(lang, `landing.comparison.categories.${category.categoryKey}.features.${row.featureKey}.name`);
+                const featureTooltip = t(lang, `landing.comparison.categories.${category.categoryKey}.features.${row.featureKey}.tooltip`);
+                return (
+                  <tr>
+                    <td class="feature-cell" title={featureTooltip}>
+                      {featureName}
+                      {featureTooltip && <span class="tooltip-icon" aria-label={featureTooltip}>?</span>}
+                    </td>
+                    {competitors.map((comp) => {
+                      const display = getCellDisplay(row.values[comp.id]);
+                      const displayLabel = display.isCustom ? display.customLabel : t(lang, `landing.comparison.values.${display.labelKey}`);
+                      return (
+                        <td class={`value-cell ${display.class} ${comp.highlight ? 'highlight-col' : ''}`}>
+                          <span class="cell-icon" aria-label={displayLabel}>{display.icon}</span>
+                          {display.icon === '' && <span class="cell-text-value">{displayLabel}</span>}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -217,19 +171,19 @@ function getCellDisplay(value: FeatureValue): { icon: string; class: string; lab
 
     <!-- Bottom CTA -->
     <div class="comparison-cta">
-      <p class="cta-text">Ready for a shell companion that respects your privacy?</p>
+      <p class="cta-text">{t(lang, 'landing.comparison.cta.text')}</p>
       <div class="cta-buttons">
-        <a href="#download" class="cta-button primary">Get Started Free</a>
-        <a href="/compare" class="cta-button secondary">See Full Comparison</a>
+        <a href={downloadHref} class="cta-button primary">{t(lang, 'landing.comparison.cta.getStarted')}</a>
+        <a href={compareHref} class="cta-button secondary">{t(lang, 'landing.comparison.cta.fullComparison')}</a>
       </div>
     </div>
 
     <!-- Legend -->
     <div class="legend">
-      <span class="legend-item"><span class="legend-icon cell-yes">✓</span> Full support</span>
-      <span class="legend-item"><span class="legend-icon cell-partial">◐</span> Partial/configurable</span>
-      <span class="legend-item"><span class="legend-icon cell-no">✗</span> Not supported</span>
-      <span class="legend-item"><span class="legend-icon cell-planned">◎</span> Planned</span>
+      <span class="legend-item"><span class="legend-icon cell-yes">✓</span> {t(lang, 'landing.comparison.legend.fullSupport')}</span>
+      <span class="legend-item"><span class="legend-icon cell-partial">◐</span> {t(lang, 'landing.comparison.legend.partial')}</span>
+      <span class="legend-item"><span class="legend-icon cell-no">✗</span> {t(lang, 'landing.comparison.legend.notSupported')}</span>
+      <span class="legend-item"><span class="legend-icon cell-planned">◎</span> {t(lang, 'landing.comparison.legend.planned')}</span>
     </div>
   </div>
 </section>

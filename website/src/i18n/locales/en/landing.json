@@ -78,6 +78,130 @@
         }
       }
     },
+    "comparison": {
+      "title": "How Caro Compares",
+      "subtitle": "Built for DevOps engineers and SREs who refuse to sacrifice privacy for productivity",
+      "summary": {
+        "privacy": { "stat": "Privacy", "label": "First Design*" },
+        "safety": { "stat": "52+", "label": "Safety Patterns" },
+        "offline": { "stat": "100%", "label": "Offline Capable" },
+        "speed": { "stat": "Rust", "label": "Built for Speed" }
+      },
+      "competitors": {
+        "caro": "Caro",
+        "copilotCli": "GitHub Copilot CLI",
+        "warp": "Warp AI",
+        "kiro": "Kiro CLI",
+        "opencode": "OpenCode"
+      },
+      "table": {
+        "feature": "Feature",
+        "youreHere": "You're here"
+      },
+      "categories": {
+        "privacyData": {
+          "title": "Privacy & Data",
+          "features": {
+            "worksOffline": {
+              "name": "Works 100% offline",
+              "tooltip": "No internet required for core functionality"
+            },
+            "privacyFirst": {
+              "name": "Privacy-first design",
+              "tooltip": "Minimal, anonymous telemetry with easy opt-out"
+            },
+            "airGapped": {
+              "name": "Air-gapped friendly",
+              "tooltip": "Can run in isolated environments"
+            },
+            "openSource": {
+              "name": "Open source",
+              "tooltip": "Full source code available"
+            }
+          }
+        },
+        "safetyControl": {
+          "title": "Safety & Control",
+          "features": {
+            "ruleBasedSafety": {
+              "name": "Rule-based safety checks",
+              "tooltip": "Pre-execution validation with defined patterns"
+            },
+            "explicitConfirmation": {
+              "name": "Explicit confirmation required",
+              "tooltip": "Commands never run without your approval"
+            },
+            "blocksDangerous": {
+              "name": "Blocks dangerous commands",
+              "tooltip": "Prevents rm -rf /, fork bombs, etc."
+            },
+            "riskLevel": {
+              "name": "Risk level assessment",
+              "tooltip": "Commands rated by potential impact"
+            }
+          }
+        },
+        "shellExpertise": {
+          "title": "Shell Expertise",
+          "features": {
+            "posixFirst": {
+              "name": "POSIX-first approach",
+              "tooltip": "Portable commands that work everywhere"
+            },
+            "crossPlatform": {
+              "name": "Cross-platform (macOS/Linux/BSD)",
+              "tooltip": "Works across Unix-like systems"
+            },
+            "existingTerminal": {
+              "name": "Uses your existing terminal",
+              "tooltip": "No new terminal emulator required"
+            },
+            "platformAware": {
+              "name": "Platform-aware commands",
+              "tooltip": "Adjusts for GNU vs BSD syntax"
+            }
+          }
+        },
+        "modelBackend": {
+          "title": "Model & Backend",
+          "features": {
+            "localInference": {
+              "name": "Local inference",
+              "tooltip": "Models run on your machine"
+            },
+            "multiBackend": {
+              "name": "Multi-backend support",
+              "tooltip": "Choose your inference engine"
+            },
+            "appleSilicon": {
+              "name": "Apple Silicon optimized",
+              "tooltip": "MLX framework for M-series Macs"
+            },
+            "selfHostable": {
+              "name": "Self-hostable",
+              "tooltip": "Full control over infrastructure"
+            }
+          }
+        }
+      },
+      "cta": {
+        "text": "Ready for a shell companion that respects your privacy?",
+        "getStarted": "Get Started Free",
+        "fullComparison": "See Full Comparison"
+      },
+      "legend": {
+        "fullSupport": "Full support",
+        "partial": "Partial/configurable",
+        "notSupported": "Not supported",
+        "planned": "Planned"
+      },
+      "values": {
+        "yes": "Yes",
+        "no": "No",
+        "partial": "Partial",
+        "planned": "Planned"
+      }
+    },
     "scenarios": {},
     "demo": {},
     "useCases": {},
