@@ -77,6 +77,14 @@ telemetry = false
 
 ---
 
+## Caro - Your loyal shell companion
+
+**URL**: https://caro.sh/
+
+Caro is a companion agent that helps you with POSIX shell commands. Available as an MCP for Claude and as a dedicated Skill.
+
+---
+
 ## FAQ - Caro Shell Assistant
 
 **URL**: https://caro.sh/faq
@@ -270,6 +278,14 @@ Discover modern replacements for classic Unix commands. Faster, safer, and more 
 Modern Unix Tools
 
 Next-generation CLI tools written in Rust and Go
+
+---
+
+## Caro - Your loyal shell companion
+
+**URL**: https://caro.sh/[lang]
+
+Caro is a companion agent that helps you with POSIX shell commands. Available as an MCP for Claude and as a dedicated Skill.
 
 ---
 

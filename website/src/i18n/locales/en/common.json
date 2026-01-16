@@ -19,6 +19,51 @@
     "aria": {
       "toggleDarkMode": "Toggle dark mode",
       "toggleHolidayTheme": "Toggle holiday theme menu"
+    },
+    "nav": {
+      "features": "Features",
+      "compare": "Compare",
+      "resources": "Resources",
+      "support": "Support",
+      "getStarted": "Get Started",
+      "dropdown": {
+        "overview": "Overview",
+        "seeAllComparisons": "See all comparisons",
+        "vsWarp": "vs Warp",
+        "aiNativeTerminal": "AI-native terminal",
+        "vsGitHubCopilot": "vs GitHub Copilot CLI",
+        "aiPairProgrammer": "AI pair programmer",
+        "vsKiro": "vs Kiro CLI",
+        "awsAssistant": "AWS AI assistant",
+        "blog": "Blog",
+        "newsAndTutorials": "News & tutorials",
+        "explore": "Explore",
+        "interactiveDemo": "Interactive demo",
+        "faq": "FAQ",
+        "commonQuestions": "Common questions",
+        "roadmap": "Roadmap",
+        "whatsNext": "What's coming next",
+        "glossary": "Glossary",
+        "terminalTerms": "Terminal & Unix terms",
+        "github": "GitHub",
+        "sourceCode": "Source code"
+      },
+      "mobile": {
+        "allComparisons": "All Comparisons",
+        "supportCaro": "Support Caro"
+      },
+      "appearance": {
+        "title": "Appearance",
+        "darkMode": "Dark Mode",
+        "holidayTheme": "Holiday Theme",
+        "snowEffect": "Snow Effect",
+        "disableEffects": "Disable All Effects"
+      },
+      "useCases": {
+        "allUseCases": "All Use Cases",
+        "byRole": "By Role",
+        "backToHome": "Back to Home"
+      }
     }
   }
 }

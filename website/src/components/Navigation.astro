@@ -8,12 +8,15 @@
  * - use-cases: Use cases section with All Use Cases, By Role dropdown
  */
 
+import { t, type Locale } from '../i18n/config';
+
 interface Props {
   variant?: 'default' | 'use-cases';
   currentPage?: string;
+  lang?: Locale;
 }
 
-const { variant = 'default', currentPage } = Astro.props;
+const { variant = 'default', currentPage, lang = 'en' } = Astro.props;
 
 // Use-cases personas for the dropdown
 const personas = [
@@ -28,7 +31,7 @@ const personas = [
 <nav class="navigation" id="main-nav">
   <div class="nav-container">
     <!-- Logo -->
-    <a href="/" class="nav-brand">
+    <a href={lang === 'en' ? '/' : `/${lang}/`} class="nav-brand">
       <span class="brand-icon">🐕</span>
       <span class="brand-text">Caro</span>
     </a>
@@ -39,11 +42,11 @@ const personas = [
         <!-- Use Cases Navigation -->
         <ul class="nav-menu nav-menu-use-cases">
           <li class="nav-item">
-            <a href="/use-cases" class={currentPage === 'index' ? 'active' : ''}>All Use Cases</a>
+            <a href="/use-cases" class={currentPage === 'index' ? 'active' : ''}>{t(lang, 'common.nav.useCases.allUseCases')}</a>
           </li>
           <li class="nav-item has-dropdown">
             <button class="dropdown-trigger" aria-expanded="false">
-              By Role
+              {t(lang, 'common.nav.useCases.byRole')}
               <svg class="chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
                 <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -60,18 +63,18 @@ const personas = [
             </div>
           </li>
           <li class="nav-item">
-            <a href="/">Back to Home</a>
+            <a href={lang === 'en' ? '/' : `/${lang}/`}>{t(lang, 'common.nav.useCases.backToHome')}</a>
           </li>
         </ul>
       ) : (
         <!-- Default Navigation -->
         <ul class="nav-menu">
           <li class="nav-item">
-            <a href="/#features">Features</a>
+            <a href={lang === 'en' ? '/#features' : `/${lang}/#features`}>{t(lang, 'common.nav.features')}</a>
           </li>
           <li class="nav-item has-dropdown">
             <button class="dropdown-trigger" aria-expanded="false">
-              Compare
+              {t(lang, 'common.nav.compare')}
               <svg class="chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
                 <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -80,88 +83,88 @@ const personas = [
               <a href="/compare" class="dropdown-item">
                 <span class="item-icon">📊</span>
                 <div class="item-content">
-                  <span class="item-title">Overview</span>
-                  <span class="item-desc">See all comparisons</span>
+                  <span class="item-title">{t(lang, 'common.nav.dropdown.overview')}</span>
+                  <span class="item-desc">{t(lang, 'common.nav.dropdown.seeAllComparisons')}</span>
                 </div>
               </a>
               <a href="/compare/warp" class="dropdown-item">
                 <span class="item-icon">⚡</span>
                 <div class="item-content">
-                  <span class="item-title">vs Warp</span>
-                  <span class="item-desc">AI-native terminal</span>
+                  <span class="item-title">{t(lang, 'common.nav.dropdown.vsWarp')}</span>
+                  <span class="item-desc">{t(lang, 'common.nav.dropdown.aiNativeTerminal')}</span>
                 </div>
               </a>
               <a href="/compare/github-copilot-cli" class="dropdown-item">
                 <span class="item-icon">🤖</span>
                 <div class="item-content">
-                  <span class="item-title">vs GitHub Copilot CLI</span>
-                  <span class="item-desc">AI pair programmer</span>
+                  <span class="item-title">{t(lang, 'common.nav.dropdown.vsGitHubCopilot')}</span>
+                  <span class="item-desc">{t(lang, 'common.nav.dropdown.aiPairProgrammer')}</span>
                 </div>
               </a>
               <a href="/compare/kiro-cli" class="dropdown-item">
                 <span class="item-icon">👻</span>
                 <div class="item-content">
-                  <span class="item-title">vs Kiro CLI</span>
-                  <span class="item-desc">AWS AI assistant</span>
+                  <span class="item-title">{t(lang, 'common.nav.dropdown.vsKiro')}</span>
+                  <span class="item-desc">{t(lang, 'common.nav.dropdown.awsAssistant')}</span>
                 </div>
               </a>
             </div>
           </li>
           <li class="nav-item has-dropdown">
             <button class="dropdown-trigger" aria-expanded="false">
-              Resources
+              {t(lang, 'common.nav.resources')}
               <svg class="chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
                 <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </button>
             <div class="dropdown-panel">
-              <a href="/#blog" class="dropdown-item">
+              <a href={lang === 'en' ? '/#blog' : `/${lang}/#blog`} class="dropdown-item">
                 <span class="item-icon">📝</span>
                 <div class="item-content">
-                  <span class="item-title">Blog</span>
-                  <span class="item-desc">News & tutorials</span>
+                  <span class="item-title">{t(lang, 'common.nav.dropdown.blog')}</span>
+                  <span class="item-desc">{t(lang, 'common.nav.dropdown.newsAndTutorials')}</span>
                 </div>
               </a>
               <a href="/explore" class="dropdown-item">
                 <span class="item-icon">🔍</span>
                 <div class="item-content">
-                  <span class="item-title">Explore</span>
-                  <span class="item-desc">Interactive demo</span>
+                  <span class="item-title">{t(lang, 'common.nav.dropdown.explore')}</span>
+                  <span class="item-desc">{t(lang, 'common.nav.dropdown.interactiveDemo')}</span>
                 </div>
               </a>
               <a href="/faq" class="dropdown-item">
                 <span class="item-icon">❓</span>
                 <div class="item-content">
-                  <span class="item-title">FAQ</span>
-                  <span class="item-desc">Common questions</span>
+                  <span class="item-title">{t(lang, 'common.nav.dropdown.faq')}</span>
+                  <span class="item-desc">{t(lang, 'common.nav.dropdown.commonQuestions')}</span>
                 </div>
               </a>
               <a href="/roadmap" class="dropdown-item">
                 <span class="item-icon">🗺️</span>
                 <div class="item-content">
-                  <span class="item-title">Roadmap</span>
-                  <span class="item-desc">What's coming next</span>
+                  <span class="item-title">{t(lang, 'common.nav.dropdown.roadmap')}</span>
+                  <span class="item-desc">{t(lang, 'common.nav.dropdown.whatsNext')}</span>
                 </div>
               </a>
               <a href="/glossary" class="dropdown-item">
                 <span class="item-icon">📖</span>
                 <div class="item-content">
-                  <span class="item-title">Glossary</span>
-                  <span class="item-desc">Terminal & Unix terms</span>
+                  <span class="item-title">{t(lang, 'common.nav.dropdown.glossary')}</span>
+                  <span class="item-desc">{t(lang, 'common.nav.dropdown.terminalTerms')}</span>
                 </div>
               </a>
               <a href="https://github.com/wildcard/caro" class="dropdown-item" target="_blank" rel="noopener noreferrer">
                 <span class="item-icon">🐙</span>
                 <div class="item-content">
-                  <span class="item-title">GitHub</span>
-                  <span class="item-desc">Source code</span>
+                  <span class="item-title">{t(lang, 'common.nav.dropdown.github')}</span>
+                  <span class="item-desc">{t(lang, 'common.nav.dropdown.sourceCode')}</span>
                 </div>
               </a>
             </div>
           </li>
           <li class="nav-item">
             <a href="/support" class="support-link">
-              <span class="support-heart">♥</span> Support
+              <span class="support-heart">♥</span> {t(lang, 'common.nav.support')}
             </a>
           </li>
         </ul>
@@ -233,8 +236,8 @@ const personas = [
           </button>
         </div>
 
-        <a href="/#download" class="nav-cta">
-          Get Started
+        <a href={lang === 'en' ? '/#download' : `/${lang}/#download`} class="nav-cta">
+          {t(lang, 'common.nav.getStarted')}
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -256,7 +259,7 @@ const personas = [
   <div class="drawer-backdrop" id="drawer-backdrop"></div>
   <div class="drawer-panel">
     <div class="drawer-header">
-      <a href="/" class="drawer-brand">
+      <a href={lang === 'en' ? '/' : `/${lang}/`} class="drawer-brand">
         <span>🐕</span> Caro
       </a>
       <div class="drawer-header-actions">
@@ -277,12 +280,12 @@ const personas = [
           <div class="drawer-section">
             <a href="/use-cases" class={`drawer-link ${currentPage === 'index' ? 'active' : ''}`}>
               <span class="link-icon">📋</span>
-              <span class="link-text">All Use Cases</span>
+              <span class="link-text">{t(lang, 'common.nav.useCases.allUseCases')}</span>
             </a>
           </div>
 
           <div class="drawer-section">
-            <div class="section-header">By Role</div>
+            <div class="section-header">{t(lang, 'common.nav.useCases.byRole')}</div>
             {personas.map((persona) => (
               <a href={`/use-cases/${persona.slug}`} class={`drawer-link ${currentPage === persona.slug ? 'active' : ''}`}>
                 <span class="link-icon">{persona.icon}</span>
@@ -292,9 +295,9 @@ const personas = [
           </div>
 
           <div class="drawer-section">
-            <a href="/" class="drawer-link">
+            <a href={lang === 'en' ? '/' : `/${lang}/`} class="drawer-link">
               <span class="link-icon">🏠</span>
-              <span class="link-text">Back to Home</span>
+              <span class="link-text">{t(lang, 'common.nav.useCases.backToHome')}</span>
             </a>
           </div>
         </Fragment>
@@ -302,61 +305,61 @@ const personas = [
         <!-- Default Mobile Navigation -->
         <Fragment>
           <div class="drawer-section">
-            <a href="/#features" class="drawer-link">
+            <a href={lang === 'en' ? '/#features' : `/${lang}/#features`} class="drawer-link">
               <span class="link-icon">⭐</span>
-              <span class="link-text">Features</span>
+              <span class="link-text">{t(lang, 'common.nav.features')}</span>
             </a>
-            <a href="/#how-it-works" class="drawer-link">
+            <a href={lang === 'en' ? '/#how-it-works' : `/${lang}/#how-it-works`} class="drawer-link">
               <span class="link-icon">🎬</span>
-              <span class="link-text">Watch Demo</span>
+              <span class="link-text">{t(lang, 'common.buttons.watchDemo')}</span>
             </a>
           </div>
 
           <div class="drawer-section">
-            <div class="section-header">Compare</div>
+            <div class="section-header">{t(lang, 'common.nav.compare')}</div>
             <a href="/compare" class="drawer-link">
               <span class="link-icon">📊</span>
-              <span class="link-text">All Comparisons</span>
+              <span class="link-text">{t(lang, 'common.nav.mobile.allComparisons')}</span>
             </a>
             <a href="/compare/warp" class="drawer-link">
               <span class="link-icon">⚡</span>
-              <span class="link-text">vs Warp</span>
+              <span class="link-text">{t(lang, 'common.nav.dropdown.vsWarp')}</span>
             </a>
             <a href="/compare/github-copilot-cli" class="drawer-link">
               <span class="link-icon">🤖</span>
-              <span class="link-text">vs GitHub Copilot</span>
+              <span class="link-text">{t(lang, 'common.nav.dropdown.vsGitHubCopilot')}</span>
             </a>
             <a href="/compare/kiro-cli" class="drawer-link">
               <span class="link-icon">👻</span>
-              <span class="link-text">vs Kiro CLI</span>
+              <span class="link-text">{t(lang, 'common.nav.dropdown.vsKiro')}</span>
             </a>
           </div>
 
           <div class="drawer-section">
-            <div class="section-header">Resources</div>
-            <a href="/#blog" class="drawer-link">
+            <div class="section-header">{t(lang, 'common.nav.resources')}</div>
+            <a href={lang === 'en' ? '/#blog' : `/${lang}/#blog`} class="drawer-link">
               <span class="link-icon">📝</span>
-              <span class="link-text">Blog</span>
+              <span class="link-text">{t(lang, 'common.nav.dropdown.blog')}</span>
             </a>
             <a href="/explore" class="drawer-link">
               <span class="link-icon">🔍</span>
-              <span class="link-text">Explore</span>
+              <span class="link-text">{t(lang, 'common.nav.dropdown.explore')}</span>
             </a>
             <a href="/faq" class="drawer-link">
               <span class="link-icon">❓</span>
-              <span class="link-text">FAQ</span>
+              <span class="link-text">{t(lang, 'common.nav.dropdown.faq')}</span>
             </a>
             <a href="/roadmap" class="drawer-link">
               <span class="link-icon">🗺️</span>
-              <span class="link-text">Roadmap</span>
+              <span class="link-text">{t(lang, 'common.nav.dropdown.roadmap')}</span>
             </a>
             <a href="/glossary" class="drawer-link">
               <span class="link-icon">📖</span>
-              <span class="link-text">Glossary</span>
+              <span class="link-text">{t(lang, 'common.nav.dropdown.glossary')}</span>
             </a>
             <a href="https://github.com/wildcard/caro" class="drawer-link" target="_blank" rel="noopener noreferrer">
               <span class="link-icon">🐙</span>
-              <span class="link-text">GitHub</span>
+              <span class="link-text">{t(lang, 'common.nav.dropdown.github')}</span>
               <svg class="external-icon" width="12" height="12" viewBox="0 0 12 12" fill="none">
                 <path d="M9 3L3 9M9 3H5M9 3V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -366,7 +369,7 @@ const personas = [
           <div class="drawer-section">
             <a href="/support" class="drawer-link support-link">
               <span class="link-icon">💖</span>
-              <span class="link-text">Support Caro</span>
+              <span class="link-text">{t(lang, 'common.nav.mobile.supportCaro')}</span>
             </a>
           </div>
         </Fragment>
@@ -374,15 +377,15 @@ const personas = [
 
       <!-- Theme Controls -->
       <div class="drawer-section theme-section">
-        <div class="section-header">Appearance</div>
+        <div class="section-header">{t(lang, 'common.nav.appearance.title')}</div>
 
         <!-- Dark Mode -->
         <div class="theme-control">
           <div class="control-label">
             <span class="control-icon">🌓</span>
-            <span>Dark Mode</span>
+            <span>{t(lang, 'common.nav.appearance.darkMode')}</span>
           </div>
-          <button id="theme-toggle-mobile" class="toggle-switch" aria-label="Toggle dark mode">
+          <button id="theme-toggle-mobile" class="toggle-switch" aria-label={t(lang, 'common.aria.toggleDarkMode')}>
             <span class="toggle-track">
               <span class="toggle-thumb"></span>
             </span>
@@ -394,7 +397,7 @@ const personas = [
           <div class="theme-control">
             <div class="control-label">
               <span class="control-icon" id="holiday-icon-mobile">🎄</span>
-              <span>Holiday Theme</span>
+              <span>{t(lang, 'common.nav.appearance.holidayTheme')}</span>
             </div>
             <select id="holiday-select-mobile" class="theme-select">
               <option value="christmas">Christmas 🎄</option>
@@ -407,7 +410,7 @@ const personas = [
           <div class="theme-control">
             <div class="control-label">
               <span class="control-icon">❄️</span>
-              <span>Snow Effect</span>
+              <span>{t(lang, 'common.nav.appearance.snowEffect')}</span>
             </div>
             <button id="snow-toggle-mobile" class="toggle-switch" aria-label="Toggle snow effect">
               <span class="toggle-track">
@@ -419,7 +422,7 @@ const personas = [
           <div class="theme-control">
             <div class="control-label">
               <span class="control-icon">🎆</span>
-              <span>Disable All Effects</span>
+              <span>{t(lang, 'common.nav.appearance.disableEffects')}</span>
             </div>
             <button id="effects-toggle-mobile" class="toggle-switch" aria-label="Toggle all effects">
               <span class="toggle-track">
@@ -433,8 +436,8 @@ const personas = [
 
     <!-- Drawer Footer -->
     <div class="drawer-footer">
-      <a href="/#download" class="drawer-cta">
-        <span>Get Started</span>
+      <a href={lang === 'en' ? '/#download' : `/${lang}/#download`} class="drawer-cta">
+        <span>{t(lang, 'common.nav.getStarted')}</span>
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
