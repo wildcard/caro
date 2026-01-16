@@ -25,7 +25,33 @@ permissions:
   pull-requests: write
 
 jobs:
+  check-secrets:
+    runs-on: ubuntu-latest
+    outputs:
+      has-openai: ${{ steps.check.outputs.has-openai }}
+      has-anthropic: ${{ steps.check.outputs.has-anthropic }}
+    steps:
+      - name: Check available secrets
+        id: check
+        run: |
+          if [ -n "${{ secrets.OPENAI_API_KEY }}" ]; then
+            echo "has-openai=true" >> $GITHUB_OUTPUT
+          else
+            echo "has-openai=false" >> $GITHUB_OUTPUT
+            echo "⚠️ OPENAI_API_KEY secret not configured"
+          fi
+          if [ -n "${{ secrets.ANTHROPIC_API_KEY }}" ]; then
+            echo "has-anthropic=true" >> $GITHUB_OUTPUT
+          else
+            echo "has-anthropic=false" >> $GITHUB_OUTPUT
+          fi
+
   translate:
+    needs: check-secrets
+    if: |
+      needs.check-secrets.outputs.has-openai == 'true' ||
+      needs.check-secrets.outputs.has-anthropic == 'true' ||
+      github.event.inputs.backend == 'libretranslate'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -43,10 +69,28 @@ jobs:
       - name: Install dependencies
         run: npm install openai
 
+      - name: Determine backend
+        id: backend
+        run: |
+          REQUESTED="${{ github.event.inputs.backend || 'openai' }}"
+          if [ "$REQUESTED" = "openai" ] && [ "${{ needs.check-secrets.outputs.has-openai }}" = "true" ]; then
+            echo "selected=openai" >> $GITHUB_OUTPUT
+          elif [ "$REQUESTED" = "claude" ] && [ "${{ needs.check-secrets.outputs.has-anthropic }}" = "true" ]; then
+            echo "selected=claude" >> $GITHUB_OUTPUT
+          elif [ "$REQUESTED" = "libretranslate" ]; then
+            echo "selected=libretranslate" >> $GITHUB_OUTPUT
+          elif [ "${{ needs.check-secrets.outputs.has-anthropic }}" = "true" ]; then
+            echo "selected=claude" >> $GITHUB_OUTPUT
+            echo "Falling back to Claude backend"
+          else
+            echo "selected=libretranslate" >> $GITHUB_OUTPUT
+            echo "Falling back to LibreTranslate backend"
+          fi
+
       - name: Run translation script
         run: node .github/scripts/translate-multi-backend.js
         env:
-          TRANSLATION_BACKEND: ${{ github.event.inputs.backend || 'openai' }}
+          TRANSLATION_BACKEND: ${{ steps.backend.outputs.selected }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           LIBRETRANSLATE_URL: ${{ secrets.LIBRETRANSLATE_URL || 'https://libretranslate.com' }}
