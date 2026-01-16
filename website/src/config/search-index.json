@@ -1,6 +1,6 @@
 {
   "version": "2.1.0",
-  "generated": "2026-01-16T04:37:10.588Z",
+  "generated": "2026-01-16T04:42:09.516Z",
   "totalPages": 36,
   "pages": [
     {
@@ -273,25 +273,12 @@
       ]
     },
     {
-      "title": "Caro - Your loyal shell companion",
+      "title": "[lang]",
       "path": "/[lang]",
-      "description": "Caro is a companion agent that helps you with POSIX shell commands. Available as an MCP for Claude and as a dedicated Skill.",
+      "description": "",
       "category": "main",
       "keywords": [
-        "caro",
-        "shell",
-        "companion",
-        "your",
-        "loyal",
-        "agent",
-        "helps",
-        "posix",
-        "commands",
-        "available",
-        "mcp",
-        "claude",
-        "dedicated",
-        "skill"
+        "lang"
       ],
       "icon": "📄",
       "content": {
@@ -299,23 +286,10 @@
         "paragraphs": [],
         "listItems": []
       },
-      "fullText": "Caro - Your loyal shell companion Caro is a companion agent that helps you with POSIX shell commands. Available as an MCP for Claude and as a dedicated Skill. Caro - Your loyal shell companion ",
-      "_searchText": "caro - your loyal shell companion caro is a companion agent that helps you with posix shell commands. available as an mcp for claude and as a dedicated skill. /[lang] caro shell companion your loyal agent helps posix commands available mcp claude dedicated skill caro - your loyal shell companion caro is a companion agent that helps you with posix shell commands. available as an mcp for claude and as a dedicated skill. caro - your loyal shell companion ",
+      "fullText": "[lang]  ",
+      "_searchText": "[lang]  /[lang] lang [lang]  ",
       "_words": [
-        "caro",
-        "shell",
-        "companion",
-        "your",
-        "loyal",
-        "agent",
-        "helps",
-        "posix",
-        "commands",
-        "available",
-        "mcp",
-        "claude",
-        "dedicated",
-        "skill"
+        "lang"
       ]
     },
     {
@@ -3928,25 +3902,12 @@
       ]
     },
     {
-      "title": "Caro - Your loyal shell companion",
+      "title": "Home",
       "path": "/",
-      "description": "Caro is a companion agent that helps you with POSIX shell commands. Available as an MCP for Claude and as a dedicated Skill.",
+      "description": "",
       "category": "main",
       "keywords": [
-        "caro",
-        "shell",
-        "companion",
-        "your",
-        "loyal",
-        "agent",
-        "helps",
-        "posix",
-        "commands",
-        "available",
-        "mcp",
-        "claude",
-        "dedicated",
-        "skill"
+        "home"
       ],
       "icon": "🏠",
       "content": {
@@ -3954,23 +3915,10 @@
         "paragraphs": [],
         "listItems": []
       },
-      "fullText": "Caro - Your loyal shell companion Caro is a companion agent that helps you with POSIX shell commands. Available as an MCP for Claude and as a dedicated Skill. Caro - Your loyal shell companion ",
-      "_searchText": "caro - your loyal shell companion caro is a companion agent that helps you with posix shell commands. available as an mcp for claude and as a dedicated skill. / caro shell companion your loyal agent helps posix commands available mcp claude dedicated skill caro - your loyal shell companion caro is a companion agent that helps you with posix shell commands. available as an mcp for claude and as a dedicated skill. caro - your loyal shell companion ",
+      "fullText": "Home  ",
+      "_searchText": "home  / home home  ",
       "_words": [
-        "caro",
-        "shell",
-        "companion",
-        "your",
-        "loyal",
-        "agent",
-        "helps",
-        "posix",
-        "commands",
-        "available",
-        "mcp",
-        "claude",
-        "dedicated",
-        "skill"
+        "home"
       ]
     },
     {
@@ -6561,8 +6509,8 @@
         "After running the setup script above, just use Caro:",
         "Caro will generate the command and keep you safe. The setup script handles all prerequisites including Rust compilation."
       ],
-      "fullText": "Get Started with Caro Bring your loyal shell companion to your terminal Copy Or download pre-built binaries (v ): macOS (Apple Silicon) macOS (Intel) Linux (x86_64) Linux (ARM64) Windows Multiple Ways to Use Caro 🔧 Standalone CLI caro \"list files > 100MB\" 🔌 MCP for Claude Coming Soon Add Caro as an MCP server to Claude Desktop and let her handle all shell commands seamlessly. ✨ Dedicated Skill Available Now Use Caro as a Skill to offload shell command generation and execution while Claude focuses on your work. Install with Quick Start After running the setup script above, just use Caro: caro \"find all python files modified in the last 7 days\" Caro will generate the command and keep you safe. The setup script handles all prerequisites including Rust compilation.",
-      "_searchText": "get started with caro multiple ways to use caro 🔧 standalone cli 🔌 mcp for claude coming soon ✨ dedicated skill available now quick start bring your loyal shell companion to your terminal or download pre-built binaries (v ): add caro as an mcp server to claude desktop and let her handle all shell commands seamlessly. use caro as a skill to offload shell command generation and execution while claude focuses on your work. install with after running the setup script above, just use caro: caro will generate the command and keep you safe. the setup script handles all prerequisites including rust compilation. get started with caro bring your loyal shell companion to your terminal copy or download pre-built binaries (v ): macos (apple silicon) macos (intel) linux (x86_64) linux (arm64) windows multiple ways to use caro 🔧 standalone cli caro \"list files > 100mb\" 🔌 mcp for claude coming soon add caro as an mcp server to claude desktop and let her handle all shell commands seamlessly. ✨ dedicated skill available now use caro as a skill to offload shell command generation and execution while claude focuses on your work. install with quick start after running the setup script above, just use caro: caro \"find all python files modified in the last 7 days\" caro will generate the command and keep you safe. the setup script handles all prerequisites including rust compilation."
+      "fullText": "Get Started with Caro Bring your loyal shell companion to your terminal Or download pre-built binaries (v ): macOS (Apple Silicon) macOS (Intel) Linux (x86_64) Linux (ARM64) Windows Multiple Ways to Use Caro 🔧 Standalone CLI caro \"list files > 100MB\" 🔌 MCP for Claude Coming Soon Add Caro as an MCP server to Claude Desktop and let her handle all shell commands seamlessly. ✨ Dedicated Skill Available Now Use Caro as a Skill to offload shell command generation and execution while Claude focuses on your work. Install with Quick Start After running the setup script above, just use Caro: caro \"find all python files modified in the last 7 days\" Caro will generate the command and keep you safe. The setup script handles all prerequisites including Rust compilation.",
+      "_searchText": "get started with caro multiple ways to use caro 🔧 standalone cli 🔌 mcp for claude coming soon ✨ dedicated skill available now quick start bring your loyal shell companion to your terminal or download pre-built binaries (v ): add caro as an mcp server to claude desktop and let her handle all shell commands seamlessly. use caro as a skill to offload shell command generation and execution while claude focuses on your work. install with after running the setup script above, just use caro: caro will generate the command and keep you safe. the setup script handles all prerequisites including rust compilation. get started with caro bring your loyal shell companion to your terminal or download pre-built binaries (v ): macos (apple silicon) macos (intel) linux (x86_64) linux (arm64) windows multiple ways to use caro 🔧 standalone cli caro \"list files > 100mb\" 🔌 mcp for claude coming soon add caro as an mcp server to claude desktop and let her handle all shell commands seamlessly. ✨ dedicated skill available now use caro as a skill to offload shell command generation and execution while claude focuses on your work. install with quick start after running the setup script above, just use caro: caro \"find all python files modified in the last 7 days\" caro will generate the command and keep you safe. the setup script handles all prerequisites including rust compilation."
     },
     {
       "source": "/Features.astro",
@@ -6669,20 +6617,6 @@
       "paragraphs": [],
       "fullText": "🔍",
       "_searchText": "🔍"
-    },
-    {
-      "source": "/Story.astro",
-      "headings": [
-        "Meet Caro"
-      ],
-      "paragraphs": [
-        "A companion with a story of loyalty and transformation",
-        "Caro is the digitalization of Kyaro (Kyarorain Kadosh), the maintainer's beloved dog. Just as a loyal companion stays by your side through every challenge, Caro is here to help you navigate the complexities of shell commands with safety and expertise.",
-        "She specializes in POSIX shell commands and understands the nuances of every platform—whether you're on macOS, Linux, Windows, GNU, or BSD. Caro brings your preferences with her wherever you deploy her, respecting your distribution of choice while keeping you safe from dangerous commands.",
-        "As Claude's loyal companion, Caro handles the shell-specific heavy lifting, allowing Claude to focus on the broader work while she ensures every command is safe, correct, and optimized for your platform."
-      ],
-      "fullText": "Meet Caro A companion with a story of loyalty and transformation Caro is the digitalization of Kyaro (Kyarorain Kadosh), the maintainer's beloved dog. Just as a loyal companion stays by your side through every challenge, Caro is here to help you navigate the complexities of shell commands with safety and expertise. \"In Portal 2, we learned that GLaDOS was once Caroline, the secretary of Aperture Science's founder—transformed into the eternal guardian of the facility. Like Caroline became the beating heart of the testing chambers, Caro is your eternal companion for the terminal.\" She specializes in POSIX shell commands and understands the nuances of every platform—whether you're on macOS, Linux, Windows, GNU, or BSD. Caro brings your preferences with her wherever you deploy her, respecting your distribution of choice while keeping you safe from dangerous commands. As Claude's loyal companion, Caro handles the shell-specific heavy lifting, allowing Claude to focus on the broader work while she ensures every command is safe, correct, and optimized for your platform.",
-      "_searchText": "meet caro a companion with a story of loyalty and transformation caro is the digitalization of kyaro (kyarorain kadosh), the maintainer's beloved dog. just as a loyal companion stays by your side through every challenge, caro is here to help you navigate the complexities of shell commands with safety and expertise. she specializes in posix shell commands and understands the nuances of every platform—whether you're on macos, linux, windows, gnu, or bsd. caro brings your preferences with her wherever you deploy her, respecting your distribution of choice while keeping you safe from dangerous commands. as claude's loyal companion, caro handles the shell-specific heavy lifting, allowing claude to focus on the broader work while she ensures every command is safe, correct, and optimized for your platform. meet caro a companion with a story of loyalty and transformation caro is the digitalization of kyaro (kyarorain kadosh), the maintainer's beloved dog. just as a loyal companion stays by your side through every challenge, caro is here to help you navigate the complexities of shell commands with safety and expertise. \"in portal 2, we learned that glados was once caroline, the secretary of aperture science's founder—transformed into the eternal guardian of the facility. like caroline became the beating heart of the testing chambers, caro is your eternal companion for the terminal.\" she specializes in posix shell commands and understands the nuances of every platform—whether you're on macos, linux, windows, gnu, or bsd. caro brings your preferences with her wherever you deploy her, respecting your distribution of choice while keeping you safe from dangerous commands. as claude's loyal companion, caro handles the shell-specific heavy lifting, allowing claude to focus on the broader work while she ensures every command is safe, correct, and optimized for your platform."
     },
     {
       "source": "/Terminal.astro",
@@ -6989,8 +6923,8 @@
         "Then run:",
         "Prefer to build from source? See all installation options →"
       ],
-      "fullText": "Try Caro in 30 Seconds No account. No API key. No data collection. Just safer shell commands. Copy Then run: ✓ Installs to ~/.cargo/bin ✓ Single binary, no dependencies ✓ Uninstall anytime: cargo uninstall caro Prefer to build from source? See all installation options →",
-      "_searchText": "try caro in 30 seconds no account. no api key. no data collection. just safer shell commands. then run: prefer to build from source? see all installation options → try caro in 30 seconds no account. no api key. no data collection. just safer shell commands. copy then run: ✓ installs to ~/.cargo/bin ✓ single binary, no dependencies ✓ uninstall anytime: cargo uninstall caro prefer to build from source? see all installation options →"
+      "fullText": "Try Caro in 30 Seconds No account. No API key. No data collection. Just safer shell commands. Then run: ✓ Installs to ~/.cargo/bin ✓ Single binary, no dependencies ✓ Uninstall anytime: cargo uninstall caro Prefer to build from source? See all installation options →",
+      "_searchText": "try caro in 30 seconds no account. no api key. no data collection. just safer shell commands. then run: prefer to build from source? see all installation options → try caro in 30 seconds no account. no api key. no data collection. just safer shell commands. then run: ✓ installs to ~/.cargo/bin ✓ single binary, no dependencies ✓ uninstall anytime: cargo uninstall caro prefer to build from source? see all installation options →"
     },
     {
       "source": "/landing/LPFAQ.astro",

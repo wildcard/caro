@@ -208,6 +208,16 @@
     "differentiators": {},
     "communityVoices": {},
     "trust": {},
+    "story": {
+      "title": "Meet Caro",
+      "subtitle": "A companion with a story of loyalty and transformation",
+      "paragraphs": {
+        "intro": "Caro is the digitalization of Kyaro (Kyarorain Kadosh), the maintainer's beloved dog. Just as a loyal companion stays by your side through every challenge, Caro is here to help you navigate the complexities of shell commands with safety and expertise.",
+        "highlight": "In Portal 2, we learned that GLaDOS was once Caroline, the secretary of Aperture Science's founder—transformed into the eternal guardian of the facility. Like Caroline became the beating heart of the testing chambers, Caro is your eternal companion for the terminal.",
+        "platforms": "She specializes in POSIX shell commands and understands the nuances of every platform—whether you're on macOS, Linux, Windows, GNU, or BSD. Caro brings your preferences with her wherever you deploy her, respecting your distribution of choice while keeping you safe from dangerous commands.",
+        "companion": "As Claude's loyal companion, Caro handles the shell-specific heavy lifting, allowing Claude to focus on the broader work while she ensures every command is safe, correct, and optimized for your platform."
+      }
+    },
     "faq": {
       "title": "Common Concerns",
       "subtitle": "Real questions from skeptical engineers (we get it)",
