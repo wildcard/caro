@@ -1,6 +1,6 @@
 {
   "version": "2.1.0",
-  "generated": "2026-01-16T03:31:31.902Z",
+  "generated": "2026-01-16T04:22:46.505Z",
   "totalPages": 36,
   "pages": [
     {
@@ -6570,14 +6570,14 @@
     {
       "source": "/Features.astro",
       "headings": [
-        "Why Caro?"
+        ".title`)}"
       ],
       "paragraphs": [
-        "A companion agent built for safety, empathy, and expertise",
-        "🚧 Soft Launch Alpha — We're actively building with our community. Join us to help shape Caro's future!"
+        "🚧 —",
+        ".description`)}"
       ],
-      "fullText": "Why Caro? A companion agent built for safety, empathy, and expertise 🚧 Soft Launch Alpha — We're actively building with our community. Join us to help shape Caro's future! > ))}",
-      "_searchText": "why caro? a companion agent built for safety, empathy, and expertise 🚧 soft launch alpha — we're actively building with our community. join us to help shape caro's future! why caro? a companion agent built for safety, empathy, and expertise 🚧 soft launch alpha — we're actively building with our community. join us to help shape caro's future! > ))}"
+      "fullText": "🚧 — > .title`)} .description`)} ))}",
+      "_searchText": ".title`)} 🚧 — .description`)} 🚧 — > .title`)} .description`)} ))}"
     },
     {
       "source": "/Footer.astro",
@@ -7003,15 +7003,6 @@
       ],
       "fullText": "+ ))} Still skeptical? Good—you should be. Read the source code",
       "_searchText": "still skeptical? good—you should be. + ))} still skeptical? good—you should be. read the source code"
-    },
-    {
-      "source": "/landing/LPFeatures.astro",
-      "headings": [],
-      "paragraphs": [
-        "See exactly what Caro blocks and why"
-      ],
-      "fullText": "> ))} See exactly what Caro blocks and why View safety patterns",
-      "_searchText": "see exactly what caro blocks and why > ))} see exactly what caro blocks and why view safety patterns"
     },
     {
       "source": "/landing/LPFooter.astro",
