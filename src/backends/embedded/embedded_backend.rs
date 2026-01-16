@@ -5,6 +5,8 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 
 use async_trait::async_trait;
+use once_cell::sync::Lazy;
+use regex::Regex;
 
 use crate::backends::embedded::{CpuBackend, EmbeddedConfig, InferenceBackend, ModelVariant};
 use crate::backends::{BackendInfo, CommandGenerator, GeneratorError};
@@ -14,6 +16,12 @@ use crate::ModelLoader;
 
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
 use crate::backends::embedded::MlxBackend;
+
+/// Regex pattern to extract command from malformed JSON with unescaped quotes
+/// Handles cases like: {"cmd": "find . -type f -name "*.txt""}
+/// The greedy .+ captures everything between the first quote after "cmd": and the last "}
+static CMD_EXTRACT_REGEX: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r#"\{\s*"cmd"\s*:\s*"(.+)"\s*\}"#).expect("Invalid regex pattern"));
 
 /// Primary command generator using embedded Qwen model with platform-specific inference
 #[derive(Clone)]
@@ -249,6 +257,17 @@ Request: {}
             }
         }
 
+        // Regex fallback: Handle malformed JSON with unescaped quotes
+        // e.g., {"cmd": "find . -type f -name "*.txt""}
+        if let Some(caps) = CMD_EXTRACT_REGEX.captures(response) {
+            if let Some(cmd_match) = caps.get(1) {
+                let cmd = cmd_match.as_str().trim();
+                if !cmd.is_empty() {
+                    return Ok(cmd.to_string());
+                }
+            }
+        }
+
         Err(GeneratorError::ParseError {
             content: response.to_string(),
         })
@@ -427,6 +446,14 @@ mod tests {
         let result = backend.parse_command_response(response);
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), "find . -name '*.txt'");
+
+        // Test malformed JSON with unescaped nested quotes (regression test)
+        // LLMs sometimes output: {"cmd": "find . -type f -name "*.llm""}
+        // instead of properly escaped: {"cmd": "find . -type f -name \"*.llm\""}
+        let response = r#"{"cmd": "find . -type f -name "*.llm""}"#;
+        let result = backend.parse_command_response(response);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), r#"find . -type f -name "*.llm""#);
 
         // Test malformed response
         let response = "This is not JSON at all";
