@@ -181,6 +181,39 @@ enum ConfigCommands {
     Reset,
 }
 
+/// Knowledge index management subcommands
+#[cfg(feature = "knowledge")]
+#[derive(Parser, Clone)]
+#[command(arg_required_else_help = true)]
+enum KnowledgeCommands {
+    /// Show knowledge index statistics
+    Stats,
+    /// Search for similar past commands
+    Search {
+        /// Search query
+        query: String,
+        /// Maximum number of results
+        #[arg(short, long, default_value = "5")]
+        limit: usize,
+    },
+    /// Clear all knowledge entries (requires confirmation)
+    Clear {
+        /// Skip confirmation prompt
+        #[arg(short, long)]
+        force: bool,
+    },
+    /// Export knowledge to JSON file
+    Export {
+        /// Output file path
+        path: std::path::PathBuf,
+    },
+    /// Import knowledge from JSON file
+    Import {
+        /// Input file path
+        path: std::path::PathBuf,
+    },
+}
+
 /// Subcommands for caro
 #[derive(Parser, Clone)]
 enum Commands {
@@ -245,6 +278,13 @@ enum Commands {
         /// Maximum number of suggestions
         #[arg(short, long, default_value = "5")]
         limit: usize,
+    },
+
+    /// Manage the knowledge index (requires knowledge feature)
+    #[cfg(feature = "knowledge")]
+    Knowledge {
+        #[command(subcommand)]
+        command: KnowledgeCommands,
     },
     // /// Manage telemetry data and settings
     // Telemetry {
@@ -780,6 +820,165 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
 }
 
 // =============================================================================
+// Knowledge Index Management
+// =============================================================================
+
+/// Handle knowledge index subcommands
+#[cfg(feature = "knowledge")]
+async fn handle_knowledge_command(command: KnowledgeCommands) -> Result<(), String> {
+    use caro::knowledge::{default_knowledge_path, KnowledgeIndex};
+    use colored::Colorize;
+
+    let knowledge_path = default_knowledge_path();
+    let index = KnowledgeIndex::open(&knowledge_path)
+        .await
+        .map_err(|e| format!("Failed to open knowledge index: {}", e))?;
+
+    match command {
+        KnowledgeCommands::Stats => {
+            let stats = index
+                .stats()
+                .await
+                .map_err(|e| format!("Failed to get stats: {}", e))?;
+
+            println!("{}", "Knowledge Index Statistics".bold());
+            println!();
+            println!("  {}: {}", "Total entries".cyan(), stats.total_entries);
+            println!(
+                "  {}: {}",
+                "Successful commands".cyan(),
+                stats.success_count
+            );
+            println!("  {}: {}", "Corrections".cyan(), stats.correction_count);
+            println!();
+            println!(
+                "{}",
+                format!("Index location: {}", knowledge_path.display()).dimmed()
+            );
+        }
+        KnowledgeCommands::Search { query, limit } => {
+            let results = index
+                .find_similar(&query, limit)
+                .await
+                .map_err(|e| format!("Failed to search: {}", e))?;
+
+            if results.is_empty() {
+                println!("No similar commands found for '{}'", query);
+            } else {
+                println!(
+                    "{} {} results for '{}':",
+                    "Found".green(),
+                    results.len(),
+                    query
+                );
+                println!();
+                for (i, entry) in results.iter().enumerate() {
+                    println!(
+                        "  {}. {} (similarity: {:.2})",
+                        i + 1,
+                        entry.command.cyan(),
+                        entry.similarity
+                    );
+                    println!("     Request: {}", entry.request.dimmed());
+                    if let Some(ref feedback) = entry.feedback {
+                        println!("     Note: {}", feedback.yellow());
+                    }
+                    println!();
+                }
+            }
+        }
+        KnowledgeCommands::Clear { force } => {
+            if !force {
+                // Prompt for confirmation
+                use dialoguer::Confirm;
+                let confirmed = Confirm::new()
+                    .with_prompt("Are you sure you want to clear all knowledge entries?")
+                    .default(false)
+                    .interact()
+                    .map_err(|e| format!("Failed to read confirmation: {}", e))?;
+
+                if !confirmed {
+                    println!("Cancelled.");
+                    return Ok(());
+                }
+            }
+
+            index
+                .clear()
+                .await
+                .map_err(|e| format!("Failed to clear index: {}", e))?;
+            println!("{} Knowledge index cleared", "✓".green());
+        }
+        KnowledgeCommands::Export { path } => {
+            // Export all entries to JSON
+            let entries = index
+                .find_similar("", 10000) // Get all entries
+                .await
+                .map_err(|e| format!("Failed to read entries: {}", e))?;
+
+            let json = serde_json::to_string_pretty(&entries)
+                .map_err(|e| format!("Failed to serialize: {}", e))?;
+
+            std::fs::write(&path, json).map_err(|e| format!("Failed to write file: {}", e))?;
+
+            println!(
+                "{} Exported {} entries to {}",
+                "✓".green(),
+                entries.len(),
+                path.display()
+            );
+        }
+        KnowledgeCommands::Import { path } => {
+            // Read JSON file
+            let json = std::fs::read_to_string(&path)
+                .map_err(|e| format!("Failed to read file: {}", e))?;
+
+            let entries: Vec<caro::knowledge::KnowledgeEntry> =
+                serde_json::from_str(&json).map_err(|e| format!("Failed to parse JSON: {}", e))?;
+
+            // Import each entry
+            let mut imported = 0;
+            for entry in entries {
+                if entry.original_command.is_some() {
+                    // It's a correction
+                    if let Err(e) = index
+                        .record_correction(
+                            &entry.request,
+                            entry.original_command.as_deref().unwrap_or(""),
+                            &entry.command,
+                            entry.feedback.as_deref(),
+                        )
+                        .await
+                    {
+                        eprintln!("Warning: Failed to import entry: {}", e);
+                        continue;
+                    }
+                } else {
+                    // It's a success
+                    if let Err(e) = index
+                        .record_success(&entry.request, &entry.command, entry.context.as_deref())
+                        .await
+                    {
+                        eprintln!("Warning: Failed to import entry: {}", e);
+                        continue;
+                    }
+                }
+                imported += 1;
+            }
+
+            println!(
+                "{} Imported {} entries from {}",
+                "✓".green(),
+                imported,
+                path.display()
+            );
+        }
+    }
+
+    Ok(())
+}
+
+// =============================================================================
 // Evaluation Tests
 // =============================================================================
 
@@ -991,6 +1190,14 @@ async fn main() {
             }
             process::exit(0);
         }
+        #[cfg(feature = "knowledge")]
+        Some(Commands::Knowledge { command }) => match handle_knowledge_command(command).await {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        },
         // NOTE: Telemetry subcommand disabled in v1.1.0-beta.1
         // Some(Commands::Telemetry { command }) => {
         //     let storage_path = dirs::data_dir()
