@@ -40,6 +40,9 @@ jobs:
           target
         key: ${{ runner.os }}-cargo-lint-${{ hashFiles('**/Cargo.lock') }}
     
+    - name: Install protobuf
+      run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+
     - name: Check formatting
       run: cargo fmt --all -- --check
 
@@ -273,11 +276,13 @@ jobs:
           target
         key: ${{ runner.os }}-msrv-cargo-${{ hashFiles('**/Cargo.lock') }}
 
+    # Note: We use --no-default-features to exclude the 'knowledge' feature
+    # because its dependencies (fastembed -> image -> aligned) require Rust 2024 edition
     - name: Build with Rust 1.83
-      run: cargo build --release --features embedded-cpu
+      run: cargo build --release --no-default-features --features embedded-cpu
 
     - name: Run tests with Rust 1.83
-      run: cargo test --lib --features embedded-cpu
+      run: cargo test --lib --no-default-features --features embedded-cpu
       env:
         RUST_BACKTRACE: 1
 

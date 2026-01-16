@@ -144,7 +144,8 @@ path = "tests/evaluation/main.rs"
 harness = false
 
 [features]
-default = ["embedded-mlx", "embedded-cpu", "knowledge"]  # Always build with MLX on macOS
+default = ["embedded-mlx", "embedded-cpu"]  # Core features for default build
+# Note: knowledge feature requires protobuf compiler, enable with --features knowledge
 mock-backend = []
 remote-backends = ["tokio/net"]
 embedded-mlx = ["cxx", "llama_cpp"]
