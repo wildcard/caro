@@ -52,6 +52,8 @@ pub mod version;
 #[cfg(feature = "knowledge")]
 pub mod knowledge;
 
+pub mod healing;
+
 // Re-export commonly used types for convenience
 pub use model_catalog::{ModelCatalog, ModelInfo, ModelSize};
 pub use models::{
@@ -101,3 +103,6 @@ pub use completion::{generate_completions, suggest_commands, CommandSuggestion};
 // Re-export knowledge types (when feature enabled)
 #[cfg(feature = "knowledge")]
 pub use knowledge::{Embedder, KnowledgeEntry, KnowledgeError, KnowledgeIndex};
+
+// Re-export healing types
+pub use healing::{confirm_sudo_retry, HealingEngine, PermissionErrorDetector, SudoSuggestion};
