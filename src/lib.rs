@@ -64,6 +64,9 @@ pub use logging::{LogConfig, LogConfigBuilder, LogError, LogFormat, LogOutput, L
 pub use model_loader::ModelLoader;
 pub use platform::{PlatformContext, PlatformContextBuilder, PlatformContextError, UtilityType};
 
+// Re-export context types
+pub use context::{DirectoryContext, ProjectType};
+
 // Re-export backend types
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
 pub use backends::embedded::MlxBackend;

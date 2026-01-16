@@ -1,5 +1,5 @@
 use crate::backends::{CommandGenerator, GeneratorError, StaticMatcher};
-use crate::context::ExecutionContext;
+use crate::context::{DirectoryContext, ExecutionContext};
 use crate::models::{CommandRequest, GeneratedCommand, SafetyLevel, ShellType};
 use crate::prompts::{CapabilityProfile, CommandValidator, ValidationResult};
 use anyhow::Result;
@@ -16,6 +16,7 @@ pub struct AgentLoop {
     static_matcher: Option<StaticMatcher>,
     validator: CommandValidator,
     context: ExecutionContext,
+    directory_context: DirectoryContext,
     _max_iterations: usize,
     timeout: Duration,
     confidence_threshold: f64,
@@ -49,11 +50,15 @@ impl AgentLoop {
         let static_matcher = Some(StaticMatcher::new(profile.clone()));
         let validator = CommandValidator::new(profile);
 
+        // Scan current directory for project context
+        let directory_context = DirectoryContext::scan(context.cwd.as_path());
+
         Self {
             backend,
             static_matcher,
             validator,
             context,
+            directory_context,
             _max_iterations: 2,
             timeout: Duration::from_secs(15), // Allow enough time for 2 iterations
             confidence_threshold: 0.8,        // Default: refine if confidence < 80%
@@ -256,13 +261,20 @@ impl AgentLoop {
         // Serialize context to string
         let context_str = serde_json::to_string(&self.context).unwrap_or_else(|_| "{}".to_string());
 
+        // Add directory context if available
+        let dir_context_str = if self.directory_context.has_context() {
+            format!("\n\n{}", self.directory_context.to_context_string())
+        } else {
+            String::new()
+        };
+
         let request = CommandRequest {
             input: prompt.to_string(),
             shell: ShellType::Bash,
             safety_level: SafetyLevel::Moderate,
             context: Some(format!(
-                "{}\n\nSYSTEM_PROMPT:\n{}",
-                context_str, system_prompt
+                "{}{}\n\nSYSTEM_PROMPT:\n{}",
+                context_str, dir_context_str, system_prompt
             )),
             backend_preference: None,
         };
@@ -282,13 +294,20 @@ impl AgentLoop {
         // Serialize context to string
         let context_str = serde_json::to_string(&self.context).unwrap_or_else(|_| "{}".to_string());
 
+        // Add directory context if available
+        let dir_context_str = if self.directory_context.has_context() {
+            format!("\n\n{}", self.directory_context.to_context_string())
+        } else {
+            String::new()
+        };
+
         let request = CommandRequest {
             input: format!("REFINE: {}", prompt),
             shell: ShellType::Bash,
             safety_level: SafetyLevel::Moderate,
             context: Some(format!(
-                "{}\n\nSYSTEM_PROMPT:\n{}",
-                context_str, system_prompt
+                "{}{}\n\nSYSTEM_PROMPT:\n{}",
+                context_str, dir_context_str, system_prompt
             )),
             backend_preference: None,
         };
