@@ -1,7 +1,18 @@
 # FunctionGemma CLI Tool Recommender - Dependencies
-# Install with: pip install -r requirements.txt
+#
+# RECOMMENDED: Install with uv (10x faster than pip)
+#   uv venv .venv --python 3.11
+#   source .venv/bin/activate
+#   uv pip install unsloth
+#
+# Or traditional pip:
+#   python -m venv .venv
+#   source .venv/bin/activate
+#   pip install -r requirements.txt
+#
+# NOTE: Unsloth requires a GPU (CUDA). CPU-only systems cannot run training.
 
-# Unsloth for efficient fine-tuning
+# Unsloth for efficient fine-tuning (installs all dependencies)
 unsloth>=2024.1
 
 # Hugging Face ecosystem

@@ -17,7 +17,9 @@ This project fine-tunes Google's [FunctionGemma](https://ai.google.dev/gemma/doc
 ```
 finetune-functiongemma/
 ├── README.md                    # This file
+├── setup.sh                     # Quick setup script (uses uv)
 ├── requirements.txt             # Python dependencies
+├── .venv/                       # Virtual environment (created by setup)
 ├── data/
 │   ├── training_examples.json   # Hand-crafted training examples
 │   └── training_data.json       # Auto-generated training data
@@ -37,15 +39,32 @@ finetune-functiongemma/
     └── (trained models)
 ```
 
+## Requirements
+
+- **GPU Required**: Unsloth requires an NVIDIA GPU with CUDA support
+- **Python**: 3.10, 3.11, 3.12, or 3.13
+- **uv** (recommended): 10x faster than pip
+
 ## Quick Start
 
-### 1. Install Dependencies
+### 1. Setup with uv (Recommended)
 
 ```bash
-pip install -r requirements.txt
+# Quick setup with uv
+./setup.sh
 
-# Or install manually:
-pip install unsloth datasets trl transformers torch
+# Or manually:
+uv venv .venv --python 3.11
+source .venv/bin/activate
+uv pip install unsloth
+```
+
+### Alternative: pip install
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
 ### 2. Generate Training Data
