@@ -1,0 +1,48 @@
+{
+  "navigation": {
+    "brand": "🐕 Caro",
+    "links": {
+      "features": "خصوصیات",
+      "compare": "موازنہ",
+      "play": "کھیلیں",
+      "blog": "بلاگ",
+      "getStarted": "شروع کریں",
+      "github": "GitHub"
+    },
+    "darkMode": {
+      "toggle": "ڈارک موڈ تبدیل کریں"
+    },
+    "holidayTheme": {
+      "toggle": "تہوار کا تھیم مینیو تبدیل کریں",
+      "title": "تہوار کا تھیم",
+      "menuHeader": "تہوار کا تھیم",
+      "options": {
+        "christmas": "کرسمس",
+        "hanukkah": "حنوکہ",
+        "noTheme": "کوئی تھیم نہیں"
+      },
+      "snowEffect": "برف کا اثر"
+    }
+  },
+  "footer": {
+    "builtWith": "Rust 🦀 کے ساتھ بنایا گیا | اوپن سورس",
+    "github": "GitHub",
+    "domain": {
+      "name": "caro.sh",
+      "tagline": "آپ کا وفادار شیل ساتھی"
+    },
+    "links": {
+      "license": "AGPL-3.0",
+      "credits": "کریڈٹس اور انتساب",
+      "contributing": "تعاون",
+      "issues": "مسائل"
+    },
+    "kyaro": {
+      "title": "اصلی Kyaro (Kyarorain Kadosh) سے ملیں! 🐕🖤",
+      "followText": "ان کے کارناموں کی پیروی کریں",
+      "instagram": "Instagram @kyaroblackheart"
+    },
+    "inspiration": "Portal کی Caroline سے متاثر—وفاداری ڈیجیٹل ساتھی میں تبدیل",
+    "elevatorCredit": "سکرول اثر بذریعہ"
+  }
+}

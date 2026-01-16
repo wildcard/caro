@@ -1,5 +1,9 @@
 {
   "common": {
+    "meta": {
+      "title": "Caro - Твій вірний помічник shell",
+      "description": "Caro — це агент-компаньйон, який допомагає з POSIX shell командами. Доступний як MCP для Claude та як окремий Skill."
+    },
     "buttons": {
       "copy": "Скопіювати",
       "copied": "Скопійовано!",
@@ -15,6 +19,51 @@
     "aria": {
       "toggleDarkMode": "Переключити темний режим",
       "toggleHolidayTheme": "Відкрити меню святкових тем"
+    },
+    "nav": {
+      "features": "Функції",
+      "compare": "Порівняння",
+      "resources": "Ресурси",
+      "support": "Підтримка",
+      "getStarted": "Почати",
+      "dropdown": {
+        "overview": "Огляд",
+        "seeAllComparisons": "Всі порівняння",
+        "vsWarp": "проти Warp",
+        "aiNativeTerminal": "AI-native термінал",
+        "vsGitHubCopilot": "проти GitHub Copilot CLI",
+        "aiPairProgrammer": "AI pair programmer",
+        "vsKiro": "проти Kiro CLI",
+        "awsAssistant": "AWS AI асистент",
+        "blog": "Блог",
+        "newsAndTutorials": "Новини та туторіали",
+        "explore": "Досліджуй",
+        "interactiveDemo": "Інтерактивне демо",
+        "faq": "FAQ",
+        "commonQuestions": "Часті питання",
+        "roadmap": "Дорожня карта",
+        "whatsNext": "Що далі",
+        "glossary": "Глосарій",
+        "terminalTerms": "Терміни термінала та Unix",
+        "github": "GitHub",
+        "sourceCode": "Вихідний код"
+      },
+      "mobile": {
+        "allComparisons": "Всі порівняння",
+        "supportCaro": "Підтримати Caro"
+      },
+      "appearance": {
+        "title": "Вигляд",
+        "darkMode": "Темний режим",
+        "holidayTheme": "Святкова тема",
+        "snowEffect": "Ефект снігу",
+        "disableEffects": "Вимкнути всі ефекти"
+      },
+      "useCases": {
+        "allUseCases": "Всі випадки використання",
+        "byRole": "За роллю",
+        "backToHome": "На головну"
+      }
     }
   }
 }

@@ -1,0 +1,42 @@
+{
+  "download": {
+    "title": "התחילו עם קארו",
+    "subtitle": "הביאו את חברת השל הנאמנה שלכם לטרמינל",
+    "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
+    "copyButton": "העתק",
+    "copiedButton": "הועתק!",
+    "binariesIntro": "או הורידו קבצים בינאריים מוכנים:",
+    "comingSoonBadge": "בקרוב",
+    "platforms": {
+      "macAppleSilicon": "macOS (Apple Silicon)",
+      "macIntel": "macOS (Intel)",
+      "linuxX64": "Linux (x86_64)",
+      "windows": "Windows"
+    },
+    "usageModes": {
+      "title": "מספר דרכים להשתמש בקארו",
+      "modes": [
+        {
+          "title": "🔧 CLI עצמאי",
+          "exampleCommand": "caro \"תראה לי קבצים מעל 100MB\""
+        },
+        {
+          "title": "🔌 MCP לקלוד",
+          "description": "הוסיפו את קארו כשרת MCP ל-Claude Desktop ותנו לה לטפל בכל פקודות השל בצורה חלקה.",
+          "comingSoon": true
+        },
+        {
+          "title": "✨ Skill ייעודי",
+          "description": "השתמשו בקארו כ-Skill להעברת יצירת והרצת פקודות shell בזמן שקלוד מתמקד בעבודה שלכם.",
+          "comingSoon": true
+        }
+      ]
+    },
+    "quickStart": {
+      "title": "התחלה מהירה",
+      "intro": "אחרי הרצת סקריפט ההתקנה למעלה, פשוט השתמשו בקארו:",
+      "exampleCommand": "caro \"מצא את כל קבצי הפייתון ששונו ב-7 הימים האחרונים\"",
+      "description": "קארו תייצר את הפקודה ותשמור עליכם. סקריפט ההתקנה מטפל בכל הדרישות המקדימות כולל קומפילציה של Rust."
+    }
+  }
+}

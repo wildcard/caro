@@ -1,5 +1,9 @@
 {
   "common": {
+    "meta": {
+      "title": "Caro - آپ کا وفادار شیل ساتھی",
+      "description": "Caro ایک ساتھی ایجنٹ ہے جو POSIX شیل کمانڈز میں آپ کی مدد کرتا ہے۔ Claude کے لیے MCP اور مخصوص Skill کے طور پر دستیاب۔"
+    },
     "buttons": {
       "copy": "کاپی کریں",
       "copied": "کاپی ہو گیا!",
@@ -15,6 +19,51 @@
     "aria": {
       "toggleDarkMode": "ڈارک موڈ تبدیل کریں",
       "toggleHolidayTheme": "تہوار کا تھیم مینیو تبدیل کریں"
+    },
+    "nav": {
+      "features": "خصوصیات",
+      "compare": "موازنہ",
+      "resources": "وسائل",
+      "support": "مدد",
+      "getStarted": "شروع کریں",
+      "dropdown": {
+        "overview": "جائزہ",
+        "seeAllComparisons": "تمام موازنے دیکھیں",
+        "vsWarp": "Warp کے مقابلے میں",
+        "aiNativeTerminal": "AI-native ٹرمینل",
+        "vsGitHubCopilot": "GitHub Copilot CLI کے مقابلے میں",
+        "aiPairProgrammer": "AI pair پروگرامر",
+        "vsKiro": "Kiro CLI کے مقابلے میں",
+        "awsAssistant": "AWS AI اسسٹنٹ",
+        "blog": "بلاگ",
+        "newsAndTutorials": "خبریں اور سبق",
+        "explore": "دریافت کریں",
+        "interactiveDemo": "انٹرایکٹو ڈیمو",
+        "faq": "عمومی سوالات",
+        "commonQuestions": "عام سوالات",
+        "roadmap": "روڈ میپ",
+        "whatsNext": "آگے کیا ہے",
+        "glossary": "لغت",
+        "terminalTerms": "ٹرمینل اور Unix اصطلاحات",
+        "github": "GitHub",
+        "sourceCode": "سورس کوڈ"
+      },
+      "mobile": {
+        "allComparisons": "تمام موازنے",
+        "supportCaro": "Caro کی مدد کریں"
+      },
+      "appearance": {
+        "title": "ظاہری شکل",
+        "darkMode": "ڈارک موڈ",
+        "holidayTheme": "تہوار کا تھیم",
+        "snowEffect": "برف کا اثر",
+        "disableEffects": "تمام اثرات بند کریں"
+      },
+      "useCases": {
+        "allUseCases": "تمام استعمال کے معاملات",
+        "byRole": "کردار کے مطابق",
+        "backToHome": "ہوم پر واپس"
+      }
     }
   }
 }

@@ -1,5 +1,9 @@
 {
   "common": {
+    "meta": {
+      "title": "Caro - 당신의 충실한 셸 동반자",
+      "description": "Caro는 POSIX 셸 명령어를 돕는 동반자 에이전트입니다. Claude용 MCP 및 전용 Skill로 이용 가능합니다."
+    },
     "buttons": {
       "copy": "복사",
       "copied": "복사됨!",
@@ -15,6 +19,51 @@
     "aria": {
       "toggleDarkMode": "다크 모드 전환",
       "toggleHolidayTheme": "홀리데이 테마 메뉴 전환"
+    },
+    "nav": {
+      "features": "기능",
+      "compare": "비교",
+      "resources": "리소스",
+      "support": "지원",
+      "getStarted": "시작하기",
+      "dropdown": {
+        "overview": "개요",
+        "seeAllComparisons": "모든 비교 보기",
+        "vsWarp": "vs Warp",
+        "aiNativeTerminal": "AI 네이티브 터미널",
+        "vsGitHubCopilot": "vs GitHub Copilot CLI",
+        "aiPairProgrammer": "AI 페어 프로그래머",
+        "vsKiro": "vs Kiro CLI",
+        "awsAssistant": "AWS AI 어시스턴트",
+        "blog": "블로그",
+        "newsAndTutorials": "뉴스 & 튜토리얼",
+        "explore": "탐색",
+        "interactiveDemo": "인터랙티브 데모",
+        "faq": "FAQ",
+        "commonQuestions": "자주 묻는 질문",
+        "roadmap": "로드맵",
+        "whatsNext": "다음 계획",
+        "glossary": "용어집",
+        "terminalTerms": "터미널 & Unix 용어",
+        "github": "GitHub",
+        "sourceCode": "소스 코드"
+      },
+      "mobile": {
+        "allComparisons": "모든 비교",
+        "supportCaro": "Caro 지원하기"
+      },
+      "appearance": {
+        "title": "외관",
+        "darkMode": "다크 모드",
+        "holidayTheme": "홀리데이 테마",
+        "snowEffect": "눈 효과",
+        "disableEffects": "모든 효과 비활성화"
+      },
+      "useCases": {
+        "allUseCases": "모든 사용 사례",
+        "byRole": "역할별",
+        "backToHome": "홈으로 돌아가기"
+      }
     }
   }
 }

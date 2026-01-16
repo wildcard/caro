@@ -1,0 +1,48 @@
+{
+  "navigation": {
+    "brand": "🐕 Caro",
+    "links": {
+      "features": "기능",
+      "compare": "비교",
+      "play": "플레이",
+      "blog": "블로그",
+      "getStarted": "시작하기",
+      "github": "GitHub"
+    },
+    "darkMode": {
+      "toggle": "다크 모드 전환"
+    },
+    "holidayTheme": {
+      "toggle": "홀리데이 테마 메뉴 전환",
+      "title": "홀리데이 테마",
+      "menuHeader": "홀리데이 테마",
+      "options": {
+        "christmas": "크리스마스",
+        "hanukkah": "하누카",
+        "noTheme": "테마 없음"
+      },
+      "snowEffect": "눈 효과"
+    }
+  },
+  "footer": {
+    "builtWith": "Rust 🦀로 제작 | 오픈 소스:",
+    "github": "GitHub",
+    "domain": {
+      "name": "caro.sh",
+      "tagline": "당신의 충실한 셸 동반자"
+    },
+    "links": {
+      "license": "AGPL-3.0",
+      "credits": "크레딧 & 감사",
+      "contributing": "기여하기",
+      "issues": "이슈"
+    },
+    "kyaro": {
+      "title": "실제 Kyaro (Kyarorain Kadosh)를 만나보세요! 🐕🖤",
+      "followText": "그녀의 모험 팔로우:",
+      "instagram": "Instagram @kyaroblackheart"
+    },
+    "inspiration": "Portal의 Caroline에서 영감—충성심이 디지털 동반자로 변모",
+    "elevatorCredit": "스크롤 효과:"
+  }
+}

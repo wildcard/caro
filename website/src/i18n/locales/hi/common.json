@@ -1,5 +1,9 @@
 {
   "common": {
+    "meta": {
+      "title": "Caro - आपका वफादार शेल साथी",
+      "description": "Caro एक साथी एजेंट है जो POSIX शेल कमांड्स में मदद करता है। Claude के लिए MCP और समर्पित Skill के रूप में उपलब्ध।"
+    },
     "buttons": {
       "copy": "कॉपी करें",
       "copied": "कॉपी हो गया!",
@@ -7,14 +11,59 @@
       "watchDemo": "Demo देखें"
     },
     "status": {
-      "availableNow": "अभी उपलब्ध है",
-      "inDevelopment": "विकास में है",
+      "availableNow": "अभी उपलब्ध",
+      "inDevelopment": "विकास में",
       "planned": "योजनाबद्ध",
       "comingSoon": "जल्द आ रहा है"
     },
     "aria": {
       "toggleDarkMode": "डार्क मोड बदलें",
       "toggleHolidayTheme": "त्यौहार थीम मेनू बदलें"
+    },
+    "nav": {
+      "features": "विशेषताएं",
+      "compare": "तुलना",
+      "resources": "संसाधन",
+      "support": "सहायता",
+      "getStarted": "शुरू करें",
+      "dropdown": {
+        "overview": "अवलोकन",
+        "seeAllComparisons": "सभी तुलनाएं देखें",
+        "vsWarp": "vs Warp",
+        "aiNativeTerminal": "AI नेटिव टर्मिनल",
+        "vsGitHubCopilot": "vs GitHub Copilot CLI",
+        "aiPairProgrammer": "AI पेयर प्रोग्रामर",
+        "vsKiro": "vs Kiro CLI",
+        "awsAssistant": "AWS AI असिस्टेंट",
+        "blog": "ब्लॉग",
+        "newsAndTutorials": "समाचार और ट्यूटोरियल",
+        "explore": "एक्सप्लोर",
+        "interactiveDemo": "इंटरैक्टिव Demo",
+        "faq": "FAQ",
+        "commonQuestions": "आम सवाल",
+        "roadmap": "रोडमैप",
+        "whatsNext": "आगे क्या",
+        "glossary": "शब्दावली",
+        "terminalTerms": "टर्मिनल और Unix शब्द",
+        "github": "GitHub",
+        "sourceCode": "सोर्स कोड"
+      },
+      "mobile": {
+        "allComparisons": "सभी तुलनाएं",
+        "supportCaro": "Caro को सपोर्ट करें"
+      },
+      "appearance": {
+        "title": "दिखावट",
+        "darkMode": "डार्क मोड",
+        "holidayTheme": "त्यौहार थीम",
+        "snowEffect": "बर्फ इफेक्ट",
+        "disableEffects": "सभी इफेक्ट बंद करें"
+      },
+      "useCases": {
+        "allUseCases": "सभी उपयोग मामले",
+        "byRole": "भूमिका के अनुसार",
+        "backToHome": "होम पर वापस"
+      }
     }
   }
 }

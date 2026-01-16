@@ -1,0 +1,260 @@
+{
+  "landing": {
+    "navigation": {
+      "brand": "Caro",
+      "cta": "무료로 시작하기",
+      "darkMode": {
+        "toggle": "다크 모드 전환"
+      }
+    },
+    "hero": {
+      "badge": "동반자 에이전트",
+      "tagline": "당신의 충실한 셸 동반자",
+      "subtitle": "Claude 사용자를 위한 전문 POSIX 셸 명령 에이전트. 안전 우선 설계로 AI 생성 명령을 검증하고, 위험한 패턴을 감지하며, POSIX 호환성을 보장합니다.",
+      "installLabel": "Claude Skill로 이용 가능:",
+      "cta": {
+        "getStarted": "시작하기",
+        "watchDemo": "데모 보기"
+      }
+    },
+    "features": {
+      "title": "왜 Caro인가?",
+      "subtitle": "안전, 공감, 전문성을 위한 동반자 에이전트",
+      "alphaNotice": "커뮤니티와 함께 적극적으로 개발 중입니다. Caro의 미래를 함께 만들어가세요!",
+      "alphaLabel": "소프트 런칭 알파",
+      "ctaText": "Caro가 무엇을 왜 차단하는지 확인하세요",
+      "ctaLink": "안전 패턴 보기",
+      "items": [
+        {
+          "icon": "🛡️",
+          "title": "프로덕션을 다시는 날리지 마세요",
+          "description": "rm -rf /, 포크 봄, 그리고 50개 이상의 커리어 종료 명령을 실행 전에 차단합니다. 새벽 2시의 당신이 고마워할 거예요.",
+          "highlight": true
+        },
+        {
+          "icon": "🔒",
+          "title": "데이터는 당신의 것",
+          "description": "텔레메트리 제로. 클라우드 API 호출 제로. 에어갭 네트워크에서 작동. 모든 컴플라이언스 감사 통과. 명령이 기기를 떠나지 않습니다.",
+          "highlight": true,
+          "privacyLink": true
+        },
+        {
+          "icon": "✅",
+          "title": "실제로 작동하는 명령",
+          "description": "Mac, Linux 서버, 동료의 BSD 박스에서 작동하는 명령 생성. 첫 번째 시도에. 매번.",
+          "highlight": false
+        },
+        {
+          "icon": "⚡",
+          "title": "흐름을 방해하지 않는 속도",
+          "description": "Apple Silicon에서 2초 미만 추론. 클라우드 API 대기 없음. 서버 다운 걱정 없음. 그냥 답변만.",
+          "highlight": false
+        }
+      ],
+      "cards": {
+        "safetyGuardian": {
+          "title": "안전의 수호자",
+          "description": "rm -rf /, 포크 봄, 파괴적 작업과 같은 위험한 명령을 차단하는 종합 검증. 위험 수준 평가가 포함된 52개의 사전 정의된 안전 패턴."
+        },
+        "crossPlatform": {
+          "title": "크로스 플랫폼 전문가",
+          "description": "macOS, Linux, Windows, GNU, BSD에서 작동. 각 플랫폼의 미묘한 차이를 이해하고 선호하는 배포판을 존중합니다."
+        },
+        "platformAware": {
+          "title": "플랫폼 인식",
+          "description": "플랫폼 기능과 모범 사례에 기반한 권장 사항 제공. BSD와 GNU 명령 구문을 자동으로 구분합니다."
+        },
+        "posixSpecialist": {
+          "title": "POSIX 전문가",
+          "description": "모든 시스템에서 안정적으로 작동하는 POSIX 호환 셸 명령 전문가. 이식 가능하고 안전하며 터미널에 최적화되어 있습니다."
+        },
+        "lightningFast": {
+          "title": "초고속",
+          "description": "목표: Apple Silicon에서 100ms 미만 시작, 2초 미만 추론. M 시리즈 칩용 GPU 가속을 위한 MLX 프레임워크 통합."
+        },
+        "claudeCompanion": {
+          "title": "Claude의 동반자",
+          "description": "안전한 셸 명령 생성을 위한 공식 Claude Code Skill. 필요할 때 자동 활성화, 안전 가이드 제공, 워크플로우에 원활하게 통합. /plugin install wildcard/caro로 설치"
+        }
+      }
+    },
+    "comparison": {
+      "title": "Caro 비교",
+      "subtitle": "생산성을 위해 프라이버시를 희생하지 않는 DevOps 엔지니어와 SRE를 위해 구축",
+      "summary": {
+        "privacy": { "stat": "프라이버시", "label": "퍼스트 설계*" },
+        "safety": { "stat": "52+", "label": "안전 패턴" },
+        "offline": { "stat": "100%", "label": "오프라인 지원" },
+        "speed": { "stat": "Rust", "label": "속도를 위해 구축" }
+      },
+      "competitors": {
+        "caro": "Caro",
+        "copilotCli": "GitHub Copilot CLI",
+        "warp": "Warp AI",
+        "kiro": "Kiro CLI",
+        "opencode": "OpenCode"
+      },
+      "table": {
+        "feature": "기능",
+        "youreHere": "현재 위치"
+      },
+      "categories": {
+        "privacyData": {
+          "title": "프라이버시 & 데이터",
+          "features": {
+            "worksOffline": {
+              "name": "100% 오프라인 작동",
+              "tooltip": "핵심 기능에 인터넷 불필요"
+            },
+            "privacyFirst": {
+              "name": "프라이버시 퍼스트 설계",
+              "tooltip": "최소한의 익명 텔레메트리, 쉬운 옵트아웃"
+            },
+            "airGapped": {
+              "name": "에어갭 지원",
+              "tooltip": "격리된 환경에서 실행 가능"
+            },
+            "openSource": {
+              "name": "오픈 소스",
+              "tooltip": "전체 소스 코드 이용 가능"
+            }
+          }
+        },
+        "safetyControl": {
+          "title": "안전 & 제어",
+          "features": {
+            "ruleBasedSafety": {
+              "name": "규칙 기반 안전 검사",
+              "tooltip": "정의된 패턴으로 실행 전 검증"
+            },
+            "explicitConfirmation": {
+              "name": "명시적 확인 필요",
+              "tooltip": "승인 없이 명령이 실행되지 않음"
+            },
+            "blocksDangerous": {
+              "name": "위험한 명령 차단",
+              "tooltip": "rm -rf /, 포크 봄 등 방지"
+            },
+            "riskLevel": {
+              "name": "위험 수준 평가",
+              "tooltip": "잠재적 영향으로 명령 평가"
+            }
+          }
+        },
+        "shellExpertise": {
+          "title": "셸 전문성",
+          "features": {
+            "posixFirst": {
+              "name": "POSIX 퍼스트 접근",
+              "tooltip": "어디서나 작동하는 이식 가능한 명령"
+            },
+            "crossPlatform": {
+              "name": "크로스 플랫폼 (macOS/Linux/BSD)",
+              "tooltip": "Unix 계열 시스템에서 작동"
+            },
+            "existingTerminal": {
+              "name": "기존 터미널 사용",
+              "tooltip": "새로운 터미널 에뮬레이터 불필요"
+            },
+            "platformAware": {
+              "name": "플랫폼 인식 명령",
+              "tooltip": "GNU vs BSD 구문에 적응"
+            }
+          }
+        },
+        "modelBackend": {
+          "title": "모델 & 백엔드",
+          "features": {
+            "localInference": {
+              "name": "로컬 추론",
+              "tooltip": "모델이 사용자 기기에서 실행"
+            },
+            "multiBackend": {
+              "name": "멀티 백엔드 지원",
+              "tooltip": "추론 엔진 선택 가능"
+            },
+            "appleSilicon": {
+              "name": "Apple Silicon 최적화",
+              "tooltip": "M 시리즈 Mac용 MLX 프레임워크"
+            },
+            "selfHostable": {
+              "name": "셀프 호스팅 가능",
+              "tooltip": "인프라 완전 제어"
+            }
+          }
+        }
+      },
+      "cta": {
+        "text": "프라이버시를 존중하는 셸 동반자를 만날 준비가 되셨나요?",
+        "getStarted": "무료로 시작하기",
+        "fullComparison": "전체 비교 보기"
+      },
+      "legend": {
+        "fullSupport": "완전 지원",
+        "partial": "부분/구성 가능",
+        "notSupported": "지원 안 됨",
+        "planned": "계획됨"
+      },
+      "values": {
+        "yes": "예",
+        "no": "아니오",
+        "partial": "부분적",
+        "planned": "계획됨"
+      }
+    },
+    "scenarios": {},
+    "demo": {},
+    "useCases": {},
+    "differentiators": {},
+    "communityVoices": {},
+    "trust": {},
+    "story": {
+      "title": "Caro를 만나보세요",
+      "subtitle": "충성과 변화의 이야기를 가진 동반자",
+      "paragraphs": {
+        "intro": "Caro는 메인테이너의 사랑하는 개 Kyaro (Kyarorain Kadosh)의 디지털화입니다. 충실한 동반자가 모든 도전에서 곁에 있듯이, Caro는 안전과 전문성으로 셸 명령의 복잡성을 탐색하는 것을 돕습니다.",
+        "highlight": "Portal 2에서 GLaDOS가 한때 Aperture Science 창립자의 비서 Caroline이었다는 것을 알게 되었습니다—시설의 영원한 수호자로 변신했죠. Caroline이 테스트 챔버의 심장이 된 것처럼, Caro는 터미널을 위한 영원한 동반자입니다.",
+        "platforms": "POSIX 셸 명령을 전문으로 하며 모든 플랫폼의 미묘한 차이를 이해합니다—macOS, Linux, Windows, GNU, BSD. Caro는 어디에 배포하든 설정을 가져가며, 선호하는 배포판을 존중하면서 위험한 명령으로부터 보호합니다.",
+        "companion": "Claude의 충실한 동반자로서, Caro는 셸 특화 무거운 작업을 담당하여 Claude가 더 넓은 작업에 집중할 수 있게 하면서 모든 명령이 안전하고 정확하며 플랫폼에 최적화되도록 보장합니다."
+      }
+    },
+    "faq": {
+      "title": "자주 묻는 질문",
+      "subtitle": "회의적인 엔지니어들의 실제 질문 (이해합니다)",
+      "concerns": [
+        {
+          "question": "잠깐, Caro가 로컬에서 실행되잖아요. 새로운 위험 패턴은 어떻게 업데이트되나요?",
+          "answer": "Caro의 안전 패턴은 바이너리에 내장되어 있습니다—네트워크 불필요. Caro 업데이트 시 (cargo install caro --force) 최신 패턴을 받습니다. 핵심 위험 명령 (rm -rf /, 포크 봄, 디스크 와이퍼)은 변하지 않습니다. GitHub를 통해 패턴 기여도 받고 있습니다.",
+          "icon": "🔄"
+        },
+        {
+          "question": "인시던트 대응이 느려지나요?",
+          "answer": "아니요. Caro는 명령 생성에 100ms 미만을 추가합니다. 안전 검사는 즉각적입니다 (패턴 매칭, AI 추론 아님). 실제 인시던트에서 그 100ms가 상황을 10배 악화시키는 것을 막을 수 있습니다. 검증은 동기적—경고를 즉시 볼 수 있습니다.",
+          "icon": "⚡"
+        },
+        {
+          "question": "제 특정 시스템 설정 (BSD vs GNU 등)을 어떻게 알죠?",
+          "answer": "Caro는 런타임에 OS와 셸을 감지합니다. macOS에서는 BSD 도구 사용을 인식합니다. Linux에서는 GNU 구문에 적응합니다. $SHELL을 읽고 그에 따라 조정합니다. 설정 불필요—그냥 작동합니다.",
+          "icon": "🖥️"
+        },
+        {
+          "question": "정말 위험한 명령을 실행해야 할 때는요?",
+          "answer": "Caro는 경고하지 가두지 않습니다. 경고가 표시되어도 계속할 수 있습니다—의도적으로 하는 것인지 확인할 뿐입니다. 진정으로 파괴적인 명령 (rm -rf /)에는 확인이 필요합니다. 이것은 안전벨트이지 구속복이 아닙니다.",
+          "icon": "🔓"
+        },
+        {
+          "question": "이것도 클라우드로 명령을 보내는 또 다른 AI 래퍼인가요?",
+          "answer": "아니요. Caro는 100% 로컬에서 실행됩니다. 명령, 파일 경로, 서버 이름, 디렉토리 구조가 기기를 떠나지 않습니다. 추론은 사용자 하드웨어에서 이루어집니다. 텔레메트리 제로. 소스 코드 확인하세요—AGPL-3.0 라이선스입니다.",
+          "icon": "🔒"
+        },
+        {
+          "question": "왜 AI 생성 셸 명령을 믿어야 하나요?",
+          "answer": "맹목적으로 믿으면 안 됩니다—그게 핵심입니다. Caro는 명령을 생성하고 실행 전에 검증합니다. 'AI를 믿어라'가 아니라 'AI가 놓칠 수 있는 것을 잡는 패턴 기반 안전 레이어를 믿어라'입니다. 검증은 결정론적이지 확률적이 아닙니다.",
+          "icon": "🎯"
+        }
+      ]
+    },
+    "download": {},
+    "footer": {}
+  }
+}

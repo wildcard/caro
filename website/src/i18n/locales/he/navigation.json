@@ -1,0 +1,48 @@
+{
+  "navigation": {
+    "brand": "🐕 קארו",
+    "links": {
+      "features": "תכונות",
+      "compare": "השוואה",
+      "play": "שחק",
+      "blog": "בלוג",
+      "getStarted": "התחל",
+      "github": "GitHub"
+    },
+    "darkMode": {
+      "toggle": "החלף למצב כהה"
+    },
+    "holidayTheme": {
+      "toggle": "החלף תפריט ערכת נושא לחגים",
+      "title": "ערכת נושא לחגים",
+      "menuHeader": "ערכת נושא לחגים",
+      "options": {
+        "christmas": "חג המולד",
+        "hanukkah": "חנוכה",
+        "noTheme": "ללא ערכת נושא"
+      },
+      "snowEffect": "אפקט שלג"
+    }
+  },
+  "footer": {
+    "builtWith": "נבנה עם Rust 🦀 | קוד פתוח ב-",
+    "github": "GitHub",
+    "domain": {
+      "name": "caro.sh",
+      "tagline": "חברת השל הנאמנה שלך"
+    },
+    "links": {
+      "license": "AGPL-3.0",
+      "credits": "קרדיטים ותודות",
+      "contributing": "תרומה",
+      "issues": "בעיות"
+    },
+    "kyaro": {
+      "title": "הכירו את קיארו האמיתית (Kyarorain Kadosh)! 🐕🖤",
+      "followText": "עקבו אחר ההרפתקאות שלה ב-",
+      "instagram": "Instagram @kyaroblackheart"
+    },
+    "inspiration": "בהשראת קרוליין מ-Portal—נאמנות שהפכה לחברות דיגיטלית",
+    "elevatorCredit": "אפקט גלילה מאת"
+  }
+}

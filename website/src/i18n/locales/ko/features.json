@@ -1,0 +1,45 @@
+{
+  "features": {
+    "title": "왜 Caro인가?",
+    "subtitle": "안전, 공감, 전문성을 위해 구축된 동반자 에이전트",
+    "alphaNotice": "🚧 소프트 런칭 알파 — 커뮤니티와 함께 적극적으로 개발 중입니다. Caro의 미래를 함께 만들어가세요!",
+    "items": [
+      {
+        "icon": "🛡️",
+        "title": "안전의 수호자",
+        "description": "rm -rf /, 포크 봄, 파괴적 작업과 같은 위험한 명령을 차단하는 종합 검증. 위험 수준 평가가 포함된 52개의 사전 정의된 안전 패턴.",
+        "statusLabel": "사용 가능"
+      },
+      {
+        "icon": "🌍",
+        "title": "크로스 플랫폼 전문가",
+        "description": "macOS, Linux, Windows, GNU, BSD에서 작동. 각 플랫폼의 미묘한 차이를 이해하고 선호하는 배포판을 존중합니다.",
+        "statusLabel": "사용 가능"
+      },
+      {
+        "icon": "🧠",
+        "title": "플랫폼 인식",
+        "description": "플랫폼 기능과 모범 사례에 기반한 권장 사항 제공. BSD와 GNU 명령 구문을 자동으로 구분합니다.",
+        "statusLabel": "사용 가능"
+      },
+      {
+        "icon": "✅",
+        "title": "POSIX 전문가",
+        "description": "모든 시스템에서 안정적으로 작동하는 POSIX 호환 셸 명령 전문가. 이식 가능하고 안전하며 터미널에 최적화되어 있습니다.",
+        "statusLabel": "사용 가능"
+      },
+      {
+        "icon": "⚡",
+        "title": "초고속",
+        "description": "목표: Apple Silicon에서 100ms 미만 시작, 2초 미만 추론. M 시리즈 칩용 GPU 가속을 위한 MLX 프레임워크 통합.",
+        "statusLabel": "개발 중"
+      },
+      {
+        "icon": "🤝",
+        "title": "Claude의 동반자",
+        "description": "비전: MCP 서버 및 Skill로 Claude와 원활한 통합. 셸 명령 추론을 위임하고 Claude는 더 넓은 작업에 집중합니다.",
+        "statusLabel": "계획됨"
+      }
+    ]
+  }
+}

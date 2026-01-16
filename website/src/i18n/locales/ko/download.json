@@ -1,0 +1,42 @@
+{
+  "download": {
+    "title": "Caro 시작하기",
+    "subtitle": "충실한 셸 동반자를 터미널로",
+    "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
+    "copyButton": "복사",
+    "copiedButton": "복사됨!",
+    "binariesIntro": "또는 빌드된 바이너리 다운로드:",
+    "comingSoonBadge": "곧 출시",
+    "platforms": {
+      "macAppleSilicon": "macOS (Apple Silicon)",
+      "macIntel": "macOS (Intel)",
+      "linuxX64": "Linux (x86_64)",
+      "windows": "Windows"
+    },
+    "usageModes": {
+      "title": "Caro 사용 방법",
+      "modes": [
+        {
+          "title": "🔧 독립형 CLI",
+          "exampleCommand": "caro \"100MB 이상 파일 표시\""
+        },
+        {
+          "title": "🔌 Claude용 MCP",
+          "description": "Claude Desktop에 Caro를 MCP 서버로 추가하고 모든 셸 명령을 원활하게 처리하세요.",
+          "comingSoon": true
+        },
+        {
+          "title": "✨ 전용 Skill",
+          "description": "Caro를 Skill로 사용하여 셸 명령 생성 및 실행을 위임하고 Claude는 작업에 집중하세요.",
+          "comingSoon": true
+        }
+      ]
+    },
+    "quickStart": {
+      "title": "빠른 시작",
+      "intro": "위 설정 스크립트 실행 후 Caro 사용:",
+      "exampleCommand": "caro \"최근 7일간 수정된 모든 Python 파일 찾기\"",
+      "description": "Caro가 명령을 생성하고 안전하게 지켜줍니다. 설정 스크립트가 Rust 컴파일을 포함한 모든 사전 요구 사항을 처리합니다."
+    }
+  }
+}

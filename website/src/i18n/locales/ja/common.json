@@ -1,5 +1,9 @@
 {
   "common": {
+    "meta": {
+      "title": "Caro - あなたの忠実なシェルコンパニオン",
+      "description": "CaroはPOSIXシェルコマンドをサポートするコンパニオンエージェントです。Claude用MCPおよび専用Skillとして利用可能です。"
+    },
     "buttons": {
       "copy": "コピー",
       "copied": "コピーしました！",
@@ -15,6 +19,51 @@
     "aria": {
       "toggleDarkMode": "ダークモードを切り替え",
       "toggleHolidayTheme": "ホリデーテーマメニューを切り替え"
+    },
+    "nav": {
+      "features": "機能",
+      "compare": "比較",
+      "resources": "リソース",
+      "support": "サポート",
+      "getStarted": "はじめる",
+      "dropdown": {
+        "overview": "概要",
+        "seeAllComparisons": "すべての比較を見る",
+        "vsWarp": "vs Warp",
+        "aiNativeTerminal": "AIネイティブターミナル",
+        "vsGitHubCopilot": "vs GitHub Copilot CLI",
+        "aiPairProgrammer": "AIペアプログラマー",
+        "vsKiro": "vs Kiro CLI",
+        "awsAssistant": "AWS AIアシスタント",
+        "blog": "ブログ",
+        "newsAndTutorials": "ニュース＆チュートリアル",
+        "explore": "探索",
+        "interactiveDemo": "インタラクティブデモ",
+        "faq": "FAQ",
+        "commonQuestions": "よくある質問",
+        "roadmap": "ロードマップ",
+        "whatsNext": "次の予定",
+        "glossary": "用語集",
+        "terminalTerms": "ターミナル＆Unix用語",
+        "github": "GitHub",
+        "sourceCode": "ソースコード"
+      },
+      "mobile": {
+        "allComparisons": "すべての比較",
+        "supportCaro": "Caroをサポート"
+      },
+      "appearance": {
+        "title": "外観",
+        "darkMode": "ダークモード",
+        "holidayTheme": "ホリデーテーマ",
+        "snowEffect": "雪のエフェクト",
+        "disableEffects": "すべてのエフェクトを無効化"
+      },
+      "useCases": {
+        "allUseCases": "すべてのユースケース",
+        "byRole": "役割別",
+        "backToHome": "ホームに戻る"
+      }
     }
   }
 }
