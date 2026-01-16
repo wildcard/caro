@@ -307,8 +307,7 @@ impl KnowledgeIndex {
             } else {
                 Some(contexts.value(i).to_string())
             };
-            let entry_type =
-                EntryType::parse(entry_types.value(i)).unwrap_or(EntryType::Success);
+            let entry_type = EntryType::parse(entry_types.value(i)).unwrap_or(EntryType::Success);
             let timestamp =
                 DateTime::from_timestamp(timestamps.value(i), 0).unwrap_or_else(Utc::now);
             let original_command = if original_commands.is_null(i) {

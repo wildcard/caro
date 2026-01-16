@@ -203,10 +203,7 @@ mod tests {
         assert_eq!(EntryType::Success.as_str(), "success");
         assert_eq!(EntryType::Correction.as_str(), "correction");
         assert_eq!(EntryType::parse("success"), Some(EntryType::Success));
-        assert_eq!(
-            EntryType::parse("correction"),
-            Some(EntryType::Correction)
-        );
+        assert_eq!(EntryType::parse("correction"), Some(EntryType::Correction));
         assert_eq!(EntryType::parse("unknown"), None);
     }
 
