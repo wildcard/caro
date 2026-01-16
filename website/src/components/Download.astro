@@ -1,5 +1,16 @@
 ---
 import { SITE_CONFIG } from '../config/site';
+import { t, type Locale } from '../i18n/config';
+
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = 'en' } = Astro.props;
+
+// Get translated button labels for client-side JS
+const copyLabel = t(lang, 'common.buttons.copy');
+const copiedLabel = t(lang, 'common.buttons.copied');
 ---
 
 <section id="download" class="download-section">
@@ -9,7 +20,7 @@ import { SITE_CONFIG } from '../config/site';
 
     <div class="install-command">
       <code>bash &lt;(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)</code>
-      <button class="copy-button" data-command="bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)">Copy</button>
+      <button class="copy-button" data-command="bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)" data-copy-label={copyLabel} data-copied-label={copiedLabel}>{copyLabel}</button>
     </div>
 
     <p class="binary-intro">Or download pre-built binaries (v{SITE_CONFIG.version}):</p>
@@ -396,11 +407,12 @@ import { SITE_CONFIG } from '../config/site';
     copyButtons.forEach(button => {
       button.addEventListener('click', () => {
         const command = button.getAttribute('data-command') || '';
+        const copyLabel = button.getAttribute('data-copy-label') || 'Copy';
+        const copiedLabel = button.getAttribute('data-copied-label') || 'Copied!';
         navigator.clipboard.writeText(command).then(() => {
-          const originalText = button.textContent;
-          button.textContent = 'Copied!';
+          button.textContent = copiedLabel;
           setTimeout(() => {
-            button.textContent = originalText;
+            button.textContent = copyLabel;
           }, 2000);
         });
       });

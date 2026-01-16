@@ -370,7 +370,7 @@ const currentLang = Astro.params.lang || 'en';
 <script>
   document.getElementById('lang-switcher')?.addEventListener('change', (e) => {
     const newLang = (e.target as HTMLSelectElement).value;
-    const path = window.location.pathname.replace(/^\/[a-z]{2}/, '');
+    const path = window.location.pathname.replace(/^\/[a-z]{2,3}/, '');
     window.location.href = newLang === 'en' ? path : `/${newLang}${path}`;
   });
 </script>
