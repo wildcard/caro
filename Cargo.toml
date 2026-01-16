@@ -79,7 +79,7 @@ sha2 = "0.10"
 
 # Telemetry
 uuid = { version = "1", features = ["v4", "serde"] }
-rusqlite = { version = "0.34", features = ["bundled"] }
+rusqlite = { version = "0.38", features = ["bundled"] }
 machine-uid = "0.5"
 
 # File locking for atomic operations
