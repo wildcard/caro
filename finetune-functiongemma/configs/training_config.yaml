@@ -1,18 +1,22 @@
 # FunctionGemma CLI Tool Recommender - Training Configuration
+# Based on official Unsloth FunctionGemma notebook recommendations
 # Copy and modify this file for custom training runs
 
 # Model configuration
 model:
   name: "unsloth/functiongemma-270m-it"
   max_seq_length: 4096
+  load_in_4bit: false
+  load_in_8bit: false
   load_in_16bit: true
   full_finetuning: false
 
-# LoRA configuration for efficient fine-tuning
+# LoRA configuration - higher rank for better quality
+# Official notebook uses r=128, lora_alpha=256
 lora:
-  r: 16                    # LoRA rank
-  lora_alpha: 16           # LoRA scaling factor
-  lora_dropout: 0.0        # Dropout for LoRA layers
+  r: 128                   # LoRA rank (higher = better quality, more memory)
+  lora_alpha: 256          # 2x rank as recommended
+  lora_dropout: 0.0        # 0 is optimized
   target_modules:
     - q_proj
     - k_proj
@@ -21,34 +25,36 @@ lora:
     - gate_proj
     - up_proj
     - down_proj
-  bias: "none"
-  use_gradient_checkpointing: "unsloth"
+  bias: "none"             # "none" is optimized
+  use_gradient_checkpointing: "unsloth"  # 30% less VRAM
   use_rslora: false
-  random_state: 42
+  loftq_config: null
+  random_state: 3407
 
 # Training configuration
 training:
   output_dir: "./output"
-  num_train_epochs: 3
-  per_device_train_batch_size: 2
-  gradient_accumulation_steps: 4
-  warmup_steps: 5
-  learning_rate: 0.0002
-  weight_decay: 0.01
+  max_steps: 500           # Set to null and use num_train_epochs for full run
+  num_train_epochs: 1      # Used when max_steps is null
+  per_device_train_batch_size: 4
+  gradient_accumulation_steps: 2
+  warmup_steps: 10
+  learning_rate: 0.0002    # 2e-4, reduce to 2e-5 for long runs
+  weight_decay: 0.001
   lr_scheduler_type: "linear"
   optim: "adamw_8bit"
   logging_steps: 1
-  seed: 42
+  seed: 3407
+  report_to: "none"        # Use "wandb" or "tensorboard" if needed
 
-  # Mixed precision (auto-detect best for your hardware)
-  # fp16: auto  # True for older GPUs
-  # bf16: auto  # True for newer GPUs (A100, H100, RTX 30xx+)
+  # train_on_responses_only is automatically applied
+  # This masks user inputs and only trains on assistant outputs
 
 # Data configuration
 data:
-  train_path: "./data/training_data.json"
-  validation_split: 0.1
-  shuffle: true
+  train_path: "./data/training_examples.json"
+  # Data is formatted using tokenizer.apply_chat_template()
+  # with HF-style tool schemas
 
 # Generation settings (Google's recommendations for FunctionGemma)
 generation:
@@ -60,9 +66,10 @@ generation:
 
 # Export configuration
 export:
-  # Options: lora, merged_16bit, gguf
+  # Options: lora, merged_16bit, merged_4bit, gguf
   method: "lora"
 
   # GGUF settings (if method is gguf)
+  # Note: Only Q8_0, BF16, F16 supported currently
   gguf:
-    quantization: "q4_k_m"  # Options: q4_0, q4_k_m, q5_k_m, q8_0, f16
+    quantization: "Q8_0"

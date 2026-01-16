@@ -2,11 +2,12 @@
 """
 Fine-tuning script for FunctionGemma CLI Tool Recommender.
 
-This script fine-tunes FunctionGemma to recommend CLI tools based on:
-- User query/prompt
-- Operating system (POSIX, Linux, macOS, Ubuntu, BSD, Windows)
-- Shell type (sh, bash, zsh, fish, etc.)
-- User preferences and configuration
+Based on official Unsloth FunctionGemma notebook with key improvements:
+- Uses tokenizer.apply_chat_template() for proper formatting
+- train_on_responses_only() to only train on assistant outputs
+- HF-style tool schemas for proper tool declaration
+- Higher LoRA rank (r=128) for better quality
+- SFTConfig instead of TrainingArguments
 
 Usage:
     python finetune.py --data_path ./data/training_data.json --output_dir ./output
@@ -14,21 +15,20 @@ Usage:
 
 import argparse
 import json
-import os
+import re
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Tuple
 
 # Check for required packages
 try:
     from unsloth import FastLanguageModel
-    from unsloth.chat_templates import get_chat_template
+    from unsloth.chat_templates import train_on_responses_only
     import torch
     from datasets import Dataset
-    from trl import SFTTrainer
-    from transformers import TrainingArguments
+    from trl import SFTTrainer, SFTConfig
 except ImportError as e:
     print(f"Missing required package: {e}")
-    print("Install with: pip install unsloth datasets trl transformers torch")
+    print("Install with: uv pip install unsloth")
     exit(1)
 
 
@@ -36,110 +36,223 @@ except ImportError as e:
 MODEL_CONFIG = {
     "model_name": "unsloth/functiongemma-270m-it",
     "max_seq_length": 4096,
+    "load_in_4bit": False,
+    "load_in_8bit": False,
     "load_in_16bit": True,
     "full_finetuning": False,
 }
 
-# LoRA configuration for efficient fine-tuning
+# LoRA configuration - higher rank for better quality (from official notebook)
 LORA_CONFIG = {
-    "r": 16,  # Rank of LoRA
-    "lora_alpha": 16,
+    "r": 128,  # Higher rank for better quality (was 16)
+    "lora_alpha": 256,  # 2x rank as recommended
     "lora_dropout": 0,
     "target_modules": [
         "q_proj", "k_proj", "v_proj", "o_proj",
         "gate_proj", "up_proj", "down_proj"
     ],
     "bias": "none",
-    "use_gradient_checkpointing": "unsloth",
-    "random_state": 42,
+    "use_gradient_checkpointing": "unsloth",  # 30% less VRAM
+    "random_state": 3407,
     "use_rslora": False,
+    "loftq_config": None,
 }
 
 # Training configuration
 TRAINING_CONFIG = {
-    "per_device_train_batch_size": 2,
-    "gradient_accumulation_steps": 4,
-    "warmup_steps": 5,
-    "num_train_epochs": 3,
+    "per_device_train_batch_size": 4,
+    "gradient_accumulation_steps": 2,
+    "warmup_steps": 10,
+    "max_steps": 500,  # Set to None and use num_train_epochs for full run
     "learning_rate": 2e-4,
-    "fp16": not torch.cuda.is_bf16_supported() if torch.cuda.is_available() else True,
-    "bf16": torch.cuda.is_bf16_supported() if torch.cuda.is_available() else False,
     "logging_steps": 1,
     "optim": "adamw_8bit",
-    "weight_decay": 0.01,
+    "weight_decay": 0.001,
     "lr_scheduler_type": "linear",
-    "seed": 42,
+    "seed": 3407,
+    "report_to": "none",
 }
 
 
-class FunctionGemmaChatFormatter:
-    """Format training data for FunctionGemma chat template."""
+# CLI Tool Recommendation function schema (HF-style)
+CLI_TOOL_SCHEMA = {
+    "type": "function",
+    "function": {
+        "name": "recommend_tools",
+        "description": "Recommend CLI tools for a given task based on user's OS, shell, and preferences. Returns primary tools (likely installed) and alternative tools (may require installation).",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "primary_tools": {
+                    "type": "array",
+                    "description": "Tools most likely installed by default on the system",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {"type": "string", "description": "Tool name (e.g., 'find', 'grep')"},
+                            "category": {"type": "string", "description": "Tool category"},
+                            "confidence": {"type": "number", "description": "0.0-1.0 confidence tool is installed"},
+                            "reason": {"type": "string", "description": "Why this tool is recommended"},
+                        },
+                        "required": ["name", "category", "confidence", "reason"]
+                    }
+                },
+                "alternative_tools": {
+                    "type": "array",
+                    "description": "Modern alternatives that may need installation",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {"type": "string", "description": "Tool name"},
+                            "category": {"type": "string", "description": "Tool category"},
+                            "install_cmd": {"type": "string", "description": "Installation command"},
+                            "reason": {"type": "string", "description": "Why this is recommended"},
+                            "improvements": {"type": "array", "items": {"type": "string"}},
+                        },
+                        "required": ["name", "install_cmd", "reason"]
+                    }
+                },
+                "task_category": {
+                    "type": "string",
+                    "description": "Category of the user's task"
+                }
+            },
+            "required": ["primary_tools", "task_category"]
+        }
+    }
+}
 
-    # FunctionGemma special tokens
-    DEVELOPER_START = "<start_of_turn>developer\n"
-    USER_START = "<start_of_turn>user\n"
-    MODEL_START = "<start_of_turn>model\n"
-    END_OF_TURN = "<end_of_turn>\n"
+THINK_TAG_OPEN = "<think>"
+THINK_TAG_CLOSE = "</think>"
 
-    FUNCTION_DECLARATION_START = "<start_function_declaration>"
-    FUNCTION_CALL_START = "<start_function_call>"
-    FUNCTION_CALL_END = "<end_function_call>"
-    FUNCTION_RESPONSE_START = "<start_function_response>"
 
-    def __init__(self, function_schemas: Optional[Dict[str, Any]] = None):
-        self.function_schemas = function_schemas or self._load_default_schemas()
+def prepare_messages_and_tools(example: Dict[str, Any]) -> Tuple[Optional[List[Dict]], List[Dict]]:
+    """
+    Prepare messages and tools from training example.
+    Converts our format to HF-style format for apply_chat_template.
 
-    def _load_default_schemas(self) -> Dict[str, Any]:
-        """Load default function schemas."""
-        schema_path = Path(__file__).parent.parent / "schemas" / "tool_functions.py"
-        if schema_path.exists():
-            import importlib.util
-            spec = importlib.util.spec_from_file_location("tool_functions", schema_path)
-            module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module)
-            return module.FUNCTION_SCHEMAS
-        return {}
+    This handles:
+    - System/developer messages
+    - User messages
+    - Assistant messages with thinking and tool calls
+    """
+    context = example.get("context", {})
+    query = example.get("user_query", "")
+    conversation = example.get("conversation", [])
 
-    def format_function_declarations(self) -> str:
-        """Format all function declarations for the developer message."""
-        declarations = []
-        for name, schema in self.function_schemas.items():
-            decl = f"{self.FUNCTION_DECLARATION_START}declaration:{name}"
-            decl += json.dumps(schema, indent=2)
-            declarations.append(decl)
-        return "\n".join(declarations)
+    if not conversation:
+        return None, []
 
-    def format_conversation(self, example: Dict[str, Any]) -> str:
-        """Format a single training example into FunctionGemma chat format."""
-        formatted = ""
+    messages = []
+    tools = [CLI_TOOL_SCHEMA]
 
-        # Build the conversation
-        for turn in example.get("conversation", []):
-            role = turn.get("role", "")
-            content = turn.get("content", "")
+    for turn in conversation:
+        role = turn.get("role", "")
+        content = turn.get("content", "")
 
-            if role == "developer":
-                formatted += self.DEVELOPER_START
-                formatted += content
-                if self.function_schemas:
-                    formatted += "\n\n" + self.format_function_declarations()
-                formatted += self.END_OF_TURN
+        if role == "developer":
+            # System message
+            messages.append({
+                "role": "system",
+                "content": content
+            })
 
-            elif role == "user":
-                formatted += self.USER_START
-                formatted += content
-                formatted += self.END_OF_TURN
+        elif role == "user":
+            messages.append({
+                "role": "user",
+                "content": content
+            })
 
-            elif role == "model":
-                formatted += self.MODEL_START
-                formatted += content
-                formatted += self.END_OF_TURN
+        elif role == "model":
+            # Parse model response for thinking and tool calls
+            assistant_msg = {"role": "assistant"}
 
-        return formatted
+            # Extract thinking block
+            thinking_match = re.search(
+                rf"{THINK_TAG_OPEN}(.*?){THINK_TAG_CLOSE}",
+                content,
+                re.DOTALL
+            )
 
-    def format_dataset(self, examples: List[Dict[str, Any]]) -> List[str]:
-        """Format all training examples."""
-        return [self.format_conversation(ex) for ex in examples]
+            # Check for function call in content
+            func_match = re.search(
+                r"<start_function_call>call:recommend_tools(.*?)<end_function_call>",
+                content,
+                re.DOTALL
+            )
+
+            if func_match:
+                try:
+                    args_json = func_match.group(1).strip()
+                    # Clean up JSON
+                    args_json = re.sub(r',\s*}', '}', args_json)
+                    args_json = re.sub(r',\s*]', ']', args_json)
+                    args = json.loads(args_json)
+
+                    # Build assistant message with thinking + tool call
+                    if thinking_match:
+                        thinking_text = thinking_match.group(1).strip()
+                        assistant_msg["content"] = f"{THINK_TAG_OPEN}{thinking_text}{THINK_TAG_CLOSE}"
+                    else:
+                        assistant_msg["content"] = ""
+
+                    assistant_msg["tool_calls"] = [{
+                        "id": "call_1",
+                        "type": "function",
+                        "function": {
+                            "name": "recommend_tools",
+                            "arguments": args
+                        }
+                    }]
+
+                except json.JSONDecodeError as e:
+                    # Fallback: use content as-is
+                    assistant_msg["content"] = content
+            else:
+                # No function call, use content as-is
+                assistant_msg["content"] = content
+
+            messages.append(assistant_msg)
+
+    # Validate: must have thinking in assistant messages
+    has_thinking = False
+    for msg in messages:
+        if msg.get("role") == "assistant":
+            content = msg.get("content", "")
+            if THINK_TAG_OPEN in content and THINK_TAG_CLOSE in content:
+                has_thinking = True
+                break
+
+    if not has_thinking:
+        return None, []
+
+    return messages, tools
+
+
+def format_example(example: Dict[str, Any], tokenizer) -> Optional[str]:
+    """
+    Format a single training example using tokenizer.apply_chat_template().
+    This is the proper way to format FunctionGemma prompts.
+    """
+    messages, tools = prepare_messages_and_tools(example)
+
+    if messages is None or len(messages) == 0:
+        return None
+
+    try:
+        chat_str = tokenizer.apply_chat_template(
+            messages,
+            tools=tools,
+            add_generation_prompt=False,
+            tokenize=False,
+        )
+        # Remove BOS token if present
+        if chat_str.startswith("<bos>"):
+            chat_str = chat_str[5:]
+        return chat_str
+    except Exception as e:
+        print(f"Warning: Failed to apply chat template: {e}")
+        return None
 
 
 def load_training_data(data_path: str) -> List[Dict[str, Any]]:
@@ -147,15 +260,28 @@ def load_training_data(data_path: str) -> List[Dict[str, Any]]:
     with open(data_path, 'r') as f:
         data = json.load(f)
 
-    # Handle both raw list and structured format
     if isinstance(data, dict) and "examples" in data:
         return data["examples"]
     return data
 
 
-def create_dataset(formatted_texts: List[str]) -> Dataset:
-    """Create a HuggingFace Dataset from formatted texts."""
-    return Dataset.from_dict({"text": formatted_texts})
+def create_dataset(examples: List[Dict[str, Any]], tokenizer) -> Dataset:
+    """Create a HuggingFace Dataset with properly formatted texts."""
+    formatted = []
+
+    for i, example in enumerate(examples):
+        text = format_example(example, tokenizer)
+        if text is not None:
+            formatted.append({"text": text})
+        if (i + 1) % 100 == 0:
+            print(f"  Formatted {i + 1}/{len(examples)} examples...")
+
+    print(f"Successfully formatted {len(formatted)}/{len(examples)} examples")
+
+    if not formatted:
+        raise ValueError("No valid training examples after formatting!")
+
+    return Dataset.from_list(formatted)
 
 
 def load_model_and_tokenizer():
@@ -165,6 +291,8 @@ def load_model_and_tokenizer():
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=MODEL_CONFIG["model_name"],
         max_seq_length=MODEL_CONFIG["max_seq_length"],
+        load_in_4bit=MODEL_CONFIG["load_in_4bit"],
+        load_in_8bit=MODEL_CONFIG["load_in_8bit"],
         load_in_16bit=MODEL_CONFIG["load_in_16bit"],
         full_finetuning=MODEL_CONFIG["full_finetuning"],
     )
@@ -174,7 +302,7 @@ def load_model_and_tokenizer():
 
 def apply_lora(model):
     """Apply LoRA adapters to the model."""
-    print("Applying LoRA adapters...")
+    print(f"Applying LoRA adapters (r={LORA_CONFIG['r']}, alpha={LORA_CONFIG['lora_alpha']})...")
 
     model = FastLanguageModel.get_peft_model(
         model,
@@ -186,37 +314,44 @@ def apply_lora(model):
         use_gradient_checkpointing=LORA_CONFIG["use_gradient_checkpointing"],
         random_state=LORA_CONFIG["random_state"],
         use_rslora=LORA_CONFIG["use_rslora"],
+        loftq_config=LORA_CONFIG["loftq_config"],
     )
 
     return model
 
 
 def create_trainer(model, tokenizer, dataset, output_dir: str) -> SFTTrainer:
-    """Create the SFT trainer."""
-    training_args = TrainingArguments(
-        output_dir=output_dir,
-        per_device_train_batch_size=TRAINING_CONFIG["per_device_train_batch_size"],
-        gradient_accumulation_steps=TRAINING_CONFIG["gradient_accumulation_steps"],
-        warmup_steps=TRAINING_CONFIG["warmup_steps"],
-        num_train_epochs=TRAINING_CONFIG["num_train_epochs"],
-        learning_rate=TRAINING_CONFIG["learning_rate"],
-        fp16=TRAINING_CONFIG["fp16"],
-        bf16=TRAINING_CONFIG["bf16"],
-        logging_steps=TRAINING_CONFIG["logging_steps"],
-        optim=TRAINING_CONFIG["optim"],
-        weight_decay=TRAINING_CONFIG["weight_decay"],
-        lr_scheduler_type=TRAINING_CONFIG["lr_scheduler_type"],
-        seed=TRAINING_CONFIG["seed"],
-        report_to="none",  # Disable wandb/tensorboard for simplicity
-    )
+    """Create the SFT trainer with train_on_responses_only."""
 
     trainer = SFTTrainer(
         model=model,
         tokenizer=tokenizer,
         train_dataset=dataset,
-        dataset_text_field="text",
-        max_seq_length=MODEL_CONFIG["max_seq_length"],
-        args=training_args,
+        eval_dataset=None,
+        args=SFTConfig(
+            dataset_text_field="text",
+            per_device_train_batch_size=TRAINING_CONFIG["per_device_train_batch_size"],
+            gradient_accumulation_steps=TRAINING_CONFIG["gradient_accumulation_steps"],
+            warmup_steps=TRAINING_CONFIG["warmup_steps"],
+            max_steps=TRAINING_CONFIG["max_steps"],
+            learning_rate=TRAINING_CONFIG["learning_rate"],
+            logging_steps=TRAINING_CONFIG["logging_steps"],
+            optim=TRAINING_CONFIG["optim"],
+            weight_decay=TRAINING_CONFIG["weight_decay"],
+            lr_scheduler_type=TRAINING_CONFIG["lr_scheduler_type"],
+            seed=TRAINING_CONFIG["seed"],
+            output_dir=output_dir,
+            report_to=TRAINING_CONFIG["report_to"],
+        ),
+    )
+
+    # IMPORTANT: Only train on assistant responses, not user inputs
+    # This significantly improves finetuning quality
+    print("Applying train_on_responses_only (masking user inputs)...")
+    trainer = train_on_responses_only(
+        trainer,
+        instruction_part="<start_of_turn>user\n",
+        response_part="<start_of_turn>model\n",
     )
 
     return trainer
@@ -227,16 +362,14 @@ def save_model(model, tokenizer, output_dir: str, save_method: str = "lora"):
     output_path = Path(output_dir) / "final_model"
     output_path.mkdir(parents=True, exist_ok=True)
 
-    print(f"Saving model to {output_path}")
+    print(f"Saving model to {output_path} (method: {save_method})")
 
     if save_method == "lora":
-        # Save only LoRA adapters (small file size)
         model.save_pretrained(str(output_path))
         tokenizer.save_pretrained(str(output_path))
         print("Saved LoRA adapters")
 
     elif save_method == "merged_16bit":
-        # Merge and save in 16-bit
         model.save_pretrained_merged(
             str(output_path),
             tokenizer,
@@ -244,16 +377,35 @@ def save_model(model, tokenizer, output_dir: str, save_method: str = "lora"):
         )
         print("Saved merged 16-bit model")
 
+    elif save_method == "merged_4bit":
+        model.save_pretrained_merged(
+            str(output_path),
+            tokenizer,
+            save_method="merged_4bit"
+        )
+        print("Saved merged 4-bit model")
+
     elif save_method == "gguf":
-        # Save in GGUF format for llama.cpp compatibility
         model.save_pretrained_gguf(
             str(output_path),
             tokenizer,
-            quantization_method="q4_k_m"
+            quantization_method="Q8_0"  # Q8_0, BF16, F16 supported
         )
-        print("Saved GGUF quantized model")
+        print("Saved GGUF quantized model (Q8_0)")
 
     return str(output_path)
+
+
+def show_memory_stats():
+    """Show GPU memory statistics."""
+    if torch.cuda.is_available():
+        gpu_stats = torch.cuda.get_device_properties(0)
+        reserved = round(torch.cuda.max_memory_reserved() / 1024 / 1024 / 1024, 3)
+        total = round(gpu_stats.total_memory / 1024 / 1024 / 1024, 3)
+        print(f"GPU: {gpu_stats.name}")
+        print(f"Memory: {reserved} GB / {total} GB ({round(reserved/total*100, 1)}%)")
+    else:
+        print("No GPU available")
 
 
 def main():
@@ -263,7 +415,7 @@ def main():
     parser.add_argument(
         "--data_path",
         type=str,
-        default="./data/training_data.json",
+        default="./data/training_examples.json",
         help="Path to training data JSON file"
     )
     parser.add_argument(
@@ -273,15 +425,15 @@ def main():
         help="Output directory for model and logs"
     )
     parser.add_argument(
-        "--epochs",
+        "--max_steps",
         type=int,
-        default=3,
-        help="Number of training epochs"
+        default=500,
+        help="Max training steps (set to -1 for full epochs)"
     )
     parser.add_argument(
         "--batch_size",
         type=int,
-        default=2,
+        default=4,
         help="Training batch size"
     )
     parser.add_argument(
@@ -291,9 +443,15 @@ def main():
         help="Learning rate"
     )
     parser.add_argument(
+        "--lora_r",
+        type=int,
+        default=128,
+        help="LoRA rank (higher = better quality, more memory)"
+    )
+    parser.add_argument(
         "--save_method",
         type=str,
-        choices=["lora", "merged_16bit", "gguf"],
+        choices=["lora", "merged_16bit", "merged_4bit", "gguf"],
         default="lora",
         help="How to save the model"
     )
@@ -307,9 +465,11 @@ def main():
     args = parser.parse_args()
 
     # Update config with CLI args
-    TRAINING_CONFIG["num_train_epochs"] = args.epochs
+    TRAINING_CONFIG["max_steps"] = args.max_steps if args.max_steps > 0 else None
     TRAINING_CONFIG["per_device_train_batch_size"] = args.batch_size
     TRAINING_CONFIG["learning_rate"] = args.learning_rate
+    LORA_CONFIG["r"] = args.lora_r
+    LORA_CONFIG["lora_alpha"] = args.lora_r * 2
 
     # Create output directory
     output_dir = Path(args.output_dir)
@@ -318,52 +478,63 @@ def main():
     print("=" * 60)
     print("FunctionGemma CLI Tool Recommender Fine-tuning")
     print("=" * 60)
-
-    # Load training data
-    print(f"\nLoading training data from: {args.data_path}")
-    training_examples = load_training_data(args.data_path)
-    print(f"Loaded {len(training_examples)} training examples")
-
-    # Format data for FunctionGemma
-    print("\nFormatting data for FunctionGemma chat template...")
-    formatter = FunctionGemmaChatFormatter()
-    formatted_texts = formatter.format_dataset(training_examples)
-
-    # Create dataset
-    dataset = create_dataset(formatted_texts)
-    print(f"Created dataset with {len(dataset)} examples")
+    print(f"Model: {MODEL_CONFIG['model_name']}")
+    print(f"LoRA: r={LORA_CONFIG['r']}, alpha={LORA_CONFIG['lora_alpha']}")
+    print(f"Batch size: {TRAINING_CONFIG['per_device_train_batch_size']}")
+    print(f"Learning rate: {TRAINING_CONFIG['learning_rate']}")
+    print(f"Max steps: {TRAINING_CONFIG['max_steps']}")
+    print()
 
     # Load model and tokenizer
-    print("\nLoading model and tokenizer...")
+    print("Loading model and tokenizer...")
     model, tokenizer = load_model_and_tokenizer()
 
     # Apply LoRA
     model = apply_lora(model)
 
+    # Load and format training data
+    print(f"\nLoading training data from: {args.data_path}")
+    training_examples = load_training_data(args.data_path)
+    print(f"Loaded {len(training_examples)} raw examples")
+
+    # Create dataset with proper formatting
+    print("\nFormatting data using apply_chat_template...")
+    dataset = create_dataset(training_examples, tokenizer)
+    print(f"Dataset ready: {len(dataset)} examples")
+
+    # Show sample
+    print("\nSample formatted text (first 500 chars):")
+    print("-" * 40)
+    print(dataset[0]["text"][:500] + "...")
+
     # Create trainer
     print("\nInitializing trainer...")
     trainer = create_trainer(model, tokenizer, dataset, str(output_dir))
 
-    # Resume from checkpoint if specified
-    if args.resume_from:
-        print(f"Resuming from checkpoint: {args.resume_from}")
+    # Show initial memory
+    print("\nInitial GPU memory:")
+    show_memory_stats()
 
     # Train
     print("\n" + "=" * 60)
     print("Starting training...")
     print("=" * 60)
 
-    trainer.train(resume_from_checkpoint=args.resume_from)
+    trainer_stats = trainer.train(resume_from_checkpoint=args.resume_from)
+
+    # Show final stats
+    print("\n" + "=" * 60)
+    print("Training complete!")
+    print("=" * 60)
+    runtime = trainer_stats.metrics.get('train_runtime', 0)
+    print(f"Training time: {runtime:.1f}s ({runtime/60:.1f} minutes)")
+    show_memory_stats()
 
     # Save model
-    print("\n" + "=" * 60)
-    print("Saving model...")
-    print("=" * 60)
-
+    print("\nSaving model...")
     model_path = save_model(model, tokenizer, str(output_dir), args.save_method)
 
     print("\n" + "=" * 60)
-    print("Training complete!")
     print(f"Model saved to: {model_path}")
     print("=" * 60)
 
