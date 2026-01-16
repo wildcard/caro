@@ -1,3 +1,7 @@
+mod directory;
+
+pub use directory::{DirectoryContext, ProjectType};
+
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::process::Command;
