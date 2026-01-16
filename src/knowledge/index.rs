@@ -20,7 +20,7 @@ use tokio::sync::RwLock;
 const TABLE_NAME: &str = "commands";
 
 /// A knowledge entry retrieved from the index
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct KnowledgeEntry {
     /// The original natural language request
     pub request: String,
