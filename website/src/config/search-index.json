@@ -1,6 +1,6 @@
 {
   "version": "2.1.0",
-  "generated": "2026-01-16T02:44:08.669Z",
+  "generated": "2026-01-16T04:42:09.516Z",
   "totalPages": 36,
   "pages": [
     {
@@ -6485,14 +6485,11 @@
     {
       "source": "/Comparison.astro",
       "headings": [
-        "How Caro Compares"
+        ".title`)}"
       ],
-      "paragraphs": [
-        "Built for DevOps engineers and SREs who refuse to sacrifice privacy for productivity",
-        "Ready for a shell companion that respects your privacy?"
-      ],
-      "fullText": "How Caro Compares Built for DevOps engineers and SREs who refuse to sacrifice privacy for productivity 🔒 Privacy First Design* 🛡️ 52+ Safety Patterns 📡 100% Offline Capable 🦀 Rust Built for Speed Feature > ))} > >? } $ > } ); })} ))} ))} Ready for a shell companion that respects your privacy? Get Started Free See Full Comparison ✓ Full support ◐ Partial/configurable ✗ Not supported ◎ Planned",
-      "_searchText": "how caro compares built for devops engineers and sres who refuse to sacrifice privacy for productivity ready for a shell companion that respects your privacy? how caro compares built for devops engineers and sres who refuse to sacrifice privacy for productivity 🔒 privacy first design* 🛡️ 52+ safety patterns 📡 100% offline capable 🦀 rust built for speed feature > ))} > >? } $ > } ); })} ))} ))} ready for a shell companion that respects your privacy? get started free see full comparison ✓ full support ◐ partial/configurable ✗ not supported ◎ planned"
+      "paragraphs": [],
+      "fullText": "🔒 🛡️ 📡 🦀 .title`)} > } `)} ))} .features.$ .name`); const featureTooltip = t(lang, `landing.comparison.categories.$ .features.$ .tooltip`); return ( >? } `); return ( } ); })} ); })} ))} ✓ ◐ ✗ ◎",
+      "_searchText": ".title`)} 🔒 🛡️ 📡 🦀 .title`)} > } `)} ))} .features.$ .name`); const featuretooltip = t(lang, `landing.comparison.categories.$ .features.$ .tooltip`); return ( >? } `); return ( } ); })} ); })} ))} ✓ ◐ ✗ ◎"
     },
     {
       "source": "/Download.astro",
@@ -6518,14 +6515,14 @@
     {
       "source": "/Features.astro",
       "headings": [
-        "Why Caro?"
+        ".title`)}"
       ],
       "paragraphs": [
-        "A companion agent built for safety, empathy, and expertise",
-        "🚧 Soft Launch Alpha — We're actively building with our community. Join us to help shape Caro's future!"
+        "🚧 —",
+        ".description`)}"
       ],
-      "fullText": "Why Caro? A companion agent built for safety, empathy, and expertise 🚧 Soft Launch Alpha — We're actively building with our community. Join us to help shape Caro's future! > ))}",
-      "_searchText": "why caro? a companion agent built for safety, empathy, and expertise 🚧 soft launch alpha — we're actively building with our community. join us to help shape caro's future! why caro? a companion agent built for safety, empathy, and expertise 🚧 soft launch alpha — we're actively building with our community. join us to help shape caro's future! > ))}"
+      "fullText": "🚧 — > .title`)} .description`)} ))}",
+      "_searchText": ".title`)} 🚧 — .description`)} 🚧 — > .title`)} .description`)} ))}"
     },
     {
       "source": "/Footer.astro",
@@ -6556,14 +6553,12 @@
     },
     {
       "source": "/Hero.astro",
-      "headings": [
-        "Your loyal shell companion"
-      ],
+      "headings": [],
       "paragraphs": [
-        "██████╗ █████╗ ██████╗ ██████╗ ██╔════╝██╔══██╗██╔══██╗██╔═══██╗ ██║ ███████║██████╔╝██║ ██║ ██║ ██╔══██║██╔══██╗██║ ██║ ╚██████╗██║ ██║██║ ██║╚██████╔╝ ╚═════╝╚═╝ ╚═╝╚═╝ ╚═╝ ╚═════╝ Your loyal shell companion A specialized POSIX shell command agent for Claude users. Validates AI-generated commands with safety-first design, detects dangerous patterns, and ensures POSIX compliance."
+        "██████╗ █████╗ ██████╗ ██████╗ ██╔════╝██╔══██╗██╔══██╗██╔═══██╗ ██║ ███████║██████╔╝██║ ██║ ██║ ██╔══██║██╔══██╗██║ ██║ ╚██████╗██║ ██║██║ ██║╚██████╔╝ ╚═════╝╚═╝ ╚═╝╚═╝ ╚═╝ ╚═════╝"
       ],
-      "fullText": "🐕 Companion Agent Your loyal shell companion A specialized POSIX shell command agent for Claude users. Validates AI-generated commands with safety-first design, detects dangerous patterns, and ensures POSIX compliance. Available as a Claude Skill: Get Started Watch Demo",
-      "_searchText": "your loyal shell companion ██████╗ █████╗ ██████╗ ██████╗ ██╔════╝██╔══██╗██╔══██╗██╔═══██╗ ██║ ███████║██████╔╝██║ ██║ ██║ ██╔══██║██╔══██╗██║ ██║ ╚██████╗██║ ██║██║ ██║╚██████╔╝ ╚═════╝╚═╝ ╚═╝╚═╝ ╚═╝ ╚═════╝ your loyal shell companion a specialized posix shell command agent for claude users. validates ai-generated commands with safety-first design, detects dangerous patterns, and ensures posix compliance. 🐕 companion agent your loyal shell companion a specialized posix shell command agent for claude users. validates ai-generated commands with safety-first design, detects dangerous patterns, and ensures posix compliance. available as a claude skill: get started watch demo"
+      "fullText": "🐕",
+      "_searchText": "██████╗ █████╗ ██████╗ ██████╗ ██╔════╝██╔══██╗██╔══██╗██╔═══██╗ ██║ ███████║██████╔╝██║ ██║ ██║ ██╔══██║██╔══██╗██║ ██║ ╚██████╗██║ ██║██║ ██║╚██████╔╝ ╚═════╝╚═╝ ╚═╝╚═╝ ╚═╝ ╚═════╝ 🐕"
     },
     {
       "source": "/HolidayDebugPanel.astro",
@@ -6592,8 +6587,8 @@
       "source": "/Navigation.astro",
       "headings": [],
       "paragraphs": [],
-      "fullText": "🐕 Caro >All Use Cases By Role class=dropdown-item $ > ))} Back to Home ) : ( Features Compare 📊 Overview See all comparisons ⚡ vs Warp AI-native terminal 🤖 vs GitHub Copilot CLI AI pair programmer 👻 vs Kiro CLI AWS AI assistant Resources 📝 Blog News & tutorials 🔍 Explore Interactive demo ❓ FAQ Common questions 🗺️ Roadmap What's coming next 📖 Glossary Terminal & Unix terms 🐙 GitHub Source code ♥ Support )} 🎄 🕎 🎊 ✨ Holiday Theme 🎄 Christmas ✓ 🕎 Hanukkah ✓ 🎊 New Year ✓ 🚫 None ✓ ❄️ Snow Effect 🎆 Disable All Effects Get Started 🐕 Caro > 📋 All Use Cases By Role class=drawer-link $ > ))} 🏠 Back to Home ) : ( ⭐ Features 🎬 Watch Demo Compare 📊 All Comparisons ⚡ vs Warp 🤖 vs GitHub Copilot 👻 vs Kiro CLI Resources 📝 Blog 🔍 Explore ❓ FAQ 🗺️ Roadmap 📖 Glossary 🐙 GitHub 💖 Support Caro )} Appearance 🌓 Dark Mode 🎄 Holiday Theme Christmas 🎄 Hanukkah 🕎 New Year 🎊 None ❄️ Snow Effect 🎆 Disable All Effects Get Started",
-      "_searchText": "🐕 caro >all use cases by role class=dropdown-item $ > ))} back to home ) : ( features compare 📊 overview see all comparisons ⚡ vs warp ai-native terminal 🤖 vs github copilot cli ai pair programmer 👻 vs kiro cli aws ai assistant resources 📝 blog news & tutorials 🔍 explore interactive demo ❓ faq common questions 🗺️ roadmap what's coming next 📖 glossary terminal & unix terms 🐙 github source code ♥ support )} 🎄 🕎 🎊 ✨ holiday theme 🎄 christmas ✓ 🕎 hanukkah ✓ 🎊 new year ✓ 🚫 none ✓ ❄️ snow effect 🎆 disable all effects get started 🐕 caro > 📋 all use cases by role class=drawer-link $ > ))} 🏠 back to home ) : ( ⭐ features 🎬 watch demo compare 📊 all comparisons ⚡ vs warp 🤖 vs github copilot 👻 vs kiro cli resources 📝 blog 🔍 explore ❓ faq 🗺️ roadmap 📖 glossary 🐙 github 💖 support caro )} appearance 🌓 dark mode 🎄 holiday theme christmas 🎄 hanukkah 🕎 new year 🎊 none ❄️ snow effect 🎆 disable all effects get started"
+      "fullText": "🐕 Caro > class=dropdown-item $ > ))} ) : ( 📊 ⚡ 🤖 👻 📝 🔍 ❓ 🗺️ 📖 🐙 ♥ )} 🎄 🕎 🎊 ✨ Holiday Theme 🎄 Christmas ✓ 🕎 Hanukkah ✓ 🎊 New Year ✓ 🚫 None ✓ ❄️ Snow Effect 🎆 Disable All Effects 🐕 Caro > 📋 class=drawer-link $ > ))} 🏠 ) : ( ⭐ 🎬 📊 ⚡ 🤖 👻 📝 🔍 ❓ 🗺️ 📖 🐙 💖 )} 🌓 🎄 Christmas 🎄 Hanukkah 🕎 New Year 🎊 None ❄️ 🎆",
+      "_searchText": "🐕 caro > class=dropdown-item $ > ))} ) : ( 📊 ⚡ 🤖 👻 📝 🔍 ❓ 🗺️ 📖 🐙 ♥ )} 🎄 🕎 🎊 ✨ holiday theme 🎄 christmas ✓ 🕎 hanukkah ✓ 🎊 new year ✓ 🚫 none ✓ ❄️ snow effect 🎆 disable all effects 🐕 caro > 📋 class=drawer-link $ > ))} 🏠 ) : ( ⭐ 🎬 📊 ⚡ 🤖 👻 📝 🔍 ❓ 🗺️ 📖 🐙 💖 )} 🌓 🎄 christmas 🎄 hanukkah 🕎 new year 🎊 none ❄️ 🎆"
     },
     {
       "source": "/NewYearCountdown.astro",
@@ -6622,20 +6617,6 @@
       "paragraphs": [],
       "fullText": "🔍",
       "_searchText": "🔍"
-    },
-    {
-      "source": "/Story.astro",
-      "headings": [
-        "Meet Caro"
-      ],
-      "paragraphs": [
-        "A companion with a story of loyalty and transformation",
-        "Caro is the digitalization of Kyaro (Kyarorain Kadosh), the maintainer's beloved dog. Just as a loyal companion stays by your side through every challenge, Caro is here to help you navigate the complexities of shell commands with safety and expertise.",
-        "She specializes in POSIX shell commands and understands the nuances of every platform—whether you're on macOS, Linux, Windows, GNU, or BSD. Caro brings your preferences with her wherever you deploy her, respecting your distribution of choice while keeping you safe from dangerous commands.",
-        "As Claude's loyal companion, Caro handles the shell-specific heavy lifting, allowing Claude to focus on the broader work while she ensures every command is safe, correct, and optimized for your platform."
-      ],
-      "fullText": "Meet Caro A companion with a story of loyalty and transformation Caro is the digitalization of Kyaro (Kyarorain Kadosh), the maintainer's beloved dog. Just as a loyal companion stays by your side through every challenge, Caro is here to help you navigate the complexities of shell commands with safety and expertise. \"In Portal 2, we learned that GLaDOS was once Caroline, the secretary of Aperture Science's founder—transformed into the eternal guardian of the facility. Like Caroline became the beating heart of the testing chambers, Caro is your eternal companion for the terminal.\" She specializes in POSIX shell commands and understands the nuances of every platform—whether you're on macOS, Linux, Windows, GNU, or BSD. Caro brings your preferences with her wherever you deploy her, respecting your distribution of choice while keeping you safe from dangerous commands. As Claude's loyal companion, Caro handles the shell-specific heavy lifting, allowing Claude to focus on the broader work while she ensures every command is safe, correct, and optimized for your platform.",
-      "_searchText": "meet caro a companion with a story of loyalty and transformation caro is the digitalization of kyaro (kyarorain kadosh), the maintainer's beloved dog. just as a loyal companion stays by your side through every challenge, caro is here to help you navigate the complexities of shell commands with safety and expertise. she specializes in posix shell commands and understands the nuances of every platform—whether you're on macos, linux, windows, gnu, or bsd. caro brings your preferences with her wherever you deploy her, respecting your distribution of choice while keeping you safe from dangerous commands. as claude's loyal companion, caro handles the shell-specific heavy lifting, allowing claude to focus on the broader work while she ensures every command is safe, correct, and optimized for your platform. meet caro a companion with a story of loyalty and transformation caro is the digitalization of kyaro (kyarorain kadosh), the maintainer's beloved dog. just as a loyal companion stays by your side through every challenge, caro is here to help you navigate the complexities of shell commands with safety and expertise. \"in portal 2, we learned that glados was once caroline, the secretary of aperture science's founder—transformed into the eternal guardian of the facility. like caroline became the beating heart of the testing chambers, caro is your eternal companion for the terminal.\" she specializes in posix shell commands and understands the nuances of every platform—whether you're on macos, linux, windows, gnu, or bsd. caro brings your preferences with her wherever you deploy her, respecting your distribution of choice while keeping you safe from dangerous commands. as claude's loyal companion, caro handles the shell-specific heavy lifting, allowing claude to focus on the broader work while she ensures every command is safe, correct, and optimized for your platform."
     },
     {
       "source": "/Terminal.astro",
@@ -6953,15 +6934,6 @@
       ],
       "fullText": "+ ))} Still skeptical? Good—you should be. Read the source code",
       "_searchText": "still skeptical? good—you should be. + ))} still skeptical? good—you should be. read the source code"
-    },
-    {
-      "source": "/landing/LPFeatures.astro",
-      "headings": [],
-      "paragraphs": [
-        "See exactly what Caro blocks and why"
-      ],
-      "fullText": "> ))} See exactly what Caro blocks and why View safety patterns",
-      "_searchText": "see exactly what caro blocks and why > ))} see exactly what caro blocks and why view safety patterns"
     },
     {
       "source": "/landing/LPFooter.astro",
