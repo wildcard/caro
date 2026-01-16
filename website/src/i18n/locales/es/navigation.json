@@ -1,0 +1,48 @@
+{
+  "navigation": {
+    "brand": "🐕 Caro",
+    "links": {
+      "features": "Características",
+      "compare": "Comparar",
+      "play": "Jugar",
+      "blog": "Blog",
+      "getStarted": "Empezar",
+      "github": "GitHub"
+    },
+    "darkMode": {
+      "toggle": "Alternar modo oscuro"
+    },
+    "holidayTheme": {
+      "toggle": "Alternar menú de tema festivo",
+      "title": "Tema Festivo",
+      "menuHeader": "Tema Festivo",
+      "options": {
+        "christmas": "Navidad",
+        "hanukkah": "Janucá",
+        "noTheme": "Sin Tema"
+      },
+      "snowEffect": "Efecto de Nieve"
+    }
+  },
+  "footer": {
+    "builtWith": "Hecho con Rust 🦀 | Código abierto en",
+    "github": "GitHub",
+    "domain": {
+      "name": "caro.sh",
+      "tagline": "Tu compañero leal de shell"
+    },
+    "links": {
+      "license": "AGPL-3.0",
+      "credits": "Créditos y Atribución",
+      "contributing": "Contribuir",
+      "issues": "Problemas"
+    },
+    "kyaro": {
+      "title": "¡Conoce a la Kyaro real (Kyarorain Kadosh)! 🐕🖤",
+      "followText": "Sigue sus aventuras en",
+      "instagram": "Instagram @kyaroblackheart"
+    },
+    "inspiration": "Inspirado por Caroline de Portal—lealtad transformada en compañerismo digital",
+    "elevatorCredit": "Efecto de scroll por"
+  }
+}
