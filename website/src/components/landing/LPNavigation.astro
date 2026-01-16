@@ -10,7 +10,7 @@ const { lang = 'en' } = Astro.props;
 
 <nav class="lp-nav">
   <div class="container">
-<a href="/" class="nav-brand">{t(lang, 'landing.navigation.brand')}</a>
+<a href={lang === 'en' ? '/' : `/${lang}/`} class="nav-brand">{t(lang, 'landing.navigation.brand')}</a>
     <div class="nav-links">
       <a href="/use-cases" class="nav-link">Use Cases</a>
       <a href="/docs" class="nav-link">Docs</a>
