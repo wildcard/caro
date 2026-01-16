@@ -1,0 +1,42 @@
+{
+  "download": {
+    "title": "Commencez avec Caro",
+    "subtitle": "Amenez votre fidèle compagnon de shell dans votre terminal",
+    "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
+    "copyButton": "Copier",
+    "copiedButton": "Copié !",
+    "binariesIntro": "Ou téléchargez les binaires pré-construits :",
+    "comingSoonBadge": "Bientôt disponible",
+    "platforms": {
+      "macAppleSilicon": "macOS (Apple Silicon)",
+      "macIntel": "macOS (Intel)",
+      "linuxX64": "Linux (x86_64)",
+      "windows": "Windows"
+    },
+    "usageModes": {
+      "title": "Plusieurs façons d'utiliser Caro",
+      "modes": [
+        {
+          "title": "🔧 CLI autonome",
+          "exampleCommand": "caro \"list files > 100MB\""
+        },
+        {
+          "title": "🔌 MCP pour Claude",
+          "description": "Ajoutez Caro comme serveur MCP à Claude Desktop et laissez-la gérer toutes les commandes shell de manière transparente.",
+          "comingSoon": true
+        },
+        {
+          "title": "✨ Compétence dédiée",
+          "description": "Utilisez Caro comme une Compétence pour déléguer la génération et l'exécution des commandes shell pendant que Claude se concentre sur votre travail.",
+          "comingSoon": true
+        }
+      ]
+    },
+    "quickStart": {
+      "title": "Démarrage rapide",
+      "intro": "Après avoir exécuté le script de configuration ci-dessus, utilisez simplement Caro :",
+      "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
+      "description": "Caro générera la commande et vous gardera en sécurité. Le script de configuration gère tous les prérequis, y compris la compilation Rust."
+    }
+  }
+}

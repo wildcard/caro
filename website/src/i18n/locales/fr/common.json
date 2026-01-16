@@ -1,5 +1,9 @@
 {
   "common": {
+    "meta": {
+      "title": "Caro - Votre fidèle compagnon de shell",
+      "description": "Caro est un agent compagnon qui vous aide avec les commandes shell POSIX. Disponible en tant que MCP pour Claude et en tant que compétence dédiée."
+    },
     "buttons": {
       "copy": "Copier",
       "copied": "Copié !",
@@ -7,14 +11,59 @@
       "watchDemo": "Voir la démo"
     },
     "status": {
-      "availableNow": "Disponible",
+      "availableNow": "Disponible maintenant",
       "inDevelopment": "En développement",
       "planned": "Prévu",
       "comingSoon": "Bientôt disponible"
     },
     "aria": {
-      "toggleDarkMode": "Basculer le mode sombre",
-      "toggleHolidayTheme": "Basculer le menu des thèmes de fête"
+      "toggleDarkMode": "Activer le mode sombre",
+      "toggleHolidayTheme": "Activer le menu du thème des vacances"
+    },
+    "nav": {
+      "features": "Fonctionnalités",
+      "compare": "Comparer",
+      "resources": "Ressources",
+      "support": "Support",
+      "getStarted": "Commencer",
+      "dropdown": {
+        "overview": "Aperçu",
+        "seeAllComparisons": "Voir toutes les comparaisons",
+        "vsWarp": "contre Warp",
+        "aiNativeTerminal": "Terminal natif IA",
+        "vsGitHubCopilot": "contre GitHub Copilot CLI",
+        "aiPairProgrammer": "Programmeur binôme IA",
+        "vsKiro": "contre Kiro CLI",
+        "awsAssistant": "Assistant IA AWS",
+        "blog": "Blog",
+        "newsAndTutorials": "Actualités & tutoriels",
+        "explore": "Explorer",
+        "interactiveDemo": "Démo interactive",
+        "faq": "FAQ",
+        "commonQuestions": "Questions fréquentes",
+        "roadmap": "Feuille de route",
+        "whatsNext": "Ce qui arrive ensuite",
+        "glossary": "Glossaire",
+        "terminalTerms": "Termes de terminal & Unix",
+        "github": "GitHub",
+        "sourceCode": "Code source"
+      },
+      "mobile": {
+        "allComparisons": "Toutes les comparaisons",
+        "supportCaro": "Soutenir Caro"
+      },
+      "appearance": {
+        "title": "Apparence",
+        "darkMode": "Mode Sombre",
+        "holidayTheme": "Thème des Vacances",
+        "snowEffect": "Effet de Neige",
+        "disableEffects": "Désactiver tous les effets"
+      },
+      "useCases": {
+        "allUseCases": "Tous les cas d'utilisation",
+        "byRole": "Par rôle",
+        "backToHome": "Retour à l'accueil"
+      }
     }
   }
 }
