@@ -13,11 +13,12 @@
 use async_trait::async_trait;
 use reqwest::{header, Client, Url};
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 use std::time::Duration;
 
 use crate::backends::{BackendInfo, BackendType, CommandGenerator, GeneratorError};
 use crate::models::{CommandRequest, GeneratedCommand, RiskLevel};
+use crate::safety::{SafetyConfig, SafetyValidator};
 
 /// Default port for exo cluster API
 pub const EXO_DEFAULT_PORT: u16 = 52415;
@@ -93,6 +94,17 @@ pub struct ExoModelInfo {
     pub object: String,
     #[serde(default)]
     pub owned_by: String,
+}
+
+/// Cached safety validator instance (shared across all Exo backends)
+static SAFETY_VALIDATOR: OnceLock<SafetyValidator> = OnceLock::new();
+
+/// Get or initialize the safety validator
+fn get_safety_validator() -> &'static SafetyValidator {
+    SAFETY_VALIDATOR.get_or_init(|| {
+        SafetyValidator::new(SafetyConfig::default())
+            .expect("Failed to initialize safety validator")
+    })
 }
 
 /// Exo cluster backend for distributed inference
@@ -341,10 +353,27 @@ Request: {}
             Ok(response) => {
                 match self.parse_command_response(&response) {
                     Ok(command) => {
+                        // Validate command safety
+                        let validator = get_safety_validator();
+                        let validation_result = validator
+                            .validate_command(&command, request.shell)
+                            .await
+                            .unwrap_or_else(|_| {
+                                // If validation fails, assume moderate risk for safety
+                                crate::safety::ValidationResult {
+                                    allowed: true,
+                                    risk_level: RiskLevel::Moderate,
+                                    explanation: "Could not validate command safety".to_string(),
+                                    warnings: vec![],
+                                    matched_patterns: vec![],
+                                    confidence_score: 0.5,
+                                }
+                            });
+
                         return Ok(GeneratedCommand {
                             command,
                             explanation: "Generated using Exo distributed cluster".to_string(),
-                            safety_level: RiskLevel::Safe, // TODO: Implement safety validation
+                            safety_level: validation_result.risk_level,
                             estimated_impact: "Distributed inference operation".to_string(),
                             alternatives: vec![],
                             backend_used: format!("Exo ({})", self.model_name),
