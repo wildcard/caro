@@ -87,12 +87,10 @@ const platforms = [
     architectures: ["x86_64"],
     installation: [
       {
-        method: "PowerShell (Native)",
+        method: "PowerShell (Recommended)",
         commands: [
-          "# Download the Windows binary:",
-          "irm https://github.com/wildcard/caro/releases/latest/download/caro-windows-amd64.exe -OutFile caro.exe",
-          "# Move to a directory in your PATH, or run directly:",
-          ".\\caro.exe \"list files\""
+          "# One-line install (downloads binary, sets up PATH):",
+          "irm https://raw.githubusercontent.com/wildcard/caro/main/install.ps1 | iex"
         ]
       },
       {

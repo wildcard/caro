@@ -3,7 +3,7 @@
     "title": "Caro کے ساتھ شروع کریں",
     "subtitle": "اپنے وفادار شیل ساتھی کو اپنے ٹرمینل میں لائیں",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
-    "installCommandWindows": "irm https://github.com/wildcard/caro/releases/latest/download/caro-windows-amd64.exe -OutFile caro.exe",
+    "installCommandWindows": "irm https://raw.githubusercontent.com/wildcard/caro/main/install.ps1 | iex",
     "windowsNote": "Windows صارفین: اوپر PowerShell کمانڈ استعمال کریں، یا bash کمانڈ کے لیے WSL/Git Bash استعمال کریں",
     "copyButton": "کاپی کریں",
     "copiedButton": "کاپی ہو گیا!",

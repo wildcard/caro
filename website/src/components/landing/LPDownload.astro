@@ -28,11 +28,11 @@ const copiedLabel = t(lang, 'common.buttons.copied');
     </div>
 
     <div class="install-command hidden" data-platform="windows">
-      <code>irm https://github.com/wildcard/caro/releases/latest/download/caro-windows-amd64.exe -OutFile caro.exe</code>
-      <button class="copy-button" data-command="irm https://github.com/wildcard/caro/releases/latest/download/caro-windows-amd64.exe -OutFile caro.exe" data-copy-label={copyLabel} data-copied-label={copiedLabel}>{copyLabel}</button>
+      <code>irm https://raw.githubusercontent.com/wildcard/caro/main/install.ps1 | iex</code>
+      <button class="copy-button" data-command="irm https://raw.githubusercontent.com/wildcard/caro/main/install.ps1 | iex" data-copy-label={copyLabel} data-copied-label={copiedLabel}>{copyLabel}</button>
     </div>
 
-    <p class="platform-note hidden" data-platform="windows">Run in PowerShell. Or use <a href="https://learn.microsoft.com/en-us/windows/wsl/install" target="_blank">WSL</a> / <a href="https://git-scm.com/downloads" target="_blank">Git Bash</a> for the bash command.</p>
+    <p class="platform-note hidden" data-platform="windows">Installs to ~/.local/bin and automatically adds to PATH.</p>
 
     <div class="quick-start">
       <p class="then-run">Then run:</p>
