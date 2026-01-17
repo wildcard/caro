@@ -1,0 +1,7 @@
+{
+  "feature_number": "034",
+  "slug": "034-issue-462-notify",
+  "friendly_name": "Issue #462: Notify user when malformed query/prompt is detected",
+  "source_description": "Issue #462: Notify user when malformed query/prompt is detected",
+  "created_at": "2026-01-17T02:07:02Z"
+}
