@@ -10,13 +10,31 @@ use caro::models::{CommandRequest, SafetyLevel, ShellType};
 use url::Url;
 
 // Placeholder struct - will be replaced with actual VllmBackend implementation
-#[derive(Debug)]
 struct VllmBackend {
     url: Url,
     model: String,
     api_key: Option<String>,
     temperature: f32,
     top_p: f32,
+}
+
+impl std::fmt::Debug for VllmBackend {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("VllmBackend")
+            .field("url", &self.url)
+            .field("model", &self.model)
+            .field(
+                "api_key",
+                if self.api_key.is_some() {
+                    &"<redacted>"
+                } else {
+                    &"None"
+                },
+            )
+            .field("temperature", &self.temperature)
+            .field("top_p", &self.top_p)
+            .finish()
+    }
 }
 
 impl VllmBackend {
@@ -395,7 +413,6 @@ async fn test_vllm_concurrent_requests() {
 
 /// Contract: API key security (no logging)
 #[test]
-#[ignore] // TODO: Fix Debug impl to redact API keys
 fn test_vllm_api_key_security() {
     let vllm = VllmBackend::new(
         Url::parse("https://api.example.com").unwrap(),

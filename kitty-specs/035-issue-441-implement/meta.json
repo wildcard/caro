@@ -1,0 +1,7 @@
+{
+  "feature_number": "035",
+  "slug": "035-issue-441-implement",
+  "friendly_name": "Issue #441: Implement API key redaction in Debug trait for VllmConfig",
+  "source_description": "Issue #441: Implement API key redaction in Debug trait for VllmConfig",
+  "created_at": "2026-01-17T04:25:13Z"
+}
