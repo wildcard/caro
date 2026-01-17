@@ -1,0 +1,7 @@
+{
+  "feature_number": "033",
+  "slug": "033-issue-467-fix",
+  "friendly_name": "Issue #467: Fix flaky concurrent cache test",
+  "source_description": "Issue #467: Fix flaky concurrent cache test",
+  "created_at": "2026-01-17T01:36:10Z"
+}
