@@ -219,4 +219,4 @@ tests/evaluation/results/*.md
 # Ledgers are OPTIONAL to track (uncomment if you want to share session state)
 # thoughts/ledgers/CONTINUITY_CLAUDE-*.md
 .continuous-claude-tmp/
-.worktrees/
+tests/evaluation/target/
