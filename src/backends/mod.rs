@@ -76,6 +76,9 @@ pub enum GeneratorError {
 
     #[error("Validation failed: {reason}")]
     ValidationFailed { reason: String },
+
+    #[error("No matching pattern found: {reason}")]
+    NoMatch { reason: String },
 }
 
 // Types are already public, no re-export needed

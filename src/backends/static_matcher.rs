@@ -479,6 +479,26 @@ impl StaticMatcher {
                 description: "Clean up unused Docker resources".to_string(),
             },
 
+            // Pattern 30a: "list docker images" / "list images" / "show docker images"
+            PatternEntry {
+                required_keywords: vec!["list".to_string(), "images".to_string()],
+                optional_keywords: vec!["docker".to_string(), "show".to_string(), "all".to_string(), "container".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(list|show|display|get).*(all)?.*(docker|container)?.*(images?)").unwrap()),
+                gnu_command: "docker images".to_string(),
+                bsd_command: Some("docker images".to_string()),
+                description: "List Docker images".to_string(),
+            },
+
+            // Pattern 30b: "list docker containers" / "list containers"
+            PatternEntry {
+                required_keywords: vec!["list".to_string(), "container".to_string()],
+                optional_keywords: vec!["docker".to_string(), "show".to_string(), "all".to_string(), "running".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(list|show|display|get).*(all)?.*(docker)?.*(containers?)").unwrap()),
+                gnu_command: "docker ps -a".to_string(),
+                bsd_command: Some("docker ps -a".to_string()),
+                description: "List Docker containers".to_string(),
+            },
+
             // Pattern 31: "check if redis, postgres, and nginx are running"
             PatternEntry {
                 required_keywords: vec!["check".to_string(), "running".to_string()],
@@ -915,6 +935,14 @@ impl CommandGenerator for StaticMatcher {
         &self,
         request: &CommandRequest,
     ) -> Result<GeneratedCommand, GeneratorError> {
+        // Skip static pattern matching for Windows shells (CMD, PowerShell)
+        // The static matcher only generates POSIX/Unix commands which don't work on Windows
+        if request.shell.is_windows() {
+            return Err(GeneratorError::NoMatch {
+                reason: "Static matcher disabled for Windows shells - patterns are Unix/POSIX only".to_string(),
+            });
+        }
+
         // Try to match the query
         if let Some(pattern) = self.try_match(&request.input) {
             let command = self.select_command(pattern);
@@ -1218,5 +1246,61 @@ mod tests {
             "BSD platform should use same command as GNU for find, got: {}",
             cmd.command
         );
+    }
+
+    /// Test that Windows shells (PowerShell, Cmd) skip static pattern matching
+    /// since all patterns are Unix/POSIX-only
+    #[tokio::test]
+    async fn test_windows_shells_skip_static_matcher() {
+        let profile = CapabilityProfile::ubuntu();
+        let matcher = StaticMatcher::new(profile);
+
+        // Test with PowerShell
+        let request = CommandRequest::new("list all files modified today", ShellType::PowerShell);
+        let result = matcher.generate_command(&request).await;
+        assert!(
+            result.is_err(),
+            "PowerShell should skip static matcher and return NoMatch"
+        );
+        if let Err(GeneratorError::NoMatch { reason }) = result {
+            assert!(
+                reason.contains("Windows"),
+                "Error should mention Windows: {}",
+                reason
+            );
+        } else {
+            panic!("Expected NoMatch error for PowerShell");
+        }
+
+        // Test with Cmd
+        let request = CommandRequest::new("list all files modified today", ShellType::Cmd);
+        let result = matcher.generate_command(&request).await;
+        assert!(
+            result.is_err(),
+            "CMD should skip static matcher and return NoMatch"
+        );
+        if let Err(GeneratorError::NoMatch { reason }) = result {
+            assert!(
+                reason.contains("Windows"),
+                "Error should mention Windows: {}",
+                reason
+            );
+        } else {
+            panic!("Expected NoMatch error for CMD");
+        }
+    }
+
+    /// Test that the new Docker images pattern works correctly
+    #[tokio::test]
+    async fn test_list_docker_images() {
+        let profile = CapabilityProfile::ubuntu();
+        let matcher = StaticMatcher::new(profile);
+
+        let request = CommandRequest::new("list images", ShellType::Bash);
+        let result = matcher.generate_command(&request).await;
+        assert!(result.is_ok(), "Should match 'list images' pattern");
+
+        let cmd = result.unwrap();
+        assert_eq!(cmd.command, "docker images", "Should generate docker images command");
     }
 }

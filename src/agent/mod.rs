@@ -136,6 +136,7 @@ impl AgentLoop {
                 GeneratorError::Internal { .. } => "internal_error",
                 GeneratorError::Unsafe { .. } => "unsafe_command",
                 GeneratorError::ValidationFailed { .. } => "validation_failed",
+                GeneratorError::NoMatch { .. } => "no_match",
             };
 
             crate::telemetry::emit_event(crate::telemetry::events::EventType::CommandGeneration {

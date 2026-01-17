@@ -600,11 +600,17 @@ impl CliApp {
 
         // Collect debug info if verbose
         let debug_info = if args.verbose() {
-            let backend_info = self.backend.backend_info();
+            // Only show model name for actual LLM backends, not for static-matcher
+            let model_display = if generated.backend_used == "static-matcher" {
+                "N/A (pattern matching)".to_string()
+            } else {
+                let backend_info = self.backend.backend_info();
+                backend_info.model_name
+            };
             Some(format!(
                 "Backend: {}, Model: {}, Confidence: {:.2}, Safety: {:?}",
                 generated.backend_used,
-                backend_info.model_name,
+                model_display,
                 generated.confidence_score,
                 safety_level
             ))
