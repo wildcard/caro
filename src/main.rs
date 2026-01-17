@@ -181,6 +181,67 @@ enum ConfigCommands {
     Reset,
 }
 
+/// Knowledge index management subcommands
+#[cfg(feature = "knowledge")]
+#[derive(Parser, Clone)]
+#[command(arg_required_else_help = true)]
+enum KnowledgeCommands {
+    /// Index man pages into the documentation collection
+    IndexMan {
+        /// Specific man page to index (e.g., "ls", "grep")
+        #[arg(help = "Man page to index (omit to index all)")]
+        page: Option<String>,
+
+        /// Man page sections to index (e.g., "1,8")
+        #[arg(long, value_delimiter = ',')]
+        sections: Option<Vec<u8>>,
+
+        /// Show progress during indexing
+        #[arg(long, short = 'v')]
+        verbose: bool,
+    },
+
+    /// Index tldr pages into the documentation collection
+    IndexTldr {
+        /// Specific command to index (e.g., "git", "docker")
+        #[arg(help = "Command to index (omit to index all)")]
+        command: Option<String>,
+
+        /// Platform filter (linux, osx, windows, common)
+        #[arg(long, value_delimiter = ',')]
+        platforms: Option<Vec<String>>,
+
+        /// Show progress during indexing
+        #[arg(long, short = 'v')]
+        verbose: bool,
+    },
+
+    /// Index command --help output into the documentation collection
+    IndexHelp {
+        /// Specific command to index (e.g., "cargo", "npm")
+        #[arg(help = "Command to index (omit to auto-discover from PATH)")]
+        command: Option<String>,
+
+        /// List of commands to index
+        #[arg(long, value_delimiter = ',')]
+        commands: Option<Vec<String>>,
+
+        /// Show progress during indexing
+        #[arg(long, short = 'v')]
+        verbose: bool,
+    },
+
+    /// Show knowledge index statistics
+    Stats,
+
+    /// Clear the knowledge index
+    Clear {
+        /// Skip confirmation prompt
+        #[arg(long)]
+        force: bool,
+    },
+}
+
 /// Subcommands for caro
 #[derive(Parser, Clone)]
 enum Commands {
@@ -197,6 +258,13 @@ enum Commands {
     Config {
         #[command(subcommand)]
         command: ConfigCommands,
+    },
+
+    /// Manage knowledge index (requires --features knowledge)
+    #[cfg(feature = "knowledge")]
+    Knowledge {
+        #[command(subcommand)]
+        command: KnowledgeCommands,
     },
 
     // NOTE: Assess and Telemetry subcommands are disabled in v1.1.0-beta.1
@@ -637,7 +705,6 @@ fn build_knowledge_backend_config(
     chromadb_url: &str,
 ) -> caro::models::KnowledgeBackendConfig {
     use caro::models::KnowledgeBackendConfig;
-    use std::path::PathBuf;
 
     match knowledge_backend {
         Some("chromadb") | Some("chroma") => {
@@ -828,6 +895,125 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
 }
 
 // =============================================================================
+// Knowledge Index Commands
+// =============================================================================
+
+/// Handle knowledge subcommands
+#[cfg(feature = "knowledge")]
+async fn handle_knowledge_command(
+    command: KnowledgeCommands,
+    backend_config: caro::models::KnowledgeBackendConfig,
+) -> Result<(), String> {
+    use caro::knowledge::indexers::{help::HelpIndexer, man::ManPageIndexer, tldr::TldrIndexer};
+    use colored::Colorize;
+
+    match command {
+        KnowledgeCommands::IndexMan { page, sections, verbose: _ } => {
+            println!("{} Initializing man page indexer...", "►".cyan());
+
+            // Create indexer
+            let _indexer = if let Some(sections) = sections {
+                ManPageIndexer::new(sections)
+            } else if page.is_some() {
+                ManPageIndexer::user_commands() // Single page, use section 1
+            } else {
+                ManPageIndexer::user_commands() // All pages, default to user commands
+            };
+
+            // TODO: Create backend from config and index
+            // For now, show placeholder message
+            if let Some(page_name) = page {
+                println!("{} Would index man page: {}", "→".cyan(), page_name.bold());
+            } else {
+                println!("{} Would index all man pages", "→".cyan());
+            }
+
+            println!("{} Man page indexing is not yet implemented (Phase 4 TODO)", "!".yellow());
+            Ok(())
+        }
+
+        KnowledgeCommands::IndexTldr { command, platforms, verbose: _ } => {
+            println!("{} Initializing tldr indexer...", "►".cyan());
+
+            // Create indexer
+            let _indexer = if let Some(platforms) = platforms {
+                TldrIndexer::new(None, platforms)
+            } else {
+                TldrIndexer::current_platform()
+            };
+
+            // TODO: Create backend from config and index
+            if let Some(cmd) = command {
+                println!("{} Would index tldr page: {}", "→".cyan(), cmd.bold());
+            } else {
+                println!("{} Would index all tldr pages", "→".cyan());
+            }
+
+            println!("{} Tldr indexing is not yet implemented (Phase 4 TODO)", "!".yellow());
+            Ok(())
+        }
+
+        KnowledgeCommands::IndexHelp { command, commands, verbose: _ } => {
+            println!("{} Initializing help indexer...", "►".cyan());
+
+            // Create indexer
+            let _indexer = if let Some(commands) = commands {
+                HelpIndexer::for_commands(commands)
+            } else if let Some(cmd) = &command {
+                HelpIndexer::for_commands(vec![cmd.clone()])
+            } else {
+                HelpIndexer::auto_discover()
+            };
+
+            // TODO: Create backend from config and index
+            if let Some(cmd) = command {
+                println!("{} Would index --help output for: {}", "→".cyan(), cmd.bold());
+            } else {
+                println!("{} Would auto-discover and index commands from PATH", "→".cyan());
+            }
+
+            println!("{} Help indexing is not yet implemented (Phase 4 TODO)", "!".yellow());
+            Ok(())
+        }
+
+        KnowledgeCommands::Stats => {
+            println!("{} Knowledge Index Statistics", "📊".cyan());
+            println!();
+
+            // TODO: Create backend from config and get stats
+            println!("{} Statistics are not yet implemented (Phase 4 TODO)", "!".yellow());
+            println!();
+            println!("  Backend: {}", backend_config.backend_type().to_string().bold());
+
+            Ok(())
+        }
+
+        KnowledgeCommands::Clear { force } => {
+            if !force {
+                print!("{} Are you sure you want to clear the knowledge index? (y/N) ", "⚠".yellow());
+                use std::io::{self, Write};
+                io::stdout().flush().unwrap();
+
+                let mut input = String::new();
+                io::stdin().read_line(&mut input).unwrap();
+
+                if !input.trim().eq_ignore_ascii_case("y") {
+                    println!("Cancelled.");
+                    return Ok(());
+                }
+            }
+
+            println!("{} Clearing knowledge index...", "►".cyan());
+
+            // TODO: Create backend from config and clear
+            println!("{} Clear is not yet implemented (Phase 4 TODO)", "!".yellow());
+
+            Ok(())
+        }
+    }
+}
+
+// =============================================================================
 // Evaluation Tests
 // =============================================================================
 
@@ -989,6 +1175,21 @@ async fn main() {
                 process::exit(1);
             }
         },
+        #[cfg(feature = "knowledge")]
+        Some(Commands::Knowledge { command }) => {
+            let backend_config = build_knowledge_backend_config(
+                cli.knowledge_backend.as_deref(),
+                &cli.chromadb_url,
+            );
+
+            match handle_knowledge_command(command, backend_config).await {
+                Ok(()) => process::exit(0),
+                Err(e) => {
+                    eprintln!("Error: {}", e);
+                    process::exit(1);
+                }
+            }
+        }
         Some(Commands::Init { shell }) => {
             print_shell_init_script(&shell);
             process::exit(0);
