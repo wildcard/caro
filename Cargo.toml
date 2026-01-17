@@ -74,6 +74,9 @@ chrono = { version = "0.4", features = ["serde"] }
 regex = "1"
 once_cell = "1.19"
 
+# Random number generation for tips
+rand = "0.9"
+
 # Cryptography for checksums
 sha2 = "0.10"
 

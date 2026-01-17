@@ -1342,15 +1342,26 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
                 0 => {
                     // Yes - execute
                     display!("");
-                    display!("{}", "Executing command...".dimmed());
 
-                    // Execute the command
-                    use caro::execution::CommandExecutor;
+                    // Execute the command with progress spinner
+                    use caro::execution::{CommandExecutor, CommandProgress};
 
                     let executor = CommandExecutor::new(result.shell_used);
+                    let progress = CommandProgress::new(&result.generated_command);
+                    progress.start();
 
                     match executor.execute(&result.generated_command) {
                         Ok(exec_result) => {
+                            // Finish progress with appropriate status
+                            if exec_result.success {
+                                progress.finish_success(exec_result.execution_time_ms);
+                            } else {
+                                progress.finish_error(
+                                    exec_result.execution_time_ms,
+                                    exec_result.exit_code,
+                                );
+                            }
+
                             result.exit_code = Some(exec_result.exit_code);
                             result.stdout = Some(exec_result.stdout);
                             result.stderr = Some(exec_result.stderr);
@@ -1365,6 +1376,7 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
                             result.timing_info.execution_time_ms = exec_result.execution_time_ms;
                         }
                         Err(e) => {
+                            progress.finish_with_error(&e.to_string());
                             result.execution_error = Some(format!("Execution failed: {}", e));
                         }
                     }

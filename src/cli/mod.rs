@@ -518,14 +518,25 @@ impl CliApp {
         };
 
         // Generate command using agent loop (handles iterations internally)
+        // Show progress spinner during inference
+        use crate::execution::InferenceProgress;
+
         let gen_start = Instant::now();
+        let progress = InferenceProgress::new();
+        progress.start();
+
         let generated = self
             .agent_loop
             .generate_command(&prompt)
             .await
-            .map_err(|e| CliError::GenerationFailed {
-                details: e.to_string(),
+            .map_err(|e| {
+                progress.finish_with_error(&e.to_string());
+                CliError::GenerationFailed {
+                    details: e.to_string(),
+                }
             })?;
+
+        progress.finish();
         let generation_time = gen_start.elapsed();
 
         // Validate command safety
@@ -568,28 +579,43 @@ impl CliApp {
         // Note: dry_run prevents execution even if execute/interactive flags are set
         let (exit_code, stdout, stderr, execution_error, execution_time_ms) =
             if (args.execute() || args.interactive()) && can_execute && !args.dry_run() {
-                use crate::execution::CommandExecutor;
+                use crate::execution::{CommandExecutor, CommandProgress};
 
                 let executor = CommandExecutor::new(shell);
+                let progress = CommandProgress::new(&generated.command);
+                progress.start();
+
                 match executor.execute(&generated.command) {
-                    Ok(result) => (
-                        Some(result.exit_code),
-                        Some(result.stdout),
-                        Some(result.stderr),
-                        if !result.success {
-                            Some(format!("Command exited with code {}", result.exit_code))
+                    Ok(result) => {
+                        // Finish progress with appropriate status
+                        if result.success {
+                            progress.finish_success(result.execution_time_ms);
                         } else {
-                            None
-                        },
-                        result.execution_time_ms,
-                    ),
-                    Err(e) => (
-                        None,
-                        None,
-                        None,
-                        Some(format!("Execution failed: {}", e)),
-                        0,
-                    ),
+                            progress.finish_error(result.execution_time_ms, result.exit_code);
+                        }
+
+                        (
+                            Some(result.exit_code),
+                            Some(result.stdout),
+                            Some(result.stderr),
+                            if !result.success {
+                                Some(format!("Command exited with code {}", result.exit_code))
+                            } else {
+                                None
+                            },
+                            result.execution_time_ms,
+                        )
+                    }
+                    Err(e) => {
+                        progress.finish_with_error(&e.to_string());
+                        (
+                            None,
+                            None,
+                            None,
+                            Some(format!("Execution failed: {}", e)),
+                            0,
+                        )
+                    }
                 }
             } else {
                 (None, None, None, None, 0)

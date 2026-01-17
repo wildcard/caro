@@ -1466,6 +1466,7 @@ dependencies = [
  "once_cell",
  "os_info",
  "proptest",
+ "rand 0.9.2",
  "regex",
  "reqwest 0.11.27",
  "rusqlite",
