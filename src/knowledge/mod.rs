@@ -11,9 +11,9 @@
 
 pub mod backends;
 pub mod collections;
-pub mod indexers;
 mod embedder;
 mod index;
+pub mod indexers;
 mod schema;
 
 pub use collections::{CollectionInfo, CollectionType, QueryScope};

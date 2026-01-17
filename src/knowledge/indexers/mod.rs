@@ -9,9 +9,9 @@ use crate::knowledge::{backends::VectorBackend, collections::CollectionType, Res
 use async_trait::async_trait;
 use std::sync::Arc;
 
+pub mod help;
 pub mod man;
 pub mod tldr;
-pub mod help;
 
 /// Progress callback for indexing operations
 pub type ProgressCallback = Box<dyn Fn(usize, usize) + Send + Sync>;
@@ -98,11 +98,7 @@ pub trait Indexer: Send + Sync {
     ///
     /// # Returns
     /// True if successfully indexed, false if item not found or failed
-    async fn index_one(
-        &self,
-        backend: Arc<dyn VectorBackend>,
-        item: &str,
-    ) -> Result<bool>;
+    async fn index_one(&self, backend: Arc<dyn VectorBackend>, item: &str) -> Result<bool>;
 
     /// Get the target collection for this indexer's entries
     fn collection(&self) -> CollectionType {

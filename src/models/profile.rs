@@ -122,7 +122,8 @@ impl ProfileConfig {
 
     /// Get the active profile
     pub fn get_active(&self) -> Option<&UserProfile> {
-        self.active_profile.as_ref()
+        self.active_profile
+            .as_ref()
             .and_then(|name| self.profiles.iter().find(|p| &p.name == name))
     }
 
@@ -149,7 +150,10 @@ impl ProfileConfig {
 
     /// Remove a profile by name
     pub fn remove_profile(&mut self, name: &str) -> Result<(), String> {
-        let index = self.profiles.iter().position(|p| p.name == name)
+        let index = self
+            .profiles
+            .iter()
+            .position(|p| p.name == name)
             .ok_or_else(|| format!("Profile '{}' not found", name))?;
 
         self.profiles.remove(index);
@@ -192,8 +196,14 @@ mod tests {
     #[test]
     fn test_profile_type_from_str() {
         assert_eq!("work".parse::<ProfileType>().unwrap(), ProfileType::Work);
-        assert_eq!("personal".parse::<ProfileType>().unwrap(), ProfileType::Personal);
-        assert_eq!("devops".parse::<ProfileType>().unwrap(), ProfileType::DevOps);
+        assert_eq!(
+            "personal".parse::<ProfileType>().unwrap(),
+            ProfileType::Personal
+        );
+        assert_eq!(
+            "devops".parse::<ProfileType>().unwrap(),
+            ProfileType::DevOps
+        );
         assert!("invalid".parse::<ProfileType>().is_err());
     }
 

@@ -4,7 +4,10 @@
 //! Uses the tldr-pages repository for concise, example-focused documentation.
 
 use super::{IndexStats, Indexer, ProgressCallback};
-use crate::knowledge::{backends::VectorBackend, collections::CollectionType, index::KnowledgeEntry, schema::EntryType, Result};
+use crate::knowledge::{
+    backends::VectorBackend, collections::CollectionType, index::KnowledgeEntry, schema::EntryType,
+    Result,
+};
 use async_trait::async_trait;
 use chrono::Utc;
 use std::fs;
@@ -213,11 +216,7 @@ impl Indexer for TldrIndexer {
         Ok(stats)
     }
 
-    async fn index_one(
-        &self,
-        backend: Arc<dyn VectorBackend>,
-        item: &str,
-    ) -> Result<bool> {
+    async fn index_one(&self, backend: Arc<dyn VectorBackend>, item: &str) -> Result<bool> {
         // Find tldr cache
         let cache_dir = self.find_tldr_cache()?;
 

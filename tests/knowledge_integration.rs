@@ -9,8 +9,8 @@
 
 #[cfg(feature = "knowledge")]
 mod knowledge_tests {
-    use caro::knowledge::backends::VectorBackend;
     use caro::knowledge::backends::lancedb::LanceDbBackend;
+    use caro::knowledge::backends::VectorBackend;
     use tempfile::TempDir;
 
     /// Helper to create a temporary LanceDB backend for testing
@@ -25,7 +25,10 @@ mod knowledge_tests {
     #[tokio::test]
     async fn test_lancedb_health() {
         let (backend, _temp_dir) = create_test_backend().await;
-        assert!(backend.is_healthy().await, "LanceDB backend should be healthy");
+        assert!(
+            backend.is_healthy().await,
+            "LanceDB backend should be healthy"
+        );
     }
 
     #[tokio::test]
@@ -45,7 +48,10 @@ mod knowledge_tests {
             "Should have exactly 1 entry after recording success"
         );
         assert_eq!(stats.success_count, 1, "Should have 1 success entry");
-        assert_eq!(stats.correction_count, 0, "Should have 0 correction entries");
+        assert_eq!(
+            stats.correction_count, 0,
+            "Should have 0 correction entries"
+        );
     }
 
     #[tokio::test]
@@ -105,10 +111,7 @@ mod knowledge_tests {
             !results.is_empty(),
             "Should find at least one similar command"
         );
-        assert!(
-            results.len() <= 5,
-            "Should not return more than limit (5)"
-        );
+        assert!(results.len() <= 5, "Should not return more than limit (5)");
 
         // Verify similarity scores are valid
         for result in &results {
@@ -149,7 +152,10 @@ mod knowledge_tests {
         backend.clear().await.expect("Failed to clear database");
 
         // Verify database is empty
-        let stats_after = backend.stats().await.expect("Failed to get stats after clear");
+        let stats_after = backend
+            .stats()
+            .await
+            .expect("Failed to get stats after clear");
         assert_eq!(
             stats_after.total_entries, 0,
             "Database should be empty after clear"

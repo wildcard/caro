@@ -4,7 +4,10 @@
 //! Parses man page content and creates knowledge entries for command documentation.
 
 use super::{IndexStats, Indexer, ProgressCallback};
-use crate::knowledge::{backends::VectorBackend, collections::CollectionType, index::KnowledgeEntry, schema::EntryType, Result};
+use crate::knowledge::{
+    backends::VectorBackend, collections::CollectionType, index::KnowledgeEntry, schema::EntryType,
+    Result,
+};
 use async_trait::async_trait;
 use chrono::Utc;
 use std::process::Command;
@@ -45,7 +48,12 @@ impl ManPageIndexer {
             .arg("-k")
             .arg(".")
             .output()
-            .map_err(|e| crate::knowledge::KnowledgeError::Indexing(format!("Failed to list man pages: {}", e)))?;
+            .map_err(|e| {
+                crate::knowledge::KnowledgeError::Indexing(format!(
+                    "Failed to list man pages: {}",
+                    e
+                ))
+            })?;
 
         if !output.status.success() {
             return Err(crate::knowledge::KnowledgeError::Indexing(
@@ -75,7 +83,10 @@ impl ManPageIndexer {
                                 }
                             }
 
-                            pages.push((format!("{}({})", name_part, section), description.to_string()));
+                            pages.push((
+                                format!("{}({})", name_part, section),
+                                description.to_string(),
+                            ));
                         }
                     }
                 }
@@ -92,14 +103,18 @@ impl ManPageIndexer {
             .arg("cat")
             .arg(name_with_section)
             .output()
-            .map_err(|e| crate::knowledge::KnowledgeError::Indexing(
-                format!("Failed to read man page {}: {}", name_with_section, e)
-            ))?;
+            .map_err(|e| {
+                crate::knowledge::KnowledgeError::Indexing(format!(
+                    "Failed to read man page {}: {}",
+                    name_with_section, e
+                ))
+            })?;
 
         if !output.status.success() {
-            return Err(crate::knowledge::KnowledgeError::Indexing(
-                format!("Failed to read man page {}", name_with_section)
-            ));
+            return Err(crate::knowledge::KnowledgeError::Indexing(format!(
+                "Failed to read man page {}",
+                name_with_section
+            )));
         }
 
         Ok(String::from_utf8_lossy(&output.stdout).to_string())
@@ -129,10 +144,7 @@ impl ManPageIndexer {
         if let Some(desc_start) = content.find("DESCRIPTION") {
             let after_desc = &content[desc_start + 11..];
             // Get first 500 chars or until next section
-            let desc_chunk: String = after_desc
-                .chars()
-                .take(500)
-                .collect();
+            let desc_chunk: String = after_desc.chars().take(500).collect();
 
             if let Some(newline_pos) = desc_chunk.find("\n\n") {
                 result.push_str("Description:\n");
@@ -192,14 +204,14 @@ impl Indexer for ManPageIndexer {
                     // Create knowledge entry
                     let entry = KnowledgeEntry {
                         request: name_with_section.clone(), // Command name with section
-                        command: documentation,              // Extracted docs
+                        command: documentation,             // Extracted docs
                         context: Some(format!("man-page:{}", name_with_section)),
-                        similarity: 0.0,                     // Not used for indexing
+                        similarity: 0.0, // Not used for indexing
                         timestamp: Utc::now(),
-                        entry_type: EntryType::Success,      // Documentation as "success" entries
+                        entry_type: EntryType::Success, // Documentation as "success" entries
                         original_command: None,
                         feedback: None,
-                        profile: None,                       // Docs are profile-agnostic
+                        profile: None, // Docs are profile-agnostic
                     };
 
                     // Add to Docs collection
@@ -222,19 +234,18 @@ impl Indexer for ManPageIndexer {
         Ok(stats)
     }
 
-    async fn index_one(
-        &self,
-        backend: Arc<dyn VectorBackend>,
-        item: &str,
-    ) -> Result<bool> {
+    async fn index_one(&self, backend: Arc<dyn VectorBackend>, item: &str) -> Result<bool> {
         // Check if man page exists
         let check_output = Command::new("man")
             .arg("-w")
             .arg(item)
             .output()
-            .map_err(|e| crate::knowledge::KnowledgeError::Indexing(
-                format!("Failed to check if man page exists: {}", e)
-            ))?;
+            .map_err(|e| {
+                crate::knowledge::KnowledgeError::Indexing(format!(
+                    "Failed to check if man page exists: {}",
+                    e
+                ))
+            })?;
 
         if !check_output.status.success() {
             // Man page doesn't exist
@@ -242,10 +253,7 @@ impl Indexer for ManPageIndexer {
         }
 
         // Get short description from apropos
-        let apropos_output = Command::new("apropos")
-            .arg(item)
-            .output()
-            .ok();
+        let apropos_output = Command::new("apropos").arg(item).output().ok();
 
         let short_description = if let Some(output) = apropos_output {
             let stdout = String::from_utf8_lossy(&output.stdout);
@@ -285,9 +293,9 @@ impl Indexer for ManPageIndexer {
     fn should_index(&self, item: &str) -> bool {
         // Skip internal/deprecated commands
         let skip_list = [
-            "builtin",      // Shell builtins
-            "intro",        // Introduction pages
-            "deprecate",    // Deprecated commands
+            "builtin",   // Shell builtins
+            "intro",     // Introduction pages
+            "deprecate", // Deprecated commands
         ];
 
         let item_lower = item.to_lowercase();

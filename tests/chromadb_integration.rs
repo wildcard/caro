@@ -137,10 +137,7 @@ mod chromadb_tests {
             !results.is_empty(),
             "Should find at least one similar command"
         );
-        assert!(
-            results.len() <= 5,
-            "Should not return more than limit (5)"
-        );
+        assert!(results.len() <= 5, "Should not return more than limit (5)");
 
         // Verify similarity scores are valid
         for result in &results {
@@ -186,7 +183,10 @@ mod chromadb_tests {
         backend.clear().await.expect("Failed to clear collection");
 
         // Verify collection is empty
-        let stats_after = backend.stats().await.expect("Failed to get stats after clear");
+        let stats_after = backend
+            .stats()
+            .await
+            .expect("Failed to get stats after clear");
         assert_eq!(
             stats_after.total_entries, 0,
             "Collection should be empty after clear"

@@ -4,7 +4,10 @@
 //! Captures inline documentation from executables.
 
 use super::{IndexStats, Indexer, ProgressCallback};
-use crate::knowledge::{backends::VectorBackend, collections::CollectionType, index::KnowledgeEntry, schema::EntryType, Result};
+use crate::knowledge::{
+    backends::VectorBackend, collections::CollectionType, index::KnowledgeEntry, schema::EntryType,
+    Result,
+};
 use async_trait::async_trait;
 use chrono::Utc;
 use std::process::Command;
@@ -62,9 +65,10 @@ impl HelpIndexer {
             }
         }
 
-        Err(crate::knowledge::KnowledgeError::Indexing(
-            format!("No help output available for {}", command)
-        ))
+        Err(crate::knowledge::KnowledgeError::Indexing(format!(
+            "No help output available for {}",
+            command
+        )))
     }
 }
 
@@ -137,11 +141,7 @@ impl Indexer for HelpIndexer {
         Ok(stats)
     }
 
-    async fn index_one(
-        &self,
-        backend: Arc<dyn VectorBackend>,
-        item: &str,
-    ) -> Result<bool> {
+    async fn index_one(&self, backend: Arc<dyn VectorBackend>, item: &str) -> Result<bool> {
         // Try to get help output
         let help_text = self.get_help_output(item)?;
 

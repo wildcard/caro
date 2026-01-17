@@ -350,7 +350,9 @@ impl VectorBackend for LanceDbBackend {
         // This allows Phase 4 indexers to work while we refactor for multi-collection
 
         // Generate embedding from request and command
-        let embedding = self.embedder.embed_command(&entry.request, &entry.command)?;
+        let embedding = self
+            .embedder
+            .embed_command(&entry.request, &entry.command)?;
         let id = uuid::Uuid::new_v4().to_string();
         let mut builder = EntryBuilder::new();
 

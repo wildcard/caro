@@ -956,11 +956,15 @@ async fn handle_knowledge_command(
     backend_config: caro::models::KnowledgeBackendConfig,
 ) -> Result<(), String> {
     use caro::knowledge::indexers::{help::HelpIndexer, man::ManPageIndexer, tldr::TldrIndexer};
-    use caro::knowledge::{KnowledgeIndex, Indexer};
+    use caro::knowledge::{Indexer, KnowledgeIndex};
     use colored::Colorize;
 
     match command {
-        KnowledgeCommands::IndexMan { page, sections, verbose } => {
+        KnowledgeCommands::IndexMan {
+            page,
+            sections,
+            verbose,
+        } => {
             println!("{} Initializing man page indexer...", "►".cyan());
 
             // Create indexer
@@ -983,7 +987,9 @@ async fn handle_knowledge_command(
             if let Some(page_name) = page {
                 println!("{} Indexing man page: {}", "→".cyan(), page_name.bold());
                 match indexer.index_one(backend, &page_name).await {
-                    Ok(true) => println!("{} Successfully indexed {}", "✓".green(), page_name.bold()),
+                    Ok(true) => {
+                        println!("{} Successfully indexed {}", "✓".green(), page_name.bold())
+                    }
                     Ok(false) => println!("{} Man page not found: {}", "✗".red(), page_name),
                     Err(e) => return Err(format!("Indexing failed: {}", e)),
                 }
@@ -995,7 +1001,8 @@ async fn handle_knowledge_command(
                         print!("\r{} Indexed {}/{} pages", "→".cyan(), current, total);
                         use std::io::Write;
                         std::io::stdout().flush().ok();
-                    }) as Box<dyn Fn(usize, usize) + Send + Sync>)
+                    })
+                        as Box<dyn Fn(usize, usize) + Send + Sync>)
                 } else {
                     None
                 };
@@ -1017,7 +1024,11 @@ async fn handle_knowledge_command(
             Ok(())
         }
 
-        KnowledgeCommands::IndexTldr { command, platforms, verbose } => {
+        KnowledgeCommands::IndexTldr {
+            command,
+            platforms,
+            verbose,
+        } => {
             println!("{} Initializing tldr indexer...", "►".cyan());
 
             let indexer = if let Some(platforms) = platforms {
@@ -1047,7 +1058,8 @@ async fn handle_knowledge_command(
                         print!("\r{} Indexed {}/{} pages", "→".cyan(), current, total);
                         use std::io::Write;
                         std::io::stdout().flush().ok();
-                    }) as Box<dyn Fn(usize, usize) + Send + Sync>)
+                    })
+                        as Box<dyn Fn(usize, usize) + Send + Sync>)
                 } else {
                     None
                 };
@@ -1069,7 +1081,11 @@ async fn handle_knowledge_command(
             Ok(())
         }
 
-        KnowledgeCommands::IndexHelp { command, commands, verbose } => {
+        KnowledgeCommands::IndexHelp {
+            command,
+            commands,
+            verbose,
+        } => {
             println!("{} Initializing help indexer...", "►".cyan());
 
             let indexer = if let Some(commands) = commands {
@@ -1101,7 +1117,8 @@ async fn handle_knowledge_command(
                         print!("\r{} Indexed {}/{} commands", "→".cyan(), current, total);
                         use std::io::Write;
                         std::io::stdout().flush().ok();
-                    }) as Box<dyn Fn(usize, usize) + Send + Sync>)
+                    })
+                        as Box<dyn Fn(usize, usize) + Send + Sync>)
                 } else {
                     None
                 };
@@ -1133,7 +1150,10 @@ async fn handle_knowledge_command(
 
             match index.stats().await {
                 Ok(stats) => {
-                    println!("  Total entries: {}", stats.total_entries.to_string().bold());
+                    println!(
+                        "  Total entries: {}",
+                        stats.total_entries.to_string().bold()
+                    );
                     println!("  Success count: {}", stats.success_count);
                     println!("  Correction count: {}", stats.correction_count);
                 }
@@ -1145,7 +1165,10 @@ async fn handle_knowledge_command(
 
         KnowledgeCommands::Clear { force } => {
             if !force {
-                print!("{} Are you sure you want to clear the knowledge index? (y/N) ", "⚠".yellow());
+                print!(
+                    "{} Are you sure you want to clear the knowledge index? (y/N) ",
+                    "⚠".yellow()
+                );
                 use std::io::{self, Write};
                 io::stdout().flush().unwrap();
 
@@ -1242,19 +1265,14 @@ async fn handle_profile_command(command: ProfileCommands) -> Result<(), String> 
             println!();
 
             for profile in &profile_config.profiles {
-                let active_marker =
-                    if Some(&profile.name) == profile_config.active_profile.as_ref() {
-                        " (active)".green()
-                    } else {
-                        "".normal()
-                    };
+                let active_marker = if Some(&profile.name) == profile_config.active_profile.as_ref()
+                {
+                    " (active)".green()
+                } else {
+                    "".normal()
+                };
 
-                println!(
-                    "  {} {}{}",
-                    "●".cyan(),
-                    profile.name.bold(),
-                    active_marker
-                );
+                println!("  {} {}{}", "●".cyan(), profile.name.bold(), active_marker);
                 println!("    Type: {}", profile.profile_type);
                 if let Some(desc) = &profile.description {
                     println!("    Description: {}", desc);
@@ -1288,11 +1306,7 @@ async fn handle_profile_command(command: ProfileCommands) -> Result<(), String> 
 
         ProfileCommands::Delete { name, force } => {
             if !force {
-                print!(
-                    "{} Delete profile '{}'? [y/N]: ",
-                    "?".yellow(),
-                    name
-                );
+                print!("{} Delete profile '{}'? [y/N]: ", "?".yellow(), name);
                 io::stdout().flush().ok();
 
                 let mut response = String::new();
@@ -1507,10 +1521,8 @@ async fn main() {
         },
         #[cfg(feature = "knowledge")]
         Some(Commands::Knowledge { command }) => {
-            let backend_config = build_knowledge_backend_config(
-                cli.knowledge_backend.as_deref(),
-                &cli.chromadb_url,
-            );
+            let backend_config =
+                build_knowledge_backend_config(cli.knowledge_backend.as_deref(), &cli.chromadb_url);
 
             match handle_knowledge_command(command, backend_config).await {
                 Ok(()) => process::exit(0),
@@ -1521,15 +1533,13 @@ async fn main() {
             }
         }
         #[cfg(feature = "knowledge")]
-        Some(Commands::Profile { command }) => {
-            match handle_profile_command(command).await {
-                Ok(()) => process::exit(0),
-                Err(e) => {
-                    eprintln!("Error: {}", e);
-                    process::exit(1);
-                }
+        Some(Commands::Profile { command }) => match handle_profile_command(command).await {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
             }
-        }
+        },
         Some(Commands::Init { shell }) => {
             print_shell_init_script(&shell);
             process::exit(0);

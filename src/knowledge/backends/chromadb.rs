@@ -10,9 +10,9 @@ use crate::knowledge::{
     Embedder, KnowledgeEntry, KnowledgeError, Result,
 };
 use async_trait::async_trait;
-use chrono::{DateTime, Utc};
 use chromadb::client::{ChromaAuthMethod, ChromaClient, ChromaClientOptions, ChromaTokenHeader};
 use chromadb::collection::{ChromaCollection, CollectionEntries, QueryOptions};
+use chrono::{DateTime, Utc};
 use serde_json::{json, Map, Value};
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -69,7 +69,8 @@ impl ChromaDbBackend {
         .map_err(|e| KnowledgeError::Database(e.to_string()))?;
 
         // Check if collection exists
-        let collection = client.get_or_create_collection(COLLECTION_NAME, None)
+        let collection = client
+            .get_or_create_collection(COLLECTION_NAME, None)
             .await
             .ok();
 
@@ -216,14 +217,8 @@ impl VectorBackend for ChromaDbBackend {
         let id = uuid::Uuid::new_v4().to_string();
         let timestamp = Utc::now();
 
-        let metadata = Self::build_metadata(
-            EntryType::Success,
-            request,
-            context,
-            timestamp,
-            None,
-            None,
-        );
+        let metadata =
+            Self::build_metadata(EntryType::Success, request, context, timestamp, None, None);
 
         let entries = CollectionEntries {
             ids: vec![&id],
@@ -315,19 +310,22 @@ impl VectorBackend for ChromaDbBackend {
 
         let ids = results.ids[0].clone();
 
-        let documents = results.documents
+        let documents = results
+            .documents
             .as_ref()
             .and_then(|docs| docs.first())
             .cloned()
             .unwrap_or_default();
 
-        let metadatas = results.metadatas
+        let metadatas = results
+            .metadatas
             .as_ref()
             .and_then(|metas| metas.first())
             .map(|meta_vec| meta_vec.iter().filter_map(|m| m.clone()).collect())
             .unwrap_or_default();
 
-        let distances = results.distances
+        let distances = results
+            .distances
             .as_ref()
             .and_then(|dists| dists.first())
             .cloned()
@@ -389,7 +387,9 @@ impl VectorBackend for ChromaDbBackend {
         self.ensure_collection().await?;
 
         // Generate embedding from request and command
-        let embedding = self.embedder.embed_command(&entry.request, &entry.command)?;
+        let embedding = self
+            .embedder
+            .embed_command(&entry.request, &entry.command)?;
 
         // Build metadata
         let metadata = Self::build_metadata(
