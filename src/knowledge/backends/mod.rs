@@ -3,6 +3,7 @@
 //! Provides a unified interface for different vector database implementations.
 //! Supports both embedded (LanceDB) and server-based (ChromaDB) backends.
 
+use crate::knowledge::collections::{CollectionType, QueryScope};
 use crate::knowledge::{KnowledgeEntry, Result};
 use async_trait::async_trait;
 
@@ -74,4 +75,27 @@ pub trait VectorBackend: Send + Sync {
 
     /// Check if the backend is healthy and ready to serve requests
     async fn is_healthy(&self) -> bool;
+
+    /// Add a knowledge entry to a specific collection
+    ///
+    /// # Arguments
+    /// * `entry` - The knowledge entry to add
+    /// * `collection` - The target collection type
+    async fn add_entry(&self, entry: KnowledgeEntry, collection: CollectionType) -> Result<()>;
+
+    /// Find similar entries within a specific query scope
+    ///
+    /// # Arguments
+    /// * `query` - The search query
+    /// * `limit` - Maximum number of results to return
+    /// * `scope` - The collection scope to search within
+    ///
+    /// # Returns
+    /// Vector of knowledge entries, sorted by similarity (descending)
+    async fn find_similar_in(
+        &self,
+        query: &str,
+        limit: usize,
+        scope: QueryScope,
+    ) -> Result<Vec<KnowledgeEntry>>;
 }

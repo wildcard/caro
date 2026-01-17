@@ -5,7 +5,9 @@
 
 use super::{BackendStats, VectorBackend};
 use crate::knowledge::{
-    schema::EntryType, Embedder, KnowledgeEntry, KnowledgeError, Result,
+    collections::{CollectionType, QueryScope},
+    schema::EntryType,
+    Embedder, KnowledgeEntry, KnowledgeError, Result,
 };
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
@@ -360,6 +362,61 @@ impl VectorBackend for ChromaDbBackend {
     async fn is_healthy(&self) -> bool {
         // Check health by attempting to heartbeat
         self.client.heartbeat().await.is_ok()
+    }
+
+    async fn add_entry(&self, entry: KnowledgeEntry, _collection: CollectionType) -> Result<()> {
+        // TODO: Implement native ChromaDB collection support
+        // For now, add to the default collection regardless of collection type
+        // This allows Phase 4 indexers to work while we refactor for multi-collection
+
+        self.ensure_collection().await?;
+
+        // Generate embedding from request and command
+        let embedding = self.embedder.embed_command(&entry.request, &entry.command)?;
+
+        // Build metadata
+        let metadata = Self::build_metadata(
+            entry.entry_type,
+            &entry.request,
+            entry.context.as_deref(),
+            entry.timestamp,
+            entry.original_command.as_deref(),
+            entry.feedback.as_deref(),
+        );
+
+        // Add to ChromaDB
+        let id = uuid::Uuid::new_v4().to_string();
+        let document = entry.command.clone();
+
+        let entries = CollectionEntries {
+            ids: vec![id.as_str()],
+            embeddings: Some(vec![embedding]),
+            metadatas: Some(vec![metadata]),
+            documents: Some(vec![document.as_str()]),
+        };
+
+        let coll_guard = self.collection.read().await;
+        let collection = coll_guard.as_ref().unwrap(); // Safe: ensure_collection just succeeded
+
+        collection
+            .add(entries, None)
+            .await
+            .map_err(|e| KnowledgeError::Database(e.to_string()))?;
+
+        Ok(())
+    }
+
+    async fn find_similar_in(
+        &self,
+        query: &str,
+        limit: usize,
+        _scope: QueryScope,
+    ) -> Result<Vec<KnowledgeEntry>> {
+        // TODO: Implement collection filtering for native ChromaDB collections
+        // For now, search across all entries (single collection)
+        // This allows Phase 4 indexers to work while we refactor for multi-collection
+
+        self.find_similar(query, limit).await
     }
 }
 

@@ -5,6 +5,7 @@
 
 use super::{BackendStats, VectorBackend};
 use crate::knowledge::{
+    collections::{CollectionType, QueryScope},
     schema::{EntryBuilder, EntryType},
     Embedder, KnowledgeEntry, KnowledgeError, Result,
 };
@@ -340,6 +341,59 @@ impl VectorBackend for LanceDbBackend {
         // LanceDB is embedded, so health is based on whether we can access the database
         // Try to list tables as a health check
         self.db.table_names().execute().await.is_ok()
+    }
+
+    async fn add_entry(&self, entry: KnowledgeEntry, _collection: CollectionType) -> Result<()> {
+        // TODO: Implement table-per-collection architecture
+        // For now, add to the default table regardless of collection
+        // This allows Phase 4 indexers to work while we refactor for multi-collection
+
+        // Generate embedding from request and command
+        let embedding = self.embedder.embed_command(&entry.request, &entry.command)?;
+        let id = uuid::Uuid::new_v4().to_string();
+        let mut builder = EntryBuilder::new();
+
+        match entry.entry_type {
+            EntryType::Success => {
+                builder.add_success(
+                    id,
+                    entry.request,
+                    entry.command,
+                    entry.context,
+                    embedding,
+                    entry.timestamp,
+                );
+            }
+            EntryType::Correction => {
+                // For corrections, we need the original command
+                // If not provided, use empty string as placeholder
+                let original = entry.original_command.unwrap_or_default();
+                builder.add_correction(
+                    id,
+                    entry.request,
+                    entry.command,
+                    original,
+                    entry.feedback,
+                    embedding,
+                    entry.timestamp,
+                );
+            }
+        }
+
+        self.add_batch(builder.build()?).await
+    }
+
+    async fn find_similar_in(
+        &self,
+        query: &str,
+        limit: usize,
+        _scope: QueryScope,
+    ) -> Result<Vec<KnowledgeEntry>> {
+        // TODO: Implement collection filtering for table-per-collection architecture
+        // For now, search across all entries (single table)
+        // This allows Phase 4 indexers to work while we refactor for multi-collection
+
+        self.find_similar(query, limit).await
     }
 }
 
