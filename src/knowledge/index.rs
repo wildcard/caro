@@ -72,6 +72,40 @@ impl KnowledgeIndex {
         Self { backend }
     }
 
+    /// Create a knowledge index from configuration
+    ///
+    /// # Arguments
+    /// * `config` - Backend configuration (LanceDB or ChromaDB)
+    ///
+    /// # Returns
+    /// A configured knowledge index ready for use
+    pub async fn from_config(config: &crate::models::KnowledgeBackendConfig) -> Result<Self> {
+        use crate::knowledge::backends::lancedb::LanceDbBackend;
+
+        match config {
+            crate::models::KnowledgeBackendConfig::LanceDb { path } => {
+                let backend = LanceDbBackend::new(path).await?;
+                Ok(Self {
+                    backend: Arc::new(backend),
+                })
+            }
+            #[cfg(feature = "chromadb")]
+            crate::models::KnowledgeBackendConfig::ChromaDb { url, cache_dir } => {
+                use crate::knowledge::backends::chromadb::ChromaDbBackend;
+                let backend = ChromaDbBackend::new(url, cache_dir.as_deref()).await?;
+                Ok(Self {
+                    backend: Arc::new(backend),
+                })
+            }
+            #[cfg(not(feature = "chromadb"))]
+            crate::models::KnowledgeBackendConfig::ChromaDb { .. } => {
+                Err(crate::knowledge::KnowledgeError::Database(
+                    "ChromaDB backend not available. Rebuild with --features chromadb".to_string(),
+                ))
+            }
+        }
+    }
+
     /// Record a successful command execution
     ///
     /// # Arguments

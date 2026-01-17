@@ -997,8 +997,18 @@ pub enum KnowledgeBackendConfig {
 
 impl Default for KnowledgeBackendConfig {
     fn default() -> Self {
-        Self::LanceDb {
-            path: crate::knowledge::default_knowledge_path(),
+        #[cfg(feature = "knowledge")]
+        {
+            Self::LanceDb {
+                path: crate::knowledge::default_knowledge_path(),
+            }
+        }
+        #[cfg(not(feature = "knowledge"))]
+        {
+            use std::path::PathBuf;
+            Self::LanceDb {
+                path: PathBuf::from("~/.config/caro/knowledge"),
+            }
         }
     }
 }

@@ -301,6 +301,23 @@ struct Cli {
     )]
     model_name: Option<String>,
 
+    /// Knowledge backend for command history and learning
+    #[arg(
+        long = "knowledge-backend",
+        help = "Vector database backend for knowledge index (lancedb, chromadb)",
+        env = "CARO_KNOWLEDGE_BACKEND"
+    )]
+    knowledge_backend: Option<String>,
+
+    /// ChromaDB server URL (when using chromadb backend)
+    #[arg(
+        long = "chromadb-url",
+        help = "ChromaDB server URL (default: http://localhost:8000)",
+        env = "CHROMADB_URL",
+        default_value = "http://localhost:8000"
+    )]
+    chromadb_url: String,
+
     /// Safety level for command validation
     #[arg(long, help = "Safety level (strict, moderate, permissive)")]
     safety: Option<String>,
@@ -607,6 +624,37 @@ async fn run_assessment_command(
     }
 
     Ok(())
+}
+
+// =============================================================================
+// Knowledge Backend Configuration
+// =============================================================================
+
+/// Build knowledge backend configuration from CLI arguments
+#[cfg(feature = "knowledge")]
+fn build_knowledge_backend_config(
+    knowledge_backend: Option<&str>,
+    chromadb_url: &str,
+) -> caro::models::KnowledgeBackendConfig {
+    use caro::models::KnowledgeBackendConfig;
+    use std::path::PathBuf;
+
+    match knowledge_backend {
+        Some("chromadb") | Some("chroma") => {
+            KnowledgeBackendConfig::chromadb(chromadb_url.to_string(), None)
+        }
+        Some("lancedb") | Some("lance") | None => {
+            // Default to LanceDB
+            KnowledgeBackendConfig::lancedb(caro::knowledge::default_knowledge_path())
+        }
+        Some(other) => {
+            eprintln!(
+                "Warning: Unknown knowledge backend '{}'. Defaulting to LanceDB.",
+                other
+            );
+            KnowledgeBackendConfig::lancedb(caro::knowledge::default_knowledge_path())
+        }
+    }
 }
 
 // =============================================================================
