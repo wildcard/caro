@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  chromadb:
+    # Use 0.4.15 - older version without mandatory authentication
+    image: chromadb/chroma:0.4.15
+    container_name: caro-chromadb-test
+    ports:
+      - "8000:8000"
+    environment:
+      # Simple setup without authentication
+      - IS_PERSISTENT=TRUE
+      - ALLOW_RESET=true
+    volumes:
+      - chromadb_data:/chroma/chroma
+    # Skip healthcheck - server starts quickly and we test connectivity in integration tests
+    networks:
+      - caro-test
+
+volumes:
+  chromadb_data:
+    driver: local
+
+networks:
+  caro-test:
+    driver: bridge
