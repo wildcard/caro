@@ -246,11 +246,54 @@ enum Commands {
         #[arg(short, long, default_value = "5")]
         limit: usize,
     },
+
+    /// Manage the knowledge index
+    #[cfg(feature = "knowledge")]
+    Knowledge {
+        #[command(subcommand)]
+        command: KnowledgeCommands,
+    },
     // /// Manage telemetry data and settings
     // Telemetry {
     //     #[command(subcommand)]
     //     command: caro::cli::telemetry::TelemetryCommands,
     // },
+}
+
+#[derive(Parser, Clone)]
+#[cfg(feature = "knowledge")]
+enum KnowledgeCommands {
+    /// Show knowledge index statistics
+    Stats,
+
+    /// Search for similar commands
+    Search {
+        /// Query string to search for
+        query: String,
+
+        /// Maximum number of results
+        #[arg(short, long, default_value = "5")]
+        limit: usize,
+    },
+
+    /// Clear all knowledge
+    Clear {
+        /// Skip confirmation prompt
+        #[arg(short, long)]
+        yes: bool,
+    },
+
+    /// Export knowledge to JSON
+    Export {
+        /// Output file path
+        path: std::path::PathBuf,
+    },
+
+    /// Import knowledge from JSON
+    Import {
+        /// Input file path
+        path: std::path::PathBuf,
+    },
 }
 
 /// caro - Convert natural language to shell commands using local LLMs
@@ -780,6 +823,131 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
 }
 
 // =============================================================================
+// Knowledge Management
+// =============================================================================
+
+#[cfg(feature = "knowledge")]
+async fn handle_knowledge_command(command: KnowledgeCommands) -> Result<(), String> {
+    use caro::knowledge::{default_knowledge_path, KnowledgeIndex};
+    use colored::Colorize;
+
+    let knowledge_path = default_knowledge_path();
+    let index = KnowledgeIndex::open(&knowledge_path)
+        .await
+        .map_err(|e| format!("Failed to open knowledge index: {}", e))?;
+
+    match command {
+        KnowledgeCommands::Stats => {
+            let stats = index
+                .stats()
+                .await
+                .map_err(|e| format!("Failed to get stats: {}", e))?;
+
+            println!("{}", "Knowledge Index Statistics".bold());
+            println!();
+            println!(
+                "  {}: {}",
+                "Total entries".cyan(),
+                stats.total_entries
+            );
+            println!(
+                "  {}: {}",
+                "Success count".cyan(),
+                stats.success_count
+            );
+            println!(
+                "  {}: {}",
+                "Correction count".cyan(),
+                stats.correction_count
+            );
+            println!();
+            println!(
+                "{}",
+                format!("Index path: {}", knowledge_path.display()).dimmed()
+            );
+        }
+
+        KnowledgeCommands::Search { query, limit } => {
+            let results = index
+                .find_similar(&query, limit)
+                .await
+                .map_err(|e| format!("Failed to search: {}", e))?;
+
+            if results.is_empty() {
+                println!("{}", "No results found".yellow());
+            } else {
+                println!(
+                    "{}",
+                    format!("Found {} results for: {}", results.len(), query).bold()
+                );
+                println!();
+
+                for (i, entry) in results.iter().enumerate() {
+                    println!("{}. {} (similarity: {:.2})", i + 1, entry.command.green(), entry.similarity);
+                    println!("   Request: {}", entry.request.dimmed());
+                    if let Some(ctx) = &entry.context {
+                        println!("   Context: {}", ctx.dimmed());
+                    }
+                    println!("   Type: {:?}", entry.entry_type);
+                    println!("   Timestamp: {}", entry.timestamp.format("%Y-%m-%d %H:%M:%S"));
+                    println!();
+                }
+            }
+        }
+
+        KnowledgeCommands::Clear { yes } => {
+            if !yes {
+                print!("{} ", "Are you sure you want to clear all knowledge? [y/N]".yellow());
+                std::io::Write::flush(&mut std::io::stdout()).unwrap();
+
+                let mut input = String::new();
+                std::io::stdin()
+                    .read_line(&mut input)
+                    .map_err(|e| format!("Failed to read input: {}", e))?;
+
+                if !matches!(input.trim().to_lowercase().as_str(), "y" | "yes") {
+                    println!("{}", "Cancelled".dimmed());
+                    return Ok(());
+                }
+            }
+
+            index
+                .clear()
+                .await
+                .map_err(|e| format!("Failed to clear index: {}", e))?;
+
+            println!("{} Knowledge index cleared", "✓".green());
+        }
+
+        KnowledgeCommands::Export { path } => {
+            let json_data = index
+                .export_to_json()
+                .await
+                .map_err(|e| format!("Failed to export: {}", e))?;
+
+            std::fs::write(&path, json_data)
+                .map_err(|e| format!("Failed to write file: {}", e))?;
+
+            println!("{} Exported knowledge to {}", "✓".green(), path.display());
+        }
+
+        KnowledgeCommands::Import { path } => {
+            let json_data = std::fs::read_to_string(&path)
+                .map_err(|e| format!("Failed to read file: {}", e))?;
+
+            let count = index
+                .import_from_json(&json_data)
+                .await
+                .map_err(|e| format!("Failed to import: {}", e))?;
+
+            println!("{} Imported {} entries from {}", "✓".green(), count, path.display());
+        }
+    }
+
+    Ok(())
+}
+
+// =============================================================================
 // Evaluation Tests
 // =============================================================================
 
@@ -990,6 +1158,16 @@ async fn main() {
                 println!();
             }
             process::exit(0);
+        }
+        #[cfg(feature = "knowledge")]
+        Some(Commands::Knowledge { command }) => {
+            match handle_knowledge_command(command).await {
+                Ok(()) => process::exit(0),
+                Err(e) => {
+                    eprintln!("Error: {}", e);
+                    process::exit(1);
+                }
+            }
         }
         // NOTE: Telemetry subcommand disabled in v1.1.0-beta.1
         // Some(Commands::Telemetry { command }) => {
