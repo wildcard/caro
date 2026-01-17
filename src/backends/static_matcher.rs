@@ -658,6 +658,274 @@ impl StaticMatcher {
                 description: "Find files with Japanese characters in name".to_string(),
             },
 
+            // ===== Basic File Operations (Issue #511) =====
+
+            // List all files including hidden ones
+            PatternEntry {
+                required_keywords: vec!["list".to_string(), "all".to_string(), "files".to_string()],
+                optional_keywords: vec!["including".to_string(), "hidden".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)list\s+all\s+files").unwrap()),
+                gnu_command: "ls -la".to_string(),
+                bsd_command: Some("ls -la".to_string()),
+                description: "List all files including hidden".to_string(),
+            },
+
+            // Copy file
+            PatternEntry {
+                required_keywords: vec!["copy".to_string()],
+                optional_keywords: vec!["file".to_string(), "to".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(copy|cp)\s+\S+\s+(to\s+)?\S+").unwrap()),
+                gnu_command: "cp file.txt backup.txt".to_string(),
+                bsd_command: Some("cp file.txt backup.txt".to_string()),
+                description: "Copy file".to_string(),
+            },
+
+            // Move/rename file
+            PatternEntry {
+                required_keywords: vec!["rename".to_string()],
+                optional_keywords: vec!["file".to_string(), "to".to_string(), "mv".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(rename|move|mv)\s+\S+\s+(to\s+)?\S+").unwrap()),
+                gnu_command: "mv file.txt newfile.txt".to_string(),
+                bsd_command: Some("mv file.txt newfile.txt".to_string()),
+                description: "Rename or move file".to_string(),
+            },
+
+            // Delete/remove file
+            PatternEntry {
+                required_keywords: vec!["delete".to_string()],
+                optional_keywords: vec!["file".to_string(), "remove".to_string(), "rm".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(delete|remove|rm)\s+\S+").unwrap()),
+                gnu_command: "rm file.txt".to_string(),
+                bsd_command: Some("rm file.txt".to_string()),
+                description: "Delete file".to_string(),
+            },
+
+            // Make file executable
+            PatternEntry {
+                required_keywords: vec!["executable".to_string()],
+                optional_keywords: vec!["make".to_string(), "chmod".to_string(), "script".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)make\s+\S+\s+executable").unwrap()),
+                gnu_command: "chmod +x script.sh".to_string(),
+                bsd_command: Some("chmod +x script.sh".to_string()),
+                description: "Make file executable".to_string(),
+            },
+
+            // Display file contents
+            PatternEntry {
+                required_keywords: vec!["display".to_string(), "contents".to_string()],
+                optional_keywords: vec!["file".to_string(), "cat".to_string(), "show".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(display|show|cat)\s+(contents\s+of\s+)?\S+").unwrap()),
+                gnu_command: "cat file.txt".to_string(),
+                bsd_command: Some("cat file.txt".to_string()),
+                description: "Display file contents".to_string(),
+            },
+
+            // Create empty file
+            PatternEntry {
+                required_keywords: vec!["create".to_string(), "empty".to_string(), "file".to_string()],
+                optional_keywords: vec!["touch".to_string(), "new".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)create\s+empty\s+file").unwrap()),
+                gnu_command: "touch newfile.txt".to_string(),
+                bsd_command: Some("touch newfile.txt".to_string()),
+                description: "Create empty file".to_string(),
+            },
+
+            // Create nested directories
+            PatternEntry {
+                required_keywords: vec!["create".to_string(), "nested".to_string(), "director".to_string()],
+                optional_keywords: vec!["mkdir".to_string(), "structure".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)create\s+nested\s+director").unwrap()),
+                gnu_command: "mkdir -p foo/bar/baz".to_string(),
+                bsd_command: Some("mkdir -p foo/bar/baz".to_string()),
+                description: "Create nested directory structure".to_string(),
+            },
+
+            // Create symbolic link
+            PatternEntry {
+                required_keywords: vec!["symbolic".to_string(), "link".to_string()],
+                optional_keywords: vec!["create".to_string(), "ln".to_string(), "from".to_string(), "to".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)create\s+symbolic\s+link").unwrap()),
+                gnu_command: "ln -s file.txt link.txt".to_string(),
+                bsd_command: Some("ln -s file.txt link.txt".to_string()),
+                description: "Create symbolic link".to_string(),
+            },
+
+            // Find txt files
+            PatternEntry {
+                required_keywords: vec!["find".to_string(), "txt".to_string(), "files".to_string()],
+                optional_keywords: vec!["all".to_string(), "current".to_string(), "directory".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)find\s+(all\s+)?txt\s+files").unwrap()),
+                gnu_command: "find . -name '*.txt'".to_string(),
+                bsd_command: Some("find . -name '*.txt'".to_string()),
+                description: "Find all txt files".to_string(),
+            },
+
+            // ===== Text Processing (Issue #511) =====
+
+            // Basic grep for text in file
+            PatternEntry {
+                required_keywords: vec!["find".to_string(), "text".to_string()],
+                optional_keywords: vec!["in".to_string(), "grep".to_string(), "search".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)find\s+text\s+\S+\s+in\s+\S+").unwrap()),
+                gnu_command: "grep 'error' logs".to_string(),
+                bsd_command: Some("grep 'error' logs".to_string()),
+                description: "Find text in file".to_string(),
+            },
+
+            // Replace text with sed
+            PatternEntry {
+                required_keywords: vec!["replace".to_string(), "with".to_string(), "in".to_string()],
+                optional_keywords: vec!["sed".to_string(), "text".to_string(), "file".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)replace\s+\S+\s+with\s+\S+\s+in").unwrap()),
+                gnu_command: "sed 's/foo/bar/g' file.txt".to_string(),
+                bsd_command: Some("sed 's/foo/bar/g' file.txt".to_string()),
+                description: "Replace text in file".to_string(),
+            },
+
+            // Print column with awk
+            PatternEntry {
+                required_keywords: vec!["print".to_string(), "column".to_string()],
+                optional_keywords: vec!["first".to_string(), "awk".to_string(), "of".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)print\s+(first\s+)?column").unwrap()),
+                gnu_command: "awk '{print $1}' data.csv".to_string(),
+                bsd_command: Some("awk '{print $1}' data.csv".to_string()),
+                description: "Print column from file".to_string(),
+            },
+
+            // Sort file
+            PatternEntry {
+                required_keywords: vec!["sort".to_string(), "lines".to_string()],
+                optional_keywords: vec!["in".to_string(), "file".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)sort\s+lines\s+in").unwrap()),
+                gnu_command: "sort file.txt".to_string(),
+                bsd_command: Some("sort file.txt".to_string()),
+                description: "Sort lines in file".to_string(),
+            },
+
+            // Remove duplicate lines
+            PatternEntry {
+                required_keywords: vec!["remove".to_string(), "duplicate".to_string()],
+                optional_keywords: vec!["lines".to_string(), "from".to_string(), "uniq".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)remove\s+duplicate\s+lines").unwrap()),
+                gnu_command: "uniq file.txt".to_string(),
+                bsd_command: Some("uniq file.txt".to_string()),
+                description: "Remove duplicate lines".to_string(),
+            },
+
+            // Count lines
+            PatternEntry {
+                required_keywords: vec!["count".to_string(), "lines".to_string()],
+                optional_keywords: vec!["in".to_string(), "wc".to_string(), "file".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)count\s+lines\s+in").unwrap()),
+                gnu_command: "wc -l file.txt".to_string(),
+                bsd_command: Some("wc -l file.txt".to_string()),
+                description: "Count lines in file".to_string(),
+            },
+
+            // Show first lines
+            PatternEntry {
+                required_keywords: vec!["show".to_string(), "first".to_string(), "lines".to_string()],
+                optional_keywords: vec!["10".to_string(), "of".to_string(), "head".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)show\s+first\s+(\d+\s+)?lines").unwrap()),
+                gnu_command: "head file.txt".to_string(),
+                bsd_command: Some("head file.txt".to_string()),
+                description: "Show first lines of file".to_string(),
+            },
+
+            // ===== System Information (Issue #511) =====
+
+            // Show all running processes
+            PatternEntry {
+                required_keywords: vec!["show".to_string(), "processes".to_string()],
+                optional_keywords: vec!["all".to_string(), "running".to_string(), "ps".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)show\s+(all\s+)?(running\s+)?processes").unwrap()),
+                gnu_command: "ps aux".to_string(),
+                bsd_command: Some("ps aux".to_string()),
+                description: "Show all running processes".to_string(),
+            },
+
+            // Show disk usage (df -h)
+            PatternEntry {
+                required_keywords: vec!["show".to_string(), "disk".to_string(), "usage".to_string()],
+                optional_keywords: vec!["df".to_string(), "space".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)^show\s+disk\s+usage$").unwrap()),
+                gnu_command: "df -h".to_string(),
+                bsd_command: Some("df -h".to_string()),
+                description: "Show disk usage".to_string(),
+            },
+
+            // Show system resource usage (top)
+            PatternEntry {
+                required_keywords: vec!["show".to_string(), "system".to_string(), "resource".to_string()],
+                optional_keywords: vec!["usage".to_string(), "top".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)show\s+system\s+resource").unwrap()),
+                gnu_command: "top".to_string(),
+                bsd_command: Some("top".to_string()),
+                description: "Show system resource usage".to_string(),
+            },
+
+            // Show logged in users
+            PatternEntry {
+                required_keywords: vec!["show".to_string(), "logged".to_string(), "users".to_string()],
+                optional_keywords: vec!["in".to_string(), "who".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)show\s+logged\s+in\s+users").unwrap()),
+                gnu_command: "who".to_string(),
+                bsd_command: Some("who".to_string()),
+                description: "Show logged in users".to_string(),
+            },
+
+            // Display system hostname
+            PatternEntry {
+                required_keywords: vec!["display".to_string(), "hostname".to_string()],
+                optional_keywords: vec!["system".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)display\s+system\s+hostname").unwrap()),
+                gnu_command: "hostname".to_string(),
+                bsd_command: Some("hostname".to_string()),
+                description: "Display system hostname".to_string(),
+            },
+
+            // Show system information
+            PatternEntry {
+                required_keywords: vec!["show".to_string(), "system".to_string(), "information".to_string()],
+                optional_keywords: vec!["uname".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)show\s+system\s+information").unwrap()),
+                gnu_command: "uname -a".to_string(),
+                bsd_command: Some("uname -a".to_string()),
+                description: "Show system information".to_string(),
+            },
+
+            // Display current date and time
+            PatternEntry {
+                required_keywords: vec!["display".to_string(), "current".to_string(), "date".to_string()],
+                optional_keywords: vec!["time".to_string(), "and".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)display\s+current\s+date").unwrap()),
+                gnu_command: "date".to_string(),
+                bsd_command: Some("date".to_string()),
+                description: "Display current date and time".to_string(),
+            },
+
+            // Show system uptime
+            PatternEntry {
+                required_keywords: vec!["show".to_string(), "uptime".to_string()],
+                optional_keywords: vec!["system".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)show\s+system\s+uptime").unwrap()),
+                gnu_command: "uptime".to_string(),
+                bsd_command: Some("uptime".to_string()),
+                description: "Show system uptime".to_string(),
+            },
+
+            // ===== Archive Operations (Issue #511) =====
+
+            // Create tar archive
+            PatternEntry {
+                required_keywords: vec!["create".to_string(), "archive".to_string()],
+                optional_keywords: vec!["tar".to_string(), "of".to_string(), "directory".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)create\s+tar\s+archive").unwrap()),
+                gnu_command: "tar -czf logs.tar.gz logs/".to_string(),
+                bsd_command: Some("tar -czf logs.tar.gz logs/".to_string()),
+                description: "Create tar archive of directory".to_string(),
+            },
+
         ]
     }
 
