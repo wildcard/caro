@@ -4,8 +4,10 @@
 //! Captures inline documentation from executables.
 
 use super::{IndexStats, Indexer, ProgressCallback};
-use crate::knowledge::{backends::VectorBackend, Result};
+use crate::knowledge::{backends::VectorBackend, collections::CollectionType, index::KnowledgeEntry, schema::EntryType, Result};
 use async_trait::async_trait;
+use chrono::Utc;
+use std::process::Command;
 use std::sync::Arc;
 
 /// --help output indexer
@@ -41,6 +43,29 @@ impl HelpIndexer {
     pub fn for_commands(commands: Vec<String>) -> Self {
         Self::new(Some(commands), true)
     }
+
+    /// Get help output for a command
+    fn get_help_output(&self, command: &str) -> Result<String> {
+        // Try --help first
+        if let Ok(output) = Command::new(command).arg("--help").output() {
+            if output.status.success() || !output.stdout.is_empty() {
+                return Ok(String::from_utf8_lossy(&output.stdout).to_string());
+            }
+        }
+
+        // Try -h if configured
+        if self.try_both_flags {
+            if let Ok(output) = Command::new(command).arg("-h").output() {
+                if output.status.success() || !output.stdout.is_empty() {
+                    return Ok(String::from_utf8_lossy(&output.stdout).to_string());
+                }
+            }
+        }
+
+        Err(crate::knowledge::KnowledgeError::Indexing(
+            format!("No help output available for {}", command)
+        ))
+    }
 }
 
 #[async_trait]
@@ -51,45 +76,94 @@ impl Indexer for HelpIndexer {
 
     async fn index_all(
         &self,
-        _backend: Arc<dyn VectorBackend>,
-        _progress: Option<ProgressCallback>,
+        backend: Arc<dyn VectorBackend>,
+        progress: Option<ProgressCallback>,
     ) -> Result<IndexStats> {
-        // TODO: Implement --help output discovery and indexing
-        // 1. Get list of commands:
-        //    - If commands specified, use that list
-        //    - Otherwise, discover from PATH (parse $PATH, list executables)
-        // 2. For each command:
-        //    - Try running `command --help` (capture stdout/stderr)
-        //    - If that fails and try_both_flags, try `command -h`
-        //    - Parse help output for structure (usage, options, examples)
-        //    - Create KnowledgeEntry with command name as request
-        //    - Add to Docs collection via backend.add_entry()
-        // 3. Report progress via callback
-        // 4. Handle errors gracefully (some commands may not support --help)
+        let mut stats = IndexStats::new();
 
-        Ok(IndexStats::new())
+        // Get command list
+        let commands = match &self.commands {
+            Some(cmds) => cmds.clone(),
+            None => {
+                // Auto-discovery not implemented yet - would need to parse PATH
+                return Ok(stats);
+            }
+        };
+
+        let total = commands.len();
+        if total == 0 {
+            return Ok(stats);
+        }
+
+        // Index each command
+        for (idx, command) in commands.iter().enumerate() {
+            if let Some(ref callback) = progress {
+                callback(idx, total);
+            }
+
+            if !self.should_index(command) {
+                stats.record_skip();
+                continue;
+            }
+
+            // Get help output
+            match self.get_help_output(command) {
+                Ok(help_text) => {
+                    let entry = KnowledgeEntry {
+                        request: command.clone(),
+                        command: help_text,
+                        context: Some(format!("help:{}", command)),
+                        similarity: 0.0,
+                        timestamp: Utc::now(),
+                        entry_type: EntryType::Success,
+                        original_command: None,
+                        feedback: None,
+                    };
+
+                    match backend.add_entry(entry, CollectionType::Docs).await {
+                        Ok(()) => stats.record_success(),
+                        Err(_) => stats.record_failure(),
+                    }
+                }
+                Err(_) => stats.record_failure(),
+            }
+        }
+
+        if let Some(ref callback) = progress {
+            callback(total, total);
+        }
+
+        Ok(stats)
     }
 
     async fn index_one(
         &self,
-        _backend: Arc<dyn VectorBackend>,
-        _item: &str,
+        backend: Arc<dyn VectorBackend>,
+        item: &str,
     ) -> Result<bool> {
-        // TODO: Index --help output for a specific command
-        // 1. Check if command exists in PATH
-        // 2. Run --help or -h
-        // 3. Parse and index output
+        // Try to get help output
+        let help_text = self.get_help_output(item)?;
 
-        Ok(false)
+        let entry = KnowledgeEntry {
+            request: item.to_string(),
+            command: help_text,
+            context: Some(format!("help:{}", item)),
+            similarity: 0.0,
+            timestamp: Utc::now(),
+            entry_type: EntryType::Success,
+            original_command: None,
+            feedback: None,
+        };
+
+        backend.add_entry(entry, CollectionType::Docs).await?;
+        Ok(true)
     }
 
-    fn should_index(&self, _item: &str) -> bool {
-        // TODO: Implement filtering logic
-        // - Skip shell builtins (they don't have --help)
-        // - Skip non-executable files
-        // - Skip known problematic commands (e.g., interactive shells)
+    fn should_index(&self, item: &str) -> bool {
+        // Skip known problematic commands
+        let skip_list = ["bash", "sh", "zsh", "fish", "vim", "emacs", "nano"];
 
-        true
+        !skip_list.contains(&item)
     }
 }
 

@@ -4,8 +4,11 @@
 //! Uses the tldr-pages repository for concise, example-focused documentation.
 
 use super::{IndexStats, Indexer, ProgressCallback};
-use crate::knowledge::{backends::VectorBackend, Result};
+use crate::knowledge::{backends::VectorBackend, collections::CollectionType, index::KnowledgeEntry, schema::EntryType, Result};
 use async_trait::async_trait;
+use chrono::Utc;
+use std::fs;
+use std::path::PathBuf;
 use std::sync::Arc;
 
 /// Tldr page indexer
@@ -51,6 +54,87 @@ impl TldrIndexer {
 
         Self::new(None, vec![platform.to_string(), "common".to_string()])
     }
+
+    /// Find tldr cache directory
+    fn find_tldr_cache(&self) -> Result<PathBuf> {
+        if let Some(ref path) = self.tldr_path {
+            return Ok(path.clone());
+        }
+
+        // Try standard locations
+        let home = std::env::var("HOME")
+            .map_err(|_| crate::knowledge::KnowledgeError::Indexing("HOME not set".to_string()))?;
+
+        let cache_path = PathBuf::from(home).join(".cache/tldr/pages");
+        if cache_path.exists() {
+            return Ok(cache_path);
+        }
+
+        Err(crate::knowledge::KnowledgeError::Indexing(
+            "tldr cache not found - install tldr first".to_string(),
+        ))
+    }
+
+    /// List tldr markdown files
+    fn list_tldr_pages(&self, cache_dir: &PathBuf) -> Result<Vec<PathBuf>> {
+        let mut pages = Vec::new();
+
+        // If platforms specified, only search those directories
+        if !self.platforms.is_empty() {
+            for platform in &self.platforms {
+                let platform_dir = cache_dir.join(platform);
+                if platform_dir.exists() {
+                    self.collect_md_files(&platform_dir, &mut pages)?;
+                }
+            }
+        } else {
+            // Search all platform directories
+            self.collect_md_files(cache_dir, &mut pages)?;
+        }
+
+        Ok(pages)
+    }
+
+    /// Recursively collect .md files
+    fn collect_md_files(&self, dir: &PathBuf, files: &mut Vec<PathBuf>) -> Result<()> {
+        if !dir.is_dir() {
+            return Ok(());
+        }
+
+        for entry in fs::read_dir(dir)? {
+            let entry = entry?;
+            let path = entry.path();
+
+            if path.is_dir() {
+                self.collect_md_files(&path, files)?;
+            } else if path.extension().and_then(|s| s.to_str()) == Some("md") {
+                files.push(path);
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Parse tldr markdown content
+    fn parse_tldr_content(&self, path: &PathBuf) -> Result<String> {
+        let content = fs::read_to_string(path)?;
+
+        // tldr pages are already concise markdown - just clean up slightly
+        let mut result = String::new();
+
+        for line in content.lines() {
+            // Remove markdown # headers but keep the text
+            if let Some(text) = line.strip_prefix('#') {
+                result.push_str(text.trim());
+                result.push('\n');
+            } else {
+                result.push_str(line);
+                result.push('\n');
+            }
+        }
+
+        Ok(result.trim().to_string())
+    }
 }
 
 #[async_trait]
@@ -61,41 +145,128 @@ impl Indexer for TldrIndexer {
 
     async fn index_all(
         &self,
-        _backend: Arc<dyn VectorBackend>,
-        _progress: Option<ProgressCallback>,
+        backend: Arc<dyn VectorBackend>,
+        progress: Option<ProgressCallback>,
     ) -> Result<IndexStats> {
-        // TODO: Implement tldr page discovery and indexing
-        // 1. Find tldr cache directory or use provided path
-        //    - Default: ~/.cache/tldr/pages/ or use `tldr --list`
-        // 2. Filter by platform if specified
-        // 3. For each .md file:
-        //    - Parse markdown content
-        //    - Extract command name, description, examples
-        //    - Create KnowledgeEntry with command name as request
-        //    - Add to Docs collection via backend.add_entry()
-        // 4. Report progress via callback
+        let mut stats = IndexStats::new();
 
-        Ok(IndexStats::new())
+        // Find tldr cache
+        let cache_dir = match self.find_tldr_cache() {
+            Ok(dir) => dir,
+            Err(_) => return Ok(stats), // No tldr cache, return empty stats
+        };
+
+        // List all pages
+        let pages = self.list_tldr_pages(&cache_dir)?;
+        let total = pages.len();
+
+        if total == 0 {
+            return Ok(stats);
+        }
+
+        // Index each page
+        for (idx, page_path) in pages.iter().enumerate() {
+            if let Some(ref callback) = progress {
+                callback(idx, total);
+            }
+
+            // Extract command name from filename
+            let command_name = page_path
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .unwrap_or("unknown")
+                .to_string();
+
+            if !self.should_index(&command_name) {
+                stats.record_skip();
+                continue;
+            }
+
+            // Parse content
+            match self.parse_tldr_content(page_path) {
+                Ok(content) => {
+                    let entry = KnowledgeEntry {
+                        request: command_name.clone(),
+                        command: content,
+                        context: Some(format!("tldr:{}", command_name)),
+                        similarity: 0.0,
+                        timestamp: Utc::now(),
+                        entry_type: EntryType::Success,
+                        original_command: None,
+                        feedback: None,
+                    };
+
+                    match backend.add_entry(entry, CollectionType::Docs).await {
+                        Ok(()) => stats.record_success(),
+                        Err(_) => stats.record_failure(),
+                    }
+                }
+                Err(_) => stats.record_failure(),
+            }
+        }
+
+        if let Some(ref callback) = progress {
+            callback(total, total);
+        }
+
+        Ok(stats)
     }
 
     async fn index_one(
         &self,
-        _backend: Arc<dyn VectorBackend>,
-        _item: &str,
+        backend: Arc<dyn VectorBackend>,
+        item: &str,
     ) -> Result<bool> {
-        // TODO: Index a specific tldr page
-        // 1. Find tldr page for command
-        // 2. Parse markdown content
-        // 3. Add to Docs collection
+        // Find tldr cache
+        let cache_dir = self.find_tldr_cache()?;
 
-        Ok(false)
+        // Try to find the page in any platform directory
+        let mut found_path: Option<PathBuf> = None;
+
+        if !self.platforms.is_empty() {
+            for platform in &self.platforms {
+                let page_path = cache_dir.join(platform).join(format!("{}.md", item));
+                if page_path.exists() {
+                    found_path = Some(page_path);
+                    break;
+                }
+            }
+        } else {
+            // Search all platforms
+            for platform in &["common", "linux", "osx", "windows"] {
+                let page_path = cache_dir.join(platform).join(format!("{}.md", item));
+                if page_path.exists() {
+                    found_path = Some(page_path);
+                    break;
+                }
+            }
+        }
+
+        let page_path = match found_path {
+            Some(path) => path,
+            None => return Ok(false), // Page not found
+        };
+
+        // Parse and index
+        let content = self.parse_tldr_content(&page_path)?;
+
+        let entry = KnowledgeEntry {
+            request: item.to_string(),
+            command: content,
+            context: Some(format!("tldr:{}", item)),
+            similarity: 0.0,
+            timestamp: Utc::now(),
+            entry_type: EntryType::Success,
+            original_command: None,
+            feedback: None,
+        };
+
+        backend.add_entry(entry, CollectionType::Docs).await?;
+        Ok(true)
     }
 
     fn should_index(&self, _item: &str) -> bool {
-        // TODO: Implement filtering logic
-        // - Skip platform-specific pages if not in platform filter
-        // - Skip deprecated commands
-
+        // tldr pages are all useful - no filtering needed
         true
     }
 }
