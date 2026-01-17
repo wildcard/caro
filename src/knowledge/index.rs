@@ -92,9 +92,14 @@ impl KnowledgeIndex {
                 })
             }
             #[cfg(feature = "chromadb")]
-            crate::models::KnowledgeBackendConfig::ChromaDb { url, cache_dir } => {
+            crate::models::KnowledgeBackendConfig::ChromaDb {
+                url,
+                cache_dir,
+                auth_token,
+            } => {
                 use crate::knowledge::backends::chromadb::ChromaDbBackend;
-                let backend = ChromaDbBackend::new(url, cache_dir.as_deref(), None).await?;
+                let backend =
+                    ChromaDbBackend::new(url, cache_dir.as_deref(), auth_token.as_deref()).await?;
                 Ok(Self {
                     backend: Arc::new(backend),
                 })

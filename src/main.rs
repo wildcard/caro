@@ -757,7 +757,9 @@ fn build_knowledge_backend_config(
 
     match knowledge_backend {
         Some("chromadb") | Some("chroma") => {
-            KnowledgeBackendConfig::chromadb(chromadb_url.to_string(), None)
+            // Check for Chroma Cloud API key in environment
+            let auth_token = std::env::var("CHROMA_API_KEY").ok();
+            KnowledgeBackendConfig::chromadb(chromadb_url.to_string(), None, auth_token)
         }
         Some("lancedb") | Some("lance") | None => {
             // Default to LanceDB

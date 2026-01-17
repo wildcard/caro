@@ -989,11 +989,14 @@ pub enum KnowledgeBackendConfig {
         path: PathBuf,
     },
     ChromaDb {
-        /// ChromaDB server URL (e.g., "http://localhost:8000")
+        /// ChromaDB server URL (e.g., "http://localhost:8000" or "https://api.trychroma.com")
         url: String,
         /// Optional cache directory for embedding models
         #[serde(default)]
         cache_dir: Option<PathBuf>,
+        /// Optional authentication token for Chroma Cloud
+        #[serde(default)]
+        auth_token: Option<String>,
     },
 }
 
@@ -1022,10 +1025,15 @@ impl KnowledgeBackendConfig {
     }
 
     /// Create ChromaDB configuration
-    pub fn chromadb(url: impl Into<String>, cache_dir: Option<PathBuf>) -> Self {
+    pub fn chromadb(
+        url: impl Into<String>,
+        cache_dir: Option<PathBuf>,
+        auth_token: Option<String>,
+    ) -> Self {
         Self::ChromaDb {
             url: url.into(),
             cache_dir,
+            auth_token,
         }
     }
 
