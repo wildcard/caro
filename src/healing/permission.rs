@@ -57,10 +57,7 @@ impl PermissionErrorDetector {
     /// Returns None if:
     /// - Command already has sudo
     /// - Platform doesn't support sudo (Windows without Git Bash)
-    pub fn suggest_correction(
-        command: &str,
-        platform: Platform,
-    ) -> Option<SudoSuggestion> {
+    pub fn suggest_correction(command: &str, platform: Platform) -> Option<SudoSuggestion> {
         // Don't suggest sudo if command already has it
         if Self::has_sudo(command) {
             return None;
@@ -131,7 +128,10 @@ mod tests {
 
     #[test]
     fn test_detect_eacces() {
-        let result = make_result(1, "error: EACCES: permission denied, open '/var/log/test.log'");
+        let result = make_result(
+            1,
+            "error: EACCES: permission denied, open '/var/log/test.log'",
+        );
         assert!(PermissionErrorDetector::detect(&result));
     }
 

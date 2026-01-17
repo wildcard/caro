@@ -1353,21 +1353,30 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
                         Ok(mut exec_result) => {
                             // Try self-healing if command failed
                             if !exec_result.success {
-                                use caro::healing::{HealingEngine, PermissionErrorDetector, confirm_sudo_retry};
+                                use caro::healing::{
+                                    confirm_sudo_retry, HealingEngine, PermissionErrorDetector,
+                                };
                                 use caro::Platform;
 
                                 let platform = Platform::detect();
                                 let healing = HealingEngine::new(platform);
 
                                 // Check if it's a permission error and try to heal
-                                if let Some(corrected_command) = healing.try_heal(&exec_result, &result.generated_command) {
+                                if let Some(corrected_command) =
+                                    healing.try_heal(&exec_result, &result.generated_command)
+                                {
                                     // Get the suggestion for display
-                                    if let Some(suggestion) = PermissionErrorDetector::suggest_correction(
-                                        &result.generated_command,
-                                        platform
-                                    ) {
+                                    if let Some(suggestion) =
+                                        PermissionErrorDetector::suggest_correction(
+                                            &result.generated_command,
+                                            platform,
+                                        )
+                                    {
                                         // Prompt user to retry with sudo
-                                        match confirm_sudo_retry(&suggestion.original_command, &suggestion.explanation) {
+                                        match confirm_sudo_retry(
+                                            &suggestion.original_command,
+                                            &suggestion.explanation,
+                                        ) {
                                             Ok(true) => {
                                                 // User confirmed - retry with sudo
                                                 display!("");
@@ -1377,28 +1386,13 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
                                                     Ok(retry_result) => {
                                                         exec_result = retry_result;
                                                         display!("{}", "✓ Command executed successfully with sudo".green());
-
-                                                        // Record successful correction to knowledge index
-                                                        #[cfg(feature = "knowledge")]
-                                                        if let Some(ref knowledge) = knowledge {
-                                                            tokio::spawn({
-                                                                let knowledge = knowledge.clone();
-                                                                let prompt = cli.description.clone().unwrap_or_default();
-                                                                let original = result.generated_command.clone();
-                                                                let corrected = corrected_command.clone();
-                                                                async move {
-                                                                    let _ = knowledge.record_correction(
-                                                                        &prompt,
-                                                                        &original,
-                                                                        &corrected,
-                                                                        Some("Required elevated privileges (permission error)")
-                                                                    ).await;
-                                                                }
-                                                            });
-                                                        }
                                                     }
                                                     Err(e) => {
-                                                        display!("{}", format!("✗ Sudo retry failed: {}", e).red());
+                                                        display!(
+                                                            "{}",
+                                                            format!("✗ Sudo retry failed: {}", e)
+                                                                .red()
+                                                        );
                                                     }
                                                 }
                                             }

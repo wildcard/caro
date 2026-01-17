@@ -106,14 +106,14 @@ impl HealingEngine {
         feedback: &str,
     ) {
         if let Some(ref knowledge) = self.knowledge {
-            if let Err(e) = knowledge
-                .record_correction(original_prompt, original_command, corrected_command, Some(feedback))
-                .await
-            {
-                log::debug!("Failed to record healing correction: {}", e);
-            } else {
-                log::debug!("Recorded healing correction to knowledge index");
-            }
+            let _ = knowledge
+                .record_correction(
+                    original_prompt,
+                    original_command,
+                    corrected_command,
+                    Some(feedback),
+                )
+                .await;
         }
     }
 }
