@@ -1,0 +1,260 @@
+{
+  "landing": {
+    "navigation": {
+      "brand": "Caro",
+      "cta": "Magsimula nang Libre",
+      "darkMode": {
+        "toggle": "I-toggle ang dark mode"
+      }
+    },
+    "hero": {
+      "badge": "Companion Agent",
+      "tagline": "Ang iyong tapat na shell companion",
+      "subtitle": "Isang specialized POSIX shell command agent para sa Claude users. Vina-validate ang AI-generated commands gamit ang safety-first design, dine-detect ang mga dangerous patterns, at tini-ensure ang POSIX compliance.",
+      "installLabel": "Available bilang Claude Skill:",
+      "cta": {
+        "getStarted": "Magsimula",
+        "watchDemo": "Panoorin ang Demo"
+      }
+    },
+    "features": {
+      "title": "Bakit Caro?",
+      "subtitle": "Isang companion agent na ginawa para sa safety, empathy, at expertise",
+      "alphaNotice": "Aktibo kaming nagtatayo kasama ang aming community. Sumali para tulungan kaming i-shape ang future ni Caro!",
+      "alphaLabel": "Soft Launch Alpha",
+      "ctaText": "Tingnan kung ano ang bina-block ni Caro at bakit",
+      "ctaLink": "Tingnan ang safety patterns",
+      "items": [
+        {
+          "icon": "🛡️",
+          "title": "Huwag Na Sirain ang Production",
+          "description": "Bina-block ang rm -rf /, fork bombs, at 50+ na career-ending commands BAGO mo pa patakbuhin. Magpapasalamat ang gabi-gabi mong sarili.",
+          "highlight": true
+        },
+        {
+          "icon": "🔒",
+          "title": "Ang Data Mo ay Sa Iyo",
+          "description": "Zero telemetry. Zero cloud API calls. Pwede sa air-gapped networks. Pwede sa anumang compliance audit. Hindi umaalis ang commands mo sa machine mo.",
+          "highlight": true,
+          "privacyLink": true
+        },
+        {
+          "icon": "✅",
+          "title": "Commands na Talagang Gumagana",
+          "description": "Gumagawa ng commands na gumagana sa Mac mo, Linux server mo, at BSD box ng katrabaho mo. Sa unang try. Lagi.",
+          "highlight": false
+        },
+        {
+          "icon": "⚡",
+          "title": "Mabilis na Hindi Makakaistorbo sa Flow",
+          "description": "Sub-2s inference sa Apple Silicon. Walang paghihintay sa cloud APIs. Walang kaba kung down ba ang server. Mga sagot lang.",
+          "highlight": false
+        }
+      ],
+      "cards": {
+        "safetyGuardian": {
+          "title": "Safety Guardian",
+          "description": "Comprehensive na validation na nagbo-block ng mga dangerous na commands tulad ng rm -rf /, fork bombs, at destructive operations. 52 predefined safety patterns na may risk-level assessment."
+        },
+        "crossPlatform": {
+          "title": "Cross-Platform Expert",
+          "description": "Gumagana sa macOS, Linux, Windows, GNU, at BSD. Naiintindihan ang mga platform-specific nuances at nirerespeto ang iyong piniling distribution."
+        },
+        "platformAware": {
+          "title": "Platform-Aware",
+          "description": "Nagbibigay ng recommendations batay sa capabilities ng iyong platform at best practices. Automatic na nakikilala ang pagkakaiba ng BSD at GNU command syntax."
+        },
+        "posixSpecialist": {
+          "title": "POSIX Specialist",
+          "description": "Expert sa POSIX-compliant shell commands na reliable na gumagana sa lahat ng systems. Portable, safe, at optimized para sa iyong terminal."
+        },
+        "lightningFast": {
+          "title": "Napakabilis",
+          "description": "Target: Sub-100ms startup, sub-2s inference sa Apple Silicon. MLX framework integration para sa GPU acceleration sa M-series chips."
+        },
+        "claudeCompanion": {
+          "title": "Companion ni Claude",
+          "description": "Official Claude Code skill para sa safe na shell command generation. Auto-activate kapag kailangan mo ng tulong, nagbibigay ng safety guidance, at seamlessly integrate sa workflow mo. I-install gamit ang /plugin install wildcard/caro"
+        }
+      }
+    },
+    "comparison": {
+      "title": "Paano Nagko-Compare si Caro",
+      "subtitle": "Ginawa para sa DevOps engineers at SREs na ayaw mag-sacrifice ng privacy para sa productivity",
+      "summary": {
+        "privacy": { "stat": "Privacy", "label": "First Design*" },
+        "safety": { "stat": "52+", "label": "Safety Patterns" },
+        "offline": { "stat": "100%", "label": "Offline Capable" },
+        "speed": { "stat": "Rust", "label": "Built for Speed" }
+      },
+      "competitors": {
+        "caro": "Caro",
+        "copilotCli": "GitHub Copilot CLI",
+        "warp": "Warp AI",
+        "kiro": "Kiro CLI",
+        "opencode": "OpenCode"
+      },
+      "table": {
+        "feature": "Feature",
+        "youreHere": "Nandito ka"
+      },
+      "categories": {
+        "privacyData": {
+          "title": "Privacy at Data",
+          "features": {
+            "worksOffline": {
+              "name": "Gumagana nang 100% offline",
+              "tooltip": "Hindi kailangan ng internet para sa core functionality"
+            },
+            "privacyFirst": {
+              "name": "Privacy-first design",
+              "tooltip": "Minimal at anonymous telemetry na may madaling opt-out"
+            },
+            "airGapped": {
+              "name": "Air-gapped friendly",
+              "tooltip": "Pwedeng tumakbo sa isolated environments"
+            },
+            "openSource": {
+              "name": "Open source",
+              "tooltip": "Buong source code available"
+            }
+          }
+        },
+        "safetyControl": {
+          "title": "Safety at Control",
+          "features": {
+            "ruleBasedSafety": {
+              "name": "Rule-based safety checks",
+              "tooltip": "Pre-execution validation na may defined patterns"
+            },
+            "explicitConfirmation": {
+              "name": "Kailangan ng explicit confirmation",
+              "tooltip": "Hindi tumatakbo ang commands nang walang approval mo"
+            },
+            "blocksDangerous": {
+              "name": "Bina-block ang dangerous commands",
+              "tooltip": "Pinipigilan ang rm -rf /, fork bombs, atbp."
+            },
+            "riskLevel": {
+              "name": "Risk level assessment",
+              "tooltip": "Nire-rate ang commands ayon sa potential impact"
+            }
+          }
+        },
+        "shellExpertise": {
+          "title": "Shell Expertise",
+          "features": {
+            "posixFirst": {
+              "name": "POSIX-first approach",
+              "tooltip": "Portable commands na gumagana kahit saan"
+            },
+            "crossPlatform": {
+              "name": "Cross-platform (macOS/Linux/BSD)",
+              "tooltip": "Gumagana sa mga Unix-like systems"
+            },
+            "existingTerminal": {
+              "name": "Ginagamit ang existing terminal mo",
+              "tooltip": "Hindi kailangan ng bagong terminal emulator"
+            },
+            "platformAware": {
+              "name": "Platform-aware commands",
+              "tooltip": "Nag-a-adjust para sa GNU vs BSD syntax"
+            }
+          }
+        },
+        "modelBackend": {
+          "title": "Model at Backend",
+          "features": {
+            "localInference": {
+              "name": "Local inference",
+              "tooltip": "Tumatakbo ang models sa machine mo"
+            },
+            "multiBackend": {
+              "name": "Multi-backend support",
+              "tooltip": "Piliin ang inference engine mo"
+            },
+            "appleSilicon": {
+              "name": "Optimized para sa Apple Silicon",
+              "tooltip": "MLX framework para sa M-series Macs"
+            },
+            "selfHostable": {
+              "name": "Self-hostable",
+              "tooltip": "Buong control sa infrastructure"
+            }
+          }
+        }
+      },
+      "cta": {
+        "text": "Ready na ba para sa shell companion na nirerespeto ang privacy mo?",
+        "getStarted": "Magsimula nang Libre",
+        "fullComparison": "Tingnan ang Buong Comparison"
+      },
+      "legend": {
+        "fullSupport": "Buong support",
+        "partial": "Partial/configurable",
+        "notSupported": "Hindi supported",
+        "planned": "Nakaplanong Gawin"
+      },
+      "values": {
+        "yes": "Oo",
+        "no": "Hindi",
+        "partial": "Partial",
+        "planned": "Nakaplanong Gawin"
+      }
+    },
+    "scenarios": {},
+    "demo": {},
+    "useCases": {},
+    "differentiators": {},
+    "communityVoices": {},
+    "trust": {},
+    "story": {
+      "title": "Kilalanin si Caro",
+      "subtitle": "Isang companion na may kwento ng loyalty at transformation",
+      "paragraphs": {
+        "intro": "Si Caro ay ang digitalization ni Kyaro (Kyarorain Kadosh), ang minamahal na aso ng maintainer. Tulad ng isang tapat na kasama na laging nasa tabi mo sa bawat challenge, nandito si Caro para tulungan kang mag-navigate sa mga complexity ng shell commands nang may safety at expertise.",
+        "highlight": "Sa Portal 2, natutunan nating si GLaDOS ay dating si Caroline, ang secretary ng founder ng Aperture Science—na na-transform sa eternal guardian ng facility. Kung paanong si Caroline ay naging beating heart ng testing chambers, si Caro ang iyong eternal companion para sa terminal.",
+        "platforms": "Specialized siya sa POSIX shell commands at naiintindihan ang nuances ng bawat platform—whether ikaw ay nasa macOS, Linux, Windows, GNU, o BSD. Dinadala ni Caro ang preferences mo saan man mo siya i-deploy, nirerespeto ang pinili mong distribution habang pinoprotektahan ka mula sa dangerous commands.",
+        "companion": "Bilang tapat na companion ni Claude, hina-handle ni Caro ang shell-specific heavy lifting, pinapayagan si Claude na mag-focus sa mas malawak na trabaho habang tini-ensure na ang bawat command ay safe, tama, at optimized para sa platform mo."
+      }
+    },
+    "faq": {
+      "title": "Karaniwang Mga Alalahanin",
+      "subtitle": "Tunay na tanong mula sa mga skeptical na engineers (naiintindihan namin)",
+      "concerns": [
+        {
+          "question": "Teka, local na tumatakbo si Caro. Paano siya updated sa bagong dangerous patterns?",
+          "answer": "Ang safety patterns ni Caro ay naka-bake sa binary—hindi kailangan ng network. Kapag nag-update ka ni Caro (cargo install caro --force), nakukuha mo ang latest patterns. Ang core dangerous commands (rm -rf /, fork bombs, disk wipers) ay hindi nagbabago. Tumatanggap din kami ng pattern contributions sa GitHub.",
+          "icon": "🔄"
+        },
+        {
+          "question": "Papatagalin ba nito ang incident response ko?",
+          "answer": "Hindi. Nagdadagdag lang si Caro ng <100ms sa command generation. Instant ang safety check (pattern matching, hindi AI inference). Sa tunay na incident, yung 100ms na yun ang pwedeng mag-save sa iyo mula sa paggawa ng 10x worse na sitwasyon. Synchronous ang validation—nakikita mo agad ang warning.",
+          "icon": "⚡"
+        },
+        {
+          "question": "Paano niya alam ang specific setup ng system ko (BSD vs GNU, atbp.)?",
+          "answer": "Dine-detect ni Caro ang OS at shell mo sa runtime. Sa macOS, alam niyang gumagamit ka ng BSD tools. Sa Linux, nag-a-adjust siya para sa GNU syntax. Binabasa niya ang $SHELL mo at nag-a-adjust accordingly. Hindi kailangan ng configuration—gumagana lang.",
+          "icon": "🖥️"
+        },
+        {
+          "question": "Paano kung KAILANGAN ko talagang patakbuhin ang isang dangerous command?",
+          "answer": "Nagwo-warn si Caro, hindi nagku-kulong. Kapag nakakita ka ng warning, pwede mo pa ring ituloy—tini-ensure lang namin na ginagawa mo ito nang intensyonal. Para sa talagang destructive commands (rm -rf /), kailangan mong mag-confirm. Ito ang seatbelt mo, hindi straitjacket.",
+          "icon": "🔓"
+        },
+        {
+          "question": "Isa lang ba itong AI wrapper na nagse-send ng commands ko sa cloud?",
+          "answer": "Hindi. 100% local tumatakbo si Caro. Ang commands mo, file paths, server names, at directory structures ay hindi umaalis sa machine mo. Nangyayari ang inference sa hardware mo. Zero telemetry kami. Tingnan ang source code—AGPL-3.0 licensed ito.",
+          "icon": "🔒"
+        },
+        {
+          "question": "Bakit dapat akong magtiwala sa AI-generated shell commands?",
+          "answer": "Hindi mo dapat pagkatiwalaan nang bulag—yun ang punto. Nagge-generate si Caro ng commands AT vina-validate sila bago mo patakbuhin. Hindi ito 'trust the AI'—ito ay 'trust the pattern-based safety layer na nakaka-catch ng mali ng AI.' Deterministic ang validation, hindi probabilistic.",
+          "icon": "🎯"
+        }
+      ]
+    },
+    "download": {},
+    "footer": {}
+  }
+}

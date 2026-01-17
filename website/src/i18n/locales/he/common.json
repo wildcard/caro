@@ -1,5 +1,9 @@
 {
   "common": {
+    "meta": {
+      "title": "קארו - חברת השל הנאמנה שלך",
+      "description": "קארו היא סוכנת נלווית שעוזרת לך עם פקודות POSIX shell. זמינה כ-MCP לקלוד וכ-Skill ייעודי."
+    },
     "buttons": {
       "copy": "העתק",
       "copied": "הועתק!",
@@ -15,6 +19,51 @@
     "aria": {
       "toggleDarkMode": "החלף למצב כהה",
       "toggleHolidayTheme": "החלף תפריט ערכות נושא לחגים"
+    },
+    "nav": {
+      "features": "תכונות",
+      "compare": "השוואה",
+      "resources": "משאבים",
+      "support": "תמיכה",
+      "getStarted": "בואו נתחיל",
+      "dropdown": {
+        "overview": "סקירה",
+        "seeAllComparisons": "כל ההשוואות",
+        "vsWarp": "לעומת Warp",
+        "aiNativeTerminal": "טרמינל AI-native",
+        "vsGitHubCopilot": "לעומת GitHub Copilot CLI",
+        "aiPairProgrammer": "Pair programmer עם AI",
+        "vsKiro": "לעומת Kiro CLI",
+        "awsAssistant": "עוזר AI של AWS",
+        "blog": "בלוג",
+        "newsAndTutorials": "חדשות ומדריכים",
+        "explore": "גלה",
+        "interactiveDemo": "דמו אינטראקטיבי",
+        "faq": "שאלות נפוצות",
+        "commonQuestions": "שאלות נפוצות",
+        "roadmap": "מפת דרכים",
+        "whatsNext": "מה הלאה",
+        "glossary": "מילון מונחים",
+        "terminalTerms": "מונחי טרמינל ו-Unix",
+        "github": "GitHub",
+        "sourceCode": "קוד מקור"
+      },
+      "mobile": {
+        "allComparisons": "כל ההשוואות",
+        "supportCaro": "תמכו בקארו"
+      },
+      "appearance": {
+        "title": "מראה",
+        "darkMode": "מצב כהה",
+        "holidayTheme": "ערכת נושא חגים",
+        "snowEffect": "אפקט שלג",
+        "disableEffects": "בטל את כל האפקטים"
+      },
+      "useCases": {
+        "allUseCases": "כל מקרי השימוש",
+        "byRole": "לפי תפקיד",
+        "backToHome": "חזרה לדף הבית"
+      }
     }
   }
 }

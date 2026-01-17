@@ -1,0 +1,48 @@
+{
+  "navigation": {
+    "brand": "🐕 Caro",
+    "links": {
+      "features": "Функції",
+      "compare": "Порівняння",
+      "play": "Грати",
+      "blog": "Блог",
+      "getStarted": "Почати",
+      "github": "GitHub"
+    },
+    "darkMode": {
+      "toggle": "Переключити темний режим"
+    },
+    "holidayTheme": {
+      "toggle": "Меню святкових тем",
+      "title": "Святкова тема",
+      "menuHeader": "Святкова тема",
+      "options": {
+        "christmas": "Різдво",
+        "hanukkah": "Ханука",
+        "noTheme": "Без теми"
+      },
+      "snowEffect": "Ефект снігу"
+    }
+  },
+  "footer": {
+    "builtWith": "Створено на Rust 🦀 | Відкритий код на",
+    "github": "GitHub",
+    "domain": {
+      "name": "caro.sh",
+      "tagline": "Твій вірний помічник shell"
+    },
+    "links": {
+      "license": "AGPL-3.0",
+      "credits": "Подяки",
+      "contributing": "Внесок",
+      "issues": "Issues"
+    },
+    "kyaro": {
+      "title": "Познайомся з реальною Kyaro (Kyarorain Kadosh)! 🐕🖤",
+      "followText": "Слідкуй за її пригодами на",
+      "instagram": "Instagram @kyaroblackheart"
+    },
+    "inspiration": "Натхненний Caroline з Portal—вірність, перетворена на цифрове товариство",
+    "elevatorCredit": "Ефект прокрутки від"
+  }
+}

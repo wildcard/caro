@@ -1,0 +1,260 @@
+{
+  "landing": {
+    "navigation": {
+      "brand": "Caro",
+      "cta": "無料で始める",
+      "darkMode": {
+        "toggle": "ダークモードを切り替え"
+      }
+    },
+    "hero": {
+      "badge": "コンパニオンエージェント",
+      "tagline": "あなたの忠実なシェルコンパニオン",
+      "subtitle": "Claudeユーザー向けの専門POSIXシェルコマンドエージェント。安全第一の設計でAI生成コマンドを検証し、危険なパターンを検出し、POSIX準拠を保証します。",
+      "installLabel": "Claude Skillとして利用可能：",
+      "cta": {
+        "getStarted": "はじめる",
+        "watchDemo": "デモを見る"
+      }
+    },
+    "features": {
+      "title": "なぜCaro？",
+      "subtitle": "安全性、共感、専門性のためのコンパニオンエージェント",
+      "alphaNotice": "コミュニティと共に積極的に開発中です。Caroの未来を一緒に形作りましょう！",
+      "alphaLabel": "ソフトローンチアルファ",
+      "ctaText": "Caroがブロックするものとその理由を見る",
+      "ctaLink": "安全パターンを見る",
+      "items": [
+        {
+          "icon": "🛡️",
+          "title": "二度と本番環境を壊さない",
+          "description": "rm -rf /、フォークボム、その他50以上のキャリアを終わらせるコマンドを実行前にブロック。深夜2時のあなたも感謝するでしょう。",
+          "highlight": true
+        },
+        {
+          "icon": "🔒",
+          "title": "あなたのデータはあなたのもの",
+          "description": "テレメトリゼロ。クラウドAPI呼び出しゼロ。エアギャップネットワークで動作。コンプライアンス監査に合格。コマンドはマシンから出ません。",
+          "highlight": true,
+          "privacyLink": true
+        },
+        {
+          "icon": "✅",
+          "title": "実際に動くコマンド",
+          "description": "Mac、Linuxサーバー、同僚のBSDボックスで動作するコマンドを生成。一発で。毎回。",
+          "highlight": false
+        },
+        {
+          "icon": "⚡",
+          "title": "フローを妨げない速度",
+          "description": "Apple Siliconで2秒未満の推論。クラウドAPIを待たない。サーバーがダウンしたか心配しない。ただ答えだけ。",
+          "highlight": false
+        }
+      ],
+      "cards": {
+        "safetyGuardian": {
+          "title": "安全の守護者",
+          "description": "rm -rf /、フォークボム、破壊的な操作などの危険なコマンドをブロックする包括的な検証。リスクレベル評価付きの52の定義済み安全パターン。"
+        },
+        "crossPlatform": {
+          "title": "クロスプラットフォームエキスパート",
+          "description": "macOS、Linux、Windows、GNU、BSDで動作。各プラットフォームの微妙な違いを理解し、あなたの選んだディストリビューションを尊重します。"
+        },
+        "platformAware": {
+          "title": "プラットフォーム認識",
+          "description": "プラットフォームの機能とベストプラクティスに基づいた推奨を提供。BSDとGNUのコマンド構文を自動的に区別します。"
+        },
+        "posixSpecialist": {
+          "title": "POSIXスペシャリスト",
+          "description": "すべてのシステムで信頼性の高いPOSIX互換シェルコマンドの専門家。ポータブル、安全、ターミナルに最適化。"
+        },
+        "lightningFast": {
+          "title": "超高速",
+          "description": "目標：Apple Siliconで100ms未満の起動、2秒未満の推論。Mシリーズチップ向けGPUアクセラレーション用MLXフレームワーク統合。"
+        },
+        "claudeCompanion": {
+          "title": "Claudeのコンパニオン",
+          "description": "安全なシェルコマンド生成のための公式Claude Code Skill。必要な時に自動的にアクティブ化し、安全ガイダンスを提供し、ワークフローにシームレスに統合。/plugin install wildcard/caroでインストール"
+        }
+      }
+    },
+    "comparison": {
+      "title": "Caroの比較",
+      "subtitle": "プライバシーを生産性のために犠牲にしないDevOpsエンジニアとSRE向けに構築",
+      "summary": {
+        "privacy": { "stat": "プライバシー", "label": "ファースト設計*" },
+        "safety": { "stat": "52+", "label": "安全パターン" },
+        "offline": { "stat": "100%", "label": "オフライン対応" },
+        "speed": { "stat": "Rust", "label": "速度のために構築" }
+      },
+      "competitors": {
+        "caro": "Caro",
+        "copilotCli": "GitHub Copilot CLI",
+        "warp": "Warp AI",
+        "kiro": "Kiro CLI",
+        "opencode": "OpenCode"
+      },
+      "table": {
+        "feature": "機能",
+        "youreHere": "現在地"
+      },
+      "categories": {
+        "privacyData": {
+          "title": "プライバシーとデータ",
+          "features": {
+            "worksOffline": {
+              "name": "100%オフラインで動作",
+              "tooltip": "コア機能にインターネット不要"
+            },
+            "privacyFirst": {
+              "name": "プライバシーファースト設計",
+              "tooltip": "最小限の匿名テレメトリ、簡単なオプトアウト"
+            },
+            "airGapped": {
+              "name": "エアギャップ対応",
+              "tooltip": "隔離環境で実行可能"
+            },
+            "openSource": {
+              "name": "オープンソース",
+              "tooltip": "完全なソースコードが利用可能"
+            }
+          }
+        },
+        "safetyControl": {
+          "title": "安全性とコントロール",
+          "features": {
+            "ruleBasedSafety": {
+              "name": "ルールベースの安全チェック",
+              "tooltip": "定義されたパターンによる実行前検証"
+            },
+            "explicitConfirmation": {
+              "name": "明示的な確認が必要",
+              "tooltip": "承認なしにコマンドは実行されません"
+            },
+            "blocksDangerous": {
+              "name": "危険なコマンドをブロック",
+              "tooltip": "rm -rf /、フォークボムなどを防止"
+            },
+            "riskLevel": {
+              "name": "リスクレベル評価",
+              "tooltip": "潜在的な影響でコマンドを評価"
+            }
+          }
+        },
+        "shellExpertise": {
+          "title": "シェル専門知識",
+          "features": {
+            "posixFirst": {
+              "name": "POSIXファーストアプローチ",
+              "tooltip": "どこでも動くポータブルなコマンド"
+            },
+            "crossPlatform": {
+              "name": "クロスプラットフォーム（macOS/Linux/BSD）",
+              "tooltip": "Unix系システムで動作"
+            },
+            "existingTerminal": {
+              "name": "既存のターミナルを使用",
+              "tooltip": "新しいターミナルエミュレータ不要"
+            },
+            "platformAware": {
+              "name": "プラットフォーム認識コマンド",
+              "tooltip": "GNU vs BSD構文に適応"
+            }
+          }
+        },
+        "modelBackend": {
+          "title": "モデルとバックエンド",
+          "features": {
+            "localInference": {
+              "name": "ローカル推論",
+              "tooltip": "モデルはあなたのマシンで実行"
+            },
+            "multiBackend": {
+              "name": "マルチバックエンドサポート",
+              "tooltip": "推論エンジンを選択"
+            },
+            "appleSilicon": {
+              "name": "Apple Silicon最適化",
+              "tooltip": "Mシリーズ Mac用MLXフレームワーク"
+            },
+            "selfHostable": {
+              "name": "セルフホスト可能",
+              "tooltip": "インフラストラクチャの完全制御"
+            }
+          }
+        }
+      },
+      "cta": {
+        "text": "プライバシーを尊重するシェルコンパニオンの準備はできましたか？",
+        "getStarted": "無料で始める",
+        "fullComparison": "完全な比較を見る"
+      },
+      "legend": {
+        "fullSupport": "完全サポート",
+        "partial": "部分的/設定可能",
+        "notSupported": "非対応",
+        "planned": "予定"
+      },
+      "values": {
+        "yes": "はい",
+        "no": "いいえ",
+        "partial": "部分的",
+        "planned": "予定"
+      }
+    },
+    "scenarios": {},
+    "demo": {},
+    "useCases": {},
+    "differentiators": {},
+    "communityVoices": {},
+    "trust": {},
+    "story": {
+      "title": "Caroに会いましょう",
+      "subtitle": "忠誠と変容の物語を持つコンパニオン",
+      "paragraphs": {
+        "intro": "Caroはメンテナーの愛犬Kyaro（Kyarorain Kadosh）のデジタル化です。忠実なコンパニオンがすべての課題であなたのそばにいるように、Caroは安全と専門知識でシェルコマンドの複雑さをナビゲートする手助けをします。",
+        "highlight": "Portal 2で、GLaDOSがかつてAperture Scienceの創設者の秘書キャロラインだったことを知りました—施設の永遠の守護者に変身しました。キャロラインがテストチャンバーの心臓になったように、Caroはターミナルのための永遠のコンパニオンです。",
+        "platforms": "彼女はPOSIXシェルコマンドを専門とし、すべてのプラットフォームの微妙な違いを理解します—macOS、Linux、Windows、GNU、BSD。Caroはどこにデプロイしても設定を持ち込み、選んだディストリビューションを尊重しながら危険なコマンドから守ります。",
+        "companion": "Claudeの忠実なコンパニオンとして、Caroはシェル固有の重労働を担当し、Claudeが広い作業に集中できるようにしながら、すべてのコマンドが安全で正確、プラットフォームに最適化されていることを保証します。"
+      }
+    },
+    "faq": {
+      "title": "よくある質問",
+      "subtitle": "懐疑的なエンジニアからの実際の質問（気持ちはわかります）",
+      "concerns": [
+        {
+          "question": "待って、Caroはローカルで動くんですよね。新しい危険なパターンにどうやって対応するの？",
+          "answer": "Caroの安全パターンはバイナリに組み込まれています—ネットワーク不要。Caroをアップデート（cargo install caro --force）すると最新パターンを取得できます。コアの危険なコマンド（rm -rf /、フォークボム、ディスクワイパー）は変わりません。GitHubでパターンの貢献も受け付けています。",
+          "icon": "🔄"
+        },
+        {
+          "question": "これでインシデント対応が遅くなりませんか？",
+          "answer": "いいえ。Caroはコマンド生成に100ms未満を追加するだけです。安全チェックは即座です（パターンマッチング、AI推論ではありません）。実際のインシデントでは、その100msが状況を10倍悪化させることを防ぐかもしれません。検証は同期的—警告はすぐに表示されます。",
+          "icon": "⚡"
+        },
+        {
+          "question": "私のシステム設定（BSD vs GNUなど）をどうやって知るの？",
+          "answer": "Caroは実行時にOSとシェルを検出します。macOSではBSDツールを使っていることを認識。Linuxでは GNU構文に適応。$SHELLを読み取り、それに応じて調整します。設定不要—ただ動きます。",
+          "icon": "🖥️"
+        },
+        {
+          "question": "本当に危険なコマンドを実行する必要がある場合は？",
+          "answer": "Caroは警告するだけで、閉じ込めません。警告が表示されても続行できます—意図的に行っていることを確認するだけです。本当に破壊的なコマンド（rm -rf /）には確認が必要です。これはシートベルトであり、拘束衣ではありません。",
+          "icon": "🔓"
+        },
+        {
+          "question": "これはコマンドをクラウドに送信する別のAIラッパー？",
+          "answer": "いいえ。Caroは100%ローカルで動作します。コマンド、ファイルパス、サーバー名、ディレクトリ構造はマシンから出ません。推論はあなたのハードウェアで行われます。テレメトリゼロ。ソースコードを確認してください—AGPL-3.0ライセンスです。",
+          "icon": "🔒"
+        },
+        {
+          "question": "なぜAI生成のシェルコマンドを信頼すべきなの？",
+          "answer": "盲目的に信頼すべきではありません—それがポイントです。Caroはコマンドを生成し、実行前に検証します。「AIを信頼する」のではなく、「AIが間違える可能性を捕捉するパターンベースの安全レイヤーを信頼する」のです。検証は確定的であり、確率的ではありません。",
+          "icon": "🎯"
+        }
+      ]
+    },
+    "download": {},
+    "footer": {}
+  }
+}

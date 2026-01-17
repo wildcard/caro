@@ -1,5 +1,9 @@
 {
   "common": {
+    "meta": {
+      "title": "كارو - رفيقك الأمين في سطر الأوامر",
+      "description": "كارو هو وكيل مساعد يساعدك في أوامر POSIX shell. متاح كـ MCP لكلود وكـ Skill مخصص."
+    },
     "buttons": {
       "copy": "نسخ",
       "copied": "تم النسخ!",
@@ -15,6 +19,51 @@
     "aria": {
       "toggleDarkMode": "تبديل الوضع الليلي",
       "toggleHolidayTheme": "تبديل قائمة المظهر الاحتفالي"
+    },
+    "nav": {
+      "features": "الميزات",
+      "compare": "المقارنة",
+      "resources": "الموارد",
+      "support": "الدعم",
+      "getStarted": "ابدأ الآن",
+      "dropdown": {
+        "overview": "نظرة عامة",
+        "seeAllComparisons": "عرض جميع المقارنات",
+        "vsWarp": "مقارنة مع Warp",
+        "aiNativeTerminal": "طرفية AI أصلية",
+        "vsGitHubCopilot": "مقارنة مع GitHub Copilot CLI",
+        "aiPairProgrammer": "مبرمج مساعد بالذكاء الاصطناعي",
+        "vsKiro": "مقارنة مع Kiro CLI",
+        "awsAssistant": "مساعد AWS بالذكاء الاصطناعي",
+        "blog": "المدونة",
+        "newsAndTutorials": "أخبار ودروس",
+        "explore": "استكشف",
+        "interactiveDemo": "عرض تفاعلي",
+        "faq": "الأسئلة الشائعة",
+        "commonQuestions": "أسئلة شائعة",
+        "roadmap": "خارطة الطريق",
+        "whatsNext": "ما القادم",
+        "glossary": "المصطلحات",
+        "terminalTerms": "مصطلحات الطرفية و Unix",
+        "github": "GitHub",
+        "sourceCode": "الكود المصدري"
+      },
+      "mobile": {
+        "allComparisons": "جميع المقارنات",
+        "supportCaro": "ادعم كارو"
+      },
+      "appearance": {
+        "title": "المظهر",
+        "darkMode": "الوضع الليلي",
+        "holidayTheme": "مظهر المناسبات",
+        "snowEffect": "تأثير الثلج",
+        "disableEffects": "تعطيل جميع التأثيرات"
+      },
+      "useCases": {
+        "allUseCases": "جميع حالات الاستخدام",
+        "byRole": "حسب الدور",
+        "backToHome": "العودة للرئيسية"
+      }
     }
   }
 }

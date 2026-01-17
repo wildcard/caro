@@ -1,0 +1,13 @@
+{
+  "hero": {
+    "badge": "🐕 סוכנת נלווית",
+    "logo": "קארו",
+    "logoAlt": "קארו - פיקסל ארט 8-ביט",
+    "tagline": "חברת השל הנאמנה שלך",
+    "subtitle": "סוכנת מומחית בפקודות POSIX shell עם אמפתיה ויוזמה. זמינה כ-MCP לקלוד וכ-Skill ייעודי. היא שומרת עליך בזמן שעוזרת לקלוד לעשות את העבודה.",
+    "cta": {
+      "getStarted": "בואו נתחיל",
+      "watchDemo": "צפו בדמו"
+    }
+  }
+}

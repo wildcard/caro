@@ -1,0 +1,42 @@
+{
+  "download": {
+    "title": "Comece com a Caro",
+    "subtitle": "Traga sua companheira leal de shell para seu terminal",
+    "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
+    "copyButton": "Copiar",
+    "copiedButton": "Copiado!",
+    "binariesIntro": "Ou baixe binários pré-compilados:",
+    "comingSoonBadge": "Em Breve",
+    "platforms": {
+      "macAppleSilicon": "macOS (Apple Silicon)",
+      "macIntel": "macOS (Intel)",
+      "linuxX64": "Linux (x86_64)",
+      "windows": "Windows"
+    },
+    "usageModes": {
+      "title": "Múltiplas Formas de Usar a Caro",
+      "modes": [
+        {
+          "title": "🔧 CLI Independente",
+          "exampleCommand": "caro \"listar arquivos > 100MB\""
+        },
+        {
+          "title": "🔌 MCP para Claude",
+          "description": "Adicione a Caro como servidor MCP no Claude Desktop e deixe ela cuidar de todos os comandos shell sem problemas.",
+          "comingSoon": true
+        },
+        {
+          "title": "✨ Skill Dedicada",
+          "description": "Use a Caro como Skill para delegar a geração e execução de comandos shell enquanto o Claude foca no seu trabalho.",
+          "comingSoon": true
+        }
+      ]
+    },
+    "quickStart": {
+      "title": "Início Rápido",
+      "intro": "Depois de executar o script de configuração acima, é só usar a Caro:",
+      "exampleCommand": "caro \"encontrar todos os arquivos python modificados nos últimos 7 dias\"",
+      "description": "A Caro vai gerar o comando e te manter seguro. O script de configuração cuida de todos os pré-requisitos incluindo a compilação do Rust."
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "hero": {
+    "badge": "🐕 コンパニオンエージェント",
+    "logo": "Caro",
+    "logoAlt": "Caro - 8ビットピクセルアート",
+    "tagline": "あなたの忠実なシェルコンパニオン",
+    "subtitle": "共感と自律性を持つPOSIXシェルコマンド専門エージェント。Claude用MCPおよび専用Skillとして利用可能。Claudeの作業をサポートしながら、あなたを安全に守ります。",
+    "cta": {
+      "getStarted": "はじめる",
+      "watchDemo": "デモを見る"
+    }
+  }
+}

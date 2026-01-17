@@ -1,0 +1,45 @@
+{
+  "features": {
+    "title": "Warum Caro?",
+    "subtitle": "Ein Begleiter-Agent für Sicherheit, Empathie und Expertise",
+    "alphaNotice": "🚧 Soft Launch Alpha — Wir entwickeln aktiv mit unserer Community. Hilf mit, Caros Zukunft zu gestalten!",
+    "items": [
+      {
+        "icon": "🛡️",
+        "title": "Sicherheitswächter",
+        "description": "Umfassende Validierung blockiert gefährliche Befehle wie rm -rf /, Fork-Bombs und destruktive Operationen. 52 vordefinierte Sicherheitsmuster mit Risikobewertung.",
+        "statusLabel": "Jetzt Verfügbar"
+      },
+      {
+        "icon": "🌍",
+        "title": "Plattformübergreifender Experte",
+        "description": "Funktioniert auf macOS, Linux, Windows, GNU und BSD. Versteht plattformspezifische Feinheiten und respektiert deine bevorzugte Distribution.",
+        "statusLabel": "Jetzt Verfügbar"
+      },
+      {
+        "icon": "🧠",
+        "title": "Plattformbewusst",
+        "description": "Gibt Empfehlungen basierend auf deinen Plattformfähigkeiten und Best Practices. Unterscheidet automatisch zwischen BSD- und GNU-Befehlssyntax.",
+        "statusLabel": "Jetzt Verfügbar"
+      },
+      {
+        "icon": "✅",
+        "title": "POSIX-Spezialist",
+        "description": "Experte für POSIX-kompatible Shell-Befehle, die zuverlässig auf allen Systemen funktionieren. Portabel, sicher und für dein Terminal optimiert.",
+        "statusLabel": "Jetzt Verfügbar"
+      },
+      {
+        "icon": "⚡",
+        "title": "Blitzschnell",
+        "description": "Ziel: Unter 100ms Startzeit, unter 2s Inferenz auf Apple Silicon. MLX-Framework-Integration für GPU-Beschleunigung auf M-Series-Chips.",
+        "statusLabel": "In Entwicklung"
+      },
+      {
+        "icon": "🤝",
+        "title": "Claudes Begleiter",
+        "description": "Vision: Nahtlose Integration mit Claude als MCP-Server und Skill, delegiert Shell-Befehlsinferenz, während Claude sich auf deine umfangreichere Arbeit konzentriert.",
+        "statusLabel": "Geplant"
+      }
+    ]
+  }
+}
