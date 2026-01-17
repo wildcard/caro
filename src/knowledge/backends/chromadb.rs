@@ -360,8 +360,8 @@ impl VectorBackend for ChromaDbBackend {
         // For now, return total count
         // TODO: Add type-specific counts by querying with metadata filters
         Ok(BackendStats {
-            total_entries: count as usize,
-            success_count: count as usize,
+            total_entries: count,
+            success_count: count,
             correction_count: 0,
         })
     }
