@@ -10,6 +10,9 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tracing::{debug, info, warn};
 
+#[cfg(feature = "knowledge")]
+use crate::knowledge::{default_knowledge_path, KnowledgeIndex};
+
 /// Agent loop for iterative command refinement
 pub struct AgentLoop {
     backend: Arc<dyn CommandGenerator>,
@@ -20,6 +23,9 @@ pub struct AgentLoop {
     _max_iterations: usize,
     timeout: Duration,
     confidence_threshold: f64,
+    /// Knowledge index for learning from past commands (optional)
+    #[cfg(feature = "knowledge")]
+    knowledge_index: Option<Arc<KnowledgeIndex>>,
 }
 
 /// Command information for context enrichment
@@ -62,6 +68,8 @@ impl AgentLoop {
             _max_iterations: 2,
             timeout: Duration::from_secs(15), // Allow enough time for 2 iterations
             confidence_threshold: 0.8,        // Default: refine if confidence < 80%
+            #[cfg(feature = "knowledge")]
+            knowledge_index: None,
         }
     }
 
@@ -74,6 +82,39 @@ impl AgentLoop {
     pub fn with_static_matcher(mut self, enabled: bool) -> Self {
         if !enabled {
             self.static_matcher = None;
+        }
+        self
+    }
+
+    /// Enable the knowledge index for learning from past commands
+    ///
+    /// This initializes a local vector database that stores successful
+    /// commands and corrections, improving future suggestions.
+    #[cfg(feature = "knowledge")]
+    pub async fn with_knowledge(mut self) -> Self {
+        match KnowledgeIndex::open(&default_knowledge_path()).await {
+            Ok(index) => {
+                info!("Knowledge index initialized");
+                self.knowledge_index = Some(Arc::new(index));
+            }
+            Err(e) => {
+                warn!("Failed to initialize knowledge index: {}", e);
+            }
+        }
+        self
+    }
+
+    /// Enable the knowledge index with a custom path
+    #[cfg(feature = "knowledge")]
+    pub async fn with_knowledge_path(mut self, path: &std::path::Path) -> Self {
+        match KnowledgeIndex::open(path).await {
+            Ok(index) => {
+                info!("Knowledge index initialized at {:?}", path);
+                self.knowledge_index = Some(Arc::new(index));
+            }
+            Err(e) => {
+                warn!("Failed to initialize knowledge index at {:?}: {}", path, e);
+            }
         }
         self
     }
@@ -105,7 +146,56 @@ impl AgentLoop {
             });
         }
 
+        // Record successful command to knowledge index
+        #[cfg(feature = "knowledge")]
+        if let Ok(ref cmd) = result {
+            self.record_success(prompt, &cmd.command).await;
+        }
+
         result
+    }
+
+    /// Record a successful command to the knowledge index
+    #[cfg(feature = "knowledge")]
+    async fn record_success(&self, prompt: &str, command: &str) {
+        let Some(ref index) = self.knowledge_index else {
+            return;
+        };
+
+        // Get context (current directory as project context)
+        let context = self.context.cwd.to_string_lossy().to_string();
+
+        if let Err(e) = index.record_success(prompt, command, Some(&context)).await {
+            debug!("Failed to record command to knowledge index: {}", e);
+        } else {
+            debug!("Recorded successful command to knowledge index");
+        }
+    }
+
+    /// Record a correction (original command improved) to the knowledge index
+    #[cfg(feature = "knowledge")]
+    async fn record_correction(
+        &self,
+        prompt: &str,
+        original: &str,
+        corrected: &str,
+        feedback: Option<&str>,
+    ) {
+        let Some(ref index) = self.knowledge_index else {
+            return;
+        };
+
+        if let Err(e) = index
+            .record_correction(prompt, original, corrected, feedback)
+            .await
+        {
+            debug!("Failed to record correction to knowledge index: {}", e);
+        } else {
+            debug!(
+                "Recorded correction to knowledge index: {} -> {}",
+                original, corrected
+            );
+        }
     }
 
     /// Internal implementation of command generation
@@ -194,6 +284,17 @@ impl AgentLoop {
             }
 
             info!("Command repaired successfully");
+
+            // Record correction to knowledge index
+            #[cfg(feature = "knowledge")]
+            self.record_correction(
+                prompt,
+                &initial.command,
+                &repaired.command,
+                Some(&validation.error_message()),
+            )
+            .await;
+
             return Ok(repaired);
         }
 
@@ -243,6 +344,18 @@ impl AgentLoop {
 
         info!("Command generation complete in {:?}", start.elapsed());
 
+        // Record correction if the command was changed during refinement
+        #[cfg(feature = "knowledge")]
+        if refined.command != initial.command {
+            let feedback = if low_confidence {
+                "Refined due to low confidence"
+            } else {
+                "Refined due to platform compatibility"
+            };
+            self.record_correction(prompt, &initial.command, &refined.command, Some(feedback))
+                .await;
+        }
+
         // Emit telemetry event for successful LLM generation
         crate::telemetry::emit_event(crate::telemetry::events::EventType::CommandGeneration {
             backend: "embedded".to_string(),
@@ -268,18 +381,60 @@ impl AgentLoop {
             String::new()
         };
 
+        // Query knowledge index for similar past commands
+        #[cfg(feature = "knowledge")]
+        let knowledge_context_str = self.get_knowledge_context(prompt).await;
+        #[cfg(not(feature = "knowledge"))]
+        let knowledge_context_str = String::new();
+
         let request = CommandRequest {
             input: prompt.to_string(),
             shell: ShellType::Bash,
             safety_level: SafetyLevel::Moderate,
             context: Some(format!(
-                "{}{}\n\nSYSTEM_PROMPT:\n{}",
-                context_str, dir_context_str, system_prompt
+                "{}{}{}\n\nSYSTEM_PROMPT:\n{}",
+                context_str, dir_context_str, knowledge_context_str, system_prompt
             )),
             backend_preference: None,
         };
 
         self.backend.generate_command(&request).await
+    }
+
+    /// Query knowledge index for similar past commands
+    #[cfg(feature = "knowledge")]
+    async fn get_knowledge_context(&self, prompt: &str) -> String {
+        let Some(ref index) = self.knowledge_index else {
+            return String::new();
+        };
+
+        match index.find_similar(prompt, 3).await {
+            Ok(entries) if !entries.is_empty() => {
+                debug!(
+                    "Found {} similar commands in knowledge index",
+                    entries.len()
+                );
+                let mut context = String::from("\n\nPAST SIMILAR COMMANDS:");
+                for entry in entries {
+                    context.push_str(&format!(
+                        "\n- Request: \"{}\"\n  Command: {}\n  Similarity: {:.2}",
+                        entry.request, entry.command, entry.similarity
+                    ));
+                    if let Some(feedback) = entry.feedback {
+                        context.push_str(&format!("\n  Note: {}", feedback));
+                    }
+                }
+                context
+            }
+            Ok(_) => {
+                debug!("No similar commands found in knowledge index");
+                String::new()
+            }
+            Err(e) => {
+                warn!("Failed to query knowledge index: {}", e);
+                String::new()
+            }
+        }
     }
 
     /// Refine command with command-specific context

@@ -1,5 +1,9 @@
 {
   "common": {
+    "meta": {
+      "title": "Caro - Tu compañero leal de shell",
+      "description": "Caro es un agente compañero que te ayuda con comandos POSIX shell. Disponible como MCP para Claude y como Skill dedicado."
+    },
     "buttons": {
       "copy": "Copiar",
       "copied": "¡Copiado!",
@@ -15,6 +19,51 @@
     "aria": {
       "toggleDarkMode": "Alternar modo oscuro",
       "toggleHolidayTheme": "Alternar menú de tema festivo"
+    },
+    "nav": {
+      "features": "Características",
+      "compare": "Comparar",
+      "resources": "Recursos",
+      "support": "Soporte",
+      "getStarted": "Empezar",
+      "dropdown": {
+        "overview": "Resumen",
+        "seeAllComparisons": "Ver todas las comparaciones",
+        "vsWarp": "vs Warp",
+        "aiNativeTerminal": "Terminal nativa con IA",
+        "vsGitHubCopilot": "vs GitHub Copilot CLI",
+        "aiPairProgrammer": "Programador par con IA",
+        "vsKiro": "vs Kiro CLI",
+        "awsAssistant": "Asistente IA de AWS",
+        "blog": "Blog",
+        "newsAndTutorials": "Noticias y tutoriales",
+        "explore": "Explorar",
+        "interactiveDemo": "Demo interactiva",
+        "faq": "Preguntas Frecuentes",
+        "commonQuestions": "Preguntas comunes",
+        "roadmap": "Hoja de Ruta",
+        "whatsNext": "Lo que viene",
+        "glossary": "Glosario",
+        "terminalTerms": "Términos de terminal y Unix",
+        "github": "GitHub",
+        "sourceCode": "Código fuente"
+      },
+      "mobile": {
+        "allComparisons": "Todas las Comparaciones",
+        "supportCaro": "Apoya a Caro"
+      },
+      "appearance": {
+        "title": "Apariencia",
+        "darkMode": "Modo Oscuro",
+        "holidayTheme": "Tema Festivo",
+        "snowEffect": "Efecto de Nieve",
+        "disableEffects": "Desactivar Todos los Efectos"
+      },
+      "useCases": {
+        "allUseCases": "Todos los Casos de Uso",
+        "byRole": "Por Rol",
+        "backToHome": "Volver al Inicio"
+      }
     }
   }
 }
