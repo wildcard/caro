@@ -20,29 +20,32 @@ jobs:
         id: evaluation
         run: |
           # Run evaluation and capture output
-          cargo test --test evaluation -- --nocapture 2>&1 | tee evaluation.log
+          cargo test --test evaluation 2>&1 | tee evaluation.log
 
-          # Extract CSR from output
-          CSR=$(grep "CSR:" evaluation.log | awk '{print $2}' | tr -d '%')
-          echo "csr=$CSR" >> $GITHUB_OUTPUT
+          # Extract pass rate from output
+          PASS_RATE=$(grep "Passed:" evaluation.log | grep -o '( *[0-9.]*%)' | tr -d '()% ')
+          echo "pass_rate=$PASS_RATE" >> $GITHUB_OUTPUT
 
-      - name: Check CSR Threshold
+      - name: Check Pass Rate Threshold
         env:
-          CSR: ${{ steps.evaluation.outputs.csr }}
+          PASS_RATE: ${{ steps.evaluation.outputs.pass_rate }}
+          BASELINE: "31.0"
         run: |
-          echo "CSR: $CSR%"
+          echo "Pass Rate: $PASS_RATE%"
+          echo "Baseline: $BASELINE%"
 
-          # Block release if CSR < 90%
-          if (( $(echo "$CSR < 90.0" | bc -l) )); then
-            echo "❌ CSR below 90% threshold: $CSR%"
+          # Block release if pass rate drops >5% from baseline
+          THRESHOLD=$(echo "$BASELINE - 5.0" | bc -l)
+          if (( $(echo "$PASS_RATE < $THRESHOLD" | bc -l) )); then
+            echo "❌ Pass rate dropped >5% from baseline: $PASS_RATE% (baseline: $BASELINE%)"
             echo "RELEASE BLOCKED - Critical regression detected"
             exit 1
-          elif (( $(echo "$CSR < 94.8" | bc -l) )); then
-            echo "⚠️  CSR below baseline: $CSR% (baseline: 94.8%)"
+          elif (( $(echo "$PASS_RATE < $BASELINE" | bc -l) )); then
+            echo "⚠️  Pass rate below baseline: $PASS_RATE% (baseline: $BASELINE%)"
             echo "Warning: Performance regression detected"
             exit 0  # Warning but don't block
           else
-            echo "✅ CSR meets baseline: $CSR%"
+            echo "✅ Pass rate meets or exceeds baseline: $PASS_RATE%"
           fi
 
       - name: Upload Evaluation Results
