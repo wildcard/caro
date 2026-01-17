@@ -19,7 +19,11 @@ vulnerability = "deny"
 unmaintained = "all"
 yanked = "warn"
 notice = "warn"
-ignore = []
+ignore = [
+    # rsa 0.9.10 - Marvin Attack (no fix available, from LanceDB deps)
+    # Tracked: https://github.com/RustCrypto/RSA/issues/19
+    "RUSTSEC-2023-0071",
+]
 
 [licenses]
 # We allow these licenses for our dependencies
