@@ -57,9 +57,7 @@ impl ManifestManager {
         use std::ops::Deref;
 
         // Open file for reading
-        let file = OpenOptions::new()
-            .read(true)
-            .open(path)?;
+        let file = OpenOptions::new().read(true).open(path)?;
 
         // Acquire shared read lock (blocks if exclusive write lock is held)
         let lock = RwLock::new(file);
