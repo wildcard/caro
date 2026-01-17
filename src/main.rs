@@ -905,59 +905,123 @@ async fn handle_knowledge_command(
     backend_config: caro::models::KnowledgeBackendConfig,
 ) -> Result<(), String> {
     use caro::knowledge::indexers::{help::HelpIndexer, man::ManPageIndexer, tldr::TldrIndexer};
+    use caro::knowledge::{KnowledgeIndex, Indexer};
     use colored::Colorize;
 
     match command {
-        KnowledgeCommands::IndexMan { page, sections, verbose: _ } => {
+        KnowledgeCommands::IndexMan { page, sections, verbose } => {
             println!("{} Initializing man page indexer...", "►".cyan());
 
             // Create indexer
-            let _indexer = if let Some(sections) = sections {
+            let indexer = if let Some(sections) = sections {
                 ManPageIndexer::new(sections)
             } else if page.is_some() {
-                ManPageIndexer::user_commands() // Single page, use section 1
+                ManPageIndexer::user_commands()
             } else {
-                ManPageIndexer::user_commands() // All pages, default to user commands
+                ManPageIndexer::user_commands()
             };
 
-            // TODO: Create backend from config and index
-            // For now, show placeholder message
+            // Create backend
+            let index = KnowledgeIndex::from_config(&backend_config)
+                .await
+                .map_err(|e| format!("Failed to initialize knowledge index: {}", e))?;
+
+            let backend = index.backend();
+
+            // Index
             if let Some(page_name) = page {
-                println!("{} Would index man page: {}", "→".cyan(), page_name.bold());
+                println!("{} Indexing man page: {}", "→".cyan(), page_name.bold());
+                match indexer.index_one(backend, &page_name).await {
+                    Ok(true) => println!("{} Successfully indexed {}", "✓".green(), page_name.bold()),
+                    Ok(false) => println!("{} Man page not found: {}", "✗".red(), page_name),
+                    Err(e) => return Err(format!("Indexing failed: {}", e)),
+                }
             } else {
-                println!("{} Would index all man pages", "→".cyan());
+                println!("{} Indexing all man pages (section 1)...", "→".cyan());
+
+                let progress = if verbose {
+                    Some(Box::new(|current: usize, total: usize| {
+                        print!("\r{} Indexed {}/{} pages", "→".cyan(), current, total);
+                        use std::io::Write;
+                        std::io::stdout().flush().ok();
+                    }) as Box<dyn Fn(usize, usize) + Send + Sync>)
+                } else {
+                    None
+                };
+
+                match indexer.index_all(backend, progress).await {
+                    Ok(stats) => {
+                        if verbose {
+                            println!(); // Newline after progress
+                        }
+                        println!("{} Indexing complete!", "✓".green());
+                        println!("  Successful: {}", stats.successful);
+                        println!("  Failed: {}", stats.failed);
+                        println!("  Skipped: {}", stats.skipped);
+                    }
+                    Err(e) => return Err(format!("Indexing failed: {}", e)),
+                }
             }
 
-            println!("{} Man page indexing is not yet implemented (Phase 4 TODO)", "!".yellow());
             Ok(())
         }
 
-        KnowledgeCommands::IndexTldr { command, platforms, verbose: _ } => {
+        KnowledgeCommands::IndexTldr { command, platforms, verbose } => {
             println!("{} Initializing tldr indexer...", "►".cyan());
 
-            // Create indexer
-            let _indexer = if let Some(platforms) = platforms {
+            let indexer = if let Some(platforms) = platforms {
                 TldrIndexer::new(None, platforms)
             } else {
                 TldrIndexer::current_platform()
             };
 
-            // TODO: Create backend from config and index
+            let index = KnowledgeIndex::from_config(&backend_config)
+                .await
+                .map_err(|e| format!("Failed to initialize knowledge index: {}", e))?;
+
+            let backend = index.backend();
+
             if let Some(cmd) = command {
-                println!("{} Would index tldr page: {}", "→".cyan(), cmd.bold());
+                println!("{} Indexing tldr page: {}", "→".cyan(), cmd.bold());
+                match indexer.index_one(backend, &cmd).await {
+                    Ok(true) => println!("{} Successfully indexed {}", "✓".green(), cmd.bold()),
+                    Ok(false) => println!("{} Tldr page not found: {}", "✗".red(), cmd),
+                    Err(e) => return Err(format!("Indexing failed: {}", e)),
+                }
             } else {
-                println!("{} Would index all tldr pages", "→".cyan());
+                println!("{} Indexing all tldr pages...", "→".cyan());
+
+                let progress = if verbose {
+                    Some(Box::new(|current: usize, total: usize| {
+                        print!("\r{} Indexed {}/{} pages", "→".cyan(), current, total);
+                        use std::io::Write;
+                        std::io::stdout().flush().ok();
+                    }) as Box<dyn Fn(usize, usize) + Send + Sync>)
+                } else {
+                    None
+                };
+
+                match indexer.index_all(backend, progress).await {
+                    Ok(stats) => {
+                        if verbose {
+                            println!();
+                        }
+                        println!("{} Indexing complete!", "✓".green());
+                        println!("  Successful: {}", stats.successful);
+                        println!("  Failed: {}", stats.failed);
+                        println!("  Skipped: {}", stats.skipped);
+                    }
+                    Err(e) => return Err(format!("Indexing failed: {}", e)),
+                }
             }
 
-            println!("{} Tldr indexing is not yet implemented (Phase 4 TODO)", "!".yellow());
             Ok(())
         }
 
-        KnowledgeCommands::IndexHelp { command, commands, verbose: _ } => {
+        KnowledgeCommands::IndexHelp { command, commands, verbose } => {
             println!("{} Initializing help indexer...", "►".cyan());
 
-            // Create indexer
-            let _indexer = if let Some(commands) = commands {
+            let indexer = if let Some(commands) = commands {
                 HelpIndexer::for_commands(commands)
             } else if let Some(cmd) = &command {
                 HelpIndexer::for_commands(vec![cmd.clone()])
@@ -965,14 +1029,46 @@ async fn handle_knowledge_command(
                 HelpIndexer::auto_discover()
             };
 
-            // TODO: Create backend from config and index
+            let index = KnowledgeIndex::from_config(&backend_config)
+                .await
+                .map_err(|e| format!("Failed to initialize knowledge index: {}", e))?;
+
+            let backend = index.backend();
+
             if let Some(cmd) = command {
-                println!("{} Would index --help output for: {}", "→".cyan(), cmd.bold());
+                println!("{} Indexing --help output for: {}", "→".cyan(), cmd.bold());
+                match indexer.index_one(backend, &cmd).await {
+                    Ok(true) => println!("{} Successfully indexed {}", "✓".green(), cmd.bold()),
+                    Ok(false) => println!("{} Help output not available: {}", "✗".red(), cmd),
+                    Err(e) => return Err(format!("Indexing failed: {}", e)),
+                }
             } else {
-                println!("{} Would auto-discover and index commands from PATH", "→".cyan());
+                println!("{} Indexing --help output...", "→".cyan());
+
+                let progress = if verbose {
+                    Some(Box::new(|current: usize, total: usize| {
+                        print!("\r{} Indexed {}/{} commands", "→".cyan(), current, total);
+                        use std::io::Write;
+                        std::io::stdout().flush().ok();
+                    }) as Box<dyn Fn(usize, usize) + Send + Sync>)
+                } else {
+                    None
+                };
+
+                match indexer.index_all(backend, progress).await {
+                    Ok(stats) => {
+                        if verbose {
+                            println!();
+                        }
+                        println!("{} Indexing complete!", "✓".green());
+                        println!("  Successful: {}", stats.successful);
+                        println!("  Failed: {}", stats.failed);
+                        println!("  Skipped: {}", stats.skipped);
+                    }
+                    Err(e) => return Err(format!("Indexing failed: {}", e)),
+                }
             }
 
-            println!("{} Help indexing is not yet implemented (Phase 4 TODO)", "!".yellow());
             Ok(())
         }
 
@@ -980,10 +1076,18 @@ async fn handle_knowledge_command(
             println!("{} Knowledge Index Statistics", "📊".cyan());
             println!();
 
-            // TODO: Create backend from config and get stats
-            println!("{} Statistics are not yet implemented (Phase 4 TODO)", "!".yellow());
-            println!();
-            println!("  Backend: {}", backend_config.backend_type().to_string().bold());
+            let index = KnowledgeIndex::from_config(&backend_config)
+                .await
+                .map_err(|e| format!("Failed to initialize knowledge index: {}", e))?;
+
+            match index.stats().await {
+                Ok(stats) => {
+                    println!("  Total entries: {}", stats.total_entries.to_string().bold());
+                    println!("  Success count: {}", stats.success_count);
+                    println!("  Correction count: {}", stats.correction_count);
+                }
+                Err(e) => return Err(format!("Failed to get stats: {}", e)),
+            }
 
             Ok(())
         }
@@ -1005,8 +1109,14 @@ async fn handle_knowledge_command(
 
             println!("{} Clearing knowledge index...", "►".cyan());
 
-            // TODO: Create backend from config and clear
-            println!("{} Clear is not yet implemented (Phase 4 TODO)", "!".yellow());
+            let index = KnowledgeIndex::from_config(&backend_config)
+                .await
+                .map_err(|e| format!("Failed to initialize knowledge index: {}", e))?;
+
+            match index.clear().await {
+                Ok(()) => println!("{} Knowledge index cleared successfully", "✓".green()),
+                Err(e) => return Err(format!("Failed to clear index: {}", e)),
+            }
 
             Ok(())
         }
