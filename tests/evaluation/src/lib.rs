@@ -37,5 +37,7 @@ pub mod dataset;
 pub mod evaluator;
 pub mod executor;
 pub mod posix_checker;
+pub mod prompt_comparison;
+pub mod prompts;
 pub mod reporter;
 pub mod safety_validator;

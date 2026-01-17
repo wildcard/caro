@@ -1,0 +1,9 @@
+version: "1.0"
+author: "Evaluation Team"
+created: "2026-01-17"
+target_models:
+  - "smollm"
+  - "qwen"
+  - "static_matcher"
+changelog: "Initial prompt version for baseline testing"
+baseline_pass_rate: 0.31
