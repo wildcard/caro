@@ -942,3 +942,93 @@ impl LogEntry {
         self
     }
 }
+
+// ============================================================================
+// Knowledge Backend Configuration (Feature chromadb)
+// ============================================================================
+
+/// Knowledge backend type selection
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum KnowledgeBackendType {
+    /// LanceDB embedded backend (default, local-first)
+    LanceDb,
+    /// ChromaDB server-based backend (requires external server)
+    #[cfg(feature = "chromadb")]
+    ChromaDb,
+}
+
+impl std::str::FromStr for KnowledgeBackendType {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "lancedb" | "lance" => Ok(Self::LanceDb),
+            #[cfg(feature = "chromadb")]
+            "chromadb" | "chroma" => Ok(Self::ChromaDb),
+            _ => Err(format!("Unknown knowledge backend type: {}", s)),
+        }
+    }
+}
+
+impl std::fmt::Display for KnowledgeBackendType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::LanceDb => write!(f, "lancedb"),
+            #[cfg(feature = "chromadb")]
+            Self::ChromaDb => write!(f, "chromadb"),
+        }
+    }
+}
+
+impl Default for KnowledgeBackendType {
+    fn default() -> Self {
+        Self::LanceDb
+    }
+}
+
+/// Configuration for ChromaDB backend
+#[cfg(feature = "chromadb")]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChromaDbConfig {
+    /// ChromaDB server URL
+    pub url: String,
+    /// Optional API key for Chroma Cloud
+    pub api_key: Option<String>,
+    /// Optional tenant for multi-tenancy
+    pub tenant: Option<String>,
+    /// Optional database name
+    pub database: Option<String>,
+}
+
+#[cfg(feature = "chromadb")]
+impl Default for ChromaDbConfig {
+    fn default() -> Self {
+        Self {
+            url: "http://localhost:8000".to_string(),
+            api_key: None,
+            tenant: None,
+            database: None,
+        }
+    }
+}
+
+/// Knowledge backend configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KnowledgeConfig {
+    /// Backend type to use
+    pub backend: KnowledgeBackendType,
+    /// ChromaDB-specific configuration (when using chromadb backend)
+    #[cfg(feature = "chromadb")]
+    pub chromadb: Option<ChromaDbConfig>,
+}
+
+impl Default for KnowledgeConfig {
+    fn default() -> Self {
+        Self {
+            backend: KnowledgeBackendType::default(),
+            #[cfg(feature = "chromadb")]
+            chromadb: None,
+        }
+    }
+}

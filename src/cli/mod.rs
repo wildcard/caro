@@ -138,6 +138,8 @@ pub trait IntoCliArgs {
     fn dry_run(&self) -> bool;
     fn interactive(&self) -> bool;
     fn force_llm(&self) -> bool;
+    #[cfg(feature = "knowledge")]
+    fn knowledge_backend(&self) -> Option<String>;
 }
 
 impl CliApp {

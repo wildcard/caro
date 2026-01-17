@@ -94,6 +94,7 @@ lancedb = { version = "0.23", optional = true }
 fastembed = { version = "4", optional = true }
 arrow-array = { version = "56.2", optional = true }
 arrow-schema = { version = "56.2", optional = true }
+chroma = { version = "0.12", optional = true }
 
 # Optional MLX support for Apple Silicon (behind feature flag)
 cxx = { version = "1.0", optional = true }
@@ -151,6 +152,7 @@ remote-backends = ["tokio/net"]
 embedded-mlx = ["cxx", "llama_cpp"]
 embedded-cpu = ["candle-core", "candle-transformers"]
 knowledge = ["lancedb", "fastembed", "arrow-array", "arrow-schema"]
+chromadb = ["chroma", "knowledge"]  # ChromaDB backend (requires knowledge base features)
 
 [profile.release]
 # Optimize for binary size (<50MB target)
