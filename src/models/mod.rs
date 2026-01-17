@@ -942,3 +942,113 @@ impl LogEntry {
         self
     }
 }
+
+// ============================================================================
+// Knowledge Backend Configuration
+// ============================================================================
+
+/// Vector backend type for knowledge index
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum VectorBackendType {
+    /// Embedded LanceDB (default, local-first)
+    LanceDb,
+    /// ChromaDB server (team sharing, cloud deployments)
+    ChromaDb,
+}
+
+impl std::str::FromStr for VectorBackendType {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "lancedb" | "lance" => Ok(Self::LanceDb),
+            "chromadb" | "chroma" => Ok(Self::ChromaDb),
+            _ => Err(format!("Unknown vector backend type: {}", s)),
+        }
+    }
+}
+
+impl std::fmt::Display for VectorBackendType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::LanceDb => write!(f, "lancedb"),
+            Self::ChromaDb => write!(f, "chromadb"),
+        }
+    }
+}
+
+/// Configuration for knowledge backend
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "backend", rename_all = "lowercase")]
+pub enum KnowledgeBackendConfig {
+    LanceDb {
+        /// Path to LanceDB storage directory
+        path: PathBuf,
+    },
+    ChromaDb {
+        /// ChromaDB server URL (e.g., "http://localhost:8000")
+        url: String,
+        /// Optional cache directory for embedding models
+        #[serde(default)]
+        cache_dir: Option<PathBuf>,
+    },
+}
+
+impl Default for KnowledgeBackendConfig {
+    fn default() -> Self {
+        Self::LanceDb {
+            path: crate::knowledge::default_knowledge_path(),
+        }
+    }
+}
+
+impl KnowledgeBackendConfig {
+    /// Create LanceDB configuration
+    pub fn lancedb(path: PathBuf) -> Self {
+        Self::LanceDb { path }
+    }
+
+    /// Create ChromaDB configuration
+    pub fn chromadb(url: impl Into<String>, cache_dir: Option<PathBuf>) -> Self {
+        Self::ChromaDb {
+            url: url.into(),
+            cache_dir,
+        }
+    }
+
+    /// Get the backend type
+    pub fn backend_type(&self) -> VectorBackendType {
+        match self {
+            Self::LanceDb { .. } => VectorBackendType::LanceDb,
+            Self::ChromaDb { .. } => VectorBackendType::ChromaDb,
+        }
+    }
+
+    /// Validate configuration
+    pub fn validate(&self) -> Result<(), String> {
+        match self {
+            Self::LanceDb { path } => {
+                if !path.is_absolute() && !path.starts_with("~") {
+                    return Err(format!(
+                        "LanceDB path should be absolute, got: {}",
+                        path.display()
+                    ));
+                }
+                Ok(())
+            }
+            Self::ChromaDb { url, .. } => {
+                if url.is_empty() {
+                    return Err("ChromaDB URL cannot be empty".to_string());
+                }
+                if !url.starts_with("http://") && !url.starts_with("https://") {
+                    return Err(format!(
+                        "ChromaDB URL must start with http:// or https://, got: {}",
+                        url
+                    ));
+                }
+                Ok(())
+            }
+        }
+    }
+}
