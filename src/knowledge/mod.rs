@@ -11,6 +11,7 @@
 
 pub mod backends;
 pub mod collections;
+pub mod indexers;
 mod embedder;
 mod index;
 mod schema;
@@ -18,6 +19,7 @@ mod schema;
 pub use collections::{CollectionInfo, CollectionType, QueryScope};
 pub use embedder::Embedder;
 pub use index::{KnowledgeEntry, KnowledgeIndex, KnowledgeStats};
+pub use indexers::{IndexStats, Indexer};
 pub use schema::EntryType;
 
 use std::path::PathBuf;
