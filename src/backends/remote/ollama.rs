@@ -3,11 +3,12 @@
 use async_trait::async_trait;
 use reqwest::{Client, Url};
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 use std::time::Duration;
 
 use crate::backends::{BackendInfo, BackendType, CommandGenerator, GeneratorError};
 use crate::models::{CommandRequest, GeneratedCommand, RiskLevel};
+use crate::safety::{SafetyConfig, SafetyValidator};
 
 /// Ollama API request format
 #[derive(Debug, Serialize)]
@@ -37,6 +38,17 @@ struct OllamaResponse {
     context: Option<Vec<i32>>,
     #[allow(dead_code)]
     created_at: Option<String>,
+}
+
+/// Cached safety validator instance (shared across all Ollama backends)
+static SAFETY_VALIDATOR: OnceLock<SafetyValidator> = OnceLock::new();
+
+/// Get or initialize the safety validator
+fn get_safety_validator() -> &'static SafetyValidator {
+    SAFETY_VALIDATOR.get_or_init(|| {
+        SafetyValidator::new(SafetyConfig::default())
+            .expect("Failed to initialize safety validator")
+    })
 }
 
 /// Ollama backend for local Ollama server
@@ -206,10 +218,27 @@ Request: {}
             Ok(response) => {
                 match self.parse_command_response(&response) {
                     Ok(command) => {
+                        // Validate command safety
+                        let validator = get_safety_validator();
+                        let validation_result = validator
+                            .validate_command(&command, request.shell)
+                            .await
+                            .unwrap_or_else(|_| {
+                                // If validation fails, assume moderate risk for safety
+                                crate::safety::ValidationResult {
+                                    allowed: true,
+                                    risk_level: RiskLevel::Moderate,
+                                    explanation: "Could not validate command safety".to_string(),
+                                    warnings: vec![],
+                                    matched_patterns: vec![],
+                                    confidence_score: 0.5,
+                                }
+                            });
+
                         return Ok(GeneratedCommand {
                             command,
                             explanation: "Generated using Ollama local server".to_string(),
-                            safety_level: RiskLevel::Safe, // TODO: Implement safety validation
+                            safety_level: validation_result.risk_level,
                             estimated_impact: "Low impact local operation".to_string(),
                             alternatives: vec![],
                             backend_used: format!("Ollama ({})", self.model_name),

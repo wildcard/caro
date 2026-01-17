@@ -301,6 +301,14 @@ struct Cli {
     )]
     model_name: Option<String>,
 
+    /// Knowledge backend for command learning (requires --features knowledge or chromadb)
+    #[cfg(feature = "knowledge")]
+    #[arg(
+        long = "knowledge-backend",
+        help = "Knowledge backend (lancedb, chromadb)"
+    )]
+    knowledge_backend: Option<String>,
+
     /// Safety level for command validation
     #[arg(long, help = "Safety level (strict, moderate, permissive)")]
     safety: Option<String>,
@@ -413,6 +421,11 @@ impl IntoCliArgs for Cli {
 
     fn force_llm(&self) -> bool {
         self.force_llm
+    }
+
+    #[cfg(feature = "knowledge")]
+    fn knowledge_backend(&self) -> Option<String> {
+        self.knowledge_backend.clone()
     }
 }
 
