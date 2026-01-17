@@ -175,8 +175,8 @@ impl StaticMatcher {
 
             // Pattern 6: "Find all files larger than 1GB" with exec (SPECIFIC - moved from Pattern 40)
             PatternEntry {
-                required_keywords: vec!["find".to_string(), "all".to_string(), "file".to_string(), "larger".to_string(), "1gb".to_string()],
-                optional_keywords: vec![],
+                required_keywords: vec!["find".to_string(), "all".to_string(), "file".to_string(), "larger".to_string()],
+                optional_keywords: vec!["1".to_string(), "gb".to_string()],
                 regex_pattern: Some(Regex::new(r"(?i)^find\s+all\s+files?\s+(larger|bigger|over|above|greater).*1\s*(gb?|g)").unwrap()),
                 gnu_command: "find . -type f -size +1G -exec ls -lh {} \\;".to_string(),
                 bsd_command: Some("find . -type f -size +1G -exec ls -lh {} \\;".to_string()),
@@ -413,16 +413,6 @@ impl StaticMatcher {
                 gnu_command: "ip addr show".to_string(),
                 bsd_command: Some("ifconfig".to_string()),
                 description: "Show network interfaces and status".to_string(),
-            },
-
-            // Pattern 25: "show all established connections to port 443"
-            PatternEntry {
-                required_keywords: vec!["established".to_string(), "connections".to_string(), "port".to_string()],
-                optional_keywords: vec!["show".to_string(), "all".to_string(), "443".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(show|list|display|get).*(all|established).*(connections?|sockets?).*(to|on)?.*(port|:)\s*\d+").unwrap()),
-                gnu_command: "ss -tn state established '( dport = :443 )'".to_string(),
-                bsd_command: Some("netstat -an | grep ESTABLISHED | grep :443".to_string()),
-                description: "Show established connections to a port".to_string(),
             },
 
             // ===== SYSTEM MONITORING PATTERNS (Cycle 3) =====
@@ -855,8 +845,8 @@ impl StaticMatcher {
                 required_keywords: vec!["compress".to_string(), "directory".to_string(), "maximum".to_string()],
                 optional_keywords: vec!["with".to_string(), "best".to_string(), "compression".to_string()],
                 regex_pattern: Some(Regex::new(r"(?i)(compress|archive).*(directory|dir|folder).*(with)?.*(maximum|max|best|highest).*(compression)?").unwrap()),
-                gnu_command: "tar -czvf archive.tar.gz --best directory/".to_string(),
-                bsd_command: Some("tar -czvf archive.tar.gz directory/".to_string()),
+                gnu_command: "tar --use-compress-program='gzip -9' -cf archive.tar.gz directory/".to_string(),
+                bsd_command: Some("tar -czf archive.tar.gz directory/".to_string()),
                 description: "Compress directory with maximum compression".to_string(),
             },
 
