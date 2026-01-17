@@ -40,6 +40,9 @@ pub enum KnowledgeError {
     #[error("Schema error: {0}")]
     Schema(String),
 
+    #[error("Indexing error: {0}")]
+    Indexing(String),
+
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
 
