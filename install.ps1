@@ -40,22 +40,68 @@ function Get-LatestVersion {
 function Add-ToUserPath {
     param([string]$PathToAdd)
 
-    $currentUserPath = [Environment]::GetEnvironmentVariable("Path", "User")
+    try {
+        $currentUserPath = [Environment]::GetEnvironmentVariable("Path", "User")
 
-    # Check if already in PATH
-    $pathArray = $currentUserPath -split ';' | Where-Object { $_ -ne '' }
-    if ($pathArray -contains $PathToAdd) {
-        return $false  # Already in PATH
+        # Check if already in PATH
+        $pathArray = $currentUserPath -split ';' | Where-Object { $_ -ne '' }
+        if ($pathArray -contains $PathToAdd) {
+            return @{ Success = $true; AlreadyExists = $true }
+        }
+
+        # Add to PATH
+        $newPath = if ($currentUserPath) { "$currentUserPath;$PathToAdd" } else { $PathToAdd }
+        [Environment]::SetEnvironmentVariable("Path", $newPath, "User")
+
+        # Verify it was actually added
+        $verifyPath = [Environment]::GetEnvironmentVariable("Path", "User")
+        if ($verifyPath -split ';' | Where-Object { $_ -eq $PathToAdd }) {
+            # Also update current session
+            $env:Path = "$env:Path;$PathToAdd"
+            return @{ Success = $true; AlreadyExists = $false }
+        } else {
+            return @{ Success = $false; AlreadyExists = $false }
+        }
+    } catch {
+        return @{ Success = $false; AlreadyExists = $false; Error = $_.Exception.Message }
     }
+}
 
-    # Add to PATH
-    $newPath = if ($currentUserPath) { "$currentUserPath;$PathToAdd" } else { $PathToAdd }
-    [Environment]::SetEnvironmentVariable("Path", $newPath, "User")
+function Show-ManualPathInstructions {
+    param([string]$PathToAdd)
 
-    # Also update current session
-    $env:Path = "$env:Path;$PathToAdd"
-
-    return $true  # Successfully added
+    Write-Status "PATH setup required:" "warning"
+    Write-Host ""
+    Write-Host "  " -NoNewline
+    Write-Host $PathToAdd -ForegroundColor Yellow -NoNewline
+    Write-Host " needs to be added to your PATH."
+    Write-Host ""
+    Write-Host "  " -NoNewline
+    Write-Host "Option 1: " -ForegroundColor Cyan -NoNewline
+    Write-Host "Run this command (then restart terminal):"
+    Write-Host ""
+    Write-Host "    [Environment]::SetEnvironmentVariable('Path', [Environment]::GetEnvironmentVariable('Path', 'User') + ';$PathToAdd', 'User')" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "  " -NoNewline
+    Write-Host "Option 2: " -ForegroundColor Cyan -NoNewline
+    Write-Host "Manual setup via Settings:"
+    Write-Host "    1. Press " -NoNewline
+    Write-Host "Win + I" -ForegroundColor Yellow -NoNewline
+    Write-Host " to open Settings"
+    Write-Host "    2. Go to: " -NoNewline
+    Write-Host "System > About > Advanced system settings" -ForegroundColor Yellow
+    Write-Host "    3. Click: " -NoNewline
+    Write-Host "Environment Variables" -ForegroundColor Yellow
+    Write-Host "    4. Under 'User variables', select " -NoNewline
+    Write-Host "Path" -ForegroundColor Yellow -NoNewline
+    Write-Host " and click " -NoNewline
+    Write-Host "Edit" -ForegroundColor Yellow
+    Write-Host "    5. Click " -NoNewline
+    Write-Host "New" -ForegroundColor Yellow -NoNewline
+    Write-Host " and add: " -NoNewline
+    Write-Host $PathToAdd -ForegroundColor Green
+    Write-Host "    6. Click OK, then restart your terminal"
+    Write-Host ""
 }
 
 function Install-Caro {
@@ -127,20 +173,13 @@ function Install-Caro {
     if (-not $inPath) {
         # Check if user wants to skip PATH modification
         if ($env:CARO_NO_MODIFY_PATH -eq "1") {
-            Write-Status "Setup notes:" "warning"
-            Write-Host "  * " -NoNewline
-            Write-Host $installDir -ForegroundColor Yellow -NoNewline
-            Write-Host " is not in your PATH (skipped by CARO_NO_MODIFY_PATH)."
-            Write-Host ""
-            Write-Host "  To add manually, run:" -ForegroundColor Gray
-            Write-Host "  " -NoNewline
-            Write-Host "[Environment]::SetEnvironmentVariable('Path', `$env:Path + ';$installDir', 'User')" -ForegroundColor Cyan
-            Write-Host ""
+            Show-ManualPathInstructions -PathToAdd $installDir
         } else {
             # Automatically add to PATH
             Write-Host "  Adding to PATH..." -ForegroundColor Gray
-            $added = Add-ToUserPath -PathToAdd $installDir
-            if ($added) {
+            $result = Add-ToUserPath -PathToAdd $installDir
+
+            if ($result.Success -and -not $result.AlreadyExists) {
                 Write-Status "Added $installDir to your PATH" "success"
                 Write-Host ""
                 Write-Host "  " -NoNewline
@@ -149,9 +188,13 @@ function Install-Caro {
                 Write-Host "        or run: " -NoNewline
                 Write-Host "`$env:Path += ';$installDir'" -ForegroundColor Cyan
                 Write-Host ""
-            } else {
+            } elseif ($result.AlreadyExists) {
                 Write-Host "  (Already in PATH)" -ForegroundColor Gray
                 Write-Host ""
+            } else {
+                # Auto-add failed, show manual instructions
+                Write-Host ""
+                Show-ManualPathInstructions -PathToAdd $installDir
             }
         }
     }
