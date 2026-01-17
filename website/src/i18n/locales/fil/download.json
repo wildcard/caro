@@ -3,6 +3,8 @@
     "title": "Magsimula na sa Caro",
     "subtitle": "Dalhin ang iyong tapat na shell companion sa iyong terminal",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
+    "installCommandWindows": "irm https://github.com/wildcard/caro/releases/latest/download/caro-windows-amd64.exe -OutFile caro.exe",
+    "windowsNote": "Windows users: Gamitin ang PowerShell command sa itaas, o WSL/Git Bash para sa bash command",
     "copyButton": "Kopyahin",
     "copiedButton": "Nakopya na!",
     "binariesIntro": "O mag-download ng pre-built binaries:",

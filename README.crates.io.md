@@ -33,9 +33,18 @@ cargo install caro
 ```
 
 Or use the one-line setup script:
+
+**macOS/Linux:**
 ```bash
 bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)
 ```
+
+**Windows (PowerShell):**
+```powershell
+irm https://github.com/wildcard/caro/releases/latest/download/caro-windows-amd64.exe -OutFile caro.exe
+```
+
+> **Note:** The bash command requires a bash shell. On Windows, use PowerShell, [WSL](https://learn.microsoft.com/en-us/windows/wsl/install), or [Git Bash](https://git-scm.com/downloads).
 
 ### Usage
 

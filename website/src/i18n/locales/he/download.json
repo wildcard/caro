@@ -3,6 +3,8 @@
     "title": "התחילו עם קארו",
     "subtitle": "הביאו את חברת השל הנאמנה שלכם לטרמינל",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
+    "installCommandWindows": "irm https://github.com/wildcard/caro/releases/latest/download/caro-windows-amd64.exe -OutFile caro.exe",
+    "windowsNote": "משתמשי Windows: השתמשו בפקודת PowerShell למעלה, או ב-WSL/Git Bash לפקודת bash",
     "copyButton": "העתק",
     "copiedButton": "הועתק!",
     "binariesIntro": "או הורידו קבצים בינאריים מוכנים:",

@@ -87,6 +87,8 @@ This project is **generally available** with all core features implemented, test
 ### Installation
 
 #### Option 1: Quick Install Script (Recommended)
+
+**macOS/Linux (bash, zsh, or any POSIX shell):**
 ```bash
 curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
 ```
@@ -95,6 +97,18 @@ Or with wget:
 ```bash
 wget -qO- https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
 ```
+
+**Windows (PowerShell):**
+```powershell
+# Download and run the latest Windows binary
+$url = "https://github.com/wildcard/caro/releases/latest/download/caro-windows-amd64.exe"
+$dest = "$env:USERPROFILE\.local\bin\caro.exe"
+New-Item -ItemType Directory -Force -Path (Split-Path $dest) | Out-Null
+Invoke-WebRequest -Uri $url -OutFile $dest
+Write-Host "Installed to $dest - add this to your PATH"
+```
+
+> **Note for Windows users:** The bash command (`bash <(curl ...)`) requires a bash shell. On Windows, you can use [WSL](https://learn.microsoft.com/en-us/windows/wsl/install), [Git Bash](https://git-scm.com/downloads), or the PowerShell command above.
 
 **What it does:**
 - **With Rust/Cargo**: Installs via cargo with MLX optimization on Apple Silicon

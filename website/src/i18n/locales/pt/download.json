@@ -3,6 +3,8 @@
     "title": "Comece com a Caro",
     "subtitle": "Traga sua companheira leal de shell para seu terminal",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
+    "installCommandWindows": "irm https://github.com/wildcard/caro/releases/latest/download/caro-windows-amd64.exe -OutFile caro.exe",
+    "windowsNote": "Usuários Windows: Use o comando PowerShell acima, ou WSL/Git Bash para o comando bash",
     "copyButton": "Copiar",
     "copiedButton": "Copiado!",
     "binariesIntro": "Ou baixe binários pré-compilados:",

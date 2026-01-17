@@ -3,6 +3,8 @@
     "title": "Mulai dengan Caro",
     "subtitle": "Bawa teman setia shell Anda ke terminal Anda",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
+    "installCommandWindows": "irm https://github.com/wildcard/caro/releases/latest/download/caro-windows-amd64.exe -OutFile caro.exe",
+    "windowsNote": "Pengguna Windows: Gunakan perintah PowerShell di atas, atau WSL/Git Bash untuk perintah bash",
     "copyButton": "Salin",
     "copiedButton": "Tersalin!",
     "binariesIntro": "Atau unduh binary yang sudah dibuat:",

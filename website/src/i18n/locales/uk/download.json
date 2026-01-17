@@ -3,6 +3,8 @@
     "title": "Почни з Caro",
     "subtitle": "Приведи свого вірного помічника shell у свій термінал",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
+    "installCommandWindows": "irm https://github.com/wildcard/caro/releases/latest/download/caro-windows-amd64.exe -OutFile caro.exe",
+    "windowsNote": "Користувачі Windows: Використовуйте команду PowerShell вище або WSL/Git Bash для команди bash",
     "copyButton": "Скопіювати",
     "copiedButton": "Скопійовано!",
     "binariesIntro": "Або завантаж готові бінарники:",
