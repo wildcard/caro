@@ -1,0 +1,146 @@
+---
+session: chromadb-integration
+date: 2026-01-16
+status: partial
+outcome: PARTIAL_PLUS
+---
+
+goal: Implement ChromaDB backend with CLI integration (Phase 2 of ChromaDB epic)
+now: Add Docker integration tests and document ChromaDB server setup
+test: cargo check --features chromadb && cargo run -- --help | grep knowledge-backend
+
+done_this_session:
+  - task: Implemented async ChromaDB backend using chromadb v2.3.0
+    files: [src/knowledge/backends/chromadb.rs]
+  - task: Added KnowledgeBackendConfig types and validation
+    files: [src/models/mod.rs]
+  - task: Added CLI flags for backend selection
+    files: [src/main.rs]
+  - task: Created KnowledgeIndex::from_config() factory method
+    files: [src/knowledge/index.rs]
+  - task: Updated dependencies and feature flags
+    files: [Cargo.toml, Cargo.lock]
+
+blockers: []
+
+questions:
+  - Should ChromaDB integration tests run in CI or be marked #[ignore]?
+  - What's the recommended ChromaDB server setup for development (Docker, local, cloud)?
+  - Should we add health check endpoint to verify ChromaDB connectivity before operations?
+
+decisions:
+  - chromadb_version: "Upgraded from v0.2.2 (sync) to v2.3.0 (async) for better async/await support"
+  - metadata_format: "Use serde_json::Map<String, Value> instead of custom types for cleaner serialization"
+  - feature_gates: "chromadb feature depends on knowledge feature, maintains opt-in behavior"
+  - cli_design: "Added --knowledge-backend and --chromadb-url flags with env var support (CARO_KNOWLEDGE_BACKEND, CHROMADB_URL)"
+  - default_backend: "LanceDB remains default, ChromaDB is opt-in via flag"
+
+findings:
+  - chromadb_api_evolution: "chromadb v0.2 uses sync v1 API, v2.3 uses async client with cleaner interface"
+  - collection_cloning: "ChromaCollection doesn't implement Clone, requires Arc<RwLock> pattern for shared access"
+  - query_results: "ChromaDB returns batched results as Vec<Vec<T>>, need to unwrap first element for single-query responses"
+  - feature_conditional: "Default impl for KnowledgeBackendConfig needs feature gates to avoid compile errors when knowledge feature disabled"
+
+worked:
+  - Using chromadb v2.3.0 for full async support (no spawn_blocking needed)
+  - Feature-gated ChromaDB backend with clear error messages when disabled
+  - Tagged enum for KnowledgeBackendConfig enables clean JSON/TOML config
+  - Helper function build_knowledge_backend_config() in main.rs for CLI parsing
+
+failed:
+  - Initial attempt with chromadb v0.2.2 (sync API, incompatible with async VectorBackend trait)
+  - Trying to clone ChromaCollection (doesn't implement Clone, need RwLock pattern)
+
+next:
+  - Add Docker Compose file for ChromaDB server (tests/docker-compose.yml)
+  - Create integration test that spins up ChromaDB container
+  - Add documentation for ChromaDB server setup (README or docs/)
+  - Consider adding chromadb health check before operations
+  - Wire knowledge backend into main command flow (currently just CLI surface)
+  - Phase 3: Multi-collection schema implementation
+  - Phase 4: Multi-source indexing (man pages, tldr, help)
+  - Phase 5: User profiles and cloud features
+
+files:
+  created:
+    - src/knowledge/backends/chromadb.rs
+    - thoughts/shared/handoffs/chromadb-integration/2026-01-16_23-41_phase-2-complete.yaml
+  modified:
+    - src/knowledge/backends/mod.rs
+    - src/knowledge/index.rs
+    - src/models/mod.rs
+    - src/main.rs
+    - Cargo.toml
+    - Cargo.lock
+
+implementation_details:
+  chromadb_backend:
+    location: src/knowledge/backends/chromadb.rs
+    key_methods:
+      - new(url, cache_dir): "Connects to ChromaDB server, initializes embedder"
+      - ensure_collection(): "Lazy collection creation with double-check locking"
+      - build_metadata(): "Constructs serde_json::Map for metadata storage"
+      - parse_results(): "Converts ChromaDB query results to KnowledgeEntry vec"
+    trait_impl: "Full VectorBackend trait: record_success, record_correction, find_similar, stats, clear, is_healthy"
+    health_check: "Uses client.heartbeat() for server connectivity check"
+
+  configuration_types:
+    location: src/models/mod.rs:946-1054
+    types:
+      - VectorBackendType: "Enum with LanceDb, ChromaDb variants"
+      - KnowledgeBackendConfig: "Tagged enum with backend-specific config"
+    validation: "URL format validation (http:// or https://), path validation (absolute or ~)"
+
+  cli_integration:
+    location: src/main.rs:304-319
+    flags:
+      - "--knowledge-backend": "Choice between lancedb|chromadb"
+      - "--chromadb-url": "ChromaDB server URL, defaults to http://localhost:8000"
+    env_vars:
+      - CARO_KNOWLEDGE_BACKEND: "Backend selection"
+      - CHROMADB_URL: "Server URL override"
+    helper: "build_knowledge_backend_config() at src/main.rs:633-658"
+
+  factory_method:
+    location: src/knowledge/index.rs:75-107
+    method: "KnowledgeIndex::from_config(config)"
+    feature_gates: "Conditional compilation for chromadb vs lancedb"
+    error_handling: "Clear error when chromadb feature not enabled"
+
+usage_examples:
+  default_lancedb: "caro 'list files'"
+  explicit_lancedb: "caro --knowledge-backend lancedb 'list files'"
+  chromadb_server: "caro --knowledge-backend chromadb --chromadb-url http://localhost:8000 'list files'"
+  env_vars: "export CARO_KNOWLEDGE_BACKEND=chromadb && caro 'list files'"
+
+test_coverage:
+  unit_tests:
+    - test_chromadb_health: "#[ignore] - requires ChromaDB server at localhost:8000"
+    - test_chromadb_record_and_search: "#[ignore] - full integration test"
+  compilation_tests:
+    - cargo check: "Default features (no chromadb)"
+    - cargo check --features chromadb: "With ChromaDB enabled"
+    - cargo check --features knowledge: "Knowledge without ChromaDB"
+
+branch_status:
+  branch: feature/chromadb-integration
+  commits:
+    - "130912dc: Phase 1: Add VectorBackend trait abstraction"
+    - "0efc0c56: Phase 2: Add ChromaDB backend implementation"
+    - "600e1216: Phase 2: Add CLI integration for knowledge backend selection"
+  worktree: .worktrees/chromadb-integration
+  main_status: "Branch is up to date with origin/main after rebase"
+
+epic_progress:
+  phase_1: "✓ VectorBackend trait abstraction (complete)"
+  phase_2: "✓ ChromaDB backend + CLI (complete, needs Docker tests)"
+  phase_3: "⧖ Multi-collection schema (not started)"
+  phase_4: "⧖ Multi-source indexing (not started)"
+  phase_5: "⧖ User profiles & cloud (not started)"
+
+context_for_next_session:
+  plan_file: thoughts/shared/plans/cheeky-coalescing-trinket.md
+  epic_overview: "ChromaDB integration epic - 5 phases, support both LanceDB and ChromaDB via VectorBackend trait"
+  current_milestone: "Phase 2 complete, Phase 3 planned"
+  key_insight: "chromadb v2.3 is fully async (not v0.2), making integration clean without spawn_blocking"
+  testing_note: "Integration tests marked #[ignore] require ChromaDB server - need Docker Compose setup"
