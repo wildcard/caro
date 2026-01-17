@@ -60,7 +60,7 @@ directories = "6"
 dirs = "6"
 which = "8.0"
 os_info = "3.14"
-sysinfo = "0.33"
+sysinfo = "0.37"
 home = "=0.5.12"  # Pin to avoid edition2024 requirement in 0.5.11+
 
 # Model integration (Hugging Face Hub)
