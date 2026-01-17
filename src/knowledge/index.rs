@@ -106,6 +106,17 @@ impl KnowledgeIndex {
         }
     }
 
+    /// Get a reference to the backend Arc for direct backend operations
+    ///
+    /// This is useful when you need to pass the backend to indexers or other
+    /// components that work directly with the VectorBackend trait.
+    ///
+    /// # Returns
+    /// A cloned Arc pointing to the underlying vector backend
+    pub fn backend(&self) -> Arc<dyn VectorBackend> {
+        Arc::clone(&self.backend)
+    }
+
     /// Record a successful command execution
     ///
     /// # Arguments

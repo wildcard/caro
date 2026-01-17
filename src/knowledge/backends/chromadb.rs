@@ -11,7 +11,7 @@ use crate::knowledge::{
 };
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use chromadb::client::{ChromaClient, ChromaClientOptions};
+use chromadb::client::{ChromaAuthMethod, ChromaClient, ChromaClientOptions, ChromaTokenHeader};
 use chromadb::collection::{ChromaCollection, CollectionEntries, QueryOptions};
 use serde_json::{json, Map, Value};
 use std::sync::Arc;
@@ -32,10 +32,15 @@ impl ChromaDbBackend {
     /// # Arguments
     /// * `url` - ChromaDB server URL (e.g., "http://localhost:8000")
     /// * `cache_dir` - Optional directory for embedding model cache
+    /// * `auth_token` - Optional authentication token for ChromaDB server
     ///
     /// # Returns
     /// A configured ChromaDB backend ready for use
-    pub async fn new(url: &str, cache_dir: Option<&std::path::Path>) -> Result<Self> {
+    pub async fn new(
+        url: &str,
+        cache_dir: Option<&std::path::Path>,
+        auth_token: Option<&str>,
+    ) -> Result<Self> {
         // Initialize embedder with cache
         let embedder = if let Some(dir) = cache_dir {
             std::fs::create_dir_all(dir)?;
@@ -44,9 +49,20 @@ impl ChromaDbBackend {
             Embedder::new(None)?
         };
 
+        // Configure authentication
+        let auth = if let Some(token) = auth_token {
+            ChromaAuthMethod::TokenAuth {
+                token: token.to_string(),
+                header: ChromaTokenHeader::XChromaToken,
+            }
+        } else {
+            ChromaAuthMethod::None
+        };
+
         // Connect to ChromaDB server
         let client = ChromaClient::new(ChromaClientOptions {
             url: Some(url.to_string()),
+            auth,
             ..Default::default()
         })
         .await

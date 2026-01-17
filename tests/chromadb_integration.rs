@@ -5,7 +5,10 @@
 //!   cd tests && docker-compose up -d
 //!
 //! Run tests with:
-//!   cargo test --features chromadb --test chromadb_integration -- --ignored --nocapture
+//!   cargo test --features chromadb --test chromadb_integration -- --ignored --nocapture --test-threads=1
+//!
+//! Note: Tests must run serially (--test-threads=1) because they all use the same
+//! collection name and interfere with each other when run in parallel.
 
 #[cfg(feature = "chromadb")]
 mod chromadb_tests {
@@ -18,11 +21,17 @@ mod chromadb_tests {
         env::var("CHROMADB_URL").unwrap_or_else(|_| "http://localhost:8000".to_string())
     }
 
+    /// Get ChromaDB auth token from environment or use default test token
+    fn get_chromadb_auth_token() -> String {
+        env::var("CHROMADB_AUTH_TOKEN").unwrap_or_else(|_| "test-token".to_string())
+    }
+
     #[tokio::test]
     #[ignore] // Requires ChromaDB server
     async fn test_chromadb_connection() {
         let url = get_chromadb_url();
-        let backend = ChromaDbBackend::new(&url, None)
+        let auth_token = get_chromadb_auth_token();
+        let backend = ChromaDbBackend::new(&url, None, Some(&auth_token))
             .await
             .expect("Failed to create ChromaDB backend");
 
@@ -37,7 +46,8 @@ mod chromadb_tests {
     #[ignore] // Requires ChromaDB server
     async fn test_chromadb_record_success() {
         let url = get_chromadb_url();
-        let backend = ChromaDbBackend::new(&url, None)
+        let auth_token = get_chromadb_auth_token();
+        let backend = ChromaDbBackend::new(&url, None, Some(&auth_token))
             .await
             .expect("Failed to create ChromaDB backend");
 
@@ -62,7 +72,8 @@ mod chromadb_tests {
     #[ignore] // Requires ChromaDB server
     async fn test_chromadb_record_correction() {
         let url = get_chromadb_url();
-        let backend = ChromaDbBackend::new(&url, None)
+        let auth_token = get_chromadb_auth_token();
+        let backend = ChromaDbBackend::new(&url, None, Some(&auth_token))
             .await
             .expect("Failed to create ChromaDB backend");
 
@@ -92,7 +103,8 @@ mod chromadb_tests {
     #[ignore] // Requires ChromaDB server
     async fn test_chromadb_find_similar() {
         let url = get_chromadb_url();
-        let backend = ChromaDbBackend::new(&url, None)
+        let auth_token = get_chromadb_auth_token();
+        let backend = ChromaDbBackend::new(&url, None, Some(&auth_token))
             .await
             .expect("Failed to create ChromaDB backend");
 
@@ -152,7 +164,8 @@ mod chromadb_tests {
     #[ignore] // Requires ChromaDB server
     async fn test_chromadb_clear() {
         let url = get_chromadb_url();
-        let backend = ChromaDbBackend::new(&url, None)
+        let auth_token = get_chromadb_auth_token();
+        let backend = ChromaDbBackend::new(&url, None, Some(&auth_token))
             .await
             .expect("Failed to create ChromaDB backend");
 
@@ -184,7 +197,8 @@ mod chromadb_tests {
     #[ignore] // Requires ChromaDB server
     async fn test_chromadb_multiple_operations() {
         let url = get_chromadb_url();
-        let backend = ChromaDbBackend::new(&url, None)
+        let auth_token = get_chromadb_auth_token();
+        let backend = ChromaDbBackend::new(&url, None, Some(&auth_token))
             .await
             .expect("Failed to create ChromaDB backend");
 
@@ -222,7 +236,8 @@ mod chromadb_tests {
     #[ignore] // Requires ChromaDB server
     async fn test_chromadb_context_metadata() {
         let url = get_chromadb_url();
-        let backend = ChromaDbBackend::new(&url, None)
+        let auth_token = get_chromadb_auth_token();
+        let backend = ChromaDbBackend::new(&url, None, Some(&auth_token))
             .await
             .expect("Failed to create ChromaDB backend");
 

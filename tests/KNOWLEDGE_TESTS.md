@@ -44,14 +44,9 @@ cargo test --features knowledge test_lancedb_persistence
 
 Tests the **ChromaDB server-based backend**.
 
-**⚠️ CURRENTLY BLOCKED** - See [Issue #519](https://github.com/wildcard/caro/issues/519)
+**✅ WORKING** - ChromaDB 0.5.18 with chromadb-rs v2.3.0
 
-The chromadb Rust client v2.3.0 requires authentication, and tests fail with:
-```
-Failed to create ChromaDB backend: Database("404 Not Found: {\"detail\":\"Not Found\"}")
-```
-
-#### Setup (When Working)
+#### Setup
 
 1. **Start ChromaDB server:**
 ```bash
@@ -67,7 +62,8 @@ curl http://localhost:8000/api/v1/heartbeat
 
 3. **Run tests:**
 ```bash
-cargo test --features chromadb --test chromadb_integration -- --ignored --nocapture
+# Tests must run serially (--test-threads=1) to avoid collection interference
+cargo test --features chromadb --test chromadb_integration -- --ignored --nocapture --test-threads=1
 ```
 
 4. **Stop server:**
@@ -79,15 +75,15 @@ docker-compose down
 docker-compose down -v
 ```
 
-**Test Coverage (When Working):**
-- ChromaDB backend connection and health
-- Recording successes and corrections
-- Semantic search across entries
-- Collection management (clear, stats)
-- Multiple concurrent operations
-- Context metadata preservation
+**Test Coverage:**
+- ✅ ChromaDB backend connection and health
+- ✅ Recording successes and corrections
+- ✅ Semantic search across entries
+- ✅ Collection management (clear, stats)
+- ✅ Multiple concurrent operations
+- ✅ Context metadata preservation
 
-**Tests (7 total, all currently failing):**
+**Tests (7 total, all passing when run serially):**
 1. `test_chromadb_connection` - Verify server connectivity
 2. `test_chromadb_record_success` - Record successful commands
 3. `test_chromadb_record_correction` - Record corrections
@@ -96,19 +92,18 @@ docker-compose down -v
 6. `test_chromadb_multiple_operations` - Bulk operations
 7. `test_chromadb_context_metadata` - Context preservation
 
-#### Known Issues
+#### Important Notes
 
-**Authentication Requirement (#519)**
-- chromadb client v2.3.0 expects `/api/v2/auth/identity` endpoint
-- Server returns 404 for this endpoint
-- Tried ChromaDB versions: 0.6.x, 0.5.5, 0.4.24, 0.4.15
-- All versions have the same authentication issue
+**Version Compatibility** (Resolved #519)
+- ChromaDB **0.5.18** is compatible with chromadb-rs **v2.3.0**
+- ChromaDB 0.4.x versions don't support the `/api/v2` endpoints required by chromadb-rs v2.3.0
+- No authentication configuration needed for local testing with 0.5.18
 
-**Possible Solutions:**
-1. Configure token-based authentication in Docker Compose
-2. Update ChromaDbBackend::new() to accept auth credentials
-3. Downgrade to chromadb crate v0.x (may lose async support)
-4. Wait for chromadb-rs client updates for auth-free mode
+**Serial Test Execution Required**
+- All tests use the same collection name (`caro_commands`)
+- Tests must run with `--test-threads=1` to avoid interference
+- Parallel test execution causes collection deletion conflicts
+- Future improvement: Use unique collection names per test
 
 ---
 
@@ -123,14 +118,14 @@ Run in CI without external dependencies:
   run: cargo test --features knowledge --test knowledge_integration
 ```
 
-### ChromaDB Tests (Blocked)
+### ChromaDB Tests
 
-When authentication is resolved, add to CI:
+Add to CI with ChromaDB service:
 
 ```yaml
 services:
   chromadb:
-    image: chromadb/chroma:0.4.15
+    image: chromadb/chroma:0.5.18  # Must be 0.5.x for /api/v2 support
     ports:
       - 8000:8000
     env:
@@ -139,7 +134,9 @@ services:
 
 steps:
   - name: Run ChromaDB integration tests
-    run: cargo test --features chromadb --test chromadb_integration -- --ignored
+    run: |
+      # Tests must run serially to avoid collection interference
+      cargo test --features chromadb --test chromadb_integration -- --ignored --test-threads=1
     env:
       CHROMADB_URL: http://localhost:8000
 ```
