@@ -39,6 +39,7 @@ pub mod doctor;
 pub mod eval;
 pub mod evaluation;
 pub mod execution;
+pub mod feedback;
 pub mod logging;
 pub mod model_catalog;
 pub mod model_loader;
@@ -97,6 +98,14 @@ pub use telemetry::{
 
 // Re-export completion types
 pub use completion::{generate_completions, suggest_commands, CommandSuggestion};
+
+// Re-export feedback types
+pub use feedback::{
+    capture_context, redact_context, redact_sensitive_data, run_feedback_interface,
+    CommandInfo as FeedbackCommandInfo, EnvironmentInfo, ErrorInfo, Feedback, FeedbackContext,
+    FeedbackDatabase, FeedbackError, FeedbackId, FeedbackIdError, FeedbackStatus, GitContext,
+    GitHubClient, GitHubIssueRequest, HistoryEntry, SystemState,
+};
 
 // Re-export knowledge types (when feature enabled)
 #[cfg(feature = "knowledge")]

@@ -246,11 +246,49 @@ enum Commands {
         #[arg(short, long, default_value = "5")]
         limit: usize,
     },
+
+    /// Submit feedback or check feedback status
+    Feedback {
+        #[command(subcommand)]
+        command: FeedbackCommands,
+    },
     // /// Manage telemetry data and settings
     // Telemetry {
     //     #[command(subcommand)]
     //     command: caro::cli::telemetry::TelemetryCommands,
     // },
+}
+
+/// Feedback subcommands
+#[derive(Parser, Clone)]
+enum FeedbackCommands {
+    /// Submit new feedback
+    Submit {
+        /// Description of the issue (use with --non-interactive)
+        #[arg(short, long)]
+        description: Option<String>,
+
+        /// Run in non-interactive mode (for CI/CD)
+        #[arg(long)]
+        non_interactive: bool,
+    },
+
+    /// Check status of submitted feedback
+    Status {
+        /// Feedback ID (e.g., fb-abc123)
+        id: String,
+    },
+
+    /// List all submitted feedback
+    List {
+        /// Filter by status (submitted, triaged, in_progress, fix_available, resolved)
+        #[arg(short, long)]
+        status: Option<String>,
+
+        /// Maximum number of items to show
+        #[arg(short, long, default_value = "10")]
+        limit: usize,
+    },
 }
 
 /// caro - Convert natural language to shell commands using local LLMs
@@ -780,6 +818,218 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
 }
 
 // =============================================================================
+// Feedback Commands
+// =============================================================================
+
+/// Handle feedback subcommands
+async fn handle_feedback_command(command: FeedbackCommands) -> Result<(), String> {
+    use caro::feedback::{
+        capture_context, redact_context, run_feedback_interface, FeedbackDatabase, FeedbackId,
+        FeedbackStatus, GitHubClient,
+    };
+    use colored::Colorize;
+
+    // Get data directory for feedback storage
+    let data_dir = dirs::data_dir()
+        .unwrap_or_else(|| std::env::current_dir().unwrap())
+        .join("caro")
+        .join("feedback");
+
+    match command {
+        FeedbackCommands::Submit {
+            description,
+            non_interactive,
+        } => {
+            // Capture context (with placeholder values since this is manual submission)
+            let mut context = capture_context(
+                "",           // user_prompt
+                "",           // generated_command
+                "manual",     // backend
+                None,         // error
+                &[],          // command_history
+            )
+            .map_err(|e| format!("Failed to capture context: {}", e))?;
+
+            // Redact sensitive data
+            redact_context(&mut context);
+
+            let feedback = if non_interactive {
+                // Non-interactive mode requires a description
+                let desc = description.ok_or(
+                    "Description is required in non-interactive mode. Use --description <text>"
+                        .to_string(),
+                )?;
+
+                caro::feedback::tui::create_feedback_non_interactive(context, desc, None)
+                    .map_err(|e| format!("Failed to create feedback: {}", e))?
+            } else {
+                // Interactive mode
+                match run_feedback_interface(context) {
+                    Ok(Some(fb)) => fb,
+                    Ok(None) => {
+                        return Ok(()); // User cancelled
+                    }
+                    Err(e) => return Err(format!("Failed to run feedback interface: {}", e)),
+                }
+            };
+
+            // Save to local database
+            let db = FeedbackDatabase::new(&data_dir)
+                .map_err(|e| format!("Failed to open feedback database: {}", e))?;
+
+            db.save(&feedback)
+                .map_err(|e| format!("Failed to save feedback: {}", e))?;
+
+            println!();
+            println!(
+                "{} Feedback saved locally with ID: {}",
+                "✓".green(),
+                feedback.id.to_string().cyan()
+            );
+
+            // Check if GitHub token is available
+            if let Ok(github_token) = std::env::var("GITHUB_TOKEN") {
+                let repo_owner =
+                    std::env::var("CARO_FEEDBACK_REPO_OWNER").unwrap_or_else(|_| "wildcard".to_string());
+                let repo_name =
+                    std::env::var("CARO_FEEDBACK_REPO_NAME").unwrap_or_else(|_| "caro".to_string());
+
+                println!("{}", "Submitting to GitHub...".dimmed());
+
+                match GitHubClient::new(github_token, repo_owner.clone(), repo_name.clone()) {
+                    Ok(client) => {
+                        match client.create_issue(&feedback).await {
+                            Ok(issue_url) => {
+                                // Update feedback with GitHub URL
+                                let mut updated_feedback = feedback;
+                                updated_feedback.github_issue_url = Some(issue_url.clone());
+                                let _ = db.update(&updated_feedback);
+
+                                println!(
+                                    "{} GitHub issue created: {}",
+                                    "✓".green(),
+                                    issue_url.cyan()
+                                );
+                            }
+                            Err(e) => {
+                                eprintln!(
+                                    "{} Failed to create GitHub issue: {}",
+                                    "⚠".yellow(),
+                                    e
+                                );
+                                eprintln!(
+                                    "{}",
+                                    "Feedback saved locally. You can submit later with 'caro feedback status <id>'"
+                                        .dimmed()
+                                );
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("{} GitHub client error: {}", "⚠".yellow(), e);
+                    }
+                }
+            } else {
+                println!();
+                println!(
+                    "{}",
+                    "To submit to GitHub, set GITHUB_TOKEN environment variable".dimmed()
+                );
+            }
+        }
+
+        FeedbackCommands::Status { id } => {
+            let feedback_id = FeedbackId::parse(&id)
+                .map_err(|e| format!("Invalid feedback ID '{}': {}", id, e))?;
+
+            let db = FeedbackDatabase::new(&data_dir)
+                .map_err(|e| format!("Failed to open feedback database: {}", e))?;
+
+            match db.get(&feedback_id).map_err(|e| e.to_string())? {
+                Some(feedback) => {
+                    println!("{}", "Feedback Status".bold());
+                    println!("{}", "─".repeat(40));
+                    println!("  {}: {}", "ID".cyan(), feedback.id);
+                    println!("  {}: {}", "Status".cyan(), feedback.status);
+                    println!("  {}: {}", "Created".cyan(), feedback.timestamp.format("%Y-%m-%d %H:%M:%S UTC"));
+                    println!();
+                    println!("  {}: {}", "Description".cyan(), feedback.user_description);
+
+                    if let Some(url) = &feedback.github_issue_url {
+                        println!();
+                        println!("  {}: {}", "GitHub Issue".cyan(), url);
+                    }
+                }
+                None => {
+                    return Err(format!("Feedback '{}' not found", id));
+                }
+            }
+        }
+
+        FeedbackCommands::List { status, limit } => {
+            let db = FeedbackDatabase::new(&data_dir)
+                .map_err(|e| format!("Failed to open feedback database: {}", e))?;
+
+            let feedbacks = if let Some(status_str) = status {
+                let status: FeedbackStatus = status_str
+                    .parse()
+                    .map_err(|_| format!("Invalid status '{}'. Valid: submitted, triaged, in_progress, fix_available, resolved", status_str))?;
+                db.list_by_status(status)
+                    .map_err(|e| format!("Failed to list feedback: {}", e))?
+            } else {
+                db.get_recent(limit)
+                    .map_err(|e| format!("Failed to list feedback: {}", e))?
+            };
+
+            if feedbacks.is_empty() {
+                println!("{}", "No feedback submissions found.".dimmed());
+                return Ok(());
+            }
+
+            println!("{}", "Feedback Submissions".bold());
+            println!("{}", "─".repeat(80));
+
+            for fb in feedbacks.iter().take(limit) {
+                let status_color = match fb.status {
+                    FeedbackStatus::Submitted => "yellow",
+                    FeedbackStatus::Resolved => "green",
+                    _ => "cyan",
+                };
+                let status_str = match status_color {
+                    "yellow" => format!("{}", fb.status).yellow(),
+                    "green" => format!("{}", fb.status).green(),
+                    _ => format!("{}", fb.status).cyan(),
+                };
+
+                println!(
+                    "  {} [{}] {}",
+                    fb.id.to_string().dimmed(),
+                    status_str,
+                    truncate_string_at(&fb.user_description, 50)
+                );
+            }
+
+            println!();
+            println!(
+                "{}",
+                format!("Showing {} of {} total", feedbacks.len().min(limit), feedbacks.len()).dimmed()
+            );
+        }
+    }
+
+    Ok(())
+}
+
+/// Truncate a string at a given length
+fn truncate_string_at(s: &str, max_len: usize) -> String {
+    if s.len() <= max_len {
+        s.to_string()
+    } else {
+        format!("{}...", &s[..max_len.saturating_sub(3)])
+    }
+}
+
+// =============================================================================
 // Evaluation Tests
 // =============================================================================
 
@@ -1007,6 +1257,15 @@ async fn main() {
         //         }
         //     }
         // }
+        Some(Commands::Feedback { command }) => {
+            match handle_feedback_command(command).await {
+                Ok(()) => process::exit(0),
+                Err(e) => {
+                    eprintln!("Error: {}", e);
+                    process::exit(1);
+                }
+            }
+        }
         None => {
             // Continue to regular command generation
         }
