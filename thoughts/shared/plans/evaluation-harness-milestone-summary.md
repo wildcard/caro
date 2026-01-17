@@ -66,6 +66,8 @@ cargo test --test evaluation -- --compare-prompts v1.0,v1.1,v1.2
 ### Phase 3: Model-Specific Intelligence (Weeks 5-6)
 **Goal**: Build knowledge base of model strengths/weaknesses
 
+**Issue Created**: [#521 - WP12-13: Model-Specific Intelligence](https://github.com/wildcard/caro/issues/521)
+
 **Work Packages**:
 - WP12: Per-Model Analysis
 - WP13: Capability Matrix
@@ -82,6 +84,8 @@ cargo test --test evaluation -- --compare-prompts v1.0,v1.1,v1.2
 
 ### Phase 4: Product Feedback Loops (Weeks 7-8)
 **Goal**: Automated issue creation and pattern extraction
+
+**Issue Created**: [#522 - WP14-15: Product Feedback Loops](https://github.com/wildcard/caro/issues/522)
 
 **Work Packages**:
 - WP14: Automated Issue Creation
@@ -132,6 +136,8 @@ cargo test --test evaluation -- --backend my-finetuned-model
 ### Phase 6: Advanced Analytics & Visualization (Weeks 11-12)
 **Goal**: Decision-making dashboards and historical insights
 
+**Issue Created**: [#523 - WP18-19: Advanced Analytics & Visualization](https://github.com/wildcard/caro/issues/523)
+
 **Work Packages**:
 - WP18: Time-Series Analysis
 - WP19: Interactive Dashboard (Enhanced WP08)
@@ -151,6 +157,8 @@ cargo test --test evaluation -- --backend my-finetuned-model
 ### Phase 7: Test Coverage & Quality (Weeks 13-14)
 **Goal**: Maximize test case coverage and quality
 
+**Issue Created**: [#524 - WP20-21: Test Coverage & Quality](https://github.com/wildcard/caro/issues/524)
+
 **Work Packages**:
 - WP20: Automated Test Generation
 - WP21: Test Case Quality Metrics
@@ -168,6 +176,8 @@ cargo test --test evaluation -- --backend my-finetuned-model
 
 ### Phase 8: Performance & Cost Optimization (Weeks 15-16)
 **Goal**: Optimize for token efficiency and cost
+
+**Issue Created**: [#525 - WP22-23: Performance & Cost Optimization](https://github.com/wildcard/caro/issues/525)
 
 **Work Packages**:
 - WP22: Token Efficiency Analysis
@@ -268,11 +278,16 @@ cargo test --test evaluation -- --backend my-finetuned-model
    - [#516](https://github.com/wildcard/caro/issues/516) - WP09: Multi-Backend CI Matrix
    - [#517](https://github.com/wildcard/caro/issues/517) - WP10-11: Prompt Engineering Framework
    - [#518](https://github.com/wildcard/caro/issues/518) - WP16-17: Fine-Tuning Integration
+   - [#521](https://github.com/wildcard/caro/issues/521) - WP12-13: Model-Specific Intelligence
+   - [#522](https://github.com/wildcard/caro/issues/522) - WP14-15: Product Feedback Loops
+   - [#523](https://github.com/wildcard/caro/issues/523) - WP18-19: Advanced Analytics & Visualization
+   - [#524](https://github.com/wildcard/caro/issues/524) - WP20-21: Test Coverage & Quality
+   - [#525](https://github.com/wildcard/caro/issues/525) - WP22-23: Performance & Cost Optimization
 
 3. **GitHub Milestone**: [#11](https://github.com/wildcard/caro/milestone/11)
    - 16-week timeline
    - Due: May 16, 2026
-   - 3 issues created (more to come)
+   - **8 issues created (all 15 work packages covered)**
 
 ---
 
