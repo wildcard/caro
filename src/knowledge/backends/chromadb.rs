@@ -450,7 +450,7 @@ mod tests {
     #[tokio::test]
     #[ignore] // Requires ChromaDB server
     async fn test_chromadb_health() {
-        let backend = ChromaDbBackend::new("http://localhost:8000", None)
+        let backend = ChromaDbBackend::new("http://localhost:8000", None, None)
             .await
             .expect("Failed to create ChromaDB backend");
 
@@ -460,7 +460,7 @@ mod tests {
     #[tokio::test]
     #[ignore] // Requires ChromaDB server
     async fn test_chromadb_record_and_search() {
-        let backend = ChromaDbBackend::new("http://localhost:8000", None)
+        let backend = ChromaDbBackend::new("http://localhost:8000", None, None)
             .await
             .expect("Failed to create ChromaDB backend");
 

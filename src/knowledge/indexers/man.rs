@@ -26,8 +26,8 @@ impl ManPageIndexer {
     /// Create a new man page indexer
     ///
     /// # Arguments
-    /// * `sections` - Man page sections to index (e.g., vec![1, 8] for user commands and admin)
-    ///                If empty, indexes all sections.
+    /// * `sections` - Man page sections to index (e.g., vec![1, 8] for user commands and admin).
+    ///   If empty, indexes all sections.
     pub fn new(sections: Vec<u8>) -> Self {
         Self { sections }
     }

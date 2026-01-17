@@ -215,6 +215,9 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-chromadb-cargo-
 
+    - name: Install protobuf
+      run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+
     - name: Wait for ChromaDB to be healthy
       run: |
         for i in {1..30}; do
