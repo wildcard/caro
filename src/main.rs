@@ -181,6 +181,48 @@ enum ConfigCommands {
     Reset,
 }
 
+/// Profile management subcommands
+#[cfg(feature = "knowledge")]
+#[derive(Parser, Clone)]
+#[command(arg_required_else_help = true)]
+enum ProfileCommands {
+    /// Create a new user profile
+    Create {
+        /// Profile name (e.g., "work", "personal-laptop")
+        name: String,
+
+        /// Profile type
+        #[arg(long, value_enum, default_value = "personal")]
+        profile_type: caro::models::profile::ProfileType,
+
+        /// Optional description
+        #[arg(long, short = 'd')]
+        description: Option<String>,
+    },
+
+    /// List all user profiles
+    List,
+
+    /// Switch to a different profile
+    Switch {
+        /// Profile name to switch to
+        name: String,
+    },
+
+    /// Delete a user profile
+    Delete {
+        /// Profile name to delete
+        name: String,
+
+        /// Skip confirmation prompt
+        #[arg(long)]
+        force: bool,
+    },
+
+    /// Show the currently active profile
+    Show,
+}
+
 /// Knowledge index management subcommands
 #[cfg(feature = "knowledge")]
 #[derive(Parser, Clone)]
@@ -265,6 +307,13 @@ enum Commands {
     Knowledge {
         #[command(subcommand)]
         command: KnowledgeCommands,
+    },
+
+    /// Manage user profiles for personalized knowledge (requires --features knowledge)
+    #[cfg(feature = "knowledge")]
+    Profile {
+        #[command(subcommand)]
+        command: ProfileCommands,
     },
 
     // NOTE: Assess and Telemetry subcommands are disabled in v1.1.0-beta.1
@@ -1123,6 +1172,175 @@ async fn handle_knowledge_command(
     }
 }
 
+/// Handle profile subcommands
+#[cfg(feature = "knowledge")]
+async fn handle_profile_command(command: ProfileCommands) -> Result<(), String> {
+    use caro::config::ConfigManager;
+    use caro::models::profile::{ProfileConfig, UserProfile};
+    use colored::Colorize;
+    use std::io::{self, Write};
+
+    let config_manager =
+        ConfigManager::new().map_err(|e| format!("Failed to create config manager: {}", e))?;
+    let config_dir = config_manager
+        .config_path()
+        .parent()
+        .ok_or_else(|| "Invalid config path".to_string())?;
+    let profile_path = config_dir.join("profiles.toml");
+
+    let mut profile_config = if profile_path.exists() {
+        let content = std::fs::read_to_string(&profile_path)
+            .map_err(|e| format!("Failed to read profiles: {}", e))?;
+        toml::from_str(&content).map_err(|e| format!("Failed to parse profiles: {}", e))?
+    } else {
+        ProfileConfig::new()
+    };
+
+    match command {
+        ProfileCommands::Create {
+            name,
+            profile_type,
+            description,
+        } => {
+            println!("{} Creating profile: {}", "►".cyan(), name.bold());
+
+            let mut profile = UserProfile::new(name.clone(), profile_type);
+            if let Some(desc) = description {
+                profile.description = Some(desc);
+            }
+
+            profile_config
+                .add_profile(profile)
+                .map_err(|e| format!("{}", e))?;
+
+            let content = toml::to_string_pretty(&profile_config)
+                .map_err(|e| format!("Failed to serialize profiles: {}", e))?;
+            std::fs::create_dir_all(config_dir)
+                .map_err(|e| format!("Failed to create config directory: {}", e))?;
+            std::fs::write(&profile_path, content)
+                .map_err(|e| format!("Failed to write profiles: {}", e))?;
+
+            println!(
+                "{} Profile created: {} ({})",
+                "✓".green(),
+                name.bold(),
+                profile_type
+            );
+            Ok(())
+        }
+
+        ProfileCommands::List => {
+            if profile_config.profiles.is_empty() {
+                println!("{} No profiles found", "✗".yellow());
+                println!("  Create a profile with: caro profile create <name>");
+                return Ok(());
+            }
+
+            println!("{} User Profiles:", "►".cyan());
+            println!();
+
+            for profile in &profile_config.profiles {
+                let active_marker =
+                    if Some(&profile.name) == profile_config.active_profile.as_ref() {
+                        " (active)".green()
+                    } else {
+                        "".normal()
+                    };
+
+                println!(
+                    "  {} {}{}",
+                    "●".cyan(),
+                    profile.name.bold(),
+                    active_marker
+                );
+                println!("    Type: {}", profile.profile_type);
+                if let Some(desc) = &profile.description {
+                    println!("    Description: {}", desc);
+                }
+                println!("    Created: {}", profile.created.format("%Y-%m-%d %H:%M"));
+                if let Some(last_used) = profile.last_used {
+                    println!("    Last used: {}", last_used.format("%Y-%m-%d %H:%M"));
+                }
+                println!("    Commands: {}", profile.command_count);
+                println!();
+            }
+
+            Ok(())
+        }
+
+        ProfileCommands::Switch { name } => {
+            println!("{} Switching to profile: {}", "►".cyan(), name.bold());
+
+            profile_config
+                .switch_profile(&name)
+                .map_err(|e| format!("{}", e))?;
+
+            let content = toml::to_string_pretty(&profile_config)
+                .map_err(|e| format!("Failed to serialize profiles: {}", e))?;
+            std::fs::write(&profile_path, content)
+                .map_err(|e| format!("Failed to write profiles: {}", e))?;
+
+            println!("{} Switched to profile: {}", "✓".green(), name.bold());
+            Ok(())
+        }
+
+        ProfileCommands::Delete { name, force } => {
+            if !force {
+                print!(
+                    "{} Delete profile '{}'? [y/N]: ",
+                    "?".yellow(),
+                    name
+                );
+                io::stdout().flush().ok();
+
+                let mut response = String::new();
+                io::stdin().read_line(&mut response).ok();
+
+                if !response.trim().eq_ignore_ascii_case("y") {
+                    println!("{} Deletion cancelled", "✗".yellow());
+                    return Ok(());
+                }
+            }
+
+            profile_config
+                .remove_profile(&name)
+                .map_err(|e| format!("{}", e))?;
+
+            let content = toml::to_string_pretty(&profile_config)
+                .map_err(|e| format!("Failed to serialize profiles: {}", e))?;
+            std::fs::write(&profile_path, content)
+                .map_err(|e| format!("Failed to write profiles: {}", e))?;
+
+            println!("{} Profile deleted: {}", "✓".green(), name.bold());
+            Ok(())
+        }
+
+        ProfileCommands::Show => {
+            if let Some(active_name) = &profile_config.active_profile {
+                if let Some(profile) = profile_config.get_active() {
+                    println!("{} Active Profile: {}", "►".cyan(), active_name.bold());
+                    println!();
+                    println!("  Type: {}", profile.profile_type);
+                    if let Some(desc) = &profile.description {
+                        println!("  Description: {}", desc);
+                    }
+                    println!("  Created: {}", profile.created.format("%Y-%m-%d %H:%M"));
+                    if let Some(last_used) = profile.last_used {
+                        println!("  Last used: {}", last_used.format("%Y-%m-%d %H:%M"));
+                    }
+                    println!("  Commands: {}", profile.command_count);
+                } else {
+                    println!("{} Active profile not found: {}", "✗".red(), active_name);
+                }
+            } else {
+                println!("{} No active profile", "✗".yellow());
+                println!("  Switch to a profile with: caro profile switch <name>");
+            }
+            Ok(())
+        }
+    }
+}
+
 // =============================================================================
 // Evaluation Tests
 // =============================================================================
@@ -1293,6 +1511,16 @@ async fn main() {
             );
 
             match handle_knowledge_command(command, backend_config).await {
+                Ok(()) => process::exit(0),
+                Err(e) => {
+                    eprintln!("Error: {}", e);
+                    process::exit(1);
+                }
+            }
+        }
+        #[cfg(feature = "knowledge")]
+        Some(Commands::Profile { command }) => {
+            match handle_profile_command(command).await {
                 Ok(()) => process::exit(0),
                 Err(e) => {
                     eprintln!("Error: {}", e);
