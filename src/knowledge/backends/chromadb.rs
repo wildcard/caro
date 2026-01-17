@@ -134,7 +134,7 @@ impl ChromaDbBackend {
             let entry_type = metadata
                 .get("entry_type")
                 .and_then(|v| v.as_str())
-                .and_then(|s| EntryType::parse(s))
+                .and_then(EntryType::parse)
                 .unwrap_or(EntryType::Success);
 
             let request = metadata
@@ -299,7 +299,7 @@ impl VectorBackend for ChromaDbBackend {
         let documents = results.documents
             .as_ref()
             .and_then(|docs| docs.first())
-            .map(|doc_vec| doc_vec.clone())
+            .cloned()
             .unwrap_or_default();
 
         let metadatas = results.metadatas
@@ -311,7 +311,7 @@ impl VectorBackend for ChromaDbBackend {
         let distances = results.distances
             .as_ref()
             .and_then(|dists| dists.first())
-            .map(|dist_vec| dist_vec.clone())
+            .cloned()
             .unwrap_or_else(|| vec![0.0; ids.len()]);
 
         Self::parse_results(ids, documents, metadatas, distances)
