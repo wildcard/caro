@@ -10,10 +10,12 @@
 //! - ChromaDB (optional) - Server-based for team sharing and cloud deployments
 
 pub mod backends;
+pub mod collections;
 mod embedder;
 mod index;
 mod schema;
 
+pub use collections::{CollectionInfo, CollectionType, QueryScope};
 pub use embedder::Embedder;
 pub use index::{KnowledgeEntry, KnowledgeIndex, KnowledgeStats};
 pub use schema::EntryType;
