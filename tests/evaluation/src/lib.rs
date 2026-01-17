@@ -33,11 +33,14 @@
 //! # }
 //! ```
 
+pub mod capability_matrix;
 pub mod dataset;
 pub mod evaluator;
 pub mod executor;
+pub mod model_profiling;
 pub mod posix_checker;
 pub mod prompt_comparison;
 pub mod prompts;
 pub mod reporter;
 pub mod safety_validator;
+pub mod test_runner;

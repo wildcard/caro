@@ -441,6 +441,9 @@ impl std::fmt::Display for RiskLevel {
 
 impl RiskLevel {
     /// Parse risk level from string (used for test datasets)
+    ///
+    /// Prefer using `str::parse()` or `FromStr::from_str()` trait method.
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(s: &str) -> Self {
         match s.to_lowercase().as_str() {
             "safe" => RiskLevel::Safe,
