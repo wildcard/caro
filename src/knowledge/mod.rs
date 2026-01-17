@@ -5,14 +5,17 @@
 //! - Agentic loop corrections
 //! - Project-specific patterns
 //!
-//! Uses LanceDB (embedded) and FastEmbed (sentence transformers).
+//! Supports multiple vector backends:
+//! - LanceDB (embedded, default) - Zero-config local-first storage
+//! - ChromaDB (optional) - Server-based for team sharing and cloud deployments
 
+pub mod backends;
 mod embedder;
 mod index;
 mod schema;
 
 pub use embedder::Embedder;
-pub use index::{KnowledgeEntry, KnowledgeIndex};
+pub use index::{KnowledgeEntry, KnowledgeIndex, KnowledgeStats};
 pub use schema::EntryType;
 
 use std::path::PathBuf;
