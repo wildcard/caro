@@ -7,8 +7,9 @@
 //! Run tests with:
 //!   cargo test --features chromadb --test chromadb_integration -- --ignored --nocapture --test-threads=1
 //!
-//! Note: Tests must run serially (--test-threads=1) because they all use the same
-//! collection name and interfere with each other when run in parallel.
+//! IMPORTANT: Tests must run serially (--test-threads=1) because they all use the same
+//! collection name ("caro_commands") and interfere with each other when run in parallel.
+//! See issue #537 for work to enable parallel test execution with unique collection names.
 
 #[cfg(feature = "chromadb")]
 mod chromadb_tests {

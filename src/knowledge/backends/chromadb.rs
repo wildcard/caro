@@ -228,7 +228,9 @@ impl VectorBackend for ChromaDbBackend {
         };
 
         let coll_guard = self.collection.read().await;
-        let collection = coll_guard.as_ref().unwrap(); // Safe: ensure_collection just succeeded
+        let collection = coll_guard.as_ref().ok_or_else(|| {
+            KnowledgeError::Database("Collection not initialized after ensure_collection".into())
+        })?;
 
         collection
             .add(entries, None)
@@ -268,7 +270,9 @@ impl VectorBackend for ChromaDbBackend {
         };
 
         let coll_guard = self.collection.read().await;
-        let collection = coll_guard.as_ref().unwrap(); // Safe: ensure_collection just succeeded
+        let collection = coll_guard.as_ref().ok_or_else(|| {
+            KnowledgeError::Database("Collection not initialized after ensure_collection".into())
+        })?;
 
         collection
             .add(entries, None)
@@ -413,7 +417,9 @@ impl VectorBackend for ChromaDbBackend {
         };
 
         let coll_guard = self.collection.read().await;
-        let collection = coll_guard.as_ref().unwrap(); // Safe: ensure_collection just succeeded
+        let collection = coll_guard.as_ref().ok_or_else(|| {
+            KnowledgeError::Database("Collection not initialized after ensure_collection".into())
+        })?;
 
         collection
             .add(entries, None)

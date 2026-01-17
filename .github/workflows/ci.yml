@@ -174,6 +174,79 @@ jobs:
         RUST_BACKTRACE: 1
 
   # ============================================================================
+  # Tier A: ChromaDB Integration Tests
+  # ============================================================================
+
+  chromadb-integration:
+    name: ChromaDB Integration Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+
+    services:
+      chromadb:
+        image: chromadb/chroma:0.5.18
+        ports:
+          - 8000:8000
+        env:
+          IS_PERSISTENT: "TRUE"
+          ALLOW_RESET: "true"
+        options: >-
+          --health-cmd "curl -f http://localhost:8000/api/v1/heartbeat || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@v1
+      with:
+        toolchain: stable
+
+    - name: Cache cargo
+      uses: actions/cache@v5
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-chromadb-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-chromadb-cargo-
+
+    - name: Wait for ChromaDB to be healthy
+      run: |
+        for i in {1..30}; do
+          if curl -f http://localhost:8000/api/v1/heartbeat; then
+            echo "✅ ChromaDB is healthy"
+            exit 0
+          fi
+          echo "Waiting for ChromaDB... ($i/30)"
+          sleep 2
+        done
+        echo "❌ ChromaDB failed to become healthy"
+        exit 1
+
+    - name: Run ChromaDB integration tests
+      run: |
+        cargo test --features chromadb --test chromadb_integration -- --ignored --nocapture --test-threads=1
+      env:
+        RUST_BACKTRACE: 1
+        RUST_LOG: info
+        CHROMADB_URL: http://localhost:8000
+
+    - name: Upload logs on failure
+      if: failure()
+      uses: actions/upload-artifact@v6
+      with:
+        name: chromadb-test-logs
+        path: |
+          target/
+          *.log
+        retention-days: 7
+
+  # ============================================================================
   # Tier B: Extended Model Matrix (Nightly / Manual)
   # ============================================================================
 

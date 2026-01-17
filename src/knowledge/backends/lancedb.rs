@@ -50,7 +50,10 @@ impl LanceDbBackend {
 
         // Connect to LanceDB
         let db_path = path.join("vectors.lance");
-        let db = connect(db_path.to_str().unwrap())
+        let db_path_str = db_path.to_str().ok_or_else(|| {
+            KnowledgeError::Database(format!("Invalid UTF-8 in path: {:?}", db_path))
+        })?;
+        let db = connect(db_path_str)
             .execute()
             .await
             .map_err(|e| KnowledgeError::Database(e.to_string()))?;

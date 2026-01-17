@@ -545,6 +545,59 @@ model_name = "codellama/CodeLlama-7b-hf"
 api_key = "optional-api-key"
 ```
 
+#### Knowledge Backend (Optional)
+
+caro can use vector databases to learn from your command history and provide smarter suggestions. Two backends are supported:
+
+##### LanceDB (Default)
+- **Embedded database** - No external dependencies
+- Automatically stores command history locally
+- Works offline with zero configuration
+
+##### ChromaDB (Server-based)
+
+**Requirements:**
+- ChromaDB server **0.5.18 or later** (0.4.x not supported)
+- Build with `--features chromadb`
+
+**Why 0.5.18+?**
+The chromadb-rs v2.3.0 crate requires `/api/v2` endpoints which were added in ChromaDB 0.5.x.
+
+**Quick Start:**
+
+```bash
+# Start ChromaDB server
+docker run -p 8000:8000 chromadb/chroma:0.5.18
+
+# Build caro with ChromaDB support
+cargo build --features chromadb --release
+
+# Use ChromaDB backend
+caro --knowledge-backend chromadb "list files"
+```
+
+**Configuration:**
+
+```bash
+# Via environment variable
+export CHROMADB_URL=http://localhost:8000
+export CHROMADB_AUTH_TOKEN=your-token-here
+
+# Or via config file (~/.config/caro/config.toml)
+[knowledge]
+backend = "chromadb"
+
+[knowledge.chromadb]
+url = "http://localhost:8000"
+auth_token = "your-token-here"  # Optional - for production deployments
+```
+
+**Use Cases:**
+- Team knowledge sharing (shared ChromaDB server)
+- Cloud deployments (Chroma Cloud, self-hosted)
+- Advanced query capabilities
+- Scalability for large command histories
+
 ### Project Configuration
 
 The project uses several configuration files:
