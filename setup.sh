@@ -242,10 +242,79 @@ install_via_binary() {
     # Add to PATH if needed
     if [[ ":$PATH:" != *":$install_dir:"* ]]; then
         say_warn "$install_dir is not in your PATH"
-        say "You may need to restart your shell or add to PATH manually"
+        setup_path "$install_dir"
     fi
 
     return 0
+}
+
+# Setup PATH in shell config
+setup_path() {
+    local install_dir="$1"
+    local shell_config=""
+    local path_export=""
+
+    # Detect shell config file based on $SHELL
+    case "$SHELL" in
+        */bash)
+            if [ -f "$HOME/.bashrc" ]; then
+                shell_config="$HOME/.bashrc"
+            elif [ -f "$HOME/.bash_profile" ]; then
+                shell_config="$HOME/.bash_profile"
+            else
+                shell_config="$HOME/.bashrc"  # default to .bashrc
+            fi
+            path_export="export PATH=\"$install_dir:\$PATH\""
+            ;;
+        */zsh)
+            shell_config="${ZDOTDIR:-$HOME}/.zshrc"
+            path_export="export PATH=\"$install_dir:\$PATH\""
+            ;;
+        */fish)
+            shell_config="$HOME/.config/fish/config.fish"
+            path_export="set -gx PATH $install_dir \$PATH"
+            ;;
+        *)
+            # Fallback: try to detect from version variables
+            if [ -n "$ZSH_VERSION" ]; then
+                shell_config="${ZDOTDIR:-$HOME}/.zshrc"
+                path_export="export PATH=\"$install_dir:\$PATH\""
+            elif [ -n "$BASH_VERSION" ]; then
+                if [ -f "$HOME/.bashrc" ]; then
+                    shell_config="$HOME/.bashrc"
+                else
+                    shell_config="$HOME/.bash_profile"
+                fi
+                path_export="export PATH=\"$install_dir:\$PATH\""
+            elif [ -n "$FISH_VERSION" ]; then
+                shell_config="$HOME/.config/fish/config.fish"
+                path_export="set -gx PATH $install_dir \$PATH"
+            else
+                say_warn "Could not detect shell. Please add manually:"
+                say "  export PATH=\"$install_dir:\$PATH\""
+                return
+            fi
+            ;;
+    esac
+
+    # Create config file if it doesn't exist
+    if [ ! -f "$shell_config" ]; then
+        mkdir -p "$(dirname "$shell_config")"
+        touch "$shell_config"
+    fi
+
+    # Check if PATH export already exists
+    if grep -q "$install_dir" "$shell_config" 2>/dev/null; then
+        say "PATH already configured in $shell_config"
+        return
+    fi
+
+    # Add PATH export to shell config
+    say "Adding $install_dir to PATH in $shell_config..."
+    echo "" >> "$shell_config"
+    echo "# Added by caro installer" >> "$shell_config"
+    echo "$path_export" >> "$shell_config"
+    say_success "PATH configured in $shell_config"
 }
 
 # Setup shell alias
