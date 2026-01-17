@@ -1,0 +1,119 @@
+{
+  "name": "correctness_file_operations",
+  "version": "1.0.0",
+  "description": "Basic file operation commands for correctness evaluation",
+  "test_cases": [
+    {
+      "id": "correctness_file_001",
+      "prompt": "list all files in the current directory",
+      "expected_command": "ls",
+      "category": "file_operations",
+      "risk_level": "safe",
+      "posix_compliant": true,
+      "tags": ["basic", "ls", "listing"]
+    },
+    {
+      "id": "correctness_file_002",
+      "prompt": "show hidden files",
+      "expected_command": "ls -a",
+      "category": "file_operations",
+      "risk_level": "safe",
+      "posix_compliant": true,
+      "tags": ["basic", "ls", "hidden", "dotfiles"]
+    },
+    {
+      "id": "correctness_file_003",
+      "prompt": "list files with detailed information",
+      "expected_command": "ls -l",
+      "category": "file_operations",
+      "risk_level": "safe",
+      "posix_compliant": true,
+      "tags": ["basic", "ls", "long-format", "details"]
+    },
+    {
+      "id": "correctness_file_004",
+      "prompt": "list files sorted by modification time",
+      "expected_command": "ls -lt",
+      "category": "file_operations",
+      "risk_level": "safe",
+      "posix_compliant": true,
+      "tags": ["basic", "ls", "sorting", "time"]
+    },
+    {
+      "id": "correctness_file_005",
+      "prompt": "find all text files in current directory",
+      "expected_command": "find . -name \"*.txt\"",
+      "category": "file_operations",
+      "risk_level": "safe",
+      "posix_compliant": true,
+      "tags": ["find", "search", "pattern-matching"]
+    },
+    {
+      "id": "correctness_file_006",
+      "prompt": "count the number of files in the current directory",
+      "expected_command": "ls -1 | wc -l",
+      "category": "file_operations",
+      "risk_level": "safe",
+      "posix_compliant": true,
+      "tags": ["count", "wc", "piping"]
+    },
+    {
+      "id": "correctness_file_007",
+      "prompt": "show the current working directory",
+      "expected_command": "pwd",
+      "category": "file_operations",
+      "risk_level": "safe",
+      "posix_compliant": true,
+      "tags": ["basic", "pwd", "navigation"]
+    },
+    {
+      "id": "correctness_file_008",
+      "prompt": "create a new directory named 'backup'",
+      "expected_command": "mkdir backup",
+      "category": "file_operations",
+      "risk_level": "safe",
+      "posix_compliant": true,
+      "tags": ["mkdir", "directory", "creation"]
+    },
+    {
+      "id": "correctness_file_009",
+      "prompt": "copy file.txt to file_backup.txt",
+      "expected_command": "cp file.txt file_backup.txt",
+      "category": "file_operations",
+      "risk_level": "low",
+      "posix_compliant": true,
+      "tags": ["cp", "copy", "backup"]
+    },
+    {
+      "id": "correctness_file_010",
+      "prompt": "move file.txt to the documents folder",
+      "expected_command": "mv file.txt documents/",
+      "category": "file_operations",
+      "risk_level": "medium",
+      "posix_compliant": true,
+      "tags": ["mv", "move", "relocation"],
+      "metadata": {
+        "equivalence_rules": [
+          "mv file.txt documents/file.txt is equivalent",
+          "mv file.txt ./documents/ is equivalent"
+        ],
+        "notes": "Trailing slash on directory is optional but conventional"
+      }
+    }
+  ],
+  "created_at": "2026-01-08T00:00:00Z",
+  "metadata": {
+    "author": "caro-team",
+    "total_cases": 10,
+    "categories": {
+      "file_operations": 10
+    },
+    "risk_distribution": {
+      "safe": 8,
+      "low": 1,
+      "medium": 1
+    },
+    "posix_coverage": 1.0,
+    "source": "manual_curation"
+  }
+}
