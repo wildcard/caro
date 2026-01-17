@@ -87,6 +87,8 @@ This project is **generally available** with all core features implemented, test
 ### Installation
 
 #### Option 1: Quick Install Script (Recommended)
+
+**macOS / Linux / WSL:**
 ```bash
 curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
 ```
@@ -96,11 +98,17 @@ Or with wget:
 wget -qO- https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
 ```
 
+**Windows PowerShell:**
+```powershell
+irm https://raw.githubusercontent.com/wildcard/caro/main/install.ps1 | iex
+```
+
 **What it does:**
-- **With Rust/Cargo**: Installs via cargo with MLX optimization on Apple Silicon
-- **Without Rust**: Downloads pre-built binary from GitHub releases (fast!)
+- Downloads the latest binary for your platform
+- Installs to a standard location (`~/.local/bin` on Unix, `%LOCALAPPDATA%\caro\bin` on Windows)
+- Adds to your PATH automatically
 - Verifies SHA256 checksums for security
-- Configures your PATH automatically
+- On Apple Silicon: builds with MLX optimization if Cargo is available
 
 #### Option 2: Pre-built Binaries (Fast, No Compilation)
 
@@ -116,7 +124,7 @@ Download the latest release for your platform from [GitHub Releases](https://git
 
 > 💡 **Tip**: Visit the [releases page](https://github.com/wildcard/caro/releases/latest) for the latest version.
 
-**Manual Installation:**
+**Manual Installation (macOS/Linux):**
 ```bash
 # Example for macOS Apple Silicon (v1.1.1)
 curl -fsSL https://github.com/wildcard/caro/releases/download/v1.1.1/caro-1.1.1-macos-silicon -o caro
@@ -126,6 +134,26 @@ sudo mv caro /usr/local/bin/
 # Verify installation
 caro --version
 ```
+
+**Manual Installation (Windows PowerShell):**
+```powershell
+# Create installation directory
+$installDir = "$env:LOCALAPPDATA\caro\bin"
+New-Item -ItemType Directory -Force -Path $installDir
+
+# Download binary (v1.1.1 example)
+$version = "1.1.1"
+Invoke-WebRequest -Uri "https://github.com/wildcard/caro/releases/download/v$version/caro-$version-windows-amd64.exe" -OutFile "$installDir\caro.exe"
+
+# Add to PATH (run once)
+$userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+[Environment]::SetEnvironmentVariable("Path", "$userPath;$installDir", "User")
+
+# Open new PowerShell and verify
+caro --version
+```
+
+> **Windows users**: See the [Windows Setup Guide](docs/WINDOWS_SETUP.md) for detailed instructions, troubleshooting, and shell configuration.
 
 **Checksum Verification:**
 Each binary includes a SHA256 checksum file (`.sha256`). Verify before installing:
@@ -208,15 +236,27 @@ cargo build --release
 
 #### Windows
 
-```bash
-# Install Rust from https://rustup.rs
-# Install CMake from https://cmake.org/download/
+For complete Windows setup instructions, see the [Windows Setup Guide](docs/WINDOWS_SETUP.md).
+
+**Quick Install (PowerShell):**
+```powershell
+irm https://raw.githubusercontent.com/wildcard/caro/main/install.ps1 | iex
+```
+
+**Building from Source:**
+```powershell
+# Prerequisites: Install Rust from https://rustup.rs
+# Prerequisites: Install Visual Studio Build Tools with "Desktop development with C++"
 
 # Clone and build
 git clone https://github.com/wildcard/caro.git
 cd caro
 cargo build --release
+
+# Binary at: .\target\release\caro.exe
 ```
+
+> **Note:** Caro auto-detects PowerShell and generates native Windows commands. Use `--shell bash` if you need POSIX commands for WSL/Git Bash.
 
 ### Building from Source
 
