@@ -1,0 +1,113 @@
+---
+session: chromadb-integration
+date: 2026-01-16
+status: partial
+outcome: PARTIAL_PLUS
+---
+
+goal: ChromaDB integration epic - Phases 1-3 complete (trait abstraction, ChromaDB backend, multi-collection schema)
+now: Implement Phase 4 (multi-source indexing) - ManPageIndexer, TldrIndexer, HelpIndexer
+test: cargo test --features chromadb && cargo build --features chromadb
+
+done_this_session:
+  - task: "Phase 1: VectorBackend trait abstraction (commit 130912dc)"
+    files: [src/knowledge/backends/mod.rs, src/knowledge/backends/lancedb.rs, src/knowledge/index.rs, src/knowledge/mod.rs]
+  - task: "Phase 2: ChromaDB backend implementation (commit 6ce92370)"
+    files: [Cargo.toml, Cargo.lock, src/knowledge/backends/chromadb.rs, src/models/mod.rs, src/main.rs, src/cli/mod.rs]
+  - task: "Phase 3: Multi-collection schema foundation (commit f22070b5)"
+    files: [src/knowledge/collections.rs, src/knowledge/mod.rs]
+  - task: "Created GitHub epic #504 with sub-issues #505-508"
+    files: []
+
+blockers: []
+
+questions:
+  - "Should ChromaDB backend auto-create collections on first use or require explicit initialization?"
+  - "What priority order for multi-source indexing? (man pages first vs tldr first vs parallel)"
+
+decisions:
+  - trait_abstraction: "Used async_trait for VectorBackend to support both LanceDB (embedded) and ChromaDB (server-based) with identical API"
+  - backend_storage: "ChromaDB uses HashMap metadata vs LanceDB Arrow schema - both store same KnowledgeEntry fields"
+  - feature_gating: "Made ChromaDB optional via --features chromadb to avoid dependency bloat for local-only users"
+  - collection_schema: "Implemented 5 collections from original PR #40: Commands, Corrections, Docs, Preferences, Context"
+  - commit_strategy: "Separated Phase 2 and Phase 3 into distinct commits for cleaner history"
+
+findings:
+  - chromadb_sdk: "Chroma Rust SDK v0.12.0 is client-only, requires external server (local or cloud)"
+  - lancedb_benefits: "LanceDB remains default due to zero-config embedded architecture"
+  - chromadb_benefits: "ChromaDB enables team knowledge sharing and cloud deployments"
+  - metadata_approach: "ChromaDB metadata HashMap is more flexible than Arrow schema for evolving fields"
+  - collection_queries: "QueryScope pattern enables targeted searches (UserContent, Documentation, Personalization)"
+
+worked:
+  - "Arc<dyn VectorBackend> for runtime polymorphism between backends"
+  - "Feature-gated compilation prevents ChromaDB dependency when not needed"
+  - "Preserved existing KnowledgeIndex API - zero breaking changes"
+  - "Full worktree isolation in .worktrees/chromadb-integration"
+  - "git add -f to force-add files caught by .gitignore patterns"
+
+failed:
+  - "Initial file creation went to main workspace instead of worktree - fixed with full paths"
+  - "Safety pattern validation gave false positives on commits (no actual pattern changes)"
+
+next:
+  - "Phase 4: Multi-source indexing - create src/knowledge/indexers/ module"
+  - "Implement Indexer trait with index(), update(), stats() methods"
+  - "ManPageIndexer: Parse man pages into Docs collection"
+  - "TldrIndexer: Index tldr pages into Docs collection"
+  - "HelpIndexer: Index --help output into Docs collection"
+  - "Add CLI commands: caro knowledge index man|tldr|help"
+  - "Docker-based integration tests for ChromaDB backend"
+  - "Update GitHub issues #505, #506 as complete, start #507"
+
+files:
+  created:
+    - src/knowledge/backends/mod.rs
+    - src/knowledge/backends/lancedb.rs
+    - src/knowledge/backends/chromadb.rs
+    - src/knowledge/collections.rs
+    - src/models/mod.rs
+  modified:
+    - Cargo.toml (added chroma dependency, chromadb feature)
+    - Cargo.lock (dependency updates)
+    - src/knowledge/index.rs (refactored to use VectorBackend)
+    - src/knowledge/mod.rs (added backends and collections modules)
+    - src/main.rs (added --knowledge-backend CLI flag)
+    - src/cli/mod.rs (added knowledge_backend method to IntoCliArgs)
+
+commits:
+  - hash: 130912dc
+    message: "Phase 1: VectorBackend trait abstraction and LanceDB refactor"
+    phase: 1
+  - hash: 6ce92370
+    message: "Phase 2: ChromaDB backend implementation with metadata storage"
+    phase: 2
+  - hash: f22070b5
+    message: "Phase 3: Multi-collection schema foundation"
+    phase: 3
+
+github:
+  epic: "#504 ChromaDB Integration"
+  issues:
+    - "#505 Phase 2: ChromaDB Backend Implementation (COMPLETE)"
+    - "#506 Phase 3: Multi-Collection Schema (COMPLETE)"
+    - "#507 Phase 4: Multi-Source Indexing (NEXT)"
+    - "#508 Phase 5: User Profiles & Cloud Features"
+
+architecture:
+  - "VectorBackend trait: async_trait with 6 methods (record_success, record_correction, find_similar, stats, clear, is_healthy)"
+  - "LanceDbBackend: Embedded Arrow-based storage, default backend"
+  - "ChromaDbBackend: Server-based metadata storage, optional via feature flag"
+  - "CollectionType enum: 5 specialized collections for targeted knowledge storage"
+  - "QueryScope enum: Flexible search targeting (Single, All, UserContent, Documentation, Personalization)"
+  - "KnowledgeConfig: Runtime backend selection via CLI or config file"
+
+worktree:
+  path: .worktrees/chromadb-integration
+  branch: feature/chromadb-integration
+  parent_branch: main
+
+verification:
+  - "cargo test --features knowledge (305 tests pass)"
+  - "cargo build --features chromadb (compiles successfully)"
+  - "All Phase 1-3 acceptance criteria met"
