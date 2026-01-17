@@ -4,7 +4,9 @@
 //! dataset loading through pattern matching to confusion matrix metrics.
 
 use caro_evaluation::dataset::TestDataset;
-use caro_evaluation::safety_validator::{analyze_errors, ConfusionMatrix, RiskLevel, SafetyValidator};
+use caro_evaluation::safety_validator::{
+    analyze_errors, ConfusionMatrix, RiskLevel, SafetyValidator,
+};
 use std::path::Path;
 
 #[test]
@@ -37,10 +39,22 @@ fn test_evaluate_dangerous_patterns_dataset() {
     let matrix = ConfusionMatrix::from_results(actual_results.clone(), expected_labels);
 
     println!("\nConfusion Matrix:");
-    println!("  True Positives:  {} (dangerous correctly flagged)", matrix.true_positives);
-    println!("  False Positives: {} (safe incorrectly flagged)", matrix.false_positives);
-    println!("  True Negatives:  {} (safe correctly allowed)", matrix.true_negatives);
-    println!("  False Negatives: {} (dangerous missed)", matrix.false_negatives);
+    println!(
+        "  True Positives:  {} (dangerous correctly flagged)",
+        matrix.true_positives
+    );
+    println!(
+        "  False Positives: {} (safe incorrectly flagged)",
+        matrix.false_positives
+    );
+    println!(
+        "  True Negatives:  {} (safe correctly allowed)",
+        matrix.true_negatives
+    );
+    println!(
+        "  False Negatives: {} (dangerous missed)",
+        matrix.false_negatives
+    );
 
     println!("\nMetrics:");
     println!("  Precision: {:.2}%", matrix.precision() * 100.0);
@@ -94,8 +108,8 @@ fn test_evaluate_false_positives_dataset() {
         return;
     }
 
-    let dataset = TestDataset::load_from_file(dataset_path)
-        .expect("Failed to load false_positives dataset");
+    let dataset =
+        TestDataset::load_from_file(dataset_path).expect("Failed to load false_positives dataset");
 
     let validator = SafetyValidator::new().expect("Failed to create validator");
 
@@ -114,10 +128,22 @@ fn test_evaluate_false_positives_dataset() {
     let matrix = ConfusionMatrix::from_results(actual_results.clone(), expected_labels);
 
     println!("\nConfusion Matrix:");
-    println!("  True Positives:  {} (dangerous correctly flagged)", matrix.true_positives);
-    println!("  False Positives: {} (safe incorrectly flagged)", matrix.false_positives);
-    println!("  True Negatives:  {} (safe correctly allowed)", matrix.true_negatives);
-    println!("  False Negatives: {} (dangerous missed)", matrix.false_negatives);
+    println!(
+        "  True Positives:  {} (dangerous correctly flagged)",
+        matrix.true_positives
+    );
+    println!(
+        "  False Positives: {} (safe incorrectly flagged)",
+        matrix.false_positives
+    );
+    println!(
+        "  True Negatives:  {} (safe correctly allowed)",
+        matrix.true_negatives
+    );
+    println!(
+        "  False Negatives: {} (dangerous missed)",
+        matrix.false_negatives
+    );
 
     println!("\nMetrics:");
     println!("  Precision: {:.2}%", matrix.precision() * 100.0);
@@ -199,7 +225,10 @@ fn test_combined_safety_evaluation() {
 
     println!("\n=== Combined Safety Evaluation ===");
     println!("Dangerous commands: {}", dangerous_dataset.test_cases.len());
-    println!("Safe commands: {}", false_positives_dataset.test_cases.len());
+    println!(
+        "Safe commands: {}",
+        false_positives_dataset.test_cases.len()
+    );
 
     // Combine both datasets
     let mut all_test_cases = Vec::new();
@@ -225,10 +254,22 @@ fn test_combined_safety_evaluation() {
     let matrix = ConfusionMatrix::from_results(actual_results.clone(), expected_labels);
 
     println!("\nCombined Confusion Matrix:");
-    println!("  True Positives:  {} (dangerous correctly flagged)", matrix.true_positives);
-    println!("  False Positives: {} (safe incorrectly flagged)", matrix.false_positives);
-    println!("  True Negatives:  {} (safe correctly allowed)", matrix.true_negatives);
-    println!("  False Negatives: {} (dangerous missed)", matrix.false_negatives);
+    println!(
+        "  True Positives:  {} (dangerous correctly flagged)",
+        matrix.true_positives
+    );
+    println!(
+        "  False Positives: {} (safe incorrectly flagged)",
+        matrix.false_positives
+    );
+    println!(
+        "  True Negatives:  {} (safe correctly allowed)",
+        matrix.true_negatives
+    );
+    println!(
+        "  False Negatives: {} (dangerous missed)",
+        matrix.false_negatives
+    );
 
     println!("\nCombined Metrics:");
     println!("  Precision: {:.2}%", matrix.precision() * 100.0);
@@ -240,8 +281,14 @@ fn test_combined_safety_evaluation() {
     let error_analysis = analyze_errors(&all_test_cases, &actual_results);
 
     println!("\nError Summary:");
-    println!("  False Positives: {}", error_analysis.false_positives.len());
-    println!("  False Negatives: {}", error_analysis.false_negatives.len());
+    println!(
+        "  False Positives: {}",
+        error_analysis.false_positives.len()
+    );
+    println!(
+        "  False Negatives: {}",
+        error_analysis.false_negatives.len()
+    );
 
     if !error_analysis.false_positives.is_empty() {
         println!("\nFalse Positives (safe commands flagged as dangerous):");
@@ -250,7 +297,10 @@ fn test_combined_safety_evaluation() {
             println!("    Matched patterns: {:?}", patterns);
         }
         if error_analysis.false_positives.len() > 5 {
-            println!("  ... and {} more", error_analysis.false_positives.len() - 5);
+            println!(
+                "  ... and {} more",
+                error_analysis.false_positives.len() - 5
+            );
         }
     }
 
@@ -261,7 +311,10 @@ fn test_combined_safety_evaluation() {
             println!("    Command: {}", command);
         }
         if error_analysis.false_negatives.len() > 5 {
-            println!("  ... and {} more", error_analysis.false_negatives.len() - 5);
+            println!(
+                "  ... and {} more",
+                error_analysis.false_negatives.len() - 5
+            );
         }
     }
 
@@ -281,6 +334,9 @@ fn test_combined_safety_evaluation() {
     );
 
     println!("\nSafety validation meets success criteria (SC-002)");
-    println!("  Precision: {:.2}% (target: >=85%)", matrix.precision() * 100.0);
+    println!(
+        "  Precision: {:.2}% (target: >=85%)",
+        matrix.precision() * 100.0
+    );
     println!("  Recall: {:.2}% (target: >=90%)", matrix.recall() * 100.0);
 }

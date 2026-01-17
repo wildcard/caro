@@ -27,6 +27,7 @@ pub enum ExecutorError {
 pub struct Executor {
     caro_binary_path: PathBuf,
     timeout: Duration,
+    backend: Option<String>,
 }
 
 impl Executor {
@@ -37,9 +38,9 @@ impl Executor {
         let current_exe = std::env::current_exe()?;
         let target_dir = current_exe
             .parent()
-            .ok_or_else(|| ExecutorError::BinaryNotFound)?
+            .ok_or(ExecutorError::BinaryNotFound)?
             .parent()
-            .ok_or_else(|| ExecutorError::BinaryNotFound)?;
+            .ok_or(ExecutorError::BinaryNotFound)?;
 
         // Try release build first, then debug
         let release_path = target_dir.join("release").join("caro");
@@ -56,7 +57,15 @@ impl Executor {
         Ok(Self {
             caro_binary_path: binary_path,
             timeout: Duration::from_secs(30),
+            backend: None,
         })
+    }
+
+    /// Create a new executor with a specific backend
+    pub fn with_backend(backend: &str) -> Result<Self, ExecutorError> {
+        let mut executor = Self::new()?;
+        executor.backend = Some(backend.to_string());
+        Ok(executor)
     }
 
     /// Execute a caro command and return the generated output
@@ -64,15 +73,19 @@ impl Executor {
         use tokio::process::Command;
         use tokio::time::timeout;
 
+        // Build command with optional backend flag
+        let mut cmd = Command::new(&self.caro_binary_path);
+
+        if let Some(ref backend) = self.backend {
+            cmd.arg("--backend").arg(backend);
+        }
+
+        cmd.arg(prompt);
+
         // Execute with timeout
-        let output = timeout(self.timeout, async {
-            Command::new(&self.caro_binary_path)
-                .arg(prompt)
-                .output()
-                .await
-        })
-        .await
-        .map_err(|_| ExecutorError::Timeout(self.timeout))??;
+        let output = timeout(self.timeout, async { cmd.output().await })
+            .await
+            .map_err(|_| ExecutorError::Timeout(self.timeout))??;
 
         // Check exit status
         if !output.status.success() {
@@ -81,9 +94,7 @@ impl Executor {
         }
 
         // Extract command from stdout
-        let command = String::from_utf8_lossy(&output.stdout)
-            .trim()
-            .to_string();
+        let command = String::from_utf8_lossy(&output.stdout).trim().to_string();
 
         // Handle empty output
         if command.is_empty() {

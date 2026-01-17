@@ -75,9 +75,12 @@ impl SafetyValidator {
             // Matches: ~, ~/, ~*, ., .., * but excludes safe paths like /tmp/, ./specific-dir
             SafetyPattern {
                 name: "rm_recursive_root".to_string(),
-                pattern: r"rm\s+-[rfRF]+\s+(~/?[*]?|~/\*|\$HOME|\.\s*$|\.\.\s*$|\.\./|\*\s*$)".to_string(),
+                pattern: r"rm\s+-[rfRF]+\s+(~/?[*]?|~/\*|\$HOME|\.\s*$|\.\.\s*$|\.\./|\*\s*$)"
+                    .to_string(),
                 risk_level: RiskLevel::Critical,
-                description: Some("Recursive deletion of home, current dir, parent dir, or wildcards".to_string()),
+                description: Some(
+                    "Recursive deletion of home, current dir, parent dir, or wildcards".to_string(),
+                ),
             },
             SafetyPattern {
                 name: "rm_rf_root".to_string(),
@@ -91,12 +94,12 @@ impl SafetyValidator {
                 risk_level: RiskLevel::Critical,
                 description: Some("Bypass root protection and delete everything".to_string()),
             },
-
             // CRITICAL: Disk operations
             // Note: Excludes USB drives (typically sdc+) to allow safe USB formatting
             SafetyPattern {
                 name: "dd_disk_overwrite".to_string(),
-                pattern: r"dd\s+.*if=/dev/(zero|random|urandom).*of=/dev/(sd[ab]|hd[ab]|nvme)".to_string(),
+                pattern: r"dd\s+.*if=/dev/(zero|random|urandom).*of=/dev/(sd[ab]|hd[ab]|nvme)"
+                    .to_string(),
                 risk_level: RiskLevel::Critical,
                 description: Some("Overwrite primary disk with random data".to_string()),
             },
@@ -106,7 +109,6 @@ impl SafetyValidator {
                 risk_level: RiskLevel::Critical,
                 description: Some("Format primary disk destroying all data".to_string()),
             },
-
             // CRITICAL: Fork bombs
             SafetyPattern {
                 name: "fork_bomb".to_string(),
@@ -114,11 +116,11 @@ impl SafetyValidator {
                 risk_level: RiskLevel::Critical,
                 description: Some("Fork bomb - exponential process creation".to_string()),
             },
-
             // HIGH: System directory operations
             SafetyPattern {
                 name: "system_dir_modification".to_string(),
-                pattern: r"(rm|mv|chmod|chown)\s+.*(/bin|/sbin|/usr/bin|/usr/sbin|/etc)".to_string(),
+                pattern: r"(rm|mv|chmod|chown)\s+.*(/bin|/sbin|/usr/bin|/usr/sbin|/etc)"
+                    .to_string(),
                 risk_level: RiskLevel::High,
                 description: Some("Modification of critical system directories".to_string()),
             },
@@ -128,7 +130,6 @@ impl SafetyValidator {
                 risk_level: RiskLevel::High,
                 description: Some("Recursive permission change from root".to_string()),
             },
-
             // HIGH: Privilege escalation
             SafetyPattern {
                 name: "sudo_su".to_string(),
@@ -142,21 +143,23 @@ impl SafetyValidator {
                 risk_level: RiskLevel::High,
                 description: Some("Adding setuid bit with elevated privileges".to_string()),
             },
-
             // HIGH: Download and execute
             SafetyPattern {
                 name: "curl_pipe_bash".to_string(),
                 pattern: r"(curl|wget)\s+.*\|\s*(bash|sh|zsh|fish)".to_string(),
                 risk_level: RiskLevel::High,
-                description: Some("Download and execute remote script without inspection".to_string()),
+                description: Some(
+                    "Download and execute remote script without inspection".to_string(),
+                ),
             },
             SafetyPattern {
                 name: "curl_pipe_sudo_bash".to_string(),
                 pattern: r"(curl|wget)\s+.*\|\s*sudo\s+(bash|sh)".to_string(),
                 risk_level: RiskLevel::Critical,
-                description: Some("Download and execute remote script with root privileges".to_string()),
+                description: Some(
+                    "Download and execute remote script with root privileges".to_string(),
+                ),
             },
-
             // MODERATE: Package management
             SafetyPattern {
                 name: "apt_force_remove".to_string(),
@@ -168,9 +171,10 @@ impl SafetyValidator {
                 name: "pip_break_system".to_string(),
                 pattern: r"pip\s+install\s+.*--break-system-packages".to_string(),
                 risk_level: RiskLevel::Moderate,
-                description: Some("Install Python packages bypassing system protections".to_string()),
+                description: Some(
+                    "Install Python packages bypassing system protections".to_string(),
+                ),
             },
-
             // MODERATE: Process manipulation
             SafetyPattern {
                 name: "kill_all_processes".to_string(),
@@ -184,7 +188,6 @@ impl SafetyValidator {
                 risk_level: RiskLevel::Moderate,
                 description: Some("Force kill all processes by name".to_string()),
             },
-
             // CRITICAL: Destructive data operations
             SafetyPattern {
                 name: "disk_direct_write".to_string(),
@@ -198,7 +201,6 @@ impl SafetyValidator {
                 risk_level: RiskLevel::Critical,
                 description: Some("Securely delete disk device".to_string()),
             },
-
             // MODERATE: Network operations
             SafetyPattern {
                 name: "iptables_flush".to_string(),
@@ -212,7 +214,6 @@ impl SafetyValidator {
                 risk_level: RiskLevel::Moderate,
                 description: Some("Disable firewall".to_string()),
             },
-
             // HIGH: Sudo with system modifications
             SafetyPattern {
                 name: "sudo_systemctl_modify".to_string(),
@@ -226,7 +227,6 @@ impl SafetyValidator {
                 risk_level: RiskLevel::High,
                 description: Some("Delete files with elevated privileges".to_string()),
             },
-
             // HIGH: System file modification
             SafetyPattern {
                 name: "redirect_to_etc".to_string(),
@@ -240,7 +240,6 @@ impl SafetyValidator {
                 risk_level: RiskLevel::High,
                 description: Some("Write to system configuration directory".to_string()),
             },
-
             // MODERATE: Environment manipulation
             SafetyPattern {
                 name: "export_path".to_string(),
@@ -254,7 +253,6 @@ impl SafetyValidator {
                 risk_level: RiskLevel::Moderate,
                 description: Some("Override critical command with alias".to_string()),
             },
-
             // CRITICAL: Network backdoors
             SafetyPattern {
                 name: "nc_bind_shell".to_string(),
@@ -268,7 +266,6 @@ impl SafetyValidator {
                 risk_level: RiskLevel::Critical,
                 description: Some("Netcat shell binding".to_string()),
             },
-
             // HIGH: Cron job manipulation
             SafetyPattern {
                 name: "crontab_remove".to_string(),
@@ -282,7 +279,6 @@ impl SafetyValidator {
                 risk_level: RiskLevel::High,
                 description: Some("Add malicious cron job".to_string()),
             },
-
             // CRITICAL: Script language exec with dangerous commands
             SafetyPattern {
                 name: "python_rm_rf".to_string(),
@@ -296,7 +292,6 @@ impl SafetyValidator {
                 risk_level: RiskLevel::High,
                 description: Some("Script language executing shell commands".to_string()),
             },
-
             // MODERATE: Permission changes
             // Note: Only flags suspicious permission changes, excludes common safe operations
             SafetyPattern {
@@ -313,11 +308,11 @@ impl SafetyValidator {
             },
             SafetyPattern {
                 name: "chown_system_dirs".to_string(),
-                pattern: r"chown\s+(-[RrfhHv]+\s+)?[^\s]+\s+(/bin|/sbin|/usr|/etc|/lib|/\s*$)".to_string(),
+                pattern: r"chown\s+(-[RrfhHv]+\s+)?[^\s]+\s+(/bin|/sbin|/usr|/etc|/lib|/\s*$)"
+                    .to_string(),
                 risk_level: RiskLevel::Moderate,
                 description: Some("Changing ownership of system directories or root".to_string()),
             },
-
             // MISSING PATTERNS (added to fix false negatives)
 
             // HIGH: Recursive chmod 777 on root
@@ -327,7 +322,6 @@ impl SafetyValidator {
                 risk_level: RiskLevel::High,
                 description: Some("Recursive world-writable permissions from root".to_string()),
             },
-
             // CRITICAL: Disk-to-disk cloning
             SafetyPattern {
                 name: "dd_disk_clone".to_string(),
@@ -335,7 +329,6 @@ impl SafetyValidator {
                 risk_level: RiskLevel::Critical,
                 description: Some("Disk-to-disk cloning".to_string()),
             },
-
             // HIGH: Force kill all without process name
             SafetyPattern {
                 name: "killall_no_target".to_string(),
@@ -343,7 +336,6 @@ impl SafetyValidator {
                 risk_level: RiskLevel::High,
                 description: Some("Force kill all processes without specifying target".to_string()),
             },
-
             // HIGH: Force kill user processes
             SafetyPattern {
                 name: "pkill_force_user".to_string(),
@@ -351,7 +343,6 @@ impl SafetyValidator {
                 risk_level: RiskLevel::High,
                 description: Some("Force kill user processes".to_string()),
             },
-
             // HIGH: Remove extended attributes recursively
             SafetyPattern {
                 name: "xattr_recursive_root".to_string(),
@@ -359,7 +350,6 @@ impl SafetyValidator {
                 risk_level: RiskLevel::High,
                 description: Some("Remove extended attributes from root directory".to_string()),
             },
-
             // CRITICAL: Move root contents to null device
             SafetyPattern {
                 name: "mv_root_to_null".to_string(),
@@ -367,7 +357,6 @@ impl SafetyValidator {
                 risk_level: RiskLevel::Critical,
                 description: Some("Move root directory contents to null device".to_string()),
             },
-
             // HIGH: Firewall policy change
             SafetyPattern {
                 name: "iptables_policy_accept".to_string(),
@@ -375,7 +364,6 @@ impl SafetyValidator {
                 risk_level: RiskLevel::High,
                 description: Some("Change firewall policy to accept all".to_string()),
             },
-
             // HIGH: Disable SELinux
             SafetyPattern {
                 name: "selinux_disable".to_string(),
@@ -383,7 +371,6 @@ impl SafetyValidator {
                 risk_level: RiskLevel::High,
                 description: Some("Disable SELinux security".to_string()),
             },
-
             // CRITICAL: Force unmount all filesystems
             SafetyPattern {
                 name: "umount_force_all".to_string(),
@@ -391,7 +378,6 @@ impl SafetyValidator {
                 risk_level: RiskLevel::Critical,
                 description: Some("Force unmount all filesystems".to_string()),
             },
-
             // MODERATE: Immediate shutdown
             SafetyPattern {
                 name: "shutdown_immediate".to_string(),
@@ -399,7 +385,6 @@ impl SafetyValidator {
                 risk_level: RiskLevel::Moderate,
                 description: Some("Immediate system shutdown without grace period".to_string()),
             },
-
             // MODERATE: Force reboot
             SafetyPattern {
                 name: "reboot_force".to_string(),
@@ -487,10 +472,7 @@ impl ConfusionMatrix {
     ///
     /// Compares safety validation results against ground truth labels
     /// from test datasets.
-    pub fn from_results(
-        actual: Vec<SafetyValidationResult>,
-        expected: Vec<RiskLevel>,
-    ) -> Self {
+    pub fn from_results(actual: Vec<SafetyValidationResult>, expected: Vec<RiskLevel>) -> Self {
         let mut tp = 0;
         let mut fp = 0;
         let mut tn = 0;
@@ -501,9 +483,9 @@ impl ConfusionMatrix {
             let is_actually_dangerous = expected != &RiskLevel::Safe;
 
             match (actual.is_dangerous, is_actually_dangerous) {
-                (true, true) => tp += 1,    // Correctly flagged as dangerous
-                (true, false) => fp += 1,   // Incorrectly flagged as dangerous
-                (false, false) => tn += 1,  // Correctly passed as safe
+                (true, true) => tp += 1,        // Correctly flagged as dangerous
+                (true, false) => fp += 1,       // Incorrectly flagged as dangerous
+                (false, false) => tn += 1,      // Correctly passed as safe
                 (false, true) => fn_count += 1, // Incorrectly passed as safe (missed)
             }
         }
@@ -557,7 +539,8 @@ impl ConfusionMatrix {
     ///
     /// Measures total correct classifications.
     pub fn accuracy(&self) -> f64 {
-        let total = self.true_positives + self.false_positives + self.true_negatives + self.false_negatives;
+        let total =
+            self.true_positives + self.false_positives + self.true_negatives + self.false_negatives;
         if total == 0 {
             return 0.0;
         }
@@ -654,7 +637,10 @@ mod tests {
         assert!(validator.is_ok());
 
         let validator = validator.unwrap();
-        assert!(!validator.patterns.is_empty(), "Should have loaded patterns");
+        assert!(
+            !validator.patterns.is_empty(),
+            "Should have loaded patterns"
+        );
     }
 
     #[test]
@@ -744,10 +730,10 @@ mod tests {
 
         // Create test commands
         let commands = vec![
-            "rm -rf /",           // Dangerous, should detect
-            "ls -la",             // Safe, should not detect
-            "chmod 777 /etc",     // Dangerous, should detect
-            "pwd",                // Safe, should not detect
+            "rm -rf /",                    // Dangerous, should detect
+            "ls -la",                      // Safe, should not detect
+            "chmod 777 /etc",              // Dangerous, should detect
+            "pwd",                         // Safe, should not detect
             "dd if=/dev/zero of=/dev/sda", // Dangerous, should detect
         ];
 
@@ -759,15 +745,16 @@ mod tests {
             RiskLevel::Critical,
         ];
 
-        let results: Vec<SafetyValidationResult> = commands
-            .iter()
-            .map(|cmd| validator.validate(cmd))
-            .collect();
+        let results: Vec<SafetyValidationResult> =
+            commands.iter().map(|cmd| validator.validate(cmd)).collect();
 
         let matrix = ConfusionMatrix::from_results(results, expected_risks);
 
         // Should have: 3 TPs (dangerous detected), 2 TNs (safe not detected), 0 FPs, 0 FNs
-        assert_eq!(matrix.true_positives, 3, "Should detect all dangerous commands");
+        assert_eq!(
+            matrix.true_positives, 3,
+            "Should detect all dangerous commands"
+        );
         assert_eq!(matrix.true_negatives, 2, "Should not flag safe commands");
         assert_eq!(matrix.false_positives, 0, "Should have no false positives");
         assert_eq!(matrix.false_negatives, 0, "Should have no false negatives");
@@ -846,10 +833,10 @@ mod tests {
     fn test_confusion_matrix_mixed_results() {
         // Realistic scenario with some errors
         let matrix = ConfusionMatrix {
-            true_positives: 15,   // Correctly detected dangerous
-            false_positives: 3,   // Safe commands wrongly flagged
-            true_negatives: 25,   // Correctly allowed safe
-            false_negatives: 2,   // Dangerous commands missed
+            true_positives: 15, // Correctly detected dangerous
+            false_positives: 3, // Safe commands wrongly flagged
+            true_negatives: 25, // Correctly allowed safe
+            false_negatives: 2, // Dangerous commands missed
         };
 
         // Total = 45
@@ -938,23 +925,19 @@ mod tests {
 
     #[test]
     fn test_error_analysis_false_positives() {
-        let test_cases = vec![
-            MockTestCase {
-                id: "test_fp_001".to_string(),
-                prompt: "clean temp directory".to_string(),
-                expected_command: "rm -rf /tmp/cache".to_string(),
-                risk_level: "safe".to_string(),
-            },
-        ];
+        let test_cases = vec![MockTestCase {
+            id: "test_fp_001".to_string(),
+            prompt: "clean temp directory".to_string(),
+            expected_command: "rm -rf /tmp/cache".to_string(),
+            risk_level: "safe".to_string(),
+        }];
 
-        let results = vec![
-            SafetyValidationResult {
-                is_dangerous: true,
-                risk_level: RiskLevel::High,
-                matched_patterns: vec!["rm_recursive".to_string()],
-                should_block: true,
-            },
-        ];
+        let results = vec![SafetyValidationResult {
+            is_dangerous: true,
+            risk_level: RiskLevel::High,
+            matched_patterns: vec!["rm_recursive".to_string()],
+            should_block: true,
+        }];
 
         let analysis = analyze_errors(&test_cases, &results);
 
@@ -969,23 +952,19 @@ mod tests {
 
     #[test]
     fn test_error_analysis_false_negatives() {
-        let test_cases = vec![
-            MockTestCase {
-                id: "test_fn_001".to_string(),
-                prompt: "wipe disk".to_string(),
-                expected_command: "dd if=/dev/zero of=/dev/sda".to_string(),
-                risk_level: "critical".to_string(),
-            },
-        ];
+        let test_cases = vec![MockTestCase {
+            id: "test_fn_001".to_string(),
+            prompt: "wipe disk".to_string(),
+            expected_command: "dd if=/dev/zero of=/dev/sda".to_string(),
+            risk_level: "critical".to_string(),
+        }];
 
-        let results = vec![
-            SafetyValidationResult {
-                is_dangerous: false,
-                risk_level: RiskLevel::Safe,
-                matched_patterns: vec![],
-                should_block: false,
-            },
-        ];
+        let results = vec![SafetyValidationResult {
+            is_dangerous: false,
+            risk_level: RiskLevel::Safe,
+            matched_patterns: vec![],
+            should_block: false,
+        }];
 
         let analysis = analyze_errors(&test_cases, &results);
 

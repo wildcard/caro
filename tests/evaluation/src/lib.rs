@@ -34,8 +34,8 @@
 //! ```
 
 pub mod dataset;
-pub mod executor;
 pub mod evaluator;
-pub mod safety_validator;
+pub mod executor;
 pub mod posix_checker;
 pub mod reporter;
+pub mod safety_validator;

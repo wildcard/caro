@@ -61,9 +61,10 @@ impl Evaluator {
         }
 
         // Try flag normalization (for commands with flags like -la vs -al)
-        if let (Some(gen_flags), Some(exp_flags)) =
-            (normalize_flags(&gen_normalized), normalize_flags(&exp_normalized))
-        {
+        if let (Some(gen_flags), Some(exp_flags)) = (
+            normalize_flags(&gen_normalized),
+            normalize_flags(&exp_normalized),
+        ) {
             if gen_flags == exp_flags {
                 return CorrectnessResult {
                     score: 0.90,

@@ -18,8 +18,8 @@ async fn test_evaluate_file_operations_dataset() {
         return;
     }
 
-    let dataset = TestDataset::load_from_file(dataset_path)
-        .expect("Failed to load file_operations dataset");
+    let dataset =
+        TestDataset::load_from_file(dataset_path).expect("Failed to load file_operations dataset");
 
     // For now, just test evaluator without executor (which requires caro binary)
     let evaluator = Evaluator;
@@ -100,8 +100,7 @@ async fn test_full_evaluation_flow() {
         return;
     }
 
-    let dataset = TestDataset::load_from_file(dataset_path)
-        .expect("Failed to load dataset");
+    let dataset = TestDataset::load_from_file(dataset_path).expect("Failed to load dataset");
 
     let executor = match Executor::new() {
         Ok(e) => e,
@@ -138,8 +137,7 @@ async fn test_full_evaluation_flow() {
 
         println!("Generated: {}", generated);
 
-        let correctness =
-            evaluator.evaluate_correctness(&generated, &test_case.expected_command);
+        let correctness = evaluator.evaluate_correctness(&generated, &test_case.expected_command);
 
         println!(
             "Score: {:.2}, Method: {:?}",
@@ -203,7 +201,10 @@ fn test_all_datasets_valid() {
         println!("Loaded dataset: {}", dataset.name);
         println!("  Version: {}", dataset.version);
         println!("  Test cases: {}", dataset.test_cases.len());
-        println!("  POSIX coverage: {:.1}%", dataset.metadata.posix_coverage * 100.0);
+        println!(
+            "  POSIX coverage: {:.1}%",
+            dataset.metadata.posix_coverage * 100.0
+        );
 
         // Validate dataset structure
         assert!(!dataset.name.is_empty());
