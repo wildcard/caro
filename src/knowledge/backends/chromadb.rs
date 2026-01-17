@@ -194,6 +194,7 @@ impl ChromaDbBackend {
                 entry_type,
                 original_command,
                 feedback,
+                profile: None, // TODO: Read profile from metadata
             });
         }
 

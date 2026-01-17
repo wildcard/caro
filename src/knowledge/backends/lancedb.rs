@@ -202,6 +202,7 @@ impl LanceDbBackend {
                 entry_type,
                 original_command,
                 feedback,
+                profile: None, // TODO: Read profile from entry metadata
             });
         }
 

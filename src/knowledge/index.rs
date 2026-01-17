@@ -27,6 +27,8 @@ pub struct KnowledgeEntry {
     pub original_command: Option<String>,
     /// For corrections: feedback about why it was wrong
     pub feedback: Option<String>,
+    /// User profile this entry belongs to (work, personal, devops)
+    pub profile: Option<String>,
 }
 
 /// Statistics about the knowledge index

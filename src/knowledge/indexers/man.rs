@@ -199,6 +199,7 @@ impl Indexer for ManPageIndexer {
                         entry_type: EntryType::Success,      // Documentation as "success" entries
                         original_command: None,
                         feedback: None,
+                        profile: None,                       // Docs are profile-agnostic
                     };
 
                     // Add to Docs collection
@@ -273,6 +274,7 @@ impl Indexer for ManPageIndexer {
             entry_type: EntryType::Success,
             original_command: None,
             feedback: None,
+            profile: None,
         };
 
         // Add to Docs collection

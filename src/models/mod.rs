@@ -3,6 +3,8 @@
 
 use serde::{Deserialize, Serialize};
 
+pub mod profile;
+
 /// Request for command generation from natural language
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommandRequest {

@@ -118,6 +118,7 @@ impl Indexer for HelpIndexer {
                         entry_type: EntryType::Success,
                         original_command: None,
                         feedback: None,
+                        profile: None,
                     };
 
                     match backend.add_entry(entry, CollectionType::Docs).await {
@@ -153,6 +154,7 @@ impl Indexer for HelpIndexer {
             entry_type: EntryType::Success,
             original_command: None,
             feedback: None,
+            profile: None,
         };
 
         backend.add_entry(entry, CollectionType::Docs).await?;
