@@ -8,6 +8,15 @@ Transform the evaluation harness from a basic testing framework into a comprehen
 - Establishes best practices for LLM evaluation in CLI tools
 - Creates feedback loops from testing → prompting → fine-tuning → product
 
+## Project Tracking
+
+**GitHub Milestone**: [#11 - LLM Evaluation Harness - Maturity & Quality Confidence](https://github.com/wildcard/caro/milestone/11)
+**GitHub Project Board**: [LLM Evaluation Harness - Maturity Roadmap](https://github.com/users/wildcard/projects/6)
+
+- Timeline: 16 weeks (Jan 17 - May 16, 2026)
+- 8 issues covering 15 work packages (WP09-WP23)
+- Custom tracking: Phase, Duration, Effort, Work Packages
+
 ## Current State Assessment
 
 ### ✅ What We Have (v1.0 - Completed)

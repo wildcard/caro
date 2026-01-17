@@ -19,6 +19,12 @@ We've created a **comprehensive 16-week roadmap** to transform the evaluation ha
 - **Work Packages**: WP09-WP23 (15 total)
 - **Phases**: 8 phases covering all aspects of maturity
 
+**GitHub Project Board**: [LLM Evaluation Harness - Maturity Roadmap](https://github.com/users/wildcard/projects/6)
+
+- **Issues Tracked**: 8 (covering all 15 work packages)
+- **Custom Fields**: Phase, Duration, Effort (hours), Work Packages
+- **View Options**: Table, Board, Roadmap
+
 ---
 
 ## 🏗️ Architecture: 8 Phases
