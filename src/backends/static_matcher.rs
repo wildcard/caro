@@ -207,7 +207,7 @@ impl StaticMatcher {
                 regex_pattern: Some(Regex::new(r"(?i)(find|locate|search).*(all)?.*(pdf).*(files?).*(larger|bigger|over).*(10|10mb|10m).*(in|from)?.*(downloads|~/downloads)").unwrap()),
                 gnu_command: r#"find ~/Downloads -name "*.pdf" -size +10M -ls"#.to_string(),
                 bsd_command: Some(r#"find ~/Downloads -name "*.pdf" -size +10M -ls"#.to_string()),
-                description: "Find PDF files larger than 10MB in Downloads".to_string(),
+                description: "Find PDF files larger than 10MB in Downloads (Note: ~/Downloads path may not exist on all systems)".to_string(),
             },
 
             // Pattern 6: "find files larger than 10MB" (GENERAL - was Pattern 5)
@@ -543,7 +543,7 @@ impl StaticMatcher {
                 regex_pattern: Some(Regex::new(r"(?i)(show|list|find|check).*(ssl|tls).*(certificates?|certs?).*(expiring|expire|expiration).*(next|in)?.*(30|days?)").unwrap()),
                 gnu_command: r#"find /etc/ssl -name "*.pem" -exec sh -c 'openssl x509 -enddate -noout -in "{}" 2>/dev/null' \;"#.to_string(),
                 bsd_command: Some(r#"find /etc/ssl -name "*.pem" -exec sh -c 'openssl x509 -enddate -noout -in "{}" 2>/dev/null' \;"#.to_string()),
-                description: "Show SSL certificates expiring soon".to_string(),
+                description: "Show SSL certificates expiring soon (Note: certificate paths may vary, common locations: /etc/ssl, /etc/pki/tls, /usr/local/etc/ssl)".to_string(),
             },
 
             // Pattern 33: "show all AWS EC2 instances in terraform state"
@@ -595,9 +595,9 @@ impl StaticMatcher {
                 required_keywords: vec!["error".to_string(), "log".to_string()],
                 optional_keywords: vec!["find".to_string(), "all".to_string(), "entries".to_string(), "application".to_string()],
                 regex_pattern: Some(Regex::new(r"(?i)(find|show|search|grep).*(all)?.*(error|errors).*(entries?|lines?|messages?).*(in)?.*(application|app)?.*logs?").unwrap()),
-                gnu_command: "grep -i 'error' /var/log/app.log | tail -n 50".to_string(),
-                bsd_command: Some("grep -i 'error' /var/log/app.log | tail -n 50".to_string()),
-                description: "Find ERROR entries in application logs".to_string(),
+                gnu_command: "grep -i 'error' /var/log/app.log | tail -n 50  # Adjust log path for your application".to_string(),
+                bsd_command: Some("grep -i 'error' /var/log/app.log | tail -n 50  # Adjust log path for your application".to_string()),
+                description: "Find ERROR entries in application logs (Note: adjust /var/log/app.log path for your application)".to_string(),
             },
 
             // Pattern 37: "Count HTTP status codes in access log"
@@ -605,9 +605,9 @@ impl StaticMatcher {
                 required_keywords: vec!["count".to_string(), "status".to_string(), "code".to_string()],
                 optional_keywords: vec!["http".to_string(), "access".to_string(), "log".to_string()],
                 regex_pattern: Some(Regex::new(r"(?i)(count|show|display|analyze).*(http)?.*(status|response)?.*(codes?|responses?).*(in)?.*(access|nginx)?.*logs?").unwrap()),
-                gnu_command: "awk '{print $9}' /var/log/nginx/access.log | sort | uniq -c | sort -rn".to_string(),
-                bsd_command: Some("awk '{print $9}' /var/log/nginx/access.log | sort | uniq -c | sort -rn".to_string()),
-                description: "Count HTTP status codes in access log".to_string(),
+                gnu_command: "awk '{print $9}' /var/log/nginx/access.log | sort | uniq -c | sort -rn  # Adjust log path".to_string(),
+                bsd_command: Some("awk '{print $9}' /var/log/nginx/access.log | sort | uniq -c | sort -rn  # Adjust log path".to_string()),
+                description: "Count HTTP status codes in access log (Note: adjust /var/log/nginx/access.log path for your web server)".to_string(),
             },
 
             // Pattern 38: "Search for TODO/FIXME comments in code" - Issue #10 fix
@@ -626,8 +626,8 @@ impl StaticMatcher {
                 optional_keywords: vec!["show".to_string(), "100".to_string()],
                 regex_pattern: Some(Regex::new(r"(?i)(show|display|list|get).*(last|recent).*(100|\d+)?.*(system|systemd)?.*errors?").unwrap()),
                 gnu_command: "journalctl -p err -n 100".to_string(),
-                bsd_command: Some("grep -i error /var/log/messages | tail -n 100".to_string()),
-                description: "Show last N system errors".to_string(),
+                bsd_command: Some("grep -i error /var/log/messages | tail -n 100  # Path may vary".to_string()),
+                description: "Show last N system errors (BSD: /var/log/messages path may vary by system)".to_string(),
             },
 
             // ===== FILE MANAGEMENT REFINED PATTERNS (Cycle 4) =====
@@ -679,9 +679,9 @@ impl StaticMatcher {
                 required_keywords: vec!["check".to_string(), "disk".to_string(), "health".to_string()],
                 optional_keywords: vec!["all".to_string(), "drives".to_string(), "smart".to_string()],
                 regex_pattern: Some(Regex::new(r"(?i)(check|test|verify|show).*(disk|drive|hdd|ssd).*(health|status|smart)").unwrap()),
-                gnu_command: "smartctl -a /dev/sda".to_string(),
-                bsd_command: Some("smartctl -a /dev/sda".to_string()),
-                description: "Check disk health with smartctl".to_string(),
+                gnu_command: "smartctl -a /dev/sda  # Adjust device: /dev/nvme0n1, /dev/vda, etc.".to_string(),
+                bsd_command: Some("smartctl -a /dev/sda  # Adjust device: /dev/nvme0n1, /dev/ada0, etc.".to_string()),
+                description: "Check disk health with smartctl (Note: adjust device path - modern systems may use /dev/nvme0n1, /dev/vda, etc.)".to_string(),
             },
 
             // Pattern 50: "日本語のファイルを検索" (Find Japanese filename files)
@@ -746,7 +746,7 @@ impl StaticMatcher {
                 regex_pattern: Some(Regex::new(r"(?i)(display|show|get|tail).*(last|recent).*(\\d+).*(lines?).*(of)?.*(system|syslog|var)?.*log").unwrap()),
                 gnu_command: "tail -20 /var/log/syslog".to_string(),
                 bsd_command: Some("tail -20 /var/log/system.log".to_string()),
-                description: "Display last N lines of system log".to_string(),
+                description: "Display last N lines of system log (GNU: /var/log/syslog, BSD: /var/log/system.log)".to_string(),
             },
 
             // Pattern 56: "monitor file changes in real-time" / "tail -f"
@@ -756,7 +756,7 @@ impl StaticMatcher {
                 regex_pattern: Some(Regex::new(r"(?i)(monitor|watch|tail|follow).*(file|log).*(changes?|updates?|modifications?).*(real-time|realtime|live)?").unwrap()),
                 gnu_command: "tail -f /var/log/syslog".to_string(),
                 bsd_command: Some("tail -f /var/log/system.log".to_string()),
-                description: "Monitor file changes in real-time".to_string(),
+                description: "Monitor file changes in real-time (example uses system log: GNU /var/log/syslog, BSD /var/log/system.log)".to_string(),
             },
 
             // ===== TEXT PROCESSING (Issue #511) =====
