@@ -1384,4 +1384,116 @@ mod tests {
             );
         }
     }
+
+    #[test]
+    fn test_bsd_commands_avoid_gnu_only_features() {
+        // Verify BSD commands don't use GNU-specific features that aren't available on BSD/macOS
+        let patterns = StaticMatcher::build_patterns();
+
+        let mut violations = Vec::new();
+
+        for (i, pattern) in patterns.iter().enumerate() {
+            if let Some(bsd_cmd) = &pattern.bsd_command {
+                // Check for ps-specific GNU flags
+                if bsd_cmd.starts_with("ps ") && bsd_cmd.contains("--sort=") {
+                    violations.push(format!(
+                        "Pattern {} uses GNU ps flag '--sort=' in BSD command\n  \
+                         Description: {}\n  \
+                         BSD command: {}\n  \
+                         → Use BSD ps flags: -m (sort by memory) or -r (sort by CPU)",
+                        i, pattern.description, bsd_cmd
+                    ));
+                }
+
+                // Check for systemd-specific tools not available on BSD
+                if bsd_cmd.contains("journalctl") {
+                    violations.push(format!(
+                        "Pattern {} uses 'journalctl' (systemd tool) in BSD command\n  \
+                         Description: {}\n  \
+                         BSD command: {}\n  \
+                         → Use BSD alternatives like /var/log/messages or syslog",
+                        i, pattern.description, bsd_cmd
+                    ));
+                }
+
+                if bsd_cmd.contains("systemctl") {
+                    violations.push(format!(
+                        "Pattern {} uses 'systemctl' (systemd tool) in BSD command\n  \
+                         Description: {}\n  \
+                         BSD command: {}\n  \
+                         → Use BSD service managers (service, rcctl, etc.)",
+                        i, pattern.description, bsd_cmd
+                    ));
+                }
+
+                // Check for GNU find extensions
+                if bsd_cmd.contains("find ") && bsd_cmd.contains("-printf") {
+                    violations.push(format!(
+                        "Pattern {} uses GNU find extension '-printf' in BSD command\n  \
+                         Description: {}\n  \
+                         BSD command: {}\n  \
+                         → Use -print with awk/sed for formatting",
+                        i, pattern.description, bsd_cmd
+                    ));
+                }
+
+                // Check for GNU-specific color flag (outside git context)
+                if !bsd_cmd.contains("git ") && bsd_cmd.contains("--color=auto") {
+                    violations.push(format!(
+                        "Pattern {} uses GNU flag '--color=auto' in BSD command\n  \
+                         Description: {}\n  \
+                         BSD command: {}\n  \
+                         → Use platform-agnostic alternatives or document GNU requirement",
+                        i, pattern.description, bsd_cmd
+                    ));
+                }
+            }
+        }
+
+        if !violations.is_empty() {
+            panic!(
+                "BSD command portability violations detected:\n\n{}\n\n\
+                 Fix: Ensure BSD commands use platform-agnostic features or BSD-specific alternatives.\n\
+                 See module-level documentation for GNU vs BSD differences.",
+                violations.join("\n\n")
+            );
+        }
+    }
+
+    #[test]
+    fn test_patterns_have_platform_specific_alternatives() {
+        // Verify that patterns using platform-specific features have proper alternatives
+        let patterns = StaticMatcher::build_patterns();
+
+        let mut missing_bsd = Vec::new();
+
+        for (i, pattern) in patterns.iter().enumerate() {
+            let gnu_cmd = &pattern.gnu_command;
+
+            // Check if GNU command uses Linux/systemd-specific tools
+            let uses_linux_specific = gnu_cmd.contains("journalctl")
+                || gnu_cmd.contains("systemctl")
+                || gnu_cmd.contains("apt-get")
+                || gnu_cmd.contains("yum")
+                || gnu_cmd.contains("dnf");
+
+            // If GNU command is Linux-specific, BSD alternative must exist
+            if uses_linux_specific && pattern.bsd_command.is_none() {
+                missing_bsd.push(format!(
+                    "Pattern {} uses Linux-specific tool but lacks BSD alternative\n  \
+                     Description: {}\n  \
+                     GNU command: {}",
+                    i, pattern.description, gnu_cmd
+                ));
+            }
+        }
+
+        if !missing_bsd.is_empty() {
+            panic!(
+                "Patterns missing BSD alternatives:\n\n{}\n\n\
+                 Fix: Add bsd_command field with platform-agnostic alternative.",
+                missing_bsd.join("\n\n")
+            );
+        }
+    }
 }
