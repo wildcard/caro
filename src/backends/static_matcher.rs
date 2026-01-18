@@ -140,7 +140,7 @@ impl StaticMatcher {
 
     /// Build the pattern library from website-advertised examples
     fn build_patterns() -> Vec<PatternEntry> {
-        vec![
+        let mut patterns = vec![
             // Pattern 1: "find all Python files modified today" (SPECIFIC - moved from Pattern 46)
             PatternEntry {
                 required_keywords: vec!["python".to_string(), "modified".to_string(), "today".to_string()],
@@ -671,10 +671,11 @@ impl StaticMatcher {
                 description: "Find Python files (simple)".to_string(),
             },
 
-            // Pattern 42: "list hidden files" - Issue #11 fix (MOVED BEFORE "list files" for priority)
+            // Pattern 42: "list hidden files" - Issue #11 fix
+            // Increased specificity: requires "hidden" + "files" to avoid being shadowed by "list files"
             PatternEntry {
-                required_keywords: vec!["hidden".to_string()],
-                optional_keywords: vec!["list".to_string(), "show".to_string(), "files".to_string(), "dot".to_string()],
+                required_keywords: vec!["hidden".to_string(), "files".to_string()],
+                optional_keywords: vec!["list".to_string(), "show".to_string(), "dot".to_string()],
                 regex_pattern: Some(Regex::new(r"(?i)(list|show|display|find).*(hidden|dot).*(files?)?").unwrap()),
                 gnu_command: "ls -d .*".to_string(),
                 bsd_command: Some("ls -d .*".to_string()),
@@ -757,10 +758,12 @@ impl StaticMatcher {
             },
 
             // Pattern 54: "show disk usage of the current directory" / "du -sh ."
+            // IMPORTANT: Regex requires "current" or "this" to be present (not optional)
+            // to avoid shadowing "disk usage by folder" pattern
             PatternEntry {
                 required_keywords: vec!["disk".to_string(), "usage".to_string(), "current".to_string()],
                 optional_keywords: vec!["show".to_string(), "directory".to_string(), "folder".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(show|display|get|check).*(disk|storage).*(usage|space|size).*(of)?.*(current|this)?.*(directory|dir|folder)?").unwrap()),
+                regex_pattern: Some(Regex::new(r"(?i)(show|display|get|check).*(disk|storage).*(usage|space|size).*(of)?.*(current|this).*(directory|dir|folder)?").unwrap()),
                 gnu_command: "du -sh .".to_string(),
                 bsd_command: Some("du -sh .".to_string()),
                 description: "Show disk usage of current directory".to_string(),
@@ -926,7 +929,19 @@ impl StaticMatcher {
                 description: "Compress directory with maximum compression".to_string(),
             },
 
-        ]
+        ];
+
+        // Sort patterns by specificity (number of required keywords) in descending order.
+        // This ensures more specific patterns match before general ones, preventing shadowing.
+        // For patterns with the same specificity, maintain stable ordering (insertion order).
+        patterns.sort_by(|a, b| {
+            let a_specificity = a.required_keywords.len();
+            let b_specificity = b.required_keywords.len();
+            // Sort by specificity descending (more keywords first)
+            b_specificity.cmp(&a_specificity)
+        });
+
+        patterns
     }
 
     /// Try to match the query against known patterns
@@ -1297,14 +1312,12 @@ mod tests {
     }
 
     #[test]
-    #[ignore] // TODO: Fix existing pattern ordering violations detected by this test (see issue #547)
     fn test_pattern_ordering() {
         // Verify patterns are ordered by specificity (more required keywords first)
         // This prevents general patterns from shadowing specific ones
         //
-        // NOTE: This test currently detects ~50+ violations in the existing pattern list.
-        // These violations existed before pattern ordering validation was added.
-        // Run with: cargo test --lib test_pattern_ordering -- --ignored
+        // NOTE: Patterns are automatically sorted by build_patterns() using sort_by().
+        // This test validates the sorting is working correctly.
         let patterns = StaticMatcher::build_patterns();
 
         let mut violations = Vec::new();
