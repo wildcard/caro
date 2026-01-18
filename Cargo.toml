@@ -61,7 +61,7 @@ dirs = "6"
 which = "8.0"
 os_info = "3.14"
 sysinfo = "0.33"
-home = "=0.5.9"  # Pin to avoid edition2024 requirement in 0.5.11+
+home = "=0.5.12"  # Pin to avoid edition2024 requirement in 0.5.11+
 
 # Model integration (Hugging Face Hub)
 hf-hub = { version = "0.4", default-features = false, features = ["tokio", "rustls-tls"] }
@@ -94,6 +94,7 @@ lancedb = { version = "0.23", optional = true }
 fastembed = { version = "4", optional = true }
 arrow-array = { version = "56.2", optional = true }
 arrow-schema = { version = "56.2", optional = true }
+chromadb = { version = "2.3", optional = true }
 
 # Optional MLX support for Apple Silicon (behind feature flag)
 cxx = { version = "1.0", optional = true }
@@ -151,6 +152,7 @@ remote-backends = ["tokio/net"]
 embedded-mlx = ["cxx", "llama_cpp"]
 embedded-cpu = ["candle-core", "candle-transformers"]
 knowledge = ["lancedb", "fastembed", "arrow-array", "arrow-schema"]
+chromadb = ["knowledge", "dep:chromadb"]  # ChromaDB backend (requires knowledge base features)
 
 [profile.release]
 # Optimize for binary size (<50MB target)

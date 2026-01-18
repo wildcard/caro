@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  chromadb:
+    # Use ChromaDB 0.5.18 - compatible with chromadb-rs v2.3.0
+    # chromadb-rs v2.3.0 requires /api/v2 endpoints (not available in 0.4.x)
+    # No authentication configured - 0.5.18 defaults to no auth for testing
+    image: chromadb/chroma:0.5.18
+    container_name: caro-chromadb-test
+    ports:
+      - "8000:8000"
+    environment:
+      # Enable persistence and reset
+      - IS_PERSISTENT=TRUE
+      - ALLOW_RESET=true
+    volumes:
+      - chromadb_data:/chroma/chroma
+    # Skip healthcheck - server starts quickly and we test connectivity in integration tests
+    networks:
+      - caro-test
+
+volumes:
+  chromadb_data:
+    driver: local
+
+networks:
+  caro-test:
+    driver: bridge

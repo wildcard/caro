@@ -48,9 +48,27 @@ impl ManifestManager {
         Ok(manager)
     }
 
-    /// Load manifest from disk
+    /// Load manifest from disk with file locking
+    ///
+    /// Uses a shared (read) lock to safely read the manifest even if
+    /// another process/thread is writing to it.
     fn load_manifest(path: &PathBuf) -> Result<CacheManifest, CacheError> {
-        let contents = std::fs::read_to_string(path)?;
+        use std::io::{BufReader, Read};
+        use std::ops::Deref;
+
+        // Open file for reading
+        let file = OpenOptions::new().read(true).open(path)?;
+
+        // Acquire shared read lock (blocks if exclusive write lock is held)
+        let lock = RwLock::new(file);
+        let guard = lock.read().map_err(|e| {
+            CacheError::ManifestError(format!("Failed to acquire read lock on manifest: {}", e))
+        })?;
+
+        // Read contents with lock held using BufReader (works with &File)
+        let mut contents = String::new();
+        let mut reader = BufReader::new(guard.deref());
+        reader.read_to_string(&mut contents)?;
 
         // Handle empty file (can happen in concurrent scenarios)
         if contents.trim().is_empty() {

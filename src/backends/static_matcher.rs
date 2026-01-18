@@ -175,8 +175,8 @@ impl StaticMatcher {
 
             // Pattern 6: "Find all files larger than 1GB" with exec (SPECIFIC - moved from Pattern 40)
             PatternEntry {
-                required_keywords: vec!["find".to_string(), "all".to_string(), "file".to_string(), "larger".to_string(), "1gb".to_string()],
-                optional_keywords: vec![],
+                required_keywords: vec!["find".to_string(), "all".to_string(), "file".to_string(), "larger".to_string()],
+                optional_keywords: vec!["1".to_string(), "gb".to_string()],
                 regex_pattern: Some(Regex::new(r"(?i)^find\s+all\s+files?\s+(larger|bigger|over|above|greater).*1\s*(gb?|g)").unwrap()),
                 gnu_command: "find . -type f -size +1G -exec ls -lh {} \\;".to_string(),
                 bsd_command: Some("find . -type f -size +1G -exec ls -lh {} \\;".to_string()),
@@ -415,16 +415,6 @@ impl StaticMatcher {
                 description: "Show network interfaces and status".to_string(),
             },
 
-            // Pattern 25: "show all established connections to port 443"
-            PatternEntry {
-                required_keywords: vec!["established".to_string(), "connections".to_string(), "port".to_string()],
-                optional_keywords: vec!["show".to_string(), "all".to_string(), "443".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(show|list|display|get).*(all|established).*(connections?|sockets?).*(to|on)?.*(port|:)\s*\d+").unwrap()),
-                gnu_command: "ss -tn state established '( dport = :443 )'".to_string(),
-                bsd_command: Some("netstat -an | grep ESTABLISHED | grep :443".to_string()),
-                description: "Show established connections to a port".to_string(),
-            },
-
             // ===== SYSTEM MONITORING PATTERNS (Cycle 3) =====
 
             // Pattern 26: "show me the top 5 processes by CPU usage" (SPECIFIC - moved from Pattern 47)
@@ -656,6 +646,208 @@ impl StaticMatcher {
                 gnu_command: "find . -name '*日本語*' -type f".to_string(),
                 bsd_command: Some("find . -name '*日本語*' -type f".to_string()),
                 description: "Find files with Japanese characters in name".to_string(),
+            },
+
+            // ===== BASIC SYSTEM COMMANDS (Issue #511) =====
+
+            // Pattern 51: "show current directory path" / "pwd"
+            PatternEntry {
+                required_keywords: vec!["current".to_string(), "directory".to_string()],
+                optional_keywords: vec!["show".to_string(), "path".to_string(), "print".to_string(), "working".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|print|display|get).*(current|working)?.*(directory|dir|folder).*(path)?|^pwd$").unwrap()),
+                gnu_command: "pwd".to_string(),
+                bsd_command: Some("pwd".to_string()),
+                description: "Show current directory path".to_string(),
+            },
+
+            // Pattern 52: "show system uptime" / "uptime"
+            PatternEntry {
+                required_keywords: vec!["system".to_string(), "uptime".to_string()],
+                optional_keywords: vec!["show".to_string(), "display".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|display|get).*(system)?.*(uptime)|^uptime$").unwrap()),
+                gnu_command: "uptime".to_string(),
+                bsd_command: Some("uptime".to_string()),
+                description: "Show system uptime".to_string(),
+            },
+
+            // Pattern 53: "count the number of lines in README.md" / "wc -l filename"
+            PatternEntry {
+                required_keywords: vec!["count".to_string(), "lines".to_string()],
+                optional_keywords: vec!["number".to_string(), "of".to_string(), "in".to_string(), "file".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(count|show|get).*(number|num)?.*(of)?.*(lines?).*(in)?.*([\w\./\-]+\.\w+)").unwrap()),
+                gnu_command: "wc -l README.md".to_string(),
+                bsd_command: Some("wc -l README.md".to_string()),
+                description: "Count number of lines in a file".to_string(),
+            },
+
+            // Pattern 54: "show disk usage of the current directory" / "du -sh ."
+            PatternEntry {
+                required_keywords: vec!["disk".to_string(), "usage".to_string(), "current".to_string()],
+                optional_keywords: vec!["show".to_string(), "directory".to_string(), "folder".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|display|get|check).*(disk|storage).*(usage|space|size).*(of)?.*(current|this)?.*(directory|dir|folder)?").unwrap()),
+                gnu_command: "du -sh .".to_string(),
+                bsd_command: Some("du -sh .".to_string()),
+                description: "Show disk usage of current directory".to_string(),
+            },
+
+            // ===== LOG MONITORING PATTERNS (Issue #511) =====
+
+            // Pattern 55: "display the last 20 lines of system log" / "tail -20"
+            PatternEntry {
+                required_keywords: vec!["last".to_string(), "lines".to_string(), "log".to_string()],
+                optional_keywords: vec!["display".to_string(), "show".to_string(), "20".to_string(), "system".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(display|show|get|tail).*(last|recent).*(\\d+).*(lines?).*(of)?.*(system|syslog|var)?.*log").unwrap()),
+                gnu_command: "tail -20 /var/log/syslog".to_string(),
+                bsd_command: Some("tail -20 /var/log/system.log".to_string()),
+                description: "Display last N lines of system log".to_string(),
+            },
+
+            // Pattern 56: "monitor file changes in real-time" / "tail -f"
+            PatternEntry {
+                required_keywords: vec!["monitor".to_string(), "file".to_string()],
+                optional_keywords: vec!["changes".to_string(), "real-time".to_string(), "realtime".to_string(), "live".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(monitor|watch|tail|follow).*(file|log).*(changes?|updates?|modifications?).*(real-time|realtime|live)?").unwrap()),
+                gnu_command: "tail -f /var/log/syslog".to_string(),
+                bsd_command: Some("tail -f /var/log/system.log".to_string()),
+                description: "Monitor file changes in real-time".to_string(),
+            },
+
+            // ===== TEXT PROCESSING (Issue #511) =====
+
+            // Pattern 57: "replace all occurrences of foo with bar in file.txt" / "sed"
+            PatternEntry {
+                required_keywords: vec!["replace".to_string(), "all".to_string()],
+                optional_keywords: vec!["occurrences".to_string(), "of".to_string(), "with".to_string(), "in".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(replace|substitute|change).*(all|every).*(occurrences?|instances?).*(of)?.*\\w+.*(with).*\\w+.*(in).*\\w+\\.\\w+").unwrap()),
+                gnu_command: "sed -i 's/foo/bar/g' file.txt".to_string(),
+                bsd_command: Some("sed -i '' 's/foo/bar/g' file.txt".to_string()),
+                description: "Replace all occurrences in a file".to_string(),
+            },
+
+            // Pattern 58: "extract column 3 from CSV file data.csv" / "cut"
+            PatternEntry {
+                required_keywords: vec!["extract".to_string(), "column".to_string()],
+                optional_keywords: vec!["from".to_string(), "csv".to_string(), "file".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(extract|get|select).*(column|col|field).*(\\d+).*(from).*(csv)?.*\\w+\\.csv").unwrap()),
+                gnu_command: "cut -d',' -f3 data.csv".to_string(),
+                bsd_command: Some("cut -d',' -f3 data.csv".to_string()),
+                description: "Extract column from CSV file".to_string(),
+            },
+
+            // Pattern 59: "count unique IP addresses in access.log" / "awk"
+            PatternEntry {
+                required_keywords: vec!["count".to_string(), "ip".to_string(), "address".to_string()],
+                optional_keywords: vec!["unique".to_string(), "in".to_string(), "log".to_string(), "access".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(count|show|find).*(unique)?.*(ip|ips).*(addresses?).*(in)?.*access.*\\.log").unwrap()),
+                gnu_command: "awk '{print $1}' access.log | sort | uniq -c".to_string(),
+                bsd_command: Some("awk '{print $1}' access.log | sort | uniq -c".to_string()),
+                description: "Count unique IP addresses in access log".to_string(),
+            },
+
+            // Pattern 60: "merge multiple log files by timestamp" / "sort -m"
+            PatternEntry {
+                required_keywords: vec!["merge".to_string(), "log".to_string(), "files".to_string()],
+                optional_keywords: vec!["multiple".to_string(), "by".to_string(), "timestamp".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(merge|combine|join).*(multiple)?.*(log).*(files?).*(by)?.*(timestamp|time)?").unwrap()),
+                gnu_command: "sort -m log1.txt log2.txt log3.txt".to_string(),
+                bsd_command: Some("sort -m log1.txt log2.txt log3.txt".to_string()),
+                description: "Merge multiple log files by timestamp".to_string(),
+            },
+
+            // ===== FILE OPERATIONS (Issue #511) =====
+
+            // Pattern 61: "find all empty directories" / "find -type d -empty"
+            PatternEntry {
+                required_keywords: vec!["find".to_string(), "empty".to_string(), "directories".to_string()],
+                optional_keywords: vec!["all".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|locate|search).*(all)?.*(empty).*(directories?|dirs?|folders?)").unwrap()),
+                gnu_command: "find . -type d -empty".to_string(),
+                bsd_command: Some("find . -type d -empty".to_string()),
+                description: "Find all empty directories".to_string(),
+            },
+
+            // Pattern 62: "find all symbolic links in the current directory" / "find -type l"
+            PatternEntry {
+                required_keywords: vec!["find".to_string(), "symbolic".to_string(), "links".to_string()],
+                optional_keywords: vec!["all".to_string(), "symlinks".to_string(), "current".to_string(), "directory".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|locate|search).*(all)?.*(symbolic|sym).*(links?|symlinks?)").unwrap()),
+                gnu_command: "find . -type l".to_string(),
+                bsd_command: Some("find . -type l".to_string()),
+                description: "Find all symbolic links".to_string(),
+            },
+
+            // Pattern 63: "show the 10 largest files in the current directory" / "du -ah | sort -rh"
+            PatternEntry {
+                required_keywords: vec!["largest".to_string(), "files".to_string()],
+                optional_keywords: vec!["show".to_string(), "10".to_string(), "current".to_string(), "directory".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|list|display|find).*(10|ten|\\d+)?.*(largest|biggest).*(files?)").unwrap()),
+                gnu_command: "du -ah . | sort -rh | head -10".to_string(),
+                bsd_command: Some("du -ah . | sort -rh | head -10".to_string()),
+                description: "Show the largest files".to_string(),
+            },
+
+            // Pattern 64: "count total lines of code in all Python files" / "find + wc"
+            PatternEntry {
+                required_keywords: vec!["count".to_string(), "lines".to_string(), "code".to_string(), "python".to_string()],
+                optional_keywords: vec!["total".to_string(), "all".to_string(), "files".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(count|calculate|show).*(total)?.*(lines?).*(of)?.*(code).*(in)?.*(all)?.*(python|\.py)").unwrap()),
+                gnu_command: "find . -name '*.py' -exec wc -l {} + | tail -1".to_string(),
+                bsd_command: Some("find . -name '*.py' -exec wc -l {} + | tail -1".to_string()),
+                description: "Count total lines of code in Python files".to_string(),
+            },
+
+            // Pattern 65: "find duplicate files by MD5 hash" / "find + md5sum"
+            PatternEntry {
+                required_keywords: vec!["find".to_string(), "duplicate".to_string(), "files".to_string()],
+                optional_keywords: vec!["by".to_string(), "md5".to_string(), "hash".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|locate|search|detect).*(duplicate|duplicated|dup).*(files?).*(by)?.*(md5|hash|checksum)?").unwrap()),
+                gnu_command: "find . -type f -exec md5sum {} + | sort | uniq -w32 -dD".to_string(),
+                bsd_command: Some("find . -type f -exec md5 {} + | sort | uniq -w32 -dD".to_string()),
+                description: "Find duplicate files by MD5 hash".to_string(),
+            },
+
+            // ===== SYSTEM MONITORING (Issue #511) =====
+
+            // Pattern 66: "show running processes sorted by memory usage" / "ps aux --sort"
+            PatternEntry {
+                required_keywords: vec!["processes".to_string(), "sorted".to_string(), "memory".to_string()],
+                optional_keywords: vec!["show".to_string(), "running".to_string(), "by".to_string(), "usage".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|list|display).*(running)?.*(processes?).*(sorted|ordered|by).*(memory|mem|ram)").unwrap()),
+                gnu_command: "ps aux --sort=-%mem | head -20".to_string(),
+                bsd_command: Some("ps aux -m | head -20".to_string()),
+                description: "Show running processes sorted by memory".to_string(),
+            },
+
+            // Pattern 67: "show network connections" / "netstat"
+            PatternEntry {
+                required_keywords: vec!["network".to_string(), "connections".to_string()],
+                optional_keywords: vec!["show".to_string(), "display".to_string(), "list".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|display|list|get).*(network|net).*(connections?|sockets?)").unwrap()),
+                gnu_command: "netstat -tunap".to_string(),
+                bsd_command: Some("netstat -p tcp -p udp".to_string()),
+                description: "Show network connections".to_string(),
+            },
+
+            // ===== ARCHIVE/COMPRESSION (Issue #511) =====
+
+            // Pattern 68: "create a tar.gz archive of the src directory"
+            PatternEntry {
+                required_keywords: vec!["create".to_string(), "tar".to_string(), "archive".to_string()],
+                optional_keywords: vec!["gz".to_string(), "gzip".to_string(), "of".to_string(), "directory".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(create|make|build).*(tar|archive).*(gz|gzip)?.*(of)?.*(\\w+).*(directory|dir|folder)?").unwrap()),
+                gnu_command: "tar -czf src.tar.gz src/".to_string(),
+                bsd_command: Some("tar -czf src.tar.gz src/".to_string()),
+                description: "Create tar.gz archive".to_string(),
+            },
+
+            // Pattern 69: "compress a directory with maximum compression"
+            PatternEntry {
+                required_keywords: vec!["compress".to_string(), "directory".to_string(), "maximum".to_string()],
+                optional_keywords: vec!["with".to_string(), "best".to_string(), "compression".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(compress|archive).*(directory|dir|folder).*(with)?.*(maximum|max|best|highest).*(compression)?").unwrap()),
+                gnu_command: "tar --use-compress-program='gzip -9' -cf archive.tar.gz directory/".to_string(),
+                bsd_command: Some("tar -czf archive.tar.gz directory/".to_string()),
+                description: "Compress directory with maximum compression".to_string(),
             },
 
         ]

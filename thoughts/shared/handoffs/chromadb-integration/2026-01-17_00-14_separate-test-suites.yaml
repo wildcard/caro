@@ -1,0 +1,128 @@
+---
+session: chromadb-integration
+date: 2026-01-17
+status: partial
+outcome: PARTIAL_PLUS
+---
+
+goal: Create separate test suites for knowledge (LanceDB) and ChromaDB backends
+now: Fix ChromaDB authentication (Issue #519) to unblock integration tests
+test: cargo test --features knowledge --test knowledge_integration
+
+done_this_session:
+  - task: Rebased chromadb-integration branch onto main (3 commits behind)
+    files: [entire branch]
+  - task: Created separate LanceDB integration test suite
+    files: [tests/knowledge_integration.rs]
+  - task: Updated ChromaDB backend with new VectorBackend trait methods
+    files: [src/knowledge/backends/chromadb.rs]
+  - task: Created comprehensive test documentation
+    files: [tests/KNOWLEDGE_TESTS.md]
+  - task: Created GitHub issues for blockers
+    files: []
+
+blockers:
+  - ChromaDB Rust client v2.3.0 requires authentication (/api/v2/auth/identity endpoint)
+  - All ChromaDB integration tests fail with 404 Not Found errors
+  - Tried ChromaDB server versions 0.4.15, 0.4.24, 0.5.5, 0.6.x - all require auth
+
+questions:
+  - How to configure ChromaDB server authentication for testing?
+  - Should we downgrade chromadb Rust crate to v0.x (loses async support)?
+  - Can chromadb client v2.3.0 work without authentication?
+
+decisions:
+  - separate_test_suites: "Created distinct test files for LanceDB (knowledge_integration.rs) and ChromaDB (chromadb_integration.rs) to allow independent testing and CI flexibility"
+  - lancedb_stats_limitation: "Documented that LanceDB stats() currently counts all entries as successes - type-specific counting is TODO (src/knowledge/backends/lancedb.rs:301-326)"
+  - docker_compose_version: "Tried ChromaDB 0.4.15 in docker-compose.yml as it's older without mandatory auth, but still hit auth requirement"
+
+findings:
+  - chromadb_v2_auth: "chromadb Rust client v2.3.0 expects /api/v2/auth/identity endpoint which doesn't exist or isn't properly configured in any tested ChromaDB server version"
+  - test_suite_separation: "Separating LanceDB and ChromaDB tests allows knowledge tests to run without external dependencies (8 tests passing)"
+  - rebase_clean: "Rebasing brought in Phase 3 multi-collection schema foundation (f22070b5) which added collections.rs with CollectionType enum"
+  - vectorbackend_expansion: "Main branch added add_entry() and find_similar_in() methods to VectorBackend trait requiring implementation in both backends"
+
+worked:
+  - Creating separate test files for different backends
+  - Using tempfile crate for isolated LanceDB testing
+  - Comprehensive documentation in KNOWLEDGE_TESTS.md covering setup, troubleshooting, CI integration
+  - GitHub issues for tracking blockers (#519) and future work (#520)
+
+failed:
+  - Multiple attempts to configure ChromaDB server without authentication
+  - Tried different ChromaDB server versions (0.4.15, 0.4.24, 0.5.5, 0.6.x)
+  - All versions return 404 for /api/v2/auth/identity endpoint
+
+next:
+  - Research chromadb client v2.3.0 authentication configuration
+  - Configure token-based auth in docker-compose.yml
+  - Update ChromaDbBackend::new() to accept auth credentials (optional parameter)
+  - Test ChromaDB integration tests with authentication configured
+  - If auth can't be disabled, consider downgrading chromadb crate to v0.x
+  - Once ChromaDB tests pass, update CI workflows to run both test suites
+  - Commit all changes: docker-compose.yml, knowledge_integration.rs, chromadb_integration.rs, KNOWLEDGE_TESTS.md
+
+files:
+  created:
+    - tests/knowledge_integration.rs
+    - tests/KNOWLEDGE_TESTS.md
+    - tests/docker-compose.yml
+    - tests/chromadb_integration.rs
+  modified:
+    - src/knowledge/backends/chromadb.rs
+    - src/knowledge/backends/lancedb.rs
+    - src/main.rs
+
+test_results:
+  knowledge_suite: "8/8 passing (LanceDB backend)"
+  chromadb_suite: "0/7 passing (blocked by auth)"
+
+github_issues:
+  - number: 519
+    title: "ChromaDB integration tests blocked by authentication requirement"
+    labels: [bug, backend]
+  - number: 520
+    title: "Separate test suites for knowledge and chromadb features"
+    labels: [enhancement, backend]
+
+implementation_details:
+  knowledge_integration_tests:
+    location: tests/knowledge_integration.rs
+    coverage:
+      - test_lancedb_health
+      - test_lancedb_record_success
+      - test_lancedb_record_correction
+      - test_lancedb_find_similar
+      - test_lancedb_clear
+      - test_lancedb_multiple_operations
+      - test_lancedb_context_metadata
+      - test_lancedb_persistence
+    approach: "Uses tempfile::TempDir for isolated testing, no external dependencies required"
+
+  chromadb_integration_tests:
+    location: tests/chromadb_integration.rs
+    status: "Blocked by authentication requirement"
+    error: 'Failed to create ChromaDB backend: Database("404 Not Found: {\"detail\":\"Not Found\"}")'
+    server_log: "GET /api/v2/auth/identity HTTP/1.1 404"
+
+  vectorbackend_trait_updates:
+    new_methods:
+      - "add_entry(entry: KnowledgeEntry, collection: CollectionType) -> Result<()>"
+      - "find_similar_in(query: &str, limit: usize, scope: QueryScope) -> Result<Vec<KnowledgeEntry>>"
+    implementation: "Both ChromaDB and LanceDB backends updated with TODOs for future multi-collection support"
+
+branch_status:
+  branch: feature/chromadb-integration
+  commits_ahead: 10
+  commits_behind: 0
+  base: main
+  rebased: "2026-01-17 (brought in 3 commits from main)"
+
+context_for_next_session:
+  primary_blocker: "ChromaDB authentication requirement (Issue #519)"
+  ready_to_commit: "Knowledge integration test suite is complete and passing"
+  key_files:
+    - tests/knowledge_integration.rs: "8 passing LanceDB tests"
+    - tests/chromadb_integration.rs: "7 tests (currently failing due to auth)"
+    - tests/KNOWLEDGE_TESTS.md: "Complete documentation for both test suites"
+    - tests/docker-compose.yml: "ChromaDB server config (needs auth configuration)"
