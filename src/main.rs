@@ -970,8 +970,6 @@ async fn handle_knowledge_command(
             // Create indexer
             let indexer = if let Some(sections) = sections {
                 ManPageIndexer::new(sections)
-            } else if page.is_some() {
-                ManPageIndexer::user_commands()
             } else {
                 ManPageIndexer::user_commands()
             };
@@ -1236,7 +1234,7 @@ async fn handle_profile_command(command: ProfileCommands) -> Result<(), String> 
 
             profile_config
                 .add_profile(profile)
-                .map_err(|e| format!("{}", e))?;
+                .map_err(|e| e.to_string())?;
 
             let content = toml::to_string_pretty(&profile_config)
                 .map_err(|e| format!("Failed to serialize profiles: {}", e))?;
@@ -1293,7 +1291,7 @@ async fn handle_profile_command(command: ProfileCommands) -> Result<(), String> 
 
             profile_config
                 .switch_profile(&name)
-                .map_err(|e| format!("{}", e))?;
+                .map_err(|e| e.to_string())?;
 
             let content = toml::to_string_pretty(&profile_config)
                 .map_err(|e| format!("Failed to serialize profiles: {}", e))?;
@@ -1320,7 +1318,7 @@ async fn handle_profile_command(command: ProfileCommands) -> Result<(), String> 
 
             profile_config
                 .remove_profile(&name)
-                .map_err(|e| format!("{}", e))?;
+                .map_err(|e| e.to_string())?;
 
             let content = toml::to_string_pretty(&profile_config)
                 .map_err(|e| format!("Failed to serialize profiles: {}", e))?;
