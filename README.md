@@ -82,216 +82,120 @@ This project is **generally available** with all core features implemented, test
 - 🌐 **Cross-platform** - Full support for macOS (including Apple Silicon), Linux, and Windows
 - 🎬 **Safe execution** - Optional command execution with shell-aware handling
 
-## 🚀 Quick Start
+## Installation
 
-### Installation
+### macOS
 
-#### Option 1: Quick Install Script (Recommended)
+caro is available via Homebrew, Cargo, and as a standalone binary.
 
-**macOS / Linux / WSL:**
+#### Homebrew
+
+| Install | Upgrade |
+| ------- | ------- |
+| `brew install wildcard/tap/caro` | `brew upgrade caro` |
+
+#### Cargo
+
 ```bash
-curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
+cargo install caro
+
+# For Apple Silicon with MLX GPU acceleration:
+cargo install caro --features embedded-mlx
 ```
 
-Or with wget:
+#### Precompiled binaries
+
+Download from the [releases page](https://github.com/wildcard/caro/releases/latest) or use the install script:
+
 ```bash
-wget -qO- https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
+curl -fsSL https://setup.caro.sh | bash
 ```
 
-**Windows PowerShell:**
-```powershell
-irm https://raw.githubusercontent.com/wildcard/caro/main/install.ps1 | iex
-```
+### Linux & BSD
 
-**What it does:**
-- Downloads the latest binary for your platform
-- Installs to a standard location (`~/.local/bin` on Unix, `%LOCALAPPDATA%\caro\bin` on Windows)
-- Adds to your PATH automatically
-- Verifies SHA256 checksums for security
-- On Apple Silicon: builds with MLX optimization if Cargo is available
+caro is available via Cargo and as precompiled binaries for most Linux distributions.
 
-#### Option 2: Pre-built Binaries (Fast, No Compilation)
+#### Cargo
 
-Download the latest release for your platform from [GitHub Releases](https://github.com/wildcard/caro/releases/latest):
-
-| Platform | Binary Name | Direct Download |
-|----------|-------------|-----------------|
-| Linux x86_64 | `caro-1.1.1-linux-amd64` | [Download](https://github.com/wildcard/caro/releases/download/v1.1.1/caro-1.1.1-linux-amd64) |
-| Linux ARM64 | `caro-1.1.1-linux-arm64` | [Download](https://github.com/wildcard/caro/releases/download/v1.1.1/caro-1.1.1-linux-arm64) |
-| macOS Intel | `caro-1.1.1-macos-intel` | [Download](https://github.com/wildcard/caro/releases/download/v1.1.1/caro-1.1.1-macos-intel) |
-| macOS Apple Silicon | `caro-1.1.1-macos-silicon` | [Download](https://github.com/wildcard/caro/releases/download/v1.1.1/caro-1.1.1-macos-silicon) |
-| Windows x64 | `caro-1.1.1-windows-amd64.exe` | [Download](https://github.com/wildcard/caro/releases/download/v1.1.1/caro-1.1.1-windows-amd64.exe) |
-
-> 💡 **Tip**: Visit the [releases page](https://github.com/wildcard/caro/releases/latest) for the latest version.
-
-**Manual Installation (macOS/Linux):**
-```bash
-# Example for macOS Apple Silicon (v1.1.1)
-curl -fsSL https://github.com/wildcard/caro/releases/download/v1.1.1/caro-1.1.1-macos-silicon -o caro
-chmod +x caro
-sudo mv caro /usr/local/bin/
-
-# Verify installation
-caro --version
-```
-
-**Manual Installation (Windows PowerShell):**
-```powershell
-# Create installation directory
-$installDir = "$env:LOCALAPPDATA\caro\bin"
-New-Item -ItemType Directory -Force -Path $installDir
-
-# Download binary (v1.1.1 example)
-$version = "1.1.1"
-Invoke-WebRequest -Uri "https://github.com/wildcard/caro/releases/download/v$version/caro-$version-windows-amd64.exe" -OutFile "$installDir\caro.exe"
-
-# Add to PATH (run once)
-$userPath = [Environment]::GetEnvironmentVariable("Path", "User")
-[Environment]::SetEnvironmentVariable("Path", "$userPath;$installDir", "User")
-
-# Open new PowerShell and verify
-caro --version
-```
-
-> **Windows users**: See the [Windows Setup Guide](docs/WINDOWS_SETUP.md) for detailed instructions, troubleshooting, and shell configuration.
-
-**Checksum Verification:**
-Each binary includes a SHA256 checksum file (`.sha256`). Verify before installing:
-```bash
-# Download binary and checksum (v1.1.1 example)
-curl -fsSL https://github.com/wildcard/caro/releases/download/v1.1.1/caro-1.1.1-macos-silicon -o caro
-curl -fsSL https://github.com/wildcard/caro/releases/download/v1.1.1/caro-1.1.1-macos-silicon.sha256 -o caro.sha256
-
-# Verify (macOS/Linux)
-shasum -a 256 -c caro.sha256
-```
-
-> 💡 **Note for Apple Silicon users**: Pre-built binaries work immediately, but for maximum performance with MLX GPU acceleration, install via cargo (Option 3).
-
-#### Option 3: Using Cargo (Full Features)
 ```bash
 cargo install caro
 ```
 
-**For Apple Silicon with MLX optimization:**
-```bash
-cargo install caro --features embedded-mlx
-```
-
-### Building from Source
-
-#### Prerequisites
-- **Rust 1.83+** with Cargo (or latest stable recommended)
-- **CMake** (for model inference backends)
-- **macOS with Apple Silicon** (optional, for GPU acceleration)
-- **Xcode** (optional, for full MLX GPU support on Apple Silicon)
-
-### Platform-Specific Setup
-
-#### macOS (Recommended for Apple Silicon)
-
-For complete macOS setup instructions including GPU acceleration, see [macOS Setup Guide](docs/MACOS_SETUP.md).
-
-**Quick Install:**
-```bash
-# Install Rust
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source "$HOME/.cargo/env"
-
-# Install CMake via Homebrew
-brew install cmake
-
-# Clone and build
-git clone https://github.com/wildcard/caro.git
-cd caro
-cargo build --release
-
-# Run
-./target/release/caro "list all files"
-```
-
-**For GPU Acceleration (Apple Silicon only):**
-- Install Xcode from App Store (required for Metal compiler)
-- Build with: `cargo build --release --features embedded-mlx`
-- See [macOS Setup Guide](docs/MACOS_SETUP.md) for details
-
-**Note:** The default build uses a stub implementation that works immediately without Xcode. For production GPU acceleration, Xcode is required.
-
-#### Linux
+#### Debian, Ubuntu (apt)
 
 ```bash
-# Install Rust
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source "$HOME/.cargo/env"
+# Add repository (coming soon)
+# sudo apt install caro
 
-# Install dependencies (Ubuntu/Debian)
-sudo apt-get update
-sudo apt-get install cmake build-essential
-
-# Clone and build
-git clone https://github.com/wildcard/caro.git
-cd caro
-cargo build --release
+# For now, use the install script:
+curl -fsSL https://setup.caro.sh | bash
 ```
 
-#### Windows
+#### Fedora, CentOS, RHEL (dnf)
 
-For complete Windows setup instructions, see the [Windows Setup Guide](docs/WINDOWS_SETUP.md).
+```bash
+# Package coming soon. For now, use:
+curl -fsSL https://setup.caro.sh | bash
+```
 
-**Quick Install (PowerShell):**
+#### Precompiled binaries
+
+Download from the [releases page](https://github.com/wildcard/caro/releases/latest):
+
+| Platform | Download |
+|----------|----------|
+| Linux x86_64 | [caro-linux-amd64](https://github.com/wildcard/caro/releases/latest) |
+| Linux ARM64 | [caro-linux-arm64](https://github.com/wildcard/caro/releases/latest) |
+
+### Windows
+
+caro is available via WinGet, Cargo, and as a standalone binary.
+
+#### WinGet
+
 ```powershell
-irm https://raw.githubusercontent.com/wildcard/caro/main/install.ps1 | iex
+# Coming soon
+# winget install wildcard.caro
 ```
 
-**Building from Source:**
+#### Cargo
+
 ```powershell
-# Prerequisites: Install Rust from https://rustup.rs
-# Prerequisites: Install Visual Studio Build Tools with "Desktop development with C++"
-
-# Clone and build
-git clone https://github.com/wildcard/caro.git
-cd caro
-cargo build --release
-
-# Binary at: .\target\release\caro.exe
+cargo install caro
 ```
 
-> **Note:** Caro auto-detects PowerShell and generates native Windows commands. Use `--shell bash` if you need POSIX commands for WSL/Git Bash.
+#### Precompiled binary
 
-### Building from Source
+Download `caro-windows-amd64.exe` from the [releases page](https://github.com/wildcard/caro/releases/latest).
+
+### Build from source
 
 ```bash
-# Clone the repository
 git clone https://github.com/wildcard/caro.git
 cd caro
-
-# Build the project (uses CPU backend by default)
 cargo build --release
 
-# Run the CLI
 ./target/release/caro --version
 ```
 
-### Development Commands
+**Prerequisites**: Rust 1.83+, CMake. For Apple Silicon GPU acceleration, install Xcode.
+
+See [BUILD.md](docs/BUILD.md) for detailed build instructions.
+
+## Quick Start
 
 ```bash
-# Run tests
-make test
+# Generate a shell command from natural language
+caro "list all PDF files larger than 10MB"
 
-# Format code
-make fmt
-
-# Run linter
-make lint
-
-# Build optimized binary
-make build-release
-
-# Run with debug logging
-RUST_LOG=debug cargo run -- "your command"
+# Output:
+# Generated command:
+#   find . -name "*.pdf" -size +10M
+#
+# Execute this command? (y/N)
 ```
 
-## 📖 Usage
+## Usage
 
 ### Basic Syntax
 ```bash
