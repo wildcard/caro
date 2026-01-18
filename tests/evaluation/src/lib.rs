@@ -34,6 +34,7 @@
 //! ```
 
 pub mod capability_matrix;
+pub mod dashboard;
 pub mod dataset;
 pub mod dataset_export;
 pub mod evaluator;
@@ -47,4 +48,5 @@ pub mod prompts;
 pub mod reporter;
 pub mod safety_validator;
 pub mod test_runner;
+pub mod timeseries;
 pub mod training_tracker;
