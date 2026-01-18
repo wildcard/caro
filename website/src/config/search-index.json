@@ -1,6 +1,6 @@
 {
   "version": "2.1.0",
-  "generated": "2026-01-16T05:40:26.135Z",
+  "generated": "2026-01-18T03:24:05.800Z",
   "totalPages": 36,
   "pages": [
     {
@@ -3907,7 +3907,12 @@
       "description": "",
       "category": "main",
       "keywords": [
-        "home"
+        "home",
+        "caro",
+        "natural",
+        "language",
+        "your",
+        "terminal"
       ],
       "icon": "🏠",
       "content": {
@@ -3915,10 +3920,15 @@
         "paragraphs": [],
         "listItems": []
       },
-      "fullText": "Home  ",
-      "_searchText": "home  / home home  ",
+      "fullText": "Home  Caro - Natural language for your terminal ",
+      "_searchText": "home  / home caro natural language your terminal home  caro - natural language for your terminal ",
       "_words": [
-        "home"
+        "home",
+        "caro",
+        "natural",
+        "language",
+        "your",
+        "terminal"
       ]
     },
     {
@@ -6483,6 +6493,18 @@
       "_searchText": "play with caro test your shell command knowledge! pick the safe commands, avoid the dangerous ones. play with caro test your shell command knowledge! pick the safe commands, avoid the dangerous ones. level 1 safe or danger? score 0 pick the safe command! safe or danger? can you identify which shell commands are safe to run? ✓ pick safe commands to score points ✗ avoid dangerous commands or lose a life ⏱ answer before time runs out! lives: ❤️ ❤️ ❤️ start game high score: 0 🏆 top scores 🏆 ❤️ ❤️ ❤️ 🔥 streak: 0"
     },
     {
+      "source": "/CommandDemo.astro",
+      "headings": [
+        "Your entire terminal workflow"
+      ],
+      "paragraphs": [
+        "Just describe what you want in plain English. Caro generates safe, verified commands.",
+        "All commands are validated for safety before execution. Learn more"
+      ],
+      "fullText": "Your entire terminal workflow Just describe what you want in plain English. Caro generates safe, verified commands. s> $ caro \" \" -> ))} All commands are validated for safety before execution. Learn more",
+      "_searchText": "your entire terminal workflow just describe what you want in plain english. caro generates safe, verified commands. all commands are validated for safety before execution. learn more your entire terminal workflow just describe what you want in plain english. caro generates safe, verified commands. s> $ caro \" \" -> ))} all commands are validated for safety before execution. learn more"
+    },
+    {
       "source": "/Comparison.astro",
       "headings": [
         ".title`)}"
@@ -6582,6 +6604,49 @@
       "paragraphs": [],
       "fullText": "Learn more →",
       "_searchText": "learn more →"
+    },
+    {
+      "source": "/MinimalFeatures.astro",
+      "headings": [
+        "Script and customize"
+      ],
+      "paragraphs": [
+        "Caro adapts to your workflow. Configure it once, use it everywhere."
+      ],
+      "fullText": "Script and customize Caro adapts to your workflow. Configure it once, use it everywhere. ))}",
+      "_searchText": "script and customize caro adapts to your workflow. configure it once, use it everywhere. script and customize caro adapts to your workflow. configure it once, use it everywhere. ))}"
+    },
+    {
+      "source": "/MinimalFooter.astro",
+      "headings": [
+        "Product",
+        "Resources",
+        "Community"
+      ],
+      "paragraphs": [
+        "Open source under MIT License. Made with care by the community."
+      ],
+      "fullText": "caro Natural language for your terminal Product Features Documentation Roadmap Resources FAQ Glossary Releases Community GitHub Issues Discussions Open source under MIT License. Made with care by the community. Privacy | License",
+      "_searchText": "product resources community open source under mit license. made with care by the community. caro natural language for your terminal product features documentation roadmap resources faq glossary releases community github issues discussions open source under mit license. made with care by the community. privacy | license"
+    },
+    {
+      "source": "/MinimalHero.astro",
+      "headings": [
+        "Take your terminal to the next level"
+      ],
+      "paragraphs": [
+        "Caro translates natural language to shell commands. Free and open source.",
+        "macOS Linux Windows Source Install via Homebrew for the easiest setup experience."
+      ],
+      "fullText": "Take your terminal to the next level Caro translates natural language to shell commands. Free and open source. macOS Linux Windows Source Install via Homebrew for the easiest setup experience. View on GitHub See it in action",
+      "_searchText": "take your terminal to the next level caro translates natural language to shell commands. free and open source. macos linux windows source install via homebrew for the easiest setup experience. take your terminal to the next level caro translates natural language to shell commands. free and open source. macos linux windows source install via homebrew for the easiest setup experience. view on github see it in action"
+    },
+    {
+      "source": "/MinimalNav.astro",
+      "headings": [],
+      "paragraphs": [],
+      "fullText": "caro Manual Releases Manual Releases GitHub",
+      "_searchText": "caro manual releases manual releases github"
     },
     {
       "source": "/Navigation.astro",
