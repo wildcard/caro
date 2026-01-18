@@ -273,6 +273,16 @@ enum KnowledgeCommands {
         verbose: bool,
     },
 
+    /// Index GitHub repository documentation
+    IndexGitHub {
+        /// GitHub repository in format owner/repo (e.g., "wildcard/caro")
+        repo: String,
+
+        /// Show progress during indexing
+        #[arg(long, short = 'v')]
+        verbose: bool,
+    },
+
     /// Show knowledge index statistics
     Stats,
 
@@ -1159,6 +1169,40 @@ async fn handle_knowledge_command(
                     }
                     Err(e) => return Err(format!("Indexing failed: {}", e)),
                 }
+            }
+
+            Ok(())
+        }
+
+        KnowledgeCommands::IndexGitHub { repo, verbose } => {
+            use caro::knowledge::indexers::github::GitHubDocsIndexer;
+
+            println!("{} Initializing GitHub docs indexer...", "►".cyan());
+
+            let indexer = GitHubDocsIndexer::new()
+                .map_err(|e| format!("Failed to create GitHub indexer: {}", e))?;
+
+            let index = KnowledgeIndex::from_config(&backend_config)
+                .await
+                .map_err(|e| format!("Failed to initialize knowledge index: {}", e))?;
+
+            let backend = index.backend();
+
+            println!("{} Fetching README from: {}", "→".cyan(), repo.bold());
+
+            if verbose {
+                println!("{} Downloading and parsing documentation...", "→".cyan());
+            }
+
+            match indexer.index_one(backend, &repo).await {
+                Ok(true) => {
+                    println!("{} Successfully indexed GitHub repo: {}", "✓".green(), repo.bold());
+                    println!("  Documentation added to knowledge base");
+                }
+                Ok(false) => {
+                    println!("{} No useful documentation found for: {}", "✗".yellow(), repo);
+                }
+                Err(e) => return Err(format!("GitHub indexing failed: {}", e)),
             }
 
             Ok(())
