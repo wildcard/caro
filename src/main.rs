@@ -845,16 +845,8 @@ async fn handle_knowledge_command(command: KnowledgeCommands) -> Result<(), Stri
 
             println!("{}", "Knowledge Index Statistics".bold());
             println!();
-            println!(
-                "  {}: {}",
-                "Total entries".cyan(),
-                stats.total_entries
-            );
-            println!(
-                "  {}: {}",
-                "Success count".cyan(),
-                stats.success_count
-            );
+            println!("  {}: {}", "Total entries".cyan(), stats.total_entries);
+            println!("  {}: {}", "Success count".cyan(), stats.success_count);
             println!(
                 "  {}: {}",
                 "Correction count".cyan(),
@@ -883,13 +875,21 @@ async fn handle_knowledge_command(command: KnowledgeCommands) -> Result<(), Stri
                 println!();
 
                 for (i, entry) in results.iter().enumerate() {
-                    println!("{}. {} (similarity: {:.2})", i + 1, entry.command.green(), entry.similarity);
+                    println!(
+                        "{}. {} (similarity: {:.2})",
+                        i + 1,
+                        entry.command.green(),
+                        entry.similarity
+                    );
                     println!("   Request: {}", entry.request.dimmed());
                     if let Some(ctx) = &entry.context {
                         println!("   Context: {}", ctx.dimmed());
                     }
                     println!("   Type: {:?}", entry.entry_type);
-                    println!("   Timestamp: {}", entry.timestamp.format("%Y-%m-%d %H:%M:%S"));
+                    println!(
+                        "   Timestamp: {}",
+                        entry.timestamp.format("%Y-%m-%d %H:%M:%S")
+                    );
                     println!();
                 }
             }
@@ -897,7 +897,10 @@ async fn handle_knowledge_command(command: KnowledgeCommands) -> Result<(), Stri
 
         KnowledgeCommands::Clear { yes } => {
             if !yes {
-                print!("{} ", "Are you sure you want to clear all knowledge? [y/N]".yellow());
+                print!(
+                    "{} ",
+                    "Are you sure you want to clear all knowledge? [y/N]".yellow()
+                );
                 std::io::Write::flush(&mut std::io::stdout()).unwrap();
 
                 let mut input = String::new();
@@ -925,8 +928,7 @@ async fn handle_knowledge_command(command: KnowledgeCommands) -> Result<(), Stri
                 .await
                 .map_err(|e| format!("Failed to export: {}", e))?;
 
-            std::fs::write(&path, json_data)
-                .map_err(|e| format!("Failed to write file: {}", e))?;
+            std::fs::write(&path, json_data).map_err(|e| format!("Failed to write file: {}", e))?;
 
             println!("{} Exported knowledge to {}", "✓".green(), path.display());
         }
@@ -940,7 +942,12 @@ async fn handle_knowledge_command(command: KnowledgeCommands) -> Result<(), Stri
                 .await
                 .map_err(|e| format!("Failed to import: {}", e))?;
 
-            println!("{} Imported {} entries from {}", "✓".green(), count, path.display());
+            println!(
+                "{} Imported {} entries from {}",
+                "✓".green(),
+                count,
+                path.display()
+            );
         }
     }
 
@@ -1160,15 +1167,13 @@ async fn main() {
             process::exit(0);
         }
         #[cfg(feature = "knowledge")]
-        Some(Commands::Knowledge { command }) => {
-            match handle_knowledge_command(command).await {
-                Ok(()) => process::exit(0),
-                Err(e) => {
-                    eprintln!("Error: {}", e);
-                    process::exit(1);
-                }
+        Some(Commands::Knowledge { command }) => match handle_knowledge_command(command).await {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
             }
-        }
+        },
         // NOTE: Telemetry subcommand disabled in v1.1.0-beta.1
         // Some(Commands::Telemetry { command }) => {
         //     let storage_path = dirs::data_dir()

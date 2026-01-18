@@ -234,7 +234,8 @@ impl KnowledgeIndex {
                 return Ok(json!({
                     "version": "1.0",
                     "entries": []
-                }).to_string());
+                })
+                .to_string());
             }
         };
 
@@ -322,7 +323,8 @@ impl KnowledgeIndex {
                         .and_then(|v| v.as_str())
                         .unwrap_or("");
                     let feedback = entry.get("feedback").and_then(|v| v.as_str());
-                    self.record_correction(request, original, command, feedback).await?;
+                    self.record_correction(request, original, command, feedback)
+                        .await?;
                     imported_count += 1;
                 }
                 _ => {
