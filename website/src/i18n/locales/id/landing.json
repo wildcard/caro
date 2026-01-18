@@ -1,0 +1,260 @@
+{
+  "landing": {
+    "navigation": {
+      "brand": "Caro",
+      "cta": "Mulai Gratis",
+      "darkMode": {
+        "toggle": "Ubah mode gelap"
+      }
+    },
+    "hero": {
+      "badge": "Companion Agent",
+      "tagline": "Teman setia shell Anda",
+      "subtitle": "Agent perintah POSIX shell khusus untuk pengguna Claude. Memvalidasi perintah yang dihasilkan AI dengan desain keamanan-utama, mendeteksi pola berbahaya, dan memastikan kepatuhan POSIX.",
+      "installLabel": "Tersedia sebagai Claude Skill:",
+      "cta": {
+        "getStarted": "Mulai",
+        "watchDemo": "Lihat Demo"
+      }
+    },
+    "features": {
+      "title": "Mengapa Caro?",
+      "subtitle": "Companion agent yang dibangun untuk keamanan, empati, dan keahlian",
+      "alphaNotice": "Kami sedang aktif membangun bersama komunitas kami. Bergabunglah untuk membantu membentuk masa depan Caro!",
+      "alphaLabel": "Soft Launch Alpha",
+      "ctaText": "Lihat apa yang diblokir Caro dan mengapa",
+      "ctaLink": "Lihat pola keamanan",
+      "items": [
+        {
+          "icon": "🛡️",
+          "title": "Jangan Hancurkan Production Lagi",
+          "description": "Memblokir rm -rf /, fork bombs, dan 50+ perintah penghancur karir SEBELUM Anda bisa menjalankannya. Diri Anda jam 2 pagi akan berterima kasih.",
+          "highlight": true
+        },
+        {
+          "icon": "🔒",
+          "title": "Data Anda Tetap Milik Anda",
+          "description": "Nol telemetri. Nol panggilan cloud API. Jalankan di jaringan air-gapped. Lolos audit compliance apapun. Perintah Anda tidak pernah meninggalkan mesin Anda.",
+          "highlight": true,
+          "privacyLink": true
+        },
+        {
+          "icon": "✅",
+          "title": "Perintah yang Benar-benar Bekerja",
+          "description": "Menghasilkan perintah yang bekerja di Mac Anda, server Linux Anda, dan BSD box rekan kerja Anda. Pertama kali. Setiap kali.",
+          "highlight": false
+        },
+        {
+          "icon": "⚡",
+          "title": "Cukup Cepat untuk Tidak Mengganggu Flow",
+          "description": "Inferensi sub-2s di Apple Silicon. Tidak menunggu cloud APIs. Tidak bertanya-tanya apakah server down. Hanya jawaban.",
+          "highlight": false
+        }
+      ],
+      "cards": {
+        "safetyGuardian": {
+          "title": "Penjaga Keamanan",
+          "description": "Validasi komprehensif yang memblokir perintah berbahaya seperti rm -rf /, fork bombs, dan operasi destruktif. 52 pola keamanan yang telah ditentukan dengan penilaian tingkat risiko."
+        },
+        "crossPlatform": {
+          "title": "Ahli Cross-Platform",
+          "description": "Bekerja di macOS, Linux, Windows, GNU, dan BSD. Memahami nuansa spesifik platform dan menghormati distribusi pilihan Anda."
+        },
+        "platformAware": {
+          "title": "Platform-Aware",
+          "description": "Memberikan rekomendasi berdasarkan kemampuan platform dan best practices. Otomatis membedakan sintaks perintah BSD dan GNU."
+        },
+        "posixSpecialist": {
+          "title": "Spesialis POSIX",
+          "description": "Ahli dalam perintah shell yang sesuai POSIX yang bekerja dengan andal di semua sistem. Portable, aman, dan dioptimalkan untuk terminal Anda."
+        },
+        "lightningFast": {
+          "title": "Sangat Cepat",
+          "description": "Target: Startup sub-100ms, inferensi sub-2s di Apple Silicon. Integrasi framework MLX untuk akselerasi GPU di chip M-series."
+        },
+        "claudeCompanion": {
+          "title": "Companion Claude",
+          "description": "Skill Claude Code resmi untuk pembuatan perintah shell yang aman. Auto-aktivasi saat Anda membutuhkan bantuan, memberikan panduan keamanan, dan terintegrasi mulus ke dalam workflow Anda. Install dengan /plugin install wildcard/caro"
+        }
+      }
+    },
+    "comparison": {
+      "title": "Bagaimana Caro Dibandingkan",
+      "subtitle": "Dibangun untuk DevOps engineer dan SRE yang menolak mengorbankan privasi demi produktivitas",
+      "summary": {
+        "privacy": { "stat": "Privasi", "label": "Desain Utama*" },
+        "safety": { "stat": "52+", "label": "Pola Keamanan" },
+        "offline": { "stat": "100%", "label": "Bisa Offline" },
+        "speed": { "stat": "Rust", "label": "Dibangun untuk Kecepatan" }
+      },
+      "competitors": {
+        "caro": "Caro",
+        "copilotCli": "GitHub Copilot CLI",
+        "warp": "Warp AI",
+        "kiro": "Kiro CLI",
+        "opencode": "OpenCode"
+      },
+      "table": {
+        "feature": "Fitur",
+        "youreHere": "Anda di sini"
+      },
+      "categories": {
+        "privacyData": {
+          "title": "Privasi & Data",
+          "features": {
+            "worksOffline": {
+              "name": "Bekerja 100% offline",
+              "tooltip": "Tidak butuh internet untuk fungsionalitas inti"
+            },
+            "privacyFirst": {
+              "name": "Desain privasi-utama",
+              "tooltip": "Telemetri minimal dan anonim dengan opt-out mudah"
+            },
+            "airGapped": {
+              "name": "Air-gapped friendly",
+              "tooltip": "Bisa berjalan di lingkungan terisolasi"
+            },
+            "openSource": {
+              "name": "Open source",
+              "tooltip": "Source code lengkap tersedia"
+            }
+          }
+        },
+        "safetyControl": {
+          "title": "Keamanan & Kontrol",
+          "features": {
+            "ruleBasedSafety": {
+              "name": "Pemeriksaan keamanan berbasis aturan",
+              "tooltip": "Validasi pra-eksekusi dengan pola yang ditentukan"
+            },
+            "explicitConfirmation": {
+              "name": "Konfirmasi eksplisit diperlukan",
+              "tooltip": "Perintah tidak pernah berjalan tanpa persetujuan Anda"
+            },
+            "blocksDangerous": {
+              "name": "Memblokir perintah berbahaya",
+              "tooltip": "Mencegah rm -rf /, fork bombs, dll."
+            },
+            "riskLevel": {
+              "name": "Penilaian tingkat risiko",
+              "tooltip": "Perintah diberi peringkat berdasarkan dampak potensial"
+            }
+          }
+        },
+        "shellExpertise": {
+          "title": "Keahlian Shell",
+          "features": {
+            "posixFirst": {
+              "name": "Pendekatan POSIX-first",
+              "tooltip": "Perintah portable yang bekerja di mana saja"
+            },
+            "crossPlatform": {
+              "name": "Cross-platform (macOS/Linux/BSD)",
+              "tooltip": "Bekerja di sistem mirip-Unix"
+            },
+            "existingTerminal": {
+              "name": "Menggunakan terminal Anda yang ada",
+              "tooltip": "Tidak perlu terminal emulator baru"
+            },
+            "platformAware": {
+              "name": "Perintah platform-aware",
+              "tooltip": "Menyesuaikan untuk sintaks GNU vs BSD"
+            }
+          }
+        },
+        "modelBackend": {
+          "title": "Model & Backend",
+          "features": {
+            "localInference": {
+              "name": "Inferensi lokal",
+              "tooltip": "Model berjalan di mesin Anda"
+            },
+            "multiBackend": {
+              "name": "Dukungan multi-backend",
+              "tooltip": "Pilih engine inferensi Anda"
+            },
+            "appleSilicon": {
+              "name": "Dioptimalkan untuk Apple Silicon",
+              "tooltip": "Framework MLX untuk Mac M-series"
+            },
+            "selfHostable": {
+              "name": "Self-hostable",
+              "tooltip": "Kontrol penuh atas infrastruktur"
+            }
+          }
+        }
+      },
+      "cta": {
+        "text": "Siap untuk companion shell yang menghormati privasi Anda?",
+        "getStarted": "Mulai Gratis",
+        "fullComparison": "Lihat Perbandingan Lengkap"
+      },
+      "legend": {
+        "fullSupport": "Dukungan penuh",
+        "partial": "Parsial/dapat dikonfigurasi",
+        "notSupported": "Tidak didukung",
+        "planned": "Direncanakan"
+      },
+      "values": {
+        "yes": "Ya",
+        "no": "Tidak",
+        "partial": "Parsial",
+        "planned": "Direncanakan"
+      }
+    },
+    "scenarios": {},
+    "demo": {},
+    "useCases": {},
+    "differentiators": {},
+    "communityVoices": {},
+    "trust": {},
+    "story": {
+      "title": "Kenalan dengan Caro",
+      "subtitle": "Companion dengan cerita kesetiaan dan transformasi",
+      "paragraphs": {
+        "intro": "Caro adalah digitalisasi dari Kyaro (Kyarorain Kadosh), anjing kesayangan maintainer. Seperti teman setia yang selalu ada di sisi Anda melewati setiap tantangan, Caro hadir untuk membantu Anda menavigasi kompleksitas perintah shell dengan keamanan dan keahlian.",
+        "highlight": "Di Portal 2, kita belajar bahwa GLaDOS dulunya adalah Caroline, sekretaris pendiri Aperture Science—yang bertransformasi menjadi penjaga abadi fasilitas. Seperti Caroline menjadi jantung yang berdetak dari testing chambers, Caro adalah companion abadi Anda untuk terminal.",
+        "platforms": "Dia spesialis dalam perintah POSIX shell dan memahami nuansa setiap platform—apakah Anda di macOS, Linux, Windows, GNU, atau BSD. Caro membawa preferensi Anda ke mana pun Anda men-deploy-nya, menghormati distribusi pilihan Anda sambil menjaga Anda aman dari perintah berbahaya.",
+        "companion": "Sebagai companion setia Claude, Caro menangani pekerjaan berat khusus shell, memungkinkan Claude fokus pada pekerjaan yang lebih luas sambil memastikan setiap perintah aman, benar, dan dioptimalkan untuk platform Anda."
+      }
+    },
+    "faq": {
+      "title": "Kekhawatiran Umum",
+      "subtitle": "Pertanyaan nyata dari engineer yang skeptis (kami mengerti)",
+      "concerns": [
+        {
+          "question": "Tunggu, Caro berjalan lokal. Bagaimana dia tetap update dengan pola berbahaya baru?",
+          "answer": "Pola keamanan Caro di-bake ke dalam binary—tidak perlu jaringan. Saat Anda update Caro (cargo install caro --force), Anda mendapat pola terbaru. Perintah berbahaya inti (rm -rf /, fork bombs, disk wipers) tidak berubah. Kami juga menerima kontribusi pola via GitHub.",
+          "icon": "🔄"
+        },
+        {
+          "question": "Apakah ini akan memperlambat incident response saya?",
+          "answer": "Tidak. Caro menambah <100ms ke pembuatan perintah. Pemeriksaan keamanan instan (pattern matching, bukan AI inference). Dalam incident nyata, 100ms itu yang mungkin menyelamatkan Anda dari membuat keadaan 10x lebih buruk. Validasinya sinkron—Anda melihat peringatan langsung.",
+          "icon": "⚡"
+        },
+        {
+          "question": "Bagaimana dia tahu setup sistem spesifik saya (BSD vs GNU, dll.)?",
+          "answer": "Caro mendeteksi OS dan shell Anda saat runtime. Di macOS, dia tahu Anda menggunakan tools BSD. Di Linux, dia menyesuaikan untuk sintaks GNU. Dia membaca $SHELL Anda dan menyesuaikan sesuai. Tidak perlu konfigurasi—langsung bekerja.",
+          "icon": "🖥️"
+        },
+        {
+          "question": "Bagaimana jika saya BENAR-BENAR perlu menjalankan perintah berbahaya?",
+          "answer": "Caro memperingatkan, tidak mengurung. Saat Anda melihat peringatan, Anda masih bisa melanjutkan—kami hanya memastikan Anda melakukannya dengan sengaja. Untuk perintah yang benar-benar destruktif (rm -rf /), Anda perlu konfirmasi. Ini sabuk pengaman Anda, bukan rompi pengekang.",
+          "icon": "🔓"
+        },
+        {
+          "question": "Apakah ini hanya AI wrapper lain yang mengirim perintah saya ke cloud?",
+          "answer": "Tidak. Caro berjalan 100% lokal. Perintah, file paths, nama server, dan struktur direktori Anda tidak pernah meninggalkan mesin Anda. Inferensi terjadi di hardware Anda. Kami punya nol telemetri. Cek source code—lisensinya AGPL-3.0.",
+          "icon": "🔒"
+        },
+        {
+          "question": "Mengapa saya harus percaya perintah shell yang dihasilkan AI?",
+          "answer": "Anda tidak seharusnya percaya buta—itulah intinya. Caro menghasilkan perintah DAN memvalidasinya sebelum Anda jalankan. Ini bukan 'percaya AI'—ini 'percaya lapisan keamanan berbasis pola yang menangkap kesalahan AI.' Validasinya deterministik, bukan probabilistik.",
+          "icon": "🎯"
+        }
+      ]
+    },
+    "download": {},
+    "footer": {}
+  }
+}

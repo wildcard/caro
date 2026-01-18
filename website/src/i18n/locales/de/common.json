@@ -1,20 +1,69 @@
 {
   "common": {
+    "meta": {
+      "title": "Caro - Dein treuer Shell-Begleiter",
+      "description": "Caro ist ein Begleiter-Agent, der dir bei POSIX-Shell-Befehlen hilft. Verfügbar als MCP für Claude und als dedizierter Skill."
+    },
     "buttons": {
       "copy": "Kopieren",
       "copied": "Kopiert!",
-      "getStarted": "Los geht's",
+      "getStarted": "Loslegen",
       "watchDemo": "Demo ansehen"
     },
     "status": {
-      "availableNow": "Jetzt verfügbar",
+      "availableNow": "Jetzt Verfügbar",
       "inDevelopment": "In Entwicklung",
       "planned": "Geplant",
       "comingSoon": "Demnächst"
     },
     "aria": {
       "toggleDarkMode": "Dunkelmodus umschalten",
-      "toggleHolidayTheme": "Feiertagsdesign-Menü umschalten"
+      "toggleHolidayTheme": "Feiertags-Theme-Menü umschalten"
+    },
+    "nav": {
+      "features": "Funktionen",
+      "compare": "Vergleich",
+      "resources": "Ressourcen",
+      "support": "Support",
+      "getStarted": "Loslegen",
+      "dropdown": {
+        "overview": "Übersicht",
+        "seeAllComparisons": "Alle Vergleiche anzeigen",
+        "vsWarp": "vs Warp",
+        "aiNativeTerminal": "KI-natives Terminal",
+        "vsGitHubCopilot": "vs GitHub Copilot CLI",
+        "aiPairProgrammer": "KI-Pair-Programmer",
+        "vsKiro": "vs Kiro CLI",
+        "awsAssistant": "AWS KI-Assistent",
+        "blog": "Blog",
+        "newsAndTutorials": "News und Tutorials",
+        "explore": "Entdecken",
+        "interactiveDemo": "Interaktive Demo",
+        "faq": "FAQ",
+        "commonQuestions": "Häufige Fragen",
+        "roadmap": "Roadmap",
+        "whatsNext": "Was kommt als Nächstes",
+        "glossary": "Glossar",
+        "terminalTerms": "Terminal- und Unix-Begriffe",
+        "github": "GitHub",
+        "sourceCode": "Quellcode"
+      },
+      "mobile": {
+        "allComparisons": "Alle Vergleiche",
+        "supportCaro": "Caro unterstützen"
+      },
+      "appearance": {
+        "title": "Erscheinungsbild",
+        "darkMode": "Dunkelmodus",
+        "holidayTheme": "Feiertags-Theme",
+        "snowEffect": "Schnee-Effekt",
+        "disableEffects": "Alle Effekte deaktivieren"
+      },
+      "useCases": {
+        "allUseCases": "Alle Anwendungsfälle",
+        "byRole": "Nach Rolle",
+        "backToHome": "Zurück zur Startseite"
+      }
     }
   }
 }

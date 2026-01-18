@@ -1,0 +1,48 @@
+{
+  "navigation": {
+    "brand": "🐕 Caro",
+    "links": {
+      "features": "機能",
+      "compare": "比較",
+      "play": "プレイ",
+      "blog": "ブログ",
+      "getStarted": "はじめる",
+      "github": "GitHub"
+    },
+    "darkMode": {
+      "toggle": "ダークモードを切り替え"
+    },
+    "holidayTheme": {
+      "toggle": "ホリデーテーマメニューを切り替え",
+      "title": "ホリデーテーマ",
+      "menuHeader": "ホリデーテーマ",
+      "options": {
+        "christmas": "クリスマス",
+        "hanukkah": "ハヌカ",
+        "noTheme": "テーマなし"
+      },
+      "snowEffect": "雪のエフェクト"
+    }
+  },
+  "footer": {
+    "builtWith": "Rust 🦀で構築 | オープンソース：",
+    "github": "GitHub",
+    "domain": {
+      "name": "caro.sh",
+      "tagline": "あなたの忠実なシェルコンパニオン"
+    },
+    "links": {
+      "license": "AGPL-3.0",
+      "credits": "クレジット＆謝辞",
+      "contributing": "貢献",
+      "issues": "Issues"
+    },
+    "kyaro": {
+      "title": "リアルなKyaro（Kyarorain Kadosh）に会いましょう！🐕🖤",
+      "followText": "彼女の冒険をフォロー：",
+      "instagram": "Instagram @kyaroblackheart"
+    },
+    "inspiration": "Portalのキャロラインにインスパイア—忠誠心がデジタルな仲間へと変わりました",
+    "elevatorCredit": "スクロールエフェクト："
+  }
+}

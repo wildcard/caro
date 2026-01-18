@@ -23,7 +23,7 @@ gantt
     Hugging Face Model Download           :2026-02-01, 10d
     Performance Analysis & Optimization   :2026-02-01, 12d
     Switch Telemetry to Opt-In           :2026-02-10, 3d
-    LLM Evaluation Harness               :2026-02-05, 10d
+    LLM Evaluation Harness               :done, 2026-01-09, 2026-01-17
     v1.1.0 GA Release                    :milestone, 2026-02-15, 0d
 
     section v1.2.0 - Website & Docs
@@ -145,7 +145,7 @@ gantt
 
 ### 🎯 v1.1.0 - Core Improvements (GA)
 **Due Date**: February 15, 2026 (48 days)
-**Status**: 7% Complete (1/15 items)
+**Status**: 27% Complete (4/15 items)
 **Focus**: Production-ready core functionality with opt-in telemetry
 
 #### Key Deliverables
@@ -155,7 +155,7 @@ gantt
 - **High Priority**
   - ~~Implement Hugging Face model download (#10)~~ ✅ v1.1.2
   - Performance analysis and optimization (#132) - Partially done (CapabilityProfile caching in v1.1.2)
-  - Build LLM evaluation harness (#135)
+  - ~~Build LLM evaluation harness (#135)~~ ✅ Completed Jan 17, 2026 (PR #510)
 
 - **Core Infrastructure**
   - ~~Add benchmark suite (#9)~~ ✅ v1.1.2

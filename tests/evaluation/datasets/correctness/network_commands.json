@@ -1,0 +1,143 @@
+{
+  "name": "correctness_network_commands",
+  "version": "1.0.0",
+  "description": "Network-related commands for correctness evaluation",
+  "test_cases": [
+    {
+      "id": "correctness_net_001",
+      "prompt": "download a file from a URL",
+      "expected_command": "curl -O https://example.com/file.txt",
+      "category": "network",
+      "risk_level": "medium",
+      "posix_compliant": false,
+      "tags": ["curl", "download"],
+      "metadata": {
+        "required_tools": ["curl"],
+        "notes": "curl is not POSIX but widely available"
+      }
+    },
+    {
+      "id": "correctness_net_002",
+      "prompt": "check if a host is reachable",
+      "expected_command": "ping example.com",
+      "category": "network",
+      "risk_level": "safe",
+      "posix_compliant": false,
+      "tags": ["ping", "connectivity"],
+      "metadata": {
+        "required_tools": ["ping"],
+        "notes": "ping behavior varies across systems"
+      }
+    },
+    {
+      "id": "correctness_net_003",
+      "prompt": "show network interface configuration",
+      "expected_command": "ifconfig",
+      "category": "network",
+      "risk_level": "safe",
+      "posix_compliant": false,
+      "tags": ["ifconfig", "network-info"],
+      "metadata": {
+        "required_tools": ["ifconfig"],
+        "notes": "Deprecated on some systems in favor of ip"
+      }
+    },
+    {
+      "id": "correctness_net_004",
+      "prompt": "display network connections",
+      "expected_command": "netstat -an",
+      "category": "network",
+      "risk_level": "safe",
+      "posix_compliant": false,
+      "tags": ["netstat", "connections"]
+    },
+    {
+      "id": "correctness_net_005",
+      "prompt": "trace route to a host",
+      "expected_command": "traceroute example.com",
+      "category": "network",
+      "risk_level": "safe",
+      "posix_compliant": false,
+      "tags": ["traceroute", "diagnostics"],
+      "metadata": {
+        "required_tools": ["traceroute"]
+      }
+    },
+    {
+      "id": "correctness_net_006",
+      "prompt": "connect to SSH server",
+      "expected_command": "ssh user@example.com",
+      "category": "network",
+      "risk_level": "medium",
+      "posix_compliant": false,
+      "tags": ["ssh", "remote-access"],
+      "metadata": {
+        "required_tools": ["ssh"],
+        "notes": "Requires authentication"
+      }
+    },
+    {
+      "id": "correctness_net_007",
+      "prompt": "copy file via SCP",
+      "expected_command": "scp file.txt user@example.com:/path/",
+      "category": "network",
+      "risk_level": "medium",
+      "posix_compliant": false,
+      "tags": ["scp", "file-transfer"],
+      "metadata": {
+        "required_tools": ["scp"]
+      }
+    },
+    {
+      "id": "correctness_net_008",
+      "prompt": "download file with wget",
+      "expected_command": "wget https://example.com/file.txt",
+      "category": "network",
+      "risk_level": "medium",
+      "posix_compliant": false,
+      "tags": ["wget", "download"],
+      "metadata": {
+        "required_tools": ["wget"]
+      }
+    },
+    {
+      "id": "correctness_net_009",
+      "prompt": "query DNS for a domain",
+      "expected_command": "nslookup example.com",
+      "category": "network",
+      "risk_level": "safe",
+      "posix_compliant": false,
+      "tags": ["nslookup", "dns"],
+      "metadata": {
+        "required_tools": ["nslookup"]
+      }
+    },
+    {
+      "id": "correctness_net_010",
+      "prompt": "test if port 80 is open",
+      "expected_command": "nc -zv example.com 80",
+      "category": "network",
+      "risk_level": "safe",
+      "posix_compliant": false,
+      "tags": ["netcat", "port-scanning"],
+      "metadata": {
+        "required_tools": ["nc"],
+        "notes": "netcat syntax varies by implementation"
+      }
+    }
+  ],
+  "created_at": "2026-01-08T00:00:00Z",
+  "metadata": {
+    "author": "caro-team",
+    "total_cases": 10,
+    "categories": {
+      "network": 10
+    },
+    "risk_distribution": {
+      "safe": 6,
+      "medium": 4
+    },
+    "posix_coverage": 0.0,
+    "source": "manual_curation"
+  }
+}

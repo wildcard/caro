@@ -1,0 +1,45 @@
+{
+  "features": {
+    "title": "Bakit Caro?",
+    "subtitle": "Isang companion agent na ginawa para sa safety, empathy, at expertise",
+    "alphaNotice": "🚧 Soft Launch Alpha — Aktibo kaming nagtatayo kasama ang aming community. Sumali para tulungan kaming i-shape ang future ni Caro!",
+    "items": [
+      {
+        "icon": "🛡️",
+        "title": "Safety Guardian",
+        "description": "Comprehensive na validation na nagbo-block ng mga dangerous na commands tulad ng rm -rf /, fork bombs, at destructive operations. 52 predefined safety patterns na may risk-level assessment.",
+        "statusLabel": "Available na"
+      },
+      {
+        "icon": "🌍",
+        "title": "Cross-Platform Expert",
+        "description": "Gumagana sa macOS, Linux, Windows, GNU, at BSD. Naiintindihan ang mga platform-specific nuances at nirerespeto ang iyong piniling distribution.",
+        "statusLabel": "Available na"
+      },
+      {
+        "icon": "🧠",
+        "title": "Platform-Aware",
+        "description": "Nagbibigay ng recommendations batay sa capabilities ng iyong platform at best practices. Automatic na nakikilala ang pagkakaiba ng BSD at GNU command syntax.",
+        "statusLabel": "Available na"
+      },
+      {
+        "icon": "✅",
+        "title": "POSIX Specialist",
+        "description": "Expert sa POSIX-compliant shell commands na reliable na gumagana sa lahat ng systems. Portable, safe, at optimized para sa iyong terminal.",
+        "statusLabel": "Available na"
+      },
+      {
+        "icon": "⚡",
+        "title": "Napakabilis",
+        "description": "Target: Sub-100ms startup, sub-2s inference sa Apple Silicon. MLX framework integration para sa GPU acceleration sa M-series chips.",
+        "statusLabel": "Ginagawa pa"
+      },
+      {
+        "icon": "🤝",
+        "title": "Companion ni Claude",
+        "description": "Vision: Seamless integration kasama si Claude bilang MCP server at Skill, ino-offload ang shell command inference habang naka-focus si Claude sa mas malawak na trabaho mo.",
+        "statusLabel": "Nakaplanong Gawin"
+      }
+    ]
+  }
+}

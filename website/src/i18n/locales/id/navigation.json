@@ -1,0 +1,48 @@
+{
+  "navigation": {
+    "brand": "🐕 Caro",
+    "links": {
+      "features": "Fitur",
+      "compare": "Bandingkan",
+      "play": "Main",
+      "blog": "Blog",
+      "getStarted": "Mulai",
+      "github": "GitHub"
+    },
+    "darkMode": {
+      "toggle": "Ubah mode gelap"
+    },
+    "holidayTheme": {
+      "toggle": "Ubah menu tema liburan",
+      "title": "Tema Liburan",
+      "menuHeader": "Tema Liburan",
+      "options": {
+        "christmas": "Natal",
+        "hanukkah": "Hanukkah",
+        "noTheme": "Tanpa Tema"
+      },
+      "snowEffect": "Efek Salju"
+    }
+  },
+  "footer": {
+    "builtWith": "Dibangun dengan Rust 🦀 | Open source di",
+    "github": "GitHub",
+    "domain": {
+      "name": "caro.sh",
+      "tagline": "Teman setia shell Anda"
+    },
+    "links": {
+      "license": "AGPL-3.0",
+      "credits": "Kredit & Atribusi",
+      "contributing": "Kontribusi",
+      "issues": "Issues"
+    },
+    "kyaro": {
+      "title": "Kenalan dengan Kyaro asli (Kyarorain Kadosh)! 🐕🖤",
+      "followText": "Ikuti petualangannya di",
+      "instagram": "Instagram @kyaroblackheart"
+    },
+    "inspiration": "Terinspirasi dari Caroline Portal—kesetiaan yang bertransformasi menjadi pendamping digital",
+    "elevatorCredit": "Efek scroll oleh"
+  }
+}

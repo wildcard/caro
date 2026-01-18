@@ -1,0 +1,45 @@
+{
+  "features": {
+    "title": "Mengapa Caro?",
+    "subtitle": "Companion agent yang dibangun untuk keamanan, empati, dan keahlian",
+    "alphaNotice": "🚧 Soft Launch Alpha — Kami sedang aktif membangun bersama komunitas kami. Bergabunglah untuk membantu membentuk masa depan Caro!",
+    "items": [
+      {
+        "icon": "🛡️",
+        "title": "Penjaga Keamanan",
+        "description": "Validasi komprehensif yang memblokir perintah berbahaya seperti rm -rf /, fork bombs, dan operasi destruktif. 52 pola keamanan yang telah ditentukan dengan penilaian tingkat risiko.",
+        "statusLabel": "Tersedia Sekarang"
+      },
+      {
+        "icon": "🌍",
+        "title": "Ahli Cross-Platform",
+        "description": "Bekerja di macOS, Linux, Windows, GNU, dan BSD. Memahami nuansa spesifik platform dan menghormati distribusi pilihan Anda.",
+        "statusLabel": "Tersedia Sekarang"
+      },
+      {
+        "icon": "🧠",
+        "title": "Platform-Aware",
+        "description": "Memberikan rekomendasi berdasarkan kemampuan platform dan best practices. Otomatis membedakan sintaks perintah BSD dan GNU.",
+        "statusLabel": "Tersedia Sekarang"
+      },
+      {
+        "icon": "✅",
+        "title": "Spesialis POSIX",
+        "description": "Ahli dalam perintah shell yang sesuai POSIX yang bekerja dengan andal di semua sistem. Portable, aman, dan dioptimalkan untuk terminal Anda.",
+        "statusLabel": "Tersedia Sekarang"
+      },
+      {
+        "icon": "⚡",
+        "title": "Sangat Cepat",
+        "description": "Target: Startup sub-100ms, inference sub-2s di Apple Silicon. Integrasi framework MLX untuk akselerasi GPU di chip M-series.",
+        "statusLabel": "Dalam Pengembangan"
+      },
+      {
+        "icon": "🤝",
+        "title": "Companion Claude",
+        "description": "Visi: Integrasi mulus dengan Claude sebagai MCP server dan Skill, mendelegasikan inferensi perintah shell sementara Claude fokus pada pekerjaan Anda yang lebih luas.",
+        "statusLabel": "Direncanakan"
+      }
+    ]
+  }
+}

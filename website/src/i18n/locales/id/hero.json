@@ -1,0 +1,13 @@
+{
+  "hero": {
+    "badge": "🐕 Companion Agent",
+    "logo": "Caro",
+    "logoAlt": "Caro - 8-bit pixel art",
+    "tagline": "Teman setia shell Anda",
+    "subtitle": "Agent perintah POSIX shell khusus dengan empati dan agensi. Tersedia sebagai MCP untuk Claude dan sebagai Skill khusus. Dia menjaga keamanan Anda sambil membantu Claude menyelesaikan pekerjaan.",
+    "cta": {
+      "getStarted": "Mulai",
+      "watchDemo": "Lihat Demo"
+    }
+  }
+}

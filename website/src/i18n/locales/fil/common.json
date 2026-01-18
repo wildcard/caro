@@ -1,5 +1,9 @@
 {
   "common": {
+    "meta": {
+      "title": "Caro - Ang iyong tapat na shell companion",
+      "description": "Ang Caro ay isang companion agent na tumutulong sa iyo sa POSIX shell commands. Available bilang MCP para sa Claude at bilang dedicated Skill."
+    },
     "buttons": {
       "copy": "Kopyahin",
       "copied": "Nakopya na!",
@@ -15,6 +19,51 @@
     "aria": {
       "toggleDarkMode": "I-toggle ang dark mode",
       "toggleHolidayTheme": "I-toggle ang menu ng holiday theme"
+    },
+    "nav": {
+      "features": "Features",
+      "compare": "Ihambing",
+      "resources": "Resources",
+      "support": "Suporta",
+      "getStarted": "Magsimula",
+      "dropdown": {
+        "overview": "Overview",
+        "seeAllComparisons": "Tingnan lahat ng comparisons",
+        "vsWarp": "vs Warp",
+        "aiNativeTerminal": "AI-native terminal",
+        "vsGitHubCopilot": "vs GitHub Copilot CLI",
+        "aiPairProgrammer": "AI pair programmer",
+        "vsKiro": "vs Kiro CLI",
+        "awsAssistant": "AWS AI assistant",
+        "blog": "Blog",
+        "newsAndTutorials": "Balita at tutorials",
+        "explore": "Mag-explore",
+        "interactiveDemo": "Interactive demo",
+        "faq": "FAQ",
+        "commonQuestions": "Mga karaniwang tanong",
+        "roadmap": "Roadmap",
+        "whatsNext": "Ano ang susunod",
+        "glossary": "Glossary",
+        "terminalTerms": "Terminal at Unix terms",
+        "github": "GitHub",
+        "sourceCode": "Source code"
+      },
+      "mobile": {
+        "allComparisons": "Lahat ng Comparisons",
+        "supportCaro": "Suportahan si Caro"
+      },
+      "appearance": {
+        "title": "Itsura",
+        "darkMode": "Dark Mode",
+        "holidayTheme": "Holiday Theme",
+        "snowEffect": "Snow Effect",
+        "disableEffects": "I-disable lahat ng effects"
+      },
+      "useCases": {
+        "allUseCases": "Lahat ng Use Cases",
+        "byRole": "Ayon sa Role",
+        "backToHome": "Bumalik sa Home"
+      }
     }
   }
 }

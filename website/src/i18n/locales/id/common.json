@@ -1,5 +1,9 @@
 {
   "common": {
+    "meta": {
+      "title": "Caro - Teman setia shell Anda",
+      "description": "Caro adalah companion agent yang membantu Anda dengan perintah POSIX shell. Tersedia sebagai MCP untuk Claude dan sebagai Skill khusus."
+    },
     "buttons": {
       "copy": "Salin",
       "copied": "Tersalin!",
@@ -15,6 +19,51 @@
     "aria": {
       "toggleDarkMode": "Ubah mode gelap",
       "toggleHolidayTheme": "Ubah menu tema liburan"
+    },
+    "nav": {
+      "features": "Fitur",
+      "compare": "Bandingkan",
+      "resources": "Sumber Daya",
+      "support": "Dukungan",
+      "getStarted": "Mulai",
+      "dropdown": {
+        "overview": "Ringkasan",
+        "seeAllComparisons": "Lihat semua perbandingan",
+        "vsWarp": "vs Warp",
+        "aiNativeTerminal": "Terminal AI-native",
+        "vsGitHubCopilot": "vs GitHub Copilot CLI",
+        "aiPairProgrammer": "AI pair programmer",
+        "vsKiro": "vs Kiro CLI",
+        "awsAssistant": "AWS AI assistant",
+        "blog": "Blog",
+        "newsAndTutorials": "Berita & tutorial",
+        "explore": "Jelajahi",
+        "interactiveDemo": "Demo interaktif",
+        "faq": "FAQ",
+        "commonQuestions": "Pertanyaan umum",
+        "roadmap": "Roadmap",
+        "whatsNext": "Apa selanjutnya",
+        "glossary": "Glosarium",
+        "terminalTerms": "Istilah terminal & Unix",
+        "github": "GitHub",
+        "sourceCode": "Source code"
+      },
+      "mobile": {
+        "allComparisons": "Semua Perbandingan",
+        "supportCaro": "Dukung Caro"
+      },
+      "appearance": {
+        "title": "Tampilan",
+        "darkMode": "Mode Gelap",
+        "holidayTheme": "Tema Liburan",
+        "snowEffect": "Efek Salju",
+        "disableEffects": "Nonaktifkan Semua Efek"
+      },
+      "useCases": {
+        "allUseCases": "Semua Use Cases",
+        "byRole": "Berdasarkan Role",
+        "backToHome": "Kembali ke Beranda"
+      }
     }
   }
 }

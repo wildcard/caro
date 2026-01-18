@@ -1,0 +1,13 @@
+{
+  "hero": {
+    "badge": "🐕 동반자 에이전트",
+    "logo": "Caro",
+    "logoAlt": "Caro - 8비트 픽셀 아트",
+    "tagline": "당신의 충실한 셸 동반자",
+    "subtitle": "공감과 자율성을 갖춘 전문 POSIX 셸 명령어 에이전트. Claude용 MCP 및 전용 Skill로 이용 가능. Claude가 작업을 수행하는 동안 당신을 안전하게 지켜줍니다.",
+    "cta": {
+      "getStarted": "시작하기",
+      "watchDemo": "데모 보기"
+    }
+  }
+}

@@ -133,8 +133,7 @@ impl ManifestManager {
     where
         F: FnOnce(&mut CacheManifest) -> Result<(), CacheError>,
     {
-        // Open file for read/write to acquire lock
-        // We don't truncate on open - we read first, then truncate before write
+        // Open file for reading to acquire lock and reload manifest
         let file = OpenOptions::new()
             .read(true)
             .write(true)
@@ -145,7 +144,7 @@ impl ManifestManager {
         // Acquire exclusive write lock FIRST (before reading)
         // This ensures the read-modify-write cycle is atomic
         let mut lock = RwLock::new(file);
-        let mut _guard = lock.write().map_err(|e| {
+        let mut guard = lock.write().map_err(|e| {
             CacheError::ManifestError(format!("Failed to acquire manifest lock: {}", e))
         })?;
 
@@ -154,7 +153,7 @@ impl ManifestManager {
         use std::ops::DerefMut;
 
         let mut contents = String::new();
-        let file_handle = _guard.deref_mut();
+        let file_handle = guard.deref_mut();
 
         // Read current content (if any)
         file_handle.read_to_string(&mut contents)?;
@@ -178,17 +177,18 @@ impl ManifestManager {
         })?;
 
         // Write to file (lock is still held)
-        // We need to write to the file directly since we already have the lock
         use std::io::Seek;
 
-        // Get mutable reference to the file through the guard
-        let file_handle = _guard.deref_mut();
-        file_handle.set_len(0)?; // Truncate
-        file_handle.seek(std::io::SeekFrom::Start(0))?; // Rewind
+        // Truncate file, seek to start, write new content
+        file_handle.set_len(0)?;
+        file_handle.seek(std::io::SeekFrom::Start(0))?;
         file_handle.write_all(contents.as_bytes())?;
-        file_handle.flush()?;
 
-        // Lock is automatically released when _guard is dropped
+        // CRITICAL: Sync to disk before releasing lock
+        // This ensures other threads see complete data when they acquire the lock
+        file_handle.sync_all()?;
+
+        // Lock is automatically released when guard is dropped
         Ok(())
     }
 
