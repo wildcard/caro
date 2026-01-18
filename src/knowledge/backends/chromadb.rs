@@ -24,6 +24,7 @@ pub struct ChromaDbBackend {
     client: ChromaClient,
     collection: Arc<RwLock<Option<ChromaCollection>>>,
     embedder: Embedder,
+    collection_name: String,
 }
 
 impl ChromaDbBackend {
@@ -68,9 +69,12 @@ impl ChromaDbBackend {
         .await
         .map_err(|e| KnowledgeError::Database(e.to_string()))?;
 
+        // Use default collection name
+        let collection_name = COLLECTION_NAME.to_string();
+
         // Try to initialize collection (non-blocking)
         // If this fails, ensure_collection() will retry on first use
-        let collection = match client.get_or_create_collection(COLLECTION_NAME, None).await {
+        let collection = match client.get_or_create_collection(&collection_name, None).await {
             Ok(coll) => Some(coll),
             Err(e) => {
                 // Log warning but don't fail - collection will be created lazily
@@ -87,6 +91,7 @@ impl ChromaDbBackend {
             client,
             collection: Arc::new(RwLock::new(collection)),
             embedder,
+            collection_name,
         })
     }
 
@@ -109,7 +114,7 @@ impl ChromaDbBackend {
 
         let new_collection = self
             .client
-            .get_or_create_collection(COLLECTION_NAME, None)
+            .get_or_create_collection(&self.collection_name, None)
             .await
             .map_err(|e| KnowledgeError::Database(e.to_string()))?;
 
@@ -379,7 +384,7 @@ impl VectorBackend for ChromaDbBackend {
         let mut coll_guard = self.collection.write().await;
         if coll_guard.is_some() {
             self.client
-                .delete_collection(COLLECTION_NAME)
+                .delete_collection(&self.collection_name)
                 .await
                 .map_err(|e| KnowledgeError::Database(e.to_string()))?;
             *coll_guard = None;
@@ -460,6 +465,31 @@ impl VectorBackend for ChromaDbBackend {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // Test helper to create backend with unique collection name
+    // This allows parallel test execution without collection name collisions
+    async fn create_test_backend(test_name: &str) -> ChromaDbBackend {
+        let collection_name = format!("caro_test_{}_{}", test_name, uuid::Uuid::new_v4());
+
+        let embedder = Embedder::new(None).expect("Failed to create embedder");
+        let client = ChromaClient::new(ChromaClientOptions {
+            url: Some("http://localhost:8000".to_string()),
+            auth: ChromaAuthMethod::None,
+            ..Default::default()
+        })
+        .await
+        .expect("Failed to create ChromaDB client");
+
+        // Try to create collection (non-blocking)
+        let collection = client.get_or_create_collection(&collection_name, None).await.ok();
+
+        ChromaDbBackend {
+            client,
+            collection: Arc::new(RwLock::new(collection)),
+            embedder,
+            collection_name,
+        }
+    }
 
     // Unit tests (no external dependencies)
 
@@ -567,22 +597,17 @@ mod tests {
     #[tokio::test]
     #[ignore] // Requires ChromaDB server
     async fn test_chromadb_health() {
-        let backend = ChromaDbBackend::new("http://localhost:8000", None, None)
-            .await
-            .expect("Failed to create ChromaDB backend");
-
+        let backend = create_test_backend("health").await;
         assert!(backend.is_healthy().await, "ChromaDB should be healthy");
+
+        // Cleanup: delete test collection
+        backend.clear().await.ok();
     }
 
     #[tokio::test]
     #[ignore] // Requires ChromaDB server
     async fn test_chromadb_record_and_search() {
-        let backend = ChromaDbBackend::new("http://localhost:8000", None, None)
-            .await
-            .expect("Failed to create ChromaDB backend");
-
-        // Clear any existing data
-        backend.clear().await.expect("Failed to clear collection");
+        let backend = create_test_backend("record_search").await;
 
         // Record a success
         backend
@@ -598,5 +623,8 @@ mod tests {
 
         assert!(!results.is_empty(), "Should find similar entries");
         assert_eq!(results[0].command, "ls -la");
+
+        // Cleanup: delete test collection
+        backend.clear().await.ok();
     }
 }
