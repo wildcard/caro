@@ -461,6 +461,109 @@ impl VectorBackend for ChromaDbBackend {
 mod tests {
     use super::*;
 
+    // Unit tests (no external dependencies)
+
+    #[test]
+    fn test_build_metadata_success() {
+        let timestamp = Utc::now();
+        let metadata = ChromaDbBackend::build_metadata(
+            EntryType::Success,
+            "list files",
+            Some("/home/user"),
+            timestamp,
+            None,
+            None,
+        );
+
+        assert_eq!(metadata["entry_type"], "success");
+        assert_eq!(metadata["request"], "list files");
+        assert_eq!(metadata["context"], "/home/user");
+        assert_eq!(metadata["timestamp"], timestamp.timestamp());
+        assert!(metadata.get("original_command").is_none());
+        assert!(metadata.get("feedback").is_none());
+    }
+
+    #[test]
+    fn test_build_metadata_correction() {
+        let timestamp = Utc::now();
+        let metadata = ChromaDbBackend::build_metadata(
+            EntryType::Correction,
+            "find files",
+            None,
+            timestamp,
+            Some("find -name '*.txt'"),
+            Some("Missing current directory"),
+        );
+
+        assert_eq!(metadata["entry_type"], "correction");
+        assert_eq!(metadata["request"], "find files");
+        assert!(metadata.get("context").is_none());
+        assert_eq!(metadata["original_command"], "find -name '*.txt'");
+        assert_eq!(metadata["feedback"], "Missing current directory");
+        assert_eq!(metadata["timestamp"], timestamp.timestamp());
+    }
+
+    #[test]
+    fn test_build_metadata_minimal() {
+        let timestamp = Utc::now();
+        let metadata = ChromaDbBackend::build_metadata(
+            EntryType::Success,
+            "simple command",
+            None,
+            timestamp,
+            None,
+            None,
+        );
+
+        assert_eq!(metadata["entry_type"], "success");
+        assert_eq!(metadata["request"], "simple command");
+        assert_eq!(metadata["timestamp"], timestamp.timestamp());
+        assert!(metadata.get("context").is_none());
+        assert!(metadata.get("original_command").is_none());
+        assert!(metadata.get("feedback").is_none());
+        // Verify only required fields are present
+        assert_eq!(metadata.len(), 3); // entry_type, request, timestamp
+    }
+
+    #[test]
+    fn test_entry_type_as_str() {
+        assert_eq!(EntryType::Success.as_str(), "success");
+        assert_eq!(EntryType::Correction.as_str(), "correction");
+    }
+
+    #[test]
+    fn test_metadata_different_entry_types() {
+        let timestamp = Utc::now();
+        let meta_success = ChromaDbBackend::build_metadata(
+            EntryType::Success,
+            "test request",
+            None,
+            timestamp,
+            None,
+            None,
+        );
+        let meta_correction = ChromaDbBackend::build_metadata(
+            EntryType::Correction,
+            "test request",
+            None,
+            timestamp,
+            None,
+            None,
+        );
+
+        assert_ne!(meta_success["entry_type"], meta_correction["entry_type"]);
+        assert_eq!(meta_success["request"], meta_correction["request"]);
+    }
+
+    #[test]
+    fn test_collection_name_constant() {
+        // Verify collection name follows naming convention
+        assert_eq!(COLLECTION_NAME, "caro_commands");
+        assert!(COLLECTION_NAME.starts_with("caro_"));
+    }
+
+    // Integration tests (require ChromaDB server)
+
     #[tokio::test]
     #[ignore] // Requires ChromaDB server
     async fn test_chromadb_health() {
