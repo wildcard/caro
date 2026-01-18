@@ -11,6 +11,7 @@ use crate::knowledge::{
 };
 use async_trait::async_trait;
 use chromadb::client::{ChromaAuthMethod, ChromaClient, ChromaClientOptions, ChromaTokenHeader};
+use tracing::{debug, info, warn};
 use chromadb::collection::{ChromaCollection, CollectionEntries, QueryOptions};
 use chrono::{DateTime, Utc};
 use serde_json::{json, Map, Value};
@@ -24,6 +25,8 @@ pub struct ChromaDbBackend {
     client: ChromaClient,
     collection: Arc<RwLock<Option<ChromaCollection>>>,
     embedder: Embedder,
+    /// Tracks collection initialization state for health checks
+    init_error: Arc<RwLock<Option<String>>>,
 }
 
 impl ChromaDbBackend {
@@ -70,16 +73,16 @@ impl ChromaDbBackend {
 
         // Try to initialize collection (non-blocking)
         // If this fails, ensure_collection() will retry on first use
-        let collection = match client.get_or_create_collection(COLLECTION_NAME, None).await {
-            Ok(coll) => Some(coll),
+        let (collection, init_error) = match client.get_or_create_collection(COLLECTION_NAME, None).await {
+            Ok(coll) => {
+                info!("ChromaDB collection '{}' initialized successfully", COLLECTION_NAME);
+                (Some(coll), None)
+            }
             Err(e) => {
-                // Log warning but don't fail - collection will be created lazily
-                eprintln!(
-                    "Warning: Failed to initialize ChromaDB collection on startup: {}",
-                    e
-                );
-                eprintln!("Collection will be created on first use via ensure_collection()");
-                None
+                let error_msg = format!("Failed to initialize collection on startup: {}", e);
+                warn!("{}", error_msg);
+                info!("Collection will be created lazily on first use via ensure_collection()");
+                (None, Some(error_msg))
             }
         };
 
@@ -87,6 +90,7 @@ impl ChromaDbBackend {
             client,
             collection: Arc::new(RwLock::new(collection)),
             embedder,
+            init_error: Arc::new(RwLock::new(init_error)),
         })
     }
 
@@ -114,6 +118,14 @@ impl ChromaDbBackend {
             .map_err(|e| KnowledgeError::Database(e.to_string()))?;
 
         *coll_guard = Some(new_collection);
+
+        // Clear init error on successful lazy initialization
+        let mut error_guard = self.init_error.write().await;
+        if error_guard.is_some() {
+            info!("Collection successfully initialized via lazy loading");
+            *error_guard = None;
+        }
+
         Ok(())
     }
 
@@ -390,7 +402,19 @@ impl VectorBackend for ChromaDbBackend {
     async fn is_healthy(&self) -> bool {
         // Check client connectivity
         if self.client.heartbeat().await.is_err() {
+            debug!("ChromaDB health check failed: heartbeat error");
             return false;
+        }
+
+        // Check for persistent initialization errors
+        let error_guard = self.init_error.read().await;
+        if error_guard.is_some() {
+            // Try to recover by ensuring collection
+            drop(error_guard);
+            if self.ensure_collection().await.is_err() {
+                debug!("ChromaDB health check failed: collection init error persists");
+                return false;
+            }
         }
 
         // Validate collection state (can we ensure collection exists?)
