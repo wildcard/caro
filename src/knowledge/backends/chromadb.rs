@@ -68,11 +68,20 @@ impl ChromaDbBackend {
         .await
         .map_err(|e| KnowledgeError::Database(e.to_string()))?;
 
-        // Check if collection exists
-        let collection = client
-            .get_or_create_collection(COLLECTION_NAME, None)
-            .await
-            .ok();
+        // Try to initialize collection (non-blocking)
+        // If this fails, ensure_collection() will retry on first use
+        let collection = match client.get_or_create_collection(COLLECTION_NAME, None).await {
+            Ok(coll) => Some(coll),
+            Err(e) => {
+                // Log warning but don't fail - collection will be created lazily
+                eprintln!(
+                    "Warning: Failed to initialize ChromaDB collection on startup: {}",
+                    e
+                );
+                eprintln!("Collection will be created on first use via ensure_collection()");
+                None
+            }
+        };
 
         Ok(Self {
             client,
@@ -379,8 +388,13 @@ impl VectorBackend for ChromaDbBackend {
     }
 
     async fn is_healthy(&self) -> bool {
-        // Check health by attempting to heartbeat
-        self.client.heartbeat().await.is_ok()
+        // Check client connectivity
+        if self.client.heartbeat().await.is_err() {
+            return false;
+        }
+
+        // Validate collection state (can we ensure collection exists?)
+        self.ensure_collection().await.is_ok()
     }
 
     async fn add_entry(&self, entry: KnowledgeEntry, _collection: CollectionType) -> Result<()> {

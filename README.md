@@ -489,6 +489,99 @@ trait CommandGenerator {
 }
 ```
 
+### Knowledge Backend Architecture
+
+Caro supports pluggable vector database backends for storing and retrieving command knowledge:
+
+**Backend Options:**
+- **LanceDB (default)** - Embedded, zero-config, privacy-first local storage
+- **ChromaDB (optional)** - Server-based storage for team collaboration and cloud deployment
+
+**Feature Flag:**
+```bash
+# Build with ChromaDB support
+cargo build --features chromadb
+```
+
+**Usage Examples:**
+```bash
+# LanceDB (default - automatic)
+caro "list all python files"
+
+# Local ChromaDB server
+caro --knowledge-backend chromadb --chromadb-url http://localhost:8000 "list files"
+
+# Chroma Cloud
+export CHROMA_API_KEY=your-api-key
+caro --knowledge-backend chromadb --chromadb-url https://api.trychroma.com "list files"
+```
+
+**Configuration:**
+```toml
+# ~/.config/caro/config.toml
+
+# LanceDB (default)
+[knowledge]
+backend = "lancedb"
+
+# ChromaDB (local server)
+[knowledge]
+backend = "chromadb"
+[knowledge.chromadb]
+url = "http://localhost:8000"
+
+# ChromaDB (Chroma Cloud)
+[knowledge]
+backend = "chromadb"
+[knowledge.chromadb]
+url = "https://api.trychroma.com"
+auth_token = "${CHROMA_API_KEY}"
+```
+
+#### ChromaDB Integration (Experimental - Phase 5)
+
+⚠️ **Current Limitations:**
+
+The ChromaDB integration is functional but has the following known limitations that are planned for Phase 6:
+
+1. **Single Collection Storage** - All knowledge entries are stored in a single ChromaDB collection
+   - Multi-collection architecture is designed but not yet active
+   - Collection filtering in queries is deferred
+   - Planned: Separate collections for commands, corrections, docs, preferences, context
+
+2. **Profile Field Not Persisted** - User profiles exist but don't affect knowledge storage/retrieval yet
+   - Profile CLI commands work (create, list, switch, delete)
+   - Profile field exists in data model but returns `None` when reading entries
+   - `command_count` and `last_used` tracking not yet wired
+   - Planned: Profile-scoped queries and knowledge isolation
+
+3. **Stats Aggregation** - Backend stats count all entries together
+   - Cannot break down by entry type (success vs correction)
+   - Cannot filter stats by profile or collection
+   - Planned: Detailed stats by collection and profile
+
+4. **No Migration Tool** - Cannot migrate existing LanceDB knowledge to ChromaDB
+   - Switching backends means starting fresh
+   - Planned: `caro knowledge migrate --from lancedb --to chromadb`
+
+**What Works:**
+- ✅ ChromaDB client with local/cloud server support
+- ✅ Chroma Cloud authentication via `CHROMA_API_KEY`
+- ✅ Recording successful commands and corrections
+- ✅ Vector similarity search for command retrieval
+- ✅ Profile management CLI (create, list, switch, delete)
+- ✅ Multi-source documentation indexing (man, tldr, help)
+- ✅ Health checks and graceful fallback to LanceDB
+
+**Coming in Phase 6:** (Tracked in GitHub issues)
+- Multi-collection filtering for targeted searches
+- Profile-based knowledge isolation
+- Backend migration utilities
+- Collection-level statistics
+- Team namespace support
+
+For current usage, ChromaDB works well for basic command storage and retrieval, but advanced features (profiles, collections) are foundations for future work.
+
 ## 🔧 Development
 
 ### Prerequisites
