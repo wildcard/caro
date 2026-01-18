@@ -7,13 +7,14 @@ use arrow_array::{
 };
 use arrow_schema::{DataType, Field, Schema, TimeUnit};
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 /// Embedding dimension (MiniLM-L6-v2 produces 384-dim vectors)
 pub const EMBEDDING_DIM: usize = 384;
 
 /// Type of knowledge entry
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum EntryType {
     /// A successfully executed command
     Success,

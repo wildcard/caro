@@ -5,11 +5,12 @@
 
 use crate::knowledge::{backends::VectorBackend, schema::EntryType, Result};
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::sync::Arc;
 
 /// A knowledge entry retrieved from the index
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct KnowledgeEntry {
     /// The original natural language request
     pub request: String,
