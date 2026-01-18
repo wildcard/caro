@@ -53,6 +53,35 @@
 //!
 //! At 150+ patterns, consider replacing first-match-wins with confidence scoring
 //! to allow more flexible pattern organization.
+//!
+//! # Regex Complexity and Performance
+//!
+//! **IMPORTANT**: Some patterns use unbounded quantifiers (`.*(word1).*(word2).*`) which
+//! can cause catastrophic backtracking on malicious input.
+//!
+//! ## Catastrophic Backtracking
+//!
+//! Patterns like `r"(?i)(find).*(large).*(files).*"` can exhibit exponential time complexity
+//! on input like "find large" + "x".repeat(1000) because the regex engine tries all possible
+//! ways to match `.*` between tokens.
+//!
+//! **Current Mitigations:**
+//! - Keyword pre-filtering: Patterns only run if required keywords present (fast path rejection)
+//! - Input length limits: Natural language queries are typically <100 chars
+//! - Test coverage: `test_regex_backtracking_protection()` validates performance on long inputs
+//!
+//! **Future Improvements (see issue #548):**
+//! - Replace unbounded `.*` with bounded `.{0,100}` quantifiers
+//! - Use possessive quantifiers `.*+` or atomic groups `(?>.*)`  where supported
+//! - Consider switching to linear-time matchers (e.g., regex-automata)
+//!
+//! ## Regex Pattern Guidelines
+//!
+//! When adding new patterns:
+//! 1. **Prefer bounded quantifiers**: `.{0,100}` instead of `.*`
+//! 2. **Anchor when possible**: Use `\b` word boundaries to reduce search space
+//! 3. **Test with long input**: Run `test_regex_backtracking_protection()` after adding patterns
+//! 4. **Consider alternatives**: Sometimes keyword matching alone is sufficient without regex
 
 use async_trait::async_trait;
 use regex::Regex;
@@ -1494,6 +1523,84 @@ mod tests {
                  Fix: Add bsd_command field with platform-agnostic alternative.",
                 missing_bsd.join("\n\n")
             );
+        }
+    }
+
+    #[test]
+    fn test_regex_backtracking_protection() {
+        // Test that regex patterns don't exhibit catastrophic backtracking
+        // on malicious input (long strings with partial matches)
+        use std::time::{Duration, Instant};
+
+        let patterns = StaticMatcher::build_patterns();
+
+        // Malicious inputs designed to trigger worst-case backtracking:
+        // 1. Starts with keywords to pass pre-filtering
+        // 2. Contains many characters that .* will try to match in all possible ways
+        let malicious_inputs = vec![
+            // Pattern with repeated partial matches
+            format!("find large {}", "x".repeat(500)),
+            // Pattern with keywords at start and garbage at end
+            format!("list files modified {}", "abcdefgh".repeat(100)),
+            // Pattern with alternating matches
+            format!("show disk usage {}", "disk space disk usage ".repeat(50)),
+            // Very long input with keywords scattered
+            format!("find {} python {} files", "word ".repeat(200), "word ".repeat(200)),
+        ];
+
+        let max_allowed_time = Duration::from_millis(100); // 100ms per pattern
+        let mut slow_patterns = Vec::new();
+
+        for (i, pattern) in patterns.iter().enumerate() {
+            if let Some(regex) = &pattern.regex_pattern {
+                for (input_idx, input) in malicious_inputs.iter().enumerate() {
+                    let start = Instant::now();
+                    let _ = regex.is_match(input);
+                    let elapsed = start.elapsed();
+
+                    if elapsed > max_allowed_time {
+                        slow_patterns.push(format!(
+                            "Pattern {} took {:?} on malicious input #{}\n  \
+                             Description: {}\n  \
+                             Regex: {:?}\n  \
+                             Input length: {} chars\n  \
+                             → Consider using bounded quantifiers: .{{0,100}} instead of .*",
+                            i,
+                            elapsed,
+                            input_idx,
+                            pattern.description,
+                            regex.as_str(),
+                            input.len()
+                        ));
+                    }
+                }
+            }
+        }
+
+        if !slow_patterns.is_empty() {
+            panic!(
+                "Regex catastrophic backtracking detected:\n\n{}\n\n\
+                 Fix: Replace unbounded .* with bounded .{{0,N}} quantifiers.\n\
+                 See module-level documentation for regex performance guidelines.",
+                slow_patterns.join("\n\n")
+            );
+        }
+    }
+
+    #[test]
+    fn test_regex_patterns_compile() {
+        // Ensure all regex patterns compile without errors
+        let patterns = StaticMatcher::build_patterns();
+
+        for (i, pattern) in patterns.iter().enumerate() {
+            if let Some(regex) = &pattern.regex_pattern {
+                // Pattern should already be compiled, but verify it's valid
+                assert!(
+                    !regex.as_str().is_empty(),
+                    "Pattern {} has empty regex",
+                    i
+                );
+            }
         }
     }
 }
