@@ -35,6 +35,7 @@
 
 pub mod capability_matrix;
 pub mod dataset;
+pub mod dataset_export;
 pub mod evaluator;
 pub mod executor;
 pub mod issue_automation;
@@ -46,3 +47,4 @@ pub mod prompts;
 pub mod reporter;
 pub mod safety_validator;
 pub mod test_runner;
+pub mod training_tracker;
