@@ -74,7 +74,10 @@ impl ChromaDbBackend {
 
         // Try to initialize collection (non-blocking)
         // If this fails, ensure_collection() will retry on first use
-        let collection = match client.get_or_create_collection(&collection_name, None).await {
+        let collection = match client
+            .get_or_create_collection(&collection_name, None)
+            .await
+        {
             Ok(coll) => Some(coll),
             Err(e) => {
                 // Log warning but don't fail - collection will be created lazily
@@ -521,7 +524,10 @@ mod tests {
         .expect("Failed to create ChromaDB client");
 
         // Try to create collection (non-blocking)
-        let collection = client.get_or_create_collection(&collection_name, None).await.ok();
+        let collection = client
+            .get_or_create_collection(&collection_name, None)
+            .await
+            .ok();
 
         ChromaDbBackend {
             client,
