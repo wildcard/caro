@@ -1,0 +1,142 @@
+---
+/**
+ * MinimalFeatures Component
+ * Highlights key features in a clean, minimal layout
+ */
+import { t, type Locale } from '../i18n/config';
+
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = 'en' } = Astro.props;
+
+const features = [
+  {
+    icon: '🔒',
+    title: 'Safety first',
+    description: 'Every generated command is validated against dangerous patterns before execution. You always review and approve.'
+  },
+  {
+    icon: '🚀',
+    title: 'Local & private',
+    description: 'Run entirely on your machine with local models. Your commands and history never leave your system.'
+  },
+  {
+    icon: '⚡',
+    title: 'Lightning fast',
+    description: 'Optimized for speed with intelligent caching. Get instant suggestions for common patterns.'
+  },
+  {
+    icon: '🔧',
+    title: 'Fully customizable',
+    description: 'Configure backends, safety rules, and aliases. Works with multiple inference engines.'
+  }
+];
+---
+
+<section class="minimal-features">
+  <div class="features-container">
+    <div class="features-header">
+      <h2 class="features-title">Script and customize</h2>
+      <p class="features-subtitle">
+        Caro adapts to your workflow. Configure it once, use it everywhere.
+      </p>
+    </div>
+
+    <div class="features-grid">
+      {features.map((feature) => (
+        <div class="feature-card">
+          <span class="feature-icon">{feature.icon}</span>
+          <h3 class="feature-title">{feature.title}</h3>
+          <p class="feature-description">{feature.description}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .minimal-features {
+    padding: 100px 24px;
+    background: var(--color-bg);
+  }
+
+  .features-container {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .features-header {
+    text-align: center;
+    margin-bottom: 64px;
+  }
+
+  .features-title {
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 16px;
+    letter-spacing: -0.02em;
+  }
+
+  .features-subtitle {
+    font-size: 18px;
+    color: var(--color-text-secondary);
+    max-width: 420px;
+    margin: 0 auto;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+
+  .feature-card {
+    padding: 32px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    transition: border-color 0.2s ease;
+  }
+
+  .feature-card:hover {
+    border-color: rgba(255, 140, 66, 0.4);
+  }
+
+  .feature-icon {
+    font-size: 32px;
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  .feature-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 8px;
+  }
+
+  .feature-description {
+    font-size: 15px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+  }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    .minimal-features {
+      padding: 60px 20px;
+    }
+
+    .features-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .feature-card {
+      padding: 24px;
+    }
+  }
+</style>

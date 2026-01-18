@@ -1,0 +1,191 @@
+---
+/**
+ * MinimalFooter Component
+ * Clean, minimal footer inspired by GitHub CLI
+ */
+import { t, type Locale } from '../i18n/config';
+
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = 'en' } = Astro.props;
+---
+
+<footer class="minimal-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="brand-name">caro</span>
+      <span class="brand-tagline">Natural language for your terminal</span>
+    </div>
+
+    <div class="footer-links">
+      <div class="link-group">
+        <h4 class="group-title">Product</h4>
+        <a href="#commands">Features</a>
+        <a href="/docs">Documentation</a>
+        <a href="/roadmap">Roadmap</a>
+      </div>
+
+      <div class="link-group">
+        <h4 class="group-title">Resources</h4>
+        <a href="/faq">FAQ</a>
+        <a href="/glossary">Glossary</a>
+        <a href="https://github.com/wildcard/caro/releases" target="_blank" rel="noopener noreferrer">Releases</a>
+      </div>
+
+      <div class="link-group">
+        <h4 class="group-title">Community</h4>
+        <a href="https://github.com/wildcard/caro" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://github.com/wildcard/caro/issues" target="_blank" rel="noopener noreferrer">Issues</a>
+        <a href="https://github.com/wildcard/caro/discussions" target="_blank" rel="noopener noreferrer">Discussions</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <div class="footer-bottom-inner">
+      <p class="copyright">
+        Open source under MIT License.
+        Made with care by the community.
+      </p>
+      <div class="footer-meta">
+        <a href="/telemetry" class="meta-link">Privacy</a>
+        <span class="separator">|</span>
+        <a href="https://github.com/wildcard/caro/blob/main/LICENSE" class="meta-link" target="_blank" rel="noopener noreferrer">License</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .minimal-footer {
+    background: var(--color-bg);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .footer-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 64px 24px;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 48px;
+  }
+
+  .footer-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .brand-name {
+    font-family: 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', monospace;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  .brand-tagline {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .footer-links {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+
+  .link-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .group-title {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-text);
+    margin-bottom: 4px;
+  }
+
+  .link-group a {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .link-group a:hover {
+    color: #ff8c42;
+  }
+
+  /* Footer Bottom */
+  .footer-bottom {
+    border-top: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+  }
+
+  .footer-bottom-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .copyright {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+
+  .footer-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .meta-link {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+  }
+
+  .meta-link:hover {
+    color: #ff8c42;
+  }
+
+  .separator {
+    color: var(--color-border);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .footer-inner {
+      grid-template-columns: 1fr;
+      gap: 40px;
+      padding: 48px 24px;
+    }
+
+    .footer-links {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .footer-links {
+      grid-template-columns: 1fr;
+    }
+
+    .footer-bottom-inner {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+</style>

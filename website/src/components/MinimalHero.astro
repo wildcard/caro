@@ -1,0 +1,330 @@
+---
+/**
+ * MinimalHero Component
+ * Inspired by GitHub CLI's minimalist landing page design
+ * Features: Bold headline, install command, platform options
+ */
+import { t, type Locale } from '../i18n/config';
+
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = 'en' } = Astro.props;
+---
+
+<section class="minimal-hero">
+  <div class="hero-container">
+    <h1 class="hero-headline">
+      Take your terminal<br />to the next level
+    </h1>
+
+    <p class="hero-tagline">
+      Caro translates natural language to shell commands.<br />
+      Free and open source.
+    </p>
+
+    <div class="install-section">
+      <div class="install-box">
+        <code class="install-command" id="install-cmd">brew install wildcard/tap/caro</code>
+        <button class="copy-btn" id="copy-btn" aria-label="Copy to clipboard">
+          <svg class="copy-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          <svg class="check-icon hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <div class="platform-tabs">
+        <button class="platform-tab active" data-platform="mac">macOS</button>
+        <button class="platform-tab" data-platform="linux">Linux</button>
+        <button class="platform-tab" data-platform="windows">Windows</button>
+        <button class="platform-tab" data-platform="source">Source</button>
+      </div>
+
+      <div class="install-instructions">
+        <p class="instruction-text" id="instruction-text">
+          Install via Homebrew for the easiest setup experience.
+        </p>
+      </div>
+    </div>
+
+    <div class="hero-links">
+      <a href="https://github.com/wildcard/caro" class="hero-link" target="_blank" rel="noopener noreferrer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+        View on GitHub
+      </a>
+      <a href="#commands" class="hero-link secondary">
+        See it in action
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <polyline points="19 12 12 19 5 12"></polyline>
+        </svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .minimal-hero {
+    min-height: 85vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 24px;
+    background: var(--color-bg);
+  }
+
+  .hero-container {
+    max-width: 720px;
+    text-align: center;
+  }
+
+  .hero-headline {
+    font-size: clamp(36px, 8vw, 64px);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--color-text);
+    margin-bottom: 24px;
+  }
+
+  .hero-tagline {
+    font-size: clamp(18px, 3vw, 22px);
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin-bottom: 48px;
+  }
+
+  /* Install Section */
+  .install-section {
+    margin-bottom: 48px;
+  }
+
+  .install-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    max-width: 480px;
+    margin-inline: auto;
+  }
+
+  .install-command {
+    font-family: 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', monospace;
+    font-size: 16px;
+    color: var(--color-text);
+    background: none;
+    user-select: all;
+  }
+
+  .copy-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .copy-btn:hover {
+    color: #ff8c42;
+    border-color: #ff8c42;
+    background: rgba(255, 140, 66, 0.08);
+  }
+
+  .copy-btn .check-icon {
+    color: #22c55e;
+  }
+
+  .copy-btn .hidden {
+    display: none;
+  }
+
+  /* Platform Tabs */
+  .platform-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .platform-tab {
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .platform-tab:hover {
+    color: var(--color-text);
+    border-color: var(--color-text-secondary);
+  }
+
+  .platform-tab.active {
+    color: #ff8c42;
+    border-color: #ff8c42;
+    background: rgba(255, 140, 66, 0.08);
+  }
+
+  .install-instructions {
+    text-align: center;
+  }
+
+  .instruction-text {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  /* Hero Links */
+  .hero-links {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .hero-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--color-text);
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    transition: all 0.2s ease;
+  }
+
+  .hero-link:hover {
+    border-color: #ff8c42;
+    color: #ff8c42;
+    background: rgba(255, 140, 66, 0.05);
+  }
+
+  .hero-link.secondary {
+    background: transparent;
+    border-color: transparent;
+  }
+
+  .hero-link.secondary:hover {
+    background: var(--color-bg-secondary);
+    border-color: var(--color-border);
+    color: #ff8c42;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .minimal-hero {
+      min-height: auto;
+      padding: 60px 20px;
+    }
+
+    .install-box {
+      padding: 12px 16px;
+    }
+
+    .install-command {
+      font-size: 13px;
+    }
+
+    .hero-links {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .hero-link {
+      width: 100%;
+      max-width: 280px;
+      justify-content: center;
+    }
+  }
+</style>
+
+<script>
+  const installCommands: Record<string, { cmd: string; text: string }> = {
+    mac: {
+      cmd: 'brew install wildcard/tap/caro',
+      text: 'Install via Homebrew for the easiest setup experience.'
+    },
+    linux: {
+      cmd: 'curl -fsSL https://caro.sh/install.sh | sh',
+      text: 'One-line install script for Linux systems.'
+    },
+    windows: {
+      cmd: 'cargo install caro',
+      text: 'Install via Cargo. Requires Rust toolchain.'
+    },
+    source: {
+      cmd: 'cargo install --git https://github.com/wildcard/caro',
+      text: 'Build from source using Cargo.'
+    }
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const tabs = document.querySelectorAll('.platform-tab');
+    const cmdEl = document.getElementById('install-cmd');
+    const textEl = document.getElementById('instruction-text');
+    const copyBtn = document.getElementById('copy-btn');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const platform = (tab as HTMLElement).dataset.platform;
+        if (!platform || !installCommands[platform]) return;
+
+        // Update active tab
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        // Update command and text
+        if (cmdEl) cmdEl.textContent = installCommands[platform].cmd;
+        if (textEl) textEl.textContent = installCommands[platform].text;
+      });
+    });
+
+    // Copy functionality
+    copyBtn?.addEventListener('click', async () => {
+      const cmd = cmdEl?.textContent;
+      if (!cmd) return;
+
+      try {
+        await navigator.clipboard.writeText(cmd);
+        const copyIcon = copyBtn.querySelector('.copy-icon');
+        const checkIcon = copyBtn.querySelector('.check-icon');
+
+        copyIcon?.classList.add('hidden');
+        checkIcon?.classList.remove('hidden');
+
+        setTimeout(() => {
+          copyIcon?.classList.remove('hidden');
+          checkIcon?.classList.add('hidden');
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
+    });
+  });
+</script>

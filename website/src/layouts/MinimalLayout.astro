@@ -1,0 +1,111 @@
+---
+/**
+ * MinimalLayout
+ * Clean, minimal layout for the GitHub CLI-inspired homepage
+ */
+import Analytics from '@vercel/analytics/astro';
+import { isRtl, getAllLocales, type Locale } from '../i18n/config';
+
+interface Props {
+  title: string;
+  description: string;
+  lang?: Locale;
+}
+
+const { title, description, lang = 'en' } = Astro.props;
+const dir = isRtl(lang) ? 'rtl' : 'ltr';
+---
+
+<!doctype html>
+<html lang={lang} dir={dir}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/caro-pixel.png" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+
+    <!-- Hreflang tags -->
+    {getAllLocales().map(locale => (
+      <link
+        rel="alternate"
+        hreflang={locale.code}
+        href={`https://caro.sh/${locale.code === 'en' ? '' : locale.code + '/'}`}
+      />
+    ))}
+
+    <script is:inline>
+      // Dark mode initialization
+      const theme = (() => {
+        if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+          return localStorage.getItem('theme');
+        }
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          return 'dark';
+        }
+        return 'light';
+      })();
+
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      }
+    </script>
+  </head>
+  <body>
+    <slot />
+    <Analytics />
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --color-bg: #ffffff;
+    --color-bg-secondary: #f8f9fa;
+    --color-text: #24292f;
+    --color-text-secondary: #57606a;
+    --color-border: #d0d7de;
+    --color-link: #ff8c42;
+  }
+
+  .dark {
+    --color-bg: #0d1117;
+    --color-bg-secondary: #161b22;
+    --color-text: #e6edf3;
+    --color-text-secondary: #8b949e;
+    --color-border: #30363d;
+    --color-link: #ff8c42;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--color-text);
+    background: var(--color-bg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  a {
+    color: var(--color-link);
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  code {
+    font-family: 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', monospace;
+  }
+</style>

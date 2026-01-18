@@ -1,0 +1,282 @@
+---
+/**
+ * CommandDemo Component
+ * Shows realistic caro command examples with output
+ * Inspired by GitHub CLI's command showcase
+ */
+import { t, type Locale } from '../i18n/config';
+
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = 'en' } = Astro.props;
+
+const commands = [
+  {
+    prompt: 'find all rust files modified in the last week',
+    command: 'find . -name "*.rs" -mtime -7',
+    description: 'Natural language to find command'
+  },
+  {
+    prompt: 'show disk usage sorted by size',
+    command: 'du -sh * | sort -hr',
+    description: 'Pipe commands made easy'
+  },
+  {
+    prompt: 'list running docker containers with their ports',
+    command: 'docker ps --format "table {{.Names}}\\t{{.Ports}}"',
+    description: 'Complex flags, simple words'
+  },
+  {
+    prompt: 'compress all logs older than 30 days',
+    command: 'find /var/log -name "*.log" -mtime +30 -exec gzip {} \\;',
+    description: 'Multi-step operations'
+  },
+  {
+    prompt: 'show git commits from this week',
+    command: 'git log --oneline --since="1 week ago"',
+    description: 'Git workflows simplified'
+  },
+  {
+    prompt: 'kill process using port 3000',
+    command: 'lsof -ti:3000 | xargs kill -9',
+    description: 'System administration'
+  }
+];
+---
+
+<section class="command-demo" id="commands">
+  <div class="demo-container">
+    <div class="demo-header">
+      <h2 class="demo-title">Your entire terminal workflow</h2>
+      <p class="demo-subtitle">
+        Just describe what you want in plain English.
+        Caro generates safe, verified commands.
+      </p>
+    </div>
+
+    <div class="demo-grid">
+      {commands.map((cmd, index) => (
+        <div class="demo-card" style={`--delay: ${index * 0.1}s`}>
+          <div class="card-header">
+            <span class="card-label">{cmd.description}</span>
+          </div>
+          <div class="terminal-block">
+            <div class="terminal-header">
+              <span class="terminal-dot red"></span>
+              <span class="terminal-dot yellow"></span>
+              <span class="terminal-dot green"></span>
+            </div>
+            <div class="terminal-body">
+              <div class="prompt-line">
+                <span class="prompt-icon">$</span>
+                <span class="prompt-text">caro "{cmd.prompt}"</span>
+              </div>
+              <div class="output-line">
+                <span class="output-arrow">-&gt;</span>
+                <code class="output-command">{cmd.command}</code>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div class="demo-footer">
+      <p class="footer-note">
+        All commands are validated for safety before execution.
+        <a href="/faq#safety" class="learn-more">Learn more</a>
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .command-demo {
+    padding: 100px 24px;
+    background: var(--color-bg-secondary);
+  }
+
+  .demo-container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .demo-header {
+    text-align: center;
+    margin-bottom: 64px;
+  }
+
+  .demo-title {
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 16px;
+    letter-spacing: -0.02em;
+  }
+
+  .demo-subtitle {
+    font-size: 18px;
+    color: var(--color-text-secondary);
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* Demo Grid */
+  .demo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+
+  .demo-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    animation: fadeInUp 0.5s ease backwards;
+    animation-delay: var(--delay);
+  }
+
+  .demo-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+  }
+
+  :global(.dark) .demo-card:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .card-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Terminal Block */
+  .terminal-block {
+    background: #1e1e1e;
+  }
+
+  :global(.dark) .terminal-block {
+    background: #0d0d0d;
+  }
+
+  .terminal-header {
+    display: flex;
+    gap: 6px;
+    padding: 12px 16px;
+    background: #2d2d2d;
+  }
+
+  :global(.dark) .terminal-header {
+    background: #1a1a1a;
+  }
+
+  .terminal-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .terminal-dot.red { background: #ff5f56; }
+  .terminal-dot.yellow { background: #ffbd2e; }
+  .terminal-dot.green { background: #27ca40; }
+
+  .terminal-body {
+    padding: 20px;
+    font-family: 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', monospace;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .prompt-line {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .prompt-icon {
+    color: #27ca40;
+    font-weight: 600;
+  }
+
+  .prompt-text {
+    color: #e0e0e0;
+  }
+
+  .output-line {
+    display: flex;
+    gap: 8px;
+    padding-left: 4px;
+  }
+
+  .output-arrow {
+    color: #ff8c42;
+    font-weight: 600;
+  }
+
+  .output-command {
+    color: #58a6ff;
+    word-break: break-word;
+  }
+
+  /* Footer */
+  .demo-footer {
+    text-align: center;
+  }
+
+  .footer-note {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .learn-more {
+    color: #ff8c42;
+    text-decoration: none;
+    margin-left: 4px;
+  }
+
+  .learn-more:hover {
+    text-decoration: underline;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .command-demo {
+      padding: 60px 16px;
+    }
+
+    .demo-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .terminal-body {
+      padding: 16px;
+      font-size: 12px;
+    }
+  }
+</style>
