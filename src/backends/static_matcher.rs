@@ -850,6 +850,58 @@ impl StaticMatcher {
                 description: "Compress directory with maximum compression".to_string(),
             },
 
+            // ===== SHELL PROFILE PATTERNS (Issue #514 - Cross-Platform) =====
+
+            // Pattern 70: "reload powershell profile" (PowerShell-specific)
+            PatternEntry {
+                required_keywords: vec!["powershell".to_string(), "profile".to_string()],
+                optional_keywords: vec!["reload".to_string(), "refresh".to_string(), "source".to_string(), "how".to_string(), "to".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(reload|refresh|source|re-?load|how\s+to\s+reload|reloading).*(powershell|ps1?|pwsh).*(profile|config)|(?i)(powershell|ps1?|pwsh).*(profile|config).*(reload|refresh|source)").unwrap()),
+                gnu_command: ". $PROFILE".to_string(),
+                bsd_command: Some(". $PROFILE".to_string()),
+                description: "Reload PowerShell profile".to_string(),
+            },
+
+            // Pattern 71: "reload bash profile" (bash-specific)
+            PatternEntry {
+                required_keywords: vec!["bash".to_string(), "profile".to_string()],
+                optional_keywords: vec!["reload".to_string(), "refresh".to_string(), "source".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(reload|refresh|source|re-?load).*(bash).*(profile|rc|config)|(?i)(bash).*(profile|bashrc|rc).*(reload|refresh|source)").unwrap()),
+                gnu_command: "source ~/.bashrc".to_string(),
+                bsd_command: Some("source ~/.bashrc".to_string()),
+                description: "Reload bash profile".to_string(),
+            },
+
+            // Pattern 72: "reload zsh profile" (zsh-specific)
+            PatternEntry {
+                required_keywords: vec!["zsh".to_string(), "profile".to_string()],
+                optional_keywords: vec!["reload".to_string(), "refresh".to_string(), "source".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(reload|refresh|source|re-?load).*(zsh).*(profile|rc|config)|(?i)(zsh).*(profile|zshrc|rc).*(reload|refresh|source)").unwrap()),
+                gnu_command: "source ~/.zshrc".to_string(),
+                bsd_command: Some("source ~/.zshrc".to_string()),
+                description: "Reload zsh profile".to_string(),
+            },
+
+            // Pattern 73: "reload fish config" (fish-specific)
+            PatternEntry {
+                required_keywords: vec!["fish".to_string()],
+                optional_keywords: vec!["reload".to_string(), "refresh".to_string(), "source".to_string(), "config".to_string(), "profile".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(reload|refresh|source|re-?load).*(fish).*(config|profile)|(?i)(fish).*(config|profile).*(reload|refresh|source)").unwrap()),
+                gnu_command: "source ~/.config/fish/config.fish".to_string(),
+                bsd_command: Some("source ~/.config/fish/config.fish".to_string()),
+                description: "Reload fish config".to_string(),
+            },
+
+            // Pattern 74: "reload shell profile" (generic - defaults to bash)
+            PatternEntry {
+                required_keywords: vec!["reload".to_string(), "shell".to_string()],
+                optional_keywords: vec!["profile".to_string(), "config".to_string(), "my".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(reload|refresh|source|re-?load).*(my)?.*(shell).*(profile|config|rc)").unwrap()),
+                gnu_command: "source ~/.bashrc".to_string(),
+                bsd_command: Some("source ~/.zshrc".to_string()),  // macOS default is zsh
+                description: "Reload shell profile (generic)".to_string(),
+            },
+
         ]
     }
 
@@ -1216,6 +1268,145 @@ mod tests {
         assert_eq!(
             cmd.command, "find . -type f -mtime 0",
             "BSD platform should use same command as GNU for find, got: {}",
+            cmd.command
+        );
+    }
+
+    // ===== Shell Profile Pattern Tests (Issue #514) =====
+
+    /// Issue #514: Test PowerShell profile reload - "how to reload powershell profile?"
+    #[tokio::test]
+    async fn test_powershell_profile_reload() {
+        let profile = CapabilityProfile::ubuntu();
+        let matcher = StaticMatcher::new(profile);
+
+        let request = CommandRequest::new("how to reload powershell profile?", ShellType::PowerShell);
+
+        let result = matcher.generate_command(&request).await;
+        assert!(result.is_ok(), "Command generation should succeed");
+
+        let cmd = result.unwrap();
+        assert_eq!(
+            cmd.command, ". $PROFILE",
+            "Should generate PowerShell profile reload command, got: {}",
+            cmd.command
+        );
+    }
+
+    /// Issue #514: Test PowerShell profile reload variant - "reload powershell profile"
+    #[tokio::test]
+    async fn test_powershell_profile_reload_variant() {
+        let profile = CapabilityProfile::ubuntu();
+        let matcher = StaticMatcher::new(profile);
+
+        let request = CommandRequest::new("reload powershell profile", ShellType::PowerShell);
+
+        let result = matcher.generate_command(&request).await;
+        assert!(result.is_ok(), "Command generation should succeed");
+
+        let cmd = result.unwrap();
+        assert_eq!(
+            cmd.command, ". $PROFILE",
+            "Should generate PowerShell profile reload command, got: {}",
+            cmd.command
+        );
+    }
+
+    /// Issue #514: Test bash profile reload
+    #[tokio::test]
+    async fn test_bash_profile_reload() {
+        let profile = CapabilityProfile::ubuntu();
+        let matcher = StaticMatcher::new(profile);
+
+        let request = CommandRequest::new("reload bash profile", ShellType::Bash);
+
+        let result = matcher.generate_command(&request).await;
+        assert!(result.is_ok(), "Command generation should succeed");
+
+        let cmd = result.unwrap();
+        assert_eq!(
+            cmd.command, "source ~/.bashrc",
+            "Should generate bash profile reload command, got: {}",
+            cmd.command
+        );
+    }
+
+    /// Issue #514: Test zsh profile reload
+    #[tokio::test]
+    async fn test_zsh_profile_reload() {
+        let profile = CapabilityProfile::ubuntu();
+        let matcher = StaticMatcher::new(profile);
+
+        let request = CommandRequest::new("reload zsh profile", ShellType::Zsh);
+
+        let result = matcher.generate_command(&request).await;
+        assert!(result.is_ok(), "Command generation should succeed");
+
+        let cmd = result.unwrap();
+        assert_eq!(
+            cmd.command, "source ~/.zshrc",
+            "Should generate zsh profile reload command, got: {}",
+            cmd.command
+        );
+    }
+
+    /// Issue #514: Test fish config reload
+    #[tokio::test]
+    async fn test_fish_config_reload() {
+        let profile = CapabilityProfile::ubuntu();
+        let matcher = StaticMatcher::new(profile);
+
+        let request = CommandRequest::new("reload fish config", ShellType::Fish);
+
+        let result = matcher.generate_command(&request).await;
+        assert!(result.is_ok(), "Command generation should succeed");
+
+        let cmd = result.unwrap();
+        assert_eq!(
+            cmd.command, "source ~/.config/fish/config.fish",
+            "Should generate fish config reload command, got: {}",
+            cmd.command
+        );
+    }
+
+    /// Issue #514: Test generic shell profile reload on GNU/Linux (defaults to bash)
+    #[tokio::test]
+    async fn test_generic_shell_profile_reload_gnu() {
+        use crate::prompts::ProfileType;
+
+        let profile = CapabilityProfile::for_platform(ProfileType::GnuLinux);
+        let matcher = StaticMatcher::new(profile);
+
+        let request = CommandRequest::new("reload my shell profile", ShellType::Bash);
+
+        let result = matcher.generate_command(&request).await;
+        assert!(result.is_ok(), "Command generation should succeed");
+
+        let cmd = result.unwrap();
+        assert_eq!(
+            cmd.command, "source ~/.bashrc",
+            "GNU platform should default to bashrc, got: {}",
+            cmd.command
+        );
+    }
+
+    /// Issue #514: Test generic shell profile reload on BSD/macOS (defaults to zsh)
+    #[tokio::test]
+    async fn test_generic_shell_profile_reload_bsd() {
+        use crate::prompts::ProfileType;
+
+        let profile = CapabilityProfile::for_platform(ProfileType::Bsd);
+        let matcher = StaticMatcher::new(profile);
+
+        let request = CommandRequest::new("reload my shell profile", ShellType::Zsh);
+
+        let result = matcher.generate_command(&request).await;
+        assert!(result.is_ok(), "Command generation should succeed");
+
+        let cmd = result.unwrap();
+        assert_eq!(
+            cmd.command, "source ~/.zshrc",
+            "BSD platform should default to zshrc, got: {}",
             cmd.command
         );
     }
