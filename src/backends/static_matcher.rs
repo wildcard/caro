@@ -1268,7 +1268,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore] // TODO: Fix existing pattern ordering violations detected by this test (see issue #XXX)
+    #[ignore] // TODO: Fix existing pattern ordering violations detected by this test (see issue #547)
     fn test_pattern_ordering() {
         // Verify patterns are ordered by specificity (more required keywords first)
         // This prevents general patterns from shadowing specific ones
