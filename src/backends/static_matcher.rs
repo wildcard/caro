@@ -1545,7 +1545,11 @@ mod tests {
             // Pattern with alternating matches
             format!("show disk usage {}", "disk space disk usage ".repeat(50)),
             // Very long input with keywords scattered
-            format!("find {} python {} files", "word ".repeat(200), "word ".repeat(200)),
+            format!(
+                "find {} python {} files",
+                "word ".repeat(200),
+                "word ".repeat(200)
+            ),
         ];
 
         let max_allowed_time = Duration::from_millis(100); // 100ms per pattern
@@ -1595,11 +1599,7 @@ mod tests {
         for (i, pattern) in patterns.iter().enumerate() {
             if let Some(regex) = &pattern.regex_pattern {
                 // Pattern should already be compiled, but verify it's valid
-                assert!(
-                    !regex.as_str().is_empty(),
-                    "Pattern {} has empty regex",
-                    i
-                );
+                assert!(!regex.as_str().is_empty(), "Pattern {} has empty regex", i);
             }
         }
     }
