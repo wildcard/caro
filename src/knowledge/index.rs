@@ -8,6 +8,7 @@ use crate::knowledge::{
 };
 use arrow_array::{RecordBatch, RecordBatchIterator};
 use chrono::{DateTime, Utc};
+use futures::TryStreamExt;
 use lancedb::{
     connect,
     query::{ExecutableQuery, QueryBase},
@@ -219,6 +220,121 @@ impl KnowledgeIndex {
             *table = None;
         }
         Ok(())
+    }
+
+    /// Export all entries to JSON
+    pub async fn export_to_json(&self) -> Result<String> {
+        use serde_json::json;
+
+        let table = self.table.read().await;
+        let table = match table.as_ref() {
+            Some(t) => t,
+            None => {
+                // Empty index
+                return Ok(json!({
+                    "version": "1.0",
+                    "entries": []
+                })
+                .to_string());
+            }
+        };
+
+        // Query all entries
+        let results = table
+            .query()
+            .limit(10000) // Reasonable limit for export
+            .execute()
+            .await
+            .map_err(|e| KnowledgeError::Database(e.to_string()))?;
+
+        let batches = results
+            .try_collect::<Vec<_>>()
+            .await
+            .map_err(|e| KnowledgeError::Database(e.to_string()))?;
+
+        let mut all_entries = Vec::new();
+        for batch in batches {
+            let entries = self.parse_batch(&batch)?;
+            all_entries.extend(entries);
+        }
+
+        // Convert to JSON
+        let export_data = json!({
+            "version": "1.0",
+            "exported_at": Utc::now().to_rfc3339(),
+            "total_entries": all_entries.len(),
+            "entries": all_entries.iter().map(|e| json!({
+                "request": e.request,
+                "command": e.command,
+                "context": e.context,
+                "timestamp": e.timestamp.to_rfc3339(),
+                "entry_type": match e.entry_type {
+                    EntryType::Success => "success",
+                    EntryType::Correction => "correction",
+                },
+                "original_command": e.original_command,
+                "feedback": e.feedback,
+            })).collect::<Vec<_>>()
+        });
+
+        Ok(export_data.to_string())
+    }
+
+    /// Import entries from JSON
+    pub async fn import_from_json(&self, json_data: &str) -> Result<usize> {
+        use serde_json::Value;
+
+        let data: Value = serde_json::from_str(json_data)
+            .map_err(|e| KnowledgeError::Schema(format!("Invalid JSON: {}", e)))?;
+
+        let entries = data
+            .get("entries")
+            .and_then(|v| v.as_array())
+            .ok_or_else(|| KnowledgeError::Schema("Missing 'entries' array".to_string()))?;
+
+        let mut imported_count = 0;
+
+        for entry in entries {
+            let request = entry
+                .get("request")
+                .and_then(|v| v.as_str())
+                .ok_or_else(|| KnowledgeError::Schema("Missing 'request' field".to_string()))?;
+
+            let command = entry
+                .get("command")
+                .and_then(|v| v.as_str())
+                .ok_or_else(|| KnowledgeError::Schema("Missing 'command' field".to_string()))?;
+
+            let context = entry.get("context").and_then(|v| v.as_str());
+
+            let entry_type = entry
+                .get("entry_type")
+                .and_then(|v| v.as_str())
+                .unwrap_or("success");
+
+            match entry_type {
+                "success" => {
+                    self.record_success(request, command, context).await?;
+                    imported_count += 1;
+                }
+                "correction" => {
+                    let original = entry
+                        .get("original_command")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("");
+                    let feedback = entry.get("feedback").and_then(|v| v.as_str());
+                    self.record_correction(request, original, command, feedback)
+                        .await?;
+                    imported_count += 1;
+                }
+                _ => {
+                    // Skip unknown types
+                    continue;
+                }
+            }
+        }
+
+        Ok(imported_count)
     }
 
     /// Add a batch of entries to the index
