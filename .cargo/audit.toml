@@ -1,0 +1,14 @@
+# cargo-audit configuration for caro
+#
+# This file configures security audit policies for dependencies
+
+[advisories]
+# Vulnerabilities to ignore (with justification)
+ignore = [
+    # rsa 0.9.10 - Marvin Attack timing sidechannel (medium severity)
+    # - No fix available in dependency chain (comes from LanceDB → opendal → reqsign → rsa)
+    # - Waiting for upstream fix: https://github.com/RustCrypto/RSA/issues/19
+    # - Impact: Potential key recovery through timing sidechannels
+    # - Mitigation: Not directly exposed in Caro's API surface
+    "RUSTSEC-2023-0071",
+]

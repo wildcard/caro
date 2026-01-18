@@ -181,6 +181,109 @@ enum ConfigCommands {
     Reset,
 }
 
+/// Profile management subcommands
+#[cfg(feature = "knowledge")]
+#[derive(Parser, Clone)]
+#[command(arg_required_else_help = true)]
+enum ProfileCommands {
+    /// Create a new user profile
+    Create {
+        /// Profile name (e.g., "work", "personal-laptop")
+        name: String,
+
+        /// Profile type
+        #[arg(long, value_enum, default_value = "personal")]
+        profile_type: caro::models::profile::ProfileType,
+
+        /// Optional description
+        #[arg(long, short = 'd')]
+        description: Option<String>,
+    },
+
+    /// List all user profiles
+    List,
+
+    /// Switch to a different profile
+    Switch {
+        /// Profile name to switch to
+        name: String,
+    },
+
+    /// Delete a user profile
+    Delete {
+        /// Profile name to delete
+        name: String,
+
+        /// Skip confirmation prompt
+        #[arg(long)]
+        force: bool,
+    },
+
+    /// Show the currently active profile
+    Show,
+}
+
+/// Knowledge index management subcommands
+#[cfg(feature = "knowledge")]
+#[derive(Parser, Clone)]
+#[command(arg_required_else_help = true)]
+enum KnowledgeCommands {
+    /// Index man pages into the documentation collection
+    IndexMan {
+        /// Specific man page to index (e.g., "ls", "grep")
+        #[arg(help = "Man page to index (omit to index all)")]
+        page: Option<String>,
+
+        /// Man page sections to index (e.g., "1,8")
+        #[arg(long, value_delimiter = ',')]
+        sections: Option<Vec<u8>>,
+
+        /// Show progress during indexing
+        #[arg(long, short = 'v')]
+        verbose: bool,
+    },
+
+    /// Index tldr pages into the documentation collection
+    IndexTldr {
+        /// Specific command to index (e.g., "git", "docker")
+        #[arg(help = "Command to index (omit to index all)")]
+        command: Option<String>,
+
+        /// Platform filter (linux, osx, windows, common)
+        #[arg(long, value_delimiter = ',')]
+        platforms: Option<Vec<String>>,
+
+        /// Show progress during indexing
+        #[arg(long, short = 'v')]
+        verbose: bool,
+    },
+
+    /// Index command --help output into the documentation collection
+    IndexHelp {
+        /// Specific command to index (e.g., "cargo", "npm")
+        #[arg(help = "Command to index (omit to auto-discover from PATH)")]
+        command: Option<String>,
+
+        /// List of commands to index
+        #[arg(long, value_delimiter = ',')]
+        commands: Option<Vec<String>>,
+
+        /// Show progress during indexing
+        #[arg(long, short = 'v')]
+        verbose: bool,
+    },
+
+    /// Show knowledge index statistics
+    Stats,
+
+    /// Clear the knowledge index
+    Clear {
+        /// Skip confirmation prompt
+        #[arg(long)]
+        force: bool,
+    },
+}
+
 /// Subcommands for caro
 #[derive(Parser, Clone)]
 enum Commands {
@@ -197,6 +300,20 @@ enum Commands {
     Config {
         #[command(subcommand)]
         command: ConfigCommands,
+    },
+
+    /// Manage knowledge index (requires --features knowledge)
+    #[cfg(feature = "knowledge")]
+    Knowledge {
+        #[command(subcommand)]
+        command: KnowledgeCommands,
+    },
+
+    /// Manage user profiles for personalized knowledge (requires --features knowledge)
+    #[cfg(feature = "knowledge")]
+    Profile {
+        #[command(subcommand)]
+        command: ProfileCommands,
     },
 
     // NOTE: Assess and Telemetry subcommands are disabled in v1.1.0-beta.1
@@ -300,6 +417,23 @@ struct Cli {
         help = "Model name for the backend (e.g., codellama:7b for ollama)"
     )]
     model_name: Option<String>,
+
+    /// Knowledge backend for command history and learning
+    #[arg(
+        long = "knowledge-backend",
+        help = "Vector database backend for knowledge index (lancedb, chromadb)",
+        env = "CARO_KNOWLEDGE_BACKEND"
+    )]
+    knowledge_backend: Option<String>,
+
+    /// ChromaDB server URL (when using chromadb backend)
+    #[arg(
+        long = "chromadb-url",
+        help = "ChromaDB server URL (default: http://localhost:8000)",
+        env = "CHROMADB_URL",
+        default_value = "http://localhost:8000"
+    )]
+    chromadb_url: String,
 
     /// Safety level for command validation
     #[arg(long, help = "Safety level (strict, moderate, permissive)")]
@@ -610,6 +744,38 @@ async fn run_assessment_command(
 }
 
 // =============================================================================
+// Knowledge Backend Configuration
+// =============================================================================
+
+/// Build knowledge backend configuration from CLI arguments
+#[cfg(feature = "knowledge")]
+fn build_knowledge_backend_config(
+    knowledge_backend: Option<&str>,
+    chromadb_url: &str,
+) -> caro::models::KnowledgeBackendConfig {
+    use caro::models::KnowledgeBackendConfig;
+
+    match knowledge_backend {
+        Some("chromadb") | Some("chroma") => {
+            // Check for Chroma Cloud API key in environment
+            let auth_token = std::env::var("CHROMA_API_KEY").ok();
+            KnowledgeBackendConfig::chromadb(chromadb_url.to_string(), None, auth_token)
+        }
+        Some("lancedb") | Some("lance") | None => {
+            // Default to LanceDB
+            KnowledgeBackendConfig::lancedb(caro::knowledge::default_knowledge_path())
+        }
+        Some(other) => {
+            eprintln!(
+                "Warning: Unknown knowledge backend '{}'. Defaulting to LanceDB.",
+                other
+            );
+            KnowledgeBackendConfig::lancedb(caro::knowledge::default_knowledge_path())
+        }
+    }
+}
+
+// =============================================================================
 // Configuration Commands
 // =============================================================================
 
@@ -780,6 +946,416 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
 }
 
 // =============================================================================
+// Knowledge Index Commands
+// =============================================================================
+
+/// Handle knowledge subcommands
+#[cfg(feature = "knowledge")]
+async fn handle_knowledge_command(
+    command: KnowledgeCommands,
+    backend_config: caro::models::KnowledgeBackendConfig,
+) -> Result<(), String> {
+    use caro::knowledge::indexers::{help::HelpIndexer, man::ManPageIndexer, tldr::TldrIndexer};
+    use caro::knowledge::{Indexer, KnowledgeIndex};
+    use colored::Colorize;
+
+    match command {
+        KnowledgeCommands::IndexMan {
+            page,
+            sections,
+            verbose,
+        } => {
+            println!("{} Initializing man page indexer...", "►".cyan());
+
+            // Create indexer
+            let indexer = if let Some(sections) = sections {
+                ManPageIndexer::new(sections)
+            } else {
+                ManPageIndexer::user_commands()
+            };
+
+            // Create backend
+            let index = KnowledgeIndex::from_config(&backend_config)
+                .await
+                .map_err(|e| format!("Failed to initialize knowledge index: {}", e))?;
+
+            let backend = index.backend();
+
+            // Index
+            if let Some(page_name) = page {
+                println!("{} Indexing man page: {}", "→".cyan(), page_name.bold());
+                match indexer.index_one(backend, &page_name).await {
+                    Ok(true) => {
+                        println!("{} Successfully indexed {}", "✓".green(), page_name.bold())
+                    }
+                    Ok(false) => println!("{} Man page not found: {}", "✗".red(), page_name),
+                    Err(e) => return Err(format!("Indexing failed: {}", e)),
+                }
+            } else {
+                println!("{} Indexing all man pages (section 1)...", "→".cyan());
+
+                let progress = if verbose {
+                    Some(Box::new(|current: usize, total: usize| {
+                        print!("\r{} Indexed {}/{} pages", "→".cyan(), current, total);
+                        use std::io::Write;
+                        std::io::stdout().flush().ok();
+                    })
+                        as Box<dyn Fn(usize, usize) + Send + Sync>)
+                } else {
+                    None
+                };
+
+                match indexer.index_all(backend, progress).await {
+                    Ok(stats) => {
+                        if verbose {
+                            println!(); // Newline after progress
+                        }
+                        println!("{} Indexing complete!", "✓".green());
+                        println!("  Successful: {}", stats.successful);
+                        println!("  Failed: {}", stats.failed);
+                        println!("  Skipped: {}", stats.skipped);
+                    }
+                    Err(e) => return Err(format!("Indexing failed: {}", e)),
+                }
+            }
+
+            Ok(())
+        }
+
+        KnowledgeCommands::IndexTldr {
+            command,
+            platforms,
+            verbose,
+        } => {
+            println!("{} Initializing tldr indexer...", "►".cyan());
+
+            let indexer = if let Some(platforms) = platforms {
+                TldrIndexer::new(None, platforms)
+            } else {
+                TldrIndexer::current_platform()
+            };
+
+            let index = KnowledgeIndex::from_config(&backend_config)
+                .await
+                .map_err(|e| format!("Failed to initialize knowledge index: {}", e))?;
+
+            let backend = index.backend();
+
+            if let Some(cmd) = command {
+                println!("{} Indexing tldr page: {}", "→".cyan(), cmd.bold());
+                match indexer.index_one(backend, &cmd).await {
+                    Ok(true) => println!("{} Successfully indexed {}", "✓".green(), cmd.bold()),
+                    Ok(false) => println!("{} Tldr page not found: {}", "✗".red(), cmd),
+                    Err(e) => return Err(format!("Indexing failed: {}", e)),
+                }
+            } else {
+                println!("{} Indexing all tldr pages...", "→".cyan());
+
+                let progress = if verbose {
+                    Some(Box::new(|current: usize, total: usize| {
+                        print!("\r{} Indexed {}/{} pages", "→".cyan(), current, total);
+                        use std::io::Write;
+                        std::io::stdout().flush().ok();
+                    })
+                        as Box<dyn Fn(usize, usize) + Send + Sync>)
+                } else {
+                    None
+                };
+
+                match indexer.index_all(backend, progress).await {
+                    Ok(stats) => {
+                        if verbose {
+                            println!();
+                        }
+                        println!("{} Indexing complete!", "✓".green());
+                        println!("  Successful: {}", stats.successful);
+                        println!("  Failed: {}", stats.failed);
+                        println!("  Skipped: {}", stats.skipped);
+                    }
+                    Err(e) => return Err(format!("Indexing failed: {}", e)),
+                }
+            }
+
+            Ok(())
+        }
+
+        KnowledgeCommands::IndexHelp {
+            command,
+            commands,
+            verbose,
+        } => {
+            println!("{} Initializing help indexer...", "►".cyan());
+
+            let indexer = if let Some(commands) = commands {
+                HelpIndexer::for_commands(commands)
+            } else if let Some(cmd) = &command {
+                HelpIndexer::for_commands(vec![cmd.clone()])
+            } else {
+                HelpIndexer::auto_discover()
+            };
+
+            let index = KnowledgeIndex::from_config(&backend_config)
+                .await
+                .map_err(|e| format!("Failed to initialize knowledge index: {}", e))?;
+
+            let backend = index.backend();
+
+            if let Some(cmd) = command {
+                println!("{} Indexing --help output for: {}", "→".cyan(), cmd.bold());
+                match indexer.index_one(backend, &cmd).await {
+                    Ok(true) => println!("{} Successfully indexed {}", "✓".green(), cmd.bold()),
+                    Ok(false) => println!("{} Help output not available: {}", "✗".red(), cmd),
+                    Err(e) => return Err(format!("Indexing failed: {}", e)),
+                }
+            } else {
+                println!("{} Indexing --help output...", "→".cyan());
+
+                let progress = if verbose {
+                    Some(Box::new(|current: usize, total: usize| {
+                        print!("\r{} Indexed {}/{} commands", "→".cyan(), current, total);
+                        use std::io::Write;
+                        std::io::stdout().flush().ok();
+                    })
+                        as Box<dyn Fn(usize, usize) + Send + Sync>)
+                } else {
+                    None
+                };
+
+                match indexer.index_all(backend, progress).await {
+                    Ok(stats) => {
+                        if verbose {
+                            println!();
+                        }
+                        println!("{} Indexing complete!", "✓".green());
+                        println!("  Successful: {}", stats.successful);
+                        println!("  Failed: {}", stats.failed);
+                        println!("  Skipped: {}", stats.skipped);
+                    }
+                    Err(e) => return Err(format!("Indexing failed: {}", e)),
+                }
+            }
+
+            Ok(())
+        }
+
+        KnowledgeCommands::Stats => {
+            println!("{} Knowledge Index Statistics", "📊".cyan());
+            println!();
+
+            let index = KnowledgeIndex::from_config(&backend_config)
+                .await
+                .map_err(|e| format!("Failed to initialize knowledge index: {}", e))?;
+
+            match index.stats().await {
+                Ok(stats) => {
+                    println!(
+                        "  Total entries: {}",
+                        stats.total_entries.to_string().bold()
+                    );
+                    println!("  Success count: {}", stats.success_count);
+                    println!("  Correction count: {}", stats.correction_count);
+                }
+                Err(e) => return Err(format!("Failed to get stats: {}", e)),
+            }
+
+            Ok(())
+        }
+
+        KnowledgeCommands::Clear { force } => {
+            if !force {
+                print!(
+                    "{} Are you sure you want to clear the knowledge index? (y/N) ",
+                    "⚠".yellow()
+                );
+                use std::io::{self, Write};
+                io::stdout().flush().unwrap();
+
+                let mut input = String::new();
+                io::stdin().read_line(&mut input).unwrap();
+
+                if !input.trim().eq_ignore_ascii_case("y") {
+                    println!("Cancelled.");
+                    return Ok(());
+                }
+            }
+
+            println!("{} Clearing knowledge index...", "►".cyan());
+
+            let index = KnowledgeIndex::from_config(&backend_config)
+                .await
+                .map_err(|e| format!("Failed to initialize knowledge index: {}", e))?;
+
+            match index.clear().await {
+                Ok(()) => println!("{} Knowledge index cleared successfully", "✓".green()),
+                Err(e) => return Err(format!("Failed to clear index: {}", e)),
+            }
+
+            Ok(())
+        }
+    }
+}
+
+/// Handle profile subcommands
+#[cfg(feature = "knowledge")]
+async fn handle_profile_command(command: ProfileCommands) -> Result<(), String> {
+    use caro::config::ConfigManager;
+    use caro::models::profile::{ProfileConfig, UserProfile};
+    use colored::Colorize;
+    use std::io::{self, Write};
+
+    let config_manager =
+        ConfigManager::new().map_err(|e| format!("Failed to create config manager: {}", e))?;
+    let config_dir = config_manager
+        .config_path()
+        .parent()
+        .ok_or_else(|| "Invalid config path".to_string())?;
+    let profile_path = config_dir.join("profiles.toml");
+
+    let mut profile_config = if profile_path.exists() {
+        let content = std::fs::read_to_string(&profile_path)
+            .map_err(|e| format!("Failed to read profiles: {}", e))?;
+        toml::from_str(&content).map_err(|e| format!("Failed to parse profiles: {}", e))?
+    } else {
+        ProfileConfig::new()
+    };
+
+    match command {
+        ProfileCommands::Create {
+            name,
+            profile_type,
+            description,
+        } => {
+            println!("{} Creating profile: {}", "►".cyan(), name.bold());
+
+            let mut profile = UserProfile::new(name.clone(), profile_type);
+            if let Some(desc) = description {
+                profile.description = Some(desc);
+            }
+
+            profile_config
+                .add_profile(profile)
+                .map_err(|e| e.to_string())?;
+
+            let content = toml::to_string_pretty(&profile_config)
+                .map_err(|e| format!("Failed to serialize profiles: {}", e))?;
+            std::fs::create_dir_all(config_dir)
+                .map_err(|e| format!("Failed to create config directory: {}", e))?;
+            std::fs::write(&profile_path, content)
+                .map_err(|e| format!("Failed to write profiles: {}", e))?;
+
+            println!(
+                "{} Profile created: {} ({})",
+                "✓".green(),
+                name.bold(),
+                profile_type
+            );
+            Ok(())
+        }
+
+        ProfileCommands::List => {
+            if profile_config.profiles.is_empty() {
+                println!("{} No profiles found", "✗".yellow());
+                println!("  Create a profile with: caro profile create <name>");
+                return Ok(());
+            }
+
+            println!("{} User Profiles:", "►".cyan());
+            println!();
+
+            for profile in &profile_config.profiles {
+                let active_marker = if Some(&profile.name) == profile_config.active_profile.as_ref()
+                {
+                    " (active)".green()
+                } else {
+                    "".normal()
+                };
+
+                println!("  {} {}{}", "●".cyan(), profile.name.bold(), active_marker);
+                println!("    Type: {}", profile.profile_type);
+                if let Some(desc) = &profile.description {
+                    println!("    Description: {}", desc);
+                }
+                println!("    Created: {}", profile.created.format("%Y-%m-%d %H:%M"));
+                if let Some(last_used) = profile.last_used {
+                    println!("    Last used: {}", last_used.format("%Y-%m-%d %H:%M"));
+                }
+                println!("    Commands: {}", profile.command_count);
+                println!();
+            }
+
+            Ok(())
+        }
+
+        ProfileCommands::Switch { name } => {
+            println!("{} Switching to profile: {}", "►".cyan(), name.bold());
+
+            profile_config
+                .switch_profile(&name)
+                .map_err(|e| e.to_string())?;
+
+            let content = toml::to_string_pretty(&profile_config)
+                .map_err(|e| format!("Failed to serialize profiles: {}", e))?;
+            std::fs::write(&profile_path, content)
+                .map_err(|e| format!("Failed to write profiles: {}", e))?;
+
+            println!("{} Switched to profile: {}", "✓".green(), name.bold());
+            Ok(())
+        }
+
+        ProfileCommands::Delete { name, force } => {
+            if !force {
+                print!("{} Delete profile '{}'? [y/N]: ", "?".yellow(), name);
+                io::stdout().flush().ok();
+
+                let mut response = String::new();
+                io::stdin().read_line(&mut response).ok();
+
+                if !response.trim().eq_ignore_ascii_case("y") {
+                    println!("{} Deletion cancelled", "✗".yellow());
+                    return Ok(());
+                }
+            }
+
+            profile_config
+                .remove_profile(&name)
+                .map_err(|e| e.to_string())?;
+
+            let content = toml::to_string_pretty(&profile_config)
+                .map_err(|e| format!("Failed to serialize profiles: {}", e))?;
+            std::fs::write(&profile_path, content)
+                .map_err(|e| format!("Failed to write profiles: {}", e))?;
+
+            println!("{} Profile deleted: {}", "✓".green(), name.bold());
+            Ok(())
+        }
+
+        ProfileCommands::Show => {
+            if let Some(active_name) = &profile_config.active_profile {
+                if let Some(profile) = profile_config.get_active() {
+                    println!("{} Active Profile: {}", "►".cyan(), active_name.bold());
+                    println!();
+                    println!("  Type: {}", profile.profile_type);
+                    if let Some(desc) = &profile.description {
+                        println!("  Description: {}", desc);
+                    }
+                    println!("  Created: {}", profile.created.format("%Y-%m-%d %H:%M"));
+                    if let Some(last_used) = profile.last_used {
+                        println!("  Last used: {}", last_used.format("%Y-%m-%d %H:%M"));
+                    }
+                    println!("  Commands: {}", profile.command_count);
+                } else {
+                    println!("{} Active profile not found: {}", "✗".red(), active_name);
+                }
+            } else {
+                println!("{} No active profile", "✗".yellow());
+                println!("  Switch to a profile with: caro profile switch <name>");
+            }
+            Ok(())
+        }
+    }
+}
+
+// =============================================================================
 // Evaluation Tests
 // =============================================================================
 
@@ -935,6 +1511,27 @@ async fn main() {
             }
         },
         Some(Commands::Config { command }) => match handle_config_command(command) {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        },
+        #[cfg(feature = "knowledge")]
+        Some(Commands::Knowledge { command }) => {
+            let backend_config =
+                build_knowledge_backend_config(cli.knowledge_backend.as_deref(), &cli.chromadb_url);
+
+            match handle_knowledge_command(command, backend_config).await {
+                Ok(()) => process::exit(0),
+                Err(e) => {
+                    eprintln!("Error: {}", e);
+                    process::exit(1);
+                }
+            }
+        }
+        #[cfg(feature = "knowledge")]
+        Some(Commands::Profile { command }) => match handle_profile_command(command).await {
             Ok(()) => process::exit(0),
             Err(e) => {
                 eprintln!("Error: {}", e);
