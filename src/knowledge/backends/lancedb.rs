@@ -320,12 +320,47 @@ impl VectorBackend for LanceDbBackend {
             .await
             .map_err(|e| KnowledgeError::Database(e.to_string()))?;
 
-        // For now, return total count
-        // TODO: Add type-specific counts by querying with filters
+        // Count successes using filter query
+        let success_results = table
+            .query()
+            .only_if("entry_type = 'success'")
+            .execute()
+            .await
+            .map_err(|e| KnowledgeError::Database(e.to_string()))?;
+
+        // Convert stream to count
+        use futures::StreamExt;
+        let mut success_count = 0;
+        let mut stream = success_results;
+        while let Some(batch_result) = stream.next().await {
+            match batch_result {
+                Ok(batch) => success_count += batch.num_rows(),
+                Err(e) => return Err(KnowledgeError::Database(e.to_string())),
+            }
+        }
+
+        // Count corrections using filter query
+        let correction_results = table
+            .query()
+            .only_if("entry_type = 'correction'")
+            .execute()
+            .await
+            .map_err(|e| KnowledgeError::Database(e.to_string()))?;
+
+        // Convert stream to count
+        let mut correction_count = 0;
+        let mut stream = correction_results;
+        while let Some(batch_result) = stream.next().await {
+            match batch_result {
+                Ok(batch) => correction_count += batch.num_rows(),
+                Err(e) => return Err(KnowledgeError::Database(e.to_string())),
+            }
+        }
+
         Ok(BackendStats {
             total_entries: count,
-            success_count: count,
-            correction_count: 0,
+            success_count,
+            correction_count,
         })
     }
 

@@ -371,12 +371,52 @@ impl VectorBackend for ChromaDbBackend {
             .await
             .map_err(|e| KnowledgeError::Database(e.to_string()))?;
 
-        // For now, return total count
-        // TODO: Add type-specific counts by querying with metadata filters
+        // Count successes by querying with metadata filter
+        let success_query = QueryOptions {
+            query_embeddings: None,
+            n_results: Some(count), // Get all matches
+            query_texts: None,
+            where_metadata: Some(serde_json::json!({"entry_type": "success"})),
+            where_document: None,
+            include: Some(vec!["documents"]), // Minimal data needed
+        };
+
+        let success_results = collection
+            .query(success_query, None)
+            .await
+            .map_err(|e| KnowledgeError::Database(e.to_string()))?;
+
+        let success_count = success_results
+            .ids
+            .first()
+            .map(|ids| ids.len())
+            .unwrap_or(0);
+
+        // Count corrections by querying with metadata filter
+        let correction_query = QueryOptions {
+            query_embeddings: None,
+            n_results: Some(count), // Get all matches
+            query_texts: None,
+            where_metadata: Some(serde_json::json!({"entry_type": "correction"})),
+            where_document: None,
+            include: Some(vec!["documents"]), // Minimal data needed
+        };
+
+        let correction_results = collection
+            .query(correction_query, None)
+            .await
+            .map_err(|e| KnowledgeError::Database(e.to_string()))?;
+
+        let correction_count = correction_results
+            .ids
+            .first()
+            .map(|ids| ids.len())
+            .unwrap_or(0);
+
         Ok(BackendStats {
             total_entries: count,
-            success_count: count,
-            correction_count: 0,
+            success_count,
+            correction_count,
         })
     }
 
