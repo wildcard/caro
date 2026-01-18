@@ -79,9 +79,9 @@ jobs:
           cargo test --test website_claims -- --test-threads=1 --nocapture 2>&1 | tee claims-output.txt
 
           # Count results
-          PASSED=$(grep -c "PASSED:" claims-output.txt || echo "0")
-          SKIPPED=$(grep -c "SKIPPED:" claims-output.txt || echo "0")
-          WARNING=$(grep -c "WARNING:" claims-output.txt || echo "0")
+          PASSED=$(grep -c "PASSED:" claims-output.txt || true); PASSED=${PASSED:-0}
+          SKIPPED=$(grep -c "SKIPPED:" claims-output.txt || true); SKIPPED=${SKIPPED:-0}
+          WARNING=$(grep -c "WARNING:" claims-output.txt || true); WARNING=${WARNING:-0}
 
           echo "=========================================="
           echo "Results Summary"

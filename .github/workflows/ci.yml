@@ -279,10 +279,10 @@ jobs:
     # Note: We use --no-default-features to exclude the 'knowledge' feature
     # because its dependencies (fastembed -> image -> aligned) require Rust 2024 edition
     - name: Build with Rust 1.83
-      run: cargo build --release --no-default-features --features embedded-cpu
+      run: cargo build --release --locked --no-default-features --features embedded-cpu
 
     - name: Run tests with Rust 1.83
-      run: cargo test --lib --no-default-features --features embedded-cpu
+      run: cargo test --lib --locked --no-default-features --features embedded-cpu
       env:
         RUST_BACKTRACE: 1
 
