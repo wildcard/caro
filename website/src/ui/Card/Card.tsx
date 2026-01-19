@@ -34,6 +34,8 @@ export interface CardProps {
   href?: string;
   /** Blog metadata */
   metadata?: CardMetadata;
+  /** Locale for date formatting (e.g., 'en', 'es', 'fr') */
+  locale?: string;
   /** Click handler */
   onClick?: () => void;
   /** Additional class name */
@@ -103,6 +105,7 @@ export function Card({
   statusLabel,
   href,
   metadata,
+  locale = 'en-US',
   onClick,
   className = '',
   children,
@@ -136,7 +139,7 @@ export function Card({
 
   // Format date for blog cards
   const formattedDate = metadata?.date
-    ? new Date(metadata.date).toLocaleDateString('en-US', {
+    ? new Date(metadata.date).toLocaleDateString(locale, {
         year: 'numeric',
         month: 'long',
         day: 'numeric',

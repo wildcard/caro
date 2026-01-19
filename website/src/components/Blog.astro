@@ -47,7 +47,7 @@ const blogPosts = [
           )}
           <div class="blog-card-header">
             <time datetime={post.date} class="blog-date">
-              {new Date(post.date).toLocaleDateString('en-US', {
+              {new Date(post.date).toLocaleDateString(lang, {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
