@@ -65,6 +65,7 @@ mod knowledge_tests {
                 "rm -rf /",
                 "rm -rf ./temp",
                 Some("Original command is dangerous - targets root directory"),
+                None, // profile
             )
             .await
             .expect("Failed to record correction");
