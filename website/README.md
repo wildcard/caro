@@ -374,3 +374,7 @@ The original single-file HTML version is preserved as `index.html` in this direc
 - Component reusability
 - Easier maintenance
 - Modern development workflow
+
+## Workspace Configuration
+
+This website is part of an npm workspaces monorepo. Changes to this workspace will trigger Vercel builds only for the website project, while other workspaces (docs-site, landing) will be automatically skipped.
