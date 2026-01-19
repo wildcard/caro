@@ -14,7 +14,7 @@ use std::time::{Duration, Instant};
 /// ```no_run
 /// use caro::cache::DownloadProgress;
 ///
-/// let progress = DownloadProgress::new(1024 * 1024 * 100); // 100MB file
+/// let mut progress = DownloadProgress::new(Some(1024 * 1024 * 100)); // 100MB file
 /// progress.update(1024 * 1024); // Downloaded 1MB
 /// progress.finish();
 /// ```

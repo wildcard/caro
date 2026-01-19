@@ -29,9 +29,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!();
     println!("To use this schema in your config.toml:");
     println!("  1. Add this line to the top of ~/.config/caro/config.toml:");
-    println!("     # $schema = \"file://{}/{}\"",
+    println!(
+        "     # $schema = \"file://{}/{}\"",
         std::env::current_dir()?.display(),
-        schema_path.display());
+        schema_path.display()
+    );
     println!();
     println!("  2. VS Code will provide autocomplete and validation");
 
