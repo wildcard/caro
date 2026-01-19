@@ -1,6 +1,8 @@
 # Caro Development Roadmap
 
-**Last Updated**: January 15, 2026
+**Last Updated**: January 19, 2026
+
+> **Recent Update**: Integrated 104 PRs (#557-660) into roadmap with milestone assignments and tracking issues.
 
 ## Timeline Overview
 
@@ -271,15 +273,49 @@ gantt
 
 ## Current Status Summary
 
-| Milestone | Due Date | Items | Complete | Progress | Status |
-|-----------|----------|-------|----------|----------|---------|
+| Milestone | Due Date | Items (Issues + PRs) | Complete | Progress | Status |
+|-----------|----------|---------------------|----------|----------|---------|
 | **v1.1.2** | Jan 15, 2026 | 5 | 5 | 100% | ✅ **RELEASED** |
 | **v1.1.1** | Jan 14, 2026 | 7 | 7 | 100% | ✅ **RELEASED** |
 | **v1.1.0** | Jan 12, 2026 | 19 | 19 | 100% | ✅ **GA RELEASED** |
-| **v1.2.0** | Feb 15, 2026 | 13 | 4 | 31% | 🔄 In Progress |
-| **v1.3.0** | Mar 31, 2026 | 24 | 0 | 0% | ⏸️ Backlog |
-| **v2.0.0** | Jun 30, 2026 | 21 | 10 | 48% | 🔄 Research Phase |
-| **Total** | - | **89** | **45** | **51%** | 🚀 On Track |
+| **v1.2.0** | Mar 31, 2026 | 73 (25 issues + 48 PRs) | 4 | 5% | 🔄 In Progress |
+| **v1.3.0** | May 31, 2026 | 54 (17 issues + 37 PRs) | 0 | 0% | ⏸️ Backlog |
+| **v2.0.0** | Jun 30, 2026 | 36 (17 issues + 19 PRs) | 0 | 0% | 🔄 Research Phase |
+| **Total** | - | **194** | **35** | **18%** | 🚀 On Track |
+
+---
+
+## Recent Roadmap Integration (Jan 19, 2026)
+
+Successfully integrated **104 PRs (#557-660)** into the roadmap:
+
+### New Epic Issues Created
+- [#661](https://github.com/wildcard/caro/issues/661) - Azure Foundry Backend Integration (v2.0.0)
+- [#662](https://github.com/wildcard/caro/issues/662) - Handy.Computer Integration (v2.0.0)
+- [#663](https://github.com/wildcard/caro/issues/663) - vLLM Jukebox Multi-Model Server (v2.0.0)
+- [#664](https://github.com/wildcard/caro/issues/664) - Skills Extension System (ADR-004) (v2.0.0)
+- [#665](https://github.com/wildcard/caro/issues/665) - P2P Distributed Networking Layer (v2.0.0)
+- [#666](https://github.com/wildcard/caro/issues/666) - Ralph Playbook - Autonomous Development (v2.0.0)
+- [#667](https://github.com/wildcard/caro/issues/667) - Autocoder Integration (v2.0.0)
+- [#668](https://github.com/wildcard/caro/issues/668) - Automated Development Flow System (v2.0.0)
+- [#669](https://github.com/wildcard/caro/issues/669) - OS/Distro Preferences System (v1.3.0)
+- [#670](https://github.com/wildcard/caro/issues/670) - Enhanced Context with Starship (v1.3.0)
+- [#671](https://github.com/wildcard/caro/issues/671) - Request Memory Tracking (v1.3.0)
+- [#672](https://github.com/wildcard/caro/issues/672) - Interactive TUI Welcome Screen (v2.0.0)
+- [#673](https://github.com/wildcard/caro/issues/673) - User Feedback System MVP (v1.3.0)
+- [#674](https://github.com/wildcard/caro/issues/674) - Proactive Suggested Queries (v1.3.0)
+
+### Distribution by Milestone
+- **v1.2.0** (Documentation & Website): 48 PRs
+  - Documentation/ADRs, website improvements, installation guides
+- **v1.3.0** (Core Features): 37 PRs
+  - Core CLI features, skills, CI/CD tooling
+- **v2.0.0** (Advanced Features): 19 PRs
+  - Backend integrations, epics, research
+
+### Duplicates Identified
+- PR #660 → Linked to existing Issue #504 (ChromaDB Epic)
+- PR #656 → Linked to existing Issue #144 (Mission/Values)
 
 ---
 
