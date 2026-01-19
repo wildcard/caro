@@ -220,11 +220,12 @@ mod tests {
     #[test]
     fn test_schema_fields() {
         let schema = knowledge_schema();
-        assert_eq!(schema.fields().len(), 9);
+        assert_eq!(schema.fields().len(), 10);
         assert!(schema.field_with_name("id").is_ok());
         assert!(schema.field_with_name("request").is_ok());
         assert!(schema.field_with_name("command").is_ok());
         assert!(schema.field_with_name("embedding").is_ok());
+        assert!(schema.field_with_name("profile").is_ok());
     }
 
     #[test]

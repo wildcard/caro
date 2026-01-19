@@ -272,7 +272,7 @@ mod tests {
         use crate::knowledge::backends::lancedb::LanceDbBackend;
 
         let temp_dir = TempDir::new().unwrap();
-        let backend = Arc::new(LanceDbBackend::new(temp_dir.path()).await.unwrap());
+        let backend: Arc<dyn VectorBackend> = Arc::new(LanceDbBackend::new(temp_dir.path()).await.unwrap());
 
         // Add some test entries
         backend
@@ -289,7 +289,7 @@ mod tests {
 
         // Create new backend for import
         let temp_dir2 = TempDir::new().unwrap();
-        let backend2 = Arc::new(LanceDbBackend::new(temp_dir2.path()).await.unwrap());
+        let backend2: Arc<dyn VectorBackend> = Arc::new(LanceDbBackend::new(temp_dir2.path()).await.unwrap());
 
         // Import
         let imported = import_entries(Arc::clone(&backend2), &export_file, None)
