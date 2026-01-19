@@ -1401,11 +1401,12 @@ async fn handle_knowledge_command(
                             entry.original_command.as_deref().unwrap_or(""),
                             &entry.command,
                             entry.feedback.as_deref(),
+                            entry.profile.as_deref(),
                         )
                         .await
                 } else {
                     index
-                        .record_success(&entry.request, &entry.command, entry.context.as_deref())
+                        .record_success(&entry.request, &entry.command, entry.context.as_deref(), entry.profile.as_deref())
                         .await
                 };
 
