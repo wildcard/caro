@@ -1,4 +1,10 @@
 {
+  "private": true,
+  "workspaces": [
+    "website",
+    "docs-site",
+    "landing"
+  ],
   "dependencies": {
     "openai": "^6.16.0"
   }
