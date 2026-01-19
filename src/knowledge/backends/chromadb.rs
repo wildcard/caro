@@ -125,6 +125,7 @@ impl ChromaDbBackend {
         timestamp: DateTime<Utc>,
         original_command: Option<&str>,
         feedback: Option<&str>,
+        profile: Option<&str>,
     ) -> Map<String, Value> {
         let mut metadata = Map::new();
 
@@ -142,6 +143,10 @@ impl ChromaDbBackend {
 
         if let Some(fb) = feedback {
             metadata.insert("feedback".to_string(), json!(fb));
+        }
+
+        if let Some(prof) = profile {
+            metadata.insert("profile".to_string(), json!(prof));
         }
 
         metadata
@@ -192,6 +197,11 @@ impl ChromaDbBackend {
                 .and_then(|v| v.as_str())
                 .map(|s| s.to_string());
 
+            let profile = metadata
+                .get("profile")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string());
+
             // Convert ChromaDB distance to similarity (lower distance = higher similarity)
             let similarity = 1.0 / (1.0 + distances[i]);
 
@@ -204,7 +214,7 @@ impl ChromaDbBackend {
                 entry_type,
                 original_command,
                 feedback,
-                profile: None, // TODO: Read profile from metadata
+                profile,
             });
         }
 
@@ -219,6 +229,7 @@ impl VectorBackend for ChromaDbBackend {
         request: &str,
         command: &str,
         context: Option<&str>,
+        profile: Option<&str>,
     ) -> Result<()> {
         // Commands go into the Commands collection
         self.ensure_collection(CollectionType::Commands).await?;
@@ -228,7 +239,7 @@ impl VectorBackend for ChromaDbBackend {
         let timestamp = Utc::now();
 
         let metadata =
-            Self::build_metadata(EntryType::Success, request, context, timestamp, None, None);
+            Self::build_metadata(EntryType::Success, request, context, timestamp, None, None, profile);
 
         let entries = CollectionEntries {
             ids: vec![&id],
@@ -256,6 +267,7 @@ impl VectorBackend for ChromaDbBackend {
         original: &str,
         corrected: &str,
         feedback: Option<&str>,
+        profile: Option<&str>,
     ) -> Result<()> {
         // Corrections go into the Corrections collection
         self.ensure_collection(CollectionType::Corrections).await?;
@@ -271,6 +283,7 @@ impl VectorBackend for ChromaDbBackend {
             timestamp,
             Some(original),
             feedback,
+            profile,
         );
 
         let entries = CollectionEntries {
