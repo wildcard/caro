@@ -3,7 +3,8 @@
   "workspaces": [
     "website",
     "docs-site",
-    "landing"
+    "landing",
+    "presentation"
   ],
   "dependencies": {
     "openai": "^6.16.0"
