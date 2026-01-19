@@ -1406,7 +1406,12 @@ async fn handle_knowledge_command(
                         .await
                 } else {
                     index
-                        .record_success(&entry.request, &entry.command, entry.context.as_deref(), entry.profile.as_deref())
+                        .record_success(
+                            &entry.request,
+                            &entry.command,
+                            entry.context.as_deref(),
+                            entry.profile.as_deref(),
+                        )
                         .await
                 };
 
