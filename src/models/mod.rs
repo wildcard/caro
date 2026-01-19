@@ -992,7 +992,7 @@ pub enum KnowledgeBackendConfig {
         path: PathBuf,
     },
     ChromaDb {
-        /// ChromaDB server URL (e.g., "http://localhost:8000" or "https://api.trychroma.com")
+        /// ChromaDB server URL (e.g., `http://localhost:8000` or `https://api.trychroma.com`)
         url: String,
         /// Optional cache directory for embedding models
         #[serde(default)]
