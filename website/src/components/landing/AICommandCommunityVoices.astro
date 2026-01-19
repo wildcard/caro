@@ -18,10 +18,11 @@ const communityVoices = [
     icon: "🎲"
   },
   {
-    quote: "1 in 10 times it fails, nearly always because the demo gods got involved. LLMs are probabilistic—unreliability is fundamental to the architecture.",
-    source: "HN discussion on AI tool reliability",
-    insight: "Stochastic systems have stochastic failures",
-    icon: "🎰"
+    quote: "Giving an Agent bash access without a hard sandbox is engineering suicide. You're one hallucination away from rm -rf / deleting your smile.",
+    source: "Nadav Lebovitch, Founder & CTO @ nSoft, LinkedIn",
+    insight: "Native capability requires native protection",
+    icon: "🏗️",
+    sourceUrl: "https://www.linkedin.com/posts/nadavleb_how-to-build-agents-with-filesystems-and-activity-7418340084237877248-Bbdq"
   },
   {
     quote: "Never assume that flags are sufficient. Run AI tools as unprivileged users in sandboxed environments.",
@@ -48,7 +49,13 @@ const incidentStats = [
         <div class="voice-card">
           <div class="voice-icon">{voice.icon}</div>
           <blockquote class="voice-quote">"{voice.quote}"</blockquote>
-          <div class="voice-source">— {voice.source}</div>
+          <div class="voice-source">
+            — {voice.sourceUrl ? (
+              <a href={voice.sourceUrl} target="_blank" rel="noopener noreferrer" class="source-link">
+                {voice.source}
+              </a>
+            ) : voice.source}
+          </div>
           <div class="voice-insight">
             <strong>Why it matters:</strong> {voice.insight}
           </div>
@@ -149,6 +156,17 @@ const incidentStats = [
     font-size: 13px;
     color: var(--color-text-secondary);
     margin-bottom: 16px;
+  }
+
+  .source-link {
+    color: #ff8c42;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .source-link:hover {
+    color: #ff6b35;
+    text-decoration: underline;
   }
 
   .voice-insight {

@@ -1,6 +1,12 @@
 ---
 /**
  * AI Agent Testimonials - Enterprise-focused quotes about AI safety
+ *
+ * References:
+ * - Vercel blog: "How to Build Agents with Filesystems and Bash"
+ *   https://vercel.com/blog/how-to-build-agents-with-filesystems-and-bash
+ * - Vercel blog: "We Removed 80% of Our Agent's Tools"
+ *   https://vercel.com/blog/we-removed-80-percent-of-our-agents-tools
  */
 
 const testimonials = [
@@ -23,6 +29,26 @@ const testimonials = [
     context: "On replacing behavioral policies with technical controls"
   }
 ];
+
+/**
+ * Industry validation from Vercel's research on agent architecture
+ */
+const industryValidation = {
+  source: "Vercel Engineering Blog",
+  findings: [
+    {
+      stat: "75%",
+      label: "cost reduction by letting agents use native bash instead of custom tools",
+      url: "https://vercel.com/blog/how-to-build-agents-with-filesystems-and-bash"
+    },
+    {
+      stat: "80%",
+      label: "of agent tools removed in favor of filesystem + bash access",
+      url: "https://vercel.com/blog/we-removed-80-percent-of-our-agents-tools"
+    }
+  ],
+  insight: "LLMs are trained on all of GitHub. grep, find, awk—that's their native language. But native capability needs native protection."
+};
 ---
 
 <section id="testimonials" class="section">
@@ -65,6 +91,25 @@ const testimonials = [
       <div class="trust-stat">
         <span class="trust-number">&lt;100ms</span>
         <span class="trust-label">Validation overhead</span>
+      </div>
+    </div>
+
+    <div class="industry-validation">
+      <h3>Industry Validation</h3>
+      <p class="validation-source">Research from {industryValidation.source}</p>
+
+      <div class="validation-findings">
+        {industryValidation.findings.map((finding) => (
+          <a href={finding.url} target="_blank" rel="noopener noreferrer" class="finding-card">
+            <span class="finding-stat">{finding.stat}</span>
+            <span class="finding-label">{finding.label}</span>
+          </a>
+        ))}
+      </div>
+
+      <div class="validation-insight">
+        <p>{industryValidation.insight}</p>
+        <p class="insight-caro"><strong>Caro provides the safety layer that makes this architecture production-ready.</strong></p>
       </div>
     </div>
   </div>
@@ -211,6 +256,98 @@ const testimonials = [
   @media (max-width: 480px) {
     .trust-banner {
       grid-template-columns: 1fr;
+    }
+  }
+
+  /* Industry Validation Section */
+  .industry-validation {
+    margin-top: 50px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 32px;
+    text-align: center;
+  }
+
+  .industry-validation h3 {
+    font-size: 24px;
+    color: var(--color-text);
+    margin-bottom: 8px;
+  }
+
+  .validation-source {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin-bottom: 24px;
+  }
+
+  .validation-findings {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .finding-card {
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.08) 0%, rgba(255, 107, 53, 0.04) 100%);
+    border: 1px solid rgba(255, 140, 66, 0.2);
+    border-radius: 8px;
+    padding: 20px;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .finding-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.15);
+  }
+
+  .finding-stat {
+    font-size: 36px;
+    font-weight: 700;
+    color: #ff8c42;
+    font-family: 'SF Mono', 'Monaco', monospace;
+  }
+
+  .finding-label {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+
+  .validation-insight {
+    background: var(--color-bg-secondary);
+    border-left: 4px solid #ff8c42;
+    border-radius: 0 8px 8px 0;
+    padding: 20px 24px;
+    text-align: left;
+  }
+
+  .validation-insight p {
+    font-size: 15px;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin: 0 0 12px 0;
+  }
+
+  .validation-insight p:last-child {
+    margin-bottom: 0;
+  }
+
+  .insight-caro {
+    color: var(--color-text) !important;
+  }
+
+  @media (max-width: 600px) {
+    .validation-findings {
+      grid-template-columns: 1fr;
+    }
+
+    .finding-stat {
+      font-size: 28px;
     }
   }
 </style>
