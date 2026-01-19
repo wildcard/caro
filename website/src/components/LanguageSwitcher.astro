@@ -1,0 +1,269 @@
+---
+/**
+ * Language Switcher Component
+ *
+ * Displays a dropdown for selecting the site language.
+ * Features:
+ * - Native language names for better UX
+ * - Flag icons (optional, using emoji)
+ * - Persists choice to localStorage
+ * - Redirects to same page in new locale
+ * - Keyboard accessible
+ * - Mobile-friendly
+ */
+
+import type { Locale } from '../i18n/config';
+import { getAllLocales, type LocaleConfig } from '../i18n/config';
+import { switchLocale } from '../lib/localized-links';
+
+interface Props {
+  currentLocale: Locale;
+  currentPath: string;
+}
+
+const { currentLocale, currentPath } = Astro.props;
+const allLocales = getAllLocales();
+
+// Flag emoji mapping (optional visual enhancement)
+const flagEmojis: Record<Locale, string> = {
+  en: '🇬🇧',
+  es: '🇪🇸',
+  fr: '🇫🇷',
+  pt: '🇵🇹',
+  de: '🇩🇪',
+  he: '🇮🇱',
+  ar: '🇸🇦',
+  uk: '🇺🇦',
+  ru: '🇷🇺',
+  ja: '🇯🇵',
+  ko: '🇰🇷',
+  hi: '🇮🇳',
+  ur: '🇵🇰',
+  fil: '🇵🇭',
+  id: '🇮🇩'
+};
+---
+
+<div class="language-switcher">
+  <button
+    class="language-switcher__button"
+    aria-label="Select language"
+    aria-haspopup="listbox"
+    aria-expanded="false"
+  >
+    <span class="language-switcher__current">
+      <span class="language-switcher__flag" aria-hidden="true">
+        {flagEmojis[currentLocale]}
+      </span>
+      <span class="language-switcher__name">
+        {allLocales.find(l => l.code === currentLocale)?.nativeName}
+      </span>
+    </span>
+    <svg class="language-switcher__icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+
+  <ul class="language-switcher__menu" role="listbox" hidden>
+    {allLocales.map((locale: LocaleConfig) => {
+      const href = switchLocale(currentPath, locale.code);
+      const isCurrent = locale.code === currentLocale;
+
+      return (
+        <li role="option" aria-selected={isCurrent}>
+          <a
+            href={href}
+            class={`language-switcher__option ${isCurrent ? 'language-switcher__option--current' : ''}`}
+            hreflang={locale.code}
+            lang={locale.code}
+            data-locale={locale.code}
+          >
+            <span class="language-switcher__flag" aria-hidden="true">
+              {flagEmojis[locale.code]}
+            </span>
+            <span class="language-switcher__option-name">
+              {locale.nativeName}
+            </span>
+            {isCurrent && (
+              <svg class="language-switcher__check" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M13 4L6 11 3 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            )}
+          </a>
+        </li>
+      );
+    })}
+  </ul>
+</div>
+
+<script>
+  import { setLocalePreference } from '../lib/locale-manager';
+  import type { Locale } from '../i18n/config';
+
+  function initLanguageSwitcher() {
+    const button = document.querySelector('.language-switcher__button') as HTMLButtonElement;
+    const menu = document.querySelector('.language-switcher__menu') as HTMLElement;
+
+    if (!button || !menu) return;
+
+    // Toggle dropdown
+    button.addEventListener('click', () => {
+      const isExpanded = button.getAttribute('aria-expanded') === 'true';
+      button.setAttribute('aria-expanded', String(!isExpanded));
+      menu.hidden = isExpanded;
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (event) => {
+      if (!button.contains(event.target as Node) && !menu.contains(event.target as Node)) {
+        button.setAttribute('aria-expanded', 'false');
+        menu.hidden = true;
+      }
+    });
+
+    // Handle locale selection
+    menu.querySelectorAll('a[data-locale]').forEach((link) => {
+      link.addEventListener('click', (event) => {
+        const locale = (event.currentTarget as HTMLElement).dataset.locale as Locale;
+        if (locale) {
+          setLocalePreference(locale);
+        }
+      });
+    });
+
+    // Keyboard navigation
+    button.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        button.click();
+      } else if (event.key === 'Escape') {
+        button.setAttribute('aria-expanded', 'false');
+        menu.hidden = true;
+      }
+    });
+  }
+
+  // Initialize on page load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initLanguageSwitcher);
+  } else {
+    initLanguageSwitcher();
+  }
+
+  // Re-initialize after page transitions (for frameworks like View Transitions)
+  document.addEventListener('astro:page-load', initLanguageSwitcher);
+</script>
+
+<style>
+  .language-switcher {
+    position: relative;
+    display: inline-block;
+  }
+
+  .language-switcher__button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--color-bg-secondary, #f3f4f6);
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: var(--color-text, #111827);
+    transition: all 0.2s ease;
+  }
+
+  .language-switcher__button:hover {
+    background: var(--color-bg-tertiary, #e5e7eb);
+  }
+
+  .language-switcher__button:focus-visible {
+    outline: 2px solid var(--color-primary, #ff6b35);
+    outline-offset: 2px;
+  }
+
+  .language-switcher__current {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .language-switcher__flag {
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+
+  .language-switcher__name {
+    font-weight: 500;
+  }
+
+  .language-switcher__icon {
+    transition: transform 0.2s ease;
+  }
+
+  .language-switcher__button[aria-expanded="true"] .language-switcher__icon {
+    transform: rotate(180deg);
+  }
+
+  .language-switcher__menu {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    min-width: 200px;
+    max-height: 400px;
+    overflow-y: auto;
+    background: var(--color-bg-primary, #ffffff);
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    z-index: 50;
+    list-style: none;
+    margin: 0;
+    padding: 0.5rem 0;
+  }
+
+  .language-switcher__menu[hidden] {
+    display: none;
+  }
+
+  .language-switcher__option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: var(--color-text, #111827);
+    text-decoration: none;
+    transition: background 0.2s ease;
+  }
+
+  .language-switcher__option:hover {
+    background: var(--color-bg-secondary, #f3f4f6);
+  }
+
+  .language-switcher__option:focus-visible {
+    outline: 2px solid var(--color-primary, #ff6b35);
+    outline-offset: -2px;
+  }
+
+  .language-switcher__option--current {
+    background: var(--color-bg-tertiary, #e5e7eb);
+    font-weight: 600;
+  }
+
+  .language-switcher__option-name {
+    flex: 1;
+  }
+
+  .language-switcher__check {
+    color: var(--color-primary, #ff6b35);
+  }
+
+  /* Mobile adjustments */
+  @media (max-width: 640px) {
+    .language-switcher__menu {
+      right: auto;
+      left: 0;
+    }
+  }
+</style>
