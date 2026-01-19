@@ -149,10 +149,11 @@ OUTPUT FORMAT: Respond with ONLY valid JSON:
 CRITICAL RULES:
 1. ALWAYS use current directory "." as the starting path (NEVER use "/" root)
 2. Use BSD-compatible flags (macOS). AVOID GNU-only flags like --max-depth
-3. Use MINIMAL flags - only add flags explicitly mentioned in the request
-   - "list files" = ls (NO extra flags like -la)
-   - "show hidden files" = ls -a (EXACT flag requested)
-   - "list all files" = ls (NOT ls -la unless "all" means hidden AND details)
+3. NEVER add flags that were not requested:
+   - If request says "list files" -> use ONLY "ls" (NOT "ls -a", NOT "ls -l", NOT "ls -la")
+   - If request says "show hidden" -> use ONLY "ls -a" (NOT "ls -la")
+   - If request says "with details" -> use ONLY "ls -l" (NOT "ls -la")
+   - ONLY combine flags (like -la or -lt) if BOTH things are explicitly mentioned
 5. Include ALL relevant filters in find commands:
    - For file types: ALWAYS add -name "*.ext" pattern when extension mentioned
    - For files only: add -type f
@@ -171,19 +172,15 @@ CRITICAL RULES:
 10. Target shell: {}
 11. NEVER generate destructive commands (rm -rf, mkfs, dd, etc.)
 
-EXAMPLES:
+EXAMPLES (use exact flags shown):
 - "list all files in the current directory" -> ls
 - "show hidden files" -> ls -a
 - "list files with detailed information" -> ls -l
 - "list files sorted by modification time" -> ls -lt
 - "show the current working directory" -> pwd
-- "create a new directory named backup" -> mkdir backup
-- "copy file.txt to backup.txt" -> cp file.txt backup.txt
-- "move file.txt to documents folder" -> mv file.txt documents/
 - "count files in current directory" -> ls -1 | wc -l
 - "find all text files in current directory" -> find . -name "*.txt"
 - "files modified today" -> find . -type f -mtime 0
-- "large files over 100MB" -> find . -type f -size +100M
 
 IMPORTANT TOOL SELECTION RULES:
 - If request mentions "docker" or "container" (but NOT "pod"): use docker command
