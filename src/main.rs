@@ -92,28 +92,83 @@ fn read_stdin() -> Result<String, std::io::Error> {
 pub enum ValidationAction {
     /// Show help message and exit (for empty/whitespace-only prompts)
     ShowHelp,
+    /// Show a warning but proceed with the prompt
+    Warning { message: String },
+    /// Show a hint (only in verbose mode) and proceed
+    Hint { message: String },
     /// Proceed with the prompt (valid content provided)
     ProceedWithPrompt,
 }
 
 /// Validate a prompt and determine the appropriate action
 ///
-/// Empty or whitespace-only prompts should display help.
-/// Valid prompts should proceed to inference.
-/// Special characters are preserved (not validated).
+/// Checks for common prompt issues and returns appropriate action:
+/// - Empty/whitespace-only: ShowHelp
+/// - Only flags/operators: Warning
+/// - Very short (< 5 chars): Hint
+/// - Multiple action verbs: Warning
+/// - Valid content: ProceedWithPrompt
 ///
 /// # Arguments
 /// * `prompt` - The prompt text to validate
 ///
 /// # Returns
-/// ValidationAction indicating whether to show help or proceed
+/// ValidationAction indicating the appropriate response
 pub fn validate_prompt(prompt: &str) -> ValidationAction {
     let trimmed = prompt.trim();
+
+    // Check for empty/whitespace-only prompts
     if trimmed.is_empty() {
-        ValidationAction::ShowHelp
-    } else {
-        ValidationAction::ProceedWithPrompt
+        return ValidationAction::ShowHelp;
     }
+
+    // Check if prompt contains only flags or operators
+    let has_content_words = trimmed
+        .split_whitespace()
+        .any(|word| !word.starts_with('-') && !is_shell_operator(word));
+
+    if !has_content_words {
+        return ValidationAction::Warning {
+            message:
+                "No command description found in your query. Please describe what you want to do."
+                    .to_string(),
+        };
+    }
+
+    // Check for very short prompts (less than 5 characters)
+    if trimmed.len() < 5 {
+        return ValidationAction::Hint {
+            message: format!(
+                "Your query is very short ('{}''). Consider adding more details for better results.",
+                trimmed
+            ),
+        };
+    }
+
+    // Check for multiple action verbs (suggesting mixed intent)
+    let action_verbs = [
+        "list", "find", "delete", "remove", "create", "make", "copy", "move", "rename", "show",
+        "display", "search", "edit", "update", "install", "download", "upload", "run", "execute",
+    ];
+
+    let words: Vec<&str> = trimmed.split_whitespace().collect();
+    let action_count = words
+        .iter()
+        .filter(|word| action_verbs.contains(&word.to_lowercase().as_str()))
+        .count();
+
+    if action_count >= 2 {
+        return ValidationAction::Warning {
+            message: "Multiple actions detected in your query. Consider breaking this into separate commands for better results.".to_string(),
+        };
+    }
+
+    ValidationAction::ProceedWithPrompt
+}
+
+/// Check if a word is a shell operator
+fn is_shell_operator(word: &str) -> bool {
+    matches!(word, ">" | "|" | "<" | ">>" | "2>" | "&" | ";")
 }
 
 // =============================================================================
@@ -1998,6 +2053,21 @@ async fn main() {
             println!("Run 'caro --help' for more information.");
             process::exit(0);
         }
+        ValidationAction::Warning { message } => {
+            use colored::Colorize;
+            eprintln!("{} {}", "⚠️  Warning:".yellow(), message);
+            eprintln!();
+            // Continue with command generation despite warning
+        }
+        ValidationAction::Hint { message } => {
+            // Only show hints in verbose mode
+            if cli.verbose {
+                use colored::Colorize;
+                eprintln!("{} {}", "💡 Hint:".cyan(), message);
+                eprintln!();
+            }
+            // Continue with command generation
+        }
         ValidationAction::ProceedWithPrompt => {
             // Continue with command generation
         }
@@ -2477,6 +2547,67 @@ mod tests {
         );
         assert_eq!(
             validate_prompt("echo $HOME"),
+            ValidationAction::ProceedWithPrompt
+        );
+    }
+
+    #[test]
+    fn test_only_flags_shows_warning() {
+        // Prompt with only flags should show warning
+        match validate_prompt("--help -v") {
+            ValidationAction::Warning { message } => {
+                assert!(message.contains("No command description"));
+            }
+            _ => panic!("Expected Warning for flags-only prompt"),
+        }
+    }
+
+    #[test]
+    fn test_only_operators_shows_warning() {
+        // Prompt with only operators should show warning
+        match validate_prompt("| >") {
+            ValidationAction::Warning { message } => {
+                assert!(message.contains("No command description"));
+            }
+            _ => panic!("Expected Warning for operators-only prompt"),
+        }
+    }
+
+    #[test]
+    fn test_short_prompt_shows_hint() {
+        // Very short prompts (< 5 chars) should show hint
+        match validate_prompt("do") {
+            ValidationAction::Hint { message } => {
+                assert!(message.contains("very short"));
+            }
+            _ => panic!("Expected Hint for short prompt"),
+        }
+    }
+
+    #[test]
+    fn test_multiple_actions_shows_warning() {
+        // Prompts with multiple action verbs should show warning
+        match validate_prompt("list files and delete old ones") {
+            ValidationAction::Warning { message } => {
+                assert!(message.contains("Multiple actions"));
+            }
+            _ => panic!("Expected Warning for multiple actions"),
+        }
+    }
+
+    #[test]
+    fn test_valid_prompts_proceed() {
+        // These should all proceed normally (no warnings/hints)
+        assert_eq!(
+            validate_prompt("find large files"),
+            ValidationAction::ProceedWithPrompt
+        );
+        assert_eq!(
+            validate_prompt("show disk usage"),
+            ValidationAction::ProceedWithPrompt
+        );
+        assert_eq!(
+            validate_prompt("search for text in logs"),
             ValidationAction::ProceedWithPrompt
         );
     }
