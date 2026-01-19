@@ -3,7 +3,9 @@
 //! Fetches and indexes README files and documentation from GitHub repositories.
 
 use super::{IndexStats, Indexer, ProgressCallback};
-use crate::knowledge::{backends::VectorBackend, collections::CollectionType, KnowledgeEntry, Result};
+use crate::knowledge::{
+    backends::VectorBackend, collections::CollectionType, KnowledgeEntry, Result,
+};
 use async_trait::async_trait;
 use chrono::Utc;
 use std::sync::Arc;
@@ -39,22 +41,19 @@ impl GitHubDocsIndexer {
     async fn fetch_readme(&self, repo: &str) -> Result<String> {
         let url = format!("https://raw.githubusercontent.com/{}/main/README.md", repo);
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| crate::knowledge::KnowledgeError::Indexing(format!("Failed to fetch {}: {}", url, e)))?;
+        let response = self.client.get(&url).send().await.map_err(|e| {
+            crate::knowledge::KnowledgeError::Indexing(format!("Failed to fetch {}: {}", url, e))
+        })?;
 
         if !response.status().is_success() {
             // Try master branch if main doesn't exist
-            let url = format!("https://raw.githubusercontent.com/{}/master/README.md", repo);
-            let response = self
-                .client
-                .get(&url)
-                .send()
-                .await
-                .map_err(|e| crate::knowledge::KnowledgeError::Indexing(format!("Failed to fetch README: {}", e)))?;
+            let url = format!(
+                "https://raw.githubusercontent.com/{}/master/README.md",
+                repo
+            );
+            let response = self.client.get(&url).send().await.map_err(|e| {
+                crate::knowledge::KnowledgeError::Indexing(format!("Failed to fetch README: {}", e))
+            })?;
 
             if !response.status().is_success() {
                 return Err(crate::knowledge::KnowledgeError::Indexing(format!(
@@ -140,7 +139,8 @@ impl Indexer for GitHubDocsIndexer {
         // index_all doesn't make sense for GitHub - there's no finite list
         // Users should call index_one for specific repositories
         Err(crate::knowledge::KnowledgeError::Indexing(
-            "GitHub indexer requires specific repository. Use index_one() with repo name.".to_string(),
+            "GitHub indexer requires specific repository. Use index_one() with repo name."
+                .to_string(),
         ))
     }
 
@@ -240,6 +240,8 @@ MIT License
 
         // Should have parsed sections, but filtered out License
         assert!(!chunks.is_empty());
-        assert!(chunks.iter().all(|(title, _)| !title.to_lowercase().contains("license")));
+        assert!(chunks
+            .iter()
+            .all(|(title, _)| !title.to_lowercase().contains("license")));
     }
 }

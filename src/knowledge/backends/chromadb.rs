@@ -238,8 +238,15 @@ impl VectorBackend for ChromaDbBackend {
         let id = uuid::Uuid::new_v4().to_string();
         let timestamp = Utc::now();
 
-        let metadata =
-            Self::build_metadata(EntryType::Success, request, context, timestamp, None, None, profile);
+        let metadata = Self::build_metadata(
+            EntryType::Success,
+            request,
+            context,
+            timestamp,
+            None,
+            None,
+            profile,
+        );
 
         let entries = CollectionEntries {
             ids: vec![&id],
@@ -250,7 +257,9 @@ impl VectorBackend for ChromaDbBackend {
 
         let coll_guard = self.collections.read().await;
         let collection = coll_guard.get(&CollectionType::Commands).ok_or_else(|| {
-            KnowledgeError::Database("Commands collection not initialized after ensure_collection".into())
+            KnowledgeError::Database(
+                "Commands collection not initialized after ensure_collection".into(),
+            )
         })?;
 
         collection
@@ -294,9 +303,13 @@ impl VectorBackend for ChromaDbBackend {
         };
 
         let coll_guard = self.collections.read().await;
-        let collection = coll_guard.get(&CollectionType::Corrections).ok_or_else(|| {
-            KnowledgeError::Database("Corrections collection not initialized after ensure_collection".into())
-        })?;
+        let collection = coll_guard
+            .get(&CollectionType::Corrections)
+            .ok_or_else(|| {
+                KnowledgeError::Database(
+                    "Corrections collection not initialized after ensure_collection".into(),
+                )
+            })?;
 
         collection
             .add(entries, None)
@@ -321,10 +334,7 @@ impl VectorBackend for ChromaDbBackend {
         // Aggregate stats across all collections
         for (collection_type, collection) in coll_guard.iter() {
             // Get count for this collection
-            let count = collection
-                .count()
-                .await
-                .unwrap_or(0); // Ignore errors for individual collections
+            let count = collection.count().await.unwrap_or(0); // Ignore errors for individual collections
 
             total_entries += count;
 
@@ -353,10 +363,8 @@ impl VectorBackend for ChromaDbBackend {
         let mut coll_guard = self.collections.write().await;
 
         // Delete all collections
-        let collection_names: Vec<String> = coll_guard
-            .keys()
-            .map(|ct| ct.name().to_string())
-            .collect();
+        let collection_names: Vec<String> =
+            coll_guard.keys().map(|ct| ct.name().to_string()).collect();
 
         for collection_name in collection_names {
             self.client
@@ -375,7 +383,11 @@ impl VectorBackend for ChromaDbBackend {
         self.client.heartbeat().await.is_ok()
     }
 
-    async fn add_entry(&self, entry: KnowledgeEntry, collection_type: CollectionType) -> Result<()> {
+    async fn add_entry(
+        &self,
+        entry: KnowledgeEntry,
+        collection_type: CollectionType,
+    ) -> Result<()> {
         // Ensure the target collection exists
         self.ensure_collection(collection_type).await?;
 
@@ -459,11 +471,22 @@ impl VectorBackend for ChromaDbBackend {
                         Ok(result) => {
                             // Parse results from this collection - ChromaDB returns batched results
                             let ids = result.ids.first().cloned().unwrap_or_default();
-                            let docs = result.documents.as_ref().and_then(|d| d.first().cloned()).unwrap_or_default();
-                            let metas = result.metadatas.as_ref().and_then(|m| m.first()).map(|meta_vec| {
-                                meta_vec.iter().filter_map(|m| m.clone()).collect()
-                            }).unwrap_or_default();
-                            let dists = result.distances.as_ref().and_then(|d| d.first().cloned()).unwrap_or_else(|| vec![0.0; ids.len()]);
+                            let docs = result
+                                .documents
+                                .as_ref()
+                                .and_then(|d| d.first().cloned())
+                                .unwrap_or_default();
+                            let metas = result
+                                .metadatas
+                                .as_ref()
+                                .and_then(|m| m.first())
+                                .map(|meta_vec| meta_vec.iter().filter_map(|m| m.clone()).collect())
+                                .unwrap_or_default();
+                            let dists = result
+                                .distances
+                                .as_ref()
+                                .and_then(|d| d.first().cloned())
+                                .unwrap_or_else(|| vec![0.0; ids.len()]);
 
                             if !ids.is_empty() {
                                 if let Ok(entries) = Self::parse_results(ids, docs, metas, dists) {
@@ -484,7 +507,11 @@ impl VectorBackend for ChromaDbBackend {
         }
 
         // Sort all results by similarity score (descending)
-        all_results.sort_by(|a, b| b.similarity.partial_cmp(&a.similarity).unwrap_or(std::cmp::Ordering::Equal));
+        all_results.sort_by(|a, b| {
+            b.similarity
+                .partial_cmp(&a.similarity)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
 
         // Limit total results
         all_results.truncate(limit);

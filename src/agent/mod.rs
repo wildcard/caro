@@ -165,7 +165,10 @@ impl AgentLoop {
         // Get context (current directory as project context)
         let context = self.context.cwd.to_string_lossy().to_string();
 
-        if let Err(e) = index.record_success(prompt, command, Some(&context), None).await {
+        if let Err(e) = index
+            .record_success(prompt, command, Some(&context), None)
+            .await
+        {
             debug!("Failed to record command to knowledge index: {}", e);
         } else {
             debug!("Recorded successful command to knowledge index");

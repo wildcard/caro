@@ -139,7 +139,9 @@ impl KnowledgeIndex {
         context: Option<&str>,
         profile: Option<&str>,
     ) -> Result<()> {
-        self.backend.record_success(request, command, context, profile).await
+        self.backend
+            .record_success(request, command, context, profile)
+            .await
     }
 
     /// Record a correction from agentic refinement
