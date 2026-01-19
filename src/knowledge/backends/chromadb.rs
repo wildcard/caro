@@ -557,6 +557,7 @@ mod tests {
             timestamp,
             None,
             None,
+            None,
         );
 
         assert_eq!(metadata["entry_type"], "success");
@@ -577,6 +578,7 @@ mod tests {
             timestamp,
             Some("find -name '*.txt'"),
             Some("Missing current directory"),
+            None,
         );
 
         assert_eq!(metadata["entry_type"], "correction");
@@ -595,6 +597,7 @@ mod tests {
             "simple command",
             None,
             timestamp,
+            None,
             None,
             None,
         );
@@ -625,12 +628,14 @@ mod tests {
             timestamp,
             None,
             None,
+            None,
         );
         let meta_correction = ChromaDbBackend::build_metadata(
             EntryType::Correction,
             "test request",
             None,
             timestamp,
+            None,
             None,
             None,
         );
@@ -673,7 +678,7 @@ mod tests {
 
         // Record a success
         backend
-            .record_success("list files", "ls -la", Some("/home/user"))
+            .record_success("list files", "ls -la", Some("/home/user"), None)
             .await
             .expect("Failed to record success");
 
