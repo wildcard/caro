@@ -12,6 +12,7 @@ Add the quick actions footer when:
 - ✅ Finishing implementation and asking "what's next?"
 
 Do NOT add when:
+- ❌ Using AskUserQuestion tool (it has its own interactive UI)
 - ❌ In the middle of multi-step work
 - ❌ Presenting information without asking for input
 - ❌ Footer already present in message

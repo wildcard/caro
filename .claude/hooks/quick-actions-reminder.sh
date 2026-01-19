@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 # UserPromptSubmit hook - Reminds assistant to include quick actions footer
 # when stopping work and waiting for user reply
+#
+# SKIPS reminder when AskUserQuestion tool was used (has its own interactive UI)
+
+# Check if last assistant message used AskUserQuestion tool
+# This tool already provides interactive options, so footer would be redundant
+if echo "${CLAUDE_CONVERSATION_HISTORY:-}" | grep -q "AskUserQuestion"; then
+  # Skip footer - AskUserQuestion provides its own UI
+  exit 0
+fi
 
 cat <<'EOF'
 
@@ -19,8 +28,9 @@ When you stop work and wait for user input (questions, confirmations, task compl
 **Examples of when to include:**
 - ✅ "Should I proceed?" → Include footer
 - ✅ "I've completed X. What's next?" → Include footer
-- ✅ "Here are 3 options..." → Include footer
+- ✅ "Here are 3 options..." → Include footer (unless using AskUserQuestion tool)
 - ✅ "Created PR #603" → Include footer
+- ❌ Using AskUserQuestion tool → Skip footer (has its own UI)
 - ❌ Mid-task status update → Skip footer
 - ❌ Continuing multi-step work → Skip footer
 
