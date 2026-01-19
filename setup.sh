@@ -130,6 +130,155 @@ install_via_cargo() {
     fi
 }
 
+# Add directory to PATH in shell config
+add_to_path() {
+    local dir_to_add="$1"
+    local shell_config=""
+    local shell_name=""
+    local path_export=""
+
+    # Detect shell - prioritize $SHELL env var
+    case "$SHELL" in
+        */bash)
+            shell_name="bash"
+            if [ -f "$HOME/.bashrc" ]; then
+                shell_config="$HOME/.bashrc"
+            elif [ -f "$HOME/.bash_profile" ]; then
+                shell_config="$HOME/.bash_profile"
+            else
+                shell_config="$HOME/.bashrc"
+            fi
+            path_export="export PATH=\"$dir_to_add:\$PATH\""
+            ;;
+        */zsh)
+            shell_name="zsh"
+            shell_config="${ZDOTDIR:-$HOME}/.zshrc"
+            path_export="export PATH=\"$dir_to_add:\$PATH\""
+            ;;
+        */fish)
+            shell_name="fish"
+            shell_config="$HOME/.config/fish/config.fish"
+            path_export="fish_add_path $dir_to_add"
+            ;;
+        *)
+            say_warn "Could not detect shell type from \$SHELL ($SHELL)"
+            say "Please add $dir_to_add to your PATH manually"
+            return
+            ;;
+    esac
+
+    # Create shell config if it doesn't exist
+    if [ ! -f "$shell_config" ]; then
+        say "Creating $shell_config"
+        mkdir -p "$(dirname "$shell_config")"
+        touch "$shell_config"
+    fi
+
+    # Check if PATH is already configured for this directory
+    if grep -q "$dir_to_add" "$shell_config" 2>/dev/null; then
+        say "$dir_to_add already in $shell_config"
+        return
+    fi
+
+    # Add PATH export to shell config
+    say "Adding $dir_to_add to PATH in $shell_config"
+    {
+        echo ""
+        echo "# Added by caro installer"
+        echo "$path_export"
+    } >> "$shell_config"
+    say_success "PATH updated in $shell_config"
+    say "Restart your terminal or run: source $shell_config"
+}
+
+# Detect and install shell plugin manager integration
+# Returns 0 if plugin was installed, 1 if no plugin manager found
+install_shell_plugin() {
+    local plugin_installed=false
+    local repo="wildcard/caro"
+    local branch="main"
+
+    # Check for Oh My Zsh
+    if [ -d "${ZSH:-$HOME/.oh-my-zsh}" ]; then
+        local omz_custom="${ZSH_CUSTOM:-${ZSH:-$HOME/.oh-my-zsh}/custom}"
+        local plugin_dir="$omz_custom/plugins/caro"
+
+        say "Detected Oh My Zsh"
+
+        # Create plugin directory
+        mkdir -p "$plugin_dir"
+
+        # Download plugin file
+        local plugin_url="https://raw.githubusercontent.com/${repo}/${branch}/plugins/oh-my-zsh/caro.plugin.zsh"
+        if check_cmd curl; then
+            curl -fsSL "$plugin_url" -o "$plugin_dir/caro.plugin.zsh" 2>/dev/null
+        elif check_cmd wget; then
+            wget -qO "$plugin_dir/caro.plugin.zsh" "$plugin_url" 2>/dev/null
+        fi
+
+        if [ -f "$plugin_dir/caro.plugin.zsh" ]; then
+            say_success "Installed caro plugin to $plugin_dir"
+
+            # Check if plugin is already enabled in .zshrc
+            local zshrc="${ZDOTDIR:-$HOME}/.zshrc"
+            if [ -f "$zshrc" ]; then
+                if grep -q "plugins=.*caro" "$zshrc" 2>/dev/null; then
+                    say "Plugin already enabled in .zshrc"
+                else
+                    say_warn "Add 'caro' to your plugins in ~/.zshrc:"
+                    say "  plugins=(... caro)"
+                fi
+            fi
+            plugin_installed=true
+        else
+            say_warn "Failed to download Oh My Zsh plugin"
+        fi
+    fi
+
+    # Check for Oh My Bash
+    if [ -d "${OSH:-$HOME/.oh-my-bash}" ]; then
+        local osh_custom="${OSH_CUSTOM:-${OSH:-$HOME/.oh-my-bash}/custom}"
+        local plugin_dir="$osh_custom/plugins/caro"
+
+        say "Detected Oh My Bash"
+
+        # Create plugin directory
+        mkdir -p "$plugin_dir"
+
+        # Download plugin file
+        local plugin_url="https://raw.githubusercontent.com/${repo}/${branch}/plugins/oh-my-bash/caro.plugin.sh"
+        if check_cmd curl; then
+            curl -fsSL "$plugin_url" -o "$plugin_dir/caro.plugin.sh" 2>/dev/null
+        elif check_cmd wget; then
+            wget -qO "$plugin_dir/caro.plugin.sh" "$plugin_url" 2>/dev/null
+        fi
+
+        if [ -f "$plugin_dir/caro.plugin.sh" ]; then
+            say_success "Installed caro plugin to $plugin_dir"
+
+            # Check if plugin is already enabled
+            local bashrc="$HOME/.bashrc"
+            if [ -f "$bashrc" ]; then
+                if grep -q "plugins=.*caro" "$bashrc" 2>/dev/null; then
+                    say "Plugin already enabled in .bashrc"
+                else
+                    say_warn "Add 'caro' to your plugins in ~/.bashrc:"
+                    say "  plugins=(... caro)"
+                fi
+            fi
+            plugin_installed=true
+        else
+            say_warn "Failed to download Oh My Bash plugin"
+        fi
+    fi
+
+    if [ "$plugin_installed" = true ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 # Install via pre-built binary
 install_via_binary() {
     say "Downloading pre-built binary..."
@@ -239,83 +388,54 @@ install_via_binary() {
         err "Binary installed but failed version check"
     fi
 
-    # Add to PATH if needed
+    # Configure shell integration
     if [[ ":$PATH:" != *":$install_dir:"* ]]; then
         say_warn "$install_dir is not in your PATH"
-        say "You may need to restart your shell or add to PATH manually"
+        echo ""
+
+        # Try to install shell plugin (Oh My Zsh, Oh My Bash, etc.)
+        if install_shell_plugin; then
+            say "Shell plugin installed - it will handle PATH configuration"
+        else
+            # No plugin manager found, configure PATH directly
+            add_to_path "$install_dir"
+        fi
+    else
+        # PATH is OK, but still try to install plugin for extra features
+        install_shell_plugin 2>/dev/null || true
     fi
 
     return 0
 }
 
-# Setup shell alias
-setup_alias() {
+# Check for legacy cmdai alias in shell config
+check_legacy_alias() {
     local shell_config=""
-    local shell_name=""
 
-    # Detect shell - prioritize $SHELL env var over subprocess shell version vars
-    # This is important when script is run via 'bash <(curl ...)' where BASH_VERSION
-    # would be set even if user's actual shell is zsh/fish
+    # Detect shell config file
     case "$SHELL" in
         */bash)
-            shell_name="bash"
             if [ -f "$HOME/.bashrc" ]; then
                 shell_config="$HOME/.bashrc"
             elif [ -f "$HOME/.bash_profile" ]; then
                 shell_config="$HOME/.bash_profile"
-            else
-                shell_config="$HOME/.bashrc"  # default to .bashrc
             fi
             ;;
         */zsh)
-            shell_name="zsh"
             shell_config="${ZDOTDIR:-$HOME}/.zshrc"
             ;;
         */fish)
-            shell_name="fish"
             shell_config="$HOME/.config/fish/config.fish"
-            ;;
-        *)
-            # Fallback to checking version variables if $SHELL is not set or unknown
-            if [ -n "$ZSH_VERSION" ]; then
-                shell_name="zsh"
-                shell_config="${ZDOTDIR:-$HOME}/.zshrc"
-            elif [ -n "$BASH_VERSION" ]; then
-                shell_name="bash"
-                if [ -f "$HOME/.bashrc" ]; then
-                    shell_config="$HOME/.bashrc"
-                elif [ -f "$HOME/.bash_profile" ]; then
-                    shell_config="$HOME/.bash_profile"
-                else
-                    shell_config="$HOME/.bashrc"
-                fi
-            elif [ -n "$FISH_VERSION" ]; then
-                shell_name="fish"
-                shell_config="$HOME/.config/fish/config.fish"
-            else
-                say_warn "Could not detect shell."
-                return
-            fi
             ;;
     esac
 
-    if [ -z "$shell_config" ]; then
-        say_warn "Could not detect shell config file."
-        return
-    fi
-
-    if [ ! -f "$shell_config" ]; then
-        say_warn "Shell config file not found. Creating $shell_config"
-        # Create parent directory if needed (e.g., for fish config)
-        mkdir -p "$(dirname "$shell_config")"
-        touch "$shell_config"
-    fi
-
-    # Check if old cmdai alias exists and inform user
-    if grep -q "alias caro='cmdai'" "$shell_config" 2>/dev/null; then
-        say_warn "Found old 'cmdai' alias in $shell_config"
-        say "You can remove it - the binary is now named 'caro' directly"
-        echo ""
+    if [ -n "$shell_config" ] && [ -f "$shell_config" ]; then
+        # Check if old cmdai alias exists and inform user
+        if grep -q "alias caro='cmdai'" "$shell_config" 2>/dev/null; then
+            say_warn "Found old 'cmdai' alias in $shell_config"
+            say "You can remove it - the binary is now named 'caro' directly"
+            echo ""
+        fi
     fi
 }
 
@@ -425,14 +545,29 @@ main() {
     echo ""
 
     # Check for legacy alias
-    setup_alias
+    check_legacy_alias
 
     # Check for conflicting installations
     check_conflicting_installations
     echo ""
 
+    # Determine shell-specific reload command
+    local shell_config_hint=""
+    case "$SHELL" in
+        */zsh)  shell_config_hint="source ~/.zshrc" ;;
+        */bash)
+            if [ -f "$HOME/.bash_profile" ]; then
+                shell_config_hint="source ~/.bash_profile"
+            else
+                shell_config_hint="source ~/.bashrc"
+            fi
+            ;;
+        */fish) shell_config_hint="source ~/.config/fish/config.fish" ;;
+        *)      shell_config_hint="source your shell config file" ;;
+    esac
+
     # Success message
-    cat << 'EOF'
+    cat << EOF
 ═══════════════════════════════════════════════════════════
   Installation Complete! 🎉
 ═══════════════════════════════════════════════════════════
@@ -458,8 +593,8 @@ Documentation:
 ═══════════════════════════════════════════════════════════
 
 To start using caro:
-  • Restart your shell, or
-  • Run: source ~/.bashrc (or ~/.zshrc, etc.)
+  • Open a new terminal window, or
+  • Run: $shell_config_hint
 
 EOF
 }
