@@ -136,14 +136,7 @@ async fn test_calculate_difficulty_level() {
         TestResult::pass("test_001", "codellama", "correctness", "ls"),
         TestResult::pass("test_001", "deepseek", "correctness", "ls"),
         TestResult::pass("test_001", "stablelm", "correctness", "ls"),
-        TestResult::fail(
-            "test_001",
-            "tinyllama",
-            "correctness",
-            "ll",
-            "ls",
-            "Typo",
-        ),
+        TestResult::fail("test_001", "tinyllama", "correctness", "ll", "ls", "Typo"),
     ];
 
     let difficulty = analyzer.calculate_difficulty(&easy_results);
