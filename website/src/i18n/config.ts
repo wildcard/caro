@@ -235,10 +235,10 @@ export function getLocalizedData(locale: Locale, key: string): any {
         if (value && typeof value === 'object' && fallbackKey in value) {
           value = value[fallbackKey];
         } else {
-          return {};
+          return null;
         }
       }
-      break;
+      return value;
     }
   }
 
