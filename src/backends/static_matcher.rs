@@ -1327,7 +1327,7 @@ mod tests {
             let current_specificity = current.required_keywords.len();
 
             // Check all subsequent patterns
-            for later in patterns.iter().skip(i + 1) {
+            for (j, later) in patterns.iter().enumerate().skip(i + 1) {
                 let later_specificity = later.required_keywords.len();
 
                 // If a later pattern has MORE required keywords than an earlier one,
