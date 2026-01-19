@@ -1,6 +1,6 @@
 {
   "version": "2.1.0",
-  "generated": "2026-01-19T02:24:45.313Z",
+  "generated": "2026-01-19T04:05:58.776Z",
   "totalPages": 36,
   "pages": [
     {
@@ -6591,6 +6591,13 @@
       "paragraphs": [],
       "fullText": "🔍",
       "_searchText": "🔍"
+    },
+    {
+      "source": "/TellYourCTO.astro",
+      "headings": [],
+      "paragraphs": [],
+      "fullText": "[ ]",
+      "_searchText": "[ ]"
     },
     {
       "source": "/Terminal.astro",
