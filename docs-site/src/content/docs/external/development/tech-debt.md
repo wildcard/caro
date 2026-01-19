@@ -79,6 +79,51 @@ async fn download_model(&self, model_id: &str) -> Result<PathBuf, CacheError> {
 
 ## 🟡 Medium Priority
 
+### Holiday Debug Panel - Date Selection Not Working
+**Issue**: N/A (needs creation)
+**Status**: Parked
+**Complexity**: Medium
+**Impact**: Medium - Developer experience for theme testing
+
+**Description**:
+The Holiday Theme Debug Panel (`website/src/components/HolidayDebugPanel.astro`) has issues where the Quick Date presets and date picker don't properly apply themes. Only the manual "Preview Theme" buttons work correctly.
+
+**Current State**:
+- Panel opens with `Cmd+Shift+\` or `?holidayDebug=true`
+- Manual theme preview buttons work correctly
+- Quick Date buttons and Apply button don't trigger theme changes
+- Console logging shows no errors but theme doesn't apply
+
+**Attempted Fixes**:
+- Reorganized script to ensure functions defined before use
+- Added `is:inline` to prevent Astro bundling
+- Converted to plain JavaScript (no TypeScript)
+- Added proper DOM ready state handling
+- Used closure pattern for event handlers in loops
+
+**Root Cause (Suspected)**:
+The issue may be related to how Astro processes inline scripts or timing issues with the DOM. The script appears to execute but the theme class changes don't visually apply.
+
+**Files**:
+- `website/src/components/HolidayDebugPanel.astro` - Debug panel component
+- `website/src/layouts/Layout.astro` - Contains theme CSS
+
+**Workaround**:
+Use the "Preview Theme" buttons directly to test themes, or manually set `localStorage.setItem('holidayTheme', 'christmas')` in browser console.
+
+**Tasks**:
+- [ ] Debug why `document.documentElement.classList.add()` doesn't apply theme
+- [ ] Check if CSS specificity issues prevent theme from showing
+- [ ] Consider using Astro's client directives instead of inline script
+- [ ] Test with simpler script structure
+- [ ] Add visual feedback when theme is applied
+
+**Skills needed**: Astro, JavaScript, CSS, DOM debugging
+**Estimated effort**: 4-8 hours
+**Help wanted**: Yes - Good for someone familiar with Astro's script handling
+
+---
+
 ### Security Hardening: File Permissions
 **Issue**: #6
 **Status**: Open
@@ -375,6 +420,6 @@ fn generate_schema() {
 
 ---
 
-**Last Updated**: 2025-10-03
-**Total Open Tech Debt Items**: 10
+**Last Updated**: 2026-01-02
+**Total Open Tech Debt Items**: 11
 **Good First Issues**: 4
