@@ -41,6 +41,35 @@ pub struct ExecutionContext {
 
 impl ExecutionContext {
     /// Capture current execution context from the environment
+    ///
+    /// Automatically captures the current directory, shell type, platform, username,
+    /// hostname, and environment variables (with sensitive data filtered).
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use caro::execution::ExecutionContext;
+    ///
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let context = ExecutionContext::capture()?;
+    ///
+    /// println!("Current directory: {}", context.current_dir().display());
+    /// println!("Shell: {:?}", context.shell_type());
+    /// println!("Platform: {:?}", context.platform());
+    /// println!("Username: {}", context.username());
+    /// println!("Hostname: {}", context.hostname());
+    ///
+    /// // Access environment variables (sensitive vars like API keys are filtered)
+    /// if let Some(path) = context.get_env_var("PATH") {
+    ///     println!("PATH: {}", path);
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns `ExecutionError::CurrentDirError` if the current directory cannot be accessed.
     pub fn capture() -> Result<Self, ExecutionError> {
         let current_dir = std::env::current_dir()?;
         let shell_type = ShellType::detect();
@@ -109,6 +138,32 @@ impl ExecutionContext {
     }
 
     /// Convert to prompt context string for LLM
+    ///
+    /// Generates a formatted string containing execution context information
+    /// suitable for inclusion in LLM prompts. This helps the LLM generate
+    /// commands appropriate for the user's environment.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use caro::execution::ExecutionContext;
+    ///
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let context = ExecutionContext::capture()?;
+    ///
+    /// // Get context string for LLM prompt
+    /// let prompt_context = context.to_prompt_context();
+    /// println!("Context for LLM:\n{}", prompt_context);
+    ///
+    /// // Example output:
+    /// // Current directory: /home/user/projects
+    /// // Shell: Bash
+    /// // Platform: Linux
+    /// // Username: user
+    /// // Hostname: mycomputer
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn to_prompt_context(&self) -> String {
         self.inner.to_prompt_context()
     }
