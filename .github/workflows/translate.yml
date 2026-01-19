@@ -99,7 +99,7 @@ jobs:
           FORCE_RETRANSLATE: ${{ github.event.inputs.force_retranslate || 'false' }}
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: 'i18n: Update ${{ matrix.locale }} translations'
           branch: i18n/auto-translate-${{ matrix.locale }}
