@@ -6,7 +6,7 @@
 
 # Check if last assistant message used AskUserQuestion tool
 # This tool already provides interactive options, so footer would be redundant
-if echo "${CLAUDE_CONVERSATION_HISTORY:-}" | grep -q "AskUserQuestion"; then
+if echo "${CLAUDE_CONVERSATION_HISTORY:-}" | grep -q "AskUserQuestion" 2>/dev/null; then
   # Skip footer - AskUserQuestion provides its own UI
   exit 0
 fi
