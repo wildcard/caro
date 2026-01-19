@@ -1196,11 +1196,19 @@ async fn handle_knowledge_command(
 
             match indexer.index_one(backend, &repo).await {
                 Ok(true) => {
-                    println!("{} Successfully indexed GitHub repo: {}", "✓".green(), repo.bold());
+                    println!(
+                        "{} Successfully indexed GitHub repo: {}",
+                        "✓".green(),
+                        repo.bold()
+                    );
                     println!("  Documentation added to knowledge base");
                 }
                 Ok(false) => {
-                    println!("{} No useful documentation found for: {}", "✗".yellow(), repo);
+                    println!(
+                        "{} No useful documentation found for: {}",
+                        "✗".yellow(),
+                        repo
+                    );
                 }
                 Err(e) => return Err(format!("GitHub indexing failed: {}", e)),
             }
@@ -1284,7 +1292,8 @@ async fn handle_knowledge_command(
                         println!();
 
                         for (i, entry) in results.iter().enumerate() {
-                            println!("{}. {} (similarity: {:.2}%)",
+                            println!(
+                                "{}. {} (similarity: {:.2}%)",
                                 (i + 1).to_string().bold(),
                                 entry.command.bright_cyan(),
                                 entry.similarity * 100.0
@@ -1331,8 +1340,7 @@ async fn handle_knowledge_command(
                 .map_err(|e| format!("Failed to serialize entries: {}", e))?;
 
             // Write to file
-            std::fs::write(&path, json)
-                .map_err(|e| format!("Failed to write file: {}", e))?;
+            std::fs::write(&path, json).map_err(|e| format!("Failed to write file: {}", e))?;
 
             println!(
                 "{} Exported {} entries to {}",
@@ -1368,8 +1376,8 @@ async fn handle_knowledge_command(
             let json = std::fs::read_to_string(&path)
                 .map_err(|e| format!("Failed to read file: {}", e))?;
 
-            let entries: Vec<KnowledgeEntry> = serde_json::from_str(&json)
-                .map_err(|e| format!("Failed to parse JSON: {}", e))?;
+            let entries: Vec<KnowledgeEntry> =
+                serde_json::from_str(&json).map_err(|e| format!("Failed to parse JSON: {}", e))?;
 
             let index = KnowledgeIndex::from_config(&backend_config)
                 .await

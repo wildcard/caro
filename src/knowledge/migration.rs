@@ -113,9 +113,7 @@ pub async fn import_entries<P: AsRef<Path>>(
     let reader = BufReader::new(file);
 
     // First pass: count lines for progress reporting
-    let lines: Vec<String> = reader
-        .lines()
-        .collect::<std::io::Result<Vec<_>>>()?;
+    let lines: Vec<String> = reader.lines().collect::<std::io::Result<Vec<_>>>()?;
     let total = lines.len();
 
     let mut imported = 0;
@@ -272,7 +270,8 @@ mod tests {
         use crate::knowledge::backends::lancedb::LanceDbBackend;
 
         let temp_dir = TempDir::new().unwrap();
-        let backend: Arc<dyn VectorBackend> = Arc::new(LanceDbBackend::new(temp_dir.path()).await.unwrap());
+        let backend: Arc<dyn VectorBackend> =
+            Arc::new(LanceDbBackend::new(temp_dir.path()).await.unwrap());
 
         // Add some test entries
         backend
@@ -289,7 +288,8 @@ mod tests {
 
         // Create new backend for import
         let temp_dir2 = TempDir::new().unwrap();
-        let backend2: Arc<dyn VectorBackend> = Arc::new(LanceDbBackend::new(temp_dir2.path()).await.unwrap());
+        let backend2: Arc<dyn VectorBackend> =
+            Arc::new(LanceDbBackend::new(temp_dir2.path()).await.unwrap());
 
         // Import
         let imported = import_entries(Arc::clone(&backend2), &export_file, None)
