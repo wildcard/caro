@@ -121,7 +121,7 @@ regex = "1.10"
 tempfile = "3.10"
 serial_test = "3"
 proptest = "1"
-criterion = { version = "=0.7.0", features = ["html_reports"] }
+criterion = { version = "=0.8.1", features = ["html_reports"] }
 futures = "0.3"
 serde_yaml = "0.9"
 env_logger = "0.11"
