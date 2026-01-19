@@ -404,6 +404,7 @@ impl VectorBackend for ChromaDbBackend {
             entry.timestamp,
             entry.original_command.as_deref(),
             entry.feedback.as_deref(),
+            entry.profile.as_deref(),
         );
 
         // Add to ChromaDB collection
