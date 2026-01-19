@@ -1,0 +1,377 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+---
+
+<Layout title="Caro - Local Shell Command Assistant | Reddit">
+  <main class="landing-page reddit-theme">
+    <!-- Header -->
+    <section class="hero">
+      <div class="reddit-badge">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/></svg>
+        Welcome from Reddit
+      </div>
+
+      <h1>Caro</h1>
+      <p class="tagline">Local-first shell command recall for DevOps/SREs</p>
+
+      <p class="hero-description">
+        Natural language → shell command → confirm → execute.
+        100% local. No cloud. No telemetry.
+      </p>
+
+      <div class="hero-demo">
+        <div class="terminal">
+          <pre><span class="prompt">$</span> caro "find files modified in the last hour"
+<span class="output">→ find . -type f -mmin -60</span>
+
+<span class="confirm">Execute? [y/N]</span> y
+<span class="dim"># Command executed</span></pre>
+        </div>
+      </div>
+
+      <div class="cta-buttons">
+        <a href="https://github.com/wildcard/caro" class="btn primary">GitHub Repository</a>
+        <a href="#technical" class="btn secondary">Technical Details</a>
+      </div>
+    </section>
+
+    <!-- Technical Section -->
+    <section class="tech-section" id="technical">
+      <h2>Technical Details</h2>
+
+      <div class="tech-grid">
+        <div class="tech-card">
+          <h3>Local Inference</h3>
+          <ul>
+            <li>MLX backend (Apple Silicon)</li>
+            <li>Candle backend (cross-platform CPU)</li>
+            <li>Optional: Ollama, vLLM for larger models</li>
+          </ul>
+        </div>
+
+        <div class="tech-card">
+          <h3>Safety Validation</h3>
+          <ul>
+            <li>52 pre-compiled regex patterns</li>
+            <li>Runs post-generation, independent of model</li>
+            <li>Blocks dangerous commands regardless of AI output</li>
+          </ul>
+        </div>
+
+        <div class="tech-card">
+          <h3>Privacy First</h3>
+          <ul>
+            <li>Zero cloud dependencies</li>
+            <li>No telemetry or analytics</li>
+            <li>Works completely offline</li>
+          </ul>
+        </div>
+
+        <div class="tech-card">
+          <h3>Stack</h3>
+          <ul>
+            <li>Rust single binary</li>
+            <li>~3GB for model weights</li>
+            <li>AGPL-3.0 license</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Honest Tradeoffs -->
+    <section class="tradeoffs-section">
+      <h2>Honest Tradeoffs</h2>
+      <div class="tradeoffs">
+        <div class="tradeoff">
+          <strong>Local models are less capable</strong>
+          <p>For complex queries, cloud models are better. We optimize for common shell patterns.</p>
+        </div>
+        <div class="tradeoff">
+          <strong>Requires disk space</strong>
+          <p>~3GB for model weights in ~/.cache/caro</p>
+        </div>
+        <div class="tradeoff">
+          <strong>Alpha quality</strong>
+          <p>Rough edges exist. This is early software seeking feedback.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Install -->
+    <section class="install-section">
+      <h2>Install</h2>
+      <div class="install-code">
+        <code><span class="comment"># macOS (Homebrew)</span>
+brew install caro
+
+<span class="comment"># From source</span>
+cargo install caro
+
+<span class="comment"># Clone and build</span>
+git clone https://github.com/wildcard/caro
+cd caro && cargo build --release</code>
+      </div>
+    </section>
+
+    <!-- Who it's for -->
+    <section class="audience-section">
+      <h2>Built for</h2>
+      <div class="audience-list">
+        <span>DevOps Engineers</span>
+        <span>SREs</span>
+        <span>System Administrators</span>
+        <span>Anyone who lives in terminals</span>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+      <p>Open source, free, and local-first.</p>
+      <a href="https://github.com/wildcard/caro" class="btn primary large">View on GitHub</a>
+      <p class="feedback-note">Feedback welcome. Bug reports and feature requests shape the roadmap.</p>
+    </section>
+  </main>
+
+  <style>
+    .landing-page.reddit-theme {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem;
+      font-family: -apple-system, BlinkMacSystemFont, Verdana, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 2rem 0 3rem;
+    }
+
+    .reddit-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #ff4500;
+      color: white;
+      padding: 0.4rem 1rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero h1 {
+      font-size: 2rem;
+      margin-bottom: 0.25rem;
+      color: #1a1a1b;
+    }
+
+    .tagline {
+      font-size: 1.1rem;
+      color: #787c7e;
+      margin-bottom: 1rem;
+    }
+
+    .hero-description {
+      color: #1a1a1b;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-demo {
+      margin: 1.5rem auto;
+      max-width: 500px;
+    }
+
+    .terminal {
+      background: #1e1e1e;
+      border-radius: 4px;
+      padding: 1rem 1.5rem;
+      text-align: left;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 13px;
+    }
+
+    .terminal pre {
+      margin: 0;
+      color: #e0e0e0;
+      white-space: pre-wrap;
+    }
+
+    .prompt { color: #27c93f; }
+    .output { color: #ff8c42; }
+    .confirm { color: #ffbd2e; }
+    .dim { color: #666; }
+
+    .cta-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1.5rem;
+    }
+
+    .btn {
+      padding: 0.6rem 1.25rem;
+      border-radius: 4px;
+      font-weight: 600;
+      text-decoration: none;
+      font-size: 13px;
+    }
+
+    .btn.primary {
+      background: #ff4500;
+      color: white;
+    }
+
+    .btn.primary:hover {
+      background: #cc3700;
+    }
+
+    .btn.secondary {
+      background: #f6f7f8;
+      color: #1a1a1b;
+      border: 1px solid #edeff1;
+    }
+
+    .btn.large {
+      padding: 0.75rem 1.5rem;
+      font-size: 14px;
+    }
+
+    section {
+      padding: 2rem 0;
+      border-top: 1px solid #edeff1;
+    }
+
+    h2 {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      color: #1a1a1b;
+    }
+
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .tech-card {
+      background: #f6f7f8;
+      padding: 1rem;
+      border-radius: 4px;
+    }
+
+    .tech-card h3 {
+      font-size: 0.95rem;
+      margin-bottom: 0.5rem;
+      color: #1a1a1b;
+    }
+
+    .tech-card ul {
+      margin: 0;
+      padding-left: 1.25rem;
+      color: #787c7e;
+    }
+
+    .tech-card li {
+      margin: 0.25rem 0;
+    }
+
+    .tradeoffs {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .tradeoff {
+      padding: 1rem;
+      background: #fff8e1;
+      border-left: 3px solid #ffc107;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .tradeoff strong {
+      color: #1a1a1b;
+    }
+
+    .tradeoff p {
+      margin: 0.25rem 0 0;
+      color: #787c7e;
+    }
+
+    .install-section {
+      background: #f6f7f8;
+      margin: 0 -2rem;
+      padding: 2rem;
+    }
+
+    .install-code {
+      background: #1e1e1e;
+      border-radius: 4px;
+      padding: 1rem 1.5rem;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .install-code code {
+      display: block;
+      color: #e0e0e0;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+    }
+
+    .comment {
+      color: #666;
+    }
+
+    .audience-section {
+      text-align: center;
+    }
+
+    .audience-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+    }
+
+    .audience-list span {
+      background: #f6f7f8;
+      padding: 0.4rem 1rem;
+      border-radius: 20px;
+      font-size: 13px;
+      color: #787c7e;
+    }
+
+    .cta-section {
+      text-align: center;
+      padding: 3rem 0 2rem;
+    }
+
+    .cta-section p:first-child {
+      font-size: 1.1rem;
+      color: #1a1a1b;
+      margin-bottom: 1rem;
+    }
+
+    .feedback-note {
+      margin-top: 1rem;
+      color: #787c7e;
+      font-size: 13px;
+    }
+
+    @media (max-width: 600px) {
+      .landing-page.reddit-theme {
+        padding: 1rem;
+      }
+
+      .tech-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const source = params.get('utm_source') || 'reddit';
+    console.log('Landing page visit from:', source);
+  </script>
+</Layout>

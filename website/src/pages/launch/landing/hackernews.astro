@@ -1,0 +1,545 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+---
+
+<Layout title="Caro - Local-First Shell Command Assistant | Show HN">
+  <main class="landing-page hn-theme">
+    <!-- Minimal Hero - HN audience appreciates no-nonsense -->
+    <section class="hero">
+      <h1>Caro</h1>
+      <p class="tagline">Local-first shell command recall for DevOps/SREs</p>
+
+      <p class="hero-description">
+        Natural language → shell command → explicit confirmation → execute.
+        100% local inference. No cloud. No telemetry.
+      </p>
+
+      <div class="hero-demo">
+        <div class="terminal">
+          <div class="terminal-header">
+            <span class="terminal-title">Terminal</span>
+          </div>
+          <div class="terminal-body">
+            <p><span class="prompt">$</span> caro "find files modified in the last hour excluding node_modules"</p>
+            <p class="output">→ find . -name "*.log" -mmin -60 -not -path "*/node_modules/*"</p>
+            <p class="output"></p>
+            <p class="output confirm">Execute? [y/N] y</p>
+            <p class="output"></p>
+            <p class="output dim"># Command executed</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="cta-buttons">
+        <a href="https://github.com/wildcard/caro" class="btn primary">Source (GitHub)</a>
+        <a href="#architecture" class="btn secondary">Architecture →</a>
+      </div>
+    </section>
+
+    <!-- Technical Details - What HN cares about -->
+    <section class="tech-details" id="architecture">
+      <h2>Architecture</h2>
+
+      <div class="architecture-grid">
+        <div class="arch-card">
+          <h3>Inference Backends</h3>
+          <p>Trait-based system supporting multiple providers:</p>
+          <ul>
+            <li><strong>MLX</strong> - Apple Silicon via FFI (cxx crate)</li>
+            <li><strong>Candle</strong> - Cross-platform CPU inference</li>
+            <li><strong>Ollama/vLLM</strong> - Optional remote backends</li>
+          </ul>
+        </div>
+
+        <div class="arch-card">
+          <h3>Safety Validation</h3>
+          <p>Rule-based, not AI-claimed:</p>
+          <ul>
+            <li>52 pre-compiled regex patterns</li>
+            <li>Runs post-generation, independently</li>
+            <li>Blocks dangerous ops regardless of model output</li>
+            <li>Risk levels: Safe → Moderate → High → Critical</li>
+          </ul>
+        </div>
+
+        <div class="arch-card">
+          <h3>JSON Parsing</h3>
+          <p>Fallback chain for unreliable LLM output:</p>
+          <ol>
+            <li>Strict JSON parsing</li>
+            <li>Relaxed JSON (trailing commas, etc.)</li>
+            <li>Regex extraction as last resort</li>
+          </ol>
+        </div>
+
+        <div class="arch-card">
+          <h3>Platform Detection</h3>
+          <p>BSD vs GNU differences handled at runtime:</p>
+          <ul>
+            <li>sed flag variations</li>
+            <li>find syntax differences</li>
+            <li>Date format handling</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Safety Deep Dive -->
+    <section class="safety-section">
+      <h2>Safety Model</h2>
+
+      <p class="section-intro">
+        We don't trust the LLM to be safe. The safety layer validates independently.
+      </p>
+
+      <div class="safety-examples">
+        <div class="safety-example blocked">
+          <h4>Blocked (Critical)</h4>
+          <code>rm -rf /</code>
+          <code>:(){ :|:& };:</code>
+          <code>mkfs.ext4 /dev/sda</code>
+          <code>dd if=/dev/zero of=/dev/sda</code>
+        </div>
+
+        <div class="safety-example warning">
+          <h4>Warning (High Risk)</h4>
+          <code>rm -rf ~/important</code>
+          <code>chmod -R 777 /var</code>
+          <code>sudo su -</code>
+        </div>
+
+        <div class="safety-example moderate">
+          <h4>Confirm (Moderate)</h4>
+          <code>find . -delete</code>
+          <code>mv * /tmp/</code>
+          <code>killall process</code>
+        </div>
+      </div>
+
+      <p class="safety-note">
+        <strong>Design principle:</strong> Every command requires explicit confirmation.
+        The safety patterns provide an additional layer, but human review is always required.
+      </p>
+    </section>
+
+    <!-- Trade-offs Section - HN appreciates honesty -->
+    <section class="tradeoffs-section">
+      <h2>Honest Trade-offs</h2>
+
+      <div class="tradeoffs-grid">
+        <div class="tradeoff">
+          <h4>Local models are less capable</h4>
+          <p>For complex multi-step pipelines or obscure tools, cloud models are better. We optimize for common shell command patterns.</p>
+        </div>
+
+        <div class="tradeoff">
+          <h4>Requires disk space</h4>
+          <p>~3GB for model weights. First run downloads to ~/.cache/caro. After that, fully offline.</p>
+        </div>
+
+        <div class="tradeoff">
+          <h4>Alpha quality</h4>
+          <p>Rough edges exist. This is an early release seeking feedback, not a polished product.</p>
+        </div>
+
+        <div class="tradeoff">
+          <h4>Focused scope</h4>
+          <p>Shell commands only. Not a general AI assistant, IDE plugin, or coding copilot.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Why Local First -->
+    <section class="philosophy-section">
+      <h2>Why Local-First?</h2>
+
+      <div class="philosophy-points">
+        <div class="point">
+          <h4>Command history contains secrets</h4>
+          <p>Server names, file paths, credentials appear in shell context. Sending that to a cloud API is a non-starter for many environments.</p>
+        </div>
+
+        <div class="point">
+          <h4>Production servers often lack internet</h4>
+          <p>Air-gapped networks, restricted egress, bastion hosts. Local inference works everywhere.</p>
+        </div>
+
+        <div class="point">
+          <h4>Latency matters for flow</h4>
+          <p>Cloud roundtrip: 500ms-2s. Local on Apple Silicon: &lt;500ms. That difference preserves mental context.</p>
+        </div>
+
+        <div class="point">
+          <h4>Trust should be verifiable</h4>
+          <p>"Our AI is safe" is a claim. Open source code + regex patterns you can audit = verification.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Install -->
+    <section class="install-section" id="install">
+      <h2>Install</h2>
+
+      <div class="install-code">
+        <div class="install-option">
+          <span class="label"># macOS (Homebrew)</span>
+          <code>brew install caro</code>
+        </div>
+        <div class="install-option">
+          <span class="label"># From source</span>
+          <code>cargo install caro</code>
+        </div>
+        <div class="install-option">
+          <span class="label"># Clone and build</span>
+          <code>git clone https://github.com/wildcard/caro && cd caro && cargo build --release</code>
+        </div>
+      </div>
+    </section>
+
+    <!-- Crate Dependencies -->
+    <section class="deps-section">
+      <h2>Key Dependencies</h2>
+      <div class="deps-list">
+        <code>clap</code> - CLI parsing
+        <code>tokio</code> - Async runtime
+        <code>serde</code> - Serialization
+        <code>reqwest</code> - HTTP client
+        <code>cxx</code> - C++ FFI
+        <code>anyhow</code> - Error handling
+        <code>colored</code> - Terminal colors
+        <code>directories</code> - XDG paths
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <section class="footer-section">
+      <div class="footer-links">
+        <a href="https://github.com/wildcard/caro">GitHub</a>
+        <span class="separator">·</span>
+        <a href="https://github.com/wildcard/caro/issues">Issues</a>
+        <span class="separator">·</span>
+        <span class="license">AGPL-3.0</span>
+      </div>
+      <p class="footer-note">
+        Feedback welcome. This is alpha software—bug reports and feature requests help shape the roadmap.
+      </p>
+    </section>
+  </main>
+
+  <style>
+    .landing-page.hn-theme {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem;
+      font-family: Verdana, Geneva, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #333;
+    }
+
+    .hero {
+      padding: 3rem 0;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .hero h1 {
+      font-size: 2rem;
+      margin-bottom: 0.25rem;
+      color: #ff6600;
+    }
+
+    .tagline {
+      font-size: 1.1rem;
+      color: #666;
+      margin-bottom: 1rem;
+    }
+
+    .hero-description {
+      color: #444;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-demo {
+      margin: 1.5rem 0;
+    }
+
+    .terminal {
+      background: #1e1e1e;
+      border-radius: 4px;
+      overflow: hidden;
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      font-size: 13px;
+    }
+
+    .terminal-header {
+      background: #333;
+      padding: 0.5rem 1rem;
+      color: #888;
+      font-size: 12px;
+    }
+
+    .terminal-body {
+      padding: 1rem;
+      color: #e0e0e0;
+    }
+
+    .terminal-body p {
+      margin: 0.25rem 0;
+    }
+
+    .prompt {
+      color: #27c93f;
+    }
+
+    .output {
+      color: #ff8c42;
+    }
+
+    .output.confirm {
+      color: #ffbd2e;
+    }
+
+    .output.dim {
+      color: #666;
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      text-decoration: none;
+      border-radius: 3px;
+      font-size: 13px;
+    }
+
+    .btn.primary {
+      background: #ff6600;
+      color: white;
+    }
+
+    .btn.secondary {
+      background: #f6f6ef;
+      color: #666;
+      border: 1px solid #ddd;
+    }
+
+    section {
+      padding: 2rem 0;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    h2 {
+      font-size: 1.2rem;
+      color: #333;
+      margin-bottom: 1rem;
+    }
+
+    h3 {
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    h4 {
+      font-size: 0.95rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .architecture-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .arch-card {
+      background: #f6f6ef;
+      padding: 1rem;
+      border-radius: 4px;
+    }
+
+    .arch-card p {
+      margin: 0.5rem 0;
+      color: #666;
+    }
+
+    .arch-card ul, .arch-card ol {
+      margin: 0.5rem 0;
+      padding-left: 1.5rem;
+    }
+
+    .arch-card li {
+      margin: 0.25rem 0;
+    }
+
+    .section-intro {
+      color: #666;
+      margin-bottom: 1.5rem;
+    }
+
+    .safety-examples {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .safety-example {
+      padding: 1rem;
+      border-radius: 4px;
+    }
+
+    .safety-example.blocked {
+      background: #fee;
+      border-left: 3px solid #dc3545;
+    }
+
+    .safety-example.warning {
+      background: #fff3e0;
+      border-left: 3px solid #ff9800;
+    }
+
+    .safety-example.moderate {
+      background: #fff8e1;
+      border-left: 3px solid #ffc107;
+    }
+
+    .safety-example h4 {
+      margin-bottom: 0.75rem;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      color: #666;
+    }
+
+    .safety-example code {
+      display: block;
+      font-size: 12px;
+      margin: 0.25rem 0;
+      color: #333;
+    }
+
+    .safety-note {
+      margin-top: 1.5rem;
+      color: #666;
+      font-size: 13px;
+    }
+
+    .tradeoffs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1rem;
+    }
+
+    .tradeoff {
+      padding: 1rem;
+      background: #f9f9f9;
+      border-radius: 4px;
+    }
+
+    .tradeoff h4 {
+      color: #333;
+    }
+
+    .tradeoff p {
+      color: #666;
+      margin: 0.5rem 0 0;
+    }
+
+    .philosophy-points {
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    .point h4 {
+      color: #ff6600;
+    }
+
+    .point p {
+      color: #666;
+      margin: 0.25rem 0 0;
+    }
+
+    .install-code {
+      background: #1e1e1e;
+      border-radius: 4px;
+      padding: 1rem;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 13px;
+    }
+
+    .install-option {
+      margin: 0.75rem 0;
+    }
+
+    .install-option .label {
+      color: #666;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    .install-option code {
+      color: #e0e0e0;
+    }
+
+    .deps-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .deps-list code {
+      background: #f6f6ef;
+      padding: 0.25rem 0.5rem;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+
+    .footer-section {
+      border-bottom: none;
+      text-align: center;
+      color: #666;
+    }
+
+    .footer-links {
+      margin-bottom: 1rem;
+    }
+
+    .footer-links a {
+      color: #ff6600;
+      text-decoration: none;
+    }
+
+    .separator {
+      margin: 0 0.5rem;
+      color: #ccc;
+    }
+
+    .license {
+      color: #888;
+    }
+
+    .footer-note {
+      font-size: 13px;
+    }
+
+    @media (max-width: 600px) {
+      .landing-page.hn-theme {
+        padding: 1rem;
+      }
+
+      .architecture-grid,
+      .safety-examples,
+      .tradeoffs-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+
+  <script>
+    // Track source
+    const params = new URLSearchParams(window.location.search);
+    const source = params.get('utm_source') || 'hackernews';
+    console.log('Landing page visit from:', source);
+  </script>
+</Layout>

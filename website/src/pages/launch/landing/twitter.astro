@@ -1,0 +1,394 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+---
+
+<Layout title="Caro - Shell Commands Made Easy | Twitter">
+  <main class="landing-page">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="social-badge">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        Welcome from Twitter/X
+      </div>
+
+      <h1>The shell command you forgot</h1>
+      <p class="tagline">Get it back in seconds—offline, with guardrails</p>
+
+      <div class="hero-demo">
+        <div class="terminal">
+          <div class="terminal-header">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+          </div>
+          <div class="terminal-body">
+            <p><span class="prompt">$</span> caro "find large files over 100MB"</p>
+            <p class="output">→ find . -type f -size +100M</p>
+            <p class="output confirm">Execute? [y/N] <span class="cursor">▊</span></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="cta-buttons">
+        <a href="https://github.com/wildcard/caro" class="btn primary">
+          Get Started on GitHub
+        </a>
+        <a href="#why" class="btn secondary">Learn More</a>
+      </div>
+    </section>
+
+    <!-- Quick Points -->
+    <section class="quick-points" id="why">
+      <div class="point-grid">
+        <div class="point">
+          <span class="emoji">🔒</span>
+          <h3>100% Local</h3>
+          <p>No cloud. No telemetry. Your commands stay on your machine.</p>
+        </div>
+        <div class="point">
+          <span class="emoji">🛡️</span>
+          <h3>Safety First</h3>
+          <p>52 regex patterns catch dangerous commands before they run.</p>
+        </div>
+        <div class="point">
+          <span class="emoji">✈️</span>
+          <h3>Works Offline</h3>
+          <p>Air-gapped servers, planes, wherever you need it.</p>
+        </div>
+        <div class="point">
+          <span class="emoji">✋</span>
+          <h3>You Confirm</h3>
+          <p>Nothing executes without explicit approval. Every time.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- The XKCD Moment -->
+    <section class="xkcd-section">
+      <h2>You know that XKCD comic?</h2>
+      <blockquote>
+        "We need to run tar to extract this archive, but we can't remember the flags!"
+        <cite>— XKCD #1168</cite>
+      </blockquote>
+      <p>Everyone laughs because everyone's lived it. Caro is for those moments.</p>
+    </section>
+
+    <!-- Install -->
+    <section class="install-section">
+      <h2>Quick Start</h2>
+      <div class="install-options">
+        <div class="install-box">
+          <span class="label">macOS</span>
+          <code>brew install caro</code>
+        </div>
+        <div class="install-box">
+          <span class="label">From source</span>
+          <code>cargo install caro</code>
+        </div>
+      </div>
+    </section>
+
+    <!-- What We're Not -->
+    <section class="honest-section">
+      <h2>What Caro is NOT</h2>
+      <ul>
+        <li>A replacement for knowing shell commands</li>
+        <li>A general AI coding assistant</li>
+        <li>Production-ready (it's alpha)</li>
+      </ul>
+      <p>It's a small, focused tool that does one thing: helps you recall shell commands.</p>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+      <h2>Open source. Free. Local-first.</h2>
+      <a href="https://github.com/wildcard/caro" class="btn primary large">
+        View on GitHub
+      </a>
+      <p class="tech-note">Built with Rust • AGPL-3.0</p>
+    </section>
+  </main>
+
+  <style>
+    .landing-page {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 3rem 0 4rem;
+    }
+
+    .social-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #000;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      margin-bottom: 2rem;
+    }
+
+    .hero h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      color: #1a1a1a;
+    }
+
+    .tagline {
+      font-size: 1.25rem;
+      color: #666;
+      margin-bottom: 2rem;
+    }
+
+    .hero-demo {
+      margin: 2rem auto;
+      max-width: 480px;
+    }
+
+    .terminal {
+      background: #1e1e1e;
+      border-radius: 8px;
+      overflow: hidden;
+      text-align: left;
+    }
+
+    .terminal-header {
+      background: #333;
+      padding: 0.75rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .dot.red { background: #ff5f56; }
+    .dot.yellow { background: #ffbd2e; }
+    .dot.green { background: #27c93f; }
+
+    .terminal-body {
+      padding: 1.5rem;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 0.9rem;
+      color: #e0e0e0;
+    }
+
+    .terminal-body p { margin: 0.4rem 0; }
+    .prompt { color: #27c93f; }
+    .output { color: #ff8c42; }
+    .output.confirm { color: #ffbd2e; }
+    .cursor { animation: blink 1s step-end infinite; }
+
+    @keyframes blink { 50% { opacity: 0; } }
+
+    .cta-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 2rem;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn.primary {
+      background: #ff8c42;
+      color: white;
+    }
+
+    .btn.primary:hover {
+      background: #ff7b2e;
+      transform: translateY(-2px);
+    }
+
+    .btn.secondary {
+      background: white;
+      color: #333;
+      border: 2px solid #ddd;
+    }
+
+    .btn.secondary:hover {
+      border-color: #ff8c42;
+    }
+
+    .btn.large {
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
+    }
+
+    section {
+      padding: 3rem 0;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .quick-points {
+      background: #f8f9fa;
+      margin: 0 -2rem;
+      padding: 3rem 2rem;
+    }
+
+    .point-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 2rem;
+    }
+
+    .point {
+      text-align: center;
+    }
+
+    .point .emoji {
+      font-size: 2rem;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .point h3 {
+      margin-bottom: 0.25rem;
+    }
+
+    .point p {
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .xkcd-section {
+      text-align: center;
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 3rem 0;
+    }
+
+    .xkcd-section blockquote {
+      font-size: 1.1rem;
+      font-style: italic;
+      color: #555;
+      border-left: 4px solid #ff8c42;
+      padding-left: 1.5rem;
+      margin: 1.5rem 0;
+      text-align: left;
+    }
+
+    .xkcd-section cite {
+      display: block;
+      font-size: 0.9rem;
+      color: #888;
+      margin-top: 0.5rem;
+    }
+
+    .install-section {
+      background: #1e1e1e;
+      margin: 0 -2rem;
+      padding: 3rem 2rem;
+      color: white;
+    }
+
+    .install-section h2 {
+      color: white;
+    }
+
+    .install-options {
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .install-box {
+      text-align: center;
+    }
+
+    .install-box .label {
+      display: block;
+      font-size: 0.85rem;
+      color: #888;
+      margin-bottom: 0.5rem;
+    }
+
+    .install-box code {
+      display: block;
+      background: #333;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      font-family: 'SF Mono', Monaco, monospace;
+      color: #ff8c42;
+    }
+
+    .honest-section {
+      text-align: center;
+    }
+
+    .honest-section ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .honest-section li {
+      padding: 0.5rem 0;
+      color: #666;
+    }
+
+    .honest-section li::before {
+      content: "✗ ";
+      color: #dc3545;
+    }
+
+    .cta-section {
+      text-align: center;
+      background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+      margin: 0 -2rem -2rem;
+      padding: 4rem 2rem;
+      color: white;
+    }
+
+    .cta-section h2 {
+      color: white;
+      margin-bottom: 1.5rem;
+    }
+
+    .cta-section .btn.primary {
+      background: white;
+      color: #ff8c42;
+    }
+
+    .cta-section .btn.primary:hover {
+      background: #f8f8f8;
+    }
+
+    .tech-note {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 2rem; }
+      .point-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const source = params.get('utm_source') || 'twitter';
+    console.log('Landing page visit from:', source);
+  </script>
+</Layout>
