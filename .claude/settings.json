@@ -62,6 +62,16 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./.claude/hooks/quick-actions-reminder.sh"
+          }
+        ]
+      }
     ]
   },
   "enabledPlugins": {
