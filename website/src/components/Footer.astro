@@ -4,6 +4,15 @@
  * Multi-column layout organizing site content into logical sections
  */
 import { SITE_CONFIG } from '../config/site';
+import { t } from '../i18n/config';
+
+interface Props {
+  lang: string;
+}
+
+const { lang } = Astro.props;
+const currentYear = new Date().getFullYear();
+const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
 ---
 
 <footer class="footer">
@@ -16,9 +25,9 @@ import { SITE_CONFIG } from '../config/site';
           <span class="brand-icon">🐕</span>
           <span class="brand-name">Caro</span>
         </a>
-        <p class="brand-tagline">Your loyal shell companion</p>
+        <p class="brand-tagline">{t(lang, 'landing.footer.brand.tagline')}</p>
         <p class="brand-description">
-          AI-powered POSIX shell command generation with safety-first validation.
+          {t(lang, 'landing.footer.brand.description')}
         </p>
         <div class="social-links">
           <a href="https://github.com/wildcard/caro" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
@@ -46,48 +55,48 @@ import { SITE_CONFIG } from '../config/site';
 
       <!-- Product Column -->
       <div class="footer-column">
-        <h3 class="column-title">Product</h3>
+        <h3 class="column-title">{t(lang, 'landing.footer.columns.product.title')}</h3>
         <ul class="column-links">
-          <li><a href="/#features">Features</a></li>
-          <li><a href="/#how-it-works">How It Works</a></li>
-          <li><a href="/explore">Explore</a></li>
-          <li><a href="/#download">Download</a></li>
-          <li><a href="/roadmap">Roadmap</a></li>
+          <li><a href="/#features">{t(lang, 'landing.footer.columns.product.features')}</a></li>
+          <li><a href="/#how-it-works">{t(lang, 'landing.footer.columns.product.howItWorks')}</a></li>
+          <li><a href="/explore">{t(lang, 'landing.footer.columns.product.explore')}</a></li>
+          <li><a href="/#download">{t(lang, 'landing.footer.columns.product.download')}</a></li>
+          <li><a href="/roadmap">{t(lang, 'landing.footer.columns.product.roadmap')}</a></li>
         </ul>
       </div>
 
       <!-- Compare Column -->
       <div class="footer-column">
-        <h3 class="column-title">Compare</h3>
+        <h3 class="column-title">{t(lang, 'landing.footer.columns.compare.title')}</h3>
         <ul class="column-links">
-          <li><a href="/compare">Overview</a></li>
-          <li><a href="/compare/warp">vs Warp</a></li>
-          <li><a href="/compare/github-copilot-cli">vs GitHub Copilot CLI</a></li>
-          <li><a href="/compare/kiro-cli">vs Kiro CLI</a></li>
-          <li><a href="/compare/opencode">vs OpenCode</a></li>
+          <li><a href="/compare">{t(lang, 'landing.footer.columns.compare.overview')}</a></li>
+          <li><a href="/compare/warp">{t(lang, 'landing.footer.columns.compare.warp')}</a></li>
+          <li><a href="/compare/github-copilot-cli">{t(lang, 'landing.footer.columns.compare.copilotCli')}</a></li>
+          <li><a href="/compare/kiro-cli">{t(lang, 'landing.footer.columns.compare.kiro')}</a></li>
+          <li><a href="/compare/opencode">{t(lang, 'landing.footer.columns.compare.opencode')}</a></li>
         </ul>
       </div>
 
       <!-- Resources Column -->
       <div class="footer-column">
-        <h3 class="column-title">Resources</h3>
+        <h3 class="column-title">{t(lang, 'landing.footer.columns.resources.title')}</h3>
         <ul class="column-links">
-          <li><a href="/#blog">Blog</a></li>
-          <li><a href="/faq">FAQ</a></li>
-          <li><a href="/glossary">Glossary</a></li>
-          <li><a href="https://github.com/wildcard/caro" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-          <li><a href="https://github.com/wildcard/caro/issues" target="_blank" rel="noopener noreferrer">Issues</a></li>
-          <li><a href="https://github.com/wildcard/caro/contribute" target="_blank" rel="noopener noreferrer">Contributing</a></li>
-          <li><a href="/credits">Credits</a></li>
+          <li><a href="/#blog">{t(lang, 'landing.footer.columns.resources.blog')}</a></li>
+          <li><a href="/faq">{t(lang, 'landing.footer.columns.resources.faq')}</a></li>
+          <li><a href="/glossary">{t(lang, 'landing.footer.columns.resources.glossary')}</a></li>
+          <li><a href="https://github.com/wildcard/caro" target="_blank" rel="noopener noreferrer">{t(lang, 'landing.footer.columns.resources.github')}</a></li>
+          <li><a href="https://github.com/wildcard/caro/issues" target="_blank" rel="noopener noreferrer">{t(lang, 'landing.footer.columns.resources.issues')}</a></li>
+          <li><a href="https://github.com/wildcard/caro/contribute" target="_blank" rel="noopener noreferrer">{t(lang, 'landing.footer.columns.resources.contributing')}</a></li>
+          <li><a href="/credits">{t(lang, 'landing.footer.columns.resources.credits')}</a></li>
         </ul>
       </div>
 
       <!-- Support Column -->
       <div class="footer-column">
-        <h3 class="column-title">Support</h3>
+        <h3 class="column-title">{t(lang, 'landing.footer.columns.support.title')}</h3>
         <ul class="column-links">
-          <li><a href="/support" class="support-link">♥ Sponsor</a></li>
-          <li><a href="https://github.com/wildcard/caro/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">AGPL-3.0 License</a></li>
+          <li><a href="/support" class="support-link">{t(lang, 'landing.footer.columns.support.sponsor')}</a></li>
+          <li><a href="https://github.com/wildcard/caro/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">{t(lang, 'landing.footer.columns.support.license')}</a></li>
         </ul>
       </div>
     </div>
@@ -97,9 +106,9 @@ import { SITE_CONFIG } from '../config/site';
       <div class="kyaro-content">
         <span class="kyaro-emoji">🐕</span>
         <div class="kyaro-info">
-          <p class="kyaro-title">Meet Kyaro!</p>
+          <p class="kyaro-title">{t(lang, 'landing.footer.kyaro.title')}</p>
           <p class="kyaro-text">
-            The real-life inspiration behind Caro.
+            {t(lang, 'landing.footer.kyaro.description')}
             <a href="https://www.instagram.com/kyaroblackheart/" target="_blank" rel="noopener noreferrer">@kyaroblackheart</a>
           </p>
         </div>
@@ -110,13 +119,13 @@ import { SITE_CONFIG } from '../config/site';
     <div class="footer-bottom">
       <div class="bottom-content">
         <p class="copyright">
-          Built with 🦀 Rust | <strong>caro.sh</strong> 🧡
+          {t(lang, 'landing.footer.bottom.built')} <strong>{t(lang, 'landing.footer.bottom.brandName')}</strong> {t(lang, 'landing.footer.bottom.heart')}
         </p>
         <p class="inspiration">
-          Inspired by Portal's Caroline—loyalty transformed into digital companionship
+          {t(lang, 'landing.footer.bottom.inspiration')}
         </p>
         <p class="heritage-tribute">
-          Proudly built on the foundations laid by <a href="https://www.gnu.org/" target="_blank" rel="noopener noreferrer">GNU</a>, <a href="https://www.fsf.org/" target="_blank" rel="noopener noreferrer">FSF</a> & <a href="https://www.freebsd.org/" target="_blank" rel="noopener noreferrer">FreeBSD</a>
+          {t(lang, 'landing.footer.bottom.heritagePre')} <a href="https://www.gnu.org/" target="_blank" rel="noopener noreferrer">{t(lang, 'landing.footer.bottom.gnu')}</a>, <a href="https://www.fsf.org/" target="_blank" rel="noopener noreferrer">{t(lang, 'landing.footer.bottom.fsf')}</a> & <a href="https://www.freebsd.org/" target="_blank" rel="noopener noreferrer">{t(lang, 'landing.footer.bottom.freebsd')}</a>
         </p>
         <p class="version">v{SITE_CONFIG.version}</p>
       </div>

