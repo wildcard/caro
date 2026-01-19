@@ -149,27 +149,41 @@ OUTPUT FORMAT: Respond with ONLY valid JSON:
 CRITICAL RULES:
 1. ALWAYS use current directory "." as the starting path (NEVER use "/" root)
 2. Use BSD-compatible flags (macOS). AVOID GNU-only flags like --max-depth
-3. Include ALL relevant filters in find commands:
-   - For file types: always add -name "*.ext" pattern
+3. Use MINIMAL flags - only add flags explicitly mentioned in the request
+   - "list files" = ls (NO extra flags like -la)
+   - "show hidden files" = ls -a (EXACT flag requested)
+   - "list all files" = ls (NOT ls -la unless "all" means hidden AND details)
+5. Include ALL relevant filters in find commands:
+   - For file types: ALWAYS add -name "*.ext" pattern when extension mentioned
    - For files only: add -type f
    - For directories only: add -type d
-4. Time filters with find -mtime:
+6. Time filters with find -mtime:
    - -mtime -7 = modified within last 7 days
    - -mtime 7 = modified exactly 7 days ago
    - -mtime +7 = modified more than 7 days ago
    - -mtime 0 = modified today
    - -mtime 1 = modified yesterday (exactly 1 day ago)
-5. For disk usage: use "du -sh */ | sort -rh | head -10" (BSD compatible)
-6. Quote paths with spaces using double quotes
-7. Target shell: {}
-8. NEVER generate destructive commands (rm -rf, mkfs, dd, etc.)
+7. For disk usage: use "du -sh */ | sort -rh | head -10" (BSD compatible)
+8. Quote paths with spaces using double quotes
+9. Use RELATIVE paths - never assume ~ (home directory)
+   - "move to documents" = documents/ (NOT ~/Documents)
+   - "copy to backup" = backup/ (NOT ~/backup)
+10. Target shell: {}
+11. NEVER generate destructive commands (rm -rf, mkfs, dd, etc.)
 
 EXAMPLES:
-- "list python files" -> find . -type f -name "*.py"
+- "list all files in the current directory" -> ls
+- "show hidden files" -> ls -a
+- "list files with detailed information" -> ls -l
+- "list files sorted by modification time" -> ls -lt
+- "show the current working directory" -> pwd
+- "create a new directory named backup" -> mkdir backup
+- "copy file.txt to backup.txt" -> cp file.txt backup.txt
+- "move file.txt to documents folder" -> mv file.txt documents/
+- "count files in current directory" -> ls -1 | wc -l
+- "find all text files in current directory" -> find . -name "*.txt"
 - "files modified today" -> find . -type f -mtime 0
-- "files from last week" -> find . -type f -mtime -7
 - "large files over 100MB" -> find . -type f -size +100M
-- "disk usage by folder" -> du -sh */ | sort -rh | head -10
 
 IMPORTANT TOOL SELECTION RULES:
 - If request mentions "docker" or "container" (but NOT "pod"): use docker command
