@@ -14,6 +14,7 @@ pub mod collections;
 mod embedder;
 mod index;
 pub mod indexers;
+pub mod migration;
 mod schema;
 
 pub use collections::{CollectionInfo, CollectionType, QueryScope};
@@ -42,6 +43,12 @@ pub enum KnowledgeError {
 
     #[error("Indexing error: {0}")]
     Indexing(String),
+
+    #[error("Migration error: {0}")]
+    Migration(String),
+
+    #[error("Serialization error: {0}")]
+    Serialization(String),
 
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
