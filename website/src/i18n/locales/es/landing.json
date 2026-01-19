@@ -46,7 +46,7 @@
         },
         {
           "icon": "⚡",
-          "title": "Rápido Para No Romper el Flow",
+          "title": "Rápido sin interrumpir tu flujo",
           "description": "Inferencia en menos de 2s en Apple Silicon. Sin esperar APIs en la nube. Sin preguntarte si el servidor está caído. Solo respuestas.",
           "highlight": false
         }
@@ -219,7 +219,7 @@
       }
     },
     "faq": {
-      "title": "Preguntas Frecuentes",
+      "title": "Preocupaciones Comunes",
       "subtitle": "Preguntas reales de ingenieros escépticos (lo entendemos)",
       "concerns": [
         {
@@ -287,7 +287,7 @@
       "streak": "🔥 Racha:",
       "messages": {
         "correct": ["¡Excelente trabajo! 🎉", "¡Correcto! ✓", "¡Sabes lo tuyo!", "¡Buena elección! 👍", "¡Bien hecho!", "¡Excelente! 🌟"],
-        "wrong": ["¡Ups! ¡Eso es peligroso! 💥", "¡Cuidado! ⚠️", "¡Eso podría borrar tu sistema!", "¡Peligroso! ¡Nunca ejecutes eso!", "¡Yikes! ¡Mal comando!"],
+        "wrong": ["¡Ups! ¡Eso es peligroso! 💥", "¡Cuidado! ⚠️", "¡Eso podría borrar tu sistema!", "¡Peligroso! ¡Nunca ejecutes eso!", "¡Madre mía! ¡Mal comando!"],
         "timeout": ["¡Muy lento! ⏱", "¡Se acabó el tiempo!", "¡Tienes que ser más rápido!"],
         "start": ["¡Elige el comando SEGURO!", "¿Cuál es seguro?", "¡Encuentra el comando seguro!", "¡Elige sabiamente!"]
       }
