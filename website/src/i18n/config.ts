@@ -213,6 +213,39 @@ export function isValidLocale(code: string): code is Locale {
 }
 
 /**
+ * Get localized data (for complex objects like arrays)
+ *
+ * @param locale - Target locale code
+ * @param key - Dot-notation key path (e.g., "landing.game.messages")
+ * @returns The data object at that path
+ */
+export function getLocalizedData(locale: Locale, key: string): any {
+  const localeTranslations = translations[locale] || translations['en'];
+
+  const keys = key.split('.');
+  let value: any = localeTranslations;
+
+  for (const k of keys) {
+    if (value && typeof value === 'object' && k in value) {
+      value = value[k];
+    } else {
+      // Fallback to English if key not found
+      value = translations['en'];
+      for (const fallbackKey of keys) {
+        if (value && typeof value === 'object' && fallbackKey in value) {
+          value = value[fallbackKey];
+        } else {
+          return {};
+        }
+      }
+      break;
+    }
+  }
+
+  return value;
+}
+
+/**
  * Component prop interface for locale-aware components
  */
 export interface LocaleProps {

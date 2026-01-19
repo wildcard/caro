@@ -2,7 +2,7 @@
 
 > Technical documentation for Caro - Natural language to shell commands CLI
 
-**Version**: 1.0.3
+**Version**: 1.1.3
 **License**: AGPL-3.0
 **Repository**: https://github.com/wildcard/caro
 **Docs Site**: https://docs.caro.sh
@@ -78,14 +78,2176 @@ Safety First
 
 ---
 
+## Beta Testing Program
+
+**URL**: https://docs.caro.sh/contributing/beta-testing/
+**Category**: main
+
+How to participate in caro beta testing and help improve the product
+
+## Join the Beta Testing Program
+
+We welcome community members to help test caro releases before they reach general availability. Beta testers play a crucial role in ensuring caro works reliably across different environments and use cases.
+
+### What We're Looking For
+
+Beta testing is most valuable when it represents **diverse real-world scenarios**:
+
+- **Diverse environments**: Different operating systems, shells, network setups, and tool configurations
+- **Real-world usage**: Testing actual workflows you'd use daily, not just toy examples
+- **Honest feedback**: Document friction points, confusing error messages, and missing documentation
+- **Systematic testing**: Follow the testing workflow to ensure comprehensive coverage
+
+### Why Participate?
+
+- **Early access**: Try new features before they're publicly released
+- **Direct impact**: Your feedback directly shapes the product
+- **Recognition**: Contributors are credited in release notes and the contributors list
+- **Learn**: Understand how CLI tools are tested and validated
+- **Community**: Join discussions with maintainers and other testers
+
+## Testing Profiles
+
+We use **persona-based testing** to ensure coverage across different user types. You can either:
+
+1. **Adopt an existing profile** from our [Testing Profiles](/contributing/testing-profiles) page
+2. **Create your own profile** representing your unique environment and use case
+
+### Example Profiles
+
+| Profile | Focus | Environment |
+|---------|-------|-------------|
+| **Terminal Novice** | First-time CLI users | macOS, basic tools, GUI preference |
+| **Corporate Developer** | Restricted environments | Proxy, no sudo, security policies |
+| **Data Scientist** | Data processing workflows | Python, conda, Jupyter, ML tools |
+| **Fish Shell User** | Non-POSIX shells | macOS/Linux, fish shell, tmux |
+| **SSH-Only Admin** | Remote/offline usage | CentOS, SSH-only, airgapped |
+
+See [all available profiles →](/contributing/testing-profiles)
+
+## Testing Workflow
+
+### Phase 1: Setup
+
+1. **Choose a profile** or define your own
+2. **Set up your environment** to match the profile's specifications
+3. **Review the current beta cycle** in the [ROADMAP](https://github.com/wildcard/caro/blob/main/ROADMAP.md#beta-testing-cycles)
+
+### Phase 2: Documentation Discovery
+
+**Important**: Approach testing as if you've never used caro before.
+
+- Only use public documentation (website, README, docs site)
+- Don't rely on internal knowledge or source code
+- Document where you find information (or fail to find it)
+- Note any confusing or unclear instructions
+
+### Phase 3: Installation Testing
+
+Follow the installation instructions **exactly as documented**:
+
+1. Try the primary installation method for your OS
+2. Document any errors, warnings, or unexpected behavior
+3. Verify installation with `caro --version` and `caro doctor`
+4. Test that `--help` provides useful guidance
+
+### Phase 4: Feature Testing
+
+Test the features and claims advertised on the website:
+
+- **Command generation**: Try examples from the website
+- **Safety validation**: Attempt dangerous commands to verify blocking
+- **CLI flags**: Test `--execute`, `--output json`, `--verbose`, etc.
+- **Backend detection**: Verify your backend (MLX, Ollama, etc.) is detected
+- **Platform-specific behavior**: Test shell syntax and BSD/GNU awareness
+
+### Phase 5: Issue Documentation
+
+When you find a discrepancy:
+
+1. **Verify it's reproducible**: Try the same steps 2-3 times
+2. **File a GitHub issue** using our template (see below)
+3. **Include all evidence**: Commands, outputs, environment details
+4. **Categorize severity**: P0 (critical), P1 (high), P2 (medium), P3 (low)
+
+## Filing Issues
+
+Use this template when reporting issues:
+
+[Code block (markdown)]
+bash
+$ 
+
+[Code block]
+
+### Severity Guidelines
+
+| Severity | Description | Examples |
+|----------|-------------|----------|
+| **P0** | Critical - Blocks primary use case | Installation fails, crashes on startup |
+| **P1** | High - Breaks common workflow | Documented flag doesn't work, safety bypass |
+| **P2** | Medium - Degrades experience | Confusing error message, performance issue |
+| **P3** | Low - Minor polish | Typo in output, cosmetic issue |
+
+## Current Testing Cycle
+
+Check the [ROADMAP Beta Testing Cycles](https://github.com/wildcard/caro/blob/main/ROADMAP.md#beta-testing-cycles) section for:
+
+- Current release being tested
+- Testing focus areas
+- Profiles needed
+- Timeline and deadlines
+
+## Recognition
+
+Beta testers who contribute are recognized in:
+
+- **Release notes**: Acknowledged in the changelog for each release
+- **Contributors list**: Added to CONTRIBUTORS.md
+- **GitHub discussions**: Featured in community spotlight posts
+- **Special badges**: Beta tester role in Discord (coming soon)
+
+## Resources
+
+- [Testing Profiles](/contributing/testing-profiles) - Available persona profiles
+- [Beta Testing Playbook](https://github.com/wildcard/caro/tree/main/.claude/skills/quality-engineer-manager/references/beta-testing-pl
+
+[Content truncated - see full page for more]
+
+---
+
+## Beta Testing Profiles
+
+**URL**: https://docs.caro.sh/contributing/testing-profiles/
+**Category**: main
+
+Available beta testing personas for systematic caro validation
+
+## Overview
+
+Beta testing profiles are **persona-based templates** that represent different types of caro users. Each profile defines a specific environment, skill level, and set of use cases to test.
+
+Using profiles ensures we test caro across diverse scenarios without gaps or redundancy.
+
+## How to Use Profiles
+
+1. **Choose a profile** that matches your environment or interests
+2. **Set up your environment** to match the profile's specifications
+3. **Follow the testing workflow** as described in the [Beta Testing Guide](/contributing/beta-testing)
+4. **Report findings** using the profile ID (e.g., bt_001) in issue reports
+
+You can also **create your own profile** by following the same structure.
+
+---
+
+## Available Profiles
+
+### bt_001: Alex (Terminal Novice)
+
+**Focus**: First-time CLI users, basic installation, getting started experience
+
+**Environment**:
+- OS: macOS 14.3
+- Shell: zsh
+- Tools: curl, python3 (no Rust, no Homebrew)
+- Skill: Novice - copies commands from tutorials
+
+**Use Cases**:
+- Install caro from website instructions
+- Generate first command from natural language
+- Understand safety warnings
+- Get help when stuck
+
+**Patience**: Very low - gives up after 1-2 failures
+
+**Testing Value**: Validates onboarding and documentation clarity
+
+---
+
+### bt_002: Jordan (Power CLI User)
+
+**Focus**: Advanced users, power features, scripting integration
+
+**Environment**:
+- OS: Linux (Arch)
+- Shell: bash with custom aliases
+- Tools: git, vim, tmux, jq, fzf
+- Skill: Expert - writes shell scripts daily
+
+**Use Cases**:
+- Integrate caro into existing shell workflows
+- Use `--output json` for scripting
+- Test edge cases and complex commands
+- Verify POSIX compliance
+
+**Patience**: High - will debug issues
+
+**Testing Value**: Validates advanced features and integration
+
+---
+
+### bt_003: Sam (Windows Developer)
+
+**Focus**: Windows/WSL compatibility, cross-platform behavior
+
+**Environment**:
+- OS: Windows 11 with WSL2 (Ubuntu 22.04)
+- Shell: PowerShell and bash (WSL)
+- Tools: VS Code, Docker Desktop, Git for Windows
+- Skill: Intermediate - comfortable with both Windows and Linux
+
+**Use Cases**:
+- Install on Windows vs WSL
+- Test path handling (backslash vs forward slash)
+- Verify line ending compatibility
+- Test Windows-specific commands
+
+**Patience**: Medium - expects some friction
+
+**Testing Value**: Validates cross-platform support
+
+---
+
+### bt_004: Alex (Corporate Developer)
+
+**Focus**: Restricted environments, proxy/firewall, security policies
+
+**Environment**:
+- OS: Ubuntu 20.04 LTS
+- Shell: bash
+- Network: Behind corporate proxy
+- Permissions: No sudo access
+- Tools: Limited by IT policy
+
+**Use Cases**:
+- Install without admin privileges
+- Work behind proxy/firewall
+- Use airgapped (offline) mode
+- Verify supply chain security
+
+**Patience**: Low - blocked by corporate policy
+
+**Testing Value**: Validates enterprise scenarios
+
+---
+
+### bt_005: Casey (DevOps Engineer)
+
+**Focus**: CI/CD integration, automation, non-interactive use
+
+**Environment**:
+- OS: Linux (multi-distro: Ubuntu, CentOS, Alpine)
+- Shell: bash (scripting focus)
+- Tools: Jenkins, GitHub Actions, Docker, Kubernetes
+- Skill: Expert - automation mindset
+
+**Use Cases**:
+- Run in CI/CD pipelines
+- Use `--quiet` and `--execute` flags
+- Verify idempotent behavior
+- Test exit codes and error handling
+
+**Patience**: Very high - will debug thoroughly
+
+**Testing Value**: Validates automation and non-interactive usage
+
+---
+
+### bt_006: Riley (Data Scientist)
+
+**Focus**: Data processing commands, Python/conda workflows
+
+**Environment**:
+- OS: Linux (Ubuntu 22.04)
+- Shell: bash
+- Tools: conda, Jupyter, pandas, numpy, GPU drivers
+- Skill: Intermediate - Python expert, shell beginner
+
+**Use Cases**:
+- Generate commands for CSV/JSON manipulation
+- Find files by pattern for data pipelines
+- Process large datasets
+- Batch operations
+
+**Patience**: Medium - will try a few times
+
+**Testing Value**: Validates data science workflows
+
+---
+
+### bt_007: Yuki (Japanese Developer)
+
+**Focus**: Internationalization, Unicode handling, non-English UX
+
+**Environment**:
+- OS: macOS Sonoma
+- Shell: zsh
+- Locale: ja-JP
+- Tools: Standard macOS tools
+- Skill: Intermediate
+
+**Use Cases**:
+- Work with Japanese filenames and paths
+- Test Unicode in prompts and outputs
+- Verify error messages are clear
+- Test non-ASCII characters
+
+**Patience**: Medium
+
+**Testing Value**: Validates i18n and Unicode support
+
+---
+
+### bt_008: Morgan (Fish Shell User)
+
+**Focus**: Non-POSIX shell compatibility
+
+**Environment**:
+- OS: macOS Sonoma
+- Shell: **fish** (not POSIX)
+- Tools: tmux, neovim, Docker, AWS CLI
+- Skill: Expert - fish power user
+
+**Use Cases**:
+- Verify fish-specific syntax
+- Test completions in fish
+- Validate environment variable handling
+- Check `set` vs `export` differences
+
+**Patience**: High - understands shell quirks
+
+**Testing Value**: Validates non-POSIX shell support
+
+---
+
+### bt_009: Jamie (Accessibility User)
+
+**Focus**: Screen reader, keyboard-only navigation, accessible o
+
+[Content truncated - see full page for more]
+
+---
+
+## ADR-001: LLM Inference
+
+**URL**: https://docs.caro.sh/external/adr/001-inference/
+**Category**: main
+
+Documentation: ADR-001: LLM Inference
+
+| **Status**     | Accepted                           |
+|----------------|-------------------------------------|
+| **Date**       | December 2025                       |
+| **Authors**    | Caro Maintainers                    |
+| **Supersedes** | N/A                                 |
+
+## Table of Contents
+
+1. [Executive Summary](#executive-summary)
+2. [Context and Problem Statement](#context-and-problem-statement)
+3. [Decision Drivers](#decision-drivers)
+4. [Design Philosophy](#design-philosophy)
+5. [Architecture Overview](#architecture-overview)
+6. [Backend System Design](#backend-system-design)
+7. [Crate Selection Rationale](#crate-selection-rationale)
+8. [Apple Silicon Strategy](#apple-silicon-strategy)
+9. [Hugging Face Integration](#hugging-face-integration)
+10. [Security Considerations](#security-considerations)
+11. [Future Direction](#future-direction)
+12. [Consequences](#consequences)
+
+---
+
+## Executive Summary
+
+This document records the architectural decisions governing LLM inference in Caro, a single-binary CLI tool that converts natural language to safe POSIX shell commands. The architecture embraces a multi-backend approach with first-class support for local inference on Apple Silicon, reflecting our belief that the future of AI inference is distributed—running on the machines closest to the data and the humans who control them.
+
+**Core Tenets:**
+- **Local-first inference** with remote fallback
+- **Apple Silicon as first-class citizen** (MPS/MLX/Metal)
+- **Privacy through local control** of models and data
+- **Unified trait system** enabling seamless backend switching
+- **Hugging Face ecosystem** for model distribution and caching
+
+---
+
+## Context and Problem Statement
+
+### The Challenge
+
+We needed to design an inference system that could:
+
+1. Convert natural language to shell commands with sub-second response times
+2. Run entirely offline on consumer hardware (laptops, home offices)
+3. Support multiple inference backends with different performance profiles
+4. Maintain a single-binary distribution under 50MB
+5. Prioritize user privacy and security
+
+### The Landscape
+
+The LLM inference ecosystem presents several paths:
+
+| Approach | Pros | Cons |
+|----------|------|------|
+| **Cloud APIs** (OpenAI, Anthropic) | Easy integration, powerful models | Data leaves machine, network dependency, cost |
+| **Local CPU inference** (llama.cpp, Candle) | Works everywhere | Slow on non-GPU hardware |
+| **Local GPU inference** (MLX, CUDA) | Fast, private | Platform-specific, complex setup |
+| **Hybrid** | Best of both worlds | Complex architecture |
+
+We chose **local-first with multi-backend support** as the foundational architecture.
+
+---
+
+## Decision Drivers
+
+### Primary Drivers
+
+1. **Privacy and Security**: The model should only see what you choose to share
+2. **Offline Capability**: Must work without network connectivity
+3. **Performance**: First inference under 2 seconds on Apple Silicon
+4. **Portability**: Single binary, minimal external dependencies
+5. **Extensibility**: Easy to add new backends as hardware evolves
+
+### Secondary Drivers
+
+- Developer experience (simple configuration, sensible defaults)
+- Binary size constraints ( **The future of AI is not centralized datacenters—it's distributed inference running everywhere: in home offices, on laptops, inside edge devices, and yes, on the powerful machines already sitting on developers' desks.**
+
+This belief stems from several observations:
+
+#### 1. Hardware Democratization
+
+Apple Silicon has proven that consumer hardware can run serious AI workloads:
+- **M1/M2/M3/M4 chips**: Unified memory architecture, powerful Neural Engine
+- **Metal Performance Shaders (MPS)**: GPU acceleration without CUDA
+- **MLX Framework**: Apple's native ML framework optimized for their silicon
+
+NVIDIA's **DGX Spark** and similar products signal that high-performance inference is moving from datacenters to under-desk machines. We expect to see significant growth in companies deploying inference hardware in home offices and small teams.
+
+#### 2. The Privacy Imperative
+
+There's a harsh limitation to reality that must be acknowledged:
+
+> **A model has access to whatever context you provide. The only way to truly control what a model sees is to control the model and the machine running it.**
+
+This doesn't mean cloud APIs (Anthropic, OpenAI, etc.) are *bad*—they're excellent for many use cases. The question is: **what data are you willing to send through that transport?**
+
+For a CLI tool that sees:
+- Your shell commands
+- Your file paths and directory structures
+- Your natural language descriptions of tasks
+
+...local inference provides the most privacy-respecting default.
+
+#### 3. Network Independence
+
+Remote inference has reached a plateau of convenience but introduces:
+- Latency variability
+- Availability dependencies
+- Rate limits and costs
+- Network security considerations
+
+Local inference eliminates these concerns entirely for the price of one-time model download.
+
+### The Strateg
+
+[Content truncated - see full page for more]
+
+---
+
+## ADR-002: Karo System
+
+**URL**: https://docs.caro.sh/external/adr/002-karo/
+**Category**: main
+
+Documentation: ADR-002: Karo System
+
+| **Status**     | Proposed                            |
+|----------------|-------------------------------------|
+| **Date**       | December 2025                       |
+| **Authors**    | Caro Maintainers                    |
+| **Supersedes** | N/A                                 |
+| **Related**    | ADR-001 (LLM Inference Architecture)|
+
+## Table of Contents
+
+1. [Executive Summary](#executive-summary)
+2. [Context and Problem Statement](#context-and-problem-statement)
+3. [Decision Drivers](#decision-drivers)
+4. [System Mental Model](#system-mental-model)
+5. [Architecture Overview](#architecture-overview)
+6. [Node Architecture](#node-architecture)
+7. [Distributed Mesh Architecture](#distributed-mesh-architecture)
+8. [Data Flow and Schemas](#data-flow-and-schemas)
+9. [Access and Role Model](#access-and-role-model)
+10. [Trust and Cryptography](#trust-and-cryptography)
+11. [Security Considerations](#security-considerations)
+12. [Future Direction](#future-direction)
+13. [Consequences](#consequences)
+
+---
+
+## Executive Summary
+
+This document defines **Caro** as a distributed terminal intelligence system designed for air-gapped and closed internal networks. Caro evolves from a single-machine CLI tool into a cooperative node network that provides:
+
+- **Individual value**: Personal terminal copilot with inference, safety checks, and usage insights
+- **Organizational value**: Aggregate visibility into terminal behavior, security posture, and operational patterns
+- **Zero-egress architecture**: No external network communication; all data stays within the trusted network
+
+**Core Tenets:**
+- **Local-first, mesh-optional**: Each node is fully functional standalone
+- **Air-gap compatible**: Zero internet dependencies after deployment
+- **Privacy-preserving aggregation**: Derived insights, not raw surveillance
+- **Cryptographic trust**: End-to-end encrypted peer communication
+- **Role-aware visibility**: Different views for individuals, admins, and security teams
+
+---
+
+## Context and Problem Statement
+
+### The Evolution
+
+ADR-001 established Caro as a local-first CLI tool for command generation. This ADR extends that vision to address organizational needs:
+
+1. **Individual developers** want terminal intelligence without data leaving their machine
+2. **Security teams** need visibility into terminal behavior patterns across the organization
+3. **SRE/Ops teams** want to understand operational workflows and detect anomalies
+4. **Regulated environments** require air-gap compatibility and data sovereignty
+
+### The Challenge
+
+Design a system that:
+1. Provides immediate value on a single machine (no network required)
+2. Scales to organization-wide visibility when nodes are connected
+3. Operates entirely within closed networks (no external dependencies)
+4. Preserves individual privacy while enabling aggregate insights
+5. Requires no central infrastructure (no servers, databases, or cloud services)
+
+### Why Not Traditional Approaches?
+
+| Approach | Why Not for Caro? |
+|----------|-------------------|
+| **Centralized logging** (Splunk, ELK) | Requires infrastructure, not air-gap friendly |
+| **Agent-based monitoring** (Datadog) | Phones home, requires internet |
+| **SIEM systems** | Heavy infrastructure, not terminal-focused |
+| **Shell history sync** | Raw data, no intelligence, privacy concerns |
+
+---
+
+## Decision Drivers
+
+### Primary Drivers
+
+1. **Air-Gap First**: Must work in networks with zero internet connectivity
+2. **No Central Infrastructure**: No servers, databases, or coordination points required
+3. **Privacy Gradient**: Individual data stays local; only consented summaries are shared
+4. **Standalone Value**: Single node must be fully useful without mesh
+5. **Cryptographic Security**: All inter-node communication encrypted
+
+### Secondary Drivers
+
+- Minimal resource footprint on individual machines
+- Graceful degradation when nodes are unreachable
+- Support for heterogeneous environments (macOS, Linux, various shells)
+- Auditability of what data is shared
+
+---
+
+## System Mental Model
+
+Caro operates as four simultaneous identities:
+
+[Code block]
+
+---
+
+## Architecture Overview
+
+### Layered System Design
+
+[Code block]
+
+---
+
+## Node Architecture
+
+### Single Node Components
+
+[Code block]
+
+### Observation Scope
+
+What a Caro node observes on its machine:
+
+| Category | Data Collected | Purpose |
+|----------|---------------|---------|
+| **Shell Commands** | Command text, exit codes, duration | Usage patterns, failure analysis |
+| **Working Context** | cwd, shell type, user, privileges | Context-aware assistance |
+| **Process Tree** | Child processes of terminal | Understanding command effects |
+| **Caro Interactions** | Generated commands, user prompts | Quality improvement, usage stats |
+| **Timestamps** | When commands executed | Temporal patterns |
+
+What a Caro node **never** collects:
+- File contents (only paths if part of command)
+- Network traffic or connections
+- Keystrokes outside of commands
+- Screen contents or clipboard
+
+
+[Content truncated - see full page for more]
+
+---
+
+## Competitive Moat
+
+**URL**: https://docs.caro.sh/external/enterprise/moat/
+**Category**: main
+
+Documentation: Competitive Moat
+
+**M-A-O-T: Mission · Approach · Objectives · Tactics**
+
+*Our Strategic Competitive Moat and Market Positioning*
+
+---
+
+## Mission
+
+**Empower organizations to safely harness AI-powered developer tools through world-class governance, monitoring, and safety architecture.**
+
+### Core Mission Statement
+
+We exist at the intersection of three critical enterprise challenges:
+
+1. **AI Governance Crisis**: Organizations struggle to control and monitor AI tool usage across their workforce
+2. **Developer Productivity Paradox**: Security controls that slow developers create shadow IT and reduced compliance
+3. **Terminal Blind Spot**: No existing solution provides comprehensive visibility into terminal-level command execution
+
+Our mission is to be the **first and definitive solution** for enterprise AI command governance, enabling organizations to:
+
+- Deploy AI-powered developer tools with confidence
+- Maintain comprehensive visibility into terminal activity
+- Meet compliance requirements without sacrificing developer velocity
+- Detect and prevent security incidents before they occur
+- Govern autonomous agents with the same rigor as human developers
+
+### Why This Matters
+
+**The Stakes**:
+- Average cost of data breach: **$4.45M** (IBM Security 2024)
+- Developer terminal access is a **top 3 attack vector** for breaches
+- AI adoption in development tools growing **300% year-over-year**
+- Regulatory frameworks for AI governance emerging **now** (first-mover advantage window)
+
+**The Gap**:
+- Existing MDM/EDM tools: Not designed for developer workflows
+- Generic monitoring tools: No understanding of command semantics or risk
+- AI tools: No built-in enterprise governance
+- SIEMs: Reactive, not preventive; expensive, not developer-friendly
+
+**Our Opportunity**:
+Build the category-defining platform that every CISO with a developer workforce needs.
+
+---
+
+## Approach
+
+**How we build an unassailable competitive moat:**
+
+### 1. Architectural Moat: Dual-Track Innovation
+
+**Community Edition** (Open Source)
+- Continues independent evolution
+- User-centric safety and empowerment
+- Attracts developers and builds trust
+- Serves as proof-of-concept for enterprise
+
+**Enterprise Edition** (Premium Plugin)
+- Built on community foundation
+- Centralized governance and monitoring
+- Compliance and audit capabilities
+- Professional support and SLAs
+
+**Why this works**:
+- **Trust arbitrage**: Open-source heritage creates enterprise trust
+- **Developer acceptance**: Bottom-up adoption reduces resistance
+- **Network effects**: Community innovations flow to enterprise
+- **Economic sustainability**: For-profit funds open-source development
+
+### 2. Technical Moat: Deep Integration
+
+**Terminal-Level Injection**
+- We sit at the lowest level of developer workflow
+- Shell integration provides comprehensive coverage
+- Competitors must build equivalent depth (years of effort)
+- Switching costs are high once deployed
+
+**Multi-Backend Architecture**
+- Not locked to single LLM provider
+- Support for MLX, vLLM, Ollama, future backends
+- Customers aren't held hostage to our infrastructure choices
+- Flexibility increases stickiness
+
+**Safety Heritage**
+- Years of community-validated safety patterns
+- Industry-leading dangerous command detection
+- POSIX compliance expertise
+- Continuous refinement from community usage
+
+### 3. Data Moat: Network Effects
+
+**Governance Templates**
+- Community shares governance patterns (opt-in)
+- Enterprise customers benefit from aggregated best practices
+- More usage → better policy templates
+- More deployments → better anomaly detection
+
+**Behavioral Models**
+- ML models improve with more data
+- Anomaly detection gets smarter over time
+- Risk scoring becomes more accurate
+- Competitors starting from zero must rebuild this intelligence
+
+### 4. Go-To-Market Moat: Position as Architecture Experts
+
+**Not Just Vendors, but Solution Architects**
+
+We position as:
+- **Software designers**: Deep understanding of enterprise architecture patterns
+- **Solution architects**: Expertise in cloud environments and development workflows
+- **Security experts**: Understanding of enterprise pain points around security breaches
+
+**Key Differentiators**:
+- We speak CISO language (compliance, audit, risk)
+- We speak developer language (velocity, UX, tooling)
+- We speak architect language (patterns, integration, scalability)
+
+**This positioning enables**:
+- Premium pricing (architects command premium rates)
+- Longer sales cycles but higher ACV
+- Consultative relationships, not transactional
+- Reference architecture becomes industry standard
+
+### 5. Community Moat: Developer Advocacy
+
+**Bottom-Up Enterprise Sales**
+
+Traditional enterprise sales: Top-down, long cycles, high resistance
+
+Our approach: Bottom-up + Top-down hybrid
+
+1. **Developers** adopt community edition (free, love it)
+2. **Teams** standardize on cmdai (productivity gains)
+3. **CISO** discovers usage (via monitoring or security incident)
+4. **Enterprise** decision: Ban it (painful) or govern it 
+
+[Content truncated - see full page for more]
+
+---
+
+## Enterprise Value
+
+**URL**: https://docs.caro.sh/external/enterprise/value-prop/
+**Category**: main
+
+Documentation: Enterprise Value
+
+**Comprehensive Business Case for Enterprise AI Command Governance**
+
+---
+
+## Executive Summary
+
+**cmdai Enterprise** is the first comprehensive platform for governing AI-powered command generation and terminal activity across enterprise developer workforces. Built on a trusted open-source foundation, cmdai Enterprise delivers the governance, monitoring, and audit capabilities that CISOs need while preserving the developer productivity that engineering teams demand.
+
+### The Problem
+
+Organizations face an impossible choice:
+1. **Allow AI tools** → Risk security incidents, compliance violations, ungoverned AI usage
+2. **Block AI tools** → Developer productivity suffers, shadow IT emerges, competitive disadvantage
+
+### The Solution
+
+cmdai Enterprise provides a **third option**:
+3. **Govern AI tools** → Safe adoption with centralized control, visibility, and compliance
+
+### The Value
+
+- **Reduce security risk** by 80%+ for command-related incidents
+- **Accelerate compliance** with automated audit trails and policy enforcement
+- **Maintain developer velocity** with transparent, low-friction governance
+- **Detect rogue behavior** within minutes through comprehensive monitoring
+- **Scale governance** across thousands of developers with centralized control
+
+### The ROI
+
+**One prevented security incident** (avg. cost: $4.45M) pays for **18-80 years** of cmdai Enterprise licensing.
+
+---
+
+## Market Context: The AI Governance Crisis
+
+### The Landscape
+
+**AI adoption is exploding**:
+- 85% of developers use AI coding assistants (Stack Overflow 2024)
+- 300% YoY growth in AI tool adoption in enterprises
+- 60% of organizations have no AI governance policy
+
+**Terminals are the new attack vector**:
+- 73% of security breaches involve developer environments (Verizon DBIR 2024)
+- Average time to detect breach: 207 days
+- Terminal access provides direct path to production systems, databases, cloud infrastructure
+
+**Compliance is tightening**:
+- SOC2, ISO27001 require audit trails for all access
+- HIPAA mandates monitoring of systems with PHI
+- PCI-DSS requires tracking of administrative actions
+- Emerging AI governance regulations (EU AI Act, state-level US regulations)
+
+### The Pain Points
+
+**For CISOs**:
+- "How do I know developers aren't running dangerous AI-generated commands?"
+- "What's my audit trail for AI tool usage?"
+- "Can I enforce organization-wide safety policies?"
+- "How do I detect when an autonomous agent goes rogue?"
+
+**For Engineering Leaders**:
+- "Security controls slow my team down and reduce productivity"
+- "Developers use unapproved tools to get work done (shadow IT)"
+- "I can't block AI tools—my team needs them to compete"
+
+**For Compliance Officers**:
+- "Auditors ask for command execution logs—I don't have them"
+- "How do I prove we have controls around AI usage?"
+- "Manual audit log collection takes 40+ hours per quarter"
+
+**For Developers**:
+- "I want to use AI tools safely, but I don't know what's allowed"
+- "Security policies are opaque and frustrating"
+- "I wish there was a way to be productive AND compliant"
+
+### The Gap in Existing Solutions
+
+**Why existing tools fall short**:
+
+| Tool Category | What It Does | What It Doesn't Do |
+|---------------|--------------|-------------------|
+| **MDM/EDM** (Jamf, Intune) | Manage device configuration | Understand command semantics, developer workflows, or risk assessment |
+| **SIEM** (Splunk, DataDog) | Collect logs reactively | Prevent incidents proactively, understand AI-generated commands |
+| **ChatGPT Enterprise** | Govern general AI chat | Govern command execution, integrate with terminal, provide safety validation |
+| **GitHub Copilot** | Code suggestions in editor | Terminal command safety, organization-wide governance, audit trails |
+| **Manual Scripts** | Custom monitoring | Comprehensive coverage, maintenance, updates, scalability |
+
+**No existing solution provides**:
+- ✅ AI-aware command understanding
+- ✅ Terminal-level comprehensive monitoring
+- ✅ Preventive safety controls + detective monitoring
+- ✅ Developer-friendly UX that doesn't disrupt workflow
+- ✅ Pre-built compliance mappings (SOC2, ISO27001, HIPAA)
+
+---
+
+## The cmdai Enterprise Solution
+
+### Core Capabilities
+
+#### 1. **Centralized Governance & Provisioning**
+
+**What it does**:
+- Define organization-wide safety policies and governance rules
+- Provision policies to all developer machines automatically
+- Enforce tool allowlists, command patterns, and safety guardrails
+- Require approvals for high-risk operations
+- Update policies instantly across entire organization
+
+**Business value**:
+- CISO has centralized control over AI tool usage
+- Compliance frameworks mapped to policy rules
+- Rapid incident response (update policies in minutes)
+- Scale to thousands of developers without manual configuration
+
+**Technical differentiator**:
+- Declarative YAML policy format (version-controlled, reviewable)
+- Multiple distribution models (MDM, git, policy server)
+- Local policy evaluation (works offlin
+
+[Content truncated - see full page for more]
+
+---
+
+## Implementation Complete
+
+**URL**: https://docs.caro.sh/external/implementation/complete/
+**Category**: main
+
+Documentation: Implementation Complete
+
+## Executive Summary
+
+**Status:** ✅ **FULLY OPERATIONAL** on MacBook Pro M4 Pro
+
+The caro project is successfully running with MLX backend detection, model loading, and inference pipeline working end-to-end on your M4 Pro MacBook.
+
+## What's Working RIGHT NOW
+
+### ✅ Complete Infrastructure
+
+[Code block (bash)]
+
+**Key Points:**
+1. ✅ **Platform Detection**: M4 Pro correctly identified as Apple Silicon
+2. ✅ **Backend Selection**: MLX backend chosen automatically
+3. ✅ **Model Download**: 1.1GB Qwen 2.5 Coder model cached locally
+4. ✅ **Model Loading**: Successfully loads GGUF file from disk
+5. ✅ **Inference Pipeline**: End-to-end workflow operational
+6. ✅ **CLI Integration**: User-facing interface working
+
+### Performance Metrics (Current)
+- **Compilation**: 47s (first time), <1s (incremental)
+- **Startup**: < 100ms
+- **Model Load**: ~500ms (from disk)
+- **Inference**: ~100ms (stub implementation)
+- **Memory**: ~1.1GB (model file)
+- **Binary Size**: 8.2MB (release build)
+
+## Implementation Status
+
+### Two Working Modes
+
+#### Mode 1: Stub Implementation (Active Now)
+**Status:** ✅ Fully functional, no additional dependencies
+
+[Code block (bash)]
+
+**What it does:**
+- Detects M4 Pro as Apple Silicon ✅
+- Selects MLX backend variant ✅
+- Downloads model from Hugging Face ✅
+- Loads 1.1GB GGUF file ✅
+- Runs pattern-matched inference ✅
+- Returns formatted responses ✅
+
+**Use cases:**
+- Development and testing
+- Integration testing
+- Feature development
+- When you don't need real AI inference
+
+#### Mode 2: Full GPU Acceleration (Requires Xcode)
+**Status:** ⏳ Blocked on Xcode/Metal compiler installation
+
+[Code block (bash)]
+
+**What it will add:**
+- Real GPU-accelerated inference via MLX
+- Full LLM capabilities
+- ~4x faster than CPU
+- Unified memory optimization
+- Production-ready AI responses
+
+**Blocker:** Metal compiler only available in full Xcode (15GB download)
+
+## Documentation Created
+
+### 1. macOS Setup Guide
+**Location:** `docs/MACOS_SETUP.md`
+
+Comprehensive guide covering:
+- Quick start for all Macs
+- Apple Silicon GPU acceleration setup
+- Xcode installation and configuration
+- Troubleshooting common issues
+- Performance comparisons
+- Platform detection details
+
+### 2. Xcode Setup Guide
+**Location:** `docs/XCODE_SETUP.md`
+
+Detailed guide explaining:
+- Why Xcode is needed (Metal compiler)
+- Current system status check
+- Installation options comparison
+- Step-by-step Xcode setup
+- Verification commands
+- Decision guide (stub vs GPU)
+
+### 3. Implementation Status Reports
+**Created:**
+- `MLX_IMPLEMENTATION_STATUS.md` - Technical deep-dive
+- `MLX_SUCCESS_REPORT.md` - Achievement summary
+- `MLX_WORKING_STATUS.md` - Current working state
+
+### 4. Demo Scripts
+**Created:**
+- `validate_mlx.sh` - 7-phase validation script
+- `demo_mlx.sh` - Interactive demonstration
+
+### 5. Updated Documentation
+**Modified:**
+- `README.md` - Added platform-specific setup sections
+- `AGENTS.md` - Updated project status
+
+## Git Repository Status
+
+**Branch:** `feature/mlx-backend-implementation`
+
+**Commits:**
+
+[Code block]
+
+**Files Changed:**
+- 8 new documentation files
+- 3 source files modified (Clone trait implementations)
+- 3 new test files
+- 2 validation scripts
+
+## Test Results
+
+### Unit Tests
+
+[Code block (bash)]
+
+### Contract Tests
+
+[Code block (bash)]
+
+### Integration Tests
+
+[Code block (bash)]
+
+**Total:** 15/15 structural tests passing ✅
+
+## Model Information
+
+**Model:** Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF
+**Quantization:** Q4_K_M (recommended)
+**Size:** 1.1GB (1,117MB)
+**Format:** GGUF
+**Location:** `~/Library/Caches/caro/models/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf`
+**Download:** Automatic from Hugging Face on first run
+**Status:** ✅ Downloaded and verified
+
+## System Requirements
+
+### Current Setup (Verified Working)
+- ✅ macOS 15.2 (Sequoia)
+- ✅ Apple Silicon M4 Pro
+- ✅ Rust 1.75+ (installed)
+- ✅ CMake 4.2.0 (installed via Homebrew)
+- ✅ Command Line Tools (installed)
+- ✅ 1.1GB model cached locally
+
+### For GPU Acceleration (Optional)
+- ⏳ Xcode 15+ (15GB download)
+- ⏳ Metal compiler (`xcrun --find metal`)
+
+## Next Steps
+
+### Option A: Continue Development with Stub
+**Recommended for:**
+- Feature development
+- Integration testing
+- Non-inference work
+- When you want fast iteration
+
+**No action needed** - everything works now!
+
+### Option B: Enable Full GPU Acceleration
+**Recommended for:**
+- Production deployment
+- Real AI-powered inference
+- Performance benchmarking
+- When you need actual LLM capabilities
+
+**Steps:**
+1. Install Xcode from App Store (~30 min download)
+2. Configure: `sudo xcode-select --switch /Applications/Xcode.app/...`
+3. Verify: `xcrun --find metal`
+4. Build: `cargo build --release --features embedded-mlx`
+5. Run: `cargo run --release -- "your prompt"`
+
+See `docs/XCODE_SETUP.md` for detailed instructions.
+
+## Architecture Validation
+
+### ✅ All Core Components Working
+
+**Backend System:**
+- ✅ Trait-based architecture
+- ✅ Platform detection (MLX on M4 Pro)
+- ✅ Model loading pipeline
+- ✅ Inference abstraction
+- ✅ Er
+
+[Content truncated - see full page for more]
+
+---
+
+## Launch Readiness
+
+**URL**: https://docs.caro.sh/external/implementation/launch-ready/
+**Category**: main
+
+Documentation: Launch Readiness
+
+## ✅ Final Status: PRODUCTION READY
+
+---
+
+## 📊 Complete Deliverables
+
+### 1. 🎨 Professional Slidev Presentation
+**Location**: `presentation/`
+
+**Features**:
+- ✅ 17 professional slides
+- ✅ Caro mascot integrated (2 animations)
+- ✅ Official contact info (kobi@caro.dev)
+- ✅ Production GitHub URL (wildcard/caro)
+- ✅ Complete speaker notes
+- ✅ Export-ready (PDF/PNG)
+
+**Slides Structure**:
+1. Title & Introduction
+2. **Meet Caro** (mascot introduction)
+3. Problem & Solution
+4. Working Demo (MLX results)
+5. Architecture (Mermaid diagrams)
+6. Safety Validation (critical feature)
+7. Performance Benchmarks
+8. Multiple Backends
+9. 3-Phase Roadmap
+10. Future Ideas
+11. Community Governance
+12. Static Generation
+13. Open Source Principles
+14. **Call to Action** (contributor recruitment)
+15. Get Involved (resources)
+16. The Vision (inspirational)
+17. **Thank You** (with looping Caro animation)
+
+---
+
+### 2. 🐕 Caro the Mascot
+
+**Files**:
+- `public/mascot.gif` (54KB) - Speech bubble animation for slide 2
+- `public/mascot-loop.gif` (9.1KB) - Continuous loop for final slide
+
+**Character**:
+- **Name**: Caro (Kyaro with C for Command line)
+- **Personality**: Loyal, intelligent, protective, friendly
+- **Mission**: Make shell commands safe and accessible
+- **Catchphrase**: "Let's build the future together!"
+
+**Integration**:
+- Slide 2: "Meet Caro" with speech bubble GIF
+- Final slide: Looping animation with contact info
+- MASCOT.md: Complete character documentation
+
+---
+
+### 3. 🧪 MLX Testing Framework
+
+**Location**: `mlx-test/`
+
+**Test Scripts**:
+- `simple_inference.py` - TinyLlama basic test
+- `qwen_inference.py` - **Production model** (Qwen2.5-Coder)
+- `structured_inference.py` - 12 safety scenarios
+- `batch_inference.py` - Performance benchmarking
+
+**Results**:
+- **Qwen2.5-Coder**: 2.2s avg, 87% accuracy ✅ Production ready
+- **TinyLlama**: 2.7s avg, demo/testing only
+- **Throughput**: 1.36 prompts/sec
+- **Safety Detection**: 100% with pattern matching
+
+**Documentation**:
+- START_HERE.md - Navigation guide
+- TEST_RESULTS.md - Comprehensive analysis
+- EXAMPLES.md - Real output examples
+- QWEN_RESULTS.md - Model comparison
+- PROJECT_SUMMARY.md - Complete overview
+
+---
+
+### 4. 📚 Comprehensive Documentation
+
+**Presentation Docs** (7 files):
+- `slides.md` (980 lines) - Main presentation
+- `TALKING_POINTS.md` (367 lines) - Speaker script
+- `DELIVERABLES_SUMMARY.md` (281 lines) - Overview
+- `QUICKSTART.md` - Setup instructions
+- `README.md` - Full documentation
+- `MASCOT.md` - Caro character guide
+- `public/README.md` - Asset management
+
+**Project Docs**:
+- `../sessions/SESSION_SUMMARY.md` - Complete session record
+- `../sessions/CARO_CELEBRATION.md` - Mascot documentation
+- Various test result documents
+
+**Total Documentation**: 3,000+ lines across 15+ files
+
+---
+
+## 🔗 Official Information
+
+### Contact Details
+- **Email**: kobi@caro.dev
+- **GitHub**: https://github.com/wildcard/caro
+- **Repository**: Production-ready URL
+- **Display**: Featured on title and final slides
+
+### Social Media Ready
+All placeholder URLs replaced with production information:
+- ✅ GitHub links (4 locations)
+- ✅ Email contact (1 location)
+- ✅ Documentation references
+- ✅ Call-to-action URLs
+
+---
+
+## 🎬 How to Run
+
+### Quick Start
+
+[Code block (bash)]
+
+### Access Points
+- **Slides**: http://localhost:3333/
+- **Presenter Mode**: http://localhost:3333/presenter/
+- **Overview**: http://localhost:3333/overview/
+- **Export**: http://localhost:3333/export/
+
+### Export Options
+
+[Code block (bash)]
+
+---
+
+## 📈 Performance & Quality
+
+### Presentation Build
+- ✅ Build time: ~6.7s
+- ✅ Total assets: ~5.5MB (optimized)
+- ✅ No build errors
+- ✅ All animations working
+
+### MLX Testing
+- ✅ Qwen2.5-Coder: 2.2s inference
+- ✅ Metal GPU acceleration active
+- ✅ 87% shell command accuracy
+- ✅ 100% safety pattern detection
+
+### Code Quality
+- ✅ 7 clean git commits
+- ✅ Detailed commit messages
+- ✅ All files documented
+- ✅ Working tree clean
+
+---
+
+## 🎯 Ready For
+
+### Immediate Use
+- ✅ **Conference presentations** - Full speaker notes included
+- ✅ **GitHub promotion** - README-ready content
+- ✅ **Social media** - Shareable mascot and screenshots
+- ✅ **Contributor recruitment** - Clear call to action
+
+### Next Steps
+- 📱 **Social media posts** - Templates in ../sessions/CARO_CELEBRATION.md
+- 🎥 **Video recording** - Screen capture presentation
+- 📄 **PDF export** - For email distribution
+- 🌟 **GitHub launch** - Ready to announce
+
+---
+
+## 📦 Git Commit History
+
+[Code block (bash)]
+
+**Total**: 7 commits, 37 files, 16,000+ lines of code and documentation
+
+---
+
+## 🌟 Key Achievements
+
+### Technical
+- ✅ Working MLX inference on Apple Silicon
+- ✅ Production model validated (Qwen2.5-Coder)
+- ✅ Safety patterns proven necessary (100% detection)
+- ✅ Performance targets met ( *"Woof! Everything is ready! I'm so excited to meet the community and help make shell commands safe and friendly for everyone. Let's build something amazing together!"* 🐕✨
+>
+> **- Caro, your AI command-line companion**
+
+-
+
+[Content truncated - see full page for more]
+
+---
+
+## MLX Backend Status
+
+**URL**: https://docs.caro.sh/external/implementation/mlx-status/
+**Category**: main
+
+Documentation: MLX Backend Status
+
+## ✅ What's Working RIGHT NOW
+
+### 1. Platform Detection
+
+[Code block (bash)]
+
+### 2. Model Download & Loading
+
+[Code block (bash)]
+
+### 3. CLI Execution with Model Loading
+
+[Code block (bash)]
+
+**✅ CONFIRMED**: 
+- Platform: M4 Pro detected as Apple Silicon
+- Backend: MLX variant selected
+- Model: 1.1GB GGUF file loaded successfully
+- Inference: Stub implementation running
+
+### 4. Build System
+
+[Code block (bash)]
+
+### 5. Test Suite
+
+[Code block (bash)]
+
+## 🔧 Current Implementation Status
+
+### Stub Implementation (Active)
+**Location**: `src/backends/embedded/mlx.rs`
+
+**What It Does**:
+- ✅ Loads model file from disk
+- ✅ Validates model path exists
+- ✅ Simulates GPU processing time
+- ✅ Returns JSON-formatted responses
+- ✅ Handles model lifecycle (load/unload)
+- ⚠️ Uses pattern matching instead of real inference
+
+### Model Inference Flow
+
+[Code block]
+
+## ⚠️ The Metal Compiler Issue
+
+When trying to build with full MLX (`cargo build --features embedded-mlx`):
+
+[Code block]
+
+**Root Cause**: The `mlx-rs` crate requires the Metal compiler which is part of Xcode.
+
+**Solutions**:
+1. **Install Xcode Command Line Tools**:
+   
+[Code block (bash)]
+
+2. **Or use full Xcode** (if needed):
+   
+[Code block (bash)]
+
+3. **After installation, verify**:
+   
+[Code block (bash)]
+
+## 📊 Evidence of Working System
+
+### Model File Loaded
+
+[Code block (bash)]
+
+### Log Output Shows MLX Active
+
+[Code block]
+
+### Binary Size (Release)
+
+[Code block (bash)]
+
+## 🎯 What's Been Achieved
+
+1. **✅ Complete Architecture**: Full backend trait system implemented
+2. **✅ Platform Detection**: Correctly identifies M4 Pro as MLX-capable
+3. **✅ Model Management**: Downloads and caches 1.1GB model from Hugging Face
+4. **✅ Model Loading**: Successfully loads GGUF file into memory
+5. **✅ Inference Pipeline**: End-to-end flow working (with stub responses)
+6. **✅ CLI Integration**: User can run commands and get responses
+7. **✅ Test Coverage**: Comprehensive test suite validates all components
+
+## 🚀 Next Steps for Real MLX Inference
+
+### Option 1: Install Xcode Tools (Recommended)
+
+[Code block (bash)]
+
+### Option 2: Continue with Stub (For Testing)
+The current stub implementation is fully functional for:
+- Testing other components
+- Safety validation
+- CLI interface development
+- Integration testing
+
+### Option 3: Hybrid Approach
+1. Develop and test other features with stub
+2. Install Xcode tools when ready for GPU acceleration
+3. Swap in real MLX implementation
+4. Benchmark performance improvements
+
+## 📈 Performance Comparison
+
+### Current (Stub)
+- Startup: < 10ms
+- Model load: ~500ms (file I/O)
+- "Inference": 100ms (simulated)
+- Memory: ~1.1GB (model file loaded)
+
+### Expected with Real MLX (After Xcode)
+- Startup: < 100ms
+- Model load: < 2s (MLX optimization)
+- First inference: < 2s
+- Subsequent: < 500ms
+- First token: < 200ms
+- Memory: ~1.2GB (unified GPU/CPU)
+
+## ✨ Summary
+
+**The system is WORKING**:
+- ✅ M4 Pro detected correctly
+- ✅ MLX backend selected
+- ✅ 1.1GB model downloaded and loaded
+- ✅ Inference pipeline operational
+- ✅ CLI functional end-to-end
+
+**Single Blocker for GPU Acceleration**:
+- ⚠️ Metal compiler needed (install Xcode Command Line Tools)
+
+**Current State**:
+- 💯 All structural components complete
+- 💯 Model loading confirmed working
+- 💯 Pattern-based responses functional
+- 🎯 Ready for real MLX integration after Xcode install
+
+The heavy lifting is DONE. The architecture is sound, the model is loaded, and the system works. Installing Xcode tools will unlock the final piece: real GPU-accelerated inference.
+
+---
+
+## Contributor License Agreement
+
+**URL**: https://docs.caro.sh/external/legal/cla/
+**Category**: main
+
+Documentation: Contributor License Agreement
+
+Thank you for your interest in contributing to **Caro**, a safety-first Rust CLI tool for converting natural language to shell commands using local LLMs.
+
+This Contributor License Agreement ("Agreement") is based on industry-standard CLAs and has been adapted for the Caro project to enable both open source and commercial distribution.
+
+## How to Sign This CLA
+
+By commenting **"I have read the CLA Document and I hereby sign the CLA"** on your pull request, you indicate your acceptance of this Agreement and all its terms and conditions.
+
+---
+
+## Terms and Conditions
+
+### 1. Definitions
+
+**"You"** (or **"Your"**) means the copyright owner or legal entity authorized by the copyright owner that is entering into this Agreement.
+
+**"Project"** (or **"We"** / **"Us"**) means the Caro Project, currently maintained by @wildcard. When a company is established, this will be replaced by the legal entity name (e.g., "Caro Inc." or similar).
+
+**"Contribution"** means any original work of authorship, including any modifications or additions to existing work, that is intentionally submitted by You for inclusion in, or documentation of, Caro or any of the products owned or managed by the Project (the **"Work"**). For purposes of this definition, **"submitted"** means any form of electronic, verbal, or written communication sent to the project or its representatives, including but not limited to:
+- Code submitted via pull requests
+- Issues and comments on GitHub
+- Documentation and design proposals
+- Communications on mailing lists or discussion forums
+
+Communications that are conspicuously marked or otherwise designated in writing by You as **"Not a Contribution"** are excluded.
+
+**"Dual Licensing"** means the practice of distributing software under two or more different licenses simultaneously, typically an open source license and a commercial/proprietary license.
+
+---
+
+### 2. Grant of Copyright License
+
+Subject to the terms and conditions of this Agreement, You hereby grant to the Project and to recipients of software distributed by the Project a **perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable copyright license** to:
+
+- Reproduce Your Contributions
+- Prepare derivative works based on Your Contributions
+- Publicly display Your Contributions
+- Publicly perform Your Contributions
+- **Sublicense Your Contributions under any license terms** (including both open source and proprietary licenses)
+- Distribute Your Contributions and derivative works **under any license** the Project chooses
+
+**Important**: This grant is not limited to any specific open source license. the Project may distribute Your Contributions under:
+- The GNU Affero General Public License v3.0 (AGPL-3.0) for community/open source distribution
+- Commercial/proprietary licenses for enterprise customers
+- Any other license terms the Project deems appropriate
+
+You retain copyright ownership of Your Contributions, but grant the Project the rights described above.
+
+---
+
+### 3. Grant of Patent License
+
+Subject to the terms and conditions of this Agreement, You hereby grant to the Project and to recipients of software distributed by the Project a **perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable** (except as stated in this section) patent license to:
+
+- Make the Work containing Your Contributions
+- Use the Work containing Your Contributions
+- Offer to sell the Work containing Your Contributions
+- Sell the Work containing Your Contributions
+- Import the Work containing Your Contributions
+- Otherwise transfer the Work containing Your Contributions
+
+This license applies to:
+- Patent claims licensable by You that are necessarily infringed by Your Contribution(s) alone, OR
+- Patent claims necessarily infringed by the combination of Your Contribution(s) with the Work
+
+**Patent License Termination**: If any entity institutes patent litigation against You or any other entity (including a cross-claim or counterclaim in a lawsuit) alleging that Your Contribution, or the Work to which You have contributed, constitutes direct or contributory patent infringement, then any patent licenses granted to that entity under this Agreement for that Contribution or Work shall terminate as of the date such litigation is filed.
+
+---
+
+### 4. Copyright Assignment (Optional Enhancement)
+
+**For maximum flexibility**, You may optionally choose to assign full copyright ownership of Your Contributions to the Project. This is not required but simplifies legal administration.
+
+If You choose to assign copyright, You agree to execute a separate Copyright Assignment Agreement provided by the Project.
+
+**Benefits of assignment**:
+- Simplified legal management
+- Clearer ownership structure
+- Faster response to legal challenges
+- Recognition as a significant contributor
+
+---
+
+### 5. Legal Authority and Employer Rights
+
+You represent that You are legally entitled to grant the above licenses.
+
+**If Your employer has rights to intellectual property that You 
+
+[Content truncated - see full page for more]
+
+---
+
+## Developer Certificate of Origin
+
+**URL**: https://docs.caro.sh/external/legal/dco/
+**Category**: main
+
+Documentation: Developer Certificate of Origin
+
+[Code block]
+
+---
+
+## Dual License Compliance
+
+**URL**: https://docs.caro.sh/external/legal/dual-license/
+**Category**: main
+
+Documentation: Dual License Compliance
+
+**Date**: December 30, 2025
+**Project**: Caro (formerly cmdai)
+**Managed by**: Caro Project (@wildcard) - Placeholder until company establishment
+**Version**: 2.0
+
+---
+
+## Executive Summary
+
+This document provides a comprehensive compliance report demonstrating how Caro meets all requirements for a **future-proof dual licensing strategy** as outlined in the master copyright ownership and dual licensing prompt.
+
+**Status**: ✅ **FULLY COMPLIANT**
+
+All critical requirements for copyright control, dual licensing capability, and enterprise commercialization have been implemented.
+
+---
+
+## Master Prompt Requirements Checklist
+
+### ✅ 1. Copyright Ownership Management
+
+**Requirement**: Implement proper copyright ownership management to enable dual licensing.
+
+**Implementation**:
+- [x] **CLA grants broad relicensing rights** (Section 2 of CLA.md)
+  - Perpetual, irrevocable license to sublicense under ANY license terms
+  - Not restricted to AGPL-3.0 only
+  - Allows both open source and proprietary licensing
+
+- [x] **Copyright ownership clearly defined** (Section 2 of CLA.md)
+  - Contributors retain copyright ownership
+  - Contributors grant the Project perpetual, irrevocable rights
+  - No ambiguity about who can relicense
+
+- [x] **Optional copyright assignment available** (Section 4 of CLA.md)
+  - For contributors who want to fully assign copyright
+  - Simplifies legal management
+  - Not mandatory but encouraged for significant contributions
+
+**Evidence**: See `docs/legal/CLA.md` sections 2 and 4
+
+---
+
+### ✅ 2. Contributor License Agreement (CLA)
+
+**Requirement**: Implement a CLA that transfers copyright ownership OR grants perpetual, irrevocable rights to relicense.
+
+**Implementation**:
+- [x] **Industry-standard CLA** based on Apache Foundation ICLA
+- [x] **Grants perpetual, irrevocable license** to use contributions under any license
+- [x] **Patent grant included** (Section 3 of CLA.md)
+- [x] **No restrictions on licensing** - removed AGPL-3.0-only limitation
+- [x] **Explicitly allows dual licensing** (Dual Licensing Strategy section)
+- [x] **Employer IP clauses** addressed (Section 5 of CLA.md)
+- [x] **Third-party code provisions** (Section 8 of CLA.md)
+
+**Evidence**: See `docs/legal/CLA.md` - Full CLA v2.0
+
+**Key Language**:
+> "You hereby grant to the Project... a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable copyright license to... Sublicense Your Contributions under any license terms (including both open source and proprietary licenses)"
+
+---
+
+### ✅ 3. Dual Licensing Strategy
+
+**Requirement**: Implement a dual licensing strategy allowing both open source and commercial licensing.
+
+**Implementation**:
+- [x] **AGPL-3.0 for community** - Free, open source version
+- [x] **Commercial licenses for enterprise** - Proprietary licensing option
+- [x] **Clear separation documented** (CLA.md Dual Licensing Strategy section)
+- [x] **Transparent to contributors** (CONTRIBUTING.md explains dual licensing)
+- [x] **No retroactive changes** - CLA signed upfront with full disclosure
+
+**Evidence**:
+- `docs/legal/CLA.md` - "Dual Licensing Strategy" section
+- `CONTRIBUTING.md` - "Dual Licensing Model" section
+
+**Enterprise Use Cases**:
+- Organizations that cannot comply with AGPL-3.0
+- Proprietary product integration
+- Enterprise support and SLAs
+- Custom features for specific customers
+
+---
+
+### ✅ 4. Repository Structure
+
+**Requirement**: Separate core functionality (owned) from plugins/extensions (community-owned).
+
+**Implementation**:
+- [x] **Core codebase** - All under the Project control via CLA
+- [x] **Clear ownership model** - CLA required for all contributions
+- [x] **Documentation structure** organized and professional
+  - `docs/legal/` - Legal documents (CLA, DCO, compliance)
+  - `docs/development/` - Development guidelines
+  - Root directory clean with only standard OSS files
+
+**Evidence**: Repository structure and CLA enforcement via GitHub Actions
+
+---
+
+### ✅ 5. License Selection
+
+**Requirement**: Choose appropriate licenses for open source and commercial distribution.
+
+**Implementation**:
+- [x] **Open Source**: AGPL-3.0
+  - Strong copyleft protection
+  - Prevents commercial exploitation without contribution
+  - Network use requires source disclosure
+
+- [x] **Commercial**: Proprietary licenses (to be created per customer)
+  - Custom terms for enterprise customers
+  - No AGPL-3.0 obligations
+  - Integration into closed-source products allowed
+
+**Evidence**:
+- `LICENSE` file (AGPL-3.0)
+- `Cargo.toml` (license = "AGPL-3.0")
+- CLA.md Section 2 (commercial licensing enabled)
+
+---
+
+### ✅ 6. Documentation
+
+**Requirement**: Clearly state how copyright is handled in CONTRIBUTING.md and make dual license strategy transparent.
+
+**Implementation**:
+- [x] **CONTRIBUTING.md updated** with dual licensing explanation
+  - "Dual Licensing Model" section
+  - "Why Dual Licensing?" section
+  - Clear FAQ about commercial use
+
+- [x] **CLA.md comprehensive** with:
+  - Dual Licensing Strategy section
+  - What This Me
+
+[Content truncated - see full page for more]
+
+---
+
+## Jobs To Be Done
+
+**URL**: https://docs.caro.sh/product/jobs-to-be-done/
+**Category**: main
+
+Understanding Caro through the canonical JTBD framework
+
+People don't buy products—they **hire** them to get jobs done. This page documents the specific jobs users hire caro to perform, using the canonical JTBD framework from Anthony Ulwick's Outcome-Driven Innovation methodology.
+
+## The JTBD Lens
+
+  
+  
+
+---
+
+## Core Functional Jobs
+
+Jobs use the canonical format: **When** [situation], **I want to** [motivation], **so I can** [outcome].
+
+### Safe Command Execution
+
+> **When** I'm about to run a command in production, **I want to** validate it won't cause damage, **so I can** prevent outages and keep my systems running.
+
+| Attribute | Value |
+|-----------|-------|
+| Importance | Critical |
+| Frequency | Daily |
+| Satisfaction Gap | High |
+
+### Offline AI Assistance
+
+> **When** I'm working in an air-gapped or restricted environment, **I want to** get AI assistance without network access, **so I can** be productive even when isolated from the internet.
+
+| Attribute | Value |
+|-----------|-------|
+| Importance | Critical |
+| Frequency | Daily |
+| Satisfaction Gap | Very High |
+
+### Natural Language to Commands
+
+> **When** I know what I want to do but not the exact command syntax, **I want to** describe my intent in plain English, **so I can** get a working command without searching documentation.
+
+| Attribute | Value |
+|-----------|-------|
+| Importance | High |
+| Frequency | Daily |
+| Satisfaction Gap | Medium |
+
+### Cross-Platform Commands
+
+> **When** I'm writing commands that need to work on Mac, Linux, and CI, **I want to** generate platform-aware commands automatically, **so I can** stop debugging BSD vs GNU flag differences.
+
+| Attribute | Value |
+|-----------|-------|
+| Importance | High |
+| Frequency | Weekly |
+| Satisfaction Gap | High |
+
+### Incident Response
+
+> **When** I'm troubleshooting an incident at 3 AM, **I want to** get commands quickly without making mistakes, **so I can** resolve incidents faster without causing additional damage.
+
+| Attribute | Value |
+|-----------|-------|
+| Importance | Critical |
+| Frequency | Weekly |
+| Satisfaction Gap | High |
+
+### Team Safety Standards
+
+> **When** I'm responsible for my team's command-line safety, **I want to** deploy safety standards without micromanaging, **so I can** protect my team from dangerous commands automatically.
+
+| Attribute | Value |
+|-----------|-------|
+| Importance | High |
+| Frequency | Monthly |
+| Satisfaction Gap | Very High |
+
+---
+
+## Emotional Jobs
+
+How users want to **feel** when doing their work.
+
+  
+  
+  
+
+---
+
+## Social Jobs
+
+How users want to be **perceived** by others.
+
+| Job | Context | How caro helps |
+|-----|---------|----------------|
+| Be seen as careful and professional | Team environments where mistakes are visible | Visible safety validation shows diligence to colleagues |
+| Be seen as the person who prevents incidents | Engineering teams that value reliability | Catches dangerous commands before they cause problems |
+| Be seen as security-conscious | Organizations with compliance requirements | Offline operation and zero telemetry satisfy security teams |
+
+---
+
+## Job Triggers
+
+Events that cause users to actively seek a solution:
+
+---
+
+## Desired Outcomes
+
+What users measure success by (Outcome-Driven Innovation format):
+
+| Outcome Statement | Metric | Without caro | With caro |
+|-------------------|--------|--------------|-----------|
+| Minimize the time to validate a command is safe | Seconds from command to verdict | 30-60s (manual review) | **\<100ms** |
+| Minimize likelihood of running destructive commands | Dangerous commands executed/month | Varies by vigilance | **Zero** (blocked) |
+| Minimize time to get a working command | Seconds from intent to command | 2-5 min (Google + trial/error) | **\<2s** inference |
+| Minimize dependency on network connectivity | % functionality available offline | 0% (cloud AI tools) | **100%** (bundled) |
+| Minimize cross-platform debugging time | Time debugging BSD vs GNU | 15-30 min per issue | **Zero** (platform-aware) |
+
+---
+
+## Hiring and Firing
+
+What solutions users "fire" when they "hire" caro:
+
+### Command Validation
+- **Fires:** Manual review, hope and prayer, bash aliases with safety checks
+- **Hires:** caro's deterministic pattern matching
+- **Because:** Can't hallucinate, doesn't require vigilance
+
+### AI Shell Assistance
+- **Fires:** ChatGPT (requires network), Copilot CLI (requires network), Stack Overflow searches
+- **Hires:** caro's offline-first AI
+- **Because:** Works in restricted environments, no cloud dependency
+
+### Command Learning
+- **Fires:** Man pages, TLDR pages, Google searches
+- **Hires:** caro's natural language interface
+- **Because:** Describe intent, get working commands instantly
+
+### Cross-Platform Scripting
+- **Fires:** Trial and error, maintaining separate scripts, conditional shell logic
+- **Hires:** caro's platform detection
+- **Because:** Generates correct flags for current platform
+
+---
+
+## Job Map: Safe Command Execution
+
+Step-by-step breakdown of the core job:
+
+[Code block (mermaid)]
+
+| S
+
+[Content truncated - see full page for more]
+
+---
+
+## Backend Status
+
+**URL**: https://docs.caro.sh/status/backends/
+**Category**: main
+
+Current working state of all caro inference backends
+
+This page documents the current working status of each inference backend in caro.
+
+## Status Overview
+
+| Backend | Platform | Status | Real Inference |
+|---------|----------|--------|----------------|
+| **Embedded MLX** | Apple Silicon | 
+  
+
+**What's Working:**
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| Platform detection | 
+
+**Performance Comparison:**
+
+| Mode | First Inference | Subsequent | Model Load |
+|------|-----------------|------------|------------|
+| Stub (default) | ~100ms | ~100ms | ~500ms |
+| Real MLX (with Xcode) | < 2s | < 500ms | < 2s |
+
+### CPU Backend (Cross-Platform)
+
+The CPU backend works on all platforms using the Candle framework.
+
+| Metric | Value |
+|--------|-------|
+| Platform | Any (macOS, Linux, Windows) |
+| Model | Qwen 2.5 Coder 1.5B (GGUF) |
+| First inference | ~4-5s |
+| Subsequent | ~3-4s |
+| Memory | ~1.5GB |
+
+## Remote Backends
+
+### Ollama Backend
+
+Ollama provides easy local model serving with good performance.
+
+**Setup:**
+
+[Code block (bash)]
+
+**Configuration:**
+
+[Code block (toml)]
+
+**Status:**
+
+| Feature | Status |
+|---------|--------|
+| HTTP API integration |  |
+| Model management |  |
+| Streaming responses |  |
+| Error handling |  |
+
+### vLLM Backend
+
+vLLM provides high-performance serving for production deployments.
+
+**Setup:**
+
+[Code block (bash)]
+
+**Configuration:**
+
+[Code block (toml)]
+
+**Status:**
+
+| Feature | Status |
+|---------|--------|
+| OpenAI-compatible API |  |
+| Batch processing |  |
+| GPU acceleration |  |
+| Error handling |  |
+
+## Backend Selection
+
+### Automatic Selection
+
+caro automatically selects the best backend in this order:
+
+1. **Embedded MLX** - If on Apple Silicon
+2. **Embedded CPU** - If MLX not available
+3. **Ollama** - If Ollama server detected
+4. **vLLM** - If vLLM server configured
+
+### Manual Selection
+
+Override the automatic selection:
+
+[Code block (bash)]
+
+## Troubleshooting
+
+### MLX: "Metal compiler not found"
+
+This error occurs when building with `--features embedded-mlx` without Xcode.
+
+**Solution:** Install Xcode from the App Store, then:
+
+[Code block (bash)]
+
+### Ollama: "Connection refused"
+
+Ollama server not running.
+
+**Solution:**
+
+[Code block (bash)]
+
+### vLLM: "Timeout"
+
+Model loading or inference taking too long.
+
+**Solution:** Increase timeout in config:
+
+[Code block (toml)]
+
+### Model Download Fails
+
+Network or storage issues.
+
+**Solution:**
+
+[Code block (bash)]
+
+## Performance Benchmarks
+
+Measured on various hardware configurations:
+
+| Hardware | Backend | First Inference | Subsequent | Memory |
+|----------|---------|-----------------|------------|--------|
+| M4 Pro (14-core) | MLX (stub) | 100ms | 100ms | 1.1GB |
+| M4 Pro (14-core) | MLX (real) | 1.5s | 400ms | 1.2GB |
+| M1 MacBook Air | MLX (stub) | 100ms | 100ms | 1.1GB |
+| M1 MacBook Air | MLX (real) | 2.5s | 800ms | 1.2GB |
+| Intel Mac (i7) | CPU | 5s | 4s | 1.5GB |
+| Linux x64 (Ryzen) | CPU | 4s | 3.5s | 1.5GB |
+| Linux + RTX 4090 | vLLM | 0.5s | 0.3s | 4GB |
+
+---
+
+## Project Roadmap
+
+**URL**: https://docs.caro.sh/status/roadmap/
+**Category**: main
+
+Current development status and future plans for caro
+
+This page shows the current development status of caro, what's working, what's in progress, and what's planned for the future.
+
+## Completed Features
+
+These features are fully implemented and working:
+
+  
+  
+  
+
+### Phase 1: Core Structure 
+
+| Feature | Status |
+|---------|--------|
+| CLI argument parsing |  |
+| Module architecture |  |
+| Backend trait system |  |
+| Configuration management (TOML) |  |
+| Multiple output formats (JSON, YAML, Plain) |  |
+
+### Phase 2: Safety & Validation 
+
+| Feature | Status |
+|---------|--------|
+| Dangerous pattern detection (52+ patterns) |  |
+| POSIX compliance checking |  |
+| User confirmation workflows |  |
+| Risk assessment with color coding |  |
+| Critical path protection |  |
+
+### Phase 3: Backend Integration 
+
+| Feature | Status |
+|---------|--------|
+| Embedded MLX backend (Apple Silicon) |  |
+| Embedded CPU backend (cross-platform) |  |
+| Ollama local backend |  |
+| vLLM HTTP API support |  |
+| Response parsing with fallback |  |
+| Automatic backend selection |  |
+
+### Phase 4: Platform Intelligence 
+
+| Feature | Status |
+|---------|--------|
+| OS/architecture detection |  |
+| Shell type detection |  |
+| Available command detection |  |
+| Platform-specific rules (BSD vs GNU) |  |
+| 2-iteration agentic refinement loop |  |
+| Command execution engine |  |
+
+### Phase 5: Production Ready 
+
+| Feature | Status |
+|---------|--------|
+| Published to crates.io |  |
+| Install script with binary fallback |  |
+| Multi-platform CI/CD |  |
+| SHA256 checksum verification |  |
+| Official website (caro.sh) |  |
+| Documentation site |  |
+
+## In Progress
+
+Currently under active development:
+
+### Phase 6: Optimization & Expansion 
+
+| Feature | Status |
+|---------|--------|
+| Model downloading optimization |  |
+| Performance benchmarking suite |  |
+| Extended test coverage |  |
+| Command history tracking |  |
+| Learning from user feedback |  |
+
+## Planned Features
+
+Features on the roadmap for future releases:
+
+### Phase 7: Advanced Features 
+
+| Feature | Description |
+|---------|-------------|
+| Multi-step goal completion | Execute complex workflows with dependency resolution |
+| Shell script generation | Generate reusable scripts for complex workflows |
+| Interactive refinement | Iteratively refine commands with explanations |
+| Plugin system | Custom backends, validators, and extensions |
+| Command templates | Save and reuse common command patterns |
+
+### Phase 8: Enterprise Features 
+
+| Feature | Description |
+|---------|-------------|
+| Team configurations | Shared safety policies and backends |
+| Audit logging | Track all generated commands |
+| Custom model support | Bring your own fine-tuned models |
+| Air-gapped deployment | Fully offline installation packages |
+| SSO integration | Enterprise authentication support |
+
+## Technical Architecture
+
+[Code block]
+
+## Contributing
+
+Want to help build these features? Check out:
+
+- [Contributing Guide](https://github.com/wildcard/caro/blob/main/CONTRIBUTING.md)
+- [Good First Issues](https://github.com/wildcard/caro/labels/good-first-issue)
+- [Development Guidelines](/development/agents/)
+
+---
+
 ## Installation
 
 **URL**: https://docs.caro.sh/getting-started/installation/
 **Category**: getting-started
 
 Install caro on macOS, Linux, or Windows
-
-# Installation
 
 caro can be installed via Cargo (Rust's package manager), from source, or using pre-built binaries.
 
@@ -173,8 +2335,6 @@ Check your internet connection and try again:
 
 Learn what caro is and how it transforms natural language into shell commands
 
-# Introduction to caro
-
 **caro** is a Rust CLI tool that converts natural language descriptions into safe, POSIX-compliant shell commands using local LLMs.
 
 ## What is caro?
@@ -229,8 +2389,6 @@ Ready to get started?
 **Category**: getting-started
 
 Get up and running with caro in minutes
-
-# Quick Start
 
 This guide will get you productive with caro in just a few minutes.
 
@@ -377,6 +2535,871 @@ Now that you know the basics:
 - [**Safety Validation**](/guides/safety/) - Learn about the safety system
 - [**Configuration**](/reference/configuration/) - Customize caro's behavior
 - [**Backend Options**](/reference/backends/) - Explore different inference backends
+
+---
+
+## Act Setup (Local CI)
+
+**URL**: https://docs.caro.sh/external/guides/act-setup/
+**Category**: guides
+
+Documentation: Act Setup (Local CI)
+
+## Quick Setup (5 minutes)
+
+### 1. Install act
+
+**macOS:**
+
+[Code block (bash)]
+
+**Linux:**
+
+[Code block (bash)]
+
+**Windows (Chocolatey):**
+
+[Code block (bash)]
+
+**Manual install:** Download from [act releases](https://github.com/nektos/act/releases)
+
+### 2. Verify Docker
+
+[Code block (bash)]
+
+### 3. Test Installation
+
+[Code block (bash)]
+
+### 4. Create Secrets File (Optional)
+
+[Code block (bash)]
+
+Add real values for:
+- `GITHUB_TOKEN` - For GitHub API access (generate at https://github.com/settings/tokens)
+- `CODECOV_TOKEN` - For code coverage uploads (optional)
+- `CARGO_REGISTRY_TOKEN` - For crate publishing (optional)
+
+**Note:** Most tests don't require secrets. Only create `.secrets` if workflows fail with "secret not found".
+
+### 5. Run Your First Test
+
+[Code block (bash)]
+
+**First run:** Downloads runner images (~2GB), takes 5-10 minutes.  
+**Subsequent runs:** Much faster (images are cached).
+
+---
+
+## Configuration
+
+### `.actrc` - Runner Settings
+
+The project includes pre-configured settings in `.actrc`:
+
+[Code block (bash)]
+
+**Customize for your machine:**
+
+[Code block (bash)]
+
+### `.secrets` - Secret Management
+
+**Never commit `.secrets`** - it's gitignored for security.
+
+**Minimal secrets** (most workflows work without secrets):
+
+[Code block (bash)]
+
+**Full secrets** (for all workflows):
+
+[Code block (bash)]
+
+---
+
+## Usage
+
+### Run All Tests
+
+[Code block (bash)]
+
+This runs all jobs in `.github/workflows/ci.yml`:
+- ✅ Formatting check (`cargo fmt`)
+- ✅ Linting (`cargo clippy`)
+- ✅ Test suite (`cargo test`)
+- ✅ Security audit (`cargo audit`)
+- ✅ Release builds
+- ✅ Benchmarks
+- ✅ Code coverage
+
+### Run Specific Job
+
+[Code block (bash)]
+
+### List Available Jobs
+
+[Code block (bash)]
+
+Output:
+
+[Code block]
+
+---
+
+## Comparison: Native vs. act
+
+You have **two testing options**:
+
+### Native Testing (Recommended for daily dev)
+
+[Code block (bash)]
+
+**Pros:**
+- ⚡ Fast (no Docker overhead)
+- 🎯 Tests your actual environment
+- 🍎 Perfect for Apple Silicon MLX tests
+- 📴 Works offline
+
+**Best for:** Daily development, rapid iteration
+
+### act Testing (Recommended pre-push)
+
+[Code block (bash)]
+
+**Pros:**
+- 🎭 Emulates GitHub's exact environment
+- 🔄 Tests matrix builds (Ubuntu/macOS/Windows)
+- 🐛 Catches platform-specific bugs
+- ✅ High confidence CI will pass
+
+**Best for:** Pre-merge validation, workflow testing
+
+**Recommendation:** Use native testing during development, then run `act` before pushing.
+
+---
+
+## Apple Silicon (M1/M2/M3) Notes
+
+### Native Testing Preferred
+
+For **MLX backend tests**, use native testing:
+
+[Code block (bash)]
+
+This runs real MLX tests on Metal hardware.
+
+### act Limitations
+
+`act` runs in Docker, which can't access Metal APIs:
+
+- ❌ Can't run MLX inference tests
+- ✅ Can verify MLX tests **compile** on Ubuntu
+- ✅ Can test all other backends (vLLM, Ollama, CPU)
+
+### Architecture Flag
+
+If you get architecture errors:
+
+[Code block (bash)]
+
+---
+
+## Troubleshooting
+
+### Error: `act: command not found`
+
+**Solution:** Install act (see step 1 above)
+
+### Error: `Cannot connect to Docker daemon`
+
+**Solution:**
+
+[Code block (bash)]
+
+### Error: `Segmentation fault` or `exec format error`
+
+**Cause:** Architecture mismatch (Apple Silicon running x86_64 images)
+
+**Solution:**
+
+[Code block (bash)]
+
+### Error: Container killed (OOM)
+
+**Cause:** Not enough memory allocated to Docker
+
+**Solution 1:** Increase Docker memory (Docker Desktop → Settings → Resources)
+
+**Solution 2:** Reduce memory in `.actrc`:
+
+[Code block (bash)]
+
+**Solution 3:** Run single-threaded tests:
+
+[Code block (bash)]
+
+### Slow First Run
+
+**Cause:** Downloading runner images (~2GB)
+
+**Solution:** Be patient - first run takes 5-10 minutes. Subsequent runs are much faster due to caching.
+
+**Pre-download images:**
+
+[Code block (bash)]
+
+### Jobs Fail in act But Pass Locally
+
+**Possible causes:**
+
+1. **Environment differences**
+   - Check env vars in workflow
+   - Verify tools are installed in runner image
+
+2. **Missing secrets**
+   - Create `.secrets` file
+   - Add required tokens
+
+3. **Platform-specific code**
+   - Some tests require native platform (MLX)
+   - Use native testing for these
+
+**Debug:**
+
+[Code block (bash)]
+
+---
+
+## Development Workflow
+
+### Daily Development Loop
+
+[Code block (bash)]
+
+### Pre-Push Validation
+
+[Code block (bash)]
+
+### Pre-Merge Checklist
+
+- [ ] `cargo fmt --all -- --check` passes
+- [ ] `cargo clippy -- -D warnings` passes
+- [ ] `cargo test` passes
+- [ ] `cargo audit` passes
+- [ ] Binary size < 50MB
+- [ ] `./test-ci-locally.sh` passes
+- [ ] (Optional) `./test-ci-with-act.sh` passes
+- [ ] All tests green on GitHub Actions
+
+---
+
+## Advanced Usage
+
+### Run Specific Workflow File
+
+[Code block (bash)]
+
+### Test Different Events
+
+[Code block (bash)]
+
+### Dry Run (Show What Would Run)
+
+[Code block (bash)]
+
+### Custom Runner Images
+
+[Code block (bash)]
+
+### Debug Mode
+
+[Code block (bash)]
+
+---
+
+## Resources
+
+### Documentation
+
+- **Full guide:** [`docs/LOCAL_CI_TESTING.md`](./LOCAL_CI_TESTING.md)
+- **Quick referen
+
+[Content truncated - see full page for more]
+
+---
+
+## Advanced macOS Setup
+
+**URL**: https://docs.caro.sh/external/guides/macos-advanced/
+**Category**: guides
+
+Documentation: Advanced macOS Setup
+
+This guide covers setup for caro on macOS, with special attention to Apple Silicon (M1/M2/M3/M4) for GPU acceleration.
+
+## Prerequisites
+
+### Required
+- **macOS**: 10.15 (Catalina) or later
+- **Rust**: 1.75 or later
+- **Homebrew**: Package manager for macOS
+
+### Optional (for GPU acceleration)
+- **Xcode**: Full Xcode installation for Metal compiler (Apple Silicon only)
+
+## Quick Start (All Macs)
+
+### 1. Install Rust
+
+[Code block (bash)]
+
+### 2. Install Homebrew (if not already installed)
+
+[Code block (bash)]
+
+### 3. Install CMake
+
+[Code block (bash)]
+
+### 4. Clone and Build
+
+[Code block (bash)]
+
+### 5. Test Installation
+
+[Code block (bash)]
+
+## Apple Silicon GPU Acceleration
+
+Apple Silicon (M1/M2/M3/M4) chips support GPU-accelerated inference via the MLX framework, providing ~4x faster inference compared to CPU-only mode.
+
+### Current Status
+
+The project includes a **fully functional stub implementation** that:
+- ✅ Correctly detects Apple Silicon hardware
+- ✅ Downloads and loads the 1.1GB Qwen model
+- ✅ Provides instant responses for testing and development
+- ✅ Works without any additional dependencies
+
+**For real GPU acceleration**, you need the Metal compiler from Xcode.
+
+### Option 1: Stub Implementation (Recommended for Development)
+
+**No additional setup required!** The default build works immediately:
+
+[Code block (bash)]
+
+**When to use:**
+- Quick testing and development
+- You don't want to install multi-GB Xcode
+- You're developing non-inference features
+- You want instant responses for integration testing
+
+**Performance:**
+- Model load: ~500ms (from disk)
+- Response time: ~100ms (simulated inference)
+- Memory: ~1.1GB (model file)
+
+### Option 2: Full GPU Acceleration with Xcode
+
+**For production use with real GPU-accelerated inference:**
+
+#### Step 1: Install Xcode
+
+Choose one of these methods:
+
+**Method A: App Store (Recommended)**
+1. Open App Store
+2. Search for "Xcode"
+3. Click "Get" or "Install"
+4. Wait for download (~15GB) and installation
+5. Open Xcode once to accept license
+
+**Method B: Command Line**
+
+[Code block (bash)]
+
+#### Step 2: Configure Xcode
+
+[Code block (bash)]
+
+#### Step 3: Build with MLX Feature
+
+[Code block (bash)]
+
+#### Step 4: Verify GPU Acceleration
+
+[Code block (bash)]
+
+**Expected Performance (M4 Pro):**
+- Model load: < 2s (MLX optimization)
+- First inference: < 2s
+- Subsequent inference: < 500ms
+- First token latency: < 200ms
+- Memory: ~1.2GB (unified memory)
+
+## Troubleshooting
+
+### "metal: command not found"
+
+**Problem**: Metal compiler not found when building with `embedded-mlx` feature.
+
+**Solution**: Install full Xcode (not just Command Line Tools):
+
+[Code block (bash)]
+
+### "xcrun: error: unable to find utility 'metal'"
+
+**Problem**: Xcode is installed but not configured as active developer directory.
+
+**Solution**:
+
+[Code block (bash)]
+
+### "mlx-sys build failed"
+
+**Problem**: CMake or Metal compiler issues during mlx-rs compilation.
+
+**Solution**:
+
+[Code block (bash)]
+
+### Model Download Issues
+
+**Problem**: Model fails to download from Hugging Face.
+
+**Solution**:
+
+[Code block (bash)]
+
+### "Failed to load model"
+
+**Problem**: Model file corrupted or not found.
+
+**Solution**:
+
+[Code block (bash)]
+
+## Platform Detection
+
+The project automatically detects your platform:
+
+[Code block (bash)]
+
+## Build Profiles
+
+### Development Build (Fast compilation)
+
+[Code block (bash)]
+
+### Release Build (Optimized)
+
+[Code block (bash)]
+
+### Release with Debug Info (Profiling)
+
+[Code block (bash)]
+
+## Environment Variables
+
+[Code block (bash)]
+
+## Uninstallation
+
+[Code block (bash)]
+
+## System Requirements
+
+### Minimum
+- macOS 10.15+
+- 4GB RAM
+- 2GB free disk space (for model cache)
+- Internet connection (first run only)
+
+### Recommended for GPU Acceleration
+- Apple Silicon Mac (M1/M2/M3/M4)
+- 8GB+ RAM
+- macOS 12.0+
+- Xcode 14+ installed
+- 5GB free disk space (includes Xcode)
+
+## Performance Comparison
+
+### Apple Silicon M4 Pro
+
+| Backend | First Inference | Subsequent | Model Load | Memory |
+|---------|----------------|------------|------------|--------|
+| **Stub** | ~100ms | ~100ms | ~500ms | ~1.1GB |
+| **MLX (GPU)** | < 2s | < 500ms | < 2s | ~1.2GB |
+| **CPU** | ~4s | ~3s | ~3s | ~1.5GB |
+
+### Intel Mac
+
+| Backend | First Inference | Subsequent | Model Load | Memory |
+|---------|----------------|------------|------------|--------|
+| **CPU** | ~5s | ~4s | ~4s | ~1.5GB |
+
+## Additional Resources
+
+- [Apple Silicon MLX Framework](https://github.com/ml-explore/mlx)
+- [Xcode Download](https://developer.apple.com/xcode/)
+- [Homebrew Documentation](https://brew.sh)
+- [Rust Installation Guide](https://www.rust-lang.org/tools/install)
+
+## Support
+
+For issues specific to macOS:
+- Check Metal is available: `xcrun --find metal`
+- Verify Xcode version: `xcodebuild -version`
+- Test Metal shader compilation: `xcrun -sdk macosx metal`
+- Check system info: `system_profiler SPHardwareDataType | grep Chip`
+
+## Summary
+
+**For quick start**: Just install Rust, CMake, and build. Works immediately with s
+
+[Content truncated - see full page for more]
+
+---
+
+## Spec-Kitty Guide
+
+**URL**: https://docs.caro.sh/external/guides/spec-kitty/
+**Category**: guides
+
+Documentation: Spec-Kitty Guide
+
+This guide explains how to use Spec-Kitty in the caro project for rapid, multi-branch feature development.
+
+## Overview
+
+**Spec-Kitty** is integrated into caro to enable:
+- **Worktree-based development**: Work on multiple features simultaneously without branch switching
+- **Real-time dashboard**: Visual kanban board showing all features and their status
+- **Multi-agent coordination**: Collaborate with multiple AI agents (Claude Code, Codex, etc.)
+- **Spec-driven workflows**: Systematic approach to features, enhancements, and bug fixes
+
+## Architecture
+
+### Directory Structure
+
+[Code block]
+
+### Integration Strategy
+
+**Use Spec-Kitty for:**
+- ✅ Small features ( 2 weeks)
+- 📋 Major architectural changes
+- 📋 Features requiring extensive research
+
+**Both workflows can coexist!** The existing `specs/` directory contains large feature specs, while `kitty-specs/` contains rapid development features.
+
+## Quick Start
+
+### 1. Create a New Feature
+
+[Code block (bash)]
+
+This creates:
+- A new git worktree in `kitty-specs/001-add-caching/`
+- A feature branch `feature/001-add-caching`
+- Initial directory structure with `tasks/` folders
+
+### 2. View All Features
+
+[Code block (bash)]
+
+Dashboard URL: http://127.0.0.1:9237
+
+### 3. Work on a Feature
+
+[Code block (bash)]
+
+### 4. Spec-Kitty Workflow Commands
+
+Use these slash commands in Claude Code **from within the feature worktree**:
+
+#### Phase 1: Specification
+
+[Code block]
+
+Creates `spec.md` with feature requirements, scope, and acceptance criteria.
+
+#### Phase 2: Planning (Optional Enhancement)
+
+[Code block]
+
+Asks targeted questions to de-risk ambiguous areas before planning.
+
+#### Phase 3: Architecture
+
+[Code block]
+
+Creates `plan.md` with technical design, architecture, and implementation approach.
+
+#### Phase 4: Task Generation
+
+[Code block]
+
+Generates work packages in `tasks/planned/WP01.md`, `WP02.md`, etc.
+
+#### Phase 5: Implementation
+
+[Code block]
+
+Processes tasks from `tasks/doing/` one by one with confirmation prompts.
+
+Tasks move through lanes:
+- `tasks/planned/` → Initial work packages
+- `tasks/doing/` → Currently working on
+- `tasks/review/` → Pending review
+- `tasks/done/` → Completed
+
+#### Phase 6: Quality Checks (Optional)
+
+[Code block]
+
+Cross-artifact consistency check across spec, plan, and tasks.
+
+[Code block]
+
+Generate quality checklists for requirements validation.
+
+#### Phase 7: Review and Accept
+
+[Code block]
+
+Review prompts and move them to `tasks/done/`.
+
+[Code block]
+
+Run acceptance checks to verify feature is complete and ready to merge.
+
+#### Phase 8: Merge
+
+[Code block]
+
+Merge feature branch to main and clean up the worktree.
+
+Or from project root:
+
+[Code block (bash)]
+
+### 5. Dashboard Features
+
+The dashboard shows:
+- ✅ All features across the project
+- ✅ Feature status (spec, planned, in progress, review, done)
+- ✅ Task breakdown per feature
+- ✅ File integrity checks
+- ✅ Git worktree status
+- ✅ Live updates as you work
+
+Access at: http://127.0.0.1:9237
+
+## Workflow Examples
+
+### Example 1: Small Bug Fix with Multiple Changes
+
+[Code block (bash)]
+
+### Example 2: Parallel Development of Two Features
+
+[Code block (bash)]
+
+Each feature is isolated in its own git worktree, so no conflicts!
+
+### Example 3: Using with Charm.land Crush for Rapid Iteration
+
+Charm.land Crush allows you to develop across multiple branches quickly. Spec-Kitty complements this:
+
+[Code block (bash)]
+
+## Helper Scripts
+
+Located in `bin/`:
+
+- **`sk-new-feature`**: Create new feature with worktree
+- **`sk-dashboard`**: Open dashboard in browser
+- **`sk-list`**: List all features and their status
+- **`sk-merge`**: Merge completed feature and cleanup
+
+All scripts include colored output and helpful messages.
+
+## Integration with Existing Workflows
+
+### Coexistence with `.specify/`
+
+The project has two complementary systems:
+
+1. **`.specify/` (Original)**: For large features and complex architecture
+   - Used for `specs/001-*`, `specs/002-*`, etc.
+   - Manual workflow with constitution-based development
+   - Shared slash commands in `.codex/prompts/`
+
+2. **`.kittify/` (Spec-Kitty)**: For rapid, parallel development
+   - Used for `kitty-specs/001-*`, `kitty-specs/002-*`, etc.
+   - Automated workflows with worktrees
+   - Slash commands in `.claude/commands/spec-kitty.*`
+
+**Both can be used together!** Choose based on feature size and complexity.
+
+### Constitution Alignment
+
+Both `.specify/memory/constitution.md` and `.kittify/memory/constitution.md` exist.
+
+**Recommendation**: Keep `.specify/memory/constitution.md` as the source of truth, and sync important principles to `.kittify/memory/constitution.md` as needed.
+
+## Git Workflow
+
+### Gitignore Strategy
+
+The `.gitignore` is configured to:
+- ✅ **Include** in git: Command files (`.claude/commands/`, `.codex/prompts/`)
+- ✅ **Include** in git: Spec-Kitty config (`.kittify/`)
+- ❌ **Exclude** from git: Feature worktrees (`kitty-specs/`)
+- ❌ **Exclude** from git: Agent session data (`.claude/sessions/`, etc.)
+- ❌ **Exclude** from git: 
+
+[Content truncated - see full page for more]
+
+---
+
+## Xcode Setup
+
+**URL**: https://docs.caro.sh/external/guides/xcode-setup/
+**Category**: guides
+
+Documentation: Xcode Setup
+
+## Why is Xcode Needed?
+
+The `mlx-rs` crate requires Apple's **Metal compiler** to build GPU-accelerated machine learning code for Apple Silicon. The Metal compiler is only included in full Xcode, not in the Command Line Tools.
+
+## Current Status
+
+Your system has:
+- ✅ Command Line Tools installed
+- ✅ CMake installed  
+- ✅ Rust toolchain configured
+- ❌ Metal compiler (requires full Xcode)
+
+## Installation Options
+
+### Option 1: Use Stub Implementation (Current - No Xcode Needed)
+
+**Status:** ✅ **WORKING NOW**
+
+The project includes a fully functional stub implementation that:
+- Detects Apple Silicon correctly
+- Loads the 1.1GB Qwen model
+- Provides instant responses
+- Perfect for development and testing
+
+[Code block (bash)]
+
+**Pros:**
+- ✅ Works immediately
+- ✅ No multi-GB downloads
+- ✅ Fast responses (~100ms)
+- ✅ Full architecture validated
+
+**Cons:**
+- ⚠️ Uses pattern matching, not real inference
+- ⚠️ Limited to pre-defined responses
+
+### Option 2: Install Xcode for GPU Acceleration
+
+**Enables:** Real GPU-accelerated inference with MLX framework
+
+#### Step 1: Install Xcode
+
+**Method A: App Store (Easiest)**
+1. Open App Store
+2. Search for "Xcode"
+3. Click "Get" (or "Install" if previously installed)
+4. Wait for ~15GB download
+5. Launch Xcode once to accept license
+
+**Method B: Direct Download**
+1. Go to https://developer.apple.com/xcode/
+2. Download Xcode 15.x or later
+3. Open the .xip file
+4. Move Xcode.app to /Applications/
+5. Open Xcode and accept license
+
+#### Step 2: Configure Xcode
+
+[Code block (bash)]
+
+#### Step 3: Build with MLX
+
+[Code block (bash)]
+
+#### Step 4: Test GPU Acceleration
+
+[Code block (bash)]
+
+## Verification Commands
+
+### Check Current Setup
+
+[Code block (bash)]
+
+### Check Build Features
+
+[Code block (bash)]
+
+## Performance Comparison
+
+### Stub Implementation (Current)
+
+[Code block]
+
+### With Xcode + MLX GPU
+
+[Code block]
+
+## Decision Guide
+
+### Use Stub Implementation If:
+- ✅ You want to start developing immediately
+- ✅ You're testing non-inference features
+- ✅ You don't want to install 15GB Xcode
+- ✅ You need fast, predictable responses
+- ✅ You're developing integration tests
+
+### Install Xcode If:
+- 🚀 You need real AI-powered command generation
+- 🚀 You want production-quality inference
+- 🚀 You're benchmarking performance
+- 🚀 You need the full capabilities of the LLM
+- 🚀 You plan to deploy this for actual use
+
+## Current Project Status
+
+[Code block]
+
+## Quick Commands Reference
+
+[Code block (bash)]
+
+## Support
+
+If you encounter issues:
+
+1. **"metal: not found"** → Install full Xcode from App Store
+2. **"mlx-sys build failed"** → Run `xcode-select --switch /Applications/Xcode.app/...`
+3. **Stub responses only** → Either Xcode not installed, or not built with `--features embedded-mlx`
+4. **CMake errors** → Update CMake: `brew upgrade cmake`
+
+## Summary
+
+**Current state:** Everything works with stub implementation! The model is loaded, inference pipeline is operational, and you can use caro immediately.
+
+**To unlock GPU:** Install Xcode (15GB, ~30 min download), configure it, and rebuild with `--features embedded-mlx`.
+
+**Recommendation:** Keep using the stub for development, install Xcode when you need real inference for production use.
 
 ---
 
@@ -720,6 +3743,758 @@ Spec-Kitty enables rapid, systematic feature development with:
 - Parallel development workflows
 
 Use it for small/medium features and bugs, while keeping the existing `.specify/` workflow for large architectural work.
+
+---
+
+## Model Catalog
+
+**URL**: https://docs.caro.sh/external/reference/model-catalog/
+**Category**: reference
+
+Documentation: Model Catalog
+
+caro supports multiple language models to suit different use cases, from ultra-tiny models for CI/CD to larger models for production use.
+
+## Available Models
+
+| Model | Size | Best For | CI-Suitable | MLX-Optimized |
+|-------|------|----------|-------------|---------------|
+| **SmolLM 135M** | 82 MB | Ultra-fast testing, extreme resource constraints | ✅ | ❌ |
+| **Qwen 0.5B** | 352 MB | CI/CD, fast inference | ✅ | ✅ |
+| **TinyLlama 1.1B** | 669 MB | Balanced speed/quality for CI | ✅ | ❌ |
+| **StarCoder 1B** | 700 MB | Code-specialized, shell commands | ✅ | ❌ |
+| **Qwen 1.5B** (default) | 1117 MB | Best balance for local use | ❌ | ✅ |
+| **Phi-2 2.7B** | 1560 MB | Excellent code understanding | ❌ | ❌ |
+| **Mistral 7B Instruct** | 3520 MB | Highest quality, production | ❌ | ❌ |
+
+## Model Selection
+
+### For Local Development
+**Default**: Qwen 1.5B (1.1GB)
+- Best balance of size and quality
+- MLX-optimized for Apple Silicon
+- Good code understanding
+
+### For GitHub Actions CI
+**Recommended**: Qwen 0.5B (352MB) or SmolLM 135M (82MB)
+- Fast downloads (~30s vs 2min for default)
+- Lower memory usage
+- Still produces reasonable results
+
+### For Testing
+**Recommended**: SmolLM 135M (82MB)
+- Fastest download and inference
+- Minimal memory footprint
+- Sufficient for unit/integration tests
+
+## Usage
+
+### Rust API
+
+[Code block (rust)]
+
+### Environment Variable
+
+Set `CARO_MODEL` to use a specific model:
+
+[Code block (bash)]
+
+### GitHub Actions Configuration
+
+For CI workflows, use a smaller model to reduce test time:
+
+[Code block (yaml)]
+
+Or for fastest tests:
+
+[Code block (yaml)]
+
+## Model Details
+
+### SmolLM 135M
+- **Repository**: HuggingFaceTB/SmolLM-135M-Instruct-GGUF
+- **Quantization**: Q4_K_M
+- **Size**: 82 MB
+- **Use Case**: Testing, extreme resource constraints
+- **Pros**: Fastest download, minimal memory
+- **Cons**: Lower quality outputs
+
+### Qwen2.5-Coder 0.5B
+- **Repository**: Qwen/Qwen2.5-Coder-0.5B-Instruct-GGUF
+- **Quantization**: Q4_K_M
+- **Size**: 352 MB
+- **Use Case**: CI/CD with quality requirements
+- **Pros**: Good balance, MLX-optimized, code-specialized
+- **Cons**: Slightly larger than SmolLM
+
+### TinyLlama 1.1B
+- **Repository**: TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF
+- **Quantization**: Q4_K_M
+- **Size**: 669 MB
+- **Use Case**: Local development, testing
+- **Pros**: Widely tested, good quality
+- **Cons**: Larger CI download time
+
+### StarCoder 1B
+- **Repository**: TheBloke/starcoderbase-1b-GGUF
+- **Quantization**: Q4_K_M
+- **Size**: 700 MB
+- **Use Case**: Code generation, shell commands
+- **Pros**: Code-specialized, good for command generation
+- **Cons**: Not chat-optimized
+
+### Qwen2.5-Coder 1.5B (Default)
+- **Repository**: Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF
+- **Quantization**: Q4_K_M
+- **Size**: 1117 MB
+- **Use Case**: Local development, production
+- **Pros**: Best balance, MLX-optimized, excellent code understanding
+- **Cons**: Too large for CI
+
+### Phi-2 2.7B
+- **Repository**: TheBloke/phi-2-GGUF
+- **Quantization**: Q4_K_M
+- **Size**: 1560 MB
+- **Use Case**: High-quality code understanding
+- **Pros**: Excellent reasoning, Microsoft-trained
+- **Cons**: Large size, slower inference
+
+### Mistral 7B Instruct
+- **Repository**: TheBloke/Mistral-7B-Instruct-v0.2-GGUF
+- **Quantization**: Q3_K_M
+- **Size**: 3520 MB
+- **Use Case**: Production, highest quality needed
+- **Pros**: Best quality, instruction following
+- **Cons**: Large size, slower inference, not CI-suitable
+
+## Performance Comparison
+
+Approximate inference times on Apple M4 Pro:
+
+| Model | First Inference | Subsequent | Memory |
+|-------|----------------|------------|--------|
+| SmolLM 135M | ~0.5s | ~0.1s | ~200MB |
+| Qwen 0.5B | ~1.0s | ~0.3s | ~500MB |
+| TinyLlama 1.1B | ~1.5s | ~0.4s | ~800MB |
+| Qwen 1.5B | ~2.5s | ~0.6s | ~1.2GB |
+| Phi-2 2.7B | ~3.5s | ~1.0s | ~2GB |
+| Mistral 7B | ~8s | ~2.5s | ~4GB |
+
+*Times may vary based on hardware and MLX optimization availability*
+
+## CI Recommendations
+
+### Fast Tests (< 1 minute)
+
+[Code block (yaml)]
+
+### Balanced Tests (< 2 minutes)
+
+[Code block (yaml)]
+
+### Quality Tests (< 5 minutes)
+
+[Code block (yaml)]
+
+## Model Selection Guide
+
+[Code block]
+
+## Programmatic Model Selection
+
+[Code block (rust)]
+
+## Adding Custom Models
+
+To add your own model, edit `src/model_catalog.rs` and add a new `ModelInfo` entry. Ensure the model is:
+1. GGUF format
+2. Available on Hugging Face
+3. Suitable for command generation tasks
+
+See the existing model definitions for examples.
+
+---
+
+## Performance Analysis
+
+**URL**: https://docs.caro.sh/external/reference/performance/
+**Category**: reference
+
+Documentation: Performance Analysis
+
+**Date**: 2026-01-08
+**Analyst**: Claude (Tech Lead)
+**Platform**: Apple M1 Mac (darwin 25.1.0)
+**Rust Version**: 1.84.0
+**Issue**: #132
+
+## Executive Summary
+
+**Overall Performance**: ✅ **EXCELLENT**
+
+caro meets all performance requirements with significant headroom:
+- **Startup time**: ~52 µs infrastructure overhead (well under 100ms target)
+- **First inference**: ::augment_args` - 1,109 lines (2.1%)
+5. `std::thread::local::LocalKey::try_with` - 1,050 lines (2.0%, 15 copies)
+
+**Analysis**:
+- ✅ Reasonable distribution - no single function dominates
+- ⚠️  Many closures from async/await (normal for Tokio-based apps)
+- ⚠️  Clap derive macros contribute ~2K lines (standard for CLI apps)
+- ℹ️  Total binary size reasonable for feature set
+
+**Recommendation**: Binary size is acceptable. No action needed.
+
+---
+
+## Code Quality Analysis
+
+### Async Usage
+
+**Total async functions**: 360 across 44 files
+
+**Distribution**:
+- Tests: ~150 async functions (expected for async testing)
+- Backends: ~80 async functions (required for network I/O)
+- Core: ~130 async functions (some may be unnecessary)
+
+**Potential over-use**: Many async functions don't await anything and could be synchronous.
+
+**Example from analysis**:
+
+[Code block (rust)]
+
+**Impact**: Low priority - async overhead is minimal (~1-2 µs per async call)
+
+**Recommendation**: Audit async functions in v1.2.0 to remove unnecessary async/await.
+
+### Regex Compilation
+
+**Pattern**: `Regex::new()` found in 6 files
+
+**Analysis** (checked `src/safety/patterns.rs`):
+
+[Code block (rust)]
+
+✅ **EXCELLENT**: Patterns pre-compiled using `once_cell::Lazy`
+✅ **30x speedup** achieved (documented in `src/safety/mod.rs`)
+✅ **No re-compilation** in hot paths
+
+**Recommendation**: No action needed. Already optimized.
+
+### Memory Allocations
+
+**Cloning patterns** (manual inspection):
+- Most `.clone()` calls are on small types (String, Vec) outside hot paths
+- Arc/Rc used appropriately for shared state
+- No obvious allocation anti-patterns
+
+**Recommendation**: No action needed for v1.1.0.
+
+---
+
+## Bottleneck Deep-Dive
+
+### 1. Environment Variable Capture Scaling
+
+**Issue**: `ExecutionContext::capture()` scales linearly with environment variable count.
+
+**Impact**:
+- Baseline (50 vars): 35 µs ✅ Acceptable
+- Large (150 vars): 272 µs ⚠️ Noticeable but rare
+- **Scaling factor**: ~1.8 µs per environment variable
+
+**Root cause**: Iterating and filtering all environment variables on every context capture.
+
+**Optimization opportunity**:
+
+[Code block (rust)]
+
+**Estimated impact**: Save ~35 µs on startup if env vars not needed immediately.
+
+**Priority**: Low (current performance acceptable)
+
+### 2. Config Reload on Every Call
+
+**Issue**: `ConfigManager::load()` reads config file on every invocation.
+
+**Impact**: 1.7 µs per call (negligible, but preventable)
+
+**Root cause**: No in-memory cache of loaded configuration.
+
+**Optimization opportunity**:
+
+[Code block (rust)]
+
+**Estimated impact**: Eliminate 1.7 µs per config access after first load.
+
+**Priority**: Very Low (current performance excellent)
+
+### 3. Async Overhead for Sync Operations
+
+**Issue**: Many `async fn` don't actually await anything.
+
+**Impact**: Each unnecessary async adds ~1-2 µs overhead + binary size bloat.
+
+**Example**:
+
+[Code block (rust)]
+
+**Estimated impact**: Reduce startup overhead by ~5-10 µs if applied to all sync operations.
+
+**Priority**: Low (audit in v1.2.0)
+
+### 4. Closure-Heavy Async Code
+
+**Issue**: Async closures dominate LLVM IR (top 3 functions are closures).
+
+**Impact**: Binary size bloat, marginal performance impact.
+
+**Root cause**: Tokio runtime + async/await generates many closures.
+
+**Recommendation**: This is normal for async Rust. No action needed.
+
+**Alternative**: Consider reducing async usage (see Bottleneck #3).
+
+### 5. Serde Serialization in Hot Paths
+
+**Issue**: `CliResult` serialization contributes 847 LLVM lines.
+
+**Impact**: Acceptable performance, no user-facing slowdown.
+
+**Root cause**: `#[derive(Serialize)]` on large structs.
+
+**Recommendation**: No action needed. Serialization performance is acceptable.
+
+---
+
+## Optimization Plan
+
+### Priority 1: No Action Needed (v1.1.0)
+
+Current performance meets all requirements. Focus on features, not micro-optimizations.
+
+### Priority 2: Research & Design (v1.2.0)
+
+1. **Lazy Environment Capture** (Est. impact: 30-40 µs startup improvement)
+   - Defer env var capture until actually needed
+   - Benchmark impact before implementing
+
+2. **Config Caching** (Est. impact: 1-2 µs per config access)
+   - Cache loaded config in memory with file modification tracking
+   - Invalidate cache on file changes
+
+3. **Async Audit** (Est. impact: 5-15 µs startup improvement)
+   - Identify async functions that don't await anything
+   - Convert to synchronous where appropriate
+   - Re-benchmark to validate improvements
+
+### Priority 3: Future Considerations (v2.0+)
+
+1. **Binary Size Reduction**
+   - Audit clap derive macro usage (consider manual parsing for critical paths)
+
+
+[Content truncated - see full page for more]
+
+---
+
+## Release Process
+
+**URL**: https://docs.caro.sh/external/reference/release-process/
+**Category**: reference
+
+Documentation: Release Process
+
+This document describes the security-controlled release process for caro. Given that caro generates and executes shell commands, we maintain strict security controls similar to BSD and GNU projects to ensure user trust and safety.
+
+## Security Philosophy
+
+**caro is a security-critical tool** that translates natural language into executable shell commands. A compromised release could lead to arbitrary command execution on user systems. We therefore:
+
+- Limit release authority to verified maintainers only
+- Require multi-step verification before publishing
+- Maintain transparent changelog and audit trail
+- Follow defense-in-depth principles
+- Prioritize safety over feature velocity
+
+## Release Authority
+
+### Who Can Release
+
+Only **verified maintainers** with GPG-signed commits and proven track record can trigger releases:
+
+1. **Core Maintainers** (current: @wildcard)
+   - Full release authority
+   - crates.io owner status
+   - GitHub repository admin access
+   - GPG key on file
+
+2. **Trusted Contributors**
+   - Can propose releases via PR
+   - Cannot directly publish to crates.io
+   - Require core maintainer approval
+
+### Access Controls
+
+#### GitHub Repository Settings
+
+**Required branch protection on `main`**:
+- ✅ Require pull request reviews (minimum 1 for trusted contributors, 2+ for security changes)
+- ✅ Require status checks to pass (CI, tests, clippy, security audit)
+- ✅ Require signed commits for releases
+- ✅ Require linear history
+- ✅ Include administrators in restrictions
+- ✅ Restrict who can push to matching branches (maintainers only)
+
+**Tag protection**:
+- Pattern: `v*.*.*`
+- Only maintainers can create tags
+- Tags are immutable once pushed
+
+#### crates.io Permissions
+
+**Token Management**:
+- `CARGO_REGISTRY_TOKEN` stored in GitHub Secrets
+- Token has `publish-update` scope only (not `publish-new`)
+- Token rotated every 90 days
+- Access limited to repository maintainers
+- Token belongs to verified crates.io account with 2FA enabled
+
+**Package Ownership**:
+- Primary owner: Verified maintainer account
+- Secondary owner: Project organization account (if applicable)
+- Never add untrusted collaborators as owners
+
+## Release Checklist
+
+### Pre-Release (1-2 days before)
+
+- [ ] **Security Audit**
+  - Run `cargo audit` and resolve all vulnerabilities
+  - Review dependency updates for security patches
+  - Check for known CVEs in dependencies
+  - Review recent commits for security implications
+
+- [ ] **Code Quality**
+  - All CI checks passing on `main` branch
+  - `cargo clippy -- -D warnings` passes
+  - `cargo test --all-features` passes
+  - `cargo fmt --check` passes
+  - No outstanding critical bugs
+
+- [ ] **Documentation**
+  - README.md is up to date
+  - CHANGELOG.md has complete release notes
+  - API documentation is current (`cargo doc --no-deps`)
+  - Installation instructions verified
+
+- [ ] **Version Preparation**
+  - Update version in `Cargo.toml`
+  - Update version references in documentation
+  - Commit with message: `chore: bump version to X.Y.Z`
+  - Create PR for version bump
+  - Get review and approval from another maintainer
+
+### Release Execution
+
+- [ ] **Create Release Tag**
+  
+[Code block (bash)]
+
+- [ ] **Monitor Automated Workflows**
+  - Watch `.github/workflows/publish.yml` execution
+  - Verify all tests pass
+  - Verify clippy and security checks pass
+  - Confirm successful publish to crates.io
+  - Monitor `.github/workflows/release.yml` for binary builds
+
+- [ ] **Verify crates.io Publication**
+  
+[Code block (bash)]
+
+- [ ] **Create GitHub Release**
+  - Release workflow creates draft automatically
+  - Review release notes
+  - Attach checksums for binaries
+  - Mark as "Latest release"
+  - Publish release (not draft)
+
+### Post-Release
+
+- [ ] **Announcement**
+  - Update project README.md with latest version
+  - Post announcement to relevant channels
+  - Update documentation sites
+
+- [ ] **Verification**
+  - Test installation on fresh systems (Linux, macOS, Windows)
+  - Verify binaries work correctly
+  - Monitor issue tracker for installation problems
+
+- [ ] **Security Monitoring**
+  - Monitor crates.io download statistics
+  - Watch for reported security issues
+  - Enable GitHub security advisories notifications
+
+## Automated Release Workflow with Claude Skills
+
+**IMPORTANT**: As of this version, all releases MUST go through feature branches and pull requests. Direct commits to `main` are prohibited for release-related changes.
+
+caro provides Claude Code slash commands that automate and enforce the secure release workflow described above. These commands ensure consistency, prevent mistakes, and maintain our security-first approach.
+
+### Release Skills Overview
+
+The release workflow is divided into 6 distinct commands:
+
+1. **`/caro.release.prepare`** - Creates release branch and runs pre-flight checks
+2. **`/caro.release.security`** - Runs security audit and fixes vulnerabilities
+3. **`/caro.release.version`** - Bumps version and updates changelog
+4. **`/caro.release.publish`** - Creates PR, me
+
+[Content truncated - see full page for more]
+
+---
+
+## Security Settings
+
+**URL**: https://docs.caro.sh/external/reference/security/
+**Category**: reference
+
+Documentation: Security Settings
+
+This document provides a comprehensive guide for configuring GitHub repository settings to maintain BSD/GNU-level security standards for the caro project.
+
+## Overview
+
+As a security-critical CLI tool that generates and executes shell commands, caro requires strict repository security controls to prevent unauthorized releases, code injection, and supply chain attacks.
+
+## Required Security Settings
+
+### Branch Protection Rules
+
+**Protected Branch**: `main`
+
+Navigate to: **Settings → Branches → Add branch protection rule**
+
+#### Required Settings
+
+**Pattern**: `main`
+
+- [x] **Require a pull request before merging**
+  - [x] Require approvals: **1** (minimum)
+  - [x] Dismiss stale pull request approvals when new commits are pushed
+  - [x] Require review from Code Owners (when CODEOWNERS file exists)
+  - [x] Restrict who can dismiss pull request reviews: **Maintainers only**
+  - [ ] Allow specified actors to bypass required pull requests (leave unchecked)
+
+- [x] **Require status checks to pass before merging**
+  - [x] Require branches to be up to date before merging
+  - Required status checks:
+    - `test (ubuntu-latest)` - Linux tests
+    - `test (macos-latest)` - macOS tests
+    - `test (windows-latest)` - Windows tests
+    - `clippy` - Linter checks
+    - `fmt` - Format checks
+    - `security-audit` - cargo audit
+
+- [x] **Require conversation resolution before merging**
+  - All review comments must be resolved
+
+- [x] **Require signed commits**
+  - All commits must be GPG signed
+
+- [x] **Require linear history**
+  - Prevent merge commits, enforce rebase/squash
+
+- [x] **Require deployments to succeed before merging** (if using deployments)
+
+- [x] **Lock branch**
+  - [ ] Make the branch read-only (leave unchecked for normal development)
+
+- [x] **Do not allow bypassing the above settings**
+  - [x] Include administrators
+
+- [x] **Restrict who can push to matching branches**
+  - Add: **Maintainers** (verified maintainer accounts only)
+  - Do NOT add individual contributor accounts
+
+#### Additional Recommended Settings
+
+- [x] **Require deployments to succeed before merging** (if applicable)
+- [x] **Restrict creations** (prevent creation of matching branches)
+- [x] **Restrict deletions** (prevent deletion of protected branch)
+- [x] **Allow force pushes**: **Specify who can force push** → Nobody
+- [x] **Allow deletions**: Disabled
+
+### Tag Protection Rules
+
+**Protected Tags**: `v*.*.*`
+
+Navigate to: **Settings → Tags → Add tag protection rule**
+
+- **Pattern**: `v*.*.*` (matches all version tags like v1.0.0)
+- Only repository maintainers can create or delete tags matching this pattern
+- Tags are immutable once created
+
+**Additional Tag Patterns** (optional but recommended):
+- `v*` - Protect all version-related tags
+- `release-*` - Protect release-related tags
+
+### Repository Security Settings
+
+Navigate to: **Settings → Security**
+
+#### Vulnerability Reporting
+
+- [x] **Enable private vulnerability reporting**
+  - Allows security researchers to privately report vulnerabilities
+  - Notifications sent to repository maintainers
+  - Creates private security advisories
+
+#### Security Policies
+
+- [x] **Add SECURITY.md** (already in repository)
+  - Provides vulnerability disclosure guidelines
+  - Lists security contact information
+  - Defines security update policy
+
+#### Dependency Graph
+
+Navigate to: **Settings → Security & analysis**
+
+- [x] **Dependency graph**: Enabled
+  - Automatically tracks all dependencies
+  - Shows dependency relationships
+  - Required for Dependabot
+
+#### Dependabot Alerts
+
+- [x] **Dependabot alerts**: Enabled
+  - Automatic detection of vulnerable dependencies
+  - Email notifications to maintainers
+  - Creates security advisories automatically
+
+#### Dependabot Security Updates
+
+- [x] **Dependabot security updates**: Enabled
+  - Automatically creates PRs for vulnerable dependencies
+  - Only patches security vulnerabilities
+  - Respects semantic versioning
+
+#### Dependabot Version Updates (Optional)
+
+- [ ] **Dependabot version updates**: Consider enabling with config
+  - Create `.github/dependabot.yml` to configure update schedule
+  - Can be noisy for active development
+  - Recommended for stable releases only
+
+**Example `.github/dependabot.yml`**:
+
+[Code block (yaml)]
+
+#### Secret Scanning
+
+- [x] **Secret scanning**: Enabled (automatic for public repos)
+  - Scans for accidentally committed secrets
+  - Alerts maintainers immediately
+  - Supports 200+ token patterns
+
+#### Code Scanning (GitHub Advanced Security)
+
+For private repositories (requires GitHub Advanced Security):
+
+- [x] **Code scanning**: Configure CodeQL
+  - Automatic vulnerability detection
+  - Security query packs
+  - Pull request integration
+
+**Setup CodeQL** (`.github/workflows/codeql.yml`):
+
+[Code block (yaml)]
+
+### Repository Access & Permissions
+
+Navigate to: **Settings → Collaborators and teams**
+
+#### Access Levels
+
+**Maintainers (Admin)**:
+- Full repository access
+- Can modify settings
+- Can manage releases
+- Can add/remove collabor
+
+[Content truncated - see full page for more]
+
+---
+
+## Spec-Kitty Quick Reference
+
+**URL**: https://docs.caro.sh/external/reference/spec-kitty-quickref/
+**Category**: reference
+
+Documentation: Spec-Kitty Quick Reference
+
+## Helper Scripts
+
+[Code block (bash)]
+
+## Workflow Commands (from feature worktree)
+
+[Code block (bash)]
+
+## Directory Structure
+
+[Code block]
+
+## Task Lanes
+
+Tasks flow through lanes:
+1. **planned** → Work packages ready to start
+2. **doing** → Currently being implemented
+3. **review** → Waiting for review/validation
+4. **done** → Completed and accepted
+
+## Common Operations
+
+[Code block (bash)]
+
+## Parallel Development Example
+
+[Code block (bash)]
+
+## UTF-8 Encoding Rules
+
+❌ **Avoid**:
+- Smart quotes: " " ' '
+- Em/en dashes: — –
+- Special symbols: → × ± °
+
+✅ **Use**:
+- ASCII quotes: " '
+- Hyphen: -
+- ASCII arrow: ->
+- Plain letters: x +/- degrees
+
+## When to Use Spec-Kitty vs .specify/
+
+**Use Spec-Kitty** (`kitty-specs/`):
+- Small features ( 2 weeks)
+- Major architectural changes
+- Extensive research required
+
+## Dashboard URL
+
+http://127.0.0.1:9237
+
+## Agent Rules
+
+See `.kittify/AGENTS.md` for complete rules all AI agents must follow.
+
+## Help
+
+[Code block (bash)]
 
 ---
 
@@ -1414,6 +5189,562 @@ The production site is available at `caro.sh`.
 
 ---
 
+## Agentic Loop Architecture
+
+**URL**: https://docs.caro.sh/external/development/agentic-loop/
+**Category**: development
+
+Documentation: Agentic Loop Architecture
+
+## Overview
+Implement an iterative refinement system with context enrichment for accurate command generation.
+
+## Core Components
+
+### 1. Agent Loop (Max 2-3 iterations, 20%
+
+---
+
+## Claude Integration
+
+**URL**: https://docs.caro.sh/external/development/claude/
+**Category**: development
+
+Documentation: Claude Integration
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+`caro` (formerly `cmdai`) is a single-binary Rust CLI tool that converts natural language descriptions into safe POSIX shell commands using local LLMs. The tool prioritizes safety, performance, and developer experience with Apple Silicon optimization via MLX framework.
+
+> **Note**: The project was renamed from `cmdai` to `caro` in December 2025. See [docs/NAMING_HISTORY.md](docs/NAMING_HISTORY.md) for details.
+
+**Core Goals:**
+- Single binary under 50MB (without embedded model)
+- Startup time ` responses
+- Availability checking with graceful fallbacks
+- Unified configuration through `BackendConfig`
+- JSON-only response parsing with multiple fallback strategies
+
+### Safety-First Design
+Safety module provides:
+- Pattern matching for dangerous commands (`rm -rf /`, `mkfs`, fork bombs)
+- POSIX compliance validation
+- Path quoting and validation
+- Risk level assessment (Safe, Moderate, High, Critical)
+- User confirmation workflows
+
+### Platform Optimization
+- MLX backend uses FFI with cxx crate for Apple Silicon
+- Conditional compilation with feature flags
+- Cross-platform cache directory management
+- Shell-specific optimizations and detection
+
+### Sync Module (Planned)
+Local-first sync with Jazz.tools for multi-device command history:
+- `src/sync/`: Rust sync library (identity, encryption, IPC client)
+- `sync-daemon/`: Node.js companion for Jazz SDK integration
+- IPC: Unix socket at `~/.config/caro/sync.sock`
+- Encryption: AES-256-GCM with Argon2id key derivation from BIP39 phrase
+- Privacy: E2E encrypted, zero-knowledge relay sync
+- See `specs/005-jazz-sync-integration/` for full specification
+
+## Development Commands
+
+> !IMPORTANT:
+> Before running `cargo` or any rust development command in the shell, check the the command is installed with `which` and inspect the `$PATH` for the relevant bin.
+
+> If it doesn't run `. "$HOME/.cargo/env"` in your shell before command execution
+
+### Git Workflow
+
+**When reverting changes**: Use `git revert ` or `git reset`, NOT manual file edits. Manual edits break git history and introduce inconsistencies. Always use git commands to manage history.
+
+### Building & Testing
+
+[Code block (bash)]
+
+### Development Environment
+
+[Code block (bash)]
+
+## Implementation Phases
+
+### Phase 1: Core CLI Structure
+- Command-line argument parsing with clap
+- Mock inference backend for initial testing
+- Basic safety validation implementation
+- Configuration and cache directory setup
+
+### Phase 2: Safety & Validation
+- Comprehensive dangerous command patterns
+- POSIX compliance checking
+- User confirmation workflows
+- Risk assessment and color-coded output
+
+### Phase 3: Remote Backends
+- vLLM HTTP API integration
+- Ollama local API support
+- Error handling and retry mechanisms
+- Response format standardization
+
+### Phase 4: MLX Integration
+- FFI bindings using cxx crate
+- Metal Performance Shaders integration
+- Unified memory architecture handling
+- Apple Silicon performance optimization
+
+## Key Dependencies
+
+**Core:**
+- `clap` - Command-line argument parsing
+- `serde` + `serde_json` - JSON serialization
+- `tokio` - Async runtime
+- `anyhow` - Error handling
+- `reqwest` - HTTP client for remote backends
+
+**Platform-Specific:**
+- `cxx` - Safe C++ FFI for MLX integration
+- `directories` - Cross-platform directory management
+- `colored` - Terminal color output
+
+**Development:**
+- `tokio-test` - Async testing utilities
+- `tempfile` - Temporary file creation for tests
+
+## Safety Validation Patterns
+
+### Dangerous Commands to Block
+- Filesystem destruction: `rm -rf /`, `rm -rf ~`
+- Disk operations: `mkfs`, `dd if=/dev/zero`
+- Fork bombs: `:(){ :|:& };:`
+- System path modification: Operations on `/bin`, `/usr`, `/etc`
+- Privilege escalation: `sudo su`, `chmod 777 /`
+
+### POSIX Compliance Requirements
+- Use standard utilities (ls, find, grep, awk, sed, sort)
+- Proper path quoting for spaces and special characters
+- Avoid bash-specific features for maximum portability
+- Validate command syntax before execution
+
+## System Prompt Template
+
+The tool uses a strict system prompt for JSON-only responses:
+- Single command generation with safety constraints
+- POSIX-compliant utilities only
+- Proper file path quoting
+- Destructive operation avoidance
+- Clear JSON format: `{"cmd": "command_here"}`
+
+## Performance Requirements
+
+### Startup Optimization
+- Lazy loading of all dependencies
+- Efficient JSON parsing with fallback strategies
+- Minimal memory allocations during initialization
+- Cached model loading when available
+
+### Inference Performance
+- MLX backend:  2 weeks), major architecture changes, extensive research
+
+**Location**: `specs/` (traditional directories)
+
+**Commands**: Custom slash commands in `.codex/prompts/`
+
+**Workflow**:
+1. Manual directory creation in `specs/NNN-feature-name/`
+2. Create spec.md, plan.md, tasks.md manually
+3. Use `.specify/templates/` for structure
+4. Foll
+
+[Content truncated - see full page for more]
+
+---
+
+## TDD Workflow
+
+**URL**: https://docs.caro.sh/external/development/tdd-workflow/
+**Category**: development
+
+Documentation: TDD Workflow
+
+This document describes the Test-Driven Development (TDD) workflow for the caro project, including test watch setup, development cycles, agent collaboration, and project-specific standards.
+
+## Table of Contents
+
+1. [Quick Start](#quick-start)
+2. [The TDD Cycle](#the-tdd-cycle)
+3. [Watch Management](#watch-management)
+4. [Agent Collaboration](#agent-collaboration)
+5. [Project-Specific Standards](#project-specific-standards)
+6. [Common Workflows](#common-workflows)
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+Before starting TDD development, ensure Rust and cargo are properly configured:
+
+[Code block (bash)]
+
+### Installing cargo-watch
+
+cargo-watch provides continuous test execution on file changes:
+
+[Code block (bash)]
+
+### Starting the Test Watch
+
+Launch cargo-watch in the background for continuous feedback:
+
+[Code block (bash)]
+
+This command:
+- Watches all Rust source files
+- Runs `cargo test` on any change
+- Provides immediate feedback on test status
+
+### Checking Running Watches
+
+To see all background shells (including test watchers):
+
+[Code block (bash)]
+
+Or use the `BashOutput` tool with the shell ID to inspect specific output.
+
+---
+
+## The TDD Cycle
+
+caro follows strict **Red-Green-Refactor** methodology aligned with spec-driven development.
+
+### Phase 1: RED - Write Failing Contract Tests
+
+**Goal**: Express desired behavior through a failing test before any implementation.
+
+1. **Review the specification** from `specs/[feature-id]/spec.md`
+2. **Identify the contract** from `specs/[feature-id]/contracts/`
+3. **Write the test** in the appropriate `tests/` subdirectory:
+   - `tests/contract/` - Module public API tests
+   - `tests/integration/` - Cross-module workflow tests
+   - `tests/property/` - Property-based invariant tests
+
+**Example Contract Test** (from Feature 003):
+
+[Code block (rust)]
+
+4. **Verify the test fails** by checking cargo-watch output
+5. **Confirm failure reason** is correct (not a compilation error)
+
+### Phase 2: GREEN - Implement Minimal Code
+
+**Goal**: Make the test pass with the simplest possible implementation.
+
+1. **Review the failing test** output from cargo-watch
+2. **Identify the minimal change** needed
+3. **Implement only what's required** to pass the test
+4. **Observe cargo-watch** turn green
+5. **Verify all tests still pass** (no regressions)
+
+**Example Implementation**:
+
+[Code block (rust)]
+
+### Phase 3: REFACTOR - Improve Code Quality
+
+**Goal**: Enhance code structure, readability, and performance while keeping tests green.
+
+1. **Identify improvement opportunities**:
+   - Extract duplicated code
+   - Simplify complex logic
+   - Improve naming
+   - Add documentation
+   - Optimize performance
+
+2. **Make incremental changes** while watching tests
+3. **Ensure tests stay green** after each refactor
+4. **Document public APIs** with rustdoc comments
+
+**Refactoring Principles**:
+- Never refactor on red (always start with green tests)
+- Make one change at a time
+- Run tests after each change
+- Prefer clarity over cleverness
+
+---
+
+## Watch Management
+
+### Inspecting Test Output
+
+**Using BashOutput tool** (when shell ID is known):
+
+[Code block (bash)]
+
+**Using /bashes command** (to see all shells):
+
+[Code block (bash)]
+
+Output shows:
+- Shell ID and command
+- Current status (running/failed)
+- Recent stdout/stderr
+- Compilation errors
+- Test failures with file:line references
+
+### Understanding Watch Output
+
+**Green (All tests passing)**:
+
+[Code block]
+
+**Red (Tests failing)**:
+
+[Code block]
+
+**Warnings** (should be addressed but don't block tests):
+
+[Code block]
+
+### Filtering Test Output
+
+Run specific test suites:
+
+[Code block (bash)]
+
+### Stopping the Watch
+
+To stop cargo-watch:
+
+1. Find the shell ID: `/bashes`
+2. Kill it: `KillShell` with the shell_id
+
+Or manually:
+
+[Code block (bash)]
+
+---
+
+## Agent Collaboration
+
+caro uses specialized agents for TDD workflows. Choose the right agent based on your development phase.
+
+### tdd-rust-watcher Agent
+
+**When to use**:
+- Active TDD development session
+- Working through Red-Green-Refactor cycles
+- Debugging failing tests
+- Need real-time test feedback
+
+**Key behaviors**:
+- Maintains continuous test watch
+- Guides through strict Red→Green→Refactor
+- Provides minimal, incremental fixes
+- Never runs ad-hoc `cargo test` commands
+
+**Example invocation**:
+
+[Code block]
+
+### tdd-rust-engineer Agent
+
+**When to use**:
+- Designing new features from scratch
+- Implementing complete modules
+- Need broader architectural guidance
+- Starting new test suites
+
+**Key behaviors**:
+- Emphasizes contract-first design
+- Focuses on library-first architecture
+- Ensures comprehensive test coverage
+- Applies Rust best practices
+
+**Example invocation**:
+
+[Code block]
+
+### Agent Coordination
+
+For complex features, agents may work together:
+
+1. **Planning phase**: `spec-driven-dev-guide` creates specification
+2. **Architecture phase**: `rust-cli-architect` designs module structure
+3. **Implementation phase**: `tdd-rust-engineer` writes contracts
+4. **Development phase**
+
+[Content truncated - see full page for more]
+
+---
+
+## Technical Debt
+
+**URL**: https://docs.caro.sh/external/development/tech-debt/
+**Category**: development
+
+Documentation: Technical Debt
+
+This document tracks technical debt, known limitations, and areas where we need community help. Issues are categorized by complexity and impact.
+
+> 💡 **Want to contribute?** Issues marked with 🟢 are great for first-time contributors!
+
+---
+
+## 🔴 High Priority
+
+### Contract Test API Alignment
+**Issue**: #4
+**Status**: Open
+**Complexity**: Medium
+**Impact**: High - Blocks full test coverage
+
+**Description**:
+Config and logging contract tests were written before implementation and expect different API signatures. This causes ~35 compilation errors in the test suite.
+
+**Examples**:
+
+[Code block (rust)]
+
+**Tasks**:
+- [ ] Review spec.md to determine canonical API
+- [ ] Decide: Update tests OR update implementation
+- [ ] Fix config contract tests (8 errors)
+- [ ] Fix logging contract tests (27 errors)
+- [ ] Verify all contract tests compile and pass
+
+**Skills needed**: Rust, API design, testing
+**Estimated effort**: 4-8 hours
+**Help wanted**: Yes - We need someone to review the specs and make the alignment decision
+
+---
+
+### Hugging Face Model Download Implementation
+**Issue**: N/A (needs creation)
+**Status**: Placeholder
+**Complexity**: High
+**Impact**: High - Core feature missing
+
+**Description**:
+The cache module has a placeholder `download_model()` implementation that always returns an error. This prevents downloading models from Hugging Face Hub.
+
+**Current State**:
+
+[Code block (rust)]
+
+**Requirements**:
+- [ ] HTTP client for HF Hub API
+- [ ] Progress bar using indicatif
+- [ ] Resume capability for interrupted downloads
+- [ ] Checksum validation during download
+- [ ] Manifest updates with proper locking
+- [ ] Integration tests with mock HTTP server
+
+**Skills needed**: Rust, async I/O, HTTP APIs, progress indicators
+**Estimated effort**: 16-24 hours
+**Help wanted**: Yes - This is Feature 004, looking for an owner
+
+---
+
+## 🟡 Medium Priority
+
+### Holiday Debug Panel - Date Selection Not Working
+**Issue**: N/A (needs creation)
+**Status**: Parked
+**Complexity**: Medium
+**Impact**: Medium - Developer experience for theme testing
+
+**Description**:
+The Holiday Theme Debug Panel (`website/src/components/HolidayDebugPanel.astro`) has issues where the Quick Date presets and date picker don't properly apply themes. Only the manual "Preview Theme" buttons work correctly.
+
+**Current State**:
+- Panel opens with `Cmd+Shift+\` or `?holidayDebug=true`
+- Manual theme preview buttons work correctly
+- Quick Date buttons and Apply button don't trigger theme changes
+- Console logging shows no errors but theme doesn't apply
+
+**Attempted Fixes**:
+- Reorganized script to ensure functions defined before use
+- Added `is:inline` to prevent Astro bundling
+- Converted to plain JavaScript (no TypeScript)
+- Added proper DOM ready state handling
+- Used closure pattern for event handlers in loops
+
+**Root Cause (Suspected)**:
+The issue may be related to how Astro processes inline scripts or timing issues with the DOM. The script appears to execute but the theme class changes don't visually apply.
+
+**Files**:
+- `website/src/components/HolidayDebugPanel.astro` - Debug panel component
+- `website/src/layouts/Layout.astro` - Contains theme CSS
+
+**Workaround**:
+Use the "Preview Theme" buttons directly to test themes, or manually set `localStorage.setItem('holidayTheme', 'christmas')` in browser console.
+
+**Tasks**:
+- [ ] Debug why `document.documentElement.classList.add()` doesn't apply theme
+- [ ] Check if CSS specificity issues prevent theme from showing
+- [ ] Consider using Astro's client directives instead of inline script
+- [ ] Test with simpler script structure
+- [ ] Add visual feedback when theme is applied
+
+**Skills needed**: Astro, JavaScript, CSS, DOM debugging
+**Estimated effort**: 4-8 hours
+**Help wanted**: Yes - Good for someone familiar with Astro's script handling
+
+---
+
+### Security Hardening: File Permissions
+**Issue**: #6
+**Status**: Open
+**Complexity**: Low-Medium
+**Impact**: Medium - Security best practices
+
+**Description**:
+Cache directories and manifest files should have restricted permissions to prevent unauthorized access.
+
+**Tasks**:
+- [ ] Add cache directory permission enforcement (0700)
+- [ ] Add manifest file permission enforcement (0600)
+- [ ] Add verification checks in tests
+- [ ] Document TOCTOU limitation in rustdoc
+- [ ] Consider adding `--verify-permissions` CLI flag
+
+**Platform Considerations**:
+- Unix/Linux/macOS: Use `std::os::unix::fs::PermissionsExt`
+- Windows: Different approach needed (ACLs)
+
+**Skills needed**: Rust, Unix permissions, security
+**Estimated effort**: 4-6 hours
+**Help wanted**: Yes - Good for someone familiar with Unix permissions
+
+---
+
+### 🟢 Better Error Messages in Config Validation
+**Issue**: N/A (needs creation)
+**Status**: Tech debt
+**Complexity**: Low
+**Impact**: Low - Developer experience
+
+**Description**:
+Configuration validation errors could be more helpful by suggesting valid values and showing context.
+
+**Current**:
+
+[Code block (rust)]
+
+**Desired**:
+
+[Code block (rust)]
+
+**Tasks**
+
+[Content truncated - see full page for more]
+
+---
+
 ## Quick Reference
 
 ### Installation
@@ -1466,4 +5797,4 @@ caro cache clear                       # Clear model cache
 
 ---
 
-*Generated on 2026-01-04*
+*Generated on 2026-01-19*

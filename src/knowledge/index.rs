@@ -5,11 +5,12 @@
 
 use crate::knowledge::{backends::VectorBackend, schema::EntryType, Result};
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::sync::Arc;
 
 /// A knowledge entry retrieved from the index
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct KnowledgeEntry {
     /// The original natural language request
     pub request: String,
@@ -130,13 +131,17 @@ impl KnowledgeIndex {
     /// * `request` - The natural language request
     /// * `command` - The executed shell command
     /// * `context` - Optional project/directory context
+    /// * `profile` - Optional user profile name for scoped knowledge
     pub async fn record_success(
         &self,
         request: &str,
         command: &str,
         context: Option<&str>,
+        profile: Option<&str>,
     ) -> Result<()> {
-        self.backend.record_success(request, command, context).await
+        self.backend
+            .record_success(request, command, context, profile)
+            .await
     }
 
     /// Record a correction from agentic refinement
@@ -146,15 +151,17 @@ impl KnowledgeIndex {
     /// * `original` - The original (incorrect) command
     /// * `corrected` - The corrected command
     /// * `feedback` - Optional feedback about why it was wrong
+    /// * `profile` - Optional user profile name for scoped knowledge
     pub async fn record_correction(
         &self,
         request: &str,
         original: &str,
         corrected: &str,
         feedback: Option<&str>,
+        profile: Option<&str>,
     ) -> Result<()> {
         self.backend
-            .record_correction(request, original, corrected, feedback)
+            .record_correction(request, original, corrected, feedback, profile)
             .await
     }
 
@@ -214,7 +221,7 @@ mod tests {
 
         // Record a success
         index
-            .record_success("list all files", "ls -la", Some("rust project"))
+            .record_success("list all files", "ls -la", Some("rust project"), None)
             .await
             .unwrap();
 
@@ -236,6 +243,7 @@ mod tests {
                 "ls -lh",
                 "du -h -d 1",
                 Some("ls shows files not disk usage"),
+                None,
             )
             .await
             .unwrap();
@@ -251,7 +259,7 @@ mod tests {
         let index = KnowledgeIndex::open(temp_dir.path()).await.unwrap();
 
         index
-            .record_success("test", "echo test", None)
+            .record_success("test", "echo test", None, None)
             .await
             .unwrap();
 

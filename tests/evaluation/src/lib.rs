@@ -33,11 +33,13 @@
 //! # }
 //! ```
 
+pub mod batch_executor;
 pub mod capability_matrix;
 pub mod dashboard;
 pub mod dataset;
 pub mod dataset_export;
 pub mod evaluator;
+pub mod execution_cache;
 pub mod executor;
 pub mod issue_automation;
 pub mod model_profiling;
@@ -45,8 +47,11 @@ pub mod pattern_extraction;
 pub mod posix_checker;
 pub mod prompt_comparison;
 pub mod prompts;
+pub mod quality_metrics;
 pub mod reporter;
 pub mod safety_validator;
+pub mod test_generator;
 pub mod test_runner;
 pub mod timeseries;
+pub mod token_tracker;
 pub mod training_tracker;

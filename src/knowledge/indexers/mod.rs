@@ -4,11 +4,13 @@
 //! - ManPageIndexer: Index man pages into Docs collection
 //! - TldrIndexer: Index tldr pages into Docs collection
 //! - HelpIndexer: Index --help output into Docs collection
+//! - GitHubDocsIndexer: Index GitHub repository README files
 
 use crate::knowledge::{backends::VectorBackend, collections::CollectionType, Result};
 use async_trait::async_trait;
 use std::sync::Arc;
 
+pub mod github;
 pub mod help;
 pub mod man;
 pub mod tldr;

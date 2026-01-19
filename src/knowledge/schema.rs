@@ -7,13 +7,14 @@ use arrow_array::{
 };
 use arrow_schema::{DataType, Field, Schema, TimeUnit};
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 /// Embedding dimension (MiniLM-L6-v2 produces 384-dim vectors)
 pub const EMBEDDING_DIM: usize = 384;
 
 /// Type of knowledge entry
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum EntryType {
     /// A successfully executed command
     Success,
@@ -62,6 +63,7 @@ pub fn knowledge_schema() -> Schema {
         ),
         Field::new("original_command", DataType::Utf8, true),
         Field::new("feedback", DataType::Utf8, true),
+        Field::new("profile", DataType::Utf8, true),
     ])
 }
 
@@ -76,6 +78,7 @@ pub struct EntryBuilder {
     timestamps: Vec<i64>,
     original_commands: Vec<Option<String>>,
     feedbacks: Vec<Option<String>>,
+    profiles: Vec<Option<String>>,
 }
 
 impl Default for EntryBuilder {
@@ -96,10 +99,12 @@ impl EntryBuilder {
             timestamps: Vec::new(),
             original_commands: Vec::new(),
             feedbacks: Vec::new(),
+            profiles: Vec::new(),
         }
     }
 
     /// Add a successful command entry
+    #[allow(clippy::too_many_arguments)]
     pub fn add_success(
         &mut self,
         id: impl Into<String>,
@@ -108,6 +113,7 @@ impl EntryBuilder {
         context: Option<String>,
         embedding: Vec<f32>,
         timestamp: DateTime<Utc>,
+        profile: Option<String>,
     ) {
         self.ids.push(id.into());
         self.requests.push(request.into());
@@ -119,6 +125,7 @@ impl EntryBuilder {
         self.timestamps.push(timestamp.timestamp());
         self.original_commands.push(None);
         self.feedbacks.push(None);
+        self.profiles.push(profile);
     }
 
     /// Add a correction entry
@@ -132,6 +139,7 @@ impl EntryBuilder {
         feedback: Option<String>,
         embedding: Vec<f32>,
         timestamp: DateTime<Utc>,
+        profile: Option<String>,
     ) {
         self.ids.push(id.into());
         self.requests.push(request.into());
@@ -143,6 +151,7 @@ impl EntryBuilder {
         self.timestamps.push(timestamp.timestamp());
         self.original_commands.push(Some(original_command.into()));
         self.feedbacks.push(feedback);
+        self.profiles.push(profile);
     }
 
     /// Build the record batch
@@ -173,6 +182,7 @@ impl EntryBuilder {
             Arc::new(TimestampSecondArray::from(self.timestamps)),
             Arc::new(StringArray::from(self.original_commands)),
             Arc::new(StringArray::from(self.feedbacks)),
+            Arc::new(StringArray::from(self.profiles)),
         ];
 
         RecordBatch::try_new(schema, columns)
@@ -210,11 +220,12 @@ mod tests {
     #[test]
     fn test_schema_fields() {
         let schema = knowledge_schema();
-        assert_eq!(schema.fields().len(), 9);
+        assert_eq!(schema.fields().len(), 10);
         assert!(schema.field_with_name("id").is_ok());
         assert!(schema.field_with_name("request").is_ok());
         assert!(schema.field_with_name("command").is_ok());
         assert!(schema.field_with_name("embedding").is_ok());
+        assert!(schema.field_with_name("profile").is_ok());
     }
 
     #[test]
@@ -227,10 +238,11 @@ mod tests {
             Some("rust project".to_string()),
             vec![0.0; EMBEDDING_DIM],
             Utc::now(),
+            None,
         );
 
         let batch = builder.build().unwrap();
         assert_eq!(batch.num_rows(), 1);
-        assert_eq!(batch.num_columns(), 9);
+        assert_eq!(batch.num_columns(), 10);
     }
 }

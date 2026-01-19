@@ -6,6 +6,82 @@
 //!
 //! The static matcher runs BEFORE LLM backends, providing instant, predictable
 //! results for common queries advertised on the website.
+//!
+//! # Pattern Ordering Rules
+//!
+//! **CRITICAL**: Patterns use first-match-wins semantics. Ordering matters to prevent
+//! general patterns from shadowing specific ones.
+//!
+//! ## Ordering Priority (Most Specific → Most General)
+//!
+//! 1. **SPECIFIC patterns first** - More required keywords, narrower regex
+//!    - Example: `["python", "modified", "today"]` (3 keywords)
+//!    - Matches: "find all Python files modified today"
+//!
+//! 2. **GENERAL patterns last** - Fewer required keywords, broader regex
+//!    - Example: `["file", "today"]` (2 keywords)
+//!    - Matches: "list all files modified today"
+//!
+//! ## Why Ordering Matters
+//!
+//! If general patterns come first, they shadow specific patterns:
+//!
+//! ```text
+//! BAD ORDER:
+//!   Pattern A: ["disk", "usage"] → matches "disk usage sorted" ✗ Wrong!
+//!   Pattern B: ["disk", "usage", "sorted"] → never matches (shadowed)
+//!
+//! CORRECT ORDER:
+//!   Pattern B: ["disk", "usage", "sorted"] → matches "disk usage sorted" ✓
+//!   Pattern A: ["disk", "usage"] → matches "disk usage" ✓
+//! ```
+//!
+//! ## Specificity Guidelines
+//!
+//! - **Required keywords count**: More = more specific (comes first)
+//! - **Regex complexity**: Narrower = more specific (comes first)
+//! - **Optional keywords**: Don't affect ordering (they're hints, not requirements)
+//!
+//! ## Adding New Patterns
+//!
+//! 1. Count required keywords in your pattern
+//! 2. Find patterns with same keyword count
+//! 3. Insert your pattern in that group (alphabetically by primary keyword)
+//! 4. Run `cargo test test_pattern_ordering` to validate
+//!
+//! ## Future: Confidence Scoring
+//!
+//! At 150+ patterns, consider replacing first-match-wins with confidence scoring
+//! to allow more flexible pattern organization.
+//!
+//! # Regex Complexity and Performance
+//!
+//! **IMPORTANT**: Some patterns use unbounded quantifiers (`.*(word1).*(word2).*`) which
+//! can cause catastrophic backtracking on malicious input.
+//!
+//! ## Catastrophic Backtracking
+//!
+//! Patterns like `r"(?i)(find).*(large).*(files).*"` can exhibit exponential time complexity
+//! on input like "find large" + "x".repeat(1000) because the regex engine tries all possible
+//! ways to match `.*` between tokens.
+//!
+//! **Current Mitigations:**
+//! - Keyword pre-filtering: Patterns only run if required keywords present (fast path rejection)
+//! - Input length limits: Natural language queries are typically <100 chars
+//! - Test coverage: `test_regex_backtracking_protection()` validates performance on long inputs
+//!
+//! **Future Improvements (see issue #548):**
+//! - Replace unbounded `.*` with bounded `.{0,100}` quantifiers
+//! - Use possessive quantifiers `.*+` or atomic groups `(?>.*)`  where supported
+//! - Consider switching to linear-time matchers (e.g., regex-automata)
+//!
+//! ## Regex Pattern Guidelines
+//!
+//! When adding new patterns:
+//! 1. **Prefer bounded quantifiers**: `.{0,100}` instead of `.*`
+//! 2. **Anchor when possible**: Use `\b` word boundaries to reduce search space
+//! 3. **Test with long input**: Run `test_regex_backtracking_protection()` after adding patterns
+//! 4. **Consider alternatives**: Sometimes keyword matching alone is sufficient without regex
 
 use async_trait::async_trait;
 use regex::Regex;
@@ -64,7 +140,7 @@ impl StaticMatcher {
 
     /// Build the pattern library from website-advertised examples
     fn build_patterns() -> Vec<PatternEntry> {
-        vec![
+        let mut patterns = vec![
             // Pattern 1: "find all Python files modified today" (SPECIFIC - moved from Pattern 46)
             PatternEntry {
                 required_keywords: vec!["python".to_string(), "modified".to_string(), "today".to_string()],
@@ -140,18 +216,6 @@ impl StaticMatcher {
                 description: "Show disk usage by folder".to_string(),
             },
 
-            // Pattern 4a: "show disk usage" → df -h (simple disk free space)
-            // Very simple case without "directory" or "folder" keywords
-            // Comes after more specific patterns (sorted, by directory, by folder)
-            PatternEntry {
-                required_keywords: vec!["show".to_string(), "disk".to_string(), "usage".to_string()],
-                optional_keywords: vec![],
-                regex_pattern: Some(Regex::new(r"(?i)^(show|display).*(disk).*(usage|space)$").unwrap()),
-                gnu_command: "df -h".to_string(),
-                bsd_command: None,
-                description: "Show disk usage (free space)".to_string(),
-            },
-
             // Pattern 4: "find python files modified/from last week"
             // Fixes Issue #406 - updated regex to handle "from" in addition to "modified"
             PatternEntry {
@@ -172,7 +236,7 @@ impl StaticMatcher {
                 regex_pattern: Some(Regex::new(r"(?i)(find|locate|search).*(all)?.*(pdf).*(files?).*(larger|bigger|over).*(10|10mb|10m).*(in|from)?.*(downloads|~/downloads)").unwrap()),
                 gnu_command: r#"find ~/Downloads -name "*.pdf" -size +10M -ls"#.to_string(),
                 bsd_command: Some(r#"find ~/Downloads -name "*.pdf" -size +10M -ls"#.to_string()),
-                description: "Find PDF files larger than 10MB in Downloads".to_string(),
+                description: "Find PDF files larger than 10MB in Downloads (Note: ~/Downloads path may not exist on all systems)".to_string(),
             },
 
             // Pattern 6: "find files larger than 10MB" (GENERAL - was Pattern 5)
@@ -429,17 +493,6 @@ impl StaticMatcher {
 
             // ===== SYSTEM MONITORING PATTERNS (Cycle 3) =====
 
-            // Pattern 25a: "show all running processes" (simple ps aux, no sorting)
-            // MUST come before Pattern 26/28 (top processes) for simple queries
-            PatternEntry {
-                required_keywords: vec!["show".to_string(), "all".to_string(), "processes".to_string()],
-                optional_keywords: vec!["running".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)^(show|list|display).*(all).*(running)?.*(processes?)$").unwrap()),
-                gnu_command: "ps aux".to_string(),
-                bsd_command: None,
-                description: "Show all running processes".to_string(),
-            },
-
             // Pattern 26: "show me the top 5 processes by CPU usage" (SPECIFIC - moved from Pattern 47)
             PatternEntry {
                 required_keywords: vec!["top".to_string(), "5".to_string(), "cpu".to_string()],
@@ -519,7 +572,7 @@ impl StaticMatcher {
                 regex_pattern: Some(Regex::new(r"(?i)(show|list|find|check).*(ssl|tls).*(certificates?|certs?).*(expiring|expire|expiration).*(next|in)?.*(30|days?)").unwrap()),
                 gnu_command: r#"find /etc/ssl -name "*.pem" -exec sh -c 'openssl x509 -enddate -noout -in "{}" 2>/dev/null' \;"#.to_string(),
                 bsd_command: Some(r#"find /etc/ssl -name "*.pem" -exec sh -c 'openssl x509 -enddate -noout -in "{}" 2>/dev/null' \;"#.to_string()),
-                description: "Show SSL certificates expiring soon".to_string(),
+                description: "Show SSL certificates expiring soon (Note: certificate paths may vary, common locations: /etc/ssl, /etc/pki/tls, /usr/local/etc/ssl)".to_string(),
             },
 
             // Pattern 33: "show all AWS EC2 instances in terraform state"
@@ -556,17 +609,6 @@ impl StaticMatcher {
 
             // ===== LOG ANALYSIS PATTERNS (Cycle 4) =====
 
-            // Pattern 35a: "find text error in logs" (very simple grep)
-            // MUST come before Pattern 36/37 (complex log searches)
-            PatternEntry {
-                required_keywords: vec!["find".to_string(), "text".to_string(), "error".to_string(), "logs".to_string()],
-                optional_keywords: vec!["in".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)^find.*text.*(error|err).*logs?$").unwrap()),
-                gnu_command: "grep 'error' logs".to_string(),
-                bsd_command: None,
-                description: "Find text in logs file".to_string(),
-            },
-
             // Pattern 36: "find all ERROR lines in logs from the last 24 hours" (SPECIFIC - moved from Pattern 39)
             PatternEntry {
                 required_keywords: vec!["error".to_string(), "log".to_string(), "last".to_string()],
@@ -582,9 +624,9 @@ impl StaticMatcher {
                 required_keywords: vec!["error".to_string(), "log".to_string()],
                 optional_keywords: vec!["find".to_string(), "all".to_string(), "entries".to_string(), "application".to_string()],
                 regex_pattern: Some(Regex::new(r"(?i)(find|show|search|grep).*(all)?.*(error|errors).*(entries?|lines?|messages?).*(in)?.*(application|app)?.*logs?").unwrap()),
-                gnu_command: "grep -i 'error' /var/log/app.log | tail -n 50".to_string(),
-                bsd_command: Some("grep -i 'error' /var/log/app.log | tail -n 50".to_string()),
-                description: "Find ERROR entries in application logs".to_string(),
+                gnu_command: "grep -i 'error' /var/log/app.log | tail -n 50  # Adjust log path for your application".to_string(),
+                bsd_command: Some("grep -i 'error' /var/log/app.log | tail -n 50  # Adjust log path for your application".to_string()),
+                description: "Find ERROR entries in application logs (Note: adjust /var/log/app.log path for your application)".to_string(),
             },
 
             // Pattern 37: "Count HTTP status codes in access log"
@@ -592,9 +634,9 @@ impl StaticMatcher {
                 required_keywords: vec!["count".to_string(), "status".to_string(), "code".to_string()],
                 optional_keywords: vec!["http".to_string(), "access".to_string(), "log".to_string()],
                 regex_pattern: Some(Regex::new(r"(?i)(count|show|display|analyze).*(http)?.*(status|response)?.*(codes?|responses?).*(in)?.*(access|nginx)?.*logs?").unwrap()),
-                gnu_command: "awk '{print $9}' /var/log/nginx/access.log | sort | uniq -c | sort -rn".to_string(),
-                bsd_command: Some("awk '{print $9}' /var/log/nginx/access.log | sort | uniq -c | sort -rn".to_string()),
-                description: "Count HTTP status codes in access log".to_string(),
+                gnu_command: "awk '{print $9}' /var/log/nginx/access.log | sort | uniq -c | sort -rn  # Adjust log path".to_string(),
+                bsd_command: Some("awk '{print $9}' /var/log/nginx/access.log | sort | uniq -c | sort -rn  # Adjust log path".to_string()),
+                description: "Count HTTP status codes in access log (Note: adjust /var/log/nginx/access.log path for your web server)".to_string(),
             },
 
             // Pattern 38: "Search for TODO/FIXME comments in code" - Issue #10 fix
@@ -613,8 +655,8 @@ impl StaticMatcher {
                 optional_keywords: vec!["show".to_string(), "100".to_string()],
                 regex_pattern: Some(Regex::new(r"(?i)(show|display|list|get).*(last|recent).*(100|\d+)?.*(system|systemd)?.*errors?").unwrap()),
                 gnu_command: "journalctl -p err -n 100".to_string(),
-                bsd_command: Some("grep -i error /var/log/messages | tail -n 100".to_string()),
-                description: "Show last N system errors".to_string(),
+                bsd_command: Some("grep -i error /var/log/messages | tail -n 100  # Path may vary".to_string()),
+                description: "Show last N system errors (BSD: /var/log/messages path may vary by system)".to_string(),
             },
 
             // ===== FILE MANAGEMENT REFINED PATTERNS (Cycle 4) =====
@@ -629,21 +671,11 @@ impl StaticMatcher {
                 description: "Find Python files (simple)".to_string(),
             },
 
-            // Pattern 41a: "list all files including hidden ones"
-            // MUST come before Pattern 42 (list hidden files) for specificity
+            // Pattern 42: "list hidden files" - Issue #11 fix
+            // Increased specificity: requires "hidden" + "files" to avoid being shadowed by "list files"
             PatternEntry {
-                required_keywords: vec!["list".to_string(), "all".to_string(), "files".to_string()],
-                optional_keywords: vec!["including".to_string(), "hidden".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)list.*(all|everything).*(files?).*(including|with)?.*(hidden)?").unwrap()),
-                gnu_command: "ls -la".to_string(),
-                bsd_command: None,
-                description: "List all files including hidden ones".to_string(),
-            },
-
-            // Pattern 42: "list hidden files" - Issue #11 fix (MOVED BEFORE "list files" for priority)
-            PatternEntry {
-                required_keywords: vec!["hidden".to_string()],
-                optional_keywords: vec!["list".to_string(), "show".to_string(), "files".to_string(), "dot".to_string()],
+                required_keywords: vec!["hidden".to_string(), "files".to_string()],
+                optional_keywords: vec!["list".to_string(), "show".to_string(), "dot".to_string()],
                 regex_pattern: Some(Regex::new(r"(?i)(list|show|display|find).*(hidden|dot).*(files?)?").unwrap()),
                 gnu_command: "ls -d .*".to_string(),
                 bsd_command: Some("ls -d .*".to_string()),
@@ -677,9 +709,9 @@ impl StaticMatcher {
                 required_keywords: vec!["check".to_string(), "disk".to_string(), "health".to_string()],
                 optional_keywords: vec!["all".to_string(), "drives".to_string(), "smart".to_string()],
                 regex_pattern: Some(Regex::new(r"(?i)(check|test|verify|show).*(disk|drive|hdd|ssd).*(health|status|smart)").unwrap()),
-                gnu_command: "smartctl -a /dev/sda".to_string(),
-                bsd_command: Some("smartctl -a /dev/sda".to_string()),
-                description: "Check disk health with smartctl".to_string(),
+                gnu_command: "smartctl -a /dev/sda  # Adjust device: /dev/nvme0n1, /dev/vda, etc.".to_string(),
+                bsd_command: Some("smartctl -a /dev/sda  # Adjust device: /dev/nvme0n1, /dev/ada0, etc.".to_string()),
+                description: "Check disk health with smartctl (Note: adjust device path - modern systems may use /dev/nvme0n1, /dev/vda, etc.)".to_string(),
             },
 
             // Pattern 50: "日本語のファイルを検索" (Find Japanese filename files)
@@ -726,10 +758,12 @@ impl StaticMatcher {
             },
 
             // Pattern 54: "show disk usage of the current directory" / "du -sh ."
+            // IMPORTANT: Regex requires "current" or "this" to be present (not optional)
+            // to avoid shadowing "disk usage by folder" pattern
             PatternEntry {
                 required_keywords: vec!["disk".to_string(), "usage".to_string(), "current".to_string()],
                 optional_keywords: vec!["show".to_string(), "directory".to_string(), "folder".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(show|display|get|check).*(disk|storage).*(usage|space|size).*(of)?.*(current|this)?.*(directory|dir|folder)?").unwrap()),
+                regex_pattern: Some(Regex::new(r"(?i)(show|display|get|check).*(disk|storage).*(usage|space|size).*(of)?.*(current|this).*(directory|dir|folder)?").unwrap()),
                 gnu_command: "du -sh .".to_string(),
                 bsd_command: Some("du -sh .".to_string()),
                 description: "Show disk usage of current directory".to_string(),
@@ -744,7 +778,7 @@ impl StaticMatcher {
                 regex_pattern: Some(Regex::new(r"(?i)(display|show|get|tail).*(last|recent).*(\\d+).*(lines?).*(of)?.*(system|syslog|var)?.*log").unwrap()),
                 gnu_command: "tail -20 /var/log/syslog".to_string(),
                 bsd_command: Some("tail -20 /var/log/system.log".to_string()),
-                description: "Display last N lines of system log".to_string(),
+                description: "Display last N lines of system log (GNU: /var/log/syslog, BSD: /var/log/system.log)".to_string(),
             },
 
             // Pattern 56: "monitor file changes in real-time" / "tail -f"
@@ -754,7 +788,7 @@ impl StaticMatcher {
                 regex_pattern: Some(Regex::new(r"(?i)(monitor|watch|tail|follow).*(file|log).*(changes?|updates?|modifications?).*(real-time|realtime|live)?").unwrap()),
                 gnu_command: "tail -f /var/log/syslog".to_string(),
                 bsd_command: Some("tail -f /var/log/system.log".to_string()),
-                description: "Monitor file changes in real-time".to_string(),
+                description: "Monitor file changes in real-time (example uses system log: GNU /var/log/syslog, BSD /var/log/system.log)".to_string(),
             },
 
             // ===== TEXT PROCESSING (Issue #511) =====
@@ -895,78 +929,19 @@ impl StaticMatcher {
                 description: "Compress directory with maximum compression".to_string(),
             },
 
+        ];
 
-            // Pattern 74: "make script.sh executable"
-            PatternEntry {
-                required_keywords: vec!["make".to_string(), "executable".to_string()],
-                optional_keywords: vec!["script".to_string(), "chmod".to_string()],
-                regex_pattern: None,
-                gnu_command: "chmod +x script.sh".to_string(),
-                bsd_command: None,
-                description: "Make file executable".to_string(),
-            },
+        // Sort patterns by specificity (number of required keywords) in descending order.
+        // This ensures more specific patterns match before general ones, preventing shadowing.
+        // For patterns with the same specificity, maintain stable ordering (insertion order).
+        patterns.sort_by(|a, b| {
+            let a_specificity = a.required_keywords.len();
+            let b_specificity = b.required_keywords.len();
+            // Sort by specificity descending (more keywords first)
+            b_specificity.cmp(&a_specificity)
+        });
 
-            // Pattern 75: "show system resource usage" / "monitor system"
-            PatternEntry {
-                required_keywords: vec!["show".to_string(), "system".to_string(), "resource".to_string()],
-                optional_keywords: vec!["usage".to_string(), "top".to_string(), "monitor".to_string()],
-                regex_pattern: None,
-                gnu_command: "top".to_string(),
-                bsd_command: None,
-                description: "Show system resource usage".to_string(),
-            },
-
-            // Pattern 86: "show logged in users"
-            PatternEntry {
-                required_keywords: vec!["show".to_string(), "logged".to_string(), "users".to_string()],
-                optional_keywords: vec!["in".to_string(), "who".to_string()],
-                regex_pattern: None,
-                gnu_command: "who".to_string(),
-                bsd_command: None,
-                description: "Show logged in users".to_string(),
-            },
-
-            // Pattern 87: "display system hostname"
-            PatternEntry {
-                required_keywords: vec!["display".to_string(), "hostname".to_string()],
-                optional_keywords: vec!["system".to_string(), "show".to_string()],
-                regex_pattern: None,
-                gnu_command: "hostname".to_string(),
-                bsd_command: None,
-                description: "Display system hostname".to_string(),
-            },
-
-            // Pattern 88: "show system information"
-            PatternEntry {
-                required_keywords: vec!["show".to_string(), "system".to_string(), "information".to_string()],
-                optional_keywords: vec!["uname".to_string(), "info".to_string()],
-                regex_pattern: None,
-                gnu_command: "uname -a".to_string(),
-                bsd_command: None,
-                description: "Show system information".to_string(),
-            },
-
-            // Pattern 89: "display current date and time"
-            PatternEntry {
-                required_keywords: vec!["display".to_string(), "date".to_string()],
-                optional_keywords: vec!["current".to_string(), "time".to_string(), "show".to_string()],
-                regex_pattern: None,
-                gnu_command: "date".to_string(),
-                bsd_command: None,
-                description: "Display current date and time".to_string(),
-            },
-
-            // Pattern 90: "show system uptime"
-            PatternEntry {
-                required_keywords: vec!["show".to_string(), "uptime".to_string()],
-                optional_keywords: vec!["system".to_string(), "display".to_string()],
-                regex_pattern: None,
-                gnu_command: "uptime".to_string(),
-                bsd_command: None,
-                description: "Show system uptime".to_string(),
-            },
-
-        ]
+        patterns
     }
 
     /// Try to match the query against known patterns
@@ -1334,5 +1309,311 @@ mod tests {
             "BSD platform should use same command as GNU for find, got: {}",
             cmd.command
         );
+    }
+
+    #[test]
+    fn test_pattern_ordering() {
+        // Verify patterns are ordered by specificity (more required keywords first)
+        // This prevents general patterns from shadowing specific ones
+        //
+        // NOTE: Patterns are automatically sorted by build_patterns() using sort_by().
+        // This test validates the sorting is working correctly.
+        let patterns = StaticMatcher::build_patterns();
+
+        let mut violations = Vec::new();
+
+        for i in 0..patterns.len() {
+            let current = &patterns[i];
+            let current_specificity = current.required_keywords.len();
+
+            // Check all subsequent patterns
+            for j in (i + 1)..patterns.len() {
+                let later = &patterns[j];
+                let later_specificity = later.required_keywords.len();
+
+                // If a later pattern has MORE required keywords than an earlier one,
+                // that's a violation of specificity ordering
+                if later_specificity > current_specificity {
+                    // Check if they share keywords (potential shadowing)
+                    let shared_keywords: Vec<_> = later
+                        .required_keywords
+                        .iter()
+                        .filter(|kw| current.required_keywords.contains(kw))
+                        .collect();
+
+                    if !shared_keywords.is_empty() {
+                        violations.push(format!(
+                            "Pattern {} (specificity {}) comes BEFORE Pattern {} (specificity {})\n  \
+                             Pattern {}: {:?}\n  \
+                             Pattern {}: {:?}\n  \
+                             Shared keywords: {:?}\n  \
+                             → More specific pattern {} should come FIRST",
+                            i,
+                            current_specificity,
+                            j,
+                            later_specificity,
+                            i,
+                            current.required_keywords,
+                            j,
+                            later.required_keywords,
+                            shared_keywords,
+                            j
+                        ));
+                    }
+                }
+            }
+        }
+
+        if !violations.is_empty() {
+            panic!(
+                "Pattern ordering violations detected:\n\n{}\n\n\
+                 Fix: Move more specific patterns (more required keywords) BEFORE general patterns.\n\
+                 See module-level documentation for ordering rules.",
+                violations.join("\n\n")
+            );
+        }
+    }
+
+    #[test]
+    fn test_pattern_specificity_examples() {
+        // Verify documented examples from module-level docs work correctly
+        let patterns = StaticMatcher::build_patterns();
+
+        // Example 1: "find all Python files modified today" (SPECIFIC)
+        // should come before "list all files modified today" (GENERAL)
+        let specific_pattern = patterns.iter().position(|p| {
+            p.required_keywords.contains(&"python".to_string())
+                && p.required_keywords.contains(&"modified".to_string())
+                && p.required_keywords.contains(&"today".to_string())
+        });
+
+        let general_pattern = patterns.iter().position(|p| {
+            p.required_keywords.contains(&"file".to_string())
+                && p.required_keywords.contains(&"today".to_string())
+                && p.required_keywords.len() == 2 // Ensure it's the general one
+        });
+
+        if let (Some(specific_idx), Some(general_idx)) = (specific_pattern, general_pattern) {
+            assert!(
+                specific_idx < general_idx,
+                "Specific pattern (Python files modified today) at {} should come BEFORE \
+                 general pattern (files modified today) at {}",
+                specific_idx,
+                general_idx
+            );
+        }
+
+        // Example 2: "disk usage sorted" (SPECIFIC)
+        // should come before "disk usage" (GENERAL)
+        let specific_disk = patterns.iter().position(|p| {
+            p.required_keywords.contains(&"disk".to_string())
+                && p.required_keywords.contains(&"sorted".to_string())
+        });
+
+        let general_disk = patterns.iter().position(|p| {
+            p.required_keywords.contains(&"disk".to_string())
+                && !p.required_keywords.contains(&"sorted".to_string())
+                && p.required_keywords.len() < 3 // General one has fewer keywords
+        });
+
+        if let (Some(specific_idx), Some(general_idx)) = (specific_disk, general_disk) {
+            assert!(
+                specific_idx < general_idx,
+                "Specific pattern (disk usage sorted) at {} should come BEFORE \
+                 general pattern (disk usage) at {}",
+                specific_idx,
+                general_idx
+            );
+        }
+    }
+
+    #[test]
+    fn test_bsd_commands_avoid_gnu_only_features() {
+        // Verify BSD commands don't use GNU-specific features that aren't available on BSD/macOS
+        let patterns = StaticMatcher::build_patterns();
+
+        let mut violations = Vec::new();
+
+        for (i, pattern) in patterns.iter().enumerate() {
+            if let Some(bsd_cmd) = &pattern.bsd_command {
+                // Check for ps-specific GNU flags
+                if bsd_cmd.starts_with("ps ") && bsd_cmd.contains("--sort=") {
+                    violations.push(format!(
+                        "Pattern {} uses GNU ps flag '--sort=' in BSD command\n  \
+                         Description: {}\n  \
+                         BSD command: {}\n  \
+                         → Use BSD ps flags: -m (sort by memory) or -r (sort by CPU)",
+                        i, pattern.description, bsd_cmd
+                    ));
+                }
+
+                // Check for systemd-specific tools not available on BSD
+                if bsd_cmd.contains("journalctl") {
+                    violations.push(format!(
+                        "Pattern {} uses 'journalctl' (systemd tool) in BSD command\n  \
+                         Description: {}\n  \
+                         BSD command: {}\n  \
+                         → Use BSD alternatives like /var/log/messages or syslog",
+                        i, pattern.description, bsd_cmd
+                    ));
+                }
+
+                if bsd_cmd.contains("systemctl") {
+                    violations.push(format!(
+                        "Pattern {} uses 'systemctl' (systemd tool) in BSD command\n  \
+                         Description: {}\n  \
+                         BSD command: {}\n  \
+                         → Use BSD service managers (service, rcctl, etc.)",
+                        i, pattern.description, bsd_cmd
+                    ));
+                }
+
+                // Check for GNU find extensions
+                if bsd_cmd.contains("find ") && bsd_cmd.contains("-printf") {
+                    violations.push(format!(
+                        "Pattern {} uses GNU find extension '-printf' in BSD command\n  \
+                         Description: {}\n  \
+                         BSD command: {}\n  \
+                         → Use -print with awk/sed for formatting",
+                        i, pattern.description, bsd_cmd
+                    ));
+                }
+
+                // Check for GNU-specific color flag (outside git context)
+                if !bsd_cmd.contains("git ") && bsd_cmd.contains("--color=auto") {
+                    violations.push(format!(
+                        "Pattern {} uses GNU flag '--color=auto' in BSD command\n  \
+                         Description: {}\n  \
+                         BSD command: {}\n  \
+                         → Use platform-agnostic alternatives or document GNU requirement",
+                        i, pattern.description, bsd_cmd
+                    ));
+                }
+            }
+        }
+
+        if !violations.is_empty() {
+            panic!(
+                "BSD command portability violations detected:\n\n{}\n\n\
+                 Fix: Ensure BSD commands use platform-agnostic features or BSD-specific alternatives.\n\
+                 See module-level documentation for GNU vs BSD differences.",
+                violations.join("\n\n")
+            );
+        }
+    }
+
+    #[test]
+    fn test_patterns_have_platform_specific_alternatives() {
+        // Verify that patterns using platform-specific features have proper alternatives
+        let patterns = StaticMatcher::build_patterns();
+
+        let mut missing_bsd = Vec::new();
+
+        for (i, pattern) in patterns.iter().enumerate() {
+            let gnu_cmd = &pattern.gnu_command;
+
+            // Check if GNU command uses Linux/systemd-specific tools
+            let uses_linux_specific = gnu_cmd.contains("journalctl")
+                || gnu_cmd.contains("systemctl")
+                || gnu_cmd.contains("apt-get")
+                || gnu_cmd.contains("yum")
+                || gnu_cmd.contains("dnf");
+
+            // If GNU command is Linux-specific, BSD alternative must exist
+            if uses_linux_specific && pattern.bsd_command.is_none() {
+                missing_bsd.push(format!(
+                    "Pattern {} uses Linux-specific tool but lacks BSD alternative\n  \
+                     Description: {}\n  \
+                     GNU command: {}",
+                    i, pattern.description, gnu_cmd
+                ));
+            }
+        }
+
+        if !missing_bsd.is_empty() {
+            panic!(
+                "Patterns missing BSD alternatives:\n\n{}\n\n\
+                 Fix: Add bsd_command field with platform-agnostic alternative.",
+                missing_bsd.join("\n\n")
+            );
+        }
+    }
+
+    #[test]
+    fn test_regex_backtracking_protection() {
+        // Test that regex patterns don't exhibit catastrophic backtracking
+        // on malicious input (long strings with partial matches)
+        use std::time::{Duration, Instant};
+
+        let patterns = StaticMatcher::build_patterns();
+
+        // Malicious inputs designed to trigger worst-case backtracking:
+        // 1. Starts with keywords to pass pre-filtering
+        // 2. Contains many characters that .* will try to match in all possible ways
+        let malicious_inputs = vec![
+            // Pattern with repeated partial matches
+            format!("find large {}", "x".repeat(500)),
+            // Pattern with keywords at start and garbage at end
+            format!("list files modified {}", "abcdefgh".repeat(100)),
+            // Pattern with alternating matches
+            format!("show disk usage {}", "disk space disk usage ".repeat(50)),
+            // Very long input with keywords scattered
+            format!(
+                "find {} python {} files",
+                "word ".repeat(200),
+                "word ".repeat(200)
+            ),
+        ];
+
+        let max_allowed_time = Duration::from_millis(100); // 100ms per pattern
+        let mut slow_patterns = Vec::new();
+
+        for (i, pattern) in patterns.iter().enumerate() {
+            if let Some(regex) = &pattern.regex_pattern {
+                for (input_idx, input) in malicious_inputs.iter().enumerate() {
+                    let start = Instant::now();
+                    let _ = regex.is_match(input);
+                    let elapsed = start.elapsed();
+
+                    if elapsed > max_allowed_time {
+                        slow_patterns.push(format!(
+                            "Pattern {} took {:?} on malicious input #{}\n  \
+                             Description: {}\n  \
+                             Regex: {:?}\n  \
+                             Input length: {} chars\n  \
+                             → Consider using bounded quantifiers: .{{0,100}} instead of .*",
+                            i,
+                            elapsed,
+                            input_idx,
+                            pattern.description,
+                            regex.as_str(),
+                            input.len()
+                        ));
+                    }
+                }
+            }
+        }
+
+        if !slow_patterns.is_empty() {
+            panic!(
+                "Regex catastrophic backtracking detected:\n\n{}\n\n\
+                 Fix: Replace unbounded .* with bounded .{{0,N}} quantifiers.\n\
+                 See module-level documentation for regex performance guidelines.",
+                slow_patterns.join("\n\n")
+            );
+        }
+    }
+
+    #[test]
+    fn test_regex_patterns_compile() {
+        // Ensure all regex patterns compile without errors
+        let patterns = StaticMatcher::build_patterns();
+
+        for (i, pattern) in patterns.iter().enumerate() {
+            if let Some(regex) = &pattern.regex_pattern {
+                // Pattern should already be compiled, but verify it's valid
+                assert!(!regex.as_str().is_empty(), "Pattern {} has empty regex", i);
+            }
+        }
     }
 }

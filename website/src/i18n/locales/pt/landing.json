@@ -1,0 +1,260 @@
+{
+  "landing": {
+    "navigation": {
+      "brand": "Caro",
+      "cta": "Começar Grátis",
+      "darkMode": {
+        "toggle": "Alternar modo escuro"
+      }
+    },
+    "hero": {
+      "badge": "Agente Companheiro",
+      "tagline": "Sua companheira leal de shell",
+      "subtitle": "Um agente especializado em comandos POSIX shell para usuários do Claude. Valida comandos gerados por IA com design seguro, detecta padrões perigosos e garante compatibilidade POSIX.",
+      "installLabel": "Disponível como Claude Skill:",
+      "cta": {
+        "getStarted": "Começar",
+        "watchDemo": "Ver Demo"
+      }
+    },
+    "features": {
+      "title": "Por que Caro?",
+      "subtitle": "Um agente companheiro construído para segurança, empatia e expertise",
+      "alphaNotice": "Estamos construindo ativamente com nossa comunidade. Junte-se a nós para ajudar a moldar o futuro da Caro!",
+      "alphaLabel": "Alpha de Lançamento Suave",
+      "ctaText": "Veja exatamente o que a Caro bloqueia e por quê",
+      "ctaLink": "Ver padrões de segurança",
+      "items": [
+        {
+          "icon": "🛡️",
+          "title": "Não derrube produção de novo",
+          "description": "Bloqueia rm -rf /, fork bombs e mais de 50 comandos que podem acabar com sua carreira ANTES de você executá-los. Seu eu das 2 da manhã vai agradecer.",
+          "highlight": true
+        },
+        {
+          "icon": "🔒",
+          "title": "Seus Dados São Seus",
+          "description": "Zero telemetria. Zero chamadas de API na nuvem. Funciona em redes isoladas. Passa em qualquer auditoria de compliance. Seus comandos nunca saem da sua máquina.",
+          "highlight": true,
+          "privacyLink": true
+        },
+        {
+          "icon": "✅",
+          "title": "Comandos Que Realmente Funcionam",
+          "description": "Gera comandos que funcionam no seu Mac, no seu servidor Linux e no BSD do seu colega. De primeira. Sempre.",
+          "highlight": false
+        },
+        {
+          "icon": "⚡",
+          "title": "Rápido sem interromper seu fluxo",
+          "description": "Inferência em menos de 2s no Apple Silicon. Sem esperar APIs na nuvem. Sem se perguntar se o servidor caiu. Só respostas.",
+          "highlight": false
+        }
+      ],
+      "cards": {
+        "safetyGuardian": {
+          "title": "Guardião de Segurança",
+          "description": "Validação completa que bloqueia comandos perigosos como rm -rf /, fork bombs e operações destrutivas. 52 padrões de segurança predefinidos com avaliação de nível de risco."
+        },
+        "crossPlatform": {
+          "title": "Especialista Multiplataforma",
+          "description": "Funciona em macOS, Linux, Windows, GNU e BSD. Entende as nuances específicas de cada plataforma e respeita sua distribuição preferida."
+        },
+        "platformAware": {
+          "title": "Consciente da Plataforma",
+          "description": "Fornece recomendações baseadas nas capacidades e melhores práticas da sua plataforma. Distingue automaticamente entre sintaxe BSD e GNU."
+        },
+        "posixSpecialist": {
+          "title": "Especialista POSIX",
+          "description": "Especialista em comandos shell compatíveis com POSIX que funcionam de forma confiável em todos os sistemas. Portáveis, seguros e otimizados para seu terminal."
+        },
+        "lightningFast": {
+          "title": "Ultra Rápido",
+          "description": "Objetivo: Inicialização em menos de 100ms, inferência em menos de 2s no Apple Silicon. Integração com framework MLX para aceleração GPU em chips da série M."
+        },
+        "claudeCompanion": {
+          "title": "Companheiro do Claude",
+          "description": "Skill oficial do Claude Code para geração segura de comandos shell. Ativa automaticamente quando você precisa de ajuda, fornece orientação de segurança e se integra perfeitamente ao seu fluxo de trabalho. Instale com /plugin install wildcard/caro"
+        }
+      }
+    },
+    "comparison": {
+      "title": "Como a Caro se Compara",
+      "subtitle": "Construído para engenheiros DevOps e SREs que não sacrificam privacidade por produtividade",
+      "summary": {
+        "privacy": { "stat": "Privacidade", "label": "Design primeiro*" },
+        "safety": { "stat": "52+", "label": "Padrões de Segurança" },
+        "offline": { "stat": "100%", "label": "Funciona Offline" },
+        "speed": { "stat": "Rust", "label": "Feito para Velocidade" }
+      },
+      "competitors": {
+        "caro": "Caro",
+        "copilotCli": "GitHub Copilot CLI",
+        "warp": "Warp AI",
+        "kiro": "Kiro CLI",
+        "opencode": "OpenCode"
+      },
+      "table": {
+        "feature": "Recurso",
+        "youreHere": "Você está aqui"
+      },
+      "categories": {
+        "privacyData": {
+          "title": "Privacidade e Dados",
+          "features": {
+            "worksOffline": {
+              "name": "Funciona 100% offline",
+              "tooltip": "Não requer internet para funcionalidade principal"
+            },
+            "privacyFirst": {
+              "name": "Design privacidade primeiro",
+              "tooltip": "Telemetria mínima e anônima com fácil opt-out"
+            },
+            "airGapped": {
+              "name": "Compatível com air-gap",
+              "tooltip": "Pode ser executado em ambientes isolados"
+            },
+            "openSource": {
+              "name": "Código aberto",
+              "tooltip": "Código fonte completo disponível"
+            }
+          }
+        },
+        "safetyControl": {
+          "title": "Segurança e Controle",
+          "features": {
+            "ruleBasedSafety": {
+              "name": "Verificações baseadas em regras",
+              "tooltip": "Validação pré-execução com padrões definidos"
+            },
+            "explicitConfirmation": {
+              "name": "Confirmação explícita necessária",
+              "tooltip": "Comandos nunca são executados sem sua aprovação"
+            },
+            "blocksDangerous": {
+              "name": "Bloqueia comandos perigosos",
+              "tooltip": "Previne rm -rf /, fork bombs, etc."
+            },
+            "riskLevel": {
+              "name": "Avaliação de nível de risco",
+              "tooltip": "Comandos classificados por impacto potencial"
+            }
+          }
+        },
+        "shellExpertise": {
+          "title": "Expertise em Shell",
+          "features": {
+            "posixFirst": {
+              "name": "Abordagem POSIX primeiro",
+              "tooltip": "Comandos portáveis que funcionam em qualquer lugar"
+            },
+            "crossPlatform": {
+              "name": "Multiplataforma (macOS/Linux/BSD)",
+              "tooltip": "Funciona em sistemas tipo Unix"
+            },
+            "existingTerminal": {
+              "name": "Usa seu terminal existente",
+              "tooltip": "Não requer novo emulador de terminal"
+            },
+            "platformAware": {
+              "name": "Comandos conscientes da plataforma",
+              "tooltip": "Ajusta para sintaxe GNU vs BSD"
+            }
+          }
+        },
+        "modelBackend": {
+          "title": "Modelo e Backend",
+          "features": {
+            "localInference": {
+              "name": "Inferência local",
+              "tooltip": "Modelos são executados na sua máquina"
+            },
+            "multiBackend": {
+              "name": "Suporte multi-backend",
+              "tooltip": "Escolha seu motor de inferência"
+            },
+            "appleSilicon": {
+              "name": "Otimizado para Apple Silicon",
+              "tooltip": "Framework MLX para Macs série M"
+            },
+            "selfHostable": {
+              "name": "Self-hostable",
+              "tooltip": "Controle total sobre a infraestrutura"
+            }
+          }
+        }
+      },
+      "cta": {
+        "text": "Pronto para um companheiro de shell que respeita sua privacidade?",
+        "getStarted": "Começar Grátis",
+        "fullComparison": "Ver Comparação Completa"
+      },
+      "legend": {
+        "fullSupport": "Suporte completo",
+        "partial": "Parcial/configurável",
+        "notSupported": "Não suportado",
+        "planned": "Planejado"
+      },
+      "values": {
+        "yes": "Sim",
+        "no": "Não",
+        "partial": "Parcial",
+        "planned": "Planejado"
+      }
+    },
+    "scenarios": {},
+    "demo": {},
+    "useCases": {},
+    "differentiators": {},
+    "communityVoices": {},
+    "trust": {},
+    "story": {
+      "title": "Conheça a Caro",
+      "subtitle": "Uma companheira com uma história de lealdade e transformação",
+      "paragraphs": {
+        "intro": "Caro é a digitalização de Kyaro (Kyarorain Kadosh), a querida cachorra do mantenedor. Assim como uma companheira leal permanece ao seu lado em cada desafio, Caro está aqui para ajudá-lo a navegar nas complexidades dos comandos shell com segurança e expertise.",
+        "highlight": "Em Portal 2, aprendemos que GLaDOS foi um dia Caroline, a secretária do fundador da Aperture Science—transformada na guardiã eterna da instalação. Como Caroline se tornou o coração pulsante das câmaras de teste, Caro é sua companheira eterna para o terminal.",
+        "platforms": "Ela se especializa em comandos POSIX shell e entende as nuances de cada plataforma—seja você no macOS, Linux, Windows, GNU ou BSD. Caro traz suas preferências para onde você a implantar, respeitando sua distribuição preferida enquanto te mantém seguro de comandos perigosos.",
+        "companion": "Como companheira leal do Claude, Caro cuida do trabalho pesado específico de shell, permitindo que o Claude foque no trabalho mais amplo enquanto ela garante que cada comando seja seguro, correto e otimizado para sua plataforma."
+      }
+    },
+    "faq": {
+      "title": "Preocupações Comuns",
+      "subtitle": "Perguntas reais de engenheiros céticos (a gente entende)",
+      "concerns": [
+        {
+          "question": "Espera, a Caro roda localmente. Como ela se mantém atualizada com novos padrões perigosos?",
+          "answer": "Os padrões de segurança da Caro estão integrados no binário—não precisa de rede. Quando você atualiza a Caro (cargo install caro --force), você obtém os padrões mais recentes. Os comandos perigosos principais (rm -rf /, fork bombs, limpadores de disco) não mudam. Também aceitamos contribuições de padrões via GitHub.",
+          "icon": "🔄"
+        },
+        {
+          "question": "Isso vai atrasar minha resposta a incidentes?",
+          "answer": "Não. A Caro adiciona menos de 100ms à geração de comandos. A verificação de segurança é instantânea (correspondência de padrões, não inferência IA). Em um incidente real, são 100ms que podem te salvar de piorar as coisas 10 vezes. A validação é síncrona—você vê o aviso imediatamente.",
+          "icon": "⚡"
+        },
+        {
+          "question": "Como ela sabe minha configuração específica do sistema (BSD vs GNU, etc.)?",
+          "answer": "A Caro detecta seu SO e shell em tempo de execução. No macOS, ela sabe que você usa ferramentas BSD. No Linux, ela ajusta para sintaxe GNU. Ela lê seu $SHELL e ajusta de acordo. Não precisa de configuração—simplesmente funciona.",
+          "icon": "🖥️"
+        },
+        {
+          "question": "E se eu REALMENTE precisar executar um comando perigoso?",
+          "answer": "A Caro avisa, não prende. Quando você vê um aviso, pode continuar—apenas garantimos que você está fazendo isso intencionalmente. Para comandos verdadeiramente destrutivos (rm -rf /), você precisará confirmar. Este é seu cinto de segurança, não uma camisa de força.",
+          "icon": "🔓"
+        },
+        {
+          "question": "Isso é só mais um envoltório de IA que envia meus comandos para a nuvem?",
+          "answer": "Não. A Caro roda 100% localmente. Seus comandos, caminhos de arquivos, nomes de servidores e estruturas de diretórios nunca saem da sua máquina. A inferência acontece no seu hardware. Temos zero telemetria. Confira o código fonte—é licenciado AGPL-3.0.",
+          "icon": "🔒"
+        },
+        {
+          "question": "Por que eu deveria confiar em comandos shell gerados por IA?",
+          "answer": "Você não deveria confiar cegamente—esse é o ponto. A Caro gera comandos E os valida antes de você executá-los. Não é 'confie na IA'—é 'confie na camada de segurança baseada em padrões que pega o que a IA pode errar.' A validação é determinística, não probabilística.",
+          "icon": "🎯"
+        }
+      ]
+    },
+    "download": {},
+    "footer": {}
+  }
+}

@@ -318,8 +318,44 @@ enum KnowledgeCommands {
         verbose: bool,
     },
 
+    /// Index GitHub repository documentation
+    IndexGitHub {
+        /// GitHub repository in format owner/repo (e.g., "wildcard/caro")
+        repo: String,
+
+        /// Show progress during indexing
+        #[arg(long, short = 'v')]
+        verbose: bool,
+    },
+
     /// Show knowledge index statistics
     Stats,
+
+    /// Search for similar commands in the knowledge index
+    Search {
+        /// Query to search for
+        query: String,
+
+        /// Maximum number of results to return
+        #[arg(long, short = 'n', default_value = "5")]
+        limit: usize,
+    },
+
+    /// Export knowledge index to JSON file
+    Export {
+        /// Output file path
+        path: std::path::PathBuf,
+    },
+
+    /// Import knowledge from JSON file
+    Import {
+        /// Input file path
+        path: std::path::PathBuf,
+
+        /// Merge with existing knowledge (default: replace)
+        #[arg(long)]
+        merge: bool,
+    },
 
     /// Clear the knowledge index
     Clear {
@@ -1001,7 +1037,7 @@ async fn handle_knowledge_command(
     backend_config: caro::models::KnowledgeBackendConfig,
 ) -> Result<(), String> {
     use caro::knowledge::indexers::{help::HelpIndexer, man::ManPageIndexer, tldr::TldrIndexer};
-    use caro::knowledge::{Indexer, KnowledgeIndex};
+    use caro::knowledge::{EntryType, Indexer, KnowledgeEntry, KnowledgeIndex};
     use colored::Colorize;
 
     match command {
@@ -1183,6 +1219,48 @@ async fn handle_knowledge_command(
             Ok(())
         }
 
+        KnowledgeCommands::IndexGitHub { repo, verbose } => {
+            use caro::knowledge::indexers::github::GitHubDocsIndexer;
+
+            println!("{} Initializing GitHub docs indexer...", "►".cyan());
+
+            let indexer = GitHubDocsIndexer::new()
+                .map_err(|e| format!("Failed to create GitHub indexer: {}", e))?;
+
+            let index = KnowledgeIndex::from_config(&backend_config)
+                .await
+                .map_err(|e| format!("Failed to initialize knowledge index: {}", e))?;
+
+            let backend = index.backend();
+
+            println!("{} Fetching README from: {}", "→".cyan(), repo.bold());
+
+            if verbose {
+                println!("{} Downloading and parsing documentation...", "→".cyan());
+            }
+
+            match indexer.index_one(backend, &repo).await {
+                Ok(true) => {
+                    println!(
+                        "{} Successfully indexed GitHub repo: {}",
+                        "✓".green(),
+                        repo.bold()
+                    );
+                    println!("  Documentation added to knowledge base");
+                }
+                Ok(false) => {
+                    println!(
+                        "{} No useful documentation found for: {}",
+                        "✗".yellow(),
+                        repo
+                    );
+                }
+                Err(e) => return Err(format!("GitHub indexing failed: {}", e)),
+            }
+
+            Ok(())
+        }
+
         KnowledgeCommands::Stats => {
             println!("{} Knowledge Index Statistics", "📊".cyan());
             println!();
@@ -1234,6 +1312,163 @@ async fn handle_knowledge_command(
                 Ok(()) => println!("{} Knowledge index cleared successfully", "✓".green()),
                 Err(e) => return Err(format!("Failed to clear index: {}", e)),
             }
+
+            Ok(())
+        }
+
+        KnowledgeCommands::Search { query, limit } => {
+            println!("{} Searching knowledge index...", "🔍".cyan());
+            println!();
+
+            let index = KnowledgeIndex::from_config(&backend_config)
+                .await
+                .map_err(|e| format!("Failed to initialize knowledge index: {}", e))?;
+
+            match index.find_similar(&query, limit).await {
+                Ok(results) => {
+                    if results.is_empty() {
+                        println!("{} No results found", "ℹ".yellow());
+                    } else {
+                        println!(
+                            "{} Found {} result(s):",
+                            "✓".green(),
+                            results.len().to_string().bold()
+                        );
+                        println!();
+
+                        for (i, entry) in results.iter().enumerate() {
+                            println!(
+                                "{}. {} (similarity: {:.2}%)",
+                                (i + 1).to_string().bold(),
+                                entry.command.bright_cyan(),
+                                entry.similarity * 100.0
+                            );
+                            println!("   Request: {}", entry.request.dimmed());
+
+                            if let Some(ref context) = entry.context {
+                                println!("   Context: {}", context.dimmed());
+                            }
+
+                            if let Some(ref original) = entry.original_command {
+                                println!("   Original: {}", original.dimmed());
+                            }
+
+                            if let Some(ref feedback) = entry.feedback {
+                                println!("   Feedback: {}", feedback.dimmed());
+                            }
+
+                            println!();
+                        }
+                    }
+                }
+                Err(e) => return Err(format!("Failed to search: {}", e)),
+            }
+
+            Ok(())
+        }
+
+        KnowledgeCommands::Export { path } => {
+            println!("{} Exporting knowledge index...", "📦".cyan());
+
+            let index = KnowledgeIndex::from_config(&backend_config)
+                .await
+                .map_err(|e| format!("Failed to initialize knowledge index: {}", e))?;
+
+            // Get all entries by searching with empty query
+            let entries = index
+                .find_similar("", 10000)
+                .await
+                .map_err(|e| format!("Failed to retrieve entries: {}", e))?;
+
+            // Serialize to JSON
+            let json = serde_json::to_string_pretty(&entries)
+                .map_err(|e| format!("Failed to serialize entries: {}", e))?;
+
+            // Write to file
+            std::fs::write(&path, json).map_err(|e| format!("Failed to write file: {}", e))?;
+
+            println!(
+                "{} Exported {} entries to {}",
+                "✓".green(),
+                entries.len().to_string().bold(),
+                path.display().to_string().bright_cyan()
+            );
+
+            Ok(())
+        }
+
+        KnowledgeCommands::Import { path, merge } => {
+            if !merge {
+                print!(
+                    "{} This will replace all existing knowledge. Continue? (y/N) ",
+                    "⚠".yellow()
+                );
+                use std::io::{self, Write};
+                io::stdout().flush().unwrap();
+
+                let mut input = String::new();
+                io::stdin().read_line(&mut input).unwrap();
+
+                if !input.trim().eq_ignore_ascii_case("y") {
+                    println!("Cancelled.");
+                    return Ok(());
+                }
+            }
+
+            println!("{} Importing knowledge index...", "📥".cyan());
+
+            // Read and parse JSON file
+            let json = std::fs::read_to_string(&path)
+                .map_err(|e| format!("Failed to read file: {}", e))?;
+
+            let entries: Vec<KnowledgeEntry> =
+                serde_json::from_str(&json).map_err(|e| format!("Failed to parse JSON: {}", e))?;
+
+            let index = KnowledgeIndex::from_config(&backend_config)
+                .await
+                .map_err(|e| format!("Failed to initialize knowledge index: {}", e))?;
+
+            // Clear existing if not merging
+            if !merge {
+                index
+                    .clear()
+                    .await
+                    .map_err(|e| format!("Failed to clear index: {}", e))?;
+            }
+
+            // Import entries
+            let mut imported = 0;
+            for entry in &entries {
+                let result = if entry.entry_type == EntryType::Correction {
+                    index
+                        .record_correction(
+                            &entry.request,
+                            entry.original_command.as_deref().unwrap_or(""),
+                            &entry.command,
+                            entry.feedback.as_deref(),
+                        )
+                        .await
+                } else {
+                    index
+                        .record_success(&entry.request, &entry.command, entry.context.as_deref())
+                        .await
+                };
+
+                match result {
+                    Ok(_) => imported += 1,
+                    Err(e) => {
+                        eprintln!("{} Failed to import entry: {}", "⚠".yellow(), e);
+                    }
+                }
+            }
+
+            println!(
+                "{} Imported {}/{} entries from {}",
+                "✓".green(),
+                imported.to_string().bold(),
+                entries.len(),
+                path.display().to_string().bright_cyan()
+            );
 
             Ok(())
         }

@@ -1,6 +1,6 @@
 # Caro Test Suite
 
-This directory contains tests for the Caro installation and setup scripts.
+This directory contains tests for the Caro installation scripts, knowledge integration, and feature-specific backends.
 
 ## Running Tests
 
@@ -23,6 +23,66 @@ This test suite validates:
 - ✅ ZDOTDIR support for zsh
 - ✅ Fallback to version variables when $SHELL is unknown
 - ✅ Graceful handling of completely unknown shells
+
+### Knowledge Integration Tests
+
+Test the embedded knowledge index using LanceDB (default backend):
+
+```bash
+# Run all knowledge integration tests
+cargo test --features knowledge --test knowledge_integration
+
+# Run a specific test
+cargo test --features knowledge --test knowledge_integration test_lancedb_health
+```
+
+These tests validate:
+- ✅ LanceDB backend health and connectivity
+- ✅ Recording successful commands with context
+- ✅ Recording corrections with feedback
+- ✅ Finding similar commands via vector search
+- ✅ Database statistics and entry counts
+- ✅ Clearing and persistence across backend instances
+- ✅ Context metadata preservation
+
+**Requirements:**
+- `knowledge` feature flag enabled
+- No external services required (uses temporary directory)
+- Models downloaded automatically on first run
+
+### ChromaDB Integration Tests
+
+Test the ChromaDB backend (requires running server):
+
+```bash
+# Start ChromaDB server using Docker
+cd tests && docker-compose up -d
+
+# Run all ChromaDB integration tests
+cargo test --features chromadb --test chromadb_integration -- --ignored --nocapture --test-threads=1
+
+# Run a specific test
+cargo test --features chromadb --test chromadb_integration test_chromadb_connection -- --ignored
+
+# Stop ChromaDB server
+cd tests && docker-compose down
+```
+
+**IMPORTANT:** ChromaDB tests must run serially (`--test-threads=1`) because they share the same collection name and interfere when run in parallel. See issue #537 for work to enable parallel execution.
+
+These tests validate:
+- ✅ ChromaDB server connection and health
+- ✅ Recording successful commands with context
+- ✅ Recording corrections with feedback
+- ✅ Finding similar commands via vector search
+- ✅ Collection statistics and entry counts
+- ✅ Clearing collections
+- ✅ Context metadata preservation
+
+**Requirements:**
+- `chromadb` feature flag enabled
+- ChromaDB server running on localhost:8000 (or set `CHROMADB_URL`)
+- Optional: `CHROMADB_AUTH_TOKEN` environment variable for auth
 
 ## Test Coverage
 
@@ -102,15 +162,39 @@ main() {
 
 ## CI Integration
 
-These tests can be integrated into CI/CD pipelines:
+These tests are integrated into the CI/CD pipeline:
 
+### Setup Script Tests
 ```yaml
 # Example GitHub Actions workflow
 - name: Run setup script tests
   run: ./tests/test_setup.sh
 ```
 
-The test script exits with code 0 on success and 1 on failure, making it suitable for CI systems.
+### Knowledge Integration Tests
+```yaml
+# Runs in main test job with knowledge feature
+- name: Run knowledge integration tests
+  run: cargo test --features knowledge --test knowledge_integration --verbose
+```
+
+### ChromaDB Integration Tests
+```yaml
+# Runs in dedicated chromadb-integration job with ChromaDB service
+services:
+  chromadb:
+    image: chromadb/chroma:0.5.18
+    ports:
+      - 8000:8000
+
+steps:
+  - name: Run ChromaDB integration tests
+    run: cargo test --features chromadb --test chromadb_integration -- --ignored --nocapture --test-threads=1
+```
+
+See `.github/workflows/ci.yml` for the complete CI configuration.
+
+All test scripts exit with code 0 on success and 1 on failure, making them suitable for CI systems.
 
 ## Troubleshooting
 

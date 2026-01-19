@@ -156,6 +156,11 @@ impl LanceDbBackend {
             .ok_or_else(|| KnowledgeError::Schema("missing feedback column".to_string()))?
             .as_string::<i32>();
 
+        let profiles = batch
+            .column_by_name("profile")
+            .ok_or_else(|| KnowledgeError::Schema("missing profile column".to_string()))?
+            .as_string::<i32>();
+
         // Try to get distance column (from vector search)
         let distances = batch
             .column_by_name("_distance")
@@ -183,6 +188,12 @@ impl LanceDbBackend {
                 Some(feedbacks.value(i).to_string())
             };
 
+            let profile = if profiles.is_null(i) {
+                None
+            } else {
+                Some(profiles.value(i).to_string())
+            };
+
             // Convert distance to similarity (lower distance = higher similarity)
             let similarity = distances
                 .as_ref()
@@ -205,7 +216,7 @@ impl LanceDbBackend {
                 entry_type,
                 original_command,
                 feedback,
-                profile: None, // TODO: Read profile from entry metadata
+                profile,
             });
         }
 
@@ -220,6 +231,7 @@ impl VectorBackend for LanceDbBackend {
         request: &str,
         command: &str,
         context: Option<&str>,
+        profile: Option<&str>,
     ) -> Result<()> {
         let embedding = self.embedder.embed_command(request, command)?;
         let id = uuid::Uuid::new_v4().to_string();
@@ -233,6 +245,7 @@ impl VectorBackend for LanceDbBackend {
             context.map(|s| s.to_string()),
             embedding,
             timestamp,
+            profile.map(|s| s.to_string()),
         );
 
         self.add_batch(builder.build()?).await
@@ -244,6 +257,7 @@ impl VectorBackend for LanceDbBackend {
         original: &str,
         corrected: &str,
         feedback: Option<&str>,
+        profile: Option<&str>,
     ) -> Result<()> {
         let embedding = self.embedder.embed_command(request, corrected)?;
         let id = uuid::Uuid::new_v4().to_string();
@@ -258,6 +272,7 @@ impl VectorBackend for LanceDbBackend {
             feedback.map(|s| s.to_string()),
             embedding,
             timestamp,
+            profile.map(|s| s.to_string()),
         );
 
         self.add_batch(builder.build()?).await
@@ -320,12 +335,47 @@ impl VectorBackend for LanceDbBackend {
             .await
             .map_err(|e| KnowledgeError::Database(e.to_string()))?;
 
-        // For now, return total count
-        // TODO: Add type-specific counts by querying with filters
+        // Count successes using filter query
+        let success_results = table
+            .query()
+            .only_if("entry_type = 'success'")
+            .execute()
+            .await
+            .map_err(|e| KnowledgeError::Database(e.to_string()))?;
+
+        // Convert stream to count
+        use futures::StreamExt;
+        let mut success_count = 0;
+        let mut stream = success_results;
+        while let Some(batch_result) = stream.next().await {
+            match batch_result {
+                Ok(batch) => success_count += batch.num_rows(),
+                Err(e) => return Err(KnowledgeError::Database(e.to_string())),
+            }
+        }
+
+        // Count corrections using filter query
+        let correction_results = table
+            .query()
+            .only_if("entry_type = 'correction'")
+            .execute()
+            .await
+            .map_err(|e| KnowledgeError::Database(e.to_string()))?;
+
+        // Convert stream to count
+        let mut correction_count = 0;
+        let mut stream = correction_results;
+        while let Some(batch_result) = stream.next().await {
+            match batch_result {
+                Ok(batch) => correction_count += batch.num_rows(),
+                Err(e) => return Err(KnowledgeError::Database(e.to_string())),
+            }
+        }
+
         Ok(BackendStats {
             total_entries: count,
-            success_count: count,
-            correction_count: 0,
+            success_count,
+            correction_count,
         })
     }
 
@@ -368,6 +418,7 @@ impl VectorBackend for LanceDbBackend {
                     entry.context,
                     embedding,
                     entry.timestamp,
+                    entry.profile,
                 );
             }
             EntryType::Correction => {
@@ -382,6 +433,7 @@ impl VectorBackend for LanceDbBackend {
                     entry.feedback,
                     embedding,
                     entry.timestamp,
+                    entry.profile,
                 );
             }
         }
@@ -426,7 +478,7 @@ mod tests {
 
         // Record a success
         backend
-            .record_success("list all files", "ls -la", Some("rust project"))
+            .record_success("list all files", "ls -la", Some("rust project"), None)
             .await
             .unwrap();
 
@@ -448,6 +500,7 @@ mod tests {
                 "ls -lh",
                 "du -h -d 1",
                 Some("ls shows files not disk usage"),
+                None,
             )
             .await
             .unwrap();
@@ -463,7 +516,7 @@ mod tests {
         let backend = LanceDbBackend::new(temp_dir.path()).await.unwrap();
 
         backend
-            .record_success("test", "echo test", None)
+            .record_success("test", "echo test", None, None)
             .await
             .unwrap();
 

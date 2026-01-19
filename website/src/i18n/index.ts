@@ -16,6 +16,7 @@ import compareEn from './locales/en/compare.json';
 
 // Localized common translations (partial - falls back to English for missing keys)
 import commonEs from './locales/es/common.json';
+import landingEs from './locales/es/landing.json';
 import commonFr from './locales/fr/common.json';
 import commonPt from './locales/pt/common.json';
 import commonDe from './locales/de/common.json';
@@ -49,7 +50,7 @@ export const en = {
  * Each locale spreads English as base, then overrides with locale-specific translations.
  * This provides automatic fallback to English for any missing keys.
  */
-export const es = { ...en, ...commonEs };
+export const es = { ...en, ...commonEs, ...landingEs };
 export const fr = { ...en, ...commonFr };
 export const pt = { ...en, ...commonPt };
 export const de = { ...en, ...commonDe };

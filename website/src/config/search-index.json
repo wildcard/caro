@@ -1,6 +1,6 @@
 {
   "version": "2.1.0",
-  "generated": "2026-01-16T05:40:26.135Z",
+  "generated": "2026-01-19T04:58:03.087Z",
   "totalPages": 36,
   "pages": [
     {
@@ -6447,13 +6447,6 @@
   ],
   "componentContent": [
     {
-      "source": "/AnnouncementBanner.astro",
-      "headings": [],
-      "paragraphs": [],
-      "fullText": "🎉 Announcing Caro! We've renamed from cmdai to caro. Read the announcement →",
-      "_searchText": "🎉 announcing caro! we've renamed from cmdai to caro. read the announcement →"
-    },
-    {
       "source": "/BackToTop.astro",
       "headings": [],
       "paragraphs": [],
@@ -6462,25 +6455,17 @@
     },
     {
       "source": "/Blog.astro",
-      "headings": [
-        "From the Pack"
-      ],
-      "paragraphs": [
-        "Stories, updates, and insights about Caro"
-      ],
-      "fullText": "From the Pack Stories, updates, and insights about Caro )} )} Read full story → ))} View all blog posts →",
-      "_searchText": "from the pack stories, updates, and insights about caro from the pack stories, updates, and insights about caro )} )} read full story → ))} view all blog posts →"
+      "headings": [],
+      "paragraphs": [],
+      "fullText": ")} )} ))}",
+      "_searchText": ")} )} ))}"
     },
     {
       "source": "/CaroGame.astro",
-      "headings": [
-        "Play with Caro"
-      ],
-      "paragraphs": [
-        "Test your shell command knowledge! Pick the safe commands, avoid the dangerous ones."
-      ],
-      "fullText": "Play with Caro Test your shell command knowledge! Pick the safe commands, avoid the dangerous ones. LEVEL 1 SAFE OR DANGER? SCORE 0 Pick the SAFE command! SAFE OR DANGER? Can you identify which shell commands are safe to run? ✓ Pick SAFE commands to score points ✗ Avoid DANGEROUS commands or lose a life ⏱ Answer before time runs out! Lives: ❤️ ❤️ ❤️ START GAME High Score: 0 🏆 TOP SCORES 🏆 ❤️ ❤️ ❤️ 🔥 Streak: 0",
-      "_searchText": "play with caro test your shell command knowledge! pick the safe commands, avoid the dangerous ones. play with caro test your shell command knowledge! pick the safe commands, avoid the dangerous ones. level 1 safe or danger? score 0 pick the safe command! safe or danger? can you identify which shell commands are safe to run? ✓ pick safe commands to score points ✗ avoid dangerous commands or lose a life ⏱ answer before time runs out! lives: ❤️ ❤️ ❤️ start game high score: 0 🏆 top scores 🏆 ❤️ ❤️ ❤️ 🔥 streak: 0"
+      "headings": [],
+      "paragraphs": [],
+      "fullText": "1 0 ❤️ ❤️ ❤️ 0 ❤️ ❤️ ❤️ 0",
+      "_searchText": "1 0 ❤️ ❤️ ❤️ 0 ❤️ ❤️ ❤️ 0"
     },
     {
       "source": "/Comparison.astro",
@@ -6526,23 +6511,12 @@
     },
     {
       "source": "/Footer.astro",
-      "headings": [
-        "Product",
-        "Compare",
-        "Resources",
-        "Support"
-      ],
+      "headings": [],
       "paragraphs": [
-        "Your loyal shell companion",
-        "AI-powered POSIX shell command generation with safety-first validation.",
-        "Product Features How It Works Explore Download Roadmap Compare Overview vs Warp vs GitHub Copilot CLI vs Kiro CLI vs OpenCode Resources Blog FAQ Glossary GitHub Issues Contributing Credits Support ♥ Sponsor AGPL-3.0 License 🐕 Meet Kyaro!",
-        "The real-life inspiration behind Caro. @kyaroblackheart",
-        "Built with 🦀 Rust | caro.sh 🧡",
-        "Inspired by Portal's Caroline—loyalty transformed into digital companionship",
-        "Proudly built on the foundations laid by GNU , FSF & FreeBSD"
+        "@kyaroblackheart"
       ],
-      "fullText": "🐕 Caro Your loyal shell companion AI-powered POSIX shell command generation with safety-first validation. Product Features How It Works Explore Download Roadmap Compare Overview vs Warp vs GitHub Copilot CLI vs Kiro CLI vs OpenCode Resources Blog FAQ Glossary GitHub Issues Contributing Credits Support ♥ Sponsor AGPL-3.0 License 🐕 Meet Kyaro! The real-life inspiration behind Caro. @kyaroblackheart Built with 🦀 Rust | caro.sh 🧡 Inspired by Portal's Caroline—loyalty transformed into digital companionship Proudly built on the foundations laid by GNU , FSF & FreeBSD v",
-      "_searchText": "product compare resources support your loyal shell companion ai-powered posix shell command generation with safety-first validation. product features how it works explore download roadmap compare overview vs warp vs github copilot cli vs kiro cli vs opencode resources blog faq glossary github issues contributing credits support ♥ sponsor agpl-3.0 license 🐕 meet kyaro! the real-life inspiration behind caro. @kyaroblackheart built with 🦀 rust | caro.sh 🧡 inspired by portal's caroline—loyalty transformed into digital companionship proudly built on the foundations laid by gnu , fsf & freebsd 🐕 caro your loyal shell companion ai-powered posix shell command generation with safety-first validation. product features how it works explore download roadmap compare overview vs warp vs github copilot cli vs kiro cli vs opencode resources blog faq glossary github issues contributing credits support ♥ sponsor agpl-3.0 license 🐕 meet kyaro! the real-life inspiration behind caro. @kyaroblackheart built with 🦀 rust | caro.sh 🧡 inspired by portal's caroline—loyalty transformed into digital companionship proudly built on the foundations laid by gnu , fsf & freebsd v"
+      "fullText": "🐕 Caro 🐕 @kyaroblackheart , & v",
+      "_searchText": "@kyaroblackheart 🐕 caro 🐕 @kyaroblackheart , & v"
     },
     {
       "source": "/GitHubStarButton.astro",
@@ -6631,17 +6605,6 @@
       "paragraphs": [],
       "fullText": "caro — shell companion $ caro \"list all files modified today\" 🐕 Caro: find . -type f -mtime 0 ✓ Safe to run on your system $ caro \"find large files over 100MB\" 🐕 Caro: find . -type f -size +100M ✓ Safe to run on your system $ caro \"show disk usage by folder\" 🐕 Caro: du -sh */ | sort -rh | head -10 ✓ Safe to run on your system $ caro \"find python files modified last week\" 🐕 Caro: find . -name \"*.py\" -type f -mtime -7 ✓ Safe to run on your system",
       "_searchText": "caro — shell companion $ caro \"list all files modified today\" 🐕 caro: find . -type f -mtime 0 ✓ safe to run on your system $ caro \"find large files over 100mb\" 🐕 caro: find . -type f -size +100m ✓ safe to run on your system $ caro \"show disk usage by folder\" 🐕 caro: du -sh */ | sort -rh | head -10 ✓ safe to run on your system $ caro \"find python files modified last week\" 🐕 caro: find . -name \"*.py\" -type f -mtime -7 ✓ safe to run on your system"
-    },
-    {
-      "source": "/Video.astro",
-      "headings": [
-        "How Caro Works"
-      ],
-      "paragraphs": [
-        "See Caro in action as your shell companion"
-      ],
-      "fullText": "How Caro Works See Caro in action as your shell companion",
-      "_searchText": "how caro works see caro in action as your shell companion how caro works see caro in action as your shell companion"
     },
     {
       "source": "/explore/BackendOptions.astro",

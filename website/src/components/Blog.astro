@@ -1,4 +1,12 @@
 ---
+import { t } from '../i18n/config';
+
+interface Props {
+  lang: string;
+}
+
+const { lang } = Astro.props;
+
 // Blog component displaying recent articles
 const blogPosts = [
   {
@@ -28,8 +36,8 @@ const blogPosts = [
 
 <section id="blog" class="blog-section">
   <div class="container">
-    <h2>From the Pack</h2>
-    <p class="section-subtitle">Stories, updates, and insights about Caro</p>
+    <h2>{t(lang, 'landing.blog.title')}</h2>
+    <p class="section-subtitle">{t(lang, 'landing.blog.subtitle')}</p>
 
     <div class="blog-grid">
       {blogPosts.map(post => (
@@ -55,7 +63,7 @@ const blogPosts = [
           <p class="blog-excerpt">{post.excerpt}</p>
 
           <a href={`/blog/${post.slug}`} class="blog-read-more">
-            Read full story →
+            {t(lang, 'landing.blog.readMore')}
           </a>
         </article>
       ))}
@@ -63,7 +71,7 @@ const blogPosts = [
 
     <div style="text-align: center; margin-top: 40px;">
       <a href="/blog" class="view-all-link">
-        View all blog posts →
+        {t(lang, 'landing.blog.viewAll')}
       </a>
     </div>
   </div>

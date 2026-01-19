@@ -35,11 +35,13 @@ pub trait VectorBackend: Send + Sync {
     /// * `request` - The natural language request
     /// * `command` - The executed shell command
     /// * `context` - Optional project/directory context
+    /// * `profile` - Optional user profile name for scoped knowledge
     async fn record_success(
         &self,
         request: &str,
         command: &str,
         context: Option<&str>,
+        profile: Option<&str>,
     ) -> Result<()>;
 
     /// Record a correction from agentic refinement
@@ -49,12 +51,14 @@ pub trait VectorBackend: Send + Sync {
     /// * `original` - The original (incorrect) command
     /// * `corrected` - The corrected command
     /// * `feedback` - Optional feedback about why it was wrong
+    /// * `profile` - Optional user profile name for scoped knowledge
     async fn record_correction(
         &self,
         request: &str,
         original: &str,
         corrected: &str,
         feedback: Option<&str>,
+        profile: Option<&str>,
     ) -> Result<()>;
 
     /// Find similar past commands using semantic search

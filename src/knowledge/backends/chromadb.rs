@@ -14,15 +14,21 @@ use chromadb::client::{ChromaAuthMethod, ChromaClient, ChromaClientOptions, Chro
 use chromadb::collection::{ChromaCollection, CollectionEntries, QueryOptions};
 use chrono::{DateTime, Utc};
 use serde_json::{json, Map, Value};
+use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-const COLLECTION_NAME: &str = "caro_commands";
-
 /// ChromaDB-based vector backend (server-based)
+///
+/// Supports multi-collection architecture with separate collections for:
+/// - Commands: Successful command executions
+/// - Corrections: Agentic loop refinements
+/// - Docs: Indexed documentation
+/// - Preferences: User-specific patterns
+/// - Context: Project-specific knowledge
 pub struct ChromaDbBackend {
     client: ChromaClient,
-    collection: Arc<RwLock<Option<ChromaCollection>>>,
+    collections: Arc<RwLock<HashMap<CollectionType, ChromaCollection>>>,
     embedder: Embedder,
 }
 
@@ -68,52 +74,46 @@ impl ChromaDbBackend {
         .await
         .map_err(|e| KnowledgeError::Database(e.to_string()))?;
 
-        // Try to initialize collection (non-blocking)
-        // If this fails, ensure_collection() will retry on first use
-        let collection = match client.get_or_create_collection(COLLECTION_NAME, None).await {
-            Ok(coll) => Some(coll),
-            Err(e) => {
-                // Log warning but don't fail - collection will be created lazily
-                eprintln!(
-                    "Warning: Failed to initialize ChromaDB collection on startup: {}",
-                    e
-                );
-                eprintln!("Collection will be created on first use via ensure_collection()");
-                None
-            }
-        };
+        // Initialize empty collections HashMap
+        // Collections will be created lazily via ensure_collection()
+        let collections = Arc::new(RwLock::new(HashMap::new()));
 
         Ok(Self {
             client,
-            collection: Arc::new(RwLock::new(collection)),
+            collections,
             embedder,
         })
     }
 
-    /// Ensure collection exists, creating it if necessary
-    async fn ensure_collection(&self) -> Result<()> {
-        let coll_guard = self.collection.read().await;
+    /// Ensure collection exists for the given type, creating it if necessary
+    ///
+    /// # Arguments
+    /// * `collection_type` - The type of collection to ensure exists
+    async fn ensure_collection(&self, collection_type: CollectionType) -> Result<()> {
+        // Fast path: check if collection already exists
+        {
+            let coll_guard = self.collections.read().await;
+            if coll_guard.contains_key(&collection_type) {
+                return Ok(());
+            }
+        }
 
-        if coll_guard.is_some() {
+        // Slow path: create the collection
+        let mut coll_guard = self.collections.write().await;
+
+        // Double-check after acquiring write lock (another thread might have created it)
+        if coll_guard.contains_key(&collection_type) {
             return Ok(());
         }
 
-        drop(coll_guard);
-
-        let mut coll_guard = self.collection.write().await;
-
-        // Double-check after acquiring write lock
-        if coll_guard.is_some() {
-            return Ok(());
-        }
-
+        let collection_name = collection_type.name();
         let new_collection = self
             .client
-            .get_or_create_collection(COLLECTION_NAME, None)
+            .get_or_create_collection(collection_name, None)
             .await
             .map_err(|e| KnowledgeError::Database(e.to_string()))?;
 
-        *coll_guard = Some(new_collection);
+        coll_guard.insert(collection_type, new_collection);
         Ok(())
     }
 
@@ -125,6 +125,7 @@ impl ChromaDbBackend {
         timestamp: DateTime<Utc>,
         original_command: Option<&str>,
         feedback: Option<&str>,
+        profile: Option<&str>,
     ) -> Map<String, Value> {
         let mut metadata = Map::new();
 
@@ -142,6 +143,10 @@ impl ChromaDbBackend {
 
         if let Some(fb) = feedback {
             metadata.insert("feedback".to_string(), json!(fb));
+        }
+
+        if let Some(prof) = profile {
+            metadata.insert("profile".to_string(), json!(prof));
         }
 
         metadata
@@ -192,6 +197,11 @@ impl ChromaDbBackend {
                 .and_then(|v| v.as_str())
                 .map(|s| s.to_string());
 
+            let profile = metadata
+                .get("profile")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string());
+
             // Convert ChromaDB distance to similarity (lower distance = higher similarity)
             let similarity = 1.0 / (1.0 + distances[i]);
 
@@ -204,7 +214,7 @@ impl ChromaDbBackend {
                 entry_type,
                 original_command,
                 feedback,
-                profile: None, // TODO: Read profile from metadata
+                profile,
             });
         }
 
@@ -219,15 +229,24 @@ impl VectorBackend for ChromaDbBackend {
         request: &str,
         command: &str,
         context: Option<&str>,
+        profile: Option<&str>,
     ) -> Result<()> {
-        self.ensure_collection().await?;
+        // Commands go into the Commands collection
+        self.ensure_collection(CollectionType::Commands).await?;
 
         let embedding = self.embedder.embed_command(request, command)?;
         let id = uuid::Uuid::new_v4().to_string();
         let timestamp = Utc::now();
 
-        let metadata =
-            Self::build_metadata(EntryType::Success, request, context, timestamp, None, None);
+        let metadata = Self::build_metadata(
+            EntryType::Success,
+            request,
+            context,
+            timestamp,
+            None,
+            None,
+            profile,
+        );
 
         let entries = CollectionEntries {
             ids: vec![&id],
@@ -236,9 +255,11 @@ impl VectorBackend for ChromaDbBackend {
             documents: Some(vec![command]),
         };
 
-        let coll_guard = self.collection.read().await;
-        let collection = coll_guard.as_ref().ok_or_else(|| {
-            KnowledgeError::Database("Collection not initialized after ensure_collection".into())
+        let coll_guard = self.collections.read().await;
+        let collection = coll_guard.get(&CollectionType::Commands).ok_or_else(|| {
+            KnowledgeError::Database(
+                "Commands collection not initialized after ensure_collection".into(),
+            )
         })?;
 
         collection
@@ -255,8 +276,10 @@ impl VectorBackend for ChromaDbBackend {
         original: &str,
         corrected: &str,
         feedback: Option<&str>,
+        profile: Option<&str>,
     ) -> Result<()> {
-        self.ensure_collection().await?;
+        // Corrections go into the Corrections collection
+        self.ensure_collection(CollectionType::Corrections).await?;
 
         let embedding = self.embedder.embed_command(request, corrected)?;
         let id = uuid::Uuid::new_v4().to_string();
@@ -269,6 +292,7 @@ impl VectorBackend for ChromaDbBackend {
             timestamp,
             Some(original),
             feedback,
+            profile,
         );
 
         let entries = CollectionEntries {
@@ -278,10 +302,14 @@ impl VectorBackend for ChromaDbBackend {
             documents: Some(vec![corrected]),
         };
 
-        let coll_guard = self.collection.read().await;
-        let collection = coll_guard.as_ref().ok_or_else(|| {
-            KnowledgeError::Database("Collection not initialized after ensure_collection".into())
-        })?;
+        let coll_guard = self.collections.read().await;
+        let collection = coll_guard
+            .get(&CollectionType::Corrections)
+            .ok_or_else(|| {
+                KnowledgeError::Database(
+                    "Corrections collection not initialized after ensure_collection".into(),
+                )
+            })?;
 
         collection
             .add(entries, None)
@@ -292,117 +320,76 @@ impl VectorBackend for ChromaDbBackend {
     }
 
     async fn find_similar(&self, query: &str, limit: usize) -> Result<Vec<KnowledgeEntry>> {
-        let coll_guard = self.collection.read().await;
-        let collection = match coll_guard.as_ref() {
-            Some(c) => c,
-            None => return Ok(vec![]), // No collection yet = no results
-        };
-
-        // Generate query embedding
-        let query_embedding = self.embedder.embed_one(query)?;
-
-        // Perform vector search
-        let query_options = QueryOptions {
-            query_embeddings: Some(vec![query_embedding]),
-            n_results: Some(limit),
-            query_texts: None,
-            where_metadata: None,
-            where_document: None,
-            include: Some(vec!["documents", "metadatas", "distances"]),
-        };
-
-        let results = collection
-            .query(query_options, None)
-            .await
-            .map_err(|e| KnowledgeError::Database(e.to_string()))?;
-
-        // Parse results - ChromaDB returns batched results
-        if results.ids.is_empty() || results.ids[0].is_empty() {
-            return Ok(vec![]);
-        }
-
-        let ids = results.ids[0].clone();
-
-        let documents = results
-            .documents
-            .as_ref()
-            .and_then(|docs| docs.first())
-            .cloned()
-            .unwrap_or_default();
-
-        let metadatas = results
-            .metadatas
-            .as_ref()
-            .and_then(|metas| metas.first())
-            .map(|meta_vec| meta_vec.iter().filter_map(|m| m.clone()).collect())
-            .unwrap_or_default();
-
-        let distances = results
-            .distances
-            .as_ref()
-            .and_then(|dists| dists.first())
-            .cloned()
-            .unwrap_or_else(|| vec![0.0; ids.len()]);
-
-        Self::parse_results(ids, documents, metadatas, distances)
+        // Default find_similar searches across all collections
+        self.find_similar_in(query, limit, QueryScope::All).await
     }
 
     async fn stats(&self) -> Result<BackendStats> {
-        let coll_guard = self.collection.read().await;
-        let collection = match coll_guard.as_ref() {
-            Some(c) => c,
-            None => {
-                return Ok(BackendStats {
-                    total_entries: 0,
-                    success_count: 0,
-                    correction_count: 0,
-                })
+        let coll_guard = self.collections.read().await;
+
+        let mut total_entries = 0;
+        let mut success_count = 0;
+        let mut correction_count = 0;
+
+        // Aggregate stats across all collections
+        for (collection_type, collection) in coll_guard.iter() {
+            // Get count for this collection
+            let count = collection.count().await.unwrap_or(0); // Ignore errors for individual collections
+
+            total_entries += count;
+
+            // Count successes and corrections in user-generated collections
+            match collection_type {
+                CollectionType::Commands => {
+                    success_count += count;
+                }
+                CollectionType::Corrections => {
+                    correction_count += count;
+                }
+                _ => {
+                    // Docs, Preferences, Context don't contribute to success/correction counts
+                }
             }
-        };
+        }
 
-        // Get total count
-        let count = collection
-            .count()
-            .await
-            .map_err(|e| KnowledgeError::Database(e.to_string()))?;
-
-        // For now, return total count
-        // TODO: Add type-specific counts by querying with metadata filters
         Ok(BackendStats {
-            total_entries: count,
-            success_count: count,
-            correction_count: 0,
+            total_entries,
+            success_count,
+            correction_count,
         })
     }
 
     async fn clear(&self) -> Result<()> {
-        let mut coll_guard = self.collection.write().await;
-        if coll_guard.is_some() {
+        let mut coll_guard = self.collections.write().await;
+
+        // Delete all collections
+        let collection_names: Vec<String> =
+            coll_guard.keys().map(|ct| ct.name().to_string()).collect();
+
+        for collection_name in collection_names {
             self.client
-                .delete_collection(COLLECTION_NAME)
+                .delete_collection(&collection_name)
                 .await
                 .map_err(|e| KnowledgeError::Database(e.to_string()))?;
-            *coll_guard = None;
         }
+
+        // Clear the HashMap
+        coll_guard.clear();
         Ok(())
     }
 
     async fn is_healthy(&self) -> bool {
         // Check client connectivity
-        if self.client.heartbeat().await.is_err() {
-            return false;
-        }
-
-        // Validate collection state (can we ensure collection exists?)
-        self.ensure_collection().await.is_ok()
+        self.client.heartbeat().await.is_ok()
     }
 
-    async fn add_entry(&self, entry: KnowledgeEntry, _collection: CollectionType) -> Result<()> {
-        // TODO: Implement native ChromaDB collection support
-        // For now, add to the default collection regardless of collection type
-        // This allows Phase 4 indexers to work while we refactor for multi-collection
-
-        self.ensure_collection().await?;
+    async fn add_entry(
+        &self,
+        entry: KnowledgeEntry,
+        collection_type: CollectionType,
+    ) -> Result<()> {
+        // Ensure the target collection exists
+        self.ensure_collection(collection_type).await?;
 
         // Generate embedding from request and command
         let embedding = self
@@ -419,7 +406,7 @@ impl VectorBackend for ChromaDbBackend {
             entry.feedback.as_deref(),
         );
 
-        // Add to ChromaDB
+        // Add to ChromaDB collection
         let id = uuid::Uuid::new_v4().to_string();
         let document = entry.command.clone();
 
@@ -430,9 +417,13 @@ impl VectorBackend for ChromaDbBackend {
             documents: Some(vec![document.as_str()]),
         };
 
-        let coll_guard = self.collection.read().await;
-        let collection = coll_guard.as_ref().ok_or_else(|| {
-            KnowledgeError::Database("Collection not initialized after ensure_collection".into())
+        // Get the collection and add the entry
+        let coll_guard = self.collections.read().await;
+        let collection = coll_guard.get(&collection_type).ok_or_else(|| {
+            KnowledgeError::Database(format!(
+                "Collection {} not initialized after ensure_collection",
+                collection_type.name()
+            ))
         })?;
 
         collection
@@ -447,19 +438,112 @@ impl VectorBackend for ChromaDbBackend {
         &self,
         query: &str,
         limit: usize,
-        _scope: QueryScope,
+        scope: QueryScope,
     ) -> Result<Vec<KnowledgeEntry>> {
-        // TODO: Implement collection filtering for native ChromaDB collections
-        // For now, search across all entries (single collection)
-        // This allows Phase 4 indexers to work while we refactor for multi-collection
+        // Get the collections to search based on the scope
+        let collections_to_search = scope.collections();
 
-        self.find_similar(query, limit).await
+        // Ensure all collections exist
+        for collection_type in &collections_to_search {
+            self.ensure_collection(*collection_type).await?;
+        }
+
+        // Generate query embedding
+        let embedding = self.embedder.embed_one(query)?;
+
+        // Query each collection and collect results
+        let mut all_results = Vec::new();
+        {
+            let coll_guard = self.collections.read().await;
+
+            for collection_type in &collections_to_search {
+                if let Some(collection) = coll_guard.get(collection_type) {
+                    let query_options = QueryOptions {
+                        query_embeddings: Some(vec![embedding.clone()]),
+                        n_results: Some(limit),
+                        query_texts: None,
+                        where_metadata: None,
+                        where_document: None,
+                        include: Some(vec!["documents", "metadatas", "distances"]),
+                    };
+
+                    match collection.query(query_options, None).await {
+                        Ok(result) => {
+                            // Parse results from this collection - ChromaDB returns batched results
+                            let ids = result.ids.first().cloned().unwrap_or_default();
+                            let docs = result
+                                .documents
+                                .as_ref()
+                                .and_then(|d| d.first().cloned())
+                                .unwrap_or_default();
+                            let metas = result
+                                .metadatas
+                                .as_ref()
+                                .and_then(|m| m.first())
+                                .map(|meta_vec| meta_vec.iter().filter_map(|m| m.clone()).collect())
+                                .unwrap_or_default();
+                            let dists = result
+                                .distances
+                                .as_ref()
+                                .and_then(|d| d.first().cloned())
+                                .unwrap_or_else(|| vec![0.0; ids.len()]);
+
+                            if !ids.is_empty() {
+                                if let Ok(entries) = Self::parse_results(ids, docs, metas, dists) {
+                                    all_results.extend(entries);
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            eprintln!(
+                                "Warning: Failed to query collection {}: {}",
+                                collection_type.name(),
+                                e
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        // Sort all results by similarity score (descending)
+        all_results.sort_by(|a, b| {
+            b.similarity
+                .partial_cmp(&a.similarity)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+
+        // Limit total results
+        all_results.truncate(limit);
+
+        Ok(all_results)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // Test helper to create backend
+    async fn create_test_backend(_test_name: &str) -> ChromaDbBackend {
+        let embedder = Embedder::new(None).expect("Failed to create embedder");
+        let client = ChromaClient::new(ChromaClientOptions {
+            url: Some("http://localhost:8000".to_string()),
+            auth: ChromaAuthMethod::None,
+            ..Default::default()
+        })
+        .await
+        .expect("Failed to create ChromaDB client");
+
+        // Initialize with empty collections HashMap
+        let collections = Arc::new(RwLock::new(HashMap::new()));
+
+        ChromaDbBackend {
+            client,
+            collections,
+            embedder,
+        }
+    }
 
     // Unit tests (no external dependencies)
 
@@ -556,10 +640,18 @@ mod tests {
     }
 
     #[test]
-    fn test_collection_name_constant() {
-        // Verify collection name follows naming convention
-        assert_eq!(COLLECTION_NAME, "caro_commands");
-        assert!(COLLECTION_NAME.starts_with("caro_"));
+    fn test_collection_names() {
+        // Verify all collection names follow naming convention
+        assert_eq!(CollectionType::Commands.name(), "caro_commands");
+        assert_eq!(CollectionType::Corrections.name(), "caro_corrections");
+        assert_eq!(CollectionType::Docs.name(), "caro_command_docs");
+        assert_eq!(CollectionType::Preferences.name(), "caro_user_preferences");
+        assert_eq!(CollectionType::Context.name(), "caro_project_context");
+
+        // All should start with "caro_"
+        for ct in CollectionType::all() {
+            assert!(ct.name().starts_with("caro_"));
+        }
     }
 
     // Integration tests (require ChromaDB server)
@@ -567,22 +659,17 @@ mod tests {
     #[tokio::test]
     #[ignore] // Requires ChromaDB server
     async fn test_chromadb_health() {
-        let backend = ChromaDbBackend::new("http://localhost:8000", None, None)
-            .await
-            .expect("Failed to create ChromaDB backend");
-
+        let backend = create_test_backend("health").await;
         assert!(backend.is_healthy().await, "ChromaDB should be healthy");
+
+        // Cleanup: delete test collection
+        backend.clear().await.ok();
     }
 
     #[tokio::test]
     #[ignore] // Requires ChromaDB server
     async fn test_chromadb_record_and_search() {
-        let backend = ChromaDbBackend::new("http://localhost:8000", None, None)
-            .await
-            .expect("Failed to create ChromaDB backend");
-
-        // Clear any existing data
-        backend.clear().await.expect("Failed to clear collection");
+        let backend = create_test_backend("record_search").await;
 
         // Record a success
         backend
@@ -598,5 +685,8 @@ mod tests {
 
         assert!(!results.is_empty(), "Should find similar entries");
         assert_eq!(results[0].command, "ls -la");
+
+        // Cleanup: delete test collection
+        backend.clear().await.ok();
     }
 }
