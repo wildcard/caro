@@ -1,6 +1,6 @@
 # Caro Development Roadmap
 
-**Last Updated**: January 15, 2026
+**Last Updated**: January 18, 2026
 
 ## Timeline Overview
 
@@ -26,13 +26,20 @@ gantt
     LLM Evaluation Harness               :done, 2026-01-09, 2026-01-17
     v1.1.0 GA Release                    :milestone, 2026-02-15, 0d
 
-    section v1.2.0 - Website & Docs
-    Strategic Product Roadmap             :2026-02-16, 10d
-    Website Value Proposition             :2026-02-20, 15d
-    Astro Starlight Docs Site            :2026-02-25, 20d
-    Interactive Terminal Landing Page     :2026-03-01, 15d
-    Marketing Materials                   :2026-03-10, 15d
-    v1.2.0 Release                       :milestone, 2026-03-31, 0d
+    section v1.2.0 - Long-Running UX
+    Streaming Execution Implementation    :2026-01-20, 15d
+    Intelligent Timeout System            :2026-01-27, 10d
+    Smart Command Scope Analysis          :2026-02-03, 14d
+    Integration Testing & Polish          :2026-02-17, 10d
+    v1.2.0 Release                       :milestone, 2026-02-28, 0d
+
+    section v1.3.0 - Website & Docs
+    Strategic Product Roadmap             :2026-03-01, 10d
+    Website Value Proposition             :2026-03-05, 15d
+    Astro Starlight Docs Site            :2026-03-10, 15d
+    Interactive Terminal Landing Page     :2026-03-15, 10d
+    Marketing Materials                   :2026-03-20, 10d
+    v1.3.0 Release                       :milestone, 2026-03-31, 0d
 
     section v2.0.0 - Advanced Features
     Karo Distributed Intelligence        :2026-04-01, 30d
@@ -180,8 +187,41 @@ gantt
 
 ---
 
-### 🌐 v1.2.0 - Website & Documentation Launch
-**Due Date**: March 31, 2026 (93 days)
+### 🔧 v1.2.0 - Long-Running Command UX & Core Improvements
+**Due Date**: February 28, 2026 (41 days)
+**Status**: 0% Complete (8 items)
+**Focus**: Streaming execution, timeout handling, and command scope intelligence
+
+> **Context**: User feedback identified a critical UX issue where commands like `find . -size +100M` appear "stuck" with no feedback. This milestone addresses command execution transparency and user control.
+
+#### Key Deliverables
+- **Streaming Execution** (Critical) - PRD-001, ADR-011
+  - [ ] Implement async streaming execution with Tokio
+  - [ ] Add real-time stdout/stderr display
+  - [ ] Support Ctrl+C cancellation with graceful process cleanup
+  - [ ] Show elapsed time and activity indicator
+
+- **Intelligent Timeout** (High)
+  - [ ] Implement preemptive timeout (default: 30s, configurable)
+  - [ ] Display partial results on timeout
+  - [ ] Educational messaging explaining timeout and alternatives
+  - [ ] Suggest "Edit" option for long-running commands
+
+- **Smart Command Scope** (Medium)
+  - [ ] Detect potentially broad-scope commands
+  - [ ] Prompt for target directory when scope is ambiguous
+  - [ ] Show estimated scope impact before execution
+
+**Success Criteria**:
+- Zero "stuck" perception reports
+- Commands always show activity within 100ms
+- Timeout cleanly terminates commands with partial output
+- Users understand when to use Edit option
+
+---
+
+### 🌐 v1.3.0 - Website & Documentation Launch
+**Due Date**: March 31, 2026 (72 days)
 **Status**: 0% Complete (24 items)
 **Focus**: Public launch, marketing, and documentation
 
@@ -276,10 +316,10 @@ gantt
 | **v1.1.2** | Jan 15, 2026 | 5 | 5 | 100% | ✅ **RELEASED** |
 | **v1.1.1** | Jan 14, 2026 | 7 | 7 | 100% | ✅ **RELEASED** |
 | **v1.1.0** | Jan 12, 2026 | 19 | 19 | 100% | ✅ **GA RELEASED** |
-| **v1.2.0** | Feb 15, 2026 | 13 | 4 | 31% | 🔄 In Progress |
-| **v1.3.0** | Mar 31, 2026 | 24 | 0 | 0% | ⏸️ Backlog |
+| **v1.2.0** | Feb 28, 2026 | 8 | 0 | 0% | 🆕 New - Long-Running UX |
+| **v1.3.0** | Mar 31, 2026 | 24 | 0 | 0% | ⏸️ Website & Docs |
 | **v2.0.0** | Jun 30, 2026 | 21 | 10 | 48% | 🔄 Research Phase |
-| **Total** | - | **89** | **45** | **51%** | 🚀 On Track |
+| **Total** | - | **84** | **41** | **49%** | 🚀 On Track |
 
 ---
 
