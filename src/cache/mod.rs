@@ -123,6 +123,27 @@ pub struct CacheManager {
 
 impl CacheManager {
     /// Create a new CacheManager with default XDG cache directory
+    ///
+    /// Creates the cache directory (~/.cache/caro/models) if it doesn't exist.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use caro::cache::CacheManager;
+    ///
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let cache = CacheManager::new()?;
+    /// let stats = cache.stats();
+    /// println!("Cache directory: {}", stats.cache_dir.display());
+    /// println!("Total models: {}", stats.total_models);
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns `CacheError::DirectoryError` if the cache directory cannot be determined
+    /// or created.
     pub fn new() -> Result<Self, CacheError> {
         let cache_dir = dirs::cache_dir()
             .ok_or_else(|| {
@@ -157,6 +178,36 @@ impl CacheManager {
     }
 
     /// Get a model from cache or download if not present
+    ///
+    /// If the model is already cached, validates its integrity and returns the path.
+    /// Otherwise, downloads the model from Hugging Face Hub and caches it locally.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use caro::cache::CacheManager;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let cache = CacheManager::new()?;
+    ///
+    /// // Get a model (downloads if not cached)
+    /// let model_path = cache.get_model("Qwen/Qwen2.5-Coder-1.5B-Instruct").await?;
+    /// println!("Model cached at: {}", model_path.display());
+    ///
+    /// // Subsequent calls use the cached version
+    /// let same_path = cache.get_model("Qwen/Qwen2.5-Coder-1.5B-Instruct").await?;
+    /// assert_eq!(model_path, same_path);
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns errors if:
+    /// - Download fails (`CacheError::DownloadFailed`)
+    /// - Network issues occur (`CacheError::NetworkError`)
+    /// - Checksum validation fails (`CacheError::ChecksumMismatch`)
+    /// - Authentication required (`CacheError::AuthenticationRequired`)
     pub async fn get_model(&self, model_id: &str) -> Result<PathBuf, CacheError> {
         // Check if model is already cached
         if self.is_cached(model_id) {
@@ -197,6 +248,28 @@ impl CacheManager {
     }
 
     /// Check if a model is cached
+    ///
+    /// Returns `true` if the model exists in the cache manifest, `false` otherwise.
+    /// This does not validate the model's integrity - use `validate_integrity()` for that.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use caro::cache::CacheManager;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let cache = CacheManager::new()?;
+    ///
+    /// // Check before downloading
+    /// if !cache.is_cached("Qwen/Qwen2.5-Coder-1.5B-Instruct") {
+    ///     println!("Model not cached, downloading...");
+    ///     cache.get_model("Qwen/Qwen2.5-Coder-1.5B-Instruct").await?;
+    /// } else {
+    ///     println!("Model already cached");
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn is_cached(&self, model_id: &str) -> bool {
         self.manifest
             .read()
@@ -205,6 +278,33 @@ impl CacheManager {
     }
 
     /// Remove a specific model from cache
+    ///
+    /// Deletes the model file from disk and removes it from the cache manifest.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use caro::cache::CacheManager;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let cache = CacheManager::new()?;
+    ///
+    /// // Download a model
+    /// cache.get_model("Qwen/Qwen2.5-Coder-1.5B-Instruct").await?;
+    ///
+    /// // Remove it to free space
+    /// cache.remove_model("Qwen/Qwen2.5-Coder-1.5B-Instruct").await?;
+    /// println!("Model removed from cache");
+    ///
+    /// // Model is no longer cached
+    /// assert!(!cache.is_cached("Qwen/Qwen2.5-Coder-1.5B-Instruct"));
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns `CacheError::ModelNotFound` if the model is not in the cache.
     pub async fn remove_model(&self, model_id: &str) -> Result<(), CacheError> {
         let path_to_delete = {
             let manifest = self
@@ -269,6 +369,33 @@ impl CacheManager {
     }
 
     /// Get cache statistics
+    ///
+    /// Returns information about cached models including total count, total size,
+    /// and list of model IDs.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use caro::cache::CacheManager;
+    ///
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let cache = CacheManager::new()?;
+    /// let stats = cache.stats();
+    ///
+    /// println!("Cache directory: {}", stats.cache_dir.display());
+    /// println!("Total models: {}", stats.total_models);
+    /// println!("Total size: {} bytes ({:.2} GB)",
+    ///     stats.total_size_bytes,
+    ///     stats.total_size_bytes as f64 / 1_073_741_824.0
+    /// );
+    ///
+    /// println!("Cached models:");
+    /// for model_id in &stats.models {
+    ///     println!("  - {}", model_id);
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn stats(&self) -> CacheStats {
         let (models, total_size) = self
             .manifest
@@ -289,6 +416,44 @@ impl CacheManager {
     }
 
     /// Validate integrity of all cached models
+    ///
+    /// Checks the SHA256 checksum of each cached model file against the stored checksum.
+    /// Returns a report categorizing models as valid, corrupted, or missing.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use caro::cache::CacheManager;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let cache = CacheManager::new()?;
+    ///
+    /// // Validate all cached models
+    /// let report = cache.validate_integrity().await?;
+    ///
+    /// println!("Valid models: {}", report.valid_models.len());
+    /// for model_id in &report.valid_models {
+    ///     println!("  ✓ {}", model_id);
+    /// }
+    ///
+    /// println!("Corrupted models: {}", report.corrupted_models.len());
+    /// for model_id in &report.corrupted_models {
+    ///     println!("  ✗ {} (checksum mismatch)", model_id);
+    ///     // Consider re-downloading corrupted models
+    ///     cache.remove_model(model_id).await?;
+    /// }
+    ///
+    /// println!("Missing models: {}", report.missing_models.len());
+    /// for model_id in &report.missing_models {
+    ///     println!("  ? {} (file not found)", model_id);
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns `CacheError::ManifestError` if the manifest cannot be read.
     pub async fn validate_integrity(&self) -> Result<IntegrityReport, CacheError> {
         let models_to_check: Vec<(String, PathBuf, String)> = {
             let manifest = self

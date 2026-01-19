@@ -92,28 +92,73 @@ fn read_stdin() -> Result<String, std::io::Error> {
 pub enum ValidationAction {
     /// Show help message and exit (for empty/whitespace-only prompts)
     ShowHelp,
+    /// Show warning but continue (serious issues that may produce poor results)
+    Warning { message: String },
+    /// Show hint but continue (minor issues, only in verbose mode)
+    Hint { message: String },
     /// Proceed with the prompt (valid content provided)
     ProceedWithPrompt,
 }
 
 /// Validate a prompt and determine the appropriate action
 ///
-/// Empty or whitespace-only prompts should display help.
-/// Valid prompts should proceed to inference.
-/// Special characters are preserved (not validated).
+/// Checks for common issues that may produce poor results:
+/// - Empty/whitespace-only prompts → ShowHelp
+/// - Prompts with only flags/operators → Warning
+/// - Very short/ambiguous prompts → Hint
+/// - Valid prompts → ProceedWithPrompt
 ///
 /// # Arguments
 /// * `prompt` - The prompt text to validate
 ///
 /// # Returns
-/// ValidationAction indicating whether to show help or proceed
+/// ValidationAction indicating what to do with the prompt
 pub fn validate_prompt(prompt: &str) -> ValidationAction {
+    const SHELL_OPERATORS: &[&str] = &[">", "|", "<", ">>", "2>", "&", ";"];
+
     let trimmed = prompt.trim();
+
+    // Empty or whitespace-only prompts
     if trimmed.is_empty() {
-        ValidationAction::ShowHelp
-    } else {
-        ValidationAction::ProceedWithPrompt
+        return ValidationAction::ShowHelp;
     }
+
+    // Check if prompt contains only flags or operators
+    let words: Vec<&str> = trimmed.split_whitespace().collect();
+    let has_content_words = words
+        .iter()
+        .any(|word| !word.starts_with('-') && !SHELL_OPERATORS.contains(word));
+
+    if !has_content_words {
+        return ValidationAction::Warning {
+            message:
+                "⚠️  Warning: No command description found in your query. \
+                     Try describing what you want to do (e.g., 'list files' instead of just flags)."
+                    .to_string(),
+        };
+    }
+
+    // Check for very short prompts (less than 3 characters)
+    if trimmed.len() < 3 {
+        return ValidationAction::Hint {
+            message: "💡 Hint: Your query is very short. Consider being more specific \
+                     about what you want to do."
+                .to_string(),
+        };
+    }
+
+    // Check for single-word prompts (may be too ambiguous)
+    if words.len() == 1 && trimmed.len() < 8 {
+        return ValidationAction::Hint {
+            message: format!(
+                "💡 Hint: Single word '{}' may be ambiguous. Try adding more details \
+                 like 'list files' or 'show processes'.",
+                trimmed
+            ),
+        };
+    }
+
+    ValidationAction::ProceedWithPrompt
 }
 
 // =============================================================================
@@ -1980,7 +2025,7 @@ async fn main() {
         }
     }
 
-    // Validate prompt and show help if empty/whitespace-only
+    // Validate prompt and show help/warnings/hints as needed
     let prompt_text = cli.prompt.as_deref().unwrap_or("");
     match validate_prompt(prompt_text) {
         ValidationAction::ShowHelp => {
@@ -1997,6 +2042,20 @@ async fn main() {
             println!();
             println!("Run 'caro --help' for more information.");
             process::exit(0);
+        }
+        ValidationAction::Warning { message } => {
+            // Always show warnings (serious issues)
+            eprintln!("{}", message);
+            eprintln!();
+            // Continue with command generation despite warning
+        }
+        ValidationAction::Hint { message } => {
+            // Show hints only in verbose mode (minor issues)
+            if cli.verbose {
+                eprintln!("{}", message);
+                eprintln!();
+            }
+            // Continue with command generation
         }
         ValidationAction::ProceedWithPrompt => {
             // Continue with command generation
@@ -2481,11 +2540,111 @@ mod tests {
         );
     }
 
+    #[test]
+    fn test_flags_only_shows_warning() {
+        // T027: Prompts with only flags should show warning
+        match validate_prompt("-la") {
+            ValidationAction::Warning { message } => {
+                assert!(message.contains("No command description"));
+            }
+            _ => panic!("Expected Warning for flags-only prompt"),
+        }
+        match validate_prompt("-rf -v") {
+            ValidationAction::Warning { .. } => {}
+            _ => panic!("Expected Warning for multiple flags only"),
+        }
+    }
+
+    #[test]
+    fn test_operators_only_shows_warning() {
+        // T028: Prompts with only operators should show warning
+        match validate_prompt(">") {
+            ValidationAction::Warning { message } => {
+                assert!(message.contains("No command description"));
+            }
+            _ => panic!("Expected Warning for operator-only prompt"),
+        }
+        match validate_prompt(">>") {
+            ValidationAction::Warning { .. } => {}
+            _ => panic!("Expected Warning for operator-only prompt"),
+        }
+    }
+
+    #[test]
+    fn test_flags_with_args_proceeds() {
+        // T029: Flags with arguments should proceed (has content)
+        assert_eq!(
+            validate_prompt("-rf /tmp"),
+            ValidationAction::ProceedWithPrompt
+        );
+    }
+
+    #[test]
+    fn test_operators_with_commands_proceeds() {
+        // T030: Operators with commands should proceed (has content)
+        assert_eq!(
+            validate_prompt("| grep"),
+            ValidationAction::ProceedWithPrompt
+        );
+    }
+
+    #[test]
+    fn test_very_short_shows_hint() {
+        // T031: Very short prompts (< 3 chars) should show hint
+        match validate_prompt("do") {
+            ValidationAction::Hint { message } => {
+                assert!(message.contains("very short"));
+            }
+            _ => panic!("Expected Hint for very short prompt"),
+        }
+        match validate_prompt("ls") {
+            ValidationAction::Hint { .. } => {}
+            _ => panic!("Expected Hint for very short prompt"),
+        }
+    }
+
+    #[test]
+    fn test_single_word_shows_hint() {
+        // T032: Single word prompts (< 8 chars) should show hint
+        match validate_prompt("list") {
+            ValidationAction::Hint { message } => {
+                assert!(message.contains("ambiguous"));
+            }
+            _ => panic!("Expected Hint for single-word prompt"),
+        }
+        match validate_prompt("show") {
+            ValidationAction::Hint { .. } => {}
+            _ => panic!("Expected Hint for single-word prompt"),
+        }
+    }
+
+    #[test]
+    fn test_long_single_word_proceeds() {
+        // T033: Long single words (>= 8 chars) should proceed
+        assert_eq!(
+            validate_prompt("processes"),
+            ValidationAction::ProceedWithPrompt
+        );
+    }
+
+    #[test]
+    fn test_multi_word_prompt_proceeds() {
+        // T034: Multi-word prompts should proceed even if short
+        assert_eq!(
+            validate_prompt("list files"),
+            ValidationAction::ProceedWithPrompt
+        );
+        assert_eq!(
+            validate_prompt("show all"),
+            ValidationAction::ProceedWithPrompt
+        );
+    }
+
     // WP06: Shell Operator Handling Tests
 
     #[test]
     fn test_all_operators() {
-        // T031: Test all 7 POSIX shell operators are detected
+        // T035: Test all 7 POSIX shell operators are detected
         for op in &[">", "|", "<", ">>", "2>", "&", ";"] {
             let args = vec!["cmd".to_string(), op.to_string(), "arg".to_string()];
             let result = truncate_at_shell_operator(args);

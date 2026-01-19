@@ -1,0 +1,169 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UserConfiguration",
+  "description": "User configuration with preferences",
+  "type": "object",
+  "required": [
+    "cache_max_size_gb",
+    "log_level",
+    "log_rotation_days",
+    "safety_level",
+    "telemetry"
+  ],
+  "properties": {
+    "cache_max_size_gb": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
+    },
+    "default_model": {
+      "description": "Default backend type (embedded, ollama, exo, vllm)",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "default_shell": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/ShellType"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "log_level": {
+      "$ref": "#/definitions/LogLevel"
+    },
+    "log_rotation_days": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0.0
+    },
+    "model_name": {
+      "description": "Model name for the backend (e.g., codellama:7b for ollama)",
+      "default": null,
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "safety_level": {
+      "$ref": "#/definitions/SafetyLevel"
+    },
+    "telemetry": {
+      "$ref": "#/definitions/TelemetryConfig"
+    }
+  },
+  "definitions": {
+    "LogLevel": {
+      "description": "Log severity level",
+      "type": "string",
+      "enum": [
+        "debug",
+        "info",
+        "warn",
+        "error"
+      ]
+    },
+    "SafetyLevel": {
+      "oneOf": [
+        {
+          "description": "Blocks High and Critical commands, confirms Moderate",
+          "type": "string",
+          "enum": [
+            "strict"
+          ]
+        },
+        {
+          "description": "Blocks Critical commands, confirms High",
+          "type": "string",
+          "enum": [
+            "moderate"
+          ]
+        },
+        {
+          "description": "Warns about all dangerous commands but allows with confirmation",
+          "type": "string",
+          "enum": [
+            "permissive"
+          ]
+        }
+      ]
+    },
+    "ShellType": {
+      "type": "string",
+      "enum": [
+        "bash",
+        "zsh",
+        "fish",
+        "sh",
+        "powershell",
+        "cmd",
+        "unknown"
+      ]
+    },
+    "TelemetryConfig": {
+      "description": "Telemetry configuration\n\nControls telemetry behavior including enable/disable, level, and air-gapped mode.",
+      "type": "object",
+      "properties": {
+        "air_gapped": {
+          "description": "Air-gapped mode\n\nWhen enabled: - Events stored locally only - No automatic uploads - Use `caro telemetry export` to manually extract data",
+          "default": false,
+          "type": "boolean"
+        },
+        "enabled": {
+          "description": "Telemetry enabled\n\n- Beta (v1.1.0-beta): Default `true` (opt-out) - GA (v1.1.0+): Default `false` (opt-in)",
+          "default": false,
+          "type": "boolean"
+        },
+        "endpoint": {
+          "description": "Upload endpoint\n\nDefault: `https://telemetry.caro.sh/api/events`",
+          "default": "https://telemetry.caro.sh/api/events",
+          "type": "string"
+        },
+        "first_run": {
+          "description": "First run flag\n\nUsed to determine if we should show consent prompt",
+          "default": true,
+          "type": "boolean"
+        },
+        "level": {
+          "description": "Telemetry level\n\nControls verbosity of telemetry collection: - `Minimal`: Only critical events (errors, safety blocks) - `Normal`: Standard events (sessions, commands, errors) - `Verbose`: Detailed events (performance metrics, debug info)",
+          "default": "normal",
+          "allOf": [
+            {
+              "$ref": "#/definitions/TelemetryLevel"
+            }
+          ]
+        }
+      }
+    },
+    "TelemetryLevel": {
+      "description": "Telemetry collection level",
+      "oneOf": [
+        {
+          "description": "Minimal telemetry - only critical events\n\nCollects: - Safety validation blocks - Fatal errors - Backend failures",
+          "type": "string",
+          "enum": [
+            "minimal"
+          ]
+        },
+        {
+          "description": "Normal telemetry - standard events\n\nCollects: - All Minimal events - Session start/end - Command generation success/failure - Non-fatal errors",
+          "type": "string",
+          "enum": [
+            "normal"
+          ]
+        },
+        {
+          "description": "Verbose telemetry - detailed debug events\n\nCollects: - All Normal events - Performance metrics (latency percentiles) - Model inference details - Backend fallback chains",
+          "type": "string",
+          "enum": [
+            "verbose"
+          ]
+        }
+      ]
+    }
+  }
+}

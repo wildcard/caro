@@ -9,9 +9,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **JSON Schema for Configuration** (#11): Auto-generated JSON schema for TOML configuration
+  - Added `generate-schema` binary to generate `.vscode/caro-config.schema.json`
+  - VS Code autocomplete and validation for `config.toml`
+  - Schema includes all configuration options with descriptions
+  - Example configuration file with schema reference
+
+- **Enhanced Prompt Validation** (#462): User notifications for malformed queries
+  - Warning messages for flags-only or operator-only prompts
+  - Hint messages for very short or ambiguous prompts (verbose mode)
+  - Helps users provide better queries before sending to backend
+  - 8 new test cases for validation scenarios
+
+- **Rustdoc Examples** (#7): Comprehensive documentation examples for public APIs
+  - Cache module: CacheManager methods with async/await examples
+  - Execution module: ExecutionContext and ShellDetector examples
+  - Logging module: Logger initialization and redaction examples
+  - Config module: ConfigManager methods with builder pattern examples
+  - All examples compile successfully with `cargo test --doc`
+
 ### Changed
 
 ### Fixed
+
+- **Documentation Warnings**: Fixed all `cargo doc` warnings
+  - Fixed unresolved link to feature-gated `knowledge` module
+  - Fixed URL formatting in ChromaDB documentation
 
 ### Security
 
