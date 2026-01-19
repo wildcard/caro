@@ -57,7 +57,7 @@ mod chromadb_tests {
 
         // Record a success
         backend
-            .record_success("list files", "ls -la", Some("/home/user"))
+            .record_success("list files", "ls -la", Some("/home/user"), None)
             .await
             .expect("Failed to record success");
 
@@ -88,6 +88,7 @@ mod chromadb_tests {
                 "rm -rf /",
                 "rm -rf ./temp",
                 Some("Original command is dangerous - targets root directory"),
+                None, // profile
             )
             .await
             .expect("Failed to record correction");
@@ -114,17 +115,17 @@ mod chromadb_tests {
 
         // Record some commands
         backend
-            .record_success("list files", "ls -la", None)
+            .record_success("list files", "ls -la", None, None)
             .await
             .expect("Failed to record first command");
 
         backend
-            .record_success("show files", "ls -lh", None)
+            .record_success("show files", "ls -lh", None, None)
             .await
             .expect("Failed to record second command");
 
         backend
-            .record_success("remove file", "rm file.txt", None)
+            .record_success("remove file", "rm file.txt", None, None)
             .await
             .expect("Failed to record third command");
 
@@ -169,7 +170,7 @@ mod chromadb_tests {
 
         // Add some entries
         backend
-            .record_success("test command", "echo test", None)
+            .record_success("test command", "echo test", None, None)
             .await
             .expect("Failed to record command");
 
@@ -213,6 +214,7 @@ mod chromadb_tests {
                     &format!("command {}", i),
                     &format!("echo 'test {}'", i),
                     None,
+                    None, // profile
                 )
                 .await
                 .expect("Failed to record success");
@@ -248,7 +250,7 @@ mod chromadb_tests {
         // Record command with context
         let context = "/home/user/projects/rust-project";
         backend
-            .record_success("build project", "cargo build", Some(context))
+            .record_success("build project", "cargo build", Some(context), None)
             .await
             .expect("Failed to record with context");
 
