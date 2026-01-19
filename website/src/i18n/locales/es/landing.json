@@ -27,7 +27,7 @@
       "items": [
         {
           "icon": "🛡️",
-          "title": "Nunca Más Destruyas Producción",
+          "title": "No vuelvas a tumbar producción",
           "description": "Bloquea rm -rf /, fork bombs y más de 50 comandos que pueden acabar con tu carrera ANTES de que puedas ejecutarlos. Tu yo de las 2 AM te lo agradecerá.",
           "highlight": true
         },
@@ -82,7 +82,7 @@
       "title": "Cómo se Compara Caro",
       "subtitle": "Diseñado para ingenieros DevOps y SREs que no sacrifican privacidad por productividad",
       "summary": {
-        "privacy": { "stat": "Privacidad", "label": "Diseño Primero*" },
+        "privacy": { "stat": "Privacidad", "label": "Diseño primero*" },
         "safety": { "stat": "52+", "label": "Patrones de Seguridad" },
         "offline": { "stat": "100%", "label": "Funciona Offline" },
         "speed": { "stat": "Rust", "label": "Hecho para Velocidad" }
@@ -178,7 +178,7 @@
               "tooltip": "Framework MLX para Macs serie M"
             },
             "selfHostable": {
-              "name": "Auto-alojable",
+              "name": "Self-hostable",
               "tooltip": "Control total sobre la infraestructura"
             }
           }
@@ -243,7 +243,7 @@
           "icon": "🔓"
         },
         {
-          "question": "¿Es esto solo otro wrapper de IA que envía mis comandos a la nube?",
+          "question": "¿Es esto solo otro envoltorio de IA que envía mis comandos a la nube?",
           "answer": "No. Caro se ejecuta 100% localmente. Tus comandos, rutas de archivos, nombres de servidores y estructuras de directorios nunca salen de tu máquina. La inferencia ocurre en tu hardware. Tenemos cero telemetría. Revisa el código fuente—tiene licencia AGPL-3.0.",
           "icon": "🔒"
         },
@@ -293,7 +293,7 @@
       }
     },
     "blog": {
-      "title": "Desde la Manada",
+      "title": "Desde la guarida",
       "subtitle": "Historias, actualizaciones y perspectivas sobre Caro",
       "readMore": "Leer historia completa →",
       "viewAll": "Ver todas las entradas del blog →"
