@@ -309,6 +309,32 @@
       }
     },
     "download": {},
+    "tellCto": {
+      "badge": "Need Convincing?",
+      "title": "Tell Your CTO About Caro",
+      "subtitle": "Need to convince your company to adopt Caro? We can help.",
+      "form": {
+        "toLabel": "TO:",
+        "toPlaceholder": "cto@company.com",
+        "bossNameLabel": "YOUR BOSS'S NAME:",
+        "bossNamePlaceholder": "Jane Smith",
+        "yourNameLabel": "YOUR NAME:",
+        "yourNamePlaceholder": "Your Name",
+        "sendButton": "Send Email"
+      },
+      "or": "OR",
+      "tryFree": "Try For Free",
+      "freeNote": "Free forever - No credit card required",
+      "preview": {
+        "greeting": "Dear [Boss],",
+        "yourName": "Your Name",
+        "line1": "has been exploring a CLI tool that could help our team work faster and safer.",
+        "benefit1": "Zero telemetry - commands never leave our machines",
+        "benefit2": "52+ safety patterns block dangerous commands",
+        "benefit3": "POSIX-compliant across all platforms",
+        "cta": "It's open source and free to use..."
+      }
+    },
     "footer": {
       "brand": {
         "tagline": "Your loyal shell companion",

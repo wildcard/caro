@@ -1,0 +1,501 @@
+---
+import { t, type Locale } from '../i18n/config';
+
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = 'en' } = Astro.props;
+---
+
+<section id="tell-your-cto" class="tell-cto-section">
+  <div class="container">
+    <span class="section-badge">{t(lang, 'landing.tellCto.badge')}</span>
+    <h2>{t(lang, 'landing.tellCto.title')}</h2>
+    <p class="section-subtitle">{t(lang, 'landing.tellCto.subtitle')}</p>
+
+    <div class="content-grid">
+      <div class="form-container">
+        <form id="cto-form" class="cto-form">
+          <div class="form-group">
+            <label for="cto-email">{t(lang, 'landing.tellCto.form.toLabel')}</label>
+            <input
+              type="email"
+              id="cto-email"
+              name="to"
+              placeholder={t(lang, 'landing.tellCto.form.toPlaceholder')}
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="boss-name">{t(lang, 'landing.tellCto.form.bossNameLabel')}</label>
+            <input
+              type="text"
+              id="boss-name"
+              name="bossName"
+              placeholder={t(lang, 'landing.tellCto.form.bossNamePlaceholder')}
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="your-name">{t(lang, 'landing.tellCto.form.yourNameLabel')}</label>
+            <input
+              type="text"
+              id="your-name"
+              name="yourName"
+              placeholder={t(lang, 'landing.tellCto.form.yourNamePlaceholder')}
+              required
+            />
+          </div>
+
+          <button type="submit" class="send-button">
+            <svg class="email-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+              <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+            {t(lang, 'landing.tellCto.form.sendButton')}
+          </button>
+        </form>
+
+        <div class="divider">
+          <span>{t(lang, 'landing.tellCto.or')}</span>
+        </div>
+
+        <a href="#download" class="try-free-button">
+          {t(lang, 'landing.tellCto.tryFree')}
+          <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"></path>
+          </svg>
+        </a>
+
+        <p class="free-note">{t(lang, 'landing.tellCto.freeNote')}</p>
+      </div>
+
+      <div class="email-preview">
+        <div class="envelope">
+          <div class="envelope-top"></div>
+          <div class="letter">
+            <div class="letter-header">
+              <img src="/caro-icon.svg" alt="Caro" class="letter-logo" />
+            </div>
+            <div class="letter-body">
+              <p class="letter-greeting">{t(lang, 'landing.tellCto.preview.greeting')}</p>
+              <p class="letter-content">
+                <span class="placeholder">[{t(lang, 'landing.tellCto.preview.yourName')}]</span> {t(lang, 'landing.tellCto.preview.line1')}
+              </p>
+              <ul class="letter-benefits">
+                <li>{t(lang, 'landing.tellCto.preview.benefit1')}</li>
+                <li>{t(lang, 'landing.tellCto.preview.benefit2')}</li>
+                <li>{t(lang, 'landing.tellCto.preview.benefit3')}</li>
+              </ul>
+              <p class="letter-cta">{t(lang, 'landing.tellCto.preview.cta')}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .tell-cto-section {
+    background: var(--color-bg-secondary);
+    padding: 80px 0;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    text-align: center;
+  }
+
+  .section-badge {
+    display: inline-block;
+    background: var(--color-primary);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 12px;
+  }
+
+  .section-subtitle {
+    font-size: 18px;
+    color: var(--color-text-secondary);
+    margin-bottom: 50px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .form-container {
+    text-align: left;
+  }
+
+  .cto-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .form-group input {
+    padding: 14px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 16px;
+    color: var(--color-text);
+    background: var(--color-bg);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .form-group input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.1);
+  }
+
+  .form-group input::placeholder {
+    color: var(--color-text-secondary);
+  }
+
+  .send-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px 24px;
+    background: var(--color-text);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+    margin-top: 8px;
+  }
+
+  .send-button:hover {
+    background: #1a252f;
+    transform: translateY(-1px);
+  }
+
+  .email-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    margin: 24px 0;
+  }
+
+  .divider::before,
+  .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--color-border);
+  }
+
+  .divider span {
+    padding: 0 16px;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    text-decoration: underline;
+  }
+
+  .try-free-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 24px;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.2s;
+  }
+
+  .try-free-button:hover {
+    background: var(--color-primary-dark);
+    transform: translateY(-1px);
+  }
+
+  .arrow-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .free-note {
+    text-align: center;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin-top: 16px;
+  }
+
+  /* Email Preview Styles */
+  .email-preview {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .envelope {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    background: linear-gradient(135deg, #e8e8e8 0%, #f5f5f5 100%);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .envelope-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, transparent 100%);
+    border-radius: 8px 8px 0 0;
+    clip-path: polygon(0 0, 50% 40px, 100% 0, 100% 100%, 0 100%);
+  }
+
+  .letter {
+    background: white;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    margin-top: 20px;
+  }
+
+  .letter-header {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .letter-logo {
+    width: 32px;
+    height: 32px;
+    filter: brightness(0) invert(1);
+  }
+
+  .letter-body {
+    padding: 20px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--color-text);
+    text-align: left;
+  }
+
+  .letter-greeting {
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .letter-content {
+    margin-bottom: 12px;
+  }
+
+  .placeholder {
+    background: rgba(255, 140, 66, 0.2);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 12px;
+  }
+
+  .letter-benefits {
+    margin: 12px 0;
+    padding-left: 20px;
+  }
+
+  .letter-benefits li {
+    margin-bottom: 6px;
+    position: relative;
+  }
+
+  .letter-benefits li::marker {
+    color: var(--color-primary);
+  }
+
+  .letter-cta {
+    font-style: italic;
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .content-grid {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+
+    .email-preview {
+      order: -1;
+    }
+
+    .envelope {
+      max-width: 350px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .tell-cto-section {
+      padding: 60px 0;
+    }
+
+    h2 {
+      font-size: 32px;
+    }
+
+    .section-subtitle {
+      font-size: 16px;
+      margin-bottom: 40px;
+    }
+
+    .form-group input {
+      padding: 12px 14px;
+      font-size: 15px;
+    }
+
+    .send-button,
+    .try-free-button {
+      padding: 14px 20px;
+      font-size: 15px;
+    }
+
+    .envelope {
+      max-width: 300px;
+    }
+
+    .letter-body {
+      padding: 16px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 360px) {
+    h2 {
+      font-size: 28px;
+    }
+
+    .envelope {
+      max-width: 100%;
+    }
+  }
+
+  /* Dark mode */
+  :global(.dark) .tell-cto-section {
+    background: var(--color-bg-tertiary);
+  }
+
+  :global(.dark) .envelope {
+    background: linear-gradient(135deg, #2a2a2a 0%, #333 100%);
+  }
+
+  :global(.dark) .envelope-top {
+    background: linear-gradient(180deg, rgba(60,60,60,0.9) 0%, transparent 100%);
+  }
+
+  :global(.dark) .letter {
+    background: var(--color-bg-secondary);
+  }
+
+  :global(.dark) .send-button {
+    background: #e0e0e0;
+    color: var(--color-text);
+  }
+
+  :global(.dark) .send-button:hover {
+    background: #f0f0f0;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('cto-form') as HTMLFormElement;
+    if (!form) return;
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+      const toEmail = formData.get('to') as string;
+      const bossName = formData.get('bossName') as string;
+      const yourName = formData.get('yourName') as string;
+
+      const subject = encodeURIComponent(`${yourName} thinks you should check out Caro`);
+      const body = encodeURIComponent(`Hi ${bossName},
+
+${yourName} has been exploring Caro, a CLI tool that converts natural language to shell commands with built-in safety validation.
+
+Here's why it might be valuable for our team:
+
+- Zero telemetry, 100% offline capable - perfect for air-gapped environments
+- 52+ safety patterns block dangerous commands before execution
+- POSIX-compliant commands that work across macOS, Linux, and BSD
+- Sub-2s inference on Apple Silicon - no cloud latency
+
+It's open source (AGPL-3.0) and free to use.
+
+Check it out: https://caro.sh
+
+Best,
+${yourName}`);
+
+      // Open email client with pre-filled content
+      window.location.href = `mailto:${toEmail}?subject=${subject}&body=${body}`;
+    });
+  });
+</script>
