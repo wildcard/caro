@@ -1,0 +1,60 @@
+# $schema = "https://raw.githubusercontent.com/wildcard/caro/main/.vscode/caro-config.schema.json"
+#
+# Example configuration for caro
+#
+# This file shows all available configuration options with their defaults.
+# Copy this to ~/.config/caro/config.toml and customize as needed.
+
+# Optional: Default shell type (auto-detected if not set)
+# Options: bash, zsh, fish, sh, powershell, cmd
+# default_shell = "bash"
+
+# Safety validation level
+# Options: strict, moderate, permissive
+# - strict: Blocks high/critical commands, confirms moderate
+# - moderate: Blocks critical commands, confirms high (default)
+# - permissive: Warns about dangerous commands but allows with confirmation
+safety_level = "moderate"
+
+# Optional: Default backend model
+# Examples: "embedded", "ollama", "vllm"
+# default_model = "embedded"
+
+# Optional: Model name for the backend
+# Examples: "codellama:7b" for Ollama, "Qwen/Qwen2.5-Coder-1.5B-Instruct" for embedded
+# model_name = "Qwen/Qwen2.5-Coder-1.5B-Instruct"
+
+# Logging level
+# Options: debug, info, warn, error
+log_level = "info"
+
+# Maximum cache size in GB for downloaded models
+cache_max_size_gb = 10
+
+# Log rotation period in days
+log_rotation_days = 7
+
+# Telemetry settings
+[telemetry]
+# Enable telemetry collection
+# Beta versions default to true (opt-out)
+# GA versions default to false (opt-in)
+enabled = true
+
+# Telemetry verbosity level
+# Options: minimal, normal, verbose
+# - minimal: Only critical events (errors, safety blocks)
+# - normal: Standard events (sessions, commands, errors)
+# - verbose: Detailed events (performance metrics, debug info)
+level = "normal"
+
+# Air-gapped mode - store telemetry locally only
+# When enabled, no automatic uploads occur
+# Use `caro telemetry export` to manually extract data
+air_gapped = false
+
+# Telemetry upload endpoint
+endpoint = "https://telemetry.caro.sh/api/events"
+
+# First run flag (managed automatically)
+first_run = true
