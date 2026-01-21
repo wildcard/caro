@@ -1,0 +1,878 @@
+# GitHub Issues for macOS CLI Tools Research Insights
+#
+# Usage: These issues can be created using the gh CLI:
+#   for issue in $(yq e '.issues[].id' MACOS_CLI_TOOLS_ISSUES.yaml); do
+#     gh issue create --title "..." --label "..." --milestone "..." --body "..."
+#   done
+#
+# Or use the companion script: bin/create-research-issues.sh
+#
+# Generated: 2026-01-21
+# Source: docs/research/MACOS_CLI_TOOLS_INSIGHTS.md
+
+metadata:
+  research_source: "https://github.com/phmullins/awesome-macos-commandline"
+  research_date: "2026-01-21"
+  total_issues: 12
+
+# ============================================================================
+# QUICK WINS - Can be implemented in < 1 week
+# ============================================================================
+
+issues:
+
+  # --------------------------------------------------------------------------
+  # QW-1: Colorized Output with Risk Levels
+  # --------------------------------------------------------------------------
+  - id: "QW-1"
+    type: "quick-win"
+    title: "feat(ux): Add colorized command output with risk level indicators"
+    labels:
+      - "enhancement"
+      - "ux"
+      - "quick-win"
+      - "good-first-issue"
+    milestone: "v1.2.0"
+    rice_score: 45.9
+    inspired_by: "bat, lsd, exa"
+    body: |
+      ## Summary
+
+      Enhance the command output display with syntax highlighting and color-coded risk levels,
+      inspired by modern CLI tools like bat, lsd, and exa.
+
+      ## Background
+
+      Research on successful macOS CLI tools reveals that beautiful, readable output significantly
+      improves user experience. Tools like `bat` (syntax-highlighted cat) and `lsd` (colorized ls)
+      have gained massive adoption partly due to their visual appeal.
+
+      ## Proposed Changes
+
+      1. **Syntax highlighting for generated commands**
+         - Highlight command name, flags, arguments differently
+         - Use consistent color scheme
+
+      2. **Risk level color coding**
+         - Safe: Green text
+         - Moderate: Yellow/Orange text
+         - High: Red text
+         - Critical: Red background/bold
+
+      3. **Visual risk indicator**
+         - Add icons or symbols: `[SAFE]`, `[WARN]`, `[DANGER]`
+         - Consider Unicode symbols: `✓`, `⚠`, `✗`
+
+      ## Example Output
+
+      ```
+      Generated command:
+        find ~/Downloads -name "*.pdf" -size +10M -delete
+              ^^^^^^^^^^^^           ^^^^^       ^^^^^^
+              (cyan)                 (yellow)    (red)
+
+      Risk Level: [HIGH] - Destructive operation (delete)
+      ```
+
+      ## Acceptance Criteria
+
+      - [ ] Commands are syntax-highlighted with consistent colors
+      - [ ] Risk levels are color-coded (green/yellow/red)
+      - [ ] Visual indicators show risk level clearly
+      - [ ] Colors can be disabled via `--no-color` flag
+      - [ ] Respects `NO_COLOR` environment variable
+      - [ ] Works in terminals without color support (graceful degradation)
+
+      ## Technical Notes
+
+      - Consider using `termcolor` or `colored` crate
+      - Leverage existing risk assessment from safety module
+      - Reference: bat's syntax highlighting approach
+
+      ## Research Reference
+
+      See: `docs/research/MACOS_CLI_TOOLS_INSIGHTS.md`
+
+  # --------------------------------------------------------------------------
+  # QW-2: Explain Command
+  # --------------------------------------------------------------------------
+  - id: "QW-2"
+    type: "quick-win"
+    title: "feat(cli): Add `caro explain` command for reverse translation"
+    labels:
+      - "enhancement"
+      - "feature"
+      - "quick-win"
+    milestone: "v1.2.0"
+    rice_score: 25.6
+    inspired_by: "tldr, man pages"
+    body: |
+      ## Summary
+
+      Add a `caro explain` subcommand that takes a shell command and explains what it does
+      in plain English, providing a learning tool for users.
+
+      ## Background
+
+      The success of `tldr` demonstrates that users want simplified explanations of commands.
+      Caro can do the reverse of command generation: explain existing commands.
+
+      ## Proposed Usage
+
+      ```bash
+      $ caro explain "ps aux | grep nginx | awk '{print $2}' | xargs kill"
+
+      This command kills all nginx processes:
+        1. ps aux        - List all running processes
+        2. grep nginx    - Filter for lines containing 'nginx'
+        3. awk '{print $2}' - Extract the 2nd column (process IDs)
+        4. xargs kill    - Kill each process by ID
+
+      Risk: HIGH - Terminates processes without confirmation
+      ```
+
+      ## Acceptance Criteria
+
+      - [ ] `caro explain <command>` parses and explains commands
+      - [ ] Breaks down pipes and chains into steps
+      - [ ] Explains common flags and options
+      - [ ] Shows risk assessment for the command
+      - [ ] Works with complex commands (pipes, subshells, redirects)
+      - [ ] Handles platform-specific commands (BSD vs GNU)
+
+      ## Implementation Notes
+
+      - Reuse existing LLM backend for explanation generation
+      - Create dedicated prompt template for explanations
+      - Consider caching common command explanations
+
+      ## Research Reference
+
+      See: `docs/research/MACOS_CLI_TOOLS_INSIGHTS.md` - "The tldr Principle"
+
+  # --------------------------------------------------------------------------
+  # QW-3: Sensible Defaults
+  # --------------------------------------------------------------------------
+  - id: "QW-3"
+    type: "quick-win"
+    title: "feat(defaults): Apply sensible defaults inspired by fd/ripgrep"
+    labels:
+      - "enhancement"
+      - "ux"
+      - "quick-win"
+    milestone: "v1.2.0"
+    rice_score: 22.5
+    inspired_by: "fd, ripgrep"
+    body: |
+      ## Summary
+
+      Apply sensible defaults to generated commands, following the philosophy of `fd` and
+      `ripgrep` which optimize for the 90% use case.
+
+      ## Background
+
+      `fd` succeeds because it ignores `.git`, hidden files, and `.gitignore` patterns by default.
+      Users can override, but the defaults are right for most cases.
+
+      ## Proposed Defaults
+
+      1. **File operations**
+         - Exclude `.git`, `node_modules`, `.venv` by default
+         - Respect `.gitignore` when in a git repo
+         - Use human-readable sizes (`-h` flag where applicable)
+
+      2. **Process operations**
+         - Sort by CPU/memory by default (most useful)
+         - Show tree view when listing child processes
+
+      3. **Network operations**
+         - Use HTTPS over HTTP when generating URLs
+         - Include timeout flags by default
+
+      4. **Text operations**
+         - Use color output when terminal supports it
+         - Show line numbers for grep-like commands
+
+      ## Acceptance Criteria
+
+      - [ ] Generated `find` commands exclude common noise directories
+      - [ ] File listings use human-readable sizes
+      - [ ] Process listings sort by resource usage
+      - [ ] Defaults can be overridden via config or prompt
+      - [ ] Document default behaviors in help/docs
+
+      ## Research Reference
+
+      See: `docs/research/MACOS_CLI_TOOLS_INSIGHTS.md` - "The fd Philosophy"
+
+  # --------------------------------------------------------------------------
+  # QW-4: Undo Suggestions
+  # --------------------------------------------------------------------------
+  - id: "QW-4"
+    type: "quick-win"
+    title: "feat(safety): Suggest undo commands for destructive operations"
+    labels:
+      - "enhancement"
+      - "safety"
+      - "quick-win"
+    milestone: "v1.2.0"
+    rice_score: 20.0
+    inspired_by: "trash-cli"
+    body: |
+      ## Summary
+
+      For destructive commands, suggest an undo approach or safer alternative,
+      inspired by `trash-cli` which moves files to trash instead of deleting.
+
+      ## Background
+
+      `trash-cli` replaces `rm` with a recoverable alternative. Caro can apply
+      this philosophy by suggesting safer alternatives or undo approaches.
+
+      ## Proposed Behavior
+
+      When a destructive command is generated:
+
+      ```bash
+      $ caro "delete all .log files"
+
+      Generated command:
+        find . -name "*.log" -delete
+
+      Risk Level: [MODERATE]
+
+      Safer alternative:
+        find . -name "*.log" -exec mv {} ~/.Trash/ \;
+
+      To undo (if you proceed):
+        # Check ~/.Trash for .log files
+      ```
+
+      ## Commands to Handle
+
+      | Destructive | Safer Alternative |
+      |-------------|-------------------|
+      | `rm` | `mv to ~/.Trash` or `trash-cli` |
+      | `rm -rf` | Warn, suggest backup first |
+      | `chmod 777` | Suggest specific permissions |
+      | `dd if=/dev/zero` | Require explicit confirmation |
+      | `kill -9` | Suggest `kill` (SIGTERM) first |
+
+      ## Acceptance Criteria
+
+      - [ ] Destructive commands show safer alternatives
+      - [ ] Undo suggestions provided where applicable
+      - [ ] Integrate with existing safety module
+      - [ ] Don't block execution, just inform
+      - [ ] Configurable via safety level setting
+
+      ## Research Reference
+
+      See: `docs/research/MACOS_CLI_TOOLS_INSIGHTS.md` - "The trash-cli Pattern"
+
+  # --------------------------------------------------------------------------
+  # QW-5: Fuzzy Matching
+  # --------------------------------------------------------------------------
+  - id: "QW-5"
+    type: "quick-win"
+    title: "feat(ux): Add fuzzy matching for typos in natural language prompts"
+    labels:
+      - "enhancement"
+      - "ux"
+      - "quick-win"
+    milestone: "v1.2.0"
+    rice_score: 18.0
+    inspired_by: "fzf"
+    body: |
+      ## Summary
+
+      Implement fuzzy matching for user prompts to handle typos and near-matches,
+      inspired by fzf's forgiving input matching.
+
+      ## Background
+
+      `fzf` succeeds because users don't need exact syntax. Caro should be equally
+      forgiving with natural language input.
+
+      ## Proposed Behavior
+
+      ```bash
+      $ caro "lst files in currnt directroy"
+                ^^^      ^^^^^^  ^^^^^^^^^
+                (typos detected, auto-corrected)
+
+      Interpreted as: "list files in current directory"
+
+      Generated command:
+        ls -la
+      ```
+
+      ## Implementation Approach
+
+      1. **Typo detection**
+         - Levenshtein distance for common words
+         - Dictionary of command-related terms
+
+      2. **Fuzzy matching**
+         - "lst" → "list"
+         - "currnt" → "current"
+         - "directroy" → "directory"
+
+      3. **Confirmation**
+         - Show interpreted query if different from input
+         - Allow user to correct if interpretation is wrong
+
+      ## Acceptance Criteria
+
+      - [ ] Common typos are auto-corrected
+      - [ ] User is shown interpreted query
+      - [ ] Original query preserved if user wants it
+      - [ ] Performance: < 50ms for typo detection
+      - [ ] Works with command-related vocabulary
+
+      ## Research Reference
+
+      See: `docs/research/MACOS_CLI_TOOLS_INSIGHTS.md` - "fzf Pattern"
+
+  # --------------------------------------------------------------------------
+  # QW-6: Examples Subcommand
+  # --------------------------------------------------------------------------
+  - id: "QW-6"
+    type: "quick-win"
+    title: "feat(cli): Add `caro examples` subcommand for common patterns"
+    labels:
+      - "enhancement"
+      - "feature"
+      - "quick-win"
+    milestone: "v1.3.0"
+    rice_score: 15.0
+    inspired_by: "tldr, navi"
+    body: |
+      ## Summary
+
+      Add a `caro examples` subcommand that shows common command patterns
+      for a given topic, inspired by tldr and navi cheatsheets.
+
+      ## Background
+
+      `tldr` provides community-curated examples for common commands.
+      Caro can provide similar functionality with AI-enhanced examples.
+
+      ## Proposed Usage
+
+      ```bash
+      $ caro examples find
+
+      Common 'find' patterns:
+
+        Find files by name:
+          find . -name "*.txt"
+
+        Find files modified in last 7 days:
+          find . -type f -mtime -7
+
+        Find and delete empty directories:
+          find . -type d -empty -delete
+
+        Find large files (>100MB):
+          find . -type f -size +100M
+
+      Run `caro "find ..."` to generate custom commands.
+      ```
+
+      ## Categories to Support
+
+      - File operations (find, grep, sed, awk)
+      - Git operations
+      - Process management
+      - Network commands
+      - Disk/storage commands
+      - Docker commands
+      - Kubernetes commands
+
+      ## Acceptance Criteria
+
+      - [ ] `caro examples <topic>` shows common patterns
+      - [ ] Examples are platform-aware (BSD vs GNU)
+      - [ ] Can list available topics: `caro examples --list`
+      - [ ] Examples include brief explanations
+      - [ ] Integrates with existing prompt generation
+
+      ## Research Reference
+
+      See: `docs/research/MACOS_CLI_TOOLS_INSIGHTS.md` - "tldr Principle"
+
+# ============================================================================
+# LONG-RUNNING COMPLEX TASKS - Multi-week efforts
+# ============================================================================
+
+  # --------------------------------------------------------------------------
+  # LR-1: Context-Aware Suggestions
+  # --------------------------------------------------------------------------
+  - id: "LR-1"
+    type: "long-running"
+    title: "feat(context): Context-aware command suggestions based on project type"
+    labels:
+      - "enhancement"
+      - "feature"
+      - "complex"
+    milestone: "v1.3.0"
+    complexity: "medium"
+    inspired_by: "navi, zoxide"
+    body: |
+      ## Summary
+
+      Implement context-aware suggestions that detect project type (git repo,
+      npm project, Docker, etc.) and adapt command suggestions accordingly.
+
+      ## Background
+
+      Tools like `navi` and `zoxide` succeed by being context-aware. Caro should
+      detect the user's environment and provide relevant suggestions.
+
+      ## Proposed Behavior
+
+      ```bash
+      # In a git repository
+      $ caro "show recent changes"
+      → git log --oneline -10
+
+      # In an npm project
+      $ caro "install dependencies"
+      → npm install
+
+      # In a directory with Dockerfile
+      $ caro "build the container"
+      → docker build -t $(basename $PWD) .
+      ```
+
+      ## Context Detection
+
+      | Indicator | Context | Command Adaptations |
+      |-----------|---------|-------------------|
+      | `.git/` | Git repo | Use git commands |
+      | `package.json` | Node.js | Use npm/yarn |
+      | `Cargo.toml` | Rust | Use cargo |
+      | `Dockerfile` | Docker | Use docker commands |
+      | `kubernetes/` | K8s | Use kubectl |
+      | `requirements.txt` | Python | Use pip/python |
+
+      ## Acceptance Criteria
+
+      - [ ] Detect 10+ common project types
+      - [ ] Adapt suggestions based on context
+      - [ ] Context detection < 100ms
+      - [ ] Allow manual context override
+      - [ ] Document detected contexts
+
+      ## Implementation Notes
+
+      - Extend ExecutionContext to include project type
+      - Add project-specific prompt templates
+      - Consider caching context detection results
+
+      ## Research Reference
+
+      See: `docs/research/MACOS_CLI_TOOLS_INSIGHTS.md` - "navi Model"
+
+  # --------------------------------------------------------------------------
+  # LR-2: Interactive Cheatsheet Mode
+  # --------------------------------------------------------------------------
+  - id: "LR-2"
+    type: "long-running"
+    title: "feat(interactive): Add interactive cheatsheet/wizard mode"
+    labels:
+      - "enhancement"
+      - "feature"
+      - "complex"
+    milestone: "v1.3.0"
+    complexity: "medium"
+    inspired_by: "navi"
+    body: |
+      ## Summary
+
+      Add an interactive cheatsheet mode where users can browse and select
+      commands from categorized lists, inspired by navi.
+
+      ## Background
+
+      `navi` provides an interactive interface for browsing cheatsheets.
+      This is valuable when users don't know exactly what they need.
+
+      ## Proposed Usage
+
+      ```bash
+      $ caro browse
+
+      Select category:
+        > File Operations
+          Git Commands
+          Process Management
+          Network Tools
+          Docker
+
+      File Operations:
+        > Find files
+          List files
+          Move/Copy files
+          Delete files
+          Compress files
+
+      Find files:
+        > By name
+          By size
+          By date modified
+          By content
+
+      By name:
+        Pattern: *.txt
+        Directory: .
+
+      Generated: find . -name "*.txt"
+      ```
+
+      ## Implementation
+
+      1. **Category structure**
+         - Hierarchical command categories
+         - Searchable within categories
+
+      2. **Interactive UI**
+         - Arrow key navigation
+         - Fuzzy search
+         - Parameter prompts
+
+      3. **Output**
+         - Show generated command
+         - Option to execute or copy
+
+      ## Acceptance Criteria
+
+      - [ ] `caro browse` launches interactive mode
+      - [ ] Categories are navigable with arrow keys
+      - [ ] Fuzzy search within categories
+      - [ ] Parameters can be filled interactively
+      - [ ] Generated command shown before execution
+
+      ## Research Reference
+
+      See: `docs/research/MACOS_CLI_TOOLS_INSIGHTS.md` - "navi"
+
+  # --------------------------------------------------------------------------
+  # LR-3: Shell Integration Plugin
+  # --------------------------------------------------------------------------
+  - id: "LR-3"
+    type: "long-running"
+    title: "feat(shell): Inline shell integration for zsh/bash"
+    labels:
+      - "enhancement"
+      - "feature"
+      - "complex"
+    milestone: "v1.3.0"
+    complexity: "high"
+    inspired_by: "navi, fzf"
+    body: |
+      ## Summary
+
+      Create shell plugins that enable inline command suggestions without
+      leaving the shell prompt.
+
+      ## Background
+
+      Tools like `navi` and `fzf` integrate directly into the shell for
+      seamless workflow. Caro should offer similar integration.
+
+      ## Proposed Usage
+
+      ```bash
+      # Type trigger sequence
+      $ ?? find large files
+
+      # Caro suggests inline
+      $ find . -type f -size +100M  # [TAB to accept, ESC to cancel]
+
+      # User presses TAB
+      $ find . -type f -size +100M
+      ```
+
+      ## Shell Support
+
+      - **Zsh**: Widget-based plugin
+      - **Bash**: readline integration
+      - **Fish**: abbreviation or function
+
+      ## Implementation
+
+      1. **Trigger mechanism**
+         - `??` prefix (configurable)
+         - Keyboard shortcut (Ctrl+G)
+
+      2. **Suggestion display**
+         - Inline ghost text
+         - Accept with TAB
+         - Cancel with ESC
+
+      3. **Plugin files**
+         - `caro.zsh` for zsh
+         - `caro.bash` for bash
+         - `caro.fish` for fish
+
+      ## Acceptance Criteria
+
+      - [ ] Zsh plugin works with `??` trigger
+      - [ ] Bash plugin works with readline
+      - [ ] Fish plugin via `caro.fish`
+      - [ ] Installation via `caro init <shell>`
+      - [ ] Async suggestion (non-blocking)
+      - [ ] Graceful degradation if caro not available
+
+      ## Research Reference
+
+      See: `docs/research/MACOS_CLI_TOOLS_INSIGHTS.md` - "navi/fzf"
+
+  # --------------------------------------------------------------------------
+  # LR-4: Learn from User Behavior
+  # --------------------------------------------------------------------------
+  - id: "LR-4"
+    type: "long-running"
+    title: "feat(learning): Learn from user edits to improve suggestions"
+    labels:
+      - "enhancement"
+      - "feature"
+      - "complex"
+      - "privacy"
+    milestone: "v2.0.0"
+    complexity: "high"
+    inspired_by: "zoxide"
+    body: |
+      ## Summary
+
+      Track when users edit generated commands and learn from those corrections
+      to improve future suggestions, inspired by zoxide's frecency algorithm.
+
+      ## Background
+
+      `zoxide` learns from user behavior (directory visits) to improve
+      suggestions. Caro can learn from command edits.
+
+      ## Learning Signals
+
+      1. **User accepts command unchanged** → High confidence pattern
+      2. **User edits command slightly** → Learn correction
+      3. **User rejects command** → Pattern mismatch
+      4. **User types custom command** → New pattern
+
+      ## Implementation
+
+      1. **Track interactions**
+         - Store: prompt → generated → actual executed
+         - Track edit distance
+
+      2. **Learn corrections**
+         - Build user-specific pattern corrections
+         - Weight by recency (fresher = more important)
+
+      3. **Apply learning**
+         - Adjust generation based on history
+         - Personalized suggestions
+
+      ## Privacy Considerations
+
+      - All learning happens locally
+      - No data uploaded
+      - User can clear learning data
+      - Learning is opt-in
+
+      ## Acceptance Criteria
+
+      - [ ] Track accept/edit/reject interactions
+      - [ ] Learn from user corrections
+      - [ ] Improve suggestions over time
+      - [ ] All data stored locally
+      - [ ] User can view/clear learning data
+      - [ ] Opt-in with clear privacy explanation
+
+      ## Research Reference
+
+      See: `docs/research/MACOS_CLI_TOOLS_INSIGHTS.md` - "zoxide"
+
+  # --------------------------------------------------------------------------
+  # LR-5: Visual TUI Mode
+  # --------------------------------------------------------------------------
+  - id: "LR-5"
+    type: "long-running"
+    title: "feat(tui): Add visual TUI mode for complex operations"
+    labels:
+      - "enhancement"
+      - "feature"
+      - "complex"
+    milestone: "v2.0.0"
+    complexity: "high"
+    inspired_by: "LazyGit, bottom"
+    body: |
+      ## Summary
+
+      Add a TUI (Terminal User Interface) mode for complex multi-step operations,
+      inspired by LazyGit and bottom.
+
+      ## Background
+
+      `LazyGit` and `bottom` prove that rich TUIs are valued by users.
+      Complex workflows benefit from visual interfaces.
+
+      ## Proposed Usage
+
+      ```bash
+      $ caro tui
+
+      ┌─────────────────────────────────────────────────────────┐
+      │ Caro - Command Assistant                                │
+      ├─────────────────────────────────────────────────────────┤
+      │ Prompt: find large files in Downloads                   │
+      ├─────────────────────────────────────────────────────────┤
+      │ Generated Command:                                      │
+      │   find ~/Downloads -type f -size +100M                  │
+      │                                                         │
+      │ Risk: [SAFE]  Platform: macOS  Shell: zsh               │
+      ├─────────────────────────────────────────────────────────┤
+      │ [E]xecute  [C]opy  [M]odify  [H]istory  [Q]uit          │
+      └─────────────────────────────────────────────────────────┘
+      ```
+
+      ## TUI Features
+
+      1. **Main view**: Prompt input, command output
+      2. **History panel**: Recent commands
+      3. **Preview panel**: Command explanation
+      4. **Execution view**: Live output
+
+      ## Implementation
+
+      - Use `ratatui` crate for TUI
+      - Async command execution
+      - Keyboard navigation
+
+      ## Acceptance Criteria
+
+      - [ ] `caro tui` launches TUI mode
+      - [ ] Prompt input with live generation
+      - [ ] Command preview with explanation
+      - [ ] History browsing
+      - [ ] Keyboard navigation
+      - [ ] Resizable/responsive layout
+
+      ## Research Reference
+
+      See: `docs/research/MACOS_CLI_TOOLS_INSIGHTS.md` - "LazyGit"
+
+  # --------------------------------------------------------------------------
+  # LR-6: Conversational Refinement
+  # --------------------------------------------------------------------------
+  - id: "LR-6"
+    type: "long-running"
+    title: "feat(chat): Add conversational mode for iterative refinement"
+    labels:
+      - "enhancement"
+      - "feature"
+      - "complex"
+    milestone: "v2.0.0"
+    complexity: "high"
+    inspired_by: "Gitless"
+    body: |
+      ## Summary
+
+      Add a conversational mode where users can iteratively refine commands
+      through dialogue, inspired by Gitless's simplified interaction model.
+
+      ## Background
+
+      `Gitless` simplifies Git by reimagining the interaction model.
+      Caro can offer conversational refinement for complex queries.
+
+      ## Proposed Usage
+
+      ```bash
+      $ caro chat
+
+      You: find large files
+      Caro: How large? (e.g., >10MB, >100MB, >1GB)
+
+      You: bigger than 500MB
+      Caro: Where should I look? (current directory, home, specific path)
+
+      You: in my downloads folder
+      Caro: Should I include hidden files?
+
+      You: no
+      Caro: Here's your command:
+        find ~/Downloads -type f -size +500M -not -name ".*"
+
+      [Execute? Y/n]
+      ```
+
+      ## Conversation Features
+
+      1. **Clarifying questions**
+         - Ask for missing parameters
+         - Suggest common options
+
+      2. **Context retention**
+         - Remember previous answers
+         - Build on previous commands
+
+      3. **Refinement**
+         - "Make it recursive"
+         - "Add the delete flag"
+         - "Sort by size"
+
+      ## Acceptance Criteria
+
+      - [ ] `caro chat` enters conversational mode
+      - [ ] Caro asks clarifying questions
+      - [ ] Context retained within session
+      - [ ] Commands can be refined iteratively
+      - [ ] Clear exit mechanism
+      - [ ] History of conversation saved
+
+      ## Research Reference
+
+      See: `docs/research/MACOS_CLI_TOOLS_INSIGHTS.md` - "Gitless"
+
+# ============================================================================
+# HELPER SCRIPT DATA
+# ============================================================================
+
+script_template: |
+  #!/bin/bash
+  # Create GitHub issues from MACOS_CLI_TOOLS_ISSUES.yaml
+  # Usage: ./create-research-issues.sh [--dry-run]
+
+  # Requires: gh (GitHub CLI), yq (YAML processor)
+
+  set -e
+
+  DRY_RUN=${1:-""}
+
+  create_issue() {
+    local title="$1"
+    local labels="$2"
+    local milestone="$3"
+    local body="$4"
+
+    if [[ "$DRY_RUN" == "--dry-run" ]]; then
+      echo "Would create: $title"
+      echo "  Labels: $labels"
+      echo "  Milestone: $milestone"
+      echo ""
+    else
+      gh issue create \
+        --title "$title" \
+        --label "$labels" \
+        --milestone "$milestone" \
+        --body "$body"
+      echo "Created: $title"
+    fi
+  }
+
+  echo "Creating issues from macOS CLI Tools research..."
+  # Issue creation calls would go here
