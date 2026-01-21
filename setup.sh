@@ -26,28 +26,12 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-cat << 'EOF'
-   ____                   
-  / ___|__ _ _ __ ___  
- | |   / _` | '__/ _ \ 
- | |__| (_| | | | (_) |
-  \____\__,_|_|  \___/ 
-
-Your Terminal's AI Companion
-Natural Language → Shell Commands
-
-https://caro.sh
-https://github.com/wildcard/caro
-
-═══════════════════════════════════════════════════════════
-
-EOF
-
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+BOLD='\033[1m'
 NC='\033[0m' # No Color
 
 say() {
@@ -234,15 +218,9 @@ install_via_binary() {
 
     # Verify with version check
     if "${install_dir}/${binary_name}" --version >/dev/null 2>&1; then
-        say_success "Installed caro v${version} successfully"
+        say_success "Installed caro v${version}"
     else
         err "Binary installed but failed version check"
-    fi
-
-    # Add to PATH if needed
-    if [[ ":$PATH:" != *":$install_dir:"* ]]; then
-        say_warn "$install_dir is not in your PATH"
-        say "You may need to restart your shell or add to PATH manually"
     fi
 
     return 0
@@ -368,7 +346,8 @@ check_conflicting_installations() {
 
 # Main installation
 main() {
-    say "Starting Caro installation..."
+    echo ""
+    echo -e "${BLUE}Setting up Caro...${NC}"
     echo ""
 
     # Check prerequisites
@@ -429,39 +408,85 @@ main() {
 
     # Check for conflicting installations
     check_conflicting_installations
+
+    # Get installed version and location
+    local installed_version="unknown"
+    local install_location=""
+
+    if check_cmd caro; then
+        installed_version=$(caro --version 2>/dev/null | head -1 | sed 's/caro //' || echo "unknown")
+        install_location=$(which caro 2>/dev/null)
+    elif [ -x "$HOME/.cargo/bin/caro" ]; then
+        installed_version=$("$HOME/.cargo/bin/caro" --version 2>/dev/null | head -1 | sed 's/caro //' || echo "unknown")
+        install_location="$HOME/.cargo/bin/caro"
+    elif [ -x "${CARO_INSTALL_DIR:-$HOME/.local/bin}/caro" ]; then
+        installed_version=$("${CARO_INSTALL_DIR:-$HOME/.local/bin}/caro" --version 2>/dev/null | head -1 | sed 's/caro //' || echo "unknown")
+        install_location="${CARO_INSTALL_DIR:-$HOME/.local/bin}/caro"
+    fi
+
+    # Display install location with ~ for home dir
+    local display_location="$install_location"
+    display_location="${display_location/#$HOME/~}"
+
+    echo ""
+    echo -e "${GREEN}✔ Caro successfully installed!${NC}"
+    echo ""
+    echo -e "  Version:  ${BOLD}${installed_version}${NC}"
+    echo ""
+    echo -e "  Location: ${BOLD}${display_location}${NC}"
+    echo ""
+    echo ""
+    echo -e "  Next: Run ${GREEN}caro --help${NC} to get started"
     echo ""
 
-    # Success message
-    cat << 'EOF'
-═══════════════════════════════════════════════════════════
-  Installation Complete! 🎉
-═══════════════════════════════════════════════════════════
+    # Collect setup notes
+    local setup_notes=()
+    local shell_name
+    shell_name=$(basename "$SHELL")
 
-Usage:
-  caro "list all files in this directory"
+    # Determine install directory
+    local install_dir
+    install_dir=$(dirname "$install_location")
 
-Execute directly:
-  caro -x "show disk usage sorted by size"
+    # Check if PATH needs to be configured
+    if [[ -n "$install_dir" ]] && [[ ":$PATH:" != *":$install_dir:"* ]]; then
+        # Determine shell config file
+        local shell_config_file=""
+        case "$shell_name" in
+            bash)
+                if [ -f "$HOME/.bash_profile" ]; then
+                    shell_config_file="~/.bash_profile"
+                else
+                    shell_config_file="~/.bashrc"
+                fi
+                ;;
+            zsh)
+                shell_config_file="~/.zshrc"
+                ;;
+            fish)
+                shell_config_file="~/.config/fish/config.fish"
+                ;;
+            *)
+                shell_config_file="~/.profile"
+                ;;
+        esac
 
-Get help:
-  caro --help
+        local display_dir="${install_dir/#$HOME/~}"
+        if [[ "$shell_name" == "fish" ]]; then
+            setup_notes+=("${display_dir} is not in your PATH. Run:\n\n  ${GREEN}set -Ux fish_user_paths ${install_dir} \$fish_user_paths${NC}")
+        else
+            setup_notes+=("${display_dir} is not in your PATH. Run:\n\n  ${GREEN}echo 'export PATH=\"${install_dir}:\$PATH\"' >> ${shell_config_file} && source ${shell_config_file}${NC}")
+        fi
+    fi
 
-Examples:
-  caro "find all JavaScript files modified in last 7 days"
-  caro "show top 5 processes by CPU usage"
-  caro "find which process is using port 8080"
-
-Documentation:
-  https://caro.sh
-  https://github.com/wildcard/caro
-
-═══════════════════════════════════════════════════════════
-
-To start using caro:
-  • Restart your shell, or
-  • Run: source ~/.bashrc (or ~/.zshrc, etc.)
-
-EOF
+    # Display setup notes if any
+    if [ ${#setup_notes[@]} -gt 0 ]; then
+        echo -e "${YELLOW}⚠ Setup notes:${NC}"
+        for note in "${setup_notes[@]}"; do
+            echo -e "  • ${note}"
+            echo ""
+        done
+    fi
 }
 
 main "$@"
