@@ -303,6 +303,8 @@ Caro stands on the shoulders of giants. This page honors the open source project
 
 Stories, updates, and insights from Caro's journey - your loyal shell companion
 
+How Kyaro Guides Us: The Soul Behind Every Decision
+
 Standing With Free Software: Our Debt to GNU, FSF, and FreeBSD
 
 The Rust Revolution: How Modern Tools Are Reimagining Unix
@@ -314,6 +316,8 @@ Building Caro with Security in Mind
 Batteries Included: Caro
 
 Why Caro? The Story Behind Your Terminal Companion
+
+Why Caro is built the way it is, the values that drive our decisions, and how a real Shiba Inu named Kyaro shapes everything from product choices to our vision for hyper-localization.
 
 Caro wouldn
 
@@ -350,6 +354,14 @@ Why Caro ships with everything you need to run AI-powered command generation loc
 **URL**: https://caro.sh/blog/claude-skill-launch
 
 Caro comes to Claude Code! Generate safe, POSIX-compliant shell commands directly in your Claude sessions with comprehensive safety validation and educational guidance.
+
+---
+
+## How Kyaro Guides Us: The Soul Behind Every Decision
+
+**URL**: https://caro.sh/blog/how-kyaro-guides-us
+
+Why Caro is built the way it is, the values that drive our decisions, and how a real Shiba Inu named Kyaro shapes everything from product choices to our vision for hyper-localization.
 
 ---
 
@@ -947,4 +959,4 @@ Yes! Caro is licensed under AGPL-3.0. You can read, modify, and distribute the s
 
 ---
 
-*Generated on 2026-01-19*
+*Generated on 2026-01-21*
