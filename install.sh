@@ -728,18 +728,13 @@ check_conflicting_installations() {
 
 # Main installation flow
 main() {
-    echo -e "${BOLD}${BLUE}╔═══════════════════════════════════════╗${NC}"
-    echo -e "${BOLD}${BLUE}║      Caro Installer                   ║${NC}"
-    echo -e "${BOLD}${BLUE}╚═══════════════════════════════════════╝${NC}"
     echo ""
-    echo -e "${CYAN}Welcome to the Caro installer!${NC}"
-    echo -e "${CYAN}This will install caro - your AI-powered shell command assistant.${NC}"
+    echo -e "${BLUE}Setting up Caro...${NC}"
     echo ""
 
-    # Show mode indicator
-    if [ "$INTERACTIVE_MODE" != "true" ]; then
-        echo -e "${YELLOW}Running in non-interactive mode (piped execution detected)${NC}"
-        echo -e "${YELLOW}Using default settings for automated installation${NC}"
+    # Show mode indicator in interactive mode only
+    if [ "$INTERACTIVE_MODE" = "true" ]; then
+        echo -e "${CYAN}This will install caro - your AI-powered shell command assistant.${NC}"
         echo ""
     fi
 
@@ -770,48 +765,103 @@ main() {
     # Check for conflicting installations
     check_conflicting_installations
 
-    echo ""
-    echo -e "${BOLD}${GREEN}╔═══════════════════════════════════════╗${NC}"
-    echo -e "${BOLD}${GREEN}║   Installation Complete! 🎉           ║${NC}"
-    echo -e "${BOLD}${GREEN}╚═══════════════════════════════════════╝${NC}"
-    echo ""
-
-    # Show next steps
-    echo -e "${BOLD}${BLUE}Next steps:${NC}"
-    echo ""
-
-    if [ "$SETUP_PATH_AUTO" = "true" ] || [ "$SETUP_SHELL_COMPLETION" = "true" ] || [ "$CONFIGURE_SAFETY_LEVEL" = "true" ]; then
-        local shell_name
-        shell_name=$(basename "$SHELL")
-        echo -e "${YELLOW}→ Reload your shell to apply changes:${NC}"
-        if [[ "$shell_name" == "fish" ]]; then
-            echo -e "  ${GREEN}source ~/.config/fish/config.fish${NC}"
-        else
-            local shell_config="$HOME/.${shell_name}rc"
-            [ "$shell_name" = "bash" ] && [ -f "$HOME/.bash_profile" ] && shell_config="$HOME/.bash_profile"
-            echo -e "  ${GREEN}source $shell_config${NC}"
-        fi
-        echo -e "  ${CYAN}Or open a new terminal window${NC}"
-        echo ""
+    # Get installed version
+    local installed_version=""
+    if [ -x "${INSTALL_DIR}/${BINARY_NAME}" ]; then
+        installed_version=$("${INSTALL_DIR}/${BINARY_NAME}" --version 2>/dev/null | head -1 | sed 's/caro //' || echo "unknown")
+    elif command_exists caro; then
+        installed_version=$(caro --version 2>/dev/null | head -1 | sed 's/caro //' || echo "unknown")
     fi
 
-    echo -e "${YELLOW}→ Try it out:${NC}"
-    echo -e "  ${GREEN}caro \"list all files in this directory\"${NC}"
+    # Determine actual install location
+    local install_location="${INSTALL_DIR}/${BINARY_NAME}"
+    if command_exists caro; then
+        install_location=$(command -v caro)
+    fi
+
+    echo ""
+    echo -e "${GREEN}✔ Caro successfully installed!${NC}"
+    echo ""
+    echo -e "  Version:  ${BOLD}${installed_version}${NC}"
+    echo ""
+    echo -e "  Location: ${BOLD}${install_location}${NC}"
+    echo ""
+    echo ""
+    echo -e "  Next: Run ${GREEN}caro --help${NC} to get started"
     echo ""
 
-    echo -e "${YELLOW}→ Get help:${NC}"
-    echo -e "  ${GREEN}caro --help${NC}"
-    echo ""
+    # Collect setup notes
+    local setup_notes=()
+    local shell_name
+    shell_name=$(basename "$SHELL")
 
-    echo -e "${BLUE}Documentation:${NC}"
-    echo -e "  ${GREEN}https://caro.sh${NC}"
-    echo -e "  ${GREEN}https://github.com/${REPO}${NC}"
-    echo ""
+    # Check if PATH needs to be configured
+    local path_needs_setup="false"
+    if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
+        # Check if we auto-configured it or not
+        if [ "$SETUP_PATH_AUTO" != "true" ]; then
+            path_needs_setup="true"
+        fi
+    fi
+
+    # Also check if the install location's directory is in PATH
+    local install_dir_actual
+    install_dir_actual=$(dirname "$install_location")
+    if [[ ":$PATH:" != *":$install_dir_actual:"* ]]; then
+        path_needs_setup="true"
+    fi
+
+    # Determine shell config file for PATH fix
+    local shell_config_file=""
+    case "$shell_name" in
+        bash)
+            if [ -f "$HOME/.bash_profile" ]; then
+                shell_config_file="~/.bash_profile"
+            else
+                shell_config_file="~/.bashrc"
+            fi
+            ;;
+        zsh)
+            shell_config_file="~/.zshrc"
+            ;;
+        fish)
+            shell_config_file="~/.config/fish/config.fish"
+            ;;
+        *)
+            shell_config_file="~/.profile"
+            ;;
+    esac
+
+    # Build setup notes
+    if [ "$path_needs_setup" = "true" ]; then
+        if [[ "$shell_name" == "fish" ]]; then
+            setup_notes+=("${install_dir_actual} is not in your PATH. Run:\n\n  ${GREEN}set -Ux fish_user_paths ${install_dir_actual} \$fish_user_paths${NC}")
+        else
+            setup_notes+=("${install_dir_actual} is not in your PATH. Run:\n\n  ${GREEN}echo 'export PATH=\"${install_dir_actual}:\$PATH\"' >> ${shell_config_file} && source ${shell_config_file}${NC}")
+        fi
+    fi
+
+    if [ "$SETUP_PATH_AUTO" = "true" ] || [ "$SETUP_SHELL_COMPLETION" = "true" ] || [ "$CONFIGURE_SAFETY_LEVEL" = "true" ]; then
+        if [[ "$shell_name" == "fish" ]]; then
+            setup_notes+=("Reload your shell to apply changes:\n\n  ${GREEN}source ~/.config/fish/config.fish${NC}\n\n  Or open a new terminal window")
+        else
+            local actual_shell_config="$HOME/.${shell_name}rc"
+            [ "$shell_name" = "bash" ] && [ -f "$HOME/.bash_profile" ] && actual_shell_config="$HOME/.bash_profile"
+            setup_notes+=("Reload your shell to apply changes:\n\n  ${GREEN}source ${actual_shell_config}${NC}\n\n  Or open a new terminal window")
+        fi
+    fi
 
     if [ "$CONFIGURE_SAFETY_LEVEL" = "true" ]; then
-        echo -e "${CYAN}Safety level configured: ${BOLD}$SAFETY_LEVEL${NC}"
-        echo -e "${CYAN}Change anytime with: ${GREEN}export CARO_SAFETY_LEVEL=<strict|moderate|permissive>${NC}"
-        echo ""
+        setup_notes+=("Safety level configured: ${BOLD}$SAFETY_LEVEL${NC}\n  Change anytime with: ${GREEN}export CARO_SAFETY_LEVEL=<strict|moderate|permissive>${NC}")
+    fi
+
+    # Display setup notes if any
+    if [ ${#setup_notes[@]} -gt 0 ]; then
+        echo -e "${YELLOW}⚠ Setup notes:${NC}"
+        for note in "${setup_notes[@]}"; do
+            echo -e "  • ${note}"
+            echo ""
+        done
     fi
 }
 
