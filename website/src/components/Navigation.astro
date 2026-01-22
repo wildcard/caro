@@ -519,7 +519,8 @@ const personas = [
     display: flex;
     align-items: center;
     gap: 4px;
-    padding: 8px 14px;
+    padding: 0 14px;
+    height: var(--control-height-md, 40px);
     font-size: 15px;
     font-weight: 500;
     color: var(--color-text);
@@ -529,6 +530,7 @@ const personas = [
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s;
+    box-sizing: border-box;
   }
 
   .nav-item > a:hover,
@@ -646,8 +648,8 @@ const personas = [
   }
 
   .icon-button {
-    width: 40px;
-    height: 40px;
+    width: var(--control-height-md, 40px);
+    height: var(--control-height-md, 40px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -657,6 +659,7 @@ const personas = [
     cursor: pointer;
     color: var(--color-text);
     transition: all 0.2s;
+    box-sizing: border-box;
   }
 
   .icon-button:hover {
@@ -819,7 +822,8 @@ const personas = [
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 20px;
+    padding: 0 20px;
+    height: var(--control-height-md, 40px);
     background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
     color: white;
     text-decoration: none;
@@ -827,6 +831,7 @@ const personas = [
     font-size: 15px;
     border-radius: 10px;
     transition: all 0.2s;
+    box-sizing: border-box;
   }
 
   .nav-cta:hover {
@@ -847,8 +852,8 @@ const personas = [
      ======================================== */
   .mobile-toggle {
     display: none;
-    width: 44px;
-    height: 44px;
+    width: var(--control-height-md, 40px);
+    height: var(--control-height-md, 40px);
     padding: 0;
     background: transparent;
     border: none;
@@ -978,8 +983,8 @@ const personas = [
   }
 
   .drawer-close {
-    width: 40px;
-    height: 40px;
+    width: var(--control-height-md, 40px);
+    height: var(--control-height-md, 40px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -989,6 +994,7 @@ const personas = [
     color: var(--color-text);
     cursor: pointer;
     transition: all 0.2s;
+    box-sizing: border-box;
   }
 
   .drawer-close:hover {

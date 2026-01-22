@@ -21,9 +21,7 @@
     border-color var(--transition-normal);
   user-select: none;
   white-space: nowrap;
-
-  /* Minimum touch target */
-  min-height: var(--touch-target-min);
+  box-sizing: border-box;
 }
 
 .button:focus-visible {
@@ -40,24 +38,28 @@
 
 /* ============================================
    SIZE VARIANTS
+   Uses consistent control height tokens
    ============================================ */
 
 .sm {
-  padding: var(--space-sm) var(--space-md);
+  padding: 0 var(--space-md);
   font-size: var(--font-size-sm);
-  min-height: 36px;
+  height: var(--control-height-sm);
+  min-height: var(--control-height-sm);
 }
 
 .md {
-  padding: 10px 20px;
+  padding: 0 20px;
   font-size: var(--font-size-md);
-  min-height: var(--touch-target-min);
+  height: var(--control-height-md);
+  min-height: var(--control-height-md);
 }
 
 .lg {
-  padding: 14px 28px;
+  padding: 0 28px;
   font-size: 17px;
-  min-height: var(--touch-target-recommended);
+  height: var(--control-height-lg);
+  min-height: var(--control-height-lg);
 }
 
 /* ============================================

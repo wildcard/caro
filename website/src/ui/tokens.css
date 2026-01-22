@@ -115,6 +115,15 @@
   --transition-slow: 0.3s ease;
 
   /* ============================================
+     CONTROL HEIGHTS
+     Consistent heights for all interactive controls
+     (buttons, inputs, dropdowns, search bars)
+     ============================================ */
+  --control-height-sm: 36px;
+  --control-height-md: 40px;
+  --control-height-lg: 48px;
+
+  /* ============================================
      TOUCH TARGETS
      ============================================ */
   --touch-target-min: 44px;
