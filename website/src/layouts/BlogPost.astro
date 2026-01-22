@@ -2,15 +2,17 @@
 import Layout from './Layout.astro';
 import AnnouncementBanner from '../components/AnnouncementBanner.astro';
 import Navigation from '../components/Navigation.astro';
+import type { Locale } from '../i18n/config';
 
 interface Props {
   title: string;
   description: string;
   date: string;
   readTime: string;
+  lang?: Locale;
 }
 
-const { title, description, date, readTime } = Astro.props;
+const { title, description, date, readTime, lang = 'en' } = Astro.props;
 ---
 
 <Layout title={`${title} - Caro Blog`} description={description}>
@@ -24,7 +26,7 @@ const { title, description, date, readTime } = Astro.props;
 
         <div class="blog-post-meta">
           <time datetime={date}>
-            {new Date(date).toLocaleDateString('en-US', {
+            {new Date(date).toLocaleDateString(lang, {
               year: 'numeric',
               month: 'long',
               day: 'numeric'

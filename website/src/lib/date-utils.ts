@@ -170,7 +170,13 @@ export function isDateInRange(
 }
 
 /**
- * Get the resolved date range for display purposes
+ * Get the resolved date range for display purposes.
+ *
+ * NOTE: This is an internal utility function for testing/debugging purposes.
+ * It intentionally uses English ('en-US') formatting. User-facing date displays
+ * should use toLocaleDateString(lang, {...}) directly in components.
+ *
+ * @returns Date range strings (English format)
  */
 export function getDisplayDateRange(
   range: DateRange,

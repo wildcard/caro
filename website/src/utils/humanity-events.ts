@@ -265,9 +265,14 @@ export function getEventById(id: string): HumanityEvent | undefined {
 
 /**
  * Format the event date(s) for display.
+ *
+ * NOTE: This is an internal utility function for testing/debugging purposes.
+ * It intentionally uses English ('en-US') formatting. User-facing date displays
+ * should use toLocaleDateString(lang, {...}) directly in components.
+ *
  * @param event - The event
  * @param year - The year (for calculated dates)
- * @returns Human-readable date string
+ * @returns Human-readable date string (English format)
  */
 export function formatEventDates(event: HumanityEvent, year?: number): string {
   const dateStrings: string[] = [];
