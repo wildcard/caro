@@ -67,7 +67,53 @@ python trl/scripts/sft.py \
 - **Cost**: Smaller models with high accuracy = lower inference costs
 - **URL**: https://docs.lamini.ai/tuning/memory_tuning/
 
-> **For Caro**: Shell commands are highly structured and factual. Memory Tuning could eliminate hallucinations like wrong flags or non-POSIX syntax.
+**How MoME Works**:
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Pre-trained LLM                          │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────┐  ┌─────────┐  ┌─────────┐       ┌─────────┐   │
+│  │ Memory  │  │ Memory  │  │ Memory  │  ...  │ Memory  │   │
+│  │Expert 1 │  │Expert 2 │  │Expert 3 │       │Expert N │   │
+│  │ (LoRA)  │  │ (LoRA)  │  │ (LoRA)  │       │ (LoRA)  │   │
+│  └────┬────┘  └────┬────┘  └────┬────┘       └────┬────┘   │
+│       └────────────┴────────────┴─────────────────┘        │
+│                           │                                 │
+│                   Cross-Attention                          │
+│                     Router Layer                           │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Example Code**:
+```python
+from lamini import Lamini
+
+llm = Lamini(model_name="meta-llama/Llama-3.1-8B-Instruct")
+
+# Training data format
+data = [
+    {"input": "list files recursively", "output": "find . -type f"},
+    {"input": "find large files over 100MB", "output": "find . -size +100M"},
+    # ... more examples
+]
+
+# Train with Memory Tuning
+results = llm.tune(
+    data_or_dataset_id=data,
+    max_steps=500,           # Scale with dataset size
+    learning_rate=0.00009,   # Lower for larger datasets
+    gradient_accumulation_steps=4
+)
+```
+
+**Scaling Guidelines**:
+| Dataset Size | Steps | Learning Rate | Notes |
+|--------------|-------|---------------|-------|
+| <100 facts | 50 | 0.0003 | Quick iteration |
+| 800+ facts | 500 | 0.00009 | Production |
+| 10,000 facts | 10,000 | 0.0003 | + gradient_accumulation=4 |
+
+> **For Caro**: Shell commands are highly structured and factual. Memory Tuning could eliminate hallucinations like wrong flags or non-POSIX syntax. The 95% accuracy claim is particularly relevant for safety-critical command generation.
 
 ---
 
@@ -161,12 +207,97 @@ mlx_lm.fuse --model mistralai/Mistral-7B-v0.1 --adapter-path ./adapters
 ### 5.1 Distil Labs CLI ⭐ Purpose-Built for SLMs
 - **Best for**: End-to-end small model distillation
 - **Models**: 100M to 8B parameters
-- **Tasks**: Classification, NER, QA, function calling
-- **Example**: [GitAra](https://github.com/distil-labs/distil-gitara) - git command model
-- **Results**: 3B model matches 120B teacher (25x smaller)
+- **Tasks**: Classification, NER, QA, function calling, tool calling
+- **Results**: 3B model matches 120B teacher (25-40x smaller)
 - **URL**: https://www.distillabs.ai/
 
-> **For Caro**: GitAra is literally the same use case (git commands). Their approach has been validated.
+**Workflow** (via Claude skill or CLI):
+```bash
+# Install CLI
+curl -fsSL https://cli-assets.distillabs.ai/install.sh | sh
+
+# Create model → Prepare data → Upload → Train → Deploy
+distil model create
+distil data prepare --task tool-calling
+distil train
+distil deploy --runtime ollama
+```
+
+**Supported Tasks**:
+| Task Type | Use Case |
+|-----------|----------|
+| Classification | Intent detection, ticket triage |
+| Question Answering | Document parsing, contract analysis |
+| **Tool Calling** | API routing, **CLI command generation** |
+| Open Book QA (RAG) | Document QA with context |
+| Closed Book QA | FAQ bots, domain assistants |
+
+### 5.2 GitAra: Reference Implementation ⭐⭐ Directly Applicable
+
+[GitAra](https://github.com/distil-labs/distil-gitara) is a **proven implementation** of exactly what Caro needs: converting natural language to CLI commands.
+
+#### Architecture
+```
+┌─────────────────────┐     ┌─────────────────────┐     ┌─────────────────────┐
+│  Natural Language   │ ──▶ │  Tool-Calling LLM   │ ──▶ │  Structured JSON    │
+│  "push feature-x    │     │  (Llama 3.2 3B)     │     │  {name: "git_push", │
+│   to origin"        │     │                     │     │   params: {...}}    │
+└─────────────────────┘     └─────────────────────┘     └─────────────────────┘
+```
+
+#### Results
+| Model | Parameters | Accuracy |
+|-------|-----------|----------|
+| **Llama 3.2 3B (tuned)** | 3B | **0.92 ± 0.01** |
+| Llama 3.2 1B (tuned) | 1B | 0.90 ± 0.01 |
+| GPT-OSS (teacher) | 120B | 0.92 ± 0.02 |
+| Llama 3.2 3B (base) | 3B | 0.12 ± 0.05 |
+
+**Key insight**: Base Llama 3.2 3B scored **0.12** (random guessing). After distillation: **0.92** (matching 120B teacher).
+
+#### Training Approach
+1. **Seed examples**: ~100 manually-validated queries covering 13 git commands
+2. **Synthetic expansion**: 10,000 training examples via teacher model
+3. **Schema validation**: Each output validated against tool schema
+4. **LoRA fine-tuning**: On Llama 3.2 1B/3B Instruct
+
+#### Tool Schema Pattern
+```json
+{
+  "name": "git_push",
+  "parameters": {
+    "remote": "origin",
+    "branch": "feature-x",
+    "force": true
+  }
+}
+```
+
+#### Deployment
+- **Inference latency**: ~2 seconds on M4 MacBook Pro
+- **Runtime**: Ollama (local) or vLLM (server)
+- **Human-in-loop**: Commands printed, not executed
+
+#### Adapting for Caro
+GitAra covers 13 git commands. Caro needs broader POSIX coverage:
+
+| GitAra | Caro Extension |
+|--------|----------------|
+| `git status` | `ls`, `pwd`, `stat` |
+| `git add` | `cp`, `mv`, `touch` |
+| `git commit` | `tar`, `zip` |
+| `git push/pull` | `curl`, `wget`, `scp` |
+| `git branch` | `mkdir`, `rmdir` |
+| `git log` | `find`, `grep`, `tail` |
+| `git reset` | `rm`, `chmod` |
+
+**Recommended approach**:
+1. Use GitAra's tool-calling schema pattern
+2. Expand seed examples to cover POSIX categories
+3. Generate synthetic data using Caro's existing eval format
+4. Train via Distil Labs CLI or Axolotl
+
+> **For Caro**: GitAra validates that 3B models can match large teachers on CLI tasks. The tool-calling approach with schema validation is directly applicable.
 
 ### 5.2 OpenAI Distillation API
 - **Best for**: Using GPT-4o as teacher
