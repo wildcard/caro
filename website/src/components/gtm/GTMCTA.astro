@@ -1,0 +1,321 @@
+---
+// GTM CTA Section - Strong conversion-focused call to action
+// Daytona-style: Simple, clear, frictionless
+---
+
+---
+
+<section id="download" class="cta-section">
+  <div class="container">
+    <div class="cta-badge">Get Started in 30 Seconds</div>
+    <h2>Try Caro Right Now</h2>
+    <p class="cta-subtitle">
+      No account. No API key. No data collection. Just paste and go.
+    </p>
+
+    <div class="install-box">
+      <div class="install-tabs">
+        <button class="tab active" data-tab="quick">One-Line Install</button>
+        <button class="tab" data-tab="cargo">Cargo</button>
+        <button class="tab" data-tab="source">From Source</button>
+      </div>
+
+      <div class="install-content">
+        <div class="install-panel active" id="panel-quick">
+          <div class="code-block">
+            <code>bash &lt;(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)</code>
+            <button class="copy-btn" data-command="bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)">
+              <span class="copy-text">Copy</span>
+              <span class="copied-text">Copied!</span>
+            </button>
+          </div>
+          <p class="install-note">Installs Rust (if needed) and Caro. Sets up the alias automatically.</p>
+        </div>
+
+        <div class="install-panel" id="panel-cargo">
+          <div class="code-block">
+            <code>cargo install caro</code>
+            <button class="copy-btn" data-command="cargo install caro">
+              <span class="copy-text">Copy</span>
+              <span class="copied-text">Copied!</span>
+            </button>
+          </div>
+          <p class="install-note">Requires Rust installed. Builds from crates.io.</p>
+        </div>
+
+        <div class="install-panel" id="panel-source">
+          <div class="code-block">
+            <code>git clone https://github.com/wildcard/caro && cd caro && cargo build --release</code>
+            <button class="copy-btn" data-command="git clone https://github.com/wildcard/caro && cd caro && cargo build --release">
+              <span class="copy-text">Copy</span>
+              <span class="copied-text">Copied!</span>
+            </button>
+          </div>
+          <p class="install-note">Clone and build from source. Full control.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="first-command">
+      <p class="first-label">Then try your first command:</p>
+      <div class="first-example">
+        <code>caro "find files larger than 100MB modified this week"</code>
+      </div>
+    </div>
+
+    <div class="trust-grid">
+      <div class="trust-item">
+        <span class="trust-icon">✓</span>
+        <span>Single binary, no dependencies</span>
+      </div>
+      <div class="trust-item">
+        <span class="trust-icon">✓</span>
+        <span>Installs to ~/.cargo/bin</span>
+      </div>
+      <div class="trust-item">
+        <span class="trust-icon">✓</span>
+        <span>Uninstall: cargo uninstall caro</span>
+      </div>
+      <div class="trust-item">
+        <span class="trust-icon">✓</span>
+        <span>Works on macOS, Linux, Windows</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cta-section {
+    padding: 100px 24px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    text-align: center;
+  }
+
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .cta-badge {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 8px 20px;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 24px;
+  }
+
+  h2 {
+    font-size: 48px;
+    font-weight: 800;
+    margin-bottom: 16px;
+  }
+
+  .cta-subtitle {
+    font-size: 20px;
+    opacity: 0.9;
+    margin-bottom: 48px;
+  }
+
+  .install-box {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+
+  .install-tabs {
+    display: flex;
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  .tab {
+    flex: 1;
+    padding: 14px 20px;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tab:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .tab.active {
+    color: white;
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .install-content {
+    padding: 24px;
+  }
+
+  .install-panel {
+    display: none;
+  }
+
+  .install-panel.active {
+    display: block;
+  }
+
+  .code-block {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+  }
+
+  .code-block code {
+    flex: 1;
+    font-family: 'SF Mono', 'Monaco', 'Fira Code', monospace;
+    font-size: 14px;
+    color: white;
+    text-align: left;
+    word-break: break-all;
+  }
+
+  .copy-btn {
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    position: relative;
+  }
+
+  .copy-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  .copy-btn .copied-text {
+    display: none;
+  }
+
+  .copy-btn.copied .copy-text {
+    display: none;
+  }
+
+  .copy-btn.copied .copied-text {
+    display: inline;
+  }
+
+  .install-note {
+    font-size: 14px;
+    opacity: 0.8;
+    text-align: left;
+  }
+
+  .first-command {
+    margin-bottom: 40px;
+  }
+
+  .first-label {
+    font-size: 16px;
+    opacity: 0.9;
+    margin-bottom: 12px;
+  }
+
+  .first-example {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 16px 24px;
+    display: inline-block;
+  }
+
+  .first-example code {
+    font-family: 'SF Mono', 'Monaco', 'Fira Code', monospace;
+    font-size: 15px;
+  }
+
+  .trust-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    opacity: 0.9;
+  }
+
+  .trust-icon {
+    font-weight: 700;
+  }
+
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 32px;
+    }
+
+    .install-tabs {
+      flex-direction: column;
+    }
+
+    .code-block {
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .code-block code {
+      font-size: 12px;
+    }
+
+    .copy-btn {
+      width: 100%;
+    }
+
+    .trust-grid {
+      grid-template-columns: 1fr;
+      text-align: left;
+    }
+  }
+</style>
+
+<script>
+  // Tab switching
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const tabName = tab.getAttribute('data-tab');
+
+      // Update tabs
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      // Update panels
+      document.querySelectorAll('.install-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById(`panel-${tabName}`)?.classList.add('active');
+    });
+  });
+
+  // Copy buttons
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const command = btn.getAttribute('data-command') || '';
+      navigator.clipboard.writeText(command).then(() => {
+        btn.classList.add('copied');
+        setTimeout(() => btn.classList.remove('copied'), 2000);
+      });
+    });
+  });
+</script>

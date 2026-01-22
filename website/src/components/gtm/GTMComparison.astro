@@ -1,0 +1,255 @@
+---
+// GTM Comparison Section - Clear differentiation from alternatives
+// Daytona-style: name competitors, show clear advantages
+---
+
+const comparisons = [
+  {
+    feature: "Privacy",
+    caro: "100% local processing",
+    chatgpt: "Sends all prompts to cloud",
+    copilot: "Sends to Microsoft servers",
+    shellgpt: "Sends to OpenAI API"
+  },
+  {
+    feature: "Safety Validation",
+    caro: "52+ dangerous patterns blocked",
+    chatgpt: "No validation",
+    copilot: "No validation",
+    shellgpt: "No validation"
+  },
+  {
+    feature: "Platform Awareness",
+    caro: "Detects OS, shell, available commands",
+    chatgpt: "Generic bash only",
+    copilot: "Generic bash only",
+    shellgpt: "Generic bash only"
+  },
+  {
+    feature: "API Key Required",
+    caro: "No",
+    chatgpt: "Yes (OpenAI account)",
+    copilot: "Yes (GitHub subscription)",
+    shellgpt: "Yes (OpenAI API key)"
+  },
+  {
+    feature: "Works Offline",
+    caro: "Yes, fully local",
+    chatgpt: "No",
+    copilot: "No",
+    shellgpt: "No"
+  },
+  {
+    feature: "Open Source",
+    caro: "Yes (AGPL-3.0)",
+    chatgpt: "No",
+    copilot: "No",
+    shellgpt: "Partially"
+  },
+  {
+    feature: "Cost",
+    caro: "Free forever",
+    chatgpt: "$20/month (Plus)",
+    copilot: "$10/month",
+    shellgpt: "API usage costs"
+  }
+];
+---
+
+<section class="comparison">
+  <div class="container">
+    <div class="section-label">Comparison</div>
+    <h2>Why Developers Choose Caro</h2>
+    <p class="section-subtitle">
+      See how Caro stacks up against the alternatives
+    </p>
+
+    <div class="comparison-table-wrapper">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th class="highlight-col">Caro</th>
+            <th>ChatGPT</th>
+            <th>Copilot CLI</th>
+            <th>ShellGPT</th>
+          </tr>
+        </thead>
+        <tbody>
+          {comparisons.map((row) => (
+            <tr>
+              <td class="feature-name">{row.feature}</td>
+              <td class="highlight-col caro-value">{row.caro}</td>
+              <td>{row.chatgpt}</td>
+              <td>{row.copilot}</td>
+              <td>{row.shellgpt}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="comparison-summary">
+      <div class="summary-card">
+        <h3>The Bottom Line</h3>
+        <p>
+          <strong>Caro is the only AI shell tool that runs 100% locally AND validates every command for safety.</strong>
+          No API keys, no cloud dependencies, no subscription fees. Just a single binary that makes your terminal safer.
+        </p>
+        <a href="#download" class="summary-cta">Get Started Free →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .comparison {
+    padding: 100px 24px;
+    background: var(--color-bg);
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #ec4899;
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    text-align: center;
+    font-size: 42px;
+    font-weight: 800;
+    color: var(--color-text);
+    margin-bottom: 16px;
+  }
+
+  .section-subtitle {
+    text-align: center;
+    font-size: 20px;
+    color: var(--color-text-secondary);
+    margin-bottom: 50px;
+  }
+
+  .comparison-table-wrapper {
+    overflow-x: auto;
+    margin-bottom: 50px;
+    border-radius: 16px;
+    border: 1px solid var(--color-border);
+  }
+
+  .comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--color-bg);
+  }
+
+  .comparison-table th,
+  .comparison-table td {
+    padding: 18px 20px;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 14px;
+  }
+
+  .comparison-table th {
+    background: var(--color-bg-secondary);
+    font-weight: 600;
+    color: var(--color-text);
+    white-space: nowrap;
+  }
+
+  .comparison-table td {
+    color: var(--color-text-secondary);
+  }
+
+  .feature-name {
+    font-weight: 600;
+    color: var(--color-text) !important;
+    white-space: nowrap;
+  }
+
+  .highlight-col {
+    background: rgba(255, 140, 66, 0.08) !important;
+  }
+
+  .highlight-col.caro-value {
+    color: #22c55e !important;
+    font-weight: 600;
+  }
+
+  .comparison-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .comparison-table tbody tr:hover {
+    background: var(--color-bg-secondary);
+  }
+
+  .comparison-summary {
+    text-align: center;
+  }
+
+  .summary-card {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.1) 0%, rgba(255, 107, 53, 0.05) 100%);
+    border: 1px solid rgba(255, 140, 66, 0.3);
+    border-radius: 16px;
+    padding: 32px 48px;
+    max-width: 700px;
+  }
+
+  .summary-card h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 12px;
+  }
+
+  .summary-card p {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--color-text-secondary);
+    margin-bottom: 20px;
+  }
+
+  .summary-card strong {
+    color: var(--color-text);
+  }
+
+  .summary-cta {
+    display: inline-block;
+    color: #ff8c42;
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 16px;
+    transition: opacity 0.2s;
+  }
+
+  .summary-cta:hover {
+    opacity: 0.8;
+  }
+
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 28px;
+    }
+
+    .comparison-table th,
+    .comparison-table td {
+      padding: 12px 14px;
+      font-size: 12px;
+    }
+
+    .summary-card {
+      padding: 24px;
+    }
+  }
+</style>

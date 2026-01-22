@@ -1,0 +1,257 @@
+---
+// GTM Use Cases Section - Show specific personas and their problems
+---
+
+const useCases = [
+  {
+    icon: "🛡️",
+    title: "On-Call SRE",
+    problem: "At 2 AM during an incident, you can't afford to mistype a command.",
+    solution: "Describe what you need in plain English. Caro generates the command and catches dangerous patterns before you make a career-ending mistake.",
+    example: {
+      input: "find and kill the runaway process eating CPU",
+      output: "ps aux | sort -nrk 3,3 | head -1 | awk '{print $2}' | xargs kill"
+    }
+  },
+  {
+    icon: "🔒",
+    title: "Security-Conscious Engineer",
+    problem: "You can't send your production server names and file paths to OpenAI.",
+    solution: "Caro runs 100% locally. Your commands, configs, and infrastructure details never leave your machine. Zero telemetry, auditable code.",
+    example: {
+      input: "search logs for failed auth from IP 192.168.1.100",
+      output: "grep -r 'failed.*auth.*192\\.168\\.1\\.100' /var/log/"
+    }
+  },
+  {
+    icon: "🌍",
+    title: "Cross-Platform Developer",
+    problem: "Your commands work on Mac but break on the Linux CI server.",
+    solution: "Caro detects your platform and generates commands that work. BSD vs GNU, sed vs gsed, find flags—all handled automatically.",
+    example: {
+      input: "replace all tabs with spaces in python files",
+      output: "find . -name '*.py' -exec sed -i '' 's/\\t/    /g' {} +"
+    }
+  },
+  {
+    icon: "🚀",
+    title: "Terminal Power User",
+    problem: "You waste time looking up complex command syntax on Stack Overflow.",
+    solution: "Describe your intent. Get the exact command in under 2 seconds. No more memorizing obscure flags for tar, find, or awk.",
+    example: {
+      input: "compress all files modified today into backup.tar.gz",
+      output: "find . -type f -mtime 0 -print0 | tar -czvf backup.tar.gz --null -T -"
+    }
+  }
+];
+---
+
+<section class="usecases">
+  <div class="container">
+    <div class="section-label">Use Cases</div>
+    <h2>Built for How You Actually Work</h2>
+    <p class="section-subtitle">
+      Whether you're debugging at 2 AM or building CI pipelines, Caro adapts to your workflow.
+    </p>
+
+    <div class="cases-grid">
+      {useCases.map((useCase) => (
+        <div class="case-card">
+          <div class="case-icon">{useCase.icon}</div>
+          <h3>{useCase.title}</h3>
+
+          <div class="case-problem">
+            <span class="label">The Problem:</span>
+            <p>{useCase.problem}</p>
+          </div>
+
+          <div class="case-solution">
+            <span class="label">With Caro:</span>
+            <p>{useCase.solution}</p>
+          </div>
+
+          <div class="case-example">
+            <div class="example-input">
+              <span class="example-label">You say:</span>
+              <code>"{useCase.example.input}"</code>
+            </div>
+            <div class="example-arrow">↓</div>
+            <div class="example-output">
+              <span class="example-label">Caro generates:</span>
+              <code>{useCase.example.output}</code>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .usecases {
+    padding: 100px 24px;
+    background: var(--color-bg-secondary);
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #3b82f6;
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    text-align: center;
+    font-size: 42px;
+    font-weight: 800;
+    color: var(--color-text);
+    margin-bottom: 16px;
+  }
+
+  .section-subtitle {
+    text-align: center;
+    font-size: 20px;
+    color: var(--color-text-secondary);
+    max-width: 600px;
+    margin: 0 auto 60px;
+  }
+
+  .cases-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+
+  .case-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 32px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .case-card:hover {
+    border-color: #ff8c42;
+    transform: translateY(-4px);
+  }
+
+  .case-icon {
+    font-size: 40px;
+    margin-bottom: 16px;
+  }
+
+  .case-card h3 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 20px;
+  }
+
+  .case-problem,
+  .case-solution {
+    margin-bottom: 20px;
+  }
+
+  .label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  .case-problem .label {
+    color: #ef4444;
+  }
+
+  .case-solution .label {
+    color: #22c55e;
+  }
+
+  .case-problem p,
+  .case-solution p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--color-text-secondary);
+  }
+
+  .case-example {
+    background: #0d1117;
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .example-input,
+  .example-output {
+    margin-bottom: 12px;
+  }
+
+  .example-output {
+    margin-bottom: 0;
+  }
+
+  .example-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #8b949e;
+    margin-bottom: 6px;
+  }
+
+  .example-input code {
+    display: block;
+    font-family: 'SF Mono', 'Monaco', 'Fira Code', monospace;
+    font-size: 13px;
+    color: #79c0ff;
+  }
+
+  .example-output code {
+    display: block;
+    font-family: 'SF Mono', 'Monaco', 'Fira Code', monospace;
+    font-size: 12px;
+    color: #22c55e;
+    word-break: break-all;
+  }
+
+  .example-arrow {
+    text-align: center;
+    color: #8b949e;
+    font-size: 18px;
+    margin: 8px 0;
+  }
+
+  @media (max-width: 900px) {
+    .cases-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 28px;
+    }
+
+    .case-card {
+      padding: 24px;
+    }
+
+    .case-example {
+      padding: 16px;
+    }
+
+    .example-output code {
+      font-size: 11px;
+    }
+  }
+</style>
