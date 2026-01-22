@@ -40,6 +40,7 @@ Example: `ADR-001-enterprise-community-architecture.md`
 | [ADR-001](./ADR-001-enterprise-community-architecture.md) | Enterprise vs Community Architecture | Proposed | 2025-11-29 |
 | [ADR-002](./ADR-002-governance-provisioning-system.md) | Governance and Provisioning System | Proposed | 2025-11-29 |
 | [ADR-003](./ADR-003-monitoring-audit-trail.md) | Monitoring and Audit Trail System | Proposed | 2025-11-29 |
+| [ADR-004](./ADR-004-just-runbook-integration.md) | Just-Based Runbook Integration | Proposed | 2026-01-02 |
 
 ## Contributing to ADRs
 
