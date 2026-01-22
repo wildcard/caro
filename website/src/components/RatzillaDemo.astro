@@ -1,0 +1,381 @@
+---
+/**
+ * RatzillaDemo.astro
+ *
+ * Interactive TUI demo powered by Ratzilla (Rust + WebAssembly).
+ * Renders an authentic terminal experience showcasing Caro's
+ * command generation and safety validation.
+ */
+
+interface Props {
+  height?: string;
+  showFallback?: boolean;
+}
+
+const { height = "500px", showFallback = true } = Astro.props;
+---
+
+<div class="ratzilla-container" style={`height: ${height}`}>
+  <!-- Ratzilla WebGL Canvas Target -->
+  <div id="ratzilla-demo" class="ratzilla-demo">
+    <!-- Loading state -->
+    <div id="ratzilla-loading" class="loading-state">
+      <div class="loading-terminal">
+        <div class="terminal-header">
+          <div class="terminal-dot red"></div>
+          <div class="terminal-dot yellow"></div>
+          <div class="terminal-dot green"></div>
+          <span class="terminal-title">caro - Interactive Demo</span>
+        </div>
+        <div class="terminal-body">
+          <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p class="loading-text">Loading interactive demo...</p>
+            <p class="loading-subtext">Compiling WebAssembly module</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error state -->
+    <div id="ratzilla-error" class="error-state" style="display: none;">
+      <div class="error-content">
+        <div class="error-icon">!</div>
+        <h3>WebAssembly Not Supported</h3>
+        <p>Your browser doesn't support WebAssembly or WebGL2.</p>
+        <p class="error-hint">Try using a modern browser like Chrome, Firefox, or Edge.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Static fallback for unsupported browsers -->
+  {showFallback && (
+    <div id="ratzilla-fallback" class="fallback-demo" style="display: none;">
+      <div class="fallback-terminal">
+        <div class="terminal-header">
+          <div class="terminal-dot red"></div>
+          <div class="terminal-dot yellow"></div>
+          <div class="terminal-dot green"></div>
+        </div>
+        <div class="terminal-content">
+          <div class="terminal-line">
+            <span class="prompt">$</span>
+            <span class="command"> caro "find large files over 100MB"</span>
+          </div>
+          <div class="terminal-line output">
+            <span class="caro-label">Generated:</span>
+            <span class="generated-cmd">find . -type f -size +100M -exec ls -lh {} \;</span>
+          </div>
+          <div class="terminal-line">
+            <span class="safety-badge safe">SAFE</span>
+            <span class="safety-msg">Command validated and safe to run</span>
+          </div>
+          <div class="terminal-line action">
+            <span>Execute this command?</span>
+            <span class="action-keys">[y/N]</span>
+          </div>
+        </div>
+      </div>
+      <p class="fallback-note">
+        For the full interactive experience, please use a WebAssembly-enabled browser.
+      </p>
+    </div>
+  )}
+</div>
+
+<style>
+  .ratzilla-container {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  }
+
+  .ratzilla-demo {
+    width: 100%;
+    height: 100%;
+    background: #0a0a0f;
+    position: relative;
+  }
+
+  /* Loading State */
+  .loading-state {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .loading-terminal {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .terminal-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #1a1a25;
+    border-bottom: 1px solid #333;
+  }
+
+  .terminal-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .terminal-dot.red { background: #ff5f56; }
+  .terminal-dot.yellow { background: #ffbd2e; }
+  .terminal-dot.green { background: #27c93f; }
+
+  .terminal-title {
+    margin-left: 12px;
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 13px;
+    color: #888;
+  }
+
+  .terminal-body {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0f0f15;
+  }
+
+  .loading-content {
+    text-align: center;
+  }
+
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #333;
+    border-top-color: #ff8c42;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .loading-text {
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 16px;
+    color: #ff8c42;
+    margin-bottom: 8px;
+  }
+
+  .loading-subtext {
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 13px;
+    color: #666;
+  }
+
+  /* Error State */
+  .error-state {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0f0f15;
+  }
+
+  .error-content {
+    text-align: center;
+    padding: 40px;
+  }
+
+  .error-icon {
+    width: 60px;
+    height: 60px;
+    background: #e74c3c;
+    color: white;
+    font-size: 36px;
+    font-weight: bold;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+  }
+
+  .error-content h3 {
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 18px;
+    color: #e74c3c;
+    margin-bottom: 12px;
+  }
+
+  .error-content p {
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 8px;
+  }
+
+  .error-hint {
+    color: #666 !important;
+    font-size: 12px !important;
+  }
+
+  /* Fallback Demo */
+  .fallback-demo {
+    padding: 20px;
+    background: #0a0a0f;
+  }
+
+  .fallback-terminal {
+    background: #1e1e1e;
+    border-radius: 8px;
+    overflow: hidden;
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 14px;
+  }
+
+  .terminal-content {
+    padding: 20px;
+  }
+
+  .terminal-line {
+    margin: 8px 0;
+    line-height: 1.6;
+  }
+
+  .prompt {
+    color: #4ec9b0;
+  }
+
+  .command {
+    color: #9cdcfe;
+  }
+
+  .output {
+    margin-top: 16px;
+  }
+
+  .caro-label {
+    color: #ff8c42;
+    margin-right: 10px;
+  }
+
+  .generated-cmd {
+    color: #ce9178;
+  }
+
+  .safety-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 10px;
+  }
+
+  .safety-badge.safe {
+    background: #2ecc71;
+    color: white;
+  }
+
+  .safety-msg {
+    color: #2ecc71;
+  }
+
+  .action {
+    margin-top: 16px;
+    color: #ddd;
+  }
+
+  .action-keys {
+    color: #2ecc71;
+    font-weight: bold;
+    margin-left: 8px;
+  }
+
+  .fallback-note {
+    text-align: center;
+    font-size: 13px;
+    color: #666;
+    margin-top: 16px;
+    font-family: 'Monaco', 'Menlo', monospace;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .ratzilla-container {
+      border-radius: 0;
+    }
+
+    .terminal-content {
+      padding: 15px;
+      font-size: 12px;
+    }
+
+    .loading-text {
+      font-size: 14px;
+    }
+  }
+</style>
+
+<script>
+  // Check for WebAssembly and WebGL2 support
+  function checkSupport(): boolean {
+    const hasWasm = typeof WebAssembly === 'object'
+      && typeof WebAssembly.instantiate === 'function';
+
+    const canvas = document.createElement('canvas');
+    const hasWebGL2 = !!canvas.getContext('webgl2');
+
+    return hasWasm && hasWebGL2;
+  }
+
+  async function initRatzilla() {
+    const demoContainer = document.getElementById('ratzilla-demo');
+    const loadingEl = document.getElementById('ratzilla-loading');
+    const errorEl = document.getElementById('ratzilla-error');
+    const fallbackEl = document.getElementById('ratzilla-fallback');
+
+    if (!demoContainer) return;
+
+    if (!checkSupport()) {
+      // Show error and fallback
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (errorEl) errorEl.style.display = 'flex';
+      if (fallbackEl) fallbackEl.style.display = 'block';
+      return;
+    }
+
+    try {
+      // Dynamic import of the WASM module
+      const wasmModule = await import('/ratzilla-demo/caro_tui_demo.js');
+      await wasmModule.default();
+
+      // Hide loading state when WASM is ready
+      if (loadingEl) loadingEl.style.display = 'none';
+    } catch (error) {
+      console.error('Failed to load Ratzilla demo:', error);
+
+      // Show error state
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (errorEl) errorEl.style.display = 'flex';
+      if (fallbackEl) fallbackEl.style.display = 'block';
+    }
+  }
+
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initRatzilla);
+  } else {
+    initRatzilla();
+  }
+</script>

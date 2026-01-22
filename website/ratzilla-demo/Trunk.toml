@@ -1,0 +1,13 @@
+# Trunk configuration for Ratzilla WASM demo
+# https://trunkrs.dev/
+
+[build]
+target = "index.html"
+dist = "../public/ratzilla-demo"
+
+[watch]
+ignore = ["../public"]
+
+[serve]
+port = 8080
+open = false
