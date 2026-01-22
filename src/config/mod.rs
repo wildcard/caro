@@ -41,6 +41,25 @@ pub struct ConfigManager {
 
 impl ConfigManager {
     /// Create a new ConfigManager with default XDG config directory
+    ///
+    /// Creates the config directory (~/.config/caro) if it doesn't exist.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use caro::config::ConfigManager;
+    ///
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let manager = ConfigManager::new()?;
+    /// println!("Config path: {}", manager.config_path().display());
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns `ConfigError::DirectoryError` if the config directory cannot be determined
+    /// or created.
     pub fn new() -> Result<Self, ConfigError> {
         let config_dir = dirs::config_dir()
             .ok_or_else(|| {
@@ -82,6 +101,30 @@ impl ConfigManager {
     }
 
     /// Load configuration from file, or return defaults if not found
+    ///
+    /// Loads and validates the TOML configuration file. If the file doesn't exist,
+    /// returns default configuration values.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use caro::config::ConfigManager;
+    ///
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let manager = ConfigManager::new()?;
+    /// let config = manager.load()?;
+    /// println!("Safety level: {}", config.safety_level);
+    /// println!("Cache size: {} GB", config.cache_max_size_gb);
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns errors if:
+    /// - File cannot be read (`ConfigError::IoError`)
+    /// - TOML parsing fails (`ConfigError::ParseError`)
+    /// - Validation fails (`ConfigError::ValidationError`)
     pub fn load(&self) -> Result<UserConfiguration, ConfigError> {
         if !self.config_path.exists() {
             return Ok(UserConfiguration::default());
@@ -97,6 +140,38 @@ impl ConfigManager {
     }
 
     /// Save configuration to file
+    ///
+    /// Validates the configuration before writing to disk. The configuration
+    /// is serialized to TOML format with pretty printing.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use caro::config::ConfigManager;
+    /// use caro::models::{UserConfiguration, SafetyLevel, LogLevel};
+    ///
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let manager = ConfigManager::new()?;
+    ///
+    /// // Create custom configuration
+    /// let mut config = UserConfiguration::default();
+    /// config.safety_level = SafetyLevel::Strict;
+    /// config.log_level = LogLevel::Debug;
+    /// config.cache_max_size_gb = 20;
+    ///
+    /// // Save to file
+    /// manager.save(&config)?;
+    /// println!("Configuration saved");
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns errors if:
+    /// - Validation fails (`ConfigError::ValidationError`)
+    /// - TOML serialization fails (`ConfigError::SerializeError`)
+    /// - File cannot be written (`ConfigError::IoError`)
     pub fn save(&self, config: &UserConfiguration) -> Result<(), ConfigError> {
         // Validate before saving
         config.validate().map_err(ConfigError::ValidationError)?;
@@ -108,6 +183,35 @@ impl ConfigManager {
     }
 
     /// Merge CLI arguments with file config (CLI takes precedence)
+    ///
+    /// Loads configuration from file and overrides values with CLI arguments
+    /// when provided. CLI arguments always take precedence over file config.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use caro::config::ConfigManager;
+    ///
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let manager = ConfigManager::new()?;
+    ///
+    /// // Merge with CLI arguments
+    /// let config = manager.merge_with_cli(
+    ///     Some("strict"),  // Override safety level
+    ///     Some("zsh"),     // Override shell
+    ///     Some("debug"),   // Override log level
+    /// )?;
+    ///
+    /// println!("Merged config safety level: {}", config.safety_level);
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns errors if:
+    /// - Config file cannot be loaded
+    /// - CLI values are invalid (invalid enum values)
     pub fn merge_with_cli(
         &self,
         cli_safety: Option<&str>,

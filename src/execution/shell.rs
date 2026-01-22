@@ -52,6 +52,28 @@ impl ShellDetector {
     }
 
     /// Detect the current shell from environment (instance method with fallback)
+    ///
+    /// Detects the user's current shell by examining environment variables like
+    /// `SHELL` and process information. Falls back to `Sh` if detection fails.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use caro::execution::ShellDetector;
+    ///
+    /// # fn main() {
+    /// let detector = ShellDetector::new();
+    /// let shell = detector.detect();
+    ///
+    /// println!("Detected shell: {:?}", shell);
+    /// // Example output: Detected shell: Bash
+    ///
+    /// // Check if POSIX-compatible
+    /// if shell.is_posix() {
+    ///     println!("This is a POSIX-compatible shell");
+    /// }
+    /// # }
+    /// ```
     pub fn detect(&self) -> ShellType {
         if let Some(override_shell) = self.override_shell {
             return override_shell;

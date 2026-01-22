@@ -94,6 +94,32 @@ impl LogConfig {
 }
 
 /// Log configuration builder
+///
+/// Provides a fluent API for building log configurations.
+///
+/// # Example
+///
+/// ```no_run
+/// use caro::logging::{LogConfigBuilder, LogLevel, LogFormat, LogOutput, LogRotation};
+/// use std::path::PathBuf;
+///
+/// # fn main() {
+/// // Create a custom logging configuration
+/// let config = LogConfigBuilder::new()
+///     .log_level(LogLevel::Debug)
+///     .format(LogFormat::Pretty)
+///     .output(LogOutput::File(PathBuf::from("/tmp/caro.log")))
+///     .redaction_enabled(true)
+///     .rotation(LogRotation {
+///         max_files: 5,
+///         max_size_mb: 50,
+///     })
+///     .build();
+///
+/// println!("Log level: {:?}", config.log_level);
+/// println!("Format: {:?}", config.format);
+/// # }
+/// ```
 pub struct LogConfigBuilder {
     config: LogConfig,
 }
@@ -145,6 +171,47 @@ impl LogConfigBuilder {
 pub struct Logger;
 
 impl Logger {
+    /// Initialize the global logger
+    ///
+    /// Configures tracing with the specified log level, format, and output destination.
+    /// Can only be called once per process - subsequent calls return an error.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use caro::logging::{Logger, LogConfig, LogLevel, LogFormat, LogOutput};
+    ///
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// // Development configuration
+    /// let config = LogConfig::development();
+    /// Logger::init(config)?;
+    ///
+    /// // Now logging is enabled
+    /// tracing::info!("Application started");
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// # Example with Builder
+    ///
+    /// ```no_run
+    /// use caro::logging::{Logger, LogConfigBuilder, LogLevel, LogFormat};
+    ///
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let config = LogConfigBuilder::new()
+    ///     .log_level(LogLevel::Debug)
+    ///     .format(LogFormat::Pretty)
+    ///     .redaction_enabled(true)
+    ///     .build();
+    ///
+    /// Logger::init(config)?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns `LogError::AlreadyInitialized` if the logger was already initialized.
     pub fn init(config: LogConfig) -> Result<(), LogError> {
         if LOGGER_INITIALIZED.swap(true, Ordering::SeqCst) {
             return Err(LogError::AlreadyInitialized);

@@ -18,11 +18,20 @@ Caro is an open-source Rust CLI tool that transforms natural language into safe,
 
 ## Guides
 
+- [Act Setup (Local CI)](https://docs.caro.sh/external/guides/act-setup/) - Documentation: Act Setup (Local CI)
+- [Advanced macOS Setup](https://docs.caro.sh/external/guides/macos-advanced/) - Documentation: Advanced macOS Setup
+- [Spec-Kitty Guide](https://docs.caro.sh/external/guides/spec-kitty/) - Documentation: Spec-Kitty Guide
+- [Xcode Setup](https://docs.caro.sh/external/guides/xcode-setup/) - Documentation: Xcode Setup
 - [macOS Setup Guide](https://docs.caro.sh/guides/macos-setup/) - Set up caro on macOS with optional GPU acceleration for Apple Silicon
 - [Spec-Kitty Development Guide](https://docs.caro.sh/guides/spec-kitty/) - Use Spec-Kitty for rapid, multi-branch feature development with caro
 
 ## Reference
 
+- [Model Catalog](https://docs.caro.sh/external/reference/model-catalog/) - Documentation: Model Catalog
+- [Performance Analysis](https://docs.caro.sh/external/reference/performance/) - Documentation: Performance Analysis
+- [Release Process](https://docs.caro.sh/external/reference/release-process/) - Documentation: Release Process
+- [Security Settings](https://docs.caro.sh/external/reference/security/) - Documentation: Security Settings
+- [Spec-Kitty Quick Reference](https://docs.caro.sh/external/reference/spec-kitty-quickref/) - Documentation: Spec-Kitty Quick Reference
 - [Backend Reference](https://docs.caro.sh/reference/backends/) - Complete reference for caro inference backends
 - [Configuration Reference](https://docs.caro.sh/reference/configuration/) - Complete configuration options for caro
 - [Naming History](https://docs.caro.sh/reference/naming-history/) - The evolution from cmdai to caro
@@ -33,10 +42,14 @@ Caro is an open-source Rust CLI tool that transforms natural language into safe,
 - [AI Agent Guidelines](https://docs.caro.sh/development/agents/) - Guidelines for AI agents working on the caro codebase
 - [Test-Driven Development](https://docs.caro.sh/development/tdd-workflow/) - How caro uses TDD for reliable, well-tested code
 - [Website Development](https://docs.caro.sh/development/website/) - Development guide for the caro.sh website
+- [Agentic Loop Architecture](https://docs.caro.sh/external/development/agentic-loop/) - Documentation: Agentic Loop Architecture
+- [Claude Integration](https://docs.caro.sh/external/development/claude/) - Documentation: Claude Integration
+- [TDD Workflow](https://docs.caro.sh/external/development/tdd-workflow/) - Documentation: TDD Workflow
+- [Technical Debt](https://docs.caro.sh/external/development/tech-debt/) - Documentation: Technical Debt
 
 ## Project Info
 
-- **Version**: 1.0.3
+- **Version**: 1.1.3
 - **License**: AGPL-3.0
 - **Language**: Rust
 - **Minimum Rust Version**: 1.75+

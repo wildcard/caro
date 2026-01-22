@@ -1,6 +1,7 @@
 // Models module - Core data structures
 // These are placeholder stubs - tests should fail until proper implementation
 
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 pub mod profile;
@@ -185,7 +186,7 @@ impl std::fmt::Display for RiskLevel {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum SafetyLevel {
     /// Blocks High and Critical commands, confirms Moderate
@@ -269,7 +270,7 @@ impl std::fmt::Display for BackendType {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum ShellType {
     Bash,
@@ -449,7 +450,9 @@ impl std::fmt::Display for Platform {
 }
 
 /// Log severity level
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq, PartialOrd, Ord,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum LogLevel {
     Debug,
@@ -618,7 +621,7 @@ impl CacheManifest {
 }
 
 /// User configuration with preferences
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct UserConfiguration {
     pub default_shell: Option<ShellType>,
     pub safety_level: SafetyLevel,
@@ -989,7 +992,7 @@ pub enum KnowledgeBackendConfig {
         path: PathBuf,
     },
     ChromaDb {
-        /// ChromaDB server URL (e.g., "http://localhost:8000" or "https://api.trychroma.com")
+        /// ChromaDB server URL (e.g., `http://localhost:8000` or `https://api.trychroma.com`)
         url: String,
         /// Optional cache directory for embedding models
         #[serde(default)]

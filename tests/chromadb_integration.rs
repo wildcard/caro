@@ -88,7 +88,7 @@ mod chromadb_tests {
                 "rm -rf /",
                 "rm -rf ./temp",
                 Some("Original command is dangerous - targets root directory"),
-                None,
+                None, // profile
             )
             .await
             .expect("Failed to record correction");
@@ -214,7 +214,7 @@ mod chromadb_tests {
                     &format!("command {}", i),
                     &format!("echo 'test {}'", i),
                     None,
-                    None,
+                    None, // profile
                 )
                 .await
                 .expect("Failed to record success");

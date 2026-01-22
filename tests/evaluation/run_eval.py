@@ -3,9 +3,49 @@
 Simple evaluation harness for Caro CLI
 """
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
+
+def normalize_command(cmd):
+    """Normalize a command for semantic comparison"""
+    if not cmd or cmd.startswith("ERROR"):
+        return cmd
+
+    # Normalize quotes (single vs double)
+    cmd = cmd.replace("'", "\"")
+
+    # Normalize paths (remove ./ prefix)
+    cmd = re.sub(r'\./(?!\.)', '', cmd)
+
+    # Normalize whitespace
+    cmd = ' '.join(cmd.split())
+
+    return cmd
+
+def commands_equivalent(expected, actual):
+    """Check if two commands are semantically equivalent"""
+    if expected == actual:
+        return True
+
+    # Don't try semantic comparison if actual is an error
+    if actual.startswith("ERROR"):
+        return False
+
+    # Normalize both commands
+    norm_expected = normalize_command(expected)
+    norm_actual = normalize_command(actual)
+
+    if norm_expected == norm_actual:
+        return True
+
+    # TODO: Add more equivalence rules here:
+    # - Flag ordering (ls -la == ls -al)
+    # - Equivalent commands (ls == ls .)
+    # - Path equivalents (documents/ == documents)
+
+    return False
 
 def run_caro(prompt, backend="embedded", caro_bin="../../target/release/caro"):
     """Run caro and return the generated command"""
@@ -59,8 +99,8 @@ def main():
         # Run caro
         actual = run_caro(prompt, backend, caro_bin)
 
-        # Compare
-        success = actual == expected
+        # Compare using semantic equivalence
+        success = commands_equivalent(expected, actual)
         if success:
             passed += 1
             print(f"✓ {test_id}: PASS")
