@@ -1,0 +1,59 @@
+---
+import { getCollection, render } from 'astro:content';
+import IndexLayout from '../layouts/IndexLayout.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+import { SiteDescription } from '../consts';
+
+const releases = (await getCollection('releases')).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+
+// Pre-render all content
+const renderedReleases = await Promise.all(
+  releases.map(async (release) => {
+    const { Content } = await render(release);
+    return { release, Content };
+  })
+);
+---
+
+<IndexLayout description={SiteDescription}>
+  <div class="changelog-header">
+    <h1>Changelog</h1>
+    <p>All notable changes to Caro - your loyal shell companion.</p>
+  </div>
+
+  <div class="release-list">
+    {renderedReleases.map(({ release, Content }) => (
+      <article class="release" transition:name="post">
+        <aside class="version-info">
+          <a href={`/releases/${release.id}`} class="version-number">
+            v{release.data.versionNumber}
+          </a>
+          <FormattedDate date={release.data.date} class="release-date" />
+          <div class="release-badges">
+            {release.data.breaking && <span class="badge breaking">Breaking</span>}
+            {release.data.security && <span class="badge security">Security</span>}
+          </div>
+        </aside>
+        <div class="release-content">
+          <Content />
+        </div>
+      </article>
+    ))}
+  </div>
+</IndexLayout>
+
+<style lang="scss">
+  @use '../styles/colors' as colors;
+
+  .version-number {
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 0.8;
+      text-decoration: none;
+    }
+  }
+</style>
