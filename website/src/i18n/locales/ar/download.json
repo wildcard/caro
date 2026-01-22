@@ -3,6 +3,8 @@
     "title": "ابدأ مع كارو",
     "subtitle": "أحضر رفيقك الأمين في سطر الأوامر إلى طرفيتك",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
+    "installCommandWindows": "irm https://raw.githubusercontent.com/wildcard/caro/main/install.ps1 | iex",
+    "windowsNote": "مستخدمو Windows: استخدم أمر PowerShell أعلاه، أو WSL/Git Bash لأمر bash",
     "copyButton": "نسخ",
     "copiedButton": "تم النسخ!",
     "binariesIntro": "أو حمّل الملفات الثنائية المجمعة مسبقاً:",

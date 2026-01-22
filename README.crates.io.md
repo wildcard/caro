@@ -33,8 +33,15 @@ cargo install caro
 ```
 
 Or use the one-line setup script:
+
+**macOS/Linux:**
 ```bash
 bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)
+```
+
+**Windows (PowerShell):**
+```powershell
+irm https://raw.githubusercontent.com/wildcard/caro/main/install.ps1 | iex
 ```
 
 ### Usage

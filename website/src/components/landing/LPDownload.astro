@@ -17,10 +17,22 @@ const copiedLabel = t(lang, 'common.buttons.copied');
     <h2>Try Caro in 30 Seconds</h2>
     <p class="section-subtitle">No account. No API key. No data collection. Just safer shell commands.</p>
 
-    <div class="install-command">
+    <div class="platform-tabs">
+      <button class="tab-button active" data-platform="unix">macOS / Linux</button>
+      <button class="tab-button" data-platform="windows">Windows</button>
+    </div>
+
+    <div class="install-command" data-platform="unix">
       <code>bash &lt;(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)</code>
       <button class="copy-button" data-command="bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)" data-copy-label={copyLabel} data-copied-label={copiedLabel}>{copyLabel}</button>
     </div>
+
+    <div class="install-command hidden" data-platform="windows">
+      <code>irm https://raw.githubusercontent.com/wildcard/caro/main/install.ps1 | iex</code>
+      <button class="copy-button" data-command="irm https://raw.githubusercontent.com/wildcard/caro/main/install.ps1 | iex" data-copy-label={copyLabel} data-copied-label={copiedLabel}>{copyLabel}</button>
+    </div>
+
+    <p class="platform-note hidden" data-platform="windows">Installs to ~/.local/bin and automatically adds to PATH.</p>
 
     <div class="quick-start">
       <p class="then-run">Then run:</p>
@@ -77,6 +89,51 @@ const copiedLabel = t(lang, 'common.buttons.copied');
     font-size: 18px;
     color: rgba(255, 255, 255, 0.9);
     margin-bottom: 40px;
+  }
+
+  .platform-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .tab-button {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+
+  .tab-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  .tab-button.active {
+    background: white;
+    color: #ff6b35;
+    border-color: white;
+  }
+
+  .platform-note {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-top: 12px;
+    margin-bottom: 20px;
+  }
+
+  .platform-note a {
+    color: white;
+    text-decoration: underline;
+  }
+
+  .hidden {
+    display: none !important;
   }
 
   .install-command {
@@ -203,6 +260,7 @@ const copiedLabel = t(lang, 'common.buttons.copied');
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    // Copy button handling
     const copyButtons = document.querySelectorAll('.copy-button');
     copyButtons.forEach(button => {
       button.addEventListener('click', () => {
@@ -214,6 +272,39 @@ const copiedLabel = t(lang, 'common.buttons.copied');
           setTimeout(() => {
             button.textContent = copyLabel;
           }, 2000);
+        });
+      });
+    });
+
+    // Platform tab handling
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const installCommands = document.querySelectorAll('.install-command[data-platform]');
+    const platformNotes = document.querySelectorAll('.platform-note[data-platform]');
+
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const platform = button.getAttribute('data-platform');
+
+        // Update active tab
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+
+        // Show/hide install commands
+        installCommands.forEach(cmd => {
+          if (cmd.getAttribute('data-platform') === platform) {
+            cmd.classList.remove('hidden');
+          } else {
+            cmd.classList.add('hidden');
+          }
+        });
+
+        // Show/hide platform notes
+        platformNotes.forEach(note => {
+          if (note.getAttribute('data-platform') === platform) {
+            note.classList.remove('hidden');
+          } else {
+            note.classList.add('hidden');
+          }
         });
       });
     });

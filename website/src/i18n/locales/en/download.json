@@ -3,6 +3,8 @@
     "title": "Get Started with Caro",
     "subtitle": "Bring your loyal shell companion to your terminal",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
+    "installCommandWindows": "irm https://raw.githubusercontent.com/wildcard/caro/main/install.ps1 | iex",
+    "windowsNote": "Windows users: Use PowerShell command above, or WSL/Git Bash for the bash command",
     "copyButton": "Copy",
     "copiedButton": "Copied!",
     "binariesIntro": "Or download pre-built binaries:",

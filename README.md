@@ -87,6 +87,8 @@ This project is **generally available** with all core features implemented, test
 ### Installation
 
 #### Option 1: Quick Install Script (Recommended)
+
+**macOS/Linux (bash, zsh, or any POSIX shell):**
 ```bash
 curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
 ```
@@ -94,6 +96,11 @@ curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bas
 Or with wget:
 ```bash
 wget -qO- https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash
+```
+
+**Windows (PowerShell):**
+```powershell
+irm https://raw.githubusercontent.com/wildcard/caro/main/install.ps1 | iex
 ```
 
 **What it does:**

@@ -83,11 +83,18 @@ const platforms = [
   {
     name: "Windows",
     icon: "🪟",
-    versions: "Windows 10/11 (WSL2 recommended)",
+    versions: "Windows 10/11",
     architectures: ["x86_64"],
     installation: [
       {
-        method: "WSL2 (Recommended)",
+        method: "PowerShell (Recommended)",
+        commands: [
+          "# One-line install (downloads binary, sets up PATH):",
+          "irm https://raw.githubusercontent.com/wildcard/caro/main/install.ps1 | iex"
+        ]
+      },
+      {
+        method: "WSL2 (Full POSIX Support)",
         commands: [
           "# In PowerShell (Admin):",
           "wsl --install",
@@ -96,21 +103,22 @@ const platforms = [
         ]
       },
       {
-        method: "Using Cargo in WSL",
+        method: "Git Bash",
         commands: [
-          "cargo install caro",
-          "alias ai='caro'"
+          "# Install Git for Windows from https://git-scm.com/downloads",
+          "# Then in Git Bash terminal:",
+          "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)"
         ]
       }
     ],
     postInstall: [
       "Verify: caro --version",
       "Try: caro \"list files\"",
-      "Works with POSIX commands in WSL environment"
+      "Add caro.exe location to PATH for easier access"
     ],
     tips: [
-      "WSL2 provides full POSIX compatibility",
-      "Native Windows support planned for future releases",
+      "PowerShell method downloads native Windows binary",
+      "WSL2 provides full POSIX compatibility for complex commands",
       "Use Windows Terminal for best experience"
     ]
   },

@@ -3,6 +3,8 @@
     "title": "Caro 시작하기",
     "subtitle": "충실한 셸 동반자를 터미널로",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
+    "installCommandWindows": "irm https://github.com/wildcard/caro/releases/latest/download/caro-windows-amd64.exe -OutFile caro.exe",
+    "windowsNote": "Windows 사용자: 위의 PowerShell 명령을 사용하거나 bash 명령에는 WSL/Git Bash를 사용하세요",
     "copyButton": "복사",
     "copiedButton": "복사됨!",
     "binariesIntro": "또는 빌드된 바이너리 다운로드:",
