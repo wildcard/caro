@@ -1,65 +1,65 @@
 ---
 const backends = [
   {
-    name: "MLX",
+    name: "llama.cpp (Metal)",
     id: "backend-mlx",
     icon: "🍎",
-    tagline: "Apple Silicon Native (In Development)",
-    description: "Work in progress: local inference optimized for Apple Silicon with Metal Performance Shaders",
-    status: "in-development",
+    tagline: "Apple Silicon Native",
+    description: "High-performance local inference using llama.cpp with Metal GPU acceleration on Apple Silicon",
+    status: "available",
     highlights: [
-      "Sub-2s inference on M1/M2/M3 chips",
-      "Unified memory architecture for efficiency",
+      "Metal GPU acceleration on M1/M2/M3/M4 chips",
+      "GGUF model format for efficient quantization",
       "Complete offline capability",
       "Privacy-focused (no data leaves your machine)",
-      "Metal GPU acceleration"
+      "Unified memory architecture for efficiency"
     ],
     performance: {
-      startup: "< 100ms",
+      startup: "< 500ms",
       inference: "< 2s",
       memory: "~2GB with 7B model"
     },
     setup: [
-      "Install MLX framework: pip install mlx",
-      "Download optimized model from Hugging Face",
-      "Configure Caro: caro config set backend mlx",
+      "Build with: cargo build --features embedded-mlx",
+      "Download a GGUF model (e.g., from Hugging Face)",
+      "Configure model path in caro config",
       "Test: caro \"list files\""
     ],
     bestFor: ["macOS users with Apple Silicon", "Privacy-conscious developers", "Offline workflows", "Low-latency requirements"]
   },
   {
-    name: "Ollama",
-    id: "backend-ollama",
-    icon: "🦙",
-    tagline: "Local & Flexible",
-    description: "Connect to Ollama for local LLM inference with easy model management",
+    name: "Exo Cluster",
+    id: "backend-exo",
+    icon: "🌐",
+    tagline: "Distributed Inference",
+    description: "Connect to Exo distributed clusters for running large models across multiple devices",
     status: "available",
     highlights: [
-      "Cross-platform (macOS, Linux, Windows)",
-      "Simple model management (ollama pull/list)",
-      "Multiple model support (Llama, Mistral, etc.)",
-      "GPU acceleration (CUDA, Metal)",
-      "Active community and ecosystem"
+      "Distributed inference across multiple devices",
+      "RDMA over Thunderbolt for high-speed communication",
+      "Run large models (e.g., llama-3.1-405b) across clusters",
+      "Automatic peer discovery on local networks",
+      "OpenAI-compatible API"
     ],
     performance: {
-      startup: "< 200ms",
-      inference: "2-5s (hardware dependent)",
-      memory: "Varies by model"
+      startup: "< 200ms (client)",
+      inference: "2-5s (cluster dependent)",
+      memory: "Distributed across cluster"
     },
     setup: [
-      "Install Ollama from ollama.ai",
-      "Pull a model: ollama pull llama2",
-      "Configure Caro: caro config set backend ollama",
-      "Specify model: caro config set ollama.model llama2"
+      "Set up Exo cluster (github.com/exo-explore/exo)",
+      "Configure endpoint: caro config set exo.url http://localhost:52415",
+      "Select model: caro config set exo.model llama-3.2-3b",
+      "Test connection: caro \"echo hello\""
     ],
-    bestFor: ["Cross-platform development", "Model experimentation", "Local-first workflows", "GPU-accelerated inference"]
+    bestFor: ["Running large models locally", "Multi-device setups", "Apple Silicon clusters", "High-performance inference"]
   },
   {
     name: "vLLM",
     id: "backend-vllm",
     tagline: "High-Throughput Server",
     description: "Connect to vLLM servers for production-grade inference with optimized performance",
-    status: "available",
+    status: "untested",
     icon: "🚀",
     highlights: [
       "PagedAttention for efficient memory",
@@ -82,30 +82,84 @@ const backends = [
     bestFor: ["Team deployments", "Centralized inference", "High-throughput scenarios", "Cloud-based workflows"]
   },
   {
+    name: "Ollama",
+    id: "backend-ollama",
+    icon: "🦙",
+    tagline: "Local Model Management",
+    description: "Connect to Ollama for local LLM inference with easy model management",
+    status: "planned",
+    highlights: [
+      "Cross-platform (macOS, Linux, Windows)",
+      "Simple model management (ollama pull/list)",
+      "Multiple model support (Llama, Mistral, etc.)",
+      "GPU acceleration (CUDA, Metal)",
+      "Active community and ecosystem"
+    ],
+    performance: {
+      startup: "< 200ms",
+      inference: "2-5s (hardware dependent)",
+      memory: "Varies by model"
+    },
+    setup: [
+      "Install Ollama from ollama.ai",
+      "Pull a model: ollama pull llama2",
+      "Configure Caro: caro config set backend ollama",
+      "Specify model: caro config set ollama.model llama2"
+    ],
+    bestFor: ["Cross-platform development", "Model experimentation", "Local-first workflows", "GPU-accelerated inference"]
+  },
+  {
+    name: "LM Studio",
+    id: "backend-lmstudio",
+    icon: "🖥️",
+    tagline: "Desktop LLM Runner",
+    description: "Connect to LM Studio's local server for a GUI-based local model experience",
+    status: "planned",
+    highlights: [
+      "User-friendly desktop application",
+      "Easy model discovery and download",
+      "Local inference with GPU support",
+      "OpenAI-compatible API server",
+      "Cross-platform (macOS, Windows, Linux)"
+    ],
+    performance: {
+      startup: "< 200ms (client)",
+      inference: "2-5s (hardware dependent)",
+      memory: "Varies by model"
+    },
+    setup: [
+      "Download LM Studio from lmstudio.ai",
+      "Download and load a model in LM Studio",
+      "Start the local server in LM Studio",
+      "Configure Caro: caro config set backend lmstudio"
+    ],
+    bestFor: ["GUI model management", "Easy setup experience", "Local-first workflows", "Desktop users"]
+  },
+  {
     name: "CPU Backend",
     id: "backend-embedded",
     tagline: "Built-in Fallback",
     icon: "📦",
-    description: "CPU-based embedded backend works out of the box as automatic fallback",
-    status: "available",
+    description: "Cross-platform CPU-based inference using Candle (currently in development)",
+    status: "in-development",
     highlights: [
-      "Zero external setup required",
       "Cross-platform (macOS, Linux, Windows)",
-      "Automatic fallback mode",
-      "Simple, reliable baseline option",
-      "Works immediately after installation"
+      "No GPU required",
+      "Candle-based inference engine",
+      "Automatic fallback option",
+      "Works on any hardware"
     ],
     performance: {
       startup: "< 50ms",
-      inference: "5-10s",
+      inference: "5-15s",
       memory: "< 500MB"
     },
     setup: [
-      "No setup needed - works out of the box",
-      "Automatically used if no other backend configured",
-      "Override with: caro config set backend embedded"
+      "Build with default features",
+      "Configure model path in caro config",
+      "Will be used automatically as fallback"
     ],
-    bestFor: ["First-time users", "Quick testing", "Emergency fallback", "Minimal setup environments"]
+    bestFor: ["Older hardware", "Non-GPU systems", "Emergency fallback", "Cross-platform compatibility"]
   }
 ];
 ---
@@ -128,7 +182,8 @@ const backends = [
             </div>
             <span class={`status-badge status-${backend.status}`}>
               {backend.status === 'in-development' ? 'In Development' :
-               backend.status === 'available' ? 'Available' : 'Planned'}
+               backend.status === 'available' ? 'Available' :
+               backend.status === 'untested' ? 'Untested' : 'Planned'}
             </span>
           </div>
 
@@ -187,10 +242,10 @@ const backends = [
     <div class="comparison-note">
       <h3>Which Backend Should I Choose?</h3>
       <p>
-        <strong>Just getting started?</strong> The CPU backend works out of the box - no configuration needed.<br/>
-        <strong>Want local models?</strong> Install Ollama for easy local inference with model flexibility.<br/>
-        <strong>Have a team server?</strong> Connect to vLLM for centralized, high-performance inference.<br/>
-        <strong>On Apple Silicon?</strong> MLX support is coming soon for ultra-fast local inference.
+        <strong>On Apple Silicon?</strong> Use llama.cpp with Metal for fast, private, offline inference.<br/>
+        <strong>Have multiple Macs?</strong> Set up an Exo cluster to run larger models across devices.<br/>
+        <strong>Running a server?</strong> vLLM offers high-throughput production inference (testing welcome!).<br/>
+        <strong>Prefer a GUI?</strong> LM Studio and Ollama support are planned for easier model management.
       </p>
     </div>
   </div>
@@ -275,6 +330,11 @@ const backends = [
   .status-planned {
     background: rgba(156, 39, 176, 0.1);
     color: #9c27b0;
+  }
+
+  .status-untested {
+    background: rgba(255, 152, 0, 0.1);
+    color: #ff9800;
   }
 
   .backend-description {
