@@ -29,6 +29,7 @@
 
 pub mod agent;
 pub mod assessment;
+pub mod avatar;
 pub mod backends;
 pub mod cache;
 pub mod cli;
@@ -97,6 +98,11 @@ pub use telemetry::{
 
 // Re-export completion types
 pub use completion::{generate_completions, suggest_commands, CommandSuggestion};
+
+// Re-export avatar types
+pub use avatar::{
+    display_avatar, display_compact_avatar, show_reaction, AnimatedAvatar, Avatar, AvatarState,
+};
 
 // Re-export knowledge types (when feature enabled)
 #[cfg(feature = "knowledge")]

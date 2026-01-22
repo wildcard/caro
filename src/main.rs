@@ -1,3 +1,4 @@
+use caro::avatar::{display_compact_avatar, AvatarState};
 use caro::backends::embedded::EmbeddedModelBackend;
 use caro::backends::{CommandGenerator, StaticMatcher};
 use caro::cli::{CliApp, CliError, IntoCliArgs};
@@ -535,6 +536,15 @@ struct Cli {
     /// Verbose output with debug information
     #[arg(short, long, help = "Enable verbose output with timing and debug info")]
     verbose: bool,
+
+    /// Show ASCII avatar reactions in output
+    #[arg(
+        long = "avatar",
+        help = "Show ASCII avatar reactions in output (default: true)",
+        default_value = "true",
+        env = "CARO_AVATAR"
+    )]
+    show_avatar: bool,
 
     /// Custom configuration file path
     #[arg(short, long, help = "Path to configuration file")]
@@ -2151,14 +2161,28 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
         };
     }
 
-    // Print warnings first
+    // Whether to show avatar (check flag and terminal capability)
+    let show_avatar = cli.show_avatar && std::io::stderr().is_terminal();
+
+    // Helper for avatar display that respects the flag
+    macro_rules! avatar_display {
+        ($state:expr, $msg:expr) => {
+            if show_avatar {
+                display_compact_avatar($state, $msg);
+            } else {
+                eprintln!("{}", $msg);
+            }
+        };
+    }
+
+    // Print warnings first with avatar
     for warning in &result.warnings {
-        eprintln!("{} {}", "Warning:".yellow().bold(), warning);
+        avatar_display!(AvatarState::Warning, &format!("{} {}", "Warning:".yellow().bold(), warning));
     }
 
     // Handle blocked commands
     if let Some(blocked_reason) = &result.blocked_reason {
-        eprintln!("{} {}", "Blocked:".red().bold(), blocked_reason);
+        avatar_display!(AvatarState::Error, &format!("{} {}", "Blocked:".red().bold(), blocked_reason));
         std::process::exit(1);
     }
 
@@ -2177,11 +2201,11 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
                 })?;
 
             if !confirmed {
-                display!("{}", "Operation cancelled by user.".yellow());
+                avatar_display!(AvatarState::Warning, &"Operation cancelled by user.".yellow().to_string());
                 std::process::exit(1);
             }
 
-            display!("{}", "✓ Confirmed. Command is safe to execute.".green());
+            avatar_display!(AvatarState::Success, &"✓ Confirmed. Command is safe to execute.".green().to_string());
         } else {
             // Non-interactive environment - show confirmation message and exit
             display!("{}", result.confirmation_prompt.yellow());
@@ -2190,8 +2214,8 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
         }
     }
 
-    // Print the main command
-    display!("{}", "Command:".bold());
+    // Print the main command with avatar reaction
+    avatar_display!(AvatarState::Success, &format!("{}", "Command:".bold()));
     display!("  {}", result.generated_command.bright_cyan().bold());
     display!("");
 
@@ -2239,7 +2263,7 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
                 0 => {
                     // Yes - execute
                     display!("");
-                    display!("{}", "Executing command...".dimmed());
+                    avatar_display!(AvatarState::Thinking, &"Executing command...".dimmed().to_string());
 
                     // Execute the command
                     use caro::execution::CommandExecutor;
@@ -2303,7 +2327,7 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
                 }
                 _ => {
                     // No - skip
-                    display!("{}", "Execution skipped.".yellow());
+                    avatar_display!(AvatarState::Idle, &"Execution skipped.".yellow().to_string());
                     display!("");
                 }
             }
@@ -2320,16 +2344,15 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
 
     // Print execution results if command was actually executed
     if result.exit_code.is_some() {
-        display!("{}", "Execution Results:".bold().green());
-
-        // Print exit code
+        // Print exit code with avatar reaction
         if let Some(exit_code) = result.exit_code {
-            let status_msg = if exit_code == 0 {
-                format!("✓ Success (exit code: {})", exit_code).green()
+            if exit_code == 0 {
+                avatar_display!(AvatarState::Success, &format!("{}", "Execution Results:".bold().green()));
+                display!("  {}", format!("✓ Success (exit code: {})", exit_code).green());
             } else {
-                format!("✗ Failed (exit code: {})", exit_code).red()
-            };
-            display!("  {}", status_msg);
+                avatar_display!(AvatarState::Error, &format!("{}", "Execution Results:".bold().red()));
+                display!("  {}", format!("✗ Failed (exit code: {})", exit_code).red());
+            }
         }
 
         // Print execution time
@@ -2365,15 +2388,15 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
         // Print execution error if present
         if let Some(error) = &result.execution_error {
             display!("");
-            display!("{} {}", "Execution Error:".red().bold(), error.red());
+            avatar_display!(AvatarState::Error, &format!("{} {}", "Execution Error:".red().bold(), error.red()));
         }
 
         display!("");
     } else if cli.execute || cli.interactive {
         // User requested execution but it didn't happen
-        display!(
-            "{}",
-            "Command was not executed (blocked by safety checks or user cancelled).".yellow()
+        avatar_display!(
+            AvatarState::Warning,
+            &"Command was not executed (blocked by safety checks or user cancelled).".yellow().to_string()
         );
         display!("");
     }
