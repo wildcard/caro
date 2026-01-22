@@ -8,7 +8,7 @@
 //! `@%#*+=-:. ` - from densest (darkest) to sparsest (lightest)
 
 use colored::Colorize;
-use std::io::{self, Write};
+use std::io::{self, IsTerminal, Write};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::thread;
@@ -447,6 +447,114 @@ pub fn show_reaction(state: AvatarState) -> String {
     let mut avatar = Avatar::compact();
     avatar.set_state(state);
     avatar.render()
+}
+
+// ============================================================================
+// 3D Character Avatar Integration
+// ============================================================================
+
+use crate::ascii3d::{render_character_frame, AnimatedCharacter, CharacterExpression};
+
+/// Display a 3D ASCII character with the given state
+pub fn display_3d_avatar(state: AvatarState, width: usize, height: usize) {
+    let mut character = AnimatedCharacter::new();
+
+    // Map avatar state to character expression
+    let expression = match state {
+        AvatarState::Idle => CharacterExpression::Neutral,
+        AvatarState::Listening => CharacterExpression::Surprised,
+        AvatarState::Thinking => CharacterExpression::Thinking,
+        AvatarState::Success => CharacterExpression::Happy,
+        AvatarState::Warning => CharacterExpression::Thinking,
+        AvatarState::Error => CharacterExpression::Sad,
+        AvatarState::Goodbye => CharacterExpression::Happy,
+    };
+    character.set_expression(expression);
+
+    // Set rotation based on state
+    let angle = match state {
+        AvatarState::Thinking => 0.3, // Looking to the side
+        AvatarState::Listening => -0.2,
+        _ => 0.0, // Forward facing
+    };
+    character.set_rotation(-0.1, angle);
+
+    let rendered = character.render(width, height);
+
+    // Apply color based on state
+    if std::io::stderr().is_terminal() {
+        use colored::Colorize;
+        let colored_output = match state {
+            AvatarState::Idle => rendered.cyan(),
+            AvatarState::Listening => rendered.blue(),
+            AvatarState::Thinking => rendered.yellow(),
+            AvatarState::Success => rendered.green(),
+            AvatarState::Warning => rendered.yellow(),
+            AvatarState::Error => rendered.red(),
+            AvatarState::Goodbye => rendered.magenta(),
+        };
+        eprint!("{}", colored_output);
+    } else {
+        eprint!("{}", rendered);
+    }
+}
+
+/// Display a spinning 3D character animation frame
+pub fn display_3d_frame(frame: usize, width: usize, height: usize) {
+    let rendered = render_character_frame(width, height, frame);
+    eprint!("{}", rendered);
+}
+
+/// Display a 3D avatar with a message alongside
+pub fn display_3d_avatar_with_message(state: AvatarState, message: &str, width: usize, height: usize) {
+    let mut character = AnimatedCharacter::new();
+
+    let expression = match state {
+        AvatarState::Idle => CharacterExpression::Neutral,
+        AvatarState::Listening => CharacterExpression::Surprised,
+        AvatarState::Thinking => CharacterExpression::Thinking,
+        AvatarState::Success => CharacterExpression::Happy,
+        AvatarState::Warning => CharacterExpression::Thinking,
+        AvatarState::Error => CharacterExpression::Sad,
+        AvatarState::Goodbye => CharacterExpression::Happy,
+    };
+    character.set_expression(expression);
+    character.set_rotation(-0.1, 0.0);
+
+    let rendered = character.render(width, height);
+    let lines: Vec<&str> = rendered.lines().collect();
+    let mid = lines.len() / 2;
+
+    // Apply color based on state
+    if std::io::stderr().is_terminal() {
+        use colored::Colorize;
+
+        for (i, line) in lines.iter().enumerate() {
+            let colored_line = match state {
+                AvatarState::Idle => line.cyan(),
+                AvatarState::Listening => line.blue(),
+                AvatarState::Thinking => line.yellow(),
+                AvatarState::Success => line.green(),
+                AvatarState::Warning => line.yellow(),
+                AvatarState::Error => line.red(),
+                AvatarState::Goodbye => line.magenta(),
+            };
+
+            if i == mid {
+                eprintln!("{}  {}", colored_line, message);
+            } else {
+                eprintln!("{}", colored_line);
+            }
+        }
+    } else {
+        for (i, line) in lines.iter().enumerate() {
+            if i == mid {
+                eprintln!("{}  {}", line, message);
+            } else {
+                eprintln!("{}", line);
+            }
+        }
+    }
 }
 
 // ============================================================================

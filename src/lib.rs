@@ -28,6 +28,7 @@
 //! ```
 
 pub mod agent;
+pub mod ascii3d;
 pub mod assessment;
 pub mod avatar;
 pub mod backends;
@@ -102,6 +103,12 @@ pub use completion::{generate_completions, suggest_commands, CommandSuggestion};
 // Re-export avatar types
 pub use avatar::{
     display_avatar, display_compact_avatar, show_reaction, AnimatedAvatar, Avatar, AvatarState,
+};
+
+// Re-export 3D ASCII renderer types
+pub use ascii3d::{
+    render_character_frame, render_cube, render_sphere, AnimatedCharacter, Ascii3DRenderer,
+    AsciiFramebuffer, CharacterExpression, Mesh, Vec3,
 };
 
 // Re-export knowledge types (when feature enabled)
