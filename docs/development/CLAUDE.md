@@ -217,10 +217,11 @@ The tool uses a strict system prompt for JSON-only responses:
 When working on specific components:
 
 - **Complex architecture changes**: Use `rust-cli-architect` agent
-- **LLM integration & backends**: Use `llm-integration-expert` agent  
+- **LLM integration & backends**: Use `llm-integration-expert` agent
 - **MLX/Apple Silicon features**: Use `macos-unix-systems-expert` agent
 - **Test-driven development**: Use `tdd-rust-engineer` agent
 - **Documentation updates**: Use `technical-writer` agent
+- **Bug investigation & debugging**: Use `systematic-debug-agent` agent (GSD-inspired methodical debugging)
 
 ## Quality Standards
 
