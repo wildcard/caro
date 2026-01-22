@@ -1,7 +1,7 @@
 ---
 /**
  * Custom Hero component for caro documentation
- * Displays a bold, animated hero section with terminal preview
+ * Features an animated terminal preview with typing effect
  */
 interface Props {
   title: string;
@@ -18,106 +18,142 @@ interface Props {
 const { title, tagline, actions = [] } = Astro.props;
 ---
 
-<div class="hero">
-  <div class="hero-content">
-    <h1 set:html={title} />
-    {tagline && <p class="tagline" set:html={tagline} />}
+<div class="hero-wrapper">
+  <div class="hero">
+    <div class="hero-content">
+      <h1 set:html={title} />
+      {tagline && <p class="tagline" set:html={tagline} />}
 
-    {actions.length > 0 && (
-      <div class="actions">
-        {actions.map((action) => (
-          <a
-            href={action.link}
-            class={`action ${action.variant || 'primary'}`}
-          >
-            {action.icon?.html && <span set:html={action.icon.html} />}
-            {action.text}
-          </a>
-        ))}
-      </div>
-    )}
-  </div>
-
-  <div class="hero-terminal">
-    <div class="hero-terminal-header">
-      <div class="hero-terminal-dot"></div>
-      <div class="hero-terminal-dot"></div>
-      <div class="hero-terminal-dot"></div>
+      {actions.length > 0 && (
+        <div class="actions">
+          {actions.map((action) => (
+            <a
+              href={action.link}
+              class={`action ${action.variant || 'primary'}`}
+            >
+              {action.icon?.html && <span class="action-icon" set:html={action.icon.html} />}
+              {action.text}
+            </a>
+          ))}
+        </div>
+      )}
     </div>
-    <div class="hero-terminal-content">
-      <div class="terminal-line">
-        <span class="hero-terminal-prompt">$</span>
-        <span class="hero-terminal-command"> caro "find all rust files modified today"</span>
+
+    <div class="hero-terminal" aria-label="Terminal demonstration">
+      <div class="terminal-chrome">
+        <div class="terminal-buttons">
+          <span class="terminal-btn close"></span>
+          <span class="terminal-btn minimize"></span>
+          <span class="terminal-btn maximize"></span>
+        </div>
+        <div class="terminal-title">zsh</div>
       </div>
-      <div class="terminal-line hero-terminal-output">
-        find . -name "*.rs" -mtime 0
-      </div>
-      <div class="terminal-line" style="margin-top: 0.75rem;">
-        <span class="hero-terminal-prompt">$</span>
-        <span class="hero-terminal-command"> caro "count lines of code in src"</span>
-      </div>
-      <div class="terminal-line hero-terminal-output">
-        find src -name "*.rs" -exec wc -l {} + | tail -1
-      </div>
-      <div class="terminal-line" style="margin-top: 0.75rem;">
-        <span class="hero-terminal-prompt">$</span>
-        <span class="hero-terminal-command typing"> _</span>
+      <div class="terminal-body">
+        <div class="terminal-line">
+          <span class="prompt">❯</span>
+          <span class="command">caro "find all rust files modified today"</span>
+        </div>
+        <div class="terminal-line output">
+          <span class="output-prefix">→</span>
+          <code>find . -name "*.rs" -mtime 0</code>
+        </div>
+        <div class="terminal-line spacer"></div>
+        <div class="terminal-line">
+          <span class="prompt">❯</span>
+          <span class="command">caro "show disk usage sorted by size"</span>
+        </div>
+        <div class="terminal-line output">
+          <span class="output-prefix">→</span>
+          <code>du -sh * | sort -hr</code>
+        </div>
+        <div class="terminal-line spacer"></div>
+        <div class="terminal-line">
+          <span class="prompt">❯</span>
+          <span class="command typing">caro "compress all images in current dir"</span>
+          <span class="cursor">▌</span>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
 <style>
-  .hero {
-    padding: 4rem 1rem 6rem;
-    text-align: center;
+  .hero-wrapper {
     position: relative;
     overflow: hidden;
   }
 
-  .hero::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 150%;
-    height: 100%;
-    background: radial-gradient(ellipse at center, var(--caro-glow, rgba(232, 93, 76, 0.15)) 0%, transparent 70%);
-    z-index: -1;
-    pointer-events: none;
-  }
-
-  .hero-content {
-    max-width: 48rem;
+  .hero {
+    padding: 5rem 1.5rem 4rem;
+    text-align: center;
+    position: relative;
+    max-width: 64rem;
     margin: 0 auto;
   }
 
+  /* Ambient glow background */
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140%;
+    height: 80%;
+    background: radial-gradient(
+      ellipse 80% 60% at center,
+      rgba(0, 217, 145, 0.12) 0%,
+      rgba(0, 217, 145, 0.04) 40%,
+      transparent 70%
+    );
+    z-index: -2;
+    pointer-events: none;
+  }
+
+  /* Subtle grid pattern */
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0, 217, 145, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 217, 145, 0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    z-index: -1;
+    mask-image: radial-gradient(ellipse 60% 50% at center top, black 20%, transparent 60%);
+    -webkit-mask-image: radial-gradient(ellipse 60% 50% at center top, black 20%, transparent 60%);
+  }
+
+  .hero-content {
+    max-width: 44rem;
+    margin: 0 auto 3rem;
+  }
+
   .hero h1 {
-    font-family: 'Space Grotesk', var(--sl-font, system-ui);
-    font-size: clamp(2.5rem, 8vw, 4.5rem);
-    font-weight: 700;
-    margin-bottom: 1rem;
+    font-family: 'Inter', var(--sl-font, system-ui);
+    font-size: clamp(2.5rem, 7vw, 4rem);
+    font-weight: 800;
+    margin-bottom: 1.25rem;
     line-height: 1.1;
-    letter-spacing: -0.03em;
-    background: linear-gradient(135deg, #e85d4c 0%, #ff8a7a 50%, #ffb5a5 100%);
+    letter-spacing: -0.035em;
+    background: linear-gradient(135deg, #00d991 0%, #00ffb2 40%, #5dffc2 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   :root[data-theme='light'] .hero h1 {
-    background: linear-gradient(135deg, #c13a2e 0%, #d4463a 50%, #e85d4c 100%);
+    background: linear-gradient(135deg, #047857 0%, #059669 40%, #10b981 100%);
     -webkit-background-clip: text;
     background-clip: text;
   }
 
   .tagline {
-    font-size: 1.25rem;
-    color: var(--sl-color-gray-2, #888);
-    max-width: 36rem;
+    font-size: 1.2rem;
+    color: var(--sl-color-gray-2, #a1a1aa);
+    max-width: 34rem;
     margin: 0 auto 2rem;
-    line-height: 1.6;
+    line-height: 1.7;
   }
 
   .actions {
@@ -132,102 +168,183 @@ const { title, tagline, actions = [] } = Astro.props;
     align-items: center;
     gap: 0.5rem;
     padding: 0.875rem 1.75rem;
-    font-family: 'Space Grotesk', var(--sl-font, system-ui);
+    font-family: var(--sl-font, system-ui);
     font-weight: 600;
     font-size: 1rem;
     text-decoration: none;
     border-radius: 0.5rem;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .action-icon {
+    display: flex;
+    align-items: center;
   }
 
   .action.primary {
-    background: linear-gradient(135deg, #e85d4c 0%, #ff8a7a 100%);
-    color: white;
-    box-shadow: 0 4px 14px rgba(232, 93, 76, 0.4);
+    background: linear-gradient(135deg, #00d991 0%, #00ffb2 100%);
+    color: #09090b;
+    box-shadow: 0 4px 14px rgba(0, 217, 145, 0.35),
+                0 0 0 1px rgba(0, 217, 145, 0.1);
   }
 
   .action.primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(232, 93, 76, 0.5);
+    box-shadow: 0 8px 24px rgba(0, 217, 145, 0.4),
+                0 0 0 1px rgba(0, 217, 145, 0.2);
     text-decoration: none;
   }
 
   .action.secondary,
   .action.minimal {
-    background: var(--caro-glass, rgba(255, 255, 255, 0.03));
-    border: 1px solid var(--caro-border, rgba(255, 255, 255, 0.08));
-    color: var(--sl-color-text, #fff);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--sl-color-text, #fafafa);
+  }
+
+  :root[data-theme='light'] .action.secondary,
+  :root[data-theme='light'] .action.minimal {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.08);
+    color: var(--sl-color-text, #18181b);
   }
 
   .action.secondary:hover,
   .action.minimal:hover {
-    background: var(--caro-glow, rgba(232, 93, 76, 0.15));
-    border-color: var(--sl-color-accent, #e85d4c);
+    background: rgba(0, 217, 145, 0.1);
+    border-color: rgba(0, 217, 145, 0.4);
     text-decoration: none;
   }
 
+  /* Terminal */
   .hero-terminal {
-    max-width: 36rem;
-    margin: 3rem auto 0;
+    max-width: 38rem;
+    margin: 0 auto;
     text-align: left;
-    background: rgba(0, 0, 0, 0.6);
-    border: 1px solid var(--caro-border, rgba(255, 255, 255, 0.08));
-    border-radius: 0.75rem;
+    background: rgba(9, 9, 11, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.875rem;
     overflow: hidden;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    box-shadow:
+      0 25px 50px -12px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.05),
+      0 0 80px rgba(0, 217, 145, 0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
   :root[data-theme='light'] .hero-terminal {
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 0, 0, 0.1);
+    box-shadow:
+      0 25px 50px -12px rgba(0, 0, 0, 0.15),
+      0 0 0 1px rgba(0, 0, 0, 0.05),
+      0 0 80px rgba(5, 150, 105, 0.05);
   }
 
-  .hero-terminal-header {
-    background: var(--caro-glass, rgba(255, 255, 255, 0.03));
+  .terminal-chrome {
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     padding: 0.75rem 1rem;
     display: flex;
+    align-items: center;
     gap: 0.5rem;
-    border-bottom: 1px solid var(--caro-border, rgba(255, 255, 255, 0.08));
   }
 
-  .hero-terminal-dot {
+  :root[data-theme='light'] .terminal-chrome {
+    background: rgba(0, 0, 0, 0.02);
+    border-bottom-color: rgba(0, 0, 0, 0.06);
+  }
+
+  .terminal-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .terminal-btn {
     width: 12px;
     height: 12px;
     border-radius: 50%;
+    transition: opacity 0.15s ease;
   }
 
-  .hero-terminal-dot:nth-child(1) { background: #ff5f57; }
-  .hero-terminal-dot:nth-child(2) { background: #febc2e; }
-  .hero-terminal-dot:nth-child(3) { background: #28c840; }
+  .terminal-btn.close { background: #ff5f57; }
+  .terminal-btn.minimize { background: #febc2e; }
+  .terminal-btn.maximize { background: #28c840; }
 
-  .hero-terminal-content {
-    padding: 1.25rem;
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
+  .terminal-title {
+    flex: 1;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--sl-color-gray-3, #71717a);
+    font-family: var(--sl-font-mono, monospace);
+  }
+
+  .terminal-body {
+    padding: 1.25rem 1.5rem;
+    font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
     font-size: 0.875rem;
-    line-height: 1.8;
+    line-height: 1.7;
   }
 
   .terminal-line {
-    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
   }
 
-  .hero-terminal-prompt {
-    color: var(--sl-color-accent, #e85d4c);
+  .terminal-line.spacer {
+    height: 0.75rem;
+  }
+
+  .prompt {
+    color: #00d991;
     font-weight: 600;
+    flex-shrink: 0;
   }
 
-  .hero-terminal-command {
-    color: var(--sl-color-gray-2, #ccc);
+  :root[data-theme='light'] .prompt {
+    color: #059669;
   }
 
-  .hero-terminal-output {
-    color: var(--sl-color-gray-3, #888);
-    opacity: 0.9;
-    padding-left: 1rem;
+  .command {
+    color: var(--sl-color-gray-1, #e4e4e7);
   }
 
-  .typing {
+  :root[data-theme='light'] .command {
+    color: var(--sl-color-gray-6, #27272a);
+  }
+
+  .terminal-line.output {
+    padding-left: 1.25rem;
+    margin-top: 0.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .output-prefix {
+    color: var(--sl-color-gray-4, #52525b);
+    font-size: 0.75rem;
+  }
+
+  .output code {
+    color: var(--sl-color-gray-3, #71717a);
+    background: rgba(0, 217, 145, 0.08);
+    padding: 0.15rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.8125rem;
+    border: 1px solid rgba(0, 217, 145, 0.15);
+  }
+
+  :root[data-theme='light'] .output code {
+    background: rgba(5, 150, 105, 0.08);
+    border-color: rgba(5, 150, 105, 0.15);
+    color: var(--sl-color-gray-4, #52525b);
+  }
+
+  .cursor {
+    color: #00d991;
     animation: blink 1s step-end infinite;
+    margin-left: 2px;
   }
 
   @keyframes blink {
@@ -240,7 +357,7 @@ const { title, tagline, actions = [] } = Astro.props;
   .tagline,
   .actions,
   .hero-terminal {
-    animation: fadeIn 0.6s ease-out backwards;
+    animation: fadeInUp 0.6s ease-out backwards;
   }
 
   .hero h1 { animation-delay: 0.1s; }
@@ -248,10 +365,10 @@ const { title, tagline, actions = [] } = Astro.props;
   .actions { animation-delay: 0.3s; }
   .hero-terminal { animation-delay: 0.4s; }
 
-  @keyframes fadeIn {
+  @keyframes fadeInUp {
     from {
       opacity: 0;
-      transform: translateY(10px);
+      transform: translateY(16px);
     }
     to {
       opacity: 1;
@@ -259,17 +376,39 @@ const { title, tagline, actions = [] } = Astro.props;
     }
   }
 
+  /* Responsive */
   @media (max-width: 768px) {
     .hero {
-      padding: 2rem 1rem 4rem;
+      padding: 3rem 1rem 2rem;
+    }
+
+    .hero h1 {
+      font-size: 2rem;
+    }
+
+    .tagline {
+      font-size: 1rem;
     }
 
     .hero-terminal {
-      margin: 2rem 0 0;
+      margin: 0 -0.5rem;
+      border-radius: 0.75rem;
     }
 
-    .hero-terminal-content {
+    .terminal-body {
+      padding: 1rem;
       font-size: 0.75rem;
+    }
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .hero h1,
+    .tagline,
+    .actions,
+    .hero-terminal,
+    .cursor {
+      animation: none;
     }
   }
 </style>
