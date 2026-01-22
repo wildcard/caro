@@ -1,4 +1,4 @@
-# ADR-004: Self-Update Mechanism
+# ADR-008: Self-Update Mechanism
 
 | **Status**     | Proposed                            |
 |----------------|-------------------------------------|
