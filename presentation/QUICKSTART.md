@@ -120,3 +120,5 @@ Refer to:
 - `README.md` - Detailed documentation
 - `TALKING_POINTS.md` - Speaker script
 - `DELIVERABLES_SUMMARY.md` - Complete overview
+
+<!-- Vercel skip test v2 -->
