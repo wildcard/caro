@@ -1,14 +1,19 @@
 {
   "common": {
     "meta": {
-      "title": "Caro - Votre fidèle compagnon de shell",
-      "description": "Caro est un agent compagnon qui vous aide avec les commandes shell POSIX. Disponible en tant que MCP pour Claude et en tant que compétence dédiée."
+      "title": "Caro - Votre compagnon shell fidèle",
+      "description": "Caro est un agent compagnon qui vous aide avec les commandes shell POSIX. Disponible en tant que MCP pour Claude et en tant que Skill dédiée."
     },
     "buttons": {
       "copy": "Copier",
       "copied": "Copié !",
-      "getStarted": "Commencer",
-      "watchDemo": "Voir la démo"
+      "getStarted": "Démarrer",
+      "watchDemo": "Voir la démo",
+      "get_started": "Démarrer",
+      "learn_more": "En savoir plus"
+    },
+    "links": {
+      "download": "[TODO: common.links.download]"
     },
     "status": {
       "availableNow": "Disponible maintenant",
@@ -17,23 +22,23 @@
       "comingSoon": "Bientôt disponible"
     },
     "aria": {
-      "toggleDarkMode": "Activer le mode sombre",
-      "toggleHolidayTheme": "Activer le menu du thème des vacances"
+      "toggleDarkMode": "Activer/désactiver le mode sombre",
+      "toggleHolidayTheme": "Activer/désactiver le menu thème festif"
     },
     "nav": {
       "features": "Fonctionnalités",
       "compare": "Comparer",
       "resources": "Ressources",
       "support": "Support",
-      "getStarted": "Commencer",
+      "getStarted": "Démarrer",
       "dropdown": {
-        "overview": "Aperçu",
+        "overview": "Vue d'ensemble",
         "seeAllComparisons": "Voir toutes les comparaisons",
-        "vsWarp": "contre Warp",
+        "vsWarp": "vs Warp",
         "aiNativeTerminal": "Terminal natif IA",
-        "vsGitHubCopilot": "contre GitHub Copilot CLI",
-        "aiPairProgrammer": "Programmeur binôme IA",
-        "vsKiro": "contre Kiro CLI",
+        "vsGitHubCopilot": "vs GitHub Copilot CLI",
+        "aiPairProgrammer": "Programmation en binôme avec IA",
+        "vsKiro": "vs Kiro CLI",
         "awsAssistant": "Assistant IA AWS",
         "blog": "Blog",
         "newsAndTutorials": "Actualités & tutoriels",
@@ -41,10 +46,10 @@
         "interactiveDemo": "Démo interactive",
         "faq": "FAQ",
         "commonQuestions": "Questions fréquentes",
-        "roadmap": "Feuille de route",
-        "whatsNext": "Ce qui arrive ensuite",
+        "roadmap": "Roadmap",
+        "whatsNext": "À venir",
         "glossary": "Glossaire",
-        "terminalTerms": "Termes de terminal & Unix",
+        "terminalTerms": "Termes Terminal & Unix",
         "github": "GitHub",
         "sourceCode": "Code source"
       },
@@ -54,13 +59,13 @@
       },
       "appearance": {
         "title": "Apparence",
-        "darkMode": "Mode Sombre",
-        "holidayTheme": "Thème des Vacances",
-        "snowEffect": "Effet de Neige",
+        "darkMode": "Mode sombre",
+        "holidayTheme": "Thème festif",
+        "snowEffect": "Effet neige",
         "disableEffects": "Désactiver tous les effets"
       },
       "useCases": {
-        "allUseCases": "Tous les cas d'utilisation",
+        "allUseCases": "Tous les cas d'usage",
         "byRole": "Par rôle",
         "backToHome": "Retour à l'accueil"
       }

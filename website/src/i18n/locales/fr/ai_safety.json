@@ -1,0 +1,46 @@
+{
+  "ai_safety": {
+    "meta": {
+      "title": "Sécurité des commandes IA - Caro",
+      "description": "Caro valide les commandes shell générées par IA avant leur exécution, empêchant les opérations dangereuses et protégeant votre système."
+    },
+    "hero": {
+      "title": "Sécurité des commandes IA",
+      "subtitle": "Validez les commandes shell générées par IA avant leur exécution. Restez en sécurité tout en exploitant la puissance des LLM."
+    },
+    "features": {
+      "title": "Fonctionnalités de sécurité",
+      "validation": {
+        "title": "Validation en temps réel",
+        "description": "Chaque commande est vérifiée contre plus de 52 patterns de sécurité avant exécution. Les opérations dangereuses sont bloquées instantanément."
+      },
+      "claude_integration": {
+        "title": "Intégration Claude Code",
+        "description": "Fonctionne parfaitement avec Claude Code. Générez des commandes naturellement, exécutez-les en toute sécurité."
+      },
+      "fast": {
+        "title": "Ultra-rapide",
+        "description": "Validation en moins d'une milliseconde. Les contrôles de sécurité ne vous ralentissent pas."
+      },
+      "patterns": {
+        "title": "Plus de 52 patterns de sécurité",
+        "description": "Bloque rm -rf /, les suppressions de bases de données de production, les suppressions récursives, et bien plus. Constamment mis à jour."
+      }
+    },
+    "how_it_works": {
+      "title": "Comment ça marche",
+      "step1": {
+        "title": "Génération de commande",
+        "description": "Utilisez Claude ou n'importe quel LLM pour générer une commande shell à partir de langage naturel."
+      },
+      "step2": {
+        "title": "Caro valide",
+        "description": "La commande est analysée pour détecter les patterns dangereux, les opérations destructrices et les risques de sécurité."
+      },
+      "step3": {
+        "title": "Exécution sécurisée",
+        "description": "Si la commande est sûre, elle s'exécute. Si elle est dangereuse, vous êtes averti avant que tout dommage ne survienne."
+      }
+    }
+  }
+}

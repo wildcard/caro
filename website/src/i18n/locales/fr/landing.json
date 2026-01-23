@@ -2,101 +2,118 @@
   "landing": {
     "navigation": {
       "brand": "Caro",
-      "cta": "Commencez gratuitement",
+      "cta": "Commencer gratuitement",
       "darkMode": {
-        "toggle": "Basculer en mode sombre"
+        "toggle": "Basculer le mode sombre"
       }
     },
     "hero": {
       "badge": "Agent Compagnon",
-      "tagline": "Votre fidèle compagnon de shell",
-      "subtitle": "Un agent de commande shell POSIX spécialisé pour les utilisateurs de Claude. Valide les commandes générées par IA avec une conception priorisant la sécurité, détecte les motifs dangereux et assure la conformité POSIX.",
-      "installLabel": "Disponible en tant que compétence de Claude :",
+      "tagline": "Votre fidèle compagnon shell",
+      "subtitle": "Un agent spécialisé en commandes shell POSIX pour les utilisateurs de Claude. Valide les commandes générées par IA avec une conception axée sur la sécurité, détecte les motifs dangereux et garantit la conformité POSIX.",
+      "installLabel": "Disponible en tant que Compétence Claude :",
       "cta": {
         "getStarted": "Commencer",
-        "watchDemo": "Regarder la démo"
+        "watchDemo": "Voir la démo",
+        "primary": "Installer Caro",
+        "secondary": "Voir la démo"
+      },
+      "headline": {
+        "dangerCmd": "rm -rf /",
+        "line1": "Ne jamais exécuter",
+        "line2": "par accident"
+      },
+      "socialProof": {
+        "attribution": "— Équipes d'ingénierie du monde entier",
+        "quote": "Enfin, un assistant IA qui ne détruira pas la production"
+      },
+      "trustBadges": {
+        "validation": "52+ motifs de sécurité",
+        "zeroTelemetry": "Zéro télémétrie",
+        "local": "100 % local",
+        "openSource": "Open Source"
       }
     },
     "features": {
       "title": "Pourquoi Caro ?",
-      "subtitle": "Un agent compagnon construit pour la sécurité, l'empathie et l'expertise",
-      "alphaNotice": "Nous construisons activement avec notre communauté. Rejoignez-nous pour aider à façonner l'avenir de Caro !",
-      "alphaLabel": "Lancement Alpha Doux",
-      "ctaText": "Voir exactement ce que Caro bloque et pourquoi",
+      "subtitle": "Un agent compagnon conçu pour la sécurité, l'empathie et l'expertise",
+      "alphaNotice": "Nous construisons activement avec notre communauté. Rejoignez-nous pour façonner l'avenir de Caro !",
+      "alphaLabel": "Alpha en lancement progressif",
+      "ctaText": "Découvrez exactement ce que Caro bloque et pourquoi",
       "ctaLink": "Voir les motifs de sécurité",
       "items": [
         {
           "icon": "🛡️",
-          "title": "Ne jamais détruire la production à nouveau",
-          "description": "Bloque rm -rf /, les bombes fork et plus de 50 autres commandes qui pourraient ruiner votre carrière AVANT que vous puissiez les exécuter. Votre moi de 2 heures du matin vous remerciera.",
+          "title": "Ne détruisez plus jamais la production",
+          "description": "Bloque rm -rf /, les bombes fork et plus de 50 autres commandes catastrophiques AVANT que vous ne puissiez les exécuter. Votre moi de 2 heures du matin vous remerciera.",
           "highlight": true
         },
         {
           "icon": "🔒",
-          "title": "Vos données restent les vôtres",
-          "description": "Zéro télémétrie. Zéro appel d'API cloud. Fonctionne dans des réseaux isolés. Passez n'importe quel audit de conformité. Vos commandes ne quittent jamais votre machine.",
+          "title": "Vos données vous appartiennent",
+          "description": "Zéro télémétrie. Zéro appel API cloud. Fonctionne dans des réseaux isolés. Réussit tous les audits de conformité. Vos commandes ne quittent jamais votre machine.",
           "highlight": true,
           "privacyLink": true
         },
         {
           "icon": "✅",
           "title": "Des commandes qui fonctionnent réellement",
-          "description": "Génère des commandes qui fonctionnent sur votre Mac, votre serveur Linux et la machine BSD de votre collègue. La première fois. À chaque fois.",
+          "description": "Génère des commandes qui fonctionnent sur votre Mac, votre serveur Linux et la machine BSD de votre collègue. Du premier coup. À chaque fois.",
           "highlight": false
         },
         {
           "icon": "⚡",
-          "title": "Assez rapide pour ne pas briser le flux",
-          "description": "Inférence en moins de 2s sur Apple Silicon. Pas d'attente pour les API cloud. Pas de doute si le serveur est en panne. Juste des réponses.",
+          "title": "Assez rapide pour ne pas interrompre votre flux",
+          "description": "Inférence en moins de 2 secondes sur Apple Silicon. Pas d'attente d'API cloud. Pas de doute sur l'état du serveur. Juste des réponses.",
           "highlight": false
         }
       ],
       "cards": {
         "safetyGuardian": {
-          "title": "Gardien de la Sécurité",
-          "description": "Une validation complète bloque les commandes dangereuses comme rm -rf /, les bombes fork et les opérations destructrices. 52 motifs de sécurité prédéfinis avec évaluation du niveau de risque."
+          "title": "Gardien de sécurité",
+          "description": "Validation complète bloquant les commandes dangereuses comme rm -rf /, les bombes fork et les opérations destructrices. 52 motifs de sécurité prédéfinis avec évaluation du niveau de risque."
         },
         "crossPlatform": {
-          "title": "Expert Multi-Plateformes",
-          "description": "Fonctionne sur macOS, Linux, Windows, GNU et BSD. Comprend les nuances spécifiques à chaque plateforme et respecte votre choix de distribution."
+          "title": "Expert multiplateforme",
+          "description": "Fonctionne sur macOS, Linux, Windows, GNU et BSD. Comprend les nuances spécifiques à chaque plateforme et respecte votre distribution de choix."
         },
         "platformAware": {
-          "title": "Conscient de la Plateforme",
+          "title": "Sensible à la plateforme",
           "description": "Fournit des recommandations basées sur les capacités de votre plateforme et les meilleures pratiques. Distingue automatiquement la syntaxe des commandes BSD et GNU."
         },
         "posixSpecialist": {
           "title": "Spécialiste POSIX",
-          "description": "Expert en commandes shell conformes à POSIX qui fonctionnent de manière fiable sur les systèmes. Portable, sûr et optimisé pour votre terminal."
+          "description": "Expert en commandes shell conformes POSIX qui fonctionnent de manière fiable sur tous les systèmes. Portables, sûres et optimisées pour votre terminal."
         },
         "lightningFast": {
-          "title": "Rapide comme l'éclair",
-          "description": "Objectif : Démarrage en moins de 100ms, inférence en moins de 2s sur Apple Silicon. Intégration du cadre MLX pour l'accélération GPU sur les puces de série M."
+          "title": "Rapidité fulgurante",
+          "description": "Objectif : démarrage en moins de 100 ms, inférence en moins de 2 secondes sur Apple Silicon. Intégration du framework MLX pour l'accélération GPU sur les puces série M."
         },
         "claudeCompanion": {
-          "title": "Le Compagnon de Claude",
-          "description": "Compétence officielle de Claude Code pour la génération de commandes shell sûres. S'active automatiquement lorsque vous avez besoin d'aide, fournit des conseils de sécurité et s'intègre de manière transparente dans votre flux de travail. Installez avec /plugin install wildcard/caro"
+          "title": "Compagnon de Claude",
+          "description": "Compétence officielle Claude Code pour la génération sécurisée de commandes shell. S'active automatiquement quand vous avez besoin d'aide, fournit des conseils de sécurité et s'intègre parfaitement à votre flux de travail. Installation avec /plugin install wildcard/caro"
         }
       }
     },
     "comparison": {
-      "title": "Comment Caro se Compare",
-      "subtitle": "Conçu pour les ingénieurs DevOps et les SRE qui refusent de sacrifier la vie privée pour la productivité",
+      "title": "Comment Caro se compare",
+      "subtitle": "Conçu pour les ingénieurs DevOps et SRE qui refusent de sacrifier la confidentialité pour la productivité",
       "summary": {
         "privacy": {
-          "stat": "Vie privée",
-          "label": "Conception Prioritaire*"
+          "stat": "Confidentialité",
+          "label": "Conception prioritaire*"
         },
         "safety": {
           "stat": "52+",
-          "label": "Motifs de Sécurité"
+          "label": "Motifs de sécurité"
         },
         "offline": {
-          "stat": "100%",
-          "label": "Capable Hors-ligne"
+          "stat": "100 %",
+          "label": "Hors ligne"
         },
         "speed": {
           "stat": "Rust",
-          "label": "Conçu pour la Vitesse"
+          "label": "Conçu pour la vitesse"
         }
       },
       "competitors": {
@@ -112,18 +129,18 @@
       },
       "categories": {
         "privacyData": {
-          "title": "Vie privée & Données",
+          "title": "Confidentialité et données",
           "features": {
             "worksOffline": {
-              "name": "Fonctionne 100% hors-ligne",
-              "tooltip": "Aucun internet requis pour les fonctionnalités principales"
+              "name": "Fonctionne 100 % hors ligne",
+              "tooltip": "Aucune connexion Internet requise pour les fonctionnalités principales"
             },
             "privacyFirst": {
-              "name": "Conception prioritaire de la vie privée",
-              "tooltip": "Télémétrie minimale, anonyme avec désinscription facile"
+              "name": "Conception axée sur la confidentialité",
+              "tooltip": "Télémétrie minimale et anonyme avec désactivation facile"
             },
             "airGapped": {
-              "name": "Compatible avec les réseaux isolés",
+              "name": "Compatible réseau isolé",
               "tooltip": "Peut fonctionner dans des environnements isolés"
             },
             "openSource": {
@@ -133,11 +150,11 @@
           }
         },
         "safetyControl": {
-          "title": "Sécurité & Contrôle",
+          "title": "Sécurité et contrôle",
           "features": {
             "ruleBasedSafety": {
               "name": "Vérifications de sécurité basées sur des règles",
-              "tooltip": "Validation avant exécution avec des motifs définis"
+              "tooltip": "Validation pré-exécution avec motifs définis"
             },
             "explicitConfirmation": {
               "name": "Confirmation explicite requise",
@@ -149,19 +166,19 @@
             },
             "riskLevel": {
               "name": "Évaluation du niveau de risque",
-              "tooltip": "Commandes évaluées par impact potentiel"
+              "tooltip": "Commandes évaluées selon leur impact potentiel"
             }
           }
         },
         "shellExpertise": {
-          "title": "Expertise Shell",
+          "title": "Expertise shell",
           "features": {
             "posixFirst": {
-              "name": "Approche prioritaire POSIX",
+              "name": "Approche POSIX prioritaire",
               "tooltip": "Commandes portables qui fonctionnent partout"
             },
             "crossPlatform": {
-              "name": "Multi-plateformes (macOS/Linux/BSD)",
+              "name": "Multiplateforme (macOS/Linux/BSD)",
               "tooltip": "Fonctionne sur les systèmes de type Unix"
             },
             "existingTerminal": {
@@ -169,36 +186,36 @@
               "tooltip": "Aucun nouvel émulateur de terminal requis"
             },
             "platformAware": {
-              "name": "Commandes conscientes de la plateforme",
-              "tooltip": "Ajuste pour la syntaxe GNU vs BSD"
+              "name": "Commandes adaptées à la plateforme",
+              "tooltip": "S'ajuste à la syntaxe GNU vs BSD"
             }
           }
         },
         "modelBackend": {
-          "title": "Modèle & Backend",
+          "title": "Modèle et infrastructure",
           "features": {
             "localInference": {
               "name": "Inférence locale",
-              "tooltip": "Les modèles fonctionnent sur votre machine"
+              "tooltip": "Les modèles s'exécutent sur votre machine"
             },
             "multiBackend": {
-              "name": "Support multi-backend",
+              "name": "Support multi-infrastructure",
               "tooltip": "Choisissez votre moteur d'inférence"
             },
             "appleSilicon": {
-              "name": "Optimisé pour Apple Silicon",
-              "tooltip": "Cadre MLX pour les Macs de série M"
+              "name": "Optimisé Apple Silicon",
+              "tooltip": "Framework MLX pour les Mac série M"
             },
             "selfHostable": {
               "name": "Auto-hébergeable",
-              "tooltip": "Contrôle complet sur l'infrastructure"
+              "tooltip": "Contrôle total de l'infrastructure"
             }
           }
         }
       },
       "cta": {
-        "text": "Prêt pour un compagnon de shell qui respecte votre vie privée ?",
-        "getStarted": "Commencez gratuitement",
+        "text": "Prêt pour un compagnon shell qui respecte votre confidentialité ?",
+        "getStarted": "Commencer gratuitement",
         "fullComparison": "Voir la comparaison complète"
       },
       "legend": {
@@ -224,10 +241,10 @@
       "title": "Rencontrez Caro",
       "subtitle": "Un compagnon avec une histoire de loyauté et de transformation",
       "paragraphs": {
-        "intro": "Caro est la digitalisation de Kyaro (Kyarorain Kadosh), le chien bien-aimé du mainteneur. Tout comme un compagnon fidèle reste à vos côtés à travers chaque défi, Caro est là pour vous aider à naviguer dans les complexités des commandes shell avec sécurité et expertise.",
-        "highlight": "Dans Portal 2, nous avons appris que GLaDOS était autrefois Caroline, la secrétaire du fondateur de Aperture Science—transformée en gardienne éternelle de l'installation. Comme Caroline est devenue le cœur battant des chambres de test, Caro est votre compagnon éternel pour le terminal.",
-        "platforms": "Elle se spécialise dans les commandes shell POSIX et comprend les nuances de chaque plateforme—que vous soyez sur macOS, Linux, Windows, GNU ou BSD. Caro apporte vos préférences partout où vous la déployez, respectant votre choix de distribution tout en vous protégeant des commandes dangereuses.",
-        "companion": "En tant que compagnon fidèle de Claude, Caro gère le travail lourd spécifique au shell, permettant à Claude de se concentrer sur le travail plus large tout en s'assurant que chaque commande est sûre, correcte et optimisée pour votre plateforme."
+        "intro": "Caro est la numérisation de Kyaro (Kyarorain Kadosh), le chien bien-aimé du mainteneur. Tout comme un compagnon fidèle reste à vos côtés à travers chaque défi, Caro est là pour vous aider à naviguer dans les complexités des commandes shell avec sécurité et expertise.",
+        "highlight": "Dans Portal 2, nous avons appris que GLaDOS était autrefois Caroline, la secrétaire du fondateur d'Aperture Science—transformée en gardienne éternelle de l'installation. Comme Caroline est devenue le cœur battant des chambres de test, Caro est votre compagnon éternel pour le terminal.",
+        "platforms": "Elle se spécialise dans les commandes shell POSIX et comprend les nuances de chaque plateforme—que vous soyez sur macOS, Linux, Windows, GNU ou BSD. Caro apporte vos préférences avec elle partout où vous la déployez, respectant votre distribution de choix tout en vous protégeant des commandes dangereuses.",
+        "companion": "En tant que compagnon fidèle de Claude, Caro gère le travail lourd spécifique au shell, permettant à Claude de se concentrer sur le travail plus large tandis qu'elle garantit que chaque commande est sûre, correcte et optimisée pour votre plateforme."
       }
     },
     "faq": {
@@ -235,38 +252,166 @@
       "subtitle": "Questions réelles d'ingénieurs sceptiques (nous comprenons)",
       "concerns": [
         {
-          "question": "Attendez, Caro fonctionne localement. Comment reste-t-il à jour avec de nouveaux motifs dangereux ?",
-          "answer": "Les motifs de sécurité de Caro sont intégrés dans le binaire—aucun réseau nécessaire. Lorsque vous mettez à jour Caro (cargo install caro --force), vous obtenez les derniers motifs. Les commandes dangereuses principales (rm -rf /, les bombes fork, les effaceurs de disque) ne changent pas. Nous acceptons également les contributions de motifs via GitHub.",
+          "question": "Attendez, Caro s'exécute localement. Comment reste-t-il à jour avec les nouveaux motifs dangereux ?",
+          "answer": "Les motifs de sécurité de Caro sont intégrés dans le binaire—aucun réseau nécessaire. Lorsque vous mettez à jour Caro (cargo install caro --force), vous obtenez les derniers motifs. Les commandes dangereuses principales (rm -rf /, bombes fork, effaceurs de disque) ne changent pas. Nous acceptons également les contributions de motifs via GitHub.",
           "icon": "🔄"
         },
         {
           "question": "Cela va-t-il ralentir ma réponse aux incidents ?",
-          "answer": "Non. Caro ajoute <100ms à la génération de commande. La vérification de sécurité est instantanée (correspondance de motifs, pas d'inférence IA). Dans un véritable incident, c'est 100ms qui pourraient vous éviter de rendre les choses 10 fois pires. La validation est synchrone—vous voyez l'avertissement immédiatement.",
+          "answer": "Non. Caro ajoute moins de 100 ms à la génération de commandes. La vérification de sécurité est instantanée (correspondance de motifs, pas d'inférence IA). Lors d'un véritable incident, ces 100 ms pourraient vous éviter d'aggraver les choses 10 fois. La validation est synchrone—vous voyez l'avertissement immédiatement.",
           "icon": "⚡"
         },
         {
-          "question": "Comment sait-il ma configuration système spécifique (BSD vs GNU, etc.) ?",
-          "answer": "Caro détecte votre OS et votre shell au moment de l'exécution. Sur macOS, il sait que vous utilisez les outils BSD. Sur Linux, il s'ajuste pour la syntaxe GNU. Il lit votre $SHELL et s'ajuste en conséquence. Aucune configuration nécessaire—ça fonctionne juste.",
+          "question": "Comment connaît-il ma configuration système spécifique (BSD vs GNU, etc.) ?",
+          "answer": "Caro détecte votre système d'exploitation et votre shell à l'exécution. Sur macOS, il sait que vous utilisez les outils BSD. Sur Linux, il s'ajuste à la syntaxe GNU. Il lit votre $SHELL et s'adapte en conséquence. Aucune configuration nécessaire—ça fonctionne tout simplement.",
           "icon": "🖥️"
         },
         {
-          "question": "Et si j'ai réellement BESOIN d'exécuter une commande dangereuse ?",
-          "answer": "Caro avertit, il n'enferme pas. Lorsque vous voyez un avertissement, vous pouvez toujours continuer—nous nous assurons juste que vous le faites intentionnellement. Pour les commandes réellement destructrices (rm -rf /), vous devrez confirmer. C'est votre ceinture de sécurité, pas une camisole de force.",
+          "question": "Et si j'ai VRAIMENT besoin d'exécuter une commande dangereuse ?",
+          "answer": "Caro avertit, il n'emprisonne pas. Lorsque vous voyez un avertissement, vous pouvez toujours continuer—nous nous assurons simplement que vous le faites intentionnellement. Pour les commandes vraiment destructrices (rm -rf /), vous devrez confirmer. C'est votre ceinture de sécurité, pas une camisole de force.",
           "icon": "🔓"
         },
         {
-          "question": "Est-ce juste une autre enveloppe d'IA qui envoie mes commandes au cloud ?",
-          "answer": "Non. Caro fonctionne à 100% localement. Vos commandes, chemins de fichiers, noms de serveurs et structures de répertoires ne quittent jamais votre machine. L'inférence se fait sur votre matériel. Nous n'avons aucune télémétrie. Vérifiez le code source—il est sous licence AGPL-3.0.",
+          "question": "Est-ce juste un autre wrapper IA qui envoie mes commandes dans le cloud ?",
+          "answer": "Non. Caro s'exécute 100 % localement. Vos commandes, chemins de fichiers, noms de serveurs et structures de répertoires ne quittent jamais votre machine. L'inférence se produit sur votre matériel. Nous avons zéro télémétrie. Vérifiez le code source—il est sous licence AGPL-3.0.",
           "icon": "🔒"
         },
         {
-          "question": "Pourquoi devrais-je faire confiance à des commandes shell générées par IA du tout ?",
-          "answer": "Vous ne devriez pas leur faire confiance aveuglément—c'est le point. Caro génère des commandes ET les valide avant que vous les exécutiez. Ce n'est pas 'faire confiance à l'IA'—c'est 'faire confiance à la couche de sécurité basée sur des motifs qui attrape ce que l'IA pourrait mal faire.' La validation est déterministe, pas probabiliste.",
+          "question": "Pourquoi devrais-je faire confiance aux commandes shell générées par IA ?",
+          "answer": "Vous ne devriez pas leur faire confiance aveuglément—c'est justement le but. Caro génère des commandes ET les valide avant que vous ne les exécutiez. Ce n'est pas « faites confiance à l'IA »—c'est « faites confiance à la couche de sécurité basée sur des motifs qui détecte ce que l'IA pourrait manquer ». La validation est déterministe, pas probabiliste.",
           "icon": "🎯"
         }
       ]
     },
+    "video": {
+      "title": "Comment fonctionne Caro",
+      "subtitle": "Découvrez Caro en action en tant que compagnon shell"
+    },
+    "game": {
+      "title": "Jouez avec Caro",
+      "subtitle": "Testez vos connaissances en commandes shell ! Choisissez les commandes sûres, évitez les dangereuses.",
+      "stats": {
+        "level": "NIVEAU",
+        "score": "SCORE"
+      },
+      "header": "SÛR OU DANGEREUX ?",
+      "overlay": {
+        "title": "SÛR OU DANGEREUX ?",
+        "subtitle": "Pouvez-vous identifier quelles commandes shell sont sûres à exécuter ?",
+        "rules": {
+          "safe": "✓ Choisissez les commandes SÛRES pour marquer des points",
+          "danger": "✗ Évitez les commandes DANGEREUSES ou perdez une vie",
+          "timer": "⏱ Répondez avant la fin du temps !"
+        },
+        "lives": "Vies :",
+        "startButton": "COMMENCER",
+        "playAgainButton": "REJOUER",
+        "highScore": "Meilleur score :",
+        "leaderboardTitle": "🏆 MEILLEURS SCORES 🏆",
+        "gameOver": "PARTIE TERMINÉE",
+        "newHighScore": "🎉 NOUVEAU RECORD !",
+        "rank": "RANG #{{rank}} !",
+        "finalScore": "Vous avez atteint le niveau {{level}} avec {{score}} points !"
+      },
+      "streak": "🔥 Série :",
+      "messages": {
+        "correct": [
+          "Excellent travail ! 🎉",
+          "Correct ! ✓",
+          "Vous maîtrisez le sujet !",
+          "Choix sûr ! 👍",
+          "Bien joué !",
+          "Excellent ! 🌟"
+        ],
+        "wrong": [
+          "Oups ! C'est dangereux ! 💥",
+          "Attention ! ⚠️",
+          "Cela pourrait effacer votre système !",
+          "Dangereux ! Ne jamais exécuter ça !",
+          "Aïe ! Mauvaise commande !"
+        ],
+        "timeout": [
+          "Trop lent ! ⏱",
+          "Temps écoulé !",
+          "Il faut être plus rapide !"
+        ],
+        "start": [
+          "Prêt ? Trouvez la commande sûre !",
+          "Laquelle est sûre ?",
+          "Trouvez la commande sûre !",
+          "Choisissez judicieusement !"
+        ]
+      }
+    },
+    "blog": {
+      "title": "De la meute",
+      "subtitle": "Histoires, mises à jour et perspectives sur Caro",
+      "readMore": "Lire l'article complet →",
+      "viewAll": "Voir tous les articles →"
+    },
+    "announcement": {
+      "renameBanner": {
+        "emoji": "🎉",
+        "title": "Annonce de Caro !",
+        "message": "Nous avons changé de nom : de cmdai à caro.",
+        "linkText": "Lire l'annonce",
+        "dismissLabel": "Fermer l'annonce",
+        "dismissTitle": "Fermer"
+      }
+    },
     "download": {},
-    "footer": {}
+    "footer": {
+      "brand": {
+        "tagline": "Votre fidèle compagnon shell",
+        "description": "Génération de commandes shell POSIX assistée par IA avec validation axée sur la sécurité."
+      },
+      "columns": {
+        "product": {
+          "title": "Produit",
+          "features": "Fonctionnalités",
+          "howItWorks": "Comment ça fonctionne",
+          "explore": "Explorer",
+          "download": "Télécharger",
+          "roadmap": "Feuille de route"
+        },
+        "compare": {
+          "title": "Comparer",
+          "overview": "Vue d'ensemble",
+          "warp": "vs Warp",
+          "copilotCli": "vs GitHub Copilot CLI",
+          "kiro": "vs Kiro CLI",
+          "opencode": "vs OpenCode"
+        },
+        "resources": {
+          "title": "Ressources",
+          "blog": "Blog",
+          "faq": "FAQ",
+          "glossary": "Glossaire",
+          "github": "GitHub",
+          "issues": "Problèmes",
+          "contributing": "Contribuer",
+          "credits": "Crédits"
+        },
+        "support": {
+          "title": "Support",
+          "sponsor": "♥ Parrainer",
+          "license": "Licence AGPL-3.0"
+        }
+      },
+      "kyaro": {
+        "title": "Rencontrez Kyaro !",
+        "description": "L'inspiration réelle derrière Caro."
+      },
+      "bottom": {
+        "built": "Conçu avec 🦀 Rust |",
+        "brandName": "caro.sh",
+        "heart": "🧡",
+        "inspiration": "Inspiré par Caroline de Portal—la loyauté transformée en compagnonnage numérique",
+        "heritagePre": "Fièrement construit sur les fondations posées par",
+        "gnu": "GNU",
+        "fsf": "FSF",
+        "freebsd": "FreeBSD"
+      }
+    }
   }
 }

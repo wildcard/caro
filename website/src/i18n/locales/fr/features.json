@@ -2,42 +2,42 @@
   "features": {
     "title": "Pourquoi Caro ?",
     "subtitle": "Un agent compagnon conçu pour la sécurité, l'empathie et l'expertise",
-    "alphaNotice": "🚧 Lancement en Alpha — Nous construisons activement avec notre communauté. Rejoignez-nous pour aider à façonner l'avenir de Caro !",
+    "alphaNotice": "🚧 Alpha en Soft Launch — Nous construisons activement avec notre communauté. Rejoignez-nous pour façonner l'avenir de Caro !",
     "items": [
       {
         "icon": "🛡️",
-        "title": "Gardien de la Sécurité",
-        "description": "Une validation complète bloque les commandes dangereuses comme rm -rf /, les fork bombs et les opérations destructrices. 52 modèles de sécurité prédéfinis avec évaluation du niveau de risque.",
-        "statusLabel": "Disponible Maintenant"
+        "title": "Gardien de Sécurité",
+        "description": "Validation complète qui bloque les commandes dangereuses comme rm -rf /, les fork bombs et les opérations destructrices. 52 patterns de sécurité prédéfinis avec évaluation du niveau de risque.",
+        "statusLabel": "Disponible"
       },
       {
         "icon": "🌍",
         "title": "Expert Multi-Plateformes",
-        "description": "Fonctionne sur macOS, Linux, Windows, GNU et BSD. Comprend les nuances spécifiques à chaque plateforme et respecte votre distribution de choix.",
-        "statusLabel": "Disponible Maintenant"
+        "description": "Fonctionne sur macOS, Linux, Windows, GNU et BSD. Comprend les nuances spécifiques à chaque plateforme et respecte votre distribution préférée.",
+        "statusLabel": "Disponible"
       },
       {
         "icon": "🧠",
-        "title": "Conscient de la Plateforme",
-        "description": "Fournit des recommandations basées sur les capacités de votre plateforme et les meilleures pratiques. Distingue automatiquement la syntaxe des commandes BSD et GNU.",
-        "statusLabel": "Disponible Maintenant"
+        "title": "Conscience des Plateformes",
+        "description": "Fournit des recommandations basées sur les capacités de votre plateforme et les bonnes pratiques. Distingue automatiquement la syntaxe des commandes BSD et GNU.",
+        "statusLabel": "Disponible"
       },
       {
         "icon": "✅",
         "title": "Spécialiste POSIX",
-        "description": "Expert en commandes shell conformes à POSIX qui fonctionnent de manière fiable sur les systèmes. Portable, sûr et optimisé pour votre terminal.",
-        "statusLabel": "Disponible Maintenant"
+        "description": "Expert en commandes shell conformes POSIX qui fonctionnent de manière fiable sur tous les systèmes. Portable, sûr et optimisé pour votre terminal.",
+        "statusLabel": "Disponible"
       },
       {
         "icon": "⚡",
-        "title": "Rapide comme l'éclair",
-        "description": "Objectif : Démarrage en moins de 100ms, inférence en moins de 2s sur Apple Silicon. Intégration du cadre MLX pour l'accélération GPU sur les puces de série M.",
+        "title": "Ultra Rapide",
+        "description": "Objectif : Démarrage en moins de 100ms, inférence en moins de 2s sur Apple Silicon. Intégration du framework MLX pour l'accélération GPU sur puces série M.",
         "statusLabel": "En Développement"
       },
       {
         "icon": "🤝",
-        "title": "Le Compagnon de Claude",
-        "description": "Vision : Intégration transparente avec Claude en tant que serveur MCP et Compétence, déléguant l'inférence des commandes shell pendant que Claude se concentre sur votre travail plus large.",
+        "title": "Compagnon de Claude",
+        "description": "Vision : Intégration transparente avec Claude en tant que serveur MCP et Skill, déléguant l'inférence des commandes shell pendant que Claude se concentre sur votre travail global.",
         "statusLabel": "Prévu"
       }
     ]
