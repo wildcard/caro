@@ -4,7 +4,8 @@
     "website",
     "docs-site",
     "landing",
-    "presentation"
+    "presentation",
+    "apps/devrel"
   ],
   "dependencies": {
     "openai": "^6.16.0"
