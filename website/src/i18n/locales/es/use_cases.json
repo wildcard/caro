@@ -1,0 +1,22 @@
+{
+  "use_cases": {
+    "meta": {
+      "title": "Casos de Uso - Caro",
+      "description": "Descubre cómo desarrolladores, ingenieros DevOps y SREs usan Caro para trabajar de forma segura y eficiente con comandos de shell."
+    },
+    "title": "Casos de Uso",
+    "subtitle": "Caro se adapta a tu flujo de trabajo, ya estés desarrollando, desplegando o resolviendo problemas.",
+    "developer": {
+      "title": "Para Desarrolladores",
+      "description": "Escribe scripts más rápido con asistencia de IA mientras Caro valida cada comando para garantizar seguridad y corrección."
+    },
+    "devops": {
+      "title": "Para Ingenieros DevOps",
+      "description": "Despliega con confianza. Caro detecta comandos peligrosos antes de que lleguen a la infraestructura de producción."
+    },
+    "sre": {
+      "title": "Para Site Reliability Engineers",
+      "description": "Resuelve incidencias de forma segura. Caro previene borrados accidentales durante sesiones de debugging de alto estrés."
+    }
+  }
+}

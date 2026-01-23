@@ -2,9 +2,9 @@
   "hero": {
     "badge": "🐕 Agente Compañero",
     "logo": "Caro",
-    "logoAlt": "Caro - arte pixel de 8 bits",
-    "tagline": "Tu compañera leal de shell",
-    "subtitle": "Un agente especializado en comandos POSIX shell con empatía y agencia. Disponible como MCP para Claude y como Skill dedicado. Te mantiene a salvo mientras ayuda a Claude a hacer el trabajo.",
+    "logoAlt": "Caro - pixel art 8-bit",
+    "tagline": "Tu compañera fiel en la shell",
+    "subtitle": "Un agente especializado en comandos POSIX shell con empatía y autonomía. Disponible como MCP para Claude y como Skill dedicada. Te mantiene a salvo mientras ayuda a Claude a hacer el trabajo.",
     "cta": {
       "getStarted": "Empezar",
       "watchDemo": "Ver Demo"

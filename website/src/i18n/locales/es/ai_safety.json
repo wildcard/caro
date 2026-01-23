@@ -1,0 +1,46 @@
+{
+  "ai_safety": {
+    "meta": {
+      "title": "Seguridad de Comandos IA - Caro",
+      "description": "Caro valida los comandos de shell generados por IA antes de ejecutarlos, previniendo operaciones peligrosas y manteniendo tu sistema a salvo."
+    },
+    "hero": {
+      "title": "Seguridad de Comandos IA",
+      "subtitle": "Valida los comandos de shell generados por IA antes de ejecutarlos. Mantente seguro mientras aprovechas el poder de los LLMs."
+    },
+    "features": {
+      "title": "Características de Seguridad",
+      "validation": {
+        "title": "Validación en Tiempo Real",
+        "description": "Cada comando se comprueba contra más de 52 patrones de seguridad antes de ejecutarse. Las operaciones peligrosas se bloquean al instante."
+      },
+      "claude_integration": {
+        "title": "Integración con Claude Code",
+        "description": "Funciona perfectamente con Claude Code. Genera comandos de forma natural, ejecútalos de forma segura."
+      },
+      "fast": {
+        "title": "Ultrarrápido",
+        "description": "Validación en submilisegundos. Las comprobaciones de seguridad no te ralentizan."
+      },
+      "patterns": {
+        "title": "Más de 52 Patrones de Seguridad",
+        "description": "Bloquea rm -rf /, borrados de bases de datos de producción, eliminaciones recursivas y mucho más. Actualizado constantemente."
+      }
+    },
+    "how_it_works": {
+      "title": "Cómo Funciona",
+      "step1": {
+        "title": "Genera el Comando",
+        "description": "Usa Claude o cualquier LLM para generar un comando de shell desde lenguaje natural."
+      },
+      "step2": {
+        "title": "Caro Valida",
+        "description": "El comando se analiza en busca de patrones peligrosos, operaciones destructivas y riesgos de seguridad."
+      },
+      "step3": {
+        "title": "Ejecución Segura",
+        "description": "Si es seguro, el comando se ejecuta. Si es peligroso, recibes un aviso antes de que ocurra cualquier daño."
+      }
+    }
+  }
+}
