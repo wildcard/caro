@@ -2,42 +2,42 @@
   "features": {
     "title": "¿Por qué Caro?",
     "subtitle": "Un agente compañero diseñado para seguridad, empatía y experiencia",
-    "alphaNotice": "🚧 Alpha de Lanzamiento Suave — Estamos construyendo activamente con nuestra comunidad. ¡Únete para ayudar a dar forma al futuro de Caro!",
+    "alphaNotice": "🚧 Alpha en Lanzamiento Suave — Estamos construyendo activamente con nuestra comunidad. ¡Únete para ayudar a dar forma al futuro de Caro!",
     "items": [
       {
         "icon": "🛡️",
         "title": "Guardián de Seguridad",
-        "description": "Validación completa que bloquea comandos peligrosos como rm -rf /, fork bombs y operaciones destructivas. 52 patrones de seguridad predefinidos con evaluación de nivel de riesgo.",
-        "statusLabel": "Disponible Ya"
+        "description": "Validación exhaustiva que bloquea comandos peligrosos como rm -rf /, bombas fork y operaciones destructivas. 52 patrones de seguridad predefinidos con evaluación de nivel de riesgo.",
+        "statusLabel": "Disponible Ahora"
       },
       {
         "icon": "🌍",
         "title": "Experto Multiplataforma",
         "description": "Funciona en macOS, Linux, Windows, GNU y BSD. Entiende los matices específicos de cada plataforma y respeta tu distribución preferida.",
-        "statusLabel": "Disponible Ya"
+        "statusLabel": "Disponible Ahora"
       },
       {
         "icon": "🧠",
         "title": "Consciente de Plataforma",
-        "description": "Proporciona recomendaciones basadas en las capacidades y mejores prácticas de tu plataforma. Distingue automáticamente entre sintaxis BSD y GNU.",
-        "statusLabel": "Disponible Ya"
+        "description": "Proporciona recomendaciones basadas en las capacidades de tu plataforma y mejores prácticas. Distingue automáticamente entre sintaxis de comandos BSD y GNU.",
+        "statusLabel": "Disponible Ahora"
       },
       {
         "icon": "✅",
         "title": "Especialista POSIX",
-        "description": "Experto en comandos shell compatibles con POSIX que funcionan de forma fiable en todos los sistemas. Portables, seguros y optimizados para tu terminal.",
-        "statusLabel": "Disponible Ya"
+        "description": "Experto en comandos shell compatibles con POSIX que funcionan de forma fiable entre sistemas. Portables, seguros y optimizados para tu terminal.",
+        "statusLabel": "Disponible Ahora"
       },
       {
         "icon": "⚡",
         "title": "Ultrarrápido",
-        "description": "Objetivo: Inicio en menos de 100ms, inferencia en menos de 2s en Apple Silicon. Integración con framework MLX para aceleración GPU en chips de la serie M.",
+        "description": "Objetivo: Arranque en menos de 100ms, inferencia en menos de 2s en Apple Silicon. Integración del framework MLX para aceleración GPU en chips serie M.",
         "statusLabel": "En Desarrollo"
       },
       {
         "icon": "🤝",
         "title": "Compañero de Claude",
-        "description": "Visión: Integración perfecta con Claude como servidor MCP y Skill, delegando la inferencia de comandos shell mientras Claude se enfoca en tu trabajo más amplio.",
+        "description": "Visión: Integración fluida con Claude como servidor MCP y Skill, delegando la inferencia de comandos shell mientras Claude se centra en tu trabajo más amplio.",
         "statusLabel": "Planificado"
       }
     ]

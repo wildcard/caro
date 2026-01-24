@@ -1,14 +1,19 @@
 {
   "common": {
     "meta": {
-      "title": "Caro - Tu compañero leal de shell",
-      "description": "Caro es un agente compañero que te ayuda con comandos POSIX shell. Disponible como MCP para Claude y como Skill dedicado."
+      "title": "Caro - Tu compañero fiel en la shell",
+      "description": "Caro es un agente compañero que te ayuda con comandos de shell POSIX. Disponible como MCP para Claude y como Skill dedicado."
     },
     "buttons": {
       "copy": "Copiar",
       "copied": "¡Copiado!",
       "getStarted": "Empezar",
-      "watchDemo": "Ver Demo"
+      "watchDemo": "Ver Demo",
+      "get_started": "Empezar",
+      "learn_more": "Saber Más"
+    },
+    "links": {
+      "download": "/#download"
     },
     "status": {
       "availableNow": "Disponible Ya",
@@ -17,8 +22,8 @@
       "comingSoon": "Próximamente"
     },
     "aria": {
-      "toggleDarkMode": "Alternar modo oscuro",
-      "toggleHolidayTheme": "Alternar menú de tema festivo"
+      "toggleDarkMode": "Activar modo oscuro",
+      "toggleHolidayTheme": "Activar menú de tema festivo"
     },
     "nav": {
       "features": "Características",
@@ -32,17 +37,17 @@
         "vsWarp": "vs Warp",
         "aiNativeTerminal": "Terminal nativa con IA",
         "vsGitHubCopilot": "vs GitHub Copilot CLI",
-        "aiPairProgrammer": "Programador par con IA",
+        "aiPairProgrammer": "Programador en pareja con IA",
         "vsKiro": "vs Kiro CLI",
-        "awsAssistant": "Asistente IA de AWS",
+        "awsAssistant": "Asistente IA para AWS",
         "blog": "Blog",
         "newsAndTutorials": "Noticias y tutoriales",
         "explore": "Explorar",
         "interactiveDemo": "Demo interactiva",
-        "faq": "Preguntas Frecuentes",
-        "commonQuestions": "Preguntas comunes",
-        "roadmap": "Hoja de Ruta",
-        "whatsNext": "Lo que viene",
+        "faq": "FAQ",
+        "commonQuestions": "Preguntas frecuentes",
+        "roadmap": "Roadmap",
+        "whatsNext": "Qué viene después",
         "glossary": "Glosario",
         "terminalTerms": "Términos de terminal y Unix",
         "github": "GitHub",
@@ -50,7 +55,7 @@
       },
       "mobile": {
         "allComparisons": "Todas las Comparaciones",
-        "supportCaro": "Apoya a Caro"
+        "supportCaro": "Apoyar a Caro"
       },
       "appearance": {
         "title": "Apariencia",

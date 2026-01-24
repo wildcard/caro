@@ -4,45 +4,45 @@
     "links": {
       "features": "Fonctionnalités",
       "compare": "Comparer",
-      "play": "Jouer",
+      "play": "Essayer",
       "blog": "Blog",
-      "getStarted": "Commencer",
+      "getStarted": "Démarrer",
       "github": "GitHub"
     },
     "darkMode": {
-      "toggle": "Activer le mode sombre"
+      "toggle": "Basculer le mode sombre"
     },
     "holidayTheme": {
-      "toggle": "Activer le menu du thème des fêtes",
-      "title": "Thème des Fêtes",
-      "menuHeader": "Thème des Fêtes",
+      "toggle": "Basculer le menu des thèmes de fêtes",
+      "title": "Thème de fête",
+      "menuHeader": "Thème de fête",
       "options": {
         "christmas": "Noël",
         "hanukkah": "Hanoukka",
-        "noTheme": "Sans Thème"
+        "noTheme": "Sans thème"
       },
-      "snowEffect": "Effet de neige"
+      "snowEffect": "Effet neige"
     }
   },
   "footer": {
-    "builtWith": "Construit avec Rust 🦀 | Open source sur",
+    "builtWith": "Développé en Rust 🦀 | Open source sur",
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
-      "tagline": "Votre fidèle compagnon de shell"
+      "tagline": "Votre fidèle compagnon shell"
     },
     "links": {
       "license": "AGPL-3.0",
-      "credits": "Crédits & Attribution",
+      "credits": "Crédits & Attributions",
       "contributing": "Contribuer",
-      "issues": "Problèmes"
+      "issues": "Issues"
     },
     "kyaro": {
-      "title": "Rencontrez Kyaro IRL (Kyarorain Kadosh) ! 🐕🖤",
+      "title": "Rencontrez Kyaro en vrai (Kyarorain Kadosh) ! 🐕🖤",
       "followText": "Suivez ses aventures sur",
       "instagram": "Instagram @kyaroblackheart"
     },
-    "inspiration": "Inspiré par Caroline de Portal—la loyauté transformée en compagnonnage numérique",
+    "inspiration": "Inspiré par Caroline de Portal — la loyauté transformée en compagnonnage numérique",
     "elevatorCredit": "Effet de défilement par"
   }
 }

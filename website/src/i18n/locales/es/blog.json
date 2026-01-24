@@ -1,0 +1,11 @@
+{
+  "blog": {
+    "meta": {
+      "title": "Blog - Caro",
+      "description": "Aprende sobre seguridad en terminal, validación de comandos y cómo Caro mantiene tu sistema protegido."
+    },
+    "title": "Blog",
+    "subtitle": "Historias, novedades y reflexiones del equipo de Caro",
+    "read_more": "Leer más"
+  }
+}
