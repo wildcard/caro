@@ -3,6 +3,7 @@
 use async_trait::async_trait;
 use reqwest::{header, Client, Url};
 use serde::{Deserialize, Serialize};
+use std::fmt;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -68,6 +69,32 @@ pub struct VllmBackend {
     client: Client,
     api_key: Option<String>,
     embedded_fallback: Option<Arc<dyn CommandGenerator>>,
+}
+
+impl fmt::Debug for VllmBackend {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("VllmBackend")
+            .field("base_url", &self.base_url)
+            .field("model_name", &self.model_name)
+            .field("client", &"<HTTP client>")
+            .field(
+                "api_key",
+                if self.api_key.is_some() {
+                    &"<redacted>"
+                } else {
+                    &"None"
+                },
+            )
+            .field(
+                "embedded_fallback",
+                if self.embedded_fallback.is_some() {
+                    &"Some(<backend>)"
+                } else {
+                    &"None"
+                },
+            )
+            .finish()
+    }
 }
 
 impl VllmBackend {
