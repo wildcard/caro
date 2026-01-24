@@ -1,0 +1,7 @@
+{
+  "claudeCommand": "claude",
+  "terminal": "alacritty",
+  "options": {
+    "defaultFlags": ""
+  }
+}

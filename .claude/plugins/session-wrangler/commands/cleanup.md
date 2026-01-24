@@ -166,6 +166,37 @@ if docker ps | grep -q continuous-claude-postgres; then
 fi
 ```
 
+### 5. Find Invalid Worktrees (Phase 2: Worktree Nesting Enforcement)
+
+```bash
+# Get project root
+PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+
+# Find all .worktrees directories (including nested ones)
+find "$PROJECT_ROOT" -name ".worktrees" -type d 2>/dev/null | while read -r worktree_dir; do
+  # Check if it's NOT the root .worktrees directory
+  if [[ "$worktree_dir" != "$PROJECT_ROOT/.worktrees" ]]; then
+    echo "$worktree_dir|NESTED_WORKTREE|INVALID"
+  fi
+done
+
+# Check worktrees that are not in .worktrees/ directory
+git worktree list 2>/dev/null | while read -r line; do
+  WORKTREE_PATH=$(echo "$line" | awk '{print $1}')
+
+  # Skip the main repo path
+  if [[ "$WORKTREE_PATH" == "$PROJECT_ROOT" ]]; then
+    continue
+  fi
+
+  # Check if worktree is in the correct location
+  if [[ ! "$WORKTREE_PATH" =~ ^$PROJECT_ROOT/\.worktrees/ ]]; then
+    BRANCH=$(echo "$line" | awk '{print $3}' | sed 's/\[//' | sed 's/\]//')
+    echo "$WORKTREE_PATH|MISPLACED_WORKTREE|$BRANCH"
+  fi
+done
+```
+
 ## Analysis Phase
 
 Collect all findings and categorize:
@@ -539,4 +570,45 @@ Waiting 60 seconds before considering it for cleanup.
 After cleanup completes:
 - Update `/sessions` cache if any exists
 - Clear any stale database connections
+- Update session index (Phase 2)
 - Suggest running `/sessions` to verify cleanup
+
+### Update Session Index (Phase 2)
+
+```bash
+# Get project info
+PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+PROJECT_SLUG=$(echo "$PROJECT_ROOT" | sed 's|/|-|g' | sed 's|^-||')
+INDEX_FILE="$HOME/.claude/projects/$PROJECT_SLUG/session-index.json"
+
+if [ -f "$INDEX_FILE" ]; then
+  # Remove cleaned up sessions from index
+  TEMP_INDEX=$(mktemp)
+
+  # Build list of sessions that were cleaned up
+  CLEANED_SESSIONS=""
+  for SESSION_ID in "${ARCHIVED_SESSIONS[@]}"; do
+    CLEANED_SESSIONS="$CLEANED_SESSIONS $SESSION_ID"
+  done
+
+  # Update index by removing cleaned sessions
+  if [ -n "$CLEANED_SESSIONS" ]; then
+    jq "$(
+      for sid in $CLEANED_SESSIONS; do
+        echo "del(.sessions[\"$sid\"]) |"
+      done
+      echo "."
+    )" "$INDEX_FILE" > "$TEMP_INDEX"
+    mv "$TEMP_INDEX" "$INDEX_FILE"
+
+    echo ""
+    echo "✓ Session index updated ($INDEX_FILE)"
+  fi
+
+  # Suggest sync if major cleanup occurred
+  if [ ${#ARCHIVED_SESSIONS[@]} -gt 3 ]; then
+    echo ""
+    echo "💡 Run /sessions.sync to fully rebuild the index"
+  fi
+fi
+```

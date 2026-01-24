@@ -47,15 +47,39 @@ When running multiple Claude Code sessions:
 - Smart window finding (by title, PID, cwd)
 - Cross-platform support (macOS, Linux)
 
+## Phase 2 Enhancements (v2.0.0)
+
+### 📊 Session-Worktree Index
+- **Persistent mapping**: Fast bidirectional session ↔ worktree lookups
+- **Per-project isolation**: Each repository has its own index
+- **Auto-update**: Hooks keep index current as sessions change
+- **Manual sync**: `/sessions.sync` forces full rebuild
+
+**Location**: `~/.claude/projects/<project-slug>/session-index.json`
+
+### ⚙️ Configurable Settings
+- **Custom claude command**: Support aliases like `claude-yolo`
+- **Terminal preference**: Choose Alacritty, Kitty, iTerm2, etc.
+- **Global configuration**: Settings apply to all projects
+
+**Location**: `~/.claude/plugins/session-wrangler/config.json`
+
+### 🔒 Worktree Enforcement
+- **Location validation**: Worktrees must be in `.worktrees/` only
+- **Nesting prevention**: No nested worktrees allowed
+- **Cleanup detection**: Find misplaced or nested worktrees
+
 ## Commands
 
 | Command | Purpose |
 |---------|---------|
-| `/sessions` | List all Claude sessions with status |
+| `/sessions` | List all Claude sessions with index acceleration |
 | `/sessions.inspect <session>` | Deep dive into a specific session |
-| `/sessions.revive <session>` | Spawn terminal and revive session |
-| `/sessions.cleanup` | Clean up zombies and corrupted files |
+| `/sessions.revive <session>` | Spawn terminal with worktree validation |
+| `/sessions.cleanup` | Clean up zombies, corrupted files, invalid worktrees |
 | `/sessions.switch <session>` | Navigate to another session's terminal |
+| `/sessions.sync` | **NEW** Force rebuild session-worktree index |
+| `/sessions.config` | **NEW** View and modify configuration settings |
 
 ## Usage Examples
 
@@ -183,19 +207,66 @@ Add to Claude Code's installed plugins:
 
 ## Configuration
 
-### Terminal Emulator
+### Plugin Configuration (Phase 2)
 
-Default: Alacritty
+**Location**: `~/.claude/plugins/session-wrangler/config.json`
 
-To use a different terminal, modify `/sessions.revive`:
+**Default Values**:
+```json
+{
+  "claudeCommand": "claude",
+  "terminal": "alacritty",
+  "options": {
+    "defaultFlags": ""
+  }
+}
+```
+
+**Configuration Commands**:
+
+View current config:
 ```bash
-# Replace:
-alacritty --title "$TITLE" --working-directory "$PATH" &
+/sessions.config
+```
 
-# With your terminal:
-kitty --title "$TITLE" --directory "$PATH" &
-# or
-wezterm start --cwd "$PATH" &
+Set custom claude command (e.g., for aliases):
+```bash
+/sessions.config claude-command claude-yolo
+```
+
+Change terminal emulator:
+```bash
+/sessions.config terminal kitty
+```
+
+Reset to defaults:
+```bash
+/sessions.config reset
+```
+
+### Supported Terminals
+
+- **alacritty** (default)
+- **kitty**
+- **wezterm**
+- **iterm2**
+- **terminal** (macOS Terminal.app)
+
+### Session Index (Phase 2)
+
+**Location**: `~/.claude/projects/<project-slug>/session-index.json`
+
+**Purpose**: Maintains fast bidirectional mapping between sessions and worktrees.
+
+**Auto-Update**: Index is updated automatically via PostToolUse hooks when:
+- Sessions are started or revived
+- Sessions complete or are cleaned up
+- Worktrees are created or removed
+
+**Manual Sync**:
+```bash
+/sessions.sync              # Full rebuild
+/sessions.sync --verify     # Verify without modifying
 ```
 
 ### Archive Location
@@ -211,7 +282,7 @@ ARCHIVE_DIR=~/.claude/archive/$(date +%Y%m%d)
 
 Default: `~/.claude/projects/-Users-kobik-private-workspace-caro/`
 
-Update in all commands if your project path differs.
+This is determined automatically per-project.
 
 ## Safety Features
 
