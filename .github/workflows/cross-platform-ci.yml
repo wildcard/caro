@@ -1,0 +1,353 @@
+name: Cross-Platform CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'benches/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'build.rs'
+      - '.github/workflows/cross-platform-ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'benches/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'build.rs'
+      - '.github/workflows/cross-platform-ci.yml'
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  # ============================================================================
+  # BSD Testing Matrix (FreeBSD & OpenBSD)
+  # Uses cross-platform-actions/action for VM-based testing
+  # ============================================================================
+
+  bsd-tests:
+    name: BSD (${{ matrix.os.name }} ${{ matrix.os.version }}, ${{ matrix.os.arch }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          # FreeBSD - Latest stable on both architectures
+          - name: freebsd
+            version: '15.0'
+            arch: x86-64
+            rust_target: x86_64-unknown-freebsd
+          - name: freebsd
+            version: '15.0'
+            arch: arm64
+            rust_target: aarch64-unknown-freebsd
+          # OpenBSD - Latest stable on both architectures
+          - name: openbsd
+            version: '7.8'
+            arch: x86-64
+            rust_target: x86_64-unknown-openbsd
+          - name: openbsd
+            version: '7.8'
+            arch: arm64
+            rust_target: aarch64-unknown-openbsd
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Run BSD tests
+        uses: cross-platform-actions/action@v0.32.0
+        with:
+          operating_system: ${{ matrix.os.name }}
+          version: ${{ matrix.os.version }}
+          architecture: ${{ matrix.os.arch }}
+          memory: 8G
+          cpu_count: 4
+          shell: bash
+          sync_files: runner-to-vm
+          run: |
+            set -ex
+
+            echo "=== System Information ==="
+            uname -a
+
+            echo "=== Installing Rust ==="
+            # Install Rust via rustup
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+            . "$HOME/.cargo/env"
+
+            echo "=== Rust Version ==="
+            rustc --version
+            cargo --version
+
+            echo "=== Building Project ==="
+            cargo build --release --no-default-features --features embedded-cpu,remote-backends
+
+            echo "=== Running Contract Tests ==="
+            cargo test --test backend_trait_contract --verbose -- --test-threads=1
+            cargo test --test safety_validator_contract --verbose -- --test-threads=1
+            cargo test --test platform_detection_contract --verbose -- --test-threads=1
+            cargo test --test config_contract --verbose -- --test-threads=1
+            cargo test --test execution_contract --verbose -- --test-threads=1
+            cargo test --test cache_contract --verbose -- --test-threads=1
+            cargo test --test logging_contract --verbose -- --test-threads=1
+
+            echo "=== Running Unit Tests ==="
+            cargo test --lib --verbose -- --test-threads=1
+
+            echo "=== BSD Tests Complete ==="
+
+  # ============================================================================
+  # Linux Distribution Testing Matrix
+  # Tests on popular professional Linux distributions using containers
+  # ============================================================================
+
+  linux-distro-tests:
+    name: Linux (${{ matrix.distro.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        distro:
+          # Debian-based - Enterprise stable
+          - name: Debian 12 (Bookworm)
+            image: debian:bookworm
+            pkg_manager: apt-get
+            install_deps: apt-get update && apt-get install -y curl build-essential pkg-config libssl-dev
+
+          # Fedora - Enterprise/RHEL-adjacent
+          - name: Fedora 41
+            image: fedora:41
+            pkg_manager: dnf
+            install_deps: dnf install -y curl gcc gcc-c++ make pkg-config openssl-devel
+
+          # Alpine - Lightweight/musl libc
+          - name: Alpine 3.21
+            image: alpine:3.21
+            pkg_manager: apk
+            install_deps: apk add --no-cache curl bash build-base openssl-dev musl-dev
+
+          # Arch Linux - Bleeding edge
+          - name: Arch Linux
+            image: archlinux:latest
+            pkg_manager: pacman
+            install_deps: pacman -Syu --noconfirm && pacman -S --noconfirm curl base-devel openssl
+
+          # Rocky Linux - RHEL clone for enterprise
+          - name: Rocky Linux 9
+            image: rockylinux:9
+            pkg_manager: dnf
+            install_deps: dnf install -y curl gcc gcc-c++ make pkg-config openssl-devel
+
+          # openSUSE - Enterprise SUSE
+          - name: openSUSE Tumbleweed
+            image: opensuse/tumbleweed
+            pkg_manager: zypper
+            install_deps: zypper refresh && zypper install -y curl gcc gcc-c++ make pkg-config libopenssl-devel
+
+    container:
+      image: ${{ matrix.distro.image }}
+
+    steps:
+      - name: Install system dependencies
+        run: ${{ matrix.distro.install_deps }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install Rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Verify Rust installation
+        run: |
+          . "$HOME/.cargo/env"
+          rustc --version
+          cargo --version
+
+      - name: Build project
+        run: |
+          . "$HOME/.cargo/env"
+          cargo build --release --no-default-features --features embedded-cpu,remote-backends
+
+      - name: Run contract tests
+        run: |
+          . "$HOME/.cargo/env"
+          cargo test --test backend_trait_contract --verbose -- --test-threads=1
+          cargo test --test safety_validator_contract --verbose -- --test-threads=1
+          cargo test --test platform_detection_contract --verbose -- --test-threads=1
+          cargo test --test config_contract --verbose -- --test-threads=1
+          cargo test --test execution_contract --verbose -- --test-threads=1
+          cargo test --test cache_contract --verbose -- --test-threads=1
+          cargo test --test logging_contract --verbose -- --test-threads=1
+        env:
+          RUST_BACKTRACE: 1
+
+      - name: Run unit tests
+        run: |
+          . "$HOME/.cargo/env"
+          cargo test --lib --verbose -- --test-threads=1
+        env:
+          RUST_BACKTRACE: 1
+
+  # ============================================================================
+  # ARM64 Linux Testing
+  # Tests on ARM64 architecture using emulation
+  # ============================================================================
+
+  linux-arm64-tests:
+    name: Linux ARM64 (${{ matrix.distro.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        distro:
+          - name: Debian ARM64
+            image: arm64v8/debian:bookworm
+            install_deps: apt-get update && apt-get install -y curl build-essential pkg-config libssl-dev
+          - name: Alpine ARM64
+            image: arm64v8/alpine:3.21
+            install_deps: apk add --no-cache curl bash build-base openssl-dev musl-dev
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up QEMU for ARM64 emulation
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Run ARM64 tests in container
+        run: |
+          docker run --rm --platform linux/arm64 \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace \
+            ${{ matrix.distro.image }} \
+            /bin/sh -c '
+              set -ex
+              ${{ matrix.distro.install_deps }}
+
+              echo "=== System Information ==="
+              uname -a
+
+              echo "=== Installing Rust ==="
+              curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+              . "$HOME/.cargo/env"
+
+              echo "=== Rust Version ==="
+              rustc --version
+              cargo --version
+
+              echo "=== Building Project ==="
+              cargo build --release --no-default-features --features embedded-cpu,remote-backends
+
+              echo "=== Running Contract Tests ==="
+              cargo test --test backend_trait_contract --verbose -- --test-threads=1
+              cargo test --test safety_validator_contract --verbose -- --test-threads=1
+              cargo test --test platform_detection_contract --verbose -- --test-threads=1
+              cargo test --test config_contract --verbose -- --test-threads=1
+
+              echo "=== Running Unit Tests ==="
+              cargo test --lib --verbose -- --test-threads=1
+
+              echo "=== ARM64 Tests Complete ==="
+            '
+
+  # ============================================================================
+  # NetBSD Testing (Bonus BSD coverage)
+  # ============================================================================
+
+  netbsd-tests:
+    name: BSD (NetBSD ${{ matrix.os.version }}, ${{ matrix.os.arch }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - version: '10.1'
+            arch: x86-64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Run NetBSD tests
+        uses: cross-platform-actions/action@v0.32.0
+        with:
+          operating_system: netbsd
+          version: ${{ matrix.os.version }}
+          architecture: ${{ matrix.os.arch }}
+          memory: 8G
+          cpu_count: 4
+          shell: bash
+          sync_files: runner-to-vm
+          run: |
+            set -ex
+
+            echo "=== System Information ==="
+            uname -a
+
+            echo "=== Installing Rust ==="
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+            . "$HOME/.cargo/env"
+
+            echo "=== Rust Version ==="
+            rustc --version
+            cargo --version
+
+            echo "=== Building Project ==="
+            cargo build --release --no-default-features --features embedded-cpu,remote-backends
+
+            echo "=== Running Contract Tests ==="
+            cargo test --test backend_trait_contract --verbose -- --test-threads=1
+            cargo test --test safety_validator_contract --verbose -- --test-threads=1
+            cargo test --test platform_detection_contract --verbose -- --test-threads=1
+            cargo test --test config_contract --verbose -- --test-threads=1
+            cargo test --test execution_contract --verbose -- --test-threads=1
+
+            echo "=== Running Unit Tests ==="
+            cargo test --lib --verbose -- --test-threads=1
+
+            echo "=== NetBSD Tests Complete ==="
+
+  # ============================================================================
+  # Summary Job - Reports overall cross-platform status
+  # ============================================================================
+
+  cross-platform-summary:
+    name: Cross-Platform Summary
+    runs-on: ubuntu-latest
+    needs: [bsd-tests, linux-distro-tests, linux-arm64-tests, netbsd-tests]
+    if: always()
+    steps:
+      - name: Check job results
+        run: |
+          echo "=== Cross-Platform CI Summary ==="
+          echo ""
+          echo "BSD Tests: ${{ needs.bsd-tests.result }}"
+          echo "Linux Distro Tests: ${{ needs.linux-distro-tests.result }}"
+          echo "Linux ARM64 Tests: ${{ needs.linux-arm64-tests.result }}"
+          echo "NetBSD Tests: ${{ needs.netbsd-tests.result }}"
+          echo ""
+
+          # Fail if any required job failed
+          if [[ "${{ needs.bsd-tests.result }}" == "failure" ]] || \
+             [[ "${{ needs.linux-distro-tests.result }}" == "failure" ]]; then
+            echo "::error::Critical cross-platform tests failed!"
+            exit 1
+          fi
+
+          echo "=== All critical cross-platform tests passed! ==="
