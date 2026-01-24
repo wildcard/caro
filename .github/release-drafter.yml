@@ -1,10 +1,67 @@
 # Release Drafter Configuration
 # Automatically drafts release notes based on merged PRs
+#
+# PRs are organized by MODULE first (monorepo structure), then by change type.
+# The Rust CLI is the main product and appears first in release notes.
 
 name-template: 'v$RESOLVED_VERSION'
 tag-template: 'v$RESOLVED_VERSION'
 
 categories:
+  # =============================================================================
+  # RUST CLI (Main Product) - Changes to the core CLI binary
+  # Paths: src/**, Cargo.toml, Cargo.lock, build.rs, tests/**, benches/**
+  # =============================================================================
+  - title: ':crab: Caro CLI'
+    labels:
+      - 'module:cli'
+
+  # =============================================================================
+  # AUXILIARY MODULES - Supporting projects in the monorepo
+  # =============================================================================
+  - title: ':globe_with_meridians: Website'
+    labels:
+      - 'module:website'
+
+  - title: ':books: Documentation Site'
+    labels:
+      - 'module:docs-site'
+
+  - title: ':open_file_folder: Documentation'
+    labels:
+      - 'module:docs'
+
+  - title: ':speaking_head: Caro Voice'
+    labels:
+      - 'module:voice'
+
+  - title: ':package: npm Package'
+    labels:
+      - 'module:npm'
+
+  - title: ':package: NuGet Package'
+    labels:
+      - 'module:nuget'
+
+  - title: ':desktop_computer: Apps & DevRel'
+    labels:
+      - 'module:apps'
+
+  - title: ':art: Landing Page'
+    labels:
+      - 'module:landing'
+
+  # =============================================================================
+  # INFRASTRUCTURE - CI/CD, tooling, and project-wide changes
+  # =============================================================================
+  - title: ':gear: CI/CD & Infrastructure'
+    labels:
+      - 'module:ci'
+      - 'ci/cd'
+
+  # =============================================================================
+  # CHANGE TYPE CATEGORIES - For PRs not matching specific modules
+  # =============================================================================
   - title: ':boom: Breaking Changes'
     labels:
       - 'breaking-change'
@@ -25,13 +82,8 @@ categories:
     labels:
       - 'performance'
 
-  - title: ':books: Documentation'
-    labels:
-      - 'documentation'
-
   - title: ':wrench: Maintenance'
     labels:
-      - 'ci/cd'
       - 'dependencies'
       - 'testing'
 
@@ -47,8 +99,79 @@ exclude-labels:
   - 'wontfix'
   - 'stale'
 
-# Auto-labeling based on branch names or titles
+# =============================================================================
+# AUTO-LABELING RULES
+# Module labels are applied based on file paths to categorize PRs by project.
+# The Rust CLI (module:cli) is the main product.
+# =============================================================================
+
 autolabeler:
+  # ---------------------------------------------------------------------------
+  # MODULE LABELS - Based on file paths in the monorepo
+  # ---------------------------------------------------------------------------
+
+  # Rust CLI (Main Product) - Core binary and library code
+  - label: 'module:cli'
+    files:
+      - 'src/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'build.rs'
+      - 'tests/**'
+      - 'benches/**'
+      - 'clippy.toml'
+      - 'rustfmt.toml'
+      - 'deny.toml'
+
+  # Website - Marketing and product website
+  - label: 'module:website'
+    files:
+      - 'website/**'
+
+  # Documentation Site - Technical documentation (Astro-based)
+  - label: 'module:docs-site'
+    files:
+      - 'docs-site/**'
+
+  # Documentation - Markdown docs in docs/ folder
+  - label: 'module:docs'
+    files:
+      - 'docs/**'
+
+  # Caro Voice - Voice/speech integration
+  - label: 'module:voice'
+    files:
+      - 'caro-voice/**'
+
+  # npm Package - Node.js distribution
+  - label: 'module:npm'
+    files:
+      - 'npm/**'
+
+  # NuGet Package - .NET distribution
+  - label: 'module:nuget'
+    files:
+      - 'nuget/**'
+
+  # Apps & DevRel - Developer relations and apps
+  - label: 'module:apps'
+    files:
+      - 'apps/**'
+
+  # Landing Page
+  - label: 'module:landing'
+    files:
+      - 'landing/**'
+
+  # CI/CD & Infrastructure
+  - label: 'module:ci'
+    files:
+      - '.github/**'
+
+  # ---------------------------------------------------------------------------
+  # CHANGE TYPE LABELS - Based on branch names and PR titles
+  # ---------------------------------------------------------------------------
+
   - label: 'bug'
     branch:
       - '/fix\/.+/'
@@ -77,23 +200,19 @@ autolabeler:
     branch:
       - '/ci\/.+/'
       - '/github-actions\/.+/'
-    files:
-      - '.github/**'
 
   - label: 'dependencies'
     branch:
       - '/deps\/.+/'
       - '/dependabot\/.+/'
-    files:
-      - 'Cargo.toml'
-      - 'Cargo.lock'
 
   - label: 'testing'
     branch:
       - '/test\/.+/'
-    files:
-      - 'tests/**'
-      - 'benches/**'
+
+  # ---------------------------------------------------------------------------
+  # COMPONENT LABELS - Specific areas within the CLI
+  # ---------------------------------------------------------------------------
 
   - label: 'backend'
     files:
@@ -121,10 +240,13 @@ version-resolver:
   default: patch
 
 # Template for release notes
+# PRs are organized by module (Rust CLI first, then auxiliaries)
 template: |
   ## What's Changed
 
   $CHANGES
+
+  ---
 
   ## Contributors
 
@@ -137,8 +259,11 @@ template: |
   ## Installation
 
   ```bash
-  # Using cargo
+  # Using cargo (recommended)
   cargo install caro
+
+  # Using the install script
+  curl -fsSL https://caro.sh/install | sh
 
   # Or download the binary for your platform from the assets below
   ```
