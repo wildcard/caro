@@ -20,11 +20,12 @@
 //! let config = ProfileConfig::new(GenerationProfile::Explainer);
 //! ```
 
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
 /// Generation profile that controls command generation behavior
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum GenerationProfile {
     /// Default profile optimized for quick command generation
