@@ -12,6 +12,44 @@ Provide a unified view of all Claude sessions to help users understand:
 
 ## Execution Steps
 
+### 0. Load Session Index (Phase 2: Enhanced with Index)
+
+```bash
+# Get project info
+PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+PROJECT_SLUG=$(echo "$PROJECT_ROOT" | sed 's|/|-|g' | sed 's|^-||')
+INDEX_FILE="$HOME/.claude/projects/$PROJECT_SLUG/session-index.json"
+
+# Get configured claude command (Phase 2: Configurable Claude Command)
+CONFIG_FILE="$HOME/.claude/plugins/session-wrangler/config.json"
+CLAUDE_CMD=$(jq -r '.claudeCommand // "claude"' "$CONFIG_FILE" 2>/dev/null)
+CLAUDE_CMD=${CLAUDE_CMD:-${CLAUDE_COMMAND:-claude}}
+
+# Try to use index for faster listing
+USE_INDEX=false
+INDEX_STALE=false
+
+if [ -f "$INDEX_FILE" ]; then
+  # Check if index is recent (< 5 minutes old)
+  INDEX_AGE=$(( $(date +%s) - $(stat -f%m "$INDEX_FILE" 2>/dev/null || stat -c%Y "$INDEX_FILE") ))
+  if [ $INDEX_AGE -lt 300 ]; then
+    USE_INDEX=true
+  else
+    INDEX_STALE=true
+  fi
+fi
+
+# If no index or stale, fall back to full scan
+if [ "$USE_INDEX" = "false" ]; then
+  if [ "$INDEX_STALE" = "true" ]; then
+    echo "ℹ️  Session index is stale ($(($INDEX_AGE / 60))min old), performing full scan..."
+    echo "   Run /sessions.sync to update index"
+    echo ""
+  fi
+  # Continue with full scan below
+fi
+```
+
 ### 1. Discover Running Processes
 
 ```bash
@@ -152,7 +190,7 @@ Resumable Sessions (N)
      "<last-prompt-preview...>"
      📂 <worktree> │ 🔀 <branch> │ 📅 <date>
      💬 <count> messages │ 📏 <size>
-     ▶️  claude --resume <session-id>
+     ▶️  $CLAUDE_CMD --resume <session-id>
 
 Corrupted Sessions (N)
 ───────────────────────────────────────────────────────────────────────

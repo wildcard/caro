@@ -92,13 +92,46 @@ fi
 ### 3. Check Worktree
 
 ```bash
+# Get project root
+PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+
 # Check if worktree exists
 WORKTREE_PATH=""
 if [ -d "$CWD" ]; then
   WORKTREE_PATH="$CWD"
 else
   # Try to find by branch name
-  WORKTREE_PATH=$(git -C /Users/kobik-private/workspace/caro worktree list | grep "$BRANCH" | awk '{print $1}')
+  WORKTREE_PATH=$(git worktree list | grep "$BRANCH" | awk '{print $1}')
+fi
+
+# Validate worktree path (Phase 2: Worktree Nesting Enforcement)
+if [ -n "$WORKTREE_PATH" ]; then
+  # Check if path is in .worktrees/ directory
+  if [[ ! "$WORKTREE_PATH" =~ ^$PROJECT_ROOT/\.worktrees/ ]]; then
+    echo "⚠️  Invalid worktree location: $WORKTREE_PATH"
+    echo ""
+    echo "Worktrees must be in $PROJECT_ROOT/.worktrees/"
+    echo "This worktree is in a non-standard location."
+    echo ""
+    echo "Would you like me to:"
+    echo "1. Create a new worktree in the correct location"
+    echo "2. Continue with existing location (not recommended)"
+    echo ""
+    read -p "Choice (1/2): " CHOICE
+    if [ "$CHOICE" != "2" ]; then
+      WORKTREE_PATH=""  # Force recreation in correct location
+    fi
+  fi
+
+  # Check for nested worktrees (Phase 2: Worktree Nesting Enforcement)
+  if [[ "$WORKTREE_PATH" =~ \.worktrees/.*\.worktrees/ ]]; then
+    echo "❌ Nested worktree detected: $WORKTREE_PATH"
+    echo ""
+    echo "Nested worktrees are not allowed. This worktree must be recreated"
+    echo "in the project root's .worktrees/ directory."
+    echo ""
+    WORKTREE_PATH=""  # Force recreation
+  fi
 fi
 
 if [ -z "$WORKTREE_PATH" ] || [ ! -d "$WORKTREE_PATH" ]; then
@@ -116,12 +149,19 @@ if [ -z "$WORKTREE_PATH" ] || [ ! -d "$WORKTREE_PATH" ]; then
 
   if [ "$RECREATE" == "y" ]; then
     # Generate worktree name
-    WORKTREE_NUM=$(git -C /Users/kobik-private/workspace/caro worktree list | wc -l | tr -d ' ')
-    WORKTREE_NAME="${WORKTREE_NUM}-${BRANCH//\//-}"
-    WORKTREE_PATH="/Users/kobik-private/workspace/caro/.worktrees/$WORKTREE_NAME"
+    WORKTREE_NUM=$(git worktree list | grep -c ".worktrees/" || echo "0")
+    WORKTREE_NUM=$((WORKTREE_NUM + 1))
+    WORKTREE_NAME=$(printf "%03d" $WORKTREE_NUM)-${BRANCH//\//-}
+    WORKTREE_PATH="$PROJECT_ROOT/.worktrees/$WORKTREE_NAME"
+
+    # Validate path is in .worktrees/ (Phase 2: Worktree Nesting Enforcement)
+    if [[ ! "$WORKTREE_PATH" =~ ^$PROJECT_ROOT/\.worktrees/ ]]; then
+      echo "❌ Internal error: Generated invalid worktree path"
+      exit 1
+    fi
 
     # Create worktree
-    git -C /Users/kobik-private/workspace/caro worktree add "$WORKTREE_PATH" "$BRANCH"
+    git worktree add "$WORKTREE_PATH" "$BRANCH"
 
     if [ $? -ne 0 ]; then
       echo "❌ Failed to create worktree"
@@ -210,6 +250,11 @@ fi
 ### 6. Provide Instructions
 
 ```bash
+# Get configured claude command (Phase 2: Configurable Claude Command)
+CONFIG_FILE="$HOME/.claude/plugins/session-wrangler/config.json"
+CLAUDE_CMD=$(jq -r '.claudeCommand // "claude"' "$CONFIG_FILE" 2>/dev/null)
+CLAUDE_CMD=${CLAUDE_CMD:-${CLAUDE_COMMAND:-claude}}
+
 # Different instructions based on corruption state
 if [ "$IS_CORRUPTED" == "true" ]; then
   cat <<EOF
@@ -223,7 +268,7 @@ I've opened a new Alacritty terminal in:
 
 Since the session file is corrupted, start a fresh session with:
 
-  claude
+  $CLAUDE_CMD
 
 The previous conversation history is lost, but you can:
   • Continue work in the same worktree
@@ -249,7 +294,7 @@ I've opened a new Alacritty terminal in:
 
 To resume your previous session, type this in the new terminal:
 
-  claude --resume $SESSION_ID
+  $CLAUDE_CMD --resume $SESSION_ID
 
 This will restore your full conversation history ($(grep -c '"role":"user"' "$SESSION_FILE") messages).
 
@@ -258,6 +303,21 @@ Your last prompt was:
 
 ═══════════════════════════════════════════════════════════════════
 EOF
+fi
+
+# Update session index (Phase 2: Session-Worktree Index)
+PROJECT_SLUG=$(echo "$PROJECT_ROOT" | sed 's|/|-|g' | sed 's|^-||')
+INDEX_FILE="$HOME/.claude/projects/$PROJECT_SLUG/session-index.json"
+
+if [ -f "$INDEX_FILE" ]; then
+  # Update session status in index
+  TEMP_INDEX=$(mktemp)
+  jq --arg sid "$SESSION_ID" \
+     --arg status "active" \
+     --arg timestamp "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+     '.sessions[$sid].status = $status | .sessions[$sid].lastActive = $timestamp' \
+     "$INDEX_FILE" > "$TEMP_INDEX"
+  mv "$TEMP_INDEX" "$INDEX_FILE"
 fi
 ```
 
