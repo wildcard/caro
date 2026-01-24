@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'website/src/i18n/locales/en/**/*.json'
+  schedule:
+    - cron: '0 3 * * 0'  # Weekly Sunday 3am UTC
   workflow_dispatch:
     inputs:
       force_retranslate:

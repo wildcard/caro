@@ -1,0 +1,47 @@
+name: Validate i18n Translations
+
+on:
+  pull_request:
+    paths:
+      - 'website/src/i18n/locales/**/*.json'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+
+      - name: Validate Translations
+        run: |
+          cd website
+          node scripts/i18n/validate.mjs --ci
+
+      - name: Check Translation Coverage
+        run: |
+          cd website
+          node scripts/i18n/status.mjs --ci --min-coverage=70
+
+      - name: Check Tier 1 Coverage
+        run: |
+          cd website
+          echo ""
+          echo "Checking Tier 1 locales (es, fr, pt, de, ja) for 80% minimum..."
+          node scripts/i18n/status.mjs --ci --min-coverage=80 --tier1-only
+
+      - name: Summary
+        if: always()
+        run: |
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "🌍 Translation Validation Summary"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "✅ Validation complete"
+          echo ""
+          echo "Scripts used:"
+          echo "  • website/scripts/i18n/validate.mjs"
+          echo "  • website/scripts/i18n/status.mjs"
