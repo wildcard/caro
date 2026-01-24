@@ -1,0 +1,46 @@
+# Ideas Backlog
+# Automatically populated by /idea-sourcing-loop
+# Manually curated for prioritization
+
+metadata:
+  created: "2026-01-11T00:00:00Z"
+  last_updated: "2026-01-11T00:00:00Z"
+  total_ideas: 0
+  new_this_week: 0
+
+# Idea statuses:
+#   new        - Just discovered, needs review
+#   reviewing  - Under consideration
+#   approved   - Approved for implementation
+#   rejected   - Not pursuing (with reason)
+#   in_progress - Being worked on
+#   done       - Completed
+
+ideas: []
+  # Example idea:
+  # - id: "idea-2026-01-11-001"
+  #   title: "Add fish shell support"
+  #   source: "reddit-commandline"
+  #   source_url: "https://reddit.com/r/commandline/..."
+  #   source_engagement: 156
+  #   discovered: "2026-01-11T08:00:00Z"
+  #
+  #   classification:
+  #     type: "product_feature"  # product_feature, content_idea, marketing_opportunity, competitive_intel
+  #     priority: "high"         # high, medium, low
+  #     effort: "medium"         # low, medium, high
+  #
+  #   analysis:
+  #     summary: |
+  #       Users requesting fish shell integration with autosuggestions.
+  #     pain_point: "No native fish support limits adoption"
+  #     opportunity: "Fish has ~10% shell market share"
+  #     related_roadmap: "v1.2.0"
+  #
+  #   status: "new"
+  #   tags: ["shell", "fish", "user-request"]
+  #
+  #   actions:
+  #     - type: "github_discussion"
+  #       id: "#123"
+  #       created: "2026-01-11T08:05:00Z"
