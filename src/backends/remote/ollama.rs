@@ -1,12 +1,19 @@
 // Ollama local server backend implementation
 
 use async_trait::async_trait;
+use once_cell::sync::Lazy;
+use regex::Regex;
 use reqwest::{Client, Url};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::Duration;
 
 use crate::backends::{BackendInfo, BackendType, CommandGenerator, GeneratorError};
+
+/// Regex pattern to extract command from malformed JSON with unescaped quotes
+/// Handles cases like: {"cmd": "find . -type f -name "*.txt""}
+static CMD_EXTRACT_REGEX: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r#"\{\s*"cmd"\s*:\s*"(.+)"\s*\}"#).expect("Invalid regex pattern"));
 use crate::models::{CommandRequest, GeneratedCommand, RiskLevel};
 
 /// Ollama API request format
@@ -128,6 +135,17 @@ Request: {}
                     if !cmd.is_empty() && !cmd.contains('{') && !cmd.contains('}') {
                         return Ok(cmd.to_string());
                     }
+                }
+            }
+        }
+
+        // Regex fallback: Handle malformed JSON with unescaped quotes
+        // e.g., {"cmd": "find . -type f -name "*.txt""}
+        if let Some(caps) = CMD_EXTRACT_REGEX.captures(response) {
+            if let Some(cmd_match) = caps.get(1) {
+                let cmd = cmd_match.as_str().trim();
+                if !cmd.is_empty() {
+                    return Ok(cmd.to_string());
                 }
             }
         }
