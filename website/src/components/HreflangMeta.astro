@@ -1,0 +1,69 @@
+---
+/**
+ * Hreflang Meta Tags Component
+ *
+ * Generates proper hreflang alternate tags for SEO.
+ * Tells search engines about translated versions of pages.
+ *
+ * Usage:
+ * <HreflangMeta currentPath="/features" />
+ *
+ * This will generate tags for all 15 locales pointing to:
+ * - /features (English - default)
+ * - /es/features (Spanish)
+ * - /fr/features (French)
+ * - etc.
+ */
+
+import type { Locale } from '../i18n/config';
+import { getAllLocales } from '../i18n/config';
+import { localizedHref } from '../lib/localized-links';
+
+interface Props {
+  /**
+   * The current page path (without locale prefix)
+   * Example: "/features", "/blog/post-1", "/"
+   */
+  currentPath: string;
+
+  /**
+   * Base URL for the site (defaults to production URL)
+   */
+  baseUrl?: string;
+}
+
+const {
+  currentPath,
+  baseUrl = 'https://caro.sh'
+} = Astro.props;
+
+const allLocales = getAllLocales();
+
+// Generate alternate URLs for all locales
+const alternates = allLocales.map(locale => ({
+  locale: locale.code,
+  href: `${baseUrl}${localizedHref(currentPath, locale.code)}`
+}));
+---
+
+<!-- Default locale (English) -->
+<link rel="alternate" hreflang="x-default" href={`${baseUrl}${currentPath}`} />
+
+<!-- All locale alternates -->
+{alternates.map(({ locale, href }) => (
+  <link rel="alternate" hreflang={locale} href={href} />
+))}
+
+<!-- Canonical URL (points to current page) -->
+<link rel="canonical" href={`${baseUrl}${localizedHref(currentPath, Astro.params.lang as Locale || 'en')}`} />
+
+<!--
+  SEO Note:
+  - hreflang tells search engines about language/region targeting
+  - x-default specifies the default version (usually English)
+  - canonical prevents duplicate content issues
+  - All URLs should be absolute (include domain)
+
+  Google's guidelines:
+  https://developers.google.com/search/docs/specialty/international/localized-versions
+-->
