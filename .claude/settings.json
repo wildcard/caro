@@ -39,6 +39,10 @@
           {
             "type": "command",
             "command": "./.claude/hooks/block-main-commits.sh"
+          },
+          {
+            "type": "command",
+            "command": "./.claude/hooks/worktree-protection.sh"
           }
         ]
       }
