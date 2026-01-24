@@ -44,6 +44,7 @@ Example: `ADR-001-enterprise-community-architecture.md`
 | [ADR-005](./ADR-005-hayagriva-bibliography-integration.md) | Hayagriva Bibliography Integration | Proposed | 2026-01-02 |
 | [ADR-006](./ADR-006-olmo3-model-support.md) | OLMo 3 Model Support | Proposed | 2026-01-03 |
 | [ADR-007](./ADR-007-ast-parser-shell-validation.md) | AST Parser for Shell Command Validation | Proposed | 2026-01-02 |
+| [ADR-008](./ADR-008-self-update-mechanism.md) | Self-Update Mechanism | Proposed | 2026-01-22 |
 
 ## Contributing to ADRs
 
