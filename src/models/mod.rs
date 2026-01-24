@@ -638,6 +638,9 @@ pub struct UserConfiguration {
     pub cache_max_size_gb: u64,
     pub log_rotation_days: u32,
     pub telemetry: crate::telemetry::TelemetryConfig,
+    /// Default generation profile (generator or explainer)
+    #[serde(default)]
+    pub generation_profile: crate::prompts::profiles::GenerationProfile,
 }
 
 impl Default for UserConfiguration {
@@ -651,6 +654,7 @@ impl Default for UserConfiguration {
             cache_max_size_gb: 10,
             log_rotation_days: 7,
             telemetry: crate::telemetry::TelemetryConfig::default(),
+            generation_profile: crate::prompts::profiles::GenerationProfile::default(),
         }
     }
 }
@@ -689,6 +693,7 @@ pub struct UserConfigurationBuilder {
     cache_max_size_gb: u64,
     log_rotation_days: u32,
     telemetry: crate::telemetry::TelemetryConfig,
+    generation_profile: crate::prompts::profiles::GenerationProfile,
 }
 
 impl Default for UserConfigurationBuilder {
@@ -709,6 +714,7 @@ impl UserConfigurationBuilder {
             cache_max_size_gb: defaults.cache_max_size_gb,
             log_rotation_days: defaults.log_rotation_days,
             telemetry: defaults.telemetry,
+            generation_profile: defaults.generation_profile,
         }
     }
 
@@ -752,6 +758,14 @@ impl UserConfigurationBuilder {
         self
     }
 
+    pub fn generation_profile(
+        mut self,
+        profile: crate::prompts::profiles::GenerationProfile,
+    ) -> Self {
+        self.generation_profile = profile;
+        self
+    }
+
     pub fn build(self) -> Result<UserConfiguration, String> {
         let config = UserConfiguration {
             default_shell: self.default_shell,
@@ -762,6 +776,7 @@ impl UserConfigurationBuilder {
             cache_max_size_gb: self.cache_max_size_gb,
             log_rotation_days: self.log_rotation_days,
             telemetry: self.telemetry,
+            generation_profile: self.generation_profile,
         };
         config.validate()?;
         Ok(config)
