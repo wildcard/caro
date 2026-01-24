@@ -67,5 +67,8 @@ export {
   type DropdownHeaderProps,
 } from './Dropdown';
 
+// Preference Selectors
+export { DistroSelector, type DistroSelectorProps } from './DistroSelector';
+
 // Design tokens are available via CSS import:
 // import '../ui/tokens.css';

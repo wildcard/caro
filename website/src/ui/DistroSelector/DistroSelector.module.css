@@ -1,0 +1,613 @@
+/**
+ * DistroSelector Component Styles
+ *
+ * Features:
+ * - Engaging animations and hover effects
+ * - Distro-specific color accents
+ * - Responsive design
+ * - Dark mode support
+ */
+
+/* ============================================
+   CONTAINER
+   ============================================ */
+
+.container {
+  position: relative;
+  display: inline-block;
+  font-family: var(--font-sans, system-ui, sans-serif);
+}
+
+.container.loading {
+  min-width: 120px;
+}
+
+.skeleton {
+  height: 40px;
+  background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-md, 8px);
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+:global(.dark) .skeleton {
+  background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+  background-size: 200% 100%;
+}
+
+/* ============================================
+   TRIGGER BUTTON
+   ============================================ */
+
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm, 8px);
+  padding: var(--space-sm, 8px) var(--space-md, 12px);
+  background: var(--color-surface, #ffffff);
+  border: 2px solid var(--color-border, #e0e0e0);
+  border-radius: var(--radius-lg, 12px);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: var(--font-size-sm, 14px);
+  color: var(--color-text, #2c3e50);
+  min-height: 44px;
+}
+
+.trigger:hover {
+  border-color: var(--distro-color, var(--color-primary, #ff8c42));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--distro-color, var(--color-primary)) 15%, transparent);
+}
+
+.trigger:focus-visible {
+  outline: none;
+  border-color: var(--distro-color, var(--color-primary, #ff8c42));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--distro-color, var(--color-primary)) 25%, transparent);
+}
+
+:global(.dark) .trigger {
+  background: var(--color-surface-dark, #1e1e2e);
+  border-color: var(--color-border-dark, #3a3a4a);
+  color: var(--color-text-dark, #f5f5f5);
+}
+
+.triggerIcon {
+  font-size: 1.5em;
+  line-height: 1;
+}
+
+.triggerText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.triggerName {
+  font-weight: var(--font-weight-semibold, 600);
+}
+
+.triggerShell {
+  font-size: var(--font-size-xs, 12px);
+  color: var(--color-text-muted, #6b7280);
+  opacity: 0.8;
+}
+
+:global(.dark) .triggerShell {
+  color: var(--color-text-muted-dark, #9ca3af);
+}
+
+.detectedBadge {
+  font-size: var(--font-size-xs, 11px);
+  padding: 2px 6px;
+  background: var(--color-info-light, #e0f2fe);
+  color: var(--color-info, #0284c7);
+  border-radius: var(--radius-full, 999px);
+  font-weight: var(--font-weight-medium, 500);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+:global(.dark) .detectedBadge {
+  background: color-mix(in srgb, var(--color-info) 20%, transparent);
+  color: var(--color-info-light, #7dd3fc);
+}
+
+.chevron {
+  transition: transform 0.2s ease;
+  opacity: 0.6;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+/* Compact mode */
+.compact .trigger {
+  padding: var(--space-xs, 6px);
+}
+
+.compact .triggerIcon {
+  font-size: 1.2em;
+}
+
+/* ============================================
+   DROPDOWN PANEL
+   ============================================ */
+
+.panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 320px;
+  max-width: 420px;
+  max-height: 480px;
+  overflow: hidden;
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #e0e0e0);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  z-index: var(--z-dropdown, 100);
+  animation: slideIn 0.2s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+:global(.dark) .panel {
+  background: var(--color-surface-dark, #1e1e2e);
+  border-color: var(--color-border-dark, #3a3a4a);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md, 12px) var(--space-lg, 16px);
+  border-bottom: 1px solid var(--color-border, #e0e0e0);
+}
+
+:global(.dark) .header {
+  border-color: var(--color-border-dark, #3a3a4a);
+}
+
+.headerTitle {
+  font-size: var(--font-size-md, 16px);
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--color-text, #2c3e50);
+  margin: 0;
+}
+
+:global(.dark) .headerTitle {
+  color: var(--color-text-dark, #f5f5f5);
+}
+
+.resetButton {
+  font-size: var(--font-size-xs, 12px);
+  color: var(--color-primary, #ff8c42);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm, 4px);
+  transition: background-color 0.15s ease;
+}
+
+.resetButton:hover {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+/* ============================================
+   TABS
+   ============================================ */
+
+.tabs {
+  display: flex;
+  padding: var(--space-sm, 8px);
+  gap: var(--space-xs, 4px);
+  border-bottom: 1px solid var(--color-border, #e0e0e0);
+  background: var(--color-surface-secondary, #f8f9fa);
+}
+
+:global(.dark) .tabs {
+  background: var(--color-surface-secondary-dark, #16161e);
+  border-color: var(--color-border-dark, #3a3a4a);
+}
+
+.tab {
+  flex: 1;
+  padding: var(--space-sm, 8px) var(--space-md, 12px);
+  font-size: var(--font-size-sm, 14px);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text-muted, #6b7280);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md, 8px);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tab:hover:not(:disabled) {
+  background: var(--color-surface, #ffffff);
+  color: var(--color-text, #2c3e50);
+}
+
+.tab:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.tabActive {
+  background: var(--color-surface, #ffffff);
+  color: var(--color-primary, #ff8c42);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+:global(.dark) .tab {
+  color: var(--color-text-muted-dark, #9ca3af);
+}
+
+:global(.dark) .tab:hover:not(:disabled) {
+  background: var(--color-surface-dark, #1e1e2e);
+  color: var(--color-text-dark, #f5f5f5);
+}
+
+:global(.dark) .tabActive {
+  background: var(--color-surface-dark, #1e1e2e);
+  color: var(--color-primary, #ff8c42);
+}
+
+/* ============================================
+   OS GRID
+   ============================================ */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-sm, 8px);
+  padding: var(--space-md, 12px);
+}
+
+/* ============================================
+   CARD STYLES (OS, Distro, Shell)
+   ============================================ */
+
+.osCard,
+.distroCard,
+.shellCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs, 4px);
+  padding: var(--space-md, 12px);
+  background: var(--color-surface, #ffffff);
+  border: 2px solid var(--color-border, #e0e0e0);
+  border-radius: var(--radius-lg, 12px);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.osCard:hover,
+.distroCard:hover,
+.shellCard:hover {
+  border-color: var(--card-color, var(--color-primary, #ff8c42));
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--card-color, var(--color-primary)) 20%, transparent);
+}
+
+.osCard.selected,
+.distroCard.selected,
+.shellCard.selected {
+  border-color: var(--card-color, var(--color-primary, #ff8c42));
+  background: color-mix(in srgb, var(--card-color, var(--color-primary)) 8%, transparent);
+}
+
+:global(.dark) .osCard,
+:global(.dark) .distroCard,
+:global(.dark) .shellCard {
+  background: var(--color-surface-dark, #1e1e2e);
+  border-color: var(--color-border-dark, #3a3a4a);
+}
+
+:global(.dark) .osCard.selected,
+:global(.dark) .distroCard.selected,
+:global(.dark) .shellCard.selected {
+  background: color-mix(in srgb, var(--card-color, var(--color-primary)) 15%, transparent);
+}
+
+.cardIcon {
+  font-size: 2em;
+  line-height: 1;
+}
+
+.distroCard .cardIcon,
+.shellCard .cardIcon {
+  font-size: 1.5em;
+}
+
+.cardName {
+  font-size: var(--font-size-sm, 14px);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text, #2c3e50);
+  text-align: center;
+}
+
+:global(.dark) .cardName {
+  color: var(--color-text-dark, #f5f5f5);
+}
+
+.cardDetected {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 9px;
+  padding: 2px 4px;
+  background: var(--color-info, #0284c7);
+  color: white;
+  border-radius: var(--radius-sm, 4px);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* ============================================
+   DISTRO PANEL
+   ============================================ */
+
+.distroPanel {
+  max-height: 320px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.search {
+  padding: var(--space-sm, 8px) var(--space-md, 12px);
+  border-bottom: 1px solid var(--color-border, #e0e0e0);
+}
+
+:global(.dark) .search {
+  border-color: var(--color-border-dark, #3a3a4a);
+}
+
+.searchInput {
+  width: 100%;
+  padding: var(--space-sm, 8px) var(--space-md, 12px);
+  font-size: var(--font-size-sm, 14px);
+  border: 1px solid var(--color-border, #e0e0e0);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface, #ffffff);
+  color: var(--color-text, #2c3e50);
+  transition: border-color 0.15s ease;
+}
+
+.searchInput::placeholder {
+  color: var(--color-text-muted, #9ca3af);
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--color-primary, #ff8c42);
+}
+
+:global(.dark) .searchInput {
+  background: var(--color-surface-dark, #1e1e2e);
+  border-color: var(--color-border-dark, #3a3a4a);
+  color: var(--color-text-dark, #f5f5f5);
+}
+
+/* Category Tabs */
+.categoryTabs {
+  display: flex;
+  gap: var(--space-xs, 4px);
+  padding: var(--space-sm, 8px) var(--space-md, 12px);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.categoryTabs::-webkit-scrollbar {
+  display: none;
+}
+
+.categoryTab {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  font-size: var(--font-size-xs, 12px);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text-muted, #6b7280);
+  background: transparent;
+  border: 1px solid var(--color-border, #e0e0e0);
+  border-radius: var(--radius-full, 999px);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.categoryTab:hover {
+  border-color: var(--color-primary, #ff8c42);
+  color: var(--color-primary, #ff8c42);
+}
+
+.categoryActive {
+  background: var(--color-primary, #ff8c42);
+  border-color: var(--color-primary, #ff8c42);
+  color: white;
+}
+
+:global(.dark) .categoryTab {
+  border-color: var(--color-border-dark, #3a3a4a);
+  color: var(--color-text-muted-dark, #9ca3af);
+}
+
+/* Distro Grid */
+.distroGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-sm, 8px);
+  padding: var(--space-sm, 8px) var(--space-md, 12px);
+  overflow-y: auto;
+  max-height: 200px;
+}
+
+.distroCard {
+  padding: var(--space-sm, 8px);
+}
+
+/* ============================================
+   SHELL PANEL
+   ============================================ */
+
+.shellPanel {
+  padding: var(--space-md, 12px);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.shellGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md, 12px);
+}
+
+.shellGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm, 8px);
+}
+
+.shellGroupTitle {
+  font-size: var(--font-size-xs, 12px);
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--color-text-muted, #6b7280);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+:global(.dark) .shellGroupTitle {
+  color: var(--color-text-muted-dark, #9ca3af);
+}
+
+.shellOptions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-xs, 6px);
+}
+
+.shellCard {
+  padding: var(--space-sm, 8px);
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+
+.footer {
+  padding: var(--space-sm, 8px) var(--space-md, 12px);
+  border-top: 1px solid var(--color-border, #e0e0e0);
+  background: var(--color-surface-secondary, #f8f9fa);
+}
+
+:global(.dark) .footer {
+  background: var(--color-surface-secondary-dark, #16161e);
+  border-color: var(--color-border-dark, #3a3a4a);
+}
+
+.footerText {
+  font-size: var(--font-size-xs, 12px);
+  color: var(--color-text-muted, #6b7280);
+  margin: 0;
+  text-align: center;
+}
+
+:global(.dark) .footerText {
+  color: var(--color-text-muted-dark, #9ca3af);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 480px) {
+  .panel {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    top: auto;
+    bottom: 16px;
+    min-width: auto;
+    max-width: none;
+    max-height: 70vh;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .distroGrid,
+  .shellOptions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .trigger,
+  .osCard,
+  .distroCard,
+  .shellCard,
+  .chevron,
+  .panel {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* ============================================
+   FUN HOVER EFFECTS
+   ============================================ */
+
+.osCard:hover .cardIcon,
+.distroCard:hover .cardIcon,
+.shellCard:hover .cardIcon {
+  animation: bounce 0.4s ease;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* Selected state pulse */
+.osCard.selected .cardIcon,
+.distroCard.selected .cardIcon,
+.shellCard.selected .cardIcon {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
