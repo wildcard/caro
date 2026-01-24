@@ -1,0 +1,403 @@
+name: Modulization Cadence
+
+on:
+  # Weekly run on Monday at 9 AM UTC
+  schedule:
+    - cron: '0 9 * * 1'
+
+  # Manual trigger with options
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: 'Signal collection scope'
+        type: choice
+        options:
+          - full
+          - codebase-only
+          - github-only
+          - process-only
+        default: full
+
+      classification_mode:
+        description: 'Classification behavior'
+        type: choice
+        options:
+          - auto
+          - suggest-only
+          - dry-run
+        default: auto
+
+      target_milestone:
+        description: 'Focus on specific milestone (optional)'
+        type: string
+        required: false
+
+      create_issues:
+        description: 'Auto-create GitHub issues for modules'
+        type: boolean
+        default: false
+
+      comment_on_stale:
+        description: 'Add comments to stale PRs/issues'
+        type: boolean
+        default: true
+
+  # Can also be triggered after releases
+  workflow_run:
+    workflows: ["Release"]
+    types:
+      - completed
+
+env:
+  MODULIZATION_VERSION: "1.0.0"
+
+jobs:
+  # Job 1: Collect signals from all sources
+  collect-signals:
+    name: Collect Signals
+    runs-on: ubuntu-latest
+    outputs:
+      signal_count: ${{ steps.collect.outputs.signal_count }}
+      has_signals: ${{ steps.collect.outputs.has_signals }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for git blame
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Python (for analysis tools)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          npm install -g tsx
+          pip install gitpython pyyaml
+
+      - name: Create output directories
+        run: |
+          mkdir -p .modulization/signals
+          mkdir -p .modulization/reports
+          mkdir -p .modulization/spec-seeds
+
+      - name: Collect codebase signals
+        if: ${{ inputs.scope == 'full' || inputs.scope == 'codebase-only' || inputs.scope == '' }}
+        id: codebase
+        run: |
+          echo "Scanning codebase for signals..."
+
+          # Collect TODOs, FIXMEs, etc.
+          grep -rn \
+            --include="*.rs" \
+            --include="*.ts" \
+            --include="*.tsx" \
+            --include="*.js" \
+            --include="*.py" \
+            --include="*.md" \
+            -E "(TODO|FIXME|HACK|XXX|NOTE):" \
+            --exclude-dir=node_modules \
+            --exclude-dir=target \
+            --exclude-dir=vendor \
+            --exclude-dir=.git \
+            . > .modulization/signals/codebase-todos.txt 2>/dev/null || true
+
+          # Collect unimplemented markers (Rust)
+          grep -rn \
+            --include="*.rs" \
+            -E "(todo!\(\)|unimplemented!\(\)|panic!\(\"not implemented\"\))" \
+            --exclude-dir=target \
+            . >> .modulization/signals/codebase-todos.txt 2>/dev/null || true
+
+          # Count signals
+          CODEBASE_COUNT=$(wc -l < .modulization/signals/codebase-todos.txt || echo 0)
+          echo "codebase_count=$CODEBASE_COUNT" >> $GITHUB_OUTPUT
+          echo "Found $CODEBASE_COUNT codebase signals"
+
+      - name: Collect GitHub signals
+        if: ${{ inputs.scope == 'full' || inputs.scope == 'github-only' || inputs.scope == '' }}
+        id: github
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Collecting GitHub signals..."
+
+          # Stale PRs (open, no activity in 14+ days)
+          gh pr list \
+            --state open \
+            --json number,title,author,createdAt,updatedAt,isDraft,labels,reviewDecision \
+            --jq '.[] | select((now - (.updatedAt | fromdateiso8601)) / 86400 > 14)' \
+            > .modulization/signals/github-stale-prs.json 2>/dev/null || echo "[]" > .modulization/signals/github-stale-prs.json
+
+          # Draft PRs
+          gh pr list \
+            --state open \
+            --draft \
+            --json number,title,author,createdAt,updatedAt,labels \
+            > .modulization/signals/github-draft-prs.json 2>/dev/null || echo "[]" > .modulization/signals/github-draft-prs.json
+
+          # Stale issues (open, no activity in 30+ days)
+          gh issue list \
+            --state open \
+            --json number,title,author,createdAt,updatedAt,labels,assignees \
+            --jq '.[] | select((now - (.updatedAt | fromdateiso8601)) / 86400 > 30)' \
+            > .modulization/signals/github-stale-issues.json 2>/dev/null || echo "[]" > .modulization/signals/github-stale-issues.json
+
+          # Count GitHub signals
+          PR_COUNT=$(jq -s 'add | length' .modulization/signals/github-stale-prs.json .modulization/signals/github-draft-prs.json 2>/dev/null || echo 0)
+          ISSUE_COUNT=$(jq 'length' .modulization/signals/github-stale-issues.json 2>/dev/null || echo 0)
+          GITHUB_COUNT=$((PR_COUNT + ISSUE_COUNT))
+          echo "github_count=$GITHUB_COUNT" >> $GITHUB_OUTPUT
+          echo "Found $GITHUB_COUNT GitHub signals"
+
+      - name: Collect process signals
+        if: ${{ inputs.scope == 'full' || inputs.scope == 'process-only' || inputs.scope == '' }}
+        id: process
+        run: |
+          echo "Collecting process signals..."
+
+          # Check worktrees for incomplete work
+          if [ -d ".worktrees" ]; then
+            find .worktrees -name "tasks.md" -exec grep -l "\[ \]" {} \; \
+              > .modulization/signals/process-incomplete-worktrees.txt 2>/dev/null || true
+          fi
+
+          # Check ROADMAP for overdue items
+          if [ -f "ROADMAP.md" ]; then
+            grep -n "\[ \]" ROADMAP.md > .modulization/signals/process-roadmap-todos.txt 2>/dev/null || true
+          fi
+
+          WORKTREE_COUNT=$(wc -l < .modulization/signals/process-incomplete-worktrees.txt 2>/dev/null || echo 0)
+          ROADMAP_COUNT=$(wc -l < .modulization/signals/process-roadmap-todos.txt 2>/dev/null || echo 0)
+          PROCESS_COUNT=$((WORKTREE_COUNT + ROADMAP_COUNT))
+          echo "process_count=$PROCESS_COUNT" >> $GITHUB_OUTPUT
+          echo "Found $PROCESS_COUNT process signals"
+
+      - name: Aggregate signal counts
+        id: collect
+        run: |
+          CODEBASE="${{ steps.codebase.outputs.codebase_count || 0 }}"
+          GITHUB="${{ steps.github.outputs.github_count || 0 }}"
+          PROCESS="${{ steps.process.outputs.process_count || 0 }}"
+
+          TOTAL=$((CODEBASE + GITHUB + PROCESS))
+          echo "signal_count=$TOTAL" >> $GITHUB_OUTPUT
+
+          if [ "$TOTAL" -gt 0 ]; then
+            echo "has_signals=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_signals=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "## Signal Collection Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Source | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Codebase | $CODEBASE |" >> $GITHUB_STEP_SUMMARY
+          echo "| GitHub | $GITHUB |" >> $GITHUB_STEP_SUMMARY
+          echo "| Process | $PROCESS |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Total** | **$TOTAL** |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload signals artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: collected-signals
+          path: .modulization/signals/
+          retention-days: 30
+
+  # Job 2: Compose modules from signals
+  compose-modules:
+    name: Compose Modules
+    runs-on: ubuntu-latest
+    needs: collect-signals
+    if: ${{ needs.collect-signals.outputs.has_signals == 'true' }}
+    outputs:
+      module_count: ${{ steps.compose.outputs.module_count }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download signals
+        uses: actions/download-artifact@v4
+        with:
+          name: collected-signals
+          path: .modulization/signals/
+
+      - name: Setup Claude Code
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Compose modules
+        id: compose
+        env:
+          TARGET_MILESTONE: ${{ inputs.target_milestone }}
+        run: |
+          echo "Composing modules from ${{ needs.collect-signals.outputs.signal_count }} signals..."
+
+          # Run Claude with modulization skill
+          claude --skill modulization --prompt "
+            Analyze the collected signals in .modulization/signals/ and compose them into coherent modules.
+
+            Configuration:
+            - Target milestone: ${TARGET_MILESTONE:-auto}
+            - Classification mode: ${{ inputs.classification_mode || 'auto' }}
+
+            For each module:
+            1. Group related signals by intent and surface area
+            2. Assess scope, risk, and dependencies
+            3. Classify as: integrate_now, schedule, ice, or archive
+            4. Generate spec seed if appropriate
+
+            Output:
+            - .modulization/modules.yaml (structured module data)
+            - .modulization/reports/$(date +%Y-%m-%d)-weekly.md (human-readable report)
+            - .modulization/spec-seeds/ (one file per module needing specs)
+          " > .modulization/compose-output.log 2>&1
+
+          # Count modules
+          MODULE_COUNT=$(yq '.modules | length' .modulization/modules.yaml 2>/dev/null || echo 0)
+          echo "module_count=$MODULE_COUNT" >> $GITHUB_OUTPUT
+          echo "Composed $MODULE_COUNT modules"
+
+      - name: Upload modules artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: composed-modules
+          path: |
+            .modulization/modules.yaml
+            .modulization/reports/
+            .modulization/spec-seeds/
+          retention-days: 90
+
+  # Job 3: Generate and publish report
+  generate-report:
+    name: Generate Report
+    runs-on: ubuntu-latest
+    needs: [collect-signals, compose-modules]
+    if: ${{ needs.collect-signals.outputs.has_signals == 'true' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download modules
+        uses: actions/download-artifact@v4
+        with:
+          name: composed-modules
+          path: .modulization/
+
+      - name: Generate summary report
+        id: report
+        run: |
+          REPORT_FILE=".modulization/reports/$(date +%Y-%m-%d)-weekly.md"
+
+          if [ -f "$REPORT_FILE" ]; then
+            # Add to job summary
+            echo "## Modulization Report" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            cat "$REPORT_FILE" >> $GITHUB_STEP_SUMMARY
+
+            echo "report_path=$REPORT_FILE" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::Report file not generated"
+          fi
+
+      - name: Create summary issue
+        if: ${{ inputs.create_issues }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REPORT_FILE="${{ steps.report.outputs.report_path }}"
+
+          if [ -f "$REPORT_FILE" ]; then
+            gh issue create \
+              --title "Modulization Report - $(date +%Y-%m-%d)" \
+              --body-file "$REPORT_FILE" \
+              --label "modulization,automated"
+          fi
+
+      - name: Comment on stale items
+        if: ${{ inputs.comment_on_stale != 'false' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Adding comments to stale PRs and issues..."
+
+          # Read modules and comment on relevant items
+          if [ -f ".modulization/modules.yaml" ]; then
+            # For each module with stale_pr signals, add a comment
+            yq -r '.modules[] | select(.signals[].type == "stale_pr") | .signals[] | select(.type == "stale_pr") | .location.number' .modulization/modules.yaml 2>/dev/null | while read PR_NUM; do
+              if [ -n "$PR_NUM" ]; then
+                gh pr comment "$PR_NUM" --body "
+                  📊 **Modulization Review**
+
+                  This PR has been identified in the weekly modulization scan.
+                  It has been grouped with related work for scheduling.
+
+                  See the [latest modulization report](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.
+
+                  _This is an automated comment from the modulization cadence._
+                " || true
+              fi
+            done
+          fi
+
+  # Job 4: Update roadmap suggestions (optional)
+  suggest-roadmap-updates:
+    name: Suggest Roadmap Updates
+    runs-on: ubuntu-latest
+    needs: [collect-signals, compose-modules]
+    if: ${{ needs.collect-signals.outputs.has_signals == 'true' && inputs.classification_mode != 'dry-run' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download modules
+        uses: actions/download-artifact@v4
+        with:
+          name: composed-modules
+          path: .modulization/
+
+      - name: Generate roadmap suggestions
+        run: |
+          echo "## Roadmap Suggestions" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f ".modulization/modules.yaml" ]; then
+            # Extract modules classified for scheduling
+            echo "### Modules to Schedule" >> $GITHUB_STEP_SUMMARY
+            yq -r '.modules[] | select(.classification == "schedule") | "- **\(.title)** → \(.recommendation.suggested_milestone // "TBD")"' .modulization/modules.yaml >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "None" >> $GITHUB_STEP_SUMMARY
+
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Modules for Immediate Integration" >> $GITHUB_STEP_SUMMARY
+            yq -r '.modules[] | select(.classification == "integrate_now") | "- **\(.title)** (confidence: \(.confidence))"' .modulization/modules.yaml >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "None" >> $GITHUB_STEP_SUMMARY
+
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Iced Modules" >> $GITHUB_STEP_SUMMARY
+            yq -r '.modules[] | select(.classification == "ice") | "- **\(.title)**: \(.recommendation.rationale // "No rationale")"' .modulization/modules.yaml >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "None" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Cleanup job
+  cleanup:
+    name: Cleanup
+    runs-on: ubuntu-latest
+    needs: [generate-report, suggest-roadmap-updates]
+    if: always()
+
+    steps:
+      - name: Summary
+        run: |
+          echo "## Modulization Cadence Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Signals collected: ${{ needs.collect-signals.outputs.signal_count || 0 }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Modules composed: ${{ needs.compose-modules.outputs.module_count || 0 }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Run ID: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Triggered by: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
