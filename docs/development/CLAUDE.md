@@ -289,10 +289,11 @@ The tool uses a strict system prompt for JSON-only responses:
 When working on specific components:
 
 - **Complex architecture changes**: Use `rust-cli-architect` agent
-- **LLM integration & backends**: Use `llm-integration-expert` agent  
+- **LLM integration & backends**: Use `llm-integration-expert` agent
 - **MLX/Apple Silicon features**: Use `macos-unix-systems-expert` agent
 - **Test-driven development**: Use `tdd-rust-engineer` agent
 - **Documentation updates**: Use `technical-writer` agent
+- **Bug investigation & debugging**: Use `systematic-debug-agent` agent (GSD-inspired methodical debugging)
 
 ## Quality Standards
 
@@ -317,8 +318,9 @@ This project uses **dual spec-driven workflows** optimized for different feature
 
 **Workflow**:
 1. `bin/sk-new-feature "description"` - Creates isolated worktree
-2. `/spec-kitty.specify` - Create spec.md
-3. `/spec-kitty.plan` - Create plan.md
+2. `/discuss` - **(Optional)** Pre-planning discussion for complex features
+3. `/spec-kitty.specify` - Create spec.md
+4. `/spec-kitty.plan` - Create plan.md
 4. `/spec-kitty.tasks` - Generate work packages
 5. `/spec-kitty.implement` - Execute tasks
 6. `/spec-kitty.accept` - Run acceptance checks
@@ -363,6 +365,17 @@ This project uses **dual spec-driven workflows** optimized for different feature
 | **Research phase** | Light research | Extensive research |
 | **Architecture** | Incremental changes | Major refactoring |
 | **Examples** | Add caching, Fix bug, New API endpoint | MLX backend, Safety system, Multi-backend |
+
+### When to Recommend /discuss (Optional Phase)
+
+Agents should recommend the `/discuss` phase before `/spec-kitty.specify` when:
+- Feature has multiple valid implementation approaches
+- Significant architectural decisions are unclear
+- Trade-offs exist (performance vs simplicity, flexibility vs constraints)
+- Cross-cutting concerns affect multiple systems
+- Scope is ambiguous or user shows uncertainty
+
+**Skip /discuss** for well-defined features, bug fixes, or small enhancements.
 
 ### When to Use Spec-Kitty
 
