@@ -1,4 +1,4 @@
-# ADR-010: Website Claims Verification Test Suite
+# ADR-009: Website Claims Verification Test Suite
 
 **Status:** Accepted
 **Date:** 2025-01-03

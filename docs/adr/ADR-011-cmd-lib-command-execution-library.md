@@ -1,4 +1,4 @@
-# ADR-004: Evaluation of cmd_lib for Command Execution
+# ADR-011: Evaluation of cmd_lib for Command Execution
 
 **Status**: Rejected
 

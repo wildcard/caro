@@ -1,4 +1,4 @@
-# ADR-004: Bubblewrap Sandbox for Command Execution
+# ADR-010: Bubblewrap Sandbox for Command Execution
 
 **Status**: Proposed
 
