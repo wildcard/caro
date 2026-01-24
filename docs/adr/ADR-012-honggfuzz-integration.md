@@ -1,4 +1,4 @@
-# ADR-004: Honggfuzz Integration for Security-Critical Fuzz Testing
+# ADR-012: Honggfuzz Integration for Security-Critical Fuzz Testing
 
 **Status**: Proposed
 

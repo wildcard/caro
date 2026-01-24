@@ -1,4 +1,4 @@
-# ADR-004: Pre-Processing Pipeline Architecture
+# ADR-013: Pre-Processing Pipeline Architecture
 
 | **Status**     | Proposed                            |
 |----------------|-------------------------------------|
