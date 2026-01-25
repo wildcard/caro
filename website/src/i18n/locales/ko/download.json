@@ -14,7 +14,7 @@
       "windows": "Windows"
     },
     "usageModes": {
-      "title": "Caro를 사용하는 여러 방법",
+      "title": "Caro 활용 방법",
       "modes": [
         {
           "title": "🔧 독립 실행형 CLI",
@@ -22,19 +22,19 @@
         },
         {
           "title": "🔌 Claude용 MCP",
-          "description": "Caro를 Claude Desktop에 MCP 서버로 추가하면 모든 쉘 명령을 매끄럽게 처리해줍니다.",
+          "description": "Caro를 Claude Desktop의 MCP 서버로 추가하면 모든 쉘 명령을 자연스럽게 처리할 수 있습니다.",
           "comingSoon": true
         },
         {
           "title": "✨ 전용 Skill",
-          "description": "Caro를 Skill로 사용해서 쉘 명령 생성과 실행을 맡기고, Claude는 본업에 집중하게 하세요.",
+          "description": "Caro를 Skill로 사용해서 쉘 명령 생성과 실행은 맡기고, Claude는 본업에 집중하게 하세요.",
           "comingSoon": true
         }
       ]
     },
     "quickStart": {
       "title": "빠른 시작",
-      "intro": "위 설치 스크립트를 실행한 후, 바로 Caro를 사용하세요:",
+      "intro": "위 설치 스크립트 실행 후, 바로 Caro를 사용하세요:",
       "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
       "description": "Caro가 명령어를 생성하고 안전하게 지켜줍니다. 설치 스크립트가 Rust 컴파일을 포함한 모든 사전 요구사항을 처리합니다."
     }
