@@ -2,7 +2,7 @@
   "common": {
     "meta": {
       "title": "Caro - החבר הנאמן שלך בשורת הפקודה",
-      "description": "Caro הוא סוכן מלווה שעוזר לך עם פקודות POSIX shell. זמין כ-MCP עבור Claude וכ-Skill ייעודי."
+      "description": "Caro הוא סוכן עוזר שמסייע לך עם פקודות POSIX shell. זמין כ-MCP עבור Claude וכ-Skill ייעודי."
     },
     "buttons": {
       "copy": "העתק",
@@ -17,7 +17,7 @@
       "comingSoon": "בקרוב"
     },
     "aria": {
-      "toggleDarkMode": "החלף למצב כהה",
+      "toggleDarkMode": "החלף מצב כהה",
       "toggleHolidayTheme": "פתח תפריט ערכת חג"
     },
     "nav": {
@@ -57,7 +57,7 @@
         "darkMode": "מצב כהה",
         "holidayTheme": "ערכת חג",
         "snowEffect": "אפקט שלג",
-        "disableEffects": "בטל את כל האפקטים"
+        "disableEffects": "בטלו את כל האפקטים"
       },
       "useCases": {
         "allUseCases": "כל תרחישי השימוש",

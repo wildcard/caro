@@ -4,16 +4,16 @@
     "links": {
       "features": "פיצ'רים",
       "compare": "השוואה",
-      "play": "נסו בעצמכם",
+      "play": "נסו",
       "blog": "בלוג",
       "getStarted": "בואו נתחיל",
       "github": "GitHub"
     },
     "darkMode": {
-      "toggle": "מצב כהה/בהיר"
+      "toggle": "מעבר למצב כהה"
     },
     "holidayTheme": {
-      "toggle": "תפריט ערכות חג",
+      "toggle": "פתיחת תפריט ערכות חג",
       "title": "ערכת חג",
       "menuHeader": "ערכת חג",
       "options": {
@@ -29,7 +29,7 @@
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
-      "tagline": "החברה הנאמנה שלכם בשורת הפקודה"
+      "tagline": "החברה הנאמנה שלכם בטרמינל"
     },
     "links": {
       "license": "AGPL-3.0",
@@ -42,7 +42,7 @@
       "followText": "עקבו אחרי ההרפתקאות שלה ב-",
       "instagram": "Instagram @kyaroblackheart"
     },
-    "inspiration": "בהשראת קרוליין מ-Portal - נאמנות שהפכה לחברות דיגיטלית",
+    "inspiration": "בהשראת קרוליין מ-Portal—נאמנות שהפכה לחברות דיגיטלית",
     "elevatorCredit": "אפקט הגלילה על ידי"
   }
 }

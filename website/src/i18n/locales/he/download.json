@@ -1,11 +1,11 @@
 {
   "download": {
     "title": "בואו נתחיל עם Caro",
-    "subtitle": "תביאו את חברת השורת הפקודה הנאמנה שלכם לטרמינל",
+    "subtitle": "תביאו את בת הלוויה הנאמנה שלכם לטרמינל",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
     "copyButton": "העתק",
     "copiedButton": "הועתק!",
-    "binariesIntro": "או הורידו בינארים מוכנים:",
+    "binariesIntro": "או הורידו קבצים בינאריים מוכנים:",
     "comingSoonBadge": "בקרוב",
     "platforms": {
       "macAppleSilicon": "macOS (Apple Silicon)",
@@ -27,16 +27,16 @@
         },
         {
           "title": "✨ Skill ייעודי",
-          "description": "השתמשו ב-Caro כ-Skill כדי להעביר את יצירת והרצת פקודות השל בזמן ש-Claude מתמקדת בעבודה שלכם.",
+          "description": "השתמשו ב-Caro כ-Skill כדי להעביר אליה את יצירת והרצת פקודות השל בזמן ש-Claude מתמקדת בעבודה שלכם.",
           "comingSoon": true
         }
       ]
     },
     "quickStart": {
       "title": "התחלה מהירה",
-      "intro": "אחרי הרצת סקריפט ההתקנה למעלה, פשוט תשתמשו ב-Caro:",
+      "intro": "אחרי שהרצתם את סקריפט ההתקנה למעלה, פשוט השתמשו ב-Caro:",
       "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
-      "description": "Caro תייצר את הפקודה ותשמור עליכם. סקריפט ההתקנה מטפל בכל הדרישות המוקדמות כולל קומפילציית Rust."
+      "description": "Caro תייצר את הפקודה ותשמור עליכם. סקריפט ההתקנה מטפל בכל הדרישות המקדימות כולל קומפילציית Rust."
     }
   }
 }
