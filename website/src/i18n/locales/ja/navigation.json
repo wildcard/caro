@@ -4,7 +4,7 @@
     "links": {
       "features": "機能",
       "compare": "比較",
-      "play": "試す",
+      "play": "試してみる",
       "blog": "ブログ",
       "getStarted": "始める",
       "github": "GitHub"
@@ -33,7 +33,7 @@
     },
     "links": {
       "license": "AGPL-3.0",
-      "credits": "クレジット & 帰属",
+      "credits": "クレジット・帰属表示",
       "contributing": "コントリビューション",
       "issues": "Issues"
     },

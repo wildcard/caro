@@ -26,7 +26,7 @@
           "comingSoon": true
         },
         {
-          "title": "✨ 専用Skill",
+          "title": "✨ 専用スキル",
           "description": "CaroをSkillとして使えば、シェルコマンドの生成と実行を任せて、Claudeは本来の作業に集中できます。",
           "comingSoon": true
         }
@@ -34,9 +34,9 @@
     },
     "quickStart": {
       "title": "クイックスタート",
-      "intro": "上記のセットアップスクリプトを実行したら、すぐにCaroを使えます:",
+      "intro": "上記のセットアップスクリプトを実行したら、あとはCaroを使うだけ:",
       "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
-      "description": "Caroがコマンドを生成して、安全に実行します。セットアップスクリプトがRustのコンパイルを含む全ての前提条件を処理します。"
+      "description": "Caroがコマンドを生成して、安全に実行します。セットアップスクリプトがRustのコンパイルを含む必要な準備をすべて行います。"
     }
   }
 }
