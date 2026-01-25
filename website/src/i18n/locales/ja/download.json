@@ -1,11 +1,11 @@
 {
   "download": {
-    "title": "Caroをはじめよう",
-    "subtitle": "あなたの忠実なシェルコンパニオンをターミナルに",
+    "title": "Caroを始めよう",
+    "subtitle": "頼れる相棒をターミナルに連れてこよう",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
     "copyButton": "コピー",
-    "copiedButton": "コピーしました！",
-    "binariesIntro": "または、ビルド済みバイナリをダウンロード：",
+    "copiedButton": "コピーしました!",
+    "binariesIntro": "または、ビルド済みバイナリをダウンロード:",
     "comingSoonBadge": "近日公開",
     "platforms": {
       "macAppleSilicon": "macOS (Apple Silicon)",
@@ -14,29 +14,29 @@
       "windows": "Windows"
     },
     "usageModes": {
-      "title": "Caroを使う複数の方法",
+      "title": "Caroの使い方いろいろ",
       "modes": [
         {
           "title": "🔧 スタンドアロンCLI",
-          "exampleCommand": "caro \"100MB以上のファイルを表示\""
+          "exampleCommand": "caro \"list files > 100MB\""
         },
         {
           "title": "🔌 Claude用MCP",
-          "description": "Claude DesktopにCaroをMCPサーバーとして追加し、すべてのシェルコマンドをシームレスに処理させましょう。",
+          "description": "CaroをMCPサーバーとしてClaude Desktopに追加すれば、シェルコマンドをシームレスに実行できます。",
           "comingSoon": true
         },
         {
           "title": "✨ 専用Skill",
-          "description": "CaroをSkillとして使用し、シェルコマンドの生成と実行を委任。Claudeはあなたの作業に集中できます。",
+          "description": "CaroをSkillとして使えば、シェルコマンドの生成と実行を任せて、Claudeは本来の作業に集中できます。",
           "comingSoon": true
         }
       ]
     },
     "quickStart": {
       "title": "クイックスタート",
-      "intro": "上記のセットアップスクリプトを実行後、Caroを使用するだけです：",
-      "exampleCommand": "caro \"過去7日間に変更されたすべてのPythonファイルを検索\"",
-      "description": "Caroがコマンドを生成し、あなたを安全に守ります。セットアップスクリプトがRustコンパイルを含むすべての前提条件を処理します。"
+      "intro": "上記のセットアップスクリプトを実行したら、すぐにCaroを使えます:",
+      "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
+      "description": "Caroがコマンドを生成して、安全に実行します。セットアップスクリプトがRustのコンパイルを含む全ての前提条件を処理します。"
     }
   }
 }

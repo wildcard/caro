@@ -1,13 +1,13 @@
 {
   "common": {
     "meta": {
-      "title": "Caro - あなたの忠実なシェルコンパニオン",
-      "description": "CaroはPOSIXシェルコマンドをサポートするコンパニオンエージェントです。Claude用MCPおよび専用Skillとして利用可能です。"
+      "title": "Caro - あなたの頼れるシェルコンパニオン",
+      "description": "CaroはPOSIXシェルコマンドをサポートするコンパニオンエージェントです。Claude用のMCPとして、または専用Skillとして利用できます。"
     },
     "buttons": {
       "copy": "コピー",
-      "copied": "コピーしました！",
-      "getStarted": "はじめる",
+      "copied": "コピーしました!",
+      "getStarted": "始める",
       "watchDemo": "デモを見る"
     },
     "status": {
@@ -17,15 +17,15 @@
       "comingSoon": "近日公開"
     },
     "aria": {
-      "toggleDarkMode": "ダークモードを切り替え",
-      "toggleHolidayTheme": "ホリデーテーマメニューを切り替え"
+      "toggleDarkMode": "ダークモード切り替え",
+      "toggleHolidayTheme": "ホリデーテーマメニュー切り替え"
     },
     "nav": {
       "features": "機能",
       "compare": "比較",
       "resources": "リソース",
       "support": "サポート",
-      "getStarted": "はじめる",
+      "getStarted": "始める",
       "dropdown": {
         "overview": "概要",
         "seeAllComparisons": "すべての比較を見る",
@@ -36,15 +36,15 @@
         "vsKiro": "vs Kiro CLI",
         "awsAssistant": "AWS AIアシスタント",
         "blog": "ブログ",
-        "newsAndTutorials": "ニュース＆チュートリアル",
+        "newsAndTutorials": "ニュース & チュートリアル",
         "explore": "探索",
         "interactiveDemo": "インタラクティブデモ",
         "faq": "FAQ",
         "commonQuestions": "よくある質問",
         "roadmap": "ロードマップ",
-        "whatsNext": "次の予定",
+        "whatsNext": "今後の予定",
         "glossary": "用語集",
-        "terminalTerms": "ターミナル＆Unix用語",
+        "terminalTerms": "ターミナル & Unix用語",
         "github": "GitHub",
         "sourceCode": "ソースコード"
       },
@@ -56,7 +56,7 @@
         "title": "外観",
         "darkMode": "ダークモード",
         "holidayTheme": "ホリデーテーマ",
-        "snowEffect": "雪のエフェクト",
+        "snowEffect": "雪エフェクト",
         "disableEffects": "すべてのエフェクトを無効化"
       },
       "useCases": {
