@@ -10,7 +10,7 @@
       "github": "GitHub"
     },
     "darkMode": {
-      "toggle": "Activar/desactivar modo oscuro"
+      "toggle": "Activar modo oscuro"
     },
     "holidayTheme": {
       "toggle": "Abrir menú de tema festivo",
@@ -21,7 +21,7 @@
         "hanukkah": "Jánuca",
         "noTheme": "Sin Tema"
       },
-      "snowEffect": "Efecto de Nieve"
+      "snowEffect": "Efecto Nieve"
     }
   },
   "footer": {
@@ -29,7 +29,7 @@
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
-      "tagline": "Tu compañera fiel en la shell"
+      "tagline": "Tu compañera fiel en la terminal"
     },
     "links": {
       "license": "AGPL-3.0",
@@ -38,7 +38,7 @@
       "issues": "Issues"
     },
     "kyaro": {
-      "title": "¡Conoce a Kyaro en la vida real (Kyarorain Kadosh)! 🐕🖤",
+      "title": "¡Conoce a Kyaro en persona (Kyarorain Kadosh)! 🐕🖤",
       "followText": "Sigue sus aventuras en",
       "instagram": "Instagram @kyaroblackheart"
     },

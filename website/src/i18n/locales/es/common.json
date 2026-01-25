@@ -11,14 +11,14 @@
       "watchDemo": "Ver Demo"
     },
     "status": {
-      "availableNow": "Disponible Ahora",
+      "availableNow": "Disponible Ya",
       "inDevelopment": "En Desarrollo",
       "planned": "Planificado",
       "comingSoon": "Próximamente"
     },
     "aria": {
-      "toggleDarkMode": "Activar/desactivar modo oscuro",
-      "toggleHolidayTheme": "Activar/desactivar menú de tema festivo"
+      "toggleDarkMode": "Activar modo oscuro",
+      "toggleHolidayTheme": "Activar menú de tema festivo"
     },
     "nav": {
       "features": "Características",
@@ -34,7 +34,7 @@
         "vsGitHubCopilot": "vs GitHub Copilot CLI",
         "aiPairProgrammer": "Programador en pareja con IA",
         "vsKiro": "vs Kiro CLI",
-        "awsAssistant": "Asistente IA de AWS",
+        "awsAssistant": "Asistente IA para AWS",
         "blog": "Blog",
         "newsAndTutorials": "Noticias y tutoriales",
         "explore": "Explorar",
