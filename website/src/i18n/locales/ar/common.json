@@ -1,8 +1,8 @@
 {
   "common": {
     "meta": {
-      "title": "كارو - رفيقك الأمين في سطر الأوامر",
-      "description": "كارو هو وكيل مساعد يساعدك في أوامر POSIX shell. متاح كـ MCP لكلود وكـ Skill مخصص."
+      "title": "Caro - رفيقك الوفي في سطر الأوامر",
+      "description": "Caro هو وكيل مساعد يساعدك في أوامر POSIX shell. متاح كـ MCP لـ Claude وكـ Skill مخصص."
     },
     "buttons": {
       "copy": "نسخ",
@@ -17,11 +17,11 @@
       "comingSoon": "قريباً"
     },
     "aria": {
-      "toggleDarkMode": "تبديل الوضع الليلي",
+      "toggleDarkMode": "تبديل الوضع الداكن",
       "toggleHolidayTheme": "تبديل قائمة المظهر الاحتفالي"
     },
     "nav": {
-      "features": "الميزات",
+      "features": "المميزات",
       "compare": "المقارنة",
       "resources": "الموارد",
       "support": "الدعم",
@@ -29,33 +29,33 @@
       "dropdown": {
         "overview": "نظرة عامة",
         "seeAllComparisons": "عرض جميع المقارنات",
-        "vsWarp": "مقارنة مع Warp",
-        "aiNativeTerminal": "طرفية AI أصلية",
-        "vsGitHubCopilot": "مقارنة مع GitHub Copilot CLI",
+        "vsWarp": "مقابل Warp",
+        "aiNativeTerminal": "Terminal مدعوم بالذكاء الاصطناعي",
+        "vsGitHubCopilot": "مقابل GitHub Copilot CLI",
         "aiPairProgrammer": "مبرمج مساعد بالذكاء الاصطناعي",
-        "vsKiro": "مقارنة مع Kiro CLI",
+        "vsKiro": "مقابل Kiro CLI",
         "awsAssistant": "مساعد AWS بالذكاء الاصطناعي",
         "blog": "المدونة",
-        "newsAndTutorials": "أخبار ودروس",
+        "newsAndTutorials": "الأخبار والدروس",
         "explore": "استكشف",
         "interactiveDemo": "عرض تفاعلي",
         "faq": "الأسئلة الشائعة",
-        "commonQuestions": "أسئلة شائعة",
+        "commonQuestions": "الأسئلة الشائعة",
         "roadmap": "خارطة الطريق",
         "whatsNext": "ما القادم",
         "glossary": "المصطلحات",
-        "terminalTerms": "مصطلحات الطرفية و Unix",
+        "terminalTerms": "مصطلحات Terminal و Unix",
         "github": "GitHub",
         "sourceCode": "الكود المصدري"
       },
       "mobile": {
         "allComparisons": "جميع المقارنات",
-        "supportCaro": "ادعم كارو"
+        "supportCaro": "ادعم Caro"
       },
       "appearance": {
         "title": "المظهر",
-        "darkMode": "الوضع الليلي",
-        "holidayTheme": "مظهر المناسبات",
+        "darkMode": "الوضع الداكن",
+        "holidayTheme": "المظهر الاحتفالي",
         "snowEffect": "تأثير الثلج",
         "disableEffects": "تعطيل جميع التأثيرات"
       },
