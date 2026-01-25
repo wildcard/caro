@@ -1,11 +1,11 @@
 {
   "download": {
-    "title": "Mit Caro starten",
-    "subtitle": "Hol deinen treuen Shell-Begleiter in dein Terminal",
+    "title": "Leg los mit Caro",
+    "subtitle": "Hol dir deinen treuen Shell-Begleiter ins Terminal",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
     "copyButton": "Kopieren",
     "copiedButton": "Kopiert!",
-    "binariesIntro": "Oder vorkompilierte Binärdateien herunterladen:",
+    "binariesIntro": "Oder lade vorkompilierte Binaries herunter:",
     "comingSoonBadge": "Demnächst",
     "platforms": {
       "macAppleSilicon": "macOS (Apple Silicon)",
@@ -17,8 +17,8 @@
       "title": "Mehrere Wege, Caro zu nutzen",
       "modes": [
         {
-          "title": "🔧 Eigenständige CLI",
-          "exampleCommand": "caro \"Dateien > 100MB auflisten\""
+          "title": "🔧 Standalone CLI",
+          "exampleCommand": "caro \"list files > 100MB\""
         },
         {
           "title": "🔌 MCP für Claude",
@@ -26,17 +26,17 @@
           "comingSoon": true
         },
         {
-          "title": "✨ Dedizierter Skill",
-          "description": "Nutze Caro als Skill, um Shell-Befehlsgenerierung und -ausführung auszulagern, während Claude sich auf deine Arbeit konzentriert.",
+          "title": "✨ Dedicated Skill",
+          "description": "Nutze Caro als Skill, um die Generierung und Ausführung von Shell-Befehlen auszulagern, während Claude sich auf deine Arbeit konzentriert.",
           "comingSoon": true
         }
       ]
     },
     "quickStart": {
-      "title": "Schnellstart",
-      "intro": "Nach Ausführung des Setup-Skripts oben, nutze einfach Caro:",
-      "exampleCommand": "caro \"finde alle Python-Dateien, die in den letzten 7 Tagen geändert wurden\"",
-      "description": "Caro generiert den Befehl und hält dich sicher. Das Setup-Skript kümmert sich um alle Voraussetzungen einschließlich der Rust-Kompilierung."
+      "title": "Quick Start",
+      "intro": "Nach dem Setup-Script oben einfach Caro nutzen:",
+      "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
+      "description": "Caro generiert den Befehl und hält dir den Rücken frei. Das Setup-Script kümmert sich um alle Voraussetzungen inklusive Rust-Kompilierung."
     }
   }
 }
