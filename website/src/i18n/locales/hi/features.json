@@ -1,42 +1,42 @@
 {
   "features": {
     "title": "Caro क्यों?",
-    "subtitle": "सुरक्षा, समझदारी और विशेषज्ञता के साथ बनाया गया एक साथी agent",
-    "alphaNotice": "🚧 Soft Launch Alpha — हम अपनी community के साथ मिलकर actively build कर रहे हैं। Caro के भविष्य को shape करने में हमारी मदद करें!",
+    "subtitle": "सुरक्षा, समझदारी और expertise के साथ बनाया गया companion agent",
+    "alphaNotice": "🚧 Soft Launch Alpha — हम अपनी community के साथ मिलकर actively build कर रहे हैं। Caro के future को shape करने में हमारी मदद करें!",
     "items": [
       {
         "icon": "🛡️",
         "title": "Safety Guardian",
-        "description": "Comprehensive validation जो खतरनाक commands जैसे rm -rf /, fork bombs, और destructive operations को block करता है। Risk-level assessment के साथ 52 predefined safety patterns।",
-        "statusLabel": "अभी उपलब्ध"
+        "description": "Comprehensive validation जो dangerous commands जैसे rm -rf /, fork bombs, और destructive operations को block करता है। Risk-level assessment के साथ 52 predefined safety patterns।",
+        "statusLabel": "अभी Available"
       },
       {
         "icon": "🌍",
         "title": "Cross-Platform Expert",
-        "description": "macOS, Linux, Windows, GNU, और BSD पर काम करता है। Platform-specific बारीकियों को समझता है और आपकी पसंद के distribution का सम्मान करता है।",
-        "statusLabel": "अभी उपलब्ध"
+        "description": "macOS, Linux, Windows, GNU, और BSD पर काम करता है। Platform-specific nuances को समझता है और आपकी distribution की choice का सम्मान करता है।",
+        "statusLabel": "अभी Available"
       },
       {
         "icon": "🧠",
         "title": "Platform-Aware",
-        "description": "आपके platform की capabilities और best practices के आधार पर recommendations देता है। BSD और GNU command syntax में अपने आप फर्क समझता है।",
-        "statusLabel": "अभी उपलब्ध"
+        "description": "आपके platform की capabilities और best practices के आधार पर recommendations देता है। BSD और GNU command syntax में automatically फर्क समझता है।",
+        "statusLabel": "अभी Available"
       },
       {
         "icon": "✅",
         "title": "POSIX Specialist",
-        "description": "POSIX-compliant shell commands में expert जो systems पर भरोसेमंद तरीके से काम करते हैं। Portable, safe, और आपके terminal के लिए optimized।",
-        "statusLabel": "अभी उपलब्ध"
+        "description": "POSIX-compliant shell commands में expert जो systems पर reliably काम करते हैं। Portable, safe, और आपके terminal के लिए optimized।",
+        "statusLabel": "अभी Available"
       },
       {
         "icon": "⚡",
-        "title": "बिजली की रफ्तार",
+        "title": "Lightning Fast",
         "description": "Target: Sub-100ms startup, Apple Silicon पर sub-2s inference। M-series chips पर GPU acceleration के लिए MLX framework integration।",
         "statusLabel": "Development में"
       },
       {
         "icon": "🤝",
-        "title": "Claude का साथी",
+        "title": "Claude का Companion",
         "description": "Vision: Claude के साथ MCP server और Skill के रूप में seamless integration, shell command inference को offload करते हुए Claude आपके broader work पर focus कर सके।",
         "statusLabel": "Planned"
       }
