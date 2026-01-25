@@ -11,14 +11,14 @@
       "watchDemo": "ڈیمو دیکھیں"
     },
     "status": {
-      "availableNow": "ابھی دستیاب ہے",
-      "inDevelopment": "تیاری میں ہے",
+      "availableNow": "ابھی دستیاب",
+      "inDevelopment": "تیاری میں",
       "planned": "منصوبہ بند",
       "comingSoon": "جلد آ رہا ہے"
     },
     "aria": {
-      "toggleDarkMode": "ڈارک موڈ آن/آف کریں",
-      "toggleHolidayTheme": "تہوار کی تھیم مینو کھولیں"
+      "toggleDarkMode": "ڈارک موڈ تبدیل کریں",
+      "toggleHolidayTheme": "چھٹیوں کی تھیم مینو تبدیل کریں"
     },
     "nav": {
       "features": "خصوصیات",
@@ -39,7 +39,7 @@
         "newsAndTutorials": "خبریں اور ٹیوٹوریلز",
         "explore": "دریافت کریں",
         "interactiveDemo": "انٹرایکٹو ڈیمو",
-        "faq": "عام سوالات",
+        "faq": "عمومی سوالات",
         "commonQuestions": "اکثر پوچھے جانے والے سوالات",
         "roadmap": "روڈ میپ",
         "whatsNext": "آگے کیا آ رہا ہے",
@@ -55,7 +55,7 @@
       "appearance": {
         "title": "ظاہری شکل",
         "darkMode": "ڈارک موڈ",
-        "holidayTheme": "تہوار کی تھیم",
+        "holidayTheme": "چھٹیوں کی تھیم",
         "snowEffect": "برف کا اثر",
         "disableEffects": "تمام اثرات بند کریں"
       },
