@@ -4,7 +4,7 @@
     "logo": "Caro",
     "logoAlt": "Caro - 8-Bit Pixel Art",
     "tagline": "Deine treue Shell-Begleiterin",
-    "subtitle": "Ein spezialisierter POSIX-Shell-Command-Agent mit Empathie und Eigenständigkeit. Verfügbar als MCP für Claude und als dedizierter Skill. Sie hält dir den Rücken frei, während sie Claude bei der Arbeit unterstützt.",
+    "subtitle": "Ein spezialisierter POSIX-Shell-Command-Agent mit Empathie und Eigeninitiative. Verfügbar als MCP für Claude und als dedizierter Skill. Sie hält dir den Rücken frei, während sie Claude bei der Arbeit unterstützt.",
     "cta": {
       "getStarted": "Loslegen",
       "watchDemo": "Demo ansehen"
