@@ -1,68 +1,68 @@
 {
   "common": {
     "meta": {
-      "title": "Caro - आपका वफादार शेल साथी",
-      "description": "Caro एक साथी एजेंट है जो POSIX शेल कमांड्स में मदद करता है। Claude के लिए MCP और समर्पित Skill के रूप में उपलब्ध।"
+      "title": "Caro - आपका वफादार shell साथी",
+      "description": "Caro एक companion agent है जो आपको POSIX shell commands में मदद करता है। Claude के लिए MCP के रूप में और dedicated Skill के रूप में उपलब्ध है।"
     },
     "buttons": {
-      "copy": "कॉपी करें",
-      "copied": "कॉपी हो गया!",
+      "copy": "Copy करें",
+      "copied": "Copy हो गया!",
       "getStarted": "शुरू करें",
       "watchDemo": "Demo देखें"
     },
     "status": {
       "availableNow": "अभी उपलब्ध",
-      "inDevelopment": "विकास में",
-      "planned": "योजनाबद्ध",
+      "inDevelopment": "Development में",
+      "planned": "Planned",
       "comingSoon": "जल्द आ रहा है"
     },
     "aria": {
-      "toggleDarkMode": "डार्क मोड बदलें",
-      "toggleHolidayTheme": "त्यौहार थीम मेनू बदलें"
+      "toggleDarkMode": "Dark mode toggle करें",
+      "toggleHolidayTheme": "Holiday theme menu toggle करें"
     },
     "nav": {
-      "features": "विशेषताएं",
-      "compare": "तुलना",
-      "resources": "संसाधन",
-      "support": "सहायता",
+      "features": "Features",
+      "compare": "Compare करें",
+      "resources": "Resources",
+      "support": "Support",
       "getStarted": "शुरू करें",
       "dropdown": {
-        "overview": "अवलोकन",
-        "seeAllComparisons": "सभी तुलनाएं देखें",
+        "overview": "Overview",
+        "seeAllComparisons": "सभी comparisons देखें",
         "vsWarp": "vs Warp",
-        "aiNativeTerminal": "AI नेटिव टर्मिनल",
+        "aiNativeTerminal": "AI-native terminal",
         "vsGitHubCopilot": "vs GitHub Copilot CLI",
-        "aiPairProgrammer": "AI पेयर प्रोग्रामर",
+        "aiPairProgrammer": "AI pair programmer",
         "vsKiro": "vs Kiro CLI",
-        "awsAssistant": "AWS AI असिस्टेंट",
-        "blog": "ब्लॉग",
-        "newsAndTutorials": "समाचार और ट्यूटोरियल",
-        "explore": "एक्सप्लोर",
-        "interactiveDemo": "इंटरैक्टिव Demo",
+        "awsAssistant": "AWS AI assistant",
+        "blog": "Blog",
+        "newsAndTutorials": "News और tutorials",
+        "explore": "Explore करें",
+        "interactiveDemo": "Interactive demo",
         "faq": "FAQ",
         "commonQuestions": "आम सवाल",
-        "roadmap": "रोडमैप",
-        "whatsNext": "आगे क्या",
-        "glossary": "शब्दावली",
-        "terminalTerms": "टर्मिनल और Unix शब्द",
+        "roadmap": "Roadmap",
+        "whatsNext": "आगे क्या आ रहा है",
+        "glossary": "Glossary",
+        "terminalTerms": "Terminal और Unix terms",
         "github": "GitHub",
-        "sourceCode": "सोर्स कोड"
+        "sourceCode": "Source code"
       },
       "mobile": {
-        "allComparisons": "सभी तुलनाएं",
-        "supportCaro": "Caro को सपोर्ट करें"
+        "allComparisons": "सभी Comparisons",
+        "supportCaro": "Caro को Support करें"
       },
       "appearance": {
-        "title": "दिखावट",
-        "darkMode": "डार्क मोड",
-        "holidayTheme": "त्यौहार थीम",
-        "snowEffect": "बर्फ इफेक्ट",
-        "disableEffects": "सभी इफेक्ट बंद करें"
+        "title": "Appearance",
+        "darkMode": "Dark Mode",
+        "holidayTheme": "Holiday Theme",
+        "snowEffect": "Snow Effect",
+        "disableEffects": "सभी Effects बंद करें"
       },
       "useCases": {
-        "allUseCases": "सभी उपयोग मामले",
-        "byRole": "भूमिका के अनुसार",
-        "backToHome": "होम पर वापस"
+        "allUseCases": "सभी Use Cases",
+        "byRole": "Role के हिसाब से",
+        "backToHome": "Home पर वापस जाएं"
       }
     }
   }
