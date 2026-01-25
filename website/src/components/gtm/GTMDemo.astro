@@ -1,0 +1,354 @@
+---
+// GTM Demo Section - Interactive terminal showcase
+---
+
+<section id="demo" class="demo">
+  <div class="container">
+    <div class="section-label">See It In Action</div>
+    <h2>From Intent to Safe Command in Seconds</h2>
+
+    <div class="demo-wrapper">
+      <div class="terminal">
+        <div class="terminal-header">
+          <div class="terminal-dots">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+          </div>
+          <span class="terminal-title">Terminal — caro</span>
+        </div>
+
+        <div class="terminal-body">
+          <div class="terminal-line">
+            <span class="prompt">$</span>
+            <span class="command typed" id="demo-command">caro "find all python files larger than 1MB modified this week"</span>
+          </div>
+
+          <div class="terminal-output" id="demo-output">
+            <div class="output-section">
+              <span class="caro-label">Caro:</span>
+              <code class="generated-cmd">find . -name "*.py" -size +1M -mtime -7 -type f</code>
+            </div>
+
+            <div class="analysis">
+              <div class="analysis-item safe">
+                <span class="icon">✓</span>
+                <span class="text">Platform detected: macOS (BSD find)</span>
+              </div>
+              <div class="analysis-item safe">
+                <span class="icon">✓</span>
+                <span class="text">Safety check: No dangerous patterns</span>
+              </div>
+              <div class="analysis-item safe">
+                <span class="icon">✓</span>
+                <span class="text">POSIX compliant command</span>
+              </div>
+            </div>
+
+            <div class="prompt-confirm">
+              <span class="prompt-text">Execute this command? [y/N]</span>
+              <span class="cursor">▊</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo-features">
+        <div class="feature-tag">
+          <span class="tag-icon">🚀</span>
+          <span>&lt;2s response</span>
+        </div>
+        <div class="feature-tag">
+          <span class="tag-icon">🔒</span>
+          <span>Runs locally</span>
+        </div>
+        <div class="feature-tag">
+          <span class="tag-icon">🛡️</span>
+          <span>Pre-validated</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Safety Showcase -->
+    <div class="safety-showcase">
+      <h3>Dangerous Commands Blocked Automatically</h3>
+      <div class="blocked-grid">
+        <div class="blocked-item">
+          <code>rm -rf /</code>
+          <span class="blocked-label">Filesystem destruction</span>
+        </div>
+        <div class="blocked-item">
+          <code>:(){:|:&};:</code>
+          <span class="blocked-label">Fork bomb</span>
+        </div>
+        <div class="blocked-item">
+          <code>dd if=/dev/zero of=/dev/sda</code>
+          <span class="blocked-label">Disk wipe</span>
+        </div>
+        <div class="blocked-item">
+          <code>chmod -R 777 /</code>
+          <span class="blocked-label">Permission disaster</span>
+        </div>
+        <div class="blocked-item">
+          <code>curl ... | sudo bash</code>
+          <span class="blocked-label">Untrusted execution</span>
+        </div>
+        <div class="blocked-item">
+          <code>mkfs.ext4 /dev/sda1</code>
+          <span class="blocked-label">Format disk</span>
+        </div>
+      </div>
+      <p class="blocked-caption">52+ patterns and counting. All checked before you can run.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .demo {
+    padding: 100px 24px;
+    background: linear-gradient(180deg, var(--color-bg-secondary) 0%, var(--color-bg) 100%);
+  }
+
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #ff8c42;
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    text-align: center;
+    font-size: 42px;
+    font-weight: 800;
+    color: var(--color-text);
+    margin-bottom: 50px;
+  }
+
+  .demo-wrapper {
+    margin-bottom: 80px;
+  }
+
+  .terminal {
+    background: #0d1117;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+  }
+
+  .terminal-header {
+    background: #161b22;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+  }
+
+  .terminal-dots {
+    display: flex;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .dot.red { background: #ff5f56; }
+  .dot.yellow { background: #ffbd2e; }
+  .dot.green { background: #27c93f; }
+
+  .terminal-title {
+    margin-left: auto;
+    font-size: 13px;
+    color: #8b949e;
+  }
+
+  .terminal-body {
+    padding: 24px;
+    font-family: 'SF Mono', 'Monaco', 'Fira Code', monospace;
+    font-size: 14px;
+    line-height: 1.8;
+  }
+
+  .terminal-line {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .prompt {
+    color: #22c55e;
+  }
+
+  .command {
+    color: #79c0ff;
+  }
+
+  .terminal-output {
+    padding-left: 0;
+  }
+
+  .output-section {
+    margin-bottom: 16px;
+  }
+
+  .caro-label {
+    color: #ff8c42;
+    font-weight: 600;
+    margin-right: 8px;
+  }
+
+  .generated-cmd {
+    color: #a5d6ff;
+    background: rgba(165, 214, 255, 0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+
+  .analysis {
+    margin: 20px 0;
+    padding: 16px;
+    background: rgba(34, 197, 94, 0.1);
+    border-radius: 8px;
+    border-left: 3px solid #22c55e;
+  }
+
+  .analysis-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+
+  .analysis-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .analysis-item.safe {
+    color: #22c55e;
+  }
+
+  .analysis-item .icon {
+    font-weight: 700;
+  }
+
+  .prompt-confirm {
+    display: flex;
+    gap: 8px;
+    color: #8b949e;
+  }
+
+  .cursor {
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
+
+  .demo-features {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+
+  .feature-tag {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    padding: 10px 20px;
+    border-radius: 24px;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .tag-icon {
+    font-size: 16px;
+  }
+
+  /* Safety Showcase */
+  .safety-showcase {
+    background: var(--color-bg);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 16px;
+    padding: 48px;
+    text-align: center;
+  }
+
+  .safety-showcase h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 32px;
+  }
+
+  .blocked-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .blocked-item {
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  .blocked-item code {
+    display: block;
+    font-family: 'SF Mono', 'Monaco', 'Fira Code', monospace;
+    font-size: 13px;
+    color: #ef4444;
+    margin-bottom: 8px;
+  }
+
+  .blocked-label {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+
+  .blocked-caption {
+    color: var(--color-text-secondary);
+    font-size: 15px;
+  }
+
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 28px;
+    }
+
+    .terminal-body {
+      font-size: 12px;
+      padding: 16px;
+    }
+
+    .blocked-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .safety-showcase {
+      padding: 32px 20px;
+    }
+  }
+
+  @media (max-width: 500px) {
+    .blocked-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

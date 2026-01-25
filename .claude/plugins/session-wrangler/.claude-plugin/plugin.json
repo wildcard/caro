@@ -1,0 +1,50 @@
+{
+  "name": "session-wrangler",
+  "version": "2.0.0",
+  "description": "Meta-manager for multiple Claude sessions with enhanced correlation, indexing, and configuration",
+  "author": "Caro Project",
+  "commands": [
+    {
+      "name": "sessions",
+      "description": "List all Claude sessions (running, stuck, zombie, resumable) with index acceleration",
+      "path": "../commands/sessions.md"
+    },
+    {
+      "name": "sessions.inspect",
+      "description": "Deep dive into a specific session to understand its state",
+      "path": "../commands/inspect.md"
+    },
+    {
+      "name": "sessions.revive",
+      "description": "Revive a stuck session with worktree validation and configured claude command",
+      "path": "../commands/revive.md"
+    },
+    {
+      "name": "sessions.cleanup",
+      "description": "Clean up zombie processes, corrupted files, and invalid worktrees",
+      "path": "../commands/cleanup.md"
+    },
+    {
+      "name": "sessions.switch",
+      "description": "Navigate to another session's terminal",
+      "path": "../commands/switch.md"
+    },
+    {
+      "name": "sessions.sync",
+      "description": "Force rebuild the session-worktree index from session files",
+      "path": "../commands/sync.md"
+    },
+    {
+      "name": "sessions.config",
+      "description": "View and modify session wrangler configuration settings",
+      "path": "../commands/config.md"
+    }
+  ],
+  "skills": [
+    {
+      "name": "session-discovery",
+      "description": "Core skill for discovering and analyzing Claude sessions",
+      "path": "../skills/session-discovery/SKILL.md"
+    }
+  ]
+}

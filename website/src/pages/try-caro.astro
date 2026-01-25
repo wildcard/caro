@@ -1,0 +1,585 @@
+---
+/**
+ * Landing Page: Try Caro - Interactive TUI Demo
+ *
+ * Target Persona: Developers curious about Caro's terminal experience
+ * Pain Point: Want to experience Caro before installing
+ * Search Queries: "try caro online", "caro demo", "shell command generator demo"
+ *
+ * Main Message: "Experience Caro's safety-first shell companion in your browser"
+ *
+ * Powered by Ratzilla - Rust + WebAssembly terminal UI framework
+ */
+
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+import Footer from '../components/Footer.astro';
+import RatzillaDemo from '../components/RatzillaDemo.astro';
+---
+
+<Layout
+  title="Try Caro - Interactive Shell Companion Demo | Caro"
+  description="Experience Caro's AI-powered shell command generation in your browser. Try the safety-first terminal companion that converts natural language to POSIX commands."
+>
+  <Navigation />
+
+  <main class="try-page">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="container">
+        <div class="badge">Interactive Demo</div>
+        <h1>Try Caro in Your Browser</h1>
+        <p class="subtitle">
+          Experience the safety-first shell companion without installing anything.
+          Type natural language, get validated shell commands.
+        </p>
+      </div>
+    </section>
+
+    <!-- Ratzilla Demo Section -->
+    <section class="demo-section">
+      <div class="container">
+        <div class="demo-wrapper">
+          <RatzillaDemo height="550px" />
+        </div>
+
+        <div class="demo-hints">
+          <h3>Try these prompts:</h3>
+          <div class="hint-grid">
+            <button class="hint-chip" data-prompt="find large files over 100MB">
+              <span class="hint-icon">📁</span>
+              find large files
+            </button>
+            <button class="hint-chip" data-prompt="list all PDF files">
+              <span class="hint-icon">📄</span>
+              list PDFs
+            </button>
+            <button class="hint-chip" data-prompt="show disk usage">
+              <span class="hint-icon">💾</span>
+              disk usage
+            </button>
+            <button class="hint-chip" data-prompt="compress log files">
+              <span class="hint-icon">📦</span>
+              compress logs
+            </button>
+            <button class="hint-chip dangerous" data-prompt="delete all temp files">
+              <span class="hint-icon">⚠️</span>
+              delete temps
+            </button>
+            <button class="hint-chip dangerous" data-prompt="force remove directory">
+              <span class="hint-icon">🚫</span>
+              rm -rf (blocked!)
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Feature Highlights -->
+    <section class="features-section">
+      <div class="container">
+        <h2>Powered by Ratzilla</h2>
+        <p class="section-subtitle">
+          This demo runs entirely in your browser using Rust compiled to WebAssembly,
+          showcasing the same technology that powers Caro's blazing-fast command generation.
+        </p>
+
+        <div class="tech-stack">
+          <div class="tech-item">
+            <div class="tech-icon">🦀</div>
+            <h4>Rust</h4>
+            <p>Memory-safe, blazing fast</p>
+          </div>
+          <div class="tech-item">
+            <div class="tech-icon">🌐</div>
+            <h4>WebAssembly</h4>
+            <p>Near-native performance</p>
+          </div>
+          <div class="tech-item">
+            <div class="tech-icon">🐀</div>
+            <h4>Ratzilla</h4>
+            <p>Terminal UI for the web</p>
+          </div>
+          <div class="tech-item">
+            <div class="tech-icon">🛡️</div>
+            <h4>52+ Safety Patterns</h4>
+            <p>Dangerous command detection</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+      <div class="container">
+        <h2>Ready for the Real Thing?</h2>
+        <p class="section-subtitle">
+          The demo shows a fraction of Caro's capabilities. Install the full CLI
+          for local LLM inference, platform detection, and enterprise-grade safety.
+        </p>
+
+        <div class="install-options">
+          <div class="install-option">
+            <h4>Quick Install</h4>
+            <div class="code-block">
+              <code>curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash</code>
+              <button class="copy-btn" data-copy="curl -fsSL https://raw.githubusercontent.com/wildcard/caro/main/install.sh | bash">
+                Copy
+              </button>
+            </div>
+          </div>
+          <div class="install-option">
+            <h4>With Cargo</h4>
+            <div class="code-block">
+              <code>cargo install caro</code>
+              <button class="copy-btn" data-copy="cargo install caro">
+                Copy
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="cta-buttons">
+          <a href="/#download" class="cta-button primary">Get Caro</a>
+          <a href="https://github.com/wildcard/caro" class="cta-button secondary">
+            View on GitHub
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- About Ratzilla -->
+    <section class="about-ratzilla">
+      <div class="container">
+        <div class="ratzilla-card">
+          <div class="ratzilla-header">
+            <span class="ratzilla-logo">🐀</span>
+            <h3>About Ratzilla</h3>
+          </div>
+          <p>
+            This interactive demo is powered by <a href="https://github.com/orhun/ratzilla" target="_blank" rel="noopener">Ratzilla</a>,
+            an open-source framework by <a href="https://github.com/orhun" target="_blank" rel="noopener">orhun</a> that brings
+            terminal user interfaces to the web using Rust and WebAssembly.
+          </p>
+          <p>
+            Ratzilla is built on <a href="https://ratatui.rs/" target="_blank" rel="noopener">Ratatui</a>,
+            the beloved Rust TUI library, making it possible to write authentic terminal experiences
+            that run directly in the browser.
+          </p>
+          <a href="https://github.com/orhun/ratzilla" target="_blank" rel="noopener" class="ratzilla-link">
+            Learn more about Ratzilla →
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .try-page {
+    min-height: 100vh;
+  }
+
+  /* Hero Section */
+  .hero-section {
+    padding: 120px 20px 60px;
+    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+    text-align: center;
+  }
+
+  .badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .hero-section h1 {
+    font-size: 48px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--color-text);
+  }
+
+  .hero-section .subtitle {
+    font-size: 20px;
+    color: var(--color-text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* Demo Section */
+  .demo-section {
+    padding: 40px 20px 80px;
+    background: var(--color-bg);
+  }
+
+  .demo-wrapper {
+    margin-bottom: 40px;
+  }
+
+  .demo-hints {
+    text-align: center;
+  }
+
+  .demo-hints h3 {
+    font-size: 18px;
+    color: var(--color-text-secondary);
+    margin-bottom: 20px;
+  }
+
+  .hint-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .hint-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    padding: 10px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .hint-chip:hover {
+    border-color: #ff8c42;
+    background: rgba(255, 140, 66, 0.1);
+  }
+
+  .hint-chip.dangerous {
+    border-color: rgba(231, 76, 60, 0.3);
+  }
+
+  .hint-chip.dangerous:hover {
+    border-color: #e74c3c;
+    background: rgba(231, 76, 60, 0.1);
+  }
+
+  .hint-icon {
+    font-size: 16px;
+  }
+
+  /* Features Section */
+  .features-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .features-section h2 {
+    text-align: center;
+    font-size: 36px;
+    margin-bottom: 16px;
+    color: var(--color-text);
+  }
+
+  .features-section .section-subtitle {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto 50px;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+  }
+
+  .tech-stack {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 30px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .tech-item {
+    text-align: center;
+    padding: 30px 20px;
+    background: var(--color-bg);
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    transition: all 0.2s ease;
+  }
+
+  .tech-item:hover {
+    border-color: #ff8c42;
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .tech-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+
+  .tech-item h4 {
+    font-size: 18px;
+    color: var(--color-text);
+    margin-bottom: 8px;
+  }
+
+  .tech-item p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  /* CTA Section */
+  .cta-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .cta-section h2 {
+    text-align: center;
+    font-size: 36px;
+    margin-bottom: 16px;
+    color: var(--color-text);
+  }
+
+  .cta-section .section-subtitle {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto 40px;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+  }
+
+  .install-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    max-width: 800px;
+    margin: 0 auto 40px;
+  }
+
+  .install-option {
+    background: var(--color-bg-secondary);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+  }
+
+  .install-option h4 {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .code-block {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #1e1e1e;
+    padding: 12px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+  }
+
+  .code-block code {
+    flex: 1;
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 14px;
+    color: #9cdcfe;
+    white-space: nowrap;
+  }
+
+  .copy-btn {
+    background: #ff8c42;
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+
+  .copy-btn:hover {
+    background: #ff6b35;
+  }
+
+  .copy-btn.copied {
+    background: #2ecc71;
+  }
+
+  .cta-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+  }
+
+  .cta-button {
+    display: inline-block;
+    padding: 16px 40px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .cta-button.primary {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: white;
+  }
+
+  .cta-button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(255, 140, 66, 0.3);
+  }
+
+  .cta-button.secondary {
+    background: transparent;
+    border: 2px solid #ff8c42;
+    color: #ff8c42;
+  }
+
+  .cta-button.secondary:hover {
+    background: rgba(255, 140, 66, 0.1);
+  }
+
+  /* About Ratzilla */
+  .about-ratzilla {
+    padding: 60px 20px 80px;
+    background: var(--color-bg-secondary);
+  }
+
+  .ratzilla-card {
+    max-width: 700px;
+    margin: 0 auto;
+    background: var(--color-bg);
+    padding: 30px;
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+  }
+
+  .ratzilla-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .ratzilla-logo {
+    font-size: 36px;
+  }
+
+  .ratzilla-header h3 {
+    font-size: 24px;
+    color: var(--color-text);
+  }
+
+  .ratzilla-card p {
+    color: var(--color-text-secondary);
+    margin-bottom: 16px;
+    line-height: 1.7;
+  }
+
+  .ratzilla-card a {
+    color: #ff8c42;
+  }
+
+  .ratzilla-link {
+    display: inline-block;
+    font-weight: 600;
+    margin-top: 8px;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero-section {
+      padding: 100px 20px 40px;
+    }
+
+    .hero-section h1 {
+      font-size: 32px;
+    }
+
+    .hero-section .subtitle {
+      font-size: 16px;
+    }
+
+    .features-section h2,
+    .cta-section h2 {
+      font-size: 28px;
+    }
+
+    .tech-stack {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .tech-item {
+      padding: 20px 15px;
+    }
+
+    .tech-icon {
+      font-size: 36px;
+    }
+
+    .cta-buttons {
+      flex-direction: column;
+    }
+
+    .cta-button {
+      width: 100%;
+      text-align: center;
+    }
+
+    .install-options {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  // Copy button functionality
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const text = btn.getAttribute('data-copy');
+      if (!text) return;
+
+      try {
+        await navigator.clipboard.writeText(text);
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+
+        setTimeout(() => {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
+    });
+  });
+
+  // Hint chips - could be wired to interact with the Ratzilla demo
+  document.querySelectorAll('.hint-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const prompt = chip.getAttribute('data-prompt');
+      // This could send a message to the Ratzilla demo if it exposes an API
+      console.log('Hint selected:', prompt);
+      // Future: communicate with WASM module to set the input
+    });
+  });
+</script>

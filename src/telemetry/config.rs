@@ -1,11 +1,12 @@
 //! Telemetry configuration
 
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 /// Telemetry configuration
 ///
 /// Controls telemetry behavior including enable/disable, level, and air-gapped mode.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct TelemetryConfig {
     /// Telemetry enabled
     ///
@@ -72,9 +73,8 @@ fn default_first_run() -> bool {
 }
 
 /// Telemetry collection level
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Default)]
 #[serde(rename_all = "lowercase")]
-#[derive(Default)]
 pub enum TelemetryLevel {
     /// Minimal telemetry - only critical events
     ///

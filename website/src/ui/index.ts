@@ -42,6 +42,11 @@ export {
   type CopyCodeBlockSize,
 } from './CopyCodeBlock';
 export {
+  CodeBlock,
+  type CodeBlockProps,
+  type CodeBlockVariant,
+} from './CodeBlock';
+export {
   IconButton,
   type IconButtonProps,
   type IconButtonSize,
@@ -61,6 +66,9 @@ export {
   type DropdownItemProps,
   type DropdownHeaderProps,
 } from './Dropdown';
+
+// Preference Selectors
+export { DistroSelector, type DistroSelectorProps } from './DistroSelector';
 
 // Design tokens are available via CSS import:
 // import '../ui/tokens.css';

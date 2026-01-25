@@ -53,11 +53,12 @@
 
 /* ============================================
    SIZE VARIANTS
+   Uses consistent control height tokens
    ============================================ */
 
 .sm {
-  width: 32px;
-  height: 32px;
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
 }
 
 .sm .iconWrapper,
@@ -67,8 +68,8 @@
 }
 
 .md {
-  width: 40px;
-  height: 40px;
+  width: var(--control-height-md);
+  height: var(--control-height-md);
 }
 
 .md .iconWrapper,
@@ -78,8 +79,8 @@
 }
 
 .lg {
-  width: 48px;
-  height: 48px;
+  width: var(--control-height-lg);
+  height: var(--control-height-lg);
 }
 
 .lg .iconWrapper,
@@ -186,25 +187,9 @@
 
 /* ============================================
    TOUCH TARGETS
-   Ensure minimum 44px touch area
+   All sizes now use consistent control heights
+   which are designed to be touch-friendly
    ============================================ */
-
-.sm {
-  min-width: var(--touch-target-min, 44px);
-  min-height: var(--touch-target-min, 44px);
-  /* Visual size is smaller, but touch area is 44px */
-  position: relative;
-}
-
-.sm::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 44px;
-  height: 44px;
-}
 
 /* ============================================
    REDUCED MOTION

@@ -6,7 +6,7 @@ hero:
   title: |
     Talk to your terminal.
   tagline: |
-    caro transforms natural language into safe, POSIX-compliant shell commands.
+    Transform natural language into safe, POSIX-compliant shell commands.
     Powered by local LLMs. Privacy-first. Blazingly fast on Apple Silicon.
   image:
     file: ../../assets/logo-dark.svg
@@ -21,50 +21,88 @@ hero:
       variant: minimal
 ---
 
-import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+import { Card, CardGrid, LinkCard, Tabs, TabItem } from '@astrojs/starlight/components';
 
 <div class="features-grid">
   <div class="feature-card">
-    <div class="feature-icon">🔒</div>
+    <div class="feature-icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+      </svg>
+    </div>
     <h3>Safety First</h3>
     <p>Comprehensive validation blocks dangerous commands before execution. Pattern matching for rm -rf, fork bombs, and more.</p>
   </div>
 
   <div class="feature-card">
-    <div class="feature-icon">🚀</div>
+    <div class="feature-icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+      </svg>
+    </div>
     <h3>Blazingly Fast</h3>
     <p>Optimized for Apple Silicon with MLX. Sub-2-second inference on M1/M2/M3/M4 chips with GPU acceleration.</p>
   </div>
 
   <div class="feature-card">
-    <div class="feature-icon">🏠</div>
+    <div class="feature-icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+      </svg>
+    </div>
     <h3>Privacy First</h3>
     <p>All inference runs locally on your machine. Your commands and data never leave your computer.</p>
   </div>
 
   <div class="feature-card">
-    <div class="feature-icon">🔧</div>
+    <div class="feature-icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="4 17 10 11 4 5"></polyline>
+        <line x1="12" y1="19" x2="20" y2="19"></line>
+      </svg>
+    </div>
     <h3>POSIX Compliant</h3>
     <p>Generated commands work across all Unix systems. Standard utilities like find, grep, awk, and sed.</p>
   </div>
 </div>
 
-## Quick Example
+## Quick Start
 
+<Tabs>
+  <TabItem label="Install">
 ```bash
-# Install caro
+# Install via cargo
 cargo install caro
 
+# Or with Homebrew (macOS)
+brew install wildcard/tap/caro
+```
+  </TabItem>
+  <TabItem label="Usage">
+```bash
 # Convert natural language to shell commands
 caro "find all rust files modified in the last week"
-# Output: find . -name "*.rs" -mtime -7
+# → find . -name "*.rs" -mtime -7
 
 caro "show disk usage sorted by size"
-# Output: du -sh * | sort -hr
+# → du -sh * | sort -hr
 
 caro "count lines in all python files"
-# Output: find . -name "*.py" -exec wc -l {} + | tail -1
+# → find . -name "*.py" -exec wc -l {} + | tail -1
 ```
+  </TabItem>
+  <TabItem label="Configure">
+```bash
+# Set your preferred backend
+export CARO_BACKEND=mlx    # Apple Silicon
+export CARO_BACKEND=ollama # Any platform
+
+# Optional: customize model
+export CARO_MODEL=codellama
+```
+  </TabItem>
+</Tabs>
 
 ## Why caro?
 
@@ -87,7 +125,7 @@ caro "count lines in all python files"
   </Card>
 </CardGrid>
 
-## Get Started
+## Next Steps
 
 <LinkCard
   title="Installation Guide"
@@ -96,7 +134,7 @@ caro "count lines in all python files"
 />
 
 <LinkCard
-  title="Quick Start"
+  title="Quick Start Tutorial"
   description="Learn the basics with practical examples"
   href="/getting-started/quick-start/"
 />

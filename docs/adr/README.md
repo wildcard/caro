@@ -40,6 +40,17 @@ Example: `ADR-001-enterprise-community-architecture.md`
 | [ADR-001](./ADR-001-enterprise-community-architecture.md) | Enterprise vs Community Architecture | Proposed | 2025-11-29 |
 | [ADR-002](./ADR-002-governance-provisioning-system.md) | Governance and Provisioning System | Proposed | 2025-11-29 |
 | [ADR-003](./ADR-003-monitoring-audit-trail.md) | Monitoring and Audit Trail System | Proposed | 2025-11-29 |
+| [ADR-004](./ADR-004-just-runbook-integration.md) | Just-Based Runbook Integration | Proposed | 2026-01-02 |
+| [ADR-005](./ADR-005-hayagriva-bibliography-integration.md) | Hayagriva Bibliography Integration | Proposed | 2026-01-02 |
+| [ADR-006](./ADR-006-olmo3-model-support.md) | OLMo 3 Model Support | Proposed | 2026-01-03 |
+| [ADR-007](./ADR-007-ast-parser-shell-validation.md) | AST Parser for Shell Command Validation | Proposed | 2026-01-02 |
+| [ADR-008](./ADR-008-self-update-mechanism.md) | Self-Update Mechanism | Proposed | 2026-01-22 |
+| [ADR-009](./ADR-009-website-claims-verification.md) | Website Claims Verification Test Suite | Accepted | 2025-01-03 |
+| [ADR-010](./ADR-010-bubblewrap-sandbox-execution.md) | Bubblewrap Sandbox for Command Execution | Proposed | 2026-01-03 |
+| [ADR-011](./ADR-011-cmd-lib-command-execution-library.md) | Evaluation of cmd_lib for Command Execution | Rejected | 2026-01-02 |
+| [ADR-012](./ADR-012-honggfuzz-integration.md) | Honggfuzz Integration for Security-Critical Fuzz Testing | Proposed | 2026-01-02 |
+| [ADR-013](./ADR-013-pre-processing-pipeline.md) | Pre-Processing Pipeline Architecture | Proposed | 2026-01-01 |
+| [ADR-014](./ADR-014-serde-env-evaluation.md) | Environment Variable Deserialization with serde-env | Proposed | 2026-01-01 |
 
 ## Contributing to ADRs
 

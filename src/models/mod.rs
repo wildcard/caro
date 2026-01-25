@@ -1,6 +1,7 @@
 // Models module - Core data structures
 // These are placeholder stubs - tests should fail until proper implementation
 
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 pub mod profile;
@@ -185,7 +186,7 @@ impl std::fmt::Display for RiskLevel {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum SafetyLevel {
     /// Blocks High and Critical commands, confirms Moderate
@@ -238,6 +239,8 @@ pub enum BackendType {
     Mlx,
     /// Exo distributed cluster backend
     Exo,
+    /// Claude API backend (Anthropic)
+    Claude,
 }
 
 impl std::str::FromStr for BackendType {
@@ -251,6 +254,7 @@ impl std::str::FromStr for BackendType {
             "vllm" => Ok(Self::VLlm),
             "mlx" => Ok(Self::Mlx),
             "exo" => Ok(Self::Exo),
+            "claude" | "anthropic" => Ok(Self::Claude),
             _ => Err(format!("Unknown backend type: {}", s)),
         }
     }
@@ -265,11 +269,12 @@ impl std::fmt::Display for BackendType {
             Self::VLlm => write!(f, "vllm"),
             Self::Mlx => write!(f, "mlx"),
             Self::Exo => write!(f, "exo"),
+            Self::Claude => write!(f, "claude"),
         }
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum ShellType {
     Bash,
@@ -449,7 +454,9 @@ impl std::fmt::Display for Platform {
 }
 
 /// Log severity level
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq, PartialOrd, Ord,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum LogLevel {
     Debug,
@@ -618,7 +625,7 @@ impl CacheManifest {
 }
 
 /// User configuration with preferences
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct UserConfiguration {
     pub default_shell: Option<ShellType>,
     pub safety_level: SafetyLevel,
@@ -631,6 +638,9 @@ pub struct UserConfiguration {
     pub cache_max_size_gb: u64,
     pub log_rotation_days: u32,
     pub telemetry: crate::telemetry::TelemetryConfig,
+    /// Default generation profile (generator or explainer)
+    #[serde(default)]
+    pub generation_profile: crate::prompts::profiles::GenerationProfile,
 }
 
 impl Default for UserConfiguration {
@@ -644,6 +654,7 @@ impl Default for UserConfiguration {
             cache_max_size_gb: 10,
             log_rotation_days: 7,
             telemetry: crate::telemetry::TelemetryConfig::default(),
+            generation_profile: crate::prompts::profiles::GenerationProfile::default(),
         }
     }
 }
@@ -682,6 +693,7 @@ pub struct UserConfigurationBuilder {
     cache_max_size_gb: u64,
     log_rotation_days: u32,
     telemetry: crate::telemetry::TelemetryConfig,
+    generation_profile: crate::prompts::profiles::GenerationProfile,
 }
 
 impl Default for UserConfigurationBuilder {
@@ -702,6 +714,7 @@ impl UserConfigurationBuilder {
             cache_max_size_gb: defaults.cache_max_size_gb,
             log_rotation_days: defaults.log_rotation_days,
             telemetry: defaults.telemetry,
+            generation_profile: defaults.generation_profile,
         }
     }
 
@@ -745,6 +758,14 @@ impl UserConfigurationBuilder {
         self
     }
 
+    pub fn generation_profile(
+        mut self,
+        profile: crate::prompts::profiles::GenerationProfile,
+    ) -> Self {
+        self.generation_profile = profile;
+        self
+    }
+
     pub fn build(self) -> Result<UserConfiguration, String> {
         let config = UserConfiguration {
             default_shell: self.default_shell,
@@ -755,6 +776,7 @@ impl UserConfigurationBuilder {
             cache_max_size_gb: self.cache_max_size_gb,
             log_rotation_days: self.log_rotation_days,
             telemetry: self.telemetry,
+            generation_profile: self.generation_profile,
         };
         config.validate()?;
         Ok(config)
@@ -989,7 +1011,7 @@ pub enum KnowledgeBackendConfig {
         path: PathBuf,
     },
     ChromaDb {
-        /// ChromaDB server URL (e.g., "http://localhost:8000" or "https://api.trychroma.com")
+        /// ChromaDB server URL (e.g., `http://localhost:8000` or `https://api.trychroma.com`)
         url: String,
         /// Optional cache directory for embedding models
         #[serde(default)]

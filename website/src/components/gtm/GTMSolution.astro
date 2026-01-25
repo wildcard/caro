@@ -1,0 +1,264 @@
+---
+// GTM Solution Section - The Answer (Daytona-style)
+// Clear, confident positioning with visual proof
+---
+
+<section class="solution">
+  <div class="container">
+    <div class="section-label">The Solution</div>
+    <h2>Caro Checks Every Command Before You Run It</h2>
+    <p class="section-subtitle">
+      Natural language in. Safe, platform-specific commands out. 52+ dangerous patterns blocked automatically.
+    </p>
+
+    <div class="solution-visual">
+      <div class="flow-diagram">
+        <!-- Input -->
+        <div class="flow-step input">
+          <div class="step-label">You type</div>
+          <div class="step-content">
+            <code>"delete old log files"</code>
+          </div>
+        </div>
+
+        <div class="flow-arrow">→</div>
+
+        <!-- Processing -->
+        <div class="flow-step process">
+          <div class="step-label">Caro processes</div>
+          <div class="step-content">
+            <div class="process-item">
+              <span class="check">✓</span> Local LLM inference
+            </div>
+            <div class="process-item">
+              <span class="check">✓</span> Platform detection
+            </div>
+            <div class="process-item">
+              <span class="check">✓</span> Safety validation
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-arrow">→</div>
+
+        <!-- Output -->
+        <div class="flow-step output">
+          <div class="step-label">You get</div>
+          <div class="step-content">
+            <code class="safe">find /var/log -name "*.log" -mtime +30 -delete</code>
+            <div class="output-badge safe-badge">✓ Safe to run</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pillars">
+      <div class="pillar">
+        <div class="pillar-icon">🛡️</div>
+        <h3>Pre-Execution Validation</h3>
+        <p>Every command passes through 52+ safety patterns before you see it. Fork bombs, recursive deletes, privilege escalation—all caught.</p>
+      </div>
+
+      <div class="pillar">
+        <div class="pillar-icon">🔒</div>
+        <h3>100% Local Processing</h3>
+        <p>Your commands, server names, and file paths never leave your machine. Zero telemetry. Zero cloud APIs. Complete privacy.</p>
+      </div>
+
+      <div class="pillar">
+        <div class="pillar-icon">🌍</div>
+        <h3>Platform-Aware Generation</h3>
+        <p>Detects your OS, architecture, and shell. Generates commands that work on your Mac, your Linux server, or your BSD box. First time.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .solution {
+    padding: 100px 24px;
+    background: var(--color-bg);
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #22c55e;
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    text-align: center;
+    font-size: 42px;
+    font-weight: 800;
+    line-height: 1.2;
+    color: var(--color-text);
+    margin-bottom: 16px;
+  }
+
+  .section-subtitle {
+    text-align: center;
+    font-size: 20px;
+    color: var(--color-text-secondary);
+    max-width: 700px;
+    margin: 0 auto 60px;
+    line-height: 1.6;
+  }
+
+  .solution-visual {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    padding: 48px;
+    margin-bottom: 60px;
+  }
+
+  .flow-diagram {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .flow-step {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 24px;
+    min-width: 220px;
+    text-align: center;
+  }
+
+  .step-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--color-text-secondary);
+    margin-bottom: 12px;
+  }
+
+  .step-content code {
+    display: block;
+    font-family: 'SF Mono', 'Monaco', 'Fira Code', monospace;
+    font-size: 14px;
+    padding: 12px 16px;
+    background: #1a1a2e;
+    border-radius: 8px;
+    color: #9cdcfe;
+  }
+
+  .step-content code.safe {
+    color: #22c55e;
+  }
+
+  .flow-step.process .step-content {
+    text-align: left;
+  }
+
+  .process-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--color-text);
+    margin-bottom: 8px;
+  }
+
+  .process-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .process-item .check {
+    color: #22c55e;
+    font-weight: 600;
+  }
+
+  .output-badge {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .safe-badge {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+
+  .flow-arrow {
+    font-size: 28px;
+    color: var(--color-text-secondary);
+    font-weight: 300;
+  }
+
+  .pillars {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+
+  .pillar {
+    text-align: center;
+  }
+
+  .pillar-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+
+  .pillar h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 12px;
+  }
+
+  .pillar p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--color-text-secondary);
+  }
+
+  @media (max-width: 900px) {
+    .flow-diagram {
+      flex-direction: column;
+    }
+
+    .flow-arrow {
+      transform: rotate(90deg);
+    }
+
+    .flow-step {
+      width: 100%;
+      max-width: 300px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 28px;
+    }
+
+    .solution-visual {
+      padding: 24px;
+    }
+
+    .pillars {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+  }
+</style>

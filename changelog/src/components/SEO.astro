@@ -1,0 +1,51 @@
+---
+import { SiteTitle, SiteUrl } from '../consts';
+
+export type Image = {
+  src: string;
+  alt: string;
+};
+
+export type SEOMetadata = {
+  name?: string;
+  title?: string;
+  description?: string;
+  image?: Image;
+  canonicalUrl?: URL | null;
+  locale?: string;
+};
+
+export type Props = SEOMetadata;
+
+const {
+  name = SiteTitle,
+  title,
+  description,
+  image,
+  canonicalUrl = new URL(Astro.url.pathname, Astro.site),
+  locale = 'en',
+} = Astro.props as Props;
+
+const ogTitle = title || name;
+---
+
+<title>{title ? `${title} | ${name}` : name}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonicalUrl} />
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website" />
+<meta property="og:url" content={canonicalUrl} />
+<meta property="og:locale" content={locale} />
+<meta property="og:title" content={ogTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:site_name" content={name} />
+{image && <meta property="og:image" content={image.src} />}
+{image && <meta property="og:image:alt" content={image.alt} />}
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={ogTitle} />
+<meta name="twitter:description" content={description} />
+{image && <meta name="twitter:image" content={image.src} />}
+{image && <meta name="twitter:image:alt" content={image.alt} />}

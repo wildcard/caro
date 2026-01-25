@@ -404,6 +404,7 @@ impl VectorBackend for ChromaDbBackend {
             entry.timestamp,
             entry.original_command.as_deref(),
             entry.feedback.as_deref(),
+            entry.profile.as_deref(), // profile
         );
 
         // Add to ChromaDB collection
@@ -557,6 +558,7 @@ mod tests {
             timestamp,
             None,
             None,
+            None, // profile
         );
 
         assert_eq!(metadata["entry_type"], "success");
@@ -577,6 +579,7 @@ mod tests {
             timestamp,
             Some("find -name '*.txt'"),
             Some("Missing current directory"),
+            None, // profile
         );
 
         assert_eq!(metadata["entry_type"], "correction");
@@ -597,6 +600,7 @@ mod tests {
             timestamp,
             None,
             None,
+            None, // profile
         );
 
         assert_eq!(metadata["entry_type"], "success");
@@ -625,6 +629,7 @@ mod tests {
             timestamp,
             None,
             None,
+            None, // profile
         );
         let meta_correction = ChromaDbBackend::build_metadata(
             EntryType::Correction,
@@ -633,6 +638,7 @@ mod tests {
             timestamp,
             None,
             None,
+            None, // profile
         );
 
         assert_ne!(meta_success["entry_type"], meta_correction["entry_type"]);
@@ -673,7 +679,7 @@ mod tests {
 
         // Record a success
         backend
-            .record_success("list files", "ls -la", Some("/home/user"))
+            .record_success("list files", "ls -la", Some("/home/user"), None)
             .await
             .expect("Failed to record success");
 

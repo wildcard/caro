@@ -1,0 +1,232 @@
+---
+// GTM Problem Section - Fear + Agitation (Daytona-style)
+// Make the problem visceral and urgent
+---
+
+<section class="problem">
+  <div class="container">
+    <div class="section-label">The Problem</div>
+    <h2>AI Can Write Dangerous Commands.<br />And You'll Run Them.</h2>
+
+    <div class="problem-grid">
+      <div class="problem-card danger">
+        <div class="problem-icon">💀</div>
+        <h3>The AI Hallucination</h3>
+        <p>ChatGPT doesn't validate commands. It generates what looks right—even if it deletes your entire filesystem.</p>
+        <div class="code-example">
+          <code>rm -rf / --no-preserve-root</code>
+          <span class="code-label">← GPT-4 actually generated this</span>
+        </div>
+      </div>
+
+      <div class="problem-card warning">
+        <div class="problem-icon">☁️</div>
+        <h3>The Privacy Leak</h3>
+        <p>Every command you type reveals your infrastructure. Server names. File paths. API keys. All sent to the cloud.</p>
+        <div class="stat-callout">
+          <span class="stat-number">$4.4M</span>
+          <span class="stat-text">Average cost of a data breach (IBM, 2024)</span>
+        </div>
+      </div>
+
+      <div class="problem-card warning">
+        <div class="problem-icon">🔧</div>
+        <h3>The Platform Trap</h3>
+        <p>Works on Mac. Breaks on Linux. BSD vs GNU. sed vs gsed. You won't know until production is down.</p>
+        <div class="code-example subtle">
+          <code>sed -i '' 's/old/new/' # Mac</code>
+          <code>sed -i 's/old/new/'    # Linux</code>
+        </div>
+      </div>
+
+      <div class="problem-card danger">
+        <div class="problem-icon">⏰</div>
+        <h3>The 2 AM Mistake</h3>
+        <p>Tired. On-call. Incident happening. One wrong keystroke between "fix deployed" and "career over."</p>
+        <div class="quote-callout">
+          "I've seen a senior engineer accidentally nuke prod with a misplaced space."
+        </div>
+      </div>
+    </div>
+
+    <div class="problem-summary">
+      <p>Every other AI tool generates commands and hopes you check them.</p>
+      <p class="highlight">What if your tool checked them for you?</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .problem {
+    padding: 100px 24px;
+    background: var(--color-bg-secondary);
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #ef4444;
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    text-align: center;
+    font-size: 42px;
+    font-weight: 800;
+    line-height: 1.2;
+    color: var(--color-text);
+    margin-bottom: 60px;
+  }
+
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    margin-bottom: 60px;
+  }
+
+  .problem-card {
+    background: var(--color-bg);
+    border-radius: 16px;
+    padding: 32px;
+    border: 1px solid var(--color-border);
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .problem-card:hover {
+    transform: translateY(-4px);
+  }
+
+  .problem-card.danger {
+    border-left: 4px solid #ef4444;
+  }
+
+  .problem-card.warning {
+    border-left: 4px solid #f59e0b;
+  }
+
+  .problem-icon {
+    font-size: 40px;
+    margin-bottom: 16px;
+  }
+
+  .problem-card h3 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 12px;
+  }
+
+  .problem-card p {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--color-text-secondary);
+    margin-bottom: 20px;
+  }
+
+  .code-example {
+    background: #1a1a2e;
+    border-radius: 8px;
+    padding: 16px;
+    font-family: 'SF Mono', 'Monaco', 'Fira Code', monospace;
+    font-size: 13px;
+  }
+
+  .code-example code {
+    display: block;
+    color: #ef4444;
+  }
+
+  .code-example.subtle code {
+    color: #f59e0b;
+    margin-bottom: 4px;
+  }
+
+  .code-example.subtle code:last-child {
+    margin-bottom: 0;
+  }
+
+  .code-label {
+    display: block;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #666;
+    font-family: system-ui, sans-serif;
+  }
+
+  .stat-callout {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .stat-number {
+    display: block;
+    font-size: 28px;
+    font-weight: 700;
+    color: #f59e0b;
+  }
+
+  .stat-text {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+
+  .quote-callout {
+    font-style: italic;
+    color: var(--color-text-secondary);
+    padding-left: 16px;
+    border-left: 2px solid var(--color-border);
+    font-size: 15px;
+  }
+
+  .problem-summary {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .problem-summary p {
+    font-size: 20px;
+    color: var(--color-text-secondary);
+    margin-bottom: 8px;
+  }
+
+  .problem-summary .highlight {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 28px;
+    }
+
+    .problem-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .problem-card {
+      padding: 24px;
+    }
+
+    .problem-summary p {
+      font-size: 17px;
+    }
+
+    .problem-summary .highlight {
+      font-size: 20px;
+    }
+  }
+</style>

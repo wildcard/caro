@@ -1,0 +1,311 @@
+# Modulization Configuration
+# Cadence-driven work moderation and recomposition
+version: 1
+
+# =============================================================================
+# CADENCE SETTINGS
+# =============================================================================
+cadence:
+  # How often to run: daily, weekly, biweekly, monthly
+  schedule: weekly
+
+  # Day of week for weekly cadence (monday, tuesday, etc.)
+  day: monday
+
+  # Time of day (UTC)
+  time: "09:00"
+
+  # Timezone for scheduling
+  timezone: UTC
+
+# =============================================================================
+# SIGNAL COLLECTION
+# =============================================================================
+signals:
+  # -------------------------------------------------------------------------
+  # Codebase Signals
+  # -------------------------------------------------------------------------
+  codebase:
+    enabled: true
+
+    # Comment patterns to scan for
+    patterns:
+      - "TODO"
+      - "FIXME"
+      - "HACK"
+      - "XXX"
+      - "NOTE"
+
+    # File patterns to include
+    include:
+      - "src/**/*.rs"
+      - "tests/**/*.rs"
+      - "lib/**/*.rs"
+
+    # Paths to exclude
+    exclude:
+      - "target/**"
+      - "vendor/**"
+      - "node_modules/**"
+      - ".git/**"
+
+    # Enable semantic analysis (incomplete implementations, dead code)
+    semantic_analysis: true
+
+    # Detect dead/unreferenced code
+    dead_code_detection: false
+
+    # Detect comments that don't match code
+    stale_comment_detection: true
+
+  # -------------------------------------------------------------------------
+  # GitHub Signals
+  # -------------------------------------------------------------------------
+  github:
+    enabled: true
+
+    # Days before a PR is considered stale
+    stale_pr_days: 14
+
+    # Days before an issue is considered stale
+    stale_issue_days: 30
+
+    # Include draft PRs in scan
+    include_draft_prs: true
+
+    # Include PRs that were closed without merge
+    include_closed_unmerged: true
+
+    # Collect from GitHub Discussions
+    collect_discussions: true
+
+    # Collect unresolved review comments
+    collect_review_comments: true
+
+    # Scan for abandoned branches
+    collect_branches: true
+
+    # Days before a branch is considered abandoned
+    stale_branch_days: 30
+
+  # -------------------------------------------------------------------------
+  # Process Signals
+  # -------------------------------------------------------------------------
+  process:
+    enabled: true
+
+    # Path to worktrees directory
+    worktree_path: ".worktrees/"
+
+    # Path to roadmap file
+    roadmap_path: "ROADMAP.md"
+
+    # Paths to spec-driven development artifacts
+    spec_paths:
+      - ".kittify/**"
+      - ".worktrees/**/spec.md"
+      - ".worktrees/**/plan.md"
+      - ".worktrees/**/tasks.md"
+
+    # Path to constitution
+    constitution_path: ".specify/memory/constitution.md"
+
+  # -------------------------------------------------------------------------
+  # Historical Context
+  # -------------------------------------------------------------------------
+  historical:
+    enabled: true
+
+    # Use git blame to trace origins
+    git_blame: true
+
+    # Cross-reference signals to issues/PRs
+    cross_reference: true
+
+    # Reconstruct decision timelines
+    timeline_reconstruction: true
+
+    # Maximum depth for origin tracing
+    max_trace_depth: 10
+
+# =============================================================================
+# CLASSIFICATION
+# =============================================================================
+classification:
+  # -------------------------------------------------------------------------
+  # Automatic Classification Rules
+  # -------------------------------------------------------------------------
+
+  # Labels that trigger automatic "integrate now" classification
+  auto_integrate:
+    - label: "security"
+      condition: "risk.level >= medium"
+    - label: "quick-fix"
+      condition: "cost.complexity <= small"
+    - label: "bug"
+      condition: "risk.level >= high"
+
+  # Labels that trigger automatic scheduling
+  auto_schedule:
+    - label: "enhancement"
+      target_milestone: "next_minor"
+    - label: "breaking-change"
+      target_milestone: "next_major"
+    - label: "feature"
+      target_milestone: "next_minor"
+
+  # Labels that trigger automatic icing
+  auto_ice:
+    - label: "blocked"
+    - label: "needs-design"
+    - label: "wontfix"
+    - label: "on-hold"
+
+  # Labels that trigger automatic archiving
+  auto_archive:
+    - label: "duplicate"
+    - label: "invalid"
+    - label: "out-of-scope"
+    - label: "superseded"
+
+  # -------------------------------------------------------------------------
+  # Thresholds
+  # -------------------------------------------------------------------------
+  thresholds:
+    # Minimum alignment score for "integrate now"
+    integrate_now_alignment: 75
+
+    # Minimum alignment score for scheduling
+    schedule_alignment: 50
+
+    # Days before a signal is considered stale
+    stale_days: 30
+
+    # Minimum confidence to act without escalation
+    confidence_minimum: 0.60
+
+  # -------------------------------------------------------------------------
+  # Escalation
+  # -------------------------------------------------------------------------
+  escalation:
+    # Always escalate critical risk items
+    always_escalate_critical: true
+
+    # Confidence below this triggers escalation
+    confidence_threshold: 0.60
+
+    # Maximum conflicting signals before escalation
+    max_conflicting_signals: 3
+
+# =============================================================================
+# OUTPUT
+# =============================================================================
+output:
+  # Path for generated reports
+  report_path: ".modulization/reports/"
+
+  # Path for spec seeds
+  spec_seeds_path: ".modulization/spec-seeds/"
+
+  # Path for module data
+  modules_path: ".modulization/modules.yaml"
+
+  # Automatically create GitHub issues for modules
+  create_github_issues: false
+
+  # Add comments to stale PRs/issues
+  comment_on_stale: true
+
+  # Comment template for stale items
+  stale_comment_template: |
+    📊 **Modulization Review**
+
+    This item has been identified in the modulization scan and grouped
+    with related work for scheduling consideration.
+
+    See the latest modulization report for details.
+
+    _Automated comment from modulization cadence._
+
+# =============================================================================
+# SPEC-KITTY INTEGRATION
+# =============================================================================
+integration:
+  spec_kitty:
+    enabled: true
+
+    # Generate spec seeds for classified modules
+    seed_generation:
+      enabled: true
+      output_path: ".modulization/spec-seeds/"
+      format: yaml
+
+    # Auto-create draft specs for high-confidence modules
+    auto_spec:
+      enabled: true
+      confidence_threshold: 0.85
+      classifications:
+        - integrate_now
+        - schedule
+
+    # Worktree integration
+    worktree:
+      auto_create: false
+      naming_pattern: "{sequence}-{slug}"
+      origin_tracking: true
+
+    # Progress tracking
+    tracking:
+      enabled: true
+      sync_on_phase_complete: true
+      update_module_status: true
+
+  # Roadmap synchronization
+  roadmap_sync:
+    enabled: true
+    suggest_additions: true
+    auto_update: false  # Requires manual review
+
+# =============================================================================
+# PERFORMANCE
+# =============================================================================
+performance:
+  # Cache settings
+  caching:
+    enabled: true
+    git_blame_ttl: "1 day"
+    github_ttl: "1 hour"
+    cross_refs_ttl: "6 hours"
+
+  # Incremental scanning
+  incremental:
+    enabled: true
+    strategy: "git diff since last run"
+
+  # Parallelization
+  parallel:
+    enabled: true
+    file_scan_workers: 4
+    github_concurrent_requests: 5
+
+# =============================================================================
+# NOTIFICATIONS
+# =============================================================================
+notifications:
+  # Slack integration (optional)
+  slack:
+    enabled: false
+    webhook_url: ""
+    channel: "#engineering"
+    notify_on:
+      - report_generated
+      - high_priority_modules
+      - escalations
+
+  # Email notifications (optional)
+  email:
+    enabled: false
+    recipients: []
+    notify_on:
+      - weekly_report
+      - escalations

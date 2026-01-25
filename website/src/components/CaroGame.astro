@@ -14,6 +14,7 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
 <section
   id="game"
   class="game-section"
+  data-lang={lang}
   data-messages-correct={JSON.stringify(messages.correct)}
   data-messages-wrong={JSON.stringify(messages.wrong)}
   data-messages-timeout={JSON.stringify(messages.timeout)}
@@ -632,6 +633,8 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
       finalScore: gameSection.dataset.textFinalScore || 'You reached Level {{level}} with {{score}} points!'
     };
 
+    const locale = gameSection.dataset.lang || 'en';
+
     // Elements
     const gameArea = document.getElementById('game-area');
     const optionsGrid = document.getElementById('options-grid');
@@ -727,7 +730,7 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
         if (isCurrentScore) classes.push('current-score');
 
         const date = new Date(entry.date);
-        const dateStr = date.toLocaleDateString();
+        const dateStr = date.toLocaleDateString(locale);
 
         return `
           <div class="${classes.join(' ')}">

@@ -1,168 +1,201 @@
 #!/usr/bin/env node
-
 /**
  * Translation Status Report
- * Shows translation coverage statistics for all locales
+ *
+ * Generates a coverage report for all supported locales.
+ * Shows how many keys are translated vs total keys.
+ *
+ * Usage:
+ *   node scripts/i18n/status.mjs
+ *   node scripts/i18n/status.mjs --ci              # CI mode (exit code 1 on low coverage)
+ *   node scripts/i18n/status.mjs --min-coverage 80 # Set minimum coverage threshold
+ *   node scripts/i18n/status.mjs --tier1-only      # Only check tier 1 locales
  */
 
-import { readFileSync, readdirSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
+import fs from 'fs';
+import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = path.dirname(__filename);
 
-const LOCALES_DIR = join(__dirname, '../../src/i18n/locales');
-const SUPPORTED_LOCALES = ['es', 'fr', 'pt', 'de', 'he', 'ar', 'uk', 'ru', 'ja', 'ko', 'hi', 'ur', 'fil', 'id'];
+const LOCALES_DIR = path.join(__dirname, '../../src/i18n/locales');
+const LOCALES = ['es', 'fr', 'pt', 'de', 'ja', 'ko', 'he', 'ar', 'ru', 'uk', 'hi', 'ur', 'fil', 'id'];
+const TIER1_LOCALES = ['es', 'fr', 'de', 'pt', 'ja'];
 
-// Tier classification (from plan)
-const TIER1 = ['es', 'fr', 'pt', 'de', 'ja'];
-const TIER2 = ['ko', 'he', 'ar', 'hi'];
-const TIER3 = ['ru', 'uk', 'ur', 'fil', 'id'];
-
-// Parse command line arguments
+// Parse CLI args
 const args = process.argv.slice(2);
-const CI_MODE = args.includes('--ci');
-const MIN_COVERAGE = parseInt(args.find(arg => arg.startsWith('--min-coverage='))?.split('=')[1] || '0');
-const TIER1_ONLY = args.includes('--tier1-only');
+const ciMode = args.includes('--ci');
+const minCoverage = args.includes('--min-coverage')
+  ? parseInt(args[args.indexOf('--min-coverage') + 1], 10)
+  : 0;
+const tier1Only = args.includes('--tier1-only');
 
 /**
- * Count keys recursively in a JSON object
+ * Recursively flatten nested JSON object into dot-notation keys
  */
-function countKeys(obj, prefix = '') {
-  let count = 0;
+function flattenKeys(obj, prefix = '') {
+  const result = {};
 
   for (const [key, value] of Object.entries(obj)) {
-    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-      count += countKeys(value, `${prefix}${key}.`);
+    const fullKey = prefix ? `${prefix}.${key}` : key;
+
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      Object.assign(result, flattenKeys(value, fullKey));
     } else {
-      count++;
+      result[fullKey] = value;
     }
   }
 
-  return count;
+  return result;
 }
 
 /**
- * Get translation stats for a locale
+ * Load and merge all JSON files for a locale
  */
-function getLocaleStats(locale) {
-  const localeDir = join(LOCALES_DIR, locale);
-  const enDir = join(LOCALES_DIR, 'en');
-
-  if (!existsSync(localeDir)) {
-    return { files: 0, keys: 0, enKeys: 0, coverage: 0 };
+function loadLocaleTranslations(locale) {
+  const localeDir = path.join(LOCALES_DIR, locale);
+  if (!fs.existsSync(localeDir)) {
+    return {};
   }
 
-  const files = readdirSync(localeDir).filter(f => f.endsWith('.json'));
-  const enFiles = readdirSync(enDir).filter(f => f.endsWith('.json'));
+  const merged = {};
+  const files = fs.readdirSync(localeDir).filter(f => f.endsWith('.json'));
 
-  let totalKeys = 0;
-  let totalEnKeys = 0;
-
-  for (const file of enFiles) {
-    const enPath = join(enDir, file);
-    const localePath = join(localeDir, file);
-
+  for (const file of files) {
     try {
-      const enData = JSON.parse(readFileSync(enPath, 'utf-8'));
-      const enKeyCount = countKeys(enData);
-      totalEnKeys += enKeyCount;
-
-      if (existsSync(localePath)) {
-        const localeData = JSON.parse(readFileSync(localePath, 'utf-8'));
-        const localeKeyCount = countKeys(localeData);
-        totalKeys += localeKeyCount;
-      }
-    } catch (err) {
-      console.error(`Error processing ${file} for ${locale}:`, err.message);
+      const content = JSON.parse(fs.readFileSync(path.join(localeDir, file), 'utf8'));
+      Object.assign(merged, content);
+    } catch (error) {
+      console.error(`Error reading ${locale}/${file}:`, error.message);
     }
   }
 
-  const coverage = totalEnKeys > 0 ? (totalKeys / totalEnKeys * 100) : 0;
+  return merged;
+}
+
+/**
+ * Calculate translation coverage for a locale
+ */
+function calculateCoverage(enTranslations, localeTranslations) {
+  const enKeys = flattenKeys(enTranslations);
+  const localeKeys = flattenKeys(localeTranslations);
+
+  const total = Object.keys(enKeys).length;
+  let translated = 0;
+
+  for (const key of Object.keys(enKeys)) {
+    const localeValue = localeKeys[key];
+    const enValue = enKeys[key];
+
+    // Count as translated if:
+    // - Key exists in locale
+    // - Value is not empty
+    // - Value is different from English (actually translated)
+    if (
+      localeValue &&
+      String(localeValue).trim() !== '' &&
+      String(localeValue) !== String(enValue)
+    ) {
+      translated++;
+    }
+  }
 
   return {
-    files: files.length,
-    enFiles: enFiles.length,
-    keys: totalKeys,
-    enKeys: totalEnKeys,
-    coverage: coverage.toFixed(1)
+    translated,
+    total,
+    percentage: total > 0 ? ((translated / total) * 100).toFixed(1) : '0.0'
   };
 }
 
 /**
- * Get tier for a locale
+ * Generate status report
  */
-function getTier(locale) {
-  if (TIER1.includes(locale)) return 'TIER1';
-  if (TIER2.includes(locale)) return 'TIER2';
-  if (TIER3.includes(locale)) return 'TIER3';
-  return 'UNKNOWN';
+function generateReport() {
+  const enTranslations = loadLocaleTranslations('en');
+  const results = [];
+
+  const targetLocales = tier1Only ? TIER1_LOCALES : LOCALES;
+
+  for (const locale of targetLocales) {
+    const localeTranslations = loadLocaleTranslations(locale);
+    const coverage = calculateCoverage(enTranslations, localeTranslations);
+
+    results.push({
+      locale,
+      ...coverage
+    });
+  }
+
+  return results;
 }
 
 /**
- * Main function
+ * Display report in terminal
  */
-function main() {
-  const results = [];
-  const locales = TIER1_ONLY ? TIER1 : SUPPORTED_LOCALES;
+function displayReport(results) {
+  console.log('\n┌─────────┬──────────┬──────────┬─────────────┐');
+  console.log('│ Locale  │ Keys     │ Translated│ Coverage   │');
+  console.log('├─────────┼──────────┼──────────┼─────────────┤');
 
-  console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('🌍 Translation Coverage Status');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-
-  // Header
-  console.log('┌─────────┬──────┬──────────┬──────────┬─────────────┐');
-  console.log('│ Locale  │ Tier │ Keys     │ Files    │ Coverage    │');
-  console.log('├─────────┼──────┼──────────┼──────────┼─────────────┤');
-
-  let failedLocales = [];
-
-  for (const locale of locales) {
-    const stats = getLocaleStats(locale);
-    const tier = getTier(locale);
-    const coverage = parseFloat(stats.coverage);
-
-    // Status indicator
-    let status = '✓';
-    if (MIN_COVERAGE > 0 && coverage < MIN_COVERAGE) {
-      status = '✗';
-      failedLocales.push({ locale, coverage });
-    }
+  for (const result of results) {
+    const { locale, total, translated, percentage } = result;
+    const coverageNum = parseFloat(percentage);
+    const coverageColor = coverageNum >= 90 ? '\x1b[32m' : coverageNum >= 70 ? '\x1b[33m' : '\x1b[31m';
 
     console.log(
-      `│ ${status} ${locale.padEnd(5)} │ ${tier.padEnd(4)} │ ${stats.keys.toString().padStart(3)}/${stats.enKeys.toString().padStart(3)} │ ${stats.files}/${stats.enFiles}      │ ${stats.coverage.padStart(5)}%     │`
+      `│ ${locale.padEnd(7)} │ ${String(total).padEnd(8)} │ ${String(translated).padEnd(9)} │ ${coverageColor}${percentage}%\x1b[0m${' '.repeat(9 - percentage.length)} │`
     );
-
-    results.push({ locale, tier, ...stats, coverageNum: coverage });
   }
 
-  console.log('└─────────┴──────┴──────────┴──────────┴─────────────┘\n');
+  console.log('└─────────┴──────────┴──────────┴─────────────┘\n');
 
-  // Calculate tier averages
-  const tier1Avg = results.filter(r => TIER1.includes(r.locale)).reduce((sum, r) => sum + r.coverageNum, 0) / TIER1.filter(l => locales.includes(l)).length;
-  const tier2Avg = results.filter(r => TIER2.includes(r.locale)).reduce((sum, r) => sum + r.coverageNum, 0) / TIER2.filter(l => locales.includes(l)).length;
-  const tier3Avg = results.filter(r => TIER3.includes(r.locale)).reduce((sum, r) => sum + r.coverageNum, 0) / TIER3.filter(l => locales.includes(l)).length;
-  const overallAvg = results.reduce((sum, r) => sum + r.coverageNum, 0) / results.length;
+  // Calculate average
+  const avgCoverage = (
+    results.reduce((sum, r) => sum + parseFloat(r.percentage), 0) / results.length
+  ).toFixed(1);
 
-  console.log('Tier Averages:');
-  console.log(`  TIER1 (es, fr, pt, de, ja): ${tier1Avg.toFixed(1)}%`);
-  console.log(`  TIER2 (ko, he, ar, hi):     ${tier2Avg.toFixed(1)}%`);
-  console.log(`  TIER3 (ru, uk, ur, fil, id): ${tier3Avg.toFixed(1)}%`);
-  console.log(`  Overall:                    ${overallAvg.toFixed(1)}%\n`);
+  console.log(`Average coverage: ${avgCoverage}%`);
+
+  // Tier breakdown
+  if (!tier1Only) {
+    const tier1Results = results.filter(r => TIER1_LOCALES.includes(r.locale));
+    const tier1Avg = (
+      tier1Results.reduce((sum, r) => sum + parseFloat(r.percentage), 0) / tier1Results.length
+    ).toFixed(1);
+
+    console.log(`Tier 1 average (es, fr, de, pt, ja): ${tier1Avg}%\n`);
+  }
+
+  return avgCoverage;
+}
+
+/**
+ * Main execution
+ */
+function main() {
+  console.log('📊 Translation Coverage Report\n');
+
+  if (tier1Only) {
+    console.log('🎯 Tier 1 locales only (es, fr, de, pt, ja)\n');
+  }
+
+  const results = generateReport();
+  const avgCoverage = displayReport(results);
 
   // CI mode checks
-  if (CI_MODE && MIN_COVERAGE > 0 && failedLocales.length > 0) {
-    console.error(`❌ ${failedLocales.length} locale(s) below ${MIN_COVERAGE}% coverage threshold:\n`);
-    for (const { locale, coverage } of failedLocales) {
-      console.error(`  • ${locale}: ${coverage.toFixed(1)}% (need ${MIN_COVERAGE}%)`);
-    }
-    console.error('');
-    process.exit(1);
-  }
+  if (ciMode && minCoverage > 0) {
+    const failedLocales = results.filter(r => parseFloat(r.percentage) < minCoverage);
 
-  if (CI_MODE) {
-    console.log('✅ All locales meet coverage requirements\n');
+    if (failedLocales.length > 0) {
+      console.error(`\n❌ ${failedLocales.length} locale(s) below minimum coverage (${minCoverage}%):`);
+      failedLocales.forEach(l => {
+        console.error(`   ${l.locale}: ${l.percentage}%`);
+      });
+      process.exit(1);
+    } else {
+      console.log(`\n✅ All locales meet minimum coverage threshold (${minCoverage}%)`);
+    }
   }
 }
 

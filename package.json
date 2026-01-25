@@ -3,7 +3,9 @@
   "workspaces": [
     "website",
     "docs-site",
-    "landing"
+    "landing",
+    "presentation",
+    "apps/devrel"
   ],
   "dependencies": {
     "openai": "^6.16.0"

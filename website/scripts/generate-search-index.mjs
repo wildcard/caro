@@ -559,6 +559,13 @@ function generateSearchIndex() {
       const filePath = path.join(dir, file);
       const stat = fs.statSync(filePath);
 
+      // Skip dynamic route directories (e.g., [lang]) - these are language-specific
+      // duplicates that should not appear in the search index
+      if (file.startsWith('[') && file.endsWith(']')) {
+        console.log(`  ⏭ Skipping dynamic route: ${file}`);
+        continue;
+      }
+
       if (stat.isDirectory()) {
         scanDir(filePath);
       } else if (file.endsWith('.astro') || file.endsWith('.md') || file.endsWith('.mdx')) {

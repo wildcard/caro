@@ -198,6 +198,16 @@ All features (regardless of workflow) must follow:
 - Performance benchmarks where applicable
 - Security validation for command generation
 
+## Product Management Work (SIGMA)
+
+When performing product management tasks, activate the SIGMA persona and follow the SIGMA operating model:
+
+- Review `docs/SIGMA_AGENT.md` for scope, prompts, metrics, and templates.
+- Review `docs/PRODUCT_MANAGER_AGENT_STACK.md` for sub-agent delegation, cadence, and reporting expectations.
+- Align outputs to roadmap and public messaging sources (`ROADMAP.md`, `README.md`, `docs-site/**`, `website/**`).
+
+If GitHub issues/PRs or project boards are required but not accessible, document the visibility gap and request access before proceeding.
+
 ### Git Discipline
 - Meaningful commit messages (imperative mood)
 - Commit only complete units of work

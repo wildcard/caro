@@ -1,5 +1,6 @@
 import React from 'react';
 import styles from './Card.module.css';
+import type { Locale } from '../i18n/config';
 
 // ============================================
 // TYPES
@@ -34,6 +35,8 @@ export interface CardProps {
   href?: string;
   /** Blog metadata */
   metadata?: CardMetadata;
+  /** Locale for date formatting (e.g., 'en', 'es', 'fr') */
+  lang?: Locale;
   /** Click handler */
   onClick?: () => void;
   /** Additional class name */
@@ -103,6 +106,7 @@ export function Card({
   statusLabel,
   href,
   metadata,
+  lang = 'en',
   onClick,
   className = '',
   children,
@@ -136,7 +140,7 @@ export function Card({
 
   // Format date for blog cards
   const formattedDate = metadata?.date
-    ? new Date(metadata.date).toLocaleDateString('en-US', {
+    ? new Date(metadata.date).toLocaleDateString(lang, {
         year: 'numeric',
         month: 'long',
         day: 'numeric',

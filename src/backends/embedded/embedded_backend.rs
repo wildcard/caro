@@ -5,6 +5,8 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 
 use async_trait::async_trait;
+use once_cell::sync::Lazy;
+use regex::Regex;
 
 use crate::backends::embedded::{CpuBackend, EmbeddedConfig, InferenceBackend, ModelVariant};
 use crate::backends::{BackendInfo, CommandGenerator, GeneratorError};
@@ -14,6 +16,12 @@ use crate::ModelLoader;
 
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
 use crate::backends::embedded::MlxBackend;
+
+/// Regex pattern to extract command from malformed JSON with unescaped quotes
+/// Handles cases like: {"cmd": "find . -type f -name "*.txt""}
+/// The greedy .+ captures everything between the first quote after "cmd": and the last "}
+static CMD_EXTRACT_REGEX: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r#"\{\s*"cmd"\s*:\s*"(.+)"\s*\}"#).expect("Invalid regex pattern"));
 
 /// Primary command generator using embedded Qwen model with platform-specific inference
 #[derive(Clone)]
@@ -149,10 +157,11 @@ OUTPUT FORMAT: Respond with ONLY valid JSON:
 CRITICAL RULES:
 1. ALWAYS use current directory "." as the starting path (NEVER use "/" root)
 2. Use BSD-compatible flags (macOS). AVOID GNU-only flags like --max-depth
-3. Use MINIMAL flags - only add flags explicitly mentioned in the request
-   - "list files" = ls (NO extra flags like -la)
-   - "show hidden files" = ls -a (EXACT flag requested)
-   - "list all files" = ls (NOT ls -la unless "all" means hidden AND details)
+3. NEVER add flags that were not requested:
+   - If request says "list files" -> use ONLY "ls" (NOT "ls -a", NOT "ls -l", NOT "ls -la")
+   - If request says "show hidden" -> use ONLY "ls -a" (NOT "ls -la")
+   - If request says "with details" -> use ONLY "ls -l" (NOT "ls -la")
+   - ONLY combine flags (like -la or -lt) if BOTH things are explicitly mentioned
 5. Include ALL relevant filters in find commands:
    - For file types: ALWAYS add -name "*.ext" pattern when extension mentioned
    - For files only: add -type f
@@ -171,19 +180,15 @@ CRITICAL RULES:
 10. Target shell: {}
 11. NEVER generate destructive commands (rm -rf, mkfs, dd, etc.)
 
-EXAMPLES:
+EXAMPLES (use exact flags shown):
 - "list all files in the current directory" -> ls
 - "show hidden files" -> ls -a
 - "list files with detailed information" -> ls -l
 - "list files sorted by modification time" -> ls -lt
 - "show the current working directory" -> pwd
-- "create a new directory named backup" -> mkdir backup
-- "copy file.txt to backup.txt" -> cp file.txt backup.txt
-- "move file.txt to documents folder" -> mv file.txt documents/
 - "count files in current directory" -> ls -1 | wc -l
 - "find all text files in current directory" -> find . -name "*.txt"
 - "files modified today" -> find . -type f -mtime 0
-- "large files over 100MB" -> find . -type f -size +100M
 
 IMPORTANT TOOL SELECTION RULES:
 - If request mentions "docker" or "container" (but NOT "pod"): use docker command
@@ -259,6 +264,17 @@ Request: {}
                     if !cmd.is_empty() && !cmd.contains('{') && !cmd.contains('}') {
                         return Ok(cmd.to_string());
                     }
+                }
+            }
+        }
+
+        // Regex fallback: Handle malformed JSON with unescaped quotes
+        // e.g., {"cmd": "find . -type f -name "*.txt""}
+        if let Some(caps) = CMD_EXTRACT_REGEX.captures(response) {
+            if let Some(cmd_match) = caps.get(1) {
+                let cmd = cmd_match.as_str().trim();
+                if !cmd.is_empty() {
+                    return Ok(cmd.to_string());
                 }
             }
         }
@@ -441,6 +457,14 @@ mod tests {
         let result = backend.parse_command_response(response);
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), "find . -name '*.txt'");
+
+        // Test malformed JSON with unescaped nested quotes (regression test)
+        // LLMs sometimes output: {"cmd": "find . -type f -name "*.llm""}
+        // instead of properly escaped: {"cmd": "find . -type f -name \"*.llm\""}
+        let response = r#"{"cmd": "find . -type f -name "*.llm""}"#;
+        let result = backend.parse_command_response(response);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), r#"find . -type f -name "*.llm""#);
 
         // Test malformed response
         let response = "This is not JSON at all";

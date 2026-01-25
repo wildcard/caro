@@ -24,6 +24,19 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
+            // Check if issue author is a maintainer/collaborator
+            let isMaintainer = false;
+            try {
+              const { data: permissionLevel } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: owner,
+                repo: repo,
+                username: issueAuthor
+              });
+              isMaintainer = ['admin', 'write', 'maintain'].includes(permissionLevel.permission);
+            } catch (error) {
+              console.log('Could not check maintainer status:', error.message);
+            }
+
             // Check if this is the user's first issue
             const { data: issues } = await github.rest.issues.listForRepo({
               owner: owner,
@@ -33,6 +46,12 @@ jobs:
             });
 
             const isFirstIssue = issues.length === 1;
+
+            // Skip comment for maintainers (unless it's their first issue - unlikely but handle it)
+            if (isMaintainer && !isFirstIssue) {
+              console.log('Skipping welcome comment for maintainer: ' + issueAuthor);
+              return;
+            }
 
             let message = '';
             if (isFirstIssue) {

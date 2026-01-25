@@ -1,54 +1,52 @@
 #!/usr/bin/env node
-
 /**
- * Translation Validation Script
- * Validates translation files for common issues
+ * Validate Translation Files
+ *
+ * Checks translation files for common issues:
+ * - Valid JSON syntax
+ * - Placeholder preservation ({count}, {name})
+ * - Protected terms preservation (Caro, Claude, POSIX)
+ * - Empty translations
+ * - Duplicate keys
+ *
+ * Usage:
+ *   node scripts/i18n/validate.mjs
+ *   node scripts/i18n/validate.mjs --locale es  # Validate specific locale
+ *   node scripts/i18n/validate.mjs --strict     # Exit with error on warnings
  */
 
-import { readFileSync, readdirSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
+import fs from 'fs';
+import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = path.dirname(__filename);
 
-const LOCALES_DIR = join(__dirname, '../../src/i18n/locales');
-const SUPPORTED_LOCALES = ['es', 'fr', 'pt', 'de', 'he', 'ar', 'uk', 'ru', 'ja', 'ko', 'hi', 'ur', 'fil', 'id'];
+const LOCALES_DIR = path.join(__dirname, '../../src/i18n/locales');
+const LOCALES = ['es', 'fr', 'pt', 'de', 'ja', 'ko', 'he', 'ar', 'ru', 'uk', 'hi', 'ur', 'fil', 'id'];
 
-// Parse command line arguments
-const args = process.argv.slice(2);
-const CI_MODE = args.includes('--ci');
-
-// Brand names that should NEVER be translated
-const PRESERVE_EXACT = [
-  'Caro',
-  'Claude',
-  'GitHub',
-  'Anthropic',
-  'POSIX',
-  'BSD',
-  'GNU',
-  'MLX',
-  'Ollama',
-  'vLLM',
-  'Rust',
+// Protected terms that should NEVER be translated
+const PROTECTED_TERMS = [
+  'Caro', 'Claude', 'POSIX', 'CLI', 'API', 'BSD', 'GNU', 'MLX',
+  'Kyaro', 'Kyarorain', 'Kadosh', 'Caroline', 'GLaDOS',
+  'GitHub', 'Anthropic', 'Aperture Science'
 ];
 
-// Placeholder pattern: {variable}, {{variable}}, {count}, etc.
+// Regex patterns
 const PLACEHOLDER_PATTERN = /\{[^}]+\}/g;
 
-let errors = [];
-let warnings = [];
+// Parse CLI args
+const args = process.argv.slice(2);
+const targetLocale = args.includes('--locale')
+  ? args[args.indexOf('--locale') + 1]
+  : null;
+const strictMode = args.includes('--strict');
+
+let totalErrors = 0;
+let totalWarnings = 0;
 
 /**
- * Check if a string contains placeholders
- */
-function extractPlaceholders(str) {
-  return str.match(PLACEHOLDER_PATTERN) || [];
-}
-
-/**
- * Get all key-value pairs from a nested object
+ * Flatten nested JSON for easier validation
  */
 function flattenKeys(obj, prefix = '') {
   const result = {};
@@ -56,9 +54,9 @@ function flattenKeys(obj, prefix = '') {
   for (const [key, value] of Object.entries(obj)) {
     const fullKey = prefix ? `${prefix}.${key}` : key;
 
-    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
       Object.assign(result, flattenKeys(value, fullKey));
-    } else if (typeof value === 'string') {
+    } else {
       result[fullKey] = value;
     }
   }
@@ -67,155 +65,183 @@ function flattenKeys(obj, prefix = '') {
 }
 
 /**
- * Validate a single translation file
+ * Validate a single translation value against English
  */
-function validateFile(locale, filename) {
-  const enPath = join(LOCALES_DIR, 'en', filename);
-  const localePath = join(LOCALES_DIR, locale, filename);
+function validateTranslation(key, enValue, localeValue, locale) {
+  const issues = [];
 
-  if (!existsSync(localePath)) {
-    warnings.push(`[${locale}/${filename}] File missing`);
-    return;
+  // 1. Check for empty translations
+  if (!localeValue || String(localeValue).trim() === '') {
+    issues.push({ type: 'error', message: 'Empty translation' });
   }
 
-  try {
-    // Parse JSON files
-    const enData = JSON.parse(readFileSync(enPath, 'utf-8'));
-    const localeData = JSON.parse(readFileSync(localePath, 'utf-8'));
+  // 2. Check placeholder preservation
+  const enPlaceholders = String(enValue).match(PLACEHOLDER_PATTERN) || [];
+  const localePlaceholders = String(localeValue).match(PLACEHOLDER_PATTERN) || [];
 
-    const enKeys = flattenKeys(enData);
-    const localeKeys = flattenKeys(localeData);
+  if (enPlaceholders.length !== localePlaceholders.length) {
+    issues.push({
+      type: 'error',
+      message: `Placeholder mismatch. English: [${enPlaceholders.join(', ')}], ${locale}: [${localePlaceholders.join(', ')}]`
+    });
+  } else {
+    const enSet = new Set(enPlaceholders.sort());
+    const localeSet = new Set(localePlaceholders.sort());
 
-    // Check 1: Validate placeholders are preserved
-    for (const [key, enValue] of Object.entries(enKeys)) {
-      const localeValue = localeKeys[key];
-
-      if (!localeValue) {
-        warnings.push(`[${locale}/${filename}] Missing key: ${key}`);
-        continue;
-      }
-
-      const enPlaceholders = extractPlaceholders(enValue);
-      const localePlaceholders = extractPlaceholders(localeValue);
-
-      // Check placeholder count
-      if (enPlaceholders.length !== localePlaceholders.length) {
-        errors.push(
-          `[${locale}/${filename}] Placeholder mismatch in key "${key}":\n` +
-          `  EN: ${enPlaceholders.join(', ')} (${enPlaceholders.length})\n` +
-          `  ${locale.toUpperCase()}: ${localePlaceholders.join(', ')} (${localePlaceholders.length})`
-        );
-        continue;
-      }
-
-      // Check placeholder names match
-      const enSet = new Set(enPlaceholders);
-      const localeSet = new Set(localePlaceholders);
-
-      for (const placeholder of enPlaceholders) {
-        if (!localeSet.has(placeholder)) {
-          errors.push(
-            `[${locale}/${filename}] Placeholder "${placeholder}" missing in key "${key}":\n` +
-            `  EN: ${enValue}\n` +
-            `  ${locale.toUpperCase()}: ${localeValue}`
-          );
-        }
-      }
+    if (JSON.stringify([...enSet]) !== JSON.stringify([...localeSet])) {
+      issues.push({
+        type: 'error',
+        message: `Different placeholders. Expected: [${[...enSet].join(', ')}], Got: [${[...localeSet].join(', ')}]`
+      });
     }
-
-    // Check 2: Validate brand names are preserved
-    for (const [key, localeValue] of Object.entries(localeKeys)) {
-      const enValue = enKeys[key];
-
-      if (!enValue) continue;
-
-      for (const brandName of PRESERVE_EXACT) {
-        const enHasBrand = enValue.includes(brandName);
-        const localeHasBrand = localeValue.includes(brandName);
-
-        if (enHasBrand && !localeHasBrand) {
-          warnings.push(
-            `[${locale}/${filename}] Brand name "${brandName}" may have been translated in key "${key}":\n` +
-            `  EN: ${enValue}\n` +
-            `  ${locale.toUpperCase()}: ${localeValue}`
-          );
-        }
-      }
-    }
-
-    // Check 3: Validate no extra keys in translation
-    for (const key of Object.keys(localeKeys)) {
-      if (!enKeys[key]) {
-        warnings.push(`[${locale}/${filename}] Extra key not in English: ${key}`);
-      }
-    }
-
-  } catch (err) {
-    errors.push(`[${locale}/${filename}] Failed to parse: ${err.message}`);
   }
+
+  // 3. Check protected terms preservation
+  for (const term of PROTECTED_TERMS) {
+    const enHas = String(enValue).includes(term);
+    const localeHas = String(localeValue).includes(term);
+
+    if (enHas && !localeHas) {
+      issues.push({
+        type: 'warning',
+        message: `Protected term "${term}" missing. Verify this is intentional.`
+      });
+    }
+  }
+
+  // 4. Check for untranslated (identical to English)
+  const rtlLocales = ['he', 'ar', 'ur'];
+  if (
+    !rtlLocales.includes(locale) &&
+    String(enValue) === String(localeValue) &&
+    String(enValue).length > 20 && // Only flag long strings
+    !/^[0-9\s\{\}\[\]\(\)\-\_\.\/]+$/.test(String(enValue)) // Ignore technical strings
+  ) {
+    issues.push({
+      type: 'warning',
+      message: 'Possibly untranslated (identical to English)'
+    });
+  }
+
+  return issues;
 }
 
 /**
- * Validate all locales
+ * Validate a locale against English
+ */
+function validateLocale(locale) {
+  console.log(`\n🔍 Validating ${locale}...`);
+
+  const enDir = path.join(LOCALES_DIR, 'en');
+  const localeDir = path.join(LOCALES_DIR, locale);
+
+  if (!fs.existsSync(localeDir)) {
+    console.error(`  ❌ Locale directory does not exist: ${localeDir}`);
+    totalErrors++;
+    return;
+  }
+
+  const enFiles = fs.readdirSync(enDir).filter(f => f.endsWith('.json'));
+  let localeErrors = 0;
+  let localeWarnings = 0;
+
+  for (const file of enFiles) {
+    const enFilePath = path.join(enDir, file);
+    const localeFilePath = path.join(localeDir, file);
+
+    // Check if locale file exists
+    if (!fs.existsSync(localeFilePath)) {
+      console.error(`  ❌ Missing file: ${file}`);
+      localeErrors++;
+      continue;
+    }
+
+    let enContent, localeContent;
+
+    // Try to parse JSON
+    try {
+      enContent = JSON.parse(fs.readFileSync(enFilePath, 'utf8'));
+    } catch (error) {
+      console.error(`  ❌ Invalid JSON in en/${file}: ${error.message}`);
+      localeErrors++;
+      continue;
+    }
+
+    try {
+      localeContent = JSON.parse(fs.readFileSync(localeFilePath, 'utf8'));
+    } catch (error) {
+      console.error(`  ❌ Invalid JSON in ${locale}/${file}: ${error.message}`);
+      localeErrors++;
+      continue;
+    }
+
+    // Flatten and validate
+    const enFlat = flattenKeys(enContent);
+    const localeFlat = flattenKeys(localeContent);
+
+    for (const [key, enValue] of Object.entries(enFlat)) {
+      const localeValue = localeFlat[key];
+
+      if (!localeValue) {
+        // Missing key (warning, since sync-keys.mjs should handle this)
+        localeWarnings++;
+        continue;
+      }
+
+      const issues = validateTranslation(key, enValue, localeValue, locale);
+
+      for (const issue of issues) {
+        if (issue.type === 'error') {
+          console.error(`  ❌ [${file}] ${key}: ${issue.message}`);
+          localeErrors++;
+        } else if (issue.type === 'warning') {
+          console.warn(`  ⚠️  [${file}] ${key}: ${issue.message}`);
+          localeWarnings++;
+        }
+      }
+    }
+  }
+
+  if (localeErrors === 0 && localeWarnings === 0) {
+    console.log(`  ✅ No issues found`);
+  } else {
+    console.log(`  📊 ${localeErrors} errors, ${localeWarnings} warnings`);
+  }
+
+  totalErrors += localeErrors;
+  totalWarnings += localeWarnings;
+}
+
+/**
+ * Main execution
  */
 function main() {
-  console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('🔍 Validating Translation Files');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+  console.log('✅ Validating Translation Files\n');
 
-  // Get all English files as reference
-  const enDir = join(LOCALES_DIR, 'en');
-  const enFiles = readdirSync(enDir).filter(f => f.endsWith('.json'));
-
-  console.log(`Checking ${enFiles.length} files across ${SUPPORTED_LOCALES.length} locales...\n`);
-
-  // Validate each locale
-  for (const locale of SUPPORTED_LOCALES) {
-    for (const filename of enFiles) {
-      validateFile(locale, filename);
-    }
+  if (strictMode) {
+    console.log('⚠️  STRICT MODE: Warnings will be treated as errors\n');
   }
 
-  // Report results
-  console.log('Results:');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+  const localesToValidate = targetLocale ? [targetLocale] : LOCALES;
 
-  if (errors.length > 0) {
-    console.error(`❌ Found ${errors.length} error(s):\n`);
-    for (const error of errors) {
-      console.error(error);
-      console.error('');
+  for (const locale of localesToValidate) {
+    if (!LOCALES.includes(locale) && locale !== 'en') {
+      console.error(`❌ Invalid locale: ${locale}`);
+      process.exit(1);
     }
+
+    validateLocale(locale);
   }
 
-  if (warnings.length > 0) {
-    console.warn(`⚠️  Found ${warnings.length} warning(s):\n`);
-    for (const warning of warnings.slice(0, 10)) {
-      console.warn(warning);
-    }
-    if (warnings.length > 10) {
-      console.warn(`\n... and ${warnings.length - 10} more warnings`);
-    }
-    console.warn('');
-  }
+  console.log(`\n${'═'.repeat(50)}`);
+  console.log(`📊 Total: ${totalErrors} errors, ${totalWarnings} warnings`);
+  console.log(`${'═'.repeat(50)}\n`);
 
-  if (errors.length === 0 && warnings.length === 0) {
-    console.log('✅ All validation checks passed!\n');
-  }
-
-  // Summary
-  console.log('Summary:');
-  console.log(`  Errors:   ${errors.length}`);
-  console.log(`  Warnings: ${warnings.length}\n`);
-
-  // Exit code for CI
-  if (CI_MODE && errors.length > 0) {
-    console.error('❌ Validation failed in CI mode\n');
+  if (totalErrors > 0 || (strictMode && totalWarnings > 0)) {
+    console.error('❌ Validation failed');
     process.exit(1);
-  }
-
-  if (errors.length > 0) {
-    process.exit(1);
+  } else {
+    console.log('✅ Validation passed');
   }
 }
 

@@ -1,0 +1,19 @@
+{
+  "name": "caro-changelog",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Changelog and release notes for Caro - Your loyal shell companion",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "sync-changelog": "node scripts/sync-changelog.mjs"
+  },
+  "dependencies": {
+    "astro": "^5.16.6",
+    "sass": "^1.96.0",
+    "sharp": "^0.34.3"
+  }
+}

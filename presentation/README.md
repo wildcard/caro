@@ -135,3 +135,5 @@ Uses Slidev's `seriph` theme with custom styling for:
 ## License
 
 Same as caro project: AGPL-3.0
+
+<!-- Test: Vercel deployment skip verification - only presentation/ changed -->

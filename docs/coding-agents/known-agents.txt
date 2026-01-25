@@ -1,0 +1,26 @@
+# Known Coding Agents - Caro Companion Registry
+# Format: org/repo or product-name
+# Last updated: 2025-01-15
+
+# CLI Agents
+anthropics/claude-code
+aug-dev/augie
+charmbracelet/crush
+openai/codex-cli
+ovh/shai
+paul-gauthier/aider
+
+# IDE Agents
+codeium/windsurf
+getcursor/cursor
+voideditor/void
+zed-industries/zed
+
+# VS Code Extensions
+cline/cline
+continuedev/continue
+RooVetGit/Roo-Code
+sourcegraph/cody
+
+# IDE Integrations
+github/copilot

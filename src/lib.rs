@@ -16,7 +16,7 @@
 //! - [`execution`] - Execution context capture and shell detection
 //! - [`logging`] - Structured logging with sensitive data redaction
 //! - [`prompts`] - Shell command prompt system optimized for small LLMs
-//! - [`knowledge`] - Local knowledge index for command patterns (requires `knowledge` feature)
+//! - `knowledge` - Local knowledge index for command patterns (requires `knowledge` feature)
 //!
 //! # Example
 //!

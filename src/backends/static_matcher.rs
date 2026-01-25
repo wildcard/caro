@@ -1327,8 +1327,7 @@ mod tests {
             let current_specificity = current.required_keywords.len();
 
             // Check all subsequent patterns
-            for j in (i + 1)..patterns.len() {
-                let later = &patterns[j];
+            for (j, later) in patterns.iter().enumerate().skip(i + 1) {
                 let later_specificity = later.required_keywords.len();
 
                 // If a later pattern has MORE required keywords than an earlier one,
@@ -1550,7 +1549,7 @@ mod tests {
         // Malicious inputs designed to trigger worst-case backtracking:
         // 1. Starts with keywords to pass pre-filtering
         // 2. Contains many characters that .* will try to match in all possible ways
-        let malicious_inputs = vec![
+        let malicious_inputs = [
             // Pattern with repeated partial matches
             format!("find large {}", "x".repeat(500)),
             // Pattern with keywords at start and garbage at end
