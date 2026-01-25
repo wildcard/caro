@@ -4,7 +4,7 @@
     "logo": "Caro",
     "logoAlt": "Caro - 8-bit pixel art",
     "tagline": "आपका वफादार shell साथी",
-    "subtitle": "एक specialized POSIX shell command agent जो empathy और agency के साथ काम करता है। Claude के लिए MCP के रूप में और dedicated Skill के रूप में उपलब्ध। वो आपको safe रखती है जबकि Claude को काम पूरा करने में मदद करती है।",
+    "subtitle": "एक विशेष POSIX shell command agent जो समझदारी और स्वतंत्रता के साथ काम करता है। Claude के लिए MCP के रूप में और एक dedicated Skill के रूप में उपलब्ध। वो आपको सुरक्षित रखती है जबकि Claude को काम पूरा करने में मदद करती है।",
     "cta": {
       "getStarted": "शुरू करें",
       "watchDemo": "Demo देखें"

@@ -1,11 +1,11 @@
 {
   "download": {
     "title": "Caro के साथ शुरुआत करें",
-    "subtitle": "अपने वफादार shell साथी को अपने terminal में लाएं",
+    "subtitle": "अपने वफादार shell companion को अपने terminal में लाएं",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
     "copyButton": "Copy करें",
     "copiedButton": "Copy हो गया!",
-    "binariesIntro": "या फिर pre-built binaries download करें:",
+    "binariesIntro": "या pre-built binaries download करें:",
     "comingSoonBadge": "जल्द आ रहा है",
     "platforms": {
       "macAppleSilicon": "macOS (Apple Silicon)",
@@ -36,7 +36,7 @@
       "title": "Quick Start",
       "intro": "ऊपर दिया गया setup script चलाने के बाद, बस Caro का इस्तेमाल करें:",
       "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
-      "description": "Caro command generate करेगी और आपको safe रखेगी। Setup script सभी prerequisites संभाल लेता है, Rust compilation समेत।"
+      "description": "Caro command generate करेगी और आपको safe रखेगी। Setup script सभी prerequisites संभाल लेता है, Rust compilation भी।"
     }
   }
 }
