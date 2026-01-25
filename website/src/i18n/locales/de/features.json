@@ -1,13 +1,13 @@
 {
   "features": {
     "title": "Warum Caro?",
-    "subtitle": "Ein Companion Agent für Sicherheit, Empathie und Expertise",
-    "alphaNotice": "🚧 Soft Launch Alpha — Wir bauen aktiv mit unserer Community. Mach mit und hilf uns, Caros Zukunft zu gestalten!",
+    "subtitle": "Ein Companion-Agent für Sicherheit, Empathie und Expertise",
+    "alphaNotice": "🚧 Soft Launch Alpha — Wir entwickeln aktiv mit unserer Community. Mach mit und hilf uns, Caros Zukunft zu gestalten!",
     "items": [
       {
         "icon": "🛡️",
         "title": "Safety Guardian",
-        "description": "Umfassende Validierung blockiert gefährliche Commands wie rm -rf /, Fork Bombs und destruktive Operationen. 52 vordefinierte Safety Patterns mit Risikobewertung.",
+        "description": "Umfassende Validierung blockiert gefährliche Befehle wie rm -rf /, Fork Bombs und destruktive Operationen. 52 vordefinierte Safety-Patterns mit Risikobewertung.",
         "statusLabel": "Jetzt verfügbar"
       },
       {
@@ -25,19 +25,19 @@
       {
         "icon": "✅",
         "title": "POSIX Specialist",
-        "description": "Experte für POSIX-konforme Shell Commands, die zuverlässig systemübergreifend funktionieren. Portabel, sicher und optimiert für dein Terminal.",
+        "description": "Experte für POSIX-konforme Shell-Befehle, die systemübergreifend zuverlässig funktionieren. Portabel, sicher und optimiert für dein Terminal.",
         "statusLabel": "Jetzt verfügbar"
       },
       {
         "icon": "⚡",
         "title": "Lightning Fast",
-        "description": "Ziel: Sub-100ms Startup, Sub-2s Inference auf Apple Silicon. MLX Framework Integration für GPU-Beschleunigung auf M-Series Chips.",
+        "description": "Ziel: Unter 100ms Startup, unter 2s Inference auf Apple Silicon. MLX-Framework-Integration für GPU-Beschleunigung auf M-Series-Chips.",
         "statusLabel": "In Entwicklung"
       },
       {
         "icon": "🤝",
         "title": "Claude's Companion",
-        "description": "Vision: Nahtlose Integration mit Claude als MCP Server und Skill, lagert Shell Command Inference aus, während Claude sich auf deine übergeordnete Arbeit konzentriert.",
+        "description": "Vision: Nahtlose Integration mit Claude als MCP-Server und Skill, lagert Shell-Command-Inference aus, während Claude sich auf deine übergeordnete Arbeit konzentriert.",
         "statusLabel": "Geplant"
       }
     ]

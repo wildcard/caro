@@ -1,6 +1,6 @@
 {
   "download": {
-    "title": "Leg los mit Caro",
+    "title": "Los geht's mit Caro",
     "subtitle": "Hol dir deine treue Shell-Begleiterin ins Terminal",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
     "copyButton": "Kopieren",
@@ -33,10 +33,10 @@
       ]
     },
     "quickStart": {
-      "title": "Quick Start",
+      "title": "Schnellstart",
       "intro": "Nach dem Setup-Script oben einfach Caro nutzen:",
       "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
-      "description": "Caro generiert den Befehl und hält dir den Rücken frei. Das Setup-Script kümmert sich um alle Voraussetzungen inklusive Rust-Kompilierung."
+      "description": "Caro generiert den Befehl und hält dich sicher. Das Setup-Script kümmert sich um alle Voraussetzungen inklusive Rust-Kompilierung."
     }
   }
 }
