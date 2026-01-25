@@ -1,7 +1,7 @@
 {
   "common": {
     "meta": {
-      "title": "Caro - Твій вірний компаньйон у терміналі",
+      "title": "Caro - Твій вірний помічник у терміналі",
       "description": "Caro — це агент-помічник для роботи з POSIX shell командами. Доступний як MCP для Claude і як окремий Skill."
     },
     "buttons": {
@@ -12,12 +12,12 @@
     },
     "status": {
       "availableNow": "Вже доступно",
-      "inDevelopment": "У розробці",
+      "inDevelopment": "В розробці",
       "planned": "Заплановано",
       "comingSoon": "Скоро"
     },
     "aria": {
-      "toggleDarkMode": "Перемкнути темний режим",
+      "toggleDarkMode": "Перемкнути темну тему",
       "toggleHolidayTheme": "Відкрити меню святкової теми"
     },
     "nav": {
@@ -32,9 +32,9 @@
         "vsWarp": "vs Warp",
         "aiNativeTerminal": "AI-термінал",
         "vsGitHubCopilot": "vs GitHub Copilot CLI",
-        "aiPairProgrammer": "AI-пара для програмування",
+        "aiPairProgrammer": "AI пара-програміст",
         "vsKiro": "vs Kiro CLI",
-        "awsAssistant": "AWS AI-асистент",
+        "awsAssistant": "AWS AI асистент",
         "blog": "Блог",
         "newsAndTutorials": "Новини та туторіали",
         "explore": "Дослідити",
@@ -54,7 +54,7 @@
       },
       "appearance": {
         "title": "Вигляд",
-        "darkMode": "Темний режим",
+        "darkMode": "Темна тема",
         "holidayTheme": "Святкова тема",
         "snowEffect": "Ефект снігу",
         "disableEffects": "Вимкнути всі ефекти"

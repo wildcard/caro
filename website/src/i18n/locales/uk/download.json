@@ -1,6 +1,6 @@
 {
   "download": {
-    "title": "Почніть роботу з Caro",
+    "title": "Почніть працювати з Caro",
     "subtitle": "Приведіть свого вірного помічника в термінал",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
     "copyButton": "Копіювати",
@@ -27,16 +27,16 @@
         },
         {
           "title": "✨ Окремий Skill",
-          "description": "Використовуйте Caro як Skill, щоб делегувати генерацію та виконання shell-команд, поки Claude зосереджений на вашій роботі.",
+          "description": "Використовуйте Caro як Skill, щоб делегувати генерацію та виконання shell-команд, поки Claude зосереджена на вашій роботі.",
           "comingSoon": true
         }
       ]
     },
     "quickStart": {
       "title": "Швидкий старт",
-      "intro": "Після запуску скрипта вище просто використовуйте Caro:",
+      "intro": "Після запуску скрипта встановлення просто використовуйте Caro:",
       "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
-      "description": "Caro згенерує команду і подбає про вашу безпеку. Скрипт встановлення сам обробить всі залежності, включно з компіляцією Rust."
+      "description": "Caro згенерує команду і подбає про вашу безпеку. Скрипт встановлення обробляє всі залежності, включно з компіляцією Rust."
     }
   }
 }
