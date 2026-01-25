@@ -18,7 +18,7 @@
     },
     "aria": {
       "toggleDarkMode": "Dark Mode umschalten",
-      "toggleHolidayTheme": "Holiday-Theme-Menü umschalten"
+      "toggleHolidayTheme": "Feiertagsthema-Menü umschalten"
     },
     "nav": {
       "features": "Features",
@@ -55,7 +55,7 @@
       "appearance": {
         "title": "Darstellung",
         "darkMode": "Dark Mode",
-        "holidayTheme": "Holiday-Theme",
+        "holidayTheme": "Feiertagsthema",
         "snowEffect": "Schnee-Effekt",
         "disableEffects": "Alle Effekte deaktivieren"
       },

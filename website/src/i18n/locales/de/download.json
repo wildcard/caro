@@ -1,7 +1,7 @@
 {
   "download": {
     "title": "Leg los mit Caro",
-    "subtitle": "Hol dir deinen treuen Shell-Begleiter ins Terminal",
+    "subtitle": "Hol dir deine treue Shell-Begleiterin ins Terminal",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
     "copyButton": "Kopieren",
     "copiedButton": "Kopiert!",
@@ -14,7 +14,7 @@
       "windows": "Windows"
     },
     "usageModes": {
-      "title": "Mehrere Wege, Caro zu nutzen",
+      "title": "Verschiedene Wege, Caro zu nutzen",
       "modes": [
         {
           "title": "🔧 Standalone CLI",
