@@ -1,7 +1,7 @@
 {
   "common": {
     "meta": {
-      "title": "Caro - Твій вірний помічник у терміналі",
+      "title": "Caro - Твій вірний компаньйон у терміналі",
       "description": "Caro — це агент-помічник для роботи з POSIX shell командами. Доступний як MCP для Claude і як окремий Skill."
     },
     "buttons": {
@@ -12,7 +12,7 @@
     },
     "status": {
       "availableNow": "Вже доступно",
-      "inDevelopment": "У розробці",
+      "inDevelopment": "В розробці",
       "planned": "Заплановано",
       "comingSoon": "Скоро"
     },
@@ -32,15 +32,15 @@
         "vsWarp": "vs Warp",
         "aiNativeTerminal": "AI-термінал",
         "vsGitHubCopilot": "vs GitHub Copilot CLI",
-        "aiPairProgrammer": "AI-пара для програмування",
+        "aiPairProgrammer": "AI пара-програміст",
         "vsKiro": "vs Kiro CLI",
-        "awsAssistant": "AWS AI-асистент",
+        "awsAssistant": "AWS AI асистент",
         "blog": "Блог",
         "newsAndTutorials": "Новини та туторіали",
         "explore": "Дослідити",
         "interactiveDemo": "Інтерактивне демо",
         "faq": "FAQ",
-        "commonQuestions": "Поширені питання",
+        "commonQuestions": "Часті питання",
         "roadmap": "Roadmap",
         "whatsNext": "Що далі",
         "glossary": "Глосарій",
