@@ -18,10 +18,10 @@
       "menuHeader": "Tema Festivo",
       "options": {
         "christmas": "Navidad",
-        "hanukkah": "Hanukkah",
+        "hanukkah": "Jánuca",
         "noTheme": "Sin Tema"
       },
-      "snowEffect": "Efecto Nieve"
+      "snowEffect": "Efecto de Nieve"
     }
   },
   "footer": {
@@ -38,7 +38,7 @@
       "issues": "Issues"
     },
     "kyaro": {
-      "title": "¡Conoce a Kyaro en persona (Kyarorain Kadosh)! 🐕🖤",
+      "title": "¡Conoce a Kyaro en la vida real (Kyarorain Kadosh)! 🐕🖤",
       "followText": "Sigue sus aventuras en",
       "instagram": "Instagram @kyaroblackheart"
     },
