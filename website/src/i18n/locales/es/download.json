@@ -1,7 +1,7 @@
 {
   "download": {
     "title": "Empieza con Caro",
-    "subtitle": "Lleva tu compañera de terminal de confianza a tu shell",
+    "subtitle": "Trae a tu fiel compañera de shell a tu terminal",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
     "copyButton": "Copiar",
     "copiedButton": "¡Copiado!",
@@ -18,7 +18,7 @@
       "modes": [
         {
           "title": "🔧 CLI independiente",
-          "exampleCommand": "caro \"lista archivos > 100MB\""
+          "exampleCommand": "caro \"list files > 100MB\""
         },
         {
           "title": "🔌 MCP para Claude",
@@ -27,7 +27,7 @@
         },
         {
           "title": "✨ Skill dedicada",
-          "description": "Usa Caro como Skill para delegar la generación y ejecución de comandos shell mientras Claude se centra en tu trabajo.",
+          "description": "Usa Caro como Skill para delegar la generación y ejecución de comandos de shell mientras Claude se centra en tu trabajo.",
           "comingSoon": true
         }
       ]
@@ -35,7 +35,7 @@
     "quickStart": {
       "title": "Inicio rápido",
       "intro": "Después de ejecutar el script de instalación, simplemente usa Caro:",
-      "exampleCommand": "caro \"encuentra todos los archivos python modificados en los últimos 7 días\"",
+      "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
       "description": "Caro generará el comando y te mantendrá a salvo. El script de instalación se encarga de todos los requisitos previos, incluida la compilación de Rust."
     }
   }
