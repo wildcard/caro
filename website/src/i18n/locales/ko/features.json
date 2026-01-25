@@ -7,31 +7,31 @@
       {
         "icon": "🛡️",
         "title": "안전 가디언",
-        "description": "rm -rf /, fork bomb, 파괴적인 작업 등 위험한 명령어를 포괄적으로 검증하고 차단합니다. 52개의 사전 정의된 안전 패턴과 위험도 평가 기능을 제공합니다.",
+        "description": "rm -rf /, 포크 폭탄, 파괴적 작업 등 위험한 명령어를 종합적으로 검증하고 차단합니다. 52개의 사전 정의된 안전 패턴과 위험도 평가 기능을 제공합니다.",
         "statusLabel": "사용 가능"
       },
       {
         "icon": "🌍",
         "title": "크로스 플랫폼 전문가",
-        "description": "macOS, Linux, Windows, GNU, BSD 전반에서 작동합니다. 플랫폼별 특성을 이해하고 사용자의 배포판 선택을 존중합니다.",
+        "description": "macOS, Linux, Windows, GNU, BSD 전반에서 작동합니다. 플랫폼별 특성을 이해하고 여러분이 선택한 배포판을 존중합니다.",
         "statusLabel": "사용 가능"
       },
       {
         "icon": "🧠",
         "title": "플랫폼 인식",
-        "description": "사용자의 플랫폼 기능과 베스트 프랙티스를 기반으로 추천을 제공합니다. BSD와 GNU 명령어 문법을 자동으로 구분합니다.",
+        "description": "플랫폼의 기능과 베스트 프랙티스를 기반으로 추천을 제공합니다. BSD와 GNU 명령어 문법을 자동으로 구분합니다.",
         "statusLabel": "사용 가능"
       },
       {
         "icon": "✅",
         "title": "POSIX 스페셜리스트",
-        "description": "시스템 간 안정적으로 작동하는 POSIX 호환 셸 명령어 전문가입니다. 이식성이 뛰어나고 안전하며 터미널에 최적화되어 있습니다.",
+        "description": "시스템 간 안정적으로 작동하는 POSIX 호환 셸 명령어 전문가입니다. 이식성 높고 안전하며 터미널에 최적화되어 있습니다.",
         "statusLabel": "사용 가능"
       },
       {
         "icon": "⚡",
-        "title": "번개처럼 빠른 속도",
-        "description": "목표: 100ms 이하 시작 시간, Apple Silicon에서 2초 이하 추론. M 시리즈 칩의 GPU 가속을 위한 MLX 프레임워크 통합.",
+        "title": "번개처럼 빠름",
+        "description": "목표: Apple Silicon에서 100ms 이하 시작, 2초 이하 추론. M 시리즈 칩의 GPU 가속을 위한 MLX 프레임워크 통합.",
         "statusLabel": "개발 중"
       },
       {
