@@ -8,7 +8,7 @@
       "copy": "Salin",
       "copied": "Tersalin!",
       "getStarted": "Mulai",
-      "watchDemo": "Lihat Demo"
+      "watchDemo": "Tonton Demo"
     },
     "status": {
       "availableNow": "Tersedia Sekarang",
@@ -44,7 +44,7 @@
         "roadmap": "Roadmap",
         "whatsNext": "Apa yang akan datang",
         "glossary": "Glosarium",
-        "terminalTerms": "Istilah terminal & Unix",
+        "terminalTerms": "Istilah Terminal & Unix",
         "github": "GitHub",
         "sourceCode": "Source code"
       },

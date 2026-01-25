@@ -25,14 +25,14 @@
       {
         "icon": "✅",
         "title": "Spesialis POSIX",
-        "description": "Ahli dalam perintah shell POSIX-compliant yang bekerja reliabel di berbagai sistem. Portabel, aman, dan dioptimalkan untuk terminal kamu.",
+        "description": "Ahli dalam perintah shell yang POSIX-compliant dan bekerja reliabel di berbagai sistem. Portabel, aman, dan dioptimalkan untuk terminal kamu.",
         "statusLabel": "Sudah Tersedia"
       },
       {
         "icon": "⚡",
         "title": "Secepat Kilat",
         "description": "Target: Startup di bawah 100ms, inference di bawah 2 detik di Apple Silicon. Integrasi framework MLX untuk akselerasi GPU di chip M-series.",
-        "statusLabel": "Sedang Dikembangkan"
+        "statusLabel": "Dalam Pengembangan"
       },
       {
         "icon": "🤝",

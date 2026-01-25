@@ -4,7 +4,7 @@
     "logo": "Caro",
     "logoAlt": "Caro - 8-bit pixel art",
     "tagline": "Teman setia di shell kamu",
-    "subtitle": "Agent khusus untuk command POSIX shell yang punya empati dan inisiatif. Tersedia sebagai MCP untuk Claude dan sebagai Skill tersendiri. Dia menjaga keamanan kamu sambil membantu Claude menyelesaikan pekerjaan.",
+    "subtitle": "Agent khusus command POSIX shell yang punya empati dan inisiatif. Tersedia sebagai MCP untuk Claude dan sebagai Skill tersendiri. Dia jaga keamanan kamu sambil bantu Claude selesaikan kerjaan.",
     "cta": {
       "getStarted": "Mulai Sekarang",
       "watchDemo": "Lihat Demo"
