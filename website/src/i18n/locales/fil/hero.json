@@ -3,8 +3,8 @@
     "badge": "🐕 Companion Agent",
     "logo": "Caro",
     "logoAlt": "Caro - 8-bit pixel art",
-    "tagline": "Ang iyong tapat na shell companion",
-    "subtitle": "Isang specialized POSIX shell command agent na may empathy at agency. Available bilang MCP para sa Claude at bilang dedicated Skill. Pinoprotektahan ka niya habang tinutulungan si Claude na tapusin ang trabaho.",
+    "tagline": "Ang tapat mong kasama sa shell",
+    "subtitle": "Isang specialized POSIX shell command agent na may malasakit at sariling desisyon. Available bilang MCP para kay Claude at bilang dedicated Skill. Iingatan ka niya habang tinutulungan si Claude na matapos ang trabaho.",
     "cta": {
       "getStarted": "Magsimula",
       "watchDemo": "Panoorin ang Demo"

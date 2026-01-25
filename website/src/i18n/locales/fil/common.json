@@ -1,8 +1,8 @@
 {
   "common": {
     "meta": {
-      "title": "Caro - Ang iyong tapat na shell companion",
-      "description": "Ang Caro ay isang companion agent na tumutulong sa iyo sa POSIX shell commands. Available bilang MCP para sa Claude at bilang dedicated Skill."
+      "title": "Caro - Ang tapat mong kasama sa shell",
+      "description": "Si Caro ay isang companion agent na tumutulong sa iyo sa POSIX shell commands. Available bilang MCP para sa Claude at bilang dedicated Skill."
     },
     "buttons": {
       "copy": "Kopyahin",
@@ -11,20 +11,20 @@
       "watchDemo": "Panoorin ang Demo"
     },
     "status": {
-      "availableNow": "Available na",
-      "inDevelopment": "Ginagawa pa",
-      "planned": "Nakaplanong Gawin",
-      "comingSoon": "Malapit na"
+      "availableNow": "Available Na",
+      "inDevelopment": "Ginagawa Pa",
+      "planned": "Naka-plano",
+      "comingSoon": "Malapit Na"
     },
     "aria": {
       "toggleDarkMode": "I-toggle ang dark mode",
-      "toggleHolidayTheme": "I-toggle ang menu ng holiday theme"
+      "toggleHolidayTheme": "I-toggle ang holiday theme menu"
     },
     "nav": {
       "features": "Features",
-      "compare": "Ihambing",
+      "compare": "Ikumpara",
       "resources": "Resources",
-      "support": "Suporta",
+      "support": "Support",
       "getStarted": "Magsimula",
       "dropdown": {
         "overview": "Overview",
@@ -36,8 +36,8 @@
         "vsKiro": "vs Kiro CLI",
         "awsAssistant": "AWS AI assistant",
         "blog": "Blog",
-        "newsAndTutorials": "Balita at tutorials",
-        "explore": "Mag-explore",
+        "newsAndTutorials": "News at tutorials",
+        "explore": "I-explore",
         "interactiveDemo": "Interactive demo",
         "faq": "FAQ",
         "commonQuestions": "Mga karaniwang tanong",
@@ -53,16 +53,16 @@
         "supportCaro": "Suportahan si Caro"
       },
       "appearance": {
-        "title": "Itsura",
+        "title": "Hitsura",
         "darkMode": "Dark Mode",
         "holidayTheme": "Holiday Theme",
         "snowEffect": "Snow Effect",
-        "disableEffects": "I-disable lahat ng effects"
+        "disableEffects": "I-disable Lahat ng Effects"
       },
       "useCases": {
         "allUseCases": "Lahat ng Use Cases",
         "byRole": "Ayon sa Role",
-        "backToHome": "Bumalik sa Home"
+        "backToHome": "Balik sa Home"
       }
     }
   }

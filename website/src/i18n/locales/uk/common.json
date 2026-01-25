@@ -1,27 +1,27 @@
 {
   "common": {
     "meta": {
-      "title": "Caro - Твій вірний помічник shell",
-      "description": "Caro — це агент-компаньйон, який допомагає з POSIX shell командами. Доступний як MCP для Claude та як окремий Skill."
+      "title": "Caro - Твій вірний компаньйон у терміналі",
+      "description": "Caro — це агент-помічник для роботи з POSIX shell командами. Доступний як MCP для Claude і як окремий Skill."
     },
     "buttons": {
-      "copy": "Скопіювати",
+      "copy": "Копіювати",
       "copied": "Скопійовано!",
       "getStarted": "Почати",
-      "watchDemo": "Дивитись Demo"
+      "watchDemo": "Дивитись демо"
     },
     "status": {
-      "availableNow": "Доступно зараз",
-      "inDevelopment": "В розробці",
+      "availableNow": "Вже доступно",
+      "inDevelopment": "У розробці",
       "planned": "Заплановано",
       "comingSoon": "Скоро"
     },
     "aria": {
-      "toggleDarkMode": "Переключити темний режим",
-      "toggleHolidayTheme": "Відкрити меню святкових тем"
+      "toggleDarkMode": "Перемкнути темний режим",
+      "toggleHolidayTheme": "Відкрити меню святкової теми"
     },
     "nav": {
-      "features": "Функції",
+      "features": "Можливості",
       "compare": "Порівняння",
       "resources": "Ресурси",
       "support": "Підтримка",
@@ -29,22 +29,22 @@
       "dropdown": {
         "overview": "Огляд",
         "seeAllComparisons": "Всі порівняння",
-        "vsWarp": "проти Warp",
-        "aiNativeTerminal": "AI-native термінал",
-        "vsGitHubCopilot": "проти GitHub Copilot CLI",
-        "aiPairProgrammer": "AI pair programmer",
-        "vsKiro": "проти Kiro CLI",
-        "awsAssistant": "AWS AI асистент",
+        "vsWarp": "vs Warp",
+        "aiNativeTerminal": "AI-термінал",
+        "vsGitHubCopilot": "vs GitHub Copilot CLI",
+        "aiPairProgrammer": "AI-пара для програмування",
+        "vsKiro": "vs Kiro CLI",
+        "awsAssistant": "AWS AI-асистент",
         "blog": "Блог",
         "newsAndTutorials": "Новини та туторіали",
-        "explore": "Досліджуй",
+        "explore": "Дослідити",
         "interactiveDemo": "Інтерактивне демо",
         "faq": "FAQ",
         "commonQuestions": "Часті питання",
-        "roadmap": "Дорожня карта",
+        "roadmap": "Roadmap",
         "whatsNext": "Що далі",
         "glossary": "Глосарій",
-        "terminalTerms": "Терміни термінала та Unix",
+        "terminalTerms": "Термінал і Unix терміни",
         "github": "GitHub",
         "sourceCode": "Вихідний код"
       },
@@ -60,7 +60,7 @@
         "disableEffects": "Вимкнути всі ефекти"
       },
       "useCases": {
-        "allUseCases": "Всі випадки використання",
+        "allUseCases": "Всі сценарії",
         "byRole": "За роллю",
         "backToHome": "На головну"
       }

@@ -1,44 +1,44 @@
 {
   "features": {
     "title": "Bakit Caro?",
-    "subtitle": "Isang companion agent na ginawa para sa safety, empathy, at expertise",
-    "alphaNotice": "🚧 Soft Launch Alpha — Aktibo kaming nagtatayo kasama ang aming community. Sumali para tulungan kaming i-shape ang future ni Caro!",
+    "subtitle": "Isang companion agent na ginawa para sa kaligtasan, empathy, at expertise",
+    "alphaNotice": "🚧 Soft Launch Alpha — Aktibo kaming bumubuo kasama ang aming community. Samahan mo kami para tulungang hubugin ang kinabukasan ng Caro!",
     "items": [
       {
         "icon": "🛡️",
         "title": "Safety Guardian",
-        "description": "Comprehensive na validation na nagbo-block ng mga dangerous na commands tulad ng rm -rf /, fork bombs, at destructive operations. 52 predefined safety patterns na may risk-level assessment.",
-        "statusLabel": "Available na"
+        "description": "Komprehensibong validation na humaharang sa mga mapanganib na command tulad ng rm -rf /, fork bombs, at mga destructive operations. 52 predefined safety patterns na may risk-level assessment.",
+        "statusLabel": "Available Na"
       },
       {
         "icon": "🌍",
         "title": "Cross-Platform Expert",
-        "description": "Gumagana sa macOS, Linux, Windows, GNU, at BSD. Naiintindihan ang mga platform-specific nuances at nirerespeto ang iyong piniling distribution.",
-        "statusLabel": "Available na"
+        "description": "Gumagana sa macOS, Linux, Windows, GNU, at BSD. Nauunawaan ang platform-specific na mga nuances at iginalang ang iyong piniling distribution.",
+        "statusLabel": "Available Na"
       },
       {
         "icon": "🧠",
         "title": "Platform-Aware",
-        "description": "Nagbibigay ng recommendations batay sa capabilities ng iyong platform at best practices. Automatic na nakikilala ang pagkakaiba ng BSD at GNU command syntax.",
-        "statusLabel": "Available na"
+        "description": "Nagbibigay ng mga rekomendasyon base sa capabilities at best practices ng iyong platform. Awtomatikong nakikilala ang pagkakaiba ng BSD at GNU command syntax.",
+        "statusLabel": "Available Na"
       },
       {
         "icon": "✅",
         "title": "POSIX Specialist",
-        "description": "Expert sa POSIX-compliant shell commands na reliable na gumagana sa lahat ng systems. Portable, safe, at optimized para sa iyong terminal.",
-        "statusLabel": "Available na"
+        "description": "Eksperto sa POSIX-compliant shell commands na maaasahang gumagana sa lahat ng systems. Portable, safe, at optimized para sa iyong terminal.",
+        "statusLabel": "Available Na"
       },
       {
         "icon": "⚡",
-        "title": "Napakabilis",
+        "title": "Bilis Kidlat",
         "description": "Target: Sub-100ms startup, sub-2s inference sa Apple Silicon. MLX framework integration para sa GPU acceleration sa M-series chips.",
-        "statusLabel": "Ginagawa pa"
+        "statusLabel": "Ginagawa Pa"
       },
       {
         "icon": "🤝",
-        "title": "Companion ni Claude",
-        "description": "Vision: Seamless integration kasama si Claude bilang MCP server at Skill, ino-offload ang shell command inference habang naka-focus si Claude sa mas malawak na trabaho mo.",
-        "statusLabel": "Nakaplanong Gawin"
+        "title": "Kasama ni Claude",
+        "description": "Vision: Seamless integration sa Claude bilang MCP server at Skill, nag-o-offload ng shell command inference habang si Claude ay nakatuon sa mas malawak mong trabaho.",
+        "statusLabel": "Planned"
       }
     ]
   }

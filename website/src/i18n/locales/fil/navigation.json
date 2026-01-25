@@ -4,16 +4,16 @@
     "links": {
       "features": "Features",
       "compare": "Ihambing",
-      "play": "Maglaro",
+      "play": "Subukan",
       "blog": "Blog",
-      "getStarted": "Magsimula",
+      "getStarted": "Simulan",
       "github": "GitHub"
     },
     "darkMode": {
       "toggle": "I-toggle ang dark mode"
     },
     "holidayTheme": {
-      "toggle": "I-toggle ang menu ng holiday theme",
+      "toggle": "I-toggle ang holiday theme menu",
       "title": "Holiday Theme",
       "menuHeader": "Holiday Theme",
       "options": {
@@ -29,20 +29,20 @@
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
-      "tagline": "Ang iyong tapat na shell companion"
+      "tagline": "Ang tapat mong shell companion"
     },
     "links": {
       "license": "AGPL-3.0",
-      "credits": "Credits at Attribution",
-      "contributing": "Contributing",
+      "credits": "Credits & Attribution",
+      "contributing": "Mag-contribute",
       "issues": "Issues"
     },
     "kyaro": {
       "title": "Kilalanin si IRL Kyaro (Kyarorain Kadosh)! 🐕🖤",
-      "followText": "Sundan ang kanyang mga adventures sa",
+      "followText": "I-follow ang kanyang adventures sa",
       "instagram": "Instagram @kyaroblackheart"
     },
-    "inspiration": "Inspired ng Caroline mula sa Portal—loyalty na naging digital companionship",
-    "elevatorCredit": "Scroll effect ng"
+    "inspiration": "Inspired ng Portal's Caroline—katapatan na naging digital companionship",
+    "elevatorCredit": "Scroll effect ni"
   }
 }
