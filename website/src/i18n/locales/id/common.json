@@ -2,7 +2,7 @@
   "common": {
     "meta": {
       "title": "Caro - Teman setia shell kamu",
-      "description": "Caro adalah companion agent yang membantu kamu dengan perintah POSIX shell. Tersedia sebagai MCP untuk Claude dan sebagai Skill khusus."
+      "description": "Caro adalah companion agent yang membantu kamu dengan command POSIX shell. Tersedia sebagai MCP untuk Claude dan sebagai Skill khusus."
     },
     "buttons": {
       "copy": "Salin",
@@ -17,13 +17,13 @@
       "comingSoon": "Segera Hadir"
     },
     "aria": {
-      "toggleDarkMode": "Aktifkan mode gelap",
-      "toggleHolidayTheme": "Aktifkan menu tema liburan"
+      "toggleDarkMode": "Aktifkan dark mode",
+      "toggleHolidayTheme": "Buka menu tema liburan"
     },
     "nav": {
       "features": "Fitur",
       "compare": "Bandingkan",
-      "resources": "Sumber Daya",
+      "resources": "Resources",
       "support": "Dukungan",
       "getStarted": "Mulai",
       "dropdown": {
@@ -34,7 +34,7 @@
         "vsGitHubCopilot": "vs GitHub Copilot CLI",
         "aiPairProgrammer": "AI pair programmer",
         "vsKiro": "vs Kiro CLI",
-        "awsAssistant": "Asisten AI AWS",
+        "awsAssistant": "AWS AI assistant",
         "blog": "Blog",
         "newsAndTutorials": "Berita & tutorial",
         "explore": "Jelajahi",
@@ -44,7 +44,7 @@
         "roadmap": "Roadmap",
         "whatsNext": "Apa yang akan datang",
         "glossary": "Glosarium",
-        "terminalTerms": "Istilah Terminal & Unix",
+        "terminalTerms": "Istilah terminal & Unix",
         "github": "GitHub",
         "sourceCode": "Source code"
       },
@@ -54,15 +54,15 @@
       },
       "appearance": {
         "title": "Tampilan",
-        "darkMode": "Mode Gelap",
+        "darkMode": "Dark Mode",
         "holidayTheme": "Tema Liburan",
         "snowEffect": "Efek Salju",
         "disableEffects": "Nonaktifkan Semua Efek"
       },
       "useCases": {
         "allUseCases": "Semua Use Case",
-        "byRole": "Berdasarkan Peran",
-        "backToHome": "Kembali ke Beranda"
+        "byRole": "Berdasarkan Role",
+        "backToHome": "Kembali ke Home"
       }
     }
   }
