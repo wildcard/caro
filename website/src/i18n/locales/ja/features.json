@@ -1,44 +1,44 @@
 {
   "features": {
-    "title": "なぜCaro？",
-    "subtitle": "安全性、共感、専門性のために構築されたコンパニオンエージェント",
-    "alphaNotice": "🚧 ソフトローンチアルファ — コミュニティと共に積極的に開発中です。Caroの未来を一緒に形作りましょう！",
+    "title": "なぜCaroなのか？",
+    "subtitle": "安全性、共感性、専門性を兼ね備えたコンパニオンエージェント",
+    "alphaNotice": "🚧 ソフトローンチアルファ版 — コミュニティと一緒に開発中です。Caroの未来を一緒に作りませんか？",
     "items": [
       {
         "icon": "🛡️",
-        "title": "安全の守護者",
-        "description": "rm -rf /、フォークボム、破壊的な操作などの危険なコマンドをブロックする包括的な検証。リスクレベル評価付きの52の定義済み安全パターン。",
+        "title": "セーフティガーディアン",
+        "description": "rm -rf /、フォーク爆弾、破壊的な操作など、危険なコマンドを包括的に検証してブロック。52種類の安全パターンとリスクレベル評価を搭載。",
         "statusLabel": "利用可能"
       },
       {
         "icon": "🌍",
         "title": "クロスプラットフォームエキスパート",
-        "description": "macOS、Linux、Windows、GNU、BSDで動作。各プラットフォームの微妙な違いを理解し、あなたの選んだディストリビューションを尊重します。",
+        "description": "macOS、Linux、Windows、GNU、BSDに対応。プラットフォーム固有のニュアンスを理解し、あなたのディストリビューションを尊重します。",
         "statusLabel": "利用可能"
       },
       {
         "icon": "🧠",
         "title": "プラットフォーム認識",
-        "description": "プラットフォームの機能とベストプラクティスに基づいた推奨を提供。BSDとGNUのコマンド構文を自動的に区別します。",
+        "description": "あなたのプラットフォームの機能とベストプラクティスに基づいた推奨を提供。BSDとGNUのコマンド構文を自動で判別します。",
         "statusLabel": "利用可能"
       },
       {
         "icon": "✅",
         "title": "POSIXスペシャリスト",
-        "description": "すべてのシステムで信頼性の高いPOSIX互換シェルコマンドの専門家。ポータブル、安全、ターミナルに最適化。",
+        "description": "システム間で確実に動作するPOSIX準拠のシェルコマンドのエキスパート。ポータブルで安全、そしてあなたのターミナルに最適化。",
         "statusLabel": "利用可能"
       },
       {
         "icon": "⚡",
         "title": "超高速",
-        "description": "目標：Apple Siliconで100ms未満の起動、2秒未満の推論。Mシリーズチップ向けGPUアクセラレーション用MLXフレームワーク統合。",
+        "description": "目標：起動100ms以下、Apple Siliconで推論2秒以下。MLXフレームワーク統合によりMシリーズチップでGPUアクセラレーション。",
         "statusLabel": "開発中"
       },
       {
         "icon": "🤝",
         "title": "Claudeのコンパニオン",
-        "description": "ビジョン：MCPサーバーとSkillとしてClaudeとのシームレスな統合。シェルコマンドの推論を委任し、Claudeはより広い作業に集中できます。",
-        "statusLabel": "予定"
+        "description": "ビジョン：MCPサーバーおよびSkillとしてClaudeとシームレスに統合。シェルコマンド推論をオフロードし、Claudeはあなたの幅広い作業に集中。",
+        "statusLabel": "計画中"
       }
     ]
   }

@@ -4,7 +4,7 @@
     "links": {
       "features": "Recursos",
       "compare": "Comparar",
-      "play": "Jogar",
+      "play": "Experimentar",
       "blog": "Blog",
       "getStarted": "Começar",
       "github": "GitHub"
@@ -25,24 +25,24 @@
     }
   },
   "footer": {
-    "builtWith": "Feito com Rust 🦀 | Código aberto no",
+    "builtWith": "Feito com Rust 🦀 | Open source no",
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
-      "tagline": "Sua companheira leal de shell"
+      "tagline": "Seu companheiro fiel no shell"
     },
     "links": {
       "license": "AGPL-3.0",
       "credits": "Créditos e Atribuições",
-      "contributing": "Contribuir",
-      "issues": "Problemas"
+      "contributing": "Contribuindo",
+      "issues": "Issues"
     },
     "kyaro": {
       "title": "Conheça a Kyaro da vida real (Kyarorain Kadosh)! 🐕🖤",
       "followText": "Acompanhe as aventuras dela no",
       "instagram": "Instagram @kyaroblackheart"
     },
-    "inspiration": "Inspirado na Caroline de Portal—lealdade transformada em companheirismo digital",
+    "inspiration": "Inspirado em Caroline de Portal—lealdade transformada em companheirismo digital",
     "elevatorCredit": "Efeito de scroll por"
   }
 }

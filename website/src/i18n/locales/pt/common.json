@@ -1,5 +1,9 @@
 {
   "common": {
+    "meta": {
+      "title": "Caro - Seu companheiro fiel de shell",
+      "description": "Caro é um agente companheiro que te ajuda com comandos POSIX shell. Disponível como MCP para Claude e como Skill dedicada."
+    },
     "buttons": {
       "copy": "Copiar",
       "copied": "Copiado!",
@@ -15,6 +19,51 @@
     "aria": {
       "toggleDarkMode": "Alternar modo escuro",
       "toggleHolidayTheme": "Alternar menu de tema festivo"
+    },
+    "nav": {
+      "features": "Recursos",
+      "compare": "Comparar",
+      "resources": "Recursos",
+      "support": "Suporte",
+      "getStarted": "Começar",
+      "dropdown": {
+        "overview": "Visão Geral",
+        "seeAllComparisons": "Ver todas as comparações",
+        "vsWarp": "vs Warp",
+        "aiNativeTerminal": "Terminal nativo com IA",
+        "vsGitHubCopilot": "vs GitHub Copilot CLI",
+        "aiPairProgrammer": "Programador em par com IA",
+        "vsKiro": "vs Kiro CLI",
+        "awsAssistant": "Assistente de IA para AWS",
+        "blog": "Blog",
+        "newsAndTutorials": "Notícias e tutoriais",
+        "explore": "Explorar",
+        "interactiveDemo": "Demo interativa",
+        "faq": "FAQ",
+        "commonQuestions": "Perguntas frequentes",
+        "roadmap": "Roadmap",
+        "whatsNext": "O que vem por aí",
+        "glossary": "Glossário",
+        "terminalTerms": "Termos de terminal e Unix",
+        "github": "GitHub",
+        "sourceCode": "Código-fonte"
+      },
+      "mobile": {
+        "allComparisons": "Todas as Comparações",
+        "supportCaro": "Apoiar Caro"
+      },
+      "appearance": {
+        "title": "Aparência",
+        "darkMode": "Modo Escuro",
+        "holidayTheme": "Tema Festivo",
+        "snowEffect": "Efeito de Neve",
+        "disableEffects": "Desativar Todos os Efeitos"
+      },
+      "useCases": {
+        "allUseCases": "Todos os Casos de Uso",
+        "byRole": "Por Função",
+        "backToHome": "Voltar ao Início"
+      }
     }
   }
 }
