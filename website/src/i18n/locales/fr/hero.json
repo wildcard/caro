@@ -4,10 +4,10 @@
     "logo": "Caro",
     "logoAlt": "Caro - pixel art 8-bit",
     "tagline": "Votre fidèle compagnon shell",
-    "subtitle": "Un agent spécialisé en commandes shell POSIX avec empathie et autonomie. Disponible comme MCP pour Claude et comme Skill dédiée. Elle veille sur votre sécurité tout en aidant Claude à accomplir le travail.",
+    "subtitle": "Un agent spécialisé en commandes shell POSIX avec empathie et autonomie. Disponible en tant que MCP pour Claude et en tant que Skill dédiée. Elle vous protège tout en aidant Claude à accomplir le travail.",
     "cta": {
       "getStarted": "Démarrer",
-      "watchDemo": "Voir la démo"
+      "watchDemo": "Voir la Démo"
     }
   }
 }

@@ -3,23 +3,23 @@
     "brand": "🐕 Caro",
     "links": {
       "features": "Fonctionnalités",
-      "compare": "Comparer",
+      "compare": "Comparaison",
       "play": "Essayer",
       "blog": "Blog",
       "getStarted": "Démarrer",
       "github": "GitHub"
     },
     "darkMode": {
-      "toggle": "Basculer le mode sombre"
+      "toggle": "Activer/désactiver le mode sombre"
     },
     "holidayTheme": {
-      "toggle": "Basculer le menu des thèmes de fêtes",
+      "toggle": "Ouvrir le menu des thèmes de fêtes",
       "title": "Thème de fête",
       "menuHeader": "Thème de fête",
       "options": {
         "christmas": "Noël",
         "hanukkah": "Hanoukka",
-        "noTheme": "Sans thème"
+        "noTheme": "Aucun thème"
       },
       "snowEffect": "Effet neige"
     }
@@ -38,11 +38,11 @@
       "issues": "Issues"
     },
     "kyaro": {
-      "title": "Rencontrez Kyaro en vrai (Kyarorain Kadosh) ! 🐕🖤",
+      "title": "Rencontrez Kyaro IRL (Kyarorain Kadosh) ! 🐕🖤",
       "followText": "Suivez ses aventures sur",
       "instagram": "Instagram @kyaroblackheart"
     },
-    "inspiration": "Inspiré par Caroline de Portal — la loyauté transformée en compagnonnage numérique",
-    "elevatorCredit": "Effet de défilement par"
+    "inspiration": "Inspiré par Caroline de Portal—la loyauté transformée en compagnonnage numérique",
+    "elevatorCredit": "Effet de scroll par"
   }
 }
