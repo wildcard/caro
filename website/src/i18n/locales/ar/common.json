@@ -1,7 +1,7 @@
 {
   "common": {
     "meta": {
-      "title": "Caro - رفيقك المخلص في سطر الأوامر",
+      "title": "Caro - رفيقك الوفي في سطر الأوامر",
       "description": "Caro هو وكيل مساعد يساعدك في أوامر POSIX shell. متوفر كـ MCP لـ Claude وكـ Skill مخصص."
     },
     "buttons": {
@@ -18,7 +18,7 @@
     },
     "aria": {
       "toggleDarkMode": "تبديل الوضع الداكن",
-      "toggleHolidayTheme": "تبديل قائمة المظهر الاحتفالي"
+      "toggleHolidayTheme": "تبديل قائمة ثيم الأعياد"
     },
     "nav": {
       "features": "المميزات",
@@ -55,7 +55,7 @@
       "appearance": {
         "title": "المظهر",
         "darkMode": "الوضع الداكن",
-        "holidayTheme": "المظهر الاحتفالي",
+        "holidayTheme": "ثيم الأعياد",
         "snowEffect": "تأثير الثلج",
         "disableEffects": "تعطيل جميع التأثيرات"
       },

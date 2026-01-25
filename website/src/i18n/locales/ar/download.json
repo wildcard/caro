@@ -5,7 +5,7 @@
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
     "copyButton": "نسخ",
     "copiedButton": "تم النسخ!",
-    "binariesIntro": "أو قم بتحميل الملفات الجاهزة:",
+    "binariesIntro": "أو حمّل الملفات التنفيذية الجاهزة:",
     "comingSoonBadge": "قريباً",
     "platforms": {
       "macAppleSilicon": "macOS (Apple Silicon)",
@@ -33,10 +33,10 @@
       ]
     },
     "quickStart": {
-      "title": "البداية السريعة",
-      "intro": "بعد تشغيل script الإعداد أعلاه، فقط استخدم Caro:",
+      "title": "بداية سريعة",
+      "intro": "بعد تشغيل setup script أعلاه، فقط استخدم Caro:",
       "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
-      "description": "ستقوم Caro بتوليد الأمر وتحافظ على أمانك. script الإعداد يتولى جميع المتطلبات بما في ذلك Rust compilation."
+      "description": "ستقوم Caro بتوليد الأمر وتحافظ على أمانك. يتولى setup script جميع المتطلبات بما في ذلك Rust compilation."
     }
   }
 }
