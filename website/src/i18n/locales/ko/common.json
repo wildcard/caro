@@ -1,8 +1,8 @@
 {
   "common": {
     "meta": {
-      "title": "Caro - 당신의 충실한 셸 동반자",
-      "description": "Caro는 POSIX 셸 명령어를 도와주는 동반자 에이전트입니다. Claude용 MCP와 전용 Skill로 제공됩니다."
+      "title": "Caro - 당신의 충실한 셸 동료",
+      "description": "Caro는 POSIX 셸 명령어를 도와주는 동료 에이전트입니다. Claude용 MCP와 전용 Skill로 제공됩니다."
     },
     "buttons": {
       "copy": "복사",

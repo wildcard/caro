@@ -22,13 +22,13 @@
     },
     "nav": {
       "features": "Features",
-      "compare": "Ihambing",
+      "compare": "Ikumpara",
       "resources": "Resources",
       "support": "Support",
       "getStarted": "Magsimula",
       "dropdown": {
         "overview": "Overview",
-        "seeAllComparisons": "Tingnan lahat ng paghahambing",
+        "seeAllComparisons": "Tingnan lahat ng comparisons",
         "vsWarp": "vs Warp",
         "aiNativeTerminal": "AI-native terminal",
         "vsGitHubCopilot": "vs GitHub Copilot CLI",
@@ -36,7 +36,7 @@
         "vsKiro": "vs Kiro CLI",
         "awsAssistant": "AWS AI assistant",
         "blog": "Blog",
-        "newsAndTutorials": "Balita at tutorials",
+        "newsAndTutorials": "News at tutorials",
         "explore": "I-explore",
         "interactiveDemo": "Interactive demo",
         "faq": "FAQ",
@@ -49,7 +49,7 @@
         "sourceCode": "Source code"
       },
       "mobile": {
-        "allComparisons": "Lahat ng Paghahambing",
+        "allComparisons": "Lahat ng Comparisons",
         "supportCaro": "Suportahan si Caro"
       },
       "appearance": {

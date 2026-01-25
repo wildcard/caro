@@ -1,7 +1,7 @@
 {
   "common": {
     "meta": {
-      "title": "Caro - Твій вірний помічник у терміналі",
+      "title": "Caro - Твій вірний компаньйон у терміналі",
       "description": "Caro — це агент-помічник для роботи з POSIX shell командами. Доступний як MCP для Claude і як окремий Skill."
     },
     "buttons": {
@@ -17,7 +17,7 @@
       "comingSoon": "Скоро"
     },
     "aria": {
-      "toggleDarkMode": "Перемкнути темну тему",
+      "toggleDarkMode": "Перемкнути темний режим",
       "toggleHolidayTheme": "Відкрити меню святкової теми"
     },
     "nav": {
@@ -40,7 +40,7 @@
         "explore": "Дослідити",
         "interactiveDemo": "Інтерактивне демо",
         "faq": "FAQ",
-        "commonQuestions": "Поширені питання",
+        "commonQuestions": "Часті питання",
         "roadmap": "Roadmap",
         "whatsNext": "Що далі",
         "glossary": "Глосарій",
@@ -54,7 +54,7 @@
       },
       "appearance": {
         "title": "Вигляд",
-        "darkMode": "Темна тема",
+        "darkMode": "Темний режим",
         "holidayTheme": "Святкова тема",
         "snowEffect": "Ефект снігу",
         "disableEffects": "Вимкнути всі ефекти"

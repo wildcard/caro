@@ -1,11 +1,11 @@
 {
   "download": {
     "title": "Mulai dengan Caro",
-    "subtitle": "Hadirkan teman shell setia kamu ke terminal",
+    "subtitle": "Hadirkan asisten shell setia kamu ke terminal",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
     "copyButton": "Salin",
     "copiedButton": "Tersalin!",
-    "binariesIntro": "Atau download binary yang sudah jadi:",
+    "binariesIntro": "Atau download binary siap pakai:",
     "comingSoonBadge": "Segera Hadir",
     "platforms": {
       "macAppleSilicon": "macOS (Apple Silicon)",
@@ -22,21 +22,21 @@
         },
         {
           "title": "🔌 MCP untuk Claude",
-          "description": "Tambahkan Caro sebagai MCP server ke Claude Desktop dan biarkan dia handle semua perintah shell dengan mulus.",
+          "description": "Tambahkan Caro sebagai MCP server ke Claude Desktop dan biarkan dia handle semua command shell dengan mulus.",
           "comingSoon": true
         },
         {
           "title": "✨ Skill Khusus",
-          "description": "Gunakan Caro sebagai Skill untuk offload pembuatan dan eksekusi perintah shell, sementara Claude fokus ke pekerjaan kamu.",
+          "description": "Gunakan Caro sebagai Skill untuk offload pembuatan dan eksekusi command shell sambil Claude fokus ke pekerjaan kamu.",
           "comingSoon": true
         }
       ]
     },
     "quickStart": {
       "title": "Quick Start",
-      "intro": "Setelah menjalankan script setup di atas, langsung pakai Caro:",
+      "intro": "Setelah jalankan script setup di atas, langsung pakai Caro:",
       "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
-      "description": "Caro akan generate perintahnya dan menjaga keamanan kamu. Script setup sudah handle semua prerequisite termasuk kompilasi Rust."
+      "description": "Caro akan generate command dan jaga keamanan kamu. Script setup sudah handle semua prerequisite termasuk kompilasi Rust."
     }
   }
 }

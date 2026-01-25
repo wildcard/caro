@@ -4,7 +4,7 @@
     "links": {
       "features": "פיצ'רים",
       "compare": "השוואה",
-      "play": "נסו",
+      "play": "נסו בעצמכם",
       "blog": "בלוג",
       "getStarted": "בואו נתחיל",
       "github": "GitHub"
@@ -17,7 +17,7 @@
       "title": "ערכת חג",
       "menuHeader": "ערכת חג",
       "options": {
-        "christmas": "חג המולד",
+        "christmas": "כריסמס",
         "hanukkah": "חנוכה",
         "noTheme": "בלי ערכה"
       },
@@ -29,13 +29,13 @@
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
-      "tagline": "החבר הנאמן שלכם בשורת הפקודה"
+      "tagline": "החברה הנאמנה שלכם בשורת הפקודה"
     },
     "links": {
       "license": "AGPL-3.0",
       "credits": "קרדיטים וייחוסים",
       "contributing": "רוצים לתרום?",
-      "issues": "באגים ובקשות"
+      "issues": "באגים ובעיות"
     },
     "kyaro": {
       "title": "הכירו את קיארו האמיתית (קיארוריין קדוש)! 🐕🖤",

@@ -1,19 +1,19 @@
 {
   "features": {
     "title": "Bakit Caro?",
-    "subtitle": "Isang companion agent na ginawa para sa kaligtasan, pakikiramay, at expertise",
-    "alphaNotice": "🚧 Soft Launch Alpha — Aktibo kaming bumubuo kasama ang ating komunidad. Samahan mo kami para tulungang hubugin ang kinabukasan ng Caro!",
+    "subtitle": "Isang companion agent na ginawa para sa kaligtasan, empathy, at expertise",
+    "alphaNotice": "🚧 Soft Launch Alpha — Aktibo kaming bumubuo kasama ang aming community. Samahan mo kami para tulungang hubugin ang kinabukasan ng Caro!",
     "items": [
       {
         "icon": "🛡️",
-        "title": "Tagabantay ng Kaligtasan",
-        "description": "Komprehensibong validation na humaharang sa mapanganib na commands tulad ng rm -rf /, fork bombs, at destructive operations. May 52 predefined safety patterns na may risk-level assessment.",
+        "title": "Safety Guardian",
+        "description": "Komprehensibong validation na humaharang sa mga mapanganib na command tulad ng rm -rf /, fork bombs, at mga destructive operations. 52 predefined safety patterns na may risk-level assessment.",
         "statusLabel": "Available Na"
       },
       {
         "icon": "🌍",
         "title": "Cross-Platform Expert",
-        "description": "Gumagana sa macOS, Linux, Windows, GNU, at BSD. Nauunawaan ang platform-specific na mga nuances at iginagalang ang iyong piniling distribution.",
+        "description": "Gumagana sa macOS, Linux, Windows, GNU, at BSD. Nauunawaan ang platform-specific na mga nuances at iginalang ang iyong piniling distribution.",
         "statusLabel": "Available Na"
       },
       {
@@ -25,20 +25,20 @@
       {
         "icon": "✅",
         "title": "POSIX Specialist",
-        "description": "Eksperto sa POSIX-compliant shell commands na maaasahang gumagana sa lahat ng systems. Portable, ligtas, at naka-optimize para sa iyong terminal.",
+        "description": "Eksperto sa POSIX-compliant shell commands na maaasahang gumagana sa lahat ng systems. Portable, safe, at optimized para sa iyong terminal.",
         "statusLabel": "Available Na"
       },
       {
         "icon": "⚡",
-        "title": "Bilis ng Kidlat",
+        "title": "Bilis Kidlat",
         "description": "Target: Sub-100ms startup, sub-2s inference sa Apple Silicon. MLX framework integration para sa GPU acceleration sa M-series chips.",
         "statusLabel": "Ginagawa Pa"
       },
       {
         "icon": "🤝",
         "title": "Kasama ni Claude",
-        "description": "Vision: Seamless integration sa Claude bilang MCP server at Skill, nag-o-offload ng shell command inference habang naka-focus si Claude sa mas malawak mong trabaho.",
-        "statusLabel": "Plano Pa Lang"
+        "description": "Vision: Seamless integration sa Claude bilang MCP server at Skill, nag-o-offload ng shell command inference habang si Claude ay nakatuon sa mas malawak mong trabaho.",
+        "statusLabel": "Planned"
       }
     ]
   }

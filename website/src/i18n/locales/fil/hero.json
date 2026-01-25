@@ -4,7 +4,7 @@
     "logo": "Caro",
     "logoAlt": "Caro - 8-bit pixel art",
     "tagline": "Ang tapat mong kasama sa shell",
-    "subtitle": "Isang specialized POSIX shell command agent na may malasakit at sariling pag-iisip. Available bilang MCP para kay Claude at bilang dedicated Skill. Iingatan ka niya habang tinutulungan si Claude na matapos ang trabaho.",
+    "subtitle": "Isang specialized POSIX shell command agent na may malasakit at sariling desisyon. Available bilang MCP para kay Claude at bilang dedicated Skill. Iingatan ka niya habang tinutulungan si Claude na matapos ang trabaho.",
     "cta": {
       "getStarted": "Magsimula",
       "watchDemo": "Panoorin ang Demo"

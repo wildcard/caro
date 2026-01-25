@@ -30,7 +30,7 @@
         "overview": "Ringkasan",
         "seeAllComparisons": "Lihat semua perbandingan",
         "vsWarp": "vs Warp",
-        "aiNativeTerminal": "Terminal berbasis AI",
+        "aiNativeTerminal": "Terminal native AI",
         "vsGitHubCopilot": "vs GitHub Copilot CLI",
         "aiPairProgrammer": "AI pair programmer",
         "vsKiro": "vs Kiro CLI",
@@ -44,7 +44,7 @@
         "roadmap": "Roadmap",
         "whatsNext": "Apa yang akan datang",
         "glossary": "Glosarium",
-        "terminalTerms": "Istilah Terminal & Unix",
+        "terminalTerms": "Istilah terminal & Unix",
         "github": "GitHub",
         "sourceCode": "Source code"
       },

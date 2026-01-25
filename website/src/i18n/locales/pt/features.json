@@ -37,7 +37,7 @@
       {
         "icon": "🤝",
         "title": "Companheiro do Claude",
-        "description": "Visão: Integração perfeita com Claude como servidor MCP e Skill, delegando a inferência de comandos shell enquanto Claude foca no seu trabalho mais amplo.",
+        "description": "Visão: Integração perfeita com Claude como servidor MCP e Skill, delegando inferência de comandos shell enquanto Claude foca no seu trabalho mais amplo.",
         "statusLabel": "Planejado"
       }
     ]

@@ -29,12 +29,12 @@
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
-      "tagline": "Sua companheira fiel no shell"
+      "tagline": "Seu companheiro fiel no shell"
     },
     "links": {
       "license": "AGPL-3.0",
       "credits": "Créditos e Atribuições",
-      "contributing": "Como Contribuir",
+      "contributing": "Contribuindo",
       "issues": "Issues"
     },
     "kyaro": {

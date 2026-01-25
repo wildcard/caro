@@ -1,8 +1,8 @@
 {
   "common": {
     "meta": {
-      "title": "Caro - رفيقك المخلص في سطر الأوامر",
-      "description": "Caro هو وكيل مساعد يساعدك في أوامر POSIX shell. متوفر كـ MCP لـ Claude وكـ Skill مخصص."
+      "title": "Caro - رفيقك الوفي في سطر الأوامر",
+      "description": "Caro هو وكيل مساعد يساعدك في أوامر POSIX shell. متاح كـ MCP لـ Claude وكـ Skill مخصص."
     },
     "buttons": {
       "copy": "نسخ",
@@ -11,7 +11,7 @@
       "watchDemo": "شاهد العرض التوضيحي"
     },
     "status": {
-      "availableNow": "متوفر الآن",
+      "availableNow": "متاح الآن",
       "inDevelopment": "قيد التطوير",
       "planned": "مخطط له",
       "comingSoon": "قريباً"
