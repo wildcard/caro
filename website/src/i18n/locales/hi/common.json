@@ -61,7 +61,7 @@
       },
       "useCases": {
         "allUseCases": "सभी Use Cases",
-        "byRole": "Role के अनुसार",
+        "byRole": "Role के हिसाब से",
         "backToHome": "Home पर वापस जाएं"
       }
     }

@@ -1,6 +1,6 @@
 {
   "download": {
-    "title": "Caro के साथ शुरुआत करें",
+    "title": "Caro के साथ शुरू करें",
     "subtitle": "अपने वफादार shell companion को अपने terminal में लाएं",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
     "copyButton": "Copy करें",
@@ -36,7 +36,7 @@
       "title": "Quick Start",
       "intro": "ऊपर दिया गया setup script चलाने के बाद, बस Caro का इस्तेमाल करें:",
       "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
-      "description": "Caro command generate करेगी और आपको safe रखेगी। Setup script सभी prerequisites संभाल लेता है, Rust compilation भी।"
+      "description": "Caro command generate करेगी और आपको safe रखेगी। Setup script सभी prerequisites संभाल लेता है, Rust compilation समेत।"
     }
   }
 }
