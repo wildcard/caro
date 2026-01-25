@@ -1,10 +1,10 @@
 {
   "hero": {
-    "badge": "🐕 סוכנת נלווית",
-    "logo": "קארו",
-    "logoAlt": "קארו - פיקסל ארט 8-ביט",
-    "tagline": "חברת השל הנאמנה שלך",
-    "subtitle": "סוכנת מומחית בפקודות POSIX shell עם אמפתיה ויוזמה. זמינה כ-MCP לקלוד וכ-Skill ייעודי. היא שומרת עליך בזמן שעוזרת לקלוד לעשות את העבודה.",
+    "badge": "🐕 סוכן נלווה",
+    "logo": "Caro",
+    "logoAlt": "Caro - פיקסל ארט 8-ביט",
+    "tagline": "החברה הנאמנה שלך בטרמינל",
+    "subtitle": "סוכנת מתמחה לפקודות POSIX shell עם אמפתיה ויכולת פעולה עצמאית. זמינה כ-MCP עבור Claude וכ-Skill ייעודי. היא שומרת עליך בזמן שעוזרת ל-Claude להשיג תוצאות.",
     "cta": {
       "getStarted": "בואו נתחיל",
       "watchDemo": "צפו בדמו"
