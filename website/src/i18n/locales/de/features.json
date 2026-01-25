@@ -13,7 +13,7 @@
       {
         "icon": "🌍",
         "title": "Cross-Platform Expert",
-        "description": "Läuft auf macOS, Linux, Windows, GNU und BSD. Versteht plattformspezifische Feinheiten und respektiert deine Distribution.",
+        "description": "Funktioniert auf macOS, Linux, Windows, GNU und BSD. Versteht plattformspezifische Nuancen und respektiert deine Distribution.",
         "statusLabel": "Jetzt verfügbar"
       },
       {
@@ -31,7 +31,7 @@
       {
         "icon": "⚡",
         "title": "Lightning Fast",
-        "description": "Ziel: Unter 100ms Startup, unter 2s Inference auf Apple Silicon. MLX Framework Integration für GPU-Beschleunigung auf M-Series Chips.",
+        "description": "Ziel: Sub-100ms Startup, Sub-2s Inference auf Apple Silicon. MLX Framework Integration für GPU-Beschleunigung auf M-Series Chips.",
         "statusLabel": "In Entwicklung"
       },
       {
