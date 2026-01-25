@@ -1,13 +1,13 @@
 {
   "features": {
     "title": "Caro کیوں؟",
-    "subtitle": "ایک ساتھی ایجنٹ جو حفاظت، ہمدردی اور مہارت کے لیے بنایا گیا ہے",
-    "alphaNotice": "🚧 Soft Launch Alpha — ہم اپنی کمیونٹی کے ساتھ مل کر فعال طور پر بنا رہے ہیں۔ Caro کے مستقبل کو سنوارنے میں ہمارے ساتھ شامل ہوں!",
+    "subtitle": "ایک ساتھی ایجنٹ جو حفاظت، ہمدردی، اور مہارت کے لیے بنایا گیا",
+    "alphaNotice": "🚧 Soft Launch Alpha — ہم اپنی کمیونٹی کے ساتھ مل کر فعال طور پر بنا رہے ہیں۔ Caro کے مستقبل کو شکل دینے میں ہمارے ساتھ شامل ہوں!",
     "items": [
       {
         "icon": "🛡️",
         "title": "حفاظتی محافظ",
-        "description": "جامع validation خطرناک commands جیسے rm -rf /، fork bombs، اور تباہ کن operations کو روکتی ہے۔ 52 پہلے سے طے شدہ safety patterns کے ساتھ risk-level کی تشخیص۔",
+        "description": "مکمل validation خطرناک commands جیسے rm -rf /، fork bombs، اور تباہ کن operations کو روکتی ہے۔ 52 پہلے سے طے شدہ safety patterns کے ساتھ risk-level کی تشخیص۔",
         "statusLabel": "ابھی دستیاب"
       },
       {
@@ -18,7 +18,7 @@
       },
       {
         "icon": "🧠",
-        "title": "Platform سے واقف",
+        "title": "Platform-Aware",
         "description": "آپ کے platform کی صلاحیتوں اور best practices کی بنیاد پر سفارشات فراہم کرتا ہے۔ BSD اور GNU command syntax میں خودکار طور پر فرق کرتا ہے۔",
         "statusLabel": "ابھی دستیاب"
       },
@@ -31,13 +31,13 @@
       {
         "icon": "⚡",
         "title": "بجلی کی رفتار",
-        "description": "ہدف: 100ms سے کم startup، Apple Silicon پر 2s سے کم inference۔ M-series chips پر GPU acceleration کے لیے MLX framework کی integration۔",
+        "description": "ہدف: Sub-100ms startup، Apple Silicon پر sub-2s inference۔ M-series chips پر GPU acceleration کے لیے MLX framework integration۔",
         "statusLabel": "تیاری میں"
       },
       {
         "icon": "🤝",
         "title": "Claude کا ساتھی",
-        "description": "وژن: Claude کے ساتھ بطور MCP server اور Skill بغیر رکاوٹ integration، shell command inference کو offload کرتے ہوئے جبکہ Claude آپ کے وسیع تر کام پر focus کرے۔",
+        "description": "وژن: Claude کے ساتھ بطور MCP server اور Skill بغیر رکاوٹ integration، shell command inference offload کرتے ہوئے جبکہ Claude آپ کے وسیع تر کام پر focus کرے۔",
         "statusLabel": "منصوبہ بند"
       }
     ]
