@@ -1,19 +1,19 @@
 {
   "features": {
-    "title": "なぜCaroなのか？",
+    "title": "Caroを選ぶ理由",
     "subtitle": "安全性、共感性、専門性を兼ね備えたコンパニオンエージェント",
-    "alphaNotice": "🚧 ソフトローンチアルファ版 — コミュニティと一緒に開発中です。Caroの未来を一緒に作りませんか？",
+    "alphaNotice": "🚧 ソフトローンチ版α — コミュニティと一緒に開発中です。Caroの未来を一緒に作りませんか？",
     "items": [
       {
         "icon": "🛡️",
         "title": "セーフティガーディアン",
-        "description": "rm -rf /、フォーク爆弾、破壊的な操作など、危険なコマンドを包括的に検証してブロック。52種類の安全パターンとリスクレベル評価を搭載。",
+        "description": "rm -rf /、フォーク爆弾、破壊的な操作など危険なコマンドを包括的に検証してブロック。52種類の安全パターンとリスクレベル評価を搭載。",
         "statusLabel": "利用可能"
       },
       {
         "icon": "🌍",
         "title": "クロスプラットフォームエキスパート",
-        "description": "macOS、Linux、Windows、GNU、BSDに対応。プラットフォーム固有のニュアンスを理解し、あなたのディストリビューションを尊重します。",
+        "description": "macOS、Linux、Windows、GNU、BSDに対応。プラットフォーム固有のニュアンスを理解し、あなたの選んだディストリビューションを尊重します。",
         "statusLabel": "利用可能"
       },
       {
@@ -25,20 +25,20 @@
       {
         "icon": "✅",
         "title": "POSIXスペシャリスト",
-        "description": "システム間で確実に動作するPOSIX準拠のシェルコマンドのエキスパート。ポータブルで安全、そしてあなたのターミナルに最適化。",
+        "description": "システム間で確実に動作するPOSIX準拠のシェルコマンドのエキスパート。ポータブルで安全、そしてターミナルに最適化されています。",
         "statusLabel": "利用可能"
       },
       {
         "icon": "⚡",
         "title": "超高速",
-        "description": "目標：起動100ms以下、Apple Siliconで推論2秒以下。MLXフレームワーク統合によりMシリーズチップでGPUアクセラレーション。",
+        "description": "目標:起動100ms以下、Apple Siliconで推論2秒以下。MLXフレームワーク統合によりMシリーズチップでGPUアクセラレーション対応。",
         "statusLabel": "開発中"
       },
       {
         "icon": "🤝",
         "title": "Claudeのコンパニオン",
-        "description": "ビジョン：MCPサーバーおよびSkillとしてClaudeとシームレスに統合。シェルコマンド推論をオフロードし、Claudeはあなたの幅広い作業に集中。",
-        "statusLabel": "計画中"
+        "description": "ビジョン:MCPサーバーおよびSkillとしてClaudeとシームレスに統合。シェルコマンドの推論をオフロードし、Claudeはあなたの幅広い作業に集中できます。",
+        "statusLabel": "予定"
       }
     ]
   }

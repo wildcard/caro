@@ -1,11 +1,11 @@
 {
   "download": {
     "title": "Caroを始めよう",
-    "subtitle": "頼れる相棒をターミナルに連れてこよう",
+    "subtitle": "頼れるシェルの相棒をターミナルに",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
     "copyButton": "コピー",
     "copiedButton": "コピーしました!",
-    "binariesIntro": "または、ビルド済みバイナリをダウンロード:",
+    "binariesIntro": "またはビルド済みバイナリをダウンロード:",
     "comingSoonBadge": "近日公開",
     "platforms": {
       "macAppleSilicon": "macOS (Apple Silicon)",
@@ -22,12 +22,12 @@
         },
         {
           "title": "🔌 Claude用MCP",
-          "description": "CaroをMCPサーバーとしてClaude Desktopに追加すれば、シェルコマンドをシームレスに実行できます。",
+          "description": "CaroをMCPサーバーとしてClaude Desktopに追加すれば、すべてのシェルコマンドをシームレスに処理してくれます。",
           "comingSoon": true
         },
         {
           "title": "✨ 専用スキル",
-          "description": "Caroをスキルとしてシェルコマンドの生成・実行を任せて、Claudeには本来の作業に集中してもらいましょう。",
+          "description": "Caroをスキルとしてシェルコマンドの生成と実行を任せて、Claudeはあなたの作業に集中できます。",
           "comingSoon": true
         }
       ]
@@ -36,7 +36,7 @@
       "title": "クイックスタート",
       "intro": "上記のセットアップスクリプトを実行したら、あとはCaroを使うだけ:",
       "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
-      "description": "Caroがコマンドを生成して、安全に実行してくれます。セットアップスクリプトがRustのコンパイルを含む必要な準備をすべて処理します。"
+      "description": "Caroがコマンドを生成して、安全に実行してくれます。セットアップスクリプトがRustのコンパイルを含むすべての前提条件を処理します。"
     }
   }
 }
