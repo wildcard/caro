@@ -2,7 +2,7 @@
   "common": {
     "meta": {
       "title": "Caro - Ang tapat mong kasama sa shell",
-      "description": "Si Caro ay isang companion agent na tumutulong sa iyo sa POSIX shell commands. Available bilang MCP para sa Claude at bilang dedicated Skill."
+      "description": "Si Caro ay isang companion agent na tumutulong sa'yo sa POSIX shell commands. Available bilang MCP para sa Claude at bilang dedicated Skill."
     },
     "buttons": {
       "copy": "Kopyahin",
@@ -13,7 +13,7 @@
     "status": {
       "availableNow": "Available Na",
       "inDevelopment": "Ginagawa Pa",
-      "planned": "Naka-plano",
+      "planned": "Naka-plano Na",
       "comingSoon": "Malapit Na"
     },
     "aria": {
@@ -22,13 +22,13 @@
     },
     "nav": {
       "features": "Features",
-      "compare": "Ikumpara",
+      "compare": "Ihambing",
       "resources": "Resources",
       "support": "Support",
       "getStarted": "Magsimula",
       "dropdown": {
         "overview": "Overview",
-        "seeAllComparisons": "Tingnan lahat ng comparisons",
+        "seeAllComparisons": "Tingnan lahat ng paghahambing",
         "vsWarp": "vs Warp",
         "aiNativeTerminal": "AI-native terminal",
         "vsGitHubCopilot": "vs GitHub Copilot CLI",
@@ -49,7 +49,7 @@
         "sourceCode": "Source code"
       },
       "mobile": {
-        "allComparisons": "Lahat ng Comparisons",
+        "allComparisons": "Lahat ng Paghahambing",
         "supportCaro": "Suportahan si Caro"
       },
       "appearance": {
