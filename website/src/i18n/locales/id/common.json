@@ -1,8 +1,8 @@
 {
   "common": {
     "meta": {
-      "title": "Caro - Teman setia shell Anda",
-      "description": "Caro adalah companion agent yang membantu Anda dengan perintah POSIX shell. Tersedia sebagai MCP untuk Claude dan sebagai Skill khusus."
+      "title": "Caro - Teman setia shell kamu",
+      "description": "Caro adalah companion agent yang membantu kamu dengan perintah POSIX shell. Tersedia sebagai MCP untuk Claude dan sebagai Skill khusus."
     },
     "buttons": {
       "copy": "Salin",
@@ -17,8 +17,8 @@
       "comingSoon": "Segera Hadir"
     },
     "aria": {
-      "toggleDarkMode": "Ubah mode gelap",
-      "toggleHolidayTheme": "Ubah menu tema liburan"
+      "toggleDarkMode": "Aktifkan mode gelap",
+      "toggleHolidayTheme": "Aktifkan menu tema liburan"
     },
     "nav": {
       "features": "Fitur",
@@ -30,11 +30,11 @@
         "overview": "Ringkasan",
         "seeAllComparisons": "Lihat semua perbandingan",
         "vsWarp": "vs Warp",
-        "aiNativeTerminal": "Terminal AI-native",
+        "aiNativeTerminal": "Terminal berbasis AI",
         "vsGitHubCopilot": "vs GitHub Copilot CLI",
         "aiPairProgrammer": "AI pair programmer",
         "vsKiro": "vs Kiro CLI",
-        "awsAssistant": "AWS AI assistant",
+        "awsAssistant": "Asisten AI AWS",
         "blog": "Blog",
         "newsAndTutorials": "Berita & tutorial",
         "explore": "Jelajahi",
@@ -42,9 +42,9 @@
         "faq": "FAQ",
         "commonQuestions": "Pertanyaan umum",
         "roadmap": "Roadmap",
-        "whatsNext": "Apa selanjutnya",
+        "whatsNext": "Apa yang akan datang",
         "glossary": "Glosarium",
-        "terminalTerms": "Istilah terminal & Unix",
+        "terminalTerms": "Istilah Terminal & Unix",
         "github": "GitHub",
         "sourceCode": "Source code"
       },
@@ -60,8 +60,8 @@
         "disableEffects": "Nonaktifkan Semua Efek"
       },
       "useCases": {
-        "allUseCases": "Semua Use Cases",
-        "byRole": "Berdasarkan Role",
+        "allUseCases": "Semua Use Case",
+        "byRole": "Berdasarkan Peran",
         "backToHome": "Kembali ke Beranda"
       }
     }

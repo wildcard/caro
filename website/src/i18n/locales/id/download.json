@@ -1,11 +1,11 @@
 {
   "download": {
     "title": "Mulai dengan Caro",
-    "subtitle": "Bawa teman setia shell Anda ke terminal Anda",
+    "subtitle": "Hadirkan teman shell setia kamu ke terminal",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
     "copyButton": "Salin",
     "copiedButton": "Tersalin!",
-    "binariesIntro": "Atau unduh binary yang sudah dibuat:",
+    "binariesIntro": "Atau download binary yang sudah jadi:",
     "comingSoonBadge": "Segera Hadir",
     "platforms": {
       "macAppleSilicon": "macOS (Apple Silicon)",
@@ -14,29 +14,29 @@
       "windows": "Windows"
     },
     "usageModes": {
-      "title": "Berbagai Cara Menggunakan Caro",
+      "title": "Berbagai Cara Pakai Caro",
       "modes": [
         {
-          "title": "🔧 Standalone CLI",
-          "exampleCommand": "caro \"tampilkan file > 100MB\""
+          "title": "🔧 CLI Standalone",
+          "exampleCommand": "caro \"list files > 100MB\""
         },
         {
           "title": "🔌 MCP untuk Claude",
-          "description": "Tambahkan Caro sebagai MCP server ke Claude Desktop dan biarkan dia menangani semua perintah shell dengan mulus.",
+          "description": "Tambahkan Caro sebagai MCP server ke Claude Desktop dan biarkan dia handle semua perintah shell dengan mulus.",
           "comingSoon": true
         },
         {
           "title": "✨ Skill Khusus",
-          "description": "Gunakan Caro sebagai Skill untuk mendelegasikan pembuatan dan eksekusi perintah shell sementara Claude fokus pada pekerjaan Anda.",
+          "description": "Gunakan Caro sebagai Skill untuk offload pembuatan dan eksekusi perintah shell, sementara Claude fokus ke pekerjaan kamu.",
           "comingSoon": true
         }
       ]
     },
     "quickStart": {
       "title": "Quick Start",
-      "intro": "Setelah menjalankan script setup di atas, cukup gunakan Caro:",
-      "exampleCommand": "caro \"cari semua file python yang dimodifikasi dalam 7 hari terakhir\"",
-      "description": "Caro akan menghasilkan perintah dan menjaga keamanan Anda. Script setup menangani semua prasyarat termasuk kompilasi Rust."
+      "intro": "Setelah menjalankan script setup di atas, langsung pakai Caro:",
+      "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
+      "description": "Caro akan generate perintahnya dan menjaga keamanan kamu. Script setup sudah handle semua prerequisite termasuk kompilasi Rust."
     }
   }
 }
