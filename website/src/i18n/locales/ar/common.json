@@ -2,7 +2,7 @@
   "common": {
     "meta": {
       "title": "Caro - رفيقك الوفي في سطر الأوامر",
-      "description": "Caro هو وكيل مساعد يساعدك في أوامر POSIX shell. متاح كـ MCP لـ Claude وكـ Skill مخصص."
+      "description": "Caro هو وكيل مساعد يساعدك في أوامر POSIX shell. متوفر كـ MCP لـ Claude وكـ Skill مخصص."
     },
     "buttons": {
       "copy": "نسخ",
@@ -11,14 +11,14 @@
       "watchDemo": "شاهد العرض التوضيحي"
     },
     "status": {
-      "availableNow": "متاح الآن",
+      "availableNow": "متوفر الآن",
       "inDevelopment": "قيد التطوير",
       "planned": "مخطط له",
       "comingSoon": "قريباً"
     },
     "aria": {
       "toggleDarkMode": "تبديل الوضع الداكن",
-      "toggleHolidayTheme": "تبديل قائمة المظهر الاحتفالي"
+      "toggleHolidayTheme": "تبديل قائمة ثيم الأعياد"
     },
     "nav": {
       "features": "المميزات",
@@ -55,7 +55,7 @@
       "appearance": {
         "title": "المظهر",
         "darkMode": "الوضع الداكن",
-        "holidayTheme": "المظهر الاحتفالي",
+        "holidayTheme": "ثيم الأعياد",
         "snowEffect": "تأثير الثلج",
         "disableEffects": "تعطيل جميع التأثيرات"
       },
