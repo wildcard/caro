@@ -18,7 +18,7 @@
     },
     "aria": {
       "toggleDarkMode": "ڈارک موڈ آن/آف کریں",
-      "toggleHolidayTheme": "چھٹیوں کا تھیم مینو کھولیں"
+      "toggleHolidayTheme": "تہوار کی تھیم مینو کھولیں"
     },
     "nav": {
       "features": "خصوصیات",
@@ -38,10 +38,10 @@
         "blog": "بلاگ",
         "newsAndTutorials": "خبریں اور ٹیوٹوریلز",
         "explore": "دریافت کریں",
-        "interactiveDemo": "Interactive demo",
+        "interactiveDemo": "انٹرایکٹو ڈیمو",
         "faq": "عام سوالات",
         "commonQuestions": "اکثر پوچھے جانے والے سوالات",
-        "roadmap": "Roadmap",
+        "roadmap": "روڈ میپ",
         "whatsNext": "آگے کیا آ رہا ہے",
         "glossary": "لغت",
         "terminalTerms": "Terminal اور Unix کی اصطلاحات",
@@ -55,14 +55,14 @@
       "appearance": {
         "title": "ظاہری شکل",
         "darkMode": "ڈارک موڈ",
-        "holidayTheme": "چھٹیوں کا تھیم",
+        "holidayTheme": "تہوار کی تھیم",
         "snowEffect": "برف کا اثر",
         "disableEffects": "تمام اثرات بند کریں"
       },
       "useCases": {
-        "allUseCases": "تمام استعمال",
+        "allUseCases": "تمام استعمالات",
         "byRole": "کردار کے لحاظ سے",
-        "backToHome": "ہوم پر واپس جائیں"
+        "backToHome": "ہوم پر واپس"
       }
     }
   }

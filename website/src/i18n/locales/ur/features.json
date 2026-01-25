@@ -1,13 +1,13 @@
 {
   "features": {
     "title": "Caro کیوں؟",
-    "subtitle": "ایک ساتھی ایجنٹ جو حفاظت، ہمدردی اور مہارت کے لیے بنایا گیا",
-    "alphaNotice": "🚧 سافٹ لانچ الفا — ہم اپنی کمیونٹی کے ساتھ مل کر فعال طور پر بنا رہے ہیں۔ Caro کے مستقبل کو سنوارنے میں ہمارے ساتھ شامل ہوں!",
+    "subtitle": "ایک ساتھی ایجنٹ جو حفاظت، ہمدردی اور مہارت کے لیے بنایا گیا ہے",
+    "alphaNotice": "🚧 Soft Launch Alpha — ہم اپنی کمیونٹی کے ساتھ مل کر فعال طور پر بنا رہے ہیں۔ Caro کے مستقبل کو سنوارنے میں ہمارے ساتھ شامل ہوں!",
     "items": [
       {
         "icon": "🛡️",
         "title": "حفاظتی محافظ",
-        "description": "مکمل validation خطرناک commands جیسے rm -rf /، fork bombs، اور تباہ کن operations کو روکتی ہے۔ 52 پہلے سے طے شدہ safety patterns کے ساتھ risk-level کی تشخیص۔",
+        "description": "جامع validation خطرناک commands جیسے rm -rf /، fork bombs، اور تباہ کن operations کو روکتی ہے۔ 52 پہلے سے طے شدہ safety patterns کے ساتھ risk-level کی تشخیص۔",
         "statusLabel": "ابھی دستیاب"
       },
       {
@@ -18,8 +18,8 @@
       },
       {
         "icon": "🧠",
-        "title": "Platform-Aware",
-        "description": "آپ کے platform کی صلاحیتوں اور best practices کی بنیاد پر تجاویز فراہم کرتا ہے۔ BSD اور GNU command syntax میں خودکار طور پر فرق کرتا ہے۔",
+        "title": "Platform سے واقف",
+        "description": "آپ کے platform کی صلاحیتوں اور best practices کی بنیاد پر سفارشات فراہم کرتا ہے۔ BSD اور GNU command syntax میں خودکار طور پر فرق کرتا ہے۔",
         "statusLabel": "ابھی دستیاب"
       },
       {
@@ -31,8 +31,8 @@
       {
         "icon": "⚡",
         "title": "بجلی کی رفتار",
-        "description": "ہدف: Sub-100ms startup، Apple Silicon پر sub-2s inference۔ M-series chips پر GPU acceleration کے لیے MLX framework integration۔",
-        "statusLabel": "ترقی میں"
+        "description": "ہدف: 100ms سے کم startup، Apple Silicon پر 2s سے کم inference۔ M-series chips پر GPU acceleration کے لیے MLX framework کی integration۔",
+        "statusLabel": "تیاری میں"
       },
       {
         "icon": "🤝",

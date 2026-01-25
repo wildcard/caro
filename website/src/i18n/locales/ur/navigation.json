@@ -25,7 +25,7 @@
     }
   },
   "footer": {
-    "builtWith": "Rust 🦀 میں بنایا گیا | اوپن سورس دیکھیں",
+    "builtWith": "Rust 🦀 سے بنایا گیا | اوپن سورس",
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
@@ -38,7 +38,7 @@
       "issues": "مسائل"
     },
     "kyaro": {
-      "title": "اصلی Kyaro (Kyarorain Kadosh) سے ملیں! 🐕🖤",
+      "title": "حقیقی Kyaro سے ملیں (Kyarorain Kadosh)! 🐕🖤",
       "followText": "ان کی کہانیاں دیکھیں",
       "instagram": "Instagram @kyaroblackheart"
     },
