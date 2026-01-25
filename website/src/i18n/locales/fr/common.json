@@ -18,7 +18,7 @@
     },
     "aria": {
       "toggleDarkMode": "Activer/désactiver le mode sombre",
-      "toggleHolidayTheme": "Activer/désactiver le menu thème festif"
+      "toggleHolidayTheme": "Activer/désactiver le menu du thème festif"
     },
     "nav": {
       "features": "Fonctionnalités",
@@ -44,7 +44,7 @@
         "roadmap": "Roadmap",
         "whatsNext": "À venir",
         "glossary": "Glossaire",
-        "terminalTerms": "Termes Terminal & Unix",
+        "terminalTerms": "Termes terminal & Unix",
         "github": "GitHub",
         "sourceCode": "Code source"
       },

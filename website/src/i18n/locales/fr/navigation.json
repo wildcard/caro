@@ -25,7 +25,7 @@
     }
   },
   "footer": {
-    "builtWith": "Développé avec Rust 🦀 | Open source sur",
+    "builtWith": "Développé en Rust 🦀 | Open source sur",
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
@@ -42,7 +42,7 @@
       "followText": "Suivez ses aventures sur",
       "instagram": "Instagram @kyaroblackheart"
     },
-    "inspiration": "Inspiré par Caroline de Portal — la loyauté transformée en compagnonnage numérique",
-    "elevatorCredit": "Effet de défilement par"
+    "inspiration": "Inspiré par Caroline de Portal—la loyauté transformée en compagnonnage numérique",
+    "elevatorCredit": "Effet de scroll par"
   }
 }

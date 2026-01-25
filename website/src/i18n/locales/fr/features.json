@@ -25,13 +25,13 @@
       {
         "icon": "✅",
         "title": "Spécialiste POSIX",
-        "description": "Expert en commandes shell conformes POSIX qui fonctionnent de manière fiable sur tous les systèmes. Portable, sûr et optimisé pour votre terminal.",
+        "description": "Expert en commandes shell conformes POSIX qui fonctionnent de manière fiable sur tous les systèmes. Portable, sécurisé et optimisé pour votre terminal.",
         "statusLabel": "Disponible"
       },
       {
         "icon": "⚡",
-        "title": "Vitesse Éclair",
-        "description": "Objectif : Démarrage en moins de 100ms, inférence en moins de 2s sur Apple Silicon. Intégration du framework MLX pour l'accélération GPU sur puces série M.",
+        "title": "Vélocité Éclair",
+        "description": "Objectif : Démarrage sous 100ms, inférence sous 2s sur Apple Silicon. Intégration du framework MLX pour l'accélération GPU sur puces série M.",
         "statusLabel": "En Développement"
       },
       {
