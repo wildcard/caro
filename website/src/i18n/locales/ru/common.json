@@ -1,8 +1,8 @@
 {
   "common": {
     "meta": {
-      "title": "Caro - Твой верный помощник shell",
-      "description": "Caro — это агент-компаньон, который помогает с POSIX shell командами. Доступен как MCP для Claude и как отдельный Skill."
+      "title": "Caro — верный компаньон для командной строки",
+      "description": "Caro — это агент-помощник для работы с POSIX shell командами. Доступен как MCP для Claude и как отдельный Skill."
     },
     "buttons": {
       "copy": "Копировать",
@@ -18,7 +18,7 @@
     },
     "aria": {
       "toggleDarkMode": "Переключить тёмную тему",
-      "toggleHolidayTheme": "Открыть меню праздничных тем"
+      "toggleHolidayTheme": "Открыть меню праздничной темы"
     },
     "nav": {
       "features": "Возможности",
@@ -29,19 +29,19 @@
       "dropdown": {
         "overview": "Обзор",
         "seeAllComparisons": "Все сравнения",
-        "vsWarp": "против Warp",
-        "aiNativeTerminal": "AI-native терминал",
-        "vsGitHubCopilot": "против GitHub Copilot CLI",
-        "aiPairProgrammer": "AI pair programmer",
-        "vsKiro": "против Kiro CLI",
-        "awsAssistant": "AWS AI ассистент",
+        "vsWarp": "vs Warp",
+        "aiNativeTerminal": "AI-терминал",
+        "vsGitHubCopilot": "vs GitHub Copilot CLI",
+        "aiPairProgrammer": "AI пара-программист",
+        "vsKiro": "vs Kiro CLI",
+        "awsAssistant": "AWS AI-ассистент",
         "blog": "Блог",
         "newsAndTutorials": "Новости и туториалы",
-        "explore": "Исследуй",
+        "explore": "Изучить",
         "interactiveDemo": "Интерактивное демо",
         "faq": "FAQ",
         "commonQuestions": "Частые вопросы",
-        "roadmap": "Дорожная карта",
+        "roadmap": "Roadmap",
         "whatsNext": "Что дальше",
         "glossary": "Глоссарий",
         "terminalTerms": "Термины терминала и Unix",
@@ -53,15 +53,15 @@
         "supportCaro": "Поддержать Caro"
       },
       "appearance": {
-        "title": "Внешний вид",
+        "title": "Оформление",
         "darkMode": "Тёмная тема",
         "holidayTheme": "Праздничная тема",
         "snowEffect": "Эффект снега",
         "disableEffects": "Отключить все эффекты"
       },
       "useCases": {
-        "allUseCases": "Все варианты использования",
-        "byRole": "По роли",
+        "allUseCases": "Все сценарии",
+        "byRole": "По ролям",
         "backToHome": "На главную"
       }
     }
