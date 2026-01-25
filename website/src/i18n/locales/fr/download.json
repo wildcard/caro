@@ -18,7 +18,7 @@
       "modes": [
         {
           "title": "🔧 CLI autonome",
-          "exampleCommand": "caro \"lister les fichiers > 100 Mo\""
+          "exampleCommand": "caro \"liste les fichiers > 100 Mo\""
         },
         {
           "title": "🔌 MCP pour Claude",
@@ -35,7 +35,7 @@
     "quickStart": {
       "title": "Démarrage rapide",
       "intro": "Après avoir exécuté le script d'installation ci-dessus, utilisez simplement Caro :",
-      "exampleCommand": "caro \"trouver tous les fichiers python modifiés ces 7 derniers jours\"",
+      "exampleCommand": "caro \"trouve tous les fichiers python modifiés ces 7 derniers jours\"",
       "description": "Caro générera la commande et veillera à votre sécurité. Le script d'installation gère tous les prérequis, y compris la compilation Rust."
     }
   }

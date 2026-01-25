@@ -3,14 +3,14 @@
     "brand": "🐕 Caro",
     "links": {
       "features": "Fonctionnalités",
-      "compare": "Comparaison",
+      "compare": "Comparer",
       "play": "Essayer",
       "blog": "Blog",
       "getStarted": "Démarrer",
       "github": "GitHub"
     },
     "darkMode": {
-      "toggle": "Activer/désactiver le mode sombre"
+      "toggle": "Basculer le mode sombre"
     },
     "holidayTheme": {
       "toggle": "Ouvrir le menu des thèmes de fêtes",
@@ -25,7 +25,7 @@
     }
   },
   "footer": {
-    "builtWith": "Développé en Rust 🦀 | Open source sur",
+    "builtWith": "Développé avec Rust 🦀 | Open source sur",
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
@@ -42,7 +42,7 @@
       "followText": "Suivez ses aventures sur",
       "instagram": "Instagram @kyaroblackheart"
     },
-    "inspiration": "Inspiré par Caroline de Portal—la loyauté transformée en compagnonnage numérique",
-    "elevatorCredit": "Effet de scroll par"
+    "inspiration": "Inspiré par Caroline de Portal — la loyauté transformée en compagnonnage numérique",
+    "elevatorCredit": "Effet de défilement par"
   }
 }
