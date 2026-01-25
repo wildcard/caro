@@ -6,7 +6,7 @@
       "compare": "Ihambing",
       "play": "Subukan",
       "blog": "Blog",
-      "getStarted": "Simulan",
+      "getStarted": "Magsimula",
       "github": "GitHub"
     },
     "darkMode": {
@@ -29,7 +29,7 @@
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
-      "tagline": "Ang tapat mong shell companion"
+      "tagline": "Ang tapat mong kasama sa shell"
     },
     "links": {
       "license": "AGPL-3.0",
@@ -42,7 +42,7 @@
       "followText": "I-follow ang kanyang adventures sa",
       "instagram": "Instagram @kyaroblackheart"
     },
-    "inspiration": "Inspired ng Portal's Caroline—katapatan na naging digital companionship",
+    "inspiration": "Inspired ng Portal's Caroline—katapatan na naging digital na kasama",
     "elevatorCredit": "Scroll effect ni"
   }
 }

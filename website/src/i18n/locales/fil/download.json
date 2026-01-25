@@ -1,12 +1,12 @@
 {
   "download": {
-    "title": "Magsimula sa Caro",
+    "title": "Simulan ang Caro",
     "subtitle": "Dalhin ang iyong tapat na shell companion sa iyong terminal",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
     "copyButton": "Kopyahin",
     "copiedButton": "Nakopya na!",
     "binariesIntro": "O mag-download ng pre-built binaries:",
-    "comingSoonBadge": "Paparating Na",
+    "comingSoonBadge": "Malapit Na",
     "platforms": {
       "macAppleSilicon": "macOS (Apple Silicon)",
       "macIntel": "macOS (Intel)",
@@ -27,7 +27,7 @@
         },
         {
           "title": "✨ Dedicated Skill",
-          "description": "Gamitin ang Caro bilang Skill para i-offload ang shell command generation at execution habang naka-focus si Claude sa iyong trabaho.",
+          "description": "Gamitin ang Caro bilang Skill para sa shell command generation at execution habang naka-focus si Claude sa iyong trabaho.",
           "comingSoon": true
         }
       ]
@@ -36,7 +36,7 @@
       "title": "Quick Start",
       "intro": "Pagkatapos i-run ang setup script sa itaas, gamitin lang ang Caro:",
       "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
-      "description": "Bubuo si Caro ng command at aalagaan ka niya. Ang setup script ay nag-hahandle ng lahat ng prerequisites kasama na ang Rust compilation."
+      "description": "Bubuo si Caro ng command at aalagaan ka niya. Ang setup script ay nag-hahandle ng lahat ng prerequisites kasama ang Rust compilation."
     }
   }
 }
