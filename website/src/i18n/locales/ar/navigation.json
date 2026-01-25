@@ -14,8 +14,8 @@
     },
     "holidayTheme": {
       "toggle": "فتح قائمة ثيمات الأعياد",
-      "title": "ثيم الأعياد",
-      "menuHeader": "ثيم الأعياد",
+      "title": "ثيم العيد",
+      "menuHeader": "ثيم العيد",
       "options": {
         "christmas": "الكريسماس",
         "hanukkah": "الهانوكا",
@@ -42,7 +42,7 @@
       "followText": "تابع مغامراتها على",
       "instagram": "Instagram @kyaroblackheart"
     },
-    "inspiration": "مستوحى من Caroline في لعبة Portal—الوفاء يتحول إلى رفيق رقمي",
+    "inspiration": "مستوحى من Caroline في Portal—الوفاء يتحول إلى رفقة رقمية",
     "elevatorCredit": "تأثير التمرير من"
   }
 }
