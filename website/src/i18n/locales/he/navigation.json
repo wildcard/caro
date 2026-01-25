@@ -4,7 +4,7 @@
     "links": {
       "features": "פיצ'רים",
       "compare": "השוואה",
-      "play": "נסו",
+      "play": "נסה",
       "blog": "בלוג",
       "getStarted": "בואו נתחיל",
       "github": "GitHub"
@@ -25,21 +25,21 @@
     }
   },
   "footer": {
-    "builtWith": "נבנה ב-Rust 🦀 | קוד פתוח ב-",
+    "builtWith": "נבנה ב-Rust 🦀 | קוד פתוח ב",
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
-      "tagline": "החבר הנאמן שלכם בשורת הפקודה"
+      "tagline": "החברה הנאמנה שלך בשורת הפקודה"
     },
     "links": {
       "license": "AGPL-3.0",
       "credits": "קרדיטים וייחוסים",
       "contributing": "רוצים לתרום?",
-      "issues": "באגים ובקשות"
+      "issues": "באגים ובעיות"
     },
     "kyaro": {
       "title": "הכירו את קיארו האמיתית (קיארוריין קדוש)! 🐕🖤",
-      "followText": "עקבו אחרי ההרפתקאות שלה ב-",
+      "followText": "עקבו אחרי ההרפתקאות שלה ב",
       "instagram": "Instagram @kyaroblackheart"
     },
     "inspiration": "בהשראת קרוליין מ-Portal - נאמנות שהפכה לחברות דיגיטלית",
