@@ -1,43 +1,43 @@
 {
   "features": {
     "title": "Caro کیوں؟",
-    "subtitle": "حفاظت، ہمدردی اور مہارت کے لیے بنایا گیا ساتھی ایجنٹ",
-    "alphaNotice": "🚧 سافٹ لانچ الفا — ہم اپنی کمیونٹی کے ساتھ فعال طور پر تعمیر کر رہے ہیں۔ Caro کا مستقبل بنانے میں ہمارے ساتھ شامل ہوں!",
+    "subtitle": "ایک ساتھی ایجنٹ جو حفاظت، ہمدردی اور مہارت کے لیے بنایا گیا",
+    "alphaNotice": "🚧 سافٹ لانچ الفا — ہم اپنی کمیونٹی کے ساتھ مل کر فعال طور پر بنا رہے ہیں۔ Caro کے مستقبل کو سنوارنے میں ہمارے ساتھ شامل ہوں!",
     "items": [
       {
         "icon": "🛡️",
-        "title": "حفاظت کا محافظ",
-        "description": "rm -rf /, fork bombs، اور تباہ کن آپریشنز جیسی خطرناک کمانڈز کو روکنے والی جامع تصدیق۔ خطرے کی سطح کی تشخیص کے ساتھ 52 پہلے سے طے شدہ حفاظتی پیٹرن۔",
-        "statusLabel": "ابھی دستیاب ہے"
+        "title": "حفاظتی محافظ",
+        "description": "مکمل validation خطرناک commands جیسے rm -rf /، fork bombs، اور تباہ کن operations کو روکتی ہے۔ 52 پہلے سے طے شدہ safety patterns کے ساتھ risk-level کی تشخیص۔",
+        "statusLabel": "ابھی دستیاب"
       },
       {
         "icon": "🌍",
-        "title": "کراس پلیٹ فارم ماہر",
-        "description": "macOS، Linux، Windows، GNU، اور BSD پر کام کرتا ہے۔ پلیٹ فارم کی مخصوص باریکیوں کو سمجھتا ہے اور آپ کی پسند کی distribution کا احترام کرتا ہے۔",
-        "statusLabel": "ابھی دستیاب ہے"
+        "title": "Cross-Platform ماہر",
+        "description": "macOS، Linux، Windows، GNU، اور BSD پر کام کرتا ہے۔ platform-specific باریکیوں کو سمجھتا ہے اور آپ کی distribution کی پسند کا احترام کرتا ہے۔",
+        "statusLabel": "ابھی دستیاب"
       },
       {
         "icon": "🧠",
-        "title": "پلیٹ فارم آگاہ",
-        "description": "آپ کے پلیٹ فارم کی صلاحیتوں اور بہترین طریقوں کی بنیاد پر سفارشات فراہم کرتا ہے۔ BSD اور GNU کمانڈ syntax میں خود بخود فرق کرتا ہے۔",
-        "statusLabel": "ابھی دستیاب ہے"
+        "title": "Platform-Aware",
+        "description": "آپ کے platform کی صلاحیتوں اور best practices کی بنیاد پر تجاویز فراہم کرتا ہے۔ BSD اور GNU command syntax میں خودکار طور پر فرق کرتا ہے۔",
+        "statusLabel": "ابھی دستیاب"
       },
       {
         "icon": "✅",
         "title": "POSIX ماہر",
-        "description": "POSIX-معیاری شیل کمانڈز میں ماہر جو تمام سسٹمز پر قابل اعتماد طریقے سے کام کرتی ہیں۔ پورٹیبل، محفوظ، اور آپ کے ٹرمینل کے لیے بہتر۔",
-        "statusLabel": "ابھی دستیاب ہے"
+        "description": "POSIX-compliant shell commands میں ماہر جو systems پر قابل اعتماد طریقے سے کام کرتے ہیں۔ Portable، محفوظ، اور آپ کے terminal کے لیے optimize شدہ۔",
+        "statusLabel": "ابھی دستیاب"
       },
       {
         "icon": "⚡",
         "title": "بجلی کی رفتار",
-        "description": "ہدف: Apple Silicon پر 100ms سے کم اسٹارٹ اپ، 2s سے کم inference۔ M-series چپس کے لیے GPU acceleration کے لیے MLX فریم ورک انٹیگریشن۔",
-        "statusLabel": "تیاری میں"
+        "description": "ہدف: Sub-100ms startup، Apple Silicon پر sub-2s inference۔ M-series chips پر GPU acceleration کے لیے MLX framework integration۔",
+        "statusLabel": "ترقی میں"
       },
       {
         "icon": "🤝",
         "title": "Claude کا ساتھی",
-        "description": "وژن: MCP سرور اور Skill کے طور پر Claude کے ساتھ بغیر رکاوٹ انٹیگریشن، شیل کمانڈ inference کو سونپتے ہوئے جبکہ Claude آپ کے وسیع کام پر توجہ دیتا ہے۔",
+        "description": "وژن: Claude کے ساتھ بطور MCP server اور Skill بغیر رکاوٹ integration، shell command inference کو offload کرتے ہوئے جبکہ Claude آپ کے وسیع تر کام پر focus کرے۔",
         "statusLabel": "منصوبہ بند"
       }
     ]
