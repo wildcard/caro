@@ -18,7 +18,7 @@
       "modes": [
         {
           "title": "🔧 CLI independiente",
-          "exampleCommand": "caro \"list files > 100MB\""
+          "exampleCommand": "caro \"lista archivos > 100MB\""
         },
         {
           "title": "🔌 MCP para Claude",
@@ -35,8 +35,8 @@
     "quickStart": {
       "title": "Inicio rápido",
       "intro": "Después de ejecutar el script de instalación, simplemente usa Caro:",
-      "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
-      "description": "Caro generará el comando y te mantendrá a salvo. El script de instalación se encarga de todos los requisitos previos, incluida la compilación de Rust."
+      "exampleCommand": "caro \"encuentra todos los archivos python modificados en los últimos 7 días\"",
+      "description": "Caro generará el comando y te mantendrá a salvo. El script de instalación se encarga de todos los prerequisitos, incluida la compilación de Rust."
     }
   }
 }

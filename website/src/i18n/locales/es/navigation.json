@@ -18,7 +18,7 @@
       "menuHeader": "Tema Festivo",
       "options": {
         "christmas": "Navidad",
-        "hanukkah": "Jánuca",
+        "hanukkah": "Hanukkah",
         "noTheme": "Sin Tema"
       },
       "snowEffect": "Efecto Nieve"
@@ -29,7 +29,7 @@
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
-      "tagline": "Tu compañera fiel en la terminal"
+      "tagline": "Tu compañera leal en la terminal"
     },
     "links": {
       "license": "AGPL-3.0",

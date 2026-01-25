@@ -11,7 +11,7 @@
       "watchDemo": "Ver Demo"
     },
     "status": {
-      "availableNow": "Disponible Ya",
+      "availableNow": "Disponible Ahora",
       "inDevelopment": "En Desarrollo",
       "planned": "Planificado",
       "comingSoon": "Próximamente"
@@ -34,7 +34,7 @@
         "vsGitHubCopilot": "vs GitHub Copilot CLI",
         "aiPairProgrammer": "Programador en pareja con IA",
         "vsKiro": "vs Kiro CLI",
-        "awsAssistant": "Asistente IA para AWS",
+        "awsAssistant": "Asistente IA de AWS",
         "blog": "Blog",
         "newsAndTutorials": "Noticias y tutoriales",
         "explore": "Explorar",
