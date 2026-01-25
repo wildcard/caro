@@ -1,11 +1,11 @@
 {
   "download": {
     "title": "Caro 시작하기",
-    "subtitle": "믿음직한 셸 동료를 터미널로 데려오세요",
+    "subtitle": "믿음직한 쉘 동료를 당신의 터미널로",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
     "copyButton": "복사",
     "copiedButton": "복사 완료!",
-    "binariesIntro": "또는 미리 빌드된 바이너리 다운로드:",
+    "binariesIntro": "또는 빌드된 바이너리 다운로드:",
     "comingSoonBadge": "곧 출시",
     "platforms": {
       "macAppleSilicon": "macOS (Apple Silicon)",
@@ -14,7 +14,7 @@
       "windows": "Windows"
     },
     "usageModes": {
-      "title": "Caro를 사용하는 여러 가지 방법",
+      "title": "Caro 활용 방법",
       "modes": [
         {
           "title": "🔧 독립 실행형 CLI",
@@ -22,12 +22,12 @@
         },
         {
           "title": "🔌 Claude용 MCP",
-          "description": "Caro를 Claude Desktop에 MCP 서버로 추가하면 모든 셸 명령을 매끄럽게 처리합니다.",
+          "description": "Caro를 Claude Desktop에 MCP 서버로 추가하면 모든 쉘 명령을 매끄럽게 처리합니다.",
           "comingSoon": true
         },
         {
           "title": "✨ 전용 Skill",
-          "description": "Caro를 Skill로 사용해 셸 명령 생성과 실행을 맡기고, Claude는 본업에 집중하게 하세요.",
+          "description": "Caro를 Skill로 사용해서 쉘 명령 생성과 실행을 맡기고, Claude는 본업에 집중하게 하세요.",
           "comingSoon": true
         }
       ]

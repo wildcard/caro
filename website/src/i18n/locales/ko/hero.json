@@ -4,7 +4,7 @@
     "logo": "Caro",
     "logoAlt": "Caro - 8비트 픽셀 아트",
     "tagline": "당신의 충실한 셸 동반자",
-    "subtitle": "공감과 주도성을 갖춘 전문 POSIX 셸 커맨드 에이전트. Claude용 MCP와 전용 스킬로 제공됩니다. Claude가 작업을 완수하는 동안 당신의 안전을 지켜줍니다.",
+    "subtitle": "공감과 주도성을 갖춘 전문 POSIX 셸 커맨드 에이전트입니다. Claude용 MCP와 전용 Skill로 제공됩니다. Claude가 작업을 완수하는 동안 당신의 안전을 지켜줍니다.",
     "cta": {
       "getStarted": "시작하기",
       "watchDemo": "데모 보기"

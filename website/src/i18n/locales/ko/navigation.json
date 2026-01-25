@@ -21,7 +21,7 @@
         "hanukkah": "하누카",
         "noTheme": "테마 없음"
       },
-      "snowEffect": "눈 내리는 효과"
+      "snowEffect": "눈 내리기 효과"
     }
   },
   "footer": {
@@ -29,20 +29,20 @@
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
-      "tagline": "당신의 충직한 셸 동반자"
+      "tagline": "당신의 충직한 쉘 동반자"
     },
     "links": {
       "license": "AGPL-3.0",
-      "credits": "크레딧 & 출처",
+      "credits": "크레딧 및 출처",
       "contributing": "기여하기",
       "issues": "이슈"
     },
     "kyaro": {
       "title": "실제 Kyaro(Kyarorain Kadosh)를 만나보세요! 🐕🖤",
-      "followText": "인스타그램에서 일상을 팔로우하세요",
+      "followText": "그녀의 일상을",
       "instagram": "Instagram @kyaroblackheart"
     },
     "inspiration": "Portal의 Caroline에서 영감을 받아—충성심을 디지털 동반자로 구현",
-    "elevatorCredit": "스크롤 효과 제작"
+    "elevatorCredit": "스크롤 효과 제작:"
   }
 }
