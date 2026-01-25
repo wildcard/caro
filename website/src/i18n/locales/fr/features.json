@@ -31,13 +31,13 @@
       {
         "icon": "⚡",
         "title": "Vitesse Éclair",
-        "description": "Objectif : démarrage sous 100ms, inférence sous 2s sur Apple Silicon. Intégration du framework MLX pour l'accélération GPU sur puces série M.",
+        "description": "Objectif : Démarrage en moins de 100ms, inférence en moins de 2s sur Apple Silicon. Intégration du framework MLX pour l'accélération GPU sur puces série M.",
         "statusLabel": "En Développement"
       },
       {
         "icon": "🤝",
         "title": "Compagnon de Claude",
-        "description": "Vision : intégration transparente avec Claude en tant que serveur MCP et Skill, déléguant l'inférence des commandes shell pendant que Claude se concentre sur vos tâches plus larges.",
+        "description": "Vision : Intégration transparente avec Claude en tant que serveur MCP et Skill, déléguant l'inférence des commandes shell pendant que Claude se concentre sur votre travail global.",
         "statusLabel": "Prévu"
       }
     ]
