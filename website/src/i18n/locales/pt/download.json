@@ -1,7 +1,7 @@
 {
   "download": {
     "title": "Comece a usar o Caro",
-    "subtitle": "Traga sua companheira de shell favorita pro seu terminal",
+    "subtitle": "Traga sua companheira de shell para o seu terminal",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
     "copyButton": "Copiar",
     "copiedButton": "Copiado!",
@@ -27,16 +27,16 @@
         },
         {
           "title": "✨ Skill Dedicada",
-          "description": "Use o Caro como uma Skill pra delegar a geração e execução de comandos shell enquanto o Claude foca no seu trabalho.",
+          "description": "Use o Caro como Skill para delegar a geração e execução de comandos shell enquanto o Claude foca no seu trabalho.",
           "comingSoon": true
         }
       ]
     },
     "quickStart": {
       "title": "Início Rápido",
-      "intro": "Depois de rodar o script de instalação acima, é só usar o Caro:",
+      "intro": "Depois de rodar o script de setup acima, é só usar o Caro:",
       "exampleCommand": "caro \"encontrar todos os arquivos python modificados nos últimos 7 dias\"",
-      "description": "O Caro vai gerar o comando e te manter seguro. O script de instalação cuida de todos os pré-requisitos incluindo a compilação do Rust."
+      "description": "O Caro vai gerar o comando e te manter seguro. O script de setup cuida de todos os pré-requisitos incluindo a compilação do Rust."
     }
   }
 }

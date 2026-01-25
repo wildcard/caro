@@ -2,7 +2,7 @@
   "common": {
     "meta": {
       "title": "Caro - Seu companheiro fiel de shell",
-      "description": "Caro é um agente companheiro que te ajuda com comandos shell POSIX. Disponível como MCP para Claude e como Skill dedicada."
+      "description": "Caro é um agente companheiro que te ajuda com comandos POSIX shell. Disponível como MCP para Claude e como Skill dedicada."
     },
     "buttons": {
       "copy": "Copiar",
@@ -36,7 +36,7 @@
         "vsKiro": "vs Kiro CLI",
         "awsAssistant": "Assistente de IA para AWS",
         "blog": "Blog",
-        "newsAndTutorials": "Novidades & tutoriais",
+        "newsAndTutorials": "Novidades e tutoriais",
         "explore": "Explorar",
         "interactiveDemo": "Demo interativa",
         "faq": "FAQ",
@@ -44,7 +44,7 @@
         "roadmap": "Roadmap",
         "whatsNext": "O que vem por aí",
         "glossary": "Glossário",
-        "terminalTerms": "Termos de terminal & Unix",
+        "terminalTerms": "Termos de terminal e Unix",
         "github": "GitHub",
         "sourceCode": "Código-fonte"
       },
