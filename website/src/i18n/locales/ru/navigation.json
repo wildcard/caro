@@ -25,7 +25,7 @@
     }
   },
   "footer": {
-    "builtWith": "Сделано на Rust 🦀 | Открытый код на",
+    "builtWith": "Сделано на Rust 🦀 | Open source на",
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",

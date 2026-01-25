@@ -1,7 +1,7 @@
 {
   "common": {
     "meta": {
-      "title": "Caro — верный компаньон для командной строки",
+      "title": "Caro — Ваш верный компаньон в шелле",
       "description": "Caro — это агент-помощник для работы с POSIX shell командами. Доступен как MCP для Claude и как отдельный Skill."
     },
     "buttons": {
@@ -30,14 +30,14 @@
         "overview": "Обзор",
         "seeAllComparisons": "Все сравнения",
         "vsWarp": "vs Warp",
-        "aiNativeTerminal": "AI-терминал",
+        "aiNativeTerminal": "AI-нативный терминал",
         "vsGitHubCopilot": "vs GitHub Copilot CLI",
         "aiPairProgrammer": "AI пара-программист",
         "vsKiro": "vs Kiro CLI",
         "awsAssistant": "AWS AI-ассистент",
         "blog": "Блог",
         "newsAndTutorials": "Новости и туториалы",
-        "explore": "Изучить",
+        "explore": "Исследовать",
         "interactiveDemo": "Интерактивное демо",
         "faq": "FAQ",
         "commonQuestions": "Частые вопросы",
