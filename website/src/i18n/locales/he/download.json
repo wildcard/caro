@@ -1,7 +1,7 @@
 {
   "download": {
-    "title": "התחילו עם קארו",
-    "subtitle": "הביאו את חברת השל הנאמנה שלכם לטרמינל",
+    "title": "בואו נתחיל עם Caro",
+    "subtitle": "תביאו את חברת השורת הפקודה הנאמנה שלכם לטרמינל",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
     "copyButton": "העתק",
     "copiedButton": "הועתק!",
@@ -14,29 +14,29 @@
       "windows": "Windows"
     },
     "usageModes": {
-      "title": "מספר דרכים להשתמש בקארו",
+      "title": "כמה דרכים להשתמש ב-Caro",
       "modes": [
         {
           "title": "🔧 CLI עצמאי",
-          "exampleCommand": "caro \"תראה לי קבצים מעל 100MB\""
+          "exampleCommand": "caro \"list files > 100MB\""
         },
         {
-          "title": "🔌 MCP לקלוד",
-          "description": "הוסיפו את קארו כשרת MCP ל-Claude Desktop ותנו לה לטפל בכל פקודות השל בצורה חלקה.",
+          "title": "🔌 MCP עבור Claude",
+          "description": "הוסיפו את Caro כשרת MCP ל-Claude Desktop ותנו לה לטפל בכל פקודות השל בצורה חלקה.",
           "comingSoon": true
         },
         {
           "title": "✨ Skill ייעודי",
-          "description": "השתמשו בקארו כ-Skill להעברת יצירת והרצת פקודות shell בזמן שקלוד מתמקד בעבודה שלכם.",
+          "description": "השתמשו ב-Caro כ-Skill כדי להעביר את יצירת והרצת פקודות השל בזמן ש-Claude מתמקדת בעבודה שלכם.",
           "comingSoon": true
         }
       ]
     },
     "quickStart": {
       "title": "התחלה מהירה",
-      "intro": "אחרי הרצת סקריפט ההתקנה למעלה, פשוט השתמשו בקארו:",
-      "exampleCommand": "caro \"מצא את כל קבצי הפייתון ששונו ב-7 הימים האחרונים\"",
-      "description": "קארו תייצר את הפקודה ותשמור עליכם. סקריפט ההתקנה מטפל בכל הדרישות המקדימות כולל קומפילציה של Rust."
+      "intro": "אחרי שהרצתם את סקריפט ההתקנה למעלה, פשוט השתמשו ב-Caro:",
+      "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
+      "description": "Caro תייצר את הפקודה ותשמור עליכם. סקריפט ההתקנה מטפל בכל הדרישות המקדימות כולל קומפילציית Rust."
     }
   }
 }

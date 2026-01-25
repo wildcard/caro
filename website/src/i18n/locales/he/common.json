@@ -1,8 +1,8 @@
 {
   "common": {
     "meta": {
-      "title": "קארו - חברת השל הנאמנה שלך",
-      "description": "קארו היא סוכנת נלווית שעוזרת לך עם פקודות POSIX shell. זמינה כ-MCP לקלוד וכ-Skill ייעודי."
+      "title": "Caro - החבר הנאמן שלך לשורת הפקודה",
+      "description": "Caro הוא אייג'נט עוזר שמסייע לך עם פקודות POSIX shell. זמין כ-MCP עבור Claude וכ-Skill ייעודי."
     },
     "buttons": {
       "copy": "העתק",
@@ -18,31 +18,31 @@
     },
     "aria": {
       "toggleDarkMode": "החלף למצב כהה",
-      "toggleHolidayTheme": "החלף תפריט ערכות נושא לחגים"
+      "toggleHolidayTheme": "פתח תפריט ערכת חג"
     },
     "nav": {
-      "features": "תכונות",
-      "compare": "השוואה",
+      "features": "פיצ'רים",
+      "compare": "השוואות",
       "resources": "משאבים",
       "support": "תמיכה",
       "getStarted": "בואו נתחיל",
       "dropdown": {
-        "overview": "סקירה",
+        "overview": "סקירה כללית",
         "seeAllComparisons": "כל ההשוואות",
-        "vsWarp": "לעומת Warp",
+        "vsWarp": "מול Warp",
         "aiNativeTerminal": "טרמינל AI-native",
-        "vsGitHubCopilot": "לעומת GitHub Copilot CLI",
-        "aiPairProgrammer": "Pair programmer עם AI",
-        "vsKiro": "לעומת Kiro CLI",
+        "vsGitHubCopilot": "מול GitHub Copilot CLI",
+        "aiPairProgrammer": "AI pair programmer",
+        "vsKiro": "מול Kiro CLI",
         "awsAssistant": "עוזר AI של AWS",
         "blog": "בלוג",
         "newsAndTutorials": "חדשות ומדריכים",
-        "explore": "גלה",
+        "explore": "גלו",
         "interactiveDemo": "דמו אינטראקטיבי",
         "faq": "שאלות נפוצות",
-        "commonQuestions": "שאלות נפוצות",
+        "commonQuestions": "שאלות שחוזרות",
         "roadmap": "מפת דרכים",
-        "whatsNext": "מה הלאה",
+        "whatsNext": "מה בתכנית",
         "glossary": "מילון מונחים",
         "terminalTerms": "מונחי טרמינל ו-Unix",
         "github": "GitHub",
@@ -50,17 +50,17 @@
       },
       "mobile": {
         "allComparisons": "כל ההשוואות",
-        "supportCaro": "תמכו בקארו"
+        "supportCaro": "תמכו ב-Caro"
       },
       "appearance": {
         "title": "מראה",
         "darkMode": "מצב כהה",
-        "holidayTheme": "ערכת נושא חגים",
+        "holidayTheme": "ערכת חג",
         "snowEffect": "אפקט שלג",
-        "disableEffects": "בטל את כל האפקטים"
+        "disableEffects": "כבה את כל האפקטים"
       },
       "useCases": {
-        "allUseCases": "כל מקרי השימוש",
+        "allUseCases": "כל תרחישי השימוש",
         "byRole": "לפי תפקיד",
         "backToHome": "חזרה לדף הבית"
       }
