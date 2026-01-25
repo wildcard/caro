@@ -2,7 +2,7 @@
   "features": {
     "title": "¿Por qué Caro?",
     "subtitle": "Un agente compañero diseñado para seguridad, empatía y experiencia",
-    "alphaNotice": "🚧 Alpha en Lanzamiento Suave — Estamos construyendo activamente con nuestra comunidad. ¡Únete para ayudar a dar forma al futuro de Caro!",
+    "alphaNotice": "🚧 Alfa en Lanzamiento Suave — Estamos construyendo activamente con nuestra comunidad. ¡Únete para ayudar a dar forma al futuro de Caro!",
     "items": [
       {
         "icon": "🛡️",
@@ -18,26 +18,26 @@
       },
       {
         "icon": "🧠",
-        "title": "Consciente de Plataforma",
+        "title": "Consciente de la Plataforma",
         "description": "Proporciona recomendaciones basadas en las capacidades de tu plataforma y mejores prácticas. Distingue automáticamente entre sintaxis de comandos BSD y GNU.",
         "statusLabel": "Disponible Ahora"
       },
       {
         "icon": "✅",
         "title": "Especialista POSIX",
-        "description": "Experto en comandos shell compatibles con POSIX que funcionan de forma fiable entre sistemas. Portables, seguros y optimizados para tu terminal.",
+        "description": "Experto en comandos shell compatibles con POSIX que funcionan de forma fiable en todos los sistemas. Portables, seguros y optimizados para tu terminal.",
         "statusLabel": "Disponible Ahora"
       },
       {
         "icon": "⚡",
         "title": "Ultrarrápido",
-        "description": "Objetivo: Arranque en menos de 100ms, inferencia en menos de 2s en Apple Silicon. Integración del framework MLX para aceleración GPU en chips serie M.",
+        "description": "Objetivo: Arranque en menos de 100ms, inferencia en menos de 2s en Apple Silicon. Integración del framework MLX para aceleración GPU en chips de la serie M.",
         "statusLabel": "En Desarrollo"
       },
       {
         "icon": "🤝",
         "title": "Compañero de Claude",
-        "description": "Visión: Integración fluida con Claude como servidor MCP y Skill, delegando la inferencia de comandos shell mientras Claude se centra en tu trabajo más amplio.",
+        "description": "Visión: Integración perfecta con Claude como servidor MCP y Skill, delegando la inferencia de comandos shell mientras Claude se centra en tu trabajo más amplio.",
         "statusLabel": "Planificado"
       }
     ]

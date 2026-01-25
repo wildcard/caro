@@ -18,11 +18,11 @@
       "modes": [
         {
           "title": "🔧 CLI autonome",
-          "exampleCommand": "caro \"list files > 100MB\""
+          "exampleCommand": "caro \"lister les fichiers > 100 Mo\""
         },
         {
           "title": "🔌 MCP pour Claude",
-          "description": "Ajoutez Caro comme serveur MCP à Claude Desktop et laissez-la gérer toutes les commandes shell en toute fluidité.",
+          "description": "Ajoutez Caro comme serveur MCP à Claude Desktop et laissez-la gérer toutes les commandes shell en toute transparence.",
           "comingSoon": true
         },
         {
@@ -34,8 +34,8 @@
     },
     "quickStart": {
       "title": "Démarrage rapide",
-      "intro": "Après avoir lancé le script d'installation ci-dessus, utilisez simplement Caro :",
-      "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
+      "intro": "Après avoir exécuté le script d'installation ci-dessus, utilisez simplement Caro :",
+      "exampleCommand": "caro \"trouver tous les fichiers python modifiés ces 7 derniers jours\"",
       "description": "Caro générera la commande et veillera à votre sécurité. Le script d'installation gère tous les prérequis, y compris la compilation Rust."
     }
   }

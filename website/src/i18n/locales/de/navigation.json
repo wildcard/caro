@@ -2,26 +2,26 @@
   "navigation": {
     "brand": "🐕 Caro",
     "links": {
-      "features": "Funktionen",
+      "features": "Features",
       "compare": "Vergleich",
-      "play": "Spielen",
+      "play": "Ausprobieren",
       "blog": "Blog",
       "getStarted": "Loslegen",
       "github": "GitHub"
     },
     "darkMode": {
-      "toggle": "Dunkelmodus umschalten"
+      "toggle": "Dark Mode umschalten"
     },
     "holidayTheme": {
-      "toggle": "Feiertags-Theme-Menü umschalten",
-      "title": "Feiertags-Theme",
-      "menuHeader": "Feiertags-Theme",
+      "toggle": "Feiertagsthema-Menü umschalten",
+      "title": "Feiertagsthema",
+      "menuHeader": "Feiertagsthema",
       "options": {
         "christmas": "Weihnachten",
         "hanukkah": "Chanukka",
         "noTheme": "Kein Theme"
       },
-      "snowEffect": "Schnee-Effekt"
+      "snowEffect": "Schneeeffekt"
     }
   },
   "footer": {
@@ -33,12 +33,12 @@
     },
     "links": {
       "license": "AGPL-3.0",
-      "credits": "Credits & Danksagungen",
-      "contributing": "Mitwirken",
+      "credits": "Credits & Attribution",
+      "contributing": "Contributing",
       "issues": "Issues"
     },
     "kyaro": {
-      "title": "Lerne die echte Kyaro kennen (Kyarorain Kadosh)! 🐕🖤",
+      "title": "Meet IRL Kyaro (Kyarorain Kadosh)! 🐕🖤",
       "followText": "Folge ihren Abenteuern auf",
       "instagram": "Instagram @kyaroblackheart"
     },
