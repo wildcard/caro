@@ -47,6 +47,7 @@ pub mod platform;
 pub mod prompts;
 pub mod safety;
 pub mod telemetry;
+pub mod tips;
 pub mod version;
 
 #[cfg(feature = "knowledge")]
