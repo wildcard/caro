@@ -56,7 +56,7 @@ jobs:
     steps:
       # 1. Checkout code
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0  # Need full history for baseline comparison
 
@@ -69,7 +69,7 @@ jobs:
 
       # 3. Cache Criterion artifacts (FR2.3)
       - name: Cache Criterion results
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           path: target/criterion
           key: ${{ runner.os }}-criterion-${{ github.sha }}
@@ -124,7 +124,7 @@ jobs:
       # 7. Post PR comment with results (PR only)
       - name: Comment on PR with regression report
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');
@@ -212,7 +212,7 @@ jobs:
       # 10. Upload daily artifact (FR2.2)
       - name: Upload daily benchmark artifact
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: benchmarks-${{ matrix.os }}-${{ github.run_id }}
           path: benchmarks-*.json
@@ -234,7 +234,7 @@ jobs:
       # 12. Upload monthly artifact (FR2.2)
       - name: Upload monthly aggregate
         if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: benchmark-history-${{ matrix.os }}-${{ github.run_id }}
           path: benchmark-history-*.json
@@ -243,7 +243,7 @@ jobs:
       # 13. Upload regression report (PR only)
       - name: Upload regression report
         if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: regression-report-${{ matrix.os }}-${{ github.run_id }}
           path: regression-report.json
@@ -252,7 +252,7 @@ jobs:
       # 14. Upload Criterion HTML reports (always)
       - name: Upload Criterion HTML reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: criterion-reports-${{ matrix.os }}-${{ github.run_id }}
           path: target/criterion/
