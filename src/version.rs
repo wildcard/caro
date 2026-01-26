@@ -27,12 +27,10 @@ impl VersionInfo {
 
     /// Generate short version string (scriptable, single line)
     ///
-    /// Format: `caro 1.0.2 (abc1234 2025-01-15)`
+    /// Format: `caro 1.0.2 (x86_64-unknown-linux-gnu)`
+    /// Follows standard CLI conventions (bash, rustc, etc.)
     pub fn short(&self) -> String {
-        format!(
-            "caro {} ({} {})",
-            self.version, self.git_hash, self.git_date
-        )
+        format!("caro {} ({})", self.version, self.target)
     }
 
     /// Generate long version string (verbose, Caro's voice)
@@ -142,6 +140,9 @@ mod tests {
         let short = short();
         assert!(short.starts_with("caro "));
         assert!(short.contains(env!("CARGO_PKG_VERSION")));
+        // Verify platform/target triple is included
+        let info = VersionInfo::get();
+        assert!(short.contains(info.target), "Version should include target triple");
     }
 
     #[test]
