@@ -129,7 +129,13 @@ Download the latest release for your platform from [GitHub Releases](https://git
 # Example for macOS Apple Silicon (v1.1.1)
 curl -fsSL https://github.com/wildcard/caro/releases/download/v1.1.1/caro-1.1.1-macos-silicon -o caro
 chmod +x caro
-sudo mv caro /usr/local/bin/
+
+# Install to user directory (no sudo required)
+mkdir -p ~/.local/bin
+mv caro ~/.local/bin/
+
+# Add to PATH if not already (add to ~/.bashrc or ~/.zshrc for persistence)
+export PATH="$HOME/.local/bin:$PATH"
 
 # Verify installation
 caro --version

@@ -35,7 +35,13 @@ This guide will get you productive with caro in just a few minutes.
     # Download for your platform from GitHub Releases
     curl -fsSL https://github.com/wildcard/caro/releases/latest/download/caro-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m) -o caro
     chmod +x caro
-    sudo mv caro /usr/local/bin/
+
+    # Install to user directory (no sudo required)
+    mkdir -p ~/.local/bin
+    mv caro ~/.local/bin/
+
+    # Add to PATH (add to ~/.bashrc or ~/.zshrc for persistence)
+    export PATH="$HOME/.local/bin:$PATH"
     ```
   </TabItem>
 </Tabs>

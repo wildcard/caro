@@ -47,8 +47,12 @@ caro can be installed via Cargo (Rust's package manager), from source, or using 
     # Make executable
     chmod +x caro
 
-    # Move to your PATH
-    sudo mv caro /usr/local/bin/
+    # Install to user directory (no sudo required)
+    mkdir -p ~/.local/bin
+    mv caro ~/.local/bin/
+
+    # Add to PATH (add to ~/.bashrc or ~/.zshrc for persistence)
+    export PATH="$HOME/.local/bin:$PATH"
     ```
   </TabItem>
 </Tabs>

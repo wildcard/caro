@@ -14,16 +14,19 @@
 # Download latest release for your platform
 curl -L https://github.com/user/caro/releases/latest/download/caro-$(uname -s)-$(uname -m) -o caro
 chmod +x caro
-sudo mv caro /usr/local/bin/
+
+# Install to user directory (no sudo required)
+mkdir -p ~/.local/bin
+mv caro ~/.local/bin/
+
+# Add to PATH (add to ~/.bashrc or ~/.zshrc for persistence)
+export PATH="$HOME/.local/bin:$PATH"
 ```
 
 #### Option 2: Package Manager
 ```bash
 # macOS with Homebrew
 brew install caro
-
-# Linux with apt
-sudo apt update && sudo apt install caro
 
 # Rust developers
 cargo install caro

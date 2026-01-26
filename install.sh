@@ -476,6 +476,10 @@ ask_choice() {
 # Interactive configuration prompts
 run_interactive_setup() {
     if [ "$INTERACTIVE_MODE" != "true" ]; then
+        # In non-interactive mode, use sensible defaults and skip configuration
+        CONFIGURE_SAFETY_LEVEL="false"
+        SETUP_SHELL_COMPLETION="false"
+        SETUP_PATH_AUTO="false"
         return 0
     fi
 
