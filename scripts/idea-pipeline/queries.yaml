@@ -1,0 +1,168 @@
+# Signal Collection Queries
+# These define what topics the idea pipeline monitors
+
+# Direct project mentions
+project_mentions:
+  description: "Direct mentions of Caro or related projects"
+  queries:
+    - "caro cli"
+    - "caro-cli"
+    - "caro shell command"
+    - "caro natural language"
+  sources:
+    - hackernews
+    - reddit
+    - twitter
+
+# Competitor landscape
+competitors:
+  description: "Competitor movements and features"
+  queries:
+    - "warp terminal ai"
+    - "fig autocomplete"
+    - "github copilot cli"
+    - "amazon q developer cli"
+    - "aichat cli"
+    - "shellgpt"
+  sources:
+    - hackernews
+    - reddit
+    - twitter
+
+# Technology space
+cli_ai:
+  description: "General CLI + AI trends"
+  queries:
+    - "natural language shell"
+    - "ai terminal assistant"
+    - "llm command line"
+    - "conversational shell"
+    - "ai unix commands"
+  sources:
+    - hackernews
+    - reddit
+
+# Pain points
+pain_points:
+  description: "User frustrations that Caro could solve"
+  queries:
+    - "forgot shell command"
+    - "bash command help"
+    - "terminal frustration"
+    - "can't remember unix command"
+    - "how to in terminal"
+  sources:
+    - reddit
+    - stackoverflow
+
+# Local LLM trends
+local_llm:
+  description: "Local/private AI trends"
+  queries:
+    - "mlx inference"
+    - "local llm mac"
+    - "on-device ai"
+    - "private llm"
+    - "ollama"
+    - "llamafile"
+  sources:
+    - hackernews
+    - reddit
+
+# Safety and security
+safety:
+  description: "Shell safety and security discussions"
+  queries:
+    - "dangerous shell command"
+    - "rm rf accident"
+    - "shell command safety"
+    - "terminal security"
+  sources:
+    - hackernews
+    - reddit
+
+# RSS Feeds to monitor
+rss_feeds:
+  - name: "Hacker News Best"
+    url: "https://hnrss.org/best"
+    filter_keywords:
+      - "cli"
+      - "terminal"
+      - "shell"
+      - "llm"
+      - "ai"
+      - "command line"
+
+  - name: "Lobsters CLI"
+    url: "https://lobste.rs/t/cli.rss"
+    filter_keywords: []  # Already filtered by tag
+
+  - name: "r/commandline"
+    url: "https://www.reddit.com/r/commandline/.rss"
+    filter_keywords:
+      - "ai"
+      - "natural language"
+      - "llm"
+
+  - name: "r/rust"
+    url: "https://www.reddit.com/r/rust/.rss"
+    filter_keywords:
+      - "cli"
+      - "terminal"
+      - "shell"
+
+# Reddit subreddits to monitor
+reddit_subreddits:
+  - name: "commandline"
+    relevance: "high"
+    keywords:
+      - "ai"
+      - "natural language"
+      - "llm"
+      - "automation"
+
+  - name: "bash"
+    relevance: "medium"
+    keywords:
+      - "ai"
+      - "help"
+      - "forgot"
+      - "how to"
+
+  - name: "zsh"
+    relevance: "medium"
+    keywords:
+      - "ai"
+      - "autocomplete"
+      - "suggestion"
+
+  - name: "fishshell"
+    relevance: "medium"
+    keywords:
+      - "ai"
+      - "integration"
+
+  - name: "MacOS"
+    relevance: "low"
+    keywords:
+      - "terminal"
+      - "cli"
+      - "mlx"
+
+  - name: "LocalLLaMA"
+    relevance: "high"
+    keywords:
+      - "cli"
+      - "terminal"
+      - "shell"
+      - "mac"
+      - "mlx"
+
+# Hacker News search parameters
+hackernews:
+  search_endpoint: "https://hn.algolia.com/api/v1/search"
+  min_points: 10  # Filter low-quality posts
+  tags:
+    - "story"
+    - "show_hn"
+    - "ask_hn"

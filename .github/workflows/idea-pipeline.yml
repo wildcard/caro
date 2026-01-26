@@ -1,0 +1,285 @@
+# Agentic Idea Pipeline - Phase 1 (Semi-Automated)
+#
+# This workflow collects signals from various sources, processes them
+# through LLM-based agents, and creates GitHub issues for human review.
+#
+# Schedule: Daily at 6 AM UTC
+# Manual trigger: workflow_dispatch
+#
+# Required secrets:
+# - ANTHROPIC_API_KEY: For Claude API (idea synthesis and evaluation)
+# - REDDIT_CLIENT_ID: Reddit API credentials
+# - REDDIT_CLIENT_SECRET: Reddit API credentials
+# - TWITTER_BEARER_TOKEN: Twitter/X API (optional)
+# - HN_API_KEY: (not required, HN API is public)
+
+name: Idea Pipeline
+
+on:
+  schedule:
+    # Run daily at 6 AM UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (no issue creation)'
+        required: false
+        default: 'false'
+        type: boolean
+      signal_sources:
+        description: 'Comma-separated sources to query'
+        required: false
+        default: 'hackernews,reddit,rss'
+        type: string
+      lookback_hours:
+        description: 'Hours to look back for signals'
+        required: false
+        default: '24'
+        type: string
+
+env:
+  PYTHON_VERSION: '3.11'
+  PIPELINE_DIR: 'scripts/idea-pipeline'
+
+jobs:
+  collect-signals:
+    name: Collect Signals
+    runs-on: ubuntu-latest
+    outputs:
+      signals_file: ${{ steps.collect.outputs.signals_file }}
+      signal_count: ${{ steps.collect.outputs.signal_count }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r ${{ env.PIPELINE_DIR }}/requirements.txt
+
+      - name: Collect signals from sources
+        id: collect
+        env:
+          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
+          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+          TWITTER_BEARER_TOKEN: ${{ secrets.TWITTER_BEARER_TOKEN }}
+          LOOKBACK_HOURS: ${{ inputs.lookback_hours || '24' }}
+          SIGNAL_SOURCES: ${{ inputs.signal_sources || 'hackernews,reddit,rss' }}
+        run: |
+          python ${{ env.PIPELINE_DIR }}/collect_signals.py \
+            --output signals.json \
+            --sources "$SIGNAL_SOURCES" \
+            --lookback-hours "$LOOKBACK_HOURS"
+
+          echo "signals_file=signals.json" >> $GITHUB_OUTPUT
+          echo "signal_count=$(jq '.signals | length' signals.json)" >> $GITHUB_OUTPUT
+
+      - name: Upload signals artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw-signals
+          path: signals.json
+          retention-days: 7
+
+  process-signals:
+    name: Process & Synthesize Ideas
+    needs: collect-signals
+    runs-on: ubuntu-latest
+    if: needs.collect-signals.outputs.signal_count > 0
+    outputs:
+      ideas_file: ${{ steps.synthesize.outputs.ideas_file }}
+      idea_count: ${{ steps.synthesize.outputs.idea_count }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r ${{ env.PIPELINE_DIR }}/requirements.txt
+
+      - name: Download signals
+        uses: actions/download-artifact@v4
+        with:
+          name: raw-signals
+
+      - name: Load project context
+        id: context
+        run: |
+          # Extract key context from project files
+          echo "Loading roadmap and anti-goals..."
+
+          # Create context bundle for LLM
+          python ${{ env.PIPELINE_DIR }}/build_context.py \
+            --roadmap ".claude/releases/v1.3-v1.4-vision-roadmap.md" \
+            --anti-goals "docs/development/ANTI_GOALS.md" \
+            --output context.json
+
+      - name: Synthesize ideas from signals
+        id: synthesize
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          python ${{ env.PIPELINE_DIR }}/synthesize_ideas.py \
+            --signals signals.json \
+            --context context.json \
+            --output ideas.json
+
+          echo "ideas_file=ideas.json" >> $GITHUB_OUTPUT
+          echo "idea_count=$(jq '.ideas | length' ideas.json)" >> $GITHUB_OUTPUT
+
+      - name: Upload ideas artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: candidate-ideas
+          path: ideas.json
+          retention-days: 30
+
+  evaluate-ideas:
+    name: Critical Evaluation
+    needs: process-signals
+    runs-on: ubuntu-latest
+    if: needs.process-signals.outputs.idea_count > 0
+    outputs:
+      vetted_file: ${{ steps.evaluate.outputs.vetted_file }}
+      accepted_count: ${{ steps.evaluate.outputs.accepted_count }}
+      rejected_count: ${{ steps.evaluate.outputs.rejected_count }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r ${{ env.PIPELINE_DIR }}/requirements.txt
+
+      - name: Download ideas
+        uses: actions/download-artifact@v4
+        with:
+          name: candidate-ideas
+
+      - name: Load context for evaluation
+        run: |
+          python ${{ env.PIPELINE_DIR }}/build_context.py \
+            --roadmap ".claude/releases/v1.3-v1.4-vision-roadmap.md" \
+            --anti-goals "docs/development/ANTI_GOALS.md" \
+            --output context.json
+
+      - name: Run critical evaluation
+        id: evaluate
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          python ${{ env.PIPELINE_DIR }}/evaluate_ideas.py \
+            --ideas ideas.json \
+            --context context.json \
+            --anti-goals "docs/development/ANTI_GOALS.md" \
+            --output vetted.json
+
+          echo "vetted_file=vetted.json" >> $GITHUB_OUTPUT
+          echo "accepted_count=$(jq '[.ideas[] | select(.decision == "ACCEPT")] | length' vetted.json)" >> $GITHUB_OUTPUT
+          echo "rejected_count=$(jq '[.ideas[] | select(.decision == "REJECT")] | length' vetted.json)" >> $GITHUB_OUTPUT
+
+      - name: Upload vetted ideas
+        uses: actions/upload-artifact@v4
+        with:
+          name: vetted-ideas
+          path: vetted.json
+          retention-days: 30
+
+  create-issues:
+    name: Create GitHub Issues
+    needs: evaluate-ideas
+    runs-on: ubuntu-latest
+    if: needs.evaluate-ideas.outputs.accepted_count > 0 && inputs.dry_run != 'true'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r ${{ env.PIPELINE_DIR }}/requirements.txt
+
+      - name: Download vetted ideas
+        uses: actions/download-artifact@v4
+        with:
+          name: vetted-ideas
+
+      - name: Create issues for accepted ideas
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python ${{ env.PIPELINE_DIR }}/create_issues.py \
+            --vetted vetted.json \
+            --repo "${{ github.repository }}"
+
+      - name: Summary
+        run: |
+          echo "## Idea Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Signals collected | ${{ needs.collect-signals.outputs.signal_count }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ideas synthesized | ${{ needs.process-signals.outputs.idea_count }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ideas accepted | ${{ needs.evaluate-ideas.outputs.accepted_count }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ideas rejected | ${{ needs.evaluate-ideas.outputs.rejected_count }} |" >> $GITHUB_STEP_SUMMARY
+
+  archive-rejected:
+    name: Archive Rejected Ideas
+    needs: evaluate-ideas
+    runs-on: ubuntu-latest
+    if: needs.evaluate-ideas.outputs.rejected_count > 0
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download vetted ideas
+        uses: actions/download-artifact@v4
+        with:
+          name: vetted-ideas
+
+      - name: Archive rejected ideas for learning
+        run: |
+          # Extract rejected ideas with reasoning
+          jq '[.ideas[] | select(.decision == "REJECT")]' vetted.json > rejected.json
+
+          # Append to archive (create if doesn't exist)
+          mkdir -p data/idea-pipeline/archive
+          DATE=$(date +%Y-%m-%d)
+          cp rejected.json "data/idea-pipeline/archive/rejected-${DATE}.json"
+
+      - name: Commit archive (if not dry run)
+        if: inputs.dry_run != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add data/idea-pipeline/archive/
+          git diff --staged --quiet || git commit -m "chore: Archive rejected ideas from pipeline run"
+          git push || echo "No changes to push"
