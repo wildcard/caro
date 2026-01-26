@@ -121,6 +121,10 @@ impl SmolLMPromptBuilder {
         prompt.push_str(&self.build_toolbox_section());
         prompt.push('\n');
 
+        // Common file types
+        prompt.push_str(&self.build_file_types_section());
+        prompt.push('\n');
+
         // Safety rules
         prompt.push_str(&self.build_safety_section());
         prompt.push('\n');
@@ -197,6 +201,15 @@ STEP 1: CATEGORIZE the user intent
    - "largest/newest/top N" -> RANKING (find/ls + sort + head)
    - "count" -> COUNTING (pipe to wc -l)
    - "change/modify/delete" -> MUTATING (confirm if destructive)
+
+STEP 1b: CHECK for file type category keywords
+   - "video files" -> use VIDEO extensions from [COMMON FILE TYPES]
+   - "audio/music files" -> use AUDIO extensions
+   - "image/photo files" -> use IMAGE extensions
+   - "document files" -> use DOCUMENT extensions
+   - "archive/compressed files" -> use ARCHIVE extensions
+   - "code/source files" -> use CODE extensions
+   If file type mentioned, use find with \( -name "*.ext1" -o -name "*.ext2" \) pattern
 
 STEP 2: CHECK platform constraints
    - What OS am I running on? (see CAPABILITY_PROFILE)
@@ -421,6 +434,33 @@ Working Directory: {}
         }
     }
 
+    fn build_file_types_section(&self) -> String {
+        r#"[COMMON FILE TYPES]
+When user mentions a file type category, use these extensions with find -name:
+
+VIDEO: *.mp4, *.mkv, *.avi, *.mov, *.wmv, *.flv, *.webm, *.m4v, *.mpeg, *.mpg
+  Example: find . -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.avi" -o -name "*.mov" -o -name "*.webm" \)
+
+AUDIO: *.mp3, *.wav, *.flac, *.aac, *.ogg, *.m4a, *.wma, *.aiff
+  Example: find . -type f \( -name "*.mp3" -o -name "*.wav" -o -name "*.flac" -o -name "*.ogg" \)
+
+IMAGE: *.jpg, *.jpeg, *.png, *.gif, *.bmp, *.svg, *.webp, *.tiff, *.ico, *.heic
+  Example: find . -type f \( -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" -o -name "*.gif" \)
+
+DOCUMENT: *.pdf, *.doc, *.docx, *.txt, *.rtf, *.odt, *.xls, *.xlsx, *.ppt, *.pptx
+  Example: find . -type f \( -name "*.pdf" -o -name "*.doc" -o -name "*.docx" -o -name "*.txt" \)
+
+ARCHIVE: *.zip, *.tar, *.gz, *.rar, *.7z, *.bz2, *.xz, *.tar.gz, *.tgz
+  Example: find . -type f \( -name "*.zip" -o -name "*.tar" -o -name "*.gz" -o -name "*.rar" \)
+
+CODE: *.py, *.js, *.ts, *.rs, *.go, *.java, *.c, *.cpp, *.h, *.rb, *.php, *.swift
+  Example: find . -type f \( -name "*.py" -o -name "*.js" -o -name "*.rs" -o -name "*.go" \)
+
+When combining file type with size/time filters, add the type patterns to find:
+  "video files larger than 100MB" -> find . -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.avi" -o -name "*.mov" -o -name "*.webm" \) -size +100M
+"#.to_string()
+    }
+
     fn build_safety_section(&self) -> String {
         let mut section = String::from("[SAFETY]\n");
 
@@ -554,6 +594,23 @@ Why: Destructive commands need user confirmation
                 "find python files modified last week",
                 "find . -name \"*.py\" -type f -mtime -7",
             ),
+            // File type category examples
+            (
+                "video files larger than 100MB",
+                "find . -type f \\( -name \"*.mp4\" -o -name \"*.mkv\" -o -name \"*.avi\" -o -name \"*.mov\" -o -name \"*.webm\" \\) -size +100M",
+            ),
+            (
+                "find all video files",
+                "find . -type f \\( -name \"*.mp4\" -o -name \"*.mkv\" -o -name \"*.avi\" -o -name \"*.mov\" -o -name \"*.webm\" \\)",
+            ),
+            (
+                "image files larger than 5MB",
+                "find . -type f \\( -name \"*.jpg\" -o -name \"*.jpeg\" -o -name \"*.png\" -o -name \"*.gif\" \\) -size +5M",
+            ),
+            (
+                "find all audio files",
+                "find . -type f \\( -name \"*.mp3\" -o -name \"*.wav\" -o -name \"*.flac\" -o -name \"*.ogg\" -o -name \"*.m4a\" \\)",
+            ),
             // File management examples
             ("list all files", "ls -a"),
             ("find files modified yesterday", "find . -type f -mtime 1"),
@@ -608,6 +665,24 @@ Why: Destructive commands need user confirmation
             ("find large files over 100MB", "find . -type f -size +100M"),
             ("show disk usage by folder", "du -sh */ | sort -rh | head -10"),
             ("find python files modified last week", "find . -name \"*.py\" -type f -mtime -7"),
+
+            // File type category examples
+            (
+                "video files larger than 100MB",
+                "find . -type f \\( -name \"*.mp4\" -o -name \"*.mkv\" -o -name \"*.avi\" -o -name \"*.mov\" -o -name \"*.webm\" \\) -size +100M",
+            ),
+            (
+                "find all video files",
+                "find . -type f \\( -name \"*.mp4\" -o -name \"*.mkv\" -o -name \"*.avi\" -o -name \"*.mov\" -o -name \"*.webm\" \\)",
+            ),
+            (
+                "image files larger than 5MB",
+                "find . -type f \\( -name \"*.jpg\" -o -name \"*.jpeg\" -o -name \"*.png\" -o -name \"*.gif\" \\) -size +5M",
+            ),
+            (
+                "find all audio files",
+                "find . -type f \\( -name \"*.mp3\" -o -name \"*.wav\" -o -name \"*.flac\" -o -name \"*.ogg\" -o -name \"*.m4a\" \\)",
+            ),
 
             // File management examples (BSD-specific)
             ("list all files", "ls -a"),
@@ -785,6 +860,34 @@ mod tests {
         assert!(prompt.contains("SORT_H=true"));
         assert!(prompt.contains("[TEMPLATES]"));
         assert!(prompt.contains("[TOOLBOX]"));
+    }
+
+    #[test]
+    fn test_common_file_types_section() {
+        let builder = SmolLMPromptBuilder::ubuntu();
+        let prompt = builder.build_system_prompt();
+
+        // Verify file types section exists
+        assert!(prompt.contains("[COMMON FILE TYPES]"));
+
+        // Verify video extensions are listed
+        assert!(prompt.contains("VIDEO:"));
+        assert!(prompt.contains("*.mp4"));
+        assert!(prompt.contains("*.mkv"));
+        assert!(prompt.contains("*.avi"));
+
+        // Verify audio extensions
+        assert!(prompt.contains("AUDIO:"));
+        assert!(prompt.contains("*.mp3"));
+        assert!(prompt.contains("*.wav"));
+
+        // Verify image extensions
+        assert!(prompt.contains("IMAGE:"));
+        assert!(prompt.contains("*.jpg"));
+        assert!(prompt.contains("*.png"));
+
+        // Verify example combining file type with size
+        assert!(prompt.contains("video files larger than 100MB"));
     }
 
     #[test]
