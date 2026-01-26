@@ -97,7 +97,7 @@ futures = "0.3"
 # Knowledge index (local vector database)
 lancedb = { version = "0.23", optional = true }
 fastembed = { version = "4", optional = true }
-arrow-array = { version = "56.2", optional = true }
+arrow-array = { version = "57.2", optional = true }
 arrow-schema = { version = "56.2", optional = true }
 chromadb = { version = "2.3", optional = true }
 
