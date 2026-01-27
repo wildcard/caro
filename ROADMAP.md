@@ -249,6 +249,11 @@ gantt
   - Add Exo cluster connection support (#162)
   - Research Yappus-Term features (#153, #185)
 
+- **Mobile & Relay** 🆕
+  - Research RunAnywhere SDK for iOS on-device inference ([ADR-015](docs/adr/ADR-015-runanywhere-on-device-inference.md), [PRD-002](docs/prd/PRD-002-runanywhere-ios-relay.md))
+  - Design relay protocol for mobile-to-desktop command delivery (inspired by Happy/Atuin)
+  - Prototype pre-generation pipeline (mobile small model → desktop refinement)
+
 - **Developer Experience**
   - Create 12-month strategic roadmap (PR #169)
   - SIGMA_AGENT product manager documentation (#172)
