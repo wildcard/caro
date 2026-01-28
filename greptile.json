@@ -11,7 +11,7 @@
     "CLAUDE.md",
     "docs/development/AGENTS.md",
     "src/safety/patterns.rs",
-    "src/inference/mod.rs",
+    "src/backends/mod.rs",
     "docs/adr/README.md"
   ],
   "ignorePatterns": [
@@ -20,8 +20,6 @@
     "target/**",
     ".worktrees/**",
     "kitty-specs/**/tasks/**",
-    "i18n/**",
-    "vendor/**"
   ],
   "rules": [
     {
@@ -36,8 +34,8 @@
     },
     {
       "id": "backend-trait-contract",
-      "description": "All inference backends must implement the InferenceBackend trait defined in src/inference/mod.rs. New backends require contract tests in tests/backend_trait_contract.rs.",
-      "paths": ["src/inference/**"]
+      "description": "All command generation backends must implement the CommandGenerator trait defined in src/backends/mod.rs. New backends require contract tests in tests/backend_trait_contract.rs.",
+      "paths": ["src/backends/**"]
     },
     {
       "id": "no-direct-main-commits",
@@ -57,7 +55,7 @@
     {
       "id": "posix-compliance",
       "description": "Generated shell commands must be POSIX-compliant. Do not use bash-specific syntax (arrays, [[ ]], process substitution) unless the detected shell is bash.",
-      "paths": ["src/prompts/**", "src/inference/**"]
+      "paths": ["src/prompts/**", "src/backends/**"]
     }
   ]
 }
