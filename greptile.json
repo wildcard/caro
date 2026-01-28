@@ -1,0 +1,63 @@
+{
+  "$schema": "https://docs.greptile.com/config-schema.json",
+  "reviewSettings": {
+    "strictness": "high",
+    "reviewOnOpen": true,
+    "reviewOnCommit": false,
+    "maxComments": 15,
+    "ignoreDraftPRs": true
+  },
+  "contextFiles": [
+    "CLAUDE.md",
+    "docs/development/AGENTS.md",
+    "src/safety/patterns.rs",
+    "src/inference/mod.rs",
+    "docs/adr/README.md"
+  ],
+  "ignorePatterns": [
+    "*.lock",
+    "*.snap",
+    "target/**",
+    ".worktrees/**",
+    "kitty-specs/**/tasks/**",
+    "i18n/**",
+    "vendor/**"
+  ],
+  "rules": [
+    {
+      "id": "safety-pattern-tdd",
+      "description": "All changes to src/safety/ must include corresponding test updates. Safety patterns use TDD - new patterns require a failing test first.",
+      "paths": ["src/safety/**"]
+    },
+    {
+      "id": "no-panics-in-production",
+      "description": "Never use .unwrap() or .expect() in production code paths (src/). Use Result types with proper error propagation via ? operator. Only .unwrap() is acceptable in tests.",
+      "paths": ["src/**"]
+    },
+    {
+      "id": "backend-trait-contract",
+      "description": "All inference backends must implement the InferenceBackend trait defined in src/inference/mod.rs. New backends require contract tests in tests/backend_trait_contract.rs.",
+      "paths": ["src/inference/**"]
+    },
+    {
+      "id": "no-direct-main-commits",
+      "description": "All changes must go through feature branches and PRs. Never commit directly to main. Use bin/sk-new-feature for new work.",
+      "paths": ["**"]
+    },
+    {
+      "id": "safety-zero-false-positives",
+      "description": "Safety validation must maintain zero false positives. Any change to patterns.rs must pass the full safety_validator_contract test suite.",
+      "paths": ["src/safety/patterns.rs"]
+    },
+    {
+      "id": "use-anyhow-for-errors",
+      "description": "Use anyhow::Result for application-level errors and thiserror for defining error types. Do not use Box<dyn Error> or custom error boilerplate.",
+      "paths": ["src/**"]
+    },
+    {
+      "id": "posix-compliance",
+      "description": "Generated shell commands must be POSIX-compliant. Do not use bash-specific syntax (arrays, [[ ]], process substitution) unless the detected shell is bash.",
+      "paths": ["src/prompts/**", "src/inference/**"]
+    }
+  ]
+}
