@@ -1,0 +1,50 @@
+{
+  "strictness": 3,
+  "triggerOnUpdates": false,
+  "fixWithAI": true,
+  "statusCheck": true,
+  "commentTypes": ["logic", "syntax"],
+  "ignorePatterns": "*.lock\n*.snap\ntarget/**\n.worktrees/**\nkitty-specs/**/tasks/**",
+  "instructions": "This is a safety-critical Rust CLI tool. Pay special attention to: (1) any .unwrap() or .expect() in src/ production code - these should use Result with ? instead, (2) changes to src/safety/ must include tests, (3) backends in src/backends/ must implement the CommandGenerator trait, (4) generated shell commands must be POSIX-compliant.",
+  "customContext": {
+    "rules": [
+      {
+        "rule": "All changes to safety patterns must include corresponding test updates. Safety patterns use TDD - new patterns require a failing test first. Safety validation must maintain zero false positives."
+      },
+      {
+        "scope": ["src/**/*.rs"],
+        "rule": "Never use .unwrap() or .expect() in production code. Use Result types with proper error propagation via ? operator. Use anyhow::Result for application errors and thiserror for error type definitions."
+      },
+      {
+        "scope": ["src/backends/**"],
+        "rule": "All command generation backends must implement the CommandGenerator trait defined in src/backends/mod.rs. New backends require contract tests."
+      },
+      {
+        "scope": ["src/prompts/**", "src/backends/**"],
+        "rule": "Generated shell commands must be POSIX-compliant. Do not use bash-specific syntax (arrays, [[ ]], process substitution) unless the detected shell is bash."
+      }
+    ],
+    "files": [
+      {
+        "path": "CLAUDE.md",
+        "description": "Project overview, architecture, development commands, and coding standards"
+      },
+      {
+        "path": "docs/development/AGENTS.md",
+        "description": "Workflow selection guide and development standards for all AI agents"
+      },
+      {
+        "path": "src/backends/mod.rs",
+        "description": "CommandGenerator trait definition - the core backend abstraction"
+      },
+      {
+        "path": "src/safety/patterns.rs",
+        "description": "Dangerous command pattern database with 52+ regex patterns"
+      },
+      {
+        "path": "docs/adr/README.md",
+        "description": "Architecture Decision Records index"
+      }
+    ]
+  }
+}
