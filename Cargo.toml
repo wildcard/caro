@@ -117,7 +117,7 @@ tokenizers = { version = "0.22", default-features = false, features = ["http", "
 [dev-dependencies]
 assert_cmd = "2"
 tokio-test = "0.4"
-regex = "1.10"
+regex = "1.12"
 tempfile = "3.10"
 serial_test = "3"
 proptest = "1"
