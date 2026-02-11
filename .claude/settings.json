@@ -1,4 +1,7 @@
 {
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
   "hooks": {
     "PreCompact": [
       {
@@ -73,6 +76,26 @@
           {
             "type": "command",
             "command": "./.claude/hooks/quick-actions-reminder.sh"
+          }
+        ]
+      }
+    ],
+    "TeammateIdle": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./.claude/hooks/teammate-idle-check.sh"
+          }
+        ]
+      }
+    ],
+    "TaskCompleted": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./.claude/hooks/task-completed-gate.sh"
           }
         ]
       }
