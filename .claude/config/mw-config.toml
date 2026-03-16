@@ -1,0 +1,33 @@
+# Multi-Workflow Configuration
+# Controls external model routing for enriched context research
+# Claude always retains final decision authority
+
+[general]
+enabled = true
+default_timeout_seconds = 60
+auto_suggest = true  # Claude auto-suggests mw.research for complex tasks
+
+[models.codex]
+command = "codex"
+args = ["--approval-mode", "full-auto", "-q"]
+strengths = ["deep-code-reasoning", "implementation", "debugging"]
+timeout_seconds = 90
+install_hint = "npm install -g @openai/codex"
+
+[models.gemini]
+command = "gemini"
+args = []
+strengths = ["broad-research", "code-review", "documentation", "web-search"]
+timeout_seconds = 60
+install_hint = "npm install -g @google/gemini-cli"
+
+[routing]
+# Task-to-model routing preferences (first = preferred)
+research = ["gemini", "codex"]
+code_review = ["gemini", "codex"]
+implementation = ["codex"]
+architecture = ["codex", "gemini"]
+
+[security]
+max_output_lines = 500
+require_claude_review = true

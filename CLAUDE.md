@@ -71,6 +71,7 @@ Use `skill: name` when working on specific domains:
 | `prompt-tuner` | Improving embedded LLM system prompts |
 | `quality-engineer-manager` | Release validation and QA sign-off |
 | `unbiased-beta-tester` | Simulating user testing scenarios |
+| `multi-workflow-orchestrator` | Multi-model research with Codex/Gemini CLI |
 | `create_handoff` / `resume_handoff` | Session state preservation |
 | `continuity_ledger` | Long-running project state |
 
@@ -83,8 +84,36 @@ Use `skill: name` when working on specific domains:
 | `/caro.roadmap` | View and align with project roadmap |
 | `/caro.release.prepare` | Prepare a new release |
 | `/caro.sync` | Sync documentation across codebase |
+| `/mw.status` | Show external model availability (Codex/Gemini) |
+| `/mw.research` | Dispatch research to external CLI models |
+| `/mw.enrich` | Synthesize external model outputs into context |
+| `/mw.plan` | Multi-model enriched planning (wraps spec-kitty.plan) |
+| `/mw.review` | External model code review with Claude triage |
 | `/spec-kitty.plan` | Create implementation plan |
 | `/spec-kitty.implement` | Execute implementation |
+
+## Multi-Model Workflow (`mw.*`)
+
+Enrich Claude's context with research from external CLI models (Codex, Gemini). Claude always has final decision authority.
+
+**When to use:**
+- Complex architecture decisions, unfamiliar domains, multi-file refactors
+- Planning features with many unknowns (use `/mw.plan` instead of `/spec-kitty.plan`)
+- Code review for safety-critical code (use `/mw.review`)
+
+**When to skip:**
+- Trivial fixes, config changes, well-understood patterns
+- Time-critical hotfixes
+
+**Setup:** Install external models (optional — system degrades gracefully):
+```bash
+npm install -g @openai/codex       # Deep code reasoning
+npm install -g @google/gemini-cli  # Broad research + review
+```
+
+**Config:** `.claude/config/mw-config.toml` — routing, timeouts, auto-suggest settings
+
+**Security:** External models are researchers only. They receive scoped questions via stdin, return text via stdout. They never write files or execute commands. Claude reviews all suggestions before acting.
 
 ## Model Selection Hints
 
