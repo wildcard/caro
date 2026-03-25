@@ -68,6 +68,135 @@ pub struct ValidationResult {
     pub confidence_score: f32,
 }
 
+/// Machine-readable assessment payload for agent integration (ADR-015)
+///
+/// Structured output for the `caro validate --json` subcommand and Guardian Mode (ADR-016).
+/// Designed to be a community standard format that coder agents (Claude Code, Cursor, etc.)
+/// can parse to make automated safety decisions — equivalent to Codex Guardian's assessment
+/// payload but available as a universal, agent-agnostic interface.
+///
+/// # Exit Code Contract
+///
+/// Use [`AssessmentPayload::exit_code`] to get the POSIX exit code:
+/// - `0` — allow
+/// - `1` — block
+/// - `2` — warn
+/// - `3` — validator error
+///
+/// # Example
+///
+/// ```no_run
+/// use caro::safety::{SafetyValidator, SafetyConfig, AssessmentPayload};
+/// use caro::models::ShellType;
+///
+/// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+/// let validator = SafetyValidator::new(SafetyConfig::moderate())?;
+/// let result = validator.validate_command("ls -la", ShellType::Bash).await?;
+/// let payload = AssessmentPayload::from_validation(result, ReviewedBy::PatternsOnly);
+///
+/// assert_eq!(payload.decision, Decision::Allow);
+/// assert_eq!(payload.exit_code(), 0);
+/// # Ok(())
+/// # }
+/// ```
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AssessmentPayload {
+    /// Final decision: allow, warn, or block
+    pub decision: Decision,
+    /// Risk score from 0 (safe) to 100 (critical danger)
+    pub risk_score: u8,
+    /// Risk level derived from score and patterns
+    pub risk_level: RiskLevel,
+    /// Human-readable explanation of the decision
+    pub rationale: String,
+    /// Name of the matched danger pattern, if any
+    pub pattern_matched: Option<String>,
+    /// A safer alternative command, if one can be suggested
+    pub suggested_alternative: Option<String>,
+    /// Confidence in the decision (0.0–1.0)
+    pub confidence_score: f32,
+    /// What performed the review (patterns, guardian LLM, or both)
+    pub reviewed_by: ReviewedBy,
+    /// Time taken to produce this assessment in milliseconds
+    pub execution_time_ms: u64,
+    /// Caro version that produced this payload (for schema versioning)
+    pub caro_version: String,
+}
+
+/// Final safety decision
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Decision {
+    /// Command is safe to execute
+    Allow,
+    /// Command may be risky in some contexts — human review recommended
+    Warn,
+    /// Command is dangerous and should not execute
+    Block,
+}
+
+/// Which validation layer(s) produced this assessment
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ReviewedBy {
+    /// Pattern matching only (fast, deterministic)
+    PatternsOnly,
+    /// LLM-assisted Guardian Mode only
+    GuardianOnly,
+    /// Pattern matching + Guardian Mode LLM review
+    PatternsAndGuardian,
+}
+
+impl AssessmentPayload {
+    /// Convert a `ValidationResult` into a structured `AssessmentPayload`
+    pub fn from_validation(result: ValidationResult, reviewed_by: ReviewedBy) -> Self {
+        let decision = if result.allowed {
+            if result.warnings.is_empty() {
+                Decision::Allow
+            } else {
+                Decision::Warn
+            }
+        } else {
+            Decision::Block
+        };
+
+        let risk_score = match result.risk_level {
+            RiskLevel::Safe => 2,
+            RiskLevel::Moderate => 50,
+            RiskLevel::High => 75,
+            RiskLevel::Critical => 95,
+        };
+
+        let pattern_matched = result.matched_patterns.first().cloned();
+
+        Self {
+            decision,
+            risk_score,
+            risk_level: result.risk_level,
+            rationale: result.explanation,
+            pattern_matched,
+            suggested_alternative: None, // Populated by Guardian Mode (ADR-016)
+            confidence_score: result.confidence_score,
+            reviewed_by,
+            execution_time_ms: 0, // Caller should fill this in
+            caro_version: env!("CARGO_PKG_VERSION").to_string(),
+        }
+    }
+
+    /// POSIX exit code for use with `caro validate`
+    ///
+    /// - `0` — allow
+    /// - `1` — block
+    /// - `2` — warn
+    pub fn exit_code(&self) -> i32 {
+        match self.decision {
+            Decision::Allow => 0,
+            Decision::Block => 1,
+            Decision::Warn => 2,
+        }
+    }
+}
+
 /// Pattern definition for dangerous command detection
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DangerPattern {

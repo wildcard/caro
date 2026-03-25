@@ -51,6 +51,8 @@ Example: `ADR-001-enterprise-community-architecture.md`
 | [ADR-012](./ADR-012-honggfuzz-integration.md) | Honggfuzz Integration for Security-Critical Fuzz Testing | Proposed | 2026-01-02 |
 | [ADR-013](./ADR-013-pre-processing-pipeline.md) | Pre-Processing Pipeline Architecture | Proposed | 2026-01-01 |
 | [ADR-014](./ADR-014-serde-env-evaluation.md) | Environment Variable Deserialization with serde-env | Proposed | 2026-01-01 |
+| [ADR-015](./ADR-015-universal-agent-integration-protocol.md) | Universal Agent Integration Protocol | Proposed | 2026-03-25 |
+| [ADR-016](./ADR-016-guardian-mode-llm-review.md) | Guardian Mode — LLM-Assisted Review for Borderline Commands | Proposed | 2026-03-25 |
 
 ## Contributing to ADRs
 

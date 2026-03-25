@@ -230,6 +230,46 @@ gantt
 
 ---
 
+### ⚡ v1.3.0 - Core Features & Agent Integration
+**Due Date**: May 31, 2026
+**Status**: 0% Complete
+**Focus**: Universal agent integration, sandbox execution, and core UX improvements
+
+#### Key Deliverables
+
+- **Agent Integration Protocol** (ADR-015) — *Informed by Codex Guardian research*
+  - `caro validate --json` machine-readable subcommand
+  - Structured `AssessmentPayload` output: `decision`, `risk_score`, `rationale`, `suggested_alternative`
+  - Exit code contract: `0=allow`, `1=block`, `2=warn`, `3=error`
+  - Pre-built hooks: Claude Code (`~/.claude/hooks/pre-tool-use/`), shell preexec (bash/zsh)
+  - Drop-in alternative to Codex Guardian for non-Codex agents
+
+- **Sandbox Execution Phase 1** (ADR-010) — *Accelerated from v2.0.0*
+  - Linux bubblewrap integration (opt-in via `--sandbox` flag)
+  - Three sandbox profiles: strict, moderate, permissive
+  - `<500ms` overhead target
+  - Fail-safe: unavailable sandbox blocks execution (no silent bypass)
+
+- **Safety Module Refactor** — *Tech debt from Codex Guardian comparison*
+  - Decouple `SafetyPolicy` (rules) from `SafetyReviewer` (decision engine)
+  - `AssessmentPayload` type live in codebase (already added)
+  - Enables pluggable reviewers (pattern, LLM guardian, human) without god-object growth
+
+- **Core UX Features**
+  - Enhanced context with Starship integration (#670)
+  - OS/Distro preferences system (#669)
+  - Request memory tracking (#671)
+  - User feedback system MVP (#673)
+  - Proactive suggested queries (#674)
+
+**Success Criteria**:
+- `caro validate --json "rm -rf /"` returns well-formed JSON + exit code 1
+- Claude Code hook integration documented and tested end-to-end
+- Sandbox overhead measured <500ms p99 on Linux CI
+- Safety module refactor maintains 93.1%+ test pass rate
+
+---
+
 ### 🚀 v2.0.0 - Advanced Features
 **Due Date**: June 30, 2026 (184 days)
 **Status**: 38% Complete (13 open, 8 closed)
@@ -243,6 +283,8 @@ gantt
 - **Safety & Rules**
   - Research Dogma rule engine architecture (#126)
   - Add security hardening features (#6)
+  - Guardian Mode: LLM-assisted review for borderline commands (ADR-016) — *inspired by Codex Guardian*
+  - Community safety rule profiles: `caro rules install org/profile`
 
 - **AI Enhancements**
   - Research voice synthesis for Caro character (#160, #187)
