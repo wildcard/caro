@@ -34,7 +34,7 @@ gantt
     Astro Starlight Docs Site            :2026-02-25, 20d
     Interactive Terminal Landing Page     :2026-03-01, 15d
     Marketing Materials                   :2026-03-10, 15d
-    v1.2.0 Release                       :milestone, 2026-03-31, 0d
+    v1.2.0 Release                       :milestone, 2026-04-30, 0d
 
     section v2.0.0 - Advanced Features
     Karo Distributed Intelligence        :2026-04-01, 30d
@@ -183,7 +183,7 @@ gantt
 ---
 
 ### 🌐 v1.2.0 - Website & Documentation Launch
-**Due Date**: March 31, 2026 (93 days)
+**Due Date**: April 30, 2026
 **Status**: 0% Complete (24 items)
 **Focus**: Public launch, marketing, and documentation
 
@@ -278,7 +278,7 @@ gantt
 | **v1.1.2** | Jan 15, 2026 | 5 | 5 | 100% | ✅ **RELEASED** |
 | **v1.1.1** | Jan 14, 2026 | 7 | 7 | 100% | ✅ **RELEASED** |
 | **v1.1.0** | Jan 12, 2026 | 19 | 19 | 100% | ✅ **GA RELEASED** |
-| **v1.2.0** | Mar 31, 2026 | 73 (25 issues + 48 PRs) | 4 | 5% | 🔄 In Progress |
+| **v1.2.0** | Apr 30, 2026 | 73 (25 issues + 48 PRs) | 4 | 5% | 🔄 In Progress |
 | **v1.3.0** | May 31, 2026 | 54 (17 issues + 37 PRs) | 0 | 0% | ⏸️ Backlog |
 | **v2.0.0** | Jun 30, 2026 | 36 (17 issues + 19 PRs) | 0 | 0% | 🔄 Research Phase |
 | **Total** | - | **194** | **35** | **18%** | 🚀 On Track |
