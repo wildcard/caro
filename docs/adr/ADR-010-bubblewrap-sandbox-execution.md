@@ -289,3 +289,7 @@ writable_paths = ["$CWD"]
 | Date | Author | Changes |
 |------|--------|---------|
 | 2026-01-03 | @wildcard | Initial draft |
+
+## Updates: Modern MicroVM and Seatbelt Alternatives
+
+As of late 2025, the industry standard for autonomous AI agents has shifted toward multi-layered isolation architectures. While our current Bubblewrap implementation remains a strong unprivileged sandbox for Linux, future iterations of Caro (particularly for high-autonomy agent modes) must evaluate integrating Firecracker MicroVMs for remote execution and stricter macOS Seatbelt profiles. This multi-tiered approach provides robust hardware-level isolation, mitigating novel evasion patterns seen in recent agent ecosystems.

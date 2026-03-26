@@ -411,3 +411,7 @@ For complete methodology and profile details, see:
 - **Marketing & DevRel**: https://github.com/users/wildcard/projects/3
 - **Issues**: https://github.com/wildcard/caro/issues
 - **Pull Requests**: https://github.com/wildcard/caro/pulls
+
+## 2025 Agentic Capabilities & Tech Debt
+
+Prioritization of resolving issues #150 and #161 to stabilize the core before implementing MCP (Model Context Protocol) and advanced Plan-Act-Verify agent loops.

@@ -471,3 +471,7 @@ Caro occupies a unique niche that no competitor fully addresses:
 - [ai-shell on crates.io](https://crates.io/crates/ai-shell)
 - [Spren AI Terminal](https://github.com/smadgulkar/spren-ai-terminal-assistant-rust)
 - [ShellChat on crates.io](https://crates.io/crates/shellchat)
+
+## 2025 Competitive Update
+
+The competitive landscape has evolved significantly. While Yappus-Term represents a conversational terminal approach, industry leaders like **Cursor**, **Windsurf**, and **Claude Code** have introduced full *Agentic Workflows*. These agents manage complex, multi-file orchestrations using Plan-Act-Verify loops and persistent contexts. Caro's strategic positioning must leverage its safety-first architecture to accommodate increased autonomy, potentially supporting Model Context Protocol (MCP) to interact securely with external tools in a way that competitors currently handle through more open but less verifiable patterns.

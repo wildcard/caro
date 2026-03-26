@@ -1221,3 +1221,7 @@ For enterprise customers, telemetry design supports:
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0.0 | 2025-12-30 | Initial draft |
+
+## Agent Policy & Guardian Integration
+
+As Caro evolves toward increased autonomy, our telemetry and execution strategies must integrate robust **Policy-as-Code** and **Capability Gating** (analogous to Codex Guardian features). This ensures that while we track performance and safety events, we actively gate high-risk actions—such as web access or untrusted shell execution—based on project-specific YAML/Markdown rules. Maintaining a "Zero Data Retention" posture for enterprise environments while allowing fine-grained execution policies will remain our primary differentiator.
