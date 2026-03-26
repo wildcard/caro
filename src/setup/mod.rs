@@ -290,19 +290,10 @@ impl SetupWizard {
         println!(" {}", "Security notes:".bold().yellow());
         println!();
         println!("  {}", "Caro uses AI to generate shell commands".bold());
-        println!(
-            "  {}",
-            "You should always review commands before executing them,"
-        );
-        println!(
-            "  {}",
-            "especially those that modify files or system settings."
-        );
+        println!("  You should always review commands before executing them,");
+        println!("  especially those that modify files or system settings.");
         println!();
-        println!(
-            "  {}",
-            "Due to prompt injection risks, only use it with code you trust."
-        );
+        println!("  Due to prompt injection risks, only use it with code you trust.");
         println!("  For more details see:");
         println!(
             "  {}",
