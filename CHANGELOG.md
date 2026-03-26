@@ -9,6 +9,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Security
+
+## [1.2.0] - 2026-03-26
+
+### Added
+
+- **Interactive Terminal Demo** (#130): Animated terminal landing page demo on caro.sh
+  - Real-time typewriter animation showing caro converting natural language to shell commands
+  - Showcases multiple example queries with syntax-highlighted output
+  - Responsive design optimized for desktop and mobile
+
+- **Homebrew Tap** (#573, #595): Install caro via `brew install wildcard/tap/caro`
+  - Official Homebrew formula at `homebrew-tap/Formula/caro.rb`
+  - Automated formula update workflow on each release via `.github/workflows/update-homebrew.yml`
+  - SHA256 checksum verification for all release binaries
+
+- **Setup Wizard** (#639): Interactive `caro init` command for first-time configuration
+  - Guided setup for shell, safety level, log level, and model preferences
+  - Auto-detects current shell and suggests sensible defaults
+  - Runs automatically on first launch when no config exists
+  - `--minimal` flag for non-interactive environments
+  - `--force` flag to reconfigure existing installations
+
 - **JSON Schema for Configuration** (#11): Auto-generated JSON schema for TOML configuration
   - Added `generate-schema` binary to generate `.vscode/caro-config.schema.json`
   - VS Code autocomplete and validation for `config.toml`
@@ -30,11 +57,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Improved Installation Docs** (#573): Streamlined README installation section
+  - Homebrew as primary installation method for macOS
+  - Cleaner per-OS sections (macOS, Linux & BSD, Windows)
+  - Removed verbose manual download tables in favor of releases page link
+
 ### Fixed
 
 - **Documentation Warnings**: Fixed all `cargo doc` warnings
   - Fixed unresolved link to feature-gated `knowledge` module
   - Fixed URL formatting in ChromaDB documentation
+
+- **Version Header & Security Notes** (#639): `caro --version` now shows version prominently
+  - Added security disclaimer on first run and `caro init`
+  - Links to security documentation at caro.sh/docs/security
 
 ### Security
 
