@@ -18,11 +18,18 @@ pub enum ModelVariant {
 impl ModelVariant {
     /// Auto-detect the best available model variant for the current platform
     pub fn detect() -> Self {
-        #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+        #[cfg(all(target_os = "macos", target_arch = "aarch64", feature = "embedded-mlx"))]
         {
             Self::MLX
         }
-        #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
+        #[cfg(any(
+            not(all(target_os = "macos", target_arch = "aarch64")),
+            all(
+                target_os = "macos",
+                target_arch = "aarch64",
+                not(feature = "embedded-mlx")
+            )
+        ))]
         {
             Self::CPU
         }
@@ -110,9 +117,16 @@ mod tests {
     #[test]
     fn test_model_variant_detect() {
         let variant = ModelVariant::detect();
-        #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+        #[cfg(all(target_os = "macos", target_arch = "aarch64", feature = "embedded-mlx"))]
         assert_eq!(variant, ModelVariant::MLX);
-        #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
+        #[cfg(any(
+            not(all(target_os = "macos", target_arch = "aarch64")),
+            all(
+                target_os = "macos",
+                target_arch = "aarch64",
+                not(feature = "embedded-mlx")
+            )
+        ))]
         assert_eq!(variant, ModelVariant::CPU);
     }
 

@@ -6,10 +6,11 @@ This guide covers setup for caro on macOS, with special attention to Apple Silic
 
 ### Required
 - **macOS**: 10.15 (Catalina) or later
-- **Rust**: 1.75 or later
+- **Rust**: 1.83 or later
 - **Homebrew**: Package manager for macOS
 
 ### Optional (for GPU acceleration)
+- **CMake**: Required for MLX builds on Apple Silicon
 - **Xcode**: Full Xcode installation for Metal compiler (Apple Silicon only)
 
 ## Quick Start (All Macs)
@@ -34,12 +35,17 @@ cargo --version
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-### 3. Install CMake
+### 3. Install Optional Native Dependencies
 
 ```bash
+# Only needed for MLX or knowledge-related feature work
+brew install protobuf
+
+# Only needed for MLX GPU builds
 brew install cmake
 
-# Verify installation
+# Verify optional tools
+protoc --version
 cmake --version
 ```
 
@@ -49,21 +55,21 @@ cmake --version
 git clone https://github.com/wildcard/caro.git
 cd caro
 
-# Build the project (uses CPU backend by default)
-cargo build --release
+# Fast local build that works without full Xcode
+cargo build --release --no-default-features --features embedded-cpu
 
 # Install locally
-cargo install --path .
+cargo install --path . --no-default-features --features embedded-cpu
 ```
 
 ### 5. Test Installation
 
 ```bash
 # Run a test command
-caro "list all files"
+CARO_MODEL=smollm-135m-q4 caro "list all files"
 
 # Or using cargo
-cargo run --release -- "find text files"
+CARO_MODEL=smollm-135m-q4 cargo run --release --no-default-features --features embedded-cpu -- "find text files"
 ```
 
 ## Apple Silicon GPU Acceleration
@@ -72,36 +78,36 @@ Apple Silicon (M1/M2/M3/M4) chips support GPU-accelerated inference via the MLX 
 
 ### Current Status
 
-The project includes a **fully functional stub implementation** that:
-- ✅ Correctly detects Apple Silicon hardware
-- ✅ Downloads and loads the 1.1GB Qwen model
-- ✅ Provides instant responses for testing and development
-- ✅ Works without any additional dependencies
+The recommended development path on Apple Silicon is now an explicit **CPU-only build** that:
+- ✅ Works with Rust alone and does not require full Xcode
+- ✅ Builds and runs from source on `macos/arm64`
+- ✅ Lets you use a small model for fast first-run setup
+- ✅ Keeps MLX as an upgrade path when you need GPU inference
 
-**For real GPU acceleration**, you need the Metal compiler from Xcode.
+**For real GPU acceleration**, you need both CMake and the Metal compiler from full Xcode.
 
-### Option 1: Stub Implementation (Recommended for Development)
+### Option 1: CPU-Only Development Build (Recommended for Bring-Up)
 
-**No additional setup required!** The default build works immediately:
+**No full Xcode required.** Build and run with the CPU feature set:
 
 ```bash
-# Build (automatically uses MLX stub on Apple Silicon)
-cargo build --release
+# Build for CPU-only local development
+cargo build --release --no-default-features --features embedded-cpu
 
-# Run - will use stub implementation
-cargo run --release -- "list files"
+# Run with a smaller first-download model
+CARO_MODEL=smollm-135m-q4 cargo run --release --no-default-features --features embedded-cpu -- "list files"
 ```
 
 **When to use:**
 - Quick testing and development
-- You don't want to install multi-GB Xcode
+- You want to avoid installing full Xcode
 - You're developing non-inference features
-- You want instant responses for integration testing
+- You want a smaller initial model download during bring-up
 
 **Performance:**
-- Model load: ~500ms (from disk)
-- Response time: ~100ms (simulated inference)
-- Memory: ~1.1GB (model file)
+- Model load: depends on the selected model
+- Response time: slower than MLX GPU mode
+- Memory: depends on the selected model
 
 ### Option 2: Full GPU Acceleration with Xcode
 
@@ -156,7 +162,7 @@ cd caro
 cargo clean
 
 # Build with MLX GPU acceleration
-cargo build --release --features embedded-mlx
+cargo build --release --features embedded-mlx,embedded-cpu
 
 # This will:
 # - Compile mlx-rs (may take 5-10 minutes first time)
@@ -168,7 +174,7 @@ cargo build --release --features embedded-mlx
 
 ```bash
 # Run with logging to see MLX initialization
-RUST_LOG=info cargo run --release -- "list all files"
+RUST_LOG=info cargo run --release --features embedded-mlx,embedded-cpu -- "list all files"
 
 # You should see:
 # INFO caro::backends::embedded::mlx: MLX GPU initialized
@@ -222,10 +228,10 @@ xcrun --find metal       # Should show Metal compiler path
 
 # Clean and rebuild
 cargo clean
-cargo build --release --features embedded-mlx
+cargo build --release --features embedded-mlx,embedded-cpu
 
-# If still failing, use stub implementation:
-cargo build --release  # Without embedded-mlx feature
+# If you only need local development, use the CPU-only path:
+cargo build --release --no-default-features --features embedded-cpu
 ```
 
 ### Model Download Issues
@@ -241,12 +247,12 @@ curl -I https://huggingface.co
 mkdir -p ~/.cache/caro/models
 cd ~/.cache/caro/models
 
-# Download from Hugging Face (1.1GB)
-curl -L -o qwen2.5-coder-1.5b-instruct-q4_k_m.gguf \
-  "https://huggingface.co/Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF/resolve/main/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf"
+# Download from Hugging Face (small dev model, ~82MB)
+curl -L -o smollm-135m-instruct-q4_k_m.gguf \
+  "https://huggingface.co/HuggingFaceTB/SmolLM-135M-Instruct-GGUF/resolve/main/smollm-135m-instruct-q4_k_m.gguf"
 
 # Verify file
-ls -lh qwen2.5-coder-1.5b-instruct-q4_k_m.gguf
+ls -lh smollm-135m-instruct-q4_k_m.gguf
 ```
 
 ### "Failed to load model"
@@ -264,7 +270,7 @@ ls -lh ~/.cache/caro/models/
 rm ~/Library/Caches/caro/models/*.gguf
 
 # Rerun caro to trigger re-download
-cargo run --release -- "test"
+CARO_MODEL=smollm-135m-q4 cargo run --release --no-default-features --features embedded-cpu -- "test"
 ```
 
 ## Platform Detection
@@ -275,10 +281,10 @@ The project automatically detects your platform:
 # Check what backend will be used
 cargo test model_variant_detect --lib -- --nocapture
 
-# On Apple Silicon (M1/M2/M3/M4):
+# On Apple Silicon with `embedded-mlx` enabled:
 # ✅ ModelVariant::MLX
 
-# On Intel Mac or other platforms:
+# On Apple Silicon without `embedded-mlx`, or on other platforms:
 # ✅ ModelVariant::CPU
 ```
 
@@ -295,11 +301,11 @@ cargo build
 
 ### Release Build (Optimized)
 ```bash
-cargo build --release
+cargo build --release --no-default-features --features embedded-cpu
 # - Full optimizations
 # - Stripped debug symbols
 # - Binary size optimized
-# - Fast runtime
+# - Best default for Apple Silicon bring-up without Xcode
 ```
 
 ### Release with Debug Info (Profiling)
@@ -322,8 +328,8 @@ export RUST_LOG=info
 # Disable network access (test offline operation)
 export NO_NETWORK=1
 
-# Custom model cache directory
-export CARO_CACHE_DIR=~/custom/cache/path
+# Select a smaller dev model for first run
+export CARO_MODEL=smollm-135m-q4
 ```
 
 ## Uninstallation
@@ -388,8 +394,8 @@ For issues specific to macOS:
 
 ## Summary
 
-**For quick start**: Just install Rust, CMake, and build. Works immediately with stub implementation.
+**For quick start**: Install Rust, then use the CPU-only build path. It works immediately without full Xcode.
 
-**For production GPU acceleration**: Install Xcode, verify Metal compiler, and build with `--features embedded-mlx`.
+**For production GPU acceleration**: Install CMake and full Xcode, verify the Metal compiler, and build with `--features embedded-mlx,embedded-cpu`.
 
-Both modes are fully functional - the stub provides instant responses for development, while MLX provides real GPU-accelerated inference for production use.
+Both modes are supported: CPU-only is the easiest development bring-up, while MLX provides real GPU-accelerated inference for Apple Silicon.

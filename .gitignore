@@ -200,7 +200,6 @@ tests/evaluation/results/*.md
 # Other AI agents (fully excluded unless you use them)
 .opencode/
 .windsurf/
-.gemini/
 .cursor/
 .qwen/
 .kilocode/
@@ -220,3 +219,10 @@ tests/evaluation/results/*.md
 # thoughts/ledgers/CONTINUITY_CLAUDE-*.md
 .continuous-claude-tmp/
 tests/evaluation/target/
+
+# gemini-cli settings
+.gemini/
+gemini/
+
+# GitHub App credentials
+gha-creds-*.json

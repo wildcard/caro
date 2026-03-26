@@ -124,18 +124,25 @@ async fn test_performance_targets_mlx_vs_cpu() {
 fn test_platform_detection_automatic() {
     let variant = ModelVariant::detect();
 
-    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+    #[cfg(all(target_os = "macos", target_arch = "aarch64", feature = "embedded-mlx"))]
     assert_eq!(
         variant,
         ModelVariant::MLX,
-        "Must detect MLX on Apple Silicon"
+        "Must detect MLX on Apple Silicon when embedded-mlx is enabled"
     );
 
-    #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
+    #[cfg(any(
+        not(all(target_os = "macos", target_arch = "aarch64")),
+        all(
+            target_os = "macos",
+            target_arch = "aarch64",
+            not(feature = "embedded-mlx")
+        )
+    ))]
     assert_eq!(
         variant,
         ModelVariant::CPU,
-        "Must detect CPU on other platforms"
+        "Must detect CPU when MLX is unavailable"
     );
 }
 

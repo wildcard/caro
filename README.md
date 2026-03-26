@@ -182,9 +182,10 @@ cargo install caro --features embedded-mlx
 
 #### Prerequisites
 - **Rust 1.83+** with Cargo (or latest stable recommended)
-- **CMake** (for model inference backends)
 - **macOS with Apple Silicon** (optional, for GPU acceleration)
-- **Xcode** (optional, for full MLX GPU support on Apple Silicon)
+- **CMake** (optional, only needed for the MLX GPU build on Apple Silicon)
+- **Protobuf** (optional, only needed for `knowledge` / `chromadb` feature work)
+- **Xcode** (optional, only needed for full MLX GPU support on Apple Silicon)
 
 ### Platform-Specific Setup
 
@@ -198,24 +199,25 @@ For complete macOS setup instructions including GPU acceleration, see [macOS Set
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source "$HOME/.cargo/env"
 
-# Install CMake via Homebrew
-brew install cmake
-
 # Clone and build
 git clone https://github.com/wildcard/caro.git
 cd caro
-cargo build --release
+
+# Fast local development path (no full Xcode required)
+cargo build --release --no-default-features --features embedded-cpu
 
 # Run
-./target/release/caro "list all files"
+CARO_MODEL=smollm-135m-q4 ./target/release/caro "list all files"
 ```
 
 **For GPU Acceleration (Apple Silicon only):**
+- Install CMake via Homebrew: `brew install cmake`
 - Install Xcode from App Store (required for Metal compiler)
-- Build with: `cargo build --release --features embedded-mlx`
+- Build with: `cargo build --release --features embedded-mlx,embedded-cpu`
 - See [macOS Setup Guide](docs/MACOS_SETUP.md) for details
 
-**Note:** The default build uses a stub implementation that works immediately without Xcode. For production GPU acceleration, Xcode is required.
+**Note:** For Apple Silicon development without full Xcode, use the CPU-only build:
+`cargo build --release --no-default-features --features embedded-cpu`.
 
 #### Linux
 
@@ -265,16 +267,25 @@ cargo build --release
 git clone https://github.com/wildcard/caro.git
 cd caro
 
-# Build the project (uses CPU backend by default)
-cargo build --release
+# Fast local build that works on Apple Silicon without full Xcode
+cargo build --release --no-default-features --features embedded-cpu
 
 # Run the CLI
-./target/release/caro --version
+CARO_MODEL=smollm-135m-q4 ./target/release/caro --version
 ```
 
 ### Development Commands
 
 ```bash
+# CPU-only bring-up for Apple Silicon or general local development
+make build-cpu
+make test-cpu
+make run-cpu ARGS="list files"
+
+# Full Apple Silicon MLX build (requires CMake + full Xcode)
+make build-mlx
+make run-mlx ARGS="list files"
+
 # Run tests
 make test
 
@@ -285,10 +296,10 @@ make fmt
 make lint
 
 # Build optimized binary
-make build-release
+make release
 
 # Run with debug logging
-RUST_LOG=debug cargo run -- "your command"
+RUST_LOG=debug cargo run --no-default-features --features embedded-cpu -- "your command"
 ```
 
 ## 📖 Usage
@@ -629,6 +640,8 @@ For current usage, ChromaDB works well for basic command storage and retrieval, 
 - Cargo
 - Make (optional, for convenience commands)
 - Docker (optional, for development container)
+- Protobuf (optional, for `knowledge` / `chromadb` feature work)
+- CMake + full Xcode (optional, only for Apple Silicon MLX builds)
 
 ### Setup Development Environment
 
@@ -637,17 +650,23 @@ For current usage, ChromaDB works well for basic command storage and retrieval, 
 git clone https://github.com/wildcard/caro.git
 cd caro
 
-# Install dependencies and build
-cargo build
+# Install Rust components used by the repo
+rustup component add rustfmt clippy
 
-# Run tests
-cargo test
+# Fast local development build
+cargo build --no-default-features --features embedded-cpu
+
+# Run tests for the CPU-only path
+cargo test --no-default-features --features embedded-cpu
 
 # Check formatting
 cargo fmt -- --check
 
 # Run clippy linter
-cargo clippy -- -D warnings
+cargo clippy --no-default-features --features embedded-cpu -- -D warnings
+
+# First source run with a small development model
+CARO_MODEL=smollm-135m-q4 cargo run --no-default-features --features embedded-cpu -- "list files"
 ```
 
 ### Backend Configuration

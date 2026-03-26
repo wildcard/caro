@@ -6,44 +6,42 @@ The `mlx-rs` crate requires Apple's **Metal compiler** to build GPU-accelerated 
 
 ## Current Status
 
-Your system has:
+Typical Apple Silicon development machines have:
 - ✅ Command Line Tools installed
-- ✅ CMake installed  
-- ✅ Rust toolchain configured
+- ✅ Enough tooling for CPU-only source builds
 - ❌ Metal compiler (requires full Xcode)
 
 ## Installation Options
 
-### Option 1: Use Stub Implementation (Current - No Xcode Needed)
+### Option 1: Use the CPU-Only Development Path (No Xcode Needed)
 
 **Status:** ✅ **WORKING NOW**
 
-The project includes a fully functional stub implementation that:
-- Detects Apple Silicon correctly
-- Loads the 1.1GB Qwen model
-- Provides instant responses
-- Perfect for development and testing
+The recommended bring-up path on Apple Silicon is a CPU-only build that:
+- Avoids full Xcode during initial setup
+- Builds and runs from source cleanly
+- Lets you start with a small model download
+- Keeps MLX as a separate upgrade step
 
 ```bash
 # This works RIGHT NOW without Xcode:
-cd /Users/kobi/personal/caro
-cargo run --release -- "list files"
+cd caro
+CARO_MODEL=smollm-135m-q4 cargo run --release --no-default-features --features embedded-cpu -- "list files"
 
-# Output:
-# INFO caro::cli: Using embedded backend only
-# INFO caro::backends::embedded::mlx: MLX model loaded from ...
-# Command: echo 'Please clarify your request'
+# Or build/install first:
+cargo build --release --no-default-features --features embedded-cpu
+cargo install --path . --no-default-features --features embedded-cpu
 ```
 
 **Pros:**
 - ✅ Works immediately
-- ✅ No multi-GB downloads
-- ✅ Fast responses (~100ms)
-- ✅ Full architecture validated
+- ✅ No multi-GB Xcode download
+- ✅ Clear, reproducible feature set
+- ✅ Good default for local development
 
 **Cons:**
-- ⚠️ Uses pattern matching, not real inference
-- ⚠️ Limited to pre-defined responses
+- ⚠️ Slower than MLX GPU mode
+- ⚠️ Not the highest-quality Apple Silicon path
 
 ### Option 2: Install Xcode for GPU Acceleration
 
@@ -85,13 +83,13 @@ metal --version
 #### Step 3: Build with MLX
 
 ```bash
-cd /Users/kobi/personal/caro
+cd caro
 
 # Clean previous build
 cargo clean
 
 # Build with MLX feature (this will take 5-10 minutes first time)
-cargo build --release --features embedded-mlx
+cargo build --release --features embedded-mlx,embedded-cpu
 
 # If successful, you'll see:
 # Compiling mlx-sys...
@@ -104,7 +102,7 @@ cargo build --release --features embedded-mlx
 
 ```bash
 # Run with info logging
-RUST_LOG=info cargo run --release -- "list all files recursively"
+RUST_LOG=info cargo run --release --features embedded-mlx,embedded-cpu -- "list all files recursively"
 
 # You should see different output indicating real inference:
 # INFO caro::backends::embedded::mlx: MLX GPU initialized
@@ -119,12 +117,12 @@ RUST_LOG=info cargo run --release -- "list all files recursively"
 ```bash
 # Check if Xcode is installed
 xcode-select -p
-# /Library/Developer/CommandLineTools = CLI tools only (stub mode)
+# /Library/Developer/CommandLineTools = CLI tools only (CPU-only mode)
 # /Applications/Xcode.app/... = Full Xcode (GPU mode available)
 
 # Check if Metal is available
 xcrun --find metal
-# Error = No full Xcode (stub mode)
+# Error = No full Xcode (CPU-only mode)
 # /Applications/... = Full Xcode (GPU mode available)
 
 # Check Xcode version (if installed)
@@ -143,21 +141,21 @@ echo 'kernel void test() {}' | metal -o /dev/null -
 # See what features are active
 cargo build --release --verbose 2>&1 | grep features
 
-# Default build (stub):
-# --features embedded-cpu
+# CPU-only build:
+# --no-default-features --features embedded-cpu
 
 # GPU build:
-# --features embedded-mlx
+# --features embedded-mlx,embedded-cpu
 ```
 
 ## Performance Comparison
 
-### Stub Implementation (Current)
+### CPU-Only Bring-Up
 ```
-First run:        ~500ms (model load from disk)
-Response time:    ~100ms (pattern matching)
-Memory:           ~1.1GB (model file in memory)
-Accuracy:         Limited to pre-defined patterns
+First run:        Depends on selected model download
+Response time:    Slower than MLX GPU mode
+Memory:           Depends on selected model
+Accuracy:         Suitable for development bring-up
 ```
 
 ### With Xcode + MLX GPU
@@ -171,11 +169,11 @@ Accuracy:         Full LLM capabilities
 
 ## Decision Guide
 
-### Use Stub Implementation If:
+### Use the CPU-Only Path If:
 - ✅ You want to start developing immediately
 - ✅ You're testing non-inference features
 - ✅ You don't want to install 15GB Xcode
-- ✅ You need fast, predictable responses
+- ✅ You want the smallest first-run setup
 - ✅ You're developing integration tests
 
 ### Install Xcode If:
@@ -188,32 +186,29 @@ Accuracy:         Full LLM capabilities
 ## Current Project Status
 
 ```
-Platform:         ✅ M4 Pro (Apple Silicon) detected
-Rust:             ✅ Installed and working
-CMake:            ✅ Installed and working
-Model:            ✅ 1.1GB Qwen model downloaded
-Stub Backend:     ✅ Fully functional
-MLX GPU:          ⏳ Awaiting Xcode installation
+Platform:         ✅ Apple Silicon detected
+CPU bring-up:     ✅ Available without full Xcode
+MLX GPU:          ⏳ Requires CMake + full Xcode
 ```
 
 ## Quick Commands Reference
 
 ```bash
-# Build with stub (works now)
-cargo build --release
+# Build with the CPU-only path (works now)
+cargo build --release --no-default-features --features embedded-cpu
 
 # Try to build with GPU (will fail without Xcode)
-cargo build --release --features embedded-mlx
+cargo build --release --features embedded-mlx,embedded-cpu
 
-# Run with stub
-cargo run --release -- "list files"
+# Run with CPU-only features
+CARO_MODEL=smollm-135m-q4 cargo run --release --no-default-features --features embedded-cpu -- "list files"
 
 # Check what's blocking GPU mode
 xcrun --find metal  # If error, need Xcode
 
 # After installing Xcode, rebuild
 cargo clean
-cargo build --release --features embedded-mlx
+cargo build --release --features embedded-mlx,embedded-cpu
 ```
 
 ## Support
@@ -222,13 +217,13 @@ If you encounter issues:
 
 1. **"metal: not found"** → Install full Xcode from App Store
 2. **"mlx-sys build failed"** → Run `xcode-select --switch /Applications/Xcode.app/...`
-3. **Stub responses only** → Either Xcode not installed, or not built with `--features embedded-mlx`
+3. **CPU backend selected** → Build with `--features embedded-mlx,embedded-cpu` after installing Xcode
 4. **CMake errors** → Update CMake: `brew upgrade cmake`
 
 ## Summary
 
-**Current state:** Everything works with stub implementation! The model is loaded, inference pipeline is operational, and you can use caro immediately.
+**Current state:** CPU-only source builds work without full Xcode, so you can start local development immediately.
 
-**To unlock GPU:** Install Xcode (15GB, ~30 min download), configure it, and rebuild with `--features embedded-mlx`.
+**To unlock GPU:** Install Xcode, ensure `xcrun --find metal` works, and rebuild with `--features embedded-mlx,embedded-cpu`.
 
-**Recommendation:** Keep using the stub for development, install Xcode when you need real inference for production use.
+**Recommendation:** Use the CPU-only path for bring-up and day-one development, then add Xcode when you need MLX performance.

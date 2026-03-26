@@ -9,17 +9,32 @@ use caro::models::{CommandRequest, ShellType};
 use caro::EmbeddedModelBackend;
 use std::path::PathBuf;
 
+fn expected_embedded_variant() -> ModelVariant {
+    #[cfg(feature = "embedded-mlx")]
+    {
+        ModelVariant::MLX
+    }
+
+    #[cfg(not(feature = "embedded-mlx"))]
+    {
+        ModelVariant::CPU
+    }
+}
+
 /// Test that verifies MLX is correctly detected on Apple Silicon
 #[test]
 fn test_mlx_platform_detection() {
     let variant = ModelVariant::detect();
+    let expected_variant = expected_embedded_variant();
     assert_eq!(
-        variant,
-        ModelVariant::MLX,
-        "M4 Pro should detect MLX backend"
+        variant, expected_variant,
+        "Unexpected embedded variant selected"
     );
 
-    println!("✅ Platform Detection: MLX correctly detected on Apple Silicon");
+    println!(
+        "✅ Platform Detection: {:?} selected on Apple Silicon",
+        expected_variant
+    );
 }
 
 /// Test that MLX backend can be instantiated
@@ -73,10 +88,13 @@ async fn test_embedded_backend_with_mlx() {
     assert!(backend.is_ok(), "EmbeddedModelBackend should create");
 
     let backend = backend.unwrap();
-    assert_eq!(backend.variant(), ModelVariant::MLX);
+    assert_eq!(backend.variant(), expected_embedded_variant());
     assert!(backend.is_available().await, "Backend should be available");
 
-    println!("✅ Embedded Backend: MLX variant working");
+    println!(
+        "✅ Embedded Backend: {:?} variant working",
+        expected_embedded_variant()
+    );
 
     let info = backend.backend_info();
     println!("   Backend Info:");
@@ -199,9 +217,12 @@ async fn test_mlx_full_integration() {
     assert!(backend.is_ok(), "Should create backend with real model");
 
     let backend = backend.unwrap();
-    assert_eq!(backend.variant(), ModelVariant::MLX);
+    assert_eq!(backend.variant(), expected_embedded_variant());
 
-    println!("✅ Backend created with MLX variant");
+    println!(
+        "✅ Backend created with {:?} variant",
+        expected_embedded_variant()
+    );
 
     // Test model download and inference
     let request = CommandRequest::new("list all files recursively", ShellType::Bash);
@@ -260,7 +281,6 @@ fn test_mlx_implementation_status() {
     println!("\n📊 MLX Implementation Status Report");
     println!("{}", "=".repeat(50));
 
-    // Platform
     let variant = ModelVariant::detect();
     println!("✅ Platform: {} (Apple Silicon)", variant);
 
@@ -277,10 +297,10 @@ fn test_mlx_implementation_status() {
 
     #[cfg(not(feature = "embedded-mlx"))]
     {
-        println!("⚠️  MLX Feature: Using stub implementation");
-        println!("   → Install CMAKE for full GPU acceleration");
-        println!("   → Run: brew install cmake");
-        println!("   → Build: cargo build --features embedded-mlx");
+        println!("⚠️  MLX Feature: Disabled in this build");
+        println!("   → CPU backend will be selected on Apple Silicon");
+        println!("   → Install CMake + full Xcode for GPU acceleration");
+        println!("   → Build: cargo build --features embedded-mlx,embedded-cpu");
     }
 
     // Model cache

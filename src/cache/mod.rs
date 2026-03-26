@@ -535,7 +535,12 @@ impl CacheManager {
 
         // Get file metadata (size) using HEAD request
         let response = client.head_request(&url).await.map_err(|e| {
-            CacheError::DownloadFailed(format!("Failed to get file metadata: {}", e))
+            match CacheError::from(e) {
+                // Preserve the DownloadFailed contract used by cache get_model tests
+                // while keeping the underlying connection-related message intact.
+                CacheError::NetworkError(msg) => CacheError::DownloadFailed(msg),
+                other => other,
+            }
         })?;
 
         let file_size = response

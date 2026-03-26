@@ -1,4 +1,10 @@
-.PHONY: help build test clean fmt lint audit check bench install
+.PHONY: help build release build-cpu build-mlx test test-cpu clean fmt lint audit check bench install install-cpu run-cpu run-mlx
+
+CPU_FEATURES := --no-default-features --features embedded-cpu
+MLX_FEATURES := --features embedded-mlx,embedded-cpu
+DEV_MODEL ?= smollm-135m-q4
+MLX_MODEL ?= qwen-0.5b-q4
+ARGS ?=
 
 # Default target
 help:
@@ -6,8 +12,11 @@ help:
 	@echo "Build Commands:"
 	@echo "  build          - Build the project in debug mode"
 	@echo "  release        - Build optimized release binary"
+	@echo "  build-cpu      - Build release binary for CPU-only local development"
+	@echo "  build-mlx      - Build release binary with Apple Silicon MLX support"
 	@echo "Test Commands (Clean Output):"
 	@echo "  test           - Run all tests quietly (default)"
+	@echo "  test-cpu       - Run library and integration tests for CPU-only builds"
 	@echo "  test-verbose   - Run all tests with verbose output"
 	@echo "  test-quiet     - Run tests with minimal output"
 	@echo "  test-show-output - Run tests showing stdout/stderr"
@@ -25,7 +34,10 @@ help:
 	@echo "Other:"
 	@echo "  bench     - Run benchmarks"
 	@echo "  clean     - Clean build artifacts"
-	@echo "  install   - Install cmdai locally"
+	@echo "  install   - Install caro locally"
+	@echo "  install-cpu - Install caro locally using the CPU-only feature set"
+	@echo "  run-cpu   - Run caro from source with the CPU-only feature set"
+	@echo "  run-mlx   - Run caro from source with MLX enabled"
 
 # Build commands
 build:
@@ -34,9 +46,18 @@ build:
 release:
 	cargo build --release
 
+build-cpu:
+	cargo build --release $(CPU_FEATURES)
+
+build-mlx:
+	cargo build --release $(MLX_FEATURES)
+
 # Test commands with cleaner output
 test:
 	RUST_LOG=warn cargo test -q --all-features
+
+test-cpu:
+	RUST_LOG=warn cargo test $(CPU_FEATURES)
 
 test-verbose:
 	RUST_LOG=debug cargo test --verbose --all-features
@@ -126,6 +147,9 @@ clean:
 install:
 	cargo install --path .
 
+install-cpu:
+	cargo install --path . $(CPU_FEATURES)
+
 # Development setup
 setup:
 	rustup component add rustfmt clippy
@@ -138,6 +162,12 @@ doc:
 # Run with debug logging
 run-debug:
 	RUST_LOG=debug cargo run --
+
+run-cpu:
+	CARO_MODEL=$(DEV_MODEL) cargo run $(CPU_FEATURES) -- $(ARGS)
+
+run-mlx:
+	CARO_MODEL=$(MLX_MODEL) cargo run $(MLX_FEATURES) -- $(ARGS)
 
 # Profile release build
 profile: release
