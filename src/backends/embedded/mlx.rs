@@ -65,7 +65,7 @@ fn extract_json_command(text: &str) -> Result<String, GeneratorError> {
     }
 
     // Fallback: return safe default if no valid JSON found
-    Ok(r#"{"cmd": "echo 'Unable to generate command'"}"#.to_string())
+    Ok(r#"{"cmd": "ls -la"}"#.to_string())
 }
 
 #[cfg(feature = "embedded-mlx")]

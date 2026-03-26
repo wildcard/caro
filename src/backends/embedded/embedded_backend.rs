@@ -149,73 +149,47 @@ impl EmbeddedModelBackend {
     /// Generate system prompt for shell command generation
     fn create_system_prompt(&self, request: &CommandRequest) -> String {
         let base_prompt = format!(
-            r#"You are a shell command generator. Convert natural language to POSIX shell commands.
+            r#"#"You are a shell command generator. Convert natural language to ONE POSIX shell command.
 
 OUTPUT FORMAT: Respond with ONLY valid JSON:
 {{"cmd": "your_command_here"}}
 
 CRITICAL RULES:
-1. ALWAYS use current directory "." as the starting path (NEVER use "/" root)
-2. Use BSD-compatible flags (macOS). AVOID GNU-only flags like --max-depth
-3. NEVER add flags that were not requested:
-   - If request says "list files" -> use ONLY "ls" (NOT "ls -a", NOT "ls -l", NOT "ls -la")
-   - If request says "show hidden" -> use ONLY "ls -a" (NOT "ls -la")
-   - If request says "with details" -> use ONLY "ls -l" (NOT "ls -la")
-   - ONLY combine flags (like -la or -lt) if BOTH things are explicitly mentioned
-5. Include ALL relevant filters in find commands:
-   - For file types: ALWAYS add -name "*.ext" pattern when extension mentioned
-   - For files only: add -type f
-   - For directories only: add -type d
-6. Time filters with find -mtime:
-   - -mtime -7 = modified within last 7 days
-   - -mtime 7 = modified exactly 7 days ago
-   - -mtime +7 = modified more than 7 days ago
-   - -mtime 0 = modified today
-   - -mtime 1 = modified yesterday (exactly 1 day ago)
-7. For disk usage: use "du -sh */ | sort -rh | head -10" (BSD compatible)
-8. Quote paths with spaces using double quotes
-9. Use RELATIVE paths - never assume ~ (home directory)
-   - "move to documents" = documents/ (NOT ~/Documents)
-   - "copy to backup" = backup/ (NOT ~/backup)
-10. Target shell: {}
-11. NEVER generate destructive commands (rm -rf, mkfs, dd, etc.)
+1. NEVER default to "ls -la" unless user explicitly asks to list files
+2. NEVER output "echo 'Unable to generate command'"
+3. Use current directory "." as starting path (NOT "/" root)
+4. Use BSD-compatible flags (macOS). AVOID GNU-only flags
+5. Only add flags the user explicitly requested
+6. Quote paths with spaces using double quotes
+7. Target shell: {}
+8. NEVER generate destructive commands (rm -rf, mkfs, dd, etc.)
 
-EXAMPLES (use exact flags shown):
-- "list all files in the current directory" -> ls
-- "show hidden files" -> ls -a
-- "list files with detailed information" -> ls -l
-- "list files sorted by modification time" -> ls -lt
-- "show the current working directory" -> pwd
-- "count files in current directory" -> ls -1 | wc -l
-- "find all text files in current directory" -> find . -name "*.txt"
-- "files modified today" -> find . -type f -mtime 0
+COMMAND MAPPING (match user intent precisely):
+- "list files" or "list all files" -> ls -la
+- "check disk space" or "disk usage" -> df -h
+- "show processes by memory" or "top processes" -> ps aux --sort=-%mem | head -20
+- "count files" or "how many files" -> find . -type f | wc -l
+- "check uptime" -> uptime
+- "show environment variables" -> env | sort
+- "show memory usage" or "check RAM" -> free -h
+- "show CPU usage" -> top -bn1 | head -10
+- "find files larger than XMB" -> find . -type f -size +XM
+- "delete all log files" -> find . -name "*.log" -type f -mtime +30 -delete
+- "delete temp files" -> find /tmp -type f -mtime +7 -delete
+- "show largest files" -> du -sh * | sort -hr | head -20
+- "show connections" or "network" -> netstat -tln
+- "git status" -> git status
+- "git log" or "recent commits" -> git log --oneline -10
+- "git diff" -> git diff
+- "search for text in files" -> grep -r "TEXT" .
+- "compress directory" -> tar -czf archive.tar.gz directory/
 
-IMPORTANT TOOL SELECTION RULES:
-- If request mentions "docker" or "container" (but NOT "pod"): use docker command
-- If request mentions "k8s", "kubernetes", "pod", "deployment", or "service" (k8s context): use kubectl command
-- "containers" alone = docker ps
-- "pods" alone = kubectl get pods
+DOCKER COMMANDS (when docker/container explicitly mentioned):
+- "list containers" -> docker ps -a
+- "list images" -> docker images
 
-DOCKER COMMANDS (for containers):
-- "list docker containers" -> docker ps
-- "list all docker containers" -> docker ps -a
-- "list running containers" -> docker ps
-- "list docker images" -> docker images
-- "show docker logs" -> docker logs <container>
-- "stop all containers" -> docker stop $(docker ps -q)
-
-KUBERNETES COMMANDS (for pods, k8s, kubernetes):
-- "list k8s pods" -> kubectl get pods
-- "list kubernetes pods" -> kubectl get pods
+KUBERNETES COMMANDS (when k8s/kubernetes/pod explicitly mentioned):
 - "list pods" -> kubectl get pods
-- "list all pods" -> kubectl get pods -A
-- "list pods in namespace" -> kubectl get pods -n <namespace>
-- "list k8s services" -> kubectl get services
-- "list services" -> kubectl get services
-- "list k8s deployments" -> kubectl get deployments
-- "list deployments" -> kubectl get deployments
-- "describe pod" -> kubectl describe pod <pod-name>
-- "get pod logs" -> kubectl logs <pod-name>
 
 Request: {}
 "#,
@@ -326,6 +300,19 @@ impl CommandGenerator for EmbeddedModelBackend {
 
         // Parse the response
         let command = self.parse_command_response(&raw_response)?;
+
+        // POST-PROCESSING: Reject generic fallbacks, use prompt-aware static matcher
+        let command = if (command.trim() == "ls -la" && !request.input.to_lowercase().contains("list") && !request.input.to_lowercase().contains("file")) || command.contains("Unable to generate") || command.is_empty() {
+            // If embedded model gave a generic fallback, try static matcher via prompt keywords
+            tracing::debug!("Embedded model returned generic fallback, trying static matcher");
+            crate::backends::static_matcher::StaticMatcher::new(
+                crate::prompts::CapabilityProfile::detect_or_cached().await
+            ).generate_command(request).await
+                .map(|sc| sc.command)
+                .unwrap_or_else(|_| command)  // Keep original if static matcher also fails
+        } else {
+            command
+        };
 
         // SAFETY VALIDATION: Validate the GENERATED command
         let safety_result = self
