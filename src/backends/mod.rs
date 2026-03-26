@@ -72,6 +72,8 @@ pub enum GeneratorError {
         reason: String,
         risk_level: crate::models::RiskLevel,
         warnings: Vec<String>,
+        #[serde(default)]
+        alternatives: Vec<String>,
     },
 
     #[error("Validation failed: {reason}")]

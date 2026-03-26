@@ -2221,6 +2221,7 @@ async fn main() {
             process::exit(if was_blocked { 1 } else { 0 })
         }
         Err(e) => {
+            use colored::Colorize;
             eprintln!("Error: {}", e);
             match e {
                 CliError::NotImplemented => {
@@ -2231,6 +2232,26 @@ async fn main() {
                 CliError::ConfigurationError { .. } => {
                     eprintln!();
                     eprintln!("Please check your configuration and try again.");
+                }
+                CliError::Unsafe {
+                    reason,
+                    risk_level,
+                    alternatives,
+                    ..
+                } => {
+                    eprintln!(
+                        "\n{} {} risk: {}",
+                        "Safety block:".red().bold(),
+                        risk_level,
+                        reason
+                    );
+                    if !alternatives.is_empty() {
+                        eprintln!();
+                        eprintln!("{}", "Safer alternatives:".yellow().bold());
+                        for alt in &alternatives {
+                            eprintln!("  {}", alt);
+                        }
+                    }
                 }
                 _ => {}
             }
@@ -2306,6 +2327,13 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
     // Handle blocked commands
     if let Some(blocked_reason) = &result.blocked_reason {
         eprintln!("{} {}", "Blocked:".red().bold(), blocked_reason);
+        if !result.alternatives.is_empty() {
+            eprintln!();
+            eprintln!("{}", "Safer alternatives:".yellow().bold());
+            for alt in &result.alternatives {
+                eprintln!("  {}", alt);
+            }
+        }
         std::process::exit(1);
     }
 

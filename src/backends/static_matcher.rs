@@ -1022,12 +1022,17 @@ impl CommandGenerator for StaticMatcher {
 
             // If generated command is unsafe, return error with safety information
             if !safety_result.allowed {
+                let alternatives: Vec<String> = safety_result.safer_alternatives.clone();
                 return Err(GeneratorError::Unsafe {
                     reason: safety_result.explanation.clone(),
                     risk_level: safety_result.risk_level,
                     warnings: safety_result.warnings.clone(),
+                    alternatives,
                 });
             }
+
+            // Build alternatives from safety result
+            let alternatives: Vec<String> = safety_result.safer_alternatives.clone();
 
             Ok(GeneratedCommand {
                 command: command.clone(),
@@ -1038,7 +1043,7 @@ impl CommandGenerator for StaticMatcher {
                 } else {
                     format!("Warnings: {}", safety_result.warnings.join(", "))
                 },
-                alternatives: vec![],
+                alternatives,
                 backend_used: "static-matcher".to_string(),
                 generation_time_ms: 0, // Instant - no LLM call
                 confidence_score: 1.0, // Deterministic match

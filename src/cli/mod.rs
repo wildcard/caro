@@ -530,8 +530,21 @@ impl CliApp {
             .agent_loop
             .generate_command(&prompt)
             .await
-            .map_err(|e| CliError::GenerationFailed {
-                details: e.to_string(),
+            .map_err(|e| match e {
+                GeneratorError::Unsafe {
+                    reason,
+                    risk_level,
+                    warnings,
+                    alternatives,
+                } => CliError::Unsafe {
+                    reason,
+                    risk_level,
+                    warnings,
+                    alternatives,
+                },
+                _ => CliError::GenerationFailed {
+                    details: e.to_string(),
+                },
             })?;
         let generation_time = gen_start.elapsed();
 
@@ -557,6 +570,16 @@ impl CliApp {
         } else {
             None
         };
+
+        // Build alternatives list: combine generated alternatives with safety validation alternatives
+        let mut alternatives = generated.alternatives;
+        if !validation.safer_alternatives.is_empty() {
+            for alt in &validation.safer_alternatives {
+                if !alternatives.contains(alt) {
+                    alternatives.push(alt.clone());
+                }
+            }
+        }
 
         // Determine if command passes safety checks
         let can_execute = blocked_reason.is_none() && !requires_confirmation;
@@ -638,7 +661,7 @@ impl CliApp {
             blocked_reason,
             requires_confirmation,
             confirmation_prompt,
-            alternatives: generated.alternatives,
+            alternatives,
             shell_used: shell,
             output_format,
             debug_info,
@@ -731,6 +754,14 @@ pub enum CliError {
 
     #[error("Command generation failed: {details}")]
     GenerationFailed { details: String },
+
+    #[error("Unsafe command detected: {reason}")]
+    Unsafe {
+        reason: String,
+        risk_level: crate::models::RiskLevel,
+        warnings: Vec<String>,
+        alternatives: Vec<String>,
+    },
 
     #[error("Command execution failed: {details}")]
     ExecutionFailed { details: String },

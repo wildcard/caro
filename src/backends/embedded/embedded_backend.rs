@@ -338,10 +338,12 @@ impl CommandGenerator for EmbeddedModelBackend {
 
         // If generated command is unsafe, return error
         if !safety_result.allowed {
+            let alternatives: Vec<String> = safety_result.safer_alternatives.clone();
             return Err(GeneratorError::Unsafe {
                 reason: safety_result.explanation.clone(),
                 risk_level: safety_result.risk_level,
                 warnings: safety_result.warnings.clone(),
+                alternatives,
             });
         }
 

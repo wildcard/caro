@@ -26,6 +26,7 @@
 //! # }
 //! ```
 
+pub mod alternatives;
 mod patterns;
 
 use serde::{Deserialize, Serialize};
@@ -66,6 +67,7 @@ pub struct ValidationResult {
     pub warnings: Vec<String>,
     pub matched_patterns: Vec<String>,
     pub confidence_score: f32,
+    pub safer_alternatives: Vec<String>,
 }
 
 /// Pattern definition for dangerous command detection
@@ -215,6 +217,7 @@ impl SafetyValidator {
                 )],
                 matched_patterns: vec![],
                 confidence_score: 1.0,
+                safer_alternatives: vec![],
             });
         }
 
@@ -229,6 +232,7 @@ impl SafetyValidator {
                         warnings: vec![],
                         matched_patterns: vec![allow_pattern.clone()],
                         confidence_score: 1.0,
+                        safer_alternatives: vec![],
                     });
                 }
             }
@@ -329,6 +333,16 @@ impl SafetyValidator {
             1.0 // Very confident about dangerous patterns
         };
 
+        // Get safer alternatives for blocked/high-risk commands
+        let safer_alternatives = if !allowed || matches!(highest_risk, RiskLevel::Critical | RiskLevel::High) {
+            alternatives::get_alternatives(command)
+                .into_iter()
+                .map(|alt| format!("Try: {}\n  {}", alt.safer_command, alt.explanation))
+                .collect()
+        } else {
+            vec![]
+        };
+
         Ok(ValidationResult {
             allowed,
             risk_level: highest_risk,
@@ -336,6 +350,7 @@ impl SafetyValidator {
             warnings,
             matched_patterns: matched,
             confidence_score,
+            safer_alternatives,
         })
     }
 
