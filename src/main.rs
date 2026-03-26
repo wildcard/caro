@@ -374,9 +374,20 @@ enum Commands {
     Doctor,
 
     /// Generate shell integration script for edit mode support
-    Init {
+    Integration {
         /// Shell to generate init script for (zsh, bash, fish)
         shell: String,
+    },
+
+    /// Run the interactive setup wizard to configure caro
+    Init {
+        /// Use minimal ASCII art banner (for smaller terminals)
+        #[arg(long, help = "Use minimal banner for smaller terminals")]
+        minimal: bool,
+
+        /// Force re-run setup even if already configured
+        #[arg(short, long, help = "Force setup even if already configured")]
+        force: bool,
     },
 
     /// Manage configuration settings
@@ -583,21 +594,6 @@ struct Cli {
     /// Trailing unquoted arguments forming the prompt
     #[arg(trailing_var_arg = true, num_args = 0..)]
     trailing_args: Vec<String>,
-}
-
-/// Available subcommands
-#[derive(Subcommand, Clone)]
-enum Commands {
-    /// Run the interactive setup wizard to configure caro
-    Init {
-        /// Use minimal ASCII art banner (for smaller terminals)
-        #[arg(long, help = "Use minimal banner for smaller terminals")]
-        minimal: bool,
-
-        /// Force re-run setup even if already configured
-        #[arg(short, long, help = "Force setup even if already configured")]
-        force: bool,
-    },
 }
 
 impl IntoCliArgs for Cli {
@@ -1852,7 +1848,7 @@ async fn main() {
                 process::exit(1);
             }
         },
-        Some(Commands::Init { shell }) => {
+        Some(Commands::Integration { shell }) => {
             print_shell_init_script(&shell);
             process::exit(0);
         }
