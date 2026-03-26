@@ -184,9 +184,12 @@ impl SetupWizard {
             default_shell: shell,
             safety_level,
             default_model: None,
+            model_name: None,
             log_level,
             cache_max_size_gb: 10,
             log_rotation_days: 7,
+            telemetry: crate::telemetry::TelemetryConfig::default(),
+            generation_profile: crate::prompts::profiles::GenerationProfile::default(),
         };
 
         self.print_summary(&configuration, theme);
