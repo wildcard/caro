@@ -16,5 +16,5 @@ jobs:
       - uses: codespell-project/actions-codespell@v2
         with:
           check_filenames: true
-          skip: "*.lock,./target,./Cargo.lock,./docs-site/node_modules,./website/node_modules,./landing/node_modules,./.git,./assets,./models"
+          skip: "*.lock,./target,./Cargo.lock,./package-lock.json,./docs-site/node_modules,./website/node_modules,./landing/node_modules,./.git,./assets,./models"
           ignore_words_file: .codespellignore
