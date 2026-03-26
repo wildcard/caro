@@ -2262,7 +2262,7 @@ async fn main() {
 
 async fn run_cli(cli: &Cli) -> Result<bool, CliError> {
     // Create CLI application with optional backend and model overrides
-    let app = CliApp::with_overrides(
+    let mut app = CliApp::with_overrides(
         caro::cli::CliConfig::default(),
         cli.backend.clone(),
         cli.model_name.clone(),

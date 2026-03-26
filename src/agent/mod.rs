@@ -23,6 +23,8 @@ pub struct AgentLoop {
     _max_iterations: usize,
     timeout: Duration,
     confidence_threshold: f64,
+    /// User's target shell type for command generation
+    shell_type: ShellType,
     /// Knowledge index for learning from past commands (optional)
     #[cfg(feature = "knowledge")]
     knowledge_index: Option<Arc<KnowledgeIndex>>,
@@ -68,6 +70,7 @@ impl AgentLoop {
             _max_iterations: 2,
             timeout: Duration::from_secs(15), // Allow enough time for 2 iterations
             confidence_threshold: 0.8,        // Default: refine if confidence < 80%
+            shell_type: ShellType::Bash,       // Default, can be overridden with with_shell()
             #[cfg(feature = "knowledge")]
             knowledge_index: None,
         }
@@ -84,6 +87,17 @@ impl AgentLoop {
             self.static_matcher = None;
         }
         self
+    }
+
+    /// Set the target shell type for command generation
+    pub fn with_shell(mut self, shell: ShellType) -> Self {
+        self.shell_type = shell;
+        self
+    }
+
+    /// Update the shell type (mutable reference)
+    pub fn set_shell(&mut self, shell: ShellType) {
+        self.shell_type = shell;
     }
 
     /// Enable the knowledge index for learning from past commands
@@ -212,7 +226,7 @@ impl AgentLoop {
         // Try static matcher first (instant, deterministic)
         if let Some(ref matcher) = self.static_matcher {
             debug!("Trying static pattern matcher");
-            let request = CommandRequest::new(prompt, ShellType::Bash);
+            let request = CommandRequest::new(prompt, self.shell_type.clone());
 
             match matcher.generate_command(&request).await {
                 Ok(command) => {
@@ -392,7 +406,7 @@ impl AgentLoop {
 
         let request = CommandRequest {
             input: prompt.to_string(),
-            shell: ShellType::Bash,
+            shell: self.shell_type.clone(),
             safety_level: SafetyLevel::Moderate,
             context: Some(format!(
                 "{}{}{}\n\nSYSTEM_PROMPT:\n{}",
@@ -461,7 +475,7 @@ impl AgentLoop {
 
         let request = CommandRequest {
             input: format!("REFINE: {}", prompt),
-            shell: ShellType::Bash,
+            shell: self.shell_type.clone(),
             safety_level: SafetyLevel::Moderate,
             context: Some(format!(
                 "{}{}\n\nSYSTEM_PROMPT:\n{}",
@@ -487,7 +501,7 @@ impl AgentLoop {
 
         let request = CommandRequest {
             input: format!("REPAIR: {}", prompt),
-            shell: ShellType::Bash,
+            shell: self.shell_type.clone(),
             safety_level: SafetyLevel::Moderate,
             context: Some(format!(
                 "{}\n\nSYSTEM_PROMPT:\n{}",

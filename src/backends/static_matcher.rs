@@ -1156,7 +1156,7 @@ impl StaticMatcher {
     fn select_command(&self, pattern: &PatternEntry) -> String {
         use crate::prompts::ProfileType;
 
-        match self.profile.profile_type {
+        let cmd = match self.profile.profile_type {
             ProfileType::Bsd => {
                 // Use BSD command if available, otherwise fall back to GNU
                 pattern
@@ -1168,8 +1168,70 @@ impl StaticMatcher {
                 // GNU/Linux and other platforms use GNU commands
                 pattern.gnu_command.clone()
             }
+        };
+
+        cmd
+    }
+}
+
+/// Translate common POSIX commands to PowerShell equivalents
+fn posix_to_powershell(posix_cmd: &str) -> String {
+    let mut cmd = posix_cmd.to_string();
+
+    // Order matters: longer patterns first to avoid partial replacements
+    let translations: &[(&str, &str)] = &[
+        ("ps aux --sort=-%mem | head -20", "Get-Process | Sort-Object -Property WorkingSet64 -Descending | Select-Object -First 20"),
+        ("ps aux -m | head -20", "Get-Process | Sort-Object -Property WorkingSet64 -Descending | Select-Object -First 20"),
+        ("ps aux --sort=-%mem", "Get-Process | Sort-Object -Property WorkingSet64 -Descending"),
+        ("df -h", "Get-PSDrive -PSProvider FileSystem"),
+        ("free -h", "Get-CimInstance Win32_OperatingSystem | Select-Object TotalVisibleMemorySize, FreePhysicalMemory"),
+        ("uptime", "(Get-CimInstance Win32_OperatingSystem).LastBootUpTime"),
+        ("env | sort", "Get-ChildItem Env: | Sort-Object Name"),
+        ("env", "Get-ChildItem Env:"),
+        ("vm_stat", "systeminfo | findstr Memory"),
+        ("netstat -tln", "Get-NetTCPConnection -State Listen"),
+        ("find . -type f | wc -l", "(Get-ChildItem -Recurse -File).Count"),
+        ("find . -type f -mtime +30 -delete", "Get-ChildItem -Recurse -File | Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-30) } | Remove-Item"),
+        ("find /tmp -type f -user $(whoami) -mtime +7 -delete", "Get-ChildItem $env:TEMP -Recurse -File | Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-7) } | Remove-Item"),
+        ("find . -name '*.log' -type f -mtime +30 -delete", "Get-ChildItem -Recurse -Filter '*.log' -File | Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-30) } | Remove-Item"),
+        ("find . -name '*.pdf' -type f -size +10M", "Get-ChildItem -Recurse -Filter '*.pdf' -File | Where-Object { $_.Length -gt 10MB }"),
+        ("find . -name '*.py' -type f -mtime 0", "Get-ChildItem -Recurse -Filter '*.py' -File | Where-Object { $_.LastWriteTime.Date -eq (Get-Date).Date }"),
+        ("find . -type f -mtime 0", "Get-ChildItem -Recurse -File | Where-Object { $_.LastWriteTime.Date -eq (Get-Date).Date }"),
+        ("find . -type f -mtime +30 -delete", "Get-ChildItem -Recurse -File | Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-30) } | Remove-Item"),
+        ("du -sh * | sort -hr | head -20", "Get-ChildItem | Sort-Object -Property Length -Descending | Select-Object -First 20 Name, @{N='Size';E={$_.Length}}"),
+        ("git status", "git status"),
+        ("git log --oneline -10", "git log --oneline -10"),
+        ("git diff", "git diff"),
+        ("pkill PROCESS_NAME", "Stop-Process -Name 'PROCESS_NAME'"),
+        ("ls -la", "Get-ChildItem"),
+        ("ls -l", "Get-ChildItem"),
+        ("ls", "Get-ChildItem"),
+    ];
+
+    for (posix, ps) in translations {
+        if cmd.contains(posix) {
+            cmd = cmd.replace(posix, ps);
+            return cmd;
         }
     }
+
+    // Fallback: basic replacements for common POSIX utilities
+    cmd = cmd.replace("find . -type f", "Get-ChildItem -Recurse -File");
+    cmd = cmd.replace("find .", "Get-ChildItem -Recurse");
+    cmd = cmd.replace("ls -la", "Get-ChildItem");
+    cmd = cmd.replace("ls -l", "Get-ChildItem");
+    cmd = cmd.replace(" ls ", " Get-ChildItem ");
+    cmd = cmd.replace("cat ", "Get-Content ");
+    cmd = cmd.replace("rm -rf ", "Remove-Item -Recurse -Force ");
+    cmd = cmd.replace("rm ", "Remove-Item ");
+    cmd = cmd.replace("cp ", "Copy-Item ");
+    cmd = cmd.replace("mv ", "Move-Item ");
+    cmd = cmd.replace("grep ", "Select-String ");
+    cmd = cmd.replace("head -", "Select-Object -First ");
+    cmd = cmd.replace("wc -l", "Measure-Object -Line");
+    cmd = cmd.replace("sort", "Sort-Object");
+
+    cmd
 }
 
 #[async_trait]
@@ -1180,7 +1242,12 @@ impl CommandGenerator for StaticMatcher {
     ) -> Result<GeneratedCommand, GeneratorError> {
         // Try to match the query
         if let Some(pattern) = self.try_match(&request.input) {
-            let command = self.select_command(pattern);
+            let mut command = self.select_command(pattern);
+
+            // If user requested PowerShell/Cmd, translate POSIX command
+            if request.shell.is_windows() {
+                command = posix_to_powershell(&command);
+            }
 
             // SAFETY VALIDATION: Validate the GENERATED command
             // This happens after pattern matching to check if the generated command is safe

@@ -86,6 +86,9 @@ pub struct CliResult {
     /// Detailed explanation for explain mode
     #[serde(default)]
     pub detailed_explanation: Option<crate::prompts::CommandExplanation>,
+    /// Confidence score for the generated command (0.0 to 1.0)
+    #[serde(default)]
+    pub confidence_score: f64,
 }
 
 /// Supported output formats
@@ -237,7 +240,8 @@ impl CliApp {
         // Create agent loop with backend, context, and profile
         // If force_llm is true, disable the static matcher
         let agent_loop = AgentLoop::new(backend_arc.clone(), context.clone(), profile)
-            .with_static_matcher(!force_llm);
+            .with_static_matcher(!force_llm)
+            .with_shell(config.default_shell);
 
         Ok(Self {
             config,
@@ -473,7 +477,7 @@ impl CliApp {
     }
 
     /// Run CLI with provided arguments
-    pub async fn run_with_args<T>(&self, args: T) -> Result<CliResult, CliError>
+    pub async fn run_with_args<T>(&mut self, args: T) -> Result<CliResult, CliError>
     where
         T: IntoCliArgs,
     {
@@ -526,6 +530,7 @@ impl CliApp {
 
         // Generate command using agent loop (handles iterations internally)
         let gen_start = Instant::now();
+        self.agent_loop.set_shell(shell);
         let generated = self
             .agent_loop
             .generate_command(&prompt)
@@ -691,6 +696,7 @@ impl CliApp {
             execution_error,
             explain_mode,
             detailed_explanation,
+            confidence_score: generated.confidence_score as f64,
         })
     }
 
