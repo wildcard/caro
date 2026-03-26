@@ -138,17 +138,17 @@ caro automatically quotes paths with special characters:
 
 ## Override Safety (Not Recommended)
 
-For advanced users who understand the risks:
+For advanced users who understand the risks, you can adjust the safety level:
 
 ```bash
-# Skip safety validation (DANGEROUS)
-caro --unsafe "dangerous command"
+# Use permissive safety level (allows more commands through)
+caro --safety permissive "dangerous command"
 
-# Acknowledge specific risk level
-caro --allow-high-risk "system command"
+# Use strict safety level (blocks more patterns)
+caro --safety strict "any command"
 ```
 
-These flags require explicit confirmation and are logged.
+These flags affect which risk levels are blocked vs. warned about.
 
 ## Configuration
 

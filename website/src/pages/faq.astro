@@ -67,11 +67,11 @@ const faqCategories = [
     questions: [
       {
         question: "What LLM backends does Caro support?",
-        answer: "Caro supports multiple backends: <strong>Local:</strong> Ollama, MLX (Apple Silicon), llama.cpp. <strong>Cloud:</strong> Anthropic Claude, OpenAI GPT. Caro automatically selects the best available backend or you can specify one explicitly."
+        answer: "Caro supports multiple backends: <strong>Local:</strong> Ollama, MLX (Apple Silicon), llama.cpp. <strong>Cloud:</strong> Anthropic Claude, OpenAI GPT <em>(requires building with <code>--features remote-backends</code>)</em>. Caro automatically selects the best available backend or you can specify one explicitly."
       },
       {
         question: "Which backend should I use?",
-        answer: "For privacy and offline use, choose local backends. On Apple Silicon Macs, MLX offers the best performance with hardware acceleration. Ollama is great cross-platform. For best quality responses, cloud backends like Claude typically perform better but require API keys."
+        answer: "For privacy and offline use, choose local backends. On Apple Silicon Macs, MLX offers the best performance with hardware acceleration. Ollama is great cross-platform. For best quality responses, cloud backends like Claude typically perform better but require API keys and building with <code>--features remote-backends</code>."
       },
       {
         question: "How do I set up Ollama with Caro?",
@@ -83,7 +83,7 @@ const faqCategories = [
       },
       {
         question: "Can I use my own fine-tuned models?",
-        answer: "Yes! With Ollama, you can use any GGUF model. With MLX, you can use any MLX-compatible model. Point Caro to your model with the <code>--model</code> flag or set it in your config file."
+        answer: "Yes! With Ollama, you can use any GGUF model. With MLX, you can use any MLX-compatible model. Point Caro to your model with the <code>--model-name</code> flag or set it in your config file."
       }
     ]
   },
@@ -119,7 +119,7 @@ const faqCategories = [
     questions: [
       {
         question: "Caro says 'no backend available'—what do I do?",
-        answer: "This means Caro couldn't find a local LLM or API key. Either: (1) Install and start Ollama with a model, (2) Set up MLX if on Apple Silicon, or (3) Set an API key for a cloud provider with <code>export ANTHROPIC_API_KEY=...</code>."
+        answer: "This means Caro couldn't find a local LLM or API key. Either: (1) Install and start Ollama with a model, (2) Set up MLX if on Apple Silicon, or (3) Build with <code>--features remote-backends</code> and set an API key with <code>export ANTHROPIC_API_KEY=...</code>."
       },
       {
         question: "Commands are generating slowly—how do I speed things up?",
