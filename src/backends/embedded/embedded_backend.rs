@@ -283,6 +283,116 @@ Request: {}
             content: response.to_string(),
         })
     }
+
+    /// Infer and parse with retry on parse failure.
+    /// The backend must already be loaded before calling this method.
+    /// Only `GeneratorError::ParseError` triggers retry; all other errors fail fast.
+    async fn infer_and_parse_with_retry(
+        &self,
+        backend: &dyn InferenceBackend,
+        system_prompt: &str,
+    ) -> Result<String, GeneratorError> {
+        let max_retries = self.config.max_parse_retries;
+        let mut last_raw_response = String::new();
+        let mut command: Option<String> = None;
+
+        for attempt in 0..=max_retries {
+            let prompt = if attempt == 0 {
+                system_prompt.to_string()
+            } else {
+                Self::build_parse_retry_prompt(system_prompt, &last_raw_response)
+            };
+
+            let raw_response = backend
+                .infer(&prompt, &self.config)
+                .await
+                .map_err(|e| GeneratorError::GenerationFailed {
+                    details: format!("Inference failed: {}", e),
+                })?;
+
+            match self.parse_command_response(&raw_response) {
+                Ok(cmd) => {
+                    if attempt > 0 {
+                        tracing::info!(
+                            "Parse succeeded on attempt {}/{} after retry",
+                            attempt + 1,
+                            max_retries + 1
+                        );
+                    }
+                    command = Some(cmd);
+                    break;
+                }
+                Err(GeneratorError::ParseError { .. }) => {
+                    // Log with truncated output to avoid flooding logs with large LLM responses
+                    let log_output: String = raw_response.chars().take(200).collect();
+                    if attempt < max_retries {
+                        tracing::warn!(
+                            "Parse attempt {}/{} failed, retrying with correction prompt. Output: {}{}",
+                            attempt + 1,
+                            max_retries + 1,
+                            log_output,
+                            if raw_response.len() > 200 { "..." } else { "" }
+                        );
+                    }
+                    last_raw_response = raw_response;
+                }
+                Err(other) => {
+                    // Non-parse errors (generation failures, timeouts, etc.) fail fast
+                    return Err(other);
+                }
+            }
+        }
+
+        match command {
+            Some(cmd) => Ok(cmd),
+            None => {
+                // All attempts exhausted — return enriched error with retry count
+                let last_output: String = last_raw_response.chars().take(200).collect();
+                let truncation_note = if last_raw_response.len() > 200 { "..." } else { "" };
+                Err(GeneratorError::ParseError {
+                    content: format!(
+                        "Response parsing failed after {} attempt{} (last response: {}{})",
+                        max_retries + 1,
+                        if max_retries + 1 == 1 { "" } else { "s" },
+                        last_output,
+                        truncation_note
+                    ),
+                })
+            }
+        }
+    }
+
+    /// Build a correction prompt that includes the original prompt plus the malformed output.
+    /// Always uses original_prompt + latest malformed output only — never chains prior retry
+    /// prompts to prevent exponential prompt growth.
+    fn build_parse_retry_prompt(original_prompt: &str, malformed_output: &str) -> String {
+        // Truncate malformed output cleanly at a character boundary (not mid-escape-sequence)
+        const MAX_MALFORMED_LEN: usize = 500;
+        let truncated = if malformed_output.len() > MAX_MALFORMED_LEN {
+            let cut = malformed_output
+                .char_indices()
+                .take_while(|(i, _)| *i < MAX_MALFORMED_LEN)
+                .last()
+                .map(|(i, c)| i + c.len_utf8())
+                .unwrap_or(MAX_MALFORMED_LEN);
+            format!("{}... [truncated]", &malformed_output[..cut])
+        } else {
+            malformed_output.to_string()
+        };
+
+        format!(
+            r#"{original_prompt}
+
+CORRECTION REQUIRED: Your previous response could not be parsed. The malformed output was:
+{truncated}
+
+You MUST respond with ONLY valid JSON — no prose, no markdown fences, no explanation.
+Use this exact format and escape any double quotes inside the command with backslash:
+{{"cmd": "your_command_here"}}
+
+Example with escaped quotes: {{"cmd": "find . -type f -name \"*.conf\""}}"#
+        )
+    }
 }
 
 #[async_trait]
@@ -316,16 +426,10 @@ impl CommandGenerator for EmbeddedModelBackend {
                 details: format!("Failed to load model: {}", e),
             })?;
 
-        // Run inference
-        let raw_response = backend
-            .infer(&system_prompt, &self.config)
-            .await
-            .map_err(|e| GeneratorError::GenerationFailed {
-                details: format!("Inference failed: {}", e),
-            })?;
-
-        // Parse the response
-        let command = self.parse_command_response(&raw_response)?;
+        // Run inference with retry on parse failure
+        let command = self
+            .infer_and_parse_with_retry(&**backend, &system_prompt)
+            .await?;
 
         // SAFETY VALIDATION: Validate the GENERATED command
         let safety_result = self
@@ -492,5 +596,258 @@ mod tests {
         assert!(info.max_tokens > 0);
         assert!(info.typical_latency_ms > 0);
         assert!(info.memory_usage_mb > 0);
+    }
+
+    // --- Parse retry prompt tests ---
+
+    #[test]
+    fn test_parse_retry_prompt_contains_malformed_output() {
+        let original = "original system prompt";
+        let malformed = r#"{"cmd": "find . -name "*.conf""}"#;
+        let prompt = EmbeddedModelBackend::build_parse_retry_prompt(original, malformed);
+        assert!(prompt.contains(malformed), "Prompt must include the malformed output");
+        assert!(prompt.starts_with(original), "Prompt must start with original prompt");
+    }
+
+    #[test]
+    fn test_parse_retry_prompt_contains_no_prose_instruction() {
+        let prompt = EmbeddedModelBackend::build_parse_retry_prompt("p", "bad output");
+        assert!(
+            prompt.contains("no prose") || prompt.contains("no markdown"),
+            "Prompt must instruct model to avoid prose and markdown fences"
+        );
+        assert!(prompt.contains("ONLY valid JSON"), "Prompt must say 'ONLY valid JSON'");
+    }
+
+    #[test]
+    fn test_parse_retry_prompt_contains_escaping_example() {
+        let prompt = EmbeddedModelBackend::build_parse_retry_prompt("p", "bad");
+        assert!(
+            prompt.contains(r#"\".conf\""#) || prompt.contains(r#"\"*.conf\""#),
+            "Prompt must include an escaping example with backslash-escaped quotes"
+        );
+    }
+
+    #[test]
+    fn test_parse_retry_prompt_uses_original_prompt_not_chained() {
+        // Calling build_parse_retry_prompt twice with a previous retry prompt as original
+        // should NOT result in double-nested CORRECTION sections
+        let original = "original prompt";
+        let _first_retry = EmbeddedModelBackend::build_parse_retry_prompt(original, "bad1");
+        let second_retry = EmbeddedModelBackend::build_parse_retry_prompt(original, "bad2");
+
+        // Second retry is built from original, not from first_retry — no chaining
+        assert!(!second_retry.contains("bad1"), "Second retry must not include first malformed output");
+        assert!(second_retry.contains("bad2"), "Second retry must include latest malformed output");
+        assert!(second_retry.starts_with(original));
+        // Should contain exactly one CORRECTION block
+        assert_eq!(
+            second_retry.matches("CORRECTION REQUIRED").count(),
+            1,
+            "Must have exactly one CORRECTION block"
+        );
+    }
+
+    #[test]
+    fn test_parse_retry_prompt_truncates_long_output() {
+        let long_output = "x".repeat(600);
+        let prompt = EmbeddedModelBackend::build_parse_retry_prompt("p", &long_output);
+        assert!(
+            prompt.contains("[truncated]"),
+            "Long malformed output must be truncated with [truncated] marker"
+        );
+        // Verify the truncated portion appears in the prompt (not full 600 chars repeated)
+        assert!(
+            !prompt.contains(&"x".repeat(501)),
+            "Prompt must not contain more than 500 chars of the malformed output"
+        );
+    }
+
+    // --- Behavioral retry tests using a mock InferenceBackend ---
+
+    use async_trait::async_trait;
+    use std::sync::atomic::{AtomicU32, Ordering};
+    use std::sync::Arc as StdArc;
+
+    struct MockInferenceBackend {
+        /// Queue of Ok responses to return; last one repeats if exhausted
+        ok_responses: StdArc<std::sync::Mutex<std::collections::VecDeque<String>>>,
+        /// If set, return this error instead of Ok (overrides ok_responses)
+        error_response: Option<String>,
+        call_count: StdArc<AtomicU32>,
+        /// Records prompts passed on each call
+        prompts_received: StdArc<tokio::sync::Mutex<Vec<String>>>,
+    }
+
+    impl MockInferenceBackend {
+        fn ok_responses(responses: Vec<&str>) -> Self {
+            Self {
+                ok_responses: StdArc::new(std::sync::Mutex::new(
+                    responses.into_iter().map(str::to_string).collect(),
+                )),
+                error_response: None,
+                call_count: StdArc::new(AtomicU32::new(0)),
+                prompts_received: StdArc::new(tokio::sync::Mutex::new(Vec::new())),
+            }
+        }
+
+        fn always_error(message: &str) -> Self {
+            Self {
+                ok_responses: StdArc::new(std::sync::Mutex::new(std::collections::VecDeque::new())),
+                error_response: Some(message.to_string()),
+                call_count: StdArc::new(AtomicU32::new(0)),
+                prompts_received: StdArc::new(tokio::sync::Mutex::new(Vec::new())),
+            }
+        }
+    }
+
+    #[async_trait]
+    impl InferenceBackend for MockInferenceBackend {
+        async fn infer(&self, prompt: &str, _config: &EmbeddedConfig) -> Result<String, GeneratorError> {
+            self.call_count.fetch_add(1, Ordering::SeqCst);
+            self.prompts_received.lock().await.push(prompt.to_string());
+
+            if let Some(ref msg) = self.error_response {
+                return Err(GeneratorError::GenerationFailed { details: msg.clone() });
+            }
+
+            let mut queue = self.ok_responses.lock().unwrap();
+            if queue.len() > 1 {
+                Ok(queue.pop_front().unwrap())
+            } else {
+                // Last element repeats
+                Ok(queue.front().cloned().unwrap_or_default())
+            }
+        }
+
+        fn variant(&self) -> ModelVariant {
+            ModelVariant::CPU
+        }
+
+        async fn load(&mut self) -> Result<(), GeneratorError> {
+            Ok(())
+        }
+
+        async fn unload(&mut self) -> Result<(), GeneratorError> {
+            Ok(())
+        }
+    }
+
+    /// Helper: create a minimal EmbeddedModelBackend with custom config for unit tests.
+    /// Tests call `infer_and_parse_with_retry` directly to avoid model download.
+    fn make_test_backend(max_parse_retries: u32) -> EmbeddedModelBackend {
+        let mut backend = EmbeddedModelBackend::new().unwrap();
+        backend.config = EmbeddedConfig::default().with_max_parse_retries(max_parse_retries);
+        backend
+    }
+
+    #[tokio::test]
+    async fn test_retry_succeeds_on_second_attempt() {
+        // First response: completely non-JSON (fails all 4 parsing stages)
+        // Second response: valid JSON
+        let mock = MockInferenceBackend::ok_responses(vec![
+            "Sure! The command would be: find . -type f -name *.conf", // no JSON at all
+            r#"{"cmd": "find . -type f -name \"*.conf\""}"#,           // valid
+        ]);
+        let call_count = mock.call_count.clone();
+        let prompts = mock.prompts_received.clone();
+
+        let backend = make_test_backend(2);
+        let result = backend
+            .infer_and_parse_with_retry(&mock, "find nginx config files")
+            .await;
+
+        assert!(result.is_ok(), "Should succeed after retry: {:?}", result);
+        assert_eq!(call_count.load(Ordering::SeqCst), 2, "infer must be called exactly twice");
+
+        // Verify second call used a correction prompt containing exactly one CORRECTION block
+        let prompts = prompts.lock().await;
+        assert!(
+            prompts[1].contains("CORRECTION REQUIRED"),
+            "Second attempt must use a correction prompt"
+        );
+        assert_eq!(
+            prompts[1].matches("CORRECTION REQUIRED").count(),
+            1,
+            "Second attempt must have exactly one CORRECTION block"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_retry_exhausts_all_attempts() {
+        // Always return malformed output
+        let mock = MockInferenceBackend::ok_responses(vec!["not json at all"]);
+        let call_count = mock.call_count.clone();
+
+        let backend = make_test_backend(2);
+        let result = backend
+            .infer_and_parse_with_retry(&mock, "find files")
+            .await;
+
+        assert!(result.is_err(), "Should fail after exhausting retries");
+        assert_eq!(
+            call_count.load(Ordering::SeqCst),
+            3, // 1 initial + 2 retries
+            "infer must be called max_retries+1 times total"
+        );
+        if let Err(GeneratorError::ParseError { content }) = result {
+            assert!(
+                content.contains("3 attempt"),
+                "Error must indicate 3 attempts were made, got: {content}"
+            );
+        } else {
+            panic!("Expected ParseError");
+        }
+    }
+
+    #[tokio::test]
+    async fn test_no_retry_on_first_success() {
+        let mock = MockInferenceBackend::ok_responses(vec![r#"{"cmd": "ls -la"}"#]);
+        let call_count = mock.call_count.clone();
+
+        let backend = make_test_backend(2);
+        let result = backend
+            .infer_and_parse_with_retry(&mock, "list files")
+            .await;
+
+        assert!(result.is_ok(), "Should succeed without retry: {:?}", result);
+        assert_eq!(call_count.load(Ordering::SeqCst), 1, "infer must be called exactly once");
+    }
+
+    #[tokio::test]
+    async fn test_no_retry_on_non_parse_error() {
+        let mock = MockInferenceBackend::always_error("model crashed");
+        let call_count = mock.call_count.clone();
+
+        let backend = make_test_backend(2);
+        let result = backend
+            .infer_and_parse_with_retry(&mock, "list files")
+            .await;
+
+        assert!(result.is_err());
+        assert_eq!(call_count.load(Ordering::SeqCst), 1, "Non-parse errors must not trigger retry");
+        assert!(
+            matches!(result, Err(GeneratorError::GenerationFailed { .. })),
+            "Error type must be preserved"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_zero_retries_single_attempt_only() {
+        // With max_parse_retries=0, only one call is made even on parse failure
+        let mock = MockInferenceBackend::ok_responses(vec!["not json"]);
+        let call_count = mock.call_count.clone();
+
+        let backend = make_test_backend(0);
+        let result = backend
+            .infer_and_parse_with_retry(&mock, "list files")
+            .await;
+
+        assert!(result.is_err());
+        assert_eq!(
+            call_count.load(Ordering::SeqCst),
+            1,
+            "With max_parse_retries=0, exactly one inference call must be made"
+        );
     }
 }
