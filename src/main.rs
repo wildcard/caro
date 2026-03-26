@@ -444,11 +444,11 @@ enum Commands {
         #[arg(short, long, default_value = "5")]
         limit: usize,
     },
-    // /// Manage telemetry data and settings
-    // Telemetry {
-    //     #[command(subcommand)]
-    //     command: caro::cli::telemetry::TelemetryCommands,
-    // },
+    /// Manage telemetry data and settings
+    Telemetry {
+        #[command(subcommand)]
+        command: caro::cli::telemetry::TelemetryCommands,
+    },
 }
 
 /// caro - Convert natural language to shell commands using local LLMs
@@ -577,6 +577,26 @@ struct Cli {
         help = "Enable explanation mode: shows detailed breakdowns of commands and options"
     )]
     explain: bool,
+
+    /// Suppress non-essential output (timing, debug info)
+    #[arg(long, help = "Suppress non-essential output")]
+    quiet: bool,
+
+    /// Execute command directly (short form of --execute)
+    #[arg(
+        short = 'e',
+        long = "execute-e",
+        help = "Execute command directly (alias for --execute)"
+    )]
+    execute_e: bool,
+
+    /// Disable telemetry for this session
+    #[arg(long, help = "Disable telemetry for this session")]
+    no_telemetry: bool,
+
+    /// Show backend status and available backends
+    #[arg(long, help = "Show backend status and available backends")]
+    backend_info: bool,
 
     /// Trailing unquoted arguments forming the prompt
     #[arg(trailing_var_arg = true, num_args = 0..)]
@@ -1798,6 +1818,25 @@ async fn main() {
 
     let mut cli = Cli::parse();
 
+    // Wire CLI flags that alias other flags
+    if cli.execute_e {
+        cli.execute = true;
+    }
+
+    // --backend-info: list available backends and exit
+    if cli.backend_info {
+        println!("Available backends:");
+        println!("  - embedded: Local Qwen model (default, no setup required)");
+        println!("  - ollama: Ollama server (requires: ollama serve)");
+        #[cfg(feature = "remote-backends")]
+        println!("  - claude: Anthropic Claude API (requires: ANTHROPIC_API_KEY)");
+        #[cfg(feature = "remote-backends")]
+        println!("  - vllm: vLLM server (requires: running vLLM instance)");
+        println!();
+        println!("Use --backend <name> to select a backend.");
+        process::exit(0);
+    }
+
     // Handle subcommands first
     match cli.command {
         Some(Commands::Doctor) => match caro::doctor::run_diagnostics().await {
@@ -1885,22 +1924,21 @@ async fn main() {
             }
             process::exit(0);
         }
-        // NOTE: Telemetry subcommand disabled in v1.1.0-beta.1
-        // Some(Commands::Telemetry { command }) => {
-        //     let storage_path = dirs::data_dir()
-        //         .unwrap_or_else(|| std::env::current_dir().unwrap())
-        //         .join("caro")
-        //         .join("telemetry")
-        //         .join("events.db");
-        //
-        //     match caro::cli::telemetry::handle_telemetry(command, storage_path).await {
-        //         Ok(()) => process::exit(0),
-        //         Err(e) => {
-        //             eprintln!("Error: {}", e);
-        //             process::exit(1);
-        //         }
-        //     }
-        // }
+        Some(Commands::Telemetry { command }) => {
+            let storage_path = dirs::data_dir()
+                .unwrap_or_else(|| std::env::current_dir().unwrap())
+                .join("caro")
+                .join("telemetry")
+                .join("events.db");
+
+            match caro::cli::telemetry::handle_telemetry(command, storage_path).await {
+                Ok(()) => process::exit(0),
+                Err(e) => {
+                    eprintln!("Error: {}", e);
+                    process::exit(1);
+                }
+            }
+        }
         None => {
             // Continue to regular command generation
         }
@@ -1952,6 +1990,12 @@ async fn main() {
         .as_ref()
         .and_then(|cm| cm.load().ok())
         .unwrap_or_default();
+
+    // --no-telemetry: disable telemetry for this session
+    if cli.no_telemetry {
+        user_config.telemetry.enabled = false;
+        user_config.telemetry.first_run = false;
+    }
 
     // Check for first-run consent
     // Skip interactive consent for non-human output formats (json, yaml)
@@ -2162,9 +2206,11 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
         };
     }
 
-    // Print warnings first
-    for warning in &result.warnings {
-        eprintln!("{} {}", "Warning:".yellow().bold(), warning);
+    // Print warnings first (suppress with --quiet)
+    if !cli.quiet {
+        for warning in &result.warnings {
+            eprintln!("{} {}", "Warning:".yellow().bold(), warning);
+        }
     }
 
     // Handle blocked commands
@@ -2387,8 +2433,8 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
                     display!("");
                 }
             }
-        } else {
-            // Non-interactive environment - show message
+        } else if !cli.quiet {
+            // Non-interactive environment - show message (suppress with --quiet)
             display!(
                 "{}",
                 "Use --execute/-x flag to auto-execute commands in non-interactive environments."
@@ -2467,14 +2513,16 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
         display!("");
     }
 
-    // Print debug information if verbose
-    if let Some(debug_info) = &result.debug_info {
-        display!("{}", "Debug Info:".dimmed());
-        display!("  {}", debug_info.dimmed());
-    }
+    // Print debug information if verbose (suppress with --quiet)
+    if !cli.quiet {
+        if let Some(debug_info) = &result.debug_info {
+            display!("{}", "Debug Info:".dimmed());
+            display!("  {}", debug_info.dimmed());
+        }
 
-    if !result.generation_details.is_empty() {
-        display!("  {}", result.generation_details.dimmed());
+        if !result.generation_details.is_empty() {
+            display!("  {}", result.generation_details.dimmed());
+        }
     }
 
     Ok(())

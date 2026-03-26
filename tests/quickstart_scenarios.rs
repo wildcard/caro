@@ -71,9 +71,11 @@ impl IntoCliArgs for TestArgs {
     fn force_llm(&self) -> bool {
         self.force_llm
     }
-}
 
-// =============================================================================
+    fn explain(&self) -> bool {
+        false
+    }
+}
 // TASK 9: Test "list all PDF files in Downloads" Quickstart Scenario
 // =============================================================================
 

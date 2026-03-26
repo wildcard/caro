@@ -77,9 +77,11 @@ impl IntoCliArgs for TestArgs {
     fn force_llm(&self) -> bool {
         self.force_llm
     }
-}
 
-#[tokio::test]
+    fn explain(&self) -> bool {
+        false
+    }
+}
 async fn test_basic_command_generation_flow() {
     // CONTRACT: Basic CLI flow should work with simple prompt
     let cli = CliApp::new().await.unwrap();
