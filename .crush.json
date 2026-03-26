@@ -30,6 +30,10 @@
     },
     "brave-search": {
       "command": "mcp-server-brave-search"
+    },
+    "codex": {
+      "command": "codex",
+      "args": ["mcp-server"]
     }
   },
   "prompts": {
