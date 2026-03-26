@@ -6,7 +6,7 @@ use caro::eval::{CategoryResults, EvalResults, EvalSuite, IndividualResult};
 use caro::models::{CommandRequest, ShellType};
 use caro::prompts::CapabilityProfile;
 use caro::setup::{needs_setup, SetupWizard};
-use clap::{Parser, Subcommand};
+use clap::Parser;
 use std::collections::HashMap;
 use std::io::IsTerminal;
 use std::process;
@@ -1851,6 +1851,9 @@ async fn main() {
         Some(Commands::Integration { shell }) => {
             print_shell_init_script(&shell);
             process::exit(0);
+        }
+        Some(Commands::Init { .. }) => {
+            // Handled below after telemetry initialization
         }
         // NOTE: Assess subcommand disabled in v1.1.0-beta.1
         // Some(Commands::Assess { export, output }) => {
