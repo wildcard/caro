@@ -202,7 +202,10 @@ impl SetupWizard {
 
         if !confirmed {
             println!();
-            println!("{}", "Setup cancelled. You can run 'caro init' to try again.".yellow());
+            println!(
+                "{}",
+                "Setup cancelled. You can run 'caro init' to try again.".yellow()
+            );
             return Ok(SetupResult {
                 configuration: UserConfiguration::default(),
                 theme: Theme::default(),
@@ -217,7 +220,11 @@ impl SetupWizard {
         println!("{}", "✓ Configuration saved!".green().bold());
         println!(
             "  Config file: {}",
-            self.config_manager.config_path().display().to_string().dimmed()
+            self.config_manager
+                .config_path()
+                .display()
+                .to_string()
+                .dimmed()
         );
 
         // Print security notes
@@ -225,7 +232,10 @@ impl SetupWizard {
 
         println!();
         println!("{}", "You're all set! Try running:".bold());
-        println!("  {} \"list all files in current directory\"", "caro".bright_cyan());
+        println!(
+            "  {} \"list all files in current directory\"",
+            "caro".bright_cyan()
+        );
         println!();
         println!(
             "{}",
@@ -252,7 +262,10 @@ impl SetupWizard {
             "Welcome to Caro".bold(),
             format!("v{}", VERSION).dimmed()
         );
-        println!("{}", "…………………………………………………………………………………………………………………………………………………………".dimmed());
+        println!(
+            "{}",
+            "…………………………………………………………………………………………………………………………………………………………".dimmed()
+        );
         println!();
     }
 
@@ -368,15 +381,8 @@ impl SetupWizard {
             },
         };
 
-        println!(
-            " {}",
-            "Choose your default shell".bold()
-        );
-        println!(
-            " {} {}",
-            "Detected:".dimmed(),
-            detected_name.bright_cyan()
-        );
+        println!(" {}", "Choose your default shell".bold());
+        println!(" {} {}", "Detected:".dimmed(), detected_name.bright_cyan());
         println!();
 
         let shells = vec![
@@ -457,10 +463,7 @@ impl SetupWizard {
 
     /// Select log level
     fn select_log_level(&self) -> Result<LogLevel, SetupError> {
-        println!(
-            " {}",
-            "Choose your preferred log level".bold()
-        );
+        println!(" {}", "Choose your preferred log level".bold());
         println!();
 
         let levels = vec![

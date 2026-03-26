@@ -2192,10 +2192,7 @@ fn run_init_wizard(minimal: bool, force: bool) -> Result<bool, caro::setup::Setu
     // Check if already configured
     if !force && !wizard.needs_setup() {
         println!();
-        println!(
-            "{}",
-            "caro is already configured!".green().bold()
-        );
+        println!("{}", "caro is already configured!".green().bold());
         println!();
 
         // Check if we're in a terminal
@@ -2218,10 +2215,7 @@ fn run_init_wizard(minimal: bool, force: bool) -> Result<bool, caro::setup::Setu
                 return Ok(true);
             }
         } else {
-            println!(
-                "{}",
-                "Use 'caro init --force' to reconfigure.".dimmed()
-            );
+            println!("{}", "Use 'caro init --force' to reconfigure.".dimmed());
             return Ok(true);
         }
     }
