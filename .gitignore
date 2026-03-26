@@ -220,3 +220,5 @@ tests/evaluation/results/*.md
 # thoughts/ledgers/CONTINUITY_CLAUDE-*.md
 .continuous-claude-tmp/
 tests/evaluation/target/
+
+gha-creds-*.json
