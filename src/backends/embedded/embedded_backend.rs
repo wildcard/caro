@@ -292,7 +292,7 @@ Request: {}
         backend: &dyn InferenceBackend,
         system_prompt: &str,
     ) -> Result<String, GeneratorError> {
-        let max_retries = self.config.max_parse_retries;
+        let max_retries = self.config.max_parse_retries.min(5);
         let mut last_raw_response = String::new();
         let mut command: Option<String> = None;
 
@@ -326,12 +326,17 @@ Request: {}
                     // Log with truncated output to avoid flooding logs with large LLM responses
                     let log_output: String = raw_response.chars().take(200).collect();
                     if attempt < max_retries {
-                        tracing::warn!(
-                            "Parse attempt {}/{} failed, retrying with correction prompt. Output: {}{}",
+                        tracing::debug!(
+                            "Parse attempt {}/{} raw output: {}{}",
                             attempt + 1,
                             max_retries + 1,
                             log_output,
                             if raw_response.len() > 200 { "..." } else { "" }
+                        );
+                        tracing::warn!(
+                            "Parse attempt {}/{} failed, retrying with correction prompt",
+                            attempt + 1,
+                            max_retries + 1
                         );
                     }
                     last_raw_response = raw_response;
@@ -366,7 +371,7 @@ Request: {}
     /// Always uses original_prompt + latest malformed output only — never chains prior retry
     /// prompts to prevent exponential prompt growth.
     fn build_parse_retry_prompt(original_prompt: &str, malformed_output: &str) -> String {
-        // Truncate malformed output cleanly at a character boundary (not mid-escape-sequence)
+        // Truncate malformed output cleanly at a UTF-8 character boundary
         const MAX_MALFORMED_LEN: usize = 500;
         let truncated = if malformed_output.len() > MAX_MALFORMED_LEN {
             let cut = malformed_output
