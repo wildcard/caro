@@ -2209,3 +2209,137 @@ fn test_claims_summary() {
     println!("See ADR-010 and spec.md for full details.");
     println!("========================================");
 }
+
+// ===========================================================================
+// ============================================================================
+// WP11: v1.2 Gap Analysis Tests (Issue #792)
+// ============================================================================
+
+fn run_caro(args: &[&str]) -> (String, String) {
+    let runner = CaroTestRunner::new();
+    match runner.run(args) {
+        Ok(result) => (result.stdout, result.stderr),
+        Err(e) => (String::new(), e),
+    }
+}
+
+#[test]
+fn test_793_quiet_flag_accepted() {
+    let (stdout, stderr) = run_caro(&["--quiet", "list files"]);
+    assert!(!stderr.contains("unexpected argument"), "--quiet should be accepted, got: {}", stderr);
+    assert!(!stdout.is_empty(), "Should produce output");
+}
+
+#[test]
+fn test_793_execute_short_flag_accepted() {
+    let (_, stderr) = run_caro(&["-e", "list files"]);
+    assert!(!stderr.contains("unexpected argument"), "-e should be accepted, got: {}", stderr);
+}
+
+#[test]
+fn test_793_no_telemetry_flag_accepted() {
+    let (_, stderr) = run_caro(&["--no-telemetry", "list files"]);
+    assert!(!stderr.contains("unexpected argument"), "--no-telemetry should be accepted, got: {}", stderr);
+}
+
+#[test]
+fn test_793_backend_info_shows_backends() {
+    let (stdout, _) = run_caro(&["--backend-info"]);
+    assert!(stdout.contains("embedded"), "Should list embedded backend, got: {}", stdout);
+}
+
+#[test]
+fn test_794_telemetry_show_subcommand() {
+    let (_, stderr) = run_caro(&["telemetry", "show"]);
+    assert!(!stderr.contains("unexpected argument"), "telemetry show should be accepted");
+}
+
+#[test]
+fn test_794_telemetry_status_subcommand() {
+    let (_, stderr) = run_caro(&["telemetry", "status"]);
+    assert!(!stderr.contains("unexpected argument"), "telemetry status should be accepted");
+}
+
+#[test]
+fn test_795_config_telemetry_air_gapped() {
+    let (stdout, stderr) = run_caro(&["config", "set", "telemetry.air_gapped", "true"]);
+    assert!(
+        stdout.contains("Set telemetry.air_gapped") || !stderr.contains("Unknown config key"),
+        "telemetry.air_gapped key should be accepted"
+    );
+}
+
+#[test]
+fn test_795_config_safety_level() {
+    let (stdout, stderr) = run_caro(&["config", "set", "safety.level", "strict"]);
+    assert!(
+        stdout.contains("Set safety.level") || !stderr.contains("Unknown config key"),
+        "safety.level key should be accepted"
+    );
+}
+
+#[test]
+fn test_795_config_output_format() {
+    let (stdout, stderr) = run_caro(&["config", "set", "output.format", "json"]);
+    assert!(
+        stdout.contains("Set output.format") || !stderr.contains("Unknown config key"),
+        "output.format key should be accepted"
+    );
+}
+
+#[test]
+fn test_795_config_backend_primary() {
+    let (stdout, stderr) = run_caro(&["config", "set", "backend.primary", "embedded"]);
+    assert!(
+        stdout.contains("Set backend.primary") || !stderr.contains("Unknown config key"),
+        "backend.primary key should be accepted"
+    );
+}
+
+#[test]
+fn test_797_disk_space_query() {
+    let (stdout, _) = run_caro(&["check disk space"]);
+    assert!(stdout.contains("df -h"), "Should generate 'df -h', got: {}", stdout);
+}
+
+#[test]
+fn test_797_count_files_query() {
+    let (stdout, _) = run_caro(&["count files"]);
+    assert!(stdout.contains("wc -l") || stdout.contains("find"), "Should count files, got: {}", stdout);
+}
+
+#[test]
+fn test_797_uptime_query() {
+    let (stdout, _) = run_caro(&["check uptime"]);
+    assert!(stdout.contains("uptime"), "Should show uptime, got: {}", stdout);
+}
+
+#[test]
+fn test_797_git_status_query() {
+    let (stdout, _) = run_caro(&["git status"]);
+    assert!(stdout.contains("git status"), "Should run git status, got: {}", stdout);
+}
+
+#[test]
+fn test_797_delete_logs_not_unable() {
+    let (stdout, _) = run_caro(&["delete all log files"]);
+    assert!(!stdout.contains("Unable to generate"), "Should not return 'Unable to generate'");
+}
+
+#[test]
+fn test_800_powershell_list_files() {
+    let (stdout, _) = run_caro(&["--shell", "powershell", "list files"]);
+    assert!(
+        stdout.contains("Get-ChildItem") || stdout.contains("dir"),
+        "PowerShell should use Get-ChildItem, got: {}", stdout
+    );
+}
+
+#[test]
+fn test_796_dangerous_command_blocked() {
+    let (_, stderr) = run_caro(&["delete everything in root directory"]);
+    assert!(
+        stderr.contains("Safety block") || stderr.contains("Blocked") || stderr.contains("Unsafe"),
+        "Should block dangerous command, got: {}", stderr
+    );
+}

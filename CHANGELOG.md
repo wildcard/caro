@@ -9,7 +9,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **JSON Schema for Configuration** (#11): Auto-generated JSON schema for TOML configuration
+- **v1.2 Close the Credibility Gap** (#792): Implement features advertised on caro.sh
+  -  flag to suppress non-essential output (#793)
+  - / short form for  (#793)
+  -  flag to disable telemetry per session (#793)
+  -  flag to list available backends (#793)
+  - Telemetry subcommands: , , [3J[H[2J,  (#794)
+  - Config key expansion from 4 to 14 keys (#795)
+  - Environment variable overrides: CARO_TELEMETRY_ENABLED, CARO_BACKEND, CARO_SAFETY (#795)
+  - Safer alternatives when safety blocks a command (#796)
+  - 17 new static matcher patterns for common queries (#797)
+  - PowerShell command generation via --shell powershell (#800)
+  - confidence_score field in JSON output (#799)
+  - Embedded model prompt rewrite with command mapping (#798)
+
+### Changed
+
+- Agent loop now passes user shell type to static matcher
+- Skill documentation rewritten to match actual CLI behavior (#801)
+- MLX fallback changed from echo error to ls -la
+
+### Fixed
+
+- Missing explain() in test file IntoCliArgs implementations
+- cargo install Caro -> cargo install caro in check script
+- Git status regex required status keyword
+
+### Added (Previously Unreleased)
+
+- **JSON Schema for Configuration** (#11) (#11): Auto-generated JSON schema for TOML configuration
   - Added `generate-schema` binary to generate `.vscode/caro-config.schema.json`
   - VS Code autocomplete and validation for `config.toml`
   - Schema includes all configuration options with descriptions
