@@ -263,14 +263,6 @@ $ caro "complicated operation"
 $ caro "explain how to recursively find and compress all log files older than a month"
 ```
 
-## Keyboard Shortcuts
-
-When Caro prompts for confirmation:
-- `y` or `yes` - Execute the command
-- `n` or `no` - Cancel
-- `e` or `explain` - Show detailed explanation
-- `s` or `safer` - Suggest a safer alternative
-
 ## Common Workflows
 
 ### Workflow 1: Safe Deletion
@@ -298,57 +290,18 @@ When Caro prompts for confirmation:
 
 ## Error Handling
 
-### Command Not Found
-
-```bash
-$ caro "use imaginary-tool to process data"
-
-Error: Command 'imaginary-tool' not found on this system
-
-Suggestion: Try one of these standard tools instead:
-- awk: Text processing
-- sed: Stream editing
-- grep: Pattern matching
-
-Reformulate your request? (y/N)
-```
-
-### Ambiguous Request
-
-```bash
-$ caro "find files"
-
-Generated command:
-  find .
-
-Note: This will list ALL files recursively. Did you mean:
-1. find . -name "*.txt"           # Find specific file type
-2. find . -type f -mtime -1       # Find recent files
-3. find . -maxdepth 1             # Find in current directory only
-
-Select option (1-3) or press Enter to use generated command:
-```
-
 ### Safety Violation
 
 ```bash
 $ caro "delete everything in root directory"
 
-🔴 CRITICAL SAFETY VIOLATION
+Error: Unsafe command detected: Detected dangerous pattern(s) at Critical risk level
 
-This command would:
-  rm -rf /
+Safety block: Critical risk: recursive deletion
 
-Risk: Complete system destruction
-
-❌ This operation is blocked for safety.
-
-Did you mean one of these instead?
-- Delete files in current directory: rm -rf ./*
-- Delete specific folder: rm -rf ./folder-name
-- Clean temporary files: rm -rf /tmp/my-temp-files
-
-Try again with a safer request.
+Safer alternatives:
+  Try: find ~/projects -name '*.tmp' -type f -mtime +30 -ls
+  Preview files to delete first. Then use 'rm' on specific directories.
 ```
 
 ## Advanced Usage

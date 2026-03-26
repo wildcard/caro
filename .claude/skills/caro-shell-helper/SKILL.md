@@ -19,16 +19,16 @@ This skill helps users effectively leverage **Caro** (formerly Caro) - a Rust CL
 - 🚀 Integrates seamlessly with existing Caro installations
 - ⚙️ Provides installation guidance when Caro is not available
 
-## Default Backend: Claude Haiku 4.5
+## Default Backend: Embedded (Local LLM)
 
-**IMPORTANT**: When this skill is used within Claude Code, always use the Claude backend by default. This provides the fastest response times and best accuracy.
+**IMPORTANT**: Caro uses the embedded backend by default — a local Qwen model that runs entirely offline with no API keys required. This is the recommended backend for most users.
 
 ```bash
-# Default command format when running in Claude Code
-caro --backend claude "user's request here"
+# Default usage (embedded backend, no flags needed)
+caro "user's request here"
 ```
 
-The Claude backend uses **claude-haiku-4-5-20251101** for fast, cost-effective command generation. The API key is automatically provided by Claude Code.
+The embedded backend uses the Qwen2.5-Coder model for fast, private command generation. No external dependencies or API keys needed.
 
 ## When to Use This Skill
 
@@ -79,19 +79,19 @@ Once installed, the `caro` command will be available.
 When the user describes what they need, use Caro with the Claude backend (default for Claude Code):
 
 ```bash
-# Always use --backend claude when running in Claude Code
-caro --backend claude "user's natural language description"
+# Generate a command using Caro (embedded backend by default)
+caro "user's natural language description"
 ```
 
 **Example:**
 ```bash
-$ caro --backend claude "find all PDF files larger than 10MB in Downloads"
+$ caro "find all PDF files larger than 10MB in Downloads"
 
 Generated command:
   find ~/Downloads -name "*.pdf" -size +10M -ls
 
 Safety Assessment: ✅ Safe (Green)
-Backend: Claude (claude-haiku-4-5-20251101)
+Backend: Claude (Qwen2.5-Coder)
 Execute this command? (y/N)
 ```
 
@@ -210,10 +210,10 @@ find /tmp -type f -mtime +7 -user $(whoami) -delete
 
 Caro supports multiple inference backends. Help users choose:
 
-### Claude Backend (Default for Claude Code)
+### Embedded Backend (Default)
 - **Best for**: Running directly within Claude Code or with Anthropic API access
-- **Advantages**: Fastest, most accurate, uses Claude Haiku 4.5 by default
-- **Model**: claude-haiku-4-5-20251101 (default)
+- **Advantages**: No external dependencies, works offline, privacy-first
+- **Model**: Qwen2.5-Coder (quantized)
 - **Setup**:
   ```toml
   # ~/.config/caro/config.toml
@@ -221,17 +221,13 @@ Caro supports multiple inference backends. Help users choose:
   primary = "claude"
 
   [backend.claude]
-  model_name = "claude-haiku-4-5-20251101"  # Fast and cost-effective
+  model_name = "Qwen2.5-Coder"  # Fast and cost-effective
   # API key read from ANTHROPIC_API_KEY environment variable
   ```
 
 **When running in Claude Code**: The Claude backend is automatically preferred as it provides the best integration and fastest response times. No additional configuration is needed - Claude Code provides the API key automatically.
 
-### Embedded Backend (Default for Standalone)
-- **Best for**: Apple Silicon Macs (M1/M2/M3/M4), offline usage
-- **Advantages**: No external dependencies, works offline
-- **Model**: Qwen2.5-Coder-1.5B-Instruct (quantized)
-- **Setup**: Works out-of-the-box after installation
+
 
 ### Ollama Backend
 - **Best for**: Local model control, privacy-focused users
@@ -268,15 +264,15 @@ Caro supports multiple inference backends. Help users choose:
 
 **Response:**
 ```
-I'll help you generate a safe command using Caro with Claude Haiku 4.5.
+I'll help you generate a safe command using Caro with embedded backend.
 
-$ caro --backend claude "find all Python files modified in the last week"
+$ caro "find all Python files modified in the last week"
 
 Generated command:
   find . -name "*.py" -type f -mtime -7
 
 Safety Assessment: ✅ Safe (Green)
-Backend: Claude (claude-haiku-4-5-20251101)
+Backend: Claude (Qwen2.5-Coder)
 - Read-only operation
 - POSIX-compliant syntax
 - Searches current directory and subdirectories
@@ -296,15 +292,15 @@ Execute? (y/N)
 
 **Response:**
 ```
-This involves deletion, so let's be careful. I'll use Caro with Claude Haiku 4.5.
+This involves deletion, so let's be careful. I'll use Caro with embedded backend.
 
-$ caro --backend claude "delete all .log files older than 30 days"
+$ caro "delete all .log files older than 30 days"
 
 Generated command:
   find . -name "*.log" -type f -mtime +30 -delete
 
 Safety Assessment: 🟠 High (Orange)
-Backend: Claude (claude-haiku-4-5-20251101)
+Backend: Claude (Qwen2.5-Coder)
 - Performs deletion (irreversible)
 - Recursive operation
 - Affects multiple files
@@ -330,13 +326,13 @@ Proceed with preview? (y/N)
 
 **Response:**
 ```
-$ caro --backend claude "check disk space for all mounted filesystems"
+$ caro "check disk space for all mounted filesystems"
 
 Generated command:
   df -h
 
 Safety Assessment: ✅ Safe (Green)
-Backend: Claude (claude-haiku-4-5-20251101)
+Backend: Claude (Qwen2.5-Coder)
 - Read-only operation
 - Standard system utility
 - No modifications
@@ -358,17 +354,17 @@ For complex tasks, break them into steps:
 
 **Response:**
 ```
-This is a multi-step operation. Let's do it safely using Claude Haiku 4.5:
+This is a multi-step operation. Let's do it safely using embedded backend:
 
 Step 1: Find large files (>100MB)
-$ caro --backend claude "find files larger than 100MB"
+$ caro "find files larger than 100MB"
   find . -type f -size +100M -ls
 
 Step 2: Review the list (don't automate yet)
 [User reviews output]
 
 Step 3: Compress specific files
-$ caro --backend claude "compress file.txt with gzip"
+$ caro "compress file.txt with gzip"
   gzip -k file.txt
 
 The -k flag keeps the original file as a backup.
@@ -380,25 +376,20 @@ Would you like to proceed with step 1?
 
 Help users customize Caro behavior:
 
-```toml
-# ~/.config/caro/config.toml
+```bash
+# Set configuration values using caro config set
+caro config set safety moderate          # strict, moderate, or permissive
+caro config set backend embedded         # embedded (default) or ollama
+caro config set shell bash               # bash, zsh, fish, sh, powershell, cmd
+caro config set model-name codellama:7b  # model name for the backend
+caro config set telemetry.enabled false  # enable/disable telemetry
+caro config set safety.level strict      # safety level (strict/moderate/permissive)
+caro config set output.format json       # output format (json/yaml/plain)
 
-[safety]
-enabled = true
-level = "moderate"  # strict, moderate, or permissive
-require_confirmation = true
-
-[output]
-format = "plain"  # json, yaml, or plain
-color = true
-
-[backend]
-primary = "claude"  # claude (default in Claude Code), embedded, ollama, or vllm
-enable_fallback = true
-
-[backend.claude]
-model_name = "claude-haiku-4-5-20251101"  # Fast and cost-effective
-# API key read from ANTHROPIC_API_KEY environment variable
+# View current configuration
+caro config show
+caro config get safety
+caro config get backend
 ```
 
 ## Educational Notes
@@ -466,7 +457,7 @@ caro --version
 caro --verbose "your prompt here"
 
 # Try different backend
-caro --backend claude "your prompt here"   # Use Claude Haiku 4.5 (fastest)
+caro "your prompt here"   # Use embedded backend (fastest)
 caro --backend ollama "your prompt here"   # Use local Ollama
 caro --backend embedded "your prompt here" # Use embedded model
 ```
