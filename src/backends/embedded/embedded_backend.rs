@@ -303,12 +303,11 @@ Request: {}
                 Self::build_parse_retry_prompt(system_prompt, &last_raw_response)
             };
 
-            let raw_response = backend
-                .infer(&prompt, &self.config)
-                .await
-                .map_err(|e| GeneratorError::GenerationFailed {
+            let raw_response = backend.infer(&prompt, &self.config).await.map_err(|e| {
+                GeneratorError::GenerationFailed {
                     details: format!("Inference failed: {}", e),
-                })?;
+                }
+            })?;
 
             match self.parse_command_response(&raw_response) {
                 Ok(cmd) => {
@@ -353,7 +352,11 @@ Request: {}
             None => {
                 // All attempts exhausted — return enriched error with retry count
                 let last_output: String = last_raw_response.chars().take(200).collect();
-                let truncation_note = if last_raw_response.len() > 200 { "..." } else { "" };
+                let truncation_note = if last_raw_response.len() > 200 {
+                    "..."
+                } else {
+                    ""
+                };
                 Err(GeneratorError::ParseError {
                     content: format!(
                         "Response parsing failed after {} attempt{} (last response: {}{})",
@@ -610,8 +613,14 @@ mod tests {
         let original = "original system prompt";
         let malformed = r#"{"cmd": "find . -name "*.conf""}"#;
         let prompt = EmbeddedModelBackend::build_parse_retry_prompt(original, malformed);
-        assert!(prompt.contains(malformed), "Prompt must include the malformed output");
-        assert!(prompt.starts_with(original), "Prompt must start with original prompt");
+        assert!(
+            prompt.contains(malformed),
+            "Prompt must include the malformed output"
+        );
+        assert!(
+            prompt.starts_with(original),
+            "Prompt must start with original prompt"
+        );
     }
 
     #[test]
@@ -621,7 +630,10 @@ mod tests {
             prompt.contains("no prose") || prompt.contains("no markdown"),
             "Prompt must instruct model to avoid prose and markdown fences"
         );
-        assert!(prompt.contains("ONLY valid JSON"), "Prompt must say 'ONLY valid JSON'");
+        assert!(
+            prompt.contains("ONLY valid JSON"),
+            "Prompt must say 'ONLY valid JSON'"
+        );
     }
 
     #[test]
@@ -642,8 +654,14 @@ mod tests {
         let second_retry = EmbeddedModelBackend::build_parse_retry_prompt(original, "bad2");
 
         // Second retry is built from original, not from first_retry — no chaining
-        assert!(!second_retry.contains("bad1"), "Second retry must not include first malformed output");
-        assert!(second_retry.contains("bad2"), "Second retry must include latest malformed output");
+        assert!(
+            !second_retry.contains("bad1"),
+            "Second retry must not include first malformed output"
+        );
+        assert!(
+            second_retry.contains("bad2"),
+            "Second retry must include latest malformed output"
+        );
         assert!(second_retry.starts_with(original));
         // Should contain exactly one CORRECTION block
         assert_eq!(
@@ -708,12 +726,18 @@ mod tests {
 
     #[async_trait]
     impl InferenceBackend for MockInferenceBackend {
-        async fn infer(&self, prompt: &str, _config: &EmbeddedConfig) -> Result<String, GeneratorError> {
+        async fn infer(
+            &self,
+            prompt: &str,
+            _config: &EmbeddedConfig,
+        ) -> Result<String, GeneratorError> {
             self.call_count.fetch_add(1, Ordering::SeqCst);
             self.prompts_received.lock().await.push(prompt.to_string());
 
             if let Some(ref msg) = self.error_response {
-                return Err(GeneratorError::GenerationFailed { details: msg.clone() });
+                return Err(GeneratorError::GenerationFailed {
+                    details: msg.clone(),
+                });
             }
 
             let mut queue = self.ok_responses.lock().unwrap();
@@ -763,7 +787,11 @@ mod tests {
             .await;
 
         assert!(result.is_ok(), "Should succeed after retry: {:?}", result);
-        assert_eq!(call_count.load(Ordering::SeqCst), 2, "infer must be called exactly twice");
+        assert_eq!(
+            call_count.load(Ordering::SeqCst),
+            2,
+            "infer must be called exactly twice"
+        );
 
         // Verify second call used a correction prompt containing exactly one CORRECTION block
         let prompts = prompts.lock().await;
@@ -816,7 +844,11 @@ mod tests {
             .await;
 
         assert!(result.is_ok(), "Should succeed without retry: {:?}", result);
-        assert_eq!(call_count.load(Ordering::SeqCst), 1, "infer must be called exactly once");
+        assert_eq!(
+            call_count.load(Ordering::SeqCst),
+            1,
+            "infer must be called exactly once"
+        );
     }
 
     #[tokio::test]
@@ -830,7 +862,11 @@ mod tests {
             .await;
 
         assert!(result.is_err());
-        assert_eq!(call_count.load(Ordering::SeqCst), 1, "Non-parse errors must not trigger retry");
+        assert_eq!(
+            call_count.load(Ordering::SeqCst),
+            1,
+            "Non-parse errors must not trigger retry"
+        );
         assert!(
             matches!(result, Err(GeneratorError::GenerationFailed { .. })),
             "Error type must be preserved"

@@ -55,9 +55,7 @@ impl GenerationProfile {
     /// Get a description of what this profile does
     pub fn description(&self) -> &'static str {
         match self {
-            GenerationProfile::Generator => {
-                "Quick command generation with minimal output"
-            }
+            GenerationProfile::Generator => "Quick command generation with minimal output",
             GenerationProfile::Explainer => {
                 "Educational mode with detailed explanations of commands and options"
             }
