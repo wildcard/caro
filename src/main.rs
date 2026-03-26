@@ -31,6 +31,17 @@ pub struct ResolvedPrompt {
     pub source: PromptSource,
 }
 
+fn parse_bool(value: &str) -> Result<bool, String> {
+    match value.to_lowercase().as_str() {
+        "true" | "1" | "yes" | "on" => Ok(true),
+        "false" | "0" | "no" | "off" => Ok(false),
+        _ => Err(format!(
+            "Invalid boolean value '{}'. Use true/false, 1/0, yes/no, or on/off",
+            value
+        )),
+    }
+}
+
 /// Resolve prompt from multiple input sources following priority order
 ///
 /// Priority: -p/--prompt flag > stdin > trailing arguments
@@ -940,9 +951,47 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                     config.safety_level = level;
                     println!("{} Set safety level to '{:?}'", "✓".green(), level);
                 }
+                // Telemetry keys
+                "telemetry.enabled" => {
+                    let enabled = parse_bool(&value)?;
+                    config.telemetry.enabled = enabled;
+                    println!("{} Set telemetry.enabled to '{}'", "✓".green(), enabled);
+                }
+                "telemetry.level" => {
+                    let level: caro::telemetry::TelemetryLevel = value
+                        .parse()
+                        .map_err(|e| format!("Invalid telemetry level '{}': {}", value, e))?;
+                    config.telemetry.level = level;
+                    println!("{} Set telemetry.level to '{:?}'", "✓".green(), level);
+                }
+                "telemetry.air_gapped" => {
+                    let air_gapped = parse_bool(&value)?;
+                    config.telemetry.air_gapped = air_gapped;
+                    println!("{} Set telemetry.air_gapped to '{}'", "✓".green(), air_gapped);
+                }
+                // Safety sub-keys
+                "safety.level" => {
+                    let level: caro::models::SafetyLevel = value
+                        .parse()
+                        .map_err(|e| format!("Invalid safety level '{}': {}", value, e))?;
+                    config.safety_level = level;
+                    println!("{} Set safety.level to '{:?}'", "✓".green(), level);
+                }
+                // Output keys
+                "output.format" => {
+                    let _: caro::cli::OutputFormat = value
+                        .parse()
+                        .map_err(|e| format!("Invalid output format '{}': {}", value, e))?;
+                    println!("{} Set output.format to '{}'", "✓".green(), value);
+                }
+                // Backend sub-keys
+                "backend.primary" => {
+                    config.default_model = Some(value.to_lowercase());
+                    println!("{} Set backend.primary to '{}'", "✓".green(), value.to_lowercase());
+                }
                 _ => {
                     return Err(format!(
-                        "Unknown config key '{}'. Valid keys: backend, model-name, shell, safety",
+                        "Unknown config key '{}'. Valid keys: backend, model-name, shell, safety, telemetry.enabled, telemetry.level, telemetry.air_gapped, safety.level, output.format, backend.primary",
                         key
                     ));
                 }
@@ -985,9 +1034,32 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                 "safety" => {
                     println!("{}: {:?}", "safety".bold(), config.safety_level);
                 }
+                // Telemetry keys
+                "telemetry.enabled" => {
+                    println!("{}: {}", "telemetry.enabled".bold(), config.telemetry.enabled);
+                }
+                "telemetry.level" => {
+                    println!("{}: {:?}", "telemetry.level".bold(), config.telemetry.level);
+                }
+                "telemetry.air_gapped" => {
+                    println!("{}: {}", "telemetry.air_gapped".bold(), config.telemetry.air_gapped);
+                }
+                // Safety sub-keys
+                "safety.level" => {
+                    println!("{}: {:?}", "safety.level".bold(), config.safety_level);
+                }
+                // Output keys
+                "output.format" => {
+                    println!("{}: (stored in CLI args)", "output.format".bold());
+                }
+                // Backend sub-keys
+                "backend.primary" => {
+                    let value = config.default_model.as_deref().unwrap_or("(auto-detect)");
+                    println!("{}: {}", "backend.primary".bold(), value);
+                }
                 _ => {
                     return Err(format!(
-                        "Unknown config key '{}'. Valid keys: backend, model-name, shell, safety",
+                        "Unknown config key '{}'. Valid keys: backend, model-name, shell, safety, telemetry.enabled, telemetry.level, telemetry.air_gapped, safety.level, output.format, backend.primary",
                         key
                     ));
                 }
@@ -1995,6 +2067,24 @@ async fn main() {
     if cli.no_telemetry {
         user_config.telemetry.enabled = false;
         user_config.telemetry.first_run = false;
+    }
+
+    // Env var overrides (lower priority than CLI flags, higher than config file)
+    if let Ok(val) = std::env::var("CARO_TELEMETRY_ENABLED") {
+        if let Ok(enabled) = parse_bool(&val) {
+            user_config.telemetry.enabled = enabled;
+            user_config.telemetry.first_run = false;
+        }
+    }
+    if let Ok(backend) = std::env::var("CARO_BACKEND") {
+        if cli.backend.is_none() {
+            cli.backend = Some(backend);
+        }
+    }
+    if let Ok(safety) = std::env::var("CARO_SAFETY") {
+        if cli.safety.is_none() {
+            cli.safety = Some(safety);
+        }
     }
 
     // Check for first-run consent

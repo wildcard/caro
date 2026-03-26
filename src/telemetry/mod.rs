@@ -40,6 +40,7 @@ pub mod uploader;
 
 pub use collector::TelemetryCollector;
 pub use config::TelemetryConfig;
+pub use config::TelemetryLevel;
 pub use events::{Event, EventType, SessionId};
 pub use storage::TelemetryStorage;
 
