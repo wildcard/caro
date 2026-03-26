@@ -929,6 +929,178 @@ impl StaticMatcher {
                 description: "Compress directory with maximum compression".to_string(),
             },
 
+            // ===== CRITICAL GAPS: Common queries that fail today =====
+
+            // Pattern 70: "delete all log files" / "remove log files" / "clear logs"
+            PatternEntry {
+                required_keywords: vec!["delete".to_string(), "log".to_string()],
+                optional_keywords: vec!["remove".to_string(), "clear".to_string(), "all".to_string(), "files".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(delete|remove|clear|rm)\s*(all)?\s*(log|logs|logfile)\s*(files?)?").unwrap()),
+                gnu_command: r#"find . -name '*.log' -type f -mtime +30 -delete"#.to_string(),
+                bsd_command: Some(r#"find . -name '*.log' -type f -mtime +30 -delete"#.to_string()),
+                description: "Delete old log files".to_string(),
+            },
+
+            // Pattern 71: "check disk space" / "show disk usage" / "disk space"
+            PatternEntry {
+                required_keywords: vec!["disk".to_string()],
+                optional_keywords: vec!["check".to_string(), "show".to_string(), "space".to_string(), "usage".to_string(), "free".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(check|show|display|get)?\s*(disk|drive).*(space|usage|free|available)?").unwrap()),
+                gnu_command: "df -h".to_string(),
+                bsd_command: Some("df -h".to_string()),
+                description: "Check disk space usage".to_string(),
+            },
+
+            // Pattern 72: "show top processes by memory" / "processes sorted by memory"
+            PatternEntry {
+                required_keywords: vec!["process".to_string(), "memory".to_string()],
+                optional_keywords: vec!["show".to_string(), "top".to_string(), "sorted".to_string(), "by".to_string(), "usage".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|list|top|display)?\s*(process|proc).*(by|sorted|using|consuming)?.*(memory|mem|ram|cpu)").unwrap()),
+                gnu_command: "ps aux --sort=-%mem | head -20".to_string(),
+                bsd_command: Some("ps aux -m | head -20".to_string()),
+                description: "Show processes sorted by memory usage".to_string(),
+            },
+
+            // Pattern 73: "count files" / "how many files"
+            PatternEntry {
+                required_keywords: vec!["count".to_string(), "file".to_string()],
+                optional_keywords: vec!["how".to_string(), "many".to_string(), "number".to_string(), "total".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(count|how many|number of|total)\s*(of)?\s*(files?|documents?)").unwrap()),
+                gnu_command: "find . -type f | wc -l".to_string(),
+                bsd_command: Some("find . -type f | wc -l".to_string()),
+                description: "Count files in directory tree".to_string(),
+            },
+
+            // Pattern 74: "check uptime" / "how long has the system been running"
+            PatternEntry {
+                required_keywords: vec!["uptime".to_string()],
+                optional_keywords: vec!["check".to_string(), "show".to_string(), "how".to_string(), "long".to_string(), "running".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(check|show|display|what.?s? the)?\s*(uptime|how long.*(running|up)|system.*up)").unwrap()),
+                gnu_command: "uptime".to_string(),
+                bsd_command: Some("uptime".to_string()),
+                description: "Show system uptime".to_string(),
+            },
+
+            // Pattern 75: "show environment variables" / "list env vars"
+            PatternEntry {
+                required_keywords: vec!["env".to_string()],
+                optional_keywords: vec!["show".to_string(), "list".to_string(), "print".to_string(), "variables".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|list|print|display|get)\s*(all)?\s*(environment|env)\s*(variables|vars)?").unwrap()),
+                gnu_command: "env | sort".to_string(),
+                bsd_command: Some("env | sort".to_string()),
+                description: "Show environment variables".to_string(),
+            },
+
+            // Pattern 76: "show memory usage" / "check RAM"
+            PatternEntry {
+                required_keywords: vec!["memory".to_string()],
+                optional_keywords: vec!["show".to_string(), "check".to_string(), "usage".to_string(), "free".to_string(), "available".to_string(), "ram".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|check|display|get)\s*(memory|mem|ram)\s*(usage|free|available)?").unwrap()),
+                gnu_command: "free -h".to_string(),
+                bsd_command: Some("vm_stat".to_string()),
+                description: "Show memory/RAM usage".to_string(),
+            },
+
+            // Pattern 77: "show largest files" / "biggest files"
+            PatternEntry {
+                required_keywords: vec!["largest".to_string(), "file".to_string()],
+                optional_keywords: vec!["show".to_string(), "find".to_string(), "biggest".to_string(), "top".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|find|list|get)?\s*(largest|biggest|big|top)\s*(files?|objects?)").unwrap()),
+                gnu_command: "du -sh * | sort -hr | head -20".to_string(),
+                bsd_command: Some("du -sh * | sort -hr | head -20".to_string()),
+                description: "Show largest files/directories".to_string(),
+            },
+
+            // Pattern 78: "delete temp files" / "clean temp directory"
+            PatternEntry {
+                required_keywords: vec!["temp".to_string()],
+                optional_keywords: vec!["delete".to_string(), "remove".to_string(), "clean".to_string(), "files".to_string(), "directory".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(delete|remove|clean|clear)\s*(all)?\s*(temp|tmp)\s*(files?|directory|dir|folder)?").unwrap()),
+                gnu_command: "find /tmp -type f -user $(whoami) -mtime +7 -delete".to_string(),
+                bsd_command: Some("find /tmp -type f -user $(whoami) -mtime +7 -delete".to_string()),
+                description: "Delete old temp files".to_string(),
+            },
+
+            // Pattern 79: "git status" / "check git repo status"
+            PatternEntry {
+                required_keywords: vec!["git".to_string(), "status".to_string()],
+                optional_keywords: vec!["check".to_string(), "show".to_string(), "repo".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(check|show|get)?\s*(git|repo|repository)\s*(status|state)").unwrap()),
+                gnu_command: "git status".to_string(),
+                bsd_command: Some("git status".to_string()),
+                description: "Show git repository status".to_string(),
+            },
+
+            // Pattern 80: "git log recent commits" / "show recent commits"
+            PatternEntry {
+                required_keywords: vec!["git".to_string(), "log".to_string()],
+                optional_keywords: vec!["recent".to_string(), "show".to_string(), "commits".to_string(), "history".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|get|display)?\s*(git)?\s*(log|commits?|history)\s*(recent|last|latest)?").unwrap()),
+                gnu_command: "git log --oneline -10".to_string(),
+                bsd_command: Some("git log --oneline -10".to_string()),
+                description: "Show recent git commits".to_string(),
+            },
+
+            // Pattern 81: "find all PDF files larger than X"
+            PatternEntry {
+                required_keywords: vec!["pdf".to_string(), "large".to_string()],
+                optional_keywords: vec!["find".to_string(), "all".to_string(), "bigger".to_string(), "than".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|search|locate)\s*(all)?\s*(pdf|\.pdf)\s*(files?)?\s*(larger|bigger|greater)\s*(than)?\s*(\d+)\s*(mb|gb|m|g)?").unwrap()),
+                gnu_command: r#"find . -name "*.pdf" -type f -size +10M"#.to_string(),
+                bsd_command: Some(r#"find . -name "*.pdf" -type f -size +10M"#.to_string()),
+                description: "Find large PDF files".to_string(),
+            },
+
+            // Pattern 82: "delete old files" / "remove files older than"
+            PatternEntry {
+                required_keywords: vec!["delete".to_string(), "old".to_string()],
+                optional_keywords: vec!["remove".to_string(), "files".to_string(), "older".to_string(), "than".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(delete|remove|clean)\s*(all)?\s*(old)\s*(files?)?\s*(older\s*than\s*\d+\s*(days?|weeks?|months?))??").unwrap()),
+                gnu_command: "find . -type f -mtime +30 -delete".to_string(),
+                bsd_command: Some("find . -type f -mtime +30 -delete".to_string()),
+                description: "Delete old files".to_string(),
+            },
+
+            // Pattern 83: "kill process by name"
+            PatternEntry {
+                required_keywords: vec!["kill".to_string(), "process".to_string()],
+                optional_keywords: vec!["stop".to_string(), "end".to_string(), "terminate".to_string(), "by".to_string(), "name".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(kill|stop|end|terminate)\s*(a|the)?\s*(process|app|application)\s*(called|named|by name)?").unwrap()),
+                gnu_command: "pkill PROCESS_NAME".to_string(),
+                bsd_command: Some("pkill PROCESS_NAME".to_string()),
+                description: "Kill process by name".to_string(),
+            },
+
+            // Pattern 84: "show all listening ports"
+            PatternEntry {
+                required_keywords: vec!["listening".to_string(), "port".to_string()],
+                optional_keywords: vec!["show".to_string(), "all".to_string(), "open".to_string(), "network".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|list|display|get)\s*(all)?\s*(listening|open)\s*(tcp|udp|network)?\s*ports?").unwrap()),
+                gnu_command: "netstat -tln".to_string(),
+                bsd_command: Some("netstat -tln".to_string()),
+                description: "Show listening network ports".to_string(),
+            },
+
+            // Pattern 85: "show CPU usage"
+            PatternEntry {
+                required_keywords: vec!["cpu".to_string()],
+                optional_keywords: vec!["show".to_string(), "check".to_string(), "usage".to_string(), "top".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|check|display|get)\s*(cpu|processor)\s*(usage|load|utilization)?").unwrap()),
+                gnu_command: "top -bn1 | head -5".to_string(),
+                bsd_command: Some("top -l 1 | head -5".to_string()),
+                description: "Show CPU usage".to_string(),
+            },
+
+            // Pattern 86: "git diff" / "what changed"
+            PatternEntry {
+                required_keywords: vec!["git".to_string(), "diff".to_string()],
+                optional_keywords: vec!["show".to_string(), "what".to_string(), "changed".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|get|what)?\s*(git)\s*(diff|changes|changed)").unwrap()),
+                gnu_command: "git diff".to_string(),
+                bsd_command: Some("git diff".to_string()),
+                description: "Show git diff of changes".to_string(),
+            },
+
         ];
 
         // Sort patterns by specificity (number of required keywords) in descending order.
