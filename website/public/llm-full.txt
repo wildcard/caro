@@ -159,15 +159,15 @@ A: Yes—Caro is designed with AI agents in mind. We recommend defense in depth:
 
 A: Safety patterns are baked into the binary. When you update Caro (cargo install caro --force), you get the latest patterns. The core dangerous commands don
 
-A: Caro supports multiple backends: Local: Ollama, MLX (Apple Silicon), llama.cpp. Cloud: Anthropic Claude, OpenAI GPT. Caro automatically selects the best available backend or you can specify one explicitly.
+A: Caro supports multiple backends: Local: Ollama, MLX (Apple Silicon), llama.cpp. Cloud: Anthropic Claude, OpenAI GPT (requires building with --features remote-backends). Caro automatically selects the best available backend or you can specify one explicitly.
 
-A: For privacy and offline use, choose local backends. On Apple Silicon Macs, MLX offers the best performance with hardware acceleration. Ollama is great cross-platform. For best quality responses, cloud backends like Claude typically perform better but require API keys.
+A: For privacy and offline use, choose local backends. On Apple Silicon Macs, MLX offers the best performance with hardware acceleration. Ollama is great cross-platform. For best quality responses, cloud backends like Claude typically perform better but require API keys and building with --features remote-backends.
 
 A: Install Ollama from ollama.ai, then run ollama pull llama3 (or another model). Caro will automatically detect Ollama when it
 
 A: MLX is built into Caro for Apple Silicon Macs. Ensure you have the mlx Python package installed. Caro will automatically use MLX when available on M1/M2/M3 Macs for hardware-accelerated local inference.
 
-A: Yes! With Ollama, you can use any GGUF model. With MLX, you can use any MLX-compatible model. Point Caro to your model with the --model flag or set it in your config file.
+A: Yes! With Ollama, you can use any GGUF model. With MLX, you can use any MLX-compatible model. Point Caro to your model with the --model-name flag or set it in your config file.
 
 A: Simply run caro \
 
@@ -303,6 +303,8 @@ Caro stands on the shoulders of giants. This page honors the open source project
 
 Stories, updates, and insights from Caro's journey - your loyal shell companion
 
+How Kyaro Guides Us: The Soul Behind Every Decision
+
 Standing With Free Software: Our Debt to GNU, FSF, and FreeBSD
 
 The Rust Revolution: How Modern Tools Are Reimagining Unix
@@ -314,6 +316,8 @@ Building Caro with Security in Mind
 Batteries Included: Caro
 
 Why Caro? The Story Behind Your Terminal Companion
+
+Why Caro is built the way it is, the values that drive our decisions, and how a real Shiba Inu named Kyaro shapes everything from product choices to our vision for hyper-localization.
 
 Caro wouldn
 
@@ -350,6 +354,14 @@ Why Caro ships with everything you need to run AI-powered command generation loc
 **URL**: https://caro.sh/blog/claude-skill-launch
 
 Caro comes to Claude Code! Generate safe, POSIX-compliant shell commands directly in your Claude sessions with comprehensive safety validation and educational guidance.
+
+---
+
+## How Kyaro Guides Us: The Soul Behind Every Decision
+
+**URL**: https://caro.sh/blog/how-kyaro-guides-us
+
+Why Caro is built the way it is, the values that drive our decisions, and how a real Shiba Inu named Kyaro shapes everything from product choices to our vision for hyper-localization.
 
 ---
 
@@ -483,6 +495,14 @@ Safety Approach
 
 ---
 
+## Open Source AI Shell Commands
+
+**URL**: https://caro.sh/open-source-shell-ai
+
+Caro is the open-source CLI that converts natural language to safe shell commands. 100% local inference, community-driven, zero telemetry. Join the movement.
+
+---
+
 ## What Caro Does | AI Shell Assistant
 
 **URL**: https://caro.sh/product
@@ -564,6 +584,14 @@ Sponsor Caro's development through GitHub Sponsors or Open Collective. Your cont
 Sponsor
 
 Fund Caro open source development
+
+---
+
+## Try Caro - Interactive Shell Companion Demo
+
+**URL**: https://caro.sh/try-caro
+
+Experience Caro's AI-powered shell command generation in your browser. Try the safety-first terminal companion that converts natural language to POSIX commands.
 
 ---
 
@@ -947,4 +975,4 @@ Yes! Caro is licensed under AGPL-3.0. You can read, modify, and distribute the s
 
 ---
 
-*Generated on 2026-01-19*
+*Generated on 2026-03-27*

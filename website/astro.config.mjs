@@ -12,6 +12,13 @@ export default defineConfig({
   build: {
     inlineStylesheets: 'auto',
   },
+  vite: {
+    build: {
+      rollupOptions: {
+        external: ['/ratzilla-demo/caro_tui_demo.js'],
+      },
+    },
+  },
   i18n: {
     defaultLocale: 'en',
     locales: ['en', 'es', 'fr', 'pt', 'de', 'he', 'ar', 'uk', 'ru', 'ja', 'ko', 'hi', 'ur', 'fil', 'id'],
