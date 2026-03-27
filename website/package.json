@@ -24,7 +24,7 @@
     "@vercel/analytics": "^1.6.1",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/xterm": "^6.0.0",
-    "astro": "^5.16.6",
+    "astro": "^5.18.1",
     "canvas-confetti": "^1.9.4"
   },
   "devDependencies": {
@@ -32,7 +32,7 @@
     "@storybook/addon-a11y": "^8.6.15",
     "@storybook/addon-essentials": "^8.6.14",
     "@storybook/react": "^8.6.15",
-    "@storybook/react-vite": "^8.6.15",
+    "@storybook/react-vite": "^10.3.3",
     "@storybook/theming": "^8.6.15",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
