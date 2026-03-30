@@ -444,6 +444,27 @@ enum Commands {
         #[arg(short, long, default_value = "5")]
         limit: usize,
     },
+
+    /// Validate a shell command for safety without executing it (ADR-015)
+    ///
+    /// Exits 0=allow, 1=block, 2=warn, 3=error.
+    /// Use --json for machine-readable output (agent/script integration).
+    Validate {
+        /// The shell command to validate
+        command: String,
+
+        /// Output structured JSON assessment payload
+        #[arg(long)]
+        json: bool,
+
+        /// Shell type to validate against: bash, zsh, fish, sh (default: auto-detect)
+        #[arg(short, long)]
+        shell: Option<String>,
+
+        /// Safety level: strict | moderate | permissive (default: moderate)
+        #[arg(long)]
+        safety: Option<String>,
+    },
     // /// Manage telemetry data and settings
     // Telemetry {
     //     #[command(subcommand)]
@@ -1035,6 +1056,65 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
     }
 
     Ok(())
+}
+
+// =============================================================================
+// Validate Command (ADR-015: Universal Agent Integration Protocol)
+// =============================================================================
+
+/// Validate a shell command for safety and return a structured assessment.
+///
+/// This is the core of `caro validate --json` — a pure safety check with no
+/// command generation or execution. Designed for agent/script integration:
+///
+/// ```bash
+/// caro validate --json "rm -rf /"   # exit 1, JSON decision=block
+/// caro validate --json "ls -la"     # exit 0, JSON decision=allow
+/// ```
+///
+/// Exit codes: 0=allow, 1=block, 2=warn, 3=internal error
+async fn handle_validate_command(
+    command: String,
+    shell_arg: Option<String>,
+    safety_arg: Option<String>,
+) -> Result<caro::safety::AssessmentPayload, String> {
+    use std::str::FromStr;
+    use std::time::Instant;
+
+    // Resolve shell: CLI arg → auto-detect
+    let shell = match shell_arg {
+        Some(ref s) => caro::models::ShellType::from_str(s).unwrap_or_else(|_| {
+            caro::models::ShellType::detect()
+        }),
+        None => caro::models::ShellType::detect(),
+    };
+
+    // Resolve safety level: CLI arg → moderate default
+    let safety_level = match safety_arg {
+        Some(ref s) => s
+            .parse::<caro::models::SafetyLevel>()
+            .unwrap_or(caro::models::SafetyLevel::Moderate),
+        None => caro::models::SafetyLevel::Moderate,
+    };
+
+    let config = caro::safety::SafetyConfig::from_level(safety_level);
+    let validator = caro::safety::SafetyValidator::new(config)
+        .map_err(|e| format!("Failed to initialize safety validator: {e}"))?;
+
+    let start = Instant::now();
+    let result = validator
+        .validate_command(&command, shell)
+        .await
+        .map_err(|e| format!("Validation error: {e}"))?;
+    let elapsed_ms = start.elapsed().as_millis() as u64;
+
+    let mut payload = caro::safety::AssessmentPayload::from_validation(
+        result,
+        caro::safety::ReviewedBy::PatternsOnly,
+    );
+    payload.execution_time_ms = elapsed_ms;
+
+    Ok(payload)
 }
 
 // =============================================================================
@@ -1901,6 +1981,45 @@ async fn main() {
         //         }
         //     }
         // }
+        Some(Commands::Validate {
+            command,
+            json,
+            shell,
+            safety,
+        }) => {
+            match handle_validate_command(command, shell, safety).await {
+                Ok(payload) => {
+                    let exit_code = payload.exit_code();
+                    if json {
+                        match serde_json::to_string_pretty(&payload) {
+                            Ok(s) => println!("{s}"),
+                            Err(e) => {
+                                eprintln!("caro: failed to serialize assessment: {e}");
+                                process::exit(3);
+                            }
+                        }
+                    } else {
+                        let status = match payload.decision {
+                            caro::safety::Decision::Allow => "✓ ALLOW",
+                            caro::safety::Decision::Warn => "⚠ WARN ",
+                            caro::safety::Decision::Block => "✗ BLOCK",
+                        };
+                        println!(
+                            "{status}  risk={}/100  {}",
+                            payload.risk_score, payload.rationale
+                        );
+                        if let Some(alt) = &payload.suggested_alternative {
+                            println!("  Suggested: {alt}");
+                        }
+                    }
+                    process::exit(exit_code);
+                }
+                Err(e) => {
+                    eprintln!("caro validate: {e}");
+                    process::exit(3);
+                }
+            }
+        }
         None => {
             // Continue to regular command generation
         }
