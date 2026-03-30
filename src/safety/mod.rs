@@ -5,7 +5,9 @@
 //!
 //! # Architecture
 //!
-//! - **Pattern Database**: 52 pre-compiled regex patterns covering Critical/High/Moderate risks
+//! - **Decision Pipeline**: 4-stage evaluation inspired by Claude Code's auto mode
+//! - **Safe Patterns**: Known-safe commands auto-approved without validation
+//! - **Pattern Database**: 60+ pre-compiled regex patterns covering Critical/High/Moderate risks
 //! - **Context-Aware Matching**: Distinguishes between dangerous commands and safe string literals
 //! - **Performance**: Patterns compiled once at startup using `once_cell::Lazy` (30x speedup)
 //! - **Extensibility**: Supports custom patterns via `SafetyConfig`
@@ -33,7 +35,7 @@ use serde::{Deserialize, Serialize};
 use crate::models::{RiskLevel, SafetyLevel, ShellType};
 
 pub use patterns::{
-    get_compiled_patterns_for_shell, get_patterns_by_risk, get_patterns_for_shell,
+    get_compiled_patterns_for_shell, get_patterns_by_risk, get_patterns_for_shell, is_known_safe,
     validate_patterns,
 };
 
@@ -481,3 +483,326 @@ pub enum ValidationError {
 }
 
 // Types are already public, no re-export needed
+
+/// Tiered safety decision inspired by Claude Code's auto mode.
+///
+/// Instead of a binary allow/block, commands get one of four outcomes.
+/// This enables graceful degradation: uncertain commands get confirmation
+/// prompts instead of hard blocks.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SafetyDecision {
+    /// Safe to execute immediately (matches known-safe pattern or allowlist)
+    Allow {
+        reason: String,
+    },
+    /// Probably safe, but show a warning to the user
+    AllowWithWarning {
+        warning: String,
+    },
+    /// Risky command — ask user for confirmation before executing
+    AskConfirmation {
+        risk_level: RiskLevel,
+        explanation: String,
+        matched_patterns: Vec<String>,
+    },
+    /// Dangerous command — refuse to execute
+    Block {
+        risk_level: RiskLevel,
+        explanation: String,
+        matched_patterns: Vec<String>,
+    },
+}
+
+impl SafetyDecision {
+    /// Whether this decision allows execution (with or without warning)
+    pub fn is_allowed(&self) -> bool {
+        matches!(self, Self::Allow { .. } | Self::AllowWithWarning { .. })
+    }
+
+    /// Whether this decision requires user interaction before proceeding
+    pub fn needs_confirmation(&self) -> bool {
+        matches!(self, Self::AskConfirmation { .. })
+    }
+
+    /// Whether this decision blocks execution entirely
+    pub fn is_blocked(&self) -> bool {
+        matches!(self, Self::Block { .. })
+    }
+}
+
+/// Decision pipeline that evaluates commands through multiple stages.
+///
+/// Inspired by Claude Code's auto mode decision flow:
+/// 1. Known-safe patterns → auto-approve
+/// 2. User allowlist → auto-approve
+/// 3. Danger pattern matching → block or confirm
+/// 4. Default → allow with no warnings
+///
+/// This replaces direct use of `SafetyValidator` for the primary flow,
+/// adding a fast-path for safe commands and nuanced outcomes for risky ones.
+pub struct DecisionPipeline {
+    validator: SafetyValidator,
+}
+
+impl DecisionPipeline {
+    /// Create a new decision pipeline wrapping an existing validator
+    pub fn new(validator: SafetyValidator) -> Self {
+        Self { validator }
+    }
+
+    /// Create a pipeline with default moderate safety config
+    pub fn default_config() -> Result<Self, ValidationError> {
+        let validator = SafetyValidator::new(SafetyConfig::default())?;
+        Ok(Self { validator })
+    }
+
+    /// Evaluate a command through the full decision pipeline
+    pub async fn evaluate(
+        &self,
+        command: &str,
+        shell: ShellType,
+    ) -> Result<SafetyDecision, ValidationError> {
+        // Stage 1: Check known-safe patterns (fast path)
+        if let Some(reason) = is_known_safe(command) {
+            return Ok(SafetyDecision::Allow {
+                reason: reason.to_string(),
+            });
+        }
+
+        // Stage 2: Check user allowlist (from SafetyConfig)
+        for allow_pattern in &self.validator.config.allowlist_patterns {
+            if let Ok(regex) = regex::Regex::new(allow_pattern) {
+                if regex.is_match(command) {
+                    return Ok(SafetyDecision::Allow {
+                        reason: "Command matches user allowlist".to_string(),
+                    });
+                }
+            }
+        }
+
+        // Stage 3: Full danger pattern validation
+        let result = self.validator.validate_command(command, shell).await?;
+
+        if result.matched_patterns.is_empty() {
+            // No dangerous patterns matched — safe to execute
+            return Ok(SafetyDecision::Allow {
+                reason: "No dangerous patterns detected".to_string(),
+            });
+        }
+
+        // Determine outcome based on risk level and safety config
+        let safety_level = self.validator.config.safety_level;
+
+        if result.risk_level.is_blocked(safety_level) {
+            Ok(SafetyDecision::Block {
+                risk_level: result.risk_level,
+                explanation: result.explanation,
+                matched_patterns: result.matched_patterns,
+            })
+        } else if result.risk_level.requires_confirmation(safety_level) {
+            Ok(SafetyDecision::AskConfirmation {
+                risk_level: result.risk_level,
+                explanation: result.explanation,
+                matched_patterns: result.matched_patterns,
+            })
+        } else {
+            // Patterns matched but below confirmation threshold — warn only
+            Ok(SafetyDecision::AllowWithWarning {
+                warning: result.explanation,
+            })
+        }
+    }
+
+    /// Access the underlying validator for direct use
+    pub fn validator(&self) -> &SafetyValidator {
+        &self.validator
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_pipeline(safety_level: SafetyLevel) -> DecisionPipeline {
+        let config = SafetyConfig::from_level(safety_level);
+        let validator = SafetyValidator::new(config).unwrap();
+        DecisionPipeline::new(validator)
+    }
+
+    // --- SafetyDecision tests ---
+
+    #[test]
+    fn test_safety_decision_is_allowed() {
+        let allow = SafetyDecision::Allow {
+            reason: "test".to_string(),
+        };
+        assert!(allow.is_allowed());
+        assert!(!allow.needs_confirmation());
+        assert!(!allow.is_blocked());
+    }
+
+    #[test]
+    fn test_safety_decision_allow_with_warning() {
+        let warn = SafetyDecision::AllowWithWarning {
+            warning: "careful".to_string(),
+        };
+        assert!(warn.is_allowed());
+        assert!(!warn.needs_confirmation());
+        assert!(!warn.is_blocked());
+    }
+
+    #[test]
+    fn test_safety_decision_ask_confirmation() {
+        let ask = SafetyDecision::AskConfirmation {
+            risk_level: RiskLevel::High,
+            explanation: "risky".to_string(),
+            matched_patterns: vec!["test".to_string()],
+        };
+        assert!(!ask.is_allowed());
+        assert!(ask.needs_confirmation());
+        assert!(!ask.is_blocked());
+    }
+
+    #[test]
+    fn test_safety_decision_block() {
+        let block = SafetyDecision::Block {
+            risk_level: RiskLevel::Critical,
+            explanation: "dangerous".to_string(),
+            matched_patterns: vec!["test".to_string()],
+        };
+        assert!(!block.is_allowed());
+        assert!(!block.needs_confirmation());
+        assert!(block.is_blocked());
+    }
+
+    // --- DecisionPipeline tests ---
+
+    #[tokio::test]
+    async fn test_pipeline_allows_safe_commands() {
+        let pipeline = make_pipeline(SafetyLevel::Strict);
+
+        let decision = pipeline.evaluate("ls -la", ShellType::Bash).await.unwrap();
+        assert!(decision.is_allowed(), "ls -la should be auto-allowed");
+
+        let decision = pipeline.evaluate("git status", ShellType::Bash).await.unwrap();
+        assert!(decision.is_allowed(), "git status should be auto-allowed");
+
+        let decision = pipeline.evaluate("cargo test", ShellType::Bash).await.unwrap();
+        assert!(decision.is_allowed(), "cargo test should be auto-allowed");
+    }
+
+    #[tokio::test]
+    async fn test_pipeline_blocks_critical_commands() {
+        let pipeline = make_pipeline(SafetyLevel::Moderate);
+
+        let decision = pipeline.evaluate("rm -rf /", ShellType::Bash).await.unwrap();
+        assert!(decision.is_blocked(), "rm -rf / should be blocked");
+    }
+
+    #[tokio::test]
+    async fn test_pipeline_asks_confirmation_for_risky() {
+        let pipeline = make_pipeline(SafetyLevel::Moderate);
+
+        let decision = pipeline
+            .evaluate("git push --force origin main", ShellType::Bash)
+            .await
+            .unwrap();
+        // With moderate safety, HIGH risk should require confirmation
+        assert!(
+            decision.needs_confirmation() || decision.is_blocked(),
+            "Force push should need confirmation or be blocked"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_pipeline_safe_commands_bypass_validation() {
+        // Even with strict safety, known-safe commands should pass through
+        let pipeline = make_pipeline(SafetyLevel::Strict);
+
+        let decision = pipeline.evaluate("pwd", ShellType::Bash).await.unwrap();
+        assert!(
+            decision.is_allowed(),
+            "pwd should be allowed even in strict mode"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_pipeline_chained_commands_not_safe() {
+        let pipeline = make_pipeline(SafetyLevel::Strict);
+
+        // Even though "ls" is safe, "ls && rm -rf /" should not be auto-allowed
+        let decision = pipeline
+            .evaluate("ls && rm -rf /", ShellType::Bash)
+            .await
+            .unwrap();
+        assert!(
+            !decision.is_allowed() || decision == SafetyDecision::AllowWithWarning { warning: String::new() },
+            "Chained commands with dangerous content should not be auto-allowed: {:?}",
+            decision
+        );
+    }
+
+    #[tokio::test]
+    async fn test_pipeline_unknown_command_allowed() {
+        let pipeline = make_pipeline(SafetyLevel::Moderate);
+
+        // An unknown but harmless command should be allowed
+        let decision = pipeline
+            .evaluate("my-custom-tool --output file.txt", ShellType::Bash)
+            .await
+            .unwrap();
+        assert!(
+            decision.is_allowed(),
+            "Unknown harmless commands should be allowed"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_pipeline_allowlist_overrides() {
+        let mut config = SafetyConfig::strict();
+        config.add_allowlist_pattern(r"^docker\s+run\s+--rm");
+        let validator = SafetyValidator::new(config).unwrap();
+        let pipeline = DecisionPipeline::new(validator);
+
+        let decision = pipeline
+            .evaluate("docker run --rm alpine echo hello", ShellType::Bash)
+            .await
+            .unwrap();
+        assert!(decision.is_allowed(), "Allowlisted commands should be allowed");
+    }
+
+    #[tokio::test]
+    async fn test_pipeline_new_patterns_terraform_destroy() {
+        let pipeline = make_pipeline(SafetyLevel::Moderate);
+
+        let decision = pipeline
+            .evaluate("terraform destroy", ShellType::Bash)
+            .await
+            .unwrap();
+        assert!(
+            decision.needs_confirmation() || decision.is_blocked(),
+            "terraform destroy should not be auto-allowed: {:?}",
+            decision
+        );
+    }
+
+    #[tokio::test]
+    async fn test_pipeline_new_patterns_drop_database() {
+        let pipeline = make_pipeline(SafetyLevel::Moderate);
+
+        // Test with unquoted SQL (e.g., piped to psql)
+        let decision = pipeline
+            .evaluate("echo DROP TABLE users | psql", ShellType::Bash)
+            .await
+            .unwrap();
+        // The "DROP TABLE" part is in executable context (before the pipe)
+        // Note: chained commands bypass safe-pattern fast path,
+        // so this goes through full validation
+        assert!(
+            !decision.is_allowed()
+                || matches!(decision, SafetyDecision::AllowWithWarning { .. }),
+            "DROP TABLE should trigger at least a warning: {:?}",
+            decision
+        );
+    }
+}

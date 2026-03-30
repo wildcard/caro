@@ -1094,3 +1094,120 @@ impl KnowledgeBackendConfig {
         }
     }
 }
+
+/// Trusted infrastructure configuration.
+///
+/// Inspired by Claude Code's `autoMode.environment` — defines repos, domains,
+/// and paths that are considered trusted. Commands targeting trusted infrastructure
+/// receive lighter safety validation.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct TrustedInfrastructure {
+    /// Domains safe to interact with (e.g., "github.com", "*.internal.company.com")
+    #[serde(default)]
+    pub domains: Vec<String>,
+
+    /// Git remotes considered safe for push operations (e.g., "origin")
+    #[serde(default)]
+    pub git_remotes: Vec<String>,
+
+    /// Filesystem paths always safe to write to (e.g., "/tmp", "~/projects")
+    #[serde(default)]
+    pub paths: Vec<String>,
+
+    /// Commands always safe to execute (user-defined allowlist)
+    #[serde(default)]
+    pub commands: Vec<String>,
+}
+
+impl TrustedInfrastructure {
+    /// Check if a domain is trusted
+    pub fn is_domain_trusted(&self, domain: &str) -> bool {
+        self.domains.iter().any(|trusted| {
+            if let Some(pattern) = trusted.strip_prefix("*.") {
+                domain.ends_with(pattern) || domain == pattern
+            } else {
+                domain == trusted
+            }
+        })
+    }
+
+    /// Check if a git remote is trusted
+    pub fn is_remote_trusted(&self, remote: &str) -> bool {
+        self.git_remotes.iter().any(|trusted| remote == trusted)
+    }
+
+    /// Check if a path is trusted
+    pub fn is_path_trusted(&self, path: &str) -> bool {
+        self.paths
+            .iter()
+            .any(|trusted| path.starts_with(trusted))
+    }
+
+    /// Check if a command is in the trusted commands list
+    pub fn is_command_trusted(&self, command: &str) -> bool {
+        self.commands.iter().any(|trusted| command == trusted)
+    }
+}
+
+#[cfg(test)]
+mod trusted_infra_tests {
+    use super::*;
+
+    fn make_trusted() -> TrustedInfrastructure {
+        TrustedInfrastructure {
+            domains: vec![
+                "github.com".to_string(),
+                "*.internal.company.com".to_string(),
+            ],
+            git_remotes: vec!["origin".to_string()],
+            paths: vec!["/tmp".to_string(), "/home/user/projects".to_string()],
+            commands: vec!["docker compose up".to_string()],
+        }
+    }
+
+    #[test]
+    fn test_domain_exact_match() {
+        let trusted = make_trusted();
+        assert!(trusted.is_domain_trusted("github.com"));
+        assert!(!trusted.is_domain_trusted("evil.com"));
+    }
+
+    #[test]
+    fn test_domain_wildcard_match() {
+        let trusted = make_trusted();
+        assert!(trusted.is_domain_trusted("api.internal.company.com"));
+        assert!(trusted.is_domain_trusted("ci.internal.company.com"));
+        assert!(!trusted.is_domain_trusted("company.com"));
+    }
+
+    #[test]
+    fn test_remote_trusted() {
+        let trusted = make_trusted();
+        assert!(trusted.is_remote_trusted("origin"));
+        assert!(!trusted.is_remote_trusted("upstream"));
+    }
+
+    #[test]
+    fn test_path_trusted() {
+        let trusted = make_trusted();
+        assert!(trusted.is_path_trusted("/tmp/test.txt"));
+        assert!(trusted.is_path_trusted("/home/user/projects/caro"));
+        assert!(!trusted.is_path_trusted("/etc/passwd"));
+    }
+
+    #[test]
+    fn test_command_trusted() {
+        let trusted = make_trusted();
+        assert!(trusted.is_command_trusted("docker compose up"));
+        assert!(!trusted.is_command_trusted("docker compose down"));
+    }
+
+    #[test]
+    fn test_default_trusts_nothing() {
+        let trusted = TrustedInfrastructure::default();
+        assert!(!trusted.is_domain_trusted("github.com"));
+        assert!(!trusted.is_remote_trusted("origin"));
+        assert!(!trusted.is_path_trusted("/tmp"));
+        assert!(!trusted.is_command_trusted("ls"));
+    }
+}
