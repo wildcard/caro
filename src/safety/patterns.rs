@@ -403,7 +403,7 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
             description: "Truncate table removes all rows".to_string(),
             shell_specific: None,
         },
-        // HIGH: Production deploy patterns
+        // HIGH: Infrastructure destruction
         DangerPattern {
             pattern: r"(kubectl|helm)\s+(delete|destroy)\s+.*--all".to_string(),
             risk_level: RiskLevel::High,
@@ -518,7 +518,11 @@ pub struct CompiledSafePattern {
 }
 
 /// Check if a command matches any known-safe pattern
-pub fn is_known_safe(command: &str) -> Option<&'static str> {
+///
+/// Returns the description of the matched safe pattern, or None if no match.
+/// Commands containing shell chaining operators are never considered safe,
+/// even if the initial command matches a safe pattern.
+pub fn is_known_safe(command: &str) -> Option<String> {
     let trimmed = command.trim();
     for safe_pattern in SAFE_PATTERNS.iter() {
         if safe_pattern.regex.is_match(trimmed) {
@@ -527,11 +531,7 @@ pub fn is_known_safe(command: &str) -> Option<&'static str> {
             if contains_shell_chaining(trimmed) {
                 return None;
             }
-            // Safety: SAFE_PATTERNS is a Lazy<Vec> with 'static lifetime,
-            // so the description string lives for the program's lifetime
-            let desc: &str = &safe_pattern.description;
-            // SAFETY: The SAFE_PATTERNS static lives for 'static, so this is safe
-            return Some(unsafe { &*(desc as *const str) });
+            return Some(safe_pattern.description.clone());
         }
     }
     None
@@ -835,5 +835,16 @@ mod tests {
         assert!(!contains_shell_chaining("ls -la"));
         assert!(!contains_shell_chaining("git status"));
         assert!(!contains_shell_chaining("cargo test"));
+    }
+
+    #[test]
+    fn test_expanded_pattern_count() {
+        // After adding data exfiltration, git force push, DB destruction,
+        // infrastructure, and cloud storage patterns
+        assert!(
+            DANGEROUS_PATTERNS.len() >= 55,
+            "Should have at least 55 dangerous patterns after expansion, got {}",
+            DANGEROUS_PATTERNS.len()
+        );
     }
 }

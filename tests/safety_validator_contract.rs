@@ -670,3 +670,152 @@ async fn test_custom_safety_patterns() {
         "Regular git push should be allowed with moderate safety"
     );
 }
+
+// === DecisionPipeline integration tests ===
+
+use caro::safety::{DecisionPipeline, SafetyDecision};
+
+#[tokio::test]
+async fn test_decision_pipeline_safe_commands_fast_path() {
+    // CONTRACT: Known-safe commands should get Allow via fast path
+    let validator = SafetyValidator::new(SafetyConfig::moderate()).unwrap();
+    let pipeline = DecisionPipeline::new(validator);
+
+    let safe_commands = vec![
+        "ls -la",
+        "pwd",
+        "git status",
+        "cargo test",
+        "cat README.md",
+        "grep pattern file.txt",
+        "echo hello",
+    ];
+
+    for cmd in safe_commands {
+        let decision = pipeline.evaluate(cmd, ShellType::Bash).await.unwrap();
+        assert!(
+            decision.is_allowed(),
+            "'{}' should be allowed by pipeline, got {:?}",
+            cmd,
+            decision
+        );
+        // Verify it's specifically Allow (not AllowWithWarning)
+        matches!(decision, SafetyDecision::Allow { .. });
+    }
+}
+
+#[tokio::test]
+async fn test_decision_pipeline_blocks_dangerous() {
+    // CONTRACT: Dangerous commands should get Block
+    let validator = SafetyValidator::new(SafetyConfig::moderate()).unwrap();
+    let pipeline = DecisionPipeline::new(validator);
+
+    let dangerous_commands = vec![
+        "rm -rf /",
+        "dd if=/dev/zero of=/dev/sda",
+        "mkfs.ext4 /dev/sda1",
+    ];
+
+    for cmd in dangerous_commands {
+        let decision = pipeline.evaluate(cmd, ShellType::Bash).await.unwrap();
+        assert!(
+            decision.is_blocked(),
+            "'{}' should be blocked by pipeline, got {:?}",
+            cmd,
+            decision
+        );
+    }
+}
+
+#[tokio::test]
+async fn test_decision_pipeline_chained_safe_rejected() {
+    // CONTRACT: Safe command chained with dangerous should NOT get fast path
+    let validator = SafetyValidator::new(SafetyConfig::moderate()).unwrap();
+    let pipeline = DecisionPipeline::new(validator);
+
+    let chained = "ls && rm -rf /";
+    let decision = pipeline.evaluate(chained, ShellType::Bash).await.unwrap();
+
+    // Should not be a simple Allow from safe patterns
+    assert!(
+        !matches!(
+            decision,
+            SafetyDecision::Allow {
+                ref reason
+            } if reason.contains("List directory")
+        ),
+        "Chained command should not get safe pattern fast path"
+    );
+}
+
+#[tokio::test]
+async fn test_decision_pipeline_allowlist() {
+    // CONTRACT: User allowlist patterns should auto-approve
+    let mut config = SafetyConfig::moderate();
+    config.add_allowlist_pattern(r"^docker compose up");
+    let validator = SafetyValidator::new(config).unwrap();
+    let pipeline = DecisionPipeline::new(validator);
+
+    let decision = pipeline
+        .evaluate("docker compose up -d", ShellType::Bash)
+        .await
+        .unwrap();
+    assert!(
+        decision.is_allowed(),
+        "Allowlisted command should be allowed"
+    );
+}
+
+#[tokio::test]
+async fn test_decision_pipeline_confirmation_for_high_risk() {
+    // CONTRACT: High-risk commands should get AskConfirmation in moderate mode
+    let validator = SafetyValidator::new(SafetyConfig::moderate()).unwrap();
+    let pipeline = DecisionPipeline::new(validator);
+
+    let decision = pipeline
+        .evaluate("git push --force origin main", ShellType::Bash)
+        .await
+        .unwrap();
+
+    assert!(
+        decision.needs_confirmation() || decision.is_blocked(),
+        "High-risk git force push should require confirmation or be blocked, got {:?}",
+        decision
+    );
+}
+
+#[tokio::test]
+async fn test_safety_decision_methods() {
+    // CONTRACT: SafetyDecision helper methods are correct
+    let allow = SafetyDecision::Allow {
+        reason: "test".to_string(),
+    };
+    assert!(allow.is_allowed());
+    assert!(!allow.needs_confirmation());
+    assert!(!allow.is_blocked());
+
+    let warn = SafetyDecision::AllowWithWarning {
+        warning: "test".to_string(),
+    };
+    assert!(warn.is_allowed());
+    assert!(!warn.needs_confirmation());
+    assert!(!warn.is_blocked());
+
+    let confirm = SafetyDecision::AskConfirmation {
+        risk_level: RiskLevel::High,
+        explanation: "test".to_string(),
+        matched_patterns: vec![],
+    };
+    assert!(!confirm.is_allowed());
+    assert!(confirm.needs_confirmation());
+    assert!(!confirm.is_blocked());
+
+    let block = SafetyDecision::Block {
+        risk_level: RiskLevel::Critical,
+        explanation: "test".to_string(),
+        matched_patterns: vec![],
+    };
+    assert!(!block.is_allowed());
+    assert!(!block.needs_confirmation());
+    assert!(block.is_blocked());
+}

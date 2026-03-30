@@ -13,7 +13,7 @@ use crate::{
     context::ExecutionContext,
     models::{CommandRequest, SafetyLevel, ShellType},
     prompts::CapabilityProfile,
-    safety::SafetyValidator,
+    safety::{DecisionPipeline, SafetyDecision, SafetyValidator},
 };
 
 #[cfg(not(test))]
@@ -35,6 +35,8 @@ pub struct CliApp {
     backend: Arc<dyn CommandGenerator>,
     agent_loop: AgentLoop,
     validator: SafetyValidator,
+    /// Decision pipeline for tiered safety evaluation (safe patterns → allowlist → danger check → fallback)
+    pipeline: DecisionPipeline,
     #[allow(dead_code)]
     context: ExecutionContext,
 }
@@ -45,6 +47,7 @@ impl std::fmt::Debug for CliApp {
             .field("config", &self.config)
             .field("backend", &"<CommandGenerator>")
             .field("validator", &self.validator)
+            .field("pipeline", &"<DecisionPipeline>")
             .field("context", &"<ExecutionContext>")
             .finish()
     }
@@ -228,6 +231,15 @@ impl CliApp {
                 }
             })?;
 
+        // Create decision pipeline wrapping the validator for tiered evaluation
+        let pipeline_validator =
+            SafetyValidator::new(crate::safety::SafetyConfig::default()).map_err(|e| {
+                CliError::ConfigurationError {
+                    message: format!("Failed to initialize decision pipeline: {}", e),
+                }
+            })?;
+        let pipeline = DecisionPipeline::new(pipeline_validator);
+
         // Detect execution context
         let context = ExecutionContext::detect();
 
@@ -244,6 +256,7 @@ impl CliApp {
             backend: backend_arc,
             agent_loop,
             validator,
+            pipeline,
             context,
         })
     }
@@ -535,27 +548,64 @@ impl CliApp {
             })?;
         let generation_time = gen_start.elapsed();
 
-        // Validate command safety
-        let validation = self
-            .validator
-            .validate_command(&generated.command, shell)
+        // Validate command safety using the tiered decision pipeline
+        // Pipeline stages: known-safe → allowlist → danger patterns → tiered outcome
+        let decision = self
+            .pipeline
+            .evaluate(&generated.command, shell)
             .await
             .map_err(|e| CliError::Internal {
                 message: format!("Safety validation failed: {}", e),
             })?;
 
-        // Check if confirmation is required
-        let requires_confirmation =
-            validation.risk_level.requires_confirmation(safety_level) && !args.confirm();
-
-        let blocked_reason = if validation.risk_level.is_blocked(safety_level) {
-            Some(format!(
-                "Command blocked due to {} risk: {}",
-                validation.risk_level,
-                validation.warnings.join(", ")
-            ))
-        } else {
-            None
+        // Map SafetyDecision to the existing CliResult fields
+        let (requires_confirmation, blocked_reason, decision_warnings) = match &decision {
+            SafetyDecision::Allow { reason } => {
+                tracing::debug!("Pipeline: Allow - {}", reason);
+                (false, None, Vec::new())
+            }
+            SafetyDecision::AllowWithWarning { warning } => {
+                tracing::debug!("Pipeline: AllowWithWarning - {}", warning);
+                (false, None, vec![warning.clone()])
+            }
+            SafetyDecision::AskConfirmation {
+                risk_level,
+                explanation,
+                matched_patterns,
+            } => {
+                tracing::debug!(
+                    "Pipeline: AskConfirmation - {} ({})",
+                    explanation,
+                    risk_level
+                );
+                let confirm_needed = !args.confirm();
+                (
+                    confirm_needed,
+                    None,
+                    matched_patterns
+                        .iter()
+                        .map(|p| format!("{}: {}", risk_level, p))
+                        .collect(),
+                )
+            }
+            SafetyDecision::Block {
+                risk_level,
+                explanation,
+                matched_patterns,
+            } => {
+                tracing::debug!("Pipeline: Block - {} ({})", explanation, risk_level);
+                (
+                    false,
+                    Some(format!(
+                        "Command blocked due to {} risk: {}",
+                        risk_level, explanation
+                    )),
+                    matched_patterns
+                        .iter()
+                        .map(|p| format!("{}: {}", risk_level, p))
+                        .collect(),
+                )
+            }
         };
 
         // Determine if command passes safety checks
@@ -563,10 +613,19 @@ impl CliApp {
 
         // Build confirmation prompt
         let confirmation_prompt = if requires_confirmation {
-            format!(
-                "Command '{}' requires confirmation due to {} risk. Proceed? (y/N)",
-                generated.command, validation.risk_level
-            )
+            if let SafetyDecision::AskConfirmation {
+                risk_level,
+                explanation,
+                ..
+            } = &decision
+            {
+                format!(
+                    "Command '{}' requires confirmation due to {} risk: {}. Proceed? (y/N)",
+                    generated.command, risk_level, explanation
+                )
+            } else {
+                String::new()
+            }
         } else {
             String::new()
         };
@@ -658,7 +717,7 @@ impl CliApp {
             },
             warnings: {
                 let mut all_warnings = warnings_list;
-                all_warnings.extend(validation.warnings);
+                all_warnings.extend(decision_warnings);
                 all_warnings
             },
             detected_context: prompt.clone(),

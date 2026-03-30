@@ -563,10 +563,8 @@ impl DecisionPipeline {
         shell: ShellType,
     ) -> Result<SafetyDecision, ValidationError> {
         // Stage 1: Check known-safe patterns (fast path)
-        if let Some(reason) = is_known_safe(command) {
-            return Ok(SafetyDecision::Allow {
-                reason: reason.to_string(),
-            });
+        if let Some(reason) = patterns::is_known_safe(command) {
+            return Ok(SafetyDecision::Allow { reason });
         }
 
         // Stage 2: Check user allowlist (from SafetyConfig)
