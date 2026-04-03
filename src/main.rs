@@ -1711,8 +1711,16 @@ async fn handle_paperclip_command(command: PaperclipCommands) -> Result<(), Stri
             println!("  API URL:   {}", config.api_url);
             println!("  Run ID:    {}", config.run_id);
             println!(
-                "  API Key:   {}...",
-                &config.api_key[..config.api_key.len().min(8)]
+                "  API Key:   {}",
+                if config.api_key.len() > 4 {
+                    format!(
+                        "{}...{}",
+                        &config.api_key[..2],
+                        &config.api_key[config.api_key.len() - 2..]
+                    )
+                } else {
+                    "****".to_string()
+                }
             );
             Ok(())
         }
