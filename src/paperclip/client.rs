@@ -115,7 +115,10 @@ impl PaperclipClient {
             anyhow::bail!("Paperclip API returned {}: {}", status, body);
         }
 
-        let tasks: Vec<Task> = resp.json().await.context("failed to parse tasks response")?;
+        let tasks: Vec<Task> = resp
+            .json()
+            .await
+            .context("failed to parse tasks response")?;
         debug!("Received {} task(s)", tasks.len());
         Ok(tasks)
     }
@@ -187,9 +190,7 @@ impl PaperclipClient {
             });
         }
 
-        resp.json()
-            .await
-            .context("failed to parse budget response")
+        resp.json().await.context("failed to parse budget response")
     }
 
     /// Check connectivity to the Paperclip API.

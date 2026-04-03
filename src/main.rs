@@ -475,7 +475,6 @@ enum Commands {
     //     #[command(subcommand)]
     //     command: caro::cli::telemetry::TelemetryCommands,
     // },
-
     /// Run as a Paperclip AI managed agent (requires --features paperclip)
     #[cfg(feature = "paperclip")]
     Paperclip {
@@ -1711,7 +1710,10 @@ async fn handle_paperclip_command(command: PaperclipCommands) -> Result<(), Stri
             println!("  Agent ID:  {}", config.agent_id.cyan());
             println!("  API URL:   {}", config.api_url);
             println!("  Run ID:    {}", config.run_id);
-            println!("  API Key:   {}...", &config.api_key[..config.api_key.len().min(8)]);
+            println!(
+                "  API Key:   {}...",
+                &config.api_key[..config.api_key.len().min(8)]
+            );
             Ok(())
         }
         PaperclipCommands::Status => {
@@ -1737,21 +1739,15 @@ async fn handle_paperclip_command(command: PaperclipCommands) -> Result<(), Stri
 
             // Build backend (reuse existing static matcher as default)
             let profile = CapabilityProfile::detect().await;
-            let backend: Arc<dyn CommandGenerator> =
-                Arc::new(StaticMatcher::new(profile));
+            let backend: Arc<dyn CommandGenerator> = Arc::new(StaticMatcher::new(profile));
 
             // Build safety validator
             let safety_config = SafetyConfig::from_level(caro::SafetyLevel::Moderate);
             let safety = SafetyValidator::new(safety_config).map_err(|e| e.to_string())?;
 
             let shell = caro::ShellType::Bash; // Default for agent mode
-            let runner = PaperclipRunner::new(
-                client,
-                backend,
-                safety,
-                shell,
-                caro::SafetyLevel::Moderate,
-            );
+            let runner =
+                PaperclipRunner::new(client, backend, safety, shell, caro::SafetyLevel::Moderate);
 
             runner.print_agent_info();
             println!();
@@ -2008,15 +2004,13 @@ async fn main() {
             process::exit(0);
         }
         #[cfg(feature = "paperclip")]
-        Some(Commands::Paperclip { command }) => {
-            match handle_paperclip_command(command).await {
-                Ok(()) => process::exit(0),
-                Err(e) => {
-                    eprintln!("Paperclip error: {}", e);
-                    process::exit(1);
-                }
+        Some(Commands::Paperclip { command }) => match handle_paperclip_command(command).await {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("Paperclip error: {}", e);
+                process::exit(1);
             }
-        }
+        },
         // NOTE: Telemetry subcommand disabled in v1.1.0-beta.1
         // Some(Commands::Telemetry { command }) => {
         //     let storage_path = dirs::data_dir()

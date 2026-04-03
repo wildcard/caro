@@ -97,15 +97,14 @@ impl PaperclipRunner {
 
             // Generate command from natural language description
             let request =
-                CommandRequest::new(&task.description, self.shell.clone())
-                    .with_safety(self.safety_level.clone());
+                CommandRequest::new(&task.description, self.shell).with_safety(self.safety_level);
 
             match self.backend.generate_command(&request).await {
                 Ok(generated) => {
                     // Run safety validation
                     let validation = self
                         .safety
-                        .validate_command(&generated.command, self.shell.clone())
+                        .validate_command(&generated.command, self.shell)
                         .await;
 
                     match validation {
@@ -192,10 +191,7 @@ impl std::fmt::Display for HeartbeatSummary {
         write!(
             f,
             "Heartbeat: {} tasks ({} completed, {} failed, {} blocked by safety)",
-            self.tasks_received,
-            self.tasks_completed,
-            self.tasks_failed,
-            self.tasks_blocked_safety
+            self.tasks_received, self.tasks_completed, self.tasks_failed, self.tasks_blocked_safety
         )
     }
 }
