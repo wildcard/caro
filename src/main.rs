@@ -367,6 +367,19 @@ enum KnowledgeCommands {
     },
 }
 
+/// Paperclip AI agent subcommands
+#[cfg(feature = "paperclip")]
+#[derive(Parser, Clone)]
+#[command(arg_required_else_help = true)]
+enum PaperclipCommands {
+    /// Execute one heartbeat cycle (fetch tasks, generate commands, report results)
+    Run,
+    /// Check connectivity to the Paperclip API server
+    Status,
+    /// Display agent configuration and capabilities
+    Info,
+}
+
 /// Subcommands for caro
 #[derive(Parser, Clone)]
 enum Commands {
@@ -462,6 +475,13 @@ enum Commands {
     //     #[command(subcommand)]
     //     command: caro::cli::telemetry::TelemetryCommands,
     // },
+
+    /// Run as a Paperclip AI managed agent (requires --features paperclip)
+    #[cfg(feature = "paperclip")]
+    Paperclip {
+        #[command(subcommand)]
+        command: PaperclipCommands,
+    },
 }
 
 /// caro - Convert natural language to shell commands using local LLMs
@@ -1666,6 +1686,92 @@ async fn handle_profile_command(command: ProfileCommands) -> Result<(), String> 
 }
 
 // =============================================================================
+// Paperclip Agent Commands
+// =============================================================================
+
+/// Handle Paperclip AI agent subcommands
+#[cfg(feature = "paperclip")]
+async fn handle_paperclip_command(command: PaperclipCommands) -> Result<(), String> {
+    use caro::paperclip::{PaperclipClient, PaperclipConfig, PaperclipRunner};
+    use caro::safety::{SafetyConfig, SafetyValidator};
+    use colored::Colorize;
+    use std::sync::Arc;
+
+    let config = PaperclipConfig::from_env().ok_or_else(|| {
+        "Paperclip environment variables not found.\n\
+         Required: PAPERCLIP_AGENT_ID, PAPERCLIP_API_KEY, PAPERCLIP_API_URL, PAPERCLIP_RUN_ID\n\
+         \n\
+         Caro must be launched by a Paperclip orchestration server to use this command."
+            .to_string()
+    })?;
+
+    match command {
+        PaperclipCommands::Info => {
+            println!("{}", "Caro Paperclip Agent Configuration".bold());
+            println!("  Agent ID:  {}", config.agent_id.cyan());
+            println!("  API URL:   {}", config.api_url);
+            println!("  Run ID:    {}", config.run_id);
+            println!("  API Key:   {}...", &config.api_key[..config.api_key.len().min(8)]);
+            Ok(())
+        }
+        PaperclipCommands::Status => {
+            let client = PaperclipClient::new(config).map_err(|e| e.to_string())?;
+            print!("Checking Paperclip API connectivity... ");
+            match client.health_check().await {
+                Ok(true) => {
+                    println!("{}", "OK".green().bold());
+                    Ok(())
+                }
+                Ok(false) => {
+                    println!("{}", "UNREACHABLE".red().bold());
+                    Err("Could not connect to Paperclip API".to_string())
+                }
+                Err(e) => {
+                    println!("{}", "ERROR".red().bold());
+                    Err(format!("Health check failed: {}", e))
+                }
+            }
+        }
+        PaperclipCommands::Run => {
+            let client = PaperclipClient::new(config).map_err(|e| e.to_string())?;
+
+            // Build backend (reuse existing static matcher as default)
+            let profile = CapabilityProfile::detect().await;
+            let backend: Arc<dyn CommandGenerator> =
+                Arc::new(StaticMatcher::new(profile));
+
+            // Build safety validator
+            let safety_config = SafetyConfig::from_level(caro::SafetyLevel::Moderate);
+            let safety = SafetyValidator::new(safety_config).map_err(|e| e.to_string())?;
+
+            let shell = caro::ShellType::Bash; // Default for agent mode
+            let runner = PaperclipRunner::new(
+                client,
+                backend,
+                safety,
+                shell,
+                caro::SafetyLevel::Moderate,
+            );
+
+            runner.print_agent_info();
+            println!();
+
+            match runner.run_heartbeat().await {
+                Ok(summary) => {
+                    println!("{}", summary);
+                    if summary.tasks_failed > 0 {
+                        Err(format!("{} task(s) failed", summary.tasks_failed))
+                    } else {
+                        Ok(())
+                    }
+                }
+                Err(e) => Err(format!("Heartbeat failed: {}", e)),
+            }
+        }
+    }
+}
+
+// =============================================================================
 // Evaluation Tests
 // =============================================================================
 
@@ -1900,6 +2006,16 @@ async fn main() {
                 println!();
             }
             process::exit(0);
+        }
+        #[cfg(feature = "paperclip")]
+        Some(Commands::Paperclip { command }) => {
+            match handle_paperclip_command(command).await {
+                Ok(()) => process::exit(0),
+                Err(e) => {
+                    eprintln!("Paperclip error: {}", e);
+                    process::exit(1);
+                }
+            }
         }
         // NOTE: Telemetry subcommand disabled in v1.1.0-beta.1
         // Some(Commands::Telemetry { command }) => {

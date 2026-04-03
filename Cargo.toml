@@ -159,6 +159,7 @@ embedded-mlx = ["cxx", "llama_cpp"]
 embedded-cpu = ["candle-core", "candle-transformers"]
 knowledge = ["lancedb", "fastembed", "arrow-array", "arrow-schema"]
 chromadb = ["knowledge", "dep:chromadb"]  # ChromaDB backend (requires knowledge base features)
+paperclip = ["remote-backends"]  # Paperclip AI agent orchestration integration
 
 [profile.release]
 # Optimize for binary size (<50MB target)
