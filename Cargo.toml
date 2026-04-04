@@ -127,6 +127,8 @@ tokenizers = { version = "0.22", default-features = false, features = ["http", "
 [dev-dependencies]
 assert_cmd = "2"
 tokio-test = "0.4"
+http-body-util = "0.1"
+tower = { version = "0.4", features = ["util"] }
 regex = "1.10"
 tempfile = "3.10"
 serial_test = "3"
