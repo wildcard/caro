@@ -1,0 +1,168 @@
+# Integration Bridge: Claude Code → Paperclip Agents
+# Configures the claude-local adapter for all Caro agents
+
+adapter:
+  type: "claude-local"
+  runtime: "claude-code"
+
+# Common configuration for all agents
+defaults:
+  model: "claude-opus-4-6"
+  working_directory: "/home/user/caro"
+  environment:
+    CARO_BACKEND: "embedded"
+  permissions:
+    read_files: true
+    write_files: true
+    execute_commands: true
+    web_search: true
+    web_fetch: true
+  mcp_servers:
+    - github
+    - gmail
+    - canva
+    - cloudflare
+    - vercel
+    - astro-docs
+
+# Per-agent overrides
+agent_overrides:
+  dev-lead:
+    model: "claude-opus-4-6"
+    tools:
+      - cargo
+      - git
+      - github-mcp
+    skills_path: ".claude/skills/"
+    commands_path: ".claude/commands/"
+
+  safety-engineer:
+    model: "claude-opus-4-6"           # Safety-critical needs best model
+    tools:
+      - cargo
+      - git
+      - github-mcp
+
+  qa-engineer:
+    model: "claude-sonnet-4-6"         # Good balance for testing
+    tools:
+      - cargo
+      - git
+      - github-mcp
+
+  devops-engineer:
+    model: "claude-sonnet-4-6"
+    tools:
+      - cargo
+      - git
+      - github-mcp
+      - docker
+
+  research-engineer:
+    model: "claude-opus-4-6"           # Complex analysis needs best model
+    tools:
+      - cargo
+      - git
+      - github-mcp
+      - web-search
+
+  product-manager:
+    model: "claude-sonnet-4-6"
+    tools:
+      - git
+      - github-mcp
+      - web-search
+
+  website-manager:
+    model: "claude-sonnet-4-6"
+    tools:
+      - git
+      - github-mcp
+      - astro-docs-mcp
+      - vercel-mcp
+
+  docs-writer:
+    model: "claude-sonnet-4-6"
+    tools:
+      - git
+      - github-mcp
+
+  marketing-lead:
+    model: "claude-sonnet-4-6"
+    tools:
+      - git
+      - github-mcp
+      - web-search
+      - canva-mcp
+
+  content-writer:
+    model: "claude-haiku-4-5"          # High-volume content, cost efficient
+    tools:
+      - git
+      - github-mcp
+      - web-search
+
+  community-manager:
+    model: "claude-sonnet-4-6"
+    tools:
+      - git
+      - github-mcp
+
+  devrel-engineer:
+    model: "claude-sonnet-4-6"
+    tools:
+      - git
+      - github-mcp
+      - web-search
+      - gmail-mcp
+
+  release-manager:
+    model: "claude-sonnet-4-6"
+    tools:
+      - cargo
+      - git
+      - github-mcp
+
+  beta-test-coordinator:
+    model: "claude-sonnet-4-6"
+    tools:
+      - cargo
+      - git
+      - github-mcp
+
+  fundraising-agent:
+    model: "claude-sonnet-4-6"
+    tools:
+      - github-mcp
+      - web-search
+      - gmail-mcp
+      - canva-mcp
+
+  vc-relations-agent:
+    model: "claude-sonnet-4-6"
+    tools:
+      - web-search
+      - gmail-mcp
+      - canva-mcp
+      - github-mcp
+
+  contractor-manager:
+    model: "claude-sonnet-4-6"
+    tools:
+      - git
+      - github-mcp
+      - gmail-mcp
+      - web-search
+
+  ai-recruiter:
+    model: "claude-haiku-4-5"          # Scanning work, cost efficient
+    tools:
+      - web-search
+      - github-mcp
+
+  integration-engineer:
+    model: "claude-sonnet-4-6"
+    tools:
+      - git
+      - github-mcp
+      - web-search

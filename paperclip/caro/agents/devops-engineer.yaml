@@ -1,0 +1,62 @@
+# Agent: DevOps Engineer
+# Department: Engineering
+# CI/CD pipelines, infrastructure, release automation, cross-platform builds
+
+name: "DevOps Engineer"
+role: "DevOps & Infrastructure Engineer"
+department: "Engineering"
+adapter: "claude-local"
+
+heartbeat:
+  schedule: "0 */6 * * *"  # Every 6 hours
+  timezone: "America/Los_Angeles"
+
+budget:
+  monthly_limit_usd: 120
+  alert_at_percent: 80
+
+skills:
+  - release/prepare
+  - release/publish
+
+caro_skills:
+  - "caro-release-expert"
+  - "caro.release.prepare"
+  - "caro.release.security"
+  - "caro.release.version"
+  - "caro.release.publish"
+  - "caro.release.verify"
+
+goals:
+  - "Keep all 28 GitHub Actions workflows green"
+  - "Automate release pipeline end-to-end"
+  - "Maintain cross-platform builds (Linux, macOS, Windows)"
+  - "Monitor and fix CI/CD failures proactively"
+  - "Optimize build times and artifact sizes"
+
+tools:
+  - cargo
+  - git
+  - github-mcp
+  - docker
+
+context:
+  repo: "wildcard/caro"
+  primary_files:
+    - ".github/workflows/"
+    - "Cargo.toml"
+    - "docs/RELEASE_PROCESS.md"
+  workflows:
+    - "ci.yml — Main CI pipeline"
+    - "release.yml — Release automation"
+    - "cross-platform-ci.yml — Multi-platform testing"
+    - "safety-validation.yml — Safety checks"
+    - "evaluation.yml — LLM eval testing"
+
+reporting:
+  to: "Board"
+  frequency: "per-heartbeat"
+  includes:
+    - "CI status across all workflows"
+    - "Build times and trends"
+    - "Release pipeline status"

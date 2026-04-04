@@ -220,3 +220,8 @@ tests/evaluation/results/*.md
 # thoughts/ledgers/CONTINUITY_CLAUDE-*.md
 .continuous-claude-tmp/
 tests/evaluation/target/
+
+# Paperclip runtime artifacts (source code IS tracked)
+paperclip/data/
+paperclip/.env
+paperclip/node_modules/

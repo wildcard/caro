@@ -1,0 +1,113 @@
+# Integration Bridge: Existing Caro Automation → Paperclip Agents
+# Maps .claude/automation/config/schedule.yaml tasks to Paperclip agents
+# This documents the migration from standalone automation to Paperclip orchestration
+
+migration_status: "parallel"  # parallel | paperclip-only | legacy-only
+# During "parallel" mode, both systems can run. Set to "paperclip-only" once stable.
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TECHNICAL PACK → Engineering Department
+# ═══════════════════════════════════════════════════════════════════════════
+
+technical_pack:
+  qa_automation_loop:
+    legacy_schedule: "0 9 * * *"
+    legacy_skill: "/qa-automation-loop"
+    paperclip_agent: "qa-engineer"
+    migration_notes: "QA Engineer runs this as part of daily heartbeat"
+    status: "migrated"
+
+  visual_regression:
+    legacy_schedule: "0 2 * * *"
+    legacy_skill: "/visual-regression-test"
+    paperclip_agent: "website-manager"
+    migration_notes: "Website Manager includes visual regression in 6 PM heartbeat"
+    status: "migrated"
+
+  sync_engine:
+    legacy_schedule: "0 18 * * *"
+    legacy_skill: "/caro.sync all"
+    paperclip_agent: "website-manager"
+    migration_notes: "Website Manager handles content sync"
+    status: "migrated"
+
+# ═══════════════════════════════════════════════════════════════════════════
+# CONTENT PACK → Growth Department
+# ═══════════════════════════════════════════════════════════════════════════
+
+content_pack:
+  idea_sourcing:
+    legacy_schedule: "0 8 * * *"
+    legacy_skill: "/idea-sourcing-loop"
+    paperclip_agent: "content-writer"
+    migration_notes: "Content Writer sources ideas during 10 AM heartbeat"
+    status: "migrated"
+
+  content_digest:
+    legacy_schedule: "0 9 * * 1"
+    legacy_skill: "/content-digest"
+    paperclip_agent: "marketing-lead"
+    migration_notes: "Marketing Lead generates weekly digest"
+    status: "migrated"
+    was_enabled: false
+
+# ═══════════════════════════════════════════════════════════════════════════
+# MANAGEMENT PACK → Operations + Growth Departments
+# ═══════════════════════════════════════════════════════════════════════════
+
+management_pack:
+  pr_management:
+    legacy_schedule: "0 */4 * * *"
+    legacy_skill: "/pr-management-loop"
+    paperclip_agent: "community-manager"
+    migration_notes: "Community Manager handles PR management every 4 hours"
+    status: "migrated"
+
+  stale_revival:
+    legacy_schedule: "0 10 * * 1"
+    legacy_skill: "/stale-revival-loop"
+    paperclip_agent: "community-manager"
+    migration_notes: "Community Manager revives stale items during Monday heartbeat"
+    status: "migrated"
+
+  metrics_collection:
+    legacy_schedule: "0 0 * * *"
+    legacy_skill: "/metrics-collection"
+    paperclip_agent: "product-manager"
+    migration_notes: "Product Manager collects metrics during 8 AM heartbeat"
+    status: "migrated"
+
+  roadmap_status:
+    legacy_schedule: "0 6 * * *"
+    legacy_skill: "/caro.sync roadmap"
+    paperclip_agent: "product-manager"
+    migration_notes: "Product Manager syncs roadmap during daily heartbeat"
+    status: "migrated"
+
+# ═══════════════════════════════════════════════════════════════════════════
+# MIGRATION PLAN
+# ═══════════════════════════════════════════════════════════════════════════
+
+migration_plan:
+  phase_1:
+    description: "Run both systems in parallel, verify Paperclip agents produce equivalent results"
+    duration: "2 weeks"
+    validation:
+      - "Compare QA results from both systems"
+      - "Verify no tasks are dropped during migration"
+      - "Confirm budget tracking is accurate"
+
+  phase_2:
+    description: "Disable legacy automation, Paperclip agents take over fully"
+    action: "Set migration_status to 'paperclip-only'"
+    prerequisites:
+      - "Phase 1 validation passes"
+      - "Board approval"
+      - "All agents have run at least 5 successful heartbeats"
+
+  phase_3:
+    description: "Remove legacy automation config (optional cleanup)"
+    action: "Archive .claude/automation/config/schedule.yaml"
+    prerequisites:
+      - "Paperclip running stable for 30 days"
+      - "No fallback to legacy needed"

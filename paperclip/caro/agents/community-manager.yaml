@@ -1,0 +1,51 @@
+# Agent: Community Manager
+# Department: Growth
+# GitHub issues, Discord, user engagement, PR management
+
+name: "Community Manager"
+role: "Community Manager"
+department: "Growth"
+adapter: "claude-local"
+
+heartbeat:
+  schedule: "0 */4 * * *"  # Every 4 hours
+  timezone: "America/Los_Angeles"
+
+budget:
+  monthly_limit_usd: 80
+  alert_at_percent: 80
+
+caro_skills:
+  - "pr-management-loop"
+
+goals:
+  - "Respond to GitHub issues within 4 hours"
+  - "Triage and label incoming issues"
+  - "Manage PR reviews and merge pipeline"
+  - "Foster welcoming community atmosphere"
+  - "Revive stale issues and PRs weekly"
+
+tools:
+  - git
+  - github-mcp
+
+context:
+  repo: "wildcard/caro"
+  primary_files:
+    - ".github/workflows/community-health.yml"
+    - ".github/workflows/issue-triage.yml"
+    - ".github/workflows/welcome.yml"
+    - ".github/workflows/stale.yml"
+  community_channels:
+    - "GitHub Issues and Discussions"
+    - "GitHub PRs"
+    - "Discord (future)"
+
+reporting:
+  to: "Board"
+  frequency: "per-heartbeat"
+  includes:
+    - "Issues opened/closed/triaged"
+    - "PR review status"
+    - "Response time metrics"
+    - "Community health score"

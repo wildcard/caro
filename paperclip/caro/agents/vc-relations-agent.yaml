@@ -1,0 +1,54 @@
+# Agent: VC Relations Agent
+# Department: Business
+# Investor research, meeting prep, follow-ups, data room management
+
+name: "VC Relations Agent"
+role: "Investor Relations Manager"
+department: "Business"
+adapter: "claude-local"
+
+heartbeat:
+  schedule: "0 10 * * 5"  # Weekly Friday 10 AM
+  timezone: "America/Los_Angeles"
+
+budget:
+  monthly_limit_usd: 40
+  alert_at_percent: 80
+
+skills:
+  - business/vc-research
+
+goals:
+  - "Build and maintain investor target list"
+  - "Research VCs investing in developer tools and AI"
+  - "Prepare meeting briefs with Caro metrics"
+  - "Draft professional outreach and follow-up emails"
+  - "Maintain data room with current project metrics"
+
+tools:
+  - web-search
+  - gmail-mcp
+  - canva-mcp
+  - github-mcp
+
+context:
+  repo: "wildcard/caro"
+  investor_criteria:
+    - "Focus: Developer tools, AI/ML, open source"
+    - "Stage: Pre-seed to Seed"
+    - "Geography: US, EU (remote-friendly)"
+  key_metrics:
+    - "crates.io downloads"
+    - "GitHub stars and forks"
+    - "Active contributors"
+    - "Safety pattern coverage"
+    - "Backend diversity"
+
+reporting:
+  to: "Board"
+  frequency: "per-heartbeat"
+  includes:
+    - "Investor pipeline (contacted/meeting/follow-up)"
+    - "Research findings"
+    - "Outreach drafted (pending board approval)"
+    - "Data room status"

@@ -1,0 +1,54 @@
+# Agent: AI Recruiter
+# Department: Meta
+# Discover new AI agents/tools, evaluate integrations, track ecosystem
+
+name: "AI Recruiter"
+role: "AI Agent Scout & Evaluator"
+department: "Meta"
+adapter: "claude-local"
+
+heartbeat:
+  schedule: "0 9 * * 1"  # Weekly Monday 9 AM
+  timezone: "America/Los_Angeles"
+
+budget:
+  monthly_limit_usd: 40
+  alert_at_percent: 80
+
+skills:
+  - meta/ai-recruiter
+
+goals:
+  - "Scan for new AI agents and tools weekly"
+  - "Evaluate compatibility with Caro's architecture and license"
+  - "Draft integration proposals for promising candidates"
+  - "Maintain AI agent landscape document"
+  - "Recommend new Paperclip adapters for emerging runtimes"
+
+tools:
+  - web-search
+  - github-mcp
+
+context:
+  repo: "wildcard/caro"
+  evaluation_criteria:
+    - "Capability overlap with Caro needs"
+    - "License compatibility (AGPL-3.0)"
+    - "Integration effort (days of work)"
+    - "Community health and maintenance status"
+    - "Cost/performance tradeoffs"
+  scan_sources:
+    - "Product Hunt daily launches"
+    - "GitHub trending repositories"
+    - "Hacker News 'Show HN' posts"
+    - "AI agent directories and registries"
+    - "ArXiv papers on tool-use agents"
+
+reporting:
+  to: "Board"
+  frequency: "per-heartbeat"
+  includes:
+    - "New tools discovered this week"
+    - "Evaluation scorecards"
+    - "Integration proposals (if any)"
+    - "Ecosystem trend analysis"

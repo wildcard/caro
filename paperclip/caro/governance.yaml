@@ -1,0 +1,88 @@
+# Caro AI — Board Governance Rules
+# Defines approval gates, auto-approvals, and escalation policies
+
+board:
+  operator: "@wildcard"
+  decision_model: "single-operator"
+
+# Actions requiring explicit board approval
+approval_gates:
+  financial:
+    - action: "budget_change"
+      threshold: "$50"
+      description: "Any budget modification exceeding $50/month per agent"
+    - action: "new_hire"
+      description: "Hiring new agents or contractors"
+    - action: "contractor_payment"
+      threshold: "$100"
+      description: "Contractor payments exceeding $100"
+
+  production:
+    - action: "production_release"
+      description: "Publishing to crates.io or creating GitHub releases"
+    - action: "security_override"
+      description: "Overriding safety validation patterns"
+    - action: "breaking_change"
+      description: "Any change that modifies public API or CLI interface"
+
+  external:
+    - action: "external_communication"
+      description: "Emails, social posts, sponsor outreach, VC communications"
+    - action: "grant_application"
+      description: "Submitting applications to funding organizations"
+    - action: "job_posting"
+      description: "Publishing UpWork or other hiring platform postings"
+
+# Actions that proceed without board approval
+auto_approved:
+  development:
+    - "Code changes with passing CI"
+    - "Documentation updates"
+    - "Test additions and fixes"
+    - "Dependency updates (non-breaking)"
+    - "Internal task management and status updates"
+    - "Branch creation and PR drafts"
+
+  operations:
+    - "Heartbeat execution within budget"
+    - "Metrics collection and reporting"
+    - "Internal agent-to-agent task delegation"
+    - "Automated QA and beta testing cycles"
+    - "Visual regression captures"
+    - "Content sync operations"
+
+  research:
+    - "Web searches and information gathering"
+    - "Competitive analysis"
+    - "AI tool evaluation (read-only)"
+    - "Integration feasibility assessment"
+
+# Escalation policy
+escalation:
+  budget_overrun:
+    action: "auto_pause"
+    notify: "@wildcard"
+    description: "Agent auto-pauses when monthly budget is exhausted"
+
+  ci_failure:
+    action: "notify_and_retry"
+    max_retries: 2
+    notify: "@wildcard"
+    description: "Retry failed CI up to 2 times, then notify board"
+
+  security_issue:
+    action: "immediate_notify"
+    notify: "@wildcard"
+    description: "Security vulnerabilities flagged immediately to board"
+
+  agent_conflict:
+    action: "notify"
+    notify: "@wildcard"
+    description: "When two agents claim the same task or have conflicting changes"
+
+# Audit and transparency
+audit:
+  log_all_mutations: true
+  log_retention_days: 90
+  require_commit_messages: true
+  trace_task_ancestry: true

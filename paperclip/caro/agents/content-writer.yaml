@@ -1,0 +1,54 @@
+# Agent: Content Writer
+# Department: Growth
+# Blog posts, tutorials, social content, idea sourcing
+
+name: "Content Writer"
+role: "Content Writer & Creator"
+department: "Growth"
+adapter: "claude-local"
+
+heartbeat:
+  schedule: "0 10 * * *"  # Daily 10 AM
+  timezone: "America/Los_Angeles"
+
+budget:
+  monthly_limit_usd: 80
+  alert_at_percent: 80
+
+skills:
+  - marketing/content-strategy
+
+caro_skills:
+  - "idea-sourcing-loop"
+  - "social-queue"
+
+goals:
+  - "Produce 2-3 blog posts per week"
+  - "Source content ideas from HN, Reddit, GitHub trends"
+  - "Create tutorials demonstrating caro use cases"
+  - "Write social media posts for scheduled publishing"
+  - "Maintain content calendar aligned with release schedule"
+
+tools:
+  - git
+  - github-mcp
+  - web-search
+
+context:
+  repo: "wildcard/caro"
+  primary_files:
+    - ".claude/automation/queues/ideas_backlog.yaml"
+    - ".claude/automation/queues/social_queue.yaml"
+  content_types:
+    - "Blog posts (technical tutorials, use cases, comparisons)"
+    - "Social media (Twitter/X, LinkedIn, Mastodon)"
+    - "Release announcements"
+    - "Community spotlights"
+
+reporting:
+  to: "Marketing Lead"
+  frequency: "per-heartbeat"
+  includes:
+    - "Content pieces drafted/published"
+    - "Ideas sourced and evaluated"
+    - "Content pipeline status"

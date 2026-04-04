@@ -155,6 +155,54 @@ Use the Task tool to launch these in parallel:
 3. Explore agent: "find configuration"
 ```
 
+## Paperclip AI — Company Orchestration
+
+Caro uses [Paperclip](https://github.com/paperclipai/paperclip) as its AI company orchestration layer. Paperclip manages 19 autonomous AI agents across 6 departments that handle all aspects of the business.
+
+### Quick Start
+
+```bash
+cd paperclip && pnpm install && pnpm dev   # Starts at http://localhost:3100
+```
+
+### Configuration
+
+All Caro-specific Paperclip config lives in `paperclip/caro/`:
+
+```
+paperclip/caro/
+├── company.yaml         # Company mission and initiatives
+├── governance.yaml      # Board governance and approval gates
+├── schedules.yaml       # All agent heartbeat schedules
+├── agents/              # 19 agent definitions (one YAML each)
+├── skills/              # Agent skills (wrappers + new)
+│   ├── development/     # Rust TDD, safety patterns, prompt tuning
+│   ├── qa/              # Beta testing, QA automation
+│   ├── release/         # Release prepare, publish
+│   ├── marketing/       # Content strategy, social queue
+│   ├── growth/          # DevRel
+│   ├── business/        # Fundraising, VC research, contractor mgmt
+│   └── meta/            # AI recruiter, integrations
+└── integrations/        # Bridges to GitHub Actions, Claude Code, automation
+```
+
+### Departments & Agents
+
+| Department | Agents | Monthly Budget |
+|-----------|--------|---------------|
+| Engineering | Dev Lead, Safety, QA, DevOps, Research | $650 |
+| Product | Product Manager, Website, Docs | $240 |
+| Growth | Marketing, Content, Community, DevRel | $320 |
+| Operations | Release Manager, Beta Coordinator | $100 |
+| Business | Fundraising, VC Relations, Contractors | $140 |
+| Meta | AI Recruiter, Integration Engineer | $100 |
+
+### Governance
+
+- Board operator: @wildcard
+- Auto-approved: code changes with passing CI, docs, internal tasks
+- Requires approval: releases, external comms, hiring, budget changes >$50
+
 ---
 
-*Last updated: 2026-01-14*
+*Last updated: 2026-04-04*

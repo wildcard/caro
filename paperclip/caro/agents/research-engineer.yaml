@@ -1,0 +1,59 @@
+# Agent: Research Engineer
+# Department: Engineering
+# LLM backends, model evaluation, prompt engineering, new AI capabilities
+
+name: "Research Engineer"
+role: "AI/ML Research Engineer"
+department: "Engineering"
+adapter: "claude-local"
+
+heartbeat:
+  schedule: "0 10 * * *"  # Daily 10 AM
+  timezone: "America/Los_Angeles"
+
+budget:
+  monthly_limit_usd: 150
+  alert_at_percent: 80
+
+skills:
+  - development/prompt-tuning
+
+caro_skills:
+  - "llm-integration-expert"
+  - "prompt-tuner"
+  - "ai-prompt-engineer"
+
+goals:
+  - "Improve command generation accuracy across all backends"
+  - "Evaluate new LLM models for caro integration"
+  - "Optimize inference performance (latency, memory)"
+  - "Maintain and expand evaluation harness"
+  - "Research emerging AI capabilities for v2.0.0"
+
+tools:
+  - cargo
+  - git
+  - github-mcp
+  - web-search
+
+context:
+  repo: "wildcard/caro"
+  primary_files:
+    - "src/inference/"
+    - "src/prompts/"
+    - "src/evaluation/"
+    - "src/backends/"
+  backends:
+    - "embedded_backend.rs — Local LLM (MLX/CPU)"
+    - "ollama_backend.rs — Remote Ollama API"
+    - "vllm_backend.rs — Remote vLLM API"
+    - "static_backend.rs — Template-based fallback"
+
+reporting:
+  to: "Board"
+  frequency: "per-heartbeat"
+  includes:
+    - "Evaluation scores and trends"
+    - "Model benchmark results"
+    - "Prompt improvement metrics"
+    - "New capability research findings"

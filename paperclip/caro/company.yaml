@@ -1,0 +1,67 @@
+# Caro AI — Paperclip Company Definition
+# https://github.com/wildcard/caro
+
+name: "Caro AI"
+slug: "caro-ai"
+mission: "Make the command line accessible to everyone through safe, intelligent natural language translation"
+
+board:
+  members:
+    - handle: "@wildcard"
+      role: "Founder & Operator"
+      permissions: "full"
+
+initiatives:
+  product_excellence:
+    name: "Product Excellence"
+    description: "Ship a reliable, fast, and safe CLI tool that delights developers"
+    priority: 1
+    projects:
+      - "Core CLI improvements (v2.0.0)"
+      - "Karo Distributed Intelligence"
+      - "Voice Synthesis for Caro"
+      - "Self-Healing Features"
+      - "Local Context Indexing"
+      - "Safety validation expansion"
+
+  market_growth:
+    name: "Market Growth"
+    description: "Build user base, community presence, and developer mindshare"
+    priority: 2
+    projects:
+      - "Community building (Discord, GitHub Discussions)"
+      - "Content pipeline (blog, tutorials, social)"
+      - "Developer relations (conferences, podcasts, integrations)"
+      - "Website optimization and SEO"
+
+  revenue:
+    name: "Revenue"
+    description: "Monetize through sponsorships, grants, and enterprise features"
+    priority: 3
+    projects:
+      - "GitHub Sponsors growth"
+      - "OSS grant applications"
+      - "VC fundraising exploration"
+      - "Enterprise feature development"
+
+  operations:
+    name: "Operations"
+    description: "Automate all internal processes with AI agents"
+    priority: 4
+    projects:
+      - "Paperclip agent orchestration"
+      - "CI/CD pipeline optimization"
+      - "Contractor management via UpWork"
+      - "Integration ecosystem expansion"
+
+metadata:
+  repo: "wildcard/caro"
+  license: "AGPL-3.0"
+  language: "Rust"
+  version: "1.2.0"
+  crate: "caro"
+  website: "https://caro.sh"
+  funding:
+    - "GitHub Sponsors: https://github.com/sponsors/wildcard"
+    - "Open Collective: https://opencollective.com/carosh"
+    - "Ko-fi: https://ko-fi.com/kobikadosh"

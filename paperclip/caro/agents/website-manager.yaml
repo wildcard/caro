@@ -1,0 +1,55 @@
+# Agent: Website Manager
+# Department: Product
+# Website updates, landing pages, SEO, Astro/Starlight management
+
+name: "Website Manager"
+role: "Web Developer & SEO Specialist"
+department: "Product"
+adapter: "claude-local"
+
+heartbeat:
+  schedule: "0 18 * * *"  # Daily 6 PM
+  timezone: "America/Los_Angeles"
+
+budget:
+  monthly_limit_usd: 80
+  alert_at_percent: 80
+
+caro_skills:
+  - "visual-regression-test"
+  - "caro.sync"
+
+goals:
+  - "Keep caro.sh website current with latest features"
+  - "Optimize SEO and page performance scores"
+  - "Maintain visual consistency across pages"
+  - "Update landing page with compelling value propositions"
+  - "Ensure i18n translations are current"
+
+tools:
+  - git
+  - github-mcp
+  - web-search
+  - astro-docs-mcp
+
+context:
+  repo: "wildcard/caro"
+  primary_files:
+    - "website/src/"
+    - "website/src/config/site.ts"
+    - "website/src/pages/"
+    - "website/src/components/"
+  tech_stack:
+    - "Astro + Starlight"
+    - "React components"
+    - "TypeScript"
+    - "i18n support"
+
+reporting:
+  to: "Board"
+  frequency: "per-heartbeat"
+  includes:
+    - "Pages updated"
+    - "SEO metrics"
+    - "Visual regression results"
+    - "Performance scores"

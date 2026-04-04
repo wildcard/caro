@@ -1,0 +1,103 @@
+# Integration Bridge: GitHub Actions → Paperclip Agents
+# Maps existing CI/CD workflows to agent responsibilities
+
+mappings:
+  # ─── DevOps Engineer ───
+  - workflow: "ci.yml"
+    agent: "devops-engineer"
+    on_failure: "create_urgent_task"
+    description: "Main CI pipeline"
+
+  - workflow: "release.yml"
+    agent: "release-manager"
+    on_failure: "notify_board"
+    description: "Release automation"
+
+  - workflow: "cross-platform-ci.yml"
+    agent: "devops-engineer"
+    on_failure: "create_task"
+    description: "Multi-platform testing"
+
+  - workflow: "publish.yml"
+    agent: "release-manager"
+    on_failure: "notify_board"
+    description: "Package publishing"
+
+  # ─── Safety Engineer ───
+  - workflow: "safety-validation.yml"
+    agent: "safety-engineer"
+    on_failure: "create_urgent_task"
+    description: "Safety pattern validation"
+
+  # ─── QA Engineer ───
+  - workflow: "evaluation.yml"
+    agent: "qa-engineer"
+    on_failure: "create_task"
+    description: "LLM evaluation testing"
+
+  - workflow: "llm-tests.yml"
+    agent: "research-engineer"
+    on_failure: "create_task"
+    description: "LLM-dependent quality tests"
+
+  # ─── DevOps Engineer (infra) ───
+  - workflow: "benchmarks.yml"
+    agent: "devops-engineer"
+    on_failure: "create_task"
+    description: "Performance benchmarks"
+
+  - workflow: "dependency-review.yml"
+    agent: "devops-engineer"
+    on_failure: "create_task"
+    description: "Dependency security review"
+
+  # ─── Community Manager ───
+  - workflow: "issue-triage.yml"
+    agent: "community-manager"
+    description: "Auto-triage incoming issues"
+
+  - workflow: "welcome.yml"
+    agent: "community-manager"
+    description: "Welcome new contributors"
+
+  - workflow: "stale.yml"
+    agent: "community-manager"
+    description: "Manage stale issues/PRs"
+
+  - workflow: "community-health.yml"
+    agent: "community-manager"
+    description: "Community health monitoring"
+
+  # ─── Website Manager ───
+  - workflow: "deploy-website.yml"
+    agent: "website-manager"
+    on_failure: "create_urgent_task"
+    description: "Website deployment"
+
+  - workflow: "translate.yml"
+    agent: "website-manager"
+    description: "Translation workflows"
+
+  # ─── DevOps Engineer (meta) ───
+  - workflow: "codespell.yml"
+    agent: "devops-engineer"
+    on_failure: "create_task"
+    description: "Spell checking"
+
+  - workflow: "shellcheck.yml"
+    agent: "devops-engineer"
+    on_failure: "create_task"
+    description: "Shell script linting"
+
+# Event routing
+events:
+  workflow_failure:
+    priority: "high"
+    notify: ["assigned_agent", "devops-engineer"]
+
+  workflow_success:
+    log_only: true
+
+  security_alert:
+    priority: "critical"
+    notify: ["safety-engineer", "devops-engineer", "board"]

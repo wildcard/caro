@@ -1,0 +1,201 @@
+# Caro AI — Paperclip Heartbeat Schedule
+# Consolidated schedule for all 19 agents
+# Migrated from .claude/automation/config/schedule.yaml + new agents
+
+timezone: "America/Los_Angeles"
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ENGINEERING DEPARTMENT
+# ═══════════════════════════════════════════════════════════════════════════
+
+engineering:
+  dev_lead:
+    agent: "dev-lead"
+    schedule: "0 */4 * * *"           # Every 4 hours
+    description: "Check for assigned issues, implement features, review code"
+    budget_monthly_usd: 200
+    enabled: true
+
+  safety_engineer:
+    agent: "safety-engineer"
+    schedule: "0 9 * * *"             # Daily 9 AM
+    description: "Audit safety patterns, develop new patterns, check for gaps"
+    budget_monthly_usd: 80
+    enabled: true
+
+  qa_engineer:
+    agent: "qa-engineer"
+    schedule: "0 9 * * *"             # Daily 9 AM
+    description: "Run test suites, execute beta cycles, regression detection"
+    budget_monthly_usd: 100
+    enabled: true
+    # Replaces: .claude/automation technical.qa_automation_loop
+
+  devops_engineer:
+    agent: "devops-engineer"
+    schedule: "0 */6 * * *"           # Every 6 hours
+    description: "Monitor CI/CD, fix failures, optimize pipelines"
+    budget_monthly_usd: 120
+    enabled: true
+
+  research_engineer:
+    agent: "research-engineer"
+    schedule: "0 10 * * *"            # Daily 10 AM
+    description: "Evaluate models, tune prompts, run eval harness"
+    budget_monthly_usd: 150
+    enabled: true
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PRODUCT DEPARTMENT
+# ═══════════════════════════════════════════════════════════════════════════
+
+product:
+  product_manager:
+    agent: "product-manager"
+    schedule: "0 8 * * *"             # Daily 8 AM
+    description: "Update roadmap, prioritize features, track milestones"
+    budget_monthly_usd: 100
+    enabled: true
+    # Replaces: .claude/automation management.roadmap_status
+
+  website_manager:
+    agent: "website-manager"
+    schedule: "0 18 * * *"            # Daily 6 PM
+    description: "Update website, check SEO, run visual regression"
+    budget_monthly_usd: 80
+    enabled: true
+    # Replaces: .claude/automation technical.visual_regression + technical.sync_engine
+
+  docs_writer:
+    agent: "docs-writer"
+    schedule: "0 14 * * *"            # Daily 2 PM
+    description: "Update documentation, write tutorials, sync docs"
+    budget_monthly_usd: 60
+    enabled: true
+
+# ═══════════════════════════════════════════════════════════════════════════
+# GROWTH DEPARTMENT
+# ═══════════════════════════════════════════════════════════════════════════
+
+growth:
+  marketing_lead:
+    agent: "marketing-lead"
+    schedule: "0 8 * * *"             # Daily 8 AM
+    description: "Content strategy, campaign planning, social scheduling"
+    budget_monthly_usd: 100
+    enabled: true
+
+  content_writer:
+    agent: "content-writer"
+    schedule: "0 10 * * *"            # Daily 10 AM
+    description: "Source ideas, draft content, maintain social queue"
+    budget_monthly_usd: 80
+    enabled: true
+    # Replaces: .claude/automation content.idea_sourcing
+
+  community_manager:
+    agent: "community-manager"
+    schedule: "0 */4 * * *"           # Every 4 hours
+    description: "Triage issues, manage PRs, engage community"
+    budget_monthly_usd: 80
+    enabled: true
+    # Replaces: .claude/automation management.pr_management + management.stale_revival
+
+  devrel_engineer:
+    agent: "devrel-engineer"
+    schedule: "0 9 * * 1"             # Weekly Monday 9 AM
+    description: "Conference research, integration guides, partnerships"
+    budget_monthly_usd: 60
+    enabled: true
+
+# ═══════════════════════════════════════════════════════════════════════════
+# OPERATIONS DEPARTMENT
+# ═══════════════════════════════════════════════════════════════════════════
+
+operations:
+  release_manager:
+    agent: "release-manager"
+    schedule: "on-demand"             # Triggered by release milestones
+    description: "Coordinate releases, changelogs, publish verification"
+    budget_monthly_usd: 40
+    enabled: true
+    trigger: "manual"
+
+  beta_test_coordinator:
+    agent: "beta-test-coordinator"
+    schedule: "0 9 * * *"             # Daily 9 AM
+    description: "Coordinate beta cycles, collect feedback, quality gates"
+    budget_monthly_usd: 60
+    enabled: true
+
+# ═══════════════════════════════════════════════════════════════════════════
+# BUSINESS DEPARTMENT
+# ═══════════════════════════════════════════════════════════════════════════
+
+business:
+  fundraising_agent:
+    agent: "fundraising-agent"
+    schedule: "0 10 * * 3"            # Weekly Wednesday 10 AM
+    description: "Sponsor outreach, grant applications, funding metrics"
+    budget_monthly_usd: 40
+    enabled: true
+
+  vc_relations_agent:
+    agent: "vc-relations-agent"
+    schedule: "0 10 * * 5"            # Weekly Friday 10 AM
+    description: "Investor research, pipeline management, data room"
+    budget_monthly_usd: 40
+    enabled: true
+
+  contractor_manager:
+    agent: "contractor-manager"
+    schedule: "0 10 * * *"            # Daily 10 AM
+    description: "Contractor oversight, PR review, task management"
+    budget_monthly_usd: 60
+    enabled: true
+
+# ═══════════════════════════════════════════════════════════════════════════
+# META DEPARTMENT (Self-Improvement)
+# ═══════════════════════════════════════════════════════════════════════════
+
+meta:
+  ai_recruiter:
+    agent: "ai-recruiter"
+    schedule: "0 9 * * 1"             # Weekly Monday 9 AM
+    description: "Scan for new AI tools, evaluate integrations"
+    budget_monthly_usd: 40
+    enabled: true
+
+  integration_engineer:
+    agent: "integration-engineer"
+    schedule: "0 10 * * 2"            # Weekly Tuesday 10 AM
+    description: "Build integrations, monitor health, webhook handlers"
+    budget_monthly_usd: 60
+    enabled: true
+
+# ═══════════════════════════════════════════════════════════════════════════
+# GLOBAL SETTINGS
+# ═══════════════════════════════════════════════════════════════════════════
+
+settings:
+  notifications:
+    slack_webhook: null               # Set in environment: PAPERCLIP_SLACK_WEBHOOK
+    email: null                       # Set in environment: PAPERCLIP_NOTIFY_EMAIL
+
+  retry:
+    max_attempts: 2
+    delay_minutes: 5
+
+  logging:
+    level: "info"
+    keep_days: 90
+
+  cost_control:
+    company_monthly_budget_usd: 1550
+    alert_at_percent: 80
+    hard_stop_at_percent: 100
+
+  features:
+    dry_run: false
+    parallel_heartbeats: true         # Allow agents in different departments to run simultaneously
+    max_concurrent_agents: 3          # Max agents running at same time

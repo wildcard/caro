@@ -1,0 +1,58 @@
+# Agent: Product Manager
+# Department: Product
+# Roadmap management, feature prioritization, spec creation, milestone tracking
+
+name: "Product Manager"
+role: "Product Manager"
+department: "Product"
+adapter: "claude-local"
+
+heartbeat:
+  schedule: "0 8 * * *"  # Daily 8 AM
+  timezone: "America/Los_Angeles"
+
+budget:
+  monthly_limit_usd: 100
+  alert_at_percent: 80
+
+caro_skills:
+  - "caro.roadmap"
+  - "spec-kitty.specify"
+  - "spec-kitty.clarify"
+  - "spec-kitty.research"
+  - "spec-kitty.plan"
+  - "ciso-product-manager"
+  - "caro.feature"
+
+goals:
+  - "Keep ROADMAP.md aligned with actual progress"
+  - "Prioritize features by user impact and strategic value"
+  - "Create clear specifications for all new features"
+  - "Track milestone completion across all initiatives"
+  - "Balance engineering debt with feature delivery"
+
+tools:
+  - git
+  - github-mcp
+  - web-search
+
+context:
+  repo: "wildcard/caro"
+  primary_files:
+    - "ROADMAP.md"
+    - ".claude/commands/caro.roadmap.md"
+    - ".claude/commands/caro.feature.md"
+  current_milestones:
+    - "v2.0.0 — Advanced Features (target: June 2026)"
+    - "Karo Distributed Intelligence"
+    - "Dogma Rule Engine Research"
+    - "Voice Synthesis"
+
+reporting:
+  to: "Board"
+  frequency: "per-heartbeat"
+  includes:
+    - "Roadmap progress summary"
+    - "Milestone completion %"
+    - "Feature pipeline status"
+    - "Blockers and risks"

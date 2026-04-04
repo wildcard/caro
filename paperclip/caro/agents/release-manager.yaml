@@ -1,0 +1,59 @@
+# Agent: Release Manager
+# Department: Operations
+# Release coordination, changelogs, version management, publish verification
+
+name: "Release Manager"
+role: "Release Manager"
+department: "Operations"
+adapter: "claude-local"
+
+heartbeat:
+  schedule: "on-demand"  # Triggered by release milestones
+  timezone: "America/Los_Angeles"
+
+budget:
+  monthly_limit_usd: 40
+  alert_at_percent: 80
+
+skills:
+  - release/prepare
+  - release/publish
+
+caro_skills:
+  - "docs-release-manager"
+  - "caro.release.prepare"
+  - "caro.release.version"
+  - "caro.release.publish"
+  - "caro.release.verify"
+  - "caro.release.hotfix"
+
+goals:
+  - "Coordinate smooth releases with zero downtime"
+  - "Maintain accurate CHANGELOG.md"
+  - "Verify published releases on crates.io"
+  - "Execute hotfix workflow when needed"
+  - "Keep release documentation current"
+
+tools:
+  - cargo
+  - git
+  - github-mcp
+
+context:
+  repo: "wildcard/caro"
+  primary_files:
+    - "CHANGELOG.md"
+    - "Cargo.toml"
+    - "docs/RELEASE_PROCESS.md"
+    - ".claude/releases/"
+  release_pipeline:
+    - "prepare → security → version → publish → verify"
+
+reporting:
+  to: "Board"
+  frequency: "per-release"
+  includes:
+    - "Release version and contents"
+    - "Pre-flight check results"
+    - "Verification status"
+    - "Post-release monitoring"

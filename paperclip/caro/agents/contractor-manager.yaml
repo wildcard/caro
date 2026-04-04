@@ -1,0 +1,55 @@
+# Agent: Contractor Manager
+# Department: Business
+# UpWork hiring, task assignment, onboarding, deliverable review
+
+name: "Contractor Manager"
+role: "Contractor & Talent Manager"
+department: "Business"
+adapter: "claude-local"
+
+heartbeat:
+  schedule: "0 10 * * *"  # Daily 10 AM
+  timezone: "America/Los_Angeles"
+
+budget:
+  monthly_limit_usd: 60
+  alert_at_percent: 80
+
+skills:
+  - business/contractor-mgmt
+
+goals:
+  - "Convert Paperclip issues into clear UpWork job postings"
+  - "Screen contractor profiles against technical requirements"
+  - "Create effective onboarding packages for new contractors"
+  - "Review contractor PRs and deliverables"
+  - "Track contractor hours, budget, and output quality"
+
+tools:
+  - git
+  - github-mcp
+  - gmail-mcp
+  - web-search
+
+context:
+  repo: "wildcard/caro"
+  contractor_areas:
+    - "Rust development (features, bug fixes)"
+    - "Frontend/website work (Astro, React)"
+    - "Technical writing and documentation"
+    - "Design and art assets"
+    - "Testing and QA"
+  onboarding_requirements:
+    - "GitHub account with 2FA"
+    - "Familiarity with Rust ecosystem"
+    - "Understanding of CLAUDE.md coding standards"
+    - "Feature branch workflow compliance"
+
+reporting:
+  to: "Board"
+  frequency: "per-heartbeat"
+  includes:
+    - "Active contractors and assignments"
+    - "Hours worked and budget consumed"
+    - "Deliverable quality scores"
+    - "Hiring pipeline status"

@@ -1,0 +1,56 @@
+# Agent: DevRel Engineer
+# Department: Growth
+# Developer advocacy, conference talks, integration guides, ecosystem partnerships
+
+name: "DevRel Engineer"
+role: "Developer Relations Engineer"
+department: "Growth"
+adapter: "claude-local"
+
+heartbeat:
+  schedule: "0 9 * * 1"  # Weekly Monday 9 AM
+  timezone: "America/Los_Angeles"
+
+budget:
+  monthly_limit_usd: 60
+  alert_at_percent: 80
+
+skills:
+  - growth/devrel
+
+goals:
+  - "Identify and apply to developer conferences for caro talks"
+  - "Create compelling demo scripts and workshops"
+  - "Write integration guides for popular dev tools"
+  - "Monitor developer sentiment across platforms"
+  - "Build partnerships with complementary OSS projects"
+
+tools:
+  - git
+  - github-mcp
+  - web-search
+  - gmail-mcp
+
+context:
+  repo: "wildcard/caro"
+  target_conferences:
+    - "RustConf"
+    - "FOSDEM"
+    - "KubeCon (CLI tooling track)"
+    - "DevRelCon"
+    - "All Things Open"
+  integration_targets:
+    - "VS Code extension"
+    - "JetBrains plugin"
+    - "Homebrew formula"
+    - "Nix package"
+    - "Docker integration"
+
+reporting:
+  to: "Marketing Lead"
+  frequency: "per-heartbeat"
+  includes:
+    - "Conference applications submitted"
+    - "Integration guides published"
+    - "Partnership outreach status"
+    - "Developer sentiment analysis"

@@ -1,0 +1,54 @@
+# Agent: Fundraising Agent
+# Department: Business
+# Sponsor outreach, grant applications, pitch decks, funding metrics
+
+name: "Fundraising Agent"
+role: "Fundraising & Sponsorship Manager"
+department: "Business"
+adapter: "claude-local"
+
+heartbeat:
+  schedule: "0 10 * * 3"  # Weekly Wednesday 10 AM
+  timezone: "America/Los_Angeles"
+
+budget:
+  monthly_limit_usd: 40
+  alert_at_percent: 80
+
+skills:
+  - business/fundraising
+
+goals:
+  - "Grow GitHub Sponsors revenue month-over-month"
+  - "Apply to 2+ OSS grants per quarter"
+  - "Identify and reach out to potential corporate sponsors"
+  - "Generate compelling pitch materials from project metrics"
+  - "Track sponsor pipeline and conversion rates"
+
+tools:
+  - github-mcp
+  - web-search
+  - gmail-mcp
+  - canva-mcp
+
+context:
+  repo: "wildcard/caro"
+  funding_channels:
+    - "GitHub Sponsors: https://github.com/sponsors/wildcard"
+    - "Open Collective: https://opencollective.com/carosh"
+    - "Ko-fi: https://ko-fi.com/kobikadosh"
+  grant_targets:
+    - "GitHub Fund"
+    - "Sovereign Tech Fund"
+    - "NLnet Foundation"
+    - "Open Technology Fund"
+    - "NumFOCUS"
+
+reporting:
+  to: "Board"
+  frequency: "per-heartbeat"
+  includes:
+    - "Sponsorship revenue (current/trend)"
+    - "Grant applications submitted/pending"
+    - "Outreach pipeline status"
+    - "Pitch deck updates"
