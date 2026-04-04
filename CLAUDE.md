@@ -155,6 +155,39 @@ Use the Task tool to launch these in parallel:
 3. Explore agent: "find configuration"
 ```
 
+## Cabinet — AI Company Operating System
+
+Caro is managed as an AI company via [Cabinet](https://github.com/hilash/cabinet), installed at `cabinet/` in the repo root.
+
+### Quick Start
+
+```bash
+cd cabinet && npm run dev:all   # Start Cabinet at http://localhost:3000
+```
+
+### Agent Team (Wave 1 — Active)
+
+| Agent | Role | Schedule |
+|-------|------|----------|
+| CEO | Strategic coordination, daily priorities | Weekdays 9 AM |
+| Dev Lead | PR review, engineering coordination | Weekdays 9:30 AM |
+| Product Manager | PRDs, feature prioritization | Weekdays 10 AM |
+| QA Engineer | Test execution, safety validation | Weekdays 11 AM |
+| Release Engineer | Releases, security audits, publishing | Wed + Fri 2 PM |
+| Growth Marketer | Acquisition channels, growth experiments | Weekdays 8 AM |
+| Content Writer | Blog posts, tutorials, social content | Mon/Wed/Fri 9 AM |
+| Community Manager | GitHub issues, social engagement | Weekdays 10 AM |
+
+### Key Files
+
+- `cabinet/data/.agents/` — Agent persona definitions
+- `cabinet/data/caro-bridge.md` — How agents connect to Caro automation
+- `cabinet/data/.agents/.repo.yaml` — Links agents to the Caro repo
+
+### Bridge to Caro Automation
+
+Cabinet agents execute Claude Code sessions in this repo, using existing skills and commands. See `cabinet/data/caro-bridge.md` for the full mapping.
+
 ---
 
-*Last updated: 2026-01-14*
+*Last updated: 2026-04-04*

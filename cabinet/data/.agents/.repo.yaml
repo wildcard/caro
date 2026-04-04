@@ -1,0 +1,6 @@
+name: caro
+local: /home/user/caro
+remote: https://github.com/wildcard/caro
+source: both
+branch: main
+description: Caro — Rust CLI that converts natural language to safe POSIX shell commands using local LLMs
