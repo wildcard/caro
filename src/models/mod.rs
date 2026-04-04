@@ -624,6 +624,43 @@ impl CacheManifest {
     }
 }
 
+/// Configuration for the caro-server HTTP API
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct ServerConfig {
+    /// Bind address (default: 127.0.0.1 for localhost-only access)
+    #[serde(default = "ServerConfig::default_host")]
+    pub host: String,
+    /// Port number (default: 3847)
+    #[serde(default = "ServerConfig::default_port")]
+    pub port: u16,
+    /// Bearer token for authentication (optional; if unset, all requests accepted)
+    pub auth_token: Option<String>,
+    /// Allowed CORS origins (empty = same-origin only)
+    #[serde(default)]
+    pub allowed_origins: Vec<String>,
+}
+
+impl ServerConfig {
+    fn default_host() -> String {
+        "127.0.0.1".to_string()
+    }
+
+    fn default_port() -> u16 {
+        3847
+    }
+}
+
+impl Default for ServerConfig {
+    fn default() -> Self {
+        Self {
+            host: Self::default_host(),
+            port: Self::default_port(),
+            auth_token: None,
+            allowed_origins: Vec::new(),
+        }
+    }
+}
+
 /// User configuration with preferences
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct UserConfiguration {
@@ -641,6 +678,9 @@ pub struct UserConfiguration {
     /// Default generation profile (generator or explainer)
     #[serde(default)]
     pub generation_profile: crate::prompts::profiles::GenerationProfile,
+    /// HTTP API server configuration (used by caro-server binary)
+    #[serde(default)]
+    pub server: ServerConfig,
 }
 
 impl Default for UserConfiguration {
@@ -655,6 +695,7 @@ impl Default for UserConfiguration {
             log_rotation_days: 7,
             telemetry: crate::telemetry::TelemetryConfig::default(),
             generation_profile: crate::prompts::profiles::GenerationProfile::default(),
+            server: ServerConfig::default(),
         }
     }
 }
@@ -694,6 +735,7 @@ pub struct UserConfigurationBuilder {
     log_rotation_days: u32,
     telemetry: crate::telemetry::TelemetryConfig,
     generation_profile: crate::prompts::profiles::GenerationProfile,
+    server: ServerConfig,
 }
 
 impl Default for UserConfigurationBuilder {
@@ -715,6 +757,7 @@ impl UserConfigurationBuilder {
             log_rotation_days: defaults.log_rotation_days,
             telemetry: defaults.telemetry,
             generation_profile: defaults.generation_profile,
+            server: defaults.server,
         }
     }
 
@@ -777,6 +820,7 @@ impl UserConfigurationBuilder {
             log_rotation_days: self.log_rotation_days,
             telemetry: self.telemetry,
             generation_profile: self.generation_profile,
+            server: self.server,
         };
         config.validate()?;
         Ok(config)
