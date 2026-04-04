@@ -1710,18 +1710,7 @@ async fn handle_paperclip_command(command: PaperclipCommands) -> Result<(), Stri
             println!("  Agent ID:  {}", config.agent_id.cyan());
             println!("  API URL:   {}", config.api_url);
             println!("  Run ID:    {}", config.run_id);
-            println!(
-                "  API Key:   {}",
-                if config.api_key.len() > 4 {
-                    format!(
-                        "{}...{}",
-                        &config.api_key[..2],
-                        &config.api_key[config.api_key.len() - 2..]
-                    )
-                } else {
-                    "****".to_string()
-                }
-            );
+            println!("  API Key:   **** ({} chars)", config.api_key.len());
             Ok(())
         }
         PaperclipCommands::Status => {
