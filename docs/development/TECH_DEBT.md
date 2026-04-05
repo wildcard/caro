@@ -303,6 +303,52 @@ impl CacheManager {
 
 ---
 
+### Dual Validation Paths (Agent Loop)
+**Issue**: [#839](https://github.com/wildcard/caro/issues/839), [#840](https://github.com/wildcard/caro/issues/840)
+**Status**: Tracked
+**Complexity**: Medium
+**Impact**: Medium - Architecture cleanliness
+
+**Description**:
+Caro has two separate validation systems: `CommandValidator` (platform compatibility checks in `src/prompts/validation.rs`) and `SafetyValidator` (dangerous pattern matching in `src/safety/mod.rs`). These run at different points in the pipeline (agent loop vs CLI layer) and have overlapping concerns.
+
+**Current State**:
+- `CommandValidator` runs inside agent loop during refinement
+- `SafetyValidator` runs in CLI after agent loop returns
+- Both check the same command but at different stages
+- No unified validation result type
+
+**Future Goal**: Unify into a single validation pipeline within the agent loop (ADR-015).
+
+**Skills needed**: Rust, architecture design
+**Estimated effort**: 8-12 hours
+**Help wanted**: Yes - Requires understanding of both validation paths
+
+---
+
+### String Context Concatenation in CommandRequest
+**Issue**: [#842](https://github.com/wildcard/caro/issues/842)
+**Status**: Tracked (deferred to v2.0.0)
+**Complexity**: High
+**Impact**: Medium - Type safety and backend flexibility
+
+**Description**:
+The agent loop builds LLM context by concatenating strings into `CommandRequest.context: Option<String>`. This is type-unsafe, not composable, and forces all backends to parse the same flat string format. Should be replaced with a structured `GenerationContext` type (ADR-016).
+
+**Current State**:
+```rust
+context: Some(format!("{}{}{}\nSYSTEM_PROMPT:\n{}",
+    context_str, dir_context_str, knowledge_context_str, system_prompt))
+```
+
+**Future Goal**: Replace with typed `GenerationContext` struct per ADR-016.
+
+**Skills needed**: Rust, API design, trait systems
+**Estimated effort**: 16-24 hours (breaking change to CommandGenerator trait)
+**Help wanted**: Yes - Coordinate with backend maintainers
+
+---
+
 ## 🔵 Low Priority / Nice to Have
 
 ### Config Hot Reloading
@@ -418,5 +464,5 @@ fn generate_schema() {
 ---
 
 **Last Updated**: 2026-01-02
-**Total Open Tech Debt Items**: 11
+**Total Open Tech Debt Items**: 13
 **Good First Issues**: 4

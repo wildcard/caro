@@ -279,8 +279,8 @@ gantt
 | **v1.1.1** | Jan 14, 2026 | 7 | 7 | 100% | ✅ **RELEASED** |
 | **v1.1.0** | Jan 12, 2026 | 19 | 19 | 100% | ✅ **GA RELEASED** |
 | **v1.2.0** | Mar 31, 2026 | 73 (25 issues + 48 PRs) | 4 | 5% | 🔄 In Progress |
-| **v1.3.0** | May 31, 2026 | 54 (17 issues + 37 PRs) | 0 | 0% | ⏸️ Backlog |
-| **v2.0.0** | Jun 30, 2026 | 36 (17 issues + 19 PRs) | 0 | 0% | 🔄 Research Phase |
+| **v1.3.0** | May 31, 2026 | 57 (20 issues + 37 PRs) | 0 | 0% | ⏸️ Backlog |
+| **v2.0.0** | Jun 30, 2026 | 38 (19 issues + 19 PRs) | 0 | 0% | 🔄 Research Phase |
 | **Total** | - | **194** | **35** | **18%** | 🚀 On Track |
 
 ---
@@ -304,6 +304,11 @@ Successfully integrated **104 PRs (#557-660)** into the roadmap:
 - [#672](https://github.com/wildcard/caro/issues/672) - Interactive TUI Welcome Screen (v2.0.0)
 - [#673](https://github.com/wildcard/caro/issues/673) - User Feedback System MVP (v1.3.0)
 - [#674](https://github.com/wildcard/caro/issues/674) - Proactive Suggested Queries (v1.3.0)
+- [#839](https://github.com/wildcard/caro/issues/839) - Typed AgentEvent System for Observability (v1.3.0)
+- [#840](https://github.com/wildcard/caro/issues/840) - SafetyValidator in Agent Loop with PermissionRequired Event (v1.3.0)
+- [#841](https://github.com/wildcard/caro/issues/841) - Subprocess Timeouts and Infallible get_command_info (v1.3.0)
+- [#842](https://github.com/wildcard/caro/issues/842) - Structured GenerationContext (v2.0.0)
+- [#843](https://github.com/wildcard/caro/issues/843) - Provider-Neutral Message Roles for Remote Backends (v2.0.0)
 
 ### Distribution by Milestone
 - **v1.2.0** (Documentation & Website): 48 PRs
