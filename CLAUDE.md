@@ -71,6 +71,7 @@ Use `skill: name` when working on specific domains:
 | `prompt-tuner` | Improving embedded LLM system prompts |
 | `quality-engineer-manager` | Release validation and QA sign-off |
 | `unbiased-beta-tester` | Simulating user testing scenarios |
+| `pr-akita` | PR triage with vibe-maintainer philosophy (fix-merge workflow) |
 | `create_handoff` / `resume_handoff` | Session state preservation |
 | `continuity_ledger` | Long-running project state |
 
@@ -83,6 +84,7 @@ Use `skill: name` when working on specific domains:
 | `/caro.roadmap` | View and align with project roadmap |
 | `/caro.release.prepare` | Prepare a new release |
 | `/caro.sync` | Sync documentation across codebase |
+| `/pr-management-loop` | PR triage, fix-merge, and queue management |
 | `/spec-kitty.plan` | Create implementation plan |
 | `/spec-kitty.implement` | Execute implementation |
 

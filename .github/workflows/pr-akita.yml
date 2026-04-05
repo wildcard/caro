@@ -1,0 +1,172 @@
+name: PR Akita Triage
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  triage-label:
+    name: Triage and Label
+    runs-on: ubuntu-latest
+    outputs:
+      triage-bucket: ${{ steps.triage.outputs.bucket }}
+    steps:
+      - name: Triage PR
+        id: triage
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const files = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              per_page: 100,
+            });
+
+            const fileNames = files.data.map(f => f.filename);
+            const additions = files.data.reduce((sum, f) => sum + f.additions, 0);
+            const deletions = files.data.reduce((sum, f) => sum + f.deletions, 0);
+
+            // Check if all files are docs/config only
+            const docsPatterns = [
+              /^docs\//,
+              /^\.github\//,
+              /\.md$/,
+              /^\.claude\//,
+              /^\.gitignore$/,
+              /^LICENSE/,
+              /\.ya?ml$/,
+              /\.toml$/,
+              /\.json$/,
+            ];
+            const allDocs = fileNames.every(f =>
+              docsPatterns.some(p => p.test(f))
+            );
+
+            // Determine triage bucket
+            let bucket = 'needs-review'; // default
+
+            if (allDocs && additions < 20 && deletions < 10) {
+              bucket = 'easy-win';
+            } else if (additions < 20 && deletions < 10 && fileNames.length <= 3) {
+              bucket = 'easy-win';
+            }
+
+            // Label the PR
+            const labelName = `akita/${bucket}`;
+            const akitaLabels = ['akita/easy-win', 'akita/needs-review', 'akita/fix-merge-candidate'];
+
+            // Remove existing akita labels
+            const currentLabels = pr.labels.map(l => l.name);
+            for (const label of akitaLabels) {
+              if (currentLabels.includes(label) && label !== labelName) {
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: pr.number,
+                    name: label,
+                  });
+                } catch (e) {
+                  // Label may not exist yet
+                }
+              }
+            }
+
+            // Ensure label exists
+            try {
+              await github.rest.issues.getLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: labelName,
+              });
+            } catch (e) {
+              const colors = {
+                'akita/easy-win': '0e8a16',
+                'akita/needs-review': 'fbca04',
+                'akita/fix-merge-candidate': 'e99695',
+              };
+              await github.rest.issues.createLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: labelName,
+                color: colors[labelName] || 'ededed',
+                description: `PR Akita triage: ${bucket}`,
+              });
+            }
+
+            // Apply label
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              labels: [labelName],
+            });
+
+            core.setOutput('bucket', bucket);
+            console.log(`PR #${pr.number} triaged as: ${bucket}`);
+            console.log(`Files: ${fileNames.length}, +${additions} -${deletions}`);
+
+  welcome-with-disposition:
+    name: Welcome with Disposition
+    needs: triage-label
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened'
+    steps:
+      - name: Check if first-time contributor
+        id: check-contributor
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const author = context.payload.pull_request.user.login;
+            const bucket = '${{ needs.triage-label.outputs.triage-bucket }}';
+
+            // Check for previous merged PRs
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'closed',
+              per_page: 5,
+            });
+            const hasPreviousMerged = prs.some(
+              pr => pr.user.login === author && pr.merged_at
+            );
+
+            // Skip if welcome.yml will handle first-time contributors
+            if (!hasPreviousMerged) {
+              console.log('First-time contributor - letting welcome.yml handle greeting');
+              core.setOutput('should-comment', 'false');
+              return;
+            }
+
+            core.setOutput('should-comment', 'true');
+            core.setOutput('bucket', bucket);
+            core.setOutput('author', author);
+
+      - name: Post disposition comment
+        if: steps.check-contributor.outputs.should-comment == 'true'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const bucket = '${{ steps.check-contributor.outputs.bucket }}';
+            const author = '${{ steps.check-contributor.outputs.author }}';
+
+            const messages = {
+              'easy-win': `Thanks for the PR, @${author}! This looks like a quick win -- we'll review and merge this shortly.`,
+              'needs-review': `Thanks for the contribution, @${author}! This touches some core areas so we'll give it a thorough review. If there are minor fixable issues, we may fix them ourselves and merge -- you'll get full credit.`,
+              'fix-merge-candidate': `Thanks for this, @${author}! CI needs a small fix -- we may fix it ourselves and merge. You'll get full credit as co-author.`,
+            };
+
+            const body = messages[bucket] || messages['needs-review'];
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: body,
+            });
