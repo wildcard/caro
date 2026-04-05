@@ -59,6 +59,8 @@ cargo run --bin caro-eval      # Run evaluation suite
 
 **After compacting**: Use `skill: resume_handoff` to restore context from previous session.
 
+**Reactive maintenance**: When the agent makes a mistake, fix the code AND update CLAUDE.md or create a skill to prevent recurrence. Use `skill: reflect` at session end to systematically review learnings.
+
 ## Available Skills (Load On-Demand)
 
 Use `skill: name` when working on specific domains:
@@ -73,6 +75,9 @@ Use `skill: name` when working on specific domains:
 | `unbiased-beta-tester` | Simulating user testing scenarios |
 | `create_handoff` / `resume_handoff` | Session state preservation |
 | `continuity_ledger` | Long-running project state |
+| `reflect` | Session-end review: suggest CLAUDE.md/skill improvements |
+| `review-fix` | Iterative code review loop with second model |
+| `take-over` | Autonomous finish: review+fix → cleanup → commit |
 
 ## Key Commands
 
@@ -93,6 +98,8 @@ When spawning sub-agents via Task tool:
 - **model: "haiku"** - Quick searches, simple validations, file lookups
 - **model: "sonnet"** - Code review, test execution, documentation
 - **model: "opus"** - Complex analysis, architecture decisions, safety audits
+
+**Multi-model review pattern:** Use a different model to review generated code. Spawn a haiku/sonnet sub-agent to review the dirty diff, fix issues, re-review until clean. See `skill: review-fix`. The `ralph-loop` plugin (enabled in settings.json) can also orchestrate review loops.
 
 ## Safety Validation
 
@@ -144,6 +151,27 @@ Before implementing features:
 4. **Implement**: Follow the plan with TDD
 5. **Validate**: Run tests, check safety
 
+## Staged Autonomy
+
+Match autonomy level to task uncertainty:
+
+| Mode | When | How |
+|------|------|-----|
+| **Interactive** | Complex features, design decisions, uncertain scope | Human stays in the loop |
+| **Take-over** | ~80-90% done, remaining work is mechanical | `skill: take-over` chains review+fix → cleanup → commit |
+| **Handoff** | Session ending, work continues later | `skill: create_handoff` preserves full context |
+
+**Key insight:** Don't choose between manual and fully autonomous. Start interactive for decisions, then hand off mechanical work.
+
+## tmux Integration
+
+When running caro development in tmux:
+
+- **Read agent output:** `ctrl-w [` enters copy mode (vi keys: `j/k` scroll, `/` search, `n/N` next/prev)
+- **Capture pane buffer:** `tmux capture-pane -t 0 -p -S -10000` retrieves 10k lines of history
+- **Passthrough ctrl-o:** Add `bind o send-keys C-o` to `.tmux.conf` so agents receive ctrl-o instead of tmux intercepting it
+- **Pane references:** Document tmux pane coordinates in session context so agents can reference specific panes
+
 ## Parallel Agent Pattern
 
 For comprehensive analysis, launch multiple agents in a single message:
@@ -157,4 +185,4 @@ Use the Task tool to launch these in parallel:
 
 ---
 
-*Last updated: 2026-01-14*
+*Last updated: 2026-04-05*
