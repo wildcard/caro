@@ -156,7 +156,7 @@ Our first-time issues are designed to be:
 
 ## Questions?
 
-- **General questions**: [GitHub Discussions](https://github.com/wildcard/cmdai/discussions)
+- **General questions**: [GitHub Discussions](https://github.com/wildcard/caro/discussions)
 - **Stuck on an issue**: Comment on the issue thread
 - **Need encouragement**: Read [FIRST_TIME_CONTRIBUTORS.md](../../FIRST_TIME_CONTRIBUTORS.md)
 

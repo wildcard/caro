@@ -1,6 +1,6 @@
 # Contributors
 
-This file acknowledges everyone who has contributed to cmdai. Every contribution, no matter how small, helps make the terminal safer and more accessible for everyone.
+This file acknowledges everyone who has contributed to caro. Every contribution, no matter how small, helps make the terminal safer and more accessible for everyone.
 
 ## How to Get Listed
 
@@ -24,14 +24,14 @@ These individuals have commit access and maintain the project:
 
 ## Code Contributors
 
-Thank you to everyone who has contributed code to cmdai:
+Thank you to everyone who has contributed code to caro:
 
 <!-- Contributors will be added here as PRs are merged -->
 
 **Awaiting our first community contributor!** Will it be you?
 
 To claim this spot:
-1. Check out our [good first issues](https://github.com/wildcard/cmdai/labels/good-first-issue)
+1. Check out our [good first issues](https://github.com/wildcard/caro/labels/good-first-issue)
 2. Read [CONTRIBUTING.md](CONTRIBUTING.md)
 3. Submit a PR
 4. Get merged and celebrated!
@@ -45,15 +45,15 @@ These domain experts have contributed dangerous command patterns to protect user
 <!-- Safety pattern contributors will be added here -->
 
 **Your expertise is needed!** If you've seen dangerous commands in the wild:
-1. Use the [safety pattern template](https://github.com/wildcard/cmdai/issues/new?template=safety_pattern.yml)
+1. Use the [safety pattern template](https://github.com/wildcard/caro/issues/new?template=safety_pattern.yml)
 2. Describe the command and why it's dangerous
-3. Get credit for making cmdai safer
+3. Get credit for making caro safer
 
 ---
 
 ## Documentation Contributors
 
-These writers and educators have improved cmdai's documentation:
+These writers and educators have improved caro's documentation:
 
 <!-- Documentation contributors will be added here -->
 
@@ -71,7 +71,7 @@ These community members have shared valuable workflow insights:
 
 <!-- Use case contributors will be added here -->
 
-**Share your story!** Use the [use case template](https://github.com/wildcard/cmdai/issues/new?template=use_case.yml) to:
+**Share your story!** Use the [use case template](https://github.com/wildcard/caro/issues/new?template=use_case.yml) to:
 - Help us understand real-world workflows
 - Inform feature priorities
 - Identify edge cases
@@ -81,7 +81,7 @@ These community members have shared valuable workflow insights:
 
 ## Testing and Quality Assurance
 
-These contributors have helped improve cmdai's reliability:
+These contributors have helped improve caro's reliability:
 
 <!-- QA contributors will be added here -->
 
@@ -204,7 +204,7 @@ You don't need to write code to be a valued contributor:
 
 **Advocacy:**
 - Writing blog posts
-- Giving talks about cmdai
+- Giving talks about caro
 - Sharing on social media
 - Creating videos/demos
 
@@ -241,9 +241,9 @@ Ready to join this list?
    - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) - Community standards
 
 2. **Find your path:**
-   - [Good first issues](https://github.com/wildcard/cmdai/labels/good-first-issue) - Start here
-   - [Help wanted](https://github.com/wildcard/cmdai/labels/help-wanted) - Community priorities
-   - [GitHub Discussions](https://github.com/wildcard/cmdai/discussions) - Ask questions
+   - [Good first issues](https://github.com/wildcard/caro/labels/good-first-issue) - Start here
+   - [Help wanted](https://github.com/wildcard/caro/labels/help-wanted) - Community priorities
+   - [GitHub Discussions](https://github.com/wildcard/caro/discussions) - Ask questions
 
 3. **Make your contribution:**
    - Code, documentation, safety patterns, use cases
@@ -269,13 +269,13 @@ We believe in recognizing all contributions, not just code.
 
 ---
 
-**Thank you to everyone who makes cmdai better!**
+**Thank you to everyone who makes caro better!**
 
 Whether you've submitted one PR or one hundred, fixed a typo or implemented a major feature, answered a question or asked a great one - you're part of this community, and we appreciate you.
 
 ---
 
-*Last updated: 2025-11-28*
+*Last updated: 2026-04-05*
 
 <!--
 Template for adding contributors:

@@ -2,7 +2,7 @@
 
 ## We Want to Be Your First Project! 🎉
 
-Hey there! Welcome to **cmdai** (also known as **caro**, our beloved Shiba mascot). We're not just another open-source project – we're a community that **genuinely loves welcoming first-time contributors**.
+Hey there! Welcome to **caro**, our beloved Shiba mascot project. We're not just another open-source project – we're a community that **genuinely loves welcoming first-time contributors**.
 
 Whether you've never opened a pull request before or you're looking for a project that values your unique perspective, **you belong here**. We mean it.
 
@@ -45,13 +45,13 @@ If you geek out over **structured knowledge representations**, **we need you**.
 If you've spent years mastering the terminal and want to **help the next generation**, **this is how**.
 
 #### ⚡ You're an MCP/Claude Code Power User
-- **Claude Code enthusiasts**: Integrate cmdai into Claude workflows
+- **Claude Code enthusiasts**: Integrate caro into Claude workflows
 - **MCP (Model Context Protocol) experts**: Build skills and integrations
 - **Cloud skills builders**: Help us integrate caro into cloud-based flows
 
 If you're a **Claude Code power user** and see the potential for deep integration, **let's build it together**.
 
-## Why cmdai is a Great First Project
+## Why caro is a Great First Project
 
 ### 1. **We're Designed for Learning**
 - Comprehensive documentation with clear examples
@@ -126,7 +126,7 @@ Use the TDD workflow (we'll guide you):
 ### Step 6: Celebrate!
 
 Once your PR is merged:
-- You're officially a cmdai contributor! 🎉
+- You're officially a caro contributor! 🎉
 - Your name goes in the CHANGELOG
 - You've made the terminal safer for everyone
 - You've earned serious Rust/Open-Source cred
@@ -213,7 +213,7 @@ We believe:
 - [ ] Read this document (you're doing it! ✅)
 - [ ] Read the [Code of Conduct](CODE_OF_CONDUCT.md)
 - [ ] Skim the [CONTRIBUTING.md](CONTRIBUTING.md) (you don't need to memorize it)
-- [ ] Browse the [good-first-issue](https://github.com/wildcard/cmdai/labels/good-first-issue) list
+- [ ] Browse the [good-first-issue](https://github.com/wildcard/caro/labels/good-first-issue) list
 - [ ] Pick one that excites you
 - [ ] Comment "I'd like to work on this!"
 - [ ] Set up your dev environment (ask for help if stuck!)
@@ -263,7 +263,7 @@ As a first-time contributor, we promise:
 
 **You don't need to be an expert to contribute. You just need to care.**
 
-We're building cmdai to make the terminal more accessible and safer for everyone. Whether you're adding a safety pattern, writing documentation, or fixing a typo - you're helping thousands of developers work more confidently with AI-generated commands.
+We're building caro to make the terminal more accessible and safer for everyone. Whether you're adding a safety pattern, writing documentation, or fixing a typo - you're helping thousands of developers work more confidently with AI-generated commands.
 
 **Welcome to the team. We're so glad you're here.**
 

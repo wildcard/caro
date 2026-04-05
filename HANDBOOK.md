@@ -617,7 +617,7 @@ You're not just a contributor - you're a co-creator of cmdai's culture.
 ## Questions About This Handbook?
 
 This handbook is a living document. If something is:
-- Unclear - ask in [GitHub Discussions](https://github.com/wildcard/cmdai/discussions)
+- Unclear - ask in [GitHub Discussions](https://github.com/wildcard/caro/discussions)
 - Missing - open an issue or PR
 - Wrong - submit a correction
 - Outdated - flag it for update

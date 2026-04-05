@@ -15,16 +15,17 @@ This document outlines:
 
 ## Supported Versions
 
-caro is currently in **early development** (v0.1.x). Security updates are provided for:
+caro is **generally available** (v1.2.0). Security updates are provided for:
 
 | Version | Supported | Notes |
 |---------|-----------|-------|
-| 0.1.x   | ✅ Yes    | Current development series |
-| < 0.1.0 | ❌ No     | Pre-release, not recommended for use |
+| 1.2.x   | ✅ Yes    | Current stable release |
+| 1.1.x   | ✅ Yes    | Critical security fixes only |
+| < 1.0.0 | ❌ No     | Pre-release, not recommended for use |
 
-Once caro reaches v1.0.0, we will maintain security support for:
+Security support policy:
 - **Latest stable release**: Full security support
-- **Previous major version**: Critical security fixes only for 6 months after new major release
+- **Previous minor version**: Critical security fixes only for 6 months after new release
 - **Older versions**: No security support (upgrade recommended)
 
 ---
@@ -348,5 +349,5 @@ For security concerns:
 
 ---
 
-*Last updated: 2025-10-03*
-*Security policy version: 1.0*
+*Last updated: 2026-04-05*
+*Security policy version: 2.0*

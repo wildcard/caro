@@ -34,42 +34,13 @@ const hasVideo = !!videoUrl;
           Your browser does not support the video tag.
         </video>
       ) : (
-        <div class="video-placeholder">
-          <div class="placeholder-content">
-            <div class="play-button">
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                <circle cx="24" cy="24" r="24" fill="#ff6b35" fill-opacity="0.2"/>
-                <circle cx="24" cy="24" r="20" fill="#ff6b35"/>
-                <path d="M20 16L32 24L20 32V16Z" fill="white"/>
-              </svg>
-            </div>
-            <p class="placeholder-text">Video coming soon</p>
-            <p class="placeholder-subtext">
-              In the meantime, try the interactive demo below
-            </p>
-          </div>
-
-          <div class="demo-steps">
-            <div class="step">
-              <span class="step-number">1</span>
-              <span class="step-text">Type naturally: "find large files over 100MB"</span>
-            </div>
-            <div class="step-arrow">→</div>
-            <div class="step">
-              <span class="step-number">2</span>
-              <span class="step-text">Caro validates for safety</span>
-            </div>
-            <div class="step-arrow">→</div>
-            <div class="step">
-              <span class="step-number">3</span>
-              <span class="step-text">Get: <code>find . -size +100M -type f</code></span>
-            </div>
-            <div class="step-arrow">→</div>
-            <div class="step">
-              <span class="step-number">4</span>
-              <span class="step-text">Execute with confidence</span>
-            </div>
-          </div>
+        <div class="demo-gif-container">
+          <img
+            src="/caro-prompting.gif"
+            alt="Caro demo - converting natural language to safe shell commands"
+            class="demo-gif"
+            loading="lazy"
+          />
         </div>
       )}
     </div>
@@ -133,33 +104,16 @@ const hasVideo = !!videoUrl;
     display: block;
   }
 
-  .video-placeholder {
-    padding: 60px 40px;
+  .demo-gif-container {
     display: flex;
-    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    gap: 40px;
   }
 
-  .placeholder-content {
-    text-align: center;
-  }
-
-  .play-button {
-    margin-bottom: 20px;
-    opacity: 0.6;
-  }
-
-  .placeholder-text {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #666;
-    margin-bottom: 8px;
-  }
-
-  .placeholder-subtext {
-    font-size: 0.9375rem;
-    color: #555;
+  .demo-gif {
+    width: 100%;
+    display: block;
+    border-radius: 12px;
   }
 
   .demo-steps {
