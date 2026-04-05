@@ -79,7 +79,7 @@ pub use backends::embedded::{
     CpuBackend, EmbeddedConfig, EmbeddedModelBackend, InferenceBackend, ModelVariant,
 };
 #[cfg(feature = "remote-backends")]
-pub use backends::remote::{OllamaBackend, VllmBackend};
+pub use backends::remote::{OllamaBackend, QuantCppBackend, VllmBackend};
 pub use backends::{BackendInfo as BackendInfoTrait, CommandGenerator, GeneratorError};
 
 // Re-export prompt system types

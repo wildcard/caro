@@ -241,6 +241,8 @@ pub enum BackendType {
     Exo,
     /// Claude API backend (Anthropic)
     Claude,
+    /// quant.cpp backend (KV cache compression)
+    QuantCpp,
 }
 
 impl std::str::FromStr for BackendType {
@@ -255,6 +257,7 @@ impl std::str::FromStr for BackendType {
             "mlx" => Ok(Self::Mlx),
             "exo" => Ok(Self::Exo),
             "claude" | "anthropic" => Ok(Self::Claude),
+            "quantcpp" | "quant.cpp" | "quant" => Ok(Self::QuantCpp),
             _ => Err(format!("Unknown backend type: {}", s)),
         }
     }
@@ -270,6 +273,7 @@ impl std::fmt::Display for BackendType {
             Self::Mlx => write!(f, "mlx"),
             Self::Exo => write!(f, "exo"),
             Self::Claude => write!(f, "claude"),
+            Self::QuantCpp => write!(f, "quantcpp"),
         }
     }
 }

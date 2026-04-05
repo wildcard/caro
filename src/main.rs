@@ -1689,10 +1689,19 @@ async fn run_evaluation_tests(
             EmbeddedModelBackend::new()
                 .map_err(|e| format!("Failed to create embedded backend: {}", e))?,
         ),
+        #[cfg(feature = "remote-backends")]
+        "quantcpp" | "quant.cpp" | "quant" => {
+            use caro::backends::remote::QuantCppBackend;
+            Box::new(
+                QuantCppBackend::with_defaults()
+                    .map_err(|e| format!("Failed to create quant.cpp backend: {}", e))?,
+            )
+        }
         _ => {
             return Err(format!(
-                "Unknown backend: {}. Supported: static, embedded",
-                backend_name
+                "Unknown backend: {}. Supported: static, embedded{}",
+                backend_name,
+                if cfg!(feature = "remote-backends") { ", quantcpp" } else { "" }
             ));
         }
     };
