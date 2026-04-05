@@ -145,6 +145,12 @@ pub trait IntoCliArgs {
     fn interactive(&self) -> bool;
     fn force_llm(&self) -> bool;
     fn explain(&self) -> bool;
+    /// Whether to wrap execution in a Nono sandbox
+    fn sandbox(&self) -> bool { false }
+    /// Nono security profile name
+    fn nono_profile(&self) -> Option<String> { None }
+    /// Enable Nono snapshot / rollback
+    fn rollback(&self) -> bool { false }
 }
 
 impl CliApp {
@@ -576,8 +582,20 @@ impl CliApp {
         let (exit_code, stdout, stderr, execution_error, execution_time_ms) =
             if (args.execute() || args.interactive()) && can_execute && !args.dry_run() {
                 use crate::execution::CommandExecutor;
+                use crate::sandbox::NonoSandbox;
 
-                let executor = CommandExecutor::new(shell);
+                let mut executor = CommandExecutor::new(shell);
+                if args.sandbox() {
+                    let mut sandbox = NonoSandbox::new();
+                    if let Some(profile) = args.nono_profile() {
+                        sandbox = sandbox.with_profile(profile);
+                    }
+                    if args.rollback() {
+                        sandbox = sandbox.with_rollback();
+                    }
+                    executor = executor.with_sandbox(sandbox);
+                }
+                let executor = executor;
                 match executor.execute(&generated.command) {
                     Ok(result) => (
                         Some(result.exit_code),

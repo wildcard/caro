@@ -3,6 +3,7 @@
 //! Provides safe command execution with output capture and platform-specific handling.
 
 use crate::models::ShellType;
+use crate::sandbox::NonoSandbox;
 use std::process::{Command, Output, Stdio};
 use std::time::Instant;
 
@@ -36,6 +37,8 @@ pub enum ExecutorError {
 pub struct CommandExecutor {
     shell_type: ShellType,
     timeout_ms: Option<u64>,
+    /// Optional Nono sandbox wrapper
+    sandbox: Option<NonoSandbox>,
 }
 
 impl CommandExecutor {
@@ -44,12 +47,22 @@ impl CommandExecutor {
         Self {
             shell_type,
             timeout_ms: None,
+            sandbox: None,
         }
     }
 
     /// Set execution timeout in milliseconds
     pub fn with_timeout(mut self, timeout_ms: u64) -> Self {
         self.timeout_ms = Some(timeout_ms);
+        self
+    }
+
+    /// Wrap execution in a Nono kernel sandbox.
+    ///
+    /// If `nono` is not found in PATH at execution time, a warning is emitted
+    /// and execution proceeds without sandboxing.
+    pub fn with_sandbox(mut self, sandbox: NonoSandbox) -> Self {
+        self.sandbox = Some(sandbox);
         self
     }
 
@@ -80,53 +93,26 @@ impl CommandExecutor {
         Ok(self.process_output(output, execution_time_ms))
     }
 
-    /// Create shell command based on platform and shell type
+    /// Create shell command based on platform and shell type.
+    ///
+    /// When a [`NonoSandbox`] is configured and `nono` is available in PATH,
+    /// the command is wrapped as `nono run [...] -- <shell> -c <command>`.
+    /// If `nono` is configured but not found, a warning is logged and execution
+    /// proceeds without sandboxing.
     fn create_shell_command(&self, command: &str) -> Result<Command, ExecutorError> {
-        let cmd = match self.shell_type {
-            ShellType::PowerShell => {
-                let mut c = Command::new("powershell");
-                c.arg("-NoProfile").arg("-Command").arg(command);
-                c
-            }
-            ShellType::Cmd => {
-                let mut c = Command::new("cmd");
-                c.arg("/C").arg(command);
-                c
-            }
-            ShellType::Bash => {
-                let mut c = Command::new("bash");
-                c.arg("-c").arg(command);
-                c
-            }
-            ShellType::Zsh => {
-                let mut c = Command::new("zsh");
-                c.arg("-c").arg(command);
-                c
-            }
-            ShellType::Fish => {
-                let mut c = Command::new("fish");
-                c.arg("-c").arg(command);
-                c
-            }
-            ShellType::Sh => {
-                let mut c = Command::new("sh");
-                c.arg("-c").arg(command);
-                c
-            }
+        // Determine the inner shell binary and its flag style
+        let (shell_bin, shell_flag) = match self.shell_type {
+            ShellType::PowerShell => ("powershell", "-Command"),
+            ShellType::Cmd => ("cmd", "/C"),
+            ShellType::Bash => ("bash", "-c"),
+            ShellType::Zsh => ("zsh", "-c"),
+            ShellType::Fish => ("fish", "-c"),
+            ShellType::Sh => ("sh", "-c"),
             ShellType::Unknown => {
-                // Default to sh on Unix-like systems, cmd on Windows
                 #[cfg(unix)]
-                {
-                    let mut c = Command::new("sh");
-                    c.arg("-c").arg(command);
-                    c
-                }
+                { ("sh", "-c") }
                 #[cfg(windows)]
-                {
-                    let mut c = Command::new("cmd");
-                    c.arg("/C").arg(command);
-                    c
-                }
+                { ("cmd", "/C") }
                 #[cfg(not(any(unix, windows)))]
                 {
                     return Err(ExecutorError::InvalidCommand(
@@ -136,6 +122,39 @@ impl CommandExecutor {
             }
         };
 
+        // PowerShell uses `-NoProfile` as an extra flag
+        let extra_flags: &[&str] = if self.shell_type == ShellType::PowerShell {
+            &["-NoProfile"]
+        } else {
+            &[]
+        };
+
+        // Optionally wrap in Nono sandbox
+        if let Some(ref sandbox) = self.sandbox {
+            if NonoSandbox::is_available() {
+                let inner_args: Vec<&str> = extra_flags
+                    .iter()
+                    .copied()
+                    .chain([shell_flag, command])
+                    .collect();
+                let (prog, args) = sandbox.wrap(shell_bin, &inner_args);
+                let mut cmd = Command::new(prog);
+                cmd.args(args);
+                return Ok(cmd);
+            } else {
+                tracing::warn!(
+                    "nono not found in PATH — running command without sandbox. \
+                     Install nono (https://github.com/always-further/nono) to enable sandboxing."
+                );
+            }
+        }
+
+        // Plain execution (no sandbox)
+        let mut cmd = Command::new(shell_bin);
+        for flag in extra_flags {
+            cmd.arg(flag);
+        }
+        cmd.arg(shell_flag).arg(command);
         Ok(cmd)
     }
 

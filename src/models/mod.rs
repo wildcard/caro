@@ -624,6 +624,23 @@ impl CacheManifest {
     }
 }
 
+/// Sandbox configuration for Nono integration
+///
+/// When `enabled` is true, generated commands are executed inside a
+/// kernel-enforced Nono sandbox (if the `nono` binary is available).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Default)]
+pub struct SandboxConfig {
+    /// Enable Nono sandbox for command execution (default: false)
+    #[serde(default)]
+    pub enabled: bool,
+    /// Nono security profile name (e.g. "safe", "read-only")
+    #[serde(default)]
+    pub nono_profile: Option<String>,
+    /// Enable Nono file snapshot / rollback support (default: false)
+    #[serde(default)]
+    pub rollback: bool,
+}
+
 /// User configuration with preferences
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct UserConfiguration {
@@ -641,6 +658,9 @@ pub struct UserConfiguration {
     /// Default generation profile (generator or explainer)
     #[serde(default)]
     pub generation_profile: crate::prompts::profiles::GenerationProfile,
+    /// Nono sandbox configuration
+    #[serde(default)]
+    pub sandbox: SandboxConfig,
 }
 
 impl Default for UserConfiguration {
@@ -655,6 +675,7 @@ impl Default for UserConfiguration {
             log_rotation_days: 7,
             telemetry: crate::telemetry::TelemetryConfig::default(),
             generation_profile: crate::prompts::profiles::GenerationProfile::default(),
+            sandbox: SandboxConfig::default(),
         }
     }
 }
@@ -777,6 +798,7 @@ impl UserConfigurationBuilder {
             log_rotation_days: self.log_rotation_days,
             telemetry: self.telemetry,
             generation_profile: self.generation_profile,
+            sandbox: SandboxConfig::default(),
         };
         config.validate()?;
         Ok(config)

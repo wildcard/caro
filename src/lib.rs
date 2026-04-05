@@ -46,6 +46,7 @@ pub mod models;
 pub mod platform;
 pub mod prompts;
 pub mod safety;
+pub mod sandbox;
 pub mod setup;
 pub mod telemetry;
 pub mod version;
@@ -58,7 +59,7 @@ pub use model_catalog::{ModelCatalog, ModelInfo, ModelSize};
 pub use models::{
     BackendInfo, BackendType, CacheManifest, CachedModel, CommandRequest, ConfigSchema,
     ExecutionContext, GeneratedCommand, LogEntry, LogLevel, Platform, RiskLevel, SafetyLevel,
-    ShellType, UserConfiguration, UserConfigurationBuilder,
+    SandboxConfig, ShellType, UserConfiguration, UserConfigurationBuilder,
 };
 
 // Re-export infrastructure module types and errors

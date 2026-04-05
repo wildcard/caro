@@ -591,6 +591,25 @@ struct Cli {
     )]
     explain: bool,
 
+    /// Wrap command execution in a Nono kernel sandbox (requires nono in PATH)
+    #[arg(
+        long,
+        help = "Execute commands inside a Nono kernel-enforced security sandbox"
+    )]
+    sandbox: bool,
+
+    /// Nono security profile to use when --sandbox is active
+    #[arg(
+        long,
+        value_name = "PROFILE",
+        help = "Nono security profile (e.g. safe, read-only)"
+    )]
+    nono_profile: Option<String>,
+
+    /// Enable Nono file snapshot and rollback when --sandbox is active
+    #[arg(long, help = "Enable Nono file snapshot/rollback support")]
+    rollback: bool,
+
     /// Trailing unquoted arguments forming the prompt
     #[arg(trailing_var_arg = true, num_args = 0..)]
     trailing_args: Vec<String>,
@@ -652,6 +671,18 @@ impl IntoCliArgs for Cli {
 
     fn explain(&self) -> bool {
         self.explain
+    }
+
+    fn sandbox(&self) -> bool {
+        self.sandbox
+    }
+
+    fn nono_profile(&self) -> Option<String> {
+        self.nono_profile.clone()
+    }
+
+    fn rollback(&self) -> bool {
+        self.rollback
     }
 }
 
@@ -2424,6 +2455,27 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
             "  The command would be executed with shell: {:?}",
             result.shell_used
         );
+        if cli.sandbox {
+            use caro::sandbox::NonoSandbox;
+            if NonoSandbox::is_available() {
+                let profile_info = cli
+                    .nono_profile
+                    .as_deref()
+                    .map(|p| format!(" (profile: {})", p))
+                    .unwrap_or_default();
+                display!(
+                    "  {} Nono sandbox enabled{}{}",
+                    "🔒".green(),
+                    profile_info,
+                    if cli.rollback { " +rollback" } else { "" }
+                );
+            } else {
+                display!(
+                    "  {} --sandbox requested but nono not found in PATH",
+                    "⚠".yellow()
+                );
+            }
+        }
         if result.blocked_reason.is_some() || result.requires_confirmation {
             display!(
                 "  {} This command would be blocked or require confirmation",
@@ -2458,8 +2510,20 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
 
                     // Execute the command
                     use caro::execution::CommandExecutor;
+                    use caro::sandbox::NonoSandbox;
 
-                    let executor = CommandExecutor::new(result.shell_used);
+                    let mut executor = CommandExecutor::new(result.shell_used);
+                    if cli.sandbox {
+                        let mut sandbox = NonoSandbox::new();
+                        if let Some(ref profile) = cli.nono_profile {
+                            sandbox = sandbox.with_profile(profile.clone());
+                        }
+                        if cli.rollback {
+                            sandbox = sandbox.with_rollback();
+                        }
+                        executor = executor.with_sandbox(sandbox);
+                    }
+                    let executor = executor;
 
                     match executor.execute(&result.generated_command) {
                         Ok(exec_result) => {

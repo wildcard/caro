@@ -190,6 +190,7 @@ impl SetupWizard {
             log_rotation_days: 7,
             telemetry: crate::telemetry::TelemetryConfig::default(),
             generation_profile: crate::prompts::profiles::GenerationProfile::default(),
+            sandbox: crate::models::SandboxConfig::default(),
         };
 
         self.print_summary(&configuration, theme);
