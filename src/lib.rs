@@ -45,6 +45,7 @@ pub mod model_loader;
 pub mod models;
 pub mod platform;
 pub mod prompts;
+pub mod recipe;
 pub mod safety;
 pub mod setup;
 pub mod telemetry;
