@@ -108,7 +108,7 @@ arrow-schema = { version = "56.2", optional = true }
 chromadb = { version = "2.3", optional = true }
 
 # HTTP server for cabinet integration (behind feature flag)
-axum = { version = "0.7", optional = true }
+axum = { version = "0.7", features = ["ws"], optional = true }
 tower-http = { version = "0.5", features = ["cors"], optional = true }
 
 # Optional MLX support for Apple Silicon (behind feature flag)

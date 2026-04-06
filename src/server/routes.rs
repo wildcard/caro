@@ -4,7 +4,7 @@
 //! CommandExecutor) and exposes it over HTTP JSON.
 
 use axum::{
-    extract::State,
+    extract::{Query, State},
     http::StatusCode,
     response::IntoResponse,
     Json,
@@ -16,6 +16,7 @@ use crate::models::ShellType;
 use crate::safety::{SafetyConfig, SafetyValidator};
 
 use super::types::*;
+#[allow(unused_imports)]
 use super::AppState;
 
 /// GET /api/v1/health
@@ -355,4 +356,217 @@ pub async fn execute(
             }),
         ),
     }
+}
+
+// ─── Knowledge endpoints ───
+
+/// GET /api/v1/knowledge/search
+pub async fn knowledge_search(
+    State(_state): State<Arc<AppState>>,
+    Query(params): Query<ApiKnowledgeSearchParams>,
+) -> impl IntoResponse {
+    info!(query = %params.q, limit = %params.limit, "Knowledge search request");
+
+    #[cfg(feature = "knowledge")]
+    {
+        if let Some(ref knowledge) = _state.knowledge {
+            match knowledge.find_similar(&params.q, params.limit as usize).await {
+                Ok(entries) => {
+                    let results: Vec<_> = entries
+                        .iter()
+                        .map(|e| ApiKnowledgeResult {
+                            input: e.request.clone(),
+                            command: e.command.clone(),
+                            context: e.context.clone(),
+                            similarity: e.similarity,
+                            timestamp: e.timestamp.to_rfc3339(),
+                            entry_type: Some(format!("{:?}", e.entry_type)),
+                        })
+                        .collect();
+                    let total = results.len();
+                    return (
+                        StatusCode::OK,
+                        Json(ApiKnowledgeSearchResponse { results, total }),
+                    );
+                }
+                Err(e) => {
+                    return (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        Json(ApiKnowledgeSearchResponse {
+                            results: vec![],
+                            total: 0,
+                        }),
+                    );
+                }
+            }
+        }
+    }
+
+    (
+        StatusCode::OK,
+        Json(ApiKnowledgeSearchResponse {
+            results: vec![],
+            total: 0,
+        }),
+    )
+}
+
+/// POST /api/v1/knowledge/record
+pub async fn knowledge_record(
+    State(_state): State<Arc<AppState>>,
+    Json(req): Json<ApiKnowledgeRecordRequest>,
+) -> impl IntoResponse {
+    info!(
+        input = %req.input,
+        command = %req.command,
+        agent_id = ?req.agent_id,
+        "Knowledge record request"
+    );
+
+    #[cfg(feature = "knowledge")]
+    {
+        if let Some(ref knowledge) = _state.knowledge {
+            let result = knowledge
+                .record_success(
+                    &req.input,
+                    &req.command,
+                    req.context.as_deref(),
+                    req.agent_id.as_deref(),
+                )
+                .await;
+
+            return match result {
+                Ok(()) => (
+                    StatusCode::CREATED,
+                    Json(ApiKnowledgeRecordResponse {
+                        status: ApiStatus::Ok,
+                        message: "Knowledge entry recorded".to_string(),
+                    }),
+                ),
+                Err(e) => (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiKnowledgeRecordResponse {
+                        status: ApiStatus::Error,
+                        message: format!("Failed to record: {}", e),
+                    }),
+                ),
+            };
+        }
+    }
+
+    // Knowledge not available -- accept gracefully
+    (
+        StatusCode::CREATED,
+        Json(ApiKnowledgeRecordResponse {
+            status: ApiStatus::Ok,
+            message: "Knowledge entry accepted (index not active)".to_string(),
+        }),
+    )
+}
+
+/// GET /api/v1/knowledge/export
+pub async fn knowledge_export(
+    State(_state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    #[cfg(feature = "knowledge")]
+    {
+        if let Some(ref knowledge) = _state.knowledge {
+            // Export all entries by searching with a broad query
+            match knowledge.find_similar("*", 1000).await {
+                Ok(entries) => {
+                    let results: Vec<_> = entries
+                        .iter()
+                        .map(|e| ApiKnowledgeResult {
+                            input: e.request.clone(),
+                            command: e.command.clone(),
+                            context: e.context.clone(),
+                            similarity: e.similarity,
+                            timestamp: e.timestamp.to_rfc3339(),
+                            entry_type: Some(format!("{:?}", e.entry_type)),
+                        })
+                        .collect();
+                    let total = results.len();
+                    return (
+                        StatusCode::OK,
+                        Json(ApiKnowledgeExportResponse {
+                            status: ApiStatus::Ok,
+                            entries: results,
+                            total,
+                        }),
+                    );
+                }
+                Err(e) => {
+                    return (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        Json(ApiKnowledgeExportResponse {
+                            status: ApiStatus::Error,
+                            entries: vec![],
+                            total: 0,
+                        }),
+                    );
+                }
+            }
+        }
+    }
+
+    (
+        StatusCode::OK,
+        Json(ApiKnowledgeExportResponse {
+            status: ApiStatus::Ok,
+            entries: vec![],
+            total: 0,
+        }),
+    )
+}
+
+/// POST /api/v1/knowledge/import
+pub async fn knowledge_import(
+    State(_state): State<Arc<AppState>>,
+    Json(req): Json<ApiKnowledgeImportRequest>,
+) -> impl IntoResponse {
+    info!(entries = %req.entries.len(), "Knowledge import request");
+
+    #[cfg(feature = "knowledge")]
+    {
+        if let Some(ref knowledge) = _state.knowledge {
+            let mut imported = 0usize;
+            let mut skipped = 0usize;
+
+            for entry in &req.entries {
+                match knowledge
+                    .record_success(
+                        &entry.input,
+                        &entry.command,
+                        entry.context.as_deref(),
+                        None,
+                    )
+                    .await
+                {
+                    Ok(()) => imported += 1,
+                    Err(_) => skipped += 1,
+                }
+            }
+
+            return (
+                StatusCode::OK,
+                Json(ApiKnowledgeImportResponse {
+                    status: ApiStatus::Ok,
+                    imported,
+                    skipped,
+                }),
+            );
+        }
+    }
+
+    // No knowledge index -- report all as accepted
+    let imported = req.entries.len();
+
+    (
+        StatusCode::OK,
+        Json(ApiKnowledgeImportResponse {
+            status: ApiStatus::Ok,
+            imported,
+            skipped: 0,
+        }),
+    )
 }

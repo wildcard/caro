@@ -11,12 +11,18 @@
 //!
 //! # Endpoints
 //!
-//! - `GET  /api/v1/health`   - Backend status and version
-//! - `POST /api/v1/generate` - Generate command from natural language
-//! - `POST /api/v1/execute`  - Execute a command with safety validation
+//! - `GET  /api/v1/health`              - Backend status and version
+//! - `POST /api/v1/generate`            - Generate command from natural language
+//! - `POST /api/v1/execute`             - Execute a command with safety validation
+//! - `GET  /api/v1/knowledge/search`    - Search knowledge index
+//! - `POST /api/v1/knowledge/record`    - Record a successful command
+//! - `GET  /api/v1/knowledge/export`    - Export knowledge as JSON
+//! - `POST /api/v1/knowledge/import`    - Import knowledge entries
+//! - `WS   /api/v1/ws`                  - WebSocket for real-time communication
 
 pub mod routes;
 pub mod types;
+pub mod ws;
 
 use crate::agent::AgentLoop;
 use crate::models::{ServerConfig, ShellType};
@@ -32,6 +38,10 @@ pub struct AppState {
 
     /// Server start time (for uptime reporting)
     pub start_time: Instant,
+
+    /// Knowledge index for command learning (requires `knowledge` feature)
+    #[cfg(feature = "knowledge")]
+    pub knowledge: Option<std::sync::Arc<crate::knowledge::KnowledgeIndex>>,
 }
 
 /// Build the axum router with all API routes and optional CORS/auth.
@@ -66,6 +76,11 @@ fn build_base_routes(
         .route("/api/v1/health", get(routes::health))
         .route("/api/v1/generate", post(routes::generate))
         .route("/api/v1/execute", post(routes::execute))
+        .route("/api/v1/knowledge/search", get(routes::knowledge_search))
+        .route("/api/v1/knowledge/record", post(routes::knowledge_record))
+        .route("/api/v1/knowledge/export", get(routes::knowledge_export))
+        .route("/api/v1/knowledge/import", post(routes::knowledge_import))
+        .route("/api/v1/ws", get(ws::ws_handler))
 }
 
 /// Internal: apply bearer token auth middleware.
@@ -88,8 +103,10 @@ fn apply_auth_layer(
         move |req: Request, next: Next| {
             let token = token.clone();
             async move {
-                // Health endpoint is always accessible
-                if req.uri().path() == "/api/v1/health" {
+                // Health and WebSocket endpoints are always accessible
+                // (WS auth is handled via query parameter)
+                let path = req.uri().path();
+                if path == "/api/v1/health" || path == "/api/v1/ws" {
                     return next.run(req).await;
                 }
 

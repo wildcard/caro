@@ -62,10 +62,16 @@ async fn main() -> anyhow::Result<()> {
     // Initialize backend and agent loop
     let agent_loop = initialize_agent_loop(&user_config, context, profile).await;
 
+    // Initialize knowledge index if feature is enabled
+    #[cfg(feature = "knowledge")]
+    let knowledge = initialize_knowledge().await;
+
     let state = Arc::new(AppState {
         agent_loop,
         shell_type,
         start_time: Instant::now(),
+        #[cfg(feature = "knowledge")]
+        knowledge,
     });
 
     // Build router with auth + CORS based on config
@@ -153,6 +159,24 @@ impl CommandGenerator for FallbackBackend {
 
     async fn shutdown(&self) -> Result<(), caro::backends::GeneratorError> {
         Ok(())
+    }
+}
+
+/// Initialize the knowledge index (feature-gated).
+#[cfg(feature = "knowledge")]
+async fn initialize_knowledge() -> Option<Arc<caro::knowledge::KnowledgeIndex>> {
+    use caro::knowledge::KnowledgeIndex;
+
+    let path = caro::knowledge::default_knowledge_path();
+    match KnowledgeIndex::open(&path).await {
+        Ok(index) => {
+            info!("Knowledge index initialized at {:?}", path);
+            Some(Arc::new(index))
+        }
+        Err(e) => {
+            warn!("Failed to initialize knowledge index: {}. Knowledge endpoints will return empty results.", e);
+            None
+        }
     }
 }
 

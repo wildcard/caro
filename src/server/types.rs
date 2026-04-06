@@ -163,6 +163,143 @@ pub struct ApiErrorResponse {
     pub request_id: Option<String>,
 }
 
+// ─── Knowledge API types ───
+
+/// Request to search the knowledge index.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiKnowledgeSearchParams {
+    /// Search query
+    pub q: String,
+    /// Max results (default: 10)
+    #[serde(default = "default_knowledge_limit")]
+    pub limit: u32,
+}
+
+/// A single knowledge search result.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiKnowledgeResult {
+    pub input: String,
+    pub command: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context: Option<String>,
+    pub similarity: f32,
+    pub timestamp: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub entry_type: Option<String>,
+}
+
+/// Response from knowledge search.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiKnowledgeSearchResponse {
+    pub results: Vec<ApiKnowledgeResult>,
+    pub total: usize,
+}
+
+/// Request to record a successful command.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiKnowledgeRecordRequest {
+    pub input: String,
+    pub command: String,
+    #[serde(default)]
+    pub context: Option<String>,
+    #[serde(default = "default_success")]
+    pub success: bool,
+    #[serde(default)]
+    pub agent_id: Option<String>,
+}
+
+/// Response from knowledge record.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiKnowledgeRecordResponse {
+    pub status: ApiStatus,
+    pub message: String,
+}
+
+/// Response for knowledge export (markdown or JSON).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiKnowledgeExportResponse {
+    pub status: ApiStatus,
+    pub entries: Vec<ApiKnowledgeResult>,
+    pub total: usize,
+}
+
+/// Request to import knowledge from markdown.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiKnowledgeImportRequest {
+    pub entries: Vec<ApiKnowledgeImportEntry>,
+}
+
+/// A single entry to import.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiKnowledgeImportEntry {
+    pub input: String,
+    pub command: String,
+    #[serde(default)]
+    pub context: Option<String>,
+}
+
+/// Response from knowledge import.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiKnowledgeImportResponse {
+    pub status: ApiStatus,
+    pub imported: usize,
+    pub skipped: usize,
+}
+
+// ─── WebSocket message types ───
+
+/// WebSocket message envelope.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum WsMessage {
+    /// Client requests command generation
+    CommandRequest {
+        id: String,
+        input: String,
+        #[serde(default)]
+        agent_id: Option<String>,
+    },
+    /// Server responds with generated command
+    CommandResult {
+        id: String,
+        status: ApiStatus,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        command: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        explanation: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        risk_level: Option<RiskLevel>,
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        warnings: Vec<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        error: Option<String>,
+    },
+    /// Client requests command execution
+    ExecutionRequest {
+        id: String,
+        command: String,
+        confirmed: bool,
+    },
+    /// Server responds with execution result
+    ExecutionResult {
+        id: String,
+        exit_code: i32,
+        stdout: String,
+        stderr: String,
+        execution_time_ms: u64,
+    },
+    /// Knowledge update notification
+    KnowledgeUpdate {
+        entries: Vec<ApiKnowledgeResult>,
+    },
+    /// Heartbeat (bidirectional)
+    Heartbeat,
+    /// Error message
+    Error {
+        message: String,
+    },
+}
+
 fn default_shell() -> ShellType {
     ShellType::Bash
 }
@@ -173,6 +310,14 @@ fn default_timeout() -> u64 {
 
 fn generate_request_id() -> String {
     uuid::Uuid::new_v4().to_string()
+}
+
+fn default_knowledge_limit() -> u32 {
+    10
+}
+
+fn default_success() -> bool {
+    true
 }
 
 #[cfg(test)]
@@ -282,5 +427,66 @@ mod tests {
         };
         let json = serde_json::to_string_pretty(&resp).unwrap();
         assert!(json.contains("\"safety_patterns\": 52"));
+    }
+
+    #[test]
+    fn test_knowledge_search_params_defaults() {
+        let json = r#"{"q": "docker"}"#;
+        let params: ApiKnowledgeSearchParams = serde_json::from_str(json).unwrap();
+        assert_eq!(params.q, "docker");
+        assert_eq!(params.limit, 10);
+    }
+
+    #[test]
+    fn test_knowledge_record_request() {
+        let json = r#"{"input": "list files", "command": "ls -la"}"#;
+        let req: ApiKnowledgeRecordRequest = serde_json::from_str(json).unwrap();
+        assert_eq!(req.input, "list files");
+        assert_eq!(req.command, "ls -la");
+        assert!(req.success); // default true
+        assert!(req.context.is_none());
+    }
+
+    #[test]
+    fn test_ws_message_command_request_roundtrip() {
+        let msg = WsMessage::CommandRequest {
+            id: "req-1".to_string(),
+            input: "list files".to_string(),
+            agent_id: Some("devops".to_string()),
+        };
+        let json = serde_json::to_string(&msg).unwrap();
+        assert!(json.contains("\"type\":\"command_request\""));
+        let decoded: WsMessage = serde_json::from_str(&json).unwrap();
+        match decoded {
+            WsMessage::CommandRequest { id, input, agent_id } => {
+                assert_eq!(id, "req-1");
+                assert_eq!(input, "list files");
+                assert_eq!(agent_id.as_deref(), Some("devops"));
+            }
+            _ => panic!("Wrong variant"),
+        }
+    }
+
+    #[test]
+    fn test_ws_message_heartbeat_roundtrip() {
+        let msg = WsMessage::Heartbeat;
+        let json = serde_json::to_string(&msg).unwrap();
+        assert_eq!(json, r#"{"type":"heartbeat"}"#);
+        let decoded: WsMessage = serde_json::from_str(&json).unwrap();
+        assert!(matches!(decoded, WsMessage::Heartbeat));
+    }
+
+    #[test]
+    fn test_ws_message_execution_result() {
+        let msg = WsMessage::ExecutionResult {
+            id: "req-2".to_string(),
+            exit_code: 0,
+            stdout: "hello\n".to_string(),
+            stderr: String::new(),
+            execution_time_ms: 5,
+        };
+        let json = serde_json::to_string(&msg).unwrap();
+        assert!(json.contains("\"type\":\"execution_result\""));
+        assert!(json.contains("\"exit_code\":0"));
     }
 }

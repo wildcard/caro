@@ -21,6 +21,8 @@ mod server_tests {
             agent_loop: None,
             shell_type: ShellType::Bash,
             start_time: Instant::now(),
+            #[cfg(feature = "knowledge")]
+            knowledge: None,
         })
     }
 
@@ -295,5 +297,99 @@ mod server_tests {
             .unwrap();
 
         assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    }
+
+    // ─── Knowledge endpoints ───
+
+    #[tokio::test]
+    async fn test_knowledge_search_empty_results() {
+        let app = test_router();
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/v1/knowledge/search?q=docker")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let resp: ApiKnowledgeSearchResponse = body_json(response).await;
+        assert_eq!(resp.total, 0);
+        assert!(resp.results.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_knowledge_record_accepted() {
+        let app = test_router();
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/v1/knowledge/record")
+                    .header("content-type", "application/json")
+                    .body(Body::from(
+                        r#"{"input": "list files", "command": "ls -la"}"#,
+                    ))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::CREATED);
+
+        let resp: ApiKnowledgeRecordResponse = body_json(response).await;
+        assert_eq!(resp.status, ApiStatus::Ok);
+    }
+
+    #[tokio::test]
+    async fn test_knowledge_export_empty() {
+        let app = test_router();
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/v1/knowledge/export")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let resp: ApiKnowledgeExportResponse = body_json(response).await;
+        assert_eq!(resp.status, ApiStatus::Ok);
+        assert_eq!(resp.total, 0);
+    }
+
+    #[tokio::test]
+    async fn test_knowledge_import_accepted() {
+        let app = test_router();
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/v1/knowledge/import")
+                    .header("content-type", "application/json")
+                    .body(Body::from(
+                        r#"{"entries": [{"input": "find py files", "command": "find . -name '*.py'"}]}"#,
+                    ))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let resp: ApiKnowledgeImportResponse = body_json(response).await;
+        assert_eq!(resp.status, ApiStatus::Ok);
+        assert_eq!(resp.imported, 1);
+        assert_eq!(resp.skipped, 0);
     }
 }
