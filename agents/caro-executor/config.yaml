@@ -1,0 +1,27 @@
+name: "Caro Command Executor"
+description: "Safely generates and executes shell commands using caro"
+type: "tool"
+
+connection:
+  url: "http://localhost:3847"
+  auth_token: "${CARO_SERVER_TOKEN}"
+  timeout_ms: 30000
+
+capabilities:
+  - generate_commands
+  - execute_commands
+  - knowledge_search
+  - knowledge_sync
+
+safety:
+  level: "moderate"
+  require_confirmation_above: "moderate"
+  auto_execute_safe: true
+
+knowledge:
+  sync_enabled: true
+  sync_interval: "0 */6 * * *"  # Every 6 hours
+
+health_check:
+  endpoint: "/api/v1/health"
+  interval_seconds: 60

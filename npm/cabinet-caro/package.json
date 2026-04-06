@@ -1,0 +1,36 @@
+{
+  "name": "@caro/cabinet",
+  "version": "0.1.0",
+  "description": "TypeScript client for caro-server — safe shell command generation and execution for cabinet agents",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "caro",
+    "cabinet",
+    "shell",
+    "commands",
+    "ai",
+    "safety"
+  ],
+  "license": "AGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wildcard/caro.git",
+    "directory": "npm/cabinet-caro"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "typescript": "^5.4"
+  }
+}
