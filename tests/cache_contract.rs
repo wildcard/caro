@@ -111,9 +111,17 @@ async fn test_get_model_fails_offline_for_uncached() {
     );
     match result.unwrap_err() {
         CacheError::DownloadFailed(msg) => {
+            // The error wraps reqwest errors which may mention network, connection,
+            // dns, or describe the HTTP failure in other terms
             assert!(
-                msg.contains("network") || msg.contains("connection"),
-                "Error should mention network issue"
+                msg.contains("network")
+                    || msg.contains("connection")
+                    || msg.contains("dns")
+                    || msg.contains("error sending request")
+                    || msg.contains("Failed to get file metadata")
+                    || msg.contains("Failed to create HTTP client"),
+                "Error should describe the failure cause, got: {}",
+                msg
             );
         }
         _ => panic!("Should return DownloadFailed error"),

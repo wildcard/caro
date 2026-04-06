@@ -215,3 +215,162 @@ impl Recommender {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::assessment::{CPUInfo, GPUInfo, MemoryInfo, PlatformInfo};
+
+    fn make_profile(ram_mb: u64, gpu: Option<GPUInfo>) -> SystemProfile {
+        SystemProfile {
+            cpu: CPUInfo {
+                architecture: "x86_64".to_string(),
+                cores: 8,
+                model_name: "Test CPU".to_string(),
+                frequency_mhz: Some(3000),
+            },
+            memory: MemoryInfo {
+                total_mb: ram_mb,
+                available_mb: ram_mb / 2,
+            },
+            gpu,
+            platform: PlatformInfo {
+                os: "linux".to_string(),
+                arch: "x86_64".to_string(),
+            },
+        }
+    }
+
+    fn apple_gpu() -> GPUInfo {
+        GPUInfo {
+            vendor: GPUVendor::Apple,
+            model: "M1".to_string(),
+            vram_mb: Some(16384),
+        }
+    }
+
+    fn nvidia_gpu(vram_mb: u64) -> GPUInfo {
+        GPUInfo {
+            vendor: GPUVendor::NVIDIA,
+            model: "RTX 3090".to_string(),
+            vram_mb: Some(vram_mb),
+        }
+    }
+
+    // --- HardwareTier tests ---
+
+    #[test]
+    fn test_tier_low_end() {
+        let profile = make_profile(4096, None);
+        assert_eq!(HardwareTier::from_profile(&profile), HardwareTier::LowEnd);
+    }
+
+    #[test]
+    fn test_tier_mid_range_by_ram() {
+        let profile = make_profile(16384, None);
+        assert_eq!(
+            HardwareTier::from_profile(&profile),
+            HardwareTier::MidRange
+        );
+    }
+
+    #[test]
+    fn test_tier_high_end() {
+        let profile = make_profile(32768, Some(nvidia_gpu(24576)));
+        assert_eq!(HardwareTier::from_profile(&profile), HardwareTier::HighEnd);
+    }
+
+    #[test]
+    fn test_tier_high_ram_no_gpu_is_mid() {
+        // 32GB RAM but no dedicated GPU -> MidRange
+        let profile = make_profile(32768, None);
+        assert_eq!(
+            HardwareTier::from_profile(&profile),
+            HardwareTier::MidRange
+        );
+    }
+
+    #[test]
+    fn test_tier_high_ram_apple_gpu_is_mid() {
+        // Apple GPU isn't NVIDIA/AMD, so doesn't count as "dedicated" for tier
+        let profile = make_profile(32768, Some(apple_gpu()));
+        assert_eq!(
+            HardwareTier::from_profile(&profile),
+            HardwareTier::MidRange
+        );
+    }
+
+    // --- Backend selection tests ---
+
+    #[test]
+    fn test_backend_apple_selects_mlx() {
+        let profile = make_profile(16384, Some(apple_gpu()));
+        assert_eq!(Recommender::select_backend(&profile), Backend::MLX);
+    }
+
+    #[test]
+    fn test_backend_nvidia_selects_cuda() {
+        let profile = make_profile(16384, Some(nvidia_gpu(8192)));
+        assert_eq!(Recommender::select_backend(&profile), Backend::CUDA);
+    }
+
+    #[test]
+    fn test_backend_no_gpu_selects_cpu() {
+        let profile = make_profile(16384, None);
+        assert_eq!(Recommender::select_backend(&profile), Backend::CPU);
+    }
+
+    // --- Recommendation output tests ---
+
+    #[test]
+    fn test_recommend_returns_non_empty() {
+        let profile = make_profile(8192, None);
+        let recs = Recommender::recommend(&profile);
+        assert!(!recs.is_empty());
+    }
+
+    #[test]
+    fn test_recommend_low_end_includes_small_models() {
+        let profile = make_profile(4096, None);
+        let recs = Recommender::recommend(&profile);
+        assert!(recs.iter().any(|r| r.model_name == "TinyLlama"));
+    }
+
+    #[test]
+    fn test_recommend_mid_range_includes_mistral() {
+        let profile = make_profile(12288, None);
+        let recs = Recommender::recommend(&profile);
+        assert!(recs.iter().any(|r| r.model_name == "Mistral 7B"));
+    }
+
+    #[test]
+    fn test_recommend_high_end_with_large_vram_includes_13b() {
+        let profile = make_profile(32768, Some(nvidia_gpu(24576)));
+        let recs = Recommender::recommend(&profile);
+        assert!(recs.iter().any(|r| r.model_name == "Llama 2 13B"));
+    }
+
+    #[test]
+    fn test_recommend_high_end_small_vram_no_13b() {
+        let profile = make_profile(32768, Some(nvidia_gpu(8192)));
+        let recs = Recommender::recommend(&profile);
+        assert!(!recs.iter().any(|r| r.model_name == "Llama 2 13B"));
+    }
+
+    #[test]
+    fn test_quantized_uses_less_memory() {
+        let full = Recommender::estimate_memory("7B", None);
+        let quantized = Recommender::estimate_memory("7B", Some("Q4_K_M"));
+        assert!(quantized < full);
+    }
+
+    #[test]
+    fn test_recommendation_has_reasoning() {
+        let profile = make_profile(8192, None);
+        let recs = Recommender::recommend(&profile);
+        for rec in &recs {
+            assert!(!rec.reasoning.is_empty());
+            assert!(rec.reasoning.contains("RAM"));
+        }
+    }
+}

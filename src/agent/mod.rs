@@ -805,8 +805,10 @@ DO NOT include explanations, comments, or multiple commands - just ONE valid com
 mod tests {
     use super::*;
 
+    // --- extract_commands tests ---
+
     #[test]
-    fn test_extract_commands() {
+    fn test_extract_commands_pipe() {
         let cmd = "ps aux | sort -k3 -rn | head -5";
         let commands = AgentLoop::extract_commands(cmd);
         assert_eq!(commands, vec!["ps", "sort", "head"]);
@@ -816,7 +818,149 @@ mod tests {
     fn test_extract_complex_commands() {
         let cmd = "find . -name '*.rs' | xargs grep -l 'TODO'";
         let commands = AgentLoop::extract_commands(cmd);
-        // xargs takes grep as an argument, so only find and xargs are top-level commands
         assert_eq!(commands, vec!["find", "xargs"]);
+    }
+
+    #[test]
+    fn test_extract_commands_empty() {
+        let commands = AgentLoop::extract_commands("");
+        assert!(commands.is_empty());
+    }
+
+    #[test]
+    fn test_extract_commands_single() {
+        let commands = AgentLoop::extract_commands("ls -la");
+        assert_eq!(commands, vec!["ls"]);
+    }
+
+    #[test]
+    fn test_extract_commands_semicolon() {
+        let commands = AgentLoop::extract_commands("echo hello; echo world");
+        assert_eq!(commands, vec!["echo", "echo"]);
+    }
+
+    #[test]
+    fn test_extract_commands_and_operator() {
+        let commands = AgentLoop::extract_commands("mkdir -p dir && cd dir");
+        assert_eq!(commands, vec!["mkdir", "cd"]);
+    }
+
+    #[test]
+    fn test_extract_commands_skips_builtins() {
+        // Splits by ';': ["if true", " then echo yes", " fi"]
+        // First words: "if" (skipped), "then" (skipped), "fi" (skipped)
+        let commands = AgentLoop::extract_commands("if true; then echo yes; fi");
+        assert!(commands.is_empty());
+
+        // But non-builtin commands after semicolons are kept
+        let commands = AgentLoop::extract_commands("echo start; ls -la; echo done");
+        assert_eq!(commands, vec!["echo", "ls", "echo"]);
+    }
+
+    #[test]
+    fn test_extract_commands_whitespace_only() {
+        let commands = AgentLoop::extract_commands("   ");
+        assert!(commands.is_empty());
+    }
+
+    #[test]
+    fn test_extract_commands_multiple_pipes() {
+        let commands = AgentLoop::extract_commands("cat file | grep pattern | sort | uniq | wc -l");
+        assert_eq!(commands, vec!["cat", "grep", "sort", "uniq", "wc"]);
+    }
+
+    // --- should_refine tests ---
+
+    fn make_command(cmd: &str) -> GeneratedCommand {
+        GeneratedCommand {
+            command: cmd.to_string(),
+            confidence_score: 0.9,
+            explanation: "test".to_string(),
+            backend_used: "test".to_string(),
+            safety_level: crate::models::RiskLevel::Safe,
+            estimated_impact: String::new(),
+            alternatives: vec![],
+            generation_time_ms: 0,
+        }
+    }
+
+    fn make_agent(os: &str) -> AgentLoop {
+        let backend = Arc::new(StaticMatcher::new(CapabilityProfile::default()));
+        let context = ExecutionContext {
+            os: os.to_string(),
+            arch: "x86_64".to_string(),
+            shell: "bash".to_string(),
+            cwd: std::path::PathBuf::from("/tmp"),
+            os_version: "1.0".to_string(),
+            distribution: None,
+            user: "test".to_string(),
+            available_commands: vec![],
+        };
+        let profile = CapabilityProfile::default();
+        AgentLoop::new(backend, context, profile)
+    }
+
+    #[test]
+    fn test_should_refine_simple_command() {
+        let agent = make_agent("linux");
+        let cmd = make_command("ls -la");
+        assert!(!agent.should_refine(&cmd));
+    }
+
+    #[test]
+    fn test_should_refine_complex_pipe() {
+        let agent = make_agent("linux");
+        // More than 2 pipes triggers refinement
+        let cmd = make_command("cat file | grep x | sort | head");
+        assert!(agent.should_refine(&cmd));
+    }
+
+    #[test]
+    fn test_should_refine_xargs() {
+        let agent = make_agent("linux");
+        let cmd = make_command("find . -name '*.rs' | xargs grep TODO");
+        assert!(agent.should_refine(&cmd));
+    }
+
+    #[test]
+    fn test_should_refine_sed() {
+        let agent = make_agent("linux");
+        let cmd = make_command("sed -i 's/old/new/g' file.txt");
+        assert!(agent.should_refine(&cmd));
+    }
+
+    #[test]
+    fn test_should_refine_awk() {
+        let agent = make_agent("linux");
+        let cmd = make_command("awk '{print $1}' file.txt");
+        assert!(agent.should_refine(&cmd));
+    }
+
+    #[test]
+    fn test_should_refine_macos_gnu_sort() {
+        let agent = make_agent("macos");
+        let cmd = make_command("ps aux --sort -%mem");
+        assert!(agent.should_refine(&cmd));
+    }
+
+    #[test]
+    fn test_should_refine_macos_ss_command() {
+        let agent = make_agent("macos");
+        let cmd = make_command("ss -tuln");
+        assert!(agent.should_refine(&cmd));
+    }
+
+    #[test]
+    fn test_should_refine_macos_find_absolute() {
+        let agent = make_agent("macos");
+        let cmd = make_command("find / -name '*.log'");
+        assert!(agent.should_refine(&cmd));
+    }
+
+    #[test]
+    fn test_should_not_refine_macos_simple() {
+        let agent = make_agent("macos");
+        let cmd = make_command("ls -la");
+        assert!(!agent.should_refine(&cmd));
     }
 }

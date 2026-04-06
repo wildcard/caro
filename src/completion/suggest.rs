@@ -306,3 +306,86 @@ fn calculate_match_score(query_words: &[&str], pattern: &PatternDef) -> f64 {
         0.0
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_empty_query_returns_empty() {
+        let results = suggest_commands("", 10);
+        assert!(results.is_empty());
+    }
+
+    #[test]
+    fn test_whitespace_query_returns_empty() {
+        let results = suggest_commands("   ", 10);
+        assert!(results.is_empty());
+    }
+
+    #[test]
+    fn test_find_python_files() {
+        let results = suggest_commands("find python files", 5);
+        assert!(!results.is_empty());
+        assert!(results[0].command.contains("*.py"));
+    }
+
+    #[test]
+    fn test_disk_space_query() {
+        let results = suggest_commands("disk space", 5);
+        assert!(!results.is_empty());
+        // Should match disk-related patterns
+        assert!(results.iter().any(|r| r.command.contains("du") || r.command.contains("df")));
+    }
+
+    #[test]
+    fn test_git_status_query() {
+        let results = suggest_commands("git status", 5);
+        assert!(!results.is_empty());
+        assert!(results[0].command.contains("git"));
+    }
+
+    #[test]
+    fn test_docker_containers() {
+        let results = suggest_commands("docker containers", 5);
+        assert!(!results.is_empty());
+        assert!(results[0].command.contains("docker"));
+    }
+
+    #[test]
+    fn test_limit_respected() {
+        let results = suggest_commands("find files", 2);
+        assert!(results.len() <= 2);
+    }
+
+    #[test]
+    fn test_results_sorted_by_score_descending() {
+        let results = suggest_commands("find files", 10);
+        for window in results.windows(2) {
+            assert!(
+                window[0].score >= window[1].score,
+                "Results should be sorted by score descending"
+            );
+        }
+    }
+
+    #[test]
+    fn test_no_match_returns_empty() {
+        let results = suggest_commands("xyzzyplugh", 5);
+        assert!(results.is_empty());
+    }
+
+    #[test]
+    fn test_case_insensitive() {
+        let lower = suggest_commands("FIND PYTHON FILES", 5);
+        assert!(!lower.is_empty());
+    }
+
+    #[test]
+    fn test_scores_are_positive() {
+        let results = suggest_commands("list files", 10);
+        for result in &results {
+            assert!(result.score > 0.0, "Scores should be positive");
+        }
+    }
+}

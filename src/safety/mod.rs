@@ -481,3 +481,233 @@ pub enum ValidationError {
 }
 
 // Types are already public, no re-export needed
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // --- is_dangerous_in_context tests ---
+
+    fn rm_rf_regex() -> regex::Regex {
+        regex::Regex::new(r"rm\s+-rf\s+/").unwrap()
+    }
+
+    fn dd_regex() -> regex::Regex {
+        regex::Regex::new(r"dd\s+.*if=/dev/(zero|random|urandom).*of=/dev/(sd|hd|nvme)").unwrap()
+    }
+
+    #[test]
+    fn test_context_bare_dangerous_command() {
+        assert!(SafetyValidator::is_dangerous_in_context(
+            "rm -rf /",
+            &rm_rf_regex()
+        ));
+    }
+
+    #[test]
+    fn test_context_dangerous_after_semicolon() {
+        assert!(SafetyValidator::is_dangerous_in_context(
+            "echo hello; rm -rf /",
+            &rm_rf_regex()
+        ));
+    }
+
+    #[test]
+    fn test_context_safe_inside_single_quotes() {
+        assert!(!SafetyValidator::is_dangerous_in_context(
+            "echo 'rm -rf /'",
+            &rm_rf_regex()
+        ));
+    }
+
+    #[test]
+    fn test_context_safe_inside_double_quotes() {
+        assert!(!SafetyValidator::is_dangerous_in_context(
+            "echo \"rm -rf /\"",
+            &rm_rf_regex()
+        ));
+    }
+
+    #[test]
+    fn test_context_no_match_returns_false() {
+        assert!(!SafetyValidator::is_dangerous_in_context(
+            "ls -la",
+            &rm_rf_regex()
+        ));
+    }
+
+    #[test]
+    fn test_context_dd_bare() {
+        assert!(SafetyValidator::is_dangerous_in_context(
+            "dd if=/dev/zero of=/dev/sda",
+            &dd_regex()
+        ));
+    }
+
+    #[test]
+    fn test_context_dd_in_quotes() {
+        assert!(!SafetyValidator::is_dangerous_in_context(
+            "echo 'dd if=/dev/zero of=/dev/sda'",
+            &dd_regex()
+        ));
+    }
+
+    #[test]
+    fn test_context_dangerous_after_quotes_close() {
+        // Pattern appears after quoted section closes — should be dangerous
+        assert!(SafetyValidator::is_dangerous_in_context(
+            "echo 'safe'; rm -rf /",
+            &rm_rf_regex()
+        ));
+    }
+
+    #[test]
+    fn test_context_multiple_matches_one_quoted() {
+        // Two matches: first in quotes (safe), second bare (dangerous)
+        let pattern = regex::Regex::new(r"rm\s+-rf\s+/").unwrap();
+        assert!(SafetyValidator::is_dangerous_in_context(
+            "echo 'rm -rf /'; rm -rf /home",
+            &pattern
+        ));
+    }
+
+    // --- SafetyValidator integration tests ---
+
+    #[tokio::test]
+    async fn test_validate_critical_command_blocked() {
+        let validator = SafetyValidator::new(SafetyConfig::strict()).unwrap();
+        let result = validator
+            .validate_command("rm -rf /", ShellType::Bash)
+            .await
+            .unwrap();
+        assert!(!result.allowed);
+        assert_eq!(result.risk_level, RiskLevel::Critical);
+        assert!(!result.matched_patterns.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_validate_safe_command_allowed() {
+        let validator = SafetyValidator::new(SafetyConfig::strict()).unwrap();
+        let result = validator
+            .validate_command("ls -la", ShellType::Bash)
+            .await
+            .unwrap();
+        assert!(result.allowed);
+        assert_eq!(result.risk_level, RiskLevel::Safe);
+        assert!(result.matched_patterns.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_validate_quoted_dangerous_command_safe() {
+        let validator = SafetyValidator::new(SafetyConfig::strict()).unwrap();
+        let result = validator
+            .validate_command("echo 'rm -rf /'", ShellType::Bash)
+            .await
+            .unwrap();
+        // Should be allowed because the dangerous pattern is inside quotes
+        assert!(result.allowed);
+    }
+
+    #[tokio::test]
+    async fn test_validate_command_too_long() {
+        let validator = SafetyValidator::new(SafetyConfig::strict()).unwrap();
+        let long_cmd = "a".repeat(1001);
+        let result = validator
+            .validate_command(&long_cmd, ShellType::Bash)
+            .await
+            .unwrap();
+        assert!(!result.allowed);
+        assert!(result.explanation.contains("maximum length"));
+    }
+
+    #[tokio::test]
+    async fn test_validate_allowlist_overrides() {
+        let mut config = SafetyConfig::strict();
+        config.add_allowlist_pattern(r"^rm -rf /tmp/test$");
+        let validator = SafetyValidator::new(config).unwrap();
+        let result = validator
+            .validate_command("rm -rf /tmp/test", ShellType::Bash)
+            .await
+            .unwrap();
+        assert!(result.allowed);
+        assert_eq!(result.risk_level, RiskLevel::Safe);
+    }
+
+    #[tokio::test]
+    async fn test_validate_batch() {
+        let validator = SafetyValidator::new(SafetyConfig::strict()).unwrap();
+        let commands = vec![
+            "ls -la".to_string(),
+            "rm -rf /".to_string(),
+            "echo hello".to_string(),
+        ];
+        let results = validator
+            .validate_batch(&commands, ShellType::Bash)
+            .await
+            .unwrap();
+        assert_eq!(results.len(), 3);
+        assert!(results[0].allowed);
+        assert!(!results[1].allowed);
+        assert!(results[2].allowed);
+    }
+
+    #[test]
+    fn test_config_invalid_max_length() {
+        let mut config = SafetyConfig::strict();
+        config.max_command_length = 0;
+        assert!(SafetyValidator::new(config).is_err());
+    }
+
+    #[test]
+    fn test_config_invalid_custom_pattern() {
+        let mut config = SafetyConfig::strict();
+        let result = config.add_custom_pattern(DangerPattern {
+            pattern: "[invalid".to_string(),
+            risk_level: RiskLevel::High,
+            description: "bad pattern".to_string(),
+            shell_specific: None,
+        });
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_validate_custom_pattern_matches() {
+        let mut config = SafetyConfig::strict();
+        config
+            .add_custom_pattern(DangerPattern {
+                pattern: r"deploy.*production".to_string(),
+                risk_level: RiskLevel::High,
+                description: "Production deployment".to_string(),
+                shell_specific: None,
+            })
+            .unwrap();
+        let validator = SafetyValidator::new(config).unwrap();
+        let result = validator
+            .validate_command("deploy to production", ShellType::Bash)
+            .await
+            .unwrap();
+        assert!(!result.allowed);
+    }
+
+    #[tokio::test]
+    async fn test_permissive_allows_moderate_commands() {
+        let validator = SafetyValidator::new(SafetyConfig::permissive()).unwrap();
+        let result = validator
+            .validate_command("kill -9 1234", ShellType::Bash)
+            .await
+            .unwrap();
+        // Permissive mode: Moderate risk commands should be allowed
+        assert!(result.allowed);
+    }
+
+    #[tokio::test]
+    async fn test_strict_blocks_high_commands() {
+        let validator = SafetyValidator::new(SafetyConfig::strict()).unwrap();
+        let result = validator
+            .validate_command("sudo rm important.txt", ShellType::Bash)
+            .await
+            .unwrap();
+        assert!(!result.allowed);
+        assert!(result.risk_level >= RiskLevel::High);
+    }
+}
