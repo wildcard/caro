@@ -53,6 +53,9 @@ pub mod version;
 #[cfg(feature = "knowledge")]
 pub mod knowledge;
 
+#[cfg(feature = "monitor")]
+pub mod monitor;
+
 // Re-export commonly used types for convenience
 pub use model_catalog::{ModelCatalog, ModelInfo, ModelSize};
 pub use models::{

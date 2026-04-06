@@ -31,11 +31,16 @@ path = "src/main.rs"
 name = "generate-schema"
 path = "src/bin/generate-schema.rs"
 
+[[bin]]
+name = "caro-monitor"
+path = "src/bin/caro-monitor.rs"
+required-features = ["monitor"]
+
 [dependencies]
 # Core CLI and async runtime
 clap = { version = "4.5", features = ["derive", "env", "color"] }
 clap_complete = "4.5"
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "sync", "fs"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "sync", "fs", "net", "signal"] }
 
 # Serialization and configuration
 serde = { version = "1", features = ["derive"] }
@@ -94,6 +99,9 @@ fd-lock = "4.0"
 # Async trait support
 async-trait = "0.1"
 futures = "0.3"
+
+# System-level dependencies for monitor backends
+libc = "0.2"
 
 # Knowledge index (local vector database)
 lancedb = { version = "0.23", optional = true }
@@ -159,6 +167,9 @@ embedded-mlx = ["cxx", "llama_cpp"]
 embedded-cpu = ["candle-core", "candle-transformers"]
 knowledge = ["lancedb", "fastembed", "arrow-array", "arrow-schema"]
 chromadb = ["knowledge", "dep:chromadb"]  # ChromaDB backend (requires knowledge base features)
+monitor = ["tokio/net", "tokio/signal"]  # Kernel-level agent monitoring (core types + IPC)
+monitor-es = ["monitor"]  # Apple Endpoint Security backend (macOS, requires entitlement)
+monitor-ebpf = ["monitor"]  # eBPF backend (Linux, requires CAP_BPF)
 
 [profile.release]
 # Optimize for binary size (<50MB target)

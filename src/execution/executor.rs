@@ -30,6 +30,11 @@ pub enum ExecutorError {
 
     #[error("Invalid command: {0}")]
     InvalidCommand(String),
+
+    /// Command was blocked by the kernel-level monitor daemon
+    #[cfg(feature = "monitor")]
+    #[error("Blocked by monitor: {0}")]
+    MonitorBlocked(String),
 }
 
 /// Command executor for running shell commands
@@ -137,6 +142,40 @@ impl CommandExecutor {
         };
 
         Ok(cmd)
+    }
+
+    /// Execute a command with optional monitor preflight check
+    ///
+    /// If the `monitor` feature is enabled and the caro-monitor daemon is running,
+    /// performs a preflight policy check before execution. If the daemon denies the
+    /// command, returns `ExecutorError::MonitorBlocked`.
+    ///
+    /// If the daemon is not running, execution proceeds normally (graceful degradation).
+    #[cfg(feature = "monitor")]
+    pub async fn execute_monitored(&self, command: &str) -> Result<ExecutionResult, ExecutorError> {
+        use crate::monitor::client::MonitorClient;
+        use crate::monitor::ipc::MonitorResponse;
+
+        let client = MonitorClient::new();
+
+        // Only check if daemon is available (fast path)
+        if client.is_daemon_available() {
+            let cwd = std::env::current_dir().unwrap_or_default();
+            match client.preflight_check(command, &cwd).await {
+                Ok(MonitorResponse::Denied { reason, .. }) => {
+                    return Err(ExecutorError::MonitorBlocked(reason));
+                }
+                Ok(MonitorResponse::Ok) => {
+                    // Approved — proceed to execution
+                }
+                _ => {
+                    // Daemon error or unexpected response — proceed without monitoring
+                }
+            }
+        }
+
+        // Execute normally
+        self.execute(command)
     }
 
     /// Process command output
