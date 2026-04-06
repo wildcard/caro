@@ -86,6 +86,9 @@ pub struct CliResult {
     /// Detailed explanation for explain mode
     #[serde(default)]
     pub detailed_explanation: Option<crate::prompts::CommandExplanation>,
+    /// Scope escalation warning (command scope exceeds prompt intent)
+    #[serde(default)]
+    pub scope_escalation: Option<String>,
 }
 
 /// Supported output formats
@@ -544,6 +547,12 @@ impl CliApp {
                 message: format!("Safety validation failed: {}", e),
             })?;
 
+        // Check for scope escalation (command scope exceeds prompt intent)
+        let scope_escalation = {
+            use crate::safety::check_scope_escalation;
+            check_scope_escalation(&prompt, &generated.command)
+        };
+
         // Check if confirmation is required
         let requires_confirmation =
             validation.risk_level.requires_confirmation(safety_level) && !args.confirm();
@@ -659,6 +668,9 @@ impl CliApp {
             warnings: {
                 let mut all_warnings = warnings_list;
                 all_warnings.extend(validation.warnings);
+                if let Some(ref escalation) = scope_escalation {
+                    all_warnings.push(format!("Scope escalation: {}", escalation));
+                }
                 all_warnings
             },
             detected_context: prompt.clone(),
@@ -668,6 +680,7 @@ impl CliApp {
             execution_error,
             explain_mode,
             detailed_explanation,
+            scope_escalation,
         })
     }
 

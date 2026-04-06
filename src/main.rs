@@ -545,6 +545,15 @@ struct Cli {
     )]
     confirm: bool,
 
+    /// Override safety blocks with explicit acknowledgment.
+    /// Allows executing commands that would normally be blocked at Critical risk level.
+    /// In interactive mode, requires typing confirmation. In non-interactive mode, bypasses the block.
+    #[arg(
+        long = "override-safety",
+        help = "Override safety blocks for critical commands (requires explicit confirmation)"
+    )]
+    override_safety: bool,
+
     /// Verbose output with debug information
     #[arg(short, long, help = "Enable verbose output with timing and debug info")]
     verbose: bool,
@@ -2302,10 +2311,73 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
         eprintln!("{} {}", "Warning:".yellow().bold(), warning);
     }
 
-    // Handle blocked commands
+    // Print scope escalation warning prominently if detected
+    if let Some(ref escalation) = result.scope_escalation {
+        eprintln!(
+            "{} {}",
+            "Scope Escalation:".bright_red().bold(),
+            escalation
+        );
+        eprintln!(
+            "{}",
+            "The generated command does more than what you asked for. Please review carefully."
+                .yellow()
+        );
+    }
+
+    // Handle blocked commands — with fallback escalation inspired by Claude Code's auto mode.
+    // Instead of always hard-blocking, offer an interactive override path.
     if let Some(blocked_reason) = &result.blocked_reason {
         eprintln!("{} {}", "Blocked:".red().bold(), blocked_reason);
-        std::process::exit(1);
+
+        if cli.override_safety {
+            // Non-interactive override: --override-safety flag was passed
+            if std::io::stdin().is_terminal() {
+                // Even with the flag, require interactive confirmation for safety
+                use dialoguer::Input;
+                eprintln!(
+                    "{}",
+                    "This command was blocked because it is critically dangerous.".red()
+                );
+                eprintln!(
+                    "{}",
+                    "Type 'yes I understand' to proceed, or anything else to cancel:".yellow()
+                );
+                let response: String = Input::new()
+                    .with_prompt("Confirm override")
+                    .interact_text()
+                    .map_err(|e| CliError::Internal {
+                        message: format!("Failed to get override confirmation: {}", e),
+                    })?;
+                if response.trim().to_lowercase() != "yes i understand" {
+                    display!("{}", "Override cancelled.".yellow());
+                    std::process::exit(1);
+                }
+                eprintln!(
+                    "{}",
+                    "Safety override accepted. Proceeding with blocked command.".red().bold()
+                );
+                // Clear the blocked reason so execution can proceed
+                result.blocked_reason = None;
+            } else {
+                // Non-interactive with --override-safety: allow it through
+                eprintln!(
+                    "{}",
+                    "Safety override active (--override-safety). Proceeding.".red().bold()
+                );
+                result.blocked_reason = None;
+            }
+        } else {
+            // No override flag — check if interactive and offer the option
+            if std::io::stdin().is_terminal() {
+                eprintln!(
+                    "{}",
+                    "Tip: Use --override-safety to override this block with explicit confirmation."
+                        .dimmed()
+                );
+            }
+            std::process::exit(1);
+        }
     }
 
     // Handle confirmation required for dangerous commands

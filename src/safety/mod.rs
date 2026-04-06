@@ -27,10 +27,15 @@
 //! ```
 
 mod patterns;
+mod scope;
+
+use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
 use crate::models::{RiskLevel, SafetyLevel, ShellType};
+
+pub use scope::{check_scope_escalation, classify_command_scope, classify_prompt_intent, CommandScope};
 
 pub use patterns::{
     get_compiled_patterns_for_shell, get_patterns_by_risk, get_patterns_for_shell,
@@ -55,6 +60,11 @@ pub struct SafetyConfig {
     pub max_command_length: usize,
     pub custom_patterns: Vec<DangerPattern>,
     pub allowlist_patterns: Vec<String>,
+    /// Trusted directory paths. Commands targeting only these directories
+    /// get their risk downgraded by one level (Critical stays Critical).
+    /// Inspired by Claude Code's auto mode which trusts the working directory.
+    #[serde(default)]
+    pub trusted_paths: Vec<PathBuf>,
 }
 
 /// Result of safety validation for a command
@@ -66,6 +76,12 @@ pub struct ValidationResult {
     pub warnings: Vec<String>,
     pub matched_patterns: Vec<String>,
     pub confidence_score: f32,
+    /// Whether risk was downgraded because the command targets trusted paths only
+    #[serde(default)]
+    pub trusted_path_downgrade: bool,
+    /// Scope escalation detected (command scope exceeds prompt intent)
+    #[serde(default)]
+    pub scope_escalation: Option<String>,
 }
 
 /// Pattern definition for dangerous command detection
@@ -193,6 +209,75 @@ impl SafetyValidator {
         false
     }
 
+    /// Extract file paths from a shell command.
+    ///
+    /// Returns paths that appear to be filesystem targets (not flags, not operators).
+    /// This is a heuristic — it won't catch every path, but it's conservative:
+    /// if we can't parse the paths, we don't downgrade risk.
+    fn extract_paths(command: &str) -> Vec<&str> {
+        let mut paths = Vec::new();
+        // Split on shell operators and whitespace
+        for token in command.split(|c: char| c.is_whitespace() || c == '|' || c == ';' || c == '&') {
+            let token = token.trim_matches(|c: char| c == '\'' || c == '"');
+            if token.is_empty() || token.starts_with('-') {
+                continue;
+            }
+            // Looks like a path if it contains / or . or starts with ~
+            if token.contains('/') || token.starts_with('~') || token.starts_with('.') {
+                paths.push(token);
+            }
+        }
+        paths
+    }
+
+    /// Check if all extracted paths in a command fall within trusted directories.
+    ///
+    /// Returns true only if:
+    /// - There is at least one path in the command
+    /// - ALL paths resolve to within a trusted directory
+    fn all_paths_trusted(command: &str, trusted_paths: &[PathBuf]) -> bool {
+        if trusted_paths.is_empty() {
+            return false;
+        }
+
+        let paths = Self::extract_paths(command);
+        if paths.is_empty() {
+            return false;
+        }
+
+        for path_str in &paths {
+            let path = Path::new(path_str);
+            let is_trusted = trusted_paths.iter().any(|trusted| {
+                // Normalize: "./foo" is within "./"
+                if path.starts_with(trusted) {
+                    return true;
+                }
+                // Handle relative paths: "build/" is within "./"
+                if trusted == Path::new("./") || trusted == Path::new(".") {
+                    return !path.is_absolute()
+                        && !path_str.starts_with('~')
+                        && !path_str.contains("..");
+                }
+                false
+            });
+            if !is_trusted {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    /// Downgrade a risk level by one step (Critical stays Critical for safety).
+    fn downgrade_risk(risk: RiskLevel) -> RiskLevel {
+        match risk {
+            RiskLevel::Critical => RiskLevel::Critical, // Never downgrade Critical
+            RiskLevel::High => RiskLevel::Moderate,
+            RiskLevel::Moderate => RiskLevel::Safe,
+            RiskLevel::Safe => RiskLevel::Safe,
+        }
+    }
+
     /// Validate a single command for safety
     pub async fn validate_command(
         &self,
@@ -215,6 +300,8 @@ impl SafetyValidator {
                 )],
                 matched_patterns: vec![],
                 confidence_score: 1.0,
+                trusted_path_downgrade: false,
+                scope_escalation: None,
             });
         }
 
@@ -229,6 +316,8 @@ impl SafetyValidator {
                         warnings: vec![],
                         matched_patterns: vec![allow_pattern.clone()],
                         confidence_score: 1.0,
+                        trusted_path_downgrade: false,
+                        scope_escalation: None,
                     });
                 }
             }
@@ -263,6 +352,22 @@ impl SafetyValidator {
                     highest_risk = *risk_level;
                 }
                 warnings.push(format!("{}: {}", risk_level, description));
+            }
+        }
+
+        // Apply trusted path downgrade if command targets only trusted directories
+        let mut trusted_path_downgrade = false;
+        if highest_risk > RiskLevel::Safe
+            && Self::all_paths_trusted(command, &self.config.trusted_paths)
+        {
+            let downgraded = Self::downgrade_risk(highest_risk);
+            if downgraded < highest_risk {
+                trusted_path_downgrade = true;
+                warnings.push(format!(
+                    "Risk downgraded from {} to {} (command targets trusted paths only)",
+                    highest_risk, downgraded
+                ));
+                highest_risk = downgraded;
             }
         }
 
@@ -336,6 +441,8 @@ impl SafetyValidator {
             warnings,
             matched_patterns: matched,
             confidence_score,
+            trusted_path_downgrade,
+            scope_escalation: None,
         })
     }
 
@@ -364,6 +471,7 @@ impl SafetyConfig {
             max_command_length: 1000,
             custom_patterns: Vec::new(),
             allowlist_patterns: Vec::new(),
+            trusted_paths: Vec::new(),
         }
     }
 
@@ -374,6 +482,7 @@ impl SafetyConfig {
             max_command_length: 5000,
             custom_patterns: Vec::new(),
             allowlist_patterns: Vec::new(),
+            trusted_paths: Vec::new(),
         }
     }
 
@@ -384,6 +493,7 @@ impl SafetyConfig {
             max_command_length: 10000,
             custom_patterns: Vec::new(),
             allowlist_patterns: Vec::new(),
+            trusted_paths: Vec::new(),
         }
     }
 
@@ -448,6 +558,23 @@ impl SafetyConfig {
     pub fn add_allowlist_pattern(&mut self, pattern: impl Into<String>) {
         self.allowlist_patterns.push(pattern.into());
     }
+
+    /// Add a trusted directory path.
+    ///
+    /// Commands that target only trusted paths get their risk downgraded by one
+    /// level (Critical stays Critical for safety).
+    pub fn add_trusted_path(&mut self, path: impl Into<PathBuf>) {
+        self.trusted_paths.push(path.into());
+    }
+
+    /// Create a config with the current working directory as a trusted path.
+    ///
+    /// This mirrors Claude Code's auto mode behavior where the working directory
+    /// is automatically trusted.
+    pub fn with_trusted_cwd(mut self) -> Self {
+        self.trusted_paths.push(PathBuf::from("./"));
+        self
+    }
 }
 
 impl Default for SafetyConfig {
@@ -457,6 +584,7 @@ impl Default for SafetyConfig {
             max_command_length: 1000,
             custom_patterns: Vec::new(),
             allowlist_patterns: Vec::new(),
+            trusted_paths: Vec::new(),
         }
     }
 }
