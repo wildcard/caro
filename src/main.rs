@@ -2384,8 +2384,15 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
     if result.requires_confirmation && !cli.confirm {
         use dialoguer::Confirm;
 
-        // Check if we're in a terminal environment
-        if std::io::stdin().is_terminal() {
+        // Check session memory — skip confirmation if user already approved this pattern
+        let session = caro::safety::session::session_memory();
+        if session.is_pre_approved(&result.generated_command) {
+            display!(
+                "{}",
+                "✓ Auto-approved (previously confirmed in this session).".green()
+            );
+        } else if std::io::stdin().is_terminal() {
+            // Check if we're in a terminal environment
             let confirmed = Confirm::new()
                 .with_prompt(&result.confirmation_prompt)
                 .default(false)
@@ -2395,10 +2402,13 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
                 })?;
 
             if !confirmed {
+                session.record_denial();
                 display!("{}", "Operation cancelled by user.".yellow());
                 std::process::exit(1);
             }
 
+            // Record approval in session memory for future commands
+            session.record_approval(&result.generated_command);
             display!("{}", "✓ Confirmed. Command is safe to execute.".green());
         } else {
             // Non-interactive environment - show confirmation message and exit

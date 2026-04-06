@@ -28,6 +28,8 @@
 
 mod patterns;
 mod scope;
+pub mod semantic;
+pub mod session;
 
 use std::path::{Path, PathBuf};
 

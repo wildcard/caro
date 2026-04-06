@@ -224,12 +224,20 @@ impl CliApp {
         let backend = Self::create_backend(&user_config).await?;
         let backend_arc: Arc<dyn CommandGenerator> = Arc::from(backend);
 
-        let validator =
-            SafetyValidator::new(crate::safety::SafetyConfig::default()).map_err(|e| {
-                CliError::ConfigurationError {
-                    message: format!("Failed to initialize safety validator: {}", e),
-                }
-            })?;
+        // Build SafetyConfig from user configuration (not default)
+        // This wires up trusted_paths, trusted_commands, and safety_level from config.toml
+        let mut safety_config = crate::safety::SafetyConfig::from_level(user_config.safety_level);
+        for path in &user_config.trusted_paths {
+            safety_config.add_trusted_path(std::path::PathBuf::from(path));
+        }
+        for cmd_prefix in &user_config.trusted_commands {
+            safety_config.add_allowlist_pattern(format!("^{}$", regex::escape(cmd_prefix)));
+        }
+        let validator = SafetyValidator::new(safety_config).map_err(|e| {
+            CliError::ConfigurationError {
+                message: format!("Failed to initialize safety validator: {}", e),
+            }
+        })?;
 
         // Detect execution context
         let context = ExecutionContext::detect();

@@ -641,6 +641,19 @@ pub struct UserConfiguration {
     /// Default generation profile (generator or explainer)
     #[serde(default)]
     pub generation_profile: crate::prompts::profiles::GenerationProfile,
+    /// Trusted directory paths for safety validation.
+    /// Commands targeting only these paths get risk downgraded.
+    #[serde(default)]
+    pub trusted_paths: Vec<String>,
+    /// Trusted domains for network operations (e.g., "api.github.com")
+    #[serde(default)]
+    pub trusted_domains: Vec<String>,
+    /// Pre-approved command prefixes (e.g., "git push origin")
+    #[serde(default)]
+    pub trusted_commands: Vec<String>,
+    /// Whether to enable LLM-assisted semantic safety validation
+    #[serde(default)]
+    pub semantic_safety: bool,
 }
 
 impl Default for UserConfiguration {
@@ -655,6 +668,10 @@ impl Default for UserConfiguration {
             log_rotation_days: 7,
             telemetry: crate::telemetry::TelemetryConfig::default(),
             generation_profile: crate::prompts::profiles::GenerationProfile::default(),
+            trusted_paths: vec!["./".to_string()], // Trust cwd by default (like Claude Code auto mode)
+            trusted_domains: Vec::new(),
+            trusted_commands: Vec::new(),
+            semantic_safety: false,
         }
     }
 }
@@ -694,6 +711,10 @@ pub struct UserConfigurationBuilder {
     log_rotation_days: u32,
     telemetry: crate::telemetry::TelemetryConfig,
     generation_profile: crate::prompts::profiles::GenerationProfile,
+    trusted_paths: Vec<String>,
+    trusted_domains: Vec<String>,
+    trusted_commands: Vec<String>,
+    semantic_safety: bool,
 }
 
 impl Default for UserConfigurationBuilder {
@@ -715,6 +736,10 @@ impl UserConfigurationBuilder {
             log_rotation_days: defaults.log_rotation_days,
             telemetry: defaults.telemetry,
             generation_profile: defaults.generation_profile,
+            trusted_paths: defaults.trusted_paths,
+            trusted_domains: defaults.trusted_domains,
+            trusted_commands: defaults.trusted_commands,
+            semantic_safety: defaults.semantic_safety,
         }
     }
 
@@ -777,6 +802,10 @@ impl UserConfigurationBuilder {
             log_rotation_days: self.log_rotation_days,
             telemetry: self.telemetry,
             generation_profile: self.generation_profile,
+            trusted_paths: self.trusted_paths,
+            trusted_domains: self.trusted_domains,
+            trusted_commands: self.trusted_commands,
+            semantic_safety: self.semantic_safety,
         };
         config.validate()?;
         Ok(config)

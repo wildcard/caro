@@ -190,6 +190,10 @@ impl SetupWizard {
             log_rotation_days: 7,
             telemetry: crate::telemetry::TelemetryConfig::default(),
             generation_profile: crate::prompts::profiles::GenerationProfile::default(),
+            trusted_paths: vec!["./".to_string()],
+            trusted_domains: Vec::new(),
+            trusted_commands: Vec::new(),
+            semantic_safety: false,
         };
 
         self.print_summary(&configuration, theme);

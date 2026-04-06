@@ -34,6 +34,24 @@ impl Default for ConfigSchema {
         known_keys.insert("logging.log_rotation_days".to_string(), "u32".to_string());
         known_keys.insert("cache.max_size_gb".to_string(), "u64".to_string());
 
+        // Safety configuration keys
+        known_keys.insert(
+            "safety.trusted_paths".to_string(),
+            "Vec<String>".to_string(),
+        );
+        known_keys.insert(
+            "safety.trusted_domains".to_string(),
+            "Vec<String>".to_string(),
+        );
+        known_keys.insert(
+            "safety.trusted_commands".to_string(),
+            "Vec<String>".to_string(),
+        );
+        known_keys.insert(
+            "safety.semantic_safety".to_string(),
+            "bool".to_string(),
+        );
+
         let deprecated_keys = HashMap::new();
         // Example: deprecated_keys.insert("old.key".to_string(), "new.key".to_string());
 
@@ -42,6 +60,7 @@ impl Default for ConfigSchema {
                 "general".to_string(),
                 "logging".to_string(),
                 "cache".to_string(),
+                "safety".to_string(),
             ],
             known_keys,
             deprecated_keys,
