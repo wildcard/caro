@@ -1,0 +1,107 @@
+# Community Engagement Agent Configuration
+# Loaded by: skill: community-engagement-agent
+# Command: /community-engagement
+
+# --- Engagement Pipeline ---
+engagement:
+  schedule: "daily"                    # How often to run the engagement cycle
+  max_outreach_per_day: 10             # Maximum drafts per daily run
+  min_contact_gap_hours: 72            # Minimum hours between contacting same user
+  approval_required: true              # Phase 1: all messages need human approval
+  autonomy_phase: 1                    # 1=draft-only, 2=semi-auto, 3=full-auto
+
+# --- Contribution Scoring ---
+scoring:
+  weights:
+    commands_reused: 3                 # Others ran their recipes
+    remixes: 2                         # Others forked/remixed their work
+    original_creations: 1              # New recipes published
+    safety_saves: 2                    # Dangerous commands blocked for others
+
+  decay:
+    half_life_days: 30                 # Score halves every 30 days
+    min_score_after_decay: 0           # Floor for decayed scores
+
+  tiers:
+    explorer:
+      min_score: 0
+      max_score: 9
+    builder:
+      min_score: 10
+      max_score: 49
+    leader:
+      min_score: 50
+      max_score: 199
+    founder_eligible:
+      min_score: 200
+      max_score: null                  # No upper limit
+      min_active_days: 30             # Must also have 30+ active days
+
+  anti_gaming:
+    min_reuse_ratio: 0.1               # Flagged if reuse/creations < 0.1
+    min_creations_for_flag: 10         # Only flag if >10 creations
+    burst_multiplier: 5                # Flagged if daily creations > 5x average
+
+# --- Channel Configuration ---
+channels:
+  cli:
+    enabled: true
+    max_per_user_per_week: 2           # No more than 2 CLI messages per user per week
+    message_prefix: "caro:"            # How CLI messages appear
+  email:
+    enabled: false                     # Phase 2: enable email channel
+    milestones_only: true              # Only send for real milestones
+    max_per_user_per_month: 2
+  web:
+    enabled: true
+    badges: true                       # Show achievement badges on profile
+    leaderboard: true                  # Show contribution leaderboard
+
+# --- Founder Tier ---
+founder_tier:
+  enabled: false                       # Phase 2: activate founder invitations
+  min_score_threshold: 200             # Minimum decayed score for eligibility
+  min_active_days: 30                  # Minimum distinct active days
+  max_initial_cohort: 50               # Cap on initial Founding Builders cohort
+  re_invite_cooldown_days: 90          # Wait time after declined invitation
+  invitation_batch_size: 5             # Invite this many at a time
+
+# --- Direction Recruiting ---
+direction:
+  gap_score_critical: 10               # gap_score above this = critical
+  gap_score_moderate: 5                # gap_score above this = moderate
+  min_relevance_score: 3               # Don't recruit below this match quality
+  follow_up_after_days: 14             # Check if recruited user published
+  max_recruits_per_gap: 3              # Don't over-recruit for one gap
+
+# --- Feedback Tracking ---
+feedback:
+  low_response_threshold: 0.10         # Below 10% = low response rate
+  low_response_weeks_to_flag: 2        # Flag after 2 consecutive weeks below threshold
+  ab_test_min_sample: 20               # Minimum messages per A/B variant
+  ab_test_min_days: 7                  # Minimum test duration
+  significance_level: 0.05             # p-value threshold for A/B winner
+
+# --- Message Type Configuration ---
+message_types:
+  recognition:
+    auto_send_phase: 2                 # Can auto-send starting Phase 2
+    requires_specific_recipe: true     # Must reference a specific recipe
+    requires_specific_number: true     # Must include a real metric
+  amplification:
+    auto_send_phase: 3                 # Requires Phase 3 for auto-send
+    min_reuse_count: 5                 # Only amplify recipes with 5+ reusers
+  invitation:
+    auto_send_phase: never             # Always requires human approval
+    channel_override: "email"          # Always use email for invitations
+  direction:
+    auto_send_phase: 3                 # Requires Phase 3 for auto-send
+    min_gap_score: 5                   # Only recruit for meaningful gaps
+
+# --- API Configuration ---
+api:
+  hub_base_url: "https://hub.caro.sh/api/v1"
+  cache_ttl_minutes: 60               # Cache API responses for 1 hour
+  retry_count: 3                       # Retry failed API calls
+  retry_backoff_seconds: [1, 2, 4]     # Exponential backoff
+  timeout_seconds: 30                  # API request timeout
