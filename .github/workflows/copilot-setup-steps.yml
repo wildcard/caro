@@ -1,0 +1,57 @@
+name: "Copilot Setup Steps"
+
+# Run automatically when this file changes to validate it,
+# and allow manual testing from the Actions tab.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  # The job MUST be named `copilot-setup-steps` to be picked up by Copilot.
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Cache Cargo registry and build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-copilot-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-copilot-cargo-
+
+      - name: Install protobuf compiler
+        # Required for `--all-features` builds (knowledge/lancedb/fastembed features)
+        run: sudo apt-get update -q && sudo apt-get install -y protobuf-compiler
+
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked
+
+      - name: Pre-build dependencies (no-default-features, cross-platform safe)
+        # Build the dependency graph without optional features that require
+        # Apple Silicon toolchains (embedded-mlx) or heavy optional deps (knowledge).
+        # This warms the Cargo cache so Copilot's first `cargo build` is fast.
+        run: cargo build --no-default-features --features embedded-cpu,remote-backends
+        env:
+          CARGO_TERM_COLOR: always
+          CARGO_INCREMENTAL: 0
