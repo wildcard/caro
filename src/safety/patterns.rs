@@ -353,6 +353,27 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
             description: "Force kill specific process by PID".to_string(),
             shell_specific: None,
         },
+        // HIGH: Recursive caro invocation (OES-inspired self-mute for recursion prevention)
+        //
+        // Uses lookahead-free word boundary matching compatible with the `regex` crate,
+        // which does not support lookahead. We match `caro` as a standalone token:
+        //   - Start of string followed by `caro` + whitespace/end
+        //   - After a shell separator (|, ;, &, &&, ||, `) followed by `caro`
+        //
+        // This avoids matching `cargo`, `carousel`, `scaro`, etc.
+        DangerPattern {
+            pattern: r"(?:^|[|;&`(\s])caro(?:\s|$)".to_string(),
+            risk_level: RiskLevel::High,
+            description: "Recursive caro invocation - would cause infinite loop".to_string(),
+            shell_specific: None,
+        },
+        // HIGH: Recursive cmdai invocation (legacy binary name)
+        DangerPattern {
+            pattern: r"(?:^|[|;&`(\s])cmdai(?:\s|$)".to_string(),
+            risk_level: RiskLevel::High,
+            description: "Recursive cmdai invocation - would cause infinite loop".to_string(),
+            shell_specific: None,
+        },
     ]
 });
 

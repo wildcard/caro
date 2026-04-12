@@ -60,6 +60,16 @@ impl CommandExecutor {
         // Create the appropriate shell command based on platform
         let mut cmd = self.create_shell_command(command)?;
 
+        // OES-inspired recursion protection: propagate the current caro
+        // recursion depth + 1 to any child process. If a generated command
+        // happens to invoke caro, the child will see an elevated depth and
+        // refuse to run before doing anything dangerous.
+        let depth = std::env::var(crate::safety::RECURSION_DEPTH_ENV)
+            .ok()
+            .and_then(|s| s.parse::<u32>().ok())
+            .unwrap_or(0);
+        cmd.env(crate::safety::RECURSION_DEPTH_ENV, (depth + 1).to_string());
+
         // Configure stdio
         cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
 

@@ -670,3 +670,249 @@ async fn test_custom_safety_patterns() {
         "Regular git push should be allowed with moderate safety"
     );
 }
+
+// =============================================================================
+// OES-inspired improvements: Recursion, Expansion, Timeout
+// =============================================================================
+
+#[tokio::test]
+async fn test_recursive_caro_invocation_blocked() {
+    // CONTRACT: Generated commands that invoke caro itself must be flagged
+    // as dangerous to prevent infinite recursion.
+    let validator = SafetyValidator::new(SafetyConfig::moderate()).unwrap();
+
+    let recursive_forms = &[
+        "caro list files",
+        "ls | caro filter results",
+        "true && caro do stuff",
+        "cmdai what is this",
+    ];
+
+    for &cmd in recursive_forms {
+        let result = validator
+            .validate_command(cmd, ShellType::Bash)
+            .await
+            .unwrap();
+
+        assert!(
+            result.risk_level >= RiskLevel::High,
+            "Recursive invocation must be high risk: {}",
+            cmd
+        );
+        assert!(
+            !result.allowed,
+            "Recursive invocation must not be allowed: {}",
+            cmd
+        );
+    }
+}
+
+#[tokio::test]
+async fn test_cargo_not_flagged_as_recursive() {
+    // CONTRACT: `cargo` must not be matched by the caro recursion pattern.
+    // This is the critical false-positive test.
+    let validator = SafetyValidator::new(SafetyConfig::moderate()).unwrap();
+
+    let safe_cargo_commands = &[
+        "cargo build",
+        "cargo test",
+        "cargo run -- hello",
+        "cargo fmt --check",
+    ];
+
+    for &cmd in safe_cargo_commands {
+        let result = validator
+            .validate_command(cmd, ShellType::Bash)
+            .await
+            .unwrap();
+
+        // Should not be flagged as recursive caro invocation
+        assert!(
+            !result
+                .matched_patterns
+                .iter()
+                .any(|p| p.contains("recursive") && p.contains("caro")),
+            "cargo should not be flagged as recursive caro: {} (matched: {:?})",
+            cmd,
+            result.matched_patterns
+        );
+    }
+}
+
+#[tokio::test]
+async fn test_command_substitution_raises_risk() {
+    // CONTRACT: $(command) substitution must be detected and raise the
+    // risk level so the user is aware dangerous operations could be hidden.
+    let validator = SafetyValidator::new(SafetyConfig::moderate()).unwrap();
+
+    let result = validator
+        .validate_command("echo $(whoami)", ShellType::Bash)
+        .await
+        .unwrap();
+
+    assert!(
+        result
+            .warnings
+            .iter()
+            .any(|w| w.to_lowercase().contains("command substitution")),
+        "Should warn about command substitution. Warnings: {:?}",
+        result.warnings
+    );
+}
+
+#[tokio::test]
+async fn test_single_quoted_expansion_is_safe() {
+    // CONTRACT: Single-quoted expansions are literal on POSIX shells and
+    // must NOT raise the risk level.
+    let validator = SafetyValidator::new(SafetyConfig::moderate()).unwrap();
+
+    let result = validator
+        .validate_command("echo '$(whoami)'", ShellType::Bash)
+        .await
+        .unwrap();
+
+    // No command substitution should be reported
+    assert!(
+        !result
+            .warnings
+            .iter()
+            .any(|w| w.to_lowercase().contains("command substitution")),
+        "Single-quoted expansion should not be flagged as substitution. Warnings: {:?}",
+        result.warnings
+    );
+}
+
+#[tokio::test]
+async fn test_backtick_substitution_detected() {
+    // CONTRACT: Legacy backtick substitution must be detected too.
+    let validator = SafetyValidator::new(SafetyConfig::moderate()).unwrap();
+
+    let result = validator
+        .validate_command("echo `date`", ShellType::Bash)
+        .await
+        .unwrap();
+
+    assert!(
+        result
+            .warnings
+            .iter()
+            .any(|w| w.to_lowercase().contains("backtick")),
+        "Should warn about backtick substitution. Warnings: {:?}",
+        result.warnings
+    );
+}
+
+#[tokio::test]
+async fn test_strict_mode_blocks_expansions() {
+    // CONTRACT: Strict mode should escalate command-executing expansions
+    // to High risk, which is blocked.
+    let validator = SafetyValidator::new(SafetyConfig::strict()).unwrap();
+
+    let result = validator
+        .validate_command("echo $(whoami)", ShellType::Bash)
+        .await
+        .unwrap();
+
+    assert!(
+        result.risk_level >= RiskLevel::High,
+        "Strict mode must escalate command substitution to High. Got: {}",
+        result.risk_level
+    );
+    assert!(
+        !result.allowed,
+        "Strict mode must block command substitution"
+    );
+}
+
+#[tokio::test]
+async fn test_validation_timeout_fails_closed() {
+    // CONTRACT: If validation exceeds the budget, the command must be
+    // blocked (fail-closed) with a clear explanation.
+    //
+    // We simulate an effectively-zero budget by setting it to 0ms, which
+    // guarantees the timeout check will trigger on the first pattern.
+    let mut config = SafetyConfig::moderate();
+    config.validation_timeout_ms = 0;
+    let validator = SafetyValidator::new(config).unwrap();
+
+    let result = validator
+        .validate_command("ls -la", ShellType::Bash)
+        .await
+        .unwrap();
+
+    assert!(
+        !result.allowed,
+        "Zero-budget validation must fail closed (deny)"
+    );
+    assert_eq!(
+        result.risk_level,
+        RiskLevel::High,
+        "Timeout must report High risk"
+    );
+    assert!(
+        result
+            .matched_patterns
+            .iter()
+            .any(|p| p.contains("timeout")),
+        "Timeout result must tag matched_patterns with 'timeout'. Got: {:?}",
+        result.matched_patterns
+    );
+}
+
+#[test]
+fn test_detect_recursive_invocation_helper() {
+    // CONTRACT: The detect_recursive_invocation helper must correctly
+    // distinguish caro tokens from similar words like cargo.
+    use caro::safety::detect_recursive_invocation;
+
+    // Positive cases
+    assert!(detect_recursive_invocation("caro list files"));
+    assert!(detect_recursive_invocation("ls | caro"));
+    assert!(detect_recursive_invocation("x && caro y"));
+    assert!(detect_recursive_invocation("cmdai hello"));
+    assert!(detect_recursive_invocation("  caro  "));
+
+    // Negative cases (must NOT trigger)
+    assert!(!detect_recursive_invocation("cargo build"));
+    assert!(!detect_recursive_invocation("echo scaro"));
+    assert!(!detect_recursive_invocation("carousel"));
+    assert!(!detect_recursive_invocation("ls"));
+    assert!(!detect_recursive_invocation(""));
+}
+
+#[tokio::test]
+async fn test_cache_returns_consistent_results() {
+    // CONTRACT: Validating the same command twice must return equivalent
+    // results (cache hit should produce the same outcome as cache miss).
+    let validator = SafetyValidator::new(SafetyConfig::moderate()).unwrap();
+
+    let first = validator
+        .validate_command("ls -la /tmp", ShellType::Bash)
+        .await
+        .unwrap();
+    let second = validator
+        .validate_command("ls -la /tmp", ShellType::Bash)
+        .await
+        .unwrap();
+
+    assert_eq!(first.allowed, second.allowed, "cached decision must match");
+    assert_eq!(
+        first.risk_level, second.risk_level,
+        "cached risk level must match"
+    );
+}
+
+#[tokio::test]
+async fn test_cache_disabled_still_works() {
+    // CONTRACT: When caching is disabled, validation must still function
+    // correctly and detect dangerous commands.
+    let mut config = SafetyConfig::moderate();
+    config.enable_cache = false;
+    let validator = SafetyValidator::new(config).unwrap();
+
+    let result = validator
+        .validate_command("rm -rf /", ShellType::Bash)
+        .await
+        .unwrap();
+    assert!(!result.allowed, "dangerous command must be blocked");
+}

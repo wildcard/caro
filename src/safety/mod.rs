@@ -26,16 +26,71 @@
 //! # }
 //! ```
 
+pub mod cache;
+pub mod expansion;
 mod patterns;
 
 use serde::{Deserialize, Serialize};
+use tracing::{debug, info};
 
 use crate::models::{RiskLevel, SafetyLevel, ShellType};
 
+pub use cache::{CacheKey, SafetyDecisionCache};
+pub use expansion::{ExpansionDetector, ExpansionKind, ShellExpansion};
 pub use patterns::{
     get_compiled_patterns_for_shell, get_patterns_by_risk, get_patterns_for_shell,
     validate_patterns,
 };
+
+/// Environment variable used to track recursive caro invocations
+///
+/// Inspired by OpenEndpointSecurity's "self-mute" capability, which prevents
+/// clients from triggering events in response to their own actions. For caro,
+/// we use this to detect and refuse execution when a generated command would
+/// invoke caro itself, preventing infinite recursion.
+pub const RECURSION_DEPTH_ENV: &str = "CARO_RECURSION_DEPTH";
+
+/// Maximum allowed recursion depth before caro refuses to run
+///
+/// A legitimate caro invocation has depth 0. Depth 1 means caro was spawned
+/// by another caro process (e.g., via a shell script). Depth 2 would indicate
+/// a recursion loop and is refused.
+pub const MAX_RECURSION_DEPTH: u32 = 2;
+
+/// Check if a command string would recursively invoke caro
+///
+/// Detects `caro` (and the legacy name `cmdai`) as a standalone command token,
+/// not as a substring. This avoids false positives on names like `cargo` or
+/// `scaro` that happen to contain `caro`.
+///
+/// # Algorithm
+///
+/// Tokenizes the command on shell separators (`|`, `;`, `&`, `` ` ``, whitespace)
+/// and checks if any resulting token is exactly `caro` or `cmdai`.
+///
+/// # Example
+///
+/// ```
+/// use caro::safety::detect_recursive_invocation;
+///
+/// assert!(detect_recursive_invocation("caro list files"));
+/// assert!(detect_recursive_invocation("ls | caro filter"));
+/// assert!(detect_recursive_invocation("true && caro do stuff"));
+/// assert!(!detect_recursive_invocation("cargo build"));
+/// assert!(!detect_recursive_invocation("echo scaro"));
+/// ```
+pub fn detect_recursive_invocation(command: &str) -> bool {
+    // Split on shell metacharacters that separate commands
+    let separators = |c: char| {
+        matches!(
+            c,
+            ' ' | '\t' | '|' | ';' | '&' | '`' | '(' | ')' | '\n' | '\r'
+        )
+    };
+    command
+        .split(separators)
+        .any(|token| token == "caro" || token == "cmdai")
+}
 
 /// Main safety validator for analyzing command safety
 #[derive(Debug)]
@@ -46,6 +101,11 @@ pub struct SafetyValidator {
     patterns: Vec<DangerPattern>,
     /// Cached compiled regex patterns for performance
     compiled_patterns: Vec<(regex::Regex, RiskLevel, String)>,
+    /// OES-inspired LRU+TTL cache for validation decisions.
+    ///
+    /// `None` when caching is disabled. Caching is a pure optimization:
+    /// misses fall through to the normal pattern-matching path.
+    decision_cache: Option<SafetyDecisionCache>,
 }
 
 /// Configuration for safety validation behavior
@@ -55,6 +115,51 @@ pub struct SafetyConfig {
     pub max_command_length: usize,
     pub custom_patterns: Vec<DangerPattern>,
     pub allowlist_patterns: Vec<String>,
+    /// Maximum time (milliseconds) allowed for safety validation.
+    ///
+    /// OES-inspired fail-safe: if validation cannot complete within this
+    /// budget (e.g. due to regex catastrophic backtracking on a crafted
+    /// input), the command is blocked as a precaution. Unlike OES's
+    /// default-ALLOW policy for auth timeouts (appropriate for kernel
+    /// operations that must never hang the system), caro uses default-DENY
+    /// because a CLI tool should fail closed when it cannot confirm safety.
+    ///
+    /// Defaults to 500ms, which is generous for the 52+ regex patterns.
+    #[serde(default = "default_validation_timeout_ms")]
+    pub validation_timeout_ms: u64,
+
+    /// Whether to enable the OES-inspired LRU decision cache.
+    ///
+    /// When enabled, repeated validations of the same command return
+    /// cached results, avoiding re-running all regex patterns. Caching
+    /// is a pure optimization: on miss, validation falls through to the
+    /// normal path.
+    #[serde(default = "default_enable_cache")]
+    pub enable_cache: bool,
+
+    /// Maximum entries in the decision cache (LRU eviction)
+    #[serde(default = "default_cache_capacity")]
+    pub cache_capacity: usize,
+
+    /// Decision cache TTL in seconds
+    #[serde(default = "default_cache_ttl_secs")]
+    pub cache_ttl_secs: u64,
+}
+
+fn default_validation_timeout_ms() -> u64 {
+    500
+}
+
+fn default_enable_cache() -> bool {
+    true
+}
+
+fn default_cache_capacity() -> usize {
+    256
+}
+
+fn default_cache_ttl_secs() -> u64 {
+    60
 }
 
 /// Result of safety validation for a command
@@ -133,10 +238,21 @@ impl SafetyValidator {
 
         let patterns = config.custom_patterns.clone();
 
+        // Initialize decision cache if enabled
+        let decision_cache = if config.enable_cache {
+            Some(SafetyDecisionCache::new(
+                config.cache_capacity,
+                std::time::Duration::from_secs(config.cache_ttl_secs),
+            ))
+        } else {
+            None
+        };
+
         Ok(Self {
             config,
             patterns,
             compiled_patterns,
+            decision_cache,
         })
     }
 
@@ -193,12 +309,89 @@ impl SafetyValidator {
         false
     }
 
+    /// Build a fail-closed ValidationResult when the validation budget is exceeded.
+    ///
+    /// OES uses per-client timeouts with a default-ALLOW policy because blocking
+    /// a kernel thread forever would be catastrophic. For a CLI tool, the right
+    /// failure mode is the opposite: default-DENY so the user never executes a
+    /// command we could not finish analyzing.
+    fn timeout_result(budget_ms: u64, elapsed: std::time::Duration) -> ValidationResult {
+        ValidationResult {
+            allowed: false,
+            risk_level: RiskLevel::High,
+            explanation: format!(
+                "Safety validation exceeded budget of {}ms (elapsed {}ms) - command blocked as precaution",
+                budget_ms,
+                elapsed.as_millis()
+            ),
+            warnings: vec![format!(
+                "Validation timeout after {}ms - blocked by fail-safe default",
+                elapsed.as_millis()
+            )],
+            matched_patterns: vec!["validation_timeout".to_string()],
+            confidence_score: 1.0,
+        }
+    }
+
     /// Validate a single command for safety
+    ///
+    /// Emits structured tracing events on completion for observability.
+    /// Inspired by OpenEndpointSecurity's DTrace probes (auth-allow,
+    /// auth-deny, auth-timeout, cache-hit/miss), we emit:
+    /// - `safety.decision`: allowed | blocked | timeout
+    /// - `safety.risk_level`: string representation of the risk level
+    /// - `safety.patterns_matched`: count of matched patterns
+    /// - `safety.duration_us`: elapsed microseconds
+    /// - `safety.shell`: shell type
+    /// - `safety.command_len`: command length in bytes
+    ///
+    /// **Privacy**: the raw command text is NOT logged, only its length and
+    /// derived metadata. Users can opt in to verbose debug logging via
+    /// `RUST_LOG=caro::safety=debug` for local debugging.
     pub async fn validate_command(
         &self,
         command: &str,
         shell: ShellType,
     ) -> Result<ValidationResult, ValidationError> {
+        // OES-inspired timeout budget. The Rust `regex` crate guarantees
+        // linear-time execution (no catastrophic backtracking), so the
+        // realistic risk is a pathologically long list of custom patterns
+        // or an unexpected performance regression. We check elapsed time
+        // at each pattern iteration and fail CLOSED (default-deny) on
+        // timeout, which is the appropriate fail-safe for a CLI tool.
+        let start = std::time::Instant::now();
+        let budget = std::time::Duration::from_millis(self.config.validation_timeout_ms);
+        let timeout_exceeded = || start.elapsed() > budget;
+
+        debug!(
+            target: "caro::safety",
+            shell = %shell,
+            command_len = command.len(),
+            budget_ms = self.config.validation_timeout_ms,
+            "safety validation begin"
+        );
+
+        // OES-inspired cache lookup. Compute the key once; we'll reuse it
+        // below for insertion on miss.
+        let cache_key = self
+            .decision_cache
+            .as_ref()
+            .map(|_| CacheKey::new(command, shell, self.config.safety_level));
+        if let (Some(cache), Some(key)) = (&self.decision_cache, cache_key) {
+            if let Some(cached) = cache.get(&key) {
+                info!(
+                    target: "caro::safety",
+                    decision = if cached.allowed { "allowed" } else { "blocked" },
+                    risk_level = %cached.risk_level,
+                    cache_hit = true,
+                    shell = %shell,
+                    command_len = command.len(),
+                    "safety validation cache hit"
+                );
+                return Ok(cached);
+            }
+        }
+
         // Check command length
         if command.len() > self.config.max_command_length {
             return Ok(ValidationResult {
@@ -240,8 +433,56 @@ impl SafetyValidator {
         let mut highest_risk = RiskLevel::Safe;
         let mut warnings = Vec::new();
 
+        // OES-inspired: detect shell expansions before pattern matching.
+        // The pattern database cannot see inside $(...) or `...`, so we
+        // raise the risk level when expansions that execute commands are
+        // present. This is the "kernel-boundary validation" principle
+        // applied to shell metacharacters.
+        let expansions = ExpansionDetector::new(shell).detect(command);
+        for exp in &expansions {
+            if exp.kind.executes_command() {
+                // Command-executing expansion: raise risk
+                let exp_risk = match self.config.safety_level {
+                    SafetyLevel::Strict => RiskLevel::High,
+                    SafetyLevel::Moderate => RiskLevel::Moderate,
+                    SafetyLevel::Permissive => RiskLevel::Moderate,
+                };
+                if exp_risk > highest_risk {
+                    highest_risk = exp_risk;
+                }
+                matched.push(format!("shell {}", exp.kind.name()));
+                warnings.push(format!(
+                    "{}: shell {} can hide dangerous operations ({})",
+                    exp_risk,
+                    exp.kind.name(),
+                    exp.description
+                ));
+            } else {
+                // Variable/parameter/arithmetic expansion: informational warning only
+                warnings.push(format!(
+                    "Info: {} detected ({})",
+                    exp.kind.name(),
+                    exp.description
+                ));
+            }
+        }
+
         // Check against built-in compiled patterns (fast!)
         for (regex, risk_level, description, _) in built_in_patterns {
+            if timeout_exceeded() {
+                let elapsed = start.elapsed();
+                info!(
+                    target: "caro::safety",
+                    decision = "timeout",
+                    budget_ms = self.config.validation_timeout_ms,
+                    duration_us = elapsed.as_micros() as u64,
+                    "safety validation timeout - failing closed"
+                );
+                return Ok(Self::timeout_result(
+                    self.config.validation_timeout_ms,
+                    elapsed,
+                ));
+            }
             if Self::is_dangerous_in_context(command, regex) {
                 // Normalize to lowercase for consistent .contains() matching in tests
                 // Original case is preserved in warnings for readability
@@ -255,6 +496,20 @@ impl SafetyValidator {
 
         // Check pre-compiled custom patterns
         for (regex, risk_level, description) in &self.compiled_patterns {
+            if timeout_exceeded() {
+                let elapsed = start.elapsed();
+                info!(
+                    target: "caro::safety",
+                    decision = "timeout",
+                    budget_ms = self.config.validation_timeout_ms,
+                    duration_us = elapsed.as_micros() as u64,
+                    "safety validation timeout - failing closed"
+                );
+                return Ok(Self::timeout_result(
+                    self.config.validation_timeout_ms,
+                    elapsed,
+                ));
+            }
             if Self::is_dangerous_in_context(command, regex) {
                 // Normalize to lowercase for consistent .contains() matching in tests
                 // Original case is preserved in warnings for readability
@@ -329,14 +584,46 @@ impl SafetyValidator {
             1.0 // Very confident about dangerous patterns
         };
 
-        Ok(ValidationResult {
+        // OES-inspired observability: emit a structured event capturing the
+        // safety decision. This replaces the previously-silent validation
+        // path and enables debugging, auditing, and metrics collection.
+        let decision = if allowed {
+            "allowed"
+        } else if requires_confirm {
+            "requires_confirmation"
+        } else {
+            "blocked"
+        };
+        let duration_us = start.elapsed().as_micros();
+        info!(
+            target: "caro::safety",
+            decision = decision,
+            risk_level = %highest_risk,
+            patterns_matched = matched.len(),
+            duration_us = duration_us as u64,
+            cache_hit = false,
+            shell = %shell,
+            command_len = command.len(),
+            "safety validation complete"
+        );
+
+        let result = ValidationResult {
             allowed,
             risk_level: highest_risk,
             explanation,
             warnings,
             matched_patterns: matched,
             confidence_score,
-        })
+        };
+
+        // Store in cache on success. We do NOT cache timeout results
+        // (transient) or results for commands that failed pattern
+        // compilation upstream (those return Err above).
+        if let (Some(cache), Some(key)) = (&self.decision_cache, cache_key) {
+            cache.insert(key, result.clone());
+        }
+
+        Ok(result)
     }
 
     /// Validate multiple commands efficiently
@@ -364,6 +651,10 @@ impl SafetyConfig {
             max_command_length: 1000,
             custom_patterns: Vec::new(),
             allowlist_patterns: Vec::new(),
+            validation_timeout_ms: default_validation_timeout_ms(),
+            enable_cache: default_enable_cache(),
+            cache_capacity: default_cache_capacity(),
+            cache_ttl_secs: default_cache_ttl_secs(),
         }
     }
 
@@ -374,6 +665,10 @@ impl SafetyConfig {
             max_command_length: 5000,
             custom_patterns: Vec::new(),
             allowlist_patterns: Vec::new(),
+            validation_timeout_ms: default_validation_timeout_ms(),
+            enable_cache: default_enable_cache(),
+            cache_capacity: default_cache_capacity(),
+            cache_ttl_secs: default_cache_ttl_secs(),
         }
     }
 
@@ -384,6 +679,10 @@ impl SafetyConfig {
             max_command_length: 10000,
             custom_patterns: Vec::new(),
             allowlist_patterns: Vec::new(),
+            validation_timeout_ms: default_validation_timeout_ms(),
+            enable_cache: default_enable_cache(),
+            cache_capacity: default_cache_capacity(),
+            cache_ttl_secs: default_cache_ttl_secs(),
         }
     }
 
@@ -457,6 +756,10 @@ impl Default for SafetyConfig {
             max_command_length: 1000,
             custom_patterns: Vec::new(),
             allowlist_patterns: Vec::new(),
+            validation_timeout_ms: default_validation_timeout_ms(),
+            enable_cache: default_enable_cache(),
+            cache_capacity: default_cache_capacity(),
+            cache_ttl_secs: default_cache_ttl_secs(),
         }
     }
 }

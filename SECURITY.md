@@ -11,6 +11,10 @@ This document outlines:
 - Our response timeline and process
 - Recognition for security researchers
 
+For a detailed enumeration of the threats caro is designed to address
+and the mitigations it implements, see
+[`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md).
+
 ---
 
 ## Supported Versions

@@ -1795,6 +1795,25 @@ async fn run_evaluation_tests(
 
 #[tokio::main]
 async fn main() {
+    // OES-inspired recursion protection: refuse to run if we were spawned by
+    // another caro invocation beyond a safe depth. This guards against a
+    // generated command accidentally re-invoking caro in an infinite loop.
+    if let Ok(depth_str) = std::env::var(caro::safety::RECURSION_DEPTH_ENV) {
+        if let Ok(depth) = depth_str.parse::<u32>() {
+            if depth >= caro::safety::MAX_RECURSION_DEPTH {
+                eprintln!(
+                    "error: caro recursion depth {} exceeds maximum {} (detected via {}={})",
+                    depth,
+                    caro::safety::MAX_RECURSION_DEPTH,
+                    caro::safety::RECURSION_DEPTH_ENV,
+                    depth
+                );
+                eprintln!("hint: a generated command appears to be re-invoking caro.");
+                process::exit(1);
+            }
+        }
+    }
+
     // Check for --version (with or without --verbose) before clap parsing
     // to provide custom version output instead of clap's default
     let args: Vec<String> = std::env::args().collect();
