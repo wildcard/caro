@@ -119,6 +119,26 @@ profiles:
       - "Prompt engineering"
       - "Evaluation harnesses"
 
+  # Strategic project coordinator
+  project-manager:
+    name: "Project Manager"
+    description: "Strategic coordination, PR triage, milestone tracking, and cross-session dispatch"
+    areas:
+      - "Core CLI"
+      - "Safety"
+      - "Backends"
+      - "DevOps"
+      - "DX"
+      - "Website"
+    strengths:
+      - "PR triage and prioritization"
+      - "Milestone tracking and velocity analysis"
+      - "Cross-session coordination"
+      - "Merge queue management"
+      - "Blocker identification"
+      - "Work dispatch to specialized agents"
+      - "Strategic roadmap alignment"
+
 # Usage:
 # - Run `/caro.roadmap profile` to see current profile
 # - Run `/caro.roadmap profile <name>` to switch profiles

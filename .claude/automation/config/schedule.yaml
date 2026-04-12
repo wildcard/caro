@@ -79,6 +79,14 @@ management:
     enabled: true
     timeout_minutes: 10
 
+  project_manager:
+    description: "Daily morning briefing with PR triage, merge queue, and dispatch"
+    schedule: "0 7 * * *"           # Daily 7 AM PT
+    skill: "/project-manager briefing"
+    enabled: true
+    timeout_minutes: 25
+    notify_on_completion: true
+
   roadmap_status:
     description: "Update roadmap progress from GitHub"
     schedule: "0 6 * * *"           # Daily 6 AM
