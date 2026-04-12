@@ -53,11 +53,22 @@ cargo run --bin caro-eval      # Run evaluation suite
 
 ## Context Management
 
-**Monitor context usage**: Use `/context` to check. Start fresh tasks at ~60% capacity.
+**On session start**: The session-start hook automatically surfaces:
+- Unresolved handoffs and continuity ledgers
+- Read `.claude/memory/cognitive-state.md` for top priorities and project state
 
-**Before context fills**: Use `skill: create_handoff` to preserve state for next session.
+**During work**: Use `/caro.context` to check:
+- Context window health (aim to start fresh tasks at ~60%)
+- Project state and top priorities
+- Feedback pipeline status
+
+**Before ending**: Use `skill: create_handoff` to preserve state for next session.
 
 **After compacting**: Use `skill: resume_handoff` to restore context from previous session.
+
+**Feedback loop**: Use `/feedback-intake` to capture user feedback from any source.
+
+**Workflow**: feedback -> `/feedback-intake` -> `feedback-insights.yaml` -> `/insight-to-issue` -> GitHub issue -> `/caro.roadmap` -> `/caro.feature` -> implementation
 
 ## Available Skills (Load On-Demand)
 
@@ -79,10 +90,14 @@ Use `skill: name` when working on specific domains:
 | Command | Purpose |
 |---------|---------|
 | `/caro.feature` | Start new feature development (spec-kitty workflow) |
+| `/caro.context` | Check context health, project state, and feedback pipeline |
+| `/caro.synthesize` | Refresh cognitive state from all project sources |
 | `/caro.qa` | Quality assurance investigation |
 | `/caro.roadmap` | View and align with project roadmap |
 | `/caro.release.prepare` | Prepare a new release |
 | `/caro.sync` | Sync documentation across codebase |
+| `/feedback-intake` | Capture user feedback into structured insights |
+| `/insight-to-issue` | Convert feedback insights into GitHub issues |
 | `/spec-kitty.plan` | Create implementation plan |
 | `/spec-kitty.implement` | Execute implementation |
 
@@ -116,7 +131,8 @@ skill: safety-pattern-developer
 
 ## Current Focus Areas
 
-Check `.claude/memory/current-tasks.md` for active work items.
+Check `.claude/memory/cognitive-state.md` for top priorities and active work.
+Run `/caro.synthesize` to refresh from all sources.
 
 ## Code Style
 

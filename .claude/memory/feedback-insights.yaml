@@ -1,0 +1,24 @@
+# Feedback Insights Store
+# Structured insights extracted from user feedback, beta tests, and GitHub issues.
+# Managed by /feedback-intake and /insight-to-issue commands.
+
+metadata:
+  last_updated: "2026-04-12"
+  total_insights: 0
+  untriaged: 0
+
+insights: []
+  # Schema:
+  # - id: "fb-YYYY-MM-DD-NNN"
+  #   source: "manual" | "github" | "beta-test"
+  #   source_ref: "slack message" | "#123" | "cycle-2026-04-12-bt_005"
+  #   raw: "verbatim feedback text"
+  #   category: "bug" | "ux" | "feature" | "docs" | "confusion"
+  #   severity: "critical" | "high" | "medium" | "low"
+  #   user_segment: "devops" | "data-scientist" | "sysadmin" | "student" | "security"
+  #   insight: "Users expect X but get Y because Z"
+  #   actionable: true
+  #   action: "description of what to do"
+  #   status: "new" | "triaged" | "in-progress" | "resolved" | "wont-fix"
+  #   linked_issue: null
+  #   created: "2026-04-12"
