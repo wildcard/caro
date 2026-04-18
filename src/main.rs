@@ -457,6 +457,42 @@ enum Commands {
         #[arg(short, long, default_value = "5")]
         limit: usize,
     },
+
+    /// Generate an interactive AI command via conversational session (Atuin-AI-style).
+    ///
+    /// By default, a recent session is resumed (see `ai.session_continue_minutes` in config).
+    /// Stdout is the generated command only, so shell widgets can inject it straight
+    /// into the prompt buffer.
+    Ai {
+        /// Force a new session instead of resuming the most recent one.
+        #[arg(long)]
+        new_session: bool,
+
+        /// Resume a recent session if available (default behavior). Kept as an
+        /// explicit flag so shell hooks can be unambiguous.
+        #[arg(long)]
+        continue_session: bool,
+
+        /// Run one turn and return — no TTY REPL. The only mode supported today.
+        #[arg(long)]
+        once: bool,
+
+        /// Natural-language prompt. If omitted, stdin is read.
+        #[arg(trailing_var_arg = true, num_args = 0..)]
+        prompt: Vec<String>,
+    },
+
+    /// Emit shell integration script with an optional `?` AI keybinding.
+    ///
+    /// Add to your shell rc: `eval "$(caro shell-init bash)"` / similar for zsh, fish.
+    ShellInit {
+        /// Shell to emit integration for (bash, zsh, fish).
+        shell: String,
+
+        /// Skip the `?` AI keybinding even if `ai.enabled` is true in config.
+        #[arg(long)]
+        disable_ai: bool,
+    },
     // /// Manage telemetry data and settings
     // Telemetry {
     //     #[command(subcommand)]
@@ -804,6 +840,164 @@ end
     };
 
     print!("{}", script);
+}
+
+// =============================================================================
+// AI shell-init + `caro ai` handlers
+// =============================================================================
+
+/// Emit the `caro shell-init <shell>` script (with optional `?` AI keybinding).
+fn handle_shell_init(shell: &str, disable_ai: bool) -> Result<(), String> {
+    use caro::ai::shell_init::{render, SupportedShell};
+
+    let Some(sh) = SupportedShell::parse(shell) else {
+        return Err(format!(
+            "unsupported shell: {}. Supported: bash, zsh, fish",
+            shell
+        ));
+    };
+
+    // Peek at the user's AI-enabled flag without requiring a full CliApp bring-up.
+    let ai_enabled = caro::config::ConfigManager::new()
+        .and_then(|m| m.load())
+        .map(|c| c.ai.enabled)
+        .unwrap_or(true);
+
+    print!("{}", render(sh, ai_enabled, disable_ai));
+    Ok(())
+}
+
+/// One-shot execution of `caro ai` — generate a command, run safety, persist session.
+///
+/// stdout is the command text only (so shell widgets can inject it directly).
+/// Status, warnings, and errors go to stderr.
+async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Result<(), String> {
+    use caro::ai::{run_once, AiInvocation};
+    use caro::backends::CommandGenerator;
+    use caro::context::ExecutionContext;
+    use caro::models::{SafetyLevel, ShellType};
+    use std::str::FromStr;
+    use std::sync::Arc;
+
+    // Resolve prompt (flag > stdin > trailing).
+    let stdin_text = if is_stdin_available() {
+        read_stdin().ok().filter(|s| !s.is_empty())
+    } else {
+        None
+    };
+    let resolved = resolve_prompt(cli.prompt.clone(), stdin_text, trailing);
+    if resolved.text.trim().is_empty() {
+        return Err("no prompt provided (pass text, pipe stdin, or use -p)".into());
+    }
+
+    // Load config — defaults are fine for a first-time user.
+    let cfg_mgr = caro::config::ConfigManager::new().map_err(|e| format!("config: {}", e))?;
+    let user_cfg = cfg_mgr.load().map_err(|e| format!("config: {}", e))?;
+
+    if !user_cfg.ai.enabled {
+        return Err("AI feature is disabled (set [ai] enabled = true in config).".into());
+    }
+
+    // Build a backend via the normal CLI path so the feature respects --backend, env var, config.
+    let cli_app = caro::cli::CliApp::with_overrides(
+        caro::cli::CliConfig::default(),
+        cli.backend.clone(),
+        cli.model_name.clone(),
+        cli.force_llm,
+    )
+    .await
+    .map_err(|e| format!("initializing backend: {}", e))?;
+    let backend: Arc<dyn CommandGenerator> = cli_app.backend_arc();
+    let backend_name = user_cfg
+        .default_model
+        .clone()
+        .or_else(|| cli.backend.clone())
+        .unwrap_or_else(|| "embedded".into());
+
+    let exec_ctx = ExecutionContext::detect();
+    let shell_type = cli
+        .shell
+        .as_deref()
+        .and_then(|s| ShellType::from_str(s).ok())
+        .unwrap_or_else(|| ShellType::from_str(&exec_ctx.shell).unwrap_or(ShellType::Bash));
+
+    let safety_level = cli
+        .safety
+        .as_deref()
+        .and_then(|s| SafetyLevel::from_str(s).ok())
+        .unwrap_or(user_cfg.safety_level);
+
+    let store_path = user_cfg
+        .ai
+        .db_path
+        .clone()
+        .or_else(|| caro::ai::store::default_store_path().ok())
+        .ok_or_else(|| "no data directory available for ai_sessions.json".to_string())?;
+
+    let validator = caro::ai::build_validator(safety_level);
+
+    let session_mode = if new_session {
+        caro::ai::runner::SessionMode::New
+    } else {
+        caro::ai::runner::SessionMode::ResumeOrNew
+    };
+
+    let last_command_hint = std::env::var("CARO_LAST_COMMAND").ok();
+
+    let outcome = run_once(AiInvocation {
+        prompt: resolved.text.trim(),
+        ai_cfg: &user_cfg.ai,
+        backend,
+        backend_name,
+        exec_ctx,
+        validator,
+        safety_level,
+        shell: shell_type,
+        store_path,
+        session_mode,
+        last_command_hint,
+    })
+    .await
+    .map_err(|e| format!("{}", e))?;
+
+    // Stderr: human-readable risk annotation and warnings. Stdout: the command.
+    use colored::Colorize;
+    if outcome.warns_offhost {
+        eprintln!(
+            "{} opt-in context may be sent to remote backend",
+            "⚠ privacy:".yellow()
+        );
+    }
+    if !outcome.allowed {
+        eprintln!(
+            "{} command blocked by safety validator ({:?})",
+            "✗".red(),
+            outcome.risk
+        );
+        for w in &outcome.warnings {
+            eprintln!("  - {}", w);
+        }
+        return Err("command rejected for safety reasons".into());
+    }
+    if matches!(
+        outcome.risk,
+        caro::models::RiskLevel::High | caro::models::RiskLevel::Critical
+    ) {
+        eprintln!(
+            "{} generated command is HIGH risk — double-check before running",
+            "⚠".yellow()
+        );
+    }
+    eprintln!(
+        "# caro-ai: session {}{} confidence={:.2} risk={:?}",
+        outcome.session_id,
+        if outcome.resumed { " (resumed)" } else { "" },
+        outcome.confidence,
+        outcome.risk
+    );
+
+    println!("{}", outcome.command);
+    Ok(())
 }
 
 // =============================================================================
@@ -1900,6 +2094,31 @@ async fn main() {
                 println!();
             }
             process::exit(0);
+        }
+        Some(Commands::ShellInit { shell, disable_ai }) => {
+            match handle_shell_init(&shell, disable_ai) {
+                Ok(()) => process::exit(0),
+                Err(e) => {
+                    eprintln!("Error: {}", e);
+                    process::exit(1);
+                }
+            }
+        }
+        Some(Commands::Ai {
+            new_session,
+            continue_session: _,
+            once: _,
+            ref prompt,
+        }) => {
+            let ai_trailing = prompt.clone();
+            let new = new_session;
+            match run_ai_once(&cli, new, ai_trailing).await {
+                Ok(()) => process::exit(0),
+                Err(e) => {
+                    eprintln!("Error: {}", e);
+                    process::exit(1);
+                }
+            }
         }
         // NOTE: Telemetry subcommand disabled in v1.1.0-beta.1
         // Some(Commands::Telemetry { command }) => {

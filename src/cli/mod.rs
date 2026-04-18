@@ -39,6 +39,13 @@ pub struct CliApp {
     context: ExecutionContext,
 }
 
+impl CliApp {
+    /// Clone the configured backend Arc for reuse by the AI REPL / once-mode.
+    pub fn backend_arc(&self) -> Arc<dyn CommandGenerator> {
+        Arc::clone(&self.backend)
+    }
+}
+
 impl std::fmt::Debug for CliApp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("CliApp")
