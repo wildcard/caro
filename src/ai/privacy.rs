@@ -46,10 +46,16 @@ pub fn build_context(
         }
     }
 
-    if let Some(sess) = session {
-        let hist = sess.render_history(6);
-        if !hist.is_empty() {
-            out.push_str(&hist);
+    // Session history is opt-in: gating on `capabilities.enable_history_search`
+    // keeps the privacy promise that nothing past OS+Shell leaves unless the
+    // user flipped a toggle. Skipping this branch when the flag is off avoids
+    // leaking earlier-turn user prompts into a later prompt's context window.
+    if ai_cfg.capabilities.enable_history_search {
+        if let Some(sess) = session {
+            let hist = sess.render_history(6);
+            if !hist.is_empty() {
+                out.push_str(&hist);
+            }
         }
     }
 
@@ -142,6 +148,43 @@ mod tests {
         };
         let out = build_context(&cfg, &ctx(), Some(&s), ContextInputs::default());
         assert!(out.contains("LastCommand: ls"));
+    }
+
+    #[test]
+    fn session_history_omitted_when_capability_disabled() {
+        use crate::ai::session::{AiSession, Turn};
+        let mut s = AiSession::new(7, "bash");
+        s.push(Turn::user("first prompt"));
+        s.push(Turn::assistant("ls", ""));
+        s.push(Turn::user("second prompt"));
+        s.push(Turn::assistant("pwd", ""));
+        let cfg = AiConfig {
+            capabilities: AiCapabilities {
+                enable_history_search: false,
+            },
+            ..AiConfig::default()
+        };
+        let out = build_context(&cfg, &ctx(), Some(&s), ContextInputs::default());
+        assert!(!out.contains("first prompt"));
+        assert!(!out.contains("second prompt"));
+        assert!(!out.contains("ls"));
+        assert!(!out.contains("pwd"));
+    }
+
+    #[test]
+    fn session_history_included_when_capability_enabled() {
+        use crate::ai::session::{AiSession, Turn};
+        let mut s = AiSession::new(8, "bash");
+        s.push(Turn::user("first prompt"));
+        s.push(Turn::assistant("ls", ""));
+        let cfg = AiConfig {
+            capabilities: AiCapabilities {
+                enable_history_search: true,
+            },
+            ..AiConfig::default()
+        };
+        let out = build_context(&cfg, &ctx(), Some(&s), ContextInputs::default());
+        assert!(out.contains("first prompt") || out.contains("ls"));
     }
 
     #[test]

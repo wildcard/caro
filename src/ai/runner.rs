@@ -280,8 +280,20 @@ mod tests {
         .await
         .unwrap();
 
-        // Whatever the exact risk-level mapping, the 52-pattern suite MUST
-        // refuse to mark this as unconditionally allowed.
-        assert!(!outcome.allowed || matches!(outcome.risk, RiskLevel::High | RiskLevel::Critical));
+        // `rm -rf /` is unconditionally blocked at Moderate safety by the
+        // 52-pattern suite (see safety/patterns.rs). The previous form of this
+        // assertion accepted `allowed=true` whenever risk was High/Critical,
+        // which would silently regress if the validator stopped blocking.
+        assert!(
+            !outcome.allowed,
+            "rm -rf / must be blocked by SafetyLevel::Moderate; \
+             got allowed=true with risk={:?}",
+            outcome.risk
+        );
+        assert!(
+            matches!(outcome.risk, RiskLevel::High | RiskLevel::Critical),
+            "rm -rf / must surface as High or Critical risk; got {:?}",
+            outcome.risk
+        );
     }
 }

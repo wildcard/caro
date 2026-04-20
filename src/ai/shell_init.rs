@@ -154,7 +154,7 @@ function __caro_ai_widget
     end
     set -l out (command caro ai --continue-session)
     test -z "$out"; and return
-    commandline -r -- $out
+    commandline -r -- "$out"
 end
 bind \? __caro_ai_widget
 "#;
@@ -199,6 +199,22 @@ mod tests {
         assert!(s.contains("function __caro_ai_widget"));
         assert!(s.contains("bind \\? __caro_ai_widget"));
         assert!(s.contains("commandline -i '?'"));
+    }
+
+    #[test]
+    fn fish_snapshot_quotes_ai_output() {
+        // Regression: an unquoted `$out` would word-split multi-word AI output
+        // (e.g. `find . -name "*.rs"`) when fed into `commandline -r --`.
+        let s = render(SupportedShell::Fish, true, false);
+        assert!(
+            s.contains("commandline -r -- \"$out\""),
+            "fish ai widget must quote $out to preserve multi-word commands; got:\n{}",
+            s
+        );
+        assert!(
+            !s.contains("commandline -r -- $out\n"),
+            "fish ai widget must not leave $out unquoted"
+        );
     }
 
     #[test]

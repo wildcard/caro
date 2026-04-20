@@ -908,11 +908,20 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
     .await
     .map_err(|e| format!("initializing backend: {}", e))?;
     let backend: Arc<dyn CommandGenerator> = cli_app.backend_arc();
-    let backend_name = user_cfg
-        .default_model
-        .clone()
-        .or_else(|| cli.backend.clone())
-        .unwrap_or_else(|| "embedded".into());
+    // Derive the backend name from the *actually constructed* backend so the
+    // off-host privacy warning is accurate even when auto-detection picks a
+    // different backend than the config/CLI hint suggested. The string must
+    // match the lowercase identifiers `privacy::may_leak_context_offhost`
+    // checks for (`ollama`, `vllm`, `exo`, `claude`, `embedded`, ...).
+    let backend_name = match backend.backend_info().backend_type {
+        caro::models::BackendType::Embedded => "embedded".to_string(),
+        caro::models::BackendType::Ollama => "ollama".to_string(),
+        caro::models::BackendType::VLlm => "vllm".to_string(),
+        caro::models::BackendType::Exo => "exo".to_string(),
+        caro::models::BackendType::Claude => "claude".to_string(),
+        caro::models::BackendType::Mlx => "mlx".to_string(),
+        caro::models::BackendType::Mock => "mock".to_string(),
+    };
 
     let exec_ctx = ExecutionContext::detect();
     let shell_type = cli
