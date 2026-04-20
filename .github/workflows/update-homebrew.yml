@@ -139,7 +139,7 @@ jobs:
           git diff "$FORMULA_PATH"
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "chore(brew): update Homebrew formula to v${{ steps.get_version.outputs.version }}"
