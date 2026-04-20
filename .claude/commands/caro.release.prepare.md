@@ -82,7 +82,30 @@ git pull origin main
 git checkout -b release/vX.Y.Z
 ```
 
-### 5. Check for Release Blockers
+### 5. Acceptance Gate on Previous Release (MANDATORY)
+
+**Before starting a new release, the previous release must be working as
+advertised and free of open P0/P1 gaps.** This enforces the rule that we
+don't ship v(N+1) on top of a broken v(N).
+
+```bash
+/caro.release.acceptance
+```
+
+Reads the latest shipped version, verifies every CHANGELOG claim, every
+feature-PR headline, every closed-by-release issue, and reconciles
+beta-tester feedback. Also runs a random-sample acceptance test on one
+feature.
+
+**If exit code is non-zero (BLOCKED)**:
+- Display the open `release-gap` issues labeled `P0` or `P1`.
+- REFUSE to proceed: `ERROR: Prior release has unresolved P0/P1 gaps. Close or waive them before releasing v(next).`
+
+**If CLEAR**: continue to step 6.
+
+See `/caro.release.acceptance` for the full routine and gap-triage rubric.
+
+### 6. Check for Release Blockers
 
 Use GitHub CLI to check for issues labeled `release-blocker`:
 ```bash
@@ -94,7 +117,7 @@ gh issue list --label release-blocker --state open
 - Ask: "Found N release blockers. Continue anyway? (y/n)"
 - If user says no, abort and output: "Resolve blockers and run /caro.release.prepare again"
 
-### 6. Verify CI Status on Main
+### 7. Verify CI Status on Main
 
 Check that latest CI run on main passed:
 ```bash
@@ -105,7 +128,7 @@ gh run list --branch main --limit 5 --json conclusion,status,headSha
 - Warn: "WARNING: Latest CI on main is not green. Recommendation: wait for CI to pass."
 - Ask: "Continue anyway? (y/n)"
 
-### 7. List Pending Changes
+### 8. List Pending Changes
 
 Show what's changed since last release tag:
 ```bash
@@ -114,7 +137,7 @@ echo "Changes since $LAST_TAG:"
 git log --oneline $LAST_TAG..HEAD
 ```
 
-### 8. Output Next Steps
+### 9. Output Next Steps
 
 Display summary:
 ```
