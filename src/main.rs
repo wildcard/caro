@@ -627,6 +627,28 @@ struct Cli {
     )]
     explain: bool,
 
+    /// Suppress timing / progress output (show only the command and safety result)
+    #[arg(
+        short = 'q',
+        long,
+        help = "Suppress timing and progress output (show only command + safety result)"
+    )]
+    quiet: bool,
+
+    /// Disable telemetry for this invocation only (does not modify config)
+    #[arg(
+        long = "no-telemetry",
+        help = "Disable telemetry for this invocation only (session-scoped override)"
+    )]
+    no_telemetry: bool,
+
+    /// Print available backends with their status and exit
+    #[arg(
+        long = "backend-info",
+        help = "List available inference backends with their status and exit"
+    )]
+    backend_info: bool,
+
     /// Trailing unquoted arguments forming the prompt
     #[arg(trailing_var_arg = true, num_args = 0..)]
     trailing_args: Vec<String>,
@@ -688,6 +710,18 @@ impl IntoCliArgs for Cli {
 
     fn explain(&self) -> bool {
         self.explain
+    }
+
+    fn quiet(&self) -> bool {
+        self.quiet
+    }
+
+    fn no_telemetry(&self) -> bool {
+        self.no_telemetry
+    }
+
+    fn backend_info(&self) -> bool {
+        self.backend_info
     }
 }
 
@@ -2014,6 +2048,13 @@ async fn main() {
 
     let mut cli = Cli::parse();
 
+    // Handle --backend-info as a meta flag (like --version): print the status
+    // table and exit without requiring a prompt or touching telemetry/setup.
+    if cli.backend_info {
+        print_backend_info();
+        process::exit(0);
+    }
+
     // Handle subcommands first
     match cli.command {
         Some(Commands::Doctor) => match caro::doctor::run_diagnostics().await {
@@ -2197,14 +2238,22 @@ async fn main() {
         .and_then(|cm| cm.load().ok())
         .unwrap_or_default();
 
+    // Session-scoped telemetry override: --no-telemetry disables telemetry
+    // for this invocation only. We do NOT persist this to user_config — the
+    // next invocation will use whatever the stored preference is.
+    let telemetry_enabled_for_session = user_config.telemetry.enabled && !cli.no_telemetry;
+
     // Check for first-run consent
     // Skip interactive consent for non-human output formats (json, yaml)
+    // and also when the user has explicitly asked to run with --no-telemetry
+    // (it would be hostile to prompt them for consent when they just said
+    // "no, thanks, not this time").
     let is_interactive_output = cli
         .output
         .as_deref()
         .is_none_or(|format| format != "json" && format != "yaml");
 
-    if user_config.telemetry.first_run && is_interactive_output {
+    if user_config.telemetry.first_run && is_interactive_output && !cli.no_telemetry {
         // Prompt user for consent
         let consent = caro::telemetry::consent::prompt_consent();
 
@@ -2241,14 +2290,14 @@ async fn main() {
         let telemetry_storage = std::sync::Arc::new(telemetry_storage);
         let telemetry_collector = std::sync::Arc::new(caro::TelemetryCollector::new(
             telemetry_storage.clone(),
-            user_config.telemetry.enabled,
+            telemetry_enabled_for_session,
         ));
 
         // Set as global collector for easy access from all components
         caro::set_global_collector(telemetry_collector.clone());
 
         // Start telemetry uploader if enabled and not air-gapped
-        if user_config.telemetry.enabled && !user_config.telemetry.air_gapped {
+        if telemetry_enabled_for_session && !user_config.telemetry.air_gapped {
             let uploader = std::sync::Arc::new(caro::telemetry::uploader::TelemetryUploader::new(
                 telemetry_storage.clone(),
                 user_config.telemetry.clone(),
@@ -2775,8 +2824,8 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
             display!("  {}", status_msg);
         }
 
-        // Print execution time
-        if result.timing_info.execution_time_ms > 0 {
+        // Print execution time (suppressed by --quiet)
+        if result.timing_info.execution_time_ms > 0 && !cli.quiet {
             display!(
                 "  Execution time: {}ms",
                 result.timing_info.execution_time_ms
@@ -2841,6 +2890,75 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
     }
 
     Ok(())
+}
+
+/// Print the list of inference backends along with their current status.
+///
+/// Invoked by the `--backend-info` meta flag. Exits the caller with code 0.
+/// Reports each built-in backend and whether remote backends have the
+/// environment variables / typical endpoints set that would make them
+/// usable. This is a best-effort snapshot, not a live health check.
+fn print_backend_info() {
+    use colored::Colorize;
+
+    // Status helpers. For remote backends we use environment variables as
+    // a lightweight "configured?" signal — probing each endpoint would
+    // turn `--backend-info` into a slow diagnostic command.
+    let env_or = |keys: &[&str]| keys.iter().any(|k| std::env::var(k).is_ok());
+
+    let status_for = |keys: &[&str]| {
+        if env_or(keys) {
+            "configured"
+        } else {
+            "not configured"
+        }
+    };
+
+    let row = |backend: &str, status: &str, notes: &str| {
+        println!("  {:<12}  {:<16}  {}", backend, status, notes);
+    };
+
+    println!("{}", "Available inference backends".bold());
+    println!();
+    println!(
+        "  {:<12}  {:<16}  {}",
+        "Backend".bold(),
+        "Status".bold(),
+        "Notes".bold()
+    );
+    row("-------", "------", "-----");
+
+    // Built-in, always-available backends.
+    row("static", "available", "template-based; no model required");
+    row(
+        "embedded",
+        "available",
+        "local LLM (MLX/CPU); downloads model on first use",
+    );
+
+    // Remote backends: we report "configured" if a credential / endpoint
+    // env var is set, otherwise "not configured".
+    row(
+        "ollama",
+        status_for(&["OLLAMA_HOST", "CARO_OLLAMA_URL"]),
+        "remote Ollama HTTP API (OLLAMA_HOST)",
+    );
+    row(
+        "vllm",
+        status_for(&["VLLM_BASE_URL", "CARO_VLLM_URL"]),
+        "remote vLLM HTTP API (VLLM_BASE_URL)",
+    );
+    row(
+        "claude",
+        status_for(&["ANTHROPIC_API_KEY"]),
+        "Anthropic Claude API (ANTHROPIC_API_KEY)",
+    );
+
+    println!();
+    println!(
+        "{}",
+        "Use --backend <name> to force a specific backend.".dimmed()
+    );
 }
 
 async fn show_configuration(cli: &Cli) -> Result<String, CliError> {

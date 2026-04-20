@@ -152,6 +152,21 @@ pub trait IntoCliArgs {
     fn interactive(&self) -> bool;
     fn force_llm(&self) -> bool;
     fn explain(&self) -> bool;
+    /// Suppress timing / progress output (`--quiet`).
+    /// Default implementation returns `false` for backward compatibility.
+    fn quiet(&self) -> bool {
+        false
+    }
+    /// Disable telemetry for this invocation only (`--no-telemetry`).
+    /// Default implementation returns `false` for backward compatibility.
+    fn no_telemetry(&self) -> bool {
+        false
+    }
+    /// Print backend info and exit (`--backend-info`).
+    /// Default implementation returns `false` for backward compatibility.
+    fn backend_info(&self) -> bool {
+        false
+    }
 }
 
 impl CliApp {
