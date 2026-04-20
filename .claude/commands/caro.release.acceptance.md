@@ -81,7 +81,7 @@ Extract the `## [X.Y.Z] - YYYY-MM-DD` section. Parse every bullet under
 bullet is one **claim**.
 
 ```bash
-awk "/^## \[$VERSION\]/,/^## \[/" CHANGELOG.md | grep -E '^- ' > /tmp/claims-changelog.txt
+awk "/^## \[$VERSION\]/{p=1;next} p&&/^## \[/{p=0} p" CHANGELOG.md | grep -E '^- ' > /tmp/claims-changelog.txt
 ```
 
 #### 2b. GitHub Release notes
@@ -170,8 +170,8 @@ acceptance testing — not just "does it run", but "would a user be happy with
 it".
 
 ```bash
-FEATURES=($(grep -E '^### Added' -A100 CHANGELOG.md | \
-  awk "/^## \[$VERSION\]/,/^## \[/" | grep '^- ' | head -20))
+FEATURES=($(awk "/^## \[$VERSION\]/{p=1;next} p&&/^## \[/{p=0} p" CHANGELOG.md | \
+  grep -E '^- ' | head -20))
 SAMPLE=$(( RANDOM % ${#FEATURES[@]} ))
 echo "Randomly sampled feature: ${FEATURES[$SAMPLE]}"
 ```
