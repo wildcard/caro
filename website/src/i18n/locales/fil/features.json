@@ -1,44 +1,44 @@
 {
   "features": {
     "title": "Bakit Caro?",
-    "subtitle": "Isang companion agent na binuo para sa kaligtasan, empathy, at expertise",
-    "alphaNotice": "🚧 Soft Launch Alpha — Aktibo kaming bumubuo kasama ang ating community. Samahan mo kami para tulungan hubugin ang kinabukasan ng Caro!",
+    "subtitle": "Isang kasamang ahente na itinayo para sa kaligtasan, empatiya, at kadalubhasaan",
+    "alphaNotice": "🚧 Soft Launch Alpha — Kami ay aktibong nagtatayo kasama ang aming komunidad. Sumali sa amin upang makatulong sa paghubog ng kinabukasan ni Caro!",
     "items": [
       {
         "icon": "🛡️",
-        "title": "Safety Guardian",
-        "description": "Komprehensibong validation na humaharang sa mga mapanganib na commands tulad ng rm -rf /, fork bombs, at mga destructive operations. 52 predefined safety patterns na may risk-level assessment.",
-        "statusLabel": "Available Na"
+        "title": "Tagapagbantay ng Kaligtasan",
+        "description": "Masusing pag-validate na humaharang sa mapanganib na mga utos tulad ng rm -rf /, fork bombs, at mapanirang operasyon. 52 na paunang natukoy na mga pattern ng kaligtasan na may pagsusuri ng antas ng panganib.",
+        "statusLabel": "Magagamit Na Ngayon"
       },
       {
         "icon": "🌍",
-        "title": "Cross-Platform Expert",
-        "description": "Gumagana sa macOS, Linux, Windows, GNU, at BSD. Nauunawaan ang platform-specific na mga nuances at respetuhin ang iyong piniling distribution.",
-        "statusLabel": "Available Na"
+        "title": "Dalubhasa sa Cross-Platform",
+        "description": "Gumagana sa macOS, Linux, Windows, GNU, at BSD. Naiintindihan ang mga tiyak na nuances ng platform at iginagalang ang iyong piniling distribusyon.",
+        "statusLabel": "Magagamit Na Ngayon"
       },
       {
         "icon": "🧠",
-        "title": "Platform-Aware",
-        "description": "Nagbibigay ng mga rekomendasyon base sa capabilities at best practices ng iyong platform. Awtomatikong nakikilala ang pagkakaiba ng BSD at GNU command syntax.",
-        "statusLabel": "Available Na"
+        "title": "May Kamalayan sa Platform",
+        "description": "Nagbibigay ng mga rekomendasyon batay sa kakayahan ng iyong platform at mga pinakamahusay na kasanayan. Awtomatikong nakikilala ang pagkakaiba sa pagitan ng BSD at GNU syntax ng utos.",
+        "statusLabel": "Magagamit Na Ngayon"
       },
       {
         "icon": "✅",
-        "title": "POSIX Specialist",
-        "description": "Eksperto sa POSIX-compliant shell commands na maaasahang gumagana sa lahat ng systems. Portable, safe, at optimized para sa iyong terminal.",
-        "statusLabel": "Available Na"
+        "title": "Espesyalista sa POSIX",
+        "description": "Dalubhasa sa mga utos ng shell na sumusunod sa POSIX na maaasahang gumagana sa iba't ibang sistema. Portable, ligtas, at na-optimize para sa iyong terminal.",
+        "statusLabel": "Magagamit Na Ngayon"
       },
       {
         "icon": "⚡",
-        "title": "Bilis Kidlat",
-        "description": "Target: Sub-100ms startup, sub-2s inference sa Apple Silicon. MLX framework integration para sa GPU acceleration sa M-series chips.",
-        "statusLabel": "In Development"
+        "title": "Mabilis na Parang Kidlat",
+        "description": "Target: Sub-100ms na startup, sub-2s na inference sa Apple Silicon. Integrasyon ng MLX framework para sa GPU acceleration sa M-series chips.",
+        "statusLabel": "Nasa Pag-unlad"
       },
       {
         "icon": "🤝",
         "title": "Kasama ni Claude",
-        "description": "Vision: Seamless integration sa Claude bilang MCP server at Skill, nag-o-offload ng shell command inference habang si Claude ay naka-focus sa iyong mas malawak na trabaho.",
-        "statusLabel": "Planned"
+        "description": "Pangitain: Walang putol na integrasyon kay Claude bilang isang MCP server at Skill, inililipat ang inference ng shell command habang si Claude ay nakatutok sa iyong mas malawak na trabaho.",
+        "statusLabel": "Pinaplano"
       }
     ]
   }

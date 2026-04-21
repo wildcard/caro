@@ -72,7 +72,8 @@ pub async fn export_entries<P: AsRef<Path>>(
 ) -> Result<usize> {
     // Get all entries by querying with empty string (returns all)
     // Note: This is a workaround - ideally we'd have a get_all() method
-    let entries = backend.find_similar("", usize::MAX).await?;
+    // Use i64::MAX as usize to avoid overflow when LanceDB casts the limit to i64
+    let entries = backend.find_similar("", i64::MAX as usize).await?;
     let total = entries.len();
 
     let file = std::fs::File::create(output_path)?;

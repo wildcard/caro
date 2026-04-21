@@ -2,26 +2,26 @@
   "navigation": {
     "brand": "🐕 Caro",
     "links": {
-      "features": "Можливості",
-      "compare": "Порівняння",
-      "play": "Спробувати",
+      "features": "Функції",
+      "compare": "Порівняти",
+      "play": "Грати",
       "blog": "Блог",
-      "getStarted": "Почати",
+      "getStarted": "Розпочати",
       "github": "GitHub"
     },
     "darkMode": {
-      "toggle": "Перемкнути темну тему"
+      "toggle": "Перемкнути темний режим"
     },
     "holidayTheme": {
-      "toggle": "Відкрити меню святкової теми",
-      "title": "Святкова тема",
-      "menuHeader": "Святкова тема",
+      "toggle": "Перемкнути меню святкової теми",
+      "title": "Святкова Тема",
+      "menuHeader": "Святкова Тема",
       "options": {
         "christmas": "Різдво",
         "hanukkah": "Ханука",
-        "noTheme": "Без теми"
+        "noTheme": "Без Теми"
       },
-      "snowEffect": "Ефект снігу"
+      "snowEffect": "Ефект Снігу"
     }
   },
   "footer": {
@@ -29,20 +29,20 @@
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
-      "tagline": "Твій вірний компаньйон у терміналі"
+      "tagline": "Ваш вірний помічник у shell"
     },
     "links": {
       "license": "AGPL-3.0",
-      "credits": "Подяки та атрибуція",
-      "contributing": "Як долучитися",
-      "issues": "Баги та пропозиції"
+      "credits": "Подяки та Атрибуція",
+      "contributing": "Участь у розробці",
+      "issues": "Проблеми"
     },
     "kyaro": {
-      "title": "Знайомтесь, справжня Кяро (Kyarorain Kadosh)! 🐕🖤",
-      "followText": "Слідкуйте за її пригодами в",
+      "title": "Познайомтеся з Kyaro IRL (Kyarorain Kadosh)! 🐕🖤",
+      "followText": "Слідкуйте за її пригодами на",
       "instagram": "Instagram @kyaroblackheart"
     },
-    "inspiration": "Натхненна Керолайн з Portal — вірність, перетворена на цифрове товариство",
+    "inspiration": "Натхненний Кароліною з Portal—вірність перетворена на цифрове товариство",
     "elevatorCredit": "Ефект прокрутки від"
   }
 }

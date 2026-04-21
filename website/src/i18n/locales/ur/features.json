@@ -1,44 +1,44 @@
 {
   "features": {
-    "title": "Caro کیوں؟",
-    "subtitle": "ایک ساتھی ایجنٹ جو حفاظت، ہمدردی، اور مہارت کے لیے بنایا گیا",
-    "alphaNotice": "🚧 Soft Launch Alpha — ہم اپنی کمیونٹی کے ساتھ مل کر فعال طور پر بنا رہے ہیں۔ Caro کے مستقبل کو شکل دینے میں ہمارے ساتھ شامل ہوں!",
+    "title": "کیوں Caro؟",
+    "subtitle": "ایک ساتھی ایجنٹ جو سلامتی، ہمدردی، اور مہارت کے لئے بنایا گیا ہے",
+    "alphaNotice": "🚧 نرم لانچ الفا — ہم اپنی کمیونٹی کے ساتھ مل کر تعمیر کر رہے ہیں۔ Caro کے مستقبل کو شکل دینے میں ہماری مدد کریں!",
     "items": [
       {
         "icon": "🛡️",
-        "title": "حفاظتی محافظ",
-        "description": "مکمل validation خطرناک commands جیسے rm -rf /، fork bombs، اور تباہ کن operations کو روکتی ہے۔ 52 پہلے سے طے شدہ safety patterns کے ساتھ risk-level کی تشخیص۔",
-        "statusLabel": "ابھی دستیاب"
+        "title": "سلامتی کا محافظ",
+        "description": "جامع تصدیق خطرناک کمانڈز جیسے rm -rf /، فورک بمب، اور تباہ کن عملیات کو روکتی ہے۔ 52 پہلے سے معین سلامتی کے نمونے خطرے کی سطح کا اندازہ لگاتے ہیں۔",
+        "statusLabel": "اب دستیاب ہے"
       },
       {
         "icon": "🌍",
-        "title": "Cross-Platform ماہر",
-        "description": "macOS، Linux، Windows، GNU، اور BSD پر کام کرتا ہے۔ platform-specific باریکیوں کو سمجھتا ہے اور آپ کی distribution کی پسند کا احترام کرتا ہے۔",
-        "statusLabel": "ابھی دستیاب"
+        "title": "کراس-پلیٹ فارم ماہر",
+        "description": "macOS، Linux، Windows، GNU، اور BSD کے پار کام کرتا ہے۔ پلیٹ فارم مخصوص باریکیوں کو سمجھتا ہے اور آپ کے انتخاب کی تقسیم کا احترام کرتا ہے۔",
+        "statusLabel": "اب دستیاب ہے"
       },
       {
         "icon": "🧠",
-        "title": "Platform-Aware",
-        "description": "آپ کے platform کی صلاحیتوں اور best practices کی بنیاد پر سفارشات فراہم کرتا ہے۔ BSD اور GNU command syntax میں خودکار طور پر فرق کرتا ہے۔",
-        "statusLabel": "ابھی دستیاب"
+        "title": "پلیٹ فارم-آگاہ",
+        "description": "آپ کے پلیٹ فارم کی صلاحیتوں اور بہترین عملوں کی بنیاد پر سفارشات فراہم کرتا ہے۔ BSD اور GNU کمانڈ سنٹیکس کے درمیان خود بخود فرق کرتا ہے۔",
+        "statusLabel": "اب دستیاب ہے"
       },
       {
         "icon": "✅",
         "title": "POSIX ماہر",
-        "description": "POSIX-compliant shell commands میں ماہر جو systems پر قابل اعتماد طریقے سے کام کرتے ہیں۔ Portable، محفوظ، اور آپ کے terminal کے لیے optimize شدہ۔",
-        "statusLabel": "ابھی دستیاب"
+        "description": "POSIX-مطابقت پذیر شیل کمانڈز میں ماہر جو نظاموں کے پار قابل اعتماد طور پر کام کرتے ہیں۔ پورٹیبل، محفوظ، اور آپ کے ٹرمینل کے لئے بہتر بنایا گیا۔",
+        "statusLabel": "اب دستیاب ہے"
       },
       {
         "icon": "⚡",
-        "title": "بجلی کی رفتار",
-        "description": "ہدف: Sub-100ms startup، Apple Silicon پر sub-2s inference۔ M-series chips پر GPU acceleration کے لیے MLX framework integration۔",
-        "statusLabel": "تیاری میں"
+        "title": "بجلی کی تیزی",
+        "description": "ہدف: سب-100ms اسٹارٹ اپ، سب-2s انفرنس پر Apple Silicon. MLX فریم ورک انضمام GPU تیزی کے لئے M-سیریز چپس پر۔",
+        "statusLabel": "ترقی پذیر"
       },
       {
         "icon": "🤝",
         "title": "Claude کا ساتھی",
-        "description": "وژن: Claude کے ساتھ بطور MCP server اور Skill بغیر رکاوٹ integration، shell command inference offload کرتے ہوئے جبکہ Claude آپ کے وسیع تر کام پر focus کرے۔",
-        "statusLabel": "منصوبہ بند"
+        "description": "وژن: Claude کے ساتھ بے مثال انضمام کے طور پر ایک MCP سرور اور مہارت، شیل کمانڈ انفرنس کو آف لوڈ کرتے ہوئے جبکہ Claude آپ کے وسیع کام پر توجہ مرکوز کرتا ہے۔",
+        "statusLabel": "منصوبہ بندی کی گئی"
       }
     ]
   }

@@ -8,6 +8,6 @@
     "apps/devrel"
   ],
   "dependencies": {
-    "openai": "^6.16.0"
+    "openai": "^6.32.0"
   }
 }

@@ -1,43 +1,43 @@
 {
   "features": {
     "title": "Warum Caro?",
-    "subtitle": "Ein Companion-Agent für Sicherheit, Empathie und Expertise",
-    "alphaNotice": "🚧 Soft Launch Alpha — Wir entwickeln aktiv mit unserer Community. Mach mit und hilf uns, Caros Zukunft zu gestalten!",
+    "subtitle": "Ein Begleitagent, entwickelt für Sicherheit, Empathie und Fachkenntnis",
+    "alphaNotice": "🚧 Soft Launch Alpha — Wir bauen aktiv mit unserer Gemeinschaft. Mach mit und hilf, Caros Zukunft zu gestalten!",
     "items": [
       {
         "icon": "🛡️",
-        "title": "Safety Guardian",
-        "description": "Umfassende Validierung blockiert gefährliche Befehle wie rm -rf /, Fork Bombs und destruktive Operationen. 52 vordefinierte Safety-Patterns mit Risikobewertung.",
+        "title": "Sicherheitswächter",
+        "description": "Umfassende Validierung blockiert gefährliche Befehle wie rm -rf /, Fork-Bomben und zerstörerische Operationen. 52 vordefinierte Sicherheitsmuster mit Risikobewertung.",
         "statusLabel": "Jetzt verfügbar"
       },
       {
         "icon": "🌍",
-        "title": "Cross-Platform Expert",
-        "description": "Funktioniert auf macOS, Linux, Windows, GNU und BSD. Versteht plattformspezifische Nuancen und respektiert deine Distribution.",
+        "title": "Plattformübergreifender Experte",
+        "description": "Funktioniert auf macOS, Linux, Windows, GNU und BSD. Versteht plattformspezifische Nuancen und respektiert deine Distribution der Wahl.",
         "statusLabel": "Jetzt verfügbar"
       },
       {
         "icon": "🧠",
-        "title": "Platform-Aware",
-        "description": "Gibt Empfehlungen basierend auf deinen Plattform-Capabilities und Best Practices. Unterscheidet automatisch zwischen BSD- und GNU-Command-Syntax.",
+        "title": "Plattformbewusst",
+        "description": "Bietet Empfehlungen basierend auf den Fähigkeiten deiner Plattform und den besten Praktiken. Unterscheidet automatisch zwischen BSD- und GNU-Befehlssyntax.",
         "statusLabel": "Jetzt verfügbar"
       },
       {
         "icon": "✅",
-        "title": "POSIX Specialist",
-        "description": "Experte für POSIX-konforme Shell-Befehle, die systemübergreifend zuverlässig funktionieren. Portabel, sicher und optimiert für dein Terminal.",
+        "title": "POSIX-Spezialist",
+        "description": "Experte in POSIX-konformen Shell-Befehlen, die zuverlässig über Systeme hinweg funktionieren. Portabel, sicher und optimiert für dein Terminal.",
         "statusLabel": "Jetzt verfügbar"
       },
       {
         "icon": "⚡",
-        "title": "Lightning Fast",
-        "description": "Ziel: Unter 100ms Startup, unter 2s Inference auf Apple Silicon. MLX-Framework-Integration für GPU-Beschleunigung auf M-Series-Chips.",
+        "title": "Blitzschnell",
+        "description": "Ziel: Unter-100ms Startzeit, unter-2s Inferenz auf Apple Silicon. MLX-Framework-Integration für GPU-Beschleunigung auf M-Serien-Chips.",
         "statusLabel": "In Entwicklung"
       },
       {
         "icon": "🤝",
-        "title": "Claude's Companion",
-        "description": "Vision: Nahtlose Integration mit Claude als MCP-Server und Skill, lagert Shell-Command-Inference aus, während Claude sich auf deine übergeordnete Arbeit konzentriert.",
+        "title": "Claudes Begleiter",
+        "description": "Vision: Nahtlose Integration mit Claude als MCP-Server und Skill, Übernahme der Shell-Befehlsinferenz, während Claude sich auf deine umfassenderen Aufgaben konzentriert.",
         "statusLabel": "Geplant"
       }
     ]

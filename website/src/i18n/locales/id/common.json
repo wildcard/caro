@@ -1,8 +1,8 @@
 {
   "common": {
     "meta": {
-      "title": "Caro - Teman setia shell kamu",
-      "description": "Caro adalah companion agent yang membantu kamu dengan perintah POSIX shell. Tersedia sebagai MCP untuk Claude dan sebagai Skill khusus."
+      "title": "Caro - Teman setia shell Anda",
+      "description": "Caro adalah agen pendamping yang membantu Anda dengan perintah shell POSIX. Tersedia sebagai MCP untuk Claude dan sebagai Skill khusus."
     },
     "buttons": {
       "copy": "Salin",
@@ -17,8 +17,8 @@
       "comingSoon": "Segera Hadir"
     },
     "aria": {
-      "toggleDarkMode": "Aktifkan mode gelap",
-      "toggleHolidayTheme": "Aktifkan menu tema liburan"
+      "toggleDarkMode": "Alihkan mode gelap",
+      "toggleHolidayTheme": "Alihkan menu tema liburan"
     },
     "nav": {
       "features": "Fitur",
@@ -27,12 +27,12 @@
       "support": "Dukungan",
       "getStarted": "Mulai",
       "dropdown": {
-        "overview": "Ringkasan",
+        "overview": "Ikhtisar",
         "seeAllComparisons": "Lihat semua perbandingan",
         "vsWarp": "vs Warp",
-        "aiNativeTerminal": "Terminal native AI",
+        "aiNativeTerminal": "Terminal asli AI",
         "vsGitHubCopilot": "vs GitHub Copilot CLI",
-        "aiPairProgrammer": "AI pair programmer",
+        "aiPairProgrammer": "Programmer pasangan AI",
         "vsKiro": "vs Kiro CLI",
         "awsAssistant": "Asisten AI AWS",
         "blog": "Blog",
@@ -40,13 +40,13 @@
         "explore": "Jelajahi",
         "interactiveDemo": "Demo interaktif",
         "faq": "FAQ",
-        "commonQuestions": "Pertanyaan umum",
-        "roadmap": "Roadmap",
-        "whatsNext": "Apa yang akan datang",
+        "commonQuestions": "Pertanyaan Umum",
+        "roadmap": "Peta Jalan",
+        "whatsNext": "Apa Selanjutnya",
         "glossary": "Glosarium",
         "terminalTerms": "Istilah Terminal & Unix",
         "github": "GitHub",
-        "sourceCode": "Source code"
+        "sourceCode": "Kode Sumber"
       },
       "mobile": {
         "allComparisons": "Semua Perbandingan",
@@ -60,7 +60,7 @@
         "disableEffects": "Nonaktifkan Semua Efek"
       },
       "useCases": {
-        "allUseCases": "Semua Use Case",
+        "allUseCases": "Semua Kasus Penggunaan",
         "byRole": "Berdasarkan Peran",
         "backToHome": "Kembali ke Beranda"
       }

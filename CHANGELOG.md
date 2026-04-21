@@ -9,6 +9,75 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Security
+
+## [1.3.0] - 2026-04-20
+
+### Added
+
+- **`caro ai` conversational command generation** (#861): Atuin-AI-style once-mode
+  AI invocation that resumes or creates a session, runs the prompt through the
+  configured backend, validates the result via the existing 52-pattern
+  `SafetyValidator`, and persists the turn.
+  - `caro ai --once "<prompt>"` for scripted use
+  - `caro ai --continue-session` for shell-widget invocation
+  - TTL-based session resume via `session_continue_minutes`
+- **`caro shell-init <bash|zsh|fish>`** (#861): emits a shell integration script
+  that binds `?` on an empty prompt to `caro ai`. Literal `?` is preserved when
+  the prompt already has characters (globs etc.). Fish output is properly quoted
+  to preserve multi-word commands.
+- **`[ai]` config block** (#861): strict opt-in privacy gates — `opening.send_cwd`,
+  `opening.send_last_command`, `capabilities.enable_history_search` all default
+  to `false`. With defaults, only the OS + shell name leaves the process.
+- **Off-host context warning** (#861): when a remote backend (ollama, vllm, exo,
+  claude) is configured alongside any opt-in context toggle and an explicit
+  endpoint, stderr surfaces a warning before the generation happens.
+- **`CliApp::backend_arc()` accessor** (#861): exposes the constructed backend
+  for reuse without re-instantiation.
+
+### Security
+
+- Every command produced by `caro ai` flows through the same 52-pattern
+  `SafetyValidator` used for `caro <prompt>`; `rm -rf /` at `SafetyLevel::Moderate`
+  is unconditionally blocked (covered by a new strict regression test in
+  `src/ai/runner.rs`).
+- Session history is only included in LLM context when
+  `capabilities.enable_history_search` is true, closing the leak that could have
+  bypassed the opening-context opt-in toggles.
+
+### Internal
+
+- New `src/ai/` module: `privacy`, `session`, `store`, `runner`, `shell_init`
+  (23 unit tests covering privacy toggle combinations, session TTL, shell-init
+  snapshots, and safety integration).
+- Collapsed 3 pre-existing clippy `collapsible_match` warnings in
+  `src/evaluation/models.rs` to unblock `-D warnings` on the lint CI job.
+
+## [1.2.0] - 2026-03-26
+
+### Added
+
+- **Interactive Terminal Demo** (#130): Animated terminal landing page demo on caro.sh
+  - Real-time typewriter animation showing caro converting natural language to shell commands
+  - Showcases multiple example queries with syntax-highlighted output
+  - Responsive design optimized for desktop and mobile
+
+- **Homebrew Tap** (#573, #595): Install caro via `brew install wildcard/tap/caro`
+  - Official Homebrew formula at `homebrew-tap/Formula/caro.rb`
+  - Automated formula update workflow on each release via `.github/workflows/update-homebrew.yml`
+  - SHA256 checksum verification for all release binaries
+
+- **Setup Wizard** (#639): Interactive `caro init` command for first-time configuration
+  - Guided setup for shell, safety level, log level, and model preferences
+  - Auto-detects current shell and suggests sensible defaults
+  - Runs automatically on first launch when no config exists
+  - `--minimal` flag for non-interactive environments
+  - `--force` flag to reconfigure existing installations
+
 - **JSON Schema for Configuration** (#11): Auto-generated JSON schema for TOML configuration
   - Added `generate-schema` binary to generate `.vscode/caro-config.schema.json`
   - VS Code autocomplete and validation for `config.toml`
@@ -30,11 +99,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Improved Installation Docs** (#573): Streamlined README installation section
+  - Homebrew as primary installation method for macOS
+  - Cleaner per-OS sections (macOS, Linux & BSD, Windows)
+  - Removed verbose manual download tables in favor of releases page link
+
 ### Fixed
 
 - **Documentation Warnings**: Fixed all `cargo doc` warnings
   - Fixed unresolved link to feature-gated `knowledge` module
   - Fixed URL formatting in ChromaDB documentation
+
+- **Version Header & Security Notes** (#639): `caro --version` now shows version prominently
+  - Added security disclaimer on first run and `caro init`
+  - Links to security documentation at caro.sh/docs/security
 
 ### Security
 

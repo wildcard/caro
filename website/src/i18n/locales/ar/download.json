@@ -1,12 +1,12 @@
 {
   "download": {
     "title": "ابدأ مع Caro",
-    "subtitle": "اجلب رفيقتك المخلصة في الـ shell إلى الـ terminal الخاص بك",
+    "subtitle": "أحضر رفيقك المخلص في الشل إلى محطتك",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
     "copyButton": "نسخ",
     "copiedButton": "تم النسخ!",
-    "binariesIntro": "أو قم بتحميل الملفات التنفيذية الجاهزة:",
-    "comingSoonBadge": "قريباً",
+    "binariesIntro": "أو قم بتحميل الثنائيات المبنية مسبقًا:",
+    "comingSoonBadge": "قريبًا",
     "platforms": {
       "macAppleSilicon": "macOS (Apple Silicon)",
       "macIntel": "macOS (Intel)",
@@ -17,26 +17,26 @@
       "title": "طرق متعددة لاستخدام Caro",
       "modes": [
         {
-          "title": "🔧 أداة CLI مستقلة",
+          "title": "🔧 واجهة سطر الأوامر المستقلة",
           "exampleCommand": "caro \"list files > 100MB\""
         },
         {
           "title": "🔌 MCP لـ Claude",
-          "description": "أضف Caro كـ MCP server إلى Claude Desktop ودعها تتعامل مع جميع أوامر الـ shell بسلاسة.",
+          "description": "أضف Caro كخادم MCP إلى Claude Desktop ودعه يتعامل مع جميع أوامر الشل بسلاسة.",
           "comingSoon": true
         },
         {
           "title": "✨ مهارة مخصصة",
-          "description": "استخدم Caro كـ Skill لتفويض إنشاء وتنفيذ أوامر الـ shell بينما يركز Claude على عملك.",
+          "description": "استخدم Caro كمهارة لتفويض توليد أوامر الشل وتنفيذها بينما يركز Claude على عملك.",
           "comingSoon": true
         }
       ]
     },
     "quickStart": {
       "title": "البداية السريعة",
-      "intro": "بعد تشغيل سكريبت الإعداد أعلاه، ببساطة استخدم Caro:",
+      "intro": "بعد تشغيل سكربت الإعداد أعلاه، فقط استخدم Caro:",
       "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
-      "description": "ستقوم Caro بإنشاء الأمر والحفاظ على أمانك. سكريبت الإعداد يتعامل مع جميع المتطلبات الأساسية بما في ذلك تجميع Rust."
+      "description": "سيقوم Caro بتوليد الأمر ويحافظ على سلامتك. يتعامل سكربت الإعداد مع جميع المتطلبات الأولية بما في ذلك ترجمة Rust."
     }
   }
 }

@@ -4,45 +4,45 @@
     "links": {
       "features": "機能",
       "compare": "比較",
-      "play": "試す",
+      "play": "プレイ",
       "blog": "ブログ",
       "getStarted": "始める",
       "github": "GitHub"
     },
     "darkMode": {
-      "toggle": "ダークモード切替"
+      "toggle": "ダークモードを切り替え"
     },
     "holidayTheme": {
-      "toggle": "ホリデーテーマメニュー切替",
-      "title": "ホリデーテーマ",
-      "menuHeader": "ホリデーテーマ",
+      "toggle": "休日のテーマメニューを切り替え",
+      "title": "休日のテーマ",
+      "menuHeader": "休日のテーマ",
       "options": {
         "christmas": "クリスマス",
-        "hanukkah": "ハヌカー",
+        "hanukkah": "ハヌカ",
         "noTheme": "テーマなし"
       },
-      "snowEffect": "雪エフェクト"
+      "snowEffect": "雪の効果"
     }
   },
   "footer": {
-    "builtWith": "Rust 🦀 で構築 | オープンソース:",
+    "builtWith": "Rust 🦀で構築 | Open source on",
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
-      "tagline": "あなたの忠実なシェルコンパニオン"
+      "tagline": "あなたの忠実なシェルの伴侶"
     },
     "links": {
       "license": "AGPL-3.0",
-      "credits": "クレジット・帰属表示",
-      "contributing": "コントリビューション",
-      "issues": "Issues"
+      "credits": "クレジット & 帰属",
+      "contributing": "貢献",
+      "issues": "問題"
     },
     "kyaro": {
-      "title": "リアルKyaro(Kyarorain Kadosh)に会おう! 🐕🖤",
-      "followText": "彼女の冒険をフォロー:",
+      "title": "Meet IRL Kyaro (Kyarorain Kadosh)! 🐕🖤",
+      "followText": "彼女の冒険をフォロー",
       "instagram": "Instagram @kyaroblackheart"
     },
-    "inspiration": "Portalのキャロラインから着想—忠誠心がデジタルコンパニオンに変わる",
-    "elevatorCredit": "スクロールエフェクト by"
+    "inspiration": "PortalのCarolineに触発された—忠誠心がデジタルな仲間へと変わる",
+    "elevatorCredit": "スクロール効果による"
   }
 }

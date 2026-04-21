@@ -11,4 +11,11 @@ ignore = [
     # - Impact: Potential key recovery through timing sidechannels
     # - Mitigation: Not directly exposed in Caro's API surface
     "RUSTSEC-2023-0071",
+
+    # time <0.3.47 - RUSTSEC-2026-0009 (vulnerability in time crate)
+    # - Fix requires time >=0.3.47, but time 0.3.47 depends on time-core 0.1.8
+    # - time-core 0.1.8 requires Rust edition 2024, incompatible with MSRV 1.83
+    # - We pin time-core=0.1.7 to maintain MSRV; time security fix deferred until
+    #   time-core publishes an edition-2021-compatible 0.1.8 or MSRV is raised
+    "RUSTSEC-2026-0009",
 ]

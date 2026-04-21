@@ -16,7 +16,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "next": "^16.0.7",
+    "next": "^16.1.5",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "zod": "^4.3.4"
