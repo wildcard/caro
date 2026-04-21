@@ -5,8 +5,10 @@ use caro::config::ConfigManager;
 use caro::eval::{CategoryResults, EvalResults, EvalSuite, IndividualResult};
 use caro::models::{CommandRequest, ShellType};
 use caro::prompts::CapabilityProfile;
+use caro::setup::{needs_setup, SetupWizard};
 use clap::Parser;
 use std::collections::HashMap;
+use std::io::IsTerminal;
 use std::process;
 
 // =============================================================================
@@ -372,9 +374,20 @@ enum Commands {
     Doctor,
 
     /// Generate shell integration script for edit mode support
-    Init {
+    Integration {
         /// Shell to generate init script for (zsh, bash, fish)
         shell: String,
+    },
+
+    /// Run the interactive setup wizard to configure caro
+    Init {
+        /// Use minimal ASCII art banner (for smaller terminals)
+        #[arg(long, help = "Use minimal banner for smaller terminals")]
+        minimal: bool,
+
+        /// Force re-run setup even if already configured
+        #[arg(short, long, help = "Force setup even if already configured")]
+        force: bool,
     },
 
     /// Manage configuration settings
@@ -443,6 +456,42 @@ enum Commands {
         /// Maximum number of suggestions
         #[arg(short, long, default_value = "5")]
         limit: usize,
+    },
+
+    /// Generate an interactive AI command via conversational session (Atuin-AI-style).
+    ///
+    /// By default, a recent session is resumed (see `ai.session_continue_minutes` in config).
+    /// Stdout is the generated command only, so shell widgets can inject it straight
+    /// into the prompt buffer.
+    Ai {
+        /// Force a new session instead of resuming the most recent one.
+        #[arg(long)]
+        new_session: bool,
+
+        /// Resume a recent session if available (default behavior). Kept as an
+        /// explicit flag so shell hooks can be unambiguous.
+        #[arg(long)]
+        continue_session: bool,
+
+        /// Run one turn and return — no TTY REPL. The only mode supported today.
+        #[arg(long)]
+        once: bool,
+
+        /// Natural-language prompt. If omitted, stdin is read.
+        #[arg(trailing_var_arg = true, num_args = 0..)]
+        prompt: Vec<String>,
+    },
+
+    /// Emit shell integration script with an optional `?` AI keybinding.
+    ///
+    /// Add to your shell rc: `eval "$(caro shell-init bash)"` / similar for zsh, fish.
+    ShellInit {
+        /// Shell to emit integration for (bash, zsh, fish).
+        shell: String,
+
+        /// Skip the `?` AI keybinding even if `ai.enabled` is true in config.
+        #[arg(long)]
+        disable_ai: bool,
     },
     // /// Manage telemetry data and settings
     // Telemetry {
@@ -578,6 +627,28 @@ struct Cli {
     )]
     explain: bool,
 
+    /// Suppress timing / progress output (show only the command and safety result)
+    #[arg(
+        short = 'q',
+        long,
+        help = "Suppress timing and progress output (show only command + safety result)"
+    )]
+    quiet: bool,
+
+    /// Disable telemetry for this invocation only (does not modify config)
+    #[arg(
+        long = "no-telemetry",
+        help = "Disable telemetry for this invocation only (session-scoped override)"
+    )]
+    no_telemetry: bool,
+
+    /// Print available backends with their status and exit
+    #[arg(
+        long = "backend-info",
+        help = "List available inference backends with their status and exit"
+    )]
+    backend_info: bool,
+
     /// Trailing unquoted arguments forming the prompt
     #[arg(trailing_var_arg = true, num_args = 0..)]
     trailing_args: Vec<String>,
@@ -639,6 +710,18 @@ impl IntoCliArgs for Cli {
 
     fn explain(&self) -> bool {
         self.explain
+    }
+
+    fn quiet(&self) -> bool {
+        self.quiet
+    }
+
+    fn no_telemetry(&self) -> bool {
+        self.no_telemetry
+    }
+
+    fn backend_info(&self) -> bool {
+        self.backend_info
     }
 }
 
@@ -791,6 +874,173 @@ end
     };
 
     print!("{}", script);
+}
+
+// =============================================================================
+// AI shell-init + `caro ai` handlers
+// =============================================================================
+
+/// Emit the `caro shell-init <shell>` script (with optional `?` AI keybinding).
+fn handle_shell_init(shell: &str, disable_ai: bool) -> Result<(), String> {
+    use caro::ai::shell_init::{render, SupportedShell};
+
+    let Some(sh) = SupportedShell::parse(shell) else {
+        return Err(format!(
+            "unsupported shell: {}. Supported: bash, zsh, fish",
+            shell
+        ));
+    };
+
+    // Peek at the user's AI-enabled flag without requiring a full CliApp bring-up.
+    let ai_enabled = caro::config::ConfigManager::new()
+        .and_then(|m| m.load())
+        .map(|c| c.ai.enabled)
+        .unwrap_or(true);
+
+    print!("{}", render(sh, ai_enabled, disable_ai));
+    Ok(())
+}
+
+/// One-shot execution of `caro ai` — generate a command, run safety, persist session.
+///
+/// stdout is the command text only (so shell widgets can inject it directly).
+/// Status, warnings, and errors go to stderr.
+async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Result<(), String> {
+    use caro::ai::{run_once, AiInvocation};
+    use caro::backends::CommandGenerator;
+    use caro::context::ExecutionContext;
+    use caro::models::{SafetyLevel, ShellType};
+    use std::str::FromStr;
+    use std::sync::Arc;
+
+    // Resolve prompt (flag > stdin > trailing).
+    let stdin_text = if is_stdin_available() {
+        read_stdin().ok().filter(|s| !s.is_empty())
+    } else {
+        None
+    };
+    let resolved = resolve_prompt(cli.prompt.clone(), stdin_text, trailing);
+    if resolved.text.trim().is_empty() {
+        return Err("no prompt provided (pass text, pipe stdin, or use -p)".into());
+    }
+
+    // Load config — defaults are fine for a first-time user.
+    let cfg_mgr = caro::config::ConfigManager::new().map_err(|e| format!("config: {}", e))?;
+    let user_cfg = cfg_mgr.load().map_err(|e| format!("config: {}", e))?;
+
+    if !user_cfg.ai.enabled {
+        return Err("AI feature is disabled (set [ai] enabled = true in config).".into());
+    }
+
+    // Build a backend via the normal CLI path so the feature respects --backend, env var, config.
+    let cli_app = caro::cli::CliApp::with_overrides(
+        caro::cli::CliConfig::default(),
+        cli.backend.clone(),
+        cli.model_name.clone(),
+        cli.force_llm,
+    )
+    .await
+    .map_err(|e| format!("initializing backend: {}", e))?;
+    let backend: Arc<dyn CommandGenerator> = cli_app.backend_arc();
+    // Derive the backend name from the *actually constructed* backend so the
+    // off-host privacy warning is accurate even when auto-detection picks a
+    // different backend than the config/CLI hint suggested. The string must
+    // match the lowercase identifiers `privacy::may_leak_context_offhost`
+    // checks for (`ollama`, `vllm`, `exo`, `claude`, `embedded`, ...).
+    let backend_name = match backend.backend_info().backend_type {
+        caro::models::BackendType::Embedded => "embedded".to_string(),
+        caro::models::BackendType::Ollama => "ollama".to_string(),
+        caro::models::BackendType::VLlm => "vllm".to_string(),
+        caro::models::BackendType::Exo => "exo".to_string(),
+        caro::models::BackendType::Claude => "claude".to_string(),
+        caro::models::BackendType::Mlx => "mlx".to_string(),
+        caro::models::BackendType::Mock => "mock".to_string(),
+    };
+
+    let exec_ctx = ExecutionContext::detect();
+    let shell_type = cli
+        .shell
+        .as_deref()
+        .and_then(|s| ShellType::from_str(s).ok())
+        .unwrap_or_else(|| ShellType::from_str(&exec_ctx.shell).unwrap_or(ShellType::Bash));
+
+    let safety_level = cli
+        .safety
+        .as_deref()
+        .and_then(|s| SafetyLevel::from_str(s).ok())
+        .unwrap_or(user_cfg.safety_level);
+
+    let store_path = user_cfg
+        .ai
+        .db_path
+        .clone()
+        .or_else(|| caro::ai::store::default_store_path().ok())
+        .ok_or_else(|| "no data directory available for ai_sessions.json".to_string())?;
+
+    let validator = caro::ai::build_validator(safety_level);
+
+    let session_mode = if new_session {
+        caro::ai::runner::SessionMode::New
+    } else {
+        caro::ai::runner::SessionMode::ResumeOrNew
+    };
+
+    let last_command_hint = std::env::var("CARO_LAST_COMMAND").ok();
+
+    let outcome = run_once(AiInvocation {
+        prompt: resolved.text.trim(),
+        ai_cfg: &user_cfg.ai,
+        backend,
+        backend_name,
+        exec_ctx,
+        validator,
+        safety_level,
+        shell: shell_type,
+        store_path,
+        session_mode,
+        last_command_hint,
+    })
+    .await
+    .map_err(|e| format!("{}", e))?;
+
+    // Stderr: human-readable risk annotation and warnings. Stdout: the command.
+    use colored::Colorize;
+    if outcome.warns_offhost {
+        eprintln!(
+            "{} opt-in context may be sent to remote backend",
+            "⚠ privacy:".yellow()
+        );
+    }
+    if !outcome.allowed {
+        eprintln!(
+            "{} command blocked by safety validator ({:?})",
+            "✗".red(),
+            outcome.risk
+        );
+        for w in &outcome.warnings {
+            eprintln!("  - {}", w);
+        }
+        return Err("command rejected for safety reasons".into());
+    }
+    if matches!(
+        outcome.risk,
+        caro::models::RiskLevel::High | caro::models::RiskLevel::Critical
+    ) {
+        eprintln!(
+            "{} generated command is HIGH risk — double-check before running",
+            "⚠".yellow()
+        );
+    }
+    eprintln!(
+        "# caro-ai: session {}{} confidence={:.2} risk={:?}",
+        outcome.session_id,
+        if outcome.resumed { " (resumed)" } else { "" },
+        outcome.confidence,
+        outcome.risk
+    );
+
+    println!("{}", outcome.command);
+    Ok(())
 }
 
 // =============================================================================
@@ -1798,6 +2048,13 @@ async fn main() {
 
     let mut cli = Cli::parse();
 
+    // Handle --backend-info as a meta flag (like --version): print the status
+    // table and exit without requiring a prompt or touching telemetry/setup.
+    if cli.backend_info {
+        print_backend_info();
+        process::exit(0);
+    }
+
     // Handle subcommands first
     match cli.command {
         Some(Commands::Doctor) => match caro::doctor::run_diagnostics().await {
@@ -1835,9 +2092,12 @@ async fn main() {
                 process::exit(1);
             }
         },
-        Some(Commands::Init { shell }) => {
+        Some(Commands::Integration { shell }) => {
             print_shell_init_script(&shell);
             process::exit(0);
+        }
+        Some(Commands::Init { .. }) => {
+            // Handled below after telemetry initialization
         }
         // NOTE: Assess subcommand disabled in v1.1.0-beta.1
         // Some(Commands::Assess { export, output }) => {
@@ -1884,6 +2144,31 @@ async fn main() {
                 println!();
             }
             process::exit(0);
+        }
+        Some(Commands::ShellInit { shell, disable_ai }) => {
+            match handle_shell_init(&shell, disable_ai) {
+                Ok(()) => process::exit(0),
+                Err(e) => {
+                    eprintln!("Error: {}", e);
+                    process::exit(1);
+                }
+            }
+        }
+        Some(Commands::Ai {
+            new_session,
+            continue_session: _,
+            once: _,
+            ref prompt,
+        }) => {
+            let ai_trailing = prompt.clone();
+            let new = new_session;
+            match run_ai_once(&cli, new, ai_trailing).await {
+                Ok(()) => process::exit(0),
+                Err(e) => {
+                    eprintln!("Error: {}", e);
+                    process::exit(1);
+                }
+            }
         }
         // NOTE: Telemetry subcommand disabled in v1.1.0-beta.1
         // Some(Commands::Telemetry { command }) => {
@@ -1953,14 +2238,22 @@ async fn main() {
         .and_then(|cm| cm.load().ok())
         .unwrap_or_default();
 
+    // Session-scoped telemetry override: --no-telemetry disables telemetry
+    // for this invocation only. We do NOT persist this to user_config — the
+    // next invocation will use whatever the stored preference is.
+    let telemetry_enabled_for_session = user_config.telemetry.enabled && !cli.no_telemetry;
+
     // Check for first-run consent
     // Skip interactive consent for non-human output formats (json, yaml)
+    // and also when the user has explicitly asked to run with --no-telemetry
+    // (it would be hostile to prompt them for consent when they just said
+    // "no, thanks, not this time").
     let is_interactive_output = cli
         .output
         .as_deref()
         .is_none_or(|format| format != "json" && format != "yaml");
 
-    if user_config.telemetry.first_run && is_interactive_output {
+    if user_config.telemetry.first_run && is_interactive_output && !cli.no_telemetry {
         // Prompt user for consent
         let consent = caro::telemetry::consent::prompt_consent();
 
@@ -1997,14 +2290,14 @@ async fn main() {
         let telemetry_storage = std::sync::Arc::new(telemetry_storage);
         let telemetry_collector = std::sync::Arc::new(caro::TelemetryCollector::new(
             telemetry_storage.clone(),
-            user_config.telemetry.enabled,
+            telemetry_enabled_for_session,
         ));
 
         // Set as global collector for easy access from all components
         caro::set_global_collector(telemetry_collector.clone());
 
         // Start telemetry uploader if enabled and not air-gapped
-        if user_config.telemetry.enabled && !user_config.telemetry.air_gapped {
+        if telemetry_enabled_for_session && !user_config.telemetry.air_gapped {
             let uploader = std::sync::Arc::new(caro::telemetry::uploader::TelemetryUploader::new(
                 telemetry_storage.clone(),
                 user_config.telemetry.clone(),
@@ -2028,6 +2321,77 @@ async fn main() {
         tracing::warn!("Telemetry initialization failed, continuing without telemetry");
     }
 
+    // Handle init subcommand
+    if let Some(Commands::Init { minimal, force }) = &cli.command {
+        match run_init_wizard(*minimal, *force) {
+            Ok(completed) => {
+                process::exit(if completed { 0 } else { 1 });
+            }
+            Err(e) => {
+                eprintln!("Error running setup wizard: {}", e);
+                process::exit(1);
+            }
+        }
+    }
+
+    // Check for first-time setup (if running without subcommand and no config exists)
+    if cli.command.is_none() && cli.prompt.is_none() && !cli.show_config {
+        // Check if this is a first-time run
+        if needs_setup() {
+            use colored::Colorize;
+            println!();
+            println!(
+                "{}",
+                "Welcome to caro! It looks like this is your first time running the tool.".bold()
+            );
+            println!();
+
+            // Check if we're in a terminal for interactive setup
+            if std::io::stdin().is_terminal() && std::io::stdout().is_terminal() {
+                use dialoguer::Confirm;
+
+                let run_setup = Confirm::new()
+                    .with_prompt("Would you like to run the setup wizard now?")
+                    .default(true)
+                    .interact()
+                    .unwrap_or(false);
+
+                if run_setup {
+                    match run_init_wizard(false, false) {
+                        Ok(true) => process::exit(0),
+                        Ok(false) => {
+                            // User cancelled, show usage
+                            print_usage();
+                            process::exit(0);
+                        }
+                        Err(e) => {
+                            eprintln!("Error running setup wizard: {}", e);
+                            process::exit(1);
+                        }
+                    }
+                } else {
+                    println!();
+                    println!(
+                        "{}",
+                        "You can run 'caro init' at any time to configure the tool.".dimmed()
+                    );
+                    println!();
+                    print_usage();
+                    process::exit(0);
+                }
+            } else {
+                // Non-interactive: show message and usage
+                println!(
+                    "{}",
+                    "Run 'caro init' in an interactive terminal to configure the tool.".dimmed()
+                );
+                println!();
+                print_usage();
+                process::exit(0);
+            }
+        }
+    }
+
     // Handle --show-config
     if cli.show_config {
         match show_configuration(&cli).await {
@@ -2047,17 +2411,7 @@ async fn main() {
     match validate_prompt(prompt_text) {
         ValidationAction::ShowHelp => {
             // Show help message for empty or whitespace-only prompts
-            println!("caro - Convert natural language to shell commands using local LLMs");
-            println!();
-            println!("Usage: caro [OPTIONS] <PROMPT>");
-            println!();
-            println!("Examples:");
-            println!("  caro list files");
-            println!("  caro -p \"list files\"");
-            println!("  echo \"list files\" | caro");
-            println!("  caro --shell zsh \"find large files\"");
-            println!();
-            println!("Run 'caro --help' for more information.");
+            print_usage();
             process::exit(0);
         }
         ValidationAction::Warning { message } => {
@@ -2103,6 +2457,64 @@ async fn main() {
             process::exit(1);
         }
     }
+}
+
+/// Run the init setup wizard
+fn run_init_wizard(minimal: bool, force: bool) -> Result<bool, caro::setup::SetupError> {
+    use colored::Colorize;
+
+    let wizard = SetupWizard::new()?.use_minimal_banner(minimal);
+
+    // Check if already configured
+    if !force && !wizard.needs_setup() {
+        println!();
+        println!("{}", "caro is already configured!".green().bold());
+        println!();
+
+        // Check if we're in a terminal
+        if std::io::stdin().is_terminal() {
+            use dialoguer::Confirm;
+
+            let reconfigure = Confirm::new()
+                .with_prompt("Would you like to reconfigure?")
+                .default(false)
+                .interact()
+                .unwrap_or(false);
+
+            if !reconfigure {
+                println!();
+                println!(
+                    "{}",
+                    "Configuration unchanged. Use 'caro init --force' to reset configuration."
+                        .dimmed()
+                );
+                return Ok(true);
+            }
+        } else {
+            println!("{}", "Use 'caro init --force' to reconfigure.".dimmed());
+            return Ok(true);
+        }
+    }
+
+    // Run the wizard
+    let result = wizard.run()?;
+    Ok(result.completed)
+}
+
+/// Print usage information
+fn print_usage() {
+    println!("caro - Convert natural language to shell commands using local LLMs");
+    println!();
+    println!("Usage: caro [OPTIONS] <PROMPT>");
+    println!("       caro init              Run the setup wizard");
+    println!();
+    println!("Examples:");
+    println!("  caro list files");
+    println!("  caro -p \"list files\"");
+    println!("  echo \"list files\" | caro");
+    println!("  caro --shell zsh \"find large files\"");
+    println!();
+    println!("Run 'caro --help' for more information.");
 }
 
 async fn run_cli(cli: &Cli) -> Result<bool, CliError> {
@@ -2412,8 +2824,8 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
             display!("  {}", status_msg);
         }
 
-        // Print execution time
-        if result.timing_info.execution_time_ms > 0 {
+        // Print execution time (suppressed by --quiet)
+        if result.timing_info.execution_time_ms > 0 && !cli.quiet {
             display!(
                 "  Execution time: {}ms",
                 result.timing_info.execution_time_ms
@@ -2478,6 +2890,75 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
     }
 
     Ok(())
+}
+
+/// Print the list of inference backends along with their current status.
+///
+/// Invoked by the `--backend-info` meta flag. Exits the caller with code 0.
+/// Reports each built-in backend and whether remote backends have the
+/// environment variables / typical endpoints set that would make them
+/// usable. This is a best-effort snapshot, not a live health check.
+fn print_backend_info() {
+    use colored::Colorize;
+
+    // Status helpers. For remote backends we use environment variables as
+    // a lightweight "configured?" signal — probing each endpoint would
+    // turn `--backend-info` into a slow diagnostic command.
+    let env_or = |keys: &[&str]| keys.iter().any(|k| std::env::var(k).is_ok());
+
+    let status_for = |keys: &[&str]| {
+        if env_or(keys) {
+            "configured"
+        } else {
+            "not configured"
+        }
+    };
+
+    let row = |backend: &str, status: &str, notes: &str| {
+        println!("  {:<12}  {:<16}  {}", backend, status, notes);
+    };
+
+    println!("{}", "Available inference backends".bold());
+    println!();
+    println!(
+        "  {:<12}  {:<16}  {}",
+        "Backend".bold(),
+        "Status".bold(),
+        "Notes".bold()
+    );
+    row("-------", "------", "-----");
+
+    // Built-in, always-available backends.
+    row("static", "available", "template-based; no model required");
+    row(
+        "embedded",
+        "available",
+        "local LLM (MLX/CPU); downloads model on first use",
+    );
+
+    // Remote backends: we report "configured" if a credential / endpoint
+    // env var is set, otherwise "not configured".
+    row(
+        "ollama",
+        status_for(&["OLLAMA_HOST", "CARO_OLLAMA_URL"]),
+        "remote Ollama HTTP API (OLLAMA_HOST)",
+    );
+    row(
+        "vllm",
+        status_for(&["VLLM_BASE_URL", "CARO_VLLM_URL"]),
+        "remote vLLM HTTP API (VLLM_BASE_URL)",
+    );
+    row(
+        "claude",
+        status_for(&["ANTHROPIC_API_KEY"]),
+        "Anthropic Claude API (ANTHROPIC_API_KEY)",
+    );
+
+    println!();
+    println!(
+        "{}",
+        "Use --backend <name> to force a specific backend.".dimmed()
+    );
 }
 
 async fn show_configuration(cli: &Cli) -> Result<String, CliError> {

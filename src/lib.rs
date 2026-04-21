@@ -28,6 +28,7 @@
 //! ```
 
 pub mod agent;
+pub mod ai;
 pub mod assessment;
 pub mod backends;
 pub mod cache;
@@ -46,6 +47,7 @@ pub mod models;
 pub mod platform;
 pub mod prompts;
 pub mod safety;
+pub mod setup;
 pub mod telemetry;
 pub mod version;
 
@@ -101,3 +103,6 @@ pub use completion::{generate_completions, suggest_commands, CommandSuggestion};
 // Re-export knowledge types (when feature enabled)
 #[cfg(feature = "knowledge")]
 pub use knowledge::{Embedder, KnowledgeEntry, KnowledgeError, KnowledgeIndex};
+
+// Re-export setup wizard types
+pub use setup::{needs_setup, run_setup, SetupError, SetupResult, SetupWizard, Theme};

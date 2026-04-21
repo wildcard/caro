@@ -1,50 +1,50 @@
 {
   "common": {
     "meta": {
-      "title": "Caro - Твій вірний помічник у терміналі",
-      "description": "Caro — це агент-помічник для роботи з POSIX shell командами. Доступний як MCP для Claude і як окремий Skill."
+      "title": "Caro - Ваш вірний помічник у shell",
+      "description": "Caro - це агент-супутник, який допомагає вам з командами POSIX shell. Доступний як MCP для Claude та як окремий навик."
     },
     "buttons": {
       "copy": "Копіювати",
       "copied": "Скопійовано!",
-      "getStarted": "Почати",
-      "watchDemo": "Дивитись демо"
+      "getStarted": "Розпочати",
+      "watchDemo": "Дивитися демонстрацію"
     },
     "status": {
-      "availableNow": "Вже доступно",
-      "inDevelopment": "В розробці",
+      "availableNow": "Доступно зараз",
+      "inDevelopment": "У розробці",
       "planned": "Заплановано",
-      "comingSoon": "Скоро"
+      "comingSoon": "Скоро буде"
     },
     "aria": {
-      "toggleDarkMode": "Перемкнути темну тему",
-      "toggleHolidayTheme": "Відкрити меню святкової теми"
+      "toggleDarkMode": "Перемкнути темний режим",
+      "toggleHolidayTheme": "Перемкнути святкове меню тем"
     },
     "nav": {
-      "features": "Можливості",
-      "compare": "Порівняння",
+      "features": "Функції",
+      "compare": "Порівняти",
       "resources": "Ресурси",
       "support": "Підтримка",
-      "getStarted": "Почати",
+      "getStarted": "Розпочати",
       "dropdown": {
         "overview": "Огляд",
-        "seeAllComparisons": "Всі порівняння",
-        "vsWarp": "vs Warp",
-        "aiNativeTerminal": "AI-термінал",
-        "vsGitHubCopilot": "vs GitHub Copilot CLI",
-        "aiPairProgrammer": "AI пара-програміст",
-        "vsKiro": "vs Kiro CLI",
-        "awsAssistant": "AWS AI асистент",
+        "seeAllComparisons": "Подивитися всі порівняння",
+        "vsWarp": "проти Warp",
+        "aiNativeTerminal": "Термінал з AI",
+        "vsGitHubCopilot": "проти GitHub Copilot CLI",
+        "aiPairProgrammer": "AI-програміст-партнер",
+        "vsKiro": "проти Kiro CLI",
+        "awsAssistant": "AWS AI-асистент",
         "blog": "Блог",
-        "newsAndTutorials": "Новини та туторіали",
+        "newsAndTutorials": "Новини та навчальні матеріали",
         "explore": "Дослідити",
-        "interactiveDemo": "Інтерактивне демо",
-        "faq": "FAQ",
-        "commonQuestions": "Часті питання",
-        "roadmap": "Roadmap",
+        "interactiveDemo": "Інтерактивна демонстрація",
+        "faq": "ЧаПи",
+        "commonQuestions": "Загальні питання",
+        "roadmap": "Дорожня карта",
         "whatsNext": "Що далі",
         "glossary": "Глосарій",
-        "terminalTerms": "Термінал і Unix терміни",
+        "terminalTerms": "Термінал та Unix терміни",
         "github": "GitHub",
         "sourceCode": "Вихідний код"
       },
@@ -53,16 +53,16 @@
         "supportCaro": "Підтримати Caro"
       },
       "appearance": {
-        "title": "Вигляд",
-        "darkMode": "Темна тема",
+        "title": "Зовнішній вигляд",
+        "darkMode": "Темний режим",
         "holidayTheme": "Святкова тема",
         "snowEffect": "Ефект снігу",
         "disableEffects": "Вимкнути всі ефекти"
       },
       "useCases": {
-        "allUseCases": "Всі сценарії",
+        "allUseCases": "Всі випадки використання",
         "byRole": "За роллю",
-        "backToHome": "На головну"
+        "backToHome": "Повернутися на головну"
       }
     }
   }

@@ -39,6 +39,11 @@ impl std::fmt::Display for ModelVariant {
     }
 }
 
+/// Default number of parse retries before giving up
+fn default_max_parse_retries() -> u32 {
+    2
+}
+
 /// Configuration for embedded model inference
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EmbeddedConfig {
@@ -46,6 +51,10 @@ pub struct EmbeddedConfig {
     pub max_tokens: usize,
     pub top_p: f32,
     pub stop_tokens: Vec<String>,
+    /// Maximum number of retries when LLM output fails to parse as valid JSON.
+    /// Set to 0 to disable retries (single attempt only). Clamped to 0..=5.
+    #[serde(default = "default_max_parse_retries")]
+    pub max_parse_retries: u32,
 }
 
 impl Default for EmbeddedConfig {
@@ -57,6 +66,7 @@ impl Default for EmbeddedConfig {
             max_tokens: 100,
             top_p: 0.9,
             stop_tokens: vec!["\n\n".to_string(), "```".to_string()],
+            max_parse_retries: default_max_parse_retries(),
         }
     }
 }
@@ -83,6 +93,12 @@ impl EmbeddedConfig {
     /// Builder: Set stop tokens
     pub fn with_stop_tokens(mut self, stop_tokens: Vec<String>) -> Self {
         self.stop_tokens = stop_tokens;
+        self
+    }
+
+    /// Builder: Set max parse retries (0..=5). Set to 0 to disable retries.
+    pub fn with_max_parse_retries(mut self, retries: u32) -> Self {
+        self.max_parse_retries = retries.min(5);
         self
     }
 }
@@ -144,5 +160,31 @@ mod tests {
 
         let config = EmbeddedConfig::default().with_temperature(-1.0);
         assert_eq!(config.temperature, 0.0); // Clamped to min
+    }
+
+    #[test]
+    fn test_parse_retries_config_default() {
+        let config = EmbeddedConfig::default();
+        assert_eq!(config.max_parse_retries, 2);
+    }
+
+    #[test]
+    fn test_parse_retries_config_clamp_max() {
+        let config = EmbeddedConfig::default().with_max_parse_retries(100);
+        assert_eq!(config.max_parse_retries, 5);
+    }
+
+    #[test]
+    fn test_parse_retries_config_zero() {
+        let config = EmbeddedConfig::default().with_max_parse_retries(0);
+        assert_eq!(config.max_parse_retries, 0);
+    }
+
+    #[test]
+    fn test_parse_retries_serde_default() {
+        // When deserializing without max_parse_retries field, should use default
+        let json = r#"{"temperature": 0.1, "max_tokens": 100, "top_p": 0.9, "stop_tokens": []}"#;
+        let config: EmbeddedConfig = serde_json::from_str(json).unwrap();
+        assert_eq!(config.max_parse_retries, 2);
     }
 }

@@ -3,92 +3,127 @@ title: Installation
 description: Install caro on macOS, Linux, or Windows
 ---
 
-import { Tabs, TabItem, Aside, Steps, Badge } from '@astrojs/starlight/components';
+import { Tabs, TabItem, Aside, Steps, Badge, Card, CardGrid } from '@astrojs/starlight/components';
 
-caro can be installed via Cargo (Rust's package manager), from source, or using pre-built binaries.
+## macOS
 
-## Requirements
+caro is available via Homebrew, Cargo, and as a standalone binary.
 
-- **Rust 1.75+** (for building from source)
-- **CMake** (for MLX backend on macOS)
-- **4GB RAM** minimum, 8GB recommended
-- **2GB disk space** for model cache
+### Homebrew
 
-## Quick Install
+| Install | Upgrade |
+| ------- | ------- |
+| `brew install wildcard/tap/caro` | `brew upgrade caro` |
+
+### Cargo
+
+```bash
+cargo install caro
+
+# For Apple Silicon with MLX GPU acceleration:
+cargo install caro --features embedded-mlx
+```
+
+### Precompiled binaries
+
+Download from the [releases page](https://github.com/wildcard/caro/releases/latest) or use the install script:
+
+```bash
+curl -fsSL https://setup.caro.sh | bash
+```
+
+<Aside type="tip" title="Apple Silicon">
+  For maximum performance with MLX GPU acceleration on M1/M2/M3/M4 Macs, use `cargo install caro --features embedded-mlx` or install via Homebrew.
+</Aside>
+
+## Linux & BSD
+
+caro is available via Cargo and as precompiled binaries for most Linux distributions.
+
+### Cargo
+
+```bash
+cargo install caro
+```
+
+### Debian, Ubuntu (apt)
+
+```bash
+# Add repository (coming soon)
+# sudo apt install caro
+
+# For now, use the install script:
+curl -fsSL https://setup.caro.sh | bash
+```
+
+### Fedora, CentOS, RHEL (dnf)
+
+```bash
+# Package coming soon. For now, use:
+curl -fsSL https://setup.caro.sh | bash
+```
+
+### Precompiled binaries
+
+Download from the [releases page](https://github.com/wildcard/caro/releases/latest):
+
+| Platform | Download |
+|----------|----------|
+| Linux x86_64 | [caro-linux-amd64](https://github.com/wildcard/caro/releases/latest) |
+| Linux ARM64 | [caro-linux-arm64](https://github.com/wildcard/caro/releases/latest) |
+
+## Windows
+
+caro is available via WinGet, Cargo, and as a standalone binary.
+
+### WinGet
+
+```powershell
+# Coming soon
+# winget install wildcard.caro
+```
+
+### Cargo
+
+```powershell
+cargo install caro
+```
+
+### Precompiled binary
+
+Download `caro-windows-amd64.exe` from the [releases page](https://github.com/wildcard/caro/releases/latest).
+
+<Aside type="caution">
+  Windows support is experimental. WSL2 is recommended for the best experience.
+</Aside>
+
+## Build from source
+
+```bash
+git clone https://github.com/wildcard/caro.git
+cd caro
+cargo build --release
+./target/release/caro --version
+```
+
+**Prerequisites**: Rust 1.83+, CMake. For Apple Silicon GPU acceleration, install Xcode.
 
 <Tabs>
-  <TabItem label="Cargo (Recommended)">
+  <TabItem label="macOS">
     ```bash
-    # Install caro from crates.io
-    cargo install caro
+    # Install Rust
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    source "$HOME/.cargo/env"
 
-    # Verify installation
-    caro --version
-    ```
-  </TabItem>
-  <TabItem label="From Source">
-    ```bash
-    # Clone the repository
+    # Install CMake via Homebrew
+    brew install cmake
+
+    # Clone and build
     git clone https://github.com/wildcard/caro.git
     cd caro
-
-    # Build and install
-    cargo install --path .
-
-    # Or build without installing
     cargo build --release
     ```
   </TabItem>
-  <TabItem label="Pre-built Binary">
-    ```bash
-    # Download the latest release
-    curl -fsSL https://github.com/wildcard/caro/releases/latest/download/caro-$(uname -s)-$(uname -m) -o caro
-
-    # Make executable
-    chmod +x caro
-
-    # Move to your PATH
-    sudo mv caro /usr/local/bin/
-    ```
-  </TabItem>
-</Tabs>
-
-## Platform-Specific Instructions
-
-### macOS
-
-<Steps>
-1. **Install Rust** (if not already installed):
-   ```bash
-   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-   source "$HOME/.cargo/env"
-   ```
-
-2. **Install CMake** (required for MLX):
-   ```bash
-   brew install cmake
-   ```
-
-3. **Install caro**:
-   ```bash
-   cargo install caro
-   ```
-
-4. **Verify installation**:
-   ```bash
-   caro --version
-   caro "list files"
-   ```
-</Steps>
-
-<Aside type="tip" title="Apple Silicon GPU Acceleration">
-  For GPU acceleration on M1/M2/M3/M4 Macs, you'll need Xcode installed.
-  See the [macOS Setup Guide](/guides/macos-setup/) for detailed instructions.
-</Aside>
-
-### Linux
-
-<Tabs>
   <TabItem label="Ubuntu/Debian">
     ```bash
     # Install dependencies
@@ -99,8 +134,10 @@ caro can be installed via Cargo (Rust's package manager), from source, or using 
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
     source "$HOME/.cargo/env"
 
-    # Install caro
-    cargo install caro
+    # Clone and build
+    git clone https://github.com/wildcard/caro.git
+    cd caro
+    cargo build --release
     ```
   </TabItem>
   <TabItem label="Fedora/RHEL">
@@ -112,40 +149,13 @@ caro can be installed via Cargo (Rust's package manager), from source, or using 
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
     source "$HOME/.cargo/env"
 
-    # Install caro
-    cargo install caro
-    ```
-  </TabItem>
-  <TabItem label="Arch Linux">
-    ```bash
-    # Install dependencies
-    sudo pacman -S cmake base-devel curl
-
-    # Install Rust
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-    source "$HOME/.cargo/env"
-
-    # Install caro
-    cargo install caro
+    # Clone and build
+    git clone https://github.com/wildcard/caro.git
+    cd caro
+    cargo build --release
     ```
   </TabItem>
 </Tabs>
-
-### Windows
-
-<Aside type="caution">
-  Windows support is experimental. WSL2 is recommended for the best experience.
-</Aside>
-
-```powershell
-# Using WSL2 (recommended)
-wsl --install
-# Then follow Linux instructions inside WSL
-
-# Native Windows (experimental)
-# Install Rust from https://rustup.rs
-cargo install caro
-```
 
 ## Verifying Installation
 

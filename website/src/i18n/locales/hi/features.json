@@ -1,44 +1,44 @@
 {
   "features": {
-    "title": "Caro क्यों?",
-    "subtitle": "सुरक्षा, समझदारी और expertise के साथ बनाया गया companion agent",
-    "alphaNotice": "🚧 Soft Launch Alpha — हम अपनी community के साथ मिलकर actively build कर रहे हैं। Caro के future को shape करने में हमारी मदद करें!",
+    "title": "क्यों Caro?",
+    "subtitle": "सुरक्षा, सहानुभूति, और विशेषज्ञता के लिए बनाया गया एक साथी एजेंट",
+    "alphaNotice": "🚧 सॉफ्ट लॉन्च अल्फा — हम अपने समुदाय के साथ सक्रिय रूप से निर्माण कर रहे हैं। Caro के भविष्य को आकार देने में हमारी मदद करें!",
     "items": [
       {
         "icon": "🛡️",
-        "title": "Safety Guardian",
-        "description": "Comprehensive validation जो dangerous commands जैसे rm -rf /, fork bombs, और destructive operations को block करता है। Risk-level assessment के साथ 52 predefined safety patterns।",
-        "statusLabel": "अभी Available"
+        "title": "सुरक्षा गार्डियन",
+        "description": "व्यापक मान्यता खतरनाक कमांड्स जैसे कि rm -rf /, फोर्क बम्स, और विनाशकारी ऑपरेशन्स को रोकती है। 52 पूर्वनिर्धारित सुरक्षा पैटर्न जोखिम-स्तर मूल्यांकन के साथ।",
+        "statusLabel": "अब उपलब्ध है"
       },
       {
         "icon": "🌍",
-        "title": "Cross-Platform Expert",
-        "description": "macOS, Linux, Windows, GNU, और BSD पर काम करता है। Platform-specific nuances को समझता है और आपकी distribution की choice का सम्मान करता है।",
-        "statusLabel": "अभी Available"
+        "title": "क्रॉस-प्लेटफॉर्म विशेषज्ञ",
+        "description": "macOS, Linux, Windows, GNU, और BSD में काम करता है। प्लेटफॉर्म-विशिष्ट बारीकियों को समझता है और आपकी पसंद के वितरण का सम्मान करता है।",
+        "statusLabel": "अब उपलब्ध है"
       },
       {
         "icon": "🧠",
-        "title": "Platform-Aware",
-        "description": "आपके platform की capabilities और best practices के आधार पर recommendations देता है। BSD और GNU command syntax में automatically फर्क समझता है।",
-        "statusLabel": "अभी Available"
+        "title": "प्लेटफॉर्म-जागरूक",
+        "description": "आपकी प्लेटफॉर्म क्षमताओं और सर्वोत्तम प्रथाओं के आधार पर सिफारिशें प्रदान करता है। BSD और GNU कमांड सिंटैक्स के बीच स्वतः ही अंतर करता है।",
+        "statusLabel": "अब उपलब्ध है"
       },
       {
         "icon": "✅",
-        "title": "POSIX Specialist",
-        "description": "POSIX-compliant shell commands में expert जो systems पर reliably काम करते हैं। Portable, safe, और आपके terminal के लिए optimized।",
-        "statusLabel": "अभी Available"
+        "title": "POSIX विशेषज्ञ",
+        "description": "POSIX-अनुरूप शेल कमांड्स में विशेषज्ञ जो विभिन्न सिस्टम्स में विश्वसनीय रूप से काम करते हैं। पोर्टेबल, सुरक्षित, और आपके टर्मिनल के लिए अनुकूलित।",
+        "statusLabel": "अब उपलब्ध है"
       },
       {
         "icon": "⚡",
-        "title": "Lightning Fast",
-        "description": "Target: Sub-100ms startup, Apple Silicon पर sub-2s inference। M-series chips पर GPU acceleration के लिए MLX framework integration।",
-        "statusLabel": "Development में"
+        "title": "तेजी से बिजली",
+        "description": "लक्ष्य: सब-100ms स्टार्टअप, Apple Silicon पर सब-2s इन्फेरेंस। M-सीरीज चिप्स पर GPU त्वरण के लिए MLX फ्रेमवर्क एकीकरण।",
+        "statusLabel": "विकासाधीन"
       },
       {
         "icon": "🤝",
-        "title": "Claude का Companion",
-        "description": "Vision: Claude के साथ MCP server और Skill के रूप में seamless integration, shell command inference को offload करते हुए Claude आपके broader work पर focus कर सके।",
-        "statusLabel": "Planned"
+        "title": "Claude का साथी",
+        "description": "दृष्टि: Claude के साथ एक MCP सर्वर और स्किल के रूप में सहज एकीकरण, जबकि Claude आपके व्यापक काम पर ध्यान केंद्रित करता है, शेल कमांड इन्फेरेंस को ऑफलोड करना।",
+        "statusLabel": "योजनाबद्ध"
       }
     ]
   }

@@ -1,8 +1,8 @@
 {
   "common": {
     "meta": {
-      "title": "Caro - Votre compagnon shell fidèle",
-      "description": "Caro est un agent compagnon qui vous aide avec les commandes shell POSIX. Disponible en tant que MCP pour Claude et en tant que Skill dédiée."
+      "title": "Caro - Votre fidèle compagnon de shell",
+      "description": "Caro est un agent compagnon qui vous aide avec les commandes de shell POSIX. Disponible en tant que MCP pour Claude et en tant que compétence dédiée."
     },
     "buttons": {
       "copy": "Copier",
@@ -17,8 +17,8 @@
       "comingSoon": "Bientôt disponible"
     },
     "aria": {
-      "toggleDarkMode": "Activer/désactiver le mode sombre",
-      "toggleHolidayTheme": "Activer/désactiver le menu du thème festif"
+      "toggleDarkMode": "Basculer en mode sombre",
+      "toggleHolidayTheme": "Basculer le menu du thème des fêtes"
     },
     "nav": {
       "features": "Fonctionnalités",
@@ -27,13 +27,13 @@
       "support": "Support",
       "getStarted": "Commencer",
       "dropdown": {
-        "overview": "Vue d'ensemble",
+        "overview": "Aperçu",
         "seeAllComparisons": "Voir toutes les comparaisons",
-        "vsWarp": "vs Warp",
+        "vsWarp": "contre Warp",
         "aiNativeTerminal": "Terminal natif IA",
-        "vsGitHubCopilot": "vs GitHub Copilot CLI",
-        "aiPairProgrammer": "Programmation en binôme avec IA",
-        "vsKiro": "vs Kiro CLI",
+        "vsGitHubCopilot": "contre GitHub Copilot CLI",
+        "aiPairProgrammer": "Programmeur binôme IA",
+        "vsKiro": "contre Kiro CLI",
         "awsAssistant": "Assistant IA AWS",
         "blog": "Blog",
         "newsAndTutorials": "Actualités & tutoriels",
@@ -41,10 +41,10 @@
         "interactiveDemo": "Démo interactive",
         "faq": "FAQ",
         "commonQuestions": "Questions fréquentes",
-        "roadmap": "Roadmap",
-        "whatsNext": "À venir",
+        "roadmap": "Feuille de route",
+        "whatsNext": "Ce qui arrive ensuite",
         "glossary": "Glossaire",
-        "terminalTerms": "Termes terminal & Unix",
+        "terminalTerms": "Termes de terminal & Unix",
         "github": "GitHub",
         "sourceCode": "Code source"
       },
@@ -54,13 +54,13 @@
       },
       "appearance": {
         "title": "Apparence",
-        "darkMode": "Mode sombre",
-        "holidayTheme": "Thème festif",
-        "snowEffect": "Effet neige",
+        "darkMode": "Mode Sombre",
+        "holidayTheme": "Thème des Fêtes",
+        "snowEffect": "Effet Neige",
         "disableEffects": "Désactiver tous les effets"
       },
       "useCases": {
-        "allUseCases": "Tous les cas d'usage",
+        "allUseCases": "Tous les cas d'utilisation",
         "byRole": "Par rôle",
         "backToHome": "Retour à l'accueil"
       }

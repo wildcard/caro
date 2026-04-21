@@ -131,9 +131,10 @@ impl ClaudeBackend {
 
     /// Create a new Claude backend from environment variable
     pub fn from_env() -> Result<Self, GeneratorError> {
-        let api_key = std::env::var("ANTHROPIC_API_KEY").map_err(|_| GeneratorError::ConfigError {
-            message: "ANTHROPIC_API_KEY environment variable not set".to_string(),
-        })?;
+        let api_key =
+            std::env::var("ANTHROPIC_API_KEY").map_err(|_| GeneratorError::ConfigError {
+                message: "ANTHROPIC_API_KEY environment variable not set".to_string(),
+            })?;
         Self::new(api_key)
     }
 
@@ -227,11 +228,12 @@ Do not include any text before or after the JSON object."#,
             temperature: 0.1,
         };
 
-        let url = self.base_url.join("/v1/messages").map_err(|e| {
-            GeneratorError::ConfigError {
+        let url = self
+            .base_url
+            .join("/v1/messages")
+            .map_err(|e| GeneratorError::ConfigError {
                 message: format!("Invalid base URL: {}", e),
-            }
-        })?;
+            })?;
 
         let response = self
             .client
@@ -272,7 +274,10 @@ Do not include any text before or after the JSON object."#,
             let status = response.status();
             if let Ok(error_response) = response.json::<ClaudeError>().await {
                 return Err(GeneratorError::GenerationFailed {
-                    details: format!("Claude API error ({}): {}", status, error_response.error.message),
+                    details: format!(
+                        "Claude API error ({}): {}",
+                        status, error_response.error.message
+                    ),
                 });
             }
             return Err(GeneratorError::GenerationFailed {
@@ -319,7 +324,7 @@ Do not include any text before or after the JSON object."#,
                             estimated_impact: "Remote inference via Anthropic API".to_string(),
                             alternatives: vec![],
                             backend_used: format!("Claude ({})", self.model_name),
-                            generation_time_ms: 0, // Will be set by caller
+                            generation_time_ms: 0,  // Will be set by caller
                             confidence_score: 0.95, // Claude typically has high confidence
                         });
                     }
@@ -334,7 +339,8 @@ Do not include any text before or after the JSON object."#,
 
                 // For authentication errors, don't retry or fallback immediately
                 if let GeneratorError::BackendUnavailable { ref reason } = claude_error {
-                    if reason.contains("Authentication failed") || reason.contains("Access denied") {
+                    if reason.contains("Authentication failed") || reason.contains("Access denied")
+                    {
                         return Err(claude_error);
                     }
                 }
@@ -385,7 +391,7 @@ impl CommandGenerator for ClaudeBackend {
             supports_streaming: false, // Could be enabled in future
             max_tokens: 100,
             typical_latency_ms: 500, // Haiku is very fast
-            memory_usage_mb: 0, // External API
+            memory_usage_mb: 0,      // External API
             version: ANTHROPIC_API_VERSION.to_string(),
         }
     }

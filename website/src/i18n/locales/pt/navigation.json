@@ -4,7 +4,7 @@
     "links": {
       "features": "Recursos",
       "compare": "Comparar",
-      "play": "Experimentar",
+      "play": "Jogar",
       "blog": "Blog",
       "getStarted": "Começar",
       "github": "GitHub"
@@ -13,9 +13,9 @@
       "toggle": "Alternar modo escuro"
     },
     "holidayTheme": {
-      "toggle": "Alternar menu de tema festivo",
-      "title": "Tema Festivo",
-      "menuHeader": "Tema Festivo",
+      "toggle": "Alternar menu de tema de feriado",
+      "title": "Tema de Feriado",
+      "menuHeader": "Tema de Feriado",
       "options": {
         "christmas": "Natal",
         "hanukkah": "Hanukkah",
@@ -25,24 +25,24 @@
     }
   },
   "footer": {
-    "builtWith": "Feito com Rust 🦀 | Open source no",
+    "builtWith": "Desenvolvido com Rust 🦀 | Código aberto no",
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
-      "tagline": "Sua companheira fiel no shell"
+      "tagline": "Seu fiel companheiro de shell"
     },
     "links": {
       "license": "AGPL-3.0",
-      "credits": "Créditos e Atribuições",
-      "contributing": "Contribuindo",
-      "issues": "Issues"
+      "credits": "Créditos & Atribuições",
+      "contributing": "Contribuir",
+      "issues": "Problemas"
     },
     "kyaro": {
-      "title": "Conheça a Kyaro da vida real (Kyarorain Kadosh)! 🐕🖤",
-      "followText": "Acompanhe as aventuras dela no",
+      "title": "Conheça a Kyaro IRL (Kyarorain Kadosh)! 🐕🖤",
+      "followText": "Siga as aventuras dela no",
       "instagram": "Instagram @kyaroblackheart"
     },
-    "inspiration": "Inspirado em Caroline de Portal—lealdade transformada em companheirismo digital",
-    "elevatorCredit": "Efeito de scroll por"
+    "inspiration": "Inspirado na Caroline de Portal—lealdade transformada em companheirismo digital",
+    "elevatorCredit": "Efeito de rolagem por"
   }
 }

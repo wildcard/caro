@@ -3,8 +3,8 @@
     "brand": "🐕 Caro",
     "links": {
       "features": "خصوصیات",
-      "compare": "موازنہ",
-      "play": "آزمائیں",
+      "compare": "موازنہ کریں",
+      "play": "کھیلیں",
       "blog": "بلاگ",
       "getStarted": "شروع کریں",
       "github": "GitHub"
@@ -13,36 +13,36 @@
       "toggle": "ڈارک موڈ تبدیل کریں"
     },
     "holidayTheme": {
-      "toggle": "تہوار کی تھیم مینو کھولیں",
-      "title": "تہوار کی تھیم",
-      "menuHeader": "تہوار کی تھیم",
+      "toggle": "چھٹیوں کے تھیم مینو کو تبدیل کریں",
+      "title": "چھٹیوں کا تھیم",
+      "menuHeader": "چھٹیوں کا تھیم",
       "options": {
         "christmas": "کرسمس",
-        "hanukkah": "حنوکہ",
+        "hanukkah": "حنوکا",
         "noTheme": "کوئی تھیم نہیں"
       },
       "snowEffect": "برف کا اثر"
     }
   },
   "footer": {
-    "builtWith": "Rust 🦀 سے بنایا گیا | اوپن سورس",
+    "builtWith": "رسٹ 🦀 کے ساتھ بنایا گیا | اوپن سورس پر",
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
-      "tagline": "آپ کا وفادار shell ساتھی"
+      "tagline": "آپ کا وفادار شیل ساتھی"
     },
     "links": {
       "license": "AGPL-3.0",
-      "credits": "کریڈٹس اور حوالہ جات",
-      "contributing": "تعاون کریں",
+      "credits": "کریڈٹس اور اعتراف",
+      "contributing": "شراکت داری",
       "issues": "مسائل"
     },
     "kyaro": {
-      "title": "حقیقی Kyaro سے ملیں (Kyarorain Kadosh)! 🐕🖤",
-      "followText": "ان کی کہانیاں دیکھیں",
+      "title": "ملاقات IRL Kyaro (Kyarorain Kadosh) سے! 🐕🖤",
+      "followText": "ان کے مہم جوئی پر پیروی کریں",
       "instagram": "Instagram @kyaroblackheart"
     },
-    "inspiration": "Portal کی Caroline سے متاثر—وفاداری جو ڈیجیٹل رفاقت بن گئی",
-    "elevatorCredit": "سکرول ایفیکٹ بنایا"
+    "inspiration": "پورٹل کی کیرولائن سے متاثر— وفاداری کو ڈیجیٹل ساتھی میں تبدیل کرنا",
+    "elevatorCredit": "اسکرول اثر کے لئے"
   }
 }

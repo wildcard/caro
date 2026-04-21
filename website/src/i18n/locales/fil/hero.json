@@ -1,12 +1,12 @@
 {
   "hero": {
-    "badge": "🐕 Companion Agent",
+    "badge": "🐕 Kasamang Ahente",
     "logo": "Caro",
     "logoAlt": "Caro - 8-bit pixel art",
-    "tagline": "Ang tapat mong kasama sa shell",
-    "subtitle": "Isang specialized POSIX shell command agent na may malasakit at sariling desisyon. Available bilang MCP para kay Claude at bilang dedicated Skill. Iingatan ka niya habang tinutulungan si Claude na matapos ang trabaho.",
+    "tagline": "Ang iyong tapat na kasama sa shell",
+    "subtitle": "Isang espesyalisadong ahente ng POSIX shell command na may empatiya at sariling pagkilos. Magagamit bilang isang MCP para kay Claude at bilang isang dedikadong Kakayahan. Pinapanatili ka niyang ligtas habang tinutulungan si Claude na maisagawa ang trabaho.",
     "cta": {
-      "getStarted": "Magsimula",
+      "getStarted": "Simulan",
       "watchDemo": "Panoorin ang Demo"
     }
   }

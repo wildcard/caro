@@ -1,10 +1,10 @@
 {
   "hero": {
-    "badge": "🐕 Companion Agent",
+    "badge": "🐕 Begleitagent",
     "logo": "Caro",
-    "logoAlt": "Caro - 8-Bit Pixel Art",
-    "tagline": "Deine treue Shell-Begleiterin",
-    "subtitle": "Ein spezialisierter POSIX-Shell-Command-Agent mit Empathie und Eigeninitiative. Verfügbar als MCP für Claude und als dedizierter Skill. Sie hält dir den Rücken frei, während sie Claude bei der Arbeit unterstützt.",
+    "logoAlt": "Caro - 8-Bit-Pixelkunst",
+    "tagline": "Dein treuer Shell-Begleiter",
+    "subtitle": "Ein spezialisierter POSIX-Shell-Befehlsagent mit Empathie und Handlungsfähigkeit. Verfügbar als MCP für Claude und als dedizierte Fähigkeit. Sie hält dich sicher, während sie Claude hilft, die Arbeit zu erledigen.",
     "cta": {
       "getStarted": "Loslegen",
       "watchDemo": "Demo ansehen"

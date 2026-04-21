@@ -1,14 +1,14 @@
 {
   "common": {
     "meta": {
-      "title": "Caro - Tu compañero fiel de shell",
-      "description": "Caro es un agente compañero que te ayuda con comandos de shell POSIX. Disponible como MCP para Claude y como Skill dedicado."
+      "title": "Caro - Tu fiel compañero de shell",
+      "description": "Caro es un agente acompañante que te ayuda con comandos de shell POSIX. Disponible como un MCP para Claude y como una Habilidad dedicada."
     },
     "buttons": {
       "copy": "Copiar",
       "copied": "¡Copiado!",
       "getStarted": "Empezar",
-      "watchDemo": "Ver Demo"
+      "watchDemo": "Ver Demostración"
     },
     "status": {
       "availableNow": "Disponible Ahora",
@@ -17,8 +17,8 @@
       "comingSoon": "Próximamente"
     },
     "aria": {
-      "toggleDarkMode": "Activar modo oscuro",
-      "toggleHolidayTheme": "Activar menú de tema festivo"
+      "toggleDarkMode": "Cambiar al modo oscuro",
+      "toggleHolidayTheme": "Cambiar el menú de tema festivo"
     },
     "nav": {
       "features": "Características",
@@ -27,22 +27,22 @@
       "support": "Soporte",
       "getStarted": "Empezar",
       "dropdown": {
-        "overview": "Resumen",
+        "overview": "Visión general",
         "seeAllComparisons": "Ver todas las comparaciones",
         "vsWarp": "vs Warp",
-        "aiNativeTerminal": "Terminal nativa con IA",
+        "aiNativeTerminal": "Terminal nativo de IA",
         "vsGitHubCopilot": "vs GitHub Copilot CLI",
-        "aiPairProgrammer": "Programador en pareja con IA",
+        "aiPairProgrammer": "Programador pareja de IA",
         "vsKiro": "vs Kiro CLI",
-        "awsAssistant": "Asistente IA de AWS",
+        "awsAssistant": "Asistente de AWS AI",
         "blog": "Blog",
         "newsAndTutorials": "Noticias y tutoriales",
         "explore": "Explorar",
-        "interactiveDemo": "Demo interactiva",
+        "interactiveDemo": "Demostración interactiva",
         "faq": "FAQ",
-        "commonQuestions": "Preguntas frecuentes",
-        "roadmap": "Roadmap",
-        "whatsNext": "Qué viene después",
+        "commonQuestions": "Preguntas comunes",
+        "roadmap": "Hoja de ruta",
+        "whatsNext": "Lo que viene a continuación",
         "glossary": "Glosario",
         "terminalTerms": "Términos de terminal y Unix",
         "github": "GitHub",
@@ -62,7 +62,7 @@
       "useCases": {
         "allUseCases": "Todos los Casos de Uso",
         "byRole": "Por Rol",
-        "backToHome": "Volver al Inicio"
+        "backToHome": "Volver a Inicio"
       }
     }
   }

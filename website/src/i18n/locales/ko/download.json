@@ -1,12 +1,12 @@
 {
   "download": {
     "title": "Caro 시작하기",
-    "subtitle": "믿음직한 쉘 동료를 터미널에 데려오세요",
+    "subtitle": "당신의 충실한 셸 동반자를 터미널로 가져오세요",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
     "copyButton": "복사",
-    "copiedButton": "복사 완료!",
-    "binariesIntro": "또는 빌드된 바이너리 다운로드:",
-    "comingSoonBadge": "곧 출시",
+    "copiedButton": "복사됨!",
+    "binariesIntro": "또는 미리 빌드된 바이너리 다운로드:",
+    "comingSoonBadge": "곧 출시 예정",
     "platforms": {
       "macAppleSilicon": "macOS (Apple Silicon)",
       "macIntel": "macOS (Intel)",
@@ -14,29 +14,29 @@
       "windows": "Windows"
     },
     "usageModes": {
-      "title": "Caro 활용 방법",
+      "title": "Caro 사용법",
       "modes": [
         {
           "title": "🔧 독립 실행형 CLI",
           "exampleCommand": "caro \"list files > 100MB\""
         },
         {
-          "title": "🔌 Claude용 MCP",
-          "description": "Caro를 Claude Desktop의 MCP 서버로 추가하면 모든 쉘 명령을 자연스럽게 처리할 수 있습니다.",
+          "title": "🔌 Claude를 위한 MCP",
+          "description": "Caro를 Claude Desktop의 MCP 서버로 추가하고 모든 셸 명령을 원활하게 처리하세요.",
           "comingSoon": true
         },
         {
-          "title": "✨ 전용 Skill",
-          "description": "Caro를 Skill로 사용해서 쉘 명령 생성과 실행은 맡기고, Claude는 본업에 집중하게 하세요.",
+          "title": "✨ 전용 스킬",
+          "description": "Caro를 스킬로 사용하여 셸 명령 생성 및 실행을 처리하고 Claude가 당신의 작업에 집중할 수 있도록 하세요.",
           "comingSoon": true
         }
       ]
     },
     "quickStart": {
       "title": "빠른 시작",
-      "intro": "위 설치 스크립트 실행 후, 바로 Caro를 사용하세요:",
+      "intro": "위의 설정 스크립트를 실행한 후, Caro를 사용하세요:",
       "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
-      "description": "Caro가 명령어를 생성하고 안전하게 지켜줍니다. 설치 스크립트가 Rust 컴파일을 포함한 모든 사전 요구사항을 처리합니다."
+      "description": "Caro가 명령을 생성하고 안전을 유지합니다. 설정 스크립트는 Rust 컴파일을 포함한 모든 전제 조건을 처리합니다."
     }
   }
 }

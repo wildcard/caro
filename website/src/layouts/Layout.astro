@@ -9,15 +9,38 @@ import OmniSearch from '../components/OmniSearch.astro';
 import SearchHighlight from '../components/SearchHighlight.astro';
 import HolidayDebugPanel from '../components/HolidayDebugPanel.astro';
 import HumanityEventBanner from '../components/HumanityEventBanner.astro';
+import SEO from '../components/SEO.astro';
 import { isRtl, getAllLocales, type Locale } from '../i18n/config';
 
 interface Props {
   title: string;
   description: string;
   lang?: Locale;
+  image?: string;
+  imageAlt?: string;
+  type?: 'website' | 'article';
+  publishedTime?: string;
+  modifiedTime?: string;
+  author?: string;
+  tags?: string[];
+  noindex?: boolean;
+  canonical?: string;
 }
 
-const { title, description, lang = 'en' } = Astro.props;
+const {
+  title,
+  description,
+  lang = 'en',
+  image,
+  imageAlt,
+  type = 'website',
+  publishedTime,
+  modifiedTime,
+  author,
+  tags,
+  noindex,
+  canonical,
+} = Astro.props;
 const dir = isRtl(lang) ? 'rtl' : 'ltr';
 ---
 
@@ -25,11 +48,21 @@ const dir = isRtl(lang) ? 'rtl' : 'ltr';
 <html lang={lang} dir={dir}>
   <head>
     <meta charset="UTF-8" />
-    <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/png" href="/caro-pixel.png" />
     <meta name="generator" content={Astro.generator} />
-    <title>{title}</title>
+    <SEO
+      title={title}
+      description={description}
+      image={image}
+      imageAlt={imageAlt}
+      type={type}
+      publishedTime={publishedTime}
+      modifiedTime={modifiedTime}
+      author={author}
+      tags={tags}
+      noindex={noindex}
+      canonical={canonical}
+    />
     <!-- ASCII Morph Library (Multi-instance support) -->
     <script src="/ascii-morph-multi.js" is:inline></script>
 
@@ -160,6 +193,7 @@ const dir = isRtl(lang) ? 'rtl' : 'ltr';
     --color-text: #2c3e50;
     --color-text-secondary: #7f8c8d;
     --color-text-tertiary: #34495e;
+    --color-text-muted: #95a5a6;
     --color-border: #f0f0f0;
     --color-footer-bg: #2c3e50;
     --color-footer-text: #ecf0f1;
@@ -177,6 +211,7 @@ const dir = isRtl(lang) ? 'rtl' : 'ltr';
     --color-text: #e0e0e0;
     --color-text-secondary: #a0a0a0;
     --color-text-tertiary: #c0c0c0;
+    --color-text-muted: #888888;
     --color-border: #3a3a3a;
     --color-footer-bg: #0f0f0f;
     --color-footer-text: #e0e0e0;

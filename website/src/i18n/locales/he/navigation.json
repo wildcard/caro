@@ -2,47 +2,47 @@
   "navigation": {
     "brand": "🐕 Caro",
     "links": {
-      "features": "פיצ'רים",
+      "features": "תכונות",
       "compare": "השוואה",
-      "play": "נסו",
+      "play": "הפעלה",
       "blog": "בלוג",
-      "getStarted": "בואו נתחיל",
+      "getStarted": "התחלה",
       "github": "GitHub"
     },
     "darkMode": {
-      "toggle": "מעבר למצב כהה"
+      "toggle": "החלף מצב כהה"
     },
     "holidayTheme": {
-      "toggle": "פתיחת תפריט ערכות חג",
+      "toggle": "החלף תפריט ערכת חג",
       "title": "ערכת חג",
       "menuHeader": "ערכת חג",
       "options": {
-        "christmas": "כריסמס",
+        "christmas": "חג המולד",
         "hanukkah": "חנוכה",
-        "noTheme": "בלי ערכה"
+        "noTheme": "ללא ערכה"
       },
       "snowEffect": "אפקט שלג"
     }
   },
   "footer": {
-    "builtWith": "נבנה ב-Rust 🦀 | קוד פתוח ב-",
+    "builtWith": "נבנה באמצעות Rust 🦀 | קוד פתוח ב",
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
-      "tagline": "החברה הנאמנה שלכם בטרמינל"
+      "tagline": "חבר השל שלך הנאמן"
     },
     "links": {
       "license": "AGPL-3.0",
-      "credits": "קרדיטים וייחוסים",
-      "contributing": "רוצים לתרום?",
-      "issues": "באגים ובעיות"
+      "credits": "קרדיטים והכרה",
+      "contributing": "תרומה",
+      "issues": "בעיות"
     },
     "kyaro": {
-      "title": "הכירו את קיארו האמיתית (קיארוריין קדוש)! 🐕🖤",
-      "followText": "עקבו אחרי ההרפתקאות שלה ב-",
+      "title": "הכירו את קיארו בחיים האמיתיים (Kyarorain Kadosh)! 🐕🖤",
+      "followText": "עקבו אחרי ההרפתקאות שלה ב",
       "instagram": "Instagram @kyaroblackheart"
     },
-    "inspiration": "בהשראת קרוליין מ-Portal—נאמנות שהפכה לחברות דיגיטלית",
-    "elevatorCredit": "אפקט הגלילה על ידי"
+    "inspiration": "השראה מקרוליין מהמשחק Portal—נאמנות המתורגמת לחברות דיגיטלית",
+    "elevatorCredit": "אפקט גלילה מאת"
   }
 }

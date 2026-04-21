@@ -2,7 +2,7 @@
   "common": {
     "meta": {
       "title": "Caro - Dein treuer Shell-Begleiter",
-      "description": "Caro ist ein Companion-Agent, der dir bei POSIX-Shell-Befehlen hilft. Verfügbar als MCP für Claude und als dediziertes Skill."
+      "description": "Caro ist ein Begleitagent, der dir bei POSIX-Shell-Befehlen hilft. Verfügbar als MCP für Claude und als eigenständige Fähigkeit."
     },
     "buttons": {
       "copy": "Kopieren",
@@ -14,53 +14,53 @@
       "availableNow": "Jetzt verfügbar",
       "inDevelopment": "In Entwicklung",
       "planned": "Geplant",
-      "comingSoon": "Demnächst"
+      "comingSoon": "Bald verfügbar"
     },
     "aria": {
-      "toggleDarkMode": "Dark Mode umschalten",
-      "toggleHolidayTheme": "Feiertagsthema-Menü umschalten"
+      "toggleDarkMode": "Dunkelmodus umschalten",
+      "toggleHolidayTheme": "Feiertagsthemenmenü umschalten"
     },
     "nav": {
-      "features": "Features",
-      "compare": "Vergleich",
+      "features": "Funktionen",
+      "compare": "Vergleichen",
       "resources": "Ressourcen",
       "support": "Support",
       "getStarted": "Loslegen",
       "dropdown": {
         "overview": "Übersicht",
-        "seeAllComparisons": "Alle Vergleiche ansehen",
+        "seeAllComparisons": "Alle Vergleiche anzeigen",
         "vsWarp": "vs Warp",
-        "aiNativeTerminal": "AI-natives Terminal",
+        "aiNativeTerminal": "KI-natives Terminal",
         "vsGitHubCopilot": "vs GitHub Copilot CLI",
-        "aiPairProgrammer": "AI-Pair-Programmer",
+        "aiPairProgrammer": "KI-Paarprogrammierer",
         "vsKiro": "vs Kiro CLI",
-        "awsAssistant": "AWS-AI-Assistent",
+        "awsAssistant": "AWS KI-Assistent",
         "blog": "Blog",
-        "newsAndTutorials": "News & Tutorials",
-        "explore": "Entdecken",
+        "newsAndTutorials": "Neuigkeiten & Tutorials",
+        "explore": "Erkunden",
         "interactiveDemo": "Interaktive Demo",
         "faq": "FAQ",
         "commonQuestions": "Häufige Fragen",
-        "roadmap": "Roadmap",
+        "roadmap": "Fahrplan",
         "whatsNext": "Was kommt als Nächstes",
         "glossary": "Glossar",
         "terminalTerms": "Terminal- & Unix-Begriffe",
         "github": "GitHub",
-        "sourceCode": "Source Code"
+        "sourceCode": "Quellcode"
       },
       "mobile": {
         "allComparisons": "Alle Vergleiche",
         "supportCaro": "Caro unterstützen"
       },
       "appearance": {
-        "title": "Darstellung",
-        "darkMode": "Dark Mode",
+        "title": "Erscheinungsbild",
+        "darkMode": "Dunkelmodus",
         "holidayTheme": "Feiertagsthema",
-        "snowEffect": "Schnee-Effekt",
+        "snowEffect": "Schneeeffekt",
         "disableEffects": "Alle Effekte deaktivieren"
       },
       "useCases": {
-        "allUseCases": "Alle Use Cases",
+        "allUseCases": "Alle Anwendungsfälle",
         "byRole": "Nach Rolle",
         "backToHome": "Zurück zur Startseite"
       }

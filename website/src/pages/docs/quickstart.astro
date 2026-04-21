@@ -1,0 +1,104 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+  title="Quick Start"
+  description="Get started with Caro in minutes"
+>
+  <h1>Quick Start</h1>
+
+  <p>
+    This guide will have you generating shell commands with Caro in just a few minutes.
+  </p>
+
+  <h2>Basic Usage</h2>
+
+  <p>Simply describe what you want to do in natural language:</p>
+
+  <pre><code>$ caro "list all files in the current directory"
+Command:
+  ls -la
+
+Execute this command? [y/N]</code></pre>
+
+  <h2>More Examples</h2>
+
+  <h3>File Operations</h3>
+  <pre><code># Find large files
+$ caro "find files larger than 100MB"
+
+# Search for text in files
+$ caro "search for TODO comments in all Python files"
+
+# Compress a directory
+$ caro "create a zip archive of the src folder"</code></pre>
+
+  <h3>System Information</h3>
+  <pre><code># Check disk space
+$ caro "show disk usage"
+
+# View running processes
+$ caro "list running processes sorted by memory usage"
+
+# Network information
+$ caro "show my IP address"</code></pre>
+
+  <h3>Git Commands</h3>
+  <pre><code># View recent commits
+$ caro "show the last 10 git commits"
+
+# Find changed files
+$ caro "list files changed since yesterday"
+
+# Create a branch
+$ caro "create and switch to a new branch called feature-login"</code></pre>
+
+  <h2>Output Formats</h2>
+
+  <p>Get output in different formats:</p>
+
+  <pre><code># Plain text (default)
+$ caro "list files"
+
+# JSON format
+$ caro -o json "list files"
+
+# YAML format
+$ caro -o yaml "list files"</code></pre>
+
+  <h2>Execution Options</h2>
+
+  <pre><code># Auto-execute without confirmation
+$ caro -x "show current date"
+
+# Dry run (don't execute, just show)
+$ caro --dry-run "delete temporary files"
+
+# Interactive mode with step-by-step confirmation
+$ caro -i "set up a Python virtual environment"</code></pre>
+
+  <h2>Tips</h2>
+
+  <ul>
+    <li>
+      <strong>Be specific</strong> - "find Python files modified today" works better
+      than "find some files"
+    </li>
+    <li>
+      <strong>Use context</strong> - Mention file types, directories, or constraints
+    </li>
+    <li>
+      <strong>Review commands</strong> - Always check what will be executed,
+      especially for destructive operations
+    </li>
+  </ul>
+
+  <h2>Next Steps</h2>
+
+  <ul>
+    <li><a href="/docs/configuration">Configuration</a> - Customize Caro for your workflow</li>
+    <li><a href="/docs/safety">Safety Levels</a> - Learn about command validation</li>
+    <li><a href="/docs/cli">CLI Reference</a> - All command-line options</li>
+  </ul>
+</DocsLayout>

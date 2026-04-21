@@ -1,0 +1,1630 @@
+---
+// InteractiveTerminal.astro - Interactive terminal demo showing Caro's value
+---
+
+<section id="demo" class="demo-section">
+  <div class="container">
+    <h2>Experience the Difference</h2>
+    <p class="section-subtitle">
+      Try the terminal below. Type commands, explore the filesystem, then install Caro to see the magic.
+    </p>
+
+    <!-- OS Selector -->
+    <div class="os-selector">
+      <button class="os-btn active" data-os="macos">
+        <span class="os-icon">🍎</span> macOS
+      </button>
+      <button class="os-btn" data-os="linux">
+        <span class="os-icon">🐧</span> Linux
+      </button>
+      <button class="os-btn" data-os="windows">
+        <span class="os-icon">🪟</span> Windows
+      </button>
+    </div>
+
+    <!-- Terminal Window -->
+    <div class="terminal-window">
+      <div class="terminal-chrome">
+        <div class="terminal-buttons">
+          <span class="terminal-btn close"></span>
+          <span class="terminal-btn minimize"></span>
+          <span class="terminal-btn maximize"></span>
+        </div>
+        <div class="terminal-title">
+          <span id="terminal-title-text">~/mystery</span>
+        </div>
+        <div class="terminal-actions">
+          <button id="install-caro-btn" class="install-btn">
+            <span class="install-icon">🐕</span> Install Caro
+          </button>
+        </div>
+      </div>
+
+      <!-- xterm container -->
+      <div id="terminal-container"></div>
+
+      <!-- Status bar (visible in Caro mode) -->
+      <div id="status-bar" class="status-bar hidden">
+        <span class="status-item">🐕 <span id="status-caro">Caro: Ready</span></span>
+        <span class="status-item">💻 <span id="status-os">macOS</span></span>
+        <span class="status-item">🐚 <span id="status-shell">zsh</span></span>
+        <span class="status-item">📂 <span id="status-dir">~/mystery</span></span>
+      </div>
+    </div>
+
+    <!-- Sample Prompts (initially hidden) -->
+    <div id="sample-prompts" class="sample-prompts hidden">
+      <p class="prompts-label">Try asking Caro:</p>
+      <div class="prompt-chips">
+        <button class="prompt-chip" data-prompt="Find the file that's eating disk space">
+          Find large files
+        </button>
+        <button class="prompt-chip" data-prompt="Explain this error log in plain English">
+          Explain errors
+        </button>
+        <button class="prompt-chip" data-prompt="Show me what changed recently">
+          Recent changes
+        </button>
+        <button class="prompt-chip" data-prompt="Extract fields from data.json as a table">
+          Parse JSON
+        </button>
+        <button class="prompt-chip" data-prompt="Find all Python files">
+          Find files
+        </button>
+        <button class="prompt-chip" data-prompt="Help me understand this codebase">
+          Explore code
+        </button>
+      </div>
+    </div>
+
+    <!-- Instructions hint -->
+    <div class="instructions">
+      <p id="instruction-text">
+        Type <code>ls</code> to explore, <code>cat README.md</code> to read files, or try natural language...
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .demo-section {
+    background: linear-gradient(180deg, var(--color-bg) 0%, #0a0a12 100%);
+    padding: 80px 20px;
+  }
+
+  .demo-section h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .os-selector {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .os-btn {
+    background: #1e1e2e;
+    border: 2px solid #333;
+    color: #888;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+
+  .os-btn:hover {
+    border-color: #555;
+    color: #aaa;
+  }
+
+  .os-btn.active {
+    border-color: #ff8c42;
+    color: #fff;
+    background: #252535;
+  }
+
+  .os-icon {
+    font-size: 16px;
+  }
+
+  .terminal-window {
+    max-width: 900px;
+    margin: 0 auto;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+
+  .terminal-chrome {
+    background: linear-gradient(180deg, #3a3a4a 0%, #2a2a3a 100%);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #1a1a2a;
+  }
+
+  .terminal-buttons {
+    display: flex;
+    gap: 8px;
+  }
+
+  .terminal-btn {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .terminal-btn.close {
+    background: #ff5f56;
+  }
+
+  .terminal-btn.minimize {
+    background: #ffbd2e;
+  }
+
+  .terminal-btn.maximize {
+    background: #27c93f;
+  }
+
+  .terminal-title {
+    font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+    font-size: 13px;
+    color: #888;
+  }
+
+  .terminal-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .install-btn {
+    background: linear-gradient(180deg, #ff8c42 0%, #e67635 100%);
+    border: none;
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(255, 140, 66, 0.3);
+  }
+
+  .install-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.4);
+  }
+
+  .install-btn.installed {
+    background: linear-gradient(180deg, #27c93f 0%, #1fa335 100%);
+    box-shadow: 0 2px 8px rgba(39, 201, 63, 0.3);
+  }
+
+  .install-btn.installed:hover {
+    box-shadow: 0 4px 12px rgba(39, 201, 63, 0.4);
+  }
+
+  .install-icon {
+    font-size: 14px;
+  }
+
+  #terminal-container {
+    height: 400px;
+    background: #0d0d14;
+    padding: 0;
+  }
+
+  .status-bar {
+    background: #1a1a2a;
+    padding: 8px 16px;
+    display: flex;
+    gap: 20px;
+    font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+    font-size: 12px;
+    color: #888;
+    border-top: 1px solid #252535;
+  }
+
+  .status-bar.hidden {
+    display: none;
+  }
+
+  .status-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .sample-prompts {
+    max-width: 900px;
+    margin: 20px auto 0;
+    padding: 20px;
+    background: #1a1a2a;
+    border-radius: 12px;
+    border: 1px solid #252535;
+  }
+
+  .sample-prompts.hidden {
+    display: none;
+  }
+
+  .prompts-label {
+    color: #888;
+    font-size: 14px;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+
+  .prompt-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .prompt-chip {
+    background: #252535;
+    border: 1px solid #333;
+    color: #aaa;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+
+  .prompt-chip:hover {
+    border-color: #ff8c42;
+    color: #fff;
+    background: #2a2a3f;
+  }
+
+  .instructions {
+    text-align: center;
+    margin-top: 20px;
+    color: #666;
+    font-size: 14px;
+  }
+
+  .instructions code {
+    background: #1a1a2a;
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: #ff8c42;
+    font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+  }
+
+  @media (max-width: 768px) {
+    .demo-section h2 {
+      font-size: 1.8rem;
+    }
+
+    .os-selector {
+      flex-wrap: wrap;
+    }
+
+    .terminal-chrome {
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .terminal-title {
+      order: 1;
+      width: 100%;
+      text-align: center;
+    }
+
+    #terminal-container {
+      height: 350px;
+    }
+
+    .status-bar {
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .prompt-chips {
+      flex-direction: column;
+    }
+
+    .prompt-chip {
+      width: 100%;
+      text-align: center;
+    }
+  }
+</style>
+
+<script>
+  import { Terminal } from '@xterm/xterm';
+  import { FitAddon } from '@xterm/addon-fit';
+  import '@xterm/xterm/css/xterm.css';
+
+  // ============================================================================
+  // VIRTUAL FILESYSTEM
+  // ============================================================================
+
+  interface FSNode {
+    type: 'file' | 'directory';
+    content?: string;
+    children?: Record<string, FSNode>;
+    size?: number;
+    modified?: string;
+  }
+
+  const virtualFS: Record<string, FSNode> = {
+    '~': {
+      type: 'directory',
+      children: {
+        'mystery': {
+          type: 'directory',
+          children: {
+            'README.md': {
+              type: 'file',
+              size: 847,
+              modified: '2 hours ago',
+              content: `# Mystery Project
+
+Welcome to this mysterious codebase! Your mission:
+
+1. Figure out why the tests are failing
+2. Find the hidden configuration secret
+3. Identify which file is eating all the disk space
+
+## Getting Started
+
+Check the \`errors.log\` for clues about test failures.
+The \`.env\` file might have some interesting secrets...
+
+Good luck! You'll need it.
+
+---
+*Hint: Try \`ls -la\` to see hidden files*
+`
+            },
+            'errors.log': {
+              type: 'file',
+              size: 2341,
+              modified: '5 mins ago',
+              content: `[2024-12-26 10:15:32] ERROR: Connection refused to database
+[2024-12-26 10:15:33] ERROR: Failed to parse config.json - unexpected token at line 42
+[2024-12-26 10:15:34] WARN: Retrying connection (attempt 1/3)
+[2024-12-26 10:15:35] ERROR: Connection refused to database
+[2024-12-26 10:15:36] WARN: Retrying connection (attempt 2/3)
+[2024-12-26 10:15:37] ERROR: Connection refused to database
+[2024-12-26 10:15:38] FATAL: Max retries exceeded. Exiting.
+[2024-12-26 10:15:38] ERROR: Test suite aborted: 0 passed, 47 failed
+[2024-12-26 10:15:39] ERROR: Stack trace:
+    at DatabaseConnection.connect (src/db.js:42)
+    at TestRunner.setup (src/test-runner.js:15)
+    at main (src/index.js:8)
+[2024-12-26 10:15:40] INFO: Cleanup complete
+`
+            },
+            'data.json': {
+              type: 'file',
+              size: 1523,
+              modified: '1 day ago',
+              content: `{
+  "users": [
+    {"id": 1, "name": "Alice", "role": "admin", "email": "alice@example.com"},
+    {"id": 2, "name": "Bob", "role": "developer", "email": "bob@example.com"},
+    {"id": 3, "name": "Charlie", "role": "designer", "email": "charlie@example.com"},
+    {"id": 4, "name": "Diana", "role": "developer", "email": "diana@example.com"}
+  ],
+  "config": {
+    "version": "2.1.0",
+    "environment": "production",
+    "features": {
+      "darkMode": true,
+      "analytics": false,
+      "betaFeatures": true
+    }
+  },
+  "stats": {
+    "totalRequests": 1847293,
+    "activeUsers": 342,
+    "uptime": "99.97%"
+  }
+}
+`
+            },
+            'notes.txt': {
+              type: 'file',
+              size: 456,
+              modified: '3 days ago',
+              content: `TODO:
+- Fix the database connection issue (check .env)
+- Update dependencies (npm audit found issues)
+- Clean up that giant log file in /tmp
+- Review PR #42 (security fix)
+
+NOTES:
+- The secret API key is in .env (don't commit!)
+- Tests need DATABASE_URL set correctly
+- Production uses port 5432, dev uses 5433
+
+Remember: rm -rf is NOT the answer!
+`
+            },
+            '.env': {
+              type: 'file',
+              size: 289,
+              modified: '1 week ago',
+              content: `# Database Configuration
+DATABASE_URL=postgresql://localhost:5433/myapp
+DATABASE_PASSWORD=PLACEHOLDER_REPLACE_ME
+
+# API Keys (DO NOT COMMIT)
+API_KEY=your-api-key-goes-here
+STRIPE_SECRET=your-stripe-key-goes-here
+
+# Feature Flags
+ENABLE_BETA=true
+DEBUG_MODE=false
+`
+            },
+            '.gitignore': {
+              type: 'file',
+              size: 124,
+              modified: '2 weeks ago',
+              content: `.env
+node_modules/
+*.log
+.DS_Store
+tmp/
+`
+            },
+            'src': {
+              type: 'directory',
+              children: {
+                'index.js': {
+                  type: 'file',
+                  size: 892,
+                  modified: '2 days ago',
+                  content: `const db = require('./db');
+const config = require('./config');
+
+async function main() {
+  console.log('Starting application...');
+
+  try {
+    await db.connect();
+    console.log('Database connected');
+
+    // Start the server
+    const port = process.env.PORT || 3000;
+    app.listen(port, () => {
+      console.log(\`Server running on port \${port}\`);
+    });
+  } catch (error) {
+    console.error('Failed to start:', error.message);
+    process.exit(1);
+  }
+}
+
+main();
+`
+                },
+                'db.js': {
+                  type: 'file',
+                  size: 1245,
+                  modified: '2 days ago',
+                  content: `const { Pool } = require('pg');
+
+class DatabaseConnection {
+  constructor() {
+    this.pool = null;
+  }
+
+  async connect() {
+    const url = process.env.DATABASE_URL;
+    if (!url) {
+      throw new Error('DATABASE_URL not set');
+    }
+
+    this.pool = new Pool({ connectionString: url });
+
+    // Test connection
+    const client = await this.pool.connect();
+    await client.query('SELECT 1');
+    client.release();
+
+    return this;
+  }
+
+  async query(sql, params) {
+    return this.pool.query(sql, params);
+  }
+}
+
+module.exports = new DatabaseConnection();
+`
+                },
+                'config.js': {
+                  type: 'file',
+                  size: 567,
+                  modified: '3 days ago',
+                  content: `module.exports = {
+  port: process.env.PORT || 3000,
+  database: {
+    url: process.env.DATABASE_URL,
+    pool: { min: 2, max: 10 }
+  },
+  features: {
+    beta: process.env.ENABLE_BETA === 'true',
+    debug: process.env.DEBUG_MODE === 'true'
+  }
+};
+`
+                },
+                'utils.js': {
+                  type: 'file',
+                  size: 423,
+                  modified: '1 week ago',
+                  content: `function formatDate(date) {
+  return new Date(date).toISOString();
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function retry(fn, retries = 3) {
+  return async (...args) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        return await fn(...args);
+      } catch (e) {
+        if (i === retries - 1) throw e;
+        await sleep(1000 * (i + 1));
+      }
+    }
+  };
+}
+
+module.exports = { formatDate, sleep, retry };
+`
+                }
+              }
+            },
+            'tmp': {
+              type: 'directory',
+              children: {
+                'giant-log.txt': {
+                  type: 'file',
+                  size: 524288000,  // 500MB!
+                  modified: '1 hour ago',
+                  content: '[This file is too large to display - 500MB of log data]\n'.repeat(100)
+                },
+                'cache.tmp': {
+                  type: 'file',
+                  size: 4096,
+                  modified: '30 mins ago',
+                  content: 'Cached data: abc123...\n'
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+
+  // ============================================================================
+  // SHELL STATE & HELPERS
+  // ============================================================================
+
+  let currentPath = '~/mystery';
+  let caroEnabled = false;
+  let commandHistory: string[] = [];
+  let historyIndex = -1;
+  let currentOS = 'macos';
+  let currentShell = 'zsh';
+  let tourStep = 0;
+  let inTour = false;
+
+  function getNode(path: string): FSNode | null {
+    const parts = path.replace(/^~/, '~').split('/').filter(p => p);
+    let node: FSNode = virtualFS['~'];
+
+    for (let i = 1; i < parts.length; i++) {
+      if (node.type !== 'directory' || !node.children) return null;
+      const child = node.children[parts[i]];
+      if (!child) return null;
+      node = child;
+    }
+
+    return node;
+  }
+
+  function resolvePath(path: string): string {
+    if (path.startsWith('~')) return path;
+    if (path.startsWith('/')) return path;
+
+    const parts = currentPath.split('/').filter(p => p);
+    const newParts = path.split('/');
+
+    for (const part of newParts) {
+      if (part === '..') {
+        if (parts.length > 1) parts.pop();
+      } else if (part !== '.' && part !== '') {
+        parts.push(part);
+      }
+    }
+
+    return parts.join('/');
+  }
+
+  function formatSize(bytes: number): string {
+    if (bytes < 1024) return bytes + 'B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + 'K';
+    if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + 'M';
+    return (bytes / (1024 * 1024 * 1024)).toFixed(1) + 'G';
+  }
+
+  // ============================================================================
+  // COMMAND IMPLEMENTATIONS
+  // ============================================================================
+
+  type CommandHandler = (args: string[], term: Terminal) => void;
+
+  const commands: Record<string, CommandHandler> = {
+    ls: (args, term) => {
+      const showHidden = args.includes('-a') || args.includes('-la') || args.includes('-al');
+      const longFormat = args.includes('-l') || args.includes('-la') || args.includes('-al');
+      const targetPath = args.filter(a => !a.startsWith('-'))[0] || '.';
+      const fullPath = resolvePath(targetPath);
+      const node = getNode(fullPath);
+
+      if (!node || node.type !== 'directory') {
+        term.writeln(`ls: ${targetPath}: No such file or directory`);
+        return;
+      }
+
+      const entries = Object.entries(node.children || {});
+      const filtered = showHidden ? entries : entries.filter(([name]) => !name.startsWith('.'));
+
+      if (longFormat) {
+        term.writeln(`total ${filtered.length}`);
+        for (const [name, child] of filtered.sort()) {
+          const isDir = child.type === 'directory';
+          const perms = isDir ? 'drwxr-xr-x' : '-rw-r--r--';
+          const size = (child.size || 0).toString().padStart(8);
+          const date = child.modified || 'Dec 26 10:00';
+          const colorName = isDir ? `\x1b[34m${name}/\x1b[0m` : name;
+          term.writeln(`${perms}  1 user  staff  ${size}  ${date}  ${colorName}`);
+        }
+      } else {
+        const names = filtered.map(([name, child]) => {
+          return child.type === 'directory' ? `\x1b[34m${name}/\x1b[0m` : name;
+        }).sort();
+        term.writeln(names.join('  '));
+      }
+    },
+
+    cd: (args, term) => {
+      const target = args[0] || '~';
+      const fullPath = resolvePath(target);
+      const node = getNode(fullPath);
+
+      if (!node) {
+        term.writeln(`cd: ${target}: No such file or directory`);
+        return;
+      }
+      if (node.type !== 'directory') {
+        term.writeln(`cd: ${target}: Not a directory`);
+        return;
+      }
+
+      currentPath = fullPath;
+      updateStatusBar();
+    },
+
+    pwd: (_args, term) => {
+      term.writeln(currentPath);
+    },
+
+    cat: (args, term) => {
+      if (args.length === 0) {
+        term.writeln('cat: missing file operand');
+        return;
+      }
+
+      for (const arg of args) {
+        const fullPath = resolvePath(arg);
+        const node = getNode(fullPath);
+
+        if (!node) {
+          term.writeln(`cat: ${arg}: No such file or directory`);
+          continue;
+        }
+        if (node.type === 'directory') {
+          term.writeln(`cat: ${arg}: Is a directory`);
+          continue;
+        }
+
+        const content = node.content || '';
+        content.split('\n').forEach(line => term.writeln(line));
+      }
+    },
+
+    head: (args, term) => {
+      let lines = 10;
+      let file = '';
+
+      for (let i = 0; i < args.length; i++) {
+        if (args[i] === '-n' && args[i + 1]) {
+          lines = parseInt(args[i + 1]) || 10;
+          i++;
+        } else if (args[i].startsWith('-') && !isNaN(parseInt(args[i].slice(1)))) {
+          lines = parseInt(args[i].slice(1));
+        } else {
+          file = args[i];
+        }
+      }
+
+      if (!file) {
+        term.writeln('head: missing file operand');
+        return;
+      }
+
+      const fullPath = resolvePath(file);
+      const node = getNode(fullPath);
+
+      if (!node || node.type === 'directory') {
+        term.writeln(`head: ${file}: No such file or directory`);
+        return;
+      }
+
+      const content = (node.content || '').split('\n').slice(0, lines);
+      content.forEach(line => term.writeln(line));
+    },
+
+    tail: (args, term) => {
+      let lines = 10;
+      let file = '';
+
+      for (let i = 0; i < args.length; i++) {
+        if (args[i] === '-n' && args[i + 1]) {
+          lines = parseInt(args[i + 1]) || 10;
+          i++;
+        } else if (args[i].startsWith('-') && !isNaN(parseInt(args[i].slice(1)))) {
+          lines = parseInt(args[i].slice(1));
+        } else if (!args[i].startsWith('-')) {
+          file = args[i];
+        }
+      }
+
+      if (!file) {
+        term.writeln('tail: missing file operand');
+        return;
+      }
+
+      const fullPath = resolvePath(file);
+      const node = getNode(fullPath);
+
+      if (!node || node.type === 'directory') {
+        term.writeln(`tail: ${file}: No such file or directory`);
+        return;
+      }
+
+      const allLines = (node.content || '').split('\n');
+      const content = allLines.slice(-lines);
+      content.forEach(line => term.writeln(line));
+    },
+
+    grep: (args, term) => {
+      if (args.length < 2) {
+        term.writeln('usage: grep pattern file');
+        return;
+      }
+
+      const pattern = args[0];
+      const file = args[1];
+      const fullPath = resolvePath(file);
+      const node = getNode(fullPath);
+
+      if (!node || node.type === 'directory') {
+        term.writeln(`grep: ${file}: No such file or directory`);
+        return;
+      }
+
+      const content = node.content || '';
+      const matches = content.split('\n').filter(line =>
+        line.toLowerCase().includes(pattern.toLowerCase())
+      );
+
+      if (matches.length === 0) {
+        // No output for no matches (grep behavior)
+        return;
+      }
+
+      matches.forEach(line => {
+        // Highlight matches
+        const highlighted = line.replace(
+          new RegExp(`(${pattern})`, 'gi'),
+          '\x1b[31m$1\x1b[0m'
+        );
+        term.writeln(highlighted);
+      });
+    },
+
+    find: (args, term) => {
+      const dir = args[0] || '.';
+      const nameFlag = args.indexOf('-name');
+      const pattern = nameFlag >= 0 ? args[nameFlag + 1] : '*';
+
+      function search(path: string, node: FSNode, results: string[]) {
+        if (node.type === 'directory' && node.children) {
+          for (const [name, child] of Object.entries(node.children)) {
+            const childPath = `${path}/${name}`;
+            const matches = pattern === '*' ||
+              (pattern.startsWith('*.') && name.endsWith(pattern.slice(1))) ||
+              name.includes(pattern.replace(/\*/g, ''));
+
+            if (matches) results.push(childPath);
+            if (child.type === 'directory') {
+              search(childPath, child, results);
+            }
+          }
+        }
+      }
+
+      const fullPath = resolvePath(dir);
+      const node = getNode(fullPath);
+
+      if (!node) {
+        term.writeln(`find: ${dir}: No such file or directory`);
+        return;
+      }
+
+      const results: string[] = [];
+      search(fullPath, node, results);
+      results.forEach(r => term.writeln(r.replace(currentPath + '/', './')));
+    },
+
+    echo: (args, term) => {
+      term.writeln(args.join(' ').replace(/"/g, '').replace(/'/g, ''));
+    },
+
+    clear: (_args, term) => {
+      term.clear();
+    },
+
+    help: (_args, term) => {
+      if (caroEnabled) {
+        term.writeln('\x1b[38;5;208m🐕 Caro Help\x1b[0m');
+        term.writeln('');
+        term.writeln('You can ask me things in plain English, like:');
+        term.writeln('  \x1b[36m"Find large files"\x1b[0m');
+        term.writeln('  \x1b[36m"Show me recent errors"\x1b[0m');
+        term.writeln('  \x1b[36m"What\'s in this directory?"\x1b[0m');
+        term.writeln('');
+        term.writeln('Or use regular shell commands:');
+        term.writeln('  ls, cd, cat, grep, find, head, tail, echo, pwd');
+        term.writeln('');
+        term.writeln('Special commands:');
+        term.writeln('  \x1b[33m:recents\x1b[0m     Show recent commands');
+        term.writeln('  \x1b[33m:tour\x1b[0m        Start the Caro tour');
+        term.writeln('  \x1b[33m:explain\x1b[0m     Explain the last command');
+      } else {
+        term.writeln('Available commands: ls, cd, cat, grep, find, head, tail, echo, pwd, clear, help');
+        term.writeln('');
+        term.writeln('Try installing Caro for a better experience!');
+      }
+    },
+
+    mkdir: (args, term) => {
+      term.writeln(`mkdir: cannot create directory '${args[0] || 'unnamed'}': Read-only file system`);
+    },
+
+    touch: (args, term) => {
+      term.writeln(`touch: cannot touch '${args[0] || 'file'}': Read-only file system`);
+    },
+
+    rm: (args, term) => {
+      const dangerous = args.some(a => a.includes('-rf') || a.includes('-r'));
+      if (dangerous) {
+        term.writeln('\x1b[31m⚠️  DANGER: This command could destroy your system!\x1b[0m');
+        term.writeln('\x1b[33mCaro would have warned you about this.\x1b[0m');
+      } else {
+        term.writeln(`rm: cannot remove '${args[0] || 'file'}': Read-only file system`);
+      }
+    },
+
+    sudo: (args, term) => {
+      term.writeln('\x1b[31m⚠️  sudo is disabled in this demo for safety\x1b[0m');
+      if (!caroEnabled) {
+        term.writeln('\x1b[33mHint: Caro can help you understand when sudo is actually needed.\x1b[0m');
+      }
+    },
+
+    man: (args, term) => {
+      term.writeln(`No manual entry for ${args[0] || 'man'}`);
+      if (!caroEnabled) {
+        term.writeln('\x1b[33mTip: With Caro, you can just ask "what does ' + (args[0] || 'this') + ' do?"\x1b[0m');
+      }
+    },
+
+    du: (args, term) => {
+      const showHuman = args.includes('-h') || args.includes('-sh');
+      const target = args.filter(a => !a.startsWith('-'))[0] || '.';
+
+      function calcSize(node: FSNode): number {
+        if (node.type === 'file') return node.size || 0;
+        let total = 0;
+        if (node.children) {
+          for (const child of Object.values(node.children)) {
+            total += calcSize(child);
+          }
+        }
+        return total;
+      }
+
+      const fullPath = resolvePath(target);
+      const node = getNode(fullPath);
+
+      if (!node) {
+        term.writeln(`du: ${target}: No such file or directory`);
+        return;
+      }
+
+      const size = calcSize(node);
+      const display = showHuman ? formatSize(size) : size.toString();
+      term.writeln(`${display}\t${target}`);
+    },
+
+    // Meta commands for Caro
+    ':recents': (_args, term) => {
+      if (!caroEnabled) {
+        term.writeln('zsh: command not found: :recents');
+        return;
+      }
+      term.writeln('\x1b[38;5;208m📜 Recent Commands\x1b[0m');
+      term.writeln('');
+      const recent = commandHistory.slice(-5);
+      if (recent.length === 0) {
+        term.writeln('  No commands yet');
+      } else {
+        recent.forEach((cmd, i) => {
+          term.writeln(`  ${i + 1}. ${cmd}`);
+        });
+      }
+    },
+
+    ':tour': (_args, term) => {
+      if (!caroEnabled) {
+        term.writeln('zsh: command not found: :tour');
+        return;
+      }
+      startTour(term);
+    },
+
+    ':explain': (_args, term) => {
+      if (!caroEnabled) {
+        term.writeln('zsh: command not found: :explain');
+        return;
+      }
+      const lastCmd = commandHistory[commandHistory.length - 1];
+      if (!lastCmd) {
+        term.writeln('No previous command to explain.');
+        return;
+      }
+      explainCommand(lastCmd, term);
+    }
+  };
+
+  // ============================================================================
+  // NATURAL LANGUAGE PROCESSING (Caro Mode)
+  // ============================================================================
+
+  interface NLMapping {
+    patterns: RegExp[];
+    command: string;
+    explanation: string;
+    safetyLevel: 'safe' | 'moderate' | 'caution';
+  }
+
+  const nlMappings: NLMapping[] = [
+    {
+      patterns: [/find.*large.*file/i, /file.*eating.*disk/i, /big.*file/i, /disk.*space/i],
+      command: 'du -sh * | sort -h',
+      explanation: 'Shows the size of each item in the current directory, sorted by size',
+      safetyLevel: 'safe'
+    },
+    {
+      patterns: [/error.*log/i, /show.*error/i, /what.*error/i, /explain.*error/i],
+      command: 'grep -i "error\\|fail" errors.log',
+      explanation: 'Searches for lines containing "error" or "fail" in the log file',
+      safetyLevel: 'safe'
+    },
+    {
+      patterns: [/recent.*change/i, /what.*changed/i, /modified.*recently/i],
+      command: 'find . -type f -mtime -1',
+      explanation: 'Finds all files modified in the last 24 hours',
+      safetyLevel: 'safe'
+    },
+    {
+      patterns: [/parse.*json/i, /extract.*json/i, /json.*table/i, /show.*user/i],
+      command: 'cat data.json',
+      explanation: 'Displays the JSON file contents (use jq for advanced parsing)',
+      safetyLevel: 'safe'
+    },
+    {
+      patterns: [/find.*python/i, /python.*file/i, /\.py.*file/i],
+      command: 'find . -name "*.py" -type f',
+      explanation: 'Finds all Python files in the current directory tree',
+      safetyLevel: 'safe'
+    },
+    {
+      patterns: [/find.*js/i, /javascript.*file/i, /\.js.*file/i],
+      command: 'find . -name "*.js" -type f',
+      explanation: 'Finds all JavaScript files in the current directory tree',
+      safetyLevel: 'safe'
+    },
+    {
+      patterns: [/understand.*code/i, /explore.*code/i, /what.*here/i, /overview/i],
+      command: 'ls -la && cat README.md',
+      explanation: 'Lists all files and shows the README for an overview',
+      safetyLevel: 'safe'
+    },
+    {
+      patterns: [/database.*issue/i, /db.*problem/i, /connection.*fail/i, /why.*fail/i],
+      command: 'grep -i "database\\|connection" errors.log',
+      explanation: 'Searches logs for database-related errors',
+      safetyLevel: 'safe'
+    },
+    {
+      patterns: [/env.*var/i, /environment/i, /config.*secret/i, /api.*key/i],
+      command: 'cat .env',
+      explanation: 'Shows environment configuration (be careful with secrets!)',
+      safetyLevel: 'moderate'
+    },
+    {
+      patterns: [/hidden.*file/i, /dot.*file/i, /show.*hidden/i],
+      command: 'ls -la',
+      explanation: 'Lists all files including hidden ones (starting with .)',
+      safetyLevel: 'safe'
+    },
+    {
+      patterns: [/clean.*tmp/i, /clean.*temp/i, /remove.*log/i, /delete.*cache/i],
+      command: 'du -sh tmp/* && echo "Use: rm tmp/*.tmp to clean (with caution)"',
+      explanation: 'Shows sizes in tmp directory - BE CAREFUL with deletions!',
+      safetyLevel: 'caution'
+    },
+    {
+      patterns: [/list.*dir/i, /what.*dir/i, /show.*folder/i],
+      command: 'ls -la',
+      explanation: 'Lists all files and directories with details',
+      safetyLevel: 'safe'
+    }
+  ];
+
+  function processNaturalLanguage(input: string, term: Terminal): boolean {
+    for (const mapping of nlMappings) {
+      for (const pattern of mapping.patterns) {
+        if (pattern.test(input)) {
+          showCaroSuggestion(mapping, term);
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function showCaroSuggestion(mapping: NLMapping, term: Terminal) {
+    term.writeln('');
+    term.writeln('\x1b[38;5;208m🐕 Caro suggests:\x1b[0m');
+    term.writeln('');
+
+    // Safety indicator
+    const safetyColors = {
+      'safe': '\x1b[32m✓ Safe\x1b[0m',
+      'moderate': '\x1b[33m⚡ Moderate\x1b[0m',
+      'caution': '\x1b[31m⚠️  Caution\x1b[0m'
+    };
+
+    term.writeln(`   ${safetyColors[mapping.safetyLevel]}`);
+    term.writeln(`   \x1b[36m$ ${mapping.command}\x1b[0m`);
+    term.writeln(`   \x1b[90m${mapping.explanation}\x1b[0m`);
+    term.writeln('');
+    term.writeln('   \x1b[90m[R]un  [E]dit  [X]plain  [C]ancel\x1b[0m');
+    term.writeln('');
+
+    // Store pending command for action
+    (window as any).__caroSuggestion = mapping;
+  }
+
+  function explainCommand(cmd: string, term: Terminal) {
+    term.writeln('');
+    term.writeln('\x1b[38;5;208m🐕 Command Explanation:\x1b[0m');
+    term.writeln('');
+
+    const parts = cmd.split(' ');
+    const baseCmd = parts[0];
+
+    const explanations: Record<string, string> = {
+      'ls': 'Lists directory contents. -l for long format, -a for hidden files.',
+      'cd': 'Changes the current directory.',
+      'cat': 'Displays file contents to the terminal.',
+      'grep': 'Searches for patterns in files. -i for case-insensitive.',
+      'find': 'Searches for files by name, type, or other criteria.',
+      'head': 'Shows the first lines of a file.',
+      'tail': 'Shows the last lines of a file. -f follows new lines.',
+      'du': 'Shows disk usage. -h for human-readable, -s for summary.',
+      'echo': 'Prints text to the terminal.',
+    };
+
+    term.writeln(`   \x1b[36m${baseCmd}\x1b[0m: ${explanations[baseCmd] || 'A shell command.'}`);
+
+    if (parts.length > 1) {
+      term.writeln(`   Arguments: ${parts.slice(1).join(' ')}`);
+    }
+    term.writeln('');
+  }
+
+  // ============================================================================
+  // CARO INSTALLATION & TOUR
+  // ============================================================================
+
+  function installCaro(term: Terminal) {
+    const frames = [
+      '⠋ Connecting to Caro...',
+      '⠙ Connecting to Caro...',
+      '⠹ Downloading companion...',
+      '⠸ Downloading companion...',
+      '⠼ Installing safety checks...',
+      '⠴ Installing safety checks...',
+      '⠦ Configuring for ' + currentOS + '...',
+      '⠧ Configuring for ' + currentOS + '...',
+      '⠇ Almost ready...',
+      '⠏ Almost ready...'
+    ];
+
+    let frame = 0;
+    term.writeln('');
+
+    const spinner = setInterval(() => {
+      term.write(`\r${frames[frame]}`);
+      frame++;
+      if (frame >= frames.length) {
+        clearInterval(spinner);
+        finishInstall(term);
+      }
+    }, 200);
+  }
+
+  function finishInstall(term: Terminal) {
+    term.write('\r\x1b[K'); // Clear line
+    term.writeln('\x1b[32m✓ Caro installed successfully!\x1b[0m');
+    term.writeln('');
+    term.writeln('\x1b[38;5;208m╭────────────────────────────────────────────╮\x1b[0m');
+    term.writeln('\x1b[38;5;208m│\x1b[0m  \x1b[1mHi, I\'m Caro!\x1b[0m 🐕                          \x1b[38;5;208m│\x1b[0m');
+    term.writeln('\x1b[38;5;208m│\x1b[0m  Your friendly terminal companion          \x1b[38;5;208m│\x1b[0m');
+    term.writeln('\x1b[38;5;208m╰────────────────────────────────────────────╯\x1b[0m');
+    term.writeln('');
+    term.writeln('Want a quick 30-second tour? \x1b[33m[Y/n]\x1b[0m');
+    term.writeln('');
+
+    caroEnabled = true;
+    (window as any).__awaitingTourConfirm = true;
+
+    // Update UI
+    const installBtn = document.getElementById('install-caro-btn');
+    const statusBar = document.getElementById('status-bar');
+    const samplePrompts = document.getElementById('sample-prompts');
+    const instructionText = document.getElementById('instruction-text');
+
+    if (installBtn) {
+      installBtn.classList.add('installed');
+      installBtn.innerHTML = '<span class="install-icon">✓</span> Caro Active';
+    }
+    if (statusBar) statusBar.classList.remove('hidden');
+    if (samplePrompts) samplePrompts.classList.remove('hidden');
+    if (instructionText) {
+      instructionText.innerHTML = 'Ask Caro anything in plain English, or use <code>:tour</code> to start the tour';
+    }
+  }
+
+  function startTour(term: Terminal) {
+    inTour = true;
+    tourStep = 0;
+    showTourStep(term);
+  }
+
+  const tourSteps = [
+    {
+      message: '\x1b[38;5;208m📖 Tour Step 1/4: Natural Language\x1b[0m\n\nJust type what you want in plain English!\nTry: \x1b[36m"Find large files"\x1b[0m\n\n(Type the example or press Enter to skip)',
+      example: 'find large files'
+    },
+    {
+      message: '\x1b[38;5;208m📖 Tour Step 2/4: Safe Commands\x1b[0m\n\nCaro checks every command for safety.\nI\'ll warn you about dangerous operations!\n\n(Press Enter to continue)',
+      example: null
+    },
+    {
+      message: '\x1b[38;5;208m📖 Tour Step 3/4: Context Awareness\x1b[0m\n\nI know you\'re on ' + currentOS + ' using ' + currentShell + '.\nMy suggestions are tailored for your system.\n\n(Press Enter to continue)',
+      example: null
+    },
+    {
+      message: '\x1b[38;5;208m📖 Tour Step 4/4: Always Learning\x1b[0m\n\nType \x1b[33m:recents\x1b[0m to see your history.\nI remember what works for you!\n\n\x1b[32m✓ Tour complete!\x1b[0m You\'re ready to explore.',
+      example: null
+    }
+  ];
+
+  function showTourStep(term: Terminal) {
+    if (tourStep >= tourSteps.length) {
+      inTour = false;
+      tourStep = 0;
+      return;
+    }
+
+    term.writeln('');
+    term.writeln(tourSteps[tourStep].message);
+    term.writeln('');
+  }
+
+  function advanceTour(term: Terminal) {
+    tourStep++;
+    showTourStep(term);
+  }
+
+  // ============================================================================
+  // STATUS BAR UPDATES
+  // ============================================================================
+
+  function updateStatusBar() {
+    const statusDir = document.getElementById('status-dir');
+    const titleText = document.getElementById('terminal-title-text');
+
+    if (statusDir) statusDir.textContent = currentPath;
+    if (titleText) titleText.textContent = currentPath;
+  }
+
+  function updateOSDisplay(os: string) {
+    const statusOS = document.getElementById('status-os');
+    const statusShell = document.getElementById('status-shell');
+
+    currentOS = os;
+    currentShell = os === 'windows' ? 'powershell' : (os === 'linux' ? 'bash' : 'zsh');
+
+    if (statusOS) statusOS.textContent = os.charAt(0).toUpperCase() + os.slice(1);
+    if (statusShell) statusShell.textContent = currentShell;
+  }
+
+  // ============================================================================
+  // TERMINAL INITIALIZATION
+  // ============================================================================
+
+  function initTerminal() {
+    const container = document.getElementById('terminal-container');
+    if (!container) return;
+
+    const term = new Terminal({
+      cursorBlink: true,
+      fontSize: 14,
+      fontFamily: '"SF Mono", "Monaco", "Menlo", "Courier New", monospace',
+      theme: {
+        background: '#0d0d14',
+        foreground: '#e0e0e0',
+        cursor: '#ff8c42',
+        cursorAccent: '#0d0d14',
+        selectionBackground: '#ff8c4244',
+        black: '#0d0d14',
+        red: '#ff5555',
+        green: '#50fa7b',
+        yellow: '#f1fa8c',
+        blue: '#6272a4',
+        magenta: '#ff79c6',
+        cyan: '#8be9fd',
+        white: '#f8f8f2',
+        brightBlack: '#6272a4',
+        brightRed: '#ff6e6e',
+        brightGreen: '#69ff94',
+        brightYellow: '#ffffa5',
+        brightBlue: '#d6acff',
+        brightMagenta: '#ff92df',
+        brightCyan: '#a4ffff',
+        brightWhite: '#ffffff'
+      },
+      allowTransparency: true,
+      scrollback: 1000
+    });
+
+    const fitAddon = new FitAddon();
+    term.loadAddon(fitAddon);
+
+    term.open(container);
+    fitAddon.fit();
+
+    // Handle resize
+    window.addEventListener('resize', () => fitAddon.fit());
+
+    // Initial prompt
+    showWelcome(term);
+    writePrompt(term);
+
+    // Input handling
+    let currentLine = '';
+    let cursorPos = 0;
+
+    term.onKey(({ key, domEvent }) => {
+      const ev = domEvent;
+      const printable = !ev.altKey && !ev.ctrlKey && !ev.metaKey;
+
+      if (ev.key === 'Enter') {
+        term.writeln('');
+        handleCommand(currentLine.trim(), term);
+        currentLine = '';
+        cursorPos = 0;
+        writePrompt(term);
+      } else if (ev.key === 'Backspace') {
+        if (cursorPos > 0) {
+          currentLine = currentLine.slice(0, cursorPos - 1) + currentLine.slice(cursorPos);
+          cursorPos--;
+          term.write('\b \b');
+        }
+      } else if (ev.key === 'ArrowUp') {
+        if (historyIndex < commandHistory.length - 1) {
+          historyIndex++;
+          const cmd = commandHistory[commandHistory.length - 1 - historyIndex];
+          // Clear current line
+          term.write('\r\x1b[K');
+          writePrompt(term, false);
+          term.write(cmd);
+          currentLine = cmd;
+          cursorPos = cmd.length;
+        }
+      } else if (ev.key === 'ArrowDown') {
+        if (historyIndex > 0) {
+          historyIndex--;
+          const cmd = commandHistory[commandHistory.length - 1 - historyIndex];
+          term.write('\r\x1b[K');
+          writePrompt(term, false);
+          term.write(cmd);
+          currentLine = cmd;
+          cursorPos = cmd.length;
+        } else if (historyIndex === 0) {
+          historyIndex = -1;
+          term.write('\r\x1b[K');
+          writePrompt(term, false);
+          currentLine = '';
+          cursorPos = 0;
+        }
+      } else if (ev.key === 'Tab') {
+        // Simple tab completion
+        ev.preventDefault();
+        const completions = getCompletions(currentLine);
+        if (completions.length === 1) {
+          const toAdd = completions[0].slice(currentLine.split(' ').pop()?.length || 0);
+          term.write(toAdd);
+          currentLine += toAdd;
+          cursorPos += toAdd.length;
+        }
+      } else if (printable && key.length === 1) {
+        currentLine = currentLine.slice(0, cursorPos) + key + currentLine.slice(cursorPos);
+        cursorPos++;
+        term.write(key);
+      }
+    });
+
+    // Handle paste
+    term.onData(data => {
+      if (data.length > 1) {
+        // Paste
+        const lines = data.split('\n');
+        const firstLine = lines[0];
+        term.write(firstLine);
+        currentLine += firstLine;
+        cursorPos += firstLine.length;
+      }
+    });
+
+    // OS selector
+    const osButtons = document.querySelectorAll('.os-btn');
+    osButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        osButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const os = btn.getAttribute('data-os') || 'macos';
+        updateOSDisplay(os);
+      });
+    });
+
+    // Install button
+    const installBtn = document.getElementById('install-caro-btn');
+    if (installBtn) {
+      installBtn.addEventListener('click', () => {
+        if (!caroEnabled) {
+          installCaro(term);
+        }
+      });
+    }
+
+    // Sample prompt chips
+    const promptChips = document.querySelectorAll('.prompt-chip');
+    promptChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const prompt = chip.getAttribute('data-prompt');
+        if (prompt && caroEnabled) {
+          term.writeln('');
+          term.write(`\x1b[90m> ${prompt}\x1b[0m`);
+          term.writeln('');
+          processNaturalLanguage(prompt, term);
+          writePrompt(term);
+        }
+      });
+    });
+  }
+
+  function showWelcome(term: Terminal) {
+    term.writeln('\x1b[90m╭──────────────────────────────────────────────────────╮\x1b[0m');
+    term.writeln('\x1b[90m│\x1b[0m  Welcome to the Mystery Project                      \x1b[90m│\x1b[0m');
+    term.writeln('\x1b[90m│\x1b[0m  \x1b[90mExplore the filesystem. Install Caro to get help.\x1b[0m  \x1b[90m│\x1b[0m');
+    term.writeln('\x1b[90m╰──────────────────────────────────────────────────────╯\x1b[0m');
+    term.writeln('');
+  }
+
+  function writePrompt(term: Terminal, newline = false) {
+    if (newline) term.writeln('');
+    const pathPart = currentPath.replace('~/', '').replace('~', '~');
+    if (caroEnabled) {
+      term.write(`\x1b[38;5;208m🐕\x1b[0m \x1b[36m${pathPart}\x1b[0m \x1b[33m❯\x1b[0m `);
+    } else {
+      term.write(`\x1b[32m${pathPart}\x1b[0m $ `);
+    }
+  }
+
+  function getCompletions(input: string): string[] {
+    const parts = input.split(' ');
+    const last = parts[parts.length - 1];
+
+    if (parts.length === 1) {
+      // Command completion
+      return Object.keys(commands).filter(cmd => cmd.startsWith(last));
+    } else {
+      // File completion
+      const dir = getNode(currentPath);
+      if (!dir || dir.type !== 'directory' || !dir.children) return [];
+
+      return Object.keys(dir.children).filter(name => name.startsWith(last));
+    }
+  }
+
+  function handleCommand(input: string, term: Terminal) {
+    if (!input) return;
+
+    // Check for tour confirmation
+    if ((window as any).__awaitingTourConfirm) {
+      (window as any).__awaitingTourConfirm = false;
+      if (input.toLowerCase() === 'y' || input.toLowerCase() === 'yes' || input === '') {
+        startTour(term);
+        return;
+      }
+    }
+
+    // Check for Caro suggestion actions
+    if ((window as any).__caroSuggestion && caroEnabled) {
+      const suggestion = (window as any).__caroSuggestion;
+      if (input.toLowerCase() === 'r' || input.toLowerCase() === 'run') {
+        (window as any).__caroSuggestion = null;
+        executeCommand(suggestion.command, term);
+        return;
+      } else if (input.toLowerCase() === 'x' || input.toLowerCase() === 'explain') {
+        explainCommand(suggestion.command, term);
+        return;
+      } else if (input.toLowerCase() === 'c' || input.toLowerCase() === 'cancel') {
+        (window as any).__caroSuggestion = null;
+        return;
+      } else if (input.toLowerCase() === 'e' || input.toLowerCase() === 'edit') {
+        term.writeln(`\x1b[90mEdit the command and press Enter:\x1b[0m`);
+        term.writeln(`\x1b[36m$ ${suggestion.command}\x1b[0m`);
+        (window as any).__caroSuggestion = null;
+        return;
+      }
+      (window as any).__caroSuggestion = null;
+    }
+
+    // Handle tour mode
+    if (inTour) {
+      const step = tourSteps[tourStep];
+      if (step.example && input.toLowerCase().includes(step.example.split(' ')[0])) {
+        processNaturalLanguage(input, term);
+        advanceTour(term);
+        return;
+      } else if (input === '' || !step.example) {
+        advanceTour(term);
+        return;
+      }
+    }
+
+    // Add to history
+    if (input && !input.startsWith(':')) {
+      commandHistory.push(input);
+      historyIndex = -1;
+    }
+
+    // Check if it looks like natural language (Caro mode)
+    if (caroEnabled && !input.startsWith(':') && !isShellCommand(input)) {
+      if (!processNaturalLanguage(input, term)) {
+        term.writeln('\x1b[38;5;208m🐕 Caro:\x1b[0m I\'m not sure what you mean. Try one of these:');
+        term.writeln('   - \x1b[36m"Find large files"\x1b[0m');
+        term.writeln('   - \x1b[36m"Show recent errors"\x1b[0m');
+        term.writeln('   - Or use a shell command like \x1b[36mls\x1b[0m, \x1b[36mcat\x1b[0m, \x1b[36mgrep\x1b[0m');
+      }
+      return;
+    }
+
+    // Execute as shell command
+    executeCommand(input, term);
+  }
+
+  function isShellCommand(input: string): boolean {
+    const first = input.split(' ')[0];
+    return commands.hasOwnProperty(first) || first.startsWith(':');
+  }
+
+  function executeCommand(input: string, term: Terminal) {
+    const parts = input.trim().split(/\s+/);
+    const cmd = parts[0];
+    const args = parts.slice(1);
+
+    // Handle meta commands
+    if (cmd.startsWith(':')) {
+      const handler = commands[cmd];
+      if (handler) {
+        handler(args, term);
+      } else {
+        term.writeln(`zsh: command not found: ${cmd}`);
+      }
+      return;
+    }
+
+    // Handle regular commands
+    const handler = commands[cmd];
+    if (handler) {
+      handler(args, term);
+    } else {
+      // Unknown command
+      if (caroEnabled) {
+        term.writeln(`\x1b[90mCommand not found: ${cmd}\x1b[0m`);
+        term.writeln(`\x1b[38;5;208m🐕 Caro:\x1b[0m Try asking me in plain English!`);
+      } else {
+        term.writeln(`zsh: command not found: ${cmd}`);
+        term.writeln(`\x1b[90mHint: Install Caro for natural language support\x1b[0m`);
+      }
+    }
+  }
+
+  // Initialize on load
+  document.addEventListener('DOMContentLoaded', initTerminal);
+
+  // Also initialize if DOM is already ready (Astro island hydration)
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(initTerminal, 0);
+  }
+</script>

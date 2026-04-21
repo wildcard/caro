@@ -1,11 +1,11 @@
 {
   "download": {
-    "title": "Comece a usar o Caro",
-    "subtitle": "Traga sua companheira de terminal favorita para o seu shell",
+    "title": "Comece com o Caro",
+    "subtitle": "Traga seu fiel companheiro de shell para o seu terminal",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
     "copyButton": "Copiar",
     "copiedButton": "Copiado!",
-    "binariesIntro": "Ou baixe os binários pré-compilados:",
+    "binariesIntro": "Ou baixe binários pré-construídos:",
     "comingSoonBadge": "Em Breve",
     "platforms": {
       "macAppleSilicon": "macOS (Apple Silicon)",
@@ -14,29 +14,29 @@
       "windows": "Windows"
     },
     "usageModes": {
-      "title": "Várias Formas de Usar o Caro",
+      "title": "Múltiplas Formas de Usar o Caro",
       "modes": [
         {
-          "title": "🔧 CLI Standalone",
-          "exampleCommand": "caro \"listar arquivos > 100MB\""
+          "title": "🔧 CLI Independente",
+          "exampleCommand": "caro \"list files > 100MB\""
         },
         {
           "title": "🔌 MCP para Claude",
-          "description": "Adicione o Caro como servidor MCP no Claude Desktop e deixe ela cuidar de todos os comandos shell sem esforço.",
+          "description": "Adicione o Caro como um servidor MCP ao Claude Desktop e deixe-o lidar com todos os comandos de shell de forma transparente.",
           "comingSoon": true
         },
         {
-          "title": "✨ Skill Dedicada",
-          "description": "Use o Caro como Skill para delegar a geração e execução de comandos shell enquanto o Claude foca no seu trabalho.",
+          "title": "✨ Habilidade Dedicada",
+          "description": "Use o Caro como uma Habilidade para delegar a geração e execução de comandos de shell enquanto o Claude se concentra no seu trabalho.",
           "comingSoon": true
         }
       ]
     },
     "quickStart": {
       "title": "Início Rápido",
-      "intro": "Depois de rodar o script de instalação acima, é só usar o Caro:",
-      "exampleCommand": "caro \"encontrar todos os arquivos python modificados nos últimos 7 dias\"",
-      "description": "O Caro vai gerar o comando e manter você seguro. O script de instalação cuida de todos os pré-requisitos, incluindo a compilação do Rust."
+      "intro": "Após executar o script de configuração acima, basta usar o Caro:",
+      "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
+      "description": "O Caro irá gerar o comando e mantê-lo seguro. O script de configuração lida com todos os pré-requisitos, incluindo a compilação do Rust."
     }
   }
 }
