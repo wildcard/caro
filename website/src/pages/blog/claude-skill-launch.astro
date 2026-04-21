@@ -175,7 +175,7 @@ cargo install caro</code></pre>
     <li>Generated command: <code>find . -name "*.log" -type f -mtime +30 -delete</code></li>
     <li>Safety assessment: 🟠 High (Orange) - deletion is irreversible</li>
     <li>Recommendation: Preview files first with <code>-ls</code> instead of <code>-delete</code></li>
-    <li>Safer alternative: Use <code>-exec rm -i &amp;#123;'&amp;#123;&amp;#125;'&amp;#125; \;</code> for interactive deletion</li>
+    <li>Safer alternative: Use <code>-exec rm -i {'{}'} \;</code> for interactive deletion</li>
   </ul>
 </div>
 
