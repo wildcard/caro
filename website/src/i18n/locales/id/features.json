@@ -1,43 +1,43 @@
 {
   "features": {
-    "title": "Kenapa Caro?",
-    "subtitle": "Agent pendamping yang dibangun untuk keamanan, empati, dan keahlian",
-    "alphaNotice": "🚧 Soft Launch Alpha — Kami sedang aktif membangun bersama komunitas. Gabung yuk untuk bantu bentuk masa depan Caro!",
+    "title": "Mengapa Caro?",
+    "subtitle": "Agen pendamping yang dibangun untuk keamanan, empati, dan keahlian",
+    "alphaNotice": "🚧 Peluncuran Alfa — Kami sedang aktif membangun bersama komunitas kami. Bergabunglah dengan kami untuk membantu membentuk masa depan Caro!",
     "items": [
       {
         "icon": "🛡️",
         "title": "Penjaga Keamanan",
-        "description": "Validasi komprehensif yang memblokir perintah berbahaya seperti rm -rf /, fork bomb, dan operasi destruktif. 52 pola keamanan yang sudah terdefinisi dengan penilaian tingkat risiko.",
-        "statusLabel": "Sudah Tersedia"
+        "description": "Validasi komprehensif memblokir perintah berbahaya seperti rm -rf /, bom fork, dan operasi destruktif. 52 pola keamanan yang telah ditentukan dengan penilaian tingkat risiko.",
+        "statusLabel": "Tersedia Sekarang"
       },
       {
         "icon": "🌍",
-        "title": "Ahli Cross-Platform",
-        "description": "Bekerja di macOS, Linux, Windows, GNU, dan BSD. Memahami nuansa spesifik setiap platform dan menghormati pilihan distro kamu.",
-        "statusLabel": "Sudah Tersedia"
+        "title": "Ahli Lintas Platform",
+        "description": "Berfungsi lintas macOS, Linux, Windows, GNU, dan BSD. Memahami nuansa spesifik platform dan menghormati distribusi pilihan Anda.",
+        "statusLabel": "Tersedia Sekarang"
       },
       {
         "icon": "🧠",
-        "title": "Platform-Aware",
-        "description": "Memberikan rekomendasi berdasarkan kapabilitas platform dan best practice kamu. Otomatis membedakan sintaks perintah BSD dan GNU.",
-        "statusLabel": "Sudah Tersedia"
+        "title": "Sadarkan Platform",
+        "description": "Memberikan rekomendasi berdasarkan kemampuan platform Anda dan praktik terbaik. Secara otomatis membedakan antara sintaks perintah BSD dan GNU.",
+        "statusLabel": "Tersedia Sekarang"
       },
       {
         "icon": "✅",
         "title": "Spesialis POSIX",
-        "description": "Ahli dalam perintah shell yang POSIX-compliant dan bekerja reliabel di berbagai sistem. Portabel, aman, dan dioptimalkan untuk terminal kamu.",
-        "statusLabel": "Sudah Tersedia"
+        "description": "Ahli dalam perintah shell yang sesuai dengan POSIX yang bekerja secara andal lintas sistem. Portabel, aman, dan dioptimalkan untuk terminal Anda.",
+        "statusLabel": "Tersedia Sekarang"
       },
       {
         "icon": "⚡",
-        "title": "Secepat Kilat",
-        "description": "Target: Startup di bawah 100ms, inference di bawah 2 detik di Apple Silicon. Integrasi framework MLX untuk akselerasi GPU di chip M-series.",
+        "title": "Cepat Sekali",
+        "description": "Target: Startup di bawah 100ms, inferensi di bawah 2 detik di Apple Silicon. Integrasi kerangka kerja MLX untuk akselerasi GPU pada chip seri-M.",
         "statusLabel": "Dalam Pengembangan"
       },
       {
         "icon": "🤝",
-        "title": "Pendamping Claude",
-        "description": "Visi: Integrasi seamless dengan Claude sebagai MCP server dan Skill, mengambil alih inference perintah shell sementara Claude fokus ke pekerjaan yang lebih luas.",
+        "title": "Teman Claude",
+        "description": "Visi: Integrasi tanpa batas dengan Claude sebagai server MCP dan Skill, memindahkan inferensi perintah shell sementara Claude fokus pada pekerjaan Anda yang lebih luas.",
         "statusLabel": "Direncanakan"
       }
     ]

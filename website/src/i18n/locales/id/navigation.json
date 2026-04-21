@@ -4,16 +4,16 @@
     "links": {
       "features": "Fitur",
       "compare": "Bandingkan",
-      "play": "Coba",
+      "play": "Main",
       "blog": "Blog",
       "getStarted": "Mulai",
       "github": "GitHub"
     },
     "darkMode": {
-      "toggle": "Aktifkan mode gelap"
+      "toggle": "Alihkan mode gelap"
     },
     "holidayTheme": {
-      "toggle": "Buka menu tema liburan",
+      "toggle": "Alihkan menu tema liburan",
       "title": "Tema Liburan",
       "menuHeader": "Tema Liburan",
       "options": {
@@ -25,24 +25,24 @@
     }
   },
   "footer": {
-    "builtWith": "Dibuat dengan Rust 🦀 | Open source di",
+    "builtWith": "Dibuat dengan Rust 🦀 | Sumber terbuka di",
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
-      "tagline": "Teman setia shell kamu"
+      "tagline": "Teman shell setia Anda"
     },
     "links": {
       "license": "AGPL-3.0",
-      "credits": "Kredit & Atribusi",
-      "contributing": "Kontribusi",
-      "issues": "Issues"
+      "credits": "Kredit & Penghargaan",
+      "contributing": "Berkontribusi",
+      "issues": "Masalah"
     },
     "kyaro": {
-      "title": "Kenalan sama Kyaro asli (Kyarorain Kadosh)! 🐕🖤",
+      "title": "Temui Kyaro IRL (Kyarorain Kadosh)! 🐕🖤",
       "followText": "Ikuti petualangannya di",
       "instagram": "Instagram @kyaroblackheart"
     },
-    "inspiration": "Terinspirasi dari Caroline di Portal—kesetiaan yang bertransformasi jadi pendamping digital",
-    "elevatorCredit": "Efek scroll oleh"
+    "inspiration": "Terinspirasi oleh Caroline dari Portal—kesetiaan yang berubah menjadi kawan digital",
+    "elevatorCredit": "Efek gulir oleh"
   }
 }

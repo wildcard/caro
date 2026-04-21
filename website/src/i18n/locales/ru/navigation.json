@@ -2,18 +2,18 @@
   "navigation": {
     "brand": "🐕 Caro",
     "links": {
-      "features": "Возможности",
-      "compare": "Сравнение",
-      "play": "Попробовать",
+      "features": "Функции",
+      "compare": "Сравнить",
+      "play": "Играть",
       "blog": "Блог",
       "getStarted": "Начать",
       "github": "GitHub"
     },
     "darkMode": {
-      "toggle": "Переключить тёмную тему"
+      "toggle": "Переключить темный режим"
     },
     "holidayTheme": {
-      "toggle": "Открыть меню праздничных тем",
+      "toggle": "Переключить праздничное меню",
       "title": "Праздничная тема",
       "menuHeader": "Праздничная тема",
       "options": {
@@ -25,24 +25,24 @@
     }
   },
   "footer": {
-    "builtWith": "Сделано на Rust 🦀 | Open source на",
+    "builtWith": "Создано с использованием Rust 🦀 | Открытый исходный код на",
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
-      "tagline": "Ваш верный компаньон в командной строке"
+      "tagline": "Ваш верный компаньон в shell"
     },
     "links": {
       "license": "AGPL-3.0",
-      "credits": "Благодарности",
-      "contributing": "Участие в проекте",
-      "issues": "Баги и предложения"
+      "credits": "Благодарности и Атрибуция",
+      "contributing": "Участие в разработке",
+      "issues": "Проблемы"
     },
     "kyaro": {
-      "title": "Познакомьтесь с настоящей Кяро (Kyarorain Kadosh)! 🐕🖤",
-      "followText": "Следите за её приключениями в",
+      "title": "Познакомьтесь с Kyaro IRL (Kyarorain Kadosh)! 🐕🖤",
+      "followText": "Следите за ее приключениями в",
       "instagram": "Instagram @kyaroblackheart"
     },
-    "inspiration": "Вдохновлено Кэролайн из Portal — преданность, воплощённая в цифровом компаньоне",
+    "inspiration": "Вдохновлено Кэролайн из Portal — лояльность, превращенная в цифровое товарищество",
     "elevatorCredit": "Эффект прокрутки от"
   }
 }

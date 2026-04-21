@@ -1,8 +1,8 @@
 {
   "common": {
     "meta": {
-      "title": "Caro - رفيقك الوفي في سطر الأوامر",
-      "description": "Caro هو وكيل مساعد يساعدك في أوامر POSIX shell. متوفر كـ MCP لـ Claude وكـ Skill مخصص."
+      "title": "Caro - رفيقك الوفي في الشل",
+      "description": "Caro هو عامل مساعد يساعدك في أوامر شل POSIX. متاح كـ MCP لـ Claude وكمهارة مخصصة."
     },
     "buttons": {
       "copy": "نسخ",
@@ -11,58 +11,58 @@
       "watchDemo": "شاهد العرض التوضيحي"
     },
     "status": {
-      "availableNow": "متوفر الآن",
+      "availableNow": "متاح الآن",
       "inDevelopment": "قيد التطوير",
       "planned": "مخطط له",
-      "comingSoon": "قريباً"
+      "comingSoon": "قادم قريبًا"
     },
     "aria": {
-      "toggleDarkMode": "تبديل الوضع الداكن",
-      "toggleHolidayTheme": "تبديل قائمة ثيم الأعياد"
+      "toggleDarkMode": "تبديل وضع الظلام",
+      "toggleHolidayTheme": "تبديل قائمة ثيم العطلة"
     },
     "nav": {
-      "features": "المميزات",
-      "compare": "المقارنة",
+      "features": "الميزات",
+      "compare": "قارن",
       "resources": "الموارد",
       "support": "الدعم",
       "getStarted": "ابدأ الآن",
       "dropdown": {
         "overview": "نظرة عامة",
-        "seeAllComparisons": "عرض جميع المقارنات",
+        "seeAllComparisons": "شاهد جميع المقارنات",
         "vsWarp": "مقابل Warp",
-        "aiNativeTerminal": "Terminal مدعوم بالذكاء الاصطناعي",
+        "aiNativeTerminal": "الطرفية الأصلية للذكاء الاصطناعي",
         "vsGitHubCopilot": "مقابل GitHub Copilot CLI",
-        "aiPairProgrammer": "مبرمج مساعد بالذكاء الاصطناعي",
+        "aiPairProgrammer": "مبرمج الزوج بالذكاء الاصطناعي",
         "vsKiro": "مقابل Kiro CLI",
-        "awsAssistant": "مساعد AWS بالذكاء الاصطناعي",
-        "blog": "المدونة",
+        "awsAssistant": "مساعد AWS AI",
+        "blog": "مدونة",
         "newsAndTutorials": "الأخبار والدروس",
         "explore": "استكشف",
-        "interactiveDemo": "عرض تفاعلي",
+        "interactiveDemo": "عرض توضيحي تفاعلي",
         "faq": "الأسئلة الشائعة",
-        "commonQuestions": "الأسئلة الشائعة",
+        "commonQuestions": "أسئلة مشتركة",
         "roadmap": "خارطة الطريق",
-        "whatsNext": "ما القادم",
-        "glossary": "المصطلحات",
-        "terminalTerms": "مصطلحات Terminal و Unix",
+        "whatsNext": "ما الذي يأتي بعد",
+        "glossary": "معجم",
+        "terminalTerms": "مصطلحات الطرفية وUnix",
         "github": "GitHub",
-        "sourceCode": "الكود المصدري"
+        "sourceCode": "شيفرة المصدر"
       },
       "mobile": {
         "allComparisons": "جميع المقارنات",
-        "supportCaro": "ادعم Caro"
+        "supportCaro": "دعم Caro"
       },
       "appearance": {
         "title": "المظهر",
         "darkMode": "الوضع الداكن",
-        "holidayTheme": "ثيم الأعياد",
+        "holidayTheme": "ثيم العطلة",
         "snowEffect": "تأثير الثلج",
         "disableEffects": "تعطيل جميع التأثيرات"
       },
       "useCases": {
         "allUseCases": "جميع حالات الاستخدام",
         "byRole": "حسب الدور",
-        "backToHome": "العودة للرئيسية"
+        "backToHome": "العودة إلى الصفحة الرئيسية"
       }
     }
   }

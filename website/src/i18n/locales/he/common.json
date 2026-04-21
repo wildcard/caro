@@ -1,50 +1,50 @@
 {
   "common": {
     "meta": {
-      "title": "Caro - החבר הנאמן שלך בשורת הפקודה",
-      "description": "Caro הוא סוכן עוזר שמסייע לך עם פקודות POSIX shell. זמין כ-MCP עבור Claude וכ-Skill ייעודי."
+      "title": "Caro - חבר השל שלך הנאמן",
+      "description": "Caro הוא סוכן חבר שעוזר לך עם פקודות של POSIX shell. זמין כ-MCP עבור Claude וכמיומנות מוקדשת."
     },
     "buttons": {
       "copy": "העתק",
       "copied": "הועתק!",
-      "getStarted": "בואו נתחיל",
-      "watchDemo": "צפו בדמו"
+      "getStarted": "התחל",
+      "watchDemo": "צפה בהדגמה"
     },
     "status": {
-      "availableNow": "זמין עכשיו",
+      "availableNow": "זמין כעת",
       "inDevelopment": "בפיתוח",
       "planned": "מתוכנן",
       "comingSoon": "בקרוב"
     },
     "aria": {
       "toggleDarkMode": "החלף מצב כהה",
-      "toggleHolidayTheme": "פתח תפריט ערכת חג"
+      "toggleHolidayTheme": "החלף תפריט ערכת חג"
     },
     "nav": {
-      "features": "פיצ'רים",
+      "features": "תכונות",
       "compare": "השוואה",
       "resources": "משאבים",
       "support": "תמיכה",
-      "getStarted": "בואו נתחיל",
+      "getStarted": "התחל",
       "dropdown": {
         "overview": "סקירה כללית",
-        "seeAllComparisons": "כל ההשוואות",
-        "vsWarp": "מול Warp",
-        "aiNativeTerminal": "טרמינל AI-native",
-        "vsGitHubCopilot": "מול GitHub Copilot CLI",
-        "aiPairProgrammer": "AI pair programmer",
-        "vsKiro": "מול Kiro CLI",
-        "awsAssistant": "עוזר AI של AWS",
+        "seeAllComparisons": "ראה את כל ההשוואות",
+        "vsWarp": "נגד Warp",
+        "aiNativeTerminal": "טרמינל ילידי AI",
+        "vsGitHubCopilot": "נגד GitHub Copilot CLI",
+        "aiPairProgrammer": "תכנות זוגי עם AI",
+        "vsKiro": "נגד Kiro CLI",
+        "awsAssistant": "עוזר AWS AI",
         "blog": "בלוג",
         "newsAndTutorials": "חדשות ומדריכים",
-        "explore": "גלו",
-        "interactiveDemo": "דמו אינטראקטיבי",
+        "explore": "חקור",
+        "interactiveDemo": "הדגמה אינטראקטיבית",
         "faq": "שאלות נפוצות",
-        "commonQuestions": "שאלות שחוזרות",
+        "commonQuestions": "שאלות נפוצות",
         "roadmap": "מפת דרכים",
-        "whatsNext": "מה בתוכניות",
+        "whatsNext": "מה בא בהמשך",
         "glossary": "מילון מונחים",
-        "terminalTerms": "מונחי Terminal ו-Unix",
+        "terminalTerms": "מונחי טרמינל ו-Unix",
         "github": "GitHub",
         "sourceCode": "קוד מקור"
       },
@@ -57,10 +57,10 @@
         "darkMode": "מצב כהה",
         "holidayTheme": "ערכת חג",
         "snowEffect": "אפקט שלג",
-        "disableEffects": "בטלו את כל האפקטים"
+        "disableEffects": "נטרל את כל האפקטים"
       },
       "useCases": {
-        "allUseCases": "כל תרחישי השימוש",
+        "allUseCases": "כל שימושי המקרה",
         "byRole": "לפי תפקיד",
         "backToHome": "חזרה לדף הבית"
       }

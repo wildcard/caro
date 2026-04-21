@@ -10,12 +10,27 @@ interface Props {
   date: string;
   readTime: string;
   lang?: Locale;
+  image?: string;
+  tags?: string[];
 }
 
-const { title, description, date, readTime, lang = 'en' } = Astro.props;
+const { title, description, date, readTime, lang = 'en', image, tags = ['terminal', 'shell', 'AI', 'developer-tools'] } = Astro.props;
+
+// Convert date to ISO format for structured data
+// Validate date can be parsed, fallback to current date if invalid
+const dateObj = new Date(date);
+const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : dateObj.toISOString();
 ---
 
-<Layout title={`${title} - Caro Blog`} description={description}>
+<Layout
+  title={`${title} - Caro Blog`}
+  description={description}
+  type="article"
+  publishedTime={publishedTime}
+  image={image}
+  tags={tags}
+  lang={lang}
+>
   <AnnouncementBanner />
   <Navigation />
 

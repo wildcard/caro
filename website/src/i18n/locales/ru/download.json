@@ -1,12 +1,12 @@
 {
   "download": {
-    "title": "Начать работу с Caro",
-    "subtitle": "Приведи верного помощника в свой терминал",
+    "title": "Начните с Caro",
+    "subtitle": "Приведите вашего верного спутника в терминал",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
-    "copyButton": "Скопировать",
+    "copyButton": "Копировать",
     "copiedButton": "Скопировано!",
-    "binariesIntro": "Или скачай готовые бинарники:",
-    "comingSoonBadge": "Скоро",
+    "binariesIntro": "Или скачайте готовые бинарные файлы:",
+    "comingSoonBadge": "Скоро будет",
     "platforms": {
       "macAppleSilicon": "macOS (Apple Silicon)",
       "macIntel": "macOS (Intel)",
@@ -17,26 +17,26 @@
       "title": "Несколько способов использования Caro",
       "modes": [
         {
-          "title": "🔧 Standalone CLI",
+          "title": "🔧 Отдельная CLI",
           "exampleCommand": "caro \"list files > 100MB\""
         },
         {
           "title": "🔌 MCP для Claude",
-          "description": "Добавь Caro как MCP-сервер в Claude Desktop — и она будет обрабатывать все shell-команды без лишних движений.",
+          "description": "Добавьте Caro как сервер MCP в Claude Desktop и позвольте ей без проблем управлять всеми командами shell.",
           "comingSoon": true
         },
         {
-          "title": "✨ Dedicated Skill",
-          "description": "Используй Caro как Skill, чтобы делегировать генерацию и выполнение команд, пока Claude занимается твоей основной задачей.",
+          "title": "✨ Отдельный навык",
+          "description": "Используйте Caro как навык для генерации и выполнения команд shell, пока Claude сосредотачивается на вашей работе.",
           "comingSoon": true
         }
       ]
     },
     "quickStart": {
       "title": "Быстрый старт",
-      "intro": "После запуска скрипта установки просто используй Caro:",
+      "intro": "После запуска установочного скрипта выше, просто используйте Caro:",
       "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
-      "description": "Caro сгенерирует команду и позаботится о безопасности. Скрипт установки сам разберётся со всеми зависимостями, включая компиляцию Rust."
+      "description": "Caro сгенерирует команду и обеспечит вашу безопасность. Установочный скрипт обрабатывает все предварительные условия, включая компиляцию Rust."
     }
   }
 }

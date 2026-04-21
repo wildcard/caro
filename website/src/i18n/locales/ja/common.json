@@ -1,24 +1,24 @@
 {
   "common": {
     "meta": {
-      "title": "Caro - あなたの頼れるシェルコンパニオン",
-      "description": "CaroはPOSIXシェルコマンドをサポートするコンパニオンエージェントです。Claude用のMCPとして、または専用Skillとして利用できます。"
+      "title": "Caro - あなたの忠実なシェルの友",
+      "description": "CaroはPOSIXシェルコマンドをサポートするコンパニオンエージェントです。ClaudeのMCPとして、また専用スキルとして利用可能です。"
     },
     "buttons": {
       "copy": "コピー",
-      "copied": "コピーしました!",
+      "copied": "コピーしました！",
       "getStarted": "始める",
       "watchDemo": "デモを見る"
     },
     "status": {
-      "availableNow": "利用可能",
+      "availableNow": "今すぐ利用可能",
       "inDevelopment": "開発中",
-      "planned": "予定",
+      "planned": "計画中",
       "comingSoon": "近日公開"
     },
     "aria": {
-      "toggleDarkMode": "ダークモード切り替え",
-      "toggleHolidayTheme": "ホリデーテーマメニュー切り替え"
+      "toggleDarkMode": "ダークモードを切り替え",
+      "toggleHolidayTheme": "ホリデーテーマメニューを切り替え"
     },
     "nav": {
       "features": "機能",
@@ -36,15 +36,15 @@
         "vsKiro": "vs Kiro CLI",
         "awsAssistant": "AWS AIアシスタント",
         "blog": "ブログ",
-        "newsAndTutorials": "ニュース & チュートリアル",
+        "newsAndTutorials": "ニュース＆チュートリアル",
         "explore": "探索",
         "interactiveDemo": "インタラクティブデモ",
         "faq": "FAQ",
         "commonQuestions": "よくある質問",
         "roadmap": "ロードマップ",
-        "whatsNext": "今後の予定",
+        "whatsNext": "次は何が来るのか",
         "glossary": "用語集",
-        "terminalTerms": "ターミナル & Unix用語",
+        "terminalTerms": "ターミナル＆Unix用語",
         "github": "GitHub",
         "sourceCode": "ソースコード"
       },
@@ -56,11 +56,11 @@
         "title": "外観",
         "darkMode": "ダークモード",
         "holidayTheme": "ホリデーテーマ",
-        "snowEffect": "雪エフェクト",
-        "disableEffects": "すべてのエフェクトを無効化"
+        "snowEffect": "雪効果",
+        "disableEffects": "すべての効果を無効にする"
       },
       "useCases": {
-        "allUseCases": "すべてのユースケース",
+        "allUseCases": "すべての使用例",
         "byRole": "役割別",
         "backToHome": "ホームに戻る"
       }

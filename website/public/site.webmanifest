@@ -1,0 +1,25 @@
+{
+  "name": "Caro - Your Loyal Shell Companion",
+  "short_name": "Caro",
+  "description": "AI-powered terminal assistant that converts natural language to POSIX shell commands",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a1a",
+  "theme_color": "#1a1a2e",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/caro-pixel.png",
+      "sizes": "64x64",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["developer", "utilities", "productivity"]
+}

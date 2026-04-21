@@ -1,12 +1,12 @@
 {
   "download": {
-    "title": "Los geht's mit Caro",
-    "subtitle": "Hol dir deine treue Shell-Begleiterin ins Terminal",
+    "title": "Leg los mit Caro",
+    "subtitle": "Bringe deinen treuen Shell-Begleiter in dein Terminal",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
     "copyButton": "Kopieren",
     "copiedButton": "Kopiert!",
-    "binariesIntro": "Oder lade vorkompilierte Binaries herunter:",
-    "comingSoonBadge": "Demnächst",
+    "binariesIntro": "Oder lade vorgefertigte Binärdateien herunter:",
+    "comingSoonBadge": "Demnächst verfügbar",
     "platforms": {
       "macAppleSilicon": "macOS (Apple Silicon)",
       "macIntel": "macOS (Intel)",
@@ -14,7 +14,7 @@
       "windows": "Windows"
     },
     "usageModes": {
-      "title": "Verschiedene Wege, Caro zu nutzen",
+      "title": "Mehrere Möglichkeiten, Caro zu nutzen",
       "modes": [
         {
           "title": "🔧 Standalone CLI",
@@ -22,21 +22,21 @@
         },
         {
           "title": "🔌 MCP für Claude",
-          "description": "Füge Caro als MCP-Server zu Claude Desktop hinzu und lass sie alle Shell-Befehle nahtlos übernehmen.",
+          "description": "Füge Caro als MCP-Server zu Claude Desktop hinzu und lasse sie alle Shell-Befehle nahtlos verarbeiten.",
           "comingSoon": true
         },
         {
-          "title": "✨ Dedicated Skill",
-          "description": "Nutze Caro als Skill, um die Generierung und Ausführung von Shell-Befehlen auszulagern, während Claude sich auf deine Arbeit konzentriert.",
+          "title": "✨ Dedizierte Fähigkeit",
+          "description": "Nutze Caro als Fähigkeit, um die Generierung und Ausführung von Shell-Befehlen auszulagern, während Claude sich auf deine Arbeit konzentriert.",
           "comingSoon": true
         }
       ]
     },
     "quickStart": {
       "title": "Schnellstart",
-      "intro": "Nach dem Setup-Script oben einfach Caro nutzen:",
+      "intro": "Nachdem du das obige Setup-Skript ausgeführt hast, verwende einfach Caro:",
       "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
-      "description": "Caro generiert den Befehl und hält dich sicher. Das Setup-Script kümmert sich um alle Voraussetzungen inklusive Rust-Kompilierung."
+      "description": "Caro wird den Befehl generieren und dich sicher halten. Das Setup-Skript kümmert sich um alle Voraussetzungen, einschließlich der Rust-Kompilierung."
     }
   }
 }

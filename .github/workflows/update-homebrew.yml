@@ -1,0 +1,173 @@
+name: Update Homebrew Formula
+
+# Runs after the Release workflow completes to update the Homebrew formula
+# with correct SHA256 checksums from the published binaries
+on:
+  workflow_run:
+    workflows: ["Release"]
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Git tag to update formula for (e.g., v1.1.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-formula:
+    name: Update Homebrew Formula
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Get version from tag
+        id: get_version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag }}"
+          else
+            # Get the tag from the release workflow
+            TAG=$(gh api repos/${{ github.repository }}/releases/latest --jq '.tag_name')
+          fi
+          VERSION="${TAG#v}"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Updating formula for version: $VERSION"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Wait for all release assets
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          REQUIRED_ASSETS=(
+            "caro-${VERSION}-macos-silicon"
+            "caro-${VERSION}-macos-intel"
+            "caro-${VERSION}-linux-amd64"
+            "caro-${VERSION}-linux-arm64"
+          )
+
+          echo "Waiting for all required assets to be available..."
+
+          for attempt in $(seq 1 30); do
+            AVAILABLE=0
+            for asset in "${REQUIRED_ASSETS[@]}"; do
+              if gh release view "${{ steps.get_version.outputs.tag }}" --json assets --jq '.assets[].name' | grep -q "^${asset}$"; then
+                AVAILABLE=$((AVAILABLE + 1))
+              fi
+            done
+
+            if [ $AVAILABLE -eq ${#REQUIRED_ASSETS[@]} ]; then
+              echo "All ${#REQUIRED_ASSETS[@]} assets are available"
+              break
+            fi
+
+            echo "Attempt $attempt/30: $AVAILABLE/${#REQUIRED_ASSETS[@]} assets available, waiting 30s..."
+            sleep 30
+          done
+
+          if [ $AVAILABLE -ne ${#REQUIRED_ASSETS[@]} ]; then
+            echo "::error::Not all assets available after 15 minutes"
+            exit 1
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download SHA256 checksums
+        id: checksums
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          TAG="${{ steps.get_version.outputs.tag }}"
+
+          # Download checksum files from release
+          declare -A PLATFORMS=(
+            ["macos-silicon"]="MACOS_SILICON"
+            ["macos-intel"]="MACOS_INTEL"
+            ["linux-amd64"]="LINUX_AMD64"
+            ["linux-arm64"]="LINUX_ARM64"
+          )
+
+          for platform in "${!PLATFORMS[@]}"; do
+            ASSET_NAME="caro-${VERSION}-${platform}.sha256"
+            echo "Downloading checksum for $platform..."
+
+            # Download the sha256 file
+            gh release download "$TAG" --pattern "$ASSET_NAME" --output "/tmp/$ASSET_NAME"
+
+            # Extract just the hash (first field)
+            CHECKSUM=$(cut -d' ' -f1 "/tmp/$ASSET_NAME")
+            VAR_NAME="${PLATFORMS[$platform]}_SHA256"
+            echo "${VAR_NAME}=${CHECKSUM}" >> $GITHUB_OUTPUT
+            echo "$platform: $CHECKSUM"
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update formula file
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          FORMULA_PATH="homebrew-tap/Formula/caro.rb"
+
+          echo "Updating formula to version $VERSION"
+
+          # Update version
+          sed -i "s/version \".*\"/version \"$VERSION\"/" "$FORMULA_PATH"
+
+          # Update SHA256 values (handling both placeholders and existing hashes)
+          # macOS Silicon
+          sed -i "/macos-silicon/,/sha256/{s/sha256 \"[A-Za-z0-9_]*\"/sha256 \"${{ steps.checksums.outputs.MACOS_SILICON_SHA256 }}\"/}" "$FORMULA_PATH"
+
+          # macOS Intel
+          sed -i "/macos-intel/,/sha256/{s/sha256 \"[A-Za-z0-9_]*\"/sha256 \"${{ steps.checksums.outputs.MACOS_INTEL_SHA256 }}\"/}" "$FORMULA_PATH"
+
+          # Linux AMD64
+          sed -i "/linux-amd64/,/sha256/{s/sha256 \"[A-Za-z0-9_]*\"/sha256 \"${{ steps.checksums.outputs.LINUX_AMD64_SHA256 }}\"/}" "$FORMULA_PATH"
+
+          # Linux ARM64
+          sed -i "/linux-arm64/,/sha256/{s/sha256 \"[A-Za-z0-9_]*\"/sha256 \"${{ steps.checksums.outputs.LINUX_ARM64_SHA256 }}\"/}" "$FORMULA_PATH"
+
+          echo "Formula updated. Changes:"
+          git diff "$FORMULA_PATH"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(brew): update Homebrew formula to v${{ steps.get_version.outputs.version }}"
+          title: "chore(brew): update Homebrew formula to v${{ steps.get_version.outputs.version }}"
+          body: |
+            This PR updates the Homebrew formula to version ${{ steps.get_version.outputs.version }}.
+
+            ## Changes
+            - Updated version to `${{ steps.get_version.outputs.version }}`
+            - Updated SHA256 checksums for all platforms:
+              - macOS Silicon: `${{ steps.checksums.outputs.MACOS_SILICON_SHA256 }}`
+              - macOS Intel: `${{ steps.checksums.outputs.MACOS_INTEL_SHA256 }}`
+              - Linux AMD64: `${{ steps.checksums.outputs.LINUX_AMD64_SHA256 }}`
+              - Linux ARM64: `${{ steps.checksums.outputs.LINUX_ARM64_SHA256 }}`
+
+            ## Testing
+            After merging, verify installation works:
+            ```bash
+            brew tap wildcard/caro https://github.com/wildcard/caro.git
+            brew install wildcard/caro/caro
+            caro --version
+            ```
+
+            ---
+            *This PR was automatically generated by the update-homebrew workflow.*
+          branch: chore/update-homebrew-${{ steps.get_version.outputs.version }}
+          base: main
+          labels: |
+            automated
+            homebrew
+            release

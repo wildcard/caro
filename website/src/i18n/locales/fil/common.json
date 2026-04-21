@@ -1,50 +1,50 @@
 {
   "common": {
     "meta": {
-      "title": "Caro - Ang tapat mong kasama sa shell",
-      "description": "Si Caro ay isang companion agent na tumutulong sa'yo sa POSIX shell commands. Available bilang MCP para sa Claude at bilang dedicated Skill."
+      "title": "Caro - Ang iyong tapat na kasama sa shell",
+      "description": "Si Caro ay isang kasamang ahente na tumutulong sa iyo sa mga utos ng POSIX shell. Magagamit bilang isang MCP para kay Claude at bilang isang dedikadong Skill."
     },
     "buttons": {
       "copy": "Kopyahin",
-      "copied": "Nakopya na!",
-      "getStarted": "Magsimula",
+      "copied": "Nakopya!",
+      "getStarted": "Simulan",
       "watchDemo": "Panoorin ang Demo"
     },
     "status": {
-      "availableNow": "Available Na",
-      "inDevelopment": "Ginagawa Pa",
-      "planned": "Naka-plano Na",
+      "availableNow": "Magagamit Na Ngayon",
+      "inDevelopment": "Nasa Pag-unlad",
+      "planned": "Pinaplano",
       "comingSoon": "Malapit Na"
     },
     "aria": {
       "toggleDarkMode": "I-toggle ang dark mode",
-      "toggleHolidayTheme": "I-toggle ang holiday theme menu"
+      "toggleHolidayTheme": "I-toggle ang menu ng holiday theme"
     },
     "nav": {
-      "features": "Features",
+      "features": "Mga Tampok",
       "compare": "Ihambing",
-      "resources": "Resources",
-      "support": "Support",
-      "getStarted": "Magsimula",
+      "resources": "Mga Mapagkukunan",
+      "support": "Suporta",
+      "getStarted": "Simulan",
       "dropdown": {
-        "overview": "Overview",
-        "seeAllComparisons": "Tingnan lahat ng paghahambing",
+        "overview": "Pangkalahatang-ideya",
+        "seeAllComparisons": "Tingnan ang lahat ng paghahambing",
         "vsWarp": "vs Warp",
         "aiNativeTerminal": "AI-native terminal",
         "vsGitHubCopilot": "vs GitHub Copilot CLI",
-        "aiPairProgrammer": "AI pair programmer",
+        "aiPairProgrammer": "AI na kapareha sa pagprograma",
         "vsKiro": "vs Kiro CLI",
-        "awsAssistant": "AWS AI assistant",
+        "awsAssistant": "AWS AI na katulong",
         "blog": "Blog",
-        "newsAndTutorials": "News at tutorials",
-        "explore": "I-explore",
-        "interactiveDemo": "Interactive demo",
+        "newsAndTutorials": "Balita & mga tutorial",
+        "explore": "Tuklasin",
+        "interactiveDemo": "Interactive na demo",
         "faq": "FAQ",
-        "commonQuestions": "Mga karaniwang tanong",
+        "commonQuestions": "Mga Karaniwang Tanong",
         "roadmap": "Roadmap",
         "whatsNext": "Ano ang susunod",
-        "glossary": "Glossary",
-        "terminalTerms": "Terminal at Unix terms",
+        "glossary": "Glosaryo",
+        "terminalTerms": "Mga termino sa Terminal & Unix",
         "github": "GitHub",
         "sourceCode": "Source code"
       },
@@ -56,13 +56,13 @@
         "title": "Hitsura",
         "darkMode": "Dark Mode",
         "holidayTheme": "Holiday Theme",
-        "snowEffect": "Snow Effect",
-        "disableEffects": "I-disable Lahat ng Effects"
+        "snowEffect": "Epekto ng Nyebe",
+        "disableEffects": "Huwag paganahin ang Lahat ng Epekto"
       },
       "useCases": {
-        "allUseCases": "Lahat ng Use Cases",
-        "byRole": "Ayon sa Role",
-        "backToHome": "Balik sa Home"
+        "allUseCases": "Lahat ng Kaso ng Paggamit",
+        "byRole": "Ayon sa Tungkulin",
+        "backToHome": "Bumalik sa Bahay"
       }
     }
   }

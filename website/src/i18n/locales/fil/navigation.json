@@ -2,9 +2,9 @@
   "navigation": {
     "brand": "🐕 Caro",
     "links": {
-      "features": "Features",
+      "features": "Mga Tampok",
       "compare": "Ihambing",
-      "play": "Subukan",
+      "play": "Maglaro",
       "blog": "Blog",
       "getStarted": "Magsimula",
       "github": "GitHub"
@@ -13,15 +13,15 @@
       "toggle": "I-toggle ang dark mode"
     },
     "holidayTheme": {
-      "toggle": "I-toggle ang holiday theme menu",
-      "title": "Holiday Theme",
-      "menuHeader": "Holiday Theme",
+      "toggle": "I-toggle ang menu ng holiday theme",
+      "title": "Tema ng Piyesta Opisyal",
+      "menuHeader": "Tema ng Piyesta Opisyal",
       "options": {
         "christmas": "Pasko",
         "hanukkah": "Hanukkah",
-        "noTheme": "Walang Theme"
+        "noTheme": "Walang Tema"
       },
-      "snowEffect": "Snow Effect"
+      "snowEffect": "Epekto ng Nyebe"
     }
   },
   "footer": {
@@ -29,20 +29,20 @@
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
-      "tagline": "Ang tapat mong kasama sa shell"
+      "tagline": "Ang iyong tapat na kasama sa shell"
     },
     "links": {
       "license": "AGPL-3.0",
-      "credits": "Credits & Attribution",
-      "contributing": "Mag-contribute",
-      "issues": "Issues"
+      "credits": "Mga Kredito & Pagkilala",
+      "contributing": "Pag-aambag",
+      "issues": "Mga Isyu"
     },
     "kyaro": {
-      "title": "Kilalanin si IRL Kyaro (Kyarorain Kadosh)! 🐕🖤",
-      "followText": "I-follow ang kanyang adventures sa",
+      "title": "Kilalanin ang IRL Kyaro (Kyarorain Kadosh)! 🐕🖤",
+      "followText": "Sundan ang kanyang mga pakikipagsapalaran sa",
       "instagram": "Instagram @kyaroblackheart"
     },
-    "inspiration": "Inspired ng Portal's Caroline—katapatan na naging digital na kasama",
-    "elevatorCredit": "Scroll effect ni"
+    "inspiration": "Hango sa Caroline ng Portal—ang katapatan na naging digital na kasama",
+    "elevatorCredit": "Epekto ng pag-scroll sa pamamagitan ng"
   }
 }

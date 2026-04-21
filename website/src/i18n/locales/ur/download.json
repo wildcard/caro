@@ -1,11 +1,11 @@
 {
   "download": {
     "title": "Caro کے ساتھ شروعات کریں",
-    "subtitle": "اپنے وفادار shell ساتھی کو اپنے terminal میں لائیں",
+    "subtitle": "اپنے وفادار شیل ساتھی کو اپنے ٹرمینل تک لائیں",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
-    "copyButton": "Copy کریں",
-    "copiedButton": "Copy ہو گیا!",
-    "binariesIntro": "یا پہلے سے بنی ہوئی binaries download کریں:",
+    "copyButton": "کاپی کریں",
+    "copiedButton": "کاپی ہو گیا!",
+    "binariesIntro": "یا پہلے سے تیار شدہ binaries ڈاؤن لوڈ کریں:",
     "comingSoonBadge": "جلد آ رہا ہے",
     "platforms": {
       "macAppleSilicon": "macOS (Apple Silicon)",
@@ -14,29 +14,29 @@
       "windows": "Windows"
     },
     "usageModes": {
-      "title": "Caro استعمال کرنے کے کئی طریقے",
+      "title": "Caro کو استعمال کرنے کے متعدد طریقے",
       "modes": [
         {
-          "title": "🔧 Standalone CLI",
+          "title": "🔧 آزاد CLI",
           "exampleCommand": "caro \"list files > 100MB\""
         },
         {
           "title": "🔌 Claude کے لیے MCP",
-          "description": "Caro کو Claude Desktop میں MCP server کے طور پر شامل کریں اور اسے تمام shell commands آسانی سے handle کرنے دیں۔",
+          "description": "Caro کو Claude Desktop کے لیے ایک MCP سرور کے طور پر شامل کریں اور اسے تمام شیل کمانڈز کو بغیر کسی رکاوٹ کے سنبھالنے دیں۔",
           "comingSoon": true
         },
         {
-          "title": "✨ Dedicated Skill",
-          "description": "Caro کو ایک Skill کے طور پر استعمال کریں تاکہ shell command generation اور execution اس پر چھوڑ دیں جبکہ Claude آپ کے کام پر focus کرے۔",
+          "title": "✨ مخصوص مہارت",
+          "description": "شیل کمانڈز کی تخلیق اور عملدرآمد کو Caro پر منتقل کریں جبکہ Claude آپ کے کام پر توجہ مرکوز کرتا ہے۔",
           "comingSoon": true
         }
       ]
     },
     "quickStart": {
-      "title": "فوری شروعات",
-      "intro": "اوپر والی setup script چلانے کے بعد، بس Caro استعمال کریں:",
+      "title": "فوری آغاز",
+      "intro": "اوپر دی گئی سیٹ اپ اسکرپٹ چلانے کے بعد، صرف Caro استعمال کریں:",
       "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
-      "description": "Caro command بنا دے گی اور آپ کو محفوظ رکھے گی۔ Setup script تمام ضروریات بشمول Rust compilation خود سنبھال لیتی ہے۔"
+      "description": "Caro کمانڈ تیار کرے گا اور آپ کو محفوظ رکھے گا۔ سیٹ اپ اسکرپٹ تمام ضروریات بشمول Rust کمپائلیشن کو سنبھالتا ہے۔"
     }
   }
 }

@@ -1,11 +1,11 @@
 {
   "download": {
-    "title": "Simulan ang Caro",
-    "subtitle": "Dalhin ang iyong tapat na shell companion sa iyong terminal",
+    "title": "Simulan ang Pag-gamit sa Caro",
+    "subtitle": "Dalhin ang iyong tapat na kasama sa shell sa iyong terminal",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
     "copyButton": "Kopyahin",
-    "copiedButton": "Nakopya na!",
-    "binariesIntro": "O mag-download ng pre-built binaries:",
+    "copiedButton": "Nakopya!",
+    "binariesIntro": "O mag-download ng pre-built na binaries:",
     "comingSoonBadge": "Malapit Na",
     "platforms": {
       "macAppleSilicon": "macOS (Apple Silicon)",
@@ -14,29 +14,29 @@
       "windows": "Windows"
     },
     "usageModes": {
-      "title": "Iba't Ibang Paraan ng Paggamit ng Caro",
+      "title": "Iba't Ibang Paraan ng Paggamit sa Caro",
       "modes": [
         {
           "title": "🔧 Standalone CLI",
           "exampleCommand": "caro \"list files > 100MB\""
         },
         {
-          "title": "🔌 MCP para sa Claude",
-          "description": "I-add ang Caro bilang MCP server sa Claude Desktop at hayaan siyang mag-handle ng lahat ng shell commands nang seamless.",
+          "title": "🔌 MCP para kay Claude",
+          "description": "Idagdag si Caro bilang isang MCP server sa Claude Desktop at hayaan siyang hawakan lahat ng utos sa shell nang walang kahirap-hirap.",
           "comingSoon": true
         },
         {
-          "title": "✨ Dedicated Skill",
-          "description": "Gamitin ang Caro bilang Skill para sa shell command generation at execution habang naka-focus si Claude sa iyong trabaho.",
+          "title": "✨ Nakatalagang Kakayahan",
+          "description": "Gamitin si Caro bilang isang Kakayahan para i-offload ang pag-generate at pag-execute ng utos sa shell habang si Claude ay nakatuon sa iyong trabaho.",
           "comingSoon": true
         }
       ]
     },
     "quickStart": {
-      "title": "Quick Start",
-      "intro": "Pagkatapos i-run ang setup script sa itaas, gamitin lang ang Caro:",
+      "title": "Mabilisang Simula",
+      "intro": "Pagkatapos patakbuhin ang setup script sa itaas, gamitin lamang si Caro:",
       "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
-      "description": "Bubuo si Caro ng command at aalagaan ka niya. Ang setup script ay nag-hahandle ng lahat ng prerequisites kasama ang Rust compilation."
+      "description": "Gagawa si Caro ng utos at panatilihin kang ligtas. Ang setup script ay humahawak sa lahat ng kailangan kasama na ang kompilasyon ng Rust."
     }
   }
 }

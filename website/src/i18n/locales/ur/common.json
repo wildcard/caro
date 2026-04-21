@@ -1,8 +1,8 @@
 {
   "common": {
     "meta": {
-      "title": "Caro - آپ کا وفادار shell ساتھی",
-      "description": "Caro ایک companion agent ہے جو آپ کی POSIX shell commands میں مدد کرتا ہے۔ Claude کے لیے MCP کے طور پر اور dedicated Skill کے طور پر دستیاب ہے۔"
+      "title": "Caro - آپ کا وفادار شیل ساتھی",
+      "description": "Caro ایک ساتھی ایجنٹ ہے جو آپ کو POSIX شیل کمانڈز کے ساتھ مدد فراہم کرتا ہے۔ Claude کے لیے ایک MCP کے طور پر اور ایک مخصوص Skill کے طور پر دستیاب ہے۔"
     },
     "buttons": {
       "copy": "کاپی کریں",
@@ -11,58 +11,58 @@
       "watchDemo": "ڈیمو دیکھیں"
     },
     "status": {
-      "availableNow": "ابھی دستیاب",
-      "inDevelopment": "تیاری میں",
-      "planned": "منصوبہ بند",
+      "availableNow": "اب دستیاب",
+      "inDevelopment": "ترقی میں",
+      "planned": "منصوبہ بندی",
       "comingSoon": "جلد آ رہا ہے"
     },
     "aria": {
       "toggleDarkMode": "ڈارک موڈ تبدیل کریں",
-      "toggleHolidayTheme": "چھٹیوں کی تھیم مینو تبدیل کریں"
+      "toggleHolidayTheme": "چھٹیوں کے تھیم مینو کو تبدیل کریں"
     },
     "nav": {
       "features": "خصوصیات",
-      "compare": "موازنہ",
+      "compare": "موازنہ کریں",
       "resources": "وسائل",
-      "support": "سپورٹ",
+      "support": "مدد",
       "getStarted": "شروع کریں",
       "dropdown": {
         "overview": "جائزہ",
-        "seeAllComparisons": "تمام موازنے دیکھیں",
-        "vsWarp": "vs Warp",
-        "aiNativeTerminal": "AI-native terminal",
-        "vsGitHubCopilot": "vs GitHub Copilot CLI",
-        "aiPairProgrammer": "AI pair programmer",
-        "vsKiro": "vs Kiro CLI",
-        "awsAssistant": "AWS AI assistant",
+        "seeAllComparisons": "تمام موازنہ دیکھیں",
+        "vsWarp": "Warp کے مقابلے میں",
+        "aiNativeTerminal": "AI-مقامی ٹرمینل",
+        "vsGitHubCopilot": "GitHub Copilot CLI کے مقابلے میں",
+        "aiPairProgrammer": "AI جوڑی پروگرامر",
+        "vsKiro": "Kiro CLI کے مقابلے میں",
+        "awsAssistant": "AWS AI معاون",
         "blog": "بلاگ",
         "newsAndTutorials": "خبریں اور ٹیوٹوریلز",
-        "explore": "دریافت کریں",
-        "interactiveDemo": "انٹرایکٹو ڈیمو",
+        "explore": "تلاش کریں",
+        "interactiveDemo": "باہمی ڈیمو",
         "faq": "عمومی سوالات",
-        "commonQuestions": "اکثر پوچھے جانے والے سوالات",
-        "roadmap": "روڈ میپ",
+        "commonQuestions": "عام سوالات",
+        "roadmap": "راہنما",
         "whatsNext": "آگے کیا آ رہا ہے",
         "glossary": "لغت",
-        "terminalTerms": "Terminal اور Unix کی اصطلاحات",
+        "terminalTerms": "ٹرمینل اور Unix اصطلاحات",
         "github": "GitHub",
         "sourceCode": "سورس کوڈ"
       },
       "mobile": {
-        "allComparisons": "تمام موازنے",
-        "supportCaro": "Caro کی سپورٹ کریں"
+        "allComparisons": "تمام موازنہ",
+        "supportCaro": "Caro کی مدد کریں"
       },
       "appearance": {
         "title": "ظاہری شکل",
         "darkMode": "ڈارک موڈ",
-        "holidayTheme": "چھٹیوں کی تھیم",
+        "holidayTheme": "چھٹیوں کا تھیم",
         "snowEffect": "برف کا اثر",
-        "disableEffects": "تمام اثرات بند کریں"
+        "disableEffects": "تمام اثرات کو غیر فعال کریں"
       },
       "useCases": {
-        "allUseCases": "تمام استعمالات",
+        "allUseCases": "تمام استعمال کے معاملات",
         "byRole": "کردار کے لحاظ سے",
-        "backToHome": "ہوم پر واپس"
+        "backToHome": "ہوم پر واپس جائیں"
       }
     }
   }
