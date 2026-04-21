@@ -55,9 +55,7 @@ impl GenerationProfile {
     /// Get a description of what this profile does
     pub fn description(&self) -> &'static str {
         match self {
-            GenerationProfile::Generator => {
-                "Quick command generation with minimal output"
-            }
+            GenerationProfile::Generator => "Quick command generation with minimal output",
             GenerationProfile::Explainer => {
                 "Educational mode with detailed explanations of commands and options"
             }
@@ -154,7 +152,7 @@ impl ProfileConfig {
 }
 
 /// Explanation output for a generated command
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CommandExplanation {
     /// The generated command
     pub command: String,
@@ -179,21 +177,6 @@ pub struct CommandExplanation {
 
     /// When to use this command vs alternatives
     pub use_cases: Vec<String>,
-}
-
-impl Default for CommandExplanation {
-    fn default() -> Self {
-        Self {
-            command: String::new(),
-            summary: String::new(),
-            detailed_explanation: String::new(),
-            option_breakdown: Vec::new(),
-            examples: Vec::new(),
-            alternatives: Vec::new(),
-            tool_used: String::new(),
-            use_cases: Vec::new(),
-        }
-    }
 }
 
 /// Explanation of a single option/flag

@@ -213,3 +213,16 @@ const { lang = 'en' } = Astro.props;
     .trust-badges { flex-direction: column; gap: 12px; }
   }
 </style>
+
+<script>
+  import { track } from '@vercel/analytics';
+
+  // Track hero CTA clicks
+  document.querySelector('.hero .btn-primary')?.addEventListener('click', () => {
+    track('cta_click', { location: 'hero', action: 'get_started' });
+  });
+
+  document.querySelector('.hero .btn-secondary')?.addEventListener('click', () => {
+    track('cta_click', { location: 'hero', action: 'see_demo' });
+  });
+</script>

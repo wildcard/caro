@@ -2,9 +2,9 @@
   "navigation": {
     "brand": "🐕 Caro",
     "links": {
-      "features": "फीचर्स",
+      "features": "विशेषताएँ",
       "compare": "तुलना करें",
-      "play": "प्ले करें",
+      "play": "खेलें",
       "blog": "ब्लॉग",
       "getStarted": "शुरू करें",
       "github": "GitHub"
@@ -13,19 +13,19 @@
       "toggle": "डार्क मोड टॉगल करें"
     },
     "holidayTheme": {
-      "toggle": "हॉलिडे थीम मेन्यू टॉगल करें",
+      "toggle": "हॉलिडे थीम मेनू टॉगल करें",
       "title": "हॉलिडे थीम",
       "menuHeader": "हॉलिडे थीम",
       "options": {
         "christmas": "क्रिसमस",
-        "hanukkah": "हनुक्का",
+        "hanukkah": "हनुक्काह",
         "noTheme": "कोई थीम नहीं"
       },
-      "snowEffect": "स्नो इफेक्ट"
+      "snowEffect": "बर्फ प्रभाव"
     }
   },
   "footer": {
-    "builtWith": "Rust 🦀 से बनाया गया | ओपन सोर्स यहाँ",
+    "builtWith": "रस्ट 🦀 के साथ बनाया गया | ओपन सोर्स पर",
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
@@ -33,16 +33,16 @@
     },
     "links": {
       "license": "AGPL-3.0",
-      "credits": "क्रेडिट्स और एट्रिब्यूशन",
-      "contributing": "योगदान करें",
-      "issues": "इश्यूज"
+      "credits": "क्रेडिट्स और स्वीकृति",
+      "contributing": "योगदान",
+      "issues": "समस्याएँ"
     },
     "kyaro": {
-      "title": "असली Kyaro (Kyarorain Kadosh) से मिलें! 🐕🖤",
-      "followText": "इनके एडवेंचर्स फॉलो करें",
+      "title": "मिलिए IRL Kyaro (Kyarorain Kadosh) से! 🐕🖤",
+      "followText": "उसके एडवेंचर्स को फॉलो करें",
       "instagram": "Instagram @kyaroblackheart"
     },
-    "inspiration": "Portal की Caroline से प्रेरित—वफादारी का डिजिटल साथी में रूपांतरण",
-    "elevatorCredit": "स्क्रॉल इफेक्ट बनाया"
+    "inspiration": "पोर्टल की कैरोलिन से प्रेरित—वफादारी को डिजिटल साथी में बदलना",
+    "elevatorCredit": "स्क्रॉल प्रभाव द्वारा"
   }
 }

@@ -2,47 +2,47 @@
   "navigation": {
     "brand": "🐕 Caro",
     "links": {
-      "features": "المميزات",
-      "compare": "المقارنة",
-      "play": "جرّب الآن",
+      "features": "الميزات",
+      "compare": "قارن",
+      "play": "العب",
       "blog": "المدونة",
       "getStarted": "ابدأ الآن",
       "github": "GitHub"
     },
     "darkMode": {
-      "toggle": "تبديل الوضع الليلي"
+      "toggle": "تبديل وضع الظلام"
     },
     "holidayTheme": {
-      "toggle": "فتح قائمة ثيمات الأعياد",
-      "title": "ثيم العيد",
-      "menuHeader": "ثيم العيد",
+      "toggle": "تبديل قائمة ثيم العطلة",
+      "title": "ثيم العطلة",
+      "menuHeader": "ثيم العطلة",
       "options": {
-        "christmas": "الكريسماس",
-        "hanukkah": "الهانوكا",
+        "christmas": "عيد الميلاد",
+        "hanukkah": "حانوكا",
         "noTheme": "بدون ثيم"
       },
       "snowEffect": "تأثير الثلج"
     }
   },
   "footer": {
-    "builtWith": "مبني بـ Rust 🦀 | مفتوح المصدر على",
+    "builtWith": "مبني بواسطة Rust 🦀 | مفتوح المصدر على",
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
-      "tagline": "رفيقك الوفي في الـ shell"
+      "tagline": "رفيقك الوفي في الشل"
     },
     "links": {
       "license": "AGPL-3.0",
-      "credits": "الشكر والتقدير",
+      "credits": "الفضل والنسب",
       "contributing": "المساهمة",
       "issues": "المشاكل"
     },
     "kyaro": {
-      "title": "تعرّف على Kyaro الحقيقية (Kyarorain Kadosh)! 🐕🖤",
+      "title": "تعرف على كيارو الحقيقي (كياروراين كادوش)! 🐕🖤",
       "followText": "تابع مغامراتها على",
       "instagram": "Instagram @kyaroblackheart"
     },
-    "inspiration": "مستوحى من Caroline في Portal—الوفاء يتحول إلى رفقة رقمية",
-    "elevatorCredit": "تأثير التمرير من"
+    "inspiration": "مستوحى من كارولين في Portal—الولاء تحول إلى رفقة رقمية",
+    "elevatorCredit": "تأثير التمرير بواسطة"
   }
 }

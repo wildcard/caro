@@ -4,28 +4,28 @@
     "links": {
       "features": "Fonctionnalités",
       "compare": "Comparer",
-      "play": "Essayer",
+      "play": "Jouer",
       "blog": "Blog",
-      "getStarted": "Démarrer",
+      "getStarted": "Commencer",
       "github": "GitHub"
     },
     "darkMode": {
-      "toggle": "Basculer le mode sombre"
+      "toggle": "Activer le mode sombre"
     },
     "holidayTheme": {
-      "toggle": "Ouvrir le menu des thèmes de fêtes",
-      "title": "Thème de fête",
-      "menuHeader": "Thème de fête",
+      "toggle": "Activer le menu du thème des fêtes",
+      "title": "Thème des Fêtes",
+      "menuHeader": "Thème des Fêtes",
       "options": {
         "christmas": "Noël",
         "hanukkah": "Hanoukka",
-        "noTheme": "Aucun thème"
+        "noTheme": "Aucun Thème"
       },
-      "snowEffect": "Effet neige"
+      "snowEffect": "Effet de neige"
     }
   },
   "footer": {
-    "builtWith": "Développé en Rust 🦀 | Open source sur",
+    "builtWith": "Construit avec Rust 🦀 | Open source sur",
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
@@ -33,9 +33,9 @@
     },
     "links": {
       "license": "AGPL-3.0",
-      "credits": "Crédits & Attributions",
+      "credits": "Crédits & Attribution",
       "contributing": "Contribuer",
-      "issues": "Issues"
+      "issues": "Problèmes"
     },
     "kyaro": {
       "title": "Rencontrez Kyaro IRL (Kyarorain Kadosh) ! 🐕🖤",
@@ -43,6 +43,6 @@
       "instagram": "Instagram @kyaroblackheart"
     },
     "inspiration": "Inspiré par Caroline de Portal—la loyauté transformée en compagnonnage numérique",
-    "elevatorCredit": "Effet de scroll par"
+    "elevatorCredit": "Effet de défilement par"
   }
 }
