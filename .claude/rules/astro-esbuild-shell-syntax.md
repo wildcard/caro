@@ -116,3 +116,36 @@ either in frontmatter OR in an external file.
 | Inline `<code>` shell text | JSX expression string | `<code>:{':(){:|:&};:'}</code>` |
 | Highlighted code blocks | HTML entities `&#123;` | In `<pre><code>` span trees |
 | Template `{{.Name}}` | `{'{{.Name}}'}` or external file | Docker inspect examples |
+
+## Lessons Learned (Prevent Repetition)
+
+### L1: Translation Key Mismatch Between Component and JSON
+**Date:** 2026-04-21
+**Symptom:** Root `/` page showed raw keys like `landing.hero.headline.line1`
+instead of text. Component referenced keys that didn't exist in any locale JSON.
+**Root Cause:** `hero.json` existed with flat `{ "hero": { ... } }` structure,
+but `LPHero.astro` expected nested `{ "landing": { "hero": { "headline": { ... } } } }`.
+The Spanish `landing.json` had these keys, but English didn't — creating a
+silent fallback-to-raw-key behavior.
+**Fix:** Added missing keys (`headline`, `socialProof`, `trustBadges`,
+`cta.primary/secondary`) to `en/landing.json` hero section.
+**Rule:** When a component uses `t(lang, 'path.to.key')`, verify the key exists
+in ALL locale files (especially `en/`). A missing EN key causes raw key display
+on ALL locale pages since EN is the fallback base.
+
+### L2: Pattern Quality - No Literal `...` Placeholders
+**Date:** 2026-04-21
+**Symptom:** `dangerous-commands.ts` had `curl ... | sudo bash` — the literal
+`...` doesn't match real-world patterns and reduces effectiveness.
+**Fix:** Changed to `curl https://example.com | sudo bash` — a realistic pattern.
+**Rule:** All dangerous command patterns must use realistic, matchable syntax.
+Never use ellipsis (`...`) as placeholder text.
+
+### L3: Pattern Quality - No Exact Duplicates
+**Date:** 2026-04-21
+**Symptom:** `ddSda: 'dd if=/dev/zero of=/dev/sda'` was identical to `ddZero`,
+wasting a pattern slot and potentially causing confusion.
+**Fix:** Renamed to `ddTruncate: 'dd if=/dev/zero of=/dev/sda bs=1M'` with
+differentiated parameters.
+**Rule:** When adding patterns, check for existing near-duplicates. Each pattern
+should cover a distinct scenario or variant.
