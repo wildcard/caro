@@ -28,6 +28,7 @@
 //! ```
 
 pub mod agent;
+pub mod ai;
 pub mod assessment;
 pub mod backends;
 pub mod cache;

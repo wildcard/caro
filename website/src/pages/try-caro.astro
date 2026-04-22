@@ -14,7 +14,9 @@
 import Layout from '../layouts/Layout.astro';
 import Navigation from '../components/Navigation.astro';
 import Footer from '../components/Footer.astro';
-import RatzillaDemo from '../components/RatzillaDemo.astro';
+// RatzillaDemo disabled until WASM build is available
+// import RatzillaDemo from '../components/RatzillaDemo.astro';
+
 ---
 
 <Layout
@@ -40,7 +42,7 @@ import RatzillaDemo from '../components/RatzillaDemo.astro';
     <section class="demo-section">
       <div class="container">
         <div class="demo-wrapper">
-          <RatzillaDemo height="550px" />
+          <div class="ratzilla-placeholder"><p>Demo coming soon! Ratzilla WASM build pending.</p></div>
         </div>
 
         <div class="demo-hints">

@@ -129,7 +129,7 @@ dd if=/dev/zero of=/dev/sda</code></pre>
 
   <h3>Other Dangerous Patterns</h3>
   <ul>
-    <li>Fork bombs: <code>:(){ :|:& };:</code></li>
+    <li>Fork bombs: <code>{":(){ :|:& };:"}</code></li>
     <li>Recursive chmod: <code>chmod -R 777 /</code></li>
     <li>Hidden sudo: Commands that escalate privileges unexpectedly</li>
   </ul>
