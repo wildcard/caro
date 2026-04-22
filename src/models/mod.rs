@@ -624,6 +624,82 @@ impl CacheManifest {
     }
 }
 
+/// Interactive AI feature configuration (inspired by Atuin AI `[ai]` section).
+///
+/// Privacy-first: defaults reveal only the bare minimum (OS + shell, derived
+/// at prompt-build time). Any machine-specific context — CWD, last command,
+/// or learned shell history — is strictly opt-in.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct AiConfig {
+    /// Master switch for the AI REPL and `?` shell keybinding.
+    pub enabled: bool,
+    /// Minutes a session is considered "recent" and auto-continues on next invocation.
+    pub session_continue_minutes: u32,
+    /// Optional override for the session store path. Defaults to
+    /// `$XDG_DATA_HOME/caro/ai_sessions.json`.
+    #[serde(default)]
+    pub db_path: Option<std::path::PathBuf>,
+    /// Optional override for a remote AI endpoint (forwarded to the backend).
+    #[serde(default)]
+    pub endpoint: Option<String>,
+    /// Optional API token for a remote AI endpoint. Never logged.
+    #[serde(default)]
+    pub api_token: Option<String>,
+    /// Capability toggles (opt-in features that expand what the LLM can see).
+    #[serde(default)]
+    pub capabilities: AiCapabilities,
+    /// Per-request opt-in context pieces sent to the LLM.
+    #[serde(default)]
+    pub opening: AiOpening,
+}
+
+/// Toggles for opt-in AI capabilities that require additional context from the user's machine.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Default)]
+pub struct AiCapabilities {
+    /// Allow the LLM to search the user's learned shell-history knowledge index.
+    #[serde(default)]
+    pub enable_history_search: bool,
+}
+
+/// Per-request opt-in context toggles for the "opening" turn of an AI session.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Default)]
+pub struct AiOpening {
+    /// Include the current working directory in the initial request.
+    #[serde(default)]
+    pub send_cwd: bool,
+    /// Include the user's previous shell command (when known) in the initial request.
+    #[serde(default)]
+    pub send_last_command: bool,
+}
+
+impl Default for AiConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            session_continue_minutes: 60,
+            db_path: None,
+            endpoint: None,
+            api_token: None,
+            capabilities: AiCapabilities::default(),
+            opening: AiOpening::default(),
+        }
+    }
+}
+
+impl AiConfig {
+    /// Validate AI config values.
+    pub fn validate(&self) -> Result<(), String> {
+        if self.session_continue_minutes == 0 || self.session_continue_minutes > 24 * 60 * 7 {
+            return Err(format!(
+                "ai.session_continue_minutes must be between 1 and {} (one week), got {}",
+                24 * 60 * 7,
+                self.session_continue_minutes
+            ));
+        }
+        Ok(())
+    }
+}
+
 /// User configuration with preferences
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct UserConfiguration {
@@ -641,6 +717,9 @@ pub struct UserConfiguration {
     /// Default generation profile (generator or explainer)
     #[serde(default)]
     pub generation_profile: crate::prompts::profiles::GenerationProfile,
+    /// Interactive AI feature (`caro ai`, `?` keybinding) configuration.
+    #[serde(default)]
+    pub ai: AiConfig,
 }
 
 impl Default for UserConfiguration {
@@ -655,6 +734,7 @@ impl Default for UserConfiguration {
             log_rotation_days: 7,
             telemetry: crate::telemetry::TelemetryConfig::default(),
             generation_profile: crate::prompts::profiles::GenerationProfile::default(),
+            ai: AiConfig::default(),
         }
     }
 }
@@ -679,6 +759,7 @@ impl UserConfiguration {
                 self.log_rotation_days
             ));
         }
+        self.ai.validate()?;
         Ok(())
     }
 }
@@ -694,6 +775,7 @@ pub struct UserConfigurationBuilder {
     log_rotation_days: u32,
     telemetry: crate::telemetry::TelemetryConfig,
     generation_profile: crate::prompts::profiles::GenerationProfile,
+    ai: AiConfig,
 }
 
 impl Default for UserConfigurationBuilder {
@@ -715,7 +797,13 @@ impl UserConfigurationBuilder {
             log_rotation_days: defaults.log_rotation_days,
             telemetry: defaults.telemetry,
             generation_profile: defaults.generation_profile,
+            ai: defaults.ai,
         }
+    }
+
+    pub fn ai(mut self, ai: AiConfig) -> Self {
+        self.ai = ai;
+        self
     }
 
     pub fn default_shell(mut self, shell: ShellType) -> Self {
@@ -777,6 +865,7 @@ impl UserConfigurationBuilder {
             log_rotation_days: self.log_rotation_days,
             telemetry: self.telemetry,
             generation_profile: self.generation_profile,
+            ai: self.ai,
         };
         config.validate()?;
         Ok(config)
