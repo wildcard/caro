@@ -147,7 +147,44 @@ Expected output: `version = "X.Y.Z"`
 - Ask: "Continue with empty release notes? (y/n)"
 - If no, exit with instructions to update CHANGELOG.md first
 
-### 5. Update Version Documentation (if needed)
+### 5. Update User-Facing Version References (MANDATORY)
+
+**Per `.claude/rules/release-version-alignment.md`, every release PR must update
+all version references in a single commit.** The following files drift silently
+if not touched — v1.3.0 shipped with README showing `1.1.1`, homebrew tap
+example at `VERSION=1.1.0`, and nuget installer defaulting to `1.1.0`, requiring
+a post-release alignment PR to fix.
+
+Update these files in addition to `Cargo.toml` and `CHANGELOG.md`:
+
+1. **`README.md`** — find the line `**Current Version:** <old>` (or similar
+   landing-page version banner) and bump to `X.Y.Z`. Search for any other
+   version strings in the README header block.
+
+2. **`ROADMAP.md`** — three edits:
+   - Bump `**Last Updated**: <date>` near the top to today.
+   - In the status / milestone table, either flip the existing `vX.Y.Z` row
+     to `✅ **RELEASED**` with the release date, or prepend a new row
+     newest-first.
+   - Prepend a new `### 🎉 vX.Y.Z - <headline>` section at the top of
+     `## Release Milestones` summarising what shipped, with a link to the
+     feature PR(s).
+
+3. **`homebrew-tap/README.md`** — in the "Computing SHA256 Checksums" code
+   block, bump `VERSION=X.Y.Z` so the example matches this release.
+
+4. **`nuget/tools/install.ps1`** — bump the default parameter value
+   `[string]$Version = "X.Y.Z"` on line 3 so fresh NuGet installs pull the
+   current release by default.
+
+**Scan for any additional version references** that may have been added since
+this checklist was written:
+```bash
+# Any file outside .claude/releases/ still showing the previous version?
+git grep -l "<old-version>" -- ':!.claude/releases/' ':!specs/' ':!kitty-specs/'
+```
+
+### 6. Update Version Documentation (if needed)
 
 **Check if `docs/RELEASE_PROCESS.md` needs updates**:
 - Read the file
@@ -156,7 +193,7 @@ Expected output: `version = "X.Y.Z"`
 
 **This step is optional** - only update if procedures changed.
 
-### 6. Verify Build
+### 7. Verify Build
 
 Run `cargo check` to ensure Cargo.toml is valid:
 ```bash
@@ -168,19 +205,25 @@ cargo check
 - REFUSE to proceed
 - Instruct user to fix issues and re-run
 
-### 7. Review Changes
+### 8. Review Changes
 
 Display summary of changes:
 ```bash
-git diff Cargo.toml CHANGELOG.md
+git diff Cargo.toml Cargo.lock CHANGELOG.md README.md ROADMAP.md \
+        homebrew-tap/README.md nuget/tools/install.ps1
 ```
 
 Show clear summary:
 ```
 Version bump summary:
-- Cargo.toml: X.Y.Z-old → X.Y.Z
-- CHANGELOG.md: Added [X.Y.Z] section with N changes
-- Build verification: ✓ Passed
+- Cargo.toml:              X.Y.Z-old → X.Y.Z
+- Cargo.lock:              regenerated
+- CHANGELOG.md:            Added [X.Y.Z] section with N changes
+- README.md:               Current Version banner bumped
+- ROADMAP.md:              Status table + milestone section updated
+- homebrew-tap/README.md:  VERSION= example bumped
+- nuget/install.ps1:       Default -Version bumped
+- Build verification:      ✓ Passed
 ```
 
 **Ask for confirmation**:
@@ -188,15 +231,18 @@ Version bump summary:
 
 If no, exit without committing.
 
-### 8. Commit Changes
+### 9. Commit Changes
 
-Create a well-formatted commit:
+Create a well-formatted commit staging ALL aligned files:
 ```bash
-git add Cargo.toml CHANGELOG.md docs/
+git add Cargo.toml Cargo.lock CHANGELOG.md README.md ROADMAP.md \
+        homebrew-tap/README.md nuget/tools/install.ps1 docs/
 git commit -m "$(cat <<'EOF'
 chore: Bump version to X.Y.Z
 
-Updated version in Cargo.toml and moved unreleased changes to
+Updated version in Cargo.toml and aligned all user-facing version
+references (README banner, ROADMAP milestone+status, homebrew tap
+example, nuget installer default). Moved unreleased changes to
 CHANGELOG.md release section.
 
 Release notes:
@@ -211,7 +257,7 @@ EOF
 )"
 ```
 
-### 9. Output Summary
+### 10. Output Summary
 
 Display next steps:
 ```
