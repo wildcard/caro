@@ -2,7 +2,7 @@
 
 > Your loyal shell companion - A privacy-first AI CLI assistant that converts natural language to safe shell commands
 
-**Version**: 1.1.3
+**Version**: 1.3.0
 **License**: AGPL-3.0
 **Repository**: https://github.com/wildcard/caro
 **Website**: https://caro.sh
@@ -74,6 +74,14 @@ telemetry = false
 - Rust 1.70+ for building from source
 - 8GB+ RAM recommended for local LLM inference
 - Apple Silicon Macs get hardware acceleration with MLX
+
+---
+
+## Caro - Terminal mastery, unlocked
+
+**URL**: https://caro.sh/
+
+Transform natural language into safe POSIX shell commands. 52+ dangerous patterns blocked. Zero data collection. Works offline on macOS, Linux, BSD, and Windows.
 
 ---
 
@@ -303,6 +311,8 @@ Caro stands on the shoulders of giants. This page honors the open source project
 
 Stories, updates, and insights from Caro's journey - your loyal shell companion
 
+How Kyaro Guides Us: The Soul Behind Every Decision
+
 Standing With Free Software: Our Debt to GNU, FSF, and FreeBSD
 
 The Rust Revolution: How Modern Tools Are Reimagining Unix
@@ -314,6 +324,8 @@ Building Caro with Security in Mind
 Batteries Included: Caro
 
 Why Caro? The Story Behind Your Terminal Companion
+
+Why Caro is built the way it is, the values that drive our decisions, and how a real Shiba Inu named Kyaro shapes everything from product choices to our vision for hyper-localization.
 
 Caro wouldn
 
@@ -350,6 +362,14 @@ Why Caro ships with everything you need to run AI-powered command generation loc
 **URL**: https://caro.sh/blog/claude-skill-launch
 
 Caro comes to Claude Code! Generate safe, POSIX-compliant shell commands directly in your Claude sessions with comprehensive safety validation and educational guidance.
+
+---
+
+## How Kyaro Guides Us: The Soul Behind Every Decision
+
+**URL**: https://caro.sh/blog/how-kyaro-guides-us
+
+Why Caro is built the way it is, the values that drive our decisions, and how a real Shiba Inu named Kyaro shapes everything from product choices to our vision for hyper-localization.
 
 ---
 
@@ -483,6 +503,14 @@ Safety Approach
 
 ---
 
+## Open Source AI Shell Commands
+
+**URL**: https://caro.sh/open-source-shell-ai
+
+Caro is the open-source CLI that converts natural language to safe shell commands. 100% local inference, community-driven, zero telemetry. Join the movement.
+
+---
+
 ## What Caro Does | AI Shell Assistant
 
 **URL**: https://caro.sh/product
@@ -564,6 +592,14 @@ Sponsor Caro's development through GitHub Sponsors or Open Collective. Your cont
 Sponsor
 
 Fund Caro open source development
+
+---
+
+## Try Caro - Interactive Shell Companion Demo
+
+**URL**: https://caro.sh/try-caro
+
+Experience Caro's AI-powered shell command generation in your browser. Try the safety-first terminal companion that converts natural language to POSIX commands.
 
 ---
 
@@ -947,4 +983,4 @@ Yes! Caro is licensed under AGPL-3.0. You can read, modify, and distribute the s
 
 ---
 
-*Generated on 2026-01-19*
+*Generated on 2026-04-21*
