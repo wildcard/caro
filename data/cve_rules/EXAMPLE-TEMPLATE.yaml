@@ -1,0 +1,32 @@
+# EXAMPLE TEMPLATE — ignored by build.rs (filename does not start with "CVE-")
+#
+# Copy this file as data/cve_rules/CVE-YYYY-NNNNN.yaml and fill it in.
+# Run `deno run scripts/validate-cve-yaml.ts data/cve_rules/CVE-YYYY-NNNNN.yaml`
+# to verify schema before opening a PR.
+
+id: CVE-EXAMPLE-0000                   # CVE-YYYY-NNNNN
+source: https://example.com/advisory   # URL reviewers spot-check
+disclosed: 2026-01-01                  # ISO date
+
+# Severity — lowercase only (maps to crate::models::RiskLevel)
+#   safe | moderate | high | critical
+risk_level: high
+
+# Shell-specific? null if pattern applies to any shell.
+#   null | bash | zsh | fish | sh | powershell | cmd
+shell_specific: null
+
+# Raw regex. Tested against candidate shell commands.
+# Prefer literal substrings (aho-corasick-friendly) over backreferences.
+pattern: "example-tool\\s+--dangerous-flag"
+
+# One-line human-readable summary shown on block.
+description: "Short summary of exploit (CVE-EXAMPLE-0000)"
+
+# At least one Block + one Allow case. Exhaustively cover benign variants
+# to prove the pattern is tight enough.
+test_cases:
+  - input: "example-tool --dangerous-flag target"
+    expected_behavior: Block
+  - input: "example-tool --safe-flag target"
+    expected_behavior: Allow
