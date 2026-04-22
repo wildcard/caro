@@ -15,6 +15,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [1.3.0] - 2026-04-20
+
+### Added
+
+- **`caro ai` conversational command generation** (#861): Atuin-AI-style once-mode
+  AI invocation that resumes or creates a session, runs the prompt through the
+  configured backend, validates the result via the existing 52-pattern
+  `SafetyValidator`, and persists the turn.
+  - `caro ai --once "<prompt>"` for scripted use
+  - `caro ai --continue-session` for shell-widget invocation
+  - TTL-based session resume via `session_continue_minutes`
+- **`caro shell-init <bash|zsh|fish>`** (#861): emits a shell integration script
+  that binds `?` on an empty prompt to `caro ai`. Literal `?` is preserved when
+  the prompt already has characters (globs etc.). Fish output is properly quoted
+  to preserve multi-word commands.
+- **`[ai]` config block** (#861): strict opt-in privacy gates — `opening.send_cwd`,
+  `opening.send_last_command`, `capabilities.enable_history_search` all default
+  to `false`. With defaults, only the OS + shell name leaves the process.
+- **Off-host context warning** (#861): when a remote backend (ollama, vllm, exo,
+  claude) is configured alongside any opt-in context toggle and an explicit
+  endpoint, stderr surfaces a warning before the generation happens.
+- **`CliApp::backend_arc()` accessor** (#861): exposes the constructed backend
+  for reuse without re-instantiation.
+
+### Security
+
+- Every command produced by `caro ai` flows through the same 52-pattern
+  `SafetyValidator` used for `caro <prompt>`; `rm -rf /` at `SafetyLevel::Moderate`
+  is unconditionally blocked (covered by a new strict regression test in
+  `src/ai/runner.rs`).
+- Session history is only included in LLM context when
+  `capabilities.enable_history_search` is true, closing the leak that could have
+  bypassed the opening-context opt-in toggles.
+
+### Internal
+
+- New `src/ai/` module: `privacy`, `session`, `store`, `runner`, `shell_init`
+  (23 unit tests covering privacy toggle combinations, session TTL, shell-init
+  snapshots, and safety integration).
+- Collapsed 3 pre-existing clippy `collapsible_match` warnings in
+  `src/evaluation/models.rs` to unblock `-D warnings` on the lint CI job.
+
 ## [1.2.0] - 2026-03-26
 
 ### Added

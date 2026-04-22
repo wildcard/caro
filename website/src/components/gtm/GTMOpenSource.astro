@@ -1,7 +1,9 @@
 ---
 // GTM Open Source Section - Emphasize the open-source advantage
 // Key Daytona strategy element: transparency builds trust
+const codeBlock = "<span class=\"comment\">// Example safety patterns - you can audit every one</span>\n<span class=\"keyword\">const</span> <span class=\"variable\">DANGEROUS_PATTERNS</span>: &[&<span class=\"type\">str</span>] = &[\n    <span class=\"string\">r\"rm -rf /\"</span>,              <span class=\"comment\">// Root delete</span>\n    <span class=\"string\">r\"fork_bomb\"</span>,             <span class=\"comment\">// Fork bomb</span>\n    <span class=\"string\">r\"dd if=/dev/zero\"</span>,       <span class=\"comment\">// Disk wipe</span>\n    <span class=\"string\">r\"mkfs\"</span>,                  <span class=\"comment\">// Format disk</span>\n    <span class=\"string\">r\"chmod 777 /\"</span>,           <span class=\"comment\">// Perm disaster</span>\n    <span class=\"comment\">// ... 46 more patterns</span>\n];\n\n<span class=\"keyword\">pub fn</span> <span class=\"function\">validate</span>(cmd: &<span class=\"type\">str</span>) -> <span class=\"type\">SafetyResult</span> {\n    <span class=\"keyword\">for</span> pattern <span class=\"keyword\">in</span> DANGEROUS_PATTERNS {\n        <span class=\"keyword\">if</span> pattern.is_match(cmd) {\n            <span class=\"keyword\">return</span> <span class=\"type\">SafetyResult</span>::Blocked(pattern);\n        }\n    }\n    <span class=\"type\">SafetyResult</span>::Safe\n}";
 ---
+
 
 <section class="opensource">
   <div class="container">
@@ -57,24 +59,23 @@
             <span class="code-badge">Rust</span>
           </div>
           <pre class="code-content"><code><span class="comment">// Example safety patterns - you can audit every one</span>
-<span class="keyword">const</span> <span class="variable">DANGEROUS_PATTERNS</span>: &[&<span class="type">str</span>] = &[
-    <span class="string">r"rm\s+(-[rf]+\s+)*/"</span>,           <span class="comment">// Root delete</span>
-    <span class="string">r"rm\s+(-[rf]+\s+)*~"</span>,           <span class="comment">// Home delete</span>
-    <span class="string">r":\(\)\s*\{\s*:\|:&\s*\}"</span>,      <span class="comment">// Fork bomb</span>
-    <span class="string">r"dd\s+if=/dev/zero"</span>,            <span class="comment">// Disk wipe</span>
-    <span class="string">r"mkfs\."</span>,                        <span class="comment">// Format disk</span>
-    <span class="string">r"chmod\s+(-R\s+)?777\s+/"</span>,      <span class="comment">// Perm disaster</span>
+<span class="keyword">const</span> <span class="variable">DANGEROUS_PATTERNS</span>: &amp;[&amp;<span class="type">str</span>] = &amp;[
+    <span class="string">r"rm -rf /"</span>,              <span class="comment">// Root delete</span>
+    <span class="string">r"fork_bomb"</span>,             <span class="comment">// Fork bomb</span>
+    <span class="string">r"dd if=/dev/zero"</span>,       <span class="comment">// Disk wipe</span>
+    <span class="string">r"mkfs"</span>,                  <span class="comment">// Format disk</span>
+    <span class="string">r"chmod 777 /"</span>,           <span class="comment">// Perm disaster</span>
     <span class="comment">// ... 46 more patterns</span>
 ];
 
-<span class="keyword">pub fn</span> <span class="function">validate</span>(cmd: &<span class="type">str</span>) -> <span class="type">SafetyResult</span> {
-    <span class="keyword">for</span> pattern <span class="keyword">in</span> DANGEROUS_PATTERNS {
-        <span class="keyword">if</span> Regex::new(pattern)?.is_match(cmd) {
+<span class="keyword">pub fn</span> <span class="function">validate</span>(cmd: &amp;<span class="type">str</span>) -&gt; <span class="type">SafetyResult</span> &#123;
+    <span class="keyword">for</span> pattern <span class="keyword">in</span> DANGEROUS_PATTERNS &#123;
+        <span class="keyword">if</span> pattern.is_match(cmd) &#123;
             <span class="keyword">return</span> <span class="type">SafetyResult</span>::Blocked(pattern);
-        }
-    }
+        &#125;
+    &#125;
     <span class="type">SafetyResult</span>::Safe
-}</code></pre>
+&#125;</code></pre>
         </div>
       </div>
     </div>
