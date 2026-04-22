@@ -123,11 +123,20 @@ jobs:
         if: steps.check_release.outputs.exists != 'true'
         id: changelog
         run: |
-          # Get auto-generated changelog from GitHub API
-          CHANGELOG=$(gh api repos/${{ github.repository }}/releases/generate-notes \
-            -f tag_name="${RELEASE_TAG}" \
-            -f previous_tag_name="$(git describe --tags --abbrev=0 ${RELEASE_TAG}^ 2>/dev/null || echo '')" \
-            --jq '.body')
+          # Extract the changelog section for this version from CHANGELOG.md
+          VERSION="${RELEASE_VERSION}"
+          CHANGELOG_SECTION=$(awk "/^## \[${VERSION}\]/{p=1;next} p&&/^## \[/{p=0} p" CHANGELOG.md)
+
+          if [ -n "$CHANGELOG_SECTION" ]; then
+            echo "Extracted CHANGELOG section for v${VERSION}"
+            CHANGELOG="$CHANGELOG_SECTION"
+          else
+            echo "No CHANGELOG section found for v${VERSION}, falling back to generated notes"
+            CHANGELOG=$(gh api repos/${{ github.repository }}/releases/generate-notes \
+              -f tag_name="${RELEASE_TAG}" \
+              -f previous_tag_name="$(git describe --tags --abbrev=0 ${RELEASE_TAG}^ 2>/dev/null || echo '')" \
+              --jq '.body')
+          fi
 
           # Replace VERSION placeholder in template
           sed "s/VERSION/${RELEASE_VERSION}/g" .github/RELEASE_TEMPLATE.md > /tmp/template-with-version.md
@@ -135,6 +144,8 @@ jobs:
           # Create release notes by combining changelog with template
           {
             echo "$CHANGELOG"
+            echo ""
+            echo "---"
             echo ""
             cat /tmp/template-with-version.md
           } > /tmp/release-notes.md
