@@ -1,6 +1,6 @@
 # Caro Development Roadmap
 
-**Last Updated**: January 19, 2026
+**Last Updated**: April 20, 2026
 
 > **Recent Update**: Integrated 104 PRs (#557-660) into roadmap with milestone assignments and tracking issues.
 
@@ -48,6 +48,28 @@ gantt
 ---
 
 ## Release Milestones
+
+### 🎉 v1.3.0 - Conversational AI Command Generation
+**Released**: April 20, 2026 ✅
+**Status**: 100% Complete - **RELEASED**
+**Focus**: Atuin-AI-style conversational command generation with privacy-first defaults
+
+#### Key Deliverables
+- **`caro ai` once-mode** ✅ — Resume-or-new session, generate via configured backend, safety-validate, persist turn ([#861](https://github.com/wildcard/caro/pull/861))
+- **`caro shell-init <bash|zsh|fish>`** ✅ — `?`-on-empty-prompt shell widget; literal `?` preserved on non-empty prompts
+- **`[ai]` config block** ✅ — Strict opt-in privacy gates: `opening.send_cwd`, `opening.send_last_command`, `capabilities.enable_history_search` all default to `false`
+- **Off-host context warning** ✅ — Stderr warning when remote backend + opt-in context + explicit endpoint combine
+- **Safety integration** ✅ — Every AI-generated command flows through the 52-pattern `SafetyValidator`; `rm -rf /` unconditionally blocked at `Moderate` safety
+
+### 🎉 v1.2.0 - Website & Documentation
+**Released**: March 26, 2026 ✅
+**Status**: 100% Complete - **RELEASED**
+**Focus**: Documentation pages, version headers, security notes; CI/publish hardening
+
+#### Key Deliverables
+- Version header, security notes, documentation pages ([#639](https://github.com/wildcard/caro/pull/639))
+- Publish workflow protoc/cmake install fix ([#811](https://github.com/wildcard/caro/pull/811))
+- LanceDB `usize::MAX` cast hotfix ([#812](https://github.com/wildcard/caro/pull/812))
 
 ### 🎉 v1.1.2 - Performance & Infrastructure
 **Released**: January 15, 2026 ✅
@@ -275,11 +297,11 @@ gantt
 
 | Milestone | Due Date | Items (Issues + PRs) | Complete | Progress | Status |
 |-----------|----------|---------------------|----------|----------|---------|
+| **v1.3.0** | Apr 20, 2026 | `caro ai` + `caro shell-init` | 1 | 100% | ✅ **RELEASED** |
+| **v1.2.0** | Mar 26, 2026 | Docs & website launch | — | 100% | ✅ **RELEASED** |
 | **v1.1.2** | Jan 15, 2026 | 5 | 5 | 100% | ✅ **RELEASED** |
 | **v1.1.1** | Jan 14, 2026 | 7 | 7 | 100% | ✅ **RELEASED** |
 | **v1.1.0** | Jan 12, 2026 | 19 | 19 | 100% | ✅ **GA RELEASED** |
-| **v1.2.0** | Mar 31, 2026 | 73 (25 issues + 48 PRs) | 4 | 5% | 🔄 In Progress |
-| **v1.3.0** | May 31, 2026 | 54 (17 issues + 37 PRs) | 0 | 0% | ⏸️ Backlog |
 | **v2.0.0** | Jun 30, 2026 | 36 (17 issues + 19 PRs) | 0 | 0% | 🔄 Research Phase |
 | **Total** | - | **194** | **35** | **18%** | 🚀 On Track |
 
