@@ -62,7 +62,7 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
   <ul>
     <li><strong>Filesystem destruction</strong>: <code>rm -rf /</code>, <code>rm -rf ~</code></li>
     <li><strong>Disk operations</strong>: <code>mkfs</code>, <code>dd if=/dev/zero</code></li>
-    <li><strong>Fork bombs</strong>: <code>:(){ :|:& };:</code></li>
+    <li><strong>Fork bombs</strong>: <code>{":(){ :|:& };:"}</code></li>
     <li><strong>System paths</strong>: Operations on <code>/bin</code>, <code>/usr</code>, <code>/etc</code></li>
     <li><strong>Privilege escalation</strong>: <code>sudo su</code>, <code>chmod 777 /</code></li>
   </ul>
