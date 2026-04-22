@@ -1,13 +1,13 @@
 {
   "hero": {
-    "badge": "🐕 Companion Agent",
+    "badge": "🐕 साथी एजेंट",
     "logo": "Caro",
-    "logoAlt": "Caro - 8-bit pixel art",
-    "tagline": "आपका वफादार shell साथी",
-    "subtitle": "एक specialized POSIX shell command agent जो empathy और agency के साथ काम करता है। Claude के लिए MCP के रूप में और dedicated Skill के रूप में उपलब्ध। वो आपको safe रखती है जबकि Claude को काम पूरा करने में मदद करती है।",
+    "logoAlt": "Caro - 8-बिट पिक्सेल आर्ट",
+    "tagline": "आपका वफादार शेल साथी",
+    "subtitle": "एक विशेषज्ञ POSIX शेल कमांड एजेंट जिसमें सहानुभूति और एजेंसी है। Claude के लिए एक MCP के रूप में और एक समर्पित स्किल के रूप में उपलब्ध। वह आपको सुरक्षित रखती है जबकि Claude को काम पूरा करने में मदद करती है।",
     "cta": {
       "getStarted": "शुरू करें",
-      "watchDemo": "Demo देखें"
+      "watchDemo": "डेमो देखें"
     }
   }
 }

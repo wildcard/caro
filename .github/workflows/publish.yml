@@ -58,6 +58,9 @@ jobs:
           path: target
           key: ${{ runner.os }}-${{ env.RUST_VERSION }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}
 
+      - name: Install system dependencies
+        run: sudo apt-get update -qq && sudo apt-get install -y protobuf-compiler cmake
+
       - name: Check formatting
         run: cargo fmt --all -- --check
 

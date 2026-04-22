@@ -16,5 +16,5 @@ jobs:
       - uses: codespell-project/actions-codespell@v2
         with:
           check_filenames: true
-          skip: "*.lock,./target,./Cargo.lock,./docs-site/node_modules,./website/node_modules,./landing/node_modules,./.git,./assets"
+          skip: "*.lock,./target,./Cargo.lock,./package-lock.json,./website/package-lock.json,./changelog/package-lock.json,./docs-site/package-lock.json,./landing/package-lock.json,./presentation/package-lock.json,./docs-site/node_modules,./website/node_modules,./landing/node_modules,./.git,./assets,./models,./apps,./specs,./website/src/i18n,./website/public,./exports,./presentation"
           ignore_words_file: .codespellignore

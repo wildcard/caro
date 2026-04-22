@@ -1,8 +1,8 @@
 {
   "common": {
     "meta": {
-      "title": "Caro — Ваш верный компаньон в командной строке",
-      "description": "Caro — это агент-помощник для работы с POSIX shell командами. Доступен как MCP для Claude и как отдельный Skill."
+      "title": "Caro - Ваш верный помощник в оболочке",
+      "description": "Caro - это агент-помощник, который помогает вам с командами оболочки POSIX. Доступен как MCP для Claude и как отдельный навык."
     },
     "buttons": {
       "copy": "Копировать",
@@ -14,37 +14,37 @@
       "availableNow": "Доступно сейчас",
       "inDevelopment": "В разработке",
       "planned": "Запланировано",
-      "comingSoon": "Скоро"
+      "comingSoon": "Скоро будет"
     },
     "aria": {
-      "toggleDarkMode": "Переключить тёмную тему",
-      "toggleHolidayTheme": "Открыть меню праздничной темы"
+      "toggleDarkMode": "Переключить темный режим",
+      "toggleHolidayTheme": "Переключить праздничное меню"
     },
     "nav": {
-      "features": "Возможности",
-      "compare": "Сравнение",
+      "features": "Функции",
+      "compare": "Сравнить",
       "resources": "Ресурсы",
       "support": "Поддержка",
       "getStarted": "Начать",
       "dropdown": {
         "overview": "Обзор",
-        "seeAllComparisons": "Все сравнения",
-        "vsWarp": "vs Warp",
-        "aiNativeTerminal": "AI-терминал",
-        "vsGitHubCopilot": "vs GitHub Copilot CLI",
-        "aiPairProgrammer": "AI-парный программист",
-        "vsKiro": "vs Kiro CLI",
-        "awsAssistant": "AWS AI-ассистент",
+        "seeAllComparisons": "Посмотреть все сравнения",
+        "vsWarp": "против Warp",
+        "aiNativeTerminal": "Терминал с ИИ",
+        "vsGitHubCopilot": "против GitHub Copilot CLI",
+        "aiPairProgrammer": "ИИ-помощник программиста",
+        "vsKiro": "против Kiro CLI",
+        "awsAssistant": "AWS ИИ-помощник",
         "blog": "Блог",
-        "newsAndTutorials": "Новости и туториалы",
-        "explore": "Изучить",
+        "newsAndTutorials": "Новости и учебные пособия",
+        "explore": "Исследовать",
         "interactiveDemo": "Интерактивное демо",
         "faq": "FAQ",
         "commonQuestions": "Частые вопросы",
-        "roadmap": "Roadmap",
+        "roadmap": "План развития",
         "whatsNext": "Что дальше",
         "glossary": "Глоссарий",
-        "terminalTerms": "Термины терминала и Unix",
+        "terminalTerms": "Терминал и Unix термины",
         "github": "GitHub",
         "sourceCode": "Исходный код"
       },
@@ -53,16 +53,16 @@
         "supportCaro": "Поддержать Caro"
       },
       "appearance": {
-        "title": "Оформление",
-        "darkMode": "Тёмная тема",
+        "title": "Внешний вид",
+        "darkMode": "Темный режим",
         "holidayTheme": "Праздничная тема",
         "snowEffect": "Эффект снега",
         "disableEffects": "Отключить все эффекты"
       },
       "useCases": {
-        "allUseCases": "Все сценарии",
+        "allUseCases": "Все случаи использования",
         "byRole": "По ролям",
-        "backToHome": "На главную"
+        "backToHome": "Вернуться на главную"
       }
     }
   }

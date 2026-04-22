@@ -147,12 +147,26 @@ const { lang = 'en' } = Astro.props;
 </style>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const toggle = document.getElementById('theme-toggle');
-    toggle?.addEventListener('click', () => {
-      document.documentElement.classList.toggle('dark');
-      const isDark = document.documentElement.classList.contains('dark');
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  import { track } from '@vercel/analytics';
+
+  const toggle = document.querySelector('.nav-mobile-toggle');
+  const menu = document.querySelector('.nav-mobile-menu');
+
+  toggle?.addEventListener('click', () => {
+    menu?.classList.toggle('open');
+  });
+
+  // Close menu when clicking a link
+  document.querySelectorAll('.mobile-link, .mobile-cta').forEach(link => {
+    link.addEventListener('click', () => {
+      menu?.classList.remove('open');
+    });
+  });
+
+  // Track CTA clicks
+  document.querySelectorAll('.nav-cta, .mobile-cta').forEach(cta => {
+    cta.addEventListener('click', () => {
+      track('cta_click', { location: 'navigation', action: 'get_started' });
     });
   });
 </script>

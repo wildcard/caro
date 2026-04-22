@@ -2,20 +2,20 @@
   "navigation": {
     "brand": "🐕 Caro",
     "links": {
-      "features": "Features",
-      "compare": "Vergleich",
-      "play": "Ausprobieren",
+      "features": "Funktionen",
+      "compare": "Vergleichen",
+      "play": "Spielen",
       "blog": "Blog",
       "getStarted": "Loslegen",
       "github": "GitHub"
     },
     "darkMode": {
-      "toggle": "Dark Mode umschalten"
+      "toggle": "Dunkelmodus umschalten"
     },
     "holidayTheme": {
-      "toggle": "Feiertagsthema-Menü umschalten",
-      "title": "Feiertagsthema",
-      "menuHeader": "Feiertagsthema",
+      "toggle": "Ferien-Themenmenü umschalten",
+      "title": "Ferien-Thema",
+      "menuHeader": "Ferien-Thema",
       "options": {
         "christmas": "Weihnachten",
         "hanukkah": "Chanukka",
@@ -25,7 +25,7 @@
     }
   },
   "footer": {
-    "builtWith": "Gebaut mit Rust 🦀 | Open Source auf",
+    "builtWith": "Erstellt mit Rust 🦀 | Open Source auf",
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
@@ -33,16 +33,16 @@
     },
     "links": {
       "license": "AGPL-3.0",
-      "credits": "Credits & Attribution",
-      "contributing": "Contributing",
-      "issues": "Issues"
+      "credits": "Danksagungen & Zuschreibungen",
+      "contributing": "Mitwirken",
+      "issues": "Probleme"
     },
     "kyaro": {
-      "title": "Lerne die echte Kyaro kennen (Kyarorain Kadosh)! 🐕🖤",
+      "title": "Triff den echten Kyaro (Kyarorain Kadosh)! 🐕🖤",
       "followText": "Folge ihren Abenteuern auf",
       "instagram": "Instagram @kyaroblackheart"
     },
-    "inspiration": "Inspiriert von Portals Caroline—Loyalität verwandelt in digitale Begleitung",
+    "inspiration": "Inspiriert von Portals Caroline – Loyalität verwandelt in digitale Kameradschaft",
     "elevatorCredit": "Scroll-Effekt von"
   }
 }

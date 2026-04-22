@@ -71,6 +71,10 @@ impl IntoCliArgs for TestArgs {
     fn force_llm(&self) -> bool {
         self.force_llm
     }
+
+    fn explain(&self) -> bool {
+        false
+    }
 }
 
 // =============================================================================

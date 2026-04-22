@@ -1,11 +1,11 @@
 {
   "download": {
-    "title": "בואו נתחיל עם Caro",
-    "subtitle": "תביאו את בת הלוויה הנאמנה שלכם לטרמינל",
+    "title": "התחל עם Caro",
+    "subtitle": "הביאו את חבר השל הנאמן שלכם לטרמינל שלכם",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
     "copyButton": "העתק",
     "copiedButton": "הועתק!",
-    "binariesIntro": "או הורידו קבצים בינאריים מוכנים:",
+    "binariesIntro": "או הורד בינארים מוכנים מראש:",
     "comingSoonBadge": "בקרוב",
     "platforms": {
       "macAppleSilicon": "macOS (Apple Silicon)",
@@ -14,7 +14,7 @@
       "windows": "Windows"
     },
     "usageModes": {
-      "title": "כמה דרכים להשתמש ב-Caro",
+      "title": "מספר דרכים להשתמש ב-Caro",
       "modes": [
         {
           "title": "🔧 CLI עצמאי",
@@ -22,21 +22,21 @@
         },
         {
           "title": "🔌 MCP עבור Claude",
-          "description": "הוסיפו את Caro כשרת MCP ל-Claude Desktop ותנו לה לטפל בכל פקודות השל בצורה חלקה.",
+          "description": "הוסף את Caro כשרת MCP ל-Claude Desktop ותן לה לטפל בכל פקודות השל בחלקיות.",
           "comingSoon": true
         },
         {
-          "title": "✨ Skill ייעודי",
-          "description": "השתמשו ב-Caro כ-Skill כדי להעביר אליה את יצירת והרצת פקודות השל בזמן ש-Claude מתמקדת בעבודה שלכם.",
+          "title": "✨ כישור מוקדש",
+          "description": "השתמש ב-Caro ככישור כדי להעביר את יצירת פקודות השל וביצוען בעוד Claude מתמקד בעבודה שלך.",
           "comingSoon": true
         }
       ]
     },
     "quickStart": {
       "title": "התחלה מהירה",
-      "intro": "אחרי שהרצתם את סקריפט ההתקנה למעלה, פשוט השתמשו ב-Caro:",
+      "intro": "לאחר הרצת סקריפט ההתקנה למעלה, פשוט השתמשו ב-Caro:",
       "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
-      "description": "Caro תייצר את הפקודה ותשמור עליכם. סקריפט ההתקנה מטפל בכל הדרישות המקדימות כולל קומפילציית Rust."
+      "description": "Caro תייצר את הפקודה ותשמור עליכם בטוחים. סקריפט ההתקנה טופל בכל הדרישות המוקדמות כולל קומפילציה של Rust."
     }
   }
 }
