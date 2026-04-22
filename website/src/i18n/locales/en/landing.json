@@ -12,9 +12,26 @@
       "tagline": "Your loyal shell companion",
       "subtitle": "A specialized POSIX shell command agent for Claude users. Validates AI-generated commands with safety-first design, detects dangerous patterns, and ensures POSIX compliance.",
       "installLabel": "Available as a Claude Skill:",
+      "headline": {
+        "line1": "Never run",
+        "line2": "by accident again",
+        "dangerCmd": "rm -rf /"
+      },
+      "socialProof": {
+        "quote": "Finally, an AI assistant that won't crash production",
+        "attribution": "— Engineering Teams Everywhere"
+      },
+      "trustBadges": {
+        "zeroTelemetry": "Zero Telemetry",
+        "validation": "52+ Safety Patterns",
+        "local": "100% Local",
+        "openSource": "Open Source"
+      },
       "cta": {
         "getStarted": "Get Started",
-        "watchDemo": "Watch Demo"
+        "watchDemo": "Watch Demo",
+        "primary": "Install Caro",
+        "secondary": "See Demo"
       }
     },
     "features": {

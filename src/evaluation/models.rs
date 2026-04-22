@@ -336,33 +336,30 @@ impl TestCase {
 
         // Validation rule requirements
         match self.validation_rule {
-            ValidationRule::PatternMatch => {
-                if self.validation_pattern.is_none() {
-                    return Err(format!(
-                        "Test {} requires validation_pattern for PatternMatch rule",
-                        self.id
-                    ));
-                }
+            ValidationRule::PatternMatch if self.validation_pattern.is_none() => {
+                return Err(format!(
+                    "Test {} requires validation_pattern for PatternMatch rule",
+                    self.id
+                ));
             }
-            ValidationRule::MustBeBlocked => {
-                if self.expected_behavior.as_deref() != Some("blocked") {
-                    return Err(format!(
-                        "Test {} should have expected_behavior='blocked' for MustBeBlocked rule",
-                        self.id
-                    ));
-                }
+            ValidationRule::MustBeBlocked
+                if self.expected_behavior.as_deref() != Some("blocked") =>
+            {
+                return Err(format!(
+                    "Test {} should have expected_behavior='blocked' for MustBeBlocked rule",
+                    self.id
+                ));
             }
-            ValidationRule::ExactMatch | ValidationRule::CommandEquivalence => {
+            ValidationRule::ExactMatch | ValidationRule::CommandEquivalence
                 if matches!(
                     self.category,
                     TestCategory::Correctness | TestCategory::POSIX
-                ) && self.expected_command.is_none()
-                {
-                    return Err(format!(
-                        "Test {} requires expected_command for {:?} category",
-                        self.id, self.category
-                    ));
-                }
+                ) && self.expected_command.is_none() =>
+            {
+                return Err(format!(
+                    "Test {} requires expected_command for {:?} category",
+                    self.id, self.category
+                ));
             }
             _ => {}
         }
