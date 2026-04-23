@@ -691,15 +691,17 @@ source at runtime.
   — queries NVD + CISA KEV + GHSA for new shell-invocation CVEs (CVSS ≥ 7.0)
   and opens a PR adding a draft `data/cve_rules/CVE-*.yaml` file.
 - **Off-cycle manual trigger** (`caro.security.update` maintainer skill) —
-  invoke via `claude --skill caro.security.update CVE-<id>` when a 0day lands
-  between cron runs; same authoring flow, runs on demand.
+  invoke via `claude --skill caro.security.update --arg CVE-<id>` when a 0day
+  lands between cron runs; same authoring flow, runs on demand.
 - **Build embedding** — `build.rs` compiles `data/cve_rules/*.yaml` into a
   bincode blob included in the binary via `include_bytes!`. The `caro
   --version` output lists the embedded rule count as `cve rules: N`.
 
-Runtime behaviour is unchanged: one aho-corasick scan, no added latency, no
-telemetry. See [specs/010-nimble-cve-pipeline/](specs/010-nimble-cve-pipeline/)
-for the full design.
+Runtime behaviour is unchanged: CVE patterns run through the same regex
+validation loop as the built-in patterns (`src/safety/mod.rs`) against
+locally-embedded rules — no network, no added latency, no telemetry. See
+[specs/010-nimble-cve-pipeline/](specs/010-nimble-cve-pipeline/) for the full
+design.
 
 ## 📊 Telemetry & Privacy
 
