@@ -7,6 +7,8 @@
 
 Dogma externalizes CARO's rule engine into a community-driven, version-controlled system. Rules are defined in YAML, compiled for performance, and support three layers: community (open), enterprise (private), and user (local). The engine integrates with existing safety validation while enabling independent rule updates.
 
+> **Shared compiler note (2026-04):** The YAML→`CompiledRuleset` compiler already lives at `src/dogma/compiler.rs`, first consumed by the spec-010 Nimble CVE pipeline ([PR #879](https://github.com/wildcard/caro/pull/879)). It is a `std + serde + serde_yaml` module invoked both from `build.rs` (for build-time bincode embedding) and from `src/dogma/mod.rs` at runtime. Dogma's engine (`src/dogma/engine.rs` in the design above) should adopt this compiler rather than introducing a parallel YAML→rule type, so community, enterprise, and user rule layers share one validated format with CVE rules. The `RawRule` struct in `compiler.rs` is intentionally narrow (matches the CVE YAML shape); Dogma's richer tiered-rules format may extend it via a superset struct or a conversion layer.
+
 ## Technical Context
 
 **Language/Version**: Rust 1.75+

@@ -680,6 +680,27 @@ require_confirmation = true
 custom_patterns = ["additional", "dangerous", "patterns"]
 ```
 
+### CVE Rule Pipeline (Maintainers)
+
+Caro's safety layer is kept current against newly-disclosed CVEs and 0day
+attack signatures by a **back-office authoring pipeline** (spec 010). It runs
+only during development/CI — end users make **zero** network calls to any CVE
+source at runtime.
+
+- **Weekly cron** ([`.github/workflows/cve-rule-sync.yml`](.github/workflows/cve-rule-sync.yml))
+  — queries NVD + CISA KEV + GHSA for new shell-invocation CVEs (CVSS ≥ 7.0)
+  and opens a PR adding a draft `data/cve_rules/CVE-*.yaml` file.
+- **Off-cycle manual trigger** (`caro.security.update` maintainer skill) —
+  invoke via `claude --skill caro.security.update CVE-<id>` when a 0day lands
+  between cron runs; same authoring flow, runs on demand.
+- **Build embedding** — `build.rs` compiles `data/cve_rules/*.yaml` into a
+  bincode blob included in the binary via `include_bytes!`. The `caro
+  --version` output lists the embedded rule count as `cve rules: N`.
+
+Runtime behaviour is unchanged: one aho-corasick scan, no added latency, no
+telemetry. See [specs/010-nimble-cve-pipeline/](specs/010-nimble-cve-pipeline/)
+for the full design.
+
 ## 📊 Telemetry & Privacy
 
 **Caro includes optional usage telemetry to help us improve the product.**
