@@ -49,7 +49,10 @@ jobs:
             echo "No CVE rule files to validate."
             exit 0
           fi
-          npx -w scripts tsx scripts/validate-cve-yaml.ts "${files[@]}"
+          # scripts/ is not a root npm workspace, so invoke the local tsx
+          # binary directly from scripts/node_modules/.bin rather than
+          # going through `npx -w scripts` (which would require a workspace).
+          scripts/node_modules/.bin/tsx scripts/validate-cve-yaml.ts "${files[@]}"
 
   pattern-compilation:
     name: Pattern Compilation Check
