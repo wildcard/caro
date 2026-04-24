@@ -1,0 +1,15 @@
+{
+  "name": "caro-scripts",
+  "private": true,
+  "type": "module",
+  "description": "Maintainer scripts for caro (CVE rule sync, schema validation, etc). Not published.",
+  "scripts": {
+    "validate-cve": "tsx validate-cve-yaml.ts data/cve_rules/*.yaml",
+    "sync-cve": "tsx nimble-cve-sync.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "yaml": "^2.6.0",
+    "@types/node": "^22.9.0"
+  }
+}
