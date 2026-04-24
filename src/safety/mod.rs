@@ -28,12 +28,14 @@
 //! # }
 //! ```
 
+pub mod cve_patterns;
 mod patterns;
 
 use serde::{Deserialize, Serialize};
 
 use crate::models::{RiskLevel, SafetyLevel, ShellType};
 
+pub use cve_patterns::{get_cve_compiled_patterns_for_shell, CVE_COMPILED};
 pub use patterns::{
     get_compiled_patterns_for_shell, get_patterns_by_risk, get_patterns_for_shell, is_known_safe,
     validate_patterns,
@@ -247,6 +249,21 @@ impl SafetyValidator {
             if Self::is_dangerous_in_context(command, regex) {
                 // Normalize to lowercase for consistent .contains() matching in tests
                 // Original case is preserved in warnings for readability
+                matched.push(description.to_lowercase());
+                if *risk_level > highest_risk {
+                    highest_risk = *risk_level;
+                }
+                warnings.push(format!("{}: {}", risk_level, description));
+            }
+        }
+
+        // Check against CVE-derived patterns compiled from data/cve_rules/*.yaml.
+        // These use the same tuple shape as built-in patterns so the loop is
+        // identical; descriptions carry the CVE ID prefix for provenance.
+        for (regex, risk_level, description, _) in
+            cve_patterns::get_cve_compiled_patterns_for_shell(shell)
+        {
+            if Self::is_dangerous_in_context(command, regex) {
                 matched.push(description.to_lowercase());
                 if *risk_level > highest_risk {
                     highest_risk = *risk_level;
