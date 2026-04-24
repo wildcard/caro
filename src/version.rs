@@ -17,6 +17,9 @@ pub struct VersionInfo {
     pub target: &'static str,
     pub build_profile: &'static str,
     pub release_flag: &'static str,
+    /// Number of CVE-derived safety rules embedded in this binary.
+    /// Set at build time from `data/cve_rules/*.yaml` via `build.rs`.
+    pub cve_rule_count: &'static str,
 }
 
 impl VersionInfo {
@@ -62,12 +65,14 @@ impl VersionInfo {
              \x20 built:      {}\n\
              \x20 host:       {}\n\
              \x20 rustc:      {}\n\
-             \x20 build-type: {}",
+             \x20 build-type: {}\n\
+             \x20 cve rules:  {}",
             self.git_hash_full,
             self.build_date,
             self.target,
             self.rustc_version,
-            self.build_type()
+            self.build_type(),
+            self.cve_rule_count,
         )
     }
 
@@ -110,6 +115,7 @@ static VERSION_INFO: VersionInfo = VersionInfo {
     target: env!("CARO_TARGET"),
     build_profile: env!("CARO_BUILD_PROFILE"),
     release_flag: env!("CARO_RELEASE"),
+    cve_rule_count: env!("CARO_CVE_RULE_COUNT"),
 };
 
 /// Get version info

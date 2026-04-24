@@ -37,6 +37,7 @@ pub mod completion;
 pub mod config;
 pub mod context;
 pub mod doctor;
+pub mod dogma;
 pub mod eval;
 pub mod evaluation;
 pub mod execution;
