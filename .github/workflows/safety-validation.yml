@@ -4,6 +4,10 @@ on:
   pull_request:
     paths:
       - 'src/safety/**'
+      - 'src/dogma/**'
+      - 'data/cve_rules/**'
+      - 'scripts/validate-cve-yaml.ts'
+      - 'scripts/package.json'
       - '.claude/beta-testing/**'
       - '.github/workflows/safety-validation.yml'
   push:
@@ -11,12 +15,45 @@ on:
       - main
     paths:
       - 'src/safety/**'
+      - 'src/dogma/**'
+      - 'data/cve_rules/**'
 
 env:
   RUST_BACKTRACE: 1
   CARGO_TERM_COLOR: always
 
 jobs:
+  cve-yaml-validation:
+    name: CVE Rule YAML Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: scripts/package-lock.json
+
+      - name: Install script deps
+        working-directory: scripts
+        run: npm ci --no-audit --no-fund
+
+      - name: Validate CVE rule YAMLs
+        run: |
+          shopt -s nullglob
+          files=(data/cve_rules/CVE-*.yaml data/cve_rules/EXAMPLE-TEMPLATE.yaml)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No CVE rule files to validate."
+            exit 0
+          fi
+          # scripts/ is not a root npm workspace, so invoke the local tsx
+          # binary directly from scripts/node_modules/.bin rather than
+          # going through `npx -w scripts` (which would require a workspace).
+          scripts/node_modules/.bin/tsx scripts/validate-cve-yaml.ts "${files[@]}"
+
   pattern-compilation:
     name: Pattern Compilation Check
     runs-on: ubuntu-latest
