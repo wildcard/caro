@@ -220,3 +220,4 @@ tests/evaluation/results/*.md
 # thoughts/ledgers/CONTINUITY_CLAUDE-*.md
 .continuous-claude-tmp/
 tests/evaluation/target/
+RESUME.md
