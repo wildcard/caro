@@ -27,7 +27,10 @@ export const Caption: React.FC<Props> = ({
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const localFrame = frame - startFrame;
+  // Clamp to 0 so spring() never receives a negative frame before the
+  // caption is supposed to appear. Remotion clamps internally, but
+  // making it explicit prevents future surprises.
+  const localFrame = Math.max(0, frame - startFrame);
   const inProgress = spring({
     frame: localFrame,
     fps,

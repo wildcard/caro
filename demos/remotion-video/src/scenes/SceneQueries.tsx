@@ -42,13 +42,17 @@ export const SceneQueries: React.FC = () => {
       }}
     >
       <Series>
-        {QUERIES.map((q, i) => (
-          <Series.Sequence key={i} durationInFrames={140}>
+        {QUERIES.map((q) => (
+          <Series.Sequence key={q.prompt} durationInFrames={140}>
             <QueryFrame query={q} />
           </Series.Sequence>
         ))}
       </Series>
 
+      {/* Persistent label across all three exchanges by design.
+          Do not add `durationInFrames` here — Caption with no duration
+          stays fully visible for the parent sequence's lifetime, which
+          is what we want for a scene-level label. */}
       <Caption
         text="One line. Real commands."
         startFrame={0}
