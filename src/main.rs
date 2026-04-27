@@ -1359,7 +1359,8 @@ fn run_caroml_run(
             name
         ));
     }
-    let lock = Lock::read_path(&lock_path).map_err(|e| format!("{}: {}", lock_path.display(), e))?;
+    let lock =
+        Lock::read_path(&lock_path).map_err(|e| format!("{}: {}", lock_path.display(), e))?;
 
     let target_platform = match platform_override {
         Some(p) if caro_platform::is_known(p) => p.to_string(),
@@ -1410,7 +1411,8 @@ fn run_caroml_export(
             name
         ));
     }
-    let lock = Lock::read_path(&lock_path).map_err(|e| format!("{}: {}", lock_path.display(), e))?;
+    let lock =
+        Lock::read_path(&lock_path).map_err(|e| format!("{}: {}", lock_path.display(), e))?;
 
     let platform = match platform_override {
         Some(p) if caro_platform::is_known(p) => p.to_string(),

@@ -105,7 +105,11 @@ pub fn execute_runbook(path: &Path) -> Result<i32, RunError> {
 /// Format a runbook plan for human display (used by `caro run` confirmation prompt).
 pub fn render_plan(plan: &RunPlan) -> String {
     let mut s = String::new();
-    s.push_str(&format!("Plan ({} steps on {}):\n", plan.steps.len(), plan.platform));
+    s.push_str(&format!(
+        "Plan ({} steps on {}):\n",
+        plan.steps.len(),
+        plan.platform
+    ));
     for (i, step) in plan.steps.iter().enumerate() {
         s.push_str(&format!(
             "  {}. [{}] {} (line {})\n     {} {}\n",
