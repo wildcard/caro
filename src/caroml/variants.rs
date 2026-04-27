@@ -79,6 +79,7 @@ pub fn active_count_for(lock: &Lock, platform: &str) -> usize {
         .count()
 }
 
+#[allow(clippy::field_reassign_with_default)]
 #[cfg(test)]
 mod tests {
     use super::*;

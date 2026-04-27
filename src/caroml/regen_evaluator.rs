@@ -225,6 +225,7 @@ fn short_hash(s: &str) -> String {
 // Tests
 // ---------------------------------------------------------------------------
 
+#[allow(clippy::field_reassign_with_default)]
 #[cfg(test)]
 mod tests {
     use super::*;

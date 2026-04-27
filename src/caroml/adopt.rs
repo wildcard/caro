@@ -95,6 +95,7 @@ pub fn aggregated_score(variant: &Variant, tr: &TrackRecord) -> f32 {
 // Tests
 // ---------------------------------------------------------------------------
 
+#[allow(clippy::field_reassign_with_default)]
 #[cfg(test)]
 mod tests {
     use super::*;

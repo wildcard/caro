@@ -144,6 +144,7 @@ fn quote_path(path: &Path) -> String {
 // Tests
 // ---------------------------------------------------------------------------
 
+#[allow(clippy::field_reassign_with_default)]
 #[cfg(test)]
 mod tests {
     use super::*;
