@@ -34,11 +34,8 @@ impl Validator for PlatformAngle {
         // Macro-only shortcut: quick checks with no profile required.
         for (pattern, message, hint, restricted_to) in BUILTIN_HEURISTICS {
             if cmd.contains(*pattern) && platforms_match(restricted_to, ctx.platform) {
-                return ValidationOutcome::warn(
-                    "platform",
-                    format!("{} (`{}`)", message, pattern),
-                )
-                .with_hint(*hint);
+                return ValidationOutcome::warn("platform", format!("{} (`{}`)", message, pattern))
+                    .with_hint(*hint);
             }
         }
 
@@ -94,7 +91,12 @@ impl OutcomeExt for ValidationOutcome {
 }
 
 /// Tuple: (pattern, human-readable message, repair hint, platforms to flag on).
-type Heuristic = (&'static str, &'static str, &'static str, &'static [&'static str]);
+type Heuristic = (
+    &'static str,
+    &'static str,
+    &'static str,
+    &'static [&'static str],
+);
 
 const BUILTIN_HEURISTICS: &[Heuristic] = &[
     (

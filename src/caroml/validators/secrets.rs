@@ -49,10 +49,7 @@ impl Validator for SecretsAngle {
 /// (Human-readable kind, regex). Keep tight — high precision over high recall.
 static PATTERNS: Lazy<Vec<(&'static str, Regex)>> = Lazy::new(|| {
     vec![
-        (
-            "AWS access key",
-            Regex::new(r"AKIA[0-9A-Z]{16}").unwrap(),
-        ),
+        ("AWS access key", Regex::new(r"AKIA[0-9A-Z]{16}").unwrap()),
         (
             "GitHub personal access token",
             Regex::new(r"\bghp_[A-Za-z0-9]{36}\b").unwrap(),

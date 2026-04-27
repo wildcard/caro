@@ -105,8 +105,16 @@ fn has_destructive_fs(cmd: &str) -> bool {
 
 fn has_systemwide_write(cmd: &str) -> bool {
     [
-        " /etc/", "> /etc/", " /var/", "> /var/", " /usr/", "> /usr/", " /opt/", "> /opt/",
-        " /System/", "> /System/",
+        " /etc/",
+        "> /etc/",
+        " /var/",
+        "> /var/",
+        " /usr/",
+        "> /usr/",
+        " /opt/",
+        "> /opt/",
+        " /System/",
+        "> /System/",
     ]
     .iter()
     .any(|p| cmd.contains(p))
@@ -199,9 +207,7 @@ mod tests {
     #[tokio::test]
     async fn write_to_etc_warns() {
         let v = SideEffectsAngle;
-        let outcome = v
-            .validate(&ctx("echo 'hello' > /etc/motd", false))
-            .await;
+        let outcome = v.validate(&ctx("echo 'hello' > /etc/motd", false)).await;
         assert_eq!(outcome.result, Verdict::Warn);
     }
 

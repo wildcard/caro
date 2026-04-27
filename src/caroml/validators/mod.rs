@@ -88,11 +88,7 @@ impl ValidationOutcome {
         }
     }
 
-    pub fn fail(
-        angle: &'static str,
-        note: impl Into<String>,
-        repair: impl Into<String>,
-    ) -> Self {
+    pub fn fail(angle: &'static str, note: impl Into<String>, repair: impl Into<String>) -> Self {
         Self {
             angle: angle.to_string(),
             result: Verdict::Fail,
@@ -136,10 +132,7 @@ pub fn all_pass(outcomes: &[ValidationOutcome]) -> bool {
 
 /// Whether the loop should give up entirely — i.e. any `must_pass` validator
 /// returned `Fail`. Returns the first such outcome's angle for diagnostics.
-pub fn fatal_angle(
-    chain: &[Box<dyn Validator>],
-    outcomes: &[ValidationOutcome],
-) -> Option<String> {
+pub fn fatal_angle(chain: &[Box<dyn Validator>], outcomes: &[ValidationOutcome]) -> Option<String> {
     chain
         .iter()
         .zip(outcomes.iter())
@@ -185,7 +178,10 @@ mod tests {
         let chain = default_chain();
         assert_eq!(chain.len(), 4);
         let angles: Vec<&str> = chain.iter().map(|v| v.angle()).collect();
-        assert_eq!(angles, vec!["safety", "platform", "secrets", "side_effects"]);
+        assert_eq!(
+            angles,
+            vec!["safety", "platform", "secrets", "side_effects"]
+        );
     }
 
     #[tokio::test]
@@ -233,10 +229,8 @@ mod tests {
 
     #[tokio::test]
     async fn fatal_angle_ignores_non_must_pass_failure() {
-        let chain: Vec<Box<dyn Validator>> = vec![
-            Box::new(SafetyAngle::default()),
-            Box::new(SideEffectsAngle),
-        ];
+        let chain: Vec<Box<dyn Validator>> =
+            vec![Box::new(SafetyAngle::default()), Box::new(SideEffectsAngle)];
         let outcomes = vec![
             ValidationOutcome::pass("safety"),
             ValidationOutcome::fail("side_effects", "writes /etc", "scope to /tmp"),
