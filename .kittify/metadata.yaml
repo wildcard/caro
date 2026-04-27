@@ -3,16 +3,9 @@
 # DO NOT EDIT MANUALLY
 
 spec_kitty:
-  version: 0.9.1
+  version: 3.1.6
   initialized_at: '2025-12-16T05:14:16.291467'
-  last_upgraded_at: '2026-04-27T02:13:17.864289+00:00'
-  project_uuid: 01KQ6BCQTR9F5RQ6PS7MT54N11
-  schema_version: 3
-  schema_capabilities:
-  - canonical_context
-  - event_log_authority
-  - ownership_manifest
-  - thin_shims
+  last_upgraded_at: '2026-04-26T19:13:18.344699'
 environment:
   python_version: 3.11.14
   platform: linux
@@ -22,16 +15,86 @@ migrations:
   - id: 0.8.0_remove_active_mission
     applied_at: '2026-04-26T19:12:21.843815'
     result: success
-    notes: Removed deprecated .kittify/active-mission;   -> Missions are now selected per-feature during /spec-kitty.specify;   -> Existing features will use 'software-dev' mission by default
+    notes: Removed deprecated .kittify/active-mission;   -> Missions are now selected
+      per-feature during /spec-kitty.specify;   -> Existing features will use 'software-dev'
+      mission by default
   - id: 0.8.0_worktree_agents_symlink
     applied_at: '2026-04-26T19:12:21.845556'
     result: success
-    notes: Created .kittify/AGENTS.md symlink in worktree 006-replace-ascii-morph; Created .kittify/AGENTS.md symlink in worktree 003-backend-configuration-file; Created .kittify/AGENTS.md symlink in worktree 008-installation-and-setup; Created .kittify/AGENTS.md symlink in worktree 001-fix-unquoted-cli; Created .kittify/AGENTS.md symlink in worktree pr-188-pitch-deck; Created .kittify/AGENTS.md symlink in worktree 007-issue-161-fix; Created .kittify/AGENTS.md symlink in worktree pitch-deck-slidev; Created .kittify/AGENTS.md symlink in worktree 004-add-internationalization-i18n
+    notes: Created .kittify/AGENTS.md symlink in worktree 006-replace-ascii-morph;
+      Created .kittify/AGENTS.md symlink in worktree 003-backend-configuration-file;
+      Created .kittify/AGENTS.md symlink in worktree 008-installation-and-setup; Created
+      .kittify/AGENTS.md symlink in worktree 001-fix-unquoted-cli; Created .kittify/AGENTS.md
+      symlink in worktree pr-188-pitch-deck; Created .kittify/AGENTS.md symlink in
+      worktree 007-issue-161-fix; Created .kittify/AGENTS.md symlink in worktree pitch-deck-slidev;
+      Created .kittify/AGENTS.md symlink in worktree 004-add-internationalization-i18n
   - id: 0.9.0_frontmatter_only_lanes
     applied_at: '2026-04-26T19:12:21.856526'
     result: success
-    notes: "[main] 002-unquoted-cli-arguments:;   Moved: done/WP01-cli-argument-parsing-setup.md → tasks/WP01-cli-argument-parsing-setup.md;   Moved: done/WP02-basic-prompts-and-backward-compat.md → tasks/WP02-basic-prompts-and-backward-compat.md;   Moved: done/WP03-prompt-source-resolution.md → tasks/WP03-prompt-source-resolution.md;   Moved: done/WP04-flag-and-stdin-input.md → tasks/WP04-flag-and-stdin-input.md;   Moved: done/WP05-validation-and-help-display.md → tasks/WP05-validation-and-help-display.md;   Moved: done/WP06-shell-operator-handling.md → tasks/WP06-shell-operator-handling.md;   Moved: done/WP07-cross-platform-testing.md → tasks/WP07-cross-platform-testing.md;   Moved: done/WP08-documentation-and-polish.md → tasks/WP08-documentation-and-polish.md;   Removed empty: done/; [main] 004-add-internationalization-i18n:;   Moved: planned/WP08-language-switcher-polish.md → tasks/WP08-language-switcher-polish.md;   Moved: for_review/WP07-github-action-automation.md → tasks/WP07-github-action-automation.md;   Moved: done/WP01-infrastructure-and-setup.md → tasks/WP01-infrastructure-and-setup.md;   Moved: done/WP02-translation-file-extraction.md → tasks/WP02-translation-file-extraction.md;   Moved: done/WP03-component-refactoring-navigation-core.md → tasks/WP03-component-refactoring-navigation-core.md;   Moved: done/WP04-component-refactoring-content-sections.md → tasks/WP04-component-refactoring-content-sections.md;   Moved: done/WP05-component-refactoring-landing-pages.md → tasks/WP05-component-refactoring-landing-pages.md;   Moved: done/WP06-localized-routes-rtl-polish.md → tasks/WP06-localized-routes-rtl-polish.md;   Removed empty: planned/;   Removed empty: for_review/;   Removed empty: done/; [main] 010-website-claims-qa:;   Moved: planned/WP01-test-infrastructure.md → tasks/WP01-test-infrastructure.md;   Removed empty: planned/; [main] 017-issue-9-add:;   Moved: done/WP01-setup-dependencies.md → tasks/WP01-setup-dependencies.md;   Moved: done/WP02-cache-benchmarks.md → tasks/WP02-cache-benchmarks.md;   Moved: done/WP03-config-benchmarks.md → tasks/WP03-config-benchmarks.md;   Moved: done/WP04-context--logging-benchmarks.md → tasks/WP04-context--logging-benchmarks.md;   Moved: done/WP05-ci-workflow--regression-detection.md → tasks/WP05-ci-workflow--regression-detection.md;   Moved: done/WP06-claude-skill-integration.md → tasks/WP06-claude-skill-integration.md;   Moved: done/WP07-documentation.md → tasks/WP07-documentation.md;   Moved: done/WP08-validation--polish.md → tasks/WP08-validation--polish.md;   Removed empty: done/; [main] 018-issue-10-implement:;   Moved: for_review/WP01-setup-dependencies.md → tasks/WP01-setup-dependencies.md;   Removed empty: for_review/; [main] 020-machine-resource-assessment:;   Moved: done/WP01-foundation-core-detection.md → tasks/WP01-foundation-core-detection.md;   Moved: done/WP02-gpu-detection.md → tasks/WP02-gpu-detection.md;   Moved: done/WP03-recommendation-engine.md → tasks/WP03-recommendation-engine.md;   Moved: done/WP04-output-formatting.md → tasks/WP04-output-formatting.md;   Moved: done/WP05-testing-integration.md → tasks/WP05-testing-integration.md;   Removed empty: done/; [main] 022-issue-135-build:;   Moved: planned/WP05-posix-compliance.md → tasks/WP05-posix-compliance.md;   Moved: planned/WP06-backend-comparison.md → tasks/WP06-backend-comparison.md;   Moved: planned/WP07-reporting-integration.md → tasks/WP07-reporting-integration.md;   Moved: for_review/WP01-setup-infrastructure.md → tasks/WP01-setup-infrastructure.md;   Moved: for_review/WP02-dataset-loader.md → tasks/WP02-dataset-loader.md;   Moved: for_review/WP03-correctness-evaluation.md → tasks/WP03-correctness-evaluation.md;   Moved: for_review/WP04-safety-validation.md → tasks/WP04-safety-validation.md;   Removed empty: planned/;   Removed empty: for_review/; [main] 025-llm-evaluation-harness:;   Moved: done/WP01-project-setup.md → tasks/WP01-project-setup.md;   Moved: done/WP02-dataset-infrastructure.md → tasks/WP02-dataset-infrastructure.md;   Moved: done/WP03-command-normalization.md → tasks/WP03-command-normalization.md;\
-      \   Moved: done/WP04-safety-posix-validators.md → tasks/WP04-safety-posix-validators.md;   Moved: done/WP05-evaluation-runner.md → tasks/WP05-evaluation-runner.md;   Moved: done/WP06-metrics-calculation.md → tasks/WP06-metrics-calculation.md;   Moved: done/WP07-output-formatting.md → tasks/WP07-output-formatting.md;   Moved: done/WP08-integration-test.md → tasks/WP08-integration-test.md;   Moved: done/WP09-dataset-curation.md → tasks/WP09-dataset-curation.md;   Removed empty: done/; [main] 026-llm-evaluation-harness:;   Moved: planned/WP08-dashboard-visualization.md → tasks/WP08-dashboard-visualization.md;   Moved: for_review/WP01-core-models-and-dataset.md → tasks/WP01-core-models-and-dataset.md;   Moved: for_review/WP02-evaluator-implementations.md → tasks/WP02-evaluator-implementations.md;   Moved: for_review/WP03-harness-orchestration.md → tasks/WP03-harness-orchestration.md;   Moved: for_review/WP04-baseline-and-regression.md → tasks/WP04-baseline-and-regression.md;   Moved: for_review/WP05-test-dataset-creation.md → tasks/WP05-test-dataset-creation.md;   Moved: for_review/WP06-cargo-test-integration.md → tasks/WP06-cargo-test-integration.md;   Moved: for_review/WP07-cicd-integration.md → tasks/WP07-cicd-integration.md;   Removed empty: planned/;   Removed empty: for_review/; Migrated 55 WP files across 9 features"
+    notes: "[main] 002-unquoted-cli-arguments:;   Moved: done/WP01-cli-argument-parsing-setup.md\
+      \ \u2192 tasks/WP01-cli-argument-parsing-setup.md;   Moved: done/WP02-basic-prompts-and-backward-compat.md\
+      \ \u2192 tasks/WP02-basic-prompts-and-backward-compat.md;   Moved: done/WP03-prompt-source-resolution.md\
+      \ \u2192 tasks/WP03-prompt-source-resolution.md;   Moved: done/WP04-flag-and-stdin-input.md\
+      \ \u2192 tasks/WP04-flag-and-stdin-input.md;   Moved: done/WP05-validation-and-help-display.md\
+      \ \u2192 tasks/WP05-validation-and-help-display.md;   Moved: done/WP06-shell-operator-handling.md\
+      \ \u2192 tasks/WP06-shell-operator-handling.md;   Moved: done/WP07-cross-platform-testing.md\
+      \ \u2192 tasks/WP07-cross-platform-testing.md;   Moved: done/WP08-documentation-and-polish.md\
+      \ \u2192 tasks/WP08-documentation-and-polish.md;   Removed empty: done/; [main]\
+      \ 004-add-internationalization-i18n:;   Moved: planned/WP08-language-switcher-polish.md\
+      \ \u2192 tasks/WP08-language-switcher-polish.md;   Moved: for_review/WP07-github-action-automation.md\
+      \ \u2192 tasks/WP07-github-action-automation.md;   Moved: done/WP01-infrastructure-and-setup.md\
+      \ \u2192 tasks/WP01-infrastructure-and-setup.md;   Moved: done/WP02-translation-file-extraction.md\
+      \ \u2192 tasks/WP02-translation-file-extraction.md;   Moved: done/WP03-component-refactoring-navigation-core.md\
+      \ \u2192 tasks/WP03-component-refactoring-navigation-core.md;   Moved: done/WP04-component-refactoring-content-sections.md\
+      \ \u2192 tasks/WP04-component-refactoring-content-sections.md;   Moved: done/WP05-component-refactoring-landing-pages.md\
+      \ \u2192 tasks/WP05-component-refactoring-landing-pages.md;   Moved: done/WP06-localized-routes-rtl-polish.md\
+      \ \u2192 tasks/WP06-localized-routes-rtl-polish.md;   Removed empty: planned/;\
+      \   Removed empty: for_review/;   Removed empty: done/; [main] 010-website-claims-qa:;\
+      \   Moved: planned/WP01-test-infrastructure.md \u2192 tasks/WP01-test-infrastructure.md;\
+      \   Removed empty: planned/; [main] 017-issue-9-add:;   Moved: done/WP01-setup-dependencies.md\
+      \ \u2192 tasks/WP01-setup-dependencies.md;   Moved: done/WP02-cache-benchmarks.md\
+      \ \u2192 tasks/WP02-cache-benchmarks.md;   Moved: done/WP03-config-benchmarks.md\
+      \ \u2192 tasks/WP03-config-benchmarks.md;   Moved: done/WP04-context--logging-benchmarks.md\
+      \ \u2192 tasks/WP04-context--logging-benchmarks.md;   Moved: done/WP05-ci-workflow--regression-detection.md\
+      \ \u2192 tasks/WP05-ci-workflow--regression-detection.md;   Moved: done/WP06-claude-skill-integration.md\
+      \ \u2192 tasks/WP06-claude-skill-integration.md;   Moved: done/WP07-documentation.md\
+      \ \u2192 tasks/WP07-documentation.md;   Moved: done/WP08-validation--polish.md\
+      \ \u2192 tasks/WP08-validation--polish.md;   Removed empty: done/; [main] 018-issue-10-implement:;\
+      \   Moved: for_review/WP01-setup-dependencies.md \u2192 tasks/WP01-setup-dependencies.md;\
+      \   Removed empty: for_review/; [main] 020-machine-resource-assessment:;   Moved:\
+      \ done/WP01-foundation-core-detection.md \u2192 tasks/WP01-foundation-core-detection.md;\
+      \   Moved: done/WP02-gpu-detection.md \u2192 tasks/WP02-gpu-detection.md;  \
+      \ Moved: done/WP03-recommendation-engine.md \u2192 tasks/WP03-recommendation-engine.md;\
+      \   Moved: done/WP04-output-formatting.md \u2192 tasks/WP04-output-formatting.md;\
+      \   Moved: done/WP05-testing-integration.md \u2192 tasks/WP05-testing-integration.md;\
+      \   Removed empty: done/; [main] 022-issue-135-build:;   Moved: planned/WP05-posix-compliance.md\
+      \ \u2192 tasks/WP05-posix-compliance.md;   Moved: planned/WP06-backend-comparison.md\
+      \ \u2192 tasks/WP06-backend-comparison.md;   Moved: planned/WP07-reporting-integration.md\
+      \ \u2192 tasks/WP07-reporting-integration.md;   Moved: for_review/WP01-setup-infrastructure.md\
+      \ \u2192 tasks/WP01-setup-infrastructure.md;   Moved: for_review/WP02-dataset-loader.md\
+      \ \u2192 tasks/WP02-dataset-loader.md;   Moved: for_review/WP03-correctness-evaluation.md\
+      \ \u2192 tasks/WP03-correctness-evaluation.md;   Moved: for_review/WP04-safety-validation.md\
+      \ \u2192 tasks/WP04-safety-validation.md;   Removed empty: planned/;   Removed\
+      \ empty: for_review/; [main] 025-llm-evaluation-harness:;   Moved: done/WP01-project-setup.md\
+      \ \u2192 tasks/WP01-project-setup.md;   Moved: done/WP02-dataset-infrastructure.md\
+      \ \u2192 tasks/WP02-dataset-infrastructure.md;   Moved: done/WP03-command-normalization.md\
+      \ \u2192 tasks/WP03-command-normalization.md;   Moved: done/WP04-safety-posix-validators.md\
+      \ \u2192 tasks/WP04-safety-posix-validators.md;   Moved: done/WP05-evaluation-runner.md\
+      \ \u2192 tasks/WP05-evaluation-runner.md;   Moved: done/WP06-metrics-calculation.md\
+      \ \u2192 tasks/WP06-metrics-calculation.md;   Moved: done/WP07-output-formatting.md\
+      \ \u2192 tasks/WP07-output-formatting.md;   Moved: done/WP08-integration-test.md\
+      \ \u2192 tasks/WP08-integration-test.md;   Moved: done/WP09-dataset-curation.md\
+      \ \u2192 tasks/WP09-dataset-curation.md;   Removed empty: done/; [main] 026-llm-evaluation-harness:;\
+      \   Moved: planned/WP08-dashboard-visualization.md \u2192 tasks/WP08-dashboard-visualization.md;\
+      \   Moved: for_review/WP01-core-models-and-dataset.md \u2192 tasks/WP01-core-models-and-dataset.md;\
+      \   Moved: for_review/WP02-evaluator-implementations.md \u2192 tasks/WP02-evaluator-implementations.md;\
+      \   Moved: for_review/WP03-harness-orchestration.md \u2192 tasks/WP03-harness-orchestration.md;\
+      \   Moved: for_review/WP04-baseline-and-regression.md \u2192 tasks/WP04-baseline-and-regression.md;\
+      \   Moved: for_review/WP05-test-dataset-creation.md \u2192 tasks/WP05-test-dataset-creation.md;\
+      \   Moved: for_review/WP06-cargo-test-integration.md \u2192 tasks/WP06-cargo-test-integration.md;\
+      \   Moved: for_review/WP07-cicd-integration.md \u2192 tasks/WP07-cicd-integration.md;\
+      \   Removed empty: planned/;   Removed empty: for_review/; Migrated 55 WP files\
+      \ across 9 features"
   - id: 0.9.1_complete_migration
     applied_at: '2026-04-26T19:12:21.859633'
     result: skipped
@@ -43,7 +106,18 @@ migrations:
   - id: 0.10.0_python_only
     applied_at: '2026-04-26T19:13:16.374314'
     result: success
-    notes: 'Removed: .kittify/scripts/bash/common.sh; Removed: .kittify/scripts/bash/tasks-list-lanes.sh; Removed: .kittify/scripts/bash/mark-task-status.sh; Removed: .kittify/scripts/bash/setup-plan.sh; Removed: .kittify/scripts/bash/move-task-to-doing.sh; Removed: .kittify/scripts/bash/accept-feature.sh; Removed: .kittify/scripts/bash/tasks-add-history-entry.sh; Removed: .kittify/scripts/bash/check-prerequisites.sh; Removed: .kittify/scripts/bash/update-agent-context.sh; Removed: .kittify/scripts/bash/tasks-move-to-lane.sh; Removed: .kittify/scripts/bash/refresh-kittify-tasks.sh; Removed: .kittify/scripts/bash/setup-sandbox.sh; Removed: .kittify/scripts/bash/tasks-rollback-move.sh; Removed: .kittify/scripts/bash/merge-feature.sh; Removed: .kittify/scripts/bash/validate-task-workflow.sh; Removed: .kittify/scripts/bash/create-new-feature.sh; Removed empty: .kittify/scripts/bash/; Total scripts removed: 16; Removed .kittify/scripts/tasks/ (obsolete task helpers); Templates directory not found at .kittify/templates/command-templates/. This is expected for projects initialized with older package versions. Run ''spec-kitty upgrade'' after upgrading to v0.10.9+ to repair templates.'
+    notes: 'Removed: .kittify/scripts/bash/common.sh; Removed: .kittify/scripts/bash/tasks-list-lanes.sh;
+      Removed: .kittify/scripts/bash/mark-task-status.sh; Removed: .kittify/scripts/bash/setup-plan.sh;
+      Removed: .kittify/scripts/bash/move-task-to-doing.sh; Removed: .kittify/scripts/bash/accept-feature.sh;
+      Removed: .kittify/scripts/bash/tasks-add-history-entry.sh; Removed: .kittify/scripts/bash/check-prerequisites.sh;
+      Removed: .kittify/scripts/bash/update-agent-context.sh; Removed: .kittify/scripts/bash/tasks-move-to-lane.sh;
+      Removed: .kittify/scripts/bash/refresh-kittify-tasks.sh; Removed: .kittify/scripts/bash/setup-sandbox.sh;
+      Removed: .kittify/scripts/bash/tasks-rollback-move.sh; Removed: .kittify/scripts/bash/merge-feature.sh;
+      Removed: .kittify/scripts/bash/validate-task-workflow.sh; Removed: .kittify/scripts/bash/create-new-feature.sh;
+      Removed empty: .kittify/scripts/bash/; Total scripts removed: 16; Removed .kittify/scripts/tasks/
+      (obsolete task helpers); Templates directory not found at .kittify/templates/command-templates/.
+      This is expected for projects initialized with older package versions. Run ''spec-kitty
+      upgrade'' after upgrading to v0.10.9+ to repair templates.'
   - id: 0.10.1_populate_slash_commands
     applied_at: '2026-04-26T19:13:16.377433'
     result: skipped
@@ -51,11 +125,18 @@ migrations:
   - id: 0.10.2_update_slash_commands
     applied_at: '2026-04-26T19:13:16.385451'
     result: success
-    notes: 'Updated 12 slash commands for claude; Updated 12 slash commands for cursor; Total: Updated 24 slash commands from software-dev mission; Slash commands now use Python CLI (no bash scripts); Slash commands now enforce flat tasks/ structure (feature 007)'
+    notes: 'Updated 12 slash commands for claude; Updated 12 slash commands for cursor;
+      Total: Updated 24 slash commands from software-dev mission; Slash commands now
+      use Python CLI (no bash scripts); Slash commands now enforce flat tasks/ structure
+      (feature 007)'
   - id: 0.10.6_workflow_simplification
     applied_at: '2026-04-26T19:13:16.389822'
     result: success
-    notes: 'Updated mission template: software-dev/implement.md; Updated mission template: software-dev/review.md; Updated 2 templates for claude; Updated 2 templates for cursor; Total: Updated 4 slash command templates; Templates now use ''spec-kitty agent action'' commands; Agents now see prompts directly, no file navigation needed'
+    notes: 'Updated mission template: software-dev/implement.md; Updated mission template:
+      software-dev/review.md; Updated 2 templates for claude; Updated 2 templates
+      for cursor; Total: Updated 4 slash command templates; Templates now use ''spec-kitty
+      agent action'' commands; Agents now see prompts directly, no file navigation
+      needed'
   - id: 0.10.8_fix_memory_structure
     applied_at: '2026-04-26T19:13:16.393116'
     result: skipped
@@ -119,7 +200,18 @@ migrations:
   - id: 0.13.8_target_branch
     applied_at: '2026-04-26T19:13:16.698187'
     result: success
-    notes: Added target_branch=main to 044-adr-renumber-and; Added target_branch=main to 017-issue-9-add; Added target_branch=main to 025-llm-evaluation-harness; Added target_branch=main to 009-data-driven-holiday; Added target_branch=checked to 008-caro-web-hub; Added target_branch=main to 027-issue-281-add; Added target_branch=main to 020-machine-resource-assessment; Added target_branch=main to 022-issue-135-build; Added target_branch=main to 007-fix-website-cmdai; Added target_branch=main to 028-issue-166-add; Added target_branch=main to 026-llm-evaluation-harness; Added target_branch=main to 033-issue-467-fix; Added target_branch=main to 016-issue-8-add; Added target_branch=main to 028-issue-152-add; Added target_branch=main to 018-issue-10-implement; Added target_branch=main to 002-unquoted-cli-arguments; Added target_branch=main to 043-complete-i18n-infrastructure; Added target_branch=main to 005-rename-cmdai-to; Added target_branch=main to 004-add-internationalization-i18n
+    notes: Added target_branch=main to 044-adr-renumber-and; Added target_branch=main
+      to 017-issue-9-add; Added target_branch=main to 025-llm-evaluation-harness;
+      Added target_branch=main to 009-data-driven-holiday; Added target_branch=checked
+      to 008-caro-web-hub; Added target_branch=main to 027-issue-281-add; Added target_branch=main
+      to 020-machine-resource-assessment; Added target_branch=main to 022-issue-135-build;
+      Added target_branch=main to 007-fix-website-cmdai; Added target_branch=main
+      to 028-issue-166-add; Added target_branch=main to 026-llm-evaluation-harness;
+      Added target_branch=main to 033-issue-467-fix; Added target_branch=main to 016-issue-8-add;
+      Added target_branch=main to 028-issue-152-add; Added target_branch=main to 018-issue-10-implement;
+      Added target_branch=main to 002-unquoted-cli-arguments; Added target_branch=main
+      to 043-complete-i18n-infrastructure; Added target_branch=main to 005-rename-cmdai-to;
+      Added target_branch=main to 004-add-internationalization-i18n
   - id: 0.14.0_centralized_feature_detection
     applied_at: '2026-04-26T19:13:16.702322'
     result: skipped
@@ -143,7 +235,10 @@ migrations:
   - id: 2.0.1_fix_generated_command_templates
     applied_at: '2026-04-26T19:13:16.728223'
     result: success
-    notes: 'Updated: .claude/commands/spec-kitty.analyze.md; Updated: .cursor/commands/spec-kitty.analyze.md; Updated: .codex/prompts/spec-kitty.analyze.md; Updated: .codex/prompts/spec-kitty.constitution.md; Updated: .codex/prompts/spec-kitty.dashboard.md; Updated: .codex/prompts/spec-kitty.implement.md; Updated: .codex/prompts/spec-kitty.merge.md; Updated: .codex/prompts/spec-kitty.specify.md'
+    notes: 'Updated: .claude/commands/spec-kitty.analyze.md; Updated: .cursor/commands/spec-kitty.analyze.md;
+      Updated: .codex/prompts/spec-kitty.analyze.md; Updated: .codex/prompts/spec-kitty.constitution.md;
+      Updated: .codex/prompts/spec-kitty.dashboard.md; Updated: .codex/prompts/spec-kitty.implement.md;
+      Updated: .codex/prompts/spec-kitty.merge.md; Updated: .codex/prompts/spec-kitty.specify.md'
   - id: 2.0.1_tool_config_key_rename
     applied_at: '2026-04-26T19:13:16.732598'
     result: skipped
@@ -155,7 +250,29 @@ migrations:
   - id: 2.0.6_consistency_sweep
     applied_at: '2026-04-26T19:13:17.075477'
     result: success
-    notes: 'migrated 0 identical and 48 customized legacy runtime asset(s); 002-unquoted-cli-arguments: wrote baseline meta.json; 002-unquoted-cli-arguments: normalized 8 work package files; 002-unquoted-cli-arguments: rewrote 8 legacy prompt reference(s); 004-add-internationalization-i18n: wrote baseline meta.json; 004-add-internationalization-i18n: normalized 8 work package files; 004-add-internationalization-i18n: rewrote 8 legacy prompt reference(s); 005-rename-cmdai-to: wrote baseline meta.json; 007-fix-website-cmdai: wrote baseline meta.json; 008-caro-web-hub: wrote baseline meta.json; 009-data-driven-holiday: wrote baseline meta.json; 010-website-claims-qa: wrote baseline meta.json; 010-website-claims-qa: normalized 1 work package files; 016-issue-8-add: wrote baseline meta.json; 017-issue-9-add: wrote baseline meta.json; 017-issue-9-add: normalized 8 work package files; 017-issue-9-add: rewrote 8 legacy prompt reference(s); 018-issue-10-implement: wrote baseline meta.json; 018-issue-10-implement: normalized 1 work package files; 020-machine-resource-assessment: wrote baseline meta.json; 020-machine-resource-assessment: normalized 5 work package files; 022-issue-135-build: wrote baseline meta.json; 022-issue-135-build: normalized 7 work package files; 022-issue-135-build: rewrote 7 legacy prompt reference(s); 025-llm-evaluation-harness: wrote baseline meta.json; 025-llm-evaluation-harness: normalized 9 work package files; 025-llm-evaluation-harness: rewrote 9 legacy prompt reference(s); 026-llm-evaluation-harness: wrote baseline meta.json; 026-llm-evaluation-harness: normalized 8 work package files; 026-llm-evaluation-harness: rewrote 8 legacy prompt reference(s); 027-issue-281-add: wrote baseline meta.json; 028-issue-152-add: wrote baseline meta.json; 028-issue-166-add: wrote baseline meta.json; 033-issue-467-fix: wrote baseline meta.json; 043-complete-i18n-infrastructure: wrote baseline meta.json; 044-adr-renumber-and: wrote baseline meta.json'
+    notes: 'migrated 0 identical and 48 customized legacy runtime asset(s); 002-unquoted-cli-arguments:
+      wrote baseline meta.json; 002-unquoted-cli-arguments: normalized 8 work package
+      files; 002-unquoted-cli-arguments: rewrote 8 legacy prompt reference(s); 004-add-internationalization-i18n:
+      wrote baseline meta.json; 004-add-internationalization-i18n: normalized 8 work
+      package files; 004-add-internationalization-i18n: rewrote 8 legacy prompt reference(s);
+      005-rename-cmdai-to: wrote baseline meta.json; 007-fix-website-cmdai: wrote
+      baseline meta.json; 008-caro-web-hub: wrote baseline meta.json; 009-data-driven-holiday:
+      wrote baseline meta.json; 010-website-claims-qa: wrote baseline meta.json; 010-website-claims-qa:
+      normalized 1 work package files; 016-issue-8-add: wrote baseline meta.json;
+      017-issue-9-add: wrote baseline meta.json; 017-issue-9-add: normalized 8 work
+      package files; 017-issue-9-add: rewrote 8 legacy prompt reference(s); 018-issue-10-implement:
+      wrote baseline meta.json; 018-issue-10-implement: normalized 1 work package
+      files; 020-machine-resource-assessment: wrote baseline meta.json; 020-machine-resource-assessment:
+      normalized 5 work package files; 022-issue-135-build: wrote baseline meta.json;
+      022-issue-135-build: normalized 7 work package files; 022-issue-135-build: rewrote
+      7 legacy prompt reference(s); 025-llm-evaluation-harness: wrote baseline meta.json;
+      025-llm-evaluation-harness: normalized 9 work package files; 025-llm-evaluation-harness:
+      rewrote 9 legacy prompt reference(s); 026-llm-evaluation-harness: wrote baseline
+      meta.json; 026-llm-evaluation-harness: normalized 8 work package files; 026-llm-evaluation-harness:
+      rewrote 8 legacy prompt reference(s); 027-issue-281-add: wrote baseline meta.json;
+      028-issue-152-add: wrote baseline meta.json; 028-issue-166-add: wrote baseline
+      meta.json; 033-issue-467-fix: wrote baseline meta.json; 043-complete-i18n-infrastructure:
+      wrote baseline meta.json; 044-adr-renumber-and: wrote baseline meta.json'
   - id: 2.0.7_fix_stale_overrides
     applied_at: '2026-04-26T19:13:17.082233'
     result: skipped
@@ -163,15 +280,17 @@ migrations:
   - id: 2.0.9_state_gitignore
     applied_at: '2026-04-26T19:13:17.087507'
     result: success
-    notes: 'Added runtime state entries to .gitignore: .kittify/runtime/, .kittify/merge-state.json, .kittify/events/, .kittify/dossiers/, kitty-specs/**/.kittify/dossiers/'
+    notes: 'Added runtime state entries to .gitignore: .kittify/runtime/, .kittify/merge-state.json,
+      .kittify/events/, .kittify/dossiers/, kitty-specs/**/.kittify/dossiers/'
   - id: 2.0.11_install_skills
     applied_at: '2026-04-26T19:13:17.093483'
     result: success
-    notes:
+    notes: null
   - id: 2.0.11_remove_clarify_command
     applied_at: '2026-04-26T19:13:17.099277'
     result: success
-    notes: 'Removed: .claude/commands/spec-kitty.clarify.md; Removed: .cursor/commands/spec-kitty.clarify.md; Removed 2 clarify command artifacts'
+    notes: 'Removed: .claude/commands/spec-kitty.clarify.md; Removed: .cursor/commands/spec-kitty.clarify.md;
+      Removed 2 clarify command artifacts'
   - id: 2.1.1_repair_skill_pack
     applied_at: '2026-04-26T19:13:17.104590'
     result: skipped
@@ -195,11 +314,14 @@ migrations:
   - id: 2.1.2_install_git_workflow_skill
     applied_at: '2026-04-26T19:13:17.133170'
     result: success
-    notes: Installed .claude/skills/spec-kitty-git-workflow/SKILL.md; Installed .claude/skills/spec-kitty-git-workflow/references/git-operations-matrix.md; Installed .agents/skills/spec-kitty-git-workflow/SKILL.md; Installed .agents/skills/spec-kitty-git-workflow/references/git-operations-matrix.md
+    notes: Installed .claude/skills/spec-kitty-git-workflow/SKILL.md; Installed .claude/skills/spec-kitty-git-workflow/references/git-operations-matrix.md;
+      Installed .agents/skills/spec-kitty-git-workflow/SKILL.md; Installed .agents/skills/spec-kitty-git-workflow/references/git-operations-matrix.md
   - id: 2.1.2_install_mission_system_skill
     applied_at: '2026-04-26T19:13:17.139385'
     result: success
-    notes: Installed .claude/skills/spec-kitty-mission-system/SKILL.md; Installed .claude/skills/spec-kitty-mission-system/references/mission-comparison-matrix.md; Installed .agents/skills/spec-kitty-mission-system/SKILL.md; Installed .agents/skills/spec-kitty-mission-system/references/mission-comparison-matrix.md
+    notes: Installed .claude/skills/spec-kitty-mission-system/SKILL.md; Installed
+      .claude/skills/spec-kitty-mission-system/references/mission-comparison-matrix.md;
+      Installed .agents/skills/spec-kitty-mission-system/SKILL.md; Installed .agents/skills/spec-kitty-mission-system/references/mission-comparison-matrix.md
   - id: 2.1.2_remove_release_skill
     applied_at: '2026-04-26T19:13:17.145045'
     result: skipped
@@ -215,8 +337,166 @@ migrations:
   - id: 2.1.4_enforce_command_file_state
     applied_at: '2026-04-26T19:13:17.192612'
     result: success
-    notes: 'Wrote prompt: .claude/commands/spec-kitty.analyze.md; Wrote prompt: .claude/commands/spec-kitty.charter.md; Wrote prompt: .claude/commands/spec-kitty.checklist.md; Wrote prompt: .claude/commands/spec-kitty.plan.md; Wrote prompt: .claude/commands/spec-kitty.research.md; Wrote prompt: .claude/commands/spec-kitty.specify.md; Wrote prompt: .claude/commands/spec-kitty.tasks.md; Wrote prompt: .claude/commands/spec-kitty.tasks-outline.md; Wrote prompt: .claude/commands/spec-kitty.tasks-packages.md; Wrote shim: .claude/commands/spec-kitty.accept.md; Wrote shim: .claude/commands/spec-kitty.dashboard.md; Wrote shim: .claude/commands/spec-kitty.implement.md; Wrote shim: .claude/commands/spec-kitty.merge.md; Wrote shim: .claude/commands/spec-kitty.review.md; Wrote shim: .claude/commands/spec-kitty.status.md; Wrote shim: .claude/commands/spec-kitty.tasks-finalize.md; Wrote prompt: .cursor/commands/spec-kitty.analyze.md; Wrote prompt: .cursor/commands/spec-kitty.charter.md; Wrote prompt: .cursor/commands/spec-kitty.checklist.md; Wrote prompt: .cursor/commands/spec-kitty.plan.md; Wrote prompt: .cursor/commands/spec-kitty.research.md; Wrote prompt: .cursor/commands/spec-kitty.specify.md; Wrote prompt: .cursor/commands/spec-kitty.tasks.md; Wrote prompt: .cursor/commands/spec-kitty.tasks-outline.md; Wrote prompt: .cursor/commands/spec-kitty.tasks-packages.md; Wrote shim: .cursor/commands/spec-kitty.accept.md; Wrote shim: .cursor/commands/spec-kitty.dashboard.md; Wrote shim: .cursor/commands/spec-kitty.implement.md; Wrote shim: .cursor/commands/spec-kitty.merge.md; Wrote shim: .cursor/commands/spec-kitty.review.md; Wrote shim: .cursor/commands/spec-kitty.status.md; Wrote shim: .cursor/commands/spec-kitty.tasks-finalize.md'
+    notes: 'Wrote prompt: .claude/commands/spec-kitty.analyze.md; Wrote prompt: .claude/commands/spec-kitty.charter.md;
+      Wrote prompt: .claude/commands/spec-kitty.checklist.md; Wrote prompt: .claude/commands/spec-kitty.plan.md;
+      Wrote prompt: .claude/commands/spec-kitty.research.md; Wrote prompt: .claude/commands/spec-kitty.specify.md;
+      Wrote prompt: .claude/commands/spec-kitty.tasks.md; Wrote prompt: .claude/commands/spec-kitty.tasks-outline.md;
+      Wrote prompt: .claude/commands/spec-kitty.tasks-packages.md; Wrote shim: .claude/commands/spec-kitty.accept.md;
+      Wrote shim: .claude/commands/spec-kitty.dashboard.md; Wrote shim: .claude/commands/spec-kitty.implement.md;
+      Wrote shim: .claude/commands/spec-kitty.merge.md; Wrote shim: .claude/commands/spec-kitty.review.md;
+      Wrote shim: .claude/commands/spec-kitty.status.md; Wrote shim: .claude/commands/spec-kitty.tasks-finalize.md;
+      Wrote prompt: .cursor/commands/spec-kitty.analyze.md; Wrote prompt: .cursor/commands/spec-kitty.charter.md;
+      Wrote prompt: .cursor/commands/spec-kitty.checklist.md; Wrote prompt: .cursor/commands/spec-kitty.plan.md;
+      Wrote prompt: .cursor/commands/spec-kitty.research.md; Wrote prompt: .cursor/commands/spec-kitty.specify.md;
+      Wrote prompt: .cursor/commands/spec-kitty.tasks.md; Wrote prompt: .cursor/commands/spec-kitty.tasks-outline.md;
+      Wrote prompt: .cursor/commands/spec-kitty.tasks-packages.md; Wrote shim: .cursor/commands/spec-kitty.accept.md;
+      Wrote shim: .cursor/commands/spec-kitty.dashboard.md; Wrote shim: .cursor/commands/spec-kitty.implement.md;
+      Wrote shim: .cursor/commands/spec-kitty.merge.md; Wrote shim: .cursor/commands/spec-kitty.review.md;
+      Wrote shim: .cursor/commands/spec-kitty.status.md; Wrote shim: .cursor/commands/spec-kitty.tasks-finalize.md'
   - id: 2.2.0_profile_context_deployment
     applied_at: '2026-04-26T19:13:17.200100'
     result: success
     notes: Deployed .claude/commands/spec-kitty.profile-context.md; Deployed .cursor/commands/spec-kitty.profile-context.md
+  - id: 3.0.0_canonical_context
+    applied_at: '2026-04-26T19:13:18.172366'
+    result: success
+    notes: Migrated 20 feature(s), 55 WPs backfilled, 183 events generated
+  - id: 3.0.2_restore_prompt_commands
+    applied_at: '2026-04-26T19:13:18.180253'
+    result: skipped
+    notes: Not applicable
+  - id: 3.0.3_globalize_skill_pack
+    applied_at: '2026-04-26T19:13:18.187893'
+    result: skipped
+    notes: Not applicable
+  - id: 3.1.1_charter_rename
+    applied_at: '2026-04-26T19:13:18.212513'
+    result: success
+    notes: Moved .kittify/memory/constitution.md -> .kittify/charter/charter.md; Rewrote
+      content in .kittify/charter/charter.md
+  - id: 3.1.1_direct_canonical_commands
+    applied_at: '2026-04-26T19:13:18.224152'
+    result: skipped
+    notes: Not applicable
+  - id: 3.1.1_event_log_merge_driver
+    applied_at: '2026-04-26T19:13:18.308761'
+    result: success
+    notes: 'Added .gitattributes entry: kitty-specs/**/status.events.jsonl merge=spec-kitty-event-log;
+      Configured git merge.spec-kitty-event-log.name; Configured git merge.spec-kitty-event-log.driver'
+  - id: 3.1.1_normalize_status_json
+    applied_at: '2026-04-26T19:13:18.316080'
+    result: skipped
+    notes: Not applicable
+  - id: 3.1.2_globalize_commands
+    applied_at: '2026-04-26T19:13:18.335116'
+    result: success
+    notes: 'Removed: .claude/commands/spec-kitty.accept.md; Removed: .claude/commands/spec-kitty.analyze.md;
+      Removed: .claude/commands/spec-kitty.charter.md; Removed: .claude/commands/spec-kitty.checklist.md;
+      Removed: .claude/commands/spec-kitty.dashboard.md; Removed: .claude/commands/spec-kitty.implement.md;
+      Removed: .claude/commands/spec-kitty.merge.md; Removed: .claude/commands/spec-kitty.plan.md;
+      Removed: .claude/commands/spec-kitty.research.md; Removed: .claude/commands/spec-kitty.review.md;
+      Removed: .claude/commands/spec-kitty.specify.md; Removed: .claude/commands/spec-kitty.status.md;
+      Removed: .claude/commands/spec-kitty.tasks-finalize.md; Removed: .claude/commands/spec-kitty.tasks-outline.md;
+      Removed: .claude/commands/spec-kitty.tasks-packages.md; Removed: .claude/commands/spec-kitty.tasks.md;
+      Removed: .github/prompts/spec-kitty.accept.md; Removed: .github/prompts/spec-kitty.analyze.prompt.md;
+      Removed: .github/prompts/spec-kitty.charter.prompt.md; Removed: .github/prompts/spec-kitty.checklist.prompt.md;
+      Removed: .github/prompts/spec-kitty.dashboard.md; Removed: .github/prompts/spec-kitty.implement.md;
+      Removed: .github/prompts/spec-kitty.merge.md; Removed: .github/prompts/spec-kitty.plan.prompt.md;
+      Removed: .github/prompts/spec-kitty.research.prompt.md; Removed: .github/prompts/spec-kitty.review.md;
+      Removed: .github/prompts/spec-kitty.specify.prompt.md; Removed: .github/prompts/spec-kitty.status.md;
+      Removed: .github/prompts/spec-kitty.tasks-finalize.md; Removed: .github/prompts/spec-kitty.tasks-outline.prompt.md;
+      Removed: .github/prompts/spec-kitty.tasks-packages.prompt.md; Removed: .github/prompts/spec-kitty.tasks.prompt.md;
+      Removed empty directory: .github/prompts; Removed: .gemini/commands/spec-kitty.accept.md;
+      Removed: .gemini/commands/spec-kitty.analyze.toml; Removed: .gemini/commands/spec-kitty.charter.toml;
+      Removed: .gemini/commands/spec-kitty.checklist.toml; Removed: .gemini/commands/spec-kitty.dashboard.md;
+      Removed: .gemini/commands/spec-kitty.implement.md; Removed: .gemini/commands/spec-kitty.merge.md;
+      Removed: .gemini/commands/spec-kitty.plan.toml; Removed: .gemini/commands/spec-kitty.research.toml;
+      Removed: .gemini/commands/spec-kitty.review.md; Removed: .gemini/commands/spec-kitty.specify.toml;
+      Removed: .gemini/commands/spec-kitty.status.md; Removed: .gemini/commands/spec-kitty.tasks-finalize.md;
+      Removed: .gemini/commands/spec-kitty.tasks-outline.toml; Removed: .gemini/commands/spec-kitty.tasks-packages.toml;
+      Removed: .gemini/commands/spec-kitty.tasks.toml; Removed empty directory: .gemini/commands;
+      Removed: .cursor/commands/spec-kitty.accept.md; Removed: .cursor/commands/spec-kitty.analyze.md;
+      Removed: .cursor/commands/spec-kitty.charter.md; Removed: .cursor/commands/spec-kitty.checklist.md;
+      Removed: .cursor/commands/spec-kitty.dashboard.md; Removed: .cursor/commands/spec-kitty.implement.md;
+      Removed: .cursor/commands/spec-kitty.merge.md; Removed: .cursor/commands/spec-kitty.plan.md;
+      Removed: .cursor/commands/spec-kitty.research.md; Removed: .cursor/commands/spec-kitty.review.md;
+      Removed: .cursor/commands/spec-kitty.specify.md; Removed: .cursor/commands/spec-kitty.status.md;
+      Removed: .cursor/commands/spec-kitty.tasks-finalize.md; Removed: .cursor/commands/spec-kitty.tasks-outline.md;
+      Removed: .cursor/commands/spec-kitty.tasks-packages.md; Removed: .cursor/commands/spec-kitty.tasks.md;
+      Removed: .qwen/commands/spec-kitty.accept.md; Removed: .qwen/commands/spec-kitty.analyze.toml;
+      Removed: .qwen/commands/spec-kitty.charter.toml; Removed: .qwen/commands/spec-kitty.checklist.toml;
+      Removed: .qwen/commands/spec-kitty.dashboard.md; Removed: .qwen/commands/spec-kitty.implement.md;
+      Removed: .qwen/commands/spec-kitty.merge.md; Removed: .qwen/commands/spec-kitty.plan.toml;
+      Removed: .qwen/commands/spec-kitty.research.toml; Removed: .qwen/commands/spec-kitty.review.md;
+      Removed: .qwen/commands/spec-kitty.specify.toml; Removed: .qwen/commands/spec-kitty.status.md;
+      Removed: .qwen/commands/spec-kitty.tasks-finalize.md; Removed: .qwen/commands/spec-kitty.tasks-outline.toml;
+      Removed: .qwen/commands/spec-kitty.tasks-packages.toml; Removed: .qwen/commands/spec-kitty.tasks.toml;
+      Removed empty directory: .qwen/commands; Removed: .opencode/command/spec-kitty.accept.md;
+      Removed: .opencode/command/spec-kitty.analyze.md; Removed: .opencode/command/spec-kitty.charter.md;
+      Removed: .opencode/command/spec-kitty.checklist.md; Removed: .opencode/command/spec-kitty.dashboard.md;
+      Removed: .opencode/command/spec-kitty.implement.md; Removed: .opencode/command/spec-kitty.merge.md;
+      Removed: .opencode/command/spec-kitty.plan.md; Removed: .opencode/command/spec-kitty.research.md;
+      Removed: .opencode/command/spec-kitty.review.md; Removed: .opencode/command/spec-kitty.specify.md;
+      Removed: .opencode/command/spec-kitty.status.md; Removed: .opencode/command/spec-kitty.tasks-finalize.md;
+      Removed: .opencode/command/spec-kitty.tasks-outline.md; Removed: .opencode/command/spec-kitty.tasks-packages.md;
+      Removed: .opencode/command/spec-kitty.tasks.md; Removed empty directory: .opencode/command;
+      Removed: .windsurf/workflows/spec-kitty.accept.md; Removed: .windsurf/workflows/spec-kitty.analyze.md;
+      Removed: .windsurf/workflows/spec-kitty.charter.md; Removed: .windsurf/workflows/spec-kitty.checklist.md;
+      Removed: .windsurf/workflows/spec-kitty.dashboard.md; Removed: .windsurf/workflows/spec-kitty.implement.md;
+      Removed: .windsurf/workflows/spec-kitty.merge.md; Removed: .windsurf/workflows/spec-kitty.plan.md;
+      Removed: .windsurf/workflows/spec-kitty.research.md; Removed: .windsurf/workflows/spec-kitty.review.md;
+      Removed: .windsurf/workflows/spec-kitty.specify.md; Removed: .windsurf/workflows/spec-kitty.status.md;
+      Removed: .windsurf/workflows/spec-kitty.tasks-finalize.md; Removed: .windsurf/workflows/spec-kitty.tasks-outline.md;
+      Removed: .windsurf/workflows/spec-kitty.tasks-packages.md; Removed: .windsurf/workflows/spec-kitty.tasks.md;
+      Removed empty directory: .windsurf/workflows; Removed: .kilocode/workflows/spec-kitty.accept.md;
+      Removed: .kilocode/workflows/spec-kitty.analyze.md; Removed: .kilocode/workflows/spec-kitty.charter.md;
+      Removed: .kilocode/workflows/spec-kitty.checklist.md; Removed: .kilocode/workflows/spec-kitty.dashboard.md;
+      Removed: .kilocode/workflows/spec-kitty.implement.md; Removed: .kilocode/workflows/spec-kitty.merge.md;
+      Removed: .kilocode/workflows/spec-kitty.plan.md; Removed: .kilocode/workflows/spec-kitty.research.md;
+      Removed: .kilocode/workflows/spec-kitty.review.md; Removed: .kilocode/workflows/spec-kitty.specify.md;
+      Removed: .kilocode/workflows/spec-kitty.status.md; Removed: .kilocode/workflows/spec-kitty.tasks-finalize.md;
+      Removed: .kilocode/workflows/spec-kitty.tasks-outline.md; Removed: .kilocode/workflows/spec-kitty.tasks-packages.md;
+      Removed: .kilocode/workflows/spec-kitty.tasks.md; Removed empty directory: .kilocode/workflows;
+      Removed: .augment/commands/spec-kitty.accept.md; Removed: .augment/commands/spec-kitty.analyze.md;
+      Removed: .augment/commands/spec-kitty.charter.md; Removed: .augment/commands/spec-kitty.checklist.md;
+      Removed: .augment/commands/spec-kitty.dashboard.md; Removed: .augment/commands/spec-kitty.implement.md;
+      Removed: .augment/commands/spec-kitty.merge.md; Removed: .augment/commands/spec-kitty.plan.md;
+      Removed: .augment/commands/spec-kitty.research.md; Removed: .augment/commands/spec-kitty.review.md;
+      Removed: .augment/commands/spec-kitty.specify.md; Removed: .augment/commands/spec-kitty.status.md;
+      Removed: .augment/commands/spec-kitty.tasks-finalize.md; Removed: .augment/commands/spec-kitty.tasks-outline.md;
+      Removed: .augment/commands/spec-kitty.tasks-packages.md; Removed: .augment/commands/spec-kitty.tasks.md;
+      Removed empty directory: .augment/commands; Removed: .roo/commands/spec-kitty.accept.md;
+      Removed: .roo/commands/spec-kitty.analyze.md; Removed: .roo/commands/spec-kitty.charter.md;
+      Removed: .roo/commands/spec-kitty.checklist.md; Removed: .roo/commands/spec-kitty.dashboard.md;
+      Removed: .roo/commands/spec-kitty.implement.md; Removed: .roo/commands/spec-kitty.merge.md;
+      Removed: .roo/commands/spec-kitty.plan.md; Removed: .roo/commands/spec-kitty.research.md;
+      Removed: .roo/commands/spec-kitty.review.md; Removed: .roo/commands/spec-kitty.specify.md;
+      Removed: .roo/commands/spec-kitty.status.md; Removed: .roo/commands/spec-kitty.tasks-finalize.md;
+      Removed: .roo/commands/spec-kitty.tasks-outline.md; Removed: .roo/commands/spec-kitty.tasks-packages.md;
+      Removed: .roo/commands/spec-kitty.tasks.md; Removed empty directory: .roo/commands;
+      Removed: .amazonq/prompts/spec-kitty.accept.md; Removed: .amazonq/prompts/spec-kitty.analyze.md;
+      Removed: .amazonq/prompts/spec-kitty.charter.md; Removed: .amazonq/prompts/spec-kitty.checklist.md;
+      Removed: .amazonq/prompts/spec-kitty.dashboard.md; Removed: .amazonq/prompts/spec-kitty.implement.md;
+      Removed: .amazonq/prompts/spec-kitty.merge.md; Removed: .amazonq/prompts/spec-kitty.plan.md;
+      Removed: .amazonq/prompts/spec-kitty.research.md; Removed: .amazonq/prompts/spec-kitty.review.md;
+      Removed: .amazonq/prompts/spec-kitty.specify.md; Removed: .amazonq/prompts/spec-kitty.status.md;
+      Removed: .amazonq/prompts/spec-kitty.tasks-finalize.md; Removed: .amazonq/prompts/spec-kitty.tasks-outline.md;
+      Removed: .amazonq/prompts/spec-kitty.tasks-packages.md; Removed: .amazonq/prompts/spec-kitty.tasks.md;
+      Removed empty directory: .amazonq/prompts; Removed: .kiro/prompts/spec-kitty.accept.md;
+      Removed: .kiro/prompts/spec-kitty.analyze.md; Removed: .kiro/prompts/spec-kitty.charter.md;
+      Removed: .kiro/prompts/spec-kitty.checklist.md; Removed: .kiro/prompts/spec-kitty.dashboard.md;
+      Removed: .kiro/prompts/spec-kitty.implement.md; Removed: .kiro/prompts/spec-kitty.merge.md;
+      Removed: .kiro/prompts/spec-kitty.plan.md; Removed: .kiro/prompts/spec-kitty.research.md;
+      Removed: .kiro/prompts/spec-kitty.review.md; Removed: .kiro/prompts/spec-kitty.specify.md;
+      Removed: .kiro/prompts/spec-kitty.status.md; Removed: .kiro/prompts/spec-kitty.tasks-finalize.md;
+      Removed: .kiro/prompts/spec-kitty.tasks-outline.md; Removed: .kiro/prompts/spec-kitty.tasks-packages.md;
+      Removed: .kiro/prompts/spec-kitty.tasks.md; Removed empty directory: .kiro/prompts;
+      Removed: .agent/workflows/spec-kitty.accept.md; Removed: .agent/workflows/spec-kitty.analyze.md;
+      Removed: .agent/workflows/spec-kitty.charter.md; Removed: .agent/workflows/spec-kitty.checklist.md;
+      Removed: .agent/workflows/spec-kitty.dashboard.md; Removed: .agent/workflows/spec-kitty.implement.md;
+      Removed: .agent/workflows/spec-kitty.merge.md; Removed: .agent/workflows/spec-kitty.plan.md;
+      Removed: .agent/workflows/spec-kitty.research.md; Removed: .agent/workflows/spec-kitty.review.md;
+      Removed: .agent/workflows/spec-kitty.specify.md; Removed: .agent/workflows/spec-kitty.status.md;
+      Removed: .agent/workflows/spec-kitty.tasks-finalize.md; Removed: .agent/workflows/spec-kitty.tasks-outline.md;
+      Removed: .agent/workflows/spec-kitty.tasks-packages.md; Removed: .agent/workflows/spec-kitty.tasks.md;
+      Removed empty directory: .agent/workflows'
