@@ -32,6 +32,14 @@ technical:
     timeout_minutes: 10
     notify_on_failure: false
 
+  ml_fine_tune_loop:
+    description: "Daily ML/DS engineer pass — dataset growth, base-model selection, training experiments"
+    schedule: "5 0 * * *"           # Daily 12:05 AM (offset 5 min from metrics_collection at 0 0 since parallel_runs=false)
+    skill: "/ml-fine-tune-loop"
+    enabled: true
+    timeout_minutes: 45
+    notify_on_failure: true
+
 # ═══════════════════════════════════════════════════════════════════════════
 # CONTENT PACK - Semi-Automated (requires approval)
 # ═══════════════════════════════════════════════════════════════════════════
