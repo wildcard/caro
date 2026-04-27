@@ -501,6 +501,30 @@ enum Commands {
         /// Path to a `.caro` file.
         file: std::path::PathBuf,
     },
+
+    /// List CaroML tasks discovered in `./tasks/` and `~/.caro/library/`.
+    ///
+    /// By default lists both project and global tasks (project shadows global by name).
+    List {
+        /// Show only global library tasks (`~/.caro/library/`).
+        #[arg(long)]
+        global: bool,
+    },
+
+    /// List jobs declared in the project's Carofile, if present.
+    ///
+    /// Carofile recognized at `./Carofile` or `./Carofile.caro`. No execution.
+    Jobs,
+
+    /// Scaffold a starter `.caro` task file from a template.
+    ///
+    /// Writes to `./tasks/<name>.caro`. Creates `./tasks/` if missing.
+    /// Refuses to overwrite an existing file. No LLM in v0.1 — just a
+    /// fill-in-the-blanks template; LLM-assisted scaffolding lands in PR 4.
+    New {
+        /// Task name (becomes `tasks/<name>.caro`); may include `/` for subdirectories.
+        name: String,
+    },
     // /// Manage telemetry data and settings
     // Telemetry {
     //     #[command(subcommand)]
@@ -1049,6 +1073,147 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
 
     println!("{}", outcome.command);
     Ok(())
+}
+
+// =============================================================================
+// CaroML CLI handlers
+// =============================================================================
+
+/// Print the discovered tasks. Default lists project + global with project
+/// shadowing global by name; `--global` filters to global only.
+fn run_caroml_list(global_only: bool) {
+    use caro::caroml::discovery::{
+        list_all, list_global_tasks, list_project_tasks, TaskSource,
+    };
+
+    let entries = if global_only {
+        list_global_tasks()
+    } else {
+        list_all()
+    };
+
+    if entries.is_empty() {
+        if global_only {
+            println!("(no tasks in ~/.caro/library/)");
+        } else {
+            println!("(no tasks in ./tasks/ or ~/.caro/library/)");
+        }
+        return;
+    }
+
+    let max_name = entries.iter().map(|e| e.name.len()).max().unwrap_or(0);
+    for entry in entries {
+        let source = match entry.source {
+            TaskSource::Project => "project",
+            TaskSource::Global => "global",
+        };
+        println!(
+            "{:<width$}  {}  {}",
+            entry.name,
+            source,
+            entry.path.display(),
+            width = max_name
+        );
+    }
+
+    if !global_only && !list_project_tasks().is_empty() {
+        // Project tasks take precedence; list_all already applied that.
+        // No-op; the layout above is sufficient.
+    }
+}
+
+/// Print the JOBs declared in the project's Carofile, if present.
+fn run_caroml_jobs() -> Result<(), String> {
+    use caro::caroml::{carofile, discovery};
+
+    let path = match discovery::find_carofile() {
+        Some(p) => p,
+        None => {
+            println!("(no Carofile in current directory; create one to define jobs)");
+            return Ok(());
+        }
+    };
+
+    let src = std::fs::read_to_string(&path)
+        .map_err(|e| format!("{}: {}", path.display(), e))?;
+    let cf = carofile::parse_with_path(&src, Some(path.clone()))
+        .map_err(|e| format!("{}: {}", path.display(), e))?;
+
+    println!("{}: {}", path.display(), cf.title);
+    if cf.jobs.is_empty() {
+        println!("(no JOBs declared)");
+        return Ok(());
+    }
+
+    let max_name = cf.jobs.iter().map(|j| j.name.len()).max().unwrap_or(0);
+    for job in &cf.jobs {
+        println!(
+            "{:<width$}  runs: {}",
+            job.name,
+            job.runs.join(", "),
+            width = max_name
+        );
+    }
+    Ok(())
+}
+
+/// Scaffold a starter `.caro` from a template at `tasks/<name>.caro`.
+///
+/// v0.1 is template-only — no LLM. PR 4 adds `caro new <name> "<description>"`
+/// for LLM-assisted scaffolding.
+fn run_caroml_new(name: &str) -> Result<std::path::PathBuf, String> {
+    use caro::caroml::discovery::project_tasks_dir;
+
+    if name.trim().is_empty() {
+        return Err("task name cannot be empty".to_string());
+    }
+    if name.contains("..") {
+        return Err("task name cannot contain `..`".to_string());
+    }
+
+    let mut path = project_tasks_dir();
+    for segment in name.split('/') {
+        path = path.join(segment);
+    }
+    let final_path = path.with_extension("caro");
+
+    if final_path.exists() {
+        return Err(format!(
+            "{} already exists; refusing to overwrite",
+            final_path.display()
+        ));
+    }
+
+    if let Some(parent) = final_path.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("creating {}: {}", parent.display(), e))?;
+    }
+
+    let template = format!(
+        "REM Scaffolded by `caro new {}` — fill in the blanks below.\n\
+         REM Run `caro check tasks/{}.caro` to validate as you edit.\n\
+         \n\
+         TASK <one-line title for this task>\n\
+         WHY  <why this task exists; runs when?>\n\
+         \n\
+         REM Optional: declare prerequisites\n\
+         REM NEED sudo\n\
+         REM ON   macos PREFER bsd-tools\n\
+         REM ON   linux PREFER gnu-tools\n\
+         \n\
+         REM Optional: declare authoring-time parameters; reference as {{name}} in DO lines.\n\
+         REM LET path = /var/log\n\
+         \n\
+         REM Steps — one natural-language intent per DO line.\n\
+         DO   <first thing to do>\n\
+         DO   <second thing to do>\n",
+        name, name,
+    );
+
+    std::fs::write(&final_path, template)
+        .map_err(|e| format!("writing {}: {}", final_path.display(), e))?;
+
+    Ok(final_path)
 }
 
 // =============================================================================
@@ -2179,6 +2344,27 @@ async fn main() {
             }
             Err(caro::caroml::CheckError::Parse(e)) => {
                 eprintln!("{}: {}", file.display(), e);
+                process::exit(1);
+            }
+        },
+        Some(Commands::List { global }) => {
+            run_caroml_list(global);
+            process::exit(0);
+        }
+        Some(Commands::Jobs) => match run_caroml_jobs() {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        },
+        Some(Commands::New { ref name }) => match run_caroml_new(name) {
+            Ok(path) => {
+                println!("{}: created", path.display());
+                process::exit(0);
+            }
+            Err(e) => {
+                eprintln!("Error: {}", e);
                 process::exit(1);
             }
         },

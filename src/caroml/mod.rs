@@ -21,6 +21,8 @@
 //! carofile, cve_feed, platform.
 
 pub mod ast;
+pub mod carofile;
+pub mod discovery;
 pub mod lock;
 pub mod parser;
 
