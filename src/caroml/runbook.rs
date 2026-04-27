@@ -219,6 +219,7 @@ mod tests {
             tool_versions: BTreeMap::new(),
             track_record: Default::default(),
             retired_at: None,
+            runbook_hash: String::new(),
         }
     }
 

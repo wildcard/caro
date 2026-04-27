@@ -215,11 +215,10 @@ async fn generate_step(
         };
         let outcomes = run_all(validators, &validator_ctx).await;
 
-        if !should_repair(&outcomes) || iter >= cfg.max_iterations.saturating_sub(1) {
-            break (generated, outcomes, iter + 1);
-        }
+        // Must-pass failures (e.g. safety) ALWAYS short-circuit, even on the
+        // last allowed iteration — otherwise a max-iter exhaustion would
+        // silently land the bad command in the lock with risk_level=high.
         if let Some(angle) = fatal_angle(validators, &outcomes) {
-            // must-pass failed: don't loop forever, surface the failure.
             if angle == "safety" {
                 return Err(GenerateError::SafetyBlocked {
                     step_line: step.line,
@@ -230,6 +229,10 @@ async fn generate_step(
                         .unwrap_or_else(|| "blocked by safety validator".to_string()),
                 });
             }
+        }
+
+        if !should_repair(&outcomes) || iter >= cfg.max_iterations.saturating_sub(1) {
+            break (generated, outcomes, iter + 1);
         }
 
         prior_failures = outcomes
@@ -324,6 +327,7 @@ fn build_variant(
         tool_versions: BTreeMap::new(),
         track_record: Default::default(),
         retired_at: None,
+            runbook_hash: String::new(),
     }
 }
 

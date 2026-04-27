@@ -165,6 +165,11 @@ pub struct Variant {
     /// If set, this variant has been retired (no longer active or challenger).
     #[serde(default)]
     pub retired_at: Option<DateTime<Utc>>,
+    /// Body-hash of the runbook that was last exported from this variant.
+    /// `caro run` compares this against the on-disk runbook to detect drift.
+    /// Empty when the runbook has never been exported.
+    #[serde(default)]
+    pub runbook_hash: String,
 }
 
 fn default_iterations() -> u32 {
@@ -332,6 +337,7 @@ mod tests {
                 last_used: Some(Utc.with_ymd_and_hms(2026, 4, 25, 8, 30, 0).unwrap()),
             },
             retired_at: None,
+            runbook_hash: String::new(),
         }
     }
 

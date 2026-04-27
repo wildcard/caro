@@ -1398,6 +1398,38 @@ fn build_caroml_backend(
     }
 }
 
+/// Status of the on-disk runbook relative to the lock's stamped hash.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum RunbookStatus {
+    Missing,
+    Clean,
+    Drift,
+    NoStamp,
+}
+
+fn runbook_status_for_active(
+    lock: &caro::caroml::lock::Lock,
+    platform: &str,
+    runbook_path: &std::path::Path,
+) -> RunbookStatus {
+    if !runbook_path.exists() {
+        return RunbookStatus::Missing;
+    }
+    let stamp = lock
+        .steps
+        .iter()
+        .find_map(|s| s.active_variant(platform).map(|v| v.runbook_hash.clone()))
+        .unwrap_or_default();
+    if stamp.is_empty() {
+        return RunbookStatus::NoStamp;
+    }
+    match caro::caroml::runbook::read_and_hash(runbook_path) {
+        Ok(actual) if actual == stamp => RunbookStatus::Clean,
+        Ok(_) => RunbookStatus::Drift,
+        Err(_) => RunbookStatus::Missing,
+    }
+}
+
 /// Run `caro run <name>` — read lock, build plan, confirm, execute.
 fn run_caroml_run(
     name: &str,
@@ -1430,7 +1462,38 @@ fn run_caroml_run(
     let plan = runner::plan_run(&lock, &target_platform)
         .map_err(|e| format!("{}: {}", lock_path.display(), e))?;
 
+    // Runbook-first execution: if the per-platform `.sh` runbook exists and
+    // is hash-clean, prefer running it directly (matches what a non-Caro
+    // user would `bash`). Falls back to step-by-step otherwise.
+    use caro::caroml::runbook;
+    let runbook_path = runbook::runbook_path(&task_path, &target_platform);
+    let runbook_status = runbook_status_for_active(&lock, &target_platform, &runbook_path);
+
     println!("{}", runner::render_plan(&plan));
+    match &runbook_status {
+        RunbookStatus::Missing => {
+            println!("(no runbook on disk; will execute step-by-step from the lock)")
+        }
+        RunbookStatus::Clean => {
+            println!("(runbook clean — will run `bash {}`)", runbook_path.display())
+        }
+        RunbookStatus::Drift => {
+            eprintln!(
+                "warning: {} has been edited since `caro export` last ran.\n\
+                 Step-by-step execution from the lock will be used instead.\n\
+                 Run `caro export {}` to refresh the runbook from the lock.",
+                runbook_path.display(),
+                name
+            );
+        }
+        RunbookStatus::NoStamp => {
+            eprintln!(
+                "note: lock has no runbook_hash stamp yet. Run `caro export {}` after\n\
+                 successful runs to enable drift detection.",
+                name
+            );
+        }
+    }
 
     if dry_run {
         return Ok(());
@@ -1450,7 +1513,20 @@ fn run_caroml_run(
     use caro::caroml::history;
     use std::time::Instant;
     let started = Instant::now();
-    let result = runner::execute_plan(&plan);
+    // Prefer runbook execution when it's hash-clean; fall back to per-step.
+    let result = match runbook_status {
+        RunbookStatus::Clean => match runner::execute_runbook(&runbook_path) {
+            Ok(0) => Ok(vec![]),
+            Ok(other) => Err(runner::RunError::StepFailed {
+                line: 0,
+                intent: format!("bash {}", runbook_path.display()),
+                exit_code: other,
+                stderr: String::new(),
+            }),
+            Err(e) => Err(e),
+        },
+        _ => runner::execute_plan(&plan),
+    };
     let elapsed_ms = started.elapsed().as_millis() as u64;
 
     // Journal the outcome (best-effort; don't fail the run if journal write fails).
@@ -1753,19 +1829,38 @@ fn run_caroml_export(
         None => caro_platform::current().to_string(),
     };
 
-    if let Some(out) = output {
-        let body = runbook::build_runbook(&lock, &platform).map_err(|e| e.to_string())?;
+    let body = runbook::build_runbook(&lock, &platform).map_err(|e| e.to_string())?;
+    let body_hash = runbook::compute_runbook_hash(&body);
+
+    let path = if let Some(out) = output {
         if let Some(parent) = out.parent() {
             if !parent.as_os_str().is_empty() {
                 std::fs::create_dir_all(parent)
                     .map_err(|e| format!("creating {}: {}", parent.display(), e))?;
             }
         }
-        std::fs::write(out, body).map_err(|e| format!("writing {}: {}", out.display(), e))?;
-        Ok(out.to_path_buf())
+        std::fs::write(out, &body).map_err(|e| format!("writing {}: {}", out.display(), e))?;
+        out.to_path_buf()
     } else {
-        runbook::write_runbook(&lock, &platform, &task_path).map_err(|e| e.to_string())
+        runbook::write_runbook(&lock, &platform, &task_path).map_err(|e| e.to_string())?
+    };
+
+    // Stamp the runbook_hash onto every active variant for this platform.
+    // This is what `caro run` later compares against the on-disk runbook to
+    // detect manual edits.
+    let mut updated = lock;
+    for step in updated.steps.iter_mut() {
+        for v in step.variants.iter_mut() {
+            if v.active && v.platform == platform {
+                v.runbook_hash = body_hash.clone();
+            }
+        }
     }
+    updated
+        .write_path(&lock_path)
+        .map_err(|e| format!("updating {}: {}", lock_path.display(), e))?;
+
+    Ok(path)
 }
 
 /// Inline echo-style deterministic backend for `caro generate --backend mock`.
