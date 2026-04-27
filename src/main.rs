@@ -583,6 +583,50 @@ enum Commands {
         #[arg(short = 'o', long)]
         output: Option<std::path::PathBuf>,
     },
+
+    /// Generate an A/B challenger variant alongside the existing active.
+    ///
+    /// The challenger is added with `active = false`. Use `caro adopt` to
+    /// promote it once you've reviewed it.
+    Experiment {
+        /// Task name.
+        name: String,
+
+        /// Platform to experiment on (default: current).
+        #[arg(long)]
+        platform: Option<String>,
+
+        /// Backend to use for the new variant (default: `mock` in v0.1).
+        #[arg(long)]
+        backend: Option<String>,
+    },
+
+    /// Promote a challenger variant to active for its platform.
+    ///
+    /// The previously-active variant for that platform is retired
+    /// (set to `active = false`, `retired_at = now`) but kept in the lock
+    /// for reference.
+    Adopt {
+        /// Task name.
+        name: String,
+
+        /// Variant generation_id to promote (e.g. `gen_2026-04-26_macos_b`).
+        #[arg(long)]
+        variant: String,
+    },
+
+    /// Show the generation lineage from the lock plus a per-variant
+    /// run-summary derived from the local journal.
+    History {
+        /// Task name.
+        name: String,
+    },
+
+    /// Explain the RegenEvaluator's decision for the next `caro run`.
+    Why {
+        /// Task name.
+        name: String,
+    },
     // /// Manage telemetry data and settings
     // Telemetry {
     //     #[command(subcommand)]
@@ -1388,8 +1432,235 @@ fn run_caroml_run(
         }
     }
 
-    let results = runner::execute_plan(&plan).map_err(|e| e.to_string())?;
-    println!("All {} steps completed.", results.len());
+    use caro::caroml::history;
+    use std::time::Instant;
+    let started = Instant::now();
+    let result = runner::execute_plan(&plan);
+    let elapsed_ms = started.elapsed().as_millis() as u64;
+
+    // Journal the outcome (best-effort; don't fail the run if journal write fails).
+    let (exit_code, note, stderr) = match &result {
+        Ok(_) => (0i32, None, String::new()),
+        Err(runner::RunError::StepFailed {
+            line,
+            intent,
+            exit_code,
+            stderr,
+        }) => (*exit_code, Some(format!("step on line {}: {}", line, intent)), stderr.clone()),
+        Err(other) => (255, Some(format!("{}", other)), String::new()),
+    };
+    let variant_id = plan
+        .steps
+        .first()
+        .map(|s| s.generation_id.clone())
+        .unwrap_or_default();
+    let entry = history::JournalEntry {
+        timestamp: chrono::Utc::now(),
+        intent_hash: lock.meta.intent_hash.clone(),
+        variant_id,
+        platform: target_platform,
+        exit_code,
+        duration_ms: elapsed_ms,
+        stderr_digest: history::stderr_digest(&stderr),
+        note,
+    };
+    if let Err(e) = history::append(&entry) {
+        eprintln!("warning: could not write run journal: {}", e);
+    }
+
+    let results = result.map_err(|e| e.to_string())?;
+    println!("All {} steps completed in {} ms.", results.len(), elapsed_ms);
+    Ok(())
+}
+
+/// `caro experiment <name>` — generate a fresh challenger variant.
+async fn run_caroml_experiment(
+    name: &str,
+    platform_override: Option<&str>,
+    backend_override: Option<&str>,
+) -> Result<(std::path::PathBuf, String), String> {
+    use caro::caroml::{
+        check_file, discovery, interpreter, lock::Lock, platform as caro_platform, validators,
+        variants as variant_helpers,
+    };
+
+    let task_path = discovery::resolve_task_path(name)
+        .ok_or_else(|| format!("could not find task `{}`", name))?;
+    let task = check_file(&task_path).map_err(|e| format!("{}: {}", task_path.display(), e))?;
+
+    let lock_path = task_path.with_extension("caro.lock");
+    if !lock_path.exists() {
+        return Err(format!(
+            "{}: no lock found; run `caro generate {}` first",
+            lock_path.display(),
+            name
+        ));
+    }
+    let mut lock =
+        Lock::read_path(&lock_path).map_err(|e| format!("{}: {}", lock_path.display(), e))?;
+
+    let target_platform = match platform_override {
+        Some(p) if caro_platform::is_known(p) => p.to_string(),
+        Some(p) => return Err(format!("unknown platform `{}`", p)),
+        None => caro_platform::current().to_string(),
+    };
+
+    let backend = build_caroml_backend(backend_override).map_err(|e| format!("backend: {}", e))?;
+    let chain = validators::default_chain();
+    let cfg = interpreter::GenerateConfig::for_intent(task_path.to_string_lossy().into_owned());
+
+    let fresh =
+        interpreter::generate_lock_for_platform(&task, &target_platform, &*backend, &chain, &cfg)
+            .await
+            .map_err(|e| format!("generation failed: {}", e))?;
+
+    // Append the new variants to the existing lock as challengers.
+    // Bump the generation_id suffix so we don't clash with existing IDs.
+    let existing_count = variant_helpers::all_challengers_for(&lock, &target_platform).count()
+        + variant_helpers::active_count_for(&lock, &target_platform);
+    let new_gen_id = variant_helpers::generation_id(
+        chrono::Utc::now(),
+        &target_platform,
+        existing_count,
+    );
+
+    let mut adopted_id = String::new();
+    for (i, fresh_step) in fresh.steps.into_iter().enumerate() {
+        if let Some(existing_step) = lock.steps.get_mut(i) {
+            for mut variant in fresh_step.variants {
+                variant.active = false;
+                variant.generation_id = format!("{}_step{}", new_gen_id, i);
+                adopted_id = variant.generation_id.clone();
+                existing_step.variants.push(variant);
+            }
+        }
+    }
+    // Rewrite the imported history entries' generation_id to match this
+    // experiment's id, and tag them as challenger entries so `caro history`
+    // can distinguish initial-gen rows from challenger-add rows.
+    for mut h in fresh.history {
+        h.generation_id = new_gen_id.clone();
+        h.trigger = "experiment".into();
+        h.notes = Some(format!(
+            "Challenger added by `caro experiment` on platform `{}`.",
+            target_platform
+        ));
+        lock.history.push(h);
+    }
+
+    lock.write_path(&lock_path)
+        .map_err(|e| format!("writing {}: {}", lock_path.display(), e))?;
+
+    Ok((lock_path, adopted_id))
+}
+
+/// `caro adopt <name> --variant <id>`.
+fn run_caroml_adopt(name: &str, variant_id: &str) -> Result<(), String> {
+    use caro::caroml::{adopt as adopt_mod, discovery, lock::Lock};
+
+    let task_path = discovery::resolve_task_path(name)
+        .ok_or_else(|| format!("could not find task `{}`", name))?;
+    let lock_path = task_path.with_extension("caro.lock");
+    let mut lock =
+        Lock::read_path(&lock_path).map_err(|e| format!("{}: {}", lock_path.display(), e))?;
+    adopt_mod::adopt(&mut lock, variant_id).map_err(|e| e.to_string())?;
+    lock.write_path(&lock_path)
+        .map_err(|e| format!("writing {}: {}", lock_path.display(), e))?;
+    Ok(())
+}
+
+/// `caro history <name>`.
+fn run_caroml_history(name: &str) -> Result<(), String> {
+    use caro::caroml::{discovery, history, lock::Lock};
+
+    let task_path = discovery::resolve_task_path(name)
+        .ok_or_else(|| format!("could not find task `{}`", name))?;
+    let lock_path = task_path.with_extension("caro.lock");
+    let lock =
+        Lock::read_path(&lock_path).map_err(|e| format!("{}: {}", lock_path.display(), e))?;
+
+    println!("Lock history for {}:", lock_path.display());
+    if lock.history.is_empty() {
+        println!("(no entries)");
+    } else {
+        for h in &lock.history {
+            println!(
+                "  {} [{}] {} on {} (model: {}, trigger: {})",
+                h.generation_id,
+                h.generated_at.format("%Y-%m-%d %H:%M:%SZ"),
+                h.platform,
+                h.backend,
+                h.model,
+                h.trigger
+            );
+        }
+    }
+
+    let entries = history::read_all(&lock.meta.intent_hash).unwrap_or_default();
+    println!(
+        "\nLocal run journal ({} entries):",
+        entries.len()
+    );
+    let recent: Vec<_> = entries.iter().rev().take(10).collect();
+    for e in recent {
+        println!(
+            "  {} variant={} platform={} exit={} ({} ms)",
+            e.timestamp.format("%Y-%m-%d %H:%M:%SZ"),
+            e.variant_id,
+            e.platform,
+            e.exit_code,
+            e.duration_ms
+        );
+    }
+    Ok(())
+}
+
+/// `caro why <name>` — explain the RegenEvaluator decision.
+fn run_caroml_why(name: &str) -> Result<(), String> {
+    use caro::caroml::{
+        check_file, discovery, lock::Lock, platform as caro_platform, regen_evaluator,
+    };
+
+    let task_path = discovery::resolve_task_path(name)
+        .ok_or_else(|| format!("could not find task `{}`", name))?;
+    let task = check_file(&task_path).map_err(|e| format!("{}: {}", task_path.display(), e))?;
+
+    let lock_path = task_path.with_extension("caro.lock");
+    let lock = if lock_path.exists() {
+        Some(Lock::read_path(&lock_path).map_err(|e| format!("{}: {}", lock_path.display(), e))?)
+    } else {
+        None
+    };
+
+    let platform = caro_platform::current().to_string();
+    let input = regen_evaluator::EvalInput {
+        task: &task,
+        lock: lock.as_ref(),
+        platform: &platform,
+        current_caro_version: env!("CARGO_PKG_VERSION"),
+        current_model: "mock-inline",
+        current_backend: "mock",
+        mode: regen_evaluator::Mode::default(),
+    };
+    let decision = regen_evaluator::decide(&input);
+
+    println!("Task:     {}", name);
+    println!("Path:     {}", task_path.display());
+    println!("Platform: {}", platform);
+    println!("Decision: {:?}", match &decision {
+        regen_evaluator::Decision::UseCache => "UseCache",
+        regen_evaluator::Decision::HardRegen { .. } => "HardRegen",
+        regen_evaluator::Decision::SoftExplore { .. } => "SoftExplore",
+    });
+    let reasons = decision.reasons();
+    if reasons.is_empty() {
+        println!("(no reasons; cache is fresh)");
+    } else {
+        println!("Reasons:");
+        for r in reasons {
+            println!("  - {}", r);
+        }
+    }
     Ok(())
 }
 
@@ -2666,6 +2937,47 @@ async fn main() {
                 println!("{}: written", path.display());
                 process::exit(0);
             }
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        },
+        Some(Commands::Experiment {
+            ref name,
+            ref platform,
+            ref backend,
+        }) => match run_caroml_experiment(name, platform.as_deref(), backend.as_deref()).await {
+            Ok((path, gen_id)) => {
+                println!("{}: challenger {} added", path.display(), gen_id);
+                process::exit(0);
+            }
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        },
+        Some(Commands::Adopt {
+            ref name,
+            ref variant,
+        }) => match run_caroml_adopt(name, variant) {
+            Ok(()) => {
+                println!("Adopted {} as active.", variant);
+                process::exit(0);
+            }
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        },
+        Some(Commands::History { ref name }) => match run_caroml_history(name) {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        },
+        Some(Commands::Why { ref name }) => match run_caroml_why(name) {
+            Ok(()) => process::exit(0),
             Err(e) => {
                 eprintln!("Error: {}", e);
                 process::exit(1);

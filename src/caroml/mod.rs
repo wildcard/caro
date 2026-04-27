@@ -20,9 +20,11 @@
 //! runner, regen evaluator, history, variants, voice, scaffold, skill,
 //! carofile, cve_feed, platform.
 
+pub mod adopt;
 pub mod ast;
 pub mod carofile;
 pub mod discovery;
+pub mod history;
 pub mod interpreter;
 pub mod lock;
 pub mod parser;
