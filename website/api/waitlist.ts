@@ -1,7 +1,10 @@
 import { Ratelimit } from '@upstash/ratelimit';
 import { checkBotId } from 'botid/server';
 import { createHash } from 'node:crypto';
-import { redis } from './_lib/redis';
+// `.js` extension required at runtime — Vercel's Node bundler uses NodeNext
+// resolution for serverless functions, even though Astro's tsconfig (which
+// our local `tsc` build inherits) uses "Bundler" mode and doesn't enforce it.
+import { redis } from './_lib/redis.js';
 
 // Inlined burner-domain blocklist. Originally we depended on the npm package
 // `disposable-email-domains` (3000+ entries via index.json) but Vercel's
