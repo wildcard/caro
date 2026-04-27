@@ -226,7 +226,12 @@ mod tests {
         let names: Vec<&str> = entries.iter().map(|e| e.name.as_str()).collect();
         assert_eq!(
             names,
-            vec!["deep/nested/foo", "root", "system/cleanup", "system/snapshot"]
+            vec![
+                "deep/nested/foo",
+                "root",
+                "system/cleanup",
+                "system/snapshot"
+            ]
         );
     }
 
@@ -244,7 +249,10 @@ mod tests {
         std::env::set_current_dir(&original_cwd).unwrap();
 
         assert!(resolved.is_some());
-        assert!(resolved.unwrap().to_string_lossy().ends_with("stuff/x.caro"));
+        assert!(resolved
+            .unwrap()
+            .to_string_lossy()
+            .ends_with("stuff/x.caro"));
     }
 
     #[test]

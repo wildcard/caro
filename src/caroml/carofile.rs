@@ -184,9 +184,8 @@ impl State {
 
     fn handle_use(&mut self, rest: &str) -> Result<(), ParseError> {
         self.require_title()?;
-        let parsed = parse_use_clause(rest).ok_or_else(|| {
-            ParseError::new(self.line_no, ParseErrorKind::MalformedUse)
-        })?;
+        let parsed = parse_use_clause(rest)
+            .ok_or_else(|| ParseError::new(self.line_no, ParseErrorKind::MalformedUse))?;
         self.uses.push(UseDecl {
             line: self.line_no,
             alias: parsed.0,
@@ -218,10 +217,7 @@ impl State {
                 }
                 Ok(())
             }
-            None => Err(ParseError::new(
-                self.line_no,
-                ParseErrorKind::RunOutsideJob,
-            )),
+            None => Err(ParseError::new(self.line_no, ParseErrorKind::RunOutsideJob)),
         }
     }
 
@@ -251,8 +247,7 @@ impl State {
             .ok_or_else(|| ParseError::new(eof_line, ParseErrorKind::MissingTaskHeader))?;
 
         // Validate that every RUN references a declared USE alias.
-        let known_aliases: HashSet<&str> =
-            self.uses.iter().map(|u| u.alias.as_str()).collect();
+        let known_aliases: HashSet<&str> = self.uses.iter().map(|u| u.alias.as_str()).collect();
         for job in &self.jobs {
             for alias in &job.runs {
                 if !known_aliases.contains(alias.as_str()) {
@@ -318,11 +313,12 @@ fn take_target(s: &str) -> Option<(UseTarget, &str)> {
         if cmd.is_empty() {
             return None;
         }
-        Some((UseTarget::ExternalCommand(cmd.to_string()), &rest[close + 1..]))
+        Some((
+            UseTarget::ExternalCommand(cmd.to_string()),
+            &rest[close + 1..],
+        ))
     } else {
-        let end = s
-            .find(char::is_whitespace)
-            .unwrap_or(s.len());
+        let end = s.find(char::is_whitespace).unwrap_or(s.len());
         let token = &s[..end];
         if token.is_empty() {
             return None;
@@ -389,7 +385,10 @@ JOB ci
         let cf = must_parse(src);
         assert_eq!(cf.jobs.len(), 1);
         assert_eq!(cf.jobs[0].name, "ci");
-        assert_eq!(cf.jobs[0].runs, vec!["build".to_string(), "test".to_string()]);
+        assert_eq!(
+            cf.jobs[0].runs,
+            vec!["build".to_string(), "test".to_string()]
+        );
     }
 
     #[test]
@@ -408,7 +407,10 @@ JOB nightly
         let cf = must_parse(src);
         assert_eq!(cf.jobs.len(), 2);
         assert_eq!(cf.jobs[0].name, "ci");
-        assert_eq!(cf.jobs[0].runs, vec!["build".to_string(), "test".to_string()]);
+        assert_eq!(
+            cf.jobs[0].runs,
+            vec!["build".to_string(), "test".to_string()]
+        );
         assert_eq!(cf.jobs[1].name, "nightly");
         assert_eq!(cf.jobs[1].runs, vec!["lint".to_string()]);
     }
@@ -499,11 +501,7 @@ JOB nightly
         assert_eq!(cf.jobs.len(), 2);
         assert_eq!(
             cf.jobs[0].runs,
-            vec![
-                "lint".to_string(),
-                "test".to_string(),
-                "build".to_string()
-            ]
+            vec!["lint".to_string(), "test".to_string(), "build".to_string()]
         );
         assert_eq!(cf.jobs[1].runs, vec!["cleanup-logs".to_string()]);
 

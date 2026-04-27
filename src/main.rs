@@ -1082,9 +1082,7 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
 /// Print the discovered tasks. Default lists project + global with project
 /// shadowing global by name; `--global` filters to global only.
 fn run_caroml_list(global_only: bool) {
-    use caro::caroml::discovery::{
-        list_all, list_global_tasks, list_project_tasks, TaskSource,
-    };
+    use caro::caroml::discovery::{list_all, list_global_tasks, list_project_tasks, TaskSource};
 
     let entries = if global_only {
         list_global_tasks()
@@ -1134,8 +1132,7 @@ fn run_caroml_jobs() -> Result<(), String> {
         }
     };
 
-    let src = std::fs::read_to_string(&path)
-        .map_err(|e| format!("{}: {}", path.display(), e))?;
+    let src = std::fs::read_to_string(&path).map_err(|e| format!("{}: {}", path.display(), e))?;
     let cf = carofile::parse_with_path(&src, Some(path.clone()))
         .map_err(|e| format!("{}: {}", path.display(), e))?;
 
