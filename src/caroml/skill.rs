@@ -73,11 +73,7 @@ mod tests {
     fn make_skill_source(root: &Path) -> PathBuf {
         let dir = root.join("source/.claude/skills/caro-scaffold");
         std::fs::create_dir_all(&dir).unwrap();
-        std::fs::write(
-            dir.join("SKILL.md"),
-            "---\nname: caro-scaffold\n---\nbody",
-        )
-        .unwrap();
+        std::fs::write(dir.join("SKILL.md"), "---\nname: caro-scaffold\n---\nbody").unwrap();
         std::fs::write(dir.join("README.md"), "# caro-scaffold\n").unwrap();
         dir
     }

@@ -1737,10 +1737,7 @@ fn run_caroml_history(name: &str) -> Result<(), String> {
 }
 
 /// `caro render <name>` — write Markdown docs from a `.caro` task.
-fn run_caroml_render(
-    name: &str,
-    output: Option<&std::path::Path>,
-) -> Result<(), String> {
+fn run_caroml_render(name: &str, output: Option<&std::path::Path>) -> Result<(), String> {
     use caro::caroml::{check_file, discovery, render};
 
     let path = discovery::resolve_task_path(name)
@@ -3227,15 +3224,16 @@ async fn main() {
                 process::exit(1);
             }
         },
-        Some(Commands::Render { ref name, ref output }) => {
-            match run_caroml_render(name, output.as_deref()) {
-                Ok(()) => process::exit(0),
-                Err(e) => {
-                    eprintln!("Error: {}", e);
-                    process::exit(1);
-                }
+        Some(Commands::Render {
+            ref name,
+            ref output,
+        }) => match run_caroml_render(name, output.as_deref()) {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
             }
-        }
+        },
         Some(Commands::Skill { ref command }) => match run_caroml_skill(command) {
             Ok(()) => process::exit(0),
             Err(e) => {
