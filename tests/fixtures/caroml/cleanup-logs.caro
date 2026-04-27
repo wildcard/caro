@@ -1,0 +1,18 @@
+REM Test fixture: a well-formed cleanup-logs task.
+REM Used by integration tests for parser, lock, and `caro check`.
+
+TASK Clean up old log files
+WHY  Free disk space and rotate; runs weekly via cron
+
+NEED sudo
+ON   macos PREFER bsd-tools
+ON   linux PREFER gnu-tools
+
+LET  path = /var/log
+LET  days = 30
+
+NOTE prefer single-pass find, avoid spawning a subshell per file
+DO   find log files in {path}
+DO   filter to those older than {days} days
+DO   delete each one, asking confirmation per file
+DO   record what was deleted to /tmp/caro-cleanup.log

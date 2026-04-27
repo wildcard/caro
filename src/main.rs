@@ -493,6 +493,14 @@ enum Commands {
         #[arg(long)]
         disable_ai: bool,
     },
+
+    /// Validate a CaroML (`.caro`) task file: parse, lint, report errors with line numbers.
+    ///
+    /// No LLM calls, no execution, no regen. Suitable for editor integration and CI.
+    Check {
+        /// Path to a `.caro` file.
+        file: std::path::PathBuf,
+    },
     // /// Manage telemetry data and settings
     // Telemetry {
     //     #[command(subcommand)]
@@ -2154,6 +2162,26 @@ async fn main() {
                 }
             }
         }
+        Some(Commands::Check { ref file }) => match caro::caroml::check_file(file) {
+            Ok(task) => {
+                println!(
+                    "{}: ok ({} steps, {} pragmas, {} params)",
+                    file.display(),
+                    task.steps.len(),
+                    task.platform_pragmas.len(),
+                    task.params.len()
+                );
+                process::exit(0);
+            }
+            Err(caro::caroml::CheckError::Io(e)) => {
+                eprintln!("{}: {}", file.display(), e);
+                process::exit(1);
+            }
+            Err(caro::caroml::CheckError::Parse(e)) => {
+                eprintln!("{}: {}", file.display(), e);
+                process::exit(1);
+            }
+        },
         Some(Commands::Ai {
             new_session,
             continue_session: _,
