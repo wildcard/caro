@@ -36,17 +36,50 @@ unchanged.
 ### 0. Preflight
 
 ```bash
-# Confirm we're at the worktree root and caro is built
+# 0a — Repo + binary
 test -f Cargo.toml || { echo "must run from caro repo root"; exit 2; }
-cargo build --release --quiet 2>/dev/null || cargo build --quiet
-CARO_BIN=$(command -v caro || echo "./target/release/caro" )
-$CARO_BIN --version
+CARO_BIN=$(command -v caro || echo "./target/release/caro")
+test -x "$CARO_BIN" || { cargo build --release --quiet 2>/dev/null || cargo build --quiet; }
+"$CARO_BIN" --version
 gh repo view --json nameWithOwner -q .nameWithOwner   # confirm gh auth + repo
+
+# 0b — Persona agent registration
+# The harness only loads .claude/agents/*.md at session start. If the
+# orchestrator runs in the same session that just created the file (e.g. a
+# self-test during development), spawning will fail with
+# "Agent type 'caro-frustrated-beta' not found". The cron driver SHOULD
+# spawn from a fresh session, but we still verify defensively.
+test -f .claude/agents/caro-frustrated-beta.md || {
+  echo "PREFLIGHT_FAIL: persona agent file missing at .claude/agents/caro-frustrated-beta.md"
+  exit 3
+}
+
+# 0c — Required GH labels exist (idempotent — safe to re-run daily)
+EXPECTED_LABELS=(qa-routine frustrated-beta \
+  bug-fallback-overmatch bug-undermatch bug-intent-dropped \
+  ux-no-streaming ux-no-clarification ux-slow-generation ux-confusing-prompt \
+  website-broken-promise safety-missed-danger safety-false-positive \
+  P0 P1 P2 P3)
+HAVE_LABELS=$(gh label list --limit 200 --json name -q '.[].name')
+for L in "${EXPECTED_LABELS[@]}"; do
+  echo "$HAVE_LABELS" | grep -qx "$L" || echo "PREFLIGHT_WARN: missing label '$L' (run: gh label create $L)"
+done
+
+# 0d — Run dir scaffolding
+RUN_DIR=".claude/beta-testing/runs/$(date +%Y-%m-%d)"
+mkdir -p "$RUN_DIR"/{findings,proposed-issues,community-replies}
 ```
 
-If any of those fail, abort and write a single
-`.claude/beta-testing/runs/<date>/PREFLIGHT_FAILED.md` with the error so the
-human reader knows the routine couldn't even start. Do **not** silently skip.
+If any of 0a–0b fail, abort and write a single
+`<RUN_DIR>/PREFLIGHT_FAILED.md` with the error so the human reader knows the
+routine couldn't even start. **Do not silently skip.** Missing labels (0c)
+are warnings, not aborts — the orchestrator can create them on first use
+via `gh label create` with `|| true`.
+
+The agent-registration preflight (0b) was added after the 2026-04-26 smoke
+test discovered that spawning `caro-frustrated-beta` from the same session
+that just created the agent file fails with "Agent type not found". The
+cron driver should always launch in a fresh session.
 
 ### 1. Source-of-truth refresh
 
