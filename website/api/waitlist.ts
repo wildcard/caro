@@ -1,10 +1,15 @@
 import { Ratelimit } from '@upstash/ratelimit';
 import { checkBotId } from 'botid/server';
 import { createHash } from 'node:crypto';
-// Bypass the package's `main: index.json` to avoid Node ESM ERR_IMPORT_ATTRIBUTES
-// — go through the CJS shim that re-exports the JSON via require().
-import disposableDomains from 'disposable-email-domains/index.js';
+import { createRequire } from 'node:module';
 import { redis } from './_lib/redis';
+
+// disposable-email-domains has `main: ./index.json` and no `exports` field, so
+// neither bare ESM default-import nor subpath import works on Vercel's runtime
+// (ERR_IMPORT_ATTRIBUTES then ERR_MODULE_NOT_FOUND respectively). createRequire
+// loads it via CJS resolution, which handles JSON natively in any Node version.
+const requireCjs = createRequire(import.meta.url);
+const disposableDomains = requireCjs('disposable-email-domains') as string[];
 
 const ratelimit = new Ratelimit({
   redis,
@@ -20,7 +25,7 @@ const ALLOWED_ORIGIN_PATTERNS = [
 ];
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const DISPOSABLE = new Set<string>(disposableDomains as unknown as string[]);
+const DISPOSABLE = new Set<string>(disposableDomains);
 
 const MIN_FORM_AGE_MS = 3_000;
 const MAX_FORM_AGE_MS = 60 * 60 * 1_000;
